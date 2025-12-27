@@ -9,10 +9,12 @@ import { NolioMapping } from "@/components/NolioMapping";
 import { AthleteProfile } from "@/components/AthleteProfile";
 import { TestMetaboliqueManager } from "@/components/TestMetaboliqueManager";
 import { FeedbackNolioManager } from "@/components/FeedbackNolioManager";
+import { DanLorangAnalysis } from "@/components/DanLorangAnalysis";
 import { Zap, Target, Flame, Activity } from "lucide-react";
 import { Athlete, defaultAthlete } from "@/types/athlete";
-import { TestMetabolique, estimateVLamaxFromTest } from "@/types/testMetabolique";
+import { TestMetabolique } from "@/types/testMetabolique";
 import { FeedbackNolio } from "@/types/feedbackNolio";
+import { calculVLamax, ResultatVLamax, defaultResultatVLamax } from "@/types/resultatVLamax";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -68,16 +70,23 @@ const Index = () => {
     localStorage.setItem("loranglab-feedbacks", JSON.stringify(feedbacks));
   };
 
-  // Compute metrics from latest test
+  // Compute metrics from latest test using the exact formula
   const latestTest = testsMetaboliques[0];
   const previousTest = testsMetaboliques[1];
-  const currentVlamax = latestTest 
-    ? estimateVLamaxFromTest(latestTest, athlete.poids) 
-    : athlete.vlamax || 0.45;
-  const previousVlamax = previousTest 
-    ? estimateVLamaxFromTest(previousTest, athlete.poids) 
+  
+  // Calculate VLamax using the Dan Lorang formula
+  const previousVlamaxValue = previousTest 
+    ? calculVLamax(previousTest, athlete.poids).vlamax 
     : undefined;
+  
+  const currentResultat: ResultatVLamax = latestTest 
+    ? calculVLamax(latestTest, athlete.poids, previousVlamaxValue)
+    : { ...defaultResultatVLamax, vlamax: athlete.vlamax || 0.45 };
+  
+  const currentVlamax = currentResultat.vlamax || athlete.vlamax || 0.45;
   const currentFtp = latestTest?.cp || athlete.ftp || 280;
+  const currentTte = latestTest?.tte ? latestTest.tte / 60 : 60; // Convert to minutes
+  const ftp_kg = currentFtp / (athlete.poids || 70);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -126,9 +135,17 @@ const Index = () => {
 
             {/* Main Content Grid */}
             <div className="grid lg:grid-cols-2 gap-6">
-              <VLamaxCalculator athlete={athlete} previousVlamax={previousVlamax} />
+              <VLamaxCalculator athlete={athlete} previousVlamax={previousVlamaxValue} />
               <TrainingZones />
             </div>
+
+            {/* Dan Lorang Analysis */}
+            <DanLorangAnalysis
+              athlete={athlete}
+              resultat={currentResultat}
+              tte={currentTte}
+              ftp_kg={ftp_kg}
+            />
           </div>
         );
 
@@ -136,7 +153,13 @@ const Index = () => {
         return (
           <div className="space-y-6 animate-fade-in">
             <AthleteProfile athlete={athlete} onUpdate={handleAthleteUpdate} />
-            <VLamaxCalculator athlete={athlete} previousVlamax={previousVlamax} />
+            <VLamaxCalculator athlete={athlete} previousVlamax={previousVlamaxValue} />
+            <DanLorangAnalysis
+              athlete={athlete}
+              resultat={currentResultat}
+              tte={currentTte}
+              ftp_kg={ftp_kg}
+            />
             <TrainingZones />
           </div>
         );

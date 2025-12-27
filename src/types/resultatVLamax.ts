@@ -45,7 +45,7 @@ export const calculVLamax = (
   const G = test.pmax_5s / poids;           // Puissance glycolytique relative
   const O = test.cp / poids;                 // Puissance oxydative relative
   const R = (test.pmax_5s - test.cp) * 6;   // Réserve anaérobie
-  const T = test.tte / 40;                   // Facteur temps
+  const T = (test.tte || 3600) / 40;         // Facteur temps (default 1h si non défini)
 
   // Calcul IG (Indice Glycolytique)
   const IG = (0.4 * G) + (0.35 * (R / poids)) - (0.25 * O) - (0.3 * T);
