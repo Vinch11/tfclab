@@ -24,13 +24,13 @@ export function VLamaxCalculator({ athlete, previousVlamax }: VLamaxCalculatorPr
     poids: athlete?.poids || 70,
     vo2max: athlete?.vo2max || 65,
     pmax5s: 1200,
-    lactateThreshold: 4.0,
+    tte: 3600, // TTE en secondes (60 min par défaut)
   });
 
   const [resultat, setResultat] = useState<ResultatVLamax>({
     vlamax: 0.45,
-    ig: 50,
-    confiance: 75,
+    ig: 0.5,
+    confiance: 0.8,
     delta_6sem: 0,
   });
 
@@ -54,7 +54,8 @@ export function VLamaxCalculator({ athlete, previousVlamax }: VLamaxCalculatorPr
       inputs.poids,
       inputs.vo2max,
       inputs.pmax5s,
-      previousVlamax
+      previousVlamax,
+      inputs.tte
     );
     setResultat(result);
   }, [inputs, previousVlamax]);
@@ -121,14 +122,14 @@ export function VLamaxCalculator({ athlete, previousVlamax }: VLamaxCalculatorPr
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="lactate" className="text-muted-foreground">Seuil Lactate (mmol/L)</Label>
+          <Label htmlFor="tte" className="text-muted-foreground">TTE (secondes)</Label>
           <Input
-            id="lactate"
+            id="tte"
             type="number"
-            step="0.1"
-            value={inputs.lactateThreshold}
-            onChange={(e) => handleInputChange("lactateThreshold", e.target.value)}
+            value={inputs.tte}
+            onChange={(e) => handleInputChange("tte", e.target.value)}
             className="bg-secondary/50 border-border focus:border-primary"
+            placeholder="3600"
           />
         </div>
       </div>
@@ -186,15 +187,13 @@ export function VLamaxCalculator({ athlete, previousVlamax }: VLamaxCalculatorPr
                 <span className="text-xs text-muted-foreground uppercase">Indice Glycolytique</span>
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-bold font-mono text-accent">{resultat.ig}</span>
-                <span className="text-xs text-muted-foreground">/100</span>
+                <span className="text-2xl font-bold font-mono text-accent">
+                  {typeof resultat.ig === "number" ? resultat.ig.toFixed(2) : resultat.ig}
+                </span>
               </div>
-              <div className="mt-2 h-1.5 bg-secondary rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-accent rounded-full transition-all duration-500"
-                  style={{ width: `${resultat.ig}%` }}
-                />
-              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {resultat.ig > 0.5 ? "Glycolytique" : resultat.ig < 0.3 ? "Oxydatif" : "Mixte"}
+              </p>
             </div>
 
             {/* Confiance */}
@@ -204,13 +203,15 @@ export function VLamaxCalculator({ athlete, previousVlamax }: VLamaxCalculatorPr
                 <span className="text-xs text-muted-foreground uppercase">Confiance</span>
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-bold font-mono text-success">{resultat.confiance}</span>
+                <span className="text-2xl font-bold font-mono text-success">
+                  {Math.round(resultat.confiance * 100)}
+                </span>
                 <span className="text-xs text-muted-foreground">%</span>
               </div>
               <div className="mt-2 h-1.5 bg-secondary rounded-full overflow-hidden">
                 <div
                   className="h-full bg-success rounded-full transition-all duration-500"
-                  style={{ width: `${resultat.confiance}%` }}
+                  style={{ width: `${resultat.confiance * 100}%` }}
                 />
               </div>
             </div>
@@ -226,7 +227,7 @@ export function VLamaxCalculator({ athlete, previousVlamax }: VLamaxCalculatorPr
                   "text-2xl font-bold font-mono",
                   resultat.delta_6sem > 0 ? "text-destructive" : resultat.delta_6sem < 0 ? "text-success" : "text-muted-foreground"
                 )}>
-                  {resultat.delta_6sem > 0 ? "+" : ""}{resultat.delta_6sem}
+                  {resultat.delta_6sem > 0 ? "+" : ""}{resultat.delta_6sem.toFixed(3)}
                 </span>
                 <span className="text-xs text-muted-foreground">%</span>
               </div>
