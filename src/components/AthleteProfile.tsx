@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Save, Target, Scale, Activity } from "lucide-react";
+import { User, Save, Target, Scale, Activity, Percent } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Athlete, ObjectifType, SexeType, getObjectifLabel } from "@/types/athlete";
 
@@ -133,7 +133,7 @@ export function AthleteProfile({ athlete, onUpdate }: AthleteProfileProps) {
           </div>
 
           {/* Performance Fields */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="space-y-2">
               <Label htmlFor="ftp" className="text-muted-foreground">FTP (W)</Label>
               <Input
@@ -146,14 +146,25 @@ export function AthleteProfile({ athlete, onUpdate }: AthleteProfileProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="vo2max" className="text-muted-foreground">VO2max</Label>
+              <Label htmlFor="vo2max" className="text-muted-foreground">VO2max (ml/kg/min)</Label>
               <Input
                 id="vo2max"
                 type="number"
                 value={formData.vo2max || ""}
                 onChange={(e) => handleInputChange("vo2max", parseFloat(e.target.value) || 0)}
                 className="bg-secondary/50 border-border focus:border-primary"
-                placeholder="65"
+                placeholder="52"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="masse_grasse" className="text-muted-foreground">Masse grasse (%)</Label>
+              <Input
+                id="masse_grasse"
+                type="number"
+                value={formData.masse_grasse || ""}
+                onChange={(e) => handleInputChange("masse_grasse", parseFloat(e.target.value) || 0)}
+                className="bg-secondary/50 border-border focus:border-primary"
+                placeholder="18"
               />
             </div>
             <div className="space-y-2">
@@ -176,7 +187,7 @@ export function AthleteProfile({ athlete, onUpdate }: AthleteProfileProps) {
                 value={formData.vlamax || ""}
                 onChange={(e) => handleInputChange("vlamax", parseFloat(e.target.value) || 0)}
                 className="bg-secondary/50 border-border focus:border-primary"
-                placeholder="0.45"
+                placeholder="0.42"
               />
             </div>
           </div>
@@ -204,7 +215,7 @@ export function AthleteProfile({ athlete, onUpdate }: AthleteProfileProps) {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="p-4 rounded-xl bg-secondary/20 border border-border">
               <div className="flex items-center gap-2 text-muted-foreground mb-2">
                 <Scale className="w-4 h-4" />
@@ -224,7 +235,14 @@ export function AthleteProfile({ athlete, onUpdate }: AthleteProfileProps) {
                 <Activity className="w-4 h-4" />
                 <span className="text-xs uppercase tracking-wider">VO2max</span>
               </div>
-              <p className="text-2xl font-bold font-mono text-success">{formData.vo2max || "—"}<span className="text-sm text-muted-foreground ml-1">ml/kg/min</span></p>
+              <p className="text-2xl font-bold font-mono text-success">{formData.vo2max || "—"}<span className="text-sm text-muted-foreground ml-1">ml/kg</span></p>
+            </div>
+            <div className="p-4 rounded-xl bg-secondary/20 border border-border">
+              <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                <Percent className="w-4 h-4" />
+                <span className="text-xs uppercase tracking-wider">Masse grasse</span>
+              </div>
+              <p className="text-2xl font-bold font-mono text-warning">{formData.masse_grasse || "—"}<span className="text-sm text-muted-foreground ml-1">%</span></p>
             </div>
             <div className="p-4 rounded-xl bg-secondary/20 border border-border">
               <div className="flex items-center gap-2 text-muted-foreground mb-2">
