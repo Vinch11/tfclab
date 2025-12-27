@@ -11,6 +11,7 @@ import { FeedbackNolioManager } from "@/components/FeedbackNolioManager";
 import { DanLorangAnalysis } from "@/components/DanLorangAnalysis";
 import { AthleteSelector } from "@/components/AthleteSelector";
 import { TestComparison } from "@/components/TestComparison";
+import { SemaineTypeView } from "@/components/SemaineTypeView";
 import { Zap, Target, Flame, Activity } from "lucide-react";
 import { Athlete, getDernierSnapshot } from "@/types/athlete";
 import { FeedbackNolio } from "@/types/feedbackNolio";
@@ -166,6 +167,9 @@ const Index = () => {
             </div>
 
             <DanLorangAnalysis athlete={currentAthlete} />
+
+            {/* Semaine Type */}
+            <SemaineTypeView athlete={currentAthlete} />
           </div>
         );
 
