@@ -1,8 +1,10 @@
+import { TestMetabolique } from "./testMetabolique";
+
 export interface ResultatVLamax {
   vlamax: number;           // VLamax en mmol/L/s
-  ig: number;               // Indice Glycolytique (0-100)
-  confiance: number;        // Niveau de confiance (0-100%)
-  delta_6sem: number;       // Variation sur 6 semaines en %
+  ig: number;               // Indice Glycolytique (valeur brute du calcul)
+  confiance: number;        // Niveau de confiance (0-1, ex: 0.8 = 80%)
+  delta_6sem: number;       // Variation sur 6 semaines (différence absolue)
   // Additional computed fields
   profil?: "diesel" | "endurant" | "equilibre" | "explosif" | "sprinter";
   fatmax?: number;          // Puissance FatMax estimée (W)
@@ -18,74 +20,98 @@ export const defaultResultatVLamax: ResultatVLamax = {
   delta_6sem: 0,
 };
 
-// Compute VLamax result from athlete data and test history
-export const computeResultatVLamax = (
-  ftp: number,
+/**
+ * Calcul VLamax selon la formule fournie
+ * 
+ * IG = (0.4 * G) + (0.35 * (R / poids)) - (0.25 * O) - (0.3 * T)
+ * où:
+ *   G = pmax_5s / poids
+ *   O = cp / poids  
+ *   R = (pmax_5s - cp) * 6
+ *   T = tte / 40
+ * 
+ * VLamax = 0.25 + (IG * 0.45), borné entre 0.25 et 1.0
+ */
+export const calculVLamax = (
+  test: TestMetabolique,
   poids: number,
-  vo2max: number,
-  pmax5s: number,
-  previousVlamax?: number
+  vlamax_6sem_avant?: number
 ): ResultatVLamax => {
-  if (!ftp || !poids || !pmax5s) {
+  if (!test.pmax_5s || !test.cp || !poids) {
     return defaultResultatVLamax;
   }
 
-  const ftpWkg = ftp / poids;
-  const pmaxWkg = pmax5s / poids;
-  const anaerobicRatio = pmaxWkg / ftpWkg;
+  // Calcul des composantes
+  const G = test.pmax_5s / poids;           // Puissance glycolytique relative
+  const O = test.cp / poids;                 // Puissance oxydative relative
+  const R = (test.pmax_5s - test.cp) * 6;   // Réserve anaérobie
+  const T = test.tte / 40;                   // Facteur temps
 
-  // VLamax estimation (simplified model based on power profile)
-  const vlamax = Math.max(0.2, Math.min(0.9, 0.15 + (anaerobicRatio - 2.5) * 0.15));
+  // Calcul IG (Indice Glycolytique)
+  const IG = (0.4 * G) + (0.35 * (R / poids)) - (0.25 * O) - (0.3 * T);
 
-  // Indice Glycolytique: higher VLamax = higher glycolytic reliance
-  // IG = 0-100 scale, 50 being balanced
-  const ig = Math.round(Math.min(100, Math.max(0, (vlamax - 0.2) / 0.7 * 100)));
+  // Conversion IG -> VLamax
+  let vlamax = 0.25 + (IG * 0.45);
+  if (vlamax < 0.25) vlamax = 0.25;
+  if (vlamax > 1.0) vlamax = 1.0;
 
-  // Confidence score based on data completeness
-  let confiance = 50; // Base confidence
-  if (ftp > 0) confiance += 15;
-  if (poids > 0) confiance += 10;
-  if (vo2max > 0) confiance += 15;
-  if (pmax5s > 0) confiance += 10;
-  confiance = Math.min(100, confiance);
+  // Variation 6 semaines (différence absolue)
+  const delta_6sem = vlamax_6sem_avant ? vlamax - vlamax_6sem_avant : 0;
 
-  // Delta 6 weeks calculation
-  const delta_6sem = previousVlamax && previousVlamax > 0
-    ? Math.round(((vlamax - previousVlamax) / previousVlamax) * 100)
-    : 0;
+  // Confiance par défaut (peut être adaptée selon la qualité des données)
+  const confiance = 0.8;
 
-  // Determine athlete profile
+  // Détermination du profil athlète
   let profil: ResultatVLamax["profil"];
-  if (vlamax < 0.30) profil = "diesel";
-  else if (vlamax < 0.40) profil = "endurant";
-  else if (vlamax < 0.50) profil = "equilibre";
-  else if (vlamax < 0.60) profil = "explosif";
+  if (vlamax < 0.35) profil = "diesel";
+  else if (vlamax < 0.45) profil = "endurant";
+  else if (vlamax < 0.55) profil = "equilibre";
+  else if (vlamax < 0.65) profil = "explosif";
   else profil = "sprinter";
 
-  // Estimate FatMax power (zone of max fat oxidation)
-  // Typically around 60-75% of FTP, lower VLamax = higher FatMax %
+  // Estimation FatMax (zone oxydation lipidique max)
   const fatmaxPercent = 0.55 + (0.65 - vlamax) * 0.3;
-  const fatmax = Math.round(ftp * fatmaxPercent);
+  const fatmax = Math.round(test.cp * fatmaxPercent);
 
-  // Estimate CarboMax power (where carbs become dominant)
-  // Typically 75-90% FTP, depends on VLamax
+  // Estimation CarboMax (transition glucidique)
   const carbomaxPercent = 0.75 + (0.50 - vlamax) * 0.2;
-  const carbomax = Math.round(ftp * Math.min(0.95, carbomaxPercent));
+  const carbomax = Math.round(test.cp * Math.min(0.95, carbomaxPercent));
 
-  // Crossover point as % of FTP
+  // Point de crossover
   const crossover = Math.round((fatmaxPercent + carbomaxPercent) / 2 * 100);
 
   return {
     vlamax: parseFloat(vlamax.toFixed(3)),
-    ig,
+    ig: parseFloat(IG.toFixed(3)),
     confiance,
-    delta_6sem,
+    delta_6sem: parseFloat(delta_6sem.toFixed(3)),
     profil,
     fatmax,
     carbomax,
     crossover,
     dateCalcul: new Date().toISOString(),
   };
+};
+
+// Legacy function for backward compatibility (uses simplified inputs)
+export const computeResultatVLamax = (
+  ftp: number,
+  poids: number,
+  vo2max: number,
+  pmax5s: number,
+  previousVlamax?: number,
+  tte: number = 3600
+): ResultatVLamax => {
+  // Create a test object from individual values
+  const test: TestMetabolique = {
+    id: "temp",
+    date: new Date().toISOString(),
+    pmax_5s: pmax5s,
+    cp: ftp,
+    tte: tte,
+  };
+  
+  return calculVLamax(test, poids, previousVlamax);
 };
 
 // Get profile label in French
