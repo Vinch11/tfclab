@@ -42,6 +42,7 @@ export function genererRecommandationsIA(athlete: Athlete): Recommendation[] {
     const calc = calculVLamaxAvecConfiance(snapshot, athlete.objectif);
     const tte = estimerTTESport(snapshot);
     const priorite = determinerPriorite(calc.vlamax, tte, athlete.objectif);
+    const vo2max = snapshot.vo2max || 50;
 
     // Recommandations basées sur confiance
     if (calc.confiance < 50) {
@@ -62,8 +63,18 @@ export function genererRecommandationsIA(athlete: Athlete): Recommendation[] {
       });
     }
 
-    // Recommandations basées sur VLamax et objectif
-    if (calc.vlamax > 0.45 && athlete.objectif === "IM") {
+    // NOUVELLES RECOMMANDATIONS ENTRAINEMENT BASÉES SUR VLAMAX ET VO2MAX
+    
+    // VLamax élevé -> besoin de travail anaérobie
+    if (calc.vlamax > 0.50) {
+      recs.push({
+        sport,
+        action: "Anaérobie intense : intégrer sprints courts 5-10s répétés",
+        priorite: "Réduire VLamax",
+        urgence: "haute",
+        icon: "💪",
+      });
+    } else if (calc.vlamax > 0.45 && athlete.objectif === "IM") {
       recs.push({
         sport,
         action: "Ajouter séances VLamax ↓ (endurance Z2, Sweet Spot)",
@@ -81,11 +92,41 @@ export function genererRecommandationsIA(athlete: Athlete): Recommendation[] {
       });
     }
 
+    // VO2max faible -> besoin de travail aérobie
+    if (vo2max < 45) {
+      recs.push({
+        sport,
+        action: "Endurance critique : séances fractionnées VO2max 4-6x4min @ 90-95%",
+        priorite: "Augmenter TTE",
+        urgence: "haute",
+        icon: "🏃",
+      });
+    } else if (vo2max < 55) {
+      recs.push({
+        sport,
+        action: "Développer VO2max : intervalles 3x8min + sorties longues Z2",
+        priorite: "Augmenter TTE",
+        urgence: "moyenne",
+        icon: "🫁",
+      });
+    }
+
+    // VLamax optimal mais VO2max élevé -> puissance
+    if (vo2max >= 55 && calc.vlamax < 0.35) {
+      recs.push({
+        sport,
+        action: "Puissance : travail VLamax court intensif (sprints 15-30s)",
+        priorite: "Maintenir équilibre",
+        urgence: "moyenne",
+        icon: "⚡",
+      });
+    }
+
     // Recommandations basées sur TTE et objectif
     if (tte < 50 && (athlete.objectif === "Marathon" || athlete.objectif === "IM")) {
       recs.push({
         sport,
-        action: "Augmenter volume endurance longue",
+        action: "Augmenter volume endurance longue (sorties 2h30+)",
         priorite: "Augmenter endurance",
         urgence: "haute",
         icon: "⏱️",
@@ -96,8 +137,46 @@ export function genererRecommandationsIA(athlete: Athlete): Recommendation[] {
         action: "Progresser vers sorties longues 2h+",
         priorite: "Augmenter endurance",
         urgence: "moyenne",
-        icon: "🏃",
+        icon: "🛤️",
       });
+    }
+
+    // Recommandations spécifiques par sport
+    if (sport === "vélo" && snapshot.ftp && snapshot.poids) {
+      const wpkg = snapshot.ftp / snapshot.poids;
+      if (wpkg < 3.5) {
+        recs.push({
+          sport,
+          action: `FTP/kg faible (${wpkg.toFixed(1)}W/kg) : travailler Sweet Spot + seuil`,
+          priorite: "Augmenter TTE",
+          urgence: "moyenne",
+          icon: "🚴",
+        });
+      }
+    }
+
+    if (sport === "course" && snapshot.vma) {
+      if (snapshot.vma < 16) {
+        recs.push({
+          sport,
+          action: `VMA ${snapshot.vma} km/h : intégrer séances 30/30 et côtes`,
+          priorite: "Améliorer vitesse",
+          urgence: "moyenne",
+          icon: "🏔️",
+        });
+      }
+    }
+
+    if (sport === "natation" && snapshot.pace100) {
+      if (snapshot.pace100 > 100) {
+        recs.push({
+          sport,
+          action: "Technique prioritaire : drills + éducatifs chaque séance",
+          priorite: "Maintenir équilibre",
+          urgence: "moyenne",
+          icon: "🏊",
+        });
+      }
     }
 
     // Si tout va bien
