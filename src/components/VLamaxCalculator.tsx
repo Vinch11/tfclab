@@ -2,70 +2,62 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calculator, Zap, TrendingUp, Info, Gauge, Flame, Droplets, Target } from "lucide-react";
+import { Calculator, Zap, TrendingUp, Info, Gauge, Flame, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  ResultatVLamax,
-  computeResultatVLamax,
-  getProfilLabel,
-  getProfilColor,
-  getRecommendations,
-} from "@/types/resultatVLamax";
-import { Athlete } from "@/types/athlete";
+import { Athlete, getDernierSnapshot } from "@/types/athlete";
+import { estimerTTE, scoreConfiance } from "@/types/snapshotNolio";
+import { calculVLamaxSnapshot } from "@/lib/athleteStore";
 
 interface VLamaxCalculatorProps {
   athlete?: Athlete;
-  previousVlamax?: number;
 }
 
-export function VLamaxCalculator({ athlete, previousVlamax }: VLamaxCalculatorProps) {
+export function VLamaxCalculator({ athlete }: VLamaxCalculatorProps) {
+  const snapshot = athlete ? getDernierSnapshot(athlete) : null;
+  
   const [inputs, setInputs] = useState({
-    ftp: athlete?.ftp || 280,
-    poids: athlete?.poids || 70,
-    vo2max: athlete?.vo2max || 65,
-    pmax5s: 1200,
-    tte: 3600, // TTE en secondes (60 min par défaut)
+    ftp: snapshot?.ftp || 280,
+    poids: snapshot?.poids || 70,
+    pmax5s: snapshot?.pmax_5s || 1200,
+    tss_7j: snapshot?.tss_7j || 450,
   });
 
-  const [resultat, setResultat] = useState<ResultatVLamax>({
-    vlamax: 0.45,
-    ig: 0.5,
-    confiance: 0.8,
-    delta_6sem: 0,
-  });
+  const [vlamax, setVlamax] = useState(0.45);
+  const [tte, setTte] = useState(55);
 
-  const [showDetails, setShowDetails] = useState(false);
-
-  // Update inputs when athlete changes
   useEffect(() => {
-    if (athlete) {
-      setInputs((prev) => ({
-        ...prev,
-        ftp: athlete.ftp || prev.ftp,
-        poids: athlete.poids || prev.poids,
-        vo2max: athlete.vo2max || prev.vo2max,
-      }));
+    if (snapshot) {
+      setInputs({
+        ftp: snapshot.ftp,
+        poids: snapshot.poids,
+        pmax5s: snapshot.pmax_5s,
+        tss_7j: snapshot.tss_7j,
+      });
     }
-  }, [athlete]);
+  }, [snapshot]);
 
   useEffect(() => {
-    const result = computeResultatVLamax(
-      inputs.ftp,
-      inputs.poids,
-      inputs.vo2max,
-      inputs.pmax5s,
-      previousVlamax,
-      inputs.tte
-    );
-    setResultat(result);
-  }, [inputs, previousVlamax]);
+    // Calculate VLamax
+    const G = inputs.pmax5s / inputs.poids;
+    const O = inputs.ftp / inputs.poids;
+    const tteVal = estimerTTE(inputs.ftp, inputs.tss_7j);
+    const TTE = tteVal / 60;
+    
+    let indexGlyco = (0.45 * G) - (0.30 * O) - (0.25 * TTE);
+    let vlamaxVal = 0.25 + (indexGlyco * 0.45);
+    vlamaxVal = Math.max(0.25, Math.min(0.55, vlamaxVal));
+    
+    setVlamax(vlamaxVal);
+    setTte(tteVal);
+  }, [inputs]);
 
   const handleInputChange = (field: string, value: string) => {
     const numValue = parseFloat(value) || 0;
     setInputs((prev) => ({ ...prev, [field]: numValue }));
   };
 
-  const recommendations = getRecommendations(resultat, athlete?.objectif || "IM");
+  const ftp_kg = inputs.ftp / inputs.poids;
+  const confiance = snapshot ? scoreConfiance(snapshot) : 60;
 
   return (
     <div className="glass-card p-6 space-y-6">
@@ -75,244 +67,103 @@ export function VLamaxCalculator({ athlete, previousVlamax }: VLamaxCalculatorPr
         </div>
         <div>
           <h2 className="text-xl font-semibold text-foreground">Estimation VLamax</h2>
-          <p className="text-sm text-muted-foreground">Basé sur la méthodologie Dan Lorang</p>
+          <p className="text-sm text-muted-foreground">Basé sur données NOLIO</p>
         </div>
       </div>
 
       {/* Input Fields */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="ftp" className="text-muted-foreground">FTP (W)</Label>
+          <Label className="text-muted-foreground">FTP (W)</Label>
           <Input
-            id="ftp"
             type="number"
             value={inputs.ftp}
             onChange={(e) => handleInputChange("ftp", e.target.value)}
-            className="bg-secondary/50 border-border focus:border-primary"
+            className="bg-secondary/50 border-border"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="poids" className="text-muted-foreground">Poids (kg)</Label>
+          <Label className="text-muted-foreground">Poids (kg)</Label>
           <Input
-            id="poids"
             type="number"
             value={inputs.poids}
             onChange={(e) => handleInputChange("poids", e.target.value)}
-            className="bg-secondary/50 border-border focus:border-primary"
+            className="bg-secondary/50 border-border"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="vo2max" className="text-muted-foreground">VO2max (ml/kg/min)</Label>
+          <Label className="text-muted-foreground">Pmax 5s (W)</Label>
           <Input
-            id="vo2max"
-            type="number"
-            value={inputs.vo2max}
-            onChange={(e) => handleInputChange("vo2max", e.target.value)}
-            className="bg-secondary/50 border-border focus:border-primary"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="pmax5s" className="text-muted-foreground">Pic de Puissance 5s (W)</Label>
-          <Input
-            id="pmax5s"
             type="number"
             value={inputs.pmax5s}
             onChange={(e) => handleInputChange("pmax5s", e.target.value)}
-            className="bg-secondary/50 border-border focus:border-primary"
+            className="bg-secondary/50 border-border"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="tte" className="text-muted-foreground">TTE (secondes)</Label>
+          <Label className="text-muted-foreground">TSS 7j</Label>
           <Input
-            id="tte"
             type="number"
-            value={inputs.tte}
-            onChange={(e) => handleInputChange("tte", e.target.value)}
-            className="bg-secondary/50 border-border focus:border-primary"
-            placeholder="3600"
+            value={inputs.tss_7j}
+            onChange={(e) => handleInputChange("tss_7j", e.target.value)}
+            className="bg-secondary/50 border-border"
           />
         </div>
       </div>
 
-      {/* Main Result Display */}
-      <div className="mt-8 p-6 rounded-xl bg-secondary/30 border border-border">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* VLamax Result */}
+      {/* Main Result */}
+      <div className="p-6 rounded-xl bg-secondary/30 border border-border">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Zap className="w-5 h-5 text-accent" />
-              <span className="text-sm text-muted-foreground uppercase tracking-wider">VLamax Estimé</span>
+              <span className="text-sm text-muted-foreground">VLamax Estimé</span>
             </div>
             <div className="flex items-baseline gap-3">
               <span className="text-5xl font-bold font-mono text-primary">
-                {resultat.vlamax.toFixed(2)}
+                {vlamax.toFixed(2)}
               </span>
               <span className="text-muted-foreground">mmol/L/s</span>
             </div>
-            
-            {/* VLamax Bar */}
-            <div className="space-y-2">
-              <div className="relative h-3 bg-secondary rounded-full overflow-hidden">
-                <div
-                  className="absolute left-0 top-0 h-full rounded-full transition-all duration-500 bg-gradient-to-r from-primary via-success to-accent"
-                  style={{ width: `${Math.min(100, ((resultat.vlamax - 0.2) / 0.7) * 100)}%` }}
-                />
-                <div 
-                  className="absolute top-0 h-full w-0.5 bg-foreground/50"
-                  style={{ left: `${((0.45 - 0.2) / 0.7) * 100}%` }}
-                  title="Équilibré"
-                />
-              </div>
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Endurant</span>
-                <span>Explosif</span>
-              </div>
-            </div>
-
-            {/* Profile */}
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground">Profil:</span>
-              <span className={cn("text-lg font-semibold", getProfilColor(resultat.profil))}>
-                {getProfilLabel(resultat.profil)}
-              </span>
+            <div className="h-3 bg-secondary rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-primary to-accent"
+                style={{ width: `${Math.min(100, ((vlamax - 0.2) / 0.5) * 100)}%` }}
+              />
             </div>
           </div>
 
-          {/* Metrics Grid */}
           <div className="grid grid-cols-2 gap-4">
-            {/* Indice Glycolytique */}
             <div className="p-4 rounded-xl bg-secondary/40 border border-border">
               <div className="flex items-center gap-2 mb-2">
                 <Gauge className="w-4 h-4 text-accent" />
-                <span className="text-xs text-muted-foreground uppercase">Indice Glycolytique</span>
+                <span className="text-xs text-muted-foreground">TTE Estimé</span>
               </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-bold font-mono text-accent">
-                  {typeof resultat.ig === "number" ? resultat.ig.toFixed(2) : resultat.ig}
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {resultat.ig > 0.5 ? "Glycolytique" : resultat.ig < 0.3 ? "Oxydatif" : "Mixte"}
-              </p>
+              <span className="text-2xl font-bold font-mono text-accent">{tte}</span>
+              <span className="text-xs text-muted-foreground ml-1">min</span>
             </div>
-
-            {/* Confiance */}
-            <div className="p-4 rounded-xl bg-secondary/40 border border-border">
-              <div className="flex items-center gap-2 mb-2">
-                <Target className="w-4 h-4 text-success" />
-                <span className="text-xs text-muted-foreground uppercase">Confiance</span>
-              </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-bold font-mono text-success">
-                  {Math.round(resultat.confiance * 100)}
-                </span>
-                <span className="text-xs text-muted-foreground">%</span>
-              </div>
-              <div className="mt-2 h-1.5 bg-secondary rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-success rounded-full transition-all duration-500"
-                  style={{ width: `${resultat.confiance * 100}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Delta 6 semaines */}
-            <div className="p-4 rounded-xl bg-secondary/40 border border-border">
-              <div className="flex items-center gap-2 mb-2">
-                <TrendingUp className="w-4 h-4 text-primary" />
-                <span className="text-xs text-muted-foreground uppercase">Δ 6 semaines</span>
-              </div>
-              <div className="flex items-baseline gap-1">
-                <span className={cn(
-                  "text-2xl font-bold font-mono",
-                  resultat.delta_6sem > 0 ? "text-destructive" : resultat.delta_6sem < 0 ? "text-success" : "text-muted-foreground"
-                )}>
-                  {resultat.delta_6sem > 0 ? "+" : ""}{resultat.delta_6sem.toFixed(3)}
-                </span>
-                <span className="text-xs text-muted-foreground">%</span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {resultat.delta_6sem < 0 ? "En baisse ✓" : resultat.delta_6sem > 0 ? "En hausse" : "Stable"}
-              </p>
-            </div>
-
-            {/* Crossover */}
             <div className="p-4 rounded-xl bg-secondary/40 border border-border">
               <div className="flex items-center gap-2 mb-2">
                 <Flame className="w-4 h-4 text-warning" />
-                <span className="text-xs text-muted-foreground uppercase">Crossover</span>
+                <span className="text-xs text-muted-foreground">W/kg</span>
               </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-bold font-mono text-warning">{resultat.crossover || 70}</span>
-                <span className="text-xs text-muted-foreground">% FTP</span>
+              <span className="text-2xl font-bold font-mono text-warning">{ftp_kg.toFixed(1)}</span>
+            </div>
+            <div className="p-4 rounded-xl bg-secondary/40 border border-border col-span-2">
+              <div className="flex items-center gap-2 mb-2">
+                <Target className="w-4 h-4 text-success" />
+                <span className="text-xs text-muted-foreground">Confiance données</span>
               </div>
+              <span className="text-2xl font-bold font-mono text-success">{confiance}%</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Extended Details */}
-      <Button
-        variant="ghost"
-        className="w-full text-muted-foreground"
-        onClick={() => setShowDetails(!showDetails)}
-      >
-        {showDetails ? "Masquer les détails" : "Afficher les détails métaboliques"}
-      </Button>
-
-      {showDetails && (
-        <div className="space-y-4 animate-fade-in">
-          {/* FatMax / CarboMax */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/20">
-              <div className="flex items-center gap-2 mb-3">
-                <Droplets className="w-5 h-5 text-blue-400" />
-                <span className="font-medium text-foreground">Zone FatMax</span>
-              </div>
-              <p className="text-3xl font-bold font-mono text-blue-400">{resultat.fatmax || 170}W</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Puissance d'oxydation lipidique maximale
-              </p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500/10 to-orange-600/5 border border-orange-500/20">
-              <div className="flex items-center gap-2 mb-3">
-                <Flame className="w-5 h-5 text-orange-400" />
-                <span className="font-medium text-foreground">Zone CarboMax</span>
-              </div>
-              <p className="text-3xl font-bold font-mono text-orange-400">{resultat.carbomax || 240}W</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Puissance de transition glucidique
-              </p>
-            </div>
-          </div>
-
-          {/* Recommendations */}
-          <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
-            <div className="flex items-center gap-2 mb-3">
-              <Target className="w-5 h-5 text-primary" />
-              <span className="font-medium text-foreground">
-                Recommandations {athlete?.objectif === "703" ? "70.3" : "Ironman"}
-              </span>
-            </div>
-            <ul className="space-y-2">
-              {recommendations.map((rec, idx) => (
-                <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
-                  <span className="text-primary mt-0.5">•</span>
-                  {rec}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
-
-      {/* Info Note */}
       <div className="flex items-start gap-2 p-4 rounded-lg bg-primary/5 border border-primary/20">
         <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
         <p className="text-sm text-muted-foreground">
-          Cette estimation est basée sur vos données de puissance. Pour une mesure précise, 
-          un test lactate en laboratoire est recommandé.
+          Estimation basée sur vos données NOLIO. TTE calculé depuis le TSS hebdomadaire.
         </p>
       </div>
     </div>

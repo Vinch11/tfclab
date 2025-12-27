@@ -7,40 +7,33 @@ import { TestProtocols } from "@/components/TestProtocols";
 import { RaceChecklist } from "@/components/RaceChecklist";
 import { NolioMapping } from "@/components/NolioMapping";
 import { AthleteProfile } from "@/components/AthleteProfile";
-import { TestMetaboliqueManager } from "@/components/TestMetaboliqueManager";
 import { FeedbackNolioManager } from "@/components/FeedbackNolioManager";
 import { DanLorangAnalysis } from "@/components/DanLorangAnalysis";
-import { DashboardCoach } from "@/components/DashboardCoach";
 import { AthleteSelector } from "@/components/AthleteSelector";
 import { TestComparison } from "@/components/TestComparison";
 import { Zap, Target, Flame, Activity } from "lucide-react";
-import { Athlete } from "@/types/athlete";
-import { TestMetabolique } from "@/types/testMetabolique";
+import { Athlete, getDernierSnapshot } from "@/types/athlete";
 import { FeedbackNolio } from "@/types/feedbackNolio";
-import { calculVLamax, ResultatVLamax, defaultResultatVLamax } from "@/types/resultatVLamax";
-import { reglesDanLorang } from "@/types/reglesDanLorang";
+import { estimerTTE, scoreConfiance } from "@/types/snapshotNolio";
 import {
-  AthleteWithTests,
   chargerAthletes,
   sauvegarderAthletes,
   ajouterAthlete,
   supprimerAthlete,
   mettreAJourAthlete,
-  ajouterTest,
-  supprimerTest,
   creerAthleteExemple,
-  getDernierTest,
+  calculVLamaxSnapshot,
   getHistoriqueVlamax,
 } from "@/lib/athleteStore";
+import { reglesDanLorang } from "@/types/reglesDanLorang";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
 
   // Multi-athlete state
-  const [athletes, setAthletes] = useState<AthleteWithTests[]>(() => {
+  const [athletes, setAthletes] = useState<Athlete[]>(() => {
     const loaded = chargerAthletes();
     if (loaded.length > 0) return loaded;
-    // Create example athlete if none exist
     return [creerAthleteExemple()];
   });
 
@@ -52,36 +45,30 @@ const Index = () => {
     }
   );
 
-  // Initialize selected athlete ID after athletes are loaded
   useEffect(() => {
     if (athletes.length > 0 && !selectedAthleteId) {
       setSelectedAthleteId(athletes[0].id);
     }
   }, [athletes, selectedAthleteId]);
 
-  // Save athletes when they change
   useEffect(() => {
     sauvegarderAthletes(athletes);
   }, [athletes]);
 
-  // Get current athlete
   const currentAthlete = athletes.find((a) => a.id === selectedAthleteId);
+  const snapshot = currentAthlete ? getDernierSnapshot(currentAthlete) : null;
 
-  // Feedbacks (shared for now)
+  // Feedbacks
   const [feedbacksNolio, setFeedbacksNolio] = useState<FeedbackNolio[]>(() => {
     const saved = localStorage.getItem("loranglab-feedbacks");
     if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return [];
-      }
+      try { return JSON.parse(saved); } catch { return []; }
     }
     return [];
   });
 
   // Handlers
-  const handleAddAthlete = (athlete: AthleteWithTests) => {
+  const handleAddAthlete = (athlete: Athlete) => {
     setAthletes((prev) => ajouterAthlete(prev, athlete));
     setSelectedAthleteId(athlete.id);
   };
@@ -89,29 +76,13 @@ const Index = () => {
   const handleDeleteAthlete = (athleteId: string) => {
     setAthletes((prev) => {
       const updated = supprimerAthlete(prev, athleteId);
-      if (updated.length > 0) {
-        setSelectedAthleteId(updated[0].id);
-      }
+      if (updated.length > 0) setSelectedAthleteId(updated[0].id);
       return updated;
     });
   };
 
   const handleAthleteUpdate = (updatedAthlete: Athlete) => {
-    if (!currentAthlete) return;
-    const updated: AthleteWithTests = {
-      ...currentAthlete,
-      ...updatedAthlete,
-    };
-    setAthletes((prev) => mettreAJourAthlete(prev, updated));
-  };
-
-  const handleTestsChange = (tests: TestMetabolique[]) => {
-    if (!currentAthlete) return;
-    const updated: AthleteWithTests = {
-      ...currentAthlete,
-      tests,
-    };
-    setAthletes((prev) => mettreAJourAthlete(prev, updated));
+    setAthletes((prev) => mettreAJourAthlete(prev, updatedAthlete));
   };
 
   const handleFeedbacksChange = (feedbacks: FeedbackNolio[]) => {
@@ -119,45 +90,14 @@ const Index = () => {
     localStorage.setItem("loranglab-feedbacks", JSON.stringify(feedbacks));
   };
 
-  // Compute metrics for current athlete
-  const latestTest = currentAthlete ? getDernierTest(currentAthlete) : null;
-  const testsMetaboliques = currentAthlete?.tests || [];
-  const previousTest = testsMetaboliques[1];
+  // Computed values
+  const vlamax = snapshot && currentAthlete ? calculVLamaxSnapshot(snapshot, currentAthlete.objectif) : 0.45;
+  const tte = snapshot ? estimerTTE(snapshot.ftp, snapshot.tss_7j) : 55;
+  const ftp_kg = snapshot ? snapshot.ftp / snapshot.poids : 4.0;
+  const confiance = snapshot ? scoreConfiance(snapshot) : 0;
 
-  // Calculate VLamax
-  const vlamax_6sem_avant = 0.42;
-  const previousVlamaxValue = previousTest && currentAthlete
-    ? calculVLamax(previousTest, currentAthlete.poids).vlamax
-    : vlamax_6sem_avant;
-
-  const historiqueVlamax = currentAthlete ? getHistoriqueVlamax(currentAthlete) : [];
-
-  const currentResultat: ResultatVLamax = latestTest && currentAthlete
-    ? {
-        ...calculVLamax(latestTest, currentAthlete.poids, previousVlamaxValue),
-        historique: historiqueVlamax,
-      }
-    : { ...defaultResultatVLamax, vlamax: currentAthlete?.vlamax || 0.45, historique: [] };
-
-  const currentVlamax = currentResultat.vlamax || currentAthlete?.vlamax || 0.45;
-  const currentFtp = latestTest?.cp || currentAthlete?.ftp || 280;
-  const currentTte = latestTest?.tte ? latestTest.tte / 60 : 60;
-  const ftp_kg = currentFtp / (currentAthlete?.poids || 70);
-
-  // State for coach dashboard inputs
-  const [seanceSpecifiqueValidee, setSeanceSpecifiqueValidee] = useState(true);
-  const [fatigueOk, setFatigueOk] = useState(true);
-
-  // Calculate regles for dashboard coach
   const currentRegles = currentAthlete
-    ? reglesDanLorang(
-        currentAthlete,
-        currentResultat,
-        currentTte,
-        ftp_kg,
-        seanceSpecifiqueValidee,
-        fatigueOk
-      )
+    ? reglesDanLorang(currentAthlete, vlamax, tte, ftp_kg, true, true)
     : { priorite: "" as const, alertes: [], race_ready: false };
 
   if (!currentAthlete) {
@@ -173,7 +113,6 @@ const Index = () => {
       case "dashboard":
         return (
           <div className="space-y-8 animate-fade-in">
-            {/* Athlete Selector */}
             <AthleteSelector
               athletes={athletes}
               selectedAthleteId={selectedAthleteId}
@@ -182,11 +121,10 @@ const Index = () => {
               onDeleteAthlete={handleDeleteAthlete}
             />
 
-            {/* Hero Metrics */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <MetricCard
                 title="VLamax Estimé"
-                value={currentVlamax.toFixed(2)}
+                value={vlamax.toFixed(2)}
                 unit="mmol/L/s"
                 icon={Zap}
                 trend="neutral"
@@ -195,20 +133,20 @@ const Index = () => {
               />
               <MetricCard
                 title="FTP"
-                value={currentFtp.toString()}
+                value={(snapshot?.ftp || 0).toString()}
                 unit="watts"
                 icon={Flame}
                 trend="up"
-                trendValue="+5W"
+                trendValue={`${ftp_kg.toFixed(1)} W/kg`}
                 accentColor="accent"
               />
               <MetricCard
-                title="VO2max"
-                value={(currentAthlete.vo2max || 65).toString()}
-                unit="ml/kg/min"
+                title="TTE Estimé"
+                value={tte.toString()}
+                unit="min"
                 icon={Activity}
                 trend="up"
-                trendValue="+2"
+                trendValue="TSS-based"
                 accentColor="success"
               />
               <MetricCard
@@ -222,31 +160,12 @@ const Index = () => {
               />
             </div>
 
-            {/* Main Content Grid */}
             <div className="grid lg:grid-cols-2 gap-6">
-              <VLamaxCalculator athlete={currentAthlete} previousVlamax={previousVlamaxValue} />
+              <VLamaxCalculator athlete={currentAthlete} />
               <TrainingZones />
             </div>
 
-            {/* Dan Lorang Analysis */}
-            <DanLorangAnalysis
-              athlete={currentAthlete}
-              resultat={currentResultat}
-              tte={currentTte}
-              ftp_kg={ftp_kg}
-            />
-
-            {/* Dashboard Coach */}
-            <DashboardCoach
-              athlete={currentAthlete}
-              resultat={currentResultat}
-              regles={currentRegles}
-              testsHistorique={testsMetaboliques}
-              tte={currentTte}
-              ftp_kg={ftp_kg}
-              seance_specifique_validee={seanceSpecifiqueValidee}
-              fatigue_ok={fatigueOk}
-            />
+            <DanLorangAnalysis athlete={currentAthlete} />
           </div>
         );
 
@@ -261,13 +180,8 @@ const Index = () => {
               onDeleteAthlete={handleDeleteAthlete}
             />
             <AthleteProfile athlete={currentAthlete} onUpdate={handleAthleteUpdate} />
-            <VLamaxCalculator athlete={currentAthlete} previousVlamax={previousVlamaxValue} />
-            <DanLorangAnalysis
-              athlete={currentAthlete}
-              resultat={currentResultat}
-              tte={currentTte}
-              ftp_kg={ftp_kg}
-            />
+            <VLamaxCalculator athlete={currentAthlete} />
+            <DanLorangAnalysis athlete={currentAthlete} />
             <TrainingZones />
           </div>
         );
@@ -282,11 +196,7 @@ const Index = () => {
               onAddAthlete={handleAddAthlete}
               onDeleteAthlete={handleDeleteAthlete}
             />
-            <TestMetaboliqueManager
-              tests={testsMetaboliques}
-              onTestsChange={handleTestsChange}
-              athletePoids={currentAthlete.poids}
-            />
+            <AthleteProfile athlete={currentAthlete} onUpdate={handleAthleteUpdate} />
             <TestComparison athlete={currentAthlete} />
             <TestProtocols />
           </div>
@@ -317,7 +227,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Background Gradient */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
@@ -329,10 +238,9 @@ const Index = () => {
         {renderContent()}
       </main>
 
-      {/* Footer */}
       <footer className="border-t border-border mt-12 py-6">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>LorangLab • Méthodologie Dan Lorang • Optimisation Performance</p>
+          <p>LorangLab • Méthodologie Dan Lorang • Données NOLIO</p>
         </div>
       </footer>
     </div>

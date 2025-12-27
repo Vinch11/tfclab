@@ -1,44 +1,37 @@
+// =============================================
+// MODÈLE ATHLÈTE - Simplifié pour NOLIO
+// =============================================
+
+import { SnapshotNolio } from "./snapshotNolio";
+
 export type ObjectifType = "IM" | "703";
 export type SexeType = "M" | "F";
 
+// Athlète simplifié avec historique de snapshots
 export interface Athlete {
   id: string;
-  poids: number;
-  objectif: ObjectifType;
+  nom: string;
   sexe: SexeType;
-  vo2max: number;             // ml/kg/min
+  objectif: ObjectifType;
   masse_grasse: number;       // %
-  masse_musculaire: number;   // %
-  fc_max: number;             // bpm
-  fc_repos: number;           // bpm
-  hrv: number;                // ms
-  sommeil: number;            // heures
-  fatigue_subjective: number; // 1-10
-  // Additional useful fields
-  nom?: string;
+  // Historique des snapshots Nolio
+  historique: SnapshotNolio[];
+  // Métadonnées optionnelles
   prenom?: string;
-  ftp?: number;
-  vlamax?: number;
+  email?: string;
   dateNaissance?: string;
   createdAt?: string;
   updatedAt?: string;
 }
 
+// Valeurs par défaut
 export const defaultAthlete: Athlete = {
   id: "",
-  poids: 70,
-  objectif: "IM",
+  nom: "Nouvel Athlète",
   sexe: "M",
-  vo2max: 52,
+  objectif: "IM",
   masse_grasse: 18,
-  masse_musculaire: 45,
-  fc_max: 190,
-  fc_repos: 50,
-  hrv: 60,
-  sommeil: 7,
-  fatigue_subjective: 4,
-  ftp: 320,
-  vlamax: 0.42,
+  historique: [],
 };
 
 // Helper functions
@@ -81,5 +74,34 @@ export const calculerZonesEntrainement = (ftp: number): ZonesEntrainement => {
     zone_aerobie: Math.round(ftp * 0.55),
     zone_seuil: Math.round(ftp * 0.85),
     zone_sprint: Math.round(ftp * 1.2),
+  };
+};
+
+// Obtenir le dernier snapshot d'un athlète
+export const getDernierSnapshot = (athlete: Athlete): SnapshotNolio | null => {
+  if (!athlete.historique || athlete.historique.length === 0) return null;
+  return athlete.historique[athlete.historique.length - 1];
+};
+
+// Obtenir les données actuelles depuis le dernier snapshot
+export const getAthleteActuel = (athlete: Athlete) => {
+  const snapshot = getDernierSnapshot(athlete);
+  if (!snapshot) {
+    return {
+      poids: 70,
+      ftp: 0,
+      pmax_5s: 0,
+      vo2max: 0,
+      hrv: 0,
+      tss_7j: 0,
+    };
+  }
+  return {
+    poids: snapshot.poids,
+    ftp: snapshot.ftp,
+    pmax_5s: snapshot.pmax_5s,
+    vo2max: snapshot.vo2max || 0,
+    hrv: snapshot.hrv || 0,
+    tss_7j: snapshot.tss_7j,
   };
 };

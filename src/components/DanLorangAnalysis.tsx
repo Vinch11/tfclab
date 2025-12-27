@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
@@ -14,26 +13,23 @@ import {
   Info,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Athlete } from "@/types/athlete";
-import { ResultatVLamax } from "@/types/resultatVLamax";
+import { Athlete, getDernierSnapshot } from "@/types/athlete";
+import { estimerTTE } from "@/types/snapshotNolio";
+import { calculVLamaxSnapshot } from "@/lib/athleteStore";
 import {
   reglesDanLorang,
   ReglesDanLorangResult,
   RaceReadinessInputs,
   getPrioriteLabel,
   getPrioriteColor,
-  getRecommandationsPriorite,
   getSeancesRecommandees,
   getSeancesSpecifiques,
-  calculateRaceReadinessScore,
   PrioriteType,
 } from "@/types/reglesDanLorang";
+import { SEANCES, seancesParPriorite, determinerPriorite } from "@/types/seances";
 
 interface DanLorangAnalysisProps {
   athlete: Athlete;
-  resultat: ResultatVLamax;
-  tte: number; // en minutes
-  ftp_kg: number;
 }
 
 const prioriteIcons: Record<PrioriteType, typeof TrendingDown> = {
@@ -44,16 +40,54 @@ const prioriteIcons: Record<PrioriteType, typeof TrendingDown> = {
   "": CheckCircle2,
 };
 
-export function DanLorangAnalysis({
-  athlete,
-  resultat,
-  tte,
-  ftp_kg,
-}: DanLorangAnalysisProps) {
+// Recommendations par priorité
+const getRecommandationsPriorite = (priorite: PrioriteType): string[] => {
+  switch (priorite) {
+    case "VLAMAX_DOWN":
+      return [
+        "Privilégier les sorties longues Z2 (4-6h)",
+        "Éviter les sprints et intervalles courts",
+        "Séances tempo longues (sweet spot 2x30-40min)",
+      ];
+    case "VLAMAX_UP":
+      return [
+        "Ajouter des sprints courts (5-10s max)",
+        "Intervalles courts haute intensité",
+        "Séances de force explosive",
+      ];
+    case "TTE_UP":
+      return [
+        "Séances au seuil prolongées (2x20-30min)",
+        "Intervalles longs à 95-105% FTP",
+        "Sorties tempo soutenues",
+      ];
+    case "FTP_UTIL":
+      return [
+        "Blocs de travail au seuil (sweet spot)",
+        "Intervalles VO2max (3-5min à 105-115% FTP)",
+        "Progression du volume au seuil",
+      ];
+    default:
+      return [
+        "Maintenir l'équilibre actuel",
+        "Affûtage pré-compétition",
+        "Récupération et fraîcheur",
+      ];
+  }
+};
+
+export function DanLorangAnalysis({ athlete }: DanLorangAnalysisProps) {
+  const snapshot = getDernierSnapshot(athlete);
+  
   const [inputs, setInputs] = useState<RaceReadinessInputs>({
     seance_specifique_validee: false,
     fatigue_ok: true,
   });
+
+  // Calculate values from snapshot
+  const vlamax = snapshot ? calculVLamaxSnapshot(snapshot, athlete.objectif) : 0.45;
+  const tte = snapshot ? estimerTTE(snapshot.ftp, snapshot.tss_7j) : 45;
+  const ftp_kg = snapshot ? snapshot.ftp / snapshot.poids : 4.0;
 
   const [analysis, setAnalysis] = useState<ReglesDanLorangResult>({
     priorite: "",
@@ -61,34 +95,32 @@ export function DanLorangAnalysis({
     race_ready: false,
   });
 
-  const [raceScore, setRaceScore] = useState(0);
-
   useEffect(() => {
     const result = reglesDanLorang(
       athlete,
-      resultat,
+      vlamax,
       tte,
       ftp_kg,
       inputs.seance_specifique_validee,
       inputs.fatigue_ok
     );
     setAnalysis(result);
-
-    const score = calculateRaceReadinessScore(
-      athlete,
-      resultat,
-      tte,
-      ftp_kg,
-      inputs.seance_specifique_validee,
-      inputs.fatigue_ok
-    );
-    setRaceScore(score);
-  }, [athlete, resultat, tte, ftp_kg, inputs]);
+  }, [athlete, vlamax, tte, ftp_kg, inputs]);
 
   const PrioriteIcon = prioriteIcons[analysis.priorite] || CheckCircle2;
   const recommendations = getRecommandationsPriorite(analysis.priorite);
   const seancesRecommandees = getSeancesRecommandees(analysis.priorite);
   const seancesSpecifiques = getSeancesSpecifiques(athlete.objectif);
+
+  // Calculate race readiness score
+  const ftpTarget = athlete.objectif === "IM" ? 4.6 : 4.8;
+  const tteTarget = athlete.objectif === "IM" ? 55 : 45;
+  let raceScore = 0;
+  if (vlamax >= 0.25 && vlamax <= 0.45) raceScore += 25;
+  if (tte >= tteTarget) raceScore += 25;
+  if (ftp_kg >= ftpTarget) raceScore += 25;
+  if (inputs.seance_specifique_validee) raceScore += 15;
+  if (inputs.fatigue_ok) raceScore += 10;
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-success";
@@ -100,9 +132,27 @@ export function DanLorangAnalysis({
     if (score >= 90) return "Race Ready!";
     if (score >= 80) return "Presque prêt";
     if (score >= 60) return "En progression";
-    if (score >= 40) return "Travail nécessaire";
     return "Préparation requise";
   };
+
+  if (!snapshot) {
+    return (
+      <div className="glass-card p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-3 rounded-xl bg-warning/10 text-warning">
+            <Target className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold text-foreground">Analyse Dan Lorang</h2>
+            <p className="text-sm text-muted-foreground">Aucun snapshot disponible</p>
+          </div>
+        </div>
+        <p className="text-center text-muted-foreground py-8">
+          Ajoutez un snapshot NOLIO pour voir l'analyse
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="glass-card p-6">
@@ -170,9 +220,9 @@ export function DanLorangAnalysis({
           <p className="text-xs text-muted-foreground mb-1">VLamax</p>
           <p className={cn(
             "text-lg font-bold font-mono",
-            resultat.vlamax > 0.45 ? "text-warning" : resultat.vlamax < 0.28 ? "text-destructive" : "text-success"
+            vlamax > 0.45 ? "text-warning" : vlamax < 0.28 ? "text-destructive" : "text-success"
           )}>
-            {resultat.vlamax.toFixed(2)}
+            {vlamax.toFixed(2)}
           </p>
           <p className="text-xs text-muted-foreground">
             Cible: 0.25-0.{athlete.objectif === "IM" ? "40" : "45"}
@@ -182,36 +232,33 @@ export function DanLorangAnalysis({
           <p className="text-xs text-muted-foreground mb-1">TTE</p>
           <p className={cn(
             "text-lg font-bold font-mono",
-            tte < (athlete.objectif === "IM" ? 55 : 45) ? "text-warning" : "text-success"
+            tte < tteTarget ? "text-warning" : "text-success"
           )}>
             {tte} min
           </p>
           <p className="text-xs text-muted-foreground">
-            Cible: {athlete.objectif === "IM" ? "≥55" : "≥45"} min
+            Cible: ≥{tteTarget} min
           </p>
         </div>
         <div className="p-3 rounded-xl bg-secondary/20 border border-border">
           <p className="text-xs text-muted-foreground mb-1">FTP</p>
           <p className={cn(
             "text-lg font-bold font-mono",
-            ftp_kg < (athlete.objectif === "IM" ? 4.6 : 4.8) ? "text-warning" : "text-success"
+            ftp_kg < ftpTarget ? "text-warning" : "text-success"
           )}>
             {ftp_kg.toFixed(1)} W/kg
           </p>
           <p className="text-xs text-muted-foreground">
-            Cible: ≥{athlete.objectif === "IM" ? "4.6" : "4.8"} W/kg
+            Cible: ≥{ftpTarget} W/kg
           </p>
         </div>
         <div className="p-3 rounded-xl bg-secondary/20 border border-border">
-          <p className="text-xs text-muted-foreground mb-1">Δ 6 sem</p>
-          <p className={cn(
-            "text-lg font-bold font-mono",
-            resultat.delta_6sem > 0.05 ? "text-destructive" : resultat.delta_6sem < 0 ? "text-success" : "text-muted-foreground"
-          )}>
-            {resultat.delta_6sem > 0 ? "+" : ""}{resultat.delta_6sem.toFixed(3)}
+          <p className="text-xs text-muted-foreground mb-1">TSS 7j</p>
+          <p className="text-lg font-bold font-mono text-primary">
+            {snapshot.tss_7j}
           </p>
           <p className="text-xs text-muted-foreground">
-            {resultat.delta_6sem > 0.05 ? "⚠️ Hausse" : resultat.delta_6sem < 0 ? "✓ Baisse" : "Stable"}
+            Charge hebdo
           </p>
         </div>
       </div>
@@ -308,33 +355,18 @@ export function DanLorangAnalysis({
           <div className="mt-4 pt-4 border-t border-border">
             <p className="text-sm font-medium text-foreground mb-2">Séances Recommandées</p>
             <div className="flex flex-wrap gap-2">
-              {seancesRecommandees.map((seance) => (
-                <span
-                  key={seance}
-                  className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-sm font-mono font-semibold"
-                >
-                  {seance}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Séances Spécifiques */}
-        {seancesSpecifiques.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-border">
-            <p className="text-sm font-medium text-foreground mb-2">
-              Séances Spécifiques {athlete.objectif}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {seancesSpecifiques.map((seance) => (
-                <span
-                  key={seance}
-                  className="px-3 py-1.5 rounded-lg bg-accent/10 text-accent text-sm font-mono font-semibold"
-                >
-                  {seance}
-                </span>
-              ))}
+              {seancesRecommandees.map((code) => {
+                const seance = SEANCES[code as keyof typeof SEANCES];
+                return seance ? (
+                  <div
+                    key={code}
+                    className="px-3 py-2 rounded-lg bg-primary/10 border border-primary/20"
+                  >
+                    <span className="text-sm font-mono font-semibold text-primary">{code}</span>
+                    <span className="text-xs text-muted-foreground ml-2">{seance.objectif}</span>
+                  </div>
+                ) : null;
+              })}
             </div>
           </div>
         )}
