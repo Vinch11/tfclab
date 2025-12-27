@@ -7,13 +7,15 @@ import { TestProtocols } from "@/components/TestProtocols";
 import { RaceChecklist } from "@/components/RaceChecklist";
 import { NolioMapping } from "@/components/NolioMapping";
 import { AthleteProfile } from "@/components/AthleteProfile";
+import { TestMetaboliqueManager } from "@/components/TestMetaboliqueManager";
 import { Zap, Target, Flame, Activity } from "lucide-react";
 import { Athlete, defaultAthlete } from "@/types/athlete";
+import { TestMetabolique, estimateVLamaxFromTest } from "@/types/testMetabolique";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  
   const [athlete, setAthlete] = useState<Athlete>(() => {
-    // Load from localStorage if available
     const saved = localStorage.getItem("loranglab-athlete");
     if (saved) {
       try {
@@ -22,13 +24,37 @@ const Index = () => {
         return { ...defaultAthlete, id: crypto.randomUUID() };
       }
     }
-    return { ...defaultAthlete, id: crypto.randomUUID(), ftp: 280, vo2max: 65 };
+    return { ...defaultAthlete, id: crypto.randomUUID(), ftp: 280, vo2max: 65, poids: 70 };
+  });
+
+  const [testsMetaboliques, setTestsMetaboliques] = useState<TestMetabolique[]>(() => {
+    const saved = localStorage.getItem("loranglab-tests");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return [];
+      }
+    }
+    return [];
   });
 
   const handleAthleteUpdate = (updatedAthlete: Athlete) => {
     setAthlete(updatedAthlete);
     localStorage.setItem("loranglab-athlete", JSON.stringify(updatedAthlete));
   };
+
+  const handleTestsChange = (tests: TestMetabolique[]) => {
+    setTestsMetaboliques(tests);
+    localStorage.setItem("loranglab-tests", JSON.stringify(tests));
+  };
+
+  // Compute metrics from latest test
+  const latestTest = testsMetaboliques[0];
+  const currentVlamax = latestTest 
+    ? estimateVLamaxFromTest(latestTest, athlete.poids) 
+    : athlete.vlamax || 0.45;
+  const currentFtp = latestTest?.cp || athlete.ftp || 280;
 
   const renderContent = () => {
     switch (activeTab) {
@@ -39,7 +65,7 @@ const Index = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <MetricCard
                 title="VLamax Estimé"
-                value="0.45"
+                value={currentVlamax.toFixed(2)}
                 unit="mmol/L/s"
                 icon={Zap}
                 trend="neutral"
@@ -48,7 +74,7 @@ const Index = () => {
               />
               <MetricCard
                 title="FTP"
-                value="280"
+                value={currentFtp.toString()}
                 unit="watts"
                 icon={Flame}
                 trend="up"
@@ -57,7 +83,7 @@ const Index = () => {
               />
               <MetricCard
                 title="VO2max"
-                value="65"
+                value={(athlete.vo2max || 65).toString()}
                 unit="ml/kg/min"
                 icon={Activity}
                 trend="up"
@@ -94,7 +120,12 @@ const Index = () => {
 
       case "tests":
         return (
-          <div className="animate-fade-in">
+          <div className="space-y-6 animate-fade-in">
+            <TestMetaboliqueManager
+              tests={testsMetaboliques}
+              onTestsChange={handleTestsChange}
+              athletePoids={athlete.poids}
+            />
             <TestProtocols />
           </div>
         );
