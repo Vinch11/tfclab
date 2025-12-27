@@ -15,6 +15,7 @@ import { SemaineTypeView } from "@/components/SemaineTypeView";
 import { RaceReadinessCard } from "@/components/RaceReadinessCard";
 import { Bloc3SemainesView } from "@/components/Bloc3SemainesView";
 import { Zap, Target, Flame, Activity } from "lucide-react";
+import logo2fc from "@/assets/logo-2fc.png";
 import { Athlete, getDernierSnapshot } from "@/types/athlete";
 import { FeedbackNolio } from "@/types/feedbackNolio";
 import { estimerTTE, scoreConfiance } from "@/types/snapshotNolio";
@@ -247,6 +248,15 @@ const Index = () => {
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
 
       <main className="container mx-auto px-4 py-8 relative">
+        {/* Logo en grand format */}
+        <div className="flex justify-center mb-8">
+          <img 
+            src={logo2fc} 
+            alt="Two For Coaching - Vince's Lab" 
+            className="h-24 md:h-32 w-auto object-contain"
+          />
+        </div>
+        
         {renderContent()}
       </main>
 
