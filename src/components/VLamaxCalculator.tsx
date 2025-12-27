@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Athlete, getDernierSnapshot } from "@/types/athlete";
 import { estimerTTE, scoreConfiance, calculerAgeSnapshot, calculerPrecision } from "@/types/snapshotNolio";
 import { calculVLamaxSnapshot, calculVLamaxAvecConfiance } from "@/lib/athleteStore";
+import { MetricExplanationPopup } from "./MetricExplanationPopup";
 
 interface VLamaxCalculatorProps {
   athlete?: Athlete;
@@ -146,6 +147,7 @@ export function VLamaxCalculator({ athlete }: VLamaxCalculatorProps) {
             <div className="flex items-center gap-2">
               <Zap className="w-5 h-5 text-accent" />
               <span className="text-sm text-muted-foreground">VLamax Estimé</span>
+              <MetricExplanationPopup metric="VLamax" />
             </div>
             <div className="flex items-baseline gap-3">
               <span className="text-5xl font-bold font-mono text-primary">
@@ -170,6 +172,7 @@ export function VLamaxCalculator({ athlete }: VLamaxCalculatorProps) {
               <div className="flex items-center gap-2 mb-2">
                 <Gauge className="w-4 h-4 text-accent" />
                 <span className="text-xs text-muted-foreground">TTE Estimé</span>
+                <MetricExplanationPopup metric="TTE" />
               </div>
               <span className="text-2xl font-bold font-mono text-accent">{tte}</span>
               <span className="text-xs text-muted-foreground ml-1">min</span>

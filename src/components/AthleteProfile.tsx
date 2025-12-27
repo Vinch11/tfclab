@@ -2,11 +2,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Save, Target, Scale, Activity, Percent, Plus, Database } from "lucide-react";
+import { User, Save, Target, Scale, Activity, Percent, Plus, Database, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Athlete, ObjectifType, SexeType, getObjectifLabel, getDernierSnapshot } from "@/types/athlete";
 import { SnapshotNolio, creerSnapshotVide, scoreConfiance, estimerTTE } from "@/types/snapshotNolio";
 import { calculVLamaxSnapshot } from "@/lib/athleteStore";
+import { MetricExplanationPopup } from "./MetricExplanationPopup";
+import { SnapshotEditor } from "./SnapshotEditor";
+import { CSVImporter } from "./CSVImporter";
 
 interface AthleteProfileProps {
   athlete: Athlete;
@@ -48,6 +51,27 @@ export function AthleteProfile({ athlete, onUpdate }: AthleteProfileProps) {
     setNewSnapshot(creerSnapshotVide());
   };
 
+  const handleCSVImport = (snapshots: SnapshotNolio[]) => {
+    const updatedAthlete: Athlete = {
+      ...athlete,
+      historique: [...(athlete.historique || []), ...snapshots],
+      updatedAt: new Date().toISOString(),
+    };
+    onUpdate(updatedAthlete);
+  };
+
+  const handleSnapshotEdit = (updatedSnapshot: SnapshotNolio) => {
+    const updatedHistorique = (athlete.historique || []).map(s => 
+      s.id === updatedSnapshot.id ? updatedSnapshot : s
+    );
+    const updatedAthlete: Athlete = {
+      ...athlete,
+      historique: updatedHistorique,
+      updatedAt: new Date().toISOString(),
+    };
+    onUpdate(updatedAthlete);
+  };
+
   return (
     <div className="glass-card p-6">
       <div className="flex items-center justify-between mb-6">
@@ -61,6 +85,7 @@ export function AthleteProfile({ athlete, onUpdate }: AthleteProfileProps) {
           </div>
         </div>
         <div className="flex gap-2">
+          <CSVImporter onImport={handleCSVImport} />
           <Button
             variant="outline"
             size="sm"
@@ -69,6 +94,18 @@ export function AthleteProfile({ athlete, onUpdate }: AthleteProfileProps) {
             <Plus className="w-4 h-4 mr-2" />
             Snapshot
           </Button>
+          {snapshot && (
+            <SnapshotEditor 
+              snapshot={snapshot} 
+              onSave={handleSnapshotEdit}
+              trigger={
+                <Button variant="outline" size="sm">
+                  <Edit className="w-4 h-4 mr-2" />
+                  Éditer
+                </Button>
+              }
+            />
+          )}
           <Button
             variant={isEditing ? "glow" : "outline"}
             size="sm"
