@@ -64,6 +64,9 @@ export function VLamaxTestingPage({ athlete, onSaveTests }: VLamaxTestingPagePro
   const [testResultat, setTestResultat] = useState<TestResultat>({});
   const [testNotes, setTestNotes] = useState("");
   const [sportFilter, setSportFilter] = useState<"tous" | "vélo" | "course" | "natation">("tous");
+  
+  // État pour les inputs inline (par protocole id)
+  const [inlineInputs, setInlineInputs] = useState<Record<string, TestResultat>>({});
 
   // Filtrer les tests par sport
   const filteredTests = sportFilter === "tous" 
@@ -122,8 +125,74 @@ export function VLamaxTestingPage({ athlete, onSaveTests }: VLamaxTestingPagePro
     }));
   };
 
+  // Gérer les inputs inline sur les cartes
+  const handleInlineInputChange = (protocoleId: string, field: keyof TestResultat, value: string) => {
+    setInlineInputs(prev => ({
+      ...prev,
+      [protocoleId]: {
+        ...prev[protocoleId],
+        [field]: parseFloat(value) || 0
+      }
+    }));
+  };
+
+  // Sauvegarder depuis input inline
+  const handleInlineSave = (protocole: TestProtocoleVLamax) => {
+    const resultat = inlineInputs[protocole.id] || {};
+    const vlamax = protocole.calcVLamax(resultat);
+    
+    const newTest: TestVLamax = {
+      id: crypto.randomUUID(),
+      nom: protocole.nom,
+      sport: protocole.sport,
+      date: new Date().toISOString().slice(0, 10),
+      resultat,
+      vlamax,
+      notes: ""
+    };
+
+    const updatedTests = tests.filter(t => t.nom !== protocole.nom);
+    updatedTests.push(newTest);
+    
+    setTests(updatedTests);
+    localStorage.setItem(`tests-${athlete.id}`, JSON.stringify(updatedTests));
+    onSaveTests(updatedTests);
+  };
+
+  // Calculer VLamax en temps réel pour un protocole
+  const getInlineVLamax = (protocole: TestProtocoleVLamax): number => {
+    const resultat = inlineInputs[protocole.id] || {};
+    if (Object.keys(resultat).length === 0) return 0;
+    return protocole.calcVLamax(resultat);
+  };
+
   const getExistingTest = (nom: string): TestVLamax | undefined => {
     return tests.find(t => t.nom === nom);
+  };
+
+  // Barre de progression colorée
+  const renderVLamaxBar = (vlamax: number, max: number = 1.0) => {
+    const ratio = Math.min(vlamax / max, 1);
+    const percentage = ratio * 100;
+    
+    let colorClass = "bg-destructive";
+    if (ratio > 0.75) colorClass = "bg-success";
+    else if (ratio > 0.5) colorClass = "bg-warning";
+    else if (ratio > 0.25) colorClass = "bg-accent";
+    
+    return (
+      <div className="flex items-center gap-2 w-full">
+        <div className="flex-1 h-3 bg-secondary/50 rounded-full overflow-hidden">
+          <div 
+            className={cn("h-full transition-all duration-500 rounded-full", colorClass)}
+            style={{ width: `${percentage}%` }}
+          />
+        </div>
+        <span className="text-xs font-mono text-muted-foreground w-12">
+          {vlamax.toFixed(2)}
+        </span>
+      </div>
+    );
   };
 
   const vlamaxMoyen = calculerVLamaxMoyenTests(tests);
@@ -301,46 +370,75 @@ export function VLamaxTestingPage({ athlete, onSaveTests }: VLamaxTestingPagePro
                       <p className="text-sm text-foreground">{protocole.protocole}</p>
                     </div>
 
-                    {/* Résultat existant */}
+                    {/* Barre VLamax en temps réel */}
+                    <div className="p-3 rounded-lg bg-secondary/30">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                          VLamax estimé
+                        </span>
+                        <MetricExplanationPopup metric="VLamax" />
+                      </div>
+                      {renderVLamaxBar(
+                        getInlineVLamax(protocole) || existingTest?.vlamax || 0,
+                        1.0
+                      )}
+                    </div>
+
+                    {/* Inputs inline directement sur la carte */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {protocole.champsRequis.map(field => {
+                        const fieldInfo = fieldLabels[field];
+                        const FieldIcon = fieldInfo.icon;
+                        const currentValue = inlineInputs[protocole.id]?.[field] || existingTest?.resultat[field] || "";
+                        
+                        return (
+                          <div key={field} className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 text-muted-foreground min-w-[100px]">
+                              <FieldIcon className="w-4 h-4" />
+                              <span className="text-xs">{fieldInfo.label}</span>
+                            </div>
+                            <Input
+                              type="number"
+                              value={currentValue}
+                              onChange={(e) => handleInlineInputChange(protocole.id, field, e.target.value)}
+                              className="bg-background/50 border-border h-9 text-sm"
+                              placeholder="0"
+                            />
+                            <span className="text-xs text-muted-foreground w-10">{fieldInfo.unit}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Résultat existant compact */}
                     {existingTest && (
-                      <div className="p-3 rounded-lg bg-success/5 border border-success/20">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Trophy className="w-4 h-4 text-success" />
-                          <span className="text-sm font-medium text-success">
-                            Dernier résultat ({existingTest.date})
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                          {Object.entries(existingTest.resultat).map(([key, value]) => (
-                            value ? (
-                              <div key={key} className="text-sm">
-                                <span className="text-muted-foreground">
-                                  {fieldLabels[key as keyof TestResultat]?.label}:
-                                </span>
-                                <span className="ml-1 font-mono text-foreground">
-                                  {value} {fieldLabels[key as keyof TestResultat]?.unit}
-                                </span>
-                              </div>
-                            ) : null
-                          ))}
-                        </div>
-                        {existingTest.notes && (
-                          <p className="mt-2 text-xs text-muted-foreground italic">
-                            Notes: {existingTest.notes}
-                          </p>
-                        )}
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-success/10 border border-success/20">
+                        <Trophy className="w-4 h-4 text-success" />
+                        <span className="text-xs text-success">
+                          Dernier test: {existingTest.date} — VLamax: {existingTest.vlamax.toFixed(2)}
+                        </span>
                       </div>
                     )}
 
-                    {/* Bouton démarrer */}
-                    <Button 
-                      variant="glow" 
-                      className="w-full"
-                      onClick={() => handleStartTest(protocole)}
-                    >
-                      <Play className="w-4 h-4 mr-2" />
-                      {existingTest ? "Refaire le test" : "Démarrer le test"}
-                    </Button>
+                    {/* Boutons d'action */}
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="glow" 
+                        className="flex-1"
+                        onClick={() => handleInlineSave(protocole)}
+                        disabled={!inlineInputs[protocole.id] || Object.keys(inlineInputs[protocole.id]).length === 0}
+                      >
+                        <Save className="w-4 h-4 mr-2" />
+                        Sauvegarder
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        onClick={() => handleStartTest(protocole)}
+                      >
+                        <Play className="w-4 h-4 mr-2" />
+                        Mode détaillé
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
