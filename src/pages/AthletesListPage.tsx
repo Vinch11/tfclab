@@ -7,10 +7,11 @@ import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, User, Target, ChevronRight, Trash2 } from "lucide-react";
+import { Plus, User, Target, ChevronRight, Trash2, Bike, Footprints, Waves } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
-import { getDernierSnapshot } from "@/types/athlete";
+import { getDernierSnapshot, getObjectifLabel } from "@/types/athlete";
 import { calculVLamaxSnapshot } from "@/lib/athleteStore";
+import { SportType } from "@/types/snapshotNolio";
 
 export default function AthletesListPage() {
   const navigate = useNavigate();
@@ -33,6 +34,17 @@ export default function AthletesListPage() {
     }
   };
 
+  // Get sports count for athlete
+  const getSportsCount = (historique: any[]): Record<SportType, number> => {
+    const counts: Record<SportType, number> = { vélo: 0, course: 0, natation: 0 };
+    historique.forEach((h) => {
+      if (counts[h.sport as SportType] !== undefined) {
+        counts[h.sport as SportType]++;
+      }
+    });
+    return counts;
+  };
+
   return (
     <AppLayout title="Mes Athlètes">
       <div className="space-y-4 animate-fade-in">
@@ -41,6 +53,7 @@ export default function AthletesListPage() {
           {athletes.map((athlete) => {
             const snapshot = getDernierSnapshot(athlete);
             const vlamax = snapshot ? calculVLamaxSnapshot(snapshot, athlete.objectif) : null;
+            const sportsCount = getSportsCount(athlete.historique);
 
             return (
               <Card
@@ -61,12 +74,33 @@ export default function AthletesListPage() {
                         <div className="flex items-center gap-2 mt-1">
                           <Badge variant="secondary" className="text-xs">
                             <Target className="h-3 w-3 mr-1" />
-                            {athlete.objectif === "IM" ? "Ironman" : "70.3"}
+                            {getObjectifLabel(athlete.objectif)}
                           </Badge>
                           {vlamax && (
                             <span className="text-xs text-muted-foreground">
                               VLamax: {vlamax.toFixed(2)}
                             </span>
+                          )}
+                        </div>
+                        {/* Sports icons */}
+                        <div className="flex items-center gap-2 mt-2">
+                          {sportsCount.vélo > 0 && (
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <Bike className="h-3 w-3" />
+                              <span>{sportsCount.vélo}</span>
+                            </div>
+                          )}
+                          {sportsCount.course > 0 && (
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <Footprints className="h-3 w-3" />
+                              <span>{sportsCount.course}</span>
+                            </div>
+                          )}
+                          {sportsCount.natation > 0 && (
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <Waves className="h-3 w-3" />
+                              <span>{sportsCount.natation}</span>
+                            </div>
                           )}
                         </div>
                       </div>

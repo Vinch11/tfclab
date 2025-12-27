@@ -37,6 +37,7 @@ import { calculVLamaxAvecConfiance } from "@/lib/athleteStore";
 import { calculRaceReadiness, texteExplicatifAthlete, getDernierSnapshotParSport } from "@/lib/raceReadiness";
 import { determinerPriorite, seancesParSport } from "@/types/seances";
 import { ScientificDashboard } from "@/components/ScientificDashboard";
+import { MetricBars } from "@/components/ColoredProgressBar";
 
 // Interface pour les données par sport
 interface SportDashboardData {
