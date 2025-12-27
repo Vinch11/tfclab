@@ -17,14 +17,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Users, UserPlus, Trash2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { AthleteWithTests, creerAthlete } from "@/lib/athleteStore";
+import { Athlete, getDernierSnapshot } from "@/types/athlete";
+import { creerAthlete } from "@/lib/athleteStore";
+import { estimerTTE } from "@/types/snapshotNolio";
 
 interface AthleteSelectorProps {
-  athletes: AthleteWithTests[];
+  athletes: Athlete[];
   selectedAthleteId: string | null;
   onSelectAthlete: (athleteId: string) => void;
-  onAddAthlete: (athlete: AthleteWithTests) => void;
+  onAddAthlete: (athlete: Athlete) => void;
   onDeleteAthlete: (athleteId: string) => void;
 }
 
@@ -37,46 +38,33 @@ export function AthleteSelector({
 }: AthleteSelectorProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newAthlete, setNewAthlete] = useState({
-    prenom: "",
     nom: "",
-    poids: 70,
     objectif: "IM" as "IM" | "703",
     sexe: "M" as "M" | "F",
-    ftp: 280,
+    masse_grasse: 18,
   });
 
   const handleAddAthlete = () => {
     const athlete = creerAthlete(
       crypto.randomUUID(),
-      newAthlete.poids,
-      newAthlete.objectif,
+      newAthlete.nom || "Nouvel Athlète",
       newAthlete.sexe,
-      50, // vo2max default
-      18, // masse_grasse default
-      45, // masse_musculaire default
-      185, // fc_max default
-      50, // fc_repos default
-      60, // hrv default
-      7, // sommeil default
-      4, // fatigue default
-      newAthlete.ftp
+      newAthlete.objectif,
+      newAthlete.masse_grasse
     );
-    athlete.prenom = newAthlete.prenom;
-    athlete.nom = newAthlete.nom;
 
     onAddAthlete(athlete);
     setIsDialogOpen(false);
     setNewAthlete({
-      prenom: "",
       nom: "",
-      poids: 70,
       objectif: "IM",
       sexe: "M",
-      ftp: 280,
+      masse_grasse: 18,
     });
   };
 
   const selectedAthlete = athletes.find((a) => a.id === selectedAthleteId);
+  const snapshot = selectedAthlete ? getDernierSnapshot(selectedAthlete) : null;
 
   return (
     <div className="glass-card p-4">
@@ -99,9 +87,7 @@ export function AthleteSelector({
               <SelectContent>
                 {athletes.map((athlete) => (
                   <SelectItem key={athlete.id} value={athlete.id}>
-                    {athlete.prenom && athlete.nom
-                      ? `${athlete.prenom} ${athlete.nom}`
-                      : `Athlète ${athlete.id.slice(0, 6)}`}
+                    {athlete.nom || `Athlète ${athlete.id.slice(0, 6)}`}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -110,12 +96,18 @@ export function AthleteSelector({
         </div>
 
         <div className="flex items-center gap-2">
-          {selectedAthlete && (
+          {selectedAthlete && snapshot && (
             <div className="hidden md:flex items-center gap-4 px-4 py-2 rounded-lg bg-secondary/30 border border-border">
               <div className="text-center">
                 <p className="text-xs text-muted-foreground">Poids</p>
                 <p className="font-mono font-semibold text-foreground">
-                  {selectedAthlete.poids}kg
+                  {snapshot.poids}kg
+                </p>
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground">FTP</p>
+                <p className="font-mono font-semibold text-primary">
+                  {snapshot.ftp}W
                 </p>
               </div>
               <div className="text-center">
@@ -125,9 +117,9 @@ export function AthleteSelector({
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">Tests</p>
-                <p className="font-mono font-semibold text-primary">
-                  {selectedAthlete.tests?.length || 0}
+                <p className="text-xs text-muted-foreground">Snapshots</p>
+                <p className="font-mono font-semibold text-success">
+                  {selectedAthlete.historique?.length || 0}
                 </p>
               </div>
             </div>
@@ -145,59 +137,16 @@ export function AthleteSelector({
                 <DialogTitle>Nouvel Athlète</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Prénom</Label>
-                    <Input
-                      value={newAthlete.prenom}
-                      onChange={(e) =>
-                        setNewAthlete({ ...newAthlete, prenom: e.target.value })
-                      }
-                      placeholder="Prénom"
-                      className="bg-secondary/50"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Nom</Label>
-                    <Input
-                      value={newAthlete.nom}
-                      onChange={(e) =>
-                        setNewAthlete({ ...newAthlete, nom: e.target.value })
-                      }
-                      placeholder="Nom"
-                      className="bg-secondary/50"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Poids (kg)</Label>
-                    <Input
-                      type="number"
-                      value={newAthlete.poids}
-                      onChange={(e) =>
-                        setNewAthlete({
-                          ...newAthlete,
-                          poids: parseFloat(e.target.value) || 70,
-                        })
-                      }
-                      className="bg-secondary/50"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>FTP (W)</Label>
-                    <Input
-                      type="number"
-                      value={newAthlete.ftp}
-                      onChange={(e) =>
-                        setNewAthlete({
-                          ...newAthlete,
-                          ftp: parseFloat(e.target.value) || 280,
-                        })
-                      }
-                      className="bg-secondary/50"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label>Nom</Label>
+                  <Input
+                    value={newAthlete.nom}
+                    onChange={(e) =>
+                      setNewAthlete({ ...newAthlete, nom: e.target.value })
+                    }
+                    placeholder="Nom de l'athlète"
+                    className="bg-secondary/50"
+                  />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -234,6 +183,20 @@ export function AthleteSelector({
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Masse grasse (%)</Label>
+                  <Input
+                    type="number"
+                    value={newAthlete.masse_grasse}
+                    onChange={(e) =>
+                      setNewAthlete({
+                        ...newAthlete,
+                        masse_grasse: parseFloat(e.target.value) || 18,
+                      })
+                    }
+                    className="bg-secondary/50"
+                  />
                 </div>
                 <Button onClick={handleAddAthlete} className="w-full" variant="glow">
                   <UserPlus className="w-4 h-4 mr-2" />
