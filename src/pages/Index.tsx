@@ -10,11 +10,13 @@ import { AthleteProfile } from "@/components/AthleteProfile";
 import { TestMetaboliqueManager } from "@/components/TestMetaboliqueManager";
 import { FeedbackNolioManager } from "@/components/FeedbackNolioManager";
 import { DanLorangAnalysis } from "@/components/DanLorangAnalysis";
+import { DashboardCoach } from "@/components/DashboardCoach";
 import { Zap, Target, Flame, Activity } from "lucide-react";
 import { Athlete, defaultAthlete } from "@/types/athlete";
 import { TestMetabolique } from "@/types/testMetabolique";
 import { FeedbackNolio } from "@/types/feedbackNolio";
 import { calculVLamax, ResultatVLamax, defaultResultatVLamax } from "@/types/resultatVLamax";
+import { reglesDanLorang } from "@/types/reglesDanLorang";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -88,6 +90,20 @@ const Index = () => {
   const currentTte = latestTest?.tte ? latestTest.tte / 60 : 60; // Convert to minutes
   const ftp_kg = currentFtp / (athlete.poids || 70);
 
+  // State for coach dashboard inputs
+  const [seanceSpecifiqueValidee, setSeanceSpecifiqueValidee] = useState(true);
+  const [fatigueOk, setFatigueOk] = useState(true);
+
+  // Calculate regles for dashboard coach
+  const currentRegles = reglesDanLorang(
+    athlete,
+    currentResultat,
+    currentTte,
+    ftp_kg,
+    seanceSpecifiqueValidee,
+    fatigueOk
+  );
+
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":
@@ -145,6 +161,18 @@ const Index = () => {
               resultat={currentResultat}
               tte={currentTte}
               ftp_kg={ftp_kg}
+            />
+
+            {/* Dashboard Coach */}
+            <DashboardCoach
+              athlete={athlete}
+              resultat={currentResultat}
+              regles={currentRegles}
+              testsHistorique={testsMetaboliques}
+              tte={currentTte}
+              ftp_kg={ftp_kg}
+              seance_specifique_validee={seanceSpecifiqueValidee}
+              fatigue_ok={fatigueOk}
             />
           </div>
         );
