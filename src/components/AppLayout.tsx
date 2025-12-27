@@ -15,6 +15,7 @@ import {
   Home
 } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
+import logo2fc from "@/assets/logo-2fc.png";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -70,14 +71,11 @@ export function AppLayout({ children, title, showBack = false }: AppLayoutProps)
               </div>
             </div>
             
-            <div className="flex flex-col items-end gap-0.5">
-              <span className="text-sm font-bold text-primary">
-                Vince&apos;s Lab
-              </span>
-              <span className="text-[10px] text-muted-foreground">
-                by Two For Coaching
-              </span>
-            </div>
+            <img 
+              src={logo2fc} 
+              alt="Two For Coaching" 
+              className="h-10 w-auto object-contain"
+            />
           </div>
         </div>
       </header>
