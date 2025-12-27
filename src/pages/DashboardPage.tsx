@@ -45,6 +45,7 @@ import { Phase3Dashboard } from "@/components/Phase3Dashboard";
 import { ExportTools } from "@/components/ExportTools";
 import { AthleteComparison } from "@/components/AthleteComparison";
 import { IndexSeancesView } from "@/components/IndexSeances";
+import { PhysiologicalAnalysis } from "@/components/PhysiologicalAnalysis";
 
 // Interface pour les données par sport
 interface SportDashboardData {
@@ -70,6 +71,7 @@ export default function DashboardPage() {
   const [activeSport, setActiveSport] = useState<SportType>("vélo");
   const [showComparison, setShowComparison] = useState(false);
   const [showIndexSeances, setShowIndexSeances] = useState(false);
+  const [showPhysiologicalAnalysis, setShowPhysiologicalAnalysis] = useState(false);
 
   if (!currentAthlete) {
     return (
@@ -484,11 +486,25 @@ export default function DashboardPage() {
             <List className="h-4 w-4 text-primary" />
             <span className="text-sm">Index Séances A/B/C/D</span>
           </Button>
+
+          <Button
+            onClick={() => setShowPhysiologicalAnalysis(!showPhysiologicalAnalysis)}
+            className="w-full justify-start gap-3 h-12"
+            variant={showPhysiologicalAnalysis ? "default" : "outline"}
+          >
+            <Activity className="h-4 w-4 text-primary" />
+            <span className="text-sm">Analyse Physiologique Élite</span>
+          </Button>
         </div>
 
         {/* Index des Séances */}
         {showIndexSeances && (
           <IndexSeancesView />
+        )}
+
+        {/* Analyse Physiologique Élite */}
+        {showPhysiologicalAnalysis && (
+          <PhysiologicalAnalysis athlete={currentAthlete} />
         )}
       </div>
     </AppLayout>
