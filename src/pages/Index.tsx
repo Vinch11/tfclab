@@ -51,9 +51,13 @@ const Index = () => {
 
   // Compute metrics from latest test
   const latestTest = testsMetaboliques[0];
+  const previousTest = testsMetaboliques[1];
   const currentVlamax = latestTest 
     ? estimateVLamaxFromTest(latestTest, athlete.poids) 
     : athlete.vlamax || 0.45;
+  const previousVlamax = previousTest 
+    ? estimateVLamaxFromTest(previousTest, athlete.poids) 
+    : undefined;
   const currentFtp = latestTest?.cp || athlete.ftp || 280;
 
   const renderContent = () => {
@@ -103,7 +107,7 @@ const Index = () => {
 
             {/* Main Content Grid */}
             <div className="grid lg:grid-cols-2 gap-6">
-              <VLamaxCalculator />
+              <VLamaxCalculator athlete={athlete} previousVlamax={previousVlamax} />
               <TrainingZones />
             </div>
           </div>
@@ -113,7 +117,7 @@ const Index = () => {
         return (
           <div className="space-y-6 animate-fade-in">
             <AthleteProfile athlete={athlete} onUpdate={handleAthleteUpdate} />
-            <VLamaxCalculator />
+            <VLamaxCalculator athlete={athlete} previousVlamax={previousVlamax} />
             <TrainingZones />
           </div>
         );
