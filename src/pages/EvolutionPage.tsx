@@ -1,5 +1,5 @@
 // =============================================
-// ÉCRAN 7 - ÉVOLUTION MULTI-SPORT
+// ÉCRAN 7 - ÉVOLUTION MULTI-SPORT + DASHBOARD SCIENTIFIQUE
 // =============================================
 
 import { useState } from "react";
@@ -9,10 +9,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendingUp, AlertCircle, Calendar, Zap, Flame, Activity, Bike, PersonStanding, Waves, Target } from "lucide-react";
+import { TrendingUp, AlertCircle, Calendar, Zap, Flame, Activity, Bike, PersonStanding, Waves, Target, BookOpen } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
-import { calculVLamaxSnapshot } from "@/lib/athleteStore";
+import { calculVLamaxSnapshot, calculVLamaxAvecConfiance } from "@/lib/athleteStore";
 import { estimerTTESport, scoreConfiance, SportType } from "@/types/snapshotNolio";
+import { HistoricalChart } from "@/components/HistoricalChart";
+import { ScientificDashboard } from "@/components/ScientificDashboard";
 import {
   LineChart,
   Line,
@@ -252,33 +254,53 @@ export default function EvolutionPage() {
   return (
     <AppLayout title="Évolution" showBack>
       <div className="space-y-4 animate-fade-in">
-        {/* Onglets par sport */}
-        <Tabs value={activeSport} onValueChange={(v) => setActiveSport(v as SportType)}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="vélo" className="gap-1">
-              <Bike className="h-4 w-4" />
-              Vélo
-            </TabsTrigger>
-            <TabsTrigger value="course" className="gap-1">
-              <PersonStanding className="h-4 w-4" />
-              Course
-            </TabsTrigger>
-            <TabsTrigger value="natation" className="gap-1">
-              <Waves className="h-4 w-4" />
-              Natation
-            </TabsTrigger>
-          </TabsList>
+        {/* Historique Graphique */}
+        <HistoricalChart athlete={currentAthlete} />
 
-          <TabsContent value="vélo" className="mt-4">
-            {renderSportEvolution()}
-          </TabsContent>
-          <TabsContent value="course" className="mt-4">
-            {renderSportEvolution()}
-          </TabsContent>
-          <TabsContent value="natation" className="mt-4">
-            {renderSportEvolution()}
-          </TabsContent>
-        </Tabs>
+        {/* Dashboard Scientifique */}
+        <ScientificDashboard 
+          snapshots={currentAthlete.historique}
+          objectif={currentAthlete.objectif}
+          athleteNom={currentAthlete.nom}
+        />
+
+        {/* Onglets par sport - Détail */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <BookOpen className="h-4 w-4 text-primary" />
+              Analyse détaillée par sport
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs value={activeSport} onValueChange={(v) => setActiveSport(v as SportType)}>
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="vélo" className="gap-1">
+                  <Bike className="h-4 w-4" />
+                  Vélo
+                </TabsTrigger>
+                <TabsTrigger value="course" className="gap-1">
+                  <PersonStanding className="h-4 w-4" />
+                  Course
+                </TabsTrigger>
+                <TabsTrigger value="natation" className="gap-1">
+                  <Waves className="h-4 w-4" />
+                  Natation
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="vélo" className="mt-4">
+                {renderSportEvolution()}
+              </TabsContent>
+              <TabsContent value="course" className="mt-4">
+                {renderSportEvolution()}
+              </TabsContent>
+              <TabsContent value="natation" className="mt-4">
+                {renderSportEvolution()}
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
 
         {/* Bouton ajouter données */}
         <Button 
