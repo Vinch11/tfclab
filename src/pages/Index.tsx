@@ -4,6 +4,7 @@ import { MetricCard } from "@/components/MetricCard";
 import { VLamaxCalculator } from "@/components/VLamaxCalculator";
 import { TrainingZones } from "@/components/TrainingZones";
 import { TestProtocols } from "@/components/TestProtocols";
+import { VLamaxTestingPage } from "@/components/VLamaxTestingPage";
 import { RaceChecklist } from "@/components/RaceChecklist";
 import { NolioMapping } from "@/components/NolioMapping";
 import { AthleteProfile } from "@/components/AthleteProfile";
@@ -209,7 +210,12 @@ const Index = () => {
               onAddAthlete={handleAddAthlete}
               onDeleteAthlete={handleDeleteAthlete}
             />
-            <AthleteProfile athlete={currentAthlete} onUpdate={handleAthleteUpdate} />
+            <VLamaxTestingPage 
+              athlete={currentAthlete} 
+              onSaveTests={(tests) => {
+                console.log("Tests saved:", tests);
+              }}
+            />
             <TestComparison athlete={currentAthlete} />
             <TestProtocols />
           </div>
