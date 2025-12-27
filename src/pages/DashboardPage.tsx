@@ -38,6 +38,7 @@ import { calculRaceReadiness, texteExplicatifAthlete, getDernierSnapshotParSport
 import { determinerPriorite, seancesParSport } from "@/types/seances";
 import { ScientificDashboard } from "@/components/ScientificDashboard";
 import { MetricBars } from "@/components/ColoredProgressBar";
+import { Phase3Dashboard } from "@/components/Phase3Dashboard";
 
 // Interface pour les données par sport
 interface SportDashboardData {
@@ -409,27 +410,15 @@ export default function DashboardPage() {
           </TabsContent>
         </Tabs>
 
+        {/* Phase 3 - IA, Alertes, Gamification */}
+        <Phase3Dashboard athlete={currentAthlete} />
+
         {/* Dashboard Scientifique */}
         <ScientificDashboard 
           snapshots={currentAthlete.historique}
           objectif={currentAthlete.objectif}
           athleteNom={currentAthlete.nom}
         />
-
-        {/* Texte explicatif multi-sport */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <BookOpen className="h-4 w-4 text-primary" />
-              Analyse Multi-Sport
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <pre className="text-xs text-muted-foreground whitespace-pre-wrap font-sans">
-              {texte}
-            </pre>
-          </CardContent>
-        </Card>
 
         {/* Actions */}
         <div className="grid grid-cols-1 gap-2">
