@@ -37,6 +37,8 @@ const prioriteIcons: Record<PrioriteType, typeof TrendingDown> = {
   VLAMAX_UP: TrendingUp,
   TTE_UP: Timer,
   FTP_UTIL: Zap,
+  ENDURANCE_UP: Timer,
+  VITESSE_UP: TrendingUp,
   "": CheckCircle2,
 };
 

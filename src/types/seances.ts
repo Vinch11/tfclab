@@ -7,7 +7,7 @@
 import { SportType } from "@/types/snapshotNolio";
 
 export type CodeSeanceVelo = "A1" | "A2" | "A3" | "B1" | "B2" | "C1" | "D1";
-export type CodeSeanceCourse = "R1" | "R2" | "R3" | "R4";
+export type CodeSeanceCourse = "R1" | "R2" | "R3" | "R4" | "F1" | "F2" | "E1" | "E2";
 export type CodeSeanceNatation = "N1" | "N2" | "N3";
 export type CodeSeance = CodeSeanceVelo | CodeSeanceCourse | CodeSeanceNatation;
 
@@ -97,8 +97,9 @@ export const SEANCES_VELO: Record<CodeSeanceVelo, Seance> = {
   },
 };
 
-// Bibliothèque des séances - COURSE
+// Bibliothèque des séances - COURSE (Triathlon + Marathon/Semi)
 export const SEANCES_COURSE: Record<CodeSeanceCourse, Seance> = {
+  // Séances Triathlon
   R1: {
     code: "R1",
     nom: "Seuil 10km",
@@ -138,6 +139,47 @@ export const SEANCES_COURSE: Record<CodeSeanceCourse, Seance> = {
     duree: "45–75 min",
     description: "Simulation allure marathon Ironman. Focus sur l'économie et la régularité.",
     zone: "Race Pace",
+  },
+  // Séances Marathon / Semi-Marathon
+  F1: {
+    code: "F1",
+    nom: "Fractionné VO2max",
+    sport: "course",
+    objectif: "VO2max ↑",
+    intensite: "90–95% VMA",
+    format: "8–12x400m",
+    description: "Développement VO2max avec récup courte. Clé pour améliorer la VMA et le potentiel aérobie.",
+    zone: "VO2",
+  },
+  F2: {
+    code: "F2",
+    nom: "Seuil Lactique",
+    sport: "course",
+    objectif: "Seuil ↑",
+    intensite: "80–85% VMA",
+    format: "5–6x1km",
+    description: "Travail au seuil lactique. Améliore l'endurance à haute intensité pour marathon/semi.",
+    zone: "Threshold",
+  },
+  E1: {
+    code: "E1",
+    nom: "Endurance Marathon",
+    sport: "course",
+    objectif: "Endurance ↑",
+    intensite: "65–75% VMA",
+    duree: "60–180 min",
+    description: "Sortie longue fondamentale. Base de l'entraînement marathon, développe l'oxydation des graisses.",
+    zone: "Z2",
+  },
+  E2: {
+    code: "E2",
+    nom: "Récupération Active",
+    sport: "course",
+    objectif: "Récupération",
+    intensite: "50–60% VMA",
+    duree: "30–60 min",
+    description: "Footing léger de récupération. Favorise la régénération sans stress supplémentaire.",
+    zone: "Z2",
   },
 };
 
@@ -182,8 +224,13 @@ export const SEANCES: Record<CodeSeance, Seance> = {
   ...SEANCES_NATATION,
 };
 
-// Types de priorités
-export type PrioriteCoaching = "Réduire VLamax" | "Augmenter TTE" | "Maintenir équilibre";
+// Types de priorités - étendu pour Marathon/Semi
+export type PrioriteCoaching = 
+  | "Réduire VLamax" 
+  | "Augmenter TTE" 
+  | "Maintenir équilibre"
+  | "Augmenter endurance"
+  | "Améliorer vitesse";
 
 // Mapping priorité → séances recommandées par sport
 export function seancesParSport(priorite: PrioriteCoaching, sport: SportType): Seance[] {
@@ -195,12 +242,16 @@ export function seancesParSport(priorite: PrioriteCoaching, sport: SportType): S
     const codes: CodeSeanceCourse[] = (() => {
       switch (priorite) {
         case "Réduire VLamax":
-          return ["R2", "R4"];
+          return ["R2", "E1"];
         case "Augmenter TTE":
-          return ["R1", "R4"];
+          return ["R1", "F2"];
+        case "Augmenter endurance":
+          return ["E1", "F2", "E2"];
+        case "Améliorer vitesse":
+          return ["F1", "F2", "E1"];
         case "Maintenir équilibre":
         default:
-          return ["R2", "R1", "R3"];
+          return ["R2", "R1", "E1"];
       }
     })();
     return codes.map(code => SEANCES_COURSE[code]);
@@ -241,14 +292,31 @@ export function seancesParPriorite(priorite: PrioriteCoaching): Seance[] {
   return codes.map(code => SEANCES_VELO[code]);
 }
 
-// Déterminer la priorité coaching
+// Déterminer la priorité coaching - étendu pour Marathon/Semi
 export function determinerPriorite(
   vlamax: number,
   tte: number,
-  objectif: "IM" | "703"
+  objectif: "IM" | "703" | "Marathon" | "Semi"
 ): PrioriteCoaching {
+  // Triathlon
   if (objectif === "IM" && vlamax > 0.40) return "Réduire VLamax";
   if (objectif === "703" && vlamax > 0.45) return "Réduire VLamax";
+  
+  // Marathon - priorité endurance très longue
+  if (objectif === "Marathon") {
+    if (tte < 60) return "Augmenter endurance";
+    if (vlamax > 0.38) return "Réduire VLamax";
+    return "Maintenir équilibre";
+  }
+  
+  // Semi-Marathon - équilibre vitesse/endurance
+  if (objectif === "Semi") {
+    if (tte < 50) return "Augmenter endurance";
+    if (vlamax < 0.35) return "Améliorer vitesse";
+    if (vlamax > 0.45) return "Réduire VLamax";
+    return "Maintenir équilibre";
+  }
+  
   if (tte < 55) return "Augmenter TTE";
   return "Maintenir équilibre";
 }

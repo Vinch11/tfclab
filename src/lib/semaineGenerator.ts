@@ -24,7 +24,7 @@ export interface JourSemaine {
 
 export interface SemaineType {
   athleteNom: string;
-  objectif: "IM" | "703";
+  objectif: "IM" | "703" | "Marathon" | "Semi";
   priorite: PrioriteCoaching;
   vlamax: number;
   tte: number;
@@ -113,8 +113,17 @@ export function genererSemaineType(athlete: Athlete): SemaineType | null {
     }
   }
 
-  // Calcul volume estimé
-  const volumeTotal = athlete.objectif === "IM" ? "14-18h" : "10-14h";
+  // Calcul volume estimé selon objectif
+  const getVolumeEstime = () => {
+    switch (athlete.objectif) {
+      case "IM": return "14-18h";
+      case "703": return "10-14h";
+      case "Marathon": return "8-12h";
+      case "Semi": return "6-10h";
+      default: return "10-14h";
+    }
+  };
+  const volumeTotal = getVolumeEstime();
   const nbSeancesCles = semaine.filter(j => j.estCle).length;
 
   return {
@@ -174,7 +183,16 @@ export function genererSemaineTypeSport(athlete: Athlete, sport: SportType): Sem
     }
   }
 
-  const volumeTotal = athlete.objectif === "IM" ? "12-16h" : "10-14h";
+  const getVolumeEstimeSport = () => {
+    switch (athlete.objectif) {
+      case "IM": return "12-16h";
+      case "703": return "10-14h";
+      case "Marathon": return "8-12h";
+      case "Semi": return "6-10h";
+      default: return "10-14h";
+    }
+  };
+  const volumeTotal = getVolumeEstimeSport();
   const nbSeancesCles = semaine.filter(j => j.estCle).length;
 
   return {
