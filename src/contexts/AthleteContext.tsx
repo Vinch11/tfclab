@@ -10,7 +10,7 @@ import {
   ajouterAthlete,
   supprimerAthlete,
   mettreAJourAthlete,
-  creerAthleteExemple,
+  creerAthletesExempleMultiSport,
   ajouterSnapshot,
 } from "@/lib/athleteStore";
 import { SnapshotNolio } from "@/types/snapshotNolio";
@@ -32,7 +32,7 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
   const [athletes, setAthletes] = useState<Athlete[]>(() => {
     const loaded = chargerAthletes();
     if (loaded.length > 0) return loaded;
-    return [creerAthleteExemple()];
+    return creerAthletesExempleMultiSport();
   });
 
   const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(() => {
