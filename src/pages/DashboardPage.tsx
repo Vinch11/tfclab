@@ -29,7 +29,8 @@ import {
   Clock,
   BookOpen,
   Users,
-  Download
+  Download,
+  List
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAthletes } from "@/contexts/AthleteContext";
@@ -43,6 +44,7 @@ import { MetricBars } from "@/components/ColoredProgressBar";
 import { Phase3Dashboard } from "@/components/Phase3Dashboard";
 import { ExportTools } from "@/components/ExportTools";
 import { AthleteComparison } from "@/components/AthleteComparison";
+import { IndexSeancesView } from "@/components/IndexSeances";
 
 // Interface pour les données par sport
 interface SportDashboardData {
@@ -67,6 +69,7 @@ export default function DashboardPage() {
   const { currentAthlete, athletes } = useAthletes();
   const [activeSport, setActiveSport] = useState<SportType>("vélo");
   const [showComparison, setShowComparison] = useState(false);
+  const [showIndexSeances, setShowIndexSeances] = useState(false);
 
   if (!currentAthlete) {
     return (
@@ -472,7 +475,21 @@ export default function DashboardPage() {
             <TrendingUp className="h-4 w-4 text-primary" />
             <span className="text-sm">Voir évolution</span>
           </Button>
+
+          <Button
+            onClick={() => setShowIndexSeances(!showIndexSeances)}
+            className="w-full justify-start gap-3 h-12"
+            variant={showIndexSeances ? "default" : "outline"}
+          >
+            <List className="h-4 w-4 text-primary" />
+            <span className="text-sm">Index Séances A/B/C/D</span>
+          </Button>
         </div>
+
+        {/* Index des Séances */}
+        {showIndexSeances && (
+          <IndexSeancesView />
+        )}
       </div>
     </AppLayout>
   );
