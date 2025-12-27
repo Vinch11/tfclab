@@ -5,6 +5,7 @@ export interface ResultatVLamax {
   ig: number;               // Indice Glycolytique (valeur brute du calcul)
   confiance: number;        // Niveau de confiance (0-1, ex: 0.8 = 80%)
   delta_6sem: number;       // Variation sur 6 semaines (différence absolue)
+  historique?: number[];    // Historique des valeurs VLamax
   // Additional computed fields
   profil?: "diesel" | "endurant" | "equilibre" | "explosif" | "sprinter";
   fatmax?: number;          // Puissance FatMax estimée (W)
@@ -18,6 +19,7 @@ export const defaultResultatVLamax: ResultatVLamax = {
   ig: 0,
   confiance: 0,
   delta_6sem: 0,
+  historique: [],
 };
 
 /**
