@@ -1,78 +1,63 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { FlaskConical, Clock, Target, ChevronRight, Play } from "lucide-react";
+import { FlaskConical, Clock, Target, ChevronRight, Play, Package, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TestProtocol {
   id: string;
-  name: string;
-  duration: string;
+  nom: string;
   description: string;
-  steps: string[];
-  metrics: string[];
-  difficulty: "Facile" | "Modéré" | "Difficile";
+  objectif: string;
+  materiel: string[];
+  procedure: string[];
+  consignes: string[];
+  duration?: string;
+  difficulty?: "Facile" | "Modéré" | "Difficile";
 }
 
 const protocols: TestProtocol[] = [
   {
-    id: "ramp",
-    name: "Test Rampe FTP",
-    duration: "25-35 min",
-    description: "Test progressif pour estimer le FTP et la VO2max",
-    steps: [
-      "Échauffement 10 min à Z1-Z2",
-      "Départ à 100W, +20W toutes les minutes",
-      "Continuer jusqu'à l'épuisement",
-      "FTP ≈ 75% de la puissance moyenne dernière minute",
+    id: "pmax5s",
+    nom: "Test Pmax 5s",
+    description: "Mesure puissance maximale 5s.",
+    objectif: "Calculer VLamax.",
+    materiel: ["Home-trainer", "Chronomètre", "Casque"],
+    procedure: [
+      "Échauffement 15 min",
+      "Sprint maximal 5s",
+      "Répéter si nécessaire après 3 min repos",
     ],
-    metrics: ["FTP estimé", "VO2max proxy", "Pmax"],
-    difficulty: "Difficile",
-  },
-  {
-    id: "20min",
-    name: "Test 20 minutes",
-    duration: "45 min",
-    description: "Test terrain classique pour déterminer le FTP",
-    steps: [
-      "Échauffement 15 min progressif",
-      "5 min à effort soutenu (purge)",
-      "5 min récupération",
-      "20 min all-out régulier",
-      "FTP = 95% de la puissance moyenne",
-    ],
-    metrics: ["FTP", "Puissance Normalisée", "VI"],
-    difficulty: "Difficile",
-  },
-  {
-    id: "lactate",
-    name: "Test Lactate Simplifié",
-    duration: "60 min",
-    description: "Paliers pour estimer les seuils lactiques",
-    steps: [
-      "Échauffement 10 min",
-      "Paliers de 4 min: 150W, 180W, 210W, 240W, 270W...",
-      "2 min récup entre paliers",
-      "Mesure lactate capillaire à chaque fin de palier",
-      "Arrêt quand lactate > 4 mmol/L ou épuisement",
-    ],
-    metrics: ["LT1", "LT2", "VLamax estimé", "Courbe lactate"],
-    difficulty: "Modéré",
-  },
-  {
-    id: "sprint",
-    name: "Test Sprint 5s",
+    consignes: ["Pas fatigué", "Sécurité sur le vélo"],
     duration: "20 min",
-    description: "Mesure de la puissance maximale anaérobie",
-    steps: [
-      "Échauffement 10 min avec 2-3 accélérations",
-      "Repos 3 min",
-      "Sprint maximal 5 secondes depuis départ arrêté",
-      "Repos 5 min",
-      "Sprint maximal 5 secondes lancé",
-      "Retenir la meilleure valeur",
-    ],
-    metrics: ["Pmax 5s", "Pic de puissance", "Ratio W/kg"],
     difficulty: "Facile",
+  },
+  {
+    id: "cp",
+    nom: "Test CP",
+    description: "Mesure puissance critique 20-30 min.",
+    objectif: "Calculer puissance moyenne durable.",
+    materiel: ["Home-trainer", "Chronomètre", "Nutrition habituelle"],
+    procedure: [
+      "Échauffement 20 min",
+      "Effort maximal soutenu 20-30 min",
+    ],
+    consignes: ["Hydratation", "Pas malade/fatigué"],
+    duration: "45-50 min",
+    difficulty: "Difficile",
+  },
+  {
+    id: "tte",
+    nom: "Test TTE",
+    description: "Durée maximale à puissance donnée.",
+    objectif: "Évaluer tolérance à l'effort.",
+    materiel: ["Home-trainer", "Chronomètre", "Capteur de puissance"],
+    procedure: [
+      "Échauffement 15 min",
+      "Maintenir puissance cible jusqu'épuisement",
+    ],
+    consignes: ["Sécurité", "Pas malade/fatigué"],
+    duration: "Variable",
+    difficulty: "Difficile",
   },
 ];
 
@@ -93,7 +78,7 @@ export function TestProtocols() {
         </div>
         <div>
           <h2 className="text-xl font-semibold text-foreground">Protocoles de Test</h2>
-          <p className="text-sm text-muted-foreground">Tests validés pour calibrer vos zones</p>
+          <p className="text-sm text-muted-foreground">Tests validés pour calibrer VLamax</p>
         </div>
       </div>
 
@@ -117,14 +102,16 @@ export function TestProtocols() {
                     <span className="text-sm text-muted-foreground">{protocol.duration}</span>
                   </div>
                   <div>
-                    <h3 className="font-medium text-foreground">{protocol.name}</h3>
+                    <h3 className="font-medium text-foreground">{protocol.nom}</h3>
                     <p className="text-sm text-muted-foreground">{protocol.description}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className={cn("text-xs px-2 py-1 rounded-full", difficultyColors[protocol.difficulty])}>
-                    {protocol.difficulty}
-                  </span>
+                  {protocol.difficulty && (
+                    <span className={cn("text-xs px-2 py-1 rounded-full", difficultyColors[protocol.difficulty])}>
+                      {protocol.difficulty}
+                    </span>
+                  )}
                   <ChevronRight
                     className={cn(
                       "w-5 h-5 text-muted-foreground transition-transform duration-300",
@@ -137,14 +124,23 @@ export function TestProtocols() {
 
             {expandedTest === protocol.id && (
               <div className="p-4 pt-0 border-t border-border bg-secondary/20 animate-fade-in">
-                <div className="grid md:grid-cols-2 gap-6 mt-4">
+                {/* Objectif */}
+                <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/20 mb-4">
+                  <p className="text-sm">
+                    <span className="font-medium text-primary">Objectif:</span>{" "}
+                    <span className="text-foreground">{protocol.objectif}</span>
+                  </p>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Procédure */}
                   <div>
                     <h4 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
                       <Play className="w-4 h-4 text-primary" />
-                      Étapes du protocole
+                      Procédure
                     </h4>
                     <ol className="space-y-2">
-                      {protocol.steps.map((step, idx) => (
+                      {protocol.procedure.map((step, idx) => (
                         <li key={idx} className="flex gap-3 text-sm">
                           <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-medium">
                             {idx + 1}
@@ -154,24 +150,43 @@ export function TestProtocols() {
                       ))}
                     </ol>
                   </div>
-                  
-                  <div>
-                    <h4 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-                      <Target className="w-4 h-4 text-accent" />
-                      Métriques obtenues
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {protocol.metrics.map((metric) => (
-                        <span
-                          key={metric}
-                          className="px-3 py-1.5 bg-accent/10 text-accent text-sm rounded-lg"
-                        >
-                          {metric}
-                        </span>
-                      ))}
+
+                  <div className="space-y-4">
+                    {/* Matériel */}
+                    <div>
+                      <h4 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
+                        <Package className="w-4 h-4 text-accent" />
+                        Matériel requis
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {protocol.materiel.map((item) => (
+                          <span
+                            key={item}
+                            className="px-3 py-1.5 bg-accent/10 text-accent text-sm rounded-lg"
+                          >
+                            {item}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                    
-                    <Button className="mt-6 w-full" variant="glow">
+
+                    {/* Consignes */}
+                    <div>
+                      <h4 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-warning" />
+                        Consignes
+                      </h4>
+                      <ul className="space-y-1">
+                        {protocol.consignes.map((consigne, idx) => (
+                          <li key={idx} className="flex items-center gap-2 text-sm text-warning">
+                            <span>•</span>
+                            {consigne}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <Button className="w-full" variant="glow">
                       <Play className="w-4 h-4 mr-2" />
                       Démarrer le test
                     </Button>
@@ -185,3 +200,11 @@ export function TestProtocols() {
     </div>
   );
 }
+
+// Helper function to find and display a protocol
+export function getProtocol(testNom: string): TestProtocol | undefined {
+  return protocols.find((t) => t.nom === testNom);
+}
+
+// Export protocols for external use
+export { protocols };
