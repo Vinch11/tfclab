@@ -63,6 +63,19 @@ export function VLamaxTestingPage({ athlete, onSaveTests }: VLamaxTestingPagePro
   const [activeTest, setActiveTest] = useState<TestProtocoleVLamax | null>(null);
   const [testResultat, setTestResultat] = useState<TestResultat>({});
   const [testNotes, setTestNotes] = useState("");
+  const [sportFilter, setSportFilter] = useState<"tous" | "vélo" | "course" | "natation">("tous");
+
+  // Filtrer les tests par sport
+  const filteredTests = sportFilter === "tous" 
+    ? testsVLamaxDisponibles 
+    : testsVLamaxDisponibles.filter(t => t.sport === sportFilter);
+
+  // Compter tests par sport
+  const testCountBySport = {
+    vélo: tests.filter(t => t.sport === "vélo").length,
+    course: tests.filter(t => t.sport === "course").length,
+    natation: tests.filter(t => t.sport === "natation").length,
+  };
 
   const handleStartTest = (protocole: TestProtocoleVLamax) => {
     // Pré-remplir avec résultat existant si disponible
@@ -165,9 +178,52 @@ export function VLamaxTestingPage({ athlete, onSaveTests }: VLamaxTestingPagePro
         </div>
       </div>
 
+      {/* Filtres par sport */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <Button
+          variant={sportFilter === "tous" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setSportFilter("tous")}
+          className="gap-2"
+        >
+          Tous
+          <span className="text-xs opacity-70">({testsVLamaxDisponibles.length})</span>
+        </Button>
+        <Button
+          variant={sportFilter === "vélo" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setSportFilter("vélo")}
+          className="gap-2"
+        >
+          <Bike className="w-4 h-4" />
+          Vélo
+          <span className="text-xs opacity-70">({testCountBySport.vélo})</span>
+        </Button>
+        <Button
+          variant={sportFilter === "course" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setSportFilter("course")}
+          className="gap-2"
+        >
+          <PersonStanding className="w-4 h-4" />
+          Course
+          <span className="text-xs opacity-70">({testCountBySport.course})</span>
+        </Button>
+        <Button
+          variant={sportFilter === "natation" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setSportFilter("natation")}
+          className="gap-2"
+        >
+          <Activity className="w-4 h-4" />
+          Natation
+          <span className="text-xs opacity-70">({testCountBySport.natation})</span>
+        </Button>
+      </div>
+
       {/* Liste des protocoles */}
       <div className="grid gap-4">
-        {testsVLamaxDisponibles.map((protocole) => {
+        {filteredTests.map((protocole) => {
           const SportIcon = sportIcons[protocole.sport];
           const existingTest = getExistingTest(protocole.nom);
           const isExpanded = expandedTest === protocole.id;
