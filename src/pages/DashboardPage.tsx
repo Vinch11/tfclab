@@ -1,6 +1,7 @@
 // =============================================
 // ÉCRAN 4 - DASHBOARD ATHLÈTE MULTI-SPORT
 // Avec VLamax, Confiance et Précision dynamiques
+// + Dashboard Scientifique
 // =============================================
 
 import { useState } from "react";
@@ -25,7 +26,8 @@ import {
   PersonStanding,
   Waves,
   AlertTriangle,
-  Clock
+  Clock,
+  BookOpen
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAthletes } from "@/contexts/AthleteContext";
@@ -34,6 +36,7 @@ import { estimerTTESport, calculerAgeSnapshot, calculerPrecision, SportType } fr
 import { calculVLamaxAvecConfiance } from "@/lib/athleteStore";
 import { calculRaceReadiness, texteExplicatifAthlete, getDernierSnapshotParSport } from "@/lib/raceReadiness";
 import { determinerPriorite, seancesParSport } from "@/types/seances";
+import { ScientificDashboard } from "@/components/ScientificDashboard";
 
 // Interface pour les données par sport
 interface SportDashboardData {
@@ -405,10 +408,20 @@ export default function DashboardPage() {
           </TabsContent>
         </Tabs>
 
+        {/* Dashboard Scientifique */}
+        <ScientificDashboard 
+          snapshots={currentAthlete.historique}
+          objectif={currentAthlete.objectif}
+          athleteNom={currentAthlete.nom}
+        />
+
         {/* Texte explicatif multi-sport */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Analyse Multi-Sport</CardTitle>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <BookOpen className="h-4 w-4 text-primary" />
+              Analyse Multi-Sport
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <pre className="text-xs text-muted-foreground whitespace-pre-wrap font-sans">
