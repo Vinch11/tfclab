@@ -23,6 +23,9 @@ export const defaultAthlete: Athlete = {
   poids: 70,
   objectif: "IM",
   sexe: "M",
+  ftp: 320,
+  vo2max: 65,
+  vlamax: 0.42,
 };
 
 // Helper functions

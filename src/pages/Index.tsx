@@ -28,7 +28,7 @@ const Index = () => {
         return { ...defaultAthlete, id: crypto.randomUUID() };
       }
     }
-    return { ...defaultAthlete, id: crypto.randomUUID(), ftp: 280, vo2max: 65, poids: 70 };
+    return { ...defaultAthlete, id: crypto.randomUUID() };
   });
 
   const [testsMetaboliques, setTestsMetaboliques] = useState<TestMetabolique[]>(() => {

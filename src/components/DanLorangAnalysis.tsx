@@ -23,6 +23,8 @@ import {
   getPrioriteLabel,
   getPrioriteColor,
   getRecommandationsPriorite,
+  getSeancesRecommandees,
+  getSeancesSpecifiques,
   calculateRaceReadinessScore,
   PrioriteType,
 } from "@/types/reglesDanLorang";
@@ -85,6 +87,8 @@ export function DanLorangAnalysis({
 
   const PrioriteIcon = prioriteIcons[analysis.priorite] || CheckCircle2;
   const recommendations = getRecommandationsPriorite(analysis.priorite);
+  const seancesRecommandees = getSeancesRecommandees(analysis.priorite);
+  const seancesSpecifiques = getSeancesSpecifiques(athlete.objectif);
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-success";
@@ -298,6 +302,42 @@ export function DanLorangAnalysis({
             ))}
           </ul>
         </div>
+
+        {/* Séances Recommandées */}
+        {seancesRecommandees.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-border">
+            <p className="text-sm font-medium text-foreground mb-2">Séances Recommandées</p>
+            <div className="flex flex-wrap gap-2">
+              {seancesRecommandees.map((seance) => (
+                <span
+                  key={seance}
+                  className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-sm font-mono font-semibold"
+                >
+                  {seance}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Séances Spécifiques */}
+        {seancesSpecifiques.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-border">
+            <p className="text-sm font-medium text-foreground mb-2">
+              Séances Spécifiques {athlete.objectif}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {seancesSpecifiques.map((seance) => (
+                <span
+                  key={seance}
+                  className="px-3 py-1.5 rounded-lg bg-accent/10 text-accent text-sm font-mono font-semibold"
+                >
+                  {seance}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
