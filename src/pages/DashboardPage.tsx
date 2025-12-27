@@ -1,5 +1,6 @@
 // =============================================
 // ÉCRAN 4 - DASHBOARD ATHLÈTE MULTI-SPORT
+// Avec VLamax, Confiance et Précision dynamiques
 // =============================================
 
 import { useState } from "react";
@@ -22,14 +23,35 @@ import {
   AlertCircle,
   Bike,
   PersonStanding,
-  Waves
+  Waves,
+  AlertTriangle,
+  Clock
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { getDernierSnapshot } from "@/types/athlete";
-import { estimerTTESport, scoreConfiance, SportType } from "@/types/snapshotNolio";
-import { calculVLamaxSnapshot } from "@/lib/athleteStore";
+import { estimerTTESport, calculerAgeSnapshot, calculerPrecision, SportType } from "@/types/snapshotNolio";
+import { calculVLamaxAvecConfiance } from "@/lib/athleteStore";
 import { calculRaceReadiness, texteExplicatifAthlete, getDernierSnapshotParSport } from "@/lib/raceReadiness";
 import { determinerPriorite, seancesParSport } from "@/types/seances";
+
+// Interface pour les données par sport
+interface SportDashboardData {
+  vlamax: number;
+  confiance: number;
+  precision: number;
+  ageSnapshot: number;
+  tte: number;
+  priorite: string;
+  seances: any[];
+  vo2max: number | null;
+  hrv: number | null;
+  poids: number;
+  date: string;
+  ftp?: number;
+  vma?: number;
+  pace100?: number;
+}
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -73,9 +95,57 @@ export default function DashboardPage() {
     );
   }
 
+  // Charger données multi-sport avec confiance et précision
+  const chargerDonneesSport = (sport: SportType): SportDashboardData | null => {
+    const sportSnapshot = getDernierSnapshotParSport(currentAthlete, sport);
+    if (!sportSnapshot) return null;
+
+    const calc = calculVLamaxAvecConfiance(sportSnapshot, currentAthlete.objectif);
+    const tte = estimerTTESport(sportSnapshot);
+    const priorite = determinerPriorite(calc.vlamax, tte, currentAthlete.objectif);
+    const seances = seancesParSport(priorite, sport);
+
+    return {
+      vlamax: calc.vlamax,
+      confiance: calc.confiance,
+      precision: calc.precision,
+      ageSnapshot: calc.ageSnapshot,
+      tte,
+      priorite,
+      seances,
+      vo2max: sportSnapshot.vo2max || null,
+      hrv: sportSnapshot.hrv || null,
+      poids: sportSnapshot.poids,
+      date: sportSnapshot.date,
+      ftp: sportSnapshot.ftp,
+      vma: sportSnapshot.vma,
+      pace100: sportSnapshot.pace100,
+    };
+  };
+
   // Global readiness
   const readiness = calculRaceReadiness(currentAthlete);
-  const texte = texteExplicatifAthlete(currentAthlete);
+  
+  // Générer texte explicatif multi-sport avec confiance/précision
+  const genererTexteMultiSport = (): string => {
+    const sports: SportType[] = ["vélo", "course", "natation"];
+    let texte = "";
+    
+    sports.forEach(sport => {
+      const data = chargerDonneesSport(sport);
+      if (data) {
+        const emoji = sport === "vélo" ? "🚴" : sport === "course" ? "🏃" : "🏊";
+        texte += `${emoji} ${sport.toUpperCase()} : VLamax ${data.vlamax.toFixed(2)} ±${data.precision}%, Confiance ${data.confiance}%\n`;
+        texte += `   Priorité : ${data.priorite}\n`;
+        texte += `   TTE estimé : ${data.tte} min\n\n`;
+      }
+    });
+    
+    texte += `🏅 Score global Race Readiness : ${readiness?.score || "N/A"}/100`;
+    return texte;
+  };
+
+  const texte = genererTexteMultiSport();
 
   const getSportIcon = (sport: SportType) => {
     switch (sport) {
@@ -93,10 +163,22 @@ export default function DashboardPage() {
     }
   };
 
+  const getConfianceColor = (confiance: number) => {
+    if (confiance >= 80) return "text-success";
+    if (confiance >= 60) return "text-warning";
+    return "text-destructive";
+  };
+
+  const getConfianceBg = (confiance: number) => {
+    if (confiance >= 80) return "bg-success/10 border-success/30";
+    if (confiance >= 60) return "bg-warning/10 border-warning/30";
+    return "bg-destructive/10 border-destructive/30";
+  };
+
   const renderSportTab = (sport: SportType) => {
-    const sportSnapshot = getDernierSnapshotParSport(currentAthlete, sport);
+    const data = chargerDonneesSport(sport);
     
-    if (!sportSnapshot) {
+    if (!data) {
       return (
         <Card>
           <CardContent className="p-6 text-center">
@@ -112,84 +194,125 @@ export default function DashboardPage() {
       );
     }
 
-    const vlamax = calculVLamaxSnapshot(sportSnapshot, currentAthlete.objectif);
-    const tte = estimerTTESport(sportSnapshot);
-    const confiance = scoreConfiance(sportSnapshot);
-    const priorite = determinerPriorite(vlamax, tte, currentAthlete.objectif);
-    const seances = seancesParSport(priorite, sport);
-
     return (
       <div className="space-y-4">
-        {/* Métriques */}
-        <div className="grid grid-cols-2 gap-3">
-          <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2 mb-1">
-                <Zap className="h-3 w-3 text-primary" />
-                <span className="text-xs text-muted-foreground">VLamax</span>
+        {/* VLamax avec confiance et précision */}
+        <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium">VLamax</span>
               </div>
-              <p className="text-xl font-bold">{vlamax.toFixed(2)}</p>
-            </CardContent>
-          </Card>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <AlertTriangle className="h-3 w-3" />
+                <span>±{data.precision}%</span>
+              </div>
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold font-mono">{data.vlamax.toFixed(2)}</span>
+              <span className="text-sm text-muted-foreground">mmol/L/s</span>
+            </div>
+            <Progress 
+              value={Math.min(100, ((data.vlamax - 0.2) / 0.5) * 100)} 
+              className="h-2 mt-2" 
+            />
+          </CardContent>
+        </Card>
 
+        {/* Confiance avec âge snapshot */}
+        <Card className={cn("border", getConfianceBg(data.confiance))}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                <span className="text-sm">Confiance données</span>
+              </div>
+              {data.ageSnapshot > 0 && (
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Clock className="h-3 w-3" />
+                  <span>{data.ageSnapshot}j</span>
+                </div>
+              )}
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className={cn("text-2xl font-bold font-mono", getConfianceColor(data.confiance))}>
+                {data.confiance}%
+              </span>
+              <span className="text-xs text-muted-foreground">
+                (±{data.precision}% erreur)
+              </span>
+            </div>
+            {data.ageSnapshot > 7 && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Données de {Math.floor(data.ageSnapshot / 7)} semaine{data.ageSnapshot >= 14 ? 's' : ''} - pénalité appliquée
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Métriques secondaires */}
+        <div className="grid grid-cols-2 gap-3">
           <Card>
             <CardContent className="p-3">
               <div className="flex items-center gap-2 mb-1">
                 <Activity className="h-3 w-3 text-accent" />
                 <span className="text-xs text-muted-foreground">TTE</span>
               </div>
-              <p className="text-xl font-bold">{tte} min</p>
+              <p className="text-xl font-bold">{data.tte} min</p>
             </CardContent>
           </Card>
 
-          {sport === "vélo" && sportSnapshot.ftp && (
+          {sport === "vélo" && data.ftp && (
             <Card>
               <CardContent className="p-3">
                 <div className="flex items-center gap-2 mb-1">
                   <Flame className="h-3 w-3 text-warning" />
                   <span className="text-xs text-muted-foreground">FTP</span>
                 </div>
-                <p className="text-xl font-bold">{sportSnapshot.ftp}W</p>
+                <p className="text-xl font-bold">{data.ftp}W</p>
                 <p className="text-xs text-muted-foreground">
-                  {(sportSnapshot.ftp / sportSnapshot.poids).toFixed(1)} W/kg
+                  {(data.ftp / data.poids).toFixed(1)} W/kg
                 </p>
               </CardContent>
             </Card>
           )}
 
-          {sport === "course" && sportSnapshot.vma && (
+          {sport === "course" && data.vma && (
             <Card>
               <CardContent className="p-3">
                 <div className="flex items-center gap-2 mb-1">
                   <Target className="h-3 w-3 text-warning" />
                   <span className="text-xs text-muted-foreground">VMA</span>
                 </div>
-                <p className="text-xl font-bold">{sportSnapshot.vma} km/h</p>
+                <p className="text-xl font-bold">{data.vma} km/h</p>
               </CardContent>
             </Card>
           )}
 
-          {sport === "natation" && sportSnapshot.pace100 && (
+          {sport === "natation" && data.pace100 && (
             <Card>
               <CardContent className="p-3">
                 <div className="flex items-center gap-2 mb-1">
                   <Target className="h-3 w-3 text-warning" />
                   <span className="text-xs text-muted-foreground">Pace 100m</span>
                 </div>
-                <p className="text-xl font-bold">{sportSnapshot.pace100}s</p>
+                <p className="text-xl font-bold">{data.pace100}s</p>
               </CardContent>
             </Card>
           )}
 
-          <Card>
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2 mb-1">
-                <Target className="h-3 w-3" />
-                <span className="text-xs text-muted-foreground">Confiance</span>
-              </div>
-              <p className="text-xl font-bold">{confiance}%</p>
-            </CardContent>
-          </Card>
+          {data.vo2max && (
+            <Card>
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <Activity className="h-3 w-3 text-primary" />
+                  <span className="text-xs text-muted-foreground">VO2max</span>
+                </div>
+                <p className="text-xl font-bold">{data.vo2max}</p>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Priorité */}
@@ -197,7 +320,7 @@ export default function DashboardPage() {
           <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <span className="text-sm">Priorité</span>
-              <Badge variant={getPrioriteColor(priorite) as any}>{priorite}</Badge>
+              <Badge variant={getPrioriteColor(data.priorite) as any}>{data.priorite}</Badge>
             </div>
           </CardContent>
         </Card>
@@ -209,7 +332,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="p-3 pt-0">
             <div className="space-y-2">
-              {seances.slice(0, 3).map((seance, i) => (
+              {data.seances.slice(0, 3).map((seance, i) => (
                 <div key={i} className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="text-xs">{seance.code}</Badge>
@@ -282,17 +405,15 @@ export default function DashboardPage() {
           </TabsContent>
         </Tabs>
 
-        {/* Texte explicatif */}
+        {/* Texte explicatif multi-sport */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Analyse</CardTitle>
+            <CardTitle className="text-sm">Analyse Multi-Sport</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-xs text-muted-foreground space-y-1">
-              {texte.split("\n").slice(0, 5).map((line, i) => (
-                <p key={i}>{line}</p>
-              ))}
-            </div>
+            <pre className="text-xs text-muted-foreground whitespace-pre-wrap font-sans">
+              {texte}
+            </pre>
           </CardContent>
         </Card>
 
