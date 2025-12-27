@@ -64,15 +64,18 @@ export function AppLayout({ children, title, showBack = false }: AppLayoutProps)
                 <h1 className="text-xl font-bold text-foreground">{title}</h1>
                 {currentAthlete && location.pathname !== "/" && (
                   <p className="text-sm text-muted-foreground">
-                    {currentAthlete.nom} • {currentAthlete.objectif === "IM" ? "Ironman" : "70.3"}
+                    {currentAthlete.nom} • {currentAthlete.objectif}
                   </p>
                 )}
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
-                LorangLab
+            <div className="flex flex-col items-end gap-0.5">
+              <span className="text-sm font-bold text-primary">
+                Vince&apos;s Lab
+              </span>
+              <span className="text-[10px] text-muted-foreground">
+                by Two For Coaching
               </span>
             </div>
           </div>
