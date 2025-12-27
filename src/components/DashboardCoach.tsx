@@ -120,8 +120,8 @@ export function DashboardCoach({
       checked: seance_specifique_validee,
     },
     {
-      label: "Fatigue OK",
-      checked: fatigue_ok,
+      label: "Fatigue OK (≤7/10)",
+      checked: athlete.fatigue_subjective <= 7,
     },
     {
       label: "VO2max suffisante (≥50 ml/kg/min)",
@@ -130,6 +130,10 @@ export function DashboardCoach({
     {
       label: "Masse grasse OK (≤20%)",
       checked: athlete.masse_grasse <= 20,
+    },
+    {
+      label: "Sommeil OK (≥6h)",
+      checked: athlete.sommeil >= 6,
     },
   ];
 
