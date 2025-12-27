@@ -66,6 +66,16 @@ export function reglesDanLorang(
     alertes.push(`FTP insuffisant (cible: ${ftpTarget} W/kg)`);
   }
 
+  // VO2max faible pour IM
+  if (athlete.vo2max < 50 && athlete.objectif === "IM") {
+    alertes.push("VO2max faible pour l'objectif IM (<50 ml/kg/min)");
+  }
+
+  // Masse grasse élevée pour IM
+  if (athlete.masse_grasse > 20 && athlete.objectif === "IM") {
+    alertes.push("Masse grasse élevée : optimiser alimentation/entraînement (>20%)");
+  }
+
   // Race Ready check
   const vlmaxOk = resultat.vlamax >= 0.25 && resultat.vlamax <= 0.45;
   const tteOk =

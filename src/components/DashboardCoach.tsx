@@ -123,6 +123,14 @@ export function DashboardCoach({
       label: "Fatigue OK",
       checked: fatigue_ok,
     },
+    {
+      label: "VO2max suffisante (≥50 ml/kg/min)",
+      checked: athlete.vo2max >= 50,
+    },
+    {
+      label: "Masse grasse OK (≤20%)",
+      checked: athlete.masse_grasse <= 20,
+    },
   ];
 
   const checklistScore = checklist.filter((item) => item.checked).length;

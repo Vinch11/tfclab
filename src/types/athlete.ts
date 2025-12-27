@@ -6,11 +6,12 @@ export interface Athlete {
   poids: number;
   objectif: ObjectifType;
   sexe: SexeType;
+  vo2max: number;         // ml/kg/min
+  masse_grasse: number;   // %
   // Additional useful fields
   nom?: string;
   prenom?: string;
   ftp?: number;
-  vo2max?: number;
   fcMax?: number;
   vlamax?: number;
   dateNaissance?: string;
@@ -23,8 +24,9 @@ export const defaultAthlete: Athlete = {
   poids: 70,
   objectif: "IM",
   sexe: "M",
+  vo2max: 52,
+  masse_grasse: 18,
   ftp: 320,
-  vo2max: 65,
   vlamax: 0.42,
 };
 
@@ -49,4 +51,9 @@ export const getSexeLabel = (sexe: SexeType): string => {
     default:
       return sexe;
   }
+};
+
+// Estimation VO2max depuis FTP
+export const estimerVO2max = (ftp: number, poids: number): number => {
+  return (ftp / poids) * 12.0; // approximation cycliste
 };
