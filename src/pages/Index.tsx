@@ -6,10 +6,29 @@ import { TrainingZones } from "@/components/TrainingZones";
 import { TestProtocols } from "@/components/TestProtocols";
 import { RaceChecklist } from "@/components/RaceChecklist";
 import { NolioMapping } from "@/components/NolioMapping";
+import { AthleteProfile } from "@/components/AthleteProfile";
 import { Zap, Target, Flame, Activity } from "lucide-react";
+import { Athlete, defaultAthlete } from "@/types/athlete";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [athlete, setAthlete] = useState<Athlete>(() => {
+    // Load from localStorage if available
+    const saved = localStorage.getItem("loranglab-athlete");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return { ...defaultAthlete, id: crypto.randomUUID() };
+      }
+    }
+    return { ...defaultAthlete, id: crypto.randomUUID(), ftp: 280, vo2max: 65 };
+  });
+
+  const handleAthleteUpdate = (updatedAthlete: Athlete) => {
+    setAthlete(updatedAthlete);
+    localStorage.setItem("loranglab-athlete", JSON.stringify(updatedAthlete));
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -67,6 +86,7 @@ const Index = () => {
       case "vlamax":
         return (
           <div className="space-y-6 animate-fade-in">
+            <AthleteProfile athlete={athlete} onUpdate={handleAthleteUpdate} />
             <VLamaxCalculator />
             <TrainingZones />
           </div>
