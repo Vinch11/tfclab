@@ -54,11 +54,21 @@ export function DashboardCoach({
   seance_specifique_validee,
   fatigue_ok,
 }: DashboardCoachProps) {
-  // 1. Graphique VLamax - historique
+  // 1. Graphique VLamax - utilise historique du résultat ou calcule depuis tests
   const graphiqueData = useMemo(() => {
+    // Priorité à l'historique intégré au résultat
+    if (resultat.historique && resultat.historique.length > 0) {
+      return resultat.historique.map((val, idx) => ({
+        date: `T${idx + 1}`,
+        vlamax: val,
+      }));
+    }
+    
+    // Sinon calcule depuis l'historique des tests
     if (testsHistorique.length === 0) {
       return [{ date: "Actuel", vlamax: resultat.vlamax }];
     }
+    
     return testsHistorique
       .slice()
       .reverse()
@@ -75,7 +85,7 @@ export function DashboardCoach({
         ...d,
         vlamax: Math.max(0.25, Math.min(1.0, d.vlamax)),
       }));
-  }, [testsHistorique, resultat.vlamax, athlete.poids]);
+  }, [testsHistorique, resultat.vlamax, resultat.historique, athlete.poids]);
 
   // 2. Alertes coach
   const alertes = regles.alertes.length > 0 ? regles.alertes : ["Tout OK"];
