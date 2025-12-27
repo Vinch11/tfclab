@@ -8,9 +8,11 @@ import { RaceChecklist } from "@/components/RaceChecklist";
 import { NolioMapping } from "@/components/NolioMapping";
 import { AthleteProfile } from "@/components/AthleteProfile";
 import { TestMetaboliqueManager } from "@/components/TestMetaboliqueManager";
+import { FeedbackNolioManager } from "@/components/FeedbackNolioManager";
 import { Zap, Target, Flame, Activity } from "lucide-react";
 import { Athlete, defaultAthlete } from "@/types/athlete";
 import { TestMetabolique, estimateVLamaxFromTest } from "@/types/testMetabolique";
+import { FeedbackNolio } from "@/types/feedbackNolio";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -39,6 +41,18 @@ const Index = () => {
     return [];
   });
 
+  const [feedbacksNolio, setFeedbacksNolio] = useState<FeedbackNolio[]>(() => {
+    const saved = localStorage.getItem("loranglab-feedbacks");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
+
   const handleAthleteUpdate = (updatedAthlete: Athlete) => {
     setAthlete(updatedAthlete);
     localStorage.setItem("loranglab-athlete", JSON.stringify(updatedAthlete));
@@ -47,6 +61,11 @@ const Index = () => {
   const handleTestsChange = (tests: TestMetabolique[]) => {
     setTestsMetaboliques(tests);
     localStorage.setItem("loranglab-tests", JSON.stringify(tests));
+  };
+
+  const handleFeedbacksChange = (feedbacks: FeedbackNolio[]) => {
+    setFeedbacksNolio(feedbacks);
+    localStorage.setItem("loranglab-feedbacks", JSON.stringify(feedbacks));
   };
 
   // Compute metrics from latest test
@@ -136,7 +155,11 @@ const Index = () => {
 
       case "nolio":
         return (
-          <div className="animate-fade-in">
+          <div className="space-y-6 animate-fade-in">
+            <FeedbackNolioManager
+              feedbacks={feedbacksNolio}
+              onFeedbacksChange={handleFeedbacksChange}
+            />
             <NolioMapping />
           </div>
         );
