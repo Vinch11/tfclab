@@ -1,28 +1,51 @@
 // =============================================
 // SNAPSHOT NOLIO - Données importées depuis NOLIO
+// Multi-sport: Vélo / Course / Natation
 // =============================================
+
+export type SportType = "vélo" | "course" | "natation";
 
 export interface SnapshotNolio {
   id: string;
   date: string;
-  // Données de puissance
-  ftp: number;                // FTP actuel (W)
-  pmax_5s: number;            // Puissance max 5 secondes (W)
+  sport: SportType;
+  // Données communes
   poids: number;              // Poids (kg)
-  // Données physiologiques optionnelles
   vo2max?: number;            // VO2max estimé (ml/kg/min)
   hrv?: number;               // HRV (ms)
   fc_max?: number;            // FC max (bpm)
   fc_repos?: number;          // FC repos (bpm)
-  // Charge d'entraînement
-  tss_7j: number;             // TSS cumulé 7 derniers jours
+  // Vélo
+  ftp?: number;               // FTP actuel (W)
+  pmax_5s?: number;           // Puissance max 5 secondes (W)
+  tss_7j?: number;            // TSS cumulé 7 derniers jours
   tss_28j?: number;           // TSS cumulé 28 jours (CTL)
+  // Course
+  vma?: number;               // VMA (km/h)
+  allure_seuil?: number;      // Allure seuil (min/km)
+  // Natation
+  pace100?: number;           // Pace 100m (secondes)
+  css?: number;               // Critical Swim Speed (min/100m)
   // Métadonnées
   source?: "nolio" | "manual";
   notes?: string;
 }
 
-// Estimation TTE basée sur TSS hebdomadaire
+// Estimation TTE basée sur le sport
+export function estimerTTESport(snapshot: SnapshotNolio): number {
+  if (snapshot.sport === "vélo") {
+    return estimerTTE(snapshot.ftp || 0, snapshot.tss_7j || 0);
+  }
+  if (snapshot.sport === "course") {
+    return snapshot.vma ? Math.round(snapshot.vma * 3) : 45;
+  }
+  if (snapshot.sport === "natation") {
+    return 45; // moyenne séance natation
+  }
+  return 45;
+}
+
+// Estimation TTE vélo classique
 export function estimerTTE(ftp: number, tss_7j: number): number {
   if (tss_7j >= 700) return 70;
   if (tss_7j >= 550) return 65;
@@ -33,8 +56,16 @@ export function estimerTTE(ftp: number, tss_7j: number): number {
 // Score de confiance basé sur les données disponibles
 export function scoreConfiance(snapshot: SnapshotNolio): number {
   let score = 0;
-  if (snapshot.ftp) score += 0.25;
-  if (snapshot.pmax_5s) score += 0.25;
+  if (snapshot.sport === "vélo") {
+    if (snapshot.ftp) score += 0.25;
+    if (snapshot.pmax_5s) score += 0.25;
+  } else if (snapshot.sport === "course") {
+    if (snapshot.vma) score += 0.35;
+    if (snapshot.allure_seuil) score += 0.15;
+  } else if (snapshot.sport === "natation") {
+    if (snapshot.pace100) score += 0.30;
+    if (snapshot.css) score += 0.20;
+  }
   if (snapshot.vo2max) score += 0.20;
   if (snapshot.hrv) score += 0.15;
   if (snapshot.poids) score += 0.15;
@@ -42,23 +73,22 @@ export function scoreConfiance(snapshot: SnapshotNolio): number {
 }
 
 // Créer un snapshot vide avec valeurs par défaut
-export function creerSnapshotVide(): SnapshotNolio {
+export function creerSnapshotVide(sport: SportType = "vélo"): SnapshotNolio {
   return {
     id: crypto.randomUUID(),
     date: new Date().toISOString().slice(0, 10),
-    ftp: 0,
-    pmax_5s: 0,
+    sport,
     poids: 70,
-    tss_7j: 0,
     source: "manual",
   };
 }
 
-// Créer un snapshot exemple
+// Créer un snapshot exemple vélo
 export function creerSnapshotExemple(): SnapshotNolio {
   return {
     id: crypto.randomUUID(),
     date: new Date().toISOString().slice(0, 10),
+    sport: "vélo",
     ftp: 280,
     pmax_5s: 1050,
     poids: 70,
@@ -68,6 +98,35 @@ export function creerSnapshotExemple(): SnapshotNolio {
     fc_repos: 50,
     tss_7j: 550,
     tss_28j: 2200,
+    source: "nolio",
+  };
+}
+
+// Créer un snapshot exemple course
+export function creerSnapshotExempleCourse(): SnapshotNolio {
+  return {
+    id: crypto.randomUUID(),
+    date: new Date().toISOString().slice(0, 10),
+    sport: "course",
+    poids: 70,
+    vma: 18,
+    allure_seuil: 4.2,
+    vo2max: 55,
+    hrv: 62,
+    source: "nolio",
+  };
+}
+
+// Créer un snapshot exemple natation
+export function creerSnapshotExempleNatation(): SnapshotNolio {
+  return {
+    id: crypto.randomUUID(),
+    date: new Date().toISOString().slice(0, 10),
+    sport: "natation",
+    poids: 70,
+    pace100: 95,
+    css: 1.6,
+    vo2max: 50,
     source: "nolio",
   };
 }

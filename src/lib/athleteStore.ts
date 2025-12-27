@@ -135,20 +135,33 @@ export function comparerEvolution(athlete: Athlete, objectif: ObjectifType): Com
   });
 }
 
-// Calculate VLamax from snapshot
+// Calculate VLamax from snapshot - Multi-sport
 export function calculVLamaxSnapshot(snapshot: SnapshotNolio, objectif: ObjectifType): number {
-  const G = snapshot.pmax_5s / snapshot.poids;
-  const O = snapshot.ftp / snapshot.poids;
-  const TTE = estimerTTE(snapshot.ftp, snapshot.tss_7j) / 60;
+  if (snapshot.sport === "vélo") {
+    const G = (snapshot.pmax_5s || 0) / snapshot.poids;
+    const O = (snapshot.ftp || 0) / snapshot.poids;
+    const TTE = estimerTTE(snapshot.ftp || 0, snapshot.tss_7j || 0) / 60;
 
-  let indexGlyco = (0.45 * G) - (0.30 * O) - (0.25 * TTE);
-  let vlamax = 0.25 + (indexGlyco * 0.45);
+    let indexGlyco = (0.45 * G) - (0.30 * O) - (0.25 * TTE);
+    let vlamax = 0.25 + (indexGlyco * 0.45);
 
-  // Cap based on objective
-  if (objectif === "IM") vlamax = Math.min(vlamax, 0.45);
-  if (objectif === "703") vlamax = Math.min(vlamax, 0.55);
+    if (objectif === "IM") vlamax = Math.min(vlamax, 0.45);
+    if (objectif === "703") vlamax = Math.min(vlamax, 0.55);
 
-  return Math.max(0.25, Number(vlamax.toFixed(2)));
+    return Math.max(0.25, Number(vlamax.toFixed(2)));
+  }
+  
+  if (snapshot.sport === "course") {
+    const vma = snapshot.vma || 15;
+    return Math.max(0.25, Number((0.25 + 0.4 * ((vma / 20) - 0.7)).toFixed(2)));
+  }
+  
+  if (snapshot.sport === "natation") {
+    const pace = snapshot.pace100 || 120;
+    return Math.max(0.25, Number((0.25 + 0.3 * (2 / (pace / 60))).toFixed(2)));
+  }
+  
+  return 0.25;
 }
 
 // Get VLamax history for athlete
@@ -172,11 +185,12 @@ export function creerAthleteExemple(): Athlete {
     18
   );
 
-  // Add example snapshots
+  // Add example snapshots - multi-sport
   athlete.historique = [
     {
       id: crypto.randomUUID(),
       date: "2025-01-15",
+      sport: "vélo",
       ftp: 280,
       pmax_5s: 1050,
       poids: 70,
@@ -190,7 +204,29 @@ export function creerAthleteExemple(): Athlete {
     },
     {
       id: crypto.randomUUID(),
+      date: "2025-03-10",
+      sport: "course",
+      poids: 70,
+      vma: 17.5,
+      allure_seuil: 4.3,
+      vo2max: 53,
+      hrv: 58,
+      source: "nolio",
+    },
+    {
+      id: crypto.randomUUID(),
+      date: "2025-04-05",
+      sport: "natation",
+      poids: 70,
+      pace100: 98,
+      css: 1.65,
+      vo2max: 50,
+      source: "nolio",
+    },
+    {
+      id: crypto.randomUUID(),
       date: "2025-06-20",
+      sport: "vélo",
       ftp: 295,
       pmax_5s: 1070,
       poids: 69,
