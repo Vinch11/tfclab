@@ -53,9 +53,19 @@ export function estimerTTE(ftp: number, tss_7j: number): number {
   return 45;
 }
 
-// Score de confiance basé sur les données disponibles
+// Résultat VLamax avec confiance et précision
+export interface VLamaxAvecConfiance {
+  vlamax: number;
+  confiance: number;      // 0-100%
+  precision: number;      // ± pourcentage d'erreur estimée
+  ageSnapshot: number;    // Jours depuis le snapshot
+}
+
+// Score de confiance basé sur les données disponibles (avec pénalité âge)
 export function scoreConfiance(snapshot: SnapshotNolio): number {
   let score = 0;
+  
+  // Score selon sport
   if (snapshot.sport === "vélo") {
     if (snapshot.ftp) score += 0.25;
     if (snapshot.pmax_5s) score += 0.25;
@@ -69,7 +79,27 @@ export function scoreConfiance(snapshot: SnapshotNolio): number {
   if (snapshot.vo2max) score += 0.20;
   if (snapshot.hrv) score += 0.15;
   if (snapshot.poids) score += 0.15;
-  return Math.round(Math.min(score, 1) * 100);
+  
+  // Pénalité pour ancienneté du snapshot (1% par semaine)
+  const ageJours = calculerAgeSnapshot(snapshot.date);
+  const penalite = Math.floor(ageJours / 7) * 0.01;
+  score = Math.max(0, Math.min(1, score - penalite));
+  
+  return Math.round(score * 100);
+}
+
+// Calculer l'âge du snapshot en jours
+export function calculerAgeSnapshot(date: string): number {
+  if (!date) return 0;
+  const dSnap = new Date(date);
+  const dNow = new Date();
+  return Math.floor((dNow.getTime() - dSnap.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+// Calculer la précision estimée (± erreur en %)
+export function calculerPrecision(confiance: number): number {
+  // ± 10% minimum, jusqu'à ± 20% si confiance faible
+  return Math.round(10 + ((100 - confiance) / 100) * 10);
 }
 
 // Créer un snapshot vide avec valeurs par défaut

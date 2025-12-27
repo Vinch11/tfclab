@@ -3,7 +3,7 @@
 // =============================================
 
 import { Athlete, defaultAthlete, getDernierSnapshot } from "@/types/athlete";
-import { SnapshotNolio, creerSnapshotExemple, estimerTTE, scoreConfiance } from "@/types/snapshotNolio";
+import { SnapshotNolio, creerSnapshotExemple, estimerTTE, scoreConfiance, calculerAgeSnapshot, calculerPrecision, VLamaxAvecConfiance } from "@/types/snapshotNolio";
 import { ObjectifType, SexeType } from "@/types/athlete";
 
 // Storage key
@@ -162,6 +162,21 @@ export function calculVLamaxSnapshot(snapshot: SnapshotNolio, objectif: Objectif
   }
   
   return 0.25;
+}
+
+// Calculate VLamax with confidence and precision - Multi-sport
+export function calculVLamaxAvecConfiance(snapshot: SnapshotNolio, objectif: ObjectifType): VLamaxAvecConfiance {
+  const vlamax = calculVLamaxSnapshot(snapshot, objectif);
+  const confiance = scoreConfiance(snapshot);
+  const precision = calculerPrecision(confiance);
+  const ageSnapshot = calculerAgeSnapshot(snapshot.date);
+  
+  return {
+    vlamax,
+    confiance,
+    precision,
+    ageSnapshot
+  };
 }
 
 // Get VLamax history for athlete
