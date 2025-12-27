@@ -85,6 +85,7 @@ export function VLamaxTestingPage({ athlete, onSaveTests }: VLamaxTestingPagePro
     const newTest: TestVLamax = {
       id: crypto.randomUUID(),
       nom: activeTest.nom,
+      sport: activeTest.sport,
       date: new Date().toISOString().slice(0, 10),
       resultat: testResultat,
       vlamax,
@@ -119,7 +120,9 @@ export function VLamaxTestingPage({ athlete, onSaveTests }: VLamaxTestingPagePro
     puissance5s: { label: "Puissance 5s", unit: "W", icon: Zap },
     ftp: { label: "FTP", unit: "W", icon: Activity },
     vitesse: { label: "Vitesse", unit: "km/h", icon: Target },
+    vitesseMoyenne: { label: "Vitesse Moy.", unit: "km/h", icon: Target },
     temps: { label: "Temps", unit: "s", icon: Clock },
+    distance: { label: "Distance", unit: "m", icon: Target },
     lactatePic: { label: "Lactate Pic", unit: "mmol/L", icon: FlaskConical },
   };
 
