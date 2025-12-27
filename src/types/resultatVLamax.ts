@@ -50,7 +50,13 @@ export const calculVLamax = (
   const T = (test.tte || 3600) / 40;         // Facteur temps (default 1h si non défini)
 
   // Calcul IG (Indice Glycolytique)
-  const IG = (0.4 * G) + (0.35 * (R / poids)) - (0.25 * O) - (0.3 * T);
+  let IG = (0.4 * G) + (0.35 * (R / poids)) - (0.25 * O) - (0.3 * T);
+
+  // Ajustement avec sprints répétés
+  if (test.sprint_repetes && test.sprint_repetes.length > 0) {
+    const sprintMoy = test.sprint_repetes.reduce((a, b) => a + b.puissance, 0) / test.sprint_repetes.length;
+    IG *= (1 + (sprintMoy / test.pmax_5s - 1) * 0.2);
+  }
 
   // Conversion IG -> VLamax
   let vlamax = 0.25 + (IG * 0.45);

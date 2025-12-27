@@ -71,9 +71,19 @@ export function reglesDanLorang(
     alertes.push("VO2max faible pour l'objectif IM (<50 ml/kg/min)");
   }
 
-  // Masse grasse élevée pour IM
-  if (athlete.masse_grasse > 20 && athlete.objectif === "IM") {
-    alertes.push("Masse grasse élevée : optimiser alimentation/entraînement (>20%)");
+  // Masse grasse élevée
+  if (athlete.masse_grasse > 20) {
+    alertes.push("Masse grasse élevée (>20%)");
+  }
+
+  // Fatigue élevée
+  if (athlete.fatigue_subjective > 7) {
+    alertes.push("Fatigue élevée, ajuster séance");
+  }
+
+  // Sommeil insuffisant
+  if (athlete.sommeil < 6) {
+    alertes.push("Sommeil insuffisant (<6h)");
   }
 
   // Race Ready check

@@ -132,8 +132,8 @@ export function AthleteProfile({ athlete, onUpdate }: AthleteProfileProps) {
             </div>
           </div>
 
-          {/* Performance Fields */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          {/* Performance Fields Row 1 */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label htmlFor="ftp" className="text-muted-foreground">FTP (W)</Label>
               <Input
@@ -142,7 +142,7 @@ export function AthleteProfile({ athlete, onUpdate }: AthleteProfileProps) {
                 value={formData.ftp || ""}
                 onChange={(e) => handleInputChange("ftp", parseFloat(e.target.value) || 0)}
                 className="bg-secondary/50 border-border focus:border-primary"
-                placeholder="280"
+                placeholder="320"
               />
             </div>
             <div className="space-y-2">
@@ -168,14 +168,51 @@ export function AthleteProfile({ athlete, onUpdate }: AthleteProfileProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="fcMax" className="text-muted-foreground">FC Max (bpm)</Label>
+              <Label htmlFor="masse_musculaire" className="text-muted-foreground">Masse musculaire (%)</Label>
               <Input
-                id="fcMax"
+                id="masse_musculaire"
                 type="number"
-                value={formData.fcMax || ""}
-                onChange={(e) => handleInputChange("fcMax", parseFloat(e.target.value) || 0)}
+                value={formData.masse_musculaire || ""}
+                onChange={(e) => handleInputChange("masse_musculaire", parseFloat(e.target.value) || 0)}
                 className="bg-secondary/50 border-border focus:border-primary"
-                placeholder="185"
+                placeholder="45"
+              />
+            </div>
+          </div>
+
+          {/* Performance Fields Row 2 - Cardio */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="fc_max" className="text-muted-foreground">FC Max (bpm)</Label>
+              <Input
+                id="fc_max"
+                type="number"
+                value={formData.fc_max || ""}
+                onChange={(e) => handleInputChange("fc_max", parseFloat(e.target.value) || 0)}
+                className="bg-secondary/50 border-border focus:border-primary"
+                placeholder="190"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="fc_repos" className="text-muted-foreground">FC Repos (bpm)</Label>
+              <Input
+                id="fc_repos"
+                type="number"
+                value={formData.fc_repos || ""}
+                onChange={(e) => handleInputChange("fc_repos", parseFloat(e.target.value) || 0)}
+                className="bg-secondary/50 border-border focus:border-primary"
+                placeholder="50"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="hrv" className="text-muted-foreground">HRV (ms)</Label>
+              <Input
+                id="hrv"
+                type="number"
+                value={formData.hrv || ""}
+                onChange={(e) => handleInputChange("hrv", parseFloat(e.target.value) || 0)}
+                className="bg-secondary/50 border-border focus:border-primary"
+                placeholder="60"
               />
             </div>
             <div className="space-y-2">
@@ -188,6 +225,35 @@ export function AthleteProfile({ athlete, onUpdate }: AthleteProfileProps) {
                 onChange={(e) => handleInputChange("vlamax", parseFloat(e.target.value) || 0)}
                 className="bg-secondary/50 border-border focus:border-primary"
                 placeholder="0.42"
+              />
+            </div>
+          </div>
+
+          {/* Readiness Fields */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="sommeil" className="text-muted-foreground">Sommeil (heures)</Label>
+              <Input
+                id="sommeil"
+                type="number"
+                step="0.5"
+                value={formData.sommeil || ""}
+                onChange={(e) => handleInputChange("sommeil", parseFloat(e.target.value) || 0)}
+                className="bg-secondary/50 border-border focus:border-primary"
+                placeholder="7"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="fatigue_subjective" className="text-muted-foreground">Fatigue subjective (1-10)</Label>
+              <Input
+                id="fatigue_subjective"
+                type="number"
+                min="1"
+                max="10"
+                value={formData.fatigue_subjective || ""}
+                onChange={(e) => handleInputChange("fatigue_subjective", parseFloat(e.target.value) || 0)}
+                className="bg-secondary/50 border-border focus:border-primary"
+                placeholder="4"
               />
             </div>
           </div>
