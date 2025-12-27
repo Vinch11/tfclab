@@ -1,7 +1,7 @@
 // =============================================
 // ÉCRAN 4 - DASHBOARD ATHLÈTE MULTI-SPORT
 // Avec VLamax, Confiance et Précision dynamiques
-// + Dashboard Scientifique
+// + Dashboard Scientifique + Export + Comparaison
 // =============================================
 
 import { useState } from "react";
@@ -27,7 +27,9 @@ import {
   Waves,
   AlertTriangle,
   Clock,
-  BookOpen
+  BookOpen,
+  Users,
+  Download
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAthletes } from "@/contexts/AthleteContext";
@@ -39,6 +41,8 @@ import { determinerPriorite, seancesParSport } from "@/types/seances";
 import { ScientificDashboard } from "@/components/ScientificDashboard";
 import { MetricBars } from "@/components/ColoredProgressBar";
 import { Phase3Dashboard } from "@/components/Phase3Dashboard";
+import { ExportTools } from "@/components/ExportTools";
+import { AthleteComparison } from "@/components/AthleteComparison";
 
 // Interface pour les données par sport
 interface SportDashboardData {
@@ -60,8 +64,9 @@ interface SportDashboardData {
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const { currentAthlete } = useAthletes();
+  const { currentAthlete, athletes } = useAthletes();
   const [activeSport, setActiveSport] = useState<SportType>("vélo");
+  const [showComparison, setShowComparison] = useState(false);
 
   if (!currentAthlete) {
     return (
@@ -356,6 +361,25 @@ export default function DashboardPage() {
   return (
     <AppLayout title="Dashboard">
       <div className="space-y-4 animate-fade-in">
+        {/* Header avec Export et Comparaison */}
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <ExportTools athlete={currentAthlete} />
+          <Button
+            variant={showComparison ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowComparison(!showComparison)}
+            className="gap-2"
+          >
+            <Users className="h-4 w-4" />
+            {showComparison ? "Masquer" : "Comparer"}
+          </Button>
+        </div>
+
+        {/* Comparaison Multi-Athlètes */}
+        {showComparison && athletes.length > 1 && (
+          <AthleteComparison athletes={athletes} />
+        )}
+
         {/* Race Readiness Global */}
         {readiness && (
           <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
