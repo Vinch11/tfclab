@@ -117,6 +117,7 @@ export function VLamaxTestingPage({ athlete, onSaveTests }: VLamaxTestingPagePro
 
   const fieldLabels: Record<keyof TestResultat, { label: string; unit: string; icon: React.ElementType }> = {
     puissanceMax: { label: "Puissance Max", unit: "W", icon: Zap },
+    puissanceMoyenne: { label: "Puissance Moy.", unit: "W", icon: Zap },
     puissance5s: { label: "Puissance 5s", unit: "W", icon: Zap },
     ftp: { label: "FTP", unit: "W", icon: Activity },
     vitesse: { label: "Vitesse", unit: "km/h", icon: Target },

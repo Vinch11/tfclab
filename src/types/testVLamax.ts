@@ -1,16 +1,17 @@
 // =============================================
-// TYPES POUR TESTS VLAMAX MULTI-SPORT
+// TYPES POUR TESTS VLAMAX MULTI-SPORT SCIENTIFIQUE
 // =============================================
 
 export interface TestResultat {
   puissanceMax?: number;      // W - pour test sprint vélo
+  puissanceMoyenne?: number;  // W - pour Wingate
   puissance5s?: number;       // W - pour test 5s
   ftp?: number;               // W - pour calcul ratio
   vitesse?: number;           // km/h - pour test course
   vitesseMoyenne?: number;    // km/h - pour intervalles
   temps?: number;             // secondes - durée
-  distance?: number;          // mètres - pour natation
-  lactatePic?: number;        // mmol/L - si mesure disponible
+  distance?: number;          // mètres - pour natation/course
+  lactatePic?: number;        // mmol/L - mesure labo
 }
 
 export interface TestVLamax {
@@ -34,14 +35,14 @@ export interface TestProtocoleVLamax {
   calcVLamax: (resultat: TestResultat) => number;
 }
 
-// Liste des tests disponibles MULTI-SPORT
+// Liste des tests SCIENTIFIQUES multi-sport
 export const testsVLamaxDisponibles: TestProtocoleVLamax[] = [
   // ===== VÉLO =====
   {
-    id: "sprint-velo-10s",
-    nom: "Sprint Vélo 10s",
+    id: "sprint-5-10s-velo",
+    nom: "Sprint 5-10s Vélo",
     sport: "vélo",
-    protocole: "Sprint maximal de 10 secondes sur vélo, répéter 3 fois avec 3 min repos. Mesurer puissance maximale.",
+    protocole: "Sprint maximal de 5-10 secondes sur vélo, répéter 3 fois avec récupération complète. Mesurer puissance maximale.",
     duree: "20 min",
     difficulte: "Modéré",
     champsRequis: ["puissanceMax"],
@@ -51,10 +52,24 @@ export const testsVLamaxDisponibles: TestProtocoleVLamax[] = [
     }
   },
   {
-    id: "test-5s-ftp",
-    nom: "FTP + Sprint 5s Vélo",
+    id: "wingate-30s",
+    nom: "Sprint 30s Wingate",
     sport: "vélo",
-    protocole: "5 secondes de sprint maximal suivi d'une évaluation FTP pour calcul VLamax selon formule Dan Lorang.",
+    protocole: "30 secondes de sprint maximal sur ergocycle. Mesurer puissance maximale et moyenne. Utiliser formule Monod & Scherrer pour VLamax.",
+    duree: "15 min",
+    difficulte: "Difficile",
+    champsRequis: ["puissanceMax", "puissanceMoyenne"],
+    calcVLamax: (r) => {
+      if (!r.puissanceMoyenne) return 0.35;
+      const fatigue = r.puissanceMax && r.puissanceMoyenne ? (r.puissanceMax - r.puissanceMoyenne) / r.puissanceMax : 0.3;
+      return Math.min(0.7, Math.max(0.2, 0.25 + fatigue * 0.5 + (r.puissanceMoyenne / 1500) * 0.2));
+    }
+  },
+  {
+    id: "sprint-ftp-velo",
+    nom: "Sprint + FTP Vélo",
+    sport: "vélo",
+    protocole: "5 secondes de sprint maximal suivi d'une évaluation FTP. Calcul VLamax = puissance sprint / FTP selon Dan Lorang.",
     duree: "45 min",
     difficulte: "Difficile",
     champsRequis: ["puissance5s", "ftp"],
@@ -68,7 +83,7 @@ export const testsVLamaxDisponibles: TestProtocoleVLamax[] = [
     id: "test-lactate-velo",
     nom: "Test Lactate Labo Vélo",
     sport: "vélo",
-    protocole: "Test en laboratoire avec prélèvements sanguins pour mesurer le pic de lactate après effort maximal.",
+    protocole: "Test progressif en laboratoire avec prélèvements sanguins. Mesurer pic de lactate après effort maximal.",
     duree: "60 min",
     difficulte: "Difficile",
     champsRequis: ["lactatePic", "puissanceMax"],
@@ -83,7 +98,7 @@ export const testsVLamaxDisponibles: TestProtocoleVLamax[] = [
     id: "tte-course",
     nom: "TTE Course",
     sport: "course",
-    protocole: "Courir à intensité maximale jusqu'à épuisement. Mesurer vitesse et temps total.",
+    protocole: "Courir à intensité maximale jusqu'à épuisement. Mesurer vitesse et durée totale.",
     duree: "Variable",
     difficulte: "Difficile",
     champsRequis: ["vitesse", "temps"],
@@ -94,16 +109,29 @@ export const testsVLamaxDisponibles: TestProtocoleVLamax[] = [
     }
   },
   {
-    id: "intervalle-4x1000",
-    nom: "Intervalle 4x1000m Course",
+    id: "sprint-30-50m",
+    nom: "Sprint 30-50m Course",
     sport: "course",
-    protocole: "4x1000m à intensité élevée avec 2 min repos. Mesurer vitesse moyenne et temps total.",
+    protocole: "Sprint maximal sur 30-50 mètres. Mesurer distance et temps pour calculer vitesse maximale.",
+    duree: "10 min",
+    difficulte: "Facile",
+    champsRequis: ["distance", "temps"],
+    calcVLamax: (r) => {
+      if (!r.distance || !r.temps) return 0.35;
+      const vitesse = r.distance / r.temps;
+      return Math.min(0.7, Math.max(0.2, 0.2 + vitesse * 0.05));
+    }
+  },
+  {
+    id: "intervalle-4x400",
+    nom: "Intervalle 4x400m Course",
+    sport: "course",
+    protocole: "4x400m à intensité maximale avec 2-3 min repos. Mesurer vitesse moyenne et temps total.",
     duree: "25 min",
     difficulte: "Modéré",
     champsRequis: ["vitesseMoyenne", "temps"],
     calcVLamax: (r) => {
       if (!r.vitesseMoyenne || !r.temps) return 0.35;
-      // Plus la vitesse est haute pour un temps court, plus VLamax est élevée
       return Math.min(0.7, Math.max(0.2, 0.2 + (r.vitesseMoyenne / 25) - (r.temps / 1000)));
     }
   },
@@ -117,55 +145,51 @@ export const testsVLamaxDisponibles: TestProtocoleVLamax[] = [
     champsRequis: ["vitesse"],
     calcVLamax: (r) => {
       if (!r.vitesse) return 0.35;
-      // VMA haute = bonne capacité anaérobie
       return Math.min(0.7, Math.max(0.2, 0.15 + (r.vitesse / 40)));
     }
   },
 
   // ===== NATATION =====
   {
-    id: "sprint-natation-50m",
-    nom: "Sprint Natation 50m",
+    id: "sprint-25-50m-nat",
+    nom: "Sprint Natation 25-50m",
     sport: "natation",
-    protocole: "Sprint maximal 50m crawl, mesurer temps. Départ plongé ou poussé.",
+    protocole: "Sprint maximal de 25 à 50m crawl. Mesurer distance et temps pour calculer vitesse maximale.",
     duree: "5 min",
     difficulte: "Facile",
     champsRequis: ["distance", "temps"],
     calcVLamax: (r) => {
-      if (!r.temps) return 0.35;
-      // 50m - temps court = VLamax élevée
-      const vitesse = 50 / (r.temps || 30);
+      if (!r.temps || !r.distance) return 0.35;
+      const vitesse = r.distance / r.temps;
       return Math.min(0.7, Math.max(0.2, 0.2 + vitesse * 0.3));
     }
   },
   {
-    id: "test-200m-natation",
+    id: "test-200m-nat",
     nom: "Test 200m Natation Max",
     sport: "natation",
-    protocole: "Nager 200m à intensité maximale en crawl. Mesurer temps total.",
+    protocole: "Nager 200m à intensité maximale en crawl. Mesurer temps total et vitesse moyenne.",
     duree: "10 min",
-    difficulte: "Modéré",
-    champsRequis: ["distance", "temps"],
-    calcVLamax: (r) => {
-      if (!r.temps) return 0.35;
-      // 200m - équilibre aérobie/anaérobie
-      const vitesse = 200 / (r.temps || 150);
-      return Math.min(0.7, Math.max(0.2, 0.25 + vitesse * 0.25));
-    }
-  },
-  {
-    id: "test-100m-natation",
-    nom: "Test 100m Natation Sprint",
-    sport: "natation",
-    protocole: "Sprint 100m crawl à intensité maximale. Mesurer temps et vitesse.",
-    duree: "5 min",
     difficulte: "Modéré",
     champsRequis: ["temps"],
     calcVLamax: (r) => {
       if (!r.temps) return 0.35;
-      // 100m - bon indicateur VLamax
-      const vitesse = 100 / (r.temps || 70);
-      return Math.min(0.7, Math.max(0.2, 0.22 + vitesse * 0.28));
+      const vitesse = 200 / r.temps;
+      return Math.min(0.7, Math.max(0.2, 0.25 + vitesse * 0.25));
+    }
+  },
+  {
+    id: "test-4x50m-lactate",
+    nom: "Test 4x50m Lactate Natation",
+    sport: "natation",
+    protocole: "4x50m à intensité croissante avec prélèvements lactate. Mesurer vitesse moyenne et lactate post-série.",
+    duree: "20 min",
+    difficulte: "Difficile",
+    champsRequis: ["vitesseMoyenne", "lactatePic"],
+    calcVLamax: (r) => {
+      if (!r.vitesseMoyenne) return 0.35;
+      const lactateFactor = r.lactatePic ? r.lactatePic / 15 : 0.3;
+      return Math.min(0.7, Math.max(0.2, 0.2 + (r.vitesseMoyenne * 0.15) + lactateFactor * 0.2));
     }
   }
 ];
