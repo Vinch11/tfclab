@@ -34,10 +34,12 @@ export interface SnapshotNolio {
 // Estimation TTE basée sur le sport
 export function estimerTTESport(snapshot: SnapshotNolio): number {
   if (snapshot.sport === "vélo") {
-    return estimerTTE(snapshot.ftp || 0, snapshot.tss_7j || 0);
+    // TTE vélo = 45 + tss_7j/10
+    return snapshot.tss_7j ? Math.round(45 + snapshot.tss_7j / 10) : 45;
   }
   if (snapshot.sport === "course") {
-    return snapshot.vma ? Math.round(snapshot.vma * 3) : 45;
+    // TTE course = seuil * 4 (si allure_seuil disponible) sinon 45
+    return snapshot.allure_seuil ? Math.round(snapshot.allure_seuil * 4 * 10) : 45;
   }
   if (snapshot.sport === "natation") {
     return 45; // moyenne séance natation
@@ -45,12 +47,9 @@ export function estimerTTESport(snapshot: SnapshotNolio): number {
   return 45;
 }
 
-// Estimation TTE vélo classique
+// Estimation TTE vélo classique (pour compatibilité)
 export function estimerTTE(ftp: number, tss_7j: number): number {
-  if (tss_7j >= 700) return 70;
-  if (tss_7j >= 550) return 65;
-  if (tss_7j >= 400) return 55;
-  return 45;
+  return tss_7j ? Math.round(45 + tss_7j / 10) : 45;
 }
 
 // Résultat VLamax avec confiance et précision

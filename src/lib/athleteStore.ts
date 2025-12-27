@@ -3,7 +3,7 @@
 // =============================================
 
 import { Athlete, defaultAthlete, getDernierSnapshot } from "@/types/athlete";
-import { SnapshotNolio, creerSnapshotExemple, estimerTTE, scoreConfiance, calculerAgeSnapshot, calculerPrecision, VLamaxAvecConfiance } from "@/types/snapshotNolio";
+import { SnapshotNolio, creerSnapshotExemple, estimerTTE, estimerTTESport, scoreConfiance, calculerAgeSnapshot, calculerPrecision, VLamaxAvecConfiance } from "@/types/snapshotNolio";
 import { ObjectifType, SexeType } from "@/types/athlete";
 
 // Storage key
@@ -135,14 +135,17 @@ export function comparerEvolution(athlete: Athlete, objectif: ObjectifType): Com
   });
 }
 
-// Calculate VLamax from snapshot - Multi-sport
+// Calculate VLamax from snapshot - Multi-sport (Phase 1 Base Solide)
 export function calculVLamaxSnapshot(snapshot: SnapshotNolio, objectif: ObjectifType): number {
+  // Vélo - formule complète avec index glycolytique
   if (snapshot.sport === "vélo") {
-    const G = (snapshot.pmax_5s || 0) / snapshot.poids;
-    const O = (snapshot.ftp || 0) / snapshot.poids;
-    const TTE = estimerTTE(snapshot.ftp || 0, snapshot.tss_7j || 0) / 60;
+    if (!snapshot.ftp || !snapshot.pmax_5s) return 0.25;
+    
+    const G = snapshot.pmax_5s / snapshot.poids;
+    const O = snapshot.ftp / snapshot.poids;
+    const TTE = estimerTTESport(snapshot) / 60;
 
-    let indexGlyco = (0.45 * G) - (0.30 * O) - (0.25 * TTE);
+    const indexGlyco = (0.45 * G) - (0.30 * O) - (0.25 * TTE);
     let vlamax = 0.25 + (indexGlyco * 0.45);
 
     if (objectif === "IM") vlamax = Math.min(vlamax, 0.45);
@@ -151,14 +154,19 @@ export function calculVLamaxSnapshot(snapshot: SnapshotNolio, objectif: Objectif
     return Math.max(0.25, Number(vlamax.toFixed(2)));
   }
   
+  // Course - formule avec VMA et correction TTE
   if (snapshot.sport === "course") {
     const vma = snapshot.vma || 15;
-    return Math.max(0.25, Number((0.25 + 0.4 * ((vma / 20) - 0.7)).toFixed(2)));
+    const tte = estimerTTESport(snapshot);
+    const vlamax = 0.25 + 0.4 * ((vma / 20) - 0.7) - 0.1 * (tte / 60);
+    return Math.max(0.25, Number(vlamax.toFixed(2)));
   }
   
+  // Natation - formule avec pace 100m
   if (snapshot.sport === "natation") {
-    const pace = snapshot.pace100 || 120;
-    return Math.max(0.25, Number((0.25 + 0.3 * (2 / (pace / 60))).toFixed(2)));
+    const pace100 = snapshot.pace100 || 2;
+    const vlamax = 0.25 + 0.3 * (2 / pace100);
+    return Math.max(0.25, Number(vlamax.toFixed(2)));
   }
   
   return 0.25;
