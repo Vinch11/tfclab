@@ -33,16 +33,27 @@ const Index = () => {
     return { ...defaultAthlete, id: crypto.randomUUID() };
   });
 
+  // Données d'exemple: test du 2025-12-27
+  const exampleTest: TestMetabolique = {
+    id: "example-test-1",
+    date: "2025-12-27",
+    pmax_5s: 1050,
+    cp: 320,
+    tte: 52 * 60, // 52 minutes en secondes
+  };
+
   const [testsMetaboliques, setTestsMetaboliques] = useState<TestMetabolique[]>(() => {
     const saved = localStorage.getItem("loranglab-tests");
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        // Si aucun test, ajouter l'exemple
+        return parsed.length > 0 ? parsed : [exampleTest];
       } catch {
-        return [];
+        return [exampleTest];
       }
     }
-    return [];
+    return [exampleTest];
   });
 
   const [feedbacksNolio, setFeedbacksNolio] = useState<FeedbackNolio[]>(() => {
@@ -77,13 +88,18 @@ const Index = () => {
   const previousTest = testsMetaboliques[1];
   
   // Calculate VLamax using the Dan Lorang formula
+  // VLamax 6 semaines avant = 0.42 (valeur exemple)
+  const vlamax_6sem_avant = 0.42;
   const previousVlamaxValue = previousTest 
     ? calculVLamax(previousTest, athlete.poids).vlamax 
-    : undefined;
+    : vlamax_6sem_avant;
   
   const currentResultat: ResultatVLamax = latestTest 
-    ? calculVLamax(latestTest, athlete.poids, previousVlamaxValue)
-    : { ...defaultResultatVLamax, vlamax: athlete.vlamax || 0.45 };
+    ? {
+        ...calculVLamax(latestTest, athlete.poids, previousVlamaxValue),
+        historique: [0.42, 0.40, 0.39, 0.38], // Historique exemple
+      }
+    : { ...defaultResultatVLamax, vlamax: athlete.vlamax || 0.45, historique: [] };
   
   const currentVlamax = currentResultat.vlamax || athlete.vlamax || 0.45;
   const currentFtp = latestTest?.cp || athlete.ftp || 280;
