@@ -1,8 +1,8 @@
-import { Athlete, getDernierSnapshot } from "./athlete";
+import { Athlete, getDernierSnapshot, ObjectifType } from "./athlete";
 import { SnapshotNolio, scoreConfiance, estimerTTE } from "./snapshotNolio";
 import { calculVLamaxSnapshot } from "@/lib/athleteStore";
 
-export type PrioriteType = "VLAMAX_DOWN" | "VLAMAX_UP" | "TTE_UP" | "FTP_UTIL" | "";
+export type PrioriteType = "VLAMAX_DOWN" | "VLAMAX_UP" | "TTE_UP" | "FTP_UTIL" | "ENDURANCE_UP" | "VITESSE_UP" | "";
 
 export interface ReglesDanLorangResult {
   priorite: PrioriteType;
@@ -18,6 +18,7 @@ export interface RaceReadinessInputs {
 /**
  * Règles Dan Lorang pour déterminer les priorités d'entraînement
  * Basé sur le modèle Snapshot NOLIO
+ * Étendu pour Marathon/Semi
  */
 export function reglesDanLorang(
   athlete: Athlete,
@@ -30,7 +31,7 @@ export function reglesDanLorang(
   let priorite: PrioriteType = "";
   const alertes: string[] = [];
 
-  // VLamax trop élevée pour l'objectif
+  // Triathlon: VLamax trop élevée pour l'objectif
   if (
     (athlete.objectif === "IM" && vlamax > 0.40) ||
     (athlete.objectif === "703" && vlamax > 0.45)
@@ -39,13 +40,38 @@ export function reglesDanLorang(
     alertes.push("VLamax trop élevée pour l'objectif");
   }
 
-  // VLamax trop basse
-  if (vlamax < 0.28) {
+  // Marathon: priorité endurance
+  if (athlete.objectif === "Marathon") {
+    if (tte < 60) {
+      priorite = "ENDURANCE_UP";
+      alertes.push("Endurance insuffisante pour marathon");
+    } else if (vlamax > 0.38) {
+      priorite = "VLAMAX_DOWN";
+      alertes.push("VLamax trop élevée pour marathon");
+    }
+  }
+
+  // Semi-Marathon: équilibre vitesse/endurance
+  if (athlete.objectif === "Semi") {
+    if (tte < 50) {
+      priorite = "ENDURANCE_UP";
+      alertes.push("Endurance insuffisante pour semi");
+    } else if (vlamax < 0.35) {
+      priorite = "VITESSE_UP";
+      alertes.push("Capacité glycolytique trop basse pour semi");
+    } else if (vlamax > 0.45) {
+      priorite = "VLAMAX_DOWN";
+      alertes.push("VLamax trop élevée pour semi");
+    }
+  }
+
+  // VLamax trop basse (sauf marathon)
+  if (vlamax < 0.28 && athlete.objectif !== "Marathon") {
     priorite = "VLAMAX_UP";
     alertes.push("VLamax trop basse (<0.28)");
   }
 
-  // TTE insuffisante
+  // TTE insuffisante (triathlon)
   if (
     (athlete.objectif === "IM" && tte < 55) ||
     (athlete.objectif === "703" && tte < 45)
@@ -54,9 +80,9 @@ export function reglesDanLorang(
     alertes.push("TTE insuffisante pour l'objectif");
   }
 
-  // FTP faible
-  const ftpTarget = athlete.objectif === "IM" ? 4.6 : 4.8;
-  if (ftp_kg < ftpTarget) {
+  // FTP faible (vélo uniquement pour triathlon)
+  const ftpTarget = getFtpTarget(athlete.objectif);
+  if ((athlete.objectif === "IM" || athlete.objectif === "703") && ftp_kg < ftpTarget) {
     priorite = "FTP_UTIL";
     alertes.push(`FTP insuffisant (cible: ${ftpTarget} W/kg)`);
   }
@@ -67,11 +93,9 @@ export function reglesDanLorang(
   }
 
   // Race Ready check
-  const vlmaxOk = vlamax >= 0.25 && vlamax <= 0.45;
-  const tteOk =
-    (athlete.objectif === "IM" && tte >= 55) ||
-    (athlete.objectif === "703" && tte >= 45);
-  const ftpOk = ftp_kg >= ftpTarget;
+  const vlmaxOk = isVlamaxOk(vlamax, athlete.objectif);
+  const tteOk = isTteOk(tte, athlete.objectif);
+  const ftpOk = ftp_kg >= ftpTarget || athlete.objectif === "Marathon" || athlete.objectif === "Semi";
 
   const race_ready =
     vlmaxOk &&
@@ -87,6 +111,35 @@ export function reglesDanLorang(
   };
 }
 
+// Helpers pour objectifs
+function getFtpTarget(objectif: ObjectifType): number {
+  switch (objectif) {
+    case "IM": return 4.6;
+    case "703": return 4.8;
+    default: return 0; // Marathon/Semi n'ont pas de cible FTP vélo
+  }
+}
+
+function isVlamaxOk(vlamax: number, objectif: ObjectifType): boolean {
+  switch (objectif) {
+    case "IM": return vlamax >= 0.25 && vlamax <= 0.40;
+    case "703": return vlamax >= 0.25 && vlamax <= 0.45;
+    case "Marathon": return vlamax >= 0.25 && vlamax <= 0.38;
+    case "Semi": return vlamax >= 0.35 && vlamax <= 0.45;
+    default: return vlamax >= 0.25 && vlamax <= 0.45;
+  }
+}
+
+function isTteOk(tte: number, objectif: ObjectifType): boolean {
+  switch (objectif) {
+    case "IM": return tte >= 55;
+    case "703": return tte >= 45;
+    case "Marathon": return tte >= 60;
+    case "Semi": return tte >= 50;
+    default: return tte >= 45;
+  }
+}
+
 // Labels pour les priorités
 export const getPrioriteLabel = (priorite: PrioriteType): string => {
   switch (priorite) {
@@ -98,6 +151,10 @@ export const getPrioriteLabel = (priorite: PrioriteType): string => {
       return "Améliorer le TTE";
     case "FTP_UTIL":
       return "Développer le FTP";
+    case "ENDURANCE_UP":
+      return "Augmenter l'endurance";
+    case "VITESSE_UP":
+      return "Améliorer la vitesse";
     default:
       return "Aucune priorité";
   }
@@ -114,6 +171,10 @@ export const getPrioriteColor = (priorite: PrioriteType): string => {
       return "text-warning";
     case "FTP_UTIL":
       return "text-primary";
+    case "ENDURANCE_UP":
+      return "text-success";
+    case "VITESSE_UP":
+      return "text-orange-400";
     default:
       return "text-success";
   }
@@ -123,23 +184,31 @@ export const getPrioriteColor = (priorite: PrioriteType): string => {
 export const getSeancesRecommandees = (priorite: PrioriteType): string[] => {
   switch (priorite) {
     case "VLAMAX_DOWN":
-      return ["A1", "A2", "A3"];
+      return ["A1", "A2", "A3", "E1"];
     case "TTE_UP":
-      return ["B1", "B2"];
+      return ["B1", "B2", "F2"];
     case "VLAMAX_UP":
-      return ["C1"];
+      return ["C1", "F1"];
+    case "ENDURANCE_UP":
+      return ["E1", "F2", "E2"];
+    case "VITESSE_UP":
+      return ["F1", "F2"];
     default:
       return ["A1", "D1"];
   }
 };
 
 // Séances spécifiques par objectif
-export const getSeancesSpecifiques = (objectif: "IM" | "703"): string[] => {
+export const getSeancesSpecifiques = (objectif: ObjectifType): string[] => {
   switch (objectif) {
     case "IM":
       return ["D1"];
     case "703":
       return ["B1"];
+    case "Marathon":
+      return ["E1", "F2"];
+    case "Semi":
+      return ["F1", "F2"];
     default:
       return [];
   }

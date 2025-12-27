@@ -4,7 +4,7 @@
 
 import { SnapshotNolio } from "./snapshotNolio";
 
-export type ObjectifType = "IM" | "703";
+export type ObjectifType = "IM" | "703" | "Marathon" | "Semi";
 export type SexeType = "M" | "F";
 
 // Athlète simplifié avec historique de snapshots
@@ -41,6 +41,10 @@ export const getObjectifLabel = (objectif: ObjectifType): string => {
       return "Ironman";
     case "703":
       return "70.3 / Half Ironman";
+    case "Marathon":
+      return "Marathon";
+    case "Semi":
+      return "Semi-Marathon";
     default:
       return objectif;
   }
