@@ -30,7 +30,8 @@ import {
   BookOpen,
   Users,
   Download,
-  List
+  List,
+  Heart
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAthletes } from "@/contexts/AthleteContext";
@@ -46,6 +47,7 @@ import { ExportTools } from "@/components/ExportTools";
 import { AthleteComparison } from "@/components/AthleteComparison";
 import { IndexSeancesView } from "@/components/IndexSeances";
 import { PhysiologicalAnalysis } from "@/components/PhysiologicalAnalysis";
+import { ZonesModule } from "@/components/ZonesModule";
 
 // Interface pour les données par sport
 interface SportDashboardData {
@@ -72,6 +74,7 @@ export default function DashboardPage() {
   const [showComparison, setShowComparison] = useState(false);
   const [showIndexSeances, setShowIndexSeances] = useState(false);
   const [showPhysiologicalAnalysis, setShowPhysiologicalAnalysis] = useState(false);
+  const [showZones, setShowZones] = useState(false);
 
   if (!currentAthlete) {
     return (
@@ -495,6 +498,15 @@ export default function DashboardPage() {
             <Activity className="h-4 w-4 text-primary" />
             <span className="text-sm">Analyse Physiologique Élite</span>
           </Button>
+
+          <Button
+            onClick={() => setShowZones(!showZones)}
+            className="w-full justify-start gap-3 h-12"
+            variant={showZones ? "default" : "outline"}
+          >
+            <Heart className="h-4 w-4 text-primary" />
+            <span className="text-sm">Zones (Cardiaque / Puissance / Allure)</span>
+          </Button>
         </div>
 
         {/* Index des Séances */}
@@ -505,6 +517,11 @@ export default function DashboardPage() {
         {/* Analyse Physiologique Élite */}
         {showPhysiologicalAnalysis && (
           <PhysiologicalAnalysis athlete={currentAthlete} />
+        )}
+
+        {/* Zones Module */}
+        {showZones && (
+          <ZonesModule />
         )}
       </div>
     </AppLayout>
