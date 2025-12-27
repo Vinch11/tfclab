@@ -159,6 +159,32 @@ export const getRecommandationsPriorite = (priorite: PrioriteType): string[] => 
   }
 };
 
+// Séances recommandées par priorité
+export const getSeancesRecommandees = (priorite: PrioriteType): string[] => {
+  switch (priorite) {
+    case "VLAMAX_DOWN":
+      return ["A1", "A2", "A3"];
+    case "TTE_UP":
+      return ["B1", "B2", "B3"];
+    case "VLAMAX_UP":
+      return ["D1", "D2"];
+    default:
+      return [];
+  }
+};
+
+// Séances spécifiques par objectif
+export const getSeancesSpecifiques = (objectif: "IM" | "703"): string[] => {
+  switch (objectif) {
+    case "IM":
+      return ["C1"];
+    case "703":
+      return ["C2"];
+    default:
+      return [];
+  }
+};
+
 // Calcul du score Race Readiness (0-100)
 export const calculateRaceReadinessScore = (
   athlete: Athlete,
