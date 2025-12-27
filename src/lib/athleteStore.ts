@@ -7,7 +7,7 @@ import { SnapshotNolio, creerSnapshotExemple, estimerTTE, estimerTTESport, score
 import { ObjectifType, SexeType } from "@/types/athlete";
 
 // Storage key
-const STORAGE_KEY = "loranglab-athletes-data";
+const STORAGE_KEY = "vinceslab-athletes-data";
 
 // Create new athlete
 export function creerAthlete(
