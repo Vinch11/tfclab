@@ -12,6 +12,8 @@ import { DanLorangAnalysis } from "@/components/DanLorangAnalysis";
 import { AthleteSelector } from "@/components/AthleteSelector";
 import { TestComparison } from "@/components/TestComparison";
 import { SemaineTypeView } from "@/components/SemaineTypeView";
+import { RaceReadinessCard } from "@/components/RaceReadinessCard";
+import { Bloc3SemainesView } from "@/components/Bloc3SemainesView";
 import { Zap, Target, Flame, Activity } from "lucide-react";
 import { Athlete, getDernierSnapshot } from "@/types/athlete";
 import { FeedbackNolio } from "@/types/feedbackNolio";
@@ -166,10 +168,16 @@ const Index = () => {
               <TrainingZones />
             </div>
 
+            {/* Race Readiness + Analyse */}
+            <RaceReadinessCard athlete={currentAthlete} />
+
             <DanLorangAnalysis athlete={currentAthlete} />
 
             {/* Semaine Type */}
             <SemaineTypeView athlete={currentAthlete} />
+
+            {/* Bloc 3 Semaines */}
+            <Bloc3SemainesView athlete={currentAthlete} />
           </div>
         );
 
