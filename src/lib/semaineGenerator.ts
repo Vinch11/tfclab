@@ -1,14 +1,16 @@
 // =============================================
-// GÉNÉRATEUR SEMAINE TYPE - Dan Lorang
+// GÉNÉRATEUR SEMAINE TYPE - Multi-Sport
 // =============================================
 
 import { Athlete, getDernierSnapshot } from "@/types/athlete";
-import { estimerTTE } from "@/types/snapshotNolio";
+import { estimerTTESport, SportType, SnapshotNolio } from "@/types/snapshotNolio";
 import { calculVLamaxSnapshot } from "@/lib/athleteStore";
-import { SEANCES, Seance, seancesParPriorite, determinerPriorite, PrioriteCoaching } from "@/types/seances";
+import { SEANCES, Seance, seancesParSport, determinerPriorite, PrioriteCoaching } from "@/types/seances";
+import { getDernierSnapshotParSport } from "@/lib/raceReadiness";
 
 export interface JourSemaine {
   jour: string;
+  sport: SportType;
   type: string;
   nom?: string;
   objectif: string;
@@ -31,117 +33,147 @@ export interface SemaineType {
   nbSeancesCles: number;
 }
 
-// Générer la semaine type basée sur le profil athlète
+// Planning type multi-sport pour la semaine
+const PLANNING_MULTISPORT: Array<{ jour: string; sport: SportType; estCle: boolean }> = [
+  { jour: "Lundi", sport: "natation", estCle: false },
+  { jour: "Mardi", sport: "vélo", estCle: true },
+  { jour: "Mercredi", sport: "course", estCle: false },
+  { jour: "Jeudi", sport: "vélo", estCle: true },
+  { jour: "Vendredi", sport: "natation", estCle: false },
+  { jour: "Samedi", sport: "vélo", estCle: true },
+  { jour: "Dimanche", sport: "course", estCle: true },
+];
+
+// Générer la semaine type Multi-Sport
 export function genererSemaineType(athlete: Athlete): SemaineType | null {
   const snapshot = getDernierSnapshot(athlete);
   if (!snapshot) return null;
 
-  const tte = estimerTTE(snapshot.ftp, snapshot.tss_7j);
-  const vlamax = calculVLamaxSnapshot(snapshot, athlete.objectif);
+  // Calculer priorité depuis le dernier snapshot vélo (principal)
+  const snapshotVelo = getDernierSnapshotParSport(athlete, "vélo") || snapshot;
+  const tte = estimerTTESport(snapshotVelo);
+  const vlamax = calculVLamaxSnapshot(snapshotVelo, athlete.objectif);
   const priorite = determinerPriorite(vlamax, tte, athlete.objectif);
-  const seancesRecommandees = seancesParPriorite(priorite);
 
   const semaine: JourSemaine[] = [];
 
-  // LUNDI - Repos / Mobilité
-  semaine.push({
-    jour: "Lundi",
-    type: "Repos",
-    nom: "Repos actif",
-    objectif: "Récupération",
-    contenu: "Off ou 30-40' Z1 + mobilité",
-    estCle: false,
-  });
+  for (const planning of PLANNING_MULTISPORT) {
+    const sportSnapshot = getDernierSnapshotParSport(athlete, planning.sport);
+    const sportPriorite = sportSnapshot 
+      ? determinerPriorite(
+          calculVLamaxSnapshot(sportSnapshot, athlete.objectif),
+          estimerTTESport(sportSnapshot),
+          athlete.objectif
+        )
+      : priorite;
 
-  // MARDI - Séance Clé 1 (Priorité)
-  const seance1 = seancesRecommandees[0];
-  semaine.push({
-    jour: "Mardi",
-    type: seance1.code,
-    nom: seance1.nom,
-    objectif: seance1.objectif,
-    intensite: seance1.intensite,
-    duree: seance1.duree,
-    format: seance1.format,
-    description: seance1.description,
-    estCle: true,
-  });
+    const seancesRecommandees = seancesParSport(sportPriorite, planning.sport);
 
-  // MERCREDI - Endurance
-  semaine.push({
-    jour: "Mercredi",
-    type: "Z2",
-    nom: "Endurance fondamentale",
-    objectif: "Base aérobie",
-    contenu: "1h15-1h45 Z2",
-    intensite: "65-75% FTP",
-    estCle: false,
-  });
-
-  // JEUDI - Séance Clé 2 (Priorité secondaire)
-  const seance2 = seancesRecommandees[1] || seancesRecommandees[0];
-  semaine.push({
-    jour: "Jeudi",
-    type: seance2.code,
-    nom: seance2.nom,
-    objectif: seance2.objectif,
-    intensite: seance2.intensite,
-    duree: seance2.duree,
-    format: seance2.format,
-    description: seance2.description,
-    estCle: true,
-  });
-
-  // VENDREDI - Repos actif
-  semaine.push({
-    jour: "Vendredi",
-    type: "Z1",
-    nom: "Repos actif",
-    objectif: "Fraîcheur",
-    contenu: "45' Z1 + gainage",
-    intensite: "< 65% FTP",
-    estCle: false,
-  });
-
-  // SAMEDI - Spécifique course (D1)
-  const seanceD1 = SEANCES["D1"];
-  semaine.push({
-    jour: "Samedi",
-    type: "D1",
-    nom: seanceD1.nom,
-    objectif: seanceD1.objectif,
-    intensite: seanceD1.intensite,
-    duree: seanceD1.duree,
-    description: seanceD1.description,
-    estCle: true,
-  });
-
-  // DIMANCHE - Variable selon priorité/objectif
-  if (priorite === "Maintenir équilibre" && athlete.objectif === "703") {
-    const seanceC1 = SEANCES["C1"];
-    semaine.push({
-      jour: "Dimanche",
-      type: "C1",
-      nom: seanceC1.nom,
-      objectif: seanceC1.objectif,
-      intensite: seanceC1.intensite,
-      format: seanceC1.format,
-      description: seanceC1.description,
-      estCle: false,
-    });
-  } else {
-    semaine.push({
-      jour: "Dimanche",
-      type: "Long",
-      nom: "Endurance longue",
-      objectif: "Volume aérobie",
-      contenu: "2h-3h Z2",
-      intensite: "65-75% FTP",
-      estCle: false,
-    });
+    if (planning.estCle && seancesRecommandees.length > 0) {
+      // Séance clé - prendre la première recommandée
+      const seance = seancesRecommandees[0];
+      semaine.push({
+        jour: planning.jour,
+        sport: planning.sport,
+        type: seance.code,
+        nom: seance.nom,
+        objectif: seance.objectif,
+        intensite: seance.intensite,
+        duree: seance.duree,
+        format: seance.format,
+        description: seance.description,
+        estCle: true,
+      });
+    } else if (seancesRecommandees.length > 0) {
+      // Séance secondaire ou récup
+      const seance = seancesRecommandees[seancesRecommandees.length > 1 ? 1 : 0];
+      semaine.push({
+        jour: planning.jour,
+        sport: planning.sport,
+        type: seance.code,
+        nom: seance.nom,
+        objectif: seance.objectif,
+        intensite: seance.intensite,
+        duree: seance.duree,
+        format: seance.format,
+        description: seance.description,
+        estCle: false,
+      });
+    } else {
+      // Pas de données pour ce sport - séance générique
+      semaine.push({
+        jour: planning.jour,
+        sport: planning.sport,
+        type: "Z2",
+        nom: `Endurance ${planning.sport}`,
+        objectif: "Base aérobie",
+        contenu: "45-60 min Z2",
+        estCle: false,
+      });
+    }
   }
 
   // Calcul volume estimé
+  const volumeTotal = athlete.objectif === "IM" ? "14-18h" : "10-14h";
+  const nbSeancesCles = semaine.filter(j => j.estCle).length;
+
+  return {
+    athleteNom: athlete.nom,
+    objectif: athlete.objectif,
+    priorite,
+    vlamax,
+    tte,
+    semaine,
+    volumeTotal,
+    nbSeancesCles,
+  };
+}
+
+// Générer semaine type pour un sport spécifique
+export function genererSemaineTypeSport(athlete: Athlete, sport: SportType): SemaineType | null {
+  const snapshot = getDernierSnapshotParSport(athlete, sport);
+  if (!snapshot) return null;
+
+  const tte = estimerTTESport(snapshot);
+  const vlamax = calculVLamaxSnapshot(snapshot, athlete.objectif);
+  const priorite = determinerPriorite(vlamax, tte, athlete.objectif);
+  const seancesRecommandees = seancesParSport(priorite, sport);
+
+  const jours = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+  const semaine: JourSemaine[] = [];
+
+  for (let i = 0; i < 7; i++) {
+    const estCle = i === 1 || i === 3 || i === 5; // Mardi, Jeudi, Samedi
+    const seanceIndex = estCle ? (i % seancesRecommandees.length) : (seancesRecommandees.length - 1);
+    const seance = seancesRecommandees[seanceIndex] || seancesRecommandees[0];
+
+    if (i === 0 || i === 4) {
+      // Lundi et Vendredi - repos
+      semaine.push({
+        jour: jours[i],
+        sport,
+        type: "Repos",
+        nom: "Repos actif",
+        objectif: "Récupération",
+        contenu: "Off ou mobilité",
+        estCle: false,
+      });
+    } else if (seance) {
+      semaine.push({
+        jour: jours[i],
+        sport,
+        type: seance.code,
+        nom: seance.nom,
+        objectif: seance.objectif,
+        intensite: seance.intensite,
+        duree: seance.duree,
+        format: seance.format,
+        description: seance.description,
+        estCle,
+      });
+    }
+  }
+
   const volumeTotal = athlete.objectif === "IM" ? "12-16h" : "10-14h";
   const nbSeancesCles = semaine.filter(j => j.estCle).length;
 
