@@ -16,8 +16,9 @@ import { SemaineTypeView } from "@/components/SemaineTypeView";
 import { RaceReadinessCard } from "@/components/RaceReadinessCard";
 import { Bloc3SemainesView } from "@/components/Bloc3SemainesView";
 import { PhysiologicalAnalysis } from "@/components/PhysiologicalAnalysis";
+import { Planificateur } from "@/components/Planificateur";
 import { Button } from "@/components/ui/button";
-import { Zap, Target, Flame, Activity, BookOpen, Brain } from "lucide-react";
+import { Zap, Target, Flame, Activity, BookOpen, Brain, Calendar } from "lucide-react";
 import logo2fc from "@/assets/logo-2fc.png";
 import { Athlete, getDernierSnapshot } from "@/types/athlete";
 import { FeedbackNolio } from "@/types/feedbackNolio";
@@ -38,6 +39,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showTestLibrary, setShowTestLibrary] = useState(false);
   const [showPhysioAnalysis, setShowPhysioAnalysis] = useState(false);
+  const [showPlanner, setShowPlanner] = useState(false);
 
   // Multi-athlete state
   const [athletes, setAthletes] = useState<Athlete[]>(() => {
@@ -130,13 +132,14 @@ const Index = () => {
               onDeleteAthlete={handleDeleteAthlete}
             />
 
-            {/* Boutons Bibliothèque Tests + Analyse Physio */}
+            {/* Boutons Bibliothèque Tests + Analyse Physio + Planificateur */}
             <div className="flex flex-wrap gap-3">
               <Button 
                 variant={showTestLibrary ? "default" : "outline"}
                 onClick={() => {
                   setShowTestLibrary(!showTestLibrary);
                   setShowPhysioAnalysis(false);
+                  setShowPlanner(false);
                 }}
                 className="flex items-center gap-2"
               >
@@ -148,11 +151,24 @@ const Index = () => {
                 onClick={() => {
                   setShowPhysioAnalysis(!showPhysioAnalysis);
                   setShowTestLibrary(false);
+                  setShowPlanner(false);
                 }}
                 className="flex items-center gap-2"
               >
                 <Brain className="h-4 w-4" />
                 🧠 Analyse Physio
+              </Button>
+              <Button 
+                variant={showPlanner ? "default" : "outline"}
+                onClick={() => {
+                  setShowPlanner(!showPlanner);
+                  setShowTestLibrary(false);
+                  setShowPhysioAnalysis(false);
+                }}
+                className="flex items-center gap-2"
+              >
+                <Calendar className="h-4 w-4" />
+                📅 Planificateur
               </Button>
             </div>
 
@@ -163,6 +179,10 @@ const Index = () => {
 
             {showPhysioAnalysis && (
               <PhysiologicalAnalysis athlete={currentAthlete} />
+            )}
+
+            {showPlanner && (
+              <Planificateur athlete={currentAthlete} />
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
