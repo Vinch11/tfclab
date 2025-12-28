@@ -123,6 +123,85 @@ export function detectZone(
   return zones.find(z => pct >= z.min && pct <= z.max) || null;
 }
 
+// Convertir km/h en min/km
+export function kmhToMinPerKm(kmh: number): string | null {
+  if (!kmh || kmh <= 0) return null;
+  const min = 60 / kmh;
+  const m = Math.floor(min);
+  const s = Math.round((min - m) * 60);
+  return `${m}:${String(s).padStart(2, "0")}/km`;
+}
+
+// Interface pour les références athlète
+export interface AthleteRefsForZones {
+  fcMax: number | null;
+  vma: number | null;
+  ftp: number | null;
+  css: number | null;
+}
+
+// Calcul automatique des valeurs absolues pour une zone
+export interface AbsoluteZoneResult {
+  ok: boolean;
+  unit?: string;
+  lo?: number;
+  hi?: number;
+  display?: string;
+  note?: string;
+}
+
+export function computeAbsoluteRange(
+  metricKey: string,
+  sportKey: string,
+  zone: ZoneDefinition,
+  refs: AthleteRefsForZones
+): AbsoluteZoneResult {
+  // Cardiaque: %FCmax -> bpm
+  if (metricKey === "cardiaque") {
+    if (!refs.fcMax) return { ok: false, note: "Renseigne FCmax" };
+    const lo = (zone.min / 100) * refs.fcMax;
+    const hi = (zone.max / 100) * refs.fcMax;
+    return { ok: true, unit: "bpm", lo, hi, display: `${lo.toFixed(0)}–${hi.toFixed(0)} bpm` };
+  }
+
+  // Puissance cyclisme: %FTP -> W
+  if (metricKey === "puissance" && sportKey === "cyclisme") {
+    if (!refs.ftp) return { ok: false, note: "Renseigne FTP" };
+    const lo = (zone.min / 100) * refs.ftp;
+    const hi = (zone.max / 100) * refs.ftp;
+    return { ok: true, unit: "W", lo, hi, display: `${lo.toFixed(0)}–${hi.toFixed(0)} W` };
+  }
+
+  // Allure course: %VMA -> km/h + min/km
+  if (metricKey === "allure" && sportKey === "course") {
+    if (!refs.vma) return { ok: false, note: "Renseigne VMA" };
+    const lo = (zone.min / 100) * refs.vma;
+    const hi = (zone.max / 100) * refs.vma;
+    const paceLo = kmhToMinPerKm(hi); // plus vite
+    const paceHi = kmhToMinPerKm(lo); // plus lent
+    return {
+      ok: true,
+      unit: "km/h",
+      lo,
+      hi,
+      display: `${lo.toFixed(1)}–${hi.toFixed(1)} km/h (${paceLo} → ${paceHi})`
+    };
+  }
+
+  // Allure natation: CSS sec/100m
+  if (metricKey === "allure" && sportKey === "natation") {
+    if (!refs.css) return { ok: false, note: "Renseigne CSS" };
+    const css = refs.css;
+    const minPct = zone.min / 100;
+    const maxPct = zone.max / 100;
+    const fast = css / maxPct;
+    const slow = css / minPct;
+    return { ok: true, unit: "sec/100m", lo: slow, hi: fast, display: `${fast.toFixed(1)}–${slow.toFixed(1)} sec/100m` };
+  }
+
+  return { ok: false, note: "Référence non définie" };
+}
+
 export const zoneColors: Record<string, { text: string; bg: string; border: string }> = {
   Z1: { text: "text-blue-400", bg: "bg-blue-400/10", border: "border-blue-400/30" },
   Z2: { text: "text-green-400", bg: "bg-green-400/10", border: "border-green-400/30" },
