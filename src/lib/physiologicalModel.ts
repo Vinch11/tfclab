@@ -1,47 +1,35 @@
 // =============================================
 // MODÈLE PHYSIOLOGIQUE ÉLITE - VLamax pondérée, Confiance, SPM
+// Intégré avec bibliothèque de tests standardisée
 // =============================================
 
 import { ObjectifType } from "@/types/athlete";
+import { StoredTestResult, CiblesVLamax as LibraryCibles } from "@/types/testLibrary";
 
-// Fiabilité des tests VLamax (0-1)
-export const TestFiabilite: Record<string, number> = {
-  "Sprint 5-10s Vélo": 0.9,
-  "Wingate 30s Vélo": 0.75,
-  "Sprint 30-50m Course": 0.7,
-  "200m Natation": 0.7,
-  "Sprint + FTP": 0.5,
-  "TTE Course": 0.65,
-  "4x400m Course": 0.6,
-  "Sprint 25-50m Natation": 0.65,
-  "4x50m Lactate Natation": 0.7
-};
+// Re-export des cibles pour compatibilité
+export const CiblesVLamax = LibraryCibles;
 
-// Cibles VLamax par objectif
-export const CiblesVLamax: Record<string, { min: number; max: number; optimal: number }> = {
-  IM: { min: 0.3, max: 0.6, optimal: 0.45 },
-  "703": { min: 0.4, max: 0.7, optimal: 0.55 },
-  Marathon: { min: 0.25, max: 0.5, optimal: 0.35 },
-  Semi: { min: 0.35, max: 0.6, optimal: 0.45 }
-};
-
-// Interface pour les tests VLamax
+// Interface pour les tests VLamax (compatible ancien format)
 export interface TestVLamaxResult {
   nom: string;
   vlamax: number;
+  fiabilite?: number;
   date?: string;
 }
 
-// Calcul VLamax pondérée par fiabilité
-export function calculVLamaxPonderee(tests: TestVLamaxResult[]): number | null {
+// Calcul VLamax pondérée par fiabilité (fonctionne avec ancien ET nouveau format)
+export function calculVLamaxPonderee(tests: (TestVLamaxResult | StoredTestResult)[]): number | null {
   if (!tests || tests.length === 0) return null;
 
   let somme = 0;
   let poids = 0;
 
   tests.forEach(t => {
-    const fiab = TestFiabilite[t.nom] || 0.5;
-    somme += t.vlamax * fiab;
+    const vlamax = typeof t.vlamax === "number" ? t.vlamax : null;
+    if (vlamax === null || isNaN(vlamax)) return;
+    
+    const fiab = t.fiabilite ?? 0.5;
+    somme += vlamax * fiab;
     poids += fiab;
   });
 
@@ -49,18 +37,20 @@ export function calculVLamaxPonderee(tests: TestVLamaxResult[]): number | null {
 }
 
 // Indice de confiance (0-100%)
-export function calculIndiceConfiance(tests: TestVLamaxResult[]): number {
+export function calculIndiceConfiance(tests: (TestVLamaxResult | StoredTestResult)[]): number {
   if (!tests || tests.length === 0) return 0;
 
-  let total = 0;
-  tests.forEach(t => {
-    total += TestFiabilite[t.nom] || 0.5;
-  });
+  // Filtrer uniquement les tests avec VLamax valide
+  const validTests = tests.filter(t => typeof t.vlamax === "number" && !isNaN(t.vlamax));
+  if (validTests.length === 0) return 0;
 
-  // Bonus pour nombre de tests
-  const bonusTests = Math.min(tests.length * 5, 20);
-  
-  return Math.min(100, Math.round((total / tests.length) * 100 * 0.8 + bonusTests));
+  const fiabs = validTests.map(t => t.fiabilite ?? 0.5);
+  const avg = fiabs.reduce((a, b) => a + b, 0) / fiabs.length;
+
+  // Bonus pour nombre de tests (max 20%)
+  const bonusTests = Math.min(validTests.length * 5, 20);
+
+  return Math.min(100, Math.round(avg * 100 * 0.8 + bonusTests));
 }
 
 // Score Performance Métabolique (SPM)
