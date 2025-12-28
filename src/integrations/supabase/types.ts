@@ -44,6 +44,74 @@ export type Database = {
         }
         Relationships: []
       }
+      checkins: {
+        Row: {
+          athlete_id: string
+          coach_id: string
+          created_at: string
+          date_iso: string
+          fatigue: number | null
+          id: string
+          motivation: number | null
+          notes: string | null
+          pain_flag: boolean | null
+          readiness: number | null
+          rpe_key1: number | null
+          rpe_key2: number | null
+          sleep: number | null
+          soreness: number | null
+          stress: number | null
+          updated_at: string
+          week_tag: string | null
+        }
+        Insert: {
+          athlete_id: string
+          coach_id: string
+          created_at?: string
+          date_iso?: string
+          fatigue?: number | null
+          id?: string
+          motivation?: number | null
+          notes?: string | null
+          pain_flag?: boolean | null
+          readiness?: number | null
+          rpe_key1?: number | null
+          rpe_key2?: number | null
+          sleep?: number | null
+          soreness?: number | null
+          stress?: number | null
+          updated_at?: string
+          week_tag?: string | null
+        }
+        Update: {
+          athlete_id?: string
+          coach_id?: string
+          created_at?: string
+          date_iso?: string
+          fatigue?: number | null
+          id?: string
+          motivation?: number | null
+          notes?: string | null
+          pain_flag?: boolean | null
+          readiness?: number | null
+          rpe_key1?: number | null
+          rpe_key2?: number | null
+          sleep?: number | null
+          soreness?: number | null
+          stress?: number | null
+          updated_at?: string
+          week_tag?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkins_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plans: {
         Row: {
           athlete_id: string

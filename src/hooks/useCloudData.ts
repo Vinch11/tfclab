@@ -38,12 +38,34 @@ export interface DbSnapshot {
   updated_at?: string;
 }
 
+// Checkin type (table created via migration)
+export interface DbCheckin {
+  id: string;
+  athlete_id: string;
+  coach_id: string;
+  date_iso: string;
+  week_tag?: string | null;
+  sleep?: number | null;
+  fatigue?: number | null;
+  soreness?: number | null;
+  stress?: number | null;
+  motivation?: number | null;
+  rpe_key1?: number | null;
+  rpe_key2?: number | null;
+  pain_flag?: boolean | null;
+  readiness?: number | null;
+  notes?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export function useCloudData() {
   const { user } = useAuth();
   const [athletes, setAthletes] = useState<DbAthlete[]>([]);
   const [tests, setTests] = useState<DbTest[]>([]);
   const [plans, setPlans] = useState<DbPlan[]>([]);
   const [snapshots, setSnapshots] = useState<DbSnapshot[]>([]);
+  const [checkins, setCheckins] = useState<DbCheckin[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Load all data
@@ -51,22 +73,25 @@ export function useCloudData() {
     if (!user) return;
     setLoading(true);
     try {
-      const [athletesRes, testsRes, plansRes, snapshotsRes] = await Promise.all([
+      const [athletesRes, testsRes, plansRes, snapshotsRes, checkinsRes] = await Promise.all([
         supabase.from("athletes").select("*").eq("coach_id", user.id).order("created_at", { ascending: false }),
         supabase.from("tests").select("*").eq("coach_id", user.id).order("date", { ascending: false }),
         supabase.from("plans").select("*").eq("coach_id", user.id),
         supabase.from("snapshots").select("*").eq("coach_id", user.id).order("date", { ascending: false }),
+        supabase.from("checkins").select("*").eq("coach_id", user.id).order("date_iso", { ascending: false }),
       ]);
 
       if (athletesRes.error) throw athletesRes.error;
       if (testsRes.error) throw testsRes.error;
       if (plansRes.error) throw plansRes.error;
       if (snapshotsRes.error) throw snapshotsRes.error;
+      if (checkinsRes.error) throw checkinsRes.error;
 
       setAthletes(athletesRes.data || []);
       setTests(testsRes.data || []);
       setPlans(plansRes.data || []);
       setSnapshots((snapshotsRes.data as DbSnapshot[]) || []);
+      setCheckins((checkinsRes.data as DbCheckin[]) || []);
     } catch (error: unknown) {
       console.error("Error loading data:", error);
       toast.error("Erreur lors du chargement des données");
@@ -272,11 +297,58 @@ export function useCloudData() {
     return true;
   };
 
+  // ========== CHECKINS ==========
+  const getCheckinsForAthlete = (athleteId: string) => {
+    return checkins.filter((c) => c.athlete_id === athleteId);
+  };
+
+  const addCheckin = async (checkin: Omit<DbCheckin, "id" | "created_at" | "updated_at">) => {
+    if (!user) return null;
+    const { data, error } = await supabase
+      .from("checkins")
+      .insert({ ...checkin, coach_id: user.id })
+      .select()
+      .single();
+    if (error) {
+      toast.error("Erreur lors de l'ajout du check-in");
+      console.error(error);
+      return null;
+    }
+    setCheckins((prev) => [data as DbCheckin, ...prev]);
+    toast.success("Check-in ajouté");
+    return data as DbCheckin;
+  };
+
+  const updateCheckin = async (id: string, updates: Partial<DbCheckin>) => {
+    const { error } = await supabase.from("checkins").update(updates).eq("id", id);
+    if (error) {
+      toast.error("Erreur lors de la mise à jour du check-in");
+      console.error(error);
+      return false;
+    }
+    setCheckins((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c)));
+    toast.success("Check-in mis à jour");
+    return true;
+  };
+
+  const deleteCheckin = async (id: string) => {
+    const { error } = await supabase.from("checkins").delete().eq("id", id);
+    if (error) {
+      toast.error("Erreur lors de la suppression");
+      console.error(error);
+      return false;
+    }
+    setCheckins((prev) => prev.filter((c) => c.id !== id));
+    toast.success("Check-in supprimé");
+    return true;
+  };
+
   return {
     athletes,
     tests,
     plans,
     snapshots,
+    checkins,
     loading,
     loadData,
     addAthlete,
@@ -291,5 +363,9 @@ export function useCloudData() {
     addSnapshot,
     updateSnapshot,
     deleteSnapshot,
+    getCheckinsForAthlete,
+    addCheckin,
+    updateCheckin,
+    deleteCheckin,
   };
 }

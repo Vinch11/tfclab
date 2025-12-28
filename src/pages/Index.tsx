@@ -20,12 +20,13 @@ import { WorkoutLibrary } from "@/components/WorkoutLibrary";
 import { MonitoringDashboard } from "@/components/MonitoringDashboard";
 import { ExportTools } from "@/components/ExportTools";
 import { SnapshotManager } from "@/components/SnapshotManager";
+import { CheckinManager } from "@/components/CheckinManager";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Zap, Target, Flame, Activity, BookOpen, Brain, Calendar, Dumbbell, TrendingUp, Plus, Trash2, LogOut, Loader2, User, Camera } from "lucide-react";
+import { Zap, Target, Flame, Activity, BookOpen, Brain, Calendar, Dumbbell, TrendingUp, Plus, Trash2, LogOut, Loader2, User, Camera, ClipboardCheck } from "lucide-react";
 import logo2fc from "@/assets/logo-2fc.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCloudData, DbAthlete } from "@/hooks/useCloudData";
@@ -43,6 +44,7 @@ const Index = () => {
   const [showWorkoutLibrary, setShowWorkoutLibrary] = useState(false);
   const [showMonitoring, setShowMonitoring] = useState(false);
   const [showSnapshots, setShowSnapshots] = useState(false);
+  const [showCheckins, setShowCheckins] = useState(false);
   const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newAthleteName, setNewAthleteName] = useState("");
@@ -309,6 +311,8 @@ const Index = () => {
                   setShowPlanner(false);
                   setShowWorkoutLibrary(false);
                   setShowMonitoring(false);
+                  setShowSnapshots(false);
+                  setShowCheckins(false);
                 }}
                 className="flex items-center gap-2"
               >
@@ -323,6 +327,8 @@ const Index = () => {
                   setShowPhysioAnalysis(false);
                   setShowWorkoutLibrary(false);
                   setShowMonitoring(false);
+                  setShowSnapshots(false);
+                  setShowCheckins(false);
                 }}
                 className="flex items-center gap-2"
               >
@@ -337,6 +343,8 @@ const Index = () => {
                   setShowPhysioAnalysis(false);
                   setShowPlanner(false);
                   setShowMonitoring(false);
+                  setShowSnapshots(false);
+                  setShowCheckins(false);
                 }}
                 className="flex items-center gap-2"
               >
@@ -351,6 +359,8 @@ const Index = () => {
                   setShowPhysioAnalysis(false);
                   setShowPlanner(false);
                   setShowWorkoutLibrary(false);
+                  setShowSnapshots(false);
+                  setShowCheckins(false);
                 }}
                 className="flex items-center gap-2"
               >
@@ -366,11 +376,28 @@ const Index = () => {
                   setShowPlanner(false);
                   setShowWorkoutLibrary(false);
                   setShowMonitoring(false);
+                  setShowCheckins(false);
                 }}
                 className="flex items-center gap-2"
               >
                 <Camera className="h-4 w-4" />
                 📸 Snapshots
+              </Button>
+              <Button 
+                variant={showCheckins ? "default" : "outline"}
+                onClick={() => {
+                  setShowCheckins(!showCheckins);
+                  setShowTestLibrary(false);
+                  setShowPhysioAnalysis(false);
+                  setShowPlanner(false);
+                  setShowWorkoutLibrary(false);
+                  setShowMonitoring(false);
+                  setShowSnapshots(false);
+                }}
+                className="flex items-center gap-2"
+              >
+                <ClipboardCheck className="h-4 w-4" />
+                ✅ Check-ins
               </Button>
               <ExportTools athlete={legacyAthlete} />
             </div>
@@ -386,6 +413,12 @@ const Index = () => {
                 athleteId={currentAthlete.id} 
                 athleteName={currentAthlete.name} 
                 athleteGoal={currentAthlete.goal || "IM"} 
+              />
+            )}
+            {showCheckins && currentAthlete && (
+              <CheckinManager 
+                athleteId={currentAthlete.id} 
+                athleteName={currentAthlete.name} 
               />
             )}
 
