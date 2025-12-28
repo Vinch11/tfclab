@@ -14,7 +14,115 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      athletes: {
+        Row: {
+          coach_id: string
+          created_at: string
+          goal: string | null
+          id: string
+          name: string
+          refs: Json | null
+          vo2max: number | null
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          goal?: string | null
+          id?: string
+          name: string
+          refs?: Json | null
+          vo2max?: number | null
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          goal?: string | null
+          id?: string
+          name?: string
+          refs?: Json | null
+          vo2max?: number | null
+        }
+        Relationships: []
+      }
+      plans: {
+        Row: {
+          athlete_id: string
+          coach_id: string
+          plan_json: Json | null
+          updated_at: string
+        }
+        Insert: {
+          athlete_id: string
+          coach_id: string
+          plan_json?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          athlete_id?: string
+          coach_id?: string
+          plan_json?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plans_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: true
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tests: {
+        Row: {
+          athlete_id: string
+          coach_id: string
+          date: string
+          id: string
+          name: string
+          note: string | null
+          raw: Json | null
+          reliability: number | null
+          sport: string | null
+          type: string
+          vlamax: number | null
+        }
+        Insert: {
+          athlete_id: string
+          coach_id: string
+          date?: string
+          id?: string
+          name: string
+          note?: string | null
+          raw?: Json | null
+          reliability?: number | null
+          sport?: string | null
+          type: string
+          vlamax?: number | null
+        }
+        Update: {
+          athlete_id?: string
+          coach_id?: string
+          date?: string
+          id?: string
+          name?: string
+          note?: string | null
+          raw?: Json | null
+          reliability?: number | null
+          sport?: string | null
+          type?: string
+          vlamax?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tests_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
