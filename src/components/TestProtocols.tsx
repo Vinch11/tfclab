@@ -29,9 +29,9 @@ import {
   DialogDescription,
   DialogFooter
 } from "@/components/ui/dialog";
-import { useAthletes } from "@/contexts/AthleteContext";
 import { useToast } from "@/hooks/use-toast";
-import { 
+import { Athlete } from "@/types/athlete";
+import {
   TestLibrary, 
   TestProtocol, 
   addTestResultToAthlete, 
@@ -42,6 +42,8 @@ import { calculVLamaxPonderee, calculIndiceConfiance } from "@/lib/physiological
 interface TestProtocolsProps {
   className?: string;
   onTestSaved?: (result: StoredTestResult) => void;
+  athlete?: Athlete | null;
+  onAthleteUpdate?: (athlete: Athlete) => void;
 }
 
 const sportFilters = [
@@ -58,8 +60,7 @@ function getFiabiliteLabel(fiabilite: number | null): { label: string; variant: 
   return { label: "Moyenne", variant: "destructive" };
 }
 
-export function TestProtocols({ className, onTestSaved }: TestProtocolsProps) {
-  const { currentAthlete, updateAthlete } = useAthletes();
+export function TestProtocols({ className, onTestSaved, athlete, onAthleteUpdate }: TestProtocolsProps) {
   const { toast } = useToast();
   
   const [activeSport, setActiveSport] = useState("tous");
@@ -82,7 +83,7 @@ export function TestProtocols({ className, onTestSaved }: TestProtocolsProps) {
   };
 
   const handleRunTest = (test: TestProtocol) => {
-    if (!currentAthlete) {
+    if (!athlete) {
       toast({
         title: "Aucun athlète sélectionné",
         description: "Sélectionnez un athlète pour faire passer ce test.",
@@ -105,7 +106,7 @@ export function TestProtocols({ className, onTestSaved }: TestProtocolsProps) {
   };
 
   const handleSaveTest = () => {
-    if (!selectedTest || !currentAthlete) return;
+    if (!selectedTest || !athlete) return;
     
     // Valider les inputs
     const invalidInputs: string[] = [];
@@ -136,7 +137,8 @@ export function TestProtocols({ className, onTestSaved }: TestProtocolsProps) {
     });
 
     // Créer le résultat standardisé
-    const result = addTestResultToAthlete(currentAthlete, selectedTest, numericInputs);
+    const athleteCopy = { ...athlete, tests: [...(athlete.tests || [])], refs: { ...athlete.refs } };
+    const result = addTestResultToAthlete(athleteCopy, selectedTest, numericInputs);
     
     if (!result.ok || !result.entry) {
       toast({
@@ -153,14 +155,12 @@ export function TestProtocols({ className, onTestSaved }: TestProtocolsProps) {
     }
 
     // Mettre à jour l'athlète avec les tests et les refs potentiellement modifiés
-    updateAthlete({
-      ...currentAthlete,
-      tests: currentAthlete.tests,
-      refs: currentAthlete.refs
-    } as any);
+    if (onAthleteUpdate) {
+      onAthleteUpdate(athleteCopy);
+    }
 
     // Calculer la VLamax pondérée pour affichage (seulement tests VLAMAX)
-    const vlamaxTests = (currentAthlete.tests || []).filter(t => t.type === "VLAMAX" && t.vlamax !== null);
+    const vlamaxTests = (athleteCopy.tests || []).filter(t => t.type === "VLAMAX" && t.vlamax !== null);
     const vlamaxPonderee = calculVLamaxPonderee(vlamaxTests);
     const confiance = calculIndiceConfiance(vlamaxTests);
 
@@ -349,13 +349,13 @@ export function TestProtocols({ className, onTestSaved }: TestProtocolsProps) {
                     </div>
 
                     {/* Action Button */}
-                    {currentAthlete && (
+                    {athlete && (
                       <Button 
                         onClick={() => handleRunTest(test)}
                         className="w-full gap-2"
                       >
                         <Play className="w-4 h-4" />
-                        Faire passer ce test à {currentAthlete.nom}
+                        Faire passer ce test à {athlete.nom}
                       </Button>
                     )}
                   </div>
@@ -375,7 +375,7 @@ export function TestProtocols({ className, onTestSaved }: TestProtocolsProps) {
               {selectedTest?.nom}
             </DialogTitle>
             <DialogDescription>
-              Enregistrer le résultat pour {currentAthlete?.nom}
+              Enregistrer le résultat pour {athlete?.nom}
             </DialogDescription>
           </DialogHeader>
 

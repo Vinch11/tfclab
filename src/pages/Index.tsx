@@ -312,7 +312,7 @@ const Index = () => {
             </div>
 
             {/* Contenu conditionnel */}
-            {showTestLibrary && <TestProtocols />}
+            {showTestLibrary && <TestProtocols athlete={legacyAthlete} />}
             {showPhysioAnalysis && <PhysiologicalAnalysis athlete={legacyAthlete} />}
             {showPlanner && <Planificateur athlete={legacyAthlete} />}
             {showWorkoutLibrary && <WorkoutLibrary athlete={legacyAthlete} />}
@@ -391,7 +391,7 @@ const Index = () => {
               }}
             />
             <TestComparison athlete={legacyAthlete} />
-            <TestProtocols />
+            <TestProtocols athlete={legacyAthlete} />
           </div>
         );
 
