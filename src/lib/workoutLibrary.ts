@@ -420,9 +420,330 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       marathon: "optionnel",
       semi: "optionnel"
     }
+  },
+
+  // =========================================================
+  // 🟦 IRONMAN SPÉCIFIQUE
+  // =========================================================
+  
+  // A – IM ENDURANCE SPÉCIFIQUE
+  {
+    id: "A_IM_BIKE_STEADY_LONG",
+    cat: "A",
+    sport: "cyclisme",
+    objectif: "Endurance IM spécifique, stabilité métabolique",
+    necessite: "Obligatoire",
+    when: "Build / Peak IM",
+    avoid: "Fatigue chronique",
+    durationMin: [180, 300],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Warm-up", text: "20' Z1→Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "2h–4h Z2 stable (IM pace), nutrition race", zones: ["Z2"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { ironman: "Séance clé IM", half: "2h Z2", marathon: "—", semi: "—" }
+  },
+  {
+    id: "A_IM_RUN_PACE",
+    cat: "A",
+    sport: "course",
+    objectif: "Allure marathon IM, économie post-vélo",
+    necessite: "Obligatoire",
+    when: "Build / Peak IM",
+    avoid: "Douleurs tendineuses",
+    durationMin: [60, 120],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Main", text: "60–120' Z2 bas (IM pace)", zones: ["Z2"] }
+    ],
+    variants: { ironman: "Fondamental", half: "60–80'", marathon: "—", semi: "—" }
+  },
+
+  // B – IM QUALITÉ CONTRÔLÉE
+  {
+    id: "B_IM_BIKE_OVERUNDER",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "Tolérance lactate contrôlée sans dérive VLamax",
+    necessite: "Recommandé",
+    when: "Build IM",
+    avoid: "VLamax déjà élevée",
+    durationMin: [75, 110],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Main", text: "3x15' (2' Z3 / 8' Z2 / 2' Z3) r=5' Z1", zones: ["Z3", "Z2", "Z1"] }
+    ],
+    variants: { ironman: "1x/10–14j", half: "1x/7–10j", marathon: "—", semi: "—" }
+  },
+
+  // C – IM TECHNIQUE / SUPPORT
+  {
+    id: "C_IM_AERO_HOLD",
+    cat: "C",
+    sport: "cyclisme",
+    objectif: "Tenue position aéro IM",
+    necessite: "Recommandé",
+    when: "Toute l'année IM",
+    avoid: "Douleur lombaire",
+    durationMin: [60, 120],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Main", text: "4x15' Z2 en position aéro r=5' Z1", zones: ["Z2", "Z1"] }
+    ],
+    variants: { ironman: "Essentiel", half: "utile", marathon: "—", semi: "—" }
+  },
+
+  // D – IM RÉCUP
+  {
+    id: "D_IM_BRICK_REGEN",
+    cat: "D",
+    sport: "course",
+    objectif: "Transition vélo-course sans stress",
+    necessite: "Recommandé",
+    when: "Après long vélo IM",
+    avoid: "Fatigue excessive",
+    durationMin: [15, 30],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "15–30' Z1 très relâché", zones: ["Z1"] }
+    ],
+    variants: { ironman: "Excellent", half: "OK", marathon: "—", semi: "—" }
+  },
+
+  // =========================================================
+  // 🟥 MARATHON SPÉCIFIQUE
+  // =========================================================
+
+  // A – MARATHON ENDURANCE
+  {
+    id: "A_MAR_LONG_RUN",
+    cat: "A",
+    sport: "course",
+    objectif: "Endurance marathon, résistance mécanique",
+    necessite: "Obligatoire",
+    when: "Build / Peak marathon",
+    avoid: "Accumulation fatigue",
+    durationMin: [90, 150],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Main", text: "90–150' Z2", zones: ["Z2"] }
+    ],
+    variants: { marathon: "Fondamental", semi: "90' max", ironman: "—", half: "—" }
+  },
+  {
+    id: "A_MAR_END_FAST_FINISH",
+    cat: "A",
+    sport: "course",
+    objectif: "Endurance + finish marathon",
+    necessite: "Recommandé",
+    when: "Peak marathon",
+    avoid: "Tendon sensible",
+    durationMin: [90, 140],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Main", text: "70–100' Z2 + 20–40' Z3", zones: ["Z2", "Z3"] }
+    ],
+    variants: { marathon: "Clé", semi: "—", ironman: "—", half: "—" }
+  },
+
+  // B – MARATHON QUALITÉ
+  {
+    id: "B_MAR_TEMPO_BLOCKS",
+    cat: "B",
+    sport: "course",
+    objectif: "Allure marathon, tolérance aérobie",
+    necessite: "Obligatoire",
+    when: "Build marathon",
+    avoid: "Fatigue nerveuse",
+    durationMin: [60, 90],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Main", text: "3x20' Z3 (marathon pace) r=5' Z1", zones: ["Z3", "Z1"] }
+    ],
+    variants: { marathon: "Essentiel", semi: "2x15'", ironman: "—", half: "—" }
+  },
+
+  // C – MARATHON SUPPORT
+  {
+    id: "C_MAR_HILL_STRENGTH",
+    cat: "C",
+    sport: "course",
+    objectif: "Force spécifique marathon",
+    necessite: "Recommandé",
+    when: "Base / Build",
+    avoid: "Achilles",
+    durationMin: [45, 70],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "12x20s côtes Z4 r=marche + 30' Z2", zones: ["Z4", "Z2"] }
+    ],
+    variants: { marathon: "Très utile", semi: "utile", ironman: "—", half: "—" }
+  },
+
+  // D – MARATHON RÉCUP
+  {
+    id: "D_MAR_REGEN",
+    cat: "D",
+    sport: "course",
+    objectif: "Régénération marathon",
+    necessite: "Obligatoire",
+    when: "Après séance B",
+    avoid: "Douleur",
+    durationMin: [25, 40],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "25–40' Z1", zones: ["Z1"] }
+    ],
+    variants: { marathon: "Indispensable", semi: "OK", ironman: "OK", half: "OK" }
+  },
+
+  // =========================================================
+  // 🟩 BRICK SESSIONS (IM / 70.3)
+  // =========================================================
+
+  {
+    id: "BRICK_IM_Z2_RUN",
+    cat: "A",
+    sport: "brick",
+    objectif: "Adaptation neuromusculaire IM",
+    necessite: "Obligatoire",
+    when: "Build / Peak IM",
+    avoid: "Fatigue excessive",
+    durationMin: [120, 180],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Bike", text: "90–150' Z2", zones: ["Z2"] },
+      { part: "Run", text: "20–40' Z2 IM pace", zones: ["Z2"] }
+    ],
+    variants: { ironman: "Séance clé", half: "90'+20'", marathon: "—", semi: "—" }
+  },
+  {
+    id: "BRICK_FAST_FINISH",
+    cat: "B",
+    sport: "brick",
+    objectif: "Finish course sous fatigue",
+    necessite: "Recommandé",
+    when: "Peak IM / 70.3",
+    avoid: "Risque blessure",
+    durationMin: [120, 170],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Bike", text: "2h Z2 + 20' Z3", zones: ["Z2", "Z3"] },
+      { part: "Run", text: "30' Z2 → Z3", zones: ["Z2", "Z3"] }
+    ],
+    variants: { ironman: "Très spécifique", half: "OK", marathon: "—", semi: "—" }
+  },
+
+  // =========================================================
+  // 🟨 SEMI-MARATHON SPÉCIFIQUE
+  // =========================================================
+
+  {
+    id: "A_SEMI_TEMPO_LONG",
+    cat: "A",
+    sport: "course",
+    objectif: "Endurance spécifique semi",
+    necessite: "Obligatoire",
+    when: "Build / Peak semi",
+    avoid: "Fatigue importante",
+    durationMin: [60, 90],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Main", text: "60–90' Z2 avec 20' finish Z3", zones: ["Z2", "Z3"] }
+    ],
+    variants: { semi: "Fondamental", marathon: "utile", ironman: "—", half: "—" }
+  },
+  {
+    id: "B_SEMI_RACE_PACE",
+    cat: "B",
+    sport: "course",
+    objectif: "Allure spécifique semi-marathon",
+    necessite: "Obligatoire",
+    when: "Peak semi",
+    avoid: "Veille compétition",
+    durationMin: [50, 70],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Warm-up", text: "15' Z1–Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "2x15' allure semi (Z4a–Z4b) r=4' trot", zones: ["Z4a", "Z4b"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { semi: "Clé", marathon: "—", ironman: "—", half: "—" }
+  },
+
+  // =========================================================
+  // 🟪 70.3 SPÉCIFIQUE
+  // =========================================================
+
+  {
+    id: "A_703_BIKE_RACE_SIM",
+    cat: "A",
+    sport: "cyclisme",
+    objectif: "Simulation 70.3 bike leg",
+    necessite: "Obligatoire",
+    when: "Peak 70.3",
+    avoid: "Fatigue chronique",
+    durationMin: [150, 180],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Warm-up", text: "20' Z1→Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "2h–2h30 Z2–Z3 (race simulation)", zones: ["Z2", "Z3"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { half: "Séance clé", ironman: "—", marathon: "—", semi: "—" }
+  },
+  {
+    id: "B_703_RUN_THRESHOLD",
+    cat: "B",
+    sport: "course",
+    objectif: "Allure 70.3 run sous fatigue",
+    necessite: "Recommandé",
+    when: "Build / Peak 70.3",
+    avoid: "Douleur",
+    durationMin: [45, 65],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Warm-up", text: "15' Z1–Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "3x10' Z4a–Z4b r=3' trot", zones: ["Z4a", "Z4b"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { half: "Spécifique", ironman: "—", marathon: "—", semi: "—" }
+  },
+  {
+    id: "BRICK_703_RACE_SIM",
+    cat: "B",
+    sport: "brick",
+    objectif: "Simulation enchaînement 70.3",
+    necessite: "Obligatoire",
+    when: "Peak 70.3",
+    avoid: "Surcharge",
+    durationMin: [150, 200],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Bike", text: "2h Z2–Z3 (race effort)", zones: ["Z2", "Z3"] },
+      { part: "Run", text: "30–45' Z3 (race pace)", zones: ["Z3"] }
+    ],
+    variants: { half: "Séance clé", ironman: "—", marathon: "—", semi: "—" }
   }
 ];
-
 // =============================================
 // PICKER POUR LE PLANIFICATEUR
 // =============================================
