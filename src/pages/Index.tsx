@@ -19,12 +19,13 @@ import { Planificateur } from "@/components/Planificateur";
 import { WorkoutLibrary } from "@/components/WorkoutLibrary";
 import { MonitoringDashboard } from "@/components/MonitoringDashboard";
 import { ExportTools } from "@/components/ExportTools";
+import { SnapshotManager } from "@/components/SnapshotManager";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Zap, Target, Flame, Activity, BookOpen, Brain, Calendar, Dumbbell, TrendingUp, Plus, Trash2, LogOut, Loader2, User } from "lucide-react";
+import { Zap, Target, Flame, Activity, BookOpen, Brain, Calendar, Dumbbell, TrendingUp, Plus, Trash2, LogOut, Loader2, User, Camera } from "lucide-react";
 import logo2fc from "@/assets/logo-2fc.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCloudData, DbAthlete } from "@/hooks/useCloudData";
@@ -41,6 +42,7 @@ const Index = () => {
   const [showPlanner, setShowPlanner] = useState(false);
   const [showWorkoutLibrary, setShowWorkoutLibrary] = useState(false);
   const [showMonitoring, setShowMonitoring] = useState(false);
+  const [showSnapshots, setShowSnapshots] = useState(false);
   const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newAthleteName, setNewAthleteName] = useState("");
@@ -355,6 +357,21 @@ const Index = () => {
                 <TrendingUp className="h-4 w-4" />
                 📈 Suivi
               </Button>
+              <Button 
+                variant={showSnapshots ? "default" : "outline"}
+                onClick={() => {
+                  setShowSnapshots(!showSnapshots);
+                  setShowTestLibrary(false);
+                  setShowPhysioAnalysis(false);
+                  setShowPlanner(false);
+                  setShowWorkoutLibrary(false);
+                  setShowMonitoring(false);
+                }}
+                className="flex items-center gap-2"
+              >
+                <Camera className="h-4 w-4" />
+                📸 Snapshots
+              </Button>
               <ExportTools athlete={legacyAthlete} />
             </div>
 
@@ -364,6 +381,13 @@ const Index = () => {
             {showPlanner && <Planificateur athlete={legacyAthlete} />}
             {showWorkoutLibrary && <WorkoutLibrary athlete={legacyAthlete} />}
             {showMonitoring && <MonitoringDashboard athlete={legacyAthlete} />}
+            {showSnapshots && currentAthlete && (
+              <SnapshotManager 
+                athleteId={currentAthlete.id} 
+                athleteName={currentAthlete.name} 
+                athleteGoal={currentAthlete.goal || "IM"} 
+              />
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <MetricCard

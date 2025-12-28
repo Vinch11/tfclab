@@ -13,11 +13,37 @@ export type DbAthlete = Tables<"athletes">;
 export type DbTest = Tables<"tests">;
 export type DbPlan = Tables<"plans">;
 
+// Snapshot type (table created via migration, not yet in generated types)
+export interface DbSnapshot {
+  id: string;
+  athlete_id: string;
+  coach_id: string;
+  date: string;
+  source: string;
+  cycle_tag?: string | null;
+  confidence?: number | null;
+  fc_max?: number | null;
+  vma?: number | null;
+  ftp?: number | null;
+  css?: number | null;
+  vo2max?: number | null;
+  vlamax?: number | null;
+  weight_kg?: number | null;
+  fat_pct?: number | null;
+  pmax_5s?: number | null;
+  metabolic_profile?: string | null;
+  metabolic_score?: number | null;
+  coach_notes?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export function useCloudData() {
   const { user } = useAuth();
   const [athletes, setAthletes] = useState<DbAthlete[]>([]);
   const [tests, setTests] = useState<DbTest[]>([]);
   const [plans, setPlans] = useState<DbPlan[]>([]);
+  const [snapshots, setSnapshots] = useState<DbSnapshot[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Load all data
@@ -25,19 +51,22 @@ export function useCloudData() {
     if (!user) return;
     setLoading(true);
     try {
-      const [athletesRes, testsRes, plansRes] = await Promise.all([
+      const [athletesRes, testsRes, plansRes, snapshotsRes] = await Promise.all([
         supabase.from("athletes").select("*").eq("coach_id", user.id).order("created_at", { ascending: false }),
         supabase.from("tests").select("*").eq("coach_id", user.id).order("date", { ascending: false }),
         supabase.from("plans").select("*").eq("coach_id", user.id),
+        supabase.from("snapshots").select("*").eq("coach_id", user.id).order("date", { ascending: false }),
       ]);
 
       if (athletesRes.error) throw athletesRes.error;
       if (testsRes.error) throw testsRes.error;
       if (plansRes.error) throw plansRes.error;
+      if (snapshotsRes.error) throw snapshotsRes.error;
 
       setAthletes(athletesRes.data || []);
       setTests(testsRes.data || []);
       setPlans(plansRes.data || []);
+      setSnapshots((snapshotsRes.data as DbSnapshot[]) || []);
     } catch (error: unknown) {
       console.error("Error loading data:", error);
       toast.error("Erreur lors du chargement des données");
@@ -96,6 +125,7 @@ export function useCloudData() {
     setAthletes((prev) => prev.filter((a) => a.id !== id));
     setTests((prev) => prev.filter((t) => t.athlete_id !== id));
     setPlans((prev) => prev.filter((p) => p.athlete_id !== id));
+    setSnapshots((prev) => prev.filter((s) => s.athlete_id !== id));
     toast.success("Athlète supprimé");
     return true;
   };
@@ -196,10 +226,57 @@ export function useCloudData() {
     return tests.filter((t) => t.athlete_id === athleteId);
   };
 
+  // ========== SNAPSHOTS ==========
+  const getSnapshotsForAthlete = (athleteId: string) => {
+    return snapshots.filter((s) => s.athlete_id === athleteId);
+  };
+
+  const addSnapshot = async (snapshot: Omit<DbSnapshot, "id" | "created_at" | "updated_at">) => {
+    if (!user) return null;
+    const { data, error } = await supabase
+      .from("snapshots")
+      .insert({ ...snapshot, coach_id: user.id })
+      .select()
+      .single();
+    if (error) {
+      toast.error("Erreur lors de l'ajout du snapshot");
+      console.error(error);
+      return null;
+    }
+    setSnapshots((prev) => [data as DbSnapshot, ...prev]);
+    toast.success("Snapshot créé");
+    return data as DbSnapshot;
+  };
+
+  const updateSnapshot = async (id: string, updates: Partial<DbSnapshot>) => {
+    const { error } = await supabase.from("snapshots").update(updates).eq("id", id);
+    if (error) {
+      toast.error("Erreur lors de la mise à jour du snapshot");
+      console.error(error);
+      return false;
+    }
+    setSnapshots((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
+    toast.success("Snapshot mis à jour");
+    return true;
+  };
+
+  const deleteSnapshot = async (id: string) => {
+    const { error } = await supabase.from("snapshots").delete().eq("id", id);
+    if (error) {
+      toast.error("Erreur lors de la suppression");
+      console.error(error);
+      return false;
+    }
+    setSnapshots((prev) => prev.filter((s) => s.id !== id));
+    toast.success("Snapshot supprimé");
+    return true;
+  };
+
   return {
     athletes,
     tests,
     plans,
+    snapshots,
     loading,
     loadData,
     addAthlete,
@@ -210,5 +287,9 @@ export function useCloudData() {
     savePlan,
     getPlan,
     getTestsForAthlete,
+    getSnapshotsForAthlete,
+    addSnapshot,
+    updateSnapshot,
+    deleteSnapshot,
   };
 }

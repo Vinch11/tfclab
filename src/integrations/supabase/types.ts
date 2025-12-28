@@ -73,6 +73,86 @@ export type Database = {
           },
         ]
       }
+      snapshots: {
+        Row: {
+          athlete_id: string
+          coach_id: string
+          coach_notes: string | null
+          confidence: number | null
+          created_at: string
+          css: number | null
+          cycle_tag: string | null
+          date: string
+          fat_pct: number | null
+          fc_max: number | null
+          ftp: number | null
+          id: string
+          metabolic_profile: string | null
+          metabolic_score: number | null
+          pmax_5s: number | null
+          source: string
+          updated_at: string
+          vlamax: number | null
+          vma: number | null
+          vo2max: number | null
+          weight_kg: number | null
+        }
+        Insert: {
+          athlete_id: string
+          coach_id: string
+          coach_notes?: string | null
+          confidence?: number | null
+          created_at?: string
+          css?: number | null
+          cycle_tag?: string | null
+          date?: string
+          fat_pct?: number | null
+          fc_max?: number | null
+          ftp?: number | null
+          id?: string
+          metabolic_profile?: string | null
+          metabolic_score?: number | null
+          pmax_5s?: number | null
+          source?: string
+          updated_at?: string
+          vlamax?: number | null
+          vma?: number | null
+          vo2max?: number | null
+          weight_kg?: number | null
+        }
+        Update: {
+          athlete_id?: string
+          coach_id?: string
+          coach_notes?: string | null
+          confidence?: number | null
+          created_at?: string
+          css?: number | null
+          cycle_tag?: string | null
+          date?: string
+          fat_pct?: number | null
+          fc_max?: number | null
+          ftp?: number | null
+          id?: string
+          metabolic_profile?: string | null
+          metabolic_score?: number | null
+          pmax_5s?: number | null
+          source?: string
+          updated_at?: string
+          vlamax?: number | null
+          vma?: number | null
+          vo2max?: number | null
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "snapshots_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tests: {
         Row: {
           athlete_id: string
