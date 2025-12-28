@@ -113,7 +113,12 @@ export default function AthleteEditPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="IM">Ironman</SelectItem>
-                    <SelectItem value="703">70.3</SelectItem>
+                    <SelectItem value="703">70.3 / Half Ironman</SelectItem>
+                    <SelectItem value="Marathon">Marathon</SelectItem>
+                    <SelectItem value="Semi">Semi-Marathon</SelectItem>
+                    <SelectItem value="TrailShort">Trail court (20–40km)</SelectItem>
+                    <SelectItem value="TrailMountain">Trail montagne (40–80km)</SelectItem>
+                    <SelectItem value="TrailUltra">Ultra trail (80km+)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

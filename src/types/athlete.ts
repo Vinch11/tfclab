@@ -4,7 +4,7 @@
 
 import { SnapshotNolio } from "./snapshotNolio";
 
-export type ObjectifType = "IM" | "703" | "Marathon" | "Semi";
+export type ObjectifType = "IM" | "703" | "Marathon" | "Semi" | "Trail" | "TrailShort" | "TrailMountain" | "TrailUltra";
 export type SexeType = "M" | "F";
 
 // Références physiologiques pour le calcul des zones
@@ -63,9 +63,27 @@ export const getObjectifLabel = (objectif: ObjectifType): string => {
       return "Marathon";
     case "Semi":
       return "Semi-Marathon";
+    case "Trail":
+      return "Trail (général)";
+    case "TrailShort":
+      return "Trail court (20–40km)";
+    case "TrailMountain":
+      return "Trail montagne (40–80km)";
+    case "TrailUltra":
+      return "Ultra trail (80km+)";
     default:
       return objectif;
   }
+};
+
+// Helper pour normaliser les objectifs trail
+export const normalizeTrailGoal = (goal: ObjectifType): ObjectifType => {
+  if (goal === "Trail") return "TrailMountain";
+  return goal;
+};
+
+export const isTrailGoal = (goal: ObjectifType): boolean => {
+  return ["Trail", "TrailShort", "TrailMountain", "TrailUltra"].includes(goal);
 };
 
 export const getSexeLabel = (sexe: SexeType): string => {

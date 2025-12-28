@@ -9,7 +9,7 @@ import { ObjectifType, Athlete } from "./athlete";
 export type SessionType = "A" | "B" | "C" | "D" | "REST";
 
 // Sport d'entraînement
-export type TrainingSport = "cyclisme" | "course" | "natation" | "brick";
+export type TrainingSport = "cyclisme" | "course" | "natation" | "brick" | "muscu";
 
 // Métrique cible
 export type TrainingMetric = "puissance" | "allure" | "cardiaque";

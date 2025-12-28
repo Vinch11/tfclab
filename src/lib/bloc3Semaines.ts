@@ -17,7 +17,7 @@ export interface BlocSemaine {
 
 export interface Bloc3Semaines {
   athleteNom: string;
-  objectif: "IM" | "703" | "Marathon" | "Semi";
+  objectif: string;
   priorite: string;
   semaines: BlocSemaine[];
   tssTotal: number;

@@ -17,7 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Users, UserPlus, Trash2 } from "lucide-react";
-import { Athlete, getDernierSnapshot } from "@/types/athlete";
+import { Athlete, getDernierSnapshot, ObjectifType } from "@/types/athlete";
 import { creerAthlete } from "@/lib/athleteStore";
 import { estimerTTE } from "@/types/snapshotNolio";
 
@@ -39,7 +39,7 @@ export function AthleteSelector({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newAthlete, setNewAthlete] = useState({
     nom: "",
-    objectif: "IM" as "IM" | "703",
+    objectif: "IM" as ObjectifType,
     sexe: "M" as "M" | "F",
     masse_grasse: 18,
   });
