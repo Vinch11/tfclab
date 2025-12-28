@@ -217,13 +217,60 @@ const Index = () => {
   );
 
   const renderContent = () => {
-    if (!legacyAthlete) {
+    if (!legacyAthlete || athletes.length === 0) {
       return (
         <div className="space-y-8 animate-fade-in">
-          {renderAthleteSelector()}
-          <Card className="border-dashed">
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">Ajoutez un athlète pour commencer</p>
+          <Card className="border-dashed border-2 border-primary/20">
+            <CardContent className="py-16 text-center space-y-6">
+              <div className="w-20 h-20 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+                <User className="h-10 w-10 text-primary" />
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-2xl font-semibold">Aucun athlète</h2>
+                <p className="text-muted-foreground max-w-md mx-auto">
+                  Crée un athlète pour commencer à utiliser LorangLab et accéder à tous les outils d'analyse.
+                </p>
+              </div>
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="lg" className="gap-2">
+                    <Plus className="h-5 w-5" />
+                    Créer mon premier athlète
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Nouvel athlète</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 pt-4">
+                    <div>
+                      <label className="text-sm font-medium">Nom</label>
+                      <Input
+                        value={newAthleteName}
+                        onChange={(e) => setNewAthleteName(e.target.value)}
+                        placeholder="Nom de l'athlète"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Objectif</label>
+                      <Select value={newAthleteGoal} onValueChange={setNewAthleteGoal}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="IM">Ironman</SelectItem>
+                          <SelectItem value="703">70.3 / Half</SelectItem>
+                          <SelectItem value="Marathon">Marathon</SelectItem>
+                          <SelectItem value="Semi">Semi-Marathon</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button onClick={handleAddAthlete} className="w-full">
+                      Créer l'athlète
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </CardContent>
           </Card>
         </div>
