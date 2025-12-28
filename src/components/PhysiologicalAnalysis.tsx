@@ -32,34 +32,50 @@ interface PhysiologicalAnalysisProps {
 export function PhysiologicalAnalysis({ athlete }: PhysiologicalAnalysisProps) {
   const snapshot = getDernierSnapshot(athlete);
   
-  // Créer les tests VLamax à partir du snapshot
+  // Combiner les tests stockés sur l'athlète ET les estimations du snapshot
   const tests: TestVLamaxResult[] = useMemo(() => {
-    if (!snapshot) return [];
-    
-    // Simuler des tests basés sur les données du snapshot
     const testsList: TestVLamaxResult[] = [];
     
-    if (snapshot.pmax_5s && snapshot.ftp) {
-      const vlamaxEstimee = (snapshot.pmax_5s / snapshot.ftp) * 0.15;
-      testsList.push({
-        nom: "Sprint + FTP",
-        vlamax: Math.min(1.2, Math.max(0.2, vlamaxEstimee)),
-        date: snapshot.date
+    // 1. Ajouter les tests stockés de la bibliothèque (prioritaires)
+    if (athlete.tests && athlete.tests.length > 0) {
+      athlete.tests.forEach(t => {
+        if (t.vlamax !== null && !isNaN(t.vlamax)) {
+          testsList.push({
+            nom: t.nom,
+            vlamax: t.vlamax,
+            fiabilite: t.fiabilite,
+            date: t.date
+          });
+        }
       });
     }
     
-    if (snapshot.pmax_5s) {
-      testsList.push({
-        nom: "Sprint 5-10s Vélo",
-        vlamax: Math.min(1.0, snapshot.pmax_5s / 1500),
-        date: snapshot.date
-      });
+    // 2. Si pas de tests stockés, fallback sur estimations snapshot
+    if (testsList.length === 0 && snapshot) {
+      if (snapshot.pmax_5s && snapshot.ftp) {
+        const vlamaxEstimee = (snapshot.pmax_5s / snapshot.ftp) * 0.15;
+        testsList.push({
+          nom: "Sprint + FTP (estimé)",
+          vlamax: Math.min(1.2, Math.max(0.2, vlamaxEstimee)),
+          fiabilite: 0.4,
+          date: snapshot.date
+        });
+      }
+      
+      if (snapshot.pmax_5s) {
+        testsList.push({
+          nom: "Sprint 5-10s Vélo (estimé)",
+          vlamax: Math.min(1.0, snapshot.pmax_5s / 1500),
+          fiabilite: 0.5,
+          date: snapshot.date
+        });
+      }
     }
 
     return testsList;
-  }, [snapshot]);
+  }, [athlete.tests, snapshot]);
 
-  const vo2max = snapshot?.vo2max || 50;
+  const vo2max = athlete.vo2max || snapshot?.vo2max || 50;
   
   const analyse = useMemo(() => 
     analysePhysiologiqueComplete(tests, vo2max, athlete.objectif),

@@ -15,6 +15,9 @@ export interface AthleteRefs {
   css: number | null;        // CSS natation en sec/100m
 }
 
+// Import des types de tests
+import type { StoredTestResult } from "./testLibrary";
+
 // Athlète simplifié avec historique de snapshots
 export interface Athlete {
   id: string;
@@ -24,8 +27,12 @@ export interface Athlete {
   masse_grasse: number;       // %
   // Historique des snapshots Nolio
   historique: SnapshotNolio[];
+  // Tests physiologiques (bibliothèque)
+  tests?: StoredTestResult[];
   // Références physiologiques pour les zones
   refs?: AthleteRefs;
+  // VO2max estimée
+  vo2max?: number;
   // Métadonnées optionnelles
   prenom?: string;
   email?: string;
@@ -42,6 +49,7 @@ export const defaultAthlete: Athlete = {
   objectif: "IM",
   masse_grasse: 18,
   historique: [],
+  tests: [],
 };
 
 // Helper functions

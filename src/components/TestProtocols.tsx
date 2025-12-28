@@ -12,7 +12,8 @@ import {
   Play,
   X,
   Save,
-  FlaskConical
+  FlaskConical,
+  TrendingUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -30,177 +31,17 @@ import {
 } from "@/components/ui/dialog";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useToast } from "@/hooks/use-toast";
-
-// Types pour les tests
-interface TestProtocol {
-  id: string;
-  sport: "Cyclisme" | "Course à pied" | "Natation" | "Multi-sport";
-  nom: string;
-  objectif: string;
-  variables: string[];
-  protocole: string[];
-  calcul: string;
-  fiabilite: number;
-  commentaire: string;
-}
-
-interface ResultatTest {
-  testId: string;
-  nom: string;
-  sport: string;
-  valeur: number;
-  fiabilite: number;
-  date: string;
-  notes?: string;
-}
-
-// Bibliothèque complète des tests
-const TestLibrary: TestProtocol[] = [
-  {
-    id: "bike_sprint_10s",
-    sport: "Cyclisme",
-    nom: "Sprint maximal 5–10 s",
-    objectif: "Estimation VLamax (débit glycolytique)",
-    variables: ["Puissance max (W)"],
-    protocole: [
-      "Échauffement 20 min progressif",
-      "1 à 2 sprints maximaux de 5–10 s",
-      "Récupération complète 5 min",
-      "Capteur de puissance obligatoire"
-    ],
-    calcul: "VLamax ≈ Puissance max / 1000",
-    fiabilite: 0.9,
-    commentaire: "Très bon indicateur terrain de la capacité anaérobie."
-  },
-  {
-    id: "bike_wingate",
-    sport: "Cyclisme",
-    nom: "Wingate 30 s",
-    objectif: "Capacité anaérobie + VLamax",
-    variables: ["Puissance moyenne 30 s (W)"],
-    protocole: [
-      "Échauffement 20–25 min",
-      "Sprint maximal 30 s",
-      "Résistance constante",
-      "Repos complet après le test"
-    ],
-    calcul: "VLamax ≈ Puissance moyenne / 1000",
-    fiabilite: 0.75,
-    commentaire: "Plus fatigant, à éviter en période chargée."
-  },
-  {
-    id: "bike_ftp",
-    sport: "Cyclisme",
-    nom: "Test FTP 20 min",
-    objectif: "Estimation FTP (seuil fonctionnel)",
-    variables: ["Puissance moyenne 20 min (W)"],
-    protocole: [
-      "Échauffement 20 min avec accélérations",
-      "5 min à bloc pour purger l'anaérobie",
-      "Récupération 10 min",
-      "20 min à fond régulier",
-      "FTP = 95% de la puissance moyenne"
-    ],
-    calcul: "FTP = Puissance 20 min × 0.95",
-    fiabilite: 0.85,
-    commentaire: "Test classique, bon indicateur du seuil."
-  },
-  {
-    id: "run_sprint_40m",
-    sport: "Course à pied",
-    nom: "Sprint 30–50 m",
-    objectif: "Estimation VLamax course",
-    variables: ["Temps (s)", "Distance (m)"],
-    protocole: [
-      "Échauffement complet",
-      "Sprint départ arrêté ou lancé",
-      "Chronométrage précis",
-      "2–3 essais max"
-    ],
-    calcul: "VLamax ≈ vitesse max / temps",
-    fiabilite: 0.7,
-    commentaire: "Sensibilité à la technique de course."
-  },
-  {
-    id: "run_vma",
-    sport: "Course à pied",
-    nom: "Test VMA (Vameval / 6 min)",
-    objectif: "Estimation VO2max / VMA",
-    variables: ["VMA (km/h)"],
-    protocole: [
-      "Test progressif ou test 6 min",
-      "Dernier palier tenu = VMA"
-    ],
-    calcul: "VO2max ≈ VMA × 3.5",
-    fiabilite: 0.8,
-    commentaire: "Base indispensable pour zones et planification."
-  },
-  {
-    id: "run_cooper",
-    sport: "Course à pied",
-    nom: "Test Cooper 12 min",
-    objectif: "Estimation VO2max",
-    variables: ["Distance parcourue (m)"],
-    protocole: [
-      "Échauffement léger 10 min",
-      "Courir à allure régulière pendant 12 min",
-      "Mesurer la distance totale"
-    ],
-    calcul: "VO2max = (Distance - 504.9) / 44.73",
-    fiabilite: 0.75,
-    commentaire: "Simple mais moins précis que VMA."
-  },
-  {
-    id: "swim_200m",
-    sport: "Natation",
-    nom: "Test 200 m nage libre",
-    objectif: "Estimation VLamax / capacité anaérobie",
-    variables: ["Temps 200 m (sec)"],
-    protocole: [
-      "Échauffement 15–20 min",
-      "200 m à intensité maximale",
-      "Chronométrage précis"
-    ],
-    calcul: "Indice anaérobie via vitesse moyenne",
-    fiabilite: 0.7,
-    commentaire: "Très dépendant de la technique."
-  },
-  {
-    id: "swim_css",
-    sport: "Natation",
-    nom: "Test CSS (Critical Swim Speed)",
-    objectif: "Estimation seuil lactique natation",
-    variables: ["Temps 400 m (sec)", "Temps 200 m (sec)"],
-    protocole: [
-      "Échauffement 15–20 min",
-      "400 m à fond, repos 10 min",
-      "200 m à fond"
-    ],
-    calcul: "CSS = (400-200) / (T400 - T200) en m/s → sec/100m",
-    fiabilite: 0.8,
-    commentaire: "Excellent pour définir les zones natation."
-  },
-  {
-    id: "hr_max",
-    sport: "Multi-sport",
-    nom: "Test FCmax terrain",
-    objectif: "Déterminer la fréquence cardiaque maximale",
-    variables: ["FC max (bpm)"],
-    protocole: [
-      "Échauffement progressif 15-20 min",
-      "3 × 3 min à intensité croissante (90%, 95%, 100%)",
-      "Récupération 2 min entre chaque",
-      "Sprint final 30s-1min",
-      "Noter la FC max atteinte"
-    ],
-    calcul: "FCmax = valeur pic observée",
-    fiabilite: 0.95,
-    commentaire: "À faire en état de forme optimale."
-  }
-];
+import { 
+  TestLibrary, 
+  TestProtocol, 
+  addTestResultToAthlete, 
+  StoredTestResult 
+} from "@/types/testLibrary";
+import { calculVLamaxPonderee, calculIndiceConfiance } from "@/lib/physiologicalModel";
 
 interface TestProtocolsProps {
   className?: string;
+  onTestSaved?: (result: StoredTestResult) => void;
 }
 
 const sportFilters = [
@@ -216,14 +57,14 @@ function getFiabiliteLabel(fiabilite: number): { label: string; variant: "defaul
   return { label: "Moyenne", variant: "destructive" };
 }
 
-export function TestProtocols({ className }: TestProtocolsProps) {
-  const { currentAthlete } = useAthletes();
+export function TestProtocols({ className, onTestSaved }: TestProtocolsProps) {
+  const { currentAthlete, updateAthlete } = useAthletes();
   const { toast } = useToast();
   
   const [activeSport, setActiveSport] = useState("tous");
   const [expandedTest, setExpandedTest] = useState<string | null>(null);
   const [selectedTest, setSelectedTest] = useState<TestProtocol | null>(null);
-  const [testValue, setTestValue] = useState("");
+  const [testInputs, setTestInputs] = useState<Record<string, string>>({});
   const [testNotes, setTestNotes] = useState("");
 
   const filteredTests = activeSport === "tous" 
@@ -249,58 +90,103 @@ export function TestProtocols({ className }: TestProtocolsProps) {
       return;
     }
     setSelectedTest(test);
-    setTestValue("");
+    // Initialiser les inputs pour chaque variable
+    const initialInputs: Record<string, string> = {};
+    test.variables.forEach(v => {
+      initialInputs[v.key] = "";
+    });
+    setTestInputs(initialInputs);
     setTestNotes("");
+  };
+
+  const handleInputChange = (key: string, value: string) => {
+    setTestInputs(prev => ({ ...prev, [key]: value }));
   };
 
   const handleSaveTest = () => {
     if (!selectedTest || !currentAthlete) return;
     
-    const value = parseFloat(testValue);
-    if (isNaN(value) || value <= 0) {
-      toast({
-        title: "Valeur invalide",
-        description: "Entrez une valeur numérique valide.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Validation basique selon le type de test
-    if (selectedTest.id === "hr_max" && (value < 100 || value > 250)) {
-      toast({
-        title: "Valeur hors limites",
-        description: "La FCmax doit être entre 100 et 250 bpm.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (selectedTest.id.includes("ftp") && (value < 50 || value > 600)) {
-      toast({
-        title: "Valeur hors limites",
-        description: "Le FTP doit être entre 50 et 600 W.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const resultat: ResultatTest = {
-      testId: selectedTest.id,
-      nom: selectedTest.nom,
-      sport: selectedTest.sport,
-      valeur: value,
-      fiabilite: selectedTest.fiabilite,
-      date: new Date().toISOString(),
-      notes: testNotes.trim().slice(0, 500) || undefined
-    };
-
-    console.log("Résultat test:", resultat);
-    
-    toast({
-      title: "Test sauvegardé",
-      description: `${selectedTest.nom}: ${value} pour ${currentAthlete.nom}`
+    // Valider les inputs
+    const invalidInputs: string[] = [];
+    selectedTest.variables.forEach(v => {
+      const value = parseFloat(testInputs[v.key] || "");
+      if (isNaN(value) || value <= 0) {
+        invalidInputs.push(v.label);
+      } else if (v.min !== undefined && value < v.min) {
+        invalidInputs.push(`${v.label} (min: ${v.min})`);
+      } else if (v.max !== undefined && value > v.max) {
+        invalidInputs.push(`${v.label} (max: ${v.max})`);
+      }
     });
+
+    if (invalidInputs.length > 0) {
+      toast({
+        title: "Valeurs invalides",
+        description: `Vérifier: ${invalidInputs.join(", ")}`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Convertir les inputs en Record<string, number>
+    const numericInputs: Record<string, number> = {};
+    Object.keys(testInputs).forEach(key => {
+      numericInputs[key] = parseFloat(testInputs[key]);
+    });
+
+    // Créer le résultat standardisé
+    const stored = addTestResultToAthlete(currentAthlete, selectedTest, numericInputs);
+    if (testNotes.trim()) {
+      stored.notes = testNotes.trim();
+    }
+
+    // Créer un tableau de tests avec le nouveau
+    const existingTests: StoredTestResult[] = (currentAthlete as any).tests || [];
+    const allTests = [...existingTests, stored];
+
+    // Mettre à jour l'athlète avec les tests et les refs potentiellement modifiés
+    updateAthlete({
+      ...currentAthlete,
+      tests: allTests as any,
+      refs: currentAthlete.refs
+    } as any);
+
+    // Calculer la VLamax pondérée pour affichage
+    const vlamaxTests = allTests.filter(t => t.vlamax !== null);
+    const vlamaxPonderee = calculVLamaxPonderee(vlamaxTests);
+    const confiance = calculIndiceConfiance(vlamaxTests);
+
+    // Construire le message de feedback
+    let feedbackMessage = `Test "${stored.nom}" sauvegardé pour ${currentAthlete.nom}.`;
+    if (stored.vlamax !== null) {
+      feedbackMessage += ` VLamax test: ${stored.vlamax.toFixed(2)}`;
+    }
+    if (stored.note) {
+      feedbackMessage += ` — ${stored.note}`;
+    }
+
+    toast({
+      title: "Test sauvegardé ✅",
+      description: (
+        <div className="space-y-1 text-sm">
+          <p>{stored.nom}</p>
+          {stored.vlamax !== null && (
+            <p className="font-medium">VLamax test: {stored.vlamax.toFixed(2)}</p>
+          )}
+          {vlamaxPonderee !== null && (
+            <p className="text-muted-foreground">
+              VLamax pondérée: {vlamaxPonderee.toFixed(2)} | Confiance: {confiance}%
+            </p>
+          )}
+          {stored.note && <p className="text-xs text-muted-foreground">{stored.note}</p>}
+        </div>
+      )
+    });
+
+    // Callback externe si fourni
+    if (onTestSaved) {
+      onTestSaved(stored);
+    }
 
     setSelectedTest(null);
   };
@@ -314,7 +200,7 @@ export function TestProtocols({ className }: TestProtocolsProps) {
         </div>
         <div>
           <h2 className="text-xl font-semibold text-foreground">Bibliothèque de Tests</h2>
-          <p className="text-sm text-muted-foreground">Protocoles validés pour évaluation physiologique</p>
+          <p className="text-sm text-muted-foreground">Protocoles avec conversion VLamax automatique</p>
         </div>
       </div>
 
@@ -342,6 +228,7 @@ export function TestProtocols({ className }: TestProtocolsProps) {
         {filteredTests.map((test) => {
           const isExpanded = expandedTest === test.id;
           const fiab = getFiabiliteLabel(test.fiabilite);
+          const hasVLamaxOutput = test.calcul.toLowerCase().includes("vlamax");
           
           return (
             <div
@@ -365,6 +252,12 @@ export function TestProtocols({ className }: TestProtocolsProps) {
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-semibold text-foreground">{test.nom}</span>
                     <Badge variant="outline" className="text-xs">{test.sport}</Badge>
+                    {hasVLamaxOutput && (
+                      <Badge variant="default" className="text-xs gap-1">
+                        <TrendingUp className="w-3 h-3" />
+                        VLamax
+                      </Badge>
+                    )}
                   </div>
                   <p className="text-sm text-muted-foreground truncate">{test.objectif}</p>
                 </div>
@@ -401,8 +294,13 @@ export function TestProtocols({ className }: TestProtocolsProps) {
                         Données requises
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {test.variables.map((v, i) => (
-                          <Badge key={i} variant="secondary">{v}</Badge>
+                        {test.variables.map((v) => (
+                          <Badge key={v.key} variant="secondary">
+                            {v.label}
+                            {v.min !== undefined && v.max !== undefined && (
+                              <span className="ml-1 text-xs opacity-70">({v.min}-{v.max})</span>
+                            )}
+                          </Badge>
                         ))}
                       </div>
                     </div>
@@ -458,7 +356,7 @@ export function TestProtocols({ className }: TestProtocolsProps) {
 
       {/* Test Input Dialog */}
       <Dialog open={!!selectedTest} onOpenChange={() => setSelectedTest(null)}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {selectedTest && getSportIcon(selectedTest.sport)}
@@ -471,22 +369,31 @@ export function TestProtocols({ className }: TestProtocolsProps) {
 
           {selectedTest && (
             <div className="space-y-4 py-4">
-              <div className="p-3 rounded-lg bg-secondary/30 text-sm">
-                <strong>Variables:</strong> {selectedTest.variables.join(", ")}
-              </div>
-
-              <div>
-                <Label>Valeur mesurée</Label>
-                <Input
-                  type="number"
-                  placeholder="Entrer la valeur"
-                  value={testValue}
-                  onChange={(e) => setTestValue(e.target.value)}
-                  className="mt-1"
-                  min={0}
-                  max={10000}
-                />
-              </div>
+              {/* Variables inputs */}
+              {selectedTest.variables.map((variable) => (
+                <div key={variable.key}>
+                  <Label className="flex items-center gap-2">
+                    {variable.label}
+                    {variable.unit && (
+                      <span className="text-xs text-muted-foreground">({variable.unit})</span>
+                    )}
+                  </Label>
+                  <Input
+                    type="number"
+                    placeholder={`Entrer ${variable.label.toLowerCase()}`}
+                    value={testInputs[variable.key] || ""}
+                    onChange={(e) => handleInputChange(variable.key, e.target.value)}
+                    className="mt-1"
+                    min={variable.min}
+                    max={variable.max}
+                  />
+                  {variable.min !== undefined && variable.max !== undefined && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Plage valide: {variable.min} – {variable.max} {variable.unit}
+                    </p>
+                  )}
+                </div>
+              ))}
 
               <div>
                 <Label>Notes (optionnel)</Label>
@@ -502,6 +409,11 @@ export function TestProtocols({ className }: TestProtocolsProps) {
               <div className="p-3 rounded-lg bg-accent/10 border border-accent/30">
                 <p className="text-xs text-muted-foreground mb-1">Formule de calcul</p>
                 <p className="font-mono text-sm">{selectedTest.calcul}</p>
+              </div>
+
+              <div className="p-3 rounded-lg bg-secondary/30">
+                <p className="text-xs text-muted-foreground mb-1">Fiabilité du test</p>
+                <p className="font-medium">{Math.round(selectedTest.fiabilite * 100)}%</p>
               </div>
             </div>
           )}
@@ -522,6 +434,6 @@ export function TestProtocols({ className }: TestProtocolsProps) {
   );
 }
 
-// Export pour utilisation externe
+// Exports
 export { TestLibrary };
-export type { TestProtocol };
+export type { TestProtocol } from "@/types/testLibrary";
