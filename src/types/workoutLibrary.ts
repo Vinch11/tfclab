@@ -13,13 +13,16 @@ export interface WorkoutStructurePart {
 }
 
 // Variantes par objectif
-export type WorkoutVariants = Partial<Record<"ironman" | "half" | "marathon" | "semi" | "trail_short" | "trail_mountain" | "trail_ultra", string>>;
+export type WorkoutVariants = Partial<Record<"ironman" | "half" | "marathon" | "semi" | "trail_short" | "trail_mountain" | "trail_ultra" | "trail_long", string>>;
 
 // Niveau de nécessité
 export type NecessityLevel = "Obligatoire" | "Recommandé" | "Optionnel";
 
 // Cible D+ (dénivelé positif)
 export type DPlusTarget = number | { min: number; max: number };
+
+// Goals pour filtrage
+export type WorkoutGoal = "ironman" | "half" | "marathon" | "semi" | "trail_short" | "trail_long";
 
 // Séance de la bibliothèque
 export interface LibraryWorkout {
@@ -37,6 +40,12 @@ export interface LibraryWorkout {
   variants: WorkoutVariants;
   // Cible D+ pour trail (optionnel)
   dPlusTargetM?: DPlusTarget;
+  // Goals compatibles (nouveau)
+  goals?: WorkoutGoal[];
+  // Tags pour filtrage avancé
+  tags?: string[];
+  // Notes additionnelles
+  notes?: string;
 }
 
 // Session planifiée étendue avec référence workout
