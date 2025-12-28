@@ -19,6 +19,7 @@ import { PhysiologicalAnalysis } from "@/components/PhysiologicalAnalysis";
 import { Planificateur } from "@/components/Planificateur";
 import { WorkoutLibrary } from "@/components/WorkoutLibrary";
 import { MonitoringDashboard } from "@/components/MonitoringDashboard";
+import { ExportTools } from "@/components/ExportTools";
 import { Button } from "@/components/ui/button";
 import { Zap, Target, Flame, Activity, BookOpen, Brain, Calendar, Dumbbell, TrendingUp } from "lucide-react";
 import logo2fc from "@/assets/logo-2fc.png";
@@ -208,6 +209,7 @@ const Index = () => {
                 <TrendingUp className="h-4 w-4" />
                 📈 Suivi
               </Button>
+              <ExportTools athlete={currentAthlete} />
             </div>
 
             {/* Contenu conditionnel */}
