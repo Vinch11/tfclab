@@ -38,6 +38,77 @@ const SportPatternByGoal: Record<string, TrainingSport[]> = {
 };
 
 // =============================================
+// CONFIGURATION TRAIL 20-80km (caps + séances spécifiques)
+// =============================================
+
+interface TrailGoalConfig {
+  label: string;
+  sessionsPerWeek: number;
+  longRunCapMin: number;
+  baseDist: Record<PhaseName, SessionDistribution>;
+  mustHaveWorkoutIds: string[];
+}
+
+const TrailConfig: Record<string, TrailGoalConfig> = {
+  TrailShort: {
+    label: "Trail (20–40 km)",
+    sessionsPerWeek: 6,
+    longRunCapMin: 150, // 2h30 max
+    baseDist: {
+      Base: { A: 0.50, B: 0.20, C: 0.20, D: 0.10 },
+      Build: { A: 0.44, B: 0.22, C: 0.20, D: 0.14 },
+      Peak: { A: 0.38, B: 0.22, C: 0.22, D: 0.18 },
+      Taper: { A: 0.30, B: 0.12, C: 0.18, D: 0.40 }
+    },
+    mustHaveWorkoutIds: ["B_TR_HILL_REPS_SHORT", "B_TR_HILL_TEMPO", "C_TR_SKILLS_TECH", "B_TR_FARTLEK_TRAIL"]
+  },
+  TrailMountain: {
+    label: "Trail (40–80 km)",
+    sessionsPerWeek: 6,
+    longRunCapMin: 210, // 3h30 max
+    baseDist: {
+      Base: { A: 0.55, B: 0.16, C: 0.21, D: 0.08 },
+      Build: { A: 0.50, B: 0.16, C: 0.22, D: 0.12 },
+      Peak: { A: 0.42, B: 0.14, C: 0.26, D: 0.18 },
+      Taper: { A: 0.30, B: 0.10, C: 0.15, D: 0.45 }
+    },
+    mustHaveWorkoutIds: ["B_TR_HILL_TEMPO", "B_TR_DESCENT_TOLERANCE", "C_TR_STRENGTH_GENERAL", "C_TR_POLES_SESSION", "A_TR_RACE_SIMU"]
+  },
+  Trail: {
+    label: "Trail (40–80 km)",
+    sessionsPerWeek: 6,
+    longRunCapMin: 210,
+    baseDist: {
+      Base: { A: 0.55, B: 0.16, C: 0.21, D: 0.08 },
+      Build: { A: 0.50, B: 0.16, C: 0.22, D: 0.12 },
+      Peak: { A: 0.42, B: 0.14, C: 0.26, D: 0.18 },
+      Taper: { A: 0.30, B: 0.10, C: 0.15, D: 0.45 }
+    },
+    mustHaveWorkoutIds: ["B_TR_HILL_TEMPO", "C_TR_STRENGTH_GENERAL"]
+  },
+  TrailUltra: {
+    label: "Ultra Trail (80km+)",
+    sessionsPerWeek: 6,
+    longRunCapMin: 300, // 5h cap for ultra
+    baseDist: {
+      Base: { A: 0.58, B: 0.12, C: 0.20, D: 0.10 },
+      Build: { A: 0.52, B: 0.14, C: 0.22, D: 0.12 },
+      Peak: { A: 0.45, B: 0.12, C: 0.25, D: 0.18 },
+      Taper: { A: 0.28, B: 0.08, C: 0.14, D: 0.50 }
+    },
+    mustHaveWorkoutIds: ["A_TR_BACK_TO_BACK_1", "A_TR_BACK_TO_BACK_2", "C_TR_STRENGTH_GENERAL"]
+  }
+};
+
+function isTrailGoalForPlanner(goal: ObjectifType): boolean {
+  return goal in TrailConfig;
+}
+
+function getTrailConfig(goal: ObjectifType): TrailGoalConfig | null {
+  return TrailConfig[goal] || null;
+}
+
+// =============================================
 // TEMPLATES DE SÉANCES A/B/C/D (fallback)
 // =============================================
 
@@ -121,6 +192,14 @@ export function computePhases(goal: ObjectifType, totalWeeks: number): PhaseConf
 // =============================================
 
 function phaseDistribution(goal: ObjectifType, phaseName: PhaseName): SessionDistribution {
+  // Utiliser la config Trail spécifique si disponible
+  const trailCfg = getTrailConfig(goal);
+  if (trailCfg) {
+    const dist = trailCfg.baseDist[phaseName] || trailCfg.baseDist.Base;
+    const s = dist.A + dist.B + dist.C + dist.D;
+    return { A: dist.A / s, B: dist.B / s, C: dist.C / s, D: dist.D / s };
+  }
+
   const common: Record<PhaseName, SessionDistribution> = {
     Base: { A: 0.55, B: 0.10, C: 0.20, D: 0.15 },
     Build: { A: 0.45, B: 0.25, C: 0.15, D: 0.15 },
@@ -142,17 +221,6 @@ function phaseDistribution(goal: ObjectifType, phaseName: PhaseName): SessionDis
   }
   if (goal === "Semi") {
     adj.B += 0.06; adj.A -= 0.06;
-  }
-  
-  // Trail - beaucoup d'endurance, force spécifique, moins d'intensité pure
-  if (goal === "Trail" || goal === "TrailMountain") {
-    adj.A += 0.08; adj.B -= 0.05; adj.C += 0.02; adj.D -= 0.05;
-  }
-  if (goal === "TrailShort") {
-    adj.A += 0.03; adj.B -= 0.02; adj.C += 0.02; adj.D -= 0.03;
-  }
-  if (goal === "TrailUltra") {
-    adj.A += 0.12; adj.B -= 0.10; adj.C += 0.03; adj.D -= 0.05;
   }
 
   // Normalisation
@@ -289,6 +357,80 @@ function getGoalVariantKey(goal: ObjectifType): "ironman" | "half" | "marathon" 
   }
 }
 
+// Cap durée sorties longues pour Trail
+function capLongRunDuration(session: PlannedSession, goal: ObjectifType): PlannedSession {
+  const trailCfg = getTrailConfig(goal);
+  if (!trailCfg) return session;
+  
+  const cap = trailCfg.longRunCapMin;
+  const name = (session.name || "").toLowerCase();
+  const isLong = (session.durationMin && session.durationMin >= 120) || 
+                 name.includes("long") || 
+                 name.includes("sortie longue") ||
+                 name.includes("back-to-back");
+  
+  if (isLong && session.durationMin && session.durationMin > cap) {
+    return {
+      ...session,
+      durationMin: cap,
+      notes: (session.notes || "") + `\n\n🛑 Cap Trail: durée plafonnée à ${cap} min (trail ≤80 km).`
+    };
+  }
+  return session;
+}
+
+// Assure au moins 1 séance trail spécifique par semaine
+function ensureTrailSpecificSession(
+  sessions: PlannedSession[], 
+  athlete: Athlete, 
+  goal: ObjectifType
+): PlannedSession[] {
+  const trailCfg = getTrailConfig(goal);
+  if (!trailCfg || !trailCfg.mustHaveWorkoutIds.length) return sessions;
+  
+  const mustIds = trailCfg.mustHaveWorkoutIds;
+  
+  // Déjà présent ?
+  const hasSpecific = sessions.some(s => 
+    s.notes?.includes("TR_") || 
+    mustIds.some(id => s.name?.includes(id) || s.notes?.includes(id))
+  );
+  
+  if (hasSpecific) return sessions;
+  
+  // Chercher une séance trail spécifique dans la bibliothèque
+  const preferCat: SessionType = goal === "TrailShort" ? "B" : "C";
+  let forced = pickWorkoutFromLibrary({ cat: preferCat, sport: "course", goal });
+  if (!forced) {
+    forced = pickWorkoutFromLibrary({ cat: "B", sport: "course", goal });
+  }
+  if (!forced) {
+    forced = pickWorkoutFromLibrary({ cat: "C", sport: "muscu", goal });
+  }
+  if (!forced) return sessions;
+  
+  // Remplacer une séance moins spécifique (D ou A vélo)
+  let idxReplace = sessions.findIndex(s => s.type === "D" && s.sport === "course");
+  if (idxReplace < 0) idxReplace = sessions.findIndex(s => s.sport === "cyclisme" && (s.type === "A" || s.type === "D"));
+  if (idxReplace < 0) idxReplace = sessions.findIndex(s => s.type === "A" && s.sport !== "course");
+  if (idxReplace < 0) return sessions;
+  
+  const original = sessions[idxReplace];
+  const mainPart = forced.structure.find(s => s.part.toLowerCase().includes("main")) || forced.structure[0];
+  const primaryZone = mainPart?.zones?.[0] || "Z2";
+  
+  sessions[idxReplace] = {
+    ...original,
+    type: forced.cat as SessionType,
+    sport: forced.sport === "muscu" ? "muscu" : (forced.sport || "course"),
+    name: `${forced.id.split("_").slice(1).join(" ")} – ${forced.objectif}`,
+    zone: primaryZone,
+    notes: formatWorkoutNotes(athlete, forced) + `\n\n✅ Séance trail spécifique (${goal}).`
+  };
+  
+  return sessions;
+}
+
 export function generateWeekSessions(
   athlete: Athlete,
   goal: ObjectifType,
@@ -309,8 +451,9 @@ export function generateWeekSessions(
   let dist = phaseDistribution(goal, phaseName);
   dist = applyPhysioBias(dist, physio.repartition, physio.confiance);
 
-  // Nombre de séances
-  const nSessions = goal === "Semi" ? 5 : 6;
+  // Nombre de séances (Trail utilise config spécifique)
+  const trailCfg = getTrailConfig(goal);
+  const nSessions = trailCfg?.sessionsPerWeek || (goal === "Semi" ? 5 : 6);
   const nRest = 7 - nSessions;
 
   // Calcul du nombre de séances par type
@@ -443,7 +586,13 @@ export function generateWeekSessions(
     totalWeeks
   }));
 
-  const allSessions = [...sessions, ...restSessions].sort((a, b) => a.dayIndex - b.dayIndex);
+  let allSessions = [...sessions, ...restSessions].sort((a, b) => a.dayIndex - b.dayIndex);
+  
+  // Trail: cap sorties longues + injection séance spécifique
+  if (isTrailGoalForPlanner(goal)) {
+    allSessions = allSessions.map(s => capLongRunDuration(s, goal));
+    allSessions = ensureTrailSpecificSession(allSessions, athlete, goal);
+  }
 
   return { distribution: dist, sessions: allSessions };
 }
