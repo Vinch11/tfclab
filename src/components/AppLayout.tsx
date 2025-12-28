@@ -81,11 +81,11 @@ export function AppLayout({ children, title, showBack = false }: AppLayoutProps)
       </header>
 
       {/* Main content */}
-      <main className="container mx-auto px-4 py-6 relative">
+      <main className="container mx-auto px-4 py-6 pb-24 relative">
         {children}
       </main>
 
-      {/* Bottom navigation */}
+      {/* Bottom navigation - mobile optimized */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur-xl safe-area-inset-bottom">
         <div className="container mx-auto px-2">
           <div className="flex items-center justify-around py-2">
@@ -101,23 +101,20 @@ export function AppLayout({ children, title, showBack = false }: AppLayoutProps)
                   size="sm"
                   disabled={needsAthlete}
                   onClick={() => navigate(item.path)}
-                  className={`flex flex-col items-center gap-1 h-auto py-2 px-3 ${
+                  className={`flex flex-col items-center gap-1 h-auto py-2 px-2 sm:px-3 touch-target ${
                     active 
                       ? "text-primary bg-primary/10" 
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   <Icon className="h-5 w-5" />
-                  <span className="text-[10px] font-medium">{item.label}</span>
+                  <span className="text-[10px] sm:text-xs font-medium truncate max-w-[60px]">{item.label}</span>
                 </Button>
               );
             })}
           </div>
         </div>
       </nav>
-
-      {/* Footer spacer for bottom nav */}
-      <div className="h-20" />
     </div>
   );
 }
