@@ -1717,3 +1717,870 @@ export function getCatColor(cat: SessionType): { bg: string; text: string; label
       return { bg: "bg-muted/30", text: "text-muted-foreground", label: "Repos" };
   }
 }
+
+// =============================================
+// PRO PACK – ~160 SÉANCES ADDITIONNELLES
+// =============================================
+
+const GOALS_ALL: ("ironman" | "half" | "marathon" | "semi" | "trail_short" | "trail_long")[] = 
+  ["ironman", "half", "marathon", "semi", "trail_short", "trail_long"];
+
+function mkStructure(parts: [string, string, string[]][]): { part: string; text: string; zones: string[] }[] {
+  return parts.map(p => ({ part: p[0], text: p[1], zones: p[2] || [] }));
+}
+
+// COURSE – A (Endurance)
+const RUN_A_PRO: LibraryWorkout[] = [
+  {
+    id: "A_RUN_EASY_45_PRO",
+    cat: "A",
+    sport: "course",
+    objectif: "Endurance facile",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    avoid: "—",
+    durationMin: [40, 55],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: mkStructure([["Main", "45–55' Z1–Z2, relâché, respiration facile", ["Z1", "Z2"]]]),
+    variants: { marathon: "ok", semi: "ok", ironman: "ok", half: "ok" },
+    goals: ["marathon", "semi", "ironman", "half"],
+    tags: ["easy", "aerobic"]
+  },
+  {
+    id: "A_RUN_LONG_PROG_PRO",
+    cat: "A",
+    sport: "course",
+    objectif: "Sortie longue progressive",
+    necessite: "Recommandé",
+    when: "Build/Peak",
+    avoid: "Fatigue accumulée",
+    durationMin: [90, 150],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: mkStructure([["Main", "Z2 majoritaire, finir 20–30' Z3 si frais", ["Z2", "Z3"]]]),
+    variants: { marathon: "fondamental", semi: "excellent" },
+    goals: ["marathon", "semi"],
+    tags: ["longrun", "progressive"]
+  },
+  {
+    id: "A_RUN_EASY_STRIDES_PRO",
+    cat: "A",
+    sport: "course",
+    objectif: "Endurance + lignes droites",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    avoid: "—",
+    durationMin: [45, 75],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: mkStructure([["Main", "Z1–Z2 + 6–10x12–15s accélérations r=60–75s", ["Z1", "Z2", "Z3"]]]),
+    variants: { marathon: "excellent", semi: "excellent", half: "ok", ironman: "ok", trail_short: "ok", trail_long: "ok" },
+    goals: ["marathon", "semi", "half", "ironman", "trail_short", "trail_long"],
+    tags: ["economy", "strides"]
+  }
+];
+
+// COURSE – B (Intensité)
+const RUN_B_PRO: LibraryWorkout[] = [
+  {
+    id: "B_RUN_TEMPO_CRUISE_PRO",
+    cat: "B",
+    sport: "course",
+    objectif: "Tempo / seuil contrôlé",
+    necessite: "Recommandé",
+    when: "Build/Peak",
+    avoid: "Fatigue importante",
+    durationMin: [55, 90],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "15' Z1–Z2", ["Z1", "Z2"]],
+      ["Main", "3x10' Z3–Z4a r=3–4' Z1", ["Z3", "Z4a", "Z1"]],
+      ["Cool-down", "10' easy", ["Z1"]]
+    ]),
+    variants: { marathon: "excellent", semi: "excellent", half: "ok", ironman: "ok" },
+    goals: ["marathon", "semi", "half", "ironman"],
+    tags: ["threshold", "tempo"]
+  },
+  {
+    id: "B_RUN_TEMPO_2x20_PRO",
+    cat: "B",
+    sport: "course",
+    objectif: "Tempo 2x20'",
+    necessite: "Recommandé",
+    when: "Build/Peak",
+    avoid: "Fatigue importante",
+    durationMin: [65, 95],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: mkStructure([["Main", "2x20' Z3–Z4a r=5' Z1", ["Z3", "Z4a", "Z1"]]]),
+    variants: { marathon: "spécifique", semi: "spécifique" },
+    goals: ["marathon", "semi", "half", "ironman"],
+    tags: ["threshold", "tempo"]
+  },
+  {
+    id: "B_RUN_TEMPO_HILLS_PRO",
+    cat: "B",
+    sport: "course",
+    objectif: "Tempo vallonné",
+    necessite: "Recommandé",
+    when: "Build/Peak",
+    avoid: "Fatigue importante",
+    durationMin: [55, 90],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: mkStructure([["Main", "Tempo Z3 sur terrain vallonné (montées régulières)", ["Z3"]]]),
+    variants: { marathon: "excellent", semi: "excellent", trail_short: "parfait", trail_long: "parfait" },
+    goals: ["marathon", "semi", "trail_short", "trail_long"],
+    tags: ["threshold", "hills"]
+  },
+  {
+    id: "B_RUN_VO2_5x3_PRO",
+    cat: "B",
+    sport: "course",
+    objectif: "VO₂max (intervalles)",
+    necessite: "Recommandé",
+    when: "Build/Peak",
+    avoid: "Fatigue nerveuse",
+    durationMin: [50, 80],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: mkStructure([["Main", "5–7x3' Z4b–Z5 r=2' easy", ["Z4b", "Z5", "Z1", "Z2"]]]),
+    variants: { semi: "excellent", marathon: "ok", trail_short: "ok" },
+    goals: ["semi", "marathon", "trail_short"],
+    tags: ["vo2", "intervals"]
+  },
+  {
+    id: "B_RUN_FARTLEK_60_PRO",
+    cat: "B",
+    sport: "course",
+    objectif: "Fartlek (variations)",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    avoid: "—",
+    durationMin: [50, 75],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: mkStructure([["Main", "10x(1' Z4a / 2' Z2) sur terrain adapté", ["Z4a", "Z2"]]]),
+    variants: { semi: "excellent", half: "ok", ironman: "ok", trail_short: "parfait", trail_long: "parfait" },
+    goals: ["semi", "trail_short", "trail_long", "half", "ironman"],
+    tags: ["fartlek", "variety"]
+  }
+];
+
+// COURSE – C (Technique/Force)
+const RUN_C_PRO: LibraryWorkout[] = [
+  {
+    id: "C_RUN_HILL_TECH_PRO",
+    cat: "C",
+    sport: "course",
+    objectif: "Technique côte + coordination",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    avoid: "Douleur tendon",
+    durationMin: [35, 55],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: mkStructure([["Main", "10x1' côte technique Z2–Z3 r=descente easy + éducatifs", ["Z2", "Z3", "Z1"]]]),
+    variants: { trail_short: "parfait", trail_long: "parfait", semi: "excellent", marathon: "excellent" },
+    goals: ["trail_short", "trail_long", "semi", "marathon"],
+    tags: ["skills", "hills"]
+  },
+  {
+    id: "C_RUN_STRENGTH_30_PRO",
+    cat: "C",
+    sport: "muscu",
+    objectif: "Force coureur (bas du corps) 30–45'",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    avoid: "—",
+    durationMin: [30, 45],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: mkStructure([["Main", "Split squat/step-up/hip hinge/mollets/gainage RPE 6–7", ["Z1"]]]),
+    variants: {},
+    goals: GOALS_ALL,
+    tags: ["strength", "gym"]
+  }
+];
+
+// COURSE – D (Récup)
+const RUN_D_PRO: LibraryWorkout[] = [
+  {
+    id: "D_RUN_RECOVERY_30_PRO",
+    cat: "D",
+    sport: "course",
+    objectif: "Footing récupération",
+    necessite: "Recommandé",
+    when: "Lendemain charge",
+    avoid: "—",
+    durationMin: [25, 40],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: mkStructure([["Main", "Z1 très facile + mobilité 10'", ["Z1"]]]),
+    variants: {},
+    goals: GOALS_ALL,
+    tags: ["recovery", "easy"]
+  }
+];
+
+// VÉLO – A
+const BIKE_A_PRO: LibraryWorkout[] = [
+  {
+    id: "A_BIKE_END_90_PRO",
+    cat: "A",
+    sport: "cyclisme",
+    objectif: "Endurance vélo",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    avoid: "—",
+    durationMin: [75, 105],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: mkStructure([["Main", "Z1–Z2 stable, cadence fluide", ["Z1", "Z2"]]]),
+    variants: { ironman: "fondamental", half: "fondamental" },
+    goals: ["ironman", "half", "trail_short", "trail_long", "marathon", "semi"],
+    tags: ["aerobic", "endurance"]
+  },
+  {
+    id: "A_BIKE_LONG_IM_PRO",
+    cat: "A",
+    sport: "cyclisme",
+    objectif: "Long ride IM (spécifique)",
+    necessite: "Recommandé",
+    when: "Build/Peak IM",
+    avoid: "Fatigue chronique",
+    durationMin: [150, 240],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: mkStructure([["Main", "Z2 majoritaire + 3–5x10' Z3 (si frais)", ["Z2", "Z3"]]]),
+    variants: { ironman: "séance clé" },
+    goals: ["ironman"],
+    tags: ["longride", "im"]
+  }
+];
+
+// VÉLO – B
+const BIKE_B_PRO: LibraryWorkout[] = [
+  {
+    id: "B_BIKE_SST_3x12_PRO",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "Sweet spot / tempo",
+    necessite: "Recommandé",
+    when: "Build/Peak",
+    avoid: "Fatigue accumulée",
+    durationMin: [60, 90],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: mkStructure([["Main", "3x12' Z3–Z4a r=5' Z2", ["Z3", "Z4a", "Z2"]]]),
+    variants: { ironman: "excellent", half: "excellent" },
+    goals: ["ironman", "half"],
+    tags: ["sst", "tempo"]
+  },
+  {
+    id: "B_BIKE_SST_2x20_PRO",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "Sweet spot 2x20'",
+    necessite: "Recommandé",
+    when: "Build/Peak",
+    avoid: "Fatigue accumulée",
+    durationMin: [70, 100],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: mkStructure([["Main", "2x20' Z3–Z4a r=7' Z2", ["Z3", "Z4a", "Z2"]]]),
+    variants: { ironman: "spécifique", half: "spécifique" },
+    goals: ["ironman", "half"],
+    tags: ["sst", "tempo"]
+  },
+  {
+    id: "B_BIKE_SST_OVERUNDER_PRO",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "Over-Under light",
+    necessite: "Recommandé",
+    when: "Build/Peak",
+    avoid: "VLamax élevée",
+    durationMin: [65, 95],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: mkStructure([["Main", "3x12' : 2' Z3 / 1' Z4a (répéter) r=6'", ["Z3", "Z4a"]]]),
+    variants: { ironman: "excellent", half: "excellent" },
+    goals: ["ironman", "half"],
+    tags: ["sst", "overunder"]
+  },
+  {
+    id: "B_BIKE_SST_HILLS_PRO",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "SST en montée",
+    necessite: "Recommandé",
+    when: "Build/Peak",
+    avoid: "Douleur genoux",
+    durationMin: [70, 105],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: mkStructure([["Main", "Blocs SST sur montée régulière, cadence contrôlée", ["Z3", "Z4a"]]]),
+    variants: { ironman: "excellent", half: "excellent" },
+    goals: ["ironman", "half"],
+    tags: ["sst", "hills"]
+  },
+  {
+    id: "B_BIKE_VO2_6x3_PRO",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "VO₂ vélo",
+    necessite: "Recommandé",
+    when: "Build/Peak",
+    avoid: "VLamax trop haute",
+    durationMin: [50, 75],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: mkStructure([["Main", "6x3' Z5 r=3' Z1–Z2", ["Z5", "Z1", "Z2"]]]),
+    variants: { half: "1x/7j", trail_short: "ok" },
+    goals: ["half", "trail_short"],
+    tags: ["vo2", "intervals"]
+  }
+];
+
+// VÉLO – C
+const BIKE_C_PRO: LibraryWorkout[] = [
+  {
+    id: "C_BIKE_CADENCE_SKILLS_PRO",
+    cat: "C",
+    sport: "cyclisme",
+    objectif: "Technique pédalage / cadence",
+    necessite: "Optionnel",
+    when: "Toute l'année",
+    avoid: "Fatigue lombaire",
+    durationMin: [45, 70],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: mkStructure([["Main", "Z2 + 6x3' cadence 100–110 rpm (sans surpuissance)", ["Z2"]]]),
+    variants: { ironman: "super utile", half: "utile" },
+    goals: ["ironman", "half"],
+    tags: ["skills", "cadence"]
+  }
+];
+
+// VÉLO – D
+const BIKE_D_PRO: LibraryWorkout[] = [
+  {
+    id: "D_BIKE_REGEN_60_PRO",
+    cat: "D",
+    sport: "cyclisme",
+    objectif: "Récup vélo sans impact",
+    necessite: "Recommandé",
+    when: "Lendemain charge",
+    avoid: "—",
+    durationMin: [45, 75],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: mkStructure([["Main", "Z1–Z2 très facile, 90–95rpm", ["Z1", "Z2"]]]),
+    variants: {},
+    goals: GOALS_ALL,
+    tags: ["recovery", "easy"]
+  }
+];
+
+// NATATION – A
+const SWIM_A_PRO: LibraryWorkout[] = [
+  {
+    id: "A_SWIM_END_CSS_PRO",
+    cat: "A",
+    sport: "natation",
+    objectif: "Endurance technique (CSS-)",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    avoid: "Épaules douloureuses",
+    durationMin: [45, 70],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: mkStructure([["Main", "Éducatifs + 3x400m (CSS+5 à +10s/100) r=45–60s", []]]),
+    variants: { ironman: "fondamental", half: "fondamental" },
+    goals: ["ironman", "half"],
+    tags: ["technique", "endurance"]
+  }
+];
+
+// NATATION – B
+const SWIM_B_PRO: LibraryWorkout[] = [
+  {
+    id: "B_SWIM_CSS_12x100_PRO",
+    cat: "B",
+    sport: "natation",
+    objectif: "Travail CSS",
+    necessite: "Recommandé",
+    when: "Build/Peak",
+    avoid: "Épaules douloureuses",
+    durationMin: [50, 75],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: mkStructure([["Main", "12–20x100m à CSS r=15–20s (qualité)", []]]),
+    variants: { ironman: "excellent", half: "excellent" },
+    goals: ["ironman", "half"],
+    tags: ["css", "threshold"]
+  },
+  {
+    id: "B_SWIM_CSS_8x200_PRO",
+    cat: "B",
+    sport: "natation",
+    objectif: "CSS 8x200m",
+    necessite: "Recommandé",
+    when: "Build/Peak",
+    avoid: "Épaules douloureuses",
+    durationMin: [55, 80],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: mkStructure([["Main", "8x200m à CSS r=20–30s", []]]),
+    variants: { ironman: "excellent", half: "excellent" },
+    goals: ["ironman", "half"],
+    tags: ["css", "threshold"]
+  },
+  {
+    id: "B_SWIM_CSS_LADDER_PRO",
+    cat: "B",
+    sport: "natation",
+    objectif: "CSS Ladder",
+    necessite: "Recommandé",
+    when: "Build/Peak",
+    avoid: "Épaules douloureuses",
+    durationMin: [50, 75],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: mkStructure([["Main", "100-200-300-400-300-200-100 à CSS (r=20–40s)", []]]),
+    variants: { ironman: "excellent", half: "excellent" },
+    goals: ["ironman", "half"],
+    tags: ["css", "ladder"]
+  },
+  {
+    id: "B_SWIM_SPEED_25S_PRO",
+    cat: "B",
+    sport: "natation",
+    objectif: "Vitesse/puissance (court)",
+    necessite: "Optionnel",
+    when: "Build/Peak",
+    avoid: "Technique dégradée",
+    durationMin: [35, 55],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: mkStructure([["Main", "2 blocs : 12x25m vite r=20–30s, récup longue entre blocs", []]]),
+    variants: { half: "ok", ironman: "légère" },
+    goals: ["half", "ironman"],
+    tags: ["speed", "power"]
+  }
+];
+
+// NATATION – C
+const SWIM_C_PRO: LibraryWorkout[] = [
+  {
+    id: "C_SWIM_TECH_DRILLS_PRO",
+    cat: "C",
+    sport: "natation",
+    objectif: "Technique pure (drills)",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    avoid: "—",
+    durationMin: [30, 50],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: mkStructure([["Main", "Drills 20–30' + 8x50m propre (RPE 6)", []]]),
+    variants: { ironman: "prioritaire", half: "prioritaire" },
+    goals: ["ironman", "half"],
+    tags: ["skills", "technique"]
+  }
+];
+
+// NATATION – D
+const SWIM_D_PRO: LibraryWorkout[] = [
+  {
+    id: "D_SWIM_EASY_PRO",
+    cat: "D",
+    sport: "natation",
+    objectif: "Récup eau (souple)",
+    necessite: "Optionnel",
+    when: "Lendemain charge",
+    avoid: "—",
+    durationMin: [25, 45],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: mkStructure([["Main", "Nage facile + mobilité épaules", []]]),
+    variants: { ironman: "excellent", half: "excellent" },
+    goals: ["ironman", "half"],
+    tags: ["recovery", "easy"]
+  }
+];
+
+// TRAIL – Core
+const TRAIL_CORE_PRO: LibraryWorkout[] = [
+  {
+    id: "A_TR_LONG_DPLUS_PRO",
+    cat: "A",
+    sport: "course",
+    objectif: "Sortie longue trail D+ modéré",
+    necessite: "Obligatoire",
+    when: "Build/Peak",
+    avoid: "Fatigue chronique",
+    durationMin: [120, 210],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: mkStructure([["Main", "Z1–Z2 majoritaire. Marcher en forte pente. Nutrition.", ["Z1", "Z2"]]]),
+    variants: { trail_short: "fondamental", trail_long: "fondamental" },
+    goals: ["trail_short", "trail_long"],
+    dPlusTargetM: { min: 700, max: 1800 },
+    tags: ["trail", "longrun"]
+  },
+  {
+    id: "B_TR_UPHILL_TEMPO_PRO",
+    cat: "B",
+    sport: "course",
+    objectif: "Tempo en montée (seuil aérobie)",
+    necessite: "Recommandé",
+    when: "Build/Peak",
+    avoid: "Fatigue importante",
+    durationMin: [60, 95],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: mkStructure([["Main", "3x10–15' montée Z3–Z4a r=descente Z1", ["Z3", "Z4a", "Z1"]]]),
+    variants: { trail_short: "excellent", trail_long: "excellent" },
+    goals: ["trail_short", "trail_long"],
+    dPlusTargetM: { min: 500, max: 1100 },
+    tags: ["trail", "hills", "threshold"]
+  },
+  {
+    id: "B_TR_HILLREPS_PRO",
+    cat: "B",
+    sport: "course",
+    objectif: "Côtes courtes (relances)",
+    necessite: "Recommandé",
+    when: "Build/Peak",
+    avoid: "Fatigue musculaire",
+    durationMin: [45, 75],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: mkStructure([["Main", "12–18x45s Z5 r=descente complète", ["Z5", "Z1"]]]),
+    variants: { trail_short: "excellent", trail_long: "excellent" },
+    goals: ["trail_short", "trail_long"],
+    dPlusTargetM: { min: 250, max: 650 },
+    tags: ["trail", "hills", "vo2"]
+  },
+  {
+    id: "B_TR_HILLREPS_8x2_PRO",
+    cat: "B",
+    sport: "course",
+    objectif: "Côtes 8x2'",
+    necessite: "Recommandé",
+    when: "Build/Peak",
+    avoid: "Fatigue musculaire",
+    durationMin: [50, 75],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: mkStructure([["Main", "8x2' Z4b r=descente", ["Z4b", "Z5", "Z1", "Z2"]]]),
+    variants: { trail_short: "excellent", trail_long: "excellent" },
+    goals: ["trail_short", "trail_long"],
+    dPlusTargetM: { min: 300, max: 700 },
+    tags: ["trail", "hills"]
+  },
+  {
+    id: "B_TR_HILLREPS_6x3_PRO",
+    cat: "B",
+    sport: "course",
+    objectif: "Côtes 6x3'",
+    necessite: "Recommandé",
+    when: "Build/Peak",
+    avoid: "Fatigue musculaire",
+    durationMin: [50, 80],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: mkStructure([["Main", "6x3' Z4b–Z5 r=3'", ["Z4b", "Z5"]]]),
+    variants: { trail_short: "excellent", trail_long: "excellent" },
+    goals: ["trail_short", "trail_long"],
+    dPlusTargetM: { min: 300, max: 750 },
+    tags: ["trail", "hills"]
+  },
+  {
+    id: "C_TR_DESC_TECH_PRO",
+    cat: "C",
+    sport: "course",
+    objectif: "Technique descente (tolérance excentrique)",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    avoid: "Douleur musculaire",
+    durationMin: [40, 60],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: mkStructure([["Main", "8–12 descentes 45–60s 'propre' r=remontée easy", ["Z1", "Z2"]]]),
+    variants: { trail_short: "parfait", trail_long: "parfait" },
+    goals: ["trail_short", "trail_long"],
+    dPlusTargetM: { min: 200, max: 500 },
+    tags: ["trail", "skills", "eccentric"]
+  },
+  {
+    id: "C_TR_STRENGTH_PRO",
+    cat: "C",
+    sport: "muscu",
+    objectif: "Force trail (quadris/mollets/fessiers + gainage)",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    avoid: "—",
+    durationMin: [35, 55],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: mkStructure([["Main", "Step-up, split squat, mollets, isos, gainage (RPE 6–7)", ["Z1"]]]),
+    variants: { trail_short: "excellent", trail_long: "excellent" },
+    goals: ["trail_short", "trail_long"],
+    tags: ["trail", "strength"]
+  }
+];
+
+// Trail Long runs variants (10)
+const TRAIL_LONG_VARIANTS: LibraryWorkout[] = Array.from({ length: 10 }).map((_, i) => ({
+  id: `A_TR_LONG_V${i + 1}_PRO`,
+  cat: "A" as const,
+  sport: "course" as const,
+  objectif: `Long D+ ${i < 5 ? "technique" : "progressif"} #${i + 1}`,
+  necessite: "Recommandé" as const,
+  when: "Build/Peak",
+  avoid: "Fatigue chronique",
+  durationMin: i < 5 ? [120 + 10 * i, 150 + 10 * i] as [number, number] : [150 + 10 * (i - 5), 190 + 10 * (i - 5)] as [number, number],
+  metricKey: "cardiaque" as const,
+  sportKey: "tout sport",
+  structure: mkStructure([["Main", i < 5
+    ? "Z1–Z2 + blocs technique descente (régularité, appuis)"
+    : "Z2 majoritaire, finir 15–25' Z3 si frais (terrain stable)", ["Z1", "Z2", "Z3"]]]),
+  variants: { trail_short: "ok", trail_long: "fondamental" },
+  goals: ["trail_short", "trail_long"] as ("trail_short" | "trail_long")[],
+  dPlusTargetM: i < 5 ? { min: 700 + 100 * i, max: 1100 + 120 * i } : { min: 900 + 120 * (i - 5), max: 1600 + 150 * (i - 5) },
+  tags: ["trail", "longrun"]
+}));
+
+// BRICK – Core
+const BRICK_CORE_PRO: LibraryWorkout[] = [
+  {
+    id: "BR_HALF_RACEPACE_PRO",
+    cat: "B",
+    sport: "brick",
+    objectif: "Brick 70.3 spécifique (bike tempo + run tempo)",
+    necessite: "Recommandé",
+    when: "Build/Peak",
+    avoid: "Fatigue accumulée",
+    durationMin: [85, 135],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: mkStructure([
+      ["Bike", "60–90' Z3–Z4a (SST) stable", ["Z3", "Z4a"]],
+      ["Run", "20–30' Z2→Z3 (dernières 10' Z3)", ["Z2", "Z3"]]
+    ]),
+    variants: { half: "séance clé" },
+    goals: ["half"],
+    tags: ["brick", "race"]
+  },
+  {
+    id: "BR_IM_STEADY_PRO",
+    cat: "A",
+    sport: "brick",
+    objectif: "Brick IM (bike Z2 + run easy)",
+    necessite: "Recommandé",
+    when: "Build/Peak IM",
+    avoid: "Fatigue chronique",
+    durationMin: [110, 210],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: mkStructure([
+      ["Bike", "2h–3h Z2, nutrition", ["Z2"]],
+      ["Run", "20–40' Z1–Z2 (souple)", ["Z1", "Z2"]]
+    ]),
+    variants: { ironman: "fondamental" },
+    goals: ["ironman"],
+    tags: ["brick", "im"]
+  }
+];
+
+// Brick variants (20)
+const BRICK_HALF_VARIANTS: LibraryWorkout[] = Array.from({ length: 10 }).map((_, i) => ({
+  id: `BR_HALF_V${i + 1}_PRO`,
+  cat: "B" as const,
+  sport: "brick" as const,
+  objectif: `Brick 70.3 variante #${i + 1}`,
+  necessite: "Recommandé" as const,
+  when: "Build/Peak",
+  avoid: "Fatigue accumulée",
+  durationMin: [85 + 5 * i, 135 + 5 * i] as [number, number],
+  metricKey: "cardiaque" as const,
+  sportKey: "tout sport",
+  structure: mkStructure([
+    ["Bike", `${60 + 3 * i}–${80 + 3 * i}' Z3–Z4a (contrôlé)`, ["Z3", "Z4a"]],
+    ["Run", `${18 + 2 * i}–${25 + 2 * i}' Z2→Z3`, ["Z2", "Z3"]]
+  ]),
+  variants: { half: "ok" },
+  goals: ["half"] as ("half")[],
+  tags: ["brick", "race"]
+}));
+
+const BRICK_IM_VARIANTS: LibraryWorkout[] = Array.from({ length: 10 }).map((_, i) => ({
+  id: `BR_IM_V${i + 1}_PRO`,
+  cat: "A" as const,
+  sport: "brick" as const,
+  objectif: `Brick IM variante #${i + 1}`,
+  necessite: "Recommandé" as const,
+  when: "Build/Peak IM",
+  avoid: "Fatigue chronique",
+  durationMin: [120 + 10 * i, 210] as [number, number],
+  metricKey: "cardiaque" as const,
+  sportKey: "tout sport",
+  structure: mkStructure([
+    ["Bike", `${120 + 10 * i}' Z2 + 3x10' Z3 (si frais)`, ["Z2", "Z3"]],
+    ["Run", `${15 + 3 * i}–${30 + 3 * i}' Z1–Z2`, ["Z1", "Z2"]]
+  ]),
+  variants: { ironman: "ok" },
+  goals: ["ironman"] as ("ironman")[],
+  tags: ["brick", "im"]
+}));
+
+// MUSCU / PREHAB (20)
+const STRENGTH_PRO: LibraryWorkout[] = [
+  {
+    id: "C_STR_LOWER_PRO",
+    cat: "C",
+    sport: "muscu",
+    objectif: "Bas du corps (force)",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    avoid: "—",
+    durationMin: [25, 55],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: mkStructure([["Main", "Split squat / step-up / hip hinge / mollets / gainage", []]]),
+    variants: {},
+    goals: GOALS_ALL,
+    tags: ["strength", "prehab"]
+  },
+  {
+    id: "C_STR_CORE_PRO",
+    cat: "C",
+    sport: "muscu",
+    objectif: "Gainage & anti-rotation",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    avoid: "—",
+    durationMin: [25, 55],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: mkStructure([["Main", "Pallof press / dead bug / side plank / farmer carry", []]]),
+    variants: {},
+    goals: GOALS_ALL,
+    tags: ["strength", "core"]
+  },
+  {
+    id: "C_STR_ECC_PRO",
+    cat: "C",
+    sport: "muscu",
+    objectif: "Excentrique (descente)",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    avoid: "Douleur musculaire",
+    durationMin: [25, 55],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: mkStructure([["Main", "Step-down / squat excentrique / isos quadris", []]]),
+    variants: {},
+    goals: GOALS_ALL,
+    tags: ["strength", "eccentric"]
+  },
+  {
+    id: "C_STR_ANKLE_PRO",
+    cat: "C",
+    sport: "muscu",
+    objectif: "Pied/cheville proprio",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    avoid: "—",
+    durationMin: [25, 55],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: mkStructure([["Main", "Équilibre, sauts contrôlés, bande élastique, mobilité cheville", []]]),
+    variants: {},
+    goals: GOALS_ALL,
+    tags: ["strength", "ankle", "prehab"]
+  },
+  {
+    id: "C_STR_HIP_PRO",
+    cat: "C",
+    sport: "muscu",
+    objectif: "Hanches/mobilité",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    avoid: "—",
+    durationMin: [25, 55],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: mkStructure([["Main", "Mobilité hanches/ischios + gainage léger", []]]),
+    variants: {},
+    goals: GOALS_ALL,
+    tags: ["strength", "mobility"]
+  },
+  ...Array.from({ length: 15 }).map((_, i) => ({
+    id: `C_STR_VAR_${i + 1}_PRO`,
+    cat: "C" as const,
+    sport: "muscu" as const,
+    objectif: `Force/Préhab — variante #${i + 1}`,
+    necessite: "Recommandé" as const,
+    when: "Toute l'année",
+    avoid: "—",
+    durationMin: [25 + (i % 3) * 5, 45 + (i % 4) * 5] as [number, number],
+    metricKey: "cardiaque" as const,
+    sportKey: "tout sport",
+    structure: mkStructure([["Main", `Circuit ${i + 1}: 5–7 exos, RPE 6–7, focus qualité mouvement`, []]]),
+    variants: {},
+    goals: GOALS_ALL,
+    tags: ["strength", "prehab"]
+  }))
+];
+
+// RECOVERY VARIANTS (10)
+const RECOVERY_VARIANTS: LibraryWorkout[] = Array.from({ length: 10 }).map((_, i) => ({
+  id: `D_RECOVERY_VAR_${i + 1}_PRO`,
+  cat: "D" as const,
+  sport: (i % 3 === 0 ? "natation" : (i % 3 === 1 ? "course" : "cyclisme")) as "natation" | "course" | "cyclisme",
+  objectif: `Récupération active — variante #${i + 1}`,
+  necessite: "Recommandé" as const,
+  when: "Lendemain charge",
+  avoid: "—",
+  durationMin: [20 + (i % 4) * 5, 35 + (i % 5) * 5] as [number, number],
+  metricKey: "cardiaque" as const,
+  sportKey: "tout sport",
+  structure: mkStructure([["Main", "Z1 très facile + mobilité/respiration 10'", ["Z1"]]]),
+  variants: {},
+  goals: GOALS_ALL,
+  tags: ["recovery"]
+}));
+
+// Concat all Pro Pack workouts
+export const ProPackWorkouts: LibraryWorkout[] = [
+  ...RUN_A_PRO,
+  ...RUN_B_PRO,
+  ...RUN_C_PRO,
+  ...RUN_D_PRO,
+  ...BIKE_A_PRO,
+  ...BIKE_B_PRO,
+  ...BIKE_C_PRO,
+  ...BIKE_D_PRO,
+  ...SWIM_A_PRO,
+  ...SWIM_B_PRO,
+  ...SWIM_C_PRO,
+  ...SWIM_D_PRO,
+  ...TRAIL_CORE_PRO,
+  ...TRAIL_LONG_VARIANTS,
+  ...BRICK_CORE_PRO,
+  ...BRICK_HALF_VARIANTS,
+  ...BRICK_IM_VARIANTS,
+  ...STRENGTH_PRO,
+  ...RECOVERY_VARIANTS
+];
+
+// Add Pro Pack to main library
+WorkoutLibrary.push(...ProPackWorkouts);
+
+console.log(`✅ Pro Pack: ${ProPackWorkouts.length} séances ajoutées. Total: ${WorkoutLibrary.length}`);
