@@ -1,6 +1,7 @@
 // =============================================
 // PLANIFICATEUR PÉRIODISÉ - Base → Build → Peak → Taper
 // Intègre VLamax + Confiance + A/B/C/D + Zones chiffrées
+// Utilise WorkoutLibrary pour la génération des séances
 // =============================================
 
 import { ObjectifType, Athlete, AthleteRefs } from "@/types/athlete";
@@ -16,11 +17,24 @@ import {
   PhaseName,
   TrainingSport
 } from "@/types/planificateur";
+import { LibraryWorkout } from "@/types/workoutLibrary";
 import { analysePhysiologiqueComplete, RepartitionSeances } from "./physiologicalModel";
 import { ZonesConfig, computeAbsoluteRange, ZoneDefinition, AthleteRefsForZones } from "./zonesConfig";
+import { WorkoutLibrary, pickWorkoutFromLibrary, zoneTargetTextForWorkout } from "./workoutLibrary";
 
 // =============================================
-// TEMPLATES DE SÉANCES A/B/C/D
+// SPORT PATTERNS PAR OBJECTIF
+// =============================================
+
+const SportPatternByGoal: Record<string, TrainingSport[]> = {
+  IM: ["cyclisme", "course", "natation", "cyclisme", "course", "cyclisme"],
+  "703": ["cyclisme", "course", "natation", "cyclisme", "course", "cyclisme"],
+  Marathon: ["course", "course", "cyclisme", "course", "natation", "course"],
+  Semi: ["course", "course", "cyclisme", "course", "natation"]
+};
+
+// =============================================
+// TEMPLATES DE SÉANCES A/B/C/D (fallback)
 // =============================================
 
 export const SessionTemplates: Record<SessionType, SessionTemplate[]> = {
@@ -30,8 +44,8 @@ export const SessionTemplates: Record<SessionType, SessionTemplate[]> = {
     { sport: "natation", name: "Aérobie Z2", metric: "allure", zoneKey: "Z2", durationMin: [30, 60], notes: "Nage continue ou séries longues, focus technique." }
   ],
   B: [
-    { sport: "cyclisme", name: "VO2 Z5", metric: "puissance", zoneKey: "Z5", durationMin: [50, 80], notes: "Ex: 5x3' Z5 r=3'." },
-    { sport: "course", name: "VMA Z6", metric: "allure", zoneKey: "Z6", durationMin: [45, 70], notes: "Ex: 10-15x400m à %VMA, r=1'." },
+    { sport: "cyclisme", name: "VO2 Z5", metric: "puissance", zoneKey: "Z5", durationMin: [50, 80], notes: "Ex: 5x3 min Z5 r=3 min." },
+    { sport: "course", name: "VMA Z6", metric: "allure", zoneKey: "Z6", durationMin: [45, 70], notes: "Ex: 10-15x400m à %VMA, r=1 min." },
     { sport: "natation", name: "Vitesse Z6", metric: "allure", zoneKey: "Z6", durationMin: [35, 55], notes: "Ex: 16x25m vite r=20-30s." }
   ],
   C: [
@@ -208,13 +222,48 @@ function zoneTargetText(refs: AthleteRefsForZones | undefined, template: Session
 }
 
 // =============================================
-// GÉNÉRATION DE SEMAINE
+// GÉNÉRATION DE SEMAINE (avec WorkoutLibrary)
 // =============================================
 
 const WeekDays = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
 function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function shuffle<T>(arr: T[]): T[] {
+  return arr.slice().sort(() => Math.random() - 0.5);
+}
+
+// Format notes complètes depuis WorkoutLibrary
+function formatWorkoutNotes(athlete: Athlete, workout: LibraryWorkout): string {
+  const goalKey = getGoalVariantKey(athlete.objectif);
+  const variant = workout.variants[goalKey] 
+    ? `Variante ${goalKey}: ${workout.variants[goalKey]}` 
+    : "";
+
+  const blocks = workout.structure.map(s => {
+    const zonesTxt = s.zones
+      .map(zk => zoneTargetTextForWorkout(athlete.refs, workout.metricKey, workout.sportKey, zk))
+      .join(" | ");
+    return `${s.part}: ${s.text}${zonesTxt ? ` [${zonesTxt}]` : ""}`;
+  }).join(" • ");
+
+  return [
+    `${workout.necessite} | Quand: ${workout.when}`,
+    variant,
+    blocks
+  ].filter(Boolean).join("\n");
+}
+
+function getGoalVariantKey(goal: ObjectifType): "ironman" | "half" | "marathon" | "semi" {
+  switch (goal) {
+    case "IM": return "ironman";
+    case "703": return "half";
+    case "Marathon": return "marathon";
+    case "Semi": return "semi";
+    default: return "ironman";
+  }
 }
 
 export function generateWeekSessions(
@@ -237,69 +286,37 @@ export function generateWeekSessions(
   let dist = phaseDistribution(goal, phaseName);
   dist = applyPhysioBias(dist, physio.repartition, physio.confiance);
 
-  // Nombre de séances (6 par défaut)
+  // Nombre de séances
   const nSessions = goal === "Semi" ? 5 : 6;
   const nRest = 7 - nSessions;
 
   // Calcul du nombre de séances par type
-  const nA = Math.round(dist.A * nSessions);
-  const nB = Math.round(dist.B * nSessions);
-  const nC = Math.round(dist.C * nSessions);
+  let nA = Math.round(dist.A * nSessions);
+  let nB = Math.round(dist.B * nSessions);
+  let nC = Math.round(dist.C * nSessions);
   let nD = nSessions - (nA + nB + nC);
   if (nD < 0) nD = 0;
 
-  // Liste des types
+  // Ajuste pour être sûr d'avoir nSessions
+  while (nA + nB + nC + nD < nSessions) nD++;
+  while (nA + nB + nC + nD > nSessions) {
+    if (nD > 0) nD--;
+    else if (nC > 0) nC--;
+    else if (nA > 0) nA--;
+    else break;
+  }
+
+  // Liste des types (shuffled)
   let types: SessionType[] = [];
   types = types.concat(Array(nA).fill("A") as SessionType[]);
   types = types.concat(Array(nB).fill("B") as SessionType[]);
   types = types.concat(Array(nC).fill("C") as SessionType[]);
   types = types.concat(Array(Math.max(0, nD)).fill("D") as SessionType[]);
-
-  // Ajuster si nécessaire
-  while (types.length < nSessions) types.push("D");
-  while (types.length > nSessions) types.pop();
-
-  // Shuffle
-  types.sort(() => Math.random() - 0.5);
+  types = shuffle(types);
 
   // Pattern sport selon objectif
-  const sportPattern: TrainingSport[] = 
-    (goal === "IM" || goal === "703") 
-      ? ["cyclisme", "course", "natation", "cyclisme", "course", "cyclisme"]
-      : ["course", "course", "cyclisme", "course", "natation", "course"];
-
-  const sessions: PlannedSession[] = [];
-  let sportIdx = 0;
-  const mult = phaseMultiplier(phaseName);
-
-  for (let i = 0; i < nSessions; i++) {
-    const type = types[i];
-    const sport = sportPattern[sportIdx % sportPattern.length];
-    sportIdx++;
-
-    // Template cohérent
-    const candidates = (SessionTemplates[type] || []).filter(t => t.sport === sport);
-    const tpl = candidates.length ? pick(candidates) : pick(SessionTemplates[type] || SessionTemplates.A);
-
-    const durMin = tpl.durationMin[0] * mult;
-    const durMax = tpl.durationMin[1] * mult;
-    const duration = Math.round(pick([durMin, (durMin + durMax) / 2, durMax]));
-
-    sessions.push({
-      dayIndex: 0,
-      dayName: "",
-      type,
-      sport: tpl.sport,
-      name: tpl.name,
-      zone: tpl.zoneKey,
-      zoneTarget: zoneTargetText(athlete.refs, tpl),
-      durationMin: duration,
-      notes: tpl.notes,
-      phase: phaseName,
-      weekIndex: weekIndex + 1,
-      totalWeeks
-    });
-  }
+  const sportPattern = SportPatternByGoal[goal] || SportPatternByGoal.IM;
+  const sportList = sportPattern.slice(0, nSessions);
 
   // Jours de repos
   const restDays: number[] = [];
@@ -311,11 +328,78 @@ export function generateWeekSessions(
     if (!restDays.includes(r)) restDays.push(r);
   }
 
-  // Placement des séances
-  const trainingDays = WeekDays.map((d, idx) => ({ idx, d })).filter(x => !restDays.includes(x.idx));
-  for (let i = 0; i < sessions.length && i < trainingDays.length; i++) {
-    sessions[i].dayIndex = trainingDays[i].idx;
-    sessions[i].dayName = trainingDays[i].d;
+  const trainingDays = WeekDays
+    .map((d, idx) => ({ d, idx }))
+    .filter(x => !restDays.includes(x.idx));
+
+  const mult = phaseMultiplier(phaseName);
+  const sessions: PlannedSession[] = [];
+
+  for (let i = 0; i < nSessions && i < trainingDays.length; i++) {
+    const cat = types[i];
+    const sport = sportList[i % sportList.length];
+
+    // Pioche dans WorkoutLibrary
+    const workout = pickWorkoutFromLibrary({ cat, sport, goal });
+
+    if (workout) {
+      // Séance depuis bibliothèque
+      const mainPart = workout.structure.find(s => s.part.toLowerCase().includes("main")) || workout.structure[0];
+      const primaryZone = mainPart?.zones?.[0] || "Z2";
+      const zoneText = zoneTargetTextForWorkout(athlete.refs, workout.metricKey, workout.sportKey, primaryZone);
+
+      const baseDur = pick([workout.durationMin[0], (workout.durationMin[0] + workout.durationMin[1]) / 2, workout.durationMin[1]]);
+      const duration = Math.round(baseDur * mult);
+
+      sessions.push({
+        dayIndex: trainingDays[i].idx,
+        dayName: trainingDays[i].d,
+        type: cat,
+        sport: workout.sport,
+        name: `${workout.id.split("_").slice(1).join(" ")} – ${workout.objectif}`,
+        zone: primaryZone,
+        zoneTarget: zoneText,
+        durationMin: duration,
+        notes: formatWorkoutNotes(athlete, workout),
+        phase: phaseName,
+        weekIndex: weekIndex + 1,
+        totalWeeks
+      });
+    } else {
+      // Fallback: utilise SessionTemplates
+      const candidates = (SessionTemplates[cat] || []).filter(t => t.sport === sport);
+      const tpl = candidates.length ? pick(candidates) : pick(SessionTemplates[cat] || SessionTemplates.A);
+
+      const durMin = tpl.durationMin[0] * mult;
+      const durMax = tpl.durationMin[1] * mult;
+      const duration = Math.round(pick([durMin, (durMin + durMax) / 2, durMax]));
+
+      const sportKey = 
+        tpl.metric === "cardiaque" ? "tout sport" :
+        (tpl.metric === "puissance" ? "cyclisme" : (tpl.sport === "course" ? "course" : "natation"));
+
+      const z = getZoneDef(tpl.metric, sportKey, tpl.zoneKey);
+      let zoneText = tpl.zoneKey;
+      if (z && athlete.refs) {
+        const abs = computeAbsoluteRange(tpl.metric, sportKey, z, athlete.refs);
+        if (abs?.ok) zoneText = `${tpl.zoneKey} → ${abs.display}`;
+      }
+
+      sessions.push({
+        dayIndex: trainingDays[i].idx,
+        dayName: trainingDays[i].d,
+        type: cat,
+        sport: tpl.sport,
+        name: tpl.name,
+        zone: tpl.zoneKey,
+        zoneTarget: zoneText,
+        durationMin: duration,
+        notes: tpl.notes,
+        phase: phaseName,
+        weekIndex: weekIndex + 1,
+        totalWeeks
+      });
+    }
   }
 
   // Ajouter les jours de repos
@@ -328,7 +412,9 @@ export function generateWeekSessions(
     zone: "-",
     zoneTarget: "-",
     durationMin: 0,
-    notes: "Repos complet ou mobilité légère.",
+    notes: phaseName === "Taper" 
+      ? "Repos + mobilité, garder fraîcheur."
+      : "Repos complet ou mobilité légère.",
     phase: phaseName,
     weekIndex: weekIndex + 1,
     totalWeeks
