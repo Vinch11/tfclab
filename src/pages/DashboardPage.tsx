@@ -48,6 +48,7 @@ import { AthleteComparison } from "@/components/AthleteComparison";
 import { IndexSeancesView } from "@/components/IndexSeances";
 import { PhysiologicalAnalysis } from "@/components/PhysiologicalAnalysis";
 import { ZonesModule } from "@/components/ZonesModule";
+import { TestProtocols } from "@/components/TestProtocols";
 
 // Interface pour les données par sport
 interface SportDashboardData {
@@ -75,6 +76,7 @@ export default function DashboardPage() {
   const [showIndexSeances, setShowIndexSeances] = useState(false);
   const [showPhysiologicalAnalysis, setShowPhysiologicalAnalysis] = useState(false);
   const [showZones, setShowZones] = useState(false);
+  const [showTestLibrary, setShowTestLibrary] = useState(false);
 
   if (!currentAthlete) {
     return (
@@ -507,6 +509,15 @@ export default function DashboardPage() {
             <Heart className="h-4 w-4 text-primary" />
             <span className="text-sm">Zones (Cardiaque / Puissance / Allure)</span>
           </Button>
+
+          <Button
+            onClick={() => setShowTestLibrary(!showTestLibrary)}
+            className="w-full justify-start gap-3 h-12"
+            variant={showTestLibrary ? "default" : "outline"}
+          >
+            <BookOpen className="h-4 w-4 text-primary" />
+            <span className="text-sm">Bibliothèque de Tests</span>
+          </Button>
         </div>
 
         {/* Index des Séances */}
@@ -522,6 +533,11 @@ export default function DashboardPage() {
         {/* Zones Module */}
         {showZones && (
           <ZonesModule />
+        )}
+
+        {/* Bibliothèque de Tests */}
+        {showTestLibrary && (
+          <TestProtocols />
         )}
       </div>
     </AppLayout>
