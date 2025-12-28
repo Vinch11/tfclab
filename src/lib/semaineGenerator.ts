@@ -24,7 +24,7 @@ export interface JourSemaine {
 
 export interface SemaineType {
   athleteNom: string;
-  objectif: "IM" | "703" | "Marathon" | "Semi";
+  objectif: string;
   priorite: PrioriteCoaching;
   vlamax: number;
   tte: number;
@@ -120,6 +120,10 @@ export function genererSemaineType(athlete: Athlete): SemaineType | null {
       case "703": return "10-14h";
       case "Marathon": return "8-12h";
       case "Semi": return "6-10h";
+      case "TrailShort": return "8-12h";
+      case "Trail":
+      case "TrailMountain": return "10-14h";
+      case "TrailUltra": return "12-18h";
       default: return "10-14h";
     }
   };
@@ -189,6 +193,10 @@ export function genererSemaineTypeSport(athlete: Athlete, sport: SportType): Sem
       case "703": return "10-14h";
       case "Marathon": return "8-12h";
       case "Semi": return "6-10h";
+      case "TrailShort": return "8-12h";
+      case "Trail":
+      case "TrailMountain": return "10-14h";
+      case "TrailUltra": return "12-18h";
       default: return "10-14h";
     }
   };

@@ -742,6 +742,292 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       { part: "Run", text: "30–45' Z3 (race pace)", zones: ["Z3"] }
     ],
     variants: { half: "Séance clé", ironman: "—", marathon: "—", semi: "—" }
+},
+
+  // =========================================================
+  // 🟫 TRAIL SPÉCIFIQUE
+  // =========================================================
+
+  // A – TRAIL ENDURANCE
+  {
+    id: "A_TR_LONG_HIKE_RUN_DPLUS",
+    cat: "A",
+    sport: "course",
+    objectif: "Sortie longue trail (D+), endurance + économie en montée",
+    necessite: "Obligatoire",
+    when: "Build / Peak trail",
+    avoid: "Fatigue extrême, douleur tendon",
+    durationMin: [120, 240],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "2–4h Z1–Z2, priorité régularité en montée (alternance course/marche). Hydratation/gel.", zones: ["Z1", "Z2"] }
+    ],
+    variants: { trail_short: "1h45–2h30", trail_mountain: "2h–3h30", trail_ultra: "3h–4h+ (progressif)", ironman: "—", half: "—", marathon: "—", semi: "—" }
+  },
+  {
+    id: "A_TR_EASY_TECH",
+    cat: "A",
+    sport: "course",
+    objectif: "Endurance facile + technique sentier",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    avoid: "—",
+    durationMin: [45, 75],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "45–75' Z1–Z2 + 10' éducatifs trail (appuis, relâchement descente).", zones: ["Z1", "Z2"] }
+    ],
+    variants: { trail_short: "45–60'", trail_mountain: "60–75'", trail_ultra: "45–70'", ironman: "—", half: "—", marathon: "—", semi: "—" }
+  },
+  {
+    id: "A_TR_BACK_TO_BACK_1",
+    cat: "A",
+    sport: "course",
+    objectif: "Back-to-back J1 (fatigue cumulée ultra)",
+    necessite: "Recommandé",
+    when: "Build ultra",
+    avoid: "Si fragilité musculo-tendineuse",
+    durationMin: [120, 210],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "2–3h30 Z1–Z2. Garder bas, marcher les côtes, nutrition.", zones: ["Z1", "Z2"] }
+    ],
+    variants: { trail_ultra: "J1 clé", trail_mountain: "optionnel", trail_short: "—", ironman: "—", half: "—", marathon: "—", semi: "—" }
+  },
+  {
+    id: "A_TR_BACK_TO_BACK_2",
+    cat: "A",
+    sport: "course",
+    objectif: "Back-to-back J2 (économie sous fatigue)",
+    necessite: "Recommandé",
+    when: "Build ultra",
+    avoid: "Douleur",
+    durationMin: [60, 120],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "1–2h Z1–Z2 très contrôlé, focus relâchement.", zones: ["Z1", "Z2"] }
+    ],
+    variants: { trail_ultra: "J2 clé", trail_mountain: "optionnel", trail_short: "—", ironman: "—", half: "—", marathon: "—", semi: "—" }
+  },
+  {
+    id: "A_TR_LONG_PROGRESSIVE",
+    cat: "A",
+    sport: "course",
+    objectif: "Sortie longue progressive (fin plus soutenue)",
+    necessite: "Recommandé",
+    when: "Peak trail",
+    avoid: "Fatigue accumulée",
+    durationMin: [120, 210],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "2–3h Z2 + 20–30' Z3 (si frais). Garder technique en descente.", zones: ["Z2", "Z3"] }
+    ],
+    variants: { trail_short: "90–120'", trail_mountain: "2h–2h30", trail_ultra: "2h30–3h30", ironman: "—", half: "—", marathon: "—", semi: "—" }
+  },
+  {
+    id: "A_TR_RACE_SIMU",
+    cat: "A",
+    sport: "course",
+    objectif: "Simulation course trail (effort continu + nutrition)",
+    necessite: "Recommandé",
+    when: "Peak (J-21 à J-10)",
+    avoid: "Trop proche compétition",
+    durationMin: [90, 180],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "90–180' Z2 avec sections 'race effort' en Z3 sur montées. Nutrition comme le jour J.", zones: ["Z2", "Z3"] }
+    ],
+    variants: { trail_short: "90–120'", trail_mountain: "120–150'", trail_ultra: "150–180'", ironman: "—", half: "—", marathon: "—", semi: "—" }
+  },
+  {
+    id: "A_TR_BIKE_SUPPORT",
+    cat: "A",
+    sport: "cyclisme",
+    objectif: "Support aérobie sans impact (trail)",
+    necessite: "Recommandé",
+    when: "Semaine lourde course / prévention blessures",
+    avoid: "—",
+    durationMin: [60, 150],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Main", text: "60–150' Z2 vélo facile, cadence fluide", zones: ["Z2"] }
+    ],
+    variants: { trail_ultra: "très utile", trail_mountain: "utile", trail_short: "utile", ironman: "—", half: "—", marathon: "—", semi: "—" }
+  },
+
+  // B – TRAIL INTENSITÉ
+  {
+    id: "B_TR_HILL_REPS_SHORT",
+    cat: "B",
+    sport: "course",
+    objectif: "Côtes courtes (puissance aérobie, recrutement)",
+    necessite: "Recommandé",
+    when: "Base/Build trail court & montagne",
+    avoid: "Achilles/mollet fragile",
+    durationMin: [45, 70],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Warm-up", text: "15' Z1–Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "12–20x30–45s côte Z5 (fort mais propre) r=descente lente complète", zones: ["Z5"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { trail_short: "18–20 reps", trail_mountain: "12–16 reps", trail_ultra: "8–12 reps (rare)", ironman: "—", half: "—", marathon: "—", semi: "—" }
+  },
+  {
+    id: "B_TR_HILL_TEMPO",
+    cat: "B",
+    sport: "course",
+    objectif: "Tempo en montée (seuil aérobie / endurance de côte)",
+    necessite: "Obligatoire",
+    when: "Build trail",
+    avoid: "VLamax très haute + fatigue (réduire volume)",
+    durationMin: [60, 90],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "3x10–15' montée continue Z3–Z4a r=descente Z1. Rester 'dur contrôlé'.", zones: ["Z3", "Z4a", "Z1"] }
+    ],
+    variants: { trail_short: "3x10'", trail_mountain: "3x12–15'", trail_ultra: "2x12' (optionnel)", ironman: "—", half: "—", marathon: "—", semi: "—" }
+  },
+  {
+    id: "B_TR_DESCENT_TOLERANCE",
+    cat: "B",
+    sport: "course",
+    objectif: "Tolérance excentrique (descente contrôlée)",
+    necessite: "Recommandé",
+    when: "Build/Peak trail montagne",
+    avoid: "Douleur genou/quad",
+    durationMin: [45, 75],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "6–10x2–3' descente technique 'vite mais propre' + remontée facile Z1. Focus appuis.", zones: ["Z2", "Z1"] }
+    ],
+    variants: { trail_mountain: "excellent", trail_short: "utile", trail_ultra: "prudent", ironman: "—", half: "—", marathon: "—", semi: "—" }
+  },
+  {
+    id: "B_TR_FARTLEK_TRAIL",
+    cat: "B",
+    sport: "course",
+    objectif: "Fartlek trail (relances, variation terrain)",
+    necessite: "Recommandé",
+    when: "Build trail",
+    avoid: "Fatigue nerveuse",
+    durationMin: [50, 75],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "10' Z2 + 10x(1' Z4a / 2' Z2) sur sentier + 10' easy", zones: ["Z2", "Z4a"] }
+    ],
+    variants: { trail_short: "12–15 reps", trail_mountain: "10 reps", trail_ultra: "8 reps", ironman: "—", half: "—", marathon: "—", semi: "—" }
+  },
+
+  // C – TRAIL FORCE/TECHNIQUE
+  {
+    id: "C_TR_STRENGTH_GENERAL",
+    cat: "C",
+    sport: "muscu",
+    objectif: "Force générale & prévention blessures (trail)",
+    necessite: "Obligatoire",
+    when: "Toute l'année (1–2x/sem)",
+    avoid: "Courbatures fortes en phase Peak",
+    durationMin: [35, 55],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "35–55': squat, fente, hip-hinge, mollets, gainage, proprioception. RPE modéré.", zones: ["Z1"] }
+    ],
+    variants: { trail_ultra: "prioritaire", trail_mountain: "prioritaire", trail_short: "prioritaire", ironman: "—", half: "—", marathon: "—", semi: "—" }
+  },
+  {
+    id: "C_TR_STRENGTH_HILLS",
+    cat: "C",
+    sport: "muscu",
+    objectif: "Force spécifique montée (trail)",
+    necessite: "Recommandé",
+    when: "Base/Build",
+    avoid: "Courbatures excessives",
+    durationMin: [40, 55],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "40–55': step-ups, split squat, mollets lourds, gainage, proprio. RPE 6–7.", zones: ["Z1"] }
+    ],
+    variants: { trail_ultra: "excellent", trail_mountain: "excellent", trail_short: "utile", ironman: "—", half: "—", marathon: "—", semi: "—" }
+  },
+  {
+    id: "C_TR_SKILLS_TECH",
+    cat: "C",
+    sport: "course",
+    objectif: "Technique trail (appuis, relance, lecture terrain)",
+    necessite: "Recommandé",
+    when: "Base/Build",
+    avoid: "—",
+    durationMin: [30, 50],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "30–50' facile Z1–Z2 + 12x20s technique (relance, virages, marches) r=1'", zones: ["Z1", "Z2"] }
+    ],
+    variants: { trail_short: "top", trail_mountain: "top", trail_ultra: "top", ironman: "—", half: "—", marathon: "—", semi: "—" }
+  },
+  {
+    id: "C_TR_DOWNHILL_EASY",
+    cat: "C",
+    sport: "course",
+    objectif: "Technique descente (facile, propre)",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    avoid: "Douleur genou",
+    durationMin: [35, 55],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "30–45' facile + 6–10 descentes 45–60s 'propre' r=remontée easy", zones: ["Z1", "Z2"] }
+    ],
+    variants: { trail_mountain: "excellent", trail_short: "utile", trail_ultra: "utile", ironman: "—", half: "—", marathon: "—", semi: "—" }
+  },
+  {
+    id: "C_TR_POLES_SESSION",
+    cat: "C",
+    sport: "course",
+    objectif: "Technique bâtons (si utilisé en course)",
+    necessite: "Optionnel",
+    when: "Build/Peak (montagne/ultra)",
+    avoid: "—",
+    durationMin: [45, 70],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "45–70' sentier facile + 6x4' montée avec bâtons (efficience) r=descente easy", zones: ["Z2", "Z1"] }
+    ],
+    variants: { trail_mountain: "utile", trail_ultra: "utile", trail_short: "—", ironman: "—", half: "—", marathon: "—", semi: "—" }
+  },
+
+  // D – TRAIL RÉCUP
+  {
+    id: "D_TR_RECOVERY_SOFT",
+    cat: "D",
+    sport: "course",
+    objectif: "Récupération active trail (surface souple)",
+    necessite: "Obligatoire",
+    when: "Lendemain charge / semaine de choc",
+    avoid: "Douleur",
+    durationMin: [25, 45],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "25–45' Z1 sur terrain souple + mobilité chevilles/hips", zones: ["Z1"] }
+    ],
+    variants: { trail_short: "ok", trail_mountain: "ok", trail_ultra: "ok", ironman: "—", half: "—", marathon: "—", semi: "—" }
   }
 ];
 // =============================================
@@ -779,6 +1065,10 @@ function goalToVariantKey(goal: ObjectifType): keyof WorkoutVariants {
     case "703": return "half";
     case "Marathon": return "marathon";
     case "Semi": return "semi";
+    case "Trail":
+    case "TrailMountain": return "trail_mountain";
+    case "TrailShort": return "trail_short";
+    case "TrailUltra": return "trail_ultra";
     default: return "ironman";
   }
 }

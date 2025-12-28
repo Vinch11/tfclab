@@ -292,11 +292,11 @@ export function seancesParPriorite(priorite: PrioriteCoaching): Seance[] {
   return codes.map(code => SEANCES_VELO[code]);
 }
 
-// Déterminer la priorité coaching - étendu pour Marathon/Semi
+// Déterminer la priorité coaching - étendu pour Marathon/Semi/Trail
 export function determinerPriorite(
   vlamax: number,
   tte: number,
-  objectif: "IM" | "703" | "Marathon" | "Semi"
+  objectif: string
 ): PrioriteCoaching {
   // Triathlon
   if (objectif === "IM" && vlamax > 0.40) return "Réduire VLamax";
@@ -314,6 +314,28 @@ export function determinerPriorite(
     if (tte < 50) return "Augmenter endurance";
     if (vlamax < 0.35) return "Améliorer vitesse";
     if (vlamax > 0.45) return "Réduire VLamax";
+    return "Maintenir équilibre";
+  }
+  
+  // Trail - priorité endurance aérobie et économie
+  if (objectif === "Trail" || objectif === "TrailMountain") {
+    if (tte < 55) return "Augmenter endurance";
+    if (vlamax > 0.42) return "Réduire VLamax";
+    return "Maintenir équilibre";
+  }
+  
+  // Trail court - équilibre vitesse/endurance
+  if (objectif === "TrailShort") {
+    if (tte < 50) return "Augmenter endurance";
+    if (vlamax < 0.38) return "Améliorer vitesse";
+    if (vlamax > 0.48) return "Réduire VLamax";
+    return "Maintenir équilibre";
+  }
+  
+  // Ultra trail - endurance maximale
+  if (objectif === "TrailUltra") {
+    if (tte < 65) return "Augmenter endurance";
+    if (vlamax > 0.35) return "Réduire VLamax";
     return "Maintenir équilibre";
   }
   

@@ -30,7 +30,11 @@ const SportPatternByGoal: Record<string, TrainingSport[]> = {
   IM: ["cyclisme", "course", "natation", "cyclisme", "course", "cyclisme"],
   "703": ["cyclisme", "course", "natation", "cyclisme", "course", "cyclisme"],
   Marathon: ["course", "course", "cyclisme", "course", "natation", "course"],
-  Semi: ["course", "course", "cyclisme", "course", "natation"]
+  Semi: ["course", "course", "cyclisme", "course", "natation"],
+  Trail: ["course", "course", "cyclisme", "course", "muscu", "course"],
+  TrailShort: ["course", "course", "cyclisme", "course", "muscu", "course"],
+  TrailMountain: ["course", "course", "cyclisme", "course", "muscu", "course"],
+  TrailUltra: ["course", "course", "cyclisme", "course", "muscu", "course"]
 };
 
 // =============================================
@@ -69,7 +73,11 @@ export const GoalPeriodization: Record<string, GoalPeriodizationConfig> = {
   IM: { defaultWeeks: 20, taperWeeks: 3, peakWeeks: 3, buildWeeks: 8, baseWeeks: 6 },
   "703": { defaultWeeks: 14, taperWeeks: 2, peakWeeks: 2, buildWeeks: 6, baseWeeks: 4 },
   Marathon: { defaultWeeks: 16, taperWeeks: 2, peakWeeks: 3, buildWeeks: 7, baseWeeks: 4 },
-  Semi: { defaultWeeks: 12, taperWeeks: 2, peakWeeks: 2, buildWeeks: 5, baseWeeks: 3 }
+  Semi: { defaultWeeks: 12, taperWeeks: 2, peakWeeks: 2, buildWeeks: 5, baseWeeks: 3 },
+  Trail: { defaultWeeks: 14, taperWeeks: 2, peakWeeks: 2, buildWeeks: 6, baseWeeks: 4 },
+  TrailShort: { defaultWeeks: 12, taperWeeks: 2, peakWeeks: 2, buildWeeks: 5, baseWeeks: 3 },
+  TrailMountain: { defaultWeeks: 16, taperWeeks: 2, peakWeeks: 3, buildWeeks: 7, baseWeeks: 4 },
+  TrailUltra: { defaultWeeks: 20, taperWeeks: 3, peakWeeks: 3, buildWeeks: 8, baseWeeks: 6 }
 };
 
 // =============================================
@@ -134,6 +142,17 @@ function phaseDistribution(goal: ObjectifType, phaseName: PhaseName): SessionDis
   }
   if (goal === "Semi") {
     adj.B += 0.06; adj.A -= 0.06;
+  }
+  
+  // Trail - beaucoup d'endurance, force spécifique, moins d'intensité pure
+  if (goal === "Trail" || goal === "TrailMountain") {
+    adj.A += 0.08; adj.B -= 0.05; adj.C += 0.02; adj.D -= 0.05;
+  }
+  if (goal === "TrailShort") {
+    adj.A += 0.03; adj.B -= 0.02; adj.C += 0.02; adj.D -= 0.03;
+  }
+  if (goal === "TrailUltra") {
+    adj.A += 0.12; adj.B -= 0.10; adj.C += 0.03; adj.D -= 0.05;
   }
 
   // Normalisation
@@ -256,12 +275,16 @@ function formatWorkoutNotes(athlete: Athlete, workout: LibraryWorkout): string {
   ].filter(Boolean).join("\n");
 }
 
-function getGoalVariantKey(goal: ObjectifType): "ironman" | "half" | "marathon" | "semi" {
+function getGoalVariantKey(goal: ObjectifType): "ironman" | "half" | "marathon" | "semi" | "trail_short" | "trail_mountain" | "trail_ultra" {
   switch (goal) {
     case "IM": return "ironman";
     case "703": return "half";
     case "Marathon": return "marathon";
     case "Semi": return "semi";
+    case "Trail":
+    case "TrailMountain": return "trail_mountain";
+    case "TrailShort": return "trail_short";
+    case "TrailUltra": return "trail_ultra";
     default: return "ironman";
   }
 }
