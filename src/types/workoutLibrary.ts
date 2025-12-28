@@ -18,6 +18,9 @@ export type WorkoutVariants = Partial<Record<"ironman" | "half" | "marathon" | "
 // Niveau de nécessité
 export type NecessityLevel = "Obligatoire" | "Recommandé" | "Optionnel";
 
+// Cible D+ (dénivelé positif)
+export type DPlusTarget = number | { min: number; max: number };
+
 // Séance de la bibliothèque
 export interface LibraryWorkout {
   id: string;
@@ -32,6 +35,8 @@ export interface LibraryWorkout {
   sportKey: string;
   structure: WorkoutStructurePart[];
   variants: WorkoutVariants;
+  // Cible D+ pour trail (optionnel)
+  dPlusTargetM?: DPlusTarget;
 }
 
 // Session planifiée étendue avec référence workout
@@ -46,4 +51,5 @@ export interface ExtendedPlannedSession {
   zone: string;
   zoneTarget: string;
   notes: string;
+  dPlusTargetM?: DPlusTarget;
 }

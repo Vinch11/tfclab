@@ -27,6 +27,9 @@ export interface SessionTemplate {
   notes: string;
 }
 
+// Cible D+ (dénivelé positif) pour trail
+export type DPlusTarget = number | { min: number; max: number };
+
 // Séance planifiée
 export interface PlannedSession {
   dayIndex: number;
@@ -41,6 +44,8 @@ export interface PlannedSession {
   phase: PhaseName;
   weekIndex: number;
   totalWeeks: number;
+  // Cible D+ pour trail (optionnel)
+  dPlusTargetM?: DPlusTarget;
 }
 
 // Distribution A/B/C/D
