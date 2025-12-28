@@ -1,6 +1,7 @@
 // =============================================
-// MODÈLE PHYSIOLOGIQUE ÉLITE - VLamax pondérée, Confiance, SPM
-// Intégré avec bibliothèque de tests standardisée
+// MODÈLE PHYSIOLOGIQUE ÉLITE - Option A
+// Seuls les tests VLAMAX alimentent: VLamax pondérée + Confiance + SPM
+// Les tests REF alimentent uniquement: refs (VMA/FTP/FCmax/CSS) + VO2max
 // =============================================
 
 import { ObjectifType } from "@/types/athlete";
@@ -17,7 +18,16 @@ export interface TestVLamaxResult {
   date?: string;
 }
 
-// Calcul VLamax pondérée par fiabilité (fonctionne avec ancien ET nouveau format)
+// Filtrer uniquement les tests VLAMAX valides
+export function filterVLamaxTests(tests: StoredTestResult[]): StoredTestResult[] {
+  return tests.filter(t => 
+    t.type === "VLAMAX" && 
+    typeof t.vlamax === "number" && 
+    !isNaN(t.vlamax)
+  );
+}
+
+// Calcul VLamax pondérée par fiabilité (UNIQUEMENT tests VLAMAX)
 export function calculVLamaxPonderee(tests: (TestVLamaxResult | StoredTestResult)[]): number | null {
   if (!tests || tests.length === 0) return null;
 
@@ -25,6 +35,10 @@ export function calculVLamaxPonderee(tests: (TestVLamaxResult | StoredTestResult
   let poids = 0;
 
   tests.forEach(t => {
+    // Ignorer les tests REF (type !== "VLAMAX" ou pas de type)
+    const testType = (t as StoredTestResult).type;
+    if (testType === "REF") return;
+    
     const vlamax = typeof t.vlamax === "number" ? t.vlamax : null;
     if (vlamax === null || isNaN(vlamax)) return;
     
@@ -36,12 +50,17 @@ export function calculVLamaxPonderee(tests: (TestVLamaxResult | StoredTestResult
   return poids > 0 ? somme / poids : null;
 }
 
-// Indice de confiance (0-100%)
+// Indice de confiance (0-100%) - UNIQUEMENT tests VLAMAX
 export function calculIndiceConfiance(tests: (TestVLamaxResult | StoredTestResult)[]): number {
   if (!tests || tests.length === 0) return 0;
 
-  // Filtrer uniquement les tests avec VLamax valide
-  const validTests = tests.filter(t => typeof t.vlamax === "number" && !isNaN(t.vlamax));
+  // Filtrer uniquement les tests VLAMAX avec VLamax valide
+  const validTests = tests.filter(t => {
+    const testType = (t as StoredTestResult).type;
+    if (testType === "REF") return false;
+    return typeof t.vlamax === "number" && !isNaN(t.vlamax);
+  });
+  
   if (validTests.length === 0) return 0;
 
   const fiabs = validTests.map(t => t.fiabilite ?? 0.5);

@@ -32,25 +32,26 @@ interface PhysiologicalAnalysisProps {
 export function PhysiologicalAnalysis({ athlete }: PhysiologicalAnalysisProps) {
   const snapshot = getDernierSnapshot(athlete);
   
-  // Combiner les tests stockés sur l'athlète ET les estimations du snapshot
+  // OPTION A: Seuls les tests VLAMAX alimentent le modèle
   const tests: TestVLamaxResult[] = useMemo(() => {
     const testsList: TestVLamaxResult[] = [];
     
-    // 1. Ajouter les tests stockés de la bibliothèque (prioritaires)
+    // 1. Ajouter UNIQUEMENT les tests VLAMAX (pas REF)
     if (athlete.tests && athlete.tests.length > 0) {
       athlete.tests.forEach(t => {
-        if (t.vlamax !== null && !isNaN(t.vlamax)) {
+        // Filtrer: type VLAMAX uniquement
+        if (t.type === "VLAMAX" && t.vlamax !== null && !isNaN(t.vlamax)) {
           testsList.push({
             nom: t.nom,
             vlamax: t.vlamax,
-            fiabilite: t.fiabilite,
+            fiabilite: t.fiabilite ?? 0.5,
             date: t.date
           });
         }
       });
     }
     
-    // 2. Si pas de tests stockés, fallback sur estimations snapshot
+    // 2. Si pas de tests VLAMAX stockés, fallback sur estimations snapshot
     if (testsList.length === 0 && snapshot) {
       if (snapshot.pmax_5s && snapshot.ftp) {
         const vlamaxEstimee = (snapshot.pmax_5s / snapshot.ftp) * 0.15;
