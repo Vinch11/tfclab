@@ -26,9 +26,9 @@ export function useCloudData() {
     setLoading(true);
     try {
       const [athletesRes, testsRes, plansRes] = await Promise.all([
-        supabase.from("athletes").select("*").order("created_at", { ascending: false }),
-        supabase.from("tests").select("*").order("date", { ascending: false }),
-        supabase.from("plans").select("*"),
+        supabase.from("athletes").select("*").eq("coach_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("tests").select("*").eq("coach_id", user.id).order("date", { ascending: false }),
+        supabase.from("plans").select("*").eq("coach_id", user.id),
       ]);
 
       if (athletesRes.error) throw athletesRes.error;
