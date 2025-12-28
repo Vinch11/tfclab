@@ -1,28 +1,25 @@
-import { useState } from "react";
-import { Heart, Zap, Timer, Info, Calculator, ChevronDown } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Heart, Zap, Timer, Info, Calculator, ChevronDown, Save, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ZonesConfig, getZoneTable, getZoneTarget, zoneColors, ZoneDefinition } from "@/lib/zonesConfig";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  ZonesConfig, 
+  getZoneTable, 
+  zoneColors, 
+  ZoneDefinition,
+  computeAbsoluteRange,
+  AthleteRefsForZones
+} from "@/lib/zonesConfig";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { useAthletes } from "@/contexts/AthleteContext";
+import { useToast } from "@/hooks/use-toast";
 
 const metricIcons = {
   cardiaque: Heart,
   puissance: Zap,
   allure: Timer,
-};
-
-const metricUnits: Record<string, Record<string, string>> = {
-  cardiaque: { "tout sport": "bpm" },
-  puissance: { course: "W", cyclisme: "W" },
-  allure: { course: "km/h", natation: "sec/100m" },
-};
-
-const referenceLabels: Record<string, Record<string, string>> = {
-  cardiaque: { "tout sport": "FCmax ou LTHR" },
-  puissance: { course: "FTP Course", cyclisme: "FTP Vélo" },
-  allure: { course: "VMA", natation: "CSS" },
 };
 
 interface ZonesModuleProps {
@@ -36,41 +33,92 @@ export function ZonesModule({
   defaultMetric = "puissance", 
   defaultSport = "cyclisme" 
 }: ZonesModuleProps) {
+  const { currentAthlete, updateAthlete } = useAthletes();
+  const { toast } = useToast();
+  
   const [activeMetric, setActiveMetric] = useState<string>(defaultMetric);
   const [activeSport, setActiveSport] = useState<string>(defaultSport);
-  const [referenceValue, setReferenceValue] = useState<string>("");
-  const [selectedZone, setSelectedZone] = useState<string>("");
-  const [convertResult, setConvertResult] = useState<{ min: number; max: number } | null>(null);
   const [expandedZone, setExpandedZone] = useState<string | null>(null);
+  
+  // Références locales (éditables)
+  const [localRefs, setLocalRefs] = useState<AthleteRefsForZones>({
+    fcMax: null,
+    vma: null,
+    ftp: null,
+    css: null
+  });
+  const [hasChanges, setHasChanges] = useState(false);
+
+  // Charger les refs de l'athlète actuel
+  useEffect(() => {
+    if (currentAthlete?.refs) {
+      setLocalRefs({
+        fcMax: currentAthlete.refs.fcMax ?? null,
+        vma: currentAthlete.refs.vma ?? null,
+        ftp: currentAthlete.refs.ftp ?? null,
+        css: currentAthlete.refs.css ?? null
+      });
+    }
+  }, [currentAthlete]);
 
   const metric = ZonesConfig[activeMetric];
   const availableSports = Object.keys(metric.sports);
   const zones = getZoneTable(activeMetric, activeSport);
-  const unit = metricUnits[activeMetric]?.[activeSport] || "";
-  const refLabel = referenceLabels[activeMetric]?.[activeSport] || "Référence";
 
   const handleMetricChange = (value: string) => {
     setActiveMetric(value);
     const newSports = Object.keys(ZonesConfig[value].sports);
     setActiveSport(newSports[0]);
-    setConvertResult(null);
-    setSelectedZone("");
   };
 
-  const handleConvert = () => {
-    const ref = parseFloat(referenceValue);
-    if (!ref || ref <= 0 || !selectedZone) return;
+  const handleRefChange = (key: keyof AthleteRefsForZones, value: string) => {
+    const numVal = value === "" ? null : parseFloat(value);
+    setLocalRefs(prev => ({ ...prev, [key]: numVal }));
+    setHasChanges(true);
+  };
+
+  const handleSaveRefs = () => {
+    if (!currentAthlete) return;
     
-    const result = getZoneTarget(activeMetric, activeSport, selectedZone, ref, unit);
-    if (result) {
-      setConvertResult({ min: result.absMin, max: result.absMax });
-    }
+    updateAthlete({
+      ...currentAthlete,
+      refs: {
+        fcMax: localRefs.fcMax,
+        vma: localRefs.vma,
+        ftp: localRefs.ftp,
+        css: localRefs.css
+      }
+    });
+    
+    setHasChanges(false);
+    toast({
+      title: "Références sauvegardées",
+      description: "Les zones sont maintenant calculées automatiquement."
+    });
   };
 
   const getZoneColor = (zoneKey: string) => {
     const baseKey = zoneKey.replace(/[ab]$/, "");
     return zoneColors[zoneKey] || zoneColors[baseKey] || zoneColors.Z1;
   };
+
+  const getRelevantRef = (): { label: string; value: number | null; key: keyof AthleteRefsForZones } | null => {
+    if (activeMetric === "cardiaque") {
+      return { label: "FCmax (bpm)", value: localRefs.fcMax, key: "fcMax" };
+    }
+    if (activeMetric === "puissance" && activeSport === "cyclisme") {
+      return { label: "FTP (W)", value: localRefs.ftp, key: "ftp" };
+    }
+    if (activeMetric === "allure" && activeSport === "course") {
+      return { label: "VMA (km/h)", value: localRefs.vma, key: "vma" };
+    }
+    if (activeMetric === "allure" && activeSport === "natation") {
+      return { label: "CSS (sec/100m)", value: localRefs.css, key: "css" };
+    }
+    return null;
+  };
+
+  const relevantRef = getRelevantRef();
 
   return (
     <div className={cn("glass-card p-6", className)}>
@@ -81,9 +129,72 @@ export function ZonesModule({
         </div>
         <div>
           <h2 className="text-xl font-semibold text-foreground">Zones d'Entraînement</h2>
-          <p className="text-sm text-muted-foreground">Cardiaque • Puissance • Allure</p>
+          <p className="text-sm text-muted-foreground">
+            {currentAthlete ? currentAthlete.nom : "Aucun athlète sélectionné"}
+          </p>
         </div>
       </div>
+
+      {/* Références Athlète */}
+      {currentAthlete && (
+        <div className="p-4 rounded-xl bg-secondary/30 border border-border mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <p className="font-medium text-foreground text-sm">Références de {currentAthlete.nom}</p>
+            {hasChanges && (
+              <Button size="sm" onClick={handleSaveRefs} className="gap-2">
+                <Save className="w-4 h-4" />
+                Sauver
+              </Button>
+            )}
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <Label className="text-xs text-muted-foreground">FCmax (bpm)</Label>
+              <Input
+                type="number"
+                placeholder="190"
+                value={localRefs.fcMax ?? ""}
+                onChange={(e) => handleRefChange("fcMax", e.target.value)}
+                className="h-9"
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">VMA (km/h)</Label>
+              <Input
+                type="number"
+                placeholder="18.0"
+                step="0.1"
+                value={localRefs.vma ?? ""}
+                onChange={(e) => handleRefChange("vma", e.target.value)}
+                className="h-9"
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">FTP (W)</Label>
+              <Input
+                type="number"
+                placeholder="260"
+                value={localRefs.ftp ?? ""}
+                onChange={(e) => handleRefChange("ftp", e.target.value)}
+                className="h-9"
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">CSS (sec/100m)</Label>
+              <Input
+                type="number"
+                placeholder="95"
+                value={localRefs.css ?? ""}
+                onChange={(e) => handleRefChange("css", e.target.value)}
+                className="h-9"
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            Cardiaque = %FCmax • Allure course = %VMA • Puissance cyclisme = %FTP • Natation = %CSS
+          </p>
+        </div>
+      )}
 
       {/* Metric Tabs */}
       <Tabs value={activeMetric} onValueChange={handleMetricChange} className="mb-6">
@@ -108,10 +219,7 @@ export function ZonesModule({
               key={sport}
               variant={activeSport === sport ? "default" : "outline"}
               size="sm"
-              onClick={() => {
-                setActiveSport(sport);
-                setConvertResult(null);
-              }}
+              onClick={() => setActiveSport(sport)}
               className="capitalize"
             >
               {sport}
@@ -120,28 +228,36 @@ export function ZonesModule({
         </div>
       )}
 
-      {/* Info Box */}
-      <div className="p-4 rounded-xl bg-secondary/30 border border-border mb-6">
-        <div className="flex items-start gap-3">
-          <Info className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-          <div className="text-sm text-muted-foreground">
-            <p className="font-medium text-foreground mb-1">Comment lire ces zones :</p>
-            <p>Les % sont exprimés par rapport à une référence athlète :</p>
-            <ul className="list-disc ml-4 mt-1 space-y-0.5">
-              <li><strong>Puissance cyclisme</strong> : % FTP</li>
-              <li><strong>Allure course</strong> : % VMA ou % vitesse seuil</li>
-              <li><strong>Allure natation</strong> : % CSS</li>
-              <li><strong>Cardiaque</strong> : % FCmax ou % LTHR</li>
-            </ul>
-          </div>
+      {/* Reference Status */}
+      {relevantRef && (
+        <div className={cn(
+          "p-3 rounded-lg mb-4 flex items-center gap-2",
+          relevantRef.value ? "bg-success/10 border border-success/30" : "bg-warning/10 border border-warning/30"
+        )}>
+          {relevantRef.value ? (
+            <>
+              <Check className="w-4 h-4 text-success" />
+              <span className="text-sm">
+                <strong>{relevantRef.label}:</strong> {relevantRef.value} — valeurs absolues calculées
+              </span>
+            </>
+          ) : (
+            <>
+              <Info className="w-4 h-4 text-warning" />
+              <span className="text-sm text-muted-foreground">
+                Renseigne <strong>{relevantRef.label}</strong> pour afficher les valeurs absolues
+              </span>
+            </>
+          )}
         </div>
-      </div>
+      )}
 
       {/* Zones Table */}
       <div className="space-y-2 mb-6">
         {zones.map((zone, idx) => {
           const colors = getZoneColor(zone.key);
           const isExpanded = expandedZone === zone.key;
+          const absResult = computeAbsoluteRange(activeMetric, activeSport, zone, localRefs);
           
           return (
             <div
@@ -163,19 +279,23 @@ export function ZonesModule({
                     <span className={cn("font-bold", colors.text)}>{zone.key}</span>
                     <span className="font-medium text-foreground">{zone.name}</span>
                   </div>
+                  {/* Valeurs absolues sous le nom */}
+                  {absResult.ok && (
+                    <p className="text-sm font-mono text-accent mt-0.5">{absResult.display}</p>
+                  )}
                 </div>
 
                 <div className="hidden sm:flex items-center gap-6 text-sm">
-                  <div className="text-right w-20">
+                  <div className="text-right w-16">
                     <p className="text-muted-foreground text-xs">Min</p>
                     <p className="font-mono font-medium text-foreground">{zone.min}%</p>
                   </div>
-                  <div className="text-right w-20">
+                  <div className="text-right w-16">
                     <p className="text-muted-foreground text-xs">Max</p>
                     <p className="font-mono font-medium text-foreground">{zone.max}%</p>
                   </div>
                   {zone.cogH !== undefined && (
-                    <div className="text-right w-20">
+                    <div className="text-right w-16">
                       <p className="text-muted-foreground text-xs">Charge/h</p>
                       <p className="font-mono font-medium text-foreground">{zone.cogH}</p>
                     </div>
@@ -192,6 +312,21 @@ export function ZonesModule({
                 <div className="px-4 pb-4 pt-0 animate-fade-in">
                   <div className="p-3 rounded-lg bg-background/50 border border-border/50">
                     <p className="text-sm text-muted-foreground">{zone.desc}</p>
+                    
+                    {/* Valeurs absolues détaillées */}
+                    {absResult.ok && absResult.lo !== undefined && absResult.hi !== undefined && (
+                      <div className="mt-3 p-2 rounded bg-accent/10 border border-accent/30">
+                        <p className="text-xs text-muted-foreground mb-1">Cible pour {currentAthlete?.nom || "l'athlète"}</p>
+                        <p className="font-mono font-bold text-accent">{absResult.display}</p>
+                      </div>
+                    )}
+                    
+                    {!absResult.ok && absResult.note && (
+                      <div className="mt-3 p-2 rounded bg-warning/10 border border-warning/30">
+                        <p className="text-xs text-warning">{absResult.note}</p>
+                      </div>
+                    )}
+                    
                     <div className="sm:hidden mt-3 flex gap-4 text-sm">
                       <div>
                         <span className="text-muted-foreground">Min: </span>
@@ -214,59 +349,6 @@ export function ZonesModule({
             </div>
           );
         })}
-      </div>
-
-      {/* Converter Tool */}
-      <div className="p-4 rounded-xl border border-border bg-secondary/20">
-        <div className="flex items-center gap-2 mb-4">
-          <Calculator className="w-5 h-5 text-accent" />
-          <h3 className="font-medium text-foreground">Convertisseur % → valeurs absolues</h3>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-          <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Zone</label>
-            <Select value={selectedZone} onValueChange={setSelectedZone}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner" />
-              </SelectTrigger>
-              <SelectContent>
-                {zones.map((z) => (
-                  <SelectItem key={z.key} value={z.key}>
-                    {z.key} – {z.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <label className="text-xs text-muted-foreground mb-1 block">{refLabel} (100%)</label>
-            <Input
-              type="number"
-              placeholder="ex: 280"
-              value={referenceValue}
-              onChange={(e) => setReferenceValue(e.target.value)}
-            />
-          </div>
-
-          <div className="flex items-end">
-            <Button onClick={handleConvert} className="w-full">
-              Calculer
-            </Button>
-          </div>
-
-          <div className="flex items-end">
-            {convertResult && (
-              <div className="p-3 rounded-lg bg-accent/10 border border-accent/30 w-full">
-                <p className="text-xs text-muted-foreground">Cible</p>
-                <p className="font-mono font-bold text-accent">
-                  {convertResult.min.toFixed(1)} – {convertResult.max.toFixed(1)} {unit}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );

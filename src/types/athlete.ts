@@ -7,6 +7,14 @@ import { SnapshotNolio } from "./snapshotNolio";
 export type ObjectifType = "IM" | "703" | "Marathon" | "Semi";
 export type SexeType = "M" | "F";
 
+// Références physiologiques pour le calcul des zones
+export interface AthleteRefs {
+  fcMax: number | null;      // FCmax en bpm
+  vma: number | null;        // VMA en km/h
+  ftp: number | null;        // FTP vélo en W
+  css: number | null;        // CSS natation en sec/100m
+}
+
 // Athlète simplifié avec historique de snapshots
 export interface Athlete {
   id: string;
@@ -16,6 +24,8 @@ export interface Athlete {
   masse_grasse: number;       // %
   // Historique des snapshots Nolio
   historique: SnapshotNolio[];
+  // Références physiologiques pour les zones
+  refs?: AthleteRefs;
   // Métadonnées optionnelles
   prenom?: string;
   email?: string;
