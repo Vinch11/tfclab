@@ -18,8 +18,9 @@ import { Bloc3SemainesView } from "@/components/Bloc3SemainesView";
 import { PhysiologicalAnalysis } from "@/components/PhysiologicalAnalysis";
 import { Planificateur } from "@/components/Planificateur";
 import { WorkoutLibrary } from "@/components/WorkoutLibrary";
+import { MonitoringDashboard } from "@/components/MonitoringDashboard";
 import { Button } from "@/components/ui/button";
-import { Zap, Target, Flame, Activity, BookOpen, Brain, Calendar, Dumbbell } from "lucide-react";
+import { Zap, Target, Flame, Activity, BookOpen, Brain, Calendar, Dumbbell, TrendingUp } from "lucide-react";
 import logo2fc from "@/assets/logo-2fc.png";
 import { Athlete, getDernierSnapshot } from "@/types/athlete";
 import { FeedbackNolio } from "@/types/feedbackNolio";
@@ -42,6 +43,7 @@ const Index = () => {
   const [showPhysioAnalysis, setShowPhysioAnalysis] = useState(false);
   const [showPlanner, setShowPlanner] = useState(false);
   const [showWorkoutLibrary, setShowWorkoutLibrary] = useState(false);
+  const [showMonitoring, setShowMonitoring] = useState(false);
 
   // Multi-athlete state
   const [athletes, setAthletes] = useState<Athlete[]>(() => {
@@ -134,7 +136,7 @@ const Index = () => {
               onDeleteAthlete={handleDeleteAthlete}
             />
 
-            {/* Boutons Bibliothèque Tests + Analyse Physio + Planificateur + Séances */}
+            {/* Boutons Bibliothèque Tests + Analyse Physio + Planificateur + Séances + Suivi */}
             <div className="flex flex-wrap gap-3">
               <Button 
                 variant={showTestLibrary ? "default" : "outline"}
@@ -143,6 +145,7 @@ const Index = () => {
                   setShowPhysioAnalysis(false);
                   setShowPlanner(false);
                   setShowWorkoutLibrary(false);
+                  setShowMonitoring(false);
                 }}
                 className="flex items-center gap-2"
               >
@@ -156,6 +159,7 @@ const Index = () => {
                   setShowTestLibrary(false);
                   setShowPlanner(false);
                   setShowWorkoutLibrary(false);
+                  setShowMonitoring(false);
                 }}
                 className="flex items-center gap-2"
               >
@@ -169,6 +173,7 @@ const Index = () => {
                   setShowTestLibrary(false);
                   setShowPhysioAnalysis(false);
                   setShowWorkoutLibrary(false);
+                  setShowMonitoring(false);
                 }}
                 className="flex items-center gap-2"
               >
@@ -182,11 +187,26 @@ const Index = () => {
                   setShowTestLibrary(false);
                   setShowPhysioAnalysis(false);
                   setShowPlanner(false);
+                  setShowMonitoring(false);
                 }}
                 className="flex items-center gap-2"
               >
                 <Dumbbell className="h-4 w-4" />
                 🏋️ Séances
+              </Button>
+              <Button 
+                variant={showMonitoring ? "default" : "outline"}
+                onClick={() => {
+                  setShowMonitoring(!showMonitoring);
+                  setShowTestLibrary(false);
+                  setShowPhysioAnalysis(false);
+                  setShowPlanner(false);
+                  setShowWorkoutLibrary(false);
+                }}
+                className="flex items-center gap-2"
+              >
+                <TrendingUp className="h-4 w-4" />
+                📈 Suivi
               </Button>
             </div>
 
@@ -205,6 +225,10 @@ const Index = () => {
 
             {showWorkoutLibrary && (
               <WorkoutLibrary athlete={currentAthlete} />
+            )}
+
+            {showMonitoring && (
+              <MonitoringDashboard athlete={currentAthlete} />
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
