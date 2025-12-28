@@ -763,7 +763,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     structure: [
       { part: "Main", text: "2–4h Z1–Z2, priorité régularité en montée (alternance course/marche). Hydratation/gel.", zones: ["Z1", "Z2"] }
     ],
-    variants: { trail_short: "1h45–2h30", trail_mountain: "2h–3h30", trail_ultra: "3h–4h+ (progressif)", ironman: "—", half: "—", marathon: "—", semi: "—" }
+    variants: { trail_short: "1h45–2h30", trail_mountain: "2h–3h30", trail_ultra: "3h–4h+ (progressif)", ironman: "—", half: "—", marathon: "—", semi: "—" },
+    dPlusTargetM: { min: 800, max: 1600 }
   },
   {
     id: "A_TR_EASY_TECH",
@@ -795,7 +796,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     structure: [
       { part: "Main", text: "2–3h30 Z1–Z2. Garder bas, marcher les côtes, nutrition.", zones: ["Z1", "Z2"] }
     ],
-    variants: { trail_ultra: "J1 clé", trail_mountain: "optionnel", trail_short: "—", ironman: "—", half: "—", marathon: "—", semi: "—" }
+    variants: { trail_ultra: "J1 clé", trail_mountain: "optionnel", trail_short: "—", ironman: "—", half: "—", marathon: "—", semi: "—" },
+    dPlusTargetM: { min: 800, max: 1400 }
   },
   {
     id: "A_TR_BACK_TO_BACK_2",
@@ -843,7 +845,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     structure: [
       { part: "Main", text: "90–180' Z2 avec sections 'race effort' en Z3 sur montées. Nutrition comme le jour J.", zones: ["Z2", "Z3"] }
     ],
-    variants: { trail_short: "90–120'", trail_mountain: "120–150'", trail_ultra: "150–180'", ironman: "—", half: "—", marathon: "—", semi: "—" }
+    variants: { trail_short: "90–120'", trail_mountain: "120–150'", trail_ultra: "150–180'", ironman: "—", half: "—", marathon: "—", semi: "—" },
+    dPlusTargetM: { min: 600, max: 1400 }
   },
   {
     id: "A_TR_BIKE_SUPPORT",
@@ -879,7 +882,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       { part: "Main", text: "12–20x30–45s côte Z5 (fort mais propre) r=descente lente complète", zones: ["Z5"] },
       { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
     ],
-    variants: { trail_short: "18–20 reps", trail_mountain: "12–16 reps", trail_ultra: "8–12 reps (rare)", ironman: "—", half: "—", marathon: "—", semi: "—" }
+    variants: { trail_short: "18–20 reps", trail_mountain: "12–16 reps", trail_ultra: "8–12 reps (rare)", ironman: "—", half: "—", marathon: "—", semi: "—" },
+    dPlusTargetM: { min: 200, max: 500 }
   },
   {
     id: "B_TR_HILL_TEMPO",
@@ -895,7 +899,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     structure: [
       { part: "Main", text: "3x10–15' montée continue Z3–Z4a r=descente Z1. Rester 'dur contrôlé'.", zones: ["Z3", "Z4a", "Z1"] }
     ],
-    variants: { trail_short: "3x10'", trail_mountain: "3x12–15'", trail_ultra: "2x12' (optionnel)", ironman: "—", half: "—", marathon: "—", semi: "—" }
+    variants: { trail_short: "3x10'", trail_mountain: "3x12–15'", trail_ultra: "2x12' (optionnel)", ironman: "—", half: "—", marathon: "—", semi: "—" },
+    dPlusTargetM: { min: 400, max: 900 }
   },
   {
     id: "B_TR_DESCENT_TOLERANCE",

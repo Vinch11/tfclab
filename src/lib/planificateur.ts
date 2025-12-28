@@ -109,6 +109,113 @@ function getTrailConfig(goal: ObjectifType): TrailGoalConfig | null {
 }
 
 // =============================================
+// D+ TARGETS (Trail 20-80km)
+// =============================================
+
+interface DPlusRules {
+  easyPerHour: [number, number];
+  longPerHour: [number, number];
+  qualityPerHour: [number, number];
+}
+
+const DPlusRulesByGoal: Record<string, Record<PhaseName, DPlusRules>> = {
+  TrailShort: {
+    Base: { easyPerHour: [150, 300], longPerHour: [300, 600], qualityPerHour: [200, 450] },
+    Build: { easyPerHour: [200, 350], longPerHour: [400, 700], qualityPerHour: [250, 500] },
+    Peak: { easyPerHour: [150, 300], longPerHour: [450, 750], qualityPerHour: [250, 550] },
+    Taper: { easyPerHour: [50, 150], longPerHour: [200, 400], qualityPerHour: [150, 300] }
+  },
+  TrailMountain: {
+    Base: { easyPerHour: [200, 400], longPerHour: [450, 800], qualityPerHour: [250, 550] },
+    Build: { easyPerHour: [250, 450], longPerHour: [550, 900], qualityPerHour: [300, 650] },
+    Peak: { easyPerHour: [200, 400], longPerHour: [650, 1000], qualityPerHour: [300, 700] },
+    Taper: { easyPerHour: [80, 200], longPerHour: [300, 550], qualityPerHour: [200, 400] }
+  },
+  Trail: {
+    Base: { easyPerHour: [200, 400], longPerHour: [450, 800], qualityPerHour: [250, 550] },
+    Build: { easyPerHour: [250, 450], longPerHour: [550, 900], qualityPerHour: [300, 650] },
+    Peak: { easyPerHour: [200, 400], longPerHour: [650, 1000], qualityPerHour: [300, 700] },
+    Taper: { easyPerHour: [80, 200], longPerHour: [300, 550], qualityPerHour: [200, 400] }
+  },
+  TrailUltra: {
+    Base: { easyPerHour: [250, 450], longPerHour: [500, 900], qualityPerHour: [300, 600] },
+    Build: { easyPerHour: [300, 500], longPerHour: [600, 1000], qualityPerHour: [350, 700] },
+    Peak: { easyPerHour: [250, 450], longPerHour: [700, 1100], qualityPerHour: [350, 750] },
+    Taper: { easyPerHour: [100, 250], longPerHour: [350, 600], qualityPerHour: [250, 450] }
+  }
+};
+
+const DPlusCaps: Record<string, { longMax: number; qualityMax: number; easyMax: number }> = {
+  TrailShort: { longMax: 1400, qualityMax: 900, easyMax: 600 },
+  TrailMountain: { longMax: 2200, qualityMax: 1200, easyMax: 900 },
+  Trail: { longMax: 2200, qualityMax: 1200, easyMax: 900 },
+  TrailUltra: { longMax: 3000, qualityMax: 1500, easyMax: 1200 }
+};
+
+type SessionKind = "easy" | "long" | "quality";
+
+function inferSessionKind(session: { type?: SessionType; name?: string; durationMin?: number }): SessionKind {
+  const name = (session.name || "").toLowerCase();
+  const isLong = (session.durationMin && session.durationMin >= 120) || 
+                 name.includes("long") || 
+                 name.includes("sortie longue") || 
+                 name.includes("race simu") ||
+                 name.includes("back-to-back");
+  if (isLong) return "long";
+  
+  const isQuality = session.type === "B" || 
+                    name.includes("côte") || 
+                    name.includes("hill") || 
+                    name.includes("tempo") || 
+                    name.includes("fartlek") || 
+                    name.includes("seuil");
+  if (isQuality) return "quality";
+  
+  return "easy";
+}
+
+function computeDPlusTarget(
+  goal: ObjectifType, 
+  phaseName: PhaseName, 
+  durationMin: number, 
+  kind: SessionKind
+): number | null {
+  const rules = DPlusRulesByGoal[goal];
+  if (!rules) return null;
+  
+  const phaseRules = rules[phaseName] || rules.Base;
+  const hours = Math.max(0.5, durationMin / 60);
+  
+  const perHour = kind === "long" ? phaseRules.longPerHour : 
+                  kind === "quality" ? phaseRules.qualityPerHour : 
+                  phaseRules.easyPerHour;
+  
+  const minM = perHour[0] * hours;
+  const maxM = perHour[1] * hours;
+  let target = (minM + maxM) / 2;
+  
+  // Cap selon objectif et type
+  const caps = DPlusCaps[goal];
+  if (caps) {
+    const capMax = kind === "long" ? caps.longMax : 
+                   kind === "quality" ? caps.qualityMax : 
+                   caps.easyMax;
+    target = Math.min(target, capMax);
+  }
+  
+  return Math.round(target / 50) * 50; // Arrondi à 50m
+}
+
+export function formatDPlusDisplay(dPlus: number | { min: number; max: number } | null | undefined): string {
+  if (dPlus == null) return "—";
+  if (typeof dPlus === "number") return `${dPlus} m D+`;
+  if (typeof dPlus === "object" && dPlus.min != null && dPlus.max != null) {
+    return `${dPlus.min}–${dPlus.max} m D+`;
+  }
+  return "—";
+}
+
+// =============================================
 // TEMPLATES DE SÉANCES A/B/C/D (fallback)
 // =============================================
 
@@ -517,6 +624,19 @@ export function generateWeekSessions(
       const baseDur = pick([workout.durationMin[0], (workout.durationMin[0] + workout.durationMin[1]) / 2, workout.durationMin[1]]);
       const duration = Math.round(baseDur * mult);
 
+      // Calcul D+ pour Trail
+      let dPlusTargetM = workout.dPlusTargetM;
+      if (!dPlusTargetM && isTrailGoalForPlanner(goal) && (sport === "course" || workout.sport === "course")) {
+        const kind = inferSessionKind({ type: cat, name: workout.objectif, durationMin: duration });
+        const computed = computeDPlusTarget(goal, phaseName, duration, kind);
+        if (computed) dPlusTargetM = computed;
+      }
+
+      let notes = formatWorkoutNotes(athlete, workout);
+      if (dPlusTargetM) {
+        notes += `\n\n🏔️ Cible D+ : ${formatDPlusDisplay(dPlusTargetM)}`;
+      }
+
       sessions.push({
         dayIndex: trainingDays[i].idx,
         dayName: trainingDays[i].d,
@@ -526,10 +646,11 @@ export function generateWeekSessions(
         zone: primaryZone,
         zoneTarget: zoneText,
         durationMin: duration,
-        notes: formatWorkoutNotes(athlete, workout),
+        notes,
         phase: phaseName,
         weekIndex: weekIndex + 1,
-        totalWeeks
+        totalWeeks,
+        dPlusTargetM
       });
     } else {
       // Fallback: utilise SessionTemplates
@@ -551,6 +672,19 @@ export function generateWeekSessions(
         if (abs?.ok) zoneText = `${tpl.zoneKey} → ${abs.display}`;
       }
 
+      // Calcul D+ pour Trail (même sur templates fallback)
+      let dPlusTargetM: number | { min: number; max: number } | undefined;
+      if (isTrailGoalForPlanner(goal) && tpl.sport === "course") {
+        const kind = inferSessionKind({ type: cat, name: tpl.name, durationMin: duration });
+        const computed = computeDPlusTarget(goal, phaseName, duration, kind);
+        if (computed) dPlusTargetM = computed;
+      }
+
+      let notes = tpl.notes;
+      if (dPlusTargetM) {
+        notes += `\n\n🏔️ Cible D+ : ${formatDPlusDisplay(dPlusTargetM)}`;
+      }
+
       sessions.push({
         dayIndex: trainingDays[i].idx,
         dayName: trainingDays[i].d,
@@ -560,10 +694,11 @@ export function generateWeekSessions(
         zone: tpl.zoneKey,
         zoneTarget: zoneText,
         durationMin: duration,
-        notes: tpl.notes,
+        notes,
         phase: phaseName,
         weekIndex: weekIndex + 1,
-        totalWeeks
+        totalWeeks,
+        dPlusTargetM
       });
     }
   }
