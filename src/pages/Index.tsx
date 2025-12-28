@@ -15,7 +15,9 @@ import { TestComparison } from "@/components/TestComparison";
 import { SemaineTypeView } from "@/components/SemaineTypeView";
 import { RaceReadinessCard } from "@/components/RaceReadinessCard";
 import { Bloc3SemainesView } from "@/components/Bloc3SemainesView";
-import { Zap, Target, Flame, Activity } from "lucide-react";
+import { PhysiologicalAnalysis } from "@/components/PhysiologicalAnalysis";
+import { Button } from "@/components/ui/button";
+import { Zap, Target, Flame, Activity, BookOpen, Brain } from "lucide-react";
 import logo2fc from "@/assets/logo-2fc.png";
 import { Athlete, getDernierSnapshot } from "@/types/athlete";
 import { FeedbackNolio } from "@/types/feedbackNolio";
@@ -34,6 +36,8 @@ import { reglesDanLorang } from "@/types/reglesDanLorang";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [showTestLibrary, setShowTestLibrary] = useState(false);
+  const [showPhysioAnalysis, setShowPhysioAnalysis] = useState(false);
 
   // Multi-athlete state
   const [athletes, setAthletes] = useState<Athlete[]>(() => {
@@ -125,6 +129,41 @@ const Index = () => {
               onAddAthlete={handleAddAthlete}
               onDeleteAthlete={handleDeleteAthlete}
             />
+
+            {/* Boutons Bibliothèque Tests + Analyse Physio */}
+            <div className="flex flex-wrap gap-3">
+              <Button 
+                variant={showTestLibrary ? "default" : "outline"}
+                onClick={() => {
+                  setShowTestLibrary(!showTestLibrary);
+                  setShowPhysioAnalysis(false);
+                }}
+                className="flex items-center gap-2"
+              >
+                <BookOpen className="h-4 w-4" />
+                📚 Tests (Bibliothèque)
+              </Button>
+              <Button 
+                variant={showPhysioAnalysis ? "default" : "outline"}
+                onClick={() => {
+                  setShowPhysioAnalysis(!showPhysioAnalysis);
+                  setShowTestLibrary(false);
+                }}
+                className="flex items-center gap-2"
+              >
+                <Brain className="h-4 w-4" />
+                🧠 Analyse Physio
+              </Button>
+            </div>
+
+            {/* Contenu conditionnel */}
+            {showTestLibrary && (
+              <TestProtocols />
+            )}
+
+            {showPhysioAnalysis && (
+              <PhysiologicalAnalysis athlete={currentAthlete} />
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <MetricCard
