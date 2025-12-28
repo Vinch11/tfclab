@@ -79,7 +79,7 @@ function zoneAbs(metricKey: string, sportKey: string, zoneKey: string, athlete: 
     : `${zoneKey} (${z.min}-${z.max}%)`;
 }
 
-// === BUILD COMPLETE HTML REPORT ===
+// === BUILD PREMIUM HTML REPORT (COUVERTURE + SOMMAIRE + RAPPORT) ===
 function buildAthleteReportHTML(athlete: Athlete): string {
   const vTests = getVLamaxTestsOnly(athlete);
   const phys = analysePhysiologiqueComplete(vTests, athlete.vo2max || 50, athlete.objectif);
@@ -89,11 +89,43 @@ function buildAthleteReportHTML(athlete: Athlete): string {
   const refs = getAthleteRefs(athlete);
   const plan = (athlete as any).plan || null;
 
-  const title = `Vince's Lab — Rapport Athlète — ${athlete.nom || "Athlète"}`;
+  const coachName = "Two For Coaching";
+  const brandMain = "Vince's Lab";
+  const brandSub = "by Two For Coaching";
+  const createdAt = new Date().toISOString();
+
+  const title = `${brandMain} — Rapport Athlète — ${athlete.nom || "Athlète"}`;
+
+  // Cover info
+  const coverObjective = htmlEscape(athlete.objectif || plan?.goal || "—");
+  const coverAthlete = htmlEscape(athlete.nom || "Athlète");
+  const coverDate = htmlEscape(new Date(createdAt).toLocaleDateString("fr-FR"));
+
+  const coverRefs = `
+    <div class="kv">
+      <div class="k">FCmax</div><div class="v">${refs.fcMax ?? "—"} bpm</div>
+      <div class="k">VMA</div><div class="v">${refs.vma ?? "—"} km/h</div>
+      <div class="k">FTP</div><div class="v">${refs.ftp ?? "—"} W</div>
+      <div class="k">VO2max</div><div class="v">${athlete.vo2max ? fmt(athlete.vo2max, 1) : "—"}</div>
+    </div>
+  `;
+
+  // Sommaire
+  const toc = `
+    <div class="toc">
+      <div class="tocTitle">Sommaire</div>
+      <div class="tocRow"><span>1. Résumé (modèle)</span><span>—</span></div>
+      <div class="tocRow"><span>2. Alertes & recommandations</span><span>—</span></div>
+      <div class="tocRow"><span>3. Zones cibles</span><span>—</span></div>
+      <div class="tocRow"><span>4. Historique tests VLamax</span><span>—</span></div>
+      <div class="tocRow"><span>5. Historique tests références</span><span>—</span></div>
+      <div class="tocRow"><span>6. Plan d'entraînement</span><span>—</span></div>
+    </div>
+  `;
 
   // Zones résumé
   const zonesSummary = `
-    <div class="grid">
+    <div class="grid3">
       <div class="card">
         <h3>Zones Cardiaques (FCmax)</h3>
         <ul>
@@ -127,6 +159,7 @@ function buildAthleteReportHTML(athlete: Athlete): string {
     </div>
   `;
 
+  // Alerts
   const alertsHtml = alerts.length
     ? alerts
         .map((a) => {
@@ -139,14 +172,17 @@ function buildAthleteReportHTML(athlete: Athlete): string {
         .join("")
     : `<div class="muted">✅ Aucune alerte critique détectée.</div>`;
 
+  // Résumé modèle
   const physHtml = phys
     ? `
-    <div class="grid">
+    <div class="grid2">
       <div class="card">
         <h3>Modèle VLamax</h3>
-        <div><b>VLamax pondérée:</b> ${fmt(phys.vlamaxPonderee, 2)}</div>
-        <div><b>Confiance:</b> ${fmtPct(phys.confiance)} (tests VLamax: ${safe(vTests.length)})</div>
-        <div><b>SPM:</b> ${safe(phys.spm)}/100</div>
+        <div class="big">
+          <div><span class="muted">VLamax pondérée</span><br><b>${fmt(phys.vlamaxPonderee, 2)}</b></div>
+          <div><span class="muted">Confiance</span><br><b>${fmtPct(phys.confiance)}</b></div>
+          <div><span class="muted">SPM</span><br><b>${safe(phys.spm)}/100</b></div>
+        </div>
         <div class="mt"><b>Interprétation:</b> ${htmlEscape(phys.interpretation.message)}</div>
       </div>
       <div class="card">
@@ -159,19 +195,11 @@ function buildAthleteReportHTML(athlete: Athlete): string {
         </ul>
         <div class="muted">${htmlEscape(phys.repartition.message || "")}</div>
       </div>
-      <div class="card">
-        <h3>Références</h3>
-        <div><b>Objectif:</b> ${htmlEscape(athlete.objectif || "—")}</div>
-        <div><b>FCmax:</b> ${refs.fcMax ?? "—"} bpm</div>
-        <div><b>VMA:</b> ${refs.vma ?? "—"} km/h</div>
-        <div><b>FTP:</b> ${refs.ftp ?? "—"} W</div>
-        <div><b>CSS:</b> ${refs.css ?? "—"} sec/100</div>
-        <div><b>VO2max:</b> ${athlete.vo2max ? fmt(athlete.vo2max, 1) : "—"}</div>
-      </div>
     </div>
   `
     : `<div class="muted">Modèle non disponible.</div>`;
 
+  // Tables tests
   const vTestsRows = vTests.length
     ? vTests
         .slice()
@@ -199,7 +227,7 @@ function buildAthleteReportHTML(athlete: Athlete): string {
     <tr>
       <td>${htmlEscape(dtStr(t.date))}</td>
       <td>${htmlEscape(t.nom || t.id || "Référence")}</td>
-      <td class="muted">${htmlEscape(JSON.stringify(t.raw || {}).slice(0, 180))}</td>
+      <td class="muted mono">${htmlEscape(JSON.stringify(t.raw || {}).slice(0, 220))}</td>
       <td class="muted">${htmlEscape(t.note || "")}</td>
     </tr>
   `
@@ -207,7 +235,7 @@ function buildAthleteReportHTML(athlete: Athlete): string {
         .join("")
     : `<tr><td colspan="4" class="muted">—</td></tr>`;
 
-  // Plan résumé
+  // Plan
   let planHtml = `<div class="muted">Aucun plan généré.</div>`;
   if (plan && plan.weeks && plan.weeks.length) {
     const weeks = plan.weeks
@@ -247,41 +275,83 @@ function buildAthleteReportHTML(athlete: Athlete): string {
         <div><b>Objectif:</b> ${htmlEscape(plan.goal || athlete.objectif || "—")}</div>
         <div><b>Durée:</b> ${htmlEscape(String(plan.totalWeeks || plan.weeks.length))} semaines</div>
         <div><b>Début:</b> ${htmlEscape(plan.startDate || "—")}</div>
-        <div class="muted">Créé le ${htmlEscape(dtStr(plan.createdAt || new Date().toISOString()))}</div>
+        <div class="muted">Créé le ${htmlEscape(dtStr(plan.createdAt || createdAt))}</div>
       </div>
       ${weeks}
     `;
   }
 
+  // CSS premium
   const css = `
     <style>
-      :root { --fg:#111; --muted:#555; --border:#ddd; --bg:#fff; }
+      :root { --fg:#111; --muted:#555; --border:#ddd; --bg:#fff; --soft:#f7f7f7; }
       body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; color: var(--fg); margin: 24px; }
-      h1 { margin: 0 0 6px 0; font-size: 22px; }
+      h1 { margin: 0; font-size: 28px; letter-spacing: 0.2px; }
       h2 { margin: 18px 0 10px 0; font-size: 16px; }
       h3 { margin: 0 0 8px 0; font-size: 14px; }
       .muted { color: var(--muted); }
       .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-      .topbar { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; }
-      .tag { border:1px solid var(--border); border-radius: 999px; padding: 4px 10px; font-size: 12px; }
-      .grid { display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-      .card { border:1px solid var(--border); border-radius: 12px; padding: 10px; background: var(--bg); }
-      .mt { margin-top: 8px; }
+      .tag { border:1px solid var(--border); border-radius: 999px; padding: 4px 10px; font-size: 12px; display:inline-block; }
+      .card { border:1px solid var(--border); border-radius: 14px; padding: 12px; background: var(--bg); }
+      .grid3 { display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+      .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .mt { margin-top: 10px; }
       ul { margin: 6px 0 0 18px; padding:0; }
       table { width: 100%; border-collapse: collapse; }
       th, td { border-bottom: 1px solid #eee; padding: 6px; font-size: 12px; vertical-align: top; }
       th { text-align: left; font-weight: 700; }
-      .alert { border:1px solid var(--border); border-radius: 10px; padding: 8px; margin: 6px 0; }
+      .alert { border:1px solid var(--border); border-radius: 12px; padding: 10px; margin: 8px 0; background: var(--bg); }
       .alert.warn { border-color:#e0c200; }
       .alert.info { border-color:#b0c4ff; }
-      .alertTitle { font-weight: 700; }
+      .alertTitle { font-weight: 700; margin-bottom: 2px; }
+      .big { display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 6px; }
+      .big b { font-size: 20px; }
       .footer { margin-top: 14px; font-size: 11px; color: var(--muted); }
+
+      /* Cover */
+      .cover {
+        height: 93vh;
+        display:flex;
+        flex-direction:column;
+        justify-content:space-between;
+        border:1px solid var(--border);
+        border-radius: 18px;
+        padding: 22px;
+        background: linear-gradient(180deg, #ffffff, var(--soft));
+        position: relative;
+        overflow:hidden;
+      }
+      .coverTop { display:flex; justify-content:space-between; align-items:flex-start; gap: 16px; }
+      .brand { display:flex; flex-direction:column; gap: 6px; }
+      .brandSub { font-size: 13px; color: var(--muted); }
+      .coverMid { margin-top: 10px; }
+      .coverTitle { font-size: 34px; margin: 10px 0 6px; font-weight: 700; }
+      .coverMeta { display:flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+      .coverBottom { display:grid; grid-template-columns: 1.2fr 0.8fr; gap: 12px; }
+      .kv { display:grid; grid-template-columns: 120px 1fr; gap: 6px 10px; }
+      .kv .k { color: var(--muted); }
+      .kv .v { font-weight: 600; }
+      .watermark {
+        position:absolute; right:-60px; bottom:-40px;
+        font-size: 92px; font-weight: 800; letter-spacing: 2px;
+        color: rgba(17,17,17,0.06);
+        transform: rotate(-12deg);
+        user-select: none;
+        pointer-events:none;
+      }
+
+      /* TOC */
+      .toc { border:1px solid var(--border); border-radius: 14px; padding: 12px; background: var(--bg); }
+      .tocTitle { font-weight: 800; margin-bottom: 8px; }
+      .tocRow { display:flex; justify-content:space-between; border-bottom: 1px dashed #eee; padding: 6px 0; font-size: 12px; }
+
+      /* Print */
       @media print {
         body { margin: 10mm; }
         .noPrint { display:none; }
-        .grid { grid-template-columns: 1fr 1fr 1fr; }
         .pagebreak { page-break-before: always; }
         .pagebreakAvoid { break-inside: avoid; page-break-inside: avoid; }
+        .cover { height: auto; min-height: 250mm; }
       }
     </style>
   `;
@@ -295,26 +365,75 @@ function buildAthleteReportHTML(athlete: Athlete): string {
         ${css}
       </head>
       <body>
-        <div class="topbar">
-          <div>
-            <h1>Vince's Lab — Rapport Athlète</h1>
-            <div class="muted">Two For Coaching • Généré le ${htmlEscape(dtStr(new Date().toISOString()))}</div>
+
+        <!-- COUVERTURE -->
+        <section class="cover">
+          <div class="coverTop">
+            <div class="brand">
+              <div class="tag">${htmlEscape(brandMain)}</div>
+              <div class="brandSub">${htmlEscape(brandSub)}</div>
+            </div>
+            <div class="tag">Rapport Athlète • ${coverDate}</div>
           </div>
-          <div class="tag">${htmlEscape(athlete.nom || "Athlète")} • ${htmlEscape(athlete.objectif || plan?.goal || "objectif")}</div>
-        </div>
-        <div class="noPrint" style="margin-top:10px;">
+
+          <div class="coverMid">
+            <div class="coverTitle">${htmlEscape(brandMain)} — Rapport Athlète</div>
+            <div class="muted">Synthèse physiologique, zones, tests et planification</div>
+
+            <div class="coverMeta">
+              <div class="tag">Athlète: <b>${coverAthlete}</b></div>
+              <div class="tag">Objectif: <b>${coverObjective}</b></div>
+              <div class="tag">Coach: <b>${htmlEscape(coachName)}</b></div>
+            </div>
+          </div>
+
+          <div class="coverBottom">
+            <div class="card">
+              <h3>Résumé express</h3>
+              ${phys ? `
+                <div class="big">
+                  <div><span class="muted">VLamax</span><br><b>${fmt(phys.vlamaxPonderee, 2)}</b></div>
+                  <div><span class="muted">Confiance</span><br><b>${fmtPct(phys.confiance)}</b></div>
+                  <div><span class="muted">SPM</span><br><b>${safe(phys.spm)}/100</b></div>
+                </div>
+                <div class="mt"><b>Point clé:</b> ${htmlEscape(phys.interpretation.message)}</div>
+              ` : `<div class="muted">Modèle non disponible.</div>`}
+            </div>
+
+            <div class="card">
+              <h3>Références (zones)</h3>
+              ${coverRefs}
+            </div>
+          </div>
+
+          <div class="watermark">${htmlEscape(brandMain)}</div>
+        </section>
+
+        <!-- SOMMAIRE -->
+        <div class="pagebreak"></div>
+        <h2>Sommaire</h2>
+        ${toc}
+
+        <!-- ACTION PRINT -->
+        <div class="noPrint" style="margin:10px 0;">
           <button onclick="window.print()">🖨️ Imprimer / Enregistrer en PDF</button>
           <span class="muted" style="margin-left:10px;">Conseil: choisir "Enregistrer en PDF".</span>
         </div>
-        <h2>Résumé</h2>
+
+        <!-- RAPPORT -->
+        <div class="pagebreak"></div>
+
+        <h2>1. Résumé (modèle)</h2>
         ${physHtml}
-        <h2>Alertes</h2>
+
+        <h2>2. Alertes & recommandations</h2>
         <div class="card">${alertsHtml}</div>
-        <h2>Recommandation</h2>
-        <div class="card">${htmlEscape(rec)}</div>
-        <h2>Zones (cibles)</h2>
+        <div class="card mt"><b>Recommandation (bloc 14 jours)</b><div class="mt">${htmlEscape(rec)}</div></div>
+
+        <h2>3. Zones cibles</h2>
         ${zonesSummary}
-        <h2>Tests VLamax</h2>
+
+        <h2>4. Historique tests VLamax</h2>
         <div class="card">
           <table>
             <thead>
@@ -323,7 +442,8 @@ function buildAthleteReportHTML(athlete: Athlete): string {
             <tbody>${vTestsRows}</tbody>
           </table>
         </div>
-        <h2>Tests Références (VO2/VMA/FTP/FCmax…)</h2>
+
+        <h2>5. Historique tests références</h2>
         <div class="card">
           <table>
             <thead>
@@ -332,12 +452,15 @@ function buildAthleteReportHTML(athlete: Athlete): string {
             <tbody>${rTestsRows}</tbody>
           </table>
         </div>
+
         <div class="pagebreak"></div>
-        <h2>Plan d'entraînement</h2>
+        <h2>6. Plan d'entraînement</h2>
         ${planHtml}
+
         <div class="footer">
-          Document généré par Vince's Lab — les estimations terrain comportent une incertitude (voir indice de confiance VLamax).
+          Document généré par ${htmlEscape(brandMain)} ${htmlEscape(brandSub)} — estimations terrain avec incertitude (voir indice de confiance VLamax).
         </div>
+
       </body>
     </html>
   `;
