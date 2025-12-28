@@ -51,7 +51,8 @@ const sportFilters = [
   { key: "Natation", label: "Natation", icon: Waves },
 ];
 
-function getFiabiliteLabel(fiabilite: number): { label: string; variant: "default" | "secondary" | "destructive" } {
+function getFiabiliteLabel(fiabilite: number | null): { label: string; variant: "default" | "secondary" | "destructive" | "outline" } {
+  if (fiabilite === null) return { label: "Référence", variant: "outline" };
   if (fiabilite >= 0.85) return { label: "Excellente", variant: "default" };
   if (fiabilite >= 0.75) return { label: "Bonne", variant: "secondary" };
   return { label: "Moyenne", variant: "destructive" };
@@ -135,47 +136,53 @@ export function TestProtocols({ className, onTestSaved }: TestProtocolsProps) {
     });
 
     // Créer le résultat standardisé
-    const stored = addTestResultToAthlete(currentAthlete, selectedTest, numericInputs);
+    const result = addTestResultToAthlete(currentAthlete, selectedTest, numericInputs);
+    
+    if (!result.ok || !result.entry) {
+      toast({
+        title: "Erreur",
+        description: result.msg || "Erreur lors de la sauvegarde du test",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const stored = result.entry;
     if (testNotes.trim()) {
       stored.notes = testNotes.trim();
     }
 
-    // Créer un tableau de tests avec le nouveau
-    const existingTests: StoredTestResult[] = (currentAthlete as any).tests || [];
-    const allTests = [...existingTests, stored];
-
     // Mettre à jour l'athlète avec les tests et les refs potentiellement modifiés
     updateAthlete({
       ...currentAthlete,
-      tests: allTests as any,
+      tests: currentAthlete.tests,
       refs: currentAthlete.refs
     } as any);
 
-    // Calculer la VLamax pondérée pour affichage
-    const vlamaxTests = allTests.filter(t => t.vlamax !== null);
+    // Calculer la VLamax pondérée pour affichage (seulement tests VLAMAX)
+    const vlamaxTests = (currentAthlete.tests || []).filter(t => t.type === "VLAMAX" && t.vlamax !== null);
     const vlamaxPonderee = calculVLamaxPonderee(vlamaxTests);
     const confiance = calculIndiceConfiance(vlamaxTests);
 
-    // Construire le message de feedback
-    let feedbackMessage = `Test "${stored.nom}" sauvegardé pour ${currentAthlete.nom}.`;
-    if (stored.vlamax !== null) {
-      feedbackMessage += ` VLamax test: ${stored.vlamax.toFixed(2)}`;
-    }
-    if (stored.note) {
-      feedbackMessage += ` — ${stored.note}`;
-    }
+    // Construire le message de feedback selon le type
+    const isVlamaxTest = stored.type === "VLAMAX";
 
     toast({
-      title: "Test sauvegardé ✅",
+      title: isVlamaxTest ? "Test VLamax sauvegardé 🧪" : "Référence enregistrée 📌",
       description: (
         <div className="space-y-1 text-sm">
           <p>{stored.nom}</p>
-          {stored.vlamax !== null && (
+          {isVlamaxTest && stored.vlamax !== null && (
             <p className="font-medium">VLamax test: {stored.vlamax.toFixed(2)}</p>
           )}
-          {vlamaxPonderee !== null && (
+          {isVlamaxTest && vlamaxPonderee !== null && (
             <p className="text-muted-foreground">
               VLamax pondérée: {vlamaxPonderee.toFixed(2)} | Confiance: {confiance}%
+            </p>
+          )}
+          {!isVlamaxTest && (
+            <p className="text-muted-foreground">
+              Références mises à jour (ne modifie pas VLamax)
             </p>
           )}
           {stored.note && <p className="text-xs text-muted-foreground">{stored.note}</p>}
@@ -228,7 +235,6 @@ export function TestProtocols({ className, onTestSaved }: TestProtocolsProps) {
         {filteredTests.map((test) => {
           const isExpanded = expandedTest === test.id;
           const fiab = getFiabiliteLabel(test.fiabilite);
-          const hasVLamaxOutput = test.calcul.toLowerCase().includes("vlamax");
           
           return (
             <div
@@ -252,10 +258,14 @@ export function TestProtocols({ className, onTestSaved }: TestProtocolsProps) {
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-semibold text-foreground">{test.nom}</span>
                     <Badge variant="outline" className="text-xs">{test.sport}</Badge>
-                    {hasVLamaxOutput && (
+                    {test.type === "VLAMAX" ? (
                       <Badge variant="default" className="text-xs gap-1">
                         <TrendingUp className="w-3 h-3" />
-                        VLamax
+                        🧪 VLamax
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="text-xs gap-1">
+                        📌 Référence
                       </Badge>
                     )}
                   </div>
@@ -263,9 +273,11 @@ export function TestProtocols({ className, onTestSaved }: TestProtocolsProps) {
                 </div>
 
                 <div className="hidden sm:flex items-center gap-3">
-                  <Badge variant={fiab.variant} className="text-xs">
-                    {Math.round(test.fiabilite * 100)}% fiable
-                  </Badge>
+                  {test.type === "VLAMAX" && test.fiabilite !== null && (
+                    <Badge variant={fiab.variant} className="text-xs">
+                      {Math.round(test.fiabilite * 100)}% fiable
+                    </Badge>
+                  )}
                 </div>
 
                 <ChevronDown className={cn(
