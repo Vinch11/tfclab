@@ -27,11 +27,17 @@ const referenceLabels: Record<string, Record<string, string>> = {
 
 interface ZonesModuleProps {
   className?: string;
+  defaultMetric?: "cardiaque" | "puissance" | "allure";
+  defaultSport?: string;
 }
 
-export function ZonesModule({ className }: ZonesModuleProps) {
-  const [activeMetric, setActiveMetric] = useState<string>("cardiaque");
-  const [activeSport, setActiveSport] = useState<string>("tout sport");
+export function ZonesModule({ 
+  className, 
+  defaultMetric = "puissance", 
+  defaultSport = "cyclisme" 
+}: ZonesModuleProps) {
+  const [activeMetric, setActiveMetric] = useState<string>(defaultMetric);
+  const [activeSport, setActiveSport] = useState<string>(defaultSport);
   const [referenceValue, setReferenceValue] = useState<string>("");
   const [selectedZone, setSelectedZone] = useState<string>("");
   const [convertResult, setConvertResult] = useState<{ min: number; max: number } | null>(null);
