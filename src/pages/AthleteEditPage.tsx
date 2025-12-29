@@ -41,7 +41,12 @@ export default function AthleteEditPage() {
       nom: nom.trim(),
       sexe,
       objectif,
-      masse_grasse: parseFloat(masseGrasse) || 18,
+      masse_grasse: masseGrasse.trim() === "" ? null : Number(masseGrasse),
+      refs: {
+        ...(editingAthlete?.refs || {}),
+        sexe,
+        masse_grasse: masseGrasse.trim() === "" ? null : Number(masseGrasse),
+      },
       historique: editingAthlete?.historique || [],
     };
 
