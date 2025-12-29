@@ -11,35 +11,66 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Edit, Save, Zap, Timer, Wind, Activity, Scale, Gauge } from "lucide-react";
-import { SnapshotNolio } from "@/types/snapshotNolio";
-import { MetricExplanationPopup } from "./MetricExplanationPopup";
+import { Edit, Save } from "lucide-react";
+import { useCloudData, DbSnapshot } from "@/hooks/useCloudData";
 
 interface SnapshotEditorProps {
-  snapshot: SnapshotNolio;
-  onSave: (updatedSnapshot: SnapshotNolio) => void;
+  snapshot: DbSnapshot;
   trigger?: React.ReactNode;
 }
 
-export function SnapshotEditor({ snapshot, onSave, trigger }: SnapshotEditorProps) {
+const numOrNull = (v: string): number | null => {
+  if (!v.trim()) return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+};
+
+export function SnapshotEditor({ snapshot, trigger }: SnapshotEditorProps) {
+  const { updateSnapshot } = useCloudData();
   const [open, setOpen] = useState(false);
-  const [editedSnapshot, setEditedSnapshot] = useState<SnapshotNolio>(snapshot);
 
-  const handleChange = (field: keyof SnapshotNolio, value: string | number) => {
-    setEditedSnapshot(prev => ({
-      ...prev,
-      [field]: typeof value === 'string' ? (parseFloat(value) || 0) : value
-    }));
-  };
+  const [date, setDate] = useState(snapshot.date);
+  const [ftp, setFtp] = useState(snapshot.ftp != null ? String(snapshot.ftp) : "");
+  const [pmax5s, setPmax5s] = useState(snapshot.pmax_5s != null ? String(snapshot.pmax_5s) : "");
+  const [weight, setWeight] = useState(snapshot.weight_kg != null ? String(snapshot.weight_kg) : "");
+  const [vo2, setVo2] = useState(snapshot.vo2max != null ? String(snapshot.vo2max) : "");
+  const [vlamax, setVlamax] = useState(snapshot.vlamax != null ? String(snapshot.vlamax) : "");
+  const [vma, setVma] = useState(snapshot.vma != null ? String(snapshot.vma) : "");
+  const [fcmax, setFcmax] = useState(snapshot.fc_max != null ? String(snapshot.fc_max) : "");
+  const [css, setCss] = useState(snapshot.css != null ? String(snapshot.css) : "");
+  const [fat, setFat] = useState(snapshot.fat_pct != null ? String(snapshot.fat_pct) : "");
+  const [confidence, setConfidence] = useState(snapshot.confidence != null ? String(snapshot.confidence) : "");
 
-  const handleSave = () => {
-    onSave(editedSnapshot);
+  const handleSave = async () => {
+    await updateSnapshot(snapshot.id, {
+      date,
+      ftp: numOrNull(ftp) != null ? Math.round(numOrNull(ftp)!) : null,
+      pmax_5s: numOrNull(pmax5s) != null ? Math.round(numOrNull(pmax5s)!) : null,
+      weight_kg: numOrNull(weight),
+      vo2max: numOrNull(vo2),
+      vlamax: numOrNull(vlamax),
+      vma: numOrNull(vma),
+      fc_max: numOrNull(fcmax) != null ? Math.round(numOrNull(fcmax)!) : null,
+      css: numOrNull(css),
+      fat_pct: numOrNull(fat),
+      confidence: numOrNull(confidence),
+    });
     setOpen(false);
   };
 
   const handleOpen = (isOpen: boolean) => {
     if (isOpen) {
-      setEditedSnapshot(snapshot);
+      setDate(snapshot.date);
+      setFtp(snapshot.ftp != null ? String(snapshot.ftp) : "");
+      setPmax5s(snapshot.pmax_5s != null ? String(snapshot.pmax_5s) : "");
+      setWeight(snapshot.weight_kg != null ? String(snapshot.weight_kg) : "");
+      setVo2(snapshot.vo2max != null ? String(snapshot.vo2max) : "");
+      setVlamax(snapshot.vlamax != null ? String(snapshot.vlamax) : "");
+      setVma(snapshot.vma != null ? String(snapshot.vma) : "");
+      setFcmax(snapshot.fc_max != null ? String(snapshot.fc_max) : "");
+      setCss(snapshot.css != null ? String(snapshot.css) : "");
+      setFat(snapshot.fat_pct != null ? String(snapshot.fat_pct) : "");
+      setConfidence(snapshot.confidence != null ? String(snapshot.confidence) : "");
     }
     setOpen(isOpen);
   };
@@ -54,136 +85,78 @@ export function SnapshotEditor({ snapshot, onSave, trigger }: SnapshotEditorProp
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] bg-card border-border">
+
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Edit className="w-5 h-5 text-primary" />
-            Édition Manuelle du Snapshot
+            Édition du snapshot (manuel)
           </DialogTitle>
           <DialogDescription>
-            Modifiez les valeurs manuellement. Les changements seront sauvegardés immédiatement.
+            Modifie les valeurs et sauvegarde dans le cloud.
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
-          {/* Date */}
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="date" className="text-right text-muted-foreground">
-              Date
-            </Label>
-            <Input
-              id="date"
-              type="date"
-              value={editedSnapshot.date}
-              onChange={(e) => setEditedSnapshot(prev => ({ ...prev, date: e.target.value }))}
-              className="col-span-3 bg-secondary/50 border-border"
-            />
+            <Label className="text-right">Date</Label>
+            <Input className="col-span-3" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
 
-          {/* FTP */}
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="ftp" className="text-right flex items-center justify-end gap-1 text-muted-foreground">
-              <Activity className="w-4 h-4" />
-              FTP (W)
-              <MetricExplanationPopup metric="FTP" />
-            </Label>
-            <Input
-              id="ftp"
-              type="number"
-              value={editedSnapshot.ftp || ""}
-              onChange={(e) => handleChange("ftp", e.target.value)}
-              className="col-span-3 bg-secondary/50 border-border"
-              placeholder="280"
-            />
+            <Label className="text-right">FTP (W)</Label>
+            <Input className="col-span-3" type="number" value={ftp} onChange={(e) => setFtp(e.target.value)} />
           </div>
 
-          {/* Pmax 5s */}
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="pmax_5s" className="text-right flex items-center justify-end gap-1 text-muted-foreground">
-              <Zap className="w-4 h-4" />
-              Pmax 5s (W)
-            </Label>
-            <Input
-              id="pmax_5s"
-              type="number"
-              value={editedSnapshot.pmax_5s || ""}
-              onChange={(e) => handleChange("pmax_5s", e.target.value)}
-              className="col-span-3 bg-secondary/50 border-border"
-              placeholder="1200"
-            />
+            <Label className="text-right">Pmax 5s (W)</Label>
+            <Input className="col-span-3" type="number" value={pmax5s} onChange={(e) => setPmax5s(e.target.value)} />
           </div>
 
-          {/* Poids */}
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="poids" className="text-right flex items-center justify-end gap-1 text-muted-foreground">
-              <Scale className="w-4 h-4" />
-              Poids (kg)
-            </Label>
-            <Input
-              id="poids"
-              type="number"
-              value={editedSnapshot.poids || ""}
-              onChange={(e) => handleChange("poids", e.target.value)}
-              className="col-span-3 bg-secondary/50 border-border"
-              placeholder="70"
-            />
+            <Label className="text-right">Poids (kg)</Label>
+            <Input className="col-span-3" type="number" value={weight} onChange={(e) => setWeight(e.target.value)} />
           </div>
 
-          {/* VO2max */}
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="vo2max" className="text-right flex items-center justify-end gap-1 text-muted-foreground">
-              <Wind className="w-4 h-4" />
-              VO2max
-              <MetricExplanationPopup metric="VO2max" />
-            </Label>
-            <Input
-              id="vo2max"
-              type="number"
-              value={editedSnapshot.vo2max || ""}
-              onChange={(e) => handleChange("vo2max", e.target.value)}
-              className="col-span-3 bg-secondary/50 border-border"
-              placeholder="55"
-            />
+            <Label className="text-right">VO₂max</Label>
+            <Input className="col-span-3" type="number" value={vo2} onChange={(e) => setVo2(e.target.value)} />
           </div>
 
-          {/* TSS 7j */}
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="tss_7j" className="text-right flex items-center justify-end gap-1 text-muted-foreground">
-              <Gauge className="w-4 h-4" />
-              TSS 7j
-            </Label>
-            <Input
-              id="tss_7j"
-              type="number"
-              value={editedSnapshot.tss_7j || ""}
-              onChange={(e) => handleChange("tss_7j", e.target.value)}
-              className="col-span-3 bg-secondary/50 border-border"
-              placeholder="450"
-            />
+            <Label className="text-right">VLamax</Label>
+            <Input className="col-span-3" type="number" step="0.01" value={vlamax} onChange={(e) => setVlamax(e.target.value)} />
           </div>
 
-          {/* HRV */}
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="hrv" className="text-right flex items-center justify-end gap-1 text-muted-foreground">
-              <Timer className="w-4 h-4" />
-              HRV (ms)
-            </Label>
-            <Input
-              id="hrv"
-              type="number"
-              value={editedSnapshot.hrv || ""}
-              onChange={(e) => handleChange("hrv", e.target.value)}
-              className="col-span-3 bg-secondary/50 border-border"
-              placeholder="55"
-            />
+            <Label className="text-right">VMA (km/h)</Label>
+            <Input className="col-span-3" type="number" step="0.1" value={vma} onChange={(e) => setVma(e.target.value)} />
+          </div>
+
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right">FC max</Label>
+            <Input className="col-span-3" type="number" value={fcmax} onChange={(e) => setFcmax(e.target.value)} />
+          </div>
+
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right">CSS</Label>
+            <Input className="col-span-3" type="number" step="0.01" value={css} onChange={(e) => setCss(e.target.value)} />
+          </div>
+
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right">Masse grasse (%)</Label>
+            <Input className="col-span-3" type="number" step="0.1" value={fat} onChange={(e) => setFat(e.target.value)} />
+          </div>
+
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right">Confiance (0–1)</Label>
+            <Input className="col-span-3" type="number" step="0.1" min="0" max="1" value={confidence} onChange={(e) => setConfidence(e.target.value)} />
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
-            Annuler
-          </Button>
-          <Button variant="glow" onClick={handleSave}>
+          <Button variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
+          <Button onClick={handleSave}>
             <Save className="w-4 h-4 mr-2" />
             Sauvegarder
           </Button>

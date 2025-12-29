@@ -8,7 +8,7 @@ import { Athlete, ObjectifType, SexeType, getObjectifLabel, getDernierSnapshot }
 import { SnapshotNolio, creerSnapshotVide, scoreConfiance, estimerTTE } from "@/types/snapshotNolio";
 import { calculVLamaxSnapshot } from "@/lib/athleteStore";
 import { MetricExplanationPopup } from "./MetricExplanationPopup";
-import { SnapshotEditor } from "./SnapshotEditor";
+
 import { CSVImporter } from "./CSVImporter";
 
 interface AthleteProfileProps {
@@ -95,16 +95,10 @@ export function AthleteProfile({ athlete, onUpdate }: AthleteProfileProps) {
             Snapshot
           </Button>
           {snapshot && (
-            <SnapshotEditor 
-              snapshot={snapshot} 
-              onSave={handleSnapshotEdit}
-              trigger={
-                <Button variant="outline" size="sm">
-                  <Edit className="w-4 h-4 mr-2" />
-                  Éditer
-                </Button>
-              }
-            />
+            <Button variant="outline" size="sm" onClick={() => setIsAddingSnapshot(true)}>
+              <Edit className="w-4 h-4 mr-2" />
+              Éditer
+            </Button>
           )}
           <Button
             variant={isEditing ? "glow" : "outline"}
