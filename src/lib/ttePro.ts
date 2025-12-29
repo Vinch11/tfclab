@@ -13,6 +13,7 @@ export interface TTEInput {
 
 export interface TTEResult {
   tte_min: number;
+  tteMin: number; // camelCase alias for UI
   source: "observed" | "estimated";
   confidence: number; // 0-1
   label: string;
@@ -44,6 +45,7 @@ export function calculTTE(input: TTEInput): TTEResult {
   if (tte_mode === "OBSERVED" && tte_observed_min != null) {
     return {
       tte_min: tte_observed_min,
+      tteMin: tte_observed_min,
       source: "observed",
       confidence: 0.95,
       label: `${tte_observed_min} min (mesuré)`,
@@ -55,6 +57,7 @@ export function calculTTE(input: TTEInput): TTEResult {
     const estimated = estimerTTEFromLoad(tss_7d);
     return {
       tte_min: estimated,
+      tteMin: estimated,
       source: "estimated",
       confidence: 0.7,
       label: `~${estimated} min (estimé)`,
@@ -65,17 +68,20 @@ export function calculTTE(input: TTEInput): TTEResult {
   if (ftp != null && ftp > 0) {
     // Rough heuristic: higher FTP often correlates with better TTE
     const ftpBased = Math.round(35 + (ftp / 300) * 15);
+    const capped = Math.min(ftpBased, 55);
     return {
-      tte_min: Math.min(ftpBased, 55),
+      tte_min: capped,
+      tteMin: capped,
       source: "estimated",
       confidence: 0.5,
-      label: `~${Math.min(ftpBased, 55)} min (approx)`,
+      label: `~${capped} min (approx)`,
     };
   }
 
   // Default fallback
   return {
     tte_min: 45,
+    tteMin: 45,
     source: "estimated",
     confidence: 0.3,
     label: "~45 min (défaut)",
@@ -135,4 +141,28 @@ export function evaluerTTE(
 export function formatTTE(tte: number | null): string {
   if (tte == null) return "—";
   return `${tte} min`;
+}
+
+// =============================================
+// computeTTEPro - Wrapper with camelCase interface
+// Used by UI components
+// =============================================
+
+export interface TTEProInput {
+  ftp: number | null;
+  tss7d: number | null;
+  tteObservedMin: number | null;
+  mode: TTEMode | null;
+}
+
+/**
+ * Compute TTE Pro - main entry point for UI
+ */
+export function computeTTEPro(input: TTEProInput): TTEResult {
+  return calculTTE({
+    ftp: input.ftp,
+    tss_7d: input.tss7d,
+    tte_mode: input.mode,
+    tte_observed_min: input.tteObservedMin,
+  });
 }
