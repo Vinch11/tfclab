@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { MetricCard } from "@/components/MetricCard";
@@ -26,7 +27,24 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Zap, Target, Flame, Activity, BookOpen, Brain, Calendar, Dumbbell, TrendingUp, Plus, Trash2, LogOut, Loader2, User, Camera, ClipboardCheck } from "lucide-react";
+import {
+  Zap,
+  Target,
+  Flame,
+  Activity,
+  BookOpen,
+  Brain,
+  Calendar,
+  Dumbbell,
+  TrendingUp,
+  Plus,
+  Trash2,
+  LogOut,
+  Loader2,
+  User,
+  Camera,
+  ClipboardCheck,
+} from "lucide-react";
 import logo2fc from "@/assets/logo-2fc.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCloudData, DbAthlete } from "@/hooks/useCloudData";
@@ -36,7 +54,7 @@ import { toast } from "sonner";
 const Index = () => {
   const { user, signOut } = useAuth();
   const { athletes, loading, addAthlete, updateAthlete, deleteAthlete, getTestsForAthlete } = useCloudData();
-  
+
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showTestLibrary, setShowTestLibrary] = useState(false);
   const [showPhysioAnalysis, setShowPhysioAnalysis] = useState(false);
@@ -54,15 +72,20 @@ const Index = () => {
   const [feedbacksNolio, setFeedbacksNolio] = useState<FeedbackNolio[]>(() => {
     const saved = localStorage.getItem("loranglab-feedbacks");
     if (saved) {
-      try { return JSON.parse(saved); } catch { return []; }
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return [];
+      }
     }
     return [];
   });
 
-  // Select first athlete when loaded
-  if (!loading && athletes.length > 0 && !selectedAthleteId) {
-    setSelectedAthleteId(athletes[0].id);
-  }
+  useEffect(() => {
+    if (!loading && athletes.length > 0 && !selectedAthleteId) {
+      setSelectedAthleteId(athletes[0].id);
+    }
+  }, [loading, athletes, selectedAthleteId]);
 
   const currentAthlete = athletes.find((a) => a.id === selectedAthleteId);
 
@@ -87,7 +110,7 @@ const Index = () => {
     if (confirmed) {
       await deleteAthlete(currentAthlete.id);
       if (athletes.length > 1) {
-        setSelectedAthleteId(athletes.find(a => a.id !== currentAthlete.id)?.id || null);
+        setSelectedAthleteId(athletes.find((a) => a.id !== currentAthlete.id)?.id || null);
       }
     }
   };
@@ -127,7 +150,7 @@ const Index = () => {
   // Computed values (mocked since we don't have snapshots yet)
   const vlamax = 0.45;
   const tte = 55;
-  const ftp = (legacyAthlete?.refs?.ftp || 250);
+  const ftp = legacyAthlete?.refs?.ftp || 250;
   const poids = 70;
   const ftp_kg = ftp / poids;
 
@@ -289,7 +312,7 @@ const Index = () => {
 
             {/* Boutons Bibliothèque Tests + Analyse Physio + Planificateur + Séances + Suivi */}
             <div className="flex flex-wrap gap-3">
-              <Button 
+              <Button
                 variant={showTestLibrary ? "default" : "outline"}
                 onClick={() => {
                   setShowTestLibrary(!showTestLibrary);
@@ -303,7 +326,7 @@ const Index = () => {
                 <BookOpen className="h-4 w-4" />
                 📚 Tests
               </Button>
-              <Button 
+              <Button
                 variant={showPhysioAnalysis ? "default" : "outline"}
                 onClick={() => {
                   setShowPhysioAnalysis(!showPhysioAnalysis);
@@ -319,7 +342,7 @@ const Index = () => {
                 <Brain className="h-4 w-4" />
                 🧠 Analyse Physio
               </Button>
-              <Button 
+              <Button
                 variant={showPlanner ? "default" : "outline"}
                 onClick={() => {
                   setShowPlanner(!showPlanner);
@@ -335,7 +358,7 @@ const Index = () => {
                 <Calendar className="h-4 w-4" />
                 📅 Planificateur
               </Button>
-              <Button 
+              <Button
                 variant={showWorkoutLibrary ? "default" : "outline"}
                 onClick={() => {
                   setShowWorkoutLibrary(!showWorkoutLibrary);
@@ -351,7 +374,7 @@ const Index = () => {
                 <Dumbbell className="h-4 w-4" />
                 🏋️ Séances
               </Button>
-              <Button 
+              <Button
                 variant={showMonitoring ? "default" : "outline"}
                 onClick={() => {
                   setShowMonitoring(!showMonitoring);
@@ -367,7 +390,7 @@ const Index = () => {
                 <TrendingUp className="h-4 w-4" />
                 📈 Suivi
               </Button>
-              <Button 
+              <Button
                 variant={showSnapshots ? "default" : "outline"}
                 onClick={() => {
                   setShowSnapshots(!showSnapshots);
@@ -383,7 +406,7 @@ const Index = () => {
                 <Camera className="h-4 w-4" />
                 📸 Snapshots
               </Button>
-              <Button 
+              <Button
                 variant={showCheckins ? "default" : "outline"}
                 onClick={() => {
                   setShowCheckins(!showCheckins);
@@ -396,8 +419,7 @@ const Index = () => {
                 }}
                 className="flex items-center gap-2"
               >
-                <ClipboardCheck className="h-4 w-4" />
-                ✅ Check-ins
+                <ClipboardCheck className="h-4 w-4" />✅ Check-ins
               </Button>
               <ExportTools athlete={legacyAthlete} />
             </div>
@@ -409,18 +431,15 @@ const Index = () => {
             {showWorkoutLibrary && <WorkoutLibrary athlete={legacyAthlete} />}
             {showMonitoring && <MonitoringDashboard athlete={legacyAthlete} />}
             {showSnapshots && currentAthlete && (
-              <SnapshotManager 
-                athleteId={currentAthlete.id} 
-                athleteName={currentAthlete.name} 
+              <SnapshotManager
+                athleteId={currentAthlete.id}
+                athleteName={currentAthlete.name}
                 athleteGoal={currentAthlete.goal || "IM"}
                 activeSnapshotId={currentAthlete.active_snapshot_id}
               />
             )}
             {showCheckins && currentAthlete && (
-              <CheckinManager 
-                athleteId={currentAthlete.id} 
-                athleteName={currentAthlete.name} 
-              />
+              <CheckinManager athleteId={currentAthlete.id} athleteName={currentAthlete.name} />
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -489,8 +508,8 @@ const Index = () => {
         return (
           <div className="space-y-6 animate-fade-in">
             {renderAthleteSelector()}
-            <VLamaxTestingPage 
-              athlete={legacyAthlete} 
+            <VLamaxTestingPage
+              athlete={legacyAthlete}
               onSaveTests={(tests) => {
                 console.log("Tests saved:", tests);
               }}
@@ -503,10 +522,7 @@ const Index = () => {
       case "nolio":
         return (
           <div className="space-y-6 animate-fade-in">
-            <FeedbackNolioManager
-              feedbacks={feedbacksNolio}
-              onFeedbacksChange={handleFeedbacksChange}
-            />
+            <FeedbackNolioManager feedbacks={feedbacksNolio} onFeedbacksChange={handleFeedbacksChange} />
             <NolioMapping />
           </div>
         );
@@ -535,9 +551,7 @@ const Index = () => {
       {/* Header with user info */}
       <div className="container mx-auto px-4 pt-4">
         <div className="flex justify-between items-center">
-          <div className="text-sm text-muted-foreground">
-            Connecté: {user?.email}
-          </div>
+          <div className="text-sm text-muted-foreground">Connecté: {user?.email}</div>
           <Button variant="ghost" size="sm" onClick={handleSignOut}>
             <LogOut className="h-4 w-4 mr-2" />
             Déconnexion
@@ -548,13 +562,9 @@ const Index = () => {
       <main className="container mx-auto px-4 py-8 relative">
         {/* Logo en grand format */}
         <div className="flex justify-center mb-8">
-          <img 
-            src={logo2fc} 
-            alt="Two For Coaching - Vince's Lab" 
-            className="h-24 md:h-32 w-auto object-contain"
-          />
+          <img src={logo2fc} alt="Two For Coaching - Vince's Lab" className="h-24 md:h-32 w-auto object-contain" />
         </div>
-        
+
         {renderContent()}
       </main>
 
