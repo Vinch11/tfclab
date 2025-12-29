@@ -43,6 +43,10 @@ export interface DbSnapshot {
   metabolic_profile?: string | null;
   metabolic_score?: number | null;
   coach_notes?: string | null;
+  // TTE PRO fields
+  tss_7d?: number | null;
+  tte_mode?: string | null;
+  tte_observed_min?: number | null;
   created_at?: string;
   updated_at?: string;
 }
