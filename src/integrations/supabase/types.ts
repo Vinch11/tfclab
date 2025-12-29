@@ -170,6 +170,9 @@ export type Database = {
           metabolic_score: number | null
           pmax_5s: number | null
           source: string
+          tss_7d: number | null
+          tte_mode: string | null
+          tte_observed_min: number | null
           updated_at: string
           vlamax: number | null
           vma: number | null
@@ -193,6 +196,9 @@ export type Database = {
           metabolic_score?: number | null
           pmax_5s?: number | null
           source?: string
+          tss_7d?: number | null
+          tte_mode?: string | null
+          tte_observed_min?: number | null
           updated_at?: string
           vlamax?: number | null
           vma?: number | null
@@ -216,6 +222,9 @@ export type Database = {
           metabolic_score?: number | null
           pmax_5s?: number | null
           source?: string
+          tss_7d?: number | null
+          tte_mode?: string | null
+          tte_observed_min?: number | null
           updated_at?: string
           vlamax?: number | null
           vma?: number | null
