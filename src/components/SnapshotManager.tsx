@@ -1,5 +1,6 @@
 // =============================================
-// SNAPSHOT MANAGER - Gestion des snapshots Dan Lorang
+// SNAPSHOT MANAGER - Gestion des snapshots Dan Lorang (Cloud)
+// + TTE PRO: LOAD (FTP+TSS7d) / OBSERVED (test)
 // =============================================
 
 import { useState } from "react";
@@ -15,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Calendar, Pin } from "lucide-react";
 import { DbSnapshot, useCloudData } from "@/hooks/useCloudData";
 import { deriveMetabolicProfile, generateLorangInsights, calculateDelta, formatValue } from "@/types/snapshot";
+import { computeTTEPro } from "@/lib/ttePro";
 
 interface SnapshotManagerProps {
   athleteId: string;
@@ -25,9 +27,11 @@ interface SnapshotManagerProps {
 
 export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSnapshotId }: SnapshotManagerProps) {
   const { getSnapshotsForAthlete, addSnapshot, updateSnapshot, deleteSnapshot, setActiveSnapshot } = useCloudData();
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isCompareOpen, setIsCompareOpen] = useState(false);
+
   const [editingSnapshot, setEditingSnapshot] = useState<DbSnapshot | null>(null);
   const [compareA, setCompareA] = useState<string>("");
   const [compareB, setCompareB] = useState<string>("");
@@ -47,6 +51,12 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     weight_kg: "",
     fat_pct: "",
     pmax_5s: "",
+
+    // ✅ PRO TTE
+    tte_mode: "LOAD",
+    tss_7d: "",
+    tte_observed_min: "",
+
     coach_notes: "",
   });
 
@@ -64,6 +74,11 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       weight_kg: "",
       fat_pct: "",
       pmax_5s: "",
+
+      tte_mode: "LOAD",
+      tss_7d: "",
+      tte_observed_min: "",
+
       coach_notes: "",
     });
   };
@@ -82,6 +97,12 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       weight_kg: s.weight_kg != null ? String(s.weight_kg) : "",
       fat_pct: s.fat_pct != null ? String(s.fat_pct) : "",
       pmax_5s: s.pmax_5s != null ? String(s.pmax_5s) : "",
+
+      // ✅ PRO TTE
+      tte_mode: (s.tte_mode as any) || "LOAD",
+      tss_7d: s.tss_7d != null ? String(s.tss_7d) : "",
+      tte_observed_min: s.tte_observed_min != null ? String(s.tte_observed_min) : "",
+
       coach_notes: s.coach_notes || "",
     });
   };
@@ -99,7 +120,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
     await addSnapshot({
       athlete_id: athleteId,
-      coach_id: "", // sera remplacé dans le hook
+      coach_id: "", // replaced in hook
       date: formData.date,
       source: "manual",
       cycle_tag: formData.cycle_tag || null,
@@ -113,6 +134,12 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       weight_kg: parseNum(formData.weight_kg),
       fat_pct: parseNum(formData.fat_pct),
       pmax_5s: parseNum(formData.pmax_5s) ? Math.round(parseNum(formData.pmax_5s)!) : null,
+
+      // ✅ PRO TTE
+      tte_mode: (formData.tte_mode as any) || "LOAD",
+      tss_7d: parseNum(formData.tss_7d) ? Math.round(parseNum(formData.tss_7d)!) : null,
+      tte_observed_min: parseNum(formData.tte_observed_min) ? Math.round(parseNum(formData.tte_observed_min)!) : null,
+
       metabolic_profile: profile,
       metabolic_score: score,
       coach_notes: formData.coach_notes || null,
@@ -142,6 +169,12 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       weight_kg: parseNum(formData.weight_kg),
       fat_pct: parseNum(formData.fat_pct),
       pmax_5s: parseNum(formData.pmax_5s) ? Math.round(parseNum(formData.pmax_5s)!) : null,
+
+      // ✅ PRO TTE
+      tte_mode: (formData.tte_mode as any) || "LOAD",
+      tss_7d: parseNum(formData.tss_7d) ? Math.round(parseNum(formData.tss_7d)!) : null,
+      tte_observed_min: parseNum(formData.tte_observed_min) ? Math.round(parseNum(formData.tte_observed_min)!) : null,
+
       metabolic_profile: profile,
       metabolic_score: score,
       coach_notes: formData.coach_notes || null,
@@ -293,6 +326,76 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         </div>
       </div>
 
+      {/* ✅ TTE PRO */}
+      <div className="p-3 rounded-lg border border-border bg-secondary/20">
+        <p className="text-sm font-medium mb-2">TTE (PRO) — choisir le module</p>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Mode TTE</Label>
+            <Select value={formData.tte_mode} onValueChange={(v) => setFormData({ ...formData, tte_mode: v as any })}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="LOAD">Module A — Estimation via charge (FTP + TSS 7 jours)</SelectItem>
+                <SelectItem value="OBSERVED">Module B — TTE observé (test seuil)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="tss_7d">TSS 7 jours (si Module A)</Label>
+            <Input
+              id="tss_7d"
+              type="number"
+              placeholder="ex: 450"
+              value={formData.tss_7d}
+              onChange={(e) => setFormData({ ...formData, tss_7d: e.target.value })}
+            />
+          </div>
+        </div>
+
+        <div className="mt-3">
+          <Label htmlFor="tte_observed_min">TTE observé (min) (si Module B)</Label>
+          <Input
+            id="tte_observed_min"
+            type="number"
+            placeholder="ex: 55"
+            value={formData.tte_observed_min}
+            onChange={(e) => setFormData({ ...formData, tte_observed_min: e.target.value })}
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Module B recommandé : effort au seuil continu / CP-like. Plus fiable que l’estimation par charge.
+          </p>
+        </div>
+
+        {/* Preview */}
+        <div className="mt-3 text-xs text-muted-foreground">
+          {(() => {
+            const tte = computeTTEPro({
+              ftp: parseNum(formData.ftp),
+              tss7d: parseNum(formData.tss_7d),
+              tteObservedMin: parseNum(formData.tte_observed_min),
+              mode: formData.tte_mode as any,
+            });
+            return (
+              <div className="flex flex-wrap gap-2">
+                <span className="px-2 py-1 rounded bg-background border border-border">
+                  TTE final: <b className="text-foreground">{tte.tteMin} min</b>
+                </span>
+                <span className="px-2 py-1 rounded bg-background border border-border">
+                  Source: <b className="text-foreground">{tte.source}</b>
+                </span>
+                <span className="px-2 py-1 rounded bg-background border border-border">
+                  Confiance: <b className="text-foreground">{Math.round(tte.confidence * 100)}%</b>
+                </span>
+              </div>
+            );
+          })()}
+        </div>
+      </div>
+
       <div>
         <Label htmlFor="coach_notes">Notes coach</Label>
         <Textarea
@@ -308,6 +411,14 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
   const renderSnapshotCard = (s: DbSnapshot) => {
     const { profile, score } = deriveMetabolicProfile(s.vlamax ?? null, s.vo2max ?? null);
+
+    const ttePro = computeTTEPro({
+      ftp: s.ftp ?? null,
+      tss7d: s.tss_7d ?? null,
+      tteObservedMin: s.tte_observed_min ?? null,
+      mode: (s.tte_mode as any) ?? "LOAD",
+    });
+
     const insights = generateLorangInsights(
       {
         id: s.id,
@@ -324,13 +435,13 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         weight_kg: s.weight_kg ?? undefined,
         coach_notes: s.coach_notes ?? undefined,
       },
-      athleteGoal
+      athleteGoal,
     );
 
     const isActive = s.id === activeSnapshotId;
 
     return (
-      <Card key={s.id} className={`border-border/50 ${isActive ? 'ring-2 ring-primary' : ''}`}>
+      <Card key={s.id} className={`border-border/50 ${isActive ? "ring-2 ring-primary" : ""}`}>
         <CardHeader className="pb-2">
           <div className="flex items-start justify-between">
             <div>
@@ -349,19 +460,33 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                   </Badge>
                 )}
               </CardTitle>
+
               <p className="text-sm text-muted-foreground mt-1">
                 Profil: <span className="font-medium text-foreground">{profile}</span>
                 {score != null && ` (score ${score}/100)`}
               </p>
+
+              <div className="flex flex-wrap gap-2 mt-2 text-xs text-muted-foreground">
+                <span className="px-2 py-1 rounded bg-background border border-border">
+                  TTE: <b className="text-foreground">{ttePro.tteMin} min</b>
+                </span>
+                <span className="px-2 py-1 rounded bg-background border border-border">
+                  Source TTE: <b className="text-foreground">{ttePro.source}</b>
+                </span>
+                <span className="px-2 py-1 rounded bg-background border border-border">
+                  Confiance TTE: <b className="text-foreground">{Math.round(ttePro.confidence * 100)}%</b>
+                </span>
+              </div>
             </div>
+
             <div className="flex gap-1">
-              <Button 
-                size="icon" 
-                variant={isActive ? "secondary" : "ghost"} 
+              <Button
+                size="icon"
+                variant={isActive ? "secondary" : "ghost"}
                 onClick={() => setActiveSnapshot(athleteId, isActive ? null : s.id)}
                 title={isActive ? "Retirer comme actif" : "Définir comme actif"}
               >
-                <Pin className={`h-4 w-4 ${isActive ? 'text-primary' : ''}`} />
+                <Pin className={`h-4 w-4 ${isActive ? "text-primary" : ""}`} />
               </Button>
               <Button size="icon" variant="ghost" onClick={() => openEdit(s)}>
                 <Edit className="h-4 w-4" />
@@ -372,6 +497,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
             </div>
           </div>
         </CardHeader>
+
         <CardContent className="space-y-3">
           <div className="grid grid-cols-4 gap-2 text-sm">
             <div>
@@ -408,6 +534,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                 </ul>
               </AccordionContent>
             </AccordionItem>
+
             {s.coach_notes && (
               <AccordionItem value="notes" className="border-none">
                 <AccordionTrigger className="py-2 text-sm">
@@ -433,12 +560,27 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
     if (!A || !B) return <p className="text-muted-foreground">Sélectionnez deux snapshots à comparer.</p>;
 
+    const tteA = computeTTEPro({
+      ftp: A.ftp ?? null,
+      tss7d: A.tss_7d ?? null,
+      tteObservedMin: A.tte_observed_min ?? null,
+      mode: (A.tte_mode as any) ?? "LOAD",
+    });
+
+    const tteB = computeTTEPro({
+      ftp: B.ftp ?? null,
+      tss7d: B.tss_7d ?? null,
+      tteObservedMin: B.tte_observed_min ?? null,
+      mode: (B.tte_mode as any) ?? "LOAD",
+    });
+
     const rows = [
       { label: "VO₂max", a: A.vo2max, b: B.vo2max },
       { label: "VLamax", a: A.vlamax, b: B.vlamax },
       { label: "FTP (W)", a: A.ftp, b: B.ftp },
       { label: "VMA (km/h)", a: A.vma, b: B.vma },
       { label: "Poids (kg)", a: A.weight_kg, b: B.weight_kg },
+      { label: "TTE (min)", a: tteA.tteMin, b: tteB.tteMin },
       { label: "Confiance", a: A.confidence, b: B.confidence },
     ];
 
@@ -457,7 +599,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         confidence: B.confidence ?? undefined,
         coach_notes: B.coach_notes ?? undefined,
       },
-      athleteGoal
+      athleteGoal,
     );
 
     return (
@@ -476,9 +618,9 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
               {rows.map((row) => (
                 <tr key={row.label} className="border-b border-border/30">
                   <td className="py-2">{row.label}</td>
-                  <td className="text-center">{formatValue(row.a)}</td>
-                  <td className="text-center">{formatValue(row.b)}</td>
-                  <td className="text-center font-medium">{calculateDelta(row.a, row.b)}</td>
+                  <td className="text-center">{formatValue(row.a as any)}</td>
+                  <td className="text-center">{formatValue(row.b as any)}</td>
+                  <td className="text-center font-medium">{calculateDelta(row.a as any, row.b as any)}</td>
                 </tr>
               ))}
             </tbody>
@@ -508,6 +650,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
             <Camera className="h-5 w-5" />
             Snapshots — {athleteName}
           </CardTitle>
+
           <div className="flex gap-2">
             {snapshots.length >= 2 && (
               <Dialog open={isCompareOpen} onOpenChange={setIsCompareOpen}>
@@ -521,6 +664,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                   <DialogHeader>
                     <DialogTitle>Comparaison de snapshots</DialogTitle>
                   </DialogHeader>
+
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
                       <Label>Snapshot A (avant)</Label>
@@ -537,6 +681,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                         </SelectContent>
                       </Select>
                     </div>
+
                     <div>
                       <Label>Snapshot B (après)</Label>
                       <Select value={compareB} onValueChange={setCompareB}>
@@ -553,10 +698,12 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                       </Select>
                     </div>
                   </div>
+
                   {renderComparison()}
                 </DialogContent>
               </Dialog>
             )}
+
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" onClick={resetForm}>
@@ -576,10 +723,12 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
             </Dialog>
           </div>
         </div>
+
         <p className="text-sm text-muted-foreground">
-          Un snapshot = une "photo" du profil physiologique à un moment clé. Base de l'analyse Dan Lorang.
+          Un snapshot = une photo du profil physiologique à un moment clé. Base de l'analyse Dan Lorang.
         </p>
       </CardHeader>
+
       <CardContent className="space-y-4">
         {snapshots.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
