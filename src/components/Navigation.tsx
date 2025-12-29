@@ -9,11 +9,11 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
 }
 
+// Manual Only Mode: Nolio tab removed
 const navItems: NavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: Activity },
   { id: "vlamax", label: "VLamax", icon: Calculator },
   { id: "tests", label: "Tests", icon: FlaskConical },
-  { id: "nolio", label: "Nolio", icon: Calendar },
   { id: "checklist", label: "Race Ready", icon: Trophy },
 ];
 

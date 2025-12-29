@@ -182,7 +182,7 @@ export default function SemaineTypePage() {
         {/* Action */}
         <Button onClick={handleCopy} className="w-full gap-2" variant="outline">
           <Copy className="h-4 w-4" />
-          Copier pour NOLIO
+          Copier le planning
         </Button>
       </div>
     </AppLayout>
