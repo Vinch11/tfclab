@@ -96,7 +96,7 @@ export function VLamaxCalculator({ athlete }: VLamaxCalculatorProps) {
         </div>
         <div>
           <h2 className="text-xl font-semibold text-foreground">Estimation VLamax</h2>
-          <p className="text-sm text-muted-foreground">Basé sur données NOLIO</p>
+          <p className="text-sm text-muted-foreground">Basé sur vos données manuelles</p>
         </div>
       </div>
 
