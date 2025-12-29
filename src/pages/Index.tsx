@@ -412,7 +412,8 @@ const Index = () => {
               <SnapshotManager 
                 athleteId={currentAthlete.id} 
                 athleteName={currentAthlete.name} 
-                athleteGoal={currentAthlete.goal || "IM"} 
+                athleteGoal={currentAthlete.goal || "IM"}
+                activeSnapshotId={currentAthlete.active_snapshot_id}
               />
             )}
             {showCheckins && currentAthlete && (

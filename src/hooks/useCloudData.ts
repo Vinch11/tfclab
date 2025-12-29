@@ -8,8 +8,17 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { Tables, TablesInsert, TablesUpdate, Json } from "@/integrations/supabase/types";
 
-// Types DB from generated types
-export type DbAthlete = Tables<"athletes">;
+// Types DB from generated types (extended with active_snapshot_id)
+export interface DbAthlete {
+  id: string;
+  coach_id: string;
+  name: string;
+  goal: string | null;
+  refs: Json | null;
+  vo2max: number | null;
+  active_snapshot_id: string | null;
+  created_at: string;
+}
 export type DbTest = Tables<"tests">;
 export type DbPlan = Tables<"plans">;
 
@@ -293,7 +302,29 @@ export function useCloudData() {
       return false;
     }
     setSnapshots((prev) => prev.filter((s) => s.id !== id));
+    // Also clear active_snapshot_id if this was the active snapshot
+    setAthletes((prev) => prev.map((a) => 
+      a.active_snapshot_id === id ? { ...a, active_snapshot_id: null } : a
+    ));
     toast.success("Snapshot supprimé");
+    return true;
+  };
+
+  // Set active snapshot for an athlete (effective profile)
+  const setActiveSnapshot = async (athleteId: string, snapshotId: string | null) => {
+    const { error } = await supabase
+      .from("athletes")
+      .update({ active_snapshot_id: snapshotId })
+      .eq("id", athleteId);
+    if (error) {
+      toast.error("Erreur lors de la mise à jour du snapshot actif");
+      console.error(error);
+      return false;
+    }
+    setAthletes((prev) => prev.map((a) => 
+      a.id === athleteId ? { ...a, active_snapshot_id: snapshotId } : a
+    ));
+    toast.success(snapshotId ? "Snapshot défini comme actif" : "Snapshot actif retiré");
     return true;
   };
 
@@ -363,6 +394,7 @@ export function useCloudData() {
     addSnapshot,
     updateSnapshot,
     deleteSnapshot,
+    setActiveSnapshot,
     getCheckinsForAthlete,
     addCheckin,
     updateCheckin,
