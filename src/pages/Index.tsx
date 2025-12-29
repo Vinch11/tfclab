@@ -55,8 +55,10 @@ import { toast } from "sonner";
 
 // ✅ Legacy types/helpers (utilisés par tes composants actuels)
 import { getDernierSnapshot } from "@/types/athlete";
-import { estimerTTE } from "@/types/snapshotNolio";
 import { calculVLamaxSnapshot } from "@/lib/athleteStore";
+
+// ✅ TTE PRO (2 modules: LOAD vs OBSERVED) + TSS_7d
+import { computeTTEPro } from "@/lib/ttePro";
 
 const Index = () => {
   const { user, signOut } = useAuth();
@@ -123,6 +125,7 @@ const Index = () => {
 
   // ============================================
   // ✅ FIX 3C — Convert DbAthlete -> Athlete "legacy" + historique depuis snapshot cloud
+  //     + IMPORTANT: map TSS_7d -> tss_7j (compat legacy)
   // ============================================
   const convertToLegacyAthlete = (dbAthlete: DbAthlete) => {
     const refs = (dbAthlete.refs || {}) as Record<string, unknown>;
@@ -133,17 +136,23 @@ const Index = () => {
       ? ({
           id: effective.id,
           date: effective.date,
-          // On met "vélo" par défaut car tes règles vlamax/tte sont orientées vélo;
-          // mais tu peux le faire évoluer ensuite vers multi-sport.
           sport: "vélo",
           poids: effective.weight_kg ?? 70,
           ftp: effective.ftp ?? 0,
           pmax_5s: effective.pmax_5s ?? undefined,
-          tss_7j: 0, // plus de Nolio -> 0 (tu peux ajouter une saisie manuelle plus tard)
+
+          // ✅ KEY: tu veux tss_7d -> on le remonte ici pour que tes composants legacy lisent un TSS réel
+          // (ils attendent tss_7j, on garde le champ legacy)
+          tss_7j: effective.tss_7d ?? 0,
+
           vo2max: effective.vo2max ?? undefined,
           vma: effective.vma ?? undefined,
           css: effective.css ?? undefined,
           source: (effective.source as any) ?? "manual",
+
+          // (optionnel) on passe aussi les champs PRO si tu veux les exploiter plus tard
+          tte_mode: effective.tte_mode ?? undefined,
+          tte_observed_min: effective.tte_observed_min ?? undefined,
         } as any)
       : null;
 
@@ -172,20 +181,20 @@ const Index = () => {
 
   // ============================================
   // ✅ FIX 3B (suite) — métriques dashboard basées sur snapshot cloud, plus mock
+  //     + TTE PRO (2 modules) -> redevient pertinent
   // ============================================
   const snapshotLegacy = legacyAthlete ? (getDernierSnapshot(legacyAthlete) as any) : null;
+
+  // On reprend aussi le snapshot cloud effectif pour calculs PRO fiables
+  const effectiveCloudSnapshot = useMemo(() => {
+    if (!currentAthlete) return null;
+    return pickEffectiveSnapshot(currentAthlete.id, currentAthlete.active_snapshot_id);
+  }, [currentAthlete, snapshots]);
 
   const vlamax = useMemo(() => {
     if (!legacyAthlete || !snapshotLegacy) return 0;
     return calculVLamaxSnapshot(snapshotLegacy, legacyAthlete.objectif);
   }, [legacyAthlete, snapshotLegacy]);
-
-  const tte = useMemo(() => {
-    if (!snapshotLegacy) return 0;
-    const ftp = snapshotLegacy.ftp || 0;
-    const tss7j = snapshotLegacy.tss_7j || 0;
-    return estimerTTE(ftp, tss7j);
-  }, [snapshotLegacy]);
 
   const ftp = useMemo(() => {
     if (!legacyAthlete) return 0;
@@ -195,6 +204,25 @@ const Index = () => {
 
   const poids = useMemo(() => (snapshotLegacy?.poids || 70) as number, [snapshotLegacy]);
   const ftp_kg = useMemo(() => (poids > 0 ? ftp / poids : 0), [ftp, poids]);
+
+  // ✅ TTE PRO: LOAD (FTP + TSS_7d) ou OBSERVED (tte_observed_min)
+  const ttePro = useMemo(() => {
+    if (!effectiveCloudSnapshot) {
+      // fallback: si pas de snapshot cloud, on reste safe
+      return computeTTEPro({ ftp: ftp || null, tss7d: null, tteObservedMin: null, mode: "LOAD" });
+    }
+    return computeTTEPro({
+      ftp: effectiveCloudSnapshot.ftp ?? null,
+      tss7d: effectiveCloudSnapshot.tss_7d ?? null,
+      tteObservedMin: effectiveCloudSnapshot.tte_observed_min ?? null,
+      mode: (effectiveCloudSnapshot.tte_mode as any) ?? "LOAD",
+    });
+  }, [effectiveCloudSnapshot, ftp]);
+
+  // ✅ Valeur TTE affichée partout (Index)
+  const tte = useMemo(() => {
+    return ttePro?.tteMin ?? 0;
+  }, [ttePro]);
 
   // Handlers
   const handleAddAthlete = async () => {
@@ -221,10 +249,6 @@ const Index = () => {
     // reselect proprement
     const remaining = athletes.filter((a) => a.id !== currentAthlete.id);
     setSelectedAthleteId(remaining[0]?.id || null);
-  };
-
-  const handleSignOut = async () => {
-    await signOut();
   };
 
   const handleFeedbacksChange = (feedbacks: FeedbackNolio[]) => {
@@ -542,6 +566,7 @@ const Index = () => {
                 trendValue={snapshotLegacy ? "snapshot" : "—"}
                 accentColor="primary"
               />
+
               <MetricCard
                 title="FTP"
                 value={ftp ? ftp.toString() : "—"}
@@ -551,15 +576,19 @@ const Index = () => {
                 trendValue={ftp_kg ? `${ftp_kg.toFixed(1)} W/kg` : "—"}
                 accentColor="accent"
               />
+
               <MetricCard
-                title="TTE Estimé"
+                title="TTE (PRO)"
                 value={tte ? tte.toString() : "—"}
                 unit="min"
                 icon={Activity}
                 trend="neutral"
-                trendValue={snapshotLegacy ? "snapshot" : "—"}
+                trendValue={
+                  effectiveCloudSnapshot ? `src:${ttePro.source} • conf:${Math.round(ttePro.confidence * 100)}%` : "—"
+                }
                 accentColor="success"
               />
+
               <MetricCard
                 title="Race Readiness"
                 value={snapshotLegacy ? "—" : "—"}
