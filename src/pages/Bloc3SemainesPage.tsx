@@ -41,7 +41,7 @@ export default function Bloc3SemainesPage() {
           <CardContent className="p-8 text-center">
             <AlertCircle className="h-12 w-12 text-warning mx-auto mb-4" />
             <p className="text-muted-foreground">
-              Ajoutez des données NOLIO pour générer le bloc
+              Ajoutez un snapshot pour générer le bloc
             </p>
             <Button onClick={() => navigate("/snapshot")} className="mt-4">
               Ajouter des données

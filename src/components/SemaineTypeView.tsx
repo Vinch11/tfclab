@@ -48,7 +48,7 @@ export function SemaineTypeView({ athlete }: SemaineTypeViewProps) {
           </div>
         </div>
         <p className="text-center text-muted-foreground py-8">
-          Ajoutez un snapshot NOLIO pour générer la semaine type
+          Ajoutez un snapshot pour générer la semaine type
         </p>
       </div>
     );

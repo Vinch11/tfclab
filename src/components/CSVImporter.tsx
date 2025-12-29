@@ -155,7 +155,7 @@ export function CSVImporter({ onImport }: CSVImporterProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="w-5 h-5 text-primary" />
-            Importer CSV NOLIO
+            Importer CSV
           </DialogTitle>
           <DialogDescription>
             Importez vos données depuis un fichier CSV. Format attendu : date, FTP, Pmax5s, Poids, VO2max, TSS7j, HRV

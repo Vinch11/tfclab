@@ -150,7 +150,7 @@ export function DanLorangAnalysis({ athlete }: DanLorangAnalysisProps) {
           </div>
         </div>
         <p className="text-center text-muted-foreground py-8">
-          Ajoutez un snapshot NOLIO pour voir l'analyse
+          Ajoutez un snapshot pour voir l'analyse
         </p>
       </div>
     );

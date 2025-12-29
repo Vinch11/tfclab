@@ -38,8 +38,8 @@ export function NolioMapping() {
             <Calendar className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-foreground">Mapping Nolio</h2>
-            <p className="text-sm text-muted-foreground">Synchronisez vos entraînements</p>
+            <h2 className="text-xl font-semibold text-foreground">Mapping</h2>
+            <p className="text-sm text-muted-foreground">Gérez vos entraînements</p>
           </div>
         </div>
 

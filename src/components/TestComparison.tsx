@@ -18,7 +18,7 @@ export function TestComparison({ athlete }: TestComparisonProps) {
             <GitCompare className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-foreground">Évolution NOLIO</h2>
+            <h2 className="text-xl font-semibold text-foreground">Évolution</h2>
             <p className="text-sm text-muted-foreground">
               Minimum 2 snapshots requis pour comparer
             </p>

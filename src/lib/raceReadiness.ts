@@ -138,7 +138,7 @@ export function calculRaceReadiness(athlete: Athlete): RaceReadinessResult | nul
 // Texte explicatif pour l'athlète - Multi-sport
 export function texteExplicatifAthlete(athlete: Athlete): string {
   const snapshot = getDernierSnapshot(athlete);
-  if (!snapshot) return "Aucune donnée disponible. Ajoutez un snapshot NOLIO pour obtenir une analyse personnalisée.";
+  if (!snapshot) return "Aucune donnée disponible. Ajoutez un snapshot pour obtenir une analyse personnalisée.";
 
   const readiness = calculRaceReadiness(athlete);
   if (!readiness) return "";
