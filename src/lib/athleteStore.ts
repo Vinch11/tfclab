@@ -198,140 +198,39 @@ export function getHistoriqueVlamax(athlete: Athlete): number[] {
   );
 }
 
-// Create example athlete with snapshot data
-export function creerAthleteExemple(): Athlete {
-  return creerAthletesExempleMultiSport()[0];
+// Create empty athlete (NO demo data)
+export function creerAthleteVierge(
+  nom: string,
+  objectif: ObjectifType = "IM",
+  sexe: SexeType = "M"
+): Athlete {
+  return {
+    id: crypto.randomUUID(),
+    nom: nom.trim() || "Nouvel athlète",
+    sexe,
+    objectif,
+    masse_grasse: 0,
+    historique: [],
+    tests: [],
+    refs: {
+      fcMax: null,
+      vma: null,
+      ftp: null,
+      css: null
+    },
+    vo2max: undefined
+  };
 }
 
-// Create multi-sport example athletes (Phase 1 Base Solide)
+// DEPRECATED: Returns empty array - no more demo athletes
+export function creerAthleteExemple(): Athlete {
+  return creerAthleteVierge("Nouvel athlète");
+}
+
+// DEPRECATED: Returns empty array - no more demo athletes
 export function creerAthletesExempleMultiSport(): Athlete[] {
-  const alice: Athlete = {
-    id: crypto.randomUUID(),
-    nom: "Alice",
-    sexe: "F",
-    objectif: "Marathon",
-    masse_grasse: 18,
-    historique: [
-      {
-        id: crypto.randomUUID(),
-        date: new Date().toISOString().slice(0, 10),
-        sport: "course",
-        vma: 18,
-        allure_seuil: 4.2,
-        poids: 60,
-        vo2max: 55,
-        tss_7j: 100,
-        source: "nolio",
-      },
-      {
-        id: crypto.randomUUID(),
-        date: new Date().toISOString().slice(0, 10),
-        sport: "vélo",
-        ftp: 250,
-        pmax_5s: 500,
-        poids: 60,
-        vo2max: 55,
-        tss_7j: 120,
-        source: "nolio",
-      },
-      {
-        id: crypto.randomUUID(),
-        date: new Date().toISOString().slice(0, 10),
-        sport: "natation",
-        pace100: 105,
-        poids: 60,
-        vo2max: 55,
-        tss_7j: 50,
-        source: "nolio",
-      },
-    ],
-  };
-
-  const bob: Athlete = {
-    id: crypto.randomUUID(),
-    nom: "Bob",
-    sexe: "M",
-    objectif: "IM",
-    masse_grasse: 15,
-    historique: [
-      {
-        id: crypto.randomUUID(),
-        date: new Date().toISOString().slice(0, 10),
-        sport: "course",
-        vma: 20,
-        allure_seuil: 3.8,
-        poids: 75,
-        vo2max: 60,
-        tss_7j: 150,
-        source: "nolio",
-      },
-      {
-        id: crypto.randomUUID(),
-        date: new Date().toISOString().slice(0, 10),
-        sport: "vélo",
-        ftp: 320,
-        pmax_5s: 650,
-        poids: 75,
-        vo2max: 60,
-        tss_7j: 200,
-        source: "nolio",
-      },
-      {
-        id: crypto.randomUUID(),
-        date: new Date().toISOString().slice(0, 10),
-        sport: "natation",
-        pace100: 90,
-        poids: 75,
-        vo2max: 60,
-        tss_7j: 60,
-        source: "nolio",
-      },
-    ],
-  };
-
-  const charlie: Athlete = {
-    id: crypto.randomUUID(),
-    nom: "Charlie",
-    sexe: "M",
-    objectif: "Semi",
-    masse_grasse: 12,
-    historique: [
-      {
-        id: crypto.randomUUID(),
-        date: new Date().toISOString().slice(0, 10),
-        sport: "course",
-        vma: 17,
-        allure_seuil: 4.5,
-        poids: 68,
-        vo2max: 52,
-        tss_7j: 90,
-        source: "nolio",
-      },
-      {
-        id: crypto.randomUUID(),
-        date: new Date().toISOString().slice(0, 10),
-        sport: "vélo",
-        ftp: 270,
-        pmax_5s: 520,
-        poids: 68,
-        vo2max: 52,
-        tss_7j: 110,
-        source: "nolio",
-      },
-      {
-        id: crypto.randomUUID(),
-        date: new Date().toISOString().slice(0, 10),
-        sport: "natation",
-        pace100: 110,
-        poids: 68,
-        vo2max: 52,
-        tss_7j: 45,
-        source: "nolio",
-      },
-    ],
-  };
-
-  return [alice, bob, charlie];
+  console.warn("creerAthletesExempleMultiSport() is deprecated - demo data disabled");
+  return [];
 }
 
 // Compare evolution for a specific sport

@@ -29,14 +29,23 @@ interface AthleteContextType {
 const AthleteContext = createContext<AthleteContextType | undefined>(undefined);
 
 export function AthleteProvider({ children }: { children: ReactNode }) {
+  // Load athletes WITHOUT demo data - start empty if none exist
   const [athletes, setAthletes] = useState<Athlete[]>(() => {
     const loaded = chargerAthletes();
-    if (loaded.length > 0) return loaded;
-    return creerAthletesExempleMultiSport();
+    // Filter out any demo athletes that may have been previously saved
+    return loaded.filter(a => {
+      const name = (a.nom || "").toLowerCase();
+      const demoNames = ["alice", "bob", "charlie", "demo", "example", "exemple"];
+      return !demoNames.some(d => name.includes(d));
+    });
   });
 
   const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(() => {
-    const loaded = chargerAthletes();
+    const loaded = chargerAthletes().filter(a => {
+      const name = (a.nom || "").toLowerCase();
+      const demoNames = ["alice", "bob", "charlie", "demo", "example", "exemple"];
+      return !demoNames.some(d => name.includes(d));
+    });
     if (loaded.length > 0) return loaded[0].id;
     return null;
   });

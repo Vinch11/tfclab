@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       athletes: {
         Row: {
+          active_snapshot_id: string | null
           coach_id: string
           created_at: string
           goal: string | null
@@ -25,6 +26,7 @@ export type Database = {
           vo2max: number | null
         }
         Insert: {
+          active_snapshot_id?: string | null
           coach_id: string
           created_at?: string
           goal?: string | null
@@ -34,6 +36,7 @@ export type Database = {
           vo2max?: number | null
         }
         Update: {
+          active_snapshot_id?: string | null
           coach_id?: string
           created_at?: string
           goal?: string | null
@@ -42,7 +45,15 @@ export type Database = {
           refs?: Json | null
           vo2max?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "athletes_active_snapshot_id_fkey"
+            columns: ["active_snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "snapshots"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       checkins: {
         Row: {

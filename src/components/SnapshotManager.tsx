@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Calendar } from "lucide-react";
+import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Calendar, Pin } from "lucide-react";
 import { DbSnapshot, useCloudData } from "@/hooks/useCloudData";
 import { deriveMetabolicProfile, generateLorangInsights, calculateDelta, formatValue } from "@/types/snapshot";
 
@@ -20,10 +20,11 @@ interface SnapshotManagerProps {
   athleteId: string;
   athleteName: string;
   athleteGoal: string;
+  activeSnapshotId?: string | null;
 }
 
-export function SnapshotManager({ athleteId, athleteName, athleteGoal }: SnapshotManagerProps) {
-  const { getSnapshotsForAthlete, addSnapshot, updateSnapshot, deleteSnapshot } = useCloudData();
+export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSnapshotId }: SnapshotManagerProps) {
+  const { getSnapshotsForAthlete, addSnapshot, updateSnapshot, deleteSnapshot, setActiveSnapshot } = useCloudData();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isCompareOpen, setIsCompareOpen] = useState(false);
@@ -326,8 +327,10 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal }: Snapsho
       athleteGoal
     );
 
+    const isActive = s.id === activeSnapshotId;
+
     return (
-      <Card key={s.id} className="border-border/50">
+      <Card key={s.id} className={`border-border/50 ${isActive ? 'ring-2 ring-primary' : ''}`}>
         <CardHeader className="pb-2">
           <div className="flex items-start justify-between">
             <div>
@@ -339,6 +342,12 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal }: Snapsho
                     {s.cycle_tag}
                   </Badge>
                 )}
+                {isActive && (
+                  <Badge variant="default" className="ml-2">
+                    <Pin className="h-3 w-3 mr-1" />
+                    Actif
+                  </Badge>
+                )}
               </CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
                 Profil: <span className="font-medium text-foreground">{profile}</span>
@@ -346,6 +355,14 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal }: Snapsho
               </p>
             </div>
             <div className="flex gap-1">
+              <Button 
+                size="icon" 
+                variant={isActive ? "secondary" : "ghost"} 
+                onClick={() => setActiveSnapshot(athleteId, isActive ? null : s.id)}
+                title={isActive ? "Retirer comme actif" : "Définir comme actif"}
+              >
+                <Pin className={`h-4 w-4 ${isActive ? 'text-primary' : ''}`} />
+              </Button>
               <Button size="icon" variant="ghost" onClick={() => openEdit(s)}>
                 <Edit className="h-4 w-4" />
               </Button>
