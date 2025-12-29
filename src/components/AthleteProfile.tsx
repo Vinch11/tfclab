@@ -363,7 +363,7 @@ export function AthleteProfile({ athlete, onUpdate }: AthleteProfileProps) {
           ) : (
             <div className="p-8 text-center text-muted-foreground bg-secondary/20 rounded-xl border border-border">
               <Database className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>Aucun snapshot NOLIO</p>
+              <p>Aucun snapshot disponible</p>
               <p className="text-sm">Ajoutez un snapshot pour voir les métriques</p>
             </div>
           )}

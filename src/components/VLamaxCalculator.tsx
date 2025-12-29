@@ -220,7 +220,7 @@ export function VLamaxCalculator({ athlete }: VLamaxCalculatorProps) {
       <div className="flex items-start gap-2 p-4 rounded-lg bg-primary/5 border border-primary/20">
         <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
         <p className="text-sm text-muted-foreground">
-          Estimation basée sur vos données NOLIO. La confiance diminue de 1% par semaine depuis le dernier snapshot.
+          Estimation basée sur vos données. La confiance diminue de 1% par semaine depuis le dernier snapshot.
         </p>
       </div>
     </div>

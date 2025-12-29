@@ -17,7 +17,7 @@ export interface RaceReadinessInputs {
 
 /**
  * Règles Dan Lorang pour déterminer les priorités d'entraînement
- * Basé sur le modèle Snapshot NOLIO
+ * Basé sur le modèle Snapshot
  * Étendu pour Marathon/Semi
  */
 export function reglesDanLorang(
