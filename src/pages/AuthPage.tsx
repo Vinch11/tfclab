@@ -54,8 +54,8 @@ const AuthPage = () => {
       toast.error("Veuillez remplir tous les champs");
       return;
     }
-    if (password.length < 6) {
-      toast.error("Le mot de passe doit contenir au moins 6 caractères");
+    if (password.length < 8) {
+      toast.error("Le mot de passe doit contenir au moins 8 caractères");
       return;
     }
     setLoading(true);
@@ -165,7 +165,7 @@ const AuthPage = () => {
                     <Input
                       id="signup-password"
                       type="password"
-                      placeholder="Min. 6 caractères"
+                      placeholder="Min. 8 caractères"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       disabled={loading}
