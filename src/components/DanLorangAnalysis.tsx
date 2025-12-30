@@ -86,11 +86,11 @@ export function DanLorangAnalysis({ athlete }: DanLorangAnalysisProps) {
   // ✅ TTE PRO (2 modules)
   // IMPORTANT: snapshot.tss_7j contient maintenant la valeur tss_7d (mapping Index.tsx)
   const ttePro = useMemo(() => {
-    return calculTTE({
+    return computeTTEPro({
       ftp: snapshot?.ftp ?? null,
-      tss_7d: snapshot?.tss_7j ?? null, // <- ici : tss_7d mappé en legacy
-      tte_mode: (snapshot as any)?.tte_mode ?? "LOAD",
-      tte_observed_min: (snapshot as any)?.tte_observed_min ?? null,
+      tss7d: snapshot?.tss_7j ?? null, // <- ici : tss_7d mappé en legacy
+      mode: (snapshot as any)?.tte_mode ?? "LOAD",
+      tteObservedMin: (snapshot as any)?.tte_observed_min ?? null,
     });
   }, [snapshot]);
 
