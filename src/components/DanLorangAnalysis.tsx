@@ -5,26 +5,14 @@ import { Target, AlertTriangle, CheckCircle2, TrendingDown, TrendingUp, Timer, Z
 import { cn } from "@/lib/utils";
 import { Athlete, getDernierSnapshot } from "@/types/athlete";
 import { calculVLamaxSnapshot } from "@/lib/athleteStore";
-
-import {
-  reglesDanLorang,
-  ReglesDanLorangResult,
-  RaceReadinessInputs,
-  getPrioriteLabel,
-  getPrioriteColor,
-  getSeancesRecommandees,
-  getSeancesSpecifiques,
-  PrioriteType,
-} from "@/types/reglesDanLorang";
+import { reglesDanLorang, ReglesDanLorangResult, RaceReadinessInputs, getPrioriteLabel, getPrioriteColor, getSeancesRecommandees, getSeancesSpecifiques, PrioriteType } from "@/types/reglesDanLorang";
 import { SEANCES } from "@/types/seances";
 
 // ✅ TTE PRO (2 modules)
 import { computeTTEPro } from "@/lib/ttePro";
-
 interface DanLorangAnalysisProps {
   athlete: Athlete;
 }
-
 const prioriteIcons: Record<PrioriteType, typeof TrendingDown> = {
   VLAMAX_DOWN: TrendingDown,
   VLAMAX_UP: TrendingUp,
@@ -32,43 +20,31 @@ const prioriteIcons: Record<PrioriteType, typeof TrendingDown> = {
   FTP_UTIL: Zap,
   ENDURANCE_UP: Timer,
   VITESSE_UP: TrendingUp,
-  "": CheckCircle2,
+  "": CheckCircle2
 };
 
 // Recommendations par priorité
 const getRecommandationsPriorite = (priorite: PrioriteType): string[] => {
   switch (priorite) {
     case "VLAMAX_DOWN":
-      return [
-        "Privilégier les sorties longues Z2 (4-6h)",
-        "Éviter les sprints et intervalles courts",
-        "Séances tempo longues (sweet spot 2x30-40min)",
-      ];
+      return ["Privilégier les sorties longues Z2 (4-6h)", "Éviter les sprints et intervalles courts", "Séances tempo longues (sweet spot 2x30-40min)"];
     case "VLAMAX_UP":
-      return [
-        "Ajouter des sprints courts (5-10s max)",
-        "Intervalles courts haute intensité",
-        "Séances de force explosive",
-      ];
+      return ["Ajouter des sprints courts (5-10s max)", "Intervalles courts haute intensité", "Séances de force explosive"];
     case "TTE_UP":
       return ["Séances au seuil prolongées (2x20-30min)", "Intervalles longs à 95-105% FTP", "Sorties tempo soutenues"];
     case "FTP_UTIL":
-      return [
-        "Blocs de travail au seuil (sweet spot)",
-        "Intervalles VO2max (3-5min à 105-115% FTP)",
-        "Progression du volume au seuil",
-      ];
+      return ["Blocs de travail au seuil (sweet spot)", "Intervalles VO2max (3-5min à 105-115% FTP)", "Progression du volume au seuil"];
     default:
       return ["Maintenir l'équilibre actuel", "Affûtage pré-compétition", "Récupération et fraîcheur"];
   }
 };
-
-export function DanLorangAnalysis({ athlete }: DanLorangAnalysisProps) {
+export function DanLorangAnalysis({
+  athlete
+}: DanLorangAnalysisProps) {
   const snapshot = getDernierSnapshot(athlete) as any;
-
   const [inputs, setInputs] = useState<RaceReadinessInputs>({
     seance_specifique_validee: false,
-    fatigue_ok: true,
+    fatigue_ok: true
   });
 
   // ✅ VLamax depuis snapshot (comme avant)
@@ -88,25 +64,22 @@ export function DanLorangAnalysis({ athlete }: DanLorangAnalysisProps) {
   const ttePro = useMemo(() => {
     return computeTTEPro({
       ftp: snapshot?.ftp ?? null,
-      tss7d: snapshot?.tss_7j ?? null, // <- ici : tss_7d mappé en legacy
+      tss7d: snapshot?.tss_7j ?? null,
+      // <- ici : tss_7d mappé en legacy
       mode: (snapshot as any)?.tte_mode ?? "LOAD",
-      tteObservedMin: (snapshot as any)?.tte_observed_min ?? null,
+      tteObservedMin: (snapshot as any)?.tte_observed_min ?? null
     });
   }, [snapshot]);
-
   const tte = ttePro.tte_min;
-
   const [analysis, setAnalysis] = useState<ReglesDanLorangResult>({
     priorite: "",
     alertes: [],
-    race_ready: false,
+    race_ready: false
   });
-
   useEffect(() => {
     const result = reglesDanLorang(athlete, vlamax, tte, ftp_kg, inputs.seance_specifique_validee, inputs.fatigue_ok);
     setAnalysis(result);
   }, [athlete, vlamax, tte, ftp_kg, inputs]);
-
   const PrioriteIcon = prioriteIcons[analysis.priorite] || CheckCircle2;
   const recommendations = getRecommandationsPriorite(analysis.priorite);
   const seancesRecommandees = getSeancesRecommandees(analysis.priorite);
@@ -122,23 +95,19 @@ export function DanLorangAnalysis({ athlete }: DanLorangAnalysisProps) {
   if (ftp_kg >= ftpTarget) raceScore += 25;
   if (inputs.seance_specifique_validee) raceScore += 15;
   if (inputs.fatigue_ok) raceScore += 10;
-
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-success";
     if (score >= 60) return "text-warning";
     return "text-destructive";
   };
-
   const getScoreLabel = (score: number) => {
     if (score >= 90) return "Race Ready!";
     if (score >= 80) return "Presque prêt";
     if (score >= 60) return "En progression";
     return "Préparation requise";
   };
-
   if (!snapshot) {
-    return (
-      <div className="glass-card p-6">
+    return <div className="glass-card p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-3 rounded-xl bg-warning/10 text-warning">
             <Target className="w-6 h-6" />
@@ -149,12 +118,9 @@ export function DanLorangAnalysis({ athlete }: DanLorangAnalysisProps) {
           </div>
         </div>
         <p className="text-center text-muted-foreground py-8">Ajoutez un snapshot pour voir l'analyse</p>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="glass-card p-6">
+  return <div className="glass-card p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="p-3 rounded-xl bg-warning/10 text-warning">
@@ -167,40 +133,27 @@ export function DanLorangAnalysis({ athlete }: DanLorangAnalysisProps) {
         </div>
 
         {/* Race Ready Badge */}
-        <div
-          className={cn(
-            "px-4 py-2 rounded-xl flex items-center gap-2",
-            analysis.race_ready ? "bg-success/10 border border-success/30" : "bg-secondary/50 border border-border",
-          )}
-        >
-          {analysis.race_ready ? (
-            <>
+        <div className={cn("px-4 py-2 rounded-xl flex items-center gap-2", analysis.race_ready ? "bg-success/10 border border-success/30" : "bg-secondary/50 border border-border")}>
+          {analysis.race_ready ? <>
               <Trophy className="w-5 h-5 text-success" />
               <span className="font-semibold text-success">Race Ready</span>
-            </>
-          ) : (
-            <>
+            </> : <>
               <Target className="w-5 h-5 text-muted-foreground" />
               <span className="text-muted-foreground">En préparation</span>
-            </>
-          )}
+            </>}
         </div>
       </div>
 
       {/* Race Readiness Score */}
       <div className="mb-6 p-4 rounded-xl bg-secondary/30 border border-border">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm text-muted-foreground">Score Race Readiness</span>
+          <span className="text-sm text-muted-foreground">Score Race Readiness Objectif</span>
           <span className={cn("text-2xl font-bold font-mono", getScoreColor(raceScore))}>{raceScore}%</span>
         </div>
         <div className="h-3 bg-secondary rounded-full overflow-hidden mb-2">
-          <div
-            className={cn(
-              "h-full rounded-full transition-all duration-500",
-              raceScore >= 80 ? "bg-success" : raceScore >= 60 ? "bg-warning" : "bg-destructive",
-            )}
-            style={{ width: `${raceScore}%` }}
-          />
+          <div className={cn("h-full rounded-full transition-all duration-500", raceScore >= 80 ? "bg-success" : raceScore >= 60 ? "bg-warning" : "bg-destructive")} style={{
+          width: `${raceScore}%`
+        }} />
         </div>
         <p className={cn("text-sm font-medium", getScoreColor(raceScore))}>{getScoreLabel(raceScore)}</p>
       </div>
@@ -209,12 +162,7 @@ export function DanLorangAnalysis({ athlete }: DanLorangAnalysisProps) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="p-3 rounded-xl bg-secondary/20 border border-border">
           <p className="text-xs text-muted-foreground mb-1">VLamax</p>
-          <p
-            className={cn(
-              "text-lg font-bold font-mono",
-              vlamax > 0.45 ? "text-warning" : vlamax < 0.28 ? "text-destructive" : "text-success",
-            )}
-          >
+          <p className={cn("text-lg font-bold font-mono", vlamax > 0.45 ? "text-warning" : vlamax < 0.28 ? "text-destructive" : "text-success")}>
             {vlamax.toFixed(2)}
           </p>
           <p className="text-xs text-muted-foreground">Cible: 0.25-0.{athlete.objectif === "IM" ? "40" : "45"}</p>
@@ -256,18 +204,15 @@ export function DanLorangAnalysis({ athlete }: DanLorangAnalysisProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="flex items-center justify-between p-4 rounded-xl bg-secondary/20 border border-border">
           <div className="flex items-center gap-3">
-            <CheckCircle2
-              className={cn("w-5 h-5", inputs.seance_specifique_validee ? "text-success" : "text-muted-foreground")}
-            />
+            <CheckCircle2 className={cn("w-5 h-5", inputs.seance_specifique_validee ? "text-success" : "text-muted-foreground")} />
             <Label htmlFor="seance" className="text-foreground cursor-pointer">
               Séance spécifique validée
             </Label>
           </div>
-          <Switch
-            id="seance"
-            checked={inputs.seance_specifique_validee}
-            onCheckedChange={(checked) => setInputs((prev) => ({ ...prev, seance_specifique_validee: checked }))}
-          />
+          <Switch id="seance" checked={inputs.seance_specifique_validee} onCheckedChange={checked => setInputs(prev => ({
+          ...prev,
+          seance_specifique_validee: checked
+        }))} />
         </div>
 
         <div className="flex items-center justify-between p-4 rounded-xl bg-secondary/20 border border-border">
@@ -277,31 +222,26 @@ export function DanLorangAnalysis({ athlete }: DanLorangAnalysisProps) {
               Fatigue maîtrisée
             </Label>
           </div>
-          <Switch
-            id="fatigue"
-            checked={inputs.fatigue_ok}
-            onCheckedChange={(checked) => setInputs((prev) => ({ ...prev, fatigue_ok: checked }))}
-          />
+          <Switch id="fatigue" checked={inputs.fatigue_ok} onCheckedChange={checked => setInputs(prev => ({
+          ...prev,
+          fatigue_ok: checked
+        }))} />
         </div>
       </div>
 
       {/* Alerts */}
-      {analysis.alertes.length > 0 && (
-        <div className="mb-6 p-4 rounded-xl bg-warning/10 border border-warning/30">
+      {analysis.alertes.length > 0 && <div className="mb-6 p-4 rounded-xl bg-warning/10 border border-warning/30">
           <div className="flex items-center gap-2 mb-3">
             <AlertTriangle className="w-5 h-5 text-warning" />
             <span className="font-medium text-warning">Alertes</span>
           </div>
           <ul className="space-y-2">
-            {analysis.alertes.map((alerte, idx) => (
-              <li key={idx} className="flex items-start gap-2 text-sm text-warning">
+            {analysis.alertes.map((alerte, idx) => <li key={idx} className="flex items-start gap-2 text-sm text-warning">
                 <span>•</span>
                 {alerte}
-              </li>
-            ))}
+              </li>)}
           </ul>
-        </div>
-      )}
+        </div>}
 
       {/* Priority & Recommendations */}
       <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
@@ -323,33 +263,26 @@ export function DanLorangAnalysis({ athlete }: DanLorangAnalysisProps) {
             Recommandations
           </p>
           <ul className="space-y-1.5">
-            {recommendations.map((rec, idx) => (
-              <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
+            {recommendations.map((rec, idx) => <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
                 <span className="text-primary">→</span>
                 {rec}
-              </li>
-            ))}
+              </li>)}
           </ul>
         </div>
 
         {/* Séances Recommandées */}
-        {seancesRecommandees.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-border">
+        {seancesRecommandees.length > 0 && <div className="mt-4 pt-4 border-t border-border">
             <p className="text-sm font-medium text-foreground mb-2">Séances Recommandées</p>
             <div className="flex flex-wrap gap-2">
-              {seancesRecommandees.map((code) => {
-                const seance = SEANCES[code as keyof typeof SEANCES];
-                return seance ? (
-                  <div key={code} className="px-3 py-2 rounded-lg bg-primary/10 border border-primary/20">
+              {seancesRecommandees.map(code => {
+            const seance = SEANCES[code as keyof typeof SEANCES];
+            return seance ? <div key={code} className="px-3 py-2 rounded-lg bg-primary/10 border border-primary/20">
                     <span className="text-sm font-mono font-semibold text-primary">{code}</span>
                     <span className="text-xs text-muted-foreground ml-2">{seance.objectif}</span>
-                  </div>
-                ) : null;
-              })}
+                  </div> : null;
+          })}
             </div>
-          </div>
-        )}
+          </div>}
       </div>
-    </div>
-  );
+    </div>;
 }
