@@ -7,7 +7,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { Tables, TablesInsert, TablesUpdate, Json } from "@/integrations/supabase/types";
-
+import { 
+  athleteSchema, 
+  snapshotSchema, 
+  checkinSchema, 
+  testSchema,
+  validateOrNull 
+} from "@/lib/validationSchemas";
 // Types DB from generated types (extended with active_snapshot_id)
 export interface DbAthlete {
   id: string;
@@ -120,12 +126,20 @@ export function useCloudData() {
   // ========== ATHLETES ==========
   const addAthlete = async (name: string, goal: string, refs: Json = {}, vo2max: number | null = null) => {
     if (!user) return null;
+    
+    // Validate input data
+    const { data: validated, error: validationError } = validateOrNull(athleteSchema, { name, goal, vo2max, refs });
+    if (validationError) {
+      toast.error(`Données invalides: ${validationError}`);
+      return null;
+    }
+    
     const insertData: TablesInsert<"athletes"> = {
       coach_id: user.id,
-      name,
-      goal,
-      refs,
-      vo2max,
+      name: validated.name,
+      goal: validated.goal ?? null,
+      refs: (validated.refs as Json) ?? {},
+      vo2max: validated.vo2max ?? null,
     };
     const { data, error } = await supabase
       .from("athletes")
@@ -134,7 +148,6 @@ export function useCloudData() {
       .single();
     if (error) {
       toast.error("Erreur lors de l'ajout de l'athlète");
-      console.error(error);
       return null;
     }
     setAthletes((prev) => [data, ...prev]);
@@ -180,16 +193,26 @@ export function useCloudData() {
     note: string | null = null
   ) => {
     if (!user) return null;
+    
+    // Validate input data
+    const { data: validated, error: validationError } = validateOrNull(testSchema, { 
+      athlete_id: athleteId, type, name, sport, reliability, vlamax, raw, note 
+    });
+    if (validationError) {
+      toast.error(`Données invalides: ${validationError}`);
+      return null;
+    }
+    
     const insertData: TablesInsert<"tests"> = {
       coach_id: user.id,
-      athlete_id: athleteId,
-      type,
-      name,
-      sport,
-      reliability,
-      vlamax,
-      raw,
-      note,
+      athlete_id: validated.athlete_id,
+      type: validated.type,
+      name: validated.name,
+      sport: validated.sport ?? null,
+      reliability: validated.reliability ?? null,
+      vlamax: validated.vlamax ?? null,
+      raw: (validated.raw as Json) ?? {},
+      note: validated.note ?? null,
     };
     const { data, error } = await supabase
       .from("tests")
@@ -198,7 +221,6 @@ export function useCloudData() {
       .single();
     if (error) {
       toast.error("Erreur lors de l'ajout du test");
-      console.error(error);
       return null;
     }
     setTests((prev) => [data, ...prev]);
@@ -271,6 +293,14 @@ export function useCloudData() {
 
   const addSnapshot = async (snapshot: Omit<DbSnapshot, "id" | "created_at" | "updated_at">) => {
     if (!user) return null;
+    
+    // Validate input data
+    const { error: validationError } = validateOrNull(snapshotSchema, snapshot);
+    if (validationError) {
+      toast.error(`Données invalides: ${validationError}`);
+      return null;
+    }
+    
     const { data, error } = await supabase
       .from("snapshots")
       .insert({ ...snapshot, coach_id: user.id })
@@ -278,7 +308,6 @@ export function useCloudData() {
       .single();
     if (error) {
       toast.error("Erreur lors de l'ajout du snapshot");
-      console.error(error);
       return null;
     }
     setSnapshots((prev) => [data as DbSnapshot, ...prev]);
@@ -339,6 +368,14 @@ export function useCloudData() {
 
   const addCheckin = async (checkin: Omit<DbCheckin, "id" | "created_at" | "updated_at">) => {
     if (!user) return null;
+    
+    // Validate input data
+    const { error: validationError } = validateOrNull(checkinSchema, checkin);
+    if (validationError) {
+      toast.error(`Données invalides: ${validationError}`);
+      return null;
+    }
+    
     const { data, error } = await supabase
       .from("checkins")
       .insert({ ...checkin, coach_id: user.id })
@@ -346,7 +383,6 @@ export function useCloudData() {
       .single();
     if (error) {
       toast.error("Erreur lors de l'ajout du check-in");
-      console.error(error);
       return null;
     }
     setCheckins((prev) => [data as DbCheckin, ...prev]);
