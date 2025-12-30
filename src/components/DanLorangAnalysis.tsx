@@ -84,20 +84,17 @@ export function DanLorangAnalysis({ athlete }: DanLorangAnalysisProps) {
   }, [snapshot]);
 
   // ✅ TTE PRO (2 modules)
-  // IMPORTANT: chez toi, snapshot.tss_7j contient maintenant la valeur tss_7d (mapping Index.tsx)
+  // IMPORTANT: snapshot.tss_7j contient maintenant la valeur tss_7d (mapping Index.tsx)
   const ttePro = useMemo(() => {
-    if (!snapshot) {
-      return computeTTEPro({ ftp: null, tss7d: null, tteObservedMin: null, mode: "LOAD" });
-    }
-    return computeTTEPro({
-      ftp: snapshot.ftp ?? null,
-      tss7d: snapshot.tss_7j ?? null, // <- ici : tss_7d mappé dans legacy
-      tteObservedMin: snapshot.tte_observed_min ?? null,
-      mode: snapshot.tte_mode ?? "LOAD",
+    return calculTTE({
+      ftp: snapshot?.ftp ?? null,
+      tss_7d: snapshot?.tss_7j ?? null, // <- ici : tss_7d mappé en legacy
+      tte_mode: (snapshot as any)?.tte_mode ?? "LOAD",
+      tte_observed_min: (snapshot as any)?.tte_observed_min ?? null,
     });
   }, [snapshot]);
 
-  const tte = ttePro.tteMin ?? 45;
+  const tte = ttePro.tte_min;
 
   const [analysis, setAnalysis] = useState<ReglesDanLorangResult>({
     priorite: "",
