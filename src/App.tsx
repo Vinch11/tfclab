@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { AthleteProvider } from "@/contexts/AthleteContext";
 import { AuthGate } from "@/components/AuthGate";
 import AuthPage from "./pages/AuthPage";
 import Index from "./pages/Index";
@@ -25,7 +26,9 @@ export default function App() {
                 path="/"
                 element={
                   <AuthGate>
-                    <Index />
+                    <AthleteProvider>
+                      <Index />
+                    </AthleteProvider>
                   </AuthGate>
                 }
               />
@@ -33,7 +36,9 @@ export default function App() {
                 path="*"
                 element={
                   <AuthGate>
-                    <NotFound />
+                    <AthleteProvider>
+                      <NotFound />
+                    </AthleteProvider>
                   </AuthGate>
                 }
               />
