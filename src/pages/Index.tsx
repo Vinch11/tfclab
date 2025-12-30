@@ -542,7 +542,18 @@ const Index = () => {
             {showPhysioAnalysis && <PhysiologicalAnalysis athlete={legacyAthlete} />}
             {showPlanner && <Planificateur athlete={legacyAthlete} />}
             {showWorkoutLibrary && <WorkoutLibrary athlete={legacyAthlete} />}
-            {showMonitoring && <MonitoringDashboard athlete={legacyAthlete} />}
+            {showMonitoring && (
+              legacyAthlete ? (
+                <MonitoringDashboard athlete={legacyAthlete} />
+              ) : (
+                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                  <CardContent className="py-12 text-center">
+                    <Activity className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                    <p className="text-muted-foreground">Sélectionnez ou créez un athlète pour accéder au suivi.</p>
+                  </CardContent>
+                </Card>
+              )
+            )}
             {showSnapshots && currentAthlete && (
               <SnapshotManager
                 athleteId={currentAthlete.id}
