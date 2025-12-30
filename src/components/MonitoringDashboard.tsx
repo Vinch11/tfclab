@@ -2,13 +2,20 @@
 // COMPOSANT SUIVI LONGITUDINAL & ALERTES
 // =============================================
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { TrendingUp, TrendingDown, Minus, AlertTriangle, Info, CheckCircle, Activity, Calendar } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { TrendingUp, TrendingDown, Minus, AlertTriangle, Info, CheckCircle, Activity, Calendar, Pencil, Zap } from "lucide-react";
 import { Athlete } from "@/types/athlete";
 import { Alert } from "@/types/monitoring";
+import { useAthletes } from "@/contexts/AthleteContext";
+import { useCloudData } from "@/hooks/useCloudData";
+import { toast } from "sonner";
 import {
   getVLamaxTestsOnly,
   getRefStatus,
@@ -26,6 +33,17 @@ interface MonitoringDashboardProps {
 }
 
 export function MonitoringDashboard({ athlete }: MonitoringDashboardProps) {
+  const { updateAthlete, refresh } = useAthletes();
+  const { snapshots } = useCloudData();
+
+  const [isRefsDialogOpen, setIsRefsDialogOpen] = useState(false);
+  const [refsForm, setRefsForm] = useState({
+    fcMax: "",
+    vma: "",
+    ftp: "",
+    css: "",
+  });
+
   const vTests = useMemo(() => getVLamaxTestsOnly(athlete), [athlete.tests]);
   const monthly = useMemo(() => aggregateMonthlyVLamax(vTests), [vTests]);
   const trend = useMemo(() => computeTrend(monthly), [monthly]);
@@ -34,11 +52,84 @@ export function MonitoringDashboard({ athlete }: MonitoringDashboardProps) {
   const refStatus = useMemo(() => getRefStatus(athlete), [athlete.refs]);
   const outliers = useMemo(() => detectOutliers(vTests.map(t => t.vlamax!)), [vTests]);
 
+  // Get active or latest snapshot for the athlete
+  const activeSnapshot = useMemo(() => {
+    const athleteSnapshots = snapshots.filter(s => s.athlete_id === athlete.id);
+    if (!athleteSnapshots.length) return null;
+    
+    // Find active snapshot or get the latest one
+    const activeId = (athlete as any).active_snapshot_id;
+    if (activeId) {
+      const active = athleteSnapshots.find(s => s.id === activeId);
+      if (active) return active;
+    }
+    
+    // Fallback to latest snapshot
+    return athleteSnapshots.sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    )[0];
+  }, [snapshots, athlete]);
+
   const formatDate = (iso: string) => {
     return new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
   };
 
   const trendColors = getTrendColor(trend.dir);
+
+  const openRefsDialog = () => {
+    // Pre-fill with current values
+    const refs = athlete.refs || { fcMax: null, vma: null, ftp: null, css: null };
+    setRefsForm({
+      fcMax: refs.fcMax != null ? String(refs.fcMax) : "",
+      vma: refs.vma != null ? String(refs.vma) : "",
+      ftp: refs.ftp != null ? String(refs.ftp) : "",
+      css: refs.css != null ? String(refs.css) : "",
+    });
+    setIsRefsDialogOpen(true);
+  };
+
+  const copyFromSnapshot = () => {
+    if (!activeSnapshot) {
+      toast.error("Aucun snapshot disponible");
+      return;
+    }
+    
+    setRefsForm({
+      fcMax: activeSnapshot.fc_max != null ? String(activeSnapshot.fc_max) : refsForm.fcMax,
+      vma: activeSnapshot.vma != null ? String(activeSnapshot.vma) : refsForm.vma,
+      ftp: activeSnapshot.ftp != null ? String(activeSnapshot.ftp) : refsForm.ftp,
+      css: activeSnapshot.css != null ? String(activeSnapshot.css) : refsForm.css,
+    });
+    toast.success("Valeurs copiées depuis le snapshot");
+  };
+
+  const handleSaveRefs = async () => {
+    const parseNum = (v: string): number | null => {
+      const n = parseFloat(v);
+      return isNaN(n) ? null : n;
+    };
+
+    const newRefs = {
+      ...(athlete.refs || {}),
+      fcMax: parseNum(refsForm.fcMax),
+      vma: parseNum(refsForm.vma),
+      ftp: parseNum(refsForm.ftp),
+      css: parseNum(refsForm.css),
+    };
+
+    const success = await updateAthlete({
+      ...athlete,
+      refs: newRefs,
+    });
+
+    if (success) {
+      toast.success("Références enregistrées");
+      setIsRefsDialogOpen(false);
+      await refresh();
+    } else {
+      toast.error("Erreur lors de la sauvegarde");
+    }
+  };
 
   return (
     <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
@@ -112,7 +203,13 @@ export function MonitoringDashboard({ athlete }: MonitoringDashboardProps) {
 
         {/* Références */}
         <div className="space-y-2">
-          <h3 className="text-sm font-medium text-muted-foreground">Références athlète</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium text-muted-foreground">Références athlète</h3>
+            <Button variant="outline" size="sm" onClick={openRefsDialog} className="gap-2">
+              <Pencil className="h-3.5 w-3.5" />
+              Modifier les références
+            </Button>
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <RefBadge label="FCmax" value={refStatus.refs.fcMax} unit="bpm" missing={refStatus.missing.includes("FCmax")} />
             <RefBadge label="VMA" value={refStatus.refs.vma} unit="km/h" missing={refStatus.missing.includes("VMA")} />
@@ -208,6 +305,82 @@ export function MonitoringDashboard({ athlete }: MonitoringDashboardProps) {
           </div>
         )}
       </CardContent>
+
+      {/* Dialog pour modifier les références */}
+      <Dialog open={isRefsDialogOpen} onOpenChange={setIsRefsDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-4 w-4" />
+              Modifier les références athlète
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {activeSnapshot && (
+              <Button 
+                variant="secondary" 
+                className="w-full gap-2" 
+                onClick={copyFromSnapshot}
+              >
+                <Zap className="h-4 w-4" />
+                Copier depuis le snapshot actif
+              </Button>
+            )}
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="fcMax">FCmax (bpm)</Label>
+                <Input
+                  id="fcMax"
+                  type="number"
+                  placeholder="ex: 185"
+                  value={refsForm.fcMax}
+                  onChange={(e) => setRefsForm({ ...refsForm, fcMax: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vma">VMA (km/h)</Label>
+                <Input
+                  id="vma"
+                  type="number"
+                  step="0.1"
+                  placeholder="ex: 18.5"
+                  value={refsForm.vma}
+                  onChange={(e) => setRefsForm({ ...refsForm, vma: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ftp">FTP (W)</Label>
+                <Input
+                  id="ftp"
+                  type="number"
+                  placeholder="ex: 280"
+                  value={refsForm.ftp}
+                  onChange={(e) => setRefsForm({ ...refsForm, ftp: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="css">CSS (sec/100m)</Label>
+                <Input
+                  id="css"
+                  type="number"
+                  placeholder="ex: 95"
+                  value={refsForm.css}
+                  onChange={(e) => setRefsForm({ ...refsForm, css: e.target.value })}
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <DialogClose asChild>
+              <Button variant="outline">Annuler</Button>
+            </DialogClose>
+            <Button onClick={handleSaveRefs}>Enregistrer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
