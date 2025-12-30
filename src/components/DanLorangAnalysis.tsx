@@ -1,12 +1,17 @@
 import { useState, useEffect, useMemo } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Target, AlertTriangle, CheckCircle2, TrendingDown, TrendingUp, Timer, Zap, Trophy, Info } from "lucide-react";
+import { Target, AlertTriangle, CheckCircle2, TrendingDown, TrendingUp, Timer, Zap, Trophy, Info, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Athlete, getDernierSnapshot } from "@/types/athlete";
 import { calculVLamaxSnapshot } from "@/lib/athleteStore";
 import { reglesDanLorang, ReglesDanLorangResult, RaceReadinessInputs, getPrioriteLabel, getPrioriteColor, getSeancesRecommandees, getSeancesSpecifiques, PrioriteType } from "@/types/reglesDanLorang";
 import { SEANCES } from "@/types/seances";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 // ✅ TTE PRO (2 modules)
 import { computeTTEPro } from "@/lib/ttePro";
@@ -127,7 +132,48 @@ export function DanLorangAnalysis({
             <Target className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-foreground">Analyse Dan Lorang</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-semibold text-foreground">Analyse Dan Lorang</h2>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="p-1 rounded-full hover:bg-secondary/50 transition-colors">
+                    <HelpCircle className="w-4 h-4 text-muted-foreground hover:text-primary" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-96 p-4 bg-card border-border">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-lg bg-warning/10 text-warning">
+                        <Target className="w-4 h-4" />
+                      </div>
+                      <h4 className="font-semibold text-foreground">Race Readiness Objectif</h4>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Ce score est <strong className="text-foreground">contextuel</strong> : il évalue la préparation par rapport à un objectif précis (Ironman, 70.3, marathon, etc.).
+                    </p>
+                    <div className="text-sm text-muted-foreground space-y-1">
+                      <p className="font-medium text-foreground">Il intègre :</p>
+                      <ul className="list-disc list-inside pl-2 space-y-0.5">
+                        <li>Les cibles physiologiques propres à l'objectif</li>
+                        <li>Le TTE attendu pour la distance</li>
+                        <li>La cohérence entre VLamax, FTP et endurance</li>
+                        <li>Des critères qualitatifs (séance spécifique validée, fatigue maîtrisée)</li>
+                      </ul>
+                    </div>
+                    <div className="p-3 rounded-lg bg-warning/5 border border-warning/20">
+                      <p className="text-xs text-muted-foreground">
+                        👉 Répond à : <span className="font-medium text-foreground">"Suis-je prêt pour CETTE course, avec CET objectif ?"</span>
+                      </p>
+                    </div>
+                    <div className="mt-2 p-2 rounded-lg bg-secondary/30 border border-border">
+                      <p className="text-xs text-muted-foreground">
+                        <span className="font-medium text-accent">💡 Note :</span> Les deux scores peuvent être différents. Un athlète peut être en bonne forme générale mais pas encore prêt pour son objectif cible, ou l'inverse en phase d'affûtage.
+                      </p>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
             <p className="text-sm text-muted-foreground">Objectif: {athlete.objectif === "IM" ? "Ironman" : "70.3"}</p>
           </div>
         </div>

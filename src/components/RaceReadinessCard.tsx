@@ -1,8 +1,14 @@
 import { useMemo } from "react";
-import { Target, TrendingUp, Zap, Heart, Activity, ChevronRight } from "lucide-react";
+import { Target, TrendingUp, Zap, Heart, Activity, ChevronRight, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCloudData } from "@/hooks/useCloudData";
 import type { DbSnapshot } from "@/hooks/useCloudData";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
 interface RaceReadinessCardProps {
   athlete: any;
 }
@@ -126,7 +132,43 @@ export function RaceReadinessCard({
             <Target className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-foreground">Forme générale actuelle</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-semibold text-foreground">Forme générale actuelle</h2>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="p-1 rounded-full hover:bg-secondary/50 transition-colors">
+                    <HelpCircle className="w-4 h-4 text-muted-foreground hover:text-primary" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-96 p-4 bg-card border-border">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                        <Target className="w-4 h-4" />
+                      </div>
+                      <h4 className="font-semibold text-foreground">Race Readiness Global</h4>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Ce score représente l'état de préparation <strong className="text-foreground">général</strong> de l'athlète.
+                    </p>
+                    <div className="text-sm text-muted-foreground space-y-1">
+                      <p className="font-medium text-foreground">Calculé à partir de :</p>
+                      <ul className="list-disc list-inside pl-2 space-y-0.5">
+                        <li>VLamax (profil métabolique)</li>
+                        <li>Endurance / TTE (capacité à soutenir l'effort)</li>
+                        <li>Puissance relative (FTP / kg)</li>
+                        <li>Fraîcheur (équilibre charge / récupération)</li>
+                      </ul>
+                    </div>
+                    <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                      <p className="text-xs text-muted-foreground">
+                        👉 Répond à : <span className="font-medium text-foreground">"Suis-je globalement prêt à performer aujourd'hui ?"</span>
+                      </p>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
             <p className="text-sm text-muted-foreground">
               Snapshot: {snap.date} {athlete.active_snapshot_id ? "(actif)" : "(plus récent)"}
             </p>
