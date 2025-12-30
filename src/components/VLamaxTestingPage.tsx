@@ -53,10 +53,16 @@ const difficultyColors = {
 };
 
 export function VLamaxTestingPage({ athlete, onSaveTests }: VLamaxTestingPageProps) {
-  // Récupérer les tests existants depuis localStorage
+  // Récupérer les tests existants depuis localStorage avec gestion d'erreur
   const [tests, setTests] = useState<TestVLamax[]>(() => {
-    const saved = localStorage.getItem(`tests-${athlete.id}`);
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem(`tests-${athlete.id}`);
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
   });
 
   const [expandedTest, setExpandedTest] = useState<string | null>(null);
