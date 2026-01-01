@@ -1,20 +1,25 @@
 // =============================================
 // ÉCRAN 5 - SEMAINE TYPE MULTI-SPORT (CLOUD, NO NOLIO)
+// FIX 12: Filtrage par objectif + toggles Pro
 // =============================================
 
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Copy, Calendar, AlertCircle, Bike, PersonStanding, Waves } from "lucide-react";
+import { Copy, Calendar, AlertCircle, Bike, PersonStanding, Waves, Settings2, Dumbbell } from "lucide-react";
 import { toast } from "sonner";
 
 import { useCloudData } from "@/hooks/useCloudData";
 import type { DbSnapshot } from "@/hooks/useCloudData";
-import { useAthletes } from "@/contexts/AthleteContext"; // ⚠️ temporaire si tu n'as pas encore un CloudAthleteContext
+import { useAthletes } from "@/contexts/AthleteContext";
 import { genererSemaineType } from "@/lib/semaineGenerator";
+import { getAllowedSportsLabel, isRunningOnlyGoal, type ProModules } from "@/lib/allowedSports";
 
 // --- Helpers ---
 type SportTypeUI = "vélo" | "course" | "natation";
@@ -61,6 +66,25 @@ export default function SemaineTypePage() {
   const { currentAthlete } = useAthletes();
   const { snapshots } = useCloudData();
 
+  // ✅ FIX 12: Modules Pro (sauvegardés en localStorage)
+  const [proModules, setProModules] = useState<ProModules>(() => {
+    const saved = localStorage.getItem("vlab-pro-modules");
+    return saved ? JSON.parse(saved) : { triathlon: false, crosstraining: false };
+  });
+
+  // Sauvegarder dans localStorage
+  useEffect(() => {
+    localStorage.setItem("vlab-pro-modules", JSON.stringify(proModules));
+  }, [proModules]);
+
+  const handleToggleTriathlon = (val: boolean) => {
+    setProModules({ triathlon: val, crosstraining: val ? false : proModules.crosstraining });
+  };
+
+  const handleToggleCrossTraining = (val: boolean) => {
+    setProModules({ crosstraining: val, triathlon: val ? false : proModules.triathlon });
+  };
+
   if (!currentAthlete) {
     return (
       <AppLayout title="Semaine Type" showBack>
@@ -100,9 +124,12 @@ export default function SemaineTypePage() {
     );
   }
 
-  // ✅ On adapte pour garder ton générateur tel quel (prochaine étape = refactor propre)
+  // ✅ FIX 12: On adapte pour garder ton générateur + modules Pro
   const athleteCompat = buildCompatAthlete(currentAthlete, effectiveSnapshot);
-  const semaine = genererSemaineType(athleteCompat);
+  const semaine = genererSemaineType(athleteCompat, proModules);
+  
+  // Déterminer si running-only (pour afficher les toggles)
+  const isRunning = isRunningOnlyGoal(currentAthlete.goal || "IM");
 
   if (!semaine) {
     return (
@@ -153,6 +180,42 @@ export default function SemaineTypePage() {
   return (
     <AppLayout title="Semaine Type" showBack>
       <div className="space-y-4 animate-fade-in">
+        {/* ✅ FIX 12: Panneau Option Pro (Staff) */}
+        {isRunning && (
+          <Card className="border-dashed border-warning/30 bg-warning/5">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Settings2 className="h-4 w-4 text-warning" />
+                <span className="font-semibold text-sm">Option Pro (Staff)</span>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex items-center gap-3">
+                  <Switch
+                    id="triathlon"
+                    checked={proModules.triathlon}
+                    onCheckedChange={handleToggleTriathlon}
+                  />
+                  <Label htmlFor="triathlon" className="text-sm cursor-pointer">
+                    Mode Triathlon complet
+                  </Label>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Switch
+                    id="crosstraining"
+                    checked={proModules.crosstraining}
+                    onCheckedChange={handleToggleCrossTraining}
+                    disabled={proModules.triathlon}
+                  />
+                  <Label htmlFor="crosstraining" className="text-sm cursor-pointer">
+                    Cross-training vélo (récup)
+                  </Label>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Header avec objectif + sports autorisés */}
         <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
@@ -162,7 +225,7 @@ export default function SemaineTypePage() {
               </div>
               <Badge variant="secondary">{semaine.nbSeancesCles} clés</Badge>
             </div>
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
               <span>VLamax: {semaine.vlamax.toFixed(2)}</span>
               <span>TTE: {semaine.tte} min</span>
               <span>Volume: {semaine.volumeTotal}</span>
@@ -171,12 +234,23 @@ export default function SemaineTypePage() {
                 {currentAthlete.active_snapshot_id ? " (actif)" : ""}
               </span>
             </div>
+            {/* ✅ FIX 12: Affichage explicite des sports autorisés */}
+            <div className="mt-3 pt-3 border-t border-border/50 flex flex-wrap items-center gap-2">
+              <span className="text-xs font-medium text-muted-foreground">Objectif:</span>
+              <Badge variant="outline">{currentAthlete.goal || semaine.objectif}</Badge>
+              <span className="text-xs font-medium text-muted-foreground ml-2">Sports autorisés:</span>
+              <Badge className="bg-success/10 text-success border-success/30" variant="outline">
+                {getAllowedSportsLabel(semaine.sportsAutorises)}
+              </Badge>
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Programme multi-sport</CardTitle>
+            <CardTitle className="text-sm">
+              {isRunning && !proModules.triathlon ? "Programme Course" : "Programme multi-sport"}
+            </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <Accordion type="multiple" className="w-full">
@@ -194,6 +268,12 @@ export default function SemaineTypePage() {
                           {jour.estCle && (
                             <Badge variant="default" className="text-[10px] px-1.5 py-0">
                               CLÉ
+                            </Badge>
+                          )}
+                          {/* ✅ FIX 12: Badge auto-corrigé */}
+                          {jour.autoCorrige && (
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-warning/10 text-warning border-warning/30">
+                              Auto-corrigé
                             </Badge>
                           )}
                         </div>

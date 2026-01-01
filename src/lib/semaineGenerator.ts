@@ -1,5 +1,6 @@
 // =============================================
 // GÉNÉRATEUR SEMAINE TYPE - Multi-Sport
+// FIX 12: Filtrage par objectif + sports autorisés
 // =============================================
 
 import { Athlete, getDernierSnapshot } from "@/types/athlete";
@@ -7,6 +8,14 @@ import { estimerTTESport, SportType, SnapshotNolio } from "@/types/snapshotNolio
 import { calculVLamaxSnapshot } from "@/lib/athleteStore";
 import { SEANCES, Seance, seancesParSport, determinerPriorite, PrioriteCoaching } from "@/types/seances";
 import { getDernierSnapshotParSport } from "@/lib/raceReadiness";
+import { 
+  getAllowedSports, 
+  isSportAllowed, 
+  isRunningOnlyGoal as checkRunningOnly,
+  isTriathlonGoal,
+  type ProModules,
+  type AllowedSport 
+} from "@/lib/allowedSports";
 
 export interface JourSemaine {
   jour: string;
@@ -20,6 +29,7 @@ export interface JourSemaine {
   contenu?: string;
   description?: string;
   estCle: boolean;
+  autoCorrige?: boolean; // ✅ FIX 12: badge "Auto-corrigé"
 }
 
 export interface SemaineType {
@@ -31,18 +41,11 @@ export interface SemaineType {
   semaine: JourSemaine[];
   volumeTotal: string;
   nbSeancesCles: number;
+  sportsAutorises: AllowedSport[]; // ✅ FIX 12: affichage explicite
 }
 
-// =============================================
-// OBJECTIFS RUNNING-ONLY vs TRIATHLON
-// Semi, Marathon, Trail* -> 100% course
-// IM, 703 -> multi-sport (natation/vélo/course)
-// =============================================
-const RUNNING_ONLY_GOALS = ["Semi", "Marathon", "TrailShort", "TrailMountain", "TrailUltra", "Trail"];
-
-const isRunningOnlyGoal = (objectif: string): boolean => {
-  return RUNNING_ONLY_GOALS.includes(objectif);
-};
+// ✅ FIX 12: Utilise allowedSports.ts
+const isRunningOnlyGoal = (objectif: string): boolean => checkRunningOnly(objectif);
 
 // Planning type multi-sport pour triathlon (IM, 703)
 const PLANNING_MULTISPORT: Array<{ jour: string; sport: SportType; estCle: boolean }> = [
@@ -58,21 +61,37 @@ const PLANNING_MULTISPORT: Array<{ jour: string; sport: SportType; estCle: boole
 // Planning type running-only pour Semi/Marathon/Trail
 const PLANNING_RUNNING: Array<{ jour: string; sport: SportType; estCle: boolean; type: "cle" | "endurance" | "recup" | "longue" | "repos" }> = [
   { jour: "Lundi", sport: "course", estCle: false, type: "repos" },
-  { jour: "Mardi", sport: "course", estCle: true, type: "cle" },        // Séance clé (seuil/VMA)
+  { jour: "Mardi", sport: "course", estCle: true, type: "cle" },
   { jour: "Mercredi", sport: "course", estCle: false, type: "endurance" },
-  { jour: "Jeudi", sport: "course", estCle: true, type: "cle" },        // Séance clé (seuil/tempo)
+  { jour: "Jeudi", sport: "course", estCle: true, type: "cle" },
   { jour: "Vendredi", sport: "course", estCle: false, type: "recup" },
   { jour: "Samedi", sport: "course", estCle: false, type: "endurance" },
-  { jour: "Dimanche", sport: "course", estCle: true, type: "longue" },  // Sortie longue
+  { jour: "Dimanche", sport: "course", estCle: true, type: "longue" },
 ];
 
-// Générer la semaine type (multi-sport OU running-only selon objectif)
-export function genererSemaineType(athlete: Athlete): SemaineType | null {
+// Planning cross-training (course + vélo récup)
+const PLANNING_CROSSTRAINING: Array<{ jour: string; sport: SportType; estCle: boolean; type: "cle" | "endurance" | "recup" | "longue" | "repos" | "velo_recup" }> = [
+  { jour: "Lundi", sport: "course", estCle: false, type: "repos" },
+  { jour: "Mardi", sport: "course", estCle: true, type: "cle" },
+  { jour: "Mercredi", sport: "vélo", estCle: false, type: "velo_recup" }, // Vélo Z1/Z2 récup
+  { jour: "Jeudi", sport: "course", estCle: true, type: "cle" },
+  { jour: "Vendredi", sport: "course", estCle: false, type: "recup" },
+  { jour: "Samedi", sport: "course", estCle: false, type: "endurance" },
+  { jour: "Dimanche", sport: "course", estCle: true, type: "longue" },
+];
+
+// ✅ FIX 12: Générer la semaine type avec filtrage par objectif + modules Pro
+export function genererSemaineType(
+  athlete: Athlete, 
+  proModules?: ProModules
+): SemaineType | null {
   const snapshot = getDernierSnapshot(athlete);
   if (!snapshot) return null;
 
-  // Détecter si objectif running-only
-  const runningOnly = isRunningOnlyGoal(athlete.objectif);
+  // ✅ FIX 12: Calculer les sports autorisés
+  const sportsAutorises = getAllowedSports(athlete.objectif, proModules);
+  const runningOnly = isRunningOnlyGoal(athlete.objectif) && !proModules?.triathlon;
+  const useCrossTraining = runningOnly && proModules?.crosstraining;
 
   // Calculer priorité depuis le snapshot course (pour running) ou vélo (pour triathlon)
   const sportPrincipal: SportType = runningOnly ? "course" : "vélo";
@@ -220,16 +239,34 @@ export function genererSemaineType(athlete: Athlete): SemaineType | null {
   }
 
   // =============================================
-  // GARDE-FOU: Si running-only, forcer sport = "course"
+  // ✅ FIX 12: GARDE-FOU FINAL - Filtrer sports non autorisés
   // =============================================
-  if (runningOnly) {
-    semaine.forEach((jour) => {
-      if (jour.sport !== "course") {
+  semaine.forEach((jour) => {
+    if (!isSportAllowed(jour.sport, athlete.objectif, proModules)) {
+      // Remplacement intelligent selon le sport interdit
+      if (jour.sport === "natation") {
+        // Natation -> Course Z2 ou repos
         jour.sport = "course";
-        jour.nom = `${jour.nom} (adapté course)`;
+        jour.type = jour.estCle ? "EF" : "Récup";
+        jour.nom = "Course (adapté)";
+        jour.objectif = "Endurance active";
+        jour.intensite = "Z2";
+        jour.autoCorrige = true;
+      } else if (jour.sport === "vélo") {
+        // Vélo -> Course facile ou repos
+        if (useCrossTraining && jour.intensite && ["Z1", "Z2"].some(z => jour.intensite?.includes(z))) {
+          // Vélo récup autorisé en cross-training - on garde
+        } else {
+          jour.sport = "course";
+          jour.type = jour.estCle ? "EF" : "Récup";
+          jour.nom = "Course (adapté)";
+          jour.objectif = "Récupération active";
+          jour.intensite = "Z1-Z2";
+          jour.autoCorrige = true;
+        }
       }
-    });
-  }
+    }
+  });
 
   // Calcul volume estimé selon objectif
   const getVolumeEstime = () => {
@@ -257,6 +294,7 @@ export function genererSemaineType(athlete: Athlete): SemaineType | null {
     semaine,
     volumeTotal,
     nbSeancesCles,
+    sportsAutorises, // ✅ FIX 12
   };
 }
 
@@ -330,5 +368,6 @@ export function genererSemaineTypeSport(athlete: Athlete, sport: SportType): Sem
     semaine,
     volumeTotal,
     nbSeancesCles,
+    sportsAutorises: [sport as AllowedSport], // ✅ FIX 12: sport unique
   };
 }
