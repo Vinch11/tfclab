@@ -8,6 +8,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { getVLamaxEffectif, VLamaxEffectif } from "@/lib/vlamax-effectif";
+import { VLamaxBadge } from "@/components/VLamaxBadge";
 
 interface RaceReadinessCardProps {
   athlete: any;
@@ -22,17 +24,20 @@ function pickEffectiveSnapshot(snapshots: DbSnapshot[], athleteId: string, activ
   return [...list].sort((a, b) => a.date < b.date ? 1 : -1)[0];
 }
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
-function computeReadiness(snapshot: DbSnapshot, objectif: string) {
-  const vlamax = snapshot.vlamax ?? null;
+
+// Utilise VLamax effectif pour le calcul
+function computeReadiness(snapshot: DbSnapshot, objectif: string, vlamaxEffectif: VLamaxEffectif) {
+  const vlamax = vlamaxEffectif.value;
   const ftp = snapshot.ftp ?? null;
   const w = snapshot.weight_kg ?? null;
-  const conf = snapshot.confidence ?? 0.7;
+  // Utiliser la confiance de VLamax effectif
+  const conf = vlamaxEffectif.confidence;
   const ftpKg = ftp && w ? ftp / w : null;
 
   // Targets (à ajuster)
   const ftpTarget = objectif === "IM" ? 4.6 : 4.8;
 
-  // Scores /25
+  // Scores /25 - utilise VLamax effectif
   const vlamaxScore = vlamax == null ? 10 : vlamax >= 0.25 && vlamax <= (objectif === "IM" ? 0.45 : 0.55) ? 25 : vlamax < 0.25 ? 8 : 15;
   const puissanceScore = ftpKg == null ? 10 : ftpKg >= ftpTarget ? 25 : Math.round(clamp(ftpKg / ftpTarget * 25, 5, 24));
   const enduranceScore = snapshot.metabolic_score != null ? Math.round(clamp(snapshot.metabolic_score / 4, 5, 25)) : Math.round(clamp(15 + 10 * (conf - 0.5), 8, 22));
@@ -50,20 +55,24 @@ function computeReadiness(snapshot: DbSnapshot, objectif: string) {
       puissance: puissanceScore,
       endurance: enduranceScore,
       fraicheur: fraicheurScore
-    }
+    },
+    vlamaxEffectif // Include for display
   };
 }
-function texteExplicatif(snapshot: DbSnapshot, objectif: string) {
+function texteExplicatif(snapshot: DbSnapshot, objectif: string, vlamaxEffectif: VLamaxEffectif) {
   const lines: string[] = [];
   lines.push(`**Snapshot utilisé : ${snapshot.date}**`);
   lines.push(`Objectif : ${objectif}`);
-  if (snapshot.vlamax != null) lines.push(`• VLamax saisie : ${snapshot.vlamax.toFixed(2)}`);
+  // Utiliser VLamax effectif avec sa source
+  if (vlamaxEffectif.value != null) {
+    lines.push(`• **VLamax effectif** : ${vlamaxEffectif.value.toFixed(2)} (${vlamaxEffectif.label})`);
+    lines.push(`  → Confiance : ${Math.round(vlamaxEffectif.confidence * 100)}%`);
+  }
   if (snapshot.vo2max != null) lines.push(`• VO₂max : ${snapshot.vo2max.toFixed(1)}`);
   if (snapshot.ftp != null) lines.push(`• FTP : ${snapshot.ftp} W`);
   if (snapshot.weight_kg != null) lines.push(`• Poids : ${snapshot.weight_kg.toFixed(1)} kg`);
-  if (snapshot.confidence != null) lines.push(`• Confiance : ${snapshot.confidence.toFixed(2)}`);
   lines.push("");
-  lines.push("Interprétation : ce score combine profil glycolytique (VLamax), puissance spécifique (FTP/kg), endurance (proxy) et qualité des données (confiance).");
+  lines.push("Interprétation : ce score combine profil glycolytique (VLamax effectif), puissance spécifique (FTP/kg), endurance (proxy) et qualité des données (confiance).");
   return lines.join("\n");
 }
 export function RaceReadinessCard({
@@ -75,6 +84,27 @@ export function RaceReadinessCard({
   const snap = useMemo(() => {
     return pickEffectiveSnapshot(snapshots as any, athlete.id, athlete.active_snapshot_id ?? null);
   }, [snapshots, athlete.id, athlete.active_snapshot_id]);
+  
+  // ✅ VLamax EFFECTIF - Source unique de vérité
+  const vlamaxEffectif = useMemo<VLamaxEffectif>(() => {
+    // Créer un athlete-like object pour getVLamaxEffectif
+    const athleteForCalc = {
+      ...athlete,
+      historique: snap ? [{
+        id: snap.id,
+        date: snap.date,
+        sport: "vélo" as const,
+        poids: snap.weight_kg || 70,
+        ftp: snap.ftp,
+        pmax_5s: snap.pmax_5s,
+        vo2max: snap.vo2max,
+        vma: snap.vma,
+        tss_7j: snap.tss_7d
+      }] : []
+    };
+    return getVLamaxEffectif(athleteForCalc as any);
+  }, [athlete, snap]);
+  
   if (!snap) {
     return <div className="glass-card p-6">
         <div className="flex items-center gap-3 mb-4">
@@ -88,8 +118,8 @@ export function RaceReadinessCard({
         </div>
       </div>;
   }
-  const readiness = computeReadiness(snap, athlete.objectif);
-  const texte = texteExplicatif(snap, athlete.objectif);
+  const readiness = computeReadiness(snap, athlete.objectif, vlamaxEffectif);
+  const texte = texteExplicatif(snap, athlete.objectif, vlamaxEffectif);
   const scoreColor = {
     success: "text-success",
     warning: "text-warning",
