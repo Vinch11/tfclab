@@ -51,7 +51,10 @@ import {
   User,
   Camera,
   ClipboardCheck,
+  Settings2,
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 import logo2fc from "@/assets/logo-2fc.png";
 import { useAuth } from "@/contexts/AuthContext";
@@ -83,6 +86,16 @@ const Index = () => {
   const [showMonitoring, setShowMonitoring] = useState(false);
   const [showSnapshots, setShowSnapshots] = useState(false);
   const [showCheckins, setShowCheckins] = useState(false);
+
+  // ✅ Mode Staff toggle (affichage expert avec indices de confiance)
+  const [staffMode, setStaffMode] = useState<boolean>(() => {
+    const saved = localStorage.getItem("vlab-staff-mode");
+    return saved === "true";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("vlab-staff-mode", staffMode.toString());
+  }, [staffMode]);
 
   const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -645,9 +658,11 @@ const Index = () => {
                 icon={Zap}
                 trend="neutral"
                 trendValue={
-                  vlamaxEffectif.source === "test" && vlamaxEffectif.details?.date
-                    ? `Test ${vlamaxEffectif.details.date} • conf ${Math.round(vlamaxEffectif.confidence * 100)}%`
-                    : `${vlamaxEffectif.label} • conf ${Math.round(vlamaxEffectif.confidence * 100)}%`
+                  staffMode
+                    ? (vlamaxEffectif.source === "test" && vlamaxEffectif.details?.date
+                        ? `Test ${vlamaxEffectif.details.date} • conf ${Math.round(vlamaxEffectif.confidence * 100)}%`
+                        : `${vlamaxEffectif.label} • conf ${Math.round(vlamaxEffectif.confidence * 100)}%`)
+                    : (vlamaxEffectif.value !== null ? "Moteur glycolytique" : "—")
                 }
                 accentColor={vlamaxEffectif.source === "test" ? "success" : "primary"}
                 onWhyClick={() => setActiveTab("methodology")}
@@ -670,9 +685,11 @@ const Index = () => {
                 icon={Activity}
                 trend="neutral"
                 trendValue={
-                  tteEffectif.source !== "unknown" 
-                    ? `${getSourceLabel(tteEffectif.source)} • conf ${Math.round(tteEffectif.confidence * 100)}%`
-                    : "Ajouter TSS_7d ou TTE mesuré"
+                  staffMode
+                    ? (tteEffectif.source !== "unknown" 
+                        ? `${getSourceLabel(tteEffectif.source)} • conf ${Math.round(tteEffectif.confidence * 100)}%`
+                        : "Ajouter TSS_7d ou TTE mesuré")
+                    : (tteEffectif.tte_min !== null ? "Endurance au seuil" : "—")
                 }
                 accentColor={tteEffectif.source === "unknown" ? "warning" : "success"}
                 onWhyClick={() => setActiveTab("methodology")}
@@ -685,9 +702,11 @@ const Index = () => {
                 icon={Target}
                 trend="neutral"
                 trendValue={
-                  raceReadinessEffectif.reasonsMissing.length > 0
-                    ? `${raceReadinessEffectif.label} • ${raceReadinessEffectif.reasonsMissing[0]}`
-                    : `${raceReadinessEffectif.label} • conf ${Math.round(raceReadinessEffectif.confidence * 100)}%`
+                  staffMode
+                    ? (raceReadinessEffectif.reasonsMissing.length > 0
+                        ? `${raceReadinessEffectif.label} • ${raceReadinessEffectif.reasonsMissing[0]}`
+                        : `${raceReadinessEffectif.label} • conf ${Math.round(raceReadinessEffectif.confidence * 100)}%`)
+                    : raceReadinessEffectif.label
                 }
                 accentColor={raceReadinessEffectif.color === "success" ? "success" : "warning"}
                 onWhyClick={() => setActiveTab("methodology")}
@@ -852,15 +871,34 @@ const Index = () => {
 
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
 
-      {/* Header user */}
+      {/* Header user + Mode Staff toggle */}
       <div className="container mx-auto px-4 pt-4">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center flex-wrap gap-2">
           <div className="text-sm text-muted-foreground">Connecté: {user?.email}</div>
-          <Button variant="ghost" size="sm" onClick={async () => signOut()}>
-            <LogOut className="h-4 w-4 mr-2" />
-            Déconnexion
-          </Button>
+          <div className="flex items-center gap-4">
+            {/* Mode Staff Toggle */}
+            <div className="flex items-center gap-2">
+              <Settings2 className="h-4 w-4 text-muted-foreground" />
+              <Label htmlFor="staff-mode" className="text-sm font-medium cursor-pointer">
+                Mode Staff
+              </Label>
+              <Switch
+                id="staff-mode"
+                checked={staffMode}
+                onCheckedChange={setStaffMode}
+              />
+            </div>
+            <Button variant="ghost" size="sm" onClick={async () => signOut()}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Déconnexion
+            </Button>
+          </div>
         </div>
+        {staffMode && (
+          <div className="mt-2 text-xs text-success bg-success/10 px-3 py-1 rounded-full inline-flex items-center gap-1">
+            <span>🟢</span> Affichage Expert — Indices de confiance visibles
+          </div>
+        )}
       </div>
 
       <main className="container mx-auto px-4 py-8 relative">
