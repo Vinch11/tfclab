@@ -26,16 +26,18 @@ import {
 } from "lucide-react";
 import { VLamaxEffectif, getSourceColor as getVLamaxSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
 import { TTEEffectif, getSourceColor as getTTESourceColor, getSourceLabel } from "@/lib/tteEffectif";
+import { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { cn } from "@/lib/utils";
 
 interface PhysiologicalAnalysisProps {
   athlete: Athlete;
   vlamaxEffectif?: VLamaxEffectif;
   tteEffectif?: TTEEffectif;
+  readiness?: RaceReadinessEffectif;
   onGoToSnapshots?: () => void;
 }
 
-export function PhysiologicalAnalysis({ athlete, vlamaxEffectif: vlamaxEffectifProp, tteEffectif: tteEffectifProp, onGoToSnapshots }: PhysiologicalAnalysisProps) {
+export function PhysiologicalAnalysis({ athlete, vlamaxEffectif: vlamaxEffectifProp, tteEffectif: tteEffectifProp, readiness: readinessProp, onGoToSnapshots }: PhysiologicalAnalysisProps) {
   const snapshot = getDernierSnapshot(athlete);
   
   // ✅ VLamax EFFECTIF - Utilise la prop si fournie, sinon fallback

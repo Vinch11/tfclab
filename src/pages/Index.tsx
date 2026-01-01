@@ -60,6 +60,9 @@ import { computeVLamaxEffectif, VLamaxEffectif } from "@/lib/vlamaxEffectif";
 // ✅ TTE EFFECTIF - Source unique de vérité
 import { computeTTEEffectif, TTEEffectif, getSourceLabel } from "@/lib/tteEffectif";
 
+// ✅ RACE READINESS EFFECTIF - Source unique de vérité
+import { computeRaceReadinessEffectif, RaceReadinessEffectif, getScoreColor } from "@/lib/raceReadinessEffectif";
+
 const Index = () => {
   const { user, signOut } = useAuth();
 
@@ -254,6 +257,19 @@ const Index = () => {
   const tte = useMemo(() => {
     return tteEffectif?.tte_min ?? 0;
   }, [tteEffectif]);
+
+  // ✅ RACE READINESS EFFECTIF - Source unique de vérité
+  const raceReadinessEffectif = useMemo<RaceReadinessEffectif>(() => {
+    return computeRaceReadinessEffectif({
+      objectif: currentAthlete?.goal || "IM",
+      vlamaxEffectif,
+      tteEffectif,
+      ftp,
+      poids,
+      fatigue_ok: true,         // Valeur par défaut - à overrider si check-in dispo
+      seance_specifique_validee: false, // Valeur par défaut
+    });
+  }, [currentAthlete, vlamaxEffectif, tteEffectif, ftp, poids]);
 
   // Handlers
   const handleAddAthlete = async () => {
@@ -570,7 +586,7 @@ const Index = () => {
 
             {/* Contenu conditionnel */}
             {showTestLibrary && <TestProtocols athlete={legacyAthlete} />}
-            {showPhysioAnalysis && <PhysiologicalAnalysis athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} onGoToSnapshots={() => {
+            {showPhysioAnalysis && <PhysiologicalAnalysis athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} readiness={raceReadinessEffectif} onGoToSnapshots={() => {
               setShowSnapshots(true);
               setShowPhysioAnalysis(false);
             }} />}
@@ -638,12 +654,12 @@ const Index = () => {
 
               <MetricCard
                 title="Race Readiness"
-                value={snapshotLegacy ? "—" : "—"}
+                value={raceReadinessEffectif.score.toString()}
                 unit="%"
                 icon={Target}
                 trend="neutral"
-                trendValue="calculé plus bas"
-                accentColor="warning"
+                trendValue={`${raceReadinessEffectif.label} • conf ${Math.round(raceReadinessEffectif.confidence * 100)}%`}
+                accentColor={raceReadinessEffectif.color === "success" ? "success" : "warning"}
               />
             </div>
 
@@ -655,7 +671,8 @@ const Index = () => {
             <RaceReadinessCard 
               athlete={legacyAthlete} 
               vlamaxEffectif={vlamaxEffectif} 
-              tteEffectif={tteEffectif} 
+              tteEffectif={tteEffectif}
+              readiness={raceReadinessEffectif}
               onGoToSnapshots={() => {
                 setShowSnapshots(true);
                 setShowTestLibrary(false);
@@ -669,7 +686,8 @@ const Index = () => {
             <DanLorangAnalysis 
               athlete={legacyAthlete} 
               vlamaxEffectif={vlamaxEffectif} 
-              tteEffectif={tteEffectif} 
+              tteEffectif={tteEffectif}
+              readiness={raceReadinessEffectif}
               onGoToSnapshots={() => {
                 setShowSnapshots(true);
                 setShowTestLibrary(false);
@@ -691,7 +709,7 @@ const Index = () => {
             {renderAthleteSelector()}
             <AthleteProfile athlete={legacyAthlete} onUpdate={() => {}} />
             <VLamaxCalculator athlete={legacyAthlete} />
-            <DanLorangAnalysis athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} onGoToSnapshots={() => setShowSnapshots(true)} />
+            <DanLorangAnalysis athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} readiness={raceReadinessEffectif} onGoToSnapshots={() => setShowSnapshots(true)} />
             <TrainingZones />
           </div>
         );
