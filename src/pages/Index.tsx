@@ -664,7 +664,25 @@ const Index = () => {
             </div>
 
             <div className="grid lg:grid-cols-2 gap-6">
-              <VLamaxCalculator athlete={legacyAthlete} />
+              <VLamaxCalculator 
+                snapshotEffectif={effectiveCloudSnapshot ? {
+                  ftp: effectiveCloudSnapshot.ftp ?? null,
+                  weight_kg: effectiveCloudSnapshot.weight_kg ?? null,
+                  pmax_5s: effectiveCloudSnapshot.pmax_5s ?? null,
+                  tss_7d: effectiveCloudSnapshot.tss_7d ?? null,
+                } : null}
+                vlamaxEffectif={vlamaxEffectif}
+                tteEffectif={tteEffectif}
+                onGoToSnapshots={() => {
+                  setShowSnapshots(true);
+                  setShowTestLibrary(false);
+                  setShowPhysioAnalysis(false);
+                  setShowPlanner(false);
+                  setShowWorkoutLibrary(false);
+                  setShowMonitoring(false);
+                  setShowCheckins(false);
+                }}
+              />
               <TrainingZones />
             </div>
 
@@ -708,7 +726,17 @@ const Index = () => {
           <div className="space-y-6 animate-fade-in">
             {renderAthleteSelector()}
             <AthleteProfile athlete={legacyAthlete} onUpdate={() => {}} />
-            <VLamaxCalculator athlete={legacyAthlete} />
+            <VLamaxCalculator 
+              snapshotEffectif={effectiveCloudSnapshot ? {
+                ftp: effectiveCloudSnapshot.ftp ?? null,
+                weight_kg: effectiveCloudSnapshot.weight_kg ?? null,
+                pmax_5s: effectiveCloudSnapshot.pmax_5s ?? null,
+                tss_7d: effectiveCloudSnapshot.tss_7d ?? null,
+              } : null}
+              vlamaxEffectif={vlamaxEffectif}
+              tteEffectif={tteEffectif}
+              onGoToSnapshots={() => setShowSnapshots(true)}
+            />
             <DanLorangAnalysis athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} readiness={raceReadinessEffectif} onGoToSnapshots={() => setShowSnapshots(true)} />
             <TrainingZones />
           </div>
