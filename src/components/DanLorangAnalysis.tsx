@@ -13,12 +13,14 @@ import {
 } from "@/components/ui/popover";
 import { VLamaxEffectif, getSourceColor as getVLamaxSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
 import { TTEEffectif, getSourceColor as getTTESourceColor, getSourceLabel } from "@/lib/tteEffectif";
+import { RaceReadinessEffectif, getScoreColor } from "@/lib/raceReadinessEffectif";
 import { TTEGuard, isTTEUnavailable } from "@/components/TTEGuard";
 
 interface DanLorangAnalysisProps {
   athlete: Athlete;
   vlamaxEffectif?: VLamaxEffectif;
   tteEffectif?: TTEEffectif;
+  readiness?: RaceReadinessEffectif;
   onGoToSnapshots?: () => void;
 }
 const prioriteIcons: Record<PrioriteType, typeof TrendingDown> = {
@@ -50,6 +52,7 @@ export function DanLorangAnalysis({
   athlete,
   vlamaxEffectif: vlamaxEffectifProp,
   tteEffectif: tteEffectifProp,
+  readiness: readinessProp,
   onGoToSnapshots
 }: DanLorangAnalysisProps) {
   const snapshot = getDernierSnapshot(athlete) as any;
@@ -103,24 +106,24 @@ export function DanLorangAnalysis({
   const ftpTarget = athlete.objectif === "IM" ? 4.6 : 4.8;
   const tteTarget = athlete.objectif === "IM" ? 55 : 45;
 
-  // ✅ Race readiness score basé sur TTE PRO
-  let raceScore = 0;
-  if (vlamax >= 0.25 && vlamax <= 0.45) raceScore += 25;
-  if (tte >= tteTarget) raceScore += 25;
-  if (ftp_kg >= ftpTarget) raceScore += 25;
-  if (inputs.seance_specifique_validee) raceScore += 15;
-  if (inputs.fatigue_ok) raceScore += 10;
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-success";
-    if (score >= 60) return "text-warning";
-    return "text-destructive";
+  // ✅ RACE READINESS EFFECTIF - Utilise la prop si fournie (plus de calcul local!)
+  const readiness = readinessProp ?? {
+    score: 0,
+    label: "Non disponible",
+    color: "warning" as const,
+    details: { vlamax: 0, endurance: 0, puissance: 0, fraicheur: 0 },
+    confidence: 0,
+    reasonsMissing: ["Données manquantes"],
+    inputsUsed: {
+      vlamax: { value: null, source: "unknown" },
+      tte: { value: null, source: "unknown" },
+      ftpKg: null,
+      fatigue_ok: true,
+      seance_specifique: false,
+    },
   };
-  const getScoreLabel = (score: number) => {
-    if (score >= 90) return "Race Ready!";
-    if (score >= 80) return "Presque prêt";
-    if (score >= 60) return "En progression";
-    return "Préparation requise";
-  };
+  
+  const raceScore = readiness.score;
   if (!snapshot) {
     return <div className="glass-card p-6">
         <div className="flex items-center gap-3 mb-4">
@@ -231,7 +234,7 @@ export function DanLorangAnalysis({
           width: `${raceScore}%`
         }} />
         </div>
-        <p className={cn("text-sm font-medium", getScoreColor(raceScore))}>{getScoreLabel(raceScore)}</p>
+        <p className={cn("text-sm font-medium", getScoreColor(raceScore))}>{readiness.label}</p>
       </div>
 
       {/* Current Metrics */}

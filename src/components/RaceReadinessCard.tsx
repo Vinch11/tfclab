@@ -10,14 +10,17 @@ import {
 } from "@/components/ui/popover";
 import { VLamaxEffectif, getSourceColor as getVLamaxSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
 import { TTEEffectif, getSourceColor as getTTESourceColor, getSourceLabel } from "@/lib/tteEffectif";
+import { RaceReadinessEffectif, getScoreColor, getScoreBgColor } from "@/lib/raceReadinessEffectif";
 import { TTEGuard, isTTEUnavailable } from "@/components/TTEGuard";
 
 interface RaceReadinessCardProps {
   athlete: any;
   vlamaxEffectif?: VLamaxEffectif;
   tteEffectif?: TTEEffectif;
+  readiness?: RaceReadinessEffectif;
   onGoToSnapshots?: () => void;
 }
+// Fonction utilitaire pour récupérer le snapshot effectif
 function pickEffectiveSnapshot(snapshots: DbSnapshot[], athleteId: string, activeSnapshotId?: string | null) {
   const list = snapshots.filter(s => s.athlete_id === athleteId);
   if (list.length === 0) return null;
@@ -27,62 +30,11 @@ function pickEffectiveSnapshot(snapshots: DbSnapshot[], athleteId: string, activ
   }
   return [...list].sort((a, b) => a.date < b.date ? 1 : -1)[0];
 }
-const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
-
-// Utilise VLamax effectif pour le calcul
-function computeReadiness(snapshot: DbSnapshot, objectif: string, vlamaxEffectif: VLamaxEffectif) {
-  const vlamax = vlamaxEffectif.value;
-  const ftp = snapshot.ftp ?? null;
-  const w = snapshot.weight_kg ?? null;
-  // Utiliser la confiance de VLamax effectif
-  const conf = vlamaxEffectif.confidence;
-  const ftpKg = ftp && w ? ftp / w : null;
-
-  // Targets (à ajuster)
-  const ftpTarget = objectif === "IM" ? 4.6 : 4.8;
-
-  // Scores /25 - utilise VLamax effectif
-  const vlamaxScore = vlamax == null ? 10 : vlamax >= 0.25 && vlamax <= (objectif === "IM" ? 0.45 : 0.55) ? 25 : vlamax < 0.25 ? 8 : 15;
-  const puissanceScore = ftpKg == null ? 10 : ftpKg >= ftpTarget ? 25 : Math.round(clamp(ftpKg / ftpTarget * 25, 5, 24));
-  const enduranceScore = snapshot.metabolic_score != null ? Math.round(clamp(snapshot.metabolic_score / 4, 5, 25)) : Math.round(clamp(15 + 10 * (conf - 0.5), 8, 22));
-  const fraicheurScore = conf >= 0.85 ? 22 : conf >= 0.7 ? 18 : 12;
-  const total = vlamaxScore + puissanceScore + enduranceScore + fraicheurScore;
-  const score = Math.round(clamp(total / 100 * 100, 0, 100));
-  const color = score >= 80 ? "success" : score >= 60 ? "warning" : "destructive";
-  const label = score >= 80 ? "Prêt" : score >= 60 ? "En progression" : "À construire";
-  return {
-    score,
-    color,
-    label,
-    details: {
-      vlamax: vlamaxScore,
-      puissance: puissanceScore,
-      endurance: enduranceScore,
-      fraicheur: fraicheurScore
-    },
-    vlamaxEffectif // Include for display
-  };
-}
-function texteExplicatif(snapshot: DbSnapshot, objectif: string, vlamaxEffectif: VLamaxEffectif) {
-  const lines: string[] = [];
-  lines.push(`**Snapshot utilisé : ${snapshot.date}**`);
-  lines.push(`Objectif : ${objectif}`);
-  // Utiliser VLamax effectif avec sa source
-  if (vlamaxEffectif.value != null) {
-    lines.push(`• **VLamax effectif** : ${vlamaxEffectif.value.toFixed(2)} (${vlamaxEffectif.label})`);
-    lines.push(`  → Confiance : ${Math.round(vlamaxEffectif.confidence * 100)}%`);
-  }
-  if (snapshot.vo2max != null) lines.push(`• VO₂max : ${snapshot.vo2max.toFixed(1)}`);
-  if (snapshot.ftp != null) lines.push(`• FTP : ${snapshot.ftp} W`);
-  if (snapshot.weight_kg != null) lines.push(`• Poids : ${snapshot.weight_kg.toFixed(1)} kg`);
-  lines.push("");
-  lines.push("Interprétation : ce score combine profil glycolytique (VLamax effectif), puissance spécifique (FTP/kg), endurance (proxy) et qualité des données (confiance).");
-  return lines.join("\n");
-}
 export function RaceReadinessCard({
   athlete,
   vlamaxEffectif: vlamaxEffectifProp,
   tteEffectif: tteEffectifProp,
+  readiness: readinessProp,
   onGoToSnapshots
 }: RaceReadinessCardProps) {
   const {
@@ -111,6 +63,27 @@ export function RaceReadinessCard({
     status_message: "Données manquantes"
   };
   
+  // ✅ RACE READINESS EFFECTIF - Utilise la prop si fournie (plus de calcul local!)
+  const readiness = readinessProp ?? {
+    score: 0,
+    label: "Non disponible",
+    color: "warning" as const,
+    details: { vlamax: 0, endurance: 0, puissance: 0, fraicheur: 0 },
+    confidence: 0,
+    reasonsMissing: ["Données manquantes"],
+    inputsUsed: {
+      vlamax: { value: null, source: "unknown" },
+      tte: { value: null, source: "unknown" },
+      ftpKg: null,
+      fatigue_ok: true,
+      seance_specifique: false,
+    },
+  };
+  
+  const scoreColor = getScoreColor(readiness.score);
+  const scoreBg = getScoreBgColor(readiness.score);
+
+  // Gérer le cas où il n'y a pas de snapshot
   if (!snap) {
     return <div className="glass-card p-6">
         <div className="flex items-center gap-3 mb-4">
@@ -122,20 +95,16 @@ export function RaceReadinessCard({
             <p className="text-sm text-muted-foreground">Aucun snapshot disponible</p>
           </div>
         </div>
+        {readiness.reasonsMissing.length > 0 && (
+          <div className="text-sm text-muted-foreground space-y-1 mt-4">
+            {readiness.reasonsMissing.map((reason, i) => (
+              <p key={i}>• {reason}</p>
+            ))}
+          </div>
+        )}
       </div>;
   }
-  const readiness = computeReadiness(snap, athlete.objectif, vlamaxEffectif);
-  const texte = texteExplicatif(snap, athlete.objectif, vlamaxEffectif);
-  const scoreColor = {
-    success: "text-success",
-    warning: "text-warning",
-    destructive: "text-destructive"
-  }[readiness.color] || "text-muted-foreground";
-  const scoreBg = {
-    success: "bg-success",
-    warning: "bg-warning",
-    destructive: "bg-destructive"
-  }[readiness.color] || "bg-muted";
+
   const detailItems = [{
     key: "vlamax",
     label: "VLamax",
@@ -292,23 +261,32 @@ export function RaceReadinessCard({
           <ChevronRight className="w-4 h-4 text-primary" />
           Analyse personnalisée
         </h3>
-        <div className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
-          {texte.split("\n").map((line, i) => {
-          if (line.includes("**")) {
-            const parts = line.split("**");
-            return <p key={i} className="mb-2">
-                  {parts.map((part, j) => j % 2 === 1 ? <span key={j} className="font-semibold text-foreground">
-                        {part}
-                      </span> : <span key={j}>{part}</span>)}
-                </p>;
-          }
-          if (line.startsWith("•")) return <p key={i} className="ml-4 mb-1">
-                  {line}
-                </p>;
-          return line ? <p key={i} className="mb-2">
-                {line}
-              </p> : <br key={i} />;
-        })}
+        <div className="text-sm text-muted-foreground space-y-2">
+          <p><strong className="text-foreground">Snapshot :</strong> {snap.date} {athlete.active_snapshot_id ? "(actif)" : "(plus récent)"}</p>
+          <p><strong className="text-foreground">Objectif :</strong> {athlete.objectif}</p>
+          
+          {vlamaxEffectif.value !== null && (
+            <p>• <strong className="text-foreground">VLamax effectif</strong> : {vlamaxEffectif.value.toFixed(2)} ({vlamaxEffectif.label}) — Confiance : {Math.round(vlamaxEffectif.confidence * 100)}%</p>
+          )}
+          
+          {tteEffectif.tte_min !== null && (
+            <p>• <strong className="text-foreground">TTE</strong> : {tteEffectif.tte_min} min ({getSourceLabel(tteEffectif.source)})</p>
+          )}
+          
+          {readiness.inputsUsed.ftpKg !== null && (
+            <p>• <strong className="text-foreground">FTP/kg</strong> : {readiness.inputsUsed.ftpKg.toFixed(1)} W/kg</p>
+          )}
+          
+          {readiness.reasonsMissing.length > 0 && (
+            <div className="mt-3 p-2 rounded-lg bg-warning/10 border border-warning/20">
+              <p className="text-xs font-medium text-warning mb-1">Données manquantes :</p>
+              {readiness.reasonsMissing.map((reason, i) => (
+                <p key={i} className="text-xs text-warning/80">• {reason}</p>
+              ))}
+            </div>
+          )}
+          
+          <p className="mt-2 text-xs">Ce score combine profil glycolytique (VLamax), puissance spécifique (FTP/kg), endurance (TTE) et fraîcheur.</p>
         </div>
       </div>
     </div>;
