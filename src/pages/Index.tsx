@@ -27,8 +27,10 @@ import { MethodologyStaff } from "@/components/MethodologyStaff";
 import { NutritionPredictive } from "@/components/NutritionPredictive";
 import { RunningEconomyModule } from "@/components/RunningEconomyModule";
 import { StaffReport } from "@/components/StaffReport";
+import { AthleteReadinessReport } from "@/components/AthleteReadinessReport";
 import { computeNutritionEstimate } from "@/lib/nutritionPredictive";
 import { computeRunningEconomy } from "@/lib/runningEconomy";
+import { generateAthleteReadiness } from "@/lib/athleteReadiness";
 
 // ✅ FIX 11 - Effective Refs (source unique de vérité)
 import { getEffectiveRefs, computeFtpKg, getMissingFields } from "@/lib/effectiveRefs";
@@ -765,22 +767,35 @@ const Index = () => {
               <TrainingZones />
             </div>
 
-            <RaceReadinessCard 
-              athlete={legacyAthlete} 
-              vlamaxEffectif={vlamaxEffectif} 
-              tteEffectif={tteEffectif}
-              readiness={raceReadinessEffectif}
-              onGoToSnapshots={() => {
-                setShowSnapshots(true);
-                setShowTestLibrary(false);
-                setShowPhysioAnalysis(false);
-                setShowPlanner(false);
-                setShowWorkoutLibrary(false);
-                setShowMonitoring(false);
-                setShowCheckins(false);
-              }}
-              onGoToMethodology={() => setActiveTab("methodology")}
-            />
+            {/* 🏁 Race Readiness - Toggle Coach/Athlète */}
+            {staffMode ? (
+              <RaceReadinessCard 
+                athlete={legacyAthlete} 
+                vlamaxEffectif={vlamaxEffectif} 
+                tteEffectif={tteEffectif}
+                readiness={raceReadinessEffectif}
+                onGoToSnapshots={() => {
+                  setShowSnapshots(true);
+                  setShowTestLibrary(false);
+                  setShowPhysioAnalysis(false);
+                  setShowPlanner(false);
+                  setShowWorkoutLibrary(false);
+                  setShowMonitoring(false);
+                  setShowCheckins(false);
+                }}
+                onGoToMethodology={() => setActiveTab("methodology")}
+              />
+            ) : (
+              <AthleteReadinessReport
+                report={generateAthleteReadiness(
+                  raceReadinessEffectif,
+                  currentAthlete?.goal || "IM",
+                  runningEconomyResult
+                )}
+                athleteName={currentAthlete?.name || "Athlète"}
+                objectif={currentAthlete?.goal || "IM"}
+              />
+            )}
             <DanLorangAnalysis 
               athlete={legacyAthlete} 
               vlamaxEffectif={vlamaxEffectif} 
