@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Activity, Calculator, FlaskConical, Trophy, Calendar, Menu, X } from "lucide-react";
+import { Activity, Calculator, FlaskConical, Trophy, GraduationCap, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -15,6 +15,7 @@ const navItems: NavItem[] = [
   { id: "vlamax", label: "VLamax", icon: Calculator },
   { id: "tests", label: "Tests", icon: FlaskConical },
   { id: "checklist", label: "Race Ready", icon: Trophy },
+  { id: "methodology", label: "Méthodologie", icon: GraduationCap },
 ];
 
 interface NavigationProps {
