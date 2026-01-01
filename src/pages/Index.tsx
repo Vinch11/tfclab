@@ -26,6 +26,9 @@ import { AthleteRefsPanel } from "@/components/AthleteRefsPanel";
 import { MethodologyStaff } from "@/components/MethodologyStaff";
 import { NutritionPredictive } from "@/components/NutritionPredictive";
 import { RunningEconomyModule } from "@/components/RunningEconomyModule";
+import { StaffReport } from "@/components/StaffReport";
+import { computeNutritionEstimate } from "@/lib/nutritionPredictive";
+import { computeRunningEconomy } from "@/lib/runningEconomy";
 
 // ✅ FIX 11 - Effective Refs (source unique de vérité)
 import { getEffectiveRefs, computeFtpKg, getMissingFields } from "@/lib/effectiveRefs";
@@ -294,8 +297,31 @@ const Index = () => {
       poids: poids ?? undefined, // ✅ FIX 11: null -> undefined pour calculs
       fatigue_ok: true,
       seance_specifique_validee: false,
+      fcMax: effectiveRefs.fcMax ?? null,
     });
-  }, [currentAthlete, vlamaxEffectif, tteEffectif, ftp, poids]);
+  }, [currentAthlete, vlamaxEffectif, tteEffectif, ftp, poids, effectiveRefs]);
+
+  // ✅ NUTRITION ESTIMATE - Pour rapport staff
+  const nutritionEstimate = useMemo(() => {
+    return computeNutritionEstimate({
+      vlamax: vlamaxEffectif.value,
+      objectif: currentAthlete?.goal || "IM",
+      tteMin: tteEffectif.tte_min,
+      tteTarget: tteEffectif.target,
+    });
+  }, [vlamaxEffectif, currentAthlete, tteEffectif]);
+
+  // ✅ RUNNING ECONOMY - Pour rapport staff
+  const runningEconomyResult = useMemo(() => {
+    return computeRunningEconomy({
+      fcMax: effectiveRefs.fcMax ?? null,
+      fcMoyenneEndurance: null,
+      allureEndurance: null,
+      deriveCardiaque: null,
+      tteMin: tteEffectif.tte_min,
+      objectif: currentAthlete?.goal || "IM",
+    });
+  }, [effectiveRefs, tteEffectif, currentAthlete]);
 
   // Handlers
   const handleAddAthlete = async () => {
@@ -791,6 +817,23 @@ const Index = () => {
                 objectif={currentAthlete?.goal || "IM"}
                 vlamax={vlamaxEffectif.value}
                 staffMode={staffMode}
+              />
+            )}
+
+            {/* 📋 Rapport Staff Pré-Course (mode staff) */}
+            {staffMode && currentAthlete && effectiveCloudSnapshot && (
+              <StaffReport
+                athleteName={currentAthlete.name}
+                objectif={currentAthlete.goal || "IM"}
+                snapshotDate={effectiveCloudSnapshot.date}
+                vlamaxEffectif={vlamaxEffectif}
+                tteEffectif={tteEffectif}
+                readiness={raceReadinessEffectif}
+                nutritionEstimate={nutritionEstimate}
+                runningEconomy={runningEconomyResult}
+                ftp={ftp}
+                poids={poids ?? null}
+                fcMax={effectiveRefs.fcMax ?? null}
               />
             )}
 

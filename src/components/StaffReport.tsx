@@ -1,0 +1,337 @@
+/**
+ * RAPPORT STAFF PRÉ-COURSE - Composant UI
+ * Synthèse d'une page, lisible en < 2 minutes
+ */
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { 
+  FileText, 
+  Target, 
+  AlertTriangle, 
+  CheckCircle, 
+  XCircle,
+  TrendingUp,
+  Utensils,
+  Activity,
+  Download,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { StaffReport as StaffReportType, generateStaffReport, GenerateStaffReportParams } from "@/lib/staffReport";
+import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
+import { TTEEffectif } from "@/lib/tteEffectif";
+import { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
+import { NutritionEstimate } from "@/lib/nutritionPredictive";
+import { RunningEconomyResult } from "@/lib/runningEconomy";
+
+interface StaffReportProps {
+  athleteName: string;
+  objectif: string;
+  snapshotDate: string;
+  vlamaxEffectif: VLamaxEffectif;
+  tteEffectif: TTEEffectif;
+  readiness: RaceReadinessEffectif;
+  nutritionEstimate: NutritionEstimate | null;
+  runningEconomy: RunningEconomyResult | null;
+  ftp: number | null;
+  poids: number | null;
+  fcMax: number | null;
+  onExportPDF?: () => void;
+}
+
+export function StaffReport({
+  athleteName,
+  objectif,
+  snapshotDate,
+  vlamaxEffectif,
+  tteEffectif,
+  readiness,
+  nutritionEstimate,
+  runningEconomy,
+  ftp,
+  poids,
+  fcMax,
+  onExportPDF,
+}: StaffReportProps) {
+  // Générer le rapport
+  const report = generateStaffReport({
+    athleteName,
+    objectif,
+    snapshotDate,
+    vlamaxEffectif,
+    tteEffectif,
+    readiness,
+    nutritionEstimate,
+    runningEconomy,
+    ftp,
+    poids,
+    fcMax,
+  });
+
+  const getTrafficLightColors = (light: "green" | "orange" | "red") => {
+    switch (light) {
+      case "green":
+        return "bg-green-500/20 border-green-500/50 text-green-700 dark:text-green-400";
+      case "orange":
+        return "bg-amber-500/20 border-amber-500/50 text-amber-700 dark:text-amber-400";
+      case "red":
+        return "bg-red-500/20 border-red-500/50 text-red-700 dark:text-red-400";
+    }
+  };
+
+  const getStatusColors = (status: "good" | "warning" | "critical") => {
+    switch (status) {
+      case "good":
+        return "text-green-600 dark:text-green-400";
+      case "warning":
+        return "text-amber-600 dark:text-amber-400";
+      case "critical":
+        return "text-red-600 dark:text-red-400";
+    }
+  };
+
+  return (
+    <Card className="w-full max-w-4xl mx-auto print:shadow-none print:border-0" id="staff-report">
+      {/* En-tête du rapport */}
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <FileText className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-xl font-bold tracking-tight">
+                VINCE'S LAB — RAPPORT STAFF PRÉ-COURSE
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Synthèse décisionnelle • Généré le {report.generatedAt}
+              </p>
+            </div>
+          </div>
+          {onExportPDF && (
+            <Button variant="outline" size="sm" onClick={onExportPDF} className="print:hidden">
+              <Download className="h-4 w-4 mr-2" />
+              Export PDF
+            </Button>
+          )}
+        </div>
+        
+        {/* Métadonnées athlète */}
+        <div className="mt-4 p-3 rounded-lg bg-muted/50 border">
+          <div className="grid grid-cols-3 gap-4 text-sm">
+            <div>
+              <span className="text-muted-foreground">Athlète :</span>
+              <span className="ml-2 font-semibold">{report.athleteName}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Objectif :</span>
+              <span className="ml-2 font-semibold">{report.objectifLabel}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Snapshot :</span>
+              <span className="ml-2 font-semibold">{report.snapshotDate}</span>
+            </div>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-6">
+        {/* 1️⃣ SYNTHÈSE EXECUTIVE */}
+        <div className={cn(
+          "p-4 rounded-xl border-2",
+          getTrafficLightColors(report.executiveSummary.trafficLight)
+        )}>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-3xl">{report.executiveSummary.trafficLightIcon}</span>
+                <div>
+                  <p className="text-2xl font-bold">
+                    Race Readiness : {report.executiveSummary.raceReadinessScore}%
+                  </p>
+                  <p className="text-sm font-medium">
+                    Statut : {report.executiveSummary.trafficLightLabel}
+                  </p>
+                </div>
+              </div>
+              
+              <p className="text-sm mt-3 font-medium">
+                {report.executiveSummary.executiveMessage}
+              </p>
+              
+              {report.executiveSummary.mainLimitation !== "none" && (
+                <div className="mt-2 flex items-center gap-2 text-xs">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  <span>Limitation principale : <strong>{report.executiveSummary.mainLimitationLabel}</strong></span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* 2️⃣ INDICATEURS CLÉS */}
+        <div>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+            <Target className="h-4 w-4" />
+            INDICATEURS CLÉS
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            {report.keyIndicators.map((indicator, index) => (
+              <div
+                key={index}
+                className="p-3 rounded-lg bg-muted/30 border"
+              >
+                <p className="text-xs text-muted-foreground mb-1">{indicator.name}</p>
+                <p className={cn("text-lg font-bold", getStatusColors(indicator.status))}>
+                  {indicator.value}
+                </p>
+                <div className="flex items-center justify-between mt-1">
+                  <span className="text-[10px] text-muted-foreground">{indicator.source}</span>
+                  <Badge variant="outline" className="text-[9px] px-1.5 py-0">
+                    {indicator.confidenceLabel}
+                  </Badge>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* 3️⃣ INTERPRÉTATION STAFF */}
+        <div>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+            <Activity className="h-4 w-4" />
+            INTERPRÉTATION STAFF
+          </h3>
+          <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+            <p className="font-medium text-sm">{report.staffInterpretation.mainMessage}</p>
+            {report.staffInterpretation.secondaryMessages.length > 0 && (
+              <ul className="mt-3 space-y-1">
+                {report.staffInterpretation.secondaryMessages.map((msg, index) => (
+                  <li key={index} className="text-xs text-muted-foreground flex items-start gap-2">
+                    <span className="text-primary mt-0.5">•</span>
+                    {msg}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+
+        {/* 4️⃣ STRATÉGIE DE COURSE */}
+        <div className="grid md:grid-cols-2 gap-4">
+          {/* À FAIRE */}
+          <div className="p-4 rounded-lg bg-green-500/5 border border-green-500/20">
+            <h4 className="text-sm font-semibold text-green-700 dark:text-green-400 mb-3 flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              À FAIRE
+            </h4>
+            <ul className="space-y-2">
+              {report.raceStrategy.toDo.map((item, index) => (
+                <li key={index} className="text-xs flex items-start gap-2">
+                  <span className="text-green-600 mt-0.5">✓</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* À ÉVITER */}
+          <div className="p-4 rounded-lg bg-red-500/5 border border-red-500/20">
+            <h4 className="text-sm font-semibold text-red-700 dark:text-red-400 mb-3 flex items-center gap-2">
+              <XCircle className="h-4 w-4" />
+              À ÉVITER
+            </h4>
+            <ul className="space-y-2">
+              {report.raceStrategy.toAvoid.map((item, index) => (
+                <li key={index} className="text-xs flex items-start gap-2">
+                  <span className="text-red-600 mt-0.5">✗</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Fenêtre nutritionnelle critique */}
+        {report.raceStrategy.criticalNutritionWindow && (
+          <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-amber-600" />
+            <span className="font-medium text-amber-700 dark:text-amber-400">
+              {report.raceStrategy.criticalNutritionWindow}
+            </span>
+          </div>
+        )}
+
+        <Separator />
+
+        {/* 5️⃣ NUTRITION — VERSION STAFF */}
+        <div>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+            <Utensils className="h-4 w-4" />
+            NUTRITION — VERSION STAFF
+          </h3>
+          <div className={cn(
+            "p-4 rounded-lg border",
+            report.nutritionSummary.isLimitingFactor 
+              ? "bg-red-500/5 border-red-500/20" 
+              : "bg-muted/30"
+          )}>
+            <div className="grid grid-cols-3 gap-4 text-sm">
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Besoin estimé</p>
+                <p className="font-bold text-lg">{report.nutritionSummary.carbsEstimate}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Risque</p>
+                <p className="font-bold text-lg flex items-center gap-2">
+                  <span>{report.nutritionSummary.riskIcon}</span>
+                  {report.nutritionSummary.riskLevel}
+                </p>
+              </div>
+              <div className="col-span-1">
+                <p className="text-xs text-muted-foreground mb-1">Impact</p>
+                <p className={cn(
+                  "font-semibold text-sm",
+                  report.nutritionSummary.isLimitingFactor ? "text-red-600 dark:text-red-400" : "text-muted-foreground"
+                )}>
+                  {report.nutritionSummary.keyMessage}
+                </p>
+              </div>
+            </div>
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-2 italic">
+            ⚠️ Estimation uniquement. Pas de plan alimentaire détaillé – valider avec un nutritionniste.
+          </p>
+        </div>
+
+        <Separator />
+
+        {/* 6️⃣ FEU TRICOLORE FINAL */}
+        <div className={cn(
+          "p-6 rounded-xl border-2 text-center",
+          getTrafficLightColors(report.finalVerdict.trafficLight)
+        )}>
+          <div className="text-5xl mb-3">{report.finalVerdict.icon}</div>
+          <h3 className="text-2xl font-bold mb-1">{report.finalVerdict.title}</h3>
+          <p className="font-semibold text-sm mb-3">{report.finalVerdict.subtitle}</p>
+          <p className="text-xs max-w-md mx-auto">{report.finalVerdict.explanation}</p>
+        </div>
+
+        {/* Avertissement légal */}
+        <div className="text-[10px] text-muted-foreground text-center p-3 bg-muted/30 rounded-lg">
+          <p>
+            Ce rapport est une aide à la décision basée sur des estimations physiologiques.
+            Il ne constitue pas un conseil médical et doit être validé par un professionnel de santé.
+          </p>
+          <p className="mt-1 font-medium">
+            Vince's Lab — Méthodologie INSCYD / Dan Lorang
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
