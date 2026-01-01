@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Calendar, Pin } from "lucide-react";
 import { DbSnapshot, useCloudData } from "@/hooks/useCloudData";
 import { deriveMetabolicProfile, generateLorangInsights, calculateDelta, formatValue } from "@/types/snapshot";
-import { computeTTEPro } from "@/lib/ttePro";
+import { computeTTEEffectif, getSourceLabel, formatTTEDisplay } from "@/lib/tteEffectif";
 
 interface SnapshotManagerProps {
   athleteId: string;
@@ -373,19 +373,20 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         {/* Preview */}
         <div className="mt-3 text-xs text-muted-foreground">
           {(() => {
-            const tte = computeTTEPro({
+            const tte = computeTTEEffectif({
               ftp: parseNum(formData.ftp),
-              tss7d: parseNum(formData.tss_7d),
-              tteObservedMin: parseNum(formData.tte_observed_min),
-              mode: formData.tte_mode as any,
+              tss_7d: parseNum(formData.tss_7d),
+              tte_mode: formData.tte_mode as any,
+              tte_observed_min: parseNum(formData.tte_observed_min),
+              objectif: athleteGoal,
             });
             return (
               <div className="flex flex-wrap gap-2">
                 <span className="px-2 py-1 rounded bg-background border border-border">
-                  TTE final: <b className="text-foreground">{tte.tteMin} min</b>
+                  TTE final: <b className="text-foreground">{tte.tte_min} min</b>
                 </span>
                 <span className="px-2 py-1 rounded bg-background border border-border">
-                  Source: <b className="text-foreground">{tte.source}</b>
+                  Source: <b className="text-foreground">{getSourceLabel(tte.source)}</b>
                 </span>
                 <span className="px-2 py-1 rounded bg-background border border-border">
                   Confiance: <b className="text-foreground">{Math.round(tte.confidence * 100)}%</b>
@@ -412,11 +413,12 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   const renderSnapshotCard = (s: DbSnapshot) => {
     const { profile, score } = deriveMetabolicProfile(s.vlamax ?? null, s.vo2max ?? null);
 
-    const ttePro = computeTTEPro({
+    const tteEff = computeTTEEffectif({
       ftp: s.ftp ?? null,
-      tss7d: s.tss_7d ?? null,
-      tteObservedMin: s.tte_observed_min ?? null,
-      mode: (s.tte_mode as any) ?? "LOAD",
+      tss_7d: s.tss_7d ?? null,
+      tte_mode: (s.tte_mode as any) ?? "LOAD",
+      tte_observed_min: s.tte_observed_min ?? null,
+      objectif: athleteGoal,
     });
 
     const insights = generateLorangInsights(
@@ -468,13 +470,13 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
               <div className="flex flex-wrap gap-2 mt-2 text-xs text-muted-foreground">
                 <span className="px-2 py-1 rounded bg-background border border-border">
-                  TTE: <b className="text-foreground">{ttePro.tteMin} min</b>
+                  TTE: <b className="text-foreground">{tteEff.tte_min} min</b>
                 </span>
                 <span className="px-2 py-1 rounded bg-background border border-border">
-                  Source TTE: <b className="text-foreground">{ttePro.source}</b>
+                  Source TTE: <b className="text-foreground">{getSourceLabel(tteEff.source)}</b>
                 </span>
                 <span className="px-2 py-1 rounded bg-background border border-border">
-                  Confiance TTE: <b className="text-foreground">{Math.round(ttePro.confidence * 100)}%</b>
+                  Confiance TTE: <b className="text-foreground">{Math.round(tteEff.confidence * 100)}%</b>
                 </span>
               </div>
             </div>
@@ -560,18 +562,20 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
     if (!A || !B) return <p className="text-muted-foreground">Sélectionnez deux snapshots à comparer.</p>;
 
-    const tteA = computeTTEPro({
+    const tteA = computeTTEEffectif({
       ftp: A.ftp ?? null,
-      tss7d: A.tss_7d ?? null,
-      tteObservedMin: A.tte_observed_min ?? null,
-      mode: (A.tte_mode as any) ?? "LOAD",
+      tss_7d: A.tss_7d ?? null,
+      tte_mode: (A.tte_mode as any) ?? "LOAD",
+      tte_observed_min: A.tte_observed_min ?? null,
+      objectif: athleteGoal,
     });
 
-    const tteB = computeTTEPro({
+    const tteB = computeTTEEffectif({
       ftp: B.ftp ?? null,
-      tss7d: B.tss_7d ?? null,
-      tteObservedMin: B.tte_observed_min ?? null,
-      mode: (B.tte_mode as any) ?? "LOAD",
+      tss_7d: B.tss_7d ?? null,
+      tte_mode: (B.tte_mode as any) ?? "LOAD",
+      tte_observed_min: B.tte_observed_min ?? null,
+      objectif: athleteGoal,
     });
 
     const rows = [
@@ -580,7 +584,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       { label: "FTP (W)", a: A.ftp, b: B.ftp },
       { label: "VMA (km/h)", a: A.vma, b: B.vma },
       { label: "Poids (kg)", a: A.weight_kg, b: B.weight_kg },
-      { label: "TTE (min)", a: tteA.tteMin, b: tteB.tteMin },
+      { label: "TTE (min)", a: tteA.tte_min, b: tteB.tte_min },
       { label: "Confiance", a: A.confidence, b: B.confidence },
     ];
 
