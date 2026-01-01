@@ -8,11 +8,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { VLamaxEffectif, getSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
+import { VLamaxEffectif, getSourceColor as getVLamaxSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
+import { TTEEffectif, getSourceColor as getTTESourceColor, getSourceLabel } from "@/lib/tteEffectif";
 
 interface RaceReadinessCardProps {
   athlete: any;
-  vlamaxEffectif?: VLamaxEffectif; // ✅ Prop optionnelle pour VLamax effectif unifié
+  vlamaxEffectif?: VLamaxEffectif;
+  tteEffectif?: TTEEffectif;
 }
 function pickEffectiveSnapshot(snapshots: DbSnapshot[], athleteId: string, activeSnapshotId?: string | null) {
   const list = snapshots.filter(s => s.athlete_id === athleteId);
@@ -77,7 +79,8 @@ function texteExplicatif(snapshot: DbSnapshot, objectif: string, vlamaxEffectif:
 }
 export function RaceReadinessCard({
   athlete,
-  vlamaxEffectif: vlamaxEffectifProp
+  vlamaxEffectif: vlamaxEffectifProp,
+  tteEffectif: tteEffectifProp
 }: RaceReadinessCardProps) {
   const {
     snapshots
@@ -92,6 +95,17 @@ export function RaceReadinessCard({
     source: "unknown" as const, 
     confidence: 0.2, 
     label: "VLamax (non disponible)" 
+  };
+
+  // ✅ TTE EFFECTIF - Utilise la prop si fournie
+  const tteEffectif = tteEffectifProp ?? {
+    tteMin: null,
+    source: "unknown" as const,
+    confidence: 0,
+    label: "TTE (non disponible)",
+    target: 45,
+    status: "critical" as const,
+    statusMessage: "Données manquantes"
   };
   
   if (!snap) {
@@ -198,20 +212,36 @@ export function RaceReadinessCard({
         </div>
       </div>
 
-      {/* Debug VLamax source */}
-      {vlamaxEffectif.value !== null && (
-        <div className="flex items-center gap-2 text-sm p-2 rounded-lg bg-secondary/30 border border-border mb-4">
-          <span className="text-muted-foreground">VLamax:</span>
-          <span className="font-mono font-bold">{vlamaxEffectif.value.toFixed(2)}</span>
-          <span className={cn("px-2 py-0.5 rounded text-xs", getSourceColor(vlamaxEffectif.source))}>
-            {vlamaxEffectif.source}
-          </span>
-          <span className="text-muted-foreground">•</span>
-          <span className="text-xs text-muted-foreground">
-            conf {Math.round(vlamaxEffectif.confidence * 100)}%
-          </span>
-        </div>
-      )}
+      {/* Debug VLamax + TTE source */}
+      <div className="flex flex-wrap gap-4 mb-4">
+        {vlamaxEffectif.value !== null && (
+          <div className="flex items-center gap-2 text-sm p-2 rounded-lg bg-secondary/30 border border-border">
+            <span className="text-muted-foreground">VLamax:</span>
+            <span className="font-mono font-bold">{vlamaxEffectif.value.toFixed(2)}</span>
+            <span className={cn("px-2 py-0.5 rounded text-xs", getVLamaxSourceColor(vlamaxEffectif.source))}>
+              {vlamaxEffectif.source}
+            </span>
+            <span className="text-muted-foreground">•</span>
+            <span className="text-xs text-muted-foreground">
+              conf {Math.round(vlamaxEffectif.confidence * 100)}%
+            </span>
+          </div>
+        )}
+        
+        {tteEffectif.tteMin !== null && (
+          <div className="flex items-center gap-2 text-sm p-2 rounded-lg bg-secondary/30 border border-border">
+            <span className="text-muted-foreground">TTE:</span>
+            <span className="font-mono font-bold">{tteEffectif.tteMin} min</span>
+            <span className={cn("px-2 py-0.5 rounded text-xs", getTTESourceColor(tteEffectif.source))}>
+              {getSourceLabel(tteEffectif.source)}
+            </span>
+            <span className="text-muted-foreground">•</span>
+            <span className="text-xs text-muted-foreground">
+              conf {Math.round(tteEffectif.confidence * 100)}%
+            </span>
+          </div>
+        )}
+      </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="flex flex-col items-center justify-center p-6 rounded-xl bg-secondary/30 border border-border">

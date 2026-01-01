@@ -57,8 +57,8 @@ import { toast } from "sonner";
 import { getDernierSnapshot } from "@/types/athlete";
 import { computeVLamaxEffectif, VLamaxEffectif } from "@/lib/vlamaxEffectif";
 
-// ✅ TTE PRO (2 modules: LOAD vs OBSERVED) + TSS_7d
-import { computeTTEPro } from "@/lib/ttePro";
+// ✅ TTE EFFECTIF - Source unique de vérité
+import { computeTTEEffectif, TTEEffectif, getSourceLabel } from "@/lib/tteEffectif";
 
 const Index = () => {
   const { user, signOut } = useAuth();
@@ -228,24 +228,32 @@ const Index = () => {
   const poids = useMemo(() => (snapshotLegacy?.poids || 70) as number, [snapshotLegacy]);
   const ftp_kg = useMemo(() => (poids > 0 ? ftp / poids : 0), [ftp, poids]);
 
-  // ✅ TTE PRO: LOAD (FTP + TSS_7d) ou OBSERVED (tte_observed_min)
-  const ttePro = useMemo(() => {
-    if (!effectiveCloudSnapshot) {
-      // fallback: si pas de snapshot cloud, on reste safe
-      return computeTTEPro({ ftp: ftp || null, tss7d: null, tteObservedMin: null, mode: "LOAD" });
+  // ✅ TTE EFFECTIF - Source unique de vérité
+  const tteEffectif = useMemo<TTEEffectif>(() => {
+    if (!effectiveCloudSnapshot || !currentAthlete) {
+      return {
+        tteMin: null,
+        source: "unknown",
+        confidence: 0,
+        label: "TTE (non disponible)",
+        target: 45,
+        status: "critical",
+        statusMessage: "Aucune donnée"
+      };
     }
-    return computeTTEPro({
+    return computeTTEEffectif({
       ftp: effectiveCloudSnapshot.ftp ?? null,
-      tss7d: effectiveCloudSnapshot.tss_7d ?? null,
-      tteObservedMin: effectiveCloudSnapshot.tte_observed_min ?? null,
-      mode: (effectiveCloudSnapshot.tte_mode as any) ?? "LOAD",
+      tss_7d: effectiveCloudSnapshot.tss_7d ?? null,
+      tte_mode: effectiveCloudSnapshot.tte_mode ?? "LOAD",
+      tte_observed_min: effectiveCloudSnapshot.tte_observed_min ?? null,
+      objectif: currentAthlete.goal || "IM",
     });
-  }, [effectiveCloudSnapshot, ftp]);
+  }, [effectiveCloudSnapshot, currentAthlete]);
 
-  // ✅ Valeur TTE affichée partout (Index)
+  // ✅ Valeur TTE affichée partout (Index) - fallback 0 pour compatibilité
   const tte = useMemo(() => {
-    return ttePro?.tteMin ?? 0;
-  }, [ttePro]);
+    return tteEffectif?.tteMin ?? 0;
+  }, [tteEffectif]);
 
   // Handlers
   const handleAddAthlete = async () => {
@@ -562,7 +570,7 @@ const Index = () => {
 
             {/* Contenu conditionnel */}
             {showTestLibrary && <TestProtocols athlete={legacyAthlete} />}
-            {showPhysioAnalysis && <PhysiologicalAnalysis athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} />}
+            {showPhysioAnalysis && <PhysiologicalAnalysis athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} />}
             {showPlanner && <Planificateur athlete={legacyAthlete} />}
             {showWorkoutLibrary && <WorkoutLibrary athlete={legacyAthlete} />}
             {showMonitoring && (
@@ -612,13 +620,15 @@ const Index = () => {
               />
 
               <MetricCard
-                title="TTE (PRO)"
-                value={tte ? tte.toString() : "—"}
+                title="TTE Effectif"
+                value={tteEffectif.tteMin !== null ? tteEffectif.tteMin.toString() : "—"}
                 unit="min"
                 icon={Activity}
                 trend="neutral"
                 trendValue={
-                  effectiveCloudSnapshot ? `src:${ttePro.source} • conf:${Math.round(ttePro.confidence * 100)}%` : "—"
+                  tteEffectif.source !== "unknown" 
+                    ? `${getSourceLabel(tteEffectif.source)} • conf ${Math.round(tteEffectif.confidence * 100)}%`
+                    : "—"
                 }
                 accentColor="success"
               />
@@ -639,8 +649,8 @@ const Index = () => {
               <TrainingZones />
             </div>
 
-            <RaceReadinessCard athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} />
-            <DanLorangAnalysis athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} />
+            <RaceReadinessCard athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} />
+            <DanLorangAnalysis athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} />
             <SemaineTypeView athlete={legacyAthlete} />
             <Bloc3SemainesView athlete={legacyAthlete} />
           </div>

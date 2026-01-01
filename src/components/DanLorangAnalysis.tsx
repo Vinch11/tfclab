@@ -11,14 +11,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { VLamaxEffectif, getSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
-
-// ✅ TTE PRO (2 modules)
-import { computeTTEPro } from "@/lib/ttePro";
+import { VLamaxEffectif, getSourceColor as getVLamaxSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
+import { TTEEffectif, getSourceColor as getTTESourceColor, getSourceLabel } from "@/lib/tteEffectif";
 
 interface DanLorangAnalysisProps {
   athlete: Athlete;
-  vlamaxEffectif?: VLamaxEffectif; // ✅ Prop optionnelle pour VLamax effectif unifié
+  vlamaxEffectif?: VLamaxEffectif;
+  tteEffectif?: TTEEffectif;
 }
 const prioriteIcons: Record<PrioriteType, typeof TrendingDown> = {
   VLAMAX_DOWN: TrendingDown,
@@ -47,7 +46,8 @@ const getRecommandationsPriorite = (priorite: PrioriteType): string[] => {
 };
 export function DanLorangAnalysis({
   athlete,
-  vlamaxEffectif: vlamaxEffectifProp
+  vlamaxEffectif: vlamaxEffectifProp,
+  tteEffectif: tteEffectifProp
 }: DanLorangAnalysisProps) {
   const snapshot = getDernierSnapshot(athlete) as any;
   const [inputs, setInputs] = useState<RaceReadinessInputs>({
@@ -65,24 +65,24 @@ export function DanLorangAnalysis({
   
   const vlamax = vlamaxEffectif.value ?? 0.45;
 
+  // ✅ TTE EFFECTIF - Utilise la prop si fournie
+  const tteEffectif = tteEffectifProp ?? {
+    tteMin: 45,
+    source: "unknown" as const,
+    confidence: 0.3,
+    label: "TTE (fallback)",
+    target: 45,
+    status: "warning" as const,
+    statusMessage: "Données manquantes"
+  };
+  
+  const tte = tteEffectif.tteMin ?? 45;
+
   // ✅ FTP/kg
   const ftp_kg = useMemo(() => {
     if (!snapshot?.ftp || !snapshot?.poids) return 4.0;
     return snapshot.ftp / snapshot.poids;
   }, [snapshot]);
-
-  // ✅ TTE PRO (2 modules)
-  // IMPORTANT: snapshot.tss_7j contient maintenant la valeur tss_7d (mapping Index.tsx)
-  const ttePro = useMemo(() => {
-    return computeTTEPro({
-      ftp: snapshot?.ftp ?? null,
-      tss7d: snapshot?.tss_7j ?? null,
-      // <- ici : tss_7d mappé en legacy
-      mode: (snapshot as any)?.tte_mode ?? "LOAD",
-      tteObservedMin: (snapshot as any)?.tte_observed_min ?? null
-    });
-  }, [snapshot]);
-  const tte = ttePro.tte_min;
   const [analysis, setAnalysis] = useState<ReglesDanLorangResult>({
     priorite: "",
     alertes: [],
@@ -216,7 +216,7 @@ export function DanLorangAnalysis({
         <div className="p-3 rounded-xl bg-secondary/20 border border-border">
           <div className="flex items-center justify-between">
             <p className="text-xs text-muted-foreground mb-1">VLamax</p>
-            <span className={cn("text-[10px] px-2 py-0.5 rounded-full border", getSourceColor(vlamaxEffectif.source))}>
+            <span className={cn("text-[10px] px-2 py-0.5 rounded-full border", getVLamaxSourceColor(vlamaxEffectif.source))}>
               {vlamaxEffectif.source}
             </span>
           </div>
@@ -230,18 +230,18 @@ export function DanLorangAnalysis({
 
         <div className="p-3 rounded-xl bg-secondary/20 border border-border">
           <div className="flex items-center justify-between">
-            <p className="text-xs text-muted-foreground mb-1">TTE (PRO)</p>
-            <span className="text-[10px] px-2 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
-              {ttePro.source}
+            <p className="text-xs text-muted-foreground mb-1">TTE</p>
+            <span className={cn("text-[10px] px-2 py-0.5 rounded-full border", getTTESourceColor(tteEffectif.source))}>
+              {getSourceLabel(tteEffectif.source)}
             </span>
           </div>
 
           <p className={cn("text-lg font-bold font-mono", tte < tteTarget ? "text-warning" : "text-success")}>
-            {tte} min
+            {tteEffectif.tteMin !== null ? `${tteEffectif.tteMin} min` : "—"}
           </p>
 
           <p className="text-xs text-muted-foreground">
-            Cible: ≥{tteTarget} min • Confiance: {Math.round((ttePro.confidence ?? 0) * 100)}%
+            Cible: ≥{tteTarget} min • conf {Math.round(tteEffectif.confidence * 100)}%
           </p>
         </div>
 
