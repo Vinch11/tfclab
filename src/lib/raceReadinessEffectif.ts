@@ -2,11 +2,13 @@
 // RACE READINESS EFFECTIF - Source unique de vérité
 // FIX 13 - Pondérations par objectif + targets + messageStaff
 // + Plafonnement par Risque Nutritionnel
+// + Plafonnement par Économie de Course (CAP)
 // =============================================
 
 import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { TTEEffectif } from "@/lib/tteEffectif";
 import { computeNutritionEstimate, applyNutritionalCap, type NutritionalRiskIndex } from "@/lib/nutritionPredictive";
+import { computeRunningEconomy, applyEconomyCap, type RunningEconomyResult, type EconomyLevel } from "@/lib/runningEconomy";
 
 // =============================================
 // TYPES
@@ -35,8 +37,8 @@ export interface RaceWeights {
 }
 
 export interface RaceReadinessEffectif {
-  score: number;                 // 0-100 (après plafonnement nutritionnel)
-  rawScore: number;              // Score avant plafonnement nutritionnel
+  score: number;                 // 0-100 (après plafonnement nutritionnel + économie)
+  rawScore: number;              // Score avant plafonnement
   label: string;                 // "Race Ready!", "En progression", etc.
   color: "success" | "warning" | "destructive";
   details: RaceReadinessDetails;
@@ -52,10 +54,14 @@ export interface RaceReadinessEffectif {
     seance_specifique: boolean;
   };
   messageStaff: string;          // Message explicatif staff-ready
-  // Nouvelles propriétés pour le risque nutritionnel
+  // Propriétés pour le risque nutritionnel
   nutritionalRiskIndex: NutritionalRiskIndex | null;
   wasCappedByNutrition: boolean;
   nutritionalCapReason: string | null;
+  // Propriétés pour l'économie de course (CAP)
+  runningEconomy: RunningEconomyResult | null;
+  wasCappedByEconomy: boolean;
+  economyCapReason: string | null;
 }
 
 export interface ComputeRaceReadinessParams {
@@ -67,6 +73,11 @@ export interface ComputeRaceReadinessParams {
   fatigue_ok?: boolean;
   seance_specifique_validee?: boolean;
   confidence?: number; // optionnel, sinon moyenne des inputs
+  // Paramètres pour l'économie de course (CAP)
+  fcMax?: number | null;
+  fcMoyenneEndurance?: number | null;
+  allureEndurance?: number | null;
+  deriveCardiaque?: number | null;
 }
 
 // =============================================
@@ -307,6 +318,11 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
     fatigue_ok = true,
     seance_specifique_validee = false,
     confidence: overrideConfidence,
+    // Params pour économie de course
+    fcMax = null,
+    fcMoyenneEndurance = null,
+    allureEndurance = null,
+    deriveCardiaque = null,
   } = params;
 
   const reasonsMissing: string[] = [];
@@ -371,9 +387,26 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
   });
   
   const nutritionalRiskIndex = nutritionEstimate?.nutritionalRiskIndex ?? null;
-  const { cappedScore, wasCapped, capReason } = applyNutritionalCap(baseScore, nutritionalRiskIndex);
+  const nutritionalCap = applyNutritionalCap(baseScore, nutritionalRiskIndex);
   
-  const finalScore = cappedScore;
+  let currentScore = nutritionalCap.cappedScore;
+
+  // =====================
+  // CALCUL ÉCONOMIE DE COURSE + PLAFONNEMENT (CAP uniquement)
+  // =====================
+  const runningEconomy = computeRunningEconomy({
+    fcMax,
+    fcMoyenneEndurance,
+    allureEndurance,
+    deriveCardiaque,
+    tteMin: tte,
+    objectif,
+  });
+  
+  const economyCap = applyEconomyCap(currentScore, runningEconomy);
+  currentScore = economyCap.cappedScore;
+  
+  const finalScore = currentScore;
 
   // =====================
   // DETAILS (0-25 each)
@@ -408,8 +441,9 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
     color = "warning";
   }
   
-  // Override label si plafonné par nutrition
-  if (wasCapped) {
+  // Override label si plafonné
+  const wasCappedTotal = nutritionalCap.wasCapped || economyCap.wasCapped;
+  if (wasCappedTotal) {
     label = `${label} (plafonné)`;
   }
 
@@ -435,8 +469,13 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
   }
   
   // Ajouter info plafonnement nutritionnel au message staff
-  if (wasCapped && capReason) {
-    messageStaff += ` ⚠️ ${capReason}`;
+  if (nutritionalCap.wasCapped && nutritionalCap.capReason) {
+    messageStaff += ` ⚠️ ${nutritionalCap.capReason}`;
+  }
+  
+  // Ajouter info plafonnement économie au message staff
+  if (economyCap.wasCapped && economyCap.capReason) {
+    messageStaff += ` 🏃 ${economyCap.capReason}`;
   }
 
   return {
@@ -458,8 +497,11 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
     },
     messageStaff,
     nutritionalRiskIndex,
-    wasCappedByNutrition: wasCapped,
-    nutritionalCapReason: capReason,
+    wasCappedByNutrition: nutritionalCap.wasCapped,
+    nutritionalCapReason: nutritionalCap.capReason,
+    runningEconomy: runningEconomy.isApplicable ? runningEconomy : null,
+    wasCappedByEconomy: economyCap.wasCapped,
+    economyCapReason: economyCap.capReason,
   };
 }
 
