@@ -15,21 +15,22 @@ export const getTTETarget = getTTETargetFromPro;
 export type TTESource = "observed" | "estimated" | "unknown";
 
 export interface TTEEffectif {
-  tteMin: number | null;
+  tte_min: number;
   source: TTESource;
   confidence: number; // 0 à 1
   label: string;
-  target: number;
-  status: "ok" | "warning" | "critical";
-  statusMessage: string;
+  target?: number;
+  status?: "ok" | "warning" | "critical";
+  status_message?: string;
 }
 
 interface ComputeTTEEffectifParams {
-  ftp: number | null;
-  tss_7d: number | null;
-  tte_mode: TTEMode | string | null;
-  tte_observed_min: number | null;
-  objectif: string;
+  ftp?: number | null;
+  tss_7d?: number | null;
+  tss_7j?: number | null; // Legacy mapping
+  tte_mode?: TTEMode | string | null;
+  tte_observed_min?: number | null;
+  objectif?: string;
 }
 
 // =============================================
@@ -38,62 +39,99 @@ interface ComputeTTEEffectifParams {
 
 /**
  * Calcule le TTE effectif selon la hiérarchie:
- * 1) OBSERVED: TTE mesuré directement (tte_observed_min) → confiance 0.95
- * 2) LOAD: Estimé via TSS_7d → confiance 0.7
- * 3) FTP-based fallback → confiance 0.5
- * 4) Unknown: Aucune donnée → tteMin = null
+ * A) OBSERVED: TTE mesuré directement (tte_observed_min) → confiance 0.95
+ * B) LOAD: Estimé via TSS_7d → confiance 0.7
+ * C) FTP-based fallback → confiance 0.5
+ * D) Unknown: Aucune donnée → tte_min = 45, confiance 0.2
  */
 export function computeTTEEffectif(params: ComputeTTEEffectifParams): TTEEffectif {
-  const { ftp, tss_7d, tte_mode, tte_observed_min, objectif } = params;
+  // Normalize tss_7j -> tss_7d (legacy mapping)
+  const tss_7d = params.tss_7d ?? params.tss_7j ?? null;
+  const { ftp, tte_mode, tte_observed_min, objectif } = params;
 
-  const target = getTTETargetFromPro(objectif);
+  const target = objectif ? getTTETargetFromPro(objectif) : 45;
 
-  // Check if we have ANY data to compute TTE
-  const hasObserved = tte_mode === "OBSERVED" && tte_observed_min != null;
-  const hasLoad = tss_7d != null && tss_7d > 0;
-  const hasFtp = ftp != null && ftp > 0;
-
-  if (!hasObserved && !hasLoad && !hasFtp) {
-    // No data available
+  // A) OBSERVED - Priorité maximale
+  if (tte_mode === "OBSERVED" && tte_observed_min != null && tte_observed_min > 0) {
+    const evaluation = evaluerTTE({ tte_min: tte_observed_min, tteMin: tte_observed_min, source: "observed", confidence: 0.95, label: "" }, objectif || "");
     return {
-      tteMin: null,
-      source: "unknown",
-      confidence: 0,
-      label: "TTE (non disponible)",
+      tte_min: tte_observed_min,
+      source: "observed",
+      confidence: 0.95,
+      label: `${tte_observed_min} min (mesuré)`,
       target,
-      status: "critical",
-      statusMessage: "Aucune donnée TTE disponible"
+      status: evaluation.status,
+      status_message: evaluation.message
     };
   }
 
-  // Compute TTE using existing ttePro logic
-  const tteResult = calculTTE({
-    ftp,
-    tss_7d,
-    tte_mode: (tte_mode as TTEMode) || "LOAD",
-    tte_observed_min
-  });
+  // B) LOAD - Estimation via TSS_7d
+  if (tss_7d != null && tss_7d > 0) {
+    const tteResult = calculTTE({
+      ftp: ftp ?? null,
+      tss_7d,
+      tte_mode: "LOAD",
+      tte_observed_min: null
+    });
+    
+    const evaluation = evaluerTTE(tteResult, objectif || "");
+    return {
+      tte_min: tteResult.tteMin ?? 45,
+      source: "estimated",
+      confidence: 0.7,
+      label: `~${tteResult.tteMin ?? 45} min (estimé)`,
+      target,
+      status: evaluation.status,
+      status_message: evaluation.message
+    };
+  }
 
-  // Map source
-  const source: TTESource = tteResult.source;
+  // C) FTP-based fallback
+  if (ftp != null && ftp > 0) {
+    // Estimation grossière basée sur FTP seul
+    // FTP élevé suggère meilleure endurance, mais confiance faible
+    const estimatedTTE = Math.min(60, Math.max(35, Math.round(35 + (ftp - 200) * 0.05)));
+    const evaluation = evaluerTTE({ tte_min: estimatedTTE, tteMin: estimatedTTE, source: "estimated", confidence: 0.5, label: "" }, objectif || "");
+    
+    return {
+      tte_min: estimatedTTE,
+      source: "estimated",
+      confidence: 0.5,
+      label: `~${estimatedTTE} min (approx.)`,
+      target,
+      status: evaluation.status,
+      status_message: evaluation.message
+    };
+  }
 
-  // Evaluate status against target
-  const evaluation = evaluerTTE(tteResult, objectif);
-
+  // D) Unknown - Aucune donnée exploitable
   return {
-    tteMin: tteResult.tteMin,
-    source,
-    confidence: tteResult.confidence,
-    label: tteResult.label,
+    tte_min: 45,
+    source: "unknown",
+    confidence: 0.2,
+    label: "— (données manquantes)",
     target,
-    status: evaluation.status,
-    statusMessage: evaluation.message
+    status: "warning",
+    status_message: "Aucune donnée TTE disponible"
   };
 }
 
 // =============================================
 // HELPERS UI
 // =============================================
+
+/**
+ * Formate le label TTE pour affichage UI
+ */
+export function formatTTELabel(result: TTEEffectif): string {
+  if (result.source === "unknown") {
+    return "—";
+  }
+  if (result.source === "observed") {
+    return `${result.tte_min} min (mesuré)`;
+  }
+  return `~${result.tte_min} min (estimé)`;
+}
 
 export function getSourceColor(source: TTESource): string {
   switch (source) {
@@ -121,7 +159,7 @@ export function getSourceBgColor(source: TTESource): string {
   }
 }
 
-export function getStatusColor(status: "ok" | "warning" | "critical"): string {
+export function getStatusColor(status: "ok" | "warning" | "critical" | undefined): string {
   switch (status) {
     case "ok":
       return "text-green-600 dark:text-green-400";
@@ -135,8 +173,8 @@ export function getStatusColor(status: "ok" | "warning" | "critical"): string {
 }
 
 export function formatTTEDisplay(tte: TTEEffectif): string {
-  if (tte.tteMin === null) return "—";
-  return `${tte.tteMin} min`;
+  if (tte.source === "unknown") return "—";
+  return `${tte.tte_min} min`;
 }
 
 export function getSourceLabel(source: TTESource): string {
@@ -150,4 +188,11 @@ export function getSourceLabel(source: TTESource): string {
     default:
       return source;
   }
+}
+
+/**
+ * Helper pour vérifier si le TTE est disponible/exploitable
+ */
+export function isTTEAvailable(tte: TTEEffectif): boolean {
+  return tte.source !== "unknown" && tte.confidence > 0.2;
 }

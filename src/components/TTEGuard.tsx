@@ -21,7 +21,7 @@ interface TTEGuardProps {
  */
 export function isTTEUnavailable(tteEffectif: TTEEffectif | null | undefined): boolean {
   if (!tteEffectif) return true;
-  return tteEffectif.tteMin === null || tteEffectif.source === "unknown" || tteEffectif.confidence === 0;
+  return tteEffectif.tte_min === null || tteEffectif.source === "unknown" || tteEffectif.confidence === 0;
 }
 
 /**

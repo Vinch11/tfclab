@@ -114,10 +114,10 @@ export function PhysiologicalAnalysis({ athlete, vlamaxEffectif: vlamaxEffectifP
           </div>
         )}
         
-        {tteEffectifProp && tteEffectifProp.tteMin !== null && (
+        {tteEffectifProp && tteEffectifProp.tte_min !== null && (
           <div className="flex items-center gap-2 text-sm p-2 rounded-lg bg-secondary/30 border border-border">
             <span className="text-muted-foreground">TTE:</span>
-            <span className="font-mono font-bold">{tteEffectifProp.tteMin} min</span>
+            <span className="font-mono font-bold">{tteEffectifProp.tte_min} min</span>
             <span className={cn("px-2 py-0.5 rounded text-xs", getTTESourceColor(tteEffectifProp.source))}>
               {getSourceLabel(tteEffectifProp.source)}
             </span>
