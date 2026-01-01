@@ -214,11 +214,18 @@ export function DanLorangAnalysis({
       {/* Current Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="p-3 rounded-xl bg-secondary/20 border border-border">
-          <p className="text-xs text-muted-foreground mb-1">VLamax</p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground mb-1">VLamax</p>
+            <span className={cn("text-[10px] px-2 py-0.5 rounded-full border", getSourceColor(vlamaxEffectif.source))}>
+              {vlamaxEffectif.source}
+            </span>
+          </div>
           <p className={cn("text-lg font-bold font-mono", vlamax > 0.45 ? "text-warning" : vlamax < 0.28 ? "text-destructive" : "text-success")}>
-            {vlamax.toFixed(2)}
+            {vlamaxEffectif.value !== null ? vlamaxEffectif.value.toFixed(2) : "—"}
           </p>
-          <p className="text-xs text-muted-foreground">Cible: 0.25-0.{athlete.objectif === "IM" ? "40" : "45"}</p>
+          <p className="text-xs text-muted-foreground">
+            conf {Math.round(vlamaxEffectif.confidence * 100)}% • Cible: 0.25-0.{athlete.objectif === "IM" ? "40" : "45"}
+          </p>
         </div>
 
         <div className="p-3 rounded-xl bg-secondary/20 border border-border">
