@@ -211,9 +211,9 @@ export function DanLorangAnalysis({
           </div>
         </div>
 
-        {/* Race Ready Badge */}
-        <div className={cn("px-4 py-2 rounded-xl flex items-center gap-2", analysis.race_ready ? "bg-success/10 border border-success/30" : "bg-secondary/50 border border-border")}>
-          {analysis.race_ready ? <>
+        {/* Race Ready Badge - ✅ FIX 9: Utilise readiness.score >= 80 (source unique) */}
+        <div className={cn("px-4 py-2 rounded-xl flex items-center gap-2", readiness.score >= 80 ? "bg-success/10 border border-success/30" : "bg-secondary/50 border border-border")}>
+          {readiness.score >= 80 ? <>
               <Trophy className="w-5 h-5 text-success" />
               <span className="font-semibold text-success">Race Ready</span>
             </> : <>
