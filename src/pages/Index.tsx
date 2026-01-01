@@ -66,8 +66,8 @@ import { computeRaceReadinessEffectif, RaceReadinessEffectif, getScoreColor } fr
 const Index = () => {
   const { user, signOut } = useAuth();
 
-  // ✅ IMPORTANT: on récupère aussi snapshots + tests
-  const { athletes, snapshots, tests, loading, addAthlete, updateAthlete, deleteAthlete } = useCloudData();
+  // ✅ IMPORTANT: on récupère aussi snapshots + tests + fonctions cloud
+  const { athletes, snapshots, tests, loading, addAthlete, updateAthlete, deleteAthlete, addTest, deleteTest } = useCloudData();
 
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showTestLibrary, setShowTestLibrary] = useState(false);
@@ -208,6 +208,8 @@ const Index = () => {
         athlete_id: t.athlete_id,
         vlamax: t.vlamax,
         date: t.date,
+        type: t.type,
+        name: t.name,
       })),
       snapshots: snapshots.map(s => ({
         id: s.id,
@@ -625,8 +627,12 @@ const Index = () => {
                 unit="mmol/L/s"
                 icon={Zap}
                 trend="neutral"
-                trendValue={`${vlamaxEffectif.label} • conf ${Math.round(vlamaxEffectif.confidence * 100)}%`}
-                accentColor="primary"
+                trendValue={
+                  vlamaxEffectif.source === "test" && vlamaxEffectif.details?.date
+                    ? `Test ${vlamaxEffectif.details.date} • conf ${Math.round(vlamaxEffectif.confidence * 100)}%`
+                    : `${vlamaxEffectif.label} • conf ${Math.round(vlamaxEffectif.confidence * 100)}%`
+                }
+                accentColor={vlamaxEffectif.source === "test" ? "success" : "primary"}
               />
 
               <MetricCard
@@ -759,7 +765,12 @@ const Index = () => {
         return (
           <div className="space-y-6 animate-fade-in">
             {renderAthleteSelector()}
-            <VLamaxTestingPage athlete={legacyAthlete} onSaveTests={() => {}} />
+            <VLamaxTestingPage 
+              athlete={legacyAthlete} 
+              cloudTests={tests.filter(t => t.athlete_id === currentAthlete?.id)}
+              onAddTest={addTest}
+              onDeleteTest={deleteTest}
+            />
             <TestComparison athlete={legacyAthlete} />
             <TestProtocols athlete={legacyAthlete} />
           </div>

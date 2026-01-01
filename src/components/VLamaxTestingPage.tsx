@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,9 +35,34 @@ import {
 } from "@/types/testVLamax";
 import { MetricExplanationPopup } from "./MetricExplanationPopup";
 
+// Type pour les tests cloud (simplifié)
+interface CloudTest {
+  id: string;
+  athlete_id: string;
+  type: string;
+  name: string;
+  sport: string | null;
+  vlamax: number | null;
+  reliability: number | null;
+  raw: unknown; // Json type compatible
+  note: string | null;
+  date: string;
+}
+
 interface VLamaxTestingPageProps {
   athlete: Athlete;
-  onSaveTests: (tests: TestVLamax[]) => void;
+  cloudTests: CloudTest[];
+  onAddTest: (
+    athleteId: string,
+    type: string,
+    name: string,
+    sport: string | null,
+    reliability: number | null,
+    vlamax: number | null,
+    raw?: unknown,
+    note?: string | null
+  ) => Promise<unknown>;
+  onDeleteTest: (id: string) => Promise<boolean>;
 }
 
 const sportIcons = {
@@ -52,18 +77,19 @@ const difficultyColors = {
   Difficile: "bg-destructive/10 text-destructive border-destructive/30",
 };
 
-export function VLamaxTestingPage({ athlete, onSaveTests }: VLamaxTestingPageProps) {
-  // Récupérer les tests existants depuis localStorage avec gestion d'erreur
-  const [tests, setTests] = useState<TestVLamax[]>(() => {
-    try {
-      const saved = localStorage.getItem(`tests-${athlete.id}`);
-      if (!saved) return [];
-      const parsed = JSON.parse(saved);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  });
+export function VLamaxTestingPage({ athlete, cloudTests, onAddTest, onDeleteTest }: VLamaxTestingPageProps) {
+  // ✅ Convertir les tests cloud en format local pour affichage
+  const tests = useMemo<TestVLamax[]>(() => {
+    return cloudTests.map(ct => ({
+      id: ct.id,
+      nom: ct.name,
+      sport: (ct.sport as "vélo" | "course" | "natation") || "vélo",
+      date: ct.date.slice(0, 10),
+      resultat: (ct.raw as TestResultat) || {},
+      vlamax: ct.vlamax ?? 0,
+      notes: ct.note || "",
+    }));
+  }, [cloudTests]);
 
   const [expandedTest, setExpandedTest] = useState<string | null>(null);
   const [activeTest, setActiveTest] = useState<TestProtocoleVLamax | null>(null);
@@ -99,28 +125,29 @@ export function VLamaxTestingPage({ athlete, onSaveTests }: VLamaxTestingPagePro
     setActiveTest(protocole);
   };
 
-  const handleSaveTest = () => {
+  const handleSaveTest = async () => {
     if (!activeTest) return;
 
     const vlamax = activeTest.calcVLamax(testResultat);
     
-    const newTest: TestVLamax = {
-      id: crypto.randomUUID(),
-      nom: activeTest.nom,
-      sport: activeTest.sport,
-      date: new Date().toISOString().slice(0, 10),
-      resultat: testResultat,
-      vlamax,
-      notes: testNotes
-    };
-
-    // Remplacer si existe, sinon ajouter
-    const updatedTests = tests.filter(t => t.nom !== activeTest.nom);
-    updatedTests.push(newTest);
+    // ✅ Supprimer l'ancien test s'il existe (même nom)
+    const existingTest = cloudTests.find(t => t.name === activeTest.nom);
+    if (existingTest) {
+      await onDeleteTest(existingTest.id);
+    }
     
-    setTests(updatedTests);
-    localStorage.setItem(`tests-${athlete.id}`, JSON.stringify(updatedTests));
-    onSaveTests(updatedTests);
+    // ✅ Ajouter le nouveau test dans le cloud
+    await onAddTest(
+      athlete.id,
+      activeTest.id, // type = protocole ID
+      activeTest.nom, // name
+      activeTest.sport, // sport
+      0.8, // reliability par défaut
+      vlamax,
+      testResultat as Record<string, unknown>, // raw
+      testNotes || null // note
+    );
+    
     setActiveTest(null);
   };
 
@@ -142,27 +169,28 @@ export function VLamaxTestingPage({ athlete, onSaveTests }: VLamaxTestingPagePro
     }));
   };
 
-  // Sauvegarder depuis input inline
-  const handleInlineSave = (protocole: TestProtocoleVLamax) => {
+  // Sauvegarder depuis input inline - ✅ Cloud
+  const handleInlineSave = async (protocole: TestProtocoleVLamax) => {
     const resultat = inlineInputs[protocole.id] || {};
     const vlamax = protocole.calcVLamax(resultat);
     
-    const newTest: TestVLamax = {
-      id: crypto.randomUUID(),
-      nom: protocole.nom,
-      sport: protocole.sport,
-      date: new Date().toISOString().slice(0, 10),
-      resultat,
-      vlamax,
-      notes: ""
-    };
-
-    const updatedTests = tests.filter(t => t.nom !== protocole.nom);
-    updatedTests.push(newTest);
+    // ✅ Supprimer l'ancien test s'il existe (même nom)
+    const existingTest = cloudTests.find(t => t.name === protocole.nom);
+    if (existingTest) {
+      await onDeleteTest(existingTest.id);
+    }
     
-    setTests(updatedTests);
-    localStorage.setItem(`tests-${athlete.id}`, JSON.stringify(updatedTests));
-    onSaveTests(updatedTests);
+    // ✅ Ajouter le nouveau test dans le cloud
+    await onAddTest(
+      athlete.id,
+      protocole.id,
+      protocole.nom,
+      protocole.sport,
+      0.8,
+      vlamax,
+      resultat as Record<string, unknown>,
+      null
+    );
   };
 
   // Calculer VLamax en temps réel pour un protocole
