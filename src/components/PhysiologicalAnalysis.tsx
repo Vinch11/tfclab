@@ -24,15 +24,17 @@ import {
   CheckCircle,
   Info
 } from "lucide-react";
-import { VLamaxEffectif, getSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
+import { VLamaxEffectif, getSourceColor as getVLamaxSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
+import { TTEEffectif, getSourceColor as getTTESourceColor, getSourceLabel } from "@/lib/tteEffectif";
 import { cn } from "@/lib/utils";
 
 interface PhysiologicalAnalysisProps {
   athlete: Athlete;
-  vlamaxEffectif?: VLamaxEffectif; // ✅ Prop optionnelle pour VLamax effectif unifié
+  vlamaxEffectif?: VLamaxEffectif;
+  tteEffectif?: TTEEffectif;
 }
 
-export function PhysiologicalAnalysis({ athlete, vlamaxEffectif: vlamaxEffectifProp }: PhysiologicalAnalysisProps) {
+export function PhysiologicalAnalysis({ athlete, vlamaxEffectif: vlamaxEffectifProp, tteEffectif: tteEffectifProp }: PhysiologicalAnalysisProps) {
   const snapshot = getDernierSnapshot(athlete);
   
   // ✅ VLamax EFFECTIF - Utilise la prop si fournie, sinon fallback
@@ -96,20 +98,36 @@ export function PhysiologicalAnalysis({ athlete, vlamaxEffectif: vlamaxEffectifP
 
   return (
     <div className="space-y-4">
-      {/* Debug VLamax source */}
-      {vlamaxEffectif.value !== null && (
-        <div className="flex items-center gap-2 text-sm p-2 rounded-lg bg-secondary/30 border border-border">
-          <span className="text-muted-foreground">VLamax:</span>
-          <span className="font-mono font-bold">{vlamaxEffectif.value.toFixed(2)}</span>
-          <span className={cn("px-2 py-0.5 rounded text-xs", getSourceColor(vlamaxEffectif.source))}>
-            {vlamaxEffectif.source}
-          </span>
-          <span className="text-muted-foreground">•</span>
-          <span className="text-xs text-muted-foreground">
-            conf {Math.round(vlamaxEffectif.confidence * 100)}%
-          </span>
-        </div>
-      )}
+      {/* Debug VLamax + TTE source */}
+      <div className="flex flex-wrap gap-4">
+        {vlamaxEffectif.value !== null && (
+          <div className="flex items-center gap-2 text-sm p-2 rounded-lg bg-secondary/30 border border-border">
+            <span className="text-muted-foreground">VLamax:</span>
+            <span className="font-mono font-bold">{vlamaxEffectif.value.toFixed(2)}</span>
+            <span className={cn("px-2 py-0.5 rounded text-xs", getVLamaxSourceColor(vlamaxEffectif.source))}>
+              {vlamaxEffectif.source}
+            </span>
+            <span className="text-muted-foreground">•</span>
+            <span className="text-xs text-muted-foreground">
+              conf {Math.round(vlamaxEffectif.confidence * 100)}%
+            </span>
+          </div>
+        )}
+        
+        {tteEffectifProp && tteEffectifProp.tteMin !== null && (
+          <div className="flex items-center gap-2 text-sm p-2 rounded-lg bg-secondary/30 border border-border">
+            <span className="text-muted-foreground">TTE:</span>
+            <span className="font-mono font-bold">{tteEffectifProp.tteMin} min</span>
+            <span className={cn("px-2 py-0.5 rounded text-xs", getTTESourceColor(tteEffectifProp.source))}>
+              {getSourceLabel(tteEffectifProp.source)}
+            </span>
+            <span className="text-muted-foreground">•</span>
+            <span className="text-xs text-muted-foreground">
+              conf {Math.round(tteEffectifProp.confidence * 100)}%
+            </span>
+          </div>
+        )}
+      </div>
 
       {/* Header avec SPM */}
       <Card>
