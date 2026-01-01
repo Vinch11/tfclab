@@ -315,11 +315,24 @@ export function VLamaxCalculator({
             </div>
             
             <div className="flex items-baseline gap-3">
-              <span className="text-5xl font-bold font-mono text-primary">
+              <span className={cn(
+                "text-5xl font-bold font-mono",
+                displayData.vlamax !== null && displayData.vlamax > 1.2 ? "text-destructive" : "text-primary"
+              )}>
                 {displayData.vlamax !== null ? displayData.vlamax.toFixed(2) : "—"}
               </span>
               <span className="text-muted-foreground">mmol/L/s</span>
             </div>
+
+            {/* Warning valeurs atypiques */}
+            {displayData.vlamax !== null && displayData.vlamax > 1.2 && (
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-destructive/10 border border-destructive/30">
+                <AlertTriangle className="w-4 h-4 text-destructive shrink-0" />
+                <span className="text-xs text-destructive">
+                  Valeur atypique ({displayData.vlamax.toFixed(2)}) — vérifier le protocole et les données d'entrée.
+                </span>
+              </div>
+            )}
             
             {displayData.vlamax !== null && (
               <>
