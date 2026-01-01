@@ -164,7 +164,8 @@ const Index = () => {
       nom: dbAthlete.name,
       sexe: (refs.sexe as "M" | "F") || "M",
       objectif: (dbAthlete.goal as any) || "IM",
-      masse_grasse: (refs.masse_grasse as number) || 18,
+      // ✅ FIX 6: Ne pas afficher 18% par défaut si non renseigné
+      masse_grasse: typeof refs.masse_grasse === "number" ? refs.masse_grasse : undefined,
       historique: legacySnapshot ? [legacySnapshot] : [],
       tests: [],
       refs: {
@@ -725,7 +726,19 @@ const Index = () => {
         return (
           <div className="space-y-6 animate-fade-in">
             {renderAthleteSelector()}
-            <AthleteProfile athlete={legacyAthlete} onUpdate={() => {}} />
+            <AthleteProfile 
+              athlete={legacyAthlete} 
+              onUpdate={() => {}} 
+              // ✅ FIX 6: Sauvegarde masse grasse dans le cloud
+              onUpdateMasseGrasse={async (val) => {
+                if (!currentAthlete) return;
+                const existingRefs = (currentAthlete.refs as Record<string, unknown>) || {};
+                await updateAthlete(currentAthlete.id, { 
+                  refs: { ...existingRefs, masse_grasse: val } as any
+                });
+              }}
+              snapshotFatPct={effectiveCloudSnapshot?.fat_pct}
+            />
             <VLamaxCalculator 
               snapshotEffectif={effectiveCloudSnapshot ? {
                 ftp: effectiveCloudSnapshot.ftp ?? null,

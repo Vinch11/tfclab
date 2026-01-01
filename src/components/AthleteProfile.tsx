@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Save, Target, Scale, Activity, Percent, Plus, Database, Edit } from "lucide-react";
+import { User, Save, Target, Scale, Activity, Percent, Plus, Database, Edit, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Athlete, ObjectifType, SexeType, getObjectifLabel, getDernierSnapshot } from "@/types/athlete";
 import { SnapshotNolio, creerSnapshotVide, scoreConfiance, estimerTTE } from "@/types/snapshotNolio";
@@ -14,20 +14,34 @@ import { CSVImporter } from "./CSVImporter";
 interface AthleteProfileProps {
   athlete: Athlete;
   onUpdate: (athlete: Athlete) => void;
+  // ✅ FIX 6: Callback pour sauvegarde cloud de la masse grasse
+  onUpdateMasseGrasse?: (masseGrasse: number | null) => Promise<void>;
+  // ✅ FIX 6: fat_pct du dernier snapshot cloud (lecture seule)
+  snapshotFatPct?: number | null;
 }
 
-export function AthleteProfile({ athlete, onUpdate }: AthleteProfileProps) {
+export function AthleteProfile({ athlete, onUpdate, onUpdateMasseGrasse, snapshotFatPct }: AthleteProfileProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isAddingSnapshot, setIsAddingSnapshot] = useState(false);
   const [formData, setFormData] = useState<Athlete>(athlete);
   const [newSnapshot, setNewSnapshot] = useState<SnapshotNolio>(creerSnapshotVide());
+  const [isSavingMasseGrasse, setIsSavingMasseGrasse] = useState(false);
 
   const snapshot = getDernierSnapshot(athlete);
   const vlamax = snapshot ? calculVLamaxSnapshot(snapshot, athlete.objectif) : 0;
   const tte = snapshot ? estimerTTE(snapshot.ftp, snapshot.tss_7j) : 0;
   const confiance = snapshot ? scoreConfiance(snapshot) : 0;
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    // ✅ FIX 6: Sauvegarder masse grasse dans le cloud
+    if (onUpdateMasseGrasse) {
+      setIsSavingMasseGrasse(true);
+      const valueToSave = formData.masse_grasse !== undefined && formData.masse_grasse !== 0 
+        ? formData.masse_grasse 
+        : null;
+      await onUpdateMasseGrasse(valueToSave);
+      setIsSavingMasseGrasse(false);
+    }
     onUpdate({ ...formData, updatedAt: new Date().toISOString() });
     setIsEditing(false);
   };
@@ -252,19 +266,43 @@ export function AthleteProfile({ athlete, onUpdate }: AthleteProfileProps) {
             </div>
           </div>
 
-          {/* Masse grasse */}
+          {/* Masse grasse - FIX 6: Édition avec sauvegarde cloud */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="masse_grasse" className="text-muted-foreground">Masse grasse (%)</Label>
+              <Label htmlFor="masse_grasse" className="text-muted-foreground">Masse grasse profil (%)</Label>
               <Input
                 id="masse_grasse"
                 type="number"
-                value={formData.masse_grasse || ""}
-                onChange={(e) => handleInputChange("masse_grasse", parseFloat(e.target.value) || 0)}
+                min={3}
+                max={45}
+                step={0.1}
+                value={formData.masse_grasse !== undefined ? formData.masse_grasse : ""}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  // Si vide -> undefined (pas de valeur par défaut)
+                  handleInputChange("masse_grasse", val === "" ? undefined as any : parseFloat(val));
+                }}
                 className="bg-secondary/50 border-border focus:border-primary"
-                placeholder="18"
+                placeholder="ex: 14"
               />
+              <p className="text-xs text-muted-foreground">
+                Laissez vide si non mesuré
+              </p>
             </div>
+            
+            {/* Affichage fat_pct du dernier snapshot (lecture seule) */}
+            {snapshotFatPct !== undefined && snapshotFatPct !== null && (
+              <div className="space-y-2">
+                <Label className="text-muted-foreground flex items-center gap-1">
+                  <Info className="w-3 h-3" />
+                  Dernier snapshot
+                </Label>
+                <div className="py-2 px-3 rounded-lg bg-secondary/30 border border-border">
+                  <span className="text-lg font-mono text-warning">{snapshotFatPct}%</span>
+                  <span className="text-xs text-muted-foreground ml-2">(lecture seule)</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       ) : (
@@ -320,7 +358,20 @@ export function AthleteProfile({ athlete, onUpdate }: AthleteProfileProps) {
                     <Percent className="w-4 h-4" />
                     <span className="text-xs uppercase tracking-wider">Masse grasse</span>
                   </div>
-                  <p className="text-2xl font-bold font-mono text-warning">{formData.masse_grasse || "—"}<span className="text-sm text-muted-foreground ml-1">%</span></p>
+                  {/* FIX 6: Afficher "—" si non renseigné, pas 18% */}
+                  <p className="text-2xl font-bold font-mono text-warning">
+                    {formData.masse_grasse !== undefined && formData.masse_grasse !== null 
+                      ? formData.masse_grasse 
+                      : "—"}
+                    <span className="text-sm text-muted-foreground ml-1">%</span>
+                  </p>
+                  {/* Bonus: Afficher fat_pct du snapshot si différent */}
+                  {snapshotFatPct !== undefined && snapshotFatPct !== null && snapshotFatPct !== formData.masse_grasse && (
+                    <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                      <Info className="w-3 h-3" />
+                      Snapshot: {snapshotFatPct}%
+                    </p>
+                  )}
                 </div>
                 <div className="p-4 rounded-xl bg-secondary/20 border border-border">
                   <div className="flex items-center gap-2 text-muted-foreground mb-2">
