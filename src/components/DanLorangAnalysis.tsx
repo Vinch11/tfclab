@@ -109,6 +109,7 @@ export function DanLorangAnalysis({
   // ✅ RACE READINESS EFFECTIF - Utilise la prop si fournie (plus de calcul local!)
   const readiness = readinessProp ?? {
     score: 0,
+    rawScore: 0,
     label: "Non disponible",
     color: "warning" as const,
     details: { vlamax: 0, endurance: 0, puissance: 0, fraicheur: 0 },
@@ -124,6 +125,9 @@ export function DanLorangAnalysis({
       seance_specifique: false,
     },
     messageStaff: "Ajoutez un snapshot pour activer le calcul.",
+    nutritionalRiskIndex: null,
+    wasCappedByNutrition: false,
+    nutritionalCapReason: null,
   };
   
   const raceScore = readiness.score;
@@ -238,6 +242,22 @@ export function DanLorangAnalysis({
         }} />
         </div>
         <p className={cn("text-sm font-medium", getScoreColor(raceScore))}>{readiness.label}</p>
+        
+        {/* Résumé Risque Nutritionnel */}
+        {readiness.nutritionalRiskIndex && (
+          <div className={cn(
+            "mt-3 p-2 rounded-lg flex items-center gap-2 text-xs",
+            readiness.nutritionalRiskIndex.level === 'low' ? 'bg-success/10 text-success' :
+            readiness.nutritionalRiskIndex.level === 'moderate' ? 'bg-warning/10 text-warning' :
+            'bg-destructive/10 text-destructive'
+          )}>
+            <span>{readiness.nutritionalRiskIndex.icon}</span>
+            <span>Risque nutritionnel : <strong>{readiness.nutritionalRiskIndex.label}</strong></span>
+            {readiness.wasCappedByNutrition && (
+              <span className="ml-auto text-destructive">⚠️ Plafonné</span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Current Metrics */}

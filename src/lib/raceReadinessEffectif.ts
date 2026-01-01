@@ -1,10 +1,12 @@
 // =============================================
 // RACE READINESS EFFECTIF - Source unique de vérité
 // FIX 13 - Pondérations par objectif + targets + messageStaff
+// + Plafonnement par Risque Nutritionnel
 // =============================================
 
 import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { TTEEffectif } from "@/lib/tteEffectif";
+import { computeNutritionEstimate, applyNutritionalCap, type NutritionalRiskIndex } from "@/lib/nutritionPredictive";
 
 // =============================================
 // TYPES
@@ -33,7 +35,8 @@ export interface RaceWeights {
 }
 
 export interface RaceReadinessEffectif {
-  score: number;                 // 0-100
+  score: number;                 // 0-100 (après plafonnement nutritionnel)
+  rawScore: number;              // Score avant plafonnement nutritionnel
   label: string;                 // "Race Ready!", "En progression", etc.
   color: "success" | "warning" | "destructive";
   details: RaceReadinessDetails;
@@ -49,6 +52,10 @@ export interface RaceReadinessEffectif {
     seance_specifique: boolean;
   };
   messageStaff: string;          // Message explicatif staff-ready
+  // Nouvelles propriétés pour le risque nutritionnel
+  nutritionalRiskIndex: NutritionalRiskIndex | null;
+  wasCappedByNutrition: boolean;
+  nutritionalCapReason: string | null;
 }
 
 export interface ComputeRaceReadinessParams {
@@ -342,7 +349,7 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
   // =====================
   // WEIGHTED SCORE
   // =====================
-  const rawScore = (
+  const rawScoreValue = (
     (vlamaxScore * weights.vlamax) +
     (tteScore * weights.tte) +
     (ftpKgScore * weights.ftpKg) +
@@ -351,7 +358,22 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
   
   // Apply confidence factor: score * (0.85 + 0.15 * confidence)
   const confidenceFactor = 0.85 + 0.15 * avgConfidence;
-  const finalScore = Math.round(clamp(rawScore * confidenceFactor, 0, 100));
+  const baseScore = Math.round(clamp(rawScoreValue * confidenceFactor, 0, 100));
+
+  // =====================
+  // CALCUL RISQUE NUTRITIONNEL + PLAFONNEMENT
+  // =====================
+  const nutritionEstimate = computeNutritionEstimate({
+    vlamax,
+    objectif,
+    tteMin: tte,
+    tteTarget: targets.tteTarget,
+  });
+  
+  const nutritionalRiskIndex = nutritionEstimate?.nutritionalRiskIndex ?? null;
+  const { cappedScore, wasCapped, capReason } = applyNutritionalCap(baseScore, nutritionalRiskIndex);
+  
+  const finalScore = cappedScore;
 
   // =====================
   // DETAILS (0-25 each)
@@ -385,6 +407,11 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
     label = "Données insuffisantes";
     color = "warning";
   }
+  
+  // Override label si plafonné par nutrition
+  if (wasCapped) {
+    label = `${label} (plafonné)`;
+  }
 
   // =====================
   // MESSAGE STAFF
@@ -406,9 +433,15 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
       `Pondération ajustée à l'objectif: ${objectif}. ` +
       `Points limitants: ${limitants.join(", ")}.`;
   }
+  
+  // Ajouter info plafonnement nutritionnel au message staff
+  if (wasCapped && capReason) {
+    messageStaff += ` ⚠️ ${capReason}`;
+  }
 
   return {
     score: finalScore,
+    rawScore: baseScore,
     label,
     color,
     details,
@@ -424,6 +457,9 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
       seance_specifique: seance_specifique_validee,
     },
     messageStaff,
+    nutritionalRiskIndex,
+    wasCappedByNutrition: wasCapped,
+    nutritionalCapReason: capReason,
   };
 }
 
