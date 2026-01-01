@@ -32,9 +32,10 @@ interface PhysiologicalAnalysisProps {
   athlete: Athlete;
   vlamaxEffectif?: VLamaxEffectif;
   tteEffectif?: TTEEffectif;
+  onGoToSnapshots?: () => void;
 }
 
-export function PhysiologicalAnalysis({ athlete, vlamaxEffectif: vlamaxEffectifProp, tteEffectif: tteEffectifProp }: PhysiologicalAnalysisProps) {
+export function PhysiologicalAnalysis({ athlete, vlamaxEffectif: vlamaxEffectifProp, tteEffectif: tteEffectifProp, onGoToSnapshots }: PhysiologicalAnalysisProps) {
   const snapshot = getDernierSnapshot(athlete);
   
   // ✅ VLamax EFFECTIF - Utilise la prop si fournie, sinon fallback

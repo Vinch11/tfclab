@@ -570,7 +570,10 @@ const Index = () => {
 
             {/* Contenu conditionnel */}
             {showTestLibrary && <TestProtocols athlete={legacyAthlete} />}
-            {showPhysioAnalysis && <PhysiologicalAnalysis athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} />}
+            {showPhysioAnalysis && <PhysiologicalAnalysis athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} onGoToSnapshots={() => {
+              setShowSnapshots(true);
+              setShowPhysioAnalysis(false);
+            }} />}
             {showPlanner && <Planificateur athlete={legacyAthlete} />}
             {showWorkoutLibrary && <WorkoutLibrary athlete={legacyAthlete} />}
             {showMonitoring && (
