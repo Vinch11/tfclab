@@ -260,7 +260,7 @@ export function DanLorangAnalysis({
         )}
         
         {/* Résumé Économie de Course (CAP) */}
-        {readiness.runningEconomy && readiness.runningEconomy.isApplicable && (
+        {'runningEconomy' in readiness && readiness.runningEconomy?.isApplicable && (
           <div className={cn(
             "mt-2 p-2 rounded-lg flex items-center gap-2 text-xs",
             readiness.runningEconomy.color === 'success' ? 'bg-success/10 text-success' :
@@ -270,7 +270,7 @@ export function DanLorangAnalysis({
           )}>
             <span>{readiness.runningEconomy.levelIcon}</span>
             <span>Économie de course : <strong>{readiness.runningEconomy.levelLabel}</strong></span>
-            {readiness.wasCappedByEconomy && (
+            {'wasCappedByEconomy' in readiness && readiness.wasCappedByEconomy && (
               <span className="ml-auto text-destructive">🏃 Plafonné</span>
             )}
           </div>
