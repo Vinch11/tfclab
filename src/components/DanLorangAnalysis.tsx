@@ -70,16 +70,16 @@ export function DanLorangAnalysis({
 
   // ✅ TTE EFFECTIF - Utilise la prop si fournie
   const tteEffectif = tteEffectifProp ?? {
-    tteMin: 45,
+    tte_min: 45,
     source: "unknown" as const,
     confidence: 0.3,
     label: "TTE (fallback)",
     target: 45,
     status: "warning" as const,
-    statusMessage: "Données manquantes"
+    status_message: "Données manquantes"
   };
   
-  const tte = tteEffectif.tteMin ?? 45;
+  const tte = tteEffectif.tte_min ?? 45;
 
   // ✅ FTP/kg
   const ftp_kg = useMemo(() => {
@@ -260,7 +260,7 @@ export function DanLorangAnalysis({
           </div>
 
           <p className={cn("text-lg font-bold font-mono", tte < tteTarget ? "text-warning" : "text-success")}>
-            {tteEffectif.tteMin !== null ? `${tteEffectif.tteMin} min` : "—"}
+            {tteEffectif.tte_min !== null ? `${tteEffectif.tte_min} min` : "—"}
           </p>
 
           <p className="text-xs text-muted-foreground">

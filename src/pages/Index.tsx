@@ -232,13 +232,13 @@ const Index = () => {
   const tteEffectif = useMemo<TTEEffectif>(() => {
     if (!effectiveCloudSnapshot || !currentAthlete) {
       return {
-        tteMin: null,
+        tte_min: 45,
         source: "unknown",
         confidence: 0,
         label: "TTE (non disponible)",
         target: 45,
-        status: "critical",
-        statusMessage: "Aucune donnée"
+        status: "warning",
+        status_message: "Aucune donnée"
       };
     }
     return computeTTEEffectif({
@@ -252,7 +252,7 @@ const Index = () => {
 
   // ✅ Valeur TTE affichée partout (Index) - fallback 0 pour compatibilité
   const tte = useMemo(() => {
-    return tteEffectif?.tteMin ?? 0;
+    return tteEffectif?.tte_min ?? 0;
   }, [tteEffectif]);
 
   // Handlers
@@ -621,7 +621,7 @@ const Index = () => {
 
               <MetricCard
                 title="TTE Effectif"
-                value={tteEffectif.tteMin !== null ? tteEffectif.tteMin.toString() : "—"}
+                value={tteEffectif.tte_min !== null ? tteEffectif.tte_min.toString() : "—"}
                 unit="min"
                 icon={Activity}
                 trend="neutral"

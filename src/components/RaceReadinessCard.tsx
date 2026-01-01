@@ -102,13 +102,13 @@ export function RaceReadinessCard({
 
   // ✅ TTE EFFECTIF - Utilise la prop si fournie
   const tteEffectif = tteEffectifProp ?? {
-    tteMin: null,
+    tte_min: null,
     source: "unknown" as const,
     confidence: 0,
     label: "TTE (non disponible)",
     target: 45,
     status: "critical" as const,
-    statusMessage: "Données manquantes"
+    status_message: "Données manquantes"
   };
   
   if (!snap) {
@@ -239,10 +239,10 @@ export function RaceReadinessCard({
             onGoToSnapshots={onGoToSnapshots} 
             compact 
           />
-        ) : tteEffectif.tteMin !== null && (
+        ) : tteEffectif.tte_min !== null && (
           <div className="flex items-center gap-2 text-sm p-2 rounded-lg bg-secondary/30 border border-border">
             <span className="text-muted-foreground">TTE:</span>
-            <span className="font-mono font-bold">{tteEffectif.tteMin} min</span>
+            <span className="font-mono font-bold">{tteEffectif.tte_min} min</span>
             <span className={cn("px-2 py-0.5 rounded text-xs", getTTESourceColor(tteEffectif.source))}>
               {getSourceLabel(tteEffectif.source)}
             </span>
