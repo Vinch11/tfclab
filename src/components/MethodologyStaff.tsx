@@ -295,58 +295,240 @@ export function MethodologyStaff({ onGoToTab }: MethodologyStaffProps) {
         </CardContent>
       </Card>
 
-      {/* SECTION 4 : Vélo vs Course à pied */}
+      {/* SECTION 4 : Vélo vs Course à pied - APPROFONDI */}
       <Card className="border-primary/20">
         <CardHeader>
           <CardTitle className="flex items-center gap-3 text-foreground">
             <div className="p-2 rounded-lg bg-primary/10 text-primary">
               <Bike className="w-5 h-5" />
             </div>
-            🚴 vs 🏃 Différences Vélo / Course à pied
+            🚴‍♂️ Vélo vs 🏃‍♂️ Course à pied — Comprendre les différences physiologiques clés
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <p className="text-muted-foreground text-sm">
-            Les indicateurs physiologiques ne s'interprètent pas de la même manière selon le sport. 
-            Vince's Lab adapte ses calculs en fonction du contexte.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded-lg bg-secondary/50 border border-border">
-              <div className="flex items-center gap-2 mb-3">
-                <Bike className="w-5 h-5 text-primary" />
-                <h4 className="font-semibold text-foreground">Vélo</h4>
-              </div>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• Mesure directe de la puissance (watts)</li>
-                <li>• FTP = seuil fonctionnel de puissance</li>
-                <li>• VLamax mesurable via tests spécifiques</li>
-                <li>• Moins de contraintes biomécaniques</li>
-                <li>• TTE généralement plus long (40-70 min)</li>
-              </ul>
-            </div>
-
-            <div className="p-4 rounded-lg bg-secondary/50 border border-border">
-              <div className="flex items-center gap-2 mb-3">
-                <Footprints className="w-5 h-5 text-accent" />
-                <h4 className="font-semibold text-foreground">Course à pied</h4>
-              </div>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• Mesure indirecte (allure, FC, puissance estimée)</li>
-                <li>• CSS = allure seuil critique</li>
-                <li>• VLamax plus difficile à isoler</li>
-                <li>• Contraintes musculo-squelettiques majeures</li>
-                <li>• TTE souvent plus court (30-50 min)</li>
-              </ul>
+        <CardContent className="space-y-8">
+          
+          {/* 1️⃣ Introduction */}
+          <div>
+            <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+              <span className="text-primary">1️⃣</span> Le vélo et la course à pied ne sollicitent pas le métabolisme de la même façon
+            </h4>
+            <p className="text-muted-foreground text-sm">
+              Dans Vince's Lab, les indicateurs VLamax, TTE et Race Readiness doivent toujours être interprétés 
+              en tenant compte du sport pratiqué.
+            </p>
+            <div className="p-3 rounded-lg bg-warning/10 border border-warning/20 mt-3">
+              <p className="text-sm text-foreground font-medium">
+                ➡️ Une même valeur physiologique n'a PAS la même signification en vélo et en course à pied.
+              </p>
             </div>
           </div>
 
-          <div className="p-4 rounded-lg bg-warning/5 border border-warning/20">
-            <p className="text-sm text-muted-foreground">
-              <strong className="text-foreground">⚠️ Important</strong> : Un athlète peut avoir un profil métabolique différent 
-              en vélo et en course à pied. Les transferts ne sont pas automatiques.
+          <Separator />
+
+          {/* 2️⃣ Économie de mouvement */}
+          <div>
+            <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+              <span className="text-primary">2️⃣</span> Économie de mouvement : la grande différence clé
+            </h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+                <div className="flex items-center gap-2 mb-3">
+                  <Bike className="w-5 h-5 text-primary" />
+                  <h5 className="font-semibold text-foreground">Vélo</h5>
+                </div>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>• Mouvement contraint, mécanique et très stable</li>
+                  <li>• Rendement élevé et mesurable directement via la puissance</li>
+                  <li>• L'économie est principalement liée au rendement neuromusculaire et au positionnement</li>
+                  <li>• Deux athlètes avec la même FTP et le même VLamax auront souvent des performances proches</li>
+                </ul>
+                <div className="mt-3 p-2 rounded bg-primary/10">
+                  <p className="text-xs text-foreground font-medium">
+                    ➡️ Le vélo est un sport <strong>hautement prédictible</strong> physiologiquement
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-lg bg-accent/5 border border-accent/20">
+                <div className="flex items-center gap-2 mb-3">
+                  <Footprints className="w-5 h-5 text-accent" />
+                  <h5 className="font-semibold text-foreground">Course à pied</h5>
+                </div>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>• Mouvement libre, impactant, très dépendant de la technique</li>
+                  <li>• L'économie de course varie énormément entre deux athlètes au même VO₂max</li>
+                  <li>• La fatigue musculaire et tendineuse joue un rôle majeur</li>
+                </ul>
+                <div className="mt-3 p-2 rounded bg-accent/10">
+                  <p className="text-xs text-foreground font-medium">
+                    ➡️ En CAP, <strong>l'économie de course est souvent plus déterminante</strong> que le VO₂max ou le VLamax
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* 3️⃣ Dérive physiologique */}
+          <div>
+            <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+              <span className="text-primary">3️⃣</span> Dérive physiologique et fatigue périphérique
+            </h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+                <div className="flex items-center gap-2 mb-3">
+                  <Bike className="w-5 h-5 text-primary" />
+                  <h5 className="font-semibold text-foreground">Vélo</h5>
+                </div>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>• Dérive cardiaque généralement lente</li>
+                  <li>• Charge mécanique faible (pas d'impact)</li>
+                  <li>• La limitation est surtout métabolique (substrats, VLamax, TTE)</li>
+                </ul>
+                <div className="mt-3 p-2 rounded bg-success/10">
+                  <p className="text-xs text-foreground font-medium">
+                    ➡️ Le TTE est un <strong>excellent indicateur</strong> de performance vélo longue durée
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-lg bg-accent/5 border border-accent/20">
+                <div className="flex items-center gap-2 mb-3">
+                  <Footprints className="w-5 h-5 text-accent" />
+                  <h5 className="font-semibold text-foreground">Course à pied</h5>
+                </div>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>• Dérive cardiaque plus rapide à intensité équivalente</li>
+                  <li>• Accumulation de fatigue musculaire excentrique</li>
+                  <li>• Dégradation progressive de l'économie de course</li>
+                </ul>
+                <div className="mt-3 p-2 rounded bg-warning/10">
+                  <p className="text-xs text-foreground font-medium">
+                    ➡️ En CAP, un TTE élevé <strong>ne garantit PAS</strong> la capacité à maintenir l'allure cible
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* 4️⃣ Nutrition */}
+          <div>
+            <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+              <span className="text-primary">4️⃣</span> Nutrition : un impact différent selon le sport
+            </h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+                <div className="flex items-center gap-2 mb-3">
+                  <Bike className="w-5 h-5 text-primary" />
+                  <h5 className="font-semibold text-foreground">Vélo</h5>
+                </div>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>• Apports glucidiques élevés possibles (80–120 g/h)</li>
+                  <li>• Absorption facilitée par la position et l'absence d'impact</li>
+                  <li>• VLamax élevé = consommation de glucides plus rapide</li>
+                </ul>
+                <div className="mt-3 p-2 rounded bg-primary/10">
+                  <p className="text-xs text-foreground font-medium">
+                    ➡️ En vélo, la nutrition peut <strong>compenser partiellement</strong> un VLamax élevé
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-lg bg-accent/5 border border-accent/20">
+                <div className="flex items-center gap-2 mb-3">
+                  <Footprints className="w-5 h-5 text-accent" />
+                  <h5 className="font-semibold text-foreground">Course à pied</h5>
+                </div>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>• Apports glucidiques plus limités (60–90 g/h maximum)</li>
+                  <li>• Tolérance digestive plus faible</li>
+                  <li>• Impact mécanique qui limite l'oxydation des graisses à haute intensité</li>
+                </ul>
+                <div className="mt-3 p-2 rounded bg-destructive/10">
+                  <p className="text-xs text-foreground font-medium">
+                    ➡️ En CAP, un VLamax trop élevé devient <strong>rapidement pénalisant</strong> sur longue distance
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* 5️⃣ Conséquences dans Vince's Lab */}
+          <div>
+            <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+              <span className="text-primary">5️⃣</span> Conséquences directes dans Vince's Lab
+            </h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-success/10 border border-success/20">
+                <CheckCircle2 className="w-5 h-5 text-success mt-0.5 shrink-0" />
+                <p className="text-sm text-muted-foreground">
+                  Le <strong className="text-foreground">Race Readiness est pondéré</strong> par l'objectif ET par le sport
+                </p>
+              </div>
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-success/10 border border-success/20">
+                <CheckCircle2 className="w-5 h-5 text-success mt-0.5 shrink-0" />
+                <p className="text-sm text-muted-foreground">
+                  Les seuils "idéaux" de VLamax <strong className="text-foreground">ne sont PAS identiques</strong> vélo vs CAP
+                </p>
+              </div>
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-success/10 border border-success/20">
+                <CheckCircle2 className="w-5 h-5 text-success mt-0.5 shrink-0" />
+                <p className="text-sm text-muted-foreground">
+                  Le TTE est <strong className="text-foreground">plus fiable en vélo</strong> qu'en course à pied
+                </p>
+              </div>
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-success/10 border border-success/20">
+                <CheckCircle2 className="w-5 h-5 text-success mt-0.5 shrink-0" />
+                <p className="text-sm text-muted-foreground">
+                  Les décisions finales doivent toujours être <strong className="text-foreground">validées par le coach</strong>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* 6️⃣ Message clé staff */}
+          <div>
+            <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+              <span className="text-primary">6️⃣</span> Message clé pour le staff
+            </h4>
+            
+            <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+              <p className="text-sm text-muted-foreground mb-3">
+                🧠 <strong className="text-foreground">Vince's Lab ne cherche pas à donner un score universel.</strong>
+              </p>
+              <p className="text-sm text-muted-foreground mb-2">Il fournit :</p>
+              <ul className="space-y-1 text-sm text-muted-foreground ml-4">
+                <li>• des indicateurs physiologiques cohérents</li>
+                <li>• un cadre d'analyse structuré</li>
+                <li>• une aide à la décision spécifique au sport et à l'objectif</li>
+              </ul>
+              <div className="mt-4 p-3 rounded bg-warning/10 border border-warning/20">
+                <p className="text-sm text-foreground font-medium">
+                  👉 L'expertise du coach reste centrale, surtout en course à pied.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Mention finale */}
+          <div className="p-4 rounded-lg bg-secondary border border-border">
+            <p className="text-sm text-muted-foreground italic text-center">
+              "Les modèles physiologiques sont plus robustes en vélo qu'en course à pied.<br />
+              Vince's Lab adapte donc ses interprétations pour respecter la réalité du terrain."
             </p>
           </div>
+
         </CardContent>
       </Card>
 
