@@ -666,7 +666,11 @@ const Index = () => {
                 unit="%"
                 icon={Target}
                 trend="neutral"
-                trendValue={`${raceReadinessEffectif.label} • conf ${Math.round(raceReadinessEffectif.confidence * 100)}%`}
+                trendValue={
+                  raceReadinessEffectif.reasonsMissing.length > 0
+                    ? `${raceReadinessEffectif.label} • ${raceReadinessEffectif.reasonsMissing[0]}`
+                    : `${raceReadinessEffectif.label} • conf ${Math.round(raceReadinessEffectif.confidence * 100)}%`
+                }
                 accentColor={raceReadinessEffectif.color === "success" ? "success" : "warning"}
               />
             </div>
