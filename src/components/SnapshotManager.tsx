@@ -345,28 +345,40 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
           </div>
 
           <div>
-            <Label htmlFor="tss_7d">TSS 7 jours (si Module A)</Label>
+            <Label htmlFor="tss_7d" className={formData.tte_mode === "LOAD" && !formData.tss_7d ? "text-warning" : ""}>
+              TSS 7 jours {formData.tte_mode === "LOAD" && <span className="text-xs">(requis pour Module A)</span>}
+            </Label>
             <Input
               id="tss_7d"
               type="number"
               placeholder="ex: 450"
               value={formData.tss_7d}
               onChange={(e) => setFormData({ ...formData, tss_7d: e.target.value })}
+              className={formData.tte_mode === "LOAD" && !formData.tss_7d ? "border-warning" : ""}
             />
+            {formData.tte_mode === "LOAD" && !formData.tss_7d && (
+              <p className="text-xs text-warning mt-1">⚠️ Renseignez TSS 7j pour un TTE fiable</p>
+            )}
           </div>
         </div>
 
         <div className="mt-3">
-          <Label htmlFor="tte_observed_min">TTE observé (min) (si Module B)</Label>
+          <Label htmlFor="tte_observed_min" className={formData.tte_mode === "OBSERVED" && !formData.tte_observed_min ? "text-warning" : ""}>
+            TTE observé (min) {formData.tte_mode === "OBSERVED" && <span className="text-xs">(requis pour Module B)</span>}
+          </Label>
           <Input
             id="tte_observed_min"
             type="number"
             placeholder="ex: 55"
             value={formData.tte_observed_min}
             onChange={(e) => setFormData({ ...formData, tte_observed_min: e.target.value })}
+            className={formData.tte_mode === "OBSERVED" && !formData.tte_observed_min ? "border-warning" : ""}
           />
+          {formData.tte_mode === "OBSERVED" && !formData.tte_observed_min && (
+            <p className="text-xs text-warning mt-1">⚠️ Renseignez le TTE mesuré pour utiliser le Module B</p>
+          )}
           <p className="text-xs text-muted-foreground mt-1">
-            Module B recommandé : effort au seuil continu / CP-like. Plus fiable que l’estimation par charge.
+            Module B recommandé : effort au seuil continu / CP-like. Plus fiable que l'estimation par charge.
           </p>
         </div>
 
@@ -380,17 +392,26 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
               tte_observed_min: parseNum(formData.tte_observed_min),
               objectif: athleteGoal,
             });
+            const isIncomplete = (formData.tte_mode === "LOAD" && !formData.tss_7d) || 
+                                  (formData.tte_mode === "OBSERVED" && !formData.tte_observed_min);
             return (
-              <div className="flex flex-wrap gap-2">
-                <span className="px-2 py-1 rounded bg-background border border-border">
-                  TTE final: <b className="text-foreground">{tte.tte_min} min</b>
-                </span>
-                <span className="px-2 py-1 rounded bg-background border border-border">
-                  Source: <b className="text-foreground">{getSourceLabel(tte.source)}</b>
-                </span>
-                <span className="px-2 py-1 rounded bg-background border border-border">
-                  Confiance: <b className="text-foreground">{Math.round(tte.confidence * 100)}%</b>
-                </span>
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-2">
+                  <span className={`px-2 py-1 rounded border ${isIncomplete ? "bg-warning/10 border-warning/50" : "bg-background border-border"}`}>
+                    TTE final: <b className="text-foreground">{tte.tte_min} min</b>
+                  </span>
+                  <span className={`px-2 py-1 rounded border ${tte.source === "unknown" ? "bg-warning/10 border-warning/50" : "bg-background border-border"}`}>
+                    Source: <b className="text-foreground">{getSourceLabel(tte.source)}</b>
+                  </span>
+                  <span className={`px-2 py-1 rounded border ${tte.confidence < 0.6 ? "bg-warning/10 border-warning/50" : "bg-background border-border"}`}>
+                    Confiance: <b className="text-foreground">{Math.round(tte.confidence * 100)}%</b>
+                  </span>
+                </div>
+                {isIncomplete && (
+                  <p className="text-warning text-xs">
+                    ⚠️ Données manquantes — le TTE utilise un fallback moins fiable
+                  </p>
+                )}
               </div>
             );
           })()}
