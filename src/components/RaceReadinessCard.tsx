@@ -198,6 +198,21 @@ export function RaceReadinessCard({
         </div>
       </div>
 
+      {/* Debug VLamax source */}
+      {vlamaxEffectif.value !== null && (
+        <div className="flex items-center gap-2 text-sm p-2 rounded-lg bg-secondary/30 border border-border mb-4">
+          <span className="text-muted-foreground">VLamax:</span>
+          <span className="font-mono font-bold">{vlamaxEffectif.value.toFixed(2)}</span>
+          <span className={cn("px-2 py-0.5 rounded text-xs", getSourceColor(vlamaxEffectif.source))}>
+            {vlamaxEffectif.source}
+          </span>
+          <span className="text-muted-foreground">•</span>
+          <span className="text-xs text-muted-foreground">
+            conf {Math.round(vlamaxEffectif.confidence * 100)}%
+          </span>
+        </div>
+      )}
+
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="flex flex-col items-center justify-center p-6 rounded-xl bg-secondary/30 border border-border">
           <div className="relative w-40 h-40">
