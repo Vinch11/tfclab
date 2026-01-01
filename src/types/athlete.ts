@@ -41,13 +41,13 @@ export interface Athlete {
   updatedAt?: string;
 }
 
-// Valeurs par défaut
+// Valeurs par défaut - ✅ FIX 11: ZÉRO valeur inventée (null/undefined)
 export const defaultAthlete: Athlete = {
   id: "",
   nom: "Nouvel Athlète",
   sexe: "M",
   objectif: "IM",
-  masse_grasse: 18,
+  masse_grasse: undefined as any, // ✅ FIX 11: pas de 18% par défaut
   historique: [],
   tests: [],
 };
@@ -124,24 +124,25 @@ export const getDernierSnapshot = (athlete: Athlete): SnapshotNolio | null => {
 };
 
 // Obtenir les données actuelles depuis le dernier snapshot
+// ✅ FIX 11: retourne null au lieu de fallbacks inventés
 export const getAthleteActuel = (athlete: Athlete) => {
   const snapshot = getDernierSnapshot(athlete);
   if (!snapshot) {
     return {
-      poids: 70,
-      ftp: 0,
-      pmax_5s: 0,
-      vo2max: 0,
-      hrv: 0,
-      tss_7j: 0,
+      poids: null,
+      ftp: null,
+      pmax_5s: null,
+      vo2max: null,
+      hrv: null,
+      tss_7j: null,
     };
   }
   return {
-    poids: snapshot.poids,
-    ftp: snapshot.ftp,
-    pmax_5s: snapshot.pmax_5s,
-    vo2max: snapshot.vo2max || 0,
-    hrv: snapshot.hrv || 0,
-    tss_7j: snapshot.tss_7j,
+    poids: snapshot.poids ?? null,
+    ftp: snapshot.ftp ?? null,
+    pmax_5s: snapshot.pmax_5s ?? null,
+    vo2max: snapshot.vo2max ?? null,
+    hrv: snapshot.hrv ?? null,
+    tss_7j: snapshot.tss_7j ?? null,
   };
 };
