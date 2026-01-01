@@ -1,6 +1,7 @@
-import { Info, GraduationCap, Target, Shield, BarChart3, BookOpen, Settings, ChevronRight, ExternalLink } from "lucide-react";
+import { Info, GraduationCap, Target, Shield, BarChart3, BookOpen, Settings, ChevronRight, ExternalLink, Bike, Footprints, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 interface MethodologyStaffProps {
   onGoToTab?: (tab: string) => void;
@@ -8,32 +9,359 @@ interface MethodologyStaffProps {
 
 export function MethodologyStaff({ onGoToTab }: MethodologyStaffProps) {
   return (
-    <div className="space-y-8 animate-fade-in max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="glass-card p-6">
+    <div className="space-y-8 animate-fade-in max-w-4xl mx-auto pb-8">
+      {/* Header principal */}
+      <div className="glass-card p-6 border-primary/30">
         <div className="flex items-center gap-4 mb-4">
           <div className="p-4 rounded-xl bg-primary/10 text-primary">
             <GraduationCap className="w-8 h-8" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Méthodologie & Mode Staff</h1>
-            <p className="text-muted-foreground">Guide scientifique officiel de Vince's Lab</p>
+            <h1 className="text-2xl font-bold text-foreground">🧠 Méthodologie scientifique — Vince's Lab</h1>
+            <p className="text-muted-foreground">Référentiel officiel d'interprétation physiologique pour coachs et staff</p>
           </div>
         </div>
+        <Separator className="my-4" />
+        <p className="text-sm text-muted-foreground">
+          Ce document constitue la <strong className="text-foreground">référence officielle</strong> pour l'interprétation des indicateurs 
+          physiologiques dans Vince's Lab. Il s'adresse aux coachs formés et aux membres du staff technique.
+        </p>
       </div>
 
-      {/* Indice de Confiance */}
+      {/* Messages clés - Positionnement */}
+      <Card className="border-warning/30 bg-warning/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3 text-foreground">
+            <div className="p-2 rounded-lg bg-warning/10 text-warning">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            ⚡ Messages clés à retenir
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 rounded-lg bg-background border border-border">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                <p className="text-sm text-muted-foreground">
+                  <strong className="text-foreground">Race Readiness est un outil staff</strong>, pondéré par l'objectif de course
+                </p>
+              </div>
+            </div>
+            <div className="p-4 rounded-lg bg-background border border-border">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                <p className="text-sm text-muted-foreground">
+                  <strong className="text-foreground">VLamax et TTE n'ont pas de valeur universelle</strong> — ils dépendent du sport et de l'objectif
+                </p>
+              </div>
+            </div>
+            <div className="p-4 rounded-lg bg-background border border-border">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                <p className="text-sm text-muted-foreground">
+                  <strong className="text-foreground">Vélo et course à pied</strong> obéissent à des logiques physiologiques différentes
+                </p>
+              </div>
+            </div>
+            <div className="p-4 rounded-lg bg-background border border-border">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                <p className="text-sm text-muted-foreground">
+                  <strong className="text-foreground">Vince's Lab structure la décision du coach</strong>, il ne la remplace pas
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* SECTION 1 : Race Readiness */}
       <Card className="border-primary/20">
         <CardHeader>
           <CardTitle className="flex items-center gap-3 text-foreground">
             <div className="p-2 rounded-lg bg-primary/10 text-primary">
               <Target className="w-5 h-5" />
             </div>
+            🎯 Race Readiness — Score de préparation pondéré
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div>
+            <h4 className="font-semibold text-foreground mb-3">Définition</h4>
+            <p className="text-muted-foreground text-sm">
+              Le score Race Readiness combine quatre dimensions physiologiques pour estimer la capacité de l'athlète 
+              à performer sur son objectif de course. <strong className="text-foreground">Ce n'est pas un prédicteur de performance</strong>, 
+              mais un indicateur de cohérence entre le profil physiologique actuel et les exigences de l'objectif.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="font-semibold text-foreground mb-3">Composantes du score</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="p-3 rounded-lg bg-secondary/50 border border-border">
+                <p className="font-medium text-foreground text-sm">VLamax (Moteur glycolytique)</p>
+                <p className="text-xs text-muted-foreground mt-1">Capacité anaérobie lactique — doit être dans la plage cible</p>
+              </div>
+              <div className="p-3 rounded-lg bg-secondary/50 border border-border">
+                <p className="font-medium text-foreground text-sm">TTE (Endurance au seuil)</p>
+                <p className="text-xs text-muted-foreground mt-1">Time To Exhaustion — temps tenable à FTP/CSS</p>
+              </div>
+              <div className="p-3 rounded-lg bg-secondary/50 border border-border">
+                <p className="font-medium text-foreground text-sm">FTP/kg (Puissance relative)</p>
+                <p className="text-xs text-muted-foreground mt-1">Puissance ou allure au seuil rapportée au poids</p>
+              </div>
+              <div className="p-3 rounded-lg bg-secondary/50 border border-border">
+                <p className="font-medium text-foreground text-sm">Fraîcheur</p>
+                <p className="text-xs text-muted-foreground mt-1">État de fatigue, séance spécifique validée</p>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="font-semibold text-foreground mb-3">Pondération par objectif</h4>
+            <p className="text-muted-foreground text-sm mb-3">
+              Le poids de chaque composante varie selon l'objectif. Un Ironman valorise davantage l'endurance (TTE) 
+              et un VLamax bas, tandis qu'un 70.3 privilégie la puissance relative.
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-2 px-3 text-foreground">Objectif</th>
+                    <th className="text-center py-2 px-2 text-foreground">VLamax</th>
+                    <th className="text-center py-2 px-2 text-foreground">TTE</th>
+                    <th className="text-center py-2 px-2 text-foreground">FTP/kg</th>
+                    <th className="text-center py-2 px-2 text-foreground">Fraîcheur</th>
+                  </tr>
+                </thead>
+                <tbody className="text-muted-foreground">
+                  <tr className="border-b border-border/50">
+                    <td className="py-2 px-3">Ironman / Ultra</td>
+                    <td className="text-center py-2 px-2">30%</td>
+                    <td className="text-center py-2 px-2">30%</td>
+                    <td className="text-center py-2 px-2">20%</td>
+                    <td className="text-center py-2 px-2">20%</td>
+                  </tr>
+                  <tr className="border-b border-border/50">
+                    <td className="py-2 px-3">70.3 / Half</td>
+                    <td className="text-center py-2 px-2">25%</td>
+                    <td className="text-center py-2 px-2">25%</td>
+                    <td className="text-center py-2 px-2">30%</td>
+                    <td className="text-center py-2 px-2">20%</td>
+                  </tr>
+                  <tr className="border-b border-border/50">
+                    <td className="py-2 px-3">Marathon / Semi</td>
+                    <td className="text-center py-2 px-2">20%</td>
+                    <td className="text-center py-2 px-2">35%</td>
+                    <td className="text-center py-2 px-2">30%</td>
+                    <td className="text-center py-2 px-2">15%</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 px-3">Trail</td>
+                    <td className="text-center py-2 px-2">25%</td>
+                    <td className="text-center py-2 px-2">35%</td>
+                    <td className="text-center py-2 px-2">20%</td>
+                    <td className="text-center py-2 px-2">20%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+            <p className="text-sm text-muted-foreground">
+              <strong className="text-foreground">⚠️ Interprétation</strong> : Un score de 75 pour un Ironman et un score de 75 pour un 70.3 
+              ne signifient pas la même chose. Le score est <strong className="text-foreground">relatif à l'objectif déclaré</strong>.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* SECTION 2 : VLamax */}
+      <Card className="border-accent/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3 text-foreground">
+            <div className="p-2 rounded-lg bg-accent/10 text-accent">
+              <BarChart3 className="w-5 h-5" />
+            </div>
+            ⚡ VLamax — Capacité glycolytique maximale
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div>
+            <h4 className="font-semibold text-foreground mb-3">Définition</h4>
+            <p className="text-muted-foreground text-sm">
+              VLamax (mmol/L/s) représente la vitesse maximale de production de lactate par la voie glycolytique. 
+              C'est un indicateur du "moteur anaérobie" de l'athlète. Une VLamax élevée favorise les efforts courts et intenses, 
+              une VLamax basse favorise l'endurance et l'économie métabolique.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="font-semibold text-foreground mb-3">Plages cibles selon l'objectif</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="p-3 rounded-lg bg-success/10 border border-success/20">
+                <p className="font-medium text-foreground text-sm">Ironman / Ultra-endurance</p>
+                <p className="text-xs text-muted-foreground mt-1">Cible : 0.25 – 0.40 mmol/L/s</p>
+              </div>
+              <div className="p-3 rounded-lg bg-success/10 border border-success/20">
+                <p className="font-medium text-foreground text-sm">70.3 / Half Distance</p>
+                <p className="text-xs text-muted-foreground mt-1">Cible : 0.25 – 0.45 mmol/L/s</p>
+              </div>
+              <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
+                <p className="font-medium text-foreground text-sm">Marathon / Semi-marathon</p>
+                <p className="text-xs text-muted-foreground mt-1">Cible : 0.30 – 0.50 mmol/L/s</p>
+              </div>
+              <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
+                <p className="font-medium text-foreground text-sm">Trail</p>
+                <p className="text-xs text-muted-foreground mt-1">Cible : 0.25 – 0.45 mmol/L/s</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-lg bg-secondary border border-border">
+            <h4 className="font-semibold text-foreground mb-2">💡 VLamax Effectif</h4>
+            <p className="text-sm text-muted-foreground">
+              Vince's Lab calcule une <strong className="text-foreground">VLamax Effectif</strong> qui priorise les tests terrain (fiabilité haute) 
+              puis les snapshots si aucun test n'est disponible. L'indice de confiance reflète la qualité de la source.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-lg bg-warning/5 border border-warning/20">
+            <p className="text-sm text-muted-foreground">
+              <strong className="text-foreground">⚠️ Attention</strong> : Une VLamax "trop basse" peut indiquer un manque de capacité à relancer, 
+              problématique en trail ou en course avec variations de rythme. L'optimum dépend du profil de course.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* SECTION 3 : TTE */}
+      <Card className="border-warning/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3 text-foreground">
+            <div className="p-2 rounded-lg bg-warning/10 text-warning">
+              <Info className="w-5 h-5" />
+            </div>
+            ⏱️ TTE — Time To Exhaustion
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div>
+            <h4 className="font-semibold text-foreground mb-3">Définition</h4>
+            <p className="text-muted-foreground text-sm">
+              Le TTE (Time To Exhaustion) représente le temps maximal théorique qu'un athlète peut tenir à son seuil fonctionnel 
+              (FTP en vélo, CSS en natation, allure seuil en course à pied). C'est un marqueur clé de l'endurance au seuil.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="font-semibold text-foreground mb-3">Cibles selon l'objectif</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="p-3 rounded-lg bg-secondary/50 border border-border text-center">
+                <p className="text-xs text-muted-foreground">Ironman</p>
+                <p className="font-bold text-foreground">55+ min</p>
+              </div>
+              <div className="p-3 rounded-lg bg-secondary/50 border border-border text-center">
+                <p className="text-xs text-muted-foreground">70.3</p>
+                <p className="font-bold text-foreground">50+ min</p>
+              </div>
+              <div className="p-3 rounded-lg bg-secondary/50 border border-border text-center">
+                <p className="text-xs text-muted-foreground">Marathon</p>
+                <p className="font-bold text-foreground">50+ min</p>
+              </div>
+              <div className="p-3 rounded-lg bg-secondary/50 border border-border text-center">
+                <p className="text-xs text-muted-foreground">Trail</p>
+                <p className="font-bold text-foreground">55+ min</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-lg bg-secondary border border-border">
+            <h4 className="font-semibold text-foreground mb-2">💡 TTE Effectif</h4>
+            <p className="text-sm text-muted-foreground">
+              Le TTE Effectif est calculé soit à partir d'une observation directe (test terrain ou course), 
+              soit estimé via un modèle basé sur la charge d'entraînement (TSS/7j) et le profil métabolique.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+            <p className="text-sm text-muted-foreground">
+              <strong className="text-foreground">📊 Méthode PRO</strong> : Lorsque le mode TTE Pro est activé, 
+              le calcul intègre le modèle de Dan Lorang pour une estimation plus précise basée sur VLamax et VO2max.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* SECTION 4 : Vélo vs Course à pied */}
+      <Card className="border-primary/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3 text-foreground">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary">
+              <Bike className="w-5 h-5" />
+            </div>
+            🚴 vs 🏃 Différences Vélo / Course à pied
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <p className="text-muted-foreground text-sm">
+            Les indicateurs physiologiques ne s'interprètent pas de la même manière selon le sport. 
+            Vince's Lab adapte ses calculs en fonction du contexte.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 rounded-lg bg-secondary/50 border border-border">
+              <div className="flex items-center gap-2 mb-3">
+                <Bike className="w-5 h-5 text-primary" />
+                <h4 className="font-semibold text-foreground">Vélo</h4>
+              </div>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• Mesure directe de la puissance (watts)</li>
+                <li>• FTP = seuil fonctionnel de puissance</li>
+                <li>• VLamax mesurable via tests spécifiques</li>
+                <li>• Moins de contraintes biomécaniques</li>
+                <li>• TTE généralement plus long (40-70 min)</li>
+              </ul>
+            </div>
+
+            <div className="p-4 rounded-lg bg-secondary/50 border border-border">
+              <div className="flex items-center gap-2 mb-3">
+                <Footprints className="w-5 h-5 text-accent" />
+                <h4 className="font-semibold text-foreground">Course à pied</h4>
+              </div>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• Mesure indirecte (allure, FC, puissance estimée)</li>
+                <li>• CSS = allure seuil critique</li>
+                <li>• VLamax plus difficile à isoler</li>
+                <li>• Contraintes musculo-squelettiques majeures</li>
+                <li>• TTE souvent plus court (30-50 min)</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-lg bg-warning/5 border border-warning/20">
+            <p className="text-sm text-muted-foreground">
+              <strong className="text-foreground">⚠️ Important</strong> : Un athlète peut avoir un profil métabolique différent 
+              en vélo et en course à pied. Les transferts ne sont pas automatiques.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Indice de Confiance */}
+      <Card className="border-success/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3 text-foreground">
+            <div className="p-2 rounded-lg bg-success/10 text-success">
+              <Shield className="w-5 h-5" />
+            </div>
             🔬 Indice de confiance – Définition et usage
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-muted-foreground">
-          <p>
+          <p className="text-sm">
             L'indice de confiance indique le <strong className="text-foreground">niveau de fiabilité scientifique</strong> des valeurs affichées dans Vince's Lab (VLamax, TTE, Race Readiness).
             Il ne mesure pas la performance de l'athlète, mais la <strong className="text-foreground">qualité des données</strong> utilisées pour produire l'analyse.
           </p>
@@ -131,10 +459,10 @@ export function MethodologyStaff({ onGoToTab }: MethodologyStaffProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-muted-foreground">
-          <p>
+          <p className="text-sm">
             Vince's Lab est un <strong className="text-foreground">outil d'aide à la décision pour coachs et staffs</strong>, basé sur :
           </p>
-          <ul className="list-disc list-inside space-y-2 ml-2">
+          <ul className="list-disc list-inside space-y-2 ml-2 text-sm">
             <li>la physiologie de l'effort,</li>
             <li>les interactions <strong className="text-foreground">FTP – VLamax – TTE</strong>,</li>
             <li>l'adaptation à l'objectif de course.</li>
@@ -281,6 +609,11 @@ export function MethodologyStaff({ onGoToTab }: MethodologyStaffProps) {
         <p className="text-muted-foreground text-center text-lg italic">
           « Vince's Lab aide le staff à identifier la <strong className="text-foreground">priorité physiologique réelle</strong> de l'athlète, 
           avec un <strong className="text-foreground">niveau de confiance clairement affiché</strong>. »
+        </p>
+        <Separator className="my-4" />
+        <p className="text-xs text-muted-foreground text-center">
+          Ce référentiel est la documentation officielle de Vince's Lab. 
+          Pour toute question d'interprétation, référez-vous à ce document.
         </p>
       </div>
     </div>
