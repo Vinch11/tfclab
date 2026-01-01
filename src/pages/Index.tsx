@@ -25,6 +25,7 @@ import { SnapshotEvolutionChart } from "@/components/SnapshotEvolutionChart";
 import { AthleteRefsPanel } from "@/components/AthleteRefsPanel";
 import { MethodologyStaff } from "@/components/MethodologyStaff";
 import { NutritionPredictive } from "@/components/NutritionPredictive";
+import { RunningEconomyModule } from "@/components/RunningEconomyModule";
 
 // ✅ FIX 11 - Effective Refs (source unique de vérité)
 import { getEffectiveRefs, computeFtpKg, getMissingFields } from "@/lib/effectiveRefs";
@@ -778,6 +779,17 @@ const Index = () => {
                 tteMin={tteEffectif.tte_min}
                 tteTarget={tteEffectif.target}
                 confidence={vlamaxEffectif.confidence}
+                staffMode={staffMode}
+              />
+            )}
+
+            {/* 🏃 Économie de Course (CAP uniquement, mode staff) */}
+            {staffMode && (
+              <RunningEconomyModule
+                fcMax={effectiveRefs.fcMax ?? null}
+                tteMin={tteEffectif.tte_min}
+                objectif={currentAthlete?.goal || "IM"}
+                vlamax={vlamaxEffectif.value}
                 staffMode={staffMode}
               />
             )}
