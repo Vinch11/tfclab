@@ -33,7 +33,18 @@ export interface SemaineType {
   nbSeancesCles: number;
 }
 
-// Planning type multi-sport pour la semaine
+// =============================================
+// OBJECTIFS RUNNING-ONLY vs TRIATHLON
+// Semi, Marathon, Trail* -> 100% course
+// IM, 703 -> multi-sport (natation/vélo/course)
+// =============================================
+const RUNNING_ONLY_GOALS = ["Semi", "Marathon", "TrailShort", "TrailMountain", "TrailUltra", "Trail"];
+
+const isRunningOnlyGoal = (objectif: string): boolean => {
+  return RUNNING_ONLY_GOALS.includes(objectif);
+};
+
+// Planning type multi-sport pour triathlon (IM, 703)
 const PLANNING_MULTISPORT: Array<{ jour: string; sport: SportType; estCle: boolean }> = [
   { jour: "Lundi", sport: "natation", estCle: false },
   { jour: "Mardi", sport: "vélo", estCle: true },
@@ -44,73 +55,180 @@ const PLANNING_MULTISPORT: Array<{ jour: string; sport: SportType; estCle: boole
   { jour: "Dimanche", sport: "course", estCle: true },
 ];
 
-// Générer la semaine type Multi-Sport
+// Planning type running-only pour Semi/Marathon/Trail
+const PLANNING_RUNNING: Array<{ jour: string; sport: SportType; estCle: boolean; type: "cle" | "endurance" | "recup" | "longue" | "repos" }> = [
+  { jour: "Lundi", sport: "course", estCle: false, type: "repos" },
+  { jour: "Mardi", sport: "course", estCle: true, type: "cle" },        // Séance clé (seuil/VMA)
+  { jour: "Mercredi", sport: "course", estCle: false, type: "endurance" },
+  { jour: "Jeudi", sport: "course", estCle: true, type: "cle" },        // Séance clé (seuil/tempo)
+  { jour: "Vendredi", sport: "course", estCle: false, type: "recup" },
+  { jour: "Samedi", sport: "course", estCle: false, type: "endurance" },
+  { jour: "Dimanche", sport: "course", estCle: true, type: "longue" },  // Sortie longue
+];
+
+// Générer la semaine type (multi-sport OU running-only selon objectif)
 export function genererSemaineType(athlete: Athlete): SemaineType | null {
   const snapshot = getDernierSnapshot(athlete);
   if (!snapshot) return null;
 
-  // Calculer priorité depuis le dernier snapshot vélo (principal)
-  const snapshotVelo = getDernierSnapshotParSport(athlete, "vélo") || snapshot;
-  const tte = estimerTTESport(snapshotVelo);
-  const vlamax = calculVLamaxSnapshot(snapshotVelo, athlete.objectif);
+  // Détecter si objectif running-only
+  const runningOnly = isRunningOnlyGoal(athlete.objectif);
+
+  // Calculer priorité depuis le snapshot course (pour running) ou vélo (pour triathlon)
+  const sportPrincipal: SportType = runningOnly ? "course" : "vélo";
+  const snapshotPrincipal = getDernierSnapshotParSport(athlete, sportPrincipal) || snapshot;
+  const tte = estimerTTESport(snapshotPrincipal);
+  const vlamax = calculVLamaxSnapshot(snapshotPrincipal, athlete.objectif);
   const priorite = determinerPriorite(vlamax, tte, athlete.objectif);
 
   const semaine: JourSemaine[] = [];
 
-  for (const planning of PLANNING_MULTISPORT) {
-    const sportSnapshot = getDernierSnapshotParSport(athlete, planning.sport);
-    const sportPriorite = sportSnapshot 
-      ? determinerPriorite(
-          calculVLamaxSnapshot(sportSnapshot, athlete.objectif),
-          estimerTTESport(sportSnapshot),
-          athlete.objectif
-        )
-      : priorite;
+  // =============================================
+  // RUNNING-ONLY: Semi, Marathon, Trail*
+  // =============================================
+  if (runningOnly) {
+    const seancesCourse = seancesParSport(priorite, "course");
 
-    const seancesRecommandees = seancesParSport(sportPriorite, planning.sport);
-
-    if (planning.estCle && seancesRecommandees.length > 0) {
-      // Séance clé - prendre la première recommandée
-      const seance = seancesRecommandees[0];
-      semaine.push({
-        jour: planning.jour,
-        sport: planning.sport,
-        type: seance.code,
-        nom: seance.nom,
-        objectif: seance.objectif,
-        intensite: seance.intensite,
-        duree: seance.duree,
-        format: seance.format,
-        description: seance.description,
-        estCle: true,
-      });
-    } else if (seancesRecommandees.length > 0) {
-      // Séance secondaire ou récup
-      const seance = seancesRecommandees[seancesRecommandees.length > 1 ? 1 : 0];
-      semaine.push({
-        jour: planning.jour,
-        sport: planning.sport,
-        type: seance.code,
-        nom: seance.nom,
-        objectif: seance.objectif,
-        intensite: seance.intensite,
-        duree: seance.duree,
-        format: seance.format,
-        description: seance.description,
-        estCle: false,
-      });
-    } else {
-      // Pas de données pour ce sport - séance générique
-      semaine.push({
-        jour: planning.jour,
-        sport: planning.sport,
-        type: "Z2",
-        nom: `Endurance ${planning.sport}`,
-        objectif: "Base aérobie",
-        contenu: "45-60 min Z2",
-        estCle: false,
-      });
+    for (const planning of PLANNING_RUNNING) {
+      if (planning.type === "repos") {
+        semaine.push({
+          jour: planning.jour,
+          sport: "course",
+          type: "Repos",
+          nom: "Repos actif",
+          objectif: "Récupération",
+          contenu: "Off ou mobilité / stretching",
+          estCle: false,
+        });
+      } else if (planning.type === "longue") {
+        // Sortie longue spécifique
+        semaine.push({
+          jour: planning.jour,
+          sport: "course",
+          type: "SL",
+          nom: "Sortie Longue",
+          objectif: "Endurance fondamentale",
+          intensite: "Z2",
+          duree: athlete.objectif === "Marathon" || athlete.objectif.includes("Ultra") ? "2h-3h" : "1h30-2h",
+          format: "Continu",
+          description: "Sortie longue en endurance fondamentale",
+          estCle: true,
+        });
+      } else if (planning.type === "cle" && seancesCourse.length > 0) {
+        // Séance clé - prendre la première recommandée
+        const seance = seancesCourse[0];
+        semaine.push({
+          jour: planning.jour,
+          sport: "course",
+          type: seance.code,
+          nom: seance.nom,
+          objectif: seance.objectif,
+          intensite: seance.intensite,
+          duree: seance.duree,
+          format: seance.format,
+          description: seance.description,
+          estCle: true,
+        });
+      } else if (planning.type === "recup") {
+        semaine.push({
+          jour: planning.jour,
+          sport: "course",
+          type: "Récup",
+          nom: "Footing récup",
+          objectif: "Récupération active",
+          intensite: "Z1",
+          duree: "30-40 min",
+          format: "Continu facile",
+          description: "Footing très léger en récupération",
+          estCle: false,
+        });
+      } else {
+        // Endurance
+        semaine.push({
+          jour: planning.jour,
+          sport: "course",
+          type: "EF",
+          nom: "Endurance fondamentale",
+          objectif: "Base aérobie",
+          intensite: "Z2",
+          duree: "45-60 min",
+          format: "Continu",
+          description: "Footing en endurance fondamentale",
+          estCle: false,
+        });
+      }
     }
+  } else {
+    // =============================================
+    // TRIATHLON: IM, 703 -> multi-sport
+    // =============================================
+    for (const planning of PLANNING_MULTISPORT) {
+      const sportSnapshot = getDernierSnapshotParSport(athlete, planning.sport);
+      const sportPriorite = sportSnapshot 
+        ? determinerPriorite(
+            calculVLamaxSnapshot(sportSnapshot, athlete.objectif),
+            estimerTTESport(sportSnapshot),
+            athlete.objectif
+          )
+        : priorite;
+
+      const seancesRecommandees = seancesParSport(sportPriorite, planning.sport);
+
+      if (planning.estCle && seancesRecommandees.length > 0) {
+        // Séance clé - prendre la première recommandée
+        const seance = seancesRecommandees[0];
+        semaine.push({
+          jour: planning.jour,
+          sport: planning.sport,
+          type: seance.code,
+          nom: seance.nom,
+          objectif: seance.objectif,
+          intensite: seance.intensite,
+          duree: seance.duree,
+          format: seance.format,
+          description: seance.description,
+          estCle: true,
+        });
+      } else if (seancesRecommandees.length > 0) {
+        // Séance secondaire ou récup
+        const seance = seancesRecommandees[seancesRecommandees.length > 1 ? 1 : 0];
+        semaine.push({
+          jour: planning.jour,
+          sport: planning.sport,
+          type: seance.code,
+          nom: seance.nom,
+          objectif: seance.objectif,
+          intensite: seance.intensite,
+          duree: seance.duree,
+          format: seance.format,
+          description: seance.description,
+          estCle: false,
+        });
+      } else {
+        // Pas de données pour ce sport - séance générique
+        semaine.push({
+          jour: planning.jour,
+          sport: planning.sport,
+          type: "Z2",
+          nom: `Endurance ${planning.sport}`,
+          objectif: "Base aérobie",
+          contenu: "45-60 min Z2",
+          estCle: false,
+        });
+      }
+    }
+  }
+
+  // =============================================
+  // GARDE-FOU: Si running-only, forcer sport = "course"
+  // =============================================
+  if (runningOnly) {
+    semaine.forEach((jour) => {
+      if (jour.sport !== "course") {
+        jour.sport = "course";
+        jour.nom = `${jour.nom} (adapté course)`;
+      }
+    });
   }
 
   // Calcul volume estimé selon objectif
