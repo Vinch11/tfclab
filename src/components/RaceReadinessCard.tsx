@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/popover";
 import { VLamaxEffectif, getSourceColor as getVLamaxSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
 import { TTEEffectif, getSourceColor as getTTESourceColor, getSourceLabel } from "@/lib/tteEffectif";
-import { RaceReadinessEffectif, getScoreColor, getScoreBgColor } from "@/lib/raceReadinessEffectif";
+import { RaceReadinessEffectif, getScoreColor, getScoreBgColor, getObjectifLabel } from "@/lib/raceReadinessEffectif";
 import { TTEGuard, isTTEUnavailable } from "@/components/TTEGuard";
 
 interface RaceReadinessCardProps {
@@ -69,6 +69,8 @@ export function RaceReadinessCard({
     label: "Non disponible",
     color: "warning" as const,
     details: { vlamax: 0, endurance: 0, puissance: 0, fraicheur: 0 },
+    targets: { vlamaxMin: 0.25, vlamaxMax: 0.45, vlamaxIdeal: 0.35, tteTarget: 50, ftpKgTarget: 4.5 },
+    weights: { vlamax: 25, tte: 25, ftpKg: 25, freshness: 25 },
     confidence: 0,
     reasonsMissing: ["Données manquantes"],
     inputsUsed: {
@@ -78,6 +80,7 @@ export function RaceReadinessCard({
       fatigue_ok: true,
       seance_specifique: false,
     },
+    messageStaff: "Ajoutez un snapshot (FTP + poids) et un TTE pour activer le calcul.",
   };
   
   const scoreColor = getScoreColor(readiness.score);
@@ -263,7 +266,7 @@ export function RaceReadinessCard({
         </h3>
         <div className="text-sm text-muted-foreground space-y-2">
           <p><strong className="text-foreground">Snapshot :</strong> {snap.date} {athlete.active_snapshot_id ? "(actif)" : "(plus récent)"}</p>
-          <p><strong className="text-foreground">Objectif :</strong> {athlete.objectif}</p>
+          <p><strong className="text-foreground">Objectif :</strong> {getObjectifLabel(athlete.objectif || athlete.goal || "IM")}</p>
           
           {vlamaxEffectif.value !== null && (
             <p>• <strong className="text-foreground">VLamax effectif</strong> : {vlamaxEffectif.value.toFixed(2)} ({vlamaxEffectif.label}) — Confiance : {Math.round(vlamaxEffectif.confidence * 100)}%</p>
@@ -274,7 +277,7 @@ export function RaceReadinessCard({
           )}
           
           {readiness.inputsUsed.ftpKg !== null && (
-            <p>• <strong className="text-foreground">FTP/kg</strong> : {readiness.inputsUsed.ftpKg.toFixed(1)} W/kg</p>
+            <p>• <strong className="text-foreground">FTP/kg</strong> : {readiness.inputsUsed.ftpKg.toFixed(1)} W/kg (cible: ≥{readiness.targets?.ftpKgTarget ?? "—"} W/kg)</p>
           )}
           
           {readiness.reasonsMissing.length > 0 && (
@@ -286,7 +289,12 @@ export function RaceReadinessCard({
             </div>
           )}
           
-          <p className="mt-2 text-xs">Ce score combine profil glycolytique (VLamax), puissance spécifique (FTP/kg), endurance (TTE) et fraîcheur.</p>
+          {/* Message Staff */}
+          <div className="mt-3 p-3 rounded-lg bg-secondary/30 border border-border">
+            <p className="text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">📊 Staff:</span> {readiness.messageStaff || "Race Readiness = VLamax + TTE + FTP/kg + fraîcheur, pondéré selon l'objectif."}
+            </p>
+          </div>
         </div>
       </div>
     </div>;

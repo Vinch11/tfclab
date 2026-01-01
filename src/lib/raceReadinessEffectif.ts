@@ -1,33 +1,14 @@
 // =============================================
 // RACE READINESS EFFECTIF - Source unique de vérité
+// FIX 13 - Pondérations par objectif + targets + messageStaff
 // =============================================
 
 import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { TTEEffectif } from "@/lib/tteEffectif";
 
-// Targets par objectif
-const TARGETS = {
-  IM: {
-    vlamax: { min: 0.25, max: 0.40, ideal: 0.35 },
-    tte: { min: 55, ideal: 65 },
-    ftpKg: { min: 4.6, ideal: 5.0 },
-  },
-  "703": {
-    vlamax: { min: 0.25, max: 0.45, ideal: 0.38 },
-    tte: { min: 50, ideal: 55 },
-    ftpKg: { min: 4.7, ideal: 5.2 },
-  },
-  Marathon: {
-    vlamax: { min: 0.25, max: 0.45, ideal: 0.40 },
-    tte: { min: 50, ideal: 60 },
-    ftpKg: { min: 4.0, ideal: 4.5 }, // proxy vélo
-  },
-  Semi: {
-    vlamax: { min: 0.25, max: 0.50, ideal: 0.42 },
-    tte: { min: 45, ideal: 50 },
-    ftpKg: { min: 4.0, ideal: 4.5 }, // proxy vélo
-  },
-};
+// =============================================
+// TYPES
+// =============================================
 
 export interface RaceReadinessDetails {
   vlamax: number;       // 0-25
@@ -36,11 +17,28 @@ export interface RaceReadinessDetails {
   fraicheur: number;    // 0-25
 }
 
+export interface RaceTargets {
+  vlamaxMin: number;
+  vlamaxMax: number;
+  vlamaxIdeal: number;
+  tteTarget: number;
+  ftpKgTarget: number;
+}
+
+export interface RaceWeights {
+  vlamax: number;
+  tte: number;
+  ftpKg: number;
+  freshness: number;
+}
+
 export interface RaceReadinessEffectif {
   score: number;                 // 0-100
-  label: string;                 // "Prêt", "En progression", etc.
+  label: string;                 // "Race Ready!", "En progression", etc.
   color: "success" | "warning" | "destructive";
   details: RaceReadinessDetails;
+  targets: RaceTargets;
+  weights: RaceWeights;
   confidence: number;            // 0-1 (moyenne des confidences)
   reasonsMissing: string[];      // Liste des données manquantes
   inputsUsed: {
@@ -50,6 +48,7 @@ export interface RaceReadinessEffectif {
     fatigue_ok: boolean;
     seance_specifique: boolean;
   };
+  messageStaff: string;          // Message explicatif staff-ready
 }
 
 export interface ComputeRaceReadinessParams {
@@ -60,13 +59,236 @@ export interface ComputeRaceReadinessParams {
   poids: number | null;
   fatigue_ok?: boolean;
   seance_specifique_validee?: boolean;
+  confidence?: number; // optionnel, sinon moyenne des inputs
 }
+
+// =============================================
+// TARGETS PAR OBJECTIF (valeurs raisonnables)
+// =============================================
+
+const TARGETS_BY_OBJECTIF: Record<string, RaceTargets> = {
+  // Ironman / Ultra-distance
+  IM: {
+    vlamaxMin: 0.25,
+    vlamaxMax: 0.40,
+    vlamaxIdeal: 0.35,
+    tteTarget: 55,
+    ftpKgTarget: 4.6,
+  },
+  Ironman: {
+    vlamaxMin: 0.25,
+    vlamaxMax: 0.40,
+    vlamaxIdeal: 0.35,
+    tteTarget: 55,
+    ftpKgTarget: 4.6,
+  },
+  Ultra: {
+    vlamaxMin: 0.25,
+    vlamaxMax: 0.40,
+    vlamaxIdeal: 0.32,
+    tteTarget: 60,
+    ftpKgTarget: 4.4,
+  },
+  // 70.3 / Half
+  "703": {
+    vlamaxMin: 0.25,
+    vlamaxMax: 0.45,
+    vlamaxIdeal: 0.38,
+    tteTarget: 50,
+    ftpKgTarget: 4.8,
+  },
+  Half: {
+    vlamaxMin: 0.25,
+    vlamaxMax: 0.45,
+    vlamaxIdeal: 0.38,
+    tteTarget: 50,
+    ftpKgTarget: 4.8,
+  },
+  // Marathon / Semi / Course
+  Marathon: {
+    vlamaxMin: 0.30,
+    vlamaxMax: 0.50,
+    vlamaxIdeal: 0.40,
+    tteTarget: 50,
+    ftpKgTarget: 4.5, // proxy vélo endurance
+  },
+  Semi: {
+    vlamaxMin: 0.30,
+    vlamaxMax: 0.50,
+    vlamaxIdeal: 0.42,
+    tteTarget: 50,
+    ftpKgTarget: 4.5,
+  },
+  Course: {
+    vlamaxMin: 0.30,
+    vlamaxMax: 0.50,
+    vlamaxIdeal: 0.42,
+    tteTarget: 45,
+    ftpKgTarget: 4.5,
+  },
+  // Trail
+  Trail: {
+    vlamaxMin: 0.25,
+    vlamaxMax: 0.45,
+    vlamaxIdeal: 0.35,
+    tteTarget: 55,
+    ftpKgTarget: 4.4,
+  },
+  TrailCourt: {
+    vlamaxMin: 0.30,
+    vlamaxMax: 0.50,
+    vlamaxIdeal: 0.40,
+    tteTarget: 45,
+    ftpKgTarget: 4.5,
+  },
+  TrailLong: {
+    vlamaxMin: 0.25,
+    vlamaxMax: 0.40,
+    vlamaxIdeal: 0.32,
+    tteTarget: 60,
+    ftpKgTarget: 4.3,
+  },
+};
+
+// Default fallback
+const DEFAULT_TARGETS: RaceTargets = TARGETS_BY_OBJECTIF["IM"];
+
+// =============================================
+// PONDÉRATIONS PAR OBJECTIF
+// =============================================
+
+const WEIGHTS_BY_OBJECTIF: Record<string, RaceWeights> = {
+  // Ironman : VLamax et TTE très importants (endurance pure)
+  IM: { vlamax: 30, tte: 30, ftpKg: 20, freshness: 20 },
+  Ironman: { vlamax: 30, tte: 30, ftpKg: 20, freshness: 20 },
+  Ultra: { vlamax: 30, tte: 35, ftpKg: 15, freshness: 20 },
+  // 70.3 : équilibré avec FTP/kg plus important
+  "703": { vlamax: 25, tte: 25, ftpKg: 30, freshness: 20 },
+  Half: { vlamax: 25, tte: 25, ftpKg: 30, freshness: 20 },
+  // Course (Marathon/Semi) : TTE et puissance prioritaires
+  Marathon: { vlamax: 20, tte: 35, ftpKg: 30, freshness: 15 },
+  Semi: { vlamax: 20, tte: 35, ftpKg: 30, freshness: 15 },
+  Course: { vlamax: 20, tte: 30, ftpKg: 30, freshness: 20 },
+  // Trail : TTE important, VLamax moyen
+  Trail: { vlamax: 25, tte: 35, ftpKg: 20, freshness: 20 },
+  TrailCourt: { vlamax: 25, tte: 30, ftpKg: 25, freshness: 20 },
+  TrailLong: { vlamax: 25, tte: 40, ftpKg: 15, freshness: 20 },
+};
+
+const DEFAULT_WEIGHTS: RaceWeights = WEIGHTS_BY_OBJECTIF["IM"];
+
+// =============================================
+// HELPERS
+// =============================================
 
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 
+export function getTargets(objectif: string): RaceTargets {
+  return TARGETS_BY_OBJECTIF[objectif] || DEFAULT_TARGETS;
+}
+
+export function getRaceWeights(objectif: string): RaceWeights {
+  return WEIGHTS_BY_OBJECTIF[objectif] || DEFAULT_WEIGHTS;
+}
+
+// =============================================
+// SCORING FUNCTIONS
+// =============================================
+
+/**
+ * Score VLamax: dans la plage cible = 100%, sinon pénalité linéaire
+ */
+function scoreVLamax(vlamax: number | null, targets: RaceTargets): number {
+  if (vlamax === null) return 40; // score neutre si manquant
+  
+  // Dans la plage cible
+  if (vlamax >= targets.vlamaxMin && vlamax <= targets.vlamaxMax) {
+    // Plus proche de l'idéal = meilleur score
+    const distanceToIdeal = Math.abs(vlamax - targets.vlamaxIdeal);
+    const maxDistance = Math.max(
+      targets.vlamaxIdeal - targets.vlamaxMin,
+      targets.vlamaxMax - targets.vlamaxIdeal
+    );
+    const penalty = (distanceToIdeal / maxDistance) * 20;
+    return clamp(100 - penalty, 80, 100);
+  }
+  
+  // Hors cible - pénalité linéaire sur marge 0.10
+  const tolerance = 0.10;
+  if (vlamax < targets.vlamaxMin) {
+    const deviation = targets.vlamaxMin - vlamax;
+    return clamp(80 - (deviation / tolerance) * 40, 20, 80);
+  } else {
+    const deviation = vlamax - targets.vlamaxMax;
+    return clamp(80 - (deviation / tolerance) * 50, 10, 80);
+  }
+}
+
+/**
+ * Score TTE: >= target = 100%, sinon ratio proportionnel
+ */
+function scoreTTE(tte: number | null, targets: RaceTargets): number {
+  if (tte === null) return 30; // score faible si manquant
+  
+  if (tte >= targets.tteTarget) {
+    return 100;
+  }
+  
+  const ratio = tte / targets.tteTarget;
+  return clamp(ratio * 100, 20, 99);
+}
+
+/**
+ * Score FTP/kg: >= target = 100%, sinon ratio proportionnel
+ */
+function scoreFtpKg(ftpKg: number | null, targets: RaceTargets): number {
+  if (ftpKg === null) return 40; // score neutre si manquant
+  
+  if (ftpKg >= targets.ftpKgTarget) {
+    // Cap à 110% pour ne pas survaloriser
+    const bonus = Math.min((ftpKg / targets.ftpKgTarget - 1) * 10, 10);
+    return clamp(100 + bonus, 100, 110);
+  }
+  
+  const ratio = ftpKg / targets.ftpKgTarget;
+  return clamp(ratio * 100, 30, 99);
+}
+
+/**
+ * Score Fraîcheur: basé sur fatigue_ok + séance spécifique + confiance
+ */
+function scoreFreshness(
+  fatigueOk: boolean,
+  seanceSpecifiqueValidee: boolean,
+  avgConfidence: number
+): number {
+  let score = 70; // base
+  
+  if (fatigueOk) {
+    score += 20;
+  } else {
+    score -= 30;
+  }
+  
+  if (seanceSpecifiqueValidee) {
+    score += 10;
+  }
+  
+  // Pénalité si confiance faible
+  if (avgConfidence < 0.5) {
+    score -= 10;
+  }
+  
+  return clamp(score, 0, 100);
+}
+
+// =============================================
+// MAIN COMPUTE FUNCTION
+// =============================================
+
 /**
  * Calcule le score Race Readiness unifié
- * 4 sous-scores de 25 points chacun = 100 points max
+ * Pondéré par objectif, avec targets et messageStaff
  */
 export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams): RaceReadinessEffectif {
   const {
@@ -77,145 +299,121 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
     poids,
     fatigue_ok = true,
     seance_specifique_validee = false,
+    confidence: overrideConfidence,
   } = params;
 
   const reasonsMissing: string[] = [];
   
-  // Récupérer les targets pour l'objectif
-  const targets = TARGETS[objectif as keyof typeof TARGETS] || TARGETS["IM"];
+  // Récupérer les targets et weights pour l'objectif
+  const targets = getTargets(objectif);
+  const weights = getRaceWeights(objectif);
 
   // =====================
-  // 1. VLAMAX SCORE (0-25)
+  // INPUTS
   // =====================
-  let vlamaxScore = 0;
   const vlamax = vlamaxEffectif.value;
-  
-  if (vlamax === null) {
-    vlamaxScore = 10; // Score neutre si manquant
-    reasonsMissing.push("VLamax manquant");
-  } else if (vlamax >= targets.vlamax.min && vlamax <= targets.vlamax.max) {
-    // Dans la cible = max points
-    const distanceToIdeal = Math.abs(vlamax - targets.vlamax.ideal);
-    vlamaxScore = Math.round(25 - distanceToIdeal * 50); // Plus proche de l'idéal = meilleur
-    vlamaxScore = clamp(vlamaxScore, 18, 25);
-  } else if (vlamax < targets.vlamax.min) {
-    // Trop bas
-    vlamaxScore = Math.round(clamp(15 - (targets.vlamax.min - vlamax) * 100, 5, 15));
-  } else {
-    // Trop haut
-    vlamaxScore = Math.round(clamp(18 - (vlamax - targets.vlamax.max) * 80, 5, 18));
-  }
-
-  // =====================
-  // 2. ENDURANCE/TTE SCORE (0-25)
-  // =====================
-  let enduranceScore = 0;
   const tte = tteEffectif.tte_min;
-  
-  if (tte === null || tteEffectif.source === "unknown") {
-    enduranceScore = 8; // Score faible si manquant
-    if (tteEffectif.source === "unknown") {
-      reasonsMissing.push("TTE indisponible (ajouter TSS_7d ou TTE mesuré)");
-    }
-  } else if (tte >= targets.tte.ideal) {
-    enduranceScore = 25;
-  } else if (tte >= targets.tte.min) {
-    // Entre min et ideal
-    const progress = (tte - targets.tte.min) / (targets.tte.ideal - targets.tte.min);
-    enduranceScore = Math.round(18 + progress * 7);
-  } else {
-    // Sous la cible min
-    const ratio = tte / targets.tte.min;
-    enduranceScore = Math.round(clamp(ratio * 18, 5, 17));
-  }
-
-  // =====================
-  // 3. PUISSANCE/FTP/kg SCORE (0-25)
-  // =====================
-  let puissanceScore = 0;
   const ftpKg = ftp && poids && poids > 0 ? ftp / poids : null;
   
-  if (ftpKg === null) {
-    puissanceScore = 10;
-    if (!ftp) reasonsMissing.push("FTP manquant");
-    if (!poids) reasonsMissing.push("Poids manquant");
-  } else if (ftpKg >= targets.ftpKg.ideal) {
-    puissanceScore = 25;
-  } else if (ftpKg >= targets.ftpKg.min) {
-    const progress = (ftpKg - targets.ftpKg.min) / (targets.ftpKg.ideal - targets.ftpKg.min);
-    puissanceScore = Math.round(18 + progress * 7);
-  } else {
-    const ratio = ftpKg / targets.ftpKg.min;
-    puissanceScore = Math.round(clamp(ratio * 18, 5, 17));
+  // Track missing data
+  if (vlamax === null) {
+    reasonsMissing.push("VLamax manquant");
+  }
+  if (tte === null || tteEffectif.source === "unknown") {
+    reasonsMissing.push("TTE indisponible (ajouter TSS_7d ou TTE mesuré)");
+  }
+  if (!ftp) {
+    reasonsMissing.push("FTP manquant");
+  }
+  if (!poids) {
+    reasonsMissing.push("Poids manquant");
   }
 
   // =====================
-  // 4. FRAICHEUR/CONDITIONS SCORE (0-25)
+  // SCORING (0-100 each)
   // =====================
-  let fraicheurScore = 12; // Base neutre
+  const vlamaxScore = scoreVLamax(vlamax, targets);
+  const tteScore = scoreTTE(tte, targets);
+  const ftpKgScore = scoreFtpKg(ftpKg, targets);
   
-  if (fatigue_ok && seance_specifique_validee) {
-    fraicheurScore = 25;
-  } else if (fatigue_ok) {
-    fraicheurScore = 18;
-  } else if (seance_specifique_validee) {
-    fraicheurScore = 15;
-  } else {
-    fraicheurScore = 10;
-  }
+  const avgConfidence = overrideConfidence ?? (vlamaxEffectif.confidence + tteEffectif.confidence) / 2;
+  const freshnessScore = scoreFreshness(fatigue_ok, seance_specifique_validee, avgConfidence);
+
+  // =====================
+  // WEIGHTED SCORE
+  // =====================
+  const rawScore = (
+    (vlamaxScore * weights.vlamax) +
+    (tteScore * weights.tte) +
+    (ftpKgScore * weights.ftpKg) +
+    (freshnessScore * weights.freshness)
+  ) / 100;
   
-  // Ajuster selon la confiance des données
-  const avgConfidence = (vlamaxEffectif.confidence + tteEffectif.confidence) / 2;
-  if (avgConfidence < 0.5) {
-    fraicheurScore = Math.round(fraicheurScore * 0.8);
-    if (!reasonsMissing.includes("Confiance données faible")) {
-      reasonsMissing.push("Confiance données faible");
-    }
-  }
+  // Apply confidence factor: score * (0.85 + 0.15 * confidence)
+  const confidenceFactor = 0.85 + 0.15 * avgConfidence;
+  const finalScore = Math.round(clamp(rawScore * confidenceFactor, 0, 100));
 
   // =====================
-  // SCORE TOTAL
+  // DETAILS (0-25 each)
   // =====================
-  const totalScore = vlamaxScore + enduranceScore + puissanceScore + fraicheurScore;
-  const score = clamp(totalScore, 0, 100);
+  const details: RaceReadinessDetails = {
+    vlamax: Math.round(vlamaxScore / 4),
+    endurance: Math.round(tteScore / 4),
+    puissance: Math.round(ftpKgScore / 4),
+    fraicheur: Math.round(freshnessScore / 4),
+  };
 
-  // Label et couleur
+  // =====================
+  // LABEL + COLOR
+  // =====================
   let label: string;
   let color: "success" | "warning" | "destructive";
   
-  if (score >= 85) {
+  if (finalScore >= 80) {
     label = "Race Ready!";
     color = "success";
-  } else if (score >= 75) {
-    label = "Prêt";
-    color = "success";
-  } else if (score >= 60) {
+  } else if (finalScore >= 60) {
     label = "En progression";
-    color = "warning";
-  } else if (score >= 40) {
-    label = "Travail en cours";
     color = "warning";
   } else {
     label = "Préparation requise";
     color = "destructive";
   }
 
-  // Si trop de données manquantes, override le label
+  // Override si trop de données manquantes
   if (reasonsMissing.length >= 3) {
     label = "Données insuffisantes";
     color = "warning";
   }
 
+  // =====================
+  // MESSAGE STAFF
+  // =====================
+  const weakestScores = [
+    { name: "VLamax", score: vlamaxScore },
+    { name: "TTE (endurance)", score: tteScore },
+    { name: "FTP/kg (puissance)", score: ftpKgScore },
+    { name: "Fraîcheur", score: freshnessScore },
+  ].sort((a, b) => a.score - b.score);
+  
+  const limitants = weakestScores.slice(0, 2).map(s => `${s.name} (${Math.round(s.score)}%)`);
+  
+  let messageStaff: string;
+  if (reasonsMissing.length >= 2) {
+    messageStaff = `Race Readiness partiel. Ajoutez un snapshot avec FTP, poids${!tte ? ", TSS_7d ou TTE mesuré" : ""} pour un calcul complet.`;
+  } else {
+    messageStaff = `Race Readiness = combinaison VLamax (moteur), TTE (endurance au seuil), FTP/kg (puissance relative) et fraîcheur. ` +
+      `Pondération ajustée à l'objectif: ${objectif}. ` +
+      `Points limitants: ${limitants.join(", ")}.`;
+  }
+
   return {
-    score,
+    score: finalScore,
     label,
     color,
-    details: {
-      vlamax: vlamaxScore,
-      endurance: enduranceScore,
-      puissance: puissanceScore,
-      fraicheur: fraicheurScore,
-    },
+    details,
+    targets,
+    weights,
     confidence: avgConfidence,
     reasonsMissing,
     inputsUsed: {
@@ -225,6 +423,7 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
       fatigue_ok,
       seance_specifique: seance_specifique_validee,
     },
+    messageStaff,
   };
 }
 
@@ -233,13 +432,13 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
 // =============================================
 
 export function getScoreColor(score: number): string {
-  if (score >= 75) return "text-success";
+  if (score >= 80) return "text-success";
   if (score >= 60) return "text-warning";
   return "text-destructive";
 }
 
 export function getScoreBgColor(score: number): string {
-  if (score >= 75) return "bg-success";
+  if (score >= 80) return "bg-success";
   if (score >= 60) return "bg-warning";
   return "bg-destructive";
 }
@@ -253,4 +452,21 @@ export function formatReadinessLabel(readiness: RaceReadinessEffectif): string {
 
 export function isReadinessComplete(readiness: RaceReadinessEffectif): boolean {
   return readiness.reasonsMissing.length === 0;
+}
+
+export function getObjectifLabel(objectif: string): string {
+  const labels: Record<string, string> = {
+    IM: "Ironman",
+    Ironman: "Ironman",
+    "703": "70.3 / Half",
+    Half: "70.3 / Half",
+    Marathon: "Marathon",
+    Semi: "Semi-Marathon",
+    Course: "Course",
+    Trail: "Trail",
+    TrailCourt: "Trail Court",
+    TrailLong: "Trail Long / Ultra",
+    Ultra: "Ultra",
+  };
+  return labels[objectif] || objectif;
 }

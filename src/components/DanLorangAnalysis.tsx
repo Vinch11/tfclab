@@ -112,6 +112,8 @@ export function DanLorangAnalysis({
     label: "Non disponible",
     color: "warning" as const,
     details: { vlamax: 0, endurance: 0, puissance: 0, fraicheur: 0 },
+    targets: { vlamaxMin: 0.25, vlamaxMax: 0.45, vlamaxIdeal: 0.35, tteTarget: 50, ftpKgTarget: 4.5 },
+    weights: { vlamax: 25, tte: 25, ftpKg: 25, freshness: 25 },
     confidence: 0,
     reasonsMissing: ["Données manquantes"],
     inputsUsed: {
@@ -121,6 +123,7 @@ export function DanLorangAnalysis({
       fatigue_ok: true,
       seance_specifique: false,
     },
+    messageStaff: "Ajoutez un snapshot pour activer le calcul.",
   };
   
   const raceScore = readiness.score;
