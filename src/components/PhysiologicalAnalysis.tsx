@@ -24,6 +24,8 @@ import {
   CheckCircle,
   Info
 } from "lucide-react";
+import { getVLamaxEffectif, VLamaxEffectif } from "@/lib/vlamax-effectif";
+import { VLamaxBadge } from "@/components/VLamaxBadge";
 
 interface PhysiologicalAnalysisProps {
   athlete: Athlete;
@@ -32,49 +34,36 @@ interface PhysiologicalAnalysisProps {
 export function PhysiologicalAnalysis({ athlete }: PhysiologicalAnalysisProps) {
   const snapshot = getDernierSnapshot(athlete);
   
-  // OPTION A: Seuls les tests VLAMAX alimentent le modèle
+  // ✅ VLamax EFFECTIF - Source unique de vérité
+  const vlamaxEffectif = useMemo<VLamaxEffectif>(() => {
+    return getVLamaxEffectif(athlete, snapshot);
+  }, [athlete, snapshot]);
+  
+  // Construire les tests pour l'analyse (compatibilité avec le modèle existant)
   const tests: TestVLamaxResult[] = useMemo(() => {
-    const testsList: TestVLamaxResult[] = [];
-    
-    // 1. Ajouter UNIQUEMENT les tests VLAMAX (pas REF)
-    if (athlete.tests && athlete.tests.length > 0) {
-      athlete.tests.forEach(t => {
-        // Filtrer: type VLAMAX uniquement
-        if (t.type === "VLAMAX" && t.vlamax !== null && !isNaN(t.vlamax)) {
-          testsList.push({
-            nom: t.nom,
-            vlamax: t.vlamax,
-            fiabilite: t.fiabilite ?? 0.5,
-            date: t.date
-          });
-        }
-      });
+    // Si VLamax effectif vient d'un test, on utilise cette valeur
+    if (vlamaxEffectif.source === "test" && vlamaxEffectif.value !== null) {
+      return [{
+        nom: vlamaxEffectif.label,
+        vlamax: vlamaxEffectif.value,
+        fiabilite: vlamaxEffectif.confidence,
+        date: new Date().toISOString()
+      }];
     }
     
-    // 2. Si pas de tests VLAMAX stockés, fallback sur estimations snapshot
-    if (testsList.length === 0 && snapshot) {
-      if (snapshot.pmax_5s && snapshot.ftp) {
-        const vlamaxEstimee = (snapshot.pmax_5s / snapshot.ftp) * 0.15;
-        testsList.push({
-          nom: "Sprint + FTP (estimé)",
-          vlamax: Math.min(1.2, Math.max(0.2, vlamaxEstimee)),
-          fiabilite: 0.4,
-          date: snapshot.date
-        });
-      }
-      
-      if (snapshot.pmax_5s) {
-        testsList.push({
-          nom: "Sprint 5-10s Vélo (estimé)",
-          vlamax: Math.min(1.0, snapshot.pmax_5s / 1500),
-          fiabilite: 0.5,
-          date: snapshot.date
-        });
-      }
+    // Si VLamax effectif vient d'un snapshot, on crée un test virtuel
+    if (vlamaxEffectif.source === "snapshot" && vlamaxEffectif.value !== null) {
+      return [{
+        nom: "VLamax calculé (snapshot)",
+        vlamax: vlamaxEffectif.value,
+        fiabilite: vlamaxEffectif.confidence,
+        date: snapshot?.date || new Date().toISOString()
+      }];
     }
-
-    return testsList;
-  }, [athlete.tests, snapshot]);
+    
+    // Si estimé ou inconnu, pas de test
+    return [];
+  }, [vlamaxEffectif, snapshot]);
 
   const vo2max = athlete.vo2max || snapshot?.vo2max || 50;
   

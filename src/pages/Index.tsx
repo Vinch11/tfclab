@@ -55,7 +55,7 @@ import { toast } from "sonner";
 
 // ✅ Legacy types/helpers (utilisés par tes composants actuels)
 import { getDernierSnapshot } from "@/types/athlete";
-import { calculVLamaxSnapshot } from "@/lib/athleteStore";
+import { getVLamaxEffectif } from "@/lib/vlamax-effectif";
 
 // ✅ TTE PRO (2 modules: LOAD vs OBSERVED) + TSS_7d
 import { computeTTEPro } from "@/lib/ttePro";
@@ -191,10 +191,13 @@ const Index = () => {
     return pickEffectiveSnapshot(currentAthlete.id, currentAthlete.active_snapshot_id);
   }, [currentAthlete, snapshots]);
 
-  const vlamax = useMemo(() => {
-    if (!legacyAthlete || !snapshotLegacy) return 0;
-    return calculVLamaxSnapshot(snapshotLegacy, legacyAthlete.objectif);
+  // ✅ VLamax EFFECTIF - Source unique de vérité
+  const vlamaxEffectif = useMemo(() => {
+    if (!legacyAthlete) return { value: null, source: "inconnu" as const, confidence: 0, label: "Inconnu" };
+    return getVLamaxEffectif(legacyAthlete, snapshotLegacy);
   }, [legacyAthlete, snapshotLegacy]);
+
+  const vlamax = vlamaxEffectif.value ?? 0;
 
   const ftp = useMemo(() => {
     if (!legacyAthlete) return 0;

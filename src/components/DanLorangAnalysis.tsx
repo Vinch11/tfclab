@@ -4,7 +4,6 @@ import { Label } from "@/components/ui/label";
 import { Target, AlertTriangle, CheckCircle2, TrendingDown, TrendingUp, Timer, Zap, Trophy, Info, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Athlete, getDernierSnapshot } from "@/types/athlete";
-import { calculVLamaxSnapshot } from "@/lib/athleteStore";
 import { reglesDanLorang, ReglesDanLorangResult, RaceReadinessInputs, getPrioriteLabel, getPrioriteColor, getSeancesRecommandees, getSeancesSpecifiques, PrioriteType } from "@/types/reglesDanLorang";
 import { SEANCES } from "@/types/seances";
 import {
@@ -12,6 +11,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { getVLamaxEffectif, VLamaxEffectif } from "@/lib/vlamax-effectif";
+import { VLamaxBadge } from "@/components/VLamaxBadge";
 
 // ✅ TTE PRO (2 modules)
 import { computeTTEPro } from "@/lib/ttePro";
@@ -52,11 +53,12 @@ export function DanLorangAnalysis({
     fatigue_ok: true
   });
 
-  // ✅ VLamax depuis snapshot (comme avant)
-  const vlamax = useMemo(() => {
-    if (!snapshot) return 0.45;
-    return calculVLamaxSnapshot(snapshot, athlete.objectif);
-  }, [snapshot, athlete.objectif]);
+  // ✅ VLamax EFFECTIF - Source unique de vérité
+  const vlamaxEffectif = useMemo<VLamaxEffectif>(() => {
+    return getVLamaxEffectif(athlete, snapshot);
+  }, [athlete, snapshot]);
+  
+  const vlamax = vlamaxEffectif.value ?? 0.45;
 
   // ✅ FTP/kg
   const ftp_kg = useMemo(() => {
