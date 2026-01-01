@@ -19,6 +19,7 @@ interface RaceReadinessCardProps {
   tteEffectif?: TTEEffectif;
   readiness?: RaceReadinessEffectif;
   onGoToSnapshots?: () => void;
+  onGoToMethodology?: () => void;
 }
 // Fonction utilitaire pour récupérer le snapshot effectif
 function pickEffectiveSnapshot(snapshots: DbSnapshot[], athleteId: string, activeSnapshotId?: string | null) {
@@ -35,7 +36,8 @@ export function RaceReadinessCard({
   vlamaxEffectif: vlamaxEffectifProp,
   tteEffectif: tteEffectifProp,
   readiness: readinessProp,
-  onGoToSnapshots
+  onGoToSnapshots,
+  onGoToMethodology
 }: RaceReadinessCardProps) {
   const {
     snapshots
@@ -174,9 +176,17 @@ export function RaceReadinessCard({
                       </p>
                     </div>
                   </div>
-                </PopoverContent>
-              </Popover>
-            </div>
+                  </PopoverContent>
+                </Popover>
+                {onGoToMethodology && (
+                  <button
+                    onClick={onGoToMethodology}
+                    className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 ml-2"
+                  >
+                    Pourquoi ce score ?
+                  </button>
+                )}
+              </div>
             <p className="text-sm text-muted-foreground">
               Snapshot: {snap.date} {athlete.active_snapshot_id ? "(actif)" : "(plus récent)"}
             </p>

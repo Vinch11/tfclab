@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { LucideIcon } from "lucide-react";
+import { LucideIcon, HelpCircle } from "lucide-react";
 
 interface MetricCardProps {
   title: string;
@@ -10,6 +10,7 @@ interface MetricCardProps {
   trendValue?: string;
   className?: string;
   accentColor?: "primary" | "accent" | "success" | "warning";
+  onWhyClick?: () => void;
 }
 
 const accentColors = {
@@ -35,6 +36,7 @@ export function MetricCard({
   trendValue,
   className,
   accentColor = "primary",
+  onWhyClick,
 }: MetricCardProps) {
   return (
     <div
@@ -52,18 +54,29 @@ export function MetricCard({
         >
           <Icon className="w-5 h-5" />
         </div>
-        {trend && trendValue && (
-          <div
-            className={cn(
-              "text-xs font-medium px-2 py-1 rounded-full",
-              trend === "up" && "bg-success/10 text-success",
-              trend === "down" && "bg-destructive/10 text-destructive",
-              trend === "neutral" && "bg-muted text-muted-foreground"
-            )}
-          >
-            {trend === "up" ? "↑" : trend === "down" ? "↓" : "→"} {trendValue}
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {onWhyClick && (
+            <button
+              onClick={onWhyClick}
+              className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 px-2 py-1 rounded-full hover:bg-primary/10"
+            >
+              <HelpCircle className="w-3 h-3" />
+              <span className="hidden sm:inline">Pourquoi ?</span>
+            </button>
+          )}
+          {trend && trendValue && (
+            <div
+              className={cn(
+                "text-xs font-medium px-2 py-1 rounded-full",
+                trend === "up" && "bg-success/10 text-success",
+                trend === "down" && "bg-destructive/10 text-destructive",
+                trend === "neutral" && "bg-muted text-muted-foreground"
+              )}
+            >
+              {trend === "up" ? "↑" : trend === "down" ? "↓" : "→"} {trendValue}
+            </div>
+          )}
+        </div>
       </div>
       <p className="metric-label mb-2">{title}</p>
       <div className="flex items-baseline gap-2">

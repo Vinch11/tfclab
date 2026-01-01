@@ -25,6 +25,7 @@ interface VLamaxCalculatorProps {
   tteEffectif?: TTEEffectif;
   // Navigation
   onGoToSnapshots?: () => void;
+  onGoToMethodology?: () => void;
 }
 
 type CalculatorMode = "snapshot" | "manual";
@@ -33,7 +34,8 @@ export function VLamaxCalculator({
   snapshotEffectif, 
   vlamaxEffectif, 
   tteEffectif,
-  onGoToSnapshots 
+  onGoToSnapshots,
+  onGoToMethodology
 }: VLamaxCalculatorProps) {
   
   const hasSnapshot = snapshotEffectif != null && (
@@ -154,9 +156,19 @@ export function VLamaxCalculator({
           </div>
           <div>
             <h2 className="text-xl font-semibold text-foreground">Estimation VLamax</h2>
-            <p className="text-sm text-muted-foreground">
-              {mode === "snapshot" ? "Données du snapshot effectif" : "Mode simulation (manuel)"}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-muted-foreground">
+                {mode === "snapshot" ? "Données du snapshot effectif" : "Mode simulation (manuel)"}
+              </p>
+              {onGoToMethodology && (
+                <button
+                  onClick={onGoToMethodology}
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Pourquoi ce score ?
+                </button>
+              )}
+            </div>
           </div>
         </div>
         

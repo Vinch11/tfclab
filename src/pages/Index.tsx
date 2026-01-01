@@ -23,6 +23,7 @@ import { SnapshotManager } from "@/components/SnapshotManager";
 import { CheckinManager } from "@/components/CheckinManager";
 import { SnapshotEvolutionChart } from "@/components/SnapshotEvolutionChart";
 import { AthleteRefsPanel } from "@/components/AthleteRefsPanel";
+import { MethodologyStaff } from "@/components/MethodologyStaff";
 
 // ✅ FIX 11 - Effective Refs (source unique de vérité)
 import { getEffectiveRefs, computeFtpKg, getMissingFields } from "@/lib/effectiveRefs";
@@ -649,6 +650,7 @@ const Index = () => {
                     : `${vlamaxEffectif.label} • conf ${Math.round(vlamaxEffectif.confidence * 100)}%`
                 }
                 accentColor={vlamaxEffectif.source === "test" ? "success" : "primary"}
+                onWhyClick={() => setActiveTab("methodology")}
               />
 
               <MetricCard
@@ -673,6 +675,7 @@ const Index = () => {
                     : "Ajouter TSS_7d ou TTE mesuré"
                 }
                 accentColor={tteEffectif.source === "unknown" ? "warning" : "success"}
+                onWhyClick={() => setActiveTab("methodology")}
               />
 
               <MetricCard
@@ -687,6 +690,7 @@ const Index = () => {
                     : `${raceReadinessEffectif.label} • conf ${Math.round(raceReadinessEffectif.confidence * 100)}%`
                 }
                 accentColor={raceReadinessEffectif.color === "success" ? "success" : "warning"}
+                onWhyClick={() => setActiveTab("methodology")}
               />
             </div>
 
@@ -709,6 +713,7 @@ const Index = () => {
                   setShowMonitoring(false);
                   setShowCheckins(false);
                 }}
+                onGoToMethodology={() => setActiveTab("methodology")}
               />
               <TrainingZones />
             </div>
@@ -727,6 +732,7 @@ const Index = () => {
                 setShowMonitoring(false);
                 setShowCheckins(false);
               }}
+              onGoToMethodology={() => setActiveTab("methodology")}
             />
             <DanLorangAnalysis 
               athlete={legacyAthlete} 
@@ -783,6 +789,7 @@ const Index = () => {
               vlamaxEffectif={vlamaxEffectif}
               tteEffectif={tteEffectif}
               onGoToSnapshots={() => setShowSnapshots(true)}
+              onGoToMethodology={() => setActiveTab("methodology")}
             />
             <DanLorangAnalysis athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} readiness={raceReadinessEffectif} onGoToSnapshots={() => setShowSnapshots(true)} />
             
@@ -824,6 +831,11 @@ const Index = () => {
           <div className="animate-fade-in">
             <RaceChecklist />
           </div>
+        );
+
+      case "methodology":
+        return (
+          <MethodologyStaff onGoToTab={setActiveTab} />
         );
 
       default:
