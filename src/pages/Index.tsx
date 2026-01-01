@@ -24,6 +24,7 @@ import { CheckinManager } from "@/components/CheckinManager";
 import { SnapshotEvolutionChart } from "@/components/SnapshotEvolutionChart";
 import { AthleteRefsPanel } from "@/components/AthleteRefsPanel";
 import { MethodologyStaff } from "@/components/MethodologyStaff";
+import { NutritionPredictive } from "@/components/NutritionPredictive";
 
 // ✅ FIX 11 - Effective Refs (source unique de vérité)
 import { getEffectiveRefs, computeFtpKg, getMissingFields } from "@/lib/effectiveRefs";
@@ -768,6 +769,19 @@ const Index = () => {
                 setShowCheckins(false);
               }}
             />
+
+            {/* 🍝 Nutrition Prédictive (mode staff) */}
+            {staffMode && (
+              <NutritionPredictive
+                vlamax={vlamaxEffectif.value}
+                objectif={currentAthlete?.goal || "IM"}
+                tteMin={tteEffectif.tte_min}
+                tteTarget={tteEffectif.target}
+                confidence={vlamaxEffectif.confidence}
+                staffMode={staffMode}
+              />
+            )}
+
             <SemaineTypeView athlete={legacyAthlete} />
             <Bloc3SemainesView athlete={legacyAthlete} />
           </div>
