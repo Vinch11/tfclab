@@ -24,25 +24,28 @@ import {
   CheckCircle,
   Info
 } from "lucide-react";
-import { getVLamaxEffectif, VLamaxEffectif } from "@/lib/vlamax-effectif";
-import { VLamaxBadge } from "@/components/VLamaxBadge";
+import { VLamaxEffectif, getSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
 
 interface PhysiologicalAnalysisProps {
   athlete: Athlete;
+  vlamaxEffectif?: VLamaxEffectif; // ✅ Prop optionnelle pour VLamax effectif unifié
 }
 
-export function PhysiologicalAnalysis({ athlete }: PhysiologicalAnalysisProps) {
+export function PhysiologicalAnalysis({ athlete, vlamaxEffectif: vlamaxEffectifProp }: PhysiologicalAnalysisProps) {
   const snapshot = getDernierSnapshot(athlete);
   
-  // ✅ VLamax EFFECTIF - Source unique de vérité
-  const vlamaxEffectif = useMemo<VLamaxEffectif>(() => {
-    return getVLamaxEffectif(athlete, snapshot);
-  }, [athlete, snapshot]);
+  // ✅ VLamax EFFECTIF - Utilise la prop si fournie, sinon fallback
+  const vlamaxEffectif = vlamaxEffectifProp ?? { 
+    value: null, 
+    source: "unknown" as const, 
+    confidence: 0, 
+    label: "VLamax (non disponible)" 
+  };
   
   // Construire les tests pour l'analyse (compatibilité avec le modèle existant)
   const tests: TestVLamaxResult[] = useMemo(() => {
-    // Si VLamax effectif vient d'un test, on utilise cette valeur
-    if (vlamaxEffectif.source === "test" && vlamaxEffectif.value !== null) {
+    // Si VLamax effectif a une valeur, on l'utilise
+    if (vlamaxEffectif.value !== null) {
       return [{
         nom: vlamaxEffectif.label,
         vlamax: vlamaxEffectif.value,
@@ -51,19 +54,9 @@ export function PhysiologicalAnalysis({ athlete }: PhysiologicalAnalysisProps) {
       }];
     }
     
-    // Si VLamax effectif vient d'un snapshot, on crée un test virtuel
-    if (vlamaxEffectif.source === "snapshot" && vlamaxEffectif.value !== null) {
-      return [{
-        nom: "VLamax calculé (snapshot)",
-        vlamax: vlamaxEffectif.value,
-        fiabilite: vlamaxEffectif.confidence,
-        date: snapshot?.date || new Date().toISOString()
-      }];
-    }
-    
-    // Si estimé ou inconnu, pas de test
+    // Sinon pas de test
     return [];
-  }, [vlamaxEffectif, snapshot]);
+  }, [vlamaxEffectif]);
 
   const vo2max = athlete.vo2max || snapshot?.vo2max || 50;
   

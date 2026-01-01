@@ -8,11 +8,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { getVLamaxEffectif, VLamaxEffectif } from "@/lib/vlamax-effectif";
-import { VLamaxBadge } from "@/components/VLamaxBadge";
+import { VLamaxEffectif, getSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
 
 interface RaceReadinessCardProps {
   athlete: any;
+  vlamaxEffectif?: VLamaxEffectif; // ✅ Prop optionnelle pour VLamax effectif unifié
 }
 function pickEffectiveSnapshot(snapshots: DbSnapshot[], athleteId: string, activeSnapshotId?: string | null) {
   const list = snapshots.filter(s => s.athlete_id === athleteId);
@@ -76,7 +76,8 @@ function texteExplicatif(snapshot: DbSnapshot, objectif: string, vlamaxEffectif:
   return lines.join("\n");
 }
 export function RaceReadinessCard({
-  athlete
+  athlete,
+  vlamaxEffectif: vlamaxEffectifProp
 }: RaceReadinessCardProps) {
   const {
     snapshots
@@ -85,25 +86,13 @@ export function RaceReadinessCard({
     return pickEffectiveSnapshot(snapshots as any, athlete.id, athlete.active_snapshot_id ?? null);
   }, [snapshots, athlete.id, athlete.active_snapshot_id]);
   
-  // ✅ VLamax EFFECTIF - Source unique de vérité
-  const vlamaxEffectif = useMemo<VLamaxEffectif>(() => {
-    // Créer un athlete-like object pour getVLamaxEffectif
-    const athleteForCalc = {
-      ...athlete,
-      historique: snap ? [{
-        id: snap.id,
-        date: snap.date,
-        sport: "vélo" as const,
-        poids: snap.weight_kg || 70,
-        ftp: snap.ftp,
-        pmax_5s: snap.pmax_5s,
-        vo2max: snap.vo2max,
-        vma: snap.vma,
-        tss_7j: snap.tss_7d
-      }] : []
-    };
-    return getVLamaxEffectif(athleteForCalc as any);
-  }, [athlete, snap]);
+  // ✅ VLamax EFFECTIF - Utilise la prop si fournie, sinon fallback
+  const vlamaxEffectif = vlamaxEffectifProp ?? { 
+    value: null, 
+    source: "unknown" as const, 
+    confidence: 0.2, 
+    label: "VLamax (non disponible)" 
+  };
   
   if (!snap) {
     return <div className="glass-card p-6">
