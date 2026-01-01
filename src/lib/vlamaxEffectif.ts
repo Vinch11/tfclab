@@ -9,11 +9,19 @@
 
 export type VLamaxSource = "test" | "snapshot" | "estimated" | "unknown";
 
+// Détails optionnels pour affichage enrichi
+export interface VLamaxDetails {
+  testType?: string;    // Type du test (ex: "SPRINT_15S")
+  testName?: string;    // Nom du test (ex: "Sprint 15s")
+  date?: string;        // Date du test ou snapshot
+}
+
 export interface VLamaxEffectif {
   value: number | null;
   source: VLamaxSource;
   confidence: number; // 0 à 1
   label: string;
+  details?: VLamaxDetails; // Détails pour affichage enrichi
 }
 
 // Types pour les données cloud
@@ -22,6 +30,8 @@ interface TestCloud {
   vlamax: number | null;
   date?: string;
   created_at?: string;
+  type?: string;   // Type de test (ex: "SPRINT_15S")
+  name?: string;   // Nom du test
 }
 
 interface SnapshotCloud {
@@ -71,12 +81,18 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
     
     const mostRecentTest = sortedTests[0];
     const vlamax = mostRecentTest.vlamax!;
+    const testDate = mostRecentTest.date || mostRecentTest.created_at || "";
     
     return {
       value: Number(vlamax.toFixed(2)),
       source: "test",
       confidence: 0.95,
-      label: "VLamax (test)"
+      label: "VLamax (test)",
+      details: {
+        testType: mostRecentTest.type,
+        testName: mostRecentTest.name,
+        date: testDate.slice(0, 10), // Format YYYY-MM-DD
+      }
     };
   }
 
@@ -110,7 +126,10 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
       value: Number(effectiveSnapshot.vlamax.toFixed(2)),
       source: "snapshot",
       confidence: 0.75,
-      label: "VLamax (snapshot)"
+      label: "VLamax (snapshot)",
+      details: {
+        date: effectiveSnapshot.date,
+      }
     };
   }
 
