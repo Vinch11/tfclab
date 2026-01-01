@@ -10,11 +10,13 @@ import {
 } from "@/components/ui/popover";
 import { VLamaxEffectif, getSourceColor as getVLamaxSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
 import { TTEEffectif, getSourceColor as getTTESourceColor, getSourceLabel } from "@/lib/tteEffectif";
+import { TTEGuard, isTTEUnavailable } from "@/components/TTEGuard";
 
 interface RaceReadinessCardProps {
   athlete: any;
   vlamaxEffectif?: VLamaxEffectif;
   tteEffectif?: TTEEffectif;
+  onGoToSnapshots?: () => void;
 }
 function pickEffectiveSnapshot(snapshots: DbSnapshot[], athleteId: string, activeSnapshotId?: string | null) {
   const list = snapshots.filter(s => s.athlete_id === athleteId);
@@ -80,7 +82,8 @@ function texteExplicatif(snapshot: DbSnapshot, objectif: string, vlamaxEffectif:
 export function RaceReadinessCard({
   athlete,
   vlamaxEffectif: vlamaxEffectifProp,
-  tteEffectif: tteEffectifProp
+  tteEffectif: tteEffectifProp,
+  onGoToSnapshots
 }: RaceReadinessCardProps) {
   const {
     snapshots
@@ -228,7 +231,15 @@ export function RaceReadinessCard({
           </div>
         )}
         
-        {tteEffectif.tteMin !== null && (
+        {/* TTE - Afficher garde-fou compact si indisponible */}
+        {isTTEUnavailable(tteEffectif) ? (
+          <TTEGuard 
+            tteEffectif={tteEffectif} 
+            athleteName={athlete.nom || athlete.name || "Athlète"} 
+            onGoToSnapshots={onGoToSnapshots} 
+            compact 
+          />
+        ) : tteEffectif.tteMin !== null && (
           <div className="flex items-center gap-2 text-sm p-2 rounded-lg bg-secondary/30 border border-border">
             <span className="text-muted-foreground">TTE:</span>
             <span className="font-mono font-bold">{tteEffectif.tteMin} min</span>

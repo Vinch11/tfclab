@@ -628,9 +628,9 @@ const Index = () => {
                 trendValue={
                   tteEffectif.source !== "unknown" 
                     ? `${getSourceLabel(tteEffectif.source)} • conf ${Math.round(tteEffectif.confidence * 100)}%`
-                    : "—"
+                    : "Ajouter TSS_7d ou TTE mesuré"
                 }
-                accentColor="success"
+                accentColor={tteEffectif.source === "unknown" ? "warning" : "success"}
               />
 
               <MetricCard
@@ -649,8 +649,34 @@ const Index = () => {
               <TrainingZones />
             </div>
 
-            <RaceReadinessCard athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} />
-            <DanLorangAnalysis athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} />
+            <RaceReadinessCard 
+              athlete={legacyAthlete} 
+              vlamaxEffectif={vlamaxEffectif} 
+              tteEffectif={tteEffectif} 
+              onGoToSnapshots={() => {
+                setShowSnapshots(true);
+                setShowTestLibrary(false);
+                setShowPhysioAnalysis(false);
+                setShowPlanner(false);
+                setShowWorkoutLibrary(false);
+                setShowMonitoring(false);
+                setShowCheckins(false);
+              }}
+            />
+            <DanLorangAnalysis 
+              athlete={legacyAthlete} 
+              vlamaxEffectif={vlamaxEffectif} 
+              tteEffectif={tteEffectif} 
+              onGoToSnapshots={() => {
+                setShowSnapshots(true);
+                setShowTestLibrary(false);
+                setShowPhysioAnalysis(false);
+                setShowPlanner(false);
+                setShowWorkoutLibrary(false);
+                setShowMonitoring(false);
+                setShowCheckins(false);
+              }}
+            />
             <SemaineTypeView athlete={legacyAthlete} />
             <Bloc3SemainesView athlete={legacyAthlete} />
           </div>
@@ -662,7 +688,7 @@ const Index = () => {
             {renderAthleteSelector()}
             <AthleteProfile athlete={legacyAthlete} onUpdate={() => {}} />
             <VLamaxCalculator athlete={legacyAthlete} />
-            <DanLorangAnalysis athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} />
+            <DanLorangAnalysis athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} onGoToSnapshots={() => setShowSnapshots(true)} />
             <TrainingZones />
           </div>
         );

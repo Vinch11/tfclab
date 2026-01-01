@@ -13,11 +13,13 @@ import {
 } from "@/components/ui/popover";
 import { VLamaxEffectif, getSourceColor as getVLamaxSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
 import { TTEEffectif, getSourceColor as getTTESourceColor, getSourceLabel } from "@/lib/tteEffectif";
+import { TTEGuard, isTTEUnavailable } from "@/components/TTEGuard";
 
 interface DanLorangAnalysisProps {
   athlete: Athlete;
   vlamaxEffectif?: VLamaxEffectif;
   tteEffectif?: TTEEffectif;
+  onGoToSnapshots?: () => void;
 }
 const prioriteIcons: Record<PrioriteType, typeof TrendingDown> = {
   VLAMAX_DOWN: TrendingDown,
@@ -47,7 +49,8 @@ const getRecommandationsPriorite = (priorite: PrioriteType): string[] => {
 export function DanLorangAnalysis({
   athlete,
   vlamaxEffectif: vlamaxEffectifProp,
-  tteEffectif: tteEffectifProp
+  tteEffectif: tteEffectifProp,
+  onGoToSnapshots
 }: DanLorangAnalysisProps) {
   const snapshot = getDernierSnapshot(athlete) as any;
   const [inputs, setInputs] = useState<RaceReadinessInputs>({
@@ -130,6 +133,26 @@ export function DanLorangAnalysis({
           </div>
         </div>
         <p className="text-center text-muted-foreground py-8">Ajoutez un snapshot pour voir l'analyse</p>
+      </div>;
+  }
+
+  // ✅ GARDE-FOU TTE : afficher un warning si TTE indisponible
+  if (isTTEUnavailable(tteEffectif)) {
+    return <div className="glass-card p-6 space-y-4">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-3 rounded-xl bg-warning/10 text-warning">
+            <Target className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold text-foreground">Analyse Dan Lorang</h2>
+            <p className="text-sm text-muted-foreground">Objectif: {athlete.objectif === "IM" ? "Ironman" : "70.3"}</p>
+          </div>
+        </div>
+        <TTEGuard 
+          tteEffectif={tteEffectif} 
+          athleteName={athlete.nom} 
+          onGoToSnapshots={onGoToSnapshots} 
+        />
       </div>;
   }
   return <div className="glass-card p-6">
