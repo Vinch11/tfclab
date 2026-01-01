@@ -11,13 +11,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { getVLamaxEffectif, VLamaxEffectif } from "@/lib/vlamax-effectif";
-import { VLamaxBadge } from "@/components/VLamaxBadge";
+import { VLamaxEffectif, getSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
 
 // ✅ TTE PRO (2 modules)
 import { computeTTEPro } from "@/lib/ttePro";
+
 interface DanLorangAnalysisProps {
   athlete: Athlete;
+  vlamaxEffectif?: VLamaxEffectif; // ✅ Prop optionnelle pour VLamax effectif unifié
 }
 const prioriteIcons: Record<PrioriteType, typeof TrendingDown> = {
   VLAMAX_DOWN: TrendingDown,
@@ -45,7 +46,8 @@ const getRecommandationsPriorite = (priorite: PrioriteType): string[] => {
   }
 };
 export function DanLorangAnalysis({
-  athlete
+  athlete,
+  vlamaxEffectif: vlamaxEffectifProp
 }: DanLorangAnalysisProps) {
   const snapshot = getDernierSnapshot(athlete) as any;
   const [inputs, setInputs] = useState<RaceReadinessInputs>({
@@ -53,10 +55,13 @@ export function DanLorangAnalysis({
     fatigue_ok: true
   });
 
-  // ✅ VLamax EFFECTIF - Source unique de vérité
-  const vlamaxEffectif = useMemo<VLamaxEffectif>(() => {
-    return getVLamaxEffectif(athlete, snapshot);
-  }, [athlete, snapshot]);
+  // ✅ VLamax EFFECTIF - Utilise la prop si fournie, sinon fallback 0.45
+  const vlamaxEffectif = vlamaxEffectifProp ?? { 
+    value: 0.45, 
+    source: "unknown" as const, 
+    confidence: 0.2, 
+    label: "VLamax (fallback)" 
+  };
   
   const vlamax = vlamaxEffectif.value ?? 0.45;
 

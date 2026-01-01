@@ -55,7 +55,7 @@ import { toast } from "sonner";
 
 // ✅ Legacy types/helpers (utilisés par tes composants actuels)
 import { getDernierSnapshot } from "@/types/athlete";
-import { getVLamaxEffectif } from "@/lib/vlamax-effectif";
+import { computeVLamaxEffectif, VLamaxEffectif } from "@/lib/vlamaxEffectif";
 
 // ✅ TTE PRO (2 modules: LOAD vs OBSERVED) + TSS_7d
 import { computeTTEPro } from "@/lib/ttePro";
@@ -63,8 +63,8 @@ import { computeTTEPro } from "@/lib/ttePro";
 const Index = () => {
   const { user, signOut } = useAuth();
 
-  // ✅ IMPORTANT: on récupère aussi snapshots
-  const { athletes, snapshots, loading, addAthlete, updateAthlete, deleteAthlete } = useCloudData();
+  // ✅ IMPORTANT: on récupère aussi snapshots + tests
+  const { athletes, snapshots, tests, loading, addAthlete, updateAthlete, deleteAthlete } = useCloudData();
 
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showTestLibrary, setShowTestLibrary] = useState(false);
@@ -191,11 +191,31 @@ const Index = () => {
     return pickEffectiveSnapshot(currentAthlete.id, currentAthlete.active_snapshot_id);
   }, [currentAthlete, snapshots]);
 
-  // ✅ VLamax EFFECTIF - Source unique de vérité
-  const vlamaxEffectif = useMemo(() => {
-    if (!legacyAthlete) return { value: null, source: "inconnu" as const, confidence: 0, label: "Inconnu" };
-    return getVLamaxEffectif(legacyAthlete, snapshotLegacy);
-  }, [legacyAthlete, snapshotLegacy]);
+  // ✅ VLamax EFFECTIF - Source unique de vérité (utilise données Cloud)
+  const vlamaxEffectif = useMemo<VLamaxEffectif>(() => {
+    if (!currentAthlete) {
+      return { value: null, source: "unknown", confidence: 0, label: "VLamax (non disponible)" };
+    }
+    return computeVLamaxEffectif({
+      athleteId: currentAthlete.id,
+      objectif: currentAthlete.goal || "IM",
+      activeSnapshotId: currentAthlete.active_snapshot_id,
+      tests: tests.map(t => ({
+        athlete_id: t.athlete_id,
+        vlamax: t.vlamax,
+        date: t.date,
+      })),
+      snapshots: snapshots.map(s => ({
+        id: s.id,
+        athlete_id: s.athlete_id,
+        date: s.date,
+        vlamax: s.vlamax,
+        ftp: s.ftp,
+        pmax_5s: s.pmax_5s,
+        weight_kg: s.weight_kg,
+      })),
+    });
+  }, [currentAthlete, tests, snapshots]);
 
   const vlamax = vlamaxEffectif.value ?? 0;
 
@@ -542,7 +562,7 @@ const Index = () => {
 
             {/* Contenu conditionnel */}
             {showTestLibrary && <TestProtocols athlete={legacyAthlete} />}
-            {showPhysioAnalysis && <PhysiologicalAnalysis athlete={legacyAthlete} />}
+            {showPhysioAnalysis && <PhysiologicalAnalysis athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} />}
             {showPlanner && <Planificateur athlete={legacyAthlete} />}
             {showWorkoutLibrary && <WorkoutLibrary athlete={legacyAthlete} />}
             {showMonitoring && (
@@ -572,12 +592,12 @@ const Index = () => {
             {/* ✅ METRICS: plus mock — basé snapshot */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <MetricCard
-                title="VLamax Estimé"
-                value={vlamax ? vlamax.toFixed(2) : "—"}
+                title="VLamax Effectif"
+                value={vlamaxEffectif.value !== null ? vlamaxEffectif.value.toFixed(2) : "—"}
                 unit="mmol/L/s"
                 icon={Zap}
                 trend="neutral"
-                trendValue={snapshotLegacy ? "snapshot" : "—"}
+                trendValue={`${vlamaxEffectif.label} • conf ${Math.round(vlamaxEffectif.confidence * 100)}%`}
                 accentColor="primary"
               />
 
@@ -619,8 +639,8 @@ const Index = () => {
               <TrainingZones />
             </div>
 
-            <RaceReadinessCard athlete={legacyAthlete} />
-            <DanLorangAnalysis athlete={legacyAthlete} />
+            <RaceReadinessCard athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} />
+            <DanLorangAnalysis athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} />
             <SemaineTypeView athlete={legacyAthlete} />
             <Bloc3SemainesView athlete={legacyAthlete} />
           </div>
@@ -632,7 +652,7 @@ const Index = () => {
             {renderAthleteSelector()}
             <AthleteProfile athlete={legacyAthlete} onUpdate={() => {}} />
             <VLamaxCalculator athlete={legacyAthlete} />
-            <DanLorangAnalysis athlete={legacyAthlete} />
+            <DanLorangAnalysis athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} />
             <TrainingZones />
           </div>
         );

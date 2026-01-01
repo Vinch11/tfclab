@@ -1,0 +1,233 @@
+// =============================================
+// VLAMAX EFFECTIF - Source unique de vérité
+// Utilise directement les données Cloud (tables tests + snapshots)
+// =============================================
+
+// =============================================
+// TYPES
+// =============================================
+
+export type VLamaxSource = "test" | "snapshot" | "estimated" | "unknown";
+
+export interface VLamaxEffectif {
+  value: number | null;
+  source: VLamaxSource;
+  confidence: number; // 0 à 1
+  label: string;
+}
+
+// Types pour les données cloud
+interface TestCloud {
+  athlete_id: string;
+  vlamax: number | null;
+  date?: string;
+  created_at?: string;
+}
+
+interface SnapshotCloud {
+  id: string;
+  athlete_id: string;
+  date: string;
+  vlamax?: number | null;
+  ftp?: number | null;
+  pmax_5s?: number | null;
+  weight_kg?: number | null;
+}
+
+interface ComputeVLamaxEffectifParams {
+  athleteId: string;
+  objectif: string;
+  activeSnapshotId?: string | null;
+  tests: TestCloud[];
+  snapshots: SnapshotCloud[];
+}
+
+// =============================================
+// FONCTION PRINCIPALE
+// =============================================
+
+/**
+ * Calcule la VLamax effective selon la hiérarchie stricte:
+ * A) Test le plus récent avec vlamax non-null → source = "test", confiance 0.95
+ * B) Snapshot effectif avec vlamax non-null → source = "snapshot", confiance 0.75
+ * C) Estimation basée sur ftp/pmax_5s/weight → source = "estimated", confiance 0.45
+ * D) Aucune donnée → value = null, source = "unknown"
+ */
+export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLamaxEffectif {
+  const { athleteId, objectif, activeSnapshotId, tests, snapshots } = params;
+
+  // =============================================
+  // A) SOURCE TEST (priorité #1)
+  // =============================================
+  const athleteTests = tests.filter(t => t.athlete_id === athleteId && t.vlamax != null);
+  
+  if (athleteTests.length > 0) {
+    // Trier par date décroissante (plus récent d'abord)
+    const sortedTests = [...athleteTests].sort((a, b) => {
+      const dateA = a.date || a.created_at || "";
+      const dateB = b.date || b.created_at || "";
+      return dateB.localeCompare(dateA);
+    });
+    
+    const mostRecentTest = sortedTests[0];
+    const vlamax = mostRecentTest.vlamax!;
+    
+    return {
+      value: Number(vlamax.toFixed(2)),
+      source: "test",
+      confidence: 0.95,
+      label: "VLamax (test)"
+    };
+  }
+
+  // =============================================
+  // B) SOURCE SNAPSHOT (priorité #2)
+  // =============================================
+  const athleteSnapshots = snapshots.filter(s => s.athlete_id === athleteId);
+  
+  if (athleteSnapshots.length === 0) {
+    // Pas de snapshot → passer à estimated ou unknown
+    return getEstimatedOrUnknown(objectif);
+  }
+
+  // Déterminer le snapshot effectif
+  let effectiveSnapshot: SnapshotCloud | null = null;
+  
+  if (activeSnapshotId) {
+    effectiveSnapshot = athleteSnapshots.find(s => s.id === activeSnapshotId) || null;
+  }
+  
+  if (!effectiveSnapshot) {
+    // Prendre le plus récent par date
+    effectiveSnapshot = [...athleteSnapshots].sort((a, b) => 
+      b.date.localeCompare(a.date)
+    )[0];
+  }
+
+  // Si snapshot effectif a vlamax non-null
+  if (effectiveSnapshot && effectiveSnapshot.vlamax != null) {
+    return {
+      value: Number(effectiveSnapshot.vlamax.toFixed(2)),
+      source: "snapshot",
+      confidence: 0.75,
+      label: "VLamax (snapshot)"
+    };
+  }
+
+  // =============================================
+  // C) ESTIMATED (priorité #3)
+  // =============================================
+  if (effectiveSnapshot) {
+    const { ftp, pmax_5s, weight_kg } = effectiveSnapshot;
+    
+    // Vérifie si on a assez de données pour estimer
+    const hasMinimumData = ftp != null && weight_kg != null && weight_kg > 0;
+    
+    if (hasMinimumData) {
+      const ftpKg = ftp! / weight_kg!;
+      
+      // Heuristique simple et prudente
+      let base = 0.45;
+      
+      // Ajustement selon FTP/kg (athlète endurant = VLamax plus basse)
+      if (ftpKg >= 4.5) base -= 0.05;
+      if (ftpKg >= 5.0) base -= 0.05;
+      if (ftpKg < 3.5) base += 0.05;
+      
+      // Ajustement selon Pmax (puissance explosive = VLamax plus haute)
+      if (pmax_5s != null) {
+        if (pmax_5s >= 1100) base += 0.05;
+        if (pmax_5s >= 1300) base += 0.03;
+        if (pmax_5s < 900) base -= 0.03;
+      }
+      
+      // Clamp entre 0.25 et 0.80
+      const estimated = Math.max(0.25, Math.min(0.80, base));
+      
+      return {
+        value: Number(estimated.toFixed(2)),
+        source: "estimated",
+        confidence: 0.45,
+        label: "VLamax (estimé)"
+      };
+    }
+  }
+
+  // =============================================
+  // D) UNKNOWN (priorité #4)
+  // =============================================
+  return {
+    value: null,
+    source: "unknown",
+    confidence: 0.2,
+    label: "VLamax (non disponible)"
+  };
+}
+
+// =============================================
+// HELPER
+// =============================================
+
+function getEstimatedOrUnknown(objectif: string): VLamaxEffectif {
+  // Sans snapshot, on ne peut pas estimer de manière fiable
+  // Retourner unknown plutôt qu'une valeur arbitraire
+  return {
+    value: null,
+    source: "unknown",
+    confidence: 0.2,
+    label: "VLamax (non disponible)"
+  };
+}
+
+// =============================================
+// HELPERS UI
+// =============================================
+
+export function getSourceColor(source: VLamaxSource): string {
+  switch (source) {
+    case "test":
+      return "text-green-600 dark:text-green-400";
+    case "snapshot":
+      return "text-blue-600 dark:text-blue-400";
+    case "estimated":
+      return "text-amber-600 dark:text-amber-400";
+    case "unknown":
+      return "text-muted-foreground";
+    default:
+      return "text-muted-foreground";
+  }
+}
+
+export function getSourceBgColor(source: VLamaxSource): string {
+  switch (source) {
+    case "test":
+      return "bg-green-100 dark:bg-green-900/30";
+    case "snapshot":
+      return "bg-blue-100 dark:bg-blue-900/30";
+    case "estimated":
+      return "bg-amber-100 dark:bg-amber-900/30";
+    case "unknown":
+      return "bg-muted";
+    default:
+      return "bg-muted";
+  }
+}
+
+export function getConfidenceColor(confidence: number): string {
+  if (confidence >= 0.7) return "text-green-600 dark:text-green-400";
+  if (confidence >= 0.4) return "text-amber-600 dark:text-amber-400";
+  return "text-red-600 dark:text-red-400";
+}
+
+export function getConfidenceLabel(confidence: number): string {
+  if (confidence >= 0.8) return "Très fiable";
+  if (confidence >= 0.6) return "Fiable";
+  if (confidence >= 0.4) return "Modéré";
+  if (confidence >= 0.2) return "Faible";
+  return "Très faible";
+}
+
+export function formatVLamaxDisplay(vlamax: VLamaxEffectif): string {
+  if (vlamax.value === null) return "—";
+  return vlamax.value.toFixed(2);
+}
