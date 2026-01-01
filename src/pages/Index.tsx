@@ -21,6 +21,7 @@ import { MonitoringDashboard } from "@/components/MonitoringDashboard";
 import { ExportTools } from "@/components/ExportTools";
 import { SnapshotManager } from "@/components/SnapshotManager";
 import { CheckinManager } from "@/components/CheckinManager";
+import { SnapshotEvolutionChart } from "@/components/SnapshotEvolutionChart";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -757,6 +758,13 @@ const Index = () => {
               onGoToSnapshots={() => setShowSnapshots(true)}
             />
             <DanLorangAnalysis athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} readiness={raceReadinessEffectif} onGoToSnapshots={() => setShowSnapshots(true)} />
+            
+            {/* Graphique évolution historique VLamax/TTE */}
+            <SnapshotEvolutionChart 
+              snapshots={snapshots.filter(s => s.athlete_id === currentAthlete?.id)}
+              athleteName={legacyAthlete.nom}
+            />
+            
             <TrainingZones />
           </div>
         );
