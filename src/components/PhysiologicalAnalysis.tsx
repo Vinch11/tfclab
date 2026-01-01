@@ -37,34 +37,31 @@ interface PhysiologicalAnalysisProps {
   onGoToSnapshots?: () => void;
 }
 
-export function PhysiologicalAnalysis({ athlete, vlamaxEffectif: vlamaxEffectifProp, tteEffectif: tteEffectifProp, readiness: readinessProp, onGoToSnapshots }: PhysiologicalAnalysisProps) {
+export function PhysiologicalAnalysis({ athlete, vlamaxEffectif, tteEffectif: tteEffectifProp, readiness: readinessProp, onGoToSnapshots }: PhysiologicalAnalysisProps) {
   const snapshot = getDernierSnapshot(athlete);
   
-  // ✅ VLamax EFFECTIF - Utilise la prop si fournie, sinon fallback
-  const vlamaxEffectif = vlamaxEffectifProp ?? { 
-    value: null, 
-    source: "unknown" as const, 
-    confidence: 0, 
-    label: "VLamax (non disponible)" 
-  };
+  // ✅ FIX 8: VLamax STRICTEMENT depuis vlamaxEffectif - AUCUN RECALCUL
+  // La valeur VLamax vient UNIQUEMENT du parent (Index.tsx) via computeVLamaxEffectif
+  const vlamax = vlamaxEffectif?.value ?? null;
+  const vlamaxSource = vlamaxEffectif?.source ?? "unknown";
+  const vlamaxConfidence = vlamaxEffectif?.confidence ?? 0;
+  const vlamaxLabel = vlamaxEffectif?.label ?? "VLamax (non disponible)";
+
+  const vo2max = athlete.vo2max || snapshot?.vo2max || 50;
   
-  // Construire les tests pour l'analyse (compatibilité avec le modèle existant)
+  // Construire un test virtuel pour compatibilité avec analysePhysiologiqueComplete
+  // MAIS on passe DIRECTEMENT la valeur vlamaxEffectif (pas de recalcul)
   const tests: TestVLamaxResult[] = useMemo(() => {
-    // Si VLamax effectif a une valeur, on l'utilise
-    if (vlamaxEffectif.value !== null) {
+    if (vlamax !== null) {
       return [{
-        nom: vlamaxEffectif.label,
-        vlamax: vlamaxEffectif.value,
-        fiabilite: vlamaxEffectif.confidence,
+        nom: vlamaxLabel,
+        vlamax: vlamax,
+        fiabilite: vlamaxConfidence,
         date: new Date().toISOString()
       }];
     }
-    
-    // Sinon pas de test
     return [];
-  }, [vlamaxEffectif]);
-
-  const vo2max = athlete.vo2max || snapshot?.vo2max || 50;
+  }, [vlamax, vlamaxLabel, vlamaxConfidence]);
   
   const analyse = useMemo(() => 
     analysePhysiologiqueComplete(tests, vo2max, athlete.objectif),
@@ -101,18 +98,18 @@ export function PhysiologicalAnalysis({ athlete, vlamaxEffectif: vlamaxEffectifP
 
   return (
     <div className="space-y-4">
-      {/* Debug VLamax + TTE source */}
+      {/* Source VLamax + TTE - FIX 8: affiche source unique vlamaxEffectif */}
       <div className="flex flex-wrap gap-4">
-        {vlamaxEffectif.value !== null && (
+        {vlamax !== null && (
           <div className="flex items-center gap-2 text-sm p-2 rounded-lg bg-secondary/30 border border-border">
             <span className="text-muted-foreground">VLamax:</span>
-            <span className="font-mono font-bold">{vlamaxEffectif.value.toFixed(2)}</span>
-            <span className={cn("px-2 py-0.5 rounded text-xs", getVLamaxSourceColor(vlamaxEffectif.source))}>
-              {vlamaxEffectif.source}
+            <span className="font-mono font-bold">{vlamax.toFixed(2)}</span>
+            <span className={cn("px-2 py-0.5 rounded text-xs", getVLamaxSourceColor(vlamaxSource))}>
+              {vlamaxSource}
             </span>
             <span className="text-muted-foreground">•</span>
             <span className="text-xs text-muted-foreground">
-              conf {Math.round(vlamaxEffectif.confidence * 100)}%
+              conf {Math.round(vlamaxConfidence * 100)}%
             </span>
           </div>
         )}
