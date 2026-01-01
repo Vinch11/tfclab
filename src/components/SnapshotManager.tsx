@@ -522,7 +522,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         </CardHeader>
 
         <CardContent className="space-y-3">
-          <div className="grid grid-cols-4 gap-2 text-sm">
+          <div className="grid grid-cols-5 gap-2 text-sm">
             <div>
               <span className="text-muted-foreground">VO₂max:</span>{" "}
               <span className="font-medium">{formatValue(s.vo2max)}</span>
@@ -538,6 +538,12 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
             <div>
               <span className="text-muted-foreground">VMA:</span>{" "}
               <span className="font-medium">{formatValue(s.vma, "km/h")}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">TSS 7d:</span>{" "}
+              <span className={`font-medium ${!s.tss_7d ? "text-warning" : ""}`}>
+                {s.tss_7d ? formatValue(s.tss_7d) : "—"}
+              </span>
             </div>
           </div>
 
