@@ -22,6 +22,10 @@ import { ExportTools } from "@/components/ExportTools";
 import { SnapshotManager } from "@/components/SnapshotManager";
 import { CheckinManager } from "@/components/CheckinManager";
 import { SnapshotEvolutionChart } from "@/components/SnapshotEvolutionChart";
+import { AthleteRefsPanel } from "@/components/AthleteRefsPanel";
+
+// ✅ FIX 11 - Effective Refs (source unique de vérité)
+import { getEffectiveRefs, computeFtpKg, getMissingFields } from "@/lib/effectiveRefs";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -141,7 +145,8 @@ const Index = () => {
           id: effective.id,
           date: effective.date,
           sport: "vélo",
-          poids: effective.weight_kg ?? 70,
+          // ✅ FIX 11: null au lieu de 70 (pas de fallback inventé)
+          poids: effective.weight_kg ?? undefined,
           ftp: effective.ftp ?? 0,
           pmax_5s: effective.pmax_5s ?? undefined,
 
@@ -226,14 +231,15 @@ const Index = () => {
 
   const vlamax = vlamaxEffectif.value ?? 0;
 
-  const ftp = useMemo(() => {
-    if (!legacyAthlete) return 0;
-    // priorité: snapshot ftp sinon refs ftp
-    return (snapshotLegacy?.ftp || legacyAthlete.refs?.ftp || 0) as number;
-  }, [legacyAthlete, snapshotLegacy]);
+  // ✅ FIX 11 - Effective Refs centralisées (plus de fallback 70kg/18%)
+  const effectiveRefs = useMemo(() => {
+    return getEffectiveRefs(currentAthlete, snapshots);
+  }, [currentAthlete, snapshots]);
 
-  const poids = useMemo(() => (snapshotLegacy?.poids || 70) as number, [snapshotLegacy]);
-  const ftp_kg = useMemo(() => (poids > 0 ? ftp / poids : 0), [ftp, poids]);
+  // FTP et poids depuis les refs effectives (null si non renseigné, pas de fallback)
+  const ftp = useMemo(() => effectiveRefs.ftp ?? 0, [effectiveRefs]);
+  const poids = useMemo(() => effectiveRefs.weightKg, [effectiveRefs]);
+  const ftp_kg = useMemo(() => computeFtpKg(effectiveRefs), [effectiveRefs]);
 
   // ✅ TTE EFFECTIF - Source unique de vérité
   const tteEffectif = useMemo<TTEEffectif>(() => {
@@ -269,9 +275,9 @@ const Index = () => {
       vlamaxEffectif,
       tteEffectif,
       ftp,
-      poids,
-      fatigue_ok: true,         // Valeur par défaut - à overrider si check-in dispo
-      seance_specifique_validee: false, // Valeur par défaut
+      poids: poids ?? undefined, // ✅ FIX 11: null -> undefined pour calculs
+      fatigue_ok: true,
+      seance_specifique_validee: false,
     });
   }, [currentAthlete, vlamaxEffectif, tteEffectif, ftp, poids]);
 
@@ -464,6 +470,15 @@ const Index = () => {
         return (
           <div className="space-y-8 animate-fade-in">
             {renderAthleteSelector()}
+
+            {/* ✅ FIX 11: Panneau Profil & Références */}
+            {currentAthlete && (
+              <AthleteRefsPanel
+                athlete={currentAthlete}
+                snapshots={snapshots}
+                compact
+              />
+            )}
 
             {/* Boutons */}
             <div className="flex flex-wrap gap-3">
@@ -737,6 +752,14 @@ const Index = () => {
         return (
           <div className="space-y-6 animate-fade-in">
             {renderAthleteSelector()}
+            {/* ✅ FIX 11: Panneau Profil & Références (complet) */}
+            {currentAthlete && (
+              <AthleteRefsPanel
+                athlete={currentAthlete}
+                snapshots={snapshots}
+              />
+            )}
+            
             <AthleteProfile 
               athlete={legacyAthlete} 
               onUpdate={() => {}} 

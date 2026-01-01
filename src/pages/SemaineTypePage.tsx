@@ -37,7 +37,8 @@ function buildCompatAthlete(currentAthlete: any, snapshot: DbSnapshot) {
     id: snapshot.id,
     date: snapshot.date,
     sport: "vélo", // tes générateurs semblent vélo-centrés pour priorité, on garde "vélo"
-    poids: snapshot.weight_kg ?? 70,
+    // ✅ FIX 11: null au lieu de 70 (pas de fallback inventé)
+    poids: snapshot.weight_kg ?? undefined,
     ftp: snapshot.ftp ?? 0,
     pmax_5s: snapshot.pmax_5s ?? undefined,
     tss_7j: 0, // plus de Nolio → on met 0

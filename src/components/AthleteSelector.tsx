@@ -41,7 +41,8 @@ export function AthleteSelector({
     nom: "",
     objectif: "IM" as ObjectifType,
     sexe: "M" as "M" | "F",
-    masse_grasse: 18,
+    // ✅ FIX 11: pas de valeur par défaut (undefined)
+    masse_grasse: undefined as number | undefined,
   });
 
   const handleAddAthlete = () => {
@@ -59,7 +60,8 @@ export function AthleteSelector({
       nom: "",
       objectif: "IM",
       sexe: "M",
-      masse_grasse: 18,
+      // ✅ FIX 11: pas de valeur par défaut
+      masse_grasse: undefined,
     });
   };
 
@@ -185,18 +187,21 @@ export function AthleteSelector({
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Masse grasse (%)</Label>
+                  <Label>Masse grasse (%) - optionnel</Label>
                   <Input
                     type="number"
-                    value={newAthlete.masse_grasse}
+                    placeholder="ex: 14"
+                    value={newAthlete.masse_grasse ?? ""}
                     onChange={(e) =>
                       setNewAthlete({
                         ...newAthlete,
-                        masse_grasse: parseFloat(e.target.value) || 18,
+                        // ✅ FIX 11: undefined si vide (pas de fallback 18%)
+                        masse_grasse: e.target.value === "" ? undefined : parseFloat(e.target.value) || undefined,
                       })
                     }
                     className="bg-secondary/50"
                   />
+                  <p className="text-xs text-muted-foreground">Laissez vide si non mesuré</p>
                 </div>
                 <Button onClick={handleAddAthlete} className="w-full" variant="glow">
                   <UserPlus className="w-4 h-4 mr-2" />
