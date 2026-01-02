@@ -53,6 +53,13 @@ export interface DbSnapshot {
   tss_7d?: number | null;
   tte_mode?: string | null;
   tte_observed_min?: number | null;
+  // Running Economy (CAP) fields
+  run_pace_ref_sec_per_km?: number | null;
+  run_hr_ref_bpm?: number | null;
+  run_duration_min?: number | null;
+  run_hr_drift_pct?: number | null;
+  run_economy_score?: number | null;
+  run_economy_label?: string | null;
   created_at?: string;
   updated_at?: string;
 }
