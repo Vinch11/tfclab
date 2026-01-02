@@ -1,8 +1,10 @@
-import { AlertTriangle, Apple, CheckCircle2, Info, Flame, Bike, Footprints, TrendingUp, Shield, Target } from "lucide-react";
+import { AlertTriangle, Apple, CheckCircle2, Info, Flame, Bike, Footprints, TrendingUp, Shield, Target, Battery, BatteryLow, TrendingDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { computeNutritionEstimate, getObjectifLabel, NUTRITIONAL_RISK_DEFINITION, type NutritionEstimate, type Sport } from "@/lib/nutritionPredictive";
+import { cn } from "@/lib/utils";
+import type { EnergyDriftResult } from "@/lib/energyDrift";
 
 interface NutritionPredictiveProps {
   vlamax: number | null;
@@ -12,6 +14,7 @@ interface NutritionPredictiveProps {
   tteTarget?: number;
   confidence?: number;
   staffMode?: boolean;
+  energyDrift?: EnergyDriftResult;
 }
 
 export function NutritionPredictive({
@@ -22,6 +25,7 @@ export function NutritionPredictive({
   tteTarget = 50,
   confidence,
   staffMode = true,
+  energyDrift,
 }: NutritionPredictiveProps) {
   const estimate = computeNutritionEstimate({ vlamax, objectif, sport, tteMin, tteTarget });
 
@@ -149,6 +153,51 @@ export function NutritionPredictive({
             </div>
           )}
         </div>
+
+        {/* ⚡ DÉRIVE ÉNERGÉTIQUE - Entrée logique depuis Nutrition */}
+        {energyDrift && staffMode && (
+          <div className={cn(
+            "p-4 rounded-xl border-2",
+            energyDrift.color === "success" ? "bg-success/5 border-success/30" :
+            energyDrift.color === "warning" ? "bg-warning/10 border-warning/30" :
+            "bg-destructive/10 border-destructive/30"
+          )}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                  "p-2 rounded-lg",
+                  energyDrift.color === "success" ? "bg-success/20" :
+                  energyDrift.color === "warning" ? "bg-warning/20" :
+                  "bg-destructive/20"
+                )}>
+                  {energyDrift.level === "low" ? (
+                    <Battery className={cn("w-5 h-5", "text-success")} />
+                  ) : energyDrift.level === "moderate" ? (
+                    <BatteryLow className={cn("w-5 h-5", "text-warning")} />
+                  ) : (
+                    <TrendingDown className={cn("w-5 h-5", "text-destructive")} />
+                  )}
+                </div>
+                <div>
+                  <h4 className="font-semibold text-foreground">Dérive Énergétique</h4>
+                  <p className="text-xs text-muted-foreground">Risque de défaillance métabolique</p>
+                </div>
+              </div>
+              <Badge variant={
+                energyDrift.level === "low" ? "secondary" :
+                energyDrift.level === "moderate" ? "default" : "destructive"
+              } className="text-sm">
+                {energyDrift.icon} {energyDrift.label.toUpperCase()}
+              </Badge>
+            </div>
+            <p className="text-sm text-foreground">{energyDrift.messageStaff}</p>
+            {energyDrift.criticalTime && (
+              <p className="text-xs text-muted-foreground mt-2">
+                ⏱️ Moment critique estimé: <strong className="text-foreground">{energyDrift.criticalTime}</strong>
+              </p>
+            )}
+          </div>
+        )}
 
         {/* ========== ÉCHELLE DE RISQUE ========== */}
         {staffMode && (

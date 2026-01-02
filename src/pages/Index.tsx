@@ -32,6 +32,8 @@ import { RaceReadinessPage } from "@/components/RaceReadinessPage";
 import { computeNutritionEstimate } from "@/lib/nutritionPredictive";
 import { computeRunningEconomy } from "@/lib/runningEconomy";
 import { generateAthleteReadiness } from "@/lib/athleteReadiness";
+import { computeEnergyDrift, EnergyDriftResult } from "@/lib/energyDrift";
+import { EnergyDriftBadge } from "@/components/EnergyDriftBadge";
 
 // ✅ FIX 11 - Effective Refs (source unique de vérité)
 import { getEffectiveRefs, computeFtpKg, getMissingFields } from "@/lib/effectiveRefs";
@@ -325,6 +327,16 @@ const Index = () => {
       objectif: currentAthlete?.goal || "IM",
     });
   }, [effectiveRefs, tteEffectif, currentAthlete]);
+
+  // ✅ ENERGY DRIFT - Source unique de vérité
+  const energyDrift = useMemo<EnergyDriftResult>(() => {
+    return computeEnergyDrift({
+      vlamaxEffectif,
+      tteEffectif,
+      objectif: currentAthlete?.goal || "IM",
+      tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
+    });
+  }, [vlamaxEffectif, tteEffectif, currentAthlete, effectiveCloudSnapshot]);
 
   // Handlers
   const handleAddAthlete = async () => {
@@ -775,6 +787,7 @@ const Index = () => {
                 vlamaxEffectif={vlamaxEffectif} 
                 tteEffectif={tteEffectif}
                 readiness={raceReadinessEffectif}
+                energyDrift={energyDrift}
                 onGoToSnapshots={() => {
                   setShowSnapshots(true);
                   setShowTestLibrary(false);
@@ -822,6 +835,7 @@ const Index = () => {
                 tteTarget={tteEffectif.target}
                 confidence={vlamaxEffectif.confidence}
                 staffMode={staffMode}
+                energyDrift={energyDrift}
               />
             )}
 
