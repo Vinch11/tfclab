@@ -28,7 +28,9 @@ import { NutritionPredictive } from "@/components/NutritionPredictive";
 import { NutritionTimingCard } from "@/components/NutritionTimingCard";
 import { RunningEconomyModule } from "@/components/RunningEconomyModule";
 import { StaffReport } from "@/components/StaffReport";
+import { StaffBriefingCard } from "@/components/StaffBriefingCard";
 import { AthleteReadinessReport } from "@/components/AthleteReadinessReport";
+import { computeNutritionTiming } from "@/lib/nutritionTiming";
 import { RaceReadinessPage } from "@/components/RaceReadinessPage";
 import { computeNutritionEstimate } from "@/lib/nutritionPredictive";
 import { computeRunningEconomy } from "@/lib/runningEconomy";
@@ -781,9 +783,44 @@ const Index = () => {
               <TrainingZones />
             </div>
 
+            {/* 📋 Briefing Staff Automatique (mode staff) */}
+            {staffMode && currentAthlete && (
+              <StaffBriefingCard
+                params={{
+                  athleteName: currentAthlete.name,
+                  objectif: currentAthlete.goal || "IM",
+                  vlamaxEffectif,
+                  tteEffectif,
+                  ftpKg: ftp_kg,
+                  ftp,
+                  poids,
+                  raceReadiness: raceReadinessEffectif,
+                  energyDrift,
+                  nutritionTiming: computeNutritionTiming({
+                    vlamax: vlamaxEffectif.value,
+                    tteMin: tteEffectif.tte_min,
+                    tteTarget: tteEffectif.target ?? 45,
+                    objectif: currentAthlete.goal || "IM",
+                    sport: currentAthlete.goal?.toLowerCase().includes("marathon") || 
+                           currentAthlete.goal?.toLowerCase().includes("semi") || 
+                           currentAthlete.goal?.toLowerCase().includes("trail") ? "cap" : "velo",
+                    digestiveTolerance: "MEDIUM",
+                    energyDrift,
+                  }),
+                  economyScore: runningEconomyResult.capScore,
+                  economyLabel: runningEconomyResult.level === "excellent" ? "excellent" 
+                    : runningEconomyResult.level === "correct" ? "good" 
+                    : runningEconomyResult.level === "weak" ? "fragile" 
+                    : "unknown",
+                  hasActiveSnapshot: !!effectiveCloudSnapshot,
+                }}
+                mode="compact"
+              />
+            )}
+
             {/* 🏁 Race Readiness - Toggle Coach/Athlète */}
             {staffMode ? (
-              <RaceReadinessCard 
+              <RaceReadinessCard
                 athlete={legacyAthlete} 
                 vlamaxEffectif={vlamaxEffectif} 
                 tteEffectif={tteEffectif}
