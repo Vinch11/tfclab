@@ -36,7 +36,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
               <Activity className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-foreground tracking-tight">2FC Lab</h1>
+              <h1 className="text-lg font-bold text-foreground tracking-tight">24C Lab</h1>
               <p className="text-xs text-muted-foreground">Performance Analysis</p>
             </div>
           </div>

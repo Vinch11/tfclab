@@ -78,7 +78,7 @@ export function StaffBriefingCard({ params, mode = "compact" }: StaffBriefingCar
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Briefing Staff – 2FC Lab
+            Briefing Staff – 24C Lab
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -105,7 +105,7 @@ export function StaffBriefingCard({ params, mode = "compact" }: StaffBriefingCar
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Briefing Staff – 2FC Lab
+            Briefing Staff – 24C Lab
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -183,7 +183,7 @@ export function StaffBriefingCard({ params, mode = "compact" }: StaffBriefingCar
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
             <FileText className="h-5 w-5 text-primary" />
-            Briefing Staff – 2FC Lab
+            Briefing Staff – 24C Lab
           </CardTitle>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={handleCopyBriefing}>
