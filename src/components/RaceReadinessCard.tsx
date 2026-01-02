@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Target, TrendingUp, Zap, Heart, Activity, ChevronRight, HelpCircle } from "lucide-react";
+import { Target, TrendingUp, Zap, Heart, Activity, ChevronRight, HelpCircle, Footprints } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCloudData } from "@/hooks/useCloudData";
 import type { DbSnapshot } from "@/hooks/useCloudData";
@@ -12,6 +12,7 @@ import { VLamaxEffectif, getSourceColor as getVLamaxSourceColor, getConfidenceLa
 import { TTEEffectif, getSourceColor as getTTESourceColor, getSourceLabel } from "@/lib/tteEffectif";
 import { RaceReadinessEffectif, getScoreColor, getScoreBgColor, getObjectifLabel } from "@/lib/raceReadinessEffectif";
 import { TTEGuard, isTTEUnavailable } from "@/components/TTEGuard";
+import { getEconomyRaceReadinessBonus } from "@/lib/runningEconomySnapshot";
 
 interface RaceReadinessCardProps {
   athlete: any;
@@ -68,6 +69,7 @@ export function RaceReadinessCard({
   // ✅ RACE READINESS EFFECTIF - Utilise la prop si fournie (plus de calcul local!)
   const readiness = readinessProp ?? {
     score: 0,
+    rawScore: 0,
     label: "Non disponible",
     color: "warning" as const,
     details: { vlamax: 0, endurance: 0, puissance: 0, fraicheur: 0 },
@@ -83,6 +85,14 @@ export function RaceReadinessCard({
       seance_specifique: false,
     },
     messageStaff: "Ajoutez un snapshot (FTP + poids) et un TTE pour activer le calcul.",
+    // Propriétés économie de course (null par défaut)
+    runningEconomy: null,
+    wasCappedByEconomy: false,
+    economyCapReason: null,
+    // Propriétés nutritionnelles (null par défaut)
+    nutritionalRiskIndex: null,
+    wasCappedByNutrition: false,
+    nutritionalCapReason: null,
   };
   
   const scoreColor = getScoreColor(readiness.score);
@@ -288,6 +298,33 @@ export function RaceReadinessCard({
           
           {readiness.inputsUsed.ftpKg !== null && (
             <p>• <strong className="text-foreground">FTP/kg</strong> : {readiness.inputsUsed.ftpKg.toFixed(1)} W/kg (cible: ≥{readiness.targets?.ftpKgTarget ?? "—"} W/kg)</p>
+          )}
+          
+          {/* 🏃 Économie CAP - Affiché uniquement pour objectifs course */}
+          {readiness.runningEconomy?.isApplicable && (
+            <div className="mt-3 p-3 rounded-lg bg-blue-500/5 border border-blue-500/20">
+              <div className="flex items-center gap-2 mb-2">
+                <Footprints className="h-4 w-4 text-blue-600" />
+                <span className="text-xs font-medium text-foreground">Économie CAP</span>
+                <span className={cn(
+                  "ml-auto px-2 py-0.5 rounded text-xs",
+                  readiness.runningEconomy.color === 'success' ? 'bg-green-500/20 text-green-600' :
+                  readiness.runningEconomy.color === 'warning' ? 'bg-yellow-500/20 text-yellow-600' :
+                  readiness.runningEconomy.color === 'orange' ? 'bg-orange-500/20 text-orange-600' :
+                  'bg-red-500/20 text-red-600'
+                )}>
+                  {readiness.runningEconomy.levelIcon} {readiness.runningEconomy.levelLabel}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {readiness.runningEconomy.analysisMessage}
+              </p>
+              {readiness.wasCappedByEconomy && (
+                <p className="text-xs text-orange-600 mt-1">
+                  🏃 Plafonné: {readiness.economyCapReason}
+                </p>
+              )}
+            </div>
           )}
           
           {readiness.reasonsMissing.length > 0 && (
