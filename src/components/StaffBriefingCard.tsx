@@ -1,5 +1,5 @@
 /**
- * Staff Briefing Card - Vince's Lab
+ * Staff Briefing Card - Two For Coaching Lab
  * Module C: Composant UI pour le briefing staff automatique
  */
 
@@ -78,7 +78,7 @@ export function StaffBriefingCard({ params, mode = "compact" }: StaffBriefingCar
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Briefing Staff – Vince's Lab
+            Briefing Staff – 2FC Lab
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -105,7 +105,7 @@ export function StaffBriefingCard({ params, mode = "compact" }: StaffBriefingCar
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Briefing Staff – Vince's Lab
+            Briefing Staff – 2FC Lab
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -183,7 +183,7 @@ export function StaffBriefingCard({ params, mode = "compact" }: StaffBriefingCar
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
             <FileText className="h-5 w-5 text-primary" />
-            Briefing Staff – Vince's Lab
+            Briefing Staff – 2FC Lab
           </CardTitle>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={handleCopyBriefing}>

@@ -86,14 +86,14 @@ const AuthPage = () => {
         <div className="flex flex-col items-center mb-8">
           <img 
             src={logo2fc} 
-            alt="Vince's Lab" 
+            alt="Two For Coaching Lab" 
             className="h-20 w-auto mb-4"
           />
           <div className="flex items-center gap-2 text-primary">
             <Dumbbell className="h-6 w-6" />
-            <span className="text-xl font-bold">Vince's Lab</span>
+            <span className="text-xl font-bold">Two For Coaching Lab</span>
           </div>
-          <p className="text-muted-foreground text-sm mt-2">Plateforme Coach Multi-Athlètes</p>
+          <p className="text-muted-foreground text-sm mt-2">Staff-grade Performance Intelligence</p>
         </div>
 
         <Card className="border-border/50 shadow-xl">
@@ -188,7 +188,7 @@ const AuthPage = () => {
         </Card>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          Vince's Lab • Méthodologie Dan Lorang
+          Two For Coaching Lab • Analyse physiologique & décision coaching
         </p>
       </div>
     </div>

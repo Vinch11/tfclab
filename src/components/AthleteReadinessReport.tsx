@@ -39,7 +39,7 @@ export function AthleteReadinessReport({ report, athleteName, objectif }: Athlet
       <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-muted-foreground font-medium">VINCE'S LAB</p>
+            <p className="text-sm text-muted-foreground font-medium">TWO FOR COACHING LAB</p>
             <CardTitle className="text-2xl font-bold mt-1">Mon État de Forme</CardTitle>
           </div>
           <Badge variant="outline" className="text-sm px-3 py-1">

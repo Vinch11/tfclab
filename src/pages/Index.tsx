@@ -1080,7 +1080,7 @@ const Index = () => {
 
       <main className="container mx-auto px-4 py-8 relative">
         <div className="flex justify-center mb-8">
-          <img src={logo2fc} alt="Two For Coaching - Vince's Lab" className="h-24 md:h-32 w-auto object-contain" />
+          <img src={logo2fc} alt="Two For Coaching Lab" className="h-24 md:h-32 w-auto object-contain" />
         </div>
 
         {renderContent()}
@@ -1088,7 +1088,7 @@ const Index = () => {
 
       <footer className="border-t border-border mt-12 py-6">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>Vince’s Lab • Two For Coaching • Données Cloud</p>
+          <p>Two For Coaching Lab • Analyse physiologique & décision coaching</p>
         </div>
       </footer>
     </div>

@@ -17,9 +17,9 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "apple-touch-icon-180x180.png"],
       manifest: {
-        name: "Vince's Lab - Two For Coaching",
-        short_name: "Vince's Lab",
-        description: "Application d'entraînement multi-sport",
+        name: "Two For Coaching Lab",
+        short_name: "2FC Lab",
+        description: "Laboratoire de performance - Analyse physiologique staff-grade",
         theme_color: "#0d1117",
         background_color: "#0d1117",
         display: "standalone",

@@ -17,14 +17,16 @@ export function MethodologyStaff({ onGoToTab }: MethodologyStaffProps) {
             <GraduationCap className="w-8 h-8" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">🧠 Méthodologie scientifique — Vince's Lab</h1>
+            <h1 className="text-2xl font-bold text-foreground">🧠 Méthodologie scientifique — Two For Coaching Lab</h1>
             <p className="text-muted-foreground">Référentiel officiel d'interprétation physiologique pour coachs et staff</p>
           </div>
         </div>
         <Separator className="my-4" />
         <p className="text-sm text-muted-foreground">
-          Ce document constitue la <strong className="text-foreground">référence officielle</strong> pour l'interprétation des indicateurs 
-          physiologiques dans Vince's Lab. Il s'adresse aux coachs formés et aux membres du staff technique.
+          Two For Coaching Lab est un laboratoire de performance destiné aux coachs et staffs d'endurance.
+          L'application ne fournit pas de vérité absolue, mais des indicateurs physiologiques cohérents permettant de comprendre 
+          comment un athlète produit, soutient et utilise son énergie selon son objectif.
+          Toutes les analyses sont contextualisées, pondérées par la discipline et la distance, et conçues pour soutenir la décision humaine — jamais la remplacer.
         </p>
       </div>
 
@@ -68,7 +70,7 @@ export function MethodologyStaff({ onGoToTab }: MethodologyStaffProps) {
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                 <p className="text-sm text-muted-foreground">
-                  <strong className="text-foreground">Vince's Lab structure la décision du coach</strong>, il ne la remplace pas
+                  <strong className="text-foreground">Two For Coaching Lab structure la décision du coach</strong>, il ne la remplace pas
                 </p>
               </div>
             </div>

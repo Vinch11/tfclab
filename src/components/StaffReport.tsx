@@ -102,8 +102,8 @@ export function StaffReport({
               <FileText className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-xl font-bold tracking-tight">
-                VINCE'S LAB — RAPPORT STAFF PRÉ-COURSE
+            <CardTitle className="text-xl font-bold tracking-tight">
+                TWO FOR COACHING LAB — RAPPORT STAFF PRÉ-COURSE
               </CardTitle>
               <p className="text-sm text-muted-foreground mt-0.5">
                 Synthèse décisionnelle • Généré le {report.generatedAt}
@@ -328,7 +328,7 @@ export function StaffReport({
             Il ne constitue pas un conseil médical et doit être validé par un professionnel de santé.
           </p>
           <p className="mt-1 font-medium">
-            Vince's Lab — Méthodologie INSCYD / Dan Lorang
+            Two For Coaching Lab — Cet indicateur est une aide à la décision, interprétée par le coach.
           </p>
         </div>
       </CardContent>
