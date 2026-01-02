@@ -28,6 +28,7 @@ import { NutritionPredictive } from "@/components/NutritionPredictive";
 import { RunningEconomyModule } from "@/components/RunningEconomyModule";
 import { StaffReport } from "@/components/StaffReport";
 import { AthleteReadinessReport } from "@/components/AthleteReadinessReport";
+import { RaceReadinessPage } from "@/components/RaceReadinessPage";
 import { computeNutritionEstimate } from "@/lib/nutritionPredictive";
 import { computeRunningEconomy } from "@/lib/runningEconomy";
 import { generateAthleteReadiness } from "@/lib/athleteReadiness";
@@ -929,10 +930,38 @@ const Index = () => {
           </div>
         );
 
-      case "checklist":
+      case "race-readiness":
         return (
           <div className="animate-fade-in">
-            <RaceChecklist />
+            {renderAthleteSelector()}
+            {legacyAthlete && (
+              <div className="mt-6">
+                <RaceReadinessPage
+                  athleteName={currentAthlete?.name || "Athlète"}
+                  objectif={currentAthlete?.goal || "IM"}
+                  snapshotDate={effectiveCloudSnapshot?.date || null}
+                  legacyAthlete={legacyAthlete}
+                  vlamaxEffectif={vlamaxEffectif}
+                  tteEffectif={tteEffectif}
+                  readiness={raceReadinessEffectif}
+                  nutritionEstimate={nutritionEstimate}
+                  runningEconomy={runningEconomyResult}
+                  ftp={ftp}
+                  poids={poids ?? null}
+                  fcMax={effectiveRefs.fcMax ?? null}
+                  onGoToSnapshots={() => {
+                    setShowSnapshots(true);
+                    setShowTestLibrary(false);
+                    setShowPhysioAnalysis(false);
+                    setShowPlanner(false);
+                    setShowWorkoutLibrary(false);
+                    setShowMonitoring(false);
+                    setShowCheckins(false);
+                  }}
+                  onGoToMethodology={() => setActiveTab("methodology")}
+                />
+              </div>
+            )}
           </div>
         );
 
