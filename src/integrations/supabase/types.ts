@@ -169,6 +169,12 @@ export type Database = {
           metabolic_profile: string | null
           metabolic_score: number | null
           pmax_5s: number | null
+          run_duration_min: number | null
+          run_economy_label: string | null
+          run_economy_score: number | null
+          run_hr_drift_pct: number | null
+          run_hr_ref_bpm: number | null
+          run_pace_ref_sec_per_km: number | null
           source: string
           tss_7d: number | null
           tte_mode: string | null
@@ -195,6 +201,12 @@ export type Database = {
           metabolic_profile?: string | null
           metabolic_score?: number | null
           pmax_5s?: number | null
+          run_duration_min?: number | null
+          run_economy_label?: string | null
+          run_economy_score?: number | null
+          run_hr_drift_pct?: number | null
+          run_hr_ref_bpm?: number | null
+          run_pace_ref_sec_per_km?: number | null
           source?: string
           tss_7d?: number | null
           tte_mode?: string | null
@@ -221,6 +233,12 @@ export type Database = {
           metabolic_profile?: string | null
           metabolic_score?: number | null
           pmax_5s?: number | null
+          run_duration_min?: number | null
+          run_economy_label?: string | null
+          run_economy_score?: number | null
+          run_hr_drift_pct?: number | null
+          run_hr_ref_bpm?: number | null
+          run_pace_ref_sec_per_km?: number | null
           source?: string
           tss_7d?: number | null
           tte_mode?: string | null

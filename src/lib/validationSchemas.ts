@@ -40,6 +40,13 @@ export const snapshotSchema = z.object({
   tss_7d: z.number().int().min(0).max(2000).nullable().optional(),
   tte_mode: z.string().max(50).nullable().optional(),
   tte_observed_min: z.number().int().min(1).max(120).nullable().optional(),
+  // Running Economy (CAP) fields
+  run_pace_ref_sec_per_km: z.number().int().min(120).max(900).nullable().optional(), // 2:00 - 15:00/km
+  run_hr_ref_bpm: z.number().int().min(80).max(220).nullable().optional(),
+  run_duration_min: z.number().int().min(10).max(300).nullable().optional(),
+  run_hr_drift_pct: numericOptional(0, 30),
+  run_economy_score: z.number().int().min(0).max(100).nullable().optional(),
+  run_economy_label: z.string().max(20).nullable().optional(),
 });
 
 export type ValidatedSnapshot = z.infer<typeof snapshotSchema>;

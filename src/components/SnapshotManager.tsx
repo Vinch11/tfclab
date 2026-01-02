@@ -1,6 +1,7 @@
 // =============================================
 // SNAPSHOT MANAGER - Gestion des snapshots Dan Lorang (Cloud)
 // + TTE PRO: LOAD (FTP+TSS7d) / OBSERVED (test)
+// + ÉCONOMIE CAP: allure/FC/dérive
 // =============================================
 
 import { useState } from "react";
@@ -13,10 +14,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Calendar, Pin } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Calendar, Pin, HelpCircle } from "lucide-react";
 import { DbSnapshot, useCloudData } from "@/hooks/useCloudData";
 import { deriveMetabolicProfile, generateLorangInsights, calculateDelta, formatValue } from "@/types/snapshot";
 import { computeTTEEffectif, getSourceLabel, formatTTEDisplay } from "@/lib/tteEffectif";
+import { 
+  parsePaceToSec, 
+  formatSecToPace, 
+  computeRunEconomyScore, 
+  getEconomyLabelStyle 
+} from "@/lib/runningEconomySnapshot";
 
 interface SnapshotManagerProps {
   athleteId: string;
@@ -57,6 +65,12 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     tss_7d: "",
     tte_observed_min: "",
 
+    // 🏃 ÉCONOMIE CAP
+    run_pace_ref: "",        // format "m:ss"
+    run_hr_ref: "",          // bpm
+    run_duration_min: "",    // min
+    run_hr_drift_pct: "",    // %
+
     coach_notes: "",
   });
 
@@ -78,6 +92,11 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       tte_mode: "LOAD",
       tss_7d: "",
       tte_observed_min: "",
+
+      run_pace_ref: "",
+      run_hr_ref: "",
+      run_duration_min: "",
+      run_hr_drift_pct: "",
 
       coach_notes: "",
     });
@@ -103,6 +122,12 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       tss_7d: s.tss_7d != null ? String(s.tss_7d) : "",
       tte_observed_min: s.tte_observed_min != null ? String(s.tte_observed_min) : "",
 
+      // 🏃 ÉCONOMIE CAP
+      run_pace_ref: s.run_pace_ref_sec_per_km != null ? formatSecToPace(s.run_pace_ref_sec_per_km) : "",
+      run_hr_ref: s.run_hr_ref_bpm != null ? String(s.run_hr_ref_bpm) : "",
+      run_duration_min: s.run_duration_min != null ? String(s.run_duration_min) : "",
+      run_hr_drift_pct: s.run_hr_drift_pct != null ? String(s.run_hr_drift_pct) : "",
+
       coach_notes: s.coach_notes || "",
     });
   };
@@ -117,6 +142,21 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     const vlamax = parseNum(formData.vlamax);
     const vo2max = parseNum(formData.vo2max);
     const { profile, score } = deriveMetabolicProfile(vlamax, vo2max);
+
+    // Calculer l'économie CAP
+    const runPaceSec = parsePaceToSec(formData.run_pace_ref);
+    const runHr = parseNum(formData.run_hr_ref);
+    const runDuration = parseNum(formData.run_duration_min);
+    const runDrift = parseNum(formData.run_hr_drift_pct);
+    const fcMax = parseNum(formData.fc_max);
+    
+    const economyResult = computeRunEconomyScore({
+      paceSec: runPaceSec ? Math.round(runPaceSec) : null,
+      hr: runHr ? Math.round(runHr) : null,
+      durationMin: runDuration ? Math.round(runDuration) : null,
+      driftPct: runDrift,
+      fcMax: fcMax ? Math.round(fcMax) : null,
+    });
 
     await addSnapshot({
       athlete_id: athleteId,
@@ -140,6 +180,14 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       tss_7d: parseNum(formData.tss_7d) ? Math.round(parseNum(formData.tss_7d)!) : null,
       tte_observed_min: parseNum(formData.tte_observed_min) ? Math.round(parseNum(formData.tte_observed_min)!) : null,
 
+      // 🏃 ÉCONOMIE CAP
+      run_pace_ref_sec_per_km: runPaceSec ? Math.round(runPaceSec) : null,
+      run_hr_ref_bpm: runHr ? Math.round(runHr) : null,
+      run_duration_min: runDuration ? Math.round(runDuration) : null,
+      run_hr_drift_pct: runDrift,
+      run_economy_score: economyResult.score,
+      run_economy_label: economyResult.label,
+
       metabolic_profile: profile,
       metabolic_score: score,
       coach_notes: formData.coach_notes || null,
@@ -155,6 +203,21 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     const vlamax = parseNum(formData.vlamax);
     const vo2max = parseNum(formData.vo2max);
     const { profile, score } = deriveMetabolicProfile(vlamax, vo2max);
+
+    // Calculer l'économie CAP
+    const runPaceSec = parsePaceToSec(formData.run_pace_ref);
+    const runHr = parseNum(formData.run_hr_ref);
+    const runDuration = parseNum(formData.run_duration_min);
+    const runDrift = parseNum(formData.run_hr_drift_pct);
+    const fcMax = parseNum(formData.fc_max);
+    
+    const economyResult = computeRunEconomyScore({
+      paceSec: runPaceSec ? Math.round(runPaceSec) : null,
+      hr: runHr ? Math.round(runHr) : null,
+      durationMin: runDuration ? Math.round(runDuration) : null,
+      driftPct: runDrift,
+      fcMax: fcMax ? Math.round(fcMax) : null,
+    });
 
     await updateSnapshot(editingSnapshot.id, {
       date: formData.date,
@@ -174,6 +237,14 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       tte_mode: (formData.tte_mode as any) || "LOAD",
       tss_7d: parseNum(formData.tss_7d) ? Math.round(parseNum(formData.tss_7d)!) : null,
       tte_observed_min: parseNum(formData.tte_observed_min) ? Math.round(parseNum(formData.tte_observed_min)!) : null,
+
+      // 🏃 ÉCONOMIE CAP
+      run_pace_ref_sec_per_km: runPaceSec ? Math.round(runPaceSec) : null,
+      run_hr_ref_bpm: runHr ? Math.round(runHr) : null,
+      run_duration_min: runDuration ? Math.round(runDuration) : null,
+      run_hr_drift_pct: runDrift,
+      run_economy_score: economyResult.score,
+      run_economy_label: economyResult.label,
 
       metabolic_profile: profile,
       metabolic_score: score,
@@ -418,6 +489,114 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         </div>
       </div>
 
+      {/* 🏃 ÉCONOMIE CAP */}
+      <div className="p-3 rounded-lg border border-border bg-blue-500/5">
+        <div className="flex items-center gap-2 mb-2">
+          <p className="text-sm font-medium">🏃 Économie de course (CAP)</p>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p>Plus la FC est basse à allure donnée, meilleure économie. FC max sert à contextualiser.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+        <p className="text-xs text-muted-foreground mb-3">
+          Renseigne une allure tenue 60–90 min (ou tempo 30–40 min). Si tu connais la dérive cardio, ajoute-la.
+        </p>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="run_pace_ref">Allure de référence (min:sec/km)</Label>
+            <Input
+              id="run_pace_ref"
+              type="text"
+              placeholder="4:30"
+              value={formData.run_pace_ref}
+              onChange={(e) => setFormData({ ...formData, run_pace_ref: e.target.value })}
+            />
+            <p className="text-xs text-muted-foreground mt-1">Format: mm:ss (ex: 4:30, 5:15)</p>
+          </div>
+          <div>
+            <Label htmlFor="run_hr_ref">FC moyenne (bpm)</Label>
+            <Input
+              id="run_hr_ref"
+              type="number"
+              placeholder="148"
+              value={formData.run_hr_ref}
+              onChange={(e) => setFormData({ ...formData, run_hr_ref: e.target.value })}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 mt-3">
+          <div>
+            <Label htmlFor="run_duration_min">Durée (min)</Label>
+            <Input
+              id="run_duration_min"
+              type="number"
+              placeholder="70"
+              value={formData.run_duration_min}
+              onChange={(e) => setFormData({ ...formData, run_duration_min: e.target.value })}
+            />
+          </div>
+          <div>
+            <Label htmlFor="run_hr_drift_pct">Dérive cardiaque % (optionnel)</Label>
+            <Input
+              id="run_hr_drift_pct"
+              type="number"
+              step="0.1"
+              placeholder="4.5"
+              value={formData.run_hr_drift_pct}
+              onChange={(e) => setFormData({ ...formData, run_hr_drift_pct: e.target.value })}
+            />
+          </div>
+        </div>
+
+        {/* Preview économie */}
+        <div className="mt-3 text-xs text-muted-foreground">
+          {(() => {
+            const paceSec = parsePaceToSec(formData.run_pace_ref);
+            const hr = parseNum(formData.run_hr_ref);
+            const duration = parseNum(formData.run_duration_min);
+            const drift = parseNum(formData.run_hr_drift_pct);
+            const fcMax = parseNum(formData.fc_max);
+            
+            const result = computeRunEconomyScore({
+              paceSec: paceSec ? Math.round(paceSec) : null,
+              hr: hr ? Math.round(hr) : null,
+              durationMin: duration ? Math.round(duration) : null,
+              driftPct: drift,
+              fcMax: fcMax ? Math.round(fcMax) : null,
+            });
+            
+            const style = getEconomyLabelStyle(result.label);
+            
+            if (result.score === null) {
+              return (
+                <span className="px-2 py-1 rounded border bg-muted/50 border-muted">
+                  Économie: <b>Non calculée</b> (renseignez allure + FC)
+                </span>
+              );
+            }
+            
+            return (
+              <div className="flex flex-wrap gap-2">
+                <span className={`px-2 py-1 rounded border ${style.bg}`}>
+                  Score: <b className={style.text}>{result.score}/100</b>
+                </span>
+                <span className={`px-2 py-1 rounded border ${style.bg}`}>
+                  {style.icon} <b className={style.text}>{style.labelFr}</b>
+                </span>
+              </div>
+            );
+          })()}
+        </div>
+      </div>
+
       <div>
         <Label htmlFor="coach_notes">Notes coach</Label>
         <Textarea
@@ -546,6 +725,44 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
               </span>
             </div>
           </div>
+
+          {/* 🏃 Économie CAP (si données disponibles) */}
+          {(s.run_economy_score != null || s.run_pace_ref_sec_per_km != null) && (
+            <div className="p-2 rounded-lg border border-blue-500/30 bg-blue-500/5">
+              <p className="text-xs font-medium text-blue-600 mb-2">🏃 Économie CAP</p>
+              <div className="grid grid-cols-5 gap-2 text-xs">
+                <div>
+                  <span className="text-muted-foreground">Allure:</span>{" "}
+                  <span className="font-medium">
+                    {s.run_pace_ref_sec_per_km ? formatSecToPace(s.run_pace_ref_sec_per_km) + "/km" : "—"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">FC:</span>{" "}
+                  <span className="font-medium">{s.run_hr_ref_bpm ? s.run_hr_ref_bpm + " bpm" : "—"}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Durée:</span>{" "}
+                  <span className="font-medium">{s.run_duration_min ? s.run_duration_min + " min" : "—"}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Dérive:</span>{" "}
+                  <span className="font-medium">{s.run_hr_drift_pct != null ? s.run_hr_drift_pct + "%" : "—"}</span>
+                </div>
+                <div>
+                  {(() => {
+                    const label = (s.run_economy_label as any) || "unknown";
+                    const style = getEconomyLabelStyle(label);
+                    return (
+                      <span className={`px-2 py-0.5 rounded text-xs ${style.bg} ${style.text}`}>
+                        {style.icon} {s.run_economy_score ?? "—"}/100
+                      </span>
+                    );
+                  })()}
+                </div>
+              </div>
+            </div>
+          )}
 
           <Accordion type="single" collapsible>
             <AccordionItem value="insights" className="border-none">
