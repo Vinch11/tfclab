@@ -25,6 +25,7 @@ import { SnapshotEvolutionChart } from "@/components/SnapshotEvolutionChart";
 import { AthleteRefsPanel } from "@/components/AthleteRefsPanel";
 import { MethodologyStaff } from "@/components/MethodologyStaff";
 import { NutritionPredictive } from "@/components/NutritionPredictive";
+import { NutritionTimingCard } from "@/components/NutritionTimingCard";
 import { RunningEconomyModule } from "@/components/RunningEconomyModule";
 import { StaffReport } from "@/components/StaffReport";
 import { AthleteReadinessReport } from "@/components/AthleteReadinessReport";
@@ -826,17 +827,29 @@ const Index = () => {
               }}
             />
 
-            {/* 🍝 Nutrition Prédictive (mode staff) */}
+            {/* 🍝 Nutrition Prédictive avec Timing (mode staff) */}
             {staffMode && (
-              <NutritionPredictive
-                vlamax={vlamaxEffectif.value}
-                objectif={currentAthlete?.goal || "IM"}
-                tteMin={tteEffectif.tte_min}
-                tteTarget={tteEffectif.target}
-                confidence={vlamaxEffectif.confidence}
-                staffMode={staffMode}
-                energyDrift={energyDrift}
-              />
+              <>
+                <NutritionTimingCard
+                  vlamax={vlamaxEffectif.value}
+                  tteMin={tteEffectif.tte_min}
+                  tteTarget={tteEffectif.target ?? 45}
+                  objectif={currentAthlete?.goal || "IM"}
+                  sport={currentAthlete?.goal?.toLowerCase().includes("marathon") || 
+                         currentAthlete?.goal?.toLowerCase().includes("semi") || 
+                         currentAthlete?.goal?.toLowerCase().includes("trail") ? "cap" : "velo"}
+                  energyDrift={energyDrift}
+                />
+                <NutritionPredictive
+                  vlamax={vlamaxEffectif.value}
+                  objectif={currentAthlete?.goal || "IM"}
+                  tteMin={tteEffectif.tte_min}
+                  tteTarget={tteEffectif.target}
+                  confidence={vlamaxEffectif.confidence}
+                  staffMode={staffMode}
+                  energyDrift={energyDrift}
+                />
+              </>
             )}
 
             {/* 🏃 Économie de Course (CAP uniquement, mode staff) */}

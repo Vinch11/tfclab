@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Target, AlertTriangle, CheckCircle2, TrendingDown, TrendingUp, Timer, Zap, Trophy, Info, HelpCircle, Apple, Flame } from "lucide-react";
+import { Target, AlertTriangle, CheckCircle2, TrendingDown, TrendingUp, Timer, Zap, Trophy, Info, HelpCircle, Apple, Flame, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Athlete, getDernierSnapshot } from "@/types/athlete";
 import { reglesDanLorang, ReglesDanLorangResult, RaceReadinessInputs, getPrioriteLabel, getPrioriteColor, getSeancesRecommandees, getSeancesSpecifiques, PrioriteType } from "@/types/reglesDanLorang";
@@ -16,6 +16,8 @@ import { TTEEffectif, getSourceColor as getTTESourceColor, getSourceLabel } from
 import { RaceReadinessEffectif, getScoreColor } from "@/lib/raceReadinessEffectif";
 import { TTEGuard, isTTEUnavailable } from "@/components/TTEGuard";
 import { computeNutritionEstimate } from "@/lib/nutritionPredictive";
+import { computeNutritionTiming, type DigestiveTolerance, getRiskBadgeIcon } from "@/lib/nutritionTiming";
+import { computeEnergyDrift, type EnergyDriftResult } from "@/lib/energyDrift";
 
 interface DanLorangAnalysisProps {
   athlete: Athlete;
@@ -119,6 +121,38 @@ export function DanLorangAnalysis({
       tteTarget,
     });
   }, [vlamaxEffectif.value, athlete.objectif, tteEffectif.tte_min, tteTarget]);
+
+  // =============================================
+  // ÉNERGIE DRIFT + NUTRITION TIMING
+  // =============================================
+  const sport = useMemo(() => {
+    const obj = (athlete.objectif || "").toLowerCase();
+    if (obj.includes("marathon") || obj.includes("semi") || obj.includes("trail") || obj.includes("cap")) {
+      return "cap" as const;
+    }
+    return "velo" as const;
+  }, [athlete.objectif]);
+
+  const energyDrift = useMemo<EnergyDriftResult>(() => {
+    return computeEnergyDrift({
+      vlamaxEffectif,
+      tteEffectif,
+      objectif: athlete.objectif || "IM",
+      tss7d: snapshot?.tss_7j ?? null,
+    });
+  }, [vlamaxEffectif, tteEffectif, athlete.objectif, snapshot]);
+
+  const nutritionTiming = useMemo(() => {
+    return computeNutritionTiming({
+      vlamax: vlamaxEffectif.value,
+      tteMin: tteEffectif.tte_min,
+      tteTarget,
+      objectif: athlete.objectif || "IM",
+      sport,
+      digestiveTolerance: "MEDIUM",
+      energyDrift,
+    });
+  }, [vlamaxEffectif.value, tteEffectif.tte_min, tteTarget, athlete.objectif, sport, energyDrift]);
 
   // ✅ RACE READINESS EFFECTIF - Utilise la prop si fournie (plus de calcul local!)
   const readiness = readinessProp ?? {
@@ -474,6 +508,33 @@ export function DanLorangAnalysis({
               <p className="text-xs text-destructive">
                 ⚠️ Race Readiness plafonné à {nutritionEstimate.nutritionalRiskIndex.raceReadinessCap}% – {nutritionEstimate.nutritionalRiskIndex.mainRiskFactor}
               </p>
+            </div>
+          )}
+
+          {/* Timing par phases (résumé compact) */}
+          {!nutritionTiming.isDataInsufficient && nutritionTiming.phases.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-border">
+              <div className="flex items-center gap-2 mb-3">
+                <Clock className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-foreground">Timing par phases</span>
+                <span className={cn(
+                  "ml-auto px-2 py-0.5 rounded text-xs",
+                  nutritionTiming.riskBadgeColor === "success" ? "bg-success/10 text-success" :
+                  nutritionTiming.riskBadgeColor === "warning" ? "bg-warning/10 text-warning" :
+                  "bg-destructive/10 text-destructive"
+                )}>
+                  {getRiskBadgeIcon(nutritionTiming.riskBadge)} {nutritionTiming.riskBadgeLabel}
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {nutritionTiming.phases.map((phase) => (
+                  <div key={phase.name} className="p-2 rounded-lg bg-secondary/30 border border-border text-center">
+                    <p className="text-xs text-muted-foreground">{phase.label}</p>
+                    <p className="text-lg font-bold font-mono text-foreground">{phase.carbsGh}</p>
+                    <p className="text-[10px] text-muted-foreground">g/h</p>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
