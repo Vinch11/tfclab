@@ -1,6 +1,7 @@
 // =============================================
 // COMPOSANT ANALYSE PHYSIOLOGIQUE ÉLITE
 // + Section Économie de Course (CAP)
+// + Section Nutrition Prédictive (g/h)
 // =============================================
 
 import React, { useMemo } from "react";
@@ -24,13 +25,16 @@ import {
   AlertTriangle,
   CheckCircle,
   Info,
-  Footprints
+  Footprints,
+  Apple,
+  Flame
 } from "lucide-react";
 import { VLamaxEffectif, getSourceColor as getVLamaxSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
 import { TTEEffectif, getSourceColor as getTTESourceColor, getSourceLabel } from "@/lib/tteEffectif";
 import { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { cn } from "@/lib/utils";
 import { getEconomyLabelStyle, getEconomyRaceReadinessBonus } from "@/lib/runningEconomySnapshot";
+import { computeNutritionEstimate, type NutritionEstimate, type Sport } from "@/lib/nutritionPredictive";
 
 interface PhysiologicalAnalysisProps {
   athlete: Athlete;
@@ -70,6 +74,18 @@ export function PhysiologicalAnalysis({ athlete, vlamaxEffectif, tteEffectif: tt
     analysePhysiologiqueComplete(tests, vo2max, athlete.objectif),
     [tests, vo2max, athlete.objectif]
   );
+
+  // =============================================
+  // NUTRITION PRÉDICTIVE
+  // =============================================
+  const nutritionEstimate = useMemo(() => {
+    return computeNutritionEstimate({
+      vlamax,
+      objectif: athlete.objectif || "IM",
+      tteMin: tteEffectifProp?.tte_min ?? null,
+      tteTarget: tteEffectifProp?.target ?? 50,
+    });
+  }, [vlamax, athlete.objectif, tteEffectifProp?.tte_min, tteEffectifProp?.target]);
 
   const getInterpretationIcon = () => {
     switch (analyse.interpretation.status) {
@@ -366,6 +382,98 @@ export function PhysiologicalAnalysis({ athlete, vlamaxEffectif, tteEffectif: tt
                 </p>
               </div>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 🍝 Nutrition Prédictive (g/h) */}
+      {nutritionEstimate && (
+        <Card className={cn(
+          "border-2",
+          nutritionEstimate.nutritionalRiskIndex.level === 'low' ? 'border-success/30 bg-success/5' :
+          nutritionEstimate.nutritionalRiskIndex.level === 'moderate' ? 'border-warning/30 bg-warning/5' :
+          'border-destructive/30 bg-destructive/5'
+        )}>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Apple className="h-4 w-4 text-primary" />
+              Nutrition prédictive (g/h)
+              <Badge variant="outline" className="ml-2 text-xs">Staff</Badge>
+            </CardTitle>
+            <CardDescription>
+              Estimation de l'apport glucidique horaire nécessaire pour maintenir la performance
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Recommandation principale */}
+            <div className="flex items-center justify-between p-4 rounded-xl bg-primary/5 border border-primary/20">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-xl bg-primary/10">
+                  <Flame className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Recommandé</p>
+                  <p className="text-2xl font-bold text-foreground font-mono">
+                    {nutritionEstimate.carbsMin}–{nutritionEstimate.carbsMax} g/h
+                  </p>
+                </div>
+              </div>
+              <div className={cn(
+                "px-4 py-2 rounded-xl text-center",
+                nutritionEstimate.nutritionalRiskIndex.level === 'low' ? 'bg-success/10' :
+                nutritionEstimate.nutritionalRiskIndex.level === 'moderate' ? 'bg-warning/10' :
+                'bg-destructive/10'
+              )}>
+                <span className="text-xl mr-1">{nutritionEstimate.nutritionalRiskIndex.icon}</span>
+                <span className={cn(
+                  "font-semibold text-sm",
+                  nutritionEstimate.nutritionalRiskIndex.level === 'low' ? 'text-success' :
+                  nutritionEstimate.nutritionalRiskIndex.level === 'moderate' ? 'text-warning' :
+                  'text-destructive'
+                )}>
+                  Risque {nutritionEstimate.nutritionalRiskIndex.label}
+                </span>
+              </div>
+            </div>
+
+            {/* Pourquoi ce calcul */}
+            <div className="p-3 rounded-lg bg-secondary/30 border border-border">
+              <div className="flex items-center gap-2 text-sm mb-2">
+                <Info className="h-4 w-4 text-primary" />
+                <span className="font-medium text-foreground">Pourquoi ce calcul ?</span>
+              </div>
+              <ul className="text-xs text-muted-foreground space-y-1">
+                <li>• <strong className="text-foreground">VLamax</strong> détermine la part de glucides utilisée</li>
+                <li>• <strong className="text-foreground">TTE</strong> reflète la capacité à tenir l'intensité</li>
+                <li>• <strong className="text-foreground">Économie de course</strong> indique le coût énergétique réel</li>
+              </ul>
+            </div>
+
+            {/* Message staff */}
+            <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+              <p className="text-xs text-muted-foreground">
+                <span className="font-medium text-foreground">📊 Staff:</span> {nutritionEstimate.messageStaff}
+              </p>
+            </div>
+
+            {/* Warnings */}
+            {nutritionEstimate.warnings.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {nutritionEstimate.warnings.map((warning, idx) => (
+                  <Badge key={idx} variant="outline" className="bg-warning/10 border-warning/30 text-warning-foreground text-xs">
+                    ⚠️ {warning}
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            {/* Limites */}
+            <div className="p-2 rounded-lg bg-muted/30 border border-border">
+              <p className="text-[10px] text-muted-foreground">
+                ⚠️ Cette estimation ne remplace pas un test de tolérance digestive. 
+                Adapter selon l'expérience terrain, la chaleur et l'intensité réelle.
+              </p>
+            </div>
           </CardContent>
         </Card>
       )}
