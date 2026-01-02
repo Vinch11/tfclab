@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Target, TrendingUp, Zap, Heart, Activity, ChevronRight, HelpCircle, Footprints, AlertTriangle } from "lucide-react";
+import { Target, TrendingUp, Zap, Heart, Activity, ChevronRight, HelpCircle, Footprints, AlertTriangle, Battery, BatteryLow, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCloudData } from "@/hooks/useCloudData";
 import type { DbSnapshot } from "@/hooks/useCloudData";
@@ -8,17 +8,20 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 import { VLamaxEffectif, getSourceColor as getVLamaxSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
 import { TTEEffectif, getSourceColor as getTTESourceColor, getSourceLabel } from "@/lib/tteEffectif";
 import { RaceReadinessEffectif, getScoreColor, getScoreBgColor, getObjectifLabel } from "@/lib/raceReadinessEffectif";
 import { TTEGuard, isTTEUnavailable } from "@/components/TTEGuard";
 import { getEconomyRaceReadinessBonus } from "@/lib/runningEconomySnapshot";
+import { EnergyDriftResult, getFactorLabel, getFactorColor } from "@/lib/energyDrift";
 
 interface RaceReadinessCardProps {
   athlete: any;
   vlamaxEffectif?: VLamaxEffectif;
   tteEffectif?: TTEEffectif;
   readiness?: RaceReadinessEffectif;
+  energyDrift?: EnergyDriftResult;
   onGoToSnapshots?: () => void;
   onGoToMethodology?: () => void;
 }
@@ -37,6 +40,7 @@ export function RaceReadinessCard({
   vlamaxEffectif: vlamaxEffectifProp,
   tteEffectif: tteEffectifProp,
   readiness: readinessProp,
+  energyDrift,
   onGoToSnapshots,
   onGoToMethodology
 }: RaceReadinessCardProps) {
@@ -346,6 +350,41 @@ export function RaceReadinessCard({
               {readiness.wasCappedByEconomy && (
                 <p className="text-xs text-orange-600 mt-1">
                   🏃 Plafonné: {readiness.economyCapReason}
+                </p>
+              )}
+            </div>
+          )}
+          
+          {/* ⚡ DÉRIVE ÉNERGÉTIQUE */}
+          {energyDrift && (
+            <div className={cn(
+              "mt-3 p-3 rounded-lg border",
+              energyDrift.color === "success" ? "bg-success/5 border-success/30" :
+              energyDrift.color === "warning" ? "bg-warning/5 border-warning/30" :
+              "bg-destructive/5 border-destructive/30"
+            )}>
+              <div className="flex items-center gap-2 mb-2">
+                {energyDrift.level === "low" ? (
+                  <Battery className="h-4 w-4 text-success" />
+                ) : energyDrift.level === "moderate" ? (
+                  <BatteryLow className="h-4 w-4 text-warning" />
+                ) : (
+                  <TrendingDown className="h-4 w-4 text-destructive" />
+                )}
+                <span className="text-xs font-medium text-foreground">Dérive Énergétique</span>
+                <Badge variant={
+                  energyDrift.level === "low" ? "secondary" :
+                  energyDrift.level === "moderate" ? "default" : "destructive"
+                } className="ml-auto text-xs">
+                  {energyDrift.icon} {energyDrift.label}
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {energyDrift.messageStaff}
+              </p>
+              {energyDrift.criticalTime && (
+                <p className="text-xs mt-1 text-foreground">
+                  ⏱️ Moment critique: <strong>{energyDrift.criticalTime}</strong>
                 </p>
               )}
             </div>
