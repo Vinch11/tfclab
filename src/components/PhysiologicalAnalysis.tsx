@@ -1,5 +1,6 @@
 // =============================================
 // COMPOSANT ANALYSE PHYSIOLOGIQUE ÉLITE
+// + Section Économie de Course (CAP)
 // =============================================
 
 import React, { useMemo } from "react";
@@ -22,12 +23,14 @@ import {
   Heart,
   AlertTriangle,
   CheckCircle,
-  Info
+  Info,
+  Footprints
 } from "lucide-react";
 import { VLamaxEffectif, getSourceColor as getVLamaxSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
 import { TTEEffectif, getSourceColor as getTTESourceColor, getSourceLabel } from "@/lib/tteEffectif";
 import { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { cn } from "@/lib/utils";
+import { getEconomyLabelStyle, getEconomyRaceReadinessBonus } from "@/lib/runningEconomySnapshot";
 
 interface PhysiologicalAnalysisProps {
   athlete: Athlete;
@@ -267,6 +270,105 @@ export function PhysiologicalAnalysis({ athlete, vlamaxEffectif, tteEffectif: tt
           </div>
         </CardContent>
       </Card>
+
+      {/* 🏃 Économie de Course (CAP) - Affiché uniquement si données disponibles */}
+      {readinessProp?.runningEconomy?.isApplicable && (
+        <Card className="border-blue-500/30 bg-blue-500/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Footprints className="h-4 w-4 text-blue-600" />
+              Économie de course (CAP)
+            </CardTitle>
+            <CardDescription>
+              Facteur clé de performance en semi-marathon, marathon et trail
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Score et niveau */}
+            <div className="flex items-center gap-4">
+              <div className={cn(
+                "px-4 py-2 rounded-xl text-center",
+                readinessProp.runningEconomy.color === 'success' ? 'bg-green-500/10' :
+                readinessProp.runningEconomy.color === 'warning' ? 'bg-yellow-500/10' :
+                readinessProp.runningEconomy.color === 'orange' ? 'bg-orange-500/10' :
+                'bg-red-500/10'
+              )}>
+                <span className={cn(
+                  "text-2xl font-bold",
+                  readinessProp.runningEconomy.color === 'success' ? 'text-green-600' :
+                  readinessProp.runningEconomy.color === 'warning' ? 'text-yellow-600' :
+                  readinessProp.runningEconomy.color === 'orange' ? 'text-orange-600' :
+                  'text-red-600'
+                )}>
+                  {readinessProp.runningEconomy.levelIcon}
+                </span>
+                <p className={cn(
+                  "text-sm font-medium",
+                  readinessProp.runningEconomy.color === 'success' ? 'text-green-600' :
+                  readinessProp.runningEconomy.color === 'warning' ? 'text-yellow-600' :
+                  readinessProp.runningEconomy.color === 'orange' ? 'text-orange-600' :
+                  'text-red-600'
+                )}>
+                  {readinessProp.runningEconomy.levelLabel}
+                </p>
+              </div>
+              
+              <div className="flex-1">
+                <p className="text-sm text-muted-foreground">
+                  {readinessProp.runningEconomy.analysisMessage}
+                </p>
+              </div>
+            </div>
+            
+            {/* Dérive cardiaque */}
+            {readinessProp.runningEconomy.deriveEstimee !== null && (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-muted-foreground">Dérive cardiaque:</span>
+                <span className="font-medium">{readinessProp.runningEconomy.deriveLabel}</span>
+              </div>
+            )}
+            
+            {/* Lien métabolique */}
+            <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+              <div className="flex items-center gap-2 text-sm mb-2">
+                <Zap className="h-4 w-4 text-primary" />
+                <span className="font-medium">Lien avec VLamax / TTE</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                <strong className="text-foreground">VLamax</strong> → production d'énergie |{" "}
+                <strong className="text-foreground">TTE</strong> → capacité à tenir l'intensité |{" "}
+                <strong className="text-foreground">Économie</strong> → coût physiologique réel
+              </p>
+              <p className="text-xs text-primary mt-2 font-medium">
+                À VLamax et TTE identiques, l'athlète le plus économique gagne.
+              </p>
+            </div>
+            
+            {/* Leviers d'optimisation */}
+            {readinessProp.runningEconomy.optimisationLevier.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Leviers d'optimisation:</p>
+                <div className="flex flex-wrap gap-2">
+                  {readinessProp.runningEconomy.optimisationLevier.slice(0, 3).map((levier, i) => (
+                    <span key={i} className="text-xs px-2 py-1 rounded bg-muted border border-border">
+                      {levier}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Impact Race Readiness */}
+            {readinessProp.wasCappedByEconomy && (
+              <div className="p-2 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                <p className="text-xs text-orange-600">
+                  🏃 Race Readiness plafonné: {readinessProp.economyCapReason}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

@@ -23,8 +23,20 @@ import {
   parsePaceToSec, 
   formatSecToPace, 
   computeRunEconomyScore, 
-  getEconomyLabelStyle 
+  getEconomyLabelStyle,
+  getEconomyRaceReadinessBonus
 } from "@/lib/runningEconomySnapshot";
+
+// CAP objectives where running economy is critical
+const CAP_OBJECTIVES = [
+  "Marathon", "Semi", "Course", "Trail", "TrailCourt", "TrailLong", 
+  "TrailMountain", "TrailUltra", "TrailShort", "TriathlonLD", "IM", "Ironman", "70.3"
+];
+
+function isRunningObjective(goal: string | null | undefined): boolean {
+  if (!goal) return false;
+  return CAP_OBJECTIVES.includes(goal);
+}
 
 interface SnapshotManagerProps {
   athleteId: string;
@@ -489,113 +501,186 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         </div>
       </div>
 
-      {/* 🏃 ÉCONOMIE CAP */}
-      <div className="p-3 rounded-lg border border-border bg-blue-500/5">
-        <div className="flex items-center gap-2 mb-2">
-          <p className="text-sm font-medium">🏃 Économie de course (CAP)</p>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <HelpCircle className="h-4 w-4 text-muted-foreground" />
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                <p>Plus la FC est basse à allure donnée, meilleure économie. FC max sert à contextualiser.</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-        <p className="text-xs text-muted-foreground mb-3">
-          Renseigne une allure tenue 60–90 min (ou tempo 30–40 min). Si tu connais la dérive cardio, ajoute-la.
-        </p>
+      {/* 🏃 ÉCONOMIE DE COURSE (CAP) - Module Staff-Grade */}
+      {isRunningObjective(athleteGoal) && (
+        <div className="p-4 rounded-lg border-2 border-blue-500/30 bg-blue-500/5">
+          <div className="flex items-center gap-2 mb-3">
+            <p className="text-base font-semibold">🏃 Économie de course (CAP)</p>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-sm">
+                  <p className="font-medium mb-2">Économie de course = efficience physiologique</p>
+                  <p className="text-xs mb-2">Combien d'effort cardiaque est nécessaire pour maintenir une allure donnée dans la durée.</p>
+                  <p className="text-xs">Plus la FC est basse à allure donnée → meilleure économie → performance facilitée.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          
+          {/* Description pédagogique */}
+          <div className="p-3 rounded-lg bg-background/50 border border-border mb-4">
+            <p className="text-sm text-muted-foreground mb-2">
+              Cette section évalue l'efficience en course à pied : combien d'effort cardiaque est nécessaire pour maintenir une allure donnée dans la durée.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              <strong className="text-foreground">L'économie de course est un facteur clé</strong> en semi-marathon, marathon, trail et triathlon longue distance.
+            </p>
+          </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="run_pace_ref">Allure de référence (min:sec/km)</Label>
-            <Input
-              id="run_pace_ref"
-              type="text"
-              placeholder="4:30"
-              value={formData.run_pace_ref}
-              onChange={(e) => setFormData({ ...formData, run_pace_ref: e.target.value })}
-            />
-            <p className="text-xs text-muted-foreground mt-1">Format: mm:ss (ex: 4:30, 5:15)</p>
+          {/* Conseils intégrés */}
+          <div className="flex flex-wrap gap-2 mb-4 text-xs">
+            <span className="px-2 py-1 rounded bg-blue-500/10 text-blue-600 border border-blue-500/20">
+              💡 Sortie continue 60-90 min idéale
+            </span>
+            <span className="px-2 py-1 rounded bg-blue-500/10 text-blue-600 border border-blue-500/20">
+              💡 Tempo stable 30-45 min aussi valable
+            </span>
+            <span className="px-2 py-1 rounded bg-muted/50 text-muted-foreground border border-muted">
+              ⚠️ Éviter séances fractionnées/irrégulières
+            </span>
           </div>
-          <div>
-            <Label htmlFor="run_hr_ref">FC moyenne (bpm)</Label>
-            <Input
-              id="run_hr_ref"
-              type="number"
-              placeholder="148"
-              value={formData.run_hr_ref}
-              onChange={(e) => setFormData({ ...formData, run_hr_ref: e.target.value })}
-            />
-          </div>
-        </div>
 
-        <div className="grid grid-cols-2 gap-4 mt-3">
-          <div>
-            <Label htmlFor="run_duration_min">Durée (min)</Label>
-            <Input
-              id="run_duration_min"
-              type="number"
-              placeholder="70"
-              value={formData.run_duration_min}
-              onChange={(e) => setFormData({ ...formData, run_duration_min: e.target.value })}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="run_pace_ref">Allure de référence (min:sec/km)</Label>
+              <Input
+                id="run_pace_ref"
+                type="text"
+                placeholder="4:30"
+                value={formData.run_pace_ref}
+                onChange={(e) => setFormData({ ...formData, run_pace_ref: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground mt-1">Allure tenue de façon stable pendant la séance</p>
+            </div>
+            <div>
+              <Label htmlFor="run_hr_ref">Fréquence cardiaque moyenne (bpm)</Label>
+              <Input
+                id="run_hr_ref"
+                type="number"
+                placeholder="148"
+                value={formData.run_hr_ref}
+                onChange={(e) => setFormData({ ...formData, run_hr_ref: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground mt-1">FC moyenne observée à cette allure</p>
+            </div>
           </div>
-          <div>
-            <Label htmlFor="run_hr_drift_pct">Dérive cardiaque % (optionnel)</Label>
-            <Input
-              id="run_hr_drift_pct"
-              type="number"
-              step="0.1"
-              placeholder="4.5"
-              value={formData.run_hr_drift_pct}
-              onChange={(e) => setFormData({ ...formData, run_hr_drift_pct: e.target.value })}
-            />
-          </div>
-        </div>
 
-        {/* Preview économie */}
-        <div className="mt-3 text-xs text-muted-foreground">
-          {(() => {
-            const paceSec = parsePaceToSec(formData.run_pace_ref);
-            const hr = parseNum(formData.run_hr_ref);
-            const duration = parseNum(formData.run_duration_min);
-            const drift = parseNum(formData.run_hr_drift_pct);
-            const fcMax = parseNum(formData.fc_max);
-            
-            const result = computeRunEconomyScore({
-              paceSec: paceSec ? Math.round(paceSec) : null,
-              hr: hr ? Math.round(hr) : null,
-              durationMin: duration ? Math.round(duration) : null,
-              driftPct: drift,
-              fcMax: fcMax ? Math.round(fcMax) : null,
-            });
-            
-            const style = getEconomyLabelStyle(result.label);
-            
-            if (result.score === null) {
+          <div className="grid grid-cols-2 gap-4 mt-3">
+            <div>
+              <Label htmlFor="run_duration_min">Durée de la séance (min)</Label>
+              <Input
+                id="run_duration_min"
+                type="number"
+                placeholder="70"
+                value={formData.run_duration_min}
+                onChange={(e) => setFormData({ ...formData, run_duration_min: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground mt-1">Durée totale à allure stable</p>
+            </div>
+            <div>
+              <Label htmlFor="run_hr_drift_pct">Dérive cardiaque % (recommandé)</Label>
+              <Input
+                id="run_hr_drift_pct"
+                type="number"
+                step="0.1"
+                placeholder="4.5"
+                value={formData.run_hr_drift_pct}
+                onChange={(e) => setFormData({ ...formData, run_hr_drift_pct: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground mt-1">Augmentation FC entre début et fin (ex: +6%)</p>
+            </div>
+          </div>
+
+          {/* Preview économie avec interprétation */}
+          <div className="mt-4 p-3 rounded-lg border border-border bg-background/50">
+            {(() => {
+              const paceSec = parsePaceToSec(formData.run_pace_ref);
+              const hr = parseNum(formData.run_hr_ref);
+              const duration = parseNum(formData.run_duration_min);
+              const drift = parseNum(formData.run_hr_drift_pct);
+              const fcMax = parseNum(formData.fc_max);
+              
+              const result = computeRunEconomyScore({
+                paceSec: paceSec ? Math.round(paceSec) : null,
+                hr: hr ? Math.round(hr) : null,
+                durationMin: duration ? Math.round(duration) : null,
+                driftPct: drift,
+                fcMax: fcMax ? Math.round(fcMax) : null,
+              });
+              
+              const style = getEconomyLabelStyle(result.label);
+              
+              if (result.score === null) {
+                return (
+                  <div className="text-center">
+                    <span className="text-sm text-muted-foreground">
+                      Score non calculé — renseignez allure + FC pour activer l'analyse
+                    </span>
+                  </div>
+                );
+              }
+              
+              // Bonus/Malus pour Race Readiness
+              const bonusInfo = getEconomyRaceReadinessBonus(result.score, result.label);
+              
               return (
-                <span className="px-2 py-1 rounded border bg-muted/50 border-muted">
-                  Économie: <b>Non calculée</b> (renseignez allure + FC)
-                </span>
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-3 items-center justify-center">
+                    <div className={`px-4 py-2 rounded-lg ${style.bg}`}>
+                      <span className={`text-2xl font-bold ${style.text}`}>{result.score}</span>
+                      <span className="text-sm text-muted-foreground">/100</span>
+                    </div>
+                    <div className={`px-3 py-2 rounded-lg ${style.bg}`}>
+                      <span className="text-lg">{style.icon}</span>
+                      <span className={`ml-2 font-medium ${style.text}`}>{style.labelFr}</span>
+                    </div>
+                  </div>
+                  
+                  {/* Interprétation du score */}
+                  <div className="text-center">
+                    {result.score >= 75 && (
+                      <p className="text-xs text-green-600">
+                        ✅ Économie excellente — Allure durable, faible dérive cardiaque
+                        <br/><strong>→ BONUS important sur Race Readiness CAP</strong>
+                      </p>
+                    )}
+                    {result.score >= 55 && result.score < 75 && (
+                      <p className="text-xs text-blue-600">
+                        ✔️ Bonne économie — Base solide mais perfectible
+                        <br/><strong>→ BONUS modéré sur Race Readiness CAP</strong>
+                      </p>
+                    )}
+                    {result.score < 55 && (
+                      <p className="text-xs text-orange-600">
+                        ⚠️ Économie fragile — Coût cardiaque élevé, dérive importante
+                        <br/><strong>→ MALUS sur Race Readiness CAP</strong>
+                      </p>
+                    )}
+                  </div>
+                  
+                  <div className="text-center text-xs text-muted-foreground border-t border-border pt-2">
+                    Impact Race Readiness: <span className={bonusInfo.bonus >= 0 ? "text-green-600" : "text-orange-600"}>
+                      {bonusInfo.description}
+                    </span>
+                  </div>
+                </div>
               );
-            }
-            
-            return (
-              <div className="flex flex-wrap gap-2">
-                <span className={`px-2 py-1 rounded border ${style.bg}`}>
-                  Score: <b className={style.text}>{result.score}/100</b>
-                </span>
-                <span className={`px-2 py-1 rounded border ${style.bg}`}>
-                  {style.icon} <b className={style.text}>{style.labelFr}</b>
-                </span>
-              </div>
-            );
-          })()}
+            })()}
+          </div>
+          
+          {/* Méthodologie */}
+          <div className="mt-4 p-3 rounded-lg bg-muted/30 border border-border">
+            <p className="text-xs text-muted-foreground">
+              <strong className="text-foreground">📊 Méthodologie:</strong> Ce score est basé sur des données terrain.
+              Il ne remplace pas un test laboratoire mais permet une analyse fiable pour la prise de décision coach.
+              La précision dépend directement de la qualité des données saisies.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       <div>
         <Label htmlFor="coach_notes">Notes coach</Label>
