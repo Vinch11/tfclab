@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Target, TrendingUp, Zap, Heart, Activity, ChevronRight, HelpCircle, Footprints } from "lucide-react";
+import { Target, TrendingUp, Zap, Heart, Activity, ChevronRight, HelpCircle, Footprints, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCloudData } from "@/hooks/useCloudData";
 import type { DbSnapshot } from "@/hooks/useCloudData";
@@ -298,6 +298,30 @@ export function RaceReadinessCard({
           
           {readiness.inputsUsed.ftpKg !== null && (
             <p>• <strong className="text-foreground">FTP/kg</strong> : {readiness.inputsUsed.ftpKg.toFixed(1)} W/kg (cible: ≥{readiness.targets?.ftpKgTarget ?? "—"} W/kg)</p>
+          )}
+          
+          {/* 🔥 ALERTE RISQUE NUTRITIONNEL ÉLEVÉ */}
+          {readiness.nutritionalRiskIndex && (readiness.nutritionalRiskIndex.level === 'high' || readiness.nutritionalRiskIndex.level === 'critical') && (
+            <div className="mt-3 p-3 rounded-lg bg-destructive/10 border border-destructive/30">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+                <span className="text-sm font-semibold text-destructive">
+                  Nutrition = facteur limitant probable
+                </span>
+              </div>
+              <p className="text-xs text-destructive/80">
+                {readiness.nutritionalRiskIndex.messageStaff}
+              </p>
+              <div className="mt-2 flex items-center gap-2 text-xs">
+                <span className="text-destructive font-medium">
+                  Besoin: {readiness.nutritionalRiskIndex.carbsRequired} g/h
+                </span>
+                <span className="text-muted-foreground">•</span>
+                <span className="text-muted-foreground">
+                  Tolérance: {readiness.nutritionalRiskIndex.toleranceZone} g/h
+                </span>
+              </div>
+            </div>
           )}
           
           {/* 🏃 Économie CAP - Affiché uniquement pour objectifs course */}

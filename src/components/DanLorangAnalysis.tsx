@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Target, AlertTriangle, CheckCircle2, TrendingDown, TrendingUp, Timer, Zap, Trophy, Info, HelpCircle } from "lucide-react";
+import { Target, AlertTriangle, CheckCircle2, TrendingDown, TrendingUp, Timer, Zap, Trophy, Info, HelpCircle, Apple, Flame } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Athlete, getDernierSnapshot } from "@/types/athlete";
 import { reglesDanLorang, ReglesDanLorangResult, RaceReadinessInputs, getPrioriteLabel, getPrioriteColor, getSeancesRecommandees, getSeancesSpecifiques, PrioriteType } from "@/types/reglesDanLorang";
@@ -15,6 +15,7 @@ import { VLamaxEffectif, getSourceColor as getVLamaxSourceColor, getConfidenceLa
 import { TTEEffectif, getSourceColor as getTTESourceColor, getSourceLabel } from "@/lib/tteEffectif";
 import { RaceReadinessEffectif, getScoreColor } from "@/lib/raceReadinessEffectif";
 import { TTEGuard, isTTEUnavailable } from "@/components/TTEGuard";
+import { computeNutritionEstimate } from "@/lib/nutritionPredictive";
 
 interface DanLorangAnalysisProps {
   athlete: Athlete;
@@ -98,6 +99,7 @@ export function DanLorangAnalysis({
     const result = reglesDanLorang(athlete, vlamax, tte, ftp_kg, inputs.seance_specifique_validee, inputs.fatigue_ok);
     setAnalysis(result);
   }, [athlete, vlamax, tte, ftp_kg, inputs]);
+
   const PrioriteIcon = prioriteIcons[analysis.priorite] || CheckCircle2;
   const recommendations = getRecommandationsPriorite(analysis.priorite);
   const seancesRecommandees = getSeancesRecommandees(analysis.priorite);
@@ -105,6 +107,18 @@ export function DanLorangAnalysis({
   // Targets
   const ftpTarget = athlete.objectif === "IM" ? 4.6 : 4.8;
   const tteTarget = athlete.objectif === "IM" ? 55 : 45;
+
+  // =============================================
+  // NUTRITION PRÉDICTIVE
+  // =============================================
+  const nutritionEstimate = useMemo(() => {
+    return computeNutritionEstimate({
+      vlamax: vlamaxEffectif.value,
+      objectif: athlete.objectif || "IM",
+      tteMin: tteEffectif.tte_min,
+      tteTarget,
+    });
+  }, [vlamaxEffectif.value, athlete.objectif, tteEffectif.tte_min, tteTarget]);
 
   // ✅ RACE READINESS EFFECTIF - Utilise la prop si fournie (plus de calcul local!)
   const readiness = readinessProp ?? {
@@ -410,5 +424,59 @@ export function DanLorangAnalysis({
             </div>
           </div>}
       </div>
+
+      {/* 🍝 FUELING RECOMMANDÉ - Encart final cohérent avec l'analyse métabolique */}
+      {nutritionEstimate && (
+        <div className={cn(
+          "mt-6 p-4 rounded-xl border-2",
+          nutritionEstimate.nutritionalRiskIndex.level === 'low' ? 'bg-success/5 border-success/30' :
+          nutritionEstimate.nutritionalRiskIndex.level === 'moderate' ? 'bg-warning/5 border-warning/30' :
+          'bg-destructive/5 border-destructive/30'
+        )}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Apple className="w-5 h-5 text-primary" />
+              <h3 className="font-semibold text-foreground">Fueling recommandé</h3>
+            </div>
+            <div className={cn(
+              "flex items-center gap-1 px-3 py-1 rounded-full text-sm",
+              nutritionEstimate.nutritionalRiskIndex.level === 'low' ? 'bg-success/10 text-success' :
+              nutritionEstimate.nutritionalRiskIndex.level === 'moderate' ? 'bg-warning/10 text-warning' :
+              'bg-destructive/10 text-destructive'
+            )}>
+              <span>{nutritionEstimate.nutritionalRiskIndex.icon}</span>
+              <span className="font-medium">{nutritionEstimate.nutritionalRiskIndex.label}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 mb-3">
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
+              <Flame className="h-5 w-5 text-primary" />
+              <div>
+                <p className="text-xs text-muted-foreground">Glucides cible</p>
+                <p className="text-xl font-bold font-mono text-foreground">
+                  {nutritionEstimate.carbsMin}–{nutritionEstimate.carbsMax} g/h
+                </p>
+              </div>
+            </div>
+            <div className="flex-1">
+              <p className="text-xs text-muted-foreground mb-1">VLamax: <span className="font-medium text-foreground">{nutritionEstimate.vlamaxLabel}</span></p>
+              <p className="text-xs text-muted-foreground">Zone de tolérance: <span className="font-medium text-foreground">{nutritionEstimate.nutritionalRiskIndex.toleranceZone} g/h</span></p>
+            </div>
+          </div>
+
+          <p className="text-xs text-muted-foreground">
+            {nutritionEstimate.nutritionalRiskIndex.messagePedagogique}
+          </p>
+
+          {nutritionEstimate.nutritionalRiskIndex.raceReadinessCap && (
+            <div className="mt-2 p-2 rounded-lg bg-destructive/10 border border-destructive/20">
+              <p className="text-xs text-destructive">
+                ⚠️ Race Readiness plafonné à {nutritionEstimate.nutritionalRiskIndex.raceReadinessCap}% – {nutritionEstimate.nutritionalRiskIndex.mainRiskFactor}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
     </div>;
 }
