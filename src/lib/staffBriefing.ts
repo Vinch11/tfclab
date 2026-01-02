@@ -612,7 +612,7 @@ export function formatBriefingForClipboard(briefing: StaffBriefing): string {
   lines.push("");
   
   lines.push("───────────────────────────────────────");
-  lines.push(`Généré par Two For Coaching Lab | ${new Date(briefing.generatedAt).toLocaleDateString("fr-FR")}`);
+  lines.push(`Généré par 24C Lab | ${new Date(briefing.generatedAt).toLocaleDateString("fr-FR")}`);
   
   return lines.join("\n");
 }
