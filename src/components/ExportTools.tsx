@@ -90,8 +90,8 @@ function buildAthleteReportHTML(athlete: Athlete): string {
   const plan = (athlete as any).plan || null;
 
   const coachName = "Two For Coaching";
-  const brandMain = "Vince's Lab";
-  const brandSub = "by Two For Coaching";
+  const brandMain = "Two For Coaching Lab";
+  const brandSub = "Staff-grade Performance Intelligence";
   const createdAt = new Date().toISOString();
 
   const title = `${brandMain} — Rapport Athlète — ${athlete.nom || "Athlète"}`;

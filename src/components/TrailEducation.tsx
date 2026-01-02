@@ -51,7 +51,7 @@ const getTrailEducationContent = (): { title: string; sections: TrailEducationSe
       p: [
         "Sur trail court/long, la VO₂max (capacité aérobie) et l'économie (technique, force, efficience en montée/descente) influencent fortement la performance.",
         "La VLamax reste pertinente : une VLamax très élevée peut pénaliser l'efficacité aérobie sur effort long, tandis qu'une VLamax trop basse peut limiter les relances et la capacité à encaisser les changements de rythme.",
-        "Vince's Lab utilise la VLamax estimée et un score synthétique (SPM) pour guider la répartition des séances A/B/C/D, sans remplacer l'expertise coach."
+        "Two For Coaching Lab utilise la VLamax estimée et un score synthétique (SPM) pour guider la répartition des séances A/B/C/D, sans remplacer l'expertise coach."
       ]
     },
     {
@@ -83,7 +83,7 @@ const getTrailEducationContent = (): { title: string; sections: TrailEducationSe
       icon: <AlertTriangle className="h-5 w-5" />,
       p: [
         "Les estimations sont basées sur des données terrain et comportent une incertitude. L'application fournit un indice de confiance pour la quantifier.",
-        "Vince's Lab est un outil d'aide à la décision et ne remplace pas un avis médical ni un protocole de laboratoire lorsque nécessaire.",
+        "Two For Coaching Lab est un outil d'aide à la décision et ne remplace pas un avis médical ni un protocole de laboratoire lorsque nécessaire.",
         "Le coach reste responsable de l'interprétation et de l'adaptation au contexte (fatigue, blessures, conditions, calendrier)."
       ]
     }
@@ -159,7 +159,7 @@ export const TrailEducationBanner = ({ objectif, onOpenEducation }: TrailEducati
             <h3 className="font-semibold text-sm">Trail (20–80 km) — repères</h3>
             <p className="text-xs text-muted-foreground">
               En trail, l'intensité se pilote surtout en <strong>FC</strong> et <strong>RPE</strong>. 
-              L'allure varie avec pente/terrain. La branche trail de Vince's Lab est optimisée pour <strong>20–80 km</strong> (pas ultra).
+              L'allure varie avec pente/terrain. La branche trail de Two For Coaching Lab est optimisée pour <strong>20–80 km</strong> (pas ultra).
             </p>
             <Button variant="outline" size="sm" onClick={onOpenEducation} className="mt-2">
               <BookOpen className="h-4 w-4 mr-2" />
