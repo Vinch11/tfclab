@@ -105,10 +105,11 @@ export function computeTTEEffectif(params: ComputeTTEEffectifParams): TTEEffecti
   }
 
   // D) Unknown - Aucune donnée exploitable
+  // IMPORTANT: Ne pas retourner de valeur fictive - retourner null pour tte_min
   return {
-    tte_min: 45,
+    tte_min: 0, // 0 = pas de données (sera affiché comme "—")
     source: "unknown",
-    confidence: 0.2,
+    confidence: 0,
     label: "— (données manquantes)",
     target,
     status: "warning",
@@ -173,7 +174,7 @@ export function getStatusColor(status: "ok" | "warning" | "critical" | undefined
 }
 
 export function formatTTEDisplay(tte: TTEEffectif): string {
-  if (tte.source === "unknown") return "—";
+  if (tte.source === "unknown" || tte.tte_min === 0) return "—";
   return `${tte.tte_min} min`;
 }
 
