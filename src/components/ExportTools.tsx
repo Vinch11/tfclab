@@ -14,6 +14,7 @@ import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getTargets, g
 import { ZonesConfig, computeAbsoluteRange, AthleteRefsForZones } from "@/lib/zonesConfig";
 import { reglesDanLorang, getPrioriteLabel, getSeancesRecommandees, PrioriteType } from "@/types/reglesDanLorang";
 import { SEANCES } from "@/types/seances";
+import logoUrl from "@/assets/logo-2fc.png";
 
 // =============================================
 // TYPES
@@ -349,10 +350,29 @@ function canExport(payload: ExportPayload): { ok: boolean; reason?: string } {
 }
 
 // =============================================
+// CONVERT IMAGE TO BASE64
+// =============================================
+
+async function imageToBase64(url: string): Promise<string> {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return "";
+  }
+}
+
+// =============================================
 // BUILD PREMIUM HTML REPORT
 // =============================================
 
-function buildStaffGradeReportHTML(payload: ExportPayload): string {
+function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): string {
   const { 
     athlete, effectiveSnapshot, effectiveRefs, 
     vlamax, tte, raceReadiness, lorang,
@@ -478,9 +498,12 @@ function buildStaffGradeReportHTML(payload: ExportPayload): string {
   const coverHTML = `
     <section class="cover">
       <div class="coverTop">
-        <div class="brand">
-          <div class="tag tagPrimary">${htmlEscape(brandMain)}</div>
-          <div class="brandSub">${htmlEscape(brandSub)}</div>
+        <div class="brand" style="display:flex; align-items:center; gap:12px;">
+          ${logoBase64 ? `<img src="${logoBase64}" alt="Logo" style="height:48px; width:auto;" />` : ''}
+          <div>
+            <div class="tag tagPrimary">${htmlEscape(brandMain)}</div>
+            <div class="brandSub">${htmlEscape(brandSub)}</div>
+          </div>
         </div>
         <div>
           <div class="tag">Rapport Performance</div>
@@ -1243,13 +1266,16 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
     });
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     if (!exportCheck.ok) {
       toast.error("Export impossible", { description: exportCheck.reason });
       return;
     }
     
-    const html = buildStaffGradeReportHTML(payload);
+    // Convert logo to base64 for embedding in the PDF
+    const logoBase64 = await imageToBase64(logoUrl);
+    
+    const html = buildStaffGradeReportHTML(payload, logoBase64);
     const w = window.open("", "_blank");
     if (!w) {
       toast.error("Popup bloquée", {
