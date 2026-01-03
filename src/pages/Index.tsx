@@ -30,6 +30,7 @@ import { MethodologyStaff } from "@/components/MethodologyStaff";
 import { NutritionPredictive } from "@/components/NutritionPredictive";
 import { NutritionTimingCard } from "@/components/NutritionTimingCard";
 import { RunningEconomyModule } from "@/components/RunningEconomyModule";
+import { SaisonPhasesView } from "@/components/SaisonPhasesView";
 import { StaffReport } from "@/components/StaffReport";
 import { StaffBriefingCard } from "@/components/StaffBriefingCard";
 import { AthleteReadinessReport } from "@/components/AthleteReadinessReport";
@@ -1023,6 +1024,30 @@ const Index = () => {
           <div className="space-y-6 animate-fade-in">
             <FeedbackNolioManager feedbacks={feedbacksNolio} onFeedbacksChange={handleFeedbacksChange} />
             <NolioMapping />
+          </div>
+        );
+
+      case "saison-phases":
+        return (
+          <div className="animate-fade-in">
+            {renderAthleteSelector()}
+            {legacyAthlete && (
+              <div className="mt-6">
+                <SaisonPhasesView
+                  athleteName={currentAthlete?.name || "Athlète"}
+                  objectif={currentAthlete?.goal || "IM"}
+                  dateCible={null}
+                  vlamaxEffectif={vlamaxEffectif}
+                  tteEffectif={tteEffectif}
+                  readiness={raceReadinessEffectif}
+                  onGoToRaceReadiness={() => setActiveTab("race-readiness")}
+                  onGoToPhysioAnalysis={() => {
+                    setActiveTab("dashboard");
+                    setShowPhysioAnalysis(true);
+                  }}
+                />
+              </div>
+            )}
           </div>
         );
 

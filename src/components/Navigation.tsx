@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Calculator, FlaskConical, Trophy, GraduationCap, BookOpen, Menu, X } from "lucide-react";
+import { Calculator, FlaskConical, Trophy, GraduationCap, BookOpen, Menu, X, CalendarRange } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo-2fc.png";
@@ -24,6 +24,10 @@ const navItems: NavItem[] = [{
   id: "tests",
   label: "Tests",
   icon: FlaskConical
+}, {
+  id: "saison-phases",
+  label: "Saison & Phases",
+  icon: CalendarRange
 }, {
   id: "race-readiness",
   label: "Race Readiness",
