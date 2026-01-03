@@ -574,7 +574,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
       <div class="tocRow"><a href="#historique-snapshots">F. Historique snapshots</a></div>
       <div class="tocRow"><a href="#historique-tests">G. Historique tests</a></div>
       ${checkins.length > 0 ? '<div class="tocRow"><a href="#checkins">H. Check-ins & Monitoring</a></div>' : ''}
-      <div class="tocRow"><a href="#qualite">I. Qualité des données</a></div>
+      <div class="tocRow"><a href="#comprendre">I. Comprendre mes scores</a></div>
+      <div class="tocRow"><a href="#qualite">J. Qualité des données</a></div>
     </div>
   `;
 
@@ -1051,11 +1052,214 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
   ` : '';
 
   // =============================================
+  // I. COMPRENDRE MES SCORES (PÉDAGOGIE)
+  // =============================================
+  const comprendreHTML = `
+    <section id="comprendre" class="section">
+      <h2>I. Comprendre mes scores</h2>
+      <p class="muted mb">Guide complet pour interpréter vos métriques physiologiques et optimiser votre préparation.</p>
+      
+      <!-- VLamax -->
+      <div class="card pagebreakAvoid">
+        <h3>⚡ VLamax – Vitesse maximale de production de lactate</h3>
+        <p class="muted">Le VLamax mesure la puissance de votre système anaérobie glycolytique, c'est-à-dire votre capacité à produire de l'énergie rapidement à partir des glucides.</p>
+        
+        <div class="grid2 mt">
+          <div>
+            <h4>📊 Échelle d'interprétation</h4>
+            <table style="width:100%">
+              <tbody>
+                <tr><td><span class="badge badgeSuccess">&lt; 0.30</span></td><td>Profil très endurant – idéal pour Ironman/Ultra</td></tr>
+                <tr><td><span class="badge" style="background:#3b82f6;color:white">0.30 – 0.40</span></td><td>Équilibré – polyvalent pour 70.3 / Marathon</td></tr>
+                <tr><td><span class="badge badgeWarning">0.40 – 0.50</span></td><td>Glycolytique – favorise les efforts courts</td></tr>
+                <tr><td><span class="badge badgeError">&gt; 0.50</span></td><td>Très glycolytique – adapté sprints/explosivité</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <h4>💡 Impact sur la performance</h4>
+            <ul class="muted">
+              <li><b>VLamax élevé</b> → consommation glucidique importante = risque de défaillance énergétique sur longue distance</li>
+              <li><b>VLamax bas</b> → meilleure utilisation des graisses = économie de glycogène</li>
+              <li>La cible dépend de votre objectif : ce qui est bon pour un sprinteur est mauvais pour un Ironman</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="alert alertInfo mt">
+          <b>🔬 Sources de données (hiérarchie)</b><br>
+          1. Test lactate (gold standard) → 2. Test terrain validé → 3. Estimation snapshot → 4. Valeur par défaut
+        </div>
+      </div>
+      
+      <!-- TTE -->
+      <div class="card pagebreakAvoid mt">
+        <h3>⏱️ TTE – Time To Exhaustion</h3>
+        <p class="muted">Le TTE représente la durée maximale pendant laquelle vous pouvez maintenir une intensité donnée (généralement au seuil). C'est un indicateur clé de l'endurance.</p>
+        
+        <div class="grid2 mt">
+          <div>
+            <h4>📊 Échelle d'interprétation</h4>
+            <table style="width:100%">
+              <tbody>
+                <tr><td><span class="badge badgeError">&lt; 30 min</span></td><td>Insuffisant pour longue distance</td></tr>
+                <tr><td><span class="badge badgeWarning">30 – 45 min</span></td><td>Correct pour formats courts</td></tr>
+                <tr><td><span class="badge" style="background:#3b82f6;color:white">45 – 60 min</span></td><td>Bon pour 70.3 / Marathon</td></tr>
+                <tr><td><span class="badge badgeSuccess">&gt; 60 min</span></td><td>Excellent – prêt pour Ironman</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <h4>⚙️ Comment est-il calculé ?</h4>
+            <ul class="muted">
+              <li><b>Mode OBSERVED</b> → test réel effectué (valeur directe)</li>
+              <li><b>Mode LOAD</b> → estimation basée sur la charge d'entraînement (TSS)</li>
+              <li>Le TTE estimé tient compte du volume et de l'intensité des 7 derniers jours</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Risque Glycolytique -->
+      <div class="card pagebreakAvoid mt">
+        <h3>⚠️ Risque Glycolytique</h3>
+        <p class="muted">Le risque glycolytique est un indicateur de la dépendance de l'athlète aux glucides à l'intensité cible de son objectif.</p>
+        
+        <div class="alert alertWarning mt">
+          <b>Important</b> : Cet indicateur n'est pas un jugement de performance, mais un outil d'aide à la décision pour orienter l'entraînement et la stratégie nutritionnelle.
+        </div>
+        
+        <div class="grid2 mt">
+          <div>
+            <h4>🧩 Composantes du risque</h4>
+            <ul class="muted">
+              <li><b>VLamax</b> – vitesse de production du lactate</li>
+              <li><b>TTE</b> – capacité à maintenir une intensité élevée</li>
+              <li><b>Durée et intensité</b> de l'épreuve visée</li>
+            </ul>
+            <p class="muted mt">Un risque élevé signifie que l'athlète utilise rapidement ses réserves de glucides et peut rencontrer une baisse de performance si la nutrition et l'endurance ne sont pas adaptées.</p>
+          </div>
+          <div>
+            <h4>📊 Échelle du risque (0-100)</h4>
+            <table style="width:100%">
+              <tbody>
+                <tr><td><span class="badge badgeSuccess">0 – 25</span></td><td><b>Faible</b> → profil endurant</td></tr>
+                <tr><td><span class="badge" style="background:#3b82f6;color:white">26 – 50</span></td><td><b>Modéré</b> → nutrition stratégique</td></tr>
+                <tr><td><span class="badge badgeWarning">51 – 75</span></td><td><b>Élevé</b> → dépendance glucidique</td></tr>
+                <tr><td><span class="badge badgeError">76 – 100</span></td><td><b>Critique</b> → risque défaillance</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Race Readiness -->
+      <div class="card pagebreakAvoid mt">
+        <h3>🎯 Race Readiness</h3>
+        <p class="muted">Race Readiness est un outil d'aide à la décision destiné aux coachs et staffs. Il évalue la cohérence entre le profil physiologique actuel de l'athlète et les exigences de son objectif.</p>
+        
+        <div class="alert alertWarning mt">
+          <b>⚠️ Attention</b> : Ce score ne constitue ni une prédiction de performance ni une garantie de résultat. Il doit être interprété avec le contexte d'entraînement.
+        </div>
+        
+        <h4 class="mt">🏛️ Les 4 piliers du score</h4>
+        <div class="grid4 mt">
+          <div class="card" style="background:var(--surface)">
+            <div class="muted" style="font-size:11px">⚡ VLamax effectif</div>
+            <p style="font-size:11px;margin-top:4px">Dominance glucidique vs lipidique. Interprété selon la distance.</p>
+          </div>
+          <div class="card" style="background:var(--surface)">
+            <div class="muted" style="font-size:11px">🔥 Puissance durable</div>
+            <p style="font-size:11px;margin-top:4px">FTP ou allure seuil – toujours liée au TTE.</p>
+          </div>
+          <div class="card" style="background:var(--surface)">
+            <div class="muted" style="font-size:11px">⏱️ TTE effectif</div>
+            <p style="font-size:11px;margin-top:4px">Tolérance à l'effort prolongé. Central pour longue distance.</p>
+          </div>
+          <div class="card" style="background:var(--surface)">
+            <div class="muted" style="font-size:11px">🎯 Objectif sportif</div>
+            <p style="font-size:11px;margin-top:4px">IM ≠ Sprint ≠ Marathon. Pondération spécifique.</p>
+          </div>
+        </div>
+        
+        <h4 class="mt">📈 Indice de confiance</h4>
+        <ul class="muted">
+          <li><b>&gt; 80%</b> – Données fiables, score exploitable</li>
+          <li><b>60-80%</b> – Données partielles, interpréter avec prudence</li>
+          <li><b>&lt; 60%</b> – Données insuffisantes, compléter le profil</li>
+        </ul>
+        <p class="muted" style="font-style:italic;font-size:11px">La confiance diminue de 1% par semaine depuis le dernier test.</p>
+      </div>
+      
+      <!-- Économie de Course -->
+      <div class="card pagebreakAvoid mt">
+        <h3>🏃 Économie de Course</h3>
+        <p class="muted">En course à pied, la performance dépend autant de l'économie de mouvement que des capacités métaboliques. Une mauvaise économie augmente la consommation énergétique et les besoins nutritionnels.</p>
+        
+        <div class="grid2 mt">
+          <div>
+            <h4>📖 Définition opérationnelle</h4>
+            <p class="muted">L'économie de course représente le coût énergétique pour maintenir une allure donnée. À VLamax et VO₂max égaux, l'athlète le plus économique :</p>
+            <ul class="muted">
+              <li>Performe mieux</li>
+              <li>Consomme moins de glucides</li>
+              <li>Fatigue moins vite</li>
+            </ul>
+          </div>
+          <div>
+            <h4>📊 Données utilisées</h4>
+            <ul class="muted">
+              <li>Allure à une intensité donnée (ex : allure marathon)</li>
+              <li>Fréquence cardiaque associée</li>
+              <li>Stabilité de la FC dans le temps (dérive)</li>
+              <li>Historique de charge (TTE effectif)</li>
+            </ul>
+            <p class="muted" style="font-style:italic;font-size:11px">Aucune mesure de laboratoire obligatoire.</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Nutrition Prédictive -->
+      <div class="card pagebreakAvoid mt">
+        <h3>❤️ Nutrition Prédictive</h3>
+        <p class="muted">Les besoins glucidiques sont estimés à partir des caractéristiques physiologiques de l'athlète (VLamax, endurance, économie de mouvement).</p>
+        
+        <div class="alert alertInfo mt">
+          Ces valeurs sont des plages recommandées, destinées à guider la stratégie nutritionnelle et non à remplacer les tests terrain.
+        </div>
+        
+        <h4 class="mt">🧬 Principes clés</h4>
+        <ul class="muted">
+          <li><b>VLamax élevé</b> → forte combustion glucidique</li>
+          <li><b>TTE élevé</b> → meilleure capacité à soutenir une intensité</li>
+          <li><b>Économie faible</b> → surcoût énergétique</li>
+          <li><b>CAP &gt; Vélo</b> → contrainte mécanique + digestive plus élevée</li>
+        </ul>
+      </div>
+      
+      <!-- Fondements Scientifiques -->
+      <div class="card pagebreakAvoid mt">
+        <h3>🧠 Fondements scientifiques</h3>
+        <p class="muted">Cette méthodologie s'appuie sur des modèles énergétiques reconnus et des données terrain validées :</p>
+        <ul class="muted">
+          <li>Modèles énergétiques (Mader, INSCYD-like)</li>
+          <li>Relations VLamax ↔ oxydation glucidique</li>
+          <li>Concepts utilisés par Dan Lorang, WKO, INSCYD</li>
+          <li>Données terrain + logique staff (pas de boîte noire)</li>
+        </ul>
+        <div class="alert alertSuccess mt">
+          <b>✅ Objectif transparence</b> : chaque score est explicable et chaque recommandation est justifiée.
+        </div>
+      </div>
+    </section>
+  `;
+
+  // =============================================
   // J. QUALITÉ DES DONNÉES
   // =============================================
   const qualiteHTML = `
     <section id="qualite" class="section pagebreakAvoid">
-      <h2>I. Qualité des données</h2>
+      <h2>J. Qualité des données</h2>
       
       <div class="card ${completude.score >= 80 ? 'cardSuccess' : completude.score >= 50 ? 'cardWarning' : 'cardError'}">
         <div class="grid2">
@@ -1160,6 +1364,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
         ${snapshotsHTML}
         ${testsHTML}
         ${checkinsHTML}
+        ${comprendreHTML}
         ${qualiteHTML}
         ${footerHTML}
       </body>
