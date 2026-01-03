@@ -91,14 +91,13 @@ function generateMainMessage(
 ): string {
   const distance = getDistanceLabel(objectif);
   
-  if (score >= 85) {
-    return `Tu es prêt pour ${distance}.`;
-  } else if (score >= 75) {
-    return `Tu es prêt, mais la gestion de l'allure sera déterminante.`;
+  // Seuils STAFF-GRADE OFFICIELS: 80-100 / 60-79 / 40-59 / <40
+  if (score >= 80) {
+    return `Tu es prêt pour ${distance}. Ton profil est cohérent avec les exigences de cette distance.`;
   } else if (score >= 60) {
-    return `Tu es en bonne voie. Reste attentif à ta stratégie de course.`;
-  } else if (score >= 45) {
-    return `Ta préparation avance. Quelques points méritent ton attention.`;
+    return `Tu es en bonne voie pour ${distance}. Quelques ajustements optimiseront ta performance.`;
+  } else if (score >= 40) {
+    return `Ta préparation avance. Certains points physiologiques méritent ton attention.`;
   } else {
     return `Ton corps a encore besoin de temps pour être prêt pour cette distance.`;
   }
@@ -265,11 +264,12 @@ function generateNutritionMessage(
 }
 
 function generateConfidenceMessage(score: number): string {
-  if (score >= 85) {
+  // Seuils STAFF-GRADE OFFICIELS: 80-100 / 60-79 / 40-59 / <40
+  if (score >= 80) {
     return "Les données montrent que tu es sur la bonne voie. Fais confiance à ton travail.";
-  } else if (score >= 70) {
+  } else if (score >= 60) {
     return "Ta préparation porte ses fruits. Reste discipliné, ton corps sait faire.";
-  } else if (score >= 55) {
+  } else if (score >= 40) {
     return "Chaque entraînement te rapproche de ton objectif. Continue sur cette lancée.";
   } else {
     return "La progression est un processus. Fais confiance au chemin parcouru.";
