@@ -1064,9 +1064,43 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
         <h3>⚡ VLamax – Vitesse maximale de production de lactate</h3>
         <p class="muted">Le VLamax mesure la puissance de votre système anaérobie glycolytique, c'est-à-dire votre capacité à produire de l'énergie rapidement à partir des glucides.</p>
         
+        <!-- Graphique échelle VLamax -->
+        <div class="mt" style="margin-bottom:16px">
+          <svg width="100%" height="60" viewBox="0 0 400 60" preserveAspectRatio="xMidYMid meet">
+            <!-- Barre de fond -->
+            <defs>
+              <linearGradient id="vlamaxGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#16a34a"/>
+                <stop offset="37.5%" style="stop-color:#3b82f6"/>
+                <stop offset="62.5%" style="stop-color:#d97706"/>
+                <stop offset="100%" style="stop-color:#dc2626"/>
+              </linearGradient>
+            </defs>
+            <rect x="10" y="15" width="380" height="20" rx="4" fill="url(#vlamaxGrad)"/>
+            <!-- Marqueurs -->
+            <line x1="10" y1="40" x2="10" y2="45" stroke="#666" stroke-width="1"/>
+            <text x="10" y="55" font-size="9" fill="#666" text-anchor="middle">0.20</text>
+            <line x1="135" y1="40" x2="135" y2="45" stroke="#666" stroke-width="1"/>
+            <text x="135" y="55" font-size="9" fill="#666" text-anchor="middle">0.30</text>
+            <line x1="260" y1="40" x2="260" y2="45" stroke="#666" stroke-width="1"/>
+            <text x="260" y="55" font-size="9" fill="#666" text-anchor="middle">0.40</text>
+            <line x1="390" y1="40" x2="390" y2="45" stroke="#666" stroke-width="1"/>
+            <text x="390" y="55" font-size="9" fill="#666" text-anchor="middle">0.50+</text>
+            <!-- Labels zones -->
+            <text x="72" y="10" font-size="8" fill="#16a34a" text-anchor="middle" font-weight="600">ENDURANT</text>
+            <text x="197" y="10" font-size="8" fill="#3b82f6" text-anchor="middle" font-weight="600">ÉQUILIBRÉ</text>
+            <text x="325" y="10" font-size="8" fill="#d97706" text-anchor="middle" font-weight="600">GLYCOLYTIQUE</text>
+            <!-- Indicateur valeur actuelle -->
+            ${vlamax.value !== null ? `
+              <polygon points="${Math.min(390, Math.max(10, 10 + ((vlamax.value - 0.20) / 0.35) * 380))},12 ${Math.min(390, Math.max(10, 10 + ((vlamax.value - 0.20) / 0.35) * 380)) - 5},2 ${Math.min(390, Math.max(10, 10 + ((vlamax.value - 0.20) / 0.35) * 380)) + 5},2" fill="#111"/>
+            ` : ''}
+          </svg>
+          ${vlamax.value !== null ? `<div style="text-align:center;font-size:11px;color:var(--muted)">▲ Votre VLamax: <b>${fmt(vlamax.value, 2)}</b> mmol/L/s</div>` : ''}
+        </div>
+        
         <div class="grid2 mt">
           <div>
-            <h4>📊 Échelle d'interprétation</h4>
+            <h4>📊 Zones d'interprétation</h4>
             <table style="width:100%">
               <tbody>
                 <tr><td><span class="badge badgeSuccess">&lt; 0.30</span></td><td>Profil très endurant – idéal pour Ironman/Ultra</td></tr>
@@ -1097,9 +1131,42 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
         <h3>⏱️ TTE – Time To Exhaustion</h3>
         <p class="muted">Le TTE représente la durée maximale pendant laquelle vous pouvez maintenir une intensité donnée (généralement au seuil). C'est un indicateur clé de l'endurance.</p>
         
+        <!-- Graphique échelle TTE -->
+        <div class="mt" style="margin-bottom:16px">
+          <svg width="100%" height="60" viewBox="0 0 400 60" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <linearGradient id="tteGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#dc2626"/>
+                <stop offset="33%" style="stop-color:#d97706"/>
+                <stop offset="66%" style="stop-color:#3b82f6"/>
+                <stop offset="100%" style="stop-color:#16a34a"/>
+              </linearGradient>
+            </defs>
+            <rect x="10" y="15" width="380" height="20" rx="4" fill="url(#tteGrad)"/>
+            <!-- Marqueurs -->
+            <line x1="10" y1="40" x2="10" y2="45" stroke="#666" stroke-width="1"/>
+            <text x="10" y="55" font-size="9" fill="#666" text-anchor="middle">20</text>
+            <line x1="136" y1="40" x2="136" y2="45" stroke="#666" stroke-width="1"/>
+            <text x="136" y="55" font-size="9" fill="#666" text-anchor="middle">30</text>
+            <line x1="263" y1="40" x2="263" y2="45" stroke="#666" stroke-width="1"/>
+            <text x="263" y="55" font-size="9" fill="#666" text-anchor="middle">45</text>
+            <line x1="390" y1="40" x2="390" y2="45" stroke="#666" stroke-width="1"/>
+            <text x="390" y="55" font-size="9" fill="#666" text-anchor="middle">60+</text>
+            <!-- Labels -->
+            <text x="73" y="10" font-size="8" fill="#dc2626" text-anchor="middle" font-weight="600">INSUFFISANT</text>
+            <text x="200" y="10" font-size="8" fill="#d97706" text-anchor="middle" font-weight="600">CORRECT</text>
+            <text x="327" y="10" font-size="8" fill="#16a34a" text-anchor="middle" font-weight="600">OPTIMAL</text>
+            <!-- Indicateur -->
+            ${tte.tte_min ? `
+              <polygon points="${Math.min(390, Math.max(10, 10 + ((tte.tte_min - 20) / 40) * 380))},12 ${Math.min(390, Math.max(10, 10 + ((tte.tte_min - 20) / 40) * 380)) - 5},2 ${Math.min(390, Math.max(10, 10 + ((tte.tte_min - 20) / 40) * 380)) + 5},2" fill="#111"/>
+            ` : ''}
+          </svg>
+          ${tte.tte_min ? `<div style="text-align:center;font-size:11px;color:var(--muted)">▲ Votre TTE: <b>${tte.tte_min}</b> min</div>` : ''}
+        </div>
+        
         <div class="grid2 mt">
           <div>
-            <h4>📊 Échelle d'interprétation</h4>
+            <h4>📊 Zones d'interprétation</h4>
             <table style="width:100%">
               <tbody>
                 <tr><td><span class="badge badgeError">&lt; 30 min</span></td><td>Insuffisant pour longue distance</td></tr>
@@ -1125,6 +1192,46 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
         <h3>⚠️ Risque Glycolytique</h3>
         <p class="muted">Le risque glycolytique est un indicateur de la dépendance de l'athlète aux glucides à l'intensité cible de son objectif.</p>
         
+        <!-- Graphique échelle Risque Glycolytique -->
+        <div class="mt" style="margin-bottom:16px">
+          <svg width="100%" height="70" viewBox="0 0 400 70" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <linearGradient id="riskGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#16a34a"/>
+                <stop offset="25%" style="stop-color:#16a34a"/>
+                <stop offset="50%" style="stop-color:#3b82f6"/>
+                <stop offset="75%" style="stop-color:#d97706"/>
+                <stop offset="100%" style="stop-color:#dc2626"/>
+              </linearGradient>
+            </defs>
+            <!-- Barre segmentée -->
+            <rect x="10" y="20" width="95" height="20" rx="0" fill="#16a34a"/>
+            <rect x="105" y="20" width="95" height="20" rx="0" fill="#3b82f6"/>
+            <rect x="200" y="20" width="95" height="20" rx="0" fill="#d97706"/>
+            <rect x="295" y="20" width="95" height="20" rx="0" fill="#dc2626"/>
+            <!-- Labels zones dans barres -->
+            <text x="57" y="34" font-size="9" fill="white" text-anchor="middle" font-weight="600">FAIBLE</text>
+            <text x="152" y="34" font-size="9" fill="white" text-anchor="middle" font-weight="600">MODÉRÉ</text>
+            <text x="247" y="34" font-size="9" fill="white" text-anchor="middle" font-weight="600">ÉLEVÉ</text>
+            <text x="342" y="34" font-size="9" fill="white" text-anchor="middle" font-weight="600">CRITIQUE</text>
+            <!-- Marqueurs -->
+            <text x="10" y="55" font-size="9" fill="#666" text-anchor="start">0</text>
+            <text x="105" y="55" font-size="9" fill="#666" text-anchor="middle">25</text>
+            <text x="200" y="55" font-size="9" fill="#666" text-anchor="middle">50</text>
+            <text x="295" y="55" font-size="9" fill="#666" text-anchor="middle">75</text>
+            <text x="390" y="55" font-size="9" fill="#666" text-anchor="end">100</text>
+            <!-- Indicateur si disponible -->
+            ${raceReadiness.nutritionalRiskIndex ? (() => {
+              const levelToPosition: Record<string, number> = { low: 12.5, moderate: 37.5, high: 62.5, critical: 87.5 };
+              const pos = 10 + ((levelToPosition[raceReadiness.nutritionalRiskIndex.level] || 50) / 100) * 380;
+              return `
+                <polygon points="${pos},17 ${pos - 5},7 ${pos + 5},7" fill="#111"/>
+                <text x="${pos}" y="65" font-size="10" fill="#111" text-anchor="middle" font-weight="700">▲ ${raceReadiness.nutritionalRiskIndex.label}</text>
+              `;
+            })() : ''}
+          </svg>
+        </div>
+        
         <div class="alert alertWarning mt">
           <b>Important</b> : Cet indicateur n'est pas un jugement de performance, mais un outil d'aide à la décision pour orienter l'entraînement et la stratégie nutritionnelle.
         </div>
@@ -1140,7 +1247,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
             <p class="muted mt">Un risque élevé signifie que l'athlète utilise rapidement ses réserves de glucides et peut rencontrer une baisse de performance si la nutrition et l'endurance ne sont pas adaptées.</p>
           </div>
           <div>
-            <h4>📊 Échelle du risque (0-100)</h4>
+            <h4>📊 Interprétation des zones</h4>
             <table style="width:100%">
               <tbody>
                 <tr><td><span class="badge badgeSuccess">0 – 25</span></td><td><b>Faible</b> → profil endurant</td></tr>
@@ -1158,25 +1265,80 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
         <h3>🎯 Race Readiness</h3>
         <p class="muted">Race Readiness est un outil d'aide à la décision destiné aux coachs et staffs. Il évalue la cohérence entre le profil physiologique actuel de l'athlète et les exigences de son objectif.</p>
         
-        <div class="alert alertWarning mt">
+        <!-- Graphique Race Readiness avec jauge circulaire -->
+        <div class="mt" style="display:flex;align-items:center;gap:24px;margin-bottom:16px">
+          <svg width="120" height="120" viewBox="0 0 120 120">
+            <!-- Arc de fond -->
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#eee" stroke-width="12"/>
+            <!-- Arc coloré selon score -->
+            <circle cx="60" cy="60" r="50" fill="none" 
+              stroke="${raceReadiness.score >= 80 ? '#16a34a' : raceReadiness.score >= 60 ? '#d97706' : '#dc2626'}" 
+              stroke-width="12"
+              stroke-dasharray="${(raceReadiness.score / 100) * 314} 314"
+              stroke-linecap="round"
+              transform="rotate(-90 60 60)"/>
+            <!-- Valeur centrale -->
+            <text x="60" y="55" font-size="28" font-weight="700" fill="${raceReadiness.score >= 80 ? '#16a34a' : raceReadiness.score >= 60 ? '#d97706' : '#dc2626'}" text-anchor="middle">${raceReadiness.score}</text>
+            <text x="60" y="72" font-size="10" fill="#666" text-anchor="middle">%</text>
+          </svg>
+          <div style="flex:1">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+              <!-- Mini barres pour chaque pilier -->
+              <div style="text-align:center">
+                <div style="font-size:10px;color:#666;margin-bottom:4px">VLamax</div>
+                <div style="height:40px;width:20px;background:#eee;border-radius:4px;margin:0 auto;position:relative;overflow:hidden">
+                  <div style="position:absolute;bottom:0;width:100%;height:${raceReadiness.details.vlamax * 4}%;background:${raceReadiness.details.vlamax >= 20 ? '#16a34a' : raceReadiness.details.vlamax >= 15 ? '#d97706' : '#dc2626'};border-radius:0 0 4px 4px"></div>
+                </div>
+                <div style="font-size:9px;font-weight:600;margin-top:2px">${raceReadiness.details.vlamax}/25</div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-size:10px;color:#666;margin-bottom:4px">TTE</div>
+                <div style="height:40px;width:20px;background:#eee;border-radius:4px;margin:0 auto;position:relative;overflow:hidden">
+                  <div style="position:absolute;bottom:0;width:100%;height:${raceReadiness.details.endurance * 4}%;background:${raceReadiness.details.endurance >= 20 ? '#16a34a' : raceReadiness.details.endurance >= 15 ? '#d97706' : '#dc2626'};border-radius:0 0 4px 4px"></div>
+                </div>
+                <div style="font-size:9px;font-weight:600;margin-top:2px">${raceReadiness.details.endurance}/25</div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-size:10px;color:#666;margin-bottom:4px">FTP/kg</div>
+                <div style="height:40px;width:20px;background:#eee;border-radius:4px;margin:0 auto;position:relative;overflow:hidden">
+                  <div style="position:absolute;bottom:0;width:100%;height:${raceReadiness.details.puissance * 4}%;background:${raceReadiness.details.puissance >= 20 ? '#16a34a' : raceReadiness.details.puissance >= 15 ? '#d97706' : '#dc2626'};border-radius:0 0 4px 4px"></div>
+                </div>
+                <div style="font-size:9px;font-weight:600;margin-top:2px">${raceReadiness.details.puissance}/25</div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-size:10px;color:#666;margin-bottom:4px">Fraîcheur</div>
+                <div style="height:40px;width:20px;background:#eee;border-radius:4px;margin:0 auto;position:relative;overflow:hidden">
+                  <div style="position:absolute;bottom:0;width:100%;height:${raceReadiness.details.fraicheur * 4}%;background:${raceReadiness.details.fraicheur >= 18 ? '#16a34a' : raceReadiness.details.fraicheur >= 12 ? '#d97706' : '#dc2626'};border-radius:0 0 4px 4px"></div>
+                </div>
+                <div style="font-size:9px;font-weight:600;margin-top:2px">${raceReadiness.details.fraicheur}/25</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="alert ${raceReadiness.score >= 80 ? 'alertSuccess' : raceReadiness.score >= 60 ? 'alertWarning' : 'alertError'}">
+          <b>${raceReadiness.label}</b> pour ${getObjectifLabel(athlete.goal)}
+        </div>
+        
+        <div class="alert alertInfo mt">
           <b>⚠️ Attention</b> : Ce score ne constitue ni une prédiction de performance ni une garantie de résultat. Il doit être interprété avec le contexte d'entraînement.
         </div>
         
         <h4 class="mt">🏛️ Les 4 piliers du score</h4>
         <div class="grid4 mt">
-          <div class="card" style="background:var(--surface)">
+          <div class="card" style="background:var(--soft)">
             <div class="muted" style="font-size:11px">⚡ VLamax effectif</div>
             <p style="font-size:11px;margin-top:4px">Dominance glucidique vs lipidique. Interprété selon la distance.</p>
           </div>
-          <div class="card" style="background:var(--surface)">
+          <div class="card" style="background:var(--soft)">
             <div class="muted" style="font-size:11px">🔥 Puissance durable</div>
             <p style="font-size:11px;margin-top:4px">FTP ou allure seuil – toujours liée au TTE.</p>
           </div>
-          <div class="card" style="background:var(--surface)">
+          <div class="card" style="background:var(--soft)">
             <div class="muted" style="font-size:11px">⏱️ TTE effectif</div>
             <p style="font-size:11px;margin-top:4px">Tolérance à l'effort prolongé. Central pour longue distance.</p>
           </div>
-          <div class="card" style="background:var(--surface)">
+          <div class="card" style="background:var(--soft)">
             <div class="muted" style="font-size:11px">🎯 Objectif sportif</div>
             <p style="font-size:11px;margin-top:4px">IM ≠ Sprint ≠ Marathon. Pondération spécifique.</p>
           </div>
