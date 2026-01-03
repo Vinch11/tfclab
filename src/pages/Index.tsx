@@ -287,10 +287,10 @@ const Index = () => {
   const tteEffectif = useMemo<TTEEffectif>(() => {
     if (!effectiveCloudSnapshot || !currentAthlete) {
       return {
-        tte_min: 45,
+        tte_min: 0, // 0 = pas de données (affiché comme "—")
         source: "unknown",
         confidence: 0,
-        label: "TTE (non disponible)",
+        label: "— (données manquantes)",
         target: 45,
         status: "warning",
         status_message: "Aucune donnée"
@@ -305,7 +305,7 @@ const Index = () => {
     });
   }, [effectiveCloudSnapshot, currentAthlete]);
 
-  // ✅ Valeur TTE affichée partout (Index) - fallback 0 pour compatibilité
+  // ✅ Valeur TTE affichée partout (Index) - 0 signifie pas de données
   const tte = useMemo(() => {
     return tteEffectif?.tte_min ?? 0;
   }, [tteEffectif]);
@@ -763,8 +763,8 @@ const Index = () => {
 
               <MetricCard
                 title="TTE Effectif"
-                value={tteEffectif.tte_min !== null ? tteEffectif.tte_min.toString() : "—"}
-                unit="min"
+                value={tteEffectif.tte_min > 0 ? tteEffectif.tte_min.toString() : "—"}
+                unit={tteEffectif.tte_min > 0 ? "min" : ""}
                 icon={Activity}
                 trend="neutral"
                 trendValue={
@@ -772,7 +772,7 @@ const Index = () => {
                     ? (tteEffectif.source !== "unknown" 
                         ? `${getSourceLabel(tteEffectif.source)} • conf ${Math.round(tteEffectif.confidence * 100)}%`
                         : "Ajouter TSS_7d ou TTE mesuré")
-                    : (tteEffectif.tte_min !== null ? "Endurance au seuil" : "—")
+                    : (tteEffectif.tte_min > 0 ? "Endurance au seuil" : "Données insuffisantes")
                 }
                 accentColor={tteEffectif.source === "unknown" ? "warning" : "success"}
                 onWhyClick={() => setActiveTab("methodology")}
@@ -780,8 +780,8 @@ const Index = () => {
 
               <MetricCard
                 title="Race Readiness"
-                value={raceReadinessEffectif.score.toString()}
-                unit="%"
+                value={raceReadinessEffectif.reasonsMissing.length >= 3 ? "—" : raceReadinessEffectif.score.toString()}
+                unit={raceReadinessEffectif.reasonsMissing.length >= 3 ? "" : "%"}
                 icon={Target}
                 trend="neutral"
                 trendValue={
@@ -789,7 +789,7 @@ const Index = () => {
                     ? (raceReadinessEffectif.reasonsMissing.length > 0
                         ? `${raceReadinessEffectif.label} • ${raceReadinessEffectif.reasonsMissing[0]}`
                         : `${raceReadinessEffectif.label} • conf ${Math.round(raceReadinessEffectif.confidence * 100)}%`)
-                    : raceReadinessEffectif.label
+                    : (raceReadinessEffectif.reasonsMissing.length >= 3 ? "Données insuffisantes" : raceReadinessEffectif.label)
                 }
                 accentColor={raceReadinessEffectif.color === "success" ? "success" : "warning"}
                 onWhyClick={() => setActiveTab("methodology")}
