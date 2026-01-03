@@ -53,8 +53,8 @@ function CircularGauge({
   const colors = colorClasses[effectiveColor];
 
   return (
-    <div className="flex flex-col items-center p-4 glass-card hover:border-primary/30 transition-all duration-300 group">
-      <div className="relative w-24 h-24">
+    <div className="flex flex-col items-center p-3 sm:p-4 glass-card hover:border-primary/30 transition-all duration-300 group min-w-0">
+      <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24">
         {/* Background circle */}
         <svg className="w-full h-full transform -rotate-90" viewBox="0 0 80 80">
           <circle
@@ -83,20 +83,20 @@ function CircularGauge({
         </svg>
         {/* Center content */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <div className={cn("p-1.5 rounded-full mb-0.5", colors.bg)}>
+          <div className={cn("p-1 sm:p-1.5 rounded-full mb-0.5", colors.bg)}>
             {icon}
           </div>
-          <span className={cn("text-lg font-bold font-mono", colors.text)}>
+          <span className={cn("text-sm sm:text-base md:text-lg font-bold font-mono", colors.text)}>
             {displayValue}
           </span>
           {unit && (
-            <span className="text-[10px] text-muted-foreground">{unit}</span>
+            <span className="text-[8px] sm:text-[10px] text-muted-foreground">{unit}</span>
           )}
         </div>
       </div>
-      <span className="mt-2 text-sm font-medium text-center">{label}</span>
+      <span className="mt-1.5 sm:mt-2 text-xs sm:text-sm font-medium text-center truncate w-full">{label}</span>
       {sublabel && (
-        <span className="text-[10px] text-muted-foreground text-center mt-0.5 max-w-[100px] truncate">
+        <span className="text-[9px] sm:text-[10px] text-muted-foreground text-center mt-0.5 max-w-full truncate">
           {sublabel}
         </span>
       )}
@@ -211,21 +211,21 @@ export function DashboardGauges({
   };
 
   return (
-    <div className="glass-card p-6">
-      <h3 className="text-sm font-semibold text-muted-foreground mb-4 flex items-center gap-2">
-        <TrendingUp className="w-4 h-4" />
+    <div className="glass-card p-4 sm:p-5 md:p-6">
+      <h3 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 sm:mb-4 flex items-center gap-2">
+        <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         Métriques Clés
       </h3>
       
-      {/* Circular gauges grid */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
+      {/* Circular gauges grid - responsive */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-6">
         <CircularGauge
           value={vlamaxVal}
           max={1}
           label="VLamax"
           displayValue={vlamaxVal > 0 ? vlamaxVal.toFixed(2) : "—"}
           unit="mmol/L/s"
-          icon={<Zap className={cn("w-4 h-4", vlamaxVal > 0 ? "text-current" : "text-muted-foreground")} />}
+          icon={<Zap className={cn("w-3 h-3 sm:w-4 sm:h-4", vlamaxVal > 0 ? "text-current" : "text-muted-foreground")} />}
           color={vlamaxVal > 0 ? getVlamaxColor() : "primary"}
           sublabel={vlamax.label}
           inverted={true}
@@ -237,7 +237,7 @@ export function DashboardGauges({
           label="TTE"
           displayValue={tteVal > 0 ? Math.round(tteVal).toString() : "—"}
           unit="min"
-          icon={<Activity className={cn("w-4 h-4", tteVal > 0 ? "text-current" : "text-muted-foreground")} />}
+          icon={<Activity className={cn("w-3 h-3 sm:w-4 sm:h-4", tteVal > 0 ? "text-current" : "text-muted-foreground")} />}
           color={tteVal > 0 ? getTteColor() : "primary"}
           sublabel="Endurance seuil"
         />
@@ -248,14 +248,14 @@ export function DashboardGauges({
           label="Readiness"
           displayValue={rrScore.toString()}
           unit="%"
-          icon={<Target className={cn("w-4 h-4", rrScore > 0 ? "text-current" : "text-muted-foreground")} />}
+          icon={<Target className={cn("w-3 h-3 sm:w-4 sm:h-4", rrScore > 0 ? "text-current" : "text-muted-foreground")} />}
           color={getRrColor()}
           sublabel={raceReadiness.label}
         />
       </div>
 
       {/* Horizontal bars for secondary metrics */}
-      <div className="space-y-3 border-t border-border/50 pt-4">
+      <div className="space-y-2 sm:space-y-3 border-t border-border/50 pt-3 sm:pt-4">
         {ftp !== null && ftp !== undefined && ftp > 0 && (
           <HorizontalGauge
             value={ftp}
@@ -278,38 +278,38 @@ export function DashboardGauges({
           />
         )}
 
-        {/* Confidence bars */}
-        <div className="grid grid-cols-3 gap-2 pt-2">
-          <div className="text-center">
+        {/* Confidence bars - responsive grid */}
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-2">
+          <div className="text-center min-w-0">
             <div className="h-1 rounded-full bg-muted/30 overflow-hidden">
               <div 
                 className="h-full bg-primary/60 rounded-full transition-all duration-500"
                 style={{ width: `${vlamax.confidence * 100}%` }}
               />
             </div>
-            <span className="text-[9px] text-muted-foreground">
+            <span className="text-[8px] sm:text-[9px] text-muted-foreground truncate block">
               Conf. {Math.round(vlamax.confidence * 100)}%
             </span>
           </div>
-          <div className="text-center">
+          <div className="text-center min-w-0">
             <div className="h-1 rounded-full bg-muted/30 overflow-hidden">
               <div 
                 className="h-full bg-primary/60 rounded-full transition-all duration-500"
                 style={{ width: `${tte.confidence * 100}%` }}
               />
             </div>
-            <span className="text-[9px] text-muted-foreground">
+            <span className="text-[8px] sm:text-[9px] text-muted-foreground truncate block">
               Conf. {Math.round(tte.confidence * 100)}%
             </span>
           </div>
-          <div className="text-center">
+          <div className="text-center min-w-0">
             <div className="h-1 rounded-full bg-muted/30 overflow-hidden">
               <div 
                 className="h-full bg-primary/60 rounded-full transition-all duration-500"
                 style={{ width: `${raceReadiness.confidence * 100}%` }}
               />
             </div>
-            <span className="text-[9px] text-muted-foreground">
+            <span className="text-[8px] sm:text-[9px] text-muted-foreground truncate block">
               Conf. {Math.round(raceReadiness.confidence * 100)}%
             </span>
           </div>

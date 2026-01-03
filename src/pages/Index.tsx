@@ -405,23 +405,23 @@ const Index = () => {
 
   const renderAthleteSelector = () => (
     <Card className="border-border/50">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <User className="h-5 w-5" />
+      <CardHeader className="pb-2 sm:pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+          <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+            <User className="h-4 w-4 sm:h-5 sm:w-5" />
             Athlète
           </CardTitle>
           <div className="flex items-center gap-2">
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" variant="outline">
-                  <Plus className="h-4 w-4 mr-1" />
+                <Button size="sm" variant="outline" className="h-8 text-xs sm:text-sm">
+                  <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
                   Ajouter
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-[90vw] sm:max-w-md">
                 <DialogHeader>
-                  <DialogTitle>Nouvel athlète</DialogTitle>
+                  <DialogTitle className="text-base sm:text-lg">Nouvel athlète</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 pt-4">
                   <div>
@@ -430,12 +430,13 @@ const Index = () => {
                       value={newAthleteName}
                       onChange={(e) => setNewAthleteName(e.target.value)}
                       placeholder="Nom de l'athlète"
+                      className="mt-1"
                     />
                   </div>
                   <div>
                     <label className="text-sm font-medium">Objectif</label>
                     <Select value={newAthleteGoal} onValueChange={setNewAthleteGoal}>
-                      <SelectTrigger>
+                      <SelectTrigger className="mt-1">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -454,20 +455,20 @@ const Index = () => {
             </Dialog>
 
             {athletes.length > 0 && (
-              <Button size="sm" variant="ghost" onClick={handleDeleteAthlete}>
-                <Trash2 className="h-4 h-4 text-destructive" />
+              <Button size="sm" variant="ghost" onClick={handleDeleteAthlete} className="h-8 w-8 p-0">
+                <Trash2 className="h-4 w-4 text-destructive" />
               </Button>
             )}
           </div>
         </div>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="pt-0">
         {athletes.length === 0 ? (
-          <p className="text-muted-foreground text-sm">Aucun athlète. Cliquez sur Ajouter pour commencer.</p>
+          <p className="text-muted-foreground text-xs sm:text-sm">Aucun athlète. Cliquez sur Ajouter pour commencer.</p>
         ) : (
           <Select value={selectedAthleteId || ""} onValueChange={setSelectedAthleteId}>
-            <SelectTrigger>
+            <SelectTrigger className="h-9 sm:h-10 text-sm">
               <SelectValue placeholder="Sélectionner un athlète" />
             </SelectTrigger>
             <SelectContent>
@@ -547,7 +548,7 @@ const Index = () => {
     switch (activeTab) {
       case "dashboard":
         return (
-          <div className="space-y-8 animate-fade-in">
+          <div className="space-y-4 sm:space-y-6 md:space-y-8 animate-fade-in">
             {renderAthleteSelector()}
 
             {/* ✅ FIX 11: Panneau Profil & Références */}
@@ -559,8 +560,8 @@ const Index = () => {
               />
             )}
 
-            {/* Boutons */}
-            <div className="flex flex-wrap gap-3">
+            {/* Boutons - responsive grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:flex lg:flex-wrap gap-2 sm:gap-3">
               <Button
                 variant={showTestLibrary ? "default" : "outline"}
                 onClick={() => {
@@ -572,10 +573,10 @@ const Index = () => {
                   setShowSnapshots(false);
                   setShowCheckins(false);
                 }}
-                className="flex items-center gap-2"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
               >
-                <BookOpen className="h-4 w-4" />
-                📚 Tests
+                <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <span className="truncate">Tests</span>
               </Button>
 
               <Button
@@ -589,10 +590,10 @@ const Index = () => {
                   setShowSnapshots(false);
                   setShowCheckins(false);
                 }}
-                className="flex items-center gap-2"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
               >
-                <Brain className="h-4 w-4" />
-                🧠 Analyse Physio
+                <Brain className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <span className="truncate">Analyse</span>
               </Button>
 
               <Button
@@ -606,10 +607,10 @@ const Index = () => {
                   setShowSnapshots(false);
                   setShowCheckins(false);
                 }}
-                className="flex items-center gap-2"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
               >
-                <Calendar className="h-4 w-4" />
-                📅 Planificateur
+                <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <span className="truncate">Planning</span>
               </Button>
 
               <Button
@@ -623,10 +624,10 @@ const Index = () => {
                   setShowSnapshots(false);
                   setShowCheckins(false);
                 }}
-                className="flex items-center gap-2"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
               >
-                <Dumbbell className="h-4 w-4" />
-                🏋️ Séances
+                <Dumbbell className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <span className="truncate">Séances</span>
               </Button>
 
               <Button
@@ -640,10 +641,10 @@ const Index = () => {
                   setShowSnapshots(false);
                   setShowCheckins(false);
                 }}
-                className="flex items-center gap-2"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
               >
-                <TrendingUp className="h-4 w-4" />
-                📈 Suivi
+                <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <span className="truncate">Suivi</span>
               </Button>
 
               <Button
@@ -657,10 +658,10 @@ const Index = () => {
                   setShowMonitoring(false);
                   setShowCheckins(false);
                 }}
-                className="flex items-center gap-2"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
               >
-                <Camera className="h-4 w-4" />
-                📸 Snapshots
+                <Camera className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <span className="truncate">Snapshots</span>
               </Button>
 
               <Button
@@ -674,9 +675,10 @@ const Index = () => {
                   setShowMonitoring(false);
                   setShowSnapshots(false);
                 }}
-                className="flex items-center gap-2"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
               >
-                <ClipboardCheck className="h-4 w-4" />✅ Check-ins
+                <ClipboardCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <span className="truncate">Check-ins</span>
               </Button>
 
               {currentAthlete && (
