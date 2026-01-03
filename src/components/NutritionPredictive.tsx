@@ -1,10 +1,12 @@
-import { AlertTriangle, Apple, CheckCircle2, Info, Flame, Bike, Footprints, TrendingUp, Shield, Target, Battery, BatteryLow, TrendingDown } from "lucide-react";
+import { AlertTriangle, Apple, CheckCircle2, Info, Flame, Bike, Footprints, TrendingUp, Shield, Target, Battery, BatteryLow, TrendingDown, ChevronDown, Activity, BookOpen } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { computeNutritionEstimate, getObjectifLabel, NUTRITIONAL_RISK_DEFINITION, type NutritionEstimate, type Sport } from "@/lib/nutritionPredictive";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { computeNutritionEstimate, getObjectifLabel, NUTRITIONAL_RISK_DEFINITION, NUTRITION_METHODOLOGY, SPORT_NUTRITION_COMPARISON, type NutritionEstimate, type Sport } from "@/lib/nutritionPredictive";
 import { cn } from "@/lib/utils";
 import type { EnergyDriftResult } from "@/lib/energyDrift";
+import { useState } from "react";
 
 interface NutritionPredictiveProps {
   vlamax: number | null;
@@ -15,6 +17,7 @@ interface NutritionPredictiveProps {
   confidence?: number;
   staffMode?: boolean;
   energyDrift?: EnergyDriftResult;
+  raceReadiness?: number | null;
 }
 
 export function NutritionPredictive({
@@ -26,8 +29,12 @@ export function NutritionPredictive({
   confidence,
   staffMode = true,
   energyDrift,
+  raceReadiness,
 }: NutritionPredictiveProps) {
-  const estimate = computeNutritionEstimate({ vlamax, objectif, sport, tteMin, tteTarget });
+  const [showMethodology, setShowMethodology] = useState(false);
+  const [showComparison, setShowComparison] = useState(false);
+  
+  const estimate = computeNutritionEstimate({ vlamax, objectif, sport, tteMin, tteTarget, raceReadiness });
 
   if (!estimate) {
     return (
@@ -54,8 +61,7 @@ export function NutritionPredictive({
     );
   }
 
-  const sportLabel = sport === 'cap' ? 'Course à pied' : sport === 'triathlon' ? 'Triathlon' : 'Vélo';
-  const SportIcon = sport === 'cap' ? Footprints : Bike;
+  const SportIcon = estimate.sport === 'cap' ? Footprints : estimate.sport === 'triathlon' ? Activity : Bike;
   const riskIndex = estimate.nutritionalRiskIndex;
 
   return (
@@ -69,9 +75,24 @@ export function NutritionPredictive({
             🍝 Nutrition Prédictive
             <Badge variant="outline" className="ml-2 text-xs">Staff</Badge>
           </div>
+          <div className="flex items-center gap-2">
+            <SportIcon className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">{estimate.sportLabel}</span>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        
+        {/* ========== TEXTE OFFICIEL ========== */}
+        <div className="p-4 rounded-xl bg-gradient-to-r from-primary/5 to-accent/5 border border-primary/20">
+          <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+            <BookOpen className="w-4 h-4 text-primary" />
+            {NUTRITION_METHODOLOGY.title}
+          </h4>
+          <p className="text-sm text-muted-foreground whitespace-pre-line">
+            {NUTRITION_METHODOLOGY.intro}
+          </p>
+        </div>
         
         {/* ========== INDICE DE RISQUE NUTRITIONNEL ========== */}
         <div className={`p-5 rounded-xl border-2 ${
@@ -154,6 +175,27 @@ export function NutritionPredictive({
           )}
         </div>
 
+        {/* ========== LIEN RACE READINESS → NUTRITION ========== */}
+        {estimate.raceReadinessImpact && (
+          <div className={cn(
+            "p-4 rounded-xl border-2",
+            estimate.raceReadinessImpact.adjustedCarbs 
+              ? "bg-destructive/10 border-destructive/30" 
+              : "bg-warning/10 border-warning/30"
+          )}>
+            <div className="flex items-center gap-3 mb-2">
+              <Target className={cn(
+                "w-5 h-5",
+                estimate.raceReadinessImpact.adjustedCarbs ? "text-destructive" : "text-warning"
+              )} />
+              <h4 className="font-semibold text-foreground">Lien Race Readiness → Nutrition</h4>
+            </div>
+            <p className="text-sm text-foreground">{estimate.raceReadinessImpact.message}</p>
+            <p className="text-xs text-muted-foreground mt-2 italic">
+              {NUTRITION_METHODOLOGY.raceReadinessLink}
+            </p>
+          </div>
+        )}
         {/* ⚡ DÉRIVE ÉNERGÉTIQUE - Entrée logique depuis Nutrition */}
         {energyDrift && staffMode && (
           <div className={cn(
@@ -277,9 +319,31 @@ export function NutritionPredictive({
               <span className="text-sm text-muted-foreground">Contexte</span>
             </div>
             <p className="text-lg font-bold text-foreground">{getObjectifLabel(objectif)}</p>
-            <p className="text-xs text-muted-foreground">{sportLabel}</p>
+            <p className="text-xs text-muted-foreground">{estimate.sportLabel}</p>
           </div>
         </div>
+
+        {/* ========== CONTRAINTES SPORT-SPÉCIFIQUES ========== */}
+        {staffMode && riskIndex.sportSpecific && (
+          <div className="p-4 rounded-lg bg-secondary/30 border border-border">
+            <div className="flex items-center gap-2 mb-3">
+              <SportIcon className="w-4 h-4 text-accent" />
+              <span className="font-medium text-foreground text-sm">
+                Contraintes {riskIndex.sportSpecific.sportLabel}
+              </span>
+              <Badge variant="outline" className="text-xs">
+                Facteur: {(riskIndex.sportSpecific.nutritionFactor * 100).toFixed(0)}%
+              </Badge>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {riskIndex.sportSpecific.constraints.map((constraint, idx) => (
+                <Badge key={idx} variant="secondary" className="text-xs">
+                  {constraint}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Warnings */}
         {estimate.warnings.length > 0 && (
@@ -304,15 +368,64 @@ export function NutritionPredictive({
           </div>
         )}
 
-        {/* Sport adjustment note */}
+        {/* ========== COMPARAISON VÉLO vs CAP (Collapsible) ========== */}
         {staffMode && (
-          <div className="p-3 rounded-lg bg-secondary/30 border border-border">
-            <p className="text-xs text-muted-foreground">
-              ℹ️ Les seuils nutritionnels sont ajustés selon le sport. 
-              {sport === 'cap' ? ' CAP: tolérance digestive réduite, risque critique dès >85-90g/h.' : 
-               ' Vélo: tolérance digestive élevée, risque critique à partir de >100g/h.'}
-            </p>
-          </div>
+          <Collapsible open={showComparison} onOpenChange={setShowComparison}>
+            <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-lg bg-secondary/30 border border-border hover:bg-secondary/50 transition-colors">
+              <div className="flex items-center gap-2">
+                <Bike className="w-4 h-4 text-primary" />
+                <span className="font-medium text-foreground text-sm">Comparaison Vélo vs Course à Pied</span>
+              </div>
+              <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform", showComparison && "rotate-180")} />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Vélo */}
+                <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-lg">{SPORT_NUTRITION_COMPARISON.velo.icon}</span>
+                    <span className="font-semibold text-foreground">{SPORT_NUTRITION_COMPARISON.velo.label}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-2">Tolérance: {SPORT_NUTRITION_COMPARISON.velo.tolerance}g/h</p>
+                  <ul className="space-y-1">
+                    {SPORT_NUTRITION_COMPARISON.velo.advantages.map((adv, idx) => (
+                      <li key={idx} className="text-xs text-muted-foreground flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3 text-success" /> {adv}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <p className="text-xs text-muted-foreground font-medium">Plages staff:</p>
+                    <p className="text-xs text-muted-foreground">{NUTRITION_METHODOLOGY.veloLogic.ranges.low}</p>
+                    <p className="text-xs text-muted-foreground">{NUTRITION_METHODOLOGY.veloLogic.ranges.moderate}</p>
+                    <p className="text-xs text-muted-foreground">{NUTRITION_METHODOLOGY.veloLogic.ranges.high}</p>
+                  </div>
+                </div>
+                
+                {/* CAP */}
+                <div className="p-4 rounded-lg bg-accent/5 border border-accent/20">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-lg">{SPORT_NUTRITION_COMPARISON.cap.icon}</span>
+                    <span className="font-semibold text-foreground">{SPORT_NUTRITION_COMPARISON.cap.label}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-2">Tolérance: {SPORT_NUTRITION_COMPARISON.cap.tolerance}g/h</p>
+                  <ul className="space-y-1">
+                    {SPORT_NUTRITION_COMPARISON.cap.constraints.map((c, idx) => (
+                      <li key={idx} className="text-xs text-muted-foreground flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3 text-warning" /> {c}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <p className="text-xs text-muted-foreground font-medium">Plages staff:</p>
+                    <p className="text-xs text-muted-foreground">{NUTRITION_METHODOLOGY.capLogic.ranges.good_economy}</p>
+                    <p className="text-xs text-muted-foreground">{NUTRITION_METHODOLOGY.capLogic.ranges.average_economy}</p>
+                    <p className="text-xs text-muted-foreground">{NUTRITION_METHODOLOGY.capLogic.ranges.poor_economy}</p>
+                  </div>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         )}
 
         {/* Tables de référence (mode staff) */}

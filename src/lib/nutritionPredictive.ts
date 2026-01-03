@@ -1,24 +1,132 @@
 /**
- * Nutrition Prédictive - Vince's Lab
- * Estimation des besoins glucidiques basée sur VLamax, sport et objectif
- * + Indice de Risque Nutritionnel avec plafonnement Race Readiness
+ * Nutrition Prédictive – Two For Coaching Lab
+ * 
+ * Module scientifique d'estimation des besoins glucidiques basé sur :
+ * - VLamax (combustion glucidique)
+ * - TTE (endurance métabolique)
+ * - Race Readiness (adéquation physiologique)
+ * - Sport (vélo vs course à pied)
+ * 
+ * La nutrition est une CONSÉQUENCE, pas une variable isolée.
  */
 
 export type VLamaxCategory = 'very_low' | 'moderate' | 'high' | 'very_high';
 export type RiskLevel = 'low' | 'moderate' | 'high' | 'critical';
 export type Sport = 'velo' | 'cap' | 'triathlon';
 
+// ============= TEXTE OFFICIEL À AFFICHER =============
+export const NUTRITION_METHODOLOGY = {
+  title: "Nutrition prédictive – Two For Coaching Lab",
+  intro: `Les besoins glucidiques sont estimés à partir des caractéristiques physiologiques de l'athlète (VLamax, endurance, économie de mouvement).
+
+Ces valeurs sont des plages recommandées, destinées à guider la stratégie nutritionnelle et non à remplacer les tests terrain.
+
+Une préparation insuffisante ou une mauvaise économie de course peut limiter la capacité réelle d'absorption.`,
+  
+  principles: [
+    "VLamax élevé → forte combustion glucidique",
+    "TTE élevé → meilleure capacité à soutenir une intensité",
+    "Économie faible → surcoût énergétique",
+    "CAP > Vélo = contrainte mécanique + digestive plus élevée",
+  ],
+  
+  veloLogic: {
+    title: "Logique Vélo",
+    points: [
+      "Meilleure absorption digestive",
+      "Intensité plus stable",
+      "Contrainte mécanique plus faible",
+    ],
+    ranges: {
+      low: "VLamax bas + Race Readiness élevée → 60–80 g/h",
+      moderate: "VLamax moyen → 80–100 g/h", 
+      high: "VLamax élevé → 90–120 g/h (prudence digestive)",
+    },
+  },
+  
+  capLogic: {
+    title: "Logique Course à Pied",
+    points: [
+      "Absorption réduite vs vélo",
+      "Dérive cardiaque plus rapide",
+      "Impact mécanique majeur",
+    ],
+    adjustments: [
+      "Réduction de 10 à 25% vs vélo",
+      "Dépendance forte à l'économie de course",
+      "Pénalité si Race Readiness CAP est faible",
+    ],
+    ranges: {
+      good_economy: "Bonne économie + VLamax bas → 50–70 g/h",
+      average_economy: "Économie moyenne → 45–60 g/h",
+      poor_economy: "Économie faible / dérive élevée → 30–50 g/h",
+    },
+  },
+  
+  raceReadinessLink: `Race Readiness influence directement les recommandations nutritionnelles.
+Une Race Readiness faible réduit les apports conseillés et invalide toute stratégie nutritionnelle agressive.`,
+  
+  disclaimer: `⚠️ Aucun chiffre unique imposé. Toujours une plage. 
+Mention explicite des limites physiologiques. 
+Aucun conseil médical.`,
+};
+
+// ============= COMPARAISON VÉLO vs CAP =============
+export const SPORT_NUTRITION_COMPARISON = {
+  velo: {
+    icon: '🚴',
+    label: 'Vélo',
+    tolerance: 100,
+    criticalThreshold: 100,
+    advantages: [
+      "Tolérance digestive élevée",
+      "Position stable",
+      "Cadence ajustable",
+    ],
+    nutritionFactor: 1.0,
+  },
+  cap: {
+    icon: '🏃',
+    label: 'Course à Pied',
+    tolerance: 75,
+    criticalThreshold: 85,
+    constraints: [
+      "Tolérance digestive réduite (-25%)",
+      "Impacts mécaniques répétés",
+      "Dérive cardiaque plus rapide",
+    ],
+    nutritionFactor: 0.75, // Réduction de 25% vs vélo
+  },
+  triathlon: {
+    icon: '🏊',
+    label: 'Triathlon',
+    tolerance: 90,
+    criticalThreshold: 95,
+    notes: [
+      "Mixte vélo + CAP",
+      "Transition digestive délicate",
+    ],
+    nutritionFactor: 0.90,
+  },
+};
+
 export interface NutritionalRiskIndex {
   level: RiskLevel;
   label: string;
   color: 'success' | 'warning' | 'destructive';
   icon: '🟢' | '🟡' | '🟠' | '🔴';
-  carbsRequired: number; // g/h estimé
-  toleranceZone: number; // capacité absorption estimée g/h
-  raceReadinessCap: number | null; // plafonnement Race Readiness (85, 75 ou null)
+  carbsRequired: number;
+  toleranceZone: number;
+  raceReadinessCap: number | null;
   mainRiskFactor: string;
   messageStaff: string;
   messagePedagogique: string;
+  sportSpecific: {
+    sport: Sport;
+    sportLabel: string;
+    nutritionFactor: number;
+    constraints: string[];
+  };
 }
 
 export interface NutritionEstimate {
@@ -32,8 +140,13 @@ export interface NutritionEstimate {
   vlamaxCategory: VLamaxCategory;
   vlamaxLabel: string;
   tteAdjustment: string | null;
-  // Nouvel indice de risque nutritionnel
   nutritionalRiskIndex: NutritionalRiskIndex;
+  sport: Sport;
+  sportLabel: string;
+  raceReadinessImpact: {
+    message: string;
+    adjustedCarbs: boolean;
+  } | null;
 }
 
 export function getVLamaxCategory(vlamax: number): VLamaxCategory {
@@ -155,18 +268,32 @@ const CARBS_TABLE_CAP: Record<VLamaxCategory, Record<string, [number, number] | 
   },
 };
 
-// Capacité d'absorption estimée par sport
+// Capacité d'absorption estimée par sport (g/h)
 const TOLERANCE_BY_SPORT: Record<Sport, number> = {
   velo: 100,    // Vélo : tolérance digestive élevée
   triathlon: 90, // Triathlon : mixte
-  cap: 75,      // CAP : tolérance réduite
+  cap: 75,      // CAP : tolérance réduite de ~25%
 };
 
-// Seuils de risque critique par sport
+// Seuils de risque critique par sport (g/h)
 const CRITICAL_THRESHOLD_BY_SPORT: Record<Sport, number> = {
   velo: 100,
   triathlon: 95,
   cap: 85,
+};
+
+// Facteur de réduction nutrition CAP vs Vélo
+const NUTRITION_REDUCTION_BY_SPORT: Record<Sport, number> = {
+  velo: 1.0,
+  triathlon: 0.90,
+  cap: 0.75, // -25% vs vélo
+};
+
+// Labels sport pour UI
+const SPORT_LABELS: Record<Sport, string> = {
+  velo: 'Vélo',
+  cap: 'Course à Pied',
+  triathlon: 'Triathlon',
 };
 
 function normalizeObjectif(objectif: string): string {
@@ -196,6 +323,11 @@ function detectSport(objectif: string): Sport {
  * Calcul de l'Indice de Risque Nutritionnel
  * Définition: probabilité que la stratégie glucidique nécessaire dépasse 
  * la capacité physiologique ou digestive de l'athlète sur la durée de l'épreuve.
+ * 
+ * Interprétation staff:
+ * 🟢 Risque faible = Stratégie réaliste et tolérable
+ * 🟠 Risque modéré = Risque digestif possible → stratégie à tester
+ * 🔴 Risque élevé = La nutrition devient le facteur limitant de la performance
  */
 function computeNutritionalRiskIndex(params: {
   carbsRequired: number;
@@ -204,20 +336,32 @@ function computeNutritionalRiskIndex(params: {
   tteMin: number | null;
   tteTarget: number;
   vlamaxCategory: VLamaxCategory;
+  raceReadiness?: number | null;
 }): NutritionalRiskIndex {
-  const { carbsRequired, sport, vlamax, tteMin, tteTarget, vlamaxCategory } = params;
+  const { carbsRequired, sport, vlamax, tteMin, tteTarget, vlamaxCategory, raceReadiness } = params;
   
   const toleranceZone = TOLERANCE_BY_SPORT[sport];
   const criticalThreshold = CRITICAL_THRESHOLD_BY_SPORT[sport];
+  const sportLabel = SPORT_LABELS[sport];
+  const nutritionFactor = NUTRITION_REDUCTION_BY_SPORT[sport];
+  
+  // Contraintes spécifiques au sport
+  const sportConstraints = sport === 'cap' 
+    ? ['Tolérance digestive réduite (-25%)', 'Impacts mécaniques', 'Dérive cardiaque']
+    : sport === 'triathlon'
+    ? ['Transition vélo→CAP délicate', 'Fatigue cumulative']
+    : ['Tolérance digestive élevée', 'Position stable'];
   
   // Déterminer le facteur de risque principal
   let mainRiskFactor = 'Profil équilibré';
   if (vlamaxCategory === 'very_high' || vlamaxCategory === 'high') {
-    mainRiskFactor = 'VLamax élevé';
+    mainRiskFactor = 'VLamax élevé → forte combustion glucidique';
   } else if (tteMin !== null && tteMin < tteTarget * 0.8) {
-    mainRiskFactor = 'TTE insuffisant';
+    mainRiskFactor = 'TTE insuffisant → dérive métabolique probable';
   } else if (carbsRequired > toleranceZone) {
-    mainRiskFactor = 'Intensité cible trop élevée';
+    mainRiskFactor = `Besoins > tolérance ${sportLabel}`;
+  } else if (raceReadiness !== null && raceReadiness !== undefined && raceReadiness < 70) {
+    mainRiskFactor = 'Race Readiness faible → stratégie agressive déconseillée';
   }
   
   // Calcul du niveau de risque selon les seuils
@@ -229,40 +373,44 @@ function computeNutritionalRiskIndex(params: {
   let messageStaff: string;
   let messagePedagogique: string;
 
-  if (carbsRequired <= 60) {
-    // RISQUE FAIBLE
+  // Seuils ajustés par sport (CAP plus strict)
+  const lowThreshold = sport === 'cap' ? 55 : 60;
+  const moderateThreshold = sport === 'cap' ? 70 : 80;
+
+  if (carbsRequired <= lowThreshold) {
+    // 🟢 RISQUE FAIBLE - Stratégie réaliste et tolérable
     level = 'low';
     label = 'Faible';
     color = 'success';
     icon = '🟢';
-    messageStaff = 'Oxydation lipidique suffisante, dépendance glucidique maîtrisée. Stratégie nutritionnelle standard.';
-    messagePedagogique = `Ton métabolisme est économe en glucides. À l'intensité de course, ton corps utilise efficacement les lipides comme carburant. Cela te donne une marge de sécurité nutritionnelle confortable.`;
-  } else if (carbsRequired <= 80) {
-    // RISQUE MODÉRÉ
+    messageStaff = `Oxydation lipidique suffisante. Dépendance glucidique maîtrisée. Stratégie nutritionnelle standard en ${sportLabel.toLowerCase()}.`;
+    messagePedagogique = `Ton métabolisme est économe en glucides. À l'intensité cible, ton corps utilise efficacement les lipides. Marge de sécurité nutritionnelle confortable.`;
+  } else if (carbsRequired <= moderateThreshold) {
+    // 🟡 RISQUE MODÉRÉ - Risque digestif possible → stratégie à tester
     level = 'moderate';
     label = 'Modéré';
     color = 'warning';
     icon = '🟡';
-    messageStaff = 'Stratégie nutritionnelle nécessaire mais réaliste. Prévoir un plan d\'alimentation testé à l\'entraînement.';
-    messagePedagogique = `Ton métabolisme consomme une quantité modérée de glucides à l'intensité cible. Une stratégie nutritionnelle rigoureuse est nécessaire, mais reste réaliste à exécuter. Teste ton plan en entraînement.`;
+    messageStaff = `Stratégie nutritionnelle nécessaire mais réaliste en ${sportLabel.toLowerCase()}. Plan à tester à l'entraînement.`;
+    messagePedagogique = `Ton métabolisme consomme une quantité modérée de glucides. Stratégie nutritionnelle rigoureuse nécessaire mais réaliste. Teste ton plan en entraînement.`;
   } else if (carbsRequired <= criticalThreshold) {
-    // RISQUE ÉLEVÉ
+    // 🟠 RISQUE ÉLEVÉ - Race Readiness plafonné à 85%
     level = 'high';
     label = 'Élevé';
     color = 'destructive';
     icon = '🟠';
-    raceReadinessCap = 85; // Plafonnement Race Readiness à 85%
-    messageStaff = `Dépendance glucidique importante (${carbsRequired}g/h). Sensible aux erreurs d'alimentation. Race Readiness plafonné à 85%.`;
-    messagePedagogique = `Ton métabolisme actuel consomme beaucoup de glucides à l'intensité cible. Cela impose une stratégie nutritionnelle très rigoureuse. Sans cela, le risque d'épuisement énergétique est élevé. La priorité n'est pas seulement de manger plus, mais de devenir plus économe.`;
+    raceReadinessCap = 85;
+    messageStaff = `Dépendance glucidique importante (${carbsRequired}g/h en ${sportLabel.toLowerCase()}). Sensible aux erreurs. Race Readiness max: 85%.`;
+    messagePedagogique = `Ton métabolisme consomme beaucoup de glucides. Stratégie très rigoureuse obligatoire. Risque d'épuisement si apports insuffisants. Priorité: devenir plus économe.`;
   } else {
-    // RISQUE CRITIQUE
+    // 🔴 RISQUE CRITIQUE - La nutrition devient le facteur limitant
     level = 'critical';
     label = 'Critique';
     color = 'destructive';
     icon = '🔴';
-    raceReadinessCap = 75; // Plafonnement Race Readiness à 75%
-    messageStaff = `Très forte dépendance glucidique (>${criticalThreshold}g/h). Risque élevé de défaillance en course. Race Readiness plafonné à 75%.`;
-    messagePedagogique = `Ton profil métabolique actuel impose des besoins en glucides qui dépassent ce que ton système digestif peut absorber efficacement. Risque majeur de défaillance énergétique. Avant de penser nutrition, il faut réduire ta dépendance aux glucides (travail sur le VLamax).`;
+    raceReadinessCap = 75;
+    messageStaff = `Très forte dépendance glucidique (>${criticalThreshold}g/h). LA NUTRITION DEVIENT LE FACTEUR LIMITANT. Race Readiness max: 75%.`;
+    messagePedagogique = `Tes besoins glucidiques dépassent ta capacité d'absorption digestive. Risque majeur de défaillance. Avant de penser nutrition, réduis ta dépendance glucidique (travail VLamax).`;
   }
 
   // Ajustement si TTE faible
@@ -279,8 +427,17 @@ function computeNutritionalRiskIndex(params: {
       icon = '🟠';
       raceReadinessCap = 85;
     }
-    mainRiskFactor = 'TTE insuffisant';
-    messageStaff += ' TTE faible = dérive métabolique probable.';
+    mainRiskFactor = 'TTE insuffisant → dérive métabolique probable';
+    messageStaff += ' ⚠️ TTE faible = dérive métabolique en course.';
+  }
+
+  // Ajustement si Race Readiness faible (invalide stratégie agressive)
+  if (raceReadiness !== null && raceReadiness !== undefined && raceReadiness < 60 && level === 'low') {
+    level = 'moderate';
+    label = 'Modéré';
+    color = 'warning';
+    icon = '🟡';
+    messageStaff += ' Race Readiness faible → prudence sur la stratégie nutritionnelle.';
   }
 
   return {
@@ -294,6 +451,12 @@ function computeNutritionalRiskIndex(params: {
     mainRiskFactor,
     messageStaff,
     messagePedagogique,
+    sportSpecific: {
+      sport,
+      sportLabel,
+      nutritionFactor,
+      constraints: sportConstraints,
+    },
   };
 }
 
@@ -303,8 +466,9 @@ export function computeNutritionEstimate(params: {
   sport?: Sport;
   tteMin?: number | null;
   tteTarget?: number;
+  raceReadiness?: number | null;
 }): NutritionEstimate | null {
-  const { vlamax, objectif, sport: forcedSport, tteMin, tteTarget = 50 } = params;
+  const { vlamax, objectif, sport: forcedSport, tteMin, tteTarget = 50, raceReadiness } = params;
 
   if (vlamax === null || vlamax === undefined) {
     return null;
@@ -314,6 +478,7 @@ export function computeNutritionEstimate(params: {
   const vlamaxLabel = getVLamaxLabel(vlamaxCategory);
   const normalizedObjectif = normalizeObjectif(objectif);
   const sport = forcedSport || detectSport(objectif);
+  const sportLabel = SPORT_LABELS[sport];
 
   // Sélection de la table selon le sport
   const isCAP = sport === 'cap';
@@ -328,60 +493,81 @@ export function computeNutritionEstimate(params: {
 
   // Gestion des cas à risque (null dans la table)
   if (carbsRange === null) {
-    // VLamax trop élevé pour cet objectif/sport
     if (isCAP) {
       if (vlamaxCategory === 'very_high') {
         riskLevel = 'critical';
-        messageStaff = 'Profil VLamax incompatible avec une stratégie nutritionnelle viable sur cette distance en CAP. Prioriser un travail de réduction du VLamax ou ajuster l\'objectif.';
+        messageStaff = `Profil VLamax incompatible avec stratégie nutritionnelle viable en ${sportLabel}. Prioriser réduction VLamax.`;
         warnings.push('VLamax très élevé : dépendance glucidique excessive');
-        warnings.push('Tolérance digestive insuffisante en CAP');
+        warnings.push(`Tolérance digestive insuffisante en ${sportLabel}`);
         carbsMin = 90;
         carbsMax = 100;
       } else {
         riskLevel = 'high';
-        messageStaff = 'Limite de tolérance digestive atteinte. Stratégie nutritionnelle à tester minutieusement à l\'entraînement.';
+        messageStaff = `Limite de tolérance digestive atteinte en ${sportLabel}. Stratégie à tester minutieusement.`;
         warnings.push('VLamax élevé : proche des limites physiologiques');
         carbsMin = 85;
         carbsMax = 95;
       }
     } else {
       riskLevel = 'high';
-      messageStaff = 'Besoins glucidiques très élevés. Risque de détresse digestive sur effort court et intense.';
-      warnings.push('Besoins supérieurs à 100g/h : risque digestif');
+      messageStaff = 'Besoins glucidiques très élevés. Risque de détresse digestive sur effort intense.';
+      warnings.push('Besoins > 100g/h : risque digestif');
       carbsMin = 100;
       carbsMax = 120;
     }
   } else {
     [carbsMin, carbsMax] = carbsRange;
 
-    // Détermination du niveau de risque
+    // Détermination du niveau de risque avec contexte sport
     if (vlamaxCategory === 'very_low') {
       riskLevel = 'low';
-      messageStaff = 'Profil favorable à une nutrition stable. Dépendance glucidique modérée, bonne capacité d\'oxydation des lipides.';
+      messageStaff = `Profil favorable en ${sportLabel}. Bonne oxydation lipidique, dépendance glucidique modérée.`;
     } else if (vlamaxCategory === 'moderate') {
       riskLevel = 'low';
-      messageStaff = 'Profil équilibré. Besoins glucidiques standards pour l\'objectif. Stratégie nutritionnelle classique recommandée.';
+      messageStaff = `Profil équilibré. Besoins standards pour ${getObjectifLabel(objectif)} en ${sportLabel}.`;
     } else if (vlamaxCategory === 'high') {
       riskLevel = 'moderate';
-      messageStaff = 'VLamax élevé : dépendance glucidique importante. Prévoir une stratégie nutritionnelle agressive et testée.';
+      messageStaff = `VLamax élevé : dépendance glucidique importante en ${sportLabel}. Stratégie agressive à tester.`;
       warnings.push('Dépendance glucidique marquée');
       if (isCAP) {
-        warnings.push('Tolérance digestive à surveiller');
+        warnings.push('Tolérance digestive réduite en CAP');
       }
     } else {
       riskLevel = 'high';
-      messageStaff = 'Profil à risque sur longue durée. VLamax très élevé impliquant une consommation glycogénique rapide. Stratégie à affiner avec le staff.';
+      messageStaff = `Profil à risque sur longue durée en ${sportLabel}. Consommation glycogénique très rapide.`;
       warnings.push('Consommation glycogénique très rapide');
-      warnings.push('Risque d\'hypoglycémie si apports insuffisants');
+      warnings.push('Risque hypoglycémie si apports insuffisants');
     }
   }
 
   // Ajustement TTE
   let tteAdjustment: string | null = null;
   if (tteMin !== null && tteMin !== undefined && tteMin < tteTarget) {
-    tteAdjustment = `TTE inférieur à la cible (${tteMin} vs ${tteTarget} min) : dérive métabolique probable, besoin glucidique potentiellement plus élevé mais tolérance réduite.`;
+    tteAdjustment = `TTE inférieur à la cible (${tteMin} vs ${tteTarget} min) : dérive métabolique probable. Besoin glucidique potentiellement plus élevé mais tolérance réduite.`;
     if (riskLevel === 'low') riskLevel = 'moderate';
-    warnings.push('TTE < cible : ajustement nutritionnel recommandé');
+    warnings.push('TTE < cible : ajustement nutritionnel requis');
+  }
+
+  // ========== LIEN RACE READINESS → NUTRITION ==========
+  let raceReadinessImpact: { message: string; adjustedCarbs: boolean } | null = null;
+  
+  if (raceReadiness !== null && raceReadiness !== undefined) {
+    if (raceReadiness < 50) {
+      // Race Readiness très faible → réduction apports conseillés
+      const reduction = Math.round((carbsMax - carbsMin) * 0.3);
+      carbsMax = Math.max(carbsMin, carbsMax - reduction);
+      raceReadinessImpact = {
+        message: `Race Readiness < 50% : stratégie nutritionnelle agressive DÉCONSEILLÉE. Apports réduits de ${reduction}g/h.`,
+        adjustedCarbs: true,
+      };
+      warnings.push('Race Readiness faible → prudence nutritionnelle');
+      if (riskLevel === 'low') riskLevel = 'moderate';
+    } else if (raceReadiness < 70) {
+      raceReadinessImpact = {
+        message: `Race Readiness modérée (${Math.round(raceReadiness)}%) : valider la tolérance digestive à l'entraînement avant d'appliquer cette stratégie.`,
+        adjustedCarbs: false,
+      };
+    }
   }
 
   // Calcul de l'Indice de Risque Nutritionnel
@@ -393,6 +579,7 @@ export function computeNutritionEstimate(params: {
     tteMin: tteMin ?? null,
     tteTarget,
     vlamaxCategory,
+    raceReadiness,
   });
 
   const riskLabel = riskLevel === 'low' ? 'Faible' : riskLevel === 'moderate' ? 'Modéré' : riskLevel === 'critical' ? 'Critique' : 'Élevé';
@@ -410,6 +597,9 @@ export function computeNutritionEstimate(params: {
     vlamaxLabel,
     tteAdjustment,
     nutritionalRiskIndex,
+    sport,
+    sportLabel,
+    raceReadinessImpact,
   };
 }
 
