@@ -41,6 +41,7 @@ import { computeRunningEconomy } from "@/lib/runningEconomy";
 import { generateAthleteReadiness } from "@/lib/athleteReadiness";
 import { computeEnergyDrift, EnergyDriftResult } from "@/lib/energyDrift";
 import { EnergyDriftBadge } from "@/components/EnergyDriftBadge";
+import { DashboardGauges } from "@/components/DashboardGauges";
 
 // ✅ FIX 11 - Effective Refs (source unique de vérité)
 import { getEffectiveRefs, computeFtpKg, getMissingFields } from "@/lib/effectiveRefs";
@@ -721,69 +722,15 @@ const Index = () => {
               <CheckinManager athleteId={currentAthlete.id} athleteName={currentAthlete.name} />
             )}
 
-            {/* ✅ METRICS: plus mock — basé snapshot */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <MetricCard
-                title="VLamax Effectif"
-                value={vlamaxEffectif.value !== null ? vlamaxEffectif.value.toFixed(2) : "—"}
-                unit="mmol/L/s"
-                icon={Zap}
-                trend="neutral"
-                trendValue={
-                  staffMode
-                    ? (vlamaxEffectif.source === "test" && vlamaxEffectif.details?.date
-                        ? `Test ${vlamaxEffectif.details.date} • conf ${Math.round(vlamaxEffectif.confidence * 100)}%`
-                        : `${vlamaxEffectif.label} • conf ${Math.round(vlamaxEffectif.confidence * 100)}%`)
-                    : (vlamaxEffectif.value !== null ? "Moteur glycolytique" : "—")
-                }
-                accentColor={vlamaxEffectif.source === "test" ? "success" : "primary"}
-                onWhyClick={() => setActiveTab("methodology")}
-              />
-
-              <MetricCard
-                title="FTP"
-                value={ftp ? ftp.toString() : "—"}
-                unit="watts"
-                icon={Flame}
-                trend="neutral"
-                trendValue={ftp_kg ? `${ftp_kg.toFixed(1)} W/kg` : "—"}
-                accentColor="accent"
-              />
-
-              <MetricCard
-                title="TTE Effectif"
-                value={tteEffectif.tte_min !== null ? tteEffectif.tte_min.toString() : "—"}
-                unit="min"
-                icon={Activity}
-                trend="neutral"
-                trendValue={
-                  staffMode
-                    ? (tteEffectif.source !== "unknown" 
-                        ? `${getSourceLabel(tteEffectif.source)} • conf ${Math.round(tteEffectif.confidence * 100)}%`
-                        : "Ajouter TSS_7d ou TTE mesuré")
-                    : (tteEffectif.tte_min !== null ? "Endurance au seuil" : "—")
-                }
-                accentColor={tteEffectif.source === "unknown" ? "warning" : "success"}
-                onWhyClick={() => setActiveTab("methodology")}
-              />
-
-              <MetricCard
-                title="Race Readiness"
-                value={raceReadinessEffectif.score.toString()}
-                unit="%"
-                icon={Target}
-                trend="neutral"
-                trendValue={
-                  staffMode
-                    ? (raceReadinessEffectif.reasonsMissing.length > 0
-                        ? `${raceReadinessEffectif.label} • ${raceReadinessEffectif.reasonsMissing[0]}`
-                        : `${raceReadinessEffectif.label} • conf ${Math.round(raceReadinessEffectif.confidence * 100)}%`)
-                    : raceReadinessEffectif.label
-                }
-                accentColor={raceReadinessEffectif.color === "success" ? "success" : "warning"}
-                onWhyClick={() => setActiveTab("methodology")}
-              />
-            </div>
+            {/* 📊 Résumé visuel compact avec jauges */}
+            <DashboardGauges
+              vlamax={vlamaxEffectif}
+              tte={tteEffectif}
+              raceReadiness={raceReadinessEffectif}
+              ftp={ftp}
+              ftpKg={ftp_kg}
+              vo2max={effectiveCloudSnapshot?.vo2max}
+            />
 
             {/* 📋 Briefing Staff Automatique (mode staff) */}
             {staffMode && currentAthlete && (

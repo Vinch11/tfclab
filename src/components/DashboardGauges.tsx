@@ -1,0 +1,320 @@
+// =============================================
+// DASHBOARD GAUGES - Résumé visuel compact
+// =============================================
+
+import { cn } from "@/lib/utils";
+import { Zap, Activity, Target, TrendingUp } from "lucide-react";
+
+interface GaugeProps {
+  value: number;
+  max: number;
+  label: string;
+  displayValue: string;
+  unit?: string;
+  icon: React.ReactNode;
+  color: "primary" | "accent" | "success" | "warning" | "destructive";
+  sublabel?: string;
+  inverted?: boolean;
+}
+
+function CircularGauge({ 
+  value, 
+  max, 
+  label, 
+  displayValue, 
+  unit, 
+  icon, 
+  color, 
+  sublabel,
+  inverted = false 
+}: GaugeProps) {
+  const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
+  const circumference = 2 * Math.PI * 36; // radius = 36
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
+  const colorClasses = {
+    primary: { stroke: "stroke-primary", text: "text-primary", bg: "bg-primary/10" },
+    accent: { stroke: "stroke-accent", text: "text-accent", bg: "bg-accent/10" },
+    success: { stroke: "stroke-emerald-500", text: "text-emerald-500", bg: "bg-emerald-500/10" },
+    warning: { stroke: "stroke-amber-500", text: "text-amber-500", bg: "bg-amber-500/10" },
+    destructive: { stroke: "stroke-red-500", text: "text-red-500", bg: "bg-red-500/10" },
+  };
+
+  // Détermine la couleur automatiquement selon le ratio
+  const getAutoColor = () => {
+    const ratio = inverted ? 1 - (value / max) : value / max;
+    if (ratio >= 0.75) return "success";
+    if (ratio >= 0.5) return "warning";
+    if (ratio >= 0.25) return "warning";
+    return "destructive";
+  };
+
+  const effectiveColor = color === "primary" && value > 0 ? getAutoColor() : color;
+  const colors = colorClasses[effectiveColor];
+
+  return (
+    <div className="flex flex-col items-center p-4 glass-card hover:border-primary/30 transition-all duration-300 group">
+      <div className="relative w-24 h-24">
+        {/* Background circle */}
+        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 80 80">
+          <circle
+            cx="40"
+            cy="40"
+            r="36"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="6"
+            className="text-muted/20"
+          />
+          {/* Progress circle */}
+          <circle
+            cx="40"
+            cy="40"
+            r="36"
+            fill="none"
+            strokeWidth="6"
+            strokeLinecap="round"
+            className={cn(colors.stroke, "transition-all duration-700 ease-out")}
+            style={{
+              strokeDasharray: circumference,
+              strokeDashoffset: value > 0 ? strokeDashoffset : circumference,
+            }}
+          />
+        </svg>
+        {/* Center content */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <div className={cn("p-1.5 rounded-full mb-0.5", colors.bg)}>
+            {icon}
+          </div>
+          <span className={cn("text-lg font-bold font-mono", colors.text)}>
+            {displayValue}
+          </span>
+          {unit && (
+            <span className="text-[10px] text-muted-foreground">{unit}</span>
+          )}
+        </div>
+      </div>
+      <span className="mt-2 text-sm font-medium text-center">{label}</span>
+      {sublabel && (
+        <span className="text-[10px] text-muted-foreground text-center mt-0.5 max-w-[100px] truncate">
+          {sublabel}
+        </span>
+      )}
+    </div>
+  );
+}
+
+interface HorizontalGaugeProps {
+  value: number;
+  max: number;
+  label: string;
+  displayValue: string;
+  unit?: string;
+  color: "primary" | "accent" | "success" | "warning" | "destructive";
+  sublabel?: string;
+  inverted?: boolean;
+}
+
+function HorizontalGauge({
+  value,
+  max,
+  label,
+  displayValue,
+  unit,
+  color,
+  sublabel,
+  inverted = false,
+}: HorizontalGaugeProps) {
+  const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
+
+  const colorClasses = {
+    primary: { bar: "bg-primary", text: "text-primary", bg: "bg-primary/20" },
+    accent: { bar: "bg-accent", text: "text-accent", bg: "bg-accent/20" },
+    success: { bar: "bg-emerald-500", text: "text-emerald-500", bg: "bg-emerald-500/20" },
+    warning: { bar: "bg-amber-500", text: "text-amber-500", bg: "bg-amber-500/20" },
+    destructive: { bar: "bg-red-500", text: "text-red-500", bg: "bg-red-500/20" },
+  };
+
+  const getAutoColor = () => {
+    const ratio = inverted ? 1 - (value / max) : value / max;
+    if (ratio >= 0.75) return "success";
+    if (ratio >= 0.5) return "warning";
+    if (ratio >= 0.25) return "warning";
+    return "destructive";
+  };
+
+  const effectiveColor = color === "primary" && value > 0 ? getAutoColor() : color;
+  const colors = colorClasses[effectiveColor];
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex justify-between items-center">
+        <span className="text-sm font-medium">{label}</span>
+        <div className="flex items-baseline gap-1">
+          <span className={cn("font-mono font-bold text-sm", colors.text)}>
+            {displayValue}
+          </span>
+          {unit && <span className="text-xs text-muted-foreground">{unit}</span>}
+        </div>
+      </div>
+      <div className={cn("h-2.5 rounded-full overflow-hidden", colors.bg)}>
+        <div
+          className={cn("h-full rounded-full transition-all duration-700 ease-out", colors.bar)}
+          style={{ width: `${percentage}%` }}
+        />
+      </div>
+      {sublabel && (
+        <span className="text-[10px] text-muted-foreground">{sublabel}</span>
+      )}
+    </div>
+  );
+}
+
+interface DashboardGaugesProps {
+  vlamax: { value: number | null; label: string; confidence: number };
+  tte: { tte_min: number | null; confidence: number };
+  raceReadiness: { score: number; label: string; confidence: number };
+  ftp?: number | null;
+  ftpKg?: number | null;
+  vo2max?: number | null;
+}
+
+export function DashboardGauges({
+  vlamax,
+  tte,
+  raceReadiness,
+  ftp,
+  ftpKg,
+  vo2max,
+}: DashboardGaugesProps) {
+  const vlamaxVal = vlamax.value ?? 0;
+  const tteVal = tte.tte_min ?? 0;
+  const rrScore = raceReadiness.score;
+
+  // Determine colors based on values
+  const getVlamaxColor = (): "success" | "warning" | "destructive" => {
+    if (vlamaxVal <= 0.35) return "success";
+    if (vlamaxVal <= 0.5) return "warning";
+    return "destructive";
+  };
+
+  const getTteColor = (): "success" | "warning" | "destructive" => {
+    if (tteVal >= 45) return "success";
+    if (tteVal >= 30) return "warning";
+    return "destructive";
+  };
+
+  const getRrColor = (): "success" | "warning" | "destructive" => {
+    if (rrScore >= 75) return "success";
+    if (rrScore >= 50) return "warning";
+    return "destructive";
+  };
+
+  return (
+    <div className="glass-card p-6">
+      <h3 className="text-sm font-semibold text-muted-foreground mb-4 flex items-center gap-2">
+        <TrendingUp className="w-4 h-4" />
+        Métriques Clés
+      </h3>
+      
+      {/* Circular gauges grid */}
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        <CircularGauge
+          value={vlamaxVal}
+          max={1}
+          label="VLamax"
+          displayValue={vlamaxVal > 0 ? vlamaxVal.toFixed(2) : "—"}
+          unit="mmol/L/s"
+          icon={<Zap className={cn("w-4 h-4", vlamaxVal > 0 ? "text-current" : "text-muted-foreground")} />}
+          color={vlamaxVal > 0 ? getVlamaxColor() : "primary"}
+          sublabel={vlamax.label}
+          inverted={true}
+        />
+        
+        <CircularGauge
+          value={tteVal}
+          max={60}
+          label="TTE"
+          displayValue={tteVal > 0 ? Math.round(tteVal).toString() : "—"}
+          unit="min"
+          icon={<Activity className={cn("w-4 h-4", tteVal > 0 ? "text-current" : "text-muted-foreground")} />}
+          color={tteVal > 0 ? getTteColor() : "primary"}
+          sublabel="Endurance seuil"
+        />
+        
+        <CircularGauge
+          value={rrScore}
+          max={100}
+          label="Readiness"
+          displayValue={rrScore.toString()}
+          unit="%"
+          icon={<Target className={cn("w-4 h-4", rrScore > 0 ? "text-current" : "text-muted-foreground")} />}
+          color={getRrColor()}
+          sublabel={raceReadiness.label}
+        />
+      </div>
+
+      {/* Horizontal bars for secondary metrics */}
+      <div className="space-y-3 border-t border-border/50 pt-4">
+        {ftp !== null && ftp !== undefined && ftp > 0 && (
+          <HorizontalGauge
+            value={ftp}
+            max={400}
+            label="FTP"
+            displayValue={ftp.toString()}
+            unit={ftpKg ? `W (${ftpKg.toFixed(1)} W/kg)` : "W"}
+            color="accent"
+          />
+        )}
+        
+        {vo2max !== null && vo2max !== undefined && vo2max > 0 && (
+          <HorizontalGauge
+            value={vo2max}
+            max={80}
+            label="VO2max"
+            displayValue={Math.round(vo2max).toString()}
+            unit="ml/kg/min"
+            color={vo2max >= 55 ? "success" : vo2max >= 45 ? "warning" : "destructive"}
+          />
+        )}
+
+        {/* Confidence bars */}
+        <div className="grid grid-cols-3 gap-2 pt-2">
+          <div className="text-center">
+            <div className="h-1 rounded-full bg-muted/30 overflow-hidden">
+              <div 
+                className="h-full bg-primary/60 rounded-full transition-all duration-500"
+                style={{ width: `${vlamax.confidence * 100}%` }}
+              />
+            </div>
+            <span className="text-[9px] text-muted-foreground">
+              Conf. {Math.round(vlamax.confidence * 100)}%
+            </span>
+          </div>
+          <div className="text-center">
+            <div className="h-1 rounded-full bg-muted/30 overflow-hidden">
+              <div 
+                className="h-full bg-primary/60 rounded-full transition-all duration-500"
+                style={{ width: `${tte.confidence * 100}%` }}
+              />
+            </div>
+            <span className="text-[9px] text-muted-foreground">
+              Conf. {Math.round(tte.confidence * 100)}%
+            </span>
+          </div>
+          <div className="text-center">
+            <div className="h-1 rounded-full bg-muted/30 overflow-hidden">
+              <div 
+                className="h-full bg-primary/60 rounded-full transition-all duration-500"
+                style={{ width: `${raceReadiness.confidence * 100}%` }}
+              />
+            </div>
+            <span className="text-[9px] text-muted-foreground">
+              Conf. {Math.round(raceReadiness.confidence * 100)}%
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
