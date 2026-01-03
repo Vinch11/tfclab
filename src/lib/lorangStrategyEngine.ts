@@ -57,10 +57,10 @@ export interface StrategyResult {
 }
 
 export interface StrategyInputs {
-  vlamax: number;
+  vlamax: number | null;
   vlamaxSource: string;
   vlamaxConfidence: number;
-  tte: number;
+  tte: number | null;
   tteSource: string;
   tteConfidence: number;
   ftp_kg: number;
@@ -335,6 +335,33 @@ export function computeLorangStrategy(inputs: StrategyInputs): StrategyResult {
   const targets = OBJECTIF_TARGETS[objectif] || OBJECTIF_TARGETS.IM;
   const alerts: string[] = [];
   let priority: StrategyPriority = "MAINTENANCE";
+  
+  // =============================================
+  // PROTECTION: Données manquantes
+  // =============================================
+  if (vlamax === null || tte === null) {
+    return {
+      priority: "MAINTENANCE",
+      priorityLabel: "Données insuffisantes",
+      priorityIcon: "⚠️",
+      confidence: 0,
+      confidenceLabel: "Aucune donnée",
+      confidenceMessage: "Ajoutez un snapshot avec VLamax et TTE pour obtenir des recommandations.",
+      sessions: { recommended: [], limited: [], avoid: [] },
+      explanation: {
+        title: "Données manquantes",
+        context: "Aucun snapshot physiologique n'est disponible pour cet athlète.",
+        whatItMeans: "L'analyse stratégique nécessite au minimum VLamax et TTE.",
+        benefit: "Créez un snapshot pour débloquer les recommandations d'entraînement."
+      },
+      alerts: ["Aucun snapshot disponible — créez-en un pour activer l'analyse."],
+      dataSource: {
+        vlamax: { source: vlamaxSource, confidence: vlamaxConfidence },
+        tte: { source: tteSource, confidence: tteConfidence },
+        ftp: { source: "snapshot", confidence: ftp_kg > 0 ? 80 : 0 }
+      }
+    };
+  }
   
   // =============================================
   // RÈGLES DE DÉCISION (ORDRE DE PRIORITÉ)
