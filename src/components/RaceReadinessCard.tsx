@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Target, TrendingUp, Zap, Heart, Activity, ChevronRight, HelpCircle, Footprints, AlertTriangle, Battery, BatteryLow, TrendingDown, Shield, Info, ChevronDown, ChevronUp } from "lucide-react";
+import { Target, TrendingUp, Zap, Heart, Activity, ChevronRight, HelpCircle, Footprints, AlertTriangle, Battery, BatteryLow, TrendingDown, Shield, Info, ChevronDown, ChevronUp, Bike, PersonStanding } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCloudData } from "@/hooks/useCloudData";
 import type { DbSnapshot } from "@/hooks/useCloudData";
@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { VLamaxEffectif, getSourceColor as getVLamaxSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
 import { TTEEffectif, getSourceColor as getTTESourceColor, getSourceLabel } from "@/lib/tteEffectif";
-import { RaceReadinessEffectif, getScoreColor, getScoreBgColor, getObjectifLabel, RACE_READINESS_METHODOLOGY } from "@/lib/raceReadinessEffectif";
+import { RaceReadinessEffectif, getScoreColor, getScoreBgColor, getObjectifLabel, RACE_READINESS_METHODOLOGY, SPORT_SPECIFICITY, SPORT_COMPARISON_TEXT, type RaceReadinessSport } from "@/lib/raceReadinessEffectif";
 import { TTEGuard, isTTEUnavailable } from "@/components/TTEGuard";
 import { getEconomyRaceReadinessBonus } from "@/lib/runningEconomySnapshot";
 import { EnergyDriftResult, getFactorLabel, getFactorColor } from "@/lib/energyDrift";
@@ -111,6 +111,9 @@ export function RaceReadinessCard({
     nutritionalRiskIndex: null,
     wasCappedByNutrition: false,
     nutritionalCapReason: null,
+    // Spécificité sport (défaut vélo)
+    sport: "velo" as RaceReadinessSport,
+    sportSpecificity: SPORT_SPECIFICITY.velo,
   };
   
   // État pour le panneau méthodologie
@@ -300,6 +303,104 @@ export function RaceReadinessCard({
           </p>
         </div>
       </div>
+
+      {/* 🚴🏃 SPÉCIFICITÉ SPORT - Vélo vs Course à Pied */}
+      {readiness.sportSpecificity && (
+        <Collapsible className="mb-4">
+          <CollapsibleTrigger className="w-full">
+            <div className={cn(
+              "p-3 rounded-lg border flex items-center gap-3 hover:bg-secondary/30 transition-colors cursor-pointer",
+              readiness.sport === "course" ? "bg-blue-500/5 border-blue-500/20" :
+              readiness.sport === "triathlon" ? "bg-purple-500/5 border-purple-500/20" :
+              "bg-orange-500/5 border-orange-500/20"
+            )}>
+              {readiness.sport === "course" ? (
+                <PersonStanding className="w-5 h-5 text-blue-600" />
+              ) : readiness.sport === "triathlon" ? (
+                <Activity className="w-5 h-5 text-purple-600" />
+              ) : (
+                <Bike className="w-5 h-5 text-orange-600" />
+              )}
+              <div className="flex-1 text-left">
+                <div className="flex items-center gap-2">
+                  <span className={cn(
+                    "text-sm font-semibold",
+                    readiness.sport === "course" ? "text-blue-600" :
+                    readiness.sport === "triathlon" ? "text-purple-600" :
+                    "text-orange-600"
+                  )}>
+                    {readiness.sportSpecificity.title}
+                  </span>
+                  <Badge variant="outline" className="text-xs">
+                    {readiness.sportSpecificity.dominante}
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Pilier principal : <strong>{readiness.sportSpecificity.pilierPrincipal}</strong> • VLamax modulabilité : {readiness.sportSpecificity.vlamaxModulabilite}
+                </p>
+              </div>
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="mt-2 p-4 rounded-lg bg-secondary/20 border border-border space-y-4">
+              {/* Contraintes clés */}
+              <div>
+                <h4 className="text-xs font-semibold text-foreground mb-2">Contraintes clés du sport</h4>
+                <ul className="text-xs text-muted-foreground space-y-1">
+                  {readiness.sportSpecificity.contraintesClés.map((c, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="text-primary">•</span>
+                      <span>{c}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              
+              {/* Rôle VLamax */}
+              <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
+                <div className="flex items-center gap-2 mb-1">
+                  <Zap className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-semibold text-foreground">Rôle du VLamax</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {readiness.sportSpecificity.roleVLamax}
+                </p>
+              </div>
+              
+              {/* Rôle TTE */}
+              <div className="p-3 rounded-lg bg-accent/5 border border-accent/10">
+                <div className="flex items-center gap-2 mb-1">
+                  <Activity className="w-4 h-4 text-accent" />
+                  <span className="text-xs font-semibold text-foreground">Rôle du TTE</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {readiness.sportSpecificity.roleTTE}
+                </p>
+              </div>
+              
+              {/* Leviers d'optimisation */}
+              <div>
+                <h4 className="text-xs font-semibold text-foreground mb-2">Leviers d'optimisation</h4>
+                <div className="flex flex-wrap gap-2">
+                  {readiness.sportSpecificity.leviers.map((l, i) => (
+                    <Badge key={i} variant="secondary" className="text-xs">
+                      {l}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Logique d'analyse */}
+              <div className="p-3 rounded-lg bg-secondary/50 border border-border">
+                <p className="text-xs text-muted-foreground italic">
+                  💡 {readiness.sportSpecificity.logique}
+                </p>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
 
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="flex flex-col items-center justify-center p-6 rounded-xl bg-secondary/30 border border-border">

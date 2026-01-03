@@ -28,6 +28,9 @@ import { computeRunningEconomy, applyEconomyCap, type RunningEconomyResult, type
 // DÉFINITION OFFICIELLE (pour affichage UI)
 // =============================================
 
+// Type de sport pour Race Readiness différencié
+export type RaceReadinessSport = "velo" | "course" | "triathlon";
+
 export const RACE_READINESS_METHODOLOGY = {
   title: "Race Readiness – Méthodologie",
   definition: `Race Readiness est un outil d'aide à la décision destiné aux coachs et staffs.
@@ -57,6 +60,75 @@ Un indice de confiance accompagne chaque score afin d'indiquer le niveau de robu
   ],
   disclaimer: "Ce rapport guide la décision mais ne remplace pas un avis médical ni le jugement du coach."
 };
+
+// =============================================
+// SPÉCIFICITÉ SPORT : VÉLO vs COURSE À PIED
+// =============================================
+
+export const SPORT_SPECIFICITY = {
+  // VÉLO - Métabolisme dominant
+  velo: {
+    title: "Race Readiness – Vélo",
+    contraintesClés: [
+      "Contraction musculaire majoritairement concentrique",
+      "Faible impact mécanique",
+      "Possibilité d'optimiser le métabolisme par la cadence",
+      "Nutrition plus facile à absorber"
+    ],
+    roleVLamax: "VLamax élevé → consommation glucidique élevée. Acceptable voire favorable sur formats courts. Fortement pénalisant sur longue distance (Ironman, ultra). En vélo, le VLamax est un levier stratégique ajustable par l'entraînement.",
+    roleTTE: "Le TTE est central. Il conditionne la capacité à tenir une intensité stable. Étroitement lié à la charge chronique, la tolérance métabolique et la capacité nutritionnelle.",
+    logique: "L'analyse repose principalement sur l'adéquation métabolique (VLamax, TTE, FTP) et la capacité à maintenir une intensité prolongée.",
+    leviers: ["Cadence", "Nutrition", "Volume"],
+    dominante: "Métabolisme",
+    vlamaxModulabilite: "Élevée",
+    pilierPrincipal: "TTE"
+  },
+  // COURSE À PIED - Biomécanique dominante
+  course: {
+    title: "Race Readiness – Course à Pied",
+    contraintesClés: [
+      "Contractions excentriques répétées",
+      "Impacts mécaniques élevés",
+      "Coût énergétique fortement dépendant de la technique",
+      "Fatigue neuromusculaire limitante"
+    ],
+    roleVLamax: "VLamax élevé = coût énergétique plus élevé à allure donnée. Favorable uniquement sur formats très courts. Très pénalisant sur semi / marathon / ultra. En CAP, le VLamax est moins modulable que sur le vélo et plus risqué à manipuler.",
+    roleTTE: "Le TTE seul est insuffisant. Il doit être interprété avec l'économie de course, la tolérance mécanique et la dérive cardiaque.",
+    logique: "L'analyse intègre en priorité les contraintes biomécaniques, l'économie de course et la stabilité de l'effort, le VLamax jouant un rôle plus indirect.",
+    leviers: ["Économie", "Technique", "Charge mécanique"],
+    dominante: "Biomécanique",
+    vlamaxModulabilite: "Limitée",
+    pilierPrincipal: "Économie de course"
+  },
+  // TRIATHLON - Mixte
+  triathlon: {
+    title: "Race Readiness – Triathlon",
+    contraintesClés: [
+      "Enchaînement multi-sports",
+      "Fatigue cumulative vélo → CAP",
+      "Gestion nutritionnelle critique sur vélo",
+      "Impact économie CAP après effort vélo"
+    ],
+    roleVLamax: "VLamax doit être optimisé pour le vélo (longue portion) tout en limitant l'impact négatif en CAP. Un VLamax trop élevé épuise les réserves glycogéniques sur vélo, compromettant la CAP.",
+    roleTTE: "TTE vélo = pilier principal. TTE CAP conditionné par la fatigue résiduelle vélo et l'économie de course.",
+    logique: "Score composite intégrant les exigences vélo (métabolisme) et CAP (biomécanique). L'athlète peut être limité sur l'un des deux.",
+    leviers: ["Cadence vélo", "Économie CAP", "Nutrition", "Transition"],
+    dominante: "Mixte",
+    vlamaxModulabilite: "Moyenne",
+    pilierPrincipal: "TTE vélo + Économie CAP"
+  }
+};
+
+// Message UI pour la spécificité sport
+export const SPORT_COMPARISON_TEXT = `Race Readiness – Spécificité Vélo vs Course à Pied
+
+Race Readiness est spécifique au sport pratiqué.
+
+En vélo, l'analyse repose principalement sur l'adéquation métabolique (VLamax, TTE, FTP) et la capacité à maintenir une intensité prolongée.
+
+En course à pied, l'analyse intègre en priorité les contraintes biomécaniques, l'économie de course et la stabilité de l'effort, le VLamax jouant un rôle plus indirect.
+
+Un athlète peut être prêt physiologiquement en vélo mais présenter des limitations en course à pied, ou inversement.`;
 
 // =============================================
 // TYPES
@@ -127,6 +199,32 @@ export interface RaceReadinessEffectif {
   runningEconomy: RunningEconomyResult | null;
   wasCappedByEconomy: boolean;
   economyCapReason: string | null;
+  // =============================================
+  // NOUVEAUTÉ : Spécificité VÉLO vs CAP
+  // =============================================
+  sport: RaceReadinessSport;     // Sport principal détecté
+  sportSpecificity: {
+    title: string;               // "Race Readiness – Vélo" ou "– Course à Pied"
+    dominante: string;           // "Métabolisme" ou "Biomécanique"
+    pilierPrincipal: string;     // "TTE" ou "Économie de course"
+    vlamaxModulabilite: string;  // "Élevée" ou "Limitée"
+    contraintesClés: string[];   // Liste des contraintes
+    roleVLamax: string;          // Explication du rôle VLamax pour ce sport
+    roleTTE: string;             // Explication du rôle TTE pour ce sport
+    leviers: string[];           // Leviers d'optimisation
+    logique: string;             // Logique d'analyse
+  };
+}
+
+// Score par sport (vélo vs CAP)
+export interface SportSpecificScore {
+  sport: RaceReadinessSport;
+  score: number;
+  label: string;
+  color: "success" | "warning" | "destructive";
+  interpretation: string;
+  keyFactors: string[];
+  limitations: string[];
 }
 
 export interface ComputeRaceReadinessParams {
@@ -269,6 +367,94 @@ const WEIGHTS_BY_OBJECTIF: Record<string, RaceWeights> = {
 };
 
 const DEFAULT_WEIGHTS: RaceWeights = WEIGHTS_BY_OBJECTIF["IM"];
+
+// =============================================
+// PONDÉRATIONS SPÉCIFIQUES PAR SPORT (VÉLO vs CAP)
+// =============================================
+
+// Objectifs considérés comme VÉLO (triathlon vélo dominant ou cyclisme pur)
+const VELO_OBJECTIVES = ["IM", "Ironman", "703", "Half", "Sprint", "Olympic", "Cyclisme", "Gravel"];
+
+// Objectifs considérés comme COURSE À PIED
+const CAP_OBJECTIVES = ["Marathon", "Semi", "Course", "Trail", "TrailCourt", "TrailLong", "TrailMountain", "TrailUltra", "Ultra"];
+
+// Objectifs TRIATHLON (les deux disciplines comptent)
+const TRIATHLON_OBJECTIVES = ["IM", "Ironman", "703", "Half", "Sprint", "Olympic"];
+
+/**
+ * Détermine le sport principal pour Race Readiness
+ */
+export function getSportFromObjectif(objectif: string): RaceReadinessSport {
+  if (CAP_OBJECTIVES.includes(objectif) && !TRIATHLON_OBJECTIVES.includes(objectif)) {
+    return "course";
+  }
+  if (TRIATHLON_OBJECTIVES.includes(objectif)) {
+    return "triathlon";
+  }
+  return "velo";
+}
+
+/**
+ * Retourne true si l'objectif est principalement course à pied
+ */
+export function isRunningObjectif(objectif: string): boolean {
+  return CAP_OBJECTIVES.includes(objectif);
+}
+
+/**
+ * Retourne true si l'objectif est un triathlon
+ */
+export function isTriathlonObjectif(objectif: string): boolean {
+  return TRIATHLON_OBJECTIVES.includes(objectif);
+}
+
+/**
+ * Pondérations spécifiques VÉLO - Métabolisme dominant
+ * Le TTE est le pilier principal, VLamax modulable par cadence
+ */
+const WEIGHTS_VELO: Record<string, RaceWeights> = {
+  // Longue distance vélo : TTE et VLamax critiques
+  IM: { vlamax: 40, tte: 45, ftpKg: 10, freshness: 5 },
+  Ironman: { vlamax: 40, tte: 45, ftpKg: 10, freshness: 5 },
+  "703": { vlamax: 35, tte: 40, ftpKg: 20, freshness: 5 },
+  Half: { vlamax: 35, tte: 40, ftpKg: 20, freshness: 5 },
+  // Format court vélo : FTP/kg domine
+  Sprint: { vlamax: 20, tte: 25, ftpKg: 50, freshness: 5 },
+  Olympic: { vlamax: 25, tte: 30, ftpKg: 40, freshness: 5 },
+};
+
+/**
+ * Pondérations spécifiques CAP - Biomécanique dominante
+ * L'économie de course impacte fortement le score
+ * Le TTE doit être interprété avec l'économie
+ */
+const WEIGHTS_CAP: Record<string, RaceWeights> = {
+  // Marathon / Ultra : VLamax pénalisant, économie critique
+  Marathon: { vlamax: 30, tte: 30, ftpKg: 20, freshness: 5 }, // + 15% économie implicite
+  Semi: { vlamax: 25, tte: 30, ftpKg: 30, freshness: 5 },
+  // Trail : équilibré mais économie très importante
+  Trail: { vlamax: 30, tte: 35, ftpKg: 20, freshness: 5 },
+  TrailCourt: { vlamax: 25, tte: 25, ftpKg: 40, freshness: 5 },
+  TrailLong: { vlamax: 35, tte: 35, ftpKg: 15, freshness: 5 },
+  Ultra: { vlamax: 35, tte: 35, ftpKg: 15, freshness: 5 },
+  Course: { vlamax: 20, tte: 25, ftpKg: 45, freshness: 5 },
+};
+
+/**
+ * Retourne les pondérations adaptées au sport et à l'objectif
+ */
+export function getWeightsBySport(objectif: string, sport?: RaceReadinessSport): RaceWeights {
+  const detectedSport = sport || getSportFromObjectif(objectif);
+  
+  if (detectedSport === "course") {
+    return WEIGHTS_CAP[objectif] || WEIGHTS_BY_OBJECTIF[objectif] || DEFAULT_WEIGHTS;
+  }
+  if (detectedSport === "velo" || detectedSport === "triathlon") {
+    return WEIGHTS_VELO[objectif] || WEIGHTS_BY_OBJECTIF[objectif] || DEFAULT_WEIGHTS;
+  }
+  
+  return WEIGHTS_BY_OBJECTIF[objectif] || DEFAULT_WEIGHTS;
+}
 
 // =============================================
 // HELPERS
@@ -777,6 +963,12 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
     wasCappedByEconomy: economyCap.wasCapped,
   });
 
+  // =====================
+  // SPÉCIFICITÉ SPORT (VÉLO vs CAP)
+  // =====================
+  const sport = getSportFromObjectif(objectif);
+  const sportSpec = SPORT_SPECIFICITY[sport];
+
   return {
     score: finalScore,
     rawScore: baseScore,
@@ -804,6 +996,19 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
     runningEconomy: runningEconomy.isApplicable ? runningEconomy : null,
     wasCappedByEconomy: economyCap.wasCapped,
     economyCapReason: economyCap.capReason,
+    // Spécificité sport
+    sport,
+    sportSpecificity: {
+      title: sportSpec.title,
+      dominante: sportSpec.dominante,
+      pilierPrincipal: sportSpec.pilierPrincipal,
+      vlamaxModulabilite: sportSpec.vlamaxModulabilite,
+      contraintesClés: sportSpec.contraintesClés,
+      roleVLamax: sportSpec.roleVLamax,
+      roleTTE: sportSpec.roleTTE,
+      leviers: sportSpec.leviers,
+      logique: sportSpec.logique,
+    },
   };
 }
 
