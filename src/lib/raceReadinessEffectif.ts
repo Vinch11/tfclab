@@ -54,6 +54,15 @@ export interface RaceReadinessEffectif {
     seance_specifique: boolean;
   };
   messageStaff: string;          // Message explicatif staff-ready
+  // ✅ NOUVEAU: Explication pédagogique "Pourquoi ce score ?"
+  whyThisScore: string;          // Texte pédagogique pour l'athlète
+  interpretation: {              // Interprétation staff détaillée
+    status: "race_ready" | "almost_ready" | "in_progress" | "not_ready";
+    statusLabel: string;
+    mainStrengths: string[];
+    mainLimitations: string[];
+    priorityActions: string[];
+  };
   // Propriétés pour le risque nutritionnel
   nutritionalRiskIndex: NutritionalRiskIndex | null;
   wasCappedByNutrition: boolean;
@@ -176,21 +185,31 @@ const DEFAULT_TARGETS: RaceTargets = TARGETS_BY_OBJECTIF["IM"];
 // =============================================
 
 const WEIGHTS_BY_OBJECTIF: Record<string, RaceWeights> = {
-  // Ironman : VLamax et TTE très importants (endurance pure)
-  IM: { vlamax: 30, tte: 30, ftpKg: 20, freshness: 20 },
-  Ironman: { vlamax: 30, tte: 30, ftpKg: 20, freshness: 20 },
-  Ultra: { vlamax: 30, tte: 35, ftpKg: 15, freshness: 20 },
-  // 70.3 : équilibré avec FTP/kg plus important
-  "703": { vlamax: 25, tte: 25, ftpKg: 30, freshness: 20 },
-  Half: { vlamax: 25, tte: 25, ftpKg: 30, freshness: 20 },
-  // Course (Marathon/Semi) : TTE et puissance prioritaires
-  Marathon: { vlamax: 20, tte: 35, ftpKg: 30, freshness: 15 },
-  Semi: { vlamax: 20, tte: 35, ftpKg: 30, freshness: 15 },
-  Course: { vlamax: 20, tte: 30, ftpKg: 30, freshness: 20 },
-  // Trail : TTE important, VLamax moyen
-  Trail: { vlamax: 25, tte: 35, ftpKg: 20, freshness: 20 },
-  TrailCourt: { vlamax: 25, tte: 30, ftpKg: 25, freshness: 20 },
-  TrailLong: { vlamax: 25, tte: 40, ftpKg: 15, freshness: 20 },
+  // =============================================
+  // PONDÉRATIONS STAFF-GRADE PAR OBJECTIF
+  // =============================================
+  
+  // IRONMAN / ULTRA : VLamax et TTE critiques (économie métabolique = survie)
+  // VLamax 40% + TTE 40% + FTP/kg 20% = 100% (Freshness intégré dans confiance)
+  IM: { vlamax: 40, tte: 40, ftpKg: 15, freshness: 5 },
+  Ironman: { vlamax: 40, tte: 40, ftpKg: 15, freshness: 5 },
+  Ultra: { vlamax: 40, tte: 40, ftpKg: 15, freshness: 5 },
+  TrailLong: { vlamax: 40, tte: 40, ftpKg: 15, freshness: 5 },
+  
+  // 70.3 / MARATHON : équilibré (VLamax 35% + TTE 35% + FTP/kg 30%)
+  "703": { vlamax: 35, tte: 35, ftpKg: 25, freshness: 5 },
+  Half: { vlamax: 35, tte: 35, ftpKg: 25, freshness: 5 },
+  Marathon: { vlamax: 35, tte: 35, ftpKg: 25, freshness: 5 },
+  Semi: { vlamax: 30, tte: 35, ftpKg: 30, freshness: 5 },
+  
+  // SPRINT / OLYMPIQUE / COURT : FTP/kg dominant (puissance critique)
+  Sprint: { vlamax: 25, tte: 20, ftpKg: 50, freshness: 5 },
+  Olympic: { vlamax: 25, tte: 25, ftpKg: 45, freshness: 5 },
+  Course: { vlamax: 25, tte: 25, ftpKg: 45, freshness: 5 },
+  TrailCourt: { vlamax: 30, tte: 30, ftpKg: 35, freshness: 5 },
+  
+  // Trail moyen : équilibré
+  Trail: { vlamax: 35, tte: 40, ftpKg: 20, freshness: 5 },
 };
 
 const DEFAULT_WEIGHTS: RaceWeights = WEIGHTS_BY_OBJECTIF["IM"];
@@ -298,6 +317,154 @@ function scoreFreshness(
   }
   
   return clamp(score, 0, 100);
+}
+
+// =============================================
+// INTERPRETATION HELPERS (NOUVEAU)
+// =============================================
+
+interface InterpretationParams {
+  score: number;
+  objectif: string;
+  vlamaxScore: number;
+  tteScore: number;
+  ftpKgScore: number;
+  vlamax: number | null;
+  tte: number | null;
+  ftpKg: number | null;
+  targets: RaceTargets;
+  weights: RaceWeights;
+  nutritionalRiskIndex: NutritionalRiskIndex | null;
+  wasCappedByNutrition: boolean;
+  wasCappedByEconomy: boolean;
+  strengths: string[];
+  limitants: string[];
+}
+
+function generateInterpretation(params: InterpretationParams): RaceReadinessEffectif["interpretation"] {
+  const { score, strengths, limitants, vlamax, tte, ftpKg, targets, nutritionalRiskIndex, wasCappedByNutrition, wasCappedByEconomy } = params;
+  
+  // Statut
+  let status: "race_ready" | "almost_ready" | "in_progress" | "not_ready";
+  let statusLabel: string;
+  
+  if (score >= 85) {
+    status = "race_ready";
+    statusLabel = "Race Ready – Physiologie alignée avec l'objectif";
+  } else if (score >= 70) {
+    status = "almost_ready";
+    statusLabel = "Presque prêt – Ajustements ciblés nécessaires";
+  } else if (score >= 55) {
+    status = "in_progress";
+    statusLabel = "En construction – Priorité physiologique claire";
+  } else {
+    status = "not_ready";
+    statusLabel = "Non prêt – Risque de sous-performance";
+  }
+  
+  // Points forts
+  const mainStrengths: string[] = [];
+  if (strengths.includes("VLamax")) {
+    mainStrengths.push("Profil métabolique adapté à la distance");
+  }
+  if (strengths.includes("TTE (endurance)")) {
+    mainStrengths.push("Bonne capacité à maintenir l'effort");
+  }
+  if (strengths.includes("FTP/kg (puissance)")) {
+    mainStrengths.push("Puissance relative suffisante");
+  }
+  if (strengths.includes("Fraîcheur")) {
+    mainStrengths.push("État de fraîcheur optimal");
+  }
+  if (mainStrengths.length === 0) {
+    mainStrengths.push("Données en cours d'acquisition");
+  }
+  
+  // Limitations
+  const mainLimitations: string[] = [];
+  if (limitants.includes("VLamax") && vlamax !== null && vlamax > targets.vlamaxMax) {
+    mainLimitations.push("VLamax trop élevé – dépendance glucidique excessive");
+  }
+  if (limitants.includes("TTE (endurance)") && tte !== null && tte < targets.tteTarget) {
+    mainLimitations.push("TTE insuffisant – risque de dérive en course");
+  }
+  if (limitants.includes("FTP/kg (puissance)") && ftpKg !== null && ftpKg < targets.ftpKgTarget) {
+    mainLimitations.push("FTP/kg en-dessous de la cible");
+  }
+  if (wasCappedByNutrition) {
+    mainLimitations.push("Risque nutritionnel limitant");
+  }
+  if (wasCappedByEconomy) {
+    mainLimitations.push("Économie de course à améliorer");
+  }
+  
+  // Actions prioritaires
+  const priorityActions: string[] = [];
+  if (limitants.includes("VLamax") && vlamax !== null && vlamax > targets.vlamaxMax) {
+    priorityActions.push("Travailler la réduction du VLamax (sorties longues, cadence basse)");
+  }
+  if (limitants.includes("TTE (endurance)") && tte !== null && tte < targets.tteTarget) {
+    priorityActions.push("Augmenter le TTE (blocs 2x20, 3x30, progressifs)");
+  }
+  if (nutritionalRiskIndex && (nutritionalRiskIndex.level === 'high' || nutritionalRiskIndex.level === 'critical')) {
+    priorityActions.push("Optimiser la stratégie nutritionnelle et tester en entraînement");
+  }
+  if (priorityActions.length === 0) {
+    priorityActions.push("Maintenir le niveau actuel et affiner la stratégie de course");
+  }
+  
+  return { status, statusLabel, mainStrengths, mainLimitations, priorityActions };
+}
+
+function generateWhyThisScore(params: Omit<InterpretationParams, "strengths" | "limitants">): string {
+  const { score, objectif, vlamaxScore, tteScore, ftpKgScore, vlamax, tte, ftpKg, targets, weights, nutritionalRiskIndex, wasCappedByNutrition, wasCappedByEconomy } = params;
+  
+  const objectifLabel = getObjectifLabel(objectif);
+  const isLongDistance = ["IM", "Ironman", "Ultra", "Marathon", "703", "Half", "TrailLong"].includes(objectif);
+  
+  // Message principal selon le score
+  let mainMessage: string;
+  if (score >= 85) {
+    mainMessage = `Ta préparation pour ${objectifLabel} est solide. Ton profil physiologique correspond aux exigences de cette distance.`;
+  } else if (score >= 70) {
+    mainMessage = `Tu es sur la bonne voie pour ${objectifLabel}, mais certains ajustements peuvent encore optimiser ta performance.`;
+  } else if (score >= 55) {
+    mainMessage = `Ta préparation pour ${objectifLabel} avance. Des points clés méritent une attention particulière dans les prochaines semaines.`;
+  } else {
+    mainMessage = `Ta préparation pour ${objectifLabel} nécessite encore du travail. Le risque de sous-performance est réel si les points faibles ne sont pas corrigés.`;
+  }
+  
+  // Explication des facteurs limitants
+  const explanations: string[] = [];
+  
+  if (isLongDistance && vlamax !== null && vlamax > targets.vlamaxMax) {
+    explanations.push(`Ton VLamax (${vlamax.toFixed(2)}) est au-dessus de la cible (${targets.vlamaxMax}). Cela signifie que ton métabolisme dépend fortement des glucides, augmentant le risque d'épuisement énergétique sur longue distance.`);
+  } else if (vlamax !== null && vlamaxScore >= 80) {
+    explanations.push(`Ton VLamax (${vlamax.toFixed(2)}) est bien adapté à ton objectif.`);
+  }
+  
+  if (tte !== null && tte < targets.tteTarget * 0.8) {
+    explanations.push(`Ton TTE (${tte} min) est en-dessous de la cible (${targets.tteTarget} min). Ta capacité à maintenir l'intensité dans la durée est encore à développer.`);
+  } else if (tte !== null && tteScore >= 80) {
+    explanations.push(`Ton endurance au seuil (TTE ${tte} min) est solide pour cette distance.`);
+  }
+  
+  if (ftpKg !== null && ftpKg < targets.ftpKgTarget * 0.9) {
+    explanations.push(`Ta puissance relative (${ftpKg.toFixed(1)} W/kg) peut encore progresser vers la cible (${targets.ftpKgTarget} W/kg).`);
+  }
+  
+  if (wasCappedByNutrition && nutritionalRiskIndex) {
+    explanations.push(`⚠️ Le risque nutritionnel limite ton score. Ton profil métabolique exige une stratégie d'alimentation rigoureuse pour éviter l'épuisement glycogénique.`);
+  }
+  
+  if (wasCappedByEconomy) {
+    explanations.push(`🏃 Ton économie de course en CAP peut être améliorée pour optimiser la performance.`);
+  }
+  
+  // Pondération
+  const weightExplanation = `Pour ${objectifLabel}, la pondération est: VLamax ${weights.vlamax}%, TTE ${weights.tte}%, FTP/kg ${weights.ftpKg}%.`;
+  
+  return [mainMessage, ...explanations, weightExplanation].join("\n\n");
 }
 
 // =============================================
@@ -419,19 +586,23 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
   };
 
   // =====================
-  // LABEL + COLOR
+  // LABEL + COLOR (seuils staff-grade)
+  // ≥85% = Race Ready | 70-84% = Presque prêt | 55-69% = En construction | <55% = Non prêt
   // =====================
   let label: string;
   let color: "success" | "warning" | "destructive";
   
-  if (finalScore >= 80) {
+  if (finalScore >= 85) {
     label = "Race Ready!";
     color = "success";
-  } else if (finalScore >= 60) {
-    label = "En progression";
+  } else if (finalScore >= 70) {
+    label = "Presque prêt";
+    color = "warning";
+  } else if (finalScore >= 55) {
+    label = "En construction";
     color = "warning";
   } else {
-    label = "Préparation requise";
+    label = "Non prêt";
     color = "destructive";
   }
 
@@ -457,7 +628,9 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
     { name: "Fraîcheur", score: freshnessScore },
   ].sort((a, b) => a.score - b.score);
   
+  const strongestScores = [...weakestScores].reverse();
   const limitants = weakestScores.slice(0, 2).map(s => `${s.name} (${Math.round(s.score)}%)`);
+  const strengths = strongestScores.slice(0, 2).filter(s => s.score >= 70).map(s => s.name);
   
   let messageStaff: string;
   if (reasonsMissing.length >= 2) {
@@ -478,6 +651,46 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
     messageStaff += ` 🏃 ${economyCap.capReason}`;
   }
 
+  // =====================
+  // INTERPRETATION STAFF (NOUVEAU)
+  // =====================
+  const interpretation = generateInterpretation({
+    score: finalScore,
+    objectif,
+    vlamaxScore,
+    tteScore,
+    ftpKgScore,
+    vlamax,
+    tte,
+    ftpKg,
+    targets,
+    weights,
+    nutritionalRiskIndex,
+    wasCappedByNutrition: nutritionalCap.wasCapped,
+    wasCappedByEconomy: economyCap.wasCapped,
+    strengths,
+    limitants: weakestScores.slice(0, 2).map(s => s.name),
+  });
+
+  // =====================
+  // "POURQUOI CE SCORE ?" (PÉDAGOGIQUE)
+  // =====================
+  const whyThisScore = generateWhyThisScore({
+    score: finalScore,
+    objectif,
+    vlamaxScore,
+    tteScore,
+    ftpKgScore,
+    vlamax,
+    tte,
+    ftpKg,
+    targets,
+    weights,
+    nutritionalRiskIndex,
+    wasCappedByNutrition: nutritionalCap.wasCapped,
+    wasCappedByEconomy: economyCap.wasCapped,
+  });
+
   return {
     score: finalScore,
     rawScore: baseScore,
@@ -496,6 +709,8 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
       seance_specifique: seance_specifique_validee,
     },
     messageStaff,
+    whyThisScore,
+    interpretation,
     nutritionalRiskIndex,
     wasCappedByNutrition: nutritionalCap.wasCapped,
     nutritionalCapReason: nutritionalCap.capReason,
@@ -510,14 +725,16 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
 // =============================================
 
 export function getScoreColor(score: number): string {
-  if (score >= 80) return "text-success";
-  if (score >= 60) return "text-warning";
+  if (score >= 85) return "text-success";
+  if (score >= 70) return "text-warning";
+  if (score >= 55) return "text-orange-500";
   return "text-destructive";
 }
 
 export function getScoreBgColor(score: number): string {
-  if (score >= 80) return "bg-success";
-  if (score >= 60) return "bg-warning";
+  if (score >= 85) return "bg-success";
+  if (score >= 70) return "bg-warning";
+  if (score >= 55) return "bg-orange-500";
   return "bg-destructive";
 }
 
