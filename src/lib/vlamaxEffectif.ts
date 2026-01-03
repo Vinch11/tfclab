@@ -55,6 +55,9 @@ interface SnapshotCloud {
   ftp?: number | null;
   pmax_5s?: number | null;
   weight_kg?: number | null;
+  // ✅ PRO: nouveau flag pour VLamax de référence
+  vlamax_is_reference?: boolean | null;
+  vlamax_source?: string | null;
 }
 
 interface ComputeVLamaxEffectifParams {
@@ -106,21 +109,42 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
   }
 
   // =============================================
-  // A) SOURCE SNAPSHOT STAFF (priorité #1 - VLamax mesurée lactate)
+  // A) SOURCE SNAPSHOT STAFF (priorité #1 - VLamax mesurée/référence)
   // Cette VLamax vient du mode Staff = mesure laboratoire
   // Elle VERROUILLE la valeur et désactive toute autre source
+  // ✅ PRO: Vérifie maintenant vlamax_is_reference pour le verrouillage
   // =============================================
+  if (effectiveSnapshot && effectiveSnapshot.vlamax != null && effectiveSnapshot.vlamax_is_reference) {
+    // Confiance selon la source
+    const confidence = effectiveSnapshot.vlamax_source === "lab" ? 0.95 : 
+                       effectiveSnapshot.vlamax_source === "field" ? 0.85 : 0.75;
+    
+    return {
+      value: Number(effectiveSnapshot.vlamax.toFixed(2)),
+      source: "snapshot",
+      confidence,
+      label: "VLamax (référence)",
+      details: {
+        date: effectiveSnapshot.date,
+        protocol: effectiveSnapshot.vlamax_source === "lab" 
+          ? "Mesure lactate (Staff mode)" 
+          : "Test terrain (Staff mode)"
+      },
+      isLocked: true // Valeur verrouillée
+    };
+  }
+
+  // ✅ Snapshot avec VLamax mais pas de référence = prise en compte mais pas verrouillée
   if (effectiveSnapshot && effectiveSnapshot.vlamax != null) {
     return {
       value: Number(effectiveSnapshot.vlamax.toFixed(2)),
       source: "snapshot",
-      confidence: 0.95, // Confiance maximale car mesure lactate
-      label: "VLamax (mesurée)",
+      confidence: 0.7, // Confiance modérée car pas verrouillée
+      label: "VLamax (snapshot)",
       details: {
         date: effectiveSnapshot.date,
-        protocol: "Mesure lactate (Staff mode)"
       },
-      isLocked: true // Valeur verrouillée
+      isLocked: false
     };
   }
 

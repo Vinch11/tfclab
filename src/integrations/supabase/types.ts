@@ -155,6 +155,9 @@ export type Database = {
       snapshots: {
         Row: {
           athlete_id: string
+          bike_cadence_rpm: number | null
+          bike_hr_drift_flag: boolean | null
+          carb_tolerance_band: string | null
           coach_id: string
           coach_notes: string | null
           confidence: number | null
@@ -163,11 +166,15 @@ export type Database = {
           cycle_tag: string | null
           date: string
           fat_pct: number | null
+          fatigue_state: string | null
           fc_max: number | null
           ftp: number | null
+          gi_issues_flag: boolean | null
           id: string
           metabolic_profile: string | null
           metabolic_score: number | null
+          objectif: string | null
+          pace_threshold_sec_per_km: number | null
           pmax_5s: number | null
           run_duration_min: number | null
           run_economy_label: string | null
@@ -176,17 +183,24 @@ export type Database = {
           run_hr_ref_bpm: number | null
           run_pace_ref_sec_per_km: number | null
           source: string
+          sport_main: string | null
           tss_7d: number | null
           tte_mode: string | null
           tte_observed_min: number | null
           updated_at: string
           vlamax: number | null
+          vlamax_is_reference: boolean | null
+          vlamax_protocol: string | null
+          vlamax_source: string | null
           vma: number | null
           vo2max: number | null
           weight_kg: number | null
         }
         Insert: {
           athlete_id: string
+          bike_cadence_rpm?: number | null
+          bike_hr_drift_flag?: boolean | null
+          carb_tolerance_band?: string | null
           coach_id: string
           coach_notes?: string | null
           confidence?: number | null
@@ -195,11 +209,15 @@ export type Database = {
           cycle_tag?: string | null
           date?: string
           fat_pct?: number | null
+          fatigue_state?: string | null
           fc_max?: number | null
           ftp?: number | null
+          gi_issues_flag?: boolean | null
           id?: string
           metabolic_profile?: string | null
           metabolic_score?: number | null
+          objectif?: string | null
+          pace_threshold_sec_per_km?: number | null
           pmax_5s?: number | null
           run_duration_min?: number | null
           run_economy_label?: string | null
@@ -208,17 +226,24 @@ export type Database = {
           run_hr_ref_bpm?: number | null
           run_pace_ref_sec_per_km?: number | null
           source?: string
+          sport_main?: string | null
           tss_7d?: number | null
           tte_mode?: string | null
           tte_observed_min?: number | null
           updated_at?: string
           vlamax?: number | null
+          vlamax_is_reference?: boolean | null
+          vlamax_protocol?: string | null
+          vlamax_source?: string | null
           vma?: number | null
           vo2max?: number | null
           weight_kg?: number | null
         }
         Update: {
           athlete_id?: string
+          bike_cadence_rpm?: number | null
+          bike_hr_drift_flag?: boolean | null
+          carb_tolerance_band?: string | null
           coach_id?: string
           coach_notes?: string | null
           confidence?: number | null
@@ -227,11 +252,15 @@ export type Database = {
           cycle_tag?: string | null
           date?: string
           fat_pct?: number | null
+          fatigue_state?: string | null
           fc_max?: number | null
           ftp?: number | null
+          gi_issues_flag?: boolean | null
           id?: string
           metabolic_profile?: string | null
           metabolic_score?: number | null
+          objectif?: string | null
+          pace_threshold_sec_per_km?: number | null
           pmax_5s?: number | null
           run_duration_min?: number | null
           run_economy_label?: string | null
@@ -240,11 +269,15 @@ export type Database = {
           run_hr_ref_bpm?: number | null
           run_pace_ref_sec_per_km?: number | null
           source?: string
+          sport_main?: string | null
           tss_7d?: number | null
           tte_mode?: string | null
           tte_observed_min?: number | null
           updated_at?: string
           vlamax?: number | null
+          vlamax_is_reference?: boolean | null
+          vlamax_protocol?: string | null
+          vlamax_source?: string | null
           vma?: number | null
           vo2max?: number | null
           weight_kg?: number | null

@@ -188,9 +188,19 @@ const Index = () => {
           css: effective.css ?? undefined,
           source: (effective.source as any) ?? "manual",
 
-          // (optionnel) on passe aussi les champs PRO si tu veux les exploiter plus tard
+          // ✅ PRO TTE: mapping complet
           tte_mode: effective.tte_mode ?? undefined,
           tte_observed_min: effective.tte_observed_min ?? undefined,
+          
+          // ✅ PRO VLamax: si référence, on override
+          vlamax_override: effective.vlamax_is_reference && effective.vlamax 
+            ? effective.vlamax 
+            : null,
+            
+          // ✅ PRO: Nouveaux champs staff-grade
+          fatigue_state: effective.fatigue_state ?? undefined,
+          carb_tolerance_band: effective.carb_tolerance_band ?? undefined,
+          gi_issues_flag: effective.gi_issues_flag ?? false,
         } as any)
       : null;
 
@@ -254,6 +264,9 @@ const Index = () => {
         ftp: s.ftp,
         pmax_5s: s.pmax_5s,
         weight_kg: s.weight_kg,
+        // ✅ PRO: nouveaux champs pour le calcul VLamax
+        vlamax_is_reference: s.vlamax_is_reference,
+        vlamax_source: s.vlamax_source,
       })),
     });
   }, [currentAthlete, tests, snapshots]);
