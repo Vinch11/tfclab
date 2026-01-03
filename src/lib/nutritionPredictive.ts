@@ -236,7 +236,7 @@ function computeNutritionalRiskIndex(params: {
     color = 'success';
     icon = '🟢';
     messageStaff = 'Oxydation lipidique suffisante, dépendance glucidique maîtrisée. Stratégie nutritionnelle standard.';
-    messagePedagogique = 'Stratégie nutritionnelle réaliste et sécurisée';
+    messagePedagogique = `Ton métabolisme est économe en glucides. À l'intensité de course, ton corps utilise efficacement les lipides comme carburant. Cela te donne une marge de sécurité nutritionnelle confortable.`;
   } else if (carbsRequired <= 80) {
     // RISQUE MODÉRÉ
     level = 'moderate';
@@ -244,7 +244,7 @@ function computeNutritionalRiskIndex(params: {
     color = 'warning';
     icon = '🟡';
     messageStaff = 'Stratégie nutritionnelle nécessaire mais réaliste. Prévoir un plan d\'alimentation testé à l\'entraînement.';
-    messagePedagogique = 'Stratégie possible mais dépendante de l\'exécution';
+    messagePedagogique = `Ton métabolisme consomme une quantité modérée de glucides à l'intensité cible. Une stratégie nutritionnelle rigoureuse est nécessaire, mais reste réaliste à exécuter. Teste ton plan en entraînement.`;
   } else if (carbsRequired <= criticalThreshold) {
     // RISQUE ÉLEVÉ
     level = 'high';
@@ -253,7 +253,7 @@ function computeNutritionalRiskIndex(params: {
     icon = '🟠';
     raceReadinessCap = 85; // Plafonnement Race Readiness à 85%
     messageStaff = `Dépendance glucidique importante (${carbsRequired}g/h). Sensible aux erreurs d'alimentation. Race Readiness plafonné à 85%.`;
-    messagePedagogique = 'Stratégie possible mais très dépendante de l\'exécution';
+    messagePedagogique = `Ton métabolisme actuel consomme beaucoup de glucides à l'intensité cible. Cela impose une stratégie nutritionnelle très rigoureuse. Sans cela, le risque d'épuisement énergétique est élevé. La priorité n'est pas seulement de manger plus, mais de devenir plus économe.`;
   } else {
     // RISQUE CRITIQUE
     level = 'critical';
@@ -262,7 +262,7 @@ function computeNutritionalRiskIndex(params: {
     icon = '🔴';
     raceReadinessCap = 75; // Plafonnement Race Readiness à 75%
     messageStaff = `Très forte dépendance glucidique (>${criticalThreshold}g/h). Risque élevé de défaillance en course. Race Readiness plafonné à 75%.`;
-    messagePedagogique = 'Risque nutritionnel majeur – revoir objectif ou préparation';
+    messagePedagogique = `Ton profil métabolique actuel impose des besoins en glucides qui dépassent ce que ton système digestif peut absorber efficacement. Risque majeur de défaillance énergétique. Avant de penser nutrition, il faut réduire ta dépendance aux glucides (travail sur le VLamax).`;
   }
 
   // Ajustement si TTE faible

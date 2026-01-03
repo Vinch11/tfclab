@@ -89,6 +89,14 @@ export function RaceReadinessCard({
       seance_specifique: false,
     },
     messageStaff: "Ajoutez un snapshot (FTP + poids) et un TTE pour activer le calcul.",
+    whyThisScore: "Données insuffisantes pour générer l'explication.",
+    interpretation: {
+      status: "not_ready" as const,
+      statusLabel: "Données insuffisantes",
+      mainStrengths: [],
+      mainLimitations: ["Ajoutez un snapshot pour débloquer l'analyse"],
+      priorityActions: ["Créer un snapshot avec FTP, poids, TSS 7d"],
+    },
     // Propriétés économie de course (null par défaut)
     runningEconomy: null,
     wasCappedByEconomy: false,
@@ -405,6 +413,68 @@ export function RaceReadinessCard({
               <span className="font-medium text-foreground">📊 Staff:</span> {readiness.messageStaff || "Race Readiness = VLamax + TTE + FTP/kg + fraîcheur, pondéré selon l'objectif."}
             </p>
           </div>
+          
+          {/* ✅ NOUVEAU: Interprétation Staff-Grade */}
+          {readiness.interpretation && readiness.score > 0 && (
+            <div className="mt-4 space-y-3">
+              {/* Statut */}
+              <div className={cn(
+                "p-3 rounded-lg border-2",
+                readiness.interpretation.status === "race_ready" ? "bg-success/10 border-success/30" :
+                readiness.interpretation.status === "almost_ready" ? "bg-warning/10 border-warning/30" :
+                readiness.interpretation.status === "in_progress" ? "bg-orange-500/10 border-orange-500/30" :
+                "bg-destructive/10 border-destructive/30"
+              )}>
+                <p className={cn(
+                  "text-sm font-semibold",
+                  readiness.interpretation.status === "race_ready" ? "text-success" :
+                  readiness.interpretation.status === "almost_ready" ? "text-warning" :
+                  readiness.interpretation.status === "in_progress" ? "text-orange-600" :
+                  "text-destructive"
+                )}>
+                  {readiness.interpretation.statusLabel}
+                </p>
+              </div>
+              
+              {/* Points forts */}
+              {readiness.interpretation.mainStrengths.length > 0 && (
+                <div className="p-3 rounded-lg bg-success/5 border border-success/20">
+                  <p className="text-xs font-medium text-success mb-2">✅ Points forts</p>
+                  {readiness.interpretation.mainStrengths.map((strength, i) => (
+                    <p key={i} className="text-xs text-muted-foreground">• {strength}</p>
+                  ))}
+                </div>
+              )}
+              
+              {/* Limitations */}
+              {readiness.interpretation.mainLimitations.length > 0 && (
+                <div className="p-3 rounded-lg bg-destructive/5 border border-destructive/20">
+                  <p className="text-xs font-medium text-destructive mb-2">⚠️ Points limitants</p>
+                  {readiness.interpretation.mainLimitations.map((limitation, i) => (
+                    <p key={i} className="text-xs text-muted-foreground">• {limitation}</p>
+                  ))}
+                </div>
+              )}
+              
+              {/* Actions prioritaires */}
+              {readiness.interpretation.priorityActions.length > 0 && (
+                <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                  <p className="text-xs font-medium text-primary mb-2">🎯 Actions prioritaires</p>
+                  {readiness.interpretation.priorityActions.map((action, i) => (
+                    <p key={i} className="text-xs text-muted-foreground">• {action}</p>
+                  ))}
+                </div>
+              )}
+              
+              {/* Pondération objectif */}
+              <div className="p-2 rounded-lg bg-secondary/20 border border-border">
+                <p className="text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground">📐 Pondération {getObjectifLabel(athlete.objectif || athlete.goal || "IM")}:</span>{" "}
+                  VLamax {readiness.weights.vlamax}% • TTE {readiness.weights.tte}% • FTP/kg {readiness.weights.ftpKg}%
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>;
