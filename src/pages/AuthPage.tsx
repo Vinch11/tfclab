@@ -37,11 +37,8 @@ const AuthPage = () => {
     const { error } = await signIn(email, password);
     setLoading(false);
     if (error) {
-      if (error.message.includes("Invalid login credentials")) {
-        toast.error("Email ou mot de passe incorrect");
-      } else {
-        toast.error(error.message);
-      }
+      // Use generic error message to prevent user enumeration
+      toast.error("Email ou mot de passe incorrect");
     } else {
       toast.success("Connexion réussie !");
       navigate("/");
@@ -62,11 +59,8 @@ const AuthPage = () => {
     const { error } = await signUp(email, password);
     setLoading(false);
     if (error) {
-      if (error.message.includes("already registered")) {
-        toast.error("Cet email est déjà utilisé");
-      } else {
-        toast.error(error.message);
-      }
+      // Use generic error message to prevent user enumeration
+      toast.error("Une erreur s'est produite. Veuillez réessayer.");
     } else {
       toast.success("Compte créé ! Vous êtes connecté.");
       navigate("/");

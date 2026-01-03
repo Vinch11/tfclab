@@ -119,7 +119,10 @@ export function useCloudData() {
       setSnapshots((snapshotsRes.data as DbSnapshot[]) || []);
       setCheckins((checkinsRes.data as DbCheckin[]) || []);
     } catch (error: unknown) {
-      console.error("Error loading data:", error);
+      // Log sanitized error in development only
+      if (import.meta.env.DEV) {
+        console.error("Error loading data");
+      }
       toast.error("Erreur lors du chargement des données");
     } finally {
       setLoading(false);
@@ -166,7 +169,7 @@ export function useCloudData() {
     const { error } = await supabase.from("athletes").update(updates).eq("id", id);
     if (error) {
       toast.error("Erreur lors de la mise à jour");
-      console.error(error);
+      if (import.meta.env.DEV) console.error("Update athlete error");
       return false;
     }
     setAthletes((prev) => prev.map((a) => (a.id === id ? { ...a, ...updates } : a)));
@@ -177,7 +180,7 @@ export function useCloudData() {
     const { error } = await supabase.from("athletes").delete().eq("id", id);
     if (error) {
       toast.error("Erreur lors de la suppression");
-      console.error(error);
+      if (import.meta.env.DEV) console.error("Delete athlete error");
       return false;
     }
     setAthletes((prev) => prev.filter((a) => a.id !== id));
@@ -239,7 +242,7 @@ export function useCloudData() {
     const { error } = await supabase.from("tests").delete().eq("id", id);
     if (error) {
       toast.error("Erreur lors de la suppression");
-      console.error(error);
+      if (import.meta.env.DEV) console.error("Delete test error");
       return false;
     }
     setTests((prev) => prev.filter((t) => t.id !== id));
@@ -260,7 +263,7 @@ export function useCloudData() {
       .upsert(upsertData, { onConflict: "athlete_id" });
     if (error) {
       toast.error("Erreur lors de la sauvegarde du plan");
-      console.error(error);
+      if (import.meta.env.DEV) console.error("Save plan error");
       return false;
     }
     setPlans((prev) => {
@@ -326,7 +329,7 @@ export function useCloudData() {
     const { error } = await supabase.from("snapshots").update(updates).eq("id", id);
     if (error) {
       toast.error("Erreur lors de la mise à jour du snapshot");
-      console.error(error);
+      if (import.meta.env.DEV) console.error("Update snapshot error");
       return false;
     }
     setSnapshots((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
@@ -338,7 +341,7 @@ export function useCloudData() {
     const { error } = await supabase.from("snapshots").delete().eq("id", id);
     if (error) {
       toast.error("Erreur lors de la suppression");
-      console.error(error);
+      if (import.meta.env.DEV) console.error("Delete snapshot error");
       return false;
     }
     setSnapshots((prev) => prev.filter((s) => s.id !== id));
@@ -358,7 +361,7 @@ export function useCloudData() {
       .eq("id", athleteId);
     if (error) {
       toast.error("Erreur lors de la mise à jour du snapshot actif");
-      console.error(error);
+      if (import.meta.env.DEV) console.error("Set active snapshot error");
       return false;
     }
     setAthletes((prev) => prev.map((a) => 
@@ -401,7 +404,7 @@ export function useCloudData() {
     const { error } = await supabase.from("checkins").update(updates).eq("id", id);
     if (error) {
       toast.error("Erreur lors de la mise à jour du check-in");
-      console.error(error);
+      if (import.meta.env.DEV) console.error("Update checkin error");
       return false;
     }
     setCheckins((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c)));
@@ -413,7 +416,7 @@ export function useCloudData() {
     const { error } = await supabase.from("checkins").delete().eq("id", id);
     if (error) {
       toast.error("Erreur lors de la suppression");
-      console.error(error);
+      if (import.meta.env.DEV) console.error("Delete checkin error");
       return false;
     }
     setCheckins((prev) => prev.filter((c) => c.id !== id));
