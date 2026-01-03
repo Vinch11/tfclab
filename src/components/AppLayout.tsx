@@ -2,12 +2,13 @@ import { ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Users, LayoutDashboard, Calendar, CalendarDays, TrendingUp, ChevronLeft } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import logo2fc from "@/assets/logo-2fc.png";
 
 interface AppLayoutProps {
   children: ReactNode;
   title: string;
-  subtitle?: string; // ✅ plus de AthleteContext ici
+  subtitle?: string;
   showBack?: boolean;
 }
 
@@ -46,6 +47,7 @@ export function AppLayout({ children, title, subtitle, showBack = false }: AppLa
                 {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
               </div>
             </div>
+            <ThemeToggle />
           </div>
         </div>
       </header>
