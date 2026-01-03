@@ -1113,10 +1113,13 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
   // =============================================
   const footerHTML = `
     <div class="footer">
-      <div class="grid2">
-        <div>
-          <b>${htmlEscape(brandMain)}</b> — ${htmlEscape(brandSub)}<br>
-          Rapport généré le ${coverDate} à ${createdAt.toLocaleTimeString("fr-FR")}
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:16px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          ${logoBase64 ? `<img src="${logoBase64}" alt="Logo" style="height:40px; width:auto;" />` : ''}
+          <div>
+            <b>${htmlEscape(brandMain)}</b> — ${htmlEscape(brandSub)}<br>
+            <span class="muted">Rapport généré le ${coverDate} à ${createdAt.toLocaleTimeString("fr-FR")}</span>
+          </div>
         </div>
         <div style="text-align:right;">
           <div class="muted">VLamax: ${htmlEscape(vlamax.label)} • TTE: ${tte.source === "observed" ? "mesuré" : "estimé"}</div>
