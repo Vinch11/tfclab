@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { Target, TrendingUp, Zap, Heart, Activity, ChevronRight, HelpCircle, Footprints, AlertTriangle, Battery, BatteryLow, TrendingDown } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Target, TrendingUp, Zap, Heart, Activity, ChevronRight, HelpCircle, Footprints, AlertTriangle, Battery, BatteryLow, TrendingDown, Shield, Info, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCloudData } from "@/hooks/useCloudData";
 import type { DbSnapshot } from "@/hooks/useCloudData";
@@ -9,9 +9,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { VLamaxEffectif, getSourceColor as getVLamaxSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
 import { TTEEffectif, getSourceColor as getTTESourceColor, getSourceLabel } from "@/lib/tteEffectif";
-import { RaceReadinessEffectif, getScoreColor, getScoreBgColor, getObjectifLabel } from "@/lib/raceReadinessEffectif";
+import { RaceReadinessEffectif, getScoreColor, getScoreBgColor, getObjectifLabel, RACE_READINESS_METHODOLOGY } from "@/lib/raceReadinessEffectif";
 import { TTEGuard, isTTEUnavailable } from "@/components/TTEGuard";
 import { getEconomyRaceReadinessBonus } from "@/lib/runningEconomySnapshot";
 import { EnergyDriftResult, getFactorLabel, getFactorColor } from "@/lib/energyDrift";
@@ -80,6 +81,11 @@ export function RaceReadinessCard({
     targets: { vlamaxMin: 0.25, vlamaxMax: 0.45, vlamaxIdeal: 0.35, tteTarget: 50, ftpKgTarget: 4.5 },
     weights: { vlamax: 25, tte: 25, ftpKg: 25, freshness: 25 },
     confidence: 0,
+    confidenceInterpretation: {
+      level: "indicative" as const,
+      label: "Score indicatif",
+      message: "Données insuffisantes pour une analyse fiable."
+    },
     reasonsMissing: ["Données manquantes"],
     inputsUsed: {
       vlamax: { value: null, source: "unknown" },
@@ -106,6 +112,9 @@ export function RaceReadinessCard({
     wasCappedByNutrition: false,
     nutritionalCapReason: null,
   };
+  
+  // État pour le panneau méthodologie
+  const [showMethodology, setShowMethodology] = useState(false);
   
   const scoreColor = getScoreColor(readiness.score);
   const scoreBg = getScoreBgColor(readiness.score);
@@ -178,23 +187,24 @@ export function RaceReadinessCard({
                       <div className="p-2 rounded-lg bg-primary/10 text-primary">
                         <Target className="w-4 h-4" />
                       </div>
-                      <h4 className="font-semibold text-foreground">Race Readiness Global</h4>
+                      <h4 className="font-semibold text-foreground">{RACE_READINESS_METHODOLOGY.title}</h4>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      Ce score représente l'état de préparation <strong className="text-foreground">général</strong> de l'athlète.
+                    <p className="text-sm text-muted-foreground whitespace-pre-line">
+                      {RACE_READINESS_METHODOLOGY.definition}
                     </p>
                     <div className="text-sm text-muted-foreground space-y-1">
-                      <p className="font-medium text-foreground">Calculé à partir de :</p>
-                      <ul className="list-disc list-inside pl-2 space-y-0.5">
-                        <li>VLamax (profil métabolique)</li>
-                        <li>Endurance / TTE (capacité à soutenir l'effort)</li>
-                        <li>Puissance relative (FTP / kg)</li>
-                        <li>Fraîcheur (équilibre charge / récupération)</li>
+                      <p className="font-medium text-foreground">Les 4 piliers :</p>
+                      <ul className="list-disc list-inside pl-2 space-y-1">
+                        {RACE_READINESS_METHODOLOGY.pillars.map((pillar, i) => (
+                          <li key={i} className="text-xs">
+                            <span className="font-medium text-foreground">{pillar.name}</span>: {pillar.description}
+                          </li>
+                        ))}
                       </ul>
                     </div>
-                    <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
-                      <p className="text-xs text-muted-foreground">
-                        👉 Répond à : <span className="font-medium text-foreground">"Suis-je globalement prêt à performer aujourd'hui ?"</span>
+                    <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
+                      <p className="text-xs text-warning">
+                        ⚠️ {RACE_READINESS_METHODOLOGY.disclaimer}
                       </p>
                     </div>
                   </div>
@@ -256,6 +266,39 @@ export function RaceReadinessCard({
             </span>
           </div>
         )}
+      </div>
+
+      {/* Indice de confiance */}
+      <div className={cn(
+        "mb-4 p-3 rounded-lg border flex items-center gap-3",
+        readiness.confidenceInterpretation?.level === "robust" ? "bg-success/5 border-success/30" :
+        readiness.confidenceInterpretation?.level === "prudent" ? "bg-warning/5 border-warning/30" :
+        "bg-orange-500/5 border-orange-500/30"
+      )}>
+        <Shield className={cn(
+          "w-5 h-5 flex-shrink-0",
+          readiness.confidenceInterpretation?.level === "robust" ? "text-success" :
+          readiness.confidenceInterpretation?.level === "prudent" ? "text-warning" :
+          "text-orange-500"
+        )} />
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <span className={cn(
+              "text-sm font-semibold",
+              readiness.confidenceInterpretation?.level === "robust" ? "text-success" :
+              readiness.confidenceInterpretation?.level === "prudent" ? "text-warning" :
+              "text-orange-500"
+            )}>
+              {readiness.confidenceInterpretation?.label || "Score indicatif"}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              ({Math.round(readiness.confidence * 100)}% de confiance)
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {readiness.confidenceInterpretation?.message || "Les données sont largement estimées."}
+          </p>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
@@ -414,10 +457,10 @@ export function RaceReadinessCard({
             </p>
           </div>
           
-          {/* ✅ NOUVEAU: Interprétation Staff-Grade */}
+          {/* ✅ Interprétation Staff-Grade */}
           {readiness.interpretation && readiness.score > 0 && (
             <div className="mt-4 space-y-3">
-              {/* Statut */}
+              {/* Statut avec seuils officiels */}
               <div className={cn(
                 "p-3 rounded-lg border-2",
                 readiness.interpretation.status === "race_ready" ? "bg-success/10 border-success/30" :
@@ -433,6 +476,12 @@ export function RaceReadinessCard({
                   "text-destructive"
                 )}>
                   {readiness.interpretation.statusLabel}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {readiness.score >= 80 ? "80-100 : profil très cohérent avec l'objectif" :
+                   readiness.score >= 60 ? "60-79 : cohérent mais perfectible" :
+                   readiness.score >= 40 ? "40-59 : incohérences physiologiques notables" :
+                   "< 40 : profil non adapté à ce stade"}
                 </p>
               </div>
               
@@ -473,6 +522,27 @@ export function RaceReadinessCard({
                   VLamax {readiness.weights.vlamax}% • TTE {readiness.weights.tte}% • FTP/kg {readiness.weights.ftpKg}%
                 </p>
               </div>
+              
+              {/* Méthodologie collapsible */}
+              <Collapsible open={showMethodology} onOpenChange={setShowMethodology}>
+                <CollapsibleTrigger className="w-full p-2 rounded-lg bg-secondary/10 border border-border flex items-center justify-between text-xs text-muted-foreground hover:bg-secondary/20 transition-colors">
+                  <span className="flex items-center gap-2">
+                    <Info className="w-3 h-3" />
+                    {RACE_READINESS_METHODOLOGY.title}
+                  </span>
+                  {showMethodology ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-2 p-3 rounded-lg bg-secondary/5 border border-border text-xs space-y-2">
+                  <p className="text-muted-foreground whitespace-pre-line">
+                    {RACE_READINESS_METHODOLOGY.definition}
+                  </p>
+                  <div className="p-2 rounded bg-warning/10 border border-warning/20">
+                    <p className="text-warning text-xs">
+                      ⚠️ {RACE_READINESS_METHODOLOGY.disclaimer}
+                    </p>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
             </div>
           )}
         </div>

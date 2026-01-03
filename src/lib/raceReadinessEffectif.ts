@@ -1,14 +1,62 @@
 // =============================================
 // RACE READINESS EFFECTIF - Source unique de vérité
-// FIX 13 - Pondérations par objectif + targets + messageStaff
-// + Plafonnement par Risque Nutritionnel
-// + Plafonnement par Économie de Course (CAP)
+// VERSION STAFF-GRADE - Two For Coaching Lab
+// =============================================
+// 
+// DÉFINITION OFFICIELLE :
+// Race Readiness est un indicateur composite d'adéquation physiologique
+// entre le profil actuel de l'athlète et les exigences métaboliques de son objectif.
+//
+// IL SERT À :
+// - Évaluer la cohérence du profil
+// - Guider les décisions d'entraînement
+// - Orienter les priorités physiologiques
+//
+// IL NE SERT PAS À :
+// - Prédire une performance
+// - Garantir un résultat
+// - Remplacer le jugement du coach
+//
 // =============================================
 
 import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { TTEEffectif } from "@/lib/tteEffectif";
 import { computeNutritionEstimate, applyNutritionalCap, type NutritionalRiskIndex } from "@/lib/nutritionPredictive";
 import { computeRunningEconomy, applyEconomyCap, type RunningEconomyResult, type EconomyLevel } from "@/lib/runningEconomy";
+
+// =============================================
+// DÉFINITION OFFICIELLE (pour affichage UI)
+// =============================================
+
+export const RACE_READINESS_METHODOLOGY = {
+  title: "Race Readiness – Méthodologie",
+  definition: `Race Readiness est un outil d'aide à la décision destiné aux coachs et staffs.
+Il évalue la cohérence entre le profil physiologique actuel de l'athlète (VLamax, FTP, TTE) et les exigences métaboliques de son objectif.
+
+Ce score ne constitue ni une prédiction de performance ni une garantie de résultat.
+Il doit être interprété en tenant compte de la qualité des données disponibles et du contexte d'entraînement.
+
+Un indice de confiance accompagne chaque score afin d'indiquer le niveau de robustesse de l'analyse.`,
+  pillars: [
+    {
+      name: "VLamax effectif",
+      description: "Indique la dominance glucidique vs lipidique. Interprété différemment selon la distance : une même valeur peut être positive ou négative selon l'objectif."
+    },
+    {
+      name: "Puissance ou allure durable (FTP / Pace)",
+      description: "Toujours interprétée en lien avec le TTE. Jamais utilisée seule."
+    },
+    {
+      name: "TTE effectif",
+      description: "Représente la tolérance à l'effort prolongé. Basé sur données observées ou estimées. Central pour longue distance."
+    },
+    {
+      name: "Objectif sportif",
+      description: "Ironman ≠ Sprint ≠ Marathon. La pondération des métriques dépend explicitement de l'objectif."
+    }
+  ],
+  disclaimer: "Ce rapport guide la décision mais ne remplace pas un avis médical ni le jugement du coach."
+};
 
 // =============================================
 // TYPES
@@ -36,6 +84,13 @@ export interface RaceWeights {
   freshness: number;
 }
 
+// Interprétation de l'indice de confiance
+export interface ConfidenceInterpretation {
+  level: "robust" | "prudent" | "indicative";
+  label: string;
+  message: string;
+}
+
 export interface RaceReadinessEffectif {
   score: number;                 // 0-100 (après plafonnement nutritionnel + économie)
   rawScore: number;              // Score avant plafonnement
@@ -45,6 +100,7 @@ export interface RaceReadinessEffectif {
   targets: RaceTargets;
   weights: RaceWeights;
   confidence: number;            // 0-1 (moyenne des confidences)
+  confidenceInterpretation: ConfidenceInterpretation; // Interprétation de la confiance
   reasonsMissing: string[];      // Liste des données manquantes
   inputsUsed: {
     vlamax: { value: number | null; source: string };
@@ -54,7 +110,7 @@ export interface RaceReadinessEffectif {
     seance_specifique: boolean;
   };
   messageStaff: string;          // Message explicatif staff-ready
-  // ✅ NOUVEAU: Explication pédagogique "Pourquoi ce score ?"
+  // Explication pédagogique "Pourquoi ce score ?"
   whyThisScore: string;          // Texte pédagogique pour l'athlète
   interpretation: {              // Interprétation staff détaillée
     status: "race_ready" | "almost_ready" | "in_progress" | "not_ready";
@@ -344,22 +400,26 @@ interface InterpretationParams {
 function generateInterpretation(params: InterpretationParams): RaceReadinessEffectif["interpretation"] {
   const { score, strengths, limitants, vlamax, tte, ftpKg, targets, nutritionalRiskIndex, wasCappedByNutrition, wasCappedByEconomy } = params;
   
-  // Statut
+  // Statut - SEUILS STAFF-GRADE OFFICIELS
+  // 80-100 : profil très cohérent avec l'objectif
+  // 60-79 : cohérent mais perfectible
+  // 40-59 : incohérences physiologiques notables
+  // < 40 : profil non adapté à ce stade
   let status: "race_ready" | "almost_ready" | "in_progress" | "not_ready";
   let statusLabel: string;
   
-  if (score >= 85) {
+  if (score >= 80) {
     status = "race_ready";
-    statusLabel = "Race Ready – Physiologie alignée avec l'objectif";
-  } else if (score >= 70) {
+    statusLabel = "Profil très cohérent avec l'objectif";
+  } else if (score >= 60) {
     status = "almost_ready";
-    statusLabel = "Presque prêt – Ajustements ciblés nécessaires";
-  } else if (score >= 55) {
+    statusLabel = "Cohérent mais perfectible";
+  } else if (score >= 40) {
     status = "in_progress";
-    statusLabel = "En construction – Priorité physiologique claire";
+    statusLabel = "Incohérences physiologiques notables";
   } else {
     status = "not_ready";
-    statusLabel = "Non prêt – Risque de sous-performance";
+    statusLabel = "Profil non adapté à ce stade";
   }
   
   // Points forts
@@ -422,16 +482,17 @@ function generateWhyThisScore(params: Omit<InterpretationParams, "strengths" | "
   const objectifLabel = getObjectifLabel(objectif);
   const isLongDistance = ["IM", "Ironman", "Ultra", "Marathon", "703", "Half", "TrailLong"].includes(objectif);
   
-  // Message principal selon le score
+  // Message principal selon le score - SEUILS STAFF-GRADE OFFICIELS
+  // 80-100 : profil très cohérent / 60-79 : cohérent mais perfectible / 40-59 : incohérences / < 40 : non adapté
   let mainMessage: string;
-  if (score >= 85) {
+  if (score >= 80) {
     mainMessage = `Ta préparation pour ${objectifLabel} est solide. Ton profil physiologique correspond aux exigences de cette distance.`;
-  } else if (score >= 70) {
-    mainMessage = `Tu es sur la bonne voie pour ${objectifLabel}, mais certains ajustements peuvent encore optimiser ta performance.`;
-  } else if (score >= 55) {
-    mainMessage = `Ta préparation pour ${objectifLabel} avance. Des points clés méritent une attention particulière dans les prochaines semaines.`;
+  } else if (score >= 60) {
+    mainMessage = `Tu es sur la bonne voie pour ${objectifLabel}, mais certains ajustements peuvent encore optimiser ta cohérence physiologique.`;
+  } else if (score >= 40) {
+    mainMessage = `Ta préparation pour ${objectifLabel} présente des incohérences notables. Des points clés méritent une attention particulière.`;
   } else {
-    mainMessage = `Ta préparation pour ${objectifLabel} nécessite encore du travail. Le risque de sous-performance est réel si les points faibles ne sont pas corrigés.`;
+    mainMessage = `Ton profil actuel n'est pas adapté aux exigences de ${objectifLabel}. Le risque de sous-performance ou abandon est réel.`;
   }
   
   // Explication des facteurs limitants
@@ -586,24 +647,49 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
   };
 
   // =====================
-  // LABEL + COLOR (seuils staff-grade)
-  // ≥85% = Race Ready | 70-84% = Presque prêt | 55-69% = En construction | <55% = Non prêt
+  // LABEL + COLOR (seuils staff-grade OFFICIELS)
+  // 80-100 : profil très cohérent | 60-79 : cohérent mais perfectible | 40-59 : incohérences | <40 : non adapté
   // =====================
   let label: string;
   let color: "success" | "warning" | "destructive";
   
-  if (finalScore >= 85) {
-    label = "Race Ready!";
+  if (finalScore >= 80) {
+    label = "Très cohérent";
     color = "success";
-  } else if (finalScore >= 70) {
-    label = "Presque prêt";
+  } else if (finalScore >= 60) {
+    label = "Cohérent";
     color = "warning";
-  } else if (finalScore >= 55) {
-    label = "En construction";
+  } else if (finalScore >= 40) {
+    label = "Incohérent";
     color = "warning";
   } else {
-    label = "Non prêt";
+    label = "Non adapté";
     color = "destructive";
+  }
+
+  // =====================
+  // CONFIDENCE INTERPRETATION (obligatoire)
+  // > 0.8 : score robuste | 0.6-0.8 : interprétation prudente | < 0.6 : indicatif uniquement
+  // =====================
+  let confidenceInterpretation: ConfidenceInterpretation;
+  if (avgConfidence > 0.8) {
+    confidenceInterpretation = {
+      level: "robust",
+      label: "Score robuste",
+      message: "Les données sont suffisamment fiables pour une interprétation confiante."
+    };
+  } else if (avgConfidence >= 0.6) {
+    confidenceInterpretation = {
+      level: "prudent",
+      label: "Interprétation prudente",
+      message: "Certaines données sont estimées. L'interprétation reste valide mais doit être confirmée par de nouveaux tests."
+    };
+  } else {
+    confidenceInterpretation = {
+      level: "indicative",
+      label: "Score indicatif",
+      message: "Les données sont largement estimées. Ce score donne une tendance mais ne doit pas guider de décision majeure sans confirmation."
+    };
   }
 
   // Override si trop de données manquantes
@@ -700,6 +786,7 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
     targets,
     weights,
     confidence: avgConfidence,
+    confidenceInterpretation,
     reasonsMissing,
     inputsUsed: {
       vlamax: { value: vlamax, source: vlamaxEffectif.source },
@@ -724,17 +811,18 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
 // HELPERS UI
 // =============================================
 
+// Couleurs basées sur seuils STAFF-GRADE : 80-100 / 60-79 / 40-59 / <40
 export function getScoreColor(score: number): string {
-  if (score >= 85) return "text-success";
-  if (score >= 70) return "text-warning";
-  if (score >= 55) return "text-orange-500";
+  if (score >= 80) return "text-success";
+  if (score >= 60) return "text-warning";
+  if (score >= 40) return "text-orange-500";
   return "text-destructive";
 }
 
 export function getScoreBgColor(score: number): string {
-  if (score >= 85) return "bg-success";
-  if (score >= 70) return "bg-warning";
-  if (score >= 55) return "bg-orange-500";
+  if (score >= 80) return "bg-success";
+  if (score >= 60) return "bg-warning";
+  if (score >= 40) return "bg-orange-500";
   return "bg-destructive";
 }
 
