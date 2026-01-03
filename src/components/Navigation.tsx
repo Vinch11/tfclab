@@ -47,7 +47,7 @@ export function Navigation({
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <img src={logo} alt="24C Lab" className="h-[50px] w-auto" />
+            <img src={logo} alt="24C Lab" className="h-[62px] w-auto" />
             <div>
               <h1 className="text-lg font-bold text-foreground tracking-tight">Two 4 Coaching Lab</h1>
               <p className="text-xs text-muted-foreground">Performance Analysis</p>
