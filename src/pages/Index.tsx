@@ -689,6 +689,7 @@ const Index = () => {
                 athleteName={currentAthlete.name}
                 athleteGoal={currentAthlete.goal || "IM"}
                 activeSnapshotId={currentAthlete.active_snapshot_id}
+                staffMode={staffMode}
               />
             )}
             {showCheckins && currentAthlete && (

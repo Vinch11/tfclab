@@ -1,6 +1,16 @@
 // =============================================
 // VLAMAX EFFECTIF - Source unique de vérité
-// Utilise directement les données Cloud (tables tests + snapshots)
+// Architecture scientifique correcte - Two For Coaching Lab
+// 
+// PRINCIPE FONDAMENTAL:
+// Un Snapshot ne doit JAMAIS contenir une donnée qu'il sert à calculer.
+// La VLamax doit être traitée comme une donnée DÉRIVÉE, jamais brute.
+//
+// HIÉRARCHIE DES SOURCES (stricte):
+// 1. VLamax mesurée lactate (Staff mode) → confiance 0.95
+// 2. VLamax test terrain structuré → confiance 0.75
+// 3. VLamax estimée via snapshot → confiance 0.55
+// 4. Valeur par défaut → confiance faible + avertissement
 // =============================================
 
 // =============================================
@@ -11,9 +21,10 @@ export type VLamaxSource = "test" | "snapshot" | "estimated" | "unknown";
 
 // Détails optionnels pour affichage enrichi
 export interface VLamaxDetails {
-  testType?: string;    // Type du test (ex: "SPRINT_15S")
-  testName?: string;    // Nom du test (ex: "Sprint 15s")
+  testType?: string;    // Type du test (ex: "SPRINT_15S", "LACTATE")
+  testName?: string;    // Nom du test (ex: "Sprint 15s", "Mesure lactate labo")
   date?: string;        // Date du test ou snapshot
+  protocol?: string;    // Protocole utilisé (pour mesure lactate)
 }
 
 export interface VLamaxEffectif {
@@ -22,6 +33,7 @@ export interface VLamaxEffectif {
   confidence: number; // 0 à 1
   label: string;
   details?: VLamaxDetails; // Détails pour affichage enrichi
+  isLocked?: boolean; // true si VLamax mesurée (Staff mode) - désactive estimation
 }
 
 // Types pour les données cloud
@@ -30,7 +42,7 @@ interface TestCloud {
   vlamax: number | null;
   date?: string;
   created_at?: string;
-  type?: string;   // Type de test (ex: "SPRINT_15S")
+  type?: string;   // Type de test (ex: "SPRINT_15S", "LACTATE_LAB")
   name?: string;   // Nom du test
 }
 
@@ -38,6 +50,7 @@ interface SnapshotCloud {
   id: string;
   athlete_id: string;
   date: string;
+  // VLamax dans snapshot = VLamax mesurée (Staff mode uniquement)
   vlamax?: number | null;
   ftp?: number | null;
   pmax_5s?: number | null;
@@ -58,16 +71,62 @@ interface ComputeVLamaxEffectifParams {
 
 /**
  * Calcule la VLamax effective selon la hiérarchie stricte:
- * A) Test le plus récent avec vlamax non-null → source = "test", confiance 0.95
- * B) Snapshot effectif avec vlamax non-null → source = "snapshot", confiance 0.75
- * C) Estimation basée sur ftp/pmax_5s/weight → source = "estimated", confiance 0.45
+ * 
+ * A) VLamax mesurée lactate (snapshot avec source "staff") → confiance 0.95
+ *    → Valeur VERROUILLÉE, désactive toute estimation
+ * 
+ * B) Test terrain structuré avec vlamax non-null → confiance 0.75
+ *    → Test all-out, sprint 15s, ramp test, etc.
+ * 
+ * C) Estimation basée sur ftp/pmax_5s/weight → confiance 0.55
+ *    → Heuristique prudente basée sur les données snapshot
+ * 
  * D) Aucune donnée → value = null, source = "unknown"
+ *    → Avertissement affiché
  */
 export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLamaxEffectif {
   const { athleteId, objectif, activeSnapshotId, tests, snapshots } = params;
 
   // =============================================
-  // A) SOURCE TEST (priorité #1)
+  // STEP 0: Déterminer le snapshot effectif
+  // =============================================
+  const athleteSnapshots = snapshots.filter(s => s.athlete_id === athleteId);
+  let effectiveSnapshot: SnapshotCloud | null = null;
+  
+  if (athleteSnapshots.length > 0) {
+    if (activeSnapshotId) {
+      effectiveSnapshot = athleteSnapshots.find(s => s.id === activeSnapshotId) || null;
+    }
+    if (!effectiveSnapshot) {
+      // Prendre le plus récent par date
+      effectiveSnapshot = [...athleteSnapshots].sort((a, b) => 
+        b.date.localeCompare(a.date)
+      )[0];
+    }
+  }
+
+  // =============================================
+  // A) SOURCE SNAPSHOT STAFF (priorité #1 - VLamax mesurée lactate)
+  // Cette VLamax vient du mode Staff = mesure laboratoire
+  // Elle VERROUILLE la valeur et désactive toute autre source
+  // =============================================
+  if (effectiveSnapshot && effectiveSnapshot.vlamax != null) {
+    return {
+      value: Number(effectiveSnapshot.vlamax.toFixed(2)),
+      source: "snapshot",
+      confidence: 0.95, // Confiance maximale car mesure lactate
+      label: "VLamax (mesurée)",
+      details: {
+        date: effectiveSnapshot.date,
+        protocol: "Mesure lactate (Staff mode)"
+      },
+      isLocked: true // Valeur verrouillée
+    };
+  }
+
+  // =============================================
+  // B) SOURCE TEST TERRAIN (priorité #2)
+  // Tests structurés: sprint 15s, all-out, ramp test, etc.
   // =============================================
   const athleteTests = tests.filter(t => t.athlete_id === athleteId && t.vlamax != null);
   
@@ -86,55 +145,19 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
     return {
       value: Number(vlamax.toFixed(2)),
       source: "test",
-      confidence: 0.95,
-      label: "VLamax (test)",
+      confidence: 0.75, // Test terrain = confiance modérée-haute
+      label: "VLamax (test terrain)",
       details: {
         testType: mostRecentTest.type,
         testName: mostRecentTest.name,
-        date: testDate.slice(0, 10), // Format YYYY-MM-DD
+        date: testDate.slice(0, 10),
       }
     };
   }
 
   // =============================================
-  // B) SOURCE SNAPSHOT (priorité #2)
-  // =============================================
-  const athleteSnapshots = snapshots.filter(s => s.athlete_id === athleteId);
-  
-  if (athleteSnapshots.length === 0) {
-    // Pas de snapshot → passer à estimated ou unknown
-    return getEstimatedOrUnknown(objectif);
-  }
-
-  // Déterminer le snapshot effectif
-  let effectiveSnapshot: SnapshotCloud | null = null;
-  
-  if (activeSnapshotId) {
-    effectiveSnapshot = athleteSnapshots.find(s => s.id === activeSnapshotId) || null;
-  }
-  
-  if (!effectiveSnapshot) {
-    // Prendre le plus récent par date
-    effectiveSnapshot = [...athleteSnapshots].sort((a, b) => 
-      b.date.localeCompare(a.date)
-    )[0];
-  }
-
-  // Si snapshot effectif a vlamax non-null
-  if (effectiveSnapshot && effectiveSnapshot.vlamax != null) {
-    return {
-      value: Number(effectiveSnapshot.vlamax.toFixed(2)),
-      source: "snapshot",
-      confidence: 0.75,
-      label: "VLamax (snapshot)",
-      details: {
-        date: effectiveSnapshot.date,
-      }
-    };
-  }
-
-  // =============================================
-  // C) ESTIMATED (priorité #3)
+  // C) ESTIMATION (priorité #3)
+  // Basée sur FTP/kg et Pmax - heuristique prudente
   // =============================================
   if (effectiveSnapshot) {
     const { ftp, pmax_5s, weight_kg } = effectiveSnapshot;
@@ -166,7 +189,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
       return {
         value: Number(estimated.toFixed(2)),
         source: "estimated",
-        confidence: 0.45,
+        confidence: 0.55, // Estimation = confiance modérée
         label: "VLamax (estimé)"
       };
     }

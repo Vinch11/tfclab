@@ -1,5 +1,14 @@
 // =============================================
-// VLAMAX EFFECTIF - Source unique de vérité
+// VLAMAX EFFECTIF - Source unique de vérité (Legacy)
+// 
+// NOTE: Ce fichier est maintenu pour compatibilité avec VLamaxBadge.
+// Le fichier principal est src/lib/vlamaxEffectif.ts
+//
+// HIÉRARCHIE DES SOURCES (stricte):
+// 1. VLamax mesurée lactate (Staff mode) → confiance 0.95
+// 2. VLamax test terrain structuré → confiance 0.75
+// 3. VLamax estimée via snapshot → confiance 0.55
+// 4. Valeur par défaut → confiance faible + avertissement
 // =============================================
 
 import { Athlete, ObjectifType } from "@/types/athlete";
@@ -19,6 +28,7 @@ export interface VLamaxEffectif {
   confidence: number; // 0 à 1
   label: string; // Label utilisateur explicite
   details?: string; // Détails supplémentaires pour tooltip
+  isLocked?: boolean; // true si VLamax mesurée (Staff mode)
 }
 
 // =============================================
@@ -27,9 +37,9 @@ export interface VLamaxEffectif {
 
 /**
  * Calcule la VLamax effective selon la hiérarchie stricte:
- * 1) Test explicite de VLamax → source = "test", confiance élevée
- * 2) Snapshot récent avec données suffisantes → source = "snapshot", confiance moyenne
- * 3) Estimation prudente → source = "estimé", confiance faible
+ * 1) Test explicite de VLamax → source = "test", confiance ~0.75-0.95
+ * 2) Snapshot récent avec données suffisantes → source = "snapshot", confiance ~0.55
+ * 3) Estimation prudente → source = "estimé", confiance ~0.30
  * 4) Aucune donnée → VLamax = null
  */
 export function getVLamaxEffectif(
@@ -65,10 +75,12 @@ export function getVLamaxEffectif(
     
     const vlamaxPonderee = poids > 0 ? somme / poids : sortedTests[0].vlamax ?? 0;
     
-    // Confiance basée sur fiabilité moyenne et nombre de tests
+    // Confiance basée sur fiabilité moyenne - ajustée selon nouvelle hiérarchie
     const avgFiabilite = sortedTests.reduce((sum, t) => sum + (t.fiabilite ?? 0.5), 0) / sortedTests.length;
-    const testCountBonus = Math.min(sortedTests.length * 0.1, 0.2);
-    const confidence = Math.min(1, avgFiabilite + testCountBonus);
+    // Test terrain structuré = confiance 0.75 de base
+    const baseConfidence = 0.75;
+    const testCountBonus = Math.min(sortedTests.length * 0.05, 0.15);
+    const confidence = Math.min(0.95, baseConfidence + testCountBonus);
     
     // Pénalité si tests anciens (> 8 semaines)
     const mostRecentTest = sortedTests[0];
@@ -78,8 +90,8 @@ export function getVLamaxEffectif(
     return {
       value: Number(vlamaxPonderee.toFixed(2)),
       source: "test",
-      confidence: Math.max(0.3, confidence - agePenalty),
-      label: "VLamax mesuré",
+      confidence: Math.max(0.5, confidence - agePenalty),
+      label: "VLamax (test terrain)",
       details: `Basé sur ${sortedTests.length} test(s), fiabilité moyenne ${Math.round(avgFiabilite * 100)}%`
     };
   }
@@ -94,18 +106,18 @@ export function getVLamaxEffectif(
     
     if (hasRequiredData) {
       const vlamax = calculVLamaxSnapshot(effectiveSnapshot, athlete.objectif);
-      const confianceSnapshot = scoreConfiance(effectiveSnapshot) / 100;
       const ageJours = calculerAgeSnapshot(effectiveSnapshot.date);
       
-      // Pénalité âge progressive
-      const agePenalty = ageJours > 60 ? 0.3 : ageJours > 30 ? 0.15 : ageJours > 14 ? 0.05 : 0;
-      const confidence = Math.max(0.2, Math.min(0.8, confianceSnapshot - agePenalty));
+      // Estimation via snapshot = confiance 0.55 de base
+      const baseConfidence = 0.55;
+      const agePenalty = ageJours > 60 ? 0.15 : ageJours > 30 ? 0.10 : ageJours > 14 ? 0.05 : 0;
+      const confidence = Math.max(0.3, baseConfidence - agePenalty);
       
       return {
         value: vlamax,
-        source: "snapshot",
+        source: "estimé", // Estimation via snapshot
         confidence,
-        label: "VLamax calculé",
+        label: "VLamax (estimé)",
         details: `Basé sur snapshot du ${formatDate(effectiveSnapshot.date)}, confiance ${Math.round(confidence * 100)}%`
       };
     }
@@ -120,8 +132,8 @@ export function getVLamaxEffectif(
     return {
       value: estimation,
       source: "estimé",
-      confidence: 0.15,
-      label: "VLamax estimé",
+      confidence: 0.25,
+      label: "VLamax (fallback)",
       details: `Estimation par défaut pour objectif ${athlete.objectif}. Effectuez un test pour une valeur précise.`
     };
   }
@@ -132,8 +144,8 @@ export function getVLamaxEffectif(
   return {
     value: null,
     source: "inconnu",
-    confidence: 0,
-    label: "VLamax inconnu",
+    confidence: 0.2,
+    label: "VLamax (non disponible)",
     details: "Aucune donnée disponible. Effectuez un test ou importez un snapshot."
   };
 }

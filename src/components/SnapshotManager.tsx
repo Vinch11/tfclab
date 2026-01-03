@@ -43,9 +43,10 @@ interface SnapshotManagerProps {
   athleteName: string;
   athleteGoal: string;
   activeSnapshotId?: string | null;
+  staffMode?: boolean; // ✅ Mode Staff pour VLamax mesurée
 }
 
-export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSnapshotId }: SnapshotManagerProps) {
+export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSnapshotId, staffMode = false }: SnapshotManagerProps) {
   const { getSnapshotsForAthlete, addSnapshot, updateSnapshot, deleteSnapshot, setActiveSnapshot } = useCloudData();
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -151,7 +152,8 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   };
 
   const handleCreate = async () => {
-    const vlamax = parseNum(formData.vlamax);
+    // ✅ VLamax uniquement si mode Staff, sinon null (sera calculée)
+    const vlamax = staffMode ? parseNum(formData.vlamax) : null;
     const vo2max = parseNum(formData.vo2max);
     const { profile, score } = deriveMetabolicProfile(vlamax, vo2max);
 
@@ -174,7 +176,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       athlete_id: athleteId,
       coach_id: "", // replaced in hook
       date: formData.date,
-      source: "manual",
+      source: staffMode && vlamax ? "staff" : "manual", // ✅ Marquer source "staff" si VLamax mesurée
       cycle_tag: formData.cycle_tag || null,
       confidence: parseNum(formData.confidence),
       fc_max: parseNum(formData.fc_max) ? Math.round(parseNum(formData.fc_max)!) : null,
@@ -182,7 +184,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       ftp: parseNum(formData.ftp) ? Math.round(parseNum(formData.ftp)!) : null,
       css: parseNum(formData.css),
       vo2max,
-      vlamax,
+      vlamax, // ✅ Null si mode standard, valeur si mode Staff
       weight_kg: parseNum(formData.weight_kg),
       fat_pct: parseNum(formData.fat_pct),
       pmax_5s: parseNum(formData.pmax_5s) ? Math.round(parseNum(formData.pmax_5s)!) : null,
@@ -212,7 +214,8 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   const handleUpdate = async () => {
     if (!editingSnapshot) return;
 
-    const vlamax = parseNum(formData.vlamax);
+    // ✅ VLamax uniquement si mode Staff, sinon conserver la valeur existante
+    const vlamax = staffMode ? parseNum(formData.vlamax) : editingSnapshot.vlamax;
     const vo2max = parseNum(formData.vo2max);
     const { profile, score } = deriveMetabolicProfile(vlamax, vo2max);
 
@@ -240,7 +243,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       ftp: parseNum(formData.ftp) ? Math.round(parseNum(formData.ftp)!) : null,
       css: parseNum(formData.css),
       vo2max,
-      vlamax,
+      vlamax, // ✅ Conserve valeur existante si mode standard
       weight_kg: parseNum(formData.weight_kg),
       fat_pct: parseNum(formData.fat_pct),
       pmax_5s: parseNum(formData.pmax_5s) ? Math.round(parseNum(formData.pmax_5s)!) : null,
@@ -302,6 +305,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         </div>
       </div>
 
+      {/* VO2max + VLamax section */}
       <div className="grid grid-cols-3 gap-4">
         <div>
           <Label htmlFor="vo2max">VO₂max</Label>
@@ -314,17 +318,66 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
             onChange={(e) => setFormData({ ...formData, vo2max: e.target.value })}
           />
         </div>
-        <div>
-          <Label htmlFor="vlamax">VLamax</Label>
-          <Input
-            id="vlamax"
-            type="number"
-            step="0.01"
-            placeholder="0.40"
-            value={formData.vlamax}
-            onChange={(e) => setFormData({ ...formData, vlamax: e.target.value })}
-          />
-        </div>
+        
+        {/* ✅ VLamax - UNIQUEMENT visible en mode Staff */}
+        {staffMode ? (
+          <div>
+            <Label htmlFor="vlamax" className="flex items-center gap-1.5">
+              <span>VLamax (mesurée)</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="text-xs">
+                      Mode Staff : VLamax mesurée en laboratoire (lactate). 
+                      Cette valeur verrouille l'estimation automatique.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </Label>
+            <Input
+              id="vlamax"
+              type="number"
+              step="0.01"
+              placeholder="0.40 (lactate)"
+              value={formData.vlamax}
+              onChange={(e) => setFormData({ ...formData, vlamax: e.target.value })}
+              className="border-primary/50"
+            />
+            <p className="text-xs text-primary mt-1">
+              ✓ Verrouille la VLamax (confiance 95%)
+            </p>
+          </div>
+        ) : (
+          <div>
+            <Label className="text-muted-foreground flex items-center gap-1.5">
+              <span>VLamax</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-3 w-3" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="text-xs">
+                      La VLamax est calculée automatiquement à partir du snapshot.
+                      Activez le Mode Staff pour saisir une mesure lactate.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </Label>
+            <div className="h-10 px-3 py-2 rounded-md border border-border bg-muted/50 text-sm text-muted-foreground flex items-center">
+              Calculée auto
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Mode Staff pour VLamax mesurée
+            </p>
+          </div>
+        )}
+
         <div>
           <Label htmlFor="confidence">Confiance (0-1)</Label>
           <Input
