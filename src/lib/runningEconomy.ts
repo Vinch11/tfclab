@@ -2,6 +2,43 @@
 // ÉCONOMIE DE COURSE (CAP) - Module Staff
 // Facteur limitant majeur de la performance en course à pied
 // =============================================
+//
+// DÉFINITION OPÉRATIONNELLE :
+// L'économie de course représente le coût énergétique pour maintenir une allure donnée.
+// À VLamax et VO₂max égaux, l'athlète le plus économique :
+// - performe le mieux
+// - consomme le moins de glucides
+//
+// LIEN AVEC RACE READINESS :
+// Race Readiness CAP est dégradé automatiquement si :
+// - l'économie est faible
+// - la dérive cardiaque est élevée
+// - le TTE est correct mais non soutenable mécaniquement
+//
+// Un bon métabolisme NE COMPENSE PAS une mauvaise économie de course.
+//
+// =============================================
+
+// =============================================
+// TEXTE PÉDAGOGIQUE OFFICIEL
+// =============================================
+
+export const RUNNING_ECONOMY_METHODOLOGY = {
+  title: "Économie de course & Nutrition",
+  definition: `En course à pied, la performance dépend autant de l'économie de mouvement que des capacités métaboliques.
+
+Une mauvaise économie augmente la consommation énergétique et les besoins nutritionnels, même à intensité modérée.
+
+Race Readiness intègre ces paramètres afin d'anticiper les limites physiologiques et nutritionnelles de l'athlète.`,
+  disclaimer: "Les résultats sont des ordres de grandeur. L'objectif est l'aide à la décision, pas la prescription médicale.",
+  dataUsed: [
+    "Allure à une intensité donnée (ex : allure marathon)",
+    "Fréquence cardiaque associée",
+    "Stabilité de la FC dans le temps (dérive)",
+    "Historique de charge (TTE effectif)"
+  ],
+  noLabRequired: "Aucune mesure de labo obligatoire."
+};
 
 // =============================================
 // TYPES
@@ -45,6 +82,9 @@ export interface RunningEconomyResult {
   
   // Lien avec VLamax/TTE
   metabolicImpact: string;
+  
+  // Lien nutrition (NOUVEAU)
+  nutritionImpact: string;               // Impact sur les besoins nutritionnels
   
   // Applicabilité
   isRunningOnly: boolean;                // true = CAP seulement
@@ -200,6 +240,7 @@ export function computeRunningEconomy(input: RunningEconomyInput): RunningEconom
       analysisMessage: "L'économie de course n'est pertinente qu'en course à pied et trail.",
       optimisationLevier: [],
       metabolicImpact: "",
+      nutritionImpact: "",
       isRunningOnly: false,
       isApplicable: false,
     };
@@ -258,13 +299,13 @@ export function computeRunningEconomy(input: RunningEconomyInput): RunningEconom
   // Message d'analyse
   let analysisMessage = "";
   if (level === "excellent") {
-    analysisMessage = "L'économie de course est un atout majeur. La limitation se situe probablement ailleurs (capacité cardiorespiratoire, VLamax).";
+    analysisMessage = "Économie de course = atout majeur. La limitation se situe probablement ailleurs (capacité cardiorespiratoire, VLamax).";
   } else if (level === "correct") {
-    analysisMessage = "L'économie de course est dans la norme. Des gains sont possibles via l'optimisation technique et la régularité.";
+    analysisMessage = "Économie dans la norme. Des gains sont possibles via l'optimisation technique et la régularité.";
   } else if (level === "weak") {
     analysisMessage = "La limitation principale n'est pas cardiorespiratoire. Le gain de performance viendra plus de l'économie que du VO₂max.";
   } else {
-    analysisMessage = "L'économie de course est le facteur limitant majeur. Priorité : technique, cadence, régularité, pas intensité brute.";
+    analysisMessage = "Économie de course = facteur limitant majeur. Priorité : technique, cadence, régularité, pas intensité brute.";
   }
   
   // Leviers d'optimisation
@@ -290,6 +331,18 @@ export function computeRunningEconomy(input: RunningEconomyInput): RunningEconom
     metabolicImpact = "Économie correcte. L'impact nutritionnel reste dépendant du VLamax et de l'intensité cible.";
   }
   
+  // NOUVEAU : Impact nutrition explicite
+  let nutritionImpact = "";
+  if (level === "excellent") {
+    nutritionImpact = "Besoins glucidiques réduits grâce à une économie optimale. Marge de sécurité nutritionnelle confortable.";
+  } else if (level === "correct") {
+    nutritionImpact = "Besoins glucidiques dans la norme. Stratégie nutritionnelle standard applicable.";
+  } else if (level === "weak") {
+    nutritionImpact = "Surconsommation énergétique probable. Besoins glucidiques majorés de 10-15% vs profil économe.";
+  } else {
+    nutritionImpact = "Surconsommation énergétique majeure. Besoins glucidiques potentiellement 20% supérieurs à un profil économe. Risque de défaillance nutritionnelle.";
+  }
+  
   return {
     paceEconomiqueRef: allureEndurance,
     fcPct75,
@@ -304,6 +357,7 @@ export function computeRunningEconomy(input: RunningEconomyInput): RunningEconom
     analysisMessage,
     optimisationLevier,
     metabolicImpact,
+    nutritionImpact,
     isRunningOnly: true,
     isApplicable: true,
   };
