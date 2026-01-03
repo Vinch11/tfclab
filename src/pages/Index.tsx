@@ -10,6 +10,8 @@ import { NolioMapping } from "@/components/NolioMapping";
 import { AthleteProfile } from "@/components/AthleteProfile";
 import { FeedbackNolioManager } from "@/components/FeedbackNolioManager";
 import { DanLorangAnalysis } from "@/components/DanLorangAnalysis";
+import { LorangStrategyCard } from "@/components/LorangStrategyCard";
+import { computeLorangStrategy } from "@/lib/lorangStrategyEngine";
 import { TestComparison } from "@/components/TestComparison";
 import { SemaineTypeView } from "@/components/SemaineTypeView";
 import { RaceReadinessCard } from "@/components/RaceReadinessCard";
@@ -340,6 +342,20 @@ const Index = () => {
       tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
     });
   }, [vlamaxEffectif, tteEffectif, currentAthlete, effectiveCloudSnapshot]);
+
+  // ✅ LORANG STRATEGY ENGINE - Moteur décisionnel transparent
+  const lorangStrategy = useMemo(() => {
+    return computeLorangStrategy({
+      vlamax: vlamaxEffectif.value,
+      vlamaxSource: vlamaxEffectif.source,
+      vlamaxConfidence: vlamaxEffectif.confidence,
+      tte: tteEffectif.tte_min,
+      tteSource: tteEffectif.source,
+      tteConfidence: tteEffectif.confidence,
+      ftp_kg: ftp_kg ?? 0,
+      objectif: (currentAthlete?.goal || "IM") as import("@/types/athlete").ObjectifType,
+    });
+  }, [vlamaxEffectif, tteEffectif, ftp_kg, currentAthlete]);
 
   // Handlers
   const handleAddAthlete = async () => {
@@ -870,6 +886,13 @@ const Index = () => {
                 setShowMonitoring(false);
                 setShowCheckins(false);
               }}
+            />
+
+            {/* 🧠 LORANG STRATEGY ENGINE - Moteur décisionnel transparent */}
+            <LorangStrategyCard 
+              strategy={lorangStrategy}
+              athleteName={currentAthlete?.name}
+              objectif={currentAthlete?.goal}
             />
 
             {/* 🍝 Nutrition Prédictive avec Timing (mode staff) */}
