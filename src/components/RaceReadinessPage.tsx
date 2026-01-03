@@ -9,6 +9,7 @@ import { RaceReadinessCard } from "@/components/RaceReadinessCard";
 import { AthleteReadinessReport } from "@/components/AthleteReadinessReport";
 import { StaffReport } from "@/components/StaffReport";
 import { NutritionPredictive } from "@/components/NutritionPredictive";
+import { NutritionTimingCard } from "@/components/NutritionTimingCard";
 import { RunningEconomyModule } from "@/components/RunningEconomyModule";
 import { generateAthleteReadiness } from "@/lib/athleteReadiness";
 
@@ -17,6 +18,7 @@ import type { TTEEffectif } from "@/lib/tteEffectif";
 import type { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import type { NutritionEstimate } from "@/lib/nutritionPredictive";
 import type { RunningEconomyResult } from "@/lib/runningEconomy";
+import type { EnergyDriftResult } from "@/lib/energyDrift";
 
 interface RaceReadinessPageProps {
   athleteName: string;
@@ -28,6 +30,7 @@ interface RaceReadinessPageProps {
   readiness: RaceReadinessEffectif;
   nutritionEstimate: NutritionEstimate;
   runningEconomy: RunningEconomyResult;
+  energyDrift: EnergyDriftResult;
   ftp: number;
   poids: number | null;
   fcMax: number | null;
@@ -45,6 +48,7 @@ export function RaceReadinessPage({
   readiness,
   nutritionEstimate,
   runningEconomy,
+  energyDrift,
   ftp,
   poids,
   fcMax,
@@ -110,8 +114,21 @@ export function RaceReadinessPage({
             vlamaxEffectif={vlamaxEffectif}
             tteEffectif={tteEffectif}
             readiness={readiness}
+            energyDrift={energyDrift}
             onGoToSnapshots={onGoToSnapshots}
             onGoToMethodology={onGoToMethodology}
+          />
+
+          {/* Nutrition Timing */}
+          <NutritionTimingCard
+            vlamax={vlamaxEffectif.value}
+            tteMin={tteEffectif.tte_min}
+            tteTarget={tteEffectif.target ?? 45}
+            objectif={objectif}
+            sport={objectif.toLowerCase().includes("marathon") || 
+                   objectif.toLowerCase().includes("semi") || 
+                   objectif.toLowerCase().includes("trail") ? "cap" : "velo"}
+            energyDrift={energyDrift}
           />
 
           {/* Nutrition Prédictive */}
@@ -122,6 +139,7 @@ export function RaceReadinessPage({
             tteTarget={tteEffectif.target}
             confidence={vlamaxEffectif.confidence}
             staffMode={true}
+            energyDrift={energyDrift}
           />
 
           {/* Économie de Course */}

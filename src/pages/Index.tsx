@@ -785,30 +785,6 @@ const Index = () => {
               />
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-6">
-              <VLamaxCalculator 
-                snapshotEffectif={effectiveCloudSnapshot ? {
-                  ftp: effectiveCloudSnapshot.ftp ?? null,
-                  weight_kg: effectiveCloudSnapshot.weight_kg ?? null,
-                  pmax_5s: effectiveCloudSnapshot.pmax_5s ?? null,
-                  tss_7d: effectiveCloudSnapshot.tss_7d ?? null,
-                } : null}
-                vlamaxEffectif={vlamaxEffectif}
-                tteEffectif={tteEffectif}
-                onGoToSnapshots={() => {
-                  setShowSnapshots(true);
-                  setShowTestLibrary(false);
-                  setShowPhysioAnalysis(false);
-                  setShowPlanner(false);
-                  setShowWorkoutLibrary(false);
-                  setShowMonitoring(false);
-                  setShowCheckins(false);
-                }}
-                onGoToMethodology={() => setActiveTab("methodology")}
-              />
-              <TrainingZones />
-            </div>
-
             {/* 📋 Briefing Staff Automatique (mode staff) */}
             {staffMode && currentAthlete && (
               <StaffBriefingCard
@@ -844,52 +820,6 @@ const Index = () => {
               />
             )}
 
-            {/* 🏁 Race Readiness - Toggle Coach/Athlète */}
-            {staffMode ? (
-              <RaceReadinessCard
-                athlete={legacyAthlete} 
-                vlamaxEffectif={vlamaxEffectif} 
-                tteEffectif={tteEffectif}
-                readiness={raceReadinessEffectif}
-                energyDrift={energyDrift}
-                onGoToSnapshots={() => {
-                  setShowSnapshots(true);
-                  setShowTestLibrary(false);
-                  setShowPhysioAnalysis(false);
-                  setShowPlanner(false);
-                  setShowWorkoutLibrary(false);
-                  setShowMonitoring(false);
-                  setShowCheckins(false);
-                }}
-                onGoToMethodology={() => setActiveTab("methodology")}
-              />
-            ) : (
-              <AthleteReadinessReport
-                report={generateAthleteReadiness(
-                  raceReadinessEffectif,
-                  currentAthlete?.goal || "IM",
-                  runningEconomyResult
-                )}
-                athleteName={currentAthlete?.name || "Athlète"}
-                objectif={currentAthlete?.goal || "IM"}
-              />
-            )}
-            <DanLorangAnalysis 
-              athlete={legacyAthlete} 
-              vlamaxEffectif={vlamaxEffectif} 
-              tteEffectif={tteEffectif}
-              readiness={raceReadinessEffectif}
-              onGoToSnapshots={() => {
-                setShowSnapshots(true);
-                setShowTestLibrary(false);
-                setShowPhysioAnalysis(false);
-                setShowPlanner(false);
-                setShowWorkoutLibrary(false);
-                setShowMonitoring(false);
-                setShowCheckins(false);
-              }}
-            />
-
             {/* 🧠 LORANG STRATEGY ENGINE - Moteur décisionnel transparent */}
             <LorangStrategyCard 
               strategy={lorangStrategy}
@@ -897,65 +827,12 @@ const Index = () => {
               objectif={currentAthlete?.goal}
             />
 
-            {/* 🍝 Nutrition Prédictive avec Timing (mode staff) */}
-            {staffMode && (
-              <>
-                <NutritionTimingCard
-                  vlamax={vlamaxEffectif.value}
-                  tteMin={tteEffectif.tte_min}
-                  tteTarget={tteEffectif.target ?? 45}
-                  objectif={currentAthlete?.goal || "IM"}
-                  sport={currentAthlete?.goal?.toLowerCase().includes("marathon") || 
-                         currentAthlete?.goal?.toLowerCase().includes("semi") || 
-                         currentAthlete?.goal?.toLowerCase().includes("trail") ? "cap" : "velo"}
-                  energyDrift={energyDrift}
-                />
-                <NutritionPredictive
-                  vlamax={vlamaxEffectif.value}
-                  objectif={currentAthlete?.goal || "IM"}
-                  tteMin={tteEffectif.tte_min}
-                  tteTarget={tteEffectif.target}
-                  confidence={vlamaxEffectif.confidence}
-                  staffMode={staffMode}
-                  energyDrift={energyDrift}
-                />
-              </>
-            )}
-
-            {/* 🏃 Économie de Course (CAP uniquement, mode staff) */}
-            {staffMode && (
-              <RunningEconomyModule
-                fcMax={effectiveRefs.fcMax ?? null}
-                tteMin={tteEffectif.tte_min}
-                objectif={currentAthlete?.goal || "IM"}
-                vlamax={vlamaxEffectif.value}
-                staffMode={staffMode}
-              />
-            )}
-
-            {/* 📋 Rapport Staff Pré-Course (mode staff) */}
-            {staffMode && currentAthlete && effectiveCloudSnapshot && (
-              <StaffReport
-                athleteName={currentAthlete.name}
-                objectif={currentAthlete.goal || "IM"}
-                snapshotDate={effectiveCloudSnapshot.date}
-                vlamaxEffectif={vlamaxEffectif}
-                tteEffectif={tteEffectif}
-                readiness={raceReadinessEffectif}
-                nutritionEstimate={nutritionEstimate}
-                runningEconomy={runningEconomyResult}
-                ftp={ftp}
-                poids={poids ?? null}
-                fcMax={effectiveRefs.fcMax ?? null}
-              />
-            )}
-
             <SemaineTypeView athlete={legacyAthlete} />
             <Bloc3SemainesView athlete={legacyAthlete} />
           </div>
         );
 
-      case "vlamax":
+      case "profil":
         return (
           <div className="space-y-6 animate-fade-in">
             {renderAthleteSelector()}
@@ -1067,6 +944,7 @@ const Index = () => {
                   readiness={raceReadinessEffectif}
                   nutritionEstimate={nutritionEstimate}
                   runningEconomy={runningEconomyResult}
+                  energyDrift={energyDrift}
                   ftp={ftp}
                   poids={poids ?? null}
                   fcMax={effectiveRefs.fcMax ?? null}

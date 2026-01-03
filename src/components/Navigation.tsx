@@ -17,8 +17,8 @@ const navItems: NavItem[] = [{
   label: "Dashboard",
   icon: Calculator
 }, {
-  id: "vlamax",
-  label: "VLamax",
+  id: "profil",
+  label: "Profil",
   icon: Calculator
 }, {
   id: "tests",
