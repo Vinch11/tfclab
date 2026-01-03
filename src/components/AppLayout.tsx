@@ -46,8 +46,6 @@ export function AppLayout({ children, title, subtitle, showBack = false }: AppLa
                 {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
               </div>
             </div>
-
-            <img src={logo2fc} alt="Two For Coaching" className="h-10 w-auto object-contain" />
           </div>
         </div>
       </header>

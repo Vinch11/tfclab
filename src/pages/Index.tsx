@@ -1110,9 +1110,6 @@ const Index = () => {
       </div>
 
       <main className="container mx-auto px-4 py-8 relative">
-        <div className="flex justify-center mb-8">
-          <img src={logo2fc} alt="Two For Coaching Lab" className="h-24 md:h-32 w-auto object-contain" />
-        </div>
 
         {renderContent()}
       </main>
