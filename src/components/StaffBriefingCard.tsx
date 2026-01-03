@@ -138,23 +138,23 @@ export function StaffBriefingCard({ params, mode = "compact" }: StaffBriefingCar
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-2 sm:space-y-3">
           {/* Résumé ultra-compact */}
-          <div className="text-sm">
+          <div className="text-xs sm:text-sm">
             <span className="font-medium">Priorité:</span>{" "}
-            <Badge variant="outline" className="ml-1">{briefing.executiveSummary.priority}</Badge>
+            <Badge variant="outline" className="ml-1 text-xs">{briefing.executiveSummary.priority}</Badge>
           </div>
           
-          <div className="grid grid-cols-3 gap-2 text-xs">
-            <div className="p-2 rounded bg-muted/30">
-              <div className="text-muted-foreground">Nutrition</div>
-              <div className="font-medium">{briefing.nutrition.riskBadge}</div>
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-[10px] sm:text-xs">
+            <div className="p-1.5 sm:p-2 rounded bg-muted/30 min-w-0">
+              <div className="text-muted-foreground truncate">Nutrition</div>
+              <div className="font-medium truncate">{briefing.nutrition.riskBadge}</div>
             </div>
-            <div className="p-2 rounded bg-muted/30">
-              <div className="text-muted-foreground">Économie</div>
-              <div className="font-medium">{briefing.executiveSummary.economyLabel}</div>
+            <div className="p-1.5 sm:p-2 rounded bg-muted/30 min-w-0">
+              <div className="text-muted-foreground truncate">Économie</div>
+              <div className="font-medium truncate">{briefing.executiveSummary.economyLabel}</div>
             </div>
-            <div className="p-2 rounded bg-muted/30">
+            <div className="p-1.5 sm:p-2 rounded bg-muted/30 min-w-0">
               <div className="text-muted-foreground">Alertes</div>
               <div className="font-medium">{briefing.alerts.length}</div>
             </div>
@@ -162,11 +162,11 @@ export function StaffBriefingCard({ params, mode = "compact" }: StaffBriefingCar
 
           {/* Alertes critiques uniquement */}
           {briefing.alerts.filter(a => a.severity === "critical").length > 0 && (
-            <div className="mt-2">
+            <div className="mt-2 space-y-1">
               {briefing.alerts.filter(a => a.severity === "critical").map((alert, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm text-destructive">
-                  <span>{alert.icon}</span>
-                  <span>{alert.message}</span>
+                <div key={i} className="flex items-start gap-2 text-xs sm:text-sm text-destructive">
+                  <span className="shrink-0">{alert.icon}</span>
+                  <span className="line-clamp-2">{alert.message}</span>
                 </div>
               ))}
             </div>
