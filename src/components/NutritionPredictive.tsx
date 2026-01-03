@@ -1,4 +1,5 @@
 import { AlertTriangle, Apple, CheckCircle2, Info, Flame, Bike, Footprints, TrendingUp, Shield, Target, Battery, BatteryLow, TrendingDown, ChevronDown, Activity, BookOpen } from "lucide-react";
+import { GlycolyticRiskExplanation } from "./GlycolyticRiskExplanation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -114,7 +115,14 @@ export function NutritionPredictive({
                 }`} />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground">Indice de Risque Nutritionnel</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-foreground">Indice de Risque Nutritionnel</h3>
+                  <GlycolyticRiskExplanation variant="modal">
+                    <button className="p-1 rounded-full hover:bg-muted transition-colors">
+                      <Info className="w-4 h-4 text-muted-foreground hover:text-primary" />
+                    </button>
+                  </GlycolyticRiskExplanation>
+                </div>
                 <p className="text-xs text-muted-foreground">Risque métabolique en compétition</p>
               </div>
             </div>
