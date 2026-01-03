@@ -498,8 +498,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
   const coverHTML = `
     <section class="cover">
       <div class="coverTop">
-        <div class="brand" style="display:flex; align-items:center; gap:12px;">
-          ${logoBase64 ? `<img src="${logoBase64}" alt="Logo" style="height:48px; width:auto;" />` : ''}
+        <div class="brand" style="display:flex; align-items:center; gap:16px;">
+          ${logoBase64 ? `<img src="${logoBase64}" alt="Logo" style="height:120px; width:auto;" />` : ''}
           <div>
             <div class="tag tagPrimary">${htmlEscape(brandMain)}</div>
             <div class="brandSub">${htmlEscape(brandSub)}</div>
