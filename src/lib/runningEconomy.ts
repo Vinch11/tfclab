@@ -98,8 +98,25 @@ export interface RunningEconomyResult {
 // Objectifs CAP pour lesquels l'économie est critique
 // Inclut triathlon car la CAP est souvent le segment décisif
 const CAP_OBJECTIVES = [
-  "Marathon", "Semi", "Course", "Trail", "TrailCourt", "TrailLong", "TrailMountain", "TrailUltra", "TrailShort",
-  "IM", "70.3", "OD", "Sprint" // Triathlon inclus
+  "Marathon",
+  "Semi",
+  "Course",
+  "Trail",
+  "TrailCourt",
+  "TrailLong",
+  "TrailMountain",
+  "TrailUltra",
+  "TrailShort",
+
+  // Triathlon (différentes variantes de codage rencontrées dans l'app)
+  "IM",
+  "Ironman",
+  "703",
+  "70.3",
+  "Half",
+  "Sprint",
+  "OD",
+  "Olympic",
 ];
 
 // Seuils de dérive cardiaque
