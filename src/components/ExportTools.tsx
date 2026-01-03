@@ -1,22 +1,50 @@
 // =============================================
-// OUTILS EXPORT CSV / PDF – RAPPORT COMPLET
+// OUTILS EXPORT CSV / PDF – RAPPORT COMPLET CLOUD
+// Utilise les données cloud réelles (snapshots, tests, calculateurs unifiés)
 // =============================================
 
 import { Button } from "@/components/ui/button";
-import { FileText, FileSpreadsheet } from "lucide-react";
-import { Athlete, getDernierSnapshot } from "@/types/athlete";
-import { calculVLamaxAvecConfiance } from "@/lib/athleteStore";
-import { calculerScoreGlobal, genererBadges } from "@/lib/iaRecommandations";
-import { computeAlerts, computeBlockRecommendation, getVLamaxTestsOnly } from "@/lib/monitoring";
-import { analysePhysiologiqueComplete } from "@/lib/physiologicalModel";
-import { ZonesConfig, computeAbsoluteRange, AthleteRefsForZones } from "@/lib/zonesConfig";
+import { FileText, FileSpreadsheet, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import type { DbAthlete, DbSnapshot, DbTest } from "@/hooks/useCloudData";
+import { getEffectiveSnapshot, getEffectiveRefs, type EffectiveRefs } from "@/lib/effectiveRefs";
+import { computeVLamaxEffectif, type VLamaxEffectif } from "@/lib/vlamaxEffectif";
+import { computeTTEEffectif, type TTEEffectif } from "@/lib/tteEffectif";
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
+import { ZonesConfig, computeAbsoluteRange, AthleteRefsForZones } from "@/lib/zonesConfig";
+
+// =============================================
+// TYPES
+// =============================================
 
 interface ExportToolsProps {
-  athlete: Athlete;
+  athlete: DbAthlete;
+  snapshots: DbSnapshot[];
+  tests: DbTest[];
+  staffMode?: boolean;
 }
 
-// === HELPERS ===
+// Payload normalisé pour toutes les sections du rapport
+interface ExportPayload {
+  athlete: {
+    id: string;
+    name: string;
+    goal: string | null;
+    refs: Record<string, number | null>;
+  };
+  effectiveSnapshot: DbSnapshot | null;
+  effectiveRefs: EffectiveRefs;
+  vlamax: VLamaxEffectif;
+  tte: TTEEffectif;
+  raceReadiness: RaceReadinessEffectif;
+  tests: DbTest[];
+  snapshotHistory: DbSnapshot[];
+}
+
+// =============================================
+// HELPERS
+// =============================================
+
 function safe(v: unknown): string {
   return v === null || v === undefined ? "" : String(v);
 }
@@ -26,12 +54,13 @@ function fmt(n: number | null | undefined, d = 2): string {
 }
 
 function fmtPct(n: number | null | undefined): string {
-  return typeof n === "number" && !isNaN(n) ? `${Math.round(n)}%` : "—";
+  return typeof n === "number" && !isNaN(n) ? `${Math.round(n * 100)}%` : "—";
 }
 
-function dtStr(iso: string | Date): string {
+function dtStr(iso: string | Date | undefined): string {
+  if (!iso) return "—";
   try {
-    return new Date(iso).toLocaleString();
+    return new Date(iso).toLocaleDateString("fr-FR");
   } catch {
     return safe(iso);
   }
@@ -46,25 +75,21 @@ function htmlEscape(s: string): string {
     .replace(/'/g, "&#039;");
 }
 
-function getRefTestsOnly(athlete: Athlete) {
-  const tests = athlete.tests || [];
-  return tests
-    .filter((t) => t.type === "REF")
-    .map((t) => ({ ...t, date: t.date || new Date().toISOString() }))
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+function parseRefs(refs: unknown): Record<string, number | null> {
+  if (!refs || typeof refs !== "object") return {};
+  return refs as Record<string, number | null>;
 }
 
-function getAthleteRefs(athlete: Athlete): AthleteRefsForZones {
-  const refs = (athlete.refs || {}) as Record<string, number | null | undefined>;
+function getAthleteRefsForZones(effectiveRefs: EffectiveRefs): AthleteRefsForZones {
   return {
-    fcMax: refs.fcMax ?? null,
-    vma: refs.vma ?? null,
-    ftp: refs.ftp ?? null,
-    css: refs.css ?? null
+    fcMax: effectiveRefs.fcMax,
+    vma: effectiveRefs.vma,
+    ftp: effectiveRefs.ftp,
+    css: effectiveRefs.css
   };
 }
 
-function zoneAbs(metricKey: string, sportKey: string, zoneKey: string, athlete: Athlete): string {
+function zoneAbs(metricKey: string, sportKey: string, zoneKey: string, refs: AthleteRefsForZones): string {
   const metric = ZonesConfig[metricKey];
   if (!metric) return zoneKey;
   const table = metric.sports[sportKey];
@@ -72,41 +97,134 @@ function zoneAbs(metricKey: string, sportKey: string, zoneKey: string, athlete: 
   const z = table.find((zone) => zone.key === zoneKey);
   if (!z) return zoneKey;
   
-  const refs = getAthleteRefs(athlete);
   const abs = computeAbsoluteRange(metricKey, sportKey, z, refs);
   return abs && abs.ok 
     ? `${zoneKey} (${z.min}-${z.max}%) → ${abs.display}` 
     : `${zoneKey} (${z.min}-${z.max}%)`;
 }
 
-// === BUILD PREMIUM HTML REPORT (COUVERTURE + SOMMAIRE + RAPPORT) ===
-function buildAthleteReportHTML(athlete: Athlete): string {
-  const vTests = getVLamaxTestsOnly(athlete);
-  const phys = analysePhysiologiqueComplete(vTests, athlete.vo2max || 50, athlete.objectif);
-  const alerts = computeAlerts(athlete);
-  const rec = computeBlockRecommendation(athlete);
-  const rTests = getRefTestsOnly(athlete);
-  const refs = getAthleteRefs(athlete);
-  const plan = (athlete as any).plan || null;
+// =============================================
+// BUILD EXPORT PAYLOAD
+// =============================================
 
-  const coachName = "Two For Coaching";
-  const brandMain = "Two For Coaching Lab";
+function buildExportPayload(
+  athlete: DbAthlete,
+  snapshots: DbSnapshot[],
+  tests: DbTest[]
+): ExportPayload {
+  const effectiveSnapshot = getEffectiveSnapshot(athlete, snapshots);
+  const effectiveRefs = getEffectiveRefs(athlete, snapshots);
+  const athleteSnapshots = snapshots.filter(s => s.athlete_id === athlete.id);
+  const athleteTests = tests.filter(t => t.athlete_id === athlete.id);
+  
+  // Calculer VLamax effectif
+  const vlamax = computeVLamaxEffectif({
+    athleteId: athlete.id,
+    objectif: athlete.goal || "IM",
+    activeSnapshotId: athlete.active_snapshot_id,
+    tests: athleteTests.map(t => ({
+      athlete_id: t.athlete_id,
+      vlamax: t.vlamax,
+      date: t.date,
+      type: t.type,
+      name: t.name
+    })),
+    snapshots: athleteSnapshots.map(s => ({
+      id: s.id,
+      athlete_id: s.athlete_id,
+      date: s.date,
+      vlamax: s.vlamax,
+      ftp: s.ftp,
+      pmax_5s: s.pmax_5s,
+      weight_kg: s.weight_kg
+    }))
+  });
+  
+  // Calculer TTE effectif
+  const tte = computeTTEEffectif({
+    ftp: effectiveRefs.ftp,
+    tss_7d: effectiveSnapshot?.tss_7d,
+    tte_mode: effectiveSnapshot?.tte_mode,
+    tte_observed_min: effectiveSnapshot?.tte_observed_min,
+    objectif: athlete.goal || "IM"
+  });
+  
+  // Calculer Race Readiness
+  const raceReadiness = computeRaceReadinessEffectif({
+    objectif: athlete.goal || "IM",
+    vlamaxEffectif: vlamax,
+    tteEffectif: tte,
+    ftp: effectiveRefs.ftp,
+    poids: effectiveRefs.weightKg,
+    fatigue_ok: true,
+    seance_specifique_validee: false,
+    fcMax: effectiveRefs.fcMax
+  });
+  
+  return {
+    athlete: {
+      id: athlete.id,
+      name: athlete.name,
+      goal: athlete.goal,
+      refs: parseRefs(athlete.refs)
+    },
+    effectiveSnapshot,
+    effectiveRefs,
+    vlamax,
+    tte,
+    raceReadiness,
+    tests: athleteTests,
+    snapshotHistory: athleteSnapshots
+  };
+}
+
+// =============================================
+// CHECK IF EXPORT IS POSSIBLE
+// =============================================
+
+function canExport(payload: ExportPayload): { ok: boolean; reason?: string } {
+  // Au minimum, on a besoin d'un snapshot ou d'un test
+  const hasSnapshot = payload.effectiveSnapshot != null;
+  const hasTest = payload.tests.length > 0;
+  const hasMinimalData = payload.effectiveRefs.ftp != null || payload.effectiveRefs.weightKg != null;
+  
+  if (!hasSnapshot && !hasTest && !hasMinimalData) {
+    return {
+      ok: false,
+      reason: "Aucune donnée suffisante à exporter. Ajoutez un snapshot (FTP, poids, TSS 7d) ou un test."
+    };
+  }
+  
+  return { ok: true };
+}
+
+// =============================================
+// BUILD PREMIUM HTML REPORT
+// =============================================
+
+function buildAthleteReportHTML(payload: ExportPayload): string {
+  const { athlete, effectiveSnapshot, effectiveRefs, vlamax, tte, raceReadiness, tests, snapshotHistory } = payload;
+  const refs = getAthleteRefsForZones(effectiveRefs);
+
+  const brandMain = "24C Lab";
   const brandSub = "Staff-grade Performance Intelligence";
   const createdAt = new Date().toISOString();
 
-  const title = `${brandMain} — Rapport Athlète — ${athlete.nom || "Athlète"}`;
+  const title = `${brandMain} — Rapport Athlète — ${athlete.name || "Athlète"}`;
 
   // Cover info
-  const coverObjective = htmlEscape(athlete.objectif || plan?.goal || "—");
-  const coverAthlete = htmlEscape(athlete.nom || "Athlète");
+  const coverObjective = htmlEscape(athlete.goal || "—");
+  const coverAthlete = htmlEscape(athlete.name || "Athlète");
   const coverDate = htmlEscape(new Date(createdAt).toLocaleDateString("fr-FR"));
+  const snapshotDate = effectiveSnapshot ? dtStr(effectiveSnapshot.date) : "—";
 
   const coverRefs = `
     <div class="kv">
-      <div class="k">FCmax</div><div class="v">${refs.fcMax ?? "—"} bpm</div>
-      <div class="k">VMA</div><div class="v">${refs.vma ?? "—"} km/h</div>
-      <div class="k">FTP</div><div class="v">${refs.ftp ?? "—"} W</div>
-      <div class="k">VO2max</div><div class="v">${athlete.vo2max ? fmt(athlete.vo2max, 1) : "—"}</div>
+      <div class="k">FCmax</div><div class="v">${effectiveRefs.fcMax ?? "—"} bpm</div>
+      <div class="k">VMA</div><div class="v">${effectiveRefs.vma ?? "—"} km/h</div>
+      <div class="k">FTP</div><div class="v">${effectiveRefs.ftp ?? "—"} W</div>
+      <div class="k">Poids</div><div class="v">${effectiveRefs.weightKg ? fmt(effectiveRefs.weightKg, 1) : "—"} kg</div>
+      <div class="k">VO2max</div><div class="v">${effectiveRefs.vo2max ? fmt(effectiveRefs.vo2max, 1) : "—"}</div>
     </div>
   `;
 
@@ -114,12 +232,11 @@ function buildAthleteReportHTML(athlete: Athlete): string {
   const toc = `
     <div class="toc">
       <div class="tocTitle">Sommaire</div>
-      <div class="tocRow"><span>1. Résumé (modèle)</span><span>—</span></div>
-      <div class="tocRow"><span>2. Alertes & recommandations</span><span>—</span></div>
+      <div class="tocRow"><span>1. Résumé exécutif</span><span>—</span></div>
+      <div class="tocRow"><span>2. Indicateurs clés (VLamax, TTE, Race Readiness)</span><span>—</span></div>
       <div class="tocRow"><span>3. Zones cibles</span><span>—</span></div>
-      <div class="tocRow"><span>4. Historique tests VLamax</span><span>—</span></div>
-      <div class="tocRow"><span>5. Historique tests références</span><span>—</span></div>
-      <div class="tocRow"><span>6. Plan d'entraînement</span><span>—</span></div>
+      <div class="tocRow"><span>4. Historique snapshots</span><span>—</span></div>
+      <div class="tocRow"><span>5. Historique tests</span><span>—</span></div>
     </div>
   `;
 
@@ -129,167 +246,127 @@ function buildAthleteReportHTML(athlete: Athlete): string {
       <div class="card">
         <h3>Zones Cardiaques (FCmax)</h3>
         <ul>
-          <li>${htmlEscape(zoneAbs("cardiaque", "tout sport", "Z1", athlete))}</li>
-          <li>${htmlEscape(zoneAbs("cardiaque", "tout sport", "Z2", athlete))}</li>
-          <li>${htmlEscape(zoneAbs("cardiaque", "tout sport", "Z3", athlete))}</li>
-          <li>${htmlEscape(zoneAbs("cardiaque", "tout sport", "Z4", athlete))}</li>
-          <li>${htmlEscape(zoneAbs("cardiaque", "tout sport", "Z5", athlete))}</li>
+          <li>${htmlEscape(zoneAbs("cardiaque", "tout sport", "Z1", refs))}</li>
+          <li>${htmlEscape(zoneAbs("cardiaque", "tout sport", "Z2", refs))}</li>
+          <li>${htmlEscape(zoneAbs("cardiaque", "tout sport", "Z3", refs))}</li>
+          <li>${htmlEscape(zoneAbs("cardiaque", "tout sport", "Z4", refs))}</li>
+          <li>${htmlEscape(zoneAbs("cardiaque", "tout sport", "Z5", refs))}</li>
         </ul>
       </div>
       <div class="card">
         <h3>Zones Course (VMA)</h3>
         <ul>
-          <li>${htmlEscape(zoneAbs("allure", "course", "Z1", athlete))}</li>
-          <li>${htmlEscape(zoneAbs("allure", "course", "Z2", athlete))}</li>
-          <li>${htmlEscape(zoneAbs("allure", "course", "Z3", athlete))}</li>
-          <li>${htmlEscape(zoneAbs("allure", "course", "Z4b", athlete))}</li>
-          <li>${htmlEscape(zoneAbs("allure", "course", "Z6", athlete))}</li>
+          <li>${htmlEscape(zoneAbs("allure", "course", "Z1", refs))}</li>
+          <li>${htmlEscape(zoneAbs("allure", "course", "Z2", refs))}</li>
+          <li>${htmlEscape(zoneAbs("allure", "course", "Z3", refs))}</li>
+          <li>${htmlEscape(zoneAbs("allure", "course", "Z4b", refs))}</li>
+          <li>${htmlEscape(zoneAbs("allure", "course", "Z6", refs))}</li>
         </ul>
       </div>
       <div class="card">
         <h3>Zones Vélo (FTP)</h3>
         <ul>
-          <li>${htmlEscape(zoneAbs("puissance", "cyclisme", "Z1", athlete))}</li>
-          <li>${htmlEscape(zoneAbs("puissance", "cyclisme", "Z2", athlete))}</li>
-          <li>${htmlEscape(zoneAbs("puissance", "cyclisme", "Z3", athlete))}</li>
-          <li>${htmlEscape(zoneAbs("puissance", "cyclisme", "Z4", athlete))}</li>
-          <li>${htmlEscape(zoneAbs("puissance", "cyclisme", "Z5", athlete))}</li>
+          <li>${htmlEscape(zoneAbs("puissance", "cyclisme", "Z1", refs))}</li>
+          <li>${htmlEscape(zoneAbs("puissance", "cyclisme", "Z2", refs))}</li>
+          <li>${htmlEscape(zoneAbs("puissance", "cyclisme", "Z3", refs))}</li>
+          <li>${htmlEscape(zoneAbs("puissance", "cyclisme", "Z4", refs))}</li>
+          <li>${htmlEscape(zoneAbs("puissance", "cyclisme", "Z5", refs))}</li>
         </ul>
       </div>
     </div>
   `;
 
-  // Alerts
-  const alertsHtml = alerts.length
-    ? alerts
-        .map((a) => {
-          const icon = a.level === "warn" ? "⚠️" : a.level === "info" ? "ℹ️" : "✅";
-          return `<div class="alert ${a.level}">
-            <div class="alertTitle">${icon} ${htmlEscape(a.title)}</div>
-            <div class="muted">${htmlEscape(a.detail)}</div>
-          </div>`;
-        })
-        .join("")
-    : `<div class="muted">✅ Aucune alerte critique détectée.</div>`;
-
-  // Résumé modèle
-  const physHtml = phys
-    ? `
-    <div class="grid2">
+  // VLamax + TTE + RaceReadiness summary
+  const ftpKg = effectiveRefs.ftp && effectiveRefs.weightKg && effectiveRefs.weightKg > 0 
+    ? effectiveRefs.ftp / effectiveRefs.weightKg 
+    : null;
+  
+  const indicateursHtml = `
+    <div class="grid3">
       <div class="card">
-        <h3>Modèle VLamax</h3>
-        <div class="big">
-          <div><span class="muted">VLamax pondérée</span><br><b>${fmt(phys.vlamaxPonderee, 2)}</b></div>
-          <div><span class="muted">Confiance</span><br><b>${fmtPct(phys.confiance)}</b></div>
-          <div><span class="muted">SPM</span><br><b>${safe(phys.spm)}/100</b></div>
-        </div>
-        <div class="mt"><b>Interprétation:</b> ${htmlEscape(phys.interpretation.message)}</div>
+        <h3>VLamax</h3>
+        <div class="big"><b>${vlamax.value !== null ? fmt(vlamax.value, 2) : "—"}</b></div>
+        <div class="muted">${htmlEscape(vlamax.label)}</div>
+        <div class="muted">Confiance: ${fmtPct(vlamax.confidence)}</div>
+        ${vlamax.isLocked ? '<div class="locked">🔒 Verrouillée (mesure lactate)</div>' : ''}
       </div>
       <div class="card">
-        <h3>Décision séances A/B/C/D</h3>
-        <ul>
-          <li><b>A</b> ${htmlEscape(phys.repartition.A.label)}</li>
-          <li><b>B</b> ${htmlEscape(phys.repartition.B.label)}</li>
-          <li><b>C</b> ${htmlEscape(phys.repartition.C.label)}</li>
-          <li><b>D</b> ${htmlEscape(phys.repartition.D.label)}</li>
-        </ul>
-        <div class="muted">${htmlEscape(phys.repartition.message || "")}</div>
+        <h3>TTE (Time to Exhaustion)</h3>
+        <div class="big"><b>${tte.tte_min} min</b></div>
+        <div class="muted">${htmlEscape(tte.label)}</div>
+        <div class="muted">Confiance: ${fmtPct(tte.confidence)}</div>
+        <div class="muted">Cible: ${tte.target ?? "—"} min</div>
+      </div>
+      <div class="card">
+        <h3>Race Readiness</h3>
+        <div class="big"><b>${raceReadiness.score}/100</b></div>
+        <div class="muted">${htmlEscape(raceReadiness.label)}</div>
+        <div class="muted">FTP/kg: ${ftpKg ? fmt(ftpKg, 2) : "—"} W/kg</div>
       </div>
     </div>
-  `
-    : `<div class="muted">Modèle non disponible.</div>`;
-
-  // Tables tests
-  const vTestsRows = vTests.length
-    ? vTests
-        .slice()
-        .reverse()
-        .map(
-          (t) => `
-    <tr>
-      <td>${htmlEscape(dtStr(t.date))}</td>
-      <td>${htmlEscape(t.nom || t.id || "Test")}</td>
-      <td>${fmt(t.vlamax, 2)}</td>
-      <td>${fmtPct((t.fiabilite ?? 0.5) * 100)}</td>
-      <td class="muted">${htmlEscape(t.note || "")}</td>
-    </tr>
-  `
-        )
-        .join("")
-    : `<tr><td colspan="5" class="muted">—</td></tr>`;
-
-  const rTestsRows = rTests.length
-    ? rTests
-        .slice()
-        .reverse()
-        .map(
-          (t: any) => `
-    <tr>
-      <td>${htmlEscape(dtStr(t.date))}</td>
-      <td>${htmlEscape(t.nom || t.id || "Référence")}</td>
-      <td class="muted mono">${htmlEscape(JSON.stringify(t.raw || {}).slice(0, 220))}</td>
-      <td class="muted">${htmlEscape(t.note || "")}</td>
-    </tr>
-  `
-        )
-        .join("")
-    : `<tr><td colspan="4" class="muted">—</td></tr>`;
-
-  // Plan
-  let planHtml = `<div class="muted">Aucun plan généré.</div>`;
-  if (plan && plan.weeks && plan.weeks.length) {
-    const weeks = plan.weeks
-      .map((w: any) => {
-        const rows = (w.sessions || [])
-          .map(
-            (s: any) => `
-        <tr>
-          <td>${htmlEscape(s.dayName || "")}</td>
-          <td>${htmlEscape(s.type || "")}</td>
-          <td>${htmlEscape(s.sport || "")}</td>
-          <td>${htmlEscape(s.name || "")}</td>
-          <td>${s.durationMin ? htmlEscape(String(s.durationMin)) + " min" : "—"}</td>
-          <td class="mono">${htmlEscape(s.zoneTarget || s.zone || "")}</td>
-        </tr>
-      `
-          )
-          .join("");
-
-        return `
-        <div class="card pagebreakAvoid">
-          <h3>Semaine ${w.weekIndex} — ${htmlEscape(w.phase || "")} (${htmlEscape(w.start || "")} → ${htmlEscape(w.end || "")})</h3>
-          <table>
-            <thead>
-              <tr><th>Jour</th><th>Type</th><th>Sport</th><th>Séance</th><th>Durée</th><th>Zone cible</th></tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
+  `;
+  
+  // Message staff
+  const staffMessageHtml = `
+    <div class="card staffMessage">
+      <h3>Interprétation Staff</h3>
+      <div>${htmlEscape(raceReadiness.messageStaff)}</div>
+      ${raceReadiness.reasonsMissing.length > 0 ? `
+        <div class="missing">
+          <b>Données manquantes:</b> ${raceReadiness.reasonsMissing.join(", ")}
         </div>
-      `;
-      })
-      .join("");
+      ` : ''}
+    </div>
+  `;
 
-    planHtml = `
-      <div class="card">
-        <h3>Macrocycle</h3>
-        <div><b>Objectif:</b> ${htmlEscape(plan.goal || athlete.objectif || "—")}</div>
-        <div><b>Durée:</b> ${htmlEscape(String(plan.totalWeeks || plan.weeks.length))} semaines</div>
-        <div><b>Début:</b> ${htmlEscape(plan.startDate || "—")}</div>
-        <div class="muted">Créé le ${htmlEscape(dtStr(plan.createdAt || createdAt))}</div>
-      </div>
-      ${weeks}
-    `;
-  }
+  // Snapshot history table
+  const snapshotRows = snapshotHistory.length > 0
+    ? snapshotHistory
+        .slice()
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 10) // Limit to 10 most recent
+        .map(s => `
+          <tr>
+            <td>${htmlEscape(dtStr(s.date))}</td>
+            <td>${s.ftp ?? "—"}</td>
+            <td>${s.weight_kg ? fmt(s.weight_kg, 1) : "—"}</td>
+            <td>${s.tss_7d ?? "—"}</td>
+            <td>${s.vo2max ? fmt(s.vo2max, 1) : "—"}</td>
+            <td>${s.vlamax ? fmt(s.vlamax, 2) : "—"}</td>
+            <td class="muted">${htmlEscape(s.source || "")}</td>
+          </tr>
+        `)
+        .join("")
+    : `<tr><td colspan="7" class="muted">Aucun snapshot enregistré</td></tr>`;
 
-  // CSS premium
+  // Tests history table
+  const testsRows = tests.length > 0
+    ? tests
+        .slice()
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 10) // Limit to 10 most recent
+        .map(t => `
+          <tr>
+            <td>${htmlEscape(dtStr(t.date))}</td>
+            <td>${htmlEscape(t.name || "—")}</td>
+            <td>${htmlEscape(t.type || "—")}</td>
+            <td>${t.vlamax ? fmt(t.vlamax, 2) : "—"}</td>
+            <td>${t.reliability ? fmtPct(t.reliability) : "—"}</td>
+            <td class="muted">${htmlEscape(t.note || "")}</td>
+          </tr>
+        `)
+        .join("")
+    : `<tr><td colspan="6" class="muted">Aucun test enregistré</td></tr>`;
+
+  // CSS
   const css = `
     <style>
       :root { --fg:#111; --muted:#555; --border:#ddd; --bg:#fff; --soft:#f7f7f7; }
       body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; color: var(--fg); margin: 24px; }
       h1 { margin: 0; font-size: 28px; letter-spacing: 0.2px; }
-      h2 { margin: 18px 0 10px 0; font-size: 16px; }
+      h2 { margin: 18px 0 10px 0; font-size: 16px; border-bottom: 2px solid var(--border); padding-bottom: 6px; }
       h3 { margin: 0 0 8px 0; font-size: 14px; }
-      .muted { color: var(--muted); }
+      .muted { color: var(--muted); font-size: 12px; }
       .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
       .tag { border:1px solid var(--border); border-radius: 999px; padding: 4px 10px; font-size: 12px; display:inline-block; }
       .card { border:1px solid var(--border); border-radius: 14px; padding: 12px; background: var(--bg); }
@@ -299,14 +376,13 @@ function buildAthleteReportHTML(athlete: Athlete): string {
       ul { margin: 6px 0 0 18px; padding:0; }
       table { width: 100%; border-collapse: collapse; }
       th, td { border-bottom: 1px solid #eee; padding: 6px; font-size: 12px; vertical-align: top; }
-      th { text-align: left; font-weight: 700; }
-      .alert { border:1px solid var(--border); border-radius: 12px; padding: 10px; margin: 8px 0; background: var(--bg); }
-      .alert.warn { border-color:#e0c200; }
-      .alert.info { border-color:#b0c4ff; }
-      .alertTitle { font-weight: 700; margin-bottom: 2px; }
-      .big { display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 6px; }
-      .big b { font-size: 20px; }
-      .footer { margin-top: 14px; font-size: 11px; color: var(--muted); }
+      th { text-align: left; font-weight: 700; background: var(--soft); }
+      .big { margin: 8px 0; }
+      .big b { font-size: 24px; }
+      .locked { color: #2563eb; font-weight: 600; margin-top: 4px; }
+      .staffMessage { background: #f0f9ff; border-color: #2563eb; }
+      .missing { margin-top: 8px; padding: 8px; background: #fef3c7; border-radius: 8px; font-size: 12px; }
+      .footer { margin-top: 20px; font-size: 11px; color: var(--muted); border-top: 1px solid var(--border); padding-top: 10px; }
 
       /* Cover */
       .cover {
@@ -328,7 +404,7 @@ function buildAthleteReportHTML(athlete: Athlete): string {
       .coverTitle { font-size: 34px; margin: 10px 0 6px; font-weight: 700; }
       .coverMeta { display:flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
       .coverBottom { display:grid; grid-template-columns: 1.2fr 0.8fr; gap: 12px; }
-      .kv { display:grid; grid-template-columns: 120px 1fr; gap: 6px 10px; }
+      .kv { display:grid; grid-template-columns: 100px 1fr; gap: 6px 10px; }
       .kv .k { color: var(--muted); }
       .kv .v { font-weight: 600; }
       .watermark {
@@ -378,30 +454,27 @@ function buildAthleteReportHTML(athlete: Athlete): string {
 
           <div class="coverMid">
             <div class="coverTitle">${htmlEscape(brandMain)} — Rapport Athlète</div>
-            <div class="muted">Synthèse physiologique, zones, tests et planification</div>
+            <div class="muted">Synthèse physiologique, indicateurs et zones d'entraînement</div>
 
             <div class="coverMeta">
               <div class="tag">Athlète: <b>${coverAthlete}</b></div>
               <div class="tag">Objectif: <b>${coverObjective}</b></div>
-              <div class="tag">Coach: <b>${htmlEscape(coachName)}</b></div>
+              <div class="tag">Snapshot: <b>${snapshotDate}</b></div>
             </div>
           </div>
 
           <div class="coverBottom">
             <div class="card">
               <h3>Résumé express</h3>
-              ${phys ? `
-                <div class="big">
-                  <div><span class="muted">VLamax</span><br><b>${fmt(phys.vlamaxPonderee, 2)}</b></div>
-                  <div><span class="muted">Confiance</span><br><b>${fmtPct(phys.confiance)}</b></div>
-                  <div><span class="muted">SPM</span><br><b>${safe(phys.spm)}/100</b></div>
-                </div>
-                <div class="mt"><b>Point clé:</b> ${htmlEscape(phys.interpretation.message)}</div>
-              ` : `<div class="muted">Modèle non disponible.</div>`}
+              <div class="grid3">
+                <div><span class="muted">VLamax</span><br><b>${vlamax.value !== null ? fmt(vlamax.value, 2) : "—"}</b></div>
+                <div><span class="muted">TTE</span><br><b>${tte.tte_min} min</b></div>
+                <div><span class="muted">Race Ready</span><br><b>${raceReadiness.score}%</b></div>
+              </div>
             </div>
 
             <div class="card">
-              <h3>Références (zones)</h3>
+              <h3>Références</h3>
               ${coverRefs}
             </div>
           </div>
@@ -423,42 +496,40 @@ function buildAthleteReportHTML(athlete: Athlete): string {
         <!-- RAPPORT -->
         <div class="pagebreak"></div>
 
-        <h2>1. Résumé (modèle)</h2>
-        ${physHtml}
+        <h2>1. Résumé exécutif</h2>
+        ${staffMessageHtml}
 
-        <h2>2. Alertes & recommandations</h2>
-        <div class="card">${alertsHtml}</div>
-        <div class="card mt"><b>Recommandation (bloc 14 jours)</b><div class="mt">${htmlEscape(rec)}</div></div>
+        <h2>2. Indicateurs clés</h2>
+        ${indicateursHtml}
 
         <h2>3. Zones cibles</h2>
         ${zonesSummary}
 
-        <h2>4. Historique tests VLamax</h2>
-        <div class="card">
-          <table>
-            <thead>
-              <tr><th>Date</th><th>Test</th><th>VLamax</th><th>Fiabilité</th><th>Note</th></tr>
-            </thead>
-            <tbody>${vTestsRows}</tbody>
-          </table>
-        </div>
-
-        <h2>5. Historique tests références</h2>
-        <div class="card">
-          <table>
-            <thead>
-              <tr><th>Date</th><th>Test</th><th>Données</th><th>Note</th></tr>
-            </thead>
-            <tbody>${rTestsRows}</tbody>
-          </table>
-        </div>
-
         <div class="pagebreak"></div>
-        <h2>6. Plan d'entraînement</h2>
-        ${planHtml}
+        <h2>4. Historique snapshots</h2>
+        <div class="card">
+          <table>
+            <thead>
+              <tr><th>Date</th><th>FTP</th><th>Poids</th><th>TSS 7d</th><th>VO2max</th><th>VLamax</th><th>Source</th></tr>
+            </thead>
+            <tbody>${snapshotRows}</tbody>
+          </table>
+        </div>
+
+        <h2>5. Historique tests</h2>
+        <div class="card">
+          <table>
+            <thead>
+              <tr><th>Date</th><th>Nom</th><th>Type</th><th>VLamax</th><th>Fiabilité</th><th>Note</th></tr>
+            </thead>
+            <tbody>${testsRows}</tbody>
+          </table>
+        </div>
 
         <div class="footer">
-          Document généré par ${htmlEscape(brandMain)} ${htmlEscape(brandSub)} — estimations terrain avec incertitude (voir indice de confiance VLamax).
+          Document généré par ${htmlEscape(brandMain)} — ${htmlEscape(brandSub)}<br/>
+          Les valeurs présentées sont basées sur les données cloud au ${coverDate}. 
+          VLamax source: ${htmlEscape(vlamax.label)} • TTE source: ${htmlEscape(tte.label)}
         </div>
 
       </body>
@@ -466,55 +537,99 @@ function buildAthleteReportHTML(athlete: Athlete): string {
   `;
 }
 
-export function ExportTools({ athlete }: ExportToolsProps) {
-  const handleExportCSV = () => {
-    const snapshot = getDernierSnapshot(athlete);
-    const vlamax = snapshot 
-      ? calculVLamaxAvecConfiance(snapshot, athlete.objectif).vlamax 
-      : 0;
-    const score = calculerScoreGlobal(athlete);
-    const badges = genererBadges(athlete).filter(b => b.obtenu);
+// =============================================
+// EXPORT CSV
+// =============================================
 
-    let csv = "Champ,Valeur\n";
-    csv += `Nom,${athlete.nom}\n`;
-    csv += `Objectif,${athlete.objectif}\n`;
-    csv += `Score Global,${score}\n`;
-    csv += `VLamax,${vlamax.toFixed(2)}\n`;
-    csv += `Badges,"${badges.map(b => b.nom).join(", ")}"\n`;
-    
-    if (snapshot) {
-      csv += `\nDernier Snapshot\n`;
-      csv += `Date,${snapshot.date}\n`;
-      csv += `Sport,${snapshot.sport}\n`;
-      csv += `Poids,${snapshot.poids}\n`;
-      if (snapshot.ftp) csv += `FTP,${snapshot.ftp}\n`;
-      if (snapshot.vma) csv += `VMA,${snapshot.vma}\n`;
-      if (snapshot.vo2max) csv += `VO2max,${snapshot.vo2max}\n`;
-    }
+function buildCSV(payload: ExportPayload): string {
+  const { athlete, effectiveSnapshot, effectiveRefs, vlamax, tte, raceReadiness, snapshotHistory } = payload;
+  
+  const ftpKg = effectiveRefs.ftp && effectiveRefs.weightKg && effectiveRefs.weightKg > 0 
+    ? effectiveRefs.ftp / effectiveRefs.weightKg 
+    : null;
+  
+  let csv = "Champ,Valeur\n";
+  csv += `Nom,${athlete.name}\n`;
+  csv += `Objectif,${athlete.goal || "—"}\n`;
+  csv += `Date export,${new Date().toLocaleDateString("fr-FR")}\n`;
+  csv += `\n`;
+  csv += `=== INDICATEURS EFFECTIFS ===\n`;
+  csv += `VLamax,${vlamax.value !== null ? vlamax.value.toFixed(2) : "—"}\n`;
+  csv += `VLamax source,${vlamax.label}\n`;
+  csv += `VLamax confiance,${(vlamax.confidence * 100).toFixed(0)}%\n`;
+  csv += `TTE (min),${tte.tte_min}\n`;
+  csv += `TTE source,${tte.label}\n`;
+  csv += `TTE confiance,${(tte.confidence * 100).toFixed(0)}%\n`;
+  csv += `Race Readiness,${raceReadiness.score}/100\n`;
+  csv += `Race Readiness label,${raceReadiness.label}\n`;
+  csv += `\n`;
+  csv += `=== RÉFÉRENCES EFFECTIVES ===\n`;
+  csv += `FCmax,${effectiveRefs.fcMax ?? "—"}\n`;
+  csv += `VMA,${effectiveRefs.vma ?? "—"}\n`;
+  csv += `FTP,${effectiveRefs.ftp ?? "—"}\n`;
+  csv += `Poids,${effectiveRefs.weightKg ? effectiveRefs.weightKg.toFixed(1) : "—"}\n`;
+  csv += `FTP/kg,${ftpKg ? ftpKg.toFixed(2) : "—"}\n`;
+  csv += `VO2max,${effectiveRefs.vo2max ? effectiveRefs.vo2max.toFixed(1) : "—"}\n`;
+  
+  if (effectiveSnapshot) {
+    csv += `\n`;
+    csv += `=== SNAPSHOT EFFECTIF ===\n`;
+    csv += `Date,${effectiveSnapshot.date}\n`;
+    csv += `Source,${effectiveSnapshot.source || "manual"}\n`;
+    csv += `TSS 7d,${effectiveSnapshot.tss_7d ?? "—"}\n`;
+  }
 
-    if (athlete.historique.length > 0) {
-      csv += `\nHistorique Snapshots\n`;
-      csv += `Date,Sport,Poids,FTP,VMA,VO2max\n`;
-      athlete.historique.forEach(snap => {
-        csv += `${snap.date},${snap.sport},${snap.poids},${snap.ftp || ""},${snap.vma || ""},${snap.vo2max || ""}\n`;
+  if (snapshotHistory.length > 0) {
+    csv += `\n`;
+    csv += `=== HISTORIQUE SNAPSHOTS ===\n`;
+    csv += `Date,FTP,Poids,TSS_7d,VO2max,VLamax,Source\n`;
+    snapshotHistory
+      .slice()
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .forEach(snap => {
+        csv += `${snap.date},${snap.ftp ?? ""},${snap.weight_kg ?? ""},${snap.tss_7d ?? ""},${snap.vo2max ?? ""},${snap.vlamax ?? ""},${snap.source || ""}\n`;
       });
-    }
+  }
 
+  return csv;
+}
+
+// =============================================
+// COMPONENT
+// =============================================
+
+export function ExportTools({ athlete, snapshots, tests, staffMode = false }: ExportToolsProps) {
+  // Build payload once
+  const payload = buildExportPayload(athlete, snapshots, tests);
+  const exportCheck = canExport(payload);
+
+  const handleExportCSV = () => {
+    if (!exportCheck.ok) {
+      toast.error("Export impossible", { description: exportCheck.reason });
+      return;
+    }
+    
+    const csv = buildCSV(payload);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${athlete.nom.replace(/\s+/g, "_")}_VLamax.csv`;
+    link.download = `${athlete.name.replace(/\s+/g, "_")}_24CLab.csv`;
     link.click();
     URL.revokeObjectURL(url);
     
     toast.success("Export CSV terminé", {
-      description: `Fichier ${athlete.nom}_VLamax.csv téléchargé`
+      description: `Fichier ${athlete.name}_24CLab.csv téléchargé`
     });
   };
 
   const handleExportPDF = () => {
-    const html = buildAthleteReportHTML(athlete);
+    if (!exportCheck.ok) {
+      toast.error("Export impossible", { description: exportCheck.reason });
+      return;
+    }
+    
+    const html = buildAthleteReportHTML(payload);
     const w = window.open("", "_blank");
     if (!w) {
       toast.error("Popup bloquée", {
@@ -533,6 +648,16 @@ export function ExportTools({ athlete }: ExportToolsProps) {
       description: "Fenêtre ouverte — cliquer sur Imprimer pour enregistrer en PDF."
     });
   };
+
+  // Show warning if export not possible
+  if (!exportCheck.ok) {
+    return (
+      <div className="flex items-center gap-2 text-muted-foreground text-sm">
+        <AlertCircle className="h-4 w-4" />
+        <span>{exportCheck.reason}</span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex gap-2">

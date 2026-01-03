@@ -660,7 +660,14 @@ const Index = () => {
                 <ClipboardCheck className="h-4 w-4" />✅ Check-ins
               </Button>
 
-              <ExportTools athlete={legacyAthlete} />
+              {currentAthlete && (
+                <ExportTools 
+                  athlete={currentAthlete}
+                  snapshots={snapshots}
+                  tests={tests}
+                  staffMode={staffMode}
+                />
+              )}
             </div>
 
             {/* Contenu conditionnel */}
