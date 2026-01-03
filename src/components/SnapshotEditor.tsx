@@ -17,6 +17,7 @@ import { useCloudData, DbSnapshot } from "@/hooks/useCloudData";
 interface SnapshotEditorProps {
   snapshot: DbSnapshot;
   trigger?: React.ReactNode;
+  staffMode?: boolean; // ✅ Mode Staff pour VLamax mesurée
 }
 
 const numOrNull = (v: string): number | null => {
@@ -25,7 +26,7 @@ const numOrNull = (v: string): number | null => {
   return Number.isFinite(n) ? n : null;
 };
 
-export function SnapshotEditor({ snapshot, trigger }: SnapshotEditorProps) {
+export function SnapshotEditor({ snapshot, trigger, staffMode = false }: SnapshotEditorProps) {
   const { updateSnapshot } = useCloudData();
   const [open, setOpen] = useState(false);
 
@@ -48,7 +49,8 @@ export function SnapshotEditor({ snapshot, trigger }: SnapshotEditorProps) {
       pmax_5s: numOrNull(pmax5s) != null ? Math.round(numOrNull(pmax5s)!) : null,
       weight_kg: numOrNull(weight),
       vo2max: numOrNull(vo2),
-      vlamax: numOrNull(vlamax),
+      // ✅ VLamax uniquement sauvegardée en mode Staff
+      vlamax: staffMode ? numOrNull(vlamax) : snapshot.vlamax,
       vma: numOrNull(vma),
       fc_max: numOrNull(fcmax) != null ? Math.round(numOrNull(fcmax)!) : null,
       css: numOrNull(css),
@@ -123,10 +125,20 @@ export function SnapshotEditor({ snapshot, trigger }: SnapshotEditorProps) {
             <Input className="col-span-3" type="number" value={vo2} onChange={(e) => setVo2(e.target.value)} />
           </div>
 
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">VLamax</Label>
-            <Input className="col-span-3" type="number" step="0.01" value={vlamax} onChange={(e) => setVlamax(e.target.value)} />
-          </div>
+          {/* ✅ VLamax - Uniquement visible en mode Staff */}
+          {staffMode ? (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">VLamax (mesurée)</Label>
+              <Input className="col-span-3 border-primary/50" type="number" step="0.01" placeholder="0.40 (lactate)" value={vlamax} onChange={(e) => setVlamax(e.target.value)} />
+            </div>
+          ) : (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right text-muted-foreground">VLamax</Label>
+              <div className="col-span-3 h-10 px-3 py-2 rounded-md border border-border bg-muted/50 text-sm text-muted-foreground flex items-center">
+                Calculée automatiquement
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right">VMA (km/h)</Label>

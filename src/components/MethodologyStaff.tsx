@@ -222,12 +222,58 @@ export function MethodologyStaff({ onGoToTab }: MethodologyStaffProps) {
             </div>
           </div>
 
-          <div className="p-4 rounded-lg bg-secondary border border-border">
-            <h4 className="font-semibold text-foreground mb-2">💡 VLamax Effectif</h4>
+          {/* ✅ NOUVELLE SECTION : Architecture VLamax */}
+          <div className="p-4 rounded-lg bg-secondary border border-border space-y-4">
+            <h4 className="font-semibold text-foreground mb-2">💡 Pourquoi la VLamax n'est pas saisissable directement ?</h4>
             <p className="text-sm text-muted-foreground">
-              Vince's Lab calcule une <strong className="text-foreground">VLamax Effectif</strong> qui priorise les tests terrain (fiabilité haute) 
-              puis les snapshots si aucun test n'est disponible. L'indice de confiance reflète la qualité de la source.
+              La VLamax est une donnée physiologique complexe qui doit soit être <strong className="text-foreground">mesurée en laboratoire</strong>, 
+              soit <strong className="text-foreground">estimée à partir de tests de terrain</strong>.
             </p>
+            <p className="text-sm text-muted-foreground">
+              Pour garantir la <strong className="text-foreground">cohérence et la fiabilité</strong> des analyses, 
+              Two For Coaching Lab calcule automatiquement la VLamax à partir des données du snapshot (FTP, Pmax 5s, poids).
+            </p>
+            <p className="text-sm text-muted-foreground">
+              En <strong className="text-foreground">mode Staff</strong>, il est possible de renseigner une VLamax mesurée (lactate) qui devient alors la référence principale.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+            <h4 className="font-semibold text-foreground mb-3">🔒 Hiérarchie des sources VLamax</h4>
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 shrink-0">
+                  #1
+                </Badge>
+                <p className="text-sm text-muted-foreground">
+                  <strong className="text-foreground">VLamax mesurée (lactate)</strong> — Confiance ~95% • Mode Staff uniquement
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 shrink-0">
+                  #2
+                </Badge>
+                <p className="text-sm text-muted-foreground">
+                  <strong className="text-foreground">Test terrain structuré</strong> — Confiance ~75% • Sprint 15s, all-out, ramp test
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 shrink-0">
+                  #3
+                </Badge>
+                <p className="text-sm text-muted-foreground">
+                  <strong className="text-foreground">Estimation via snapshot</strong> — Confiance ~55% • Basée sur FTP/kg et Pmax
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" className="bg-muted text-muted-foreground shrink-0">
+                  #4
+                </Badge>
+                <p className="text-sm text-muted-foreground">
+                  <strong className="text-foreground">Valeur par défaut</strong> — Confiance faible • Avertissement affiché
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className="p-4 rounded-lg bg-warning/5 border border-warning/20">
