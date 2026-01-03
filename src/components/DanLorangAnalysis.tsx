@@ -74,18 +74,18 @@ export function DanLorangAnalysis({
   
   const vlamax = vlamaxEffectif.value ?? 0.45;
 
-  // ✅ TTE EFFECTIF - Utilise la prop si fournie, sinon 0 = pas de données
+  // ✅ TTE EFFECTIF - Utilise la prop si fournie
   const tteEffectif = tteEffectifProp ?? {
-    tte_min: 0, // 0 = pas de données
+    tte_min: 45,
     source: "unknown" as const,
-    confidence: 0,
-    label: "— (données manquantes)",
+    confidence: 0.3,
+    label: "TTE (fallback)",
     target: 45,
     status: "warning" as const,
     status_message: "Données manquantes"
   };
   
-  const tte = tteEffectif.tte_min > 0 ? tteEffectif.tte_min : 0;
+  const tte = tteEffectif.tte_min ?? 45;
 
   // ✅ FTP/kg
   const ftp_kg = useMemo(() => {

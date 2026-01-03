@@ -188,19 +188,9 @@ const Index = () => {
           css: effective.css ?? undefined,
           source: (effective.source as any) ?? "manual",
 
-          // ✅ PRO TTE: mapping complet
+          // (optionnel) on passe aussi les champs PRO si tu veux les exploiter plus tard
           tte_mode: effective.tte_mode ?? undefined,
           tte_observed_min: effective.tte_observed_min ?? undefined,
-          
-          // ✅ PRO VLamax: si référence, on override
-          vlamax_override: effective.vlamax_is_reference && effective.vlamax 
-            ? effective.vlamax 
-            : null,
-            
-          // ✅ PRO: Nouveaux champs staff-grade
-          fatigue_state: effective.fatigue_state ?? undefined,
-          carb_tolerance_band: effective.carb_tolerance_band ?? undefined,
-          gi_issues_flag: effective.gi_issues_flag ?? false,
         } as any)
       : null;
 
@@ -264,9 +254,6 @@ const Index = () => {
         ftp: s.ftp,
         pmax_5s: s.pmax_5s,
         weight_kg: s.weight_kg,
-        // ✅ PRO: nouveaux champs pour le calcul VLamax
-        vlamax_is_reference: s.vlamax_is_reference,
-        vlamax_source: s.vlamax_source,
       })),
     });
   }, [currentAthlete, tests, snapshots]);
@@ -287,10 +274,10 @@ const Index = () => {
   const tteEffectif = useMemo<TTEEffectif>(() => {
     if (!effectiveCloudSnapshot || !currentAthlete) {
       return {
-        tte_min: 0, // 0 = pas de données (affiché comme "—")
+        tte_min: 45,
         source: "unknown",
         confidence: 0,
-        label: "— (données manquantes)",
+        label: "TTE (non disponible)",
         target: 45,
         status: "warning",
         status_message: "Aucune donnée"
@@ -305,7 +292,7 @@ const Index = () => {
     });
   }, [effectiveCloudSnapshot, currentAthlete]);
 
-  // ✅ Valeur TTE affichée partout (Index) - 0 signifie pas de données
+  // ✅ Valeur TTE affichée partout (Index) - fallback 0 pour compatibilité
   const tte = useMemo(() => {
     return tteEffectif?.tte_min ?? 0;
   }, [tteEffectif]);
@@ -763,8 +750,8 @@ const Index = () => {
 
               <MetricCard
                 title="TTE Effectif"
-                value={tteEffectif.tte_min > 0 ? tteEffectif.tte_min.toString() : "—"}
-                unit={tteEffectif.tte_min > 0 ? "min" : ""}
+                value={tteEffectif.tte_min !== null ? tteEffectif.tte_min.toString() : "—"}
+                unit="min"
                 icon={Activity}
                 trend="neutral"
                 trendValue={
@@ -772,7 +759,7 @@ const Index = () => {
                     ? (tteEffectif.source !== "unknown" 
                         ? `${getSourceLabel(tteEffectif.source)} • conf ${Math.round(tteEffectif.confidence * 100)}%`
                         : "Ajouter TSS_7d ou TTE mesuré")
-                    : (tteEffectif.tte_min > 0 ? "Endurance au seuil" : "Données insuffisantes")
+                    : (tteEffectif.tte_min !== null ? "Endurance au seuil" : "—")
                 }
                 accentColor={tteEffectif.source === "unknown" ? "warning" : "success"}
                 onWhyClick={() => setActiveTab("methodology")}
@@ -780,8 +767,8 @@ const Index = () => {
 
               <MetricCard
                 title="Race Readiness"
-                value={raceReadinessEffectif.reasonsMissing.length >= 3 ? "—" : raceReadinessEffectif.score.toString()}
-                unit={raceReadinessEffectif.reasonsMissing.length >= 3 ? "" : "%"}
+                value={raceReadinessEffectif.score.toString()}
+                unit="%"
                 icon={Target}
                 trend="neutral"
                 trendValue={
@@ -789,7 +776,7 @@ const Index = () => {
                     ? (raceReadinessEffectif.reasonsMissing.length > 0
                         ? `${raceReadinessEffectif.label} • ${raceReadinessEffectif.reasonsMissing[0]}`
                         : `${raceReadinessEffectif.label} • conf ${Math.round(raceReadinessEffectif.confidence * 100)}%`)
-                    : (raceReadinessEffectif.reasonsMissing.length >= 3 ? "Données insuffisantes" : raceReadinessEffectif.label)
+                    : raceReadinessEffectif.label
                 }
                 accentColor={raceReadinessEffectif.color === "success" ? "success" : "warning"}
                 onWhyClick={() => setActiveTab("methodology")}

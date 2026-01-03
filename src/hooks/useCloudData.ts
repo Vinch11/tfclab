@@ -60,19 +60,6 @@ export interface DbSnapshot {
   run_hr_drift_pct?: number | null;
   run_economy_score?: number | null;
   run_economy_label?: string | null;
-  // Snapshot PRO fields (staff-grade)
-  sport_main?: string | null;
-  objectif?: string | null;
-  pace_threshold_sec_per_km?: number | null;
-  vlamax_source?: string | null;
-  vlamax_protocol?: string | null;
-  vlamax_is_reference?: boolean | null;
-  fatigue_state?: string | null;
-  bike_cadence_rpm?: number | null;
-  bike_hr_drift_flag?: boolean | null;
-  carb_tolerance_band?: string | null;
-  gi_issues_flag?: boolean | null;
-  run_hr_drift_flag?: boolean | null;
   created_at?: string;
   updated_at?: string;
 }

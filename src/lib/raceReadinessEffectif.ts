@@ -477,9 +477,8 @@ export function getRaceWeights(objectif: string): RaceWeights {
 /**
  * Score VLamax: dans la plage cible = 100%, sinon pénalité linéaire
  */
-function scoreVLamax(vlamax: number | null, targets: RaceTargets, source?: string): number {
-  // Si VLamax manquant ou source "unknown", score bas
-  if (vlamax === null || source === "unknown") return 0;
+function scoreVLamax(vlamax: number | null, targets: RaceTargets): number {
+  if (vlamax === null) return 40; // score neutre si manquant
   
   // Dans la plage cible
   if (vlamax >= targets.vlamaxMin && vlamax <= targets.vlamaxMax) {
@@ -507,9 +506,8 @@ function scoreVLamax(vlamax: number | null, targets: RaceTargets, source?: strin
 /**
  * Score TTE: >= target = 100%, sinon ratio proportionnel
  */
-function scoreTTE(tte: number | null, targets: RaceTargets, source?: string): number {
-  // Si TTE manquant ou source "unknown", score très bas pour forcer "données insuffisantes"
-  if (tte === null || tte === 0 || source === "unknown") return 0;
+function scoreTTE(tte: number | null, targets: RaceTargets): number {
+  if (tte === null) return 30; // score faible si manquant
   
   if (tte >= targets.tteTarget) {
     return 100;
@@ -754,14 +752,11 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
   const tte = tteEffectif.tte_min;
   const ftpKg = ftp && poids && poids > 0 ? ftp / poids : null;
   
-  // Track missing data - Version stricte
-  const isTTEMissing = tte === null || tte === 0 || tteEffectif.source === "unknown";
-  const isVLamaxMissing = vlamax === null || vlamaxEffectif.source === "unknown";
-  
-  if (isVLamaxMissing) {
+  // Track missing data
+  if (vlamax === null) {
     reasonsMissing.push("VLamax manquant");
   }
-  if (isTTEMissing) {
+  if (tte === null || tteEffectif.source === "unknown") {
     reasonsMissing.push("TTE indisponible (ajouter TSS_7d ou TTE mesuré)");
   }
   if (!ftp) {
@@ -770,16 +765,12 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
   if (!poids) {
     reasonsMissing.push("Poids manquant");
   }
-  
-  // Si données critiques manquent, retourner un état "insuffisant" clair
-  const hasCriticalData = !isTTEMissing || !isVLamaxMissing || (ftp && poids);
-  const tooMuchMissing = reasonsMissing.length >= 3;
 
   // =====================
-  // SCORING (0-100 each) - Passe la source pour détecter les données manquantes
+  // SCORING (0-100 each)
   // =====================
-  const vlamaxScore = scoreVLamax(vlamax, targets, vlamaxEffectif.source);
-  const tteScore = scoreTTE(tte, targets, tteEffectif.source);
+  const vlamaxScore = scoreVLamax(vlamax, targets);
+  const tteScore = scoreTTE(tte, targets);
   const ftpKgScore = scoreFtpKg(ftpKg, targets);
   
   const avgConfidence = overrideConfidence ?? (vlamaxEffectif.confidence + tteEffectif.confidence) / 2;
@@ -887,16 +878,10 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
     };
   }
 
-  // Override si trop de données manquantes (2+ = insuffisant)
-  if (tooMuchMissing || !hasCriticalData) {
+  // Override si trop de données manquantes
+  if (reasonsMissing.length >= 3) {
     label = "Données insuffisantes";
-    color = "destructive";
-    // Forcer confidence interprétation basse
-    confidenceInterpretation = {
-      level: "indicative",
-      label: "Non exploitable",
-      message: "Données critiques manquantes. Ajoutez FTP, poids et TSS_7d (ou TTE mesuré) pour obtenir une analyse fiable."
-    };
+    color = "warning";
   }
   
   // Override label si plafonné

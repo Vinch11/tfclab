@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Calendar, Pin, HelpCircle, Sparkles } from "lucide-react";
+import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Calendar, Pin, HelpCircle } from "lucide-react";
 import { DbSnapshot, useCloudData } from "@/hooks/useCloudData";
 import { deriveMetabolicProfile, generateLorangInsights, calculateDelta, formatValue } from "@/types/snapshot";
 import { computeTTEEffectif, getSourceLabel, formatTTEDisplay } from "@/lib/tteEffectif";
@@ -26,8 +26,6 @@ import {
   getEconomyLabelStyle,
   getEconomyRaceReadinessBonus
 } from "@/lib/runningEconomySnapshot";
-import { SnapshotProForm, SnapshotProFormData } from "@/components/SnapshotProForm";
-import { toast } from "sonner";
 
 // CAP objectives where running economy is critical
 const CAP_OBJECTIVES = [
@@ -54,8 +52,6 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isCompareOpen, setIsCompareOpen] = useState(false);
-  const [isProFormOpen, setIsProFormOpen] = useState(false);
-  const [isProLoading, setIsProLoading] = useState(false);
 
   const [editingSnapshot, setEditingSnapshot] = useState<DbSnapshot | null>(null);
   const [compareA, setCompareA] = useState<string>("");
@@ -284,102 +280,6 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     setEditingSnapshot(s);
     loadSnapshotToForm(s);
     setIsEditOpen(true);
-  };
-
-  // =============================================
-  // ✅ SNAPSHOT PRO - Handler
-  // =============================================
-  const handleProSubmit = async (data: SnapshotProFormData) => {
-    setIsProLoading(true);
-    try {
-      const { profile, score } = deriveMetabolicProfile(data.vlamax, null);
-      
-      // Calculer l'économie CAP si données disponibles
-      const runEconomyResult = data.run_pace_ref_sec_per_km 
-        ? computeRunEconomyScore({
-            paceSec: data.run_pace_ref_sec_per_km,
-            hr: null,
-            durationMin: null,
-            driftPct: data.run_hr_drift_flag ? 5 : null, // estimation si flag
-            fcMax: data.fc_max,
-          })
-        : { score: null, label: "unknown" };
-
-      const newSnapshot = await addSnapshot({
-        athlete_id: athleteId,
-        coach_id: "", // replaced in hook
-        date: data.date,
-        source: data.vlamax_is_reference ? "staff" : "pro",
-        
-        // Général
-        sport_main: data.sport_main,
-        objectif: data.objectif,
-        
-        // Références
-        weight_kg: data.weight_kg,
-        ftp: data.ftp,
-        fc_max: data.fc_max,
-        vma: data.vma,
-        css: data.css,
-        pace_threshold_sec_per_km: data.pace_threshold_sec_per_km,
-        
-        // VLamax PRO
-        vlamax: data.vlamax,
-        vlamax_source: data.vlamax_source,
-        vlamax_protocol: data.vlamax_protocol || null,
-        vlamax_is_reference: data.vlamax_is_reference,
-        
-        // TTE PRO
-        tte_mode: data.tte_mode,
-        tte_observed_min: data.tte_observed_min,
-        tss_7d: data.tss_7d,
-        
-        // Fatigue
-        fatigue_state: data.fatigue_state,
-        
-        // Économie
-        bike_cadence_rpm: data.bike_cadence_rpm,
-        bike_hr_drift_flag: data.bike_hr_drift_flag,
-        run_pace_ref_sec_per_km: data.run_pace_ref_sec_per_km,
-        run_hr_drift_flag: data.run_hr_drift_flag,
-        run_economy_score: runEconomyResult.score,
-        run_economy_label: runEconomyResult.label,
-        
-        // Nutrition
-        carb_tolerance_band: data.carb_tolerance_band,
-        gi_issues_flag: data.gi_issues_flag,
-        
-        // Profil calculé
-        metabolic_profile: profile,
-        metabolic_score: score,
-        coach_notes: data.coach_notes || null,
-        
-        // Confiance estimée
-        confidence: calculateProConfidence(data),
-      });
-
-      if (newSnapshot) {
-        // Set as active snapshot
-        await setActiveSnapshot(athleteId, newSnapshot.id);
-        toast.success("Snapshot PRO créé et défini comme actif !");
-      }
-
-      setIsProFormOpen(false);
-    } catch (error) {
-      toast.error("Erreur lors de la création du Snapshot PRO");
-    } finally {
-      setIsProLoading(false);
-    }
-  };
-
-  // Helper: calcule la confiance estimée du snapshot PRO
-  const calculateProConfidence = (data: SnapshotProFormData): number => {
-    let conf = 0.3; // Base
-    if (data.weight_kg && data.ftp) conf += 0.15;
-    if (data.tss_7d) conf += 0.1;
-    if (data.vlamax_is_reference && data.vlamax) conf += 0.25;
-    if (data.tte_mode === "OBSERVED" && data.tte_observed_min) conf += 0.2;
-    return Math.min(1, conf);
   };
 
   const renderForm = () => (
@@ -1190,35 +1090,11 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
               </Dialog>
             )}
 
-            {/* ✅ SNAPSHOT PRO BUTTON */}
-            <Dialog open={isProFormOpen} onOpenChange={setIsProFormOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" variant="default" className="bg-gradient-to-r from-primary to-primary/80">
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  + Snapshot PRO
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5" />
-                    Snapshot PRO (Staff-Grade)
-                  </DialogTitle>
-                </DialogHeader>
-                <SnapshotProForm
-                  athleteName={athleteName}
-                  onSubmit={handleProSubmit}
-                  onCancel={() => setIsProFormOpen(false)}
-                  isLoading={isProLoading}
-                />
-              </DialogContent>
-            </Dialog>
-
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" variant="outline" onClick={resetForm}>
+                <Button size="sm" onClick={resetForm}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Snapshot rapide
+                  Nouveau snapshot
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-lg">
