@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Navigation } from "@/components/Navigation";
+import ComprendreScoresPage from "@/pages/ComprendreScoresPage";
 import { MetricCard } from "@/components/MetricCard";
 import { VLamaxCalculator } from "@/components/VLamaxCalculator";
 import { TrainingZones } from "@/components/TrainingZones";
@@ -1059,6 +1060,9 @@ const Index = () => {
             )}
           </div>
         );
+
+      case "comprendre":
+        return <ComprendreScoresPage />;
 
       case "methodology":
         return (
