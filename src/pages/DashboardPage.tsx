@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAthletes } from "@/contexts/AthleteContext";
+import { useCloudData, DbAthlete, DbSnapshot, DbTest } from "@/hooks/useCloudData";
 import { getDernierSnapshot } from "@/types/athlete";
 import { estimerTTESport, calculerAgeSnapshot, calculerPrecision, SportType } from "@/types/snapshotNolio";
 import { calculVLamaxAvecConfiance } from "@/lib/athleteStore";
@@ -71,6 +72,7 @@ interface SportDashboardData {
 export default function DashboardPage() {
   const navigate = useNavigate();
   const { currentAthlete, athletes } = useAthletes();
+  const { snapshots, tests } = useCloudData();
   const [activeSport, setActiveSport] = useState<SportType>("vélo");
   const [showComparison, setShowComparison] = useState(false);
   const [showIndexSeances, setShowIndexSeances] = useState(false);
@@ -373,7 +375,22 @@ export default function DashboardPage() {
       <div className="space-y-4 animate-fade-in">
         {/* Header avec Export et Comparaison */}
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          <ExportTools athlete={currentAthlete} />
+          {currentAthlete && (
+            <ExportTools 
+              athlete={{
+                id: currentAthlete.id,
+                coach_id: "", // Not needed for export
+                name: currentAthlete.nom,
+                goal: currentAthlete.objectif,
+                refs: currentAthlete.refs,
+                vo2max: currentAthlete.vo2max,
+                active_snapshot_id: currentAthlete.active_snapshot_id,
+                created_at: ""
+              } as DbAthlete}
+              snapshots={snapshots}
+              tests={tests}
+            />
+          )}
           <Button
             variant={showComparison ? "default" : "outline"}
             size="sm"
