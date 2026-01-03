@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Target, TrendingUp, Zap, Heart, Activity, ChevronRight, HelpCircle, Footprints, AlertTriangle, Battery, BatteryLow, TrendingDown, Shield, Info, ChevronDown, ChevronUp, Bike, PersonStanding } from "lucide-react";
+import { ProfileRadarChart } from "@/components/ProfileRadarChart";
 import { cn } from "@/lib/utils";
 import { useCloudData } from "@/hooks/useCloudData";
 import type { DbSnapshot } from "@/hooks/useCloudData";
@@ -434,6 +435,22 @@ export function RaceReadinessCard({
             </div>)}
         </div>
       </div>
+
+      {/* 📊 GRAPHIQUE RADAR : Profil actuel vs Cible idéale */}
+      {readiness.targets && vlamaxEffectif.value !== null && (
+        <div className="mt-6">
+          <ProfileRadarChart
+            currentVlamax={readiness.details.vlamax * 4} // 0-25 → 0-100
+            currentTTE={readiness.details.endurance * 4}
+            currentFtpKg={readiness.details.puissance * 4}
+            targetVlamax={100} // Cible = 100% de cohérence
+            targetTTE={100}
+            targetFtpKg={100}
+            objectif={athlete.objectif || athlete.goal || "IM"}
+            sport={readiness.sport}
+          />
+        </div>
+      )}
 
       <div className="mt-6 p-4 rounded-xl bg-primary/5 border border-primary/20">
         <h3 className="font-medium text-foreground mb-3 flex items-center gap-2">
