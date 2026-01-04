@@ -14,7 +14,7 @@ import {
   testSchema,
   validateOrNull 
 } from "@/lib/validationSchemas";
-// Types DB from generated types (extended with active_snapshot_id)
+// Types DB from generated types (extended with active_snapshot_id and birth_date)
 export interface DbAthlete {
   id: string;
   coach_id: string;
@@ -23,6 +23,7 @@ export interface DbAthlete {
   refs: Json | null;
   vo2max: number | null;
   active_snapshot_id: string | null;
+  birth_date: string | null; // Date de naissance pour calcul AAI
   created_at: string;
 }
 export type DbTest = Tables<"tests">;

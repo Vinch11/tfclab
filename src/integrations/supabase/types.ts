@@ -17,6 +17,7 @@ export type Database = {
       athletes: {
         Row: {
           active_snapshot_id: string | null
+          birth_date: string | null
           coach_id: string
           created_at: string
           goal: string | null
@@ -27,6 +28,7 @@ export type Database = {
         }
         Insert: {
           active_snapshot_id?: string | null
+          birth_date?: string | null
           coach_id: string
           created_at?: string
           goal?: string | null
@@ -37,6 +39,7 @@ export type Database = {
         }
         Update: {
           active_snapshot_id?: string | null
+          birth_date?: string | null
           coach_id?: string
           created_at?: string
           goal?: string | null

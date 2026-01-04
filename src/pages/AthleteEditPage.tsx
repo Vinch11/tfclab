@@ -5,15 +5,18 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Save, ArrowRight, User } from "lucide-react";
+import { Save, ArrowRight, User, Calendar, Info } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { Athlete, ObjectifType, SexeType } from "@/types/athlete";
 import { toast } from "sonner";
+import { calculateAge, computeAgeAdjustmentIndex, AGE_METHODOLOGY } from "@/lib/ageAdjustment";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 
 export default function AthleteEditPage() {
   const navigate = useNavigate();
@@ -26,9 +29,14 @@ export default function AthleteEditPage() {
   const [nom, setNom] = useState(editingAthlete?.nom || "");
   const [sexe, setSexe] = useState<SexeType>(editingAthlete?.sexe || "M");
   const [objectif, setObjectif] = useState<ObjectifType>(editingAthlete?.objectif || "IM");
+  const [dateNaissance, setDateNaissance] = useState(editingAthlete?.dateNaissance || "");
   const [masseGrasse, setMasseGrasse] = useState(
     editingAthlete?.masse_grasse == null ? "" : String(editingAthlete.masse_grasse),
   );
+  
+  // Calcul de l'âge et de l'AAI pour affichage informatif
+  const age = calculateAge(dateNaissance);
+  const ageIndex = computeAgeAdjustmentIndex(age);
 
   const handleSave = () => {
     if (!nom.trim()) {
@@ -42,6 +50,7 @@ export default function AthleteEditPage() {
       sexe,
       objectif,
       masse_grasse: masseGrasse.trim() === "" ? null : Number(masseGrasse),
+      dateNaissance: dateNaissance || undefined,
       refs: {
         ...(editingAthlete?.refs || {}),
         sexe,
@@ -113,6 +122,45 @@ export default function AthleteEditPage() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            {/* Date de naissance avec indicateur d'âge */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="dateNaissance" className="flex items-center gap-1">
+                  <Calendar className="h-4 w-4" />
+                  Date de naissance
+                </Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="p-1 rounded-full hover:bg-muted transition-colors">
+                      <Info className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80" align="start">
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm">{AGE_METHODOLOGY.title}</h4>
+                      <p className="text-xs text-muted-foreground">{AGE_METHODOLOGY.mainText}</p>
+                      <p className="text-xs text-muted-foreground italic">{AGE_METHODOLOGY.staffNote}</p>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <Input
+                id="dateNaissance"
+                type="date"
+                value={dateNaissance}
+                onChange={(e) => setDateNaissance(e.target.value)}
+                max={new Date().toISOString().split("T")[0]}
+              />
+              {age !== null && (
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">{age} ans</span>
+                  <Badge variant={ageIndex.category === "young" ? "default" : ageIndex.category === "prime" ? "secondary" : "outline"}>
+                    {ageIndex.label}
+                  </Badge>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">

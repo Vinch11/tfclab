@@ -12,6 +12,12 @@ import { NutritionPredictive } from "@/components/NutritionPredictive";
 import { NutritionTimingCard } from "@/components/NutritionTimingCard";
 import { RunningEconomyModule } from "@/components/RunningEconomyModule";
 import { generateAthleteReadiness } from "@/lib/athleteReadiness";
+import { 
+  AgeAdjustmentInfo, 
+  AgeRiskAlert, 
+  VLamaxAgeInterpretation, 
+  TTEAgeTarget 
+} from "@/components/AgeAdjustmentInfo";
 
 import type { VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import type { TTEEffectif } from "@/lib/tteEffectif";
@@ -24,6 +30,7 @@ interface RaceReadinessPageProps {
   athleteName: string;
   objectif: string;
   snapshotDate: string | null;
+  birthDate?: string | null;
   legacyAthlete: any;
   vlamaxEffectif: VLamaxEffectif;
   tteEffectif: TTEEffectif;
@@ -42,6 +49,7 @@ export function RaceReadinessPage({
   athleteName,
   objectif,
   snapshotDate,
+  birthDate,
   legacyAthlete,
   vlamaxEffectif,
   tteEffectif,
@@ -68,7 +76,10 @@ export function RaceReadinessPage({
                 <Trophy className="w-6 h-6 text-primary-foreground" />
               </div>
               <div>
-                <CardTitle className="text-xl">Race Readiness</CardTitle>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  Race Readiness
+                  <AgeAdjustmentInfo birthDate={birthDate} variant="badge" />
+                </CardTitle>
                 <p className="text-sm text-muted-foreground">
                   {athleteName} — {objectif}
                 </p>
@@ -108,6 +119,9 @@ export function RaceReadinessPage({
       {/* Contenu selon le mode */}
       {isCoachMode ? (
         <>
+          {/* Alerte âge si pertinent */}
+          <AgeRiskAlert birthDate={birthDate} raceReadinessScore={readiness.score} />
+
           {/* Vue Coach - Complète */}
           <RaceReadinessCard
             athlete={legacyAthlete}
@@ -118,6 +132,14 @@ export function RaceReadinessPage({
             onGoToSnapshots={onGoToSnapshots}
             onGoToMethodology={onGoToMethodology}
           />
+
+          {/* Interprétations ajustées par âge */}
+          {birthDate && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <VLamaxAgeInterpretation birthDate={birthDate} vlamax={vlamaxEffectif.value} />
+              <TTEAgeTarget birthDate={birthDate} objectif={objectif} currentTTE={tteEffectif.tte_min} />
+            </div>
+          )}
 
           {/* Nutrition Timing */}
           <NutritionTimingCard
