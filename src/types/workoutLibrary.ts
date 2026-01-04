@@ -3,7 +3,11 @@
 // =============================================
 
 import { ObjectifType } from "./athlete";
-import { SessionType, TrainingSport, TrainingMetric } from "./planificateur";
+
+// Types de session (anciennement dans planificateur.ts)
+export type SessionType = "A" | "B" | "C" | "D" | "REST" | "Récup" | "SV1" | "LT1" | "TT" | "VO2" | "Sprint" | "Brique" | "Race-Sim";
+export type TrainingSport = "swim" | "bike" | "run" | "strength" | "mixed" | "cyclisme" | "course" | "natation" | "brick" | "muscu";
+export type TrainingMetric = "power" | "HR" | "pace" | "css" | "puissance" | "allure" | "cardiaque";
 
 // Partie de structure d'une séance
 export interface WorkoutStructurePart {
