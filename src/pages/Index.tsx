@@ -14,9 +14,7 @@ import { DanLorangAnalysis } from "@/components/DanLorangAnalysis";
 import { LorangStrategyCard } from "@/components/LorangStrategyCard";
 import { computeLorangStrategy } from "@/lib/lorangStrategyEngine";
 import { TestComparison } from "@/components/TestComparison";
-import { SemaineTypeView } from "@/components/SemaineTypeView";
 import { RaceReadinessCard } from "@/components/RaceReadinessCard";
-import { Bloc3SemainesView } from "@/components/Bloc3SemainesView";
 import { PhysiologicalAnalysis } from "@/components/PhysiologicalAnalysis";
 import { Planificateur } from "@/components/Planificateur";
 import { WorkoutLibrary } from "@/components/WorkoutLibrary";
@@ -781,8 +779,6 @@ const Index = () => {
               objectif={currentAthlete?.goal}
             />
 
-            <SemaineTypeView athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} />
-            <Bloc3SemainesView athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} />
           </div>
         );
 
