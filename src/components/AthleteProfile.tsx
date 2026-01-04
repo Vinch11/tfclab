@@ -6,8 +6,8 @@ import { User, Save, Target, Scale, Activity, Percent, Camera, Info } from "luci
 import { cn } from "@/lib/utils";
 import { Athlete, ObjectifType, SexeType, getObjectifLabel, getDernierSnapshot } from "@/types/athlete";
 import { SnapshotNolio, scoreConfiance, estimerTTE } from "@/types/snapshotNolio";
-import { calculVLamaxSnapshot } from "@/lib/athleteStore";
-import { MetricExplanationPopup } from "./MetricExplanationPopup";
+import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
+import { TTEEffectif } from "@/lib/tteEffectif";
 
 interface AthleteProfileProps {
   athlete: Athlete;
@@ -18,17 +18,21 @@ interface AthleteProfileProps {
   snapshotFatPct?: number | null;
   // ✅ Callback pour ouvrir le SnapshotManager Cloud
   onOpenSnapshots?: () => void;
+  // ✅ VLamax et TTE effectifs (source unique de vérité)
+  vlamaxEffectif?: VLamaxEffectif;
+  tteEffectif?: TTEEffectif;
 }
 
-export function AthleteProfile({ athlete, onUpdate, onUpdateMasseGrasse, snapshotFatPct, onOpenSnapshots }: AthleteProfileProps) {
+export function AthleteProfile({ athlete, onUpdate, onUpdateMasseGrasse, snapshotFatPct, onOpenSnapshots, vlamaxEffectif, tteEffectif }: AthleteProfileProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Athlete>(athlete);
   const [isSavingMasseGrasse, setIsSavingMasseGrasse] = useState(false);
 
   const snapshot = getDernierSnapshot(athlete);
-  const vlamax = snapshot ? calculVLamaxSnapshot(snapshot, athlete.objectif) : 0;
-  const tte = snapshot ? estimerTTE(snapshot.ftp, snapshot.tss_7j) : 0;
-  const confiance = snapshot ? scoreConfiance(snapshot) : 0;
+  // ✅ Utiliser VLamax/TTE effectifs en priorité, sinon calcul legacy
+  const vlamax = vlamaxEffectif?.value ?? 0;
+  const tte = tteEffectif?.tte_min ?? (snapshot ? estimerTTE(snapshot.ftp, snapshot.tss_7j) : 0);
+  const confiance = vlamaxEffectif?.confidence ?? (snapshot ? scoreConfiance(snapshot) / 100 : 0);
 
   const handleSave = async () => {
     // ✅ FIX 6: Sauvegarder masse grasse dans le cloud
@@ -252,6 +256,11 @@ export function AthleteProfile({ athlete, onUpdate, onUpdateMasseGrasse, snapsho
                   <div className="flex items-center gap-2 text-muted-foreground mb-2">
                     <Target className="w-4 h-4" />
                     <span className="text-xs uppercase tracking-wider">VLamax</span>
+                    {vlamaxEffectif?.source && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+                        {vlamaxEffectif.source}
+                      </span>
+                    )}
                   </div>
                   <p className="text-2xl font-bold font-mono text-accent">{vlamax.toFixed(2)}<span className="text-sm text-muted-foreground ml-1">mmol/L/s</span></p>
                 </div>
@@ -269,12 +278,12 @@ export function AthleteProfile({ athlete, onUpdate, onUpdateMasseGrasse, snapsho
                       </p>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm text-muted-foreground">TTE Estimé</p>
+                      <p className="text-sm text-muted-foreground">TTE {tteEffectif?.source ? `(${tteEffectif.source})` : "Estimé"}</p>
                       <p className="text-2xl font-bold font-mono text-primary">{tte}<span className="text-sm text-muted-foreground ml-1">min</span></p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-muted-foreground">Confiance données</p>
-                      <p className="text-2xl font-bold font-mono text-success">{confiance}<span className="text-sm text-muted-foreground ml-1">%</span></p>
+                      <p className="text-2xl font-bold font-mono text-success">{Math.round(confiance * 100)}<span className="text-sm text-muted-foreground ml-1">%</span></p>
                     </div>
                   </div>
                 </div>

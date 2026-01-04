@@ -706,7 +706,7 @@ const Index = () => {
             {showWorkoutLibrary && <WorkoutLibrary athlete={legacyAthlete} />}
             {showMonitoring && (
               legacyAthlete ? (
-                <MonitoringDashboard athlete={legacyAthlete} />
+                <MonitoringDashboard athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} />
               ) : (
                 <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
                   <CardContent className="py-12 text-center">
@@ -811,6 +811,8 @@ const Index = () => {
               }}
               snapshotFatPct={effectiveCloudSnapshot?.fat_pct}
               onOpenSnapshots={() => setShowSnapshots(true)}
+              vlamaxEffectif={vlamaxEffectif}
+              tteEffectif={tteEffectif}
             />
             
             {/* ✅ SnapshotManager intégré dans le profil si ouvert */}
