@@ -1,6 +1,7 @@
 // =============================================
 // LORANG STRATEGY CARD
 // Affichage transparent et pédagogique du moteur
+// Two 4 Coaching Strategy Engine – Age aware
 // =============================================
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +22,9 @@ import {
   Activity,
   Shield,
   HelpCircle,
-  Database
+  Database,
+  Clock,
+  Brain
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -73,15 +76,27 @@ export function LorangStrategyCard({ strategy, athleteName, objectif }: LorangSt
               <PriorityIcon className="w-6 h-6" />
             </div>
             <div>
-              <CardTitle className="text-lg">Lorang Strategy Engine</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-1">
+                <Brain className="w-4 h-4 text-primary" />
+                Two 4 Coaching Strategy Engine
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">Age aware</p>
               <p className="text-sm text-muted-foreground mt-0.5">
                 {athleteName && `${athleteName} • `}{objectif}
               </p>
             </div>
           </div>
-          <Badge variant="outline" className={cn("text-xs", getConfidenceColor(strategy.confidence))}>
-            Confiance: {strategy.confidence}%
-          </Badge>
+          <div className="flex flex-col items-end gap-1">
+            <Badge variant="outline" className={cn("text-xs", getConfidenceColor(strategy.confidence))}>
+              Confiance: {strategy.confidence}%
+            </Badge>
+            {strategy.ageContext.age !== null && (
+              <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {strategy.ageContext.age} ans
+              </Badge>
+            )}
+          </div>
         </div>
       </CardHeader>
 
@@ -98,6 +113,23 @@ export function LorangStrategyCard({ strategy, athleteName, objectif }: LorangSt
             </div>
           </div>
         </div>
+
+        {/* Contexte âge */}
+        {strategy.ageContext.category && strategy.ageContext.category !== "young" && (
+          <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-blue-400" />
+              <span className="text-sm font-medium text-blue-400">
+                Adaptation âge — {strategy.ageContext.toleranceLabel}
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {strategy.ageContext.vlamaxRiskLabel}
+              {strategy.ageContext.nutritionCritical && " • Nutrition critique"}
+              {strategy.ageContext.freshnessEmphasis && " • Fraîcheur prioritaire"}
+            </p>
+          </div>
+        )}
 
         {/* Confiance et avertissement */}
         {strategy.confidenceMessage && (
