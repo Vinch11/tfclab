@@ -126,7 +126,7 @@ export default function SemaineTypePage() {
 
   // ✅ FIX 12: On adapte pour garder ton générateur + modules Pro
   const athleteCompat = buildCompatAthlete(currentAthlete, effectiveSnapshot);
-  const semaine = genererSemaineType(athleteCompat, proModules);
+  const semaine = genererSemaineType(athleteCompat, { proModules });
   
   // Déterminer si running-only (pour afficher les toggles)
   const isRunning = isRunningOnlyGoal(currentAthlete.goal || "IM");

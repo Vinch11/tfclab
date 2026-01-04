@@ -3,9 +3,13 @@ import { Calendar, Dumbbell, Zap, Target, Clock, ChevronRight, Activity } from "
 import { cn } from "@/lib/utils";
 import { Athlete } from "@/types/athlete";
 import { genererSemaineType, JourSemaine } from "@/lib/semaineGenerator";
+import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
+import { TTEEffectif } from "@/lib/tteEffectif";
 
 interface SemaineTypeViewProps {
   athlete: Athlete;
+  vlamaxEffectif?: VLamaxEffectif;
+  tteEffectif?: TTEEffectif;
 }
 
 const jourColors: Record<string, string> = {
@@ -32,8 +36,11 @@ const typeIcons: Record<string, typeof Dumbbell> = {
   "D1": Target,
 };
 
-export function SemaineTypeView({ athlete }: SemaineTypeViewProps) {
-  const semaine = useMemo(() => genererSemaineType(athlete), [athlete]);
+export function SemaineTypeView({ athlete, vlamaxEffectif, tteEffectif }: SemaineTypeViewProps) {
+  const semaine = useMemo(() => genererSemaineType(athlete, {
+    vlamaxOverride: vlamaxEffectif?.value ?? null,
+    tteOverride: tteEffectif?.tte_min ?? null,
+  }), [athlete, vlamaxEffectif, tteEffectif]);
 
   if (!semaine) {
     return (

@@ -3,7 +3,7 @@
 // =============================================
 
 import { Athlete } from "@/types/athlete";
-import { genererSemaineType, SemaineType, JourSemaine } from "./semaineGenerator";
+import { genererSemaineType, SemaineType, JourSemaine, SemaineGeneratorOptions } from "./semaineGenerator";
 
 export type ChargeType = "Progressive" | "Consolidation" | "Allégée (-30%)";
 
@@ -34,13 +34,24 @@ function ajusterChargeSemaine(semaine: SemaineType, facteur: number): SemaineTyp
   };
 }
 
+// Options pour le bloc 3 semaines
+export interface Bloc3SemainesOptions {
+  vlamaxOverride?: number | null;
+  tteOverride?: number | null;
+}
+
 // Générer un bloc de 3 semaines (2 progressives + 1 allégée)
-export function genererBloc3Semaines(athlete: Athlete): Bloc3Semaines | null {
-  const semaine1 = genererSemaineType(athlete);
+export function genererBloc3Semaines(athlete: Athlete, options?: Bloc3SemainesOptions): Bloc3Semaines | null {
+  const genOptions: SemaineGeneratorOptions = {
+    vlamaxOverride: options?.vlamaxOverride,
+    tteOverride: options?.tteOverride,
+  };
+  
+  const semaine1 = genererSemaineType(athlete, genOptions);
   if (!semaine1) return null;
 
-  const semaine2 = genererSemaineType(athlete);
-  const semaine3 = genererSemaineType(athlete);
+  const semaine2 = genererSemaineType(athlete, genOptions);
+  const semaine3 = genererSemaineType(athlete, genOptions);
 
   // TSS estimés par semaine selon objectif
   const tssBase = athlete.objectif === "IM" ? 600 : 500;
