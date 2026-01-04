@@ -3,6 +3,7 @@ import { Calculator, FlaskConical, Trophy, GraduationCap, BookOpen, Menu, X, Cal
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { PWAInstallButton } from "@/components/PWAInstallButton";
 import logo from "@/assets/logo-2fc.png";
 
 interface NavItem {
@@ -96,7 +97,8 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
               })}
             </nav>
 
-            {/* Theme toggle (all sizes) */}
+            {/* PWA Install + Theme toggle (all sizes) */}
+            <PWAInstallButton />
             <ThemeToggle />
 
             {/* Mobile Menu Button */}
