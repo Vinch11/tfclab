@@ -35,6 +35,16 @@ export interface StrategyExplanation {
   benefit: string;
 }
 
+export interface AgeContext {
+  age: number | null;
+  category: "young" | "prime" | "master1" | "master2" | null;
+  toleranceLabel: string;
+  vlamaxRiskLabel: string;
+  freshnessEmphasis: boolean;
+  nutritionCritical: boolean;
+  staffMessage: string | null;
+}
+
 export interface StrategyResult {
   priority: StrategyPriority;
   priorityLabel: string;
@@ -54,6 +64,7 @@ export interface StrategyResult {
     tte: { source: string; confidence: number };
     ftp: { source: string; confidence: number };
   };
+  ageContext: AgeContext;
 }
 
 export interface StrategyInputs {
@@ -67,6 +78,7 @@ export interface StrategyInputs {
   objectif: ObjectifType;
   seanceSpecifiqueValidee?: boolean;
   fatigueOk?: boolean;
+  age?: number | null; // Âge physiologique pour modulation
 }
 
 // =============================================
@@ -330,11 +342,16 @@ const PRIORITY_ICONS: Record<StrategyPriority, string> = {
 // =============================================
 
 export function computeLorangStrategy(inputs: StrategyInputs): StrategyResult {
-  const { vlamax, vlamaxSource, vlamaxConfidence, tte, tteSource, tteConfidence, ftp_kg, objectif } = inputs;
+  const { vlamax, vlamaxSource, vlamaxConfidence, tte, tteSource, tteConfidence, ftp_kg, objectif, age } = inputs;
   
   const targets = OBJECTIF_TARGETS[objectif] || OBJECTIF_TARGETS.IM;
   const alerts: string[] = [];
   let priority: StrategyPriority = "MAINTENANCE";
+  
+  // =============================================
+  // CONTEXTE ÂGE
+  // =============================================
+  const ageContext = computeAgeContext(age);
   
   // =============================================
   // PROTECTION: Données manquantes
@@ -359,7 +376,8 @@ export function computeLorangStrategy(inputs: StrategyInputs): StrategyResult {
         vlamax: { source: vlamaxSource, confidence: vlamaxConfidence },
         tte: { source: tteSource, confidence: tteConfidence },
         ftp: { source: "snapshot", confidence: ftp_kg > 0 ? 80 : 0 }
-      }
+      },
+      ageContext
     };
   }
   
@@ -436,6 +454,11 @@ export function computeLorangStrategy(inputs: StrategyInputs): StrategyResult {
   // RÉSULTAT
   // =============================================
   
+  // Ajouter alerte âge si pertinent
+  if (ageContext.staffMessage && ageContext.category && ageContext.category !== "young") {
+    alerts.push(ageContext.staffMessage);
+  }
+  
   return {
     priority,
     priorityLabel: PRIORITY_LABELS[priority],
@@ -450,7 +473,72 @@ export function computeLorangStrategy(inputs: StrategyInputs): StrategyResult {
       vlamax: { source: vlamaxSource, confidence: vlamaxConfidence },
       tte: { source: tteSource, confidence: tteConfidence },
       ftp: { source: "snapshot", confidence: 80 }
-    }
+    },
+    ageContext
+  };
+}
+
+// =============================================
+// CONTEXTE ÂGE
+// =============================================
+
+function computeAgeContext(age: number | null | undefined): AgeContext {
+  if (age === null || age === undefined || age < 0) {
+    return {
+      age: null,
+      category: null,
+      toleranceLabel: "Standard",
+      vlamaxRiskLabel: "Standard",
+      freshnessEmphasis: false,
+      nutritionCritical: false,
+      staffMessage: null
+    };
+  }
+  
+  if (age < 30) {
+    return {
+      age,
+      category: "young",
+      toleranceLabel: "Forte tolérance aux chocs",
+      vlamaxRiskLabel: "VLamax élevé exploitable",
+      freshnessEmphasis: false,
+      nutritionCritical: false,
+      staffMessage: null
+    };
+  }
+  
+  if (age < 40) {
+    return {
+      age,
+      category: "prime",
+      toleranceLabel: "Équilibre potentiel/durabilité",
+      vlamaxRiskLabel: "VLamax surveillé",
+      freshnessEmphasis: false,
+      nutritionCritical: false,
+      staffMessage: "Tranche 30-40 ans : équilibre entre potentiel et durabilité recommandé"
+    };
+  }
+  
+  if (age < 50) {
+    return {
+      age,
+      category: "master1",
+      toleranceLabel: "Durabilité > puissance",
+      vlamaxRiskLabel: "VLamax élevé = risque",
+      freshnessEmphasis: true,
+      nutritionCritical: true,
+      staffMessage: "Master 40-50 ans : priorité durabilité, nutrition critique"
+    };
+  }
+  
+  return {
+    age,
+    category: "master2",
+    toleranceLabel: "Économie + stabilité métabolique",
+    vlamaxRiskLabel: "VLamax bas recherché",
+    freshnessEmphasis: true,
+    nutritionCritical: true,
+    staffMessage: "Master 50+ ans : fraîcheur prioritaire, économie métabolique maximale"
   };
 }
 

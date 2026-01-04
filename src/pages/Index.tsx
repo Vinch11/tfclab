@@ -346,7 +346,11 @@ const Index = () => {
     });
   }, [vlamaxEffectif, tteEffectif, currentAthlete, effectiveCloudSnapshot]);
 
-  // ✅ LORANG STRATEGY ENGINE - Moteur décisionnel transparent
+  // ✅ LORANG STRATEGY ENGINE - Moteur décisionnel transparent (Age aware)
+  const athleteAge = currentAthlete?.birth_date 
+    ? Math.floor((Date.now() - new Date(currentAthlete.birth_date).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+    : null;
+    
   const lorangStrategy = useMemo(() => {
     return computeLorangStrategy({
       vlamax: vlamaxEffectif.value,
@@ -357,8 +361,9 @@ const Index = () => {
       tteConfidence: tteEffectif.confidence,
       ftp_kg: ftp_kg ?? 0,
       objectif: (currentAthlete?.goal || "IM") as import("@/types/athlete").ObjectifType,
+      age: athleteAge,
     });
-  }, [vlamaxEffectif, tteEffectif, ftp_kg, currentAthlete]);
+  }, [vlamaxEffectif, tteEffectif, ftp_kg, currentAthlete, athleteAge]);
 
   // Handlers
   const handleAddAthlete = async () => {
