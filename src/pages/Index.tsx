@@ -10,8 +10,6 @@ import { NolioMapping } from "@/components/NolioMapping";
 import { AthleteProfile } from "@/components/AthleteProfile";
 import { FeedbackNolioManager } from "@/components/FeedbackNolioManager";
 import { DanLorangAnalysis } from "@/components/DanLorangAnalysis";
-import { LorangStrategyCard } from "@/components/LorangStrategyCard";
-import { computeLorangStrategy } from "@/lib/lorangStrategyEngine";
 import { TestComparison } from "@/components/TestComparison";
 import { RaceReadinessCard } from "@/components/RaceReadinessCard";
 import { PhysiologicalAnalysis } from "@/components/PhysiologicalAnalysis";
@@ -342,25 +340,6 @@ const Index = () => {
       tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
     });
   }, [vlamaxEffectif, tteEffectif, currentAthlete, effectiveCloudSnapshot]);
-
-  // ✅ LORANG STRATEGY ENGINE - Moteur décisionnel transparent (Age aware)
-  const athleteAge = currentAthlete?.birth_date 
-    ? Math.floor((Date.now() - new Date(currentAthlete.birth_date).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
-    : null;
-    
-  const lorangStrategy = useMemo(() => {
-    return computeLorangStrategy({
-      vlamax: vlamaxEffectif.value,
-      vlamaxSource: vlamaxEffectif.source,
-      vlamaxConfidence: vlamaxEffectif.confidence,
-      tte: tteEffectif.tte_min,
-      tteSource: tteEffectif.source,
-      tteConfidence: tteEffectif.confidence,
-      ftp_kg: ftp_kg ?? 0,
-      objectif: (currentAthlete?.goal || "IM") as import("@/types/athlete").ObjectifType,
-      age: athleteAge,
-    });
-  }, [vlamaxEffectif, tteEffectif, ftp_kg, currentAthlete, athleteAge]);
 
   // Handlers
   const handleAddAthlete = async () => {
@@ -770,13 +749,6 @@ const Index = () => {
                 mode="compact"
               />
             )}
-
-            {/* 🧠 LORANG STRATEGY ENGINE - Moteur décisionnel transparent */}
-            <LorangStrategyCard 
-              strategy={lorangStrategy}
-              athleteName={currentAthlete?.name}
-              objectif={currentAthlete?.goal}
-            />
 
           </div>
         );
