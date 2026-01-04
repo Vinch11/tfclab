@@ -474,24 +474,6 @@ export default function DashboardPage() {
         {/* Actions */}
         <div className="grid grid-cols-1 gap-2">
           <Button
-            onClick={() => navigate("/semaine")}
-            className="w-full justify-start gap-3 h-12"
-            variant="outline"
-          >
-            <Calendar className="h-4 w-4 text-primary" />
-            <span className="text-sm">Générer semaine type</span>
-          </Button>
-
-          <Button
-            onClick={() => navigate("/bloc")}
-            className="w-full justify-start gap-3 h-12"
-            variant="outline"
-          >
-            <CalendarDays className="h-4 w-4 text-primary" />
-            <span className="text-sm">Générer bloc 3 semaines</span>
-          </Button>
-
-          <Button
             onClick={() => navigate("/evolution")}
             className="w-full justify-start gap-3 h-12"
             variant="outline"
