@@ -16,6 +16,8 @@ import { Alert } from "@/types/monitoring";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudData } from "@/hooks/useCloudData";
 import { toast } from "sonner";
+import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
+import { TTEEffectif } from "@/lib/tteEffectif";
 import {
   getVLamaxTestsOnly,
   getRefStatus,
@@ -30,9 +32,12 @@ import {
 
 interface MonitoringDashboardProps {
   athlete: Athlete;
+  // ✅ VLamax et TTE effectifs (source unique de vérité)
+  vlamaxEffectif?: VLamaxEffectif;
+  tteEffectif?: TTEEffectif;
 }
 
-export function MonitoringDashboard({ athlete }: MonitoringDashboardProps) {
+export function MonitoringDashboard({ athlete, vlamaxEffectif, tteEffectif }: MonitoringDashboardProps) {
   const { updateAthlete, refresh } = useAthletes();
   const { snapshots } = useCloudData();
 
