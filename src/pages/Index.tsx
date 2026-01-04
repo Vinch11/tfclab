@@ -13,7 +13,7 @@ import { DanLorangAnalysis } from "@/components/DanLorangAnalysis";
 import { TestComparison } from "@/components/TestComparison";
 import { RaceReadinessCard } from "@/components/RaceReadinessCard";
 import { PhysiologicalAnalysis } from "@/components/PhysiologicalAnalysis";
-import { Planificateur } from "@/components/Planificateur";
+
 import { WorkoutLibrary } from "@/components/WorkoutLibrary";
 import { MonitoringDashboard } from "@/components/MonitoringDashboard";
 import { ExportTools } from "@/components/ExportTools";
@@ -54,7 +54,6 @@ import {
   Activity,
   BookOpen,
   Brain,
-  Calendar,
   Dumbbell,
   TrendingUp,
   Plus,
@@ -94,7 +93,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showTestLibrary, setShowTestLibrary] = useState(false);
   const [showPhysioAnalysis, setShowPhysioAnalysis] = useState(false);
-  const [showPlanner, setShowPlanner] = useState(false);
+  
   const [showWorkoutLibrary, setShowWorkoutLibrary] = useState(false);
   const [showMonitoring, setShowMonitoring] = useState(false);
   const [showSnapshots, setShowSnapshots] = useState(false);
@@ -548,7 +547,6 @@ const Index = () => {
                 onClick={() => {
                   setShowTestLibrary(!showTestLibrary);
                   setShowPhysioAnalysis(false);
-                  setShowPlanner(false);
                   setShowWorkoutLibrary(false);
                   setShowMonitoring(false);
                   setShowSnapshots(false);
@@ -565,7 +563,6 @@ const Index = () => {
                 onClick={() => {
                   setShowPhysioAnalysis(!showPhysioAnalysis);
                   setShowTestLibrary(false);
-                  setShowPlanner(false);
                   setShowWorkoutLibrary(false);
                   setShowMonitoring(false);
                   setShowSnapshots(false);
@@ -577,22 +574,6 @@ const Index = () => {
                 <span className="truncate">Analyse</span>
               </Button>
 
-              <Button
-                variant={showPlanner ? "default" : "outline"}
-                onClick={() => {
-                  setShowPlanner(!showPlanner);
-                  setShowTestLibrary(false);
-                  setShowPhysioAnalysis(false);
-                  setShowWorkoutLibrary(false);
-                  setShowMonitoring(false);
-                  setShowSnapshots(false);
-                  setShowCheckins(false);
-                }}
-                className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
-              >
-                <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                <span className="truncate">Planning</span>
-              </Button>
 
               <Button
                 variant={showWorkoutLibrary ? "default" : "outline"}
@@ -600,7 +581,6 @@ const Index = () => {
                   setShowWorkoutLibrary(!showWorkoutLibrary);
                   setShowTestLibrary(false);
                   setShowPhysioAnalysis(false);
-                  setShowPlanner(false);
                   setShowMonitoring(false);
                   setShowSnapshots(false);
                   setShowCheckins(false);
@@ -617,7 +597,6 @@ const Index = () => {
                   setShowMonitoring(!showMonitoring);
                   setShowTestLibrary(false);
                   setShowPhysioAnalysis(false);
-                  setShowPlanner(false);
                   setShowWorkoutLibrary(false);
                   setShowSnapshots(false);
                   setShowCheckins(false);
@@ -634,7 +613,6 @@ const Index = () => {
                   setShowSnapshots(!showSnapshots);
                   setShowTestLibrary(false);
                   setShowPhysioAnalysis(false);
-                  setShowPlanner(false);
                   setShowWorkoutLibrary(false);
                   setShowMonitoring(false);
                   setShowCheckins(false);
@@ -651,7 +629,6 @@ const Index = () => {
                   setShowCheckins(!showCheckins);
                   setShowTestLibrary(false);
                   setShowPhysioAnalysis(false);
-                  setShowPlanner(false);
                   setShowWorkoutLibrary(false);
                   setShowMonitoring(false);
                   setShowSnapshots(false);
@@ -678,7 +655,7 @@ const Index = () => {
               setShowSnapshots(true);
               setShowPhysioAnalysis(false);
             }} />}
-            {showPlanner && <Planificateur athlete={legacyAthlete} />}
+            
             {showWorkoutLibrary && <WorkoutLibrary athlete={legacyAthlete} />}
             {showMonitoring && (
               legacyAthlete ? (
@@ -875,7 +852,6 @@ const Index = () => {
                     setShowSnapshots(true);
                     setShowTestLibrary(false);
                     setShowPhysioAnalysis(false);
-                    setShowPlanner(false);
                     setShowWorkoutLibrary(false);
                     setShowMonitoring(false);
                     setShowCheckins(false);

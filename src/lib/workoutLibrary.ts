@@ -3,9 +3,8 @@
 // Multi-sport + zones + variantes IM/70.3/Marathon/Semi
 // =============================================
 
-import { LibraryWorkout, WorkoutVariants } from "@/types/workoutLibrary";
+import { LibraryWorkout, WorkoutVariants, SessionType, TrainingSport } from "@/types/workoutLibrary";
 import { ObjectifType, AthleteRefs } from "@/types/athlete";
-import { SessionType, TrainingSport } from "@/types/planificateur";
 import { ZonesConfig, computeAbsoluteRange, ZoneDefinition, AthleteRefsForZones } from "./zonesConfig";
 
 // =============================================
