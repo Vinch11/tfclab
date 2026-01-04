@@ -2,14 +2,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Save, Target, Scale, Activity, Percent, Plus, Database, Edit, Info } from "lucide-react";
+import { User, Save, Target, Scale, Activity, Percent, Camera, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Athlete, ObjectifType, SexeType, getObjectifLabel, getDernierSnapshot } from "@/types/athlete";
-import { SnapshotNolio, creerSnapshotVide, scoreConfiance, estimerTTE } from "@/types/snapshotNolio";
+import { SnapshotNolio, scoreConfiance, estimerTTE } from "@/types/snapshotNolio";
 import { calculVLamaxSnapshot } from "@/lib/athleteStore";
 import { MetricExplanationPopup } from "./MetricExplanationPopup";
-
-import { CSVImporter } from "./CSVImporter";
 
 interface AthleteProfileProps {
   athlete: Athlete;
@@ -18,13 +16,13 @@ interface AthleteProfileProps {
   onUpdateMasseGrasse?: (masseGrasse: number | null) => Promise<void>;
   // ✅ FIX 6: fat_pct du dernier snapshot cloud (lecture seule)
   snapshotFatPct?: number | null;
+  // ✅ Callback pour ouvrir le SnapshotManager Cloud
+  onOpenSnapshots?: () => void;
 }
 
-export function AthleteProfile({ athlete, onUpdate, onUpdateMasseGrasse, snapshotFatPct }: AthleteProfileProps) {
+export function AthleteProfile({ athlete, onUpdate, onUpdateMasseGrasse, snapshotFatPct, onOpenSnapshots }: AthleteProfileProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [isAddingSnapshot, setIsAddingSnapshot] = useState(false);
   const [formData, setFormData] = useState<Athlete>(athlete);
-  const [newSnapshot, setNewSnapshot] = useState<SnapshotNolio>(creerSnapshotVide());
   const [isSavingMasseGrasse, setIsSavingMasseGrasse] = useState(false);
 
   const snapshot = getDernierSnapshot(athlete);
@@ -50,42 +48,6 @@ export function AthleteProfile({ athlete, onUpdate, onUpdateMasseGrasse, snapsho
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSnapshotChange = (field: keyof SnapshotNolio, value: string | number) => {
-    setNewSnapshot((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleAddSnapshot = () => {
-    const updatedAthlete: Athlete = {
-      ...athlete,
-      historique: [...(athlete.historique || []), { ...newSnapshot, id: crypto.randomUUID() }],
-      updatedAt: new Date().toISOString(),
-    };
-    onUpdate(updatedAthlete);
-    setIsAddingSnapshot(false);
-    setNewSnapshot(creerSnapshotVide());
-  };
-
-  const handleCSVImport = (snapshots: SnapshotNolio[]) => {
-    const updatedAthlete: Athlete = {
-      ...athlete,
-      historique: [...(athlete.historique || []), ...snapshots],
-      updatedAt: new Date().toISOString(),
-    };
-    onUpdate(updatedAthlete);
-  };
-
-  const handleSnapshotEdit = (updatedSnapshot: SnapshotNolio) => {
-    const updatedHistorique = (athlete.historique || []).map(s => 
-      s.id === updatedSnapshot.id ? updatedSnapshot : s
-    );
-    const updatedAthlete: Athlete = {
-      ...athlete,
-      historique: updatedHistorique,
-      updatedAt: new Date().toISOString(),
-    };
-    onUpdate(updatedAthlete);
-  };
-
   return (
     <div className="glass-card p-6">
       <div className="flex items-center justify-between mb-6">
@@ -95,23 +57,15 @@ export function AthleteProfile({ athlete, onUpdate, onUpdateMasseGrasse, snapsho
           </div>
           <div>
             <h2 className="text-xl font-semibold text-foreground">Profil Athlète</h2>
-            <p className="text-sm text-muted-foreground">Données depuis NOLIO</p>
+            <p className="text-sm text-muted-foreground">Données physiologiques</p>
           </div>
         </div>
         <div className="flex gap-2">
-          <CSVImporter onImport={handleCSVImport} />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsAddingSnapshot(!isAddingSnapshot)}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Snapshot
-          </Button>
-          {snapshot && (
-            <Button variant="outline" size="sm" onClick={() => setIsAddingSnapshot(true)}>
-              <Edit className="w-4 h-4 mr-2" />
-              Éditer
+          {/* ✅ Bouton unique pour gérer les snapshots (Cloud) */}
+          {onOpenSnapshots && (
+            <Button variant="outline" size="sm" onClick={onOpenSnapshots}>
+              <Camera className="w-4 h-4 mr-2" />
+              Gérer Snapshots
             </Button>
           )}
           <Button
@@ -130,85 +84,6 @@ export function AthleteProfile({ athlete, onUpdate, onUpdateMasseGrasse, snapsho
           </Button>
         </div>
       </div>
-
-      {/* Add Snapshot Form */}
-      {isAddingSnapshot && (
-        <div className="mb-6 p-4 rounded-xl bg-secondary/30 border border-border space-y-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Database className="w-5 h-5 text-primary" />
-            <span className="font-medium text-foreground">Nouveau Snapshot NOLIO</span>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label className="text-muted-foreground">Date</Label>
-              <Input
-                type="date"
-                value={newSnapshot.date}
-                onChange={(e) => handleSnapshotChange("date", e.target.value)}
-                className="bg-secondary/50 border-border"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-muted-foreground">FTP (W)</Label>
-              <Input
-                type="number"
-                value={newSnapshot.ftp || ""}
-                onChange={(e) => handleSnapshotChange("ftp", parseFloat(e.target.value) || 0)}
-                className="bg-secondary/50 border-border"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-muted-foreground">Pmax 5s (W)</Label>
-              <Input
-                type="number"
-                value={newSnapshot.pmax_5s || ""}
-                onChange={(e) => handleSnapshotChange("pmax_5s", parseFloat(e.target.value) || 0)}
-                className="bg-secondary/50 border-border"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-muted-foreground">Poids (kg)</Label>
-              <Input
-                type="number"
-                value={newSnapshot.poids || ""}
-                onChange={(e) => handleSnapshotChange("poids", parseFloat(e.target.value) || 0)}
-                className="bg-secondary/50 border-border"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-muted-foreground">TSS 7j</Label>
-              <Input
-                type="number"
-                value={newSnapshot.tss_7j || ""}
-                onChange={(e) => handleSnapshotChange("tss_7j", parseFloat(e.target.value) || 0)}
-                className="bg-secondary/50 border-border"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-muted-foreground">VO2max (ml/kg)</Label>
-              <Input
-                type="number"
-                value={newSnapshot.vo2max || ""}
-                onChange={(e) => handleSnapshotChange("vo2max", parseFloat(e.target.value) || 0)}
-                className="bg-secondary/50 border-border"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-muted-foreground">HRV (ms)</Label>
-              <Input
-                type="number"
-                value={newSnapshot.hrv || ""}
-                onChange={(e) => handleSnapshotChange("hrv", parseFloat(e.target.value) || 0)}
-                className="bg-secondary/50 border-border"
-              />
-            </div>
-          </div>
-          <Button onClick={handleAddSnapshot} variant="glow" className="w-full">
-            <Plus className="w-4 h-4 mr-2" />
-            Ajouter Snapshot
-          </Button>
-        </div>
-      )}
 
       {isEditing ? (
         <div className="space-y-6">
@@ -407,9 +282,15 @@ export function AthleteProfile({ athlete, onUpdate, onUpdateMasseGrasse, snapsho
             </>
           ) : (
             <div className="p-8 text-center text-muted-foreground bg-secondary/20 rounded-xl border border-border">
-              <Database className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <Camera className="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p>Aucun snapshot disponible</p>
-              <p className="text-sm">Ajoutez un snapshot pour voir les métriques</p>
+              <p className="text-sm">Créez un snapshot pour voir les métriques</p>
+              {onOpenSnapshots && (
+                <Button variant="outline" size="sm" className="mt-4" onClick={onOpenSnapshots}>
+                  <Camera className="w-4 h-4 mr-2" />
+                  Créer un snapshot
+                </Button>
+              )}
             </div>
           )}
         </div>
