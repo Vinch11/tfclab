@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from "react";
 import { Navigation } from "@/components/Navigation";
 import ComprendreScoresPage from "@/pages/ComprendreScoresPage";
 import { MetricCard } from "@/components/MetricCard";
-import { VLamaxCalculator } from "@/components/VLamaxCalculator";
 import { TrainingZones } from "@/components/TrainingZones";
 import { TestProtocols } from "@/components/TestProtocols";
 import { VLamaxTestingPage } from "@/components/VLamaxTestingPage";
@@ -821,18 +820,6 @@ const Index = () => {
                 staffMode={staffMode}
               />
             )}
-            <VLamaxCalculator 
-              snapshotEffectif={effectiveCloudSnapshot ? {
-                ftp: effectiveCloudSnapshot.ftp ?? null,
-                weight_kg: effectiveCloudSnapshot.weight_kg ?? null,
-                pmax_5s: effectiveCloudSnapshot.pmax_5s ?? null,
-                tss_7d: effectiveCloudSnapshot.tss_7d ?? null,
-              } : null}
-              vlamaxEffectif={vlamaxEffectif}
-              tteEffectif={tteEffectif}
-              onGoToSnapshots={() => setShowSnapshots(true)}
-              onGoToMethodology={() => setActiveTab("methodology")}
-            />
             <DanLorangAnalysis athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} readiness={raceReadinessEffectif} onGoToSnapshots={() => setShowSnapshots(true)} />
             
             {/* Graphique évolution historique VLamax/TTE */}
