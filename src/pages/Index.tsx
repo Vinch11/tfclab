@@ -15,7 +15,7 @@ import { RaceReadinessCard } from "@/components/RaceReadinessCard";
 import { PhysiologicalAnalysis } from "@/components/PhysiologicalAnalysis";
 
 import { WorkoutLibrary } from "@/components/WorkoutLibrary";
-import { MonitoringDashboard } from "@/components/MonitoringDashboard";
+
 import { ExportTools } from "@/components/ExportTools";
 import { SnapshotManager } from "@/components/SnapshotManager";
 import { CheckinManager } from "@/components/CheckinManager";
@@ -51,11 +51,9 @@ import {
   Zap,
   Target,
   Flame,
-  Activity,
   BookOpen,
   Brain,
   Dumbbell,
-  TrendingUp,
   Plus,
   Trash2,
   LogOut,
@@ -95,7 +93,7 @@ const Index = () => {
   const [showPhysioAnalysis, setShowPhysioAnalysis] = useState(false);
   
   const [showWorkoutLibrary, setShowWorkoutLibrary] = useState(false);
-  const [showMonitoring, setShowMonitoring] = useState(false);
+  
   const [showSnapshots, setShowSnapshots] = useState(false);
   const [showCheckins, setShowCheckins] = useState(false);
 
@@ -551,7 +549,6 @@ const Index = () => {
                   setShowTestLibrary(!showTestLibrary);
                   setShowPhysioAnalysis(false);
                   setShowWorkoutLibrary(false);
-                  setShowMonitoring(false);
                   setShowSnapshots(false);
                   setShowCheckins(false);
                 }}
@@ -567,7 +564,6 @@ const Index = () => {
                   setShowPhysioAnalysis(!showPhysioAnalysis);
                   setShowTestLibrary(false);
                   setShowWorkoutLibrary(false);
-                  setShowMonitoring(false);
                   setShowSnapshots(false);
                   setShowCheckins(false);
                 }}
@@ -584,7 +580,6 @@ const Index = () => {
                   setShowWorkoutLibrary(!showWorkoutLibrary);
                   setShowTestLibrary(false);
                   setShowPhysioAnalysis(false);
-                  setShowMonitoring(false);
                   setShowSnapshots(false);
                   setShowCheckins(false);
                 }}
@@ -594,21 +589,6 @@ const Index = () => {
                 <span className="truncate">Séances</span>
               </Button>
 
-              <Button
-                variant={showMonitoring ? "default" : "outline"}
-                onClick={() => {
-                  setShowMonitoring(!showMonitoring);
-                  setShowTestLibrary(false);
-                  setShowPhysioAnalysis(false);
-                  setShowWorkoutLibrary(false);
-                  setShowSnapshots(false);
-                  setShowCheckins(false);
-                }}
-                className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
-              >
-                <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                <span className="truncate">Suivi</span>
-              </Button>
 
               <Button
                 variant={showSnapshots ? "default" : "outline"}
@@ -617,7 +597,6 @@ const Index = () => {
                   setShowTestLibrary(false);
                   setShowPhysioAnalysis(false);
                   setShowWorkoutLibrary(false);
-                  setShowMonitoring(false);
                   setShowCheckins(false);
                 }}
                 className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
@@ -633,7 +612,6 @@ const Index = () => {
                   setShowTestLibrary(false);
                   setShowPhysioAnalysis(false);
                   setShowWorkoutLibrary(false);
-                  setShowMonitoring(false);
                   setShowSnapshots(false);
                 }}
                 className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
@@ -660,18 +638,6 @@ const Index = () => {
             }} />}
             
             {showWorkoutLibrary && <WorkoutLibrary athlete={legacyAthlete} />}
-            {showMonitoring && (
-              legacyAthlete ? (
-                <MonitoringDashboard athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} />
-              ) : (
-                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-                  <CardContent className="py-12 text-center">
-                    <Activity className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                    <p className="text-muted-foreground">Sélectionnez ou créez un athlète pour accéder au suivi.</p>
-                  </CardContent>
-                </Card>
-              )
-            )}
             {showSnapshots && currentAthlete && (
               <SnapshotManager
                 athleteId={currentAthlete.id}
@@ -856,7 +822,6 @@ const Index = () => {
                     setShowTestLibrary(false);
                     setShowPhysioAnalysis(false);
                     setShowWorkoutLibrary(false);
-                    setShowMonitoring(false);
                     setShowCheckins(false);
                   }}
                   onGoToMethodology={() => setActiveTab("methodology")}
