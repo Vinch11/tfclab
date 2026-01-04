@@ -781,8 +781,8 @@ const Index = () => {
               objectif={currentAthlete?.goal}
             />
 
-            <SemaineTypeView athlete={legacyAthlete} />
-            <Bloc3SemainesView athlete={legacyAthlete} />
+            <SemaineTypeView athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} />
+            <Bloc3SemainesView athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} />
           </div>
         );
 

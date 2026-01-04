@@ -5,9 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Athlete } from "@/types/athlete";
 import { genererBloc3Semaines, BlocSemaine, ChargeType } from "@/lib/bloc3Semaines";
 import { SEANCES } from "@/types/seances";
+import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
+import { TTEEffectif } from "@/lib/tteEffectif";
 
 interface Bloc3SemainesViewProps {
   athlete: Athlete;
+  vlamaxEffectif?: VLamaxEffectif;
+  tteEffectif?: TTEEffectif;
 }
 
 const chargeColors: Record<ChargeType, string> = {
@@ -22,8 +26,11 @@ const chargeIcons: Record<ChargeType, typeof TrendingUp> = {
   "Allégée (-30%)": Calendar,
 };
 
-export function Bloc3SemainesView({ athlete }: Bloc3SemainesViewProps) {
-  const bloc = useMemo(() => genererBloc3Semaines(athlete), [athlete]);
+export function Bloc3SemainesView({ athlete, vlamaxEffectif, tteEffectif }: Bloc3SemainesViewProps) {
+  const bloc = useMemo(() => genererBloc3Semaines(athlete, {
+    vlamaxOverride: vlamaxEffectif?.value ?? null,
+    tteOverride: tteEffectif?.tte_min ?? null,
+  }), [athlete, vlamaxEffectif, tteEffectif]);
   const [expandedWeek, setExpandedWeek] = useState<number | null>(1);
 
   if (!bloc) {

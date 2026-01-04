@@ -80,13 +80,22 @@ const PLANNING_CROSSTRAINING: Array<{ jour: string; sport: SportType; estCle: bo
   { jour: "Dimanche", sport: "course", estCle: true, type: "longue" },
 ];
 
+// Options supplémentaires pour le générateur
+export interface SemaineGeneratorOptions {
+  proModules?: ProModules;
+  vlamaxOverride?: number | null; // ✅ VLamax externe (source unique de vérité)
+  tteOverride?: number | null;    // ✅ TTE externe (source unique de vérité)
+}
+
 // ✅ FIX 12: Générer la semaine type avec filtrage par objectif + modules Pro
 export function genererSemaineType(
   athlete: Athlete, 
-  proModules?: ProModules
+  options?: SemaineGeneratorOptions
 ): SemaineType | null {
   const snapshot = getDernierSnapshot(athlete);
   if (!snapshot) return null;
+
+  const proModules = options?.proModules;
 
   // ✅ FIX 12: Calculer les sports autorisés
   const sportsAutorises = getAllowedSports(athlete.objectif, proModules);
@@ -96,8 +105,10 @@ export function genererSemaineType(
   // Calculer priorité depuis le snapshot course (pour running) ou vélo (pour triathlon)
   const sportPrincipal: SportType = runningOnly ? "course" : "vélo";
   const snapshotPrincipal = getDernierSnapshotParSport(athlete, sportPrincipal) || snapshot;
-  const tte = estimerTTESport(snapshotPrincipal);
-  const vlamax = calculVLamaxSnapshot(snapshotPrincipal, athlete.objectif);
+  
+  // ✅ Utiliser VLamax/TTE override si fournis (source unique Cloud), sinon calcul legacy
+  const tte = options?.tteOverride ?? estimerTTESport(snapshotPrincipal);
+  const vlamax = options?.vlamaxOverride ?? calculVLamaxSnapshot(snapshotPrincipal, athlete.objectif);
   const priorite = determinerPriorite(vlamax, tte, athlete.objectif);
 
   const semaine: JourSemaine[] = [];
