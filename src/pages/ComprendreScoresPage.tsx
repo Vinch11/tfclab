@@ -14,8 +14,10 @@ import {
   Info,
   Brain,
   TrendingUp,
-  Heart
+  Heart,
+  Clock
 } from "lucide-react";
+import { AGE_METHODOLOGY } from "@/lib/ageAdjustment";
 
 // =============================================
 // PAGE "COMPRENDRE MES SCORES"
@@ -455,6 +457,82 @@ export default function ComprendreScoresPage() {
                 </AlertDescription>
               </Alert>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Section Âge */}
+        <Card className="border-orange-500/20">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <Clock className="w-5 h-5 text-orange-500" />
+              {AGE_METHODOLOGY.title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground whitespace-pre-line">
+              {AGE_METHODOLOGY.mainText}
+            </p>
+            
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="principles">
+                <AccordionTrigger className="text-sm font-medium">
+                  📋 Principes clés
+                </AccordionTrigger>
+                <AccordionContent className="space-y-3">
+                  <div className="grid gap-2">
+                    {AGE_METHODOLOGY.principles.map((principle, idx) => (
+                      <div key={idx} className="flex items-start gap-2 p-2 rounded-lg bg-muted/50">
+                        <CheckCircle2 className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
+                        <span className="text-sm">{principle}</span>
+                      </div>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="how-it-works">
+                <AccordionTrigger className="text-sm font-medium">
+                  ⚙️ Comment ça fonctionne ?
+                </AccordionTrigger>
+                <AccordionContent className="space-y-3">
+                  <div className="grid gap-2">
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-green-500/10">
+                      <Badge variant="outline" className="text-green-600 border-green-500/30">{"< 30 ans"}</Badge>
+                      <span className="text-sm">Référence – interprétation standard</span>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-500/10">
+                      <Badge variant="outline" className="text-blue-600 border-blue-500/30">30-39 ans</Badge>
+                      <span className="text-sm">Léger ajustement des cibles et risques</span>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-orange-500/10">
+                      <Badge variant="outline" className="text-orange-600 border-orange-500/30">40-49 ans</Badge>
+                      <span className="text-sm">Priorité sur la fraîcheur et la nutrition</span>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-red-500/10">
+                      <Badge variant="outline" className="text-red-600 border-red-500/30">50+ ans</Badge>
+                      <span className="text-sm">Interprétation conservative, recommandations adaptées</span>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="staff-note">
+                <AccordionTrigger className="text-sm font-medium">
+                  👨‍⚕️ Note pour les coachs
+                </AccordionTrigger>
+                <AccordionContent>
+                  <Alert className="bg-muted/50">
+                    <Info className="w-4 h-4" />
+                    <AlertDescription className="text-sm">
+                      {AGE_METHODOLOGY.staffNote}
+                    </AlertDescription>
+                  </Alert>
+                  <p className="text-xs text-muted-foreground mt-3">
+                    {AGE_METHODOLOGY.disclaimer}
+                  </p>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </CardContent>
         </Card>
       </div>

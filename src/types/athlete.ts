@@ -25,6 +25,8 @@ export interface Athlete {
   sexe: SexeType;
   objectif: ObjectifType;
   masse_grasse: number;       // %
+  // Date de naissance pour calcul AAI (Age Adjustment Index)
+  dateNaissance?: string;
   // Historique des snapshots Nolio
   historique: SnapshotNolio[];
   // Tests physiologiques (bibliothèque)
@@ -36,7 +38,6 @@ export interface Athlete {
   // Métadonnées optionnelles
   prenom?: string;
   email?: string;
-  dateNaissance?: string;
   createdAt?: string;
   updatedAt?: string;
 }
