@@ -810,7 +810,19 @@ const Index = () => {
                 });
               }}
               snapshotFatPct={effectiveCloudSnapshot?.fat_pct}
+              onOpenSnapshots={() => setShowSnapshots(true)}
             />
+            
+            {/* ✅ SnapshotManager intégré dans le profil si ouvert */}
+            {showSnapshots && currentAthlete && (
+              <SnapshotManager
+                athleteId={currentAthlete.id}
+                athleteName={currentAthlete.name}
+                athleteGoal={currentAthlete.goal || "IM"}
+                activeSnapshotId={currentAthlete.active_snapshot_id}
+                staffMode={staffMode}
+              />
+            )}
             <VLamaxCalculator 
               snapshotEffectif={effectiveCloudSnapshot ? {
                 ftp: effectiveCloudSnapshot.ftp ?? null,
