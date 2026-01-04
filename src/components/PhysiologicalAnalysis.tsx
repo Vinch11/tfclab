@@ -29,7 +29,8 @@ import {
   Apple,
   Flame
 } from "lucide-react";
-import { VLamaxEffectif, getSourceColor as getVLamaxSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
+import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
+import { VLamaxMetricRow } from "@/components/VLamaxStatusBadge";
 import { TTEEffectif, getSourceColor as getTTESourceColor, getSourceLabel } from "@/lib/tteEffectif";
 import { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { cn } from "@/lib/utils";
@@ -117,20 +118,10 @@ export function PhysiologicalAnalysis({ athlete, vlamaxEffectif, tteEffectif: tt
 
   return (
     <div className="space-y-4">
-      {/* Source VLamax + TTE - FIX 8: affiche source unique vlamaxEffectif */}
+      {/* Source VLamax + TTE - Utilise composant unifié VLamaxStatusBadge */}
       <div className="flex flex-wrap gap-4">
-        {vlamax !== null && (
-          <div className="flex items-center gap-2 text-sm p-2 rounded-lg bg-secondary/30 border border-border">
-            <span className="text-muted-foreground">VLamax:</span>
-            <span className="font-mono font-bold">{vlamax.toFixed(2)}</span>
-            <span className={cn("px-2 py-0.5 rounded text-xs", getVLamaxSourceColor(vlamaxSource))}>
-              {vlamaxSource}
-            </span>
-            <span className="text-muted-foreground">•</span>
-            <span className="text-xs text-muted-foreground">
-              conf {Math.round(vlamaxConfidence * 100)}%
-            </span>
-          </div>
+        {vlamaxEffectif && vlamaxEffectif.value !== null && (
+          <VLamaxMetricRow vlamax={vlamaxEffectif} />
         )}
         
         {tteEffectifProp && tteEffectifProp.tte_min !== null && (
