@@ -305,8 +305,10 @@ const Index = () => {
       fatigue_ok: true,
       seance_specifique_validee: false,
       fcMax: effectiveRefs.fcMax ?? null,
+      // ✅ FIX: Passer la dérive cardiaque depuis le snapshot
+      deriveCardiaque: effectiveCloudSnapshot?.run_hr_drift_pct ?? null,
     });
-  }, [currentAthlete, vlamaxEffectif, tteEffectif, ftp, poids, effectiveRefs]);
+  }, [currentAthlete, vlamaxEffectif, tteEffectif, ftp, poids, effectiveRefs, effectiveCloudSnapshot]);
 
   // ✅ NUTRITION ESTIMATE - Pour rapport staff
   const nutritionEstimate = useMemo(() => {
@@ -324,11 +326,12 @@ const Index = () => {
       fcMax: effectiveRefs.fcMax ?? null,
       fcMoyenneEndurance: null,
       allureEndurance: null,
-      deriveCardiaque: null,
+      // ✅ FIX: Utiliser la dérive cardiaque du snapshot
+      deriveCardiaque: effectiveCloudSnapshot?.run_hr_drift_pct ?? null,
       tteMin: tteEffectif.tte_min,
       objectif: currentAthlete?.goal || "IM",
     });
-  }, [effectiveRefs, tteEffectif, currentAthlete]);
+  }, [effectiveRefs, tteEffectif, currentAthlete, effectiveCloudSnapshot]);
 
   // ✅ ENERGY DRIFT - Source unique de vérité
   const energyDrift = useMemo<EnergyDriftResult>(() => {
