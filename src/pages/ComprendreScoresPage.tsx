@@ -12,14 +12,12 @@ import {
   AlertTriangle,
   CheckCircle2,
   Info,
-  Brain,
   TrendingUp,
   Heart,
   Clock,
   Shield
 } from "lucide-react";
 import { AGE_METHODOLOGY } from "@/lib/ageAdjustment";
-import { STRATEGY_ENGINE_DEFINITION, SEASON_PHASES, AGE_ADAPTATIONS } from "@/lib/strategyEngineDefinitions";
 
 // =============================================
 // PAGE "COMPRENDRE MES SCORES"
@@ -437,7 +435,7 @@ export default function ComprendreScoresPage() {
         <Card className="border-border">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-xl">
-              <Brain className="w-5 h-5 text-muted-foreground" />
+              <Activity className="w-5 h-5 text-muted-foreground" />
               Fondements scientifiques
             </CardTitle>
           </CardHeader>
@@ -538,145 +536,6 @@ export default function ComprendreScoresPage() {
           </CardContent>
         </Card>
 
-        {/* Section Strategy Engine */}
-        <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <Brain className="w-5 h-5 text-primary" />
-              {STRATEGY_ENGINE_DEFINITION.name}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-muted-foreground whitespace-pre-line">
-              {STRATEGY_ENGINE_DEFINITION.definition}
-            </p>
-            
-            <Accordion type="single" collapsible className="w-full">
-              {/* Les 3 leviers */}
-              <AccordionItem value="levers">
-                <AccordionTrigger className="text-sm font-medium">
-                  🔧 Les 3 leviers du moteur
-                </AccordionTrigger>
-                <AccordionContent className="space-y-3">
-                  {STRATEGY_ENGINE_DEFINITION.levers.map((lever) => (
-                    <div key={lever.id} className="p-3 rounded-lg border bg-card">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span>{lever.emoji}</span>
-                        <span className="font-semibold">{lever.title}</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{lever.description}</p>
-                      <p className="text-sm mt-1 text-primary">{lever.impact}</p>
-                    </div>
-                  ))}
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* Phases de la saison */}
-              <AccordionItem value="phases">
-                <AccordionTrigger className="text-sm font-medium">
-                  📅 Phases physiologiques de la saison
-                </AccordionTrigger>
-                <AccordionContent className="space-y-3">
-                  {SEASON_PHASES.map((phase) => (
-                    <div key={phase.id} className={`p-3 rounded-lg border-2 ${phase.bgColor}`}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg">{phase.iconEmoji}</span>
-                        <Badge variant="outline" className={phase.color}>
-                          Phase {phase.id}
-                        </Badge>
-                        <span className="font-semibold">{phase.name}</span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div><span className="text-muted-foreground">Priorité :</span> {phase.priorityFocus}</div>
-                        <div><span className="text-muted-foreground">TTE :</span> {phase.tteNote}</div>
-                        <div><span className="text-muted-foreground">VLamax :</span> {phase.vlamaxNote}</div>
-                        <div><span className="text-muted-foreground">Nutrition :</span> {phase.nutritionNote}</div>
-                      </div>
-                    </div>
-                  ))}
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* Adaptations par âge */}
-              <AccordionItem value="age-adaptations">
-                <AccordionTrigger className="text-sm font-medium">
-                  ⏱️ Adaptations par tranche d'âge
-                </AccordionTrigger>
-                <AccordionContent className="space-y-3">
-                  <Alert className="border-primary/30 bg-primary/5 mb-4">
-                    <AlertDescription className="font-medium">
-                      {STRATEGY_ENGINE_DEFINITION.ageIntegration.principle}
-                    </AlertDescription>
-                  </Alert>
-                  {AGE_ADAPTATIONS.map((adaptation) => (
-                    <div key={adaptation.category} className="p-3 rounded-lg border bg-muted/20">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge variant="outline">{adaptation.range}</Badge>
-                        <span className="text-sm font-medium">{adaptation.label}</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{adaptation.toleranceShock}</p>
-                      <p className="text-sm mt-1">{adaptation.vlamaxInterpretation}</p>
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {adaptation.priorities.map((p, i) => (
-                          <Badge key={i} variant="secondary" className="text-xs">{p}</Badge>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* TTE vs VO2max */}
-              <AccordionItem value="tte-central">
-                <AccordionTrigger className="text-sm font-medium">
-                  ⏱️ {STRATEGY_ENGINE_DEFINITION.tteVsVo2max.title}
-                </AccordionTrigger>
-                <AccordionContent>
-                  <p className="text-muted-foreground whitespace-pre-line">
-                    {STRATEGY_ENGINE_DEFINITION.tteVsVo2max.explanation}
-                  </p>
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* Race Readiness */}
-              <AccordionItem value="race-readiness-formula">
-                <AccordionTrigger className="text-sm font-medium">
-                  ❤️ Race Readiness — Formule
-                </AccordionTrigger>
-                <AccordionContent className="space-y-3">
-                  <p className="text-sm text-muted-foreground">
-                    Le score Race Readiness est calculé à partir de :
-                  </p>
-                  <ul className="space-y-2">
-                    {STRATEGY_ENGINE_DEFINITION.raceReadinessFormula.components.map((comp, i) => (
-                      <li key={i} className="flex items-center gap-2 text-sm">
-                        <CheckCircle2 className="w-4 h-4 text-primary" />
-                        {comp}
-                      </li>
-                    ))}
-                  </ul>
-                  <Alert className="bg-primary/5 border-primary/30 mt-4">
-                    <AlertDescription className="text-sm italic">
-                      "{STRATEGY_ENGINE_DEFINITION.raceReadinessFormula.message}"
-                    </AlertDescription>
-                  </Alert>
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* Positionnement scientifique */}
-              <AccordionItem value="scientific">
-                <AccordionTrigger className="text-sm font-medium">
-                  🔬 {STRATEGY_ENGINE_DEFINITION.scientificPositioning.title}
-                </AccordionTrigger>
-                <AccordionContent>
-                  <p className="text-muted-foreground whitespace-pre-line">
-                    {STRATEGY_ENGINE_DEFINITION.scientificPositioning.content}
-                  </p>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
