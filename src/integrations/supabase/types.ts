@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      athlete_race_goals: {
+        Row: {
+          athlete_id: string
+          coach_id: string
+          created_at: string
+          id: string
+          plan_start_date: string | null
+          race_date: string
+          race_name: string | null
+          race_type: string
+          updated_at: string
+        }
+        Insert: {
+          athlete_id: string
+          coach_id: string
+          created_at?: string
+          id?: string
+          plan_start_date?: string | null
+          race_date: string
+          race_name?: string | null
+          race_type: string
+          updated_at?: string
+        }
+        Update: {
+          athlete_id?: string
+          coach_id?: string
+          created_at?: string
+          id?: string
+          plan_start_date?: string | null
+          race_date?: string
+          race_name?: string | null
+          race_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       athletes: {
         Row: {
           active_snapshot_id: string | null
@@ -125,6 +161,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      daily_checkins: {
+        Row: {
+          athlete_id: string
+          coach_id: string
+          created_at: string
+          date: string
+          energy_level: number | null
+          id: string
+          notes: string | null
+          sleep_quality: number | null
+          stress_score: number
+        }
+        Insert: {
+          athlete_id: string
+          coach_id: string
+          created_at?: string
+          date?: string
+          energy_level?: number | null
+          id?: string
+          notes?: string | null
+          sleep_quality?: number | null
+          stress_score: number
+        }
+        Update: {
+          athlete_id?: string
+          coach_id?: string
+          created_at?: string
+          date?: string
+          energy_level?: number | null
+          id?: string
+          notes?: string | null
+          sleep_quality?: number | null
+          stress_score?: number
+        }
+        Relationships: []
       }
       plans: {
         Row: {
@@ -344,6 +416,101 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      training_plan: {
+        Row: {
+          adjusted: boolean
+          adjusted_reason: string | null
+          athlete_id: string
+          coach_id: string
+          created_at: string
+          custom_workout_description: string | null
+          custom_workout_title: string | null
+          date: string
+          id: string
+          notes: string | null
+          phase: string | null
+          status: string
+          updated_at: string
+          workout_id: string | null
+        }
+        Insert: {
+          adjusted?: boolean
+          adjusted_reason?: string | null
+          athlete_id: string
+          coach_id: string
+          created_at?: string
+          custom_workout_description?: string | null
+          custom_workout_title?: string | null
+          date: string
+          id?: string
+          notes?: string | null
+          phase?: string | null
+          status?: string
+          updated_at?: string
+          workout_id?: string | null
+        }
+        Update: {
+          adjusted?: boolean
+          adjusted_reason?: string | null
+          athlete_id?: string
+          coach_id?: string
+          created_at?: string
+          custom_workout_description?: string | null
+          custom_workout_title?: string | null
+          date?: string
+          id?: string
+          notes?: string | null
+          phase?: string | null
+          status?: string
+          updated_at?: string
+          workout_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_plan_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts_library"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workouts_library: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration_min: number
+          id: string
+          intensity_tag: string | null
+          phase_tag: string
+          sport: string
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration_min?: number
+          id?: string
+          intensity_tag?: string | null
+          phase_tag: string
+          sport: string
+          title: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration_min?: number
+          id?: string
+          intensity_tag?: string | null
+          phase_tag?: string
+          sport?: string
+          title?: string
+          type?: string
+        }
+        Relationships: []
       }
     }
     Views: {
