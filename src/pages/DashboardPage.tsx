@@ -1,85 +1,289 @@
 // =============================================
-// ÉCRAN 4 - DASHBOARD ATHLÈTE MULTI-SPORT
-// Avec VLamax, Confiance et Précision dynamiques
-// + Dashboard Scientifique + Export + Comparaison
+// DASHBOARD STAFF - Two For Coaching Lab
+// Tour de contrôle décisionnelle - Lisible en < 10 secondes
 // =============================================
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import { 
   Zap, 
-  Flame, 
-  Activity, 
   Target, 
-  Calendar, 
-  CalendarDays, 
+  Activity,
+  AlertCircle,
+  Clock,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+  Utensils,
   TrendingUp,
   Plus,
-  AlertCircle,
-  Bike,
-  PersonStanding,
-  Waves,
-  AlertTriangle,
-  Clock,
-  BookOpen,
-  Users,
-  Download,
-  List,
-  Heart
+  Info,
+  ChevronDown,
+  ChevronUp,
+  Star
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAthletes } from "@/contexts/AthleteContext";
-import { useCloudData, DbAthlete, DbSnapshot, DbTest } from "@/hooks/useCloudData";
-import { getDernierSnapshot } from "@/types/athlete";
-import { estimerTTESport, calculerAgeSnapshot, calculerPrecision, SportType } from "@/types/snapshotNolio";
-import { calculVLamaxAvecConfiance } from "@/lib/athleteStore";
-import { calculRaceReadiness, texteExplicatifAthlete, getDernierSnapshotParSport } from "@/lib/raceReadiness";
-import { determinerPriorite, seancesParSport } from "@/types/seances";
-import { ScientificDashboard } from "@/components/ScientificDashboard";
-import { MetricBars } from "@/components/ColoredProgressBar";
-import { Phase3Dashboard } from "@/components/Phase3Dashboard";
-import { ExportTools } from "@/components/ExportTools";
-import { AthleteComparison } from "@/components/AthleteComparison";
-import { IndexSeancesView } from "@/components/IndexSeances";
-import { PhysiologicalAnalysis } from "@/components/PhysiologicalAnalysis";
-import { ZonesModule } from "@/components/ZonesModule";
-import { TestProtocols } from "@/components/TestProtocols";
+import { useCloudData } from "@/hooks/useCloudData";
 
-// Interface pour les données par sport
-interface SportDashboardData {
-  vlamax: number;
-  confiance: number;
-  precision: number;
-  ageSnapshot: number;
-  tte: number;
-  priorite: string;
-  seances: any[];
-  vo2max: number | null;
-  hrv: number | null;
-  poids: number;
-  date: string;
-  ftp?: number;
-  vma?: number;
-  pace100?: number;
+// Sources uniques de données
+import { computeVLamaxEffectif, VLamaxEffectif, getSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
+import { computeTTEEffectif, TTEEffectif, getTTETarget, getSourceLabel } from "@/lib/tteEffectif";
+import { computeRaceReadinessEffectif, RaceReadinessEffectif, getSportFromObjectif } from "@/lib/raceReadinessEffectif";
+import { computeNutritionEstimate, NutritionEstimate } from "@/lib/nutritionPredictive";
+
+// =============================================
+// HELPERS
+// =============================================
+
+const OBJECTIF_LABELS: Record<string, string> = {
+  IM: "Ironman",
+  Ironman: "Ironman",
+  "703": "70.3 / Half Ironman",
+  Half: "70.3 / Half Ironman",
+  Marathon: "Marathon",
+  Semi: "Semi-Marathon",
+  Course: "Course à pied",
+  Trail: "Trail",
+  TrailCourt: "Trail Court",
+  TrailLong: "Trail Long / Ultra",
+  Ultra: "Ultra",
+  Sprint: "Sprint",
+  Olympic: "Olympique",
+};
+
+const PHASE_LABELS: Record<string, string> = {
+  base: "Développement aérobie",
+  build: "Consolidation métabolique",
+  peak: "Spécifique",
+  race: "Affûtage",
+  recovery: "Récupération",
+};
+
+function getPhaseFromObjectif(objectif: string): string {
+  // Simplified - in real app would come from planning module
+  return "build"; 
 }
+
+function generateCoachSummary(
+  vlamax: VLamaxEffectif,
+  tte: TTEEffectif,
+  readiness: RaceReadinessEffectif,
+  objectif: string
+): string {
+  const parts: string[] = [];
+  
+  // Analyse VLamax
+  if (vlamax.value !== null) {
+    if (vlamax.value > 0.50) {
+      parts.push("Le profil métabolique reste orienté glycogène → vigilance nutritionnelle recommandée.");
+    } else if (vlamax.value < 0.35) {
+      parts.push("Excellent profil métabolique pour l'endurance.");
+    } else {
+      parts.push("Profil métabolique équilibré.");
+    }
+  }
+  
+  // Analyse TTE
+  const tteTarget = getTTETarget(objectif);
+  if (tte.tte_min < tteTarget - 5) {
+    parts.push("Endurance spécifique au seuil encore limitante.");
+  } else if (tte.tte_min >= tteTarget) {
+    parts.push("Endurance spécifique validée.");
+  }
+  
+  // Synthèse
+  if (readiness.score >= 80) {
+    return "Athlète globalement prêt. " + parts.join(" ");
+  } else if (readiness.score >= 60) {
+    return "Athlète en progression, mais " + parts.join(" ").toLowerCase();
+  } else {
+    return "Préparation à consolider. " + parts.join(" ");
+  }
+}
+
+function getStatusIcon(status: "ok" | "warning" | "critical") {
+  switch (status) {
+    case "ok": return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+    case "warning": return <AlertTriangle className="h-4 w-4 text-amber-500" />;
+    case "critical": return <XCircle className="h-4 w-4 text-red-500" />;
+  }
+}
+
+function getStatusBadge(status: "ok" | "warning" | "critical", label: string) {
+  const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+    ok: "default",
+    warning: "secondary",
+    critical: "destructive",
+  };
+  return <Badge variant={variants[status]}>{label}</Badge>;
+}
+
+function getVLamaxStatus(value: number | null, objectif: string): { status: "ok" | "warning" | "critical"; label: string } {
+  if (value === null) return { status: "critical", label: "Non disponible" };
+  
+  // Seuils selon objectif longue distance vs court
+  const isLongDistance = ["IM", "Ironman", "Marathon", "Ultra", "TrailLong", "703", "Half"].includes(objectif);
+  
+  if (isLongDistance) {
+    if (value <= 0.40) return { status: "ok", label: "Optimal" };
+    if (value <= 0.50) return { status: "warning", label: "À surveiller" };
+    return { status: "critical", label: "Limitant" };
+  } else {
+    if (value <= 0.55) return { status: "ok", label: "Cohérent" };
+    if (value <= 0.65) return { status: "warning", label: "À surveiller" };
+    return { status: "critical", label: "Élevé" };
+  }
+}
+
+function getTTEStatus(value: number, target: number): { status: "ok" | "warning" | "critical"; label: string } {
+  const ratio = value / target;
+  if (ratio >= 1) return { status: "ok", label: "OK" };
+  if (ratio >= 0.85) return { status: "warning", label: "Insuffisant" };
+  return { status: "critical", label: "Critique" };
+}
+
+function getRaceReadinessStatus(score: number): { status: "ok" | "warning" | "critical"; label: string } {
+  if (score >= 80) return { status: "ok", label: "Race Ready!" };
+  if (score >= 60) return { status: "warning", label: "En progression" };
+  return { status: "critical", label: "Non prêt" };
+}
+
+// =============================================
+// MAIN COMPONENT
+// =============================================
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const { currentAthlete, athletes } = useAthletes();
-  const { snapshots, tests } = useCloudData();
-  const [activeSport, setActiveSport] = useState<SportType>("vélo");
-  const [showComparison, setShowComparison] = useState(false);
-  const [showIndexSeances, setShowIndexSeances] = useState(false);
-  const [showPhysiologicalAnalysis, setShowPhysiologicalAnalysis] = useState(false);
-  const [showZones, setShowZones] = useState(false);
-  const [showTestLibrary, setShowTestLibrary] = useState(false);
+  const { currentAthlete } = useAthletes();
+  const { snapshots, tests, checkins } = useCloudData();
+  const [showScientificDetails, setShowScientificDetails] = useState(false);
 
+  // =============================================
+  // CALCUL DES DONNÉES EFFECTIVES
+  // =============================================
+  
+  const dashboardData = useMemo(() => {
+    if (!currentAthlete) return null;
+
+    const athleteId = currentAthlete.id;
+    const objectif = currentAthlete.objectif || "IM";
+    const activeSnapshotId = currentAthlete.active_snapshot_id;
+    
+    // Récupérer le snapshot actif
+    const athleteSnapshots = snapshots.filter(s => s.athlete_id === athleteId);
+    let activeSnapshot = athleteSnapshots.find(s => s.id === activeSnapshotId);
+    if (!activeSnapshot && athleteSnapshots.length > 0) {
+      activeSnapshot = [...athleteSnapshots].sort((a, b) => b.date.localeCompare(a.date))[0];
+    }
+    
+    if (!activeSnapshot) return null;
+    
+    // VLamax Effectif (source unique)
+    const vlamaxEffectif = computeVLamaxEffectif({
+      athleteId,
+      objectif,
+      activeSnapshotId: activeSnapshot.id,
+      tests: tests.map(t => ({
+        athlete_id: t.athlete_id,
+        vlamax: t.vlamax,
+        date: t.date,
+        type: t.type,
+        name: t.name,
+      })),
+      snapshots: athleteSnapshots.map(s => ({
+        id: s.id,
+        athlete_id: s.athlete_id,
+        date: s.date,
+        vlamax: s.vlamax,
+        ftp: s.ftp,
+        pmax_5s: s.pmax_5s,
+        weight_kg: s.weight_kg,
+      })),
+    });
+    
+    // TTE Effectif (source unique)
+    const tteEffectif = computeTTEEffectif({
+      ftp: activeSnapshot.ftp,
+      tss_7d: activeSnapshot.tss_7d,
+      tte_mode: activeSnapshot.tte_mode,
+      tte_observed_min: activeSnapshot.tte_observed_min,
+      objectif,
+    });
+    
+    // Race Readiness Effectif (source unique)
+    const raceReadiness = computeRaceReadinessEffectif({
+      objectif,
+      vlamaxEffectif,
+      tteEffectif,
+      ftp: activeSnapshot.ftp ?? null,
+      poids: activeSnapshot.weight_kg ?? null,
+      fatigue_ok: true, // Simplified
+      seance_specifique_validee: false,
+    });
+    
+    // Nutrition Prédictive
+    const nutritionEstimate = computeNutritionEstimate({
+      vlamax: vlamaxEffectif.value,
+      objectif,
+      tteMin: tteEffectif.tte_min,
+      tteTarget: getTTETarget(objectif),
+      raceReadiness: raceReadiness.score,
+    });
+    
+    // FTP/kg
+    const ftpKg = activeSnapshot.ftp && activeSnapshot.weight_kg && activeSnapshot.weight_kg > 0
+      ? activeSnapshot.ftp / activeSnapshot.weight_kg
+      : null;
+    
+    // Générer le résumé coach
+    const coachSummary = generateCoachSummary(vlamaxEffectif, tteEffectif, raceReadiness, objectif);
+    
+    // Phase actuelle
+    const phase = getPhaseFromObjectif(objectif);
+    
+    // Priorités d'entraînement
+    const priorities: string[] = [];
+    const tteTarget = getTTETarget(objectif);
+    
+    if (tteEffectif.tte_min < tteTarget) {
+      priorities.push("Allonger le TTE (priorité principale)");
+    }
+    if (vlamaxEffectif.value !== null && vlamaxEffectif.value > 0.45) {
+      priorities.push("Réduire progressivement le VLamax");
+    }
+    if (nutritionEstimate && nutritionEstimate.riskLevel !== "low") {
+      priorities.push("Sécuriser la nutrition à l'effort");
+    }
+    if (priorities.length === 0) {
+      priorities.push("Maintenir le profil actuel");
+      priorities.push("Affiner la stratégie de course");
+    }
+    
+    return {
+      vlamaxEffectif,
+      tteEffectif,
+      raceReadiness,
+      nutritionEstimate,
+      ftpKg,
+      snapshot: activeSnapshot,
+      coachSummary,
+      phase,
+      priorities,
+      tteTarget,
+    };
+  }, [currentAthlete, snapshots, tests]);
+
+  // =============================================
+  // RENDER: NO ATHLETE SELECTED
+  // =============================================
+  
   if (!currentAthlete) {
     return (
       <AppLayout title="Dashboard">
@@ -96,9 +300,11 @@ export default function DashboardPage() {
     );
   }
 
-  const snapshot = getDernierSnapshot(currentAthlete);
-
-  if (!snapshot) {
+  // =============================================
+  // RENDER: NO DATA
+  // =============================================
+  
+  if (!dashboardData) {
     return (
       <AppLayout title="Dashboard">
         <Card>
@@ -117,427 +323,352 @@ export default function DashboardPage() {
     );
   }
 
-  // Charger données multi-sport avec confiance et précision
-  const chargerDonneesSport = (sport: SportType): SportDashboardData | null => {
-    const sportSnapshot = getDernierSnapshotParSport(currentAthlete, sport);
-    if (!sportSnapshot) return null;
+  const { 
+    vlamaxEffectif, 
+    tteEffectif, 
+    raceReadiness, 
+    nutritionEstimate,
+    ftpKg,
+    snapshot,
+    coachSummary,
+    phase,
+    priorities,
+    tteTarget,
+  } = dashboardData;
 
-    const calc = calculVLamaxAvecConfiance(sportSnapshot, currentAthlete.objectif);
-    const tte = estimerTTESport(sportSnapshot);
-    const priorite = determinerPriorite(calc.vlamax, tte, currentAthlete.objectif);
-    const seances = seancesParSport(priorite, sport);
+  const objectif = currentAthlete.objectif || "IM";
+  const vlamaxStatus = getVLamaxStatus(vlamaxEffectif.value, objectif);
+  const tteStatus = getTTEStatus(tteEffectif.tte_min, tteTarget);
+  const readinessStatus = getRaceReadinessStatus(raceReadiness.score);
 
-    return {
-      vlamax: calc.vlamax,
-      confiance: calc.confiance,
-      precision: calc.precision,
-      ageSnapshot: calc.ageSnapshot,
-      tte,
-      priorite,
-      seances,
-      vo2max: sportSnapshot.vo2max || null,
-      hrv: sportSnapshot.hrv || null,
-      poids: sportSnapshot.poids,
-      date: sportSnapshot.date,
-      ftp: sportSnapshot.ftp,
-      vma: sportSnapshot.vma,
-      pace100: sportSnapshot.pace100,
-    };
-  };
-
-  // Global readiness
-  const readiness = calculRaceReadiness(currentAthlete);
+  // =============================================
+  // RENDER: MAIN DASHBOARD
+  // =============================================
   
-  // Générer texte explicatif multi-sport avec confiance/précision
-  const genererTexteMultiSport = (): string => {
-    const sports: SportType[] = ["vélo", "course", "natation"];
-    let texte = "";
-    
-    sports.forEach(sport => {
-      const data = chargerDonneesSport(sport);
-      if (data) {
-        const emoji = sport === "vélo" ? "🚴" : sport === "course" ? "🏃" : "🏊";
-        texte += `${emoji} ${sport.toUpperCase()} : VLamax ${data.vlamax.toFixed(2)} ±${data.precision}%, Confiance ${data.confiance}%\n`;
-        texte += `   Priorité : ${data.priorite}\n`;
-        texte += `   TTE estimé : ${data.tte} min\n\n`;
-      }
-    });
-    
-    texte += `🏅 Score global Race Readiness : ${readiness?.score || "N/A"}/100`;
-    return texte;
-  };
-
-  const texte = genererTexteMultiSport();
-
-  const getSportIcon = (sport: SportType) => {
-    switch (sport) {
-      case "vélo": return <Bike className="h-4 w-4" />;
-      case "course": return <PersonStanding className="h-4 w-4" />;
-      case "natation": return <Waves className="h-4 w-4" />;
-    }
-  };
-
-  const getPrioriteColor = (p: string) => {
-    switch (p) {
-      case "Réduire VLamax": return "destructive";
-      case "Augmenter TTE": return "secondary";
-      default: return "default";
-    }
-  };
-
-  const getConfianceColor = (confiance: number) => {
-    if (confiance >= 80) return "text-success";
-    if (confiance >= 60) return "text-warning";
-    return "text-destructive";
-  };
-
-  const getConfianceBg = (confiance: number) => {
-    if (confiance >= 80) return "bg-success/10 border-success/30";
-    if (confiance >= 60) return "bg-warning/10 border-warning/30";
-    return "bg-destructive/10 border-destructive/30";
-  };
-
-  const renderSportTab = (sport: SportType) => {
-    const data = chargerDonneesSport(sport);
-    
-    if (!data) {
-      return (
-        <Card>
-          <CardContent className="p-6 text-center">
-            <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground mb-3">
-              Pas de données {sport}
-            </p>
-            <Button size="sm" onClick={() => navigate("/snapshot")}>
-              Ajouter
-            </Button>
-          </CardContent>
-        </Card>
-      );
-    }
-
-    return (
-      <div className="space-y-4">
-        {/* VLamax avec confiance et précision */}
-        <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
+  return (
+    <AppLayout title="Dashboard">
+      <div className="space-y-4 animate-fade-in max-w-2xl mx-auto">
+        
+        {/* ============================================= */}
+        {/* BLOC 1: IDENTITÉ ATHLÈTE & CONTEXTE */}
+        {/* ============================================= */}
+        <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Zap className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium">VLamax</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <AlertTriangle className="h-3 w-3" />
-                <span>±{data.precision}%</span>
-              </div>
+            <h1 className="text-xl font-bold mb-2">{currentAthlete.nom}</h1>
+            <div className="flex flex-wrap gap-2 text-sm">
+              <Badge variant="outline" className="gap-1">
+                <Target className="h-3 w-3" />
+                {OBJECTIF_LABELS[objectif] || objectif}
+              </Badge>
+              <Badge variant="secondary" className="gap-1">
+                <Activity className="h-3 w-3" />
+                {PHASE_LABELS[phase] || phase}
+              </Badge>
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold font-mono">{data.vlamax.toFixed(2)}</span>
-              <span className="text-sm text-muted-foreground">mmol/L/s</span>
-            </div>
-            <Progress 
-              value={Math.min(100, ((data.vlamax - 0.2) / 0.5) * 100)} 
-              className="h-2 mt-2" 
-            />
           </CardContent>
         </Card>
 
-        {/* Confiance avec âge snapshot */}
-        <Card className={cn("border", getConfianceBg(data.confiance))}>
+        {/* ============================================= */}
+        {/* BLOC 2: RÉSUMÉ EXPRESS COACH */}
+        {/* ============================================= */}
+        <Card className="border-l-4 border-l-primary">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Target className="h-4 w-4" />
-                <span className="text-sm">Confiance données</span>
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Info className="h-5 w-5 text-primary" />
               </div>
-              {data.ageSnapshot > 0 && (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3" />
-                  <span>{data.ageSnapshot}j</span>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                  Lecture rapide coach
+                </p>
+                <p className="text-sm leading-relaxed">
+                  {coachSummary}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ============================================= */}
+        {/* BLOC 3: LES 3 PILIERS PHYSIOLOGIQUES */}
+        {/* ============================================= */}
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
+            Piliers Physiologiques
+          </h2>
+
+          {/* PILIER 1: VLamax Effectif */}
+          <Card>
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-amber-500" />
+                  <span className="font-semibold">VLamax effectif</span>
+                </div>
+                {getStatusBadge(vlamaxStatus.status, vlamaxStatus.label)}
+              </div>
+              
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold font-mono">
+                  {vlamaxEffectif.value !== null ? vlamaxEffectif.value.toFixed(2) : "—"}
+                </span>
+                <span className="text-sm text-muted-foreground">mmol/L/s</span>
+              </div>
+              
+              <div className="flex items-center gap-4 text-xs">
+                <div className="flex items-center gap-1">
+                  <span className="text-muted-foreground">Source:</span>
+                  <span className={getSourceColor(vlamaxEffectif.source)}>
+                    {vlamaxEffectif.label}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-muted-foreground">Confiance:</span>
+                  <div className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <Star 
+                        key={i} 
+                        className={cn(
+                          "h-3 w-3",
+                          i <= Math.round(vlamaxEffectif.confidence * 5) 
+                            ? "text-amber-500 fill-amber-500" 
+                            : "text-muted-foreground/30"
+                        )} 
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+              
+              <Separator />
+              
+              <div className="space-y-2 text-sm">
+                <p className="text-muted-foreground">
+                  <span className="font-medium text-foreground">Interprétation : </span>
+                  {vlamaxEffectif.value !== null && vlamaxEffectif.value > 0.50
+                    ? "Un VLamax élevé indique une forte dépendance aux glucides. Pour cet objectif, cela augmente le risque d'épuisement glycogénique."
+                    : vlamaxEffectif.value !== null && vlamaxEffectif.value < 0.35
+                    ? "Un VLamax bas favorise l'utilisation des lipides, excellent pour l'endurance longue distance."
+                    : "VLamax dans une zone équilibrée pour l'objectif."}
+                </p>
+                <p className="text-primary font-medium">
+                  <span className="font-medium">Action : </span>
+                  {vlamaxEffectif.value !== null && vlamaxEffectif.value > 0.45
+                    ? "Prioriser endurance fondamentale et force endurance pour réduire progressivement le VLamax."
+                    : "Maintenir le profil actuel."}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* PILIER 2: TTE Effectif */}
+          <Card>
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-blue-500" />
+                  <span className="font-semibold">TTE effectif</span>
+                </div>
+                {getStatusBadge(tteStatus.status, tteStatus.label)}
+              </div>
+              
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold font-mono">{tteEffectif.tte_min}</span>
+                <span className="text-sm text-muted-foreground">min</span>
+                <span className="text-sm text-muted-foreground ml-2">
+                  (cible: {tteTarget} min)
+                </span>
+              </div>
+              
+              <Progress 
+                value={Math.min(100, (tteEffectif.tte_min / tteTarget) * 100)} 
+                className="h-2" 
+              />
+              
+              <div className="flex items-center gap-4 text-xs">
+                <div className="flex items-center gap-1">
+                  <span className="text-muted-foreground">Source:</span>
+                  <span className={tteEffectif.source === "observed" ? "text-green-600" : "text-amber-600"}>
+                    {getSourceLabel(tteEffectif.source)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-muted-foreground">Confiance:</span>
+                  <span>{getConfidenceLabel(tteEffectif.confidence)}</span>
+                </div>
+              </div>
+              
+              <Separator />
+              
+              <div className="space-y-2 text-sm">
+                <p className="text-muted-foreground">
+                  <span className="font-medium text-foreground">Interprétation : </span>
+                  {tteEffectif.tte_min < tteTarget
+                    ? "TTE actuellement insuffisant pour soutenir l'allure cible sans dérive physiologique."
+                    : "TTE suffisant pour maintenir l'intensité cible sur la durée de l'épreuve."}
+                </p>
+                <p className="text-primary font-medium">
+                  <span className="font-medium">Action : </span>
+                  {tteEffectif.tte_min < tteTarget
+                    ? "Allonger les blocs continus à intensité stable et consolider l'endurance spécifique."
+                    : "Maintenir la charge d'endurance actuelle."}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* PILIER 3: Race Readiness */}
+          <Card>
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-green-500" />
+                  <span className="font-semibold">Race Readiness</span>
+                </div>
+                {getStatusBadge(readinessStatus.status, readinessStatus.label)}
+              </div>
+              
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold font-mono">{raceReadiness.score}</span>
+                <span className="text-sm text-muted-foreground">%</span>
+              </div>
+              
+              <Progress 
+                value={raceReadiness.score} 
+                className="h-2" 
+              />
+              
+              <p className="text-xs text-muted-foreground italic">
+                Score pondéré selon l'objectif ({OBJECTIF_LABELS[objectif] || objectif})
+              </p>
+              
+              {/* Détail par composante */}
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="p-2 bg-muted/50 rounded text-center">
+                  <p className="text-muted-foreground">Métabolisme</p>
+                  <p className="font-bold">{raceReadiness.details.vlamax}/25</p>
+                </div>
+                <div className="p-2 bg-muted/50 rounded text-center">
+                  <p className="text-muted-foreground">Endurance</p>
+                  <p className="font-bold">{raceReadiness.details.endurance}/25</p>
+                </div>
+                <div className="p-2 bg-muted/50 rounded text-center">
+                  <p className="text-muted-foreground">Puissance</p>
+                  <p className="font-bold">{raceReadiness.details.puissance}/25</p>
+                </div>
+              </div>
+              
+              <Separator />
+              
+              <p className="text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">Message : </span>
+                {raceReadiness.messageStaff}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* ============================================= */}
+        {/* BLOC 4: NUTRITION PRÉDICTIVE */}
+        {/* ============================================= */}
+        {nutritionEstimate && (
+          <Card>
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Utensils className="h-5 w-5 text-orange-500" />
+                  <span className="font-semibold">Nutrition Prédictive</span>
+                </div>
+                <Badge 
+                  variant={nutritionEstimate.riskLevel === "low" ? "default" : 
+                          nutritionEstimate.riskLevel === "moderate" ? "secondary" : "destructive"}
+                >
+                  {nutritionEstimate.nutritionalRiskIndex.icon} Risque {nutritionEstimate.nutritionalRiskIndex.label}
+                </Badge>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Besoin glucidique estimé</p>
+                  <p className="text-xl font-bold">{nutritionEstimate.carbsMin}–{nutritionEstimate.carbsMax} g/h</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Facteur principal</p>
+                  <p className="text-sm font-medium">{nutritionEstimate.nutritionalRiskIndex.mainRiskFactor}</p>
+                </div>
+              </div>
+              
+              {nutritionEstimate.riskLevel !== "low" && (
+                <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-900">
+                  <p className="text-sm text-amber-800 dark:text-amber-200">
+                    ⚠️ {nutritionEstimate.messageStaff}
+                  </p>
                 </div>
               )}
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className={cn("text-2xl font-bold font-mono", getConfianceColor(data.confiance))}>
-                {data.confiance}%
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ============================================= */}
+        {/* BLOC 5: PRIORITÉS D'ENTRAÎNEMENT */}
+        {/* ============================================= */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              Priorités d'entraînement
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <ol className="space-y-2">
+              {priorities.map((priority, index) => (
+                <li key={index} className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center">
+                    {index + 1}
+                  </span>
+                  <span className="text-sm pt-0.5">{priority}</span>
+                </li>
+              ))}
+            </ol>
+          </CardContent>
+        </Card>
+
+        {/* ============================================= */}
+        {/* BLOC 6: CADRE SCIENTIFIQUE & LIMITES */}
+        {/* ============================================= */}
+        <Card className="bg-muted/30 border-dashed">
+          <CardContent className="p-4">
+            <Button
+              variant="ghost"
+              className="w-full flex items-center justify-between p-0 h-auto"
+              onClick={() => setShowScientificDetails(!showScientificDetails)}
+            >
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Cadre scientifique & limites
               </span>
-              <span className="text-xs text-muted-foreground">
-                (±{data.precision}% erreur)
-              </span>
-            </div>
-            {data.ageSnapshot > 7 && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Données de {Math.floor(data.ageSnapshot / 7)} semaine{data.ageSnapshot >= 14 ? 's' : ''} - pénalité appliquée
-              </p>
+              {showScientificDetails ? (
+                <ChevronUp className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              )}
+            </Button>
+            
+            {showScientificDetails && (
+              <div className="mt-3 space-y-2 text-xs text-muted-foreground">
+                <p>• Les valeurs sont issues d'estimations terrain</p>
+                <p>• La précision dépend de la qualité des snapshots</p>
+                <p>• Les indicateurs guident la décision, ils ne remplacent pas l'expertise du coach</p>
+                <Separator className="my-2" />
+                <p className="italic">
+                  Snapshot du {snapshot.date} • 
+                  VLamax: {vlamaxEffectif.source} ({Math.round(vlamaxEffectif.confidence * 100)}%) • 
+                  TTE: {tteEffectif.source} ({Math.round(tteEffectif.confidence * 100)}%)
+                </p>
+              </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Métriques secondaires */}
-        <div className="grid grid-cols-2 gap-3">
-          <Card>
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2 mb-1">
-                <Activity className="h-3 w-3 text-accent" />
-                <span className="text-xs text-muted-foreground">TTE</span>
-              </div>
-              <p className="text-xl font-bold">{data.tte} min</p>
-            </CardContent>
-          </Card>
-
-          {sport === "vélo" && data.ftp && (
-            <Card>
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <Flame className="h-3 w-3 text-warning" />
-                  <span className="text-xs text-muted-foreground">FTP</span>
-                </div>
-                <p className="text-xl font-bold">{data.ftp}W</p>
-                <p className="text-xs text-muted-foreground">
-                  {(data.ftp / data.poids).toFixed(1)} W/kg
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
-          {sport === "course" && data.vma && (
-            <Card>
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <Target className="h-3 w-3 text-warning" />
-                  <span className="text-xs text-muted-foreground">VMA</span>
-                </div>
-                <p className="text-xl font-bold">{data.vma} km/h</p>
-              </CardContent>
-            </Card>
-          )}
-
-          {sport === "natation" && data.pace100 && (
-            <Card>
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <Target className="h-3 w-3 text-warning" />
-                  <span className="text-xs text-muted-foreground">Pace 100m</span>
-                </div>
-                <p className="text-xl font-bold">{data.pace100}s</p>
-              </CardContent>
-            </Card>
-          )}
-
-          {data.vo2max && (
-            <Card>
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <Activity className="h-3 w-3 text-primary" />
-                  <span className="text-xs text-muted-foreground">VO2max</span>
-                </div>
-                <p className="text-xl font-bold">{data.vo2max}</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Priorité */}
-        <Card>
-          <CardContent className="p-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm">Priorité</span>
-              <Badge variant={getPrioriteColor(data.priorite) as any}>{data.priorite}</Badge>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Séances recommandées */}
-        <Card>
-          <CardHeader className="pb-2 pt-3 px-3">
-            <CardTitle className="text-sm">Séances recommandées</CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 pt-0">
-            <div className="space-y-2">
-              {data.seances.slice(0, 3).map((seance, i) => (
-                <div key={i} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-xs">{seance.code}</Badge>
-                    <span>{seance.nom}</span>
-                  </div>
-                  <span className="text-xs text-muted-foreground">{seance.intensite}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  };
-
-  return (
-    <AppLayout title="Dashboard">
-      <div className="space-y-4 animate-fade-in">
-        {/* Header avec Export et Comparaison */}
-        <div className="flex items-center justify-between gap-2 flex-wrap">
-          {currentAthlete && (
-            <ExportTools 
-              athlete={{
-                id: currentAthlete.id,
-                coach_id: "", // Not needed for export
-                name: currentAthlete.nom,
-                goal: currentAthlete.objectif,
-                refs: currentAthlete.refs,
-                vo2max: currentAthlete.vo2max,
-                active_snapshot_id: currentAthlete.active_snapshot_id,
-                created_at: ""
-              } as DbAthlete}
-              snapshots={snapshots}
-              tests={tests}
-            />
-          )}
-          <Button
-            variant={showComparison ? "default" : "outline"}
-            size="sm"
-            onClick={() => setShowComparison(!showComparison)}
-            className="gap-2"
-          >
-            <Users className="h-4 w-4" />
-            {showComparison ? "Masquer" : "Comparer"}
-          </Button>
-        </div>
-
-        {/* Comparaison Multi-Athlètes */}
-        {showComparison && athletes.length > 1 && (
-          <AthleteComparison athletes={athletes} />
-        )}
-
-        {/* Race Readiness Global */}
-        {readiness && (
-          <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Race Readiness</span>
-                <Badge variant={readiness.color as any}>{readiness.label}</Badge>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-3xl font-bold">{readiness.score}%</span>
-                <Progress value={readiness.score} className="flex-1 h-2" />
-              </div>
-              {readiness.parSport && readiness.parSport.length > 0 && (
-                <div className="flex gap-4 mt-3 text-xs text-muted-foreground">
-                  {readiness.parSport.map((s, i) => (
-                    <div key={i} className="flex items-center gap-1">
-                      {getSportIcon(s.sport)}
-                      <span>{s.score}%</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Onglets par sport */}
-        <Tabs value={activeSport} onValueChange={(v) => setActiveSport(v as SportType)}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="vélo" className="gap-1">
-              <Bike className="h-4 w-4" />
-              Vélo
-            </TabsTrigger>
-            <TabsTrigger value="course" className="gap-1">
-              <PersonStanding className="h-4 w-4" />
-              Course
-            </TabsTrigger>
-            <TabsTrigger value="natation" className="gap-1">
-              <Waves className="h-4 w-4" />
-              Natation
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="vélo" className="mt-4">
-            {renderSportTab("vélo")}
-          </TabsContent>
-          <TabsContent value="course" className="mt-4">
-            {renderSportTab("course")}
-          </TabsContent>
-          <TabsContent value="natation" className="mt-4">
-            {renderSportTab("natation")}
-          </TabsContent>
-        </Tabs>
-
-        {/* Phase 3 - IA, Alertes, Gamification */}
-        <Phase3Dashboard athlete={currentAthlete} />
-
-        {/* Dashboard Scientifique */}
-        <ScientificDashboard 
-          snapshots={currentAthlete.historique}
-          objectif={currentAthlete.objectif}
-          athleteNom={currentAthlete.nom}
-        />
-
-        {/* Actions */}
-        <div className="grid grid-cols-1 gap-2">
-          <Button
-            onClick={() => navigate("/evolution")}
-            className="w-full justify-start gap-3 h-12"
-            variant="outline"
-          >
-            <TrendingUp className="h-4 w-4 text-primary" />
-            <span className="text-sm">Voir évolution</span>
-          </Button>
-
-          <Button
-            onClick={() => setShowIndexSeances(!showIndexSeances)}
-            className="w-full justify-start gap-3 h-12"
-            variant={showIndexSeances ? "default" : "outline"}
-          >
-            <List className="h-4 w-4 text-primary" />
-            <span className="text-sm">Index Séances A/B/C/D</span>
-          </Button>
-
-          <Button
-            onClick={() => setShowPhysiologicalAnalysis(!showPhysiologicalAnalysis)}
-            className="w-full justify-start gap-3 h-12"
-            variant={showPhysiologicalAnalysis ? "default" : "outline"}
-          >
-            <Activity className="h-4 w-4 text-primary" />
-            <span className="text-sm">Analyse Physiologique Élite</span>
-          </Button>
-
-          <Button
-            onClick={() => setShowZones(!showZones)}
-            className="w-full justify-start gap-3 h-12"
-            variant={showZones ? "default" : "outline"}
-          >
-            <Heart className="h-4 w-4 text-primary" />
-            <span className="text-sm">Zones (Cardiaque / Puissance / Allure)</span>
-          </Button>
-
-          <Button
-            onClick={() => setShowTestLibrary(!showTestLibrary)}
-            className="w-full justify-start gap-3 h-12"
-            variant={showTestLibrary ? "default" : "outline"}
-          >
-            <BookOpen className="h-4 w-4 text-primary" />
-            <span className="text-sm">Bibliothèque de Tests</span>
-          </Button>
-        </div>
-
-        {/* Index des Séances */}
-        {showIndexSeances && (
-          <IndexSeancesView />
-        )}
-
-        {/* Analyse Physiologique Élite */}
-        {showPhysiologicalAnalysis && (
-          <PhysiologicalAnalysis athlete={currentAthlete} />
-        )}
-
-        {/* Zones Module */}
-        {showZones && (
-          <ZonesModule />
-        )}
-
-        {/* Bibliothèque de Tests */}
-        {showTestLibrary && (
-          <TestProtocols />
-        )}
       </div>
     </AppLayout>
   );
