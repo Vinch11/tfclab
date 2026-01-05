@@ -9,6 +9,7 @@ import { AthleteProvider } from "@/contexts/AthleteContext";
 import { AuthGate } from "@/components/AuthGate";
 import AuthPage from "./pages/AuthPage";
 import Index from "./pages/Index";
+import PlannerPage from "./pages/PlannerPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,16 @@ export default function App() {
                     <AuthGate>
                       <AthleteProvider>
                         <Index />
+                      </AthleteProvider>
+                    </AuthGate>
+                  }
+                />
+                <Route
+                  path="/planner"
+                  element={
+                    <AuthGate>
+                      <AthleteProvider>
+                        <PlannerPage />
                       </AthleteProvider>
                     </AuthGate>
                   }
