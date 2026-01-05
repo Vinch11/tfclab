@@ -1,6 +1,6 @@
-// Hook pour gérer les données du Planner
+// Hook pour gérer les données du Planner avec Advisory Layer
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -10,8 +10,18 @@ import {
   DailyCheckin,
   RaceType,
 } from '@/types/planner';
+import { PlannerAdvice } from '@/types/plannerAdvice';
 import { generateTrainingPlan } from '@/lib/plannerLogic';
+import { generatePlannerAdvices, AdvisoryEngineInput } from '@/lib/plannerAdvisoryEngine';
+import { computeVLamaxEffectif, VLamaxEffectif } from '@/lib/vlamaxEffectif';
+import { computeTTEEffectif, TTEEffectif } from '@/lib/tteEffectif';
 import { format, parseISO } from 'date-fns';
+
+// Types pour les données physiologiques
+interface PhysiologicalData {
+  vlamaxEffectif: VLamaxEffectif | null;
+  tteEffectif: TTEEffectif | null;
+}
 
 export function usePlanner(athleteId: string | null) {
   const { user } = useAuth();
@@ -20,6 +30,9 @@ export function usePlanner(athleteId: string | null) {
   const [raceGoal, setRaceGoal] = useState<AthleteRaceGoal | null>(null);
   const [trainingPlan, setTrainingPlan] = useState<TrainingPlanDay[]>([]);
   const [todayCheckin, setTodayCheckin] = useState<DailyCheckin | null>(null);
+  const [physioData, setPhysioData] = useState<PhysiologicalData>({ vlamaxEffectif: null, tteEffectif: null });
+  const [snapshots, setSnapshots] = useState<any[]>([]);
+  const [tests, setTests] = useState<any[]>([]);
 
   const coachId = user?.id;
 
@@ -89,6 +102,146 @@ export function usePlanner(athleteId: string | null) {
       setTodayCheckin(data as DailyCheckin | null);
     }
   }, [athleteId, coachId]);
+
+  // Charger les données physiologiques (snapshots + tests) pour l'advisory
+  const loadPhysioData = useCallback(async () => {
+    if (!athleteId || !coachId) return;
+
+    const [snapshotsRes, testsRes] = await Promise.all([
+      supabase
+        .from('snapshots')
+        .select('*')
+        .eq('athlete_id', athleteId)
+        .eq('coach_id', coachId)
+        .order('date', { ascending: false }),
+      supabase
+        .from('tests')
+        .select('*')
+        .eq('athlete_id', athleteId)
+        .eq('coach_id', coachId),
+    ]);
+
+    const snapshotsData = snapshotsRes.data || [];
+    const testsData = testsRes.data || [];
+    
+    setSnapshots(snapshotsData);
+    setTests(testsData);
+
+    // Calculer VLamax effectif
+    const objectif = raceGoal?.race_type || '703';
+    const vlamaxEff = computeVLamaxEffectif({
+      athleteId,
+      objectif,
+      activeSnapshotId: null,
+      tests: testsData,
+      snapshots: snapshotsData,
+    });
+
+    // Calculer TTE effectif (prendre le snapshot le plus récent)
+    const latestSnapshot = snapshotsData[0];
+    const tteEff = latestSnapshot
+      ? computeTTEEffectif({
+          ftp: latestSnapshot.ftp,
+          tss_7d: latestSnapshot.tss_7d,
+          tte_mode: latestSnapshot.tte_mode,
+          tte_observed_min: latestSnapshot.tte_observed_min,
+          objectif,
+        })
+      : null;
+
+    setPhysioData({
+      vlamaxEffectif: vlamaxEff,
+      tteEffectif: tteEff,
+    });
+  }, [athleteId, coachId, raceGoal?.race_type]);
+
+  // Générer les advices basées sur les données actuelles
+  const advices = useMemo((): PlannerAdvice[] => {
+    if (!athleteId || !raceGoal) return [];
+
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const todayPlan = trainingPlan.find((p) => p.date === today);
+
+    const input: AdvisoryEngineInput = {
+      athleteId,
+      objectif: raceGoal.race_type as RaceType,
+      stressScore: todayCheckin?.stress_score,
+      sleepQuality: todayCheckin?.sleep_quality,
+      energyLevel: todayCheckin?.energy_level,
+      vlamaxEffectif: physioData.vlamaxEffectif,
+      tteEffectif: physioData.tteEffectif,
+      todayWorkoutType: todayPlan?.workout?.type || null,
+      isWorkoutAdjusted: todayPlan?.adjusted || false,
+    };
+
+    return generatePlannerAdvices(input);
+  }, [athleteId, raceGoal, todayCheckin, physioData, trainingPlan]);
+
+  // Appliquer une suggestion
+  const applyAdvice = async (advice: PlannerAdvice) => {
+    if (!athleteId || !coachId) return false;
+
+    const today = format(new Date(), 'yyyy-MM-dd');
+
+    switch (advice.suggested_action) {
+      case 'REPLACE_TODAY_WITH_Z2':
+        await supabase
+          .from('training_plan')
+          .update({
+            adjusted: true,
+            adjusted_reason: advice.title,
+            custom_workout_title: 'Endurance Z2 – Récupération active',
+            custom_workout_description: advice.message,
+            workout_id: null,
+          })
+          .eq('athlete_id', athleteId)
+          .eq('coach_id', coachId)
+          .eq('date', today);
+        break;
+
+      case 'DELOAD_48H':
+        // Marquer les 2 prochains jours comme récupération
+        const dates = [today];
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        dates.push(format(tomorrow, 'yyyy-MM-dd'));
+        
+        for (const date of dates) {
+          await supabase
+            .from('training_plan')
+            .update({
+              adjusted: true,
+              adjusted_reason: advice.title,
+              custom_workout_title: 'Récupération – Deload',
+              custom_workout_description: advice.message,
+              workout_id: null,
+            })
+            .eq('athlete_id', athleteId)
+            .eq('coach_id', coachId)
+            .eq('date', date);
+        }
+        break;
+
+      case 'SWAP_WORKOUT_TYPE':
+        // Pour les swaps, on note l'ajustement mais on laisse le coach décider
+        await supabase
+          .from('training_plan')
+          .update({
+            adjusted: true,
+            adjusted_reason: `Suggestion: ${advice.title} - ${advice.payload.swapFrom} → ${advice.payload.swapTo}`,
+          })
+          .eq('athlete_id', athleteId)
+          .eq('coach_id', coachId)
+          .eq('date', today);
+        break;
+
+      default:
+        break;
+    }
+
+    await loadTrainingPlan();
+    return true;
+  };
 
   // Sauvegarder un objectif de course
   const saveRaceGoal = async (
@@ -238,16 +391,26 @@ export function usePlanner(athleteId: string | null) {
     loadAll();
   }, [athleteId, loadWorkouts, loadRaceGoal, loadTrainingPlan, loadTodayCheckin]);
 
+  // Charger les données physio quand on a le raceGoal
+  useEffect(() => {
+    if (athleteId && raceGoal) {
+      loadPhysioData();
+    }
+  }, [athleteId, raceGoal, loadPhysioData]);
+
   return {
     loading,
     workouts,
     raceGoal,
     trainingPlan,
     todayCheckin,
+    advices,
+    physioData,
     saveRaceGoal,
     generateAndSavePlan,
     saveCheckin,
     updateWorkoutStatus,
+    applyAdvice,
     refreshPlan: loadTrainingPlan,
     refreshCheckin: loadTodayCheckin,
   };

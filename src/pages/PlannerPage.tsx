@@ -11,12 +11,14 @@ import { PhaseBadge } from '@/components/planner/PhaseBadge';
 import { LifeFirstCheckin } from '@/components/planner/LifeFirstCheckin';
 import { TodayWorkoutCard } from '@/components/planner/TodayWorkoutCard';
 import { PlannerCalendar } from '@/components/planner/PlannerCalendar';
+import { CoachSuggestions } from '@/components/planner/CoachSuggestions';
 import { calculateCurrentPhase } from '@/lib/plannerLogic';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RaceType, PHASE_CONFIGS } from '@/types/planner';
+import { PlannerAdvice } from '@/types/plannerAdvice';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
@@ -41,10 +43,12 @@ export default function PlannerPage() {
     raceGoal,
     trainingPlan,
     todayCheckin,
+    advices,
     saveRaceGoal,
     generateAndSavePlan,
     saveCheckin,
     updateWorkoutStatus,
+    applyAdvice,
   } = usePlanner(athleteId);
 
   const [activeTab, setActiveTab] = useState<'today' | 'calendar' | 'settings'>('today');
@@ -118,6 +122,21 @@ export default function PlannerPage() {
   const handleMarkSkipped = async (id: string) => {
     await updateWorkoutStatus(id, 'SKIPPED');
     toast.info('Séance sautée');
+  };
+
+  // Handler pour appliquer une suggestion
+  const handleApplyAdvice = async (advice: PlannerAdvice) => {
+    setIsSubmitting(true);
+    try {
+      const success = await applyAdvice(advice);
+      if (success) {
+        toast.success('Suggestion appliquée !');
+      }
+    } catch (error) {
+      toast.error('Erreur lors de l\'application');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Si pas d'athlète sélectionné
@@ -235,6 +254,15 @@ export default function PlannerPage() {
                         </div>
                       </CardContent>
                     </Card>
+                  )}
+
+                  {/* Coach Suggestions */}
+                  {advices.length > 0 && (
+                    <CoachSuggestions
+                      advices={advices}
+                      onApply={handleApplyAdvice}
+                      isApplying={isSubmitting}
+                    />
                   )}
 
                   {/* Séance du jour */}
