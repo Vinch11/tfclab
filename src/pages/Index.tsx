@@ -37,6 +37,7 @@ import { generateAthleteReadiness } from "@/lib/athleteReadiness";
 import { computeEnergyDrift, EnergyDriftResult } from "@/lib/energyDrift";
 import { EnergyDriftBadge } from "@/components/EnergyDriftBadge";
 import { DashboardGauges } from "@/components/DashboardGauges";
+import { StaffDashboard } from "@/components/StaffDashboard";
 
 // ✅ FIX 11 - Effective Refs (source unique de vérité)
 import { getEffectiveRefs, computeFtpKg, getMissingFields } from "@/lib/effectiveRefs";
@@ -662,48 +663,17 @@ const Index = () => {
               <CheckinManager athleteId={currentAthlete.id} athleteName={currentAthlete.name} />
             )}
 
-            {/* 📊 Résumé visuel compact avec jauges */}
-            <DashboardGauges
-              vlamax={vlamaxEffectif}
-              tte={tteEffectif}
-              raceReadiness={raceReadinessEffectif}
-              ftp={ftp}
-              ftpKg={ftp_kg}
-              vo2max={effectiveCloudSnapshot?.vo2max}
-            />
-
-            {/* 📋 Briefing Staff Automatique (mode staff) */}
-            {staffMode && currentAthlete && (
-              <StaffBriefingCard
-                params={{
-                  athleteName: currentAthlete.name,
-                  objectif: currentAthlete.goal || "IM",
-                  vlamaxEffectif,
-                  tteEffectif,
-                  ftpKg: ftp_kg,
-                  ftp,
-                  poids,
-                  raceReadiness: raceReadinessEffectif,
-                  energyDrift,
-                  nutritionTiming: computeNutritionTiming({
-                    vlamax: vlamaxEffectif.value,
-                    tteMin: tteEffectif.tte_min,
-                    tteTarget: tteEffectif.target ?? 45,
-                    objectif: currentAthlete.goal || "IM",
-                    sport: currentAthlete.goal?.toLowerCase().includes("marathon") || 
-                           currentAthlete.goal?.toLowerCase().includes("semi") || 
-                           currentAthlete.goal?.toLowerCase().includes("trail") ? "cap" : "velo",
-                    digestiveTolerance: "MEDIUM",
-                    energyDrift,
-                  }),
-                  economyScore: runningEconomyResult.capScore,
-                  economyLabel: runningEconomyResult.level === "excellent" ? "excellent" 
-                    : runningEconomyResult.level === "correct" ? "good" 
-                    : runningEconomyResult.level === "weak" ? "fragile" 
-                    : "unknown",
-                  hasActiveSnapshot: !!effectiveCloudSnapshot,
-                }}
-                mode="compact"
+            {/* 📊 STAFF DASHBOARD - Tour de contrôle décisionnelle */}
+            {currentAthlete && (
+              <StaffDashboard
+                athleteName={currentAthlete.name}
+                objectif={currentAthlete.goal || "IM"}
+                vlamaxEffectif={vlamaxEffectif}
+                tteEffectif={tteEffectif}
+                raceReadiness={raceReadinessEffectif}
+                nutritionEstimate={nutritionEstimate}
+                ftpKg={ftp_kg}
+                snapshotDate={effectiveCloudSnapshot?.date ?? null}
               />
             )}
 
