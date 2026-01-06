@@ -57,6 +57,29 @@ function getSportBadgeColor(sport: string): string {
   return "bg-muted text-muted-foreground";
 }
 
+// Phase calculation based on week number and total weeks
+function getPhaseForWeek(weekNumber: number, totalWeeks: number): { name: string; color: string } {
+  const ratio = weekNumber / totalWeeks;
+  
+  // Last 2 weeks = Taper
+  if (weekNumber > totalWeeks - 2) {
+    return { name: "Affûtage", color: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300" };
+  }
+  
+  // First 30% = Préparation (base building)
+  if (ratio <= 0.3) {
+    return { name: "Préparation", color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" };
+  }
+  
+  // 30-70% = Build
+  if (ratio <= 0.7) {
+    return { name: "Build", color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" };
+  }
+  
+  // 70-90% = Spécifique
+  return { name: "Spécifique", color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300" };
+}
+
 function SessionCard({ session }: { session: TemplateSession }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -118,14 +141,18 @@ function CoachAdviceCard({ advice }: { advice: string }) {
   );
 }
 
-function WeekSection({ week, annotations }: { week: TemplateWeek; annotations: TemplateAnnotation[] }) {
+function WeekSection({ week, annotations, totalWeeks }: { week: TemplateWeek; annotations: TemplateAnnotation[]; totalWeeks: number }) {
   const weekAnnotations = annotations.filter((a) => a.weekNumber === week.weekNumber || a.weekNumber === 0);
+  const phase = getPhaseForWeek(week.weekNumber, totalWeeks);
 
   return (
-    <AccordionItem value={`week-${week.weekNumber}`}>
-      <AccordionTrigger className="hover:no-underline">
-        <div className="flex items-center gap-3">
+    <AccordionItem value={`week-${week.weekNumber}`} className="border rounded-lg px-4">
+      <AccordionTrigger className="hover:no-underline py-4">
+        <div className="flex items-center gap-3 flex-wrap">
           <span className="font-semibold">Semaine {week.weekNumber}</span>
+          <Badge className={`text-xs ${phase.color}`}>
+            {phase.name}
+          </Badge>
           <Badge variant="outline" className="text-xs">
             {week.sessions.length} séances
           </Badge>
@@ -138,7 +165,7 @@ function WeekSection({ week, annotations }: { week: TemplateWeek; annotations: T
         </div>
       </AccordionTrigger>
       <AccordionContent>
-        <div className="space-y-3 pt-2">
+        <div className="space-y-3 pt-2 pb-4">
           {week.sessions.map((session, idx) => (
             <SessionCard key={idx} session={session} />
           ))}
@@ -634,7 +661,7 @@ export default function TemplatesPage() {
             </div>
             <Accordion type="single" collapsible className="space-y-2">
               {displayedWeeks.map((week) => (
-                <WeekSection key={week.weekNumber} week={week} annotations={annotations} />
+                <WeekSection key={week.weekNumber} week={week} annotations={annotations} totalWeeks={displayedWeeks.length} />
               ))}
             </Accordion>
           </div>
