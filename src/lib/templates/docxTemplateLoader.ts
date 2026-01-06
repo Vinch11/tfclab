@@ -15,6 +15,7 @@ export interface TemplateSession {
 export interface TemplateWeek {
   weekNumber: number;
   sessions: TemplateSession[];
+  coachAdvice?: string; // Conseils du coach pour la semaine
 }
 
 export interface ProgramSection {
@@ -33,7 +34,7 @@ export interface ProgramTemplate {
   multiSections?: boolean;
 }
 
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3"; // Incremented for coach advice support
 
 function getCacheKey(docxPath: string): string {
   return `template-cache-${docxPath}-${CACHE_VERSION}`;
@@ -123,6 +124,21 @@ const SECTION_PATTERNS = [
   /programme/i,
 ];
 
+// Patterns to detect coach advice sections
+const COACH_ADVICE_PATTERNS = [
+  /consignes?\s+(du\s+)?coach/i,
+  /conseils?\s+(du\s+)?coach/i,
+  /coach.*advice/i,
+  /notes?\s+(du\s+)?coach/i,
+  /recommandations?\s+(du\s+)?coach/i,
+];
+
+function isCoachAdviceHeader(text: string): boolean {
+  const cleaned = text.trim();
+  if (!cleaned || cleaned.length < 5) return false;
+  return COACH_ADVICE_PATTERNS.some((pattern) => pattern.test(cleaned));
+}
+
 function isSectionHeader(text: string): boolean {
   const cleaned = text.trim();
   if (!cleaned || cleaned.length < 3 || cleaned.length > 100) return false;
@@ -180,7 +196,53 @@ function parseTableToWeek(table: Element, weekNumber: number): TemplateWeek {
     }
   }
   
-  return { weekNumber, sessions };
+  return { weekNumber, sessions, coachAdvice: undefined };
+}
+
+/**
+ * Extract coach advice text from elements following a coach advice header
+ */
+function extractCoachAdvice(elements: HTMLCollection, startIndex: number): { advice: string; endIndex: number } {
+  const adviceParts: string[] = [];
+  let i = startIndex;
+  
+  while (i < elements.length) {
+    const element = elements[i];
+    const tagName = element.tagName.toLowerCase();
+    const text = element.textContent?.trim() || "";
+    
+    // Stop if we hit another header, table, or week marker
+    if (["h1", "h2", "h3"].includes(tagName)) break;
+    if (tagName === "table") break;
+    if (/semaine\s*\d+/i.test(text)) break;
+    if (isSectionHeader(text)) break;
+    
+    // Collect paragraph content
+    if (tagName === "p" && text) {
+      // Skip if it's the coach advice header itself
+      if (!isCoachAdviceHeader(text)) {
+        adviceParts.push(cleanText(text));
+      }
+    }
+    
+    // Also collect list items
+    if (tagName === "ul" || tagName === "ol") {
+      const items = element.querySelectorAll("li");
+      items.forEach((li) => {
+        const itemText = cleanText(li.textContent || "");
+        if (itemText) {
+          adviceParts.push(`• ${itemText}`);
+        }
+      });
+    }
+    
+    i++;
+  }
+  
+  return { 
+    advice: adviceParts.join("\n").trim(), 
+    endIndex: i 
+  };
 }
 
 /**
@@ -201,10 +263,24 @@ async function parseDocxHtmlToSections(html: string): Promise<ProgramSection[]> 
   for (let i = 0; i < bodyChildren.length; i++) {
     const element = bodyChildren[i];
     const tagName = element.tagName.toLowerCase();
+    const text = element.textContent?.trim() || "";
+    
+    // Check if this is a coach advice header
+    if (isCoachAdviceHeader(text)) {
+      // Extract advice and attach to the last week
+      if (currentSection && currentSection.weeks.length > 0) {
+        const { advice } = extractCoachAdvice(bodyChildren, i + 1);
+        if (advice) {
+          const lastWeek = currentSection.weeks[currentSection.weeks.length - 1];
+          lastWeek.coachAdvice = advice;
+        }
+      }
+      continue;
+    }
     
     // Check if this is a section header
     const sectionTitle = extractSectionTitle(element);
-    if (sectionTitle) {
+    if (sectionTitle && !isCoachAdviceHeader(sectionTitle)) {
       // Save previous section if exists
       if (currentSection && currentSection.weeks.length > 0) {
         sections.push(currentSection);
