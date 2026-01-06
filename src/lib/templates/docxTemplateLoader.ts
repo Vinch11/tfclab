@@ -355,6 +355,25 @@ async function parseDocxHtml(html: string): Promise<TemplateWeek[]> {
 }
 
 /**
+ * Parse a DOCX file from an ArrayBuffer directly (for uploaded files)
+ */
+export async function parseDocxFromArrayBuffer(arrayBuffer: ArrayBuffer): Promise<ProgramSection[]> {
+  // Convert to HTML using mammoth
+  const result = await mammoth.convertToHtml({ arrayBuffer });
+
+  if (result.messages.length > 0) {
+    console.log("[TemplateLoader] Mammoth messages:", result.messages);
+  }
+
+  // Parse the HTML to extract sections
+  const sections = await parseDocxHtmlToSections(result.value);
+
+  console.log(`[TemplateLoader] Parsed uploaded file: ${sections.length} sections with ${sections.reduce((acc, s) => acc + s.weeks.length, 0)} total weeks`);
+
+  return sections;
+}
+
+/**
  * Load and parse a DOCX template from a given path (single-section mode)
  */
 export async function loadProgramTemplateFromDocx(docxPath: string): Promise<TemplateWeek[]> {

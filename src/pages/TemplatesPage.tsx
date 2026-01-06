@@ -12,14 +12,15 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ChevronLeft, FileText, AlertTriangle, Copy, CheckCircle2, Loader2, User, Layers, Lightbulb, BookOpen } from "lucide-react";
+import { ChevronLeft, FileText, AlertTriangle, Copy, CheckCircle2, Loader2, User, Layers, Lightbulb, BookOpen, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { PROGRAM_TEMPLATES, getTemplateById } from "@/data/programTemplates";
 import { 
   loadProgramTemplateFromDocx, 
   loadProgramSectionsFromDocx,
-  clearTemplateCache, 
+  clearTemplateCache,
+  parseDocxFromArrayBuffer,
   type TemplateWeek, 
   type TemplateSession,
   type ProgramSection 
@@ -273,6 +274,10 @@ export default function TemplatesPage() {
   const [staffMode, setStaffMode] = useState(false);
   const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
 
+  // Custom uploaded template state
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const [isUploadMode, setIsUploadMode] = useState(false);
+
   const selectedTemplate = useMemo(
     () => getTemplateById(selectedTemplateId),
     [selectedTemplateId]
@@ -478,7 +483,65 @@ export default function TemplatesPage() {
     setSections([]);
     setSelectedSectionId(null);
     setIsLoaded(false);
+    setUploadedFileName(null);
+    setIsUploadMode(false);
     toast.success("Cache vidé");
+  };
+
+  // Handle uploaded DOCX file
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith(".docx")) {
+      toast.error("Format invalide. Veuillez uploader un fichier .docx");
+      return;
+    }
+
+    setIsLoading(true);
+    setSections([]);
+    setWeeks([]);
+    setSelectedSectionId(null);
+    setIsLoaded(false);
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const loadedSections = await parseDocxFromArrayBuffer(arrayBuffer);
+
+      if (loadedSections.length === 0 || loadedSections[0].weeks.length === 0) {
+        toast.error("Aucune semaine détectée dans le document. Vérifiez le format du fichier.");
+        return;
+      }
+
+      setSections(loadedSections);
+      const allWeeks = loadedSections.flatMap((s) => s.weeks);
+      setWeeks(allWeeks);
+
+      if (loadedSections.length > 0) {
+        setSelectedSectionId(loadedSections[0].sectionId);
+      }
+
+      setUploadedFileName(file.name);
+      setIsUploadMode(true);
+      setIsLoaded(true);
+      toast.success(`Template "${file.name}" chargé: ${allWeeks.length} semaines`);
+    } catch (err) {
+      console.error("Error parsing uploaded file:", err);
+      toast.error("Erreur lors de l'analyse du fichier. Vérifiez qu'il s'agit d'un fichier .docx valide.");
+    } finally {
+      setIsLoading(false);
+      // Reset input to allow re-upload of same file
+      event.target.value = "";
+    }
+  };
+
+  const handleClearUpload = () => {
+    setUploadedFileName(null);
+    setIsUploadMode(false);
+    setWeeks([]);
+    setSections([]);
+    setSelectedSectionId(null);
+    setIsLoaded(false);
   };
 
   return (
@@ -499,23 +562,79 @@ export default function TemplatesPage() {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6">
+        {/* Upload Custom Template */}
+        <Card className="border-dashed border-2 border-primary/30 bg-primary/5">
+          <CardContent className="p-4">
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <Upload className="h-4 w-4 text-primary" />
+                  <span className="font-medium text-sm">Uploader un template personnalisé</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Importez votre propre fichier .docx avec des tableaux de séances par semaine
+                </p>
+              </div>
+              
+              {isUploadMode && uploadedFileName ? (
+                <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2 border">
+                  <FileText className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium truncate max-w-[150px]">{uploadedFileName}</span>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleClearUpload}>
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ) : (
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    accept=".docx"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                    disabled={isLoading}
+                  />
+                  <Button asChild variant="outline" disabled={isLoading}>
+                    <span>
+                      {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
+                      Choisir un fichier
+                    </span>
+                  </Button>
+                </label>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Separator */}
+        <div className="flex items-center gap-3">
+          <div className="flex-1 h-px bg-border" />
+          <span className="text-xs text-muted-foreground">ou</span>
+          <div className="flex-1 h-px bg-border" />
+        </div>
+
         {/* Template Selection */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <FileText className="h-4 w-4" />
-              Sélectionner un template
+              Sélectionner un template prédéfini
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Select value={selectedTemplateId} onValueChange={(v) => {
-              setSelectedTemplateId(v);
-              setIsLoaded(false);
-              setWeeks([]);
-              setSections([]);
-              setSelectedSectionId(null);
-            }}>
-              <SelectTrigger>
+            <Select 
+              value={isUploadMode ? "" : selectedTemplateId} 
+              onValueChange={(v) => {
+                setSelectedTemplateId(v);
+                setIsLoaded(false);
+                setWeeks([]);
+                setSections([]);
+                setSelectedSectionId(null);
+                setUploadedFileName(null);
+                setIsUploadMode(false);
+              }}
+              disabled={isUploadMode}
+            >
+              <SelectTrigger className={isUploadMode ? "opacity-50" : ""}>
                 <SelectValue placeholder="Choisir un template" />
               </SelectTrigger>
               <SelectContent>
@@ -529,11 +648,11 @@ export default function TemplatesPage() {
             </Select>
 
             <div className="flex flex-wrap gap-2">
-              <Button onClick={handleLoadTemplate} disabled={isLoading || !selectedTemplateId}>
+              <Button onClick={handleLoadTemplate} disabled={isLoading || !selectedTemplateId || isUploadMode}>
                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 Charger le template
               </Button>
-              {isLoaded && (
+              {isLoaded && !isUploadMode && (
                 <>
                   <Button variant="outline" onClick={handleCopyAll}>
                     <Copy className="h-4 w-4 mr-2" />
@@ -543,6 +662,12 @@ export default function TemplatesPage() {
                     Vider le cache
                   </Button>
                 </>
+              )}
+              {isLoaded && isUploadMode && (
+                <Button variant="outline" onClick={handleCopyAll}>
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copier tout
+                </Button>
               )}
             </div>
           </CardContent>
