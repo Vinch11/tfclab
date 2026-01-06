@@ -10,6 +10,7 @@ import { AuthGate } from "@/components/AuthGate";
 import AuthPage from "./pages/AuthPage";
 import Index from "./pages/Index";
 import TemplatesPage from "./pages/TemplatesPage";
+import AcademyPage from "./pages/AcademyPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,14 @@ export default function App() {
                   element={
                     <AuthGate>
                       <TemplatesPage />
+                    </AuthGate>
+                  }
+                />
+                <Route
+                  path="/academy"
+                  element={
+                    <AuthGate>
+                      <AcademyPage />
                     </AuthGate>
                   }
                 />
