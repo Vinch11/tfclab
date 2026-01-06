@@ -47,9 +47,12 @@ export default defineConfig(({ mode }) => ({
       },
       workbox: {
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,woff,ttf,json}"],
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,woff,ttf,json}"]
+,
         navigateFallback: "/index.html",
         navigateFallbackAllowlist: [/^(?!\/__).*/],
+        // Important: never fallback to index.html for DOCX downloads/fetches
+        navigateFallbackDenylist: [/\.docx$/i],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -73,6 +76,22 @@ export default defineConfig(({ mode }) => ({
               expiration: {
                 maxEntries: 10,
                 maxAgeSeconds: 60 * 60 * 24 * 365
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
+            // Ensure templates (.docx) are fetched as binary and never replaced by app-shell
+            urlPattern: /\/program-templates\/.*\.docx$/i,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "docx-templates",
+              networkTimeoutSeconds: 10,
+              expiration: {
+                maxEntries: 20,
+                maxAgeSeconds: 60 * 60 * 24 * 30
               },
               cacheableResponse: {
                 statuses: [0, 200]
