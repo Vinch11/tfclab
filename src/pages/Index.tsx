@@ -593,14 +593,6 @@ const Index = () => {
                 <span className="truncate">Séances</span>
               </Button>
 
-              <Button
-                variant="outline"
-                onClick={() => navigate('/planner')}
-                className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10 bg-primary/10 border-primary/50 text-primary hover:bg-primary/20"
-              >
-                <CalendarDays className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                <span className="truncate">Planner</span>
-              </Button>
 
               <Button
                 variant={showSnapshots ? "default" : "outline"}
