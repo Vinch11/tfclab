@@ -35,7 +35,7 @@ export interface ProgramTemplate {
   multiSections?: boolean;
 }
 
-const CACHE_VERSION = "v4"; // Incremented for briefing support
+const CACHE_VERSION = "v5"; // Fixed week numbering
 
 function getCacheKey(docxPath: string): string {
   return `template-cache-${docxPath}-${CACHE_VERSION}`;
@@ -107,22 +107,14 @@ function cleanText(text: string): string {
     .trim();
 }
 
-// Patterns to detect section headers
+// Patterns to detect MAJOR section headers (distinct training plans only)
+// We want to be strict here to avoid false positives
 const SECTION_PATTERNS = [
-  /plan/i,
-  /finisher/i,
-  /elite/i,
-  /kona/i,
-  /objectif/i,
-  /version/i,
-  /niveau/i,
-  /groupe/i,
-  /performance/i,
-  /loisir/i,
-  /débutant/i,
-  /intermédiaire/i,
-  /avancé/i,
-  /programme/i,
+  /^plan\s+(a|b|finisher|elite|performance|loisir)/i,
+  /^(finisher|elite|performance)\s*$/i,
+  /^version\s+(a|b|1|2)/i,
+  /^niveau\s+(débutant|intermédiaire|avancé)/i,
+  /^groupe\s+[a-z0-9]/i,
 ];
 
 // Patterns to detect coach advice sections
@@ -142,7 +134,8 @@ function isCoachAdviceHeader(text: string): boolean {
 
 function isSectionHeader(text: string): boolean {
   const cleaned = text.trim();
-  if (!cleaned || cleaned.length < 3 || cleaned.length > 100) return false;
+  if (!cleaned || cleaned.length < 3 || cleaned.length > 60) return false;
+  // Must match a strict section pattern
   return SECTION_PATTERNS.some((pattern) => pattern.test(cleaned));
 }
 
@@ -150,17 +143,14 @@ function extractSectionTitle(element: Element): string | null {
   const tagName = element.tagName.toLowerCase();
   const text = element.textContent?.trim() || "";
   
-  // H1, H2, H3 are always section headers if they have text
-  if (["h1", "h2", "h3"].includes(tagName) && text.length > 0) {
+  // Only accept headers that match strict section patterns
+  if (["h1", "h2", "h3"].includes(tagName) && isSectionHeader(text)) {
     return text;
   }
   
-  // Check for strong/bold paragraphs that match patterns
-  if (tagName === "p") {
-    const hasStrong = element.querySelector("strong, b") !== null;
-    if ((hasStrong || text.length < 50) && isSectionHeader(text)) {
-      return text;
-    }
+  // Check for strong/bold paragraphs that match strict patterns
+  if (tagName === "p" && isSectionHeader(text)) {
+    return text;
   }
   
   return null;
@@ -298,111 +288,57 @@ async function parseDocxHtmlToSections(html: string): Promise<ProgramSection[]> 
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
   
-  const sections: ProgramSection[] = [];
-  let currentSection: ProgramSection | null = null;
-  let weekCounter = 0;
-  let sectionIndex = 0;
-  
-  // Get all body children to process in order
-  const bodyChildren = doc.body.children;
-  
   // Extract global briefing first
+  const bodyChildren = doc.body.children;
   const globalBriefing = extractBriefing(bodyChildren);
   
+  // First pass: count all tables to get global week numbering
+  const tables = doc.querySelectorAll("table");
+  const weeks: TemplateWeek[] = [];
+  
+  tables.forEach((table, idx) => {
+    const weekNumber = idx + 1; // Global week numbering 1, 2, 3, ... 24
+    const week = parseTableToWeek(table, weekNumber);
+    if (week.sessions.length > 0) {
+      weeks.push(week);
+    }
+  });
+  
+  // Second pass: look for coach advice after each table
   for (let i = 0; i < bodyChildren.length; i++) {
     const element = bodyChildren[i];
-    const tagName = element.tagName.toLowerCase();
     const text = element.textContent?.trim() || "";
     
-    // Check if this is a coach advice header
     if (isCoachAdviceHeader(text)) {
-      // Extract advice and attach to the last week
-      if (currentSection && currentSection.weeks.length > 0) {
+      // Find the most recent week (table before this advice)
+      // Count tables before this element
+      let tableCountBefore = 0;
+      for (let j = 0; j < i; j++) {
+        if (bodyChildren[j].tagName.toLowerCase() === "table") {
+          tableCountBefore++;
+        }
+      }
+      
+      // Attach advice to that week
+      if (tableCountBefore > 0 && tableCountBefore <= weeks.length) {
         const { advice } = extractCoachAdvice(bodyChildren, i + 1);
         if (advice) {
-          const lastWeek = currentSection.weeks[currentSection.weeks.length - 1];
-          lastWeek.coachAdvice = advice;
+          weeks[tableCountBefore - 1].coachAdvice = advice;
         }
       }
-      continue;
-    }
-    
-    // Check if this is a section header
-    const sectionTitle = extractSectionTitle(element);
-    if (sectionTitle && !isCoachAdviceHeader(sectionTitle)) {
-      // Save previous section if exists
-      if (currentSection && currentSection.weeks.length > 0) {
-        sections.push(currentSection);
-      }
-      
-      // Start new section
-      sectionIndex++;
-      weekCounter = 0;
-      currentSection = {
-        sectionId: `section-${sectionIndex}`,
-        sectionTitle: sectionTitle,
-        weeks: [],
-        briefing: sectionIndex === 1 ? globalBriefing : undefined,
-      };
-      continue;
-    }
-    
-    // Check if this is a table (week)
-    if (tagName === "table") {
-      weekCounter++;
-      const week = parseTableToWeek(element, weekCounter);
-      
-      if (week.sessions.length > 0) {
-        // If no section yet, create a default one
-        if (!currentSection) {
-          currentSection = {
-            sectionId: "section-1",
-            sectionTitle: "Plan principal",
-            weeks: [],
-            briefing: globalBriefing,
-          };
-        }
-        currentSection.weeks.push(week);
-      }
     }
   }
   
-  // Don't forget the last section
-  if (currentSection && currentSection.weeks.length > 0) {
-    sections.push(currentSection);
-  }
+  // Now check if there are real section splits
+  // For now, treat all templates as single-section with continuous week numbering
+  const sections: ProgramSection[] = [];
   
-  // If no sections were detected (no headers found), create one default section
-  if (sections.length === 0) {
-    // Fall back to old parsing method
-    const tables = doc.querySelectorAll("table");
-    const weeks: TemplateWeek[] = [];
-    let wn = 0;
-    
-    tables.forEach((table) => {
-      wn++;
-      const week = parseTableToWeek(table, wn);
-      if (week.sessions.length > 0) {
-        weeks.push(week);
-      }
-    });
-    
-    if (weeks.length > 0) {
-      sections.push({
-        sectionId: "section-1",
-        sectionTitle: "Plan principal",
-        weeks,
-        briefing: globalBriefing,
-      });
-    }
-  }
-  
-  // If multiple sections but titles are not clear, use fallback names
-  if (sections.length > 1) {
-    sections.forEach((section, idx) => {
-      if (section.sectionTitle === "Plan principal" || !section.sectionTitle) {
-        section.sectionTitle = `Plan ${String.fromCharCode(65 + idx)}`; // Plan A, Plan B, etc.
-      }
+  if (weeks.length > 0) {
+    sections.push({
+      sectionId: "section-1",
+      sectionTitle: "Plan principal",
+      weeks,
+      briefing: globalBriefing,
     });
   }
   
