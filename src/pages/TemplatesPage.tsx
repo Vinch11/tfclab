@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ChevronLeft, FileText, AlertTriangle, Copy, CheckCircle2, Loader2, User, Layers } from "lucide-react";
+import { ChevronLeft, FileText, AlertTriangle, Copy, CheckCircle2, Loader2, User, Layers, Lightbulb } from "lucide-react";
 import { toast } from "sonner";
 
 import { PROGRAM_TEMPLATES, getTemplateById } from "@/data/programTemplates";
@@ -98,6 +98,26 @@ function SessionCard({ session }: { session: TemplateSession }) {
   );
 }
 
+function CoachAdviceCard({ advice }: { advice: string }) {
+  return (
+    <Card className="border-l-4 border-l-amber-500 bg-amber-50/50 dark:bg-amber-950/20">
+      <CardContent className="p-4">
+        <div className="flex items-start gap-3">
+          <Lightbulb className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-sm text-amber-900 dark:text-amber-200 mb-2">
+              Conseils du Coach
+            </p>
+            <div className="text-sm text-amber-800 dark:text-amber-300 whitespace-pre-line">
+              {advice}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function WeekSection({ week, annotations }: { week: TemplateWeek; annotations: TemplateAnnotation[] }) {
   const weekAnnotations = annotations.filter((a) => a.weekNumber === week.weekNumber || a.weekNumber === 0);
 
@@ -109,16 +129,24 @@ function WeekSection({ week, annotations }: { week: TemplateWeek; annotations: T
           <Badge variant="outline" className="text-xs">
             {week.sessions.length} séances
           </Badge>
+          {week.coachAdvice && (
+            <Lightbulb className="h-4 w-4 text-amber-500" />
+          )}
           {weekAnnotations.some((a) => a.severity >= 2) && (
             <AlertTriangle className="h-4 w-4 text-amber-500" />
           )}
         </div>
       </AccordionTrigger>
       <AccordionContent>
-        <div className="space-y-2 pt-2">
+        <div className="space-y-3 pt-2">
           {week.sessions.map((session, idx) => (
             <SessionCard key={idx} session={session} />
           ))}
+          
+          {/* Coach Advice Card */}
+          {week.coachAdvice && (
+            <CoachAdviceCard advice={week.coachAdvice} />
+          )}
         </div>
       </AccordionContent>
     </AccordionItem>
