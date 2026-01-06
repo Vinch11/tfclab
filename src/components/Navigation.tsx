@@ -24,7 +24,6 @@ const navItems: NavItem[] = [
   { id: "academy", label: "Academy", icon: GraduationCap, route: "/academy" },
   { id: "race-readiness", label: "Race Readiness", shortLabel: "Race", icon: Trophy },
   { id: "comprendre", label: "Comprendre", icon: BookOpen },
-  { id: "methodology", label: "Méthodologie", shortLabel: "Métho", icon: GraduationCap },
 ];
 
 interface NavigationProps {
