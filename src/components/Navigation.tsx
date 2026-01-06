@@ -21,6 +21,7 @@ const navItems: NavItem[] = [
   { id: "profil", label: "Profil", icon: Calculator },
   { id: "tests", label: "Tests", icon: FlaskConical },
   { id: "templates", label: "Templates", shortLabel: "Templ", icon: BookOpen, route: "/templates" },
+  { id: "academy", label: "Academy", icon: GraduationCap, route: "/academy" },
   { id: "race-readiness", label: "Race Readiness", shortLabel: "Race", icon: Trophy },
   { id: "comprendre", label: "Comprendre", icon: BookOpen },
   { id: "methodology", label: "Méthodologie", shortLabel: "Métho", icon: GraduationCap },
