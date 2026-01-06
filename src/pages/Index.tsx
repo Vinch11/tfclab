@@ -21,7 +21,7 @@ import { SnapshotManager } from "@/components/SnapshotManager";
 import { CheckinManager } from "@/components/CheckinManager";
 import { SnapshotEvolutionChart } from "@/components/SnapshotEvolutionChart";
 import { AthleteRefsPanel } from "@/components/AthleteRefsPanel";
-import { MethodologyStaff } from "@/components/MethodologyStaff";
+
 import { NutritionPredictive } from "@/components/NutritionPredictive";
 import { NutritionTimingCard } from "@/components/NutritionTimingCard";
 import { RunningEconomyModule } from "@/components/RunningEconomyModule";
@@ -807,10 +807,6 @@ const Index = () => {
       case "comprendre":
         return <ComprendreScoresPage />;
 
-      case "methodology":
-        return (
-          <MethodologyStaff onGoToTab={setActiveTab} />
-        );
 
       default:
         return null;
