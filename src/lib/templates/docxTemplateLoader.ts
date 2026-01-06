@@ -1,6 +1,7 @@
 /**
  * DOCX Template Loader
  * Converts DOCX files to structured ProgramTemplate using mammoth
+ * Supports multiple sections/plans in a single document
  */
 import mammoth from "mammoth";
 
@@ -16,6 +17,12 @@ export interface TemplateWeek {
   sessions: TemplateSession[];
 }
 
+export interface ProgramSection {
+  sectionId: string;
+  sectionTitle: string;
+  weeks: TemplateWeek[];
+}
+
 export interface ProgramTemplate {
   id: string;
   name: string;
@@ -23,12 +30,17 @@ export interface ProgramTemplate {
   source: "docx";
   docxPath: string;
   weeks: TemplateWeek[];
+  multiSections?: boolean;
 }
 
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 
 function getCacheKey(docxPath: string): string {
   return `template-cache-${docxPath}-${CACHE_VERSION}`;
+}
+
+function getSectionsCacheKey(docxPath: string): string {
+  return `template-sections-cache-${docxPath}-${CACHE_VERSION}`;
 }
 
 function getFromCache(docxPath: string): TemplateWeek[] | null {
@@ -43,9 +55,33 @@ function getFromCache(docxPath: string): TemplateWeek[] | null {
   return null;
 }
 
+function getSectionsFromCache(docxPath: string): ProgramSection[] | null {
+  try {
+    const cached = localStorage.getItem(getSectionsCacheKey(docxPath));
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      return parsed.sections || null;
+    }
+  } catch {
+    // Ignore cache errors
+  }
+  return null;
+}
+
 function setToCache(docxPath: string, weeks: TemplateWeek[]): void {
   try {
     localStorage.setItem(getCacheKey(docxPath), JSON.stringify(weeks));
+  } catch {
+    // Ignore cache errors (quota exceeded, etc.)
+  }
+}
+
+function setSectionsToCache(docxPath: string, sections: ProgramSection[]): void {
+  try {
+    localStorage.setItem(getSectionsCacheKey(docxPath), JSON.stringify({
+      sections,
+      parsedAt: new Date().toISOString(),
+    }));
   } catch {
     // Ignore cache errors (quota exceeded, etc.)
   }
@@ -69,62 +105,193 @@ function cleanText(text: string): string {
     .trim();
 }
 
-/**
- * Parse DOCX content and extract weeks/sessions
- */
-async function parseDocxHtml(html: string): Promise<TemplateWeek[]> {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, "text/html");
+// Patterns to detect section headers
+const SECTION_PATTERNS = [
+  /plan/i,
+  /finisher/i,
+  /elite/i,
+  /kona/i,
+  /objectif/i,
+  /version/i,
+  /niveau/i,
+  /groupe/i,
+  /performance/i,
+  /loisir/i,
+  /débutant/i,
+  /intermédiaire/i,
+  /avancé/i,
+  /programme/i,
+];
+
+function isSectionHeader(text: string): boolean {
+  const cleaned = text.trim();
+  if (!cleaned || cleaned.length < 3 || cleaned.length > 100) return false;
+  return SECTION_PATTERNS.some((pattern) => pattern.test(cleaned));
+}
+
+function extractSectionTitle(element: Element): string | null {
+  const tagName = element.tagName.toLowerCase();
+  const text = element.textContent?.trim() || "";
   
-  const weeks: TemplateWeek[] = [];
-  const tables = doc.querySelectorAll("table");
+  // H1, H2, H3 are always section headers if they have text
+  if (["h1", "h2", "h3"].includes(tagName) && text.length > 0) {
+    return text;
+  }
   
-  let weekNumber = 0;
+  // Check for strong/bold paragraphs that match patterns
+  if (tagName === "p") {
+    const hasStrong = element.querySelector("strong, b") !== null;
+    if ((hasStrong || text.length < 50) && isSectionHeader(text)) {
+      return text;
+    }
+  }
   
-  tables.forEach((table) => {
-    const rows = table.querySelectorAll("tr");
-    if (rows.length < 2) return; // Skip tables with only header
-    
-    weekNumber++;
-    const sessions: TemplateSession[] = [];
-    
-    // Skip first row (header)
-    for (let i = 1; i < rows.length; i++) {
-      const cells = rows[i].querySelectorAll("td");
-      if (cells.length >= 4) {
-        const day = cleanText(cells[0]?.textContent || "");
-        const sport = normalizeSport(cells[1]?.textContent || "");
-        const title = cleanText(cells[2]?.textContent || "");
-        const details = cleanText(cells[3]?.textContent || "");
-        
-        if (day || sport || title) {
-          sessions.push({ day, sport, title, details });
-        }
-      } else if (cells.length >= 2) {
-        // Some rows may have merged cells
-        const day = cleanText(cells[0]?.textContent || "");
-        const rest = cleanText(cells[1]?.textContent || "");
-        if (day) {
-          sessions.push({ 
-            day, 
-            sport: normalizeSport(rest), 
-            title: rest, 
-            details: "" 
-          });
-        }
+  return null;
+}
+
+function parseTableToWeek(table: Element, weekNumber: number): TemplateWeek {
+  const rows = table.querySelectorAll("tr");
+  const sessions: TemplateSession[] = [];
+  
+  // Skip first row (header)
+  for (let i = 1; i < rows.length; i++) {
+    const cells = rows[i].querySelectorAll("td");
+    if (cells.length >= 4) {
+      const day = cleanText(cells[0]?.textContent || "");
+      const sport = normalizeSport(cells[1]?.textContent || "");
+      const title = cleanText(cells[2]?.textContent || "");
+      const details = cleanText(cells[3]?.textContent || "");
+      
+      if (day || sport || title) {
+        sessions.push({ day, sport, title, details });
+      }
+    } else if (cells.length >= 2) {
+      // Some rows may have merged cells
+      const day = cleanText(cells[0]?.textContent || "");
+      const rest = cleanText(cells[1]?.textContent || "");
+      if (day) {
+        sessions.push({ 
+          day, 
+          sport: normalizeSport(rest), 
+          title: rest, 
+          details: "" 
+        });
       }
     }
-    
-    if (sessions.length > 0) {
-      weeks.push({ weekNumber, sessions });
-    }
-  });
+  }
   
-  return weeks;
+  return { weekNumber, sessions };
 }
 
 /**
- * Load and parse a DOCX template from a given path
+ * Parse DOCX HTML and extract sections with their weeks
+ */
+async function parseDocxHtmlToSections(html: string): Promise<ProgramSection[]> {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+  
+  const sections: ProgramSection[] = [];
+  let currentSection: ProgramSection | null = null;
+  let weekCounter = 0;
+  let sectionIndex = 0;
+  
+  // Get all body children to process in order
+  const bodyChildren = doc.body.children;
+  
+  for (let i = 0; i < bodyChildren.length; i++) {
+    const element = bodyChildren[i];
+    const tagName = element.tagName.toLowerCase();
+    
+    // Check if this is a section header
+    const sectionTitle = extractSectionTitle(element);
+    if (sectionTitle) {
+      // Save previous section if exists
+      if (currentSection && currentSection.weeks.length > 0) {
+        sections.push(currentSection);
+      }
+      
+      // Start new section
+      sectionIndex++;
+      weekCounter = 0;
+      currentSection = {
+        sectionId: `section-${sectionIndex}`,
+        sectionTitle: sectionTitle,
+        weeks: [],
+      };
+      continue;
+    }
+    
+    // Check if this is a table (week)
+    if (tagName === "table") {
+      weekCounter++;
+      const week = parseTableToWeek(element, weekCounter);
+      
+      if (week.sessions.length > 0) {
+        // If no section yet, create a default one
+        if (!currentSection) {
+          currentSection = {
+            sectionId: "section-1",
+            sectionTitle: "Plan principal",
+            weeks: [],
+          };
+        }
+        currentSection.weeks.push(week);
+      }
+    }
+  }
+  
+  // Don't forget the last section
+  if (currentSection && currentSection.weeks.length > 0) {
+    sections.push(currentSection);
+  }
+  
+  // If no sections were detected (no headers found), create one default section
+  if (sections.length === 0) {
+    // Fall back to old parsing method
+    const tables = doc.querySelectorAll("table");
+    const weeks: TemplateWeek[] = [];
+    let wn = 0;
+    
+    tables.forEach((table) => {
+      wn++;
+      const week = parseTableToWeek(table, wn);
+      if (week.sessions.length > 0) {
+        weeks.push(week);
+      }
+    });
+    
+    if (weeks.length > 0) {
+      sections.push({
+        sectionId: "section-1",
+        sectionTitle: "Plan principal",
+        weeks,
+      });
+    }
+  }
+  
+  // If multiple sections but titles are not clear, use fallback names
+  if (sections.length > 1) {
+    sections.forEach((section, idx) => {
+      if (section.sectionTitle === "Plan principal" || !section.sectionTitle) {
+        section.sectionTitle = `Plan ${String.fromCharCode(65 + idx)}`; // Plan A, Plan B, etc.
+      }
+    });
+  }
+  
+  return sections;
+}
+
+/**
+ * Parse DOCX content and extract weeks/sessions (legacy single-section mode)
+ */
+async function parseDocxHtml(html: string): Promise<TemplateWeek[]> {
+  const sections = await parseDocxHtmlToSections(html);
+  // Flatten all sections into one
+  return sections.flatMap((s) => s.weeks);
+}
+
+/**
+ * Load and parse a DOCX template from a given path (single-section mode)
  */
 export async function loadProgramTemplateFromDocx(docxPath: string): Promise<TemplateWeek[]> {
   // Check cache first
@@ -165,15 +332,57 @@ export async function loadProgramTemplateFromDocx(docxPath: string): Promise<Tem
 }
 
 /**
+ * Load and parse a DOCX template with multiple sections/plans
+ */
+export async function loadProgramSectionsFromDocx(docxPath: string): Promise<ProgramSection[]> {
+  // Check cache first
+  const cached = getSectionsFromCache(docxPath);
+  if (cached && cached.length > 0) {
+    console.log(`[TemplateLoader] Using cached sections for ${docxPath}`);
+    return cached;
+  }
+  
+  console.log(`[TemplateLoader] Loading sections from ${docxPath}`);
+  
+  // Fetch the DOCX file
+  const response = await fetch(docxPath);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch template: ${response.status}`);
+  }
+  
+  const arrayBuffer = await response.arrayBuffer();
+  
+  // Convert to HTML using mammoth
+  const result = await mammoth.convertToHtml({ arrayBuffer });
+  
+  if (result.messages.length > 0) {
+    console.log("[TemplateLoader] Mammoth messages:", result.messages);
+  }
+  
+  // Parse the HTML to extract sections
+  const sections = await parseDocxHtmlToSections(result.value);
+  
+  console.log(`[TemplateLoader] Parsed ${sections.length} sections with ${sections.reduce((acc, s) => acc + s.weeks.length, 0)} total weeks`);
+  
+  // Cache the result
+  if (sections.length > 0) {
+    setSectionsToCache(docxPath, sections);
+  }
+  
+  return sections;
+}
+
+/**
  * Clear template cache
  */
 export function clearTemplateCache(docxPath?: string): void {
   if (docxPath) {
     localStorage.removeItem(getCacheKey(docxPath));
+    localStorage.removeItem(getSectionsCacheKey(docxPath));
   } else {
     // Clear all template caches
     Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith("template-cache-")) {
+      if (key.startsWith("template-cache-") || key.startsWith("template-sections-cache-")) {
         localStorage.removeItem(key);
       }
     });
