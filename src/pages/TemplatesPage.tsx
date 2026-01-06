@@ -1,6 +1,7 @@
 /**
  * Templates de Programmation Page
  * Displays training templates with optional staff annotations
+ * Supports multi-section documents (e.g., Finisher vs Elite plans)
  */
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
@@ -11,11 +12,18 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ChevronLeft, FileText, AlertTriangle, Copy, CheckCircle2, Loader2, User, Target } from "lucide-react";
+import { ChevronLeft, FileText, AlertTriangle, Copy, CheckCircle2, Loader2, User, Layers } from "lucide-react";
 import { toast } from "sonner";
 
 import { PROGRAM_TEMPLATES, getTemplateById } from "@/data/programTemplates";
-import { loadProgramTemplateFromDocx, clearTemplateCache, type TemplateWeek, type TemplateSession } from "@/lib/templates/docxTemplateLoader";
+import { 
+  loadProgramTemplateFromDocx, 
+  loadProgramSectionsFromDocx,
+  clearTemplateCache, 
+  type TemplateWeek, 
+  type TemplateSession,
+  type ProgramSection 
+} from "@/lib/templates/docxTemplateLoader";
 import { 
   generateTemplateAnnotations, 
   getSeverityColor, 
@@ -203,10 +211,17 @@ export default function TemplatesPage() {
 
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>(PROGRAM_TEMPLATES[0]?.id || "");
   const [weeks, setWeeks] = useState<TemplateWeek[]>([]);
+  const [sections, setSections] = useState<ProgramSection[]>([]);
+  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [staffMode, setStaffMode] = useState(false);
   const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
+
+  const selectedTemplate = useMemo(
+    () => getTemplateById(selectedTemplateId),
+    [selectedTemplateId]
+  );
 
   // Persist selected athlete
   useEffect(() => {
@@ -217,6 +232,27 @@ export default function TemplatesPage() {
       setSelectedAthleteId(athletes[0].id);
     }
   }, [athletes]);
+
+  // Persist selected section per template
+  useEffect(() => {
+    if (selectedTemplate && sections.length > 0) {
+      const cacheKey = `selectedSection_${selectedTemplate.docxPath}`;
+      const saved = localStorage.getItem(cacheKey);
+      if (saved && sections.some((s) => s.sectionId === saved)) {
+        setSelectedSectionId(saved);
+      } else {
+        setSelectedSectionId(sections[0].sectionId);
+      }
+    }
+  }, [selectedTemplate, sections]);
+
+  // Save selected section to localStorage
+  useEffect(() => {
+    if (selectedTemplate && selectedSectionId) {
+      const cacheKey = `selectedSection_${selectedTemplate.docxPath}`;
+      localStorage.setItem(cacheKey, selectedSectionId);
+    }
+  }, [selectedTemplate, selectedSectionId]);
 
   const selectedAthlete = useMemo(
     () => athletes.find((a) => a.id === selectedAthleteId) || null,
@@ -232,13 +268,22 @@ export default function TemplatesPage() {
     return athleteSnapshots.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0] || null;
   }, [selectedAthlete, snapshots]);
 
+  // Get weeks to display (from selected section or flat weeks)
+  const displayedWeeks = useMemo(() => {
+    if (sections.length > 1 && selectedSectionId) {
+      const section = sections.find((s) => s.sectionId === selectedSectionId);
+      return section?.weeks || [];
+    }
+    return weeks;
+  }, [sections, selectedSectionId, weeks]);
+
   // Compute athlete metrics
   const athleteMetrics = useMemo(() => {
     if (!selectedAthlete || !selectedSnapshot) {
       return { vlamaxValue: null, tteValue: null, readinessScore: null, params: null };
     }
 
-    // VLamax effectif - utilise la nouvelle signature
+    // VLamax effectif
     const vlamaxEffectif = computeVLamaxEffectif({
       athleteId: selectedAthlete.id,
       objectif: selectedAthlete.goal || "IM",
@@ -299,11 +344,38 @@ export default function TemplatesPage() {
     }
 
     setIsLoading(true);
+    setSections([]);
+    setWeeks([]);
+    setSelectedSectionId(null);
+
     try {
-      const loadedWeeks = await loadProgramTemplateFromDocx(template.docxPath);
-      setWeeks(loadedWeeks);
-      setIsLoaded(true);
-      toast.success(`Template chargé: ${loadedWeeks.length} semaines`);
+      if (template.multiSections) {
+        // Load with multi-section support
+        const loadedSections = await loadProgramSectionsFromDocx(template.docxPath);
+        setSections(loadedSections);
+        
+        // Flatten for fallback
+        const allWeeks = loadedSections.flatMap((s) => s.weeks);
+        setWeeks(allWeeks);
+        
+        if (loadedSections.length > 0) {
+          setSelectedSectionId(loadedSections[0].sectionId);
+        }
+        
+        setIsLoaded(true);
+        toast.success(`Template chargé: ${loadedSections.length} plan(s), ${allWeeks.length} semaines`);
+      } else {
+        // Load as single section (legacy mode)
+        const loadedWeeks = await loadProgramTemplateFromDocx(template.docxPath);
+        setWeeks(loadedWeeks);
+        setSections([{
+          sectionId: "section-1",
+          sectionTitle: "Plan principal",
+          weeks: loadedWeeks,
+        }]);
+        setIsLoaded(true);
+        toast.success(`Template chargé: ${loadedWeeks.length} semaines`);
+      }
     } catch (err) {
       console.error("Error loading template:", err);
       toast.error("Erreur lors du chargement du template");
@@ -320,17 +392,24 @@ export default function TemplatesPage() {
   };
 
   const handleCopyAll = () => {
-    const text = weeks.map((week) => 
+    const weeksToExport = displayedWeeks;
+    const sectionTitle = sections.length > 1 
+      ? sections.find((s) => s.sectionId === selectedSectionId)?.sectionTitle || "Plan"
+      : "Plan";
+    
+    const text = `=== ${sectionTitle} ===\n\n` + weeksToExport.map((week) => 
       `=== Semaine ${week.weekNumber} ===\n\n` + 
       week.sessions.map((s) => `${s.day} - ${s.sport} - ${s.title}\n${s.details}`).join("\n\n")
     ).join("\n\n\n");
     navigator.clipboard.writeText(text);
-    toast.success("Plan complet copié !");
+    toast.success("Plan copié !");
   };
 
   const handleClearCache = () => {
     clearTemplateCache();
     setWeeks([]);
+    setSections([]);
+    setSelectedSectionId(null);
     setIsLoaded(false);
     toast.success("Cache vidé");
   };
@@ -362,7 +441,13 @@ export default function TemplatesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
+            <Select value={selectedTemplateId} onValueChange={(v) => {
+              setSelectedTemplateId(v);
+              setIsLoaded(false);
+              setWeeks([]);
+              setSections([]);
+              setSelectedSectionId(null);
+            }}>
               <SelectTrigger>
                 <SelectValue placeholder="Choisir un template" />
               </SelectTrigger>
@@ -370,6 +455,7 @@ export default function TemplatesPage() {
                 {PROGRAM_TEMPLATES.map((t) => (
                   <SelectItem key={t.id} value={t.id}>
                     {t.name} ({t.target})
+                    {t.multiSections && " 📑"}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -394,6 +480,32 @@ export default function TemplatesPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Section Selection (if multi-section) */}
+        {isLoaded && sections.length > 1 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Layers className="h-4 w-4" />
+                Choisir un plan
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Select value={selectedSectionId || ""} onValueChange={setSelectedSectionId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un plan" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sections.map((s) => (
+                    <SelectItem key={s.sectionId} value={s.sectionId}>
+                      {s.sectionTitle} ({s.weeks.length} semaines)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Staff Mode + Athlete Selection */}
         {isLoaded && (
@@ -449,13 +561,22 @@ export default function TemplatesPage() {
         )}
 
         {/* Weeks Accordion */}
-        {isLoaded && weeks.length > 0 && (
+        {isLoaded && displayedWeeks.length > 0 && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold">{weeks.length} semaines</h3>
+              <h3 className="font-semibold">
+                {sections.length > 1 && selectedSectionId 
+                  ? sections.find((s) => s.sectionId === selectedSectionId)?.sectionTitle 
+                  : `${displayedWeeks.length} semaines`}
+              </h3>
+              {sections.length <= 1 && (
+                <Badge variant="outline" className="text-xs">
+                  {displayedWeeks.length} semaines
+                </Badge>
+              )}
             </div>
             <Accordion type="single" collapsible className="space-y-2">
-              {weeks.map((week) => (
+              {displayedWeeks.map((week) => (
                 <WeekSection key={week.weekNumber} week={week} annotations={annotations} />
               ))}
             </Accordion>
