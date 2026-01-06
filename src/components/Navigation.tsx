@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Calculator, FlaskConical, Trophy, GraduationCap, BookOpen, Menu, X, CalendarRange } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ interface NavItem {
   label: string;
   shortLabel?: string;
   icon: React.ComponentType<{ className?: string }>;
+  route?: string; // Optional external route
 }
 
 // Manual Only Mode: Nolio tab removed
@@ -18,7 +20,7 @@ const navItems: NavItem[] = [
   { id: "dashboard", label: "Dashboard", shortLabel: "Dash", icon: Calculator },
   { id: "profil", label: "Profil", icon: Calculator },
   { id: "tests", label: "Tests", icon: FlaskConical },
-  { id: "templates", label: "Templates", shortLabel: "Templ", icon: BookOpen },
+  { id: "templates", label: "Templates", shortLabel: "Templ", icon: BookOpen, route: "/templates" },
   { id: "race-readiness", label: "Race Readiness", shortLabel: "Race", icon: Trophy },
   { id: "comprendre", label: "Comprendre", icon: BookOpen },
   { id: "methodology", label: "Méthodologie", shortLabel: "Métho", icon: GraduationCap },
@@ -31,6 +33,15 @@ interface NavigationProps {
 
 export function Navigation({ activeTab, onTabChange }: NavigationProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleNavClick = (item: NavItem) => {
+    if (item.route) {
+      navigate(item.route);
+    } else {
+      onTabChange(item.id);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border">
@@ -54,11 +65,11 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
             <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1">
               {navItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = activeTab === item.id;
+                const isActive = item.route ? false : activeTab === item.id;
                 return (
                   <button
                     key={item.id}
-                    onClick={() => onTabChange(item.id)}
+                    onClick={() => handleNavClick(item)}
                     className={cn(
                       "flex items-center gap-1.5 xl:gap-2 px-2.5 xl:px-3 py-2 rounded-lg text-xs xl:text-sm font-medium transition-all duration-200",
                       isActive
@@ -78,11 +89,11 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
             <nav className="hidden md:flex lg:hidden items-center gap-0.5">
               {navItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = activeTab === item.id;
+                const isActive = item.route ? false : activeTab === item.id;
                 return (
                   <button
                     key={item.id}
-                    onClick={() => onTabChange(item.id)}
+                    onClick={() => handleNavClick(item)}
                     className={cn(
                       "flex items-center justify-center p-2 rounded-lg transition-all duration-200",
                       isActive
@@ -119,12 +130,12 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
             <div className="flex flex-col gap-0.5">
               {navItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = activeTab === item.id;
+                const isActive = item.route ? false : activeTab === item.id;
                 return (
                   <button
                     key={item.id}
                     onClick={() => {
-                      onTabChange(item.id);
+                      handleNavClick(item);
                       setMobileMenuOpen(false);
                     }}
                     className={cn(
