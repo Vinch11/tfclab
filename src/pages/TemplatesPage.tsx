@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ChevronLeft, FileText, AlertTriangle, Copy, CheckCircle2, Loader2, User, Layers, Lightbulb } from "lucide-react";
+import { ChevronLeft, FileText, AlertTriangle, Copy, CheckCircle2, Loader2, User, Layers, Lightbulb, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 
 import { PROGRAM_TEMPLATES, getTemplateById } from "@/data/programTemplates";
@@ -305,6 +305,18 @@ export default function TemplatesPage() {
     return weeks;
   }, [sections, selectedSectionId, weeks]);
 
+  // Get briefing from current section
+  const currentBriefing = useMemo(() => {
+    if (sections.length > 0) {
+      if (selectedSectionId) {
+        const section = sections.find((s) => s.sectionId === selectedSectionId);
+        return section?.briefing || null;
+      }
+      return sections[0]?.briefing || null;
+    }
+    return null;
+  }, [sections, selectedSectionId]);
+
   // Compute athlete metrics
   const athleteMetrics = useMemo(() => {
     if (!selectedAthlete || !selectedSnapshot) {
@@ -586,6 +598,23 @@ export default function TemplatesPage() {
             <h3 className="font-semibold text-sm text-muted-foreground">Annotations Staff</h3>
             <AnnotationsPanel annotations={annotations} />
           </div>
+        )}
+
+        {/* Briefing Card */}
+        {isLoaded && currentBriefing && (
+          <Card className="border-l-4 border-l-primary bg-primary/5">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <BookOpen className="h-4 w-4 text-primary" />
+                Briefing du Programme
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
+                {currentBriefing}
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Weeks Accordion */}

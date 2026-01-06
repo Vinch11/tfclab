@@ -22,6 +22,7 @@ export interface ProgramSection {
   sectionId: string;
   sectionTitle: string;
   weeks: TemplateWeek[];
+  briefing?: string; // Briefing général avant les semaines
 }
 
 export interface ProgramTemplate {
@@ -34,7 +35,7 @@ export interface ProgramTemplate {
   multiSections?: boolean;
 }
 
-const CACHE_VERSION = "v3"; // Incremented for coach advice support
+const CACHE_VERSION = "v4"; // Incremented for briefing support
 
 function getCacheKey(docxPath: string): string {
   return `template-cache-${docxPath}-${CACHE_VERSION}`;
@@ -246,6 +247,51 @@ function extractCoachAdvice(elements: HTMLCollection, startIndex: number): { adv
 }
 
 /**
+ * Extract briefing content (text before first table/week)
+ */
+function extractBriefing(elements: HTMLCollection): string {
+  const briefingParts: string[] = [];
+  
+  for (let i = 0; i < elements.length; i++) {
+    const element = elements[i];
+    const tagName = element.tagName.toLowerCase();
+    const text = element.textContent?.trim() || "";
+    
+    // Stop when we hit the first table (start of weeks)
+    if (tagName === "table") break;
+    
+    // Skip empty elements
+    if (!text) continue;
+    
+    // Skip week markers
+    if (/semaine\s*\d+/i.test(text)) break;
+    
+    // Collect headers
+    if (["h1", "h2", "h3"].includes(tagName) && text) {
+      briefingParts.push(`**${cleanText(text)}**`);
+    }
+    
+    // Collect paragraphs
+    if (tagName === "p" && text) {
+      briefingParts.push(cleanText(text));
+    }
+    
+    // Collect list items
+    if (tagName === "ul" || tagName === "ol") {
+      const items = element.querySelectorAll("li");
+      items.forEach((li) => {
+        const itemText = cleanText(li.textContent || "");
+        if (itemText) {
+          briefingParts.push(`• ${itemText}`);
+        }
+      });
+    }
+  }
+  
+  return briefingParts.join("\n\n").trim();
+}
+
+/**
  * Parse DOCX HTML and extract sections with their weeks
  */
 async function parseDocxHtmlToSections(html: string): Promise<ProgramSection[]> {
@@ -259,6 +305,9 @@ async function parseDocxHtmlToSections(html: string): Promise<ProgramSection[]> 
   
   // Get all body children to process in order
   const bodyChildren = doc.body.children;
+  
+  // Extract global briefing first
+  const globalBriefing = extractBriefing(bodyChildren);
   
   for (let i = 0; i < bodyChildren.length; i++) {
     const element = bodyChildren[i];
@@ -293,6 +342,7 @@ async function parseDocxHtmlToSections(html: string): Promise<ProgramSection[]> 
         sectionId: `section-${sectionIndex}`,
         sectionTitle: sectionTitle,
         weeks: [],
+        briefing: sectionIndex === 1 ? globalBriefing : undefined,
       };
       continue;
     }
@@ -309,6 +359,7 @@ async function parseDocxHtmlToSections(html: string): Promise<ProgramSection[]> 
             sectionId: "section-1",
             sectionTitle: "Plan principal",
             weeks: [],
+            briefing: globalBriefing,
           };
         }
         currentSection.weeks.push(week);
@@ -341,6 +392,7 @@ async function parseDocxHtmlToSections(html: string): Promise<ProgramSection[]> 
         sectionId: "section-1",
         sectionTitle: "Plan principal",
         weeks,
+        briefing: globalBriefing,
       });
     }
   }
