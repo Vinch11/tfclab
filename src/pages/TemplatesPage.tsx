@@ -12,8 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ChevronLeft, FileText, AlertTriangle, Copy, CheckCircle2, Loader2, User, Layers, Lightbulb, BookOpen, List } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ChevronLeft, FileText, AlertTriangle, Copy, CheckCircle2, Loader2, User, Layers, Lightbulb, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 
 import { PROGRAM_TEMPLATES, getTemplateById } from "@/data/programTemplates";
@@ -246,7 +245,6 @@ export default function TemplatesPage() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [staffMode, setStaffMode] = useState(false);
   const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
-  const [openWeekValue, setOpenWeekValue] = useState<string | undefined>(undefined);
 
   const selectedTemplate = useMemo(
     () => getTemplateById(selectedTemplateId),
@@ -619,45 +617,6 @@ export default function TemplatesPage() {
           </Card>
         )}
 
-        {/* Phase Summary / Table of Contents */}
-        {isLoaded && displayedWeeks.length > 0 && (
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <List className="h-4 w-4" />
-                Sommaire des semaines
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-3">
-              <ScrollArea className="w-full">
-                <div className="flex flex-wrap gap-2">
-                  {displayedWeeks.map((week) => (
-                    <Button
-                      key={week.weekNumber}
-                      variant={openWeekValue === `week-${week.weekNumber}` ? "default" : "outline"}
-                      size="sm"
-                      className="h-8 px-3 text-xs"
-                      onClick={() => {
-                        setOpenWeekValue(`week-${week.weekNumber}`);
-                        // Scroll to the week after a short delay for accordion to open
-                        setTimeout(() => {
-                          const element = document.getElementById(`week-${week.weekNumber}`);
-                          if (element) {
-                            element.scrollIntoView({ behavior: "smooth", block: "start" });
-                          }
-                        }, 100);
-                      }}
-                    >
-                      S{week.weekNumber}
-                      {week.coachAdvice && <Lightbulb className="h-3 w-3 ml-1 text-amber-500" />}
-                    </Button>
-                  ))}
-                </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        )}
-
         {/* Weeks Accordion */}
         {isLoaded && displayedWeeks.length > 0 && (
           <div className="space-y-3">
@@ -673,17 +632,9 @@ export default function TemplatesPage() {
                 </Badge>
               )}
             </div>
-            <Accordion 
-              type="single" 
-              collapsible 
-              className="space-y-2"
-              value={openWeekValue}
-              onValueChange={setOpenWeekValue}
-            >
+            <Accordion type="single" collapsible className="space-y-2">
               {displayedWeeks.map((week) => (
-                <div key={week.weekNumber} id={`week-${week.weekNumber}`}>
-                  <WeekSection week={week} annotations={annotations} />
-                </div>
+                <WeekSection key={week.weekNumber} week={week} annotations={annotations} />
               ))}
             </Accordion>
           </div>
