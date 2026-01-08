@@ -395,6 +395,8 @@ export interface ProcessedSessionOptions {
   genericOptions: string[]; // Options without sport (to be hidden)
   hasIssues: boolean;
   staffWarnings: string[];
+  hasLongCAPOption: boolean; // For CAP injury risk display
+  maxCAPOptionDuration: number; // For CAP injury risk calculation
 }
 
 /**
@@ -411,8 +413,22 @@ export function processSessionOptions(
   // Parse explicit options
   const parsedOptions = parseOptionsFromText(detailsText);
   
+  // Track CAP options for injury risk
+  let hasLongCAPOption = false;
+  let maxCAPOptionDuration = 0;
+  
   for (const option of parsedOptions) {
     const validated = validateOption(option, context);
+    
+    // Track CAP options
+    if (option.sport === "CAP") {
+      if (option.durationMin > maxCAPOptionDuration) {
+        maxCAPOptionDuration = option.durationMin;
+      }
+      if (option.durationMin >= 90) {
+        hasLongCAPOption = true;
+      }
+    }
     
     if (validated.isAllowed) {
       validOptions.push(validated);
@@ -434,6 +450,8 @@ export function processSessionOptions(
     genericOptions,
     hasIssues: blockedOptions.length > 0 || genericOptions.length > 0,
     staffWarnings,
+    hasLongCAPOption,
+    maxCAPOptionDuration,
   };
 }
 

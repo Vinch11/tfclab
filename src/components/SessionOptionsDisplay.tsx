@@ -1,6 +1,7 @@
 /**
  * Session Options Display Component
  * Displays validated duration options with pedagogical text and staff analysis
+ * Includes CAP Injury Risk integration for long CAP sessions
  */
 
 import { Badge } from "@/components/ui/badge";
@@ -13,12 +14,18 @@ import {
   formatOptionForDisplay,
   getOptionRiskColor,
 } from "@/lib/templates/optionValidator";
+import { 
+  type CAPInjuryRiskResult, 
+  getCAPOptionRiskBadge,
+} from "@/lib/capInjuryRisk";
+import { CAPRiskInline } from "@/components/CAPInjuryRiskBadge";
 
 interface SessionOptionsDisplayProps {
   validOptions: ValidatedOption[];
   blockedOptions?: ValidatedOption[];
   genericOptionsRemoved?: string[];
   staffMode?: boolean;
+  capInjuryRisk?: CAPInjuryRiskResult | null;
 }
 
 export function SessionOptionsDisplay({
@@ -26,6 +33,7 @@ export function SessionOptionsDisplay({
   blockedOptions = [],
   genericOptionsRemoved = [],
   staffMode = false,
+  capInjuryRisk = null,
 }: SessionOptionsDisplayProps) {
   const [showStaffAnalysis, setShowStaffAnalysis] = useState(false);
   
@@ -44,7 +52,8 @@ export function SessionOptionsDisplay({
             <ValidOptionCard 
               key={idx} 
               validated={validated} 
-              staffMode={staffMode} 
+              staffMode={staffMode}
+              capInjuryRisk={capInjuryRisk}
             />
           ))}
         </div>
@@ -86,22 +95,36 @@ export function SessionOptionsDisplay({
 
 function ValidOptionCard({ 
   validated, 
-  staffMode 
+  staffMode,
+  capInjuryRisk,
 }: { 
   validated: ValidatedOption; 
   staffMode: boolean;
+  capInjuryRisk?: CAPInjuryRiskResult | null;
 }) {
   const [showDetails, setShowDetails] = useState(false);
   
   const displayText = formatOptionForDisplay(validated);
   const riskColor = getOptionRiskColor(validated.riskLevel);
   
+  // Check if this is a CAP option that should show injury risk
+  const isCapOption = validated.option.sport === "CAP";
+  const showCAPRisk = isCapOption && capInjuryRisk && capInjuryRisk.level >= 2;
+  const capRiskBadge = showCAPRisk ? getCAPOptionRiskBadge(capInjuryRisk.level) : null;
+  
   return (
     <div className="text-xs bg-muted/30 rounded p-2 border">
       <div className="flex items-start gap-2">
-        <Badge className={`shrink-0 text-[10px] ${riskColor}`}>
-          {validated.option.sport}
-        </Badge>
+        <div className="flex flex-col gap-1 shrink-0">
+          <Badge className={`text-[10px] ${riskColor}`}>
+            {validated.option.sport}
+          </Badge>
+          {capRiskBadge?.show && (
+            <Badge className={`text-[10px] ${capRiskBadge.color}`}>
+              {capRiskBadge.text}
+            </Badge>
+          )}
+        </div>
         <div className="flex-1 min-w-0">
           <p className="font-medium text-foreground">{displayText}</p>
           
@@ -111,6 +134,11 @@ function ValidOptionCard({
               <Info className="h-3 w-3 shrink-0 mt-0.5 text-blue-500" />
               <span>{validated.pedagogicalText}</span>
             </p>
+          )}
+          
+          {/* CAP Injury Risk (staff mode) */}
+          {showCAPRisk && capInjuryRisk && (
+            <CAPRiskInline risk={capInjuryRisk} staffMode={staffMode} />
           )}
           
           {/* Staff Analysis */}
@@ -127,7 +155,7 @@ function ValidOptionCard({
           )}
         </div>
         
-        {validated.riskLevel === "LOW" && (
+        {validated.riskLevel === "LOW" && !showCAPRisk && (
           <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
         )}
       </div>
