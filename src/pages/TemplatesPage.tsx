@@ -12,8 +12,9 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ChevronLeft, FileText, AlertTriangle, Copy, CheckCircle2, Loader2, User, Layers, Lightbulb, BookOpen } from "lucide-react";
+import { ChevronLeft, FileText, AlertTriangle, Copy, CheckCircle2, Loader2, User, Layers, Lightbulb, BookOpen, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 import { PROGRAM_TEMPLATES, getTemplateById } from "@/data/programTemplates";
 import { 
@@ -126,6 +127,80 @@ function formatDuration(minutes: number): string {
   if (h === 0) return `${m}'`;
   if (m === 0) return `${h}h`;
   return `${h}h${m.toString().padStart(2, "0")}`;
+}
+
+function formatHours(minutes: number): number {
+  return Math.round(minutes / 60 * 10) / 10;
+}
+
+// Calculate volume data by phase for the chart
+function calculatePhaseVolumeData(weeks: TemplateWeek[]): { phase: string; swim: number; bike: number; run: number; total: number }[] {
+  const phaseMap = new Map<string, { swim: number; bike: number; run: number }>();
+  
+  weeks.forEach((week) => {
+    const phase = week.phase || `S${week.weekNumber}`;
+    const volume = calculateWeeklyVolume(week.sessions);
+    
+    if (!phaseMap.has(phase)) {
+      phaseMap.set(phase, { swim: 0, bike: 0, run: 0 });
+    }
+    
+    const current = phaseMap.get(phase)!;
+    current.swim += volume.swim;
+    current.bike += volume.bike;
+    current.run += volume.run;
+  });
+  
+  return Array.from(phaseMap.entries()).map(([phase, vol]) => ({
+    phase: phase.length > 15 ? phase.slice(0, 12) + "…" : phase,
+    swim: formatHours(vol.swim),
+    bike: formatHours(vol.bike),
+    run: formatHours(vol.run),
+    total: formatHours(vol.swim + vol.bike + vol.run),
+  }));
+}
+
+function PhaseVolumeChart({ weeks }: { weeks: TemplateWeek[] }) {
+  const data = useMemo(() => calculatePhaseVolumeData(weeks), [weeks]);
+  
+  if (data.length === 0) return null;
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <BarChart3 className="h-4 w-4" />
+          Volume par Phase (heures)
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="h-64 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 20 }}>
+              <XAxis 
+                dataKey="phase" 
+                tick={{ fontSize: 10 }} 
+                angle={-30}
+                textAnchor="end"
+                height={60}
+              />
+              <YAxis tick={{ fontSize: 10 }} unit="h" />
+              <Tooltip 
+                formatter={(value: number, name: string) => [`${value}h`, name === 'swim' ? 'Natation' : name === 'bike' ? 'Vélo' : 'CAP']}
+                labelFormatter={(label) => `Phase: ${label}`}
+              />
+              <Legend 
+                formatter={(value) => value === 'swim' ? '🏊 Natation' : value === 'bike' ? '🚴 Vélo' : '🏃 CAP'}
+              />
+              <Bar dataKey="swim" stackId="a" fill="#3B82F6" name="swim" />
+              <Bar dataKey="bike" stackId="a" fill="#22C55E" name="bike" />
+              <Bar dataKey="run" stackId="a" fill="#F97316" name="run" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 
@@ -767,6 +842,11 @@ export default function TemplatesPage() {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* Phase Volume Chart */}
+        {isLoaded && displayedWeeks.length > 0 && (
+          <PhaseVolumeChart weeks={displayedWeeks} />
         )}
 
         {/* Weeks Accordion */}
