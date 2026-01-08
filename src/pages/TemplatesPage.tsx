@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronLeft, FileText, AlertTriangle, Copy, CheckCircle2, Loader2, User, Layers, Lightbulb, BookOpen, BarChart3, Target, ChevronDown, Info, Zap, Activity } from "lucide-react";
+import { ChevronLeft, FileText, AlertTriangle, Copy, CheckCircle2, Loader2, User, Layers, Lightbulb, BookOpen, BarChart3, Target, ChevronDown, Info, Zap, Activity, ArrowLeftRight } from "lucide-react";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
@@ -44,6 +44,7 @@ import { useCloudData, DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
 import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { computeTTEEffectif } from "@/lib/tteEffectif";
 import { computeRaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
+import { PlanComparisonView } from "@/components/PlanComparisonView";
 
 function getSportBadgeColor(sport: string | undefined): string {
   if (!sport) return "bg-muted text-muted-foreground";
@@ -901,6 +902,7 @@ export default function TemplatesPage() {
   const [staffMode, setStaffMode] = useState(false);
   const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
   const [comparisonProfile, setComparisonProfile] = useState<"PERFORMANCE" | "INTERMEDIAIRE">("PERFORMANCE");
+  const [showComparisonMode, setShowComparisonMode] = useState(false);
 
   const selectedTemplate = useMemo(
     () => getTemplateById(selectedTemplateId),
@@ -1266,11 +1268,23 @@ export default function TemplatesPage() {
         {isLoaded && (
           <Card>
             <CardContent className="p-4 space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center gap-2">
                   <Switch id="staff-mode" checked={staffMode} onCheckedChange={setStaffMode} />
                   <Label htmlFor="staff-mode" className="text-sm font-medium">Mode Staff V2 (Annotations précises)</Label>
                 </div>
+                
+                {staffMode && annotationsV2.length > 0 && (
+                  <Button 
+                    variant={showComparisonMode ? "default" : "outline"} 
+                    size="sm"
+                    onClick={() => setShowComparisonMode(!showComparisonMode)}
+                    className="gap-2"
+                  >
+                    <ArrowLeftRight className="h-4 w-4" />
+                    {showComparisonMode ? "Fermer comparaison" : "Comparer Plan Brut / Conseillé"}
+                  </Button>
+                )}
               </div>
 
               {staffMode && athletes.length > 0 && (
@@ -1319,8 +1333,17 @@ export default function TemplatesPage() {
           </Card>
         )}
 
+        {/* Comparison View (Plan Brut vs Plan Conseillé) */}
+        {isLoaded && staffMode && showComparisonMode && selectedAthlete && annotationsV2.length > 0 && (
+          <PlanComparisonView
+            originalWeeks={displayedWeeks}
+            annotations={annotationsV2}
+            onClose={() => setShowComparisonMode(false)}
+          />
+        )}
+
         {/* Annotations Panel V2 */}
-        {isLoaded && staffMode && selectedAthlete && annotationsV2.length > 0 && (
+        {isLoaded && staffMode && selectedAthlete && annotationsV2.length > 0 && !showComparisonMode && (
           <div className="space-y-3">
             <h3 className="font-semibold text-sm text-muted-foreground flex items-center gap-2">
               <AlertTriangle className="h-4 w-4" />
@@ -1349,12 +1372,12 @@ export default function TemplatesPage() {
         )}
 
         {/* Phase Volume Chart */}
-        {isLoaded && displayedWeeks.length > 0 && (
+        {isLoaded && displayedWeeks.length > 0 && !showComparisonMode && (
           <PhaseVolumeChart weeks={displayedWeeks} />
         )}
 
         {/* Weeks Accordion */}
-        {isLoaded && displayedWeeks.length > 0 && (
+        {isLoaded && displayedWeeks.length > 0 && !showComparisonMode && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold">
