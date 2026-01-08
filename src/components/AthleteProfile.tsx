@@ -237,20 +237,27 @@ export function AthleteProfile({ athlete, onUpdate, onUpdateMasseGrasse, snapsho
                     <Percent className="w-4 h-4" />
                     <span className="text-xs uppercase tracking-wider">Masse grasse</span>
                   </div>
-                  {/* FIX 6: Afficher "—" si non renseigné, pas 18% */}
+                  {/* FIX: Afficher snapshot fat_pct en priorité, sinon profil masse_grasse */}
                   <p className="text-2xl font-bold font-mono text-warning">
-                    {formData.masse_grasse !== undefined && formData.masse_grasse !== null 
-                      ? formData.masse_grasse 
-                      : "—"}
+                    {snapshotFatPct !== undefined && snapshotFatPct !== null 
+                      ? snapshotFatPct
+                      : formData.masse_grasse !== undefined && formData.masse_grasse !== null 
+                        ? formData.masse_grasse 
+                        : "—"}
                     <span className="text-sm text-muted-foreground ml-1">%</span>
                   </p>
-                  {/* Bonus: Afficher fat_pct du snapshot si différent */}
-                  {snapshotFatPct !== undefined && snapshotFatPct !== null && snapshotFatPct !== formData.masse_grasse && (
+                  {/* Afficher la source */}
+                  {(snapshotFatPct !== undefined && snapshotFatPct !== null) ? (
                     <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                       <Info className="w-3 h-3" />
-                      Snapshot: {snapshotFatPct}%
+                      Source: Snapshot
                     </p>
-                  )}
+                  ) : formData.masse_grasse !== undefined && formData.masse_grasse !== null ? (
+                    <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                      <Info className="w-3 h-3" />
+                      Source: Profil
+                    </p>
+                  ) : null}
                 </div>
                 <div className="p-4 rounded-xl bg-secondary/20 border border-border">
                   <div className="flex items-center gap-2 text-muted-foreground mb-2">
