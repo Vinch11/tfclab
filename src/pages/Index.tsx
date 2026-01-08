@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
 import { Navigation } from "@/components/Navigation";
-import ComprendreScoresPage from "@/pages/ComprendreScoresPage";
 import { MetricCard } from "@/components/MetricCard";
 import { TrainingZones } from "@/components/TrainingZones";
 import { TestProtocols } from "@/components/TestProtocols";
@@ -804,8 +803,6 @@ const Index = () => {
           </div>
         );
 
-      case "comprendre":
-        return <ComprendreScoresPage />;
 
 
       default:
