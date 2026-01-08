@@ -1301,23 +1301,23 @@ export default function TemplatesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-24 safe-area-inset-bottom">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl safe-area-inset-top">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 max-w-7xl">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="shrink-0 touch-target">
               <ChevronLeft className="h-5 w-5" />
             </Button>
             <div className="flex-1 min-w-0">
-              <h1 className="text-lg font-bold text-foreground truncate">Templates de Programmation</h1>
-              <p className="text-xs text-muted-foreground">Plans staff-grade avec annotations V2</p>
+              <h1 className="text-base sm:text-lg lg:text-xl font-bold text-foreground truncate">Templates de Programmation</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Plans staff-grade avec annotations V2</p>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 space-y-6">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-4 sm:space-y-6 max-w-7xl">
         {/* Template Selection */}
         <Card>
           <CardHeader className="pb-3">

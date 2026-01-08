@@ -130,9 +130,21 @@
     @apply border-border;
   }
 
+  html {
+    /* Smooth scrolling */
+    scroll-behavior: smooth;
+    /* Prevent horizontal overflow on mobile */
+    overflow-x: hidden;
+  }
+
   body {
     @apply bg-background text-foreground font-body antialiased;
     font-family: var(--font-body);
+    /* Prevent pull-to-refresh on mobile */
+    overscroll-behavior-y: contain;
+    /* Better text rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -195,7 +207,7 @@
     animation: shimmer 2s infinite;
   }
 
-  /* Safe area for iPhone notch */
+  /* Safe area for iPhone notch & home indicator */
   .safe-area-inset-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0);
   }
@@ -204,13 +216,21 @@
     padding-top: env(safe-area-inset-top, 0);
   }
 
+  .safe-area-inset-left {
+    padding-left: env(safe-area-inset-left, 0);
+  }
+
+  .safe-area-inset-right {
+    padding-right: env(safe-area-inset-right, 0);
+  }
+
   /* Mobile-first table scroll */
   .table-mobile-scroll {
     @apply w-full overflow-x-auto;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Touch-friendly buttons */
+  /* Touch-friendly buttons - Apple HIG recommends 44pt minimum */
   .touch-target {
     @apply min-h-[44px] min-w-[44px];
     touch-action: manipulation;
@@ -228,5 +248,133 @@
   }
   .no-scrollbar::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Responsive container with max-width for large screens */
+  .container-adaptive {
+    @apply w-full mx-auto px-4;
+    max-width: 100%;
+  }
+
+  @media (min-width: 640px) {
+    .container-adaptive {
+      @apply px-6;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .container-adaptive {
+      @apply px-8;
+      max-width: 768px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container-adaptive {
+      max-width: 1024px;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .container-adaptive {
+      max-width: 1280px;
+    }
+  }
+
+  @media (min-width: 1536px) {
+    .container-adaptive {
+      max-width: 1400px;
+    }
+  }
+
+  /* Grid layout helpers */
+  .grid-responsive {
+    @apply grid gap-4;
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 768px) {
+    .grid-responsive {
+      grid-template-columns: repeat(2, 1fr);
+      @apply gap-6;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .grid-responsive {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  /* Card sizing for different devices */
+  .card-adaptive {
+    @apply rounded-lg;
+  }
+
+  @media (min-width: 768px) {
+    .card-adaptive {
+      @apply rounded-xl;
+    }
+  }
+
+  /* Text sizing utilities */
+  .text-responsive-sm {
+    @apply text-xs sm:text-sm;
+  }
+
+  .text-responsive-base {
+    @apply text-sm sm:text-base;
+  }
+
+  .text-responsive-lg {
+    @apply text-base sm:text-lg md:text-xl;
+  }
+
+  .text-responsive-xl {
+    @apply text-lg sm:text-xl md:text-2xl;
+  }
+
+  /* Spacing utilities */
+  .space-responsive {
+    @apply space-y-4 sm:space-y-6 lg:space-y-8;
+  }
+
+  .gap-responsive {
+    @apply gap-3 sm:gap-4 lg:gap-6;
+  }
+
+  .p-responsive {
+    @apply p-3 sm:p-4 lg:p-6;
+  }
+
+  /* iPad Pro and large tablet optimizations */
+  @media (min-width: 1024px) and (max-width: 1366px) and (min-height: 900px) {
+    .tablet-landscape-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  /* Desktop sidebar layout helper */
+  .with-sidebar {
+    @apply flex flex-col;
+  }
+
+  @media (min-width: 1024px) {
+    .with-sidebar {
+      @apply flex-row;
+    }
+  }
+
+  /* Hover states only on non-touch devices */
+  @media (hover: hover) and (pointer: fine) {
+    .hover-lift:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-elevated);
+    }
+  }
+
+  /* Focus visible for keyboard navigation */
+  .focus-ring:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 }
