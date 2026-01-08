@@ -1,17 +1,20 @@
 /**
- * Template Sanity Checker
- * Validates and sanitizes session details to fix parsing issues
+ * Template Sanity Checker V2
+ * Validates and sanitizes session details with sport-contextualized options
  */
 
+import { parseDurationFromText } from "./durationParser";
 import { 
-  parseDurationFromText, 
-  extractOptionDurations, 
-  detectMisplacedLongOptions 
-} from "./durationParser";
+  processSessionOptions, 
+  cleanSessionDetails,
+  type SessionContext,
+  type ValidatedOption,
+  type OptionSport,
+} from "./optionValidator";
 import type { TemplateSession, TemplateWeek } from "./docxTemplateLoader";
 
 export interface SanityWarning {
-  type: "MISPLACED_OPTION" | "INVALID_DURATION" | "CELL_OVERFLOW" | "OPTION_REATTACHED";
+  type: "MISPLACED_OPTION" | "GENERIC_OPTION" | "BLOCKED_OPTION" | "INVALID_DURATION" | "CELL_OVERFLOW" | "OPTION_REATTACHED";
   message: string;
   severity: "info" | "warning" | "error";
   originalText?: string;
@@ -23,7 +26,9 @@ export interface SanitizedSession {
   warnings: SanityWarning[];
   durationMin?: number;
   durationRange?: { min: number; max: number };
-  removedOptions?: string[];
+  validOptions?: ValidatedOption[];
+  blockedOptions?: ValidatedOption[];
+  genericOptionsRemoved?: string[];
 }
 
 export interface SanitizedWeek {
@@ -33,84 +38,112 @@ export interface SanitizedWeek {
 }
 
 /**
- * Remove misplaced option lines from session details
+ * Detect session sport from session data
  */
-function removeOptionLines(details: string): { cleaned: string; removed: string[] } {
-  const lines = details.split(/\n|(?:\s{2,})/);
-  const cleaned: string[] = [];
-  const removed: string[] = [];
+function detectSessionSport(session: TemplateSession): OptionSport {
+  const sportText = (session.sport || session.discipline || "").toLowerCase();
   
-  for (const line of lines) {
-    const trimmed = line.trim();
-    // Check if line contains option patterns like "Option 2h30" or "ou 4h30"
-    if (/option[s]?\s*[:\s]*\d+h/i.test(trimmed) || /^ou\s+\d+h/i.test(trimmed)) {
-      const durations = extractOptionDurations(trimmed);
-      if (durations.some(d => d >= 120)) {
-        removed.push(trimmed);
-        continue;
-      }
-    }
-    cleaned.push(trimmed);
-  }
+  if (sportText.includes("vélo") || sportText.includes("bike") || sportText.includes("velo")) return "VÉLO";
+  if (sportText.includes("cap") || sportText.includes("course") || sportText.includes("run") || sportText.includes("c.a.p")) return "CAP";
+  if (sportText.includes("natation") || sportText.includes("swim") || sportText.includes("piscine")) return "NATATION";
+  if (sportText.includes("brick") || sportText.includes("vélo + cap")) return "BRICK";
   
-  return { 
-    cleaned: cleaned.filter(l => l).join(" ").trim(), 
-    removed 
+  return "UNKNOWN";
+}
+
+/**
+ * Detect if session is a "long" session type
+ */
+function isLongSessionType(session: TemplateSession): boolean {
+  const text = ((session.title || "") + " " + (session.details || "")).toLowerCase();
+  return /sortie\s*longue|long\s*run|ultra|endurance\s*longue/i.test(text);
+}
+
+/**
+ * Build session context for option validation
+ */
+function buildSessionContext(session: TemplateSession, weekPhase?: string): SessionContext {
+  const sport = detectSessionSport(session);
+  const durationText = session.title || session.details || "";
+  const parsedDuration = parseDurationFromText(durationText);
+  
+  return {
+    sport,
+    durationMin: session.durationMin || parsedDuration?.target || 60,
+    sessionType: session.type || session.title,
+    phase: weekPhase,
+    isLongSession: isLongSessionType(session),
   };
 }
 
 /**
- * Sanitize a single session's details
+ * Sanitize a single session with sport-contextualized option validation
  */
 export function sanitizeSessionDetails(
   session: TemplateSession,
+  weekPhase?: string,
   staffMode: boolean = false
 ): SanitizedSession {
   const warnings: SanityWarning[] = [];
   let processedSession = { ...session };
-  let removedOptions: string[] = [];
   
   // Parse duration from title or details
   const durationSource = session.title || session.details || "";
   const parsedDuration = parseDurationFromText(durationSource);
-  const durationMin = parsedDuration?.target;
-  const durationRange = parsedDuration?.range;
+  const durationMin = session.durationMin || parsedDuration?.target;
+  const durationRange = session.durationRange || parsedDuration?.range;
   
-  // Check for misplaced long options
-  if (durationMin !== undefined && session.details) {
-    const { isMisplaced, optionDurations, threshold } = detectMisplacedLongOptions(
-      durationMin,
-      session.details
-    );
+  // Build context for option validation
+  const context = buildSessionContext(session, weekPhase);
+  
+  // Process options with sport-contextualized validation
+  let validOptions: ValidatedOption[] = [];
+  let blockedOptions: ValidatedOption[] = [];
+  let genericOptionsRemoved: string[] = [];
+  
+  if (session.details) {
+    const processed = processSessionOptions(session.details, context);
+    validOptions = processed.validOptions;
+    blockedOptions = processed.blockedOptions;
+    genericOptionsRemoved = processed.genericOptions;
     
-    if (isMisplaced) {
-      // Remove the misplaced options from details
-      const { cleaned, removed } = removeOptionLines(session.details);
+    // Add warnings for blocked options
+    for (const blocked of blockedOptions) {
+      warnings.push({
+        type: "BLOCKED_OPTION",
+        message: blocked.reason,
+        severity: "warning",
+        originalText: blocked.option.rawText,
+      });
+    }
+    
+    // Add warnings for generic options
+    for (const generic of genericOptionsRemoved) {
+      warnings.push({
+        type: "GENERIC_OPTION",
+        message: `Option sans sport explicite masquée: "${generic}"`,
+        severity: "error",
+        originalText: generic,
+      });
+    }
+    
+    // Clean the details text
+    const { cleanedDetails, removedCount } = cleanSessionDetails(session.details, context);
+    
+    if (removedCount > 0) {
+      processedSession.details = cleanedDetails;
       
-      if (removed.length > 0) {
-        processedSession.details = cleaned;
-        removedOptions = removed;
-        
-        warnings.push({
-          type: "MISPLACED_OPTION",
-          message: `Option long run détectée et ignorée (parsing). Durée séance: ${durationMin}min, options: ${optionDurations.join("/")}min`,
-          severity: "warning",
-          originalText: removed.join("; "),
-        });
-        
-        if (staffMode) {
-          console.warn(
-            `[TemplateSanity] Misplaced options in session "${session.day}": ` +
-            `duration=${durationMin}min, options=${optionDurations.join("/")}, threshold=${threshold}`
-          );
-        }
+      if (staffMode) {
+        console.log(
+          `[TemplateSanity] Session "${session.day}" (${context.sport}): ` +
+          `${removedCount} option(s) removed, ${validOptions.length} valid`
+        );
       }
     }
   }
   
   // Check for suspicious cell overflow patterns
   if (session.details) {
-    // Pattern: multiple complete session descriptions in one cell
     const multiSessionPattern = /(?:lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\s*:/gi;
     const matches = session.details.match(multiSessionPattern);
     if (matches && matches.length > 1) {
@@ -127,12 +160,14 @@ export function sanitizeSessionDetails(
     warnings,
     durationMin,
     durationRange,
-    removedOptions: removedOptions.length > 0 ? removedOptions : undefined,
+    validOptions: validOptions.length > 0 ? validOptions : undefined,
+    blockedOptions: blockedOptions.length > 0 ? blockedOptions : undefined,
+    genericOptionsRemoved: genericOptionsRemoved.length > 0 ? genericOptionsRemoved : undefined,
   };
 }
 
 /**
- * Find the best long run session in a week to reattach options
+ * Find the best long run session in a week
  */
 function findLongRunSession(sessions: TemplateSession[]): { index: number; session: TemplateSession } | null {
   let bestIndex = -1;
@@ -140,19 +175,17 @@ function findLongRunSession(sessions: TemplateSession[]): { index: number; sessi
   
   for (let i = 0; i < sessions.length; i++) {
     const session = sessions[i];
-    const sport = (session.sport || session.discipline || "").toLowerCase();
+    const sport = detectSessionSport(session);
     
     // Must be a run session
-    if (!sport.includes("cap") && !sport.includes("run") && !sport.includes("course")) {
-      continue;
-    }
+    if (sport !== "CAP") continue;
     
     const durationText = session.title || session.details || "";
     const parsed = parseDurationFromText(durationText);
-    const duration = parsed?.target || 0;
+    const duration = session.durationMin || parsed?.target || 0;
     
-    // Must be long enough (>= 90 min)
-    if (duration >= 90 && duration > bestDuration) {
+    // Must be long enough (>= 90 min) or marked as long
+    if ((duration >= 90 || isLongSessionType(session)) && duration > bestDuration) {
       bestDuration = duration;
       bestIndex = i;
     }
@@ -162,7 +195,7 @@ function findLongRunSession(sessions: TemplateSession[]): { index: number; sessi
 }
 
 /**
- * Sanitize an entire week, with option reattachment
+ * Sanitize an entire week
  */
 export function sanitizeWeek(
   week: TemplateWeek,
@@ -174,77 +207,26 @@ export function sanitizeWeek(
   
   // First pass: sanitize all sessions
   for (const session of week.sessions) {
-    const result = sanitizeSessionDetails(session, staffMode);
+    const result = sanitizeSessionDetails(session, week.phase, staffMode);
     sessionResults.push(result);
     processedSessions.push(result.session);
   }
   
-  // Second pass: try to reattach removed options to long run
-  const removedOptionsWithSource: { fromIndex: number; fromDay: string; options: string[] }[] = [];
+  // Update week with processed sessions
+  const sanitizedWeek: TemplateWeek = {
+    ...week,
+    sessions: processedSessions,
+  };
   
-  sessionResults.forEach((result, idx) => {
-    if (result.removedOptions && result.removedOptions.length > 0) {
-      removedOptionsWithSource.push({
-        fromIndex: idx,
-        fromDay: result.session.day,
-        options: result.removedOptions,
-      });
-    }
-  });
-  
-  if (removedOptionsWithSource.length > 0) {
-    const longRun = findLongRunSession(processedSessions);
-    
-    if (longRun) {
-      // Reattach options to long run session
-      for (const removed of removedOptionsWithSource) {
-        if (removed.fromIndex !== longRun.index) {
-          const optionText = removed.options.join(" | ");
-          
-          // Append to long run details
-          processedSessions[longRun.index] = {
-            ...processedSessions[longRun.index],
-            details: processedSessions[longRun.index].details 
-              ? `${processedSessions[longRun.index].details}\n[Récupéré: ${optionText}]`
-              : `[Récupéré: ${optionText}]`,
-          };
-          
-          reattachedOptions.push({
-            fromDay: removed.fromDay,
-            toDay: longRun.session.day,
-            optionText,
-          });
-          
-          // Update the warning to indicate reattachment
-          const result = sessionResults[removed.fromIndex];
-          const warning = result.warnings.find(w => w.type === "MISPLACED_OPTION");
-          if (warning) {
-            result.warnings.push({
-              type: "OPTION_REATTACHED",
-              message: `Option rattachée à la sortie longue (${longRun.session.day})`,
-              severity: "info",
-              suggestedTarget: longRun.session.day,
-            });
-          }
-          
-          if (staffMode) {
-            console.log(
-              `[TemplateSanity] Reattached options from "${removed.fromDay}" to long run "${longRun.session.day}"`
-            );
-          }
-        }
-      }
-      
-      // Update session results with modified long run
-      sessionResults[longRun.index] = {
-        ...sessionResults[longRun.index],
-        session: processedSessions[longRun.index],
-      };
+  if (staffMode) {
+    const totalWarnings = sessionResults.reduce((acc, sr) => acc + sr.warnings.length, 0);
+    if (totalWarnings > 0) {
+      console.log(`[TemplateSanity] Week ${week.weekNumber}: ${totalWarnings} warning(s)`);
     }
   }
   
   return {
-    week: { ...week, sessions: processedSessions },
+    week: sanitizedWeek,
     sessionResults,
     reattachedOptions,
   };
@@ -256,11 +238,20 @@ export function sanitizeWeek(
 export function sanitizeTemplate(
   weeks: TemplateWeek[],
   staffMode: boolean = false
-): { weeks: TemplateWeek[]; allWarnings: SanityWarning[]; stats: { fixed: number; reattached: number } } {
+): { 
+  weeks: TemplateWeek[]; 
+  allWarnings: SanityWarning[]; 
+  stats: { 
+    fixed: number; 
+    blocked: number; 
+    generic: number; 
+  } 
+} {
   const sanitizedWeeks: TemplateWeek[] = [];
   const allWarnings: SanityWarning[] = [];
   let fixed = 0;
-  let reattached = 0;
+  let blocked = 0;
+  let generic = 0;
   
   for (const week of weeks) {
     const result = sanitizeWeek(week, staffMode);
@@ -270,15 +261,19 @@ export function sanitizeTemplate(
       if (sr.warnings.length > 0) {
         allWarnings.push(...sr.warnings);
         fixed += sr.warnings.filter(w => w.type === "MISPLACED_OPTION").length;
+        blocked += sr.warnings.filter(w => w.type === "BLOCKED_OPTION").length;
+        generic += sr.warnings.filter(w => w.type === "GENERIC_OPTION").length;
       }
     }
-    
-    reattached += result.reattachedOptions.length;
   }
   
-  if (staffMode && (fixed > 0 || reattached > 0)) {
-    console.log(`[TemplateSanity] Template sanitized: ${fixed} options fixed, ${reattached} reattached`);
+  if (staffMode && allWarnings.length > 0) {
+    console.log(`[TemplateSanity] Template sanitized: ${blocked} blocked, ${generic} generic removed`);
   }
   
-  return { weeks: sanitizedWeeks, allWarnings, stats: { fixed, reattached } };
+  return { 
+    weeks: sanitizedWeeks, 
+    allWarnings, 
+    stats: { fixed, blocked, generic } 
+  };
 }
