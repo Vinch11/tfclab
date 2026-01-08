@@ -17,6 +17,8 @@ import {
   Utensils,
   Activity,
   Download,
+  Footprints,
+  Info,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StaffReport as StaffReportType, generateStaffReport, GenerateStaffReportParams } from "@/lib/staffReport";
@@ -200,7 +202,103 @@ export function StaffReport({
 
         <Separator />
 
-        {/* 3️⃣ INTERPRÉTATION STAFF */}
+        {/* 3️⃣ RISQUE BLESSURE CAP */}
+        <div>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+            <Footprints className="h-4 w-4" />
+            ANALYSE DU RISQUE BLESSURE — COURSE À PIED (CAP)
+            {report.capInjuryRisk.showWarning && (
+              <AlertTriangle className="h-4 w-4 text-amber-500" />
+            )}
+          </h3>
+          
+          <div className={cn(
+            "p-4 rounded-lg border-2",
+            report.capInjuryRisk.level === 0 ? "bg-green-500/5 border-green-500/30" :
+            report.capInjuryRisk.level === 1 ? "bg-blue-500/5 border-blue-500/30" :
+            report.capInjuryRisk.level === 2 ? "bg-amber-500/5 border-amber-500/30" :
+            "bg-red-500/5 border-red-500/30"
+          )}>
+            {/* A) Indice global */}
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-2xl">{report.capInjuryRisk.icon}</span>
+              <div>
+                <p className={cn(
+                  "text-lg font-bold",
+                  report.capInjuryRisk.level === 0 ? "text-green-700 dark:text-green-400" :
+                  report.capInjuryRisk.level === 1 ? "text-blue-700 dark:text-blue-400" :
+                  report.capInjuryRisk.level === 2 ? "text-amber-700 dark:text-amber-400" :
+                  "text-red-700 dark:text-red-400"
+                )}>
+                  Indice de risque blessure CAP : {report.capInjuryRisk.levelLabel.toUpperCase()}
+                </p>
+              </div>
+            </div>
+            
+            {/* B) Décomposition physiologique */}
+            <div className="grid grid-cols-3 gap-3 mb-4 p-3 rounded-lg bg-background/50">
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">VLamax effectif</p>
+                <p className="font-bold">{report.capInjuryRisk.vlamaxValue}</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {report.capInjuryRisk.vlamaxSource} • {Math.round(report.capInjuryRisk.vlamaxConfidence * 100)}%
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">TTE effectif</p>
+                <p className="font-bold">{report.capInjuryRisk.tteValue}</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {report.capInjuryRisk.tteSource} • {Math.round(report.capInjuryRisk.tteConfidence * 100)}%
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Objectif</p>
+                <p className="font-bold">{report.capInjuryRisk.objectif}</p>
+              </div>
+            </div>
+            
+            {/* C) Interprétation staff-grade */}
+            <div className="mb-4">
+              <p className="text-xs font-medium text-muted-foreground mb-2">Analyse physiologique :</p>
+              <div className="text-xs text-foreground whitespace-pre-line bg-muted/30 rounded p-2">
+                {report.capInjuryRisk.interpretation}
+              </div>
+            </div>
+            
+            {/* Impact programmation */}
+            <div className="mb-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
+              <p className="text-xs font-semibold text-primary mb-1 flex items-center gap-1">
+                <Info className="h-3 w-3" />
+                Impact sur la programmation CAP
+              </p>
+              <p className="text-xs">{report.capInjuryRisk.programmingImpact}</p>
+            </div>
+            
+            {/* Recommandations */}
+            {report.capInjuryRisk.recommendations.length > 0 && (
+              <div className="mb-4">
+                <p className="text-xs font-medium text-muted-foreground mb-2">Recommandations staff :</p>
+                <ul className="space-y-1">
+                  {report.capInjuryRisk.recommendations.map((rec, idx) => (
+                    <li key={idx} className="text-xs flex items-start gap-2">
+                      <span className="text-primary mt-0.5">•</span>
+                      {rec}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            {/* Disclaimer */}
+            <p className="text-[10px] text-muted-foreground italic border-t border-border pt-3">
+              {report.capInjuryRisk.disclaimer}
+            </p>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* 4️⃣ INTERPRÉTATION STAFF */}
         <div>
           <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
             <Activity className="h-4 w-4" />
@@ -221,7 +319,7 @@ export function StaffReport({
           </div>
         </div>
 
-        {/* 4️⃣ STRATÉGIE DE COURSE */}
+        {/* 5️⃣ STRATÉGIE DE COURSE */}
         <div className="grid md:grid-cols-2 gap-4">
           {/* À FAIRE */}
           <div className="p-4 rounded-lg bg-green-500/5 border border-green-500/20">
@@ -268,7 +366,7 @@ export function StaffReport({
 
         <Separator />
 
-        {/* 5️⃣ NUTRITION — VERSION STAFF */}
+        {/* 6️⃣ NUTRITION — VERSION STAFF */}
         <div>
           <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
             <Utensils className="h-4 w-4" />
@@ -310,7 +408,7 @@ export function StaffReport({
 
         <Separator />
 
-        {/* 6️⃣ FEU TRICOLORE FINAL */}
+        {/* 7️⃣ FEU TRICOLORE FINAL */}
         <div className={cn(
           "p-6 rounded-xl border-2 text-center",
           getTrafficLightColors(report.finalVerdict.trafficLight)
