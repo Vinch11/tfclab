@@ -27,6 +27,8 @@ import { TTEEffectif } from "@/lib/tteEffectif";
 import { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { NutritionEstimate } from "@/lib/nutritionPredictive";
 import { RunningEconomyResult } from "@/lib/runningEconomy";
+import { computeCAPInjuryRisk } from "@/lib/capInjuryRisk";
+import { PerformanceRiskMatrixCompact } from "@/components/PerformanceRiskMatrix";
 
 interface StaffReportProps {
   athleteName: string;
@@ -197,6 +199,25 @@ export function StaffReport({
                 </div>
               </div>
             ))}
+          </div>
+          
+          {/* Matrice Performance-Risk compacte */}
+          <div className="mt-4">
+            <PerformanceRiskMatrixCompact
+              params={{
+                capInjuryRisk: computeCAPInjuryRisk({
+                  vlamaxValue: vlamaxEffectif.value,
+                  tteValue: tteEffectif.tte_min,
+                  objectif,
+                }),
+                vlamaxValue: vlamaxEffectif.value,
+                vlamaxConfidence: vlamaxEffectif.confidence,
+                tteValue: tteEffectif.tte_min,
+                tteConfidence: tteEffectif.confidence,
+                raceReadinessScore: readiness.score,
+                objectif,
+              }}
+            />
           </div>
         </div>
 
