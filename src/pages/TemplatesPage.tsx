@@ -1177,6 +1177,16 @@ export default function TemplatesPage() {
     });
   }, [staffMode, athleteMetrics.signals, displayedWeeks, selectedTemplateId]);
 
+  // Compute CAP Injury Risk
+  const capInjuryRisk = useMemo(() => {
+    if (!staffMode || !selectedAthlete) return null;
+    return computeCAPInjuryRisk({
+      vlamaxValue: athleteMetrics.vlamaxEffectif.value,
+      tteValue: athleteMetrics.tteEffectif.value,
+      objectif: selectedAthlete.goal || "IM",
+    });
+  }, [staffMode, selectedAthlete, athleteMetrics.vlamaxEffectif.value, athleteMetrics.tteEffectif.value]);
+
   const handleLoadTemplate = async () => {
     const template = getTemplateById(selectedTemplateId);
     if (!template) {
@@ -1496,6 +1506,7 @@ export default function TemplatesPage() {
                   annotations={annotationsV2} 
                   totalWeeks={displayedWeeks.length}
                   staffMode={staffMode}
+                  capInjuryRisk={capInjuryRisk}
                 />
               ))}
             </Accordion>
