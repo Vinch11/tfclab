@@ -6,6 +6,8 @@
 
 export type RiskTolerance = "LOW" | "MEDIUM" | "HIGH";
 
+export type LongRunTolerance = "LOW" | "MEDIUM" | "HIGH";
+
 export interface TemplateProfile {
   id: string;
   name: string;
@@ -18,12 +20,15 @@ export interface TemplateProfile {
     tte_min: number;
     ftpkg_min: number;
     run_economy: "excellent" | "good" | "ok" | "poor";
+    run_economy_score_min?: number; // For marathon: score >= 75 = good/excellent
     nutrition_min_gph: number;
     nutrition_max_gph: number;
     // IM-specific fields
     nutrition_run_min_gph?: number;
     nutrition_run_max_gph?: number;
     risk_tolerance?: RiskTolerance;
+    // Marathon-specific fields
+    long_run_tolerance?: LongRunTolerance;
   };
 }
 
@@ -68,21 +73,24 @@ const SEMI_INTERMEDIAIRE: TemplateProfile = {
   },
 };
 
-// Marathon profiles
+// Marathon profiles - CAP-dominant, focus on economy/durability/injury risk
 const MARATHON_PERFORMANCE: TemplateProfile = {
   id: "marathon-perf",
   name: "Performance",
   level: "PERFORMANCE",
-  targetTime: "~3h00",
-  description: "Athlète endurant avec excellente économie de course, faible VLamax, TTE élevé.",
+  targetTime: "~2h50-3h10",
+  description: "Athlète endurant avec excellente économie de course (≥75), faible VLamax (<0.45), TTE élevé (≥50). Tolérance aux longues sorties élevée.",
   targets: {
-    vlamax_min: 0.25,
-    vlamax_max: 0.40,
-    tte_min: 55,
+    vlamax_min: 0.30,
+    vlamax_max: 0.45,
+    tte_min: 50,
     ftpkg_min: 3.8,
-    run_economy: "excellent",
+    run_economy: "good",
+    run_economy_score_min: 75,
     nutrition_min_gph: 60,
     nutrition_max_gph: 90,
+    long_run_tolerance: "HIGH",
+    risk_tolerance: "LOW",
   },
 };
 
@@ -90,16 +98,19 @@ const MARATHON_INTERMEDIAIRE: TemplateProfile = {
   id: "marathon-inter",
   name: "Intermédiaire",
   level: "INTERMEDIAIRE",
-  targetTime: "~3h30-4h00",
-  description: "Athlète en développement endurance, nécessite travail sur durabilité.",
+  targetTime: "~3h30-4h15",
+  description: "Athlète en développement endurance. VLamax modérée (0.40-0.55), TTE à consolider (≥45). Économie à surveiller. Charge mécanique à gérer.",
   targets: {
     vlamax_min: 0.40,
-    vlamax_max: 0.65,
+    vlamax_max: 0.55,
     tte_min: 45,
     ftpkg_min: 3.0,
     run_economy: "ok",
+    run_economy_score_min: 55,
     nutrition_min_gph: 40,
     nutrition_max_gph: 70,
+    long_run_tolerance: "MEDIUM",
+    risk_tolerance: "MEDIUM",
   },
 };
 
@@ -193,6 +204,16 @@ export const TEMPLATE_PROFILES: Record<string, TemplateProfilePair> = {
   },
   "marathon": {
     templateId: "marathon",
+    performance: MARATHON_PERFORMANCE,
+    intermediaire: MARATHON_INTERMEDIAIRE,
+  },
+  "marathon-24-semaines": {
+    templateId: "marathon-24-semaines",
+    performance: MARATHON_PERFORMANCE,
+    intermediaire: MARATHON_INTERMEDIAIRE,
+  },
+  "marathon-24w": {
+    templateId: "marathon-24w",
     performance: MARATHON_PERFORMANCE,
     intermediaire: MARATHON_INTERMEDIAIRE,
   },
