@@ -3,6 +3,7 @@
  */
 import type { ProgramTemplate } from "@/lib/templates/docxTemplateLoader";
 import { SEMI_MARATHON_WEEKS } from "./semiMarathonTemplate";
+import { MARATHON_WEEKS } from "./marathonTemplate";
 
 export const PROGRAM_TEMPLATES: ProgramTemplate[] = [
   {
@@ -12,6 +13,15 @@ export const PROGRAM_TEMPLATES: ProgramTemplate[] = [
     source: "static",
     docxPath: "",
     weeks: SEMI_MARATHON_WEEKS,
+    multiSections: false,
+  },
+  {
+    id: "marathon",
+    name: "Marathon (24 semaines)",
+    target: "Marathon",
+    source: "static",
+    docxPath: "",
+    weeks: MARATHON_WEEKS,
     multiSections: false,
   },
 ];
