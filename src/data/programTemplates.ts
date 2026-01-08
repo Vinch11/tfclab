@@ -2,8 +2,19 @@
  * Registry of available program templates
  */
 import type { ProgramTemplate } from "@/lib/templates/docxTemplateLoader";
+import { SEMI_MARATHON_WEEKS } from "./semiMarathonTemplate";
 
-export const PROGRAM_TEMPLATES: ProgramTemplate[] = [];
+export const PROGRAM_TEMPLATES: ProgramTemplate[] = [
+  {
+    id: "semi-marathon",
+    name: "Semi-Marathon (12 semaines)",
+    target: "Semi",
+    source: "static",
+    docxPath: "",
+    weeks: SEMI_MARATHON_WEEKS,
+    multiSections: false,
+  },
+];
 
 export function getTemplateById(id: string): ProgramTemplate | undefined {
   return PROGRAM_TEMPLATES.find((t) => t.id === id);
