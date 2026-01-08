@@ -144,19 +144,12 @@ export function PhysiologicalAnalysis({ athlete, vlamaxEffectif, tteEffectif: tt
       {vlamaxEffectif && tteEffectifProp && (
         <MetabolicPerformanceCompass
           data={{
-            vlamaxValue: vlamaxEffectif.value,
-            vlamaxSource: vlamaxEffectif.source,
-            vlamaxConfidence: vlamaxEffectif.confidence,
-            tteValue: tteEffectifProp.tte_min,
-            tteSource: tteEffectifProp.source,
-            tteConfidence: tteEffectifProp.confidence,
-            readinessScore: readinessProp?.score ?? null,
-            readinessDetails: readinessProp?.details ? {
-              vlamax: readinessProp.details.vlamax ?? 0,
-              endurance: readinessProp.details.endurance ?? 0,
-              puissance: readinessProp.details.puissance ?? 0,
-              fraicheur: readinessProp.details.fraicheur ?? 0,
-            } : undefined,
+            vlamaxEffectif: vlamaxEffectif,
+            tteEffectif: tteEffectifProp,
+            ftp: snapshot?.ftp ?? null,
+            poids: snapshot?.poids ?? null,
+            tss7d: snapshot?.tss_7j ?? null,
+            snapshotDate: snapshot?.date ?? null,
             objectif: athlete.objectif || "IM",
           }}
           staffMode={true}
