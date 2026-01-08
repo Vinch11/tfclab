@@ -4,6 +4,7 @@
 import type { ProgramTemplate } from "@/lib/templates/docxTemplateLoader";
 import { SEMI_MARATHON_WEEKS } from "./semiMarathonTemplate";
 import { MARATHON_WEEKS } from "./marathonTemplate";
+import { IRONMAN_KONA_WEEKS } from "./ironmanKonaTemplate";
 
 export const PROGRAM_TEMPLATES: ProgramTemplate[] = [
   {
@@ -22,6 +23,15 @@ export const PROGRAM_TEMPLATES: ProgramTemplate[] = [
     source: "static",
     docxPath: "",
     weeks: MARATHON_WEEKS,
+    multiSections: false,
+  },
+  {
+    id: "ironman-kona",
+    name: "Ironman Kona (24 semaines)",
+    target: "IM",
+    source: "static",
+    docxPath: "",
+    weeks: IRONMAN_KONA_WEEKS,
     multiSections: false,
   },
 ];
