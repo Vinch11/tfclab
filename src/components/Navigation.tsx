@@ -23,7 +23,6 @@ const navItems: NavItem[] = [
   { id: "templates", label: "Templates", shortLabel: "Templ", icon: BookOpen, route: "/templates" },
   { id: "academy", label: "Academy", icon: GraduationCap, route: "/academy" },
   { id: "race-readiness", label: "Race Readiness", shortLabel: "Race", icon: Trophy },
-  { id: "comprendre", label: "Comprendre", icon: BookOpen },
 ];
 
 interface NavigationProps {
