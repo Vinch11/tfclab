@@ -45,6 +45,9 @@ import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { computeTTEEffectif } from "@/lib/tteEffectif";
 import { computeRaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { PlanComparisonView } from "@/components/PlanComparisonView";
+import { SessionOptionsDisplay } from "@/components/SessionOptionsDisplay";
+import { processSessionOptions, type SessionContext, type OptionSport } from "@/lib/templates/optionValidator";
+import { parseDurationFromText } from "@/lib/templates/durationParser";
 
 function getSportBadgeColor(sport: string | undefined): string {
   if (!sport) return "bg-muted text-muted-foreground";
@@ -333,7 +336,7 @@ function getPhaseForWeek(weekNumber: number, totalWeeks: number): { name: string
   return { name: "Spécifique", color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300" };
 }
 
-function SessionCard({ session, sessionAnnotations, staffMode = false }: { session: TemplateSession; sessionAnnotations: AnnotationV2[]; staffMode?: boolean }) {
+function SessionCard({ session, sessionAnnotations, staffMode = false, weekPhase }: { session: TemplateSession; sessionAnnotations: AnnotationV2[]; staffMode?: boolean; weekPhase?: string }) {
   const [expanded, setExpanded] = useState(false);
   const classification = classifySession(session);
 
@@ -345,6 +348,34 @@ function SessionCard({ session, sessionAnnotations, staffMode = false }: { sessi
   
   // v6: Check for sanity warnings from parsing
   const hasParsingWarnings = staffMode && session._warnings && session._warnings.length > 0;
+  
+  // v7: Process options with sport-contextualized validation
+  const processedOptions = useMemo(() => {
+    if (!displayDetails) return null;
+    
+    const sportText = (session.sport || session.discipline || "").toLowerCase();
+    let sport: OptionSport = "UNKNOWN";
+    if (sportText.includes("vélo") || sportText.includes("bike")) sport = "VÉLO";
+    else if (sportText.includes("cap") || sportText.includes("run") || sportText.includes("course")) sport = "CAP";
+    else if (sportText.includes("natation") || sportText.includes("swim")) sport = "NATATION";
+    else if (sportText.includes("brick")) sport = "BRICK";
+    
+    const durationText = session.title || displayDetails;
+    const parsedDuration = parseDurationFromText(durationText);
+    
+    const context: SessionContext = {
+      sport,
+      durationMin: session.durationMin || parsedDuration?.target || 60,
+      sessionType: session.type || session.title,
+      phase: weekPhase,
+      isLongSession: /long|sortie\s*longue/i.test((session.title || "") + " " + displayDetails),
+    };
+    
+    return processSessionOptions(displayDetails, context);
+  }, [displayDetails, session, weekPhase]);
+  
+  const hasValidOptions = processedOptions && processedOptions.validOptions.length > 0;
+  const hasBlockedOptions = processedOptions && (processedOptions.blockedOptions.length > 0 || processedOptions.genericOptions.length > 0);
 
   return (
     <div className={`border rounded-lg p-3 bg-card ${hasAnnotations ? "border-l-4 " + (maxSeverity >= 2 ? "border-l-amber-500" : "border-l-blue-400") : ""}`}>
@@ -392,6 +423,16 @@ function SessionCard({ session, sessionAnnotations, staffMode = false }: { sessi
             <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 italic">
               💡 {displayNotes}
             </p>
+          )}
+          
+          {/* v7: Sport-contextualized options display */}
+          {(hasValidOptions || (staffMode && hasBlockedOptions)) && processedOptions && (
+            <SessionOptionsDisplay
+              validOptions={processedOptions.validOptions}
+              blockedOptions={processedOptions.blockedOptions}
+              genericOptionsRemoved={processedOptions.genericOptions}
+              staffMode={staffMode}
+            />
           )}
           
           {/* v6: Staff-only parsing warnings */}

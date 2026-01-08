@@ -476,7 +476,7 @@ async function parseDocxHtmlToSections(html: string, staffMode: boolean = false)
     const { weeks: sanitizedWeeks, allWarnings, stats } = sanitizeTemplate(weeks, staffMode);
     
     if (staffMode && allWarnings.length > 0) {
-      console.log(`[TemplateLoader] Sanity check: ${stats.fixed} options fixed, ${stats.reattached} reattached`);
+      console.log(`[TemplateLoader] Sanity check: ${stats.blocked} blocked, ${stats.generic} generic removed`);
       allWarnings.forEach((w) => {
         console.log(`  - [${w.severity.toUpperCase()}] ${w.type}: ${w.message}`);
       });
