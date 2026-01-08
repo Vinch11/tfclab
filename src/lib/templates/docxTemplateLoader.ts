@@ -2,8 +2,12 @@
  * DOCX Template Loader
  * Converts DOCX files to structured ProgramTemplate using mammoth
  * Supports multiple sections/plans in a single document
+ * 
+ * v6: Improved cell extraction + sanity checks for misplaced options
  */
 import mammoth from "mammoth";
+import { parseDurationFromText } from "./durationParser";
+import { sanitizeTemplate, type SanityWarning } from "./templateSanity";
 
 export interface TemplateSession {
   day: string;
@@ -14,6 +18,11 @@ export interface TemplateSession {
   details?: string;
   description?: string;
   notes?: string;
+  // v6: Added duration fields
+  durationMin?: number;
+  durationRange?: { min: number; max: number };
+  // v6: Sanity warnings for staff mode
+  _warnings?: SanityWarning[];
 }
 
 export interface TemplateWeek {
@@ -41,7 +50,7 @@ export interface ProgramTemplate {
   multiSections?: boolean;
 }
 
-const CACHE_VERSION = "v5"; // Fixed week numbering
+const CACHE_VERSION = "v6"; // Improved cell extraction + sanity checks
 
 function getCacheKey(docxPath: string): string {
   return `template-cache-${docxPath}-${CACHE_VERSION}`;
@@ -162,35 +171,153 @@ function extractSectionTitle(element: Element): string | null {
   return null;
 }
 
-function parseTableToWeek(table: Element, weekNumber: number): TemplateWeek {
+/**
+ * Extract clean text from a cell, respecting <p> and <br> tags
+ * This prevents text from different paragraphs being concatenated incorrectly
+ */
+function extractCellText(cell: Element): string {
+  const parts: string[] = [];
+  
+  // Get all paragraphs in the cell
+  const paragraphs = cell.querySelectorAll("p");
+  if (paragraphs.length > 0) {
+    paragraphs.forEach((p) => {
+      const text = p.textContent?.trim();
+      if (text) {
+        parts.push(cleanText(text));
+      }
+    });
+    return parts.join("\n").trim();
+  }
+  
+  // Fallback: handle br tags
+  const html = cell.innerHTML;
+  if (html.includes("<br")) {
+    return html
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<[^>]+>/g, "")
+      .split("\n")
+      .map((line) => cleanText(line))
+      .filter((line) => line)
+      .join("\n")
+      .trim();
+  }
+  
+  // Simple text content
+  return cleanText(cell.textContent || "");
+}
+
+/**
+ * Parse a table row into a session, extracting ONLY from that row's cells
+ */
+function parseTableRowToSession(row: Element): TemplateSession | null {
+  const cells = row.querySelectorAll("td");
+  
+  // Validate: we need at least 2 columns
+  if (cells.length < 2) {
+    return null;
+  }
+  
+  // Extract each cell independently
+  const cellTexts = Array.from(cells).map((cell) => extractCellText(cell));
+  
+  // Standard format: Day | Sport | Title | Details
+  if (cells.length >= 4) {
+    const day = cellTexts[0] || "";
+    const sportRaw = cellTexts[1] || "";
+    const title = cellTexts[2] || "";
+    const details = cellTexts[3] || "";
+    
+    // Skip empty rows
+    if (!day && !sportRaw && !title) {
+      return null;
+    }
+    
+    const sport = normalizeSport(sportRaw);
+    
+    // Parse duration from title or details
+    const durationText = title || details;
+    const parsedDuration = parseDurationFromText(durationText);
+    
+    return {
+      day,
+      sport,
+      title,
+      details,
+      durationMin: parsedDuration?.target,
+      durationRange: parsedDuration?.range,
+    };
+  }
+  
+  // 3-column format: Day | Sport | Combined
+  if (cells.length === 3) {
+    const day = cellTexts[0] || "";
+    const sportRaw = cellTexts[1] || "";
+    const combined = cellTexts[2] || "";
+    
+    if (!day && !sportRaw) {
+      return null;
+    }
+    
+    const sport = normalizeSport(sportRaw);
+    const parsedDuration = parseDurationFromText(combined);
+    
+    return {
+      day,
+      sport,
+      title: combined,
+      details: "",
+      durationMin: parsedDuration?.target,
+      durationRange: parsedDuration?.range,
+    };
+  }
+  
+  // 2-column format: Day | Rest
+  const day = cellTexts[0] || "";
+  const rest = cellTexts[1] || "";
+  
+  if (!day) {
+    return null;
+  }
+  
+  return {
+    day,
+    sport: normalizeSport(rest),
+    title: rest,
+    details: "",
+  };
+}
+
+function parseTableToWeek(table: Element, weekNumber: number, staffMode: boolean = false): TemplateWeek {
   const rows = table.querySelectorAll("tr");
   const sessions: TemplateSession[] = [];
+  let skippedRows = 0;
   
   // Skip first row (header)
   for (let i = 1; i < rows.length; i++) {
-    const cells = rows[i].querySelectorAll("td");
-    if (cells.length >= 4) {
-      const day = cleanText(cells[0]?.textContent || "");
-      const sport = normalizeSport(cells[1]?.textContent || "");
-      const title = cleanText(cells[2]?.textContent || "");
-      const details = cleanText(cells[3]?.textContent || "");
+    const row = rows[i];
+    const session = parseTableRowToSession(row);
+    
+    if (session) {
+      // Staff mode: check for suspicious options
+      if (staffMode && session.durationMin && session.durationMin < 120 && session.details) {
+        const detailsLower = session.details.toLowerCase();
+        if (detailsLower.includes("option 2h") || detailsLower.includes("option 3h") || detailsLower.includes("option 4h")) {
+          console.warn(
+            `[TemplateLoader] Suspicious option in S${weekNumber} ${session.day}: ` +
+            `session duration=${session.durationMin}min but details contain long options`
+          );
+        }
+      }
       
-      if (day || sport || title) {
-        sessions.push({ day, sport, title, details });
-      }
-    } else if (cells.length >= 2) {
-      // Some rows may have merged cells
-      const day = cleanText(cells[0]?.textContent || "");
-      const rest = cleanText(cells[1]?.textContent || "");
-      if (day) {
-        sessions.push({ 
-          day, 
-          sport: normalizeSport(rest), 
-          title: rest, 
-          details: "" 
-        });
-      }
+      sessions.push(session);
+    } else {
+      skippedRows++;
     }
+  }
+  
+  if (staffMode && skippedRows > 0) {
+    console.log(`[TemplateLoader] Week ${weekNumber}: skipped ${skippedRows} invalid rows`);
   }
   
   return { weekNumber, sessions, coachAdvice: undefined };
@@ -289,8 +416,9 @@ function extractBriefing(elements: HTMLCollection): string {
 
 /**
  * Parse DOCX HTML and extract sections with their weeks
+ * @param staffMode - If true, logs detailed parsing info and validates options
  */
-async function parseDocxHtmlToSections(html: string): Promise<ProgramSection[]> {
+async function parseDocxHtmlToSections(html: string, staffMode: boolean = false): Promise<ProgramSection[]> {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
   
@@ -302,9 +430,13 @@ async function parseDocxHtmlToSections(html: string): Promise<ProgramSection[]> 
   const tables = doc.querySelectorAll("table");
   const weeks: TemplateWeek[] = [];
   
+  if (staffMode) {
+    console.log(`[TemplateLoader] Found ${tables.length} tables to parse`);
+  }
+  
   tables.forEach((table, idx) => {
     const weekNumber = idx + 1; // Global week numbering 1, 2, 3, ... 24
-    const week = parseTableToWeek(table, weekNumber);
+    const week = parseTableToWeek(table, weekNumber, staffMode);
     if (week.sessions.length > 0) {
       weeks.push(week);
     }
@@ -340,10 +472,20 @@ async function parseDocxHtmlToSections(html: string): Promise<ProgramSection[]> 
   const sections: ProgramSection[] = [];
   
   if (weeks.length > 0) {
+    // Apply sanity checks to fix misplaced options
+    const { weeks: sanitizedWeeks, allWarnings, stats } = sanitizeTemplate(weeks, staffMode);
+    
+    if (staffMode && allWarnings.length > 0) {
+      console.log(`[TemplateLoader] Sanity check: ${stats.fixed} options fixed, ${stats.reattached} reattached`);
+      allWarnings.forEach((w) => {
+        console.log(`  - [${w.severity.toUpperCase()}] ${w.type}: ${w.message}`);
+      });
+    }
+    
     sections.push({
       sectionId: "section-1",
       sectionTitle: "Plan principal",
-      weeks,
+      weeks: sanitizedWeeks,
       briefing: globalBriefing,
     });
   }
@@ -354,16 +496,17 @@ async function parseDocxHtmlToSections(html: string): Promise<ProgramSection[]> 
 /**
  * Parse DOCX content and extract weeks/sessions (legacy single-section mode)
  */
-async function parseDocxHtml(html: string): Promise<TemplateWeek[]> {
-  const sections = await parseDocxHtmlToSections(html);
+async function parseDocxHtml(html: string, staffMode: boolean = false): Promise<TemplateWeek[]> {
+  const sections = await parseDocxHtmlToSections(html, staffMode);
   // Flatten all sections into one
   return sections.flatMap((s) => s.weeks);
 }
 
 /**
  * Parse a DOCX file from an ArrayBuffer directly (for uploaded files)
+ * @param staffMode - If true, enables detailed logging and sanity checks
  */
-export async function parseDocxFromArrayBuffer(arrayBuffer: ArrayBuffer): Promise<ProgramSection[]> {
+export async function parseDocxFromArrayBuffer(arrayBuffer: ArrayBuffer, staffMode: boolean = false): Promise<ProgramSection[]> {
   // Convert to HTML using mammoth
   const result = await mammoth.convertToHtml({ arrayBuffer });
 
@@ -371,8 +514,8 @@ export async function parseDocxFromArrayBuffer(arrayBuffer: ArrayBuffer): Promis
     console.log("[TemplateLoader] Mammoth messages:", result.messages);
   }
 
-  // Parse the HTML to extract sections
-  const sections = await parseDocxHtmlToSections(result.value);
+  // Parse the HTML to extract sections with sanity checks
+  const sections = await parseDocxHtmlToSections(result.value, staffMode);
 
   console.log(`[TemplateLoader] Parsed uploaded file: ${sections.length} sections with ${sections.reduce((acc, s) => acc + s.weeks.length, 0)} total weeks`);
 
@@ -381,8 +524,9 @@ export async function parseDocxFromArrayBuffer(arrayBuffer: ArrayBuffer): Promis
 
 /**
  * Load and parse a DOCX template from a given path (single-section mode)
+ * @param staffMode - If true, enables detailed logging and sanity checks
  */
-export async function loadProgramTemplateFromDocx(docxPath: string): Promise<TemplateWeek[]> {
+export async function loadProgramTemplateFromDocx(docxPath: string, staffMode: boolean = false): Promise<TemplateWeek[]> {
   // Check cache first
   const cached = getFromCache(docxPath);
   if (cached && cached.length > 0) {
@@ -407,8 +551,8 @@ export async function loadProgramTemplateFromDocx(docxPath: string): Promise<Tem
     console.log("[TemplateLoader] Mammoth messages:", result.messages);
   }
   
-  // Parse the HTML to extract weeks
-  const weeks = await parseDocxHtml(result.value);
+  // Parse the HTML to extract weeks with sanity checks
+  const weeks = await parseDocxHtml(result.value, staffMode);
   
   console.log(`[TemplateLoader] Parsed ${weeks.length} weeks`);
   
@@ -422,8 +566,9 @@ export async function loadProgramTemplateFromDocx(docxPath: string): Promise<Tem
 
 /**
  * Load and parse a DOCX template with multiple sections/plans
+ * @param staffMode - If true, enables detailed logging and sanity checks
  */
-export async function loadProgramSectionsFromDocx(docxPath: string): Promise<ProgramSection[]> {
+export async function loadProgramSectionsFromDocx(docxPath: string, staffMode: boolean = false): Promise<ProgramSection[]> {
   // Check cache first
   const cached = getSectionsFromCache(docxPath);
   if (cached && cached.length > 0) {
@@ -448,8 +593,8 @@ export async function loadProgramSectionsFromDocx(docxPath: string): Promise<Pro
     console.log("[TemplateLoader] Mammoth messages:", result.messages);
   }
   
-  // Parse the HTML to extract sections
-  const sections = await parseDocxHtmlToSections(result.value);
+  // Parse the HTML to extract sections with sanity checks
+  const sections = await parseDocxHtmlToSections(result.value, staffMode);
   
   console.log(`[TemplateLoader] Parsed ${sections.length} sections with ${sections.reduce((acc, s) => acc + s.weeks.length, 0)} total weeks`);
   

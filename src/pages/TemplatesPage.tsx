@@ -333,7 +333,7 @@ function getPhaseForWeek(weekNumber: number, totalWeeks: number): { name: string
   return { name: "Spécifique", color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300" };
 }
 
-function SessionCard({ session, sessionAnnotations }: { session: TemplateSession; sessionAnnotations: AnnotationV2[] }) {
+function SessionCard({ session, sessionAnnotations, staffMode = false }: { session: TemplateSession; sessionAnnotations: AnnotationV2[]; staffMode?: boolean }) {
   const [expanded, setExpanded] = useState(false);
   const classification = classifySession(session);
 
@@ -342,6 +342,9 @@ function SessionCard({ session, sessionAnnotations }: { session: TemplateSession
   
   const hasAnnotations = sessionAnnotations.length > 0;
   const maxSeverity = hasAnnotations ? Math.max(...sessionAnnotations.map(a => a.severity)) : 0;
+  
+  // v6: Check for sanity warnings from parsing
+  const hasParsingWarnings = staffMode && session._warnings && session._warnings.length > 0;
 
   return (
     <div className={`border rounded-lg p-3 bg-card ${hasAnnotations ? "border-l-4 " + (maxSeverity >= 2 ? "border-l-amber-500" : "border-l-blue-400") : ""}`}>
@@ -358,6 +361,11 @@ function SessionCard({ session, sessionAnnotations }: { session: TemplateSession
             {classification.isKey && (
               <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
                 Clé
+              </Badge>
+            )}
+            {session.durationMin && (
+              <Badge variant="outline" className="text-[10px] font-mono">
+                {session.durationMin}'
               </Badge>
             )}
           </div>
@@ -384,6 +392,17 @@ function SessionCard({ session, sessionAnnotations }: { session: TemplateSession
             <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 italic">
               💡 {displayNotes}
             </p>
+          )}
+          
+          {/* v6: Staff-only parsing warnings */}
+          {hasParsingWarnings && (
+            <div className="mt-1">
+              {session._warnings!.map((w, i) => (
+                <Badge key={i} variant="outline" className="text-[10px] bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/30 dark:text-amber-300">
+                  ⚠️ {w.message.slice(0, 50)}...
+                </Badge>
+              ))}
+            </div>
           )}
           
           {/* Session-level annotations */}
@@ -1104,8 +1123,8 @@ export default function TemplatesPage() {
         setIsLoaded(true);
         toast.success(`Template chargé: ${template.weeks.length} semaines`);
       } else if (template.multiSections) {
-        // Load with multi-section support
-        const loadedSections = await loadProgramSectionsFromDocx(template.docxPath);
+        // Load with multi-section support - pass staffMode for sanity checks
+        const loadedSections = await loadProgramSectionsFromDocx(template.docxPath, staffMode);
         setSections(loadedSections);
         
         // Flatten for fallback
@@ -1119,8 +1138,8 @@ export default function TemplatesPage() {
         setIsLoaded(true);
         toast.success(`Template chargé: ${loadedSections.length} plan(s), ${allWeeks.length} semaines`);
       } else {
-        // Load as single section (legacy mode)
-        const loadedWeeks = await loadProgramTemplateFromDocx(template.docxPath);
+        // Load as single section (legacy mode) - pass staffMode for sanity checks
+        const loadedWeeks = await loadProgramTemplateFromDocx(template.docxPath, staffMode);
         setWeeks(loadedWeeks);
         setSections([{
           sectionId: "section-1",
