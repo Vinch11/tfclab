@@ -990,12 +990,16 @@ export default function TemplatesPage() {
   const navigate = useNavigate();
   const { athletes, snapshots, loading: cloudLoading } = useCloudData();
 
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>(PROGRAM_TEMPLATES[0]?.id || "");
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>(() => {
+    return localStorage.getItem("vlab-selected-template") || PROGRAM_TEMPLATES[0]?.id || "";
+  });
   const [weeks, setWeeks] = useState<TemplateWeek[]>([]);
   const [sections, setSections] = useState<ProgramSection[]>([]);
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(() => {
+    return localStorage.getItem("vlab-template-loaded") === "true";
+  });
   const [staffMode, setStaffMode] = useState(false);
   const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
   const [comparisonProfile, setComparisonProfile] = useState<"PERFORMANCE" | "INTERMEDIAIRE">("PERFORMANCE");
@@ -1036,6 +1040,17 @@ export default function TemplatesPage() {
       localStorage.setItem(cacheKey, selectedSectionId);
     }
   }, [selectedTemplate, selectedSectionId]);
+
+  // Persist selected template ID
+  useEffect(() => {
+    localStorage.setItem("vlab-selected-template", selectedTemplateId);
+  }, [selectedTemplateId]);
+
+  // Persist loaded state
+  useEffect(() => {
+    localStorage.setItem("vlab-template-loaded", isLoaded ? "true" : "false");
+  }, [isLoaded]);
+
 
   const selectedAthlete = useMemo(
     () => athletes.find((a) => a.id === selectedAthleteId) || null,
@@ -1244,6 +1259,16 @@ export default function TemplatesPage() {
       setIsLoading(false);
     }
   };
+
+  // Auto-load template on mount if previously loaded
+  useEffect(() => {
+    const wasLoaded = localStorage.getItem("vlab-template-loaded") === "true";
+    const savedTemplate = localStorage.getItem("vlab-selected-template");
+    if (wasLoaded && savedTemplate && weeks.length === 0 && !isLoading) {
+      handleLoadTemplate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleCopyWeek = (week: TemplateWeek) => {
     const text = `Semaine ${week.weekNumber}\n\n` + 
