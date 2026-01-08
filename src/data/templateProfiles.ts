@@ -4,6 +4,8 @@
  * Used for staff-grade annotations comparison
  */
 
+export type RiskTolerance = "LOW" | "MEDIUM" | "HIGH";
+
 export interface TemplateProfile {
   id: string;
   name: string;
@@ -18,6 +20,10 @@ export interface TemplateProfile {
     run_economy: "excellent" | "good" | "ok" | "poor";
     nutrition_min_gph: number;
     nutrition_max_gph: number;
+    // IM-specific fields
+    nutrition_run_min_gph?: number;
+    nutrition_run_max_gph?: number;
+    risk_tolerance?: RiskTolerance;
   };
 }
 
@@ -132,38 +138,44 @@ const IM703_INTERMEDIAIRE: TemplateProfile = {
   },
 };
 
-// IM Kona profiles
+// IM Kona profiles - Ultra-specific for Ironman distance
 const IMKONA_PERFORMANCE: TemplateProfile = {
   id: "imkona-perf",
-  name: "Performance",
+  name: "Performance (Kona/Elite)",
   level: "PERFORMANCE",
   targetTime: "~9h30",
-  description: "Athlète ultra-endurant, VLamax très basse, maîtrise nutrition extrême.",
+  description: "Athlète ultra-endurant avec VLamax très basse (<0.40), TTE élevé (55+), maîtrise nutrition extrême (80-100g/h vélo). Tolérance aux erreurs: FAIBLE.",
   targets: {
-    vlamax_min: 0.20,
+    vlamax_min: 0.25,
     vlamax_max: 0.40,
     tte_min: 55,
-    ftpkg_min: 4.5,
+    ftpkg_min: 4.6,
     run_economy: "excellent",
     nutrition_min_gph: 80,
-    nutrition_max_gph: 120,
+    nutrition_max_gph: 100,
+    nutrition_run_min_gph: 50,
+    nutrition_run_max_gph: 80,
+    risk_tolerance: "LOW",
   },
 };
 
 const IMKONA_INTERMEDIAIRE: TemplateProfile = {
   id: "imkona-inter",
-  name: "Intermédiaire",
+  name: "Intermédiaire (IM Finisher)",
   level: "INTERMEDIAIRE",
   targetTime: "~11h-13h",
-  description: "Finisher avec focus survie, priorité à la gestion énergétique.",
+  description: "Finisher avancé avec focus gestion énergétique. VLamax modérée (0.35-0.55), TTE correct (50+). Nutrition validée requise.",
   targets: {
-    vlamax_min: 0.40,
-    vlamax_max: 0.70,
-    tte_min: 45,
-    ftpkg_min: 3.2,
-    run_economy: "ok",
-    nutrition_min_gph: 60,
+    vlamax_min: 0.35,
+    vlamax_max: 0.55,
+    tte_min: 50,
+    ftpkg_min: 4.0,
+    run_economy: "good",
+    nutrition_min_gph: 70,
     nutrition_max_gph: 90,
+    nutrition_run_min_gph: 40,
+    nutrition_run_max_gph: 70,
+    risk_tolerance: "MEDIUM",
   },
 };
 
@@ -201,6 +213,11 @@ export const TEMPLATE_PROFILES: Record<string, TemplateProfilePair> = {
   },
   "im": {
     templateId: "im",
+    performance: IMKONA_PERFORMANCE,
+    intermediaire: IMKONA_INTERMEDIAIRE,
+  },
+  "im-kona-detaille": {
+    templateId: "im-kona-detaille",
     performance: IMKONA_PERFORMANCE,
     intermediaire: IMKONA_INTERMEDIAIRE,
   },
