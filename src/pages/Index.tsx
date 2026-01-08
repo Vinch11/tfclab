@@ -198,8 +198,9 @@ const Index = () => {
       nom: dbAthlete.name,
       sexe: (refs.sexe as "M" | "F") || "M",
       objectif: (dbAthlete.goal as any) || "IM",
-      // ✅ FIX 6: Ne pas afficher 18% par défaut si non renseigné
-      masse_grasse: typeof refs.masse_grasse === "number" ? refs.masse_grasse : undefined,
+      // ✅ FIX: Mapper fatPct (format Cloud) vers masse_grasse (format legacy)
+      masse_grasse: typeof refs.fatPct === "number" ? refs.fatPct : 
+                    typeof refs.masse_grasse === "number" ? refs.masse_grasse : undefined,
       historique: legacySnapshot ? [legacySnapshot] : [],
       tests: [],
       refs: {
@@ -734,12 +735,12 @@ const Index = () => {
             <AthleteProfile 
               athlete={legacyAthlete} 
               onUpdate={() => {}} 
-              // ✅ FIX 6: Sauvegarde masse grasse dans le cloud
+              // ✅ FIX: Sauvegarde masse grasse dans le cloud avec la bonne clé (fatPct)
               onUpdateMasseGrasse={async (val) => {
                 if (!currentAthlete) return;
                 const existingRefs = (currentAthlete.refs as Record<string, unknown>) || {};
                 await updateAthlete(currentAthlete.id, { 
-                  refs: { ...existingRefs, masse_grasse: val } as any
+                  refs: { ...existingRefs, fatPct: val } as any
                 });
               }}
               snapshotFatPct={effectiveCloudSnapshot?.fat_pct}
