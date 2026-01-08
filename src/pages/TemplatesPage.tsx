@@ -1364,6 +1364,20 @@ export default function TemplatesPage() {
                   <Button variant="ghost" size="sm" onClick={handleClearCache}>
                     Vider le cache
                   </Button>
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    onClick={() => {
+                      setIsLoaded(false);
+                      setWeeks([]);
+                      setSections([]);
+                      setSelectedSectionId(null);
+                      localStorage.removeItem("vlab-template-loaded");
+                      toast.success("Template fermé");
+                    }}
+                  >
+                    Fermer le template
+                  </Button>
                 </>
               )}
             </div>
