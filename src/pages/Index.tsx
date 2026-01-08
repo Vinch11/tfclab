@@ -92,7 +92,7 @@ const Index = () => {
   const navigate = useNavigate();
 
   // ✅ IMPORTANT: on récupère aussi snapshots + tests + fonctions cloud
-  const { athletes, snapshots, tests, loading, addAthlete, updateAthlete, deleteAthlete, addTest, deleteTest } = useCloudData();
+  const { athletes, snapshots, tests, loading, addAthlete, updateAthlete, deleteAthlete, addTest, deleteTest, updateSnapshot } = useCloudData();
 
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showTestLibrary, setShowTestLibrary] = useState(false);
@@ -659,14 +659,17 @@ const Index = () => {
             )}
 
             {/* 📊 CHARGE RÉCENTE - Donnée centrale CRR */}
-            {currentAthlete && staffMode && (
+            {currentAthlete && staffMode && effectiveCloudSnapshot && (
               <ChargeRecenteCard
                 crr={computeCRR({
-                  tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
-                  snapshotDate: effectiveCloudSnapshot?.date ?? null,
+                  tss7d: effectiveCloudSnapshot.tss_7d ?? null,
+                  snapshotDate: effectiveCloudSnapshot.date ?? null,
                 })}
                 objectif={currentAthlete.goal || "IM"}
                 staffMode={staffMode}
+                onUpdate={async (value) => {
+                  await updateSnapshot(effectiveCloudSnapshot.id, { tss_7d: value });
+                }}
               />
             )}
 
