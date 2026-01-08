@@ -36,6 +36,7 @@ import { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { cn } from "@/lib/utils";
 import { getEconomyLabelStyle, getEconomyRaceReadinessBonus } from "@/lib/runningEconomySnapshot";
 import { computeNutritionEstimate, type NutritionEstimate, type Sport } from "@/lib/nutritionPredictive";
+import { ScientificChartsDashboard, MetabolicPerformanceCompass } from "@/components/charts";
 
 interface PhysiologicalAnalysisProps {
   athlete: Athlete;
@@ -139,7 +140,28 @@ export function PhysiologicalAnalysis({ athlete, vlamaxEffectif, tteEffectif: tt
         )}
       </div>
 
-      {/* Header avec SPM */}
+      {/* 🧭 METABOLIC PERFORMANCE COMPASS - Graphique signature */}
+      {vlamaxEffectif && tteEffectifProp && (
+        <MetabolicPerformanceCompass
+          data={{
+            vlamaxValue: vlamaxEffectif.value,
+            vlamaxSource: vlamaxEffectif.source,
+            vlamaxConfidence: vlamaxEffectif.confidence,
+            tteValue: tteEffectifProp.tte_min,
+            tteSource: tteEffectifProp.source,
+            tteConfidence: tteEffectifProp.confidence,
+            readinessScore: readinessProp?.score ?? null,
+            readinessDetails: readinessProp?.details ? {
+              vlamax: readinessProp.details.vlamax ?? 0,
+              endurance: readinessProp.details.endurance ?? 0,
+              puissance: readinessProp.details.puissance ?? 0,
+              fraicheur: readinessProp.details.fraicheur ?? 0,
+            } : undefined,
+            objectif: athlete.objectif || "IM",
+          }}
+          staffMode={true}
+        />
+      )}
       <Card>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
