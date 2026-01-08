@@ -1646,22 +1646,24 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
     const logoBase64 = await imageToBase64(logoUrl);
     
     const html = buildStaffGradeReportHTML(payload, logoBase64);
-    const w = window.open("", "_blank");
-    if (!w) {
-      toast.error("Popup bloquée", {
-        description: "Autorise les popups pour exporter en PDF."
-      });
-      return;
-    }
-    w.document.open();
-    w.document.write(html);
-    w.document.close();
-    setTimeout(() => {
-      try { w.focus(); } catch {}
-    }, 300);
     
-    toast.success("Rapport PDF généré", {
-      description: "Cliquez sur Imprimer pour enregistrer en PDF."
+    // Méthode alternative sans popup: créer un blob et télécharger
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    
+    // Créer un lien de téléchargement
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `rapport-staff-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Nettoyer l'URL blob après un délai
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    
+    toast.success("Rapport téléchargé", {
+      description: "Ouvrez le fichier HTML et utilisez Imprimer > Enregistrer en PDF."
     });
   };
 
