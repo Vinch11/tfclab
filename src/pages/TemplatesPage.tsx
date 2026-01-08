@@ -37,22 +37,26 @@ import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { computeTTEEffectif } from "@/lib/tteEffectif";
 import { computeRaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 
-function getSportBadgeColor(sport: string): string {
+function getSportBadgeColor(sport: string | undefined): string {
+  if (!sport) return "bg-muted text-muted-foreground";
   const lower = sport.toLowerCase();
-  if (lower.includes("natation") || lower.includes("swim")) {
+  if (lower.includes("natation") || lower.includes("swim") || lower.includes("piscine")) {
     return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
   }
   if (lower.includes("vélo") || lower.includes("velo") || lower.includes("bike")) {
     return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
   }
-  if (lower.includes("cap") || lower.includes("course") || lower.includes("run")) {
+  if (lower.includes("cap") || lower.includes("course") || lower.includes("run") || lower.includes("c.a.p")) {
     return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300";
   }
-  if (lower.includes("repos")) {
+  if (lower.includes("repos") || lower.includes("off") || lower.includes("mobilité") || lower.includes("soins") || lower.includes("social") || lower.includes("plaisir") || lower.includes("bilan")) {
     return "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
   }
-  if (lower.includes("brick")) {
+  if (lower.includes("brick") || lower.includes("vélo + cap") || lower.includes("vélo + run") || lower.includes("activ")) {
     return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300";
+  }
+  if (lower.includes("ironman") || lower.includes("marche")) {
+    return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300";
   }
   return "bg-muted text-muted-foreground";
 }
@@ -83,11 +87,14 @@ function getPhaseForWeek(weekNumber: number, totalWeeks: number): { name: string
 function SessionCard({ session }: { session: TemplateSession }) {
   const [expanded, setExpanded] = useState(false);
 
+  const displayDetails = session.details || session.description || "";
+  const displayNotes = session.notes || "";
+
   return (
     <div className="border rounded-lg p-3 bg-card">
       <div className="flex items-start gap-2">
-        <Badge className={`shrink-0 text-xs ${getSportBadgeColor(session.sport)}`}>
-          {session.sport || "—"}
+        <Badge className={`shrink-0 text-xs ${getSportBadgeColor(session.discipline || session.sport)}`}>
+          {session.discipline || session.sport || "—"}
         </Badge>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
@@ -96,12 +103,12 @@ function SessionCard({ session }: { session: TemplateSession }) {
               <span className="text-sm text-muted-foreground">• {session.title}</span>
             )}
           </div>
-          {session.details && (
+          {displayDetails && (
             <>
-              {session.details.length > 80 ? (
+              {displayDetails.length > 80 ? (
                 <div className="mt-1">
                   <p className="text-xs text-muted-foreground">
-                    {expanded ? session.details : session.details.slice(0, 80) + "..."}
+                    {expanded ? displayDetails : displayDetails.slice(0, 80) + "..."}
                   </p>
                   <button
                     onClick={() => setExpanded(!expanded)}
@@ -111,9 +118,14 @@ function SessionCard({ session }: { session: TemplateSession }) {
                   </button>
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground mt-1">{session.details}</p>
+                <p className="text-xs text-muted-foreground mt-1">{displayDetails}</p>
               )}
             </>
+          )}
+          {displayNotes && (
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 italic">
+              💡 {displayNotes}
+            </p>
           )}
         </div>
       </div>
