@@ -11,10 +11,15 @@ export type LongRunTolerance = "LOW" | "MEDIUM" | "HIGH";
 export type BikeDominance = "LOW" | "MEDIUM" | "HIGH" | "VERY_HIGH" | "EXTREME";
 export type RunAfterBikeTolerance = "LOW" | "MEDIUM" | "HIGH" | "VERY_HIGH";
 
+// CAP-specific types (Dan Lorang methodology)
+export type EconomyPriority = "STANDARD" | "HIGH" | "VERY_HIGH" | "EXTREME";
+export type IntensityTolerance = "LOW" | "MEDIUM" | "HIGH" | "CONTROLLED";
+export type InjuryRiskSensitivity = "LOW" | "MEDIUM" | "HIGH" | "VERY_HIGH" | "EXTREME";
+
 export interface TemplateProfile {
   id: string;
   name: string;
-  level: "PERFORMANCE" | "INTERMEDIAIRE";
+  level: "PERFORMANCE" | "INTERMEDIAIRE" | "ELITE";
   targetTime: string;
   description: string;
   targets: {
@@ -32,6 +37,11 @@ export interface TemplateProfile {
     risk_tolerance?: RiskTolerance;
     // Marathon-specific fields
     long_run_tolerance?: LongRunTolerance;
+    // CAP-specific fields (Dan Lorang methodology)
+    economy_priority?: EconomyPriority;
+    intensity_tolerance?: IntensityTolerance;
+    injury_risk_sensitivity?: InjuryRiskSensitivity;
+    max_weekly_volume_km?: number; // Maximum recommended weekly volume
     // 70.3-specific fields
     bike_dominance?: BikeDominance;
     run_after_bike_tolerance?: RunAfterBikeTolerance;
@@ -44,57 +54,73 @@ export interface TemplateProfilePair {
   intermediaire: TemplateProfile;
 }
 
-// Semi-Marathon 12 semaines profiles
+// Semi-Marathon profiles (Dan Lorang methodology)
 const SEMI_PERFORMANCE: TemplateProfile = {
-  id: "semi-12w-perf",
-  name: "Performance",
+  id: "semi-perf",
+  name: "Performance Semi",
   level: "PERFORMANCE",
-  targetTime: "~1h25",
-  description: "Athlète avec forte durabilité au seuil, faible dépendance glucidique, capacité à maintenir Z4b pendant 1h20+.",
+  targetTime: "~1h20-1h30",
+  description: "Athlète semi-marathon avec forte durabilité au seuil, VLamax contrôlée (0.40-0.65), économie prioritaire. Tolérance intensité haute.",
   targets: {
-    vlamax_min: 0.30,
-    vlamax_max: 0.45,
-    tte_min: 50,
-    ftpkg_min: 4.0,
+    vlamax_min: 0.40,
+    vlamax_max: 0.65,
+    tte_min: 45,
+    ftpkg_min: 3.8,
     run_economy: "good",
+    run_economy_score_min: 70,
     nutrition_min_gph: 60,
     nutrition_max_gph: 90,
+    economy_priority: "HIGH",
+    intensity_tolerance: "HIGH",
+    injury_risk_sensitivity: "HIGH",
+    max_weekly_volume_km: 90,
+    risk_tolerance: "LOW",
   },
 };
 
 const SEMI_INTERMEDIAIRE: TemplateProfile = {
-  id: "semi-12w-inter",
-  name: "Intermédiaire",
+  id: "semi-inter",
+  name: "Intermédiaire Semi",
   level: "INTERMEDIAIRE",
-  targetTime: "~1h35-1h50",
-  description: "Athlète en progression, durabilité moyenne, dépendance glucidique modérée à surveiller.",
+  targetTime: "~1h35-1h55",
+  description: "Athlète semi en progression. VLamax modérée, durabilité à consolider. Priorité économie + gestion blessure.",
   targets: {
-    vlamax_min: 0.45,
-    vlamax_max: 0.75,
+    vlamax_min: 0.55,
+    vlamax_max: 0.80,
     tte_min: 40,
     ftpkg_min: 3.2,
     run_economy: "ok",
-    nutrition_min_gph: 30,
-    nutrition_max_gph: 60,
+    run_economy_score_min: 55,
+    nutrition_min_gph: 40,
+    nutrition_max_gph: 70,
+    economy_priority: "HIGH",
+    intensity_tolerance: "MEDIUM",
+    injury_risk_sensitivity: "VERY_HIGH",
+    max_weekly_volume_km: 70,
+    risk_tolerance: "MEDIUM",
   },
 };
 
-// Marathon profiles - CAP-dominant, focus on economy/durability/injury risk
+// Marathon profiles (Dan Lorang methodology - CAP-dominant)
 const MARATHON_PERFORMANCE: TemplateProfile = {
   id: "marathon-perf",
-  name: "Performance",
+  name: "Performance Marathon",
   level: "PERFORMANCE",
-  targetTime: "~2h50-3h10",
-  description: "Athlète endurant avec excellente économie de course (≥75), faible VLamax (<0.45), TTE élevé (≥50). Tolérance aux longues sorties élevée.",
+  targetTime: "~2h50-3h15",
+  description: "Marathonien performant. VLamax basse (0.30-0.50), TTE élevé ≥55. Économie TRÈS HAUTE priorité. Tolérance intensité modérée.",
   targets: {
     vlamax_min: 0.30,
-    vlamax_max: 0.45,
-    tte_min: 50,
+    vlamax_max: 0.50,
+    tte_min: 55,
     ftpkg_min: 3.8,
-    run_economy: "good",
-    run_economy_score_min: 75,
-    nutrition_min_gph: 60,
-    nutrition_max_gph: 90,
+    run_economy: "excellent",
+    run_economy_score_min: 80,
+    nutrition_min_gph: 70,
+    nutrition_max_gph: 100,
+    economy_priority: "VERY_HIGH",
+    intensity_tolerance: "MEDIUM",
+    injury_risk_sensitivity: "VERY_HIGH",
+    max_weekly_volume_km: 100,
     long_run_tolerance: "HIGH",
     risk_tolerance: "LOW",
   },
@@ -102,21 +128,49 @@ const MARATHON_PERFORMANCE: TemplateProfile = {
 
 const MARATHON_INTERMEDIAIRE: TemplateProfile = {
   id: "marathon-inter",
-  name: "Intermédiaire",
+  name: "Intermédiaire Marathon",
   level: "INTERMEDIAIRE",
   targetTime: "~3h30-4h15",
-  description: "Athlète en développement endurance. VLamax modérée (0.40-0.55), TTE à consolider (≥45). Économie à surveiller. Charge mécanique à gérer.",
+  description: "Marathonien en développement. VLamax modérée (0.45-0.60), TTE à consolider ≥50. Économie et mécanique prioritaires.",
   targets: {
-    vlamax_min: 0.40,
-    vlamax_max: 0.55,
-    tte_min: 45,
-    ftpkg_min: 3.0,
-    run_economy: "ok",
-    run_economy_score_min: 55,
-    nutrition_min_gph: 40,
-    nutrition_max_gph: 70,
+    vlamax_min: 0.45,
+    vlamax_max: 0.60,
+    tte_min: 50,
+    ftpkg_min: 3.2,
+    run_economy: "good",
+    run_economy_score_min: 65,
+    nutrition_min_gph: 50,
+    nutrition_max_gph: 80,
+    economy_priority: "VERY_HIGH",
+    intensity_tolerance: "LOW",
+    injury_risk_sensitivity: "VERY_HIGH",
+    max_weekly_volume_km: 80,
     long_run_tolerance: "MEDIUM",
     risk_tolerance: "MEDIUM",
+  },
+};
+
+// Marathon ELITE profile (Dan Lorang methodology)
+const MARATHON_ELITE: TemplateProfile = {
+  id: "marathon-elite",
+  name: "Elite Marathon",
+  level: "ELITE",
+  targetTime: "~2h20-2h45",
+  description: "Elite marathonien. VLamax très basse (0.25-0.45), TTE extrême ≥60. Économie PRIORITÉ ABSOLUE. Intensité contrôlée. Sensibilité blessure EXTRÊME.",
+  targets: {
+    vlamax_min: 0.25,
+    vlamax_max: 0.45,
+    tte_min: 60,
+    ftpkg_min: 4.2,
+    run_economy: "excellent",
+    run_economy_score_min: 85,
+    nutrition_min_gph: 90,
+    nutrition_max_gph: 120,
+    economy_priority: "EXTREME",
+    intensity_tolerance: "CONTROLLED",
+    injury_risk_sensitivity: "EXTREME",
+    max_weekly_volume_km: 140,
+    long_run_tolerance: "HIGH",
   },
 };
 
