@@ -48,6 +48,12 @@ import { PlanComparisonView } from "@/components/PlanComparisonView";
 import { SessionOptionsDisplay } from "@/components/SessionOptionsDisplay";
 import { processSessionOptions, type SessionContext, type OptionSport } from "@/lib/templates/optionValidator";
 import { parseDurationFromText } from "@/lib/templates/durationParser";
+import { 
+  computeCAPInjuryRisk, 
+  shouldShowCAPInjuryRisk,
+  type CAPInjuryRiskResult 
+} from "@/lib/capInjuryRisk";
+import { CAPInjuryRiskBadge } from "@/components/CAPInjuryRiskBadge";
 
 function getSportBadgeColor(sport: string | undefined): string {
   if (!sport) return "bg-muted text-muted-foreground";
@@ -336,7 +342,19 @@ function getPhaseForWeek(weekNumber: number, totalWeeks: number): { name: string
   return { name: "Spécifique", color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300" };
 }
 
-function SessionCard({ session, sessionAnnotations, staffMode = false, weekPhase }: { session: TemplateSession; sessionAnnotations: AnnotationV2[]; staffMode?: boolean; weekPhase?: string }) {
+function SessionCard({ 
+  session, 
+  sessionAnnotations, 
+  staffMode = false, 
+  weekPhase,
+  capInjuryRisk,
+}: { 
+  session: TemplateSession; 
+  sessionAnnotations: AnnotationV2[]; 
+  staffMode?: boolean; 
+  weekPhase?: string;
+  capInjuryRisk?: CAPInjuryRiskResult | null;
+}) {
   const [expanded, setExpanded] = useState(false);
   const classification = classifySession(session);
 
@@ -376,6 +394,14 @@ function SessionCard({ session, sessionAnnotations, staffMode = false, weekPhase
   
   const hasValidOptions = processedOptions && processedOptions.validOptions.length > 0;
   const hasBlockedOptions = processedOptions && (processedOptions.blockedOptions.length > 0 || processedOptions.genericOptions.length > 0);
+  
+  // v8: Determine if CAP injury risk should be shown for this session
+  const sportText = (session.sport || session.discipline || "").toLowerCase();
+  const isCAP = sportText.includes("cap") || sportText.includes("run") || sportText.includes("course");
+  const sessionDurationMin = session.durationMin || 0;
+  const hasLongCAPOption = processedOptions?.hasLongCAPOption || false;
+  const showCAPInjuryRisk = staffMode && isCAP && capInjuryRisk && 
+    shouldShowCAPInjuryRisk(sportText, sessionDurationMin, hasLongCAPOption);
 
   return (
     <div className={`border rounded-lg p-3 bg-card ${hasAnnotations ? "border-l-4 " + (maxSeverity >= 2 ? "border-l-amber-500" : "border-l-blue-400") : ""}`}>
@@ -425,6 +451,13 @@ function SessionCard({ session, sessionAnnotations, staffMode = false, weekPhase
             </p>
           )}
           
+          {/* v8: CAP Injury Risk Badge (staff only, for long CAP sessions) */}
+          {showCAPInjuryRisk && capInjuryRisk && (
+            <div className="mt-2">
+              <CAPInjuryRiskBadge risk={capInjuryRisk} staffMode={staffMode} />
+            </div>
+          )}
+          
           {/* v7: Sport-contextualized options display */}
           {(hasValidOptions || (staffMode && hasBlockedOptions)) && processedOptions && (
             <SessionOptionsDisplay
@@ -432,6 +465,7 @@ function SessionCard({ session, sessionAnnotations, staffMode = false, weekPhase
               blockedOptions={processedOptions.blockedOptions}
               genericOptionsRemoved={processedOptions.genericOptions}
               staffMode={staffMode}
+              capInjuryRisk={isCAP ? capInjuryRisk : null}
             />
           )}
           
@@ -569,7 +603,7 @@ function WeekRiskSummary({ weekAnnotations }: { weekAnnotations: AnnotationV2[] 
   );
 }
 
-function WeekSection({ week, annotations, totalWeeks, staffMode }: { week: TemplateWeek; annotations: AnnotationV2[]; totalWeeks: number; staffMode: boolean }) {
+function WeekSection({ week, annotations, totalWeeks, staffMode, capInjuryRisk }: { week: TemplateWeek; annotations: AnnotationV2[]; totalWeeks: number; staffMode: boolean; capInjuryRisk?: CAPInjuryRiskResult | null }) {
   const weekAnnotations = annotations.filter((a) => a.scope === "WEEK" && a.weekNumber === week.weekNumber);
   const sessionAnnotationsMap = useMemo(() => {
     const map: Record<string, AnnotationV2[]> = {};
@@ -623,7 +657,10 @@ function WeekSection({ week, annotations, totalWeeks, staffMode }: { week: Templ
               <SessionCard 
                 key={idx} 
                 session={session} 
-                sessionAnnotations={staffMode ? sessionAnns : []} 
+                sessionAnnotations={staffMode ? sessionAnns : []}
+                staffMode={staffMode}
+                weekPhase={phase}
+                capInjuryRisk={capInjuryRisk}
               />
             );
           })}
