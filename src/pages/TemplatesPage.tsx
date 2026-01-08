@@ -416,7 +416,17 @@ export default function TemplatesPage() {
     setSelectedSectionId(null);
 
     try {
-      if (template.multiSections) {
+      // Handle static templates (pre-loaded data)
+      if (template.source === "static" && template.weeks.length > 0) {
+        setWeeks(template.weeks);
+        setSections([{
+          sectionId: "section-1",
+          sectionTitle: "Plan principal",
+          weeks: template.weeks,
+        }]);
+        setIsLoaded(true);
+        toast.success(`Template chargé: ${template.weeks.length} semaines`);
+      } else if (template.multiSections) {
         // Load with multi-section support
         const loadedSections = await loadProgramSectionsFromDocx(template.docxPath);
         setSections(loadedSections);

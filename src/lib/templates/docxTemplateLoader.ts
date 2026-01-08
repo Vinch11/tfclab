@@ -29,7 +29,7 @@ export interface ProgramTemplate {
   id: string;
   name: string;
   target: "IM" | "703" | "Marathon" | "Semi";
-  source: "docx";
+  source: "docx" | "static";
   docxPath: string;
   weeks: TemplateWeek[];
   multiSections?: boolean;
