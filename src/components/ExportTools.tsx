@@ -1,6 +1,6 @@
 // =============================================
 // OUTILS EXPORT PDF – RAPPORT STAFF-GRADE COMPLET
-// Two For Coaching Lab – Export Premium
+// Two For Coaching Lab – Performance & Metabolic Report
 // =============================================
 
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getTargets, g
 import { ZonesConfig, computeAbsoluteRange, AthleteRefsForZones } from "@/lib/zonesConfig";
 import { reglesDanLorang, getPrioriteLabel, getSeancesRecommandees, PrioriteType } from "@/types/reglesDanLorang";
 import { SEANCES } from "@/types/seances";
+import { computeNutritionEstimate, type NutritionEstimate } from "@/lib/nutritionPredictive";
+import { computeCAPInjuryRisk, getCAPRiskIcon } from "@/lib/capInjuryRisk";
 import logoUrl from "@/assets/logo-2fc.png";
 
 // =============================================
@@ -57,6 +59,15 @@ interface ExportPayload {
     manquants: string[];
   };
   reportDate: string;
+  nutritionEstimate: NutritionEstimate | null;
+  capInjuryRisk: {
+    level: number;
+    label: string;
+    icon: string;
+    globalIndex: number;
+    factors: { vlamaxContribution: number; tteContribution: number; chargeContribution: number };
+    staffAnalysis: string;
+  } | null;
 }
 
 // =============================================
@@ -302,6 +313,35 @@ function buildExportPayload(
   // Calculer complétude
   const completude = calculateCompletude(effectiveRefs, effectiveSnapshot, athleteTests, vlamax, tte);
   
+  // Calculer Nutrition Prédictive
+  const nutritionEstimate = computeNutritionEstimate({
+    vlamax: vlamax.value,
+    objectif: athlete.goal || "IM",
+    tteMin: tte.tte_min,
+    tteTarget: tte.target ?? 50,
+    raceReadiness: raceReadiness.score
+  });
+  
+  // Calculer CAP Injury Risk
+  const capRiskResult = computeCAPInjuryRisk({
+    vlamaxValue: vlamax.value,
+    tteValue: tte.tte_min,
+    objectif: athlete.goal || "IM"
+  });
+  
+  const capInjuryRisk = {
+    level: capRiskResult.level,
+    label: capRiskResult.label,
+    icon: getCAPRiskIcon(capRiskResult.level),
+    globalIndex: capRiskResult.level * 25,
+    factors: {
+      vlamaxContribution: vlamax.value ? Math.min(100, (vlamax.value / 0.55) * 100) : 50,
+      tteContribution: tte.tte_min ? Math.max(0, 100 - (tte.tte_min / 60) * 100) : 50,
+      chargeContribution: effectiveSnapshot?.tss_7d ? Math.min(100, (effectiveSnapshot.tss_7d / 800) * 100) : 50
+    },
+    staffAnalysis: capRiskResult.staffAnalysis
+  };
+  
   return {
     athlete: {
       id: athlete.id,
@@ -326,7 +366,9 @@ function buildExportPayload(
     snapshotHistory: athleteSnapshots,
     checkins: athleteCheckins,
     completude,
-    reportDate: new Date().toISOString()
+    reportDate: new Date().toISOString(),
+    nutritionEstimate,
+    capInjuryRisk
   };
 }
 
@@ -376,7 +418,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
   const { 
     athlete, effectiveSnapshot, effectiveRefs, 
     vlamax, tte, raceReadiness, lorang,
-    tests, snapshotHistory, checkins, completude, reportDate 
+    tests, snapshotHistory, checkins, completude, reportDate,
+    nutritionEstimate, capInjuryRisk
   } = payload;
   
   const refs = getAthleteRefsForZones(effectiveRefs);
@@ -384,9 +427,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
   const weights = getRaceWeights(athlete.goal || "IM");
 
   const brandMain = "Two For Coaching Lab";
-  const brandSub = "Staff-grade Performance Intelligence";
+  const brandSub = "Performance & Metabolic Report";
   const createdAt = new Date(reportDate);
-  const title = `${brandMain} — Rapport Performance — ${athlete.name || "Athlète"}`;
+  const title = `${brandMain} — Performance & Metabolic Report — ${athlete.name || "Athlète"}`;
 
   const coverObjective = htmlEscape(getObjectifLabel(athlete.goal));
   const coverAthlete = htmlEscape(athlete.name || "Athlète");
@@ -506,21 +549,25 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
           </div>
         </div>
         <div>
-          <div class="tag">Rapport Performance</div>
+          <div class="tag">Performance & Metabolic Report</div>
           <div class="tag" style="margin-left:6px">${coverDate}</div>
         </div>
       </div>
 
       <div class="coverMid">
-        <div style="font-size:14px;color:var(--muted);">Rapport Performance Athlète</div>
+        <div style="font-size:14px;color:var(--muted);">Two For Coaching Lab — Performance & Metabolic Report</div>
         <div class="coverTitle">${coverAthlete}</div>
         <div class="coverMeta">
           <div class="tag"><b>Objectif:</b> ${coverObjective}</div>
-          <div class="tag"><b>Snapshot:</b> ${snapshotDate}</div>
+          <div class="tag"><b>Snapshot actif:</b> ${snapshotDate}</div>
           <div class="tag"><b>Cycle:</b> ${htmlEscape(cycleTag)}</div>
           <div class="tag"><b>Source:</b> ${htmlEscape(snapshotSource)}</div>
           ${completudeBadge}
           <span class="tag tagPrimary">Complétude: ${completude.score}%</span>
+        </div>
+        <div class="alert alertInfo mt" style="max-width:600px;">
+          <b>📋 Rapport généré à partir des données effectives</b><br>
+          Aucune planification automatisée. Les valeurs présentées sont des indicateurs d'aide à la décision pour le coach.
         </div>
       </div>
 
@@ -529,22 +576,25 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
           <h3>Indicateurs clés</h3>
           <div class="grid3 mt">
             <div>
-              <span class="muted">VLamax</span><br>
+              <span class="muted">VLamax effectif</span><br>
               <span class="medium ${vlamax.value !== null && vlamax.value > 0.45 ? 'warning' : vlamax.value !== null && vlamax.value < 0.28 ? 'error' : 'success'}">${vlamax.value !== null ? fmt(vlamax.value, 2) : "—"}</span>
-              ${vlamax.isLocked ? '<br><span class="locked">🔒 Mesurée</span>' : ''}
+              <br><span class="muted">${vlamax.source === "test" ? "🔬 Test" : vlamax.source === "snapshot" ? "📊 Snapshot" : "📐 Estimé"}</span>
+              ${vlamax.isLocked ? '<br><span class="locked">🔒 Verrouillée</span>' : ''}
             </div>
             <div>
-              <span class="muted">TTE</span><br>
+              <span class="muted">TTE effectif</span><br>
               <span class="medium ${tte.tte_min < (tte.target || 45) ? 'warning' : 'success'}">${tte.tte_min} min</span>
+              <br><span class="muted">Cible: ${tte.target ?? 50} min</span>
             </div>
             <div>
               <span class="muted">Race Readiness</span><br>
               <span class="medium ${raceReadiness.score >= 80 ? 'success' : raceReadiness.score >= 60 ? 'warning' : 'error'}">${raceReadiness.score}%</span>
+              <br><span class="muted">${raceReadiness.label}</span>
             </div>
           </div>
         </div>
         <div class="card">
-          <h3>Références</h3>
+          <h3>Références effectives</h3>
           <div class="kv">
             <div class="k">FCmax</div><div class="v">${effectiveRefs.fcMax ?? "—"} bpm</div>
             <div class="k">VMA</div><div class="v">${effectiveRefs.vma ?? "—"} km/h</div>
@@ -565,22 +615,58 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
   // =============================================
   const tocHTML = `
     <div class="toc mb">
-      <div class="tocTitle">📑 Sommaire</div>
-      <div class="tocRow"><a href="#executif">A. Résumé exécutif</a></div>
-      <div class="tocRow"><a href="#indicateurs">B. Indicateurs clés + Interprétation</a></div>
-      <div class="tocRow"><a href="#race">C. Race Readiness (Staff)</a></div>
-      <div class="tocRow"><a href="#lorang">D. Analyse Dan Lorang</a></div>
-      <div class="tocRow"><a href="#zones">E. Zones d'entraînement</a></div>
-      <div class="tocRow"><a href="#historique-snapshots">F. Historique snapshots</a></div>
-      <div class="tocRow"><a href="#historique-tests">G. Historique tests</a></div>
-      ${checkins.length > 0 ? '<div class="tocRow"><a href="#checkins">H. Check-ins & Monitoring</a></div>' : ''}
-      <div class="tocRow"><a href="#comprendre">I. Comprendre mes scores</a></div>
-      <div class="tocRow"><a href="#qualite">J. Qualité des données</a></div>
+      <div class="tocTitle">📑 SOMMAIRE — Performance & Metabolic Report</div>
+      <div class="tocRow"><a href="#profil">1. Profil Athlète & Contexte</a></div>
+      <div class="tocRow"><a href="#executif">2. Synthèse Exécutive</a></div>
+      <div class="tocRow"><a href="#compass">3. Metabolic Performance Compass™</a></div>
+      <div class="tocRow"><a href="#physiologie">4. Analyse Physiologique Détaillée</a></div>
+      <div class="tocRow"><a href="#race">5. Race Readiness & Risques</a></div>
+      <div class="tocRow"><a href="#nutrition">6. Nutrition Prédictive</a></div>
+      <div class="tocRow"><a href="#staff">7. Analyse Staff & Recommandations</a></div>
+      <div class="tocRow"><a href="#qualite">8. Données Sources & Fiabilité</a></div>
+      <div class="tocRow"><a href="#disclaimer">9. Mentions Scientifiques & Disclaimer</a></div>
     </div>
   `;
 
   // =============================================
-  // B. RÉSUMÉ EXÉCUTIF
+  // 1. PROFIL ATHLÈTE & CONTEXTE
+  // =============================================
+  const profilHTML = `
+    <section id="profil" class="section pagebreakAvoid">
+      <h2>1. Profil Athlète & Contexte</h2>
+      <div class="grid2">
+        <div class="card">
+          <h3>👤 Informations</h3>
+          <div class="kv">
+            <div class="k">Nom</div><div class="v">${coverAthlete}</div>
+            <div class="k">Objectif</div><div class="v">${coverObjective}</div>
+            <div class="k">Sport principal</div><div class="v">${(effectiveSnapshot as any)?.sport_main || "Triathlon"}</div>
+            <div class="k">Poids</div><div class="v">${effectiveRefs.weightKg ? fmt(effectiveRefs.weightKg, 1) : "—"} kg</div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>📊 Snapshot actif</h3>
+          <div class="kv">
+            <div class="k">Date</div><div class="v">${snapshotDate}</div>
+            <div class="k">Source</div><div class="v">${htmlEscape(snapshotSource)}</div>
+            <div class="k">Cycle</div><div class="v">${htmlEscape(cycleTag)}</div>
+            <div class="k">Confiance</div><div class="v">${effectiveSnapshot?.confidence ? fmtPct(effectiveSnapshot.confidence) : "—"}</div>
+          </div>
+        </div>
+      </div>
+      <div class="card mt">
+        <h3>📝 Contexte d'interprétation</h3>
+        <div class="alert alertInfo">
+          <b>Important:</b> Les valeurs présentées dans ce rapport sont dépendantes du moment de la saison, 
+          de l'état de forme et des conditions de test. Elles représentent une photographie à l'instant T 
+          et doivent être interprétées dans le contexte global de la préparation.
+        </div>
+      </div>
+    </section>
+  `;
+
+  // =============================================
+  // 2. SYNTHÈSE EXÉCUTIVE
   // =============================================
   const pointsForts: string[] = [];
   const pointsLimitants: string[] = [];
@@ -597,40 +683,199 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
   if (raceReadiness.details.fraicheur >= 18) pointsForts.push("Fraîcheur optimale");
   else pointsLimitants.push("Fatigue accumulée");
 
+  // Déterminer le profil métabolique
+  const profilMessage = (() => {
+    if (vlamax.value === null) return "Données insuffisantes pour évaluer le profil métabolique.";
+    if (raceReadiness.score >= 80 && pointsLimitants.length === 0) {
+      return "Le profil métabolique actuel est COHÉRENT avec l'objectif visé. Aucune limitation majeure identifiée.";
+    }
+    if (raceReadiness.score >= 60) {
+      return `Le profil métabolique est globalement adapté à l'objectif MAIS limité par : ${pointsLimitants.slice(0, 2).join(", ")}.`;
+    }
+    return `Le profil métabolique présente un DÉSALIGNEMENT significatif avec l'objectif. Priorités : ${pointsLimitants.slice(0, 2).join(", ")}.`;
+  })();
+
+  const risquesIdentifies = (() => {
+    const risques: string[] = [];
+    if (capInjuryRisk && capInjuryRisk.level >= 2) risques.push(`Risque blessure CAP (${capInjuryRisk.label})`);
+    if (nutritionEstimate && (nutritionEstimate.riskLevel === "high" || nutritionEstimate.riskLevel === "critical")) {
+      risques.push(`Risque nutritionnel (${nutritionEstimate.riskLabel})`);
+    }
+    return risques.length > 0 ? risques.join(", ") : "Aucun risque majeur identifié";
+  })();
+
   const executifHTML = `
-    <section id="executif" class="section pagebreakAvoid">
-      <h2>A. Résumé exécutif</h2>
-      <div class="card cardHighlight">
-        <h3>📋 Synthèse Coach (5 points clés)</h3>
-        <ol style="margin:10px 0;padding-left:20px;">
-          <li><b>État actuel:</b> ${raceReadiness.label} — Score Race Readiness: ${raceReadiness.score}% pour objectif ${getObjectifLabel(athlete.goal)}.</li>
-          <li><b>Points forts:</b> ${pointsForts.length > 0 ? pointsForts.slice(0, 2).join(", ") : "À développer"}.</li>
-          <li><b>Points limitants:</b> ${pointsLimitants.length > 0 ? pointsLimitants.slice(0, 2).join(", ") : "Aucun majeur"}.</li>
-          <li><b>Priorité bloc:</b> ${lorang.prioriteLabel || "Maintien"}.</li>
-          <li><b>Risque nutritionnel:</b> ${raceReadiness.nutritionalRiskIndex ? `${raceReadiness.nutritionalRiskIndex.label} (${raceReadiness.nutritionalRiskIndex.icon})` : "Non calculé (données manquantes)"}.</li>
-        </ol>
+    <section id="executif" class="section pagebreak">
+      <h2>2. Synthèse Exécutive</h2>
+      
+      <div class="card ${raceReadiness.score >= 80 ? 'cardSuccess' : raceReadiness.score >= 60 ? 'cardWarning' : 'cardError'}">
+        <div style="display:flex;align-items:center;gap:20px;">
+          <div class="scoreCircle" style="border-color:${raceReadiness.score >= 80 ? 'var(--success)' : raceReadiness.score >= 60 ? 'var(--warning)' : 'var(--error)'}; color:${raceReadiness.score >= 80 ? 'var(--success)' : raceReadiness.score >= 60 ? 'var(--warning)' : 'var(--error)'}">
+            ${raceReadiness.score}
+          </div>
+          <div>
+            <div style="font-size:18px;font-weight:700;">${raceReadiness.label}</div>
+            <div class="muted">Race Readiness pour ${getObjectifLabel(athlete.goal)}</div>
+          </div>
+          <div style="margin-left:auto;text-align:right;">
+            <span class="badge ${raceReadiness.score >= 80 ? 'badgeSuccess' : raceReadiness.score >= 60 ? 'badgeWarning' : 'badgeError'}" style="font-size:14px;padding:8px 16px;">
+              ${raceReadiness.score >= 80 ? '🟢 FEU VERT' : raceReadiness.score >= 60 ? '🟡 À SÉCURISER' : '🔴 À RISQUE'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card cardHighlight mt">
+        <h3>📋 Résumé automatique (Lecture < 2 min)</h3>
+        <p style="font-size:14px;line-height:1.6;margin:12px 0;">${profilMessage}</p>
+        <p style="font-size:12px;color:var(--muted);">
+          <b>Priorité physiologique identifiée:</b> ${lorang.prioriteLabel || "Maintien de l'équilibre actuel"}.<br>
+          <b>Risques principaux:</b> ${risquesIdentifies}.
+        </p>
       </div>
       
       <div class="grid4 mt">
         <div class="card">
           <div class="muted">VLamax effectif</div>
           <div class="big ${vlamax.value !== null && vlamax.value > 0.45 ? 'warning' : 'success'}">${vlamax.value !== null ? fmt(vlamax.value, 2) : "—"}</div>
+          <div class="muted">${vlamax.source === "test" ? "Test" : vlamax.source === "snapshot" ? "Snapshot" : "Estimé"}</div>
           <div class="muted">Conf: ${fmtPct(vlamax.confidence)}</div>
         </div>
         <div class="card">
           <div class="muted">TTE effectif</div>
           <div class="big ${tte.tte_min < (tte.target || 45) ? 'warning' : 'success'}">${tte.tte_min} min</div>
-          <div class="muted">Cible: ${tte.target} min</div>
+          <div class="muted">Cible: ${tte.target ?? 50} min</div>
+          <div class="muted">Conf: ${fmtPct(tte.confidence)}</div>
         </div>
         <div class="card">
-          <div class="muted">FTP / FTP/kg</div>
-          <div class="big">${effectiveRefs.ftp ?? "—"} W</div>
-          <div class="muted">${ftpKg ? fmt(ftpKg, 2) : "—"} W/kg</div>
+          <div class="muted">Risque blessure CAP</div>
+          <div class="big ${capInjuryRisk && capInjuryRisk.level >= 2 ? 'warning' : 'success'}">${capInjuryRisk ? capInjuryRisk.icon : "—"}</div>
+          <div class="muted">${capInjuryRisk?.label || "Non calculé"}</div>
         </div>
         <div class="card">
-          <div class="muted">TSS 7d / Poids</div>
-          <div class="big">${effectiveSnapshot?.tss_7d ?? "—"}</div>
-          <div class="muted">${effectiveRefs.weightKg ? fmt(effectiveRefs.weightKg, 1) : "—"} kg</div>
+          <div class="muted">Risque nutritionnel</div>
+          <div class="big ${nutritionEstimate && (nutritionEstimate.riskLevel === "high" || nutritionEstimate.riskLevel === "critical") ? 'error' : nutritionEstimate && nutritionEstimate.riskLevel === "moderate" ? 'warning' : 'success'}">
+            ${nutritionEstimate?.nutritionalRiskIndex?.icon || "—"}
+          </div>
+          <div class="muted">${nutritionEstimate?.riskLabel || "Non calculé"}</div>
+        </div>
+      </div>
+    </section>
+  `;
+
+  // =============================================
+  // 3. METABOLIC PERFORMANCE COMPASS™
+  // =============================================
+  
+  // Calcul des scores du Compass
+  const computeMetabolicEfficiency = (v: number | null): number => {
+    if (v === null) return 50;
+    if (v <= targets.vlamaxIdeal) return 100;
+    if (v <= targets.vlamaxMax) return Math.round(100 - ((v - targets.vlamaxIdeal) / (targets.vlamaxMax - targets.vlamaxIdeal)) * 30);
+    return Math.max(20, Math.round(70 - (v - targets.vlamaxMax) * 200));
+  };
+  
+  const computeSustainablePower = (t: number | null): number => {
+    if (t === null) return 50;
+    const target = targets.tteTarget;
+    if (t >= target + 5) return 100;
+    if (t >= target) return Math.min(100, 85 + Math.round(((t - target) / 5) * 15));
+    if (t >= target - 5) return Math.round(85 - (target - t) * 7);
+    return Math.max(20, Math.round(50 - (target - t) * 3));
+  };
+  
+  const computeRobustness = (): number => {
+    let score = 70;
+    if (raceReadiness.details.fraicheur >= 20) score += 15;
+    else if (raceReadiness.details.fraicheur < 15) score -= 15;
+    if (capInjuryRisk && capInjuryRisk.level >= 2) score -= 20;
+    if (nutritionEstimate && (nutritionEstimate.riskLevel === "high" || nutritionEstimate.riskLevel === "critical")) score -= 15;
+    return Math.max(20, Math.min(100, score));
+  };
+  
+  const compassScores = {
+    metabolicEfficiency: computeMetabolicEfficiency(vlamax.value),
+    sustainablePower: computeSustainablePower(tte.tte_min),
+    raceAlignment: raceReadiness.score,
+    robustness: computeRobustness()
+  };
+  
+  const avgCompassScore = Math.round((compassScores.metabolicEfficiency + compassScores.sustainablePower + compassScores.raceAlignment + compassScores.robustness) / 4);
+  
+  const compassHTML = `
+    <section id="compass" class="section pagebreak">
+      <h2>3. Metabolic Performance Compass™</h2>
+      <div class="card cardHighlight">
+        <div style="text-align:center;margin-bottom:16px;">
+          <div style="font-size:16px;font-weight:700;">Metabolic Performance Compass™</div>
+          <div class="muted">Powered by Two For Coaching Lab</div>
+        </div>
+        
+        <!-- Radar Chart SVG -->
+        <div style="display:flex;justify-content:center;margin:20px 0;">
+          <svg width="300" height="300" viewBox="0 0 300 300">
+            <!-- Grid -->
+            <polygon points="150,50 250,150 150,250 50,150" fill="none" stroke="#ddd" stroke-width="1"/>
+            <polygon points="150,75 225,150 150,225 75,150" fill="none" stroke="#ddd" stroke-width="1"/>
+            <polygon points="150,100 200,150 150,200 100,150" fill="none" stroke="#ddd" stroke-width="1"/>
+            <polygon points="150,125 175,150 150,175 125,150" fill="none" stroke="#ddd" stroke-width="1"/>
+            
+            <!-- Axes -->
+            <line x1="150" y1="50" x2="150" y2="250" stroke="#eee" stroke-width="1"/>
+            <line x1="50" y1="150" x2="250" y2="150" stroke="#eee" stroke-width="1"/>
+            
+            <!-- Data polygon -->
+            <polygon 
+              points="${150},${150 - compassScores.metabolicEfficiency} ${150 + compassScores.sustainablePower},${150} ${150},${150 + compassScores.raceAlignment} ${150 - compassScores.robustness},${150}"
+              fill="rgba(37,99,235,0.2)" 
+              stroke="#2563eb" 
+              stroke-width="2"
+            />
+            
+            <!-- Data points -->
+            <circle cx="150" cy="${150 - compassScores.metabolicEfficiency}" r="6" fill="#2563eb"/>
+            <circle cx="${150 + compassScores.sustainablePower}" cy="150" r="6" fill="#2563eb"/>
+            <circle cx="150" cy="${150 + compassScores.raceAlignment}" r="6" fill="#2563eb"/>
+            <circle cx="${150 - compassScores.robustness}" cy="150" r="6" fill="#2563eb"/>
+            
+            <!-- Labels -->
+            <text x="150" y="35" text-anchor="middle" font-size="11" font-weight="600">⚡ Efficacité (${compassScores.metabolicEfficiency})</text>
+            <text x="265" y="155" text-anchor="start" font-size="11" font-weight="600">💪 Puissance (${compassScores.sustainablePower})</text>
+            <text x="150" y="275" text-anchor="middle" font-size="11" font-weight="600">🎯 Alignement (${compassScores.raceAlignment})</text>
+            <text x="35" y="155" text-anchor="end" font-size="11" font-weight="600">🛡️ Robustesse (${compassScores.robustness})</text>
+          </svg>
+        </div>
+        
+        <div style="text-align:center;margin-top:16px;">
+          <span class="badge ${avgCompassScore >= 80 ? 'badgeSuccess' : avgCompassScore >= 60 ? 'badgeWarning' : 'badgeError'}" style="font-size:16px;padding:10px 20px;">
+            Score Global: ${avgCompassScore}/100
+          </span>
+        </div>
+      </div>
+      
+      <div class="card mt">
+        <h3>📖 Comment lire ce graphique</h3>
+        <p class="muted">Ce graphique représente l'équilibre métabolique global de l'athlète. Il ne montre pas seulement "à quel point" l'athlète est fort, mais COMMENT cette performance est produite, et à quel prix physiologique.</p>
+        <div class="grid2 mt">
+          <div>
+            <h4>⚡ Efficacité Métabolique (${compassScores.metabolicEfficiency}/100)</h4>
+            <p class="muted">Basé sur VLamax effectif. Plus la valeur est alignée avec l'objectif, plus le score est élevé.</p>
+          </div>
+          <div>
+            <h4>💪 Puissance Durable (${compassScores.sustainablePower}/100)</h4>
+            <p class="muted">Basé sur TTE effectif vs cible objectif. Score élevé = capacité à tenir l'allure.</p>
+          </div>
+          <div>
+            <h4>🎯 Alignement Course (${compassScores.raceAlignment}/100)</h4>
+            <p class="muted">Race Readiness pondéré par objectif. Évalue la cohérence profil/objectif.</p>
+          </div>
+          <div>
+            <h4>🛡️ Robustesse (${compassScores.robustness}/100)</h4>
+            <p class="muted">Indice composite: fraîcheur, risque blessure, risque nutritionnel.</p>
+          </div>
+        </div>
+        <div class="alert alertInfo mt">
+          <b>Interprétation:</b> Un profil équilibré indique une performance durable. Un profil déséquilibré révèle un axe prioritaire de travail.
         </div>
       </div>
     </section>
@@ -1518,7 +1763,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
         </div>
 
         ${tocHTML}
+        ${profilHTML}
         ${executifHTML}
+        ${compassHTML}
         ${indicateursHTML}
         ${raceReadinessHTML}
         ${lorangHTML}
@@ -1528,6 +1775,19 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
         ${checkinsHTML}
         ${comprendreHTML}
         ${qualiteHTML}
+        
+        <!-- DISCLAIMER SCIENTIFIQUE -->
+        <section id="disclaimer" class="section pagebreakAvoid">
+          <h2>9. Mentions Scientifiques & Disclaimer</h2>
+          <div class="card">
+            <h3>🔬 Fondements scientifiques</h3>
+            <p class="muted">Ce rapport s'appuie sur des principes reconnus de physiologie de l'exercice (école allemande, VLamax, TTE, métabolisme énergétique). Les modèles utilisés sont inspirés des travaux de référence (Mader, INSCYD-like) et des concepts appliqués par Dan Lorang.</p>
+          </div>
+          <div class="alert alertWarning mt">
+            <b>⚠️ Avertissement:</b> Ce rapport est un outil d'aide à la décision destiné aux coachs et staffs. Il ne remplace ni un test médical, ni l'expertise du coach, ni un avis médical professionnel. Les estimations nutritionnelles sont indicatives et doivent être ajustées selon la tolérance individuelle.
+          </div>
+        </section>
+        
         ${footerHTML}
       </body>
     </html>
