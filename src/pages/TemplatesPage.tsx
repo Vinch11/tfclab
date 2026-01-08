@@ -12,7 +12,8 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ChevronLeft, FileText, AlertTriangle, Copy, CheckCircle2, Loader2, User, Layers, Lightbulb, BookOpen, BarChart3 } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronLeft, FileText, AlertTriangle, Copy, CheckCircle2, Loader2, User, Layers, Lightbulb, BookOpen, BarChart3, Target, ChevronDown, Info, Zap, Activity } from "lucide-react";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
@@ -25,13 +26,19 @@ import {
   type TemplateSession,
   type ProgramSection 
 } from "@/lib/templates/docxTemplateLoader";
+
+// V2 annotation engine
 import { 
-  generateTemplateAnnotations, 
-  getSeverityColor, 
-  getSeverityLabel,
-  type TemplateAnnotation,
-  type AnnotationParams 
-} from "@/lib/templates/templateAnnotationEngine";
+  generateTemplateAnnotationsV2, 
+  getSeverityColorV2, 
+  getSeverityLabelV2,
+  getRiskScoreColor,
+  getScopeIcon,
+  classifySession,
+  type AnnotationV2,
+  type AthleteSignalsV2,
+} from "@/lib/annotationEngineV2";
+import { getTemplateProfiles, getClosestProfile, type TemplateProfilePair } from "@/data/templateProfiles";
 
 import { useCloudData, DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
 import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
@@ -205,7 +212,6 @@ function PhaseVolumeChart({ weeks }: { weeks: TemplateWeek[] }) {
   if (data.length === 0) return null;
 
   const totalHours = data.reduce((acc, d) => acc + d.total, 0);
-  const maxPhaseHours = Math.max(...data.map(d => d.total));
 
   return (
     <Card className="overflow-hidden">
@@ -326,14 +332,18 @@ function getPhaseForWeek(weekNumber: number, totalWeeks: number): { name: string
   return { name: "Spécifique", color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300" };
 }
 
-function SessionCard({ session }: { session: TemplateSession }) {
+function SessionCard({ session, sessionAnnotations }: { session: TemplateSession; sessionAnnotations: AnnotationV2[] }) {
   const [expanded, setExpanded] = useState(false);
+  const classification = classifySession(session);
 
   const displayDetails = session.details || session.description || "";
   const displayNotes = session.notes || "";
+  
+  const hasAnnotations = sessionAnnotations.length > 0;
+  const maxSeverity = hasAnnotations ? Math.max(...sessionAnnotations.map(a => a.severity)) : 0;
 
   return (
-    <div className="border rounded-lg p-3 bg-card">
+    <div className={`border rounded-lg p-3 bg-card ${hasAnnotations ? "border-l-4 " + (maxSeverity >= 2 ? "border-l-amber-500" : "border-l-blue-400") : ""}`}>
       <div className="flex items-start gap-2">
         <Badge className={`shrink-0 text-xs ${getSportBadgeColor(session.discipline || session.sport)}`}>
           {session.discipline || session.sport || "—"}
@@ -343,6 +353,11 @@ function SessionCard({ session }: { session: TemplateSession }) {
             <span className="font-medium text-sm text-foreground">{session.day}</span>
             {session.title && (
               <span className="text-sm text-muted-foreground">• {session.title}</span>
+            )}
+            {classification.isKey && (
+              <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
+                Clé
+              </Badge>
             )}
           </div>
           {displayDetails && (
@@ -369,8 +384,50 @@ function SessionCard({ session }: { session: TemplateSession }) {
               💡 {displayNotes}
             </p>
           )}
+          
+          {/* Session-level annotations */}
+          {hasAnnotations && (
+            <div className="mt-2 space-y-1">
+              {sessionAnnotations.map((ann) => (
+                <SessionAnnotationBadge key={ann.id} annotation={ann} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function SessionAnnotationBadge({ annotation }: { annotation: AnnotationV2 }) {
+  const [showOptions, setShowOptions] = useState(false);
+  
+  return (
+    <div className="text-xs bg-muted/50 rounded p-2 space-y-1">
+      <div className="flex items-center gap-2">
+        <Badge className={`text-[10px] ${getSeverityColorV2(annotation.severity)}`}>
+          {getSeverityLabelV2(annotation.severity)}
+        </Badge>
+        <span className={`font-mono text-[10px] ${getRiskScoreColor(annotation.riskScore)}`}>
+          R:{annotation.riskScore}
+        </span>
+        <span className="font-medium">{annotation.title}</span>
+      </div>
+      <p className="text-muted-foreground">{annotation.message}</p>
+      <button
+        onClick={() => setShowOptions(!showOptions)}
+        className="text-primary hover:underline flex items-center gap-1"
+      >
+        <ChevronDown className={`h-3 w-3 transition-transform ${showOptions ? "rotate-180" : ""}`} />
+        Options coach
+      </button>
+      {showOptions && (
+        <ul className="list-disc list-inside text-muted-foreground pl-2 space-y-0.5">
+          {annotation.options.map((opt, i) => (
+            <li key={i}>{opt}</li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -423,8 +480,46 @@ function WeekVolumeBar({ volume }: { volume: { swim: number; bike: number; run: 
   );
 }
 
-function WeekSection({ week, annotations, totalWeeks }: { week: TemplateWeek; annotations: TemplateAnnotation[]; totalWeeks: number }) {
-  const weekAnnotations = annotations.filter((a) => a.weekNumber === week.weekNumber || a.weekNumber === 0);
+function WeekRiskSummary({ weekAnnotations }: { weekAnnotations: AnnotationV2[] }) {
+  const criticals = weekAnnotations.filter(a => a.severity === 3).length;
+  const warnings = weekAnnotations.filter(a => a.severity === 2).length;
+  const notes = weekAnnotations.filter(a => a.severity <= 1).length;
+  
+  if (criticals === 0 && warnings === 0 && notes === 0) return null;
+  
+  return (
+    <div className="flex items-center gap-2 text-xs">
+      {criticals > 0 && (
+        <Badge variant="destructive" className="text-[10px]">
+          {criticals} risque{criticals > 1 ? "s" : ""}
+        </Badge>
+      )}
+      {warnings > 0 && (
+        <Badge className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+          {warnings} attention
+        </Badge>
+      )}
+      {notes > 0 && criticals === 0 && warnings === 0 && (
+        <Badge variant="secondary" className="text-[10px]">
+          {notes} note{notes > 1 ? "s" : ""}
+        </Badge>
+      )}
+    </div>
+  );
+}
+
+function WeekSection({ week, annotations, totalWeeks, staffMode }: { week: TemplateWeek; annotations: AnnotationV2[]; totalWeeks: number; staffMode: boolean }) {
+  const weekAnnotations = annotations.filter((a) => a.scope === "WEEK" && a.weekNumber === week.weekNumber);
+  const sessionAnnotationsMap = useMemo(() => {
+    const map: Record<string, AnnotationV2[]> = {};
+    annotations.filter(a => a.scope === "SESSION" && a.weekNumber === week.weekNumber).forEach(ann => {
+      const key = `${ann.day}-${ann.sessionTitle || ""}`;
+      if (!map[key]) map[key] = [];
+      map[key].push(ann);
+    });
+    return map;
+  }, [annotations, week.weekNumber]);
+  
   const phase = week.phase || getPhaseForWeek(week.weekNumber, totalWeeks).name;
   const phaseStyle = week.phase ? "bg-muted text-muted-foreground" : getPhaseForWeek(week.weekNumber, totalWeeks).color;
   const volume = calculateWeeklyVolume(week.sessions);
@@ -444,18 +539,33 @@ function WeekSection({ week, annotations, totalWeeks }: { week: TemplateWeek; an
             {week.coachAdvice && (
               <Lightbulb className="h-4 w-4 text-amber-500" />
             )}
-            {weekAnnotations.some((a) => a.severity >= 2) && (
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
-            )}
+            {staffMode && <WeekRiskSummary weekAnnotations={weekAnnotations} />}
           </div>
           <WeekVolumeBar volume={volume} />
         </div>
       </AccordionTrigger>
       <AccordionContent>
         <div className="space-y-3 pt-2 pb-4">
-          {week.sessions.map((session, idx) => (
-            <SessionCard key={idx} session={session} />
-          ))}
+          {/* Week-level annotations */}
+          {staffMode && weekAnnotations.length > 0 && (
+            <div className="space-y-2 mb-4">
+              {weekAnnotations.map((ann) => (
+                <AnnotationCardV2 key={ann.id} annotation={ann} compact />
+              ))}
+            </div>
+          )}
+          
+          {week.sessions.map((session, idx) => {
+            const key = `${session.day}-${session.title || ""}`;
+            const sessionAnns = sessionAnnotationsMap[key] || [];
+            return (
+              <SessionCard 
+                key={idx} 
+                session={session} 
+                sessionAnnotations={staffMode ? sessionAnns : []} 
+              />
+            );
+          })}
           
           {/* Coach Advice Card */}
           {week.coachAdvice && (
@@ -467,7 +577,254 @@ function WeekSection({ week, annotations, totalWeeks }: { week: TemplateWeek; an
   );
 }
 
-function AnnotationsPanel({ annotations }: { annotations: TemplateAnnotation[] }) {
+function AnnotationCardV2({ annotation, compact = false }: { annotation: AnnotationV2; compact?: boolean }) {
+  const [showWhy, setShowWhy] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
+  
+  return (
+    <Card className={`border-l-4 ${annotation.severity >= 3 ? "border-l-red-500" : annotation.severity >= 2 ? "border-l-amber-500" : "border-l-blue-500"}`}>
+      <CardContent className={compact ? "p-3" : "p-4"}>
+        <div className="flex items-start gap-3">
+          <div className="flex flex-col items-center gap-1 shrink-0">
+            <Badge className={`text-xs ${getSeverityColorV2(annotation.severity)}`}>
+              {getSeverityLabelV2(annotation.severity)}
+            </Badge>
+            <span className={`font-mono text-xs font-semibold ${getRiskScoreColor(annotation.riskScore)}`}>
+              {annotation.riskScore}
+            </span>
+          </div>
+          <div className="flex-1 min-w-0 space-y-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm">{getScopeIcon(annotation.scope)}</span>
+              <p className="font-medium text-sm text-foreground">{annotation.title}</p>
+              {annotation.weekNumber && annotation.scope !== "PLAN" && (
+                <Badge variant="outline" className="text-[10px]">S{annotation.weekNumber}</Badge>
+              )}
+              {annotation.day && (
+                <Badge variant="outline" className="text-[10px]">{annotation.day}</Badge>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground">{annotation.message}</p>
+            
+            <div className="flex gap-3 text-xs">
+              <button
+                onClick={() => setShowWhy(!showWhy)}
+                className="text-primary hover:underline flex items-center gap-1"
+              >
+                <Info className="h-3 w-3" />
+                Pourquoi ?
+              </button>
+              <button
+                onClick={() => setShowOptions(!showOptions)}
+                className="text-primary hover:underline flex items-center gap-1"
+              >
+                <Zap className="h-3 w-3" />
+                Options ({annotation.options.length})
+              </button>
+            </div>
+            
+            {showWhy && (
+              <p className="text-xs text-muted-foreground/80 italic bg-muted/30 rounded p-2">
+                {annotation.why}
+              </p>
+            )}
+            
+            {showOptions && (
+              <div className="bg-muted/30 rounded p-2 space-y-1">
+                <p className="text-xs font-medium text-muted-foreground">Options Coach :</p>
+                <ul className="list-disc list-inside text-xs text-muted-foreground space-y-0.5">
+                  {annotation.options.map((opt, i) => (
+                    <li key={i}>{opt}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function AthleteProfilePanel({
+  athlete,
+  snapshot,
+  vlamaxEffectif,
+  tteEffectif,
+  readinessScore,
+  tss7d,
+}: {
+  athlete: DbAthlete;
+  snapshot: DbSnapshot | null;
+  vlamaxEffectif: { value: number | null; source: string; confidence: number };
+  tteEffectif: { value: number | null; source: string; confidence: number };
+  readinessScore: number | null;
+  tss7d: number | null;
+}) {
+  const ftpKg = snapshot?.ftp && snapshot?.weight_kg 
+    ? (snapshot.ftp / snapshot.weight_kg).toFixed(2) 
+    : null;
+    
+  return (
+    <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <User className="h-4 w-4 text-primary" />
+          Profil Athlète Actuel
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold">{athlete.name}</span>
+          <Badge variant="outline">{athlete.goal || "IM"}</Badge>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-3">
+          <MetricBox 
+            label="VLamax" 
+            value={vlamaxEffectif.value?.toFixed(2) || "—"} 
+            unit="mmol/L/s"
+            source={vlamaxEffectif.source}
+            confidence={vlamaxEffectif.confidence}
+          />
+          <MetricBox 
+            label="TTE" 
+            value={tteEffectif.value?.toFixed(0) || "—"} 
+            unit="min"
+            source={tteEffectif.source}
+            confidence={tteEffectif.confidence}
+          />
+          <MetricBox 
+            label="FTP/kg" 
+            value={ftpKg || "—"} 
+            unit="W/kg"
+          />
+          <MetricBox 
+            label="Readiness" 
+            value={readinessScore?.toFixed(0) || "—"} 
+            unit="%"
+          />
+        </div>
+        
+        {tss7d && (
+          <div className="text-xs text-muted-foreground">
+            TSS 7j: <span className="font-mono font-medium">{tss7d.toFixed(0)}</span>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function MetricBox({ label, value, unit, source, confidence }: { 
+  label: string; 
+  value: string; 
+  unit?: string;
+  source?: string;
+  confidence?: number;
+}) {
+  return (
+    <div className="bg-background/60 rounded-lg p-2 text-center">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="font-mono text-lg font-bold">{value}</p>
+      {unit && <p className="text-[10px] text-muted-foreground">{unit}</p>}
+      {source && (
+        <p className="text-[10px] text-muted-foreground/70 mt-1">
+          {source} • {Math.round((confidence || 0) * 100)}%
+        </p>
+      )}
+    </div>
+  );
+}
+
+function TemplateProfilesPanel({ 
+  profiles, 
+  athleteMatch,
+  selectedComparison,
+  onComparisonChange,
+}: { 
+  profiles: TemplateProfilePair; 
+  athleteMatch: { closest: "PERFORMANCE" | "INTERMEDIAIRE"; score: number; details: string };
+  selectedComparison: "PERFORMANCE" | "INTERMEDIAIRE";
+  onComparisonChange: (v: "PERFORMANCE" | "INTERMEDIAIRE") => void;
+}) {
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Target className="h-4 w-4 text-primary" />
+          Profils Cibles du Template
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Match indicator */}
+        <div className={`rounded-lg p-3 ${athleteMatch.closest === "PERFORMANCE" ? "bg-green-500/10 border border-green-500/30" : "bg-amber-500/10 border border-amber-500/30"}`}>
+          <div className="flex items-center gap-2">
+            <Activity className={`h-4 w-4 ${athleteMatch.closest === "PERFORMANCE" ? "text-green-600" : "text-amber-600"}`} />
+            <span className="text-sm font-medium">
+              Athlète plus proche de : <strong>{athleteMatch.closest}</strong> ({athleteMatch.score}%)
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">{athleteMatch.details}</p>
+        </div>
+        
+        {/* Profile cards */}
+        <div className="grid gap-3">
+          <ProfileCard 
+            profile={profiles.performance} 
+            isSelected={selectedComparison === "PERFORMANCE"}
+            onClick={() => onComparisonChange("PERFORMANCE")}
+          />
+          <ProfileCard 
+            profile={profiles.intermediaire} 
+            isSelected={selectedComparison === "INTERMEDIAIRE"}
+            onClick={() => onComparisonChange("INTERMEDIAIRE")}
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ProfileCard({ 
+  profile, 
+  isSelected, 
+  onClick 
+}: { 
+  profile: { name: string; targetTime: string; description: string; targets: any }; 
+  isSelected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full text-left rounded-lg p-3 border transition-all ${isSelected ? "border-primary bg-primary/5 ring-1 ring-primary/30" : "border-border hover:border-primary/50"}`}
+    >
+      <div className="flex items-center justify-between mb-1">
+        <span className="font-semibold text-sm">{profile.name}</span>
+        <Badge variant="outline" className="text-xs">{profile.targetTime}</Badge>
+      </div>
+      <p className="text-xs text-muted-foreground mb-2">{profile.description}</p>
+      <div className="flex flex-wrap gap-2 text-[10px]">
+        <span className="bg-muted px-1.5 py-0.5 rounded">
+          VLa: {profile.targets.vlamax_min.toFixed(2)}-{profile.targets.vlamax_max.toFixed(2)}
+        </span>
+        <span className="bg-muted px-1.5 py-0.5 rounded">
+          TTE: ≥{profile.targets.tte_min}'
+        </span>
+        <span className="bg-muted px-1.5 py-0.5 rounded">
+          FTP/kg: ≥{profile.targets.ftpkg_min}
+        </span>
+      </div>
+    </button>
+  );
+}
+
+function AnnotationsPanelV2({ annotations }: { annotations: AnnotationV2[] }) {
+  const planAnnotations = annotations.filter(a => a.scope === "PLAN");
+  const weekAnnotations = annotations.filter(a => a.scope === "WEEK");
+  const sessionAnnotations = annotations.filter(a => a.scope === "SESSION");
+  
   if (annotations.length === 0) {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground p-4 border rounded-lg bg-muted/30">
@@ -478,72 +835,56 @@ function AnnotationsPanel({ annotations }: { annotations: TemplateAnnotation[] }
   }
 
   return (
-    <div className="space-y-3">
-      {annotations.map((annotation, idx) => (
-        <Card key={idx} className={`border-l-4 ${annotation.severity >= 2 ? "border-l-amber-500" : "border-l-blue-500"}`}>
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <Badge className={`shrink-0 text-xs ${getSeverityColor(annotation.severity)}`}>
-                {getSeverityLabel(annotation.severity)}
-              </Badge>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm text-foreground">{annotation.title}</p>
-                <p className="text-sm text-muted-foreground mt-1">{annotation.message}</p>
-                <p className="text-xs text-muted-foreground/70 mt-2 italic">{annotation.why}</p>
-              </div>
+    <div className="space-y-6">
+      {/* PLAN annotations */}
+      {planAnnotations.length > 0 && (
+        <div className="space-y-3">
+          <h4 className="font-semibold text-sm flex items-center gap-2">
+            <span className="text-lg">📋</span> Annotations Plan Global
+            <Badge variant="secondary" className="text-xs">{planAnnotations.length}</Badge>
+          </h4>
+          {planAnnotations.map((ann) => (
+            <AnnotationCardV2 key={ann.id} annotation={ann} />
+          ))}
+        </div>
+      )}
+      
+      {/* WEEK annotations summary */}
+      {weekAnnotations.length > 0 && (
+        <Collapsible>
+          <CollapsibleTrigger className="flex items-center gap-2 font-semibold text-sm w-full justify-between hover:text-primary transition-colors">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">📅</span> Annotations par Semaine
+              <Badge variant="secondary" className="text-xs">{weekAnnotations.length}</Badge>
             </div>
-          </CardContent>
-        </Card>
-      ))}
+            <ChevronDown className="h-4 w-4" />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-2 mt-3">
+            {weekAnnotations.map((ann) => (
+              <AnnotationCardV2 key={ann.id} annotation={ann} compact />
+            ))}
+          </CollapsibleContent>
+        </Collapsible>
+      )}
+      
+      {/* SESSION annotations summary */}
+      {sessionAnnotations.length > 0 && (
+        <Collapsible>
+          <CollapsibleTrigger className="flex items-center gap-2 font-semibold text-sm w-full justify-between hover:text-primary transition-colors">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🏃</span> Annotations par Séance
+              <Badge variant="secondary" className="text-xs">{sessionAnnotations.length}</Badge>
+            </div>
+            <ChevronDown className="h-4 w-4" />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-2 mt-3">
+            {sessionAnnotations.map((ann) => (
+              <AnnotationCardV2 key={ann.id} annotation={ann} compact />
+            ))}
+          </CollapsibleContent>
+        </Collapsible>
+      )}
     </div>
-  );
-}
-
-function AthleteContextPanel({
-  athlete,
-  snapshot,
-  vlamaxValue,
-  tteValue,
-  readinessScore,
-}: {
-  athlete: DbAthlete;
-  snapshot: DbSnapshot | null;
-  vlamaxValue: number | null;
-  tteValue: number | null;
-  readinessScore: number | null;
-}) {
-  return (
-    <Card className="bg-muted/30">
-      <CardContent className="p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <User className="h-4 w-4 text-primary" />
-          <span className="font-medium text-sm">{athlete.name}</span>
-          <Badge variant="outline" className="text-xs ml-auto">
-            {athlete.goal || "IM"}
-          </Badge>
-        </div>
-        <div className="grid grid-cols-3 gap-3 text-center">
-          <div>
-            <p className="text-xs text-muted-foreground">VLamax</p>
-            <p className="font-mono text-sm font-semibold">
-              {vlamaxValue != null ? vlamaxValue.toFixed(2) : "—"}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">TTE</p>
-            <p className="font-mono text-sm font-semibold">
-              {tteValue != null ? `${tteValue.toFixed(0)}'` : "—"}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Readiness</p>
-            <p className="font-mono text-sm font-semibold">
-              {readinessScore != null ? `${readinessScore.toFixed(0)}%` : "—"}
-            </p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
   );
 }
 
@@ -559,6 +900,7 @@ export default function TemplatesPage() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [staffMode, setStaffMode] = useState(false);
   const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
+  const [comparisonProfile, setComparisonProfile] = useState<"PERFORMANCE" | "INTERMEDIAIRE">("PERFORMANCE");
 
   const selectedTemplate = useMemo(
     () => getTemplateById(selectedTemplateId),
@@ -631,10 +973,22 @@ export default function TemplatesPage() {
     return null;
   }, [sections, selectedSectionId]);
 
+  // Get template profiles
+  const templateProfiles = useMemo(() => {
+    return getTemplateProfiles(selectedTemplateId);
+  }, [selectedTemplateId]);
+
   // Compute athlete metrics
   const athleteMetrics = useMemo(() => {
     if (!selectedAthlete || !selectedSnapshot) {
-      return { vlamaxValue: null, tteValue: null, readinessScore: null, params: null };
+      return { 
+        vlamaxEffectif: { value: null, source: "unknown", confidence: 0 }, 
+        tteEffectif: { value: null, source: "unknown", confidence: 0 }, 
+        readinessScore: null, 
+        tss7d: null,
+        ftpKg: null,
+        signals: null,
+      };
     }
 
     // VLamax effectif
@@ -664,31 +1018,65 @@ export default function TemplatesPage() {
       poids: selectedSnapshot.weight_kg,
     });
 
-    const params: AnnotationParams = {
-      athleteGoal: (selectedAthlete.goal as any) || "IM",
-      vlamaxEffectif: vlamaxEffectif.value != null
+    const ftpKg = selectedSnapshot.ftp && selectedSnapshot.weight_kg 
+      ? selectedSnapshot.ftp / selectedSnapshot.weight_kg 
+      : null;
+
+    const signals: AthleteSignalsV2 = {
+      objectif: selectedAthlete.goal || "IM",
+      sportPrincipal: (selectedSnapshot as any).sport_main || undefined,
+      vlamax: vlamaxEffectif.value != null 
         ? { value: vlamaxEffectif.value, source: vlamaxEffectif.source, confidence: vlamaxEffectif.confidence }
         : null,
-      tteEffectif: tteEffectif.tte_min != null
+      tte: tteEffectif.tte_min != null 
         ? { value: tteEffectif.tte_min, source: tteEffectif.source, confidence: tteEffectif.confidence }
         : null,
-      raceReadiness: { score: readinessEffectif.score, details: readinessEffectif.details as any },
+      ftpKg,
       tss7d: selectedSnapshot.tss_7d,
+      fatigueState: (selectedSnapshot as any).fatigue_state,
+      poids: selectedSnapshot.weight_kg,
     };
 
     return {
-      vlamaxValue: vlamaxEffectif.value,
-      tteValue: tteEffectif.tte_min,
+      vlamaxEffectif: { 
+        value: vlamaxEffectif.value, 
+        source: vlamaxEffectif.source, 
+        confidence: vlamaxEffectif.confidence 
+      },
+      tteEffectif: { 
+        value: tteEffectif.tte_min, 
+        source: tteEffectif.source, 
+        confidence: tteEffectif.confidence 
+      },
       readinessScore: readinessEffectif.score,
-      params,
+      tss7d: selectedSnapshot.tss_7d,
+      ftpKg,
+      signals,
     };
   }, [selectedAthlete, selectedSnapshot]);
 
-  // Generate annotations
-  const annotations = useMemo(() => {
-    if (!staffMode || !athleteMetrics.params) return [];
-    return generateTemplateAnnotations(athleteMetrics.params);
-  }, [staffMode, athleteMetrics.params]);
+  // Compute profile match
+  const profileMatch = useMemo(() => {
+    if (!templateProfiles || !athleteMetrics.signals) {
+      return { closest: "INTERMEDIAIRE" as const, score: 50, details: "" };
+    }
+    return getClosestProfile(
+      athleteMetrics.vlamaxEffectif.value,
+      athleteMetrics.tteEffectif.value,
+      athleteMetrics.ftpKg,
+      templateProfiles
+    );
+  }, [templateProfiles, athleteMetrics]);
+
+  // Generate V2 annotations
+  const annotationsV2 = useMemo(() => {
+    if (!staffMode || !athleteMetrics.signals || displayedWeeks.length === 0) return [];
+    return generateTemplateAnnotationsV2({
+      templateId: selectedTemplateId,
+      athleteSignals: athleteMetrics.signals,
+      weeks: displayedWeeks,
+    });
+  }, [staffMode, athleteMetrics.signals, displayedWeeks, selectedTemplateId]);
 
   const handleLoadTemplate = async () => {
     const template = getTemplateById(selectedTemplateId);
@@ -789,7 +1177,7 @@ export default function TemplatesPage() {
             </Button>
             <div className="flex-1 min-w-0">
               <h1 className="text-lg font-bold text-foreground truncate">Templates de Programmation</h1>
-              <p className="text-xs text-muted-foreground">Plans staff-grade</p>
+              <p className="text-xs text-muted-foreground">Plans staff-grade avec annotations V2</p>
             </div>
           </div>
         </div>
@@ -881,12 +1269,12 @@ export default function TemplatesPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Switch id="staff-mode" checked={staffMode} onCheckedChange={setStaffMode} />
-                  <Label htmlFor="staff-mode" className="text-sm">Mode Staff (Annotations)</Label>
+                  <Label htmlFor="staff-mode" className="text-sm font-medium">Mode Staff V2 (Annotations précises)</Label>
                 </div>
               </div>
 
               {staffMode && athletes.length > 0 && (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <Select value={selectedAthleteId || ""} onValueChange={setSelectedAthleteId}>
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionner un athlète" />
@@ -901,13 +1289,25 @@ export default function TemplatesPage() {
                   </Select>
 
                   {selectedAthlete && selectedSnapshot && (
-                    <AthleteContextPanel
-                      athlete={selectedAthlete}
-                      snapshot={selectedSnapshot}
-                      vlamaxValue={athleteMetrics.vlamaxValue}
-                      tteValue={athleteMetrics.tteValue}
-                      readinessScore={athleteMetrics.readinessScore}
-                    />
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <AthleteProfilePanel
+                        athlete={selectedAthlete}
+                        snapshot={selectedSnapshot}
+                        vlamaxEffectif={athleteMetrics.vlamaxEffectif}
+                        tteEffectif={athleteMetrics.tteEffectif}
+                        readinessScore={athleteMetrics.readinessScore}
+                        tss7d={athleteMetrics.tss7d}
+                      />
+                      
+                      {templateProfiles && (
+                        <TemplateProfilesPanel
+                          profiles={templateProfiles}
+                          athleteMatch={profileMatch}
+                          selectedComparison={comparisonProfile}
+                          onComparisonChange={setComparisonProfile}
+                        />
+                      )}
+                    </div>
                   )}
                 </div>
               )}
@@ -919,11 +1319,15 @@ export default function TemplatesPage() {
           </Card>
         )}
 
-        {/* Annotations Panel */}
-        {isLoaded && staffMode && selectedAthlete && (
+        {/* Annotations Panel V2 */}
+        {isLoaded && staffMode && selectedAthlete && annotationsV2.length > 0 && (
           <div className="space-y-3">
-            <h3 className="font-semibold text-sm text-muted-foreground">Annotations Staff</h3>
-            <AnnotationsPanel annotations={annotations} />
+            <h3 className="font-semibold text-sm text-muted-foreground flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              Annotations Staff V2
+              <Badge>{annotationsV2.length}</Badge>
+            </h3>
+            <AnnotationsPanelV2 annotations={annotationsV2} />
           </div>
         )}
 
@@ -966,7 +1370,13 @@ export default function TemplatesPage() {
             </div>
             <Accordion type="single" collapsible className="space-y-2">
               {displayedWeeks.map((week) => (
-                <WeekSection key={week.weekNumber} week={week} annotations={annotations} totalWeeks={displayedWeeks.length} />
+                <WeekSection 
+                  key={week.weekNumber} 
+                  week={week} 
+                  annotations={annotationsV2} 
+                  totalWeeks={displayedWeeks.length}
+                  staffMode={staffMode}
+                />
               ))}
             </Accordion>
           </div>
