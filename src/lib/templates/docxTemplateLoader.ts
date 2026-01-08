@@ -7,13 +7,17 @@ import mammoth from "mammoth";
 
 export interface TemplateSession {
   day: string;
-  sport: string;
-  title: string;
+  sport?: string;
+  type?: string;
+  title?: string;
   details: string;
+  notes?: string;
 }
 
 export interface TemplateWeek {
   weekNumber: number;
+  theme?: string;
+  phase?: string;
   sessions: TemplateSession[];
   coachAdvice?: string; // Conseils du coach pour la semaine
 }
