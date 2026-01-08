@@ -68,12 +68,37 @@ const IM_THRESHOLDS = {
   taper_week_threshold: 22, // After week 22 = taper for 24-week plan
 };
 
+// ============= MARATHON SPECIFIC THRESHOLDS =============
+
+const MARATHON_THRESHOLDS = {
+  vlamax_warning: 0.50,
+  vlamax_critical: 0.60,
+  tte_warning: 45,
+  tte_critical: 40,
+  tss7d_warning: 450,
+  tss7d_critical: 550,
+  long_run_key_duration: 90, // 1h30
+  long_run_very_long: 150, // 2h30
+  as42_bloc_warning: 40, // 40min total AS42
+  run_economy_good: 75,
+  run_economy_ok: 55,
+  taper_week_threshold: 22, // After week 22 = taper for 24-week plan
+};
+
 /**
  * Check if template is IM/Kona type
  */
 function isIMTemplate(templateId: string): boolean {
   const id = templateId.toLowerCase();
   return id.includes("im") || id.includes("kona") || id.includes("ironman");
+}
+
+/**
+ * Check if template is Marathon type
+ */
+function isMarathonTemplate(templateId: string): boolean {
+  const id = templateId.toLowerCase();
+  return (id.includes("marathon") && !id.includes("semi")) || id.includes("42k") || id.includes("42.195");
 }
 
 // ============= SESSION CLASSIFICATION =============
@@ -161,6 +186,27 @@ export function classifySession(session: TemplateSession): SessionClassification
     isKey = true;
     loadTag = "medium";
   }
+  // Marathon-specific: AS42, allure marathon, MP
+  else if (combined.includes("as42") || combined.includes("allure marathon") || combined.includes("marathon pace") || 
+           combined.includes("mp") || combined.includes("allure 42")) {
+    intensityType = "SPECIFIC";
+    isKey = true;
+    loadTag = estimatedDuration >= 60 ? "very_high" : "high";
+  }
+  // Marathon-specific: AS21, semi pace, seuil haut
+  else if (combined.includes("as21") || combined.includes("semi pace") || combined.includes("allure semi") ||
+           combined.includes("seuil haut") || combined.includes("half pace")) {
+    intensityType = "THRESHOLD";
+    isKey = true;
+    loadTag = "high";
+  }
+  // Marathon-specific: Strides, lignes droites, drills (low risk speed)
+  else if (combined.includes("strides") || combined.includes("lignes droites") || combined.includes("technique") ||
+           combined.includes("drills") || combined.includes("gammes") || combined.includes("éducatif")) {
+    intensityType = "SPEED";
+    isKey = false; // Low risk speed work
+    loadTag = "low";
+  }
   // IM Specific pace work
   else if (combined.includes("im pace") || combined.includes("allure im") || combined.includes("race pace") ||
            combined.includes("allure ironman") || combined.includes("steady") || combined.includes("allure course")) {
@@ -168,27 +214,34 @@ export function classifySession(session: TemplateSession): SessionClassification
     isKey = true;
     loadTag = estimatedDuration >= 120 ? "very_high" : "high";
   }
-  // VO2max / Speed work
+  // VO2max / Speed work (VMA, 400m, 1000m, etc.)
   else if (combined.includes("vma") || combined.includes("vo2") || combined.includes("30/30") || combined.includes("30\"") || 
-           combined.match(/\d+\s*x\s*(200|300|400|600)m/i) || combined.includes("z6") || combined.includes("z7") ||
-           combined.includes("sprint")) {
+           combined.match(/\d+\s*x\s*(200|300|400|600|1000)m/i) || combined.includes("z6") || combined.includes("z7") ||
+           combined.includes("sprint") || combined.includes("piste")) {
     intensityType = combined.includes("sprint") || combined.includes("force max") ? "SPEED" : "VO2";
     isKey = true;
     loadTag = "high";
   }
   // Threshold / Tempo / Specific
   else if (combined.includes("seuil") || combined.includes("threshold") || combined.includes("z5") || 
-           combined.includes("z4b") || combined.includes("as21") || combined.includes("allure semi")) {
-    intensityType = combined.includes("spé") || combined.includes("as21") ? "SPECIFIC" : "THRESHOLD";
+           combined.includes("z4b")) {
+    intensityType = "THRESHOLD";
     isKey = true;
     loadTag = "high";
   }
   // Tempo (Z3-Z4a)
-  else if (combined.includes("tempo") || combined.includes("z3") || combined.includes("z4a") || 
-           combined.includes("allure marathon") || combined.includes("as42")) {
+  else if (combined.includes("tempo") || combined.includes("z3") || combined.includes("z4a")) {
     intensityType = "TEMPO";
     isKey = true;
     loadTag = "medium";
+  }
+  // Long Run detection (SL, sortie longue, 2h, 2h30, 3h)
+  else if ((sportNormalized === "run" && estimatedDuration >= 90) ||
+           combined.includes("sortie longue") || combined.includes("sl") || combined.includes("long run") ||
+           combined.match(/[2-3]h[0-3]?[0-9]?/) || combined.includes("2h") || combined.includes("2h30") || combined.includes("3h")) {
+    intensityType = "Z2_LONG";
+    isKey = estimatedDuration >= 90;
+    loadTag = estimatedDuration >= 150 ? "very_high" : estimatedDuration >= 90 ? "high" : "medium";
   }
   // Long Ride (IM specific - 4h+, 5h, 6h)
   else if ((sportNormalized === "bike" && estimatedDuration >= 180) || 
@@ -206,7 +259,7 @@ export function classifySession(session: TemplateSession): SessionClassification
     loadTag = estimatedDuration >= 120 ? "high" : "medium";
   }
   // Force work (general)
-  else if (combined.includes("force") || combined.includes("côte")) {
+  else if (combined.includes("force") || combined.includes("côte") || combined.includes("hill")) {
     intensityType = "FORCE";
     isKey = true;
     loadTag = "medium";
@@ -439,6 +492,168 @@ export function generateTemplateAnnotationsV2(params: AnnotationEngineV2Params):
     }
   }
   
+  // ============= MARATHON SPECIFIC PLAN ANNOTATIONS =============
+  
+  const isMarathon = isMarathonTemplate(templateId);
+  const runEconomyScore = (athleteSignals as any).runEconomyScore ?? null;
+  
+  if (isMarathon) {
+    // MAR-PLAN-1: Check if template is CAP-dominant
+    const bikeSwimKeyCount = weeks.reduce((count, week) => {
+      return count + week.sessions.filter(s => {
+        const c = classifySession(s);
+        return (c.sport === "bike" || c.sport === "swim") && c.isKey;
+      }).length;
+    }, 0);
+    
+    if (bikeSwimKeyCount > 3) {
+      annotations.push({
+        id: generateId(),
+        scope: "PLAN",
+        severity: 2,
+        riskScore: 55,
+        title: "Template Marathon doit rester CAP dominant",
+        message: "Le marathon est une épreuve CAP pure: la qualité doit être prioritairement en course à pied.",
+        why: `${bikeSwimKeyCount} séances clés vélo/natation détectées dans le plan.`,
+        options: [
+          "Remplacer qualité bike/swim par CAP tempo/seuil",
+          "Conserver bike uniquement en Z2 récupération active",
+          "Réserver natation pour récupération/mobilité"
+        ],
+        confidence: 0.75,
+      });
+    }
+    
+    // MAR-PLAN-2: VLamax trop haut pour marathon
+    if (vlamaxValue != null && vlamaxValue > MARATHON_THRESHOLDS.vlamax_warning) {
+      const isCritical = vlamaxValue > MARATHON_THRESHOLDS.vlamax_critical;
+      const severity: SeverityV2 = isCritical ? 3 : 2;
+      const riskScore = isCritical ? 90 : 70;
+      
+      annotations.push({
+        id: generateId(),
+        scope: "PLAN",
+        severity,
+        riskScore,
+        title: "Profil trop glycolytique pour marathon",
+        message: "VLamax élevé → dépendance glucidique importante. Risque de 'mur' augmenté significativement.",
+        why: `VLamax = ${vlamaxValue.toFixed(2)} > seuil marathon ${MARATHON_THRESHOLDS.vlamax_warning} (${isCritical ? "CRITIQUE >0.60" : "Warning"}). Cible perf: 0.30-0.45.`,
+        options: [
+          "Augmenter volume Z2 longue + tempo bas (Z3)",
+          "Limiter séances VO2/vitesse denses",
+          "Sécuriser nutrition (60-80g/h testé en sortie longue)",
+          "Ajouter côtes longues (2-3min) pour oxydation lipidique"
+        ],
+        confidence: vlamax?.confidence || 0.8,
+      });
+    }
+    
+    // MAR-PLAN-3: Durabilité insuffisante
+    if (tteValue != null && tteValue < MARATHON_THRESHOLDS.tte_warning) {
+      const isCritical = tteValue < MARATHON_THRESHOLDS.tte_critical;
+      const severity: SeverityV2 = isCritical ? 3 : 2;
+      const riskScore = isCritical ? 85 : 65;
+      
+      annotations.push({
+        id: generateId(),
+        scope: "PLAN",
+        severity,
+        riskScore,
+        title: "Durabilité insuffisante pour marathon",
+        message: "Le plan devient risqué si l'athlète ne tient pas longtemps proche du seuil. Effondrement probable après 25-30km.",
+        why: `TTE = ${tteValue.toFixed(0)} min < seuil marathon ${MARATHON_THRESHOLDS.tte_warning} (${isCritical ? "CRITIQUE <40" : "Warning"}). Cible: ≥50min.`,
+        options: [
+          "Allonger tempo long (Z3 haut, 30-45')",
+          "Fractionner les séances spécifiques AS42",
+          "Ajouter 1 semaine consolidation toutes les 3 semaines",
+          "Prioriser régularité sur intensité"
+        ],
+        confidence: tte?.confidence || 0.8,
+      });
+    }
+    
+    // MAR-ECONOMY-1: Économie de course insuffisante
+    if (runEconomyScore != null && runEconomyScore < MARATHON_THRESHOLDS.run_economy_ok) {
+      const severity: SeverityV2 = runEconomyScore < 40 ? 3 : 2;
+      annotations.push({
+        id: generateId(),
+        scope: "PLAN",
+        severity,
+        riskScore: 75,
+        title: "Économie CAP fragile",
+        message: "La performance marathon dépend fortement du coût énergétique. Une économie faible augmente la consommation glucidique.",
+        why: `Économie score = ${runEconomyScore} (<55 = insuffisant). Score cible perf: ≥75.`,
+        options: [
+          "Réduire densité séances spécifiques hautes",
+          "Ajouter travail technique/strides régulier",
+          "Renforcer endurance stable (régularité pace)",
+          "Travailler cadence course (180+ pas/min)"
+        ],
+        confidence: 0.75,
+      });
+    }
+    
+    // MAR-NUTRI-1: Nutrition marathon réaliste
+    if (vlamaxValue != null && vlamaxValue > MARATHON_THRESHOLDS.vlamax_warning) {
+      annotations.push({
+        id: generateId(),
+        scope: "PLAN",
+        severity: 2,
+        riskScore: 70,
+        title: "Nutrition marathon = facteur limitant",
+        message: "Besoin glucidique élevé mais tolérance CAP limitée (estomac secoué). Stratégie à tester absolument.",
+        why: `VLamax = ${vlamaxValue.toFixed(2)} → consommation glycogène ↑. Durée marathon = risque 'mur' élevé.`,
+        options: [
+          "Tester 60-80 g/h à l'entraînement (sorties longues)",
+          "Fractionner prises toutes les 10-15min (gels/boisson)",
+          "Tester plusieurs marques/types de gels",
+          "Prévoir plan B si GI issues (réduire intensité)"
+        ],
+        confidence: 0.8,
+      });
+    }
+    
+    // MAR-AGE-1: Athlète master - priorité mécanique CAP
+    if (age != null && age >= 40) {
+      annotations.push({
+        id: generateId(),
+        scope: "PLAN",
+        severity: 1,
+        riskScore: 50,
+        title: "Athlète master: priorité mécanique",
+        message: "Le risque tendineux/musculaire augmente avec l'âge en CAP. La charge mécanique doit être gérée attentivement.",
+        why: `Âge = ${age} ans → tendons/muscles plus fragiles ; récupération plus lente.`,
+        options: [
+          "Limiter 3 séances 'dures' CAP dans la même semaine",
+          "Ajouter renfo/PPG 2-3x/semaine",
+          "Favoriser surfaces souples (herbe, piste, sentier)",
+          "Surveillance fatigue quotidienne"
+        ],
+        confidence: 0.8,
+      });
+    }
+    
+    // MAR-TSS-1: Charge CAP élevée
+    if (tss7d != null && tss7d > MARATHON_THRESHOLDS.tss7d_warning) {
+      const isCritical = tss7d > MARATHON_THRESHOLDS.tss7d_critical;
+      annotations.push({
+        id: generateId(),
+        scope: "PLAN",
+        severity: isCritical ? 3 : 2,
+        riskScore: isCritical ? 80 : 60,
+        title: "Charge CAP actuelle élevée",
+        message: "La charge mécanique CAP est déjà élevée. Attention au risque blessure.",
+        why: `TSS 7j = ${tss7d.toFixed(0)} > seuil ${MARATHON_THRESHOLDS.tss7d_warning} (${isCritical ? "CRITIQUE" : "Warning"}).`,
+        options: [
+          "Réduire volume semaine 1 de 20-30%",
+          "Privilégier cross-training (vélo/natation) 1-2x/semaine",
+          "Surveiller douleurs tendineuses (Achille, rotule, fascia)"
+        ],
+        confidence: 0.8,
+      });
+    }
+  }
+  
   // ============= WEEK-LEVEL ANNOTATIONS =============
   
   weeks.forEach((week) => {
@@ -508,6 +723,91 @@ export function generateTemplateAnnotationsV2(params: AnnotationEngineV2Params):
               "Conserver intensité sous forme de rappels courts (10-15')",
               "Priorité absolue: sommeil, nutrition, hydratation",
               "Éviter toute nouveauté (matériel, nutrition, parcours)"
+            ],
+            confidence: 0.85,
+          });
+        }
+      }
+    }
+    
+    // ============= MARATHON WEEK-LEVEL ANNOTATIONS =============
+    
+    if (isMarathon) {
+      // MAR-WEEK-1: Triade CAP à risque blessure (Long + Threshold + Speed)
+      const isHighLoad = tss7d != null && tss7d > MARATHON_THRESHOLDS.tss7d_warning;
+      const estimatedFatigueWeek = keyRunSessions.length >= 4 ? 8 : keyRunSessions.length >= 3 ? 7 : 5;
+      
+      if (hasLongRun && hasThreshold && hasSpeed && (isHighLoad || estimatedFatigueWeek >= 7)) {
+        annotations.push({
+          id: generateId(),
+          scope: "WEEK",
+          weekNumber: week.weekNumber,
+          severity: 3,
+          riskScore: 85,
+          title: "Risque blessure CAP élevé (triade)",
+          message: "Long + seuil + vitesse sous charge haute. Combinaison dangereuse pour tendons/muscles.",
+          why: `Semaine ${week.weekNumber}: Long Run + Seuil + Vitesse ${isHighLoad ? `+ TSS 7j élevé (${tss7d?.toFixed(0)})` : ""}`,
+          options: [
+            "Conserver long run, alléger la vitesse (strides courts uniquement)",
+            "Remplacer VO2 par tempo (Z3 haut)",
+            "Insérer journée recovery + réduire volume total",
+            "Espacer séances clés de 72h minimum"
+          ],
+          confidence: 0.9,
+        });
+      }
+      
+      // MAR-WEEK-2: Long run trop agressif pour profil fragile
+      const veryLongRun = runSessions.find(s => 
+        s.classification.intensityType === "Z2_LONG" && 
+        s.classification.estimatedDurationMin >= MARATHON_THRESHOLDS.long_run_very_long
+      );
+      
+      if (veryLongRun && (tteValue != null && tteValue < 45 || vlamaxValue != null && vlamaxValue > 0.55)) {
+        annotations.push({
+          id: generateId(),
+          scope: "WEEK",
+          weekNumber: week.weekNumber,
+          severity: 2,
+          riskScore: 70,
+          title: "Sortie longue agressive pour profil actuel",
+          message: "Long run très coûteux métaboliquement pour ce profil. Risque de fatigue excessive.",
+          why: `Long run ≈${veryLongRun.classification.estimatedDurationMin}min + TTE=${tteValue?.toFixed(0) ?? "?"} + VLamax=${vlamaxValue?.toFixed(2) ?? "?"}`,
+          options: [
+            "Réduire durée de 10-20%",
+            "Fractionner allure marathon (blocs plus courts)",
+            "Prioriser régularité plutôt qu'allure",
+            "Bien tester nutrition pendant la sortie"
+          ],
+          confidence: 0.8,
+        });
+      }
+      
+      // MAR-TAPER-1: Dernières semaines = réduire volume, garder rappels
+      const isMarathonTaperWeek = week.weekNumber > totalWeeks - 2 || (totalWeeks >= 20 && week.weekNumber > MARATHON_THRESHOLDS.taper_week_threshold);
+      
+      if (isMarathonTaperWeek) {
+        const longRunsInTaper = runSessions.filter(s => s.classification.estimatedDurationMin > 90);
+        const thresholdBlocksInTaper = runSessions.filter(s => 
+          (s.classification.intensityType === "THRESHOLD" || s.classification.intensityType === "SPECIFIC") &&
+          s.classification.blocTotalMin > 20
+        );
+        
+        if (longRunsInTaper.length >= 1 || thresholdBlocksInTaper.length >= 2) {
+          annotations.push({
+            id: generateId(),
+            scope: "WEEK",
+            weekNumber: week.weekNumber,
+            severity: 2,
+            riskScore: 65,
+            title: "Affûtage marathon: volume trop haut",
+            message: "Le taper vise fraîcheur + rappels courts. Réduire la charge mécanique CAP.",
+            why: `Semaine ${week.weekNumber} (taper): ${longRunsInTaper.length} long run >1h30 + ${thresholdBlocksInTaper.length} bloc(s) seuil`,
+            options: [
+              "Raccourcir long run (max 1h)",
+              "Garder intensité en rappels courts (strides + tempo 10-15')",
+              "Priorité: sommeil, nutrition, hydratation, mobilité",
+              "Éviter nouvelles chaussures/surfaces"
             ],
             confidence: 0.85,
           });
@@ -762,6 +1062,127 @@ export function generateTemplateAnnotationsV2(params: AnnotationEngineV2Params):
           confidence: 0.85,
         });
       }
+      
+      // ============= MARATHON SESSION-LEVEL ANNOTATIONS =============
+      
+      if (isMarathon) {
+        // MAR-SESSION-1: Bloc AS42 trop long vs TTE
+        if (
+          classification.intensityType === "SPECIFIC" &&
+          classification.sport === "run" &&
+          tteValue != null &&
+          tteValue < 45 &&
+          classification.blocTotalMin >= MARATHON_THRESHOLDS.as42_bloc_warning
+        ) {
+          const riskScore = Math.min(85, 60 + (classification.blocTotalMin - 40) + (45 - tteValue));
+          annotations.push({
+            id: generateId(),
+            scope: "SESSION",
+            weekNumber: week.weekNumber,
+            day: session.day,
+            sessionTitle: session.title,
+            severity: 2,
+            riskScore,
+            title: "Bloc allure marathon long vs durabilité",
+            message: "Risque de dérive FC et d'échec de séance clé. L'athlète risque de casser sur ce bloc.",
+            why: `Bloc AS42 ≈${classification.blocTotalMin}min + TTE=${tteValue.toFixed(0)}min (< seuil 45').`,
+            options: [
+              "Fractionner: 4×10' au lieu de 2×20'",
+              "Z4a (marathon bas) plutôt que Z4b",
+              "Réduire intensité si dérive FC >5%",
+              "Prévoir nutrition pendant la séance"
+            ],
+            confidence: 0.8,
+          });
+        }
+        
+        // MAR-SESSION-2: VO2/Speed avec VLamax haut
+        if (
+          (classification.intensityType === "VO2" || classification.intensityType === "SPEED") &&
+          classification.isKey && // Only key speed work, not strides
+          vlamaxValue != null &&
+          vlamaxValue > MARATHON_THRESHOLDS.vlamax_warning
+        ) {
+          annotations.push({
+            id: generateId(),
+            scope: "SESSION",
+            weekNumber: week.weekNumber,
+            day: session.day,
+            sessionTitle: session.title,
+            severity: 2,
+            riskScore: 60,
+            title: "Séance VO2/vitesse sur profil glycolytique",
+            message: "Cette séance renforce la filière glycolytique. À limiter pour un marathon.",
+            why: `VLamax=${vlamaxValue.toFixed(2)} + séance ${classification.intensityType}.`,
+            options: [
+              "Transformer en côtes longues (2-3min) au lieu de sprints",
+              "Réduire volume de 20-30%",
+              "Remplacer par tempo long Z3",
+              "Limiter à 1 séance VO2/semaine max"
+            ],
+            confidence: 0.75,
+          });
+        }
+        
+        // MAR-SESSION-3: Long run nutrition reminder
+        if (
+          classification.intensityType === "Z2_LONG" &&
+          classification.sport === "run" &&
+          classification.estimatedDurationMin >= MARATHON_THRESHOLDS.long_run_key_duration &&
+          vlamaxValue != null &&
+          vlamaxValue > MARATHON_THRESHOLDS.vlamax_warning
+        ) {
+          const isVeryLong = classification.estimatedDurationMin >= MARATHON_THRESHOLDS.long_run_very_long;
+          annotations.push({
+            id: generateId(),
+            scope: "SESSION",
+            weekNumber: week.weekNumber,
+            day: session.day,
+            sessionTitle: session.title,
+            severity: isVeryLong ? 2 : 1,
+            riskScore: isVeryLong ? 60 : 45,
+            title: `Nutrition à tester ${isVeryLong ? "(sortie très longue)" : "(sortie longue)"}`,
+            message: "Opportunité de tester le fueling course. Avec ce profil, la nutrition est critique.",
+            why: `VLamax=${vlamaxValue.toFixed(2)} + durée ≈${classification.estimatedDurationMin}min.`,
+            options: [
+              "Tester 60-80 g/h glucides",
+              "Fractionner prises toutes les 10-15min",
+              "Valider marque/type de gels",
+              "Noter sensations GI + ajuster"
+            ],
+            confidence: 0.8,
+          });
+        }
+        
+        // MAR-SESSION-4: Long run + profil fragile (TTE bas ou économie faible)
+        if (
+          classification.intensityType === "Z2_LONG" &&
+          classification.sport === "run" &&
+          classification.estimatedDurationMin >= MARATHON_THRESHOLDS.long_run_very_long &&
+          tteValue != null &&
+          tteValue < 45
+        ) {
+          annotations.push({
+            id: generateId(),
+            scope: "SESSION",
+            weekNumber: week.weekNumber,
+            day: session.day,
+            sessionTitle: session.title,
+            severity: 2,
+            riskScore: 65,
+            title: "Sortie très longue vs profil durabilité",
+            message: "Cette sortie longue sera coûteuse. Risque de fatigue résiduelle importante.",
+            why: `Durée ≈${classification.estimatedDurationMin}min + TTE=${tteValue.toFixed(0)}min.`,
+            options: [
+              "Réduire durée de 15-20%",
+              "Privilégier régularité au lieu d'allure marathon",
+              "Fractionner avec pauses actives",
+              "Surveiller récupération 48-72h après"
+            ],
+            confidence: 0.75,
+          });
+        }
+      }
     });
   });
   
@@ -851,4 +1272,47 @@ export function computeIMRiskSummary(
   else if (weekKeyCount >= 3) injuryRisk = "moderate";
   
   return { metabolicRisk, durabilityRisk, injuryRisk };
+}
+
+// ============= MARATHON RISK SUMMARY HELPER =============
+
+export interface MarathonRiskSummary {
+  injuryRisk: "low" | "moderate" | "high";
+  metabolicRisk: "low" | "moderate" | "high";
+  durabilityRisk: "low" | "moderate" | "high";
+  nutritionRisk: "low" | "moderate" | "high";
+}
+
+export function computeMarathonRiskSummary(
+  vlamaxValue: number | null,
+  tteValue: number | null,
+  weekKeyCount: number,
+  tss7d: number | null
+): MarathonRiskSummary {
+  // Injury risk based on week density + TSS
+  let injuryRisk: MarathonRiskSummary["injuryRisk"] = "low";
+  if (weekKeyCount >= 4 || (tss7d != null && tss7d > MARATHON_THRESHOLDS.tss7d_critical)) injuryRisk = "high";
+  else if (weekKeyCount >= 3 || (tss7d != null && tss7d > MARATHON_THRESHOLDS.tss7d_warning)) injuryRisk = "moderate";
+  
+  // Metabolic risk (mur) based on VLamax
+  let metabolicRisk: MarathonRiskSummary["metabolicRisk"] = "low";
+  if (vlamaxValue != null) {
+    if (vlamaxValue > MARATHON_THRESHOLDS.vlamax_critical) metabolicRisk = "high";
+    else if (vlamaxValue > MARATHON_THRESHOLDS.vlamax_warning) metabolicRisk = "moderate";
+  }
+  
+  // Durability risk based on TTE
+  let durabilityRisk: MarathonRiskSummary["durabilityRisk"] = "low";
+  if (tteValue != null) {
+    if (tteValue < MARATHON_THRESHOLDS.tte_critical) durabilityRisk = "high";
+    else if (tteValue < MARATHON_THRESHOLDS.tte_warning) durabilityRisk = "moderate";
+  }
+  
+  // Nutrition risk = high if VLamax high + TTE low
+  let nutritionRisk: MarathonRiskSummary["nutritionRisk"] = "low";
+  if (vlamaxValue != null && vlamaxValue > MARATHON_THRESHOLDS.vlamax_warning) {
+    nutritionRisk = vlamaxValue > MARATHON_THRESHOLDS.vlamax_critical ? "high" : "moderate";
+  }
+  
+  return { injuryRisk, metabolicRisk, durabilityRisk, nutritionRisk };
 }
