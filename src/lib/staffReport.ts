@@ -9,7 +9,7 @@ import { TTEEffectif } from "@/lib/tteEffectif";
 import { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { NutritionEstimate, computeNutritionEstimate } from "@/lib/nutritionPredictive";
 import { RunningEconomyResult } from "@/lib/runningEconomy";
-
+import { computeCAPInjuryRisk, CAPInjuryRiskResult, getCAPRiskIcon } from "@/lib/capInjuryRisk";
 // =============================================
 // TYPES
 // =============================================
@@ -58,6 +58,24 @@ export interface NutritionSummary {
   isLimitingFactor: boolean;
 }
 
+export interface CAPInjuryRiskSection {
+  level: number;
+  levelLabel: string;
+  icon: string;
+  showWarning: boolean;
+  vlamaxValue: string;
+  vlamaxSource: string;
+  vlamaxConfidence: number;
+  tteValue: string;
+  tteSource: string;
+  tteConfidence: number;
+  objectif: string;
+  interpretation: string;
+  programmingImpact: string;
+  recommendations: string[];
+  disclaimer: string;
+}
+
 export interface FinalVerdict {
   trafficLight: TrafficLight;
   icon: "🟢" | "🟡" | "🔴";
@@ -77,6 +95,7 @@ export interface StaffReport {
   // Sections du rapport
   executiveSummary: ExecutiveSummary;
   keyIndicators: KeyIndicator[];
+  capInjuryRisk: CAPInjuryRiskSection;
   staffInterpretation: StaffInterpretation;
   raceStrategy: RaceStrategy;
   nutritionSummary: NutritionSummary;
@@ -550,6 +569,31 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
   // Générer le verdict final
   const finalVerdict = generateFinalVerdict(readiness, limitation);
   
+  // Générer l'indice de risque blessure CAP
+  const capRiskResult = computeCAPInjuryRisk({
+    vlamaxValue: vlamaxEffectif.value,
+    tteValue: tteEffectif.tte_min,
+    objectif,
+  });
+  
+  const capInjuryRisk: CAPInjuryRiskSection = {
+    level: capRiskResult.level,
+    levelLabel: capRiskResult.label,
+    icon: getCAPRiskIcon(capRiskResult.level),
+    showWarning: capRiskResult.level >= 2,
+    vlamaxValue: vlamaxEffectif.value !== null ? vlamaxEffectif.value.toFixed(2) : "—",
+    vlamaxSource: vlamaxEffectif.source === "test" ? "Test" : vlamaxEffectif.source === "snapshot" ? "Snapshot" : "Estimé",
+    vlamaxConfidence: vlamaxEffectif.confidence,
+    tteValue: tteEffectif.tte_min !== null ? `${tteEffectif.tte_min} min` : "—",
+    tteSource: tteEffectif.source === "observed" ? "Observé" : tteEffectif.source === "estimated" ? "Estimé" : "Inconnu",
+    tteConfidence: tteEffectif.confidence,
+    objectif: getObjectifLabel(objectif),
+    interpretation: capRiskResult.staffAnalysis,
+    programmingImpact: generateCAPProgrammingImpact(capRiskResult.level),
+    recommendations: generateCAPRecommendations(capRiskResult.level),
+    disclaimer: "Indice calculé à partir des données cloud disponibles à la date du rapport : VLamax effectif et TTE effectif. Cet indicateur est une aide à la décision et ne remplace pas l'expertise du coach.",
+  };
+  
   return {
     athleteName,
     objectif,
@@ -558,9 +602,53 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     generatedAt: new Date().toISOString().slice(0, 10),
     executiveSummary,
     keyIndicators,
+    capInjuryRisk,
     staffInterpretation,
     raceStrategy,
     nutritionSummary,
     finalVerdict,
   };
+}
+
+// =============================================
+// HELPERS CAP INJURY RISK
+// =============================================
+
+function generateCAPProgrammingImpact(level: number): string {
+  switch (level) {
+    case 0:
+    case 1:
+      return "Aucune restriction spécifique liée au profil physiologique. Progression CAP standard recommandée.";
+    case 2:
+      return "Les options CAP longues (>75–90 min) sont possibles mais doivent rester ponctuelles et contrôlées. Surveiller la réponse tendineuse.";
+    case 3:
+      return "Les options CAP longues (>75–90 min) augmentent significativement le risque de blessure. Une priorisation du volume vélo est recommandée.";
+    default:
+      return "Données insuffisantes pour évaluer l'impact.";
+  }
+}
+
+function generateCAPRecommendations(level: number): string[] {
+  if (level <= 1) {
+    return [
+      "Progression CAP conforme au plan",
+      "Surveiller les signes de surcharge (douleurs périostées, tendineuses)",
+    ];
+  }
+  
+  if (level === 2) {
+    return [
+      "Il serait pertinent de privilégier le développement de l'endurance via le vélo",
+      "Il est recommandé de renforcer le travail d'économie avant l'allongement CAP",
+      "Surveiller la réponse tendineuse et la dérive FC en fin de séance",
+    ];
+  }
+  
+  return [
+    "Il est fortement recommandé de privilégier le volume vélo pour le développement aérobie",
+    "Il serait pertinent de limiter les séances CAP longues aux phases spécifiques uniquement",
+    "Renforcer le travail d'économie de course (cadence, pose de pied)",
+    "Surveiller étroitement la dérive cardiaque et les signes de fatigue neuromusculaire",
+    "Considérer un bilan podologique si douleurs récurrentes",
+  ];
 }
