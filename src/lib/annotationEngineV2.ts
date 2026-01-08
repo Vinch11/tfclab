@@ -47,13 +47,34 @@ export interface AnnotationEngineV2Params {
 
 export interface SessionClassification {
   sport: string;
-  intensityType: "RECOVERY" | "Z2_LONG" | "Z2_ULTRA_LONG" | "TEMPO" | "TEMPO_LONG_STABLE" | "THRESHOLD" | "SWEET_SPOT_LONG" | "SPECIFIC" | "VO2" | "SPEED" | "FORCE" | "FORCE_LOW_CADENCE" | "BRICK" | "BRICK_ULTRA" | "OTHER";
+  intensityType: 
+    // Recovery
+    | "RECOVERY" 
+    // Endurance long
+    | "Z2_LONG" | "Z2_ULTRA_LONG" | "Z2_EASY"
+    // Tempo/Threshold
+    | "TEMPO" | "TEMPO_LONG_STABLE" | "THRESHOLD" | "SWEET_SPOT_LONG" 
+    // Specific pace
+    | "SPECIFIC" | "AS_TARGET"
+    // Speed/VO2
+    | "VO2" | "SPEED" | "INTERVAL_SHORT" | "INTERVAL_LONG"
+    // Force
+    | "FORCE" | "FORCE_LOW_CADENCE" | "HILLS_FORCE"
+    // CAP economy
+    | "LONG_RUN" | "LONG_RUN_FAST_FINISH" | "STRIDES_ECONOMY"
+    // Brick
+    | "BRICK" | "BRICK_ULTRA" 
+    // Other
+    | "OTHER";
   isKey: boolean;
   loadTag: "low" | "medium" | "high" | "very_high" | "extreme";
   estimatedDurationMin: number;
   blocTotalMin: number;
   isBrick?: boolean;
   fatigueTransfer?: boolean;
+  // CAP-specific flags (Dan Lorang)
+  mechanicalStress?: boolean; // true for hills, intervals, high impact
+  metabolicStress?: boolean; // true for tempo, specific pace
 }
 
 // ============= IRONMAN FULL DISTANCE SPECIFIC THRESHOLDS =============
@@ -100,21 +121,53 @@ const IM_THRESHOLDS = {
   taper_week_threshold: 22, // After week 22 = taper for 24-week plan
 };
 
-// ============= MARATHON SPECIFIC THRESHOLDS =============
+// ============= SEMI-MARATHON SPECIFIC THRESHOLDS (Dan Lorang) =============
 
-const MARATHON_THRESHOLDS = {
-  vlamax_warning: 0.50,
-  vlamax_critical: 0.60,
+const SEMI_THRESHOLDS = {
+  vlamax_warning: 0.70,
+  vlamax_critical: 0.80,
   tte_warning: 45,
   tte_critical: 40,
+  weekly_volume_km_warning: 90,
+  weekly_volume_km_critical: 110,
+  long_run_max: 120, // 2h max
+  intensity_sessions_max: 2, // max 2 intensity sessions/week
+  mechanical_sessions_warning: 2, // 2+ mechanical stress sessions = warning
+  economy_score_good: 70,
+  economy_score_ok: 55,
+  taper_week_threshold: 10, // For 12-week plan
+};
+
+// ============= MARATHON SPECIFIC THRESHOLDS (Dan Lorang) =============
+
+const MARATHON_THRESHOLDS = {
+  vlamax_warning: 0.60,
+  vlamax_critical: 0.75,
+  tte_warning: 50,
+  tte_critical: 45,
   tss7d_warning: 450,
   tss7d_critical: 550,
+  weekly_volume_km_warning: 90,
+  weekly_volume_km_critical: 110,
+  weekly_volume_km_elite: 140,
   long_run_key_duration: 90, // 1h30
   long_run_very_long: 150, // 2h30
+  long_run_max_frequency: 1, // max 1 very long run per week
   as42_bloc_warning: 40, // 40min total AS42
+  intensity_sessions_max: 2, // max 2 intensity sessions/week for non-elite
+  mechanical_sessions_warning: 2,
   run_economy_good: 75,
   run_economy_ok: 55,
   taper_week_threshold: 22, // After week 22 = taper for 24-week plan
+};
+
+// Marathon ELITE thresholds (stricter)
+const MARATHON_ELITE_THRESHOLDS = {
+  vlamax_warning: 0.50,
+  vlamax_critical: 0.60,
+  tte_warning: 55,
+  tte_critical: 50,
+  economy_score_min: 85,
 };
 
 // ============= IRONMAN 70.3 SPECIFIC THRESHOLDS =============
@@ -164,11 +217,26 @@ function isIMTemplate(templateId: string): boolean {
 }
 
 /**
- * Check if template is Marathon type
+ * Check if template is Semi-Marathon type
+ */
+function isSemiTemplate(templateId: string): boolean {
+  const id = templateId.toLowerCase();
+  return id.includes("semi") || id.includes("21k") || id.includes("21.1");
+}
+
+/**
+ * Check if template is Marathon type (full marathon, not semi)
  */
 function isMarathonTemplate(templateId: string): boolean {
   const id = templateId.toLowerCase();
   return (id.includes("marathon") && !id.includes("semi")) || id.includes("42k") || id.includes("42.195");
+}
+
+/**
+ * Check if template is any CAP pure type (Semi or Marathon)
+ */
+function isCAPTemplate(templateId: string): boolean {
+  return isSemiTemplate(templateId) || isMarathonTemplate(templateId);
 }
 
 /**
@@ -299,6 +367,32 @@ export function classifySession(session: TemplateSession): SessionClassification
     isKey = true;
     loadTag = estimatedDuration >= 120 ? "very_high" : "high";
   }
+  // CAP: Hills/Force (high mechanical stress)
+  else if ((sportNormalized === "run" && (combined.includes("côte") || combined.includes("hill") || combined.includes("montée"))) ||
+           combined.includes("hills force") || combined.includes("force côte")) {
+    intensityType = "HILLS_FORCE";
+    isKey = true;
+    loadTag = "high";
+  }
+  // CAP: Short intervals (high mechanical stress) - 200m, 400m, etc.
+  else if (sportNormalized === "run" && combined.match(/\d+\s*x\s*(100|200|300|400|500)m/i)) {
+    intensityType = "INTERVAL_SHORT";
+    isKey = true;
+    loadTag = "high";
+  }
+  // CAP: Long intervals - 800m, 1000m, 1600m, 2000m
+  else if (sportNormalized === "run" && combined.match(/\d+\s*x\s*(800|1000|1200|1600|2000)m/i)) {
+    intensityType = "INTERVAL_LONG";
+    isKey = true;
+    loadTag = "high";
+  }
+  // CAP: Long run with fast finish
+  else if (sportNormalized === "run" && (combined.includes("fast finish") || combined.includes("finish rapide") || 
+           combined.includes("progressif") || combined.includes("negative split"))) {
+    intensityType = "LONG_RUN_FAST_FINISH";
+    isKey = true;
+    loadTag = "very_high";
+  }
   // VO2max / Speed work (VMA, 400m, 1000m, etc.)
   else if (combined.includes("vma") || combined.includes("vo2") || combined.includes("30/30") || combined.includes("30\"") || 
            combined.match(/\d+\s*x\s*(200|300|400|600|1000)m/i) || combined.includes("z6") || combined.includes("z7") ||
@@ -393,6 +487,21 @@ export function classifySession(session: TemplateSession): SessionClassification
   
   const blocTotal = estimateBlocDuration(details);
   
+  // Determine CAP-specific flags (Dan Lorang methodology)
+  const mechanicalStressTypes: SessionClassification["intensityType"][] = [
+    "HILLS_FORCE", "INTERVAL_SHORT", "INTERVAL_LONG", "VO2", "SPEED", "FORCE"
+  ];
+  const metabolicStressTypes: SessionClassification["intensityType"][] = [
+    "TEMPO", "TEMPO_LONG_STABLE", "THRESHOLD", "SPECIFIC", "AS_TARGET", "LONG_RUN_FAST_FINISH"
+  ];
+  
+  const mechanicalStress = mechanicalStressTypes.includes(intensityType) || 
+                          combined.includes("côte") || combined.includes("hill") ||
+                          combined.includes("intervalle") || combined.includes("sprint");
+  const metabolicStress = metabolicStressTypes.includes(intensityType) ||
+                         combined.includes("tempo") || combined.includes("seuil") ||
+                         combined.includes("allure");
+  
   return {
     sport: sportNormalized,
     intensityType,
@@ -400,6 +509,8 @@ export function classifySession(session: TemplateSession): SessionClassification
     loadTag,
     estimatedDurationMin: estimatedDuration,
     blocTotalMin: blocTotal,
+    mechanicalStress,
+    metabolicStress,
   };
 }
 
@@ -859,6 +970,111 @@ export function generateTemplateAnnotationsV2(params: AnnotationEngineV2Params):
     }
   }
   
+  // ============= SEMI-MARATHON SPECIFIC PLAN ANNOTATIONS (Dan Lorang) =============
+  
+  const isSemi = isSemiTemplate(templateId);
+  
+  if (isSemi) {
+    // SEMI-PLAN-1: VLamax trop élevé pour semi
+    if (vlamaxValue != null && vlamaxValue > SEMI_THRESHOLDS.vlamax_warning) {
+      const isCritical = vlamaxValue > SEMI_THRESHOLDS.vlamax_critical;
+      const severity: SeverityV2 = isCritical ? 3 : 2;
+      const riskScore = isCritical ? 85 : 65;
+      
+      annotations.push({
+        id: generateId(),
+        scope: "PLAN",
+        severity,
+        riskScore,
+        title: "Profil trop glycolytique pour semi-marathon",
+        message: "VLamax élevé → risque de surconsommation glucidique sur 1h20-2h d'effort au seuil.",
+        why: `VLamax = ${vlamaxValue.toFixed(2)} > seuil semi ${SEMI_THRESHOLDS.vlamax_warning} (${isCritical ? "CRITIQUE" : "Warning"}). Cible perf: 0.40-0.65.`,
+        options: [
+          "Réduire intervalles courts (200-400m)",
+          "Augmenter volume Z2 stable",
+          "Ajouter tempo long stable (30-40')",
+          "Limiter VMA à 1x/semaine max"
+        ],
+        confidence: vlamax?.confidence || 0.8,
+      });
+    }
+    
+    // SEMI-PLAN-2: TTE insuffisant pour semi
+    if (tteValue != null && tteValue < SEMI_THRESHOLDS.tte_warning) {
+      const isCritical = tteValue < SEMI_THRESHOLDS.tte_critical;
+      const severity: SeverityV2 = isCritical ? 3 : 2;
+      const riskScore = isCritical ? 85 : 65;
+      
+      annotations.push({
+        id: generateId(),
+        scope: "PLAN",
+        severity,
+        riskScore,
+        title: "Durabilité insuffisante pour semi-marathon",
+        message: "TTE trop bas → impossible de tenir l'allure cible sur toute la distance. Effondrement probable après 15km.",
+        why: `TTE = ${tteValue.toFixed(0)} min < seuil semi ${SEMI_THRESHOLDS.tte_warning} (${isCritical ? "CRITIQUE <40" : "Warning"}). Cible: ≥45min.`,
+        options: [
+          "Allonger les blocs tempo (25-35')",
+          "Ajouter long run spécifique avec finish AS21",
+          "Supprimer intensité secondaire (VO2 court)",
+          "Prioriser régularité sur intensité"
+        ],
+        confidence: tte?.confidence || 0.8,
+      });
+    }
+    
+    // SEMI-INT-1: Trop d'intensité
+    const intensitySessions = weeks.reduce((count, week) => {
+      return count + week.sessions.filter(s => {
+        const c = classifySession(s);
+        return c.isKey && (c.intensityType === "VO2" || c.intensityType === "SPEED" || 
+               c.intensityType === "INTERVAL_SHORT" || c.intensityType === "INTERVAL_LONG" ||
+               c.intensityType === "THRESHOLD");
+      }).length;
+    }, 0);
+    
+    const avgIntensityPerWeek = intensitySessions / Math.max(weeks.length, 1);
+    
+    if (avgIntensityPerWeek > SEMI_THRESHOLDS.intensity_sessions_max) {
+      annotations.push({
+        id: generateId(),
+        scope: "PLAN",
+        severity: 2,
+        riskScore: 60,
+        title: "Intensité excessive pour semi-marathon",
+        message: "L'économie de course se dégrade sous fatigue chronique. Plus de qualité ≠ plus de performance.",
+        why: `Moyenne ${avgIntensityPerWeek.toFixed(1)} séances intensité/semaine > max recommandé (${SEMI_THRESHOLDS.intensity_sessions_max}).`,
+        options: [
+          "Réduire VMA/intervalles courts",
+          "Favoriser allure cible AS21",
+          "Transformer VO2 en tempo long",
+          "Max 2 séances intensité/semaine"
+        ],
+        confidence: 0.8,
+      });
+    }
+    
+    // SEMI-AGE-1: Athlète Master semi
+    if (age != null && age >= 40) {
+      annotations.push({
+        id: generateId(),
+        scope: "PLAN",
+        severity: 2,
+        riskScore: 55,
+        title: "Profil master – vigilance mécanique",
+        message: "Tolérance mécanique réduite avec l'âge. L'intensité doit être espacée et la récupération renforcée.",
+        why: `Âge = ${age} ans → tendons/muscles plus vulnérables ; récupération allongée.`,
+        options: [
+          "Espacer intensité de 72h minimum",
+          "Augmenter jours récupération active",
+          "Renfo/PPG 2-3x/semaine obligatoire",
+          "Favoriser surfaces souples"
+        ],
+        confidence: 0.8,
+      });
+    }
+  }
+
   // ============= IRONMAN 70.3 SPECIFIC PLAN ANNOTATIONS =============
   
   const is703 = is703Template(templateId);
@@ -2138,5 +2354,80 @@ export function computeIMFullRiskSummary(
     nutritionBikeRisk,
     nutritionRunRisk,
     dnfRisk
+  };
+}
+
+// ============= CAP (SEMI/MARATHON) RISK SUMMARY HELPER (Dan Lorang) =============
+
+export interface CAPRiskSummary {
+  economyScore: "faible" | "moyen" | "élevé";
+  vlamaxCompatibility: "ok" | "warning" | "critical";
+  tteReadiness: "ok" | "warning" | "critical";
+  mechanicalRiskIndex: "LOW" | "MEDIUM" | "HIGH";
+  nutritionReadiness: "ok" | "à tester" | "critique";
+  injuryRisk: "LOW" | "MEDIUM" | "HIGH";
+}
+
+export function computeCAPRiskSummary(
+  vlamaxValue: number | null,
+  tteValue: number | null,
+  economyScore: number | null,
+  weekMechanicalSessions: number,
+  weekIntensitySessions: number,
+  isMarathon: boolean
+): CAPRiskSummary {
+  const thresholds = isMarathon ? MARATHON_THRESHOLDS : SEMI_THRESHOLDS;
+  
+  // Economy score
+  let economyScoreLevel: CAPRiskSummary["economyScore"] = "moyen";
+  if (economyScore != null) {
+    if (economyScore >= (isMarathon ? 75 : 70)) economyScoreLevel = "élevé";
+    else if (economyScore < (isMarathon ? 55 : 55)) economyScoreLevel = "faible";
+  }
+  
+  // VLamax compatibility
+  let vlamaxCompatibility: CAPRiskSummary["vlamaxCompatibility"] = "ok";
+  if (vlamaxValue != null) {
+    if (vlamaxValue > thresholds.vlamax_critical) vlamaxCompatibility = "critical";
+    else if (vlamaxValue > thresholds.vlamax_warning) vlamaxCompatibility = "warning";
+  }
+  
+  // TTE readiness
+  let tteReadiness: CAPRiskSummary["tteReadiness"] = "ok";
+  if (tteValue != null) {
+    if (tteValue < thresholds.tte_critical) tteReadiness = "critical";
+    else if (tteValue < thresholds.tte_warning) tteReadiness = "warning";
+  }
+  
+  // Mechanical risk index (based on weekly mechanical stress sessions)
+  let mechanicalRiskIndex: CAPRiskSummary["mechanicalRiskIndex"] = "LOW";
+  if (weekMechanicalSessions >= 3) mechanicalRiskIndex = "HIGH";
+  else if (weekMechanicalSessions >= 2) mechanicalRiskIndex = "MEDIUM";
+  
+  // Nutrition readiness
+  let nutritionReadiness: CAPRiskSummary["nutritionReadiness"] = "ok";
+  if (vlamaxValue != null && vlamaxValue > thresholds.vlamax_warning) {
+    nutritionReadiness = vlamaxValue > thresholds.vlamax_critical ? "critique" : "à tester";
+  }
+  
+  // Injury risk (combination of factors)
+  let injuryRisk: CAPRiskSummary["injuryRisk"] = "LOW";
+  const riskFactors = [
+    mechanicalRiskIndex === "HIGH" ? 3 : mechanicalRiskIndex === "MEDIUM" ? 1 : 0,
+    weekIntensitySessions > 2 ? 2 : weekIntensitySessions === 2 ? 1 : 0,
+    tteReadiness === "critical" ? 2 : tteReadiness === "warning" ? 1 : 0,
+    economyScoreLevel === "faible" ? 1 : 0,
+  ];
+  const totalRisk = riskFactors.reduce((a, b) => a + b, 0);
+  if (totalRisk >= 5) injuryRisk = "HIGH";
+  else if (totalRisk >= 3) injuryRisk = "MEDIUM";
+  
+  return {
+    economyScore: economyScoreLevel,
+    vlamaxCompatibility,
+    tteReadiness,
+    mechanicalRiskIndex,
+    nutritionReadiness,
+    injuryRisk
   };
 }
