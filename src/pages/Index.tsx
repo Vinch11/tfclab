@@ -38,6 +38,8 @@ import { EnergyDriftBadge } from "@/components/EnergyDriftBadge";
 import { DashboardGauges } from "@/components/DashboardGauges";
 import { StaffDashboard } from "@/components/StaffDashboard";
 import { ScientificChartsDashboard, MetabolicPerformanceCompass } from "@/components/charts";
+import { ChargeRecenteCard } from "@/components/ChargeRecenteCard";
+import { computeCRR } from "@/lib/chargeRecenteReference";
 
 // ✅ FIX 11 - Effective Refs (source unique de vérité)
 import { getEffectiveRefs, computeFtpKg, getMissingFields } from "@/lib/effectiveRefs";
@@ -656,25 +658,29 @@ const Index = () => {
               <CheckinManager athleteId={currentAthlete.id} athleteName={currentAthlete.name} />
             )}
 
+            {/* 📊 CHARGE RÉCENTE - Donnée centrale CRR */}
+            {currentAthlete && staffMode && (
+              <ChargeRecenteCard
+                crr={computeCRR({
+                  tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
+                  snapshotDate: effectiveCloudSnapshot?.date ?? null,
+                })}
+                objectif={currentAthlete.goal || "IM"}
+                staffMode={staffMode}
+              />
+            )}
+
             {/* 🧭 METABOLIC PERFORMANCE COMPASS - Graphique signature */}
             {currentAthlete && (
               <MetabolicPerformanceCompass
                 data={{
-                  vlamaxValue: vlamaxEffectif.value,
-                  vlamaxSource: vlamaxEffectif.source,
-                  vlamaxConfidence: vlamaxEffectif.confidence,
-                  tteValue: tteEffectif.tte_min,
-                  tteSource: tteEffectif.source,
-                  tteConfidence: tteEffectif.confidence,
-                  readinessScore: raceReadinessEffectif.score,
-                  readinessDetails: {
-                    vlamax: raceReadinessEffectif.details?.vlamax ?? 0,
-                    endurance: raceReadinessEffectif.details?.endurance ?? 0,
-                    puissance: raceReadinessEffectif.details?.puissance ?? 0,
-                    fraicheur: raceReadinessEffectif.details?.fraicheur ?? 0,
-                  },
-                  objectif: currentAthlete.goal || "IM",
+                  vlamaxEffectif: vlamaxEffectif,
+                  tteEffectif: tteEffectif,
+                  ftp: effectiveRefs.ftp,
+                  poids: effectiveRefs.weightKg,
                   tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
+                  snapshotDate: effectiveCloudSnapshot?.date ?? null,
+                  objectif: currentAthlete.goal || "IM",
                 }}
                 staffMode={staffMode}
               />
