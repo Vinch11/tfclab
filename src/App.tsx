@@ -7,7 +7,9 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AthleteProvider } from "@/contexts/AthleteContext";
 import { AuthGate } from "@/components/AuthGate";
+import { OnboardingGate } from "@/components/OnboardingGate";
 import AuthPage from "./pages/AuthPage";
+import OnboardingPage from "./pages/OnboardingPage";
 import Index from "./pages/Index";
 import TemplatesPage from "./pages/TemplatesPage";
 import AcademyPage from "./pages/AcademyPage";
@@ -27,12 +29,22 @@ export default function App() {
               <Routes>
                 <Route path="/auth" element={<AuthPage />} />
                 <Route
+                  path="/onboarding"
+                  element={
+                    <AuthGate>
+                      <OnboardingPage />
+                    </AuthGate>
+                  }
+                />
+                <Route
                   path="/"
                   element={
                     <AuthGate>
-                      <AthleteProvider>
-                        <Index />
-                      </AthleteProvider>
+                      <OnboardingGate>
+                        <AthleteProvider>
+                          <Index />
+                        </AthleteProvider>
+                      </OnboardingGate>
                     </AuthGate>
                   }
                 />
@@ -40,7 +52,9 @@ export default function App() {
                   path="/templates"
                   element={
                     <AuthGate>
-                      <TemplatesPage />
+                      <OnboardingGate>
+                        <TemplatesPage />
+                      </OnboardingGate>
                     </AuthGate>
                   }
                 />
@@ -48,7 +62,9 @@ export default function App() {
                   path="/academy"
                   element={
                     <AuthGate>
-                      <AcademyPage />
+                      <OnboardingGate>
+                        <AcademyPage />
+                      </OnboardingGate>
                     </AuthGate>
                   }
                 />
@@ -56,9 +72,11 @@ export default function App() {
                   path="*"
                   element={
                     <AuthGate>
-                      <AthleteProvider>
-                        <NotFound />
-                      </AthleteProvider>
+                      <OnboardingGate>
+                        <AthleteProvider>
+                          <NotFound />
+                        </AthleteProvider>
+                      </OnboardingGate>
                     </AuthGate>
                   }
                 />
