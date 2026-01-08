@@ -61,7 +61,74 @@ function getSportBadgeColor(sport: string | undefined): string {
   return "bg-muted text-muted-foreground";
 }
 
-// Phase calculation based on week number and total weeks
+// Parse duration from session description (e.g., "1h30", "45'", "2h00")
+function parseDurationMinutes(text: string): number {
+  if (!text) return 0;
+  
+  // Match patterns like "1h30", "1h", "45'", "2h00", "1h15 HT"
+  const hourMinMatch = text.match(/(\d+)h(\d+)?/i);
+  if (hourMinMatch) {
+    const hours = parseInt(hourMinMatch[1], 10);
+    const minutes = hourMinMatch[2] ? parseInt(hourMinMatch[2], 10) : 0;
+    return hours * 60 + minutes;
+  }
+  
+  // Match patterns like "45'", "30'"
+  const minOnlyMatch = text.match(/(\d+)['′]/);
+  if (minOnlyMatch) {
+    return parseInt(minOnlyMatch[1], 10);
+  }
+  
+  return 0;
+}
+
+// Calculate weekly volume by discipline
+function calculateWeeklyVolume(sessions: TemplateSession[]): { swim: number; bike: number; run: number; other: number } {
+  let swim = 0;
+  let bike = 0;
+  let run = 0;
+  let other = 0;
+
+  sessions.forEach((session) => {
+    const discipline = (session.discipline || session.sport || "").toLowerCase();
+    const description = session.details || session.description || "";
+    const duration = parseDurationMinutes(description);
+
+    if (discipline.includes("natation") || discipline.includes("swim") || discipline.includes("piscine")) {
+      swim += duration;
+    } else if (discipline.includes("vélo") || discipline.includes("velo") || discipline.includes("bike")) {
+      bike += duration;
+    } else if (discipline.includes("c.a.p") || discipline.includes("cap") || discipline.includes("course") || discipline.includes("run")) {
+      run += duration;
+    } else if (discipline.includes("vélo + cap") || discipline.includes("vélo + run") || discipline.includes("brick")) {
+      // Parse brick sessions - try to split or estimate
+      const parts = description.split("+");
+      if (parts.length >= 2) {
+        bike += parseDurationMinutes(parts[0]);
+        run += parseDurationMinutes(parts[1]);
+      } else {
+        // Estimate 70/30 split for brick
+        bike += Math.round(duration * 0.7);
+        run += Math.round(duration * 0.3);
+      }
+    } else if (!discipline.includes("repos") && !discipline.includes("off") && duration > 0) {
+      other += duration;
+    }
+  });
+
+  return { swim, bike, run, other };
+}
+
+function formatDuration(minutes: number): string {
+  if (minutes === 0) return "—";
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h === 0) return `${m}'`;
+  if (m === 0) return `${h}h`;
+  return `${h}h${m.toString().padStart(2, "0")}`;
+}
+
+
 function getPhaseForWeek(weekNumber: number, totalWeeks: number): { name: string; color: string } {
   const ratio = weekNumber / totalWeeks;
   
@@ -153,27 +220,60 @@ function CoachAdviceCard({ advice }: { advice: string }) {
   );
 }
 
+function WeekVolumeBar({ volume }: { volume: { swim: number; bike: number; run: number; other: number } }) {
+  const total = volume.swim + volume.bike + volume.run + volume.other;
+  if (total === 0) return null;
+
+  return (
+    <div className="flex items-center gap-2 text-xs">
+      {volume.swim > 0 && (
+        <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+          🏊 {formatDuration(volume.swim)}
+        </span>
+      )}
+      {volume.bike > 0 && (
+        <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
+          🚴 {formatDuration(volume.bike)}
+        </span>
+      )}
+      {volume.run > 0 && (
+        <span className="flex items-center gap-1 text-orange-600 dark:text-orange-400">
+          🏃 {formatDuration(volume.run)}
+        </span>
+      )}
+      <span className="text-muted-foreground ml-1">
+        = {formatDuration(total)}
+      </span>
+    </div>
+  );
+}
+
 function WeekSection({ week, annotations, totalWeeks }: { week: TemplateWeek; annotations: TemplateAnnotation[]; totalWeeks: number }) {
   const weekAnnotations = annotations.filter((a) => a.weekNumber === week.weekNumber || a.weekNumber === 0);
-  const phase = getPhaseForWeek(week.weekNumber, totalWeeks);
+  const phase = week.phase || getPhaseForWeek(week.weekNumber, totalWeeks).name;
+  const phaseStyle = week.phase ? "bg-muted text-muted-foreground" : getPhaseForWeek(week.weekNumber, totalWeeks).color;
+  const volume = calculateWeeklyVolume(week.sessions);
 
   return (
     <AccordionItem value={`week-${week.weekNumber}`} className="border rounded-lg px-4">
       <AccordionTrigger className="hover:no-underline py-4">
-        <div className="flex items-center gap-3 flex-wrap">
-          <span className="font-semibold">Semaine {week.weekNumber}</span>
-          <Badge className={`text-xs ${phase.color}`}>
-            {phase.name}
-          </Badge>
-          <Badge variant="outline" className="text-xs">
-            {week.sessions.length} séances
-          </Badge>
-          {week.coachAdvice && (
-            <Lightbulb className="h-4 w-4 text-amber-500" />
-          )}
-          {weekAnnotations.some((a) => a.severity >= 2) && (
-            <AlertTriangle className="h-4 w-4 text-amber-500" />
-          )}
+        <div className="flex flex-col items-start gap-2 w-full">
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="font-semibold">Semaine {week.weekNumber}</span>
+            {week.theme && (
+              <span className="text-sm text-muted-foreground">— {week.theme}</span>
+            )}
+            <Badge className={`text-xs ${phaseStyle}`}>
+              {phase}
+            </Badge>
+            {week.coachAdvice && (
+              <Lightbulb className="h-4 w-4 text-amber-500" />
+            )}
+            {weekAnnotations.some((a) => a.severity >= 2) && (
+              <AlertTriangle className="h-4 w-4 text-amber-500" />
+            )}
+          </div>
+          <WeekVolumeBar volume={volume} />
         </div>
       </AccordionTrigger>
       <AccordionContent>
