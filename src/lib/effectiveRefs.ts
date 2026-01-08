@@ -78,13 +78,21 @@ export function getEffectiveRefs(
   // Helper: récupère valeur avec source
   const getValue = (
     snapshotKey: keyof DbSnapshot,
-    profileKey: string
+    profileKey: string,
+    minValid?: number,  // Valeur minimale considérée comme valide
+    maxValid?: number   // Valeur maximale considérée comme valide
   ): { value: number | null; source: RefSource } => {
     // 1. Snapshot
     if (snapshot) {
       const snapshotVal = snapshot[snapshotKey];
       if (snapshotVal != null && typeof snapshotVal === "number") {
-        return { value: snapshotVal, source: "snapshot" };
+        // Vérifier si la valeur est dans les limites valides
+        const isValid = (minValid === undefined || snapshotVal >= minValid) &&
+                        (maxValid === undefined || snapshotVal <= maxValid);
+        if (isValid) {
+          return { value: snapshotVal, source: "snapshot" };
+        }
+        // Valeur aberrante dans le snapshot - on l'ignore et on passe au profil
       }
     }
     // 2. Profil
@@ -96,13 +104,13 @@ export function getEffectiveRefs(
     return { value: null, source: "none" };
   };
 
-  const weightKg = getValue("weight_kg", "weightKg");
-  const fatPct = getValue("fat_pct", "fatPct");
-  const fcMax = getValue("fc_max", "fcMax");
-  const vma = getValue("vma", "vma");
-  const ftp = getValue("ftp", "ftp");
-  const css = getValue("css", "css");
-  const vo2max = getValue("vo2max", "vo2max");
+  const weightKg = getValue("weight_kg", "weightKg", 30, 200);  // 30-200 kg
+  const fatPct = getValue("fat_pct", "fatPct", 3, 50);          // 3-50%
+  const fcMax = getValue("fc_max", "fcMax", 100, 250);          // 100-250 bpm
+  const vma = getValue("vma", "vma", 8, 30);                    // 8-30 km/h
+  const ftp = getValue("ftp", "ftp", 50, 500);                  // 50-500 W
+  const css = getValue("css", "css", 50, 200);                  // 50-200 s/100m (valeurs < 50 sont aberrantes)
+  const vo2max = getValue("vo2max", "vo2max", 20, 100);         // 20-100 ml/kg/min
 
   return {
     weightKg: weightKg.value,
