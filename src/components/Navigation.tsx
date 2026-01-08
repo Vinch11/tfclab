@@ -43,17 +43,17 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
   };
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border">
-      <div className="container mx-auto px-3 sm:px-4">
-        <div className="flex items-center justify-between h-14 sm:h-16">
+    <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border safe-area-inset-top">
+      <div className="container mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
+        <div className="flex items-center justify-between h-14 sm:h-16 lg:h-18">
           {/* Logo - responsive */}
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <img src={logo} alt="24C Lab" className="h-10 sm:h-12 md:h-14 w-auto shrink-0" />
+          <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 min-w-0">
+            <img src={logo} alt="24C Lab" className="h-10 sm:h-12 md:h-14 lg:h-16 w-auto shrink-0" />
             <div className="min-w-0">
-              <h1 className="text-sm sm:text-base md:text-lg font-bold text-foreground tracking-tight truncate">
+              <h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-foreground tracking-tight truncate">
                 Two 4 Coaching Lab
               </h1>
-              <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">
+              <p className="text-[10px] sm:text-xs lg:text-sm text-muted-foreground hidden sm:block">
                 Performance Analysis
               </p>
             </div>
@@ -61,7 +61,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
 
           <div className="flex items-center gap-1 sm:gap-2">
             {/* Desktop Navigation (lg+) */}
-            <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1">
+            <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = item.route ? false : activeTab === item.id;
@@ -70,22 +70,21 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
                     key={item.id}
                     onClick={() => handleNavClick(item)}
                     className={cn(
-                      "flex items-center gap-1.5 xl:gap-2 px-2.5 xl:px-3 py-2 rounded-lg text-xs xl:text-sm font-medium transition-all duration-200",
+                      "flex items-center gap-2 px-3 xl:px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 touch-target",
                       isActive
                         ? "bg-primary/10 text-primary"
                         : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                     )}
                   >
-                    <Icon className="w-4 h-4 shrink-0" />
-                    <span className="hidden xl:inline">{item.label}</span>
-                    <span className="xl:hidden">{item.shortLabel || item.label}</span>
+                    <Icon className="w-4 h-4 xl:w-5 xl:h-5 shrink-0" />
+                    <span>{item.label}</span>
                   </button>
                 );
               })}
             </nav>
 
-            {/* Tablet Navigation (md-lg) - icons only with tooltip */}
-            <nav className="hidden md:flex lg:hidden items-center gap-0.5">
+            {/* Tablet Navigation (md-lg) - icons with short labels */}
+            <nav className="hidden md:flex lg:hidden items-center gap-1">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = item.route ? false : activeTab === item.id;
@@ -94,7 +93,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
                     key={item.id}
                     onClick={() => handleNavClick(item)}
                     className={cn(
-                      "flex items-center justify-center p-2 rounded-lg transition-all duration-200",
+                      "flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-all duration-200 touch-target",
                       isActive
                         ? "bg-primary/10 text-primary"
                         : "text-muted-foreground hover:text-foreground hover:bg-secondary"
@@ -102,6 +101,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
                     title={item.label}
                   >
                     <Icon className="w-5 h-5" />
+                    <span className="hidden sm:inline">{item.shortLabel || item.label}</span>
                   </button>
                 );
               })}
@@ -125,8 +125,8 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <nav className="md:hidden py-3 border-t border-border animate-fade-in">
-            <div className="flex flex-col gap-0.5">
+          <nav className="md:hidden py-3 border-t border-border animate-fade-in safe-area-inset-bottom">
+            <div className="flex flex-col gap-1">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = item.route ? false : activeTab === item.id;
@@ -138,7 +138,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
                       setMobileMenuOpen(false);
                     }}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                      "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 touch-target",
                       isActive
                         ? "bg-primary/10 text-primary"
                         : "text-muted-foreground hover:text-foreground hover:bg-secondary"

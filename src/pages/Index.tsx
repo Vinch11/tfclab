@@ -849,13 +849,12 @@ const Index = () => {
         )}
       </div>
 
-      <main className="container mx-auto px-4 py-8 relative">
-
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8 lg:py-10 relative max-w-7xl">
         {renderContent()}
       </main>
 
-      <footer className="border-t border-border mt-12 py-6">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
+      <footer className="border-t border-border mt-8 sm:mt-12 py-4 sm:py-6 safe-area-inset-bottom">
+        <div className="container mx-auto px-4 text-center text-xs sm:text-sm text-muted-foreground">
           <p>Two For Coaching Lab • Analyse physiologique & décision coaching</p>
         </div>
       </footer>
