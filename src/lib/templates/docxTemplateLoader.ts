@@ -8,9 +8,11 @@ import mammoth from "mammoth";
 export interface TemplateSession {
   day: string;
   sport?: string;
+  discipline?: string;
   type?: string;
   title?: string;
-  details: string;
+  details?: string;
+  description?: string;
   notes?: string;
 }
 
