@@ -17,6 +17,9 @@ import { SEANCES } from "@/types/seances";
 import { computeNutritionEstimate, type NutritionEstimate } from "@/lib/nutritionPredictive";
 import { computeCAPInjuryRisk, getCAPRiskIcon } from "@/lib/capInjuryRisk";
 import logoUrl from "@/assets/logo-2fc.png";
+// ✅ NEW: Import Compass Scoring et CRR
+import { computeCRR, computeChargeScore, getCRRTargets, type ChargeRecenteReference, type ChargeScore } from "@/lib/chargeRecenteReference";
+import { computeCompassScores, type CompassScores, type CompassAxisScore } from "@/lib/compassScoring";
 
 // =============================================
 // TYPES
@@ -68,6 +71,10 @@ interface ExportPayload {
     factors: { vlamaxContribution: number; tteContribution: number; chargeContribution: number };
     staffAnalysis: string;
   } | null;
+  // ✅ NEW: CRR et Compass Scores
+  crr: ChargeRecenteReference;
+  chargeScore: ChargeScore;
+  compassScores: CompassScores;
 }
 
 // =============================================
@@ -342,6 +349,23 @@ function buildExportPayload(
     staffAnalysis: capRiskResult.staffAnalysis
   };
   
+  // ✅ NEW: Calculer CRR et Compass Scores
+  const crr = computeCRR({
+    tss7d: effectiveSnapshot?.tss_7d ?? null,
+    snapshotDate: effectiveSnapshot?.date ?? null
+  });
+  
+  const chargeScore = computeChargeScore(crr, athlete.goal || "IM");
+  
+  const compassScores = computeCompassScores({
+    ftp: effectiveRefs.ftp,
+    poids: effectiveRefs.weightKg,
+    vlamaxEffectif: vlamax,
+    tteEffectif: tte,
+    crr,
+    objectif: athlete.goal || "IM"
+  });
+  
   return {
     athlete: {
       id: athlete.id,
@@ -368,7 +392,10 @@ function buildExportPayload(
     completude,
     reportDate: new Date().toISOString(),
     nutritionEstimate,
-    capInjuryRisk
+    capInjuryRisk,
+    crr,
+    chargeScore,
+    compassScores
   };
 }
 
@@ -764,119 +791,196 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
   `;
 
   // =============================================
-  // 3. METABOLIC PERFORMANCE COMPASS™
+  // 3. METABOLIC PERFORMANCE COMPASS™ — VERSION OFFICIELLE
   // =============================================
   
-  // Calcul des scores du Compass
-  const computeMetabolicEfficiency = (v: number | null): number => {
-    if (v === null) return 50;
-    if (v <= targets.vlamaxIdeal) return 100;
-    if (v <= targets.vlamaxMax) return Math.round(100 - ((v - targets.vlamaxIdeal) / (targets.vlamaxMax - targets.vlamaxIdeal)) * 30);
-    return Math.max(20, Math.round(70 - (v - targets.vlamaxMax) * 200));
+  // Utiliser les scores calculés dans le payload (source unique de vérité)
+  const { compassScores: cScores, crr, chargeScore } = payload;
+  const crrTargets = getCRRTargets(athlete.goal || "IM");
+  
+  // Générer l'interprétation coach automatique
+  const generateCoachInterpretation = (): { limitation: string; risk: string; recommendation: string } => {
+    const axes = [
+      { name: "Capacité Aérobie (FTP/kg)", score: cScores.capaciteAerobie.score },
+      { name: "Tolérance Effort (TTE)", score: cScores.toleranceEffort.score },
+      { name: "Profil Métabolique (VLamax)", score: cScores.profilMetabolique.score },
+      { name: "Robustesse", score: cScores.robustesse.score }
+    ];
+    
+    const sorted = [...axes].sort((a, b) => a.score - b.score);
+    const weakest = sorted[0];
+    
+    let limitation = "Aucune limitation majeure détectée.";
+    let risk = "Risque global modéré.";
+    let recommendation = "Maintenir l'équilibre actuel.";
+    
+    if (weakest.score < 60) {
+      limitation = "La performance est principalement limitée par : " + weakest.name + " (score: " + weakest.score + "/100).";
+    }
+    
+    if (!crr.isValid) {
+      risk = "⚠️ Charge récente inconnue – l'évaluation de la robustesse et du risque est incomplète.";
+      recommendation = "Priorité : renseigner la charge d'entraînement (TSS 7j) pour une analyse fiable.";
+    } else if (chargeScore.status === "overload") {
+      risk = "🔴 Surcharge détectée – risque de surentraînement élevé.";
+      recommendation = "Réduire immédiatement la charge et surveiller les signes de fatigue.";
+    } else if (chargeScore.status === "low") {
+      risk = "⚠️ Charge insuffisante pour l'objectif visé.";
+      recommendation = "Augmenter progressivement le volume d'entraînement.";
+    } else if (weakest.name.includes("VLamax") && weakest.score < 70) {
+      recommendation = "Travailler le profil métabolique : séances de seuil bas, tempo long pour réduire VLamax.";
+    } else if (weakest.name.includes("TTE") && weakest.score < 70) {
+      recommendation = "Développer l'endurance au seuil : intervalles longs 88-95% FTP.";
+    } else if (weakest.name.includes("FTP") && weakest.score < 70) {
+      recommendation = "Améliorer la puissance aérobie : sweet spot et travail au seuil.";
+    }
+    
+    return { limitation, risk, recommendation };
   };
   
-  const computeSustainablePower = (t: number | null): number => {
-    if (t === null) return 50;
-    const target = targets.tteTarget;
-    if (t >= target + 5) return 100;
-    if (t >= target) return Math.min(100, 85 + Math.round(((t - target) / 5) * 15));
-    if (t >= target - 5) return Math.round(85 - (target - t) * 7);
-    return Math.max(20, Math.round(50 - (target - t) * 3));
-  };
+  const coachInterpretation = generateCoachInterpretation();
   
-  const computeRobustness = (): number => {
-    let score = 70;
-    if (raceReadiness.details.fraicheur >= 20) score += 15;
-    else if (raceReadiness.details.fraicheur < 15) score -= 15;
-    if (capInjuryRisk && capInjuryRisk.level >= 2) score -= 20;
-    if (nutritionEstimate && (nutritionEstimate.riskLevel === "high" || nutritionEstimate.riskLevel === "critical")) score -= 15;
-    return Math.max(20, Math.min(100, score));
-  };
+  // Build compass HTML with proper template literals
+  const crrCardColor = crr.isValid ? '#22c55e' : '#f59e0b';
+  const crrValue = crr.value !== null ? crr.value : "—";
+  const crrSourceClass = crr.source === 'NOLIO' ? 'tagSuccess' : crr.source === 'SNAPSHOT' ? 'tagInfo' : 'tagWarning';
+  const chargeStatusClass = chargeScore.status === 'optimal' ? 'badgeSuccess' : chargeScore.status === 'overload' ? 'badgeError' : 'badgeWarning';
+  const chargeStatusLabel = chargeScore.status === 'optimal' ? '✓ Optimal' : chargeScore.status === 'overload' ? '⚠ Surcharge' : chargeScore.status === 'low' ? '↓ Faible' : chargeScore.status === 'high' ? '↑ Élevée' : '? Inconnu';
   
-  const compassScores = {
-    metabolicEfficiency: computeMetabolicEfficiency(vlamax.value),
-    sustainablePower: computeSustainablePower(tte.tte_min),
-    raceAlignment: raceReadiness.score,
-    robustness: computeRobustness()
-  };
+  const globalBadgeClass = cScores.globalColor === 'success' ? 'badgeSuccess' : cScores.globalColor === 'warning' ? 'badgeWarning' : 'badgeError';
+  const limitationAlertClass = cScores.mainLimitation ? 'alertWarning' : 'alertInfo';
+  const riskAlertClass = chargeScore.status === 'overload' ? 'alertError' : chargeScore.status === 'unknown' ? 'alertWarning' : 'alertInfo';
   
-  const avgCompassScore = Math.round((compassScores.metabolicEfficiency + compassScores.sustainablePower + compassScores.raceAlignment + compassScores.robustness) / 4);
+  // SVG radar points
+  const svgY1 = 150 - cScores.capaciteAerobie.score;
+  const svgX2 = 150 + cScores.toleranceEffort.score;
+  const svgY3 = 150 + cScores.profilMetabolique.score;
+  const svgX4 = 150 - cScores.robustesse.score;
   
   const compassHTML = `
     <section id="compass" class="section pagebreak">
       <h2>3. Metabolic Performance Compass™</h2>
+      
+      <!-- CARTE CRR -->
+      <div class="card mb" style="border-left: 4px solid ${crrCardColor};">
+        <h3>📊 Charge Récente de Référence (CRR)</h3>
+        <div class="grid3">
+          <div>
+            <span class="muted">Valeur</span><br>
+            <span class="big">${crrValue}</span>
+            <span class="muted"> TSS/7j</span>
+          </div>
+          <div>
+            <span class="muted">Source</span><br>
+            <span class="tag ${crrSourceClass}">${crr.source}</span>
+          </div>
+          <div>
+            <span class="muted">Statut</span><br>
+            <span class="badge ${chargeStatusClass}">${chargeStatusLabel}</span>
+          </div>
+        </div>
+        <div class="muted mt" style="font-size:11px;">
+          Cibles ${crrTargets.objectif}: Min ${crrTargets.chargeMinimale} | Optimal ${crrTargets.chargeOptimale} | Max ${crrTargets.chargeMaximale} TSS
+          ${crr.warningMessage ? '<br>⚠️ ' + crr.warningMessage : ''}
+        </div>
+      </div>
+      
+      <!-- COMPASS RADAR -->
       <div class="card cardHighlight">
         <div style="text-align:center;margin-bottom:16px;">
           <div style="font-size:16px;font-weight:700;">Metabolic Performance Compass™</div>
-          <div class="muted">Powered by Two For Coaching Lab</div>
+          <div class="muted">4 Axes Officiels – Two For Coaching Lab</div>
         </div>
         
-        <!-- Radar Chart SVG -->
         <div style="display:flex;justify-content:center;margin:20px 0;">
           <svg width="300" height="300" viewBox="0 0 300 300">
-            <!-- Grid -->
             <polygon points="150,50 250,150 150,250 50,150" fill="none" stroke="#ddd" stroke-width="1"/>
             <polygon points="150,75 225,150 150,225 75,150" fill="none" stroke="#ddd" stroke-width="1"/>
             <polygon points="150,100 200,150 150,200 100,150" fill="none" stroke="#ddd" stroke-width="1"/>
             <polygon points="150,125 175,150 150,175 125,150" fill="none" stroke="#ddd" stroke-width="1"/>
-            
-            <!-- Axes -->
             <line x1="150" y1="50" x2="150" y2="250" stroke="#eee" stroke-width="1"/>
             <line x1="50" y1="150" x2="250" y2="150" stroke="#eee" stroke-width="1"/>
-            
-            <!-- Data polygon -->
-            <polygon 
-              points="${150},${150 - compassScores.metabolicEfficiency} ${150 + compassScores.sustainablePower},${150} ${150},${150 + compassScores.raceAlignment} ${150 - compassScores.robustness},${150}"
-              fill="rgba(37,99,235,0.2)" 
-              stroke="#2563eb" 
-              stroke-width="2"
-            />
-            
-            <!-- Data points -->
-            <circle cx="150" cy="${150 - compassScores.metabolicEfficiency}" r="6" fill="#2563eb"/>
-            <circle cx="${150 + compassScores.sustainablePower}" cy="150" r="6" fill="#2563eb"/>
-            <circle cx="150" cy="${150 + compassScores.raceAlignment}" r="6" fill="#2563eb"/>
-            <circle cx="${150 - compassScores.robustness}" cy="150" r="6" fill="#2563eb"/>
-            
-            <!-- Labels -->
-            <text x="150" y="35" text-anchor="middle" font-size="11" font-weight="600">⚡ Efficacité (${compassScores.metabolicEfficiency})</text>
-            <text x="265" y="155" text-anchor="start" font-size="11" font-weight="600">💪 Puissance (${compassScores.sustainablePower})</text>
-            <text x="150" y="275" text-anchor="middle" font-size="11" font-weight="600">🎯 Alignement (${compassScores.raceAlignment})</text>
-            <text x="35" y="155" text-anchor="end" font-size="11" font-weight="600">🛡️ Robustesse (${compassScores.robustness})</text>
+            <polygon points="150,${svgY1} ${svgX2},150 150,${svgY3} ${svgX4},150" fill="rgba(37,99,235,0.2)" stroke="#2563eb" stroke-width="2"/>
+            <circle cx="150" cy="${svgY1}" r="6" fill="#2563eb"/>
+            <circle cx="${svgX2}" cy="150" r="6" fill="#2563eb"/>
+            <circle cx="150" cy="${svgY3}" r="6" fill="#2563eb"/>
+            <circle cx="${svgX4}" cy="150" r="6" fill="#2563eb"/>
+            <text x="150" y="30" text-anchor="middle" font-size="10" font-weight="600">⚡ Capacité Aérobie (${cScores.capaciteAerobie.score})</text>
+            <text x="270" y="155" text-anchor="start" font-size="10" font-weight="600">💪 Tolérance (${cScores.toleranceEffort.score})</text>
+            <text x="150" y="280" text-anchor="middle" font-size="10" font-weight="600">🧬 Profil Métab. (${cScores.profilMetabolique.score})</text>
+            <text x="30" y="155" text-anchor="end" font-size="10" font-weight="600">🛡️ Robustesse (${cScores.robustesse.score})</text>
           </svg>
         </div>
         
         <div style="text-align:center;margin-top:16px;">
-          <span class="badge ${avgCompassScore >= 80 ? 'badgeSuccess' : avgCompassScore >= 60 ? 'badgeWarning' : 'badgeError'}" style="font-size:16px;padding:10px 20px;">
-            Score Global: ${avgCompassScore}/100
+          <span class="badge ${globalBadgeClass}" style="font-size:16px;padding:10px 20px;">
+            Score Global: ${cScores.globalScore}/100 – ${cScores.globalLabel}
           </span>
+          <div class="muted mt" style="font-size:11px;">Complétude données: ${cScores.dataCompleteness}%</div>
         </div>
       </div>
       
+      <!-- 4 AXES DÉTAILLÉS -->
       <div class="card mt">
-        <h3>📖 Comment lire ce graphique</h3>
-        <p class="muted">Ce graphique représente l'équilibre métabolique global de l'athlète. Il ne montre pas seulement "à quel point" l'athlète est fort, mais COMMENT cette performance est produite, et à quel prix physiologique.</p>
+        <h3>📐 Détail des 4 Axes (Formules Officielles)</h3>
         <div class="grid2 mt">
-          <div>
-            <h4>⚡ Efficacité Métabolique (${compassScores.metabolicEfficiency}/100)</h4>
-            <p class="muted">Basé sur VLamax effectif. Plus la valeur est alignée avec l'objectif, plus le score est élevé.</p>
+          <div class="card" style="background:#f8fafc;">
+            <h4>⚡ AXE 1 – Capacité Aérobie</h4>
+            <div class="kv">
+              <div class="k">Score</div><div class="v"><b>${cScores.capaciteAerobie.score}/100</b></div>
+              <div class="k">Formule</div><div class="v" style="font-size:10px;">${htmlEscape(cScores.capaciteAerobie.formula)}</div>
+              <div class="k">Confiance</div><div class="v">${Math.round(cScores.capaciteAerobie.confidence * 100)}%</div>
+            </div>
+            <p class="muted" style="font-size:11px;margin-top:8px;">${htmlEscape(cScores.capaciteAerobie.explanation)}</p>
           </div>
-          <div>
-            <h4>💪 Puissance Durable (${compassScores.sustainablePower}/100)</h4>
-            <p class="muted">Basé sur TTE effectif vs cible objectif. Score élevé = capacité à tenir l'allure.</p>
+          <div class="card" style="background:#f8fafc;">
+            <h4>💪 AXE 2 – Tolérance à l'Effort</h4>
+            <div class="kv">
+              <div class="k">Score</div><div class="v"><b>${cScores.toleranceEffort.score}/100</b></div>
+              <div class="k">Formule</div><div class="v" style="font-size:10px;">${htmlEscape(cScores.toleranceEffort.formula)}</div>
+              <div class="k">Confiance</div><div class="v">${Math.round(cScores.toleranceEffort.confidence * 100)}%</div>
+            </div>
+            <p class="muted" style="font-size:11px;margin-top:8px;">${htmlEscape(cScores.toleranceEffort.explanation)}</p>
           </div>
-          <div>
-            <h4>🎯 Alignement Course (${compassScores.raceAlignment}/100)</h4>
-            <p class="muted">Race Readiness pondéré par objectif. Évalue la cohérence profil/objectif.</p>
+          <div class="card" style="background:#f8fafc;">
+            <h4>🧬 AXE 3 – Profil Métabolique</h4>
+            <div class="kv">
+              <div class="k">Score</div><div class="v"><b>${cScores.profilMetabolique.score}/100</b></div>
+              <div class="k">Formule</div><div class="v" style="font-size:10px;">${htmlEscape(cScores.profilMetabolique.formula)}</div>
+              <div class="k">Confiance</div><div class="v">${Math.round(cScores.profilMetabolique.confidence * 100)}%</div>
+            </div>
+            <p class="muted" style="font-size:11px;margin-top:8px;">${htmlEscape(cScores.profilMetabolique.explanation)}</p>
           </div>
-          <div>
-            <h4>🛡️ Robustesse (${compassScores.robustness}/100)</h4>
-            <p class="muted">Indice composite: fraîcheur, risque blessure, risque nutritionnel.</p>
+          <div class="card" style="background:#f8fafc;">
+            <h4>🛡️ AXE 4 – Robustesse</h4>
+            <div class="kv">
+              <div class="k">Score</div><div class="v"><b>${cScores.robustesse.score}/100</b></div>
+              <div class="k">Formule</div><div class="v" style="font-size:10px;">${htmlEscape(cScores.robustesse.formula)}</div>
+              <div class="k">Confiance</div><div class="v">${Math.round(cScores.robustesse.confidence * 100)}%</div>
+            </div>
+            <p class="muted" style="font-size:11px;margin-top:8px;">${htmlEscape(cScores.robustesse.explanation)}</p>
           </div>
         </div>
-        <div class="alert alertInfo mt">
-          <b>Interprétation:</b> Un profil équilibré indique une performance durable. Un profil déséquilibré révèle un axe prioritaire de travail.
+      </div>
+      
+      <!-- INTERPRÉTATION COACH -->
+      <div class="card mt" style="border-left: 4px solid #2563eb;">
+        <h3>🎓 Interprétation Coach Automatique</h3>
+        <div class="grid1 mt">
+          <div class="alert ${limitationAlertClass}">
+            <b>📍 Limitation principale:</b><br>
+            ${htmlEscape(coachInterpretation.limitation)}
+          </div>
+          <div class="alert ${riskAlertClass}">
+            <b>⚠️ Risque identifié:</b><br>
+            ${htmlEscape(coachInterpretation.risk)}
+          </div>
+          <div class="alert alertSuccess">
+            <b>💡 Recommandation prioritaire:</b><br>
+            ${htmlEscape(coachInterpretation.recommendation)}
+          </div>
         </div>
+        ${cScores.mainStrength ? '<p class="muted mt">✓ Point fort: ' + htmlEscape(cScores.mainStrength) + '</p>' : ''}
       </div>
     </section>
   `;
