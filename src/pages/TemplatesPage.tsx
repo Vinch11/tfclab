@@ -134,67 +134,167 @@ function formatHours(minutes: number): number {
 }
 
 // Calculate volume data by phase for the chart
-function calculatePhaseVolumeData(weeks: TemplateWeek[]): { phase: string; swim: number; bike: number; run: number; total: number }[] {
-  const phaseMap = new Map<string, { swim: number; bike: number; run: number }>();
+function calculatePhaseVolumeData(weeks: TemplateWeek[]): { phase: string; phaseShort: string; swim: number; bike: number; run: number; total: number; weeksCount: number }[] {
+  const phaseMap = new Map<string, { swim: number; bike: number; run: number; weeksCount: number }>();
+  const phaseOrder: string[] = [];
   
   weeks.forEach((week) => {
-    const phase = week.phase || `S${week.weekNumber}`;
+    const phase = week.phase || `Semaine ${week.weekNumber}`;
     const volume = calculateWeeklyVolume(week.sessions);
     
     if (!phaseMap.has(phase)) {
-      phaseMap.set(phase, { swim: 0, bike: 0, run: 0 });
+      phaseMap.set(phase, { swim: 0, bike: 0, run: 0, weeksCount: 0 });
+      phaseOrder.push(phase);
     }
     
     const current = phaseMap.get(phase)!;
     current.swim += volume.swim;
     current.bike += volume.bike;
     current.run += volume.run;
+    current.weeksCount += 1;
   });
   
-  return Array.from(phaseMap.entries()).map(([phase, vol]) => ({
-    phase: phase.length > 15 ? phase.slice(0, 12) + "…" : phase,
-    swim: formatHours(vol.swim),
-    bike: formatHours(vol.bike),
-    run: formatHours(vol.run),
-    total: formatHours(vol.swim + vol.bike + vol.run),
-  }));
+  return phaseOrder.map((phase) => {
+    const vol = phaseMap.get(phase)!;
+    return {
+      phase,
+      phaseShort: phase.length > 20 ? phase.slice(0, 17) + "…" : phase,
+      swim: formatHours(vol.swim),
+      bike: formatHours(vol.bike),
+      run: formatHours(vol.run),
+      total: formatHours(vol.swim + vol.bike + vol.run),
+      weeksCount: vol.weeksCount,
+    };
+  });
 }
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload || !payload.length) return null;
+  
+  const data = payload[0]?.payload;
+  
+  return (
+    <div className="bg-popover border border-border rounded-lg p-3 shadow-lg">
+      <p className="font-semibold text-sm text-foreground mb-2">{data?.phase}</p>
+      <p className="text-xs text-muted-foreground mb-2">{data?.weeksCount} semaine(s)</p>
+      <div className="space-y-1">
+        {payload.map((entry: any, index: number) => (
+          <div key={index} className="flex items-center gap-2 text-sm">
+            <span 
+              className="w-3 h-3 rounded-sm" 
+              style={{ backgroundColor: entry.color }}
+            />
+            <span className="text-muted-foreground">
+              {entry.dataKey === 'swim' ? '🏊 Natation' : entry.dataKey === 'bike' ? '🚴 Vélo' : '🏃 CAP'}:
+            </span>
+            <span className="font-mono font-medium">{entry.value}h</span>
+          </div>
+        ))}
+        <div className="border-t border-border pt-1 mt-1 flex items-center gap-2 text-sm font-semibold">
+          <span className="text-muted-foreground">Total:</span>
+          <span className="font-mono">{data?.total}h</span>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 function PhaseVolumeChart({ weeks }: { weeks: TemplateWeek[] }) {
   const data = useMemo(() => calculatePhaseVolumeData(weeks), [weeks]);
   
   if (data.length === 0) return null;
 
+  const totalHours = data.reduce((acc, d) => acc + d.total, 0);
+  const maxPhaseHours = Math.max(...data.map(d => d.total));
+
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
-          <BarChart3 className="h-4 w-4" />
-          Volume par Phase (heures)
-        </CardTitle>
+    <Card className="overflow-hidden">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2">
+            <BarChart3 className="h-4 w-4 text-primary" />
+            Volume par Phase
+          </CardTitle>
+          <Badge variant="secondary" className="font-mono">
+            {totalHours.toFixed(0)}h total
+          </Badge>
+        </div>
       </CardHeader>
-      <CardContent>
-        <div className="h-64 w-full">
+      <CardContent className="space-y-4">
+        {/* Summary Stats */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-blue-500/10 rounded-lg p-3 text-center">
+            <div className="text-lg font-bold text-blue-600 dark:text-blue-400 font-mono">
+              {data.reduce((acc, d) => acc + d.swim, 0).toFixed(1)}h
+            </div>
+            <div className="text-xs text-muted-foreground">🏊 Natation</div>
+          </div>
+          <div className="bg-green-500/10 rounded-lg p-3 text-center">
+            <div className="text-lg font-bold text-green-600 dark:text-green-400 font-mono">
+              {data.reduce((acc, d) => acc + d.bike, 0).toFixed(1)}h
+            </div>
+            <div className="text-xs text-muted-foreground">🚴 Vélo</div>
+          </div>
+          <div className="bg-orange-500/10 rounded-lg p-3 text-center">
+            <div className="text-lg font-bold text-orange-600 dark:text-orange-400 font-mono">
+              {data.reduce((acc, d) => acc + d.run, 0).toFixed(1)}h
+            </div>
+            <div className="text-xs text-muted-foreground">🏃 CAP</div>
+          </div>
+        </div>
+
+        {/* Chart */}
+        <div className="h-72 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 20 }}>
+            <BarChart 
+              data={data} 
+              margin={{ top: 10, right: 10, left: -10, bottom: 60 }}
+              barCategoryGap="20%"
+            >
               <XAxis 
-                dataKey="phase" 
-                tick={{ fontSize: 10 }} 
-                angle={-30}
+                dataKey="phaseShort" 
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} 
+                angle={-35}
                 textAnchor="end"
-                height={60}
+                height={70}
+                interval={0}
               />
-              <YAxis tick={{ fontSize: 10 }} unit="h" />
-              <Tooltip 
-                formatter={(value: number, name: string) => [`${value}h`, name === 'swim' ? 'Natation' : name === 'bike' ? 'Vélo' : 'CAP']}
-                labelFormatter={(label) => `Phase: ${label}`}
+              <YAxis 
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} 
+                tickFormatter={(v) => `${v}h`}
+                width={40}
               />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))', opacity: 0.3 }} />
               <Legend 
-                formatter={(value) => value === 'swim' ? '🏊 Natation' : value === 'bike' ? '🚴 Vélo' : '🏃 CAP'}
+                verticalAlign="top"
+                height={36}
+                formatter={(value) => (
+                  <span className="text-sm">
+                    {value === 'swim' ? '🏊 Natation' : value === 'bike' ? '🚴 Vélo' : '🏃 CAP'}
+                  </span>
+                )}
               />
-              <Bar dataKey="swim" stackId="a" fill="#3B82F6" name="swim" />
-              <Bar dataKey="bike" stackId="a" fill="#22C55E" name="bike" />
-              <Bar dataKey="run" stackId="a" fill="#F97316" name="run" />
+              <Bar 
+                dataKey="swim" 
+                stackId="a" 
+                fill="hsl(217, 91%, 60%)" 
+                name="swim" 
+                radius={[0, 0, 0, 0]}
+              />
+              <Bar 
+                dataKey="bike" 
+                stackId="a" 
+                fill="hsl(142, 71%, 45%)" 
+                name="bike" 
+                radius={[0, 0, 0, 0]}
+              />
+              <Bar 
+                dataKey="run" 
+                stackId="a" 
+                fill="hsl(24, 95%, 53%)" 
+                name="run" 
+                radius={[4, 4, 0, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
