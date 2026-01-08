@@ -4,12 +4,12 @@
  * Used for staff-grade annotations comparison
  */
 
-export type RiskTolerance = "LOW" | "MEDIUM" | "HIGH";
+export type RiskTolerance = "EXTREMELY_LOW" | "VERY_LOW" | "LOW" | "MEDIUM" | "HIGH";
 
 export type LongRunTolerance = "LOW" | "MEDIUM" | "HIGH";
 
-export type BikeDominance = "LOW" | "MEDIUM" | "HIGH";
-export type RunAfterBikeTolerance = "LOW" | "MEDIUM" | "HIGH";
+export type BikeDominance = "LOW" | "MEDIUM" | "HIGH" | "VERY_HIGH" | "EXTREME";
+export type RunAfterBikeTolerance = "LOW" | "MEDIUM" | "HIGH" | "VERY_HIGH";
 
 export interface TemplateProfile {
   id: string;
@@ -165,44 +165,74 @@ const IM703_INTERMEDIAIRE: TemplateProfile = {
   },
 };
 
-// IM Kona profiles - Ultra-specific for Ironman distance
-const IMKONA_PERFORMANCE: TemplateProfile = {
-  id: "imkona-perf",
-  name: "Performance (Kona/Elite)",
+// ============= IRONMAN FULL DISTANCE PROFILES =============
+
+// Profil FINISHER IM Full
+const IMFULL_FINISHER: TemplateProfile = {
+  id: "imfull-finisher",
+  name: "Finisher IM Full",
+  level: "INTERMEDIAIRE",
+  targetTime: "~12h-15h",
+  description: "Finisher Ironman. VLamax modérée (0.30-0.45), TTE ≥50. Vélo dominant (VERY_HIGH). Nutrition critique 70-90g/h vélo, 50-65g/h CAP. Tolérance erreur: FAIBLE.",
+  targets: {
+    vlamax_min: 0.30,
+    vlamax_max: 0.45,
+    tte_min: 50,
+    ftpkg_min: 3.8,
+    run_economy: "good",
+    nutrition_min_gph: 70,
+    nutrition_max_gph: 90,
+    nutrition_run_min_gph: 50,
+    nutrition_run_max_gph: 65,
+    risk_tolerance: "LOW",
+    bike_dominance: "VERY_HIGH",
+    run_after_bike_tolerance: "MEDIUM",
+  },
+};
+
+// Profil PERFORMANCE IM Full
+const IMFULL_PERFORMANCE: TemplateProfile = {
+  id: "imfull-perf",
+  name: "Performance IM Full",
   level: "PERFORMANCE",
-  targetTime: "~9h30",
-  description: "Athlète ultra-endurant avec VLamax très basse (<0.40), TTE élevé (55+), maîtrise nutrition extrême (80-100g/h vélo). Tolérance aux erreurs: FAIBLE.",
+  targetTime: "~9h30-11h",
+  description: "Athlète IM performant. VLamax basse (0.25-0.40), TTE élevé ≥55. Vélo VERY_HIGH, CAP post-vélo maîtrisée. Nutrition 90-110g/h vélo, 60-75g/h CAP. Tolérance erreur: TRÈS FAIBLE.",
   targets: {
     vlamax_min: 0.25,
     vlamax_max: 0.40,
     tte_min: 55,
-    ftpkg_min: 4.6,
+    ftpkg_min: 4.2,
     run_economy: "excellent",
-    nutrition_min_gph: 80,
-    nutrition_max_gph: 100,
-    nutrition_run_min_gph: 50,
-    nutrition_run_max_gph: 80,
-    risk_tolerance: "LOW",
+    nutrition_min_gph: 90,
+    nutrition_max_gph: 110,
+    nutrition_run_min_gph: 60,
+    nutrition_run_max_gph: 75,
+    risk_tolerance: "VERY_LOW",
+    bike_dominance: "VERY_HIGH",
+    run_after_bike_tolerance: "HIGH",
   },
 };
 
-const IMKONA_INTERMEDIAIRE: TemplateProfile = {
-  id: "imkona-inter",
-  name: "Intermédiaire (IM Finisher)",
-  level: "INTERMEDIAIRE",
-  targetTime: "~11h-13h",
-  description: "Finisher avancé avec focus gestion énergétique. VLamax modérée (0.35-0.55), TTE correct (50+). Nutrition validée requise.",
+// Profil KONA / ELITE IM Full
+const IMFULL_KONA: TemplateProfile = {
+  id: "imfull-kona",
+  name: "Kona / Elite",
+  level: "PERFORMANCE",
+  targetTime: "~8h30-9h30",
+  description: "Elite Ironman / Kona. VLamax très basse (0.20-0.35), TTE extrême ≥60. Vélo EXTREME dominant. CAP post-vélo excellente. Nutrition 100-120g/h vélo, 70-90g/h CAP. Tolérance erreur: EXTRÊMEMENT FAIBLE.",
   targets: {
-    vlamax_min: 0.35,
-    vlamax_max: 0.55,
-    tte_min: 50,
-    ftpkg_min: 4.0,
-    run_economy: "good",
-    nutrition_min_gph: 70,
-    nutrition_max_gph: 90,
-    nutrition_run_min_gph: 40,
-    nutrition_run_max_gph: 70,
-    risk_tolerance: "MEDIUM",
+    vlamax_min: 0.20,
+    vlamax_max: 0.35,
+    tte_min: 60,
+    ftpkg_min: 4.8,
+    run_economy: "excellent",
+    nutrition_min_gph: 100,
+    nutrition_max_gph: 120,
+    nutrition_run_min_gph: 70,
+    nutrition_run_max_gph: 90,
+    risk_tolerance: "EXTREMELY_LOW",
+    bike_dominance: "EXTREME",
+    run_after_bike_tolerance: "VERY_HIGH",
   },
 };
 
@@ -253,20 +283,47 @@ export const TEMPLATE_PROFILES: Record<string, TemplateProfilePair> = {
     performance: IM703_PERFORMANCE,
     intermediaire: IM703_INTERMEDIAIRE,
   },
-  "imkona": {
-    templateId: "imkona",
-    performance: IMKONA_PERFORMANCE,
-    intermediaire: IMKONA_INTERMEDIAIRE,
+  // IM Full profiles - 3 levels: Finisher, Performance, Kona
+  "imfull": {
+    templateId: "imfull",
+    performance: IMFULL_PERFORMANCE,
+    intermediaire: IMFULL_FINISHER,
+  },
+  "ironman-full": {
+    templateId: "ironman-full",
+    performance: IMFULL_PERFORMANCE,
+    intermediaire: IMFULL_FINISHER,
+  },
+  "ironman": {
+    templateId: "ironman",
+    performance: IMFULL_PERFORMANCE,
+    intermediaire: IMFULL_FINISHER,
   },
   "im": {
     templateId: "im",
-    performance: IMKONA_PERFORMANCE,
-    intermediaire: IMKONA_INTERMEDIAIRE,
+    performance: IMFULL_PERFORMANCE,
+    intermediaire: IMFULL_FINISHER,
+  },
+  // Kona-specific - elite level
+  "imkona": {
+    templateId: "imkona",
+    performance: IMFULL_KONA,
+    intermediaire: IMFULL_PERFORMANCE,
+  },
+  "kona": {
+    templateId: "kona",
+    performance: IMFULL_KONA,
+    intermediaire: IMFULL_PERFORMANCE,
   },
   "im-kona-detaille": {
     templateId: "im-kona-detaille",
-    performance: IMKONA_PERFORMANCE,
-    intermediaire: IMKONA_INTERMEDIAIRE,
+    performance: IMFULL_KONA,
+    intermediaire: IMFULL_PERFORMANCE,
+  },
+  "elite": {
+    templateId: "elite",
+    performance: IMFULL_KONA,
+    intermediaire: IMFULL_PERFORMANCE,
   },
 };
 

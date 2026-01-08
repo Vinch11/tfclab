@@ -47,15 +47,47 @@ export interface AnnotationEngineV2Params {
 
 export interface SessionClassification {
   sport: string;
-  intensityType: "RECOVERY" | "Z2_LONG" | "TEMPO" | "THRESHOLD" | "SPECIFIC" | "VO2" | "SPEED" | "FORCE" | "FORCE_LOW_CADENCE" | "BRICK" | "OTHER";
+  intensityType: "RECOVERY" | "Z2_LONG" | "Z2_ULTRA_LONG" | "TEMPO" | "TEMPO_LONG_STABLE" | "THRESHOLD" | "SWEET_SPOT_LONG" | "SPECIFIC" | "VO2" | "SPEED" | "FORCE" | "FORCE_LOW_CADENCE" | "BRICK" | "BRICK_ULTRA" | "OTHER";
   isKey: boolean;
-  loadTag: "low" | "medium" | "high" | "very_high";
+  loadTag: "low" | "medium" | "high" | "very_high" | "extreme";
   estimatedDurationMin: number;
   blocTotalMin: number;
+  isBrick?: boolean;
+  fatigueTransfer?: boolean;
 }
 
-// ============= IM KONA SPECIFIC THRESHOLDS =============
+// ============= IRONMAN FULL DISTANCE SPECIFIC THRESHOLDS =============
 
+const IMFULL_THRESHOLDS = {
+  // VLamax thresholds (stricter than IM Kona)
+  vlamax_warning: 0.50,
+  vlamax_critical: 0.60,
+  // TTE thresholds (higher requirements)
+  tte_warning: 50,
+  tte_critical: 45,
+  tte_redflag: 40, // RED FLAG - risque abandon
+  // TSS 7d thresholds - bike
+  tss7d_bike_warning: 550,
+  tss7d_bike_critical: 650,
+  // TSS 7d thresholds - run
+  tss7d_run_warning: 350,
+  tss7d_run_critical: 420,
+  // Duration thresholds
+  long_ride_ultra_min: 240, // 4h = Z2_ULTRA_LONG
+  long_ride_very_long: 300, // 5h
+  long_run_ultra_min: 120, // 2h
+  brick_ultra_threshold: 150, // 2h30 total
+  brick_excessive_run: 90, // >90min CAP after 4h+ bike = excessive
+  // Taper
+  taper_week_threshold: 21, // 3-4 weeks taper for full IM
+  // Nutrition targets
+  nutrition_bike_min: 90, // g/h for perf
+  nutrition_bike_max: 120, // g/h for Kona
+  nutrition_run_min: 60, // g/h
+  nutrition_run_max: 90, // g/h for elite
+};
+
+// Legacy IM thresholds (alias for backwards compatibility)
 const IM_THRESHOLDS = {
   vlamax_warning: 0.45,
   vlamax_critical: 0.55,
@@ -106,13 +138,29 @@ const IM703_THRESHOLDS = {
 };
 
 /**
- * Check if template is IM/Kona type (full Ironman distance)
+ * Check if template is IM Full type (Ironman full distance - not 70.3)
  */
-function isIMTemplate(templateId: string): boolean {
+function isIMFullTemplate(templateId: string): boolean {
   const id = templateId.toLowerCase();
   // Ironman full but NOT 70.3
-  return (id.includes("kona") || (id.includes("im") && !id.includes("703") && !id.includes("70.3"))) || 
+  return (id.includes("kona") || id.includes("ironman-full") || id.includes("imfull") || id.includes("elite") ||
+         (id.includes("im") && !id.includes("703") && !id.includes("70.3"))) || 
          (id.includes("ironman") && !id.includes("703") && !id.includes("70.3"));
+}
+
+/**
+ * Check if template is Kona/Elite level (highest tier)
+ */
+function isKonaTemplate(templateId: string): boolean {
+  const id = templateId.toLowerCase();
+  return id.includes("kona") || id.includes("elite");
+}
+
+/**
+ * Check if template is IM/Kona type (full Ironman distance) - LEGACY ALIAS
+ */
+function isIMTemplate(templateId: string): boolean {
+  return isIMFullTemplate(templateId);
 }
 
 /**
@@ -201,6 +249,13 @@ export function classifySession(session: TemplateSession): SessionClassification
     intensityType = "RECOVERY";
     loadTag = "low";
   }
+  // BRICK ULTRA (IM Full specific - bike 4h+ + run)
+  else if ((sportNormalized === "brick" || combined.includes("brick") || combined.includes("enchaînement")) && 
+           (estimatedDuration >= IMFULL_THRESHOLDS.brick_ultra_threshold || combined.includes("long brick") || combined.includes("ultra"))) {
+    intensityType = "BRICK_ULTRA";
+    isKey = true;
+    loadTag = "extreme";
+  }
   // Brick sessions (IM specific)
   else if (sportNormalized === "brick" || combined.includes("brick") || combined.includes("enchaînement") || 
            (combined.includes("vélo") && combined.includes("cap"))) {
@@ -259,11 +314,33 @@ export function classifySession(session: TemplateSession): SessionClassification
     isKey = true;
     loadTag = "high";
   }
+  // Sweet Spot Long (IM Full specific)
+  else if (combined.includes("sweet spot") || combined.includes("sweetspot") || 
+           (combined.includes("z3") && combined.includes("z4") && estimatedDuration >= 30)) {
+    intensityType = "SWEET_SPOT_LONG";
+    isKey = true;
+    loadTag = estimatedDuration >= 45 ? "high" : "medium";
+  }
+  // Tempo Long Stable (IM Full specific)
+  else if ((combined.includes("tempo") && (combined.includes("long") || combined.includes("stable") || estimatedDuration >= 40)) ||
+           combined.includes("tempo long stable")) {
+    intensityType = "TEMPO_LONG_STABLE";
+    isKey = true;
+    loadTag = estimatedDuration >= 60 ? "high" : "medium";
+  }
   // Tempo (Z3-Z4a)
   else if (combined.includes("tempo") || combined.includes("z3") || combined.includes("z4a")) {
     intensityType = "TEMPO";
     isKey = true;
     loadTag = "medium";
+  }
+  // Z2 Ultra Long (IM Full specific - 4h+ bike, 2h+ run)
+  else if ((sportNormalized === "bike" && estimatedDuration >= IMFULL_THRESHOLDS.long_ride_ultra_min) ||
+           (sportNormalized === "run" && estimatedDuration >= IMFULL_THRESHOLDS.long_run_ultra_min) ||
+           combined.includes("ultra") || combined.match(/[5-7]h/)) {
+    intensityType = "Z2_ULTRA_LONG";
+    isKey = true;
+    loadTag = estimatedDuration >= 300 ? "extreme" : "very_high";
   }
   // Long Run detection (SL, sortie longue, 2h, 2h30, 3h)
   else if ((sportNormalized === "run" && estimatedDuration >= 90) ||
@@ -280,6 +357,19 @@ export function classifySession(session: TemplateSession): SessionClassification
     intensityType = "Z2_LONG";
     isKey = true;
     loadTag = estimatedDuration >= 240 ? "very_high" : "high";
+  }
+  // Z2 Long
+  else if (combined.includes("sortie longue") || combined.includes("long") || 
+           (combined.includes("z2") && (estimatedDuration >= 75 || combined.includes("1h30") || combined.includes("1h45") || combined.includes("2h")))) {
+    intensityType = "Z2_LONG";
+    isKey = estimatedDuration >= 75;
+    loadTag = estimatedDuration >= 120 ? "high" : "medium";
+  }
+  // Force work (general)
+  else if (combined.includes("force") || combined.includes("côte") || combined.includes("hill")) {
+    intensityType = "FORCE";
+    isKey = true;
+    loadTag = "medium";
   }
   // Z2 Long
   else if (combined.includes("sortie longue") || combined.includes("long") || 
@@ -426,101 +516,186 @@ export function generateTemplateAnnotationsV2(params: AnnotationEngineV2Params):
     });
   }
   
-  // ============= IM KONA SPECIFIC PLAN ANNOTATIONS =============
+  // ============= IRONMAN FULL DISTANCE SPECIFIC PLAN ANNOTATIONS =============
   
-  const isIM = isIMTemplate(templateId);
+  const isIMFull = isIMFullTemplate(templateId);
+  const isKona = isKonaTemplate(templateId);
   const age = athleteSignals.age;
   const totalWeeks = weeks.length;
   
-  if (isIM) {
-    // IM-PLAN-1: VLamax warning/critical for Ironman
-    if (vlamaxValue != null && vlamaxValue > IM_THRESHOLDS.vlamax_warning) {
-      const isCritical = vlamaxValue > IM_THRESHOLDS.vlamax_critical;
+  if (isIMFull) {
+    // IM-PLAN-1: VLamax incompatible pour Ironman Full
+    if (vlamaxValue != null && vlamaxValue > IMFULL_THRESHOLDS.vlamax_warning) {
+      const isCritical = vlamaxValue > IMFULL_THRESHOLDS.vlamax_critical;
       const severity: SeverityV2 = isCritical ? 3 : 2;
-      const riskScore = isCritical ? 90 : 75;
+      const riskScore = isCritical ? 95 : 80;
       
       annotations.push({
         id: generateId(),
         scope: "PLAN",
         severity,
         riskScore,
-        title: "VLamax élevé pour Ironman",
-        message: "Risque de dépendance glucidique élevé sur une durée de 8-17h. La gestion énergétique sera le facteur limitant.",
-        why: `VLamax = ${vlamaxValue.toFixed(2)} mmol/L/s > seuil IM ${IM_THRESHOLDS.vlamax_warning} (${isCritical ? "CRITIQUE" : "Warning"}). Cible perf IM: 0.25-0.40.`,
+        title: isCritical ? "Profil métabolique INCOMPATIBLE Ironman" : "VLamax élevé pour Ironman Full",
+        message: isCritical 
+          ? "VLamax beaucoup trop élevé pour un Ironman Full. Le coût glucidique sera excessif sur 8-17h. Risque DNF très élevé."
+          : "Risque de dépendance glucidique élevé sur une durée de 8-17h. La gestion énergétique sera le facteur limitant.",
+        why: `VLamax = ${vlamaxValue.toFixed(2)} mmol/L/s > seuil IM ${IMFULL_THRESHOLDS.vlamax_warning} (${isCritical ? "CRITIQUE >0.60" : "Warning"}). Cible perf IM: 0.25-0.40.`,
         options: [
-          "Renforcer Z2 long + force basse cadence (50-60 rpm) sur vélo",
-          "Limiter séances sprints/VO2 en période spécifique",
-          "Vérifier nutrition: objectif 80-100 g/h vélo + test tolérance digestive",
-          "Ajouter séances fasted Z2 pour améliorer oxydation lipidique"
+          "Supprimer toutes séances VO2/sprints en phase spécifique",
+          "Renforcer Z2 ultra-long (4h+ vélo) + force basse cadence (50-60 rpm)",
+          "Ajouter séances fasted Z2 (1-2h) pour oxydation lipidique",
+          "Nutrition obligatoire: 90-110 g/h vélo testé + 60-75 g/h CAP"
         ],
-        confidence: vlamax?.confidence || 0.8,
+        confidence: vlamax?.confidence || 0.85,
       });
     }
     
-    // IM-PLAN-2: TTE insuffisant pour Ironman
-    if (tteValue != null && tteValue < IM_THRESHOLDS.tte_warning) {
-      const isCritical = tteValue < IM_THRESHOLDS.tte_critical;
-      const severity: SeverityV2 = isCritical ? 3 : 2;
-      const riskScore = isCritical ? 95 : 70;
+    // IM-PLAN-2: TTE critique pour Ironman Full
+    if (tteValue != null && tteValue < IMFULL_THRESHOLDS.tte_warning) {
+      const isCritical = tteValue < IMFULL_THRESHOLDS.tte_critical;
+      const isRedFlag = tteValue < IMFULL_THRESHOLDS.tte_redflag;
+      const severity: SeverityV2 = isRedFlag ? 3 : isCritical ? 3 : 2;
+      const riskScore = isRedFlag ? 98 : isCritical ? 90 : 75;
       
       annotations.push({
         id: generateId(),
         scope: "PLAN",
         severity,
         riskScore,
-        title: "Durabilité au seuil insuffisante pour IM",
-        message: "TTE trop bas → difficulté à tenir l'intensité stable sur 180km vélo et à alimenter correctement sur le marathon.",
-        why: `TTE = ${tteValue.toFixed(0)} min < seuil IM ${IM_THRESHOLDS.tte_warning} min (${isCritical ? "CRITIQUE" : "Warning"}). Cible IM perf: ≥55 min.`,
+        title: isRedFlag ? "TTE RED FLAG - Risque abandon IM" : "Durabilité insuffisante pour Ironman",
+        message: isRedFlag 
+          ? "TTE extrêmement bas. Impossible de maintenir l'allure stable sur 180km vélo + marathon. Risque d'abandon très élevé."
+          : "TTE trop bas → difficulté à tenir l'intensité stable sur 180km vélo et à alimenter correctement sur le marathon.",
+        why: `TTE = ${tteValue.toFixed(0)} min < seuil IM ${IMFULL_THRESHOLDS.tte_warning} min (${isRedFlag ? "RED FLAG <40" : isCritical ? "CRITIQUE <45" : "Warning"}). Cible IM perf: ≥55 min, Kona: ≥60 min.`,
         options: [
-          "Remplacer 1 séance VO2 par TEMPO_LONG / THRESHOLD_LONG (30-45')",
-          "Allonger progressivement les blocs steady (sans pics lactate)",
-          "Ajouter 1 semaine de consolidation toutes les 3 semaines",
-          "Intégrer blocs IM pace sur vélo: 2×45' puis 2×60'"
+          "Remplacer toutes séances VO2 par TEMPO_LONG_STABLE / SWEET_SPOT_LONG (30-60')",
+          "Allonger progressivement blocs steady sur vélo (2×45' → 2×60' → 2×75')",
+          "Intégrer blocs IM pace vélo: 2×60' puis 2×90'",
+          "Ajouter 2 semaines de consolidation avant phase spécifique"
         ],
-        confidence: tte?.confidence || 0.8,
+        confidence: tte?.confidence || 0.85,
       });
     }
     
-    // IM-NUTRI-1: Nutrition obligatoire si profil glycolytique
-    if (vlamaxValue != null && vlamaxValue > IM_THRESHOLDS.vlamax_warning) {
+    // IM-PLAN-3: Trop de CAP vs vélo
+    const bikeKeyCount = weeks.reduce((count, week) => {
+      return count + week.sessions.filter(s => {
+        const c = classifySession(s);
+        return c.sport === "bike" && c.isKey;
+      }).length;
+    }, 0);
+    
+    const runKeyCount = weeks.reduce((count, week) => {
+      return count + week.sessions.filter(s => {
+        const c = classifySession(s);
+        return c.sport === "run" && c.isKey;
+      }).length;
+    }, 0);
+    
+    if (runKeyCount > bikeKeyCount * 0.8) {
       annotations.push({
         id: generateId(),
         scope: "PLAN",
         severity: 2,
-        riskScore: 70,
-        title: "Nutrition = facteur limitant probable IM",
-        message: "La stratégie nutritionnelle DOIT être testée à l'entraînement, pas seulement en course. Échec nutritionnel = DNF probable.",
-        why: `VLamax = ${vlamaxValue.toFixed(2)} → besoin glucidique élevé. IM = durée très longue (8-17h).`,
+        riskScore: 65,
+        title: "CAP trop agressive pour Ironman Full",
+        message: "Le vélo conditionne la CAP en Ironman. Un Ironman se GAGNE sur le vélo, se PERD sur la CAP.",
+        why: `Séances clés CAP (${runKeyCount}) ≈ Séances clés vélo (${bikeKeyCount}). Le vélo doit largement dominer.`,
         options: [
-          "Objectif vélo: 80-100 g/h (selon tolérance) + fractionnement 10-15 min",
-          "CAP: 50-80 g/h (selon tolérance) ; prudence GI (estomac sensible après vélo)",
-          "Tester 2-3 séances clés avec fueling complet (brick long, sortie vélo 4h+)",
-          "Valider marque/type de glucides en entraînement"
+          "Alléger CAP qualité (max 1 séance seuil/semaine)",
+          "Transférer le stress vers le vélo (tempo long, sweet spot)",
+          "CAP = préserver les jambes, pas accumuler fatigue",
+          "Prioriser bricks Z2 CAP plutôt que CAP seuil isolée"
+        ],
+        confidence: 0.8,
+      });
+    }
+    
+    // IM-NUTRI-1: Nutrition vélo critique
+    if ((vlamaxValue != null && vlamaxValue > IMFULL_THRESHOLDS.vlamax_warning) || (tteValue != null && tteValue < IMFULL_THRESHOLDS.tte_critical)) {
+      const severity: SeverityV2 = (vlamaxValue ?? 0) > IMFULL_THRESHOLDS.vlamax_critical ? 3 : 2;
+      annotations.push({
+        id: generateId(),
+        scope: "PLAN",
+        severity,
+        riskScore: severity === 3 ? 85 : 70,
+        title: "Besoin nutritionnel vélo CRITIQUE pour IM",
+        message: "Risque de déplétion glycogène majeur. La nutrition vélo conditionne la survie sur le marathon.",
+        why: `VLamax=${vlamaxValue?.toFixed(2) ?? "?"} / TTE=${tteValue?.toFixed(0) ?? "?"} → besoin glucidique très élevé sur 5-7h de vélo.`,
+        options: [
+          "Objectif: 90-120 g/h vélo (selon tolérance) - OBLIGATOIRE",
+          "Fractionnement strict: toutes les 10-15 min",
+          "Validation digestive sur 3-4 sorties longues (4h+) avant course",
+          "Plan B si intolérance: réduire intensité vélo immédiatement"
+        ],
+        confidence: 0.9,
+      });
+    }
+    
+    // IM-NUTRI-2: Nutrition CAP sous-estimée
+    annotations.push({
+      id: generateId(),
+      scope: "PLAN",
+      severity: 2,
+      riskScore: 60,
+      title: "Nutrition CAP post-vélo critique",
+      message: "Effondrement probable après 25-30km si nutrition insuffisante. L'estomac est sensibilisé après 5-7h de vélo.",
+      why: "IM = marathon après 180km vélo. Réserves épuisées + stress GI élevé.",
+      options: [
+        "Objectif: 60-90 g/h CAP (selon profil et tolérance)",
+        "Formats liquides/gels légers (éviter solides sauf tolérance prouvée)",
+        "Gel T2 + prise toutes les 15-20min sur marathon",
+        "Tester sur chaque brick long (vélo 4h+ + CAP 1h+)"
+      ],
+      confidence: 0.85,
+    });
+    
+    // IM-AGE-1: Athlète master Ironman
+    if (age != null && age >= 40) {
+      const isHighRiskAge = age >= 50;
+      const severity: SeverityV2 = (tss7d != null && tss7d > IMFULL_THRESHOLDS.tss7d_bike_warning) ? 3 : isHighRiskAge ? 2 : 1;
+      
+      annotations.push({
+        id: generateId(),
+        scope: "PLAN",
+        severity,
+        riskScore: severity === 3 ? 75 : severity === 2 ? 60 : 50,
+        title: "Athlète master Ironman: vigilance récupération",
+        message: "Avec l'âge, la tolérance aux blocs ultra-longs et la récupération diminuent. Sur IM, la fraîcheur le jour J prime sur le volume.",
+        why: `Âge = ${age} ans → risque musculo-tendineux ↑ ; récupération plus lente ; capacité glycolytique peut augmenter.`,
+        options: [
+          "Ajouter 1-2 jours Z2 easy ou repos supplémentaire / semaine",
+          "Réduire densité séances qualité CAP (max 1/semaine en phase spécifique)",
+          "Favoriser vélo indoor pour réduire contraintes mécaniques",
+          "Surveillance HRV/fatigue quotidienne obligatoire"
         ],
         confidence: 0.85,
       });
     }
     
-    // IM-AGE-1: Athlète master
-    if (age != null && age >= 40) {
+    // Kona-specific: profil ultra-strict
+    if (isKona) {
       annotations.push({
         id: generateId(),
         scope: "PLAN",
         severity: 1,
-        riskScore: 45,
-        title: "Athlète master: vigilance fraîcheur IM",
-        message: "Avec l'âge, la tolérance aux blocs agressifs et la récupération diminuent. Sur IM, la fraîcheur le jour J prime sur le volume.",
-        why: `Âge = ${age} ans → risque musculo-tendineux ↑ ; récupération plus lente ; privilégier stabilité.`,
+        riskScore: 40,
+        title: "Niveau Kona/Elite: exigences maximales",
+        message: "Ce profil vise les performances Kona-level. Les marges d'erreur sont quasi nulles. Priorité: cohérence physiologique parfaite.",
+        why: `Template Kona/Elite → VLamax cible: 0.20-0.35, TTE cible: ≥60min, FTP/kg: ≥4.8.`,
         options: [
-          "Ajouter 1 journée Z2 easy supplémentaire / semaine (ou repos)",
-          "Réduire densité des séances 'qualité' CAP (max 2/semaine)",
-          "Favoriser vélo indoor pour réduire contraintes mécaniques",
-          "Surveillance HRV/fatigue quotidienne"
+          "Chaque séance compte: 0 séance ratée, 0 improvisation",
+          "Nutrition parfaitement calibrée: 100-120 g/h vélo, 70-90 g/h CAP",
+          "Taper optimal: 4 semaines progressives, pas de stress final",
+          "Récupération sacrée: sommeil 8h+, HRV stable"
         ],
-        confidence: 0.8,
+        confidence: 0.9,
       });
     }
   }
+  
+  // Legacy alias for isIM (for backwards compatibility with existing code)
+  const isIM = isIMFull;
   
   // ============= MARATHON SPECIFIC PLAN ANNOTATIONS =============
   
@@ -839,18 +1014,111 @@ export function generateTemplateAnnotationsV2(params: AnnotationEngineV2Params):
     
     const runSessions = sessionsClassified.filter((s) => s.classification.sport === "run");
     const bikeSessions = sessionsClassified.filter((s) => s.classification.sport === "bike");
-    const brickSessions = sessionsClassified.filter((s) => s.classification.sport === "brick" || s.classification.intensityType === "BRICK");
+    const brickSessions = sessionsClassified.filter((s) => s.classification.sport === "brick" || s.classification.intensityType === "BRICK" || s.classification.intensityType === "BRICK_ULTRA");
     const keyRunSessions = runSessions.filter((s) => s.classification.isKey);
     
     const hasLongRun = runSessions.some((s) => s.classification.intensityType === "Z2_LONG" && s.classification.estimatedDurationMin >= 75);
+    const hasUltraLongRun = runSessions.some((s) => s.classification.intensityType === "Z2_ULTRA_LONG" || s.classification.estimatedDurationMin >= IMFULL_THRESHOLDS.long_run_ultra_min);
     const hasLongRide = bikeSessions.some((s) => s.classification.estimatedDurationMin >= IM_THRESHOLDS.long_ride_min_duration);
+    const hasUltraLongRide = bikeSessions.some((s) => s.classification.intensityType === "Z2_ULTRA_LONG" || s.classification.estimatedDurationMin >= IMFULL_THRESHOLDS.long_ride_ultra_min);
     const hasBrick = brickSessions.length > 0 || sessionsClassified.some(s => s.classification.intensityType === "BRICK");
+    const hasBrickUltra = sessionsClassified.some(s => s.classification.intensityType === "BRICK_ULTRA");
     const hasThreshold = runSessions.some((s) => s.classification.intensityType === "THRESHOLD" || s.classification.intensityType === "SPECIFIC");
+    const hasTempoRun = runSessions.some((s) => s.classification.intensityType === "TEMPO" || s.classification.intensityType === "TEMPO_LONG_STABLE");
     const hasSpeed = runSessions.some((s) => s.classification.intensityType === "VO2" || s.classification.intensityType === "SPEED");
     const vo2Count = runSessions.filter((s) => s.classification.intensityType === "VO2" || s.classification.intensityType === "SPEED").length;
     
-    // IM-WEEK-1: Surcharge spécifique IM (brick + long ride + long run)
-    if (isIM) {
+    // ============= IRONMAN FULL WEEK-LEVEL ANNOTATIONS =============
+    
+    if (isIMFull) {
+      // IM-WEEK-1: Semaine à risque extrême (long bike 5h+ + brick long + tempo CAP)
+      const hasUltraStress = hasUltraLongRide || hasBrickUltra || hasUltraLongRun;
+      const imFullKeyCount = [hasUltraLongRide || hasLongRide, hasBrick || hasBrickUltra, hasLongRun || hasUltraLongRun, hasTempoRun || hasThreshold].filter(Boolean).length;
+      const isHighLoadIMFull = tss7d != null && tss7d > IMFULL_THRESHOLDS.tss7d_bike_warning;
+      const isCriticalLoadIMFull = tss7d != null && tss7d > IMFULL_THRESHOLDS.tss7d_bike_critical;
+      
+      if ((hasUltraStress && imFullKeyCount >= 2) || (imFullKeyCount >= 3 && isHighLoadIMFull) || isCriticalLoadIMFull) {
+        const severity: SeverityV2 = isCriticalLoadIMFull || (hasUltraStress && hasBrickUltra) ? 3 : 2;
+        annotations.push({
+          id: generateId(),
+          scope: "WEEK",
+          weekNumber: week.weekNumber,
+          severity,
+          riskScore: severity === 3 ? 95 : 85,
+          title: "Semaine IM Full à RISQUE MAJEUR",
+          message: "Accumulation de stress irréversible. Cette semaine peut compromettre tout le plan si mal gérée.",
+          why: `Semaine ${week.weekNumber}: ${hasUltraLongRide ? "Ultra Long Ride (5h+) ✓" : hasLongRide ? "Long Ride (4h+) ✓" : ""} ${hasBrickUltra ? "Brick Ultra ✓" : hasBrick ? "Brick ✓" : ""} ${hasTempoRun ? "Tempo CAP ✓" : ""} ${isHighLoadIMFull ? `+ TSS élevé (${tss7d?.toFixed(0)})` : ""}`,
+          options: [
+            "Conserver UNIQUEMENT le long bike - c'est la priorité #1",
+            "Alléger toute la CAP de la semaine (Z2 uniquement)",
+            "Supprimer toute intensité secondaire",
+            "Insérer 48h de repos complet après brick"
+          ],
+          confidence: 0.95,
+        });
+      }
+      
+      // IM-BRICK-1: Brick mal calibré (CAP >90min après vélo 4h+)
+      const brickUltraSessions = sessionsClassified.filter(s => s.classification.intensityType === "BRICK_ULTRA");
+      if (brickUltraSessions.length > 0) {
+        const brickSession = brickUltraSessions[0];
+        const estimatedRunAfterBike = brickSession.classification.estimatedDurationMin - IMFULL_THRESHOLDS.long_ride_ultra_min;
+        
+        if (estimatedRunAfterBike > IMFULL_THRESHOLDS.brick_excessive_run) {
+          annotations.push({
+            id: generateId(),
+            scope: "WEEK",
+            weekNumber: week.weekNumber,
+            severity: 3,
+            riskScore: 90,
+            title: "Brick EXCESSIF - CAP trop longue après vélo long",
+            message: "Risque de blessure et dette métabolique majeure. La CAP post-vélo 4h+ doit rester courte.",
+            why: `Brick avec CAP estimée ≈${estimatedRunAfterBike}min après vélo ultra-long. Maximum recommandé: 60-75min.`,
+            options: [
+              "Limiter CAP brick à max 60min Z2",
+              "Fractionner: brick court + CAP séparée 24h après",
+              "Z2 uniquement sur la CAP, pas d'intensité",
+              "Reporter le brick ultra si fatigue semaine précédente"
+            ],
+            confidence: 0.9,
+          });
+        }
+      }
+      
+      // IM-TAPER-1: Affûtage mal calibré (3-4 dernières semaines)
+      const isTaperWeekIMFull = week.weekNumber > totalWeeks - 4 || (totalWeeks >= 20 && week.weekNumber > IMFULL_THRESHOLDS.taper_week_threshold);
+      
+      if (isTaperWeekIMFull) {
+        const longSessionsInTaper = sessionsClassified.filter(s => s.classification.estimatedDurationMin > 120);
+        const thresholdBlocksInTaper = sessionsClassified.filter(s => 
+          (s.classification.intensityType === "THRESHOLD" || s.classification.intensityType === "SPECIFIC") &&
+          s.classification.blocTotalMin > 15
+        );
+        
+        if (longSessionsInTaper.length >= 2 || thresholdBlocksInTaper.length >= 2) {
+          annotations.push({
+            id: generateId(),
+            scope: "WEEK",
+            weekNumber: week.weekNumber,
+            severity: 2,
+            riskScore: 70,
+            title: "Affûtage IM: volume trop haut",
+            message: "La fraîcheur CONDITIONNE la performance IM. Les dernières semaines = repos + rappels uniquement.",
+            why: `Semaine ${week.weekNumber} (taper): ${longSessionsInTaper.length} séance(s) >2h + ${thresholdBlocksInTaper.length} bloc(s) seuil`,
+            options: [
+              "Réduction progressive: -30% S-3, -50% S-2, -70% S-1",
+              "Max 1h30 vélo, max 45min run dernières semaines",
+              "Intensité uniquement en rappels courts (10-15' Z4)",
+              "Priorité absolue: sommeil 8h+, nutrition parfaite, stress 0"
+            ],
+            confidence: 0.9,
+          });
+        }
+      }
+    }
+    
+    // Legacy IM rules (for backwards compatibility)
+    if (isIM && !isIMFull) {
       const imKeyCount = [hasLongRide, hasBrick, hasLongRun].filter(Boolean).length;
       const isHighLoad = tss7d != null && tss7d > IM_THRESHOLDS.tss7d_high;
       
@@ -872,36 +1140,6 @@ export function generateTemplateAnnotationsV2(params: AnnotationEngineV2Params):
           ],
           confidence: 0.9,
         });
-      }
-      
-      // IM-TAPER-1: Dernières semaines = affûtage
-      const isTaperWeek = week.weekNumber > totalWeeks - 2 || (totalWeeks >= 20 && week.weekNumber > IM_THRESHOLDS.taper_week_threshold);
-      if (isTaperWeek) {
-        const longSessionsInTaper = sessionsClassified.filter(s => s.classification.estimatedDurationMin > 120);
-        const thresholdBlocksInTaper = sessionsClassified.filter(s => 
-          (s.classification.intensityType === "THRESHOLD" || s.classification.intensityType === "SPECIFIC") &&
-          s.classification.blocTotalMin > 20
-        );
-        
-        if (longSessionsInTaper.length >= 2 || thresholdBlocksInTaper.length >= 2) {
-          annotations.push({
-            id: generateId(),
-            scope: "WEEK",
-            weekNumber: week.weekNumber,
-            severity: 2,
-            riskScore: 65,
-            title: "Affûtage IM: volume encore trop haut",
-            message: "Le taper vise la fraîcheur maximale. Les dernières semaines doivent avoir volume bas et intensité courte (rappels uniquement).",
-            why: `Semaine ${week.weekNumber} (taper): ${longSessionsInTaper.length} séance(s) >2h + ${thresholdBlocksInTaper.length} bloc(s) seuil long`,
-            options: [
-              "Raccourcir les longues sorties (max 1h30 vélo, max 1h run)",
-              "Conserver intensité sous forme de rappels courts (10-15')",
-              "Priorité absolue: sommeil, nutrition, hydratation",
-              "Éviter toute nouveauté (matériel, nutrition, parcours)"
-            ],
-            confidence: 0.85,
-          });
-        }
       }
     }
     
@@ -1805,5 +2043,100 @@ export function compute703RiskSummary(
     nutritionBikeRisk, 
     nutritionRunRisk, 
     overallRisk 
+  };
+}
+
+// ============= IRONMAN FULL DISTANCE RISK SUMMARY HELPER =============
+
+export interface IMFullRiskSummary {
+  compatibility: "ok" | "limite" | "incompatible";
+  vlamaxReadiness: "ok" | "warning" | "critical";
+  tteReadiness: "ok" | "warning" | "critical" | "redflag";
+  bikeDominantScore: "ok" | "à renforcer";
+  capPostBikeRisk: "stable" | "fragile" | "critique";
+  nutritionBikeRisk: "low" | "moderate" | "high" | "critical";
+  nutritionRunRisk: "low" | "moderate" | "high";
+  dnfRisk: "LOW" | "MEDIUM" | "HIGH";
+}
+
+export function computeIMFullRiskSummary(
+  vlamaxValue: number | null,
+  tteValue: number | null,
+  bikeKeyCount: number,
+  runKeyCount: number,
+  tss7d: number | null
+): IMFullRiskSummary {
+  // Compatibility check
+  let compatibility: IMFullRiskSummary["compatibility"] = "ok";
+  if ((vlamaxValue != null && vlamaxValue > IMFULL_THRESHOLDS.vlamax_critical) || 
+      (tteValue != null && tteValue < IMFULL_THRESHOLDS.tte_redflag)) {
+    compatibility = "incompatible";
+  } else if ((vlamaxValue != null && vlamaxValue > IMFULL_THRESHOLDS.vlamax_warning) || 
+             (tteValue != null && tteValue < IMFULL_THRESHOLDS.tte_critical)) {
+    compatibility = "limite";
+  }
+  
+  // VLamax readiness
+  let vlamaxReadiness: IMFullRiskSummary["vlamaxReadiness"] = "ok";
+  if (vlamaxValue != null) {
+    if (vlamaxValue > IMFULL_THRESHOLDS.vlamax_critical) vlamaxReadiness = "critical";
+    else if (vlamaxValue > IMFULL_THRESHOLDS.vlamax_warning) vlamaxReadiness = "warning";
+  }
+  
+  // TTE readiness
+  let tteReadiness: IMFullRiskSummary["tteReadiness"] = "ok";
+  if (tteValue != null) {
+    if (tteValue < IMFULL_THRESHOLDS.tte_redflag) tteReadiness = "redflag";
+    else if (tteValue < IMFULL_THRESHOLDS.tte_critical) tteReadiness = "critical";
+    else if (tteValue < IMFULL_THRESHOLDS.tte_warning) tteReadiness = "warning";
+  }
+  
+  // Bike dominant score
+  const bikeDominantScore: IMFullRiskSummary["bikeDominantScore"] = bikeKeyCount >= runKeyCount * 1.2 ? "ok" : "à renforcer";
+  
+  // CAP post-bike risk
+  let capPostBikeRisk: IMFullRiskSummary["capPostBikeRisk"] = "stable";
+  if (tteReadiness === "redflag" || tteReadiness === "critical" || vlamaxReadiness === "critical") {
+    capPostBikeRisk = "critique";
+  } else if (tteReadiness === "warning" || vlamaxReadiness === "warning") {
+    capPostBikeRisk = "fragile";
+  }
+  
+  // Nutrition bike risk (stricter for IM Full)
+  let nutritionBikeRisk: IMFullRiskSummary["nutritionBikeRisk"] = "low";
+  if (vlamaxValue != null) {
+    if (vlamaxValue > IMFULL_THRESHOLDS.vlamax_critical) nutritionBikeRisk = "critical";
+    else if (vlamaxValue > IMFULL_THRESHOLDS.vlamax_warning) nutritionBikeRisk = "high";
+    else if (vlamaxValue > 0.40) nutritionBikeRisk = "moderate";
+  }
+  
+  // Nutrition run risk
+  let nutritionRunRisk: IMFullRiskSummary["nutritionRunRisk"] = "low";
+  if (vlamaxValue != null && vlamaxValue > IMFULL_THRESHOLDS.vlamax_warning) {
+    nutritionRunRisk = vlamaxValue > IMFULL_THRESHOLDS.vlamax_critical ? "high" : "moderate";
+  }
+  
+  // DNF risk
+  let dnfRisk: IMFullRiskSummary["dnfRisk"] = "LOW";
+  const riskFactors = [
+    compatibility === "incompatible" ? 3 : compatibility === "limite" ? 2 : 0,
+    vlamaxReadiness === "critical" ? 3 : vlamaxReadiness === "warning" ? 1 : 0,
+    tteReadiness === "redflag" ? 4 : tteReadiness === "critical" ? 2 : tteReadiness === "warning" ? 1 : 0,
+    capPostBikeRisk === "critique" ? 2 : capPostBikeRisk === "fragile" ? 1 : 0,
+    nutritionBikeRisk === "critical" ? 2 : nutritionBikeRisk === "high" ? 1 : 0,
+  ];
+  const totalRisk = riskFactors.reduce((a, b) => a + b, 0);
+  if (totalRisk >= 8) dnfRisk = "HIGH";
+  else if (totalRisk >= 4) dnfRisk = "MEDIUM";
+  
+  return {
+    compatibility,
+    vlamaxReadiness,
+    tteReadiness,
+    bikeDominantScore,
+    capPostBikeRisk,
+    nutritionBikeRisk,
+    nutritionRunRisk,
+    dnfRisk
   };
 }
