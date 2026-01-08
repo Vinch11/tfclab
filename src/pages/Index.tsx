@@ -37,8 +37,6 @@ import { computeEnergyDrift, EnergyDriftResult } from "@/lib/energyDrift";
 import { EnergyDriftBadge } from "@/components/EnergyDriftBadge";
 import { DashboardGauges } from "@/components/DashboardGauges";
 import { StaffDashboard } from "@/components/StaffDashboard";
-import { MetabolicPerformanceCompass } from "@/components/charts/MetabolicPerformanceCompass";
-import { computeCAPInjuryRisk } from "@/lib/capInjuryRisk";
 
 // ✅ FIX 11 - Effective Refs (source unique de vérité)
 import { getEffectiveRefs, computeFtpKg, getMissingFields } from "@/lib/effectiveRefs";
@@ -345,34 +343,6 @@ const Index = () => {
       tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
     });
   }, [vlamaxEffectif, tteEffectif, currentAthlete, effectiveCloudSnapshot]);
-
-  // ✅ CAP INJURY RISK - Pour Metabolic Compass
-  const capInjuryRisk = useMemo(() => {
-    return computeCAPInjuryRisk({
-      vlamaxValue: vlamaxEffectif.value,
-      tteValue: tteEffectif.tte_min,
-      objectif: currentAthlete?.goal || "IM",
-    });
-  }, [vlamaxEffectif, tteEffectif, currentAthlete]);
-
-  // ✅ METABOLIC COMPASS DATA - Pour le graphique signature
-  const compassData = useMemo(() => {
-    return {
-      vlamaxValue: vlamaxEffectif.value,
-      vlamaxSource: vlamaxEffectif.source,
-      vlamaxConfidence: vlamaxEffectif.confidence,
-      tteValue: tteEffectif.tte_min,
-      tteSource: tteEffectif.source,
-      tteConfidence: tteEffectif.confidence,
-      readinessScore: raceReadinessEffectif.score,
-      readinessDetails: raceReadinessEffectif.details,
-      objectif: currentAthlete?.goal || "IM",
-      fatigueState: undefined, // TODO: à ajouter dans DbSnapshot si besoin
-      capRisk: capInjuryRisk.level,
-      nutritionRisk: nutritionEstimate.riskLevel,
-      tss7d: effectiveCloudSnapshot?.tss_7d ?? undefined,
-    };
-  }, [vlamaxEffectif, tteEffectif, raceReadinessEffectif, currentAthlete, effectiveCloudSnapshot, capInjuryRisk, nutritionEstimate]);
 
   // Handlers
   const handleAddAthlete = async () => {
@@ -698,13 +668,6 @@ const Index = () => {
               />
             )}
 
-            {/* 🧭 METABOLIC PERFORMANCE COMPASS™ - Graphique signature */}
-            {currentAthlete && (
-              <MetabolicPerformanceCompass
-                data={compassData}
-                staffMode={staffMode}
-              />
-            )}
           </div>
         );
 
