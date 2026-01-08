@@ -8,6 +8,9 @@ export type RiskTolerance = "LOW" | "MEDIUM" | "HIGH";
 
 export type LongRunTolerance = "LOW" | "MEDIUM" | "HIGH";
 
+export type BikeDominance = "LOW" | "MEDIUM" | "HIGH";
+export type RunAfterBikeTolerance = "LOW" | "MEDIUM" | "HIGH";
+
 export interface TemplateProfile {
   id: string;
   name: string;
@@ -29,6 +32,9 @@ export interface TemplateProfile {
     risk_tolerance?: RiskTolerance;
     // Marathon-specific fields
     long_run_tolerance?: LongRunTolerance;
+    // 70.3-specific fields
+    bike_dominance?: BikeDominance;
+    run_after_bike_tolerance?: RunAfterBikeTolerance;
   };
 }
 
@@ -114,38 +120,48 @@ const MARATHON_INTERMEDIAIRE: TemplateProfile = {
   },
 };
 
-// 70.3 profiles
+// 70.3 profiles - Triathlon longue distance avec priorité vélo
 const IM703_PERFORMANCE: TemplateProfile = {
   id: "im703-perf",
-  name: "Performance",
+  name: "Performance 70.3",
   level: "PERFORMANCE",
-  targetTime: "~4h30",
-  description: "Triathlète complet avec forte capacité aérobie, économe sur les 3 sports.",
+  targetTime: "~4h15-4h45",
+  description: "Triathlète complet avec VLamax basse (<0.45), TTE élevé (≥50), forte capacité vélo. Priorité vélo, CAP post-vélo maîtrisée. Nutrition vélo 80-100g/h.",
   targets: {
-    vlamax_min: 0.30,
-    vlamax_max: 0.50,
+    vlamax_min: 0.28,
+    vlamax_max: 0.45,
     tte_min: 50,
     ftpkg_min: 4.2,
     run_economy: "good",
-    nutrition_min_gph: 70,
+    nutrition_min_gph: 80,
     nutrition_max_gph: 100,
+    nutrition_run_min_gph: 50,
+    nutrition_run_max_gph: 75,
+    risk_tolerance: "LOW",
+    bike_dominance: "HIGH",
+    run_after_bike_tolerance: "HIGH",
   },
 };
 
 const IM703_INTERMEDIAIRE: TemplateProfile = {
   id: "im703-inter",
-  name: "Intermédiaire",
+  name: "Finisher Ambitieux 70.3",
   level: "INTERMEDIAIRE",
   targetTime: "~5h30-6h30",
-  description: "Triathlète en progression, besoin de consolider endurance vélo avant CAP.",
+  description: "Triathlète en progression. VLamax modérée (0.35-0.55), TTE à consolider (≥45). Besoin de renforcer vélo avant CAP. Nutrition 60-80g/h vélo.",
   targets: {
-    vlamax_min: 0.50,
-    vlamax_max: 0.75,
-    tte_min: 40,
-    ftpkg_min: 3.4,
+    vlamax_min: 0.35,
+    vlamax_max: 0.55,
+    tte_min: 45,
+    ftpkg_min: 3.6,
     run_economy: "ok",
-    nutrition_min_gph: 50,
+    nutrition_min_gph: 60,
     nutrition_max_gph: 80,
+    nutrition_run_min_gph: 40,
+    nutrition_run_max_gph: 60,
+    risk_tolerance: "MEDIUM",
+    bike_dominance: "MEDIUM",
+    run_after_bike_tolerance: "MEDIUM",
   },
 };
 
@@ -227,6 +243,16 @@ export const TEMPLATE_PROFILES: Record<string, TemplateProfilePair> = {
     performance: IM703_PERFORMANCE,
     intermediaire: IM703_INTERMEDIAIRE,
   },
+  "ironman-703-24-semaines": {
+    templateId: "ironman-703-24-semaines",
+    performance: IM703_PERFORMANCE,
+    intermediaire: IM703_INTERMEDIAIRE,
+  },
+  "im703-24w": {
+    templateId: "im703-24w",
+    performance: IM703_PERFORMANCE,
+    intermediaire: IM703_INTERMEDIAIRE,
+  },
   "imkona": {
     templateId: "imkona",
     performance: IMKONA_PERFORMANCE,
@@ -254,11 +280,11 @@ export function getTemplateProfiles(templateId: string): TemplateProfilePair | n
     return TEMPLATE_PROFILES[lowerId];
   }
   
-  // Try partial match
+  // Try partial match (order matters: 703 before im/kona)
   if (lowerId.includes("semi")) return TEMPLATE_PROFILES["semi"];
   if (lowerId.includes("marathon") && !lowerId.includes("semi")) return TEMPLATE_PROFILES["marathon"];
-  if (lowerId.includes("703")) return TEMPLATE_PROFILES["703"];
-  if (lowerId.includes("kona") || lowerId.includes("im")) return TEMPLATE_PROFILES["im"];
+  if (lowerId.includes("703") || lowerId.includes("70.3")) return TEMPLATE_PROFILES["703"];
+  if (lowerId.includes("kona") || (lowerId.includes("im") && !lowerId.includes("703"))) return TEMPLATE_PROFILES["im"];
   
   return null;
 }
