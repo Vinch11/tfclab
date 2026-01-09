@@ -143,78 +143,83 @@ export function NutritionPredictiveChart({
           </div>
         )}
         
-        <div className="h-48 sm:h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 10, right: 15, bottom: 30, left: 35 }}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" />
-              
-              {/* Zone de risque digestif */}
-              <ReferenceArea
-                y1={digestiveThreshold}
-                y2={260}
-                fill="hsl(var(--destructive))"
-                fillOpacity={0.15}
-              />
-              
-              {/* Ligne seuil digestif */}
-              <ReferenceLine
-                y={digestiveThreshold}
-                stroke="hsl(var(--destructive))"
-                strokeWidth={1.5}
-                strokeDasharray="5 5"
-                label={{ 
-                  value: `Seuil ${digestiveThreshold}g/h`, 
-                  position: 'right', 
-                  fontSize: 9,
-                  fill: 'hsl(var(--destructive))',
-                  offset: 5
-                }}
-              />
-              
-              <XAxis
-                dataKey="intensity"
-                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                tickFormatter={(val) => `${val}%`}
-                label={{ value: 'Intensité (%FTP)', position: 'bottom', fontSize: 11, offset: 0, fill: 'hsl(var(--muted-foreground))' }}
-                stroke="hsl(var(--border))"
-              />
-              <YAxis
-                domain={[0, 260]}
-                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                tickFormatter={(val) => `${val}`}
-                label={{ value: 'g/h', angle: -90, position: 'insideLeft', fontSize: 11, fill: 'hsl(var(--muted-foreground))', offset: -20 }}
-                stroke="hsl(var(--border))"
-              />
-              
-              <Tooltip content={<CustomTooltip sport={sport} />} />
-              
-              {/* Plage acceptable (entre min et max) */}
-              <Area
-                type="monotone"
-                dataKey="max"
-                stroke="none"
-                fill="hsl(var(--primary))"
-                fillOpacity={0.25}
-              />
-              <Area
-                type="monotone"
-                dataKey="min"
-                stroke="none"
-                fill="hsl(var(--background))"
-                fillOpacity={0.9}
-              />
-              
-              {/* Ligne recommandée */}
-              <Area
-                type="monotone"
-                dataKey="recommended"
-                stroke="hsl(var(--primary))"
-                strokeWidth={2.5}
-                fill="none"
-                dot={{ r: 4, fill: "hsl(var(--primary))", strokeWidth: 2, stroke: "hsl(var(--background))" }}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+        <div className="h-48 sm:h-64 flex">
+          {/* Y-axis label externe */}
+          <div className="flex items-center justify-center w-6 shrink-0">
+            <span className="text-[11px] text-muted-foreground -rotate-90 whitespace-nowrap">g/h</span>
+          </div>
+          <div className="flex-1">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={data} margin={{ top: 10, right: 50, bottom: 30, left: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" />
+                
+                {/* Zone de risque digestif */}
+                <ReferenceArea
+                  y1={digestiveThreshold}
+                  y2={260}
+                  fill="hsl(var(--destructive))"
+                  fillOpacity={0.12}
+                />
+                
+                {/* Ligne seuil digestif */}
+                <ReferenceLine
+                  y={digestiveThreshold}
+                  stroke="hsl(var(--destructive))"
+                  strokeWidth={1.5}
+                  strokeDasharray="5 5"
+                  label={{ 
+                    value: `Seuil`, 
+                    position: 'insideTopRight', 
+                    fontSize: 10,
+                    fill: 'hsl(var(--destructive))'
+                  }}
+                />
+                
+                <XAxis
+                  dataKey="intensity"
+                  tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                  tickFormatter={(val) => `${val}%`}
+                  label={{ value: 'Intensité (%FTP)', position: 'bottom', fontSize: 11, offset: 0, fill: 'hsl(var(--muted-foreground))' }}
+                  stroke="hsl(var(--border))"
+                />
+                <YAxis
+                  domain={[0, 260]}
+                  tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                  tickFormatter={(val) => `${val}`}
+                  stroke="hsl(var(--border))"
+                  width={30}
+                />
+                
+                <Tooltip content={<CustomTooltip sport={sport} />} />
+                
+                {/* Plage acceptable (entre min et max) */}
+                <Area
+                  type="monotone"
+                  dataKey="max"
+                  stroke="none"
+                  fill="hsl(var(--primary))"
+                  fillOpacity={0.25}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="min"
+                  stroke="none"
+                  fill="hsl(var(--background))"
+                  fillOpacity={0.9}
+                />
+                
+                {/* Ligne recommandée */}
+                <Area
+                  type="monotone"
+                  dataKey="recommended"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2.5}
+                  fill="none"
+                  dot={{ r: 4, fill: "hsl(var(--primary))", strokeWidth: 2, stroke: "hsl(var(--background))" }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
         
         {/* Légende */}
