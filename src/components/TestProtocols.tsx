@@ -351,17 +351,19 @@ export function TestProtocols({ className, onTestSaved, athlete, onAthleteUpdate
                   <p className="text-sm text-muted-foreground truncate">{test.objectif}</p>
                 </div>
 
-                <div className="hidden sm:flex items-center gap-3">
-                  {test.type === "VLAMAX" && test.fiabilite !== null && (
-                    <Badge variant={fiab.variant} className="text-xs">
-                      {Math.round(test.fiabilite * 100)}% fiable
-                    </Badge>
-                  )}
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <span className="hidden sm:flex">
+                    {test.type === "VLAMAX" && test.fiabilite !== null && (
+                      <Badge variant={fiab.variant} className="text-xs">
+                        {Math.round(test.fiabilite * 100)}% fiable
+                      </Badge>
+                    )}
+                  </span>
                   {/* Bouton masquer/afficher */}
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-8 w-8 flex-shrink-0"
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleHiddenTest(test.id);
