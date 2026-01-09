@@ -1,37 +1,14 @@
-import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   GraduationCap, 
-  Search, 
   ChevronLeft, 
   BookOpen, 
-  AlertTriangle,
-  Copy,
-  Check,
-  FileText,
-  Users,
-  Target,
-  Shield,
-  BarChart3,
-  Settings,
-  Bike,
-  Footprints,
-  CheckCircle2,
-  Info,
-  Zap,
-  Timer,
-  Flame,
-  Activity,
-  TrendingUp,
-  Heart,
-  Clock
+  Scale,
+  Compass,
+  Layers,
+  ShieldCheck
 } from "lucide-react";
-import { AGE_METHODOLOGY } from "@/lib/ageAdjustment";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Accordion,
@@ -39,1202 +16,127 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { academySections, AcademySection, ContentBlock, TableData } from "@/data/academyContent";
-import { loadAcademyHtml } from "@/lib/academy/academyDocxLoader";
-import { useToast } from "@/hooks/use-toast";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+// Données de la table des constantes physiologiques
+const PHYSIOLOGICAL_CONSTANTS = [
+  {
+    domain: "Économie de course (CAP)",
+    constant: "Coût énergétique de la course (ECOR)",
+    value: "3.6 – 4.5 J·kg⁻¹·m⁻¹ (≈ 4.0 par défaut)",
+    source: "di Prampero, Margaria",
+    robustness: "Variable inter-individuelle",
+    usage: "Conversion vitesse → puissance métabolique"
+  },
+  {
+    domain: "Cyclisme",
+    constant: "Efficacité mécanique",
+    value: "20–24 %",
+    source: "Coyle, Mader",
+    robustness: "Stable",
+    usage: "FTP, Pmax, TTE"
+  },
+  {
+    domain: "Seuil aérobie (SV1)",
+    constant: "Lactate ≈ 2 mmol/L",
+    value: "2 mmol/L",
+    source: "Mader, Heck",
+    robustness: "Convention",
+    usage: "Définition zones Z2–Z3"
+  },
+  {
+    domain: "Seuil anaérobie (SV2 / MLSS)",
+    constant: "Lactate ≈ 4 mmol/L",
+    value: "4 mmol/L",
+    source: "Heck (1985)",
+    robustness: "Convention",
+    usage: "TTE, endurance spécifique"
+  },
+  {
+    domain: "Métabolisme",
+    constant: "Conversion énergie ↔ lactate",
+    value: "60–65 J·kg⁻¹ / mmol",
+    source: "Mader",
+    robustness: "Modélisation",
+    usage: "Estimation VLamax"
+  },
+  {
+    domain: "Cinétique VO₂",
+    constant: "Part aérobie sur sprint",
+    value: "20–35 % de VO₂max",
+    source: "Whipp, Billat",
+    robustness: "Dépend contexte",
+    usage: "Correction VLamax sprint"
+  },
+  {
+    domain: "Alactique (PCr)",
+    constant: "Délai phosphocréatine",
+    value: "5–7 secondes",
+    source: "Bogdanis",
+    robustness: "Moyenne population",
+    usage: "Tests anaérobies"
+  },
+  {
+    domain: "Endurance au seuil",
+    constant: "TTE (MLSS)",
+    value: "35–70 minutes",
+    source: "Billat, INSCYD",
+    robustness: "Concept robuste",
+    usage: "Durabilité, Race Readiness"
+  },
+  {
+    domain: "Substrats énergétiques",
+    constant: "Relation VLamax ↔ glucides",
+    value: "Relation inverse qualitative",
+    source: "Mader, San Millán",
+    robustness: "Forte",
+    usage: "Nutrition prédictive (g/h)"
+  },
+  {
+    domain: "Charge d'entraînement",
+    constant: "TSS",
+    value: "Modèle Coggan",
+    source: "Coggan",
+    robustness: "Indirecte",
+    usage: "Proxy fatigue / TTE"
+  }
+];
 
 export default function AcademyPage() {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [staffMode, setStaffMode] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [docxHtml, setDocxHtml] = useState<string | null>(null);
-  const [docxError, setDocxError] = useState(false);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [activeMainTab, setActiveMainTab] = useState("methodology");
-
-  // Load DOCX content
-  useEffect(() => {
-    loadAcademyHtml()
-      .then(setDocxHtml)
-      .catch(() => setDocxError(true));
-  }, []);
-
-  // Filter sections based on search and staff mode
-  const filteredSections = useMemo(() => {
-    let sections = academySections;
-
-    // Filter by staff level
-    if (!staffMode) {
-      sections = sections.filter((s) => s.level === "basic");
-    }
-
-    // Filter by search query
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      sections = sections.filter((section) => {
-        // Match title
-        if (section.title.toLowerCase().includes(query)) return true;
-        // Match tags
-        if (section.tags.some((tag) => tag.toLowerCase().includes(query))) return true;
-        // Match block content
-        return section.blocks.some((block) => {
-          if (typeof block.content === "string") {
-            return block.content.toLowerCase().includes(query);
-          }
-          if (Array.isArray(block.content)) {
-            return block.content.some((item) => item.toLowerCase().includes(query));
-          }
-          return false;
-        });
-      });
-    }
-
-    return sections;
-  }, [staffMode, searchQuery]);
-
-  // Copy to clipboard
-  const handleCopy = async (text: string, id: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedId(id);
-      toast({ title: "Copié !", description: "Texte copié dans le presse-papier" });
-      setTimeout(() => setCopiedId(null), 2000);
-    } catch {
-      toast({ title: "Erreur", description: "Impossible de copier", variant: "destructive" });
-    }
-  };
-
-  // Render a content block
-  const renderBlock = (block: ContentBlock, sectionId: string, blockIndex: number) => {
-    // Skip staff-only blocks if not in staff mode
-    if (block.staffOnly && !staffMode) return null;
-
-    const blockId = `${sectionId}-${blockIndex}`;
-
-    switch (block.type) {
-      case "text":
-        return (
-          <div key={blockId} className="space-y-2">
-            {block.title && (
-              <h4 className="font-semibold text-foreground">{block.title}</h4>
-            )}
-            <p className="text-muted-foreground leading-relaxed">{block.content as string}</p>
-          </div>
-        );
-
-      case "bullets":
-        return (
-          <div key={blockId} className="space-y-2">
-            {block.title && (
-              <h4 className="font-semibold text-foreground">{block.title}</h4>
-            )}
-            <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-              {(block.content as string[]).map((item, i) => (
-                <li key={i} className="leading-relaxed">{item}</li>
-              ))}
-            </ul>
-          </div>
-        );
-
-      case "table":
-        const tableData = block.content as TableData;
-        return (
-          <div key={blockId} className="space-y-2">
-            {block.title && (
-              <h4 className="font-semibold text-foreground">{block.title}</h4>
-            )}
-            <div className="overflow-x-auto -mx-4 px-4">
-              <table className="w-full min-w-[600px] text-sm border-collapse">
-                <thead>
-                  <tr className="border-b border-border">
-                    {tableData.headers.map((header, i) => (
-                      <th key={i} className="text-left p-2 font-semibold text-foreground bg-muted/50">
-                        {header}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {tableData.rows.map((row, i) => (
-                    <tr key={i} className="border-b border-border/50 hover:bg-muted/30">
-                      {row.map((cell, j) => (
-                        <td key={j} className="p-2 text-muted-foreground">
-                          {cell}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
-
-      case "callout":
-        const isStaffCallout = block.staffOnly;
-        return (
-          <Card 
-            key={blockId} 
-            className={`${isStaffCallout ? "border-amber-500/50 bg-amber-500/5" : "border-primary/30 bg-primary/5"}`}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-start gap-3 flex-1">
-                  {isStaffCallout ? (
-                    <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                  ) : (
-                    <BookOpen className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                  )}
-                  <div className="space-y-1 flex-1">
-                    {block.title && (
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-semibold text-foreground">{block.title}</h4>
-                        {isStaffCallout && (
-                          <Badge variant="outline" className="text-xs border-amber-500/50 text-amber-600">
-                            Staff
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-                    <p className="text-muted-foreground leading-relaxed">{block.content as string}</p>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="shrink-0 h-8 w-8"
-                  onClick={() => handleCopy(block.content as string, blockId)}
-                >
-                  {copiedId === blockId ? (
-                    <Check className="w-4 h-4 text-green-500" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  // Render section
-  const renderSection = (section: AcademySection) => {
-    // Filter blocks based on staff mode
-    const visibleBlocks = section.blocks.filter(
-      (block) => !block.staffOnly || staffMode
-    );
-
-    return (
-      <AccordionItem key={section.id} value={section.id}>
-        <AccordionTrigger className="hover:no-underline px-4">
-          <div className="flex items-center gap-3 flex-1">
-            <span className="font-semibold text-left">{section.title}</span>
-            {section.level === "staff" && (
-              <Badge variant="outline" className="text-xs border-amber-500/50 text-amber-600">
-                Staff
-              </Badge>
-            )}
-          </div>
-        </AccordionTrigger>
-        <AccordionContent className="px-4 pb-4">
-          <div className="space-y-4">
-            {/* Tags */}
-            <div className="flex flex-wrap gap-1.5">
-              {section.tags.slice(0, 6).map((tag) => (
-                <Badge 
-                  key={tag} 
-                  variant="secondary" 
-                  className="text-xs cursor-pointer hover:bg-secondary/80"
-                  onClick={() => setSearchQuery(tag)}
-                >
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-            
-            {/* Blocks */}
-            <div className="space-y-4">
-              {visibleBlocks.map((block, i) => renderBlock(block, section.id, i))}
-            </div>
-          </div>
-        </AccordionContent>
-      </AccordionItem>
-    );
-  };
-
-  // Render Methodology Content (from MethodologyStaff component style)
-  const renderMethodologyContent = () => (
-    <div className="space-y-8 animate-fade-in max-w-4xl mx-auto pb-8">
-      {/* Header principal */}
-      <div className="glass-card p-6 border-primary/30 rounded-lg bg-card border">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="p-4 rounded-xl bg-primary/10 text-primary">
-            <GraduationCap className="w-8 h-8" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">🧠 Méthodologie scientifique — Two For Coaching Lab</h1>
-            <p className="text-muted-foreground">Référentiel officiel d'interprétation physiologique pour coachs et staff</p>
-          </div>
-        </div>
-        <Separator className="my-4" />
-        <p className="text-sm text-muted-foreground">
-          Two For Coaching Lab est un laboratoire de performance destiné aux coachs et staffs d'endurance.
-          L'application ne fournit pas de vérité absolue, mais des indicateurs physiologiques cohérents permettant de comprendre 
-          comment un athlète produit, soutient et utilise son énergie selon son objectif.
-          Toutes les analyses sont contextualisées, pondérées par la discipline et la distance, et conçues pour soutenir la décision humaine — jamais la remplacer.
-        </p>
-      </div>
-
-      {/* Messages clés - Positionnement */}
-      <Card className="border-warning/30 bg-warning/5">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3 text-foreground">
-            <div className="p-2 rounded-lg bg-warning/10 text-warning">
-              <AlertTriangle className="w-5 h-5" />
-            </div>
-            ⚡ Messages clés à retenir
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded-lg bg-background border border-border">
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                <p className="text-sm text-muted-foreground">
-                  <strong className="text-foreground">Race Readiness est un outil staff</strong>, pondéré par l'objectif de course
-                </p>
-              </div>
-            </div>
-            <div className="p-4 rounded-lg bg-background border border-border">
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                <p className="text-sm text-muted-foreground">
-                  <strong className="text-foreground">VLamax et TTE n'ont pas de valeur universelle</strong> — ils dépendent du sport et de l'objectif
-                </p>
-              </div>
-            </div>
-            <div className="p-4 rounded-lg bg-background border border-border">
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                <p className="text-sm text-muted-foreground">
-                  <strong className="text-foreground">Vélo et course à pied</strong> obéissent à des logiques physiologiques différentes
-                </p>
-              </div>
-            </div>
-            <div className="p-4 rounded-lg bg-background border border-border">
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                <p className="text-sm text-muted-foreground">
-                  <strong className="text-foreground">Two For Coaching Lab structure la décision du coach</strong>, il ne la remplace pas
-                </p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* SECTION 1 : Race Readiness */}
-      <Card className="border-primary/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3 text-foreground">
-            <div className="p-2 rounded-lg bg-primary/10 text-primary">
-              <Target className="w-5 h-5" />
-            </div>
-            🎯 Race Readiness — Score de préparation pondéré
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div>
-            <h4 className="font-semibold text-foreground mb-3">Définition</h4>
-            <p className="text-muted-foreground text-sm">
-              Le score Race Readiness combine quatre dimensions physiologiques pour estimer la capacité de l'athlète 
-              à performer sur son objectif de course. <strong className="text-foreground">Ce n'est pas un prédicteur de performance</strong>, 
-              mais un indicateur de cohérence entre le profil physiologique actuel et les exigences de l'objectif.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-foreground mb-3">Composantes du score</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="p-3 rounded-lg bg-secondary/50 border border-border">
-                <p className="font-medium text-foreground text-sm">VLamax (Moteur glycolytique)</p>
-                <p className="text-xs text-muted-foreground mt-1">Capacité anaérobie lactique — doit être dans la plage cible</p>
-              </div>
-              <div className="p-3 rounded-lg bg-secondary/50 border border-border">
-                <p className="font-medium text-foreground text-sm">TTE (Endurance au seuil)</p>
-                <p className="text-xs text-muted-foreground mt-1">Time To Exhaustion — temps tenable à FTP/CSS</p>
-              </div>
-              <div className="p-3 rounded-lg bg-secondary/50 border border-border">
-                <p className="font-medium text-foreground text-sm">FTP/kg (Puissance relative)</p>
-                <p className="text-xs text-muted-foreground mt-1">Puissance ou allure au seuil rapportée au poids</p>
-              </div>
-              <div className="p-3 rounded-lg bg-secondary/50 border border-border">
-                <p className="font-medium text-foreground text-sm">Fraîcheur</p>
-                <p className="text-xs text-muted-foreground mt-1">État de fatigue, séance spécifique validée</p>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-foreground mb-3">Pondération par objectif</h4>
-            <p className="text-muted-foreground text-sm mb-3">
-              Le poids de chaque composante varie selon l'objectif. Un Ironman valorise davantage l'endurance (TTE) 
-              et un VLamax bas, tandis qu'un 70.3 privilégie la puissance relative.
-            </p>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-2 px-3 text-foreground">Objectif</th>
-                    <th className="text-center py-2 px-2 text-foreground">VLamax</th>
-                    <th className="text-center py-2 px-2 text-foreground">TTE</th>
-                    <th className="text-center py-2 px-2 text-foreground">FTP/kg</th>
-                    <th className="text-center py-2 px-2 text-foreground">Fraîcheur</th>
-                  </tr>
-                </thead>
-                <tbody className="text-muted-foreground">
-                  <tr className="border-b border-border/50">
-                    <td className="py-2 px-3">Ironman / Ultra</td>
-                    <td className="text-center py-2 px-2">30%</td>
-                    <td className="text-center py-2 px-2">30%</td>
-                    <td className="text-center py-2 px-2">20%</td>
-                    <td className="text-center py-2 px-2">20%</td>
-                  </tr>
-                  <tr className="border-b border-border/50">
-                    <td className="py-2 px-3">70.3 / Half</td>
-                    <td className="text-center py-2 px-2">25%</td>
-                    <td className="text-center py-2 px-2">25%</td>
-                    <td className="text-center py-2 px-2">30%</td>
-                    <td className="text-center py-2 px-2">20%</td>
-                  </tr>
-                  <tr className="border-b border-border/50">
-                    <td className="py-2 px-3">Marathon / Semi</td>
-                    <td className="text-center py-2 px-2">20%</td>
-                    <td className="text-center py-2 px-2">35%</td>
-                    <td className="text-center py-2 px-2">30%</td>
-                    <td className="text-center py-2 px-2">15%</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 px-3">Trail</td>
-                    <td className="text-center py-2 px-2">25%</td>
-                    <td className="text-center py-2 px-2">35%</td>
-                    <td className="text-center py-2 px-2">20%</td>
-                    <td className="text-center py-2 px-2">20%</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-            <p className="text-sm text-muted-foreground">
-              <strong className="text-foreground">⚠️ Interprétation</strong> : Un score de 75 pour un Ironman et un score de 75 pour un 70.3 
-              ne signifient pas la même chose. Le score est <strong className="text-foreground">relatif à l'objectif déclaré</strong>.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* SECTION 2 : VLamax */}
-      <Card className="border-accent/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3 text-foreground">
-            <div className="p-2 rounded-lg bg-accent/10 text-accent">
-              <BarChart3 className="w-5 h-5" />
-            </div>
-            ⚡ VLamax — Capacité glycolytique maximale
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div>
-            <h4 className="font-semibold text-foreground mb-3">Définition</h4>
-            <p className="text-muted-foreground text-sm">
-              VLamax (mmol/L/s) représente la vitesse maximale de production de lactate par la voie glycolytique. 
-              C'est un indicateur du "moteur anaérobie" de l'athlète. Une VLamax élevée favorise les efforts courts et intenses, 
-              une VLamax basse favorise l'endurance et l'économie métabolique.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-foreground mb-3">Plages cibles selon l'objectif</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="p-3 rounded-lg bg-success/10 border border-success/20">
-                <p className="font-medium text-foreground text-sm">Ironman / Ultra-endurance</p>
-                <p className="text-xs text-muted-foreground mt-1">Cible : 0.25 – 0.40 mmol/L/s</p>
-              </div>
-              <div className="p-3 rounded-lg bg-success/10 border border-success/20">
-                <p className="font-medium text-foreground text-sm">70.3 / Half Distance</p>
-                <p className="text-xs text-muted-foreground mt-1">Cible : 0.25 – 0.45 mmol/L/s</p>
-              </div>
-              <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
-                <p className="font-medium text-foreground text-sm">Marathon / Semi-marathon</p>
-                <p className="text-xs text-muted-foreground mt-1">Cible : 0.30 – 0.50 mmol/L/s</p>
-              </div>
-              <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
-                <p className="font-medium text-foreground text-sm">Trail</p>
-                <p className="text-xs text-muted-foreground mt-1">Cible : 0.25 – 0.45 mmol/L/s</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-lg bg-secondary border border-border space-y-4">
-            <h4 className="font-semibold text-foreground mb-2">💡 Pourquoi la VLamax n'est pas saisissable directement ?</h4>
-            <p className="text-sm text-muted-foreground">
-              La VLamax est une donnée physiologique complexe qui doit soit être <strong className="text-foreground">mesurée en laboratoire</strong>, 
-              soit <strong className="text-foreground">estimée à partir de tests de terrain</strong>.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Pour garantir la <strong className="text-foreground">cohérence et la fiabilité</strong> des analyses, 
-              Two For Coaching Lab calcule automatiquement la VLamax à partir des données du snapshot (FTP, Pmax 5s, poids).
-            </p>
-            <p className="text-sm text-muted-foreground">
-              En <strong className="text-foreground">mode Staff</strong>, il est possible de renseigner une VLamax mesurée (lactate) qui devient alors la référence principale.
-            </p>
-          </div>
-
-          <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-            <h4 className="font-semibold text-foreground mb-3">🔒 Hiérarchie des sources VLamax</h4>
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <Badge variant="outline" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 shrink-0">
-                  #1
-                </Badge>
-                <p className="text-sm text-muted-foreground">
-                  <strong className="text-foreground">VLamax mesurée (lactate)</strong> — Confiance ~95% • Mode Staff uniquement
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <Badge variant="outline" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 shrink-0">
-                  #2
-                </Badge>
-                <p className="text-sm text-muted-foreground">
-                  <strong className="text-foreground">Test terrain structuré</strong> — Confiance ~75% • Sprint 15s, all-out, ramp test
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <Badge variant="outline" className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 shrink-0">
-                  #3
-                </Badge>
-                <p className="text-sm text-muted-foreground">
-                  <strong className="text-foreground">Estimation via snapshot</strong> — Confiance ~55% • Basée sur FTP/kg et Pmax
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <Badge variant="outline" className="bg-muted text-muted-foreground shrink-0">
-                  #4
-                </Badge>
-                <p className="text-sm text-muted-foreground">
-                  <strong className="text-foreground">Valeur par défaut</strong> — Confiance faible • Avertissement affiché
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-lg bg-warning/5 border border-warning/20">
-            <p className="text-sm text-muted-foreground">
-              <strong className="text-foreground">⚠️ Attention</strong> : Une VLamax "trop basse" peut indiquer un manque de capacité à relancer, 
-              problématique en trail ou en course avec variations de rythme. L'optimum dépend du profil de course.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* SECTION 3 : TTE */}
-      <Card className="border-warning/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3 text-foreground">
-            <div className="p-2 rounded-lg bg-warning/10 text-warning">
-              <Info className="w-5 h-5" />
-            </div>
-            ⏱️ TTE — Time To Exhaustion
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div>
-            <h4 className="font-semibold text-foreground mb-3">Définition</h4>
-            <p className="text-muted-foreground text-sm">
-              Le TTE (Time To Exhaustion) représente le temps maximal théorique qu'un athlète peut tenir à son seuil fonctionnel 
-              (FTP en vélo, CSS en natation, allure seuil en course à pied). C'est un marqueur clé de l'endurance au seuil.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-foreground mb-3">Cibles selon l'objectif</h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="p-3 rounded-lg bg-secondary/50 border border-border text-center">
-                <p className="text-xs text-muted-foreground">Ironman</p>
-                <p className="font-bold text-foreground">55+ min</p>
-              </div>
-              <div className="p-3 rounded-lg bg-secondary/50 border border-border text-center">
-                <p className="text-xs text-muted-foreground">70.3</p>
-                <p className="font-bold text-foreground">50+ min</p>
-              </div>
-              <div className="p-3 rounded-lg bg-secondary/50 border border-border text-center">
-                <p className="text-xs text-muted-foreground">Marathon</p>
-                <p className="font-bold text-foreground">50+ min</p>
-              </div>
-              <div className="p-3 rounded-lg bg-secondary/50 border border-border text-center">
-                <p className="text-xs text-muted-foreground">Trail</p>
-                <p className="font-bold text-foreground">55+ min</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-lg bg-secondary border border-border">
-            <h4 className="font-semibold text-foreground mb-2">💡 TTE Effectif</h4>
-            <p className="text-sm text-muted-foreground">
-              Le TTE Effectif est calculé soit à partir d'une observation directe (test terrain ou course), 
-              soit estimé via un modèle basé sur la charge d'entraînement (TSS/7j) et le profil métabolique.
-            </p>
-          </div>
-
-          <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-            <p className="text-sm text-muted-foreground">
-              <strong className="text-foreground">📊 Méthode PRO</strong> : Lorsque le mode TTE Pro est activé, 
-              le calcul intègre le modèle de Dan Lorang pour une estimation plus précise basée sur VLamax et VO2max.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* SECTION 4 : Vélo vs Course à pied */}
-      <Card className="border-primary/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3 text-foreground">
-            <div className="p-2 rounded-lg bg-primary/10 text-primary">
-              <Bike className="w-5 h-5" />
-            </div>
-            🚴‍♂️ Vélo vs 🏃‍♂️ Course à pied — Comprendre les différences physiologiques clés
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-8">
-          <div>
-            <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-              <span className="text-primary">1️⃣</span> Le vélo et la course à pied ne sollicitent pas le métabolisme de la même façon
-            </h4>
-            <p className="text-muted-foreground text-sm">
-              Dans Two For Coaching Lab, les indicateurs VLamax, TTE et Race Readiness doivent toujours être interprétés 
-              en tenant compte du sport pratiqué.
-            </p>
-            <div className="p-3 rounded-lg bg-warning/10 border border-warning/20 mt-3">
-              <p className="text-sm text-foreground font-medium">
-                ➡️ Une même valeur physiologique n'a PAS la même signification en vélo et en course à pied.
-              </p>
-            </div>
-          </div>
-
-          <Separator />
-
-          <div>
-            <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-              <span className="text-primary">2️⃣</span> Économie de mouvement : la grande différence clé
-            </h4>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-                <div className="flex items-center gap-2 mb-3">
-                  <Bike className="w-5 h-5 text-primary" />
-                  <h5 className="font-semibold text-foreground">Vélo</h5>
-                </div>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• Mouvement contraint, mécanique et très stable</li>
-                  <li>• Rendement élevé et mesurable directement via la puissance</li>
-                  <li>• L'économie est principalement liée au rendement neuromusculaire et au positionnement</li>
-                </ul>
-                <div className="mt-3 p-2 rounded bg-primary/10">
-                  <p className="text-xs text-foreground font-medium">
-                    ➡️ Le vélo est un sport <strong>hautement prédictible</strong> physiologiquement
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-lg bg-accent/5 border border-accent/20">
-                <div className="flex items-center gap-2 mb-3">
-                  <Footprints className="w-5 h-5 text-accent" />
-                  <h5 className="font-semibold text-foreground">Course à pied</h5>
-                </div>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• Mouvement libre, impactant, très dépendant de la technique</li>
-                  <li>• L'économie de course varie énormément entre deux athlètes au même VO₂max</li>
-                  <li>• La fatigue musculaire et tendineuse joue un rôle majeur</li>
-                </ul>
-                <div className="mt-3 p-2 rounded bg-accent/10">
-                  <p className="text-xs text-foreground font-medium">
-                    ➡️ En CAP, <strong>l'économie de course est souvent plus déterminante</strong> que le VO₂max ou le VLamax
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-lg bg-secondary border border-border">
-            <p className="text-sm text-muted-foreground italic text-center">
-              "Les modèles physiologiques sont plus robustes en vélo qu'en course à pied.<br />
-              Two For Coaching Lab adapte donc ses interprétations pour respecter la réalité du terrain."
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Indice de Confiance */}
-      <Card className="border-success/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3 text-foreground">
-            <div className="p-2 rounded-lg bg-success/10 text-success">
-              <Shield className="w-5 h-5" />
-            </div>
-            🔬 Indice de confiance – Définition et usage
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4 text-muted-foreground">
-          <p className="text-sm">
-            L'indice de confiance indique le <strong className="text-foreground">niveau de fiabilité scientifique</strong> des valeurs affichées (VLamax, TTE, Race Readiness).
-            Il ne mesure pas la performance de l'athlète, mais la <strong className="text-foreground">qualité des données</strong> utilisées pour produire l'analyse.
-          </p>
-          
-          <div className="p-4 rounded-lg bg-success/10 border border-success/20">
-            <p className="text-sm">
-              <strong className="text-foreground">Une valeur élevée signifie</strong> que le résultat repose sur :
-            </p>
-            <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
-              <li>des tests terrain structurés,</li>
-              <li>des protocoles connus,</li>
-              <li>ou des snapshots complets et cohérents.</li>
-            </ul>
-          </div>
-          
-          <div className="p-4 rounded-lg bg-warning/10 border border-warning/20">
-            <p className="text-sm">
-              <strong className="text-foreground">Une valeur plus faible indique</strong> que la donnée est :
-            </p>
-            <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
-              <li>estimée indirectement,</li>
-              <li>ou calculée à partir de modèles physiologiques et de charge d'entraînement.</li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  // Render Comprendre mes scores Content
-  const renderComprendreContent = () => (
-    <div className="space-y-6 animate-fade-in max-w-4xl mx-auto pb-8">
-      {/* Section VLamax */}
-      <Card className="border-primary/20">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <Zap className="w-5 h-5 text-yellow-500" />
-            VLamax – Vitesse maximale de production de lactate
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground">
-            Le VLamax (ou VLa max) mesure la puissance de votre système anaérobie glycolytique, 
-            c'est-à-dire votre capacité à produire de l'énergie rapidement à partir des glucides.
-          </p>
-          
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="interpretation">
-              <AccordionTrigger className="text-sm font-medium">
-                📊 Comment interpréter le VLamax ?
-              </AccordionTrigger>
-              <AccordionContent className="space-y-3">
-                <div className="grid gap-2">
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-green-500/10">
-                    <Badge variant="outline" className="bg-green-500/20 text-green-700">{"< 0.30"}</Badge>
-                    <span className="text-sm">Profil très endurant – idéal pour Ironman/Ultra</span>
-                  </div>
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-500/10">
-                    <Badge variant="outline" className="bg-blue-500/20 text-blue-700">0.30 – 0.40</Badge>
-                    <span className="text-sm">Équilibré – polyvalent pour 70.3 / Marathon</span>
-                  </div>
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-orange-500/10">
-                    <Badge variant="outline" className="bg-orange-500/20 text-orange-700">0.40 – 0.50</Badge>
-                    <span className="text-sm">Glycolytique – favorise les efforts courts</span>
-                  </div>
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-red-500/10">
-                    <Badge variant="outline" className="bg-red-500/20 text-red-700">{"> 0.50"}</Badge>
-                    <span className="text-sm">Très glycolytique – adapté sprints/explosivité</span>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-            
-            <AccordionItem value="impact">
-              <AccordionTrigger className="text-sm font-medium">
-                💡 Impact sur la performance
-              </AccordionTrigger>
-              <AccordionContent>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• <strong>VLamax élevé</strong> → consommation glucidique importante = risque de défaillance énergétique sur longue distance</li>
-                  <li>• <strong>VLamax bas</strong> → meilleure utilisation des graisses = économie de glycogène</li>
-                  <li>• La cible dépend de votre objectif : ce qui est bon pour un sprinteur est mauvais pour un Ironman</li>
-                </ul>
-              </AccordionContent>
-            </AccordionItem>
-            
-            <AccordionItem value="sources">
-              <AccordionTrigger className="text-sm font-medium">
-                🔬 Sources de données (hiérarchie)
-              </AccordionTrigger>
-              <AccordionContent>
-                <ol className="space-y-2 text-sm text-muted-foreground list-decimal list-inside">
-                  <li><strong>Test lactate</strong> – mesure directe en laboratoire (gold standard)</li>
-                  <li><strong>Test terrain</strong> – protocole sprint/récup validé</li>
-                  <li><strong>Estimation snapshot</strong> – calcul basé sur FTP/Pmax</li>
-                  <li><strong>Valeur par défaut</strong> – estimation générique selon l'objectif</li>
-                </ol>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </CardContent>
-      </Card>
-
-      {/* Section TTE */}
-      <Card className="border-blue-500/20">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <Timer className="w-5 h-5 text-blue-500" />
-            TTE – Time To Exhaustion
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground">
-            Le TTE représente la durée maximale pendant laquelle vous pouvez maintenir une intensité 
-            donnée (généralement au seuil). C'est un indicateur clé de l'endurance.
-          </p>
-          
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="interpretation">
-              <AccordionTrigger className="text-sm font-medium">
-                📊 Comment interpréter le TTE ?
-              </AccordionTrigger>
-              <AccordionContent className="space-y-3">
-                <div className="grid gap-2">
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-red-500/10">
-                    <Badge variant="outline" className="bg-red-500/20 text-red-700">{"< 30 min"}</Badge>
-                    <span className="text-sm">Insuffisant pour longue distance</span>
-                  </div>
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-orange-500/10">
-                    <Badge variant="outline" className="bg-orange-500/20 text-orange-700">30 – 45 min</Badge>
-                    <span className="text-sm">Correct pour formats courts</span>
-                  </div>
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-500/10">
-                    <Badge variant="outline" className="bg-blue-500/20 text-blue-700">45 – 60 min</Badge>
-                    <span className="text-sm">Bon pour 70.3 / Marathon</span>
-                  </div>
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-green-500/10">
-                    <Badge variant="outline" className="bg-green-500/20 text-green-700">{"> 60 min"}</Badge>
-                    <span className="text-sm">Excellent – prêt pour Ironman</span>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-            
-            <AccordionItem value="calcul">
-              <AccordionTrigger className="text-sm font-medium">
-                ⚙️ Comment est-il calculé ?
-              </AccordionTrigger>
-              <AccordionContent>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• <strong>Mode OBSERVED</strong> → test réel effectué (valeur directe)</li>
-                  <li>• <strong>Mode LOAD</strong> → estimation basée sur la charge d'entraînement (TSS)</li>
-                  <li>• Le TTE estimé tient compte du volume et de l'intensité des 7 derniers jours</li>
-                </ul>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </CardContent>
-      </Card>
-
-      {/* Section Risque Glycolytique */}
-      <Card className="border-orange-500/20">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <AlertTriangle className="w-5 h-5 text-orange-500" />
-            Risque Glycolytique
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground">
-            Le risque glycolytique est un indicateur de la dépendance de l'athlète aux glucides 
-            à l'intensité cible de son objectif.
-          </p>
-          
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="composantes">
-              <AccordionTrigger className="text-sm font-medium">
-                🧩 Composantes du risque
-              </AccordionTrigger>
-              <AccordionContent>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• <strong>VLamax</strong> – vitesse de production du lactate</li>
-                  <li>• <strong>TTE</strong> – capacité à maintenir une intensité élevée</li>
-                  <li>• <strong>Durée et intensité</strong> de l'épreuve visée</li>
-                </ul>
-                <p className="mt-3 text-sm">
-                  Un risque élevé signifie que l'athlète utilise rapidement ses réserves de glucides 
-                  et peut rencontrer une baisse de performance si la nutrition et l'endurance ne sont pas adaptées.
-                </p>
-              </AccordionContent>
-            </AccordionItem>
-            
-            <AccordionItem value="echelle">
-              <AccordionTrigger className="text-sm font-medium">
-                📊 Échelle du risque
-              </AccordionTrigger>
-              <AccordionContent className="space-y-3">
-                <div className="grid gap-2">
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-green-500/10">
-                    <Badge variant="outline" className="bg-green-500/20 text-green-700">0 – 25</Badge>
-                    <span className="text-sm"><strong>Faible</strong> → profil endurant, faible dépendance glucidique</span>
-                  </div>
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-500/10">
-                    <Badge variant="outline" className="bg-blue-500/20 text-blue-700">26 – 50</Badge>
-                    <span className="text-sm"><strong>Modéré</strong> → équilibre correct, nutrition stratégique</span>
-                  </div>
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-orange-500/10">
-                    <Badge variant="outline" className="bg-orange-500/20 text-orange-700">51 – 75</Badge>
-                    <span className="text-sm"><strong>Élevé</strong> → dépendance glucidique importante</span>
-                  </div>
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-red-500/10">
-                    <Badge variant="outline" className="bg-red-500/20 text-red-700">76 – 100</Badge>
-                    <span className="text-sm"><strong>Critique</strong> → risque de défaillance énergétique</span>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </CardContent>
-      </Card>
-
-      {/* Section Race Readiness */}
-      <Card className="border-green-500/20">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <Target className="w-5 h-5 text-green-500" />
-            Race Readiness
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground">
-            Race Readiness est un outil d'aide à la décision destiné aux coachs et staffs. 
-            Il évalue la cohérence entre le profil physiologique actuel de l'athlète et les exigences de son objectif.
-          </p>
-          
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="piliers">
-              <AccordionTrigger className="text-sm font-medium">
-                🏛️ Les 4 piliers du score
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="space-y-3">
-                  <div className="p-3 rounded-lg bg-muted/50">
-                    <div className="font-medium text-sm flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-yellow-500" />
-                      VLamax effectif
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Indique la dominance glucidique vs lipidique. Interprété différemment selon la distance.
-                    </p>
-                  </div>
-                  <div className="p-3 rounded-lg bg-muted/50">
-                    <div className="font-medium text-sm flex items-center gap-2">
-                      <Flame className="w-4 h-4 text-orange-500" />
-                      Puissance / Allure durable
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      FTP ou allure seuil – toujours interprétée en lien avec le TTE.
-                    </p>
-                  </div>
-                  <div className="p-3 rounded-lg bg-muted/50">
-                    <div className="font-medium text-sm flex items-center gap-2">
-                      <Timer className="w-4 h-4 text-blue-500" />
-                      TTE effectif
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Tolérance à l'effort prolongé. Central pour longue distance.
-                    </p>
-                  </div>
-                  <div className="p-3 rounded-lg bg-muted/50">
-                    <div className="font-medium text-sm flex items-center gap-2">
-                      <Target className="w-4 h-4 text-green-500" />
-                      Objectif sportif
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Ironman ≠ Sprint ≠ Marathon. La pondération dépend explicitement de l'objectif.
-                    </p>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-            
-            <AccordionItem value="confiance">
-              <AccordionTrigger className="text-sm font-medium">
-                📈 Indice de confiance
-              </AccordionTrigger>
-              <AccordionContent>
-                <p className="text-sm text-muted-foreground">
-                  Un indice de confiance accompagne chaque score pour indiquer la robustesse de l'analyse :
-                </p>
-                <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
-                  <li>• <strong>{">"} 80%</strong> – Données fiables, score exploitable</li>
-                  <li>• <strong>60-80%</strong> – Données partielles, interpréter avec prudence</li>
-                  <li>• <strong>{"<"} 60%</strong> – Données insuffisantes, compléter le profil</li>
-                </ul>
-                <p className="mt-2 text-xs text-muted-foreground italic">
-                  La confiance diminue de 1% par semaine depuis le dernier test.
-                </p>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </CardContent>
-      </Card>
-
-      {/* Section Économie de Course */}
-      <Card className="border-purple-500/20">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <Activity className="w-5 h-5 text-purple-500" />
-            Économie de Course
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground">
-            En course à pied, la performance dépend autant de l'économie de mouvement que des capacités métaboliques. 
-            Une mauvaise économie augmente la consommation énergétique et les besoins nutritionnels.
-          </p>
-          
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="definition">
-              <AccordionTrigger className="text-sm font-medium">
-                📖 Définition opérationnelle
-              </AccordionTrigger>
-              <AccordionContent>
-                <p className="text-sm text-muted-foreground">
-                  L'économie de course représente le coût énergétique pour maintenir une allure donnée.
-                  À VLamax et VO₂max égaux, l'athlète le plus économique :
-                </p>
-                <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
-                  <li>• Performe mieux</li>
-                  <li>• Consomme moins de glucides</li>
-                  <li>• Fatigue moins vite</li>
-                </ul>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </CardContent>
-      </Card>
-
-      {/* Section Nutrition Prédictive */}
-      <Card className="border-pink-500/20">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <Heart className="w-5 h-5 text-pink-500" />
-            Nutrition Prédictive
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground">
-            Les besoins glucidiques sont estimés à partir des caractéristiques physiologiques de l'athlète 
-            (VLamax, endurance, économie de mouvement).
-          </p>
-          
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="principes">
-              <AccordionTrigger className="text-sm font-medium">
-                🧬 Principes clés
-              </AccordionTrigger>
-              <AccordionContent>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• <strong>VLamax élevé</strong> → forte combustion glucidique</li>
-                  <li>• <strong>TTE élevé</strong> → meilleure capacité à soutenir une intensité</li>
-                  <li>• <strong>Économie faible</strong> → surcoût énergétique</li>
-                  <li>• <strong>CAP {">"} Vélo</strong> → contrainte mécanique + digestive plus élevée</li>
-                </ul>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </CardContent>
-      </Card>
-
-      {/* Section Âge */}
-      <Card className="border-orange-500/20">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <Clock className="w-5 h-5 text-orange-500" />
-            {AGE_METHODOLOGY.title}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground whitespace-pre-line">
-            {AGE_METHODOLOGY.mainText}
-          </p>
-          
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="principles">
-              <AccordionTrigger className="text-sm font-medium">
-                📋 Principes clés
-              </AccordionTrigger>
-              <AccordionContent className="space-y-3">
-                <div className="grid gap-2">
-                  {AGE_METHODOLOGY.principles.map((principle, idx) => (
-                    <div key={idx} className="flex items-start gap-2 p-2 rounded-lg bg-muted/50">
-                      <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm">{principle}</span>
-                    </div>
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-            
-            <AccordionItem value="how-it-works">
-              <AccordionTrigger className="text-sm font-medium">
-                ⚙️ Comment ça fonctionne ?
-              </AccordionTrigger>
-              <AccordionContent className="space-y-3">
-                <div className="grid gap-2">
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-green-500/10">
-                    <Badge variant="outline" className="text-green-600 border-green-500/30">{"< 30 ans"}</Badge>
-                    <span className="text-sm">Référence – interprétation standard</span>
-                  </div>
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-500/10">
-                    <Badge variant="outline" className="text-blue-600 border-blue-500/30">30-39 ans</Badge>
-                    <span className="text-sm">Léger ajustement des cibles et risques</span>
-                  </div>
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-orange-500/10">
-                    <Badge variant="outline" className="text-orange-600 border-orange-500/30">40-49 ans</Badge>
-                    <span className="text-sm">Priorité sur la fraîcheur et la nutrition</span>
-                  </div>
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-red-500/10">
-                    <Badge variant="outline" className="text-red-600 border-red-500/30">50+ ans</Badge>
-                    <span className="text-sm">Interprétation conservative, recommandations adaptées</span>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  // Render Zones Théoriques Content (from academyContent)
-  const renderZonesContent = () => (
-    <div className="space-y-4">
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          placeholder="Rechercher : SV2, Z4a, force, VLaMax..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
-        />
-      </div>
-
-      {/* Quick filters */}
-      <div className="flex flex-wrap gap-2">
-        {["Z4a", "Z4b", "SV1", "SV2", "VLaMax", "Force", "Zones"].map((tag) => (
-          <Badge
-            key={tag}
-            variant={searchQuery === tag ? "default" : "outline"}
-            className="cursor-pointer"
-            onClick={() => setSearchQuery(searchQuery === tag ? "" : tag)}
-          >
-            {tag}
-          </Badge>
-        ))}
-      </div>
-
-      {/* Sections */}
-      {filteredSections.length > 0 ? (
-        <Accordion type="multiple" className="space-y-2">
-          {filteredSections.map(renderSection)}
-        </Accordion>
-      ) : (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <Search className="w-12 h-12 mx-auto text-muted-foreground/50 mb-4" />
-            <p className="text-muted-foreground">
-              Aucun résultat pour "{searchQuery}"
-            </p>
-            <Button
-              variant="link"
-              onClick={() => setSearchQuery("")}
-              className="mt-2"
-            >
-              Effacer la recherche
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Source Document Section */}
-      <div className="mt-8">
-        <Accordion type="single" collapsible>
-          <AccordionItem value="source-doc">
-            <AccordionTrigger className="px-4">
-              <div className="flex items-center gap-3">
-                <FileText className="w-5 h-5 text-muted-foreground" />
-                <span className="font-semibold">Document source (DOCX)</span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="px-4 pb-4">
-              <Card className="border-dashed">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4" />
-                    Document brut — formatage automatique
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {docxError ? (
-                    <p className="text-muted-foreground text-sm">
-                      Document source indisponible. Les sections structurées ci-dessus restent accessibles.
-                    </p>
-                  ) : docxHtml ? (
-                    <ScrollArea className="h-[400px]">
-                      <div 
-                        className="prose prose-sm dark:prose-invert max-w-none"
-                        dangerouslySetInnerHTML={{ __html: docxHtml }}
-                      />
-                    </ScrollArea>
-                  ) : (
-                    <p className="text-muted-foreground text-sm">Chargement...</p>
-                  )}
-                </CardContent>
-              </Card>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      </div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-14">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/")}
+                className="shrink-0"
+              >
                 <ChevronLeft className="w-5 h-5" />
               </Button>
-              <div className="flex items-center gap-2">
-                <GraduationCap className="w-5 h-5 text-primary" />
-                <h1 className="font-bold text-lg">Academy</h1>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                  <GraduationCap className="w-6 h-6" />
+                </div>
+                <div>
+                  <h1 className="text-lg sm:text-xl font-bold text-foreground">🧠 Academy</h1>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Référentiel scientifique officiel</p>
+                </div>
               </div>
             </div>
             <ThemeToggle />
@@ -1242,59 +144,229 @@ export default function AcademyPage() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-6 max-w-4xl">
-        {/* Staff Mode Toggle */}
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+      {/* Content */}
+      <main className="container mx-auto px-4 py-6 pb-24 max-w-4xl">
+        <Accordion type="multiple" defaultValue={["fondements", "constantes", "hierarchie", "legal", "philosophie"]} className="space-y-4">
+          
+          {/* SECTION 1 — Fondements scientifiques */}
+          <AccordionItem value="fondements" className="border rounded-lg bg-card">
+            <AccordionTrigger className="px-4 hover:no-underline">
               <div className="flex items-center gap-3">
-                <Users className="w-5 h-5 text-amber-500" />
-                <div>
-                  <Label htmlFor="staff-mode" className="font-semibold">Mode Staff</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Affiche les définitions et points de vigilance avancés
-                  </p>
+                <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                  <BookOpen className="w-5 h-5" />
                 </div>
+                <span className="font-semibold text-left">📘 Fondements scientifiques de Two For Coaching Lab</span>
               </div>
-              <Switch
-                id="staff-mode"
-                checked={staffMode}
-                onCheckedChange={setStaffMode}
-              />
-            </div>
-          </CardContent>
-        </Card>
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pb-4">
+              <Card className="border-primary/20 bg-primary/5">
+                <CardContent className="p-4 sm:p-6">
+                  <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
+                    Two For Coaching Lab est une application d'aide à la décision destinée aux coachs et athlètes d'endurance.
+                  </p>
+                  <Separator className="my-4" />
+                  <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
+                    Elle s'appuie sur des modèles physiologiques issus de la littérature scientifique internationale, 
+                    en particulier l'école allemande de physiologie de l'exercice (Mader, Heck, Billat), ainsi que sur 
+                    des travaux plus récents en métabolisme, économie de locomotion et durabilité de la performance.
+                  </p>
+                  <Separator className="my-4" />
+                  <p className="text-foreground font-medium leading-relaxed text-sm sm:text-base">
+                    L'application ne cherche pas à prédire la performance, mais à éclairer les décisions d'entraînement 
+                    en rendant visibles les compromis physiologiques (performance, fatigue, risque).
+                  </p>
+                </CardContent>
+              </Card>
+            </AccordionContent>
+          </AccordionItem>
 
-        {/* Tabs */}
-        <Tabs value={activeMainTab} onValueChange={setActiveMainTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="methodology" className="gap-2">
-              <Settings className="w-4 h-4" />
-              Méthodologie
-            </TabsTrigger>
-            <TabsTrigger value="comprendre" className="gap-2">
-              <BookOpen className="w-4 h-4" />
-              Comprendre
-            </TabsTrigger>
-            <TabsTrigger value="zones" className="gap-2">
-              <BarChart3 className="w-4 h-4" />
-              Zones & Seuils
-            </TabsTrigger>
-          </TabsList>
+          {/* SECTION 2 — Table des constantes */}
+          <AccordionItem value="constantes" className="border rounded-lg bg-card">
+            <AccordionTrigger className="px-4 hover:no-underline">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-accent/50 text-accent-foreground">
+                  <Layers className="w-5 h-5" />
+                </div>
+                <span className="font-semibold text-left">📊 Constantes physiologiques utilisées dans Two For Coaching Lab</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pb-4">
+              <div className="overflow-x-auto -mx-4 px-4">
+                <Table className="min-w-[800px]">
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="font-semibold">Domaine physiologique</TableHead>
+                      <TableHead className="font-semibold">Constante utilisée</TableHead>
+                      <TableHead className="font-semibold">Valeur de référence</TableHead>
+                      <TableHead className="font-semibold">Source scientifique</TableHead>
+                      <TableHead className="font-semibold">Robustesse</TableHead>
+                      <TableHead className="font-semibold">Utilisation dans l'app</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {PHYSIOLOGICAL_CONSTANTS.map((row, index) => (
+                      <TableRow key={index} className="hover:bg-muted/30">
+                        <TableCell className="font-medium text-foreground">{row.domain}</TableCell>
+                        <TableCell className="text-muted-foreground">{row.constant}</TableCell>
+                        <TableCell className="text-muted-foreground font-mono text-xs">{row.value}</TableCell>
+                        <TableCell className="text-muted-foreground italic">{row.source}</TableCell>
+                        <TableCell className="text-muted-foreground">{row.robustness}</TableCell>
+                        <TableCell className="text-muted-foreground">{row.usage}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
 
-          <TabsContent value="methodology">
-            {renderMethodologyContent()}
-          </TabsContent>
+          {/* SECTION 3 — Hiérarchie des données */}
+          <AccordionItem value="hierarchie" className="border rounded-lg bg-card">
+            <AccordionTrigger className="px-4 hover:no-underline">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-secondary text-secondary-foreground">
+                  <Scale className="w-5 h-5" />
+                </div>
+                <span className="font-semibold text-left">📐 Hiérarchie des données utilisées par l'app</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pb-4">
+              <Card className="border-secondary/30 bg-secondary/5">
+                <CardContent className="p-4 sm:p-6 space-y-4">
+                  <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
+                    Two For Coaching Lab applique une hiérarchie stricte des sources de données afin de limiter les erreurs d'interprétation :
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-background border border-border">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-sm font-bold shrink-0">1</span>
+                      <div>
+                        <p className="font-medium text-foreground">Mesures directes</p>
+                        <p className="text-sm text-muted-foreground">Tests terrain structurés, tests laboratoire</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-background border border-border">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/80 text-primary-foreground text-sm font-bold shrink-0">2</span>
+                      <div>
+                        <p className="font-medium text-foreground">Observations terrain</p>
+                        <p className="text-sm text-muted-foreground">TTE observé, dérive cardiaque, durabilité</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-background border border-border">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/60 text-primary-foreground text-sm font-bold shrink-0">3</span>
+                      <div>
+                        <p className="font-medium text-foreground">Estimations modélisées</p>
+                        <p className="text-sm text-muted-foreground">VLamax, TTE, nutrition prédictive</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-background border border-border">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-muted text-muted-foreground text-sm font-bold shrink-0">4</span>
+                      <div>
+                        <p className="font-medium text-foreground">Valeurs par défaut</p>
+                        <p className="text-sm text-muted-foreground">Uniquement en absence totale de données</p>
+                      </div>
+                    </div>
+                  </div>
 
-          <TabsContent value="comprendre">
-            {renderComprendreContent()}
-          </TabsContent>
+                  <Separator />
+                  
+                  <p className="text-foreground font-medium leading-relaxed text-sm sm:text-base">
+                    Chaque indicateur affiché dans l'application est associé à un indice de confiance reflétant cette hiérarchie.
+                  </p>
+                </CardContent>
+              </Card>
+            </AccordionContent>
+          </AccordionItem>
 
-          <TabsContent value="zones">
-            {renderZonesContent()}
-          </TabsContent>
-        </Tabs>
+          {/* SECTION 4 — Cadre légal & limites */}
+          <AccordionItem value="legal" className="border rounded-lg bg-card">
+            <AccordionTrigger className="px-4 hover:no-underline">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-warning/10 text-warning">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <span className="font-semibold text-left">⚖️ Cadre scientifique et limites d'utilisation</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pb-4">
+              <Card className="border-warning/30 bg-warning/5">
+                <CardContent className="p-4 sm:p-6 space-y-4">
+                  <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
+                    <strong className="text-foreground">Two For Coaching Lab est un outil d'aide à la décision.</strong>
+                  </p>
+                  <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
+                    Il ne remplace ni un test physiologique en laboratoire, ni un avis médical, ni l'expertise d'un coach.
+                  </p>
+                  
+                  <Separator />
+                  
+                  <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
+                    Les valeurs de VLamax, TTE, Race Readiness, nutrition prédictive et indices de risque sont des 
+                    <strong className="text-foreground"> estimations probabilistes</strong> basées sur des modèles reconnus, 
+                    mais dépendantes du contexte individuel (fatigue, stress, âge, discipline, historique).
+                  </p>
+
+                  <Card className="border-primary/30 bg-primary/5">
+                    <CardContent className="p-4">
+                      <p className="text-foreground font-semibold text-center text-sm sm:text-base">
+                        Les décisions finales d'entraînement appartiennent toujours au coach et à l'athlète.
+                      </p>
+                    </CardContent>
+                  </Card>
+                </CardContent>
+              </Card>
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* SECTION 5 — Philosophie */}
+          <AccordionItem value="philosophie" className="border rounded-lg bg-card">
+            <AccordionTrigger className="px-4 hover:no-underline">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                  <Compass className="w-5 h-5" />
+                </div>
+                <span className="font-semibold text-left">🧭 Philosophie Two For Coaching Lab</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pb-4">
+              <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+                <CardContent className="p-4 sm:p-6 space-y-6">
+                  <div className="space-y-4">
+                    <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
+                      <strong className="text-foreground">Nous ne cherchons pas à automatiser l'entraînement.</strong>
+                    </p>
+                    <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
+                      Nous cherchons à rendre visibles les mécanismes physiologiques, les compromis et les risques.
+                    </p>
+                    <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
+                      Two For Coaching Lab structure l'information, explique le "pourquoi", et laisse le contrôle humain au centre du processus.
+                    </p>
+                  </div>
+
+                  <Separator />
+
+                  {/* Citation finale en évidence */}
+                  <Card className="border-2 border-primary/40 bg-primary/10">
+                    <CardContent className="p-6 sm:p-8">
+                      <blockquote className="text-center space-y-2">
+                        <p className="text-lg sm:text-xl font-semibold text-foreground italic">
+                          "Nous n'essayons pas de prédire la performance,
+                        </p>
+                        <p className="text-lg sm:text-xl font-semibold text-foreground italic">
+                          nous essayons d'éclairer la décision d'entraînement."
+                        </p>
+                      </blockquote>
+                    </CardContent>
+                  </Card>
+                </CardContent>
+              </Card>
+            </AccordionContent>
+          </AccordionItem>
+
+        </Accordion>
       </main>
     </div>
   );
