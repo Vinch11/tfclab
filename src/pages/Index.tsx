@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Navigation } from "@/components/Navigation";
 import { MetricCard } from "@/components/MetricCard";
 import { TrainingZonesCard } from "@/components/TrainingZonesCard";
@@ -40,6 +40,7 @@ import { StaffDashboard } from "@/components/StaffDashboard";
 import { ScientificChartsDashboard, MetabolicPerformanceCompass } from "@/components/charts";
 import { ChargeRecenteCard } from "@/components/ChargeRecenteCard";
 import { computeCRR } from "@/lib/chargeRecenteReference";
+import { SortableSectionsContainer } from "@/components/SortableSectionsContainer";
 
 // ✅ FIX 11 - Effective Refs (source unique de vérité)
 import { getEffectiveRefs, computeFtpKg, getMissingFields } from "@/lib/effectiveRefs";
@@ -730,53 +731,84 @@ const Index = () => {
         );
 
       case "profil":
-        return (
-          <div className="space-y-6 animate-fade-in">
-            {renderAthleteSelector()}
-            {/* ✅ FIX 11: Panneau Profil & Références (complet) */}
-            {currentAthlete && (
+        // Sections réorganisables pour l'onglet Profil
+        const profilSections = [
+          {
+            id: "athlete-refs",
+            render: () => currentAthlete && (
               <AthleteRefsPanel
                 athlete={currentAthlete}
                 snapshots={snapshots}
               />
-            )}
-            
-            <AthleteProfile 
-              athlete={legacyAthlete} 
-              onUpdate={() => {}} 
-              // ✅ FIX: Sauvegarde masse grasse dans le cloud avec la bonne clé (fatPct)
-              onUpdateMasseGrasse={async (val) => {
-                if (!currentAthlete) return;
-                const existingRefs = (currentAthlete.refs as Record<string, unknown>) || {};
-                await updateAthlete(currentAthlete.id, { 
-                  refs: { ...existingRefs, fatPct: val } as any
-                });
-              }}
-              snapshotFatPct={effectiveCloudSnapshot?.fat_pct}
-              onOpenSnapshots={() => setShowSnapshots(true)}
-              vlamaxEffectif={vlamaxEffectif}
-              tteEffectif={tteEffectif}
-            />
-            
-            {/* ✅ SnapshotManager intégré dans le profil si ouvert */}
-            {showSnapshots && currentAthlete && (
-              <SnapshotManager
-                athleteId={currentAthlete.id}
-                athleteName={currentAthlete.name}
-                athleteGoal={currentAthlete.goal || "IM"}
-                activeSnapshotId={currentAthlete.active_snapshot_id}
-                staffMode={staffMode}
+            ),
+          },
+          {
+            id: "athlete-profile",
+            render: () => (
+              <>
+                <AthleteProfile 
+                  athlete={legacyAthlete} 
+                  onUpdate={() => {}} 
+                  onUpdateMasseGrasse={async (val) => {
+                    if (!currentAthlete) return;
+                    const existingRefs = (currentAthlete.refs as Record<string, unknown>) || {};
+                    await updateAthlete(currentAthlete.id, { 
+                      refs: { ...existingRefs, fatPct: val } as any
+                    });
+                  }}
+                  snapshotFatPct={effectiveCloudSnapshot?.fat_pct}
+                  onOpenSnapshots={() => setShowSnapshots(true)}
+                  vlamaxEffectif={vlamaxEffectif}
+                  tteEffectif={tteEffectif}
+                />
+                {showSnapshots && currentAthlete && (
+                  <SnapshotManager
+                    athleteId={currentAthlete.id}
+                    athleteName={currentAthlete.name}
+                    athleteGoal={currentAthlete.goal || "IM"}
+                    activeSnapshotId={currentAthlete.active_snapshot_id}
+                    staffMode={staffMode}
+                  />
+                )}
+              </>
+            ),
+          },
+          {
+            id: "dan-lorang",
+            render: () => (
+              <DanLorangAnalysis 
+                athlete={legacyAthlete} 
+                vlamaxEffectif={vlamaxEffectif} 
+                tteEffectif={tteEffectif} 
+                readiness={raceReadinessEffectif} 
+                onGoToSnapshots={() => setShowSnapshots(true)} 
               />
-            )}
-            <DanLorangAnalysis athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} readiness={raceReadinessEffectif} onGoToSnapshots={() => setShowSnapshots(true)} />
+            ),
+          },
+          {
+            id: "evolution-chart",
+            render: () => (
+              <SnapshotEvolutionChart 
+                snapshots={snapshots.filter(s => s.athlete_id === currentAthlete?.id)}
+                athleteName={legacyAthlete?.nom || ""}
+              />
+            ),
+          },
+          {
+            id: "training-zones",
+            render: () => <TrainingZonesCard staffMode={staffMode} />,
+          },
+        ];
+
+        return (
+          <div className="space-y-6 animate-fade-in">
+            {renderAthleteSelector()}
             
-            {/* Graphique évolution historique VLamax/TTE */}
-            <SnapshotEvolutionChart 
-              snapshots={snapshots.filter(s => s.athlete_id === currentAthlete?.id)}
-              athleteName={legacyAthlete.nom}
+            <SortableSectionsContainer
+              tabId="profil"
+              tabLabel="Profil"
+              sections={profilSections}
             />
-            
-            <TrainingZonesCard staffMode={staffMode} />
           </div>
         );
 

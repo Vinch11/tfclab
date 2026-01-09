@@ -2,7 +2,7 @@
 // ÉCRAN 7 - ÉVOLUTION MULTI-SPORT + DASHBOARD SCIENTIFIQUE
 // =============================================
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +15,7 @@ import { calculVLamaxSnapshot, calculVLamaxAvecConfiance } from "@/lib/athleteSt
 import { estimerTTESport, scoreConfiance, SportType } from "@/types/snapshotNolio";
 import { HistoricalChart } from "@/components/HistoricalChart";
 import { ScientificDashboard } from "@/components/ScientificDashboard";
+import { SortableSectionsContainer } from "@/components/SortableSectionsContainer";
 import {
   LineChart,
   Line,
@@ -75,7 +76,7 @@ export default function EvolutionPage() {
     }
   };
 
-  const renderSportEvolution = () => {
+  const renderSportEvolution = useCallback(() => {
     if (evolution.length === 0) {
       return (
         <Card>
@@ -249,22 +250,27 @@ export default function EvolutionPage() {
         </Card>
       </div>
     );
-  };
+  }, [evolution, activeSport, navigate]);
 
-  return (
-    <AppLayout title="Évolution" showBack>
-      <div className="space-y-4 animate-fade-in">
-        {/* Historique Graphique */}
-        <HistoricalChart athlete={currentAthlete} />
-
-        {/* Dashboard Scientifique */}
+  // Sections réorganisables pour l'onglet Evolution
+  const evolutionSections = useMemo(() => [
+    {
+      id: "historical-chart",
+      render: () => <HistoricalChart athlete={currentAthlete} />,
+    },
+    {
+      id: "scientific-dashboard",
+      render: () => (
         <ScientificDashboard 
           snapshots={currentAthlete.historique}
           objectif={currentAthlete.objectif}
           athleteNom={currentAthlete.nom}
         />
-
-        {/* Onglets par sport - Détail */}
+      ),
+    },
+    {
+      id: "sport-analysis",
+      render: () => (
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
@@ -301,6 +307,18 @@ export default function EvolutionPage() {
             </Tabs>
           </CardContent>
         </Card>
+      ),
+    },
+  ], [currentAthlete, activeSport, renderSportEvolution]);
+
+  return (
+    <AppLayout title="Évolution" showBack>
+      <div className="space-y-4 animate-fade-in">
+        <SortableSectionsContainer
+          tabId="evolution"
+          tabLabel="Évolution"
+          sections={evolutionSections}
+        />
 
         {/* Bouton ajouter données */}
         <Button 
