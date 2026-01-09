@@ -869,11 +869,6 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
   const limitationAlertClass = cScores.mainLimitation ? 'alertWarning' : 'alertInfo';
   const riskAlertClass = chargeScore.status === 'overload' ? 'alertError' : chargeScore.status === 'unknown' ? 'alertWarning' : 'alertInfo';
   
-  // SVG radar points
-  const svgY1 = 150 - cScores.capaciteAerobie.score;
-  const svgX2 = 150 + cScores.toleranceEffort.score;
-  const svgY3 = 150 + cScores.profilMetabolique.score;
-  const svgX4 = 150 - cScores.robustesse.score;
   
   const compassHTML = `
     <section id="compass" class="section pagebreak">
@@ -911,22 +906,22 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
         </div>
         
         <div style="display:flex;justify-content:center;margin:20px 0;">
-          <svg width="300" height="300" viewBox="0 0 300 300">
-            <polygon points="150,50 250,150 150,250 50,150" fill="none" stroke="#ddd" stroke-width="1"/>
-            <polygon points="150,75 225,150 150,225 75,150" fill="none" stroke="#ddd" stroke-width="1"/>
-            <polygon points="150,100 200,150 150,200 100,150" fill="none" stroke="#ddd" stroke-width="1"/>
-            <polygon points="150,125 175,150 150,175 125,150" fill="none" stroke="#ddd" stroke-width="1"/>
-            <line x1="150" y1="50" x2="150" y2="250" stroke="#eee" stroke-width="1"/>
-            <line x1="50" y1="150" x2="250" y2="150" stroke="#eee" stroke-width="1"/>
-            <polygon points="150,${svgY1} ${svgX2},150 150,${svgY3} ${svgX4},150" fill="rgba(37,99,235,0.2)" stroke="#2563eb" stroke-width="2"/>
-            <circle cx="150" cy="${svgY1}" r="6" fill="#2563eb"/>
-            <circle cx="${svgX2}" cy="150" r="6" fill="#2563eb"/>
-            <circle cx="150" cy="${svgY3}" r="6" fill="#2563eb"/>
-            <circle cx="${svgX4}" cy="150" r="6" fill="#2563eb"/>
-            <text x="150" y="30" text-anchor="middle" font-size="10" font-weight="600">⚡ Capacité Aérobie (${cScores.capaciteAerobie.score})</text>
-            <text x="270" y="155" text-anchor="start" font-size="10" font-weight="600">💪 Tolérance (${cScores.toleranceEffort.score})</text>
-            <text x="150" y="280" text-anchor="middle" font-size="10" font-weight="600">🧬 Profil Métab. (${cScores.profilMetabolique.score})</text>
-            <text x="30" y="155" text-anchor="end" font-size="10" font-weight="600">🛡️ Robustesse (${cScores.robustesse.score})</text>
+          <svg width="340" height="340" viewBox="0 0 340 340" style="overflow:visible;">
+            <polygon points="170,70 270,170 170,270 70,170" fill="none" stroke="#ddd" stroke-width="1"/>
+            <polygon points="170,95 245,170 170,245 95,170" fill="none" stroke="#ddd" stroke-width="1"/>
+            <polygon points="170,120 220,170 170,220 120,170" fill="none" stroke="#ddd" stroke-width="1"/>
+            <polygon points="170,145 195,170 170,195 145,170" fill="none" stroke="#ddd" stroke-width="1"/>
+            <line x1="170" y1="70" x2="170" y2="270" stroke="#eee" stroke-width="1"/>
+            <line x1="70" y1="170" x2="270" y2="170" stroke="#eee" stroke-width="1"/>
+            <polygon points="170,${70 + (100 - cScores.capaciteAerobie.score)} ${70 + cScores.toleranceEffort.score},170 170,${170 + cScores.profilMetabolique.score} ${170 - cScores.robustesse.score},170" fill="rgba(37,99,235,0.2)" stroke="#2563eb" stroke-width="2"/>
+            <circle cx="170" cy="${70 + (100 - cScores.capaciteAerobie.score)}" r="6" fill="#2563eb"/>
+            <circle cx="${70 + cScores.toleranceEffort.score}" cy="170" r="6" fill="#2563eb"/>
+            <circle cx="170" cy="${170 + cScores.profilMetabolique.score}" r="6" fill="#2563eb"/>
+            <circle cx="${170 - cScores.robustesse.score}" cy="170" r="6" fill="#2563eb"/>
+            <text x="170" y="50" text-anchor="middle" font-size="11" font-weight="600" fill="#333">⚡ Capacité Aérobie (${cScores.capaciteAerobie.score})</text>
+            <text x="290" y="175" text-anchor="start" font-size="11" font-weight="600" fill="#333">💪 Tolérance (${cScores.toleranceEffort.score})</text>
+            <text x="170" y="305" text-anchor="middle" font-size="11" font-weight="600" fill="#333">🧬 Profil Métab. (${cScores.profilMetabolique.score})</text>
+            <text x="50" y="175" text-anchor="end" font-size="11" font-weight="600" fill="#333">🛡️ Robustesse (${cScores.robustesse.score})</text>
           </svg>
         </div>
         
