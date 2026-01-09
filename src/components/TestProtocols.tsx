@@ -14,7 +14,8 @@ import {
   Save,
   FlaskConical,
   TrendingUp,
-  ExternalLink
+  ExternalLink,
+  Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -40,9 +41,13 @@ import {
 } from "@/types/testLibrary";
 import { calculVLamaxPonderee, calculIndiceConfiance } from "@/lib/physiologicalModel";
 import { VLamaxRunFieldTest } from "./VLamaxRunFieldTest";
+import { VLamaxRunPowerTest } from "./VLamaxRunPowerTest";
 
-// ID du test avec interface dédiée
-const DEDICATED_TEST_ID = "run_vlamax_sprint15_12min";
+// IDs des tests avec interface dédiée
+const DEDICATED_TESTS = {
+  SPRINT_12MIN: "run_vlamax_sprint15_12min",
+  POWER_ADVANCED: "run_vlamax_power_advanced"
+};
 
 interface TestProtocolsProps {
   className?: string;
@@ -73,7 +78,7 @@ export function TestProtocols({ className, onTestSaved, athlete, onAthleteUpdate
   const [selectedTest, setSelectedTest] = useState<TestProtocol | null>(null);
   const [testInputs, setTestInputs] = useState<Record<string, string>>({});
   const [testNotes, setTestNotes] = useState("");
-  const [showDedicatedTest, setShowDedicatedTest] = useState(false);
+  const [showDedicatedTest, setShowDedicatedTest] = useState<string | null>(null);
 
   const filteredTests = activeSport === "tous" 
     ? TestLibrary 
@@ -88,6 +93,9 @@ export function TestProtocols({ className, onTestSaved, athlete, onAthleteUpdate
     }
   };
 
+  const isDedicatedTest = (testId: string) => 
+    Object.values(DEDICATED_TESTS).includes(testId);
+
   const handleRunTest = (test: TestProtocol) => {
     if (!athlete) {
       toast({
@@ -98,9 +106,9 @@ export function TestProtocols({ className, onTestSaved, athlete, onAthleteUpdate
       return;
     }
     
-    // Test avec interface dédiée
-    if (test.id === DEDICATED_TEST_ID) {
-      setShowDedicatedTest(true);
+    // Tests avec interface dédiée
+    if (isDedicatedTest(test.id)) {
+      setShowDedicatedTest(test.id);
       return;
     }
     
@@ -281,10 +289,16 @@ export function TestProtocols({ className, onTestSaved, athlete, onAthleteUpdate
                         📌 Référence
                       </Badge>
                     )}
-                    {test.id === DEDICATED_TEST_ID && (
+                    {isDedicatedTest(test.id) && (
                       <Badge variant="outline" className="text-xs gap-1 border-primary text-primary">
                         <ExternalLink className="w-3 h-3" />
                         Interface dédiée
+                      </Badge>
+                    )}
+                    {test.id === DEDICATED_TESTS.POWER_ADVANCED && (
+                      <Badge variant="outline" className="text-xs gap-1 border-orange-500 text-orange-600">
+                        <Zap className="w-3 h-3" />
+                        Staff / Avancé
                       </Badge>
                     )}
                   </div>
@@ -462,8 +476,11 @@ export function TestProtocols({ className, onTestSaved, athlete, onAthleteUpdate
         </DialogContent>
       </Dialog>
 
-      {/* Dialog pour le test VLamax CAP dédié */}
-      <Dialog open={showDedicatedTest} onOpenChange={setShowDedicatedTest}>
+      {/* Dialog pour le test VLamax CAP Sprint+12min */}
+      <Dialog 
+        open={showDedicatedTest === DEDICATED_TESTS.SPRINT_12MIN} 
+        onOpenChange={(open) => setShowDedicatedTest(open ? DEDICATED_TESTS.SPRINT_12MIN : null)}
+      >
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -481,7 +498,35 @@ export function TestProtocols({ className, onTestSaved, athlete, onAthleteUpdate
             }}
             onTestSaved={(result) => {
               if (onTestSaved) onTestSaved(result);
-              setShowDedicatedTest(false);
+              setShowDedicatedTest(null);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog pour le test VLamax CAP Puissance (Advanced) */}
+      <Dialog 
+        open={showDedicatedTest === DEDICATED_TESTS.POWER_ADVANCED} 
+        onOpenChange={(open) => setShowDedicatedTest(open ? DEDICATED_TESTS.POWER_ADVANCED : null)}
+      >
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Zap className="w-5 h-5 text-orange-500" />
+              Test VLamax CAP – Puissance (Advanced)
+            </DialogTitle>
+            <DialogDescription>
+              Test avancé avec puissance de course pour {athlete?.nom}
+            </DialogDescription>
+          </DialogHeader>
+          <VLamaxRunPowerTest
+            athlete={athlete || null}
+            onAthleteUpdate={(updatedAthlete) => {
+              if (onAthleteUpdate) onAthleteUpdate(updatedAthlete);
+            }}
+            onTestSaved={(result) => {
+              if (onTestSaved) onTestSaved(result);
+              setShowDedicatedTest(null);
             }}
           />
         </DialogContent>
@@ -494,3 +539,4 @@ export function TestProtocols({ className, onTestSaved, athlete, onAthleteUpdate
 export { TestLibrary };
 export type { TestProtocol } from "@/types/testLibrary";
 export { VLamaxRunFieldTest } from "./VLamaxRunFieldTest";
+export { VLamaxRunPowerTest } from "./VLamaxRunPowerTest";

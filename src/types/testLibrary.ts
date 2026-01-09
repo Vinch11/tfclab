@@ -349,6 +349,66 @@ export const TestLibrary: TestProtocol[] = [
         note: `Sprint Ratio: ${srRun.toFixed(2)} | V15: ${v15.toFixed(2)} m/s | V12: ${v12.toFixed(2)} m/s` 
       };
     }
+  },
+  // =============================================
+  // TEST VLAMAX CAP PUISSANCE (ADVANCED)
+  // =============================================
+  {
+    id: "run_vlamax_power_advanced",
+    type: "VLAMAX",
+    sport: "Course à pied",
+    nom: "VLamax CAP – Test Puissance (Advanced)",
+    objectif: "Estimation VLamax course via puissance (méthode avancée staff-grade)",
+    variables: [
+      { key: "powerSprint1", label: "Puissance sprint 1 (W/kg)", unit: "W/kg", min: 2, max: 15 },
+      { key: "powerSprint2", label: "Puissance sprint 2 (W/kg)", unit: "W/kg", min: 2, max: 15 },
+      { key: "power12min", label: "Puissance 12 min (W/kg)", unit: "W/kg", min: 1, max: 10 }
+    ],
+    protocole: [
+      "Échauffement 15–20 min Z2 + 3×20 s progressif",
+      "2 × 15 s sprint all-out départ lancé (puissance max)",
+      "5–6 min récup complète entre sprints",
+      "10 min récupération facile",
+      "12 min all-out régulier",
+      "Relever puissance moyenne 15s et 12min"
+    ],
+    calcul: "Pgly = P15 − 0.25×P12 | Egly = Pgly × 9 | VLamax = (Egly/65) / 9",
+    fiabilite: 0.90,
+    commentaire: "Test avancé nécessitant puissance CAP (Stryd, Garmin, Coros). Plus précis que vitesse.",
+    compute: (athlete, input) => {
+      const p1 = Number(input.powerSprint1);
+      const p2 = Number(input.powerSprint2);
+      const p12 = Number(input.power12min);
+      
+      if (!p1 || !p2 || !p12 || p1 <= 0 || p2 <= 0 || p12 <= 0) {
+        return { ok: false, msg: "Valeurs invalides", raw: { powerSprint1: p1 || 0, powerSprint2: p2 || 0, power12min: p12 || 0 }, note: "" };
+      }
+      
+      // Meilleure puissance sur 15s
+      const p15 = Math.max(p1, p2);
+      
+      // Constantes physiologiques
+      const AEROBIC_CONTRIBUTION = 0.25;
+      const ALACTIC_DELAY = 6;
+      const LACTATE_ENERGY = 65;
+      
+      // Puissance glycolytique nette
+      const pgly = p15 - (AEROBIC_CONTRIBUTION * p12);
+      const tgly = 15 - ALACTIC_DELAY; // 9s
+      
+      // Énergie et VLamax
+      const egly = pgly * tgly;
+      const lactate = egly / LACTATE_ENERGY;
+      let vlamax = lactate / tgly;
+      vlamax = Math.max(0.20, Math.min(1.00, vlamax));
+      
+      return { 
+        ok: true, 
+        vlamax, 
+        raw: { powerSprint1: p1, powerSprint2: p2, power12min: p12, p15, pgly, egly, lactate }, 
+        note: `P15: ${p15.toFixed(2)} W/kg | P12: ${p12.toFixed(2)} W/kg | Pgly: ${pgly.toFixed(2)} W/kg` 
+      };
+    }
   }
 ];
 
