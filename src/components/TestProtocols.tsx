@@ -13,7 +13,8 @@ import {
   X,
   Save,
   FlaskConical,
-  TrendingUp
+  TrendingUp,
+  ExternalLink
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,10 @@ import {
   StoredTestResult 
 } from "@/types/testLibrary";
 import { calculVLamaxPonderee, calculIndiceConfiance } from "@/lib/physiologicalModel";
+import { VLamaxRunFieldTest } from "./VLamaxRunFieldTest";
+
+// ID du test avec interface dédiée
+const DEDICATED_TEST_ID = "run_vlamax_sprint15_12min";
 
 interface TestProtocolsProps {
   className?: string;
@@ -68,6 +73,7 @@ export function TestProtocols({ className, onTestSaved, athlete, onAthleteUpdate
   const [selectedTest, setSelectedTest] = useState<TestProtocol | null>(null);
   const [testInputs, setTestInputs] = useState<Record<string, string>>({});
   const [testNotes, setTestNotes] = useState("");
+  const [showDedicatedTest, setShowDedicatedTest] = useState(false);
 
   const filteredTests = activeSport === "tous" 
     ? TestLibrary 
@@ -91,6 +97,13 @@ export function TestProtocols({ className, onTestSaved, athlete, onAthleteUpdate
       });
       return;
     }
+    
+    // Test avec interface dédiée
+    if (test.id === DEDICATED_TEST_ID) {
+      setShowDedicatedTest(true);
+      return;
+    }
+    
     setSelectedTest(test);
     // Initialiser les inputs pour chaque variable
     const initialInputs: Record<string, string> = {};
@@ -268,6 +281,12 @@ export function TestProtocols({ className, onTestSaved, athlete, onAthleteUpdate
                         📌 Référence
                       </Badge>
                     )}
+                    {test.id === DEDICATED_TEST_ID && (
+                      <Badge variant="outline" className="text-xs gap-1 border-primary text-primary">
+                        <ExternalLink className="w-3 h-3" />
+                        Interface dédiée
+                      </Badge>
+                    )}
                   </div>
                   <p className="text-sm text-muted-foreground truncate">{test.objectif}</p>
                 </div>
@@ -442,6 +461,31 @@ export function TestProtocols({ className, onTestSaved, athlete, onAthleteUpdate
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog pour le test VLamax CAP dédié */}
+      <Dialog open={showDedicatedTest} onOpenChange={setShowDedicatedTest}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <PersonStanding className="w-5 h-5" />
+              Test VLamax CAP – Sprint 15s + 12 min
+            </DialogTitle>
+            <DialogDescription>
+              Test terrain officiel Two For Coaching Lab pour {athlete?.nom}
+            </DialogDescription>
+          </DialogHeader>
+          <VLamaxRunFieldTest
+            athlete={athlete || null}
+            onAthleteUpdate={(updatedAthlete) => {
+              if (onAthleteUpdate) onAthleteUpdate(updatedAthlete);
+            }}
+            onTestSaved={(result) => {
+              if (onTestSaved) onTestSaved(result);
+              setShowDedicatedTest(false);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -449,3 +493,4 @@ export function TestProtocols({ className, onTestSaved, athlete, onAthleteUpdate
 // Exports
 export { TestLibrary };
 export type { TestProtocol } from "@/types/testLibrary";
+export { VLamaxRunFieldTest } from "./VLamaxRunFieldTest";
