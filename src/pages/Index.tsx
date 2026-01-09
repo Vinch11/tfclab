@@ -536,131 +536,135 @@ const Index = () => {
 
     switch (activeTab) {
       case "dashboard":
-        return (
-          <div className="space-y-4 sm:space-y-6 md:space-y-8 animate-fade-in">
-            {renderAthleteSelector()}
-
-            {/* ✅ FIX 11: Panneau Profil & Références */}
-            {currentAthlete && (
+        // Sections réorganisables pour le Dashboard
+        const dashboardSections = [
+          {
+            id: "athlete-refs",
+            render: () => currentAthlete && (
               <AthleteRefsPanel
                 athlete={currentAthlete}
                 snapshots={snapshots}
                 compact
               />
-            )}
+            ),
+          },
+          {
+            id: "action-buttons",
+            render: () => (
+              <>
+                {/* Boutons - responsive grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:flex lg:flex-wrap gap-2 sm:gap-3">
+                  <Button
+                    variant={showTestLibrary ? "default" : "outline"}
+                    onClick={() => {
+                      setShowTestLibrary(!showTestLibrary);
+                      setShowPhysioAnalysis(false);
+                      setShowWorkoutLibrary(false);
+                      setShowSnapshots(false);
+                      setShowCheckins(false);
+                    }}
+                    className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
+                  >
+                    <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                    <span className="truncate">Tests</span>
+                  </Button>
 
-            {/* Boutons - responsive grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:flex lg:flex-wrap gap-2 sm:gap-3">
-              <Button
-                variant={showTestLibrary ? "default" : "outline"}
-                onClick={() => {
-                  setShowTestLibrary(!showTestLibrary);
+                  <Button
+                    variant={showPhysioAnalysis ? "default" : "outline"}
+                    onClick={() => {
+                      setShowPhysioAnalysis(!showPhysioAnalysis);
+                      setShowTestLibrary(false);
+                      setShowWorkoutLibrary(false);
+                      setShowSnapshots(false);
+                      setShowCheckins(false);
+                    }}
+                    className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
+                  >
+                    <Brain className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                    <span className="truncate">Analyse</span>
+                  </Button>
+
+                  <Button
+                    variant={showWorkoutLibrary ? "default" : "outline"}
+                    onClick={() => {
+                      setShowWorkoutLibrary(!showWorkoutLibrary);
+                      setShowTestLibrary(false);
+                      setShowPhysioAnalysis(false);
+                      setShowSnapshots(false);
+                      setShowCheckins(false);
+                    }}
+                    className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
+                  >
+                    <Dumbbell className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                    <span className="truncate">Séances</span>
+                  </Button>
+
+                  <Button
+                    variant={showSnapshots ? "default" : "outline"}
+                    onClick={() => {
+                      setShowSnapshots(!showSnapshots);
+                      setShowTestLibrary(false);
+                      setShowPhysioAnalysis(false);
+                      setShowWorkoutLibrary(false);
+                      setShowCheckins(false);
+                    }}
+                    className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
+                  >
+                    <Camera className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                    <span className="truncate">Snapshots</span>
+                  </Button>
+
+                  <Button
+                    variant={showCheckins ? "default" : "outline"}
+                    onClick={() => {
+                      setShowCheckins(!showCheckins);
+                      setShowTestLibrary(false);
+                      setShowPhysioAnalysis(false);
+                      setShowWorkoutLibrary(false);
+                      setShowSnapshots(false);
+                    }}
+                    className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
+                  >
+                    <ClipboardCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                    <span className="truncate">Check-ins</span>
+                  </Button>
+
+                  {currentAthlete && (
+                    <ExportTools 
+                      athlete={currentAthlete}
+                      snapshots={snapshots}
+                      tests={tests}
+                      staffMode={staffMode}
+                    />
+                  )}
+                </div>
+
+                {/* Contenu conditionnel */}
+                {showTestLibrary && <TestProtocols athlete={legacyAthlete} />}
+                {showPhysioAnalysis && <PhysiologicalAnalysis athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} readiness={raceReadinessEffectif} onGoToSnapshots={() => {
+                  setShowSnapshots(true);
                   setShowPhysioAnalysis(false);
-                  setShowWorkoutLibrary(false);
-                  setShowSnapshots(false);
-                  setShowCheckins(false);
-                }}
-                className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
-              >
-                <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                <span className="truncate">Tests</span>
-              </Button>
-
-              <Button
-                variant={showPhysioAnalysis ? "default" : "outline"}
-                onClick={() => {
-                  setShowPhysioAnalysis(!showPhysioAnalysis);
-                  setShowTestLibrary(false);
-                  setShowWorkoutLibrary(false);
-                  setShowSnapshots(false);
-                  setShowCheckins(false);
-                }}
-                className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
-              >
-                <Brain className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                <span className="truncate">Analyse</span>
-              </Button>
-
-
-              <Button
-                variant={showWorkoutLibrary ? "default" : "outline"}
-                onClick={() => {
-                  setShowWorkoutLibrary(!showWorkoutLibrary);
-                  setShowTestLibrary(false);
-                  setShowPhysioAnalysis(false);
-                  setShowSnapshots(false);
-                  setShowCheckins(false);
-                }}
-                className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
-              >
-                <Dumbbell className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                <span className="truncate">Séances</span>
-              </Button>
-
-
-              <Button
-                variant={showSnapshots ? "default" : "outline"}
-                onClick={() => {
-                  setShowSnapshots(!showSnapshots);
-                  setShowTestLibrary(false);
-                  setShowPhysioAnalysis(false);
-                  setShowWorkoutLibrary(false);
-                  setShowCheckins(false);
-                }}
-                className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
-              >
-                <Camera className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                <span className="truncate">Snapshots</span>
-              </Button>
-
-              <Button
-                variant={showCheckins ? "default" : "outline"}
-                onClick={() => {
-                  setShowCheckins(!showCheckins);
-                  setShowTestLibrary(false);
-                  setShowPhysioAnalysis(false);
-                  setShowWorkoutLibrary(false);
-                  setShowSnapshots(false);
-                }}
-                className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
-              >
-                <ClipboardCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                <span className="truncate">Check-ins</span>
-              </Button>
-
-              {currentAthlete && (
-                <ExportTools 
-                  athlete={currentAthlete}
-                  snapshots={snapshots}
-                  tests={tests}
-                  staffMode={staffMode}
-                />
-              )}
-            </div>
-
-            {/* Contenu conditionnel */}
-            {showTestLibrary && <TestProtocols athlete={legacyAthlete} />}
-            {showPhysioAnalysis && <PhysiologicalAnalysis athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} readiness={raceReadinessEffectif} onGoToSnapshots={() => {
-              setShowSnapshots(true);
-              setShowPhysioAnalysis(false);
-            }} />}
-            
-            {showWorkoutLibrary && <WorkoutLibrary athlete={legacyAthlete} />}
-            {showSnapshots && currentAthlete && (
-              <SnapshotManager
-                athleteId={currentAthlete.id}
-                athleteName={currentAthlete.name}
-                athleteGoal={currentAthlete.goal || "IM"}
-                activeSnapshotId={currentAthlete.active_snapshot_id}
-                staffMode={staffMode}
-              />
-            )}
-            {showCheckins && currentAthlete && (
-              <CheckinManager athleteId={currentAthlete.id} athleteName={currentAthlete.name} />
-            )}
-
-            {/* 📊 CHARGE RÉCENTE - Donnée centrale CRR */}
-            {currentAthlete && staffMode && effectiveCloudSnapshot && (
+                }} />}
+                
+                {showWorkoutLibrary && <WorkoutLibrary athlete={legacyAthlete} />}
+                {showSnapshots && currentAthlete && (
+                  <SnapshotManager
+                    athleteId={currentAthlete.id}
+                    athleteName={currentAthlete.name}
+                    athleteGoal={currentAthlete.goal || "IM"}
+                    activeSnapshotId={currentAthlete.active_snapshot_id}
+                    staffMode={staffMode}
+                  />
+                )}
+                {showCheckins && currentAthlete && (
+                  <CheckinManager athleteId={currentAthlete.id} athleteName={currentAthlete.name} />
+                )}
+              </>
+            ),
+          },
+          {
+            id: "charge-recente",
+            render: () => currentAthlete && staffMode && effectiveCloudSnapshot && (
               <ChargeRecenteCard
                 crr={computeCRR({
                   tss7d: effectiveCloudSnapshot.tss_7d ?? null,
@@ -672,10 +676,11 @@ const Index = () => {
                   await updateSnapshot(effectiveCloudSnapshot.id, { tss_7d: value });
                 }}
               />
-            )}
-
-            {/* 🧭 METABOLIC PERFORMANCE COMPASS - Graphique signature */}
-            {currentAthlete && (
+            ),
+          },
+          {
+            id: "compass",
+            render: () => currentAthlete && (
               <MetabolicPerformanceCompass
                 data={{
                   vlamaxEffectif: vlamaxEffectif,
@@ -688,10 +693,11 @@ const Index = () => {
                 }}
                 staffMode={staffMode}
               />
-            )}
-
-            {/* 📊 SCIENTIFIC CHARTS DASHBOARD - Graphiques staff-grade */}
-            {currentAthlete && (
+            ),
+          },
+          {
+            id: "scientific-charts",
+            render: () => currentAthlete && (
               <ScientificChartsDashboard
                 vlamaxValue={vlamaxEffectif.value}
                 vlamaxSource={vlamaxEffectif.source}
@@ -711,10 +717,11 @@ const Index = () => {
                 sport="velo"
                 initialStaffMode={staffMode}
               />
-            )}
-
-            {/* 📊 STAFF DASHBOARD - Tour de contrôle décisionnelle */}
-            {currentAthlete && (
+            ),
+          },
+          {
+            id: "staff-dashboard",
+            render: () => currentAthlete && (
               <StaffDashboard
                 athleteName={currentAthlete.name}
                 objectif={currentAthlete.goal || "IM"}
@@ -725,8 +732,19 @@ const Index = () => {
                 ftpKg={ftp_kg}
                 snapshotDate={effectiveCloudSnapshot?.date ?? null}
               />
-            )}
+            ),
+          },
+        ];
 
+        return (
+          <div className="space-y-4 sm:space-y-6 md:space-y-8 animate-fade-in">
+            {renderAthleteSelector()}
+            
+            <SortableSectionsContainer
+              tabId="dashboard"
+              tabLabel="Dashboard"
+              sections={dashboardSections}
+            />
           </div>
         );
 
