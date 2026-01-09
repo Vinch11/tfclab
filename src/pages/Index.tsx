@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Navigation } from "@/components/Navigation";
 import { MetricCard } from "@/components/MetricCard";
-import { TrainingZones } from "@/components/TrainingZones";
+import { TrainingZonesCard } from "@/components/TrainingZonesCard";
 import { TestProtocols } from "@/components/TestProtocols";
 import { VLamaxTestingPage } from "@/components/VLamaxTestingPage";
 import { RaceChecklist } from "@/components/RaceChecklist";
@@ -776,7 +776,7 @@ const Index = () => {
               athleteName={legacyAthlete.nom}
             />
             
-            <TrainingZones />
+            <TrainingZonesCard staffMode={staffMode} />
           </div>
         );
 

@@ -1,4 +1,11 @@
-// Configuration des zones d'entraînement - Modèle Vince's Lab
+/**
+ * Configuration des zones d'entraînement - Grille Z1→Z7 Staff-Grade
+ * 
+ * ⚠️ ALIGNÉ AVEC src/lib/trainingZonesDefinition.ts (source unique)
+ * Ce fichier fournit la rétrocompatibilité avec l'ancien système par métrique/sport.
+ */
+
+import { TRAINING_ZONES, ZoneId, ZONE_COLORS } from "./trainingZonesDefinition";
 
 export interface ZoneDefinition {
   key: string;
@@ -14,29 +21,29 @@ export interface MetricConfig {
   sports: Record<string, ZoneDefinition[]>;
 }
 
+/**
+ * GRILLE OFFICIELLE Z1→Z7 - Alignée avec trainingZonesDefinition.ts
+ */
 export const ZonesConfig: Record<string, MetricConfig> = {
   allure: {
     label: "Allure",
     sports: {
-      "course": [
-        { key: "Z1", name: "Récupération active", min: 55, max: 65, desc: "Récupération active, élimination du lactate, faible stress cardio-musculaire, amélioration technique. Durée type: 30-90min" },
-        { key: "Z2", name: "Endurance Fondamentale", min: 65, max: 75, desc: "Développement aérobie, augmentation des mitochondries, métabolisme lipidique, amélioration de l'économie gestuelle." },
-        { key: "Z3", name: "Endurance Active", min: 75, max: 80, desc: "Amélioration de l'économie, hausse du seuil ventilatoire, stabilité technique à intensité soutenue." },
-        { key: "Z4a", name: "ASL+2 Seuil bas", min: 80, max: 86, desc: "Endurance musculaire, utilisation énergétique optimisée, capacité à soutenir de longues intensités proches du seuil." },
-        { key: "Z4b", name: "AS21 Seuil haut", min: 86, max: 90, desc: "Augmentation du seuil lactique, endurance à haute intensité, tolérance métabolique." },
-        { key: "Z5", name: "Seuil", min: 90, max: 94, desc: "Repousse du seuil anaérobie, forte tolérance lactate, amélioration des performances sur 10 km." },
-        { key: "Z6", name: "Anaérobie lactique", min: 94, max: 105, desc: "Augmentation du VO2max, capacité aérobie maximale, vitesse critique et puissance maximale." },
-        { key: "Z7", name: "Neuromusculaire", min: 105, max: 120, desc: "Capacité anaérobie lactique, explosivité, puissance maximale, coordination neuromusculaire (sprint)." }
-      ],
+      "course": TRAINING_ZONES.map(z => ({
+        key: z.id,
+        name: z.label,
+        min: z.vma.min,
+        max: z.vma.max,
+        desc: z.parametresTravailles
+      })),
       "natation": [
-        { key: "Z1", name: "Récupération active", min: 0, max: 85, desc: "Récupération active, élimination du lactate, faible stress cardio-musculaire, amélioration technique. Durée type: 30-90min" },
-        { key: "Z2", name: "Endurance Fondamentale", min: 85, max: 95, desc: "Développement aérobie, augmentation des mitochondries, métabolisme lipidique, amélioration de l'économie gestuelle." },
-        { key: "Z3", name: "Endurance Active", min: 95, max: 100, desc: "Amélioration de l'économie, hausse du seuil ventilatoire, stabilité technique à intensité soutenue." },
-        { key: "Z4a", name: "ASL+2 Seuil bas", min: 100, max: 105, desc: "Endurance musculaire, utilisation énergétique optimisée, capacité à soutenir intensités proches du seuil." },
-        { key: "Z4b", name: "AS21 Seuil haut", min: 105, max: 110, desc: "Augmentation du seuil lactique, endurance à haute intensité, tolérance métabolique." },
-        { key: "Z5", name: "Seuil", min: 110, max: 115, desc: "Repousse du seuil anaérobie, forte tolérance lactate." },
-        { key: "Z6", name: "Anaérobie lactique", min: 115, max: 120, desc: "Augmentation du VO2max, capacité aérobie maximale." },
-        { key: "Z7", name: "Neuromusculaire", min: 120, max: 150, desc: "Capacité anaérobie lactique, explosivité, coordination neuromusculaire (sprint)." }
+        { key: "Z1", name: "Récupération", min: 0, max: 85, desc: "Récupération, technique" },
+        { key: "Z2", name: "Endurance Fondamentale", min: 85, max: 95, desc: "Base aérobie, lipolyse" },
+        { key: "Z3", name: "Endurance Active", min: 95, max: 100, desc: "Seuil aérobie" },
+        { key: "Z4a", name: "Allure IM", min: 100, max: 105, desc: "Spécifique long" },
+        { key: "Z4b", name: "Allure 70.3", min: 105, max: 110, desc: "Spécifique moyen" },
+        { key: "Z5", name: "Seuil", min: 110, max: 115, desc: "MLSS natation" },
+        { key: "Z6", name: "VO2max", min: 115, max: 120, desc: "Capacité aérobie max" },
+        { key: "Z7", name: "Sprint", min: 120, max: 150, desc: "Neuromusculaire, explosivité" }
       ]
     }
   },
@@ -44,21 +51,22 @@ export const ZonesConfig: Record<string, MetricConfig> = {
   puissance: {
     label: "Puissance",
     sports: {
+      "cyclisme": TRAINING_ZONES.map(z => ({
+        key: z.id,
+        name: z.label,
+        min: z.ftp.min,
+        max: z.ftp.max,
+        desc: z.parametresTravailles
+      })),
       "course": [
-        { key: "Z1", name: "Récupération active", min: 0, max: 80, desc: "Récupération active, circulation, élimination du lactate. Durée typique: 30-90 min" },
-        { key: "Z2", name: "Endurance Fondamentale", min: 80, max: 90, desc: "Aérobie de base, endurance fondamentale, économie énergétique. Durée typique: 1 à 5 h" },
-        { key: "Z3", name: "Endurance Active", min: 90, max: 100, desc: "Endurance soutenue, amélioration du seuil aérobie, 'tempo'" },
-        { key: "Z4", name: "Seuil", min: 100, max: 115, desc: "Amélioration du FTP, MLSS, tolérance lactique" },
-        { key: "Z5", name: "VO2max", min: 115, max: 130, desc: "Développement de la VO2max" }
-      ],
-      "cyclisme": [
-        { key: "Z1", name: "Récupération active", min: 10, max: 55, desc: "Récupération active, circulation, élimination du lactate. Durée typique: 30-90 min" },
-        { key: "Z2", name: "Endurance Fondamentale", min: 55, max: 75, desc: "Aérobie de base, endurance fondamentale, économie énergétique. Durée typique: 1 à 5 h" },
-        { key: "Z3", name: "Endurance Active", min: 75, max: 90, desc: "Endurance soutenue, amélioration du seuil aérobie, 'tempo'" },
-        { key: "Z4", name: "Seuil", min: 90, max: 105, desc: "Amélioration du FTP, MLSS, tolérance lactique" },
-        { key: "Z5", name: "VO2max", min: 105, max: 120, desc: "Développement de la VO2max" },
-        { key: "Z6", name: "Anaérobie lactique", min: 120, max: 150, desc: "Capacité anaérobie lactique, tolérance acide" },
-        { key: "Z7", name: "Neuromusculaire", min: 150, max: 300, desc: "Puissance neuromusculaire, coordination, explosivité" }
+        { key: "Z1", name: "Récupération", min: 0, max: 80, desc: "Récupération, circulation" },
+        { key: "Z2", name: "Endurance Fondamentale", min: 80, max: 90, desc: "Base aérobie" },
+        { key: "Z3", name: "Endurance Active", min: 90, max: 100, desc: "Tempo" },
+        { key: "Z4a", name: "Sweet Spot", min: 100, max: 105, desc: "Durabilité" },
+        { key: "Z4b", name: "Seuil bas", min: 105, max: 110, desc: "Tolérance" },
+        { key: "Z5", name: "Seuil", min: 110, max: 120, desc: "MLSS, FTP" },
+        { key: "Z6", name: "VO2max", min: 120, max: 140, desc: "Puissance aérobie max" },
+        { key: "Z7", name: "Neuromusculaire", min: 140, max: 200, desc: "Sprints, force max" }
       ]
     }
   },
@@ -66,16 +74,14 @@ export const ZonesConfig: Record<string, MetricConfig> = {
   cardiaque: {
     label: "Cardiaque",
     sports: {
-      "tout sport": [
-        { key: "Z1", name: "Récupération active", min: 50, max: 68, cogH: 36, desc: "Récupération active, circulation, élimination du lactate." },
-        { key: "Z2", name: "Endurance Fondamentale", min: 68, max: 80, cogH: 55, desc: "Aérobie de base, endurance fondamentale, économie énergétique." },
-        { key: "Z3", name: "Endurance Active", min: 80, max: 84, cogH: 65, desc: "Endurance soutenue, amélioration du seuil aérobie 'tempo'. Durée typique: 20min – 2h" },
-        { key: "Z4a", name: "ASL+2", min: 84, max: 87, cogH: 70, desc: "Endurance musculaire, utilisation énergétique optimisée, capacité à soutenir de longues intensités proches du seuil." },
-        { key: "Z4b", name: "AS21", min: 87, max: 90, cogH: 75, desc: "Augmentation du seuil lactique, endurance à haute intensité, tolérance métabolique." },
-        { key: "Z4", name: "Seuil", min: 90, max: 92, cogH: 80, desc: "Repousse du seuil anaérobie, forte tolérance lactate, amélioration des performances sur 10 km." },
-        { key: "Z5", name: "VO2max - VMA", min: 92, max: 97, cogH: 120, desc: "Augmentation du VO2max, capacité aérobie maximale, vitesse critique et puissance maximale." },
-        { key: "Z6", name: "Anaérobie Lactique", min: 97, max: 100, cogH: 150, desc: "Capacité anaérobie lactique, explosivité, puissance maximale, coordination neuromusculaire (sprint). Durée typique: 20 s – 2 min" }
-      ]
+      "tout sport": TRAINING_ZONES.filter(z => z.fcMax !== null).map(z => ({
+        key: z.id,
+        name: z.label,
+        min: z.fcMax!.min,
+        max: z.fcMax!.max,
+        cogH: z.id === "Z1" ? 36 : z.id === "Z2" ? 55 : z.id === "Z3" ? 65 : z.id === "Z4a" ? 70 : z.id === "Z4b" ? 75 : z.id === "Z5" ? 80 : 120,
+        desc: z.parametresTravailles
+      }))
     }
   }
 };
@@ -202,14 +208,7 @@ export function computeAbsoluteRange(
   return { ok: false, note: "Référence non définie" };
 }
 
-export const zoneColors: Record<string, { text: string; bg: string; border: string }> = {
-  Z1: { text: "text-blue-400", bg: "bg-blue-400/10", border: "border-blue-400/30" },
-  Z2: { text: "text-green-400", bg: "bg-green-400/10", border: "border-green-400/30" },
-  Z3: { text: "text-yellow-400", bg: "bg-yellow-400/10", border: "border-yellow-400/30" },
-  Z4: { text: "text-orange-400", bg: "bg-orange-400/10", border: "border-orange-400/30" },
-  Z4a: { text: "text-orange-300", bg: "bg-orange-300/10", border: "border-orange-300/30" },
-  Z4b: { text: "text-orange-500", bg: "bg-orange-500/10", border: "border-orange-500/30" },
-  Z5: { text: "text-red-400", bg: "bg-red-400/10", border: "border-red-400/30" },
-  Z6: { text: "text-purple-400", bg: "bg-purple-400/10", border: "border-purple-400/30" },
-  Z7: { text: "text-pink-400", bg: "bg-pink-400/10", border: "border-pink-400/30" },
-};
+/**
+ * Couleurs des zones - Exporté depuis trainingZonesDefinition.ts
+ */
+export const zoneColors = ZONE_COLORS;
