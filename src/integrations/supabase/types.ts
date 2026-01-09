@@ -232,6 +232,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          layout_preferences: Json | null
           onboarding_completed: boolean
           role: string
           updated_at: string
@@ -241,6 +242,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          layout_preferences?: Json | null
           onboarding_completed?: boolean
           role?: string
           updated_at?: string
@@ -250,6 +252,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          layout_preferences?: Json | null
           onboarding_completed?: boolean
           role?: string
           updated_at?: string
