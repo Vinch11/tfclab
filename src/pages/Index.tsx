@@ -95,7 +95,17 @@ const Index = () => {
   // ✅ IMPORTANT: on récupère aussi snapshots + tests + fonctions cloud
   const { athletes, snapshots, tests, loading, addAthlete, updateAthlete, deleteAthlete, addTest, deleteTest, updateSnapshot } = useCloudData();
 
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState(() => {
+    // Restaurer l'onglet depuis localStorage au chargement
+    const saved = localStorage.getItem("vlab-active-tab");
+    return saved || "dashboard";
+  });
+  
+  // Persister l'onglet actif dans localStorage
+  useEffect(() => {
+    localStorage.setItem("vlab-active-tab", activeTab);
+  }, [activeTab]);
+  
   const [showTestLibrary, setShowTestLibrary] = useState(false);
   const [showPhysioAnalysis, setShowPhysioAnalysis] = useState(false);
   
