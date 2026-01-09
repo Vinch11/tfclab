@@ -22,8 +22,11 @@ import {
   PersonStanding,
   Activity,
   Trophy,
-  AlertCircle
+  AlertCircle,
+  Eye,
+  EyeOff
 } from "lucide-react";
+import { useHiddenTests } from "@/hooks/useHiddenTests";
 import { cn } from "@/lib/utils";
 import { Athlete } from "@/types/athlete";
 import { 
@@ -100,10 +103,18 @@ export function VLamaxTestingPage({ athlete, cloudTests, onAddTest, onDeleteTest
   // État pour les inputs inline (par protocole id)
   const [inlineInputs, setInlineInputs] = useState<Record<string, TestResultat>>({});
 
-  // Filtrer les tests par sport
-  const filteredTests = sportFilter === "tous" 
+  // Hook pour tests masqués
+  const { hiddenTests, toggleHiddenTest, isHidden, showAllTests, hiddenCount } = useHiddenTests();
+  const [showHiddenTests, setShowHiddenTests] = useState(false);
+
+  // Filtrer les tests par sport et par visibilité
+  const allFilteredTests = sportFilter === "tous" 
     ? testsVLamaxDisponibles 
     : testsVLamaxDisponibles.filter(t => t.sport === sportFilter);
+  
+  const filteredTests = showHiddenTests
+    ? allFilteredTests
+    : allFilteredTests.filter(t => !isHidden(t.id));
 
   // Compter tests par sport
   const testCountBySport = {
@@ -322,6 +333,29 @@ export function VLamaxTestingPage({ athlete, cloudTests, onAddTest, onDeleteTest
           Natation
           <span className="text-xs opacity-70">({testCountBySport.natation})</span>
         </Button>
+        
+        {/* Contrôle visibilité tests masqués */}
+        {hiddenCount > 0 && (
+          <Button
+            variant={showHiddenTests ? "secondary" : "outline"}
+            size="sm"
+            onClick={() => setShowHiddenTests(!showHiddenTests)}
+            className="gap-2 ml-auto"
+          >
+            {showHiddenTests ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+            {hiddenCount} masqué{hiddenCount > 1 ? 's' : ''}
+          </Button>
+        )}
+        {hiddenCount > 0 && showHiddenTests && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={showAllTests}
+            className="text-xs"
+          >
+            Tout afficher
+          </Button>
+        )}
       </div>
 
       {/* Liste des protocoles */}
@@ -336,7 +370,8 @@ export function VLamaxTestingPage({ athlete, cloudTests, onAddTest, onDeleteTest
               key={protocole.id}
               className={cn(
                 "glass-card overflow-hidden transition-all duration-300",
-                isExpanded && "border-primary/30"
+                isExpanded && "border-primary/30",
+                isHidden(protocole.id) && "opacity-60"
               )}
             >
               {/* Header du test */}
@@ -353,11 +388,17 @@ export function VLamaxTestingPage({ athlete, cloudTests, onAddTest, onDeleteTest
                       <SportIcon className="w-5 h-5" />
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-medium text-foreground">{protocole.nom}</h3>
                         {existingTest && (
                           <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success">
                             ✓ Complété
+                          </span>
+                        )}
+                        {isHidden(protocole.id) && (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-muted border border-muted-foreground/30 text-muted-foreground flex items-center gap-1">
+                            <EyeOff className="w-3 h-3" />
+                            Masqué
                           </span>
                         )}
                       </div>
@@ -385,6 +426,19 @@ export function VLamaxTestingPage({ athlete, cloudTests, onAddTest, onDeleteTest
                         </p>
                       </div>
                     )}
+                    {/* Bouton masquer/afficher */}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 flex-shrink-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleHiddenTest(protocole.id);
+                      }}
+                      title={isHidden(protocole.id) ? "Afficher ce test" : "Masquer ce test"}
+                    >
+                      {isHidden(protocole.id) ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4 text-muted-foreground" />}
+                    </Button>
                     <ChevronRight
                       className={cn(
                         "w-5 h-5 text-muted-foreground transition-transform duration-300",
