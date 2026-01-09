@@ -3,9 +3,11 @@
 // Two For Coaching Lab – Performance & Metabolic Report
 // =============================================
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { FileText, FileSpreadsheet, AlertCircle } from "lucide-react";
+import { FileText, FileSpreadsheet, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import html2pdf from "html2pdf.js";
 import type { DbAthlete, DbSnapshot, DbTest, DbCheckin } from "@/hooks/useCloudData";
 import { getEffectiveSnapshot, getEffectiveRefs, type EffectiveRefs } from "@/lib/effectiveRefs";
 import { computeVLamaxEffectif, type VLamaxEffectif } from "@/lib/vlamaxEffectif";
@@ -2071,6 +2073,7 @@ function buildCSV(payload: ExportPayload): string {
 // =============================================
 
 export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMode = false }: ExportToolsProps) {
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const payload = buildExportPayload(athlete, snapshots, tests, checkins);
   const exportCheck = canExport(payload);
 
@@ -2100,29 +2103,63 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       return;
     }
     
-    // Convert logo to base64 for embedding in the PDF
-    const logoBase64 = await imageToBase64(logoUrl);
+    setIsGeneratingPdf(true);
+    toast.info("Génération du PDF en cours...", { duration: 2000 });
     
-    const html = buildStaffGradeReportHTML(payload, logoBase64);
-    
-    // Méthode alternative sans popup: créer un blob et télécharger
-    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    
-    // Créer un lien de téléchargement
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `rapport-staff-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.html`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    // Nettoyer l'URL blob après un délai
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    
-    toast.success("Rapport téléchargé", {
-      description: "Ouvrez le fichier HTML et utilisez Imprimer > Enregistrer en PDF."
-    });
+    try {
+      // Convert logo to base64 for embedding in the PDF
+      const logoBase64 = await imageToBase64(logoUrl);
+      
+      const html = buildStaffGradeReportHTML(payload, logoBase64);
+      
+      // Créer un conteneur temporaire pour le HTML
+      const container = document.createElement("div");
+      container.innerHTML = html;
+      container.style.position = "absolute";
+      container.style.left = "-9999px";
+      container.style.top = "0";
+      document.body.appendChild(container);
+      
+      // Trouver le body du HTML généré
+      const contentBody = container.querySelector("body");
+      const contentToConvert = contentBody || container;
+      
+      // Options pour html2pdf
+      const options = {
+        margin: [10, 10, 10, 10],
+        filename: `rapport-staff-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`,
+        image: { type: "jpeg", quality: 0.95 },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          letterRendering: true,
+          logging: false
+        },
+        jsPDF: { 
+          unit: "mm", 
+          format: "a4", 
+          orientation: "portrait" 
+        },
+        pagebreak: { mode: ["avoid-all", "css", "legacy"] }
+      };
+      
+      // Générer et télécharger le PDF
+      await html2pdf().set(options).from(contentToConvert).save();
+      
+      // Nettoyer le conteneur temporaire
+      document.body.removeChild(container);
+      
+      toast.success("PDF généré avec succès", {
+        description: `Fichier téléchargé: ${options.filename}`
+      });
+    } catch (error) {
+      console.error("Erreur génération PDF:", error);
+      toast.error("Erreur lors de la génération du PDF", {
+        description: "Veuillez réessayer"
+      });
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   if (!exportCheck.ok) {
@@ -2149,10 +2186,15 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
         variant="outline" 
         size="sm" 
         onClick={handleExportPDF}
+        disabled={isGeneratingPdf}
         className="gap-2"
       >
-        <FileText className="h-4 w-4" />
-        📄 Export PDF Staff
+        {isGeneratingPdf ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <FileText className="h-4 w-4" />
+        )}
+        {isGeneratingPdf ? "Génération..." : "📄 Export PDF"}
       </Button>
     </div>
   );
