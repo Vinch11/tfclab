@@ -12,6 +12,13 @@ export interface TestResultat {
   temps?: number;             // secondes - durée
   distance?: number;          // mètres - pour natation/course
   lactatePic?: number;        // mmol/L - mesure labo
+  // Tests VLamax CAP avancés
+  distSprint1?: number;       // m - distance sprint 1 (15s)
+  distSprint2?: number;       // m - distance sprint 2 (15s)
+  dist12min?: number;         // m - distance 12 min
+  powerSprint1?: number;      // W/kg - puissance sprint 1
+  powerSprint2?: number;      // W/kg - puissance sprint 2
+  power12min?: number;        // W/kg - puissance 12 min
 }
 
 export interface TestVLamax {
@@ -146,6 +153,56 @@ export const testsVLamaxDisponibles: TestProtocoleVLamax[] = [
     calcVLamax: (r) => {
       if (!r.vitesse) return 0.35;
       return Math.min(0.7, Math.max(0.2, 0.15 + (r.vitesse / 40)));
+    }
+  },
+
+  // ===== TESTS VLAMAX CAP AVANCÉS (avec interface dédiée) =====
+  {
+    id: "run_vlamax_sprint15_12min",
+    nom: "VLamax CAP – Sprint 15s + 12 min",
+    sport: "course",
+    protocole: "2 × 15s sprint all-out + 12 min all-out. Estimation VLamax via Sprint Ratio (SR = V15/V12). Test terrain officiel.",
+    duree: "45 min",
+    difficulte: "Difficile",
+    champsRequis: ["distSprint1", "distSprint2", "dist12min"],
+    calcVLamax: (r) => {
+      const d1 = r.distSprint1 || 0;
+      const d2 = r.distSprint2 || 0;
+      const d12 = r.dist12min || 0;
+      if (!d1 || !d2 || !d12) return 0.35;
+      
+      const bestD15 = Math.max(d1, d2);
+      const v15 = bestD15 / 15;
+      const v12 = d12 / 720;
+      const srRun = v15 / v12;
+      
+      const normalized = Math.max(0, Math.min(1, (srRun - 1.55) / 0.35));
+      let vlamax = 0.25 + 0.55 * normalized;
+      return Math.max(0.25, Math.min(0.95, vlamax));
+    }
+  },
+  {
+    id: "run_vlamax_power_advanced",
+    nom: "VLamax CAP – Test Puissance (Advanced)",
+    sport: "course",
+    protocole: "2 × 15s sprint + 12 min all-out avec puissance (Stryd/Garmin). Calcul VLamax via modèle Mader/Heck.",
+    duree: "45 min",
+    difficulte: "Difficile",
+    champsRequis: ["powerSprint1", "powerSprint2", "power12min"],
+    calcVLamax: (r) => {
+      const p1 = r.powerSprint1 || 0;
+      const p2 = r.powerSprint2 || 0;
+      const p12 = r.power12min || 0;
+      if (!p1 || !p2 || !p12) return 0.35;
+      
+      const p15 = Math.max(p1, p2);
+      const pgly = p15 - (0.25 * p12);
+      const tgly = 9;
+      const egly = pgly * tgly;
+      const lactate = egly / 65;
+      let vlamax = lactate / tgly;
+      
+      return Math.max(0.20, Math.min(1.00, vlamax));
     }
   },
 

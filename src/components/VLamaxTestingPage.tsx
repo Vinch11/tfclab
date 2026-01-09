@@ -252,6 +252,13 @@ export function VLamaxTestingPage({ athlete, cloudTests, onAddTest, onDeleteTest
     temps: { label: "Temps", unit: "s", icon: Clock },
     distance: { label: "Distance", unit: "m", icon: Target },
     lactatePic: { label: "Lactate Pic", unit: "mmol/L", icon: FlaskConical },
+    // Tests VLamax CAP avancés
+    distSprint1: { label: "Distance Sprint 1", unit: "m", icon: Target },
+    distSprint2: { label: "Distance Sprint 2", unit: "m", icon: Target },
+    dist12min: { label: "Distance 12 min", unit: "m", icon: Target },
+    powerSprint1: { label: "Puissance Sprint 1", unit: "W/kg", icon: Zap },
+    powerSprint2: { label: "Puissance Sprint 2", unit: "W/kg", icon: Zap },
+    power12min: { label: "Puissance 12 min", unit: "W/kg", icon: Zap },
   };
 
   return (
