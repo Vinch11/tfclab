@@ -194,77 +194,81 @@ export function SnapshotEvolutionChart({ snapshots, tests = [], athleteName }: S
         <div className="h-64 mt-4">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
               <XAxis 
                 dataKey="dateFormatted" 
-                className="text-xs"
-                tick={{ fontSize: 11 }}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                stroke="hsl(var(--border))"
               />
               <YAxis 
                 yAxisId="vlamax" 
                 orientation="left"
                 domain={[0.2, 0.7]}
-                className="text-xs"
-                tick={{ fontSize: 11 }}
-                label={{ value: 'VLamax', angle: -90, position: 'insideLeft', fontSize: 11 }}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                stroke="hsl(var(--border))"
+                width={45}
               />
               <YAxis 
                 yAxisId="tte" 
                 orientation="right"
                 domain={[20, 80]}
-                className="text-xs"
-                tick={{ fontSize: 11 }}
-                label={{ value: 'TTE (min)', angle: 90, position: 'insideRight', fontSize: 11 }}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                stroke="hsl(var(--border))"
+                width={50}
               />
               <Tooltip 
                 contentStyle={{ 
                   backgroundColor: 'hsl(var(--card))',
                   border: '1px solid hsl(var(--border))',
                   borderRadius: '8px',
-                  fontSize: 12
+                  fontSize: 12,
+                  color: 'hsl(var(--foreground))'
                 }}
                 formatter={(value: number, name: string) => {
-                  if (name === "vlamax") return [value?.toFixed(3), "VLamax"];
-                  if (name === "tte") return [`${value} min`, "TTE"];
+                  if (name === "VLamax") return [value?.toFixed(3), "VLamax"];
+                  if (name === "TTE (min)") return [`${value} min`, "TTE"];
                   return [value, name];
                 }}
+                labelStyle={{ color: 'hsl(var(--foreground))' }}
               />
-              <Legend />
+              <Legend 
+                wrapperStyle={{ fontSize: 12 }}
+                formatter={(value) => <span style={{ color: 'hsl(var(--foreground))' }}>{value}</span>}
+              />
               
-              {/* Ligne VLamax */}
+              {/* Ligne VLamax - Cyan vif */}
               <Line 
                 yAxisId="vlamax"
                 type="monotone" 
                 dataKey="vlamax" 
                 name="VLamax"
-                stroke="hsl(var(--primary))" 
-                strokeWidth={2.5}
-                dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6 }}
+                stroke="#06b6d4"
+                strokeWidth={3}
+                dot={{ fill: '#06b6d4', strokeWidth: 2, r: 5, stroke: '#fff' }}
+                activeDot={{ r: 7, fill: '#06b6d4', stroke: '#fff', strokeWidth: 2 }}
                 connectNulls
               />
               
-              {/* Ligne TTE */}
+              {/* Ligne TTE - Orange vif */}
               <Line 
                 yAxisId="tte"
                 type="monotone" 
                 dataKey="tte" 
                 name="TTE (min)"
-                stroke="hsl(var(--accent-foreground))" 
-                strokeWidth={2.5}
-                dot={{ fill: 'hsl(var(--accent-foreground))', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6 }}
+                stroke="#f97316"
+                strokeWidth={3}
+                dot={{ fill: '#f97316', strokeWidth: 2, r: 5, stroke: '#fff' }}
+                activeDot={{ r: 7, fill: '#f97316', stroke: '#fff', strokeWidth: 2 }}
                 connectNulls
-                strokeDasharray="5 5"
               />
               
-              {/* Lignes de référence pour VLamax optimal */}
+              {/* Ligne de référence pour VLamax optimal */}
               <ReferenceLine 
                 yAxisId="vlamax" 
                 y={0.35} 
-                stroke="hsl(var(--muted-foreground))" 
-                strokeDasharray="3 3" 
-                opacity={0.5}
+                stroke="#06b6d4"
+                strokeDasharray="5 5" 
+                opacity={0.4}
               />
             </LineChart>
           </ResponsiveContainer>
