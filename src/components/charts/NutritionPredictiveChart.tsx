@@ -147,7 +147,7 @@ export function NutritionPredictiveChart({
                 {/* Zone de risque digestif */}
                 <ReferenceArea
                   y1={digestiveThreshold}
-                  y2={260}
+                  y2={150}
                   fill="hsl(var(--destructive))"
                   fillOpacity={0.12}
                 />
@@ -174,7 +174,7 @@ export function NutritionPredictiveChart({
                   stroke="hsl(var(--border))"
                 />
                 <YAxis
-                  domain={[0, 260]}
+                  domain={[0, 150]}
                   tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
                   tickFormatter={(val) => `${val}`}
                   stroke="hsl(var(--border))"
