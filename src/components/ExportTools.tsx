@@ -2104,7 +2104,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
     }
     
     setIsGeneratingPdf(true);
-    toast.info("Génération du PDF en cours...", { duration: 2000 });
+    toast.info("Génération du PDF en cours...", { duration: 3000 });
     
     try {
       // Convert logo to base64 for embedding in the PDF
@@ -2112,42 +2112,56 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       
       const html = buildStaffGradeReportHTML(payload, logoBase64);
       
-      // Créer un conteneur temporaire pour le HTML
-      const container = document.createElement("div");
-      container.innerHTML = html;
-      container.style.position = "absolute";
-      container.style.left = "-9999px";
-      container.style.top = "0";
-      document.body.appendChild(container);
+      // Créer un iframe caché pour charger le HTML complet
+      const iframe = document.createElement("iframe");
+      iframe.style.position = "fixed";
+      iframe.style.left = "-10000px";
+      iframe.style.top = "0";
+      iframe.style.width = "210mm"; // A4 width
+      iframe.style.height = "297mm";
+      iframe.style.border = "none";
+      document.body.appendChild(iframe);
       
-      // Trouver le body du HTML généré
-      const contentBody = container.querySelector("body");
-      const contentToConvert = contentBody || container;
+      // Écrire le HTML dans l'iframe
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (!iframeDoc) {
+        throw new Error("Impossible de créer l'iframe");
+      }
+      
+      iframeDoc.open();
+      iframeDoc.write(html);
+      iframeDoc.close();
+      
+      // Attendre que le contenu soit chargé
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const contentBody = iframeDoc.body;
       
       // Options pour html2pdf
       const options = {
-        margin: [10, 10, 10, 10],
+        margin: [8, 8, 8, 8],
         filename: `rapport-staff-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`,
-        image: { type: "jpeg", quality: 0.95 },
+        image: { type: "jpeg", quality: 0.92 },
         html2canvas: { 
-          scale: 2,
+          scale: 1.5,
           useCORS: true,
           letterRendering: true,
-          logging: false
+          logging: false,
+          windowWidth: 794, // A4 width in pixels at 96 DPI
         },
         jsPDF: { 
           unit: "mm", 
           format: "a4", 
-          orientation: "portrait" 
+          orientation: "portrait" as const
         },
-        pagebreak: { mode: ["avoid-all", "css", "legacy"] }
+        pagebreak: { mode: ["css", "legacy"] }
       };
       
       // Générer et télécharger le PDF
-      await html2pdf().set(options).from(contentToConvert).save();
+      await html2pdf().set(options).from(contentBody).save();
       
-      // Nettoyer le conteneur temporaire
-      document.body.removeChild(container);
+      // Nettoyer l'iframe
+      document.body.removeChild(iframe);
       
       toast.success("PDF généré avec succès", {
         description: `Fichier téléchargé: ${options.filename}`
