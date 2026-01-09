@@ -146,56 +146,62 @@ export function PerformanceRiskMatrixChart({
           </div>
         ) : (
           <div className="space-y-3">
-            {/* Matrice 2x2 */}
-            <div className="relative aspect-square max-w-64 mx-auto">
-              {/* Quadrants */}
-              <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-0.5">
-                {/* Top-left: Safe-Dev */}
-                <div className="bg-primary/20 rounded-tl-lg flex items-center justify-center">
-                  <span className="text-[10px] text-primary font-medium text-center px-1">
-                    Développement<br/>sécurisé
-                  </span>
-                </div>
-                {/* Top-right: Optimal */}
-                <div className="bg-success/20 rounded-tr-lg flex items-center justify-center">
-                  <span className="text-[10px] text-success font-medium text-center px-1">
-                    Optimal
-                  </span>
-                </div>
-                {/* Bottom-left: Danger */}
-                <div className="bg-destructive/20 rounded-bl-lg flex items-center justify-center">
-                  <span className="text-[10px] text-destructive font-medium text-center px-1">
-                    Zone de<br/>danger
-                  </span>
-                </div>
-                {/* Bottom-right: Risk-Perf */}
-                <div className="bg-warning/20 rounded-br-lg flex items-center justify-center">
-                  <span className="text-[10px] text-warning font-medium text-center px-1">
-                    Performance<br/>à risque
-                  </span>
-                </div>
+            {/* Matrice 2x2 avec labels Y sur le côté gauche */}
+            <div className="flex items-center gap-3">
+              {/* Label axe Y - à gauche du graphique */}
+              <div className="flex flex-col items-center justify-center h-full">
+                <span className="text-[10px] text-muted-foreground -rotate-90 whitespace-nowrap origin-center">
+                  ← Potentiel Performance →
+                </span>
               </div>
               
-              {/* Axes labels */}
-              <div className="absolute -left-1 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] text-muted-foreground whitespace-nowrap">
-                ← Potentiel Performance →
+              <div className="relative aspect-square max-w-56 flex-1">
+                {/* Quadrants avec couleurs plus vives et transparence améliorée */}
+                <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-1 p-0.5">
+                  {/* Top-left: Safe-Dev */}
+                  <div className="bg-primary/30 border border-primary/40 rounded-tl-lg flex items-center justify-center backdrop-blur-sm">
+                    <span className="text-[11px] text-primary font-semibold text-center px-2 drop-shadow-sm">
+                      Développement<br/>sécurisé
+                    </span>
+                  </div>
+                  {/* Top-right: Optimal */}
+                  <div className="bg-success/30 border border-success/40 rounded-tr-lg flex items-center justify-center backdrop-blur-sm">
+                    <span className="text-[11px] text-success font-semibold text-center px-2 drop-shadow-sm">
+                      Optimal
+                    </span>
+                  </div>
+                  {/* Bottom-left: Danger */}
+                  <div className="bg-destructive/30 border border-destructive/40 rounded-bl-lg flex items-center justify-center backdrop-blur-sm">
+                    <span className="text-[11px] text-destructive font-semibold text-center px-2 drop-shadow-sm">
+                      Zone de<br/>danger
+                    </span>
+                  </div>
+                  {/* Bottom-right: Risk-Perf */}
+                  <div className="bg-warning/30 border border-warning/40 rounded-br-lg flex items-center justify-center backdrop-blur-sm">
+                    <span className="text-[11px] text-warning font-semibold text-center px-2 drop-shadow-sm">
+                      Performance<br/>à risque
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Point athlète */}
+                <div 
+                  className="absolute w-5 h-5 rounded-full border-2 border-white shadow-lg z-10 ring-2 ring-offset-1 ring-offset-transparent"
+                  style={{
+                    left: `${riskX}%`,
+                    bottom: `${perfY}%`,
+                    transform: 'translate(-50%, 50%)',
+                    backgroundColor: quadrantInfo.color,
+                    boxShadow: `0 0 10px ${quadrantInfo.color}`
+                  }}
+                />
               </div>
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-4 text-[10px] text-muted-foreground whitespace-nowrap">
-                ← Risque Blessure →
-              </div>
-              
-              {/* Point athlète */}
-              <div 
-                className="absolute w-4 h-4 rounded-full border-2 border-background shadow-lg z-10"
-                style={{
-                  left: `${riskX}%`,
-                  bottom: `${perfY}%`,
-                  transform: 'translate(-50%, 50%)',
-                  backgroundColor: quadrantInfo.color
-                }}
-              />
             </div>
             
+            {/* Label axe X - en dessous */}
+            <div className="text-center">
+              <span className="text-[10px] text-muted-foreground">← Risque Blessure →</span>
+            </div>
             {/* Status */}
             <div 
               className="p-3 rounded-lg text-center"
