@@ -27,12 +27,12 @@ export const PROFIL_SECTIONS: SectionDefinition[] = [
 ];
 
 export const DASHBOARD_SECTIONS: SectionDefinition[] = [
-  { id: "athlete-context", label: "Identité & Contexte", icon: "User", defaultVisible: true },
-  { id: "coach-summary", label: "Résumé Coach", icon: "Info", defaultVisible: true },
-  { id: "piliers", label: "Piliers Physiologiques", icon: "Zap", defaultVisible: true },
-  { id: "nutrition", label: "Nutrition Prédictive", icon: "Utensils", defaultVisible: true },
-  { id: "priorities", label: "Priorités d'entraînement", icon: "TrendingUp", defaultVisible: true },
-  { id: "scientific", label: "Cadre Scientifique", icon: "Info", defaultVisible: true },
+  { id: "athlete-refs", label: "Profil & Références", icon: "User", defaultVisible: true },
+  { id: "action-buttons", label: "Boutons d'action", icon: "Settings", defaultVisible: true },
+  { id: "charge-recente", label: "Charge Récente", icon: "Activity", defaultVisible: true },
+  { id: "compass", label: "Metabolic Compass", icon: "Compass", defaultVisible: true },
+  { id: "scientific-charts", label: "Graphiques Scientifiques", icon: "BarChart", defaultVisible: true },
+  { id: "staff-dashboard", label: "Staff Dashboard", icon: "Users", defaultVisible: true },
 ];
 
 export const EVOLUTION_SECTIONS: SectionDefinition[] = [
