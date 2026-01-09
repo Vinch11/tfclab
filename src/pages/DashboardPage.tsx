@@ -3,10 +3,11 @@
 // Tour de contrôle décisionnelle - Lisible en < 10 secondes
 // =============================================
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SortableSectionsContainer } from "@/components/SortableSectionsContainer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -345,330 +346,352 @@ export default function DashboardPage() {
   // RENDER: MAIN DASHBOARD
   // =============================================
   
+  // =============================================
+  // SECTIONS RENDER FUNCTIONS
+  // =============================================
+
+  const renderAthleteContext = (): ReactNode => (
+    <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+      <CardContent className="p-4">
+        <h1 className="text-xl font-bold mb-2">{currentAthlete.nom}</h1>
+        <div className="flex flex-wrap gap-2 text-sm">
+          <Badge variant="outline" className="gap-1">
+            <Target className="h-3 w-3" />
+            {OBJECTIF_LABELS[objectif] || objectif}
+          </Badge>
+          <Badge variant="secondary" className="gap-1">
+            <Activity className="h-3 w-3" />
+            {PHASE_LABELS[phase] || phase}
+          </Badge>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderCoachSummary = (): ReactNode => (
+    <Card className="border-l-4 border-l-primary">
+      <CardContent className="p-4">
+        <div className="flex items-start gap-3">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <Info className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+              Lecture rapide coach
+            </p>
+            <p className="text-sm leading-relaxed">
+              {coachSummary}
+            </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderPiliers = (): ReactNode => (
+    <div className="space-y-3">
+      <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
+        Piliers Physiologiques
+      </h2>
+
+      {/* PILIER 1: VLamax Effectif */}
+      <Card>
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-amber-500" />
+              <span className="font-semibold">VLamax effectif</span>
+            </div>
+            {getStatusBadge(vlamaxStatus.status, vlamaxStatus.label)}
+          </div>
+          
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-bold font-mono">
+              {vlamaxEffectif.value !== null ? vlamaxEffectif.value.toFixed(2) : "—"}
+            </span>
+            <span className="text-sm text-muted-foreground">mmol/L/s</span>
+          </div>
+          
+          <div className="flex items-center gap-4 text-xs">
+            <div className="flex items-center gap-1">
+              <span className="text-muted-foreground">Source:</span>
+              <span className={getSourceColor(vlamaxEffectif.source)}>
+                {vlamaxEffectif.label}
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-muted-foreground">Confiance:</span>
+              <div className="flex items-center gap-0.5">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Star 
+                    key={i} 
+                    className={cn(
+                      "h-3 w-3",
+                      i <= Math.round(vlamaxEffectif.confidence * 5) 
+                        ? "text-amber-500 fill-amber-500" 
+                        : "text-muted-foreground/30"
+                    )} 
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          <Separator />
+          
+          <div className="space-y-2 text-sm">
+            <p className="text-muted-foreground">
+              <span className="font-medium text-foreground">Interprétation : </span>
+              {vlamaxEffectif.value !== null && vlamaxEffectif.value > 0.50
+                ? "Un VLamax élevé indique une forte dépendance aux glucides. Pour cet objectif, cela augmente le risque d'épuisement glycogénique."
+                : vlamaxEffectif.value !== null && vlamaxEffectif.value < 0.35
+                ? "Un VLamax bas favorise l'utilisation des lipides, excellent pour l'endurance longue distance."
+                : "VLamax dans une zone équilibrée pour l'objectif."}
+            </p>
+            <p className="text-primary font-medium">
+              <span className="font-medium">Action : </span>
+              {vlamaxEffectif.value !== null && vlamaxEffectif.value > 0.45
+                ? "Prioriser endurance fondamentale et force endurance pour réduire progressivement le VLamax."
+                : "Maintenir le profil actuel."}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* PILIER 2: TTE Effectif */}
+      <Card>
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-blue-500" />
+              <span className="font-semibold">TTE effectif</span>
+            </div>
+            {getStatusBadge(tteStatus.status, tteStatus.label)}
+          </div>
+          
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-bold font-mono">{tteEffectif.tte_min}</span>
+            <span className="text-sm text-muted-foreground">min</span>
+            <span className="text-sm text-muted-foreground ml-2">
+              (cible: {tteTarget} min)
+            </span>
+          </div>
+          
+          <Progress 
+            value={Math.min(100, (tteEffectif.tte_min / tteTarget) * 100)} 
+            className="h-2" 
+          />
+          
+          <div className="flex items-center gap-4 text-xs">
+            <div className="flex items-center gap-1">
+              <span className="text-muted-foreground">Source:</span>
+              <span className={tteEffectif.source === "observed" ? "text-green-600" : "text-amber-600"}>
+                {getSourceLabel(tteEffectif.source)}
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-muted-foreground">Confiance:</span>
+              <span>{getConfidenceLabel(tteEffectif.confidence)}</span>
+            </div>
+          </div>
+          
+          <Separator />
+          
+          <div className="space-y-2 text-sm">
+            <p className="text-muted-foreground">
+              <span className="font-medium text-foreground">Interprétation : </span>
+              {tteEffectif.tte_min < tteTarget
+                ? "TTE actuellement insuffisant pour soutenir l'allure cible sans dérive physiologique."
+                : "TTE suffisant pour maintenir l'intensité cible sur la durée de l'épreuve."}
+            </p>
+            <p className="text-primary font-medium">
+              <span className="font-medium">Action : </span>
+              {tteEffectif.tte_min < tteTarget
+                ? "Allonger les blocs continus à intensité stable et consolider l'endurance spécifique."
+                : "Maintenir la charge d'endurance actuelle."}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* PILIER 3: Race Readiness */}
+      <Card>
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-green-500" />
+              <span className="font-semibold">Race Readiness</span>
+            </div>
+            {getStatusBadge(readinessStatus.status, readinessStatus.label)}
+          </div>
+          
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-bold font-mono">{raceReadiness.score}</span>
+            <span className="text-sm text-muted-foreground">%</span>
+          </div>
+          
+          <Progress 
+            value={raceReadiness.score} 
+            className="h-2" 
+          />
+          
+          <p className="text-xs text-muted-foreground italic">
+            Score pondéré selon l'objectif ({OBJECTIF_LABELS[objectif] || objectif})
+          </p>
+          
+          {/* Détail par composante */}
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="p-2 bg-muted/50 rounded text-center">
+              <p className="text-muted-foreground">Métabolisme</p>
+              <p className="font-bold">{raceReadiness.details.vlamax}/25</p>
+            </div>
+            <div className="p-2 bg-muted/50 rounded text-center">
+              <p className="text-muted-foreground">Endurance</p>
+              <p className="font-bold">{raceReadiness.details.endurance}/25</p>
+            </div>
+            <div className="p-2 bg-muted/50 rounded text-center">
+              <p className="text-muted-foreground">Puissance</p>
+              <p className="font-bold">{raceReadiness.details.puissance}/25</p>
+            </div>
+          </div>
+          
+          <Separator />
+          
+          <p className="text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">Message : </span>
+            {raceReadiness.messageStaff}
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderNutrition = (): ReactNode => {
+    if (!nutritionEstimate) return null;
+    
+    return (
+      <Card>
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Utensils className="h-5 w-5 text-orange-500" />
+              <span className="font-semibold">Nutrition Prédictive</span>
+            </div>
+            <Badge 
+              variant={nutritionEstimate.riskLevel === "low" ? "default" : 
+                      nutritionEstimate.riskLevel === "moderate" ? "secondary" : "destructive"}
+            >
+              {nutritionEstimate.nutritionalRiskIndex.icon} Risque {nutritionEstimate.nutritionalRiskIndex.label}
+            </Badge>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Besoin glucidique estimé</p>
+              <p className="text-xl font-bold">{nutritionEstimate.carbsMin}–{nutritionEstimate.carbsMax} g/h</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Facteur principal</p>
+              <p className="text-sm font-medium">{nutritionEstimate.nutritionalRiskIndex.mainRiskFactor}</p>
+            </div>
+          </div>
+          
+          {nutritionEstimate.riskLevel !== "low" && (
+            <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-900">
+              <p className="text-sm text-amber-800 dark:text-amber-200">
+                ⚠️ {nutritionEstimate.messageStaff}
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const renderPriorities = (): ReactNode => (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base flex items-center gap-2">
+          <TrendingUp className="h-5 w-5 text-primary" />
+          Priorités d'entraînement
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <ol className="space-y-2">
+          {priorities.map((priority, index) => (
+            <li key={index} className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center">
+                {index + 1}
+              </span>
+              <span className="text-sm pt-0.5">{priority}</span>
+            </li>
+          ))}
+        </ol>
+      </CardContent>
+    </Card>
+  );
+
+  const renderScientific = (): ReactNode => (
+    <Card className="bg-muted/30 border-dashed">
+      <CardContent className="p-4">
+        <Button
+          variant="ghost"
+          className="w-full flex items-center justify-between p-0 h-auto"
+          onClick={() => setShowScientificDetails(!showScientificDetails)}
+        >
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            Cadre scientifique & limites
+          </span>
+          {showScientificDetails ? (
+            <ChevronUp className="h-4 w-4 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          )}
+        </Button>
+        
+        {showScientificDetails && (
+          <div className="mt-3 space-y-2 text-xs text-muted-foreground">
+            <p>• Les valeurs sont issues d'estimations terrain</p>
+            <p>• La précision dépend de la qualité des snapshots</p>
+            <p>• Les indicateurs guident la décision, ils ne remplacent pas l'expertise du coach</p>
+            <Separator className="my-2" />
+            <p className="italic">
+              Snapshot du {snapshot.date} • 
+              VLamax: {vlamaxEffectif.source} ({Math.round(vlamaxEffectif.confidence * 100)}%) • 
+              TTE: {tteEffectif.source} ({Math.round(tteEffectif.confidence * 100)}%)
+            </p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  // =============================================
+  // SECTIONS CONFIGURATION
+  // =============================================
+
+  const sections = [
+    { id: "athlete-context", render: renderAthleteContext },
+    { id: "coach-summary", render: renderCoachSummary },
+    { id: "piliers", render: renderPiliers },
+    { id: "nutrition", render: renderNutrition },
+    { id: "priorities", render: renderPriorities },
+    { id: "scientific", render: renderScientific },
+  ];
+
+  // =============================================
+  // RENDER: MAIN DASHBOARD
+  // =============================================
+  
   return (
     <AppLayout title="Dashboard">
-      <div className="space-y-4 animate-fade-in max-w-2xl mx-auto">
-        
-        {/* ============================================= */}
-        {/* BLOC 1: IDENTITÉ ATHLÈTE & CONTEXTE */}
-        {/* ============================================= */}
-        <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-          <CardContent className="p-4">
-            <h1 className="text-xl font-bold mb-2">{currentAthlete.nom}</h1>
-            <div className="flex flex-wrap gap-2 text-sm">
-              <Badge variant="outline" className="gap-1">
-                <Target className="h-3 w-3" />
-                {OBJECTIF_LABELS[objectif] || objectif}
-              </Badge>
-              <Badge variant="secondary" className="gap-1">
-                <Activity className="h-3 w-3" />
-                {PHASE_LABELS[phase] || phase}
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* ============================================= */}
-        {/* BLOC 2: RÉSUMÉ EXPRESS COACH */}
-        {/* ============================================= */}
-        <Card className="border-l-4 border-l-primary">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Info className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
-                  Lecture rapide coach
-                </p>
-                <p className="text-sm leading-relaxed">
-                  {coachSummary}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* ============================================= */}
-        {/* BLOC 3: LES 3 PILIERS PHYSIOLOGIQUES */}
-        {/* ============================================= */}
-        <div className="space-y-3">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
-            Piliers Physiologiques
-          </h2>
-
-          {/* PILIER 1: VLamax Effectif */}
-          <Card>
-            <CardContent className="p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-amber-500" />
-                  <span className="font-semibold">VLamax effectif</span>
-                </div>
-                {getStatusBadge(vlamaxStatus.status, vlamaxStatus.label)}
-              </div>
-              
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold font-mono">
-                  {vlamaxEffectif.value !== null ? vlamaxEffectif.value.toFixed(2) : "—"}
-                </span>
-                <span className="text-sm text-muted-foreground">mmol/L/s</span>
-              </div>
-              
-              <div className="flex items-center gap-4 text-xs">
-                <div className="flex items-center gap-1">
-                  <span className="text-muted-foreground">Source:</span>
-                  <span className={getSourceColor(vlamaxEffectif.source)}>
-                    {vlamaxEffectif.label}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-muted-foreground">Confiance:</span>
-                  <div className="flex items-center gap-0.5">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <Star 
-                        key={i} 
-                        className={cn(
-                          "h-3 w-3",
-                          i <= Math.round(vlamaxEffectif.confidence * 5) 
-                            ? "text-amber-500 fill-amber-500" 
-                            : "text-muted-foreground/30"
-                        )} 
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-              
-              <Separator />
-              
-              <div className="space-y-2 text-sm">
-                <p className="text-muted-foreground">
-                  <span className="font-medium text-foreground">Interprétation : </span>
-                  {vlamaxEffectif.value !== null && vlamaxEffectif.value > 0.50
-                    ? "Un VLamax élevé indique une forte dépendance aux glucides. Pour cet objectif, cela augmente le risque d'épuisement glycogénique."
-                    : vlamaxEffectif.value !== null && vlamaxEffectif.value < 0.35
-                    ? "Un VLamax bas favorise l'utilisation des lipides, excellent pour l'endurance longue distance."
-                    : "VLamax dans une zone équilibrée pour l'objectif."}
-                </p>
-                <p className="text-primary font-medium">
-                  <span className="font-medium">Action : </span>
-                  {vlamaxEffectif.value !== null && vlamaxEffectif.value > 0.45
-                    ? "Prioriser endurance fondamentale et force endurance pour réduire progressivement le VLamax."
-                    : "Maintenir le profil actuel."}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* PILIER 2: TTE Effectif */}
-          <Card>
-            <CardContent className="p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-blue-500" />
-                  <span className="font-semibold">TTE effectif</span>
-                </div>
-                {getStatusBadge(tteStatus.status, tteStatus.label)}
-              </div>
-              
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold font-mono">{tteEffectif.tte_min}</span>
-                <span className="text-sm text-muted-foreground">min</span>
-                <span className="text-sm text-muted-foreground ml-2">
-                  (cible: {tteTarget} min)
-                </span>
-              </div>
-              
-              <Progress 
-                value={Math.min(100, (tteEffectif.tte_min / tteTarget) * 100)} 
-                className="h-2" 
-              />
-              
-              <div className="flex items-center gap-4 text-xs">
-                <div className="flex items-center gap-1">
-                  <span className="text-muted-foreground">Source:</span>
-                  <span className={tteEffectif.source === "observed" ? "text-green-600" : "text-amber-600"}>
-                    {getSourceLabel(tteEffectif.source)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-muted-foreground">Confiance:</span>
-                  <span>{getConfidenceLabel(tteEffectif.confidence)}</span>
-                </div>
-              </div>
-              
-              <Separator />
-              
-              <div className="space-y-2 text-sm">
-                <p className="text-muted-foreground">
-                  <span className="font-medium text-foreground">Interprétation : </span>
-                  {tteEffectif.tte_min < tteTarget
-                    ? "TTE actuellement insuffisant pour soutenir l'allure cible sans dérive physiologique."
-                    : "TTE suffisant pour maintenir l'intensité cible sur la durée de l'épreuve."}
-                </p>
-                <p className="text-primary font-medium">
-                  <span className="font-medium">Action : </span>
-                  {tteEffectif.tte_min < tteTarget
-                    ? "Allonger les blocs continus à intensité stable et consolider l'endurance spécifique."
-                    : "Maintenir la charge d'endurance actuelle."}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* PILIER 3: Race Readiness */}
-          <Card>
-            <CardContent className="p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-green-500" />
-                  <span className="font-semibold">Race Readiness</span>
-                </div>
-                {getStatusBadge(readinessStatus.status, readinessStatus.label)}
-              </div>
-              
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold font-mono">{raceReadiness.score}</span>
-                <span className="text-sm text-muted-foreground">%</span>
-              </div>
-              
-              <Progress 
-                value={raceReadiness.score} 
-                className="h-2" 
-              />
-              
-              <p className="text-xs text-muted-foreground italic">
-                Score pondéré selon l'objectif ({OBJECTIF_LABELS[objectif] || objectif})
-              </p>
-              
-              {/* Détail par composante */}
-              <div className="grid grid-cols-3 gap-2 text-xs">
-                <div className="p-2 bg-muted/50 rounded text-center">
-                  <p className="text-muted-foreground">Métabolisme</p>
-                  <p className="font-bold">{raceReadiness.details.vlamax}/25</p>
-                </div>
-                <div className="p-2 bg-muted/50 rounded text-center">
-                  <p className="text-muted-foreground">Endurance</p>
-                  <p className="font-bold">{raceReadiness.details.endurance}/25</p>
-                </div>
-                <div className="p-2 bg-muted/50 rounded text-center">
-                  <p className="text-muted-foreground">Puissance</p>
-                  <p className="font-bold">{raceReadiness.details.puissance}/25</p>
-                </div>
-              </div>
-              
-              <Separator />
-              
-              <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">Message : </span>
-                {raceReadiness.messageStaff}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* ============================================= */}
-        {/* BLOC 4: NUTRITION PRÉDICTIVE */}
-        {/* ============================================= */}
-        {nutritionEstimate && (
-          <Card>
-            <CardContent className="p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Utensils className="h-5 w-5 text-orange-500" />
-                  <span className="font-semibold">Nutrition Prédictive</span>
-                </div>
-                <Badge 
-                  variant={nutritionEstimate.riskLevel === "low" ? "default" : 
-                          nutritionEstimate.riskLevel === "moderate" ? "secondary" : "destructive"}
-                >
-                  {nutritionEstimate.nutritionalRiskIndex.icon} Risque {nutritionEstimate.nutritionalRiskIndex.label}
-                </Badge>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Besoin glucidique estimé</p>
-                  <p className="text-xl font-bold">{nutritionEstimate.carbsMin}–{nutritionEstimate.carbsMax} g/h</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Facteur principal</p>
-                  <p className="text-sm font-medium">{nutritionEstimate.nutritionalRiskIndex.mainRiskFactor}</p>
-                </div>
-              </div>
-              
-              {nutritionEstimate.riskLevel !== "low" && (
-                <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-900">
-                  <p className="text-sm text-amber-800 dark:text-amber-200">
-                    ⚠️ {nutritionEstimate.messageStaff}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* ============================================= */}
-        {/* BLOC 5: PRIORITÉS D'ENTRAÎNEMENT */}
-        {/* ============================================= */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              Priorités d'entraînement
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <ol className="space-y-2">
-              {priorities.map((priority, index) => (
-                <li key={index} className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center">
-                    {index + 1}
-                  </span>
-                  <span className="text-sm pt-0.5">{priority}</span>
-                </li>
-              ))}
-            </ol>
-          </CardContent>
-        </Card>
-
-        {/* ============================================= */}
-        {/* BLOC 6: CADRE SCIENTIFIQUE & LIMITES */}
-        {/* ============================================= */}
-        <Card className="bg-muted/30 border-dashed">
-          <CardContent className="p-4">
-            <Button
-              variant="ghost"
-              className="w-full flex items-center justify-between p-0 h-auto"
-              onClick={() => setShowScientificDetails(!showScientificDetails)}
-            >
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Cadre scientifique & limites
-              </span>
-              {showScientificDetails ? (
-                <ChevronUp className="h-4 w-4 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              )}
-            </Button>
-            
-            {showScientificDetails && (
-              <div className="mt-3 space-y-2 text-xs text-muted-foreground">
-                <p>• Les valeurs sont issues d'estimations terrain</p>
-                <p>• La précision dépend de la qualité des snapshots</p>
-                <p>• Les indicateurs guident la décision, ils ne remplacent pas l'expertise du coach</p>
-                <Separator className="my-2" />
-                <p className="italic">
-                  Snapshot du {snapshot.date} • 
-                  VLamax: {vlamaxEffectif.source} ({Math.round(vlamaxEffectif.confidence * 100)}%) • 
-                  TTE: {tteEffectif.source} ({Math.round(tteEffectif.confidence * 100)}%)
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
+      <div className="animate-fade-in max-w-2xl mx-auto">
+        <SortableSectionsContainer
+          tabId="dashboard"
+          tabLabel="Dashboard"
+          sections={sections}
+          className="space-y-4"
+        />
       </div>
     </AppLayout>
   );
