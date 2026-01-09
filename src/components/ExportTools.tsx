@@ -12,6 +12,7 @@ import { computeVLamaxEffectif, type VLamaxEffectif } from "@/lib/vlamaxEffectif
 import { computeTTEEffectif, type TTEEffectif } from "@/lib/tteEffectif";
 import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getTargets, getRaceWeights } from "@/lib/raceReadinessEffectif";
 import { ZonesConfig, computeAbsoluteRange, AthleteRefsForZones } from "@/lib/zonesConfig";
+import { TRAINING_ZONES, computeZoneAbsoluteValues, ZONES_METHODOLOGY_NOTE, type AthleteZoneRefs } from "@/lib/trainingZonesDefinition";
 import { reglesDanLorang, getPrioriteLabel, getSeancesRecommandees, PrioriteType } from "@/types/reglesDanLorang";
 import { SEANCES } from "@/types/seances";
 import { computeNutritionEstimate, type NutritionEstimate } from "@/lib/nutritionPredictive";
@@ -1209,49 +1210,125 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
   `;
 
   // =============================================
-  // F. ZONES
+  // F. ZONES D'ENTRAÎNEMENT Z1→Z7 (GRILLE OFFICIELLE)
   // =============================================
+  
+  // Préparer les refs pour le calcul des zones absolues
+  const zoneRefs: AthleteZoneRefs = {
+    fcMax: effectiveRefs.fcMax,
+    vma: effectiveRefs.vma,
+    ftp: effectiveRefs.ftp
+  };
+  
+  // Générer la grille complète Z1→Z7 avec impacts métaboliques
+  const zonesTableRows = TRAINING_ZONES.map(zone => {
+    const absValues = computeZoneAbsoluteValues(zone, zoneRefs);
+    
+    // Format FC
+    const fcDisplay = zone.fcMax 
+      ? `${zone.fcMax.min}-${zone.fcMax.max}%` + (absValues.fcBpm ? ` → ${absValues.fcBpm.min}-${absValues.fcBpm.max} bpm` : '')
+      : 'N/A';
+    
+    // Format VMA  
+    const vmaDisplay = `${zone.vma.min}-${zone.vma.max}%` + (absValues.vmaKmh ? ` → ${absValues.vmaKmh.min.toFixed(1)}-${absValues.vmaKmh.max.toFixed(1)} km/h` : '');
+    
+    // Format FTP
+    const ftpDisplay = `${zone.ftp.min}-${zone.ftp.max}%` + (absValues.ftpWatts ? ` → ${absValues.ftpWatts.min}-${absValues.ftpWatts.max} W` : '');
+    
+    // Impacts métaboliques formatés
+    const vlamaxImpact = zone.impactMetabolique.vlamax;
+    const tteImpact = zone.impactMetabolique.tte;
+    const vo2Impact = zone.impactMetabolique.vo2max;
+    
+    // Couleur selon impact VLamax
+    const vlamaxColor = vlamaxImpact.includes('↓') ? 'color:var(--success)' : vlamaxImpact.includes('↑') ? 'color:var(--warning)' : '';
+    const tteColor = tteImpact.includes('↑') ? 'color:var(--success)' : tteImpact.includes('↓') ? 'color:var(--warning)' : '';
+    const vo2Color = vo2Impact.includes('↑') ? 'color:var(--success)' : '';
+    
+    return `
+      <tr>
+        <td><span class="badge badgePrimary">${zone.id}</span></td>
+        <td><b>${htmlEscape(zone.label)}</b><br><span class="muted" style="font-size:10px">${htmlEscape(zone.description)}</span></td>
+        <td class="mono" style="font-size:10px">${fcDisplay}</td>
+        <td class="mono" style="font-size:10px">${vmaDisplay}</td>
+        <td class="mono" style="font-size:10px">${ftpDisplay}</td>
+        <td style="text-align:center"><span style="${vlamaxColor};font-weight:600">${vlamaxImpact}</span></td>
+        <td style="text-align:center"><span style="${tteColor};font-weight:600">${tteImpact}</span></td>
+        <td style="text-align:center"><span style="${vo2Color};font-weight:600">${vo2Impact}</span></td>
+        <td class="muted" style="font-size:10px">${htmlEscape(zone.positionSeuils)}</td>
+      </tr>
+    `;
+  }).join('');
+  
   const zonesHTML = `
     <section id="zones" class="section pagebreak">
-      <h2>E. Zones d'entraînement</h2>
+      <h2>E. Grille d'entraînement Z1→Z7</h2>
       
-      <div class="grid3">
+      <div class="alert alertInfo mb">
+        <b>🎯 Méthodologie Two For Coaching Lab</b><br>
+        ${htmlEscape(ZONES_METHODOLOGY_NOTE)}
+      </div>
+      
+      <div class="card">
+        <h3>📊 Zones d'entraînement officielles</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Zone</th>
+              <th style="min-width:150px">Label & Objectif</th>
+              <th>%FCmax</th>
+              <th>%VMA (CAP)</th>
+              <th>%FTP (Vélo)</th>
+              <th style="text-align:center">VLamax</th>
+              <th style="text-align:center">TTE</th>
+              <th style="text-align:center">VO2</th>
+              <th>Position Seuils</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${zonesTableRows}
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="grid2 mt">
         <div class="card">
-          <h3>❤️ Zones Cardiaques (FCmax)</h3>
-          ${effectiveRefs.fcMax ? `
-            <ul class="muted">
-              <li>${htmlEscape(zoneAbs("cardiaque", "tout sport", "Z1", refs))}</li>
-              <li>${htmlEscape(zoneAbs("cardiaque", "tout sport", "Z2", refs))}</li>
-              <li>${htmlEscape(zoneAbs("cardiaque", "tout sport", "Z3", refs))}</li>
-              <li>${htmlEscape(zoneAbs("cardiaque", "tout sport", "Z4", refs))}</li>
-              <li>${htmlEscape(zoneAbs("cardiaque", "tout sport", "Z5", refs))}</li>
-            </ul>
-          ` : '<div class="alert alertWarning">FCmax manquante — Renseignez FCmax dans les références athlète.</div>'}
+          <h3>📖 Légende impacts métaboliques</h3>
+          <table style="font-size:11px">
+            <tbody>
+              <tr><td><b style="color:var(--success)">↓↓</b></td><td>Diminution forte</td></tr>
+              <tr><td><b style="color:var(--success)">↓</b></td><td>Diminution modérée</td></tr>
+              <tr><td><b>neutre</b></td><td>Pas d'impact significatif</td></tr>
+              <tr><td><b style="color:var(--warning)">↑</b></td><td>Augmentation modérée</td></tr>
+              <tr><td><b style="color:var(--error)">↑↑</b></td><td>Augmentation forte</td></tr>
+            </tbody>
+          </table>
         </div>
         <div class="card">
-          <h3>🏃 Zones Course (VMA)</h3>
-          ${effectiveRefs.vma ? `
-            <ul class="muted">
-              <li>${htmlEscape(zoneAbs("allure", "course", "Z1", refs))}</li>
-              <li>${htmlEscape(zoneAbs("allure", "course", "Z2", refs))}</li>
-              <li>${htmlEscape(zoneAbs("allure", "course", "Z3", refs))}</li>
-              <li>${htmlEscape(zoneAbs("allure", "course", "Z4b", refs))}</li>
-              <li>${htmlEscape(zoneAbs("allure", "course", "Z6", refs))}</li>
-            </ul>
-          ` : '<div class="alert alertWarning">VMA manquante — Renseignez VMA dans les références athlète.</div>'}
+          <h3>⚠️ Avertissements staff</h3>
+          <ul class="muted" style="font-size:11px">
+            <li><b>Z4b/Z5 prolongée</b> = charge glycolytique élevée. Limiter si objectif ↓ VLamax.</li>
+            <li><b>Z6</b> = stimulus VLamax secondaire. Usage modéré pour profils endurance.</li>
+            <li><b>Z7</b> = ↑↑ VLamax. Réserver aux phases de puissance/vitesse pure.</li>
+          </ul>
         </div>
-        <div class="card">
-          <h3>🚴 Zones Vélo (FTP)</h3>
-          ${effectiveRefs.ftp ? `
-            <ul class="muted">
-              <li>${htmlEscape(zoneAbs("puissance", "cyclisme", "Z1", refs))}</li>
-              <li>${htmlEscape(zoneAbs("puissance", "cyclisme", "Z2", refs))}</li>
-              <li>${htmlEscape(zoneAbs("puissance", "cyclisme", "Z3", refs))}</li>
-              <li>${htmlEscape(zoneAbs("puissance", "cyclisme", "Z4", refs))}</li>
-              <li>${htmlEscape(zoneAbs("puissance", "cyclisme", "Z5", refs))}</li>
-            </ul>
-          ` : '<div class="alert alertWarning">FTP manquante — Renseignez FTP dans le snapshot.</div>'}
-        </div>
+      </div>
+      
+      <div class="card cardHighlight mt">
+        <h3>🧭 Recommandation selon votre profil</h3>
+        <p class="muted" style="line-height:1.6">
+          ${vlamax.value !== null && vlamax.value > 0.40 
+            ? `<b style="color:var(--warning)">Profil glycolytique (VLamax: ${fmt(vlamax.value, 2)})</b> → Privilégier les zones Z2 et Z4a pour ↓ VLamax. Limiter Z6/Z7.`
+            : vlamax.value !== null && vlamax.value < 0.30
+              ? `<b style="color:var(--success)">Profil endurant (VLamax: ${fmt(vlamax.value, 2)})</b> → Zones Z4a/Z5 pour ↑ TTE. Possibilité d'inclure du Z6 si besoin de relance VO2max.`
+              : `<b>Profil équilibré</b> → Répartition standard avec focus sur les zones correspondant à votre objectif (${getObjectifLabel(athlete.goal)}).`
+          }
+          <br><br>
+          ${tte.tte_min < (tte.target ?? 50) 
+            ? `<b style="color:var(--warning)">TTE insuffisant (${tte.tte_min} min vs cible ${tte.target ?? 50} min)</b> → Prioriser Z4a et Z5 pour développer l'endurance au seuil.`
+            : `<b style="color:var(--success)">TTE satisfaisant (${tte.tte_min} min)</b> → Maintenir avec du travail Z2/Z3 de fond.`
+          }
+        </p>
       </div>
     </section>
   `;
