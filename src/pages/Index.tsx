@@ -818,6 +818,7 @@ const Index = () => {
             render: () => (
               <SnapshotEvolutionChart 
                 snapshots={snapshots.filter(s => s.athlete_id === currentAthlete?.id)}
+                tests={tests.filter(t => t.athlete_id === currentAthlete?.id)}
                 athleteName={legacyAthlete?.nom || ""}
               />
             ),

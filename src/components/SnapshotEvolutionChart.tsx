@@ -1,12 +1,12 @@
 // =============================================
 // GRAPHIQUE ÉVOLUTION HISTORIQUE VLamax / TTE
-// Basé sur les snapshots cloud
+// Basé sur les snapshots cloud + tests VLamax
 // =============================================
 
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Calendar, Info } from "lucide-react";
+import { TrendingUp, Calendar, Info, FlaskConical } from "lucide-react";
 import { 
   LineChart, 
   Line, 
@@ -18,11 +18,12 @@ import {
   Legend,
   ReferenceLine
 } from "recharts";
-import { DbSnapshot } from "@/hooks/useCloudData";
+import { DbSnapshot, DbTest } from "@/hooks/useCloudData";
 import { cn } from "@/lib/utils";
 
 interface SnapshotEvolutionChartProps {
   snapshots: DbSnapshot[];
+  tests?: DbTest[];
   athleteName?: string;
 }
 
@@ -33,31 +34,62 @@ interface ChartDataPoint {
   tte: number | null;
   vo2max: number | null;
   confidence: number | null;
+  source: "snapshot" | "test";
 }
 
-export function SnapshotEvolutionChart({ snapshots, athleteName }: SnapshotEvolutionChartProps) {
-  // Préparer les données triées par date
+export function SnapshotEvolutionChart({ snapshots, tests = [], athleteName }: SnapshotEvolutionChartProps) {
+  // Préparer les données triées par date (fusion snapshots + tests)
   const chartData = useMemo<ChartDataPoint[]>(() => {
-    if (!snapshots || snapshots.length === 0) return [];
+    const dataPoints: ChartDataPoint[] = [];
+    
+    // Ajouter les snapshots
+    if (snapshots && snapshots.length > 0) {
+      snapshots.forEach(snap => {
+        dataPoints.push({
+          date: snap.date,
+          dateFormatted: new Date(snap.date).toLocaleDateString("fr-FR", { 
+            day: "2-digit", 
+            month: "short",
+            year: "2-digit"
+          }),
+          vlamax: snap.vlamax ?? null,
+          tte: snap.tte_observed_min ?? null,
+          vo2max: snap.vo2max ?? null,
+          confidence: snap.confidence ?? null,
+          source: "snapshot"
+        });
+      });
+    }
+    
+    // Ajouter les tests VLamax (s'ils ont une valeur vlamax)
+    if (tests && tests.length > 0) {
+      tests.forEach(test => {
+        if (test.vlamax !== null && test.vlamax !== undefined) {
+          const testDate = new Date(test.date);
+          dataPoints.push({
+            date: testDate.toISOString().split('T')[0],
+            dateFormatted: testDate.toLocaleDateString("fr-FR", { 
+              day: "2-digit", 
+              month: "short",
+              year: "2-digit"
+            }),
+            vlamax: test.vlamax,
+            tte: null, // Les tests ne contiennent pas de TTE
+            vo2max: null,
+            confidence: test.reliability ?? null,
+            source: "test"
+          });
+        }
+      });
+    }
+    
+    if (dataPoints.length === 0) return [];
     
     // Trier par date croissante
-    const sorted = [...snapshots].sort((a, b) => 
+    return dataPoints.sort((a, b) => 
       new Date(a.date).getTime() - new Date(b.date).getTime()
     );
-    
-    return sorted.map(snap => ({
-      date: snap.date,
-      dateFormatted: new Date(snap.date).toLocaleDateString("fr-FR", { 
-        day: "2-digit", 
-        month: "short",
-        year: "2-digit"
-      }),
-      vlamax: snap.vlamax ?? null,
-      tte: snap.tte_observed_min ?? null,
-      vo2max: snap.vo2max ?? null,
-      confidence: snap.confidence ?? null
-    }));
-  }, [snapshots]);
+  }, [snapshots, tests]);
 
   // Calculer les tendances
   const trends = useMemo(() => {
@@ -292,6 +324,12 @@ function SnapshotRow({ data, isLatest }: { data: ChartDataPoint; isLatest?: bool
         <Badge variant={isLatest ? "default" : "outline"} className="font-mono text-xs">
           {data.dateFormatted}
         </Badge>
+        {data.source === "test" && (
+          <Badge variant="secondary" className="text-xs gap-1">
+            <FlaskConical className="h-3 w-3" />
+            Test
+          </Badge>
+        )}
         {isLatest && (
           <span className="text-xs text-primary font-medium">Dernier</span>
         )}
