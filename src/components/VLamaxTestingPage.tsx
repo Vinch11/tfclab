@@ -116,11 +116,11 @@ export function VLamaxTestingPage({ athlete, cloudTests, onAddTest, onDeleteTest
     ? allFilteredTests
     : allFilteredTests.filter(t => !isHidden(t.id));
 
-  // Compter tests par sport
-  const testCountBySport = {
-    vélo: tests.filter(t => t.sport === "vélo").length,
-    course: tests.filter(t => t.sport === "course").length,
-    natation: tests.filter(t => t.sport === "natation").length,
+  // Compter tests DISPONIBLES par sport (pas les tests effectués)
+  const availableCountBySport = {
+    vélo: testsVLamaxDisponibles.filter(t => t.sport === "vélo").length,
+    course: testsVLamaxDisponibles.filter(t => t.sport === "course").length,
+    natation: testsVLamaxDisponibles.filter(t => t.sport === "natation").length,
   };
 
   const handleStartTest = (protocole: TestProtocoleVLamax) => {
@@ -311,7 +311,7 @@ export function VLamaxTestingPage({ athlete, cloudTests, onAddTest, onDeleteTest
         >
           <Bike className="w-4 h-4" />
           Vélo
-          <span className="text-xs opacity-70">({testCountBySport.vélo})</span>
+          <span className="text-xs opacity-70">({availableCountBySport.vélo})</span>
         </Button>
         <Button
           variant={sportFilter === "course" ? "default" : "outline"}
@@ -321,7 +321,7 @@ export function VLamaxTestingPage({ athlete, cloudTests, onAddTest, onDeleteTest
         >
           <PersonStanding className="w-4 h-4" />
           Course
-          <span className="text-xs opacity-70">({testCountBySport.course})</span>
+          <span className="text-xs opacity-70">({availableCountBySport.course})</span>
         </Button>
         <Button
           variant={sportFilter === "natation" ? "default" : "outline"}
@@ -331,7 +331,7 @@ export function VLamaxTestingPage({ athlete, cloudTests, onAddTest, onDeleteTest
         >
           <Activity className="w-4 h-4" />
           Natation
-          <span className="text-xs opacity-70">({testCountBySport.natation})</span>
+          <span className="text-xs opacity-70">({availableCountBySport.natation})</span>
         </Button>
         
         {/* Contrôle visibilité tests masqués */}
