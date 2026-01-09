@@ -529,7 +529,18 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
       .alertSuccess { background: rgba(22,163,74,0.1); border-left: 4px solid var(--success); }
       .alertInfo { background: rgba(37,99,235,0.1); border-left: 4px solid var(--primary); }
       .footer { margin-top: 30px; font-size: 11px; color: var(--muted); border-top: 2px solid var(--border); padding-top: 15px; }
-      .cover { min-height: 90vh; display:flex; flex-direction:column; justify-content:space-between; border:1px solid var(--border); border-radius: 18px; padding: 28px; background: linear-gradient(180deg, #ffffff, var(--soft)); position: relative; overflow:hidden; margin-bottom: 24px; }
+      .cover { min-height: 90vh; display:flex; flex-direction:column; justify-content:space-between; position: relative; overflow:hidden; margin-bottom: 24px; background: var(--bg); }
+      .coverBanner { background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 50%, #1e3a5f 100%); padding: 40px 32px; border-radius: 18px; margin-bottom: 24px; position: relative; overflow: hidden; }
+      .coverBanner::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat; opacity: 0.3; }
+      .coverBannerContent { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center; }
+      .coverBrandBlock { display: flex; align-items: center; gap: 20px; }
+      .coverLogo { height: 80px; width: auto; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); background: white; padding: 8px; border-radius: 12px; }
+      .coverBrandText { color: white; }
+      .coverBrandName { font-size: 28px; font-weight: 800; letter-spacing: 0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.2); margin: 0; }
+      .coverBrandTagline { font-size: 14px; opacity: 0.9; margin-top: 4px; font-weight: 400; letter-spacing: 1px; text-transform: uppercase; }
+      .coverBannerBadges { display: flex; gap: 10px; flex-wrap: wrap; }
+      .coverBannerBadge { background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1px solid rgba(255,255,255,0.3); }
+      .coverBody { flex: 1; padding: 0 8px; }
       .coverTop { display:flex; justify-content:space-between; align-items:flex-start; gap: 16px; }
       .brand { display:flex; flex-direction:column; gap: 6px; }
       .brandSub { font-size: 13px; color: var(--muted); }
@@ -568,73 +579,79 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
 
   const coverHTML = `
     <section class="cover">
-      <div class="coverTop">
-        <div class="brand" style="display:flex; align-items:center; gap:16px;">
-          ${logoBase64 ? `<img src="${logoBase64}" alt="Logo" style="height:120px; width:auto;" />` : ''}
-          <div>
-            <div class="tag tagPrimary">${htmlEscape(brandMain)}</div>
-            <div class="brandSub">${htmlEscape(brandSub)}</div>
-          </div>
-        </div>
-        <div>
-          <div class="tag">Performance & Metabolic Report</div>
-          <div class="tag" style="margin-left:6px">${coverDate}</div>
-        </div>
-      </div>
-
-      <div class="coverMid">
-        <div style="font-size:14px;color:var(--muted);">Two For Coaching Lab — Performance & Metabolic Report</div>
-        <div class="coverTitle">${coverAthlete}</div>
-        <div class="coverMeta">
-          <div class="tag"><b>Objectif:</b> ${coverObjective}</div>
-          <div class="tag"><b>Snapshot actif:</b> ${snapshotDate}</div>
-          <div class="tag"><b>Cycle:</b> ${htmlEscape(cycleTag)}</div>
-          <div class="tag"><b>Source:</b> ${htmlEscape(snapshotSource)}</div>
-          ${completudeBadge}
-          <span class="tag tagPrimary">Complétude: ${completude.score}%</span>
-        </div>
-        <div class="alert alertInfo mt" style="max-width:600px;">
-          <b>📋 Rapport généré à partir des données effectives</b><br>
-          Aucune planification automatisée. Les valeurs présentées sont des indicateurs d'aide à la décision pour le coach.
-        </div>
-      </div>
-
-      <div class="coverBottom">
-        <div class="card">
-          <h3>Indicateurs clés</h3>
-          <div class="grid3 mt">
-            <div>
-              <span class="muted">VLamax effectif</span><br>
-              <span class="medium ${vlamax.value !== null && vlamax.value > 0.45 ? 'warning' : vlamax.value !== null && vlamax.value < 0.28 ? 'error' : 'success'}">${vlamax.value !== null ? fmt(vlamax.value, 2) : "—"}</span>
-              <br><span class="muted">${vlamax.source === "test" ? "🔬 Test" : vlamax.source === "snapshot" ? "📊 Snapshot" : "📐 Estimé"}</span>
-              ${vlamax.isLocked ? '<br><span class="locked">🔒 Verrouillée</span>' : ''}
-            </div>
-            <div>
-              <span class="muted">TTE effectif</span><br>
-              <span class="medium ${tte.tte_min < (tte.target || 45) ? 'warning' : 'success'}">${tte.tte_min} min</span>
-              <br><span class="muted">Cible: ${tte.target ?? 50} min</span>
-            </div>
-            <div>
-              <span class="muted">Race Readiness</span><br>
-              <span class="medium ${raceReadiness.score >= 80 ? 'success' : raceReadiness.score >= 60 ? 'warning' : 'error'}">${raceReadiness.score}%</span>
-              <br><span class="muted">${raceReadiness.label}</span>
+      <!-- BANNIÈRE PROFESSIONNELLE -->
+      <div class="coverBanner">
+        <div class="coverBannerContent">
+          <div class="coverBrandBlock">
+            ${logoBase64 ? `<img src="${logoBase64}" alt="Logo" class="coverLogo" />` : ''}
+            <div class="coverBrandText">
+              <div class="coverBrandName">${htmlEscape(brandMain)}</div>
+              <div class="coverBrandTagline">${htmlEscape(brandSub)}</div>
             </div>
           </div>
-        </div>
-        <div class="card">
-          <h3>Références effectives</h3>
-          <div class="kv">
-            <div class="k">FCmax</div><div class="v">${effectiveRefs.fcMax ?? "—"} bpm</div>
-            <div class="k">VMA</div><div class="v">${effectiveRefs.vma ?? "—"} km/h</div>
-            <div class="k">FTP</div><div class="v">${effectiveRefs.ftp ?? "—"} W</div>
-            <div class="k">Poids</div><div class="v">${effectiveRefs.weightKg ? fmt(effectiveRefs.weightKg, 1) : "—"} kg</div>
-            <div class="k">FTP/kg</div><div class="v">${ftpKg ? fmt(ftpKg, 2) : "—"} W/kg</div>
-            <div class="k">VO2max</div><div class="v">${effectiveRefs.vo2max ? fmt(effectiveRefs.vo2max, 1) : "—"}</div>
+          <div class="coverBannerBadges">
+            <div class="coverBannerBadge">📊 Performance Report</div>
+            <div class="coverBannerBadge">📅 ${coverDate}</div>
           </div>
         </div>
       </div>
+      
+      <!-- CORPS DE LA COUVERTURE -->
+      <div class="coverBody">
+        <div class="coverMid">
+          <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;">Rapport Métabolique & Performance</div>
+          <div class="coverTitle">${coverAthlete}</div>
+          <div class="coverMeta">
+            <div class="tag tagPrimary"><b>Objectif:</b> ${coverObjective}</div>
+            <div class="tag"><b>Snapshot:</b> ${snapshotDate}</div>
+            <div class="tag"><b>Cycle:</b> ${htmlEscape(cycleTag)}</div>
+            <div class="tag"><b>Source:</b> ${htmlEscape(snapshotSource)}</div>
+            ${completudeBadge}
+            <span class="tag tagPrimary">Complétude: ${completude.score}%</span>
+          </div>
+          <div class="alert alertInfo mt" style="max-width:600px;">
+            <b>📋 Rapport généré à partir des données effectives</b><br>
+            Aucune planification automatisée. Les valeurs présentées sont des indicateurs d'aide à la décision pour le coach.
+          </div>
+        </div>
 
-      <div class="watermark">${htmlEscape(brandMain.split(" ")[0])}</div>
+        <div class="coverBottom">
+          <div class="card cardHighlight">
+            <h3>🎯 Indicateurs clés</h3>
+            <div class="grid3 mt">
+              <div>
+                <span class="muted">VLamax effectif</span><br>
+                <span class="medium ${vlamax.value !== null && vlamax.value > 0.45 ? 'warning' : vlamax.value !== null && vlamax.value < 0.28 ? 'error' : 'success'}">${vlamax.value !== null ? fmt(vlamax.value, 2) : "—"}</span>
+                <br><span class="muted">${vlamax.source === "test" ? "🔬 Test" : vlamax.source === "snapshot" ? "📊 Snapshot" : "📐 Estimé"}</span>
+                ${vlamax.isLocked ? '<br><span class="locked">🔒 Verrouillée</span>' : ''}
+              </div>
+              <div>
+                <span class="muted">TTE effectif</span><br>
+                <span class="medium ${tte.tte_min < (tte.target || 45) ? 'warning' : 'success'}">${tte.tte_min} min</span>
+                <br><span class="muted">Cible: ${tte.target ?? 50} min</span>
+              </div>
+              <div>
+                <span class="muted">Race Readiness</span><br>
+                <span class="medium ${raceReadiness.score >= 80 ? 'success' : raceReadiness.score >= 60 ? 'warning' : 'error'}">${raceReadiness.score}%</span>
+                <br><span class="muted">${raceReadiness.label}</span>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>📐 Références effectives</h3>
+            <div class="kv">
+              <div class="k">FCmax</div><div class="v">${effectiveRefs.fcMax ?? "—"} bpm</div>
+              <div class="k">VMA</div><div class="v">${effectiveRefs.vma ?? "—"} km/h</div>
+              <div class="k">FTP</div><div class="v">${effectiveRefs.ftp ?? "—"} W</div>
+              <div class="k">Poids</div><div class="v">${effectiveRefs.weightKg ? fmt(effectiveRefs.weightKg, 1) : "—"} kg</div>
+              <div class="k">FTP/kg</div><div class="v">${ftpKg ? fmt(ftpKg, 2) : "—"} W/kg</div>
+              <div class="k">VO2max</div><div class="v">${effectiveRefs.vo2max ? fmt(effectiveRefs.vo2max, 1) : "—"}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="watermark">2FC</div>
     </section>
   `;
 
