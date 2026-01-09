@@ -89,22 +89,13 @@ const CustomTooltip = ({ active, payload, label, sport }: any) => {
   const riskInfo = getDigestiveRiskZone(data.recommended, sport);
   
   return (
-    <div className="bg-background/95 backdrop-blur border border-border rounded-lg p-3 shadow-lg max-w-xs">
-      <p className="font-semibold text-foreground mb-2">{data.label}</p>
-      <div className="space-y-1 text-sm">
-        <div className="flex justify-between gap-4">
-          <span className="text-muted-foreground">Recommandé:</span>
-          <span className="font-mono font-semibold">{data.recommended} g/h</span>
-        </div>
-        <div className="flex justify-between gap-4">
-          <span className="text-muted-foreground">Plage:</span>
-          <span className="font-mono">{data.min}–{data.max} g/h</span>
-        </div>
-        <div className="flex justify-between gap-4">
-          <span className="text-muted-foreground">Risque digestif:</span>
-          <span style={{ color: riskInfo.color }}>{riskInfo.level}</span>
-        </div>
-      </div>
+    <div className="bg-background border border-border rounded-lg p-2 shadow-lg text-xs">
+      <p className="font-semibold text-foreground">{data.label}</p>
+      <p className="text-muted-foreground">
+        <span className="font-mono font-semibold text-foreground">{data.recommended}</span> g/h
+        <span className="ml-2 text-muted-foreground">({data.min}–{data.max})</span>
+      </p>
+      <p style={{ color: riskInfo.color }} className="text-xs">{riskInfo.level}</p>
     </div>
   );
 };

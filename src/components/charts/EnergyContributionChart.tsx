@@ -68,28 +68,12 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   const data = payload[0].payload;
   
   return (
-    <div className="bg-background/95 backdrop-blur border border-border rounded-lg p-3 shadow-lg max-w-xs">
-      <p className="font-semibold text-foreground mb-2">{data.label}</p>
-      <div className="space-y-2 text-sm">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded" style={{ backgroundColor: "hsl(var(--warning))" }} />
-          <span className="text-muted-foreground">Glucides:</span>
-          <span className="font-mono font-semibold">{data.glucides}%</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded" style={{ backgroundColor: "hsl(var(--success))" }} />
-          <span className="text-muted-foreground">Lipides:</span>
-          <span className="font-mono font-semibold">{data.lipides}%</span>
-        </div>
+    <div className="bg-background border border-border rounded-lg p-2 shadow-lg text-xs">
+      <p className="font-semibold text-foreground">{data.label}</p>
+      <div className="flex gap-3 mt-1">
+        <span className="text-warning font-mono">{data.glucides}% Gluc</span>
+        <span className="text-success font-mono">{data.lipides}% Lip</span>
       </div>
-      <p className="text-xs text-muted-foreground mt-2 border-t border-border pt-2">
-        {data.glucides > 70 
-          ? "Dominance glucidique – Apport glucidique critique"
-          : data.glucides > 50
-            ? "Zone mixte – Glycogène sollicité"
-            : "Dominance lipidique – Économie maximale"
-        }
-      </p>
     </div>
   );
 };
