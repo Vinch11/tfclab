@@ -295,6 +295,60 @@ export const TestLibrary: TestProtocol[] = [
       if (!athlete.vo2max) athlete.vo2max = Math.round(vo2max * 10) / 10;
       return { ok: true, vlamax: null, raw: { distance: dist, vo2max_est: Math.round(vo2max * 10) / 10 }, note: `VO2max estimé: ${vo2max.toFixed(1)} mL/kg/min` };
     }
+  },
+  // =============================================
+  // TEST VLAMAX CAP TERRAIN - Sprint 15s + 12 min
+  // =============================================
+  {
+    id: "run_vlamax_sprint15_12min",
+    type: "VLAMAX",
+    sport: "Course à pied",
+    nom: "VLamax CAP – Sprint 15s + 12 min",
+    objectif: "Estimation VLamax course via sprint court (glycolytique) + effort 12 min (aérobie)",
+    variables: [
+      { key: "distSprint1", label: "Distance sprint 1 (m)", unit: "m", min: 30, max: 150 },
+      { key: "distSprint2", label: "Distance sprint 2 (m)", unit: "m", min: 30, max: 150 },
+      { key: "dist12min", label: "Distance 12 min (m)", unit: "m", min: 1000, max: 5000 }
+    ],
+    protocole: [
+      "Échauffement 15–20 min Z2 + 4×20 s progressif",
+      "2 × 15 s sprint all-out départ lancé (5–6 min récup)",
+      "10–12 min récupération facile",
+      "12 min all-out régulier",
+      "Mesurer distances sprints et 12 min"
+    ],
+    calcul: "VLamax = 0.25 + 0.55 × clamp((SR - 1.55) / 0.35, 0, 1) où SR = V15 / V12",
+    fiabilite: 0.80,
+    commentaire: "Test terrain officiel Two For Coaching Lab. Reproductible et comparable.",
+    compute: (athlete, input) => {
+      const d1 = Number(input.distSprint1);
+      const d2 = Number(input.distSprint2);
+      const d12 = Number(input.dist12min);
+      
+      if (!d1 || !d2 || !d12 || d1 <= 0 || d2 <= 0 || d12 <= 0) {
+        return { ok: false, msg: "Valeurs invalides", raw: { distSprint1: d1 || 0, distSprint2: d2 || 0, dist12min: d12 || 0 }, note: "" };
+      }
+      
+      // Meilleure distance sur 15s
+      const bestD15 = Math.max(d1, d2);
+      const v15 = bestD15 / 15; // m/s
+      const v12 = d12 / 720; // 12 min = 720 s
+      
+      // Sprint Ratio course
+      const srRun = v15 / v12;
+      
+      // Formule VLamax_run
+      const normalized = Math.max(0, Math.min(1, (srRun - 1.55) / 0.35));
+      let vlamax = 0.25 + 0.55 * normalized;
+      vlamax = Math.max(0.25, Math.min(0.95, vlamax));
+      
+      return { 
+        ok: true, 
+        vlamax, 
+        raw: { distSprint1: d1, distSprint2: d2, dist12min: d12, v15, v12, srRun }, 
+        note: `Sprint Ratio: ${srRun.toFixed(2)} | V15: ${v15.toFixed(2)} m/s | V12: ${v12.toFixed(2)} m/s` 
+      };
+    }
   }
 ];
 
