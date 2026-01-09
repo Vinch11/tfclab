@@ -15,8 +15,12 @@ import {
   FlaskConical,
   TrendingUp,
   ExternalLink,
-  Zap
+  Zap,
+  EyeOff,
+  Eye,
+  Settings2
 } from "lucide-react";
+import { useHiddenTests } from "@/hooks/useHiddenTests";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -72,6 +76,7 @@ function getFiabiliteLabel(fiabilite: number | null): { label: string; variant: 
 
 export function TestProtocols({ className, onTestSaved, athlete, onAthleteUpdate }: TestProtocolsProps) {
   const { toast } = useToast();
+  const { hiddenTests, toggleHiddenTest, isHidden, showAllTests, hiddenCount } = useHiddenTests();
   
   const [activeSport, setActiveSport] = useState("tous");
   const [expandedTest, setExpandedTest] = useState<string | null>(null);
@@ -79,10 +84,16 @@ export function TestProtocols({ className, onTestSaved, athlete, onAthleteUpdate
   const [testInputs, setTestInputs] = useState<Record<string, string>>({});
   const [testNotes, setTestNotes] = useState("");
   const [showDedicatedTest, setShowDedicatedTest] = useState<string | null>(null);
+  const [showHiddenTests, setShowHiddenTests] = useState(false);
 
-  const filteredTests = activeSport === "tous" 
+  const allFilteredTests = activeSport === "tous" 
     ? TestLibrary 
     : TestLibrary.filter(t => t.sport === activeSport || t.sport === "Multi-sport");
+
+  // Filtrer les tests masqués sauf si on veut tous les voir
+  const filteredTests = showHiddenTests 
+    ? allFilteredTests 
+    : allFilteredTests.filter(t => !isHidden(t.id));
 
   const getSportIcon = (sport: string) => {
     switch (sport) {
@@ -232,23 +243,50 @@ export function TestProtocols({ className, onTestSaved, athlete, onAthleteUpdate
         </div>
       </div>
 
-      {/* Sport Filter */}
-      <div className="flex gap-2 mb-6 flex-wrap">
-        {sportFilters.map((filter) => {
-          const Icon = filter.icon;
-          return (
+      {/* Sport Filter + Visibility Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+        <div className="flex gap-2 flex-wrap flex-1">
+          {sportFilters.map((filter) => {
+            const Icon = filter.icon;
+            return (
+              <Button
+                key={filter.key}
+                variant={activeSport === filter.key ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveSport(filter.key)}
+                className="gap-2"
+              >
+                <Icon className="w-4 h-4" />
+                {filter.label}
+              </Button>
+            );
+          })}
+        </div>
+        
+        {/* Visibility toggle */}
+        <div className="flex items-center gap-2">
+          {hiddenCount > 0 && (
             <Button
-              key={filter.key}
-              variant={activeSport === filter.key ? "default" : "outline"}
+              variant={showHiddenTests ? "secondary" : "outline"}
               size="sm"
-              onClick={() => setActiveSport(filter.key)}
+              onClick={() => setShowHiddenTests(!showHiddenTests)}
               className="gap-2"
             >
-              <Icon className="w-4 h-4" />
-              {filter.label}
+              {showHiddenTests ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+              {hiddenCount} masqué{hiddenCount > 1 ? 's' : ''}
             </Button>
-          );
-        })}
+          )}
+          {hiddenCount > 0 && showHiddenTests && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={showAllTests}
+              className="text-xs"
+            >
+              Tout afficher
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Tests List */}
@@ -256,6 +294,7 @@ export function TestProtocols({ className, onTestSaved, athlete, onAthleteUpdate
         {filteredTests.map((test) => {
           const isExpanded = expandedTest === test.id;
           const fiab = getFiabiliteLabel(test.fiabilite);
+          const testIsHidden = isHidden(test.id);
           
           return (
             <div
@@ -263,7 +302,8 @@ export function TestProtocols({ className, onTestSaved, athlete, onAthleteUpdate
               className={cn(
                 "rounded-xl border transition-all duration-200",
                 "border-border hover:border-primary/30",
-                isExpanded && "bg-secondary/30"
+                isExpanded && "bg-secondary/30",
+                testIsHidden && "opacity-60"
               )}
             >
               {/* Header */}
@@ -301,6 +341,12 @@ export function TestProtocols({ className, onTestSaved, athlete, onAthleteUpdate
                         Staff / Avancé
                       </Badge>
                     )}
+                    {testIsHidden && (
+                      <Badge variant="outline" className="text-xs gap-1 border-muted-foreground text-muted-foreground">
+                        <EyeOff className="w-3 h-3" />
+                        Masqué
+                      </Badge>
+                    )}
                   </div>
                   <p className="text-sm text-muted-foreground truncate">{test.objectif}</p>
                 </div>
@@ -311,6 +357,19 @@ export function TestProtocols({ className, onTestSaved, athlete, onAthleteUpdate
                       {Math.round(test.fiabilite * 100)}% fiable
                     </Badge>
                   )}
+                  {/* Bouton masquer/afficher */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleHiddenTest(test.id);
+                    }}
+                    title={testIsHidden ? "Afficher ce test" : "Masquer ce test"}
+                  >
+                    {testIsHidden ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4 text-muted-foreground" />}
+                  </Button>
                 </div>
 
                 <ChevronDown className={cn(
