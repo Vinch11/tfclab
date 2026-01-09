@@ -145,61 +145,63 @@ export function NutritionPredictiveChart({
         
         <div className="h-48 sm:h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 10, right: 10, bottom: 30, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+            <AreaChart data={data} margin={{ top: 10, right: 15, bottom: 30, left: 35 }}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" />
               
               {/* Zone de risque digestif */}
               <ReferenceArea
                 y1={digestiveThreshold}
-                y2={130}
+                y2={260}
                 fill="hsl(var(--destructive))"
-                fillOpacity={0.1}
+                fillOpacity={0.15}
               />
               
               {/* Ligne seuil digestif */}
               <ReferenceLine
                 y={digestiveThreshold}
                 stroke="hsl(var(--destructive))"
+                strokeWidth={1.5}
                 strokeDasharray="5 5"
                 label={{ 
-                  value: `Seuil digestif ${digestiveThreshold}g/h`, 
+                  value: `Seuil ${digestiveThreshold}g/h`, 
                   position: 'right', 
-                  fontSize: 10,
-                  fill: 'hsl(var(--destructive))'
+                  fontSize: 9,
+                  fill: 'hsl(var(--destructive))',
+                  offset: 5
                 }}
               />
               
               <XAxis
                 dataKey="intensity"
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
                 tickFormatter={(val) => `${val}%`}
-                label={{ value: 'Intensité (%FTP)', position: 'bottom', fontSize: 11, offset: 0 }}
+                label={{ value: 'Intensité (%FTP)', position: 'bottom', fontSize: 11, offset: 0, fill: 'hsl(var(--muted-foreground))' }}
+                stroke="hsl(var(--border))"
               />
               <YAxis
-                domain={[20, 130]}
-                tick={{ fontSize: 10 }}
+                domain={[0, 260]}
+                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
                 tickFormatter={(val) => `${val}`}
-                label={{ value: 'g/h', angle: -90, position: 'insideLeft', fontSize: 11 }}
+                label={{ value: 'g/h', angle: -90, position: 'insideLeft', fontSize: 11, fill: 'hsl(var(--muted-foreground))', offset: -20 }}
+                stroke="hsl(var(--border))"
               />
               
               <Tooltip content={<CustomTooltip sport={sport} />} />
               
-              {/* Plage min-max */}
+              {/* Plage acceptable (entre min et max) */}
               <Area
                 type="monotone"
                 dataKey="max"
-                stackId="1"
                 stroke="none"
                 fill="hsl(var(--primary))"
-                fillOpacity={0.2}
+                fillOpacity={0.25}
               />
               <Area
                 type="monotone"
                 dataKey="min"
-                stackId="1"
                 stroke="none"
                 fill="hsl(var(--background))"
-                fillOpacity={1}
+                fillOpacity={0.9}
               />
               
               {/* Ligne recommandée */}
@@ -207,9 +209,9 @@ export function NutritionPredictiveChart({
                 type="monotone"
                 dataKey="recommended"
                 stroke="hsl(var(--primary))"
-                strokeWidth={2}
+                strokeWidth={2.5}
                 fill="none"
-                dot={{ r: 3, fill: "hsl(var(--primary))" }}
+                dot={{ r: 4, fill: "hsl(var(--primary))", strokeWidth: 2, stroke: "hsl(var(--background))" }}
               />
             </AreaChart>
           </ResponsiveContainer>
