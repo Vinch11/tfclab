@@ -267,7 +267,7 @@ export function useAssistantContext(
     // Nutrition
     if (context.nutritionEstimate) {
       const n = context.nutritionEstimate;
-      parts.push(`Nutrition prédictive: ${n.carbRange?.min ?? "?"}–${n.carbRange?.max ?? "?"}g/h glucides, risque: ${n.riskLevel}`);
+      parts.push(`Nutrition prédictive: ${n.carbsMin}–${n.carbsMax}g/h glucides, risque: ${n.riskLevel}`);
     }
     
     return parts.join("\n");

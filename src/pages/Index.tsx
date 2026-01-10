@@ -28,6 +28,7 @@ import { SaisonPhasesView } from "@/components/SaisonPhasesView";
 import { StaffReport } from "@/components/StaffReport";
 import { StaffBriefingCard } from "@/components/StaffBriefingCard";
 import { AthleteReadinessReport } from "@/components/AthleteReadinessReport";
+import { AssistantDrawer } from "@/components/AssistantDrawer";
 import { computeNutritionTiming } from "@/lib/nutritionTiming";
 import { RaceReadinessPage } from "@/components/RaceReadinessPage";
 import { computeNutritionEstimate } from "@/lib/nutritionPredictive";
@@ -977,6 +978,12 @@ const Index = () => {
           <p>Two For Coaching Lab • Analyse physiologique & décision coaching</p>
         </div>
       </footer>
+      
+      {/* Assistant Chatbot */}
+      <AssistantDrawer 
+        selectedAthleteId={selectedAthleteId} 
+        currentPage={activeTab} 
+      />
     </div>
   );
 };

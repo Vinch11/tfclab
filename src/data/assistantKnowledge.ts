@@ -537,6 +537,417 @@ Note : Ces valeurs dépendent du morphotype et de l'âge.`
 ];
 
 // =============================================
+// ARTICLES AVANCÉS - Trail, Affûtage, Polarisation, etc.
+// =============================================
+
+export const ADVANCED_ARTICLES: KnowledgeArticle[] = [
+  {
+    id: "trail_specificity",
+    title: "Spécificités du Trail",
+    category: "methodology",
+    tags: ["trail", "ultra", "dénivelé", "spécifique", "montagne"],
+    content: `Le Trail présente des contraintes uniques par rapport à la route.
+
+Différences clés :
+- Dénivelé positif (D+) : sollicitation musculaire intense (quadriceps)
+- Dénivelé négatif (D-) : contractions excentriques → dommages musculaires
+- Terrain technique : coordination, proprioception, mental
+- Durée : souvent > 6h, parfois > 24h
+
+Implications physiologiques :
+- VLamax basse encore plus importante (économie de glycogène)
+- Économie de course critique (technique descente)
+- Force spécifique montée/descente obligatoire
+- Gestion de l'effort sur la durée (pas de rythme constant)
+
+Préparation :
+1. Volume D+ progressif (règle : max +15%/semaine)
+2. Séances spécifiques descente (travail excentrique)
+3. Sorties en terrain varié (pas que du plat)
+4. Simulation nutritionnelle sur sorties longues`
+  },
+  {
+    id: "affutage_tapering",
+    title: "L'affûtage (Tapering)",
+    category: "methodology",
+    tags: ["affûtage", "tapering", "course", "préparation", "récupération", "peaking"],
+    content: `L'affûtage est l'art d'arriver "frais et fit" le jour J.
+
+Objectif : Dissiper la fatigue accumulée tout en maintenant les adaptations physiologiques.
+
+Règles d'or :
+1. Volume : Réduction de 40% à 60% sur 7-14 jours
+2. Fréquence : Maintenir le même nombre de séances
+3. Intensité : MAINTENIR ! Rappels d'allure course courts
+4. Durée : 1 semaine (Sprint) à 2-3 semaines (Ironman)
+
+Erreurs fréquentes :
+❌ Repos complet → le corps "s'endort" (baisse volume plasmatique)
+❌ Continuer le volume → fatigue non dissipée
+❌ Séances longues "de rassurance" → contre-productif
+
+Exemple Ironman (2 semaines) :
+- Semaine -2 : Volume -40%, intensité 100%, 2 rappels allure
+- Semaine -1 : Volume -60%, intensité 100%, 1 rappel allure court
+- Dernier jour : Activation légère 20-30 min avec 2-3 accélérations`
+  },
+  {
+    id: "polarized_training",
+    title: "Entraînement polarisé",
+    category: "methodology",
+    tags: ["polarisé", "80/20", "intensité", "volume", "distribution"],
+    content: `L'entraînement polarisé est la distribution d'intensité la plus efficace pour l'endurance.
+
+Principe : 80% du volume en Z1-Z2 (facile) / 20% en Z5-Z6 (dur)
+
+Pourquoi ça marche :
+- Le volume Z2 développe les adaptations aérobies sans stress excessif
+- L'intensité haute stimule la VO2max et le seuil
+- Pas de "zone grise" (Z3-Z4) chronique qui fatigue sans grands gains
+
+Distribution type par semaine :
+- 4-5 séances Z2 (endurance, récupération)
+- 1-2 séances Z5/Z6 (intervalles, seuil)
+- 0-1 séance Z3/Z4 uniquement pour spécificité course
+
+Erreur classique :
+La plupart des amateurs font l'inverse : 50% zone grise, 40% Z2, 10% intense.
+Résultat : plateau, fatigue chronique, surentraînement.
+
+Comment vérifier ?
+Analyse la distribution de tes séances sur 4 semaines.
+Si > 20% du temps est en Z3-Z4 hors blocs spécifiques → polariser davantage.`
+  },
+  {
+    id: "fat_max",
+    title: "Fat Max et lipolyse",
+    category: "methodology",
+    tags: ["fat max", "lipolyse", "graisse", "endurance", "VLamax"],
+    content: `Le Fat Max est l'intensité où l'oxydation des graisses est maximale.
+
+Pourquoi c'est important :
+- Les réserves de graisses sont quasi-illimitées (80 000+ kcal)
+- Le glycogène est limité (~2000 kcal musculaire + foie)
+- Mieux utiliser les graisses = économiser le glycogène = éviter le mur
+
+Position du Fat Max :
+- Typiquement entre 55% et 75% de la VO2max
+- Juste sous le SV1 (premier seuil ventilatoire)
+- Correspond souvent à la Z2
+
+Comment l'améliorer :
+1. Volume en Z2 (le plus important)
+2. Baisser la VLamax (éviter les sprints)
+3. Sorties à jeun en Z2 (avec précaution)
+4. Périodisation nutritionnelle (train low, compete high)
+
+Attention : 
+Fat Max ≠ perte de poids optimale. 
+C'est un indicateur métabolique, pas un régime.`
+  },
+  {
+    id: "force_training",
+    title: "Travail de force en endurance",
+    category: "methodology",
+    tags: ["force", "musculation", "cadence", "puissance", "économie"],
+    content: `La force est un pilier souvent négligé en endurance.
+
+Objectifs :
+- Recruter les fibres rapides (Type II) en aérobie
+- Améliorer l'économie de mouvement
+- Retarder la fatigue musculaire
+- Prévenir les blessures
+
+Méthodes vélo :
+- Force basse cadence (K3) : 40-50 rpm en Z3, grand braquet
+- Sprints courts départ arrêté : recrutement maximal
+- Montées assis : 50-60 rpm, intensité modérée
+
+Méthodes course à pied :
+- Côtes courtes et pentues (10-15 sec)
+- Fentes, bondissements, montées d'escaliers
+- Renforcement : squats, fentes, mollets
+
+Méthodes musculation :
+- Charges lourdes (3-5 reps) pour force max
+- Charges légères (15+ reps) pour endurance de force
+- 2-3 séances/semaine en phase de préparation générale
+
+Attention :
+La force en Z3 basse cadence fatigue les muscles sans fatiguer le cœur.
+Ne te fie pas à la FC basse - les muscles trinquent !`
+  },
+  {
+    id: "deroulement_seance",
+    title: "Structure d'une séance type",
+    category: "app_usage",
+    tags: ["séance", "structure", "échauffement", "récupération", "bloc"],
+    content: `Structure recommandée d'une séance d'entraînement :
+
+1. ÉCHAUFFEMENT (15-25 min)
+   - 10-15 min Z1-Z2 progressif
+   - Mobilité articulaire
+   - 3-5 accélérations courtes (10-20 sec)
+
+2. CORPS DE SÉANCE
+   - Bloc principal selon objectif
+   - Intervalles : respecter les temps de récupération
+   - Continu : maintenir la zone cible
+
+3. RÉCUPÉRATION (10-15 min)
+   - Retour progressif en Z1
+   - Ne pas couper brutalement
+   - Étirements légers si souhaité
+
+4. POST-SÉANCE
+   - Nutrition dans les 30 min (surtout après intensité)
+   - Hydratation
+   - Notation RPE dans l'app
+
+Conseil : L'échauffement est souvent bâclé.
+Un bon échauffement = meilleure séance + moins de blessures.`
+  },
+  {
+    id: "surentrainement",
+    title: "Reconnaître le surentraînement",
+    category: "methodology",
+    tags: ["surentraînement", "fatigue", "récupération", "signes", "prévention"],
+    content: `Le surentraînement (ou OTS - Overtraining Syndrome) est une fatigue profonde qui nécessite des semaines/mois de récupération.
+
+Signes avant-coureurs :
+- Performances en baisse malgré l'entraînement
+- Fatigue persistante malgré le repos
+- Troubles du sommeil
+- Irritabilité, perte de motivation
+- FC repos élevée (+5-10 bpm)
+- Infections fréquentes (rhumes, etc.)
+
+Facteurs de risque :
+- Augmentation brutale du volume (> 10%/semaine)
+- Pas de semaine de récupération
+- Stress vie quotidienne + entraînement
+- Nutrition insuffisante
+- Manque de sommeil
+
+Prévention :
+1. Respecter la règle des 10% (volume)
+2. 1 semaine allégée toutes les 3-4 semaines
+3. Écouter les signaux du corps
+4. Suivi de la charge récente (TSS 7j) dans l'app
+
+Si surentraînement installé :
+Arrêt complet 2-4 semaines, puis reprise très progressive.
+Consulter un médecin si les symptômes persistent.`
+  },
+  {
+    id: "brick_session",
+    title: "Séance Brique (Triathlon)",
+    category: "methodology",
+    tags: ["brique", "enchaînement", "triathlon", "vélo", "CAP", "transition"],
+    content: `La séance "brique" est l'enchaînement vélo → course à pied typique du triathlon.
+
+Objectif :
+Habituer le corps (et le mental) à courir sur des jambes fatiguées par le vélo.
+
+Types de briques :
+1. Brique courte : 45-60 min vélo + 15-20 min CAP
+2. Brique longue : 2-4h vélo + 30-60 min CAP
+3. Brique qualité : Intervalles vélo + tempo CAP
+
+Clés de réussite :
+- Transition rapide (< 2-3 min) comme en course
+- Premiers km CAP en "gestion" (ne pas partir trop vite)
+- Adapter l'allure aux sensations (jambes lourdes = normal)
+
+Fréquence :
+- 1 brique/semaine en phase spécifique
+- 1 brique/2 semaines en phase préparatoire
+
+Erreur classique :
+Faire des briques trop longues trop souvent → fatigue accumulée.
+Qualité > Volume pour les briques.`
+  },
+  {
+    id: "periodisation_phases",
+    title: "Les phases de la périodisation",
+    category: "methodology",
+    tags: ["périodisation", "phases", "préparation", "spécifique", "compétition"],
+    content: `La périodisation organise l'entraînement en phases distinctes.
+
+PHASE 1 - Préparation Générale (8-12 semaines)
+- Objectif : Construire le socle aérobie
+- Contenu : Beaucoup de Z2, force, technique
+- Intensité : Faible à modérée
+- Volume : Progressif
+
+PHASE 2 - Préparation Spécifique (6-8 semaines)
+- Objectif : Développer les qualités spécifiques
+- Contenu : Z4/Z5, blocs spécifiques objectif
+- Intensité : Moyenne à haute
+- Volume : Stabilisé ou légèrement réduit
+
+PHASE 3 - Pré-compétition (3-4 semaines)
+- Objectif : Affiner, simuler
+- Contenu : Répétition générale, allure course
+- Intensité : Haute mais volume réduit
+- Sorties reconnaissance parcours
+
+PHASE 4 - Affûtage (1-3 semaines)
+- Objectif : Dissiper fatigue, maintenir forme
+- Contenu : Volume -40 à -60%, intensité maintenue
+- Repos stratégique
+
+PHASE 5 - Récupération (2-4 semaines post-course)
+- Objectif : Régénération complète
+- Contenu : Activités plaisir, pas de structure
+- Repos mental autant que physique`
+  },
+  {
+    id: "economie_course",
+    title: "Économie de course à pied",
+    category: "metrics",
+    tags: ["économie", "CAP", "course", "technique", "efficacité"],
+    content: `L'économie de course (Running Economy) mesure l'efficacité énergétique du coureur.
+
+Définition :
+Consommation d'oxygène à une allure donnée. Moins tu consommes → plus tu es économe.
+
+Facteurs influençant l'économie :
+1. Technique : cadence, posture, oscillation verticale
+2. Force : muscles des jambes et gainage
+3. Élasticité : tendons, aponévroses
+4. Poids : chaque kg compte sur marathon
+5. Chaussures : légèreté et réponse élastique
+
+Comment l'améliorer :
+- Travail de technique (gammes, éducatifs)
+- Renforcement musculaire (squats, fentes)
+- Plyométrie (bondissements, sauts)
+- Volume progressif (adaptation des tissus)
+- Intervalles courts (5x 200m rapide)
+
+Indicateur dans l'app :
+L'économie de course est estimée via la dérive cardiaque.
+Une faible dérive = bonne économie.
+Une forte dérive (> 10%) = économie à travailler.`
+  },
+  {
+    id: "derive_cardiaque",
+    title: "Dérive cardiaque",
+    category: "metrics",
+    tags: ["dérive", "FC", "cardiaque", "fatigue", "endurance"],
+    content: `La dérive cardiaque est l'augmentation progressive de la FC à allure constante.
+
+Causes :
+1. Thermorégulation : le corps chauffe, le cœur accélère
+2. Déshydratation : volume plasmatique baisse
+3. Fatigue musculaire : recrutement compensatoire
+4. Stress métabolique : acidose, déplétion glycogène
+
+Interprétation :
+- Dérive < 5% sur 1h : Excellent (bonne endurance)
+- Dérive 5-10% : Normal à modéré
+- Dérive > 10% : Fatigue significative, économie à travailler
+
+Utilisation coaching :
+- Test de dérive : 1h à allure constante, mesurer FC début vs fin
+- Évaluation de la forme : dérive qui diminue = progression
+- Alerte fatigue : dérive inhabituelle = récupération nécessaire
+
+Dans l'app :
+La dérive est utilisée pour évaluer l'économie de course
+et le risque de blessure CAP.`
+  },
+  {
+    id: "nutrition_course",
+    title: "Nutrition en course",
+    category: "methodology",
+    tags: ["nutrition", "course", "glucides", "ravitaillement", "gel"],
+    content: `La nutrition en course est cruciale sur les épreuves longues (> 90 min).
+
+Règles de base :
+- Objectif : 60-90g glucides/h (selon tolérance)
+- Vélo : tolérance plus élevée (90-120g/h possible)
+- CAP : tolérance réduite (60-80g/h max)
+- Triathlon : charger sur le vélo, maintenir en CAP
+
+Sources de glucides :
+- Gels : 20-30g par gel
+- Barres : 30-50g par barre
+- Boissons : 40-80g/L
+- Solides : banane, pâte de fruit
+
+Stratégie type (Ironman vélo) :
+- 0-30 min : hydratation uniquement
+- 30 min - fin : gel toutes les 20-25 min + boisson
+
+Entraîner l'intestin :
+- Tester TOUTE la nutrition à l'entraînement
+- Jamais de nouveauté le jour J
+- Augmenter progressivement les quantités
+
+Signes de problème digestif :
+Ballonnement, nausée, crampes → réduire la concentration.`
+  },
+  {
+    id: "adaptation_chaleur",
+    title: "Acclimatation à la chaleur",
+    category: "methodology",
+    tags: ["chaleur", "acclimatation", "été", "température", "performance"],
+    content: `La chaleur impacte significativement la performance (jusqu'à -15% sur marathon).
+
+Adaptations physiologiques recherchées :
+- Sudation plus précoce et abondante
+- Fréquence cardiaque stabilisée
+- Thermorégulation plus efficace
+- Meilleure tolérance perceptive
+
+Protocole d'acclimatation (10-14 jours) :
+1. Semaine 1 : Séances courtes (30-45 min) en chaleur
+2. Semaine 2 : Allonger progressivement (60-90 min)
+3. Maintenir : 1-2 séances/semaine en chaleur
+
+Alternatives si pas de chaleur :
+- Sauna post-entraînement (15-20 min)
+- Vêtements chauds sur vélo home trainer
+- Bains chauds
+
+Le jour J en chaleur :
+- Départ conservateur (-5 à -10% d'allure)
+- Hydratation renforcée
+- Refroidissement actif (eau sur la nuque, glace)
+- Accepter que la perf sera impactée`
+  },
+  {
+    id: "mode_staff",
+    title: "C'est quoi le mode Staff ?",
+    category: "app_usage",
+    tags: ["staff", "mode", "expert", "confiance", "annotations"],
+    content: `Le mode Staff active les fonctionnalités avancées de l'app.
+
+Ce qui change en mode Staff :
+- Affichage des indices de confiance sur chaque métrique
+- Annotations contextuelles détaillées
+- Messages "Pourquoi ce score ?" explicatifs
+- Warnings et alertes staff-grade
+- Détails des calculs (sources, formules)
+
+Pour qui ?
+- Coachs professionnels
+- Staffs techniques
+- Utilisateurs avancés voulant comprendre les calculs
+
+Comment l'activer ?
+Toggle "Mode Staff" dans le dashboard ou la navigation.
+Le réglage est sauvegardé pour les prochaines sessions.
+
+Conseil :
+En mode Staff, chaque valeur affiche sa source et sa confiance.
+Utilise ces informations pour nuancer tes décisions.`
+  }
+];
+
+// =============================================
 // TOUS LES ARTICLES
 // =============================================
 
@@ -546,6 +957,7 @@ export const ALL_KNOWLEDGE_ARTICLES: KnowledgeArticle[] = [
   ...ZONES_ARTICLES,
   ...APP_USAGE_ARTICLES,
   ...PHYSIOLOGICAL_CONSTANTS,
+  ...ADVANCED_ARTICLES,
 ];
 
 // =============================================
@@ -609,6 +1021,8 @@ export const QUICK_SUGGESTIONS = [
   { label: "Race Readiness", query: "Comment fonctionne le Race Readiness ?" },
   { label: "Risque glycolytique", query: "C'est quoi le risque glycolytique ?" },
   { label: "TTE insuffisant", query: "Mon TTE est insuffisant, que faire ?" },
-  { label: "Importer un PDF", query: "Comment importer un PDF de test ?" },
-  { label: "Mode Staff", query: "C'est quoi le mode Staff ?" },
+  { label: "Affûtage", query: "Comment faire un bon affûtage avant une course ?" },
+  { label: "Entraînement polarisé", query: "C'est quoi l'entraînement polarisé ?" },
+  { label: "Spécificité Trail", query: "Quelles sont les spécificités du Trail ?" },
+  { label: "Dérive cardiaque", query: "C'est quoi la dérive cardiaque ?" },
 ];
