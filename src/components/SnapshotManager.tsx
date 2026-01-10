@@ -16,6 +16,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Calendar, Pin, HelpCircle } from "lucide-react";
+import { LabImportDialog } from "@/components/LabImportDialog";
 import { DbSnapshot, useCloudData } from "@/hooks/useCloudData";
 import { deriveMetabolicProfile, generateLorangInsights, calculateDelta, formatValue } from "@/types/snapshot";
 import { computeTTEEffectif, getSourceLabel, formatTTEDisplay } from "@/lib/tteEffectif";
@@ -1037,7 +1038,15 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
             Snapshots — {athleteName}
           </CardTitle>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            {/* ✅ NOUVEAU: Import Lab PDF */}
+            <LabImportDialog
+              athleteId={athleteId}
+              athleteName={athleteName}
+              athleteGoal={athleteGoal}
+              previousSnapshot={snapshots.length > 0 ? snapshots[0] : null}
+            />
+            
             {snapshots.length >= 2 && (
               <Dialog open={isCompareOpen} onOpenChange={setIsCompareOpen}>
                 <DialogTrigger asChild>
