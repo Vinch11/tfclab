@@ -39,43 +39,171 @@
       justify-content: center;
       background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #1c2128 100%);
       transition: opacity 0.5s ease-out;
+      overflow: hidden;
     ">
-      <img 
-        src="/pwa-512x512.png" 
-        alt="Two For Coaching Lab" 
-        style="
-          width: 120px;
-          height: 120px;
-          object-fit: contain;
-          animation: pulse 2s infinite;
-          filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.3));
-        "
-      />
-      <div style="
-        display: flex;
-        gap: 6px;
-        margin-top: 24px;
-      ">
-        <div style="width: 8px; height: 8px; background: #3b82f6; border-radius: 50%; animation: bounce 1s infinite;"></div>
-        <div style="width: 8px; height: 8px; background: #3b82f6; border-radius: 50%; animation: bounce 1s infinite 0.15s;"></div>
-        <div style="width: 8px; height: 8px; background: #3b82f6; border-radius: 50%; animation: bounce 1s infinite 0.3s;"></div>
+      <!-- Animated particles -->
+      <div id="particles-container" style="position: absolute; inset: 0; pointer-events: none;"></div>
+      
+      <!-- Glowing orbs background -->
+      <div style="position: absolute; top: 20%; left: 15%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%); border-radius: 50%; animation: float 6s ease-in-out infinite;"></div>
+      <div style="position: absolute; bottom: 20%; right: 15%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(6, 182, 212, 0.1) 0%, transparent 70%); border-radius: 50%; animation: float 8s ease-in-out infinite reverse;"></div>
+      <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 60%); border-radius: 50%; animation: pulse-glow 4s ease-in-out infinite;"></div>
+      
+      <!-- Logo container with ring animation -->
+      <div style="position: relative; z-index: 10;">
+        <!-- Outer rotating ring -->
+        <div style="
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 260px;
+          height: 260px;
+          border: 2px solid transparent;
+          border-top-color: rgba(59, 130, 246, 0.6);
+          border-right-color: rgba(6, 182, 212, 0.4);
+          border-radius: 50%;
+          animation: spin 3s linear infinite;
+        "></div>
+        <!-- Inner rotating ring -->
+        <div style="
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 240px;
+          height: 240px;
+          border: 1px solid transparent;
+          border-bottom-color: rgba(59, 130, 246, 0.4);
+          border-left-color: rgba(6, 182, 212, 0.3);
+          border-radius: 50%;
+          animation: spin 2s linear infinite reverse;
+        "></div>
+        <!-- Glow behind logo -->
+        <div style="
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 180px;
+          height: 180px;
+          background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%);
+          border-radius: 50%;
+          animation: pulse-glow 2s ease-in-out infinite;
+        "></div>
+        <img 
+          src="/pwa-512x512.png" 
+          alt="Two For Coaching Lab" 
+          style="
+            position: relative;
+            width: 210px;
+            height: 210px;
+            object-fit: contain;
+            animation: logo-entrance 1s ease-out, pulse 3s ease-in-out infinite 1s;
+            filter: drop-shadow(0 0 30px rgba(59, 130, 246, 0.5));
+          "
+        />
       </div>
+      
+      <!-- Loading indicator -->
+      <div style="position: relative; z-index: 10; margin-top: 40px;">
+        <div style="
+          display: flex;
+          gap: 8px;
+          justify-content: center;
+        ">
+          <div style="width: 10px; height: 10px; background: linear-gradient(135deg, #3b82f6, #06b6d4); border-radius: 50%; animation: bounce 1.2s ease-in-out infinite; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);"></div>
+          <div style="width: 10px; height: 10px; background: linear-gradient(135deg, #3b82f6, #06b6d4); border-radius: 50%; animation: bounce 1.2s ease-in-out infinite 0.2s; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);"></div>
+          <div style="width: 10px; height: 10px; background: linear-gradient(135deg, #3b82f6, #06b6d4); border-radius: 50%; animation: bounce 1.2s ease-in-out infinite 0.4s; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);"></div>
+        </div>
+        <p style="
+          margin-top: 20px;
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 14px;
+          font-family: system-ui, -apple-system, sans-serif;
+          letter-spacing: 2px;
+          text-transform: uppercase;
+          animation: fade-pulse 2s ease-in-out infinite;
+        ">Chargement...</p>
+      </div>
+      
+      <!-- Bottom branding -->
       <p style="
-        margin-top: 16px;
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 14px;
+        position: absolute;
+        bottom: 30px;
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 12px;
         font-family: system-ui, -apple-system, sans-serif;
-      ">Chargement...</p>
+        letter-spacing: 1px;
+      ">Performance Analysis & Coaching Intelligence</p>
+      
       <style>
         @keyframes pulse {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.05); opacity: 0.9; }
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.03); }
+        }
+        @keyframes pulse-glow {
+          0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+          50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
         }
         @keyframes bounce {
           0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-8px); }
+          50% { transform: translateY(-12px); }
+        }
+        @keyframes spin {
+          from { transform: translate(-50%, -50%) rotate(0deg); }
+          to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0) scale(1); }
+          50% { transform: translateY(-20px) scale(1.05); }
+        }
+        @keyframes logo-entrance {
+          0% { opacity: 0; transform: scale(0.5); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes fade-pulse {
+          0%, 100% { opacity: 0.7; }
+          50% { opacity: 1; }
+        }
+        @keyframes particle-float {
+          0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
         }
       </style>
+      
+      <script>
+        // Create floating particles
+        (function() {
+          const container = document.getElementById('particles-container');
+          const particleCount = 20;
+          
+          for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            const size = Math.random() * 4 + 2;
+            const left = Math.random() * 100;
+            const delay = Math.random() * 5;
+            const duration = Math.random() * 10 + 10;
+            const opacity = Math.random() * 0.5 + 0.2;
+            
+            particle.style.cssText = `
+              position: absolute;
+              left: ${left}%;
+              bottom: -20px;
+              width: ${size}px;
+              height: ${size}px;
+              background: linear-gradient(135deg, rgba(59, 130, 246, ${opacity}), rgba(6, 182, 212, ${opacity}));
+              border-radius: 50%;
+              animation: particle-float ${duration}s linear infinite;
+              animation-delay: ${delay}s;
+              box-shadow: 0 0 ${size * 2}px rgba(59, 130, 246, ${opacity});
+            `;
+            container.appendChild(particle);
+          }
+        })();
+      </script>
     </div>
     
     <div id="root"></div>
