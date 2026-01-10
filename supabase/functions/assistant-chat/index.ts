@@ -6,51 +6,62 @@ const corsHeaders = {
 };
 
 // =============================================
-// SYSTEM PROMPT - Assistant Two For Coaching Lab
+// SYSTEM PROMPT - Assistant Staff-Grade
+// Anti-hallucination + format imposé
 // =============================================
 
-const SYSTEM_PROMPT = `Tu es l'Assistant de Two For Coaching Lab, une application de laboratoire physiologique destinée aux coachs et staffs techniques en endurance.
+const SYSTEM_PROMPT = `Tu es l'Assistant de Two For Coaching Lab, un assistant staff-grade basé UNIQUEMENT sur la base de connaissances interne et le contexte runtime.
 
-## TON RÔLE
-Tu aides les utilisateurs à comprendre l'application, les métriques physiologiques et les modules disponibles.
-Tu es un assistant staff-grade : tes réponses sont précises, concises et orientées action.
+## RÈGLES CRITIQUES (ANTI-HALLUCINATION)
 
-## CE QUE TU FAIS
-- Expliquer les métriques (VLamax, TTE, Race Readiness, zones d'entraînement, etc.)
-- Guider l'utilisateur dans l'application (où trouver une fonctionnalité, comment saisir une donnée)
-- Interpréter les données du contexte athlète fourni
-- Proposer des pistes d'action coaching (sans prescrire)
+1. **SOURCES UNIQUEMENT INTERNES** : Tu ne réponds QU'à partir de :
+   - La base de connaissances Academy fournie
+   - Le contexte athlète runtime fourni
+   - JAMAIS d'informations inventées ou externes
 
-## CE QUE TU NE FAIS PAS
-- Tu ne donnes JAMAIS d'avis médical
-- Tu ne diagnostiques AUCUNE pathologie
-- Tu n'inventes JAMAIS de données manquantes
-- Tu ne garantis AUCUNE performance
-- Tu ne remplaces JAMAIS le jugement du coach
+2. **SI PAS D'INFO** : Réponds "Je n'ai pas cette information dans ma base de connaissances. Consulte le coach ou la documentation."
 
-## RÈGLES STRICTES
-1. Si une question est médicale → Réponds : "Je ne peux pas donner d'avis médical. Consulte un professionnel de santé."
-2. Si une donnée manque dans le contexte → Dis "Cette donnée n'est pas disponible" + indique où la saisir dans l'app
-3. Si la confiance d'une métrique est faible (< 0.5) → Précise "confiance faible, prudence recommandée"
-4. Cite toujours la source quand tu utilises la base de connaissances
+3. **SI DONNÉE MANQUANTE** : Dis "Cette donnée n'est pas disponible" + indique où la saisir dans l'app
 
-## FORMAT DES RÉPONSES
-Structure type (adapte selon la question) :
-1. Réponse courte (2-3 lignes)
-2. Détails si pertinent
-3. "Pourquoi ?" (explication logique)
-4. "Actions possibles" (2-3 options coach)
-5. "Dans l'app" (où trouver/faire l'action)
+4. **SI CONFIANCE FAIBLE** (< 0.5) : Précise "⚠️ Confiance faible, prudence recommandée"
+
+5. **SI QUESTION MÉDICALE** : "❌ Je ne peux pas donner d'avis médical. Consulte un professionnel de santé."
+
+6. **CITE TES SOURCES** : Termine TOUJOURS par "📚 Sources : [titres des articles utilisés]"
+
+## FORMAT DE RÉPONSE OBLIGATOIRE
+
+Structure chaque réponse ainsi :
+
+**Réponse courte** (2-3 lignes max)
+[Ta réponse directe]
+
+**Pourquoi ?**
+[Explication logique avec les chiffres du contexte si pertinent]
+
+**Actions possibles** (2-3 options coach)
+1. [Option 1]
+2. [Option 2]
+3. [Option 3]
+
+**Dans l'app**
+[Où trouver/faire l'action]
+
+**📚 Sources**
+[Academy > catégorie > titre des articles utilisés]
+
+## CE QUE TU NE FAIS JAMAIS
+- Inventer des données
+- Donner des avis médicaux
+- Garantir des performances
+- Remplacer le jugement du coach
+- Répondre hors base de connaissances
 
 ## STYLE
-- Concis et direct
+- Concis et staff-grade
 - Vocabulaire technique mais accessible
 - Tutoiement OK
-- Emojis acceptés avec modération (✅ ⚠️ ❌ 📊)
-
-## DISCLAIMER INITIAL
-Si c'est la première question de l'utilisateur, inclus brièvement :
-"ℹ️ Cet assistant aide à comprendre l'app. Il ne remplace pas un avis médical ni le jugement du coach."`;
+- Emojis : ✅ ⚠️ ❌ 📊 uniquement`;
 
 // =============================================
 // HANDLER
@@ -62,7 +73,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, athleteContext, knowledgeContext, isFirstMessage } = await req.json();
+    const { messages, athleteContext, knowledgeContext, isFirstMessage, missingFields } = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -72,19 +83,28 @@ serve(async (req) => {
     // Construire le contexte système enrichi
     let systemContent = SYSTEM_PROMPT;
     
-    // Ajouter le contexte athlète si disponible
+    // Ajouter le contexte athlète
     if (athleteContext) {
-      systemContent += `\n\n## CONTEXTE ATHLÈTE ACTUEL\n${athleteContext}`;
+      systemContent += `\n\n## CONTEXTE ATHLÈTE RUNTIME (données réelles)\n${athleteContext}`;
+    } else {
+      systemContent += `\n\n## CONTEXTE ATHLÈTE\nAucun athlète sélectionné. Réponds de manière générale mais indique que les réponses seront plus précises avec un athlète sélectionné.`;
     }
     
-    // Ajouter le contexte base de connaissances si disponible
+    // Ajouter les champs manquants
+    if (missingFields && missingFields.length > 0) {
+      systemContent += `\n\n## CHAMPS MANQUANTS À SIGNALER\n${missingFields}`;
+    }
+    
+    // Ajouter la base de connaissances
     if (knowledgeContext) {
-      systemContent += `\n\n## EXTRAITS DE LA BASE DE CONNAISSANCES\n${knowledgeContext}`;
+      systemContent += `\n\n## EXTRAITS DE LA BASE DE CONNAISSANCES (SEULE SOURCE AUTORISÉE)\n${knowledgeContext}`;
+    } else {
+      systemContent += `\n\n## BASE DE CONNAISSANCES\nAucun article pertinent trouvé. Indique que tu n'as pas d'information sur ce sujet.`;
     }
     
-    // Ajouter indication première question
+    // Disclaimer première question
     if (isFirstMessage) {
-      systemContent += `\n\nC'est la première question de l'utilisateur - inclus le disclaimer initial.`;
+      systemContent += `\n\n## PREMIÈRE QUESTION\nInclus ce disclaimer : "ℹ️ Cet assistant utilise uniquement la base de connaissances interne. Il ne remplace pas un avis médical ni le jugement du coach."`;
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -107,29 +127,19 @@ serve(async (req) => {
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: "Limite de requêtes atteinte. Réessaie dans quelques secondes." }), 
-          {
-            status: 429,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       if (response.status === 402) {
         return new Response(
           JSON.stringify({ error: "Crédits insuffisants. Contacte l'administrateur." }), 
-          {
-            status: 402,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
+      console.error("AI gateway error:", response.status);
       return new Response(
         JSON.stringify({ error: "Erreur du service AI. Réessaie." }), 
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -140,10 +150,7 @@ serve(async (req) => {
     console.error("assistant-chat error:", e);
     return new Response(
       JSON.stringify({ error: e instanceof Error ? e.message : "Erreur inconnue" }), 
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

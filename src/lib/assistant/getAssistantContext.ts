@@ -1,0 +1,626 @@
+// =============================================
+// CONTEXT PACKET - Assistant Two For Coaching Lab
+// Source of truth pour le contexte runtime
+// =============================================
+
+import { DbAthlete, DbSnapshot, DbTest } from "@/hooks/useCloudData";
+import { computeVLamaxEffectif, VLamaxEffectif } from "@/lib/vlamaxEffectif";
+import { computeTTEEffectif, TTEEffectif } from "@/lib/tteEffectif";
+import { computeRaceReadinessEffectif, RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
+import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
+import { computeNutritionEstimate, NutritionEstimate } from "@/lib/nutritionPredictive";
+
+// =============================================
+// TYPES
+// =============================================
+
+export interface MissingField {
+  field: string;
+  label: string;
+  whereToFix: string;
+  impact: "high" | "medium" | "low";
+}
+
+export interface AssistantContextPacket {
+  // Module actuel
+  currentModule: string;
+  
+  // Athlète
+  athlete: {
+    id: string | null;
+    name: string | null;
+    goal: string | null;
+    age: number | null;
+  };
+  
+  // Snapshot actif
+  activeSnapshot: {
+    exists: boolean;
+    date: string | null;
+    source: string | null;
+  };
+  
+  // Métriques effectifs (avec source et confiance)
+  vlamaxEffectif: VLamaxEffectif | null;
+  tteEffectif: TTEEffectif | null;
+  raceReadiness: RaceReadinessEffectif | null;
+  
+  // Charge récente
+  chargeRecente: {
+    tss7d: number | null;
+    status: "légère" | "modérée" | "élevée" | "très élevée" | null;
+    confidence: number;
+  };
+  
+  // Risque blessure CAP
+  injuryRiskRun: {
+    level: "faible" | "modéré" | "élevé" | null;
+    driftPct: number | null;
+    reason: string | null;
+  };
+  
+  // Nutrition prédictive
+  nutritionPred: NutritionEstimate | null;
+  
+  // Données dérivées
+  derived: {
+    ftp: number | null;
+    ftpKg: number | null;
+    poids: number | null;
+    fcMax: number | null;
+    vo2max: number | null;
+    vma: number | null;
+  };
+  
+  // Champs manquants (pour guider l'utilisateur)
+  missingFields: MissingField[];
+  
+  // Robustesse globale
+  robustness: {
+    level: "robuste" | "prudent" | "indicatif";
+    averageConfidence: number;
+  };
+}
+
+// =============================================
+// FONCTIONS DE CALCUL
+// =============================================
+
+function computeAge(birthDate: string | null): number | null {
+  if (!birthDate) return null;
+  const birth = new Date(birthDate);
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+}
+
+function computeChargeRecenteStatus(tss7d: number | null): "légère" | "modérée" | "élevée" | "très élevée" | null {
+  if (tss7d === null) return null;
+  if (tss7d < 300) return "légère";
+  if (tss7d < 500) return "modérée";
+  if (tss7d < 700) return "élevée";
+  return "très élevée";
+}
+
+function computeInjuryRisk(driftPct: number | null, vlamaxEffectif: VLamaxEffectif | null, tteEffectif: TTEEffectif | null): {
+  level: "faible" | "modéré" | "élevé" | null;
+  reason: string | null;
+} {
+  let riskLevel: "faible" | "modéré" | "élevé" | null = null;
+  let reason: string | null = null;
+  
+  // Risque basé sur la dérive cardiaque
+  if (driftPct !== null) {
+    if (driftPct > 10) {
+      riskLevel = "élevé";
+      reason = `Dérive cardiaque élevée (${driftPct.toFixed(1)}% > 10%)`;
+    } else if (driftPct > 5) {
+      riskLevel = "modéré";
+      reason = `Dérive cardiaque modérée (${driftPct.toFixed(1)}%)`;
+    } else {
+      riskLevel = "faible";
+      reason = `Dérive cardiaque normale (${driftPct.toFixed(1)}%)`;
+    }
+  }
+  
+  // Aggravation si profil "fragile" (VLamax haute + TTE bas)
+  if (vlamaxEffectif?.value && tteEffectif) {
+    const vlamaxHigh = vlamaxEffectif.value > 0.5;
+    const tteLow = tteEffectif.status === "critical";
+    if (vlamaxHigh && tteLow) {
+      if (riskLevel === "modéré") riskLevel = "élevé";
+      reason = (reason || "") + " + profil fragile (VLamax haute, TTE bas)";
+    }
+  }
+  
+  return { level: riskLevel, reason };
+}
+
+function identifyMissingFields(
+  athlete: DbAthlete | null,
+  snapshot: DbSnapshot | null
+): MissingField[] {
+  const missing: MissingField[] = [];
+  
+  if (!athlete) {
+    missing.push({
+      field: "athlete",
+      label: "Athlète",
+      whereToFix: "Sélectionne un athlète dans le menu principal",
+      impact: "high"
+    });
+    return missing; // Pas la peine de continuer
+  }
+  
+  if (!snapshot) {
+    missing.push({
+      field: "snapshot",
+      label: "Snapshot actif",
+      whereToFix: "Va dans l'onglet Snapshots > Nouveau Snapshot",
+      impact: "high"
+    });
+    return missing;
+  }
+  
+  // Champs snapshot
+  if (snapshot.ftp === null) {
+    missing.push({
+      field: "ftp",
+      label: "FTP (puissance seuil)",
+      whereToFix: "Modifie le snapshot actif ou ajoute un test",
+      impact: "high"
+    });
+  }
+  
+  if (snapshot.weight_kg === null) {
+    missing.push({
+      field: "weight_kg",
+      label: "Poids",
+      whereToFix: "Modifie le snapshot actif",
+      impact: "medium"
+    });
+  }
+  
+  if (snapshot.fc_max === null) {
+    missing.push({
+      field: "fc_max",
+      label: "FC Max",
+      whereToFix: "Modifie le snapshot actif ou les Références athlète",
+      impact: "medium"
+    });
+  }
+  
+  if (snapshot.tss_7d === null) {
+    missing.push({
+      field: "tss_7d",
+      label: "TSS 7 jours (charge récente)",
+      whereToFix: "Modifie le snapshot actif",
+      impact: "medium"
+    });
+  }
+  
+  if (snapshot.vlamax === null) {
+    missing.push({
+      field: "vlamax",
+      label: "VLamax (mesurée)",
+      whereToFix: "Réalise un test VLamax ou importe un rapport labo",
+      impact: "medium"
+    });
+  }
+  
+  if (snapshot.vma === null) {
+    missing.push({
+      field: "vma",
+      label: "VMA",
+      whereToFix: "Modifie le snapshot actif",
+      impact: "low"
+    });
+  }
+  
+  return missing;
+}
+
+function computeRobustness(confidences: number[]): {
+  level: "robuste" | "prudent" | "indicatif";
+  averageConfidence: number;
+} {
+  if (confidences.length === 0) {
+    return { level: "indicatif", averageConfidence: 0 };
+  }
+  
+  const avg = confidences.reduce((a, b) => a + b, 0) / confidences.length;
+  
+  if (avg >= 0.7) {
+    return { level: "robuste", averageConfidence: avg };
+  } else if (avg >= 0.4) {
+    return { level: "prudent", averageConfidence: avg };
+  }
+  return { level: "indicatif", averageConfidence: avg };
+}
+
+// =============================================
+// FONCTION PRINCIPALE
+// =============================================
+
+export interface GetAssistantContextParams {
+  currentModule: string;
+  selectedAthleteId: string | null;
+  athletes: DbAthlete[];
+  snapshots: DbSnapshot[];
+  tests: DbTest[];
+}
+
+export function getAssistantContext(params: GetAssistantContextParams): AssistantContextPacket {
+  const { currentModule, selectedAthleteId, athletes, snapshots, tests } = params;
+  
+  // Athlète sélectionné
+  const athlete = selectedAthleteId 
+    ? athletes.find(a => a.id === selectedAthleteId) || null 
+    : null;
+  
+  // Snapshot effectif
+  let effectiveSnapshot: DbSnapshot | null = null;
+  if (athlete) {
+    const athleteSnapshots = snapshots.filter(s => s.athlete_id === athlete.id);
+    if (athleteSnapshots.length > 0) {
+      if (athlete.active_snapshot_id) {
+        effectiveSnapshot = athleteSnapshots.find(s => s.id === athlete.active_snapshot_id) || null;
+      }
+      if (!effectiveSnapshot) {
+        effectiveSnapshot = [...athleteSnapshots].sort((a, b) => b.date.localeCompare(a.date))[0];
+      }
+    }
+  }
+  
+  // Refs effectifs
+  const effectiveRefs = athlete ? getEffectiveRefs(athlete, snapshots) : null;
+  const ftpKg = effectiveRefs ? computeFtpKg(effectiveRefs) : null;
+  
+  // VLamax effectif
+  const vlamaxEffectif = athlete ? computeVLamaxEffectif({
+    athleteId: athlete.id,
+    objectif: athlete.goal || "IM",
+    activeSnapshotId: athlete.active_snapshot_id,
+    tests: tests.map(t => ({
+      athlete_id: t.athlete_id,
+      vlamax: t.vlamax,
+      date: t.date,
+      type: t.type,
+      name: t.name,
+    })),
+    snapshots: snapshots.map(s => ({
+      id: s.id,
+      athlete_id: s.athlete_id,
+      date: s.date,
+      vlamax: s.vlamax,
+      ftp: s.ftp,
+      pmax_5s: s.pmax_5s,
+      weight_kg: s.weight_kg,
+    })),
+  }) : null;
+  
+  // TTE effectif
+  const tteEffectif = effectiveSnapshot ? computeTTEEffectif({
+    ftp: effectiveSnapshot.ftp ?? null,
+    tss_7d: effectiveSnapshot.tss_7d ?? null,
+    tte_mode: effectiveSnapshot.tte_mode ?? "LOAD",
+    tte_observed_min: effectiveSnapshot.tte_observed_min ?? null,
+    objectif: athlete?.goal || "IM",
+  }) : null;
+  
+  // Race Readiness
+  const raceReadiness = tteEffectif && vlamaxEffectif ? computeRaceReadinessEffectif({
+    objectif: athlete?.goal || "IM",
+    vlamaxEffectif,
+    tteEffectif,
+    ftp: effectiveRefs?.ftp ?? null,
+    poids: effectiveRefs?.weightKg ?? null,
+    fatigue_ok: true,
+    seance_specifique_validee: false,
+    fcMax: effectiveRefs?.fcMax ?? null,
+    deriveCardiaque: effectiveSnapshot?.run_hr_drift_pct ?? null,
+  }) : null;
+  
+  // Charge récente
+  const tss7d = effectiveSnapshot?.tss_7d ?? null;
+  const chargeStatus = computeChargeRecenteStatus(tss7d);
+  
+  // Risque blessure CAP
+  const driftPct = effectiveSnapshot?.run_hr_drift_pct ?? null;
+  const injuryRisk = computeInjuryRisk(driftPct, vlamaxEffectif, tteEffectif);
+  
+  // Nutrition prédictive
+  const nutritionPred = vlamaxEffectif ? computeNutritionEstimate({
+    vlamax: vlamaxEffectif.value,
+    objectif: athlete?.goal || "IM",
+    tteMin: tteEffectif?.tte_min ?? null,
+    tteTarget: tteEffectif?.target ?? null,
+  }) : null;
+  
+  // Champs manquants
+  const missingFields = identifyMissingFields(athlete, effectiveSnapshot);
+  
+  // Robustesse
+  const confidences: number[] = [];
+  if (vlamaxEffectif) confidences.push(vlamaxEffectif.confidence);
+  if (tteEffectif) confidences.push(tteEffectif.confidence);
+  if (raceReadiness) confidences.push(raceReadiness.confidence);
+  const robustness = computeRobustness(confidences);
+  
+  return {
+    currentModule,
+    athlete: {
+      id: athlete?.id ?? null,
+      name: athlete?.name ?? null,
+      goal: athlete?.goal ?? null,
+      age: computeAge(athlete?.birth_date ?? null),
+    },
+    activeSnapshot: {
+      exists: !!effectiveSnapshot,
+      date: effectiveSnapshot?.date ?? null,
+      source: effectiveSnapshot?.source ?? null,
+    },
+    vlamaxEffectif,
+    tteEffectif,
+    raceReadiness,
+    chargeRecente: {
+      tss7d,
+      status: chargeStatus,
+      confidence: tss7d !== null ? 0.9 : 0,
+    },
+    injuryRiskRun: {
+      level: injuryRisk.level,
+      driftPct,
+      reason: injuryRisk.reason,
+    },
+    nutritionPred,
+    derived: {
+      ftp: effectiveRefs?.ftp ?? null,
+      ftpKg,
+      poids: effectiveRefs?.weightKg ?? null,
+      fcMax: effectiveRefs?.fcMax ?? null,
+      vo2max: effectiveSnapshot?.vo2max ?? null,
+      vma: effectiveSnapshot?.vma ?? null,
+    },
+    missingFields,
+    robustness,
+  };
+}
+
+// =============================================
+// FORMATAGE POUR LE PROMPT AI
+// =============================================
+
+export function formatContextForPrompt(context: AssistantContextPacket): string {
+  const parts: string[] = [];
+  
+  // Module
+  parts.push(`## Module actuel: ${context.currentModule}`);
+  
+  // Athlète
+  if (context.athlete.name) {
+    parts.push(`## Athlète: ${context.athlete.name}`);
+    parts.push(`- Objectif: ${context.athlete.goal || "non défini"}`);
+    if (context.athlete.age) parts.push(`- Âge: ${context.athlete.age} ans`);
+  } else {
+    parts.push(`## Athlète: Aucun sélectionné`);
+  }
+  
+  // Snapshot
+  if (context.activeSnapshot.exists) {
+    parts.push(`## Snapshot actif: ${context.activeSnapshot.date} (source: ${context.activeSnapshot.source})`);
+  } else {
+    parts.push(`## Snapshot: Aucun snapshot actif`);
+  }
+  
+  // VLamax
+  if (context.vlamaxEffectif) {
+    const v = context.vlamaxEffectif;
+    if (v.value !== null) {
+      parts.push(`## VLamax: ${v.value.toFixed(2)} mmol/L/s`);
+      parts.push(`- Source: ${v.source}`);
+      parts.push(`- Confiance: ${(v.confidence * 100).toFixed(0)}%`);
+      parts.push(`- Label: ${v.label}`);
+    } else {
+      parts.push(`## VLamax: Non disponible (source: ${v.source})`);
+    }
+  }
+  
+  // TTE
+  if (context.tteEffectif) {
+    const t = context.tteEffectif;
+    parts.push(`## TTE: ${t.tte_min} min`);
+    parts.push(`- Source: ${t.source}`);
+    parts.push(`- Confiance: ${(t.confidence * 100).toFixed(0)}%`);
+    parts.push(`- Cible: ${t.target} min`);
+    parts.push(`- Statut: ${t.status}`);
+  }
+  
+  // Race Readiness
+  if (context.raceReadiness) {
+    const r = context.raceReadiness;
+    parts.push(`## Race Readiness: ${r.score}/100 (${r.label})`);
+    parts.push(`- Confiance: ${(r.confidence * 100).toFixed(0)}%`);
+  }
+  
+  // Charge récente
+  if (context.chargeRecente.tss7d !== null) {
+    parts.push(`## Charge 7j: ${context.chargeRecente.tss7d} TSS (${context.chargeRecente.status})`);
+  }
+  
+  // Risque blessure
+  if (context.injuryRiskRun.level) {
+    parts.push(`## Risque blessure CAP: ${context.injuryRiskRun.level}`);
+    if (context.injuryRiskRun.reason) {
+      parts.push(`- Raison: ${context.injuryRiskRun.reason}`);
+    }
+  }
+  
+  // Nutrition
+  if (context.nutritionPred) {
+    const n = context.nutritionPred;
+    parts.push(`## Nutrition prédictive: ${n.carbsMin}-${n.carbsMax}g/h glucides`);
+    parts.push(`- Risque glycolytique: ${n.riskLevel}`);
+  }
+  
+  // Données dérivées
+  const d = context.derived;
+  if (d.ftp !== null) parts.push(`## FTP: ${d.ftp}W`);
+  if (d.ftpKg !== null) parts.push(`## FTP/kg: ${d.ftpKg.toFixed(2)} W/kg`);
+  if (d.poids !== null) parts.push(`## Poids: ${d.poids}kg`);
+  if (d.fcMax !== null) parts.push(`## FC Max: ${d.fcMax} bpm`);
+  
+  // Champs manquants
+  if (context.missingFields.length > 0) {
+    parts.push(`## CHAMPS MANQUANTS (à renseigner):`);
+    for (const m of context.missingFields) {
+      parts.push(`- ${m.label}: ${m.whereToFix}`);
+    }
+  }
+  
+  // Robustesse
+  parts.push(`## Robustesse globale: ${context.robustness.level} (confiance moyenne: ${(context.robustness.averageConfidence * 100).toFixed(0)}%)`);
+  
+  return parts.join('\n');
+}
+
+// =============================================
+// FORMATAGE POUR AFFICHAGE UI
+// =============================================
+
+export interface ContextDisplayItem {
+  label: string;
+  value: string;
+  status?: "ok" | "warning" | "error";
+  confidence?: number;
+}
+
+export function formatContextForDisplay(context: AssistantContextPacket): ContextDisplayItem[] {
+  const items: ContextDisplayItem[] = [];
+  
+  // Athlète
+  items.push({
+    label: "Athlète",
+    value: context.athlete.name || "Non sélectionné",
+    status: context.athlete.name ? "ok" : "error"
+  });
+  
+  items.push({
+    label: "Objectif",
+    value: context.athlete.goal || "Non défini"
+  });
+  
+  items.push({
+    label: "Module",
+    value: context.currentModule
+  });
+  
+  // Snapshot
+  if (context.activeSnapshot.exists) {
+    items.push({
+      label: "Snapshot",
+      value: `${context.activeSnapshot.date} (${context.activeSnapshot.source})`,
+      status: "ok"
+    });
+  } else {
+    items.push({
+      label: "Snapshot",
+      value: "Aucun",
+      status: "warning"
+    });
+  }
+  
+  // VLamax
+  if (context.vlamaxEffectif?.value !== null) {
+    const v = context.vlamaxEffectif!;
+    items.push({
+      label: "VLamax",
+      value: `${v.value?.toFixed(2)} mmol/L/s (${v.source})`,
+      status: v.confidence >= 0.7 ? "ok" : v.confidence >= 0.4 ? "warning" : "error",
+      confidence: v.confidence
+    });
+  } else if (context.vlamaxEffectif) {
+    items.push({
+      label: "VLamax",
+      value: `Non disponible (${context.vlamaxEffectif.source})`,
+      status: "error"
+    });
+  }
+  
+  // TTE
+  if (context.tteEffectif) {
+    const t = context.tteEffectif;
+    items.push({
+      label: "TTE",
+      value: `${t.tte_min} min (${t.source}, cible: ${t.target})`,
+      status: t.status === "ok" ? "ok" : t.status === "warning" ? "warning" : "error",
+      confidence: t.confidence
+    });
+  }
+  
+  // Race Readiness
+  if (context.raceReadiness) {
+    const r = context.raceReadiness;
+    items.push({
+      label: "Race Readiness",
+      value: `${r.score}/100 (${r.label})`,
+      status: r.score >= 80 ? "ok" : r.score >= 60 ? "warning" : "error",
+      confidence: r.confidence
+    });
+  }
+  
+  // Charge
+  if (context.chargeRecente.tss7d !== null) {
+    const status = context.chargeRecente.tss7d > 700 ? "error" : 
+                   context.chargeRecente.tss7d > 500 ? "warning" : "ok";
+    items.push({
+      label: "Charge 7j",
+      value: `${context.chargeRecente.tss7d} TSS (${context.chargeRecente.status})`,
+      status
+    });
+  }
+  
+  // Risque blessure
+  if (context.injuryRiskRun.level) {
+    items.push({
+      label: "Risque blessure CAP",
+      value: context.injuryRiskRun.level,
+      status: context.injuryRiskRun.level === "faible" ? "ok" : 
+              context.injuryRiskRun.level === "modéré" ? "warning" : "error"
+    });
+  }
+  
+  // Données dérivées
+  if (context.derived.ftp !== null) {
+    items.push({ label: "FTP", value: `${context.derived.ftp}W` });
+  }
+  if (context.derived.ftpKg !== null) {
+    items.push({ label: "FTP/kg", value: `${context.derived.ftpKg.toFixed(2)} W/kg` });
+  }
+  if (context.derived.poids !== null) {
+    items.push({ label: "Poids", value: `${context.derived.poids}kg` });
+  }
+  
+  // Robustesse
+  items.push({
+    label: "Robustesse",
+    value: `${context.robustness.level} (${(context.robustness.averageConfidence * 100).toFixed(0)}%)`,
+    status: context.robustness.level === "robuste" ? "ok" : 
+            context.robustness.level === "prudent" ? "warning" : "error"
+  });
+  
+  // Champs manquants
+  if (context.missingFields.length > 0) {
+    items.push({
+      label: "Champs manquants",
+      value: `${context.missingFields.length} champ(s)`,
+      status: context.missingFields.some(m => m.impact === "high") ? "error" : "warning"
+    });
+  }
+  
+  return items;
+}
