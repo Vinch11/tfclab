@@ -48,32 +48,37 @@ export function mapExtractToSnapshot(
     extract.performance.vo2max_ml_kg_min
   );
   
+  // Convert confidence from 0-1 to 0-100 scale for schema validation
+  const confidencePercent = extract.meta.sourceConfidence != null 
+    ? Math.round(extract.meta.sourceConfidence * 100) 
+    : null;
+  
   const snapshot: Partial<DbSnapshot> = {
     date: extract.meta.reportDate || new Date().toISOString().slice(0, 10),
     source: "lab_import",
     
-    // Performance
+    // Performance - ensure integers where needed
     vo2max: extract.performance.vo2max_ml_kg_min,
     vma: extract.performance.vma_kmh,
-    ftp: extract.performance.ftp_w,
-    pmax_5s: extract.performance.pmax_w,
+    ftp: extract.performance.ftp_w != null ? Math.round(extract.performance.ftp_w) : null,
+    pmax_5s: extract.performance.pmax_w != null ? Math.round(extract.performance.pmax_w) : null,
     
     // Anthropo
     weight_kg: extract.anthropo.weight_kg,
     fat_pct: extract.anthropo.fat_pct,
     
-    // Cardio
-    fc_max: extract.cardio.hr_max,
+    // Cardio - ensure integer
+    fc_max: extract.cardio.hr_max != null ? Math.round(extract.cardio.hr_max) : null,
     
     // VLamax (only if explicitly in report)
     vlamax: extract.vlamax.value,
     
     // Metabolic
     metabolic_profile: profile,
-    metabolic_score: score,
+    metabolic_score: score != null ? Math.round(score) : null,
     
-    // Confidence based on extraction quality
-    confidence: extract.meta.sourceConfidence,
+    // Confidence as percentage (0-100)
+    confidence: confidencePercent,
     
     // Notes
     coach_notes: notes.join(" | "),
