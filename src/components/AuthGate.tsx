@@ -22,7 +22,7 @@ export function AuthGate({ children }: AuthGateProps) {
           <img 
             src={logo} 
             alt="24C Lab" 
-            className="h-20 w-auto animate-pulse"
+            className="h-36 w-auto animate-pulse"
           />
           <div className="flex items-center gap-2">
             <Loader2 className="h-5 w-5 animate-spin text-primary" />

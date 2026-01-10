@@ -53,28 +53,28 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
         <div className="relative">
           {/* Outer rotating ring */}
           <div 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] h-[280px] border-2 border-transparent rounded-full animate-[spin_3s_linear_infinite]"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] h-[380px] border-2 border-transparent rounded-full animate-[spin_3s_linear_infinite]"
             style={{ borderTopColor: 'rgba(59, 130, 246, 0.6)', borderRightColor: 'rgba(6, 182, 212, 0.4)' }}
           />
           {/* Inner rotating ring */}
           <div 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[260px] h-[260px] border border-transparent rounded-full animate-[spin_2s_linear_infinite_reverse]"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[360px] h-[360px] border border-transparent rounded-full animate-[spin_2s_linear_infinite_reverse]"
             style={{ borderBottomColor: 'rgba(59, 130, 246, 0.4)', borderLeftColor: 'rgba(6, 182, 212, 0.3)' }}
           />
           {/* Glow behind logo */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-52 h-52 bg-gradient-radial from-primary/40 to-transparent rounded-full animate-pulse" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-gradient-radial from-primary/40 to-transparent rounded-full animate-pulse" />
           {/* Logo ping effect */}
           <div className="absolute inset-0 animate-ping opacity-10">
             <img
               src={logo}
               alt=""
-              className="w-[210px] h-[210px] object-contain"
+              className="w-[300px] h-[300px] object-contain"
             />
           </div>
           <img
             src={logo}
             alt="Two For Coaching Lab"
-            className="relative w-[210px] h-[210px] object-contain animate-[fadeInScale_0.8s_ease-out] drop-shadow-[0_0_30px_rgba(59,130,246,0.5)]"
+            className="relative w-[300px] h-[300px] object-contain animate-[fadeInScale_0.8s_ease-out] drop-shadow-[0_0_30px_rgba(59,130,246,0.5)]"
           />
         </div>
 

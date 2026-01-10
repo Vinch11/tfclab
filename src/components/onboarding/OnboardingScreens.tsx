@@ -36,7 +36,7 @@ export function OnboardingScreens({ role, onComplete, loading }: OnboardingScree
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header with logo */}
       <div className="p-6 flex justify-center">
-        <img src={logo} alt="Two For Coaching Lab" className="h-10 w-auto opacity-80" />
+        <img src={logo} alt="Two For Coaching Lab" className="h-20 w-auto opacity-80" />
       </div>
 
       {/* Progress dots */}
