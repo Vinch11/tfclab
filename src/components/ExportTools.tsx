@@ -915,18 +915,22 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
             <!-- Axes -->
             <line x1="170" y1="70" x2="170" y2="270" stroke="#eee" stroke-width="1"/>
             <line x1="70" y1="170" x2="270" y2="170" stroke="#eee" stroke-width="1"/>
-            <!-- Polygone des scores (centre=170,170, rayon max=100) -->
-            <polygon points="170,${170 - cScores.capaciteAerobie.score} ${170 + cScores.toleranceEffort.score},170 170,${170 + cScores.profilMetabolique.score} ${170 - cScores.robustesse.score},170" fill="rgba(37,99,235,0.2)" stroke="#2563eb" stroke-width="2"/>
+            <!-- Polygone des scores (centre=170,170, rayon max=100) - scores normalisés -->
+            <polygon points="170,${170 - (cScores.capaciteAerobie.score / 100) * 100} ${170 + (cScores.toleranceEffort.score / 100) * 100},170 170,${170 + (cScores.profilMetabolique.score / 100) * 100} ${170 - (cScores.robustesse.score / 100) * 100},170" fill="rgba(37,99,235,0.25)" stroke="#2563eb" stroke-width="2.5"/>
             <!-- Points sur chaque axe -->
-            <circle cx="170" cy="${170 - cScores.capaciteAerobie.score}" r="6" fill="#2563eb"/>
-            <circle cx="${170 + cScores.toleranceEffort.score}" cy="170" r="6" fill="#2563eb"/>
-            <circle cx="170" cy="${170 + cScores.profilMetabolique.score}" r="6" fill="#2563eb"/>
-            <circle cx="${170 - cScores.robustesse.score}" cy="170" r="6" fill="#2563eb"/>
-            <!-- Labels -->
-            <text x="170" y="50" text-anchor="middle" font-size="11" font-weight="600" fill="#333">⚡ Capacité Aérobie (${cScores.capaciteAerobie.score})</text>
-            <text x="290" y="175" text-anchor="start" font-size="11" font-weight="600" fill="#333">💪 Tolérance (${cScores.toleranceEffort.score})</text>
-            <text x="170" y="295" text-anchor="middle" font-size="11" font-weight="600" fill="#333">🧬 Profil Métab. (${cScores.profilMetabolique.score})</text>
-            <text x="50" y="175" text-anchor="end" font-size="11" font-weight="600" fill="#333">🛡️ Robustesse (${cScores.robustesse.score})</text>
+            <circle cx="170" cy="${170 - (cScores.capaciteAerobie.score / 100) * 100}" r="7" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+            <circle cx="${170 + (cScores.toleranceEffort.score / 100) * 100}" cy="170" r="7" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+            <circle cx="170" cy="${170 + (cScores.profilMetabolique.score / 100) * 100}" r="7" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+            <circle cx="${170 - (cScores.robustesse.score / 100) * 100}" cy="170" r="7" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+            <!-- Labels avec scores -->
+            <text x="170" y="45" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">⚡ Capacité Aérobie</text>
+            <text x="170" y="60" text-anchor="middle" font-size="14" font-weight="800" fill="#2563eb">${cScores.capaciteAerobie.score}/100</text>
+            <text x="295" y="165" text-anchor="start" font-size="12" font-weight="700" fill="#1e40af">💪 Tolérance</text>
+            <text x="295" y="180" text-anchor="start" font-size="14" font-weight="800" fill="#2563eb">${cScores.toleranceEffort.score}/100</text>
+            <text x="170" y="300" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">🧬 Profil Métab.</text>
+            <text x="170" y="315" text-anchor="middle" font-size="14" font-weight="800" fill="#2563eb">${cScores.profilMetabolique.score}/100</text>
+            <text x="45" y="165" text-anchor="end" font-size="12" font-weight="700" fill="#1e40af">🛡️ Robustesse</text>
+            <text x="45" y="180" text-anchor="end" font-size="14" font-weight="800" fill="#2563eb">${cScores.robustesse.score}/100</text>
           </svg>
         </div>
         
@@ -1953,11 +1957,11 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
       <body>
         ${coverHTML}
         
-        <div class="noPrint">
-          <button onclick="window.print()" style="padding:10px 20px;font-size:14px;cursor:pointer;background:var(--primary);color:white;border:none;border-radius:8px;">
+        <div class="noPrint" style="padding:16px;background:#f0f9ff;border-radius:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+          <button onclick="window.print()" style="padding:12px 24px;font-size:15px;cursor:pointer;background:#2563eb;color:white;border:none;border-radius:8px;font-weight:600;box-shadow:0 2px 8px rgba(37,99,235,0.3);">
             🖨️ Imprimer / Enregistrer en PDF
           </button>
-          <span class="muted" style="margin-left:12px;">Conseil: dans le dialogue d'impression, choisissez "Enregistrer en PDF".</span>
+          <span class="muted" style="font-size:13px;">💡 <b>Conseil :</b> Dans le dialogue d'impression, sélectionnez <b>"Enregistrer en PDF"</b> comme destination pour créer un fichier PDF.</span>
         </div>
 
         ${tocHTML}
