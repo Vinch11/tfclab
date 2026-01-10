@@ -4,7 +4,7 @@
 // + ÉCONOMIE CAP: allure/FC/dérive
 // =============================================
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,7 @@ import {
   getEconomyLabelStyle,
   getEconomyRaceReadinessBonus
 } from "@/lib/runningEconomySnapshot";
+import { usePersistedFormState, usePersistedDialogState } from "@/hooks/usePersistedFormState";
 
 // CAP objectives where running economy is critical
 const CAP_OBJECTIVES = [
@@ -47,11 +48,36 @@ interface SnapshotManagerProps {
   staffMode?: boolean; // ✅ Mode Staff pour VLamax mesurée
 }
 
+// Initial form state - used for reset
+const INITIAL_FORM_STATE = {
+  date: new Date().toISOString().slice(0, 10),
+  cycle_tag: "",
+  confidence: "",
+  fc_max: "",
+  vma: "",
+  ftp: "",
+  css: "",
+  vo2max: "",
+  vlamax: "",
+  weight_kg: "",
+  fat_pct: "",
+  pmax_5s: "",
+  tte_mode: "LOAD",
+  tss_7d: "",
+  tte_observed_min: "",
+  run_pace_ref: "",
+  run_hr_ref: "",
+  run_duration_min: "",
+  run_hr_drift_pct: "",
+  coach_notes: "",
+};
+
 export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSnapshotId, staffMode = false }: SnapshotManagerProps) {
   const { getSnapshotsForAthlete, addSnapshot, updateSnapshot, deleteSnapshot, setActiveSnapshot } = useCloudData();
 
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
+  // Use persisted dialog states to survive page minimize/restore
+  const [isCreateOpen, setIsCreateOpen] = usePersistedDialogState(`snapshot-create-${athleteId}`, false);
+  const [isEditOpen, setIsEditOpen] = usePersistedDialogState(`snapshot-edit-${athleteId}`, false);
   const [isCompareOpen, setIsCompareOpen] = useState(false);
 
   const [editingSnapshot, setEditingSnapshot] = useState<DbSnapshot | null>(null);
@@ -60,60 +86,14 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
   const snapshots = getSnapshotsForAthlete(athleteId);
 
-  const [formData, setFormData] = useState({
-    date: new Date().toISOString().slice(0, 10),
-    cycle_tag: "",
-    confidence: "",
-    fc_max: "",
-    vma: "",
-    ftp: "",
-    css: "",
-    vo2max: "",
-    vlamax: "",
-    weight_kg: "",
-    fat_pct: "",
-    pmax_5s: "",
-
-    // ✅ PRO TTE
-    tte_mode: "LOAD",
-    tss_7d: "",
-    tte_observed_min: "",
-
-    // 🏃 ÉCONOMIE CAP
-    run_pace_ref: "",        // format "m:ss"
-    run_hr_ref: "",          // bpm
-    run_duration_min: "",    // min
-    run_hr_drift_pct: "",    // %
-
-    coach_notes: "",
-  });
+  // Use persisted form state to survive page minimize/restore
+  const [formData, setFormData, clearFormData] = usePersistedFormState(
+    `snapshot-form-${athleteId}`,
+    { ...INITIAL_FORM_STATE, date: new Date().toISOString().slice(0, 10) }
+  );
 
   const resetForm = () => {
-    setFormData({
-      date: new Date().toISOString().slice(0, 10),
-      cycle_tag: "",
-      confidence: "",
-      fc_max: "",
-      vma: "",
-      ftp: "",
-      css: "",
-      vo2max: "",
-      vlamax: "",
-      weight_kg: "",
-      fat_pct: "",
-      pmax_5s: "",
-
-      tte_mode: "LOAD",
-      tss_7d: "",
-      tte_observed_min: "",
-
-      run_pace_ref: "",
-      run_hr_ref: "",
-      run_duration_min: "",
-      run_hr_drift_pct: "",
-
-      coach_notes: "",
-    });
+    clearFormData();
   };
 
   const loadSnapshotToForm = (s: DbSnapshot) => {
