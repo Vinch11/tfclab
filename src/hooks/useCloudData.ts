@@ -310,14 +310,17 @@ export function useCloudData() {
       return null;
     }
 
-    // Validate input data (and apply defaults)
-    const validation = validateOrNull(snapshotSchema, snapshot);
-    if (validation.error) {
-      toast.error(`Données invalides: ${validation.error}`);
+    // Validate required fields
+    if (!snapshot.athlete_id) {
+      toast.error("Données invalides: athlete_id requis");
       return null;
     }
 
-    const insertPayload = { ...validation.data, coach_id: user.id };
+    const insertPayload = {
+      ...snapshot,
+      coach_id: user.id,
+      athlete_id: snapshot.athlete_id,
+    };
 
     const { data: inserted, error } = await supabase
       .from("snapshots")
@@ -341,7 +344,7 @@ export function useCloudData() {
         .from("snapshots")
         .select("*")
         .eq("coach_id", user.id)
-        .eq("athlete_id", validation.data.athlete_id)
+        .eq("athlete_id", snapshot.athlete_id)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
