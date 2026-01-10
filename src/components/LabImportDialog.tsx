@@ -12,7 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileUp, AlertTriangle, CheckCircle, XCircle, Loader2, FlaskConical, Eye, EyeOff, ChevronLeft, ChevronRight, ZoomIn, X } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { FileUp, AlertTriangle, CheckCircle, XCircle, Loader2, FlaskConical, Eye, EyeOff, ChevronLeft, ChevronRight, Bug, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 
 import { extractTextFromPdf, getAllPagesAsImages } from "@/lib/labImport/pdfExtractor";
@@ -22,6 +23,7 @@ import { LabExtract, ExtractedField } from "@/lib/labImport/types";
 import { extractToValidationFields, applyFieldEdits, mapExtractToSnapshot, compareWithPrevious } from "@/lib/labImport/snapshotMapper";
 import { DbSnapshot, useCloudData } from "@/hooks/useCloudData";
 import { usePersistedDialogState } from "@/hooks/usePersistedFormState";
+import { setDebugMode, getDebugLogs, clearDebugLogs, DebugLog } from "@/lib/labImport/normalize";
 
 interface LabImportDialogProps {
   athleteId: string;
@@ -63,6 +65,10 @@ export function LabImportDialog({
   const [pdfPages, setPdfPages] = useState<string[]>([]);
   const [selectedPage, setSelectedPage] = useState<number>(0);
   const [showPreview, setShowPreview] = useState(true);
+  
+  // Debug mode for staff
+  const [debugMode, setDebugModeState] = useState(false);
+  const [debugLogs, setDebugLogs] = useState<DebugLog[]>([]);
 
   // Persist validation fields in sessionStorage to survive page minimize
   const STORAGE_KEY = `lab-import-fields-${athleteId}`;
@@ -118,11 +124,23 @@ export function LabImportDialog({
     setPdfPages([]);
     setSelectedPage(0);
     setShowPreview(true);
+    setDebugLogs([]);
+    clearDebugLogs();
     // Clear persisted state
     try {
       sessionStorage.removeItem(STORAGE_KEY);
     } catch (e) {
       console.warn("Failed to clear lab import state:", e);
+    }
+  };
+  
+  // Toggle debug mode
+  const handleDebugModeToggle = (enabled: boolean) => {
+    setDebugModeState(enabled);
+    setDebugMode(enabled);
+    if (!enabled) {
+      clearDebugLogs();
+      setDebugLogs([]);
     }
   };
 
@@ -180,6 +198,11 @@ export function LabImportDialog({
 
       setExtract(result.extract);
       setParserUsed(result.parserUsed);
+      
+      // Capture debug logs if debug mode is enabled
+      if (debugMode) {
+        setDebugLogs(getDebugLogs());
+      }
       
       // Step 4: Prepare validation fields
       const validationFields = extractToValidationFields(result.extract);
@@ -323,13 +346,19 @@ export function LabImportDialog({
                     <SelectItem value="quentin">Quentin / SOC Brussels</SelectItem>
                     <SelectItem value="mika">Mika / Cosmed Quark</SelectItem>
                   </SelectContent>
-                </Select>
+              </Select>
               </div>
               
               <div className="flex items-center gap-2 pt-6">
                 <Switch checked={createLinkedTest} onCheckedChange={setCreateLinkedTest} />
-                <Label>Créer un Test Labo lié (traçabilité)</Label>
+                <Label>Créer un Test Labo lié</Label>
               </div>
+            </div>
+            
+            <div className="flex items-center gap-2 pt-2 border-t">
+              <Switch checked={debugMode} onCheckedChange={handleDebugModeToggle} />
+              <Bug className="h-4 w-4 text-muted-foreground" />
+              <Label className="text-muted-foreground text-sm">Mode debug (staff)</Label>
             </div>
           </div>
         )}
@@ -467,6 +496,30 @@ export function LabImportDialog({
                 </tbody>
               </table>
             </div>
+
+            {/* Debug Panel */}
+            {debugMode && debugLogs.length > 0 && (
+              <Collapsible>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm" className="w-full justify-between">
+                    <span className="flex items-center gap-2">
+                      <Bug className="h-4 w-4" />
+                      Debug logs ({debugLogs.length})
+                    </span>
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="max-h-40 overflow-y-auto border rounded p-2 bg-muted/50 text-xs font-mono space-y-1">
+                    {debugLogs.map((log, i) => (
+                      <div key={i} className={`${log.type === "warning" ? "text-yellow-600" : log.type === "match" ? "text-green-600" : "text-muted-foreground"}`}>
+                        [{log.type}] {log.field}: {log.message} {log.value != null && `= ${log.value}`}
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
 
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={() => { setStep("upload"); resetState(); }}>
