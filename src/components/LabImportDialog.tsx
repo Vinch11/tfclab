@@ -12,19 +12,16 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { FileUp, AlertTriangle, CheckCircle, XCircle, Loader2, FlaskConical, Eye, EyeOff, ChevronLeft, ChevronRight, Bug, ChevronDown } from "lucide-react";
+import { FileUp, AlertTriangle, CheckCircle, XCircle, Loader2, FlaskConical, Eye, EyeOff, ChevronLeft, ChevronRight, ZoomIn, X } from "lucide-react";
 import { toast } from "sonner";
 
-import { getAllPagesAsImages } from "@/lib/labImport/pdfExtractor";
-import { extractLayoutFromPdf } from "@/lib/labImport/pdfLayoutExtractor";
+import { extractTextFromPdf, getAllPagesAsImages } from "@/lib/labImport/pdfExtractor";
 import { performOcr } from "@/lib/labImport/ocrProcessor";
-import { parseWithLayout, parseLabReport, ReportType } from "@/lib/labImport/parsers";
+import { parseLabReport, ReportType } from "@/lib/labImport/parsers";
 import { LabExtract, ExtractedField } from "@/lib/labImport/types";
 import { extractToValidationFields, applyFieldEdits, mapExtractToSnapshot, compareWithPrevious } from "@/lib/labImport/snapshotMapper";
 import { DbSnapshot, useCloudData } from "@/hooks/useCloudData";
 import { usePersistedDialogState } from "@/hooks/usePersistedFormState";
-import { setDebugMode, getDebugLogs, clearDebugLogs, DebugLog } from "@/lib/labImport/normalize";
 
 interface LabImportDialogProps {
   athleteId: string;
@@ -66,10 +63,6 @@ export function LabImportDialog({
   const [pdfPages, setPdfPages] = useState<string[]>([]);
   const [selectedPage, setSelectedPage] = useState<number>(0);
   const [showPreview, setShowPreview] = useState(true);
-  
-  // Debug mode for staff
-  const [debugMode, setDebugModeState] = useState(false);
-  const [debugLogs, setDebugLogs] = useState<DebugLog[]>([]);
 
   // Persist validation fields in sessionStorage to survive page minimize
   const STORAGE_KEY = `lab-import-fields-${athleteId}`;
@@ -125,23 +118,11 @@ export function LabImportDialog({
     setPdfPages([]);
     setSelectedPage(0);
     setShowPreview(true);
-    setDebugLogs([]);
-    clearDebugLogs();
     // Clear persisted state
     try {
       sessionStorage.removeItem(STORAGE_KEY);
     } catch (e) {
       console.warn("Failed to clear lab import state:", e);
-    }
-  };
-  
-  // Toggle debug mode
-  const handleDebugModeToggle = (enabled: boolean) => {
-    setDebugModeState(enabled);
-    setDebugMode(enabled);
-    if (!enabled) {
-      clearDebugLogs();
-      setDebugLogs([]);
     }
   };
 
@@ -157,23 +138,21 @@ export function LabImportDialog({
     setProgressText("Extraction du texte...");
 
     try {
-      // Step 1: Layout-aware extraction with coordinates
-      setProgressText("Extraction layout-aware...");
-      const layoutResult = await extractLayoutFromPdf(file);
-      setProgress(25);
+      // Step 1: Extract text
+      const pdfResult = await extractTextFromPdf(file);
+      setProgress(20);
 
       // Step 1.5: Generate PDF page previews in parallel
       setProgressText("Génération des aperçus...");
       const pageImages = await getAllPagesAsImages(file);
       setPdfPages(pageImages);
-      setProgress(35);
+      setProgress(30);
 
+      let textByPage = pdfResult.textByPage;
       let ocrUsed = false;
-      const textByPage = layoutResult.linesByPage.map(lines => lines.map(l => l.text).join("\n"));
 
-      // Step 2: Check if OCR is needed (very little text extracted)
-      const totalChars = textByPage.join("").length;
-      if (totalChars < 200) {
+      // Step 2: Check if OCR is needed
+      if (pdfResult.isScanned) {
         setProgressText("PDF scanné détecté - OCR en cours...");
         setProgress(40);
         
@@ -182,38 +161,16 @@ export function LabImportDialog({
           setProgressText(status);
         });
         
+        textByPage = ocrResult.textByPage;
         ocrUsed = true;
         setUsedOcr(true);
-        
-        // Fallback to legacy parser with OCR text
-        setProgress(85);
-        setProgressText("Analyse des données (OCR)...");
-        const result = parseLabReport(ocrResult.textByPage, reportType, ocrUsed);
-        
-        if (!result.success || !result.extract) {
-          toast.error(result.error || "Erreur d'analyse");
-          setStep("upload");
-          return;
-        }
-        
-        setExtract(result.extract);
-        setParserUsed(result.parserUsed);
-        if (debugMode) setDebugLogs(getDebugLogs());
-        const validationFields = extractToValidationFields(result.extract);
-        setFields(validationFields);
-        const initialEdits: Record<string, string> = {};
-        validationFields.forEach(f => { initialEdits[f.key] = f.value?.toString() || ""; });
-        setEditedValues(initialEdits);
-        setProgress(100);
-        setStep("validation");
-        return;
       }
 
       setProgress(85);
-      setProgressText("Analyse des données (layout)...");
+      setProgressText("Analyse des données...");
 
-      // Step 3: Parse with layout-aware parser
-      const result = parseWithLayout(layoutResult, reportType, ocrUsed);
+      // Step 3: Parse
+      const result = parseLabReport(textByPage, reportType, ocrUsed);
       
       if (!result.success || !result.extract) {
         toast.error(result.error || "Erreur d'analyse");
@@ -223,11 +180,6 @@ export function LabImportDialog({
 
       setExtract(result.extract);
       setParserUsed(result.parserUsed);
-      
-      // Capture debug logs if debug mode is enabled
-      if (debugMode) {
-        setDebugLogs(getDebugLogs());
-      }
       
       // Step 4: Prepare validation fields
       const validationFields = extractToValidationFields(result.extract);
@@ -371,19 +323,13 @@ export function LabImportDialog({
                     <SelectItem value="quentin">Quentin / SOC Brussels</SelectItem>
                     <SelectItem value="mika">Mika / Cosmed Quark</SelectItem>
                   </SelectContent>
-              </Select>
+                </Select>
               </div>
               
               <div className="flex items-center gap-2 pt-6">
                 <Switch checked={createLinkedTest} onCheckedChange={setCreateLinkedTest} />
-                <Label>Créer un Test Labo lié</Label>
+                <Label>Créer un Test Labo lié (traçabilité)</Label>
               </div>
-            </div>
-            
-            <div className="flex items-center gap-2 pt-2 border-t">
-              <Switch checked={debugMode} onCheckedChange={handleDebugModeToggle} />
-              <Bug className="h-4 w-4 text-muted-foreground" />
-              <Label className="text-muted-foreground text-sm">Mode debug (staff)</Label>
             </div>
           </div>
         )}
@@ -521,30 +467,6 @@ export function LabImportDialog({
                 </tbody>
               </table>
             </div>
-
-            {/* Debug Panel */}
-            {debugMode && debugLogs.length > 0 && (
-              <Collapsible>
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="sm" className="w-full justify-between">
-                    <span className="flex items-center gap-2">
-                      <Bug className="h-4 w-4" />
-                      Debug logs ({debugLogs.length})
-                    </span>
-                    <ChevronDown className="h-4 w-4" />
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <div className="max-h-40 overflow-y-auto border rounded p-2 bg-muted/50 text-xs font-mono space-y-1">
-                    {debugLogs.map((log, i) => (
-                      <div key={i} className={`${log.type === "warning" ? "text-yellow-600" : log.type === "match" ? "text-green-600" : "text-muted-foreground"}`}>
-                        [{log.type}] {log.field}: {log.message} {log.value != null && `= ${log.value}`}
-                      </div>
-                    ))}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            )}
 
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={() => { setStep("upload"); resetState(); }}>

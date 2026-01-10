@@ -3,35 +3,6 @@
 // =============================================
 
 /**
- * Field extraction with confidence tracking
- */
-export interface ExtractedValue<T = number | null> {
-  value: T;
-  confidence: number; // 0-1
-  sourcePage: number | null;
-  sourceLine: string | null;
-  status: "ok" | "verify" | "not_found";
-}
-
-/**
- * Create an extracted value with defaults
- */
-export function createExtractedValue<T>(
-  value: T,
-  confidence = 0,
-  sourcePage: number | null = null,
-  sourceLine: string | null = null
-): ExtractedValue<T> {
-  return {
-    value,
-    confidence,
-    sourcePage,
-    sourceLine,
-    status: value !== null && confidence >= 0.7 ? "ok" : value !== null ? "verify" : "not_found",
-  };
-}
-
-/**
  * Standard extraction format from lab PDF reports
  */
 export interface LabExtract {
@@ -106,8 +77,6 @@ export interface LabExtract {
     textPages: string[];
     usedOcr: boolean;
   };
-  // Per-field confidence tracking (optional, for layout parser)
-  fieldConfidence?: Record<string, ExtractedValue<number | null>>;
 }
 
 /**
@@ -118,8 +87,6 @@ export interface ExtractedField {
   label: string;
   value: string | number | null;
   pageSource: number | null;
-  sourceLine?: string | null;
-  confidence?: number;
   status: "ok" | "verify" | "not_found";
   editable: boolean;
 }

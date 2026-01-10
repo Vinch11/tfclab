@@ -1,29 +1,15 @@
 // =============================================
 // Parser for Mika / Cosmed Quark reports
-// Enhanced version with robust extraction for running-focused lab tests
 // =============================================
 
 import { LabExtract, createEmptyLabExtract } from "../types";
 import { 
+  extractNumber, 
   extractDate, 
+  findValueNearLabel,
   normalizeText,
   vmaToSecsPerKm
 } from "./parserUtils";
-import {
-  normalizeNumber,
-  parsePercent,
-  parseBpm,
-  parseMmol,
-  parseMlKgMin,
-  parseLMin,
-  isInRange,
-  logDebug,
-  VALUE_RANGES,
-} from "../normalize";
-
-// =============================================
-// Report Detection
-// =============================================
 
 /**
  * Check if text matches Mika/Cosmed report format
@@ -34,8 +20,7 @@ export function isMikaReport(textByPage: string[]): boolean {
   const markers = [
     "cosmed", "quark", "obla", "économie de course",
     "running economy", "vma absolue", "résumé résultats",
-    "mika", "analyse métabolique", "cpet", "ergo",
-    "tapis", "treadmill", "vo2 peak", "ventilatory threshold"
+    "mika", "analyse métabolique"
   ];
   
   let matchCount = 0;
@@ -45,15 +30,12 @@ export function isMikaReport(textByPage: string[]): boolean {
     }
   }
   
+  // Need at least 2 markers to identify as Mika report
   return matchCount >= 2;
 }
 
-// =============================================
-// Main Parser
-// =============================================
-
 /**
- * Parse Mika / Cosmed Quark report with enhanced extraction
+ * Parse Mika / Cosmed Quark report
  */
 export function parseMikaReport(textByPage: string[]): LabExtract {
   const extract = createEmptyLabExtract();
@@ -64,228 +46,120 @@ export function parseMikaReport(textByPage: string[]): LabExtract {
   const fullText = textByPage.join("\n");
   const normalizedText = normalizeText(fullText);
   
-  // Track extraction sources
-  const fieldSources: Record<string, number> = {};
-  
-  // --- META ---
+  // Extract date
   extract.meta.reportDate = extractDate(fullText);
   
   // Extract athlete name
-  const namePatterns = [
-    /(?:Nom|Patient|Sujet|Athlète)[:\s]*([A-Za-zÀ-ÿ\s\-]+?)(?:\n|Date|Âge|Sexe|Né|$)/i,
-    /(?:Name|Subject)[:\s]*([A-Za-zÀ-ÿ\s\-]+?)(?:\n|Date|Age|Sex|$)/i,
-  ];
-  for (const pattern of namePatterns) {
-    const match = fullText.match(pattern);
-    if (match) {
-      extract.meta.athleteName = match[1].trim();
-      logDebug({ type: "match", field: "athleteName", message: "Found athlete name", value: extract.meta.athleteName });
-      break;
-    }
+  const nameMatch = fullText.match(/(?:Nom|Patient|Sujet|Athlète)[:\s]*([A-Za-zÀ-ÿ\s]+?)(?:\n|Date|Âge|Sexe|Né)/i);
+  if (nameMatch) {
+    extract.meta.athleteName = nameMatch[1].trim();
   }
   
   // --- ANTHROPO ---
-  extract.anthropo.weight_kg = extractWithMultiplePatterns(fullText, [
-    /(?:Poids|Weight)[:\s]*(\d{2,3}(?:[,.]\d{1,2})?)\s*(?:kg)?/i,
-    /(\d{2,3}(?:[,.]\d)?)\s*kg\b/i,
-  ], "weight_kg", fieldSources, textByPage);
+  extract.anthropo.weight_kg = findValueNearLabel(fullText, /(?:Poids|Weight)[:\s]*/i) ||
+    extractNumber(fullText, /(\d{2,3}(?:[,.]\d)?)\s*kg/i);
   
-  // Height - handle both cm and meters
-  let heightValue = extractWithMultiplePatterns(fullText, [
-    /(?:Taille|Height)[:\s]*(\d{3})\s*(?:cm)?/i,
-    /(\d{3})\s*cm\b/i,
-    /(?:Taille|Height)[:\s]*([12][,.]\d{2})\s*m/i,
-  ], "height_cm", fieldSources, textByPage);
+  extract.anthropo.height_cm = findValueNearLabel(fullText, /(?:Taille|Height)[:\s]*/i) ||
+    extractNumber(fullText, /(\d{3})\s*cm/i) ||
+    extractNumber(fullText, /[12][,.]\d{2}\s*m/i); // Height in meters
   
   // Convert meters to cm if needed
-  if (heightValue && heightValue < 3) {
-    heightValue = Math.round(heightValue * 100);
-    logDebug({ type: "info", field: "height_cm", message: "Converted from meters", value: heightValue });
+  if (extract.anthropo.height_cm && extract.anthropo.height_cm < 3) {
+    extract.anthropo.height_cm = Math.round(extract.anthropo.height_cm * 100);
   }
-  extract.anthropo.height_cm = heightValue;
   
-  extract.anthropo.fat_pct = extractWithMultiplePatterns(fullText, [
-    /(?:masse grasse|body fat|MG|Fat)[:\s]*(\d{1,2}(?:[,.]\d{1,2})?)\s*%?/i,
-    /(\d{1,2}(?:[,.]\d)?)\s*%\s*(?:MG|fat|masse)/i,
-    /(?:BF|Body\s*Fat)[:\s]*(\d{1,2}(?:[,.]\d)?)/i,
-  ], "fat_pct", fieldSources, textByPage);
+  extract.anthropo.fat_pct = findValueNearLabel(fullText, /(?:masse grasse|body fat|MG|%\s*fat)[:\s]*/i) ||
+    extractNumber(fullText, /(\d{1,2}(?:[,.]\d)?)\s*%\s*(?:MG|fat|masse)/i);
   
-  // BMI
-  extract.anthropo.bmi = extractWithMultiplePatterns(fullText, [
-    /(?:BMI|IMC)[:\s]*(\d{1,2}(?:[,.]\d{1,2})?)/i,
-  ], null, fieldSources, textByPage);
+  extract.anthropo.bmi = findValueNearLabel(fullText, /(?:BMI|IMC)[:\s]*/i);
   
   // --- CARDIO ---
-  // FC max (priority: summary section first)
-  extract.cardio.hr_max = extractFromSummaryFirst(fullText, textByPage, [
-    /FC\s*max[:\s]*(\d{2,3})\s*(?:bpm)?/i,
-    /FCmax[:\s]*(\d{2,3})/i,
-    /HR\s*max[:\s]*(\d{2,3})/i,
-    /(?:Fréquence|Heart\s*rate)\s*max(?:imale|imum)?[:\s]*(\d{2,3})/i,
-    /Peak\s*HR[:\s]*(\d{2,3})/i,
-  ], "hr_max", fieldSources);
+  extract.cardio.hr_max = findValueNearLabel(fullText, /(?:FC\s*max|FCmax|HR\s*max|HRmax)[:\s]*/i) ||
+    extractNumber(fullText, /(?:FC|HR)\s*(?:max|maximale)[:\s]*(\d{2,3})/i);
   
-  // FC repos
-  extract.cardio.hr_rest = extractWithMultiplePatterns(fullText, [
-    /FC\s*repos[:\s]*(\d{2,3})\s*(?:bpm)?/i,
-    /FCR[:\s]*(\d{2,3})/i,
-    /HR\s*rest[:\s]*(\d{2,3})/i,
-    /Resting\s*(?:HR|heart\s*rate)[:\s]*(\d{2,3})/i,
-  ], "hr_rest", fieldSources, textByPage);
-  
-  // HRV (if available)
-  extract.cardio.hrv = extractWithMultiplePatterns(fullText, [
-    /HRV[:\s]*(\d{2,3})/i,
-    /RMSSD[:\s]*(\d{2,3})/i,
-  ], "hrv", fieldSources, textByPage);
-  
-  // SpO2
-  extract.cardio.spo2 = extractWithMultiplePatterns(fullText, [
-    /SpO2[:\s]*(\d{2,3})\s*%?/i,
-    /Saturation[:\s]*(\d{2,3})\s*%?/i,
-    /O2\s*Sat[:\s]*(\d{2,3})/i,
-  ], "spo2", fieldSources, textByPage);
+  extract.cardio.hr_rest = findValueNearLabel(fullText, /(?:FC\s*repos|FCR|HR\s*rest)[:\s]*/i);
   
   // --- PERFORMANCE ---
-  // Mika/Cosmed reports are typically running-focused but can be bike
-  if (/vélo|bike|cyclisme|ergomètre|cyclus/i.test(fullText)) {
-    extract.performance.sport = "bike";
-  } else if (/triathlon|tri|ironman/i.test(fullText)) {
-    extract.performance.sport = "tri";
-  } else {
-    extract.performance.sport = "run"; // Default for Cosmed
-  }
+  // Mika reports are typically running-focused
+  extract.performance.sport = "run";
   
-  // VO2max - multiple formats (ml/kg/min AND L/min)
-  extract.performance.vo2max_ml_kg_min = extractFromSummaryFirst(fullText, textByPage, [
-    /VO2\s*max[:\s]*(\d{2}(?:[,.]\d{1,2})?)\s*(?:ml\/(?:kg\/)?min|mL\/kg\/min|ml\/min\/kg)/i,
-    /VO2\s*peak[:\s]*(\d{2}(?:[,.]\d{1,2})?)\s*(?:ml|mL)/i,
-    /(\d{2}(?:[,.]\d{1,2})?)\s*ml[\/\.]kg[\/\.]min/i,
-    /VO2\s*(?:max|peak)[:\s]*(\d{2}(?:[,.]\d)?)/i,
-  ], "vo2max_ml_kg_min", fieldSources);
+  // VO2max - multiple formats
+  extract.performance.vo2max_ml_kg_min = 
+    findValueNearLabel(fullText, /VO2\s*max[:\s]*/i) ||
+    extractNumber(fullText, /VO2\s*(?:max|peak)[:\s]*(\d{2}(?:[,.]\d)?)\s*(?:ml|mL)/i) ||
+    extractNumber(fullText, /(\d{2}(?:[,.]\d)?)\s*ml[\/\.]kg[\/\.]min/i);
   
-  extract.performance.vo2max_l_min = extractWithMultiplePatterns(fullText, [
-    /VO2\s*(?:max|peak)[:\s]*(\d(?:[,.]\d{1,2})?)\s*[lL]\/min/i,
-    /(\d(?:[,.]\d{1,2})?)\s*[lL]\/min/i,
-  ], "vo2max_l_min", fieldSources, textByPage);
+  extract.performance.vo2max_l_min = 
+    extractNumber(fullText, /VO2\s*(?:max|peak)[:\s]*(\d(?:[,.]\d{1,2})?)\s*[Ll]\/min/i);
   
-  // VMA (Vitesse Maximale Aérobie) - key for Mika running tests
-  extract.performance.vma_kmh = extractFromSummaryFirst(fullText, textByPage, [
-    /VMA(?:\s*absolue)?[:\s]*(\d{1,2}(?:[,.]\d{1,2})?)\s*(?:km\/h|km)?/i,
-    /Vitesse\s*maximale\s*(?:aérobie)?[:\s]*(\d{1,2}(?:[,.]\d)?)\s*km/i,
-    /vVO2max[:\s]*(\d{1,2}(?:[,.]\d)?)\s*km/i,
-    /Peak\s*speed[:\s]*(\d{1,2}(?:[,.]\d)?)\s*km/i,
-  ], "vma_kmh", fieldSources);
+  // VMA
+  extract.performance.vma_kmh = 
+    findValueNearLabel(fullText, /VMA(?:\s*absolue)?[:\s]*/i) ||
+    extractNumber(fullText, /VMA(?:\s*absolue)?[:\s]*(\d{1,2}(?:[,.]\d)?)\s*km/i) ||
+    extractNumber(fullText, /Vitesse\s*maximale[:\s]*(\d{1,2}(?:[,.]\d)?)\s*km/i);
   
   if (extract.performance.vma_kmh) {
     extract.performance.vma_pace_sec_km = vmaToSecsPerKm(extract.performance.vma_kmh);
-    logDebug({ type: "info", field: "vma_pace", message: `Calculated pace: ${extract.performance.vma_pace_sec_km}s/km` });
   }
   
-  // PMA (if bike test)
-  if (extract.performance.sport === "bike" || extract.performance.sport === "tri") {
-    extract.performance.pma_w = extractWithMultiplePatterns(fullText, [
-      /PMA[:\s]*(\d{2,3})\s*(?:W|watts?)(?!\s*\/\s*kg)/i,
-      /(?:MAP|Max\s*Aerobic\s*Power)[:\s]*(\d{2,3})\s*W/i,
-    ], "pma_w", fieldSources, textByPage);
-    
-    extract.performance.pmax_w = extractWithMultiplePatterns(fullText, [
-      /Pmax[:\s]*(\d{3,4})\s*(?:W|watts?)/i,
-      /Peak\s*power[:\s]*(\d{3,4})\s*W/i,
-    ], "pmax_w", fieldSources, textByPage);
-    
-    extract.performance.ftp_w = extractWithMultiplePatterns(fullText, [
-      /FTP[:\s]*(\d{2,3})\s*(?:W|watts?)/i,
-    ], "ftp_w", fieldSources, textByPage);
+  // --- THRESHOLDS ---
+  // Seuil 1 / LT1
+  const sl1VitMatch = fullText.match(/(?:Seuil\s*1|SL1|LT1|VT1)[:\s]*(?:.*?)?(\d{1,2}(?:[,.]\d)?)\s*km/i);
+  const sl1HrMatch = fullText.match(/(?:Seuil\s*1|SL1|LT1|VT1)[:\s]*(?:.*?)?(\d{2,3})\s*(?:bpm|FC)/i);
+  if (sl1VitMatch || sl1HrMatch) {
+    extract.thresholds.lt1 = {
+      hr: sl1HrMatch ? parseInt(sl1HrMatch[1]) : null,
+      speed_kmh: sl1VitMatch ? parseFloat(sl1VitMatch[1].replace(",", ".")) : null,
+      power_w: null,
+      lactate: null,
+    };
   }
   
-  // --- THRESHOLDS (Running-focused: VT1, VT2, OBLA) ---
-  // VT1 / Seuil ventilatoire 1 / LT1
-  extract.thresholds.lt1 = extractRunningThreshold(fullText, textByPage, [
-    "VT1", "SV1", "Seuil\\s*ventilatoire\\s*1", "Seuil\\s*1", "SL1", "LT1", "AT"
-  ], fieldSources);
-  
-  // VT2 / Seuil ventilatoire 2 / LT2
-  extract.thresholds.lt2 = extractRunningThreshold(fullText, textByPage, [
-    "VT2", "SV2", "Seuil\\s*ventilatoire\\s*2", "Seuil\\s*2", "SL2", "LT2", "RCP"
-  ], fieldSources);
-  
-  // OBLA (4 mmol threshold) - key for Mika reports
-  extract.thresholds.obla = extractRunningThreshold(fullText, textByPage, [
-    "OBLA", "4\\s*mmol", "Seuil\\s*lactique", "MLSS"
-  ], fieldSources);
-  
-  // Set lactate value for OBLA if not found
-  if (extract.thresholds.obla && !extract.thresholds.obla.lactate) {
-    extract.thresholds.obla.lactate = 4.0;
+  // OBLA (4 mmol threshold - key for Mika reports)
+  const oblaVitMatch = fullText.match(/OBLA[:\s]*(?:.*?)?(\d{1,2}(?:[,.]\d)?)\s*km/i);
+  const oblaHrMatch = fullText.match(/OBLA[:\s]*(?:.*?)?(\d{2,3})\s*(?:bpm|FC)/i);
+  const oblaLacMatch = fullText.match(/OBLA[:\s]*(?:.*?)?(\d(?:[,.]\d)?)\s*mmol/i);
+  if (oblaVitMatch || oblaHrMatch) {
+    extract.thresholds.obla = {
+      hr: oblaHrMatch ? parseInt(oblaHrMatch[1]) : null,
+      speed_kmh: oblaVitMatch ? parseFloat(oblaVitMatch[1].replace(",", ".")) : null,
+      power_w: null,
+      lactate: oblaLacMatch ? parseFloat(oblaLacMatch[1].replace(",", ".")) : 4.0,
+    };
   }
   
-  // --- RUNNING ECONOMY (key for Mika) ---
-  extract.economy.running_cost_ml_kg_km = extractWithMultiplePatterns(fullText, [
-    /[eé]conomie\s*(?:de\s*)?course[:\s]*(\d{2,3}(?:[,.]\d{1,2})?)/i,
-    /running\s*economy[:\s]*(\d{2,3}(?:[,.]\d)?)/i,
-    /RE[:\s]*(\d{2,3}(?:[,.]\d)?)\s*(?:ml|mL)/i,
-    /(\d{2,3}(?:[,.]\d)?)\s*ml[\/\.]kg[\/\.]km/i,
-    /Coût\s*(?:énergétique|O2)[:\s]*(\d{2,3}(?:[,.]\d)?)/i,
-  ], null, fieldSources, textByPage);
+  // LT2 / Seuil 2
+  const sl2VitMatch = fullText.match(/(?:Seuil\s*2|SL2|LT2|VT2)[:\s]*(?:.*?)?(\d{1,2}(?:[,.]\d)?)\s*km/i);
+  const sl2HrMatch = fullText.match(/(?:Seuil\s*2|SL2|LT2|VT2)[:\s]*(?:.*?)?(\d{2,3})\s*(?:bpm|FC)/i);
+  if (sl2VitMatch || sl2HrMatch) {
+    extract.thresholds.lt2 = {
+      hr: sl2HrMatch ? parseInt(sl2HrMatch[1]) : null,
+      speed_kmh: sl2VitMatch ? parseFloat(sl2VitMatch[1].replace(",", ".")) : null,
+      power_w: null,
+      lactate: null,
+    };
+  }
   
-  if (extract.economy.running_cost_ml_kg_km) {
-    logDebug({ type: "match", field: "running_economy", message: "Found running economy", value: extract.economy.running_cost_ml_kg_km });
+  // --- RUNNING ECONOMY ---
+  const economyMatch = fullText.match(/[eé]conomie\s*(?:de\s*)?course[:\s]*(\d{2,3}(?:[,.]\d)?)/i) ||
+    fullText.match(/running\s*economy[:\s]*(\d{2,3}(?:[,.]\d)?)/i) ||
+    fullText.match(/(\d{2,3}(?:[,.]\d)?)\s*ml[\/\.]kg[\/\.]km/i);
+  
+  if (economyMatch) {
+    extract.economy.running_cost_ml_kg_km = parseFloat(economyMatch[1].replace(",", "."));
   }
   
   // --- VLamax (if explicitly mentioned) ---
-  const vlamaxPatterns = [
-    /VLamax[:\s]*(\d(?:[,.]\d{1,2})?)/i,
-    /Glycolytic\s*capacity[:\s]*(\d(?:[,.]\d{1,2})?)/i,
-  ];
-  for (const pattern of vlamaxPatterns) {
-    const match = fullText.match(pattern);
-    if (match) {
-      extract.vlamax.value = normalizeNumber(match[1]);
-      extract.vlamax.source = "lab";
-      logDebug({ type: "match", field: "vlamax", message: "Found VLamax", value: extract.vlamax.value });
-      break;
-    }
+  const vlamaxMatch = fullText.match(/VLamax[:\s]*(\d(?:[,.]\d{1,2})?)/i);
+  if (vlamaxMatch) {
+    extract.vlamax.value = parseFloat(vlamaxMatch[1].replace(",", "."));
+    extract.vlamax.source = "lab";
   }
   
-  // --- LACTATE MAX ---
-  extract.lactate.lactate_max = extractWithMultiplePatterns(fullText, [
-    /Lactate\s*max[:\s]*(\d{1,2}(?:[,.]\d{1,2})?)\s*(?:mmol)?/i,
-    /La\s*max[:\s]*(\d{1,2}(?:[,.]\d{1,2})?)/i,
-    /Lactat[ée]mie\s*max(?:imale)?[:\s]*(\d{1,2}(?:[,.]\d)?)/i,
-    /Peak\s*lactate[:\s]*(\d{1,2}(?:[,.]\d)?)/i,
-    /\[La\]\s*max[:\s]*(\d{1,2}(?:[,.]\d)?)/i,
-  ], "lactate_max", fieldSources, textByPage);
-  
-  // --- VENTILATORY DATA (Cosmed specific) ---
-  const veMax = extractWithMultiplePatterns(fullText, [
-    /VE\s*max[:\s]*(\d{2,3}(?:[,.]\d)?)\s*(?:L\/min|l\/min)?/i,
-    /Ventilation\s*max[:\s]*(\d{2,3}(?:[,.]\d)?)/i,
-  ], null, fieldSources, textByPage);
-  
-  const rfMax = extractWithMultiplePatterns(fullText, [
-    /(?:RF|RR|Breathing\s*rate)\s*max[:\s]*(\d{2,3})/i,
-    /Fréquence\s*respiratoire\s*max[:\s]*(\d{2,3})/i,
-  ], null, fieldSources, textByPage);
-  
-  const rerMax = extractWithMultiplePatterns(fullText, [
-    /RER\s*max[:\s]*(\d(?:[,.]\d{1,2})?)/i,
-    /QR\s*max[:\s]*(\d(?:[,.]\d{1,2})?)/i,
-    /Quotient\s*respiratoire[:\s]*(\d(?:[,.]\d{1,2})?)/i,
-  ], null, fieldSources, textByPage);
-  
-  // Add ventilatory data to notes
-  if (veMax) extract.notes.push(`VE max: ${veMax} L/min`);
-  if (rfMax) extract.notes.push(`RF max: ${rfMax}/min`);
-  if (rerMax) extract.notes.push(`RER max: ${rerMax}`);
-  
-  // --- TIME TO EXHAUSTION (test duration) ---
-  const tteMatch = fullText.match(/(?:Durée|Time|TTE)[:\s]*(\d{1,2})[:\s]?(\d{2})\s*(?:min|:)/i);
-  if (tteMatch) {
-    const minutes = parseInt(tteMatch[1]) + parseInt(tteMatch[2]) / 60;
-    extract.notes.push(`Durée test: ${tteMatch[1]}:${tteMatch[2]}`);
-    logDebug({ type: "info", field: "test_duration", message: `Test duration: ${minutes.toFixed(1)} min` });
-  }
+  // --- LACTATE ---
+  extract.lactate.lactate_max = 
+    findValueNearLabel(fullText, /(?:Lactate\s*max|La\s*max|Lactatémie\s*max)[:\s]*/i) ||
+    extractNumber(fullText, /(?:Lactate|La(?:ctat[ée]mie)?)\s*max[:\s]*(\d{1,2}(?:[,.]\d)?)/i);
   
   // --- NOTES ---
   extract.notes.push("Rapport type Mika / Cosmed Quark");
@@ -296,198 +170,23 @@ export function parseMikaReport(textByPage: string[]): LabExtract {
     extract.notes.push(`Date du test: ${extract.meta.reportDate}`);
   }
   
-  // --- CONFIDENCE CALCULATION ---
+  // Calculate confidence
   let fieldsFound = 0;
-  const totalFields = 14;
+  let totalFields = 10;
   
   if (extract.anthropo.weight_kg) fieldsFound++;
   if (extract.anthropo.height_cm) fieldsFound++;
   if (extract.cardio.hr_max) fieldsFound++;
-  if (extract.cardio.hr_rest) fieldsFound++;
   if (extract.performance.vo2max_ml_kg_min) fieldsFound++;
-  if (extract.performance.vo2max_l_min) fieldsFound++;
   if (extract.performance.vma_kmh) fieldsFound++;
-  if (extract.thresholds.lt1) fieldsFound++;
-  if (extract.thresholds.lt2 || extract.thresholds.obla) fieldsFound++;
+  if (extract.thresholds.lt1 || extract.thresholds.obla) fieldsFound++;
   if (extract.meta.reportDate) fieldsFound++;
   if (extract.economy.running_cost_ml_kg_km) fieldsFound++;
   if (extract.lactate.lactate_max) fieldsFound++;
   if (extract.anthropo.fat_pct) fieldsFound++;
-  if (veMax || rerMax) fieldsFound++;
   
   extract.meta.sourceConfidence = fieldsFound / totalFields;
-  extract.meta.discipline = extract.performance.sport;
-  
-  logDebug({ type: "info", field: "confidence", message: `Fields found: ${fieldsFound}/${totalFields}`, value: extract.meta.sourceConfidence });
+  extract.meta.discipline = "run";
   
   return extract;
-}
-
-// =============================================
-// Helper Functions
-// =============================================
-
-/**
- * Extract value trying multiple patterns with validation
- */
-function extractWithMultiplePatterns(
-  text: string,
-  patterns: RegExp[],
-  rangeKey: string | null,
-  fieldSources: Record<string, number>,
-  textByPage: string[]
-): number | null {
-  for (const pattern of patterns) {
-    const match = text.match(pattern);
-    if (match && match[1]) {
-      const value = normalizeNumber(match[1]);
-      if (value != null) {
-        // Find which page contains this match
-        const pageNum = findPageWithMatch(textByPage, pattern);
-        if (pageNum != null && rangeKey) fieldSources[rangeKey] = pageNum;
-        
-        // Validate range if applicable
-        if (rangeKey && VALUE_RANGES[rangeKey]) {
-          if (!isInRange(value, rangeKey)) {
-            logDebug({ type: "warning", field: rangeKey, message: `Value out of range`, value, pattern: pattern.source });
-            continue; // Try next pattern
-          }
-        }
-        
-        logDebug({ type: "match", field: rangeKey || "unknown", message: "Extracted value", value, pattern: pattern.source });
-        return value;
-      }
-    }
-  }
-  return null;
-}
-
-/**
- * Extract from "Résumé" or summary section first, then fallback to full text
- */
-function extractFromSummaryFirst(
-  fullText: string,
-  textByPage: string[],
-  patterns: RegExp[],
-  rangeKey: string,
-  fieldSources: Record<string, number>
-): number | null {
-  // Try to find summary section (common in Cosmed reports)
-  const summaryPatterns = [
-    /Résumé\s*(?:des\s*)?résultats?[:\s]*([\s\S]*?)(?:Graphiques?|Courbes?|Protocol|$)/i,
-    /Summary[:\s]*([\s\S]*?)(?:Graphs?|Curves?|Protocol|$)/i,
-    /Résultats\s*principaux[:\s]*([\s\S]*?)(?:Détails?|Protocol|$)/i,
-    /Peak\s*Values[:\s]*([\s\S]*?)(?:Time|Protocol|$)/i,
-  ];
-  
-  for (const summaryPattern of summaryPatterns) {
-    const summaryMatch = fullText.match(summaryPattern);
-    if (summaryMatch) {
-      const summaryText = summaryMatch[1];
-      const result = extractWithMultiplePatterns(summaryText, patterns, rangeKey, fieldSources, textByPage);
-      if (result != null) {
-        logDebug({ type: "info", field: rangeKey, message: "Found in summary section" });
-        return result;
-      }
-    }
-  }
-  
-  // Fallback to full text
-  return extractWithMultiplePatterns(fullText, patterns, rangeKey, fieldSources, textByPage);
-}
-
-/**
- * Find which page contains a pattern match
- */
-function findPageWithMatch(textByPage: string[], pattern: RegExp): number | null {
-  for (let i = 0; i < textByPage.length; i++) {
-    if (pattern.test(textByPage[i])) {
-      return i;
-    }
-  }
-  return null;
-}
-
-/**
- * Extract running threshold data (speed-focused for Mika)
- */
-function extractRunningThreshold(
-  fullText: string,
-  textByPage: string[],
-  labelPatterns: string[],
-  fieldSources: Record<string, number>
-): { hr: number | null; speed_kmh: number | null; power_w: number | null; lactate: number | null } | null {
-  const result = { hr: null as number | null, speed_kmh: null as number | null, power_w: null as number | null, lactate: null as number | null };
-  let found = false;
-  
-  for (const label of labelPatterns) {
-    // Look for structured line with speed, HR, lactate
-    const linePattern = new RegExp(`${label}[:\\s]*([^\\n]{10,150})`, "i");
-    const lineMatch = fullText.match(linePattern);
-    
-    if (lineMatch) {
-      const line = lineMatch[1];
-      
-      // Extract Speed (km/h) - primary for running
-      const speedPatterns = [
-        /(\d{1,2}(?:[,.]\d{1,2})?)\s*(?:km\/h|km)/i,
-        /vitesse[:\s]*(\d{1,2}(?:[,.]\d)?)/i,
-        /speed[:\s]*(\d{1,2}(?:[,.]\d)?)/i,
-      ];
-      for (const sp of speedPatterns) {
-        const speedMatch = line.match(sp);
-        if (speedMatch) {
-          const speed = normalizeNumber(speedMatch[1]);
-          if (speed && speed >= 5 && speed <= 25) {
-            result.speed_kmh = speed;
-            found = true;
-            break;
-          }
-        }
-      }
-      
-      // Extract HR
-      const hrMatch = line.match(/(\d{2,3})\s*(?:bpm|FC)/i);
-      if (hrMatch) {
-        const hr = parseInt(hrMatch[1]);
-        if (hr >= 80 && hr <= 210) {
-          result.hr = hr;
-          found = true;
-        }
-      }
-      
-      // Extract Power (for bike/tri tests)
-      const powerMatch = line.match(/(\d{2,3})\s*(?:W|watts?)/i);
-      if (powerMatch) {
-        const power = parseInt(powerMatch[1]);
-        if (power >= 50 && power <= 500) {
-          result.power_w = power;
-          found = true;
-        }
-      }
-      
-      // Extract Lactate
-      const lactateMatch = line.match(/(\d{1,2}(?:[,.]\d{1,2})?)\s*(?:mmol|mM)/i);
-      if (lactateMatch) {
-        const lactate = normalizeNumber(lactateMatch[1]);
-        if (lactate && lactate >= 0.5 && lactate <= 20) {
-          result.lactate = lactate;
-          found = true;
-        }
-      }
-      
-      // Extract % VO2max if available
-      const vo2pctMatch = line.match(/(\d{2,3})\s*%\s*(?:VO2|vo2)/i);
-      if (vo2pctMatch) {
-        logDebug({ type: "info", field: `threshold_${label}`, message: `At ${vo2pctMatch[1]}% VO2max` });
-      }
-      
-      if (found) {
-        logDebug({ type: "match", field: `threshold_${label}`, message: `Found threshold data`, value: JSON.stringify(result) });
-        break;
-      }
-    }
-  }
-  
-  return found ? result : null;
 }
