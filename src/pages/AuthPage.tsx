@@ -68,46 +68,46 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-3 sm:p-4 md:p-6 safe-area-inset-top safe-area-inset-bottom">
       {/* Background effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/4 w-48 sm:w-72 md:w-96 h-48 sm:h-72 md:h-96 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-48 sm:w-72 md:w-96 h-48 sm:h-72 md:h-96 bg-accent/5 rounded-full blur-3xl" />
       </div>
 
-      <div className="relative z-10 w-full max-w-md">
+      <div className="relative z-10 w-full max-w-[95vw] sm:max-w-md">
         {/* Logo */}
-        <div className="flex flex-col items-center mb-8">
+        <div className="flex flex-col items-center mb-6 sm:mb-8">
           <img 
             src={logo2fc} 
             alt="Two For Coaching Lab" 
-            className="h-36 w-auto mb-4"
+            className="h-24 sm:h-32 md:h-36 w-auto mb-3 sm:mb-4"
           />
           <div className="flex items-center gap-2 text-primary">
-            <Dumbbell className="h-6 w-6" />
-            <span className="text-xl font-bold">Two For Coaching Lab</span>
+            <Dumbbell className="h-5 w-5 sm:h-6 sm:w-6" />
+            <span className="text-lg sm:text-xl font-bold">Two For Coaching Lab</span>
           </div>
-          <p className="text-muted-foreground text-sm mt-2">Staff-grade Performance Intelligence</p>
+          <p className="text-muted-foreground text-xs sm:text-sm mt-1.5 sm:mt-2 text-center">Staff-grade Performance Intelligence</p>
         </div>
 
         <Card className="border-border/50 shadow-xl">
-          <CardHeader className="text-center">
-            <CardTitle>Bienvenue Coach</CardTitle>
-            <CardDescription>
+          <CardHeader className="text-center p-4 sm:p-6">
+            <CardTitle className="text-lg sm:text-xl">Bienvenue Coach</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
               Connectez-vous pour accéder à vos athlètes
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
             <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="login">Connexion</TabsTrigger>
-                <TabsTrigger value="signup">Inscription</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 mb-4 sm:mb-6 h-10 sm:h-11">
+                <TabsTrigger value="login" className="text-sm sm:text-base touch-target-sm">Connexion</TabsTrigger>
+                <TabsTrigger value="signup" className="text-sm sm:text-base touch-target-sm">Inscription</TabsTrigger>
               </TabsList>
 
               <TabsContent value="login">
-                <form onSubmit={handleSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
+                <form onSubmit={handleSignIn} className="space-y-3 sm:space-y-4">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="login-email" className="text-sm">Email</Label>
                     <Input
                       id="login-email"
                       type="email"
@@ -115,10 +115,11 @@ const AuthPage = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       disabled={loading}
+                      className="h-11 sm:h-10"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="login-password">Mot de passe</Label>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="login-password" className="text-sm">Mot de passe</Label>
                     <Input
                       id="login-password"
                       type="password"
@@ -126,9 +127,10 @@ const AuthPage = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       disabled={loading}
+                      className="h-11 sm:h-10"
                     />
                   </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
+                  <Button type="submit" className="w-full h-11 sm:h-10 touch-target" disabled={loading}>
                     {loading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -142,9 +144,9 @@ const AuthPage = () => {
               </TabsContent>
 
               <TabsContent value="signup">
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
+                <form onSubmit={handleSignUp} className="space-y-3 sm:space-y-4">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="signup-email" className="text-sm">Email</Label>
                     <Input
                       id="signup-email"
                       type="email"
@@ -152,10 +154,11 @@ const AuthPage = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       disabled={loading}
+                      className="h-11 sm:h-10"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Mot de passe</Label>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="signup-password" className="text-sm">Mot de passe</Label>
                     <Input
                       id="signup-password"
                       type="password"
@@ -163,9 +166,10 @@ const AuthPage = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       disabled={loading}
+                      className="h-11 sm:h-10"
                     />
                   </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
+                  <Button type="submit" className="w-full h-11 sm:h-10 touch-target" disabled={loading}>
                     {loading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -181,7 +185,7 @@ const AuthPage = () => {
           </CardContent>
         </Card>
 
-        <p className="text-center text-xs text-muted-foreground mt-6">
+        <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-4 sm:mt-6 px-4">
           Two For Coaching Lab • Analyse physiologique & décision coaching
         </p>
       </div>
