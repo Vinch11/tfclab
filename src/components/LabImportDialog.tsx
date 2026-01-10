@@ -2,7 +2,7 @@
 // Lab Import Dialog - Import PDF Lab Reports
 // =============================================
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ import { parseLabReport, ReportType } from "@/lib/labImport/parsers";
 import { LabExtract, ExtractedField } from "@/lib/labImport/types";
 import { extractToValidationFields, applyFieldEdits, mapExtractToSnapshot, compareWithPrevious } from "@/lib/labImport/snapshotMapper";
 import { DbSnapshot, useCloudData } from "@/hooks/useCloudData";
+import { usePersistedDialogState } from "@/hooks/usePersistedFormState";
 
 interface LabImportDialogProps {
   athleteId: string;
@@ -41,7 +42,8 @@ export function LabImportDialog({
 }: LabImportDialogProps) {
   const { addSnapshot, addTest } = useCloudData();
   
-  const [isOpen, setIsOpen] = useState(false);
+  // Use persisted dialog state to survive page minimize/restore
+  const [isOpen, setIsOpen] = usePersistedDialogState(`lab-import-${athleteId}`, false);
   const [step, setStep] = useState<ImportStep>("upload");
   const [reportType, setReportType] = useState<ReportType>("auto");
   const [createLinkedTest, setCreateLinkedTest] = useState(true);
@@ -57,6 +59,47 @@ export function LabImportDialog({
   
   const [createdSnapshot, setCreatedSnapshot] = useState<DbSnapshot | null>(null);
 
+  // Persist validation fields in sessionStorage to survive page minimize
+  const STORAGE_KEY = `lab-import-fields-${athleteId}`;
+  
+  // Save fields and edited values to sessionStorage when they change
+  useEffect(() => {
+    if (step === "validation" && fields.length > 0) {
+      try {
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+          fields,
+          editedValues,
+          parserUsed,
+          usedOcr,
+          extract: extract ? { meta: extract.meta } : null // Save minimal extract info
+        }));
+      } catch (e) {
+        console.warn("Failed to persist lab import state:", e);
+      }
+    }
+  }, [fields, editedValues, step, parserUsed, usedOcr, extract, STORAGE_KEY]);
+
+  // Restore state when dialog opens and we were in validation step
+  useEffect(() => {
+    if (isOpen && step === "upload") {
+      try {
+        const stored = sessionStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const data = JSON.parse(stored);
+          if (data.fields && data.fields.length > 0) {
+            setFields(data.fields);
+            setEditedValues(data.editedValues || {});
+            setParserUsed(data.parserUsed || null);
+            setUsedOcr(data.usedOcr || false);
+            setStep("validation");
+          }
+        }
+      } catch (e) {
+        console.warn("Failed to restore lab import state:", e);
+      }
+    }
+  }, [isOpen, STORAGE_KEY]);
+
   const resetState = () => {
     setStep("upload");
     setProgress(0);
@@ -67,6 +110,12 @@ export function LabImportDialog({
     setParserUsed(null);
     setUsedOcr(false);
     setCreatedSnapshot(null);
+    // Clear persisted state
+    try {
+      sessionStorage.removeItem(STORAGE_KEY);
+    } catch (e) {
+      console.warn("Failed to clear lab import state:", e);
+    }
   };
 
   const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
