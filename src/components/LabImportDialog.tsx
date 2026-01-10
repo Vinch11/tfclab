@@ -66,8 +66,9 @@ export function LabImportDialog({
 
   // Persist validation fields in sessionStorage to survive page minimize
   const STORAGE_KEY = `lab-import-fields-${athleteId}`;
+  const PDF_PAGES_KEY = `lab-import-pdf-${athleteId}`;
   
-  // Save fields and edited values to sessionStorage when they change
+  // Save fields, edited values, and FULL extract to sessionStorage when they change
   useEffect(() => {
     if (step === "validation" && fields.length > 0) {
       try {
@@ -76,13 +77,25 @@ export function LabImportDialog({
           editedValues,
           parserUsed,
           usedOcr,
-          extract: extract ? { meta: extract.meta } : null // Save minimal extract info
+          extract, // Save FULL extract object for snapshot creation
         }));
       } catch (e) {
         console.warn("Failed to persist lab import state:", e);
       }
     }
   }, [fields, editedValues, step, parserUsed, usedOcr, extract, STORAGE_KEY]);
+
+  // Persist PDF pages separately (can be large)
+  useEffect(() => {
+    if (step === "validation" && pdfPages.length > 0) {
+      try {
+        sessionStorage.setItem(PDF_PAGES_KEY, JSON.stringify({ pdfPages, selectedPage }));
+      } catch (e) {
+        // PDF pages might be too large for sessionStorage, that's OK
+        console.warn("Failed to persist PDF pages (may be too large):", e);
+      }
+    }
+  }, [pdfPages, selectedPage, step, PDF_PAGES_KEY]);
 
   // Restore state when dialog opens and we were in validation step
   useEffect(() => {
@@ -96,14 +109,28 @@ export function LabImportDialog({
             setEditedValues(data.editedValues || {});
             setParserUsed(data.parserUsed || null);
             setUsedOcr(data.usedOcr || false);
+            // Restore FULL extract object
+            if (data.extract) {
+              setExtract(data.extract);
+            }
             setStep("validation");
+          }
+        }
+        
+        // Also try to restore PDF pages
+        const pdfStored = sessionStorage.getItem(PDF_PAGES_KEY);
+        if (pdfStored) {
+          const pdfData = JSON.parse(pdfStored);
+          if (pdfData.pdfPages) {
+            setPdfPages(pdfData.pdfPages);
+            setSelectedPage(pdfData.selectedPage || 0);
           }
         }
       } catch (e) {
         console.warn("Failed to restore lab import state:", e);
       }
     }
-  }, [isOpen, STORAGE_KEY]);
+  }, [isOpen, STORAGE_KEY, PDF_PAGES_KEY]);
 
   const resetState = () => {
     setStep("upload");
@@ -121,6 +148,7 @@ export function LabImportDialog({
     // Clear persisted state
     try {
       sessionStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(PDF_PAGES_KEY);
     } catch (e) {
       console.warn("Failed to clear lab import state:", e);
     }
