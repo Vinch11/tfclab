@@ -5,6 +5,7 @@
 import { LabExtract, ExtractedField, SnapshotDelta } from "./types";
 import { DbSnapshot } from "@/hooks/useCloudData";
 import { deriveMetabolicProfile } from "@/types/snapshot";
+import { getValueStatus, VALUE_RANGES } from "./normalize";
 
 /**
  * Map LabExtract to DbSnapshot fields
@@ -29,17 +30,26 @@ export function mapExtractToSnapshot(
     ...extract.notes,
   ];
   
-  if (extract.thresholds.lt1?.speed_kmh) {
-    notes.push(`SL1: ${extract.thresholds.lt1.speed_kmh} km/h`);
+  // Add threshold info to notes
+  if (extract.thresholds.lt1) {
+    const lt1Parts = [];
+    if (extract.thresholds.lt1.power_w) lt1Parts.push(`${extract.thresholds.lt1.power_w}W`);
+    if (extract.thresholds.lt1.hr) lt1Parts.push(`${extract.thresholds.lt1.hr}bpm`);
+    if (extract.thresholds.lt1.lactate) lt1Parts.push(`${extract.thresholds.lt1.lactate}mmol`);
+    if (lt1Parts.length > 0) notes.push(`SL1: ${lt1Parts.join(", ")}`);
   }
-  if (extract.thresholds.lt2?.speed_kmh) {
-    notes.push(`SL2: ${extract.thresholds.lt2.speed_kmh} km/h`);
-  }
-  if (extract.thresholds.obla?.speed_kmh) {
-    notes.push(`OBLA: ${extract.thresholds.obla.speed_kmh} km/h`);
+  if (extract.thresholds.lt2) {
+    const lt2Parts = [];
+    if (extract.thresholds.lt2.power_w) lt2Parts.push(`${extract.thresholds.lt2.power_w}W`);
+    if (extract.thresholds.lt2.hr) lt2Parts.push(`${extract.thresholds.lt2.hr}bpm`);
+    if (extract.thresholds.lt2.lactate) lt2Parts.push(`${extract.thresholds.lt2.lactate}mmol`);
+    if (lt2Parts.length > 0) notes.push(`SL2: ${lt2Parts.join(", ")}`);
   }
   if (extract.economy.running_cost_ml_kg_km) {
     notes.push(`Économie: ${extract.economy.running_cost_ml_kg_km} ml/kg/km`);
+  }
+  if (extract.glycemia.notes) {
+    notes.push(extract.glycemia.notes);
   }
   
   // Calculate metabolic profile if we have VO2max and VLamax
@@ -93,156 +103,100 @@ export function mapExtractToSnapshot(
 export function extractToValidationFields(extract: LabExtract): ExtractedField[] {
   const fields: ExtractedField[] = [];
   
-  // Meta
-  fields.push({
-    key: "reportDate",
-    label: "Date du test",
-    value: extract.meta.reportDate,
-    pageSource: null,
-    status: extract.meta.reportDate ? "ok" : "not_found",
-    editable: true,
-  });
+  // Helper to add field with automatic range validation
+  const addField = (
+    key: string, 
+    label: string, 
+    value: number | string | null,
+    rangeKey?: string
+  ) => {
+    let status: "ok" | "verify" | "not_found" = "not_found";
+    if (value != null) {
+      if (rangeKey && typeof value === "number") {
+        status = getValueStatus(value, rangeKey);
+      } else {
+        status = "ok";
+      }
+    }
+    
+    fields.push({
+      key,
+      label,
+      value,
+      pageSource: null,
+      status,
+      editable: true,
+    });
+  };
   
-  fields.push({
-    key: "athleteName",
-    label: "Nom de l'athlète",
-    value: extract.meta.athleteName,
-    pageSource: null,
-    status: extract.meta.athleteName ? "ok" : "not_found",
-    editable: true,
-  });
+  // Meta
+  addField("reportDate", "Date du test", extract.meta.reportDate);
+  addField("athleteName", "Nom de l'athlète", extract.meta.athleteName);
   
   // Anthropo
-  fields.push({
-    key: "weight_kg",
-    label: "Poids (kg)",
-    value: extract.anthropo.weight_kg,
-    pageSource: null,
-    status: extract.anthropo.weight_kg ? "ok" : "not_found",
-    editable: true,
-  });
-  
-  fields.push({
-    key: "height_cm",
-    label: "Taille (cm)",
-    value: extract.anthropo.height_cm,
-    pageSource: null,
-    status: extract.anthropo.height_cm ? "ok" : "not_found",
-    editable: true,
-  });
-  
-  fields.push({
-    key: "fat_pct",
-    label: "Masse grasse (%)",
-    value: extract.anthropo.fat_pct,
-    pageSource: null,
-    status: extract.anthropo.fat_pct ? "ok" : "not_found",
-    editable: true,
-  });
+  addField("weight_kg", "Poids (kg)", extract.anthropo.weight_kg, "weight_kg");
+  addField("height_cm", "Taille (cm)", extract.anthropo.height_cm, "height_cm");
+  addField("fat_pct", "Masse grasse (%)", extract.anthropo.fat_pct, "fat_pct");
   
   // Cardio
-  fields.push({
-    key: "hr_max",
-    label: "FC max (bpm)",
-    value: extract.cardio.hr_max,
-    pageSource: null,
-    status: extract.cardio.hr_max ? "ok" : "not_found",
-    editable: true,
-  });
+  addField("hr_max", "FC max (bpm)", extract.cardio.hr_max, "hr_max");
+  addField("hr_rest", "FC repos (bpm)", extract.cardio.hr_rest, "hr_rest");
+  addField("hrv", "HRV", extract.cardio.hrv, "hrv");
+  addField("spo2", "SpO2 (%)", extract.cardio.spo2, "spo2");
   
-  fields.push({
-    key: "hr_rest",
-    label: "FC repos (bpm)",
-    value: extract.cardio.hr_rest,
-    pageSource: null,
-    status: extract.cardio.hr_rest ? "ok" : "not_found",
-    editable: true,
-  });
-  
-  fields.push({
-    key: "hrv",
-    label: "HRV",
-    value: extract.cardio.hrv,
-    pageSource: null,
-    status: extract.cardio.hrv ? "ok" : "not_found",
-    editable: true,
-  });
-  
-  fields.push({
-    key: "spo2",
-    label: "SpO2 (%)",
-    value: extract.cardio.spo2,
-    pageSource: null,
-    status: extract.cardio.spo2 ? "ok" : "not_found",
-    editable: true,
-  });
+  // Blood pressure
+  if (extract.cardio.bp_sys || extract.cardio.bp_dia) {
+    addField("bp", "Tension artérielle", 
+      extract.cardio.bp_sys && extract.cardio.bp_dia 
+        ? `${extract.cardio.bp_sys}/${extract.cardio.bp_dia}` 
+        : null
+    );
+  }
   
   // Performance
-  fields.push({
-    key: "vo2max_ml_kg_min",
-    label: "VO2max (ml/kg/min)",
-    value: extract.performance.vo2max_ml_kg_min,
-    pageSource: null,
-    status: extract.performance.vo2max_ml_kg_min ? "ok" : "not_found",
-    editable: true,
-  });
+  addField("vo2max_ml_kg_min", "VO2max (ml/kg/min)", extract.performance.vo2max_ml_kg_min, "vo2max_ml_kg_min");
+  addField("vo2max_l_min", "VO2max (L/min)", extract.performance.vo2max_l_min, "vo2max_l_min");
+  addField("vma_kmh", "VMA (km/h)", extract.performance.vma_kmh, "vma_kmh");
+  addField("pma_w", "PMA (W)", extract.performance.pma_w, "pma_w");
+  addField("pmax_w", "Pmax (W)", extract.performance.pmax_w, "pmax_w");
+  addField("ftp_w", "FTP (W)", extract.performance.ftp_w, "ftp_w");
   
-  fields.push({
-    key: "vma_kmh",
-    label: "VMA (km/h)",
-    value: extract.performance.vma_kmh,
-    pageSource: null,
-    status: extract.performance.vma_kmh ? "ok" : "not_found",
-    editable: true,
-  });
+  // Thresholds LT1
+  if (extract.thresholds.lt1) {
+    const lt1 = extract.thresholds.lt1;
+    addField("lt1_power", "SL1 Puissance (W)", lt1.power_w, "stage_watts");
+    addField("lt1_hr", "SL1 FC (bpm)", lt1.hr, "stage_bpm");
+    addField("lt1_lactate", "SL1 Lactate (mmol)", lt1.lactate, "stage_lactate");
+  } else {
+    addField("lt1_power", "SL1 Puissance (W)", null);
+    addField("lt1_hr", "SL1 FC (bpm)", null);
+    addField("lt1_lactate", "SL1 Lactate (mmol)", null);
+  }
   
-  fields.push({
-    key: "ftp_w",
-    label: "FTP (W)",
-    value: extract.performance.ftp_w,
-    pageSource: null,
-    status: extract.performance.ftp_w ? "ok" : "not_found",
-    editable: true,
-  });
-  
-  fields.push({
-    key: "pmax_w",
-    label: "Pmax (W)",
-    value: extract.performance.pmax_w,
-    pageSource: null,
-    status: extract.performance.pmax_w ? "ok" : "not_found",
-    editable: true,
-  });
+  // Thresholds LT2
+  if (extract.thresholds.lt2) {
+    const lt2 = extract.thresholds.lt2;
+    addField("lt2_power", "SL2 Puissance (W)", lt2.power_w, "stage_watts");
+    addField("lt2_hr", "SL2 FC (bpm)", lt2.hr, "stage_bpm");
+    addField("lt2_lactate", "SL2 Lactate (mmol)", lt2.lactate, "stage_lactate");
+  } else {
+    addField("lt2_power", "SL2 Puissance (W)", null);
+    addField("lt2_hr", "SL2 FC (bpm)", null);
+    addField("lt2_lactate", "SL2 Lactate (mmol)", null);
+  }
   
   // VLamax
-  fields.push({
-    key: "vlamax",
-    label: "VLamax (mmol/L/s)",
-    value: extract.vlamax.value,
-    pageSource: null,
-    status: extract.vlamax.value ? "ok" : "not_found",
-    editable: true,
-  });
+  addField("vlamax", "VLamax (mmol/L/s)", extract.vlamax.value);
   
   // Lactate
-  fields.push({
-    key: "lactate_max",
-    label: "Lactate max (mmol/L)",
-    value: extract.lactate.lactate_max,
-    pageSource: null,
-    status: extract.lactate.lactate_max ? "ok" : "not_found",
-    editable: true,
-  });
+  addField("lactate_max", "Lactate max (mmol/L)", extract.lactate.lactate_max, "lactate_max");
+  
+  // Glycemia
+  addField("glycemia_min", "Glycémie min (mg/dL)", extract.glycemia.min, "glycemia");
+  addField("glycemia_max", "Glycémie max (mg/dL)", extract.glycemia.max, "glycemia");
   
   // Economy
-  fields.push({
-    key: "running_economy",
-    label: "Économie course (ml/kg/km)",
-    value: extract.economy.running_cost_ml_kg_km,
-    pageSource: null,
-    status: extract.economy.running_cost_ml_kg_km ? "ok" : "not_found",
-    editable: true,
-  });
+  addField("running_economy", "Économie course (ml/kg/km)", extract.economy.running_cost_ml_kg_km);
   
   // Mark fields as "verify" if OCR was used
   if (extract.raw.usedOcr) {
