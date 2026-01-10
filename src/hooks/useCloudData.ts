@@ -310,16 +310,16 @@ export function useCloudData() {
       return null;
     }
 
-    // Validate required fields
-    if (!snapshot.athlete_id) {
-      toast.error("Données invalides: athlete_id requis");
+    // Validate input data (and apply defaults like `source`)
+    const validation = validateOrNull(snapshotSchema, snapshot);
+    if (validation.error !== null) {
+      toast.error(`Données invalides: ${validation.error}`);
       return null;
     }
 
-    const insertPayload = {
-      ...snapshot,
+    const insertPayload: TablesInsert<"snapshots"> = {
+      ...(validation.data as any),
       coach_id: user.id,
-      athlete_id: snapshot.athlete_id,
     };
 
     const { data: inserted, error } = await supabase
@@ -328,12 +328,9 @@ export function useCloudData() {
       .select("*");
 
     if (error) {
-      if (import.meta.env.DEV) console.error("Add snapshot error:", error);
-      toast.error(
-        import.meta.env.DEV
-          ? `Erreur lors de l'ajout du snapshot: ${error.message}`
-          : "Erreur lors de l'ajout du snapshot"
-      );
+      // Log only error message (no user data)
+      console.error("Add snapshot error:", error.message);
+      toast.error(`Erreur lors de l'ajout du snapshot: ${error.message}`);
       return null;
     }
 
