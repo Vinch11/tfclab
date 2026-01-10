@@ -16,9 +16,10 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { FileUp, AlertTriangle, CheckCircle, XCircle, Loader2, FlaskConical, Eye, EyeOff, ChevronLeft, ChevronRight, Bug, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 
-import { extractTextFromPdf, getAllPagesAsImages } from "@/lib/labImport/pdfExtractor";
+import { getAllPagesAsImages } from "@/lib/labImport/pdfExtractor";
+import { extractLayoutFromPdf } from "@/lib/labImport/pdfLayoutExtractor";
 import { performOcr } from "@/lib/labImport/ocrProcessor";
-import { parseLabReport, ReportType } from "@/lib/labImport/parsers";
+import { parseWithLayout, parseLabReport, ReportType } from "@/lib/labImport/parsers";
 import { LabExtract, ExtractedField } from "@/lib/labImport/types";
 import { extractToValidationFields, applyFieldEdits, mapExtractToSnapshot, compareWithPrevious } from "@/lib/labImport/snapshotMapper";
 import { DbSnapshot, useCloudData } from "@/hooks/useCloudData";
@@ -156,21 +157,23 @@ export function LabImportDialog({
     setProgressText("Extraction du texte...");
 
     try {
-      // Step 1: Extract text
-      const pdfResult = await extractTextFromPdf(file);
-      setProgress(20);
+      // Step 1: Layout-aware extraction with coordinates
+      setProgressText("Extraction layout-aware...");
+      const layoutResult = await extractLayoutFromPdf(file);
+      setProgress(25);
 
       // Step 1.5: Generate PDF page previews in parallel
       setProgressText("Génération des aperçus...");
       const pageImages = await getAllPagesAsImages(file);
       setPdfPages(pageImages);
-      setProgress(30);
+      setProgress(35);
 
-      let textByPage = pdfResult.textByPage;
       let ocrUsed = false;
+      const textByPage = layoutResult.linesByPage.map(lines => lines.map(l => l.text).join("\n"));
 
-      // Step 2: Check if OCR is needed
-      if (pdfResult.isScanned) {
+      // Step 2: Check if OCR is needed (very little text extracted)
+      const totalChars = textByPage.join("").length;
+      if (totalChars < 200) {
         setProgressText("PDF scanné détecté - OCR en cours...");
         setProgress(40);
         
@@ -179,16 +182,38 @@ export function LabImportDialog({
           setProgressText(status);
         });
         
-        textByPage = ocrResult.textByPage;
         ocrUsed = true;
         setUsedOcr(true);
+        
+        // Fallback to legacy parser with OCR text
+        setProgress(85);
+        setProgressText("Analyse des données (OCR)...");
+        const result = parseLabReport(ocrResult.textByPage, reportType, ocrUsed);
+        
+        if (!result.success || !result.extract) {
+          toast.error(result.error || "Erreur d'analyse");
+          setStep("upload");
+          return;
+        }
+        
+        setExtract(result.extract);
+        setParserUsed(result.parserUsed);
+        if (debugMode) setDebugLogs(getDebugLogs());
+        const validationFields = extractToValidationFields(result.extract);
+        setFields(validationFields);
+        const initialEdits: Record<string, string> = {};
+        validationFields.forEach(f => { initialEdits[f.key] = f.value?.toString() || ""; });
+        setEditedValues(initialEdits);
+        setProgress(100);
+        setStep("validation");
+        return;
       }
 
       setProgress(85);
-      setProgressText("Analyse des données...");
+      setProgressText("Analyse des données (layout)...");
 
-      // Step 3: Parse
-      const result = parseLabReport(textByPage, reportType, ocrUsed);
+      // Step 3: Parse with layout-aware parser
+      const result = parseWithLayout(layoutResult, reportType, ocrUsed);
       
       if (!result.success || !result.extract) {
         toast.error(result.error || "Erreur d'analyse");
