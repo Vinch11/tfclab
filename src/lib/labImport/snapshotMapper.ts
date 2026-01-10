@@ -258,63 +258,83 @@ export function extractToValidationFields(extract: LabExtract): ExtractedField[]
 
 /**
  * Apply edited fields back to extract
+ * IMPORTANT: Deep clone nested objects to avoid mutation bugs
  */
 export function applyFieldEdits(
   extract: LabExtract,
   editedFields: Record<string, string | number | null>
 ): LabExtract {
-  const updated = { ...extract };
+  // Deep clone to avoid mutating original extract
+  const updated: LabExtract = {
+    ...extract,
+    meta: { ...extract.meta },
+    anthropo: { ...extract.anthropo },
+    cardio: { ...extract.cardio },
+    performance: { ...extract.performance },
+    vlamax: { ...extract.vlamax },
+    lactate: { ...extract.lactate },
+    thresholds: { ...extract.thresholds },
+    economy: { ...extract.economy },
+    notes: [...extract.notes],
+  };
+  
+  // Helper to handle null values correctly (null should stay null, not become 0)
+  const toNumberOrNull = (val: string | number | null): number | null => {
+    if (val === null || val === "") return null;
+    const num = Number(val);
+    return isNaN(num) ? null : num;
+  };
   
   if (editedFields.reportDate !== undefined) {
-    updated.meta.reportDate = editedFields.reportDate as string;
+    updated.meta.reportDate = editedFields.reportDate as string | null;
   }
   if (editedFields.athleteName !== undefined) {
-    updated.meta.athleteName = editedFields.athleteName as string;
+    updated.meta.athleteName = editedFields.athleteName as string | null;
   }
   if (editedFields.weight_kg !== undefined) {
-    updated.anthropo.weight_kg = editedFields.weight_kg as number;
+    updated.anthropo.weight_kg = toNumberOrNull(editedFields.weight_kg);
   }
   if (editedFields.height_cm !== undefined) {
-    updated.anthropo.height_cm = editedFields.height_cm as number;
+    updated.anthropo.height_cm = toNumberOrNull(editedFields.height_cm);
   }
   if (editedFields.fat_pct !== undefined) {
-    updated.anthropo.fat_pct = editedFields.fat_pct as number;
+    updated.anthropo.fat_pct = toNumberOrNull(editedFields.fat_pct);
   }
   if (editedFields.hr_max !== undefined) {
-    updated.cardio.hr_max = editedFields.hr_max as number;
+    updated.cardio.hr_max = toNumberOrNull(editedFields.hr_max);
   }
   if (editedFields.hr_rest !== undefined) {
-    updated.cardio.hr_rest = editedFields.hr_rest as number;
+    updated.cardio.hr_rest = toNumberOrNull(editedFields.hr_rest);
   }
   if (editedFields.hrv !== undefined) {
-    updated.cardio.hrv = editedFields.hrv as number;
+    updated.cardio.hrv = toNumberOrNull(editedFields.hrv);
   }
   if (editedFields.spo2 !== undefined) {
-    updated.cardio.spo2 = editedFields.spo2 as number;
+    updated.cardio.spo2 = toNumberOrNull(editedFields.spo2);
   }
   if (editedFields.vo2max_ml_kg_min !== undefined) {
-    updated.performance.vo2max_ml_kg_min = editedFields.vo2max_ml_kg_min as number;
+    updated.performance.vo2max_ml_kg_min = toNumberOrNull(editedFields.vo2max_ml_kg_min);
   }
   if (editedFields.vma_kmh !== undefined) {
-    updated.performance.vma_kmh = editedFields.vma_kmh as number;
+    updated.performance.vma_kmh = toNumberOrNull(editedFields.vma_kmh);
   }
   if (editedFields.ftp_w !== undefined) {
-    updated.performance.ftp_w = editedFields.ftp_w as number;
+    updated.performance.ftp_w = toNumberOrNull(editedFields.ftp_w);
   }
   if (editedFields.pmax_w !== undefined) {
-    updated.performance.pmax_w = editedFields.pmax_w as number;
+    updated.performance.pmax_w = toNumberOrNull(editedFields.pmax_w);
   }
   if (editedFields.vlamax !== undefined) {
-    updated.vlamax.value = editedFields.vlamax as number;
-    if (editedFields.vlamax) {
+    updated.vlamax.value = toNumberOrNull(editedFields.vlamax);
+    if (editedFields.vlamax !== null && editedFields.vlamax !== "") {
       updated.vlamax.source = "lab";
     }
   }
   if (editedFields.lactate_max !== undefined) {
-    updated.lactate.lactate_max = editedFields.lactate_max as number;
+    updated.lactate.lactate_max = toNumberOrNull(editedFields.lactate_max);
   }
   if (editedFields.running_economy !== undefined) {
-    updated.economy.running_cost_ml_kg_km = editedFields.running_economy as number;
+    updated.economy.running_cost_ml_kg_km = toNumberOrNull(editedFields.running_economy);
   }
   
   return updated;
