@@ -259,7 +259,7 @@ export function LabImportDialog({
       } as any);
 
       if (!newSnapshot) {
-        toast.error("Erreur lors de la création du snapshot");
+        // addSnapshot affiche déjà une erreur plus précise (validation/DB/auth)
         return;
       }
 

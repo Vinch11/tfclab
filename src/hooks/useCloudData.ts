@@ -302,28 +302,64 @@ export function useCloudData() {
     return snapshots.filter((s) => s.athlete_id === athleteId);
   };
 
-  const addSnapshot = async (snapshot: Omit<DbSnapshot, "id" | "created_at" | "updated_at">) => {
-    if (!user) return null;
-    
-    // Validate input data
-    const { error: validationError } = validateOrNull(snapshotSchema, snapshot);
-    if (validationError) {
-      toast.error(`Données invalides: ${validationError}`);
+  const addSnapshot = async (
+    snapshot: Omit<DbSnapshot, "id" | "created_at" | "updated_at">
+  ) => {
+    if (!user) {
+      toast.error("Session expirée — reconnectez-vous");
       return null;
     }
-    
-    const { data, error } = await supabase
+
+    // Validate input data (and apply defaults)
+    const validation = validateOrNull(snapshotSchema, snapshot);
+    if (validation.error) {
+      toast.error(`Données invalides: ${validation.error}`);
+      return null;
+    }
+
+    const insertPayload = { ...validation.data, coach_id: user.id };
+
+    const { data: inserted, error } = await supabase
       .from("snapshots")
-      .insert({ ...snapshot, coach_id: user.id })
-      .select()
-      .single();
+      .insert(insertPayload)
+      .select("*");
+
     if (error) {
-      toast.error("Erreur lors de l'ajout du snapshot");
+      if (import.meta.env.DEV) console.error("Add snapshot error:", error);
+      toast.error(
+        import.meta.env.DEV
+          ? `Erreur lors de l'ajout du snapshot: ${error.message}`
+          : "Erreur lors de l'ajout du snapshot"
+      );
       return null;
     }
-    setSnapshots((prev) => [data as DbSnapshot, ...prev]);
+
+    // PostgREST can sometimes return 0 rows on insert+select; fallback fetch.
+    const row = inserted?.[0] as DbSnapshot | undefined;
+    if (!row) {
+      const { data: fetched, error: fetchError } = await supabase
+        .from("snapshots")
+        .select("*")
+        .eq("coach_id", user.id)
+        .eq("athlete_id", validation.data.athlete_id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (fetchError || !fetched) {
+        if (import.meta.env.DEV) console.error("Fetch inserted snapshot error:", fetchError);
+        toast.error("Snapshot créé, mais impossible de le récupérer");
+        return null;
+      }
+
+      setSnapshots((prev) => [fetched as DbSnapshot, ...prev]);
+      toast.success("Snapshot créé");
+      return fetched as DbSnapshot;
+    }
+
+    setSnapshots((prev) => [row, ...prev]);
     toast.success("Snapshot créé");
-    return data as DbSnapshot;
+    return row;
   };
 
   const updateSnapshot = async (id: string, updates: Partial<DbSnapshot>) => {
