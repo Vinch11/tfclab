@@ -948,6 +948,390 @@ Utilise ces informations pour nuancer tes décisions.`
 ];
 
 // =============================================
+// ARTICLES RÉCUPÉRATION, SOMMEIL, STRESS
+// =============================================
+
+export const RECOVERY_ARTICLES: KnowledgeArticle[] = [
+  {
+    id: "recovery_basics",
+    title: "Les bases de la récupération",
+    category: "methodology",
+    tags: ["récupération", "repos", "adaptation", "surcompensation", "fatigue"],
+    content: `La récupération est là où l'adaptation se produit réellement.
+
+Principe fondamental :
+Entraînement = stimulus + récupération → adaptation
+Sans récupération → pas de progression, voire régression.
+
+Les 3 piliers de la récupération :
+1. SOMMEIL : Le plus important (voir article dédié)
+2. NUTRITION : Reconstitution des réserves + réparation
+3. REPOS ACTIF : Circulation sanguine sans stress supplémentaire
+
+Fenêtre de récupération post-entraînement :
+- 0-30 min : Hydratation + glucides + protéines
+- 2-4h : Repas complet équilibré
+- 24-72h : Récupération musculaire (selon intensité)
+- 7-14j : Récupération systémique (blocs intensifs)
+
+Signes de récupération insuffisante :
+- Performances en baisse
+- FC repos élevée le matin
+- Sommeil perturbé
+- Irritabilité, motivation en berne
+- Courbatures persistantes > 48h
+
+Règle d'or :
+"Mieux vaut être un peu sous-entraîné et frais qu'un peu surentraîné et fatigué."`
+  },
+  {
+    id: "sleep_performance",
+    title: "Sommeil et performance",
+    category: "methodology",
+    tags: ["sommeil", "récupération", "performance", "hormones", "nuit"],
+    content: `Le sommeil est le facteur de récupération N°1 - non négociable.
+
+Pourquoi le sommeil est critique :
+- Sécrétion d'hormone de croissance (pic à 23h-2h)
+- Réparation musculaire et tissulaire
+- Consolidation de la mémoire motrice
+- Régulation hormonale (cortisol, testostérone)
+- Renforcement du système immunitaire
+
+Besoins pour un athlète :
+- Minimum : 7h (grand minimum)
+- Optimal : 8-9h (recommandé)
+- Charge élevée : 9-10h (périodes intensives)
+
+Qualité > Quantité - Critères d'un bon sommeil :
+✅ Endormissement < 20 min
+✅ Réveils nocturnes < 2
+✅ Réveil spontané (pas d'alarme)
+✅ Sensation de repos au réveil
+
+Optimiser son sommeil :
+1. Régularité : heures fixes de coucher/lever
+2. Température : 18-19°C dans la chambre
+3. Obscurité : complète (masque si nécessaire)
+4. Écrans : arrêt 1h avant le coucher
+5. Caféine : dernière prise avant 14h
+6. Sieste : 20-30 min max, avant 15h
+
+Impact d'une dette de sommeil :
+- -1h/nuit pendant 1 semaine ≈ -10% de performance
+- Risque blessure multiplié par 1.7 si < 7h
+- Récupération musculaire ralentie de 30%`
+  },
+  {
+    id: "sleep_tracking",
+    title: "Suivi du sommeil",
+    category: "methodology",
+    tags: ["sommeil", "tracking", "montre", "HRV", "analyse"],
+    content: `Le suivi du sommeil aide à objectiver la récupération.
+
+Métriques utiles :
+1. Durée totale : Temps au lit vs temps de sommeil réel
+2. Phases : Profond / Léger / REM (proportions)
+3. Réveils : Nombre et durée
+4. HRV nocturne : Variabilité de la fréquence cardiaque
+5. FC repos : Mesurée au réveil
+
+Interprétation HRV :
+- HRV stable/haute : Bonne récupération
+- HRV en baisse : Fatigue, stress, ou maladie à venir
+- Tendance > valeur absolue (compare à TA moyenne)
+
+Outils de mesure :
+- Montres GPS (Garmin, Polar, Coros) : Estimation correcte
+- Anneaux (Oura, Whoop) : Plus précis
+- Matelas connectés : Très précis
+- Ressenti subjectif : Ne pas négliger !
+
+Conseil pratique :
+Note chaque matin (1-5) :
+- Qualité perçue du sommeil
+- Énergie au réveil
+- Motivation à s'entraîner
+
+Ces notes simples sont souvent plus fiables que les gadgets.`
+  },
+  {
+    id: "stress_management",
+    title: "Gestion du stress",
+    category: "methodology",
+    tags: ["stress", "cortisol", "mental", "vie", "équilibre"],
+    content: `Le stress total (vie + entraînement) doit être géré comme un tout.
+
+Principe clé :
+Le corps ne distingue pas les sources de stress.
+Stress pro + stress perso + entraînement = charge totale.
+
+Types de stress :
+1. Physique : Entraînement, manque de sommeil, maladie
+2. Mental : Travail, problèmes perso, anxiété
+3. Émotionnel : Conflits, incertitude, pression
+
+Impact du cortisol chroniquement élevé :
+- Catabolisme musculaire
+- Stockage de graisse abdominale
+- Récupération ralentie
+- Système immunitaire affaibli
+- Troubles du sommeil
+
+Stratégies de gestion :
+1. Identifier les sources : Journal de stress (1-10/jour)
+2. Adapter l'entraînement : Moins intense si stress élevé
+3. Techniques de relaxation : Respiration, méditation
+4. Activités plaisir : Hobbies, nature, social
+5. Limites : Savoir dire non, déléguer
+
+Règle pratique :
+Semaine très stressante au travail ?
+→ Réduire l'intensité, privilégier Z2
+→ Ajouter une séance de récupération active
+→ Ne pas culpabiliser de lever le pied`
+  },
+  {
+    id: "hrv_recovery",
+    title: "HRV et récupération",
+    category: "metrics",
+    tags: ["HRV", "variabilité", "récupération", "système nerveux", "autonome"],
+    content: `La HRV (Heart Rate Variability) reflète l'état du système nerveux autonome.
+
+Définition :
+Variation du temps entre chaque battement cardiaque.
+Plus c'est variable → meilleure récupération (en général).
+
+Système nerveux autonome :
+- Sympathique : "Combat ou fuite" (stress, effort)
+- Parasympathique : "Repos et digestion" (récupération)
+
+HRV haute (parasympathique dominant) :
+✅ Bonne récupération
+✅ Prêt pour l'entraînement
+✅ Système nerveux détendu
+
+HRV basse (sympathique dominant) :
+⚠️ Fatigue ou stress
+⚠️ Récupération incomplète
+⚠️ Jour léger conseillé
+
+Comment mesurer :
+- Matin au réveil (avant de se lever)
+- Position allongée, 3-5 min
+- App + ceinture cardiaque = plus fiable
+- Montres GPS = correct mais moins précis
+
+Interprétation intelligente :
+1. Regarde la TENDANCE sur 7-14 jours
+2. Compare à TA propre moyenne (pas aux autres)
+3. Un jour bas ≠ alarme, une semaine basse = attention
+4. Combine avec ressenti subjectif
+
+Attention :
+L'alcool, la caféine et la déshydratation faussent les mesures.`
+  },
+  {
+    id: "active_recovery",
+    title: "Récupération active",
+    category: "methodology",
+    tags: ["récupération", "active", "Z1", "circulation", "mobilité"],
+    content: `La récupération active accélère la régénération sans ajouter de stress.
+
+Principe :
+Un effort léger stimule la circulation sanguine, élimine les déchets métaboliques et maintient les amplitudes articulaires.
+
+Exemples de récupération active :
+- Vélo facile 30-45 min (< 55% FCmax)
+- Natation légère (technique, pas d'intensité)
+- Marche / randonnée tranquille
+- Yoga / stretching dynamique
+- Mobilité articulaire
+
+Quand l'utiliser :
+- Lendemain de séance intense
+- Entre 2 blocs d'entraînement
+- Semaine de récupération (décharge)
+- Après une compétition
+
+Ce que ce n'est PAS :
+❌ Une séance Z2 "facile" (trop intense)
+❌ Du fractionné court "pour bouger"
+❌ Un entraînement de groupe à rythme variable
+
+Intensité cible :
+- FC < 60% FCmax
+- RPE 2-3/10
+- Respiration nasale possible
+- Aucune sensation d'effort
+
+Durée :
+- 20-45 min suffisent
+- Plus long ≠ mieux
+- Écoute ton corps`
+  },
+  {
+    id: "deload_week",
+    title: "Semaine de décharge",
+    category: "methodology",
+    tags: ["décharge", "récupération", "semaine", "volume", "adaptation"],
+    content: `La semaine de décharge permet l'adaptation et prévient le surentraînement.
+
+Principe :
+Après 3-4 semaines de charge progressive, 1 semaine allégée pour absorber le travail.
+
+Programmation type :
+- Semaine 1 : Charge normale
+- Semaine 2 : Charge +5-10%
+- Semaine 3 : Charge +5-10%
+- Semaine 4 : DÉCHARGE (-40 à -50%)
+
+Contenu de la semaine de décharge :
+✅ Volume : -40 à -50%
+✅ Intensité : Maintenue (rappels courts)
+✅ Fréquence : Légèrement réduite (-1 séance)
+✅ Sommeil : Priorité absolue
+✅ Nutrition : Maintenue (pas de restriction)
+
+Erreurs fréquentes :
+❌ Repos complet (le corps s'endort)
+❌ "Je me sens bien, j'envoie" (fatigue masquée)
+❌ Sauter la décharge car "pas le temps"
+❌ Réduire trop la nutrition
+
+Bénéfices attendus :
+- Dissipation de la fatigue accumulée
+- Absorption des adaptations
+- Rechargement mental
+- FC repos qui baisse
+- Motivation qui remonte
+
+Indicateur clé :
+Tu dois te sentir "affûté" et impatient de reprendre en fin de semaine.`
+  },
+  {
+    id: "mental_recovery",
+    title: "Récupération mentale",
+    category: "methodology",
+    tags: ["mental", "récupération", "motivation", "burnout", "équilibre"],
+    content: `La fatigue mentale est aussi limitante que la fatigue physique.
+
+Signes de fatigue mentale :
+- Perte de motivation à s'entraîner
+- Entraînement = corvée (plus de plaisir)
+- Difficulté à se concentrer
+- Irritabilité, humeur variable
+- Procrastination des séances
+
+Causes fréquentes :
+- Monotonie (toujours les mêmes séances)
+- Pression de performance (objectifs irréalistes)
+- Déséquilibre vie/entraînement
+- Manque de variété
+- Absence de pause mentale
+
+Stratégies de récupération mentale :
+1. Variété : Changer de lieu, de sport, de parcours
+2. Social : Entraînement en groupe, sorties plaisir
+3. Déconnexion : Jours sans montre, sans analyse
+4. Plaisir : Séances ludiques sans objectif
+5. Pause : 1-2 semaines off après objectif majeur
+
+Après une course importante :
+- 1 semaine : Repos ou activité plaisir uniquement
+- 2 semaines : Reprendre sans structure ni montre
+- 3 semaines : Retour progressif à l'entraînement
+
+Règle d'or :
+"Si tu n'as pas envie de t'entraîner depuis 3 jours, c'est que ton corps (ou ta tête) a besoin de repos. Écoute-le."`
+  },
+  {
+    id: "breathing_techniques",
+    title: "Techniques de respiration",
+    category: "methodology",
+    tags: ["respiration", "relaxation", "stress", "parasympathique", "calme"],
+    content: `La respiration est le levier le plus accessible pour activer la récupération.
+
+Pourquoi ça marche :
+Le nerf vague (parasympathique) est stimulé par la respiration lente et profonde.
+→ Baisse du cortisol, FC, tension artérielle
+→ Activation du mode "repos et récupération"
+
+Technique 1 : Respiration carrée (Box Breathing)
+- Inspire 4 sec
+- Retiens 4 sec
+- Expire 4 sec
+- Retiens 4 sec
+- Répète 5-10 cycles
+
+Technique 2 : Cohérence cardiaque
+- Inspire 5 sec
+- Expire 5 sec
+- 6 cycles/min pendant 5 min
+- 3 fois par jour = effet maximal
+
+Technique 3 : 4-7-8 (pour s'endormir)
+- Inspire 4 sec
+- Retiens 7 sec
+- Expire 8 sec
+- 4-8 cycles
+
+Quand l'utiliser :
+- Matin au réveil (activation douce)
+- Avant une séance (focus)
+- Après une séance (retour au calme)
+- Avant de dormir (sommeil)
+- Moment de stress (régulation)
+
+Bénéfices prouvés :
+- Réduction du stress et de l'anxiété
+- Amélioration du sommeil
+- Meilleure HRV
+- Récupération accélérée`
+  },
+  {
+    id: "nutrition_recovery",
+    title: "Nutrition de récupération",
+    category: "methodology",
+    tags: ["nutrition", "récupération", "protéines", "glucides", "réparation"],
+    content: `La nutrition post-entraînement optimise la récupération et l'adaptation.
+
+Fenêtre anabolique (0-30 min post-effort) :
+- Glucides : 1-1.2g/kg (reconstitution glycogène)
+- Protéines : 20-30g (synthèse musculaire)
+- Hydratation : 150% des pertes (1.5L pour 1kg perdu)
+
+Ratio glucides/protéines :
+- Après endurance longue : 3:1 ou 4:1
+- Après force/intensité : 2:1
+- Exemple : 60g glucides + 20g protéines
+
+Sources pratiques post-entraînement :
+- Lait chocolaté (ratio parfait)
+- Yaourt + fruit + miel
+- Sandwich jambon/fromage
+- Shake protéines + banane
+- Riz + poulet (si repas proche)
+
+Hydratation :
+- Pesée avant/après : 1kg perdu = 1.5L à boire
+- Boisson avec sodium si > 2h d'effort
+- Urine claire = bien hydraté
+
+Repas dans les 2-4h :
+- Repas complet équilibré
+- Protéines + glucides complexes + légumes
+- Graisses saines (pas de restriction)
+
+Erreurs fréquentes :
+❌ Sauter le repas post-entraînement (anorexie d'effort)
+❌ Restriction calorique après effort long
+❌ Oublier les protéines (juste du sucre)
+❌ Alcool après l'entraînement (bloque la récupération)`
+  }
+];
+
+// =============================================
 // TOUS LES ARTICLES
 // =============================================
 
@@ -958,6 +1342,7 @@ export const ALL_KNOWLEDGE_ARTICLES: KnowledgeArticle[] = [
   ...APP_USAGE_ARTICLES,
   ...PHYSIOLOGICAL_CONSTANTS,
   ...ADVANCED_ARTICLES,
+  ...RECOVERY_ARTICLES,
 ];
 
 // =============================================
@@ -1016,13 +1401,14 @@ export function formatKnowledgeForAI(articles: KnowledgeArticle[]): string {
 
 export const QUICK_SUGGESTIONS = [
   { label: "C'est quoi VLamax ?", query: "C'est quoi VLamax ?" },
-  { label: "Où renseigner FCmax ?", query: "Où renseigner ma FCmax ?" },
   { label: "Différence Z4a / Z4b", query: "C'est quoi la différence entre Z4a et Z4b ?" },
   { label: "Race Readiness", query: "Comment fonctionne le Race Readiness ?" },
-  { label: "Risque glycolytique", query: "C'est quoi le risque glycolytique ?" },
   { label: "TTE insuffisant", query: "Mon TTE est insuffisant, que faire ?" },
   { label: "Affûtage", query: "Comment faire un bon affûtage avant une course ?" },
-  { label: "Entraînement polarisé", query: "C'est quoi l'entraînement polarisé ?" },
-  { label: "Spécificité Trail", query: "Quelles sont les spécificités du Trail ?" },
-  { label: "Dérive cardiaque", query: "C'est quoi la dérive cardiaque ?" },
+  { label: "Polarisé", query: "C'est quoi l'entraînement polarisé ?" },
+  { label: "Sommeil", query: "Quel est l'impact du sommeil sur la performance ?" },
+  { label: "Récupération", query: "Quelles sont les bases de la récupération ?" },
+  { label: "Gestion du stress", query: "Comment gérer le stress vie + entraînement ?" },
+  { label: "HRV", query: "C'est quoi la HRV et comment l'utiliser ?" },
+  { label: "Semaine de décharge", query: "Comment faire une semaine de décharge ?" },
 ];
