@@ -150,7 +150,7 @@ export function useCloudData() {
       name: validated.name,
       goal: validated.goal ?? null,
       refs: (validated.refs as Json) ?? {},
-      vo2max: validated.vo2max ?? null,
+      vo2max: (validated.vo2max as number | null) ?? null,
     };
     const { data, error } = await supabase
       .from("athletes")
@@ -220,8 +220,8 @@ export function useCloudData() {
       type: validated.type,
       name: validated.name,
       sport: validated.sport ?? null,
-      reliability: validated.reliability ?? null,
-      vlamax: validated.vlamax ?? null,
+      reliability: (validated.reliability as number | null) ?? null,
+      vlamax: (validated.vlamax as number | null) ?? null,
       raw: (validated.raw as Json) ?? {},
       note: validated.note ?? null,
     };

@@ -4,9 +4,27 @@
 
 import { z } from "zod";
 
-// Helper for nullable optional numbers with range
+// Helper for nullable optional numbers with range - accepts string/number and converts
 const numericOptional = (min: number, max: number) =>
-  z.number().min(min).max(max).nullable().optional();
+  z.preprocess(
+    (val) => {
+      if (val === null || val === undefined || val === "") return null;
+      const num = typeof val === "string" ? parseFloat(val) : val;
+      return Number.isFinite(num) ? num : null;
+    },
+    z.number().min(min).max(max).nullable().optional()
+  );
+
+// Helper for nullable optional integers - accepts string/number and converts
+const intOptional = (min: number, max: number) =>
+  z.preprocess(
+    (val) => {
+      if (val === null || val === undefined || val === "") return null;
+      const num = typeof val === "string" ? parseInt(val, 10) : Math.round(Number(val));
+      return Number.isFinite(num) ? num : null;
+    },
+    z.number().int().min(min).max(max).nullable().optional()
+  );
 
 // ========== ATHLETE ==========
 export const athleteSchema = z.object({
@@ -25,27 +43,27 @@ export const snapshotSchema = z.object({
   source: z.string().max(50).default("manual"),
   cycle_tag: z.string().max(50).nullable().optional(),
   confidence: numericOptional(0, 1),
-  fc_max: z.number().int().min(100).max(250).nullable().optional(),
+  fc_max: intOptional(100, 250),
   vma: numericOptional(8, 30),
-  ftp: z.number().int().min(50).max(600).nullable().optional(),
+  ftp: intOptional(50, 600),
   css: numericOptional(0.5, 3),
   vo2max: numericOptional(20, 100),
   vlamax: numericOptional(0.1, 1.5),
   weight_kg: numericOptional(30, 200),
   fat_pct: numericOptional(3, 50),
-  pmax_5s: z.number().int().min(200).max(3000).nullable().optional(),
+  pmax_5s: intOptional(200, 3000),
   metabolic_profile: z.string().max(100).nullable().optional(),
-  metabolic_score: z.number().int().min(0).max(100).nullable().optional(),
+  metabolic_score: intOptional(0, 100),
   coach_notes: z.string().max(2000).nullable().optional(),
-  tss_7d: z.number().int().min(0).max(2000).nullable().optional(),
+  tss_7d: intOptional(0, 2000),
   tte_mode: z.string().max(50).nullable().optional(),
-  tte_observed_min: z.number().int().min(1).max(120).nullable().optional(),
+  tte_observed_min: intOptional(1, 120),
   // Running Economy (CAP) fields
-  run_pace_ref_sec_per_km: z.number().int().min(120).max(900).nullable().optional(), // 2:00 - 15:00/km
-  run_hr_ref_bpm: z.number().int().min(80).max(220).nullable().optional(),
-  run_duration_min: z.number().int().min(10).max(300).nullable().optional(),
+  run_pace_ref_sec_per_km: intOptional(120, 900), // 2:00 - 15:00/km
+  run_hr_ref_bpm: intOptional(80, 220),
+  run_duration_min: intOptional(10, 300),
   run_hr_drift_pct: numericOptional(0, 30),
-  run_economy_score: z.number().int().min(0).max(100).nullable().optional(),
+  run_economy_score: intOptional(0, 100),
   run_economy_label: z.string().max(20).nullable().optional(),
 });
 
