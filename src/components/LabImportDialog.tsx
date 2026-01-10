@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileUp, AlertTriangle, CheckCircle, XCircle, Loader2, FlaskConical } from "lucide-react";
+import { FileUp, AlertTriangle, CheckCircle, XCircle, Loader2, FlaskConical, Eye, EyeOff, ChevronLeft, ChevronRight, ZoomIn, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { extractTextFromPdf, getAllPagesAsImages } from "@/lib/labImport/pdfExtractor";
@@ -58,6 +58,11 @@ export function LabImportDialog({
   const [usedOcr, setUsedOcr] = useState(false);
   
   const [createdSnapshot, setCreatedSnapshot] = useState<DbSnapshot | null>(null);
+  
+  // PDF preview images
+  const [pdfPages, setPdfPages] = useState<string[]>([]);
+  const [selectedPage, setSelectedPage] = useState<number>(0);
+  const [showPreview, setShowPreview] = useState(true);
 
   // Persist validation fields in sessionStorage to survive page minimize
   const STORAGE_KEY = `lab-import-fields-${athleteId}`;
@@ -110,6 +115,9 @@ export function LabImportDialog({
     setParserUsed(null);
     setUsedOcr(false);
     setCreatedSnapshot(null);
+    setPdfPages([]);
+    setSelectedPage(0);
+    setShowPreview(true);
     // Clear persisted state
     try {
       sessionStorage.removeItem(STORAGE_KEY);
@@ -132,6 +140,12 @@ export function LabImportDialog({
     try {
       // Step 1: Extract text
       const pdfResult = await extractTextFromPdf(file);
+      setProgress(20);
+
+      // Step 1.5: Generate PDF page previews in parallel
+      setProgressText("Génération des aperçus...");
+      const pageImages = await getAllPagesAsImages(file);
+      setPdfPages(pageImages);
       setProgress(30);
 
       let textByPage = pdfResult.textByPage;
@@ -142,8 +156,7 @@ export function LabImportDialog({
         setProgressText("PDF scanné détecté - OCR en cours...");
         setProgress(40);
         
-        const images = await getAllPagesAsImages(file);
-        const ocrResult = await performOcr(images, (prog, status) => {
+        const ocrResult = await performOcr(pageImages, (prog, status) => {
           setProgress(40 + prog * 0.4);
           setProgressText(status);
         });
@@ -331,14 +344,29 @@ export function LabImportDialog({
 
         {step === "validation" && extract && (
           <div className="space-y-4">
-            <div className="flex items-center gap-2 flex-wrap">
-              <Badge variant={parserUsed === "generic" || parserUsed === "ocr" ? "secondary" : "default"}>
-                Parser: {parserUsed}
-              </Badge>
-              {usedOcr && <Badge variant="outline">🔍 OCR utilisé</Badge>}
-              <Badge variant="outline">
-                Confiance: {Math.round((extract.meta.sourceConfidence || 0) * 100)}%
-              </Badge>
+            {/* Header with badges and preview toggle */}
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge variant={parserUsed === "generic" || parserUsed === "ocr" ? "secondary" : "default"}>
+                  Parser: {parserUsed}
+                </Badge>
+                {usedOcr && <Badge variant="outline">🔍 OCR utilisé</Badge>}
+                <Badge variant="outline">
+                  Confiance: {Math.round((extract.meta.sourceConfidence || 0) * 100)}%
+                </Badge>
+              </div>
+              
+              {pdfPages.length > 0 && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setShowPreview(!showPreview)}
+                  className="gap-1"
+                >
+                  {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPreview ? "Masquer PDF" : "Voir PDF"}
+                </Button>
+              )}
             </div>
 
             {usedOcr && (
@@ -348,7 +376,71 @@ export function LabImportDialog({
               </div>
             )}
 
-            <div className="max-h-[40vh] overflow-y-auto border rounded-lg">
+            {/* PDF Preview Panel */}
+            {showPreview && pdfPages.length > 0 && (
+              <div className="border rounded-lg p-3 bg-muted/30">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">
+                    Aperçu PDF — Page {selectedPage + 1} / {pdfPages.length}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-7 w-7"
+                      disabled={selectedPage === 0}
+                      onClick={() => setSelectedPage(p => Math.max(0, p - 1))}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-7 w-7"
+                      disabled={selectedPage >= pdfPages.length - 1}
+                      onClick={() => setSelectedPage(p => Math.min(pdfPages.length - 1, p + 1))}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Thumbnails */}
+                {pdfPages.length > 1 && (
+                  <div className="flex gap-2 mb-3 overflow-x-auto pb-2">
+                    {pdfPages.map((page, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedPage(idx)}
+                        className={`flex-shrink-0 border-2 rounded transition-all ${
+                          selectedPage === idx 
+                            ? "border-primary ring-2 ring-primary/30" 
+                            : "border-border hover:border-primary/50"
+                        }`}
+                      >
+                        <img 
+                          src={page} 
+                          alt={`Page ${idx + 1}`} 
+                          className="h-16 w-auto object-contain bg-white"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Main preview */}
+                <div className="flex justify-center bg-white rounded border max-h-[30vh] overflow-auto">
+                  <img 
+                    src={pdfPages[selectedPage]} 
+                    alt={`Page ${selectedPage + 1}`}
+                    className="max-w-full h-auto object-contain"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Validation table */}
+            <div className="max-h-[35vh] overflow-y-auto border rounded-lg">
               <table className="w-full text-sm">
                 <thead className="bg-muted sticky top-0">
                   <tr>
