@@ -535,11 +535,11 @@ export function formatContextForDisplay(context: AssistantContextPacket): Contex
   }
   
   // VLamax
-  if (context.vlamaxEffectif?.value !== null) {
-    const v = context.vlamaxEffectif!;
+  if (context.vlamaxEffectif && context.vlamaxEffectif.value !== null) {
+    const v = context.vlamaxEffectif;
     items.push({
       label: "VLamax",
-      value: `${v.value?.toFixed(2)} mmol/L/s (${v.source})`,
+      value: `${v.value.toFixed(2)} mmol/L/s (${v.source})`,
       status: v.confidence >= 0.7 ? "ok" : v.confidence >= 0.4 ? "warning" : "error",
       confidence: v.confidence
     });
