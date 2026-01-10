@@ -907,20 +907,25 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
         
         <div style="display:flex;justify-content:center;margin:20px 0;">
           <svg width="340" height="340" viewBox="0 0 340 340" style="overflow:visible;">
+            <!-- Grilles de fond (diamants concentriques) -->
             <polygon points="170,70 270,170 170,270 70,170" fill="none" stroke="#ddd" stroke-width="1"/>
             <polygon points="170,95 245,170 170,245 95,170" fill="none" stroke="#ddd" stroke-width="1"/>
             <polygon points="170,120 220,170 170,220 120,170" fill="none" stroke="#ddd" stroke-width="1"/>
             <polygon points="170,145 195,170 170,195 145,170" fill="none" stroke="#ddd" stroke-width="1"/>
+            <!-- Axes -->
             <line x1="170" y1="70" x2="170" y2="270" stroke="#eee" stroke-width="1"/>
             <line x1="70" y1="170" x2="270" y2="170" stroke="#eee" stroke-width="1"/>
-            <polygon points="170,${70 + (100 - cScores.capaciteAerobie.score)} ${70 + cScores.toleranceEffort.score},170 170,${170 + cScores.profilMetabolique.score} ${170 - cScores.robustesse.score},170" fill="rgba(37,99,235,0.2)" stroke="#2563eb" stroke-width="2"/>
-            <circle cx="170" cy="${70 + (100 - cScores.capaciteAerobie.score)}" r="6" fill="#2563eb"/>
-            <circle cx="${70 + cScores.toleranceEffort.score}" cy="170" r="6" fill="#2563eb"/>
+            <!-- Polygone des scores (centre=170,170, rayon max=100) -->
+            <polygon points="170,${170 - cScores.capaciteAerobie.score} ${170 + cScores.toleranceEffort.score},170 170,${170 + cScores.profilMetabolique.score} ${170 - cScores.robustesse.score},170" fill="rgba(37,99,235,0.2)" stroke="#2563eb" stroke-width="2"/>
+            <!-- Points sur chaque axe -->
+            <circle cx="170" cy="${170 - cScores.capaciteAerobie.score}" r="6" fill="#2563eb"/>
+            <circle cx="${170 + cScores.toleranceEffort.score}" cy="170" r="6" fill="#2563eb"/>
             <circle cx="170" cy="${170 + cScores.profilMetabolique.score}" r="6" fill="#2563eb"/>
             <circle cx="${170 - cScores.robustesse.score}" cy="170" r="6" fill="#2563eb"/>
+            <!-- Labels -->
             <text x="170" y="50" text-anchor="middle" font-size="11" font-weight="600" fill="#333">⚡ Capacité Aérobie (${cScores.capaciteAerobie.score})</text>
             <text x="290" y="175" text-anchor="start" font-size="11" font-weight="600" fill="#333">💪 Tolérance (${cScores.toleranceEffort.score})</text>
-            <text x="170" y="305" text-anchor="middle" font-size="11" font-weight="600" fill="#333">🧬 Profil Métab. (${cScores.profilMetabolique.score})</text>
+            <text x="170" y="295" text-anchor="middle" font-size="11" font-weight="600" fill="#333">🧬 Profil Métab. (${cScores.profilMetabolique.score})</text>
             <text x="50" y="175" text-anchor="end" font-size="11" font-weight="600" fill="#333">🛡️ Robustesse (${cScores.robustesse.score})</text>
           </svg>
         </div>
