@@ -1,8 +1,9 @@
 // =============================================
-// ASSISTANT DRAWER - Chatbot Two For Coaching Lab
+// ASSISTANT DRAWER - Chatbot Staff-Grade
+// Sources internes uniquement + contexte runtime
 // =============================================
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -19,15 +20,24 @@ import {
   AlertTriangle,
   CheckCircle2,
   XCircle,
-  Info
+  Info,
+  BookOpen,
+  Database
 } from "lucide-react";
-import { useAssistantContext, formatContextForDisplay } from "@/hooks/useAssistantContext";
+import { useCloudData } from "@/hooks/useCloudData";
 import { 
-  searchKnowledge, 
-  formatKnowledgeForAI, 
-  QUICK_SUGGESTIONS,
-  MEDICAL_DISCLAIMER 
-} from "@/data/assistantKnowledge";
+  getAssistantContext, 
+  formatContextForPrompt, 
+  formatContextForDisplay,
+  AssistantContextPacket 
+} from "@/lib/assistant/getAssistantContext";
+import { 
+  searchKnowledgeBase, 
+  formatKnowledgeForPrompt,
+  getSourceCitations,
+  ALL_KNOWLEDGE_ARTICLES,
+  KNOWLEDGE_BASE_VERSION
+} from "@/lib/assistant/knowledgeBase";
 import { cn } from "@/lib/utils";
 
 // =============================================
@@ -37,12 +47,31 @@ import { cn } from "@/lib/utils";
 interface Message {
   role: "user" | "assistant";
   content: string;
+  sources?: string[];
 }
 
 interface AssistantDrawerProps {
   selectedAthleteId: string | null;
   currentPage?: string;
+  prefilledQuestion?: string;
 }
+
+// =============================================
+// QUICK SUGGESTIONS (questions fréquentes)
+// =============================================
+
+const QUICK_SUGGESTIONS = [
+  { label: "C'est quoi VLamax ?", query: "C'est quoi VLamax ?" },
+  { label: "Pourquoi estimé ?", query: "Pourquoi ma VLamax est marquée comme estimée ?" },
+  { label: "Où renseigner FCmax ?", query: "Où renseigner la FCmax ?" },
+  { label: "C'est quoi TTE ?", query: "C'est quoi le TTE ?" },
+  { label: "Données demo ?", query: "Pourquoi des données demo apparaissent ?" },
+  { label: "Race Readiness ?", query: "C'est quoi le Race Readiness ?" },
+  { label: "Importer PDF", query: "Comment importer un PDF de test ?" },
+  { label: "Augmenter confiance", query: "Comment augmenter la confiance des données ?" },
+  { label: "Zone grise ?", query: "C'est quoi la zone grise ?" },
+  { label: "Affûtage", query: "Comment faire un bon affûtage ?" },
+];
 
 // =============================================
 // STREAMING CHAT
@@ -54,6 +83,7 @@ async function streamChat({
   messages,
   athleteContext,
   knowledgeContext,
+  missingFields,
   isFirstMessage,
   onDelta,
   onDone,
@@ -62,6 +92,7 @@ async function streamChat({
   messages: Message[];
   athleteContext: string;
   knowledgeContext: string;
+  missingFields: string;
   isFirstMessage: boolean;
   onDelta: (deltaText: string) => void;
   onDone: () => void;
@@ -74,7 +105,13 @@ async function streamChat({
         "Content-Type": "application/json",
         Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
       },
-      body: JSON.stringify({ messages, athleteContext, knowledgeContext, isFirstMessage }),
+      body: JSON.stringify({ 
+        messages: messages.map(m => ({ role: m.role, content: m.content })),
+        athleteContext, 
+        knowledgeContext,
+        missingFields,
+        isFirstMessage 
+      }),
     });
 
     if (!resp.ok) {
@@ -152,7 +189,11 @@ async function streamChat({
 // COMPONENT
 // =============================================
 
-export function AssistantDrawer({ selectedAthleteId, currentPage = "dashboard" }: AssistantDrawerProps) {
+export function AssistantDrawer({ 
+  selectedAthleteId, 
+  currentPage = "dashboard",
+  prefilledQuestion 
+}: AssistantDrawerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -161,13 +202,34 @@ export function AssistantDrawer({ selectedAthleteId, currentPage = "dashboard" }
   const [hasSeenDisclaimer, setHasSeenDisclaimer] = useState(() => {
     return localStorage.getItem("assistant-disclaimer-seen") === "true";
   });
+  const [lastSources, setLastSources] = useState<string[]>([]);
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
-  // Contexte athlète
-  const assistantContext = useAssistantContext(selectedAthleteId, currentPage);
-  const contextItems = formatContextForDisplay(assistantContext.raw);
+  // Données Cloud
+  const { athletes, snapshots, tests } = useCloudData();
+  
+  // Context Packet runtime
+  const contextPacket = useMemo<AssistantContextPacket>(() => {
+    return getAssistantContext({
+      currentModule: currentPage,
+      selectedAthleteId,
+      athletes,
+      snapshots,
+      tests,
+    });
+  }, [currentPage, selectedAthleteId, athletes, snapshots, tests]);
+  
+  const contextItems = formatContextForDisplay(contextPacket);
+  
+  // Handle prefilled question
+  useEffect(() => {
+    if (prefilledQuestion && isOpen) {
+      setInput(prefilledQuestion);
+      setActiveTab("chat");
+    }
+  }, [prefilledQuestion, isOpen]);
   
   // Scroll en bas à chaque nouveau message
   useEffect(() => {
@@ -200,8 +262,18 @@ export function AssistantDrawer({ selectedAthleteId, currentPage = "dashboard" }
     setActiveTab("chat");
     
     // Rechercher dans la KB
-    const kbArticles = searchKnowledge(trimmed, 3);
-    const knowledgeContext = formatKnowledgeForAI(kbArticles);
+    const searchResults = searchKnowledgeBase(trimmed, 4);
+    const knowledgeContext = formatKnowledgeForPrompt(searchResults);
+    const sources = getSourceCitations(searchResults);
+    setLastSources(sources);
+    
+    // Contexte athlète formaté
+    const athleteContext = formatContextForPrompt(contextPacket);
+    
+    // Champs manquants
+    const missingFields = contextPacket.missingFields.length > 0
+      ? contextPacket.missingFields.map(m => `- ${m.label}: ${m.whereToFix}`).join('\n')
+      : "";
     
     let assistantSoFar = "";
     const upsertAssistant = (nextChunk: string) => {
@@ -209,16 +281,17 @@ export function AssistantDrawer({ selectedAthleteId, currentPage = "dashboard" }
       setMessages(prev => {
         const last = prev[prev.length - 1];
         if (last?.role === "assistant") {
-          return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistantSoFar } : m));
+          return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistantSoFar, sources } : m));
         }
-        return [...prev, { role: "assistant", content: assistantSoFar }];
+        return [...prev, { role: "assistant", content: assistantSoFar, sources }];
       });
     };
     
     await streamChat({
       messages: [...messages, userMsg],
-      athleteContext: assistantContext.summary,
+      athleteContext,
       knowledgeContext,
+      missingFields,
       isFirstMessage: messages.length === 0,
       onDelta: (chunk) => upsertAssistant(chunk),
       onDone: () => setIsLoading(false),
@@ -230,7 +303,7 @@ export function AssistantDrawer({ selectedAthleteId, currentPage = "dashboard" }
         setIsLoading(false);
       },
     });
-  }, [messages, assistantContext, isLoading, hasSeenDisclaimer]);
+  }, [messages, contextPacket, isLoading, hasSeenDisclaimer]);
   
   const handleQuickSuggestion = (query: string) => {
     handleSend(query);
@@ -270,7 +343,10 @@ export function AssistantDrawer({ selectedAthleteId, currentPage = "dashboard" }
           <SheetHeader className="p-4 pb-2 border-b">
             <SheetTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
-              Assistant
+              Assistant Staff
+              <Badge variant="outline" className="text-[10px] ml-auto">
+                KB v{KNOWLEDGE_BASE_VERSION}
+              </Badge>
             </SheetTitle>
           </SheetHeader>
           
@@ -285,7 +361,7 @@ export function AssistantDrawer({ selectedAthleteId, currentPage = "dashboard" }
                 Chat
               </TabsTrigger>
               <TabsTrigger value="context" className="text-xs">
-                <Settings2 className="h-3.5 w-3.5 mr-1" />
+                <Database className="h-3.5 w-3.5 mr-1" />
                 Contexte
               </TabsTrigger>
             </TabsList>
@@ -295,14 +371,16 @@ export function AssistantDrawer({ selectedAthleteId, currentPage = "dashboard" }
               {!hasSeenDisclaimer && (
                 <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
                   <p className="text-xs text-amber-800 dark:text-amber-200">
-                    ℹ️ Cet assistant aide à comprendre l'app. Il ne remplace pas un avis médical ni le jugement du coach.
+                    ℹ️ Cet assistant utilise <strong>uniquement</strong> la base de connaissances interne. 
+                    Il ne remplace pas un avis médical ni le jugement du coach.
                   </p>
                 </div>
               )}
               
-              <p className="text-sm text-muted-foreground mb-4">
-                Questions fréquentes - clique pour poser :
-              </p>
+              <div className="flex items-center gap-2 mb-3">
+                <BookOpen className="h-4 w-4 text-primary" />
+                <p className="text-sm font-medium">Questions fréquentes</p>
+              </div>
               
               <div className="flex flex-wrap gap-2">
                 {QUICK_SUGGESTIONS.map((s, i) => (
@@ -317,12 +395,28 @@ export function AssistantDrawer({ selectedAthleteId, currentPage = "dashboard" }
                 ))}
               </div>
               
-              <div className="mt-6 p-3 bg-muted/50 rounded-lg">
+              <div className="mt-6 p-3 bg-muted/50 rounded-lg space-y-2">
+                <p className="text-xs font-medium">📚 Base de connaissances</p>
                 <p className="text-xs text-muted-foreground">
-                  💡 Pose n'importe quelle question sur l'app, les métriques ou les modules.
-                  L'assistant utilise le contexte de l'athlète sélectionné.
+                  {ALL_KNOWLEDGE_ARTICLES.length} articles • Version {KNOWLEDGE_BASE_VERSION}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  L'assistant cite ses sources Academy dans chaque réponse.
                 </p>
               </div>
+              
+              {contextPacket.missingFields.length > 0 && (
+                <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                  <p className="text-xs font-medium text-amber-800 dark:text-amber-200 mb-2">
+                    ⚠️ {contextPacket.missingFields.length} champ(s) manquant(s)
+                  </p>
+                  {contextPacket.missingFields.slice(0, 3).map((m, i) => (
+                    <p key={i} className="text-xs text-amber-700 dark:text-amber-300">
+                      • {m.label}
+                    </p>
+                  ))}
+                </div>
+              )}
             </TabsContent>
             
             {/* TAB: Chat */}
@@ -332,6 +426,9 @@ export function AssistantDrawer({ selectedAthleteId, currentPage = "dashboard" }
                   <div className="text-center py-8 text-muted-foreground">
                     <MessageCircle className="h-12 w-12 mx-auto mb-3 opacity-20" />
                     <p className="text-sm">Pose ta question...</p>
+                    <p className="text-xs mt-2 opacity-70">
+                      Sources : Academy uniquement
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -339,13 +436,13 @@ export function AssistantDrawer({ selectedAthleteId, currentPage = "dashboard" }
                       <div
                         key={i}
                         className={cn(
-                          "flex",
-                          msg.role === "user" ? "justify-end" : "justify-start"
+                          "flex flex-col",
+                          msg.role === "user" ? "items-end" : "items-start"
                         )}
                       >
                         <div
                           className={cn(
-                            "max-w-[85%] rounded-lg px-3 py-2 text-sm",
+                            "max-w-[90%] rounded-lg px-3 py-2 text-sm",
                             msg.role === "user"
                               ? "bg-primary text-primary-foreground"
                               : "bg-muted"
@@ -394,29 +491,56 @@ export function AssistantDrawer({ selectedAthleteId, currentPage = "dashboard" }
             
             {/* TAB: Contexte (Staff mode) */}
             <TabsContent value="context" className="flex-1 overflow-auto p-4 m-0">
-              <p className="text-xs text-muted-foreground mb-4">
-                Données envoyées au chatbot (transparence) :
-              </p>
+              <div className="flex items-center gap-2 mb-3">
+                <Database className="h-4 w-4 text-primary" />
+                <p className="text-xs font-medium">Contexte runtime (transparence)</p>
+              </div>
               
               <div className="space-y-2">
                 {contextItems.map((item, i) => (
                   <div key={i} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0">
                     <span className="text-xs text-muted-foreground">{item.label}</span>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-medium truncate max-w-[180px]">{item.value}</span>
+                      <span className="text-xs font-medium truncate max-w-[160px]">{item.value}</span>
                       {item.status && getStatusIcon(item.status)}
+                      {item.confidence !== undefined && (
+                        <span className="text-[10px] text-muted-foreground">
+                          ({(item.confidence * 100).toFixed(0)}%)
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
               
-              {!assistantContext.raw.athleteName && (
+              {!contextPacket.athlete.name && (
                 <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
                   <p className="text-xs text-amber-800 dark:text-amber-200">
-                    ⚠️ Aucun athlète sélectionné. Le chatbot répondra sans contexte personnalisé.
+                    ⚠️ Aucun athlète sélectionné. Les réponses seront génériques.
                   </p>
                 </div>
               )}
+              
+              {contextPacket.missingFields.length > 0 && (
+                <div className="mt-4">
+                  <p className="text-xs font-medium mb-2">Champs à compléter :</p>
+                  <div className="space-y-1">
+                    {contextPacket.missingFields.map((m, i) => (
+                      <div key={i} className="text-xs p-2 bg-muted rounded">
+                        <span className="font-medium">{m.label}</span>
+                        <span className="text-muted-foreground"> → {m.whereToFix}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                <p className="text-xs text-muted-foreground">
+                  Ces données sont envoyées au chatbot pour personnaliser les réponses.
+                  Aucune donnée n'est stockée.
+                </p>
+              </div>
             </TabsContent>
           </Tabs>
         </SheetContent>
