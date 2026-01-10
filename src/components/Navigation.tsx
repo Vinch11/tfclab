@@ -48,7 +48,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
         <div className="flex items-center justify-between h-14 sm:h-16 lg:h-18">
           {/* Logo - responsive */}
           <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 min-w-0">
-            <img src={logo} alt="24C Lab" className="h-10 sm:h-12 md:h-14 lg:h-16 w-auto shrink-0" />
+            <img src={logo} alt="24C Lab" className="h-16 sm:h-20 md:h-24 lg:h-28 w-auto shrink-0" />
             <div className="min-w-0">
               <h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-foreground tracking-tight truncate">
                 Two 4 Coaching Lab

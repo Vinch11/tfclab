@@ -534,7 +534,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
       .coverBanner::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat; opacity: 0.3; }
       .coverBannerContent { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center; }
       .coverBrandBlock { display: flex; align-items: center; gap: 20px; }
-      .coverLogo { height: 80px; width: auto; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); background: white; padding: 8px; border-radius: 12px; }
+      .coverLogo { height: 140px; width: auto; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); background: white; padding: 12px; border-radius: 16px; }
       .coverBrandText { color: white; }
       .coverBrandName { font-size: 28px; font-weight: 800; letter-spacing: 0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.2); margin: 0; }
       .coverBrandTagline { font-size: 14px; opacity: 0.9; margin-top: 4px; font-weight: 400; letter-spacing: 1px; text-transform: uppercase; }
@@ -1924,7 +1924,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
     <div class="footer">
       <div style="display:flex; align-items:center; justify-content:space-between; gap:16px;">
         <div style="display:flex; align-items:center; gap:12px;">
-          ${logoBase64 ? `<img src="${logoBase64}" alt="Logo" style="height:40px; width:auto;" />` : ''}
+          ${logoBase64 ? `<img src="${logoBase64}" alt="Logo" style="height:70px; width:auto;" />` : ''}
           <div>
             <b>${htmlEscape(brandMain)}</b> — ${htmlEscape(brandSub)}<br>
             <span class="muted">Rapport généré le ${coverDate} à ${createdAt.toLocaleTimeString("fr-FR")}</span>

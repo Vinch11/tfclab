@@ -42,7 +42,7 @@ export function RoleSelector({ onSelect, loading }: RoleSelectorProps) {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
       {/* Logo */}
       <div className="mb-8">
-        <img src={logo} alt="Two For Coaching Lab" className="h-16 w-auto" />
+        <img src={logo} alt="Two For Coaching Lab" className="h-28 w-auto" />
       </div>
 
       {/* Question */}

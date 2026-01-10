@@ -81,7 +81,7 @@ const AuthPage = () => {
           <img 
             src={logo2fc} 
             alt="Two For Coaching Lab" 
-            className="h-20 w-auto mb-4"
+            className="h-36 w-auto mb-4"
           />
           <div className="flex items-center gap-2 text-primary">
             <Dumbbell className="h-6 w-6" />

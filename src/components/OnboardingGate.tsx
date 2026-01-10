@@ -19,7 +19,7 @@ export function OnboardingGate({ children }: OnboardingGateProps) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-6">
-          <img src={logo} alt="24C Lab" className="h-20 w-auto animate-pulse" />
+          <img src={logo} alt="24C Lab" className="h-36 w-auto animate-pulse" />
           <div className="flex items-center gap-2">
             <Loader2 className="h-5 w-5 animate-spin text-primary" />
             <p className="text-muted-foreground text-sm">Chargement du profil...</p>
