@@ -24,7 +24,7 @@ export const snapshotSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format de date invalide"),
   source: z.string().max(50).default("manual"),
   cycle_tag: z.string().max(50).nullable().optional(),
-  confidence: numericOptional(0, 100),
+  confidence: numericOptional(0, 1),
   fc_max: z.number().int().min(100).max(250).nullable().optional(),
   vma: numericOptional(8, 30),
   ftp: z.number().int().min(50).max(600).nullable().optional(),

@@ -48,9 +48,9 @@ export function mapExtractToSnapshot(
     extract.performance.vo2max_ml_kg_min
   );
   
-  // Convert confidence from 0-1 to 0-100 scale for schema validation
-  const confidencePercent = extract.meta.sourceConfidence != null 
-    ? Math.round(extract.meta.sourceConfidence * 100) 
+  // Confidence in reports is 0–1 (and DB stores numeric(3,2))
+  const confidence01 = extract.meta.sourceConfidence != null
+    ? Math.round(extract.meta.sourceConfidence * 100) / 100
     : null;
   
   const snapshot: Partial<DbSnapshot> = {
@@ -77,8 +77,8 @@ export function mapExtractToSnapshot(
     metabolic_profile: profile,
     metabolic_score: score != null ? Math.round(score) : null,
     
-    // Confidence as percentage (0-100)
-    confidence: confidencePercent,
+    // Confidence (0-1)
+    confidence: confidence01,
     
     // Notes
     coach_notes: notes.join(" | "),
