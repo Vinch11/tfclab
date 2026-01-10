@@ -297,12 +297,12 @@ export function formatContextForDisplay(context: AssistantAthleteContext): { lab
   }
   
   // VLamax
-  if (context.vlamaxEffectif?.value !== null) {
+  if (context.vlamaxEffectif && context.vlamaxEffectif.value !== null) {
     const v = context.vlamaxEffectif;
     const status = v.confidence >= 0.7 ? "ok" : v.confidence >= 0.4 ? "warning" : "error";
     items.push({ 
       label: "VLamax", 
-      value: `${v.value?.toFixed(2)} (${v.source}, ${(v.confidence * 100).toFixed(0)}%)`,
+      value: `${v.value.toFixed(2)} (${v.source}, ${(v.confidence * 100).toFixed(0)}%)`,
       status 
     });
   } else {
