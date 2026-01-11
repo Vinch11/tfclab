@@ -63,6 +63,12 @@ import {
   type PhysiologicalReading,
 } from "@/lib/wahoo/wahooWorkoutInterpreter";
 import { WahooPhysiologicalReading } from "@/components/WahooPhysiologicalReading";
+import { 
+  generateWahooSuggestions,
+  type SuggestionEngineInput,
+  type SuggestionEngineOutput,
+} from "@/lib/wahoo/wahooSuggestionEngine";
+import { WahooSuggestionsPanel } from "@/components/WahooSuggestionsPanel";
 
 function getSportBadgeColor(sport: string | undefined): string {
   if (!sport) return "bg-muted text-muted-foreground";
@@ -1232,6 +1238,45 @@ export default function TemplatesPage() {
     });
   }, [staffMode, selectedAthlete, athleteMetrics.vlamaxEffectif.value, athleteMetrics.tteEffectif.value]);
 
+  // v9: Wahoo Context for session interpretation
+  const wahooContext = useMemo<WahooAthleteContext | null>(() => {
+    if (!selectedAthlete) return null;
+    return {
+      vlamaxEffectif: athleteMetrics.vlamaxEffectif.value,
+      vlamaxSeuil: getVLamaxThreshold(selectedAthlete.goal),
+      tteEffectif: athleteMetrics.tteEffectif.value,
+      tteTarget: getTTETarget(selectedAthlete.goal),
+      fatigueState: (selectedSnapshot as any)?.fatigue_state || null,
+      sportPrincipal: (selectedSnapshot as any)?.sport_main,
+      objectif: selectedAthlete.goal,
+    };
+  }, [selectedAthlete, athleteMetrics, selectedSnapshot]);
+
+  // v9: Wahoo Suggestions Engine
+  const wahooSuggestions = useMemo<SuggestionEngineOutput | null>(() => {
+    if (!selectedAthlete || !staffMode) return null;
+    
+    const fatigueState = (selectedSnapshot as any)?.fatigue_state;
+    let fatigueStatus: "low" | "moderate" | "high" | "unknown" = "unknown";
+    if (fatigueState === "high" || fatigueState === "élevé") fatigueStatus = "high";
+    else if (fatigueState === "moderate" || fatigueState === "modéré") fatigueStatus = "moderate";
+    else if (fatigueState === "low" || fatigueState === "faible") fatigueStatus = "low";
+
+    const input: SuggestionEngineInput = {
+      vlamaxEffectif: athleteMetrics.vlamaxEffectif.value,
+      vlamaxConfidence: athleteMetrics.vlamaxEffectif.confidence,
+      tteEffectif: athleteMetrics.tteEffectif.value,
+      tteConfidence: athleteMetrics.tteEffectif.confidence,
+      raceReadinessScore: athleteMetrics.readinessScore,
+      fatigueStatus,
+      capInjuryRisk: capInjuryRisk?.level as any,
+      sport: "TRI",
+      objectif: selectedAthlete.goal || "IM",
+    };
+
+    return generateWahooSuggestions(input);
+  }, [selectedAthlete, staffMode, athleteMetrics, selectedSnapshot, capInjuryRisk]);
+
   const handleLoadTemplate = async () => {
     const template = getTemplateById(selectedTemplateId);
     if (!template) {
@@ -1530,6 +1575,15 @@ export default function TemplatesPage() {
           </div>
         )}
 
+        {/* v9: Wahoo SYSTM Suggestions Panel */}
+        {isLoaded && staffMode && selectedAthlete && wahooSuggestions && (
+          <WahooSuggestionsPanel 
+            output={wahooSuggestions}
+            staffMode={staffMode}
+            athleteName={selectedAthlete.name}
+          />
+        )}
+
         {/* Briefing Card */}
         {isLoaded && currentBriefing && (
           <Card className="border-l-4 border-l-primary bg-primary/5">
@@ -1576,6 +1630,7 @@ export default function TemplatesPage() {
                   totalWeeks={displayedWeeks.length}
                   staffMode={staffMode}
                   capInjuryRisk={capInjuryRisk}
+                  wahooContext={wahooContext}
                 />
               ))}
             </Accordion>
