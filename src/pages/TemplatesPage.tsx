@@ -3,7 +3,7 @@
  * Displays training templates with optional staff annotations
  * Supports multi-section documents (e.g., Finisher vs Elite plans)
  */
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -364,6 +364,9 @@ function SessionCard({
   weekPhase,
   capInjuryRisk,
   wahooContext,
+  sessionId,
+  isExpanded,
+  onToggleExpand,
 }: { 
   session: TemplateSession; 
   sessionAnnotations: AnnotationV2[]; 
@@ -371,8 +374,10 @@ function SessionCard({
   weekPhase?: string;
   capInjuryRisk?: CAPInjuryRiskResult | null;
   wahooContext?: WahooAthleteContext | null;
+  sessionId: string;
+  isExpanded: boolean;
+  onToggleExpand: (sessionId: string) => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const classification = classifySession(session);
 
   const displayDetails = session.details || session.description || "";
@@ -457,13 +462,13 @@ function SessionCard({
               {displayDetails.length > 80 ? (
                 <div className="mt-1">
                   <p className="text-xs text-muted-foreground">
-                    {expanded ? displayDetails : displayDetails.slice(0, 80) + "..."}
+                    {isExpanded ? displayDetails : displayDetails.slice(0, 80) + "..."}
                   </p>
                   <button
-                    onClick={() => setExpanded(!expanded)}
+                    onClick={() => onToggleExpand(sessionId)}
                     className="text-xs text-primary hover:underline mt-1"
                   >
-                    {expanded ? "Réduire" : "Voir détails"}
+                    {isExpanded ? "Réduire" : "Voir détails"}
                   </button>
                 </div>
               ) : (
@@ -638,7 +643,7 @@ function WeekRiskSummary({ weekAnnotations }: { weekAnnotations: AnnotationV2[] 
   );
 }
 
-function WeekSection({ week, annotations, totalWeeks, staffMode, capInjuryRisk, wahooContext }: { week: TemplateWeek; annotations: AnnotationV2[]; totalWeeks: number; staffMode: boolean; capInjuryRisk?: CAPInjuryRiskResult | null; wahooContext?: WahooAthleteContext | null }) {
+function WeekSection({ week, annotations, totalWeeks, staffMode, capInjuryRisk, wahooContext, expandedSessions, onToggleSessionExpand }: { week: TemplateWeek; annotations: AnnotationV2[]; totalWeeks: number; staffMode: boolean; capInjuryRisk?: CAPInjuryRiskResult | null; wahooContext?: WahooAthleteContext | null; expandedSessions: Set<string>; onToggleSessionExpand: (sessionId: string) => void }) {
   const weekAnnotations = annotations.filter((a) => a.scope === "WEEK" && a.weekNumber === week.weekNumber);
   const sessionAnnotationsMap = useMemo(() => {
     const map: Record<string, AnnotationV2[]> = {};
@@ -688,6 +693,7 @@ function WeekSection({ week, annotations, totalWeeks, staffMode, capInjuryRisk, 
           {week.sessions.map((session, idx) => {
             const key = `${session.day}-${session.title || ""}`;
             const sessionAnns = sessionAnnotationsMap[key] || [];
+            const sessionId = `week-${week.weekNumber}-session-${idx}`;
             return (
               <SessionCard 
                 key={idx} 
@@ -697,6 +703,9 @@ function WeekSection({ week, annotations, totalWeeks, staffMode, capInjuryRisk, 
                 weekPhase={phase}
                 capInjuryRisk={capInjuryRisk}
                 wahooContext={wahooContext}
+                sessionId={sessionId}
+                isExpanded={expandedSessions.has(sessionId)}
+                onToggleExpand={onToggleSessionExpand}
               />
             );
           })}
@@ -1059,6 +1068,31 @@ export default function TemplatesPage() {
   useEffect(() => {
     setOpenWeekAccordion(undefined);
     localStorage.removeItem("vlab-open-week-accordion");
+  }, [selectedTemplateId, selectedSectionId]);
+  
+  // Persist expanded sessions state
+  const [expandedSessions, setExpandedSessions] = useState<Set<string>>(() => {
+    const saved = localStorage.getItem("vlab-expanded-sessions");
+    return saved ? new Set(JSON.parse(saved)) : new Set();
+  });
+  
+  const handleToggleSessionExpand = useCallback((sessionId: string) => {
+    setExpandedSessions(prev => {
+      const next = new Set(prev);
+      if (next.has(sessionId)) {
+        next.delete(sessionId);
+      } else {
+        next.add(sessionId);
+      }
+      localStorage.setItem("vlab-expanded-sessions", JSON.stringify([...next]));
+      return next;
+    });
+  }, []);
+  
+  // Reset expanded sessions when template or section changes
+  useEffect(() => {
+    setExpandedSessions(new Set());
+    localStorage.removeItem("vlab-expanded-sessions");
   }, [selectedTemplateId, selectedSectionId]);
 
   const selectedTemplate = useMemo(
@@ -1657,6 +1691,8 @@ export default function TemplatesPage() {
                   staffMode={staffMode}
                   capInjuryRisk={capInjuryRisk}
                   wahooContext={wahooContext}
+                  expandedSessions={expandedSessions}
+                  onToggleSessionExpand={handleToggleSessionExpand}
                 />
               ))}
             </Accordion>
