@@ -1064,8 +1064,16 @@ export default function TemplatesPage() {
   const [isLoaded, setIsLoaded] = useState(() => {
     return localStorage.getItem("vlab-template-loaded") === "true";
   });
-  const [staffMode, setStaffMode] = useState(false);
+  const [staffMode, setStaffMode] = useState<boolean>(() => {
+    const saved = localStorage.getItem("vlab-templates-staff-mode");
+    return saved === "true";
+  });
   const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
+  
+  // Persist staff mode to localStorage
+  useEffect(() => {
+    localStorage.setItem("vlab-templates-staff-mode", staffMode.toString());
+  }, [staffMode]);
   const [comparisonProfile, setComparisonProfile] = useState<"PERFORMANCE" | "INTERMEDIAIRE">("PERFORMANCE");
   const [showComparisonMode, setShowComparisonMode] = useState(false);
   
