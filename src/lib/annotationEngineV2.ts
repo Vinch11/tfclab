@@ -292,6 +292,33 @@ function estimateBlocDuration(text: string): number {
   return 0;
 }
 
+// Patterns robustes pour détecter les séances de repos
+const REST_SESSION_PATTERNS = [
+  /^\s*off\s*$/i,                           // Titre exactement "OFF"
+  /\brepos\s*(complet|total|actif)?\b/i,    // "repos", "repos complet", etc.
+  /\brest\s*(day)?\b/i,                     // "rest", "rest day"
+  /\bjour\s+(de\s+)?repos\b/i,              // "jour de repos", "jour repos"
+  /\brécup(ération)?\s*(complète|passive|active)?\b/i,  // "récup", "récupération"
+  /\brecovery\b/i,                          // "recovery"
+];
+
+function isRestOrRecoverySession(session: TemplateSession): boolean {
+  const title = (session.title || "").trim();
+  const details = (session.details || "").trim();
+  const description = (session.description || "").trim();
+  const sport = (session.sport || session.discipline || "").toLowerCase();
+  
+  // Check if title is exactly "OFF" (case insensitive)
+  if (/^\s*off\s*$/i.test(title)) return true;
+  
+  // Check sport field for rest indicators
+  if (sport.includes("repos") || sport.includes("off") || sport.includes("rest")) return true;
+  
+  // Check all text fields against patterns
+  const textToCheck = `${title} ${details} ${description}`;
+  return REST_SESSION_PATTERNS.some(pattern => pattern.test(textToCheck));
+}
+
 export function classifySession(session: TemplateSession): SessionClassification {
   const title = (session.title || "").toLowerCase();
   const details = (session.details || "").toLowerCase();
@@ -312,8 +339,8 @@ export function classifySession(session: TemplateSession): SessionClassification
   
   const estimatedDuration = parseDurationFromText(details);
   
-  // Recovery / Rest
-  if (combined.includes("repos") || combined.includes("récup") || combined.includes("recovery") || combined.includes("off") || sportNormalized === "rest") {
+  // Recovery / Rest - Use robust detection first
+  if (isRestOrRecoverySession(session) || sportNormalized === "rest") {
     intensityType = "RECOVERY";
     loadTag = "low";
   }
