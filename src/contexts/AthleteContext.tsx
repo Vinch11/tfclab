@@ -82,16 +82,26 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
   }, [dbAthletes]);
 
   const currentAthlete = useMemo(() => {
-    return athletes.find((a) => a.id === selectedAthleteId) || athletes[0] || null;
+    // Priorité: athlète sélectionné existant, sinon premier de la liste
+    const found = athletes.find((a) => a.id === selectedAthleteId);
+    if (found) return found;
+    return athletes[0] || null;
   }, [athletes, selectedAthleteId]);
 
-  // si pas de selectedAthleteId, sélectionner le premier (quand les données arrivent)
+  // Seulement si aucun athlète sélectionné ET aucun ID persisté en localStorage
   useEffect(() => {
-    if (!selectedAthleteId && athletes.length > 0) {
+    const persistedId = localStorage.getItem(LS_SELECTED);
+    const persistedExists = persistedId && athletes.some((a) => a.id === persistedId);
+    
+    // Ne sélectionner le premier que si vraiment rien de persisté ou l'athlète persisté n'existe plus
+    if (!persistedExists && athletes.length > 0 && !selectedAthleteId) {
       setSelectedAthleteId(athletes[0].id);
+    } else if (persistedExists && !selectedAthleteId) {
+      // Restaurer l'athlète persisté si le state n'est pas encore à jour
+      setSelectedAthleteIdState(persistedId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [athletes.length]);
+  }, [athletes]);
 
   const addAthlete = async (athlete: any) => {
     // On écrit dans Supabase : table athletes + refs JSON complet
