@@ -1,8 +1,6 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Printer, Download, Loader2 } from "lucide-react";
-import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas";
+import { Printer, Download } from "lucide-react";
 import {
   WAHOO_WORKOUTS,
   getCategoryLabel,
@@ -27,7 +25,6 @@ const CATEGORY_ORDER: WahooCategory[] = [
 
 export function WahooPrintableList() {
   const printRef = useRef<HTMLDivElement>(null);
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const workoutsByCategory = CATEGORY_ORDER.reduce((acc, category) => {
     const workouts = WAHOO_WORKOUTS.filter((w) => w.category === category);
@@ -77,11 +74,9 @@ export function WahooPrintableList() {
     }
   `;
 
-  const handlePrint = () => {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow || !printRef.current) return;
-
-    printWindow.document.write(`
+  const getHtmlContent = () => {
+    if (!printRef.current) return "";
+    return `
       <!DOCTYPE html>
       <html>
         <head>
@@ -92,8 +87,14 @@ export function WahooPrintableList() {
           ${printRef.current.innerHTML}
         </body>
       </html>
-    `);
+    `;
+  };
 
+  const handlePrint = () => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+
+    printWindow.document.write(getHtmlContent());
     printWindow.document.close();
     printWindow.focus();
     setTimeout(() => {
@@ -101,73 +102,21 @@ export function WahooPrintableList() {
     }, 250);
   };
 
-  const handleDownloadPDF = async () => {
-    setIsGeneratingPDF(true);
-    
-    try {
-      // Create a temporary container for PDF rendering
-      const container = document.createElement("div");
-      container.style.position = "absolute";
-      container.style.left = "-9999px";
-      container.style.top = "0";
-      container.style.width = "800px";
-      container.style.background = "white";
-      container.style.padding = "20px";
-      container.innerHTML = `<style>${getStyles()}</style>${printRef.current?.innerHTML || ""}`;
-      document.body.appendChild(container);
-      
-      const canvas = await html2canvas(container, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: "#ffffff",
-        width: 800,
-      });
-      
-      document.body.removeChild(container);
-      
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-      });
-      
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-      const ratio = pdfWidth / imgWidth;
-      const scaledHeight = imgHeight * ratio;
-      const pageHeight = pdfHeight - 20;
-      const totalPages = Math.ceil(scaledHeight / pageHeight);
-      
-      for (let page = 0; page < totalPages; page++) {
-        if (page > 0) {
-          pdf.addPage();
-        }
-        
-        const srcY = page * (pageHeight / ratio);
-        const srcHeight = Math.min(pageHeight / ratio, imgHeight - srcY);
-        
-        const pageCanvas = document.createElement("canvas");
-        pageCanvas.width = imgWidth;
-        pageCanvas.height = srcHeight;
-        const ctx = pageCanvas.getContext("2d");
-        
-        if (ctx) {
-          ctx.drawImage(canvas, 0, srcY, imgWidth, srcHeight, 0, 0, imgWidth, srcHeight);
-          const pageImgData = pageCanvas.toDataURL("image/png");
-          pdf.addImage(pageImgData, "PNG", 0, 10, pdfWidth, srcHeight * ratio);
-        }
-      }
-      
-      pdf.save(`Wahoo-SYSTM-Library_${new Date().toISOString().split("T")[0]}.pdf`);
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-    } finally {
-      setIsGeneratingPDF(false);
-    }
+  const handleDownloadPDF = () => {
+    // Open in new window with print dialog - user can save as PDF
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+
+    const htmlWithPdfInstructions = getHtmlContent().replace(
+      "</body>",
+      `<p style="text-align: center; margin-top: 30px; padding: 15px; background: #fffbeb; border: 1px solid #fbbf24; border-radius: 8px; font-size: 12px;">
+        <strong>💡 Pour sauvegarder en PDF :</strong> Utilisez Ctrl+P (ou Cmd+P sur Mac) puis sélectionnez "Enregistrer au format PDF" comme destination.
+      </p></body>`
+    );
+
+    printWindow.document.write(htmlWithPdfInstructions);
+    printWindow.document.close();
+    printWindow.focus();
   };
 
   const getEffectClass = (effect: "down" | "up" | "neutral") => {
@@ -196,19 +145,9 @@ export function WahooPrintableList() {
             <Printer className="h-4 w-4" />
             <span className="hidden sm:inline">Imprimer</span>
           </Button>
-          <Button 
-            onClick={handleDownloadPDF} 
-            className="gap-2"
-            disabled={isGeneratingPDF}
-          >
-            {isGeneratingPDF ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Download className="h-4 w-4" />
-            )}
-            <span className="hidden sm:inline">
-              {isGeneratingPDF ? "Génération..." : "Télécharger PDF"}
-            </span>
+          <Button onClick={handleDownloadPDF} className="gap-2">
+            <Download className="h-4 w-4" />
+            <span className="hidden sm:inline">Sauvegarder PDF</span>
             <span className="sm:hidden">PDF</span>
           </Button>
         </div>
