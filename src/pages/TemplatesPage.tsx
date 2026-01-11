@@ -1050,35 +1050,82 @@ export default function TemplatesPage() {
   const [comparisonProfile, setComparisonProfile] = useState<"PERFORMANCE" | "INTERMEDIAIRE">("PERFORMANCE");
   const [showComparisonMode, setShowComparisonMode] = useState(false);
   
-  // Persist accordion open state
+  // Persist accordion open state with associated template/section context
   const [openWeekAccordion, setOpenWeekAccordion] = useState<string | undefined>(() => {
-    return localStorage.getItem("vlab-open-week-accordion") || undefined;
+    const saved = localStorage.getItem("vlab-open-week-accordion");
+    if (saved) {
+      try {
+        return JSON.parse(saved).weekId;
+      } catch {
+        return undefined;
+      }
+    }
+    return undefined;
   });
   
-  // Persist accordion state to localStorage
+  // Store the template/section context along with the accordion state
+  const savedAccordionContext = useRef<{ templateId: string; sectionId: string | null } | null>(
+    (() => {
+      const saved = localStorage.getItem("vlab-open-week-accordion");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          return { templateId: parsed.templateId, sectionId: parsed.sectionId };
+        } catch {
+          return null;
+        }
+      }
+      return null;
+    })()
+  );
+  
+  // Persist accordion state to localStorage with context
   useEffect(() => {
-    if (openWeekAccordion) {
-      localStorage.setItem("vlab-open-week-accordion", openWeekAccordion);
-    } else {
-      localStorage.removeItem("vlab-open-week-accordion");
+    if (openWeekAccordion && selectedSectionId) {
+      localStorage.setItem("vlab-open-week-accordion", JSON.stringify({
+        weekId: openWeekAccordion,
+        templateId: selectedTemplateId,
+        sectionId: selectedSectionId
+      }));
     }
-  }, [openWeekAccordion]);
+  }, [openWeekAccordion, selectedTemplateId, selectedSectionId]);
   
-  // Track if initial mount to avoid resetting on page load
-  const isInitialMount = useRef(true);
-  const prevTemplateId = useRef(selectedTemplateId);
-  const prevSectionId = useRef(selectedSectionId);
-  
-  // Reset accordion only when user actually changes template or section (not on initial load)
+  // Check if context changed and reset accordion if needed
+  const hasCheckedContext = useRef(false);
   useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
+    if (!selectedSectionId || hasCheckedContext.current) return;
+    
+    // Only check once when selectedSectionId becomes available
+    hasCheckedContext.current = true;
+    
+    const savedContext = savedAccordionContext.current;
+    if (savedContext) {
+      // If context doesn't match, clear the accordion
+      if (savedContext.templateId !== selectedTemplateId || savedContext.sectionId !== selectedSectionId) {
+        setOpenWeekAccordion(undefined);
+        localStorage.removeItem("vlab-open-week-accordion");
+        setExpandedSessions(new Set());
+        localStorage.removeItem("vlab-expanded-sessions");
+      }
+    }
+  }, [selectedSectionId, selectedTemplateId]);
+  
+  // Track template/section changes after initial load
+  const prevTemplateId = useRef<string | null>(null);
+  const prevSectionId = useRef<string | null>(null);
+  
+  useEffect(() => {
+    // Skip if sectionId not yet loaded
+    if (!selectedSectionId) return;
+    
+    // Initialize refs on first valid state
+    if (prevTemplateId.current === null) {
       prevTemplateId.current = selectedTemplateId;
       prevSectionId.current = selectedSectionId;
       return;
     }
     
-    // Only reset if the template or section actually changed
+    // Reset only if template or section actually changed by user
     if (prevTemplateId.current !== selectedTemplateId || prevSectionId.current !== selectedSectionId) {
       setOpenWeekAccordion(undefined);
       localStorage.removeItem("vlab-open-week-accordion");
