@@ -196,3 +196,46 @@ export function getSourceLabel(source: TTESource): string {
 export function isTTEAvailable(tte: TTEEffectif): boolean {
   return tte.source !== "unknown" && tte.confidence > 0.2;
 }
+
+// =============================================
+// CONVERSION VERS SCORE ENVELOPE (Staff-Grade)
+// =============================================
+
+import { 
+  ScoreEnvelope, 
+  ScoreSource, 
+  buildTTEEnvelope 
+} from "./scoreEnvelope";
+
+/**
+ * Convertit un TTEEffectif en ScoreEnvelope universel
+ */
+export function toTTEEnvelope(
+  tte: TTEEffectif, 
+  objectif: string
+): ScoreEnvelope {
+  // Mapper les sources TTE -> ScoreSource
+  const sourceMap: Record<TTESource, ScoreSource> = {
+    observed: "MEASURED",
+    estimated: "ESTIMATED",
+    unknown: "UNKNOWN",
+  };
+
+  const source = sourceMap[tte.source];
+  
+  // Générer les détails contextuels
+  const why: string[] = [];
+  
+  if (tte.status_message) {
+    why.push(tte.status_message);
+  }
+
+  return buildTTEEnvelope(
+    tte.tte_min,
+    source,
+    tte.confidence,
+    objectif,
+    tte.target,
+    { why }
+  );
+}

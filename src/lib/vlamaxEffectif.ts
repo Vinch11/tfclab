@@ -273,3 +273,53 @@ export function formatVLamaxDisplay(vlamax: VLamaxEffectif): string {
   if (vlamax.value === null) return "—";
   return vlamax.value.toFixed(2);
 }
+
+// =============================================
+// CONVERSION VERS SCORE ENVELOPE (Staff-Grade)
+// =============================================
+
+import { 
+  ScoreEnvelope, 
+  ScoreSource, 
+  buildVLamaxEnvelope 
+} from "./scoreEnvelope";
+
+/**
+ * Convertit un VLamaxEffectif en ScoreEnvelope universel
+ */
+export function toVLamaxEnvelope(
+  vlamax: VLamaxEffectif, 
+  objectif: string
+): ScoreEnvelope {
+  // Mapper les sources VLamax -> ScoreSource
+  const sourceMap: Record<VLamaxSource, ScoreSource> = {
+    test: vlamax.isLocked ? "MEASURED" : "ESTIMATED",
+    snapshot: "MEASURED",
+    estimated: "MODELLED",
+    unknown: "UNKNOWN",
+  };
+
+  const source = sourceMap[vlamax.source];
+  
+  // Générer les détails contextuels
+  const why: string[] = [];
+  const recommendations: string[] = [];
+
+  if (vlamax.details?.testType) {
+    why.push(`Test: ${vlamax.details.testName || vlamax.details.testType}`);
+  }
+  if (vlamax.details?.date) {
+    why.push(`Date: ${vlamax.details.date}`);
+  }
+  if (vlamax.isLocked) {
+    why.push("🔒 VLamax verrouillée (mesure lactate)");
+  }
+
+  return buildVLamaxEnvelope(
+    vlamax.value,
+    source,
+    vlamax.confidence,
+    objectif,
+    { why, recommendations }
+  );
+}
