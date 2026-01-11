@@ -1,6 +1,8 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Printer, Download } from "lucide-react";
+import { Printer, Download, Loader2 } from "lucide-react";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 import {
   WAHOO_WORKOUTS,
   getCategoryLabel,
@@ -25,6 +27,7 @@ const CATEGORY_ORDER: WahooCategory[] = [
 
 export function WahooPrintableList() {
   const printRef = useRef<HTMLDivElement>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const workoutsByCategory = CATEGORY_ORDER.reduce((acc, category) => {
     const workouts = WAHOO_WORKOUTS.filter((w) => w.category === category);
@@ -36,61 +39,54 @@ export function WahooPrintableList() {
     return acc;
   }, {} as Record<WahooCategory, typeof WAHOO_WORKOUTS>);
 
+  const getStyles = () => `
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+      font-size: 10px; 
+      line-height: 1.4;
+      padding: 20px;
+      color: #1a1a1a;
+      background: white;
+    }
+    h1 { font-size: 18px; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px; }
+    h2 { font-size: 13px; background: #f0f0f0; padding: 6px 10px; margin: 15px 0 8px 0; border-left: 4px solid #333; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+    th { background: #333; color: white; padding: 6px 8px; text-align: left; font-size: 9px; font-weight: 600; }
+    td { padding: 5px 8px; border-bottom: 1px solid #ddd; font-size: 9px; vertical-align: top; }
+    tr:nth-child(even) { background: #fafafa; }
+    .sport { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 8px; font-weight: 600; }
+    .bike { background: #dbeafe; color: #1e40af; }
+    .run { background: #dcfce7; color: #166534; }
+    .risk-0 { color: #16a34a; }
+    .risk-1 { color: #ca8a04; }
+    .risk-2 { color: #ea580c; }
+    .risk-3 { color: #dc2626; }
+    .effect { font-size: 8px; }
+    .effect-down { color: #16a34a; }
+    .effect-up { color: #dc2626; }
+    .effect-neutral { color: #6b7280; }
+    .annotation { font-style: italic; color: #555; font-size: 8px; max-width: 250px; }
+    .duration { white-space: nowrap; }
+    .total { text-align: center; margin-top: 20px; font-size: 11px; color: #666; }
+    @media print {
+      body { padding: 10px; }
+      h2 { break-after: avoid; }
+      table { break-inside: auto; }
+      tr { break-inside: avoid; }
+    }
+  `;
+
   const handlePrint = () => {
     const printWindow = window.open("", "_blank");
     if (!printWindow || !printRef.current) return;
-
-    const styles = `
-      <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { 
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-          font-size: 10px; 
-          line-height: 1.4;
-          padding: 20px;
-          color: #1a1a1a;
-        }
-        h1 { font-size: 18px; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px; }
-        h2 { font-size: 13px; background: #f0f0f0; padding: 6px 10px; margin: 15px 0 8px 0; border-left: 4px solid #333; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-        th { background: #333; color: white; padding: 6px 8px; text-align: left; font-size: 9px; font-weight: 600; }
-        td { padding: 5px 8px; border-bottom: 1px solid #ddd; font-size: 9px; vertical-align: top; }
-        tr:nth-child(even) { background: #fafafa; }
-        .sport { 
-          display: inline-block; 
-          padding: 2px 6px; 
-          border-radius: 3px; 
-          font-size: 8px; 
-          font-weight: 600;
-        }
-        .bike { background: #dbeafe; color: #1e40af; }
-        .run { background: #dcfce7; color: #166534; }
-        .risk-0 { color: #16a34a; }
-        .risk-1 { color: #ca8a04; }
-        .risk-2 { color: #ea580c; }
-        .risk-3 { color: #dc2626; }
-        .effect { font-size: 8px; }
-        .effect-down { color: #16a34a; }
-        .effect-up { color: #dc2626; }
-        .effect-neutral { color: #6b7280; }
-        .annotation { font-style: italic; color: #555; font-size: 8px; max-width: 250px; }
-        .duration { white-space: nowrap; }
-        .total { text-align: center; margin-top: 20px; font-size: 11px; color: #666; }
-        @media print {
-          body { padding: 10px; }
-          h2 { break-after: avoid; }
-          table { break-inside: auto; }
-          tr { break-inside: avoid; }
-        }
-      </style>
-    `;
 
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
           <title>Bibliothèque Wahoo SYSTM - Two For Coaching</title>
-          ${styles}
+          <style>${getStyles()}</style>
         </head>
         <body>
           ${printRef.current.innerHTML}
@@ -103,6 +99,75 @@ export function WahooPrintableList() {
     setTimeout(() => {
       printWindow.print();
     }, 250);
+  };
+
+  const handleDownloadPDF = async () => {
+    setIsGeneratingPDF(true);
+    
+    try {
+      // Create a temporary container for PDF rendering
+      const container = document.createElement("div");
+      container.style.position = "absolute";
+      container.style.left = "-9999px";
+      container.style.top = "0";
+      container.style.width = "800px";
+      container.style.background = "white";
+      container.style.padding = "20px";
+      container.innerHTML = `<style>${getStyles()}</style>${printRef.current?.innerHTML || ""}`;
+      document.body.appendChild(container);
+      
+      const canvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+        width: 800,
+      });
+      
+      document.body.removeChild(container);
+      
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = pdfWidth / imgWidth;
+      const scaledHeight = imgHeight * ratio;
+      const pageHeight = pdfHeight - 20;
+      const totalPages = Math.ceil(scaledHeight / pageHeight);
+      
+      for (let page = 0; page < totalPages; page++) {
+        if (page > 0) {
+          pdf.addPage();
+        }
+        
+        const srcY = page * (pageHeight / ratio);
+        const srcHeight = Math.min(pageHeight / ratio, imgHeight - srcY);
+        
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = imgWidth;
+        pageCanvas.height = srcHeight;
+        const ctx = pageCanvas.getContext("2d");
+        
+        if (ctx) {
+          ctx.drawImage(canvas, 0, srcY, imgWidth, srcHeight, 0, 0, imgWidth, srcHeight);
+          const pageImgData = pageCanvas.toDataURL("image/png");
+          pdf.addImage(pageImgData, "PNG", 0, 10, pdfWidth, srcHeight * ratio);
+        }
+      }
+      
+      pdf.save(`Wahoo-SYSTM-Library_${new Date().toISOString().split("T")[0]}.pdf`);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+    } finally {
+      setIsGeneratingPDF(false);
+    }
   };
 
   const getEffectClass = (effect: "down" | "up" | "neutral") => {
@@ -119,20 +184,37 @@ export function WahooPrintableList() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <h2 className="text-lg font-semibold">Liste imprimable</h2>
           <p className="text-sm text-muted-foreground">
             {WAHOO_WORKOUTS.length} séances Wahoo SYSTM
           </p>
         </div>
-        <Button onClick={handlePrint} className="gap-2">
-          <Printer className="h-4 w-4" />
-          Imprimer
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handlePrint} variant="outline" className="gap-2">
+            <Printer className="h-4 w-4" />
+            <span className="hidden sm:inline">Imprimer</span>
+          </Button>
+          <Button 
+            onClick={handleDownloadPDF} 
+            className="gap-2"
+            disabled={isGeneratingPDF}
+          >
+            {isGeneratingPDF ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4" />
+            )}
+            <span className="hidden sm:inline">
+              {isGeneratingPDF ? "Génération..." : "Télécharger PDF"}
+            </span>
+            <span className="sm:hidden">PDF</span>
+          </Button>
+        </div>
       </div>
 
-      {/* Preview (hidden but used for print content) */}
+      {/* Hidden content for print/PDF */}
       <div ref={printRef} className="hidden">
         <h1>Bibliothèque Wahoo SYSTM – Two For Coaching</h1>
 
@@ -174,16 +256,12 @@ export function WahooPrintableList() {
                       </td>
                       <td>{getAxisLabel(w.primary_axis)}</td>
                       <td>
-                        <span
-                          className={`effect ${getEffectClass(w.vlamax_effect)}`}
-                        >
+                        <span className={`effect ${getEffectClass(w.vlamax_effect)}`}>
                           {getEffectSymbol(w.vlamax_effect)}
                         </span>
                       </td>
                       <td>
-                        <span
-                          className={`effect ${getEffectClass(w.tte_effect)}`}
-                        >
+                        <span className={`effect ${getEffectClass(w.tte_effect)}`}>
                           {getEffectSymbol(w.tte_effect)}
                         </span>
                       </td>
@@ -227,9 +305,7 @@ export function WahooPrintableList() {
                         <th className="text-left p-2 font-medium">Nom</th>
                         <th className="text-left p-2 font-medium">Sport</th>
                         <th className="text-left p-2 font-medium">Durée</th>
-                        <th className="text-left p-2 font-medium">
-                          Axe principal
-                        </th>
+                        <th className="text-left p-2 font-medium">Axe principal</th>
                         <th className="text-left p-2 font-medium">VLamax</th>
                         <th className="text-left p-2 font-medium">TTE</th>
                         <th className="text-left p-2 font-medium">Risque</th>
@@ -237,10 +313,7 @@ export function WahooPrintableList() {
                     </thead>
                     <tbody>
                       {workouts.map((w) => (
-                        <tr
-                          key={w.wahoo_id}
-                          className="border-b border-border/50"
-                        >
+                        <tr key={w.wahoo_id} className="border-b border-border/50">
                           <td className="p-2 font-medium">{w.wahoo_name}</td>
                           <td className="p-2">
                             <span
@@ -254,8 +327,7 @@ export function WahooPrintableList() {
                             </span>
                           </td>
                           <td className="p-2 whitespace-nowrap">
-                            {w.duration_min_range[0]}-{w.duration_min_range[1]}{" "}
-                            min
+                            {w.duration_min_range[0]}-{w.duration_min_range[1]} min
                           </td>
                           <td className="p-2">{getAxisLabel(w.primary_axis)}</td>
                           <td className="p-2">
