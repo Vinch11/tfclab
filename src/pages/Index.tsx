@@ -13,7 +13,7 @@ import { TestComparison } from "@/components/TestComparison";
 import { RaceReadinessCard } from "@/components/RaceReadinessCard";
 import { PhysiologicalAnalysis } from "@/components/PhysiologicalAnalysis";
 
-import { WorkoutLibrary } from "@/components/WorkoutLibrary";
+import { IndexSeancesView } from "@/components/IndexSeances";
 
 import { ExportTools } from "@/components/ExportTools";
 import { SnapshotManager } from "@/components/SnapshotManager";
@@ -657,7 +657,7 @@ const Index = () => {
                   setShowPhysioAnalysis(false);
                 }} />}
                 
-                {showWorkoutLibrary && <WorkoutLibrary athlete={legacyAthlete} />}
+                {showWorkoutLibrary && <IndexSeancesView />}
                 {showSnapshots && currentAthlete && (
                   <SnapshotManager
                     athleteId={currentAthlete.id}
