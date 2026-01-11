@@ -1040,6 +1040,26 @@ export default function TemplatesPage() {
   const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
   const [comparisonProfile, setComparisonProfile] = useState<"PERFORMANCE" | "INTERMEDIAIRE">("PERFORMANCE");
   const [showComparisonMode, setShowComparisonMode] = useState(false);
+  
+  // Persist accordion open state
+  const [openWeekAccordion, setOpenWeekAccordion] = useState<string | undefined>(() => {
+    return localStorage.getItem("vlab-open-week-accordion") || undefined;
+  });
+  
+  // Persist accordion state to localStorage
+  useEffect(() => {
+    if (openWeekAccordion) {
+      localStorage.setItem("vlab-open-week-accordion", openWeekAccordion);
+    } else {
+      localStorage.removeItem("vlab-open-week-accordion");
+    }
+  }, [openWeekAccordion]);
+  
+  // Reset accordion when template or section changes
+  useEffect(() => {
+    setOpenWeekAccordion(undefined);
+    localStorage.removeItem("vlab-open-week-accordion");
+  }, [selectedTemplateId, selectedSectionId]);
 
   const selectedTemplate = useMemo(
     () => getTemplateById(selectedTemplateId),
@@ -1621,7 +1641,13 @@ export default function TemplatesPage() {
                 </Badge>
               )}
             </div>
-            <Accordion type="single" collapsible className="space-y-2">
+            <Accordion 
+              type="single" 
+              collapsible 
+              className="space-y-2"
+              value={openWeekAccordion}
+              onValueChange={setOpenWeekAccordion}
+            >
               {displayedWeeks.map((week) => (
                 <WeekSection 
                   key={week.weekNumber} 
