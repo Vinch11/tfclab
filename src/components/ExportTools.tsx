@@ -21,6 +21,15 @@ import logoUrl from "@/assets/logo-2fc.png";
 // ✅ NEW: Import Compass Scoring et CRR
 import { computeCRR, computeChargeScore, getCRRTargets, type ChargeRecenteReference, type ChargeScore } from "@/lib/chargeRecenteReference";
 import { computeCompassScores, type CompassScores, type CompassAxisScore } from "@/lib/compassScoring";
+// ✅ NEW: Import Wahoo Suggestion Engine
+import { 
+  suggestWahooWorkouts, 
+  formatSuggestionsForPDF,
+  type SuggestionEngineContext,
+  type SuggestionEngineOutput,
+  type WahooSuggestion 
+} from "@/lib/wahoo/wahooSuggestionEngine";
+import { computeCAPInjuryRisk as computeCAPInjuryRiskEngine } from "@/lib/capInjuryRisk";
 
 // =============================================
 // TYPES
@@ -76,6 +85,12 @@ interface ExportPayload {
   crr: ChargeRecenteReference;
   chargeScore: ChargeScore;
   compassScores: CompassScores;
+  // ✅ NEW: Wahoo SYSTM Suggestions
+  wahooSuggestions: {
+    suggestions: WahooSuggestion[];
+    diagnosticSummary: string;
+    hasRecommendations: boolean;
+  };
 }
 
 // =============================================
@@ -367,6 +382,38 @@ function buildExportPayload(
     objectif: athlete.goal || "IM"
   });
   
+  // ✅ NEW: Calculer les suggestions Wahoo SYSTM
+  const wahooContext: SuggestionEngineContext = {
+    objectif: athlete.goal || "IM",
+    sportFocus: "tri",
+    vlamaxEffectif: {
+      value: vlamax.value,
+      confidence: vlamax.confidence,
+      source: vlamax.source,
+    },
+    tteEffectif: {
+      value: tte.tte_min,
+      confidence: tte.confidence,
+      source: tte.source,
+    },
+    raceReadiness: {
+      score: raceReadiness.score,
+      details: {
+        endurance: raceReadiness.details.endurance,
+        vlamax: raceReadiness.details.vlamax,
+        fraicheur: raceReadiness.details.fraicheur,
+        puissance: raceReadiness.details.puissance,
+      },
+    },
+    CRR: { value: crr.value, confidence: crr.confidence },
+    injuryRiskRun: capRiskResult.level >= 2 ? {
+      level: capRiskResult.level >= 3 ? "élevé" as const : "modéré" as const,
+      score: capRiskResult.level,
+    } : undefined,
+  };
+  
+  const wahooOutput = suggestWahooWorkouts(wahooContext);
+  
   return {
     athlete: {
       id: athlete.id,
@@ -396,7 +443,12 @@ function buildExportPayload(
     capInjuryRisk,
     crr,
     chargeScore,
-    compassScores
+    compassScores,
+    wahooSuggestions: {
+      suggestions: wahooOutput.suggestions,
+      diagnosticSummary: wahooOutput.diagnosticSummary,
+      hasRecommendations: wahooOutput.suggestions.length > 0,
+    },
   };
 }
 
@@ -1231,9 +1283,80 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
   `;
 
   // =============================================
+  // E.bis SUGGESTIONS WAHOO SYSTM
+  // =============================================
+  const { wahooSuggestions } = payload;
+  
+  const wahooHTML = wahooSuggestions.hasRecommendations ? `
+    <section id="wahoo" class="section pagebreakAvoid">
+      <h2>D.bis Suggestions Wahoo SYSTM</h2>
+      
+      <div class="card cardHighlight">
+        <h3>⚡ Analyse du profil physiologique</h3>
+        <p class="muted">${htmlEscape(wahooSuggestions.diagnosticSummary)}</p>
+      </div>
+      
+      <div class="card mt">
+        <h3>🎯 Séances recommandées (${wahooSuggestions.suggestions.length})</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Séance Wahoo SYSTM</th>
+              <th>Axe ciblé</th>
+              <th>Risque</th>
+              <th>Pourquoi cette séance</th>
+              <th>Effets attendus</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${wahooSuggestions.suggestions.map(s => {
+              const axisLabel = s.targetAxis === "VLAMAX" ? "↓ VLamax" 
+                : s.targetAxis === "TTE" ? "↑ TTE" 
+                : s.targetAxis === "ENDURANCE" ? "↑ Endurance" 
+                : s.targetAxis === "FRESHNESS" ? "Récupération"
+                : s.targetAxis === "VO2" ? "↑ VO2max" : s.targetAxis;
+              const riskBadge = s.riskLevel === 0 ? 'badgeSuccess' 
+                : s.riskLevel === 1 ? 'badge' 
+                : s.riskLevel === 2 ? 'badgeWarning' : 'badgeError';
+              const riskLabel = s.riskLevel === 0 ? 'Minimal' 
+                : s.riskLevel === 1 ? 'Faible' 
+                : s.riskLevel === 2 ? 'Modéré' : 'Élevé';
+              return `
+                <tr>
+                  <td><b>${htmlEscape(s.wahoo_name)}</b><br><span class="muted" style="font-size:10px">Confiance: ${Math.round(s.confidence * 100)}%</span></td>
+                  <td><span class="badge tagPrimary">${axisLabel}</span></td>
+                  <td><span class="badge ${riskBadge}">${riskLabel}</span></td>
+                  <td class="muted" style="font-size:11px">${htmlEscape(s.why)}</td>
+                  <td class="muted" style="font-size:11px">${s.expected_effects.slice(0, 2).map(e => htmlEscape(e)).join('<br>')}</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+      
+      ${wahooSuggestions.suggestions.some(s => s.cautions.length > 0) ? `
+        <div class="card mt">
+          <h3>⚠️ Précautions et contre-indications</h3>
+          <ul class="muted">
+            ${wahooSuggestions.suggestions
+              .filter(s => s.cautions.length > 0)
+              .flatMap(s => s.cautions.map(c => `<li><b>${htmlEscape(s.wahoo_name)}:</b> ${htmlEscape(c)}</li>`))
+              .join('')}
+          </ul>
+        </div>
+      ` : ''}
+      
+      <div class="alert alertInfo mt">
+        💡 Ces suggestions sont basées sur le profil physiologique de l'athlète et les objectifs déclarés.
+        Elles sont indicatives et doivent être adaptées par le coach selon le contexte individuel.
+      </div>
+    </section>
+  ` : '';
+
+  // =============================================
   // F. ZONES D'ENTRAÎNEMENT Z1→Z7 (GRILLE OFFICIELLE)
   // =============================================
-  
   // Préparer les refs pour le calcul des zones absolues
   const zoneRefs: AthleteZoneRefs = {
     fcMax: effectiveRefs.fcMax,
@@ -1971,6 +2094,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
         ${indicateursHTML}
         ${raceReadinessHTML}
         ${lorangHTML}
+        ${wahooHTML}
         ${zonesHTML}
         ${snapshotsHTML}
         ${testsHTML}
