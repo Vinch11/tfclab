@@ -10,6 +10,13 @@ import { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { NutritionEstimate, computeNutritionEstimate } from "@/lib/nutritionPredictive";
 import { RunningEconomyResult } from "@/lib/runningEconomy";
 import { computeCAPInjuryRisk, CAPInjuryRiskResult, getCAPRiskIcon } from "@/lib/capInjuryRisk";
+import { 
+  suggestWahooWorkouts, 
+  formatSuggestionsForPDF, 
+  type SuggestionEngineContext,
+  type SuggestionEngineOutput,
+  type WahooSuggestion 
+} from "@/lib/wahoo/wahooSuggestionEngine";
 // =============================================
 // TYPES
 // =============================================
@@ -84,6 +91,13 @@ export interface FinalVerdict {
   explanation: string;
 }
 
+export interface WahooSuggestionsSection {
+  suggestions: WahooSuggestion[];
+  diagnosticSummary: string;
+  formattedForPDF: string;
+  hasRecommendations: boolean;
+}
+
 export interface StaffReport {
   // Métadonnées
   athleteName: string;
@@ -99,6 +113,7 @@ export interface StaffReport {
   staffInterpretation: StaffInterpretation;
   raceStrategy: RaceStrategy;
   nutritionSummary: NutritionSummary;
+  wahooSuggestions: WahooSuggestionsSection;
   finalVerdict: FinalVerdict;
 }
 
@@ -112,6 +127,10 @@ export interface GenerateStaffReportParams {
   nutritionEstimate: NutritionEstimate | null;
   runningEconomy: RunningEconomyResult | null;
   ftp: number | null;
+  sportFocus?: "run" | "bike" | "tri";
+  CRR?: { value: number | null; confidence: number };
+  fatigueScore?: number;
+  injuryRiskRun?: { level: "faible" | "modéré" | "élevé"; score: number };
   poids: number | null;
   fcMax: number | null;
 }
@@ -458,6 +477,10 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     runningEconomy,
     ftp,
     poids,
+    sportFocus,
+    CRR,
+    fatigueScore,
+    injuryRiskRun,
   } = params;
   
   // Déterminer la limitation principale
@@ -594,6 +617,46 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     disclaimer: "Indice calculé à partir des données cloud disponibles à la date du rapport : VLamax effectif et TTE effectif. Cet indicateur est une aide à la décision et ne remplace pas l'expertise du coach.",
   };
   
+  // Générer les suggestions Wahoo SYSTM
+  const wahooContext: SuggestionEngineContext = {
+    objectif,
+    sportFocus: sportFocus || "tri",
+    vlamaxEffectif: {
+      value: vlamaxEffectif.value,
+      confidence: vlamaxEffectif.confidence,
+      source: vlamaxEffectif.source,
+    },
+    tteEffectif: {
+      value: tteEffectif.tte_min,
+      confidence: tteEffectif.confidence,
+      source: tteEffectif.source,
+    },
+    raceReadiness: {
+      score: readiness.score,
+      details: {
+        endurance: readiness.details.endurance,
+        vlamax: readiness.details.vlamax,
+        fraicheur: readiness.details.fraicheur,
+        puissance: readiness.details.puissance,
+      },
+    },
+    CRR: CRR || { value: 300, confidence: 0.5 },
+    fatigueScore: fatigueScore,
+    injuryRiskRun: injuryRiskRun || (capRiskResult.level >= 2 ? {
+      level: capRiskResult.level >= 3 ? "élevé" as const : "modéré" as const,
+      score: capRiskResult.level,
+    } : undefined),
+  };
+  
+  const wahooOutput = suggestWahooWorkouts(wahooContext);
+  
+  const wahooSuggestions: WahooSuggestionsSection = {
+    suggestions: wahooOutput.suggestions,
+    diagnosticSummary: wahooOutput.diagnosticSummary,
+    formattedForPDF: formatSuggestionsForPDF(wahooOutput),
+    hasRecommendations: wahooOutput.suggestions.length > 0,
+  };
+  
   return {
     athleteName,
     objectif,
@@ -606,6 +669,7 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     staffInterpretation,
     raceStrategy,
     nutritionSummary,
+    wahooSuggestions,
     finalVerdict,
   };
 }
