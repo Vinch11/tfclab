@@ -3,8 +3,12 @@
 // Two For Coaching Lab – Performance & Metabolic Report
 // =============================================
 
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { FileText, FileSpreadsheet, AlertCircle } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { FileText, FileSpreadsheet, AlertCircle, Settings2 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 import type { DbAthlete, DbSnapshot, DbTest, DbCheckin } from "@/hooks/useCloudData";
 import { getEffectiveSnapshot, getEffectiveRefs, type EffectiveRefs } from "@/lib/effectiveRefs";
@@ -41,6 +45,10 @@ interface ExportToolsProps {
   tests: DbTest[];
   checkins?: DbCheckin[];
   staffMode?: boolean;
+}
+
+interface ExportOptions {
+  includeWahooSuggestions: boolean;
 }
 
 // Payload normalisé pour toutes les sections du rapport
@@ -494,7 +502,7 @@ async function imageToBase64(url: string): Promise<string> {
 // BUILD PREMIUM HTML REPORT
 // =============================================
 
-function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): string {
+function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, options: ExportOptions = { includeWahooSuggestions: true }): string {
   const { 
     athlete, effectiveSnapshot, effectiveRefs, 
     vlamax, tte, raceReadiness, lorang,
@@ -1287,7 +1295,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string): 
   // =============================================
   const { wahooSuggestions } = payload;
   
-  const wahooHTML = wahooSuggestions.hasRecommendations ? `
+  const wahooHTML = (options.includeWahooSuggestions && wahooSuggestions.hasRecommendations) ? `
     <section id="wahoo" class="section pagebreakAvoid">
       <h2>D.bis Suggestions Wahoo SYSTM</h2>
       
@@ -2199,6 +2207,15 @@ function buildCSV(payload: ExportPayload): string {
 // =============================================
 
 export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMode = false }: ExportToolsProps) {
+  const [includeWahoo, setIncludeWahoo] = useState<boolean>(() => {
+    const stored = localStorage.getItem("vlab-export-include-wahoo");
+    return stored !== null ? stored === "true" : true;
+  });
+  
+  useEffect(() => {
+    localStorage.setItem("vlab-export-include-wahoo", String(includeWahoo));
+  }, [includeWahoo]);
+  
   const payload = buildExportPayload(athlete, snapshots, tests, checkins);
   const exportCheck = canExport(payload);
 
@@ -2231,7 +2248,11 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
     // Convert logo to base64 for embedding in the PDF
     const logoBase64 = await imageToBase64(logoUrl);
     
-    const html = buildStaffGradeReportHTML(payload, logoBase64);
+    const exportOptions: ExportOptions = {
+      includeWahooSuggestions: includeWahoo
+    };
+    
+    const html = buildStaffGradeReportHTML(payload, logoBase64, exportOptions);
     
     // Méthode alternative sans popup: créer un blob et télécharger
     const blob = new Blob([html], { type: "text/html;charset=utf-8" });
@@ -2263,7 +2284,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
   }
 
   return (
-    <div className="flex gap-2">
+    <div className="flex items-center gap-2">
       <Button 
         variant="outline" 
         size="sm" 
@@ -2282,6 +2303,32 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
         <FileText className="h-4 w-4" />
         📄 Export PDF Staff
       </Button>
+      
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+            <Settings2 className="h-4 w-4" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-64" align="end">
+          <div className="space-y-3">
+            <p className="text-sm font-medium">Options d'export PDF</p>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="include-wahoo" className="text-sm cursor-pointer">
+                Suggestions Wahoo
+              </Label>
+              <Switch
+                id="include-wahoo"
+                checked={includeWahoo}
+                onCheckedChange={setIncludeWahoo}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Inclure les recommandations de séances Wahoo SYSTM dans le rapport PDF.
+            </p>
+          </div>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }
