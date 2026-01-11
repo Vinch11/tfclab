@@ -54,6 +54,15 @@ import {
   type CAPInjuryRiskResult 
 } from "@/lib/capInjuryRisk";
 import { CAPInjuryRiskBadge } from "@/components/CAPInjuryRiskBadge";
+import { 
+  interpretWahooSession, 
+  isWahooLikeSession,
+  getVLamaxThreshold,
+  getTTETarget,
+  type AthleteContext as WahooAthleteContext,
+  type PhysiologicalReading,
+} from "@/lib/wahoo/wahooWorkoutInterpreter";
+import { WahooPhysiologicalReading } from "@/components/WahooPhysiologicalReading";
 
 function getSportBadgeColor(sport: string | undefined): string {
   if (!sport) return "bg-muted text-muted-foreground";
@@ -348,12 +357,14 @@ function SessionCard({
   staffMode = false, 
   weekPhase,
   capInjuryRisk,
+  wahooContext,
 }: { 
   session: TemplateSession; 
   sessionAnnotations: AnnotationV2[]; 
   staffMode?: boolean; 
   weekPhase?: string;
   capInjuryRisk?: CAPInjuryRiskResult | null;
+  wahooContext?: WahooAthleteContext | null;
 }) {
   const [expanded, setExpanded] = useState(false);
   const classification = classifySession(session);
@@ -402,6 +413,15 @@ function SessionCard({
   const hasLongCAPOption = processedOptions?.hasLongCAPOption || false;
   const showCAPInjuryRisk = staffMode && isCAP && capInjuryRisk && 
     shouldShowCAPInjuryRisk(sportText, sessionDurationMin, hasLongCAPOption);
+
+  // v9: Wahoo SYSTM physiological reading
+  const wahooReading = useMemo<PhysiologicalReading | null>(() => {
+    if (!staffMode || !wahooContext) return null;
+    // Only interpret if it looks like a Wahoo session or staff mode is on
+    const looksLikeWahoo = isWahooLikeSession(session);
+    if (!looksLikeWahoo) return null;
+    return interpretWahooSession(session, wahooContext);
+  }, [session, staffMode, wahooContext]);
 
   return (
     <div className={`border rounded-lg p-3 bg-card ${hasAnnotations ? "border-l-4 " + (maxSeverity >= 2 ? "border-l-amber-500" : "border-l-blue-400") : ""}`}>
@@ -456,6 +476,15 @@ function SessionCard({
             <div className="mt-2">
               <CAPInjuryRiskBadge risk={capInjuryRisk} staffMode={staffMode} />
             </div>
+          )}
+          
+          {/* v9: Wahoo SYSTM Physiological Reading (staff mode only) */}
+          {wahooReading && wahooReading.isWahooSession && (
+            <WahooPhysiologicalReading 
+              reading={wahooReading} 
+              staffMode={staffMode}
+              athleteMode={!staffMode}
+            />
           )}
           
           {/* v7: Sport-contextualized options display */}
@@ -603,7 +632,7 @@ function WeekRiskSummary({ weekAnnotations }: { weekAnnotations: AnnotationV2[] 
   );
 }
 
-function WeekSection({ week, annotations, totalWeeks, staffMode, capInjuryRisk }: { week: TemplateWeek; annotations: AnnotationV2[]; totalWeeks: number; staffMode: boolean; capInjuryRisk?: CAPInjuryRiskResult | null }) {
+function WeekSection({ week, annotations, totalWeeks, staffMode, capInjuryRisk, wahooContext }: { week: TemplateWeek; annotations: AnnotationV2[]; totalWeeks: number; staffMode: boolean; capInjuryRisk?: CAPInjuryRiskResult | null; wahooContext?: WahooAthleteContext | null }) {
   const weekAnnotations = annotations.filter((a) => a.scope === "WEEK" && a.weekNumber === week.weekNumber);
   const sessionAnnotationsMap = useMemo(() => {
     const map: Record<string, AnnotationV2[]> = {};
@@ -661,6 +690,7 @@ function WeekSection({ week, annotations, totalWeeks, staffMode, capInjuryRisk }
                 staffMode={staffMode}
                 weekPhase={phase}
                 capInjuryRisk={capInjuryRisk}
+                wahooContext={wahooContext}
               />
             );
           })}
