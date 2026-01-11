@@ -1033,7 +1033,7 @@ function AnnotationsPanelV2({ annotations }: { annotations: AnnotationV2[] }) {
 
 export default function TemplatesPage() {
   const navigate = useNavigate();
-  const { athletes, snapshots, loading: cloudLoading } = useCloudData();
+  const { athletes, snapshots, tests, loading: cloudLoading } = useCloudData();
 
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>(() => {
     return localStorage.getItem("vlab-selected-template") || PROGRAM_TEMPLATES[0]?.id || "";
@@ -1255,13 +1255,30 @@ export default function TemplatesPage() {
       };
     }
 
-    // VLamax effectif
+    // VLamax effectif - use all tests and snapshots for accurate calculation
+    const athleteTests = tests.filter(t => t.athlete_id === selectedAthlete.id);
+    const athleteSnapshots = snapshots.filter(s => s.athlete_id === selectedAthlete.id);
+    
     const vlamaxEffectif = computeVLamaxEffectif({
       athleteId: selectedAthlete.id,
       objectif: selectedAthlete.goal || "IM",
       activeSnapshotId: selectedAthlete.active_snapshot_id,
-      tests: [],
-      snapshots: [selectedSnapshot],
+      tests: athleteTests.map(t => ({
+        athlete_id: t.athlete_id,
+        vlamax: t.vlamax,
+        date: t.date,
+        type: t.type,
+        name: t.name,
+      })),
+      snapshots: athleteSnapshots.map(s => ({
+        id: s.id,
+        athlete_id: s.athlete_id,
+        date: s.date,
+        vlamax: s.vlamax,
+        ftp: s.ftp,
+        pmax_5s: s.pmax_5s,
+        weight_kg: s.weight_kg,
+      })),
     });
 
     // TTE effectif
