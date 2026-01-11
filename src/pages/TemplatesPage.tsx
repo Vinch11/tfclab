@@ -41,7 +41,7 @@ import {
 import { getTemplateProfiles, getClosestProfile, type TemplateProfilePair } from "@/data/templateProfiles";
 
 import { useCloudData, DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
-import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
+import { computeVLamaxEffectif, getSourceColor, getSourceBgColor, type VLamaxSource } from "@/lib/vlamaxEffectif";
 import { computeTTEEffectif } from "@/lib/tteEffectif";
 import { computeRaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { PlanComparisonView } from "@/components/PlanComparisonView";
@@ -859,21 +859,40 @@ function AthleteProfilePanel({
   );
 }
 
+function getSourceLabel(source: VLamaxSource): string {
+  switch (source) {
+    case "test": return "test";
+    case "snapshot": return "mesuré";
+    case "estimated": return "estimé";
+    case "unknown": return "inconnu";
+    default: return source;
+  }
+}
+
 function MetricBox({ label, value, unit, source, confidence }: { 
   label: string; 
   value: string; 
   unit?: string;
-  source?: string;
+  source?: VLamaxSource | string;
   confidence?: number;
 }) {
+  const isVLamaxSource = source && ["test", "snapshot", "estimated", "unknown"].includes(source);
+  
   return (
-    <div className="bg-background/60 rounded-lg p-2 text-center">
-      <p className="text-xs text-muted-foreground">{label}</p>
+    <div className="bg-background/60 rounded-lg p-2 text-center relative">
+      <div className="flex items-center justify-center gap-1.5">
+        <p className="text-xs text-muted-foreground">{label}</p>
+        {isVLamaxSource && (
+          <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${getSourceBgColor(source as VLamaxSource)} ${getSourceColor(source as VLamaxSource)}`}>
+            {getSourceLabel(source as VLamaxSource)}
+          </span>
+        )}
+      </div>
       <p className="font-mono text-lg font-bold">{value}</p>
       {unit && <p className="text-[10px] text-muted-foreground">{unit}</p>}
-      {source && (
-        <p className="text-[10px] text-muted-foreground/70 mt-1">
-          {source} • {Math.round((confidence || 0) * 100)}%
+      {confidence !== undefined && (
+        <p className="text-[10px] text-muted-foreground/70 mt-0.5">
+          conf {Math.round(confidence * 100)}%
         </p>
       )}
     </div>
