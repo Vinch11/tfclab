@@ -692,6 +692,167 @@ Fat Max ≠ perte de poids optimale. C'est un indicateur métabolique, pas un r�
 // =============================================
 // TOUS LES ARTICLES
 // =============================================
+// ARTICLES WAHOO SYSTM
+// =============================================
+
+export const WAHOO_ARTICLES: KnowledgeArticle[] = [
+  {
+    id: "wahoo_what_is",
+    title: "Qu'est-ce que Wahoo SYSTM ?",
+    category: "methodology",
+    tags: ["Wahoo", "SYSTM", "Sufferfest", "plateforme", "externe"],
+    level: "athlete",
+    lastUpdated: "2026-01-11",
+    contentMarkdown: `## Wahoo SYSTM
+
+**Définition :** Plateforme d'entraînement indoor (ex-Sufferfest) avec des séances structurées vélo et course à pied.
+
+**Dans Two For Coaching Lab :**
+- L'app RECONNAÎT les séances Wahoo et les INTERPRÈTE physiologiquement
+- Elle génère des SUGGESTIONS personnalisées basées sur ton profil
+- Elle NE REMPLACE PAS Wahoo, elle l'ÉCLAIRE
+
+**Ce que fait l'app :**
+✅ Expliquer les effets d'une séance sur VLamax/TTE
+✅ Alerter si une séance est incohérente avec ton profil
+✅ Proposer des alternatives plus adaptées
+
+**Ce que l'app NE FAIT PAS :**
+❌ Modifier le plan
+❌ Remplacer la décision du coach
+❌ Créer des séances Wahoo`
+  },
+  {
+    id: "wahoo_why_suggested",
+    title: "Pourquoi une séance Wahoo est suggérée",
+    category: "methodology",
+    tags: ["Wahoo", "suggestion", "pourquoi", "proposée", "recommandée"],
+    level: "staff",
+    lastUpdated: "2026-01-11",
+    contentMarkdown: `## Logique des suggestions Wahoo
+
+**Une séance est suggérée si elle répond à un besoin physiologique identifié :**
+
+| Besoin | Condition | Séances typiques |
+|--------|-----------|------------------|
+| NEED_VLAMAX_DOWN | VLamax > seuil objectif | Endurance 1.5, Tempo Low Cadence |
+| NEED_TTE_UP | TTE < cible - 5 min | Sweet Spot, Sustained Tempo |
+| NEED_ENDURANCE_BASE | Charge faible ou RR endurance bas | Endurance 2.0, Long Endurance |
+| NEED_RECOVERY | Fatigue ≥7 ou risque blessure | Recovery Ride, Serbia Upside Down |
+| NEED_VO2_UP | Objectif court + VLamax bas | VO2 Intervals (usage limité) |
+
+**Priorité :** RECOVERY > VLAMAX_DOWN > TTE_UP > ENDURANCE_BASE > VO2_UP
+
+**Le "Pourquoi" cite toujours les valeurs effectives** (VLamax, TTE, objectif).`
+  },
+  {
+    id: "wahoo_why_avoided",
+    title: "Pourquoi une séance Wahoo est déconseillée",
+    category: "methodology",
+    tags: ["Wahoo", "déconseillé", "éviter", "risque", "contre-indication"],
+    level: "staff",
+    lastUpdated: "2026-01-11",
+    contentMarkdown: `## Séances Wahoo déconseillées
+
+**Une séance est déconseillée si :**
+
+1. **VLamax déjà élevée + séance glycolytique**
+   - Nine Hammers, Violator, Short KOM → augmentent VLamax
+   - Risque : aggraver le déséquilibre métabolique
+
+2. **Objectif longue distance (IM/70.3/Marathon)**
+   - Séances risk_level 3 (AC, NM, VO2 intense)
+   - Contre-productif pour l'économie d'effort
+
+3. **Fatigue ou risque blessure élevé**
+   - Toute séance à stress neuromusculaire élevé
+   - Privilégier récupération
+
+4. **Contre-indications explicites dans le mapping**
+   - Ex: "Objectif Ironman", "VLamax > 0.50", "Fatigue accumulée"
+
+**Alternative :** L'app propose 1-2 séances plus cohérentes.`
+  },
+  {
+    id: "wahoo_effects_vlamax",
+    title: "Effets des séances Wahoo sur VLamax",
+    category: "methodology",
+    tags: ["Wahoo", "VLamax", "effet", "baisse", "hausse", "glycolytique"],
+    level: "staff",
+    lastUpdated: "2026-01-11",
+    contentMarkdown: `## Impact des séances Wahoo sur VLamax
+
+**Séances qui BAISSENT VLamax (↓) :**
+- Endurance 1.0, 1.5, 2.0 (Z2 prolongée)
+- Tempo Low Cadence (force-endurance)
+- Long Endurance Ride
+- Foundation Ride
+
+**Séances NEUTRES (=) :**
+- Sweet Spot, Sustained Tempo (tempo modéré)
+- Threshold, Over-Under (seuil)
+- Recovery (trop court pour impact)
+
+**Séances qui AUGMENTENT VLamax (↑) :**
+- Nine Hammers, Violator (glycolytique max)
+- VO2 Intervals, MAP (haute intensité)
+- Short KOM, AC Intervals (anaérobie)
+- NM Sprints (neuromusculaire)
+
+**Règle :** Pour objectif longue distance, éviter les séances ↑ VLamax sauf usage ponctuel.`
+  },
+  {
+    id: "wahoo_effects_tte",
+    title: "Effets des séances Wahoo sur TTE",
+    category: "methodology",
+    tags: ["Wahoo", "TTE", "effet", "durabilité", "seuil", "endurance"],
+    level: "staff",
+    lastUpdated: "2026-01-11",
+    contentMarkdown: `## Impact des séances Wahoo sur TTE
+
+**Séances qui AMÉLIORENT TTE (↑) :**
+- Sustained Tempo, Tempo Varying Cadence
+- Sweet Spot, Sweet Spot Progressif
+- Over-Under Intervals
+- Threshold Intervals
+- Endurance longue (effet indirect)
+
+**Séances NEUTRES (=) :**
+- Endurance courte (< 90 min)
+- Recovery, Easy Spin
+- VO2 Intervals (pas d'impact TTE direct)
+
+**Séances qui DÉGRADENT TTE (↓) :**
+- Nine Hammers (stress excessif)
+- Violator, AC Intervals
+- Séances très glycolytiques répétées
+
+**Conseil :** TTE se développe par le volume au tempo/seuil, pas par les pics d'intensité.`
+  },
+  {
+    id: "wahoo_categories",
+    title: "Catégories de séances Wahoo",
+    category: "methodology",
+    tags: ["Wahoo", "catégorie", "type", "classification", "zone"],
+    level: "athlete",
+    lastUpdated: "2026-01-11",
+    contentMarkdown: `## Catégories Wahoo SYSTM
+
+| Catégorie | Exemples | Effet principal |
+|-----------|----------|-----------------|
+| RECOVERY | Recovery Ride, Easy Spin | Récupération active |
+| Z2_ENDURANCE | Endurance 1.0, 1.5, 2.0 | VLamax ↓, base aérobie |
+| Z2_LONG | Long Endurance Ride | VLamax ↓, nutrition |
+| TEMPO_DURABILITY | Sweet Spot, Sustained Tempo | TTE ↑ |
+| FORCE_ENDURANCE | Tempo Low Cadence, Torque | VLamax ↓ + force |
+| THRESHOLD_MLSS | Threshold, Over-Under | TTE ↑, seuil |
+| VO2_MAP | VO2 Intervals, Nine Hammers | VO2max ↑ (VLamax ↑) |
+| ANAEROBIC_AC | Violator, Short KOM | Puissance (VLamax ↑↑) |
+| NEUROMUSCULAR_NM | Sprints, NM | Explosivité (VLamax ↑) |
+
+**Conseil :** Pour IM/Marathon, privilégier RECOVERY + Z2 + TEMPO + FORCE.`
+  },
+];
 
 export const ALL_KNOWLEDGE_ARTICLES: KnowledgeArticle[] = [
   ...DISCLAIMER_ARTICLES,
@@ -699,6 +860,7 @@ export const ALL_KNOWLEDGE_ARTICLES: KnowledgeArticle[] = [
   ...ZONES_ARTICLES,
   ...APP_USAGE_ARTICLES,
   ...METHODOLOGY_ARTICLES,
+  ...WAHOO_ARTICLES,
 ];
 
 // =============================================

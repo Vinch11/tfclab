@@ -54,6 +54,8 @@ interface AssistantDrawerProps {
   selectedAthleteId: string | null;
   currentPage?: string;
   prefilledQuestion?: string;
+  focusWahooWorkoutId?: string | null;
+  focusWahooWorkoutName?: string | null;
 }
 
 // =============================================
@@ -68,9 +70,12 @@ const QUICK_SUGGESTIONS = [
   { label: "Données demo ?", query: "Pourquoi des données demo apparaissent ?" },
   { label: "Race Readiness ?", query: "C'est quoi le Race Readiness ?" },
   { label: "Importer PDF", query: "Comment importer un PDF de test ?" },
-  { label: "Augmenter confiance", query: "Comment augmenter la confiance des données ?" },
   { label: "Zone grise ?", query: "C'est quoi la zone grise ?" },
-  { label: "Affûtage", query: "Comment faire un bon affûtage ?" },
+  // Wahoo suggestions
+  { label: "Wahoo suggestions", query: "Quelles séances Wahoo sont recommandées pour mon profil ?" },
+  { label: "Pourquoi Endurance 1.5 ?", query: "Pourquoi Endurance 1.5 est proposée ?" },
+  { label: "Nine Hammers risqué ?", query: "Pourquoi Nine Hammers est déconseillé pour Ironman ?" },
+  { label: "Séance fatigue", query: "Je suis fatigué, quelle séance Wahoo aujourd'hui ?" },
 ];
 
 // =============================================
@@ -192,7 +197,9 @@ async function streamChat({
 export function AssistantDrawer({ 
   selectedAthleteId, 
   currentPage = "dashboard",
-  prefilledQuestion 
+  prefilledQuestion,
+  focusWahooWorkoutId,
+  focusWahooWorkoutName
 }: AssistantDrawerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -218,8 +225,10 @@ export function AssistantDrawer({
       athletes,
       snapshots,
       tests,
+      focusWahooWorkoutId,
+      focusWahooWorkoutName,
     });
-  }, [currentPage, selectedAthleteId, athletes, snapshots, tests]);
+  }, [currentPage, selectedAthleteId, athletes, snapshots, tests, focusWahooWorkoutId, focusWahooWorkoutName]);
   
   const contextItems = formatContextForDisplay(contextPacket);
   

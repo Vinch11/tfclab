@@ -9,6 +9,19 @@ import { computeTTEEffectif, TTEEffectif } from "@/lib/tteEffectif";
 import { computeRaceReadinessEffectif, RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { computeNutritionEstimate, NutritionEstimate } from "@/lib/nutritionPredictive";
+import { 
+  suggestWahooWorkouts, 
+  computeWahooNeeds,
+  type SuggestionEngineOutput,
+  type SuggestionEngineContext,
+  type NeedAnalysis,
+  type WahooSuggestion 
+} from "@/lib/wahoo/wahooSuggestionEngine";
+import { 
+  WAHOO_WORKOUTS, 
+  matchWahooSession,
+  type WahooWorkoutMapping 
+} from "@/data/wahooMapping";
 
 // =============================================
 // TYPES
@@ -79,6 +92,15 @@ export interface AssistantContextPacket {
   robustness: {
     level: "robuste" | "prudent" | "indicatif";
     averageConfidence: number;
+  };
+  
+  // Wahoo SYSTM context
+  wahooContext: {
+    suggestions: WahooSuggestion[];
+    needAnalysis: NeedAnalysis | null;
+    diagnosticSummary: string | null;
+    focusWorkoutId: string | null;
+    focusWorkout: WahooWorkoutMapping | null;
   };
 }
 
@@ -252,10 +274,12 @@ export interface GetAssistantContextParams {
   athletes: DbAthlete[];
   snapshots: DbSnapshot[];
   tests: DbTest[];
+  focusWahooWorkoutId?: string | null;
+  focusWahooWorkoutName?: string | null;
 }
 
 export function getAssistantContext(params: GetAssistantContextParams): AssistantContextPacket {
-  const { currentModule, selectedAthleteId, athletes, snapshots, tests } = params;
+  const { currentModule, selectedAthleteId, athletes, snapshots, tests, focusWahooWorkoutId, focusWahooWorkoutName } = params;
   
   // Athlète sélectionné
   const athlete = selectedAthleteId 
@@ -351,6 +375,58 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
   if (raceReadiness) confidences.push(raceReadiness.confidence);
   const robustness = computeRobustness(confidences);
   
+  // Wahoo SYSTM context
+  let wahooSuggestions: WahooSuggestion[] = [];
+  let wahooNeedAnalysis: NeedAnalysis | null = null;
+  let wahooDiagnostic: string | null = null;
+  
+  if (vlamaxEffectif && tteEffectif && athlete?.goal) {
+    const wahooCtx: SuggestionEngineContext = {
+      objectif: athlete.goal,
+      sportFocus: "tri",
+      vlamaxEffectif: {
+        value: vlamaxEffectif.value,
+        confidence: vlamaxEffectif.confidence,
+        source: vlamaxEffectif.source,
+      },
+      tteEffectif: {
+        value: tteEffectif.tte_min,
+        confidence: tteEffectif.confidence,
+        source: tteEffectif.source,
+      },
+      raceReadiness: {
+        score: raceReadiness?.score ?? null,
+        details: {
+          endurance: raceReadiness?.details.endurance,
+          vlamax: raceReadiness?.details.vlamax,
+          fraicheur: raceReadiness?.details.fraicheur,
+          puissance: raceReadiness?.details.puissance,
+        },
+      },
+      CRR: { value: tss7d, confidence: tss7d !== null ? 0.8 : 0.3 },
+      injuryRiskRun: injuryRisk.level ? {
+        level: injuryRisk.level,
+        score: injuryRisk.level === "élevé" ? 8 : injuryRisk.level === "modéré" ? 5 : 2,
+      } : undefined,
+    };
+    
+    const wahooOutput = suggestWahooWorkouts(wahooCtx);
+    wahooSuggestions = wahooOutput.suggestions;
+    wahooNeedAnalysis = wahooOutput.needAnalysis;
+    wahooDiagnostic = wahooOutput.diagnosticSummary;
+  }
+  
+  // Focus workout (si spécifié)
+  let focusWorkout: WahooWorkoutMapping | null = null;
+  if (focusWahooWorkoutId) {
+    focusWorkout = WAHOO_WORKOUTS.find(w => w.wahoo_id === focusWahooWorkoutId) || null;
+  } else if (focusWahooWorkoutName) {
+    const match = matchWahooSession(focusWahooWorkoutName);
+    if (match.matched && match.workout) {
+      focusWorkout = match.workout;
+    }
+  }
+  
   return {
     currentModule,
     athlete: {
@@ -388,6 +464,13 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
     },
     missingFields,
     robustness,
+    wahooContext: {
+      suggestions: wahooSuggestions,
+      needAnalysis: wahooNeedAnalysis,
+      diagnosticSummary: wahooDiagnostic,
+      focusWorkoutId: focusWahooWorkoutId || focusWorkout?.wahoo_id || null,
+      focusWorkout,
+    },
   };
 }
 
@@ -484,6 +567,53 @@ export function formatContextForPrompt(context: AssistantContextPacket): string 
   
   // Robustesse
   parts.push(`## Robustesse globale: ${context.robustness.level} (confiance moyenne: ${(context.robustness.averageConfidence * 100).toFixed(0)}%)`);
+  
+  // Wahoo SYSTM context
+  if (context.wahooContext.suggestions.length > 0 || context.wahooContext.focusWorkout) {
+    parts.push(`\n## WAHOO SYSTM - CONTEXTE`);
+    
+    // Diagnostic
+    if (context.wahooContext.diagnosticSummary) {
+      parts.push(`Diagnostic: ${context.wahooContext.diagnosticSummary}`);
+    }
+    
+    // Besoins identifiés
+    if (context.wahooContext.needAnalysis && context.wahooContext.needAnalysis.needs.length > 0) {
+      parts.push(`Besoins physiologiques identifiés: ${context.wahooContext.needAnalysis.needs.join(", ")}`);
+      for (const rationale of context.wahooContext.needAnalysis.rationale) {
+        parts.push(`- ${rationale}`);
+      }
+    }
+    
+    // Suggestions actives
+    if (context.wahooContext.suggestions.length > 0) {
+      parts.push(`\nSuggestions Wahoo (max 3):`);
+      for (const s of context.wahooContext.suggestions) {
+        parts.push(`- ${s.wahoo_name} (${s.target_need})`);
+        parts.push(`  Effets: ${s.expected_effects.join(", ")}`);
+        parts.push(`  Pourquoi: ${s.why}`);
+        if (s.cautions.length > 0) {
+          parts.push(`  Précautions: ${s.cautions.join("; ")}`);
+        }
+      }
+    }
+    
+    // Focus workout (si question spécifique)
+    if (context.wahooContext.focusWorkout) {
+      const fw = context.wahooContext.focusWorkout;
+      parts.push(`\n## SÉANCE WAHOO EN FOCUS: ${fw.wahoo_name}`);
+      parts.push(`- Catégorie: ${fw.category}`);
+      parts.push(`- Axe principal: ${fw.primary_axis}`);
+      parts.push(`- Effet VLamax: ${fw.vlamax_effect}`);
+      parts.push(`- Effet TTE: ${fw.tte_effect}`);
+      parts.push(`- Niveau risque: ${fw.risk_level}/3`);
+      parts.push(`- Annotation staff: ${fw.staff_annotation}`);
+      if (fw.contraindications && fw.contraindications.length > 0) {
+        parts.push(`- Contre-indications: ${fw.contraindications.join(", ")}`);
+      }
+      parts.push(`- Aliases: ${fw.aliases.join(", ")}`);
+    }
+  }
   
   return parts.join('\n');
 }
