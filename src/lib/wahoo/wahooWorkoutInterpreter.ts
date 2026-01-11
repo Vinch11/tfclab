@@ -5,9 +5,16 @@
  * 
  * This module does NOT modify or replace sessions.
  * It only provides physiological interpretation and contextual alerts.
+ * 
+ * Uses the centralized wahooMapping.ts for matching with aliases.
  */
 
 import type { TemplateSession } from "@/lib/templates/docxTemplateLoader";
+import { 
+  matchWahooSession, 
+  type WahooWorkoutMapping as MappingWorkout,
+  getCategoryLabel,
+} from "@/data/wahooMapping";
 
 // ============= TYPES =============
 
@@ -38,6 +45,8 @@ export interface WahooWorkoutMapping {
 export interface PhysiologicalReading {
   isWahooSession: boolean;
   matchedPattern?: string;
+  matchedWorkout?: MappingWorkout;
+  matchConfidence?: "exact" | "alias" | "partial" | "none";
   category?: string;
   effect?: WahooWorkoutEffect;
   description?: string;
@@ -62,12 +71,65 @@ export interface AthleteContext {
   objectif?: string;
 }
 
-// ============= WAHOO WORKOUT MAPPINGS =============
+// ============= MAPPING CONVERSION =============
 
 /**
- * Complete mapping table for Wahoo SYSTM workouts
- * Based on the most common workout patterns
+ * Convert mapping workout to internal effect structure
  */
+function convertMappingToEffect(workout: MappingWorkout): WahooWorkoutEffect {
+  // Determine zone based on category and intensity
+  let zoneDominante: ZoneDominante = "Z2";
+  
+  switch (workout.category) {
+    case "RECOVERY":
+    case "WARMUP":
+      zoneDominante = "Z1";
+      break;
+    case "Z2_ENDURANCE":
+    case "Z2_LONG":
+      zoneDominante = "Z2";
+      break;
+    case "TEMPO_DURABILITY":
+      zoneDominante = "Z3";
+      break;
+    case "FORCE_ENDURANCE":
+    case "THRESHOLD_MLSS":
+      zoneDominante = "Z4a";
+      break;
+    case "VO2_MAP":
+      zoneDominante = "Z5";
+      break;
+    case "ANAEROBIC_AC":
+      zoneDominante = "Z6";
+      break;
+    case "NEUROMUSCULAR_NM":
+      zoneDominante = "Z7";
+      break;
+  }
+  
+  // Determine stress levels based on risk
+  let stressNeuromusculaire: StressLevel = "faible";
+  let risqueCAP: CAPRiskLevel = "faible";
+  
+  if (workout.risk_level >= 3) {
+    stressNeuromusculaire = "élevé";
+    risqueCAP = "élevé";
+  } else if (workout.risk_level >= 2) {
+    stressNeuromusculaire = "modéré";
+    risqueCAP = "modéré";
+  } else if (workout.risk_level >= 1) {
+    stressNeuromusculaire = "modéré";
+    risqueCAP = "faible";
+  }
+  
+  return {
+    zoneDominante,
+    effetVLamax: workout.vlamax_effect,
+    effetTTE: workout.tte_effect,
+    stressNeuromusculaire,
+    risqueCAP,
+  };
+}
 export const WAHOO_WORKOUT_MAPPINGS: WahooWorkoutMapping[] = [
   // ===== ENDURANCE / Z2 =====
   {
@@ -361,6 +423,7 @@ const WAHOO_SESSION_INDICATORS = [
 
 /**
  * Check if a session appears to be from Wahoo SYSTM or similar external platform
+ * Now uses the centralized wahooMapping with aliases
  */
 export function isWahooLikeSession(session: TemplateSession): boolean {
   const textToCheck = [
@@ -368,15 +431,27 @@ export function isWahooLikeSession(session: TemplateSession): boolean {
     session.details,
     session.description,
     session.notes,
-  ].filter(Boolean).join(" ").toLowerCase();
+  ].filter(Boolean).join(" ");
 
-  return WAHOO_SESSION_INDICATORS.some((pattern) => pattern.test(textToCheck));
+  // Try matching with the new alias-based system first
+  const matchResult = matchWahooSession(textToCheck);
+  if (matchResult.matched) {
+    return true;
+  }
+
+  // Fallback to legacy pattern matching
+  return WAHOO_SESSION_INDICATORS.some((pattern) => pattern.test(textToCheck.toLowerCase()));
 }
 
 /**
  * Find matching Wahoo workout mapping for a session
+ * Now uses the centralized wahooMapping with aliases
  */
-function findWorkoutMapping(session: TemplateSession): WahooWorkoutMapping | null {
+function findWorkoutMapping(session: TemplateSession): { 
+  legacyMapping: WahooWorkoutMapping | null; 
+  newMapping: MappingWorkout | null;
+  confidence: "exact" | "alias" | "partial" | "none";
+} {
   const textToCheck = [
     session.title,
     session.details,
@@ -384,15 +459,26 @@ function findWorkoutMapping(session: TemplateSession): WahooWorkoutMapping | nul
     session.notes,
   ].filter(Boolean).join(" ");
 
+  // Try new alias-based matching first
+  const matchResult = matchWahooSession(textToCheck);
+  if (matchResult.matched && matchResult.workout) {
+    return { 
+      legacyMapping: null, 
+      newMapping: matchResult.workout, 
+      confidence: matchResult.confidence 
+    };
+  }
+
+  // Fallback to legacy pattern matching
   for (const mapping of WAHOO_WORKOUT_MAPPINGS) {
     for (const pattern of mapping.patterns) {
       if (pattern.test(textToCheck)) {
-        return mapping;
+        return { legacyMapping: mapping, newMapping: null, confidence: "partial" };
       }
     }
   }
 
-  return null;
+  return { legacyMapping: null, newMapping: null, confidence: "none" };
 }
 
 // ============= CONTEXTUAL ALERTS =============
@@ -497,31 +583,54 @@ export function interpretWahooSession(
     };
   }
 
-  // Find matching workout mapping
-  const mapping = findWorkoutMapping(session);
+  // Find matching workout mapping (uses new alias system + legacy fallback)
+  const { legacyMapping, newMapping, confidence } = findWorkoutMapping(session);
 
-  if (!mapping) {
+  if (!legacyMapping && !newMapping) {
     // Session looks like Wahoo but no pattern match
     return {
       isWahooSession: true,
+      matchConfidence: "none",
       alerts: [{
         type: "info",
         message: "Séance externe non reconnue",
-        detail: "Cette séance semble provenir d'une plateforme externe mais le pattern n'est pas dans notre base.",
+        detail: "Cette séance semble provenir d'une plateforme externe mais n'est pas dans notre base.",
       }],
     };
   }
 
+  // Use new mapping if available, otherwise use legacy
+  let effect: WahooWorkoutEffect;
+  let category: string;
+  let description: string;
+  let staffNote: string;
+
+  if (newMapping) {
+    effect = convertMappingToEffect(newMapping);
+    category = getCategoryLabel(newMapping.category);
+    description = newMapping.staff_annotation;
+    staffNote = newMapping.contraindications?.join(". ") || "";
+  } else if (legacyMapping) {
+    effect = legacyMapping.effect;
+    category = legacyMapping.category;
+    description = legacyMapping.description;
+    staffNote = legacyMapping.staffNote;
+  } else {
+    return { isWahooSession: true, alerts: [] };
+  }
+
   // Generate contextual alerts
-  const alerts = generateContextualAlerts(mapping.effect, mapping.category, context);
+  const alerts = generateContextualAlerts(effect, category, context);
 
   return {
     isWahooSession: true,
-    matchedPattern: mapping.category,
-    category: mapping.category,
-    effect: mapping.effect,
-    description: mapping.description,
-    staffNote: mapping.staffNote,
+    matchedPattern: category,
+    matchedWorkout: newMapping || undefined,
+    matchConfidence: confidence,
+    category,
+    effect,
+    description,
+    staffNote,
     alerts,
   };
 }
