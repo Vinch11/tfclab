@@ -1,9 +1,78 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// =============================================
+// INPUT VALIDATION
+// =============================================
+
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+interface RequestBody {
+  messages: ChatMessage[];
+  athleteContext?: string;
+  knowledgeContext?: string;
+  missingFields?: string;
+  isFirstMessage?: boolean;
+}
+
+function validateRequestBody(body: unknown): RequestBody {
+  if (typeof body !== "object" || body === null) {
+    throw new Error("Invalid request body");
+  }
+
+  const obj = body as Record<string, unknown>;
+
+  // Validate messages array
+  if (!Array.isArray(obj.messages)) {
+    throw new Error("messages must be an array");
+  }
+
+  if (obj.messages.length > 50) {
+    throw new Error("Too many messages (max 50)");
+  }
+
+  const validatedMessages: ChatMessage[] = [];
+  for (const msg of obj.messages) {
+    if (typeof msg !== "object" || msg === null) {
+      throw new Error("Invalid message format");
+    }
+    const m = msg as Record<string, unknown>;
+    if (m.role !== "user" && m.role !== "assistant") {
+      throw new Error("Invalid message role");
+    }
+    if (typeof m.content !== "string") {
+      throw new Error("Message content must be a string");
+    }
+    if (m.content.length > 4000) {
+      throw new Error("Message content too long (max 4000 characters)");
+    }
+    validatedMessages.push({ role: m.role, content: m.content });
+  }
+
+  // Validate optional string fields with length limits
+  const validateOptionalString = (value: unknown, name: string, maxLength: number): string | undefined => {
+    if (value === undefined || value === null) return undefined;
+    if (typeof value !== "string") throw new Error(`${name} must be a string`);
+    if (value.length > maxLength) throw new Error(`${name} too long (max ${maxLength} characters)`);
+    return value;
+  };
+
+  return {
+    messages: validatedMessages,
+    athleteContext: validateOptionalString(obj.athleteContext, "athleteContext", 10000),
+    knowledgeContext: validateOptionalString(obj.knowledgeContext, "knowledgeContext", 20000),
+    missingFields: validateOptionalString(obj.missingFields, "missingFields", 1000),
+    isFirstMessage: typeof obj.isFirstMessage === "boolean" ? obj.isFirstMessage : undefined,
+  };
+}
 
 // =============================================
 // SYSTEM PROMPT - Assistant Staff-Grade
@@ -99,7 +168,55 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, athleteContext, knowledgeContext, isFirstMessage, missingFields } = await req.json();
+    // =============================================
+    // AUTHENTICATION CHECK
+    // =============================================
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Non autorisé" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    
+    if (userError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Token invalide" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const userId = user.id;
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: "Utilisateur non identifié" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // =============================================
+    // INPUT VALIDATION
+    // =============================================
+    let requestBody: RequestBody;
+    try {
+      const rawBody = await req.json();
+      requestBody = validateRequestBody(rawBody);
+    } catch (validationError) {
+      return new Response(
+        JSON.stringify({ error: validationError instanceof Error ? validationError.message : "Données invalides" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { messages, athleteContext, knowledgeContext, isFirstMessage, missingFields } = requestBody;
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {

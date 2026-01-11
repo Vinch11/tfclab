@@ -39,6 +39,7 @@ import {
   KNOWLEDGE_BASE_VERSION
 } from "@/lib/assistant/knowledgeBase";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 // =============================================
 // TYPES
@@ -104,11 +105,20 @@ async function streamChat({
   onError: (error: string) => void;
 }) {
   try {
+    // Get the current session token for authentication
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
+    
+    if (!accessToken) {
+      onError("Connecte-toi pour utiliser l'assistant");
+      return;
+    }
+
     const resp = await fetch(CHAT_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify({ 
         messages: messages.map(m => ({ role: m.role, content: m.content })),
