@@ -1,6 +1,6 @@
 /**
- * Wahoo Suggestions Panel v2
- * Displays AI-powered workout suggestions based on athlete profile
+ * Wahoo Suggestions Panel v3
+ * Displays AI-powered workout suggestions organized by temporal phases
  * 
  * Shows in Templates section when athlete context is available
  * Supports Staff mode (detailed) and Athlete mode (simplified)
@@ -24,7 +24,9 @@ import {
   ExternalLink,
   Copy,
   CheckCircle2,
-  Activity
+  Activity,
+  Calendar,
+  Clock
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -33,12 +35,16 @@ import {
   type WahooSuggestion,
   type SuggestionEngineOutput,
   type TargetAxis,
-  type WahooNeed,
+  type TemporalPhase,
+  type PhasedSuggestions,
   getAxisColor,
   getAxisLabel,
   getAxisIcon,
   getNeedLabel,
   formatSuggestionsForCopy,
+  PHASE_LABELS,
+  PHASE_DESCRIPTIONS,
+  getPhaseColor,
 } from "@/lib/wahoo/wahooSuggestionEngine";
 import { getRiskLabel, getRiskColor } from "@/data/wahooMapping";
 
@@ -65,6 +71,18 @@ function AxisIcon({ axis }: { axis: TargetAxis }) {
   }
 }
 
+function PhaseIcon({ phase }: { phase: TemporalPhase }) {
+  const iconClass = "h-4 w-4";
+  switch (phase) {
+    case 1:
+      return <span className="text-green-600 dark:text-green-400 font-bold text-sm">1</span>;
+    case 2:
+      return <span className="text-blue-600 dark:text-blue-400 font-bold text-sm">2</span>;
+    case 3:
+      return <span className="text-purple-600 dark:text-purple-400 font-bold text-sm">3</span>;
+  }
+}
+
 function SuggestionCard({ 
   suggestion, 
   staffMode,
@@ -79,7 +97,7 @@ function SuggestionCard({
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="border rounded-lg p-4 bg-card hover:shadow-sm transition-shadow">
+    <div className="border rounded-lg p-3 bg-card hover:shadow-sm transition-shadow">
       <div className="flex items-start gap-3">
         {/* Priority indicator */}
         <div className="flex flex-col items-center gap-1">
@@ -92,7 +110,7 @@ function SuggestionCard({
         <div className="flex-1 min-w-0 space-y-2">
           {/* Header */}
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-foreground">{suggestion.wahoo_name}</span>
+            <span className="font-semibold text-foreground text-sm">{suggestion.wahoo_name}</span>
             <Badge className={`text-xs ${getAxisColor(suggestion.targetAxis)}`}>
               {getAxisIcon(suggestion.targetAxis)} {getAxisLabel(suggestion.targetAxis)}
             </Badge>
@@ -104,6 +122,14 @@ function SuggestionCard({
               Wahoo SYSTM
             </Badge>
           </div>
+
+          {/* Frequency */}
+          {suggestion.frequencyPerWeek && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              <span>{suggestion.frequencyPerWeek}</span>
+            </div>
+          )}
 
           {/* Risk level - staff only */}
           {staffMode && (
@@ -121,7 +147,7 @@ function SuggestionCard({
           )}
 
           {/* Effects */}
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1">
             {suggestion.expected_effects.map((effect, idx) => (
               <Badge key={idx} variant="secondary" className="text-xs font-normal">
                 {effect}
@@ -132,13 +158,13 @@ function SuggestionCard({
           {/* Why - Collapsible in staff mode, always visible in athlete mode */}
           {staffMode ? (
             <Collapsible open={expanded} onOpenChange={setExpanded}>
-              <CollapsibleTrigger className="flex items-center gap-1 text-sm text-primary hover:underline">
+              <CollapsibleTrigger className="flex items-center gap-1 text-xs text-primary hover:underline">
                 <Info className="h-3 w-3" />
                 Pourquoi cette suggestion ?
                 <ChevronDown className={`h-3 w-3 transition-transform ${expanded ? "rotate-180" : ""}`} />
               </CollapsibleTrigger>
               <CollapsibleContent className="pt-2 space-y-2">
-                <p className="text-sm text-muted-foreground bg-muted/30 rounded-lg p-3">
+                <p className="text-xs text-muted-foreground bg-muted/30 rounded-lg p-2">
                   {suggestion.why}
                 </p>
                 {suggestion.staffAnnotation && (
@@ -149,7 +175,7 @@ function SuggestionCard({
               </CollapsibleContent>
             </Collapsible>
           ) : (
-            <p className="text-sm text-muted-foreground italic">
+            <p className="text-xs text-muted-foreground italic">
               {getSimplifiedWhy(suggestion)}
             </p>
           )}
@@ -157,7 +183,7 @@ function SuggestionCard({
           {/* Cautions */}
           {suggestion.cautions.length > 0 && (
             <div className="flex items-start gap-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-lg p-2">
-              <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+              <AlertTriangle className="h-3 w-3 shrink-0 mt-0.5" />
               <span>{suggestion.cautions.join(" • ")}</span>
             </div>
           )}
@@ -167,18 +193,13 @@ function SuggestionCard({
             <Button
               variant="ghost"
               size="sm"
-              className="w-full text-xs text-primary hover:bg-primary/10"
+              className="w-full text-xs text-primary hover:bg-primary/10 h-7"
               onClick={() => onAskAssistant(suggestion.wahoo_name, suggestion.wahoo_id)}
             >
-              <Info className="h-3.5 w-3.5 mr-1" />
-              Demander à l'Assistant : Pourquoi ?
+              <Info className="h-3 w-3 mr-1" />
+              Demander à l'Assistant
             </Button>
           )}
-
-          {/* Non-imposing badge */}
-          <Badge variant="outline" className="text-[10px] text-muted-foreground">
-            💡 Suggestion — non imposée
-          </Badge>
         </div>
       </div>
     </div>
@@ -203,6 +224,55 @@ function getSimplifiedWhy(suggestion: WahooSuggestion): string {
   }
 }
 
+function PhaseSection({ 
+  phase, 
+  suggestions, 
+  staffMode,
+  onAskAssistant
+}: { 
+  phase: TemporalPhase; 
+  suggestions: WahooSuggestion[];
+  staffMode: boolean;
+  onAskAssistant?: (workoutName: string, workoutId: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(phase === 1);
+
+  if (suggestions.length === 0) return null;
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <CollapsibleTrigger className="w-full">
+        <div className={`flex items-center justify-between p-3 rounded-lg border ${getPhaseColor(phase)} cursor-pointer hover:opacity-90 transition-opacity`}>
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            <span className="font-medium text-sm">{PHASE_LABELS[phase]}</span>
+            <span className="text-xs opacity-75">({PHASE_DESCRIPTIONS[phase]})</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-xs">
+              {suggestions.length} séance{suggestions.length > 1 ? "s" : ""}
+            </Badge>
+            <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+          </div>
+        </div>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="pt-2">
+        <div className="space-y-2 pl-2 border-l-2 border-muted ml-4">
+          {suggestions.map((suggestion, idx) => (
+            <SuggestionCard 
+              key={suggestion.id} 
+              suggestion={suggestion} 
+              staffMode={staffMode}
+              index={idx}
+              onAskAssistant={onAskAssistant}
+            />
+          ))}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
 export function WahooSuggestionsPanel({ 
   output, 
   staffMode,
@@ -220,7 +290,9 @@ export function WahooSuggestionsPanel({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (output.suggestions.length === 0) {
+  const totalSuggestions = output.suggestions.length;
+
+  if (totalSuggestions === 0) {
     return (
       <Card className="border-dashed">
         <CardContent className="py-6">
@@ -237,7 +309,7 @@ export function WahooSuggestionsPanel({
     <Card className="overflow-hidden">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors">
+          <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors py-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-primary" />
@@ -250,7 +322,7 @@ export function WahooSuggestionsPanel({
               </CardTitle>
               <div className="flex items-center gap-2">
                 <Badge variant="secondary" className="text-xs">
-                  {output.suggestions.length} suggestion{output.suggestions.length > 1 ? "s" : ""}
+                  {totalSuggestions} suggestion{totalSuggestions > 1 ? "s" : ""}
                 </Badge>
                 <ChevronDown 
                   className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} 
@@ -287,17 +359,26 @@ export function WahooSuggestionsPanel({
               </div>
             )}
 
-            {/* Suggestions list */}
+            {/* Phased suggestions */}
             <div className="space-y-3">
-              {output.suggestions.map((suggestion, idx) => (
-                <SuggestionCard 
-                  key={suggestion.id} 
-                  suggestion={suggestion} 
-                  staffMode={staffMode}
-                  index={idx}
-                  onAskAssistant={onAskAssistant}
-                />
-              ))}
+              <PhaseSection 
+                phase={1} 
+                suggestions={output.phasedSuggestions.phase1} 
+                staffMode={staffMode}
+                onAskAssistant={onAskAssistant}
+              />
+              <PhaseSection 
+                phase={2} 
+                suggestions={output.phasedSuggestions.phase2} 
+                staffMode={staffMode}
+                onAskAssistant={onAskAssistant}
+              />
+              <PhaseSection 
+                phase={3} 
+                suggestions={output.phasedSuggestions.phase3} 
+                staffMode={staffMode}
+                onAskAssistant={onAskAssistant}
+              />
             </div>
 
             {/* Copy button - staff only */}
@@ -316,7 +397,7 @@ export function WahooSuggestionsPanel({
                 ) : (
                   <>
                     <Copy className="h-4 w-4 mr-2" />
-                    Copier suggestions
+                    Copier toutes les suggestions
                   </>
                 )}
               </Button>

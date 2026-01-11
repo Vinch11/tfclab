@@ -29,6 +29,26 @@ export type WahooNeed =
 
 export type TargetAxis = "VLAMAX" | "TTE" | "ENDURANCE" | "FRESHNESS" | "VO2";
 
+/**
+ * Temporal phases for workout suggestions
+ * Phase 1: Immediate priorities (current week)
+ * Phase 2: Short-term development (next 2-4 weeks)
+ * Phase 3: Medium-term consolidation (4-8 weeks)
+ */
+export type TemporalPhase = 1 | 2 | 3;
+
+export const PHASE_LABELS: Record<TemporalPhase, string> = {
+  1: "Dans un premier temps",
+  2: "Dans un deuxième temps",
+  3: "Dans un troisième temps",
+};
+
+export const PHASE_DESCRIPTIONS: Record<TemporalPhase, string> = {
+  1: "Priorités immédiates (cette semaine)",
+  2: "Développement court terme (2-4 semaines)",
+  3: "Consolidation moyen terme (4-8 semaines)",
+};
+
 export interface EffectiveValue {
   value: number | null;
   confidence: number;
@@ -78,6 +98,10 @@ export interface WahooSuggestion {
   target_need: WahooNeed;
   targetAxis: TargetAxis;
   priority: 1 | 2 | 3;
+  /** Temporal phase: when to use this workout in the training progression */
+  temporalPhase: TemporalPhase;
+  /** Suggested frequency per week for this workout type */
+  frequencyPerWeek?: string;
   why: string;
   expected_effects: string[];
   cautions: string[];
@@ -92,8 +116,15 @@ export interface NeedAnalysis {
   priorityOrder: WahooNeed[];
 }
 
+export interface PhasedSuggestions {
+  phase1: WahooSuggestion[];
+  phase2: WahooSuggestion[];
+  phase3: WahooSuggestion[];
+}
+
 export interface SuggestionEngineOutput {
   suggestions: WahooSuggestion[];
+  phasedSuggestions: PhasedSuggestions;
   needAnalysis: NeedAnalysis;
   diagnosticSummary: string;
   primaryConcern: TargetAxis | null;
@@ -266,10 +297,15 @@ function needToTargetAxis(need: WahooNeed): TargetAxis {
 
 // ============= WORKOUT SELECTION =============
 
+/**
+ * Select workouts for a need with extended count for phased suggestions
+ * Returns up to maxCount workouts, sorted by risk level
+ */
 function selectWorkoutsForNeed(
   need: WahooNeed,
   context: SuggestionEngineContext,
-  alreadySelected: Set<string>
+  alreadySelected: Set<string>,
+  maxCount: number = 4
 ): WahooWorkoutMapping[] {
   const { objectif, sportFocus, vlamaxEffectif, fatigueScore, injuryRiskRun } = context;
   
@@ -282,8 +318,10 @@ function selectWorkoutsForNeed(
   // 4. Safety filters
   
   let candidates = WAHOO_WORKOUTS.filter(w => {
-    // Axis match
-    if (!targetAxes.includes(w.primary_axis)) return false;
+    // Axis match (primary or secondary)
+    const axisMatch = targetAxes.includes(w.primary_axis) || 
+                      (w.secondary_axis && targetAxes.includes(w.secondary_axis));
+    if (!axisMatch) return false;
     
     // Sport match (bike default for tri, or exact match)
     if (sportFocus === "tri") {
@@ -327,10 +365,129 @@ function selectWorkoutsForNeed(
     return true;
   });
   
-  // Sort by risk level (prefer lower risk)
-  candidates.sort((a, b) => a.risk_level - b.risk_level);
+  // Sort by: 1) primary axis match first, 2) risk level (prefer lower risk)
+  candidates.sort((a, b) => {
+    // Primary axis match has priority
+    const aIsPrimary = targetAxes.includes(a.primary_axis) ? 0 : 1;
+    const bIsPrimary = targetAxes.includes(b.primary_axis) ? 0 : 1;
+    if (aIsPrimary !== bIsPrimary) return aIsPrimary - bIsPrimary;
+    
+    return a.risk_level - b.risk_level;
+  });
   
-  return candidates.slice(0, 2);
+  return candidates.slice(0, maxCount);
+}
+
+/**
+ * Get additional workouts for secondary axes to fill out phase 2 and 3
+ */
+function selectSecondaryWorkouts(
+  context: SuggestionEngineContext,
+  alreadySelected: Set<string>,
+  targetAxis: WahooPhysioAxis[],
+  maxCount: number = 3
+): WahooWorkoutMapping[] {
+  const { objectif, sportFocus, vlamaxEffectif, injuryRiskRun } = context;
+  const isLongDistance = ["IM", "Ironman", "Marathon", "703", "70.3", "Half", "TrailLong", "Ultra"].includes(objectif);
+  const hasHighVlamax = vlamaxEffectif.value !== null && vlamaxEffectif.value > getVLamaxThreshold(objectif);
+  
+  let candidates = WAHOO_WORKOUTS.filter(w => {
+    // Match by primary or secondary axis
+    const axisMatch = targetAxis.includes(w.primary_axis) || 
+                      (w.secondary_axis && targetAxis.includes(w.secondary_axis));
+    if (!axisMatch) return false;
+    
+    // Sport match
+    if (sportFocus !== "tri" && w.sport !== sportFocus) {
+      return false;
+    }
+    
+    // Not already selected
+    if (alreadySelected.has(w.wahoo_id)) return false;
+    
+    // Safety: no high risk for long distance + high VLamax
+    if (w.risk_level >= 3 && isLongDistance && hasHighVlamax) return false;
+    
+    // No VO2_UP if high VLamax and long distance
+    if (w.primary_axis === "VO2_UP" && hasHighVlamax && isLongDistance) return false;
+    
+    // No intense running if injury risk
+    if (injuryRiskRun?.level === "élevé" && w.sport === "run" && w.intensity_profile === "high") {
+      return false;
+    }
+    
+    return true;
+  });
+  
+  // Prefer moderate intensity for secondary suggestions
+  candidates.sort((a, b) => {
+    const intensityOrder = { low: 0, moderate: 1, mixed: 2, high: 3 };
+    return intensityOrder[a.intensity_profile] - intensityOrder[b.intensity_profile];
+  });
+  
+  return candidates.slice(0, maxCount);
+}
+
+/**
+ * Determine the temporal phase for a workout based on need priority and workout characteristics
+ */
+function determineTemporalPhase(
+  need: WahooNeed,
+  workout: WahooWorkoutMapping,
+  needIndex: number,
+  context: SuggestionEngineContext
+): TemporalPhase {
+  const { fatigueScore, injuryRiskRun } = context;
+  const hasFatigue = (fatigueScore !== undefined && fatigueScore >= 6);
+  const hasInjuryRisk = injuryRiskRun?.level === "élevé" || injuryRiskRun?.level === "modéré";
+  
+  // Phase 1: Immediate priorities (recovery, or first-priority low-risk workouts)
+  if (need === "NEED_RECOVERY") return 1;
+  if (needIndex === 0 && workout.risk_level <= 1) return 1;
+  if (hasFatigue && workout.risk_level === 0) return 1;
+  if (hasInjuryRisk && workout.primary_axis === "RECOVERY") return 1;
+  
+  // Phase 2: Short-term development (primary need, moderate intensity)
+  if (needIndex === 0 && workout.risk_level === 2) return 2;
+  if (needIndex <= 1 && workout.intensity_profile === "moderate") return 2;
+  if (workout.primary_axis === "ENDURANCE_BASE" && workout.intensity_profile === "low") return 2;
+  
+  // Phase 3: Medium-term consolidation (secondary needs, higher complexity)
+  return 3;
+}
+
+/**
+ * Get frequency suggestion based on workout type and phase
+ */
+function getFrequencyForWorkout(
+  workout: WahooWorkoutMapping,
+  phase: TemporalPhase,
+  need: WahooNeed
+): string {
+  if (workout.primary_axis === "RECOVERY") {
+    return "1-2x / semaine";
+  }
+  
+  if (workout.primary_axis === "ENDURANCE_BASE" || workout.primary_axis === "VLAMAX_DOWN") {
+    if (phase === 1) return "2-3x / semaine";
+    if (phase === 2) return "2x / semaine";
+    return "1-2x / semaine";
+  }
+  
+  if (workout.primary_axis === "TTE_UP" || workout.primary_axis === "THRESHOLD_MLSS") {
+    if (phase === 1) return "1-2x / semaine";
+    return "1x / semaine";
+  }
+  
+  if (workout.primary_axis === "VO2_UP" || workout.primary_axis === "HIGH_RISK") {
+    return "1x / semaine max";
+  }
+  
+  if (workout.primary_axis === "FORCE_ENDURANCE") {
+    return "1x / semaine";
+  }
+  
+  return "1-2x / semaine";
 }
 
 // ============= SUGGESTION GENERATION =============
@@ -440,8 +597,11 @@ export function suggestWahooWorkouts(context: SuggestionEngineContext): Suggesti
   let diagnosticSummary = "";
   let primaryConcern: TargetAxis | null = null;
   
-  // Process top 1-2 needs
-  needAnalysis.needs.forEach((need, needIndex) => {
+  // Extended processing: get more workouts per need
+  const allPriorityNeeds = needAnalysis.priorityOrder; // All needs, not just top 2
+  
+  // Process primary needs with extended count (4 workouts per need)
+  allPriorityNeeds.forEach((need, needIndex) => {
     const targetAxis = needToTargetAxis(need);
     
     if (needIndex === 0) {
@@ -449,10 +609,15 @@ export function suggestWahooWorkouts(context: SuggestionEngineContext): Suggesti
       diagnosticSummary = needAnalysis.rationale[0] || `Besoin principal : ${need}`;
     }
     
-    const workouts = selectWorkoutsForNeed(need, context, selectedIds);
+    // Get more workouts: 4 for primary need, 3 for secondary, 2 for tertiary
+    const maxWorkouts = needIndex === 0 ? 4 : needIndex === 1 ? 3 : 2;
+    const workouts = selectWorkoutsForNeed(need, context, selectedIds, maxWorkouts);
     
     workouts.forEach((workout, workoutIndex) => {
       selectedIds.add(workout.wahoo_id);
+      
+      const temporalPhase = determineTemporalPhase(need, workout, needIndex, context);
+      const frequencyPerWeek = getFrequencyForWorkout(workout, temporalPhase, need);
       
       const suggestion: WahooSuggestion = {
         id: `suggestion_${need}_${workoutIndex}`,
@@ -460,7 +625,9 @@ export function suggestWahooWorkouts(context: SuggestionEngineContext): Suggesti
         wahoo_name: workout.wahoo_name,
         target_need: need,
         targetAxis,
-        priority: (needIndex + 1) as 1 | 2 | 3,
+        priority: Math.min(needIndex + 1, 3) as 1 | 2 | 3,
+        temporalPhase,
+        frequencyPerWeek,
         why: generateWhyMessage(need, workout, context),
         expected_effects: generateExpectedEffects(workout),
         cautions: generateCautions(workout, context),
@@ -478,6 +645,47 @@ export function suggestWahooWorkouts(context: SuggestionEngineContext): Suggesti
     });
   });
   
+  // Fill remaining slots with complementary workouts for phase 2 and 3
+  const targetFillCount = 12 - suggestions.length;
+  if (targetFillCount > 0) {
+    // Determine complementary axes based on objective
+    const isLongDistance = ["IM", "Ironman", "Marathon", "703", "70.3", "Half", "TrailLong", "Ultra"].includes(context.objectif);
+    const complementaryAxes: WahooPhysioAxis[] = isLongDistance 
+      ? ["ENDURANCE_BASE", "FORCE_ENDURANCE", "THRESHOLD_MLSS"]
+      : ["TTE_UP", "FORCE_ENDURANCE", "THRESHOLD_MLSS"];
+    
+    const additionalWorkouts = selectSecondaryWorkouts(context, selectedIds, complementaryAxes, targetFillCount);
+    
+    additionalWorkouts.forEach((workout, idx) => {
+      selectedIds.add(workout.wahoo_id);
+      
+      // Map workout axis to target axis
+      const targetAxis = mapPhysioAxisToTargetAxis(workout.primary_axis);
+      const need = mapTargetAxisToNeed(targetAxis);
+      
+      // These are consolidation workouts, so phase 2 or 3
+      const temporalPhase: TemporalPhase = idx < 2 ? 2 : 3;
+      const frequencyPerWeek = getFrequencyForWorkout(workout, temporalPhase, need);
+      
+      suggestions.push({
+        id: `suggestion_complementary_${idx}`,
+        wahoo_id: workout.wahoo_id,
+        wahoo_name: workout.wahoo_name,
+        target_need: need,
+        targetAxis,
+        priority: 3,
+        temporalPhase,
+        frequencyPerWeek,
+        why: generateComplementaryWhyMessage(workout, context),
+        expected_effects: generateExpectedEffects(workout),
+        cautions: generateCautions(workout, context),
+        confidence: 0.7,
+        riskLevel: workout.risk_level,
+        staffAnnotation: workout.staff_annotation,
+      });
+    });
+  }
+  
   // Ensure at least 1 "safe" session if risk/fatigue
   const hasSafeSession = suggestions.some(s => s.riskLevel <= 1);
   const needsSafeSession = 
@@ -485,7 +693,7 @@ export function suggestWahooWorkouts(context: SuggestionEngineContext): Suggesti
     context.injuryRiskRun?.level === "élevé" ||
     context.injuryRiskRun?.level === "modéré";
     
-  if (!hasSafeSession && needsSafeSession && suggestions.length < 3) {
+  if (!hasSafeSession && needsSafeSession) {
     // Add a recovery/endurance session
     const safeWorkouts = WAHOO_WORKOUTS.filter(w => 
       w.risk_level === 0 && 
@@ -495,13 +703,15 @@ export function suggestWahooWorkouts(context: SuggestionEngineContext): Suggesti
     
     if (safeWorkouts.length > 0) {
       const safeWorkout = safeWorkouts[0];
-      suggestions.push({
+      suggestions.unshift({
         id: `suggestion_safe_0`,
         wahoo_id: safeWorkout.wahoo_id,
         wahoo_name: safeWorkout.wahoo_name,
         target_need: "NEED_RECOVERY",
         targetAxis: "FRESHNESS",
-        priority: 3,
+        priority: 1,
+        temporalPhase: 1,
+        frequencyPerWeek: "2-3x / semaine",
         why: "Séance sécuritaire recommandée compte tenu du niveau de fatigue ou risque.",
         expected_effects: generateExpectedEffects(safeWorkout),
         cautions: [],
@@ -512,8 +722,21 @@ export function suggestWahooWorkouts(context: SuggestionEngineContext): Suggesti
     }
   }
   
-  // Limit to 3 suggestions
-  const finalSuggestions = suggestions.slice(0, 3);
+  // Sort suggestions by temporal phase, then by priority
+  suggestions.sort((a, b) => {
+    if (a.temporalPhase !== b.temporalPhase) return a.temporalPhase - b.temporalPhase;
+    return a.priority - b.priority;
+  });
+  
+  // Limit to 12 suggestions max
+  const finalSuggestions = suggestions.slice(0, 12);
+  
+  // Organize by phases
+  const phasedSuggestions: PhasedSuggestions = {
+    phase1: finalSuggestions.filter(s => s.temporalPhase === 1),
+    phase2: finalSuggestions.filter(s => s.temporalPhase === 2),
+    phase3: finalSuggestions.filter(s => s.temporalPhase === 3),
+  };
   
   if (!diagnosticSummary && finalSuggestions.length === 0) {
     diagnosticSummary = "Profil équilibré. Aucune suggestion prioritaire identifiée.";
@@ -521,10 +744,70 @@ export function suggestWahooWorkouts(context: SuggestionEngineContext): Suggesti
   
   return {
     suggestions: finalSuggestions,
+    phasedSuggestions,
     needAnalysis,
     diagnosticSummary,
     primaryConcern,
   };
+}
+
+// ============= HELPER FUNCTIONS FOR EXTENDED ENGINE =============
+
+function mapPhysioAxisToTargetAxis(axis: WahooPhysioAxis): TargetAxis {
+  switch (axis) {
+    case "VLAMAX_DOWN":
+      return "VLAMAX";
+    case "TTE_UP":
+    case "THRESHOLD_MLSS":
+      return "TTE";
+    case "ENDURANCE_BASE":
+    case "FORCE_ENDURANCE":
+      return "ENDURANCE";
+    case "RECOVERY":
+      return "FRESHNESS";
+    case "VO2_UP":
+    case "HIGH_RISK":
+      return "VO2";
+    default:
+      return "ENDURANCE";
+  }
+}
+
+function mapTargetAxisToNeed(axis: TargetAxis): WahooNeed {
+  switch (axis) {
+    case "VLAMAX":
+      return "NEED_VLAMAX_DOWN";
+    case "TTE":
+      return "NEED_TTE_UP";
+    case "ENDURANCE":
+      return "NEED_ENDURANCE_BASE";
+    case "FRESHNESS":
+      return "NEED_RECOVERY";
+    case "VO2":
+      return "NEED_VO2_UP";
+  }
+}
+
+function generateComplementaryWhyMessage(
+  workout: WahooWorkoutMapping,
+  context: SuggestionEngineContext
+): string {
+  const { objectif } = context;
+  
+  switch (workout.primary_axis) {
+    case "ENDURANCE_BASE":
+      return `Complément pour consolider la base aérobie pour l'objectif ${objectif}. Séance à intégrer progressivement.`;
+    case "FORCE_ENDURANCE":
+      return `Renforcement de la force-endurance. Améliore l'économie motrice et la résistance musculaire.`;
+    case "THRESHOLD_MLSS":
+      return `Travail au seuil pour améliorer la capacité à maintenir l'intensité cible. À utiliser après avoir consolidé la base.`;
+    case "TTE_UP":
+      return `Développement de la durabilité au seuil. Complète le travail principal de TTE.`;
+    case "VLAMAX_DOWN":
+      return `Séance complémentaire pour continuer à réduire la dépendance glycolytique.`;
+    default:
+      return `Séance complémentaire pour le développement global de la condition physique.`;
+  }
 }
 
 // ============= LEGACY COMPATIBILITY =============
@@ -645,7 +928,7 @@ export function getNeedLabel(need: WahooNeed): string {
 }
 
 /**
- * Format suggestions for PDF export
+ * Format suggestions for PDF export with temporal phases
  */
 export function formatSuggestionsForPDF(output: SuggestionEngineOutput): string {
   if (output.suggestions.length === 0) {
@@ -653,17 +936,32 @@ export function formatSuggestionsForPDF(output: SuggestionEngineOutput): string 
   }
 
   let text = "### Suggestions Wahoo SYSTM (optionnelles)\n\n";
+  text += `**Diagnostic :** ${output.diagnosticSummary}\n\n`;
   
-  output.suggestions.forEach((s) => {
-    text += `• **${s.wahoo_name}** (Wahoo SYSTM)\n`;
-    text += `  Axe ciblé : ${getAxisLabel(s.targetAxis)} ${getAxisIcon(s.targetAxis)}\n`;
-    text += `  Justification : ${s.why}\n`;
-    text += `  Effets attendus : ${s.expected_effects.join(", ")}\n`;
-    if (s.cautions.length > 0) {
-      text += `  ⚠️ Précautions : ${s.cautions.join("; ")}\n`;
-    }
-    text += `  _${s.staffAnnotation}_\n`;
-    text += "\n";
+  // Format by phases
+  const phases: TemporalPhase[] = [1, 2, 3];
+  
+  phases.forEach((phase) => {
+    const phaseSuggestions = output.phasedSuggestions[`phase${phase}` as keyof PhasedSuggestions];
+    if (phaseSuggestions.length === 0) return;
+    
+    text += `#### ${PHASE_LABELS[phase]}\n`;
+    text += `_${PHASE_DESCRIPTIONS[phase]}_\n\n`;
+    
+    phaseSuggestions.forEach((s) => {
+      text += `• **${s.wahoo_name}** (Wahoo SYSTM)\n`;
+      text += `  Axe ciblé : ${getAxisLabel(s.targetAxis)} ${getAxisIcon(s.targetAxis)}\n`;
+      if (s.frequencyPerWeek) {
+        text += `  Fréquence suggérée : ${s.frequencyPerWeek}\n`;
+      }
+      text += `  Justification : ${s.why}\n`;
+      text += `  Effets attendus : ${s.expected_effects.join(", ")}\n`;
+      if (s.cautions.length > 0) {
+        text += `  ⚠️ Précautions : ${s.cautions.join("; ")}\n`;
+      }
+      text += `  _${s.staffAnnotation}_\n`;
+      text += "\n";
+    });
   });
 
   text += "_Ces suggestions ne remplacent pas la planification du coach. Elles éclairent un besoin physiologique identifié._";
@@ -672,7 +970,7 @@ export function formatSuggestionsForPDF(output: SuggestionEngineOutput): string 
 }
 
 /**
- * Copy-friendly text for coach export
+ * Copy-friendly text for coach export with temporal phases
  */
 export function formatSuggestionsForCopy(output: SuggestionEngineOutput): string {
   if (output.suggestions.length === 0) {
@@ -682,18 +980,48 @@ export function formatSuggestionsForCopy(output: SuggestionEngineOutput): string
   let text = "🎯 SUGGESTIONS WAHOO SYSTM\n\n";
   text += `Diagnostic : ${output.diagnosticSummary}\n\n`;
   
-  output.suggestions.forEach((s, idx) => {
-    text += `${idx + 1}. ${s.wahoo_name}\n`;
-    text += `   → ${getAxisLabel(s.targetAxis)}\n`;
-    text += `   Pourquoi : ${s.why}\n`;
-    text += `   Effets : ${s.expected_effects.join(", ")}\n`;
-    if (s.cautions.length > 0) {
-      text += `   ⚠️ ${s.cautions.join("; ")}\n`;
-    }
-    text += "\n";
+  // Format by phases
+  const phases: TemporalPhase[] = [1, 2, 3];
+  
+  phases.forEach((phase) => {
+    const phaseSuggestions = output.phasedSuggestions[`phase${phase}` as keyof PhasedSuggestions];
+    if (phaseSuggestions.length === 0) return;
+    
+    text += `\n📅 ${PHASE_LABELS[phase].toUpperCase()}\n`;
+    text += `(${PHASE_DESCRIPTIONS[phase]})\n`;
+    text += "─".repeat(40) + "\n\n";
+    
+    phaseSuggestions.forEach((s, idx) => {
+      text += `${idx + 1}. ${s.wahoo_name}\n`;
+      text += `   → ${getAxisLabel(s.targetAxis)}\n`;
+      if (s.frequencyPerWeek) {
+        text += `   ⏰ Fréquence : ${s.frequencyPerWeek}\n`;
+      }
+      text += `   Pourquoi : ${s.why}\n`;
+      text += `   Effets : ${s.expected_effects.join(", ")}\n`;
+      if (s.cautions.length > 0) {
+        text += `   ⚠️ ${s.cautions.join("; ")}\n`;
+      }
+      text += "\n";
+    });
   });
 
+  text += "───────────────────────────────────────\n";
   text += "Ces suggestions sont optionnelles et ne remplacent pas la planification.";
   
   return text;
+}
+
+/**
+ * Get phase color for UI display
+ */
+export function getPhaseColor(phase: TemporalPhase): string {
+  switch (phase) {
+    case 1:
+      return "bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700";
+    case 2:
+      return "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700";
+    case 3:
+      return "bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700";
+  }
 }
