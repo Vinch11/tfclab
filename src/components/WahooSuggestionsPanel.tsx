@@ -1,5 +1,5 @@
 /**
- * Wahoo Suggestions Panel
+ * Wahoo Suggestions Panel v2
  * Displays AI-powered workout suggestions based on athlete profile
  * 
  * Shows in Templates section when athlete context is available
@@ -8,6 +8,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
@@ -20,18 +21,26 @@ import {
   Battery, 
   Leaf,
   Info,
-  ExternalLink
+  ExternalLink,
+  Copy,
+  CheckCircle2,
+  Activity
 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import {
   type WahooSuggestion,
   type SuggestionEngineOutput,
   type TargetAxis,
+  type WahooNeed,
   getAxisColor,
   getAxisLabel,
   getAxisIcon,
+  getNeedLabel,
+  formatSuggestionsForCopy,
 } from "@/lib/wahoo/wahooSuggestionEngine";
+import { getRiskLabel, getRiskColor } from "@/data/wahooMapping";
 
 interface WahooSuggestionsPanelProps {
   output: SuggestionEngineOutput;
@@ -50,6 +59,8 @@ function AxisIcon({ axis }: { axis: TargetAxis }) {
       return <Battery className={iconClass} />;
     case "FRESHNESS":
       return <Leaf className={iconClass} />;
+    case "VO2":
+      return <Activity className={iconClass} />;
   }
 }
 
@@ -78,7 +89,7 @@ function SuggestionCard({
         <div className="flex-1 min-w-0 space-y-2">
           {/* Header */}
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-foreground">{suggestion.workoutName}</span>
+            <span className="font-semibold text-foreground">{suggestion.wahoo_name}</span>
             <Badge className={`text-xs ${getAxisColor(suggestion.targetAxis)}`}>
               {getAxisIcon(suggestion.targetAxis)} {getAxisLabel(suggestion.targetAxis)}
             </Badge>
@@ -91,16 +102,24 @@ function SuggestionCard({
             </Badge>
           </div>
 
-          {/* Category */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">
-              Catégorie : {suggestion.wahooCategory}
-            </span>
-          </div>
+          {/* Risk level - staff only */}
+          {staffMode && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">
+                Risque : 
+              </span>
+              <span className={`text-xs font-medium ${getRiskColor(suggestion.riskLevel)}`}>
+                {getRiskLabel(suggestion.riskLevel)}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                • Confiance : {Math.round(suggestion.confidence * 100)}%
+              </span>
+            </div>
+          )}
 
           {/* Effects */}
           <div className="flex flex-wrap gap-1.5">
-            {suggestion.expectedEffects.map((effect, idx) => (
+            {suggestion.expected_effects.map((effect, idx) => (
               <Badge key={idx} variant="secondary" className="text-xs font-normal">
                 {effect}
               </Badge>
@@ -115,10 +134,15 @@ function SuggestionCard({
                 Pourquoi cette suggestion ?
                 <ChevronDown className={`h-3 w-3 transition-transform ${expanded ? "rotate-180" : ""}`} />
               </CollapsibleTrigger>
-              <CollapsibleContent className="pt-2">
+              <CollapsibleContent className="pt-2 space-y-2">
                 <p className="text-sm text-muted-foreground bg-muted/30 rounded-lg p-3">
                   {suggestion.why}
                 </p>
+                {suggestion.staffAnnotation && (
+                  <p className="text-xs text-muted-foreground italic border-l-2 border-primary/30 pl-2">
+                    {suggestion.staffAnnotation}
+                  </p>
+                )}
               </CollapsibleContent>
             </Collapsible>
           ) : (
@@ -127,11 +151,11 @@ function SuggestionCard({
             </p>
           )}
 
-          {/* Caution */}
-          {suggestion.caution && (
+          {/* Cautions */}
+          {suggestion.cautions.length > 0 && (
             <div className="flex items-start gap-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-lg p-2">
               <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-              <span>{suggestion.caution}</span>
+              <span>{suggestion.cautions.join(" • ")}</span>
             </div>
           )}
 
@@ -158,6 +182,8 @@ function getSimplifiedWhy(suggestion: WahooSuggestion): string {
       return "Cette séance renforce ta base aérobie, fondation de toute performance d'endurance.";
     case "FRESHNESS":
       return "Cette séance favorise ta récupération et te prépare pour les prochains efforts.";
+    case "VO2":
+      return "Cette séance développe ta capacité aérobie maximale de façon contrôlée.";
   }
 }
 
@@ -167,6 +193,15 @@ export function WahooSuggestionsPanel({
   athleteName 
 }: WahooSuggestionsPanelProps) {
   const [isOpen, setIsOpen] = useState(true);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    const text = formatSuggestionsForCopy(output);
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    toast.success("Suggestions copiées !");
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   if (output.suggestions.length === 0) {
     return (
@@ -221,6 +256,20 @@ export function WahooSuggestionsPanel({
               </Alert>
             )}
 
+            {/* Need analysis - staff only */}
+            {staffMode && output.needAnalysis.rationale.length > 0 && (
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-muted-foreground">Besoins identifiés :</p>
+                <div className="flex flex-wrap gap-1">
+                  {output.needAnalysis.needs.map((need, idx) => (
+                    <Badge key={idx} variant="outline" className="text-xs">
+                      {getNeedLabel(need)}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Suggestions list */}
             <div className="space-y-3">
               {output.suggestions.map((suggestion, idx) => (
@@ -233,9 +282,32 @@ export function WahooSuggestionsPanel({
               ))}
             </div>
 
+            {/* Copy button - staff only */}
+            {staffMode && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={handleCopy}
+              >
+                {copied ? (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
+                    Copié !
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copier suggestions
+                  </>
+                )}
+              </Button>
+            )}
+
             {/* Disclaimer */}
             <p className="text-xs text-muted-foreground italic text-center pt-2 border-t">
-              Ces suggestions ne remplacent pas la planification du coach.
+              Ces suggestions ne remplacent pas la planification du coach. 
+              Elles éclairent un besoin physiologique identifié.
             </p>
           </CardContent>
         </CollapsibleContent>
