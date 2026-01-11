@@ -421,11 +421,40 @@ const WAHOO_SESSION_INDICATORS = [
   /cadence\s+(builds|drills|pyramid)/i,
 ];
 
+// Pattern to detect rest/recovery sessions that should be excluded from interpretation
+const REST_SESSION_PATTERNS = [
+  /^\s*off\s*$/i,
+  /\brepos\s+(complet|total|actif)?\b/i,
+  /\brest\s*(day)?\b/i,
+  /\bjour\s+de\s+repos\b/i,
+  /\brécupération\s+(complète|passive)\b/i,
+];
+
+/**
+ * Check if a session is a rest/off day that should be excluded from physiological interpretation
+ */
+function isRestSession(session: TemplateSession): boolean {
+  const title = (session.title || "").toLowerCase().trim();
+  const description = (session.description || "").toLowerCase().trim();
+  
+  // Check if title is exactly "OFF" or similar
+  if (/^off$/i.test(title)) return true;
+  
+  // Check common rest patterns in title or description
+  const textToCheck = `${title} ${description}`;
+  return REST_SESSION_PATTERNS.some((pattern) => pattern.test(textToCheck));
+}
+
 /**
  * Check if a session appears to be from Wahoo SYSTM or similar external platform
  * Now uses the centralized wahooMapping with aliases
  */
 export function isWahooLikeSession(session: TemplateSession): boolean {
+  // First, exclude rest/off sessions - they should never be interpreted
+  if (isRestSession(session)) {
+    return false;
+  }
+
   const textToCheck = [
     session.title,
     session.details,
