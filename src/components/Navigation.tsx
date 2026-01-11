@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Calculator, FlaskConical, Trophy, GraduationCap, BookOpen, Menu, X, CalendarRange } from "lucide-react";
+import { Calculator, FlaskConical, Trophy, GraduationCap, BookOpen, Menu, X, Dumbbell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -20,6 +20,7 @@ const navItems: NavItem[] = [
   { id: "dashboard", label: "Dashboard", shortLabel: "Dash", icon: Calculator },
   { id: "profil", label: "Profil", icon: Calculator },
   { id: "tests", label: "Tests", icon: FlaskConical },
+  { id: "seances", label: "Séances", icon: Dumbbell },
   { id: "templates", label: "Templates", shortLabel: "Templ", icon: BookOpen, route: "/templates" },
   { id: "academy", label: "Academy", icon: GraduationCap, route: "/academy" },
   { id: "race-readiness", label: "Race Readiness", shortLabel: "Race", icon: Trophy },

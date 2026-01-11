@@ -110,8 +110,6 @@ const Index = () => {
   const [showTestLibrary, setShowTestLibrary] = useState(false);
   const [showPhysioAnalysis, setShowPhysioAnalysis] = useState(false);
   
-  const [showWorkoutLibrary, setShowWorkoutLibrary] = useState(false);
-  
   const [showSnapshots, setShowSnapshots] = useState(false);
   const [showCheckins, setShowCheckins] = useState(false);
 
@@ -570,7 +568,6 @@ const Index = () => {
                     onClick={() => {
                       setShowTestLibrary(!showTestLibrary);
                       setShowPhysioAnalysis(false);
-                      setShowWorkoutLibrary(false);
                       setShowSnapshots(false);
                       setShowCheckins(false);
                     }}
@@ -585,7 +582,6 @@ const Index = () => {
                     onClick={() => {
                       setShowPhysioAnalysis(!showPhysioAnalysis);
                       setShowTestLibrary(false);
-                      setShowWorkoutLibrary(false);
                       setShowSnapshots(false);
                       setShowCheckins(false);
                     }}
@@ -596,27 +592,11 @@ const Index = () => {
                   </Button>
 
                   <Button
-                    variant={showWorkoutLibrary ? "default" : "outline"}
-                    onClick={() => {
-                      setShowWorkoutLibrary(!showWorkoutLibrary);
-                      setShowTestLibrary(false);
-                      setShowPhysioAnalysis(false);
-                      setShowSnapshots(false);
-                      setShowCheckins(false);
-                    }}
-                    className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
-                  >
-                    <Dumbbell className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                    <span className="truncate">Séances</span>
-                  </Button>
-
-                  <Button
                     variant={showSnapshots ? "default" : "outline"}
                     onClick={() => {
                       setShowSnapshots(!showSnapshots);
                       setShowTestLibrary(false);
                       setShowPhysioAnalysis(false);
-                      setShowWorkoutLibrary(false);
                       setShowCheckins(false);
                     }}
                     className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
@@ -631,7 +611,6 @@ const Index = () => {
                       setShowCheckins(!showCheckins);
                       setShowTestLibrary(false);
                       setShowPhysioAnalysis(false);
-                      setShowWorkoutLibrary(false);
                       setShowSnapshots(false);
                     }}
                     className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
@@ -657,7 +636,6 @@ const Index = () => {
                   setShowPhysioAnalysis(false);
                 }} />}
                 
-                {showWorkoutLibrary && <IndexSeancesView />}
                 {showSnapshots && currentAthlete && (
                   <SnapshotManager
                     athleteId={currentAthlete.id}
@@ -913,7 +891,6 @@ const Index = () => {
                     setShowSnapshots(true);
                     setShowTestLibrary(false);
                     setShowPhysioAnalysis(false);
-                    setShowWorkoutLibrary(false);
                     setShowCheckins(false);
                   }}
                   onGoToMethodology={() => setActiveTab("methodology")}
@@ -924,6 +901,13 @@ const Index = () => {
         );
 
 
+
+      case "seances":
+        return (
+          <div className="space-y-6">
+            <IndexSeancesView />
+          </div>
+        );
 
       default:
         return null;
