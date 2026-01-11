@@ -1,0 +1,496 @@
+import { useMemo, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import {
+  Zap,
+  Clock,
+  Activity,
+  Heart,
+  Target,
+  AlertTriangle,
+  ChevronDown,
+  ChevronRight,
+  Bike,
+  PersonStanding,
+  Sparkles,
+  Star,
+  TrendingUp,
+  Info,
+  Brain,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useAthletes } from "@/contexts/AthleteContext";
+import { useCloudData } from "@/hooks/useCloudData";
+
+// Engine imports
+import {
+  suggestWahooWorkouts,
+  SuggestionEngineContext,
+  SuggestionEngineOutput,
+  WahooSuggestion,
+  TemporalPhase,
+  PHASE_LABELS,
+  PHASE_DESCRIPTIONS,
+} from "@/lib/wahoo/wahooSuggestionEngine";
+import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
+import { computeTTEEffectif, getTTETarget } from "@/lib/tteEffectif";
+import { computeRaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
+import { computeCAPInjuryRisk } from "@/lib/capInjuryRisk";
+import { getRiskColor, getRiskLabel, findWahooWorkoutById } from "@/data/wahooMapping";
+
+// =============================================
+// TYPES & CONSTANTS
+// =============================================
+
+interface PhaseCardProps {
+  phase: TemporalPhase;
+  suggestions: WahooSuggestion[];
+  isExpanded: boolean;
+  onToggle: () => void;
+}
+
+const PHASE_COLORS: Record<TemporalPhase, string> = {
+  1: "border-l-green-500 bg-green-500/5",
+  2: "border-l-blue-500 bg-blue-500/5",
+  3: "border-l-purple-500 bg-purple-500/5",
+};
+
+const PHASE_BADGE_COLORS: Record<TemporalPhase, string> = {
+  1: "bg-green-500/20 text-green-500 border-green-500/30",
+  2: "bg-blue-500/20 text-blue-500 border-blue-500/30",
+  3: "bg-purple-500/20 text-purple-500 border-purple-500/30",
+};
+
+const AXIS_CONFIG: Record<string, { icon: typeof Zap; color: string; label: string }> = {
+  VLAMAX: { icon: Zap, color: "text-amber-500", label: "VLamax ↓" },
+  TTE: { icon: Clock, color: "text-blue-500", label: "TTE ↑" },
+  ENDURANCE: { icon: Heart, color: "text-green-500", label: "Endurance" },
+  FRESHNESS: { icon: Activity, color: "text-purple-500", label: "Récupération" },
+  VO2: { icon: TrendingUp, color: "text-red-500", label: "VO₂max ↑" },
+};
+
+// =============================================
+// SUB-COMPONENTS
+// =============================================
+
+function SuggestionCard({ suggestion }: { suggestion: WahooSuggestion }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const axisConfig = AXIS_CONFIG[suggestion.targetAxis];
+  const AxisIcon = axisConfig?.icon || Target;
+  const workout = findWahooWorkoutById(suggestion.wahoo_id);
+
+  return (
+    <Card className="bg-card/50 hover:border-primary/30 transition-colors">
+      <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+        <CollapsibleTrigger asChild>
+          <CardContent className="p-3 cursor-pointer">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <Badge className={cn("text-xs", axisConfig?.color && `bg-${axisConfig.color.split('-')[1]}-500/20`)}>
+                    <AxisIcon className={cn("h-3 w-3 mr-1", axisConfig?.color)} />
+                    {axisConfig?.label}
+                  </Badge>
+                  {workout?.sport === "run" ? (
+                    <PersonStanding className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Bike className="h-4 w-4 text-muted-foreground" />
+                  )}
+                  <Badge variant="outline" className={cn("text-xs", getRiskColor(suggestion.riskLevel))}>
+                    {getRiskLabel(suggestion.riskLevel)}
+                  </Badge>
+                </div>
+                <p className="font-semibold text-sm">{suggestion.wahoo_name}</p>
+                {suggestion.frequencyPerWeek && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    📅 {suggestion.frequencyPerWeek}
+                  </p>
+                )}
+              </div>
+              <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0">
+                {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+              </Button>
+            </div>
+
+            {/* Expected effects */}
+            <div className="flex flex-wrap gap-1 mt-2">
+              {suggestion.expected_effects.map((effect, idx) => (
+                <Badge key={idx} variant="secondary" className="text-[10px]">
+                  {effect}
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        </CollapsibleTrigger>
+
+        <CollapsibleContent>
+          <div className="px-3 pb-3 space-y-3 border-t border-border/50 pt-3">
+            {/* Why this workout */}
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                Pourquoi cette séance ?
+              </p>
+              <p className="text-sm">{suggestion.why}</p>
+            </div>
+
+            {/* Staff annotation */}
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                Annotation Staff
+              </p>
+              <p className="text-sm text-muted-foreground">{suggestion.staffAnnotation}</p>
+            </div>
+
+            {/* Cautions */}
+            {suggestion.cautions.length > 0 && (
+              <div className="p-2 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <AlertTriangle className="h-3 w-3 text-amber-500" />
+                  <span className="text-xs font-medium text-amber-500">Précautions</span>
+                </div>
+                <ul className="text-xs text-muted-foreground list-disc list-inside">
+                  {suggestion.cautions.map((c, idx) => (
+                    <li key={idx}>{c}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Confidence */}
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span>Confiance:</span>
+              <div className="flex items-center gap-0.5">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Star
+                    key={i}
+                    className={cn(
+                      "h-3 w-3",
+                      i <= Math.round(suggestion.confidence * 5)
+                        ? "text-amber-500 fill-amber-500"
+                        : "text-muted-foreground/30"
+                    )}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+    </Card>
+  );
+}
+
+function PhaseSection({ phase, suggestions, isExpanded, onToggle }: PhaseCardProps) {
+  if (suggestions.length === 0) return null;
+
+  return (
+    <Collapsible open={isExpanded} onOpenChange={onToggle}>
+      <Card className={cn("border-l-4", PHASE_COLORS[phase])}>
+        <CollapsibleTrigger asChild>
+          <CardHeader className="pb-2 cursor-pointer hover:bg-muted/30 transition-colors">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Badge className={PHASE_BADGE_COLORS[phase]}>Phase {phase}</Badge>
+                <div>
+                  <CardTitle className="text-sm">{PHASE_LABELS[phase]}</CardTitle>
+                  <p className="text-xs text-muted-foreground">{PHASE_DESCRIPTIONS[phase]}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="text-xs">
+                  {suggestions.length} séance{suggestions.length > 1 ? "s" : ""}
+                </Badge>
+                {isExpanded ? (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                )}
+              </div>
+            </div>
+          </CardHeader>
+        </CollapsibleTrigger>
+
+        <CollapsibleContent>
+          <CardContent className="pt-0 space-y-2">
+            {suggestions.map((suggestion) => (
+              <SuggestionCard key={suggestion.id} suggestion={suggestion} />
+            ))}
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
+  );
+}
+
+// =============================================
+// MAIN COMPONENT
+// =============================================
+
+export function WahooPersonalizedRecommendations() {
+  const { currentAthlete } = useAthletes();
+  const { snapshots, tests, checkins } = useCloudData();
+  const [expandedPhases, setExpandedPhases] = useState<Set<TemporalPhase>>(new Set([1]));
+
+  // Build context and compute suggestions
+  const recommendations = useMemo((): SuggestionEngineOutput | null => {
+    if (!currentAthlete) return null;
+
+    const athleteId = currentAthlete.id;
+    const objectif = currentAthlete.objectif || "IM";
+    const activeSnapshotId = currentAthlete.active_snapshot_id;
+
+    // Get active snapshot
+    const athleteSnapshots = snapshots.filter((s) => s.athlete_id === athleteId);
+    let activeSnapshot = athleteSnapshots.find((s) => s.id === activeSnapshotId);
+    if (!activeSnapshot && athleteSnapshots.length > 0) {
+      activeSnapshot = [...athleteSnapshots].sort((a, b) => b.date.localeCompare(a.date))[0];
+    }
+
+    if (!activeSnapshot) return null;
+
+    // Compute VLamax Effectif
+    const vlamaxEffectif = computeVLamaxEffectif({
+      athleteId,
+      objectif,
+      activeSnapshotId: activeSnapshot.id,
+      tests: tests.map((t) => ({
+        athlete_id: t.athlete_id,
+        vlamax: t.vlamax,
+        date: t.date,
+        type: t.type,
+        name: t.name,
+      })),
+      snapshots: athleteSnapshots.map((s) => ({
+        id: s.id,
+        athlete_id: s.athlete_id,
+        date: s.date,
+        vlamax: s.vlamax,
+        ftp: s.ftp,
+        pmax_5s: s.pmax_5s,
+        weight_kg: s.weight_kg,
+      })),
+    });
+
+    // Compute TTE Effectif
+    const tteEffectif = computeTTEEffectif({
+      ftp: activeSnapshot.ftp,
+      tss_7d: activeSnapshot.tss_7d,
+      tte_mode: activeSnapshot.tte_mode,
+      tte_observed_min: activeSnapshot.tte_observed_min,
+      objectif,
+    });
+
+    // Compute Race Readiness
+    const raceReadiness = computeRaceReadinessEffectif({
+      objectif,
+      vlamaxEffectif,
+      tteEffectif,
+      ftp: activeSnapshot.ftp ?? null,
+      poids: activeSnapshot.weight_kg ?? null,
+      fatigue_ok: true,
+      seance_specifique_validee: false,
+    });
+
+    // Determine sport focus based on objective
+    let sportFocus: "run" | "bike" | "tri" = "bike";
+    if (["Marathon", "Semi", "Trail", "TrailLong", "TrailCourt", "Ultra", "Course"].includes(objectif)) {
+      sportFocus = "run";
+    } else if (["IM", "Ironman", "703", "70.3", "Half", "Olympic", "Sprint"].includes(objectif)) {
+      sportFocus = "tri";
+    }
+
+    // Compute injury risk for runners using the correct API
+    let injuryRiskRun = undefined;
+    if (sportFocus === "run" || sportFocus === "tri") {
+      const capRisk = computeCAPInjuryRisk({
+        vlamaxValue: vlamaxEffectif.value,
+        tteValue: tteEffectif.tte_min,
+        objectif,
+      });
+      const levelMap: Record<number, "faible" | "modéré" | "élevé"> = {
+        0: "faible",
+        1: "faible",
+        2: "modéré",
+        3: "élevé",
+      };
+      injuryRiskRun = {
+        level: levelMap[capRisk.level] || "faible",
+        score: capRisk.totalScore,
+      };
+    }
+
+    // Get recent fatigue from checkins
+    const athleteCheckins = checkins
+      .filter((c) => c.athlete_id === athleteId)
+      .sort((a, b) => b.date_iso.localeCompare(a.date_iso));
+    const recentCheckin = athleteCheckins[0];
+    const fatigueScore = recentCheckin?.fatigue ?? undefined;
+
+    // Build context
+    const context: SuggestionEngineContext = {
+      objectif,
+      sportFocus,
+      vlamaxEffectif: {
+        value: vlamaxEffectif.value,
+        confidence: vlamaxEffectif.confidence,
+        source: vlamaxEffectif.source,
+      },
+      tteEffectif: {
+        value: tteEffectif.tte_min,
+        confidence: tteEffectif.confidence,
+        source: tteEffectif.source,
+      },
+      raceReadiness: {
+        score: raceReadiness.score,
+        details: raceReadiness.details,
+      },
+      CRR: {
+        value: activeSnapshot.tss_7d ?? null,
+        confidence: activeSnapshot.tss_7d ? 0.8 : 0.3,
+      },
+      injuryRiskRun,
+      fatigueScore,
+    };
+
+    return suggestWahooWorkouts(context);
+  }, [currentAthlete, snapshots, tests, checkins]);
+
+  const togglePhase = (phase: TemporalPhase) => {
+    setExpandedPhases((prev) => {
+      const next = new Set(prev);
+      if (next.has(phase)) {
+        next.delete(phase);
+      } else {
+        next.add(phase);
+      }
+      return next;
+    });
+  };
+
+  // =============================================
+  // RENDER: NO DATA
+  // =============================================
+
+  if (!currentAthlete) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center">
+          <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <p className="text-muted-foreground">
+            Sélectionnez un athlète pour voir les recommandations personnalisées
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!recommendations) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center">
+          <Info className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <p className="text-muted-foreground">
+            Ajoutez un snapshot pour {currentAthlete.nom} afin de générer des recommandations
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const { phasedSuggestions, needAnalysis, diagnosticSummary, primaryConcern } = recommendations;
+  const totalSuggestions =
+    phasedSuggestions.phase1.length + phasedSuggestions.phase2.length + phasedSuggestions.phase3.length;
+
+  // =============================================
+  // RENDER: MAIN
+  // =============================================
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="text-center">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <Sparkles className="h-5 w-5 text-primary" />
+          <h2 className="text-xl font-bold text-foreground">Recommandations Personnalisées</h2>
+        </div>
+        <p className="text-muted-foreground text-sm">
+          {totalSuggestions} séances Wahoo SYSTM adaptées au profil de {currentAthlete.nom}
+        </p>
+      </div>
+
+      {/* Diagnostic Summary */}
+      <Card className="border-l-4 border-l-primary">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Brain className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                Analyse du profil
+              </p>
+              <p className="text-sm leading-relaxed">{diagnosticSummary}</p>
+
+              {/* Needs analysis */}
+              {needAnalysis.rationale.length > 0 && (
+                <div className="mt-3 space-y-1">
+                  {needAnalysis.rationale.slice(0, 3).map((r, idx) => (
+                    <p key={idx} className="text-xs text-muted-foreground flex items-start gap-1.5">
+                      <span className="text-primary">•</span>
+                      {r}
+                    </p>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Primary concern badge */}
+            {primaryConcern && (
+              <Badge variant="outline" className="shrink-0">
+                Priorité: {AXIS_CONFIG[primaryConcern]?.label || primaryConcern}
+              </Badge>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Phased Suggestions */}
+      <ScrollArea className="h-[50vh]">
+        <div className="space-y-3 pr-4">
+          <PhaseSection
+            phase={1}
+            suggestions={phasedSuggestions.phase1}
+            isExpanded={expandedPhases.has(1)}
+            onToggle={() => togglePhase(1)}
+          />
+          <PhaseSection
+            phase={2}
+            suggestions={phasedSuggestions.phase2}
+            isExpanded={expandedPhases.has(2)}
+            onToggle={() => togglePhase(2)}
+          />
+          <PhaseSection
+            phase={3}
+            suggestions={phasedSuggestions.phase3}
+            isExpanded={expandedPhases.has(3)}
+            onToggle={() => togglePhase(3)}
+          />
+        </div>
+      </ScrollArea>
+
+      {/* Footer note */}
+      <Card className="bg-muted/30 border-dashed">
+        <CardContent className="p-3">
+          <p className="text-xs text-muted-foreground text-center">
+            💡 Ces recommandations sont générées automatiquement à partir du profil métabolique,
+            de l'objectif course, et de l'état de fatigue. Elles ne remplacent pas l'expertise du coach.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
