@@ -3,7 +3,7 @@
  * Displays training templates with optional staff annotations
  * Supports multi-section documents (e.g., Finisher vs Elite plans)
  */
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -1064,10 +1064,29 @@ export default function TemplatesPage() {
     }
   }, [openWeekAccordion]);
   
-  // Reset accordion when template or section changes
+  // Track if initial mount to avoid resetting on page load
+  const isInitialMount = useRef(true);
+  const prevTemplateId = useRef(selectedTemplateId);
+  const prevSectionId = useRef(selectedSectionId);
+  
+  // Reset accordion only when user actually changes template or section (not on initial load)
   useEffect(() => {
-    setOpenWeekAccordion(undefined);
-    localStorage.removeItem("vlab-open-week-accordion");
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      prevTemplateId.current = selectedTemplateId;
+      prevSectionId.current = selectedSectionId;
+      return;
+    }
+    
+    // Only reset if the template or section actually changed
+    if (prevTemplateId.current !== selectedTemplateId || prevSectionId.current !== selectedSectionId) {
+      setOpenWeekAccordion(undefined);
+      localStorage.removeItem("vlab-open-week-accordion");
+      setExpandedSessions(new Set());
+      localStorage.removeItem("vlab-expanded-sessions");
+      prevTemplateId.current = selectedTemplateId;
+      prevSectionId.current = selectedSectionId;
+    }
   }, [selectedTemplateId, selectedSectionId]);
   
   // Persist expanded sessions state
@@ -1088,12 +1107,6 @@ export default function TemplatesPage() {
       return next;
     });
   }, []);
-  
-  // Reset expanded sessions when template or section changes
-  useEffect(() => {
-    setExpandedSessions(new Set());
-    localStorage.removeItem("vlab-expanded-sessions");
-  }, [selectedTemplateId, selectedSectionId]);
 
   const selectedTemplate = useMemo(
     () => getTemplateById(selectedTemplateId),
