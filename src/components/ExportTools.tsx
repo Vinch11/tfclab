@@ -499,7 +499,9 @@ async function imageToBase64(url: string): Promise<string> {
 }
 
 // =============================================
-// BUILD PREMIUM HTML REPORT
+// BUILD STAFF-GRADE REPORT HTML
+// Rapport scientifiquement rigoureux, pédagogiquement clair,
+// et explicitement non dogmatique
 // =============================================
 
 function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, options: ExportOptions = { includeWahooSuggestions: true }): string {
@@ -514,10 +516,13 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   const targets = getTargets(athlete.goal || "IM");
   const weights = getRaceWeights(athlete.goal || "IM");
 
+  // =============================================
+  // CONSTANTES BRANDING REPOSITIONNÉ (NON DOGMATIQUE)
+  // =============================================
   const brandMain = "Two For Coaching Lab";
-  const brandSub = "Performance & Metabolic Report";
+  const brandSub = "Rapport de Modélisation Physiologique & Aide à la Décision";
   const createdAt = new Date(reportDate);
-  const title = `${brandMain} — Performance & Metabolic Report — ${athlete.name || "Athlète"}`;
+  const title = `${brandMain} — Modélisation Physiologique — ${athlete.name || "Athlète"}`;
 
   const coverObjective = htmlEscape(getObjectifLabel(athlete.goal));
   const coverAthlete = htmlEscape(athlete.name || "Athlète");
@@ -629,7 +634,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   `;
 
   // =============================================
-  // A. COUVERTURE
+  // A. COUVERTURE — POSITIONNEMENT CLAIR (NON DOGMATIQUE)
   // =============================================
   const completudeBadge = completude.score >= 80 
     ? '<span class="badge badgeSuccess">Données complètes</span>'
@@ -637,9 +642,23 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       ? '<span class="badge badgeWarning">Données partielles</span>'
       : '<span class="badge badgeError">Données insuffisantes</span>';
 
+  // Fonction helper pour obtenir le statut de la source (MESURE vs ESTIMATION)
+  const getSourceStatus = (source: string, confidence: number): { icon: string; label: string; cssClass: string } => {
+    if (source === "test" || source === "labo" || source === "observed") {
+      return { icon: "🔬", label: "Mesurée", cssClass: "badgeSuccess" };
+    } else if (source === "snapshot" || source === "field") {
+      return { icon: "🔁", label: "Déduite", cssClass: "badgeWarning" };
+    } else {
+      return { icon: "🧠", label: "Estimée (modèle)", cssClass: "badgeError" };
+    }
+  };
+  
+  const vlamaxStatus = getSourceStatus(vlamax.source, vlamax.confidence);
+  const tteStatus = getSourceStatus(tte.source, tte.confidence);
+
   const coverHTML = `
     <section class="cover">
-      <!-- BANNIÈRE PROFESSIONNELLE -->
+      <!-- BANNIÈRE PROFESSIONNELLE REPOSITIONNÉE -->
       <div class="coverBanner">
         <div class="coverBannerContent">
           <div class="coverBrandBlock">
@@ -650,50 +669,54 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             </div>
           </div>
           <div class="coverBannerBadges">
-            <div class="coverBannerBadge">📊 Performance Report</div>
+            <div class="coverBannerBadge">📊 Modélisation Physiologique</div>
             <div class="coverBannerBadge">📅 ${coverDate}</div>
           </div>
         </div>
       </div>
       
+      <!-- ENCADRÉ OBLIGATOIRE DE POSITIONNEMENT -->
+      <div class="alert alertWarning" style="margin:0 8px 20px 8px; border:2px solid var(--warning); background:rgba(217,119,6,0.08);">
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px;">⚠️ Ce rapport n'est pas un test physiologique</div>
+        <p style="margin:4px 0;font-size:12px;">Il ne remplace ni un test lactate, ni un avis médical, ni l'expertise du coach.</p>
+        <p style="margin:4px 0;font-size:12px;">Il propose une <b>modélisation cohérente</b> basée sur des données mesurées, estimées et modélisées — destinée à <b>guider les choix d'entraînement</b>.</p>
+        <p style="margin:4px 0;font-size:12px;font-style:italic;color:var(--muted);">À interpréter avec esprit critique et dans le contexte global de la préparation.</p>
+      </div>
+      
       <!-- CORPS DE LA COUVERTURE -->
       <div class="coverBody">
         <div class="coverMid">
-          <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;">Rapport Métabolique & Performance</div>
+          <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;">Analyse basée sur données mesurées, estimées et modélisées</div>
           <div class="coverTitle">${coverAthlete}</div>
           <div class="coverMeta">
             <div class="tag tagPrimary"><b>Objectif:</b> ${coverObjective}</div>
             <div class="tag"><b>Snapshot:</b> ${snapshotDate}</div>
             <div class="tag"><b>Cycle:</b> ${htmlEscape(cycleTag)}</div>
-            <div class="tag"><b>Source:</b> ${htmlEscape(snapshotSource)}</div>
             ${completudeBadge}
-            <span class="tag tagPrimary">Complétude: ${completude.score}%</span>
-          </div>
-          <div class="alert alertInfo mt" style="max-width:600px;">
-            <b>📋 Rapport généré à partir des données effectives</b><br>
-            Aucune planification automatisée. Les valeurs présentées sont des indicateurs d'aide à la décision pour le coach.
           </div>
         </div>
 
         <div class="coverBottom">
           <div class="card cardHighlight">
-            <h3>🎯 Indicateurs clés</h3>
+            <h3>🎯 Indicateurs clés — Vue rapide</h3>
             <div class="grid3 mt">
               <div>
-                <span class="muted">VLamax effectif</span><br>
-                <span class="medium ${vlamax.value !== null && vlamax.value > 0.45 ? 'warning' : vlamax.value !== null && vlamax.value < 0.28 ? 'error' : 'success'}">${vlamax.value !== null ? fmt(vlamax.value, 2) : "—"}</span>
-                <br><span class="muted">${vlamax.source === "test" ? "🔬 Test" : vlamax.source === "snapshot" ? "📊 Snapshot" : "📐 Estimé"}</span>
-                ${vlamax.isLocked ? '<br><span class="locked">🔒 Verrouillée</span>' : ''}
+                <span class="muted">VLamax</span><br>
+                <span class="medium ${vlamax.value !== null && vlamax.value > targets.vlamaxMax ? 'warning' : vlamax.value !== null && vlamax.value < targets.vlamaxMin ? 'warning' : 'success'}">${vlamax.value !== null ? fmt(vlamax.value, 2) : "—"}</span>
+                <br><span class="badge ${vlamaxStatus.cssClass}" style="font-size:9px;">${vlamaxStatus.icon} ${vlamaxStatus.label}</span>
+                <br><span class="muted" style="font-size:10px;">Confiance: ${vlamax.confidence >= 0.7 ? "élevée" : vlamax.confidence >= 0.4 ? "modérée" : "faible"}</span>
               </div>
               <div>
-                <span class="muted">TTE effectif</span><br>
+                <span class="muted">TTE</span><br>
                 <span class="medium ${tte.tte_min < (tte.target || 45) ? 'warning' : 'success'}">${tte.tte_min} min</span>
-                <br><span class="muted">Cible: ${tte.target ?? 50} min</span>
+                <br><span class="badge ${tteStatus.cssClass}" style="font-size:9px;">${tteStatus.icon} ${tteStatus.label}</span>
+                <br><span class="muted" style="font-size:10px;">Cible: ${tte.target ?? 50} min</span>
               </div>
               <div>
                 <span class="muted">Race Readiness</span><br>
                 <span class="medium ${raceReadiness.score >= 80 ? 'success' : raceReadiness.score >= 60 ? 'warning' : 'error'}">${raceReadiness.score}%</span>
-                <br><span class="muted">${raceReadiness.label}</span>
+                <br><span class="badge badgeWarning" style="font-size:9px;">🔁 Indicateur calculé</span>
+                <br><span class="muted" style="font-size:10px;">Cohérence globale</span>
               </div>
             </div>
           </div>
@@ -705,7 +728,6 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               <div class="k">FTP</div><div class="v">${effectiveRefs.ftp ?? "—"} W</div>
               <div class="k">Poids</div><div class="v">${effectiveRefs.weightKg ? fmt(effectiveRefs.weightKg, 1) : "—"} kg</div>
               <div class="k">FTP/kg</div><div class="v">${ftpKg ? fmt(ftpKg, 2) : "—"} W/kg</div>
-              <div class="k">VO2max</div><div class="v">${effectiveRefs.vo2max ? fmt(effectiveRefs.vo2max, 1) : "—"}</div>
             </div>
           </div>
         </div>
@@ -716,62 +738,68 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   `;
 
   // =============================================
-  // SOMMAIRE
+  // SOMMAIRE REPOSITIONNÉ
   // =============================================
   const tocHTML = `
     <div class="toc mb">
-      <div class="tocTitle">📑 SOMMAIRE — Performance & Metabolic Report</div>
-      <div class="tocRow"><a href="#profil">1. Profil Athlète & Contexte</a></div>
-      <div class="tocRow"><a href="#executif">2. Synthèse Exécutive</a></div>
-      <div class="tocRow"><a href="#compass">3. Metabolic Performance Compass™</a></div>
-      <div class="tocRow"><a href="#physiologie">4. Analyse Physiologique Détaillée</a></div>
-      <div class="tocRow"><a href="#race">5. Race Readiness & Risques</a></div>
-      <div class="tocRow"><a href="#nutrition">6. Nutrition Prédictive</a></div>
-      <div class="tocRow"><a href="#staff">7. Analyse Staff & Recommandations</a></div>
-      <div class="tocRow"><a href="#qualite">8. Données Sources & Fiabilité</a></div>
-      <div class="tocRow"><a href="#disclaimer">9. Mentions Scientifiques & Disclaimer</a></div>
+      <div class="tocTitle">📑 SOMMAIRE — Rapport de Modélisation Physiologique</div>
+      <div class="tocRow"><a href="#positionnement">1. Positionnement & Limites méthodologiques</a></div>
+      <div class="tocRow"><a href="#executif">2. Synthèse Exécutive (Lecture nuancée)</a></div>
+      <div class="tocRow"><a href="#donnees">3. Données d'entrée & Fiabilité</a></div>
+      <div class="tocRow"><a href="#analyse">4. Analyse Physiologique Détaillée (Staff Mode)</a></div>
+      <div class="tocRow"><a href="#readiness">5. Race Readiness — Indicateur de Cohérence</a></div>
+      <div class="tocRow"><a href="#limites">6. Limites explicites & Alertes</a></div>
+      <div class="tocRow"><a href="#recommandations">7. Recommandations d'entraînement (Non prescriptives)</a></div>
+      <div class="tocRow"><a href="#zones">8. Zones d'entraînement</a></div>
+      <div class="tocRow"><a href="#conclusion">9. Conclusion & Positionnement final</a></div>
     </div>
   `;
 
   // =============================================
-  // 1. PROFIL ATHLÈTE & CONTEXTE
+  // 1. POSITIONNEMENT & LIMITES MÉTHODOLOGIQUES (OBLIGATOIRE)
   // =============================================
-  const profilHTML = `
-    <section id="profil" class="section pagebreakAvoid">
-      <h2>1. Profil Athlète & Contexte</h2>
-      <div class="grid2">
-        <div class="card">
-          <h3>👤 Informations</h3>
-          <div class="kv">
-            <div class="k">Nom</div><div class="v">${coverAthlete}</div>
-            <div class="k">Objectif</div><div class="v">${coverObjective}</div>
-            <div class="k">Sport principal</div><div class="v">${(effectiveSnapshot as any)?.sport_main || "Triathlon"}</div>
-            <div class="k">Poids</div><div class="v">${effectiveRefs.weightKg ? fmt(effectiveRefs.weightKg, 1) : "—"} kg</div>
-          </div>
-        </div>
-        <div class="card">
-          <h3>📊 Snapshot actif</h3>
-          <div class="kv">
-            <div class="k">Date</div><div class="v">${snapshotDate}</div>
-            <div class="k">Source</div><div class="v">${htmlEscape(snapshotSource)}</div>
-            <div class="k">Cycle</div><div class="v">${htmlEscape(cycleTag)}</div>
-            <div class="k">Confiance</div><div class="v">${effectiveSnapshot?.confidence ? fmtPct(effectiveSnapshot.confidence) : "—"}</div>
-          </div>
-        </div>
+  const positionnementHTML = `
+    <section id="positionnement" class="section pagebreakAvoid">
+      <h2>1. Positionnement & Limites méthodologiques</h2>
+      
+      <div class="card cardWarning">
+        <h3>🎯 Ce que ce rapport EST</h3>
+        <ul>
+          <li>Un <b>outil de modélisation physiologique</b> basé sur des données terrain et des relations scientifiques validées</li>
+          <li>Une <b>aide à la décision</b> pour orienter les choix d'entraînement</li>
+          <li>Un <b>complément</b> à un test physiologique en laboratoire, jamais un concurrent</li>
+          <li>Une <b>photographie à l'instant T</b> dépendante de la qualité des données d'entrée</li>
+        </ul>
       </div>
+      
+      <div class="card cardError mt">
+        <h3>⛔ Ce que ce rapport N'EST PAS</h3>
+        <ul>
+          <li>Un <b>test physiologique</b> (pas de mesure directe de lactate, de VO₂, etc.)</li>
+          <li>Une <b>vérité physiologique absolue</b> — toutes les valeurs comportent une marge d'incertitude</li>
+          <li>Un <b>avis médical</b> — en cas de doute, consulter un professionnel de santé</li>
+          <li>Un <b>substitut à l'expertise du coach</b> — le jugement humain reste indispensable</li>
+        </ul>
+      </div>
+      
       <div class="card mt">
-        <h3>📝 Contexte d'interprétation</h3>
-        <div class="alert alertInfo">
-          <b>Important:</b> Les valeurs présentées dans ce rapport sont dépendantes du moment de la saison, 
-          de l'état de forme et des conditions de test. Elles représentent une photographie à l'instant T 
-          et doivent être interprétées dans le contexte global de la préparation.
+        <h3>📖 Fondements méthodologiques</h3>
+        <p class="muted">Les modèles Two For Coaching Lab s'appuient sur des relations physiologiques issues de la littérature scientifique :</p>
+        <ul class="muted">
+          <li><b>École allemande</b> : Mader, Heck, Olbrecht — modèles énergétiques bi-compartimental</li>
+          <li><b>Concepts INSCYD-like</b> : VLamax, ratio FatMax, contribution énergétique</li>
+          <li><b>Approche Dan Lorang</b> : hiérarchisation des priorités physiologiques</li>
+        </ul>
+        <div class="alert alertWarning mt">
+          <b>⚠️ Important :</b> Ces modèles restent <b>dépendants de la qualité des données d'entrée</b>. 
+          Une VLamax estimée à partir de données incomplètes doit être interprétée avec prudence.
         </div>
       </div>
     </section>
   `;
 
   // =============================================
-  // 2. SYNTHÈSE EXÉCUTIVE
+  // 2. SYNTHÈSE EXÉCUTIVE — LECTURE NUANCÉE (max 1 page)
   // =============================================
   const pointsForts: string[] = [];
   const pointsLimitants: string[] = [];
@@ -788,16 +816,19 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   if (raceReadiness.details.fraicheur >= 18) pointsForts.push("Fraîcheur optimale");
   else pointsLimitants.push("Fatigue accumulée");
 
-  // Déterminer le profil métabolique
+  // Déterminer le profil métabolique AVEC NUANCES
   const profilMessage = (() => {
-    if (vlamax.value === null) return "Données insuffisantes pour évaluer le profil métabolique.";
+    if (vlamax.value === null) return "Données insuffisantes pour évaluer le profil métabolique. L'interprétation ci-dessous repose sur des hypothèses prudentes.";
+    
+    const confidenceNote = vlamax.confidence < 0.5 ? " (confiance faible — à confirmer)" : vlamax.confidence < 0.7 ? " (confiance modérée)" : "";
+    
     if (raceReadiness.score >= 80 && pointsLimitants.length === 0) {
-      return "Le profil métabolique actuel est COHÉRENT avec l'objectif visé. Aucune limitation majeure identifiée.";
+      return `Le profil métabolique actuel SEMBLE cohérent avec l'objectif visé${confidenceNote}. Aucune limitation majeure identifiée sur la base des données disponibles.`;
     }
     if (raceReadiness.score >= 60) {
-      return `Le profil métabolique est globalement adapté à l'objectif MAIS limité par : ${pointsLimitants.slice(0, 2).join(", ")}.`;
+      return `Le profil métabolique est globalement adapté à l'objectif MAIS potentiellement limité par : ${pointsLimitants.slice(0, 2).join(", ")}${confidenceNote}.`;
     }
-    return `Le profil métabolique présente un DÉSALIGNEMENT significatif avec l'objectif. Priorités : ${pointsLimitants.slice(0, 2).join(", ")}.`;
+    return `Le profil métabolique présente un DÉSALIGNEMENT potentiel avec l'objectif. Axes d'amélioration suggérés : ${pointsLimitants.slice(0, 2).join(", ")}${confidenceNote}.`;
   })();
 
   const risquesIdentifies = (() => {
@@ -806,63 +837,81 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     if (nutritionEstimate && (nutritionEstimate.riskLevel === "high" || nutritionEstimate.riskLevel === "critical")) {
       risques.push(`Risque nutritionnel (${nutritionEstimate.riskLabel})`);
     }
-    return risques.length > 0 ? risques.join(", ") : "Aucun risque majeur identifié";
+    return risques.length > 0 ? risques.join(", ") : "Aucun risque majeur identifié sur la base des données disponibles";
   })();
 
   const executifHTML = `
     <section id="executif" class="section pagebreak">
-      <h2>2. Synthèse Exécutive</h2>
+      <h2>2. Synthèse Exécutive — Lecture nuancée</h2>
       
-      <div class="card ${raceReadiness.score >= 80 ? 'cardSuccess' : raceReadiness.score >= 60 ? 'cardWarning' : 'cardError'}">
-        <div style="display:flex;align-items:center;gap:20px;">
-          <div class="scoreCircle" style="border-color:${raceReadiness.score >= 80 ? 'var(--success)' : raceReadiness.score >= 60 ? 'var(--warning)' : 'var(--error)'}; color:${raceReadiness.score >= 80 ? 'var(--success)' : raceReadiness.score >= 60 ? 'var(--warning)' : 'var(--error)'}">
-            ${raceReadiness.score}
-          </div>
-          <div>
-            <div style="font-size:18px;font-weight:700;">${raceReadiness.label}</div>
-            <div class="muted">Race Readiness pour ${getObjectifLabel(athlete.goal)}</div>
-          </div>
-          <div style="margin-left:auto;text-align:right;">
-            <span class="badge ${raceReadiness.score >= 80 ? 'badgeSuccess' : raceReadiness.score >= 60 ? 'badgeWarning' : 'badgeError'}" style="font-size:14px;padding:8px 16px;">
-              ${raceReadiness.score >= 80 ? '🟢 FEU VERT' : raceReadiness.score >= 60 ? '🟡 À SÉCURISER' : '🔴 À RISQUE'}
-            </span>
-          </div>
-        </div>
+      <div class="alert alertInfo mb">
+        <b>📋 Rappel :</b> Cette synthèse présente des <b>indicateurs de cohérence</b>, pas des certitudes physiologiques. 
+        Chaque valeur est accompagnée de son statut (mesurée/estimée) et de son niveau de confiance.
+      </div>
+      
+      <!-- TABLE OBLIGATOIRE DES AXES CLÉS -->
+      <div class="card">
+        <h3>📊 Vue consolidée des axes clés</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Axe</th>
+              <th>Valeur actuelle</th>
+              <th>Statut</th>
+              <th>Confiance</th>
+              <th>Message clé</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>FTP</b></td>
+              <td>${effectiveRefs.ftp ?? "—"} W ${ftpKg ? `(${fmt(ftpKg, 2)} W/kg)` : ""}</td>
+              <td><span class="badge badgeSuccess">🔬 Mesurée</span></td>
+              <td><span class="badge badgeSuccess">Élevée</span></td>
+              <td class="muted">Capacité fonctionnelle au seuil — base de calcul pour TTE et zones.</td>
+            </tr>
+            <tr>
+              <td><b>VO₂max</b></td>
+              <td>${effectiveRefs.vo2max ? fmt(effectiveRefs.vo2max, 1) : "—"} ml/kg/min</td>
+              <td><span class="badge ${effectiveRefs.vo2max ? 'badgeSuccess' : 'badgeWarning'}">${effectiveRefs.vo2max ? '🔬 Mesurée/Labo' : '🧠 Estimée'}</span></td>
+              <td><span class="badge ${effectiveRefs.vo2max ? 'badgeSuccess' : 'badgeWarning'}">${effectiveRefs.vo2max ? 'Élevée' : 'Modérée'}</span></td>
+              <td class="muted">Plafond aérobie — l'augmentation marginale est limitée après un certain niveau.</td>
+            </tr>
+            <tr>
+              <td><b>VLamax</b></td>
+              <td>${vlamax.value !== null ? fmt(vlamax.value, 2) : "—"} mmol/L/s</td>
+              <td><span class="badge ${vlamaxStatus.cssClass}">${vlamaxStatus.icon} ${vlamaxStatus.label}</span></td>
+              <td><span class="badge ${vlamax.confidence >= 0.7 ? 'badgeSuccess' : vlamax.confidence >= 0.4 ? 'badgeWarning' : 'badgeError'}">${vlamax.confidence >= 0.7 ? 'Élevée' : vlamax.confidence >= 0.4 ? 'Modérée' : 'Faible'}</span></td>
+              <td class="muted">${vlamax.value !== null ? (vlamax.value < targets.vlamaxMax ? `VLamax ${vlamax.source === "estimated" ? "estimée" : ""} ${vlamax.value < 0.35 ? "basse" : "modérée"} suggérant un profil favorable à l'endurance longue${vlamax.source === "estimated" ? ", sous réserve de confirmation par lactate" : ""}.` : `VLamax ${vlamax.source === "estimated" ? "estimée " : ""}élevée suggérant une dépendance glucidique à surveiller.`) : "Données insuffisantes."}</td>
+            </tr>
+            <tr>
+              <td><b>TTE</b></td>
+              <td>${tte.tte_min} min</td>
+              <td><span class="badge ${tteStatus.cssClass}">${tteStatus.icon} ${tteStatus.label}</span></td>
+              <td><span class="badge ${tte.confidence >= 0.7 ? 'badgeSuccess' : tte.confidence >= 0.4 ? 'badgeWarning' : 'badgeError'}">${tte.confidence >= 0.7 ? 'Élevée' : tte.confidence >= 0.4 ? 'Modérée' : 'Faible'}</span></td>
+              <td class="muted">${tte.tte_min >= (tte.target ?? 50) ? "Indicateur de durabilité satisfaisant pour l'objectif." : `Indicateur de durabilité insuffisant (cible: ${tte.target ?? 50} min) — axe de travail potentiel.`}</td>
+            </tr>
+            <tr>
+              <td><b>Race Readiness</b></td>
+              <td>${raceReadiness.score}%</td>
+              <td><span class="badge badgeWarning">🔁 Calculé</span></td>
+              <td><span class="badge ${raceReadiness.confidence >= 0.7 ? 'badgeSuccess' : raceReadiness.confidence >= 0.4 ? 'badgeWarning' : 'badgeError'}">${raceReadiness.confidence >= 0.7 ? 'Élevée' : raceReadiness.confidence >= 0.4 ? 'Modérée' : 'Faible'}</span></td>
+              <td class="muted">${raceReadiness.score >= 80 ? "Bonne cohérence actuelle entre capacités et charge." : raceReadiness.score >= 60 ? "Cohérence acceptable avec des axes d'amélioration identifiés." : "Désalignement significatif — analyse détaillée recommandée."}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <div class="card cardHighlight mt">
         <h3>📋 Résumé automatique (Lecture < 2 min)</h3>
         <p style="font-size:14px;line-height:1.6;margin:12px 0;">${profilMessage}</p>
         <p style="font-size:12px;color:var(--muted);">
-          <b>Priorité physiologique identifiée:</b> ${lorang.prioriteLabel || "Maintien de l'équilibre actuel"}.<br>
-          <b>Risques principaux:</b> ${risquesIdentifies}.
+          <b>Priorité physiologique suggérée:</b> ${lorang.prioriteLabel || "Maintien de l'équilibre actuel"}.<br>
+          <b>Risques identifiés:</b> ${risquesIdentifies}.
         </p>
-      </div>
-      
-      <div class="grid4 mt">
-        <div class="card">
-          <div class="muted">VLamax effectif</div>
-          <div class="big ${vlamax.value !== null && vlamax.value > 0.45 ? 'warning' : 'success'}">${vlamax.value !== null ? fmt(vlamax.value, 2) : "—"}</div>
-          <div class="muted">${vlamax.source === "test" ? "Test" : vlamax.source === "snapshot" ? "Snapshot" : "Estimé"}</div>
-          <div class="muted">Conf: ${fmtPct(vlamax.confidence)}</div>
-        </div>
-        <div class="card">
-          <div class="muted">TTE effectif</div>
-          <div class="big ${tte.tte_min < (tte.target || 45) ? 'warning' : 'success'}">${tte.tte_min} min</div>
-          <div class="muted">Cible: ${tte.target ?? 50} min</div>
-          <div class="muted">Conf: ${fmtPct(tte.confidence)}</div>
-        </div>
-        <div class="card">
-          <div class="muted">Risque blessure CAP</div>
-          <div class="big ${capInjuryRisk && capInjuryRisk.level >= 2 ? 'warning' : 'success'}">${capInjuryRisk ? capInjuryRisk.icon : "—"}</div>
-          <div class="muted">${capInjuryRisk?.label || "Non calculé"}</div>
-        </div>
-        <div class="card">
-          <div class="muted">Risque nutritionnel</div>
-          <div class="big ${nutritionEstimate && (nutritionEstimate.riskLevel === "high" || nutritionEstimate.riskLevel === "critical") ? 'error' : nutritionEstimate && nutritionEstimate.riskLevel === "moderate" ? 'warning' : 'success'}">
-            ${nutritionEstimate?.nutritionalRiskIndex?.icon || "—"}
-          </div>
-          <div class="muted">${nutritionEstimate?.riskLabel || "Non calculé"}</div>
+        <div class="alert alertWarning mt" style="font-size:11px;">
+          <b>⚠️ INTERDICTION :</b> Ce score ne garantit pas la performance le jour J. 
+          Il indique une cohérence entre les données disponibles et l'objectif, pas une prédiction de résultat.
         </div>
       </div>
     </section>
@@ -2096,29 +2145,50 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         </div>
 
         ${tocHTML}
-        ${profilHTML}
+        ${positionnementHTML}
         ${executifHTML}
         ${compassHTML}
         ${indicateursHTML}
         ${raceReadinessHTML}
         ${lorangHTML}
-        ${wahooHTML}
         ${zonesHTML}
+        ${wahooHTML}
         ${snapshotsHTML}
         ${testsHTML}
-        ${checkinsHTML}
-        ${comprendreHTML}
-        ${qualiteHTML}
         
-        <!-- DISCLAIMER SCIENTIFIQUE -->
-        <section id="disclaimer" class="section pagebreakAvoid">
-          <h2>9. Mentions Scientifiques & Disclaimer</h2>
-          <div class="card">
-            <h3>🔬 Fondements scientifiques</h3>
-            <p class="muted">Ce rapport s'appuie sur des principes reconnus de physiologie de l'exercice (école allemande, VLamax, TTE, métabolisme énergétique). Les modèles utilisés sont inspirés des travaux de référence (Mader, INSCYD-like) et des concepts appliqués par Dan Lorang.</p>
+        <!-- CONCLUSION & POSITIONNEMENT FINAL -->
+        <section id="conclusion" class="section pagebreakAvoid">
+          <h2>9. Conclusion & Positionnement final</h2>
+          
+          <div class="card cardHighlight">
+            <h3>🎯 Ce que Two For Coaching Lab apporte</h3>
+            <ul>
+              <li><b>Hiérarchisation des priorités</b> : identifier ce qui limite le plus la performance pour cet objectif</li>
+              <li><b>Cohérence des choix</b> : vérifier que les orientations d'entraînement sont alignées avec le profil</li>
+              <li><b>Lecture physiologique avancée</b> : traduire des données brutes en insights actionnables</li>
+            </ul>
           </div>
+          
+          <div class="card mt">
+            <h3>🏛️ Ce qui reste du ressort du coach et du staff</h3>
+            <ul class="muted">
+              <li>L'adaptation au contexte individuel (vie perso, blessures passées, préférences)</li>
+              <li>Le jugement sur l'état de forme réel (ressenti, signaux faibles)</li>
+              <li>Les décisions tactiques le jour J</li>
+              <li>La communication et la gestion psychologique de l'athlète</li>
+            </ul>
+          </div>
+          
+          <div class="alert alertSuccess mt">
+            <b>✅ Message final :</b><br>
+            Two For Coaching Lab est un outil de lecture physiologique avancée. 
+            Il ne remplace ni l'expertise du coach, ni un test physiologique complet. 
+            Sa valeur réside dans la <b>hiérarchisation des priorités</b> et la <b>cohérence des choix</b> d'entraînement.
+          </div>
+          
           <div class="alert alertWarning mt">
-            <b>⚠️ Avertissement:</b> Ce rapport est un outil d'aide à la décision destiné aux coachs et staffs. Il ne remplace ni un test médical, ni l'expertise du coach, ni un avis médical professionnel. Les estimations nutritionnelles sont indicatives et doivent être ajustées selon la tolérance individuelle.
+            <b>⚠️ Rappel légal :</b> Ce rapport ne constitue pas un avis médical. 
+            En cas de doute sur l'état de santé, consulter un professionnel de santé.
           </div>
         </section>
         
