@@ -46,6 +46,7 @@ interface WahooSuggestionsPanelProps {
   output: SuggestionEngineOutput;
   staffMode: boolean;
   athleteName?: string;
+  onAskAssistant?: (workoutName: string, workoutId: string) => void;
 }
 
 function AxisIcon({ axis }: { axis: TargetAxis }) {
@@ -67,11 +68,13 @@ function AxisIcon({ axis }: { axis: TargetAxis }) {
 function SuggestionCard({ 
   suggestion, 
   staffMode,
-  index 
+  index,
+  onAskAssistant
 }: { 
   suggestion: WahooSuggestion; 
   staffMode: boolean;
   index: number;
+  onAskAssistant?: (workoutName: string, workoutId: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -159,6 +162,19 @@ function SuggestionCard({
             </div>
           )}
 
+          {/* Ask Assistant button */}
+          {onAskAssistant && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-xs text-primary hover:bg-primary/10"
+              onClick={() => onAskAssistant(suggestion.wahoo_name, suggestion.wahoo_id)}
+            >
+              <Info className="h-3.5 w-3.5 mr-1" />
+              Demander à l'Assistant : Pourquoi ?
+            </Button>
+          )}
+
           {/* Non-imposing badge */}
           <Badge variant="outline" className="text-[10px] text-muted-foreground">
             💡 Suggestion — non imposée
@@ -190,7 +206,8 @@ function getSimplifiedWhy(suggestion: WahooSuggestion): string {
 export function WahooSuggestionsPanel({ 
   output, 
   staffMode,
-  athleteName 
+  athleteName,
+  onAskAssistant
 }: WahooSuggestionsPanelProps) {
   const [isOpen, setIsOpen] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -278,6 +295,7 @@ export function WahooSuggestionsPanel({
                   suggestion={suggestion} 
                   staffMode={staffMode}
                   index={idx}
+                  onAskAssistant={onAskAssistant}
                 />
               ))}
             </div>
