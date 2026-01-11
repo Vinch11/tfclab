@@ -1058,3 +1058,69 @@ export function getObjectifLabel(objectif: string): string {
   };
   return labels[objectif] || objectif;
 }
+
+// =============================================
+// CONVERSION VERS SCORE ENVELOPE (Staff-Grade)
+// =============================================
+
+import { 
+  ScoreEnvelope, 
+  buildRaceReadinessEnvelope 
+} from "./scoreEnvelope";
+
+/**
+ * Convertit un RaceReadinessEffectif en ScoreEnvelope universel
+ */
+export function toRaceReadinessEnvelope(
+  readiness: RaceReadinessEffectif,
+  objectif: string,
+  vlamaxConfidence?: number,
+  tteConfidence?: number,
+  crrConfidence?: number
+): ScoreEnvelope {
+  // Générer les explications contextuelles
+  const why: string[] = [
+    `Score ${readiness.label} pour ${getObjectifLabel(objectif)}.`,
+  ];
+  
+  if (readiness.reasonsMissing.length > 0) {
+    why.push(`Données manquantes: ${readiness.reasonsMissing.slice(0, 2).join(", ")}`);
+  }
+  
+  if (readiness.wasCappedByNutrition) {
+    why.push(`⚠️ Score plafonné: ${readiness.nutritionalCapReason || "Risque nutritionnel"}`);
+  }
+  
+  if (readiness.wasCappedByEconomy) {
+    why.push(`🏃 Score plafonné: ${readiness.economyCapReason || "Économie de course"}`);
+  }
+
+  const recommendations: string[] = [];
+  
+  // Identifier les points faibles
+  if (readiness.details.vlamax < 18) {
+    recommendations.push("Améliorer le profil métabolique (VLamax)");
+  }
+  if (readiness.details.endurance < 18) {
+    recommendations.push("Développer l'endurance au seuil (TTE)");
+  }
+  if (readiness.details.puissance < 18) {
+    recommendations.push("Renforcer la puissance relative (FTP/kg)");
+  }
+  if (readiness.details.fraicheur < 15) {
+    recommendations.push("Récupérer pour retrouver de la fraîcheur");
+  }
+
+  return buildRaceReadinessEnvelope(
+    readiness.score,
+    readiness.confidence,
+    objectif,
+    {
+      why,
+      recommendations,
+      vlamaxConf: vlamaxConfidence,
+      tteConf: tteConfidence,
+      crrConf: crrConfidence,
+    }
+  );
+}
