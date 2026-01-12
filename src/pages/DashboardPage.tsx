@@ -39,8 +39,9 @@ import { computeTTEEffectif, TTEEffectif, getTTETarget, getSourceLabel } from "@
 import { computeRaceReadinessEffectif, RaceReadinessEffectif, getSportFromObjectif } from "@/lib/raceReadinessEffectif";
 import { computeNutritionEstimate, NutritionEstimate } from "@/lib/nutritionPredictive";
 
-// Composant cibles FTP/kg
+// Composants cibles
 import { FtpKgTargetsCard } from "@/components/FtpKgTargetsCard";
+import { VLamaxTargetsCard } from "@/components/VLamaxTargetsCard";
 
 // =============================================
 // HELPERS
@@ -699,6 +700,34 @@ export default function DashboardPage() {
   };
 
   // =============================================
+  // RENDER: VLamax TARGETS
+  // =============================================
+  
+  const renderVLamaxTargets = (): ReactNode => {
+    // Calculer l'âge depuis birth_date si disponible
+    let age: number | null = null;
+    if (currentAthlete.birth_date) {
+      const birthDate = new Date(currentAthlete.birth_date);
+      const today = new Date();
+      age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+    }
+    
+    return (
+      <VLamaxTargetsCard
+        objectif={objectif}
+        age={age}
+        currentVlamax={vlamaxEffectif.value}
+        vo2max={snapshot.vo2max}
+        weeklyVolume={null}
+      />
+    );
+  };
+
+  // =============================================
   // SECTIONS CONFIGURATION
   // =============================================
 
@@ -707,6 +736,7 @@ export default function DashboardPage() {
     { id: "coach-summary", render: renderCoachSummary },
     { id: "piliers", render: renderPiliers },
     { id: "ftp-targets", render: renderFtpKgTargets },
+    { id: "vlamax-targets", render: renderVLamaxTargets },
     { id: "nutrition", render: renderNutrition },
     { id: "priorities", render: renderPriorities },
     { id: "scientific", render: renderScientific },
