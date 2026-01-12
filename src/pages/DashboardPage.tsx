@@ -39,6 +39,9 @@ import { computeTTEEffectif, TTEEffectif, getTTETarget, getSourceLabel } from "@
 import { computeRaceReadinessEffectif, RaceReadinessEffectif, getSportFromObjectif } from "@/lib/raceReadinessEffectif";
 import { computeNutritionEstimate, NutritionEstimate } from "@/lib/nutritionPredictive";
 
+// Composant cibles FTP/kg
+import { FtpKgTargetsCard } from "@/components/FtpKgTargetsCard";
+
 // =============================================
 // HELPERS
 // =============================================
@@ -667,6 +670,35 @@ export default function DashboardPage() {
   );
 
   // =============================================
+  // RENDER: FTP/kg TARGETS
+  // =============================================
+  
+  const renderFtpKgTargets = (): ReactNode => {
+    // Calculer l'âge depuis birth_date si disponible
+    let age: number | null = null;
+    if (currentAthlete.birth_date) {
+      const birthDate = new Date(currentAthlete.birth_date);
+      const today = new Date();
+      age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+    }
+    
+    return (
+      <FtpKgTargetsCard
+        objectif={objectif}
+        age={age}
+        currentFtpKg={ftpKg}
+        vo2max={snapshot.vo2max}
+        vlamax={vlamaxEffectif.value}
+        weeklyVolume={null} // Pas encore disponible dans le snapshot
+      />
+    );
+  };
+
+  // =============================================
   // SECTIONS CONFIGURATION
   // =============================================
 
@@ -674,6 +706,7 @@ export default function DashboardPage() {
     { id: "athlete-context", render: renderAthleteContext },
     { id: "coach-summary", render: renderCoachSummary },
     { id: "piliers", render: renderPiliers },
+    { id: "ftp-targets", render: renderFtpKgTargets },
     { id: "nutrition", render: renderNutrition },
     { id: "priorities", render: renderPriorities },
     { id: "scientific", render: renderScientific },
