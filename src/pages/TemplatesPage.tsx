@@ -1643,17 +1643,16 @@ export default function TemplatesPage() {
           </Card>
         )}
 
-        {/* Staff Mode + Athlete Selection */}
-        {isLoaded && (
-          <Card>
-            <CardContent className="p-4 space-y-4">
-              <div className="flex items-center justify-between flex-wrap gap-3">
-                <div className="flex items-center gap-2">
-                  <Switch id="staff-mode" checked={staffMode} onCheckedChange={setStaffMode} />
-                  <Label htmlFor="staff-mode" className="text-sm font-medium">Mode Staff V2 (Annotations précises)</Label>
-                </div>
-                
-                {staffMode && annotationsV2.length > 0 && (
+        {/* Staff Mode Toggle - always visible when template selected */}
+        <Card>
+          <CardContent className="p-4 space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-2">
+                <Switch id="staff-mode" checked={staffMode} onCheckedChange={setStaffMode} />
+                <Label htmlFor="staff-mode" className="text-sm font-medium">Mode Staff V2 (Annotations précises)</Label>
+              </div>
+              
+              {isLoaded && staffMode && annotationsV2.length > 0 && (
                   <Button 
                     variant={showComparisonMode ? "default" : "outline"} 
                     size="sm"
@@ -1710,7 +1709,6 @@ export default function TemplatesPage() {
               )}
             </CardContent>
           </Card>
-        )}
 
         {/* Comparison View (Plan Brut vs Plan Conseillé) */}
         {isLoaded && staffMode && showComparisonMode && selectedAthlete && annotationsV2.length > 0 && (
