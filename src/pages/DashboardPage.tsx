@@ -45,6 +45,7 @@ import { FtpKgTargetsCard } from "@/components/FtpKgTargetsCard";
 import { VLamaxTargetsCard } from "@/components/VLamaxTargetsCard";
 import { FatigueCard } from "@/components/FatigueCard";
 import { RunInjuryRiskCard } from "@/components/RunInjuryRiskCard";
+import { QuickFatigueInput } from "@/components/QuickFatigueInput";
 import { computeRunInjuryRisk, RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
 
 // =============================================
@@ -804,11 +805,23 @@ export default function DashboardPage() {
   };
 
   // =============================================
+  // RENDER: QUICK FATIGUE INPUT
+  // =============================================
+  
+  const renderQuickFatigueInput = (): ReactNode => (
+    <QuickFatigueInput
+      athleteId={currentAthlete.id}
+      athleteName={currentAthlete.nom}
+    />
+  );
+
+  // =============================================
   // SECTIONS CONFIGURATION
   // =============================================
 
   const sections = [
     { id: "athlete-context", render: renderAthleteContext },
+    { id: "quick-fatigue", render: renderQuickFatigueInput },
     { id: "fatigue", render: renderFatigueCard },
     { id: "run-injury-risk", render: renderRunInjuryRiskCard },
     { id: "coach-summary", render: renderCoachSummary },

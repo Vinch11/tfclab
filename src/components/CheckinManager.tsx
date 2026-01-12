@@ -213,15 +213,16 @@ export function CheckinManager({ athleteId, athleteName }: CheckinManagerProps) 
           />
         </div>
         <div>
-          <Label htmlFor="fatigue" className="text-xs">Fatigue</Label>
+          <Label htmlFor="fatigue" className="text-xs">Fatigue (1=Frais)</Label>
           <Input
             id="fatigue"
             type="number"
             min="1"
             max="10"
-            placeholder="1-10"
+            placeholder="1=Frais, 10=Épuisé"
             value={formData.fatigue}
             onChange={(e) => setFormData({ ...formData, fatigue: e.target.value })}
+            title="1=Frais, 5=Neutre, 10=Épuisé"
           />
         </div>
         <div>
