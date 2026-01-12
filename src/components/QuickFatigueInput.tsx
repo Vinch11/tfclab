@@ -3,7 +3,7 @@
 // Saisie état de forme 1-10 (1=Nul/Épuisé, 10=Super/Frais)
 // =============================================
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -43,55 +43,76 @@ function getFatigueIcon(value: number) {
 }
 
 export function QuickFatigueInput({ athleteId, athleteName, onSubmit }: QuickFatigueInputProps) {
-  const { addCheckin, getCheckinsForAthlete } = useCloudData();
-  const [value, setValue] = useState<number>(5);
+  const { addCheckin, updateCheckin, getCheckinsForAthlete } = useCloudData();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   // Vérifier si un check-in existe déjà aujourd'hui
   const todayCheckins = getCheckinsForAthlete(athleteId).filter(
     c => c.date_iso === new Date().toISOString().slice(0, 10)
   );
-  const existingFatigue = todayCheckins.length > 0 ? todayCheckins[0].fatigue : null;
+  const existingCheckin = todayCheckins.length > 0 ? todayCheckins[0] : null;
+  const existingFatigue = existingCheckin?.fatigue ?? null;
+
+  // Valeur locale: soit existante, soit 5 par défaut
+  const [value, setValue] = useState<number>(existingFatigue ?? 5);
+
+  // Sync la valeur si le check-in existant change
+  useEffect(() => {
+    if (existingFatigue !== null && !isEditing) {
+      setValue(existingFatigue);
+    }
+  }, [existingFatigue, isEditing]);
 
   const fatigueInfo = FATIGUE_LABELS[value];
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      // Créer un check-in minimal avec juste la fatigue
       const today = new Date();
       const weekTag = `${today.getFullYear()}-W${String(Math.ceil((today.getDate() + new Date(today.getFullYear(), 0, 1).getDay()) / 7)).padStart(2, "0")}`;
       
-      await addCheckin({
-        athlete_id: athleteId,
-        coach_id: "",
-        date_iso: today.toISOString().slice(0, 10),
-        week_tag: weekTag,
-        fatigue: value,
-        sleep: null,
-        soreness: null,
-        stress: null,
-        motivation: null,
-        rpe_key1: null,
-        rpe_key2: null,
-        pain_flag: false,
-        notes: `Fatigue perçue: ${value}/10 - ${fatigueInfo.label}`,
-        readiness: null,
-      });
+      if (existingCheckin) {
+        // Mise à jour du check-in existant
+        await updateCheckin(existingCheckin.id, {
+          fatigue: value,
+          notes: `Forme perçue: ${value}/10 - ${fatigueInfo.label}`,
+        });
+        toast({
+          title: "Forme mise à jour",
+          description: `${fatigueInfo.label} (${value}/10) pour ${athleteName}`,
+        });
+      } else {
+        // Créer un nouveau check-in
+        await addCheckin({
+          athlete_id: athleteId,
+          coach_id: "",
+          date_iso: today.toISOString().slice(0, 10),
+          week_tag: weekTag,
+          fatigue: value,
+          sleep: null,
+          soreness: null,
+          stress: null,
+          motivation: null,
+          rpe_key1: null,
+          rpe_key2: null,
+          pain_flag: false,
+          notes: `Forme perçue: ${value}/10 - ${fatigueInfo.label}`,
+          readiness: null,
+        });
+        toast({
+          title: "Forme enregistrée",
+          description: `${fatigueInfo.label} (${value}/10) pour ${athleteName}`,
+        });
+      }
 
-      toast({
-        title: "Fatigue enregistrée",
-        description: `${fatigueInfo.label} (${value}/10) pour ${athleteName}`,
-      });
-
-      setHasSubmitted(true);
+      setIsEditing(false);
       onSubmit?.(value);
     } catch (error) {
       console.error("Error saving fatigue:", error);
       toast({
         title: "Erreur",
-        description: "Impossible d'enregistrer la fatigue",
+        description: "Impossible d'enregistrer la forme",
         variant: "destructive",
       });
     } finally {
@@ -99,43 +120,51 @@ export function QuickFatigueInput({ athleteId, athleteName, onSubmit }: QuickFat
     }
   };
 
-  // Si déjà soumis aujourd'hui
-  if (hasSubmitted || existingFatigue !== null) {
-    const displayValue = hasSubmitted ? value : existingFatigue!;
-    const info = FATIGUE_LABELS[displayValue];
+  // Mode lecture seule (déjà soumis et pas en édition)
+  if (existingFatigue !== null && !isEditing) {
+    const info = FATIGUE_LABELS[existingFatigue];
     return (
       <Card className="border-border/50">
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {getFatigueIcon(displayValue)}
+              {getFatigueIcon(existingFatigue)}
               <div>
-                <p className="text-sm font-medium">Fatigue perçue aujourd'hui</p>
+                <p className="text-sm font-medium">Forme perçue aujourd'hui</p>
                 <p className={cn("text-lg font-bold", info.color)}>
-                  {displayValue}/10 — {info.label}
+                  {existingFatigue}/10 — {info.label}
                 </p>
               </div>
             </div>
-            <Badge variant="secondary" className="gap-1">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => {
+                setValue(existingFatigue);
+                setIsEditing(true);
+              }}
+              className="gap-1"
+            >
               <Check className="h-3 w-3" />
-              Enregistré
-            </Badge>
+              Modifier
+            </Button>
           </div>
         </CardContent>
       </Card>
     );
   }
 
+  // Mode édition ou première saisie
   return (
     <Card className="border-border/50">
       <CardContent className="p-4 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {getFatigueIcon(value)}
-            <span className="font-medium">Fatigue perçue</span>
+            <span className="font-medium">Forme perçue</span>
           </div>
           <Badge variant="outline" className="text-xs">
-            Saisie rapide
+            {existingCheckin ? "Modifier" : "Saisie rapide"}
           </Badge>
         </div>
 
@@ -168,14 +197,26 @@ export function QuickFatigueInput({ athleteId, athleteName, onSubmit }: QuickFat
           </p>
         </div>
 
-        <Button 
-          onClick={handleSubmit} 
-          disabled={isSubmitting}
-          className="w-full"
-          size="sm"
-        >
-          {isSubmitting ? "Enregistrement..." : "Enregistrer"}
-        </Button>
+        <div className="flex gap-2">
+          {isEditing && (
+            <Button 
+              variant="outline"
+              onClick={() => setIsEditing(false)}
+              className="flex-1"
+              size="sm"
+            >
+              Annuler
+            </Button>
+          )}
+          <Button 
+            onClick={handleSubmit} 
+            disabled={isSubmitting}
+            className="flex-1"
+            size="sm"
+          >
+            {isSubmitting ? "Enregistrement..." : existingCheckin ? "Mettre à jour" : "Enregistrer"}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
