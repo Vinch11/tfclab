@@ -118,7 +118,7 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
     const allIds = defaultSections.map(s => s.id);
     
     // Sections critiques à toujours afficher en premier si absentes des préférences sauvegardées
-    const criticalSections = ["quick-fatigue", "ftp-targets"];
+    const criticalSections = ["quick-fatigue", "ftp-targets", "action-buttons"];
     
     if (customOrder && customOrder.length > 0) {
       // Ajouter les sections qui pourraient être nouvelles (pas dans l'ordre sauvegardé)
