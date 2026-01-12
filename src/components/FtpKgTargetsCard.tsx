@@ -3,10 +3,11 @@
  * "Passer d'un objectif absolu à une plage réaliste"
  */
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Target, TrendingUp, AlertTriangle, Info, Zap, Activity, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Target, TrendingUp, AlertTriangle, Info, Zap, Activity, Calendar, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFtpKgLevelTargets, FtpKgLevelTargets } from "@/lib/scoreEnvelope";
 import { 
@@ -237,6 +238,7 @@ export function FtpKgTargetsCard({
   weeklyVolume,
   className,
 }: FtpKgTargetsCardProps) {
+  const [showJustifications, setShowJustifications] = useState(false);
   const targets = getFtpKgLevelTargets(objectif, age, currentFtpKg);
   const currentZone = getCurrentZone(currentFtpKg, targets);
   const justifications = buildJustifications({ age, vlamax, vo2max, weeklyVolume, currentFtpKg });
@@ -303,31 +305,54 @@ export function FtpKgTargetsCard({
           />
         </div>
 
-        {/* Justifications ultra-compactes */}
+        {/* Bouton expand/collapse + Justifications */}
         {justifications.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 pt-1">
-            {justifications.map((item, idx) => (
-              <TooltipProvider key={idx}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Badge 
-                      variant="outline" 
-                      className={cn(
-                        "text-[10px] px-1.5 py-0.5 cursor-help",
-                        item.impact === "positive" && "border-emerald-500/50 text-emerald-600",
-                        item.impact === "neutral" && "border-border",
-                        item.impact === "negative" && "border-amber-500/50 text-amber-600"
-                      )}
-                    >
-                      {item.label}: {item.value}
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">{item.note}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            ))}
+          <div className="pt-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowJustifications(!showJustifications)}
+              className="w-full h-6 text-xs text-muted-foreground hover:text-foreground gap-1"
+            >
+              {showJustifications ? (
+                <>
+                  <ChevronUp className="w-3 h-3" />
+                  Masquer justifications
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-3 h-3" />
+                  Voir justifications ({justifications.length})
+                </>
+              )}
+            </Button>
+            
+            {showJustifications && (
+              <div className="flex flex-wrap gap-1.5 pt-2">
+                {justifications.map((item, idx) => (
+                  <TooltipProvider key={idx}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Badge 
+                          variant="outline" 
+                          className={cn(
+                            "text-[10px] px-1.5 py-0.5 cursor-help",
+                            item.impact === "positive" && "border-emerald-500/50 text-emerald-600",
+                            item.impact === "neutral" && "border-border",
+                            item.impact === "negative" && "border-amber-500/50 text-amber-600"
+                          )}
+                        >
+                          {item.label}: {item.value}
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-xs">{item.note}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </CardContent>
