@@ -264,10 +264,18 @@ export default function DashboardPage() {
       }
     }
     
-    // Fatigue Effectif (nouvelle source unique)
+    // Récupérer la fatigue perçue depuis les check-ins récents
+    const athleteCheckins = checkins.filter(c => c.athlete_id === athleteId);
+    const sortedCheckins = [...athleteCheckins].sort((a, b) => b.date_iso.localeCompare(a.date_iso));
+    const latestFatiguePercue = sortedCheckins.length > 0 && sortedCheckins[0].fatigue != null
+      ? sortedCheckins[0].fatigue
+      : null;
+    
+    // Fatigue Effectif (source unique - combine objectif + subjectif)
     const fatigueEffectif = computeFatigueEffectif({
       tss7d: activeSnapshot.tss_7d,
       tss7dHabituel: null, // Non disponible pour l'instant
+      fatiguePercue: latestFatiguePercue, // NEW: fatigue perçue depuis check-ins
       tteEffectif,
       raceReadiness,
       vlamaxEffectif,

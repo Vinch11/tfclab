@@ -21,37 +21,43 @@ import { VLamaxEffectif } from "./vlamaxEffectif";
 
 export const FATIGUE_METHODOLOGY = {
   title: "Fatigue fonctionnelle – Two For Coaching Lab",
-  definition: `La fatigue correspond à une diminution estimée de la capacité de l'athlète à exprimer son potentiel physiologique actuel, en raison de la charge récente, de la durabilité à l'effort (TTE), de la fraîcheur métabolique et de facteurs individuels.
+  definition: `La fatigue correspond à une diminution estimée de la capacité de l'athlète à exprimer son potentiel physiologique actuel, en raison de la charge récente, de la durabilité à l'effort (TTE), de la fraîcheur métabolique, du ressenti subjectif et de facteurs individuels.
 
-Ce score est un indicateur fonctionnel d'aide à la décision, et non une mesure biologique directe.`,
+Ce score combine données objectives (TSS, TTE) et subjectives (fatigue perçue par l'athlète). C'est un indicateur fonctionnel d'aide à la décision, et non une mesure biologique directe.`,
   pillars: [
     {
       name: "Charge récente",
-      weight: 35,
+      weight: 30,
       description: "Comparaison de la charge hebdomadaire (TSS 7j) à la charge habituelle de l'athlète. Plus la charge récente est élevée, plus la fatigue augmente."
     },
     {
+      name: "Fatigue perçue (subjective)",
+      weight: 20,
+      description: "Ressenti de l'athlète sur une échelle de 1 (frais) à 10 (épuisé). Cette donnée subjective capture ce que les métriques objectives ne détectent pas toujours."
+    },
+    {
       name: "Durabilité – TTE effectif",
-      weight: 25,
+      weight: 20,
       description: "Comparaison du TTE effectif à la cible selon l'objectif. Un TTE inférieur à la cible indique une fatigue accrue ou un manque de robustesse."
     },
     {
       name: "Fraîcheur métabolique (Race Readiness)",
-      weight: 25,
+      weight: 20,
       description: "Utilise le score Race Readiness déjà calculé. Plus la fraîcheur est basse, plus la fatigue augmente."
     },
     {
       name: "Facteurs modérateurs individuels",
-      weight: 15,
+      weight: 10,
       description: "Âge de l'athlète et profil VLamax. Un VLamax bas = fatigue plus lente mais récupération plus longue. Un VLamax élevé = fatigue rapide mais récupération plus courte."
     }
   ],
   formula: `Fatigue (%) = 
-    0.35 × Indice Charge Récente 
-  + 0.25 × Indice TTE 
-  + 0.25 × Indice Fraîcheur 
-  + 0.15 × Indice Modulateurs`,
-  disclaimer: "Les scores sont des estimations. Ils doivent être interprétés avec le contexte. Le jugement du coach prime sur l'algorithme. Aucun score ne doit être utilisé isolément."
+    0.30 × Indice Charge Récente 
+  + 0.20 × Indice Fatigue Perçue
+  + 0.20 × Indice TTE 
+  + 0.20 × Indice Fraîcheur 
+  + 0.10 × Indice Modulateurs`,
+  disclaimer: "Les scores sont des estimations combinant données objectives et subjectives. Ils doivent être interprétés avec le contexte. Le jugement du coach prime sur l'algorithme."
 };
 
 // =============================================
@@ -127,10 +133,11 @@ export const FATIGUE_SCALE: FatigueLevel[] = [
 // =============================================
 
 export interface FatigueContributions {
-  chargeRecente: number;   // 0-100
-  tte: number;             // 0-100
-  fraicheur: number;       // 0-100
-  modulateurs: number;     // 0-100
+  chargeRecente: number;      // 0-100
+  fatiguePercue: number;      // 0-100 (NEW: subjective)
+  tte: number;                // 0-100
+  fraicheur: number;          // 0-100
+  modulateurs: number;        // 0-100
 }
 
 export interface FatigueEffectif {
@@ -139,6 +146,7 @@ export interface FatigueEffectif {
   contributions: FatigueContributions;
   contributionsWeighted: {          // Contributions pondérées (pour affichage)
     chargeRecente: number;
+    fatiguePercue: number;
     tte: number;
     fraicheur: number;
     modulateurs: number;
@@ -151,6 +159,7 @@ export interface FatigueEffectif {
   inputsUsed: {
     tss7d: number | null;
     tss7dHabituel: number | null;
+    fatiguePercue: number | null;
     tteEffectif: number | null;
     tteTarget: number | null;
     raceReadiness: number | null;
@@ -162,6 +171,7 @@ export interface FatigueEffectif {
 export interface ComputeFatigueParams {
   tss7d?: number | null;
   tss7dHabituel?: number | null;     // Charge habituelle de référence (si disponible)
+  fatiguePercue?: number | null;     // NEW: Fatigue perçue (1-10, 1=frais, 10=épuisé)
   tteEffectif: TTEEffectif;
   raceReadiness: RaceReadinessEffectif;
   vlamaxEffectif?: VLamaxEffectif | null;
@@ -274,6 +284,30 @@ function computeTTEIndex(
 }
 
 /**
+ * NEW: Indice Fatigue Perçue (20%)
+ * Convertit le ressenti 1-10 en indice 0-100
+ * 1=Frais (0%), 5=Neutre (45%), 10=Épuisé (100%)
+ */
+function computeFatiguePercueIndex(
+  fatiguePercue: number | null
+): { index: number; confidence: number } {
+  // Si pas de donnée subjective, estimation neutre avec faible confiance
+  if (fatiguePercue === null || fatiguePercue === undefined) {
+    return { index: 45, confidence: 0.2 };
+  }
+
+  // Mapping linéaire: 1 → 0%, 5 → 45%, 10 → 100%
+  // Formule: (fatiguePercue - 1) * 100 / 9
+  const index = clamp(Math.round((fatiguePercue - 1) * 100 / 9), 0, 100);
+
+  // Confiance élevée car donnée directe de l'athlète
+  return { 
+    index, 
+    confidence: 0.9 
+  };
+}
+
+/**
  * C) Indice Fraîcheur / Race Readiness (25%)
  * Inverse du Race Readiness (haut RR = faible fatigue)
  */
@@ -357,7 +391,8 @@ function computeModulateursIndex(
 export function computeFatigueEffectif(params: ComputeFatigueParams): FatigueEffectif {
   const { 
     tss7d, 
-    tss7dHabituel, 
+    tss7dHabituel,
+    fatiguePercue,
     tteEffectif, 
     raceReadiness, 
     vlamaxEffectif,
@@ -369,6 +404,7 @@ export function computeFatigueEffectif(params: ComputeFatigueParams): FatigueEff
 
   // Calcul des sous-indices
   const chargeResult = computeChargeRecenteIndex(tss7d ?? null, tss7dHabituel ?? null);
+  const fatiguePercueResult = computeFatiguePercueIndex(fatiguePercue ?? null);
   const tteResult = computeTTEIndex(tteEffectif, objectif);
   const fraicheurResult = computeFraicheurIndex(raceReadiness);
   const modulateursResult = computeModulateursIndex(age ?? null, vlamaxEffectif ?? null);
@@ -376,6 +412,9 @@ export function computeFatigueEffectif(params: ComputeFatigueParams): FatigueEff
   // Tracker les données manquantes
   if (tss7d === null || tss7d === undefined) {
     reasonsMissing.push("TSS 7 jours");
+  }
+  if (fatiguePercue === null || fatiguePercue === undefined) {
+    reasonsMissing.push("Fatigue perçue (check-in)");
   }
   if (tteEffectif.source === "unknown") {
     reasonsMissing.push("TTE effectif");
@@ -387,22 +426,25 @@ export function computeFatigueEffectif(params: ComputeFatigueParams): FatigueEff
   // Contributions brutes
   const contributions: FatigueContributions = {
     chargeRecente: chargeResult.index,
+    fatiguePercue: fatiguePercueResult.index,
     tte: tteResult.index,
     fraicheur: fraicheurResult.index,
     modulateurs: modulateursResult.index
   };
 
-  // Pondérations
+  // Pondérations (nouvelles: 30/20/20/20/10)
   const weights = {
-    chargeRecente: 0.35,
-    tte: 0.25,
-    fraicheur: 0.25,
-    modulateurs: 0.15
+    chargeRecente: 0.30,
+    fatiguePercue: 0.20,
+    tte: 0.20,
+    fraicheur: 0.20,
+    modulateurs: 0.10
   };
 
   // Contributions pondérées
   const contributionsWeighted = {
     chargeRecente: Math.round(contributions.chargeRecente * weights.chargeRecente),
+    fatiguePercue: Math.round(contributions.fatiguePercue * weights.fatiguePercue),
     tte: Math.round(contributions.tte * weights.tte),
     fraicheur: Math.round(contributions.fraicheur * weights.fraicheur),
     modulateurs: Math.round(contributions.modulateurs * weights.modulateurs)
@@ -411,6 +453,7 @@ export function computeFatigueEffectif(params: ComputeFatigueParams): FatigueEff
   // Score final
   const rawScore = 
     contributions.chargeRecente * weights.chargeRecente +
+    contributions.fatiguePercue * weights.fatiguePercue +
     contributions.tte * weights.tte +
     contributions.fraicheur * weights.fraicheur +
     contributions.modulateurs * weights.modulateurs;
@@ -420,6 +463,7 @@ export function computeFatigueEffectif(params: ComputeFatigueParams): FatigueEff
   // Confiance moyenne pondérée
   const confidence = clamp(
     chargeResult.confidence * weights.chargeRecente +
+    fatiguePercueResult.confidence * weights.fatiguePercue +
     tteResult.confidence * weights.tte +
     fraicheurResult.confidence * weights.fraicheur +
     modulateursResult.confidence * weights.modulateurs,
@@ -447,6 +491,7 @@ export function computeFatigueEffectif(params: ComputeFatigueParams): FatigueEff
     inputsUsed: {
       tss7d: tss7d ?? null,
       tss7dHabituel: tss7dHabituel ?? null,
+      fatiguePercue: fatiguePercue ?? null,
       tteEffectif: tteEffectif.tte_min,
       tteTarget: getTTETarget(objectif),
       raceReadiness: raceReadiness.score,
@@ -476,6 +521,7 @@ function generateStaffMessage(
   lines.push("");
   lines.push("Décomposition :");
   lines.push(`• Charge récente : +${weighted.chargeRecente}% (indice brut: ${contributions.chargeRecente}%)`);
+  lines.push(`• Fatigue perçue : +${weighted.fatiguePercue}% (indice brut: ${contributions.fatiguePercue}%)`);
   lines.push(`• TTE effectif : +${weighted.tte}% (indice brut: ${contributions.tte}%)`);
   lines.push(`• Fraîcheur métabolique : +${weighted.fraicheur}% (indice brut: ${contributions.fraicheur}%)`);
   lines.push(`• Facteurs individuels : +${weighted.modulateurs}% (indice brut: ${contributions.modulateurs}%)`);
