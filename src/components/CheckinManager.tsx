@@ -22,16 +22,18 @@ interface CheckinManagerProps {
 }
 
 // Calcule le score de readiness (0-100)
+// INVERSÉ: fatigue haute = mieux (donc on additionne au lieu de soustraire)
 function computeReadiness(checkin: Partial<DbCheckin>): number {
   const sleep = checkin.sleep ?? 5;
-  const fatigue = checkin.fatigue ?? 5;
+  const fatigue = checkin.fatigue ?? 5;  // Maintenant: 10=Super, 1=Nul
   const soreness = checkin.soreness ?? 5;
   const stress = checkin.stress ?? 5;
   const motivation = checkin.motivation ?? 5;
 
+  // fatigue inversée: on l'ajoute au lieu de la soustraire
   let score = 50
     + (sleep - 5) * 6
-    - (fatigue - 5) * 7
+    + (fatigue - 5) * 7   // INVERSÉ: + au lieu de -
     - (soreness - 5) * 6
     - (stress - 5) * 5
     + (motivation - 5) * 5;
@@ -39,11 +41,11 @@ function computeReadiness(checkin: Partial<DbCheckin>): number {
   return Math.max(0, Math.min(100, Math.round(score)));
 }
 
-// Génère les alertes basées sur les valeurs
+// Génère les alertes basées sur les valeurs (INVERSÉ pour fatigue)
 function getWarnings(checkin: DbCheckin): string[] {
   const warnings: string[] = [];
   if (checkin.sleep != null && checkin.sleep <= 4) warnings.push("Sommeil faible (≤4/10)");
-  if (checkin.fatigue != null && checkin.fatigue >= 8) warnings.push("Fatigue très élevée (≥8/10)");
+  if (checkin.fatigue != null && checkin.fatigue <= 3) warnings.push("Forme très basse (≤3/10)");
   if (checkin.soreness != null && checkin.soreness >= 8) warnings.push("Douleurs élevées (≥8/10)");
   if (checkin.stress != null && checkin.stress >= 8) warnings.push("Stress élevé (≥8/10)");
   if (checkin.pain_flag) warnings.push("Alerte blessure signalée");
@@ -213,16 +215,16 @@ export function CheckinManager({ athleteId, athleteName }: CheckinManagerProps) 
           />
         </div>
         <div>
-          <Label htmlFor="fatigue" className="text-xs">Fatigue (1=Frais)</Label>
+          <Label htmlFor="fatigue" className="text-xs">Forme (1=Nul, 10=Super)</Label>
           <Input
             id="fatigue"
             type="number"
             min="1"
             max="10"
-            placeholder="1=Frais, 10=Épuisé"
+            placeholder="1=Nul, 10=Super"
             value={formData.fatigue}
             onChange={(e) => setFormData({ ...formData, fatigue: e.target.value })}
-            title="1=Frais, 5=Neutre, 10=Épuisé"
+            title="1=Épuisé, 5=Moyen, 10=Super forme"
           />
         </div>
         <div>

@@ -1,6 +1,6 @@
 // =============================================
 // QUICK FATIGUE INPUT - Widget rapide Dashboard
-// Saisie fatigue perçue 1-10 (1=Frais, 10=Épuisé)
+// Saisie état de forme 1-10 (1=Nul/Épuisé, 10=Super/Frais)
 // =============================================
 
 import { useState } from "react";
@@ -19,25 +19,26 @@ interface QuickFatigueInputProps {
   onSubmit?: (value: number) => void;
 }
 
-// Labels pour chaque niveau de fatigue
+// Labels pour chaque niveau — INVERSÉ: 1=Nul, 10=Super
 const FATIGUE_LABELS: Record<number, { label: string; description: string; color: string }> = {
-  1: { label: "Frais", description: "Pleine forme, prêt pour tout", color: "text-green-500" },
-  2: { label: "Très bien", description: "Excellente récupération", color: "text-green-500" },
-  3: { label: "Bien", description: "Bonne forme générale", color: "text-green-400" },
-  4: { label: "Correct", description: "Légère fatigue résiduelle", color: "text-lime-500" },
-  5: { label: "Neutre", description: "Ni frais ni fatigué", color: "text-yellow-500" },
-  6: { label: "Fatigué", description: "Fatigue perceptible", color: "text-amber-500" },
-  7: { label: "Très fatigué", description: "Récupération nécessaire", color: "text-orange-500" },
-  8: { label: "Épuisé", description: "Fatigue importante", color: "text-orange-600" },
-  9: { label: "Très épuisé", description: "Récupération urgente", color: "text-red-500" },
-  10: { label: "Maximum", description: "Épuisement total", color: "text-red-600" },
+  1: { label: "Épuisé", description: "Épuisement total, repos urgent", color: "text-red-600" },
+  2: { label: "Très fatigué", description: "Récupération urgente nécessaire", color: "text-red-500" },
+  3: { label: "Fatigué", description: "Fatigue importante", color: "text-orange-600" },
+  4: { label: "Assez fatigué", description: "Récupération conseillée", color: "text-orange-500" },
+  5: { label: "Moyen", description: "Fatigue perceptible", color: "text-amber-500" },
+  6: { label: "Correct", description: "Légère fatigue résiduelle", color: "text-yellow-500" },
+  7: { label: "Bien", description: "Bonne forme générale", color: "text-lime-500" },
+  8: { label: "Très bien", description: "Excellente récupération", color: "text-green-400" },
+  9: { label: "Frais", description: "En grande forme", color: "text-green-500" },
+  10: { label: "Super", description: "Pleine forme, prêt pour tout", color: "text-green-600" },
 };
 
 function getFatigueIcon(value: number) {
-  if (value <= 2) return <BatteryFull className="h-5 w-5 text-green-500" />;
-  if (value <= 4) return <BatteryMedium className="h-5 w-5 text-lime-500" />;
-  if (value <= 6) return <BatteryLow className="h-5 w-5 text-amber-500" />;
-  if (value <= 8) return <BatteryWarning className="h-5 w-5 text-orange-500" />;
+  // Inversé: valeurs hautes = plein d'énergie
+  if (value >= 9) return <BatteryFull className="h-5 w-5 text-green-500" />;
+  if (value >= 7) return <BatteryMedium className="h-5 w-5 text-lime-500" />;
+  if (value >= 5) return <BatteryLow className="h-5 w-5 text-amber-500" />;
+  if (value >= 3) return <BatteryWarning className="h-5 w-5 text-orange-500" />;
   return <Battery className="h-5 w-5 text-red-500" />;
 }
 
@@ -158,8 +159,8 @@ export function QuickFatigueInput({ athleteId, athleteName, onSubmit }: QuickFat
           />
           
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>1 = Frais</span>
-            <span>10 = Épuisé</span>
+            <span>1 = Nul</span>
+            <span>10 = Super</span>
           </div>
           
           <p className="text-xs text-muted-foreground text-center">
