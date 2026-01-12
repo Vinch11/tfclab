@@ -564,19 +564,10 @@ const Index = () => {
           {
             id: "quick-fatigue",
             render: () => currentAthlete && (
-              <div className="space-y-4">
-                <QuickFatigueInput
-                  athleteId={currentAthlete.id}
-                  athleteName={currentAthlete.name}
-                />
-                {/* Boutons d'aide VLamax et TTE */}
-                <div className="flex flex-wrap gap-2 items-center p-3 bg-muted/30 rounded-lg border border-border/50">
-                  <span className="text-sm text-muted-foreground">Comprendre les métriques :</span>
-                  <MetricHelpButton metricId="vlamax" variant="button" />
-                  <MetricHelpButton metricId="tte" variant="button" />
-                  <MetricHelpButton metricId="race_readiness" variant="button" />
-                </div>
-              </div>
+              <QuickFatigueInput
+                athleteId={currentAthlete.id}
+                athleteName={currentAthlete.name}
+              />
             ),
           },
           {
