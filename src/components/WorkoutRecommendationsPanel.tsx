@@ -259,7 +259,7 @@ function IndicesSummary({
           <span className="text-xs font-medium">Fatigue</span>
         </div>
         <p className="text-sm font-mono font-bold">{fatigueEffectif.score}%</p>
-        <p className="text-[10px] text-muted-foreground">{fatigueEffectif.level}</p>
+        <p className="text-[10px] text-muted-foreground">{String(fatigueEffectif.level ?? 'N/A')}</p>
       </div>
 
       <div className="text-center">

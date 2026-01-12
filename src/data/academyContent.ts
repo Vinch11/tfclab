@@ -476,5 +476,237 @@ export const academySections: AcademySection[] = [
         content: "Le 30/30 (30 sec à 105% VMA / 30 sec récup) permet d'accumuler beaucoup de temps à haute intensité sans accumuler trop d'acide lactique trop vite."
       }
     ]
+  },
+  // =============================================
+  // MODULES WAHOO / ZWIFT + INDICES PHYSIOLOGIQUES
+  // =============================================
+  {
+    id: "lire-indices-tfc",
+    title: "Lire les indices Two For Coaching Lab",
+    level: "staff",
+    tags: ["indices", "VLamax", "TTE", "confiance", "estimation", "mesure"],
+    blocks: [
+      {
+        type: "text",
+        content: "Two For Coaching Lab produit des indices physiologiques (VLamax, TTE, Fatigue, Risque CAP) qui alimentent les recommandations. Comprendre ces indices est essentiel pour une utilisation staff-grade."
+      },
+      {
+        type: "bullets",
+        title: "Différence estimation vs mesure",
+        content: [
+          "MESURE (test lab, terrain calibré) : confiance 0.85–0.95, fiabilité très haute",
+          "ESTIMATION (modèle, proxy) : confiance 0.40–0.70, à utiliser avec recul",
+          "HYBRIDE (mesure partielle + modèle) : confiance 0.60–0.80, compromis fiable"
+        ]
+      },
+      {
+        type: "table",
+        title: "Lecture des niveaux de confiance",
+        content: {
+          headers: ["Confiance", "Interprétation", "Usage recommandé"],
+          rows: [
+            ["≥ 85%", "Très fiable – Décision directe possible", "Base solide pour choix d'entraînement"],
+            ["70–84%", "Fiable – Valider avec contexte terrain", "Bon indicateur, croiser avec sensations"],
+            ["50–69%", "Modéré – Prudence requise", "Orientation générale uniquement"],
+            ["< 50%", "Faible – À confirmer par test", "Ne pas baser de décision majeure"]
+          ]
+        },
+        staffOnly: true
+      },
+      {
+        type: "callout",
+        title: "Ce que l'app fait / ne fait pas",
+        content: "L'app AFFICHE les sources et confiances de chaque indice. Elle NE CACHE PAS les limitations. Quand une donnée manque, elle le dit explicitement et baisse la confiance globale.",
+        staffOnly: true
+      }
+    ]
+  },
+  {
+    id: "fatigue-vs-performance",
+    title: "Fatigue vs Performance — Pourquoi ne pas pousser",
+    level: "staff",
+    tags: ["fatigue", "performance", "récupération", "surcharge", "adaptation"],
+    blocks: [
+      {
+        type: "text",
+        content: "La fatigue réduit le potentiel exprimable. Un athlète fatigué ne peut pas exprimer son FTP réel, même si sa capacité aérobie n'a pas changé. C'est la différence entre capacité et disponibilité."
+      },
+      {
+        type: "bullets",
+        title: "Pourquoi limiter l'intensité quand la fatigue est élevée",
+        content: [
+          "Fatigue > 55% : le système nerveux central est compromis, la qualité des contractions musculaires diminue",
+          "Fatigue > 70% : risque de surentraînement, adaptations négatives possibles",
+          "Pousser un athlète fatigué ≠ stimuler l'adaptation → c'est accumuler du stress sans bénéfice",
+          "La récupération EST une partie de l'entraînement, pas une pause"
+        ]
+      },
+      {
+        type: "table",
+        title: "Échelle Fatigue → Décision d'entraînement",
+        content: {
+          headers: ["Fatigue %", "Statut", "Action recommandée"],
+          rows: [
+            ["< 30%", "Fraîcheur optimale", "Séances qualitatives OK, pic de forme possible"],
+            ["30–45%", "Fatigue légère", "Intensité possible mais contrôlée, éviter densité"],
+            ["45–60%", "Fatigue modérée", "Priorité tempo/Z2, limiter VO2 et sprints"],
+            ["> 60%", "Fatigue élevée", "Récupération active uniquement, pas de qualité"]
+          ]
+        },
+        staffOnly: true
+      },
+      {
+        type: "callout",
+        title: "Ce que l'app fait / ne fait pas",
+        content: "L'app AFFICHE la fatigue et son impact sur le potentiel exprimable. Elle SUGGÈRE des séances adaptées. Elle NE BLOQUE PAS le coach — la décision finale reste humaine.",
+        staffOnly: true
+      }
+    ]
+  },
+  {
+    id: "vlamax-tte-seances",
+    title: "VLamax, TTE et choix des séances",
+    level: "staff",
+    tags: ["VLamax", "TTE", "séances", "Wahoo", "Zwift", "recommandation"],
+    blocks: [
+      {
+        type: "text",
+        content: "Les indices VLamax et TTE déterminent quelles séances sont productives ou contre-productives. Une séance excellente pour un profil peut être néfaste pour un autre."
+      },
+      {
+        type: "bullets",
+        title: "Logique VLamax → Séances vélo",
+        content: [
+          "VLamax ÉLEVÉ (> 0.55) pour objectif long : ÉVITER sprints/MAP, PRIVILÉGIER force basse cadence + Z2",
+          "VLamax BAS (< 0.35) : peut manquer de 'punch', PRIVILÉGIER séances neuromusculaires ponctuelles",
+          "VLamax ADAPTÉ (0.35–0.50) : équilibre, toutes séances possibles selon objectif"
+        ]
+      },
+      {
+        type: "bullets",
+        title: "Logique TTE → Durabilité",
+        content: [
+          "TTE < cible -5min : ÉVITER VO2 courts répétés, PRIVILÉGIER tempo long, sweet spot progression",
+          "TTE proche cible : maintenir avec blocs au seuil, éviter surcharge",
+          "TTE > cible : durabilité OK, focus sur autres axes"
+        ]
+      },
+      {
+        type: "table",
+        title: "Mapping Séances Wahoo/Zwift",
+        content: {
+          headers: ["Profil", "Séances RECOMMANDÉES", "Séances DÉCONSEILLÉES"],
+          rows: [
+            ["VLamax élevé + objectif long", "Low Cadence Strength, SST, Tempo Blocks", "NM Sprint, MAP Intervals, Anaerobic"],
+            ["TTE insuffisant", "Sustained Tempo, Sweet Spot Progression", "VO2 courts répétés, Over-Under intense"],
+            ["Fatigue > 55%", "Endurance Z2, Recovery rides", "VO2, MAP, Over-Under"],
+            ["Risque CAP élevé", "Vélo endurance substitution, CAP Z2 courte", "Intervalles VO2 CAP, Long runs agressifs"]
+          ]
+        },
+        staffOnly: true
+      },
+      {
+        type: "callout",
+        title: "Ce que l'app fait / ne fait pas",
+        content: "L'app TAG chaque séance (Recommandé/Neutre/Déconseillé) avec la raison. Elle EXPLIQUE pourquoi via les indices liés. Elle NE REMPLACE PAS la séance automatiquement.",
+        staffOnly: true
+      }
+    ]
+  },
+  {
+    id: "cap-risque-substitution",
+    title: "CAP : Risque blessure et substitution vélo",
+    level: "staff",
+    tags: ["CAP", "blessure", "risque", "substitution", "vélo", "robustesse"],
+    blocks: [
+      {
+        type: "text",
+        content: "La course à pied génère 2.5–3x le poids du corps à chaque foulée. Contrairement au vélo, la contrainte mécanique est incompressible. Le risque blessure CAP dépend de la fatigue + VLamax + TTE + charge + âge."
+      },
+      {
+        type: "bullets",
+        title: "Pourquoi substituer par le vélo",
+        content: [
+          "Le vélo développe le même système aérobie SANS la contrainte mécanique",
+          "Pour les triathlètes : le temps vélo est souvent plus long que le temps CAP en course",
+          "Un athlète blessé ne peut plus s'entraîner — la prudence protège la progression",
+          "Substitution ≠ régression — c'est un choix tactique intelligent"
+        ]
+      },
+      {
+        type: "table",
+        title: "Risque CAP → Options coach",
+        content: {
+          headers: ["Niveau risque", "Score", "Options proposées"],
+          rows: [
+            ["FAIBLE", "0–25", "Progression CAP standard, surveillance normale"],
+            ["MODÉRÉ", "26–50", "Surveiller densité qualité CAP, privilégier Z2, éviter triade long+seuil+vitesse"],
+            ["ÉLEVÉ", "51–75", "Limiter intensité CAP, substituer volume par vélo, insérer recovery"],
+            ["CRITIQUE", "> 75", "Réduction charge CAP, priorité récupération, surveillance douleur/raideur"]
+          ]
+        },
+        staffOnly: true
+      },
+      {
+        type: "callout",
+        title: "Ce que l'app fait / ne fait pas",
+        content: "L'app CALCULE le risque avec transparence (drivers affichés). Elle PROPOSE des options coach (3 max). Elle NE REMPLACE PAS les séances automatiquement et NE FAIT PAS de diagnostic médical.",
+        staffOnly: true
+      }
+    ]
+  },
+  {
+    id: "wahoo-zwift-intelligent",
+    title: "Utiliser Wahoo / Zwift intelligemment",
+    level: "staff",
+    tags: ["Wahoo", "Zwift", "SYSTM", "séances", "indoor", "adaptation"],
+    blocks: [
+      {
+        type: "text",
+        content: "Wahoo SYSTM et Zwift proposent des séances prédéfinies. Leur nom ne suffit pas — il faut comprendre ce qu'elles stimulent physiologiquement pour les utiliser correctement."
+      },
+      {
+        type: "bullets",
+        title: "Lire une séance au-delà de son nom",
+        content: [
+          "Identifier la zone dominante (Z2, Sweet Spot, VO2, Sprint...)",
+          "Vérifier la durée des intervalles et le ratio travail/repos",
+          "Évaluer la charge totale (IF × durée)",
+          "Croiser avec le profil : cette séance sert-elle l'objectif actuel ?"
+        ]
+      },
+      {
+        type: "bullets",
+        title: "Adapter sans dénaturer le plan",
+        content: [
+          "Si la fatigue est élevée : remplacer VO2 par tempo, pas par repos complet",
+          "Si le TTE est insuffisant : allonger les blocs au seuil, réduire la fréquence VO2",
+          "Si VLamax trop élevé : ajouter force basse cadence, supprimer sprints",
+          "Adaptation ≠ suppression — c'est un recalibrage intelligent"
+        ]
+      },
+      {
+        type: "table",
+        title: "Catégories physiologiques des séances",
+        content: {
+          headers: ["Catégorie", "Objectif physiologique", "Exemples Wahoo/Zwift"],
+          rows: [
+            ["VO2MAX", "Augmenter cylindrée cardiaque", "The Shovel, VO2 Intervals, Gorby"],
+            ["THRESHOLD / SWEET SPOT", "Repousser le seuil, durabilité", "Sustained Build, SST Medium, Tempo Builder"],
+            ["LOW CADENCE FORCE", "Force musculaire, abaisser VLamax", "Low Cadence Strength, Time Crunched Climbs"],
+            ["ENDURANCE Z2", "Base aérobie, lipolyse, récupération active", "Endurance Ride, Foundation, Recovery Spin"],
+            ["NEUROMUSCULAR / SPRINT", "Explosivité, recrutement fibres rapides", "NM Sprint, Stinger, AC Intervals"],
+            ["RECOVERY", "Régénération, flux sanguin", "Recovery Spin, Easy Spin, Cooldown"]
+          ]
+        },
+        staffOnly: true
+      },
+      {
+        type: "callout",
+        title: "Ce que l'app fait / ne fait pas",
+        content: "L'app CATÉGORISE chaque séance et la TAG selon le profil. Elle AFFICHE un badge couleur (vert/gris/rouge). Elle EXPLIQUE la logique. Elle NE MODIFIE PAS le plan automatiquement.",
+        staffOnly: true
+      }
+    ]
   }
 ];

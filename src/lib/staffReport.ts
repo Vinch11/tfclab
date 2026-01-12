@@ -98,6 +98,35 @@ export interface WahooSuggestionsSection {
   hasRecommendations: boolean;
 }
 
+// Section Fatigue & Risque CAP pour PDF
+export interface FatigueRiskSection {
+  fatigueScore: number | null;
+  fatigueLevel: string;
+  fatigueConfidence: number;
+  fatigueSources: string[];
+  runInjuryRiskScore: number | null;
+  runInjuryRiskLevel: string;
+  runInjuryRiskConfidence: number;
+  runInjuryRiskDrivers: { label: string; value: string; contribution: number }[];
+  runInjuryRiskGuardrails: string[];
+  runInjuryRiskCoachOptions: string[];
+}
+
+// Section Recommandations Entraînement pour PDF
+export interface TrainingRecommendationsSection {
+  recommendations: {
+    platform: string;
+    workoutName: string;
+    workoutType: string;
+    status: "OK" | "Prudence" | "À éviter";
+    statusColor: "green" | "orange" | "red";
+    reason: string;
+    physiologicalObjective: string;
+  }[];
+  diagnosticSummary: string;
+  disclaimer: string;
+}
+
 export interface StaffReport {
   // Métadonnées
   athleteName: string;
@@ -110,6 +139,8 @@ export interface StaffReport {
   executiveSummary: ExecutiveSummary;
   keyIndicators: KeyIndicator[];
   capInjuryRisk: CAPInjuryRiskSection;
+  fatigueRisk: FatigueRiskSection;
+  trainingRecommendations: TrainingRecommendationsSection;
   staffInterpretation: StaffInterpretation;
   raceStrategy: RaceStrategy;
   nutritionSummary: NutritionSummary;
@@ -657,6 +688,38 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     hasRecommendations: wahooOutput.suggestions.length > 0,
   };
   
+  // Générer la section Fatigue & Risque (nouvelle section PDF)
+  const fatigueRisk: FatigueRiskSection = {
+    fatigueScore: fatigueScore ?? null,
+    fatigueLevel: fatigueScore !== undefined && fatigueScore !== null
+      ? (fatigueScore < 30 ? "TRES_FAIBLE" : fatigueScore < 45 ? "FAIBLE" : fatigueScore < 60 ? "MODEREE" : fatigueScore < 75 ? "ELEVEE" : "CRITIQUE")
+      : "INCONNU",
+    fatigueConfidence: fatigueScore !== undefined ? 0.7 : 0.3,
+    fatigueSources: ["CRR", "TTE", "readiness", "age"].filter(Boolean),
+    runInjuryRiskScore: injuryRiskRun?.score ?? null,
+    runInjuryRiskLevel: injuryRiskRun?.level ?? "INCONNU",
+    runInjuryRiskConfidence: injuryRiskRun ? 0.7 : 0.3,
+    runInjuryRiskDrivers: [
+      { label: "Fatigue", value: `${fatigueScore ?? 0}%`, contribution: 30 },
+      { label: "VLamax", value: vlamaxEffectif.value?.toFixed(2) ?? "—", contribution: 20 },
+      { label: "TTE", value: tteEffectif.tte_min !== null ? `${tteEffectif.tte_min} min` : "—", contribution: 20 },
+      { label: "Charge", value: CRR?.value !== null ? `${CRR?.value ?? 0} TSS` : "—", contribution: 20 },
+      { label: "Âge", value: "—", contribution: 10 },
+    ],
+    runInjuryRiskGuardrails: generateRunInjuryGuardrails(injuryRiskRun?.level),
+    runInjuryRiskCoachOptions: generateRunInjuryCoachOptions(injuryRiskRun?.level),
+  };
+
+  // Générer la section Recommandations Entraînement (nouvelle section PDF)
+  const trainingRecommendations: TrainingRecommendationsSection = generateTrainingRecommendationsSection({
+    wahooSuggestions: wahooOutput.suggestions,
+    objectif,
+    vlamaxEffectif,
+    tteEffectif,
+    fatigueScore,
+    injuryRiskRun,
+  });
+  
   return {
     athleteName,
     objectif,
@@ -666,6 +729,8 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     executiveSummary,
     keyIndicators,
     capInjuryRisk,
+    fatigueRisk,
+    trainingRecommendations,
     staffInterpretation,
     raceStrategy,
     nutritionSummary,
@@ -715,4 +780,137 @@ function generateCAPRecommendations(level: number): string[] {
     "Surveiller étroitement la dérive cardiaque et les signes de fatigue neuromusculaire",
     "Considérer un bilan podologique si douleurs récurrentes",
   ];
+}
+
+// =============================================
+// HELPERS FATIGUE & RUN INJURY RISK (pour PDF)
+// =============================================
+
+function generateRunInjuryGuardrails(level: string | undefined): string[] {
+  if (!level || level === "faible") {
+    return ["Maintenir le monitoring habituel"];
+  }
+  
+  if (level === "modéré") {
+    return [
+      "Surveiller densité de qualité CAP",
+      "Privilégier Z2 sur sorties longues",
+      "Éviter triade long + seuil + vitesse dans la même semaine",
+    ];
+  }
+  
+  // élevé
+  return [
+    "Limiter intensité CAP haute (seuil, VMA)",
+    "Privilégier vélo pour charge cardiovasculaire",
+    "Insérer journée recovery entre qualités CAP",
+    "Réduire volume CAP de 10-20%",
+  ];
+}
+
+function generateRunInjuryCoachOptions(level: string | undefined): string[] {
+  if (!level || level === "faible" || level === "modéré") {
+    return [];
+  }
+  
+  return [
+    "Remplacer qualité CAP par vélo Z3/Z4",
+    "Réduire volume CAP de 15%",
+    "Ajouter journée recovery complète",
+  ];
+}
+
+// =============================================
+// TRAINING RECOMMENDATIONS SECTION (pour PDF)
+// =============================================
+
+interface GenerateTrainingRecsParams {
+  wahooSuggestions: WahooSuggestion[];
+  objectif: string;
+  vlamaxEffectif: VLamaxEffectif;
+  tteEffectif: TTEEffectif;
+  fatigueScore?: number;
+  injuryRiskRun?: { level: "faible" | "modéré" | "élevé"; score: number };
+}
+
+function generateTrainingRecommendationsSection(params: GenerateTrainingRecsParams): TrainingRecommendationsSection {
+  const { wahooSuggestions, objectif, vlamaxEffectif, tteEffectif, fatigueScore, injuryRiskRun } = params;
+  
+  const recommendations = wahooSuggestions.map(suggestion => {
+    // Déterminer le statut basé sur la priorité et les indices
+    let status: "OK" | "Prudence" | "À éviter" = "OK";
+    let statusColor: "green" | "orange" | "red" = "green";
+    
+    // Si fatigue élevée et séance intense
+    if (fatigueScore && fatigueScore > 55) {
+      const isIntense = ["VO2MAX", "MAP", "ANAEROBIC"].some(t => 
+        suggestion.workoutType?.toUpperCase().includes(t) || 
+        suggestion.primaryAxis?.toUpperCase().includes(t)
+      );
+      if (isIntense) {
+        status = "À éviter";
+        statusColor = "red";
+      }
+    }
+    
+    // Si risque CAP élevé et séance CAP
+    if (injuryRiskRun && injuryRiskRun.level === "élevé") {
+      const isRunIntense = suggestion.workoutType?.toLowerCase().includes("run") || 
+                           suggestion.primaryAxis?.toLowerCase().includes("running");
+      if (isRunIntense) {
+        status = "Prudence";
+        statusColor = "orange";
+      }
+    }
+    
+    // Déterminer l'objectif physiologique
+    let physiologicalObjective = "Développement général";
+    if (suggestion.primaryAxis) {
+      const axisMap: Record<string, string> = {
+        "VO2MAX": "Augmenter cylindrée cardiaque",
+        "THRESHOLD": "Repousser le seuil anaérobie",
+        "SWEET_SPOT": "Améliorer durabilité au seuil",
+        "LOW_CADENCE": "Développer force, abaisser VLamax",
+        "ENDURANCE": "Base aérobie, lipolyse",
+        "NEUROMUSCULAR": "Explosivité, recrutement neural",
+        "RECOVERY": "Régénération active",
+      };
+      physiologicalObjective = axisMap[suggestion.primaryAxis] || physiologicalObjective;
+    }
+    
+    return {
+      platform: "WAHOO" as string,
+      workoutName: suggestion.workoutTitle || "Séance",
+      workoutType: suggestion.workoutType || "General",
+      status,
+      statusColor,
+      reason: suggestion.whyRecommended || "Compatible avec le profil",
+      physiologicalObjective,
+    };
+  });
+  
+  // Diagnostic summary
+  const diagnosticParts: string[] = [];
+  if (vlamaxEffectif.value !== null && vlamaxEffectif.value > 0.50) {
+    diagnosticParts.push("VLamax élevé → éviter sprints/MAP");
+  }
+  if (tteEffectif.tte_min !== null && tteEffectif.tte_min < 40) {
+    diagnosticParts.push("TTE insuffisant → privilégier durabilité");
+  }
+  if (fatigueScore && fatigueScore > 55) {
+    diagnosticParts.push("Fatigue élevée → limiter intensité");
+  }
+  if (injuryRiskRun && injuryRiskRun.level === "élevé") {
+    diagnosticParts.push("Risque CAP → privilégier vélo");
+  }
+  
+  const diagnosticSummary = diagnosticParts.length > 0
+    ? diagnosticParts.join(". ") + "."
+    : "Profil équilibré. Toutes séances compatibles.";
+  
+  return {
+    recommendations: recommendations.slice(0, 8), // Max 8 pour le PDF
+    diagnosticSummary,
+    disclaimer: "Ces recommandations sont des aides à la décision, non des prescriptions. Le coach reste décisionnaire.",
+  };
 }
