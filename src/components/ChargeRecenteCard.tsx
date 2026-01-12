@@ -83,7 +83,7 @@ export function ChargeRecenteCard({
   // Déterminer le statut
   const getStatus = () => {
     if (!crr.isValid || crr.value === null) {
-      return { icon: AlertTriangle, color: "text-amber-500", label: "Non renseigné" };
+      return { icon: AlertTriangle, color: "text-amber-500", label: "?" };
     }
     if (crr.value < targets.chargeMinimale) {
       return { icon: TrendingDown, color: "text-blue-500", label: "Faible" };
@@ -91,7 +91,7 @@ export function ChargeRecenteCard({
     if (crr.value > targets.chargeMaximale) {
       return { icon: AlertTriangle, color: "text-red-500", label: "Élevée" };
     }
-    return { icon: CheckCircle, color: "text-green-500", label: "Optimal" };
+    return { icon: CheckCircle, color: "text-green-500", label: "OK" };
   };
   
   const status = getStatus();
@@ -99,48 +99,34 @@ export function ChargeRecenteCard({
   
   return (
     <Card className={cn("", className)}>
-      <CardHeader className="pb-2">
+      <CardContent className="px-3 py-2 space-y-2">
+        {/* Ligne principale compacte */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <Activity className="w-4 h-4 text-primary" />
-            </div>
-            <div>
-              <CardTitle className="text-sm font-medium">Charge Récente</CardTitle>
-              <CardDescription className="text-xs">TSS 7 jours</CardDescription>
-            </div>
-          </div>
-          
-          {/* Badge source */}
-          <Badge 
-            variant="outline" 
-            className={cn("text-xs", getCRRSourceBgColor(crr.source), getCRRSourceColor(crr.source))}
-          >
-            {crr.source}
-          </Badge>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="space-y-3">
-        {/* Valeur principale */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold">
+            <Activity className="w-4 h-4 text-primary" />
+            <span className="text-sm text-muted-foreground">Charge 7j</span>
+            <span className="font-bold">
               {crr.value !== null ? crr.value : "—"}
             </span>
-            <span className="text-sm text-muted-foreground">TSS/7j</span>
+            <span className="text-xs text-muted-foreground">TSS</span>
           </div>
           
           <div className="flex items-center gap-2">
-            <StatusIcon className={cn("w-5 h-5", status.color)} />
+            <StatusIcon className={cn("w-4 h-4", status.color)} />
             <span className={cn("text-sm font-medium", status.color)}>{status.label}</span>
+            <Badge 
+              variant="outline" 
+              className={cn("text-xs h-5", getCRRSourceBgColor(crr.source), getCRRSourceColor(crr.source))}
+            >
+              {crr.source}
+            </Badge>
           </div>
         </div>
         
-        {/* Barre de progression */}
+        {/* Barre de progression compacte */}
         {crr.value !== null && (
-          <div className="space-y-1">
-            <div className="h-2 bg-muted rounded-full overflow-hidden">
+          <div className="flex items-center gap-2">
+            <div className="h-1.5 flex-1 bg-muted rounded-full overflow-hidden">
               <div 
                 className={cn(
                   "h-full rounded-full transition-all",
@@ -154,45 +140,34 @@ export function ChargeRecenteCard({
                 }}
               />
             </div>
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>{targets.chargeMinimale}</span>
-              <span className="text-green-600 font-medium">{targets.chargeOptimale} (optimal)</span>
-              <span>{targets.chargeMaximale}</span>
-            </div>
+            <span className="text-xs text-muted-foreground whitespace-nowrap">
+              {targets.chargeMinimale}–{targets.chargeMaximale}
+            </span>
           </div>
         )}
         
-        {/* Confiance */}
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>Confiance: {getCRRConfidenceLabel(crr.confidence)}</span>
-          {crr.lastUpdated && (
-            <span>Mis à jour: {crr.lastUpdated}</span>
-          )}
-        </div>
-        
-        {/* Warning message */}
+        {/* Warning message compact */}
         {crr.warningMessage && (
-          <div className="flex items-start gap-2 p-2 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs">
-            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-            <span>{crr.warningMessage}</span>
+          <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+            <AlertTriangle className="w-3 h-3 shrink-0" />
+            <span className="truncate">{crr.warningMessage}</span>
           </div>
         )}
         
-        {/* Mode staff: bouton édition */}
+        {/* Mode staff: bouton édition inline */}
         {staffMode && onUpdate && (
           <Dialog open={isEditing} onOpenChange={setIsEditing}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="w-full gap-2">
-                <Edit2 className="w-4 h-4" />
-                Ajuster la charge
+              <Button variant="ghost" size="sm" className="h-6 px-2 text-xs gap-1">
+                <Edit2 className="w-3 h-3" />
+                Ajuster
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Ajuster la Charge Récente</DialogTitle>
                 <DialogDescription>
-                  Cette valeur représente la charge réellement absorbée sur les 7 derniers jours.
-                  Elle conditionne l'estimation du TTE, la robustesse et la race readiness.
+                  TSS 7 jours – conditionne TTE, robustesse et race readiness.
                 </DialogDescription>
               </DialogHeader>
               
@@ -210,40 +185,22 @@ export function ChargeRecenteCard({
                   />
                 </div>
                 
-                {/* Cibles de référence */}
-                <div className="p-3 rounded-md bg-muted text-sm space-y-1">
-                  <p className="font-medium">Cibles pour {targets.objectif}:</p>
-                  <ul className="space-y-1 text-muted-foreground">
-                    <li>• Minimum: {targets.chargeMinimale} TSS</li>
-                    <li className="text-green-600">• Optimal: {targets.chargeOptimale} TSS</li>
-                    <li>• Maximum: {targets.chargeMaximale} TSS</li>
-                  </ul>
+                <div className="p-3 rounded-md bg-muted text-sm">
+                  <span className="font-medium">Cibles {targets.objectif}: </span>
+                  <span className="text-muted-foreground">
+                    {targets.chargeMinimale} – <span className="text-green-600">{targets.chargeOptimale}</span> – {targets.chargeMaximale} TSS
+                  </span>
                 </div>
               </div>
               
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsEditing(false)}>
-                  Annuler
-                </Button>
+                <Button variant="outline" onClick={() => setIsEditing(false)}>Annuler</Button>
                 <Button onClick={handleSave} disabled={isLoading}>
-                  {isLoading ? "Enregistrement..." : "Enregistrer"}
+                  {isLoading ? "..." : "Enregistrer"}
                 </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        )}
-        
-        {/* Info pédagogique (mode staff) */}
-        {staffMode && (
-          <div className="text-xs text-muted-foreground border-t pt-2 mt-2">
-            <div className="flex items-start gap-1.5">
-              <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-              <span>
-                La charge récente conditionne le TTE estimé et l'axe Robustesse du Compass. 
-                Une charge inconnue réduit la fiabilité des analyses.
-              </span>
-            </div>
-          </div>
         )}
       </CardContent>
     </Card>
