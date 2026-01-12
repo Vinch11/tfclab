@@ -34,6 +34,7 @@ interface CompassData {
   poids: number | null;
   tss7d: number | null;
   snapshotDate?: string | null;
+  snapshotUpdatedAt?: string | null;
   objectif: string;
   fatigueState?: string;
 }
@@ -66,7 +67,7 @@ export function MetabolicPerformanceCompass({ data, staffMode: initialStaffMode 
   const [staffMode, setStaffMode] = useState(initialStaffMode);
   
   const scores = useMemo(() => {
-    const crr = computeCRR({ tss7d: data.tss7d, snapshotDate: data.snapshotDate });
+    const crr = computeCRR({ tss7d: data.tss7d, snapshotDate: data.snapshotDate, snapshotUpdatedAt: data.snapshotUpdatedAt });
     return computeCompassScores({
       ftp: data.ftp,
       poids: data.poids,

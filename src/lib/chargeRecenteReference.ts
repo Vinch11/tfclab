@@ -86,17 +86,18 @@ const DEFAULT_CRR_TARGETS: CRRTargets = {
 // =============================================
 
 export interface ComputeCRRParams {
-  tss7d: number | null;           // Valeur brute du snapshot
-  snapshotDate?: string | null;   // Date du snapshot
-  nolioTss7d?: number | null;     // Si import Nolio disponible
-  manualOverride?: number | null; // Saisie manuelle staff
+  tss7d: number | null;             // Valeur brute du snapshot
+  snapshotDate?: string | null;     // Date du snapshot (création)
+  snapshotUpdatedAt?: string | null;// Date de dernière mise à jour du snapshot
+  nolioTss7d?: number | null;       // Si import Nolio disponible
+  manualOverride?: number | null;   // Saisie manuelle staff
 }
 
 /**
  * Calcule la Charge Récente de Référence selon la hiérarchie officielle
  */
 export function computeCRR(params: ComputeCRRParams): ChargeRecenteReference {
-  const { tss7d, snapshotDate, nolioTss7d, manualOverride } = params;
+  const { tss7d, snapshotDate, snapshotUpdatedAt, nolioTss7d, manualOverride } = params;
   
   // 1. NOLIO (priorité maximale)
   if (nolioTss7d != null && nolioTss7d > 0) {
@@ -113,18 +114,20 @@ export function computeCRR(params: ComputeCRRParams): ChargeRecenteReference {
   
   // 2. SNAPSHOT (validé par coach)
   if (tss7d != null && tss7d > 0) {
-    const age = snapshotDate ? getDaysAgo(snapshotDate) : null;
+    // Utiliser updated_at si disponible, sinon date de création
+    const referenceDate = snapshotUpdatedAt || snapshotDate;
+    const age = referenceDate ? getDaysAgo(referenceDate) : null;
     const isRecent = age !== null && age <= 14;
     
     return {
       value: tss7d,
       source: "SNAPSHOT",
       confidence: isRecent ? 0.85 : 0.65,
-      lastUpdated: snapshotDate || null,
+      lastUpdated: snapshotUpdatedAt || snapshotDate || null,
       label: `${tss7d} TSS/7j (Snapshot)`,
       isValid: true,
       warningMessage: !isRecent && age !== null
-        ? `Snapshot datant de ${age} jours – actualiser si possible`
+        ? `Données mises à jour il y a ${age} jours`
         : null
     };
   }

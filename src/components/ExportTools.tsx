@@ -377,7 +377,8 @@ function buildExportPayload(
   // ✅ NEW: Calculer CRR et Compass Scores
   const crr = computeCRR({
     tss7d: effectiveSnapshot?.tss_7d ?? null,
-    snapshotDate: effectiveSnapshot?.date ?? null
+    snapshotDate: effectiveSnapshot?.date ?? null,
+    snapshotUpdatedAt: effectiveSnapshot?.updated_at ?? null
   });
   
   const chargeScore = computeChargeScore(crr, athlete.goal || "IM");
