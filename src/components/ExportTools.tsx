@@ -21,6 +21,7 @@ import { reglesDanLorang, getPrioriteLabel, getSeancesRecommandees, PrioriteType
 import { SEANCES } from "@/types/seances";
 import { computeNutritionEstimate, type NutritionEstimate } from "@/lib/nutritionPredictive";
 import { computeCAPInjuryRisk, getCAPRiskIcon } from "@/lib/capInjuryRisk";
+import { calculateAge, computeAgeAdjustmentIndex, type AgeAdjustmentIndex, interpretVLamaxByAge, getAgeNutritionAdjustment } from "@/lib/ageAdjustment";
 import logoUrl from "@/assets/logo-2fc.png";
 import { buildChartePageHTML } from "@/data/charteInterpretation";
 // ✅ NEW: Import Compass Scoring et CRR
@@ -99,6 +100,13 @@ interface ExportPayload {
     suggestions: WahooSuggestion[];
     diagnosticSummary: string;
     hasRecommendations: boolean;
+  };
+  // ✅ NEW: Age Adjustment Index
+  ageAdjustment: {
+    age: number | null;
+    aai: AgeAdjustmentIndex;
+    vlamaxInterpretation: ReturnType<typeof interpretVLamaxByAge>;
+    nutritionAdjustment: ReturnType<typeof getAgeNutritionAdjustment>;
   };
 }
 
@@ -459,6 +467,14 @@ function buildExportPayload(
       diagnosticSummary: wahooOutput.diagnosticSummary,
       hasRecommendations: wahooOutput.suggestions.length > 0,
     },
+    // ✅ NEW: Age Adjustment
+    ageAdjustment: (() => {
+      const age = calculateAge(athlete.birth_date);
+      const aai = computeAgeAdjustmentIndex(age);
+      const vlamaxInterpretation = interpretVLamaxByAge(vlamax.value, age);
+      const nutritionAdjustment = getAgeNutritionAdjustment(age);
+      return { age, aai, vlamaxInterpretation, nutritionAdjustment };
+    })(),
   };
 }
 
@@ -511,7 +527,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     athlete, effectiveSnapshot, effectiveRefs, 
     vlamax, tte, raceReadiness, lorang,
     tests, snapshotHistory, checkins, completude, reportDate,
-    nutritionEstimate, capInjuryRisk
+    nutritionEstimate, capInjuryRisk, ageAdjustment
   } = payload;
   
   const refs = getAthleteRefsForZones(effectiveRefs);
@@ -731,6 +747,22 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               <div class="k">Poids</div><div class="v">${effectiveRefs.weightKg ? fmt(effectiveRefs.weightKg, 1) : "—"} kg</div>
               <div class="k">FTP/kg</div><div class="v">${ftpKg ? fmt(ftpKg, 2) : "—"} W/kg</div>
             </div>
+            ${ageAdjustment.age !== null ? `
+            <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border);">
+              <h4 style="margin: 0 0 8px 0; font-size: 12px;">🎂 Ajustement par l'âge (AAI)</h4>
+              <div class="kv" style="font-size: 11px;">
+                <div class="k">Âge</div><div class="v">${ageAdjustment.age} ans</div>
+                <div class="k">Catégorie</div><div class="v">${ageAdjustment.aai.label}</div>
+                <div class="k">AAI</div><div class="v">${Math.round(ageAdjustment.aai.aai * 100)}%</div>
+                <div class="k">Risque ×</div><div class="v">${ageAdjustment.aai.riskMultiplier.toFixed(2)}</div>
+              </div>
+              <p class="muted" style="margin-top: 6px; font-size: 10px;">
+                ${ageAdjustment.aai.category === "master1" || ageAdjustment.aai.category === "master2" 
+                  ? "⚠️ Profil Master : cibles TTE ajustées, nutrition plus conservative recommandée." 
+                  : "Profil " + (ageAdjustment.aai.category === "young" ? "jeune" : "prime") + " : pas d'ajustement majeur."}
+              </p>
+            </div>
+            ` : ''}
           </div>
         </div>
       </div>
