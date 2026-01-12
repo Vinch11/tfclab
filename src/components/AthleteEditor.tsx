@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, FlaskConical, Save } from "lucide-react";
+import { ArrowLeft, FlaskConical, Save, Calendar } from "lucide-react";
 import { Athlete, AthleteRefs } from "@/types/athlete";
 import { useToast } from "@/hooks/use-toast";
+import { calculateAge } from "@/lib/ageAdjustment";
 
 interface AthleteEditorProps {
   athlete: Athlete | null;
@@ -77,12 +78,15 @@ export function AthleteEditor({ athlete, onSave, onBack, onEditTests }: AthleteE
   const { toast } = useToast();
 
   const [nom, setNom] = useState(athlete?.nom || "");
+  const [dateNaissance, setDateNaissance] = useState(athlete?.dateNaissance || "");
   const [objectif, setObjectif] = useState<string>(athlete?.objectif || "IM");
   const [fcMax, setFcMax] = useState<string>(athlete?.refs?.fcMax?.toString() || "");
   const [vma, setVma] = useState<string>(athlete?.refs?.vma?.toString() || "");
   const [ftp, setFtp] = useState<string>(athlete?.refs?.ftp?.toString() || "");
   const [css, setCss] = useState<string>(athlete?.refs?.css?.toString() || "");
   const [vo2max, setVo2max] = useState<string>(athlete?.vo2max?.toString() || "");
+
+  const age = dateNaissance ? calculateAge(dateNaissance) : null;
 
   const [zones, setZones] = useState<{ fcZones: ZoneRow[]; vmaZones: ZoneRow[] }>({ fcZones: [], vmaZones: [] });
 
@@ -114,6 +118,7 @@ export function AthleteEditor({ athlete, onSave, onBack, onEditTests }: AthleteE
     const updatedAthlete: Athlete = {
       ...athlete,
       nom: nom.trim() || athlete.nom,
+      dateNaissance: dateNaissance || undefined,
       objectif: objectif as Athlete["objectif"],
       vo2max: vo2max ? Number(vo2max) : undefined,
       refs: {
@@ -169,6 +174,25 @@ export function AthleteEditor({ athlete, onSave, onBack, onEditTests }: AthleteE
           <div className="grid grid-cols-[140px_1fr] gap-4 items-center">
             <Label>Nom</Label>
             <Input value={nom} onChange={(e) => setNom(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-[140px_1fr] gap-4 items-center">
+            <Label className="flex items-center gap-1">
+              <Calendar className="w-3 h-3" />
+              Date de naissance
+            </Label>
+            <div className="flex items-center gap-2">
+              <Input 
+                type="date" 
+                value={dateNaissance} 
+                onChange={(e) => setDateNaissance(e.target.value)}
+                max={new Date().toISOString().split("T")[0]}
+              />
+              {age !== null && (
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
+                  ({age} ans)
+                </span>
+              )}
+            </div>
           </div>
           <div className="grid grid-cols-[140px_1fr] gap-4 items-center">
             <Label>Objectif</Label>
