@@ -21,6 +21,9 @@ import { CheckinManager } from "@/components/CheckinManager";
 import { QuickFatigueInput } from "@/components/QuickFatigueInput";
 import { SnapshotEvolutionChart } from "@/components/SnapshotEvolutionChart";
 import { AthleteRefsPanel } from "@/components/AthleteRefsPanel";
+import { FtpKgTargetsCard } from "@/components/FtpKgTargetsCard";
+import { MetricHelpButton } from "@/components/MetricHelpButton";
+import { calculateAge } from "@/lib/ageAdjustment";
 
 import { NutritionPredictive } from "@/components/NutritionPredictive";
 import { NutritionTimingCard } from "@/components/NutritionTimingCard";
@@ -561,9 +564,31 @@ const Index = () => {
           {
             id: "quick-fatigue",
             render: () => currentAthlete && (
-              <QuickFatigueInput
-                athleteId={currentAthlete.id}
-                athleteName={currentAthlete.name}
+              <div className="space-y-4">
+                <QuickFatigueInput
+                  athleteId={currentAthlete.id}
+                  athleteName={currentAthlete.name}
+                />
+                {/* Boutons d'aide VLamax et TTE */}
+                <div className="flex flex-wrap gap-2 items-center p-3 bg-muted/30 rounded-lg border border-border/50">
+                  <span className="text-sm text-muted-foreground">Comprendre les métriques :</span>
+                  <MetricHelpButton metricId="vlamax" variant="button" />
+                  <MetricHelpButton metricId="tte" variant="button" />
+                  <MetricHelpButton metricId="race_readiness" variant="button" />
+                </div>
+              </div>
+            ),
+          },
+          {
+            id: "ftp-targets",
+            render: () => currentAthlete && (
+              <FtpKgTargetsCard
+                objectif={currentAthlete.goal || "IM"}
+                age={calculateAge(currentAthlete.birth_date)}
+                currentFtpKg={ftp_kg ?? null}
+                vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
+                vlamax={vlamaxEffectif.value}
+                weeklyVolume={null}
               />
             ),
           },
