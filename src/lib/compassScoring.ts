@@ -289,19 +289,89 @@ export function computeProfilMetabolique(
 }
 
 // =============================================
-// AXE 4 : ROBUSTESSE (Composite)
+// AXE 4 : ROBUSTESSE (Composite avec intégration fatigue/CAP)
 // =============================================
 // 
 // FORMULE OFFICIELLE :
-// Robustesse_score = 0.4 × TTE_score + 0.3 × VLamax_score + 0.3 × Charge_score
+// Pour CAP: Robustesse = clamp(100 - RunInjuryRisk.score, 0, 100)
+// Pour Vélo: Robustesse = clamp(100 - Fatigue%, 0, 100)
+// Sinon: Robustesse = 0.4×TTE + 0.3×VLamax + 0.3×Charge
 //
 
 export function computeRobustesse(
   tteScore: CompassAxisScore,
   vlamaxScore: CompassAxisScore,
-  chargeScore: ChargeScore
+  chargeScore: ChargeScore,
+  fatigueEffectif?: FatigueEffectif | null,
+  runInjuryRisk?: RunInjuryRiskEnvelope | null,
+  sportFocus?: "bike" | "run" | "triathlon" | null
 ): CompassAxisScore {
-  // Pondérations officielles
+  // Si on a le risque CAP et focus course → utiliser robustesse CAP
+  if (runInjuryRisk && (sportFocus === "run" || sportFocus === "triathlon")) {
+    const riskScore = runInjuryRisk.score;
+    const score = clamp(100 - riskScore, 0, 100);
+    
+    let explanation: string;
+    if (score >= 75) {
+      explanation = "Robustesse CAP excellente – risque mécanique faible";
+    } else if (score >= 50) {
+      explanation = "Robustesse CAP modérée – surveiller charge et intensité";
+    } else if (score >= 25) {
+      explanation = `Robustesse CAP limitée – ${runInjuryRisk.why}`;
+    } else {
+      explanation = `Robustesse CAP critique – ${runInjuryRisk.guardrails[0] || "Priorité récupération"}`;
+    }
+    
+    return {
+      score,
+      rawScore: 100 - riskScore,
+      effectiveScore: score,
+      label: "Robustesse CAP",
+      explanation,
+      formula: `Robustesse_CAP = 100 - RisqueCAP(${riskScore}) = ${score}`,
+      inputs: {
+        runInjuryRiskScore: riskScore,
+        runInjuryRiskLevel: runInjuryRisk.level as string,
+        confidence: runInjuryRisk.confidence
+      },
+      confidence: runInjuryRisk.confidence,
+      source: "run_injury_risk",
+      isModulatedByFatigue: true
+    };
+  }
+  
+  // Si on a la fatigue et focus vélo → robustesse basée sur fatigue
+  if (fatigueEffectif && sportFocus === "bike") {
+    const score = clamp(100 - fatigueEffectif.score, 0, 100);
+    
+    let explanation: string;
+    if (score >= 75) {
+      explanation = "Robustesse vélo excellente – fatigue faible";
+    } else if (score >= 50) {
+      explanation = "Robustesse vélo modérée – surveiller charge";
+    } else {
+      explanation = "Robustesse vélo limitée – privilégier récupération";
+    }
+    
+    return {
+      score,
+      rawScore: 100 - fatigueEffectif.score,
+      effectiveScore: score,
+      label: "Robustesse Vélo",
+      explanation,
+      formula: `Robustesse_Vélo = 100 - Fatigue(${fatigueEffectif.score}%) = ${score}`,
+      inputs: {
+      fatigueScore: fatigueEffectif.score,
+      fatigueLevel: String(fatigueEffectif.level),
+      confidence: fatigueEffectif.confidence
+    },
+      confidence: fatigueEffectif.confidence,
+      source: "fatigue_effectif",
+      isModulatedByFatigue: true
+    };
+  }
+  
+  // Fallback : formule composite classique
   const WEIGHT_TTE = 0.4;
   const WEIGHT_VLAMAX = 0.3;
   const WEIGHT_CHARGE = 0.3;
@@ -353,6 +423,42 @@ export function computeRobustesse(
 }
 
 // =============================================
+// MODULATION CAPACITÉ AÉROBIE PAR FATIGUE
+// =============================================
+//
+// FORMULE OFFICIELLE :
+// AerobicCapacityEffective = AerobicCapacityRaw × (1 - Fatigue% / 140)
+// À 70% fatigue, l'axe baisse d'environ 50% max (modulation réaliste)
+//
+
+export function modulateCapaciteAerobieByFatigue(
+  capaciteAerobie: CompassAxisScore,
+  fatigueEffectif: FatigueEffectif | null
+): CompassAxisScore {
+  if (!fatigueEffectif || fatigueEffectif.score <= 0) {
+    return capaciteAerobie;
+  }
+  
+  // Modulation : à 70% fatigue → ~50% réduction max
+  const fatigueModulator = 1 - (fatigueEffectif.score / 140);
+  const effectiveScore = clamp(Math.round(capaciteAerobie.rawScore * fatigueModulator), 0, 100);
+  
+  let modifiedExplanation = capaciteAerobie.explanation;
+  if (fatigueEffectif.score >= 30) {
+    modifiedExplanation += ` (modulé par fatigue ${fatigueEffectif.score}%)`;
+  }
+  
+  return {
+    ...capaciteAerobie,
+    score: effectiveScore,
+    effectiveScore,
+    explanation: modifiedExplanation,
+    formula: `${capaciteAerobie.formula} → × (1 - ${fatigueEffectif.score}/140) = ${effectiveScore}`,
+    isModulatedByFatigue: fatigueEffectif.score >= 15
+  };
+}
+
+// =============================================
 // CALCUL GLOBAL DU COMPASS
 // =============================================
 
@@ -363,17 +469,45 @@ export interface ComputeCompassParams {
   tteEffectif: TTEEffectif;
   crr: ChargeRecenteReference;
   objectif: string;
+  // Nouveaux paramètres pour intégration fatigue
+  fatigueEffectif?: FatigueEffectif | null;
+  runInjuryRisk?: RunInjuryRiskEnvelope | null;
+  sportFocus?: "bike" | "run" | "triathlon" | null;
 }
 
 export function computeCompassScores(params: ComputeCompassParams): CompassScores {
-  const { ftp, poids, vlamaxEffectif, tteEffectif, crr, objectif } = params;
+  const { 
+    ftp, poids, vlamaxEffectif, tteEffectif, crr, objectif,
+    fatigueEffectif, runInjuryRisk, sportFocus 
+  } = params;
   
   // Calculer les 4 axes
-  const capaciteAerobie = computeCapaciteAerobie(ftp, poids, objectif);
+  const capaciteAerobieRaw = computeCapaciteAerobie(ftp, poids, objectif);
+  
+  // Moduler la capacité aérobie par la fatigue si disponible
+  const capaciteAerobie = fatigueEffectif 
+    ? modulateCapaciteAerobieByFatigue(capaciteAerobieRaw, fatigueEffectif)
+    : capaciteAerobieRaw;
+  
   const toleranceEffort = computeToleranceEffort(tteEffectif, objectif);
   const profilMetabolique = computeProfilMetabolique(vlamaxEffectif, objectif);
   const chargeScore = computeChargeScore(crr, objectif);
-  const robustesse = computeRobustesse(toleranceEffort, profilMetabolique, chargeScore);
+  
+  // Robustesse intègre le risque CAP/fatigue selon le sport
+  const robustesse = computeRobustesse(
+    toleranceEffort, 
+    profilMetabolique, 
+    chargeScore,
+    fatigueEffectif,
+    runInjuryRisk,
+    sportFocus
+  );
+  
+  // Vérifier si la fatigue a modulé le potentiel
+  const isFatigueModulated = Boolean(
+    capaciteAerobie.isModulatedByFatigue || 
+    robustesse.isModulatedByFatigue
+  );
   
   // Score global (moyenne pondérée)
   const globalScore = Math.round(
@@ -432,6 +566,6 @@ export function computeCompassScores(params: ComputeCompassParams): CompassScore
     dataCompleteness,
     mainLimitation,
     mainStrength,
-    isFatigueModulated: false // Sera true dans la version avec fatigue
+    isFatigueModulated
   };
 }

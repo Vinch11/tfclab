@@ -301,6 +301,117 @@ export const academySections: AcademySection[] = [
     ]
   },
   {
+    id: "fatigue-fonctionnelle",
+    title: "Fatigue Fonctionnelle – Two For Coaching Lab",
+    level: "basic",
+    tags: ["fatigue", "récupération", "TTE", "charge", "fraîcheur", "readiness"],
+    blocks: [
+      {
+        type: "text",
+        title: "Définition officielle",
+        content: "La fatigue correspond à une diminution estimée de la capacité de l'athlète à exprimer son potentiel physiologique actuel, en raison de la charge récente, de la durabilité à l'effort (TTE), de la fraîcheur métabolique et de facteurs individuels. Ce score est un indicateur fonctionnel d'aide à la décision, et non une mesure biologique directe."
+      },
+      {
+        type: "table",
+        title: "Les 4 piliers de la fatigue fonctionnelle",
+        content: {
+          headers: ["Pilier", "Poids", "Description"],
+          rows: [
+            ["Charge récente", "35%", "TSS 7 jours comparé à la charge habituelle"],
+            ["Durabilité (TTE)", "25%", "TTE effectif vs cible selon objectif"],
+            ["Fraîcheur métabolique", "25%", "Score Race Readiness"],
+            ["Facteurs modérateurs", "15%", "Âge + profil VLamax"]
+          ]
+        }
+      },
+      {
+        type: "table",
+        title: "Échelle officielle d'interprétation",
+        content: {
+          headers: ["Score", "Niveau", "Interprétation"],
+          rows: [
+            ["0–15%", "Très faible", "Très frais, potentiel pleinement exprimable"],
+            ["15–30%", "Légère", "Fatigue légère, charge bien absorbée"],
+            ["30–45%", "Modérée", "Fatigue modérée, vigilance sur l'intensité"],
+            ["45–60%", "Élevée", "Fatigue élevée, risque de stagnation"],
+            [">60%", "Critique", "Fatigue critique, priorité récupération"]
+          ]
+        }
+      },
+      {
+        type: "callout",
+        title: "Garde-fous scientifiques",
+        content: "Les scores sont des estimations. Ils doivent être interprétés avec le contexte. Le jugement du coach prime sur l'algorithme. Aucun score ne doit être utilisé isolément."
+      },
+      {
+        type: "callout",
+        title: "Note staff – Impact sur le Compass",
+        content: "La fatigue module l'axe Capacité Aérobie (potentiel exprimable) et influence l'axe Robustesse. Elle n'est jamais prescriptive.",
+        staffOnly: true
+      }
+    ]
+  },
+  {
+    id: "fatigue-velo-vs-cap",
+    title: "Fatigue : Vélo vs Course à Pied",
+    level: "staff",
+    tags: ["fatigue", "vélo", "CAP", "blessure", "risque", "mécanique"],
+    blocks: [
+      {
+        type: "text",
+        content: "La fatigue n'a pas le même impact sur le vélo et la course à pied. Le vélo est principalement une contrainte métabolique, tandis que la CAP ajoute une contrainte mécanique majeure (impacts, tendons, articulations)."
+      },
+      {
+        type: "table",
+        title: "Guideline Fatigue Vélo (staff)",
+        content: {
+          headers: ["Fatigue", "Recommandation vélo"],
+          rows: [
+            ["<30%", "Séances qualitatives OK"],
+            ["30–45%", "Intensité possible mais contrôlée (éviter densité)"],
+            ["45–60%", "Priorité tempo/Z2, limiter VO2 et sprints"],
+            [">60%", "Récupération active uniquement"]
+          ]
+        }
+      },
+      {
+        type: "callout",
+        title: "Risque Blessure CAP",
+        content: "Pour la course à pied, un score spécifique 'Risque Blessure CAP' est calculé. Il intègre : Fatigue (30%), VLamax (20%), TTE (20%), Charge CAP (20%), Âge (10%)."
+      },
+      {
+        type: "table",
+        title: "Échelle Risque Blessure CAP",
+        content: {
+          headers: ["Score", "Niveau", "Action recommandée"],
+          rows: [
+            ["0–25", "Faible", "CAP normale, surveiller densité"],
+            ["26–50", "Modéré", "Surveiller qualité CAP, privilégier Z2"],
+            ["51–75", "Élevé", "Limiter intensité CAP, privilégier vélo"],
+            ["76–100", "Critique", "Réduction charge CAP recommandée"]
+          ]
+        }
+      },
+      {
+        type: "bullets",
+        title: "Facteurs de risque surveillés",
+        content: [
+          "Fatigue élevée + VLamax élevé = récupération plus lente des fibres rapides",
+          "TTE faible = moins de capacité à soutenir les allures sans dérive",
+          "Charge CAP élevée = contrainte mécanique répétée",
+          "Âge >40 ans = temps de récupération allongé"
+        ],
+        staffOnly: true
+      },
+      {
+        type: "callout",
+        title: "Non prescriptif",
+        content: "L'app n'applique aucun changement automatique. Elle propose des 'Options coach' : 1) Remplacer qualité CAP par vélo Z2, 2) Réduire volume CAP 10-20%, 3) Ajouter journée recovery.",
+        staffOnly: true
+      }
+    ]
+  },
+  {
     id: "periodization",
     title: "Phases de Planification",
     level: "staff",
