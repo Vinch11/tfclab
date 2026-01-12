@@ -44,6 +44,8 @@ import { computeFatigueEffectif, FatigueEffectif } from "@/lib/fatigueEffectif";
 import { FtpKgTargetsCard } from "@/components/FtpKgTargetsCard";
 import { VLamaxTargetsCard } from "@/components/VLamaxTargetsCard";
 import { FatigueCard } from "@/components/FatigueCard";
+import { RunInjuryRiskCard } from "@/components/RunInjuryRiskCard";
+import { computeRunInjuryRisk, RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
 
 // =============================================
 // HELPERS
@@ -272,6 +274,17 @@ export default function DashboardPage() {
       objectif,
     });
     
+    // Run Injury Risk (risque blessure CAP)
+    const runInjuryRisk = computeRunInjuryRisk({
+      fatigueEffectif,
+      vlamaxEffectif,
+      tteEffectif,
+      tss7d: activeSnapshot.tss_7d ?? null,
+      runLoad7d: null, // Pas encore disponible
+      age: athleteAge,
+      objectif,
+    });
+    
     // Générer le résumé coach
     const coachSummary = generateCoachSummary(vlamaxEffectif, tteEffectif, raceReadiness, objectif);
     
@@ -306,6 +319,7 @@ export default function DashboardPage() {
       raceReadiness,
       nutritionEstimate,
       fatigueEffectif,
+      runInjuryRisk,
       ftpKg,
       athleteAge,
       snapshot: activeSnapshot,
@@ -365,6 +379,7 @@ export default function DashboardPage() {
     raceReadiness, 
     nutritionEstimate,
     fatigueEffectif,
+    runInjuryRisk,
     ftpKg,
     athleteAge,
     snapshot,
@@ -772,12 +787,30 @@ export default function DashboardPage() {
   );
 
   // =============================================
+  // RENDER: RUN INJURY RISK CARD
+  // =============================================
+  
+  const renderRunInjuryRiskCard = (): ReactNode => {
+    // Afficher uniquement si objectif implique la CAP
+    const capObjectifs = ["Marathon", "Semi", "Course", "Trail", "TrailCourt", "TrailLong", "Ultra", "IM", "Ironman", "703", "Half", "Sprint", "Olympic"];
+    if (!capObjectifs.includes(objectif)) return null;
+    
+    return (
+      <RunInjuryRiskCard
+        riskEnvelope={runInjuryRisk}
+        isStaffMode={true}
+      />
+    );
+  };
+
+  // =============================================
   // SECTIONS CONFIGURATION
   // =============================================
 
   const sections = [
     { id: "athlete-context", render: renderAthleteContext },
     { id: "fatigue", render: renderFatigueCard },
+    { id: "run-injury-risk", render: renderRunInjuryRiskCard },
     { id: "coach-summary", render: renderCoachSummary },
     { id: "piliers", render: renderPiliers },
     { id: "ftp-targets", render: renderFtpKgTargets },
