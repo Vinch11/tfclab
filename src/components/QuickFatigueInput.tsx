@@ -125,28 +125,28 @@ export function QuickFatigueInput({ athleteId, athleteName, onSubmit }: QuickFat
     const info = FATIGUE_LABELS[existingFatigue];
     return (
       <Card className="border-border/50">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+        <CardContent className="px-3 py-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
               {getFatigueIcon(existingFatigue)}
-              <div>
-                <p className="text-sm font-medium">Forme perçue aujourd'hui</p>
-                <p className={cn("text-lg font-bold", info.color)}>
-                  {existingFatigue}/10 — {info.label}
-                </p>
-              </div>
+              <span className="text-sm text-muted-foreground">Forme</span>
+              <span className={cn("font-bold", info.color)}>
+                {existingFatigue}/10
+              </span>
+              <span className={cn("text-sm", info.color)}>
+                {info.label}
+              </span>
             </div>
             <Button 
-              variant="outline" 
+              variant="ghost" 
               size="sm" 
               onClick={() => {
                 setValue(existingFatigue);
                 setIsEditing(true);
               }}
-              className="gap-1"
+              className="h-7 px-2"
             >
               <Check className="h-3 w-3" />
-              Modifier
             </Button>
           </div>
         </CardContent>
@@ -157,65 +157,48 @@ export function QuickFatigueInput({ athleteId, athleteName, onSubmit }: QuickFat
   // Mode édition ou première saisie
   return (
     <Card className="border-border/50">
-      <CardContent className="p-4 space-y-4">
+      <CardContent className="px-3 py-2 space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {getFatigueIcon(value)}
-            <span className="font-medium">Forme perçue</span>
+            <span className="text-sm font-medium">Forme perçue</span>
+            <span className={cn("font-bold", fatigueInfo.color)}>{value}/10</span>
+            <span className={cn("text-xs", fatigueInfo.color)}>{fatigueInfo.label}</span>
           </div>
-          <Badge variant="outline" className="text-xs">
-            {existingCheckin ? "Modifier" : "Saisie rapide"}
+          <Badge variant="outline" className="text-xs h-5">
+            {existingCheckin ? "Modifier" : "Saisie"}
           </Badge>
         </div>
 
-        <div className="space-y-3">
-          <div className="flex items-baseline justify-between">
-            <span className={cn("text-2xl font-bold font-mono", fatigueInfo.color)}>
-              {value}/10
-            </span>
-            <span className={cn("text-sm font-medium", fatigueInfo.color)}>
-              {fatigueInfo.label}
-            </span>
-          </div>
-          
+        <div className="flex items-center gap-3">
           <Slider
             value={[value]}
             onValueChange={([v]) => setValue(v)}
             min={1}
             max={10}
             step={1}
-            className="py-2"
-          />
-          
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>1 = Nul</span>
-            <span>10 = Super</span>
-          </div>
-          
-          <p className="text-xs text-muted-foreground text-center">
-            {fatigueInfo.description}
-          </p>
-        </div>
-
-        <div className="flex gap-2">
-          {isEditing && (
-            <Button 
-              variant="outline"
-              onClick={() => setIsEditing(false)}
-              className="flex-1"
-              size="sm"
-            >
-              Annuler
-            </Button>
-          )}
-          <Button 
-            onClick={handleSubmit} 
-            disabled={isSubmitting}
             className="flex-1"
-            size="sm"
-          >
-            {isSubmitting ? "Enregistrement..." : existingCheckin ? "Mettre à jour" : "Enregistrer"}
-          </Button>
+          />
+          <div className="flex gap-1">
+            {isEditing && (
+              <Button 
+                variant="ghost"
+                onClick={() => setIsEditing(false)}
+                size="sm"
+                className="h-7 px-2"
+              >
+                ✕
+              </Button>
+            )}
+            <Button 
+              onClick={handleSubmit} 
+              disabled={isSubmitting}
+              size="sm"
+              className="h-7 px-3"
+            >
+              {isSubmitting ? "..." : "OK"}
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
