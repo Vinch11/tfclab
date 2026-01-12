@@ -41,6 +41,9 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
   const [css, setCss] = useState(snapshot.css != null ? String(snapshot.css) : "");
   const [fat, setFat] = useState(snapshot.fat_pct != null ? String(snapshot.fat_pct) : "");
   const [confidence, setConfidence] = useState(snapshot.confidence != null ? String(snapshot.confidence) : "");
+  // Nouveaux champs pour Fatigue
+  const [tss7d, setTss7d] = useState(snapshot.tss_7d != null ? String(snapshot.tss_7d) : "");
+  const [tteObserved, setTteObserved] = useState(snapshot.tte_observed_min != null ? String(snapshot.tte_observed_min) : "");
 
   const handleSave = async () => {
     await updateSnapshot(snapshot.id, {
@@ -56,6 +59,9 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
       css: numOrNull(css),
       fat_pct: numOrNull(fat),
       confidence: numOrNull(confidence),
+      // ✅ Nouveaux champs Fatigue
+      tss_7d: numOrNull(tss7d) != null ? Math.round(numOrNull(tss7d)!) : null,
+      tte_observed_min: numOrNull(tteObserved) != null ? Math.round(numOrNull(tteObserved)!) : null,
     });
     setOpen(false);
   };
@@ -73,6 +79,9 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
       setCss(snapshot.css != null ? String(snapshot.css) : "");
       setFat(snapshot.fat_pct != null ? String(snapshot.fat_pct) : "");
       setConfidence(snapshot.confidence != null ? String(snapshot.confidence) : "");
+      // Nouveaux champs
+      setTss7d(snapshot.tss_7d != null ? String(snapshot.tss_7d) : "");
+      setTteObserved(snapshot.tte_observed_min != null ? String(snapshot.tte_observed_min) : "");
     }
     setOpen(isOpen);
   };
@@ -158,6 +167,35 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right">Masse grasse (%)</Label>
             <Input className="col-span-3" type="number" step="0.1" value={fat} onChange={(e) => setFat(e.target.value)} />
+          </div>
+
+          {/* ====== SECTION FATIGUE & CHARGE ====== */}
+          <div className="col-span-4 pt-3 border-t border-border">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
+              Charge & Fatigue
+            </p>
+          </div>
+
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right">TSS 7 jours</Label>
+            <Input 
+              className="col-span-3" 
+              type="number" 
+              placeholder="Ex: 350"
+              value={tss7d} 
+              onChange={(e) => setTss7d(e.target.value)} 
+            />
+          </div>
+
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right">TTE observé (min)</Label>
+            <Input 
+              className="col-span-3" 
+              type="number" 
+              placeholder="Ex: 45"
+              value={tteObserved} 
+              onChange={(e) => setTteObserved(e.target.value)} 
+            />
           </div>
 
           <div className="grid grid-cols-4 items-center gap-4">
