@@ -38,10 +38,12 @@ import { computeVLamaxEffectif, VLamaxEffectif, getSourceColor, getConfidenceLab
 import { computeTTEEffectif, TTEEffectif, getTTETarget, getSourceLabel } from "@/lib/tteEffectif";
 import { computeRaceReadinessEffectif, RaceReadinessEffectif, getSportFromObjectif } from "@/lib/raceReadinessEffectif";
 import { computeNutritionEstimate, NutritionEstimate } from "@/lib/nutritionPredictive";
+import { computeFatigueEffectif, FatigueEffectif } from "@/lib/fatigueEffectif";
 
-// Composants cibles
+// Composants cibles et fatigue
 import { FtpKgTargetsCard } from "@/components/FtpKgTargetsCard";
 import { VLamaxTargetsCard } from "@/components/VLamaxTargetsCard";
+import { FatigueCard } from "@/components/FatigueCard";
 
 // =============================================
 // HELPERS
@@ -247,6 +249,29 @@ export default function DashboardPage() {
       ? activeSnapshot.ftp / activeSnapshot.weight_kg
       : null;
     
+    // Âge de l'athlète
+    let athleteAge: number | null = null;
+    if (currentAthlete.birth_date) {
+      const birthDate = new Date(currentAthlete.birth_date);
+      const today = new Date();
+      athleteAge = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        athleteAge--;
+      }
+    }
+    
+    // Fatigue Effectif (nouvelle source unique)
+    const fatigueEffectif = computeFatigueEffectif({
+      tss7d: activeSnapshot.tss_7d,
+      tss7dHabituel: null, // Non disponible pour l'instant
+      tteEffectif,
+      raceReadiness,
+      vlamaxEffectif,
+      age: athleteAge,
+      objectif,
+    });
+    
     // Générer le résumé coach
     const coachSummary = generateCoachSummary(vlamaxEffectif, tteEffectif, raceReadiness, objectif);
     
@@ -266,6 +291,10 @@ export default function DashboardPage() {
     if (nutritionEstimate && nutritionEstimate.riskLevel !== "low") {
       priorities.push("Sécuriser la nutrition à l'effort");
     }
+    // Ajouter recommandations fatigue si élevée
+    if (fatigueEffectif.score >= 45) {
+      priorities.unshift("⚠️ Fatigue élevée : prioriser la récupération");
+    }
     if (priorities.length === 0) {
       priorities.push("Maintenir le profil actuel");
       priorities.push("Affiner la stratégie de course");
@@ -276,7 +305,9 @@ export default function DashboardPage() {
       tteEffectif,
       raceReadiness,
       nutritionEstimate,
+      fatigueEffectif,
       ftpKg,
+      athleteAge,
       snapshot: activeSnapshot,
       coachSummary,
       phase,
