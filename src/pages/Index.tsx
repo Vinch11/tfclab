@@ -18,6 +18,7 @@ import { IndexSeancesView } from "@/components/IndexSeances";
 import { ExportTools } from "@/components/ExportTools";
 import { SnapshotManager } from "@/components/SnapshotManager";
 import { CheckinManager } from "@/components/CheckinManager";
+import { QuickFatigueInput } from "@/components/QuickFatigueInput";
 import { SnapshotEvolutionChart } from "@/components/SnapshotEvolutionChart";
 import { AthleteRefsPanel } from "@/components/AthleteRefsPanel";
 
@@ -554,6 +555,15 @@ const Index = () => {
                 athlete={currentAthlete}
                 snapshots={snapshots}
                 compact
+              />
+            ),
+          },
+          {
+            id: "quick-fatigue",
+            render: () => currentAthlete && (
+              <QuickFatigueInput
+                athleteId={currentAthlete.id}
+                athleteName={currentAthlete.name}
               />
             ),
           },
