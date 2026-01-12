@@ -22,6 +22,7 @@ import { SEANCES } from "@/types/seances";
 import { computeNutritionEstimate, type NutritionEstimate } from "@/lib/nutritionPredictive";
 import { computeCAPInjuryRisk, getCAPRiskIcon } from "@/lib/capInjuryRisk";
 import logoUrl from "@/assets/logo-2fc.png";
+import { buildChartePageHTML } from "@/data/charteInterpretation";
 // ✅ NEW: Import Compass Scoring et CRR
 import { computeCRR, computeChargeScore, getCRRTargets, type ChargeRecenteReference, type ChargeScore } from "@/lib/chargeRecenteReference";
 import { computeCompassScores, type CompassScores, type CompassAxisScore } from "@/lib/compassScoring";

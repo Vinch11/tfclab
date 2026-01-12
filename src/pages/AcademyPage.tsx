@@ -6,7 +6,8 @@ import {
   Scale,
   Compass,
   Layers,
-  ShieldCheck
+  ShieldCheck,
+  FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +27,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CharteLectureAcademy } from "@/components/CharteLectureAcademy";
 
 // Données de la table des constantes physiologiques
 const PHYSIOLOGICAL_CONSTANTS = [
@@ -146,6 +149,23 @@ export default function AcademyPage() {
 
       {/* Content */}
       <main className="container mx-auto px-4 py-6 pb-24 max-w-4xl">
+        <Tabs defaultValue="charte" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="charte" className="flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              Charte de lecture
+            </TabsTrigger>
+            <TabsTrigger value="reference" className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4" />
+              Référentiel scientifique
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="charte">
+            <CharteLectureAcademy />
+          </TabsContent>
+          
+          <TabsContent value="reference">
         <Accordion type="multiple" defaultValue={["fondements", "constantes", "hierarchie", "legal", "philosophie"]} className="space-y-4">
           
           {/* SECTION 1 — Fondements scientifiques */}
@@ -367,6 +387,8 @@ export default function AcademyPage() {
           </AccordionItem>
 
         </Accordion>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
