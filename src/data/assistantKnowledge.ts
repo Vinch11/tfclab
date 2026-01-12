@@ -25,7 +25,31 @@ Cet assistant est un outil d'aide à la compréhension et à la décision destin
 - Il ne remplace pas l'avis d'un professionnel de santé
 - Il ne garantit aucune performance
 
+Selon la charte Two For Coaching Lab : "Un rapport Two For Coaching Lab n'a de valeur que s'il est interprété avec esprit critique."
+
 Si vous avez une question médicale, consultez un médecin ou un professionnel de santé qualifié.
+`;
+
+// =============================================
+// CHARTE - RÉFÉRENCE OBLIGATOIRE POUR LE CHATBOT
+// =============================================
+
+export const CHARTE_REFERENCE = `
+CHARTE D'INTERPRÉTATION TWO FOR COACHING LAB
+
+Règle fondamentale : Toute donnée doit être interprétée avec :
+- Sa valeur centrale ET sa plage d'incertitude
+- Son indice de confiance (élevée > 0.85, modérée 0.65-0.85, faible < 0.65)
+- Sa source (🔬 mesurée, 🧠 estimée, 🔁 modélisée)
+
+Réponses du chatbot :
+- Toujours citer la source et la confiance de la donnée
+- Toujours rappeler la marge d'incertitude
+- Ne jamais donner de réponse absolue ou prescriptive
+- Référencer la charte : "Selon la charte Two For Coaching Lab..."
+
+Exemple de réponse type :
+"Cette VLamax est estimée (confiance modérée ≈ 0.70). Selon la charte Two For Coaching Lab, elle doit être interprétée comme un indicateur directionnel, pas comme une valeur absolue. La plage d'incertitude est d'environ ±0.08 mmol/L/s."
 `;
 
 // =============================================
