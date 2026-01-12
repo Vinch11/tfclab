@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { User, Activity, Save, AlertCircle, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { useCloudData, DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
-import { calculateAge } from "@/lib/ageAdjustment";
+import { calculateAge, computeAgeAdjustmentIndex } from "@/lib/ageAdjustment";
 import { 
   getEffectiveRefs, 
   getSourceLabel, 
@@ -285,6 +285,21 @@ export function AthleteRefsPanel({ athlete, snapshots, onUpdate, compact = false
             {PHYSIO_FIELDS.map(renderField)}
           </div>
         </div>
+
+        {/* Explication impact de l'âge */}
+        {age !== null && (
+          <div className="text-xs bg-primary/5 border border-primary/20 rounded-lg p-3">
+            <p className="font-medium mb-2 text-primary flex items-center gap-1">
+              <Calendar className="h-3.5 w-3.5" />
+              Impact de l'âge sur les cibles
+            </p>
+            <div className="space-y-1 text-muted-foreground">
+              <p><strong>TTE:</strong> Cibles réduites de {Math.round((1 - computeAgeAdjustmentIndex(age).aai) * 100)}% pour tenir compte de la récupération plus lente.</p>
+              <p><strong>FTP/kg:</strong> Les zones "réaliste" et "ambitieuse" sont ajustées à l'âge.</p>
+              <p><strong>Risque blessure:</strong> Multiplicateur ×{computeAgeAdjustmentIndex(age).riskMultiplier.toFixed(2)} appliqué aux alertes.</p>
+            </div>
+          </div>
+        )}
 
         {/* Info sur la priorité */}
         <div className="text-xs text-muted-foreground bg-secondary/30 rounded-lg p-3">

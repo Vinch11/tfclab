@@ -23,7 +23,7 @@ import { SnapshotEvolutionChart } from "@/components/SnapshotEvolutionChart";
 import { AthleteRefsPanel } from "@/components/AthleteRefsPanel";
 import { FtpKgTargetsCard } from "@/components/FtpKgTargetsCard";
 import { MetricHelpButton } from "@/components/MetricHelpButton";
-import { calculateAge } from "@/lib/ageAdjustment";
+import { calculateAge, computeAgeAdjustmentIndex } from "@/lib/ageAdjustment";
 
 import { NutritionPredictive } from "@/components/NutritionPredictive";
 import { NutritionTimingCard } from "@/components/NutritionTimingCard";
@@ -55,6 +55,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 
 import {
   Zap,
@@ -488,18 +489,46 @@ const Index = () => {
         {athletes.length === 0 ? (
           <p className="text-muted-foreground text-xs sm:text-sm">Aucun athlète. Cliquez sur Ajouter pour commencer.</p>
         ) : (
-          <Select value={selectedAthleteId || ""} onValueChange={setSelectedAthleteId}>
-            <SelectTrigger className="h-9 sm:h-10 text-sm">
-              <SelectValue placeholder="Sélectionner un athlète" />
-            </SelectTrigger>
-            <SelectContent>
-              {athletes.map((a) => (
-                <SelectItem key={a.id} value={a.id}>
-                  {a.name} ({a.goal || "IM"})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="space-y-2">
+            <Select value={selectedAthleteId || ""} onValueChange={setSelectedAthleteId}>
+              <SelectTrigger className="h-9 sm:h-10 text-sm">
+                <SelectValue placeholder="Sélectionner un athlète" />
+              </SelectTrigger>
+              <SelectContent>
+                {athletes.map((a) => (
+                  <SelectItem key={a.id} value={a.id}>
+                    {a.name} ({a.goal || "IM"})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            {/* Affichage âge + AAI */}
+            {currentAthlete && (() => {
+              const age = calculateAge(currentAthlete.birth_date);
+              const ageIndex = computeAgeAdjustmentIndex(age);
+              if (age === null) return null;
+              
+              const categoryColors: Record<string, string> = {
+                young: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+                prime: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+                master1: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+                master2: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+              };
+              
+              return (
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">{age} ans</span>
+                  <Badge variant="outline" className={`text-xs ${categoryColors[ageIndex.category]}`}>
+                    {ageIndex.label}
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">
+                    AAI {(ageIndex.aai * 100).toFixed(0)}%
+                  </span>
+                </div>
+              );
+            })()}
+          </div>
         )}
       </CardContent>
     </Card>
