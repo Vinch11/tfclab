@@ -29,14 +29,14 @@ import {
   Apple,
   Flame
 } from "lucide-react";
-import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
+import { VLamaxEffectif, toVLamaxEnvelope } from "@/lib/vlamaxEffectif";
 import { VLamaxMetricRow } from "@/components/VLamaxStatusBadge";
-import { TTEEffectif, getSourceColor as getTTESourceColor, getSourceLabel } from "@/lib/tteEffectif";
-import { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
+import { TTEEffectif, getSourceColor as getTTESourceColor, getSourceLabel, toTTEEnvelope } from "@/lib/tteEffectif";
+import { RaceReadinessEffectif, toRaceReadinessEnvelope } from "@/lib/raceReadinessEffectif";
 import { cn } from "@/lib/utils";
 import { getEconomyLabelStyle, getEconomyRaceReadinessBonus } from "@/lib/runningEconomySnapshot";
 import { computeNutritionEstimate, type NutritionEstimate, type Sport } from "@/lib/nutritionPredictive";
-import { ScientificChartsDashboard, MetabolicPerformanceCompass } from "@/components/charts";
+import { ScientificChartsDashboard, MetabolicPerformanceCompass, ScoreEnvelopeInlineCard } from "@/components/charts";
 
 interface PhysiologicalAnalysisProps {
   athlete: Athlete;
@@ -117,26 +117,20 @@ export function PhysiologicalAnalysis({ athlete, vlamaxEffectif, tteEffectif: tt
     );
   }
 
+  // Générer les enveloppes pour affichage unifié
+  const vlamaxEnvelope = vlamaxEffectif ? toVLamaxEnvelope(vlamaxEffectif, athlete.objectif || "IM") : null;
+  const tteEnvelope = tteEffectifProp ? toTTEEnvelope(tteEffectifProp, athlete.objectif || "IM") : null;
+  
   return (
     <div className="space-y-4">
-      {/* Source VLamax + TTE - Utilise composant unifié VLamaxStatusBadge */}
+      {/* Source VLamax + TTE - Utilise ScoreEnvelopeInlineCard unifié */}
       <div className="flex flex-wrap gap-4">
-        {vlamaxEffectif && vlamaxEffectif.value !== null && (
-          <VLamaxMetricRow vlamax={vlamaxEffectif} />
+        {vlamaxEnvelope && vlamaxEnvelope.value !== null && (
+          <ScoreEnvelopeInlineCard envelope={vlamaxEnvelope} showHelp={true} />
         )}
         
-        {tteEffectifProp && tteEffectifProp.tte_min !== null && (
-          <div className="flex items-center gap-2 text-sm p-2 rounded-lg bg-secondary/30 border border-border">
-            <span className="text-muted-foreground">TTE:</span>
-            <span className="font-mono font-bold">{tteEffectifProp.tte_min} min</span>
-            <span className={cn("px-2 py-0.5 rounded text-xs", getTTESourceColor(tteEffectifProp.source))}>
-              {getSourceLabel(tteEffectifProp.source)}
-            </span>
-            <span className="text-muted-foreground">•</span>
-            <span className="text-xs text-muted-foreground">
-              conf {Math.round(tteEffectifProp.confidence * 100)}%
-            </span>
-          </div>
+        {tteEnvelope && tteEnvelope.value !== null && (
+          <ScoreEnvelopeInlineCard envelope={tteEnvelope} showHelp={true} />
         )}
       </div>
 
