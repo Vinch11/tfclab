@@ -46,6 +46,7 @@ import { VLamaxTargetsCard } from "@/components/VLamaxTargetsCard";
 import { FatigueCard } from "@/components/FatigueCard";
 import { RunInjuryRiskCard } from "@/components/RunInjuryRiskCard";
 import { QuickFatigueInput } from "@/components/QuickFatigueInput";
+import { FatigueComparisonChart } from "@/components/FatigueComparisonChart";
 import { computeRunInjuryRisk, RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
 
 // =============================================
@@ -322,6 +323,9 @@ export default function DashboardPage() {
       priorities.push("Affiner la stratégie de course");
     }
     
+    // Filtrer tests pour cet athlète
+    const athleteTests = tests.filter(t => t.athlete_id === athleteId);
+    
     return {
       vlamaxEffectif,
       tteEffectif,
@@ -332,12 +336,14 @@ export default function DashboardPage() {
       ftpKg,
       athleteAge,
       snapshot: activeSnapshot,
+      athleteSnapshots,
+      athleteTests,
       coachSummary,
       phase,
       priorities,
       tteTarget,
     };
-  }, [currentAthlete, snapshots, tests]);
+  }, [currentAthlete, snapshots, tests, checkins]);
 
   // =============================================
   // RENDER: NO ATHLETE SELECTED
@@ -392,6 +398,8 @@ export default function DashboardPage() {
     ftpKg,
     athleteAge,
     snapshot,
+    athleteSnapshots,
+    athleteTests,
     coachSummary,
     phase,
     priorities,
@@ -824,6 +832,26 @@ export default function DashboardPage() {
   );
 
   // =============================================
+  // RENDER: FATIGUE COMPARISON CHART
+  // =============================================
+  
+  const renderFatigueComparisonChart = (): ReactNode => {
+    const athleteCheckins = checkins.filter(c => c.athlete_id === currentAthlete.id);
+    
+    return (
+      <FatigueComparisonChart
+        checkins={athleteCheckins}
+        activeSnapshot={snapshot}
+        athleteSnapshots={athleteSnapshots}
+        athleteTests={athleteTests}
+        athleteId={currentAthlete.id}
+        athleteAge={athleteAge}
+        objectif={objectif}
+      />
+    );
+  };
+
+  // =============================================
   // SECTIONS CONFIGURATION
   // =============================================
 
@@ -831,6 +859,7 @@ export default function DashboardPage() {
     { id: "athlete-context", render: renderAthleteContext },
     { id: "quick-fatigue", render: renderQuickFatigueInput },
     { id: "fatigue", render: renderFatigueCard },
+    { id: "fatigue-comparison", render: renderFatigueComparisonChart },
     { id: "run-injury-risk", render: renderRunInjuryRiskCard },
     { id: "coach-summary", render: renderCoachSummary },
     { id: "piliers", render: renderPiliers },
