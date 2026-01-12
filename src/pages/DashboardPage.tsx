@@ -364,7 +364,9 @@ export default function DashboardPage() {
     tteEffectif, 
     raceReadiness, 
     nutritionEstimate,
+    fatigueEffectif,
     ftpKg,
+    athleteAge,
     snapshot,
     coachSummary,
     phase,
@@ -759,11 +761,23 @@ export default function DashboardPage() {
   };
 
   // =============================================
+  // RENDER: FATIGUE CARD
+  // =============================================
+  
+  const renderFatigueCard = (): ReactNode => (
+    <FatigueCard
+      fatigue={fatigueEffectif}
+      isStaffMode={true}
+    />
+  );
+
+  // =============================================
   // SECTIONS CONFIGURATION
   // =============================================
 
   const sections = [
     { id: "athlete-context", render: renderAthleteContext },
+    { id: "fatigue", render: renderFatigueCard },
     { id: "coach-summary", render: renderCoachSummary },
     { id: "piliers", render: renderPiliers },
     { id: "ftp-targets", render: renderFtpKgTargets },
