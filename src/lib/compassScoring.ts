@@ -6,17 +6,23 @@
 // FORMULES TRANSPARENTES ET TRAÇABLES
 // Aucune "boîte noire" – chaque score est explicable
 //
-// 4 AXES INDÉPENDANTS MAIS INTERCONNECTÉS :
-// 1. Capacité Aérobie (FTP/kg)
-// 2. Tolérance à l'Effort (TTE effectif)
-// 3. Profil Métabolique (VLamax effectif)
-// 4. Robustesse (composite TTE + VLamax + Charge)
+// 4 AXES OFFICIELS :
+// 1. Aerobic Capacity (potentiel) — FTP/kg (modulé par fatigue)
+// 2. Sustainable Power (durabilité) — TTE effectif vs cible
+// 3. Metabolic Efficiency (profil) — VLamax effectif vs cible
+// 4. Robustness (solidité) — basé sur risque CAP/fatigue
+//
+// INTÉGRATION FATIGUE :
+// - Fatigue module l'axe Aerobic Capacity (potentiel exprimable)
+// - Robustesse intègre le risque CAP pour les sports course
 //
 // =============================================
 
 import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { TTEEffectif } from "@/lib/tteEffectif";
 import { ChargeRecenteReference, computeChargeScore, ChargeScore } from "@/lib/chargeRecenteReference";
+import { FatigueEffectif } from "@/lib/fatigueEffectif";
+import { RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
 
 // =============================================
 // TYPES
@@ -24,13 +30,15 @@ import { ChargeRecenteReference, computeChargeScore, ChargeScore } from "@/lib/c
 
 export interface CompassAxisScore {
   score: number;              // 0-100
-  rawScore: number;           // Score avant normalisation
+  rawScore: number;           // Score avant modulation
+  effectiveScore?: number;    // Score après modulation fatigue (si applicable)
   label: string;              // Nom de l'axe
   explanation: string;        // Explication pédagogique
   formula: string;            // Formule utilisée (pour mode staff)
   inputs: Record<string, number | string | null>;  // Valeurs utilisées
   confidence: number;         // 0-1
   source: string;             // Source principale
+  isModulatedByFatigue?: boolean; // Indique si modulé par fatigue
 }
 
 export interface CompassScores {
@@ -44,6 +52,7 @@ export interface CompassScores {
   dataCompleteness: number;               // % de données disponibles
   mainLimitation: string | null;          // Axe le plus faible
   mainStrength: string | null;            // Axe le plus fort
+  isFatigueModulated: boolean;            // Fatigue a modulé le potentiel
 }
 
 export interface CompassTargets {
@@ -422,6 +431,7 @@ export function computeCompassScores(params: ComputeCompassParams): CompassScore
     globalColor,
     dataCompleteness,
     mainLimitation,
-    mainStrength
+    mainStrength,
+    isFatigueModulated: false // Sera true dans la version avec fatigue
   };
 }
