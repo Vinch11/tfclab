@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { User, Activity, Save, AlertCircle, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { useCloudData, DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
-import { calculateAge, computeAgeAdjustmentIndex } from "@/lib/ageAdjustment";
+import { AgeAdjustmentBadge } from "@/components/AgeAdjustmentBadge";
 import { 
   getEffectiveRefs, 
   getSourceLabel, 
@@ -64,8 +64,6 @@ export function AthleteRefsPanel({ athlete, snapshots, onUpdate, compact = false
   const [birthDate, setBirthDate] = useState(athlete.birth_date || "");
   const [isDirty, setIsDirty] = useState(false);
   const [saving, setSaving] = useState(false);
-  
-  const age = calculateAge(birthDate);
 
   // Initialiser le formulaire avec les valeurs profil actuelles
   useEffect(() => {
@@ -262,11 +260,11 @@ export function AthleteRefsPanel({ athlete, snapshots, onUpdate, compact = false
                   max={new Date().toISOString().split("T")[0]}
                   className="flex-1 bg-secondary/50"
                 />
-                {age !== null && (
-                  <Badge variant="outline" className="whitespace-nowrap">
-                    {age} ans
-                  </Badge>
-                )}
+                <AgeAdjustmentBadge 
+                  birthDate={birthDate} 
+                  variant="compact" 
+                  showTooltip={false}
+                />
               </div>
             </div>
             {ANTHROPO_FIELDS.map(renderField)}
@@ -286,18 +284,16 @@ export function AthleteRefsPanel({ athlete, snapshots, onUpdate, compact = false
           </div>
         </div>
 
-        {/* Explication impact de l'âge */}
-        {age !== null && (
-          <div className="text-xs bg-primary/5 border border-primary/20 rounded-lg p-3">
-            <p className="font-medium mb-2 text-primary flex items-center gap-1">
-              <Calendar className="h-3.5 w-3.5" />
-              Impact de l'âge sur les cibles
+        {/* Badge AAI avec explications détaillées */}
+        {birthDate && (
+          <div className="flex items-center gap-3 bg-primary/5 border border-primary/20 rounded-lg p-3">
+            <AgeAdjustmentBadge 
+              birthDate={birthDate} 
+              variant="full"
+            />
+            <p className="text-xs text-muted-foreground">
+              L'âge impacte les cibles TTE, FTP/kg, le risque blessure et les recommandations nutritionnelles.
             </p>
-            <div className="space-y-1 text-muted-foreground">
-              <p><strong>TTE:</strong> Cibles réduites de {Math.round((1 - computeAgeAdjustmentIndex(age).aai) * 100)}% pour tenir compte de la récupération plus lente.</p>
-              <p><strong>FTP/kg:</strong> Les zones "réaliste" et "ambitieuse" sont ajustées à l'âge.</p>
-              <p><strong>Risque blessure:</strong> Multiplicateur ×{computeAgeAdjustmentIndex(age).riskMultiplier.toFixed(2)} appliqué aux alertes.</p>
-            </div>
           </div>
         )}
 
