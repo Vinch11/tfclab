@@ -183,81 +183,43 @@ function buildJustifications(props: {
 }
 
 // =============================================
-// ZONE BAR COMPONENT
+// COMPACT ZONE BAR COMPONENT
 // =============================================
 
-function ZoneBar({
+function CompactZoneBar({
   zone,
   label,
+  emoji,
   color,
   currentFtpKg,
   isCurrentZone,
 }: {
   zone: { min: number; max: number; label: string };
   label: string;
+  emoji: string;
   color: "emerald" | "amber" | "rose";
   currentFtpKg: number | null;
   isCurrentZone: boolean;
 }) {
   const colorClasses = {
-    emerald: {
-      bg: "bg-emerald-500/20",
-      bar: "bg-emerald-500",
-      text: "text-emerald-600 dark:text-emerald-400",
-      border: "border-emerald-500",
-    },
-    amber: {
-      bg: "bg-amber-500/20",
-      bar: "bg-amber-500",
-      text: "text-amber-600 dark:text-amber-400",
-      border: "border-amber-500",
-    },
-    rose: {
-      bg: "bg-rose-500/20",
-      bar: "bg-rose-500",
-      text: "text-rose-600 dark:text-rose-400",
-      border: "border-rose-500",
-    },
+    emerald: "bg-emerald-500 text-emerald-600 dark:text-emerald-400",
+    amber: "bg-amber-500 text-amber-600 dark:text-amber-400",
+    rose: "bg-rose-500 text-rose-600 dark:text-rose-400",
   };
-
-  const colors = colorClasses[color];
-  const progress = getProgressInZone(currentFtpKg, zone);
-  const isInZone = currentFtpKg && currentFtpKg >= zone.min && currentFtpKg <= zone.max;
 
   return (
     <div className={cn(
-      "p-3 rounded-lg border transition-all",
-      isCurrentZone ? `${colors.bg} ${colors.border} border-2` : "bg-muted/30 border-border"
+      "flex items-center justify-between px-2 py-1.5 rounded text-sm",
+      isCurrentZone ? "bg-primary/10 font-medium" : "bg-muted/30"
     )}>
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <span className={cn("text-sm font-medium", isCurrentZone ? colors.text : "text-foreground")}>
-            {label}
-          </span>
-          {isCurrentZone && (
-            <Badge variant="outline" className={cn("text-xs", colors.text, colors.border)}>
-              Actuel
-            </Badge>
-          )}
-        </div>
-        <span className={cn("font-mono font-bold text-sm", colors.text)}>
-          {zone.min.toFixed(1)} – {zone.max.toFixed(1)} W/kg
-        </span>
-      </div>
-      
-      {/* Barre de progression dans la zone */}
-      <div className={cn("h-2 rounded-full overflow-hidden", colors.bg)}>
-        <div
-          className={cn("h-full rounded-full transition-all duration-500", colors.bar)}
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-      
-      {isInZone && currentFtpKg && (
-        <div className="mt-1.5 text-xs text-muted-foreground">
-          Position: {currentFtpKg.toFixed(2)} W/kg ({Math.round(progress)}% de la zone)
-        </div>
-      )}
+      <span className="flex items-center gap-1.5">
+        <span>{emoji}</span>
+        <span className={isCurrentZone ? "text-foreground" : "text-muted-foreground"}>{label}</span>
+        {isCurrentZone && <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">Vous</Badge>}
+      </span>
+      <span className={cn("font-mono text-xs", colorClasses[color].split(" ").slice(1).join(" "))}>
+        {zone.min.toFixed(1)}–{zone.max.toFixed(1)}
+      </span>
     </div>
   );
 }
@@ -281,117 +243,91 @@ export function FtpKgTargetsCard({
 
   return (
     <Card className={cn("overflow-hidden", className)}>
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Target className="w-5 h-5 text-primary" />
-          FTP cible à moyen terme (12–24 mois)
+      <CardHeader className="pb-2 pt-3 px-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-1.5 text-sm">
+            <Target className="w-4 h-4 text-primary" />
+            FTP cible (12–24 mois)
+          </CardTitle>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Info className="w-4 h-4 text-muted-foreground cursor-help" />
+                <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
                 <p className="text-sm">
-                  Ces zones sont ajustées selon votre âge, profil métabolique et objectif sportif. 
-                  Elles représentent des trajectoires réalistes, pas des objectifs absolus.
+                  Zones ajustées selon l'âge, le profil métabolique et l'objectif.
                 </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-        </CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Objectif : <span className="font-medium text-foreground">{getObjectifLabel(objectif)}</span>
-        </p>
+        </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
-        {/* Valeur actuelle */}
-        {currentFtpKg && (
-          <div className="flex items-center gap-3 p-3 bg-primary/10 rounded-lg border border-primary/30">
-            <div className="p-2 bg-primary/20 rounded-full">
-              <TrendingUp className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <span className="text-sm text-muted-foreground">FTP actuel</span>
-              <div className="font-mono font-bold text-xl text-primary">
-                {currentFtpKg.toFixed(2)} W/kg
-              </div>
-            </div>
-          </div>
-        )}
+      <CardContent className="px-3 pb-3 pt-0 space-y-2">
+        {/* Valeur actuelle + Objectif en ligne */}
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span>Objectif : <span className="font-medium text-foreground">{getObjectifLabel(objectif)}</span></span>
+          {currentFtpKg && (
+            <span className="font-mono font-bold text-primary text-sm">
+              {currentFtpKg.toFixed(2)} W/kg
+            </span>
+          )}
+        </div>
 
-        {/* Zones cibles */}
-        <div className="space-y-2">
-          <ZoneBar
+        {/* Zones compactes */}
+        <div className="space-y-1">
+          <CompactZoneBar
             zone={targets.plausible}
-            label="🔹 Zone réaliste"
+            label="Réaliste"
+            emoji="🔹"
             color="emerald"
             currentFtpKg={currentFtpKg}
             isCurrentZone={currentZone === "plausible"}
           />
-          <ZoneBar
+          <CompactZoneBar
             zone={targets.ambitieux}
-            label="🔸 Zone ambitieuse"
+            label="Ambitieux"
+            emoji="🔸"
             color="amber"
             currentFtpKg={currentFtpKg}
             isCurrentZone={currentZone === "ambitieux"}
           />
-          <ZoneBar
+          <CompactZoneBar
             zone={targets.eliteImprobable}
-            label="🔺 Zone élite / improbable"
+            label="Élite"
+            emoji="🔺"
             color="rose"
             currentFtpKg={currentFtpKg}
             isCurrentZone={currentZone === "elite"}
           />
         </div>
 
-        {/* Justifications */}
+        {/* Justifications ultra-compactes */}
         {justifications.length > 0 && (
-          <div className="pt-3 border-t border-border">
-            <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-muted-foreground" />
-              Justification des cibles
-            </h4>
-            <div className="space-y-2">
-              {justifications.map((item, idx) => (
-                <div 
-                  key={idx}
-                  className={cn(
-                    "flex items-start gap-3 p-2 rounded-lg text-sm",
-                    item.impact === "positive" && "bg-emerald-500/10",
-                    item.impact === "neutral" && "bg-muted/30",
-                    item.impact === "negative" && "bg-amber-500/10"
-                  )}
-                >
-                  <div className={cn(
-                    "p-1.5 rounded-full",
-                    item.impact === "positive" && "bg-emerald-500/20 text-emerald-600",
-                    item.impact === "neutral" && "bg-muted text-muted-foreground",
-                    item.impact === "negative" && "bg-amber-500/20 text-amber-600"
-                  )}>
-                    {item.icon}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{item.label}:</span>
-                      <span className="font-mono">{item.value}</span>
-                    </div>
-                    {item.note && (
-                      <p className="text-xs text-muted-foreground mt-0.5">{item.note}</p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Warning général */}
-        {targets.warning && (
-          <div className="p-3 bg-muted/50 rounded-lg border border-border">
-            <p className="text-xs text-muted-foreground italic">
-              ℹ️ {targets.warning}
-            </p>
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {justifications.map((item, idx) => (
+              <TooltipProvider key={idx}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge 
+                      variant="outline" 
+                      className={cn(
+                        "text-[10px] px-1.5 py-0.5 cursor-help",
+                        item.impact === "positive" && "border-emerald-500/50 text-emerald-600",
+                        item.impact === "neutral" && "border-border",
+                        item.impact === "negative" && "border-amber-500/50 text-amber-600"
+                      )}
+                    >
+                      {item.label}: {item.value}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">{item.note}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ))}
           </div>
         )}
       </CardContent>
