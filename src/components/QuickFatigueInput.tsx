@@ -1,0 +1,181 @@
+// =============================================
+// QUICK FATIGUE INPUT - Widget rapide Dashboard
+// Saisie fatigue perçue 1-10 (1=Frais, 10=Épuisé)
+// =============================================
+
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { Badge } from "@/components/ui/badge";
+import { Battery, BatteryFull, BatteryLow, BatteryMedium, BatteryWarning, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useCloudData, DbCheckin } from "@/hooks/useCloudData";
+import { toast } from "@/hooks/use-toast";
+
+interface QuickFatigueInputProps {
+  athleteId: string;
+  athleteName: string;
+  onSubmit?: (value: number) => void;
+}
+
+// Labels pour chaque niveau de fatigue
+const FATIGUE_LABELS: Record<number, { label: string; description: string; color: string }> = {
+  1: { label: "Frais", description: "Pleine forme, prêt pour tout", color: "text-green-500" },
+  2: { label: "Très bien", description: "Excellente récupération", color: "text-green-500" },
+  3: { label: "Bien", description: "Bonne forme générale", color: "text-green-400" },
+  4: { label: "Correct", description: "Légère fatigue résiduelle", color: "text-lime-500" },
+  5: { label: "Neutre", description: "Ni frais ni fatigué", color: "text-yellow-500" },
+  6: { label: "Fatigué", description: "Fatigue perceptible", color: "text-amber-500" },
+  7: { label: "Très fatigué", description: "Récupération nécessaire", color: "text-orange-500" },
+  8: { label: "Épuisé", description: "Fatigue importante", color: "text-orange-600" },
+  9: { label: "Très épuisé", description: "Récupération urgente", color: "text-red-500" },
+  10: { label: "Maximum", description: "Épuisement total", color: "text-red-600" },
+};
+
+function getFatigueIcon(value: number) {
+  if (value <= 2) return <BatteryFull className="h-5 w-5 text-green-500" />;
+  if (value <= 4) return <BatteryMedium className="h-5 w-5 text-lime-500" />;
+  if (value <= 6) return <BatteryLow className="h-5 w-5 text-amber-500" />;
+  if (value <= 8) return <BatteryWarning className="h-5 w-5 text-orange-500" />;
+  return <Battery className="h-5 w-5 text-red-500" />;
+}
+
+export function QuickFatigueInput({ athleteId, athleteName, onSubmit }: QuickFatigueInputProps) {
+  const { addCheckin, getCheckinsForAthlete } = useCloudData();
+  const [value, setValue] = useState<number>(5);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+
+  // Vérifier si un check-in existe déjà aujourd'hui
+  const todayCheckins = getCheckinsForAthlete(athleteId).filter(
+    c => c.date_iso === new Date().toISOString().slice(0, 10)
+  );
+  const existingFatigue = todayCheckins.length > 0 ? todayCheckins[0].fatigue : null;
+
+  const fatigueInfo = FATIGUE_LABELS[value];
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      // Créer un check-in minimal avec juste la fatigue
+      const today = new Date();
+      const weekTag = `${today.getFullYear()}-W${String(Math.ceil((today.getDate() + new Date(today.getFullYear(), 0, 1).getDay()) / 7)).padStart(2, "0")}`;
+      
+      await addCheckin({
+        athlete_id: athleteId,
+        coach_id: "",
+        date_iso: today.toISOString().slice(0, 10),
+        week_tag: weekTag,
+        fatigue: value,
+        sleep: null,
+        soreness: null,
+        stress: null,
+        motivation: null,
+        rpe_key1: null,
+        rpe_key2: null,
+        pain_flag: false,
+        notes: `Fatigue perçue: ${value}/10 - ${fatigueInfo.label}`,
+        readiness: null,
+      });
+
+      toast({
+        title: "Fatigue enregistrée",
+        description: `${fatigueInfo.label} (${value}/10) pour ${athleteName}`,
+      });
+
+      setHasSubmitted(true);
+      onSubmit?.(value);
+    } catch (error) {
+      console.error("Error saving fatigue:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'enregistrer la fatigue",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Si déjà soumis aujourd'hui
+  if (hasSubmitted || existingFatigue !== null) {
+    const displayValue = hasSubmitted ? value : existingFatigue!;
+    const info = FATIGUE_LABELS[displayValue];
+    return (
+      <Card className="border-border/50">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {getFatigueIcon(displayValue)}
+              <div>
+                <p className="text-sm font-medium">Fatigue perçue aujourd'hui</p>
+                <p className={cn("text-lg font-bold", info.color)}>
+                  {displayValue}/10 — {info.label}
+                </p>
+              </div>
+            </div>
+            <Badge variant="secondary" className="gap-1">
+              <Check className="h-3 w-3" />
+              Enregistré
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="border-border/50">
+      <CardContent className="p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {getFatigueIcon(value)}
+            <span className="font-medium">Fatigue perçue</span>
+          </div>
+          <Badge variant="outline" className="text-xs">
+            Saisie rapide
+          </Badge>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex items-baseline justify-between">
+            <span className={cn("text-2xl font-bold font-mono", fatigueInfo.color)}>
+              {value}/10
+            </span>
+            <span className={cn("text-sm font-medium", fatigueInfo.color)}>
+              {fatigueInfo.label}
+            </span>
+          </div>
+          
+          <Slider
+            value={[value]}
+            onValueChange={([v]) => setValue(v)}
+            min={1}
+            max={10}
+            step={1}
+            className="py-2"
+          />
+          
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>1 = Frais</span>
+            <span>10 = Épuisé</span>
+          </div>
+          
+          <p className="text-xs text-muted-foreground text-center">
+            {fatigueInfo.description}
+          </p>
+        </div>
+
+        <Button 
+          onClick={handleSubmit} 
+          disabled={isSubmitting}
+          className="w-full"
+          size="sm"
+        >
+          {isSubmitting ? "Enregistrement..." : "Enregistrer"}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
