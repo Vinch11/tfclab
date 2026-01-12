@@ -115,12 +115,20 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
   const getSectionOrder = useCallback((tabId: TabId): string[] => {
     const customOrder = preferences[tabId];
     const defaultSections = ALL_SECTIONS[tabId];
+    const allIds = defaultSections.map(s => s.id);
+    
+    // Sections critiques à toujours afficher en premier si absentes des préférences sauvegardées
+    const criticalSections = ["quick-fatigue", "ftp-targets"];
     
     if (customOrder && customOrder.length > 0) {
       // Ajouter les sections qui pourraient être nouvelles (pas dans l'ordre sauvegardé)
-      const allIds = defaultSections.map(s => s.id);
       const missingIds = allIds.filter(id => !customOrder.includes(id));
-      return [...customOrder.filter(id => allIds.includes(id)), ...missingIds];
+      
+      // Mettre les sections critiques manquantes au début
+      const criticalMissing = missingIds.filter(id => criticalSections.includes(id));
+      const otherMissing = missingIds.filter(id => !criticalSections.includes(id));
+      
+      return [...criticalMissing, ...customOrder.filter(id => allIds.includes(id)), ...otherMissing];
     }
     
     return defaultSections.map(s => s.id);
