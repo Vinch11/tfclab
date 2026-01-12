@@ -1,10 +1,19 @@
 // =============================================
-// DASHBOARD GAUGES - Résumé visuel compact
+// DASHBOARD GAUGES - Résumé visuel compact avec ScoreEnvelope
 // =============================================
 
 import { cn } from "@/lib/utils";
 import { Zap, Activity, Target, TrendingUp } from "lucide-react";
-import { MetricHelpButton } from "@/components/MetricHelpButton";
+import { ScoreEnvelopeCard } from "@/components/ScoreEnvelopeCard";
+import { 
+  ScoreEnvelope, 
+  buildVLamaxEnvelope, 
+  buildTTEEnvelope, 
+  buildRaceReadinessEnvelope 
+} from "@/lib/scoreEnvelope";
+import { VLamaxEffectif, toVLamaxEnvelope } from "@/lib/vlamaxEffectif";
+import { TTEEffectif, toTTEEnvelope } from "@/lib/tteEffectif";
+import { RaceReadinessEffectif, toRaceReadinessEnvelope } from "@/lib/raceReadinessEffectif";
 
 interface GaugeProps {
   value: number;
@@ -171,23 +180,148 @@ function HorizontalGauge({
   );
 }
 
-interface DashboardGaugesProps {
+// =============================================
+// TYPES POUR LES DEUX MODES D'UTILISATION
+// =============================================
+
+// Mode legacy: données brutes (rétrocompatibilité)
+interface DashboardGaugesLegacyProps {
   vlamax: { value: number | null; label: string; confidence: number };
   tte: { tte_min: number | null; confidence: number };
   raceReadiness: { score: number; label: string; confidence: number };
   ftp?: number | null;
   ftpKg?: number | null;
   vo2max?: number | null;
+  objectif?: string;
 }
 
-export function DashboardGauges({
-  vlamax,
-  tte,
-  raceReadiness,
-  ftp,
-  ftpKg,
-  vo2max,
-}: DashboardGaugesProps) {
+// Mode ScoreEnvelope: données enrichies
+interface DashboardGaugesEnvelopeProps {
+  vlamaxEnvelope: ScoreEnvelope;
+  tteEnvelope: ScoreEnvelope;
+  raceReadinessEnvelope: ScoreEnvelope;
+  ftp?: number | null;
+  ftpKg?: number | null;
+  vo2max?: number | null;
+  mode?: "athlete" | "staff";
+}
+
+// Union type pour supporter les deux modes
+type DashboardGaugesProps = DashboardGaugesLegacyProps | DashboardGaugesEnvelopeProps;
+
+// Type guard pour identifier le mode
+function isEnvelopeMode(props: DashboardGaugesProps): props is DashboardGaugesEnvelopeProps {
+  return 'vlamaxEnvelope' in props;
+}
+
+// =============================================
+// COMPOSANT PRINCIPAL
+// =============================================
+
+export function DashboardGauges(props: DashboardGaugesProps) {
+  // Mode avec ScoreEnvelope (nouveau)
+  if (isEnvelopeMode(props)) {
+    const { vlamaxEnvelope, tteEnvelope, raceReadinessEnvelope, ftp, ftpKg, vo2max, mode = "athlete" } = props;
+    
+    return (
+      <div className="glass-card p-4 sm:p-5 md:p-6">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <h3 className="text-xs sm:text-sm font-semibold text-muted-foreground flex items-center gap-2">
+            <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            Métriques Clés
+          </h3>
+        </div>
+        
+        {/* Cartes ScoreEnvelope unifiées */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 sm:mb-6">
+          <ScoreEnvelopeCard 
+            envelope={vlamaxEnvelope} 
+            mode={mode} 
+            showHelp={true}
+            compact={false}
+          />
+          <ScoreEnvelopeCard 
+            envelope={tteEnvelope} 
+            mode={mode} 
+            showHelp={true}
+            compact={false}
+          />
+          <ScoreEnvelopeCard 
+            envelope={raceReadinessEnvelope} 
+            mode={mode} 
+            showHelp={true}
+            compact={false}
+          />
+        </div>
+
+        {/* Métriques secondaires */}
+        <div className="space-y-2 sm:space-y-3 border-t border-border/50 pt-3 sm:pt-4">
+          {ftp !== null && ftp !== undefined && ftp > 0 && (
+            <HorizontalGauge
+              value={ftp}
+              max={400}
+              label="FTP"
+              displayValue={ftp.toString()}
+              unit={ftpKg ? `W (${ftpKg.toFixed(1)} W/kg)` : "W"}
+              color="accent"
+            />
+          )}
+          
+          {vo2max !== null && vo2max !== undefined && vo2max > 0 && (
+            <HorizontalGauge
+              value={vo2max}
+              max={80}
+              label="VO2max"
+              displayValue={Math.round(vo2max).toString()}
+              unit="ml/kg/min"
+              color={vo2max >= 55 ? "success" : vo2max >= 45 ? "warning" : "destructive"}
+            />
+          )}
+
+          {/* Barres de confiance compactes */}
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-2">
+            <div className="text-center min-w-0">
+              <div className="h-1 rounded-full bg-muted/30 overflow-hidden">
+                <div 
+                  className="h-full bg-primary/60 rounded-full transition-all duration-500"
+                  style={{ width: `${vlamaxEnvelope.confidence * 100}%` }}
+                />
+              </div>
+              <span className="text-[8px] sm:text-[9px] text-muted-foreground truncate block">
+                Conf. {Math.round(vlamaxEnvelope.confidence * 100)}%
+              </span>
+            </div>
+            <div className="text-center min-w-0">
+              <div className="h-1 rounded-full bg-muted/30 overflow-hidden">
+                <div 
+                  className="h-full bg-primary/60 rounded-full transition-all duration-500"
+                  style={{ width: `${tteEnvelope.confidence * 100}%` }}
+                />
+              </div>
+              <span className="text-[8px] sm:text-[9px] text-muted-foreground truncate block">
+                Conf. {Math.round(tteEnvelope.confidence * 100)}%
+              </span>
+            </div>
+            <div className="text-center min-w-0">
+              <div className="h-1 rounded-full bg-muted/30 overflow-hidden">
+                <div 
+                  className="h-full bg-primary/60 rounded-full transition-all duration-500"
+                  style={{ width: `${raceReadinessEnvelope.confidence * 100}%` }}
+                />
+              </div>
+              <span className="text-[8px] sm:text-[9px] text-muted-foreground truncate block">
+                Conf. {Math.round(raceReadinessEnvelope.confidence * 100)}%
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Mode legacy (rétrocompatibilité)
+  const { vlamax, tte, raceReadiness, ftp, ftpKg, vo2max, objectif = "IM" } = props;
+  
   const vlamaxVal = vlamax.value ?? 0;
   const tteVal = tte.tte_min ?? 0;
   const rrScore = raceReadiness.score;
@@ -218,11 +352,6 @@ export function DashboardGauges({
           <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           Métriques Clés
         </h3>
-        <div className="flex items-center gap-1">
-          <MetricHelpButton metricId="vlamax" size="sm" />
-          <MetricHelpButton metricId="tte" size="sm" />
-          <MetricHelpButton metricId="race_readiness" size="sm" />
-        </div>
       </div>
       
       {/* Circular gauges grid - responsive */}
