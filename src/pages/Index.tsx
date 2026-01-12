@@ -23,7 +23,8 @@ import { SnapshotEvolutionChart } from "@/components/SnapshotEvolutionChart";
 import { AthleteRefsPanel } from "@/components/AthleteRefsPanel";
 import { FtpKgTargetsCard } from "@/components/FtpKgTargetsCard";
 import { MetricHelpButton } from "@/components/MetricHelpButton";
-import { calculateAge, computeAgeAdjustmentIndex } from "@/lib/ageAdjustment";
+import { calculateAge } from "@/lib/ageAdjustment";
+import { AgeAdjustmentBadge } from "@/components/AgeAdjustmentBadge";
 
 import { NutritionPredictive } from "@/components/NutritionPredictive";
 import { NutritionTimingCard } from "@/components/NutritionTimingCard";
@@ -504,30 +505,12 @@ const Index = () => {
             </Select>
             
             {/* Affichage âge + AAI */}
-            {currentAthlete && (() => {
-              const age = calculateAge(currentAthlete.birth_date);
-              const ageIndex = computeAgeAdjustmentIndex(age);
-              if (age === null) return null;
-              
-              const categoryColors: Record<string, string> = {
-                young: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-                prime: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-                master1: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-                master2: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-              };
-              
-              return (
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-muted-foreground">{age} ans</span>
-                  <Badge variant="outline" className={`text-xs ${categoryColors[ageIndex.category]}`}>
-                    {ageIndex.label}
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">
-                    AAI {(ageIndex.aai * 100).toFixed(0)}%
-                  </span>
-                </div>
-              );
-            })()}
+            {currentAthlete && (
+              <AgeAdjustmentBadge 
+                birthDate={currentAthlete.birth_date} 
+                variant="inline" 
+              />
+            )}
           </div>
         )}
       </CardContent>
