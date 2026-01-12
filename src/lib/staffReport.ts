@@ -843,10 +843,8 @@ function generateTrainingRecommendationsSection(params: GenerateTrainingRecsPara
     
     // Si fatigue élevée et séance intense
     if (fatigueScore && fatigueScore > 55) {
-      const isIntense = ["VO2MAX", "MAP", "ANAEROBIC"].some(t => 
-        suggestion.workoutType?.toUpperCase().includes(t) || 
-        suggestion.primaryAxis?.toUpperCase().includes(t)
-      );
+      const targetAxis = suggestion.targetAxis || "";
+      const isIntense = ["VO2MAX", "MAP", "ANAEROBIC", "VO2"].includes(targetAxis.toUpperCase());
       if (isIntense) {
         status = "À éviter";
         statusColor = "red";
@@ -855,36 +853,35 @@ function generateTrainingRecommendationsSection(params: GenerateTrainingRecsPara
     
     // Si risque CAP élevé et séance CAP
     if (injuryRiskRun && injuryRiskRun.level === "élevé") {
-      const isRunIntense = suggestion.workoutType?.toLowerCase().includes("run") || 
-                           suggestion.primaryAxis?.toLowerCase().includes("running");
+      const targetNeed = suggestion.target_need || "";
+      const isRunIntense = targetNeed.toLowerCase().includes("run");
       if (isRunIntense) {
         status = "Prudence";
         statusColor = "orange";
       }
     }
     
-    // Déterminer l'objectif physiologique
+    // Déterminer l'objectif physiologique basé sur targetAxis
     let physiologicalObjective = "Développement général";
-    if (suggestion.primaryAxis) {
-      const axisMap: Record<string, string> = {
-        "VO2MAX": "Augmenter cylindrée cardiaque",
-        "THRESHOLD": "Repousser le seuil anaérobie",
-        "SWEET_SPOT": "Améliorer durabilité au seuil",
-        "LOW_CADENCE": "Développer force, abaisser VLamax",
-        "ENDURANCE": "Base aérobie, lipolyse",
-        "NEUROMUSCULAR": "Explosivité, recrutement neural",
-        "RECOVERY": "Régénération active",
-      };
-      physiologicalObjective = axisMap[suggestion.primaryAxis] || physiologicalObjective;
-    }
+    const targetAxis = suggestion.targetAxis || "";
+    const axisMap: Record<string, string> = {
+      "VO2": "Augmenter cylindrée cardiaque",
+      "VO2MAX": "Augmenter cylindrée cardiaque",
+      "TTE": "Améliorer durabilité au seuil",
+      "THRESHOLD": "Repousser le seuil anaérobie",
+      "VLAMAX": "Abaisser VLamax, force basse cadence",
+      "ENDURANCE": "Base aérobie, lipolyse",
+      "FRESHNESS": "Régénération active",
+    };
+    physiologicalObjective = axisMap[targetAxis.toUpperCase()] || physiologicalObjective;
     
     return {
       platform: "WAHOO" as string,
-      workoutName: suggestion.workoutTitle || "Séance",
-      workoutType: suggestion.workoutType || "General",
+      workoutName: suggestion.wahoo_name || "Séance",
+      workoutType: suggestion.targetAxis || "General",
       status,
       statusColor,
-      reason: suggestion.whyRecommended || "Compatible avec le profil",
+      reason: suggestion.why || "Compatible avec le profil",
       physiologicalObjective,
     };
   });
