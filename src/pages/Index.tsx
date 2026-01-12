@@ -684,6 +684,7 @@ const Index = () => {
                 crr={computeCRR({
                   tss7d: effectiveCloudSnapshot.tss_7d ?? null,
                   snapshotDate: effectiveCloudSnapshot.date ?? null,
+                  snapshotUpdatedAt: effectiveCloudSnapshot.updated_at ?? null,
                 })}
                 objectif={currentAthlete.goal || "IM"}
                 staffMode={staffMode}
@@ -704,6 +705,7 @@ const Index = () => {
                   poids: effectiveRefs.weightKg,
                   tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
                   snapshotDate: effectiveCloudSnapshot?.date ?? null,
+                  snapshotUpdatedAt: effectiveCloudSnapshot?.updated_at ?? null,
                   objectif: currentAthlete.goal || "IM",
                 }}
                 staffMode={staffMode}
