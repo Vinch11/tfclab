@@ -2146,6 +2146,10 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         </div>
 
         ${tocHTML}
+        
+        <!-- PAGE CHARTE - COMMENT LIRE CE RAPPORT -->
+        ${buildChartePageHTML()}
+        
         ${positionnementHTML}
         ${executifHTML}
         ${compassHTML}
