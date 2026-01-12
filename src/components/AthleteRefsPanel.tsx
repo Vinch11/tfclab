@@ -10,9 +10,10 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { User, Activity, Save, AlertCircle } from "lucide-react";
+import { User, Activity, Save, AlertCircle, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { useCloudData, DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
+import { calculateAge } from "@/lib/ageAdjustment";
 import { 
   getEffectiveRefs, 
   getSourceLabel, 
@@ -60,8 +61,11 @@ export function AthleteRefsPanel({ athlete, snapshots, onUpdate, compact = false
   
   // État local du formulaire (valeurs profil uniquement)
   const [form, setForm] = useState<Record<string, string>>({});
+  const [birthDate, setBirthDate] = useState(athlete.birth_date || "");
   const [isDirty, setIsDirty] = useState(false);
   const [saving, setSaving] = useState(false);
+  
+  const age = calculateAge(birthDate);
 
   // Initialiser le formulaire avec les valeurs profil actuelles
   useEffect(() => {
@@ -75,8 +79,14 @@ export function AthleteRefsPanel({ athlete, snapshots, onUpdate, compact = false
       newForm[field.profileKey] = val != null ? String(val) : "";
     });
     setForm(newForm);
+    setBirthDate(athlete.birth_date || "");
     setIsDirty(false);
-  }, [athlete.refs]);
+  }, [athlete.refs, athlete.birth_date]);
+
+  const handleBirthDateChange = (value: string) => {
+    setBirthDate(value);
+    setIsDirty(true);
+  };
 
   const handleChange = (profileKey: string, value: string) => {
     setForm(prev => ({ ...prev, [profileKey]: value }));
@@ -101,9 +111,12 @@ export function AthleteRefsPanel({ athlete, snapshots, onUpdate, compact = false
         }
       });
 
-      const success = await updateAthlete(athlete.id, { refs: currentRefs as any });
+      const success = await updateAthlete(athlete.id, { 
+        refs: currentRefs as any,
+        birth_date: birthDate || null
+      });
       if (success) {
-        toast.success("Références mises à jour");
+        toast.success("Profil mis à jour");
         setIsDirty(false);
         onUpdate?.();
       }
@@ -225,13 +238,37 @@ export function AthleteRefsPanel({ athlete, snapshots, onUpdate, compact = false
       </CardHeader>
       
       <CardContent className="space-y-6">
-        {/* Anthropométrie */}
+        {/* Date de naissance + Anthropométrie */}
         <div>
           <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
             <User className="h-4 w-4" />
-            Anthropométrie
+            Profil
           </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Date de naissance */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1">
+                <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                <Label htmlFor="birthDate" className="text-sm font-medium">
+                  Date de naissance
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="birthDate"
+                  type="date"
+                  value={birthDate}
+                  onChange={(e) => handleBirthDateChange(e.target.value)}
+                  max={new Date().toISOString().split("T")[0]}
+                  className="flex-1 bg-secondary/50"
+                />
+                {age !== null && (
+                  <Badge variant="outline" className="whitespace-nowrap">
+                    {age} ans
+                  </Badge>
+                )}
+              </div>
+            </div>
             {ANTHROPO_FIELDS.map(renderField)}
           </div>
         </div>

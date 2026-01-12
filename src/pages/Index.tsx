@@ -131,6 +131,7 @@ const Index = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newAthleteName, setNewAthleteName] = useState("");
   const [newAthleteGoal, setNewAthleteGoal] = useState("IM");
+  const [newAthleteBirthDate, setNewAthleteBirthDate] = useState("");
 
   // Feedbacks (localStorage pour l'instant)
   const [feedbacksNolio, setFeedbacksNolio] = useState<FeedbackNolio[]>(() => {
@@ -370,9 +371,14 @@ const Index = () => {
     }
     const athlete = await addAthlete(newAthleteName.trim(), newAthleteGoal, {});
     if (athlete) {
+      // Si date de naissance fournie, mettre à jour l'athlète
+      if (newAthleteBirthDate) {
+        await updateAthlete(athlete.id, { birth_date: newAthleteBirthDate });
+      }
       setSelectedAthleteId(athlete.id);
       setNewAthleteName("");
       setNewAthleteGoal("IM");
+      setNewAthleteBirthDate("");
       setIsAddDialogOpen(false);
     }
   };
@@ -434,6 +440,19 @@ const Index = () => {
                       placeholder="Nom de l'athlète"
                       className="mt-1"
                     />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Date de naissance</label>
+                    <Input
+                      type="date"
+                      value={newAthleteBirthDate}
+                      onChange={(e) => setNewAthleteBirthDate(e.target.value)}
+                      max={new Date().toISOString().split("T")[0]}
+                      className="mt-1"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Utilisée pour ajuster les cibles physiologiques
+                    </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium">Objectif</label>
@@ -520,6 +539,18 @@ const Index = () => {
                         onChange={(e) => setNewAthleteName(e.target.value)}
                         placeholder="Nom de l'athlète"
                       />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Date de naissance</label>
+                      <Input
+                        type="date"
+                        value={newAthleteBirthDate}
+                        onChange={(e) => setNewAthleteBirthDate(e.target.value)}
+                        max={new Date().toISOString().split("T")[0]}
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Utilisée pour ajuster les cibles physiologiques
+                      </p>
                     </div>
                     <div>
                       <label className="text-sm font-medium">Objectif</label>
