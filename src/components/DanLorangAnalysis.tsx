@@ -61,7 +61,7 @@ export function DanLorangAnalysis({
   const snapshot = getDernierSnapshot(athlete) as any;
   const [inputs, setInputs] = useState<RaceReadinessInputs>({
     seance_specifique_validee: false,
-    fatigue_ok: true
+    fatigue_ok: false
   });
 
   // ✅ VLamax EFFECTIF - Utilise la prop si fournie, sinon fallback 0.45
