@@ -2,7 +2,7 @@
 // PAGE LOGIN/SIGNUP COACH
 // =============================================
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -16,15 +16,44 @@ import logo2fc from "@/assets/logo-2fc.png";
 
 const AuthPage = () => {
   const navigate = useNavigate();
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // Redirect if already logged in
+  // Redirection robuste (évite navigate() pendant le render)
+  useEffect(() => {
+    if (user) navigate("/", { replace: true });
+  }, [user, navigate]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          <span className="text-sm">Chargement…</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Si l'utilisateur est déjà connecté mais reste sur /auth (cache iOS / PWA), on affiche une sortie claire.
   if (user) {
-    navigate("/", { replace: true });
-    return null;
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+        <Card className="w-full max-w-md border-border/50 shadow-xl">
+          <CardHeader className="text-center">
+            <CardTitle>Vous êtes déjà connecté</CardTitle>
+            <CardDescription>Accédez au tableau de bord pour saisir la fatigue et consulter VLamax/TTE.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button className="w-full" onClick={() => navigate("/", { replace: true })}>
+              Aller au tableau de bord
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -41,7 +70,7 @@ const AuthPage = () => {
       toast.error("Email ou mot de passe incorrect");
     } else {
       toast.success("Connexion réussie !");
-      navigate("/");
+      navigate("/", { replace: true });
     }
   };
 
@@ -63,7 +92,7 @@ const AuthPage = () => {
       toast.error("Une erreur s'est produite. Veuillez réessayer.");
     } else {
       toast.success("Compte créé ! Vous êtes connecté.");
-      navigate("/");
+      navigate("/", { replace: true });
     }
   };
 
