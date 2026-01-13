@@ -52,10 +52,13 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
 
   // selected athlete id persisté localement
   const [selectedAthleteId, setSelectedAthleteIdState] = useState<string | null>(() => {
-    return localStorage.getItem(LS_SELECTED) || null;
+    const persisted = localStorage.getItem(LS_SELECTED);
+    console.log("[AthleteContext] Init selectedAthleteId from localStorage:", persisted);
+    return persisted || null;
   });
 
   const setSelectedAthleteId = (id: string | null) => {
+    console.log("[AthleteContext] setSelectedAthleteId:", id);
     setSelectedAthleteIdState(id);
     if (id) localStorage.setItem(LS_SELECTED, id);
     else localStorage.removeItem(LS_SELECTED);
@@ -93,21 +96,27 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (athletes.length === 0) return; // Attendre le chargement
     
+    // Toujours lire le localStorage directement pour éviter les problèmes de timing
     const persistedId = localStorage.getItem(LS_SELECTED);
-    const currentIdExists = selectedAthleteId && athletes.some((a) => a.id === selectedAthleteId);
+    console.log("[AthleteContext] useEffect - athletes loaded:", athletes.length, "persistedId:", persistedId, "current selectedId:", selectedAthleteId);
+    
     const persistedIdExists = persistedId && athletes.some((a) => a.id === persistedId);
     
-    // Si l'ID actuel existe toujours, ne rien faire
-    if (currentIdExists) return;
-    
-    // Si l'ID persisté existe mais pas dans le state, le restaurer
+    // Si l'ID persisté existe dans la liste des athlètes
     if (persistedIdExists && persistedId) {
-      setSelectedAthleteIdState(persistedId);
+      // Seulement mettre à jour si différent de l'état actuel
+      if (selectedAthleteId !== persistedId) {
+        console.log("[AthleteContext] Restoring persisted athlete:", persistedId);
+        setSelectedAthleteIdState(persistedId);
+      }
       return;
     }
     
-    // Sinon, sélectionner le premier athlète par défaut
-    setSelectedAthleteId(athletes[0].id);
+    // L'ID persisté n'existe pas/plus, sélectionner le premier par défaut
+    if (!selectedAthleteId || !athletes.some((a) => a.id === selectedAthleteId)) {
+      console.log("[AthleteContext] Selecting first athlete as default:", athletes[0].id);
+      setSelectedAthleteId(athletes[0].id);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [athletes]);
 
