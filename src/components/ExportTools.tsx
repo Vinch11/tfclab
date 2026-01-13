@@ -56,7 +56,7 @@ export interface ReportSections {
   indicateurs: boolean;     // Indicateurs Clés
   raceReadiness: boolean;   // Race Readiness
   ageAdjustment: boolean;   // Ajustement par l'Âge (AAI)
-  danLorang: boolean;       // Analyse Dan Lorang
+  twoForCoaching: boolean;  // Analyse Two For Coaching Lab™
   wahoo: boolean;           // Suggestions Wahoo SYSTM
   zones: boolean;           // Zones d'entraînement
   historique: boolean;      // Historique Snapshots
@@ -77,7 +77,7 @@ export const DEFAULT_REPORT_SECTIONS: ReportSections = {
   indicateurs: true,
   raceReadiness: true,
   ageAdjustment: true,
-  danLorang: true,
+  twoForCoaching: true,
   wahoo: true,
   zones: true,
   historique: true,
@@ -93,7 +93,7 @@ const SECTION_LABELS: Record<keyof ReportSections, string> = {
   indicateurs: "Indicateurs Clés",
   raceReadiness: "Race Readiness",
   ageAdjustment: "Ajustement Âge (AAI)",
-  danLorang: "Analyse Dan Lorang",
+  twoForCoaching: "Analyse Two For Coaching Lab™",
   wahoo: "Suggestions Wahoo",
   zones: "Zones d'entraînement",
   historique: "Historique Snapshots",
@@ -1525,11 +1525,21 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   ` : '';
 
   // =============================================
-  // E. ANALYSE DAN LORANG
+  // E. ANALYSE TWO FOR COACHING LAB™
   // =============================================
   const lorangHTML = `
-    <section id="lorang" class="section pagebreakAvoid">
-      <h2>D. Analyse Dan Lorang (version staff)</h2>
+    <section id="twoforcoaching" class="section pagebreakAvoid">
+      <h2>D. Analyse Two For Coaching Lab™</h2>
+      
+      <div class="alert alertInfo mb">
+        <b>ℹ️ À propos de cette analyse</b><br>
+        <span style="font-size:12px;">
+          TWO FOR COACHING LAB™ propose une lecture physiologique intégrée développée par Two For Coaching.
+          Cette analyse s'inspire des principes de la physiologie de l'endurance (travaux de Mader, Heck, et des approches issues de l'école allemande popularisées notamment par Dan Lorang), sans constituer une mesure directe ni un outil officiel de ces auteurs.<br><br>
+          Les valeurs présentées (ex : VLamax, TTE, Race Readiness) sont des <b>estimations modélisées</b> destinées à guider la décision du coach.
+          Elles doivent toujours être interprétées avec esprit critique, contexte terrain et confrontation à l'expérience pratique.
+        </span>
+      </div>
       
       <div class="card ${lorang.priorite ? 'cardHighlight' : ''}">
         <div class="grid2">
@@ -1537,6 +1547,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <h3>🎯 Priorité calculée</h3>
             <div style="font-size:20px;font-weight:700;margin:8px 0;">${lorang.prioriteLabel || "Aucune priorité majeure"}</div>
             <div class="muted">Basé sur VLamax ${fmt(vlamax.value, 2)}, TTE ${tte.tte_min}min, FTP/kg ${ftpKg ? fmt(ftpKg, 2) : "—"}</div>
+            <div class="muted mt" style="font-size:11px;">
+              <b>Sources :</b> VLamax ${vlamax.source === "estimated" ? "(estimée)" : "(mesurée)"} • TTE ${tte.source === "observed" ? "(mesuré)" : "(estimé)"}
+            </div>
           </div>
           <div>
             ${lorang.alertes.length > 0 ? `
@@ -1568,6 +1581,10 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               : '<tr><td colspan="3" class="muted">Séances de maintien recommandées</td></tr>'}
           </tbody>
         </table>
+      </div>
+      
+      <div class="alert alertWarning mt" style="font-size:11px;">
+        <b>⚠️ Outil d'aide à la décision</b> — Two For Coaching Lab™ ne remplace pas le jugement du coach ni un test physiologique complet. Ces recommandations sont indicatives.
       </div>
     </section>
   `;
@@ -2388,7 +2405,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         ${options.sections.indicateurs ? indicateursHTML : ''}
         ${options.sections.raceReadiness ? raceReadinessHTML : ''}
         ${options.sections.ageAdjustment ? aaiHTML : ''}
-        ${options.sections.danLorang ? lorangHTML : ''}
+        ${options.sections.twoForCoaching ? lorangHTML : ''}
         ${options.sections.zones ? zonesHTML : ''}
         ${options.sections.wahoo ? wahooHTML : ''}
         ${options.sections.historique ? snapshotsHTML : ''}
@@ -2610,7 +2627,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       indicateurs: false,
       raceReadiness: false,
       ageAdjustment: false,
-      danLorang: false,
+      twoForCoaching: false,
       wahoo: false,
       zones: false,
       historique: false,

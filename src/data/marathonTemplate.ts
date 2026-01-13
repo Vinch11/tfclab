@@ -1,5 +1,6 @@
 /**
- * Marathon 24 semaines - Template basé sur la méthodologie Dan Lorang
+ * Marathon 24 semaines - Template basé sur la méthodologie Two For Coaching Lab™
+ * S'inspire des principes de physiologie de l'endurance (Mader, Heck, école allemande)
  */
 import type { TemplateWeek } from "@/lib/templates/docxTemplateLoader";
 
