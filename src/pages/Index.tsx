@@ -853,7 +853,10 @@ const Index = () => {
                   onUpdate={() => {}} 
                   onSaveToCloud={async (data) => {
                     if (!currentAthlete) return;
-                    await updateAthlete(currentAthlete.id, data);
+                    await updateAthlete(currentAthlete.id, { 
+                      ...data,
+                      sex: data.sex 
+                    });
                   }}
                   onUpdateMasseGrasse={async (val) => {
                     if (!currentAthlete) return;
