@@ -101,7 +101,7 @@ export function TrainingZones() {
         </div>
         <div>
           <h2 className="text-xl font-semibold text-foreground">Zones d'Entraînement</h2>
-          <p className="text-sm text-muted-foreground">Modèle Dan Lorang - Optimisé VLamax</p>
+          <p className="text-sm text-muted-foreground">Modèle Two For Coaching Lab™ - Optimisé VLamax</p>
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 // =============================================
-// SNAPSHOT MANAGER - Gestion des snapshots Dan Lorang (Cloud)
+// SNAPSHOT MANAGER - Gestion des snapshots Two For Coaching Lab™ (Cloud)
 // + TTE PRO: LOAD (FTP+TSS7d) / OBSERVED (test)
 // + ÉCONOMIE CAP: allure/FC/dérive
 // =============================================

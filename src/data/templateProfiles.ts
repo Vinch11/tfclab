@@ -11,7 +11,7 @@ export type LongRunTolerance = "LOW" | "MEDIUM" | "HIGH";
 export type BikeDominance = "LOW" | "MEDIUM" | "HIGH" | "VERY_HIGH" | "EXTREME";
 export type RunAfterBikeTolerance = "LOW" | "MEDIUM" | "HIGH" | "VERY_HIGH";
 
-// CAP-specific types (Dan Lorang methodology)
+// CAP-specific types (Two For Coaching Lab™ methodology)
 export type EconomyPriority = "STANDARD" | "HIGH" | "VERY_HIGH" | "EXTREME";
 export type IntensityTolerance = "LOW" | "MEDIUM" | "HIGH" | "CONTROLLED";
 export type InjuryRiskSensitivity = "LOW" | "MEDIUM" | "HIGH" | "VERY_HIGH" | "EXTREME";
@@ -37,7 +37,7 @@ export interface TemplateProfile {
     risk_tolerance?: RiskTolerance;
     // Marathon-specific fields
     long_run_tolerance?: LongRunTolerance;
-    // CAP-specific fields (Dan Lorang methodology)
+    // CAP-specific fields (Two For Coaching Lab™ methodology)
     economy_priority?: EconomyPriority;
     intensity_tolerance?: IntensityTolerance;
     injury_risk_sensitivity?: InjuryRiskSensitivity;
@@ -54,7 +54,7 @@ export interface TemplateProfilePair {
   intermediaire: TemplateProfile;
 }
 
-// Semi-Marathon profiles (Dan Lorang methodology)
+// Semi-Marathon profiles (Two For Coaching Lab™ methodology)
 const SEMI_PERFORMANCE: TemplateProfile = {
   id: "semi-perf",
   name: "Performance Semi",
@@ -101,7 +101,7 @@ const SEMI_INTERMEDIAIRE: TemplateProfile = {
   },
 };
 
-// Marathon profiles (Dan Lorang methodology - CAP-dominant)
+// Marathon profiles (Two For Coaching Lab™ methodology - CAP-dominant)
 const MARATHON_PERFORMANCE: TemplateProfile = {
   id: "marathon-perf",
   name: "Performance Marathon",
@@ -150,7 +150,7 @@ const MARATHON_INTERMEDIAIRE: TemplateProfile = {
   },
 };
 
-// Marathon ELITE profile (Dan Lorang methodology)
+// Marathon ELITE profile (Two For Coaching Lab™ methodology)
 const MARATHON_ELITE: TemplateProfile = {
   id: "marathon-elite",
   name: "Elite Marathon",

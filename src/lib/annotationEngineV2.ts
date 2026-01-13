@@ -72,7 +72,7 @@ export interface SessionClassification {
   blocTotalMin: number;
   isBrick?: boolean;
   fatigueTransfer?: boolean;
-  // CAP-specific flags (Dan Lorang)
+  // CAP-specific flags (Two For Coaching Lab™)
   mechanicalStress?: boolean; // true for hills, intervals, high impact
   metabolicStress?: boolean; // true for tempo, specific pace
 }
@@ -121,7 +121,7 @@ const IM_THRESHOLDS = {
   taper_week_threshold: 22, // After week 22 = taper for 24-week plan
 };
 
-// ============= SEMI-MARATHON SPECIFIC THRESHOLDS (Dan Lorang) =============
+// ============= SEMI-MARATHON SPECIFIC THRESHOLDS (Two For Coaching Lab™) =============
 
 const SEMI_THRESHOLDS = {
   vlamax_warning: 0.70,
@@ -138,7 +138,7 @@ const SEMI_THRESHOLDS = {
   taper_week_threshold: 10, // For 12-week plan
 };
 
-// ============= MARATHON SPECIFIC THRESHOLDS (Dan Lorang) =============
+// ============= MARATHON SPECIFIC THRESHOLDS (Two For Coaching Lab™) =============
 
 const MARATHON_THRESHOLDS = {
   vlamax_warning: 0.60,
@@ -514,7 +514,7 @@ export function classifySession(session: TemplateSession): SessionClassification
   
   const blocTotal = estimateBlocDuration(details);
   
-  // Determine CAP-specific flags (Dan Lorang methodology)
+  // Determine CAP-specific flags (Two For Coaching Lab™ methodology)
   const mechanicalStressTypes: SessionClassification["intensityType"][] = [
     "HILLS_FORCE", "INTERVAL_SHORT", "INTERVAL_LONG", "VO2", "SPEED", "FORCE"
   ];
@@ -997,7 +997,7 @@ export function generateTemplateAnnotationsV2(params: AnnotationEngineV2Params):
     }
   }
   
-  // ============= SEMI-MARATHON SPECIFIC PLAN ANNOTATIONS (Dan Lorang) =============
+  // ============= SEMI-MARATHON SPECIFIC PLAN ANNOTATIONS (Two For Coaching Lab™) =============
   
   const isSemi = isSemiTemplate(templateId);
   
@@ -2384,7 +2384,7 @@ export function computeIMFullRiskSummary(
   };
 }
 
-// ============= CAP (SEMI/MARATHON) RISK SUMMARY HELPER (Dan Lorang) =============
+// ============= CAP (SEMI/MARATHON) RISK SUMMARY HELPER (Two For Coaching Lab™) =============
 
 export interface CAPRiskSummary {
   economyScore: "faible" | "moyen" | "élevé";

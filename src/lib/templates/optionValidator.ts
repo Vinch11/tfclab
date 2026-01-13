@@ -1,7 +1,7 @@
 /**
  * Option Validator - Sport-Contextualized Duration Options
  * 
- * Implements Dan Lorang methodology guard rails for duration options.
+ * Implements Two For Coaching Lab™ methodology guard rails for duration options.
  * Every option MUST be explicitly contextualized by sport.
  */
 

@@ -1,7 +1,7 @@
 // =============================================
 // BIBLIOTHÈQUE DES SÉANCES D'ENTRAÎNEMENT
 // Multi-sport: Vélo / Course / Natation
-// Basée sur la méthodologie Dan Lorang
+// Basée sur la méthodologie Two For Coaching Lab™
 // =============================================
 
 import { SportType } from "@/types/snapshotNolio";
