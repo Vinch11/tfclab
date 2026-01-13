@@ -88,18 +88,26 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
     return athletes[0] || null;
   }, [athletes, selectedAthleteId]);
 
-  // Seulement si aucun athlète sélectionné ET aucun ID persisté en localStorage
+  // Synchroniser le selectedAthleteId avec les athlètes disponibles
+  // Ne changer la sélection que si l'athlète persisté n'existe plus dans la liste
   useEffect(() => {
-    const persistedId = localStorage.getItem(LS_SELECTED);
-    const persistedExists = persistedId && athletes.some((a) => a.id === persistedId);
+    if (athletes.length === 0) return; // Attendre le chargement
     
-    // Ne sélectionner le premier que si vraiment rien de persisté ou l'athlète persisté n'existe plus
-    if (!persistedExists && athletes.length > 0 && !selectedAthleteId) {
-      setSelectedAthleteId(athletes[0].id);
-    } else if (persistedExists && !selectedAthleteId) {
-      // Restaurer l'athlète persisté si le state n'est pas encore à jour
+    const persistedId = localStorage.getItem(LS_SELECTED);
+    const currentIdExists = selectedAthleteId && athletes.some((a) => a.id === selectedAthleteId);
+    const persistedIdExists = persistedId && athletes.some((a) => a.id === persistedId);
+    
+    // Si l'ID actuel existe toujours, ne rien faire
+    if (currentIdExists) return;
+    
+    // Si l'ID persisté existe mais pas dans le state, le restaurer
+    if (persistedIdExists && persistedId) {
       setSelectedAthleteIdState(persistedId);
+      return;
     }
+    
+    // Sinon, sélectionner le premier athlète par défaut
+    setSelectedAthleteId(athletes[0].id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [athletes]);
 
