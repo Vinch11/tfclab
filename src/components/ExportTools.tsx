@@ -17,7 +17,7 @@ import { computeTTEEffectif, type TTEEffectif } from "@/lib/tteEffectif";
 import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getTargets, getRaceWeights } from "@/lib/raceReadinessEffectif";
 import { ZonesConfig, computeAbsoluteRange, AthleteRefsForZones } from "@/lib/zonesConfig";
 import { TRAINING_ZONES, computeZoneAbsoluteValues, ZONES_METHODOLOGY_NOTE, type AthleteZoneRefs } from "@/lib/trainingZonesDefinition";
-import { reglesDanLorang, getPrioriteLabel, getSeancesRecommandees, PrioriteType } from "@/types/reglesDanLorang";
+import { reglesTwoForCoaching, getPrioriteLabel, getSeancesRecommandees, PrioriteType } from "@/types/reglesTwoForCoaching";
 import { SEANCES } from "@/types/seances";
 import { computeNutritionEstimate, type NutritionEstimate } from "@/lib/nutritionPredictive";
 import { computeCAPInjuryRisk, getCAPRiskIcon } from "@/lib/capInjuryRisk";
@@ -381,7 +381,7 @@ function buildExportPayload(
     ? effectiveRefs.ftp / effectiveRefs.weightKg
     : 4.0;
   
-  const lorangResult = reglesDanLorang(
+  const analysisResult = reglesTwoForCoaching(
     { objectif: athlete.goal || "IM", masse_grasse: 15 } as any,
     vlamax.value ?? 0.45,
     tte.tte_min ?? 45,
@@ -390,7 +390,7 @@ function buildExportPayload(
     true
   );
 
-  const seancesCodes = getSeancesRecommandees(lorangResult.priorite);
+  const seancesCodes = getSeancesRecommandees(analysisResult.priorite);
   const seancesDetails = seancesCodes.map(code => {
     const seance = SEANCES[code];
     return {
@@ -495,10 +495,10 @@ function buildExportPayload(
     tte,
     raceReadiness,
     lorang: {
-      priorite: lorangResult.priorite,
-      prioriteLabel: getPrioriteLabel(lorangResult.priorite),
-      alertes: lorangResult.alertes,
-      recommandations: getRecommandationsPriorite(lorangResult.priorite),
+      priorite: analysisResult.priorite,
+      prioriteLabel: getPrioriteLabel(analysisResult.priorite),
+      alertes: analysisResult.alertes,
+      recommandations: getRecommandationsPriorite(analysisResult.priorite),
       seancesCodes,
       seancesDetails
     },

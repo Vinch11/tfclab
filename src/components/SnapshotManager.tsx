@@ -18,7 +18,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Calendar, Pin, HelpCircle } from "lucide-react";
 import { LabImportDialog } from "@/components/LabImportDialog";
 import { DbSnapshot, useCloudData } from "@/hooks/useCloudData";
-import { deriveMetabolicProfile, generateLorangInsights, calculateDelta, formatValue } from "@/types/snapshot";
+import { deriveMetabolicProfile, generateTwoForCoachingInsights, calculateDelta, formatValue } from "@/types/snapshot";
 import { computeTTEEffectif, getSourceLabel, formatTTEDisplay } from "@/lib/tteEffectif";
 import { 
   parsePaceToSec, 
@@ -740,7 +740,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       objectif: athleteGoal,
     });
 
-    const insights = generateLorangInsights(
+    const insights = generateTwoForCoachingInsights(
       {
         id: s.id,
         athlete_id: s.athlete_id,
@@ -951,7 +951,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       { label: "Confiance", a: A.confidence, b: B.confidence },
     ];
 
-    const insightsB = generateLorangInsights(
+    const insightsB = generateTwoForCoachingInsights(
       {
         id: B.id,
         athlete_id: B.athlete_id,

@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Target, AlertTriangle, CheckCircle2, TrendingDown, TrendingUp, Timer, Zap, Trophy, Info, HelpCircle, Apple, Flame, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Athlete, getDernierSnapshot } from "@/types/athlete";
-import { reglesDanLorang, ReglesDanLorangResult, RaceReadinessInputs, getPrioriteLabel, getPrioriteColor, getSeancesRecommandees, getSeancesSpecifiques, PrioriteType } from "@/types/reglesDanLorang";
+import { reglesTwoForCoaching, ReglesTwoForCoachingResult, RaceReadinessInputs, getPrioriteLabel, getPrioriteColor, getSeancesRecommandees, getSeancesSpecifiques, PrioriteType } from "@/types/reglesTwoForCoaching";
 import { SEANCES } from "@/types/seances";
 import {
   Popover,
@@ -92,13 +92,13 @@ export function TwoForCoachingAnalysis({
     if (!snapshot?.ftp || !snapshot?.poids) return 4.0;
     return snapshot.ftp / snapshot.poids;
   }, [snapshot]);
-  const [analysis, setAnalysis] = useState<ReglesDanLorangResult>({
+  const [analysis, setAnalysis] = useState<ReglesTwoForCoachingResult>({
     priorite: "",
     alertes: [],
     race_ready: false
   });
   useEffect(() => {
-    const result = reglesDanLorang(athlete, vlamax, tte, ftp_kg, inputs.seance_specifique_validee, inputs.fatigue_ok);
+    const result = reglesTwoForCoaching(athlete, vlamax, tte, ftp_kg, inputs.seance_specifique_validee, inputs.fatigue_ok);
     setAnalysis(result);
   }, [athlete, vlamax, tte, ftp_kg, inputs]);
 
