@@ -60,6 +60,7 @@ export type Database = {
           id: string
           name: string
           refs: Json | null
+          sex: string | null
           vo2max: number | null
         }
         Insert: {
@@ -71,6 +72,7 @@ export type Database = {
           id?: string
           name: string
           refs?: Json | null
+          sex?: string | null
           vo2max?: number | null
         }
         Update: {
@@ -82,6 +84,7 @@ export type Database = {
           id?: string
           name?: string
           refs?: Json | null
+          sex?: string | null
           vo2max?: number | null
         }
         Relationships: [

@@ -14,7 +14,7 @@ interface AthleteProfileProps {
   athlete: Athlete;
   onUpdate: (athlete: Athlete) => void;
   // ✅ Callback pour sauvegarde cloud des données athlète
-  onSaveToCloud?: (data: { name?: string; goal?: string }) => Promise<void>;
+  onSaveToCloud?: (data: { name?: string; goal?: string; sex?: string }) => Promise<void>;
   // ✅ Callback pour sauvegarde cloud de la masse grasse
   onUpdateMasseGrasse?: (masseGrasse: number | null) => Promise<void>;
   // ✅ fat_pct du dernier snapshot cloud (lecture seule)
@@ -50,6 +50,7 @@ export function AthleteProfile({ athlete, onUpdate, onSaveToCloud, onUpdateMasse
         await onSaveToCloud({
           name: formData.nom,
           goal: formData.objectif,
+          sex: formData.sexe,
         });
       }
       
