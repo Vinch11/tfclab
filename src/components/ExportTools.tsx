@@ -49,9 +49,59 @@ interface ExportToolsProps {
   staffMode?: boolean;
 }
 
+// Sections disponibles dans le rapport
+export interface ReportSections {
+  synthese: boolean;        // Synthèse Exécutive
+  compass: boolean;         // Metabolic Performance Compass
+  indicateurs: boolean;     // Indicateurs Clés
+  raceReadiness: boolean;   // Race Readiness
+  ageAdjustment: boolean;   // Ajustement par l'Âge (AAI)
+  danLorang: boolean;       // Analyse Dan Lorang
+  wahoo: boolean;           // Suggestions Wahoo SYSTM
+  zones: boolean;           // Zones d'entraînement
+  historique: boolean;      // Historique Snapshots
+  tests: boolean;           // Historique Tests
+  checkins: boolean;        // Check-ins
+  comprendre: boolean;      // Comprendre mes scores
+  qualite: boolean;         // Qualité des données
+}
+
 interface ExportOptions {
   includeWahooSuggestions: boolean;
+  sections: ReportSections;
 }
+
+export const DEFAULT_REPORT_SECTIONS: ReportSections = {
+  synthese: true,
+  compass: true,
+  indicateurs: true,
+  raceReadiness: true,
+  ageAdjustment: true,
+  danLorang: true,
+  wahoo: true,
+  zones: true,
+  historique: true,
+  tests: true,
+  checkins: true,
+  comprendre: true,
+  qualite: true,
+};
+
+const SECTION_LABELS: Record<keyof ReportSections, string> = {
+  synthese: "Synthèse Exécutive",
+  compass: "Metabolic Compass™",
+  indicateurs: "Indicateurs Clés",
+  raceReadiness: "Race Readiness",
+  ageAdjustment: "Ajustement Âge (AAI)",
+  danLorang: "Analyse Dan Lorang",
+  wahoo: "Suggestions Wahoo",
+  zones: "Zones d'entraînement",
+  historique: "Historique Snapshots",
+  tests: "Historique Tests",
+  checkins: "Check-ins",
+  comprendre: "Comprendre mes scores",
+  qualite: "Qualité des données",
+};
 
 // Payload normalisé pour toutes les sections du rapport
 interface ExportPayload {
@@ -522,7 +572,7 @@ async function imageToBase64(url: string): Promise<string> {
 // et explicitement non dogmatique
 // =============================================
 
-function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, options: ExportOptions = { includeWahooSuggestions: true }): string {
+function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, options: ExportOptions = { includeWahooSuggestions: true, sections: DEFAULT_REPORT_SECTIONS }): string {
   const { 
     athlete, effectiveSnapshot, effectiveRefs, 
     vlamax, tte, raceReadiness, lorang,
@@ -2333,16 +2383,19 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         ${buildChartePageHTML()}
         
         ${positionnementHTML}
-        ${executifHTML}
-        ${compassHTML}
-        ${indicateursHTML}
-        ${raceReadinessHTML}
-        ${aaiHTML}
-        ${lorangHTML}
-        ${zonesHTML}
-        ${wahooHTML}
-        ${snapshotsHTML}
-        ${testsHTML}
+        ${options.sections.synthese ? executifHTML : ''}
+        ${options.sections.compass ? compassHTML : ''}
+        ${options.sections.indicateurs ? indicateursHTML : ''}
+        ${options.sections.raceReadiness ? raceReadinessHTML : ''}
+        ${options.sections.ageAdjustment ? aaiHTML : ''}
+        ${options.sections.danLorang ? lorangHTML : ''}
+        ${options.sections.zones ? zonesHTML : ''}
+        ${options.sections.wahoo ? wahooHTML : ''}
+        ${options.sections.historique ? snapshotsHTML : ''}
+        ${options.sections.tests ? testsHTML : ''}
+        ${options.sections.checkins ? checkinsHTML : ''}
+        ${options.sections.comprendre ? comprendreHTML : ''}
+        ${options.sections.qualite ? qualiteHTML : ''}
         
         <!-- CONCLUSION & POSITIONNEMENT FINAL -->
         <section id="conclusion" class="section pagebreakAvoid">
@@ -2465,14 +2518,23 @@ function buildCSV(payload: ExportPayload): string {
 // =============================================
 
 export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMode = false }: ExportToolsProps) {
-  const [includeWahoo, setIncludeWahoo] = useState<boolean>(() => {
-    const stored = localStorage.getItem("vlab-export-include-wahoo");
-    return stored !== null ? stored === "true" : true;
+  // Charger les sections depuis le localStorage
+  const [sections, setSections] = useState<ReportSections>(() => {
+    const stored = localStorage.getItem("vlab-export-sections");
+    if (stored) {
+      try {
+        return { ...DEFAULT_REPORT_SECTIONS, ...JSON.parse(stored) };
+      } catch {
+        return DEFAULT_REPORT_SECTIONS;
+      }
+    }
+    return DEFAULT_REPORT_SECTIONS;
   });
   
+  // Persister les sections
   useEffect(() => {
-    localStorage.setItem("vlab-export-include-wahoo", String(includeWahoo));
-  }, [includeWahoo]);
+    localStorage.setItem("vlab-export-sections", JSON.stringify(sections));
+  }, [sections]);
   
   const payload = buildExportPayload(athlete, snapshots, tests, checkins);
   const exportCheck = canExport(payload);
@@ -2507,7 +2569,8 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
     const logoBase64 = await imageToBase64(logoUrl);
     
     const exportOptions: ExportOptions = {
-      includeWahooSuggestions: includeWahoo
+      includeWahooSuggestions: sections.wahoo,
+      sections
     };
     
     const html = buildStaffGradeReportHTML(payload, logoBase64, exportOptions);
@@ -2531,6 +2594,36 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       description: "Ouvrez le fichier HTML et utilisez Imprimer > Enregistrer en PDF."
     });
   };
+
+  const toggleSection = (key: keyof ReportSections) => {
+    setSections(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const selectAll = () => {
+    setSections(DEFAULT_REPORT_SECTIONS);
+  };
+
+  const deselectAll = () => {
+    const allFalse: ReportSections = {
+      synthese: false,
+      compass: false,
+      indicateurs: false,
+      raceReadiness: false,
+      ageAdjustment: false,
+      danLorang: false,
+      wahoo: false,
+      zones: false,
+      historique: false,
+      tests: false,
+      checkins: false,
+      comprendre: false,
+      qualite: false,
+    };
+    setSections(allFalse);
+  };
+
+  const selectedCount = Object.values(sections).filter(Boolean).length;
+  const totalCount = Object.keys(sections).length;
 
   if (!exportCheck.ok) {
     return (
@@ -2568,21 +2661,42 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
             <Settings2 className="h-4 w-4" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-64" align="end">
-          <div className="space-y-3">
-            <p className="text-sm font-medium">Options d'export PDF</p>
+        <PopoverContent className="w-80" align="end">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label htmlFor="include-wahoo" className="text-sm cursor-pointer">
-                Suggestions Wahoo
-              </Label>
-              <Switch
-                id="include-wahoo"
-                checked={includeWahoo}
-                onCheckedChange={setIncludeWahoo}
-              />
+              <p className="text-sm font-medium">Rubriques du rapport</p>
+              <span className="text-xs text-muted-foreground">{selectedCount}/{totalCount}</span>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Inclure les recommandations de séances Wahoo SYSTM dans le rapport PDF.
+            
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={selectAll} className="text-xs h-7">
+                Tout sélectionner
+              </Button>
+              <Button variant="outline" size="sm" onClick={deselectAll} className="text-xs h-7">
+                Tout désélectionner
+              </Button>
+            </div>
+            
+            <div className="max-h-64 overflow-y-auto space-y-2 pr-2">
+              {(Object.keys(SECTION_LABELS) as Array<keyof ReportSections>).map((key) => (
+                <div key={key} className="flex items-center justify-between py-1">
+                  <Label 
+                    htmlFor={`section-${key}`} 
+                    className="text-sm cursor-pointer flex-1"
+                  >
+                    {SECTION_LABELS[key]}
+                  </Label>
+                  <Switch
+                    id={`section-${key}`}
+                    checked={sections[key]}
+                    onCheckedChange={() => toggleSection(key)}
+                  />
+                </div>
+              ))}
+            </div>
+            
+            <p className="text-xs text-muted-foreground border-t pt-2">
+              Sélectionnez les sections à inclure dans le rapport PDF exporté.
             </p>
           </div>
         </PopoverContent>
