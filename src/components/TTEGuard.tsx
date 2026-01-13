@@ -97,7 +97,7 @@ export function TTEGuard({ tteEffectif, athleteName, onGoToSnapshots, compact = 
           </summary>
           <p className="mt-1 pl-4">
             Le TTE (Time To Exhaustion) mesure la capacité à tenir le seuil (FTP). 
-            Il influence directement le score Race Readiness et l'analyse Dan Lorang.
+            Il influence directement le score Race Readiness et l'analyse Two For Coaching Lab™.
           </p>
         </details>
       </CardContent>

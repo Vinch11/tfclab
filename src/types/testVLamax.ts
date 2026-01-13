@@ -76,7 +76,7 @@ export const testsVLamaxDisponibles: TestProtocoleVLamax[] = [
     id: "sprint-ftp-velo",
     nom: "Sprint + FTP Vélo",
     sport: "vélo",
-    protocole: "5 secondes de sprint maximal suivi d'une évaluation FTP. Calcul VLamax = puissance sprint / FTP selon Dan Lorang.",
+    protocole: "5 secondes de sprint maximal suivi d'une évaluation FTP. Calcul VLamax = puissance sprint / FTP selon Two For Coaching Lab™.",
     duree: "45 min",
     difficulte: "Difficile",
     champsRequis: ["puissance5s", "ftp"],

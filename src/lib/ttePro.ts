@@ -21,7 +21,7 @@ export interface TTEResult {
 
 /**
  * Estimate TTE from weekly training load (TSS 7d)
- * Based on Dan Lorang methodology:
+ * Based on Two For Coaching Lab™ methodology:
  * - Higher chronic load → better endurance → higher TTE
  * - Baseline ~40min, scales with load
  */

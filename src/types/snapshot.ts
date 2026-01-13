@@ -1,5 +1,5 @@
 // =============================================
-// SNAPSHOT - Analyse Dan Lorang
+// SNAPSHOT - Analyse Two For Coaching Lab™
 // =============================================
 
 export interface Snapshot {
@@ -60,8 +60,8 @@ export function deriveMetabolicProfile(vlamax: number | null, vo2max: number | n
   return { profile, score: Math.round(score) };
 }
 
-// Génère des insights Dan Lorang basés sur le snapshot et l'objectif
-export function generateLorangInsights(
+// Génère des insights Two For Coaching Lab™ basés sur le snapshot et l'objectif
+export function generateTwoForCoachingInsights(
   snapshot: Snapshot,
   goal: string
 ): string[] {
@@ -141,6 +141,9 @@ export function generateLorangInsights(
   
   return insights;
 }
+
+/** @deprecated Use generateTwoForCoachingInsights instead */
+export const generateLorangInsights = generateTwoForCoachingInsights;
 
 // Calcule le delta entre deux valeurs
 export function calculateDelta(a: number | null | undefined, b: number | null | undefined): string {

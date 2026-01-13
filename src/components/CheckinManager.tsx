@@ -1,5 +1,5 @@
 // =============================================
-// CHECKIN MANAGER - Suivi hebdomadaire Dan Lorang
+// CHECKIN MANAGER - Suivi hebdomadaire Two For Coaching Lab™
 // =============================================
 
 import { useState } from "react";
@@ -424,7 +424,7 @@ export function CheckinManager({ athleteId, athleteName }: CheckinManagerProps) 
           </Dialog>
         </div>
         <p className="text-sm text-muted-foreground">
-          Suivi hebdomadaire : sommeil, fatigue, douleurs, stress, motivation. Base de la méthode Dan Lorang.
+          Suivi hebdomadaire : sommeil, fatigue, douleurs, stress, motivation. Base de la méthode Two For Coaching Lab™.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">

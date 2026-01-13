@@ -337,7 +337,7 @@ export function MethodologyStaff({ onGoToTab }: MethodologyStaffProps) {
           <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
             <p className="text-sm text-muted-foreground">
               <strong className="text-foreground">📊 Méthode PRO</strong> : Lorsque le mode TTE Pro est activé, 
-              le calcul intègre le modèle de Dan Lorang pour une estimation plus précise basée sur VLamax et VO2max.
+              le calcul intègre le modèle Two For Coaching Lab™ pour une estimation plus précise basée sur VLamax et VO2max.
             </p>
           </div>
         </CardContent>
