@@ -24,14 +24,14 @@ export interface RaceReadinessInputs {
  * S'inspire des travaux de Mader, Heck et des approches de l'école allemande
  * Étendu pour Marathon/Semi
  */
-export function reglesDanLorang(
+export function reglesTwoForCoaching(
   athlete: Athlete,
   vlamax: number,
   tte: number,
   ftp_kg: number,
   seance_specifique_validee: boolean,
   fatigue_ok: boolean
-): ReglesDanLorangResult {
+): ReglesTwoForCoachingResult {
   let priorite: PrioriteType = "";
   const alertes: string[] = [];
 
@@ -114,6 +114,9 @@ export function reglesDanLorang(
     race_ready,
   };
 }
+
+/** @deprecated Use reglesTwoForCoaching instead */
+export const reglesDanLorang = reglesTwoForCoaching;
 
 // Helpers pour objectifs
 function getFtpTarget(objectif: ObjectifType): number {

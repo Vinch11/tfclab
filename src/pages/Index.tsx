@@ -8,7 +8,7 @@ import { RaceChecklist } from "@/components/RaceChecklist";
 import { NolioMapping } from "@/components/NolioMapping";
 import { AthleteProfile } from "@/components/AthleteProfile";
 import { FeedbackNolioManager } from "@/components/FeedbackNolioManager";
-import { DanLorangAnalysis } from "@/components/DanLorangAnalysis";
+import { TwoForCoachingAnalysis } from "@/components/TwoForCoachingAnalysis";
 import { TestComparison } from "@/components/TestComparison";
 import { RaceReadinessCard } from "@/components/RaceReadinessCard";
 import { PhysiologicalAnalysis } from "@/components/PhysiologicalAnalysis";
@@ -885,7 +885,7 @@ const Index = () => {
           {
             id: "two-for-coaching",
             render: () => (
-              <DanLorangAnalysis 
+              <TwoForCoachingAnalysis 
                 athlete={legacyAthlete} 
                 vlamaxEffectif={vlamaxEffectif} 
                 tteEffectif={tteEffectif} 

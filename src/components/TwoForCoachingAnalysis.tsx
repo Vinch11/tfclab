@@ -19,7 +19,7 @@ import { computeNutritionEstimate } from "@/lib/nutritionPredictive";
 import { computeNutritionTiming, type DigestiveTolerance, getRiskBadgeIcon } from "@/lib/nutritionTiming";
 import { computeEnergyDrift, type EnergyDriftResult } from "@/lib/energyDrift";
 
-interface DanLorangAnalysisProps {
+interface TwoForCoachingAnalysisProps {
   athlete: Athlete;
   vlamaxEffectif?: VLamaxEffectif;
   tteEffectif?: TTEEffectif;
@@ -51,13 +51,13 @@ const getRecommandationsPriorite = (priorite: PrioriteType): string[] => {
       return ["Maintenir l'équilibre actuel", "Affûtage pré-compétition", "Récupération et fraîcheur"];
   }
 };
-export function DanLorangAnalysis({
+export function TwoForCoachingAnalysis({
   athlete,
   vlamaxEffectif: vlamaxEffectifProp,
   tteEffectif: tteEffectifProp,
   readiness: readinessProp,
   onGoToSnapshots
-}: DanLorangAnalysisProps) {
+}: TwoForCoachingAnalysisProps) {
   const snapshot = getDernierSnapshot(athlete) as any;
   const [inputs, setInputs] = useState<RaceReadinessInputs>({
     seance_specifique_validee: false,

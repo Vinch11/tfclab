@@ -888,7 +888,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
               <AccordionTrigger className="py-2 text-sm">
                 <span className="flex items-center gap-2">
                   <Brain className="h-4 w-4" />
-                  Lecture Dan Lorang
+                  Lecture Two For Coaching Lab™
                 </span>
               </AccordionTrigger>
               <AccordionContent>
@@ -997,7 +997,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         <div>
           <h4 className="font-medium mb-2 flex items-center gap-2">
             <Brain className="h-4 w-4" />
-            Lecture Dan Lorang (sur B)
+            Lecture Two For Coaching Lab™ (sur B)
           </h4>
           <ul className="space-y-1 text-sm">
             {insightsB.map((insight, i) => (
@@ -1100,7 +1100,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         </div>
 
         <p className="text-sm text-muted-foreground">
-          Un snapshot = une photo du profil physiologique à un moment clé. Base de l'analyse Dan Lorang.
+          Un snapshot = une photo du profil physiologique à un moment clé. Base de l'analyse Two For Coaching Lab™.
         </p>
       </CardHeader>
 
