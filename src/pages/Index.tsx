@@ -129,7 +129,14 @@ const Index = () => {
     localStorage.setItem("vlab-staff-mode", staffMode.toString());
   }, [staffMode]);
 
-  const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
+  const LS_SELECTED_ATHLETE = "vlab-selected-athlete";
+
+  const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(() => {
+    // Compat: ancienne clé utilisée ailleurs (contexte)
+    const saved =
+      localStorage.getItem(LS_SELECTED_ATHLETE) || localStorage.getItem("vinceslab-selected-athlete");
+    return saved || null;
+  });
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newAthleteName, setNewAthleteName] = useState("");
   const [newAthleteGoal, setNewAthleteGoal] = useState("IM");
@@ -148,13 +155,30 @@ const Index = () => {
     return [];
   });
 
+  // Persister l'athlète sélectionné
+  useEffect(() => {
+    if (selectedAthleteId) localStorage.setItem(LS_SELECTED_ATHLETE, selectedAthleteId);
+    else localStorage.removeItem(LS_SELECTED_ATHLETE);
+  }, [selectedAthleteId]);
+
   // ============================================
-  // ✅ FIX 3A — ne jamais setState dans le render
+  // ✅ Sélection initiale : restaurer depuis localStorage, sinon fallback sur le 1er athlète
   // ============================================
   useEffect(() => {
-    if (!loading && athletes.length > 0 && !selectedAthleteId) {
-      setSelectedAthleteId(athletes[0].id);
+    if (loading || athletes.length === 0) return;
+
+    const saved =
+      localStorage.getItem(LS_SELECTED_ATHLETE) || localStorage.getItem("vinceslab-selected-athlete");
+    const savedExists = !!saved && athletes.some((a) => a.id === saved);
+    const currentExists = !!selectedAthleteId && athletes.some((a) => a.id === selectedAthleteId);
+
+    if (currentExists) return;
+    if (savedExists && saved) {
+      setSelectedAthleteId(saved);
+      return;
     }
+
+    setSelectedAthleteId(athletes[0].id);
   }, [loading, athletes, selectedAthleteId]);
 
   const currentAthlete = useMemo(
