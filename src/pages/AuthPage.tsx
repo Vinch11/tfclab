@@ -12,6 +12,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Loader2, Dumbbell } from "lucide-react";
+import PasswordStrengthIndicator from "@/components/PasswordStrengthIndicator";
+import { validatePassword } from "@/lib/passwordValidation";
 import logo2fc from "@/assets/logo-2fc.png";
 
 const AuthPage = () => {
@@ -80,10 +82,14 @@ const AuthPage = () => {
       toast.error("Veuillez remplir tous les champs");
       return;
     }
-    if (password.length < 8) {
-      toast.error("Le mot de passe doit contenir au moins 8 caractères");
+    
+    // Validation robuste du mot de passe
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      toast.error(`Mot de passe invalide: ${passwordValidation.errors[0]}`);
       return;
     }
+    
     setLoading(true);
     const { error } = await signUp(email, password);
     setLoading(false);
@@ -191,14 +197,19 @@ const AuthPage = () => {
                     <Input
                       id="signup-password"
                       type="password"
-                      placeholder="Min. 8 caractères"
+                      placeholder="Min. 8 caractères, majuscule, chiffre, spécial"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       disabled={loading}
                       className="h-11 sm:h-10"
                     />
+                    <PasswordStrengthIndicator password={password} />
                   </div>
-                  <Button type="submit" className="w-full h-11 sm:h-10 touch-target" disabled={loading}>
+                  <Button 
+                    type="submit" 
+                    className="w-full h-11 sm:h-10 touch-target" 
+                    disabled={loading || !validatePassword(password).isValid}
+                  >
                     {loading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
