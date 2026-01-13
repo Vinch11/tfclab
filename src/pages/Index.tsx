@@ -851,6 +851,10 @@ const Index = () => {
                 <AthleteProfile 
                   athlete={legacyAthlete} 
                   onUpdate={() => {}} 
+                  onSaveToCloud={async (data) => {
+                    if (!currentAthlete) return;
+                    await updateAthlete(currentAthlete.id, data);
+                  }}
                   onUpdateMasseGrasse={async (val) => {
                     if (!currentAthlete) return;
                     const existingRefs = (currentAthlete.refs as Record<string, unknown>) || {};

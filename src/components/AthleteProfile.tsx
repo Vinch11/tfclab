@@ -1,20 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Save, Target, Scale, Activity, Percent, Camera, Info } from "lucide-react";
+import { User, Save, Target, Scale, Activity, Percent, Camera, Info, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Athlete, ObjectifType, SexeType, getObjectifLabel, getDernierSnapshot } from "@/types/athlete";
 import { SnapshotNolio, scoreConfiance, estimerTTE } from "@/types/snapshotNolio";
 import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { TTEEffectif } from "@/lib/tteEffectif";
+import { toast } from "sonner";
 
 interface AthleteProfileProps {
   athlete: Athlete;
   onUpdate: (athlete: Athlete) => void;
-  // ✅ FIX 6: Callback pour sauvegarde cloud de la masse grasse
+  // ✅ Callback pour sauvegarde cloud des données athlète
+  onSaveToCloud?: (data: { name?: string; goal?: string }) => Promise<void>;
+  // ✅ Callback pour sauvegarde cloud de la masse grasse
   onUpdateMasseGrasse?: (masseGrasse: number | null) => Promise<void>;
-  // ✅ FIX 6: fat_pct du dernier snapshot cloud (lecture seule)
+  // ✅ fat_pct du dernier snapshot cloud (lecture seule)
   snapshotFatPct?: number | null;
   // ✅ Callback pour ouvrir le SnapshotManager Cloud
   onOpenSnapshots?: () => void;
@@ -23,10 +26,15 @@ interface AthleteProfileProps {
   tteEffectif?: TTEEffectif;
 }
 
-export function AthleteProfile({ athlete, onUpdate, onUpdateMasseGrasse, snapshotFatPct, onOpenSnapshots, vlamaxEffectif, tteEffectif }: AthleteProfileProps) {
+export function AthleteProfile({ athlete, onUpdate, onSaveToCloud, onUpdateMasseGrasse, snapshotFatPct, onOpenSnapshots, vlamaxEffectif, tteEffectif }: AthleteProfileProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Athlete>(athlete);
-  const [isSavingMasseGrasse, setIsSavingMasseGrasse] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Synchroniser formData avec athlete quand il change
+  useEffect(() => {
+    setFormData(athlete);
+  }, [athlete]);
 
   const snapshot = getDernierSnapshot(athlete);
   // ✅ Utiliser VLamax/TTE effectifs en priorité, sinon calcul legacy
@@ -35,17 +43,33 @@ export function AthleteProfile({ athlete, onUpdate, onUpdateMasseGrasse, snapsho
   const confiance = vlamaxEffectif?.confidence ?? (snapshot ? scoreConfiance(snapshot) / 100 : 0);
 
   const handleSave = async () => {
-    // ✅ FIX 6: Sauvegarder masse grasse dans le cloud
-    if (onUpdateMasseGrasse) {
-      setIsSavingMasseGrasse(true);
-      const valueToSave = formData.masse_grasse !== undefined && formData.masse_grasse !== 0 
-        ? formData.masse_grasse 
-        : null;
-      await onUpdateMasseGrasse(valueToSave);
-      setIsSavingMasseGrasse(false);
+    setIsSaving(true);
+    try {
+      // ✅ Sauvegarder dans le cloud
+      if (onSaveToCloud) {
+        await onSaveToCloud({
+          name: formData.nom,
+          goal: formData.objectif,
+        });
+      }
+      
+      // ✅ Sauvegarder masse grasse dans le cloud
+      if (onUpdateMasseGrasse) {
+        const valueToSave = formData.masse_grasse !== undefined && formData.masse_grasse !== 0 
+          ? formData.masse_grasse 
+          : null;
+        await onUpdateMasseGrasse(valueToSave);
+      }
+      
+      onUpdate({ ...formData, updatedAt: new Date().toISOString() });
+      setIsEditing(false);
+      toast.success("Profil enregistré");
+    } catch (error) {
+      console.error("Erreur sauvegarde profil:", error);
+      toast.error("Erreur lors de l'enregistrement");
+    } finally {
+      setIsSaving(false);
     }
-    onUpdate({ ...formData, updatedAt: new Date().toISOString() });
-    setIsEditing(false);
   };
 
   const handleInputChange = (field: keyof Athlete, value: string | number) => {
@@ -76,11 +100,17 @@ export function AthleteProfile({ athlete, onUpdate, onUpdateMasseGrasse, snapsho
             variant={isEditing ? "glow" : "outline"}
             size="sm"
             onClick={isEditing ? handleSave : () => setIsEditing(true)}
+            disabled={isSaving}
           >
-            {isEditing ? (
+            {isSaving ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Enregistrement...
+              </>
+            ) : isEditing ? (
               <>
                 <Save className="w-4 h-4 mr-2" />
-                Sauvegarder
+                Enregistrer
               </>
             ) : (
               "Modifier"
