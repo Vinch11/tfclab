@@ -52,13 +52,10 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
 
   // selected athlete id persisté localement
   const [selectedAthleteId, setSelectedAthleteIdState] = useState<string | null>(() => {
-    const persisted = localStorage.getItem(LS_SELECTED);
-    console.log("[AthleteContext] Init selectedAthleteId from localStorage:", persisted);
-    return persisted || null;
+    return localStorage.getItem(LS_SELECTED) || null;
   });
 
   const setSelectedAthleteId = (id: string | null) => {
-    console.log("[AthleteContext] setSelectedAthleteId:", id);
     setSelectedAthleteIdState(id);
     if (id) localStorage.setItem(LS_SELECTED, id);
     else localStorage.removeItem(LS_SELECTED);
@@ -96,9 +93,7 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (athletes.length === 0) return; // Attendre le chargement
     
-    // Toujours lire le localStorage directement pour éviter les problèmes de timing
     const persistedId = localStorage.getItem(LS_SELECTED);
-    console.log("[AthleteContext] useEffect - athletes loaded:", athletes.length, "persistedId:", persistedId, "current selectedId:", selectedAthleteId);
     
     const persistedIdExists = persistedId && athletes.some((a) => a.id === persistedId);
     
@@ -106,7 +101,6 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
     if (persistedIdExists && persistedId) {
       // Seulement mettre à jour si différent de l'état actuel
       if (selectedAthleteId !== persistedId) {
-        console.log("[AthleteContext] Restoring persisted athlete:", persistedId);
         setSelectedAthleteIdState(persistedId);
       }
       return;
@@ -114,7 +108,6 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
     
     // L'ID persisté n'existe pas/plus, sélectionner le premier par défaut
     if (!selectedAthleteId || !athletes.some((a) => a.id === selectedAthleteId)) {
-      console.log("[AthleteContext] Selecting first athlete as default:", athletes[0].id);
       setSelectedAthleteId(athletes[0].id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
