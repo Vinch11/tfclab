@@ -782,10 +782,11 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       <div class="tocRow"><a href="#donnees">3. Données d'entrée & Fiabilité</a></div>
       <div class="tocRow"><a href="#analyse">4. Analyse Physiologique Détaillée (Staff Mode)</a></div>
       <div class="tocRow"><a href="#readiness">5. Race Readiness — Indicateur de Cohérence</a></div>
-      <div class="tocRow"><a href="#limites">6. Limites explicites & Alertes</a></div>
-      <div class="tocRow"><a href="#recommandations">7. Recommandations d'entraînement (Non prescriptives)</a></div>
-      <div class="tocRow"><a href="#zones">8. Zones d'entraînement</a></div>
-      <div class="tocRow"><a href="#conclusion">9. Conclusion & Positionnement final</a></div>
+      <div class="tocRow"><a href="#aai">6. Ajustement par l'Âge (AAI)</a></div>
+      <div class="tocRow"><a href="#limites">7. Limites explicites & Alertes</a></div>
+      <div class="tocRow"><a href="#recommandations">8. Recommandations d'entraînement (Non prescriptives)</a></div>
+      <div class="tocRow"><a href="#zones">9. Zones d'entraînement</a></div>
+      <div class="tocRow"><a href="#conclusion">10. Conclusion & Positionnement final</a></div>
     </div>
   `;
 
@@ -1324,6 +1325,154 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       ` : ''}
     </section>
   `;
+
+  // =============================================
+  // 6. AJUSTEMENT PAR L'ÂGE (AAI)
+  // =============================================
+  const aaiHTML = ageAdjustment.age !== null ? `
+    <section id="aai" class="section pagebreakAvoid">
+      <h2>6. Ajustement par l'Âge (AAI)</h2>
+      
+      <div class="card cardHighlight">
+        <div class="grid2">
+          <div>
+            <h3>🎂 Profil de l'athlète</h3>
+            <div style="font-size:28px;font-weight:700;margin:8px 0;">${ageAdjustment.age} ans</div>
+            <div class="muted">Catégorie : <b>${ageAdjustment.aai.label}</b></div>
+            <div class="mt" style="display:flex;gap:16px;flex-wrap:wrap;">
+              <div>
+                <div class="muted" style="font-size:11px;">AAI</div>
+                <div style="font-size:18px;font-weight:600">${Math.round(ageAdjustment.aai.aai * 100)}%</div>
+              </div>
+              <div>
+                <div class="muted" style="font-size:11px;">Multiplicateur risque</div>
+                <div style="font-size:18px;font-weight:600">×${ageAdjustment.aai.riskMultiplier.toFixed(2)}</div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h4>📊 Échelle AAI</h4>
+            <svg width="100%" height="60" viewBox="0 0 400 60" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <linearGradient id="aaiGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" style="stop-color:#16a34a"/>
+                  <stop offset="33%" style="stop-color:#3b82f6"/>
+                  <stop offset="66%" style="stop-color:#d97706"/>
+                  <stop offset="100%" style="stop-color:#dc2626"/>
+                </linearGradient>
+              </defs>
+              <rect x="10" y="15" width="380" height="20" rx="4" fill="url(#aaiGrad)"/>
+              <line x1="10" y1="40" x2="10" y2="45" stroke="#666" stroke-width="1"/>
+              <text x="10" y="55" font-size="9" fill="#666" text-anchor="middle">&lt;30</text>
+              <line x1="136" y1="40" x2="136" y2="45" stroke="#666" stroke-width="1"/>
+              <text x="136" y="55" font-size="9" fill="#666" text-anchor="middle">30-39</text>
+              <line x1="263" y1="40" x2="263" y2="45" stroke="#666" stroke-width="1"/>
+              <text x="263" y="55" font-size="9" fill="#666" text-anchor="middle">40-49</text>
+              <line x1="390" y1="40" x2="390" y2="45" stroke="#666" stroke-width="1"/>
+              <text x="390" y="55" font-size="9" fill="#666" text-anchor="middle">50+</text>
+              <text x="73" y="10" font-size="8" fill="#16a34a" text-anchor="middle" font-weight="600">YOUNG</text>
+              <text x="200" y="10" font-size="8" fill="#3b82f6" text-anchor="middle" font-weight="600">PRIME</text>
+              <text x="327" y="10" font-size="8" fill="#d97706" text-anchor="middle" font-weight="600">MASTER</text>
+              <!-- Indicateur -->
+              ${(() => {
+                const pos = ageAdjustment.aai.category === "young" ? 73 
+                  : ageAdjustment.aai.category === "prime" ? 136 
+                  : ageAdjustment.aai.category === "master1" ? 263 : 355;
+                return `<polygon points="${pos},12 ${pos - 5},2 ${pos + 5},2" fill="#111"/>`;
+              })()}
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid2 mt">
+        <div class="card">
+          <h3>🎯 Interprétation VLamax ajustée</h3>
+          <div class="kv mt">
+            <div class="k">Niveau de risque</div>
+            <div class="v">
+              <span class="badge ${ageAdjustment.vlamaxInterpretation.riskLevel === 'exploitable' ? 'badgeSuccess' 
+                : ageAdjustment.vlamaxInterpretation.riskLevel === 'surveiller' ? 'badgeWarning' 
+                : ageAdjustment.vlamaxInterpretation.riskLevel === 'risque' ? 'badgeWarning'
+                : 'badgeError'}">
+                ${ageAdjustment.vlamaxInterpretation.label}
+              </span>
+            </div>
+            <div class="k">Action prioritaire</div>
+            <div class="v">${htmlEscape(ageAdjustment.vlamaxInterpretation.actionPrioritaire)}</div>
+          </div>
+          <div class="alert alertInfo mt">
+            <b>💬 Note staff :</b> ${htmlEscape(ageAdjustment.vlamaxInterpretation.messageStaff)}
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>🥗 Ajustements nutritionnels</h3>
+          <div class="kv mt">
+            <div class="k">Facteur réduction glucides</div>
+            <div class="v"><b>${Math.round(ageAdjustment.nutritionAdjustment.carbReductionFactor * 100)}%</b> de la cible standard</div>
+            <div class="k">Réduction tolérance</div>
+            <div class="v"><b>-${ageAdjustment.nutritionAdjustment.toleranceReductionPct}%</b></div>
+          </div>
+          <div class="alert alertWarning mt">
+            <b>💬 Note staff :</b> ${htmlEscape(ageAdjustment.nutritionAdjustment.messageStaff)}
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt">
+        <h3>📋 Impact sur les cibles d'entraînement</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Métrique</th>
+              <th>Ajustement</th>
+              <th>Explication</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>TTE (Time To Exhaustion)</b></td>
+              <td>Cibles abaissées de ${Math.round((1 - ageAdjustment.aai.aai) * 100)}%</td>
+              <td class="muted">Un TTE de 50 min chez un Master2 équivaut à 60 min chez un jeune en termes de performance relative</td>
+            </tr>
+            <tr>
+              <td><b>VLamax</b></td>
+              <td>Interprétation adaptée</td>
+              <td class="muted">Les seuils de risque sont ajustés : un VLamax de 0.40 est plus préoccupant chez un Master</td>
+            </tr>
+            <tr>
+              <td><b>Nutrition course</b></td>
+              <td>${ageAdjustment.nutritionAdjustment.carbReductionFactor < 1 ? "Réduction glucides recommandée" : "Pas d'ajustement"}</td>
+              <td class="muted">La tolérance digestive diminue avec l'âge, des apports plus conservateurs sont préférables</td>
+            </tr>
+            <tr>
+              <td><b>Risque blessure</b></td>
+              <td>×${ageAdjustment.aai.riskMultiplier.toFixed(2)}</td>
+              <td class="muted">Le multiplicateur de risque est appliqué aux indicateurs CAP Injury et Run Injury</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      ${ageAdjustment.aai.category === "master1" || ageAdjustment.aai.category === "master2" ? `
+        <div class="alert alertWarning mt">
+          <b>⚠️ Profil Master — Points d'attention :</b>
+          <ul class="mt">
+            <li>Récupération allongée nécessaire entre séances intenses</li>
+            <li>Vigilance accrue sur les signaux de fatigue</li>
+            <li>Nutrition plus conservative en course (intestin plus sensible)</li>
+            <li>TTE relatif abaissé — ne pas comparer aux cibles standard</li>
+          </ul>
+        </div>
+      ` : `
+        <div class="alert alertSuccess mt">
+          <b>✅ Profil ${ageAdjustment.aai.category === "young" ? "Jeune" : "Prime"}</b> — 
+          Pas d'ajustement majeur requis. Les cibles standard s'appliquent.
+        </div>
+      `}
+    </section>
+  ` : '';
 
   // =============================================
   // E. ANALYSE DAN LORANG
@@ -2188,6 +2337,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         ${compassHTML}
         ${indicateursHTML}
         ${raceReadinessHTML}
+        ${aaiHTML}
         ${lorangHTML}
         ${zonesHTML}
         ${wahooHTML}
@@ -2196,7 +2346,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         
         <!-- CONCLUSION & POSITIONNEMENT FINAL -->
         <section id="conclusion" class="section pagebreakAvoid">
-          <h2>9. Conclusion & Positionnement final</h2>
+          <h2>10. Conclusion & Positionnement final</h2>
           
           <div class="card cardHighlight">
             <h3>🎯 Ce que Two For Coaching Lab apporte</h3>
