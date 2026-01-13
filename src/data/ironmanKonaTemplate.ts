@@ -1,6 +1,7 @@
 /**
  * Template Ironman Kona - 24 semaines
- * Basé sur la méthodologie Dan Lorang
+ * Basé sur la méthodologie Two For Coaching Lab™
+ * S'inspire des principes de physiologie de l'endurance (Mader, Heck, école allemande)
  */
 import type { TemplateWeek } from "@/lib/templates/docxTemplateLoader";
 

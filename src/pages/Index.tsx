@@ -883,7 +883,7 @@ const Index = () => {
             ),
           },
           {
-            id: "dan-lorang",
+            id: "two-for-coaching",
             render: () => (
               <DanLorangAnalysis 
                 athlete={legacyAthlete} 

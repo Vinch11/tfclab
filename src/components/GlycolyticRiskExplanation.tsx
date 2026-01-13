@@ -29,7 +29,7 @@ const RISK_SCALE = [
 const SCIENTIFIC_SOURCES = [
   "Modèles énergétiques (Mader, INSCYD-like)",
   "Relations VLamax ↔ oxydation glucidique",
-  "Concepts utilisés par Dan Lorang, WKO, INSCYD",
+  "Méthodologie Two For Coaching Lab™ (inspirée de l'école allemande)",
   "Données terrain + logique staff (pas boîte noire)",
 ];
 

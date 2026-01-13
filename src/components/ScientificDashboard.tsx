@@ -205,7 +205,7 @@ export function ScientificDashboard({ snapshots, objectif, athleteNom }: Scienti
               {/* Scientific Sources */}
               <div className="text-xs text-muted-foreground flex items-center gap-2">
                 <BookOpen className="h-3 w-3" />
-                Sources scientifiques : Dan Lorang, Seiler, Coyle, Faude
+                Sources scientifiques : Two For Coaching Lab™ (inspiré Mader, Heck, Seiler, Coyle)
               </div>
             </TabsContent>
           ))}

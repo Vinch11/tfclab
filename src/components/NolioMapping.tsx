@@ -127,7 +127,7 @@ export function NolioMapping() {
 
       {/* Zone Mapping Info */}
       <div className="mt-6 p-4 rounded-xl bg-secondary/30 border border-border">
-        <h3 className="text-sm font-medium text-foreground mb-3">Correspondance Zones Dan Lorang → Nolio</h3>
+        <h3 className="text-sm font-medium text-foreground mb-3">Correspondance Zones Two For Coaching Lab™ → Nolio</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
           <div className="flex items-center gap-2">
             <span className="w-8 text-blue-400 font-mono">Z1</span>

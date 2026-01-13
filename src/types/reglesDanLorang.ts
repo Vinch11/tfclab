@@ -4,11 +4,14 @@ import { calculVLamaxSnapshot } from "@/lib/athleteStore";
 
 export type PrioriteType = "VLAMAX_DOWN" | "VLAMAX_UP" | "TTE_UP" | "FTP_UTIL" | "ENDURANCE_UP" | "VITESSE_UP" | "";
 
-export interface ReglesDanLorangResult {
+export interface ReglesTwoForCoachingResult {
   priorite: PrioriteType;
   alertes: string[];
   race_ready: boolean;
 }
+
+// Alias for backwards compatibility
+export type ReglesDanLorangResult = ReglesTwoForCoachingResult;
 
 export interface RaceReadinessInputs {
   seance_specifique_validee: boolean;
@@ -16,8 +19,9 @@ export interface RaceReadinessInputs {
 }
 
 /**
- * Règles Dan Lorang pour déterminer les priorités d'entraînement
+ * Règles Two For Coaching Lab™ pour déterminer les priorités d'entraînement
  * Basé sur le modèle Snapshot
+ * S'inspire des travaux de Mader, Heck et des approches de l'école allemande
  * Étendu pour Marathon/Semi
  */
 export function reglesDanLorang(

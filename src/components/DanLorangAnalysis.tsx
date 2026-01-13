@@ -182,11 +182,11 @@ export function DanLorangAnalysis({
   if (!snapshot) {
     return <div className="glass-card p-6">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-3 rounded-xl bg-warning/10 text-warning">
+          <div className="p-3 rounded-xl bg-primary/10 text-primary">
             <Target className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-foreground">Analyse Dan Lorang</h2>
+            <h2 className="text-xl font-semibold text-foreground">Analyse Two For Coaching Lab™</h2>
             <p className="text-sm text-muted-foreground">Aucun snapshot disponible</p>
           </div>
         </div>
@@ -198,11 +198,11 @@ export function DanLorangAnalysis({
   if (isTTEUnavailable(tteEffectif)) {
     return <div className="glass-card p-6 space-y-4">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-3 rounded-xl bg-warning/10 text-warning">
+          <div className="p-3 rounded-xl bg-primary/10 text-primary">
             <Target className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-foreground">Analyse Dan Lorang</h2>
+            <h2 className="text-xl font-semibold text-foreground">Analyse Two For Coaching Lab™</h2>
             <p className="text-sm text-muted-foreground">Objectif: {athlete.objectif === "IM" ? "Ironman" : "70.3"}</p>
           </div>
         </div>
@@ -216,53 +216,46 @@ export function DanLorangAnalysis({
   return <div className="glass-card p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-3 rounded-xl bg-warning/10 text-warning">
+          <div className="p-3 rounded-xl bg-primary/10 text-primary">
             <Target className="w-6 h-6" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-semibold text-foreground">Analyse Dan Lorang</h2>
+              <h2 className="text-xl font-semibold text-foreground">Analyse Two For Coaching Lab™</h2>
               <Popover>
                 <PopoverTrigger asChild>
                   <button className="p-1 rounded-full hover:bg-secondary/50 transition-colors">
-                    <HelpCircle className="w-4 h-4 text-muted-foreground hover:text-primary" />
+                    <Info className="w-4 h-4 text-muted-foreground hover:text-primary" />
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-96 p-4 bg-card border-border">
+                <PopoverContent className="w-[420px] p-4 bg-card border-border">
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <div className="p-2 rounded-lg bg-warning/10 text-warning">
+                      <div className="p-2 rounded-lg bg-primary/10 text-primary">
                         <Target className="w-4 h-4" />
                       </div>
-                      <h4 className="font-semibold text-foreground">Race Readiness Objectif</h4>
+                      <h4 className="font-semibold text-foreground">À propos de cette analyse</h4>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      Ce score est <strong className="text-foreground">contextuel</strong> : il évalue la préparation par rapport à un objectif précis (Ironman, 70.3, marathon, etc.).
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      <strong className="text-foreground">TWO FOR COACHING LAB™</strong> propose une lecture physiologique intégrée développée par Two For Coaching.
+                      Cette analyse s'inspire des principes de la physiologie de l'endurance (travaux de Mader, Heck, et des approches issues de l'école allemande popularisées notamment par Dan Lorang), sans constituer une mesure directe ni un outil officiel de ces auteurs.
                     </p>
-                    <div className="text-sm text-muted-foreground space-y-1">
-                      <p className="font-medium text-foreground">Il intègre :</p>
-                      <ul className="list-disc list-inside pl-2 space-y-0.5">
-                        <li>Les cibles physiologiques propres à l'objectif</li>
-                        <li>Le TTE attendu pour la distance</li>
-                        <li>La cohérence entre VLamax, FTP et endurance</li>
-                        <li>Des critères qualitatifs (séance spécifique validée, fatigue maîtrisée)</li>
-                      </ul>
-                    </div>
-                    <div className="p-3 rounded-lg bg-warning/5 border border-warning/20">
-                      <p className="text-xs text-muted-foreground">
-                        👉 Répond à : <span className="font-medium text-foreground">"Suis-je prêt pour CETTE course, avec CET objectif ?"</span>
+                    <div className="p-3 rounded-lg bg-secondary/50 border border-border">
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Les valeurs présentées (ex : VLamax, TTE, Race Readiness) sont des <strong className="text-foreground">estimations modélisées</strong> destinées à guider la décision du coach.
+                        Elles doivent toujours être interprétées avec esprit critique, contexte terrain et confrontation à l'expérience pratique.
                       </p>
                     </div>
-                    <div className="mt-2 p-2 rounded-lg bg-secondary/30 border border-border">
+                    <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
                       <p className="text-xs text-muted-foreground">
-                        <span className="font-medium text-accent">💡 Note :</span> Les deux scores peuvent être différents. Un athlète peut être en bonne forme générale mais pas encore prêt pour son objectif cible, ou l'inverse en phase d'affûtage.
+                        👉 <span className="font-medium text-foreground">Outil d'aide à la décision</span> — ne remplace pas le jugement du coach ni un test physiologique complet.
                       </p>
                     </div>
                   </div>
                 </PopoverContent>
               </Popover>
             </div>
-            <p className="text-sm text-muted-foreground">Objectif: {athlete.objectif === "IM" ? "Ironman" : "70.3"}</p>
+            <p className="text-sm text-muted-foreground">Objectif: {athlete.objectif === "IM" ? "Ironman" : athlete.objectif === "703" ? "70.3" : athlete.objectif}</p>
           </div>
         </div>
 
