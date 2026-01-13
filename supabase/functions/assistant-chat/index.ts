@@ -184,6 +184,9 @@ serve(async (req) => {
   try {
     // =============================================
     // AUTHENTICATION CHECK
+    // Note: verify_jwt = false in config.toml because we use manual validation
+    // via getUser() which verifies the JWT and fetches user data securely.
+    // This is the recommended approach for the modern signing-keys system.
     // =============================================
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
@@ -199,9 +202,12 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
+    // getUser() validates the JWT and returns the authenticated user
+    // This is a secure server-side validation that cannot be bypassed
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     
     if (userError || !user) {
+      console.error("Auth validation failed:", userError?.message || "No user");
       return new Response(
         JSON.stringify({ error: "Token invalide" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
