@@ -605,6 +605,75 @@ Vérifie le **TSS 7j** et le **statut TTE** dans le tableau de bord.`
 
 export const METHODOLOGY_ARTICLES: KnowledgeArticle[] = [
   {
+    id: "method_two_for_coaching_lab",
+    title: "Comprendre l'Analyse Two For Coaching Lab™",
+    category: "methodology",
+    tags: ["Two For Coaching Lab", "méthodologie", "VLamax", "TTE", "estimation", "modélisation", "limites"],
+    level: "athlete",
+    lastUpdated: "2026-01-13",
+    contentMarkdown: `## Comprendre l'Analyse Two For Coaching Lab™
+
+**TWO FOR COACHING LAB™** propose une lecture physiologique intégrée développée par Two For Coaching.
+Cette analyse s'inspire des principes de la physiologie de l'endurance (travaux de Mader, Heck, et des approches issues de l'école allemande popularisées notamment par Dan Lorang), sans constituer une mesure directe ni un outil officiel de ces auteurs.
+
+### Pourquoi l'app utilise des estimations
+
+La plupart des athlètes n'ont pas accès à un laboratoire de physiologie équipé pour mesurer directement la VLamax, le TTE ou d'autres paramètres métaboliques avancés.
+L'app utilise donc des **modèles mathématiques validés** pour estimer ces valeurs à partir de données accessibles (FTP, Pmax, VMA, tests terrain).
+
+### Différence entre test labo et lecture décisionnelle
+
+| Aspect | Test laboratoire | Lecture Two For Coaching Lab™ |
+|--------|------------------|-------------------------------|
+| Méthode | Mesure directe (lactate, VO2) | Modélisation à partir de données terrain |
+| Précision | Très haute (±5%) | Modérée (±10-15%) |
+| Coût | 200-500€ par test | Inclus dans l'app |
+| Fréquence | 1-2x par an | Continue |
+| Usage | Validation ponctuelle | Pilotage quotidien |
+
+### Ce que l'app FAIT
+
+✅ Centraliser et structurer les données physiologiques
+✅ Calculer des indicateurs composites (Race Readiness, risques)
+✅ Afficher les zones d'entraînement personnalisées
+✅ Générer des alertes contextuelles
+✅ Aider à la prise de décision coaching
+
+### Ce que l'app NE FAIT PAS
+
+❌ Prédire des performances (temps, classement)
+❌ Diagnostiquer des pathologies
+❌ Prescrire des traitements ou régimes
+❌ Remplacer le jugement du coach
+❌ Garantir des résultats
+
+### Pourquoi les plages sont préférées aux objectifs absolus
+
+Une valeur métabolique n'est jamais "exacte". Elle varie selon :
+- L'heure de la journée
+- L'alimentation récente
+- Le niveau de fatigue
+- Les conditions environnementales
+
+L'app affiche donc des **plages interprétatives** plutôt que des cibles rigides.
+Un score de 0.42 mmol/L/s de VLamax doit être lu comme "environ 0.38-0.46".
+
+### Comment interpréter les résultats
+
+1. **Regarder la source** : 🔬 mesurée > 🧠 estimée > 🔁 modélisée
+2. **Vérifier la confiance** : > 0.70 = robuste, 0.40-0.70 = prudent, < 0.40 = indicatif
+3. **Confronter au terrain** : Les sensations de l'athlète doivent confirmer les données
+4. **Adapter si besoin** : Un score incohérent avec la réalité terrain doit être questionné
+
+### Rôle du coach
+
+Le coach reste le **décideur final**. L'app éclaire, le coach décide.
+Aucune donnée ne remplace l'observation directe, le dialogue avec l'athlète et l'expérience terrain.
+
+**Positionnement officiel :**
+Two For Coaching Lab™ est un outil d'aide à la décision physiologique et métabolique, conçu pour éclairer — jamais remplacer — le jugement du coach.`
+  },
+  {
     id: "method_polarized",
     title: "Entraînement polarisé 80/20",
     category: "methodology",
