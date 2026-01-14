@@ -12,6 +12,7 @@ export { EnergyContributionChart } from "./EnergyContributionChart";
 export { StaffModeToggle } from "./StaffModeToggle";
 export { ScientificChartsDashboard } from "./ScientificChartsDashboard";
 export { MetabolicPerformanceCompass, CompassMini, COMPASS_METHODOLOGY } from "./MetabolicPerformanceCompass";
+export { AmbitionProgressChart } from "./AmbitionProgressChart";
 
 // Composants unifiés d'affichage des métriques
 export { ScoreEnvelopeCard, ScoreEnvelopeCardGroup, ScoreEnvelopeInlineCard } from "../ScoreEnvelopeCard";
