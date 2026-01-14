@@ -1,7 +1,7 @@
 /**
  * AmbitionProgressChart - Graphique d'évolution temporelle vers les cibles d'ambition
  * Affiche la progression des métriques (VLamax, TTE, FTP/kg) par rapport aux cibles sur les derniers snapshots
- * Avec comparaison multi-ambitions et alertes automatiques
+ * Avec comparaison multi-ambitions, alertes automatiques et prédictions de délai
  */
 
 import { useMemo, useState, useEffect } from "react";
@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { TrendingUp, Target, ChevronUp, ChevronDown, Minus, Bell, Check, Zap, AlertTriangle, Trophy } from "lucide-react";
+import { TrendingUp, Target, ChevronUp, ChevronDown, Minus, Bell, Check, Zap, AlertTriangle, Trophy, Clock, Calendar } from "lucide-react";
 import {
   LineChart,
   Line,
@@ -25,7 +25,7 @@ import {
   ComposedChart,
 } from "recharts";
 import { cn } from "@/lib/utils";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, differenceInDays, addWeeks } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
   getVLamaxRange,
@@ -71,6 +71,29 @@ interface ChartDataPoint {
   age_group_target?: number;
   competitor_target?: number;
   elite_target?: number;
+}
+
+interface AmbitionAlert {
+  id: string;
+  type: "approaching" | "reached" | "exceeded";
+  metric: "vlamax" | "tte" | "ftpKg" | "global";
+  metricLabel: string;
+  ambition: AmbitionLevel;
+  message: string;
+  progress: number;
+  icon: typeof Bell;
+}
+
+// Prediction for reaching an ambition level
+export interface AmbitionPrediction {
+  ambition: AmbitionLevel;
+  currentProgress: number | null;
+  weeksToReach: number | null;
+  estimatedDate: string | null;
+  progressPerWeek: number | null;
+  confidence: "high" | "medium" | "low" | "unknown";
+  isReached: boolean;
+  trend: "up" | "down" | "stable" | "unknown";
 }
 
 interface AmbitionAlert {
@@ -163,6 +186,143 @@ function getTrendIcon(trend: "up" | "down" | "stable" | "unknown") {
     default:
       return null;
   }
+}
+
+/**
+ * Calculate predictions for reaching each ambition level based on current trend
+ */
+export function calculateAmbitionPredictions(
+  chartData: ChartDataPoint[],
+  objectif: string
+): AmbitionPrediction[] {
+  if (chartData.length < 2) {
+    return AMBITION_LEVELS_ORDERED.map((amb) => ({
+      ambition: amb,
+      currentProgress: null,
+      weeksToReach: null,
+      estimatedDate: null,
+      progressPerWeek: null,
+      confidence: "unknown" as const,
+      isReached: false,
+      trend: "unknown" as const,
+    }));
+  }
+
+  const predictions: AmbitionPrediction[] = [];
+
+  // Get time span of data in weeks
+  const firstDate = parseISO(chartData[0].date);
+  const lastDate = parseISO(chartData[chartData.length - 1].date);
+  const daysBetween = differenceInDays(lastDate, firstDate);
+  const weeksBetween = Math.max(1, daysBetween / 7);
+
+  AMBITION_LEVELS_ORDERED.forEach((amb) => {
+    const progressKey = `${amb}_progress` as const;
+    const validPoints = chartData.filter((d) => (d as any)[progressKey] !== null);
+
+    if (validPoints.length < 2) {
+      predictions.push({
+        ambition: amb,
+        currentProgress: validPoints.length > 0 ? (validPoints[validPoints.length - 1] as any)[progressKey] : null,
+        weeksToReach: null,
+        estimatedDate: null,
+        progressPerWeek: null,
+        confidence: "unknown",
+        isReached: false,
+        trend: "unknown",
+      });
+      return;
+    }
+
+    const firstProgress = (validPoints[0] as any)[progressKey] as number;
+    const lastProgress = (validPoints[validPoints.length - 1] as any)[progressKey] as number;
+    
+    // Already reached
+    if (lastProgress >= 100) {
+      predictions.push({
+        ambition: amb,
+        currentProgress: lastProgress,
+        weeksToReach: 0,
+        estimatedDate: format(new Date(), "yyyy-MM-dd"),
+        progressPerWeek: null,
+        confidence: "high",
+        isReached: true,
+        trend: getTrend(chartData, progressKey),
+      });
+      return;
+    }
+
+    // Calculate progress per week
+    const progressChange = lastProgress - firstProgress;
+    const progressPerWeek = progressChange / weeksBetween;
+    
+    // Determine trend
+    const trend = getTrend(chartData, progressKey);
+
+    // If not progressing or regressing, can't predict
+    if (progressPerWeek <= 0) {
+      predictions.push({
+        ambition: amb,
+        currentProgress: lastProgress,
+        weeksToReach: null,
+        estimatedDate: null,
+        progressPerWeek,
+        confidence: "low",
+        isReached: false,
+        trend,
+      });
+      return;
+    }
+
+    // Calculate weeks to reach 100%
+    const remainingProgress = 100 - lastProgress;
+    const weeksToReach = Math.ceil(remainingProgress / progressPerWeek);
+    
+    // Calculate estimated date
+    const estimatedDate = format(addWeeks(new Date(), weeksToReach), "yyyy-MM-dd");
+
+    // Determine confidence based on data quality
+    let confidence: "high" | "medium" | "low" = "medium";
+    if (validPoints.length >= 6 && weeksBetween >= 4) {
+      confidence = "high";
+    } else if (validPoints.length < 3 || weeksBetween < 2) {
+      confidence = "low";
+    }
+
+    // Cap at 52 weeks (1 year) for realistic predictions
+    const cappedWeeks = weeksToReach > 52 ? null : weeksToReach;
+    const cappedDate = weeksToReach > 52 ? null : estimatedDate;
+
+    predictions.push({
+      ambition: amb,
+      currentProgress: lastProgress,
+      weeksToReach: cappedWeeks,
+      estimatedDate: cappedDate,
+      progressPerWeek: Math.round(progressPerWeek * 10) / 10,
+      confidence: cappedWeeks === null ? "low" : confidence,
+      isReached: false,
+      trend,
+    });
+  });
+
+  return predictions;
+}
+
+function formatPredictionLabel(prediction: AmbitionPrediction): string {
+  if (prediction.isReached) {
+    return "✓ Atteint";
+  }
+  if (prediction.weeksToReach === null) {
+    if (prediction.trend === "down" || prediction.progressPerWeek !== null && prediction.progressPerWeek <= 0) {
+      return "Tendance ↓";
+    }
+    return "> 1 an";
+  }
+  if (prediction.weeksToReach <= 4) {
+    return `~${prediction.weeksToReach} sem.`;
+  }
+  const months = Math.round(prediction.weeksToReach / 4);
+  return `~${months} mois`;
 }
 
 function generateAlerts(
@@ -336,6 +496,9 @@ export function AmbitionProgressChart({
   // Generate and show alerts
   const latestData = chartData[chartData.length - 1] ?? null;
   const alerts = useMemo(() => generateAlerts(latestData, objectif, ambition), [latestData, objectif, ambition]);
+
+  // Calculate predictions for each ambition level
+  const predictions = useMemo(() => calculateAmbitionPredictions(chartData, objectif), [chartData, objectif]);
 
   // Show toast notifications for new alerts
   useEffect(() => {
@@ -611,7 +774,7 @@ export function AmbitionProgressChart({
           </ResponsiveContainer>
         </div>
 
-        {/* Comparison Table (when comparing) */}
+        {/* Comparison Table with Predictions (when comparing) */}
         {showComparison && (
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
@@ -621,6 +784,10 @@ export function AmbitionProgressChart({
                   <th className="text-center py-2 font-medium text-muted-foreground">VLamax</th>
                   <th className="text-center py-2 font-medium text-muted-foreground">TTE</th>
                   <th className="text-center py-2 font-medium text-muted-foreground">FTP/kg</th>
+                  <th className="text-center py-2 font-medium text-muted-foreground">
+                    <Clock className="w-3 h-3 inline mr-1" />
+                    Délai
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -630,6 +797,7 @@ export function AmbitionProgressChart({
                   const tteTarget = getTTETargetByAmbition(objectif, amb);
                   const ftpKgTarget = getFtpKgTargetByAmbition(objectif, amb);
                   const isCurrentAmbition = amb === ambition;
+                  const prediction = predictions.find((p) => p.ambition === amb);
                   
                   return (
                     <tr 
@@ -646,6 +814,14 @@ export function AmbitionProgressChart({
                       <td className="text-center py-2">≤ {vlamaxRange.optimal.toFixed(2)}</td>
                       <td className="text-center py-2">≥ {tteTarget} min</td>
                       <td className="text-center py-2">≥ {ftpKgTarget.toFixed(1)}</td>
+                      <td className={cn(
+                        "text-center py-2 font-medium",
+                        prediction?.isReached && "text-emerald-600 dark:text-emerald-400",
+                        prediction?.trend === "down" && "text-red-500",
+                        prediction?.confidence === "high" && "font-bold"
+                      )}>
+                        {prediction ? formatPredictionLabel(prediction) : "—"}
+                      </td>
                     </tr>
                   );
                 })}
@@ -655,10 +831,70 @@ export function AmbitionProgressChart({
                     <td className="text-center py-2">{latestData.vlamax?.toFixed(2) ?? "—"}</td>
                     <td className="text-center py-2">{latestData.tte?.toFixed(0) ?? "—"}</td>
                     <td className="text-center py-2">{latestData.ftpKg?.toFixed(2) ?? "—"}</td>
+                    <td className="text-center py-2 text-xs text-muted-foreground">
+                      {predictions.length > 0 && predictions.some(p => p.progressPerWeek && p.progressPerWeek > 0) 
+                        ? `+${predictions.find(p => p.ambition === ambition)?.progressPerWeek ?? 0}%/sem` 
+                        : "—"}
+                    </td>
                   </tr>
                 )}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Predictions Cards (when not comparing) */}
+        {!showComparison && predictions.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+              <Calendar className="w-3.5 h-3.5" />
+              <span>Prédictions de délai</span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {predictions.map((prediction) => {
+                const def = getAmbitionDefinition(prediction.ambition);
+                const isCurrentAmbition = prediction.ambition === ambition;
+                
+                return (
+                  <div
+                    key={prediction.ambition}
+                    className={cn(
+                      "p-2 rounded-lg border text-center text-xs",
+                      isCurrentAmbition && "border-primary/50 bg-primary/5",
+                      prediction.isReached && "bg-emerald-500/10 border-emerald-500/30"
+                    )}
+                  >
+                    <div className="font-medium mb-1">
+                      {def.icon} {def.shortLabel}
+                    </div>
+                    <div className={cn(
+                      "text-sm font-bold",
+                      prediction.isReached && "text-emerald-600 dark:text-emerald-400",
+                      prediction.trend === "down" && "text-red-500"
+                    )}>
+                      {formatPredictionLabel(prediction)}
+                    </div>
+                    {prediction.currentProgress !== null && !prediction.isReached && (
+                      <div className="text-[10px] text-muted-foreground mt-0.5">
+                        {prediction.currentProgress}% actuel
+                      </div>
+                    )}
+                    {prediction.confidence !== "unknown" && !prediction.isReached && (
+                      <Badge 
+                        variant="outline" 
+                        className={cn(
+                          "text-[9px] mt-1",
+                          prediction.confidence === "high" && "border-emerald-500/50 text-emerald-600",
+                          prediction.confidence === "low" && "border-red-500/50 text-red-500"
+                        )}
+                      >
+                        {prediction.confidence === "high" ? "Confiant" : prediction.confidence === "medium" ? "Estimé" : "Incertain"}
+                      </Badge>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 

@@ -22,6 +22,8 @@ import {
   Info,
   Zap,
   ChevronDown,
+  Clock,
+  Calendar,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StaffReport as StaffReportType, generateStaffReport, GenerateStaffReportParams } from "@/lib/staffReport";
@@ -352,7 +354,68 @@ export function StaffReport({
 
         <Separator />
 
-        {/* 4️⃣ INTERPRÉTATION STAFF */}
+        {/* 4️⃣ PRÉDICTIONS D'AMBITION */}
+        <div>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            PRÉDICTIONS D'AMBITION
+          </h3>
+          
+          {/* Current Ambition Prediction Summary */}
+          <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 mb-3">
+            <p className="font-medium text-sm">{report.ambitionPredictions.currentAmbitionPrediction}</p>
+            <p className="text-xs text-muted-foreground mt-1">{report.ambitionPredictions.trendSummary}</p>
+          </div>
+          
+          {/* Predictions Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {report.ambitionPredictions.predictions.map((prediction) => {
+              const isCurrentAmbition = prediction.ambition === report.ambition;
+              return (
+                <div
+                  key={prediction.ambition}
+                  className={cn(
+                    "p-3 rounded-lg border text-center",
+                    isCurrentAmbition && "border-primary/50 bg-primary/5",
+                    prediction.isReached && "bg-emerald-500/10 border-emerald-500/30"
+                  )}
+                >
+                  <div className="font-medium text-sm mb-1">
+                    {prediction.ambitionIcon} {prediction.ambitionLabel}
+                  </div>
+                  <div className={cn(
+                    "text-lg font-bold",
+                    prediction.isReached && "text-emerald-600 dark:text-emerald-400"
+                  )}>
+                    {prediction.delayLabel}
+                  </div>
+                  {prediction.currentProgress !== null && !prediction.isReached && (
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {prediction.currentProgress}% actuel
+                    </div>
+                  )}
+                  <Badge 
+                    variant="outline" 
+                    className={cn(
+                      "text-[9px] mt-2",
+                      prediction.confidence === "high" && "border-emerald-500/50 text-emerald-600",
+                      prediction.confidence === "medium" && "border-blue-500/50 text-blue-600",
+                      prediction.confidence === "low" && "border-amber-500/50 text-amber-600"
+                    )}
+                  >
+                    {prediction.confidence === "high" ? "Confiant" : 
+                     prediction.confidence === "medium" ? "Estimé" : 
+                     prediction.confidence === "low" ? "Incertain" : "?"}
+                  </Badge>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* 5️⃣ INTERPRÉTATION STAFF */}
         <div>
           <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
             <Activity className="h-4 w-4" />
