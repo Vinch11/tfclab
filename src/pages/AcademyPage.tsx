@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   GraduationCap, 
@@ -12,7 +13,9 @@ import {
   Zap,
   Clock,
   Bike,
-  Apple
+  Apple,
+  Mountain,
+  Timer
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,6 +39,39 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CharteLectureAcademy } from "@/components/CharteLectureAcademy";
 import { Badge } from "@/components/ui/badge";
 import { UNIFIED_TARGETS } from "@/lib/physiologicalTargets";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+
+// Catégories d'objectifs pour le filtre
+type ObjectiveCategory = "all" | "triathlon" | "running" | "trail";
+
+const OBJECTIVE_CATEGORIES: Record<string, ObjectiveCategory[]> = {
+  IM: ["triathlon"],
+  "703": ["triathlon"],
+  Marathon: ["running"],
+  Semi: ["running"],
+  Trail: ["trail"],
+  TrailShort: ["trail"],
+  TrailMountain: ["trail"],
+  TrailUltra: ["trail"],
+};
+
+const getCategoryIcon = (category: ObjectiveCategory) => {
+  switch (category) {
+    case "triathlon": return <Bike className="h-4 w-4" />;
+    case "running": return <Timer className="h-4 w-4" />;
+    case "trail": return <Mountain className="h-4 w-4" />;
+    default: return <Target className="h-4 w-4" />;
+  }
+};
+
+const getCategoryLabel = (category: ObjectiveCategory) => {
+  switch (category) {
+    case "triathlon": return "Triathlon";
+    case "running": return "Course";
+    case "trail": return "Trail";
+    default: return "Tous";
+  }
+};
 
 // Données de la table des constantes physiologiques
 const PHYSIOLOGICAL_CONSTANTS = [
@@ -123,6 +159,14 @@ const PHYSIOLOGICAL_CONSTANTS = [
 
 export default function AcademyPage() {
   const navigate = useNavigate();
+  const [categoryFilter, setCategoryFilter] = useState<ObjectiveCategory>("all");
+
+  // Filtrer les objectifs selon la catégorie sélectionnée
+  const filteredTargets = Object.entries(UNIFIED_TARGETS).filter(([key]) => {
+    if (categoryFilter === "all") return true;
+    const categories = OBJECTIVE_CATEGORIES[key] || [];
+    return categories.includes(categoryFilter);
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -264,8 +308,35 @@ export default function AcademyPage() {
                 <Badge variant="outline" className="mx-1">Intermédiaire</Badge> pour les athlètes en progression.
               </p>
               
+              {/* Filtre par catégorie */}
+              <div className="mb-4">
+                <ToggleGroup 
+                  type="single" 
+                  value={categoryFilter} 
+                  onValueChange={(value) => value && setCategoryFilter(value as ObjectiveCategory)}
+                  className="justify-start flex-wrap"
+                >
+                  <ToggleGroupItem value="all" aria-label="Tous les objectifs" className="gap-2">
+                    {getCategoryIcon("all")}
+                    <span className="hidden sm:inline">{getCategoryLabel("all")}</span>
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="triathlon" aria-label="Triathlon" className="gap-2">
+                    {getCategoryIcon("triathlon")}
+                    <span className="hidden sm:inline">{getCategoryLabel("triathlon")}</span>
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="running" aria-label="Course" className="gap-2">
+                    {getCategoryIcon("running")}
+                    <span className="hidden sm:inline">{getCategoryLabel("running")}</span>
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="trail" aria-label="Trail" className="gap-2">
+                    {getCategoryIcon("trail")}
+                    <span className="hidden sm:inline">{getCategoryLabel("trail")}</span>
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </div>
+
               <div className="space-y-4">
-                {Object.entries(UNIFIED_TARGETS).map(([key, levels]) => (
+                {filteredTargets.map(([key, levels]) => (
                   <Card key={key} className="border-border/50">
                     <CardHeader className="py-3 px-4">
                       <CardTitle className="text-base flex items-center gap-2">
