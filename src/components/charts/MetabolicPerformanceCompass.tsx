@@ -20,13 +20,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Compass, AlertTriangle, Shield, User, Info, GitCompare, Sparkles, TrendingUp } from "lucide-react";
+import { Compass, AlertTriangle, Shield, User, Info, GitCompare, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { computeCRR, computeChargeScore } from "@/lib/chargeRecenteReference";
+import { computeCRR } from "@/lib/chargeRecenteReference";
 import { computeCompassScores } from "@/lib/compassScoring";
 import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { TTEEffectif } from "@/lib/tteEffectif";
-import { AmbitionLevel, AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED, getAmbitionDefinition, DEFAULT_AMBITION } from "@/types/ambitionLevel";
+import { AmbitionLevel, AMBITION_LEVELS_ORDERED, getAmbitionDefinition, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 
 // =============================================
 // TYPES
@@ -302,15 +302,6 @@ export function MetabolicPerformanceCompass({
               <Switch checked={staffMode} onCheckedChange={setStaffMode} className="scale-90" />
               <Shield className={cn("w-3.5 h-3.5 transition-colors", staffMode ? "text-primary" : "text-muted-foreground")} />
             </div>
-            <div className="flex items-center gap-1.5 bg-muted/50 rounded-full px-2 py-1">
-              <span className="text-[10px] text-muted-foreground">Comparer</span>
-              <Switch 
-                checked={compareMode} 
-                onCheckedChange={setCompareMode}
-                className="scale-75"
-              />
-              <GitCompare className={cn("w-3 h-3 transition-colors", compareMode ? "text-primary" : "text-muted-foreground")} />
-            </div>
           </div>
         </div>
       </CardHeader>
@@ -389,114 +380,159 @@ export function MetabolicPerformanceCompass({
           </div>
         </div>
 
-        {/* Comparaison des scores globaux par ambition */}
+        {/* Bouton mode comparaison */}
+        <div className="flex items-center justify-center">
+          <button
+            onClick={() => setCompareMode(!compareMode)}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200",
+              compareMode 
+                ? "bg-primary text-primary-foreground shadow-md" 
+                : "bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <GitCompare className="w-4 h-4" />
+            {compareMode ? "Masquer la comparaison" : "Comparer les niveaux d'ambition"}
+          </button>
+        </div>
+
+        {/* Mode comparaison redesigné - plus lisible */}
         {compareMode && allAmbitionScores && (
-          <div className="grid grid-cols-4 gap-2">
-            {AMBITION_LEVELS_ORDERED.map((ambition) => {
-              const ambDef = getAmbitionDefinition(ambition);
-              const ambScore = allAmbitionScores[ambition].globalScore;
-              const isActive = ambition === currentAmbition;
-              const scoreColor = getScoreColor(ambScore);
-              
-              return (
-                <div 
-                  key={ambition}
-                  className={cn(
-                    "p-3 rounded-xl text-center border-2 transition-all",
-                    isActive 
-                      ? "border-primary bg-primary/5 shadow-sm" 
-                      : "border-border/50 bg-muted/20 hover:bg-muted/40"
-                  )}
-                >
-                  <div className="text-xl mb-1">{ambDef.icon}</div>
-                  <div className="text-2xl font-black font-mono" style={{ color: scoreColor }}>
-                    {ambScore}
+          <div className="space-y-4">
+            {/* Cartes horizontales pour chaque niveau */}
+            <div className="grid gap-3">
+              {AMBITION_LEVELS_ORDERED.map((ambition) => {
+                const ambDef = getAmbitionDefinition(ambition);
+                const ambScores = allAmbitionScores[ambition];
+                const isActive = ambition === currentAmbition;
+                const globalScoreColor = getScoreColor(ambScores.globalScore);
+                
+                return (
+                  <div 
+                    key={ambition}
+                    className={cn(
+                      "relative p-4 rounded-xl border-2 transition-all duration-200",
+                      isActive 
+                        ? "border-primary bg-primary/5 shadow-lg ring-2 ring-primary/20" 
+                        : "border-border/50 bg-card hover:border-border"
+                    )}
+                  >
+                    {isActive && (
+                      <Badge className="absolute -top-2 left-4 text-[10px] py-0 px-2 bg-primary text-primary-foreground">
+                        Votre niveau
+                      </Badge>
+                    )}
+                    
+                    <div className="flex items-center gap-4">
+                      {/* Icône et label */}
+                      <div className="flex items-center gap-3 min-w-[140px]">
+                        <span className="text-3xl">{ambDef.icon}</span>
+                        <div>
+                          <p className={cn("font-bold", ambDef.color)}>{ambDef.label}</p>
+                          <p className="text-[10px] text-muted-foreground">{ambDef.description}</p>
+                        </div>
+                      </div>
+                      
+                      {/* Score global */}
+                      <div className="flex items-center gap-2 px-4 border-x border-border/30">
+                        <div className="text-center">
+                          <p className="text-3xl font-black tabular-nums" style={{ color: globalScoreColor }}>
+                            {ambScores.globalScore}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground font-medium">
+                            {getScoreLabel(ambScores.globalScore)}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Barres de progression pour chaque axe */}
+                      <div className="flex-1 grid grid-cols-4 gap-3">
+                        {[
+                          { key: 'capaciteAerobie', icon: '⚡', label: 'Aérobie' },
+                          { key: 'toleranceEffort', icon: '💪', label: 'TTE' },
+                          { key: 'profilMetabolique', icon: '🎯', label: 'Métabo' },
+                          { key: 'robustesse', icon: '🛡️', label: 'Robust' },
+                        ].map(({ key, icon, label }) => {
+                          const axisData = ambScores[key as keyof typeof ambScores];
+                          const score = typeof axisData === 'object' && 'score' in axisData ? axisData.score : 0;
+                          const scoreColor = getScoreColor(score);
+                          
+                          return (
+                            <div key={key} className="space-y-1">
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="flex items-center gap-1">
+                                  <span>{icon}</span>
+                                  <span className="hidden sm:inline text-muted-foreground">{label}</span>
+                                </span>
+                                <span className="font-bold tabular-nums" style={{ color: scoreColor }}>
+                                  {score}
+                                </span>
+                              </div>
+                              <div className="h-2 rounded-full bg-muted overflow-hidden">
+                                <div 
+                                  className="h-full rounded-full transition-all duration-500"
+                                  style={{ 
+                                    width: `${score}%`,
+                                    backgroundColor: scoreColor
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
-                  <div className={cn("text-[10px] font-medium", ambDef.color)}>{ambDef.shortLabel}</div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+
+            {/* Info explicative */}
+            <div className="p-3 bg-muted/30 border border-muted rounded-xl flex items-start gap-3">
+              <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Comment lire cette comparaison ?</p>
+                <p className="text-xs text-muted-foreground">
+                  Plus le niveau d'ambition est élevé, plus les exigences physiologiques sont strictes.
+                  Avec les mêmes données, un athlète "Elite" aura des scores plus bas qu'un "Finisher".
+                  Choisissez un niveau cohérent avec vos objectifs réels.
+                </p>
+              </div>
+            </div>
           </div>
         )}
         
-        {/* Radar Chart amélioré */}
-        <div className={cn(
-          "relative rounded-xl bg-muted/20 border p-2",
-          compareMode ? "h-72" : "h-60"
-        )}>
-          <ResponsiveContainer width="100%" height="100%">
-            <RadarChart 
-              data={compareMode ? comparisonChartData : chartData} 
-              margin={{ top: 25, right: 35, bottom: compareMode ? 35 : 25, left: 35 }}
-            >
-              <defs>
-                <linearGradient id="radarGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.1} />
-                </linearGradient>
-              </defs>
-              <PolarGrid 
-                stroke="hsl(var(--border))" 
-                strokeOpacity={0.4}
-                gridType="polygon"
-              />
-              <PolarAngleAxis 
-                dataKey="axis" 
-                tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }}
-                tickLine={false}
-              />
-              <PolarRadiusAxis 
-                angle={90} 
-                domain={[0, 100]} 
-                tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} 
-                tickCount={5}
-                axisLine={false}
-              />
-              
-              {compareMode ? (
-                // Mode comparaison: un radar par niveau d'ambition
-                <>
-                  <Radar 
-                    name="🏁 Finisher" 
-                    dataKey="finisher" 
-                    stroke={AMBITION_COLORS.finisher} 
-                    fill={AMBITION_COLORS.finisher} 
-                    fillOpacity={0.08} 
-                    strokeWidth={1.5}
-                    strokeDasharray="4 4"
-                  />
-                  <Radar 
-                    name="⭐ Age Group" 
-                    dataKey="age_group" 
-                    stroke={AMBITION_COLORS.age_group} 
-                    fill={AMBITION_COLORS.age_group} 
-                    fillOpacity={0.12} 
-                    strokeWidth={currentAmbition === "age_group" ? 3 : 1.5}
-                  />
-                  <Radar 
-                    name="🏆 Compétiteur" 
-                    dataKey="competitor" 
-                    stroke={AMBITION_COLORS.competitor} 
-                    fill={AMBITION_COLORS.competitor} 
-                    fillOpacity={0.12} 
-                    strokeWidth={currentAmbition === "competitor" ? 3 : 1.5}
-                  />
-                  <Radar 
-                    name="👑 Elite" 
-                    dataKey="elite" 
-                    stroke={AMBITION_COLORS.elite} 
-                    fill={AMBITION_COLORS.elite} 
-                    fillOpacity={0.08} 
-                    strokeWidth={currentAmbition === "elite" ? 3 : 1.5}
-                    strokeDasharray="2 2"
-                  />
-                  <Legend 
-                    wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }}
-                    iconSize={10}
-                  />
-                </>
-              ) : (
-                // Mode normal: un seul radar avec gradient
+        {/* Radar Chart - masqué en mode comparaison pour plus de clarté */}
+        {!compareMode && (
+          <div className="relative rounded-xl bg-muted/20 border p-2 h-60">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart 
+                data={chartData} 
+                margin={{ top: 25, right: 35, bottom: 25, left: 35 }}
+              >
+                <defs>
+                  <linearGradient id="radarGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
+                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.1} />
+                  </linearGradient>
+                </defs>
+                <PolarGrid 
+                  stroke="hsl(var(--border))" 
+                  strokeOpacity={0.4}
+                  gridType="polygon"
+                />
+                <PolarAngleAxis 
+                  dataKey="axis" 
+                  tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }}
+                  tickLine={false}
+                />
+                <PolarRadiusAxis 
+                  angle={90} 
+                  domain={[0, 100]} 
+                  tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} 
+                  tickCount={5}
+                  axisLine={false}
+                />
                 <Radar 
                   name="Score actuel" 
                   dataKey="current" 
@@ -505,18 +541,18 @@ export function MetabolicPerformanceCompass({
                   strokeWidth={2.5} 
                   dot={{ r: 5, fill: "hsl(var(--primary))", strokeWidth: 2, stroke: "hsl(var(--background))" }} 
                 />
-              )}
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: "hsl(var(--card))", 
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                  fontSize: "12px"
-                }}
-              />
-            </RadarChart>
-          </ResponsiveContainer>
-        </div>
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: "hsl(var(--card))", 
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                    fontSize: "12px"
+                  }}
+                />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
 
         {/* Détails axes (mode staff) avec design cards */}
         {staffMode && !compareMode && (
@@ -547,84 +583,6 @@ export function MetabolicPerformanceCompass({
           </div>
         )}
 
-        {/* Tableau comparatif détaillé en mode staff + compare */}
-        {staffMode && compareMode && allAmbitionScores && (
-          <div className="overflow-x-auto rounded-lg border">
-            <table className="w-full text-xs">
-              <thead className="bg-muted/50">
-                <tr className="border-b">
-                  <th className="text-left py-2 px-3 font-semibold">Axe</th>
-                  {AMBITION_LEVELS_ORDERED.map(amb => {
-                    const def = getAmbitionDefinition(amb);
-                    const isActive = amb === currentAmbition;
-                    return (
-                      <th 
-                        key={amb} 
-                        className={cn(
-                          "text-center py-2 px-2 font-semibold transition-colors",
-                          isActive && "bg-primary/10"
-                        )}
-                      >
-                        <span className={def.color}>{def.icon} {def.shortLabel}</span>
-                      </th>
-                    );
-                  })}
-                </tr>
-              </thead>
-              <tbody>
-                {(["capaciteAerobie", "toleranceEffort", "profilMetabolique", "robustesse"] as const).map((axis, idx) => {
-                  const icons = ["⚡", "💪", "🎯", "🛡️"];
-                  const labels = ["Aérobie", "TTE", "Métabo.", "Robust."];
-                  return (
-                    <tr key={axis} className="border-b border-border/30 hover:bg-muted/20">
-                      <td className="py-2 px-3 font-medium">
-                        <span className="mr-1.5">{icons[idx]}</span>
-                        {labels[idx]}
-                      </td>
-                      {AMBITION_LEVELS_ORDERED.map(amb => {
-                        const axisData = allAmbitionScores[amb][axis];
-                        const score = typeof axisData === 'object' && 'score' in axisData ? axisData.score : 0;
-                        const isActive = amb === currentAmbition;
-                        return (
-                          <td 
-                            key={amb} 
-                            className={cn(
-                              "text-center py-2 px-2 font-mono font-bold tabular-nums transition-colors",
-                              isActive && "bg-primary/10"
-                            )}
-                            style={{ color: getScoreColor(score) }}
-                          >
-                            {score}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  );
-                })}
-                <tr className="font-bold bg-muted/30">
-                  <td className="py-2 px-3">🎯 Global</td>
-                  {AMBITION_LEVELS_ORDERED.map(amb => {
-                    const score = allAmbitionScores[amb].globalScore;
-                    const isActive = amb === currentAmbition;
-                    return (
-                      <td 
-                        key={amb} 
-                        className={cn(
-                          "text-center py-2 px-2 font-mono tabular-nums",
-                          isActive && "bg-primary/10"
-                        )}
-                        style={{ color: getScoreColor(score) }}
-                      >
-                        {score}
-                      </td>
-                    );
-                  })}
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        )}
-
         {/* Alerte limitation principale */}
         {scores.mainLimitation && !compareMode && (
           <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-3">
@@ -635,14 +593,6 @@ export function MetabolicPerformanceCompass({
               <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">Axe prioritaire</p>
               <p className="text-xs text-amber-600 dark:text-amber-500">{scores.mainLimitation}</p>
             </div>
-          </div>
-        )}
-
-        {/* Info comparaison */}
-        {compareMode && (
-          <div className="p-3 bg-primary/5 border border-primary/10 rounded-xl flex items-center gap-2 text-xs text-muted-foreground">
-            <Info className="w-4 h-4 text-primary shrink-0" />
-            <span>Plus le niveau d'ambition est élevé, plus les exigences sont strictes → scores plus bas avec les mêmes données.</span>
           </div>
         )}
 
