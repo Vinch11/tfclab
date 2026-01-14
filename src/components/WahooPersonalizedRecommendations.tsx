@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   Tooltip,
   TooltipContent,
@@ -27,6 +29,7 @@ import {
   TrendingUp,
   Info,
   Brain,
+  Flame,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAthletes } from "@/contexts/AthleteContext";
@@ -248,6 +251,7 @@ export function WahooPersonalizedRecommendations() {
   const { currentAthlete } = useAthletes();
   const { snapshots, tests, checkins } = useCloudData();
   const [expandedPhases, setExpandedPhases] = useState<Set<TemporalPhase>>(new Set([1]));
+  const [forceDevelopmentMode, setForceDevelopmentMode] = useState(false);
 
   // Build context and compute suggestions
   const recommendations = useMemo((): SuggestionEngineOutput | null => {
@@ -374,10 +378,11 @@ export function WahooPersonalizedRecommendations() {
       },
       injuryRiskRun,
       fatigueScore,
+      forceDevelopmentMode,
     };
 
     return suggestWahooWorkouts(context);
-  }, [currentAthlete, snapshots, tests, checkins]);
+  }, [currentAthlete, snapshots, tests, checkins, forceDevelopmentMode]);
 
   const togglePhase = (phase: TemporalPhase) => {
     setExpandedPhases((prev) => {
@@ -441,6 +446,30 @@ export function WahooPersonalizedRecommendations() {
           {totalSuggestions} séances Wahoo SYSTM adaptées au profil de {currentAthlete.nom}
         </p>
       </div>
+
+      {/* Force Development Mode Toggle */}
+      <Card className="bg-muted/30 border-dashed">
+        <CardContent className="py-3 px-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <Flame className="h-4 w-4 text-orange-500 flex-shrink-0" />
+              <div className="min-w-0">
+                <Label htmlFor="force-dev-mode" className="text-sm font-medium cursor-pointer">
+                  Forcer développement
+                </Label>
+                <p className="text-xs text-muted-foreground truncate">
+                  Afficher les séances intenses même avec fatigue modérée
+                </p>
+              </div>
+            </div>
+            <Switch
+              id="force-dev-mode"
+              checked={forceDevelopmentMode}
+              onCheckedChange={setForceDevelopmentMode}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Priority Indicators - Primary and Secondary */}
       {needAnalysis.priorityOrder.length > 0 && (() => {

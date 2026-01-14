@@ -93,6 +93,10 @@ export interface SuggestionEngineContext {
   // Injury and fatigue
   injuryRiskRun?: InjuryRiskRun;
   fatigueScore?: number; // 1-10, higher = more fatigued
+  
+  // Options
+  /** Force development workouts even with moderate fatigue (ignores fatigue <8) */
+  forceDevelopmentMode?: boolean;
 }
 
 export interface WahooSuggestion {
@@ -172,15 +176,19 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
     NEED_VO2_UP: [],
   };
   
-  const { objectif, sportFocus, vlamaxEffectif, tteEffectif, raceReadiness, CRR, injuryRiskRun, fatigueScore, ftpKg } = context;
+  const { objectif, sportFocus, vlamaxEffectif, tteEffectif, raceReadiness, CRR, injuryRiskRun, fatigueScore, ftpKg, forceDevelopmentMode } = context;
   
   // Priority order: RECOVERY > FTP_UP > VLAMAX_DOWN > TTE_UP > ENDURANCE_BASE > VO2_UP
   
   // === RULE D: NEED_RECOVERY (highest priority ONLY for severe cases) ===
   // Use stricter thresholds to avoid overriding development priorities
-  const hasSevereFatigue = fatigueScore !== undefined && fatigueScore >= 8; // More strict: 8/10 instead of 7/10
+  // If forceDevelopmentMode is ON, only trigger recovery for extreme fatigue (9+) or high injury risk
+  const fatigueThreshold = forceDevelopmentMode ? 9 : 8;
+  const freshnessThreshold = forceDevelopmentMode ? 20 : 30;
+  
+  const hasSevereFatigue = fatigueScore !== undefined && fatigueScore >= fatigueThreshold;
   const hasSevereInjuryRisk = injuryRiskRun?.level === "élevé";
-  const hasSevereFreshnessIssue = raceReadiness.details.fraicheur !== undefined && raceReadiness.details.fraicheur < 30; // More strict: < 30 instead of < 50
+  const hasSevereFreshnessIssue = raceReadiness.details.fraicheur !== undefined && raceReadiness.details.fraicheur < freshnessThreshold;
   
   const needsSevereRecovery = hasSevereFatigue || hasSevereInjuryRisk || hasSevereFreshnessIssue;
     
