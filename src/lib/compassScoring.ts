@@ -23,6 +23,13 @@ import { TTEEffectif } from "@/lib/tteEffectif";
 import { ChargeRecenteReference, computeChargeScore, ChargeScore } from "@/lib/chargeRecenteReference";
 import { FatigueEffectif } from "@/lib/fatigueEffectif";
 import { RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
+import { 
+  getVLamaxRange, 
+  getTTETarget, 
+  getFtpKgTarget, 
+  getChargeOptimale,
+  VLamaxTargets
+} from "@/lib/physiologicalTargets";
 
 // =============================================
 // TYPES
@@ -65,45 +72,38 @@ export interface CompassTargets {
 }
 
 // =============================================
-// CIBLES PAR OBJECTIF
+// CIBLES PAR OBJECTIF (derived from centralized source)
 // =============================================
 
-const COMPASS_TARGETS: Record<string, CompassTargets> = {
-  // Ironman / Ultra
-  IM: { objectif: "Ironman", ftpKgTarget: 4.6, tteTarget: 55, vlamaxIdeal: 0.35, vlamaxMax: 0.45, chargeOptimale: 550 },
-  Ironman: { objectif: "Ironman", ftpKgTarget: 4.6, tteTarget: 55, vlamaxIdeal: 0.35, vlamaxMax: 0.45, chargeOptimale: 550 },
-  Ultra: { objectif: "Ultra", ftpKgTarget: 4.4, tteTarget: 60, vlamaxIdeal: 0.32, vlamaxMax: 0.42, chargeOptimale: 500 },
-  
-  // 70.3 / Half
-  "703": { objectif: "70.3", ftpKgTarget: 4.8, tteTarget: 50, vlamaxIdeal: 0.40, vlamaxMax: 0.50, chargeOptimale: 450 },
-  Half: { objectif: "Half", ftpKgTarget: 4.8, tteTarget: 50, vlamaxIdeal: 0.40, vlamaxMax: 0.50, chargeOptimale: 450 },
-  
-  // Marathon / Semi
-  Marathon: { objectif: "Marathon", ftpKgTarget: 4.5, tteTarget: 52, vlamaxIdeal: 0.38, vlamaxMax: 0.48, chargeOptimale: 400 },
-  Semi: { objectif: "Semi", ftpKgTarget: 4.5, tteTarget: 47, vlamaxIdeal: 0.42, vlamaxMax: 0.52, chargeOptimale: 350 },
-  Course: { objectif: "Course", ftpKgTarget: 4.5, tteTarget: 45, vlamaxIdeal: 0.45, vlamaxMax: 0.55, chargeOptimale: 300 },
-  
-  // Trail
-  Trail: { objectif: "Trail", ftpKgTarget: 4.4, tteTarget: 55, vlamaxIdeal: 0.38, vlamaxMax: 0.48, chargeOptimale: 450 },
-  TrailCourt: { objectif: "Trail Court", ftpKgTarget: 4.5, tteTarget: 45, vlamaxIdeal: 0.42, vlamaxMax: 0.52, chargeOptimale: 350 },
-  TrailLong: { objectif: "Trail Long", ftpKgTarget: 4.3, tteTarget: 60, vlamaxIdeal: 0.32, vlamaxMax: 0.42, chargeOptimale: 550 },
-  
-  // Sprint / Olympique
-  Sprint: { objectif: "Sprint", ftpKgTarget: 5.0, tteTarget: 35, vlamaxIdeal: 0.55, vlamaxMax: 0.70, chargeOptimale: 300 },
-  Olympic: { objectif: "Olympic", ftpKgTarget: 4.8, tteTarget: 40, vlamaxIdeal: 0.50, vlamaxMax: 0.60, chargeOptimale: 350 },
-};
+export interface CompassTargets {
+  objectif: string;
+  ftpKgTarget: number;
+  tteTarget: number;
+  vlamaxIdeal: number;
+  vlamaxMax: number;
+  chargeOptimale: number;
+}
 
-const DEFAULT_TARGETS: CompassTargets = COMPASS_TARGETS["703"];
+/**
+ * Build CompassTargets from centralized physiological targets
+ */
+function getTargets(objectif: string): CompassTargets {
+  const vlamaxRange = getVLamaxRange(objectif);
+  return {
+    objectif,
+    ftpKgTarget: getFtpKgTarget(objectif, "intermediaire"),
+    tteTarget: getTTETarget(objectif, "intermediaire"),
+    vlamaxIdeal: vlamaxRange.optimal,
+    vlamaxMax: vlamaxRange.max,
+    chargeOptimale: getChargeOptimale(objectif, "intermediaire"),
+  };
+}
 
 // =============================================
 // HELPERS
 // =============================================
 
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
-
-function getTargets(objectif: string): CompassTargets {
-  return COMPASS_TARGETS[objectif] || DEFAULT_TARGETS;
-}
 
 // =============================================
 // AXE 1 : CAPACITÉ AÉROBIE (FTP/kg)

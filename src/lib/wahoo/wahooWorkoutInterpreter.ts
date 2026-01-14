@@ -741,49 +741,23 @@ export function getZoneColor(zone: ZoneDominante): string {
 
 // ============= OBJECTIVE-BASED THRESHOLDS =============
 
-import { CiblesVLamax } from "@/types/testLibrary";
+import { 
+  getVLamaxThreshold as getCentralVLamaxThreshold,
+  getTTETarget as getCentralTTETarget 
+} from "@/lib/physiologicalTargets";
 
 /**
- * Get VLamax threshold from centralized CiblesVLamax
- * Uses the "max" value as the threshold for triggering alerts
+ * Get VLamax threshold from centralized source
  */
 export function getVLamaxThreshold(objectif: string | undefined): number {
   if (!objectif) return 0.55;
-  
-  const obj = objectif.toLowerCase();
-  let key: keyof typeof CiblesVLamax = "IM";
-  
-  if (obj.includes("im") || obj.includes("ironman") || obj.includes("kona")) {
-    key = "IM";
-  } else if (obj.includes("70.3") || obj.includes("703") || obj.includes("half")) {
-    key = "703";
-  } else if (obj.includes("marathon")) {
-    key = "Marathon";
-  } else if (obj.includes("semi")) {
-    key = "Semi";
-  }
-  
-  return CiblesVLamax[key]?.max ?? 0.55;
+  return getCentralVLamaxThreshold(objectif);
 }
 
 /**
- * Get TTE target based on athlete objective
+ * Get TTE target from centralized source
  */
 export function getTTETarget(objectif: string | undefined): number {
   if (!objectif) return 45;
-  
-  const obj = objectif.toLowerCase();
-  if (obj.includes("im") || obj.includes("ironman") || obj.includes("kona")) {
-    return 55; // High for full IM
-  }
-  if (obj.includes("70.3") || obj.includes("703") || obj.includes("half")) {
-    return 50; // High for 70.3
-  }
-  if (obj.includes("marathon")) {
-    return 50; // High for marathon
-  }
-  if (obj.includes("semi") || obj.includes("half")) {
-    return 40; // Lower for half marathon
-  }
-  return 45; // Default
+  return getCentralTTETarget(objectif);
 }

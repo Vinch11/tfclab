@@ -58,13 +58,8 @@ export interface TestProtocol {
   compute: (athlete: Athlete, input: Record<string, string | number>, refs?: AthleteRefs) => StandardTestResult;
 }
 
-// Cibles VLamax par objectif
-export const CiblesVLamax = {
-  IM: { min: 0.30, max: 0.60, optimal: 0.45 },
-  "703": { min: 0.40, max: 0.70, optimal: 0.55 },
-  Marathon: { min: 0.25, max: 0.50, optimal: 0.35 },
-  Semi: { min: 0.35, max: 0.60, optimal: 0.45 }
-};
+// Re-export CiblesVLamax from centralized source
+export { CiblesVLamax } from "@/lib/physiologicalTargets";
 
 // Bibliothèque complète des tests avec distinction VLAMAX / REF
 export const TestLibrary: TestProtocol[] = [
