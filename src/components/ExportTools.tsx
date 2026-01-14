@@ -22,6 +22,8 @@ import { SEANCES } from "@/types/seances";
 import { computeNutritionEstimate, type NutritionEstimate } from "@/lib/nutritionPredictive";
 import { computeCAPInjuryRisk, getCAPRiskIcon } from "@/lib/capInjuryRisk";
 import { calculateAge, computeAgeAdjustmentIndex, type AgeAdjustmentIndex, interpretVLamaxByAge, getAgeNutritionAdjustment } from "@/lib/ageAdjustment";
+import { AmbitionLevel, DEFAULT_AMBITION, getAmbitionDefinition, AMBITION_LEVELS_ORDERED, AMBITION_DEFINITIONS } from "@/types/ambitionLevel";
+import { getTargetsForAmbition, AMBITION_TARGETS } from "@/lib/physiologicalTargets";
 import logoUrl from "@/assets/logo-2fc.png";
 import { buildChartePageHTML } from "@/data/charteInterpretation";
 // ✅ NEW: Import Compass Scoring et CRR
@@ -47,6 +49,7 @@ interface ExportToolsProps {
   tests: DbTest[];
   checkins?: DbCheckin[];
   staffMode?: boolean;
+  ambition?: AmbitionLevel;
 }
 
 // Sections disponibles dans le rapport
@@ -55,6 +58,8 @@ export interface ReportSections {
   compass: boolean;         // Metabolic Performance Compass
   indicateurs: boolean;     // Indicateurs Clés
   raceReadiness: boolean;   // Race Readiness
+  ambitionTargets: boolean; // Cibles par Niveau d'Ambition
+  ambitionPredictions: boolean; // Prédictions d'Ambition
   ageAdjustment: boolean;   // Ajustement par l'Âge (AAI)
   twoForCoaching: boolean;  // Analyse Two For Coaching Lab™
   wahoo: boolean;           // Suggestions Wahoo SYSTM
@@ -76,6 +81,8 @@ export const DEFAULT_REPORT_SECTIONS: ReportSections = {
   compass: true,
   indicateurs: true,
   raceReadiness: true,
+  ambitionTargets: true,
+  ambitionPredictions: true,
   ageAdjustment: true,
   twoForCoaching: true,
   wahoo: true,
@@ -92,6 +99,8 @@ const SECTION_LABELS: Record<keyof ReportSections, string> = {
   compass: "Metabolic Compass™",
   indicateurs: "Indicateurs Clés",
   raceReadiness: "Race Readiness",
+  ambitionTargets: "Cibles par Ambition",
+  ambitionPredictions: "Prédictions Ambition",
   ageAdjustment: "Ajustement Âge (AAI)",
   twoForCoaching: "Analyse Two For Coaching Lab™",
   wahoo: "Suggestions Wahoo",
@@ -157,6 +166,35 @@ interface ExportPayload {
     aai: AgeAdjustmentIndex;
     vlamaxInterpretation: ReturnType<typeof interpretVLamaxByAge>;
     nutritionAdjustment: ReturnType<typeof getAgeNutritionAdjustment>;
+  };
+  // ✅ NEW: Ambition Targets
+  ambition: {
+    current: AmbitionLevel;
+    label: string;
+    icon: string;
+    targets: {
+      vlamax: { min: number; max: number; optimal: number };
+      tte_min: number;
+      ftp_kg_min: number;
+    };
+    allTargets: {
+      ambition: AmbitionLevel;
+      label: string;
+      icon: string;
+      targets: {
+        vlamax: { min: number; max: number; optimal: number };
+        tte_min: number;
+        ftp_kg_min: number;
+      };
+      progress: {
+        vlamax: number | null;
+        tte: number | null;
+        ftpKg: number | null;
+        global: number | null;
+      };
+      isReached: boolean;
+      weeksToReach: number | null;
+    }[];
   };
 }
 
@@ -324,7 +362,8 @@ function buildExportPayload(
   athlete: DbAthlete,
   snapshots: DbSnapshot[],
   tests: DbTest[],
-  checkins: DbCheckin[] = []
+  checkins: DbCheckin[] = [],
+  ambition: AmbitionLevel = DEFAULT_AMBITION
 ): ExportPayload {
   const effectiveSnapshot = getEffectiveSnapshot(athlete, snapshots);
   const effectiveRefs = getEffectiveRefs(athlete, snapshots);
@@ -524,6 +563,83 @@ function buildExportPayload(
       const vlamaxInterpretation = interpretVLamaxByAge(vlamax.value, age);
       const nutritionAdjustment = getAgeNutritionAdjustment(age);
       return { age, aai, vlamaxInterpretation, nutritionAdjustment };
+    })(),
+    // ✅ NEW: Ambition Targets
+    ambition: (() => {
+      const objectif = athlete.goal || "IM";
+      const currentDef = getAmbitionDefinition(ambition);
+      const currentTargets = getTargetsForAmbition(objectif, ambition);
+      
+      // Calculate progress for each ambition level
+      const ftpKg = effectiveRefs.ftp && effectiveRefs.weightKg && effectiveRefs.weightKg > 0
+        ? effectiveRefs.ftp / effectiveRefs.weightKg
+        : null;
+      
+      const allTargets = AMBITION_LEVELS_ORDERED.map(amb => {
+        const def = getAmbitionDefinition(amb);
+        const targets = getTargetsForAmbition(objectif, amb);
+        
+        // Calculate progress for each metric
+        // VLamax: lower is often better for endurance (inverse progress)
+        const vlamaxProgress = vlamax.value !== null 
+          ? Math.min(100, Math.max(0, (1 - Math.abs(vlamax.value - targets.vlamax.optimal) / 0.15) * 100))
+          : null;
+        
+        const tteProgress = tte.tte_min !== null 
+          ? Math.min(100, (tte.tte_min / targets.tte_min) * 100)
+          : null;
+        
+        const ftpKgProgress = ftpKg !== null 
+          ? Math.min(100, (ftpKg / targets.ftp_kg_min) * 100)
+          : null;
+        
+        // Global progress (average of available metrics)
+        const validProgress = [vlamaxProgress, tteProgress, ftpKgProgress].filter(p => p !== null) as number[];
+        const globalProgress = validProgress.length > 0 
+          ? validProgress.reduce((sum, p) => sum + p, 0) / validProgress.length 
+          : null;
+        
+        const isReached = globalProgress !== null && globalProgress >= 95;
+        
+        // Estimate weeks to reach (simple linear projection)
+        let weeksToReach: number | null = null;
+        if (globalProgress !== null && globalProgress < 100) {
+          const remaining = 100 - globalProgress;
+          const progressPerWeek = 1.5; // Assumed average progress per week
+          weeksToReach = Math.min(52, Math.ceil(remaining / progressPerWeek));
+        }
+        
+        return {
+          ambition: amb,
+          label: def.label,
+          icon: def.icon,
+          targets: {
+            vlamax: targets.vlamax,
+            tte_min: targets.tte_min,
+            ftp_kg_min: targets.ftp_kg_min,
+          },
+          progress: {
+            vlamax: vlamaxProgress,
+            tte: tteProgress,
+            ftpKg: ftpKgProgress,
+            global: globalProgress,
+          },
+          isReached,
+          weeksToReach: isReached ? null : weeksToReach,
+        };
+      });
+      
+      return {
+        current: ambition,
+        label: currentDef.label,
+        icon: currentDef.icon,
+        targets: {
+          vlamax: currentTargets.vlamax,
+          tte_min: currentTargets.tte_min,
+          ftp_kg_min: currentTargets.ftp_kg_min,
+        },
+        allTargets,
+      };
     })(),
   };
 }
@@ -1420,6 +1536,116 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
           </div>
         </div>
       ` : ''}
+    </section>
+  `;
+
+  // =============================================
+  // D-bis. CIBLES PAR NIVEAU D'AMBITION
+  // =============================================
+  const ambitionData = payload.ambition;
+  const ambitionTargetsHTML = `
+    <section id="ambition-targets" class="section pagebreak">
+      <h2>D. Cibles Physiologiques par Niveau d'Ambition</h2>
+      
+      <div class="card cardHighlight mb">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <span style="font-size:28px;">${ambitionData.icon}</span>
+          <div>
+            <div style="font-size:18px;font-weight:700;">Ambition actuelle : ${ambitionData.label}</div>
+            <div class="muted">Les cibles ci-dessous sont adaptées à votre niveau d'ambition pour ${getObjectifLabel(athlete.goal)}</div>
+          </div>
+        </div>
+        <div class="grid3">
+          <div class="card" style="text-align:center;">
+            <div class="muted">VLamax cible</div>
+            <div class="medium">${ambitionData.targets.vlamax.optimal.toFixed(2)}</div>
+            <div class="muted" style="font-size:10px;">(${ambitionData.targets.vlamax.min.toFixed(2)} - ${ambitionData.targets.vlamax.max.toFixed(2)})</div>
+          </div>
+          <div class="card" style="text-align:center;">
+            <div class="muted">TTE minimum</div>
+            <div class="medium">${ambitionData.targets.tte_min} min</div>
+          </div>
+          <div class="card" style="text-align:center;">
+            <div class="muted">FTP/kg minimum</div>
+            <div class="medium">${ambitionData.targets.ftp_kg_min.toFixed(1)} W/kg</div>
+          </div>
+        </div>
+      </div>
+      
+      <h3>Comparatif des cibles par niveau d'ambition</h3>
+      <table style="width:100%;margin-top:12px;">
+        <thead>
+          <tr>
+            <th>Niveau</th>
+            <th>VLamax optimal</th>
+            <th>TTE min</th>
+            <th>FTP/kg min</th>
+            <th>Progression</th>
+            <th>Délai estimé</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${ambitionData.allTargets.map(t => `
+            <tr style="${t.ambition === ambitionData.current ? 'background:rgba(37,99,235,0.1);font-weight:600;' : ''}">
+              <td>${t.icon} ${t.label}</td>
+              <td>${t.targets.vlamax.optimal.toFixed(2)}</td>
+              <td>${t.targets.tte_min} min</td>
+              <td>${t.targets.ftp_kg_min.toFixed(1)} W/kg</td>
+              <td>
+                <div class="progressBar" style="width:80px;display:inline-block;vertical-align:middle;">
+                  <div class="progressFill" style="width:${t.progress.global ?? 0}%;background:${t.progress.global && t.progress.global >= 95 ? 'var(--success)' : t.progress.global && t.progress.global >= 70 ? 'var(--warning)' : 'var(--error)'}"></div>
+                </div>
+                <span style="font-size:11px;margin-left:4px;">${t.progress.global !== null ? Math.round(t.progress.global) + '%' : '—'}</span>
+              </td>
+              <td>${t.isReached ? '<span class="badge badgeSuccess">✓ Atteint</span>' : t.weeksToReach !== null ? '~' + t.weeksToReach + ' sem.' : '—'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </section>
+  `;
+
+  // =============================================
+  // D-ter. PRÉDICTIONS D'AMBITION
+  // =============================================
+  const currentAmbitionTarget = ambitionData.allTargets.find(t => t.ambition === ambitionData.current);
+  const ambitionPredictionsHTML = `
+    <section id="ambition-predictions" class="section">
+      <h2>E. Prédictions de Progression vers les Cibles</h2>
+      
+      <div class="card cardHighlight mb">
+        <h3>📊 Résumé pour ${ambitionData.icon} ${ambitionData.label}</h3>
+        <div class="grid3 mt">
+          <div>
+            <div class="muted">Progression VLamax</div>
+            <div class="medium ${currentAmbitionTarget?.progress.vlamax && currentAmbitionTarget.progress.vlamax >= 90 ? 'success' : 'warning'}">${currentAmbitionTarget?.progress.vlamax !== null ? Math.round(currentAmbitionTarget.progress.vlamax) + '%' : '—'}</div>
+          </div>
+          <div>
+            <div class="muted">Progression TTE</div>
+            <div class="medium ${currentAmbitionTarget?.progress.tte && currentAmbitionTarget.progress.tte >= 90 ? 'success' : 'warning'}">${currentAmbitionTarget?.progress.tte !== null ? Math.round(currentAmbitionTarget.progress.tte) + '%' : '—'}</div>
+          </div>
+          <div>
+            <div class="muted">Progression FTP/kg</div>
+            <div class="medium ${currentAmbitionTarget?.progress.ftpKg && currentAmbitionTarget.progress.ftpKg >= 90 ? 'success' : 'warning'}">${currentAmbitionTarget?.progress.ftpKg !== null ? Math.round(currentAmbitionTarget.progress.ftpKg) + '%' : '—'}</div>
+          </div>
+        </div>
+        ${currentAmbitionTarget?.isReached ? '<div class="alert alertSuccess mt"><b>🏆 Félicitations !</b> Vous avez atteint les cibles pour le niveau ${ambitionData.label}.</div>' : currentAmbitionTarget?.weeksToReach !== null ? '<div class="alert alertInfo mt"><b>⏱️ Délai estimé :</b> ~' + currentAmbitionTarget.weeksToReach + ' semaines pour atteindre les cibles ' + ambitionData.label + ' (basé sur une progression moyenne de 1.5%/sem)</div>' : ''}
+      </div>
+      
+      <div class="grid4 mt">
+        ${ambitionData.allTargets.map(t => `
+          <div class="card ${t.ambition === ambitionData.current ? 'cardHighlight' : ''} ${t.isReached ? 'cardSuccess' : ''}" style="text-align:center;">
+            <div style="font-size:24px;margin-bottom:4px;">${t.icon}</div>
+            <div style="font-weight:600;">${t.label}</div>
+            <div class="big ${t.isReached ? 'success' : t.progress.global && t.progress.global >= 70 ? 'warning' : 'error'}">${t.progress.global !== null ? Math.round(t.progress.global) + '%' : '—'}</div>
+            <div class="muted" style="font-size:11px;">${t.isReached ? '✓ Atteint' : t.weeksToReach !== null ? '~' + t.weeksToReach + ' sem.' : 'Données insuffisantes'}</div>
+          </div>
+        `).join('')}
+      </div>
+      
+      <div class="alert alertWarning mt">
+        <b>⚠️ Note :</b> Ces prédictions sont des estimations basées sur une progression linéaire moyenne. Les résultats réels dépendent de nombreux facteurs (régularité, qualité de l'entraînement, récupération, etc.).
+      </div>
     </section>
   `;
 
@@ -2448,6 +2674,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         ${options.sections.compass ? compassHTML : ''}
         ${options.sections.indicateurs ? indicateursHTML : ''}
         ${options.sections.raceReadiness ? raceReadinessHTML : ''}
+        ${options.sections.ambitionTargets ? ambitionTargetsHTML : ''}
+        ${options.sections.ambitionPredictions ? ambitionPredictionsHTML : ''}
         ${options.sections.ageAdjustment ? aaiHTML : ''}
         ${options.sections.twoForCoaching ? lorangHTML : ''}
         ${options.sections.zones ? zonesHTML : ''}
@@ -2542,7 +2770,7 @@ function buildCSV(payload: ExportPayload): string {
 // COMPONENT
 // =============================================
 
-export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMode = false }: ExportToolsProps) {
+export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMode = false, ambition = DEFAULT_AMBITION }: ExportToolsProps) {
   // Charger les sections depuis le localStorage
   const [sections, setSections] = useState<ReportSections>(() => {
     const stored = localStorage.getItem("vlab-export-sections");
@@ -2561,7 +2789,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
     localStorage.setItem("vlab-export-sections", JSON.stringify(sections));
   }, [sections]);
   
-  const payload = buildExportPayload(athlete, snapshots, tests, checkins);
+  const payload = buildExportPayload(athlete, snapshots, tests, checkins, ambition);
   const exportCheck = canExport(payload);
 
   const handleExportCSV = () => {
@@ -2634,6 +2862,8 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       compass: false,
       indicateurs: false,
       raceReadiness: false,
+      ambitionTargets: false,
+      ambitionPredictions: false,
       ageAdjustment: false,
       twoForCoaching: false,
       wahoo: false,
