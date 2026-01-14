@@ -2010,6 +2010,155 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         ? '<div class="alert alertInfo" style="text-align:center;"><b>⏱️ Délai estimé :</b> ~' + currentAmbitionTarget.weeksToReach + ' semaines (basé sur une progression de 1.5%/sem)</div>'
         : '';
     
+    // Build timeline visualization for all ambition levels
+    const buildTimelineSVG = (): string => {
+      const allTargets = ambitionData.allTargets;
+      const maxWeeks = 52;
+      const timelineWidth = 480;
+      const timelineStartX = 80;
+      
+      // Ambition colors matching the design system
+      const ambitionColors: Record<string, { bg: string; text: string; icon: string }> = {
+        finisher: { bg: '#94a3b8', text: '#475569', icon: '🏁' },
+        age_group: { bg: '#3b82f6', text: '#1d4ed8', icon: '⭐' },
+        competitor: { bg: '#f59e0b', text: '#d97706', icon: '🏆' },
+        elite: { bg: '#a855f7', text: '#7c3aed', icon: '👑' }
+      };
+      
+      // Calculate positions for each ambition level
+      const timelineItems = allTargets.map((target, index) => {
+        const colors = ambitionColors[target.ambition] || ambitionColors.age_group;
+        const weeks = target.isReached ? 0 : (target.weeksToReach || maxWeeks);
+        const xPos = timelineStartX + (weeks / maxWeeks) * timelineWidth;
+        const isCurrentAmbition = target.ambition === ambitionData.current;
+        
+        return {
+          ...target,
+          weeks,
+          xPos: Math.min(xPos, timelineStartX + timelineWidth),
+          colors,
+          isCurrentAmbition
+        };
+      });
+      
+      // Sort by weeks to ensure proper layering
+      const sortedItems = [...timelineItems].sort((a, b) => a.weeks - b.weeks);
+      
+      // Build milestone markers
+      const milestoneMarkers = sortedItems.map((item, index) => {
+        const yOffset = index % 2 === 0 ? -35 : 35; // Alternate above/below
+        const labelY = yOffset < 0 ? yOffset - 12 : yOffset + 22;
+        const weeksY = yOffset < 0 ? yOffset - 2 : yOffset + 34;
+        const connectorY1 = yOffset < 0 ? yOffset + 10 : 0;
+        const connectorY2 = yOffset < 0 ? 0 : yOffset - 8;
+        
+        return `
+          <!-- Connector line -->
+          <line x1="${item.xPos}" y1="${connectorY1}" x2="${item.xPos}" y2="${connectorY2}" 
+            stroke="${item.colors.bg}" stroke-width="2" stroke-dasharray="${item.isReached ? '0' : '4 2'}"/>
+          
+          <!-- Milestone circle -->
+          <circle cx="${item.xPos}" cy="0" r="${item.isCurrentAmbition ? 12 : 8}" 
+            fill="${item.isReached ? item.colors.bg : '#fff'}" 
+            stroke="${item.colors.bg}" stroke-width="${item.isCurrentAmbition ? 3 : 2}"
+            ${item.isReached ? 'filter="url(#glowReached)"' : ''}/>
+          ${item.isReached ? `<text x="${item.xPos}" y="4" font-size="8" fill="#fff" text-anchor="middle">✓</text>` : ''}
+          
+          <!-- Label box -->
+          <rect x="${item.xPos - 45}" y="${labelY - 12}" width="90" height="24" rx="6" 
+            fill="${item.isCurrentAmbition ? item.colors.bg : '#fff'}" 
+            stroke="${item.colors.bg}" stroke-width="1.5"
+            ${item.isCurrentAmbition ? 'filter="url(#dropShadow)"' : ''}/>
+          <text x="${item.xPos}" y="${labelY + 2}" font-size="10" font-weight="${item.isCurrentAmbition ? '700' : '600'}" 
+            fill="${item.isCurrentAmbition ? '#fff' : item.colors.text}" text-anchor="middle">
+            ${item.icon} ${item.label}
+          </text>
+          
+          <!-- Weeks indicator -->
+          <text x="${item.xPos}" y="${weeksY}" font-size="9" fill="${item.colors.text}" text-anchor="middle" font-weight="600">
+            ${item.isReached ? '✅ Atteint' : item.weeks >= 52 ? '> 52 sem.' : `~${item.weeks} sem.`}
+          </text>
+        `;
+      }).join('');
+      
+      // Timeline ticks (0, 12, 26, 39, 52 weeks)
+      const ticks = [0, 13, 26, 39, 52].map(week => {
+        const x = timelineStartX + (week / maxWeeks) * timelineWidth;
+        return `
+          <line x1="${x}" y1="12" x2="${x}" y2="18" stroke="#94a3b8" stroke-width="1"/>
+          <text x="${x}" y="28" font-size="8" fill="#64748b" text-anchor="middle">${week}s</text>
+        `;
+      }).join('');
+      
+      // Month labels
+      const monthLabels = [
+        { week: 0, label: 'Aujourd\'hui' },
+        { week: 13, label: '3 mois' },
+        { week: 26, label: '6 mois' },
+        { week: 52, label: '1 an' }
+      ].map(({ week, label }) => {
+        const x = timelineStartX + (week / maxWeeks) * timelineWidth;
+        return `<text x="${x}" y="40" font-size="7" fill="#94a3b8" text-anchor="middle">${label}</text>`;
+      }).join('');
+      
+      return `
+        <div style="margin-top:24px;">
+          <h4 style="margin:0 0 12px 0;font-size:13px;color:#64748b;display:flex;align-items:center;gap:6px;">
+            <span style="font-size:16px;">📅</span> Timeline prédictive des objectifs
+          </h4>
+          <svg width="100%" viewBox="0 0 600 140" preserveAspectRatio="xMidYMid meet" style="max-width:100%;height:auto;">
+            <defs>
+              <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.15"/>
+              </filter>
+              <filter id="glowReached">
+                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+              <linearGradient id="timelineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#16a34a"/>
+                <stop offset="33%" stop-color="#3b82f6"/>
+                <stop offset="66%" stop-color="#f59e0b"/>
+                <stop offset="100%" stop-color="#a855f7"/>
+              </linearGradient>
+            </defs>
+            
+            <!-- Main timeline -->
+            <g transform="translate(0, 70)">
+              <!-- Background track -->
+              <rect x="${timelineStartX}" y="-4" width="${timelineWidth}" height="8" rx="4" fill="#e2e8f0"/>
+              
+              <!-- Progress bar (filled portion) -->
+              <rect x="${timelineStartX}" y="-4" width="${Math.max(8, (progressGlobal / 100) * timelineWidth * 0.3)}" height="8" rx="4" fill="url(#timelineGradient)"/>
+              
+              <!-- Current position indicator -->
+              <polygon points="${timelineStartX},-8 ${timelineStartX - 6},-16 ${timelineStartX + 6},-16" fill="#111"/>
+              <text x="${timelineStartX}" y="-20" font-size="8" fill="#111" text-anchor="middle" font-weight="600">MAINTENANT</text>
+              
+              <!-- Timeline ticks -->
+              ${ticks}
+              
+              <!-- Month labels -->
+              ${monthLabels}
+              
+              <!-- Milestone markers -->
+              ${milestoneMarkers}
+            </g>
+            
+            <!-- Legend -->
+            <g transform="translate(80, 130)">
+              <circle cx="0" cy="0" r="4" fill="#16a34a"/>
+              <text x="8" y="3" font-size="7" fill="#64748b">Atteint</text>
+              <circle cx="60" cy="0" r="4" fill="#fff" stroke="#3b82f6" stroke-width="2"/>
+              <text x="68" y="3" font-size="7" fill="#64748b">En cours</text>
+              <rect x="130" y="-4" width="16" height="8" rx="2" fill="#e2e8f0" stroke="#d97706" stroke-width="1"/>
+              <text x="150" y="3" font-size="7" fill="#64748b">Niveau actuel</text>
+            </g>
+          </svg>
+        </div>
+      `;
+    };
+    
     return '<div class="card mt" style="background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%); border: 1px solid #fde047; box-shadow: 0 4px 12px rgba(234,179,8,0.15);">' +
       '<h3 style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">' +
         '<span style="background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color:white; padding:6px 10px; border-radius:8px; font-size:14px;">🎯</span>' +
@@ -2046,6 +2195,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
           '</div>' +
         '</div>' +
       '</div>' +
+      buildTimelineSVG() +
       statusMessage +
     '</div>';
   };
