@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CloudDataProvider } from "@/contexts/CloudDataContext";
 import { AthleteProvider } from "@/contexts/AthleteContext";
 import { AuthGate } from "@/components/AuthGate";
 import { OnboardingGate } from "@/components/OnboardingGate";
@@ -41,9 +42,11 @@ export default function App() {
                   element={
                     <AuthGate>
                       <OnboardingGate>
-                        <AthleteProvider>
-                          <Index />
-                        </AthleteProvider>
+                        <CloudDataProvider>
+                          <AthleteProvider>
+                            <Index />
+                          </AthleteProvider>
+                        </CloudDataProvider>
                       </OnboardingGate>
                     </AuthGate>
                   }
@@ -73,9 +76,11 @@ export default function App() {
                   element={
                     <AuthGate>
                       <OnboardingGate>
-                        <AthleteProvider>
-                          <NotFound />
-                        </AthleteProvider>
+                        <CloudDataProvider>
+                          <AthleteProvider>
+                            <NotFound />
+                          </AthleteProvider>
+                        </CloudDataProvider>
                       </OnboardingGate>
                     </AuthGate>
                   }

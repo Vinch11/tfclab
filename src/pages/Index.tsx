@@ -84,7 +84,8 @@ import { Label } from "@/components/ui/label";
 
 import logo2fc from "@/assets/logo-2fc.png";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCloudData, DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
+import { useCloudDataContext } from "@/contexts/CloudDataContext";
+import { DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
 import { FeedbackNolio } from "@/types/feedbackNolio";
 import { toast } from "sonner";
 
@@ -111,7 +112,7 @@ const Index = () => {
   const navigate = useNavigate();
 
   // ✅ IMPORTANT: on récupère aussi snapshots + tests + fonctions cloud
-  const { athletes, snapshots, tests, loading, addAthlete, updateAthlete, deleteAthlete, addTest, deleteTest, updateSnapshot } = useCloudData();
+  const { athletes, snapshots, tests, loading, addAthlete, updateAthlete, deleteAthlete, addTest, deleteTest, updateSnapshot } = useCloudDataContext();
 
   const [activeTab, setActiveTab] = useState(() => {
     // Restaurer l'onglet depuis localStorage au chargement

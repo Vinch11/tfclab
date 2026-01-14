@@ -4,7 +4,7 @@
 // =============================================
 
 import React, { createContext, useContext, useMemo, useState, useEffect, ReactNode } from "react";
-import { useCloudData } from "@/hooks/useCloudData";
+import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import type { Json } from "@/integrations/supabase/types";
 
 // API exposée aux pages (compatible avec ton AthleteEditPage actuel)
@@ -40,7 +40,7 @@ function normalizeRefs(refs: any): any {
 }
 
 export function AthleteProvider({ children }: { children: ReactNode }) {
-  const cloud = useCloudData();
+  const cloud = useCloudDataContext();
   const {
     athletes: dbAthletes,
     addAthlete: dbAddAthlete,
