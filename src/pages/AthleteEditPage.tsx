@@ -10,13 +10,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Save, ArrowRight, User, Calendar, Info } from "lucide-react";
+import { Save, ArrowRight, User, Calendar, Info, Target } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
-import { Athlete, ObjectifType, SexeType } from "@/types/athlete";
+import { Athlete, ObjectifType, SexeType, AmbitionLevel } from "@/types/athlete";
 import { toast } from "sonner";
 import { calculateAge, computeAgeAdjustmentIndex, AGE_METHODOLOGY } from "@/lib/ageAdjustment";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import { AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED, DEFAULT_AMBITION, getAmbitionDefinition } from "@/types/ambitionLevel";
 
 export default function AthleteEditPage() {
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ export default function AthleteEditPage() {
   const [nom, setNom] = useState(editingAthlete?.nom || "");
   const [sexe, setSexe] = useState<SexeType>(editingAthlete?.sexe || "M");
   const [objectif, setObjectif] = useState<ObjectifType>(editingAthlete?.objectif || "IM");
+  const [ambition, setAmbition] = useState<AmbitionLevel>(editingAthlete?.ambition || DEFAULT_AMBITION);
   const [dateNaissance, setDateNaissance] = useState(editingAthlete?.dateNaissance || "");
   const [masseGrasse, setMasseGrasse] = useState(
     editingAthlete?.masse_grasse == null ? "" : String(editingAthlete.masse_grasse),
@@ -37,6 +39,7 @@ export default function AthleteEditPage() {
   // Calcul de l'âge et de l'AAI pour affichage informatif
   const age = calculateAge(dateNaissance);
   const ageIndex = computeAgeAdjustmentIndex(age);
+  const ambitionDef = getAmbitionDefinition(ambition);
 
   const handleSave = () => {
     if (!nom.trim()) {
@@ -49,6 +52,7 @@ export default function AthleteEditPage() {
       nom: nom.trim(),
       sexe,
       objectif,
+      ambition,
       masse_grasse: masseGrasse.trim() === "" ? null : Number(masseGrasse),
       dateNaissance: dateNaissance || undefined,
       refs: {
@@ -124,7 +128,55 @@ export default function AthleteEditPage() {
               </div>
             </div>
 
-            {/* Date de naissance avec indicateur d'âge */}
+            {/* Niveau d'ambition */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label className="flex items-center gap-1">
+                  <Target className="h-4 w-4" />
+                  Niveau d'ambition
+                </Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="p-1 rounded-full hover:bg-muted transition-colors">
+                      <Info className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80" align="start">
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm">Seuils adaptatifs</h4>
+                      <p className="text-xs text-muted-foreground">
+                        Les cibles VLamax, TTE et FTP/kg sont ajustées selon votre niveau d'ambition.
+                        Un "Finisher" aura des seuils plus souples qu'un "Elite" visant une qualification.
+                      </p>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <Select value={ambition} onValueChange={(v) => setAmbition(v as AmbitionLevel)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {AMBITION_LEVELS_ORDERED.map((level) => {
+                    const def = AMBITION_DEFINITIONS[level];
+                    return (
+                      <SelectItem key={level} value={level}>
+                        <span className="flex items-center gap-2">
+                          <span>{def.icon}</span>
+                          <span>{def.label}</span>
+                          <span className="text-xs text-muted-foreground">– {def.description}</span>
+                        </span>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <span className={ambitionDef.color}>{ambitionDef.icon}</span>
+                {ambitionDef.description}
+              </p>
+            </div>
+
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Label htmlFor="dateNaissance" className="flex items-center gap-1">
