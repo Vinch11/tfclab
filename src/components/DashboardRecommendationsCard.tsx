@@ -194,7 +194,7 @@ export function DashboardRecommendationsCard({
       },
       injuryRiskRun,
       fatigueScore,
-      forceDevelopmentMode: false,
+      forceDevelopmentMode: activeSnapshot.force_development_mode ?? false,
       lowCRRJustification,
     };
 
