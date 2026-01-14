@@ -583,9 +583,12 @@ function buildExportPayload(
         const targets = getTargetsForAmbition(objectif, amb);
         
         // Calculate progress for each metric
-        // VLamax: lower is often better for endurance (inverse progress)
-        const vlamaxProgress = vlamax.value !== null 
-          ? Math.min(100, Math.max(0, (1 - Math.abs(vlamax.value - targets.vlamax.optimal) / 0.15) * 100))
+        // VLamax: lower is better for endurance - progress = (optimal / current) * 100
+        // If current <= optimal, progress = 100% (target reached)
+        const vlamaxProgress = vlamax.value !== null && vlamax.value > 0
+          ? vlamax.value <= targets.vlamax.optimal 
+            ? 100 
+            : Math.min(100, Math.max(0, (targets.vlamax.optimal / vlamax.value) * 100))
           : null;
         
         const tteProgress = tte.tte_min !== null 
