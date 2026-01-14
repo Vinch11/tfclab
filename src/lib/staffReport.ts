@@ -132,6 +132,9 @@ export interface StaffReport {
   athleteName: string;
   objectif: string;
   objectifLabel: string;
+  ambition: AmbitionLevel;
+  ambitionLabel: string;
+  ambitionIcon: string;
   snapshotDate: string;
   generatedAt: string;
   
@@ -147,6 +150,8 @@ export interface StaffReport {
   wahooSuggestions: WahooSuggestionsSection;
   finalVerdict: FinalVerdict;
 }
+
+import { AmbitionLevel, DEFAULT_AMBITION, getAmbitionDefinition } from "@/types/ambitionLevel";
 
 export interface GenerateStaffReportParams {
   athleteName: string;
@@ -164,6 +169,7 @@ export interface GenerateStaffReportParams {
   injuryRiskRun?: { level: "faible" | "modéré" | "élevé"; score: number };
   poids: number | null;
   fcMax: number | null;
+  ambition?: AmbitionLevel;
 }
 
 // =============================================
@@ -512,6 +518,7 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     CRR,
     fatigueScore,
     injuryRiskRun,
+    ambition = DEFAULT_AMBITION,
   } = params;
   
   // Déterminer la limitation principale
@@ -720,10 +727,15 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     injuryRiskRun,
   });
   
+  const ambitionDef = getAmbitionDefinition(ambition);
+  
   return {
     athleteName,
     objectif,
     objectifLabel: getObjectifLabel(objectif),
+    ambition,
+    ambitionLabel: ambitionDef.label,
+    ambitionIcon: ambitionDef.icon,
     snapshotDate,
     generatedAt: new Date().toISOString().slice(0, 10),
     executiveSummary,

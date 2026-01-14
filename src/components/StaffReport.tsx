@@ -82,6 +82,7 @@ export function StaffReport({
     ftp,
     poids,
     fcMax,
+    ambition,
   });
 
   const getTrafficLightColors = (light: "green" | "orange" | "red") => {
@@ -134,7 +135,7 @@ export function StaffReport({
         
         {/* Métadonnées athlète */}
         <div className="mt-4 p-3 rounded-lg bg-muted/50 border">
-          <div className="grid grid-cols-3 gap-4 text-sm">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
               <span className="text-muted-foreground">Athlète :</span>
               <span className="ml-2 font-semibold">{report.athleteName}</span>
@@ -142,6 +143,10 @@ export function StaffReport({
             <div>
               <span className="text-muted-foreground">Objectif :</span>
               <span className="ml-2 font-semibold">{report.objectifLabel}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Ambition :</span>
+              <span className="ml-2 font-semibold">{report.ambitionIcon} {report.ambitionLabel}</span>
             </div>
             <div>
               <span className="text-muted-foreground">Snapshot :</span>
