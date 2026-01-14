@@ -41,6 +41,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CharteLectureAcademy } from "@/components/CharteLectureAcademy";
 import { Badge } from "@/components/ui/badge";
 import { UNIFIED_TARGETS } from "@/lib/physiologicalTargets";
+import { AmbitionTargetsTable } from "@/components/AmbitionTargetsTable";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 // Catégories d'objectifs pour le filtre
@@ -565,6 +566,14 @@ export default function AcademyPage() {
                   </p>
                 </CardContent>
               </Card>
+
+              {/* Nouveau tableau par ambition */}
+              <div className="mt-6">
+                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  🎯 Tableau détaillé par niveau d'ambition
+                </h4>
+                <AmbitionTargetsTable />
+              </div>
             </AccordionContent>
           </AccordionItem>
 
