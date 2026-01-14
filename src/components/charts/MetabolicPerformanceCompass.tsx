@@ -2,6 +2,7 @@
  * Metabolic Performance Compass™ – Two For Coaching Lab
  * VERSION STAFF-GRADE avec 4 axes formalisés et CRR
  * + MODE COMPARAISON PAR AMBITION
+ * + DESIGN PREMIUM AMÉLIORÉ
  */
 
 import { useMemo, useState } from "react";
@@ -18,7 +19,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Compass, AlertTriangle, Shield, User, Info, GitCompare } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Compass, AlertTriangle, Shield, User, Info, GitCompare, Sparkles, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { computeCRR, computeChargeScore } from "@/lib/chargeRecenteReference";
 import { computeCompassScores } from "@/lib/compassScoring";
@@ -47,6 +49,7 @@ interface MetabolicPerformanceCompassProps {
   data: CompassData;
   staffMode?: boolean;
   className?: string;
+  compact?: boolean; // Mode compact pour rapport
 }
 
 // Couleurs pour chaque niveau d'ambition
@@ -55,6 +58,14 @@ const AMBITION_COLORS: Record<AmbitionLevel, string> = {
   age_group: "hsl(210, 80%, 55%)",
   competitor: "hsl(38, 92%, 50%)",
   elite: "hsl(270, 70%, 60%)"
+};
+
+// Couleurs de gradient pour le score global
+const SCORE_GRADIENTS = {
+  excellent: "from-emerald-500/20 via-emerald-500/10 to-transparent",
+  good: "from-green-500/20 via-green-500/10 to-transparent",
+  moderate: "from-amber-500/20 via-amber-500/10 to-transparent",
+  low: "from-red-500/20 via-red-500/10 to-transparent",
 };
 
 export const COMPASS_METHODOLOGY = {
@@ -70,12 +81,32 @@ export const COMPASS_METHODOLOGY = {
 };
 
 const getScoreColor = (score: number): string => {
-  if (score >= 80) return "hsl(var(--success))";
-  if (score >= 60) return "hsl(var(--warning))";
-  return "hsl(var(--destructive))";
+  if (score >= 80) return "hsl(142, 76%, 36%)"; // emerald-600
+  if (score >= 70) return "hsl(142, 71%, 45%)"; // green-500
+  if (score >= 50) return "hsl(45, 93%, 47%)"; // amber-500
+  return "hsl(0, 84%, 60%)"; // red-500
 };
 
-export function MetabolicPerformanceCompass({ data, staffMode: initialStaffMode = false, className }: MetabolicPerformanceCompassProps) {
+const getScoreLabel = (score: number): string => {
+  if (score >= 85) return "Excellent";
+  if (score >= 70) return "Prêt";
+  if (score >= 50) return "En progression";
+  return "À développer";
+};
+
+const getScoreGradient = (score: number): string => {
+  if (score >= 80) return SCORE_GRADIENTS.excellent;
+  if (score >= 70) return SCORE_GRADIENTS.good;
+  if (score >= 50) return SCORE_GRADIENTS.moderate;
+  return SCORE_GRADIENTS.low;
+};
+
+export function MetabolicPerformanceCompass({ 
+  data, 
+  staffMode: initialStaffMode = false, 
+  className,
+  compact = false 
+}: MetabolicPerformanceCompassProps) {
   const [staffMode, setStaffMode] = useState(initialStaffMode);
   const [compareMode, setCompareMode] = useState(false);
   
@@ -167,95 +198,260 @@ export function MetabolicPerformanceCompass({ data, staffMode: initialStaffMode 
     ];
   }, [allAmbitionScores, chartData]);
 
-  const globalColor = scores.globalScore >= 70 ? "hsl(var(--success))" : scores.globalScore >= 50 ? "hsl(var(--warning))" : "hsl(var(--destructive))";
+  const globalColor = getScoreColor(scores.globalScore);
+  const globalGradient = getScoreGradient(scores.globalScore);
+  const ambDef = getAmbitionDefinition(currentAmbition);
 
+  // =============================================
+  // MODE COMPACT (pour export rapport)
+  // =============================================
+  if (compact) {
+    return (
+      <div className={cn("p-4 rounded-xl border bg-card", className)}>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5">
+            <Compass className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold">Metabolic Performance Compass™</h3>
+            <p className="text-[10px] text-muted-foreground">Score global pour {ambDef.label}</p>
+          </div>
+        </div>
+        
+        {/* Score global compact */}
+        <div className={cn("p-4 rounded-xl mb-4 bg-gradient-to-br", globalGradient)}>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-4xl font-black tabular-nums" style={{ color: globalColor }}>
+                  {scores.globalScore}
+                </span>
+                <span className="text-sm text-muted-foreground">/100</span>
+              </div>
+              <p className="text-sm font-semibold mt-1" style={{ color: globalColor }}>
+                {getScoreLabel(scores.globalScore)}
+              </p>
+            </div>
+            <Badge variant="outline" className={cn("text-xs", ambDef.color)}>
+              {ambDef.icon} {ambDef.shortLabel}
+            </Badge>
+          </div>
+        </div>
+
+        {/* Axes mini */}
+        <div className="space-y-2">
+          {chartData.map((axis) => (
+            <div key={axis.axis} className="flex items-center gap-3">
+              <span className="text-lg w-6 text-center">{axis.icon}</span>
+              <div className="flex-1">
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="font-medium truncate">{axis.axis}</span>
+                  <span className="font-bold tabular-nums" style={{ color: getScoreColor(axis.current) }}>
+                    {axis.current}
+                  </span>
+                </div>
+                <Progress 
+                  value={axis.current} 
+                  className="h-1.5" 
+                  style={{ 
+                    ["--progress-background" as any]: getScoreColor(axis.current) + "30",
+                    ["--progress-foreground" as any]: getScoreColor(axis.current)
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {scores.mainLimitation && (
+          <div className="mt-3 p-2 bg-amber-500/10 rounded-lg flex items-center gap-2 text-xs text-amber-700 dark:text-amber-400">
+            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+            <span>Priorité: {scores.mainLimitation}</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // =============================================
+  // MODE COMPLET
+  // =============================================
   return (
-    <Card className={cn("overflow-hidden", className)}>
-      <CardHeader className="pb-2">
+    <Card className={cn("overflow-hidden border-0 shadow-lg", className)}>
+      {/* Header avec gradient subtil */}
+      <CardHeader className="pb-2 bg-gradient-to-br from-primary/5 via-transparent to-transparent">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <Compass className="w-5 h-5 text-primary" />
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
+              <div className="relative p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/10">
+                <Compass className="w-6 h-6 text-primary" />
+              </div>
             </div>
             <div>
-              <CardTitle className="text-base">Metabolic Performance Compass™</CardTitle>
-              <CardDescription className="text-xs">4 axes – Formules transparentes</CardDescription>
+              <CardTitle className="text-lg font-bold flex items-center gap-2">
+                Metabolic Performance Compass™
+                <Sparkles className="w-4 h-4 text-amber-500" />
+              </CardTitle>
+              <CardDescription className="text-xs">4 axes • Formules transparentes • Adapté à l'ambition</CardDescription>
             </div>
           </div>
-          <div className="flex flex-col gap-1 items-end">
-            <div className="flex items-center gap-2">
-              <User className={cn("w-4 h-4", !staffMode && "text-primary")} />
-              <Switch checked={staffMode} onCheckedChange={setStaffMode} />
-              <Shield className={cn("w-4 h-4", staffMode && "text-primary")} />
+          <div className="flex flex-col gap-1.5 items-end">
+            <div className="flex items-center gap-2 bg-muted/50 rounded-full px-2 py-1">
+              <User className={cn("w-3.5 h-3.5 transition-colors", !staffMode ? "text-primary" : "text-muted-foreground")} />
+              <Switch checked={staffMode} onCheckedChange={setStaffMode} className="scale-90" />
+              <Shield className={cn("w-3.5 h-3.5 transition-colors", staffMode ? "text-primary" : "text-muted-foreground")} />
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 bg-muted/50 rounded-full px-2 py-1">
               <span className="text-[10px] text-muted-foreground">Comparer</span>
               <Switch 
                 checked={compareMode} 
                 onCheckedChange={setCompareMode}
                 className="scale-75"
               />
-              <GitCompare className={cn("w-3.5 h-3.5", compareMode && "text-primary")} />
+              <GitCompare className={cn("w-3 h-3 transition-colors", compareMode ? "text-primary" : "text-muted-foreground")} />
             </div>
           </div>
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-4">
-        {/* Score global avec ambition actuelle */}
-        <div className="p-3 rounded-lg text-center" style={{ backgroundColor: `${globalColor}15` }}>
-          <div className="flex items-center justify-center gap-3">
-            <div className="text-3xl font-bold font-mono" style={{ color: globalColor }}>{scores.globalScore}</div>
-            <div className="text-left">
-              <p className="font-semibold" style={{ color: globalColor }}>{scores.globalLabel}</p>
-              <div className="flex items-center gap-2">
-                <p className="text-xs text-muted-foreground">Données: {scores.dataCompleteness}%</p>
-                <Badge variant="outline" className={cn("text-[10px] py-0 px-1.5", getAmbitionDefinition(currentAmbition).color)}>
-                  {getAmbitionDefinition(currentAmbition).icon} {getAmbitionDefinition(currentAmbition).shortLabel}
-                </Badge>
+      <CardContent className="space-y-4 pt-2">
+        {/* Score global avec design premium */}
+        <div className={cn(
+          "relative p-4 rounded-2xl overflow-hidden",
+          "bg-gradient-to-br", globalGradient
+        )}>
+          {/* Effet de brillance */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 translate-x-full animate-shimmer" />
+          
+          <div className="relative flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              {/* Score circulaire */}
+              <div className="relative w-20 h-20">
+                <svg className="w-20 h-20 -rotate-90" viewBox="0 0 72 72">
+                  {/* Cercle de fond */}
+                  <circle
+                    cx="36"
+                    cy="36"
+                    r="30"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="6"
+                    className="text-muted/20"
+                  />
+                  {/* Cercle de progression */}
+                  <circle
+                    cx="36"
+                    cy="36"
+                    r="30"
+                    fill="none"
+                    stroke={globalColor}
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                    strokeDasharray={`${(scores.globalScore / 100) * 188.5} 188.5`}
+                    className="transition-all duration-1000 ease-out"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-2xl font-black tabular-nums" style={{ color: globalColor }}>
+                    {scores.globalScore}
+                  </span>
+                </div>
               </div>
+              
+              <div>
+                <p className="text-lg font-bold" style={{ color: globalColor }}>
+                  {getScoreLabel(scores.globalScore)}
+                </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs text-muted-foreground">Données: {scores.dataCompleteness}%</span>
+                  <Badge variant="outline" className={cn("text-[10px] py-0 px-1.5 border-current/20", ambDef.color)}>
+                    {ambDef.icon} {ambDef.shortLabel}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+
+            {/* Mini indicateurs d'axes */}
+            <div className="hidden sm:grid grid-cols-2 gap-1.5">
+              {chartData.map((axis) => (
+                <div 
+                  key={axis.axis}
+                  className="flex items-center gap-1.5 text-xs bg-background/50 rounded-lg px-2 py-1"
+                >
+                  <span>{axis.icon}</span>
+                  <span className="font-bold tabular-nums" style={{ color: getScoreColor(axis.current) }}>
+                    {axis.current}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
         {/* Comparaison des scores globaux par ambition */}
         {compareMode && allAmbitionScores && (
-          <div className="grid grid-cols-4 gap-1.5">
+          <div className="grid grid-cols-4 gap-2">
             {AMBITION_LEVELS_ORDERED.map((ambition) => {
               const ambDef = getAmbitionDefinition(ambition);
               const ambScore = allAmbitionScores[ambition].globalScore;
               const isActive = ambition === currentAmbition;
-              const scoreColor = ambScore >= 70 ? "hsl(var(--success))" : ambScore >= 50 ? "hsl(var(--warning))" : "hsl(var(--destructive))";
+              const scoreColor = getScoreColor(ambScore);
               
               return (
                 <div 
                   key={ambition}
                   className={cn(
-                    "p-2 rounded-lg text-center border transition-all",
-                    isActive ? "border-primary bg-primary/5" : "border-border/50 bg-muted/20"
+                    "p-3 rounded-xl text-center border-2 transition-all",
+                    isActive 
+                      ? "border-primary bg-primary/5 shadow-sm" 
+                      : "border-border/50 bg-muted/20 hover:bg-muted/40"
                   )}
                 >
-                  <div className="text-sm mb-0.5">{ambDef.icon}</div>
-                  <div className="text-lg font-bold font-mono" style={{ color: scoreColor }}>
+                  <div className="text-xl mb-1">{ambDef.icon}</div>
+                  <div className="text-2xl font-black font-mono" style={{ color: scoreColor }}>
                     {ambScore}
                   </div>
-                  <div className={cn("text-[9px]", ambDef.color)}>{ambDef.shortLabel}</div>
+                  <div className={cn("text-[10px] font-medium", ambDef.color)}>{ambDef.shortLabel}</div>
                 </div>
               );
             })}
           </div>
         )}
         
-        {/* Radar Chart */}
-        <div className={cn("h-56 -mx-4", compareMode && "h-64")}>
+        {/* Radar Chart amélioré */}
+        <div className={cn(
+          "relative rounded-xl bg-muted/20 border p-2",
+          compareMode ? "h-72" : "h-60"
+        )}>
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart 
               data={compareMode ? comparisonChartData : chartData} 
-              margin={{ top: 20, right: 30, bottom: compareMode ? 30 : 20, left: 30 }}
+              margin={{ top: 25, right: 35, bottom: compareMode ? 35 : 25, left: 35 }}
             >
-              <PolarGrid stroke="hsl(var(--border))" strokeOpacity={0.5} />
-              <PolarAngleAxis dataKey="axis" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-              <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 9 }} tickCount={5} />
+              <defs>
+                <linearGradient id="radarGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.1} />
+                </linearGradient>
+              </defs>
+              <PolarGrid 
+                stroke="hsl(var(--border))" 
+                strokeOpacity={0.4}
+                gridType="polygon"
+              />
+              <PolarAngleAxis 
+                dataKey="axis" 
+                tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }}
+                tickLine={false}
+              />
+              <PolarRadiusAxis 
+                angle={90} 
+                domain={[0, 100]} 
+                tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} 
+                tickCount={5}
+                axisLine={false}
+              />
               
               {compareMode ? (
                 // Mode comparaison: un radar par niveau d'ambition
@@ -265,7 +461,7 @@ export function MetabolicPerformanceCompass({ data, staffMode: initialStaffMode 
                     dataKey="finisher" 
                     stroke={AMBITION_COLORS.finisher} 
                     fill={AMBITION_COLORS.finisher} 
-                    fillOpacity={0.1} 
+                    fillOpacity={0.08} 
                     strokeWidth={1.5}
                     strokeDasharray="4 4"
                   />
@@ -274,59 +470,78 @@ export function MetabolicPerformanceCompass({ data, staffMode: initialStaffMode 
                     dataKey="age_group" 
                     stroke={AMBITION_COLORS.age_group} 
                     fill={AMBITION_COLORS.age_group} 
-                    fillOpacity={0.15} 
-                    strokeWidth={currentAmbition === "age_group" ? 2.5 : 1.5}
+                    fillOpacity={0.12} 
+                    strokeWidth={currentAmbition === "age_group" ? 3 : 1.5}
                   />
                   <Radar 
                     name="🏆 Compétiteur" 
                     dataKey="competitor" 
                     stroke={AMBITION_COLORS.competitor} 
                     fill={AMBITION_COLORS.competitor} 
-                    fillOpacity={0.15} 
-                    strokeWidth={currentAmbition === "competitor" ? 2.5 : 1.5}
+                    fillOpacity={0.12} 
+                    strokeWidth={currentAmbition === "competitor" ? 3 : 1.5}
                   />
                   <Radar 
                     name="👑 Elite" 
                     dataKey="elite" 
                     stroke={AMBITION_COLORS.elite} 
                     fill={AMBITION_COLORS.elite} 
-                    fillOpacity={0.1} 
-                    strokeWidth={currentAmbition === "elite" ? 2.5 : 1.5}
+                    fillOpacity={0.08} 
+                    strokeWidth={currentAmbition === "elite" ? 3 : 1.5}
                     strokeDasharray="2 2"
                   />
                   <Legend 
-                    wrapperStyle={{ fontSize: '10px' }}
-                    iconSize={8}
+                    wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }}
+                    iconSize={10}
                   />
                 </>
               ) : (
-                // Mode normal: un seul radar
+                // Mode normal: un seul radar avec gradient
                 <Radar 
-                  name="Actuel" 
+                  name="Score actuel" 
                   dataKey="current" 
                   stroke="hsl(var(--primary))" 
-                  fill="hsl(var(--primary))" 
-                  fillOpacity={0.25} 
-                  strokeWidth={2} 
-                  dot={{ r: 4, fill: "hsl(var(--primary))" }} 
+                  fill="url(#radarGradient)"
+                  strokeWidth={2.5} 
+                  dot={{ r: 5, fill: "hsl(var(--primary))", strokeWidth: 2, stroke: "hsl(var(--background))" }} 
                 />
               )}
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: "hsl(var(--card))", 
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                  fontSize: "12px"
+                }}
+              />
             </RadarChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Détails axes (mode staff) */}
+        {/* Détails axes (mode staff) avec design cards */}
         {staffMode && !compareMode && (
           <div className="grid grid-cols-2 gap-2">
             {chartData.map((axis) => (
-              <div key={axis.axis} className="p-2 rounded-lg bg-muted/30 border">
-                <div className="flex items-center gap-1 mb-1">
-                  <span className="text-sm">{axis.icon}</span>
-                  <span className="text-xs font-medium truncate">{axis.axis}</span>
+              <div 
+                key={axis.axis} 
+                className="p-3 rounded-xl bg-gradient-to-br from-muted/50 to-muted/20 border hover:border-primary/30 transition-colors"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">{axis.icon}</span>
+                  <span className="text-xs font-semibold truncate flex-1">{axis.axis}</span>
+                  <span 
+                    className="text-lg font-black tabular-nums" 
+                    style={{ color: getScoreColor(axis.current) }}
+                  >
+                    {axis.current}
+                  </span>
                 </div>
-                <div className="text-lg font-bold font-mono" style={{ color: getScoreColor(axis.current) }}>{axis.current}</div>
+                <Progress 
+                  value={axis.current} 
+                  className="h-1.5 mb-2"
+                />
                 <p className="text-[10px] text-muted-foreground line-clamp-2">{axis.explanation}</p>
-                <p className="text-[9px] font-mono text-muted-foreground/70 mt-1">{axis.formula}</p>
+                <p className="text-[9px] font-mono text-muted-foreground/60 mt-1">{axis.formula}</p>
               </div>
             ))}
           </div>
@@ -334,16 +549,23 @@ export function MetabolicPerformanceCompass({ data, staffMode: initialStaffMode 
 
         {/* Tableau comparatif détaillé en mode staff + compare */}
         {staffMode && compareMode && allAmbitionScores && (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-lg border">
             <table className="w-full text-xs">
-              <thead>
+              <thead className="bg-muted/50">
                 <tr className="border-b">
-                  <th className="text-left py-1.5 px-1">Axe</th>
+                  <th className="text-left py-2 px-3 font-semibold">Axe</th>
                   {AMBITION_LEVELS_ORDERED.map(amb => {
                     const def = getAmbitionDefinition(amb);
+                    const isActive = amb === currentAmbition;
                     return (
-                      <th key={amb} className={cn("text-center py-1.5 px-1", def.color)}>
-                        {def.icon}
+                      <th 
+                        key={amb} 
+                        className={cn(
+                          "text-center py-2 px-2 font-semibold transition-colors",
+                          isActive && "bg-primary/10"
+                        )}
+                      >
+                        <span className={def.color}>{def.icon} {def.shortLabel}</span>
                       </th>
                     );
                   })}
@@ -351,19 +573,24 @@ export function MetabolicPerformanceCompass({ data, staffMode: initialStaffMode 
               </thead>
               <tbody>
                 {(["capaciteAerobie", "toleranceEffort", "profilMetabolique", "robustesse"] as const).map((axis, idx) => {
-                  const labels = ["⚡ Aérobie", "💪 TTE", "🎯 VLamax", "🛡️ Robust."];
+                  const icons = ["⚡", "💪", "🎯", "🛡️"];
+                  const labels = ["Aérobie", "TTE", "Métabo.", "Robust."];
                   return (
-                    <tr key={axis} className="border-b border-border/30">
-                      <td className="py-1.5 px-1 font-medium">{labels[idx]}</td>
+                    <tr key={axis} className="border-b border-border/30 hover:bg-muted/20">
+                      <td className="py-2 px-3 font-medium">
+                        <span className="mr-1.5">{icons[idx]}</span>
+                        {labels[idx]}
+                      </td>
                       {AMBITION_LEVELS_ORDERED.map(amb => {
                         const axisData = allAmbitionScores[amb][axis];
                         const score = typeof axisData === 'object' && 'score' in axisData ? axisData.score : 0;
+                        const isActive = amb === currentAmbition;
                         return (
                           <td 
                             key={amb} 
                             className={cn(
-                              "text-center py-1.5 px-1 font-mono font-bold",
-                              amb === currentAmbition && "bg-primary/10 rounded"
+                              "text-center py-2 px-2 font-mono font-bold tabular-nums transition-colors",
+                              isActive && "bg-primary/10"
                             )}
                             style={{ color: getScoreColor(score) }}
                           >
@@ -374,16 +601,17 @@ export function MetabolicPerformanceCompass({ data, staffMode: initialStaffMode 
                     </tr>
                   );
                 })}
-                <tr className="font-bold">
-                  <td className="py-1.5 px-1">Global</td>
+                <tr className="font-bold bg-muted/30">
+                  <td className="py-2 px-3">🎯 Global</td>
                   {AMBITION_LEVELS_ORDERED.map(amb => {
                     const score = allAmbitionScores[amb].globalScore;
+                    const isActive = amb === currentAmbition;
                     return (
                       <td 
                         key={amb} 
                         className={cn(
-                          "text-center py-1.5 px-1 font-mono",
-                          amb === currentAmbition && "bg-primary/10 rounded"
+                          "text-center py-2 px-2 font-mono tabular-nums",
+                          isActive && "bg-primary/10"
                         )}
                         style={{ color: getScoreColor(score) }}
                       >
@@ -397,26 +625,36 @@ export function MetabolicPerformanceCompass({ data, staffMode: initialStaffMode 
           </div>
         )}
 
+        {/* Alerte limitation principale */}
         {scores.mainLimitation && !compareMode && (
-          <div className="p-2 bg-amber-500/10 rounded-lg flex items-start gap-2 text-xs text-amber-600">
-            <AlertTriangle className="w-4 h-4 shrink-0" />
-            <span>Axe prioritaire: {scores.mainLimitation}</span>
+          <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-3">
+            <div className="p-1.5 rounded-lg bg-amber-500/20">
+              <AlertTriangle className="w-4 h-4 text-amber-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">Axe prioritaire</p>
+              <p className="text-xs text-amber-600 dark:text-amber-500">{scores.mainLimitation}</p>
+            </div>
           </div>
         )}
 
+        {/* Info comparaison */}
         {compareMode && (
-          <div className="p-2 bg-primary/5 rounded-lg text-xs text-muted-foreground text-center">
-            <Info className="w-3.5 h-3.5 inline mr-1" />
-            Plus le niveau d'ambition est élevé, plus les exigences sont strictes → scores plus bas avec les mêmes données physiologiques.
+          <div className="p-3 bg-primary/5 border border-primary/10 rounded-xl flex items-center gap-2 text-xs text-muted-foreground">
+            <Info className="w-4 h-4 text-primary shrink-0" />
+            <span>Plus le niveau d'ambition est élevé, plus les exigences sont strictes → scores plus bas avec les mêmes données.</span>
           </div>
         )}
 
-        <p className="text-[10px] text-muted-foreground text-center">{COMPASS_METHODOLOGY.disclaimer}</p>
+        <p className="text-[10px] text-muted-foreground text-center italic">{COMPASS_METHODOLOGY.disclaimer}</p>
       </CardContent>
     </Card>
   );
 }
 
+// =============================================
+// COMPASS MINI (pour widgets)
+// =============================================
 export function CompassMini({ data, className }: { data: CompassData; className?: string }) {
   const currentAmbition = data.ambition || DEFAULT_AMBITION;
   
@@ -434,16 +672,29 @@ export function CompassMini({ data, className }: { data: CompassData; className?
   }, [data, currentAmbition]);
 
   const ambDef = getAmbitionDefinition(currentAmbition);
+  const scoreColor = getScoreColor(scores.globalScore);
 
   return (
-    <div className={cn("p-3 rounded-lg border bg-card", className)}>
-      <div className="flex items-center gap-2 mb-2">
-        <Compass className="w-4 h-4 text-primary" />
-        <span className="text-sm font-medium">Compass™</span>
-        <Badge variant="outline" className={cn("text-[9px] py-0 px-1", ambDef.color)}>
-          {ambDef.icon}
-        </Badge>
-        <span className="ml-auto text-lg font-bold font-mono" style={{ color: getScoreColor(scores.globalScore) }}>{scores.globalScore}</span>
+    <div className={cn(
+      "p-3 rounded-xl border bg-gradient-to-br from-card to-card/50 shadow-sm",
+      className
+    )}>
+      <div className="flex items-center gap-3">
+        <div className="p-1.5 rounded-lg bg-primary/10">
+          <Compass className="w-4 h-4 text-primary" />
+        </div>
+        <div className="flex-1">
+          <span className="text-sm font-semibold">Compass™</span>
+          <Badge variant="outline" className={cn("ml-2 text-[9px] py-0 px-1.5", ambDef.color)}>
+            {ambDef.icon}
+          </Badge>
+        </div>
+        <div className="text-right">
+          <span className="text-xl font-black tabular-nums" style={{ color: scoreColor }}>
+            {scores.globalScore}
+          </span>
+          <span className="text-xs text-muted-foreground">/100</span>
+        </div>
       </div>
     </div>
   );

@@ -33,6 +33,8 @@ import { RunningEconomyResult } from "@/lib/runningEconomy";
 import { computeCAPInjuryRisk } from "@/lib/capInjuryRisk";
 import { PerformanceRiskMatrixCompact } from "@/components/PerformanceRiskMatrix";
 import { getAxisLabel, getAxisColor } from "@/lib/wahoo/wahooSuggestionEngine";
+import { MetabolicPerformanceCompass } from "@/components/charts/MetabolicPerformanceCompass";
+import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 
 interface StaffReportProps {
   athleteName: string;
@@ -46,6 +48,8 @@ interface StaffReportProps {
   ftp: number | null;
   poids: number | null;
   fcMax: number | null;
+  tss7d?: number | null;
+  ambition?: AmbitionLevel;
   onExportPDF?: () => void;
 }
 
@@ -61,6 +65,8 @@ export function StaffReport({
   ftp,
   poids,
   fcMax,
+  tss7d,
+  ambition,
   onExportPDF,
 }: StaffReportProps) {
   // Générer le rapport
@@ -221,6 +227,24 @@ export function StaffReport({
                 raceReadinessScore: readiness.score,
                 objectif,
               }}
+            />
+          </div>
+          
+          {/* Compass compact pour export */}
+          <div className="mt-4">
+            <MetabolicPerformanceCompass
+              data={{
+                vlamaxEffectif,
+                tteEffectif,
+                ftp,
+                poids,
+                tss7d: tss7d ?? null,
+                snapshotDate,
+                objectif,
+                ambition: ambition || DEFAULT_AMBITION,
+              }}
+              compact={true}
+              className="print:break-inside-avoid"
             />
           </div>
         </div>
