@@ -68,6 +68,7 @@ const PHASE_BADGE_COLORS: Record<TemporalPhase, string> = {
 const AXIS_CONFIG: Record<string, { icon: typeof Zap; color: string; label: string }> = {
   VLAMAX: { icon: Zap, color: "text-amber-500", label: "VLamax ↓" },
   TTE: { icon: Clock, color: "text-blue-500", label: "TTE ↑" },
+  FTP: { icon: Zap, color: "text-orange-500", label: "FTP ↑" },
   ENDURANCE: { icon: Heart, color: "text-green-500", label: "Endurance" },
   FRESHNESS: { icon: Activity, color: "text-purple-500", label: "Récupération" },
   VO2: { icon: TrendingUp, color: "text-red-500", label: "VO₂max ↑" },
@@ -330,6 +331,11 @@ export function WahooPersonalizedRecommendations() {
     const recentCheckin = athleteCheckins[0];
     const fatigueScore = recentCheckin?.fatigue ?? undefined;
 
+    // Compute FTP/kg
+    const ftpKg = (activeSnapshot.ftp && activeSnapshot.weight_kg) 
+      ? activeSnapshot.ftp / activeSnapshot.weight_kg 
+      : null;
+
     // Build context
     const context: SuggestionEngineContext = {
       objectif,
@@ -344,6 +350,7 @@ export function WahooPersonalizedRecommendations() {
         confidence: tteEffectif.confidence,
         source: tteEffectif.source,
       },
+      ftpKg,
       raceReadiness: {
         score: raceReadiness.score,
         details: raceReadiness.details,
