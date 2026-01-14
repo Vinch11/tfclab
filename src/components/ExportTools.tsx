@@ -60,6 +60,7 @@ export interface ReportSections {
   raceReadiness: boolean;   // Race Readiness
   ambitionTargets: boolean; // Cibles par Niveau d'Ambition
   ambitionPredictions: boolean; // Prédictions d'Ambition
+  evolutionCharts: boolean; // Graphiques d'évolution
   ageAdjustment: boolean;   // Ajustement par l'Âge (AAI)
   twoForCoaching: boolean;  // Analyse Two For Coaching Lab™
   wahoo: boolean;           // Suggestions Wahoo SYSTM
@@ -83,6 +84,7 @@ export const DEFAULT_REPORT_SECTIONS: ReportSections = {
   raceReadiness: true,
   ambitionTargets: true,
   ambitionPredictions: true,
+  evolutionCharts: true,
   ageAdjustment: true,
   twoForCoaching: true,
   wahoo: true,
@@ -101,6 +103,7 @@ const SECTION_LABELS: Record<keyof ReportSections, string> = {
   raceReadiness: "Race Readiness",
   ambitionTargets: "Cibles par Ambition",
   ambitionPredictions: "Prédictions Ambition",
+  evolutionCharts: "Graphiques Évolution",
   ageAdjustment: "Ajustement Âge (AAI)",
   twoForCoaching: "Analyse Two For Coaching Lab™",
   wahoo: "Suggestions Wahoo",
@@ -1650,6 +1653,105 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   `;
 
   // =============================================
+  // E-bis. GRAPHIQUES D'ÉVOLUTION (SVG)
+  // =============================================
+  
+  // Préparer les données pour les graphiques
+  const chartSnapshotsSorted = [...snapshotHistory]
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(-12);
+  
+  // Build evolution charts HTML with SVG graphics
+  const evolutionChartsHTML = chartSnapshotsSorted.length >= 2 ? `
+    <section id="evolution-charts" class="section pagebreak">
+      <h2>E-bis. Graphiques d'Évolution Physiologique</h2>
+      
+      <div class="alert alertInfo mb">
+        <b>📊 Visualisation des tendances :</b> Ces graphiques montrent l'évolution des métriques clés sur les ${chartSnapshotsSorted.length} derniers snapshots.
+      </div>
+      
+      <!-- GRAPHIQUE VLamax & TTE -->
+      <div class="card mb">
+        <h3>⚡ Évolution VLamax & TTE</h3>
+        ${(() => {
+          const vlamaxData = chartSnapshotsSorted.filter(s => s.vlamax !== null);
+          const tteData = chartSnapshotsSorted.filter(s => s.tte_observed_min !== null);
+          const vlamaxTrend = vlamaxData.length >= 2 ? (vlamaxData[vlamaxData.length - 1].vlamax! - vlamaxData[0].vlamax!) : null;
+          const tteTrend = tteData.length >= 2 ? (tteData[tteData.length - 1].tte_observed_min! - tteData[0].tte_observed_min!) : null;
+          
+          return `
+            <div style="display:flex;gap:16px;margin-bottom:12px;">
+              ${vlamaxTrend !== null ? `<div class="tag ${vlamaxTrend < 0 ? 'tagSuccess' : vlamaxTrend > 0 ? 'tagWarning' : ''}">VLamax: ${vlamaxTrend > 0 ? '+' : ''}${vlamaxTrend.toFixed(2)} mmol/L/s</div>` : ''}
+              ${tteTrend !== null ? `<div class="tag ${tteTrend > 0 ? 'tagSuccess' : tteTrend < 0 ? 'tagWarning' : ''}">TTE: ${tteTrend > 0 ? '+' : ''}${tteTrend} min</div>` : ''}
+            </div>
+            <div class="grid3">
+              <div style="text-align:center;"><div class="muted" style="font-size:11px;">VLamax actuelle</div><div style="font-size:20px;font-weight:700;color:#06b6d4;">${vlamaxData.length > 0 ? vlamaxData[vlamaxData.length - 1].vlamax?.toFixed(2) : '—'}</div></div>
+              <div style="text-align:center;"><div class="muted" style="font-size:11px;">TTE actuel</div><div style="font-size:20px;font-weight:700;color:#f97316;">${tteData.length > 0 ? tteData[tteData.length - 1].tte_observed_min + ' min' : '—'}</div></div>
+              <div style="text-align:center;"><div class="muted" style="font-size:11px;">Période</div><div style="font-size:12px;color:var(--muted);">${dtStr(chartSnapshotsSorted[0].date)} → ${dtStr(chartSnapshotsSorted[chartSnapshotsSorted.length - 1].date)}</div></div>
+            </div>
+          `;
+        })()}
+        
+        <!-- SVG Chart VLamax & TTE -->
+        <svg width="100%" viewBox="0 0 550 180" preserveAspectRatio="xMidYMid meet" style="max-width:100%;height:auto;margin-top:16px;">
+          <defs><linearGradient id="gridPat"><stop offset="0%" stop-color="#eee"/></linearGradient></defs>
+          <rect x="60" y="20" width="430" height="120" fill="#fafafa" stroke="#eee"/>
+          ${chartSnapshotsSorted.map((s, i) => {
+            const x = 60 + (i / (chartSnapshotsSorted.length - 1)) * 430;
+            const vlamaxY = s.vlamax !== null ? 20 + ((0.60 - s.vlamax) / 0.40) * 120 : null;
+            const tteY = s.tte_observed_min !== null ? 20 + ((80 - s.tte_observed_min) / 60) * 120 : null;
+            return `
+              ${vlamaxY !== null ? `<circle cx="${x}" cy="${vlamaxY}" r="5" fill="#06b6d4" stroke="#fff" stroke-width="2"/>` : ''}
+              ${tteY !== null ? `<circle cx="${x}" cy="${tteY}" r="5" fill="#f97316" stroke="#fff" stroke-width="2"/>` : ''}
+            `;
+          }).join('')}
+          <text x="30" y="80" text-anchor="middle" font-size="10" fill="#06b6d4" transform="rotate(-90, 30, 80)">VLamax</text>
+          <text x="520" y="80" text-anchor="middle" font-size="10" fill="#f97316" transform="rotate(90, 520, 80)">TTE (min)</text>
+          <line x1="60" y1="140" x2="490" y2="140" stroke="#ccc"/>
+          <text x="275" y="165" text-anchor="middle" font-size="10" fill="#666">Évolution temporelle</text>
+        </svg>
+      </div>
+      
+      <!-- GRAPHIQUE FTP/kg -->
+      <div class="card">
+        <h3>💪 Évolution FTP/kg</h3>
+        ${(() => {
+          const ftpKgData = chartSnapshotsSorted.filter(s => s.ftp && s.weight_kg).map(s => ({ ...s, ftpKg: s.ftp! / s.weight_kg! }));
+          const ftpKgTrend = ftpKgData.length >= 2 ? (ftpKgData[ftpKgData.length - 1].ftpKg - ftpKgData[0].ftpKg) : null;
+          
+          return `
+            ${ftpKgTrend !== null ? `<div class="tag ${ftpKgTrend > 0 ? 'tagSuccess' : ftpKgTrend < 0 ? 'tagWarning' : ''}" style="margin-bottom:12px;">Δ FTP/kg: ${ftpKgTrend > 0 ? '+' : ''}${ftpKgTrend.toFixed(2)} W/kg</div>` : ''}
+            <div class="grid2 mt">
+              <div style="text-align:center;"><div class="muted" style="font-size:11px;">FTP/kg actuel</div><div style="font-size:24px;font-weight:700;color:#22c55e;">${ftpKgData.length > 0 ? ftpKgData[ftpKgData.length - 1].ftpKg.toFixed(2) : '—'} W/kg</div></div>
+              <div style="text-align:center;"><div class="muted" style="font-size:11px;">Évolution</div><div style="font-size:16px;font-weight:600;${ftpKgTrend && ftpKgTrend > 0 ? 'color:var(--success);' : ftpKgTrend && ftpKgTrend < 0 ? 'color:var(--error);' : ''}">${ftpKgTrend !== null ? (ftpKgTrend > 0 ? '↑ +' : ftpKgTrend < 0 ? '↓ ' : '→ ') + ftpKgTrend.toFixed(2) + ' W/kg' : '—'}</div></div>
+            </div>
+          `;
+        })()}
+        
+        <!-- SVG Chart FTP/kg -->
+        <svg width="100%" viewBox="0 0 550 180" preserveAspectRatio="xMidYMid meet" style="max-width:100%;height:auto;margin-top:16px;">
+          <rect x="60" y="20" width="430" height="120" fill="#f0fdf4" stroke="#bbf7d0"/>
+          <line x1="60" y1="${20 + ((5.5 - 4.0) / 3.0) * 120}" x2="490" y2="${20 + ((5.5 - 4.0) / 3.0) * 120}" stroke="#22c55e" stroke-dasharray="5,5" opacity="0.5"/>
+          ${chartSnapshotsSorted.map((s, i) => {
+            const x = 60 + (i / (chartSnapshotsSorted.length - 1)) * 430;
+            const ftpKg = s.ftp && s.weight_kg ? s.ftp / s.weight_kg : null;
+            const y = ftpKg !== null ? 20 + ((5.5 - ftpKg) / 3.0) * 120 : null;
+            return y !== null ? `<circle cx="${x}" cy="${y}" r="5" fill="#22c55e" stroke="#fff" stroke-width="2"/>` : '';
+          }).join('')}
+          <text x="30" y="80" text-anchor="middle" font-size="10" fill="#22c55e" transform="rotate(-90, 30, 80)">FTP/kg</text>
+          <line x1="60" y1="140" x2="490" y2="140" stroke="#ccc"/>
+          <text x="275" y="165" text-anchor="middle" font-size="10" fill="#666">Évolution temporelle</text>
+        </svg>
+      </div>
+    </section>
+  ` : `
+    <section id="evolution-charts" class="section">
+      <h2>E-bis. Graphiques d'Évolution Physiologique</h2>
+      <div class="card"><div class="alert alertInfo"><b>ℹ️ Données insuffisantes :</b> Au moins 2 snapshots sont nécessaires pour générer les graphiques d'évolution.</div></div>
+    </section>
+  `;
+
+  // =============================================
   // 6. AJUSTEMENT PAR L'ÂGE (AAI)
   // =============================================
   const aaiHTML = ageAdjustment.age !== null ? `
@@ -2676,9 +2778,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         ${options.sections.raceReadiness ? raceReadinessHTML : ''}
         ${options.sections.ambitionTargets ? ambitionTargetsHTML : ''}
         ${options.sections.ambitionPredictions ? ambitionPredictionsHTML : ''}
+        ${options.sections.evolutionCharts ? evolutionChartsHTML : ''}
         ${options.sections.ageAdjustment ? aaiHTML : ''}
         ${options.sections.twoForCoaching ? lorangHTML : ''}
-        ${options.sections.zones ? zonesHTML : ''}
         ${options.sections.wahoo ? wahooHTML : ''}
         ${options.sections.historique ? snapshotsHTML : ''}
         ${options.sections.tests ? testsHTML : ''}
@@ -2864,6 +2966,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       raceReadiness: false,
       ambitionTargets: false,
       ambitionPredictions: false,
+      evolutionCharts: false,
       ageAdjustment: false,
       twoForCoaching: false,
       wahoo: false,
