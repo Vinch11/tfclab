@@ -43,7 +43,7 @@ import { computeEnergyDrift, EnergyDriftResult } from "@/lib/energyDrift";
 import { EnergyDriftBadge } from "@/components/EnergyDriftBadge";
 import { DashboardGauges } from "@/components/DashboardGauges";
 import { StaffDashboard } from "@/components/StaffDashboard";
-import { ScientificChartsDashboard, MetabolicPerformanceCompass } from "@/components/charts";
+import { ScientificChartsDashboard, MetabolicPerformanceCompass, AmbitionProgressChart } from "@/components/charts";
 import { ChargeRecenteCard } from "@/components/ChargeRecenteCard";
 import { computeCRR } from "@/lib/chargeRecenteReference";
 import { SortableSectionsContainer } from "@/components/SortableSectionsContainer";
@@ -863,6 +863,17 @@ const Index = () => {
                 tss7d={effectiveCloudSnapshot?.tss_7d}
                 sport="velo"
                 initialStaffMode={staffMode}
+              />
+            ),
+          },
+          {
+            id: "ambition-progress",
+            render: () => currentAthlete && (
+              <AmbitionProgressChart
+                snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id)}
+                objectif={currentAthlete.goal || "IM"}
+                ambition={currentAmbition}
+                weightKg={effectiveRefs.weightKg}
               />
             ),
           },
