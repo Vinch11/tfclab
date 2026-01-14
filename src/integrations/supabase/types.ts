@@ -282,6 +282,7 @@ export type Database = {
           ftp: number | null
           gi_issues_flag: boolean | null
           id: string
+          low_crr_justification: string | null
           metabolic_profile: string | null
           metabolic_score: number | null
           objectif: string | null
@@ -325,6 +326,7 @@ export type Database = {
           ftp?: number | null
           gi_issues_flag?: boolean | null
           id?: string
+          low_crr_justification?: string | null
           metabolic_profile?: string | null
           metabolic_score?: number | null
           objectif?: string | null
@@ -368,6 +370,7 @@ export type Database = {
           ftp?: number | null
           gi_issues_flag?: boolean | null
           id?: string
+          low_crr_justification?: string | null
           metabolic_profile?: string | null
           metabolic_score?: number | null
           objectif?: string | null
