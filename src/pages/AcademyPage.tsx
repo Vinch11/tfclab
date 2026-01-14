@@ -15,7 +15,9 @@ import {
   Bike,
   Apple,
   Mountain,
-  Timer
+  Timer,
+  Printer,
+  Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -70,6 +72,101 @@ const getCategoryLabel = (category: ObjectiveCategory) => {
     case "running": return "Course";
     case "trail": return "Trail";
     default: return "Tous";
+  }
+};
+
+// Helper pour générer le HTML d'export des cibles
+const generateTargetsPdfHtml = () => {
+  const styles = `
+    <style>
+      @page { size: A4; margin: 15mm; }
+      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 11px; line-height: 1.4; color: #1a1a1a; }
+      .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #2563eb; padding-bottom: 10px; }
+      .header h1 { font-size: 18px; margin: 0; color: #1e40af; }
+      .header p { margin: 5px 0 0; color: #6b7280; font-size: 10px; }
+      .objective-card { border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 12px; page-break-inside: avoid; }
+      .objective-header { background: #f3f4f6; padding: 8px 12px; border-bottom: 1px solid #e5e7eb; font-weight: 600; font-size: 12px; }
+      .objective-body { display: flex; gap: 10px; padding: 10px; }
+      .level-col { flex: 1; padding: 8px; border-radius: 4px; }
+      .level-perf { background: #dcfce7; border: 1px solid #86efac; }
+      .level-inter { background: #dbeafe; border: 1px solid #93c5fd; }
+      .level-title { font-weight: 600; font-size: 10px; margin-bottom: 6px; text-transform: uppercase; }
+      .level-perf .level-title { color: #166534; }
+      .level-inter .level-title { color: #1e40af; }
+      .metric { display: flex; gap: 6px; margin-bottom: 4px; font-size: 10px; }
+      .metric-label { color: #6b7280; min-width: 70px; }
+      .metric-value { font-weight: 500; font-family: 'SF Mono', Monaco, monospace; }
+      .legend { margin-top: 15px; padding: 10px; background: #f0f9ff; border-radius: 6px; font-size: 9px; color: #1e40af; }
+      .footer { margin-top: 15px; text-align: center; font-size: 8px; color: #9ca3af; }
+    </style>
+  `;
+
+  const objectivesHtml = Object.entries(UNIFIED_TARGETS).map(([key, levels]) => `
+    <div class="objective-card">
+      <div class="objective-header">${key}</div>
+      <div class="objective-body">
+        <div class="level-col level-perf">
+          <div class="level-title">Performance</div>
+          <div class="metric"><span class="metric-label">VLamax:</span><span class="metric-value">${levels.performance.vlamax.min.toFixed(2)} – ${levels.performance.vlamax.max.toFixed(2)} (opt: ${levels.performance.vlamax.optimal.toFixed(2)})</span></div>
+          <div class="metric"><span class="metric-label">TTE min:</span><span class="metric-value">${levels.performance.tte_min} min</span></div>
+          <div class="metric"><span class="metric-label">FTP/kg min:</span><span class="metric-value">${levels.performance.ftp_kg_min.toFixed(1)} W/kg</span></div>
+          ${levels.performance.nutrition_bike_gph.max > 0 ? `<div class="metric"><span class="metric-label">Nutri. vélo:</span><span class="metric-value">${levels.performance.nutrition_bike_gph.min}–${levels.performance.nutrition_bike_gph.max} g/h</span></div>` : ''}
+          ${levels.performance.nutrition_run_gph?.max > 0 ? `<div class="metric"><span class="metric-label">Nutri. CAP:</span><span class="metric-value">${levels.performance.nutrition_run_gph.min}–${levels.performance.nutrition_run_gph.max} g/h</span></div>` : ''}
+        </div>
+        <div class="level-col level-inter">
+          <div class="level-title">Intermédiaire</div>
+          <div class="metric"><span class="metric-label">VLamax:</span><span class="metric-value">${levels.intermediaire.vlamax.min.toFixed(2)} – ${levels.intermediaire.vlamax.max.toFixed(2)} (opt: ${levels.intermediaire.vlamax.optimal.toFixed(2)})</span></div>
+          <div class="metric"><span class="metric-label">TTE min:</span><span class="metric-value">${levels.intermediaire.tte_min} min</span></div>
+          <div class="metric"><span class="metric-label">FTP/kg min:</span><span class="metric-value">${levels.intermediaire.ftp_kg_min.toFixed(1)} W/kg</span></div>
+          ${levels.intermediaire.nutrition_bike_gph.max > 0 ? `<div class="metric"><span class="metric-label">Nutri. vélo:</span><span class="metric-value">${levels.intermediaire.nutrition_bike_gph.min}–${levels.intermediaire.nutrition_bike_gph.max} g/h</span></div>` : ''}
+          ${levels.intermediaire.nutrition_run_gph?.max > 0 ? `<div class="metric"><span class="metric-label">Nutri. CAP:</span><span class="metric-value">${levels.intermediaire.nutrition_run_gph.min}–${levels.intermediaire.nutrition_run_gph.max} g/h</span></div>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Cibles Physiologiques - Two For Coaching Lab</title>
+  ${styles}
+</head>
+<body>
+  <div class="header">
+    <h1>🎯 Cibles Physiologiques par Objectif</h1>
+    <p>Two For Coaching Lab • Généré le ${new Date().toLocaleDateString('fr-FR')}</p>
+  </div>
+  ${objectivesHtml}
+  <div class="legend">
+    💡 <strong>Note :</strong> Les alertes et recommandations utilisent le niveau <strong>Intermédiaire</strong> par défaut. Le niveau <strong>Performance</strong> sert de cible pour les athlètes avancés.
+  </div>
+  <div class="footer">Document généré par Two For Coaching Lab Academy</div>
+</body>
+</html>`;
+};
+
+const handlePrintTargets = () => {
+  const html = generateTargetsPdfHtml();
+  const printWindow = window.open('', '_blank');
+  if (printWindow) {
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => printWindow.print(), 250);
+  }
+};
+
+const handleDownloadTargetsPdf = () => {
+  const html = generateTargetsPdfHtml();
+  const printWindow = window.open('', '_blank');
+  if (printWindow) {
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 250);
   }
 };
 
@@ -307,9 +404,10 @@ export default function AcademyPage() {
                 Deux niveaux sont définis : <Badge variant="outline" className="mx-1">Performance</Badge> pour les athlètes compétitifs et 
                 <Badge variant="outline" className="mx-1">Intermédiaire</Badge> pour les athlètes en progression.
               </p>
-              
-              {/* Filtre par catégorie */}
-              <div className="mb-4">
+
+              {/* Actions : Filtre + Export */}
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+                {/* Filtre par catégorie */}
                 <ToggleGroup 
                   type="single" 
                   value={categoryFilter} 
@@ -333,6 +431,18 @@ export default function AcademyPage() {
                     <span className="hidden sm:inline">{getCategoryLabel("trail")}</span>
                   </ToggleGroupItem>
                 </ToggleGroup>
+
+                {/* Boutons d'export */}
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={handlePrintTargets} className="gap-2">
+                    <Printer className="h-4 w-4" />
+                    <span className="hidden sm:inline">Imprimer</span>
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleDownloadTargetsPdf} className="gap-2">
+                    <Download className="h-4 w-4" />
+                    <span className="hidden sm:inline">PDF</span>
+                  </Button>
+                </div>
               </div>
 
               <div className="space-y-4">
