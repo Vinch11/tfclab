@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Tooltip,
   TooltipContent,
@@ -46,6 +47,9 @@ import {
   PHASE_DESCRIPTIONS,
   needToTargetAxis,
   WahooNeed,
+  LowCRRJustification,
+  LOW_CRR_JUSTIFICATION_LABELS,
+  LOW_CRR_JUSTIFICATION_EFFECTS,
 } from "@/lib/wahoo/wahooSuggestionEngine";
 import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { computeTTEEffectif, getTTETarget } from "@/lib/tteEffectif";
@@ -252,6 +256,20 @@ export function WahooPersonalizedRecommendations() {
   const { snapshots, tests, checkins } = useCloudData();
   const [expandedPhases, setExpandedPhases] = useState<Set<TemporalPhase>>(new Set([1]));
   const [forceDevelopmentMode, setForceDevelopmentMode] = useState(false);
+  const [lowCRRJustification, setLowCRRJustification] = useState<LowCRRJustification | undefined>(undefined);
+
+  // Check if current athlete has low TSS7j (< 250) to show justification selector
+  const activeSnapshot = useMemo(() => {
+    if (!currentAthlete) return null;
+    const athleteSnapshots = snapshots.filter((s) => s.athlete_id === currentAthlete.id);
+    let snapshot = athleteSnapshots.find((s) => s.id === currentAthlete.active_snapshot_id);
+    if (!snapshot && athleteSnapshots.length > 0) {
+      snapshot = [...athleteSnapshots].sort((a, b) => b.date.localeCompare(a.date))[0];
+    }
+    return snapshot;
+  }, [currentAthlete, snapshots]);
+
+  const hasLowCRR = activeSnapshot?.tss_7d !== null && activeSnapshot?.tss_7d !== undefined && activeSnapshot.tss_7d < 250;
 
   // Build context and compute suggestions
   const recommendations = useMemo((): SuggestionEngineOutput | null => {
@@ -379,10 +397,11 @@ export function WahooPersonalizedRecommendations() {
       injuryRiskRun,
       fatigueScore,
       forceDevelopmentMode,
+      lowCRRJustification,
     };
 
     return suggestWahooWorkouts(context);
-  }, [currentAthlete, snapshots, tests, checkins, forceDevelopmentMode]);
+  }, [currentAthlete, snapshots, tests, checkins, forceDevelopmentMode, lowCRRJustification]);
 
   const togglePhase = (phase: TemporalPhase) => {
     setExpandedPhases((prev) => {
@@ -470,6 +489,52 @@ export function WahooPersonalizedRecommendations() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Low CRR Justification Selector - only show if TSS7j < 250 */}
+      {hasLowCRR && (
+        <Card className="bg-amber-500/5 border-amber-500/30">
+          <CardContent className="py-3 px-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-1" />
+              <div className="flex-1 space-y-2">
+                <div>
+                  <p className="text-sm font-medium text-amber-500">
+                    TSS7j faible ({activeSnapshot?.tss_7d ?? 0})
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Indiquez la raison pour adapter les suggestions
+                  </p>
+                </div>
+                <Select
+                  value={lowCRRJustification || "none"}
+                  onValueChange={(value) => 
+                    setLowCRRJustification(value === "none" ? undefined : value as LowCRRJustification)
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnez une raison..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">
+                      <span className="text-muted-foreground">Aucune justification</span>
+                    </SelectItem>
+                    {(Object.keys(LOW_CRR_JUSTIFICATION_LABELS) as LowCRRJustification[]).map((key) => (
+                      <SelectItem key={key} value={key}>
+                        <div className="flex flex-col">
+                          <span>{LOW_CRR_JUSTIFICATION_LABELS[key]}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {LOW_CRR_JUSTIFICATION_EFFECTS[key]}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Priority Indicators - Primary and Secondary */}
       {needAnalysis.priorityOrder.length > 0 && (() => {

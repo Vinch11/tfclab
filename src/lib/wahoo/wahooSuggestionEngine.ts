@@ -34,6 +34,27 @@ export type WahooNeed =
   | "NEED_RECOVERY"
   | "NEED_VO2_UP";
 
+/**
+ * Justification for low TSS7j (CRR)
+ * - "decharge": Planned deload week → TSS considered, recovery suggestions
+ * - "recuperation": Recovery needed → TSS considered, reinforced recovery suggestions  
+ * - "faible_adherence": Low adherence to training → Ignore TSS, prioritize development needs
+ * - undefined: No justification provided → Use default logic
+ */
+export type LowCRRJustification = "decharge" | "recuperation" | "faible_adherence";
+
+export const LOW_CRR_JUSTIFICATION_LABELS: Record<LowCRRJustification, string> = {
+  decharge: "Semaine de décharge",
+  recuperation: "Récupération nécessaire",
+  faible_adherence: "Faible adhérence aux séances",
+};
+
+export const LOW_CRR_JUSTIFICATION_EFFECTS: Record<LowCRRJustification, string> = {
+  decharge: "TSS pris en compte → suggestions récupération légère",
+  recuperation: "TSS pris en compte → récupération renforcée prioritaire",
+  faible_adherence: "TSS ignoré → séances basées sur priorités physiologiques",
+};
+
 export type TargetAxis = "VLAMAX" | "TTE" | "FTP" | "ENDURANCE" | "FRESHNESS" | "VO2";
 
 /**
@@ -99,9 +120,13 @@ export interface SuggestionEngineContext {
   // Training load
   CRR: EffectiveValue; // Charge Récente Relative
   
+  // Justification for low CRR (TSS7j)
+  // Controls how low TSS affects suggestions
+  lowCRRJustification?: LowCRRJustification;
+  
   // Injury and fatigue
   injuryRiskRun?: InjuryRiskRun;
-  fatigueScore?: number; // 1-10, higher = more fatigued
+  fatigueScore?: number; // 1-10 perceived form (1=Nul, 10=Top)
   
   // Options
   /** Force development workouts even with moderate fatigue (ignores fatigue <8) */
@@ -260,9 +285,47 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
   }
   
   // === RULE C: NEED_ENDURANCE_BASE ===
+  // Apply different logic based on lowCRRJustification
+  const lowCRRJustification = context.lowCRRJustification;
+  const hasLowCRR = CRR.value !== null && CRR.value < 250;
+  
+  // Handle low CRR based on justification
+  if (hasLowCRR && lowCRRJustification) {
+    switch (lowCRRJustification) {
+      case "decharge":
+        // Deload week: light recovery suggestions
+        if (!needs.includes("NEED_RECOVERY")) {
+          needs.push("NEED_RECOVERY");
+          const msg = `Semaine de décharge (TSS7j: ${CRR.value}) → récupération légère.`;
+          rationale.push(msg);
+          rationaleByNeed.NEED_RECOVERY.push(msg);
+        }
+        break;
+        
+      case "recuperation":
+        // Recovery needed: prioritize recovery
+        if (!needs.includes("NEED_RECOVERY")) {
+          needs.unshift("NEED_RECOVERY"); // Add at beginning for priority
+          const msg = `Récupération nécessaire (TSS7j: ${CRR.value}) → récupération renforcée.`;
+          rationale.push(msg);
+          rationaleByNeed.NEED_RECOVERY.push(msg);
+        }
+        break;
+        
+      case "faible_adherence":
+        // Low adherence: ignore TSS for suggestions, focus on development needs
+        const msg = `TSS7j faible (${CRR.value}) dû à faible adhérence → ignoré pour les suggestions.`;
+        rationale.push(msg);
+        // Don't add any need based on CRR - will use other physiological priorities
+        break;
+    }
+  }
+  
+  // Endurance base check (only if not already in recovery and CRR not justified as faible_adherence)
+  const ignoreCRRForEndurance = lowCRRJustification === "faible_adherence";
   const hasEnduranceIssue = 
     (raceReadiness.details.endurance !== undefined && raceReadiness.details.endurance < 60) ||
-    (CRR.value !== null && CRR.value < 250);
+    (hasLowCRR && !ignoreCRRForEndurance && !lowCRRJustification);
     
   if (hasEnduranceIssue && !needs.includes("NEED_RECOVERY")) {
     needs.push("NEED_ENDURANCE_BASE");
@@ -271,8 +334,8 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
       rationale.push(msg);
       rationaleByNeed.NEED_ENDURANCE_BASE.push(msg);
     }
-    if (CRR.value !== null && CRR.value < 250) {
-      const msg = `CRR faible (${CRR.value}) → volume/charge non structurée.`;
+    if (hasLowCRR && !ignoreCRRForEndurance && !lowCRRJustification) {
+      const msg = `CRR faible (${CRR.value}) sans justification → volume à structurer.`;
       rationale.push(msg);
       rationaleByNeed.NEED_ENDURANCE_BASE.push(msg);
     }
