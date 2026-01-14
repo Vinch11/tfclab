@@ -827,58 +827,105 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   const tocHTML = `
     <div class="toc mb">
       <div class="tocTitle">📑 SOMMAIRE — Rapport de Modélisation Physiologique</div>
-      <div class="tocRow"><a href="#positionnement">1. Positionnement & Limites méthodologiques</a></div>
-      <div class="tocRow"><a href="#executif">2. Synthèse Exécutive (Lecture nuancée)</a></div>
+      <div class="tocRow"><a href="#positionnement">1. Positionnement & Comment lire ce rapport</a></div>
+      <div class="tocRow"><a href="#executif">2. Synthèse Exécutive</a></div>
       <div class="tocRow"><a href="#donnees">3. Données d'entrée & Fiabilité</a></div>
-      <div class="tocRow"><a href="#analyse">4. Analyse Physiologique Détaillée (Staff Mode)</a></div>
-      <div class="tocRow"><a href="#readiness">5. Race Readiness — Indicateur de Cohérence</a></div>
+      <div class="tocRow"><a href="#analyse">4. Analyse Physiologique Détaillée</a></div>
+      <div class="tocRow"><a href="#readiness">5. Race Readiness</a></div>
       <div class="tocRow"><a href="#aai">6. Ajustement par l'Âge (AAI)</a></div>
-      <div class="tocRow"><a href="#limites">7. Limites explicites & Alertes</a></div>
-      <div class="tocRow"><a href="#recommandations">8. Recommandations d'entraînement (Non prescriptives)</a></div>
+      <div class="tocRow"><a href="#limites">7. Limites & Alertes</a></div>
+      <div class="tocRow"><a href="#recommandations">8. Recommandations d'entraînement</a></div>
       <div class="tocRow"><a href="#zones">9. Zones d'entraînement</a></div>
-      <div class="tocRow"><a href="#conclusion">10. Conclusion & Positionnement final</a></div>
     </div>
   `;
 
   // =============================================
-  // 1. POSITIONNEMENT & LIMITES MÉTHODOLOGIQUES (OBLIGATOIRE)
+  // 1. POSITIONNEMENT UNIFIÉ (FUSIONNÉ AVEC CHARTE)
   // =============================================
   const positionnementHTML = `
-    <section id="positionnement" class="section pagebreakAvoid">
-      <h2>1. Positionnement & Limites méthodologiques</h2>
+    <section id="positionnement" class="section" style="page-break-before: always;">
+      <h2>1. Positionnement & Comment lire ce rapport</h2>
       
-      <div class="card cardWarning">
-        <h3>🎯 Ce que ce rapport EST</h3>
-        <ul>
-          <li>Un <b>outil de modélisation physiologique</b> basé sur des données terrain et des relations scientifiques validées</li>
-          <li>Une <b>aide à la décision</b> pour orienter les choix d'entraînement</li>
-          <li>Un <b>complément</b> à un test physiologique en laboratoire, jamais un concurrent</li>
-          <li>Une <b>photographie à l'instant T</b> dépendante de la qualité des données d'entrée</li>
-        </ul>
+      <!-- ALERTE CRITIQUE -->
+      <div class="alert alertWarning" style="margin-bottom:20px; border:2px solid var(--warning);">
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px;">⚠️ Ce rapport n'est pas un test physiologique</div>
+        <p style="margin:4px 0;font-size:12px;">Il ne remplace ni un test lactate, ni un avis médical, ni l'expertise du coach.</p>
+        <p style="margin:4px 0;font-size:12px;">Il propose une <b>modélisation cohérente</b> basée sur des données mesurées, estimées et modélisées — destinée à <b>guider les choix d'entraînement</b>.</p>
       </div>
       
-      <div class="card cardError mt">
-        <h3>⛔ Ce que ce rapport N'EST PAS</h3>
-        <ul>
-          <li>Un <b>test physiologique</b> (pas de mesure directe de lactate, de VO₂, etc.)</li>
-          <li>Une <b>vérité physiologique absolue</b> — toutes les valeurs comportent une marge d'incertitude</li>
-          <li>Un <b>avis médical</b> — en cas de doute, consulter un professionnel de santé</li>
-          <li>Un <b>substitut à l'expertise du coach</b> — le jugement humain reste indispensable</li>
-        </ul>
+      <!-- CE QUE C'EST / CE QUE CE N'EST PAS -->
+      <div class="grid2" style="gap:16px; margin-bottom:20px;">
+        <div class="card cardSuccess">
+          <h3>✅ Ce que ce rapport permet</h3>
+          <ul>
+            <li><b>Identifier</b> les leviers physiologiques prioritaires</li>
+            <li><b>Hiérarchiser</b> les axes de travail pour l'objectif</li>
+            <li><b>Anticiper</b> certains risques (nutrition, endurance)</li>
+            <li><b>Suivre</b> l'évolution longitudinale du profil</li>
+            <li><b>Orienter</b> les décisions d'entraînement</li>
+          </ul>
+        </div>
+        <div class="card cardError">
+          <h3>❌ Ce que ce rapport ne fait pas</h3>
+          <ul>
+            <li><b>Mesurer</b> directement (lactate, VO₂, etc.)</li>
+            <li><b>Prescrire</b> un plan d'entraînement automatique</li>
+            <li><b>Garantir</b> une performance ou un résultat</li>
+            <li><b>Remplacer</b> l'expertise et le jugement du coach</li>
+            <li><b>Diagnostiquer</b> médicalement</li>
+          </ul>
+        </div>
       </div>
       
+      <!-- SOURCES DE DONNÉES -->
+      <div class="card mt">
+        <h3>📐 Comprendre les sources de données</h3>
+        <table style="width:100%; border-collapse:collapse; font-size:11px; margin-top:12px;">
+          <thead>
+            <tr style="background:var(--muted-bg);">
+              <th style="padding:8px; text-align:left; border:1px solid var(--border);">Type</th>
+              <th style="padding:8px; text-align:left; border:1px solid var(--border);">Signification</th>
+              <th style="padding:8px; text-align:left; border:1px solid var(--border);">Confiance typique</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:8px; border:1px solid var(--border);">🔬 <b>Mesurée</b></td>
+              <td style="padding:8px; border:1px solid var(--border);">Test direct (labo, lactate)</td>
+              <td style="padding:8px; border:1px solid var(--border);">Élevée (&gt; 85%)</td>
+            </tr>
+            <tr style="background:var(--muted-bg);">
+              <td style="padding:8px; border:1px solid var(--border);">🧠 <b>Estimée</b></td>
+              <td style="padding:8px; border:1px solid var(--border);">Test terrain standardisé</td>
+              <td style="padding:8px; border:1px solid var(--border);">Modérée (65 – 85%)</td>
+            </tr>
+            <tr>
+              <td style="padding:8px; border:1px solid var(--border);">🔁 <b>Modélisée</b></td>
+              <td style="padding:8px; border:1px solid var(--border);">Calcul croisé (formules)</td>
+              <td style="padding:8px; border:1px solid var(--border);">Faible (&lt; 65%)</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="muted mt" style="font-size:11px;">
+          Chaque métrique affiche une <b>valeur centrale</b> et une <b>plage de plausibilité</b>. Plus la confiance est basse, plus la plage est large.
+        </p>
+      </div>
+      
+      <!-- FONDEMENTS MÉTHODOLOGIQUES -->
       <div class="card mt">
         <h3>📖 Fondements méthodologiques</h3>
-        <p class="muted">Les modèles Two For Coaching Lab s'appuient sur des relations physiologiques issues de la littérature scientifique :</p>
+        <p class="muted">Les modèles Two For Coaching Lab™ s'appuient sur des relations physiologiques issues de la littérature scientifique :</p>
         <ul class="muted">
           <li><b>École allemande</b> : Mader, Heck, Olbrecht — modèles énergétiques bi-compartimental</li>
           <li><b>Concepts INSCYD-like</b> : VLamax, ratio FatMax, contribution énergétique</li>
-          <li><b>Approche Dan Lorang</b> : hiérarchisation des priorités physiologiques</li>
+          <li><b>Approche structurée</b> : hiérarchisation des priorités physiologiques par objectif</li>
         </ul>
-        <div class="alert alertWarning mt">
-          <b>⚠️ Important :</b> Ces modèles restent <b>dépendants de la qualité des données d'entrée</b>. 
-          Une VLamax estimée à partir de données incomplètes doit être interprétée avec prudence.
-        </div>
+      </div>
+      
+      <!-- MESSAGE FINAL -->
+      <div class="alert alertSuccess mt">
+        <b>💡 En résumé :</b> Ce rapport est un outil de <b>lecture physiologique avancée</b> pour éclairer vos décisions. 
+        <b>Les décisions finales d'entraînement appartiennent toujours au coach et à l'athlète.</b>
       </div>
     </section>
   `;
@@ -2396,9 +2443,6 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
 
         ${tocHTML}
         
-        <!-- PAGE CHARTE - COMMENT LIRE CE RAPPORT -->
-        ${buildChartePageHTML()}
-        
         ${positionnementHTML}
         ${options.sections.synthese ? executifHTML : ''}
         ${options.sections.compass ? compassHTML : ''}
@@ -2413,42 +2457,6 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         ${options.sections.checkins ? checkinsHTML : ''}
         ${options.sections.comprendre ? comprendreHTML : ''}
         ${options.sections.qualite ? qualiteHTML : ''}
-        
-        <!-- CONCLUSION & POSITIONNEMENT FINAL -->
-        <section id="conclusion" class="section pagebreakAvoid">
-          <h2>10. Conclusion & Positionnement final</h2>
-          
-          <div class="card cardHighlight">
-            <h3>🎯 Ce que Two For Coaching Lab apporte</h3>
-            <ul>
-              <li><b>Hiérarchisation des priorités</b> : identifier ce qui limite le plus la performance pour cet objectif</li>
-              <li><b>Cohérence des choix</b> : vérifier que les orientations d'entraînement sont alignées avec le profil</li>
-              <li><b>Lecture physiologique avancée</b> : traduire des données brutes en insights actionnables</li>
-            </ul>
-          </div>
-          
-          <div class="card mt">
-            <h3>🏛️ Ce qui reste du ressort du coach et du staff</h3>
-            <ul class="muted">
-              <li>L'adaptation au contexte individuel (vie perso, blessures passées, préférences)</li>
-              <li>Le jugement sur l'état de forme réel (ressenti, signaux faibles)</li>
-              <li>Les décisions tactiques le jour J</li>
-              <li>La communication et la gestion psychologique de l'athlète</li>
-            </ul>
-          </div>
-          
-          <div class="alert alertSuccess mt">
-            <b>✅ Message final :</b><br>
-            Two For Coaching Lab est un outil de lecture physiologique avancée. 
-            Il ne remplace ni l'expertise du coach, ni un test physiologique complet. 
-            Sa valeur réside dans la <b>hiérarchisation des priorités</b> et la <b>cohérence des choix</b> d'entraînement.
-          </div>
-          
-          <div class="alert alertWarning mt">
-            <b>⚠️ Rappel légal :</b> Ce rapport ne constitue pas un avis médical. 
-            En cas de doute sur l'état de santé, consulter un professionnel de santé.
-          </div>
-        </section>
         
         ${footerHTML}
       </body>
