@@ -25,11 +25,12 @@ import { FatigueEffectif } from "@/lib/fatigueEffectif";
 import { RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
 import { 
   getVLamaxRange, 
-  getTTETarget, 
-  getFtpKgTarget, 
+  getTTETargetByAmbition, 
+  getFtpKgTargetByAmbition, 
   getChargeOptimale,
   VLamaxTargets
 } from "@/lib/physiologicalTargets";
+import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 
 // =============================================
 // TYPES
@@ -86,16 +87,17 @@ export interface CompassTargets {
 
 /**
  * Build CompassTargets from centralized physiological targets
+ * Now uses ambition level for adaptive thresholds
  */
-function getTargets(objectif: string): CompassTargets {
-  const vlamaxRange = getVLamaxRange(objectif);
+function getTargets(objectif: string, ambition: AmbitionLevel = DEFAULT_AMBITION): CompassTargets {
+  const vlamaxRange = getVLamaxRange(objectif, ambition);
   return {
     objectif,
-    ftpKgTarget: getFtpKgTarget(objectif),
-    tteTarget: getTTETarget(objectif),
+    ftpKgTarget: getFtpKgTargetByAmbition(objectif, ambition),
+    tteTarget: getTTETargetByAmbition(objectif, ambition),
     vlamaxIdeal: vlamaxRange.optimal,
     vlamaxMax: vlamaxRange.max,
-    chargeOptimale: getChargeOptimale(objectif),
+    chargeOptimale: getChargeOptimale(objectif, ambition),
   };
 }
 
@@ -117,9 +119,10 @@ const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(ma
 export function computeCapaciteAerobie(
   ftp: number | null,
   poids: number | null,
-  objectif: string
+  objectif: string,
+  ambition?: AmbitionLevel
 ): CompassAxisScore {
-  const targets = getTargets(objectif);
+  const targets = getTargets(objectif, ambition);
   
   // Données manquantes
   if (ftp === null || poids === null || poids <= 0) {
@@ -172,9 +175,10 @@ export function computeCapaciteAerobie(
 
 export function computeToleranceEffort(
   tteEffectif: TTEEffectif,
-  objectif: string
+  objectif: string,
+  ambition?: AmbitionLevel
 ): CompassAxisScore {
-  const targets = getTargets(objectif);
+  const targets = getTargets(objectif, ambition);
   const tteValue = tteEffectif.tte_min;
   
   // TTE inconnu
@@ -228,9 +232,10 @@ export function computeToleranceEffort(
 
 export function computeProfilMetabolique(
   vlamaxEffectif: VLamaxEffectif,
-  objectif: string
+  objectif: string,
+  ambition?: AmbitionLevel
 ): CompassAxisScore {
-  const targets = getTargets(objectif);
+  const targets = getTargets(objectif, ambition);
   const vlamaxValue = vlamaxEffectif.value;
   
   // VLamax inconnu
@@ -469,7 +474,9 @@ export interface ComputeCompassParams {
   tteEffectif: TTEEffectif;
   crr: ChargeRecenteReference;
   objectif: string;
-  // Nouveaux paramètres pour intégration fatigue
+  // Niveau d'ambition pour seuils adaptatifs
+  ambition?: AmbitionLevel;
+  // Paramètres pour intégration fatigue
   fatigueEffectif?: FatigueEffectif | null;
   runInjuryRisk?: RunInjuryRiskEnvelope | null;
   sportFocus?: "bike" | "run" | "triathlon" | null;
@@ -477,20 +484,20 @@ export interface ComputeCompassParams {
 
 export function computeCompassScores(params: ComputeCompassParams): CompassScores {
   const { 
-    ftp, poids, vlamaxEffectif, tteEffectif, crr, objectif,
+    ftp, poids, vlamaxEffectif, tteEffectif, crr, objectif, ambition,
     fatigueEffectif, runInjuryRisk, sportFocus 
   } = params;
   
-  // Calculer les 4 axes
-  const capaciteAerobieRaw = computeCapaciteAerobie(ftp, poids, objectif);
+  // Calculer les 4 axes avec ambition
+  const capaciteAerobieRaw = computeCapaciteAerobie(ftp, poids, objectif, ambition);
   
   // Moduler la capacité aérobie par la fatigue si disponible
   const capaciteAerobie = fatigueEffectif 
     ? modulateCapaciteAerobieByFatigue(capaciteAerobieRaw, fatigueEffectif)
     : capaciteAerobieRaw;
   
-  const toleranceEffort = computeToleranceEffort(tteEffectif, objectif);
-  const profilMetabolique = computeProfilMetabolique(vlamaxEffectif, objectif);
+  const toleranceEffort = computeToleranceEffort(tteEffectif, objectif, ambition);
+  const profilMetabolique = computeProfilMetabolique(vlamaxEffectif, objectif, ambition);
   const chargeScore = computeChargeScore(crr, objectif);
   
   // Robustesse intègre le risque CAP/fatigue selon le sport
