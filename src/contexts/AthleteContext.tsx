@@ -27,16 +27,15 @@ const AthleteContext = createContext<AthleteContextType | undefined>(undefined);
 const LS_SELECTED = "vinceslab-selected-athlete";
 
 function normalizeRefs(refs: any): any {
-  // refs doit être un objet complet (évite bugs UI)
   const r = refs && typeof refs === "object" ? refs : {};
   return {
     fcMax: r.fcMax ?? null,
     vma: r.vma ?? null,
     ftp: r.ftp ?? null,
     css: r.css ?? null,
-    // champs "profil" stockés aussi ici pour éviter de modifier ta table athletes
     sexe: r.sexe ?? null,
     masse_grasse: r.masse_grasse ?? null,
+    ambition: r.ambition ?? null, // Niveau d'ambition
   };
 }
 
@@ -72,7 +71,8 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
         refs,
         vo2max: a.vo2max ?? null,
         active_snapshot_id: a.active_snapshot_id ?? null,
-        dateNaissance: a.birth_date ?? null, // Date de naissance pour calcul AAI
+        dateNaissance: a.birth_date ?? null,
+        ambition: refs.ambition ?? "age_group", // Niveau d'ambition
         // legacy compat :
         historique: [],
         masse_grasse: refs.masse_grasse ?? null,
@@ -114,8 +114,8 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
   }, [athletes]);
 
   const addAthlete = async (athlete: any) => {
-    // On écrit dans Supabase : table athletes + refs JSON complet
     const refs = normalizeRefs(athlete.refs);
+    refs.ambition = athlete.ambition || "age_group"; // Sauvegarder ambition
     const created = await dbAddAthlete(
       athlete.nom || "Nouvel athlète",
       athlete.objectif || "IM",
@@ -128,13 +128,13 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
 
   const updateAthlete = async (athlete: any) => {
     const refs = normalizeRefs(athlete.refs);
+    refs.ambition = athlete.ambition || "age_group"; // Sauvegarder ambition
     return await dbUpdateAthlete(athlete.id, {
       name: athlete.nom,
       goal: athlete.objectif,
       refs: refs as Json,
       vo2max: athlete.vo2max ?? null,
       birth_date: athlete.dateNaissance || null,
-      // active_snapshot_id géré ailleurs (setActiveSnapshot)
     });
   };
 

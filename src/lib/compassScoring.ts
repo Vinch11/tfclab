@@ -91,11 +91,11 @@ function getTargets(objectif: string): CompassTargets {
   const vlamaxRange = getVLamaxRange(objectif);
   return {
     objectif,
-    ftpKgTarget: getFtpKgTarget(objectif, "intermediaire"),
-    tteTarget: getTTETarget(objectif, "intermediaire"),
+    ftpKgTarget: getFtpKgTarget(objectif),
+    tteTarget: getTTETarget(objectif),
     vlamaxIdeal: vlamaxRange.optimal,
     vlamaxMax: vlamaxRange.max,
-    chargeOptimale: getChargeOptimale(objectif, "intermediaire"),
+    chargeOptimale: getChargeOptimale(objectif),
   };
 }
 

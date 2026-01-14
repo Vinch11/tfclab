@@ -14,10 +14,14 @@
  * - FTP/kg: minimum power-to-weight ratio for bike/tri objectives
  * - Charge: optimal weekly TSS for the objective
  * 
- * Level distinction:
- * - PERFORMANCE: Athletes aiming for competitive times
- * - INTERMEDIAIRE: Athletes aiming for completion or modest improvement
+ * Ambition levels:
+ * - finisher: Complete the race (relaxed thresholds)
+ * - age_group: Category performance, top 50% (moderate thresholds)
+ * - competitor: Top 25%, podium potential (demanding thresholds)
+ * - elite: Championship qualification / overall podium (elite thresholds)
  */
+
+import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 
 // =============================================
 // CORE TYPES
@@ -38,35 +42,60 @@ export interface ObjectiveTargets {
   nutrition_run_gph?: { min: number; max: number };  // g/h on run (IM/70.3)
 }
 
+// New 4-level ambition structure
+export interface AmbitionTargets {
+  finisher: ObjectiveTargets;
+  age_group: ObjectiveTargets;
+  competitor: ObjectiveTargets;
+  elite: ObjectiveTargets;
+}
+
+// Legacy structure for backward compatibility
 export interface LeveledTargets {
   performance: ObjectiveTargets;
   intermediaire: ObjectiveTargets;
 }
 
 // =============================================
-// UNIFIED TARGETS BY OBJECTIVE
+// AMBITION-BASED TARGETS BY OBJECTIVE
 // =============================================
 
-const UNIFIED_TARGETS: Record<string, LeveledTargets> = {
+const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
   // =============================================
   // IRONMAN FULL DISTANCE
   // =============================================
   IM: {
-    performance: {
-      vlamax: { min: 0.25, max: 0.40, optimal: 0.32 },
-      tte_min: 55,
-      ftp_kg_min: 4.2,
-      charge_optimale: 550,
-      nutrition_bike_gph: { min: 90, max: 110 },
-      nutrition_run_gph: { min: 60, max: 75 },
+    finisher: {
+      vlamax: { min: 0.35, max: 0.60, optimal: 0.48 },
+      tte_min: 40,
+      ftp_kg_min: 2.8,
+      charge_optimale: 350,
+      nutrition_bike_gph: { min: 60, max: 80 },
+      nutrition_run_gph: { min: 40, max: 55 },
     },
-    intermediaire: {
+    age_group: {
       vlamax: { min: 0.30, max: 0.50, optimal: 0.40 },
       tte_min: 50,
-      ftp_kg_min: 3.8,
+      ftp_kg_min: 3.5,
       charge_optimale: 450,
       nutrition_bike_gph: { min: 70, max: 90 },
       nutrition_run_gph: { min: 50, max: 65 },
+    },
+    competitor: {
+      vlamax: { min: 0.28, max: 0.45, optimal: 0.36 },
+      tte_min: 55,
+      ftp_kg_min: 4.0,
+      charge_optimale: 520,
+      nutrition_bike_gph: { min: 85, max: 100 },
+      nutrition_run_gph: { min: 55, max: 70 },
+    },
+    elite: {
+      vlamax: { min: 0.25, max: 0.38, optimal: 0.30 },
+      tte_min: 60,
+      ftp_kg_min: 4.5,
+      charge_optimale: 600,
+      nutrition_bike_gph: { min: 95, max: 120 },
+      nutrition_run_gph: { min: 65, max: 80 },
     },
   },
 
@@ -74,15 +103,15 @@ const UNIFIED_TARGETS: Record<string, LeveledTargets> = {
   // 70.3 / HALF IRONMAN
   // =============================================
   "703": {
-    performance: {
-      vlamax: { min: 0.28, max: 0.45, optimal: 0.36 },
-      tte_min: 50,
-      ftp_kg_min: 4.2,
-      charge_optimale: 450,
-      nutrition_bike_gph: { min: 80, max: 100 },
-      nutrition_run_gph: { min: 50, max: 75 },
+    finisher: {
+      vlamax: { min: 0.40, max: 0.65, optimal: 0.52 },
+      tte_min: 35,
+      ftp_kg_min: 2.8,
+      charge_optimale: 280,
+      nutrition_bike_gph: { min: 50, max: 70 },
+      nutrition_run_gph: { min: 30, max: 50 },
     },
-    intermediaire: {
+    age_group: {
       vlamax: { min: 0.35, max: 0.55, optimal: 0.45 },
       tte_min: 45,
       ftp_kg_min: 3.6,
@@ -90,21 +119,37 @@ const UNIFIED_TARGETS: Record<string, LeveledTargets> = {
       nutrition_bike_gph: { min: 60, max: 80 },
       nutrition_run_gph: { min: 40, max: 60 },
     },
+    competitor: {
+      vlamax: { min: 0.30, max: 0.48, optimal: 0.38 },
+      tte_min: 50,
+      ftp_kg_min: 4.0,
+      charge_optimale: 450,
+      nutrition_bike_gph: { min: 75, max: 95 },
+      nutrition_run_gph: { min: 50, max: 70 },
+    },
+    elite: {
+      vlamax: { min: 0.26, max: 0.42, optimal: 0.33 },
+      tte_min: 55,
+      ftp_kg_min: 4.5,
+      charge_optimale: 520,
+      nutrition_bike_gph: { min: 90, max: 110 },
+      nutrition_run_gph: { min: 60, max: 80 },
+    },
   },
 
   // =============================================
   // MARATHON
   // =============================================
   Marathon: {
-    performance: {
-      vlamax: { min: 0.25, max: 0.45, optimal: 0.35 },
-      tte_min: 55,
-      ftp_kg_min: 3.8,
-      charge_optimale: 400,
-      nutrition_bike_gph: { min: 0, max: 0 }, // N/A for running
-      nutrition_run_gph: { min: 70, max: 100 },
+    finisher: {
+      vlamax: { min: 0.45, max: 0.70, optimal: 0.55 },
+      tte_min: 40,
+      ftp_kg_min: 2.5,
+      charge_optimale: 250,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 40, max: 60 },
     },
-    intermediaire: {
+    age_group: {
       vlamax: { min: 0.35, max: 0.55, optimal: 0.45 },
       tte_min: 50,
       ftp_kg_min: 3.2,
@@ -112,21 +157,37 @@ const UNIFIED_TARGETS: Record<string, LeveledTargets> = {
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 50, max: 80 },
     },
+    competitor: {
+      vlamax: { min: 0.30, max: 0.48, optimal: 0.38 },
+      tte_min: 55,
+      ftp_kg_min: 3.6,
+      charge_optimale: 380,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 65, max: 90 },
+    },
+    elite: {
+      vlamax: { min: 0.25, max: 0.40, optimal: 0.32 },
+      tte_min: 60,
+      ftp_kg_min: 4.0,
+      charge_optimale: 450,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 80, max: 110 },
+    },
   },
 
   // =============================================
   // SEMI-MARATHON
   // =============================================
   Semi: {
-    performance: {
-      vlamax: { min: 0.35, max: 0.55, optimal: 0.45 },
-      tte_min: 45,
-      ftp_kg_min: 3.8,
-      charge_optimale: 350,
+    finisher: {
+      vlamax: { min: 0.55, max: 0.80, optimal: 0.65 },
+      tte_min: 30,
+      ftp_kg_min: 2.5,
+      charge_optimale: 200,
       nutrition_bike_gph: { min: 0, max: 0 },
-      nutrition_run_gph: { min: 60, max: 90 },
+      nutrition_run_gph: { min: 30, max: 50 },
     },
-    intermediaire: {
+    age_group: {
       vlamax: { min: 0.45, max: 0.70, optimal: 0.55 },
       tte_min: 40,
       ftp_kg_min: 3.2,
@@ -134,21 +195,37 @@ const UNIFIED_TARGETS: Record<string, LeveledTargets> = {
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 40, max: 70 },
     },
+    competitor: {
+      vlamax: { min: 0.38, max: 0.58, optimal: 0.48 },
+      tte_min: 45,
+      ftp_kg_min: 3.6,
+      charge_optimale: 330,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 55, max: 85 },
+    },
+    elite: {
+      vlamax: { min: 0.32, max: 0.50, optimal: 0.40 },
+      tte_min: 50,
+      ftp_kg_min: 4.0,
+      charge_optimale: 400,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 70, max: 100 },
+    },
   },
 
   // =============================================
-  // TRAIL
+  // TRAIL (40-80km)
   // =============================================
   Trail: {
-    performance: {
-      vlamax: { min: 0.30, max: 0.50, optimal: 0.40 },
-      tte_min: 55,
-      ftp_kg_min: 4.0,
-      charge_optimale: 450,
+    finisher: {
+      vlamax: { min: 0.45, max: 0.70, optimal: 0.55 },
+      tte_min: 40,
+      ftp_kg_min: 2.8,
+      charge_optimale: 300,
       nutrition_bike_gph: { min: 0, max: 0 },
-      nutrition_run_gph: { min: 80, max: 120 },
+      nutrition_run_gph: { min: 50, max: 80 },
     },
-    intermediaire: {
+    age_group: {
       vlamax: { min: 0.40, max: 0.60, optimal: 0.50 },
       tte_min: 50,
       ftp_kg_min: 3.5,
@@ -156,18 +233,37 @@ const UNIFIED_TARGETS: Record<string, LeveledTargets> = {
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 60, max: 90 },
     },
+    competitor: {
+      vlamax: { min: 0.35, max: 0.52, optimal: 0.42 },
+      tte_min: 55,
+      ftp_kg_min: 3.8,
+      charge_optimale: 450,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 75, max: 110 },
+    },
+    elite: {
+      vlamax: { min: 0.28, max: 0.45, optimal: 0.35 },
+      tte_min: 60,
+      ftp_kg_min: 4.2,
+      charge_optimale: 520,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 90, max: 130 },
+    },
   },
 
+  // =============================================
+  // TRAIL LONG (80km+)
+  // =============================================
   TrailLong: {
-    performance: {
-      vlamax: { min: 0.25, max: 0.42, optimal: 0.32 },
-      tte_min: 60,
-      ftp_kg_min: 4.0,
-      charge_optimale: 550,
+    finisher: {
+      vlamax: { min: 0.40, max: 0.65, optimal: 0.52 },
+      tte_min: 45,
+      ftp_kg_min: 2.8,
+      charge_optimale: 380,
       nutrition_bike_gph: { min: 0, max: 0 },
-      nutrition_run_gph: { min: 100, max: 140 },
+      nutrition_run_gph: { min: 60, max: 90 },
     },
-    intermediaire: {
+    age_group: {
       vlamax: { min: 0.35, max: 0.55, optimal: 0.45 },
       tte_min: 55,
       ftp_kg_min: 3.5,
@@ -175,18 +271,37 @@ const UNIFIED_TARGETS: Record<string, LeveledTargets> = {
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 70, max: 100 },
     },
-  },
-
-  Ultra: {
-    performance: {
-      vlamax: { min: 0.22, max: 0.38, optimal: 0.30 },
-      tte_min: 65,
+    competitor: {
+      vlamax: { min: 0.30, max: 0.48, optimal: 0.38 },
+      tte_min: 60,
       ftp_kg_min: 3.8,
+      charge_optimale: 520,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 90, max: 130 },
+    },
+    elite: {
+      vlamax: { min: 0.25, max: 0.40, optimal: 0.32 },
+      tte_min: 65,
+      ftp_kg_min: 4.2,
       charge_optimale: 600,
       nutrition_bike_gph: { min: 0, max: 0 },
-      nutrition_run_gph: { min: 120, max: 160 },
+      nutrition_run_gph: { min: 110, max: 150 },
     },
-    intermediaire: {
+  },
+
+  // =============================================
+  // ULTRA (100km+)
+  // =============================================
+  Ultra: {
+    finisher: {
+      vlamax: { min: 0.35, max: 0.58, optimal: 0.48 },
+      tte_min: 50,
+      ftp_kg_min: 2.8,
+      charge_optimale: 420,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 70, max: 100 },
+    },
+    age_group: {
       vlamax: { min: 0.30, max: 0.50, optimal: 0.40 },
       tte_min: 60,
       ftp_kg_min: 3.3,
@@ -194,45 +309,104 @@ const UNIFIED_TARGETS: Record<string, LeveledTargets> = {
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 80, max: 120 },
     },
+    competitor: {
+      vlamax: { min: 0.25, max: 0.42, optimal: 0.33 },
+      tte_min: 65,
+      ftp_kg_min: 3.6,
+      charge_optimale: 560,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 100, max: 145 },
+    },
+    elite: {
+      vlamax: { min: 0.20, max: 0.35, optimal: 0.28 },
+      tte_min: 70,
+      ftp_kg_min: 4.0,
+      charge_optimale: 650,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 130, max: 180 },
+    },
   },
 
   // =============================================
   // SHORT DISTANCE TRIATHLON
   // =============================================
   Sprint: {
-    performance: {
-      vlamax: { min: 0.50, max: 0.80, optimal: 0.65 },
-      tte_min: 35,
-      ftp_kg_min: 5.0,
-      charge_optimale: 300,
-      nutrition_bike_gph: { min: 40, max: 60 },
+    finisher: {
+      vlamax: { min: 0.65, max: 0.95, optimal: 0.80 },
+      tte_min: 20,
+      ftp_kg_min: 3.2,
+      charge_optimale: 180,
+      nutrition_bike_gph: { min: 20, max: 40 },
     },
-    intermediaire: {
+    age_group: {
       vlamax: { min: 0.60, max: 0.90, optimal: 0.75 },
       tte_min: 30,
       ftp_kg_min: 4.2,
       charge_optimale: 250,
       nutrition_bike_gph: { min: 30, max: 50 },
     },
+    competitor: {
+      vlamax: { min: 0.55, max: 0.82, optimal: 0.68 },
+      tte_min: 35,
+      ftp_kg_min: 4.7,
+      charge_optimale: 300,
+      nutrition_bike_gph: { min: 35, max: 55 },
+    },
+    elite: {
+      vlamax: { min: 0.50, max: 0.75, optimal: 0.62 },
+      tte_min: 40,
+      ftp_kg_min: 5.2,
+      charge_optimale: 350,
+      nutrition_bike_gph: { min: 45, max: 65 },
+    },
   },
 
   Olympic: {
-    performance: {
-      vlamax: { min: 0.45, max: 0.65, optimal: 0.55 },
-      tte_min: 40,
-      ftp_kg_min: 4.8,
-      charge_optimale: 350,
-      nutrition_bike_gph: { min: 60, max: 80 },
+    finisher: {
+      vlamax: { min: 0.60, max: 0.85, optimal: 0.72 },
+      tte_min: 25,
+      ftp_kg_min: 3.2,
+      charge_optimale: 220,
+      nutrition_bike_gph: { min: 30, max: 50 },
     },
-    intermediaire: {
+    age_group: {
       vlamax: { min: 0.55, max: 0.75, optimal: 0.65 },
       tte_min: 35,
       ftp_kg_min: 4.0,
       charge_optimale: 300,
       nutrition_bike_gph: { min: 40, max: 60 },
     },
+    competitor: {
+      vlamax: { min: 0.48, max: 0.68, optimal: 0.58 },
+      tte_min: 40,
+      ftp_kg_min: 4.5,
+      charge_optimale: 350,
+      nutrition_bike_gph: { min: 55, max: 75 },
+    },
+    elite: {
+      vlamax: { min: 0.42, max: 0.60, optimal: 0.50 },
+      tte_min: 45,
+      ftp_kg_min: 5.0,
+      charge_optimale: 400,
+      nutrition_bike_gph: { min: 65, max: 85 },
+    },
   },
 };
+
+// =============================================
+// LEGACY UNIFIED_TARGETS FOR BACKWARD COMPAT
+// Maps to age_group (intermediaire) and elite (performance)
+// =============================================
+
+const UNIFIED_TARGETS: Record<string, LeveledTargets> = Object.fromEntries(
+  Object.entries(AMBITION_TARGETS).map(([key, val]) => [
+    key,
+    {
+      intermediaire: val.age_group,
+      performance: val.elite,
+    },
+  ])
+);
 
 // Aliases for common objective names
 const OBJECTIVE_ALIASES: Record<string, string> = {
@@ -247,12 +421,15 @@ const OBJECTIVE_ALIASES: Record<string, string> = {
   "Semi-Marathon": "Semi",
   "trail": "Trail",
   "TrailCourt": "Trail",
+  "TrailShort": "Trail",
+  "TrailMountain": "Trail",
   "traillong": "TrailLong",
+  "TrailUltra": "Ultra",
   "ultra": "Ultra",
   "sprint": "Sprint",
   "olympic": "Olympic",
   "olympique": "Olympic",
-  "Course": "Semi", // Default running to Semi
+  "Course": "Semi",
 };
 
 // =============================================
@@ -263,13 +440,25 @@ const OBJECTIVE_ALIASES: Record<string, string> = {
  * Normalize objective string to canonical form
  */
 export function normalizeObjective(objectif: string): string {
-  if (UNIFIED_TARGETS[objectif]) return objectif;
+  if (AMBITION_TARGETS[objectif]) return objectif;
   const alias = OBJECTIVE_ALIASES[objectif] || OBJECTIVE_ALIASES[objectif.toLowerCase()];
   return alias || "703"; // Default to 703 if unknown
 }
 
 /**
- * Get full targets for an objective at a given level
+ * Get full targets for an objective at a given ambition level (NEW API)
+ */
+export function getTargetsForAmbition(
+  objectif: string,
+  ambition: AmbitionLevel = DEFAULT_AMBITION
+): ObjectiveTargets {
+  const normalized = normalizeObjective(objectif);
+  const targets = AMBITION_TARGETS[normalized];
+  return targets?.[ambition] || AMBITION_TARGETS["703"].age_group;
+}
+
+/**
+ * Get full targets for an objective at a given level (LEGACY API - kept for compat)
  */
 export function getTargetsForObjective(
   objectif: string, 
@@ -281,38 +470,50 @@ export function getTargetsForObjective(
 }
 
 /**
- * Get VLamax range for an objective (uses intermediaire for broader range)
+ * Get VLamax range for an objective (uses ambition level)
  */
-export function getVLamaxRange(objectif: string): VLamaxTargets {
-  const normalized = normalizeObjective(objectif);
-  const targets = UNIFIED_TARGETS[normalized];
-  // Use the broader intermediaire range for general thresholds
-  return targets?.intermediaire.vlamax || { min: 0.35, max: 0.55, optimal: 0.45 };
+export function getVLamaxRange(objectif: string, ambition?: AmbitionLevel): VLamaxTargets {
+  const targets = getTargetsForAmbition(objectif, ambition || DEFAULT_AMBITION);
+  return targets.vlamax;
 }
 
 /**
  * Get VLamax threshold (max value) for triggering "too high" alerts
  */
-export function getVLamaxThreshold(objectif: string): number {
-  return getVLamaxRange(objectif).max;
+export function getVLamaxThreshold(objectif: string, ambition?: AmbitionLevel): number {
+  return getVLamaxRange(objectif, ambition).max;
 }
 
 /**
  * Get VLamax optimal value for an objective
  */
-export function getVLamaxOptimal(objectif: string): number {
-  return getVLamaxRange(objectif).optimal;
+export function getVLamaxOptimal(objectif: string, ambition?: AmbitionLevel): number {
+  return getVLamaxRange(objectif, ambition).optimal;
 }
 
 /**
- * Get TTE target for an objective
+ * Get TTE target for an objective (NEW API with ambition)
+ */
+export function getTTETargetByAmbition(objectif: string, ambition: AmbitionLevel = DEFAULT_AMBITION): number {
+  return getTargetsForAmbition(objectif, ambition).tte_min;
+}
+
+/**
+ * Get TTE target for an objective (LEGACY API)
  */
 export function getTTETarget(objectif: string, level: "performance" | "intermediaire" = "intermediaire"): number {
   return getTargetsForObjective(objectif, level).tte_min;
 }
 
 /**
- * Get FTP/kg target for an objective
+ * Get FTP/kg target for an objective (NEW API with ambition)
+ */
+export function getFtpKgTargetByAmbition(objectif: string, ambition: AmbitionLevel = DEFAULT_AMBITION): number {
+  return getTargetsForAmbition(objectif, ambition).ftp_kg_min;
+}
+
+/**
+ * Get FTP/kg target for an objective (LEGACY API)
  */
 export function getFtpKgTarget(objectif: string, level: "performance" | "intermediaire" = "intermediaire"): number {
   return getTargetsForObjective(objectif, level).ftp_kg_min;
@@ -321,8 +522,11 @@ export function getFtpKgTarget(objectif: string, level: "performance" | "interme
 /**
  * Get optimal charge (weekly TSS) for an objective
  */
-export function getChargeOptimale(objectif: string, level: "performance" | "intermediaire" = "intermediaire"): number {
-  return getTargetsForObjective(objectif, level).charge_optimale;
+export function getChargeOptimale(objectif: string, ambition?: AmbitionLevel): number {
+  if (ambition) {
+    return getTargetsForAmbition(objectif, ambition).charge_optimale;
+  }
+  return getTargetsForObjective(objectif, "intermediaire").charge_optimale;
 }
 
 /**
@@ -331,9 +535,11 @@ export function getChargeOptimale(objectif: string, level: "performance" | "inte
 export function getNutritionTargets(
   objectif: string, 
   sport: "bike" | "run" = "bike",
-  level: "performance" | "intermediaire" = "intermediaire"
+  ambition?: AmbitionLevel
 ): { min: number; max: number } {
-  const targets = getTargetsForObjective(objectif, level);
+  const targets = ambition 
+    ? getTargetsForAmbition(objectif, ambition)
+    : getTargetsForObjective(objectif, "intermediaire");
   if (sport === "run" && targets.nutrition_run_gph) {
     return targets.nutrition_run_gph;
   }
@@ -346,30 +552,30 @@ export function getNutritionTargets(
 
 /**
  * Legacy CiblesVLamax format for backward compatibility
- * Maps to intermediaire level targets
+ * Maps to age_group (intermediaire) level targets
  */
 export const CiblesVLamax: Record<string, VLamaxTargets> = {
-  IM: UNIFIED_TARGETS.IM.intermediaire.vlamax,
-  "703": UNIFIED_TARGETS["703"].intermediaire.vlamax,
-  Marathon: UNIFIED_TARGETS.Marathon.intermediaire.vlamax,
-  Semi: UNIFIED_TARGETS.Semi.intermediaire.vlamax,
+  IM: AMBITION_TARGETS.IM.age_group.vlamax,
+  "703": AMBITION_TARGETS["703"].age_group.vlamax,
+  Marathon: AMBITION_TARGETS.Marathon.age_group.vlamax,
+  Semi: AMBITION_TARGETS.Semi.age_group.vlamax,
 };
 
 /**
  * Check if VLamax is within acceptable range for objective
  */
-export function isVlamaxInRange(vlamax: number | null, objectif: string): boolean {
+export function isVlamaxInRange(vlamax: number | null, objectif: string, ambition?: AmbitionLevel): boolean {
   if (vlamax === null) return true; // No data = no alert
-  const range = getVLamaxRange(objectif);
+  const range = getVLamaxRange(objectif, ambition);
   return vlamax >= range.min && vlamax <= range.max;
 }
 
 /**
  * Get VLamax status for an objective
  */
-export function getVlamaxStatus(vlamax: number | null, objectif: string): "low" | "optimal" | "high" | "unknown" {
+export function getVlamaxStatus(vlamax: number | null, objectif: string, ambition?: AmbitionLevel): "low" | "optimal" | "high" | "unknown" {
   if (vlamax === null) return "unknown";
-  const range = getVLamaxRange(objectif);
+  const range = getVLamaxRange(objectif, ambition);
   
   if (vlamax < range.min) return "low";
   if (vlamax > range.max) return "high";
@@ -384,21 +590,23 @@ export function getVlamaxStatus(vlamax: number | null, objectif: string): "low" 
 /**
  * Check if TTE meets objective requirements
  */
-export function isTTEAdequate(tte: number | null, objectif: string, level: "performance" | "intermediaire" = "intermediaire"): boolean {
+export function isTTEAdequate(tte: number | null, objectif: string, ambition?: AmbitionLevel): boolean {
   if (tte === null) return true;
-  return tte >= getTTETarget(objectif, level);
+  const target = ambition ? getTTETargetByAmbition(objectif, ambition) : getTTETarget(objectif);
+  return tte >= target;
 }
 
 /**
  * Check if FTP/kg meets objective requirements
  */
-export function isFtpKgAdequate(ftpKg: number | null, objectif: string, level: "performance" | "intermediaire" = "intermediaire"): boolean {
+export function isFtpKgAdequate(ftpKg: number | null, objectif: string, ambition?: AmbitionLevel): boolean {
   if (ftpKg === null) return true;
-  return ftpKg >= getFtpKgTarget(objectif, level);
+  const target = ambition ? getFtpKgTargetByAmbition(objectif, ambition) : getFtpKgTarget(objectif);
+  return ftpKg >= target;
 }
 
 // =============================================
 // EXPORT ALL TARGETS FOR DEBUGGING
 // =============================================
 
-export { UNIFIED_TARGETS };
+export { UNIFIED_TARGETS, AMBITION_TARGETS };

@@ -3,9 +3,13 @@
 // =============================================
 
 import { SnapshotNolio } from "./snapshotNolio";
+import { AmbitionLevel } from "./ambitionLevel";
 
 export type ObjectifType = "IM" | "703" | "Marathon" | "Semi" | "Trail" | "TrailShort" | "TrailMountain" | "TrailUltra";
 export type SexeType = "M" | "F";
+
+// Re-export for convenience
+export type { AmbitionLevel } from "./ambitionLevel";
 
 // Références physiologiques pour le calcul des zones
 export interface AthleteRefs {
@@ -27,6 +31,8 @@ export interface Athlete {
   masse_grasse: number;       // %
   // Date de naissance pour calcul AAI (Age Adjustment Index)
   dateNaissance?: string;
+  // Niveau d'ambition (modifie les seuils physiologiques)
+  ambition?: AmbitionLevel;
   // Historique des snapshots Nolio
   historique: SnapshotNolio[];
   // Tests physiologiques (bibliothèque)
