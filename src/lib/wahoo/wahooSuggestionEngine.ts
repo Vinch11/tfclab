@@ -23,11 +23,12 @@ import {
 export type WahooNeed =
   | "NEED_VLAMAX_DOWN"
   | "NEED_TTE_UP"
+  | "NEED_FTP_UP"
   | "NEED_ENDURANCE_BASE"
   | "NEED_RECOVERY"
   | "NEED_VO2_UP";
 
-export type TargetAxis = "VLAMAX" | "TTE" | "ENDURANCE" | "FRESHNESS" | "VO2";
+export type TargetAxis = "VLAMAX" | "TTE" | "FTP" | "ENDURANCE" | "FRESHNESS" | "VO2";
 
 /**
  * Temporal phases for workout suggestions
@@ -76,6 +77,9 @@ export interface SuggestionEngineContext {
   // Core effective metrics
   vlamaxEffectif: EffectiveValue;
   tteEffectif: EffectiveValue;
+  
+  // FTP metrics (for bike/tri objectives)
+  ftpKg?: number | null; // FTP in W/kg
   
   // Race readiness
   raceReadiness: {
@@ -160,6 +164,16 @@ const TTE_TARGETS: Record<string, number> = {
   default: 45,
 };
 
+// FTP/kg targets by objective (only relevant for bike/tri)
+const FTP_KG_TARGETS: Record<string, number> = {
+  IM: 4.2,
+  Ironman: 4.2,
+  "70.3": 4.4,
+  "703": 4.4,
+  Half: 4.4,
+  default: 4.0,
+};
+
 export function getVLamaxThreshold(objectif: string): number {
   return VLAMAX_THRESHOLDS[objectif] || VLAMAX_THRESHOLDS.default;
 }
@@ -168,15 +182,19 @@ export function getTTETarget(objectif: string): number {
   return TTE_TARGETS[objectif] || TTE_TARGETS.default;
 }
 
+export function getFtpKgTarget(objectif: string): number {
+  return FTP_KG_TARGETS[objectif] || FTP_KG_TARGETS.default;
+}
+
 // ============= NEED DETECTION (STAFF-GRADE) =============
 
 export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysis {
   const needs: WahooNeed[] = [];
   const rationale: string[] = [];
   
-  const { objectif, vlamaxEffectif, tteEffectif, raceReadiness, CRR, injuryRiskRun, fatigueScore } = context;
+  const { objectif, sportFocus, vlamaxEffectif, tteEffectif, raceReadiness, CRR, injuryRiskRun, fatigueScore, ftpKg } = context;
   
-  // Priority order: RECOVERY > VLAMAX_DOWN > TTE_UP > ENDURANCE_BASE > VO2_UP
+  // Priority order: RECOVERY > FTP_UP > VLAMAX_DOWN > TTE_UP > ENDURANCE_BASE > VO2_UP
   
   // === RULE D: NEED_RECOVERY (highest priority) ===
   const needsRecovery = 
@@ -197,11 +215,26 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
     }
   }
   
+  // === RULE F: NEED_FTP_UP (for bike/tri when FTP is below target) ===
+  const isBikeOrTri = sportFocus === "bike" || sportFocus === "tri";
+  const ftpTarget = getFtpKgTarget(objectif);
+  const hasFtpDeficit = ftpKg !== undefined && ftpKg !== null && ftpKg < ftpTarget * 0.90;
+  
+  if (isBikeOrTri && hasFtpDeficit && !needsRecovery) {
+    needs.push("NEED_FTP_UP");
+    rationale.push(
+      `FTP/kg insuffisant (${ftpKg?.toFixed(2)} W/kg < cible ${ftpTarget.toFixed(1)} W/kg pour ${objectif}) → développer la puissance au seuil.`
+    );
+  }
+  
   // === RULE A: NEED_VLAMAX_DOWN ===
   const vlamaxThreshold = getVLamaxThreshold(objectif);
   const isLongDistance = ["IM", "Ironman", "Marathon", "703", "70.3", "Half", "TrailLong", "Ultra"].includes(objectif);
   
-  if (vlamaxEffectif.value !== null && vlamaxEffectif.value > vlamaxThreshold && isLongDistance) {
+  // Only suggest VLAMAX_DOWN if FTP is already adequate (otherwise FTP_UP takes priority)
+  const ftpIsAdequate = !isBikeOrTri || ftpKg === undefined || ftpKg === null || ftpKg >= ftpTarget * 0.90;
+  
+  if (vlamaxEffectif.value !== null && vlamaxEffectif.value > vlamaxThreshold && isLongDistance && ftpIsAdequate) {
     needs.push("NEED_VLAMAX_DOWN");
     rationale.push(
       `VLamax élevé pour l'objectif (${vlamaxEffectif.value.toFixed(2)} > ${vlamaxThreshold.toFixed(2)} pour ${objectif}) → dépendance glucidique + risque dérive.`
@@ -247,6 +280,7 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
   // Limit to 2 needs max to avoid confusion
   const priorityOrder: WahooNeed[] = [
     "NEED_RECOVERY",
+    "NEED_FTP_UP",
     "NEED_VLAMAX_DOWN", 
     "NEED_TTE_UP",
     "NEED_ENDURANCE_BASE",
@@ -270,7 +304,9 @@ function needToAxis(need: WahooNeed): WahooPhysioAxis[] {
     case "NEED_VLAMAX_DOWN":
       return ["VLAMAX_DOWN", "ENDURANCE_BASE"];
     case "NEED_TTE_UP":
-      return ["TTE_UP"];
+      return ["TTE_UP", "THRESHOLD_MLSS"];
+    case "NEED_FTP_UP":
+      return ["THRESHOLD_MLSS", "TTE_UP"];
     case "NEED_ENDURANCE_BASE":
       return ["ENDURANCE_BASE"];
     case "NEED_RECOVERY":
@@ -286,6 +322,8 @@ function needToTargetAxis(need: WahooNeed): TargetAxis {
       return "VLAMAX";
     case "NEED_TTE_UP":
       return "TTE";
+    case "NEED_FTP_UP":
+      return "FTP";
     case "NEED_ENDURANCE_BASE":
       return "ENDURANCE";
     case "NEED_RECOVERY":
@@ -497,7 +535,7 @@ function generateWhyMessage(
   workout: WahooWorkoutMapping,
   context: SuggestionEngineContext
 ): string {
-  const { objectif, vlamaxEffectif, tteEffectif, fatigueScore, injuryRiskRun } = context;
+  const { objectif, vlamaxEffectif, tteEffectif, fatigueScore, injuryRiskRun, ftpKg } = context;
   
   switch (need) {
     case "NEED_VLAMAX_DOWN":
@@ -505,6 +543,9 @@ function generateWhyMessage(
       
     case "NEED_TTE_UP":
       return `TTE ${tteEffectif.value ?? "?"} min < cible ${getTTETarget(objectif)} min (${objectif}). Cette séance améliore la capacité à soutenir l'effort au seuil.`;
+    
+    case "NEED_FTP_UP":
+      return `FTP/kg ${ftpKg?.toFixed(2) ?? "?"} W/kg < cible ${getFtpKgTarget(objectif).toFixed(1)} W/kg (${objectif}). Cette séance développe la puissance au seuil et améliore le FTP.`;
       
     case "NEED_ENDURANCE_BASE":
       return `Base aérobie insuffisante pour l'objectif ${objectif}. Cette séance construit les fondations de l'endurance.`;
@@ -758,8 +799,9 @@ function mapPhysioAxisToTargetAxis(axis: WahooPhysioAxis): TargetAxis {
     case "VLAMAX_DOWN":
       return "VLAMAX";
     case "TTE_UP":
-    case "THRESHOLD_MLSS":
       return "TTE";
+    case "THRESHOLD_MLSS":
+      return "FTP";
     case "ENDURANCE_BASE":
     case "FORCE_ENDURANCE":
       return "ENDURANCE";
@@ -779,6 +821,8 @@ function mapTargetAxisToNeed(axis: TargetAxis): WahooNeed {
       return "NEED_VLAMAX_DOWN";
     case "TTE":
       return "NEED_TTE_UP";
+    case "FTP":
+      return "NEED_FTP_UP";
     case "ENDURANCE":
       return "NEED_ENDURANCE_BASE";
     case "FRESHNESS":
@@ -873,6 +917,8 @@ export function getAxisColor(axis: TargetAxis): string {
       return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300";
     case "TTE":
       return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
+    case "FTP":
+      return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300";
     case "ENDURANCE":
       return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
     case "FRESHNESS":
@@ -888,6 +934,8 @@ export function getAxisLabel(axis: TargetAxis): string {
       return "Baisse VLamax";
     case "TTE":
       return "Durabilité TTE";
+    case "FTP":
+      return "Développer FTP";
     case "ENDURANCE":
       return "Base Aérobie";
     case "FRESHNESS":
@@ -903,6 +951,8 @@ export function getAxisIcon(axis: TargetAxis): string {
       return "⬇️";
     case "TTE":
       return "⏱️";
+    case "FTP":
+      return "⚡";
     case "ENDURANCE":
       return "🔋";
     case "FRESHNESS":
@@ -918,6 +968,8 @@ export function getNeedLabel(need: WahooNeed): string {
       return "Baisse VLamax";
     case "NEED_TTE_UP":
       return "Durabilité TTE";
+    case "NEED_FTP_UP":
+      return "Développer FTP";
     case "NEED_ENDURANCE_BASE":
       return "Base aérobie";
     case "NEED_RECOVERY":
