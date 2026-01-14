@@ -50,6 +50,7 @@ import { FatigueComparisonChart } from "@/components/FatigueComparisonChart";
 import { computeRunInjuryRisk, RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
 import { AmbitionLevel, getAmbitionDefinition, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 import { QuickAmbitionSelector } from "@/components/QuickAmbitionSelector";
+import { AmbitionTargetsCard } from "@/components/AmbitionTargetsCard";
 
 // =============================================
 // HELPERS
@@ -815,6 +816,20 @@ export default function DashboardPage() {
   };
 
   // =============================================
+  // RENDER: AMBITION TARGETS CARD
+  // =============================================
+  
+  const renderAmbitionTargets = (): ReactNode => (
+    <AmbitionTargetsCard
+      objectif={objectif}
+      ambition={(currentAthlete.ambition as AmbitionLevel) || DEFAULT_AMBITION}
+      currentVlamax={vlamaxEffectif.value}
+      currentTTE={tteEffectif.tte_min}
+      currentFtpKg={ftpKg}
+    />
+  );
+
+  // =============================================
   // RENDER: FATIGUE CARD
   // =============================================
   
@@ -879,6 +894,7 @@ export default function DashboardPage() {
 
   const sections = [
     { id: "athlete-context", render: renderAthleteContext },
+    { id: "ambition-targets", render: renderAmbitionTargets },
     { id: "quick-fatigue", render: renderQuickFatigueInput },
     { id: "fatigue", render: renderFatigueCard },
     { id: "fatigue-comparison", render: renderFatigueComparisonChart },
