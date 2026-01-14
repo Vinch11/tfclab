@@ -48,7 +48,8 @@ import { RunInjuryRiskCard } from "@/components/RunInjuryRiskCard";
 import { QuickFatigueInput } from "@/components/QuickFatigueInput";
 import { FatigueComparisonChart } from "@/components/FatigueComparisonChart";
 import { computeRunInjuryRisk, RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
-import { getAmbitionDefinition, DEFAULT_AMBITION } from "@/types/ambitionLevel";
+import { AmbitionLevel, getAmbitionDefinition, DEFAULT_AMBITION } from "@/types/ambitionLevel";
+import { QuickAmbitionSelector } from "@/components/QuickAmbitionSelector";
 
 // =============================================
 // HELPERS
@@ -173,7 +174,7 @@ function getRaceReadinessStatus(score: number): { status: "ok" | "warning" | "cr
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const { currentAthlete } = useAthletes();
+  const { currentAthlete, updateAthlete } = useAthletes();
   const { snapshots, tests, checkins } = useCloudData();
   const [showScientificDetails, setShowScientificDetails] = useState(false);
 
@@ -420,25 +421,35 @@ export default function DashboardPage() {
   // SECTIONS RENDER FUNCTIONS
   // =============================================
 
+  // Handler pour modifier l'ambition depuis le dashboard
+  const handleAmbitionChange = async (newAmbition: AmbitionLevel): Promise<boolean> => {
+    if (!currentAthlete) return false;
+    const updatedAthlete = {
+      ...currentAthlete,
+      ambition: newAmbition,
+      refs: {
+        ...((currentAthlete.refs as Record<string, unknown>) || {}),
+        ambition: newAmbition,
+      },
+    };
+    const success = await updateAthlete(updatedAthlete);
+    return success;
+  };
+
   const renderAthleteContext = (): ReactNode => (
     <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
       <CardContent className="p-4">
         <h1 className="text-xl font-bold mb-2">{currentAthlete.nom}</h1>
-        <div className="flex flex-wrap gap-2 text-sm">
+        <div className="flex flex-wrap items-center gap-2 text-sm">
           <Badge variant="outline" className="gap-1">
             <Target className="h-3 w-3" />
             {OBJECTIF_LABELS[objectif] || objectif}
           </Badge>
-          {/* Badge d'ambition */}
-          {(() => {
-            const ambDef = getAmbitionDefinition(currentAthlete.ambition || DEFAULT_AMBITION);
-            return (
-              <Badge variant="secondary" className={cn("gap-1", ambDef.color)}>
-                <span>{ambDef.icon}</span>
-                {ambDef.label}
-              </Badge>
-            );
-          })()}
+          {/* Sélecteur rapide d'ambition */}
+          <QuickAmbitionSelector
+            currentAmbition={(currentAthlete.ambition as AmbitionLevel) || DEFAULT_AMBITION}
+            onAmbitionChange={handleAmbitionChange}
+          />
           <Badge variant="secondary" className="gap-1">
             <Activity className="h-3 w-3" />
             {PHASE_LABELS[phase] || phase}
