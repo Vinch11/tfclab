@@ -741,26 +741,29 @@ export function getZoneColor(zone: ZoneDominante): string {
 
 // ============= OBJECTIVE-BASED THRESHOLDS =============
 
+import { CiblesVLamax } from "@/types/testLibrary";
+
 /**
- * Get VLamax threshold based on athlete objective
+ * Get VLamax threshold from centralized CiblesVLamax
+ * Uses the "max" value as the threshold for triggering alerts
  */
 export function getVLamaxThreshold(objectif: string | undefined): number {
-  if (!objectif) return 0.45;
+  if (!objectif) return 0.55;
   
   const obj = objectif.toLowerCase();
+  let key: keyof typeof CiblesVLamax = "IM";
+  
   if (obj.includes("im") || obj.includes("ironman") || obj.includes("kona")) {
-    return 0.35; // Very strict for full IM
+    key = "IM";
+  } else if (obj.includes("70.3") || obj.includes("703") || obj.includes("half")) {
+    key = "703";
+  } else if (obj.includes("marathon")) {
+    key = "Marathon";
+  } else if (obj.includes("semi")) {
+    key = "Semi";
   }
-  if (obj.includes("70.3") || obj.includes("703") || obj.includes("half")) {
-    return 0.40; // Strict for 70.3
-  }
-  if (obj.includes("marathon")) {
-    return 0.38; // Strict for marathon
-  }
-  if (obj.includes("semi") || obj.includes("half")) {
-    return 0.45; // More lenient for half marathon
-  }
-  return 0.45; // Default
+  
+  return CiblesVLamax[key]?.max ?? 0.55;
 }
 
 /**

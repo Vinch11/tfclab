@@ -74,16 +74,10 @@ export interface RecommendationEngineOutput {
 }
 
 // =============================================
-// THRESHOLDS
+// THRESHOLDS (using centralized CiblesVLamax)
 // =============================================
 
-const VLAMAX_THRESHOLDS: Record<string, number> = {
-  IM: 0.45, Ironman: 0.45,
-  "703": 0.50, "70.3": 0.50, Half: 0.50,
-  Marathon: 0.50, Semi: 0.60,
-  Trail: 0.55, TrailLong: 0.45, Ultra: 0.40,
-  default: 0.55,
-};
+import { CiblesVLamax } from "@/types/testLibrary";
 
 const TTE_TARGETS: Record<string, number> = {
   IM: 55, Ironman: 55,
@@ -93,8 +87,19 @@ const TTE_TARGETS: Record<string, number> = {
   default: 45,
 };
 
+/**
+ * Get VLamax threshold from centralized CiblesVLamax
+ * Uses the "max" value as the threshold for triggering alerts
+ */
 function getVLamaxThreshold(objectif: string): number {
-  return VLAMAX_THRESHOLDS[objectif] || VLAMAX_THRESHOLDS.default;
+  const mapping: Record<string, keyof typeof CiblesVLamax> = {
+    "IM": "IM", "Ironman": "IM",
+    "703": "703", "70.3": "703", "Half": "703",
+    "Marathon": "Marathon", "Semi": "Semi",
+    "Trail": "Semi", "TrailLong": "IM", "Ultra": "IM",
+  };
+  const key = mapping[objectif] || "IM";
+  return CiblesVLamax[key]?.max ?? 0.55;
 }
 
 function getTTETargetLocal(objectif: string): number {

@@ -137,20 +137,9 @@ export interface SuggestionEngineOutput {
 
 // ============= THRESHOLDS BY OBJECTIVE =============
 
-const VLAMAX_THRESHOLDS: Record<string, number> = {
-  IM: 0.45,
-  Ironman: 0.45,
-  "70.3": 0.50,
-  "703": 0.50,
-  Half: 0.50,
-  Marathon: 0.50,
-  Semi: 0.60,
-  Trail: 0.55,
-  TrailLong: 0.45,
-  Ultra: 0.40,
-  default: 0.55,
-};
+import { CiblesVLamax } from "@/types/testLibrary";
 
+// Use centralized CiblesVLamax for thresholds (max = alert if exceeded)
 const TTE_TARGETS: Record<string, number> = {
   IM: 55,
   Ironman: 55,
@@ -175,8 +164,29 @@ const FTP_KG_TARGETS: Record<string, number> = {
   default: 4.0,
 };
 
+/**
+ * Get VLamax threshold from centralized CiblesVLamax
+ * Uses the "max" value as the threshold for triggering NEED_VLAMAX_DOWN
+ */
 export function getVLamaxThreshold(objectif: string): number {
-  return VLAMAX_THRESHOLDS[objectif] || VLAMAX_THRESHOLDS.default;
+  // Map objectif to CiblesVLamax keys
+  const mapping: Record<string, keyof typeof CiblesVLamax> = {
+    "IM": "IM",
+    "Ironman": "IM",
+    "703": "703",
+    "70.3": "703",
+    "Half": "703",
+    "Marathon": "Marathon",
+    "Semi": "Semi",
+    "Trail": "Semi",
+    "TrailLong": "IM",
+    "Ultra": "IM",
+  };
+  
+  const key = mapping[objectif] || "IM";
+  const cible = CiblesVLamax[key];
+  // Use max as threshold: VLamax > max triggers alert
+  return cible?.max ?? 0.55;
 }
 
 export function getTTETarget(objectif: string): number {
