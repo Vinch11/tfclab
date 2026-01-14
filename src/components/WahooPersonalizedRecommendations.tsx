@@ -429,6 +429,41 @@ export function WahooPersonalizedRecommendations() {
         </p>
       </div>
 
+      {/* Primary Priority Indicator */}
+      {primaryConcern && (() => {
+        const axisConfig = AXIS_CONFIG[primaryConcern];
+        const PriorityIcon = axisConfig?.icon || Target;
+        const colorClass = axisConfig?.color || "text-primary";
+        const bgColorClass = colorClass.replace("text-", "bg-").replace("-500", "-500/15");
+        const borderColorClass = colorClass.replace("text-", "border-").replace("-500", "-500/50");
+        
+        return (
+          <Card className={cn("border-2", borderColorClass, bgColorClass)}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={cn("p-3 rounded-xl", bgColorClass.replace("/15", "/30"))}>
+                    <PriorityIcon className={cn("h-6 w-6", colorClass)} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Priorité principale évaluée
+                    </p>
+                    <p className={cn("text-lg font-bold", colorClass)}>
+                      {axisConfig?.label || primaryConcern}
+                    </p>
+                  </div>
+                </div>
+                <Badge className={cn("text-sm px-3 py-1", colorClass, bgColorClass.replace("/15", "/30"))}>
+                  <Target className="h-4 w-4 mr-1.5" />
+                  Focus
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
+
       {/* Diagnostic Summary */}
       <Card className="border-l-4 border-l-primary">
         <CardContent className="p-4">
@@ -454,13 +489,6 @@ export function WahooPersonalizedRecommendations() {
                 </div>
               )}
             </div>
-
-            {/* Primary concern badge */}
-            {primaryConcern && (
-              <Badge variant="outline" className="shrink-0">
-                Priorité: {AXIS_CONFIG[primaryConcern]?.label || primaryConcern}
-              </Badge>
-            )}
           </div>
         </CardContent>
       </Card>
