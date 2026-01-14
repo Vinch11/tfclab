@@ -253,10 +253,9 @@ function PhaseSection({ phase, suggestions, isExpanded, onToggle }: PhaseCardPro
 
 export function WahooPersonalizedRecommendations() {
   const { currentAthlete } = useAthletes();
-  const { snapshots, tests, checkins } = useCloudData();
+  const { snapshots, tests, checkins, updateSnapshot } = useCloudData();
   const [expandedPhases, setExpandedPhases] = useState<Set<TemporalPhase>>(new Set([1]));
   const [forceDevelopmentMode, setForceDevelopmentMode] = useState(false);
-  const [lowCRRJustification, setLowCRRJustification] = useState<LowCRRJustification | undefined>(undefined);
 
   // Check if current athlete has low TSS7j (< 250) to show justification selector
   const activeSnapshot = useMemo(() => {
@@ -268,6 +267,27 @@ export function WahooPersonalizedRecommendations() {
     }
     return snapshot;
   }, [currentAthlete, snapshots]);
+
+  // Initialize justification from persisted snapshot value
+  const [lowCRRJustification, setLowCRRJustification] = useState<LowCRRJustification | undefined>(
+    activeSnapshot?.low_crr_justification as LowCRRJustification | undefined
+  );
+
+  // Sync local state when active snapshot changes
+  useMemo(() => {
+    const persisted = activeSnapshot?.low_crr_justification as LowCRRJustification | undefined;
+    setLowCRRJustification(persisted);
+  }, [activeSnapshot?.id, activeSnapshot?.low_crr_justification]);
+
+  // Handler to update justification and persist to database
+  const handleJustificationChange = async (value: string) => {
+    const newValue = value === "none" ? null : value;
+    setLowCRRJustification(newValue as LowCRRJustification | undefined);
+    
+    if (activeSnapshot) {
+      await updateSnapshot(activeSnapshot.id, { low_crr_justification: newValue });
+    }
+  };
 
   const hasLowCRR = activeSnapshot?.tss_7d !== null && activeSnapshot?.tss_7d !== undefined && activeSnapshot.tss_7d < 250;
 
@@ -507,9 +527,7 @@ export function WahooPersonalizedRecommendations() {
                 </div>
                 <Select
                   value={lowCRRJustification || "none"}
-                  onValueChange={(value) => 
-                    setLowCRRJustification(value === "none" ? undefined : value as LowCRRJustification)
-                  }
+                  onValueChange={handleJustificationChange}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Sélectionnez une raison..." />

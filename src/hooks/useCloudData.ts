@@ -61,6 +61,8 @@ export interface DbSnapshot {
   run_hr_drift_pct?: number | null;
   run_economy_score?: number | null;
   run_economy_label?: string | null;
+  // Low CRR justification for TSS7j < 250
+  low_crr_justification?: string | null;
   created_at?: string;
   updated_at?: string;
 }
