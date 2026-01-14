@@ -17,6 +17,12 @@ import {
   getRiskColor,
   hasContraindicationsForObjective,
 } from "@/data/wahooMapping";
+import { 
+  getFtpKgTargetByAmbition, 
+  getVLamaxRange, 
+  getTTETargetByAmbition 
+} from "@/lib/physiologicalTargets";
+import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 
 // ============= TYPES =============
 
@@ -73,6 +79,9 @@ export interface SuggestionEngineContext {
   // Athlete profile
   objectif: string; // IM, 70.3, Marathon, Semi, etc.
   sportFocus: "run" | "bike" | "tri";
+  
+  // Ambition level for adaptive thresholds
+  ambition?: "finisher" | "age_group" | "competitor" | "elite";
   
   // Core effective metrics
   vlamaxEffectif: EffectiveValue;
@@ -176,7 +185,7 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
     NEED_VO2_UP: [],
   };
   
-  const { objectif, sportFocus, vlamaxEffectif, tteEffectif, raceReadiness, CRR, injuryRiskRun, fatigueScore, ftpKg, forceDevelopmentMode } = context;
+  const { objectif, sportFocus, vlamaxEffectif, tteEffectif, raceReadiness, CRR, injuryRiskRun, fatigueScore, ftpKg, forceDevelopmentMode, ambition } = context;
   
   // Priority order: RECOVERY > FTP_UP > VLAMAX_DOWN > TTE_UP > ENDURANCE_BASE > VO2_UP
   
@@ -213,18 +222,20 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
   
   // === RULE F: NEED_FTP_UP (for bike/tri when FTP is below target) ===
   const isBikeOrTri = sportFocus === "bike" || sportFocus === "tri";
-  const ftpTarget = getFtpKgTarget(objectif);
+  const effectiveAmbition = ambition || DEFAULT_AMBITION;
+  const ftpTarget = getFtpKgTargetByAmbition(objectif, effectiveAmbition);
   const hasFtpDeficit = ftpKg !== undefined && ftpKg !== null && ftpKg < ftpTarget * 0.90;
   
   if (isBikeOrTri && hasFtpDeficit && !needsSevereRecovery) {
     needs.push("NEED_FTP_UP");
-    const msg = `FTP/kg insuffisant (${ftpKg?.toFixed(2)} W/kg < cible ${ftpTarget.toFixed(1)} W/kg pour ${objectif}) → développer la puissance au seuil.`;
+    const msg = `FTP/kg insuffisant (${ftpKg?.toFixed(2)} W/kg < cible ${ftpTarget.toFixed(1)} W/kg pour ${objectif}/${effectiveAmbition}) → développer la puissance au seuil.`;
     rationale.push(msg);
     rationaleByNeed.NEED_FTP_UP.push(msg);
   }
   
   // === RULE A: NEED_VLAMAX_DOWN ===
-  const vlamaxThreshold = getVLamaxThreshold(objectif);
+  const vlamaxRange = getVLamaxRange(objectif, effectiveAmbition);
+  const vlamaxThreshold = vlamaxRange.max;
   const isLongDistance = ["IM", "Ironman", "Marathon", "703", "70.3", "Half", "TrailLong", "Ultra"].includes(objectif);
   
   // Only suggest VLAMAX_DOWN if FTP is already adequate (otherwise FTP_UP takes priority)
@@ -232,16 +243,16 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
   
   if (vlamaxEffectif.value !== null && vlamaxEffectif.value > vlamaxThreshold && isLongDistance && ftpIsAdequate) {
     needs.push("NEED_VLAMAX_DOWN");
-    const msg = `VLamax élevé pour l'objectif (${vlamaxEffectif.value.toFixed(2)} > ${vlamaxThreshold.toFixed(2)} pour ${objectif}) → dépendance glucidique + risque dérive.`;
+    const msg = `VLamax élevé pour l'objectif (${vlamaxEffectif.value.toFixed(2)} > ${vlamaxThreshold.toFixed(2)} pour ${objectif}/${effectiveAmbition}) → dépendance glucidique + risque dérive.`;
     rationale.push(msg);
     rationaleByNeed.NEED_VLAMAX_DOWN.push(msg);
   }
   
   // === RULE B: NEED_TTE_UP ===
-  const tteTarget = getTTETarget(objectif);
+  const tteTarget = getTTETargetByAmbition(objectif, effectiveAmbition);
   if (tteEffectif.value !== null && tteEffectif.value < tteTarget - 5) {
     needs.push("NEED_TTE_UP");
-    const msg = `TTE insuffisant (${tteEffectif.value} min < cible ${tteTarget} min pour ${objectif}) → durabilité seuil à développer.`;
+    const msg = `TTE insuffisant (${tteEffectif.value} min < cible ${tteTarget} min pour ${objectif}/${effectiveAmbition}) → durabilité seuil à développer.`;
     rationale.push(msg);
     rationaleByNeed.NEED_TTE_UP.push(msg);
   }
