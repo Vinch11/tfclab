@@ -255,7 +255,6 @@ export function WahooPersonalizedRecommendations() {
   const { currentAthlete } = useAthletes();
   const { snapshots, tests, checkins, updateSnapshot } = useCloudData();
   const [expandedPhases, setExpandedPhases] = useState<Set<TemporalPhase>>(new Set([1]));
-  const [forceDevelopmentMode, setForceDevelopmentMode] = useState(false);
 
   // Check if current athlete has low TSS7j (< 250) to show justification selector
   const activeSnapshot = useMemo(() => {
@@ -268,16 +267,20 @@ export function WahooPersonalizedRecommendations() {
     return snapshot;
   }, [currentAthlete, snapshots]);
 
-  // Initialize justification from persisted snapshot value
+  // Initialize states from persisted snapshot values
   const [lowCRRJustification, setLowCRRJustification] = useState<LowCRRJustification | undefined>(
     activeSnapshot?.low_crr_justification as LowCRRJustification | undefined
+  );
+  const [forceDevelopmentMode, setForceDevelopmentMode] = useState(
+    activeSnapshot?.force_development_mode ?? false
   );
 
   // Sync local state when active snapshot changes
   useMemo(() => {
-    const persisted = activeSnapshot?.low_crr_justification as LowCRRJustification | undefined;
-    setLowCRRJustification(persisted);
-  }, [activeSnapshot?.id, activeSnapshot?.low_crr_justification]);
+    const persistedJustification = activeSnapshot?.low_crr_justification as LowCRRJustification | undefined;
+    setLowCRRJustification(persistedJustification);
+    setForceDevelopmentMode(activeSnapshot?.force_development_mode ?? false);
+  }, [activeSnapshot?.id, activeSnapshot?.low_crr_justification, activeSnapshot?.force_development_mode]);
 
   // Handler to update justification and persist to database
   const handleJustificationChange = async (value: string) => {
@@ -286,6 +289,15 @@ export function WahooPersonalizedRecommendations() {
     
     if (activeSnapshot) {
       await updateSnapshot(activeSnapshot.id, { low_crr_justification: newValue });
+    }
+  };
+
+  // Handler to update force development mode and persist to database
+  const handleForceDevelopmentModeChange = async (checked: boolean) => {
+    setForceDevelopmentMode(checked);
+    
+    if (activeSnapshot) {
+      await updateSnapshot(activeSnapshot.id, { force_development_mode: checked });
     }
   };
 
@@ -504,7 +516,7 @@ export function WahooPersonalizedRecommendations() {
             <Switch
               id="force-dev-mode"
               checked={forceDevelopmentMode}
-              onCheckedChange={setForceDevelopmentMode}
+              onCheckedChange={handleForceDevelopmentModeChange}
             />
           </div>
         </CardContent>

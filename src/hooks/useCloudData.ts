@@ -63,6 +63,8 @@ export interface DbSnapshot {
   run_economy_label?: string | null;
   // Low CRR justification for TSS7j < 250
   low_crr_justification?: string | null;
+  // Force development mode toggle
+  force_development_mode?: boolean | null;
   created_at?: string;
   updated_at?: string;
 }
