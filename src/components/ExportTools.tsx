@@ -1653,7 +1653,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   `;
 
   // =============================================
-  // E-bis. GRAPHIQUES D'ÉVOLUTION (SVG)
+  // E-bis. GRAPHIQUES D'ÉVOLUTION (SVG) - VERSION AMÉLIORÉE
   // =============================================
   
   // Préparer les données pour les graphiques
@@ -1661,95 +1661,413 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(-12);
   
-  // Build evolution charts HTML with SVG graphics
-  const evolutionChartsHTML = chartSnapshotsSorted.length >= 2 ? `
-    <section id="evolution-charts" class="section pagebreak">
-      <h2>E-bis. Graphiques d'Évolution Physiologique</h2>
-      
-      <div class="alert alertInfo mb">
-        <b>📊 Visualisation des tendances :</b> Ces graphiques montrent l'évolution des métriques clés sur les ${chartSnapshotsSorted.length} derniers snapshots.
-      </div>
-      
-      <!-- GRAPHIQUE VLamax & TTE -->
-      <div class="card mb">
-        <h3>⚡ Évolution VLamax & TTE</h3>
-        ${(() => {
-          const vlamaxData = chartSnapshotsSorted.filter(s => s.vlamax !== null);
-          const tteData = chartSnapshotsSorted.filter(s => s.tte_observed_min !== null);
-          const vlamaxTrend = vlamaxData.length >= 2 ? (vlamaxData[vlamaxData.length - 1].vlamax! - vlamaxData[0].vlamax!) : null;
-          const tteTrend = tteData.length >= 2 ? (tteData[tteData.length - 1].tte_observed_min! - tteData[0].tte_observed_min!) : null;
-          
-          return `
-            <div style="display:flex;gap:16px;margin-bottom:12px;">
-              ${vlamaxTrend !== null ? `<div class="tag ${vlamaxTrend < 0 ? 'tagSuccess' : vlamaxTrend > 0 ? 'tagWarning' : ''}">VLamax: ${vlamaxTrend > 0 ? '+' : ''}${vlamaxTrend.toFixed(2)} mmol/L/s</div>` : ''}
-              ${tteTrend !== null ? `<div class="tag ${tteTrend > 0 ? 'tagSuccess' : tteTrend < 0 ? 'tagWarning' : ''}">TTE: ${tteTrend > 0 ? '+' : ''}${tteTrend} min</div>` : ''}
-            </div>
-            <div class="grid3">
-              <div style="text-align:center;"><div class="muted" style="font-size:11px;">VLamax actuelle</div><div style="font-size:20px;font-weight:700;color:#06b6d4;">${vlamaxData.length > 0 ? vlamaxData[vlamaxData.length - 1].vlamax?.toFixed(2) : '—'}</div></div>
-              <div style="text-align:center;"><div class="muted" style="font-size:11px;">TTE actuel</div><div style="font-size:20px;font-weight:700;color:#f97316;">${tteData.length > 0 ? tteData[tteData.length - 1].tte_observed_min + ' min' : '—'}</div></div>
-              <div style="text-align:center;"><div class="muted" style="font-size:11px;">Période</div><div style="font-size:12px;color:var(--muted);">${dtStr(chartSnapshotsSorted[0].date)} → ${dtStr(chartSnapshotsSorted[chartSnapshotsSorted.length - 1].date)}</div></div>
-            </div>
-          `;
-        })()}
-        
-        <!-- SVG Chart VLamax & TTE -->
-        <svg width="100%" viewBox="0 0 550 180" preserveAspectRatio="xMidYMid meet" style="max-width:100%;height:auto;margin-top:16px;">
-          <defs><linearGradient id="gridPat"><stop offset="0%" stop-color="#eee"/></linearGradient></defs>
-          <rect x="60" y="20" width="430" height="120" fill="#fafafa" stroke="#eee"/>
-          ${chartSnapshotsSorted.map((s, i) => {
-            const x = 60 + (i / (chartSnapshotsSorted.length - 1)) * 430;
-            const vlamaxY = s.vlamax !== null ? 20 + ((0.60 - s.vlamax) / 0.40) * 120 : null;
-            const tteY = s.tte_observed_min !== null ? 20 + ((80 - s.tte_observed_min) / 60) * 120 : null;
-            return `
-              ${vlamaxY !== null ? `<circle cx="${x}" cy="${vlamaxY}" r="5" fill="#06b6d4" stroke="#fff" stroke-width="2"/>` : ''}
-              ${tteY !== null ? `<circle cx="${x}" cy="${tteY}" r="5" fill="#f97316" stroke="#fff" stroke-width="2"/>` : ''}
-            `;
-          }).join('')}
-          <text x="30" y="80" text-anchor="middle" font-size="10" fill="#06b6d4" transform="rotate(-90, 30, 80)">VLamax</text>
-          <text x="520" y="80" text-anchor="middle" font-size="10" fill="#f97316" transform="rotate(90, 520, 80)">TTE (min)</text>
-          <line x1="60" y1="140" x2="490" y2="140" stroke="#ccc"/>
-          <text x="275" y="165" text-anchor="middle" font-size="10" fill="#666">Évolution temporelle</text>
-        </svg>
-      </div>
-      
-      <!-- GRAPHIQUE FTP/kg -->
-      <div class="card">
-        <h3>💪 Évolution FTP/kg</h3>
-        ${(() => {
-          const ftpKgData = chartSnapshotsSorted.filter(s => s.ftp && s.weight_kg).map(s => ({ ...s, ftpKg: s.ftp! / s.weight_kg! }));
-          const ftpKgTrend = ftpKgData.length >= 2 ? (ftpKgData[ftpKgData.length - 1].ftpKg - ftpKgData[0].ftpKg) : null;
-          
-          return `
-            ${ftpKgTrend !== null ? `<div class="tag ${ftpKgTrend > 0 ? 'tagSuccess' : ftpKgTrend < 0 ? 'tagWarning' : ''}" style="margin-bottom:12px;">Δ FTP/kg: ${ftpKgTrend > 0 ? '+' : ''}${ftpKgTrend.toFixed(2)} W/kg</div>` : ''}
-            <div class="grid2 mt">
-              <div style="text-align:center;"><div class="muted" style="font-size:11px;">FTP/kg actuel</div><div style="font-size:24px;font-weight:700;color:#22c55e;">${ftpKgData.length > 0 ? ftpKgData[ftpKgData.length - 1].ftpKg.toFixed(2) : '—'} W/kg</div></div>
-              <div style="text-align:center;"><div class="muted" style="font-size:11px;">Évolution</div><div style="font-size:16px;font-weight:600;${ftpKgTrend && ftpKgTrend > 0 ? 'color:var(--success);' : ftpKgTrend && ftpKgTrend < 0 ? 'color:var(--error);' : ''}">${ftpKgTrend !== null ? (ftpKgTrend > 0 ? '↑ +' : ftpKgTrend < 0 ? '↓ ' : '→ ') + ftpKgTrend.toFixed(2) + ' W/kg' : '—'}</div></div>
-            </div>
-          `;
-        })()}
-        
-        <!-- SVG Chart FTP/kg -->
-        <svg width="100%" viewBox="0 0 550 180" preserveAspectRatio="xMidYMid meet" style="max-width:100%;height:auto;margin-top:16px;">
-          <rect x="60" y="20" width="430" height="120" fill="#f0fdf4" stroke="#bbf7d0"/>
-          <line x1="60" y1="${20 + ((5.5 - 4.0) / 3.0) * 120}" x2="490" y2="${20 + ((5.5 - 4.0) / 3.0) * 120}" stroke="#22c55e" stroke-dasharray="5,5" opacity="0.5"/>
-          ${chartSnapshotsSorted.map((s, i) => {
-            const x = 60 + (i / (chartSnapshotsSorted.length - 1)) * 430;
-            const ftpKg = s.ftp && s.weight_kg ? s.ftp / s.weight_kg : null;
-            const y = ftpKg !== null ? 20 + ((5.5 - ftpKg) / 3.0) * 120 : null;
-            return y !== null ? `<circle cx="${x}" cy="${y}" r="5" fill="#22c55e" stroke="#fff" stroke-width="2"/>` : '';
-          }).join('')}
-          <text x="30" y="80" text-anchor="middle" font-size="10" fill="#22c55e" transform="rotate(-90, 30, 80)">FTP/kg</text>
-          <line x1="60" y1="140" x2="490" y2="140" stroke="#ccc"/>
-          <text x="275" y="165" text-anchor="middle" font-size="10" fill="#666">Évolution temporelle</text>
-        </svg>
-      </div>
-    </section>
-  ` : `
-    <section id="evolution-charts" class="section">
-      <h2>E-bis. Graphiques d'Évolution Physiologique</h2>
-      <div class="card"><div class="alert alertInfo"><b>ℹ️ Données insuffisantes :</b> Au moins 2 snapshots sont nécessaires pour générer les graphiques d'évolution.</div></div>
-    </section>
-  `;
+  // Données additionnelles
+  const vo2maxData = chartSnapshotsSorted.filter(s => s.vo2max !== null);
+  const runEconomyData = chartSnapshotsSorted.filter(s => s.run_economy_score !== null);
+  const metabolicScoreData = chartSnapshotsSorted.filter(s => s.metabolic_score !== null);
+  
+  // Helper functions pour générer le HTML des graphiques
+  const buildVlamaxTteChart = (): string => {
+    const vlamaxDataChart = chartSnapshotsSorted.filter(s => s.vlamax !== null);
+    const tteDataChart = chartSnapshotsSorted.filter(s => s.tte_observed_min !== null);
+    const vlamaxTrend = vlamaxDataChart.length >= 2 ? (vlamaxDataChart[vlamaxDataChart.length - 1].vlamax! - vlamaxDataChart[0].vlamax!) : null;
+    const tteTrend = tteDataChart.length >= 2 ? (tteDataChart[tteDataChart.length - 1].tte_observed_min! - tteDataChart[0].tte_observed_min!) : null;
+    
+    // Generate SVG path for VLamax
+    const vlamaxPoints = chartSnapshotsSorted
+      .map((s, i) => s.vlamax !== null ? { x: 70 + (i / Math.max(1, chartSnapshotsSorted.length - 1)) * 420, y: 20 + ((0.60 - s.vlamax) / 0.40) * 160 } : null)
+      .filter(p => p !== null) as { x: number; y: number }[];
+    const vlamaxPathD = vlamaxPoints.length >= 2 ? vlamaxPoints.map((p, i) => (i === 0 ? 'M' : 'L') + ' ' + p.x + ' ' + p.y).join(' ') : '';
+    const vlamaxAreaD = vlamaxPathD ? vlamaxPathD + ' L ' + vlamaxPoints[vlamaxPoints.length - 1].x + ' 180 L ' + vlamaxPoints[0].x + ' 180 Z' : '';
+    
+    // Generate SVG path for TTE
+    const ttePoints = chartSnapshotsSorted
+      .map((s, i) => s.tte_observed_min !== null ? { x: 70 + (i / Math.max(1, chartSnapshotsSorted.length - 1)) * 420, y: 20 + ((80 - s.tte_observed_min) / 60) * 160 } : null)
+      .filter(p => p !== null) as { x: number; y: number }[];
+    const ttePathD = ttePoints.length >= 2 ? ttePoints.map((p, i) => (i === 0 ? 'M' : 'L') + ' ' + p.x + ' ' + p.y).join(' ') : '';
+    const tteAreaD = ttePathD ? ttePathD + ' L ' + ttePoints[ttePoints.length - 1].x + ' 180 L ' + ttePoints[0].x + ' 180 Z' : '';
+    
+    // Generate data points circles for VLamax
+    const vlamaxCircles = chartSnapshotsSorted.map((s, i) => {
+      const x = 70 + (i / Math.max(1, chartSnapshotsSorted.length - 1)) * 420;
+      const y = s.vlamax !== null ? 20 + ((0.60 - s.vlamax) / 0.40) * 160 : null;
+      return y !== null ? '<circle cx="' + x + '" cy="' + y + '" r="6" fill="#0891b2" stroke="#fff" stroke-width="2" filter="url(#dropShadow)"/>' : '';
+    }).join('');
+    
+    // Generate data points circles for TTE
+    const tteCircles = chartSnapshotsSorted.map((s, i) => {
+      const x = 70 + (i / Math.max(1, chartSnapshotsSorted.length - 1)) * 420;
+      const y = s.tte_observed_min !== null ? 20 + ((80 - s.tte_observed_min) / 60) * 160 : null;
+      return y !== null ? '<circle cx="' + x + '" cy="' + y + '" r="6" fill="#ea580c" stroke="#fff" stroke-width="2" filter="url(#dropShadow)"/>' : '';
+    }).join('');
+    
+    // Grid lines
+    const gridLines = [0, 40, 80, 120, 160].map(y => '<line x1="70" y1="' + (20 + y) + '" x2="490" y2="' + (20 + y) + '" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="' + (y === 80 ? '0' : '4,4') + '"/>').join('');
+    
+    const vlamaxTrendBg = vlamaxTrend !== null ? (vlamaxTrend < 0 ? 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)' : vlamaxTrend > 0 ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' : '#f1f5f9') : '';
+    const vlamaxTrendBorder = vlamaxTrend !== null ? (vlamaxTrend < 0 ? '#86efac' : vlamaxTrend > 0 ? '#fcd34d' : '#e2e8f0') : '';
+    const vlamaxTrendColor = vlamaxTrend !== null ? (vlamaxTrend < 0 ? '#16a34a' : vlamaxTrend > 0 ? '#d97706' : '#475569') : '';
+    const vlamaxTrendIcon = vlamaxTrend !== null ? (vlamaxTrend < 0 ? '📉' : vlamaxTrend > 0 ? '📈' : '➡️') : '';
+    
+    const tteTrendBg = tteTrend !== null ? (tteTrend > 0 ? 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)' : tteTrend < 0 ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' : '#f1f5f9') : '';
+    const tteTrendBorder = tteTrend !== null ? (tteTrend > 0 ? '#86efac' : tteTrend < 0 ? '#fcd34d' : '#e2e8f0') : '';
+    const tteTrendColor = tteTrend !== null ? (tteTrend > 0 ? '#16a34a' : tteTrend < 0 ? '#d97706' : '#475569') : '';
+    const tteTrendIcon = tteTrend !== null ? (tteTrend > 0 ? '📈' : tteTrend < 0 ? '📉' : '➡️') : '';
+    
+    const vlamaxTargetY = 20 + ((0.60 - (targets.vlamaxMax || 0.40)) / 0.40) * 160;
+    const vlamaxTargetHeight = ((targets.vlamaxMax || 0.40) - (targets.vlamaxMin || 0.25)) / 0.40 * 160;
+    
+    return '<div class="card mb" style="background: linear-gradient(135deg, #fafbfc 0%, #f0f4f8 100%); border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">' +
+      '<h3 style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">' +
+        '<span style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); color:white; padding:6px 10px; border-radius:8px; font-size:14px;">⚡</span>' +
+        'Évolution VLamax & TTE' +
+      '</h3>' +
+      '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">' +
+        (vlamaxTrend !== null ? '<div style="display:flex;align-items:center;gap:8px;background:' + vlamaxTrendBg + ';padding:8px 14px;border-radius:10px;border:1px solid ' + vlamaxTrendBorder + ';">' +
+          '<span style="font-size:18px;">' + vlamaxTrendIcon + '</span>' +
+          '<div><div style="font-size:10px;color:#64748b;text-transform:uppercase;">VLamax</div>' +
+          '<div style="font-weight:700;color:' + vlamaxTrendColor + ';">' + (vlamaxTrend > 0 ? '+' : '') + vlamaxTrend.toFixed(3) + '</div></div>' +
+        '</div>' : '') +
+        (tteTrend !== null ? '<div style="display:flex;align-items:center;gap:8px;background:' + tteTrendBg + ';padding:8px 14px;border-radius:10px;border:1px solid ' + tteTrendBorder + ';">' +
+          '<span style="font-size:18px;">' + tteTrendIcon + '</span>' +
+          '<div><div style="font-size:10px;color:#64748b;text-transform:uppercase;">TTE</div>' +
+          '<div style="font-weight:700;color:' + tteTrendColor + ';">' + (tteTrend > 0 ? '+' : '') + tteTrend + ' min</div></div>' +
+        '</div>' : '') +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;">' +
+        '<div style="text-align:center;background:linear-gradient(180deg, rgba(6,182,212,0.1) 0%, rgba(6,182,212,0.02) 100%);padding:16px;border-radius:12px;border:1px solid rgba(6,182,212,0.2);">' +
+          '<div style="font-size:11px;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">VLamax Actuelle</div>' +
+          '<div style="font-size:28px;font-weight:800;color:#0891b2;">' + (vlamaxDataChart.length > 0 ? (vlamaxDataChart[vlamaxDataChart.length - 1].vlamax?.toFixed(2) || '—') : '—') + '</div>' +
+          '<div style="font-size:10px;color:#94a3b8;">mmol/L/s</div>' +
+        '</div>' +
+        '<div style="text-align:center;background:linear-gradient(180deg, rgba(249,115,22,0.1) 0%, rgba(249,115,22,0.02) 100%);padding:16px;border-radius:12px;border:1px solid rgba(249,115,22,0.2);">' +
+          '<div style="font-size:11px;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">TTE Actuel</div>' +
+          '<div style="font-size:28px;font-weight:800;color:#ea580c;">' + (tteDataChart.length > 0 ? tteDataChart[tteDataChart.length - 1].tte_observed_min || '—' : '—') + '</div>' +
+          '<div style="font-size:10px;color:#94a3b8;">minutes</div>' +
+        '</div>' +
+        '<div style="text-align:center;background:linear-gradient(180deg, rgba(100,116,139,0.1) 0%, rgba(100,116,139,0.02) 100%);padding:16px;border-radius:12px;border:1px solid rgba(100,116,139,0.2);">' +
+          '<div style="font-size:11px;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Période</div>' +
+          '<div style="font-size:14px;font-weight:600;color:#475569;">' + dtStr(chartSnapshotsSorted[0].date) + '</div>' +
+          '<div style="font-size:10px;color:#94a3b8;">→ ' + dtStr(chartSnapshotsSorted[chartSnapshotsSorted.length - 1].date) + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<svg width="100%" viewBox="0 0 560 220" preserveAspectRatio="xMidYMid meet" style="max-width:100%;height:auto;">' +
+        '<defs>' +
+          '<linearGradient id="chartBg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f8fafc"/><stop offset="100%" stop-color="#f1f5f9"/></linearGradient>' +
+          '<linearGradient id="vlamaxGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#06b6d4" stop-opacity="0.3"/><stop offset="100%" stop-color="#06b6d4" stop-opacity="0.02"/></linearGradient>' +
+          '<linearGradient id="tteGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f97316" stop-opacity="0.3"/><stop offset="100%" stop-color="#f97316" stop-opacity="0.02"/></linearGradient>' +
+          '<filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.1"/></filter>' +
+        '</defs>' +
+        '<rect x="70" y="20" width="420" height="160" rx="8" fill="url(#chartBg)" stroke="#e2e8f0" stroke-width="1"/>' +
+        gridLines +
+        '<text x="60" y="28" font-size="9" fill="#0891b2" text-anchor="end" font-weight="600">0.60</text>' +
+        '<text x="60" y="108" font-size="9" fill="#0891b2" text-anchor="end" font-weight="600">0.40</text>' +
+        '<text x="60" y="178" font-size="9" fill="#0891b2" text-anchor="end" font-weight="600">0.20</text>' +
+        '<text x="500" y="28" font-size="9" fill="#ea580c" text-anchor="start" font-weight="600">80</text>' +
+        '<text x="500" y="108" font-size="9" fill="#ea580c" text-anchor="start" font-weight="600">50</text>' +
+        '<text x="500" y="178" font-size="9" fill="#ea580c" text-anchor="start" font-weight="600">20</text>' +
+        '<rect x="70" y="' + vlamaxTargetY + '" width="420" height="' + vlamaxTargetHeight + '" fill="rgba(34,197,94,0.08)" rx="4"/>' +
+        (vlamaxAreaD ? '<path d="' + vlamaxAreaD + '" fill="url(#vlamaxGradient)"/>' : '') +
+        (vlamaxPathD ? '<path d="' + vlamaxPathD + '" fill="none" stroke="#0891b2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#dropShadow)"/>' : '') +
+        (tteAreaD ? '<path d="' + tteAreaD + '" fill="url(#tteGradient)"/>' : '') +
+        (ttePathD ? '<path d="' + ttePathD + '" fill="none" stroke="#ea580c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#dropShadow)"/>' : '') +
+        vlamaxCircles + tteCircles +
+        '<rect x="180" y="195" width="12" height="12" rx="3" fill="#0891b2"/>' +
+        '<text x="197" y="205" font-size="10" fill="#475569">VLamax (mmol/L/s)</text>' +
+        '<rect x="320" y="195" width="12" height="12" rx="3" fill="#ea580c"/>' +
+        '<text x="337" y="205" font-size="10" fill="#475569">TTE (min)</text>' +
+      '</svg>' +
+    '</div>';
+  };
+  
+  const buildFtpKgChart = (): string => {
+    const ftpKgDataChart = chartSnapshotsSorted.filter(s => s.ftp && s.weight_kg).map(s => ({ ...s, ftpKg: s.ftp! / s.weight_kg! }));
+    const ftpKgTrend = ftpKgDataChart.length >= 2 ? (ftpKgDataChart[ftpKgDataChart.length - 1].ftpKg - ftpKgDataChart[0].ftpKg) : null;
+    
+    const ftpKgPoints = chartSnapshotsSorted
+      .map((s, i) => s.ftp && s.weight_kg ? { x: 70 + (i / Math.max(1, chartSnapshotsSorted.length - 1)) * 420, y: 20 + ((5.5 - (s.ftp / s.weight_kg)) / 3.0) * 140 } : null)
+      .filter(p => p !== null) as { x: number; y: number }[];
+    const ftpKgPathD = ftpKgPoints.length >= 2 ? ftpKgPoints.map((p, i) => (i === 0 ? 'M' : 'L') + ' ' + p.x + ' ' + p.y).join(' ') : '';
+    const ftpKgAreaD = ftpKgPathD ? ftpKgPathD + ' L ' + ftpKgPoints[ftpKgPoints.length - 1].x + ' 160 L ' + ftpKgPoints[0].x + ' 160 Z' : '';
+    
+    const ftpKgCircles = chartSnapshotsSorted.map((s, i) => {
+      const x = 70 + (i / Math.max(1, chartSnapshotsSorted.length - 1)) * 420;
+      const ftpKgVal = s.ftp && s.weight_kg ? s.ftp / s.weight_kg : null;
+      const y = ftpKgVal !== null ? 20 + ((5.5 - ftpKgVal) / 3.0) * 140 : null;
+      return y !== null ? '<circle cx="' + x + '" cy="' + y + '" r="7" fill="#16a34a" stroke="#fff" stroke-width="2" filter="url(#dropShadow)"/>' : '';
+    }).join('');
+    
+    const gridLines = [0, 35, 70, 105, 140].map(y => '<line x1="70" y1="' + (20 + y) + '" x2="490" y2="' + (20 + y) + '" stroke="#bbf7d0" stroke-dasharray="4,4"/>').join('');
+    
+    const dateLabels = chartSnapshotsSorted.length <= 6 
+      ? chartSnapshotsSorted.map((s, i) => {
+          const x = 70 + (i / Math.max(1, chartSnapshotsSorted.length - 1)) * 420;
+          return '<text x="' + x + '" y="185" font-size="8" fill="#64748b" text-anchor="middle">' + new Date(s.date).toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' }) + '</text>';
+        }).join('')
+      : '<text x="70" y="185" font-size="8" fill="#64748b" text-anchor="start">' + new Date(chartSnapshotsSorted[0].date).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }) + '</text>' +
+        '<text x="490" y="185" font-size="8" fill="#64748b" text-anchor="end">' + new Date(chartSnapshotsSorted[chartSnapshotsSorted.length - 1].date).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }) + '</text>';
+    
+    const trendColor = ftpKgTrend !== null ? (ftpKgTrend > 0 ? '#16a34a' : ftpKgTrend < 0 ? '#dc2626' : '#64748b') : '#64748b';
+    const trendIcon = ftpKgTrend !== null ? (ftpKgTrend > 0 ? '🚀' : ftpKgTrend < 0 ? '📉' : '➡️') : '';
+    
+    return '<div class="card mb" style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border: 1px solid #bbf7d0; box-shadow: 0 4px 12px rgba(34,197,94,0.1);">' +
+      '<h3 style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">' +
+        '<span style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color:white; padding:6px 10px; border-radius:8px; font-size:14px;">💪</span>' +
+        'Évolution FTP/kg' +
+      '</h3>' +
+      '<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-bottom:20px;">' +
+        '<div style="flex:1;min-width:200px;background:white;padding:20px;border-radius:16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.05);">' +
+          '<div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">FTP/kg Actuel</div>' +
+          '<div style="font-size:36px;font-weight:800;color:#16a34a;">' + (ftpKgDataChart.length > 0 ? ftpKgDataChart[ftpKgDataChart.length - 1].ftpKg.toFixed(2) : '—') + '</div>' +
+          '<div style="font-size:12px;color:#94a3b8;">W/kg</div>' +
+        '</div>' +
+        (ftpKgTrend !== null ? '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;">' +
+          '<div style="font-size:32px;">' + trendIcon + '</div>' +
+          '<div style="font-size:20px;font-weight:700;color:' + trendColor + ';">' + (ftpKgTrend > 0 ? '+' : '') + ftpKgTrend.toFixed(2) + '</div>' +
+          '<div style="font-size:10px;color:#94a3b8;">W/kg depuis le début</div>' +
+        '</div>' : '') +
+      '</div>' +
+      '<svg width="100%" viewBox="0 0 560 200" preserveAspectRatio="xMidYMid meet" style="max-width:100%;height:auto;">' +
+        '<defs>' +
+          '<linearGradient id="ftpBg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f0fdf4"/><stop offset="100%" stop-color="#dcfce7"/></linearGradient>' +
+          '<linearGradient id="ftpFill" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#22c55e" stop-opacity="0.4"/><stop offset="100%" stop-color="#22c55e" stop-opacity="0.05"/></linearGradient>' +
+        '</defs>' +
+        '<rect x="70" y="20" width="420" height="140" rx="8" fill="url(#ftpBg)" stroke="#bbf7d0"/>' +
+        gridLines +
+        '<text x="60" y="28" font-size="9" fill="#16a34a" text-anchor="end" font-weight="600">5.5</text>' +
+        '<text x="60" y="93" font-size="9" fill="#16a34a" text-anchor="end" font-weight="600">4.0</text>' +
+        '<text x="60" y="158" font-size="9" fill="#16a34a" text-anchor="end" font-weight="600">2.5</text>' +
+        '<rect x="70" y="' + (20 + ((5.5 - 4.5) / 3.0) * 140) + '" width="420" height="' + (1.0 / 3.0 * 140) + '" fill="rgba(34,197,94,0.15)" rx="4"/>' +
+        '<text x="85" y="' + (28 + ((5.5 - 4.5) / 3.0) * 140) + '" font-size="8" fill="#16a34a" font-weight="600">ZONE CIBLE</text>' +
+        (ftpKgAreaD ? '<path d="' + ftpKgAreaD + '" fill="url(#ftpFill)"/>' : '') +
+        (ftpKgPathD ? '<path d="' + ftpKgPathD + '" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#dropShadow)"/>' : '') +
+        ftpKgCircles +
+        '<line x1="70" y1="170" x2="490" y2="170" stroke="#bbf7d0" stroke-width="1"/>' +
+        dateLabels +
+      '</svg>' +
+    '</div>';
+  };
+  
+  const buildVo2maxChart = (): string => {
+    if (vo2maxData.length < 2) return '';
+    
+    const vo2maxTrend = vo2maxData[vo2maxData.length - 1].vo2max! - vo2maxData[0].vo2max!;
+    const currentVo2max = vo2maxData[vo2maxData.length - 1].vo2max!;
+    const levelLabel = currentVo2max >= 60 ? '🏆 Elite' : currentVo2max >= 50 ? '⚡ Excellent' : currentVo2max >= 40 ? '✓ Bon' : '📈 À développer';
+    const trendColor = vo2maxTrend > 0 ? '#16a34a' : vo2maxTrend < 0 ? '#dc2626' : '#64748b';
+    
+    const vo2maxPoints = vo2maxData.map((s, i) => ({
+      x: 70 + (chartSnapshotsSorted.indexOf(s) / Math.max(1, chartSnapshotsSorted.length - 1)) * 420,
+      y: 20 + ((80 - s.vo2max!) / 50) * 110
+    }));
+    const pathD = vo2maxPoints.map((p, i) => (i === 0 ? 'M' : 'L') + ' ' + p.x + ' ' + p.y).join(' ');
+    const areaD = pathD + ' L ' + vo2maxPoints[vo2maxPoints.length - 1].x + ' 130 L ' + vo2maxPoints[0].x + ' 130 Z';
+    const circles = vo2maxPoints.map(p => '<circle cx="' + p.x + '" cy="' + p.y + '" r="5" fill="#9333ea" stroke="#fff" stroke-width="2"/>').join('');
+    
+    return '<div class="card mb" style="background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%); border: 1px solid #d8b4fe; box-shadow: 0 4px 12px rgba(147,51,234,0.1);">' +
+      '<h3 style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">' +
+        '<span style="background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%); color:white; padding:6px 10px; border-radius:8px; font-size:14px;">🫁</span>' +
+        'Évolution VO₂max' +
+      '</h3>' +
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">' +
+        '<div style="text-align:center;background:white;padding:14px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.04);">' +
+          '<div style="font-size:10px;color:#64748b;text-transform:uppercase;">VO₂max Actuel</div>' +
+          '<div style="font-size:28px;font-weight:800;color:#9333ea;">' + currentVo2max.toFixed(1) + '</div>' +
+          '<div style="font-size:10px;color:#94a3b8;">ml/kg/min</div>' +
+        '</div>' +
+        '<div style="text-align:center;background:white;padding:14px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.04);">' +
+          '<div style="font-size:10px;color:#64748b;text-transform:uppercase;">Évolution</div>' +
+          '<div style="font-size:24px;font-weight:700;color:' + trendColor + ';">' + (vo2maxTrend > 0 ? '+' : '') + vo2maxTrend.toFixed(1) + '</div>' +
+          '<div style="font-size:10px;color:#94a3b8;">ml/kg/min</div>' +
+        '</div>' +
+        '<div style="text-align:center;background:white;padding:14px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.04);">' +
+          '<div style="font-size:10px;color:#64748b;text-transform:uppercase;">Niveau</div>' +
+          '<div style="font-size:16px;font-weight:600;color:#7c3aed;">' + levelLabel + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<svg width="100%" viewBox="0 0 560 160" preserveAspectRatio="xMidYMid meet" style="max-width:100%;height:auto;">' +
+        '<defs><linearGradient id="vo2Gradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#9333ea" stop-opacity="0.3"/><stop offset="100%" stop-color="#9333ea" stop-opacity="0.02"/></linearGradient></defs>' +
+        '<rect x="70" y="20" width="420" height="110" rx="6" fill="#faf5ff" stroke="#e9d5ff"/>' +
+        '<path d="' + areaD + '" fill="url(#vo2Gradient)"/>' +
+        '<path d="' + pathD + '" fill="none" stroke="#9333ea" stroke-width="3" stroke-linecap="round"/>' +
+        circles +
+        '<text x="60" y="30" font-size="9" fill="#7c3aed" text-anchor="end">80</text>' +
+        '<text x="60" y="75" font-size="9" fill="#7c3aed" text-anchor="end">55</text>' +
+        '<text x="60" y="128" font-size="9" fill="#7c3aed" text-anchor="end">30</text>' +
+        '<text x="280" y="150" font-size="10" fill="#64748b" text-anchor="middle">VO₂max (ml/kg/min)</text>' +
+      '</svg>' +
+    '</div>';
+  };
+  
+  const buildRunEconomyChart = (): string => {
+    if (runEconomyData.length < 2) return '';
+    
+    const currentScore = runEconomyData[runEconomyData.length - 1].run_economy_score!;
+    const currentLabel = runEconomyData[runEconomyData.length - 1].run_economy_label || 'N/A';
+    
+    const points = runEconomyData.map((s, i) => ({
+      x: 70 + (chartSnapshotsSorted.indexOf(s) / Math.max(1, chartSnapshotsSorted.length - 1)) * 420,
+      y: 20 + ((100 - s.run_economy_score!) / 100) * 90
+    }));
+    const pathD = points.map((p, i) => (i === 0 ? 'M' : 'L') + ' ' + p.x + ' ' + p.y).join(' ');
+    const areaD = pathD + ' L ' + points[points.length - 1].x + ' 110 L ' + points[0].x + ' 110 Z';
+    const circles = points.map(p => '<circle cx="' + p.x + '" cy="' + p.y + '" r="5" fill="#ea580c" stroke="#fff" stroke-width="2"/>').join('');
+    
+    return '<div class="card mb" style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); border: 1px solid #fed7aa; box-shadow: 0 4px 12px rgba(234,88,12,0.1);">' +
+      '<h3 style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">' +
+        '<span style="background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); color:white; padding:6px 10px; border-radius:8px; font-size:14px;">🏃</span>' +
+        'Évolution Économie de Course' +
+      '</h3>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">' +
+        '<div style="text-align:center;background:white;padding:16px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.04);">' +
+          '<div style="font-size:10px;color:#64748b;text-transform:uppercase;">Score Actuel</div>' +
+          '<div style="font-size:32px;font-weight:800;color:#ea580c;">' + currentScore + '</div>' +
+          '<div style="font-size:10px;color:#94a3b8;">/100</div>' +
+        '</div>' +
+        '<div style="text-align:center;background:white;padding:16px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.04);">' +
+          '<div style="font-size:10px;color:#64748b;text-transform:uppercase;">Label</div>' +
+          '<div style="font-size:16px;font-weight:700;color:#c2410c;">' + currentLabel + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<svg width="100%" viewBox="0 0 560 140" preserveAspectRatio="xMidYMid meet" style="max-width:100%;height:auto;">' +
+        '<defs><linearGradient id="runEcoGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#ea580c" stop-opacity="0.3"/><stop offset="100%" stop-color="#ea580c" stop-opacity="0.02"/></linearGradient></defs>' +
+        '<rect x="70" y="20" width="420" height="90" rx="6" fill="#fff7ed" stroke="#fed7aa"/>' +
+        '<path d="' + areaD + '" fill="url(#runEcoGradient)"/>' +
+        '<path d="' + pathD + '" fill="none" stroke="#ea580c" stroke-width="3" stroke-linecap="round"/>' +
+        circles +
+        '<text x="60" y="28" font-size="9" fill="#c2410c" text-anchor="end">100</text>' +
+        '<text x="60" y="68" font-size="9" fill="#c2410c" text-anchor="end">50</text>' +
+        '<text x="60" y="108" font-size="9" fill="#c2410c" text-anchor="end">0</text>' +
+        '<text x="280" y="130" font-size="10" fill="#64748b" text-anchor="middle">Score Économie de Course</text>' +
+      '</svg>' +
+    '</div>';
+  };
+  
+  const buildMetabolicScoreChart = (): string => {
+    if (metabolicScoreData.length < 2) return '';
+    
+    const currentScore = metabolicScoreData[metabolicScoreData.length - 1].metabolic_score!;
+    const scoreTrend = currentScore - metabolicScoreData[0].metabolic_score!;
+    const currentProfile = metabolicScoreData[metabolicScoreData.length - 1].metabolic_profile || 'N/A';
+    const trendColor = scoreTrend > 0 ? '#16a34a' : scoreTrend < 0 ? '#dc2626' : '#64748b';
+    
+    const points = metabolicScoreData.map((s, i) => ({
+      x: 70 + (chartSnapshotsSorted.indexOf(s) / Math.max(1, chartSnapshotsSorted.length - 1)) * 420,
+      y: 20 + ((100 - s.metabolic_score!) / 100) * 90
+    }));
+    const pathD = points.map((p, i) => (i === 0 ? 'M' : 'L') + ' ' + p.x + ' ' + p.y).join(' ');
+    const areaD = pathD + ' L ' + points[points.length - 1].x + ' 110 L ' + points[0].x + ' 110 Z';
+    const circles = points.map(p => '<circle cx="' + p.x + '" cy="' + p.y + '" r="5" fill="#2563eb" stroke="#fff" stroke-width="2"/>').join('');
+    
+    return '<div class="card" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 1px solid #93c5fd; box-shadow: 0 4px 12px rgba(37,99,235,0.1);">' +
+      '<h3 style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">' +
+        '<span style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color:white; padding:6px 10px; border-radius:8px; font-size:14px;">🧬</span>' +
+        'Évolution Score Métabolique' +
+      '</h3>' +
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">' +
+        '<div style="text-align:center;background:white;padding:14px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.04);">' +
+          '<div style="font-size:10px;color:#64748b;text-transform:uppercase;">Score Actuel</div>' +
+          '<div style="font-size:28px;font-weight:800;color:#2563eb;">' + currentScore + '</div>' +
+          '<div style="font-size:10px;color:#94a3b8;">/100</div>' +
+        '</div>' +
+        '<div style="text-align:center;background:white;padding:14px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.04);">' +
+          '<div style="font-size:10px;color:#64748b;text-transform:uppercase;">Évolution</div>' +
+          '<div style="font-size:24px;font-weight:700;color:' + trendColor + ';">' + (scoreTrend > 0 ? '+' : '') + scoreTrend + '</div>' +
+          '<div style="font-size:10px;color:#94a3b8;">points</div>' +
+        '</div>' +
+        '<div style="text-align:center;background:white;padding:14px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.04);">' +
+          '<div style="font-size:10px;color:#64748b;text-transform:uppercase;">Profil</div>' +
+          '<div style="font-size:14px;font-weight:600;color:#1d4ed8;">' + currentProfile + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<svg width="100%" viewBox="0 0 560 140" preserveAspectRatio="xMidYMid meet" style="max-width:100%;height:auto;">' +
+        '<defs><linearGradient id="metaScoreGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#2563eb" stop-opacity="0.3"/><stop offset="100%" stop-color="#2563eb" stop-opacity="0.02"/></linearGradient></defs>' +
+        '<rect x="70" y="20" width="420" height="90" rx="6" fill="#eff6ff" stroke="#93c5fd"/>' +
+        '<path d="' + areaD + '" fill="url(#metaScoreGradient)"/>' +
+        '<path d="' + pathD + '" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>' +
+        circles +
+        '<text x="60" y="28" font-size="9" fill="#1d4ed8" text-anchor="end">100</text>' +
+        '<text x="60" y="68" font-size="9" fill="#1d4ed8" text-anchor="end">50</text>' +
+        '<text x="60" y="108" font-size="9" fill="#1d4ed8" text-anchor="end">0</text>' +
+        '<text x="280" y="130" font-size="10" fill="#64748b" text-anchor="middle">Score Métabolique Global</text>' +
+      '</svg>' +
+    '</div>';
+  };
+  
+  const buildAmbitionProgressChart = (): string => {
+    const progressVlamax = currentAmbitionTarget?.progress.vlamax !== null ? Math.round(currentAmbitionTarget.progress.vlamax) : null;
+    const progressTte = currentAmbitionTarget?.progress.tte !== null ? Math.round(currentAmbitionTarget.progress.tte) : null;
+    const progressFtpKg = currentAmbitionTarget?.progress.ftpKg !== null ? Math.round(currentAmbitionTarget.progress.ftpKg) : null;
+    const progressGlobal = currentAmbitionTarget?.progress.global !== null ? Math.round(currentAmbitionTarget.progress.global) : 0;
+    const progressArc = (progressGlobal / 100) * 440;
+    
+    const statusMessage = currentAmbitionTarget?.isReached 
+      ? '<div class="alert alertSuccess" style="text-align:center;"><b>🏆 Félicitations !</b> Vous avez atteint les cibles pour le niveau ' + ambitionData.label + '.</div>'
+      : currentAmbitionTarget?.weeksToReach !== null 
+        ? '<div class="alert alertInfo" style="text-align:center;"><b>⏱️ Délai estimé :</b> ~' + currentAmbitionTarget.weeksToReach + ' semaines (basé sur une progression de 1.5%/sem)</div>'
+        : '';
+    
+    return '<div class="card mt" style="background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%); border: 1px solid #fde047; box-shadow: 0 4px 12px rgba(234,179,8,0.15);">' +
+      '<h3 style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">' +
+        '<span style="background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color:white; padding:6px 10px; border-radius:8px; font-size:14px;">🎯</span>' +
+        'Progression vers l\'Ambition ' + ambitionData.icon + ' ' + ambitionData.label +
+      '</h3>' +
+      '<div style="display:flex;align-items:center;justify-content:center;gap:24px;margin:24px 0;">' +
+        '<svg width="180" height="180" viewBox="0 0 180 180">' +
+          '<defs>' +
+            '<linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="0%">' +
+              '<stop offset="0%" stop-color="#eab308"/>' +
+              '<stop offset="50%" stop-color="#f59e0b"/>' +
+              '<stop offset="100%" stop-color="#16a34a"/>' +
+            '</linearGradient>' +
+            '<filter id="glow"><feGaussianBlur stdDeviation="3" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
+          '</defs>' +
+          '<circle cx="90" cy="90" r="70" fill="none" stroke="#fef3c7" stroke-width="16"/>' +
+          '<circle cx="90" cy="90" r="70" fill="none" stroke="url(#progressGrad)" stroke-width="16" stroke-dasharray="' + progressArc + ' 440" stroke-linecap="round" transform="rotate(-90 90 90)" filter="url(#glow)"/>' +
+          '<text x="90" y="80" font-size="36" font-weight="800" fill="#ca8a04" text-anchor="middle">' + progressGlobal + '</text>' +
+          '<text x="90" y="100" font-size="14" fill="#64748b" text-anchor="middle">%</text>' +
+          '<text x="90" y="120" font-size="10" fill="#94a3b8" text-anchor="middle">vers ' + ambitionData.label + '</text>' +
+        '</svg>' +
+        '<div style="display:flex;flex-direction:column;gap:8px;">' +
+          '<div style="display:flex;align-items:center;gap:12px;background:white;padding:10px 16px;border-radius:10px;box-shadow:0 2px 4px rgba(0,0,0,0.05);">' +
+            '<div style="width:12px;height:12px;background:#0891b2;border-radius:50%;"></div>' +
+            '<div style="flex:1;"><div style="font-size:10px;color:#64748b;">VLamax</div><div style="font-weight:700;color:#0891b2;">' + (progressVlamax !== null ? progressVlamax + '%' : '—') + '</div></div>' +
+          '</div>' +
+          '<div style="display:flex;align-items:center;gap:12px;background:white;padding:10px 16px;border-radius:10px;box-shadow:0 2px 4px rgba(0,0,0,0.05);">' +
+            '<div style="width:12px;height:12px;background:#ea580c;border-radius:50%;"></div>' +
+            '<div style="flex:1;"><div style="font-size:10px;color:#64748b;">TTE</div><div style="font-weight:700;color:#ea580c;">' + (progressTte !== null ? progressTte + '%' : '—') + '</div></div>' +
+          '</div>' +
+          '<div style="display:flex;align-items:center;gap:12px;background:white;padding:10px 16px;border-radius:10px;box-shadow:0 2px 4px rgba(0,0,0,0.05);">' +
+            '<div style="width:12px;height:12px;background:#16a34a;border-radius:50%;"></div>' +
+            '<div style="flex:1;"><div style="font-size:10px;color:#64748b;">FTP/kg</div><div style="font-weight:700;color:#16a34a;">' + (progressFtpKg !== null ? progressFtpKg + '%' : '—') + '</div></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      statusMessage +
+    '</div>';
+  };
+  
+  // Build evolution charts HTML
+  const evolutionChartsHTML = chartSnapshotsSorted.length >= 2 
+    ? '<section id="evolution-charts" class="section pagebreak">' +
+        '<h2>E-bis. Graphiques d\'Évolution Physiologique</h2>' +
+        '<div class="alert alertInfo mb">' +
+          '<b>📊 Visualisation des tendances :</b> Ces graphiques montrent l\'évolution des métriques clés sur les ' + chartSnapshotsSorted.length + ' derniers snapshots (' + dtStr(chartSnapshotsSorted[0].date) + ' → ' + dtStr(chartSnapshotsSorted[chartSnapshotsSorted.length - 1].date) + ').' +
+        '</div>' +
+        buildVlamaxTteChart() +
+        buildFtpKgChart() +
+        buildVo2maxChart() +
+        buildRunEconomyChart() +
+        buildMetabolicScoreChart() +
+        buildAmbitionProgressChart() +
+      '</section>'
+    : '<section id="evolution-charts" class="section">' +
+        '<h2>E-bis. Graphiques d\'Évolution Physiologique</h2>' +
+        '<div class="card" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0;">' +
+          '<div class="alert alertInfo" style="margin:0;"><b>ℹ️ Données insuffisantes :</b> Au moins 2 snapshots sont nécessaires pour générer les graphiques d\'évolution.</div>' +
+          '<p class="muted mt" style="text-align:center;">Créez des snapshots réguliers pour visualiser l\'évolution de vos métriques physiologiques.</p>' +
+        '</div>' +
+      '</section>';
 
   // =============================================
   // 6. AJUSTEMENT PAR L'ÂGE (AAI)
