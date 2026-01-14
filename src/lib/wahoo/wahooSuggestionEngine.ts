@@ -117,6 +117,7 @@ export interface WahooSuggestion {
 export interface NeedAnalysis {
   needs: WahooNeed[];
   rationale: string[];
+  rationaleByNeed: Record<WahooNeed, string[]>;
   priorityOrder: WahooNeed[];
 }
 
@@ -191,6 +192,14 @@ export function getFtpKgTarget(objectif: string): number {
 export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysis {
   const needs: WahooNeed[] = [];
   const rationale: string[] = [];
+  const rationaleByNeed: Record<WahooNeed, string[]> = {
+    NEED_RECOVERY: [],
+    NEED_FTP_UP: [],
+    NEED_VLAMAX_DOWN: [],
+    NEED_TTE_UP: [],
+    NEED_ENDURANCE_BASE: [],
+    NEED_VO2_UP: [],
+  };
   
   const { objectif, sportFocus, vlamaxEffectif, tteEffectif, raceReadiness, CRR, injuryRiskRun, fatigueScore, ftpKg } = context;
   
@@ -205,13 +214,19 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
   if (needsRecovery) {
     needs.push("NEED_RECOVERY");
     if (fatigueScore !== undefined && fatigueScore >= 7) {
-      rationale.push(`Fatigue élevée (${fatigueScore}/10) → priorité absorption charge.`);
+      const msg = `Fatigue élevée (${fatigueScore}/10) → priorité absorption charge.`;
+      rationale.push(msg);
+      rationaleByNeed.NEED_RECOVERY.push(msg);
     }
     if (injuryRiskRun?.level === "élevé") {
-      rationale.push(`Risque blessure CAP élevé (score ${injuryRiskRun.score}) → réduire intensité.`);
+      const msg = `Risque blessure CAP élevé (score ${injuryRiskRun.score}) → réduire intensité.`;
+      rationale.push(msg);
+      rationaleByNeed.NEED_RECOVERY.push(msg);
     }
     if (raceReadiness.details.fraicheur !== undefined && raceReadiness.details.fraicheur < 50) {
-      rationale.push(`Fraîcheur insuffisante → récupération nécessaire.`);
+      const msg = `Fraîcheur insuffisante → récupération nécessaire.`;
+      rationale.push(msg);
+      rationaleByNeed.NEED_RECOVERY.push(msg);
     }
   }
   
@@ -222,9 +237,9 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
   
   if (isBikeOrTri && hasFtpDeficit && !needsRecovery) {
     needs.push("NEED_FTP_UP");
-    rationale.push(
-      `FTP/kg insuffisant (${ftpKg?.toFixed(2)} W/kg < cible ${ftpTarget.toFixed(1)} W/kg pour ${objectif}) → développer la puissance au seuil.`
-    );
+    const msg = `FTP/kg insuffisant (${ftpKg?.toFixed(2)} W/kg < cible ${ftpTarget.toFixed(1)} W/kg pour ${objectif}) → développer la puissance au seuil.`;
+    rationale.push(msg);
+    rationaleByNeed.NEED_FTP_UP.push(msg);
   }
   
   // === RULE A: NEED_VLAMAX_DOWN ===
@@ -236,18 +251,18 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
   
   if (vlamaxEffectif.value !== null && vlamaxEffectif.value > vlamaxThreshold && isLongDistance && ftpIsAdequate) {
     needs.push("NEED_VLAMAX_DOWN");
-    rationale.push(
-      `VLamax élevé pour l'objectif (${vlamaxEffectif.value.toFixed(2)} > ${vlamaxThreshold.toFixed(2)} pour ${objectif}) → dépendance glucidique + risque dérive.`
-    );
+    const msg = `VLamax élevé pour l'objectif (${vlamaxEffectif.value.toFixed(2)} > ${vlamaxThreshold.toFixed(2)} pour ${objectif}) → dépendance glucidique + risque dérive.`;
+    rationale.push(msg);
+    rationaleByNeed.NEED_VLAMAX_DOWN.push(msg);
   }
   
   // === RULE B: NEED_TTE_UP ===
   const tteTarget = getTTETarget(objectif);
   if (tteEffectif.value !== null && tteEffectif.value < tteTarget - 5) {
     needs.push("NEED_TTE_UP");
-    rationale.push(
-      `TTE insuffisant (${tteEffectif.value} min < cible ${tteTarget} min pour ${objectif}) → durabilité seuil à développer.`
-    );
+    const msg = `TTE insuffisant (${tteEffectif.value} min < cible ${tteTarget} min pour ${objectif}) → durabilité seuil à développer.`;
+    rationale.push(msg);
+    rationaleByNeed.NEED_TTE_UP.push(msg);
   }
   
   // === RULE C: NEED_ENDURANCE_BASE ===
@@ -258,10 +273,14 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
   if (hasEnduranceIssue && !needs.includes("NEED_RECOVERY")) {
     needs.push("NEED_ENDURANCE_BASE");
     if (raceReadiness.details.endurance !== undefined && raceReadiness.details.endurance < 60) {
-      rationale.push(`Composante endurance faible (${raceReadiness.details.endurance}%) → base aérobie à consolider.`);
+      const msg = `Composante endurance faible (${raceReadiness.details.endurance}%) → base aérobie à consolider.`;
+      rationale.push(msg);
+      rationaleByNeed.NEED_ENDURANCE_BASE.push(msg);
     }
     if (CRR.value !== null && CRR.value < 250) {
-      rationale.push(`CRR faible (${CRR.value}) → volume/charge non structurée.`);
+      const msg = `CRR faible (${CRR.value}) → volume/charge non structurée.`;
+      rationale.push(msg);
+      rationaleByNeed.NEED_ENDURANCE_BASE.push(msg);
     }
   }
   
@@ -273,7 +292,9 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
     // Only suggest VO2 if VLamax is not already elevated
     if (vlamaxEffectif.value === null || vlamaxEffectif.value <= vlamaxThreshold) {
       needs.push("NEED_VO2_UP");
-      rationale.push(`Objectif court ou VLamax bas → augmenter plafond aérobie (usage contrôlé).`);
+      const msg = `Objectif court ou VLamax bas → augmenter plafond aérobie (usage contrôlé).`;
+      rationale.push(msg);
+      rationaleByNeed.NEED_VO2_UP.push(msg);
     }
   }
   
@@ -293,6 +314,7 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
   return {
     needs: limitedNeeds,
     rationale,
+    rationaleByNeed,
     priorityOrder: sortedNeeds,
   };
 }

@@ -6,6 +6,12 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Zap,
   Clock,
   Activity,
@@ -446,31 +452,41 @@ export function WahooPersonalizedRecommendations() {
               const colorClass = axisConfig?.color || "text-primary";
               const bgColorClass = colorClass.replace("text-", "bg-").replace("-500", "-500/15");
               const borderColorClass = colorClass.replace("text-", "border-").replace("-500", "-500/50");
+              const tooltipContent = needAnalysis.rationaleByNeed[priorities[0]]?.join(" ") || "Priorité détectée";
               
               return (
-                <Card className={cn("border-2", borderColorClass, bgColorClass)}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={cn("p-3 rounded-xl", bgColorClass.replace("/15", "/30"))}>
-                          <PriorityIcon className={cn("h-6 w-6", colorClass)} />
-                        </div>
-                        <div>
-                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                            {priorityLabels[0]}
-                          </p>
-                          <p className={cn("text-lg font-bold", colorClass)}>
-                            {axisConfig?.label || targetAxis}
-                          </p>
-                        </div>
-                      </div>
-                      <Badge className={cn("text-sm px-3 py-1", colorClass, bgColorClass.replace("/15", "/30"))}>
-                        <Target className="h-4 w-4 mr-1.5" />
-                        Focus
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Card className={cn("border-2 cursor-help", borderColorClass, bgColorClass)}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className={cn("p-3 rounded-xl", bgColorClass.replace("/15", "/30"))}>
+                                <PriorityIcon className={cn("h-6 w-6", colorClass)} />
+                              </div>
+                              <div>
+                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                  {priorityLabels[0]}
+                                </p>
+                                <p className={cn("text-lg font-bold", colorClass)}>
+                                  {axisConfig?.label || targetAxis}
+                                </p>
+                              </div>
+                            </div>
+                            <Badge className={cn("text-sm px-3 py-1", colorClass, bgColorClass.replace("/15", "/30"))}>
+                              <Target className="h-4 w-4 mr-1.5" />
+                              Focus
+                            </Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-xs">
+                      <p className="text-sm">{tooltipContent}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               );
             })()}
             
@@ -484,25 +500,35 @@ export function WahooPersonalizedRecommendations() {
                   const colorClass = axisConfig?.color || "text-primary";
                   const bgColorClass = colorClass.replace("text-", "bg-").replace("-500", "-500/10");
                   const borderColorClass = colorClass.replace("text-", "border-").replace("-500", "-500/30");
+                  const tooltipContent = needAnalysis.rationaleByNeed[need]?.join(" ") || "Priorité détectée";
                   
                   return (
-                    <Card key={need} className={cn("border", borderColorClass, bgColorClass)}>
-                      <CardContent className="p-3">
-                        <div className="flex items-center gap-2">
-                          <div className={cn("p-2 rounded-lg", bgColorClass.replace("/10", "/20"))}>
-                            <PriorityIcon className={cn("h-4 w-4", colorClass)} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-                              {priorityLabels[idx + 1]}
-                            </p>
-                            <p className={cn("text-sm font-semibold truncate", colorClass)}>
-                              {axisConfig?.label || targetAxis}
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <TooltipProvider key={need}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Card className={cn("border cursor-help", borderColorClass, bgColorClass)}>
+                            <CardContent className="p-3">
+                              <div className="flex items-center gap-2">
+                                <div className={cn("p-2 rounded-lg", bgColorClass.replace("/10", "/20"))}>
+                                  <PriorityIcon className={cn("h-4 w-4", colorClass)} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+                                    {priorityLabels[idx + 1]}
+                                  </p>
+                                  <p className={cn("text-sm font-semibold truncate", colorClass)}>
+                                    {axisConfig?.label || targetAxis}
+                                  </p>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="max-w-xs">
+                          <p className="text-sm">{tooltipContent}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   );
                 })}
               </div>
