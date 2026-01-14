@@ -316,7 +316,7 @@ function needToAxis(need: WahooNeed): WahooPhysioAxis[] {
   }
 }
 
-function needToTargetAxis(need: WahooNeed): TargetAxis {
+export function needToTargetAxis(need: WahooNeed): TargetAxis {
   switch (need) {
     case "NEED_VLAMAX_DOWN":
       return "VLAMAX";

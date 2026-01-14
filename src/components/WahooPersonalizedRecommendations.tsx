@@ -35,6 +35,8 @@ import {
   TemporalPhase,
   PHASE_LABELS,
   PHASE_DESCRIPTIONS,
+  needToTargetAxis,
+  WahooNeed,
 } from "@/lib/wahoo/wahooSuggestionEngine";
 import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { computeTTEEffectif, getTTETarget } from "@/lib/tteEffectif";
@@ -429,38 +431,83 @@ export function WahooPersonalizedRecommendations() {
         </p>
       </div>
 
-      {/* Primary Priority Indicator */}
-      {primaryConcern && (() => {
-        const axisConfig = AXIS_CONFIG[primaryConcern];
-        const PriorityIcon = axisConfig?.icon || Target;
-        const colorClass = axisConfig?.color || "text-primary";
-        const bgColorClass = colorClass.replace("text-", "bg-").replace("-500", "-500/15");
-        const borderColorClass = colorClass.replace("text-", "border-").replace("-500", "-500/50");
+      {/* Priority Indicators - Primary and Secondary */}
+      {needAnalysis.priorityOrder.length > 0 && (() => {
+        const priorities = needAnalysis.priorityOrder.slice(0, 4);
+        const priorityLabels = ["1ère priorité", "2ème priorité", "3ème priorité", "4ème priorité"];
         
         return (
-          <Card className={cn("border-2", borderColorClass, bgColorClass)}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={cn("p-3 rounded-xl", bgColorClass.replace("/15", "/30"))}>
-                    <PriorityIcon className={cn("h-6 w-6", colorClass)} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                      Priorité principale évaluée
-                    </p>
-                    <p className={cn("text-lg font-bold", colorClass)}>
-                      {axisConfig?.label || primaryConcern}
-                    </p>
-                  </div>
-                </div>
-                <Badge className={cn("text-sm px-3 py-1", colorClass, bgColorClass.replace("/15", "/30"))}>
-                  <Target className="h-4 w-4 mr-1.5" />
-                  Focus
-                </Badge>
+          <div className="space-y-3">
+            {/* Primary Priority - Large Card */}
+            {priorities[0] && (() => {
+              const targetAxis = needToTargetAxis(priorities[0]);
+              const axisConfig = AXIS_CONFIG[targetAxis];
+              const PriorityIcon = axisConfig?.icon || Target;
+              const colorClass = axisConfig?.color || "text-primary";
+              const bgColorClass = colorClass.replace("text-", "bg-").replace("-500", "-500/15");
+              const borderColorClass = colorClass.replace("text-", "border-").replace("-500", "-500/50");
+              
+              return (
+                <Card className={cn("border-2", borderColorClass, bgColorClass)}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={cn("p-3 rounded-xl", bgColorClass.replace("/15", "/30"))}>
+                          <PriorityIcon className={cn("h-6 w-6", colorClass)} />
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                            {priorityLabels[0]}
+                          </p>
+                          <p className={cn("text-lg font-bold", colorClass)}>
+                            {axisConfig?.label || targetAxis}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge className={cn("text-sm px-3 py-1", colorClass, bgColorClass.replace("/15", "/30"))}>
+                        <Target className="h-4 w-4 mr-1.5" />
+                        Focus
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })()}
+            
+            {/* Secondary Priorities - Smaller Cards Grid */}
+            {priorities.length > 1 && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {priorities.slice(1, 4).map((need, idx) => {
+                  const targetAxis = needToTargetAxis(need);
+                  const axisConfig = AXIS_CONFIG[targetAxis];
+                  const PriorityIcon = axisConfig?.icon || Target;
+                  const colorClass = axisConfig?.color || "text-primary";
+                  const bgColorClass = colorClass.replace("text-", "bg-").replace("-500", "-500/10");
+                  const borderColorClass = colorClass.replace("text-", "border-").replace("-500", "-500/30");
+                  
+                  return (
+                    <Card key={need} className={cn("border", borderColorClass, bgColorClass)}>
+                      <CardContent className="p-3">
+                        <div className="flex items-center gap-2">
+                          <div className={cn("p-2 rounded-lg", bgColorClass.replace("/10", "/20"))}>
+                            <PriorityIcon className={cn("h-4 w-4", colorClass)} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+                              {priorityLabels[idx + 1]}
+                            </p>
+                            <p className={cn("text-sm font-semibold truncate", colorClass)}>
+                              {axisConfig?.label || targetAxis}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </div>
         );
       })()}
 
