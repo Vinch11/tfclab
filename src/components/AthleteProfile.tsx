@@ -9,6 +9,7 @@ import { SnapshotNolio, scoreConfiance, estimerTTE } from "@/types/snapshotNolio
 import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { TTEEffectif } from "@/lib/tteEffectif";
 import { toast } from "sonner";
+import { getAmbitionDefinition, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 
 interface AthleteProfileProps {
   athlete: Athlete;
@@ -226,11 +227,24 @@ export function AthleteProfile({ athlete, onUpdate, onSaveToCloud, onUpdateMasse
               <h3 className="text-lg font-semibold text-foreground">
                 {formData.nom || "Athlète"}
               </h3>
-              <div className="flex items-center gap-3 mt-1">
+              <div className="flex items-center gap-3 mt-1 flex-wrap">
                 <span className="text-sm text-muted-foreground">{formData.sexe === "M" ? "Homme" : "Femme"}</span>
                 <span className="text-sm px-2 py-0.5 rounded-full bg-accent/10 text-accent">
                   {getObjectifLabel(formData.objectif)}
                 </span>
+                {/* Badge d'ambition */}
+                {(() => {
+                  const ambDef = getAmbitionDefinition(athlete.ambition || DEFAULT_AMBITION);
+                  return (
+                    <span className={cn(
+                      "text-sm px-2 py-0.5 rounded-full bg-secondary/50 flex items-center gap-1",
+                      ambDef.color
+                    )}>
+                      <span>{ambDef.icon}</span>
+                      <span>{ambDef.label}</span>
+                    </span>
+                  );
+                })()}
                 <span className="text-sm px-2 py-0.5 rounded-full bg-primary/10 text-primary">
                   {athlete.historique?.length || 0} snapshots
                 </span>

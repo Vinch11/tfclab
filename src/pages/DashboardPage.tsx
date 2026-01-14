@@ -48,6 +48,7 @@ import { RunInjuryRiskCard } from "@/components/RunInjuryRiskCard";
 import { QuickFatigueInput } from "@/components/QuickFatigueInput";
 import { FatigueComparisonChart } from "@/components/FatigueComparisonChart";
 import { computeRunInjuryRisk, RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
+import { getAmbitionDefinition, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 
 // =============================================
 // HELPERS
@@ -428,6 +429,16 @@ export default function DashboardPage() {
             <Target className="h-3 w-3" />
             {OBJECTIF_LABELS[objectif] || objectif}
           </Badge>
+          {/* Badge d'ambition */}
+          {(() => {
+            const ambDef = getAmbitionDefinition(currentAthlete.ambition || DEFAULT_AMBITION);
+            return (
+              <Badge variant="secondary" className={cn("gap-1", ambDef.color)}>
+                <span>{ambDef.icon}</span>
+                {ambDef.label}
+              </Badge>
+            );
+          })()}
           <Badge variant="secondary" className="gap-1">
             <Activity className="h-3 w-3" />
             {PHASE_LABELS[phase] || phase}
