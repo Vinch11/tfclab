@@ -176,26 +176,28 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
   
   // Priority order: RECOVERY > FTP_UP > VLAMAX_DOWN > TTE_UP > ENDURANCE_BASE > VO2_UP
   
-  // === RULE D: NEED_RECOVERY (highest priority) ===
-  const needsRecovery = 
-    (fatigueScore !== undefined && fatigueScore >= 7) ||
-    (raceReadiness.details.fraicheur !== undefined && raceReadiness.details.fraicheur < 50) ||
-    (injuryRiskRun?.level === "élevé");
+  // === RULE D: NEED_RECOVERY (highest priority ONLY for severe cases) ===
+  // Use stricter thresholds to avoid overriding development priorities
+  const hasSevereFatigue = fatigueScore !== undefined && fatigueScore >= 8; // More strict: 8/10 instead of 7/10
+  const hasSevereInjuryRisk = injuryRiskRun?.level === "élevé";
+  const hasSevereFreshnessIssue = raceReadiness.details.fraicheur !== undefined && raceReadiness.details.fraicheur < 30; // More strict: < 30 instead of < 50
+  
+  const needsSevereRecovery = hasSevereFatigue || hasSevereInjuryRisk || hasSevereFreshnessIssue;
     
-  if (needsRecovery) {
+  if (needsSevereRecovery) {
     needs.push("NEED_RECOVERY");
-    if (fatigueScore !== undefined && fatigueScore >= 7) {
-      const msg = `Fatigue élevée (${fatigueScore}/10) → priorité absorption charge.`;
+    if (hasSevereFatigue) {
+      const msg = `Fatigue très élevée (${fatigueScore}/10) → priorité absorption charge.`;
       rationale.push(msg);
       rationaleByNeed.NEED_RECOVERY.push(msg);
     }
-    if (injuryRiskRun?.level === "élevé") {
+    if (hasSevereInjuryRisk) {
       const msg = `Risque blessure CAP élevé (score ${injuryRiskRun.score}) → réduire intensité.`;
       rationale.push(msg);
       rationaleByNeed.NEED_RECOVERY.push(msg);
     }
-    if (raceReadiness.details.fraicheur !== undefined && raceReadiness.details.fraicheur < 50) {
-      const msg = `Fraîcheur insuffisante → récupération nécessaire.`;
+    if (hasSevereFreshnessIssue) {
+      const msg = `Fraîcheur critique (<30%) → récupération prioritaire.`;
       rationale.push(msg);
       rationaleByNeed.NEED_RECOVERY.push(msg);
     }
@@ -206,7 +208,7 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
   const ftpTarget = getFtpKgTarget(objectif);
   const hasFtpDeficit = ftpKg !== undefined && ftpKg !== null && ftpKg < ftpTarget * 0.90;
   
-  if (isBikeOrTri && hasFtpDeficit && !needsRecovery) {
+  if (isBikeOrTri && hasFtpDeficit && !needsSevereRecovery) {
     needs.push("NEED_FTP_UP");
     const msg = `FTP/kg insuffisant (${ftpKg?.toFixed(2)} W/kg < cible ${ftpTarget.toFixed(1)} W/kg pour ${objectif}) → développer la puissance au seuil.`;
     rationale.push(msg);
@@ -367,14 +369,15 @@ function selectWorkoutsForNeed(
     return true;
   });
   
-  // Safety filters
+  // Safety filters - use stricter thresholds to avoid over-filtering development workouts
   const isLongDistance = ["IM", "Ironman", "Marathon", "703", "70.3", "Half", "TrailLong", "Ultra"].includes(objectif);
   const hasHighVlamax = vlamaxEffectif.value !== null && vlamaxEffectif.value > getVLamaxThreshold(objectif);
-  const hasFatigue = (fatigueScore !== undefined && fatigueScore >= 6) || injuryRiskRun?.level === "élevé";
+  // Only apply fatigue filter for severe cases (8+/10 or high injury risk)
+  const hasSevereFatigue = (fatigueScore !== undefined && fatigueScore >= 8) || injuryRiskRun?.level === "élevé";
   
   candidates = candidates.filter(w => {
-    // Exclude risk_level 3 if IM/Marathon + high vlamax or fatigue
-    if (w.risk_level === 3 && isLongDistance && (hasHighVlamax || hasFatigue)) {
+    // Exclude risk_level 3 ONLY if severe fatigue/injury
+    if (w.risk_level === 3 && hasSevereFatigue) {
       return false;
     }
     
@@ -469,14 +472,15 @@ function determineTemporalPhase(
   context: SuggestionEngineContext
 ): TemporalPhase {
   const { fatigueScore, injuryRiskRun } = context;
-  const hasFatigue = (fatigueScore !== undefined && fatigueScore >= 6);
-  const hasInjuryRisk = injuryRiskRun?.level === "élevé" || injuryRiskRun?.level === "modéré";
+  const hasSevereFatigue = (fatigueScore !== undefined && fatigueScore >= 8);
+  const hasSevereInjuryRisk = injuryRiskRun?.level === "élevé";
   
-  // Phase 1: Immediate priorities (recovery, or first-priority low-risk workouts)
+  // Phase 1: Immediate priorities (recovery ONLY, or first-priority low-risk workouts for primary need)
   if (need === "NEED_RECOVERY") return 1;
   if (needIndex === 0 && workout.risk_level <= 1) return 1;
-  if (hasFatigue && workout.risk_level === 0) return 1;
-  if (hasInjuryRisk && workout.primary_axis === "RECOVERY") return 1;
+  // Only push to phase 1 for severe cases
+  if (hasSevereFatigue && workout.primary_axis === "RECOVERY") return 1;
+  if (hasSevereInjuryRisk && workout.primary_axis === "RECOVERY") return 1;
   
   // Phase 2: Short-term development (primary need, moderate intensity)
   if (needIndex === 0 && workout.risk_level === 2) return 2;
@@ -720,12 +724,11 @@ export function suggestWahooWorkouts(context: SuggestionEngineContext): Suggesti
     });
   }
   
-  // Ensure at least 1 "safe" session if risk/fatigue
+  // Ensure at least 1 "safe" session ONLY for severe fatigue/injury
   const hasSafeSession = suggestions.some(s => s.riskLevel <= 1);
   const needsSafeSession = 
-    (context.fatigueScore !== undefined && context.fatigueScore >= 6) ||
-    context.injuryRiskRun?.level === "élevé" ||
-    context.injuryRiskRun?.level === "modéré";
+    (context.fatigueScore !== undefined && context.fatigueScore >= 8) ||
+    context.injuryRiskRun?.level === "élevé";
     
   if (!hasSafeSession && needsSafeSession) {
     // Add a recovery/endurance session
