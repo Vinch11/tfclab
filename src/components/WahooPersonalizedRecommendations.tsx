@@ -49,6 +49,11 @@ import { computeTTEEffectif, getTTETarget } from "@/lib/tteEffectif";
 import { computeRaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { computeCAPInjuryRisk } from "@/lib/capInjuryRisk";
 import { getRiskColor, getRiskLabel, findWahooWorkoutById } from "@/data/wahooMapping";
+import { 
+  getVLamaxRange, 
+  getTTETarget as getCentralTTETarget, 
+  getFtpKgTarget 
+} from "@/lib/physiologicalTargets";
 
 // =============================================
 // TYPES & CONSTANTS
@@ -441,6 +446,28 @@ export function WahooPersonalizedRecommendations() {
       {needAnalysis.priorityOrder.length > 0 && (() => {
         const priorities = needAnalysis.priorityOrder.slice(0, 4);
         const priorityLabels = ["1ère priorité", "2ème priorité", "3ème priorité", "4ème priorité"];
+        const objectif = currentAthlete.objectif || "IM";
+        const vlamaxRange = getVLamaxRange(objectif);
+        const tteTarget = getCentralTTETarget(objectif);
+        const ftpKgTarget = getFtpKgTarget(objectif);
+        
+        // Helper to build tooltip with thresholds
+        const buildTooltipContent = (need: WahooNeed) => {
+          const rationales = needAnalysis.rationaleByNeed[need] || [];
+          const rationaleText = rationales.join(" ") || "Priorité détectée";
+          
+          // Add threshold info based on the need type
+          let thresholdInfo = "";
+          if (need === "NEED_VLAMAX_DOWN") {
+            thresholdInfo = `\n\n📊 Seuils ${objectif} :\n• VLamax acceptable : ${vlamaxRange.min.toFixed(2)} - ${vlamaxRange.max.toFixed(2)}\n• VLamax optimal : ${vlamaxRange.optimal.toFixed(2)}`;
+          } else if (need === "NEED_TTE_UP") {
+            thresholdInfo = `\n\n📊 Seuil ${objectif} :\n• TTE minimum : ${tteTarget} min`;
+          } else if (need === "NEED_FTP_UP") {
+            thresholdInfo = `\n\n📊 Seuil ${objectif} :\n• FTP/kg minimum : ${ftpKgTarget.toFixed(1)} W/kg`;
+          }
+          
+          return rationaleText + thresholdInfo;
+        };
         
         return (
           <div className="space-y-3">
@@ -452,7 +479,7 @@ export function WahooPersonalizedRecommendations() {
               const colorClass = axisConfig?.color || "text-primary";
               const bgColorClass = colorClass.replace("text-", "bg-").replace("-500", "-500/15");
               const borderColorClass = colorClass.replace("text-", "border-").replace("-500", "-500/50");
-              const tooltipContent = needAnalysis.rationaleByNeed[priorities[0]]?.join(" ") || "Priorité détectée";
+              const tooltipContent = buildTooltipContent(priorities[0]);
               
               return (
                 <TooltipProvider>
@@ -482,7 +509,7 @@ export function WahooPersonalizedRecommendations() {
                         </CardContent>
                       </Card>
                     </TooltipTrigger>
-                    <TooltipContent side="bottom" className="max-w-xs">
+                    <TooltipContent side="bottom" className="max-w-sm whitespace-pre-line">
                       <p className="text-sm">{tooltipContent}</p>
                     </TooltipContent>
                   </Tooltip>
@@ -500,7 +527,7 @@ export function WahooPersonalizedRecommendations() {
                   const colorClass = axisConfig?.color || "text-primary";
                   const bgColorClass = colorClass.replace("text-", "bg-").replace("-500", "-500/10");
                   const borderColorClass = colorClass.replace("text-", "border-").replace("-500", "-500/30");
-                  const tooltipContent = needAnalysis.rationaleByNeed[need]?.join(" ") || "Priorité détectée";
+                  const tooltipContent = buildTooltipContent(need);
                   
                   return (
                     <TooltipProvider key={need}>
@@ -524,7 +551,7 @@ export function WahooPersonalizedRecommendations() {
                             </CardContent>
                           </Card>
                         </TooltipTrigger>
-                        <TooltipContent side="bottom" className="max-w-xs">
+                        <TooltipContent side="bottom" className="max-w-sm whitespace-pre-line">
                           <p className="text-sm">{tooltipContent}</p>
                         </TooltipContent>
                       </Tooltip>
