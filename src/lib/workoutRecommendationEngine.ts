@@ -74,36 +74,20 @@ export interface RecommendationEngineOutput {
 }
 
 // =============================================
-// THRESHOLDS (using centralized CiblesVLamax)
+// THRESHOLDS (from centralized physiologicalTargets)
 // =============================================
 
-import { CiblesVLamax } from "@/types/testLibrary";
+import { 
+  getVLamaxThreshold as getCentralVLamaxThreshold,
+  getTTETarget as getCentralTTETarget 
+} from "@/lib/physiologicalTargets";
 
-const TTE_TARGETS: Record<string, number> = {
-  IM: 55, Ironman: 55,
-  "703": 50, "70.3": 50, Half: 50,
-  Marathon: 50, Semi: 45,
-  Trail: 45, TrailLong: 55, Ultra: 60,
-  default: 45,
-};
-
-/**
- * Get VLamax threshold from centralized CiblesVLamax
- * Uses the "max" value as the threshold for triggering alerts
- */
 function getVLamaxThreshold(objectif: string): number {
-  const mapping: Record<string, keyof typeof CiblesVLamax> = {
-    "IM": "IM", "Ironman": "IM",
-    "703": "703", "70.3": "703", "Half": "703",
-    "Marathon": "Marathon", "Semi": "Semi",
-    "Trail": "Semi", "TrailLong": "IM", "Ultra": "IM",
-  };
-  const key = mapping[objectif] || "IM";
-  return CiblesVLamax[key]?.max ?? 0.55;
+  return getCentralVLamaxThreshold(objectif);
 }
 
 function getTTETargetLocal(objectif: string): number {
-  return TTE_TARGETS[objectif] || TTE_TARGETS.default;
+  return getCentralTTETarget(objectif);
 }
 
 function isLongDistance(objectif: string): boolean {

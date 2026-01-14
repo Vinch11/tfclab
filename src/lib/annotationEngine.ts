@@ -7,6 +7,15 @@
  */
 
 // ============================================
+// 1.0 IMPORTS
+// ============================================
+import { 
+  getVLamaxRange as getCentralVLamaxRange, 
+  getTTETarget as getCentralTTETarget,
+  VLamaxTargets 
+} from "@/lib/physiologicalTargets";
+
+// ============================================
 // 1.1 TYPES
 // ============================================
 
@@ -72,33 +81,12 @@ export interface VLamaxRange {
 }
 
 export function getVLamaxTargetRange(objectif: string): VLamaxRange {
-  switch (objectif) {
-    case "IM":
-      return { min: 0.25, max: 0.40 };
-    case "703":
-      return { min: 0.28, max: 0.45 };
-    case "Marathon":
-      return { min: 0.30, max: 0.50 };
-    case "Semi":
-      return { min: 0.35, max: 0.60 };
-    default:
-      return { min: 0.28, max: 0.50 };
-  }
+  const range = getCentralVLamaxRange(objectif);
+  return { min: range.min, max: range.max };
 }
 
 export function getTTETarget(objectif: string): number {
-  switch (objectif) {
-    case "IM":
-      return 55;
-    case "703":
-      return 50;
-    case "Marathon":
-      return 50;
-    case "Semi":
-      return 45;
-    default:
-      return 45;
-  }
+  return getCentralTTETarget(objectif);
 }
 
 export function severityFromGapVLamax(

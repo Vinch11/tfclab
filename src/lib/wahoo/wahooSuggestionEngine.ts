@@ -137,64 +137,25 @@ export interface SuggestionEngineOutput {
 
 // ============= THRESHOLDS BY OBJECTIVE =============
 
-import { CiblesVLamax } from "@/types/testLibrary";
-
-// Use centralized CiblesVLamax for thresholds (max = alert if exceeded)
-const TTE_TARGETS: Record<string, number> = {
-  IM: 55,
-  Ironman: 55,
-  "70.3": 50,
-  "703": 50,
-  Half: 50,
-  Marathon: 50,
-  Semi: 45,
-  Trail: 45,
-  TrailLong: 55,
-  Ultra: 60,
-  default: 45,
-};
-
-// FTP/kg targets by objective (only relevant for bike/tri)
-const FTP_KG_TARGETS: Record<string, number> = {
-  IM: 4.2,
-  Ironman: 4.2,
-  "70.3": 4.4,
-  "703": 4.4,
-  Half: 4.4,
-  default: 4.0,
-};
+import { 
+  getVLamaxThreshold as getCentralVLamaxThreshold,
+  getTTETarget as getCentralTTETarget,
+  getFtpKgTarget as getCentralFtpKgTarget 
+} from "@/lib/physiologicalTargets";
 
 /**
- * Get VLamax threshold from centralized CiblesVLamax
- * Uses the "max" value as the threshold for triggering NEED_VLAMAX_DOWN
+ * Get VLamax threshold from centralized source
  */
 export function getVLamaxThreshold(objectif: string): number {
-  // Map objectif to CiblesVLamax keys
-  const mapping: Record<string, keyof typeof CiblesVLamax> = {
-    "IM": "IM",
-    "Ironman": "IM",
-    "703": "703",
-    "70.3": "703",
-    "Half": "703",
-    "Marathon": "Marathon",
-    "Semi": "Semi",
-    "Trail": "Semi",
-    "TrailLong": "IM",
-    "Ultra": "IM",
-  };
-  
-  const key = mapping[objectif] || "IM";
-  const cible = CiblesVLamax[key];
-  // Use max as threshold: VLamax > max triggers alert
-  return cible?.max ?? 0.55;
+  return getCentralVLamaxThreshold(objectif);
 }
 
 export function getTTETarget(objectif: string): number {
-  return TTE_TARGETS[objectif] || TTE_TARGETS.default;
+  return getCentralTTETarget(objectif);
 }
 
 export function getFtpKgTarget(objectif: string): number {
-  return FTP_KG_TARGETS[objectif] || FTP_KG_TARGETS.default;
+  return getCentralFtpKgTarget(objectif);
 }
 
 // ============= NEED DETECTION (STAFF-GRADE) =============
