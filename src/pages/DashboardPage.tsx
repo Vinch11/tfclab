@@ -440,7 +440,8 @@ export default function DashboardPage() {
 
   const renderAthleteContext = (): ReactNode => (
     <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-      <CardContent className="p-4">
+      <CardContent className="p-4 space-y-4">
+        {/* Ligne 1: Nom et objectif */}
         <div className="flex items-start justify-between gap-3">
           <div>
             <h1 className="text-xl font-bold mb-2">{currentAthlete.nom}</h1>
@@ -455,9 +456,23 @@ export default function DashboardPage() {
               </Badge>
             </div>
           </div>
-          {/* Sélecteur rapide d'ambition - plus visible */}
-          <div className="flex flex-col items-end gap-1">
+          {/* Desktop: Sélecteur d'ambition en haut à droite */}
+          <div className="hidden sm:flex flex-col items-end gap-1">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Ambition</span>
+            <QuickAmbitionSelector
+              currentAmbition={(currentAthlete.ambition as AmbitionLevel) || DEFAULT_AMBITION}
+              onAmbitionChange={handleAmbitionChange}
+            />
+          </div>
+        </div>
+        
+        {/* Mobile: Sélecteur d'ambition en pleine largeur */}
+        <div className="sm:hidden">
+          <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl border">
+            <div className="flex items-center gap-2">
+              <Star className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium">Niveau d'ambition</span>
+            </div>
             <QuickAmbitionSelector
               currentAmbition={(currentAthlete.ambition as AmbitionLevel) || DEFAULT_AMBITION}
               onAmbitionChange={handleAmbitionChange}

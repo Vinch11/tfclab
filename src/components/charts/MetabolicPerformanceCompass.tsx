@@ -396,11 +396,62 @@ export function MetabolicPerformanceCompass({
           </button>
         </div>
 
-        {/* Mode comparaison redesigné - plus lisible */}
+        {/* Mode comparaison redesigné - avec radar et cartes lisibles */}
         {compareMode && allAmbitionScores && (
           <div className="space-y-4">
-            {/* Cartes horizontales pour chaque niveau */}
-            <div className="grid gap-3">
+            {/* Radar Chart comparatif */}
+            <div className="relative rounded-xl bg-muted/20 border p-2 h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart 
+                  data={comparisonChartData} 
+                  margin={{ top: 30, right: 40, bottom: 30, left: 40 }}
+                >
+                  <PolarGrid 
+                    stroke="hsl(var(--border))" 
+                    strokeOpacity={0.4}
+                    gridType="polygon"
+                  />
+                  <PolarAngleAxis 
+                    dataKey="axis" 
+                    tick={{ fontSize: 10, fill: "hsl(var(--foreground))", fontWeight: 500 }}
+                    tickLine={false}
+                  />
+                  <PolarRadiusAxis 
+                    angle={90} 
+                    domain={[0, 100]} 
+                    tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} 
+                    tickCount={5}
+                    axisLine={false}
+                  />
+                  {AMBITION_LEVELS_ORDERED.map((ambition) => {
+                    const isActive = ambition === currentAmbition;
+                    return (
+                      <Radar 
+                        key={ambition}
+                        name={getAmbitionDefinition(ambition).label}
+                        dataKey={ambition}
+                        stroke={AMBITION_COLORS[ambition]}
+                        fill={AMBITION_COLORS[ambition]}
+                        fillOpacity={isActive ? 0.25 : 0.05}
+                        strokeWidth={isActive ? 3 : 1.5}
+                        strokeDasharray={ambition === 'finisher' ? '5 5' : ambition === 'elite' ? '2 2' : undefined}
+                      />
+                    );
+                  })}
+                  <Legend 
+                    wrapperStyle={{ fontSize: 11, paddingTop: 10 }}
+                    formatter={(value, entry) => {
+                      const ambition = AMBITION_LEVELS_ORDERED.find(a => getAmbitionDefinition(a).label === value);
+                      const isActive = ambition === currentAmbition;
+                      return <span className={cn("font-medium", isActive && "underline")}>{value}</span>;
+                    }}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+            
+            {/* Cartes simplifiées pour chaque niveau */}
+            <div className="grid gap-2">
               {AMBITION_LEVELS_ORDERED.map((ambition) => {
                 const ambDef = getAmbitionDefinition(ambition);
                 const ambScores = allAmbitionScores[ambition];
@@ -411,72 +462,57 @@ export function MetabolicPerformanceCompass({
                   <div 
                     key={ambition}
                     className={cn(
-                      "relative p-4 rounded-xl border-2 transition-all duration-200",
+                      "relative p-3 rounded-xl border-2 transition-all duration-200",
                       isActive 
-                        ? "border-primary bg-primary/5 shadow-lg ring-2 ring-primary/20" 
-                        : "border-border/50 bg-card hover:border-border"
+                        ? "border-primary bg-primary/5 shadow-md" 
+                        : "border-border/50 bg-card/50"
                     )}
                   >
                     {isActive && (
-                      <Badge className="absolute -top-2 left-4 text-[10px] py-0 px-2 bg-primary text-primary-foreground">
+                      <Badge className="absolute -top-2 left-3 text-[10px] py-0 px-2 bg-primary text-primary-foreground">
                         Votre niveau
                       </Badge>
                     )}
                     
-                    <div className="flex items-center gap-4">
-                      {/* Icône et label */}
-                      <div className="flex items-center gap-3 min-w-[140px]">
-                        <span className="text-3xl">{ambDef.icon}</span>
+                    <div className="flex items-center gap-3">
+                      {/* Icône et label compacts */}
+                      <div className="flex items-center gap-2 min-w-[100px] sm:min-w-[130px]">
+                        <span className="text-2xl">{ambDef.icon}</span>
                         <div>
-                          <p className={cn("font-bold", ambDef.color)}>{ambDef.label}</p>
-                          <p className="text-[10px] text-muted-foreground">{ambDef.description}</p>
+                          <p className={cn("font-bold text-sm", ambDef.color)}>{ambDef.label}</p>
+                          <p className="text-[9px] text-muted-foreground hidden sm:block">{ambDef.description}</p>
                         </div>
                       </div>
                       
                       {/* Score global */}
-                      <div className="flex items-center gap-2 px-4 border-x border-border/30">
-                        <div className="text-center">
-                          <p className="text-3xl font-black tabular-nums" style={{ color: globalScoreColor }}>
-                            {ambScores.globalScore}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground font-medium">
-                            {getScoreLabel(ambScores.globalScore)}
-                          </p>
-                        </div>
+                      <div className="text-center px-3 border-x border-border/30">
+                        <p className="text-2xl font-black tabular-nums" style={{ color: globalScoreColor }}>
+                          {ambScores.globalScore}
+                        </p>
+                        <p className="text-[9px] text-muted-foreground">
+                          {getScoreLabel(ambScores.globalScore)}
+                        </p>
                       </div>
                       
-                      {/* Barres de progression pour chaque axe */}
-                      <div className="flex-1 grid grid-cols-4 gap-3">
+                      {/* Scores par axe - compact */}
+                      <div className="flex-1 flex items-center gap-2 sm:gap-4 justify-end">
                         {[
-                          { key: 'capaciteAerobie', icon: '⚡', label: 'Aérobie' },
-                          { key: 'toleranceEffort', icon: '💪', label: 'TTE' },
-                          { key: 'profilMetabolique', icon: '🎯', label: 'Métabo' },
-                          { key: 'robustesse', icon: '🛡️', label: 'Robust' },
-                        ].map(({ key, icon, label }) => {
+                          { key: 'capaciteAerobie', label: 'AER', fullLabel: 'Aérobie' },
+                          { key: 'toleranceEffort', label: 'TTE', fullLabel: 'TTE' },
+                          { key: 'profilMetabolique', label: 'MET', fullLabel: 'Métabo' },
+                          { key: 'robustesse', label: 'ROB', fullLabel: 'Robust' },
+                        ].map(({ key, label, fullLabel }) => {
                           const axisData = ambScores[key as keyof typeof ambScores];
                           const score = typeof axisData === 'object' && 'score' in axisData ? axisData.score : 0;
                           const scoreColor = getScoreColor(score);
                           
                           return (
-                            <div key={key} className="space-y-1">
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="flex items-center gap-1">
-                                  <span>{icon}</span>
-                                  <span className="hidden sm:inline text-muted-foreground">{label}</span>
-                                </span>
-                                <span className="font-bold tabular-nums" style={{ color: scoreColor }}>
-                                  {score}
-                                </span>
-                              </div>
-                              <div className="h-2 rounded-full bg-muted overflow-hidden">
-                                <div 
-                                  className="h-full rounded-full transition-all duration-500"
-                                  style={{ 
-                                    width: `${score}%`,
-                                    backgroundColor: scoreColor
-                                  }}
-                                />
-                              </div>
+                            <div key={key} className="text-center min-w-[32px]">
+                              <p className="text-xs font-bold tabular-nums" style={{ color: scoreColor }}>
+                                {score}
+                              </p>
+                              <p className="text-[8px] text-muted-foreground hidden sm:block">{fullLabel}</p>
+                              <p className="text-[8px] text-muted-foreground sm:hidden">{label}</p>
                             </div>
                           );
                         })}
@@ -487,17 +523,11 @@ export function MetabolicPerformanceCompass({
               })}
             </div>
 
-            {/* Info explicative */}
-            <div className="p-3 bg-muted/30 border border-muted rounded-xl flex items-start gap-3">
-              <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <p className="text-sm font-medium">Comment lire cette comparaison ?</p>
-                <p className="text-xs text-muted-foreground">
-                  Plus le niveau d'ambition est élevé, plus les exigences physiologiques sont strictes.
-                  Avec les mêmes données, un athlète "Elite" aura des scores plus bas qu'un "Finisher".
-                  Choisissez un niveau cohérent avec vos objectifs réels.
-                </p>
-              </div>
+            {/* Info explicative simplifiée */}
+            <div className="p-2 bg-muted/30 border border-muted rounded-lg text-center">
+              <p className="text-xs text-muted-foreground">
+                Plus l'ambition est élevée, plus les exigences sont strictes → scores plus bas avec les mêmes données
+              </p>
             </div>
           </div>
         )}
