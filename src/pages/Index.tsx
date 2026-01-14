@@ -780,6 +780,7 @@ const Index = () => {
                       snapshots={snapshots}
                       tests={tests}
                       staffMode={staffMode}
+                      ambition={currentAmbition}
                     />
                   )}
                 </div>

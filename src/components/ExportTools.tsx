@@ -1635,7 +1635,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <div class="medium ${currentAmbitionTarget?.progress.ftpKg && currentAmbitionTarget.progress.ftpKg >= 90 ? 'success' : 'warning'}">${currentAmbitionTarget?.progress.ftpKg !== null ? Math.round(currentAmbitionTarget.progress.ftpKg) + '%' : '—'}</div>
           </div>
         </div>
-        ${currentAmbitionTarget?.isReached ? '<div class="alert alertSuccess mt"><b>🏆 Félicitations !</b> Vous avez atteint les cibles pour le niveau ${ambitionData.label}.</div>' : currentAmbitionTarget?.weeksToReach !== null ? '<div class="alert alertInfo mt"><b>⏱️ Délai estimé :</b> ~' + currentAmbitionTarget.weeksToReach + ' semaines pour atteindre les cibles ' + ambitionData.label + ' (basé sur une progression moyenne de 1.5%/sem)</div>' : ''}
+        ${currentAmbitionTarget?.isReached ? '<div class="alert alertSuccess mt"><b>🏆 Félicitations !</b> Vous avez atteint les cibles pour le niveau ' + ambitionData.label + '.</div>' : currentAmbitionTarget?.weeksToReach !== null ? '<div class="alert alertInfo mt"><b>⏱️ Délai estimé :</b> ~' + currentAmbitionTarget.weeksToReach + ' semaines pour atteindre les cibles ' + ambitionData.label + ' (basé sur une progression moyenne de 1.5%/sem)</div>' : ''}
       </div>
       
       <div class="grid4 mt">
