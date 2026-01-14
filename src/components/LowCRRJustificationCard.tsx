@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Info } from "lucide-react";
-import { useCloudData, DbSnapshot } from "@/hooks/useCloudData";
+import { useCloudDataContext } from "@/contexts/CloudDataContext";
+import { DbSnapshot } from "@/hooks/useCloudData";
 import {
   LowCRRJustification,
   LOW_CRR_JUSTIFICATION_LABELS,
@@ -24,7 +25,7 @@ export function LowCRRJustificationCard({
   snapshot, 
   threshold = 250 
 }: LowCRRJustificationCardProps) {
-  const { updateSnapshot } = useCloudData();
+  const { updateSnapshot } = useCloudDataContext();
 
   const tss7d = snapshot?.tss_7d;
   const hasLowCRR = tss7d !== null && tss7d !== undefined && tss7d < threshold;

@@ -34,7 +34,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAthletes } from "@/contexts/AthleteContext";
-import { useCloudData } from "@/hooks/useCloudData";
+import { useCloudDataContext } from "@/contexts/CloudDataContext";
 
 // Engine imports
 import {
@@ -253,7 +253,7 @@ function PhaseSection({ phase, suggestions, isExpanded, onToggle }: PhaseCardPro
 
 export function WahooPersonalizedRecommendations() {
   const { currentAthlete } = useAthletes();
-  const { snapshots, tests, checkins, updateSnapshot } = useCloudData();
+  const { snapshots, tests, checkins, updateSnapshot } = useCloudDataContext();
   const [expandedPhases, setExpandedPhases] = useState<Set<TemporalPhase>>(new Set([1]));
 
   // Check if current athlete has low TSS7j (< 250) to show justification selector

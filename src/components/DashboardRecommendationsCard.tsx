@@ -28,7 +28,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAthletes } from "@/contexts/AthleteContext";
-import { useCloudData, DbSnapshot } from "@/hooks/useCloudData";
+import { useCloudDataContext } from "@/contexts/CloudDataContext";
+import { DbSnapshot } from "@/hooks/useCloudData";
 
 import {
   suggestWahooWorkouts,
@@ -61,7 +62,7 @@ export function DashboardRecommendationsCard({
   maxSuggestions = 4,
 }: DashboardRecommendationsCardProps) {
   const { currentAthlete } = useAthletes();
-  const { snapshots, tests, checkins } = useCloudData();
+  const { snapshots, tests, checkins } = useCloudDataContext();
 
   // Get active snapshot
   const activeSnapshot = useMemo((): DbSnapshot | null => {
