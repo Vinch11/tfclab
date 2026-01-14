@@ -19,6 +19,8 @@ import { ExportTools } from "@/components/ExportTools";
 import { SnapshotManager } from "@/components/SnapshotManager";
 import { CheckinManager } from "@/components/CheckinManager";
 import { QuickFatigueInput } from "@/components/QuickFatigueInput";
+import { LowCRRJustificationCard } from "@/components/LowCRRJustificationCard";
+import { DashboardRecommendationsCard } from "@/components/DashboardRecommendationsCard";
 import { SnapshotEvolutionChart } from "@/components/SnapshotEvolutionChart";
 import { AthleteRefsPanel } from "@/components/AthleteRefsPanel";
 import { FtpKgTargetsCard } from "@/components/FtpKgTargetsCard";
@@ -700,6 +702,15 @@ const Index = () => {
             ),
           },
           {
+            id: "low-crr-justification",
+            render: () => currentAthlete && effectiveCloudSnapshot && (
+              <LowCRRJustificationCard
+                snapshot={effectiveCloudSnapshot}
+                threshold={250}
+              />
+            ),
+          },
+          {
             id: "ftp-targets",
             render: () => currentAthlete && (
               <FtpKgTargetsCard
@@ -709,6 +720,15 @@ const Index = () => {
                 vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
                 vlamax={vlamaxEffectif.value}
                 weeklyVolume={null}
+              />
+            ),
+          },
+          {
+            id: "dashboard-recommendations",
+            render: () => currentAthlete && (
+              <DashboardRecommendationsCard
+                onNavigateToLibrary={() => setActiveTab("seances")}
+                maxSuggestions={4}
               />
             ),
           },
