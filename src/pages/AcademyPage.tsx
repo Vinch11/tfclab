@@ -7,7 +7,12 @@ import {
   Compass,
   Layers,
   ShieldCheck,
-  FileText
+  FileText,
+  Target,
+  Zap,
+  Clock,
+  Bike,
+  Apple
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,6 +34,8 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CharteLectureAcademy } from "@/components/CharteLectureAcademy";
+import { Badge } from "@/components/ui/badge";
+import { UNIFIED_TARGETS } from "@/lib/physiologicalTargets";
 
 // Données de la table des constantes physiologiques
 const PHYSIOLOGICAL_CONSTANTS = [
@@ -237,6 +244,146 @@ export default function AcademyPage() {
                   </TableBody>
                 </Table>
               </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* SECTION 2.5 — Cibles physiologiques par objectif */}
+          <AccordionItem value="cibles" className="border rounded-lg bg-card">
+            <AccordionTrigger className="px-4 hover:no-underline">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-green-500/10 text-green-500">
+                  <Target className="w-5 h-5" />
+                </div>
+                <span className="font-semibold text-left">🎯 Cibles physiologiques par objectif</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pb-4">
+              <p className="text-sm text-muted-foreground mb-4">
+                Ces cibles sont utilisées par tous les indicateurs de l'application (alertes, priorités, recommandations). 
+                Deux niveaux sont définis : <Badge variant="outline" className="mx-1">Performance</Badge> pour les athlètes compétitifs et 
+                <Badge variant="outline" className="mx-1">Intermédiaire</Badge> pour les athlètes en progression.
+              </p>
+              
+              <div className="space-y-4">
+                {Object.entries(UNIFIED_TARGETS).map(([key, levels]) => (
+                  <Card key={key} className="border-border/50">
+                    <CardHeader className="py-3 px-4">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Badge className="bg-primary/20 text-primary border-primary/30">
+                          {key}
+                        </Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-4 pb-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Performance Level */}
+                        <div className="p-3 rounded-lg bg-green-500/5 border border-green-500/20">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge className="bg-green-500/20 text-green-600 border-green-500/30 text-xs">
+                              Performance
+                            </Badge>
+                          </div>
+                          <div className="space-y-1.5 text-sm">
+                            <div className="flex items-center gap-2">
+                              <Zap className="h-3.5 w-3.5 text-amber-500" />
+                              <span className="text-muted-foreground">VLamax:</span>
+                              <span className="font-mono font-medium">
+                                {levels.performance.vlamax.min.toFixed(2)} – {levels.performance.vlamax.max.toFixed(2)}
+                              </span>
+                              <span className="text-xs text-muted-foreground">(opt: {levels.performance.vlamax.optimal.toFixed(2)})</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-3.5 w-3.5 text-blue-500" />
+                              <span className="text-muted-foreground">TTE min:</span>
+                              <span className="font-mono font-medium">{levels.performance.tte_min} min</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Bike className="h-3.5 w-3.5 text-orange-500" />
+                              <span className="text-muted-foreground">FTP/kg min:</span>
+                              <span className="font-mono font-medium">{levels.performance.ftp_kg_min.toFixed(1)} W/kg</span>
+                            </div>
+                            {levels.performance.nutrition_bike_gph.max > 0 && (
+                              <div className="flex items-center gap-2">
+                                <Apple className="h-3.5 w-3.5 text-green-500" />
+                                <span className="text-muted-foreground">Nutrition vélo:</span>
+                                <span className="font-mono font-medium">
+                                  {levels.performance.nutrition_bike_gph.min}–{levels.performance.nutrition_bike_gph.max} g/h
+                                </span>
+                              </div>
+                            )}
+                            {levels.performance.nutrition_run_gph && levels.performance.nutrition_run_gph.max > 0 && (
+                              <div className="flex items-center gap-2">
+                                <Apple className="h-3.5 w-3.5 text-emerald-500" />
+                                <span className="text-muted-foreground">Nutrition CAP:</span>
+                                <span className="font-mono font-medium">
+                                  {levels.performance.nutrition_run_gph.min}–{levels.performance.nutrition_run_gph.max} g/h
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Intermediaire Level */}
+                        <div className="p-3 rounded-lg bg-blue-500/5 border border-blue-500/20">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge className="bg-blue-500/20 text-blue-600 border-blue-500/30 text-xs">
+                              Intermédiaire
+                            </Badge>
+                          </div>
+                          <div className="space-y-1.5 text-sm">
+                            <div className="flex items-center gap-2">
+                              <Zap className="h-3.5 w-3.5 text-amber-500" />
+                              <span className="text-muted-foreground">VLamax:</span>
+                              <span className="font-mono font-medium">
+                                {levels.intermediaire.vlamax.min.toFixed(2)} – {levels.intermediaire.vlamax.max.toFixed(2)}
+                              </span>
+                              <span className="text-xs text-muted-foreground">(opt: {levels.intermediaire.vlamax.optimal.toFixed(2)})</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-3.5 w-3.5 text-blue-500" />
+                              <span className="text-muted-foreground">TTE min:</span>
+                              <span className="font-mono font-medium">{levels.intermediaire.tte_min} min</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Bike className="h-3.5 w-3.5 text-orange-500" />
+                              <span className="text-muted-foreground">FTP/kg min:</span>
+                              <span className="font-mono font-medium">{levels.intermediaire.ftp_kg_min.toFixed(1)} W/kg</span>
+                            </div>
+                            {levels.intermediaire.nutrition_bike_gph.max > 0 && (
+                              <div className="flex items-center gap-2">
+                                <Apple className="h-3.5 w-3.5 text-green-500" />
+                                <span className="text-muted-foreground">Nutrition vélo:</span>
+                                <span className="font-mono font-medium">
+                                  {levels.intermediaire.nutrition_bike_gph.min}–{levels.intermediaire.nutrition_bike_gph.max} g/h
+                                </span>
+                              </div>
+                            )}
+                            {levels.intermediaire.nutrition_run_gph && levels.intermediaire.nutrition_run_gph.max > 0 && (
+                              <div className="flex items-center gap-2">
+                                <Apple className="h-3.5 w-3.5 text-emerald-500" />
+                                <span className="text-muted-foreground">Nutrition CAP:</span>
+                                <span className="font-mono font-medium">
+                                  {levels.intermediaire.nutrition_run_gph.min}–{levels.intermediaire.nutrition_run_gph.max} g/h
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <Card className="mt-4 border-primary/30 bg-primary/5">
+                <CardContent className="p-4">
+                  <p className="text-sm text-muted-foreground">
+                    <strong className="text-foreground">💡 Note :</strong> Les alertes et recommandations utilisent le niveau 
+                    <Badge variant="outline" className="mx-1">Intermédiaire</Badge> par défaut pour les seuils de déclenchement. 
+                    Le niveau <Badge variant="outline" className="mx-1">Performance</Badge> sert de cible pour les athlètes avancés.
+                  </p>
+                </CardContent>
+              </Card>
             </AccordionContent>
           </AccordionItem>
 
