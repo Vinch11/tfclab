@@ -48,7 +48,7 @@ import { RunInjuryRiskCard } from "@/components/RunInjuryRiskCard";
 import { QuickFatigueInput } from "@/components/QuickFatigueInput";
 import { FatigueComparisonChart } from "@/components/FatigueComparisonChart";
 import { computeRunInjuryRisk, RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
-import { AmbitionLevel, getAmbitionDefinition, DEFAULT_AMBITION } from "@/types/ambitionLevel";
+import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 import { QuickAmbitionSelector } from "@/components/QuickAmbitionSelector";
 import { AmbitionTargetsCard } from "@/components/AmbitionTargetsCard";
 
@@ -437,24 +437,32 @@ export default function DashboardPage() {
     return success;
   };
 
+
   const renderAthleteContext = (): ReactNode => (
     <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
       <CardContent className="p-4">
-        <h1 className="text-xl font-bold mb-2">{currentAthlete.nom}</h1>
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <Badge variant="outline" className="gap-1">
-            <Target className="h-3 w-3" />
-            {OBJECTIF_LABELS[objectif] || objectif}
-          </Badge>
-          {/* Sélecteur rapide d'ambition */}
-          <QuickAmbitionSelector
-            currentAmbition={(currentAthlete.ambition as AmbitionLevel) || DEFAULT_AMBITION}
-            onAmbitionChange={handleAmbitionChange}
-          />
-          <Badge variant="secondary" className="gap-1">
-            <Activity className="h-3 w-3" />
-            {PHASE_LABELS[phase] || phase}
-          </Badge>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-bold mb-2">{currentAthlete.nom}</h1>
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <Badge variant="outline" className="gap-1">
+                <Target className="h-3 w-3" />
+                {OBJECTIF_LABELS[objectif] || objectif}
+              </Badge>
+              <Badge variant="secondary" className="gap-1">
+                <Activity className="h-3 w-3" />
+                {PHASE_LABELS[phase] || phase}
+              </Badge>
+            </div>
+          </div>
+          {/* Sélecteur rapide d'ambition - plus visible */}
+          <div className="flex flex-col items-end gap-1">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Ambition</span>
+            <QuickAmbitionSelector
+              currentAmbition={(currentAthlete.ambition as AmbitionLevel) || DEFAULT_AMBITION}
+              onAmbitionChange={handleAmbitionChange}
+            />
+          </div>
         </div>
       </CardContent>
     </Card>
