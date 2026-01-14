@@ -74,6 +74,7 @@ import {
   ClipboardCheck,
   Settings2,
   CalendarDays,
+  Star,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Switch } from "@/components/ui/switch";
@@ -94,6 +95,14 @@ import { computeTTEEffectif, TTEEffectif, getSourceLabel } from "@/lib/tteEffect
 
 // ✅ RACE READINESS EFFECTIF - Source unique de vérité
 import { computeRaceReadinessEffectif, RaceReadinessEffectif, getScoreColor } from "@/lib/raceReadinessEffectif";
+
+// ✅ Ambition (modulateur des cibles)
+import {
+  AmbitionLevel,
+  AMBITION_LEVELS_ORDERED,
+  DEFAULT_AMBITION,
+  getAmbitionDefinition,
+} from "@/types/ambitionLevel";
 
 const Index = () => {
   const { user, signOut } = useAuth();
@@ -184,6 +193,24 @@ const Index = () => {
   const currentAthlete = useMemo(
     () => athletes.find((a) => a.id === selectedAthleteId) || null,
     [athletes, selectedAthleteId],
+  );
+
+  // Ambition courante (stockée dans athlete.refs.ambition)
+  const currentAmbition: AmbitionLevel = useMemo(() => {
+    const refs = (currentAthlete?.refs || {}) as Record<string, any>;
+    return (refs.ambition as AmbitionLevel) || DEFAULT_AMBITION;
+  }, [currentAthlete]);
+
+  const updateCurrentAthleteAmbition = useCallback(
+    async (ambition: AmbitionLevel) => {
+      if (!currentAthlete) return;
+      const refs = (currentAthlete.refs || {}) as Record<string, any>;
+      const ok = await updateAthlete(currentAthlete.id, {
+        refs: { ...refs, ambition } as any,
+      });
+      if (ok) toast.success("Ambition mise à jour");
+    },
+    [currentAthlete, updateAthlete],
   );
 
   // ============================================
@@ -395,7 +422,7 @@ const Index = () => {
       toast.error("Nom requis");
       return;
     }
-    const athlete = await addAthlete(newAthleteName.trim(), newAthleteGoal, {});
+    const athlete = await addAthlete(newAthleteName.trim(), newAthleteGoal, { ambition: DEFAULT_AMBITION } as any);
     if (athlete) {
       // Si date de naissance fournie, mettre à jour l'athlète
       if (newAthleteBirthDate) {
@@ -527,13 +554,48 @@ const Index = () => {
                 ))}
               </SelectContent>
             </Select>
-            
+
             {/* Affichage âge + AAI */}
             {currentAthlete && (
-              <AgeAdjustmentBadge 
-                birthDate={currentAthlete.birth_date} 
-                variant="inline" 
-              />
+              <AgeAdjustmentBadge birthDate={currentAthlete.birth_date} variant="inline" />
+            )}
+
+            {/* Ambition (visible sur mobile) */}
+            {currentAthlete && (
+              <div className="rounded-xl border bg-muted/20 p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <Star className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">Ambition</span>
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    {getAmbitionDefinition(currentAmbition).icon} {getAmbitionDefinition(currentAmbition).shortLabel}
+                  </Badge>
+                </div>
+
+                <Select
+                  value={currentAmbition}
+                  onValueChange={(v) => updateCurrentAthleteAmbition(v as AmbitionLevel)}
+                >
+                  <SelectTrigger className="mt-2 h-10">
+                    <SelectValue placeholder="Choisir un niveau" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {AMBITION_LEVELS_ORDERED.map((level) => {
+                      const def = getAmbitionDefinition(level);
+                      return (
+                        <SelectItem key={level} value={level}>
+                          {def.icon} {def.label}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+
+                <p className="text-xs text-muted-foreground mt-2">
+                  Les cibles VLamax, TTE et FTP/kg ainsi que les recommandations s'ajustent selon ce niveau.
+                </p>
+              </div>
             )}
           </div>
         )}
@@ -774,6 +836,7 @@ const Index = () => {
                   snapshotDate: effectiveCloudSnapshot?.date ?? null,
                   snapshotUpdatedAt: effectiveCloudSnapshot?.updated_at ?? null,
                   objectif: currentAthlete.goal || "IM",
+                  ambition: currentAmbition,
                 }}
                 staffMode={staffMode}
               />
