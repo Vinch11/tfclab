@@ -190,21 +190,23 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
   // Priority order: RECOVERY > FTP_UP > VLAMAX_DOWN > TTE_UP > ENDURANCE_BASE > VO2_UP
   
   // === RULE D: NEED_RECOVERY (highest priority ONLY for severe cases) ===
-  // Use stricter thresholds to avoid overriding development priorities
-  // If forceDevelopmentMode is ON, only trigger recovery for extreme fatigue (9+) or high injury risk
-  const fatigueThreshold = forceDevelopmentMode ? 9 : 8;
+  // fatigueScore here is "perceived form" from checkins: 1=Nul, 10=Top
+  // So LOW values (<=3) mean the athlete is fatigued and needs recovery
+  // If forceDevelopmentMode is ON, only trigger recovery for extreme fatigue (<=2) or high injury risk
+  const perceivedFormThreshold = forceDevelopmentMode ? 2 : 3;
   const freshnessThreshold = forceDevelopmentMode ? 20 : 30;
   
-  const hasSevereFatigue = fatigueScore !== undefined && fatigueScore >= fatigueThreshold;
+  // fatigueScore <= threshold means low perceived form = high fatigue
+  const hasLowPerceivedForm = fatigueScore !== undefined && fatigueScore <= perceivedFormThreshold;
   const hasSevereInjuryRisk = injuryRiskRun?.level === "élevé";
   const hasSevereFreshnessIssue = raceReadiness.details.fraicheur !== undefined && raceReadiness.details.fraicheur < freshnessThreshold;
   
-  const needsSevereRecovery = hasSevereFatigue || hasSevereInjuryRisk || hasSevereFreshnessIssue;
+  const needsSevereRecovery = hasLowPerceivedForm || hasSevereInjuryRisk || hasSevereFreshnessIssue;
     
   if (needsSevereRecovery) {
     needs.push("NEED_RECOVERY");
-    if (hasSevereFatigue) {
-      const msg = `Fatigue très élevée (${fatigueScore}/10) → priorité absorption charge.`;
+    if (hasLowPerceivedForm) {
+      const msg = `Forme perçue très basse (${fatigueScore}/10) → priorité récupération.`;
       rationale.push(msg);
       rationaleByNeed.NEED_RECOVERY.push(msg);
     }
