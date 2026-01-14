@@ -127,6 +127,24 @@ export interface TrainingRecommendationsSection {
   disclaimer: string;
 }
 
+// Ambition Progress Prediction for PDF
+export interface AmbitionPredictionSection {
+  predictions: {
+    ambition: AmbitionLevel;
+    ambitionLabel: string;
+    ambitionIcon: string;
+    currentProgress: number | null;
+    weeksToReach: number | null;
+    estimatedDate: string | null;
+    progressPerWeek: number | null;
+    confidence: "high" | "medium" | "low" | "unknown";
+    isReached: boolean;
+    delayLabel: string;
+  }[];
+  currentAmbitionPrediction: string;
+  trendSummary: string;
+}
+
 export interface StaffReport {
   // Métadonnées
   athleteName: string;
@@ -144,6 +162,7 @@ export interface StaffReport {
   capInjuryRisk: CAPInjuryRiskSection;
   fatigueRisk: FatigueRiskSection;
   trainingRecommendations: TrainingRecommendationsSection;
+  ambitionPredictions: AmbitionPredictionSection;
   staffInterpretation: StaffInterpretation;
   raceStrategy: RaceStrategy;
   nutritionSummary: NutritionSummary;
@@ -727,6 +746,16 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     injuryRiskRun,
   });
   
+  // Générer les prédictions d'ambition
+  const ambitionPredictions = generateAmbitionPredictionsSection({
+    objectif,
+    vlamaxEffectif,
+    tteEffectif,
+    ftp,
+    poids,
+    ambition,
+  });
+  
   const ambitionDef = getAmbitionDefinition(ambition);
   
   return {
@@ -743,6 +772,7 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     capInjuryRisk,
     fatigueRisk,
     trainingRecommendations,
+    ambitionPredictions,
     staffInterpretation,
     raceStrategy,
     nutritionSummary,
@@ -921,5 +951,144 @@ function generateTrainingRecommendationsSection(params: GenerateTrainingRecsPara
     recommendations: recommendations.slice(0, 8), // Max 8 pour le PDF
     diagnosticSummary,
     disclaimer: "Ces recommandations sont des aides à la décision, non des prescriptions. Le coach reste décisionnaire.",
+  };
+}
+
+// =============================================
+// AMBITION PREDICTIONS SECTION (pour PDF)
+// =============================================
+
+import { 
+  getVLamaxRange, 
+  getTTETargetByAmbition, 
+  getFtpKgTargetByAmbition 
+} from "@/lib/physiologicalTargets";
+import { AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
+
+interface GenerateAmbitionPredictionsParams {
+  objectif: string;
+  vlamaxEffectif: VLamaxEffectif;
+  tteEffectif: TTEEffectif;
+  ftp: number | null;
+  poids: number | null;
+  ambition: AmbitionLevel;
+}
+
+function calculateProgressForAmbition(
+  vlamax: number | null,
+  tte: number | null,
+  ftpKg: number | null,
+  objectif: string,
+  ambition: AmbitionLevel
+): number | null {
+  const vlamaxRange = getVLamaxRange(objectif, ambition);
+  const tteTarget = getTTETargetByAmbition(objectif, ambition);
+  const ftpKgTarget = getFtpKgTargetByAmbition(objectif, ambition);
+
+  const progresses: number[] = [];
+
+  // VLamax progress (inverse - lower is better)
+  if (vlamax !== null && vlamax > 0) {
+    if (vlamax <= vlamaxRange.optimal) {
+      progresses.push(100);
+    } else {
+      progresses.push(Math.max(0, Math.min(100, (vlamaxRange.optimal / vlamax) * 100)));
+    }
+  }
+
+  // TTE progress
+  if (tte !== null && tte > 0) {
+    progresses.push(Math.min(100, (tte / tteTarget) * 100));
+  }
+
+  // FTP/kg progress
+  if (ftpKg !== null && ftpKg > 0) {
+    progresses.push(Math.min(100, (ftpKg / ftpKgTarget) * 100));
+  }
+
+  if (progresses.length === 0) return null;
+  return Math.round(progresses.reduce((a, b) => a + b, 0) / progresses.length);
+}
+
+function formatDelayLabel(weeksToReach: number | null, isReached: boolean): string {
+  if (isReached) return "✓ Atteint";
+  if (weeksToReach === null) return "> 1 an";
+  if (weeksToReach <= 4) return `~${weeksToReach} semaines`;
+  const months = Math.round(weeksToReach / 4);
+  return `~${months} mois`;
+}
+
+function generateAmbitionPredictionsSection(params: GenerateAmbitionPredictionsParams): AmbitionPredictionSection {
+  const { objectif, vlamaxEffectif, tteEffectif, ftp, poids, ambition } = params;
+  
+  const ftpKg = ftp && poids && poids > 0 ? ftp / poids : null;
+  
+  const predictions = AMBITION_LEVELS_ORDERED.map((amb) => {
+    const ambDef = getAmbitionDefinition(amb);
+    const progress = calculateProgressForAmbition(
+      vlamaxEffectif.value,
+      tteEffectif.tte_min,
+      ftpKg,
+      objectif,
+      amb
+    );
+    
+    const isReached = progress !== null && progress >= 100;
+    
+    // Estimate weeks to reach (simplified - assumes ~1-2% progress per week based on typical training)
+    let weeksToReach: number | null = null;
+    if (progress !== null && !isReached) {
+      const remaining = 100 - progress;
+      // Assume 1-2% per week for average progression
+      const avgProgressPerWeek = 1.5;
+      weeksToReach = Math.ceil(remaining / avgProgressPerWeek);
+      // Cap at 52 weeks
+      if (weeksToReach > 52) weeksToReach = null;
+    }
+    
+    const confidence: "high" | "medium" | "low" | "unknown" = 
+      isReached ? "high" :
+      progress !== null && progress >= 80 ? "high" :
+      progress !== null && progress >= 50 ? "medium" :
+      progress !== null ? "low" : "unknown";
+    
+    return {
+      ambition: amb,
+      ambitionLabel: ambDef.label,
+      ambitionIcon: ambDef.icon,
+      currentProgress: progress,
+      weeksToReach: isReached ? 0 : weeksToReach,
+      estimatedDate: weeksToReach !== null && !isReached
+        ? new Date(Date.now() + weeksToReach * 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+        : null,
+      progressPerWeek: 1.5, // Simplified estimate
+      confidence,
+      isReached,
+      delayLabel: formatDelayLabel(isReached ? 0 : weeksToReach, isReached),
+    };
+  });
+  
+  // Current ambition prediction summary
+  const currentPrediction = predictions.find((p) => p.ambition === ambition);
+  const currentAmbitionPrediction = currentPrediction
+    ? currentPrediction.isReached
+      ? `Objectif ${currentPrediction.ambitionLabel} atteint ✓`
+      : currentPrediction.weeksToReach !== null
+        ? `Objectif ${currentPrediction.ambitionLabel} estimé dans ${currentPrediction.delayLabel}`
+        : `Objectif ${currentPrediction.ambitionLabel} à plus d'un an`
+    : "Données insuffisantes pour la prédiction";
+  
+  // Trend summary
+  const reachedCount = predictions.filter((p) => p.isReached).length;
+  const trendSummary = reachedCount === 4 
+    ? "Tous les niveaux d'ambition sont atteints 🏆"
+    : reachedCount > 0
+      ? `${reachedCount}/4 niveaux atteints. Progression en cours.`
+      : "Aucun niveau d'ambition encore atteint. Travail en cours.";
+  
+  return {
+    predictions,
+    currentAmbitionPrediction,
+    trendSummary,
   };
 }
