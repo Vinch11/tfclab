@@ -85,6 +85,7 @@ import { Label } from "@/components/ui/label";
 import logo2fc from "@/assets/logo-2fc.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
+import { useAthletes } from "@/contexts/AthleteContext";
 import { DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
 import { FeedbackNolio } from "@/types/feedbackNolio";
 import { toast } from "sonner";
@@ -111,8 +112,33 @@ const Index = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
-  // ✅ IMPORTANT: on récupère aussi snapshots + tests + fonctions cloud
-  const { athletes, snapshots, tests, loading, addAthlete, updateAthlete, deleteAthlete, addTest, deleteTest, updateSnapshot } = useCloudDataContext();
+  // ✅ Cloud data pour les données brutes (snapshots, tests)
+  const { snapshots, tests, loading, addAthlete, updateAthlete, deleteAthlete, addTest, deleteTest, updateSnapshot } = useCloudDataContext();
+  
+  // ✅ Utiliser AthleteContext pour la synchronisation avec les composants de recommandation
+  const { 
+    athletes, 
+    currentAthlete: contextCurrentAthlete, 
+    selectedAthleteId, 
+    setSelectedAthleteId 
+  } = useAthletes();
+
+  // Mapper currentAthlete du contexte vers le format DbAthlete attendu par Index
+  const currentAthlete = useMemo(() => {
+    if (!contextCurrentAthlete) return null;
+    // Retourner un format compatible DbAthlete pour les composants existants
+    return {
+      id: contextCurrentAthlete.id,
+      name: contextCurrentAthlete.nom,
+      goal: contextCurrentAthlete.objectif,
+      refs: contextCurrentAthlete.refs,
+      vo2max: contextCurrentAthlete.vo2max,
+      active_snapshot_id: contextCurrentAthlete.active_snapshot_id,
+      birth_date: contextCurrentAthlete.dateNaissance,
+      coach_id: "", // Non utilisé dans Index
+      created_at: "", // Non utilisé dans Index
+    } as DbAthlete;
+  }, [contextCurrentAthlete]);
 
   const [activeTab, setActiveTab] = useState(() => {
     // Restaurer l'onglet depuis localStorage au chargement
@@ -141,14 +167,6 @@ const Index = () => {
     localStorage.setItem("vlab-staff-mode", staffMode.toString());
   }, [staffMode]);
 
-  const LS_SELECTED_ATHLETE = "vlab-selected-athlete";
-
-  const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(() => {
-    // Compat: ancienne clé utilisée ailleurs (contexte)
-    const saved =
-      localStorage.getItem(LS_SELECTED_ATHLETE) || localStorage.getItem("vinceslab-selected-athlete");
-    return saved || null;
-  });
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newAthleteName, setNewAthleteName] = useState("");
   const [newAthleteGoal, setNewAthleteGoal] = useState("IM");
@@ -166,37 +184,6 @@ const Index = () => {
     }
     return [];
   });
-
-  // Persister l'athlète sélectionné
-  useEffect(() => {
-    if (selectedAthleteId) localStorage.setItem(LS_SELECTED_ATHLETE, selectedAthleteId);
-    else localStorage.removeItem(LS_SELECTED_ATHLETE);
-  }, [selectedAthleteId]);
-
-  // ============================================
-  // ✅ Sélection initiale : restaurer depuis localStorage, sinon fallback sur le 1er athlète
-  // ============================================
-  useEffect(() => {
-    if (loading || athletes.length === 0) return;
-
-    const saved =
-      localStorage.getItem(LS_SELECTED_ATHLETE) || localStorage.getItem("vinceslab-selected-athlete");
-    const savedExists = !!saved && athletes.some((a) => a.id === saved);
-    const currentExists = !!selectedAthleteId && athletes.some((a) => a.id === selectedAthleteId);
-
-    if (currentExists) return;
-    if (savedExists && saved) {
-      setSelectedAthleteId(saved);
-      return;
-    }
-
-    setSelectedAthleteId(athletes[0].id);
-  }, [loading, athletes, selectedAthleteId]);
-
-  const currentAthlete = useMemo(
-    () => athletes.find((a) => a.id === selectedAthleteId) || null,
-    [athletes, selectedAthleteId],
-  );
 
   // Ambition courante (stockée dans athlete.refs.ambition)
   const currentAmbition: AmbitionLevel = useMemo(() => {
@@ -552,7 +539,7 @@ const Index = () => {
               <SelectContent>
                 {athletes.map((a) => (
                   <SelectItem key={a.id} value={a.id}>
-                    {a.name} ({a.goal || "IM"})
+                    {a.nom} ({a.objectif || "IM"})
                   </SelectItem>
                 ))}
               </SelectContent>
