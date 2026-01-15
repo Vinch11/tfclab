@@ -492,11 +492,42 @@ function buildExportPayload(
     objectif: athlete.goal || "IM"
   });
   
+  // ✅ Calculer sportFocus dynamiquement comme dans le dashboard
+  const objectif = athlete.goal || "IM";
+  let sportFocus: "run" | "bike" | "tri" = "bike";
+  if (["Marathon", "Semi", "Trail", "TrailLong", "TrailCourt", "Ultra", "Course"].includes(objectif)) {
+    sportFocus = "run";
+  } else if (["IM", "Ironman", "703", "70.3", "Half", "Olympic", "Sprint"].includes(objectif)) {
+    sportFocus = "tri";
+  }
+
+  // ✅ Calculer injury risk pour runners comme dans le dashboard
+  let injuryRiskRun = undefined;
+  if (sportFocus === "run" || sportFocus === "tri") {
+    const levelMap: Record<number, "faible" | "modéré" | "élevé"> = {
+      0: "faible",
+      1: "faible",
+      2: "modéré",
+      3: "élevé",
+    };
+    injuryRiskRun = {
+      level: levelMap[capRiskResult.level] || "faible",
+      score: capRiskResult.totalScore,
+    };
+  }
+
+  // ✅ Calculer fatigueScore depuis les checkins (comme dans le dashboard)
+  const recentAthleteCheckins = checkins
+    .filter((c) => c.athlete_id === athlete.id)
+    .sort((a, b) => b.date_iso.localeCompare(a.date_iso));
+  const recentCheckin = recentAthleteCheckins[0];
+  const fatigueScore = recentCheckin?.fatigue ?? undefined;
+
   // ✅ NEW: Calculer les suggestions Wahoo SYSTM
-  // Include force_development_mode and low_crr_justification from snapshot
+  // Context identique à DashboardRecommendationsCard pour cohérence
   const wahooContext: SuggestionEngineContext = {
-    objectif: athlete.goal || "IM",
-    sportFocus: "tri",
+    objectif,
+    sportFocus,
     vlamaxEffectif: {
       value: vlamax.value,
       confidence: vlamax.confidence,
@@ -507,20 +538,17 @@ function buildExportPayload(
       confidence: tte.confidence,
       source: tte.source,
     },
+    ftpKg, // ✅ Ajouté - manquait dans l'export
     raceReadiness: {
       score: raceReadiness.score,
-      details: {
-        endurance: raceReadiness.details.endurance,
-        vlamax: raceReadiness.details.vlamax,
-        fraicheur: raceReadiness.details.fraicheur,
-        puissance: raceReadiness.details.puissance,
-      },
+      details: raceReadiness.details, // ✅ Simplifié comme dans le dashboard
     },
-    CRR: { value: crr.value, confidence: crr.confidence },
-    injuryRiskRun: capRiskResult.level >= 2 ? {
-      level: capRiskResult.level >= 3 ? "élevé" as const : "modéré" as const,
-      score: capRiskResult.level,
-    } : undefined,
+    CRR: { 
+      value: effectiveSnapshot?.tss_7d ?? null, // ✅ Cohérent avec le dashboard
+      confidence: effectiveSnapshot?.tss_7d ? 0.8 : 0.3,
+    },
+    injuryRiskRun,
+    fatigueScore, // ✅ Ajouté - manquait dans l'export
     forceDevelopmentMode: effectiveSnapshot?.force_development_mode ?? false,
     lowCRRJustification: effectiveSnapshot?.low_crr_justification as any,
   };
