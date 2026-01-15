@@ -493,6 +493,7 @@ function buildExportPayload(
   });
   
   // ✅ NEW: Calculer les suggestions Wahoo SYSTM
+  // Include force_development_mode and low_crr_justification from snapshot
   const wahooContext: SuggestionEngineContext = {
     objectif: athlete.goal || "IM",
     sportFocus: "tri",
@@ -520,6 +521,8 @@ function buildExportPayload(
       level: capRiskResult.level >= 3 ? "élevé" as const : "modéré" as const,
       score: capRiskResult.level,
     } : undefined,
+    forceDevelopmentMode: effectiveSnapshot?.force_development_mode ?? false,
+    lowCRRJustification: effectiveSnapshot?.low_crr_justification as any,
   };
   
   const wahooOutput = suggestWahooWorkouts(wahooContext);

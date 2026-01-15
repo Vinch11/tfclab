@@ -3,11 +3,13 @@
  * Affiche les suggestions prioritaires avec un lien vers la bibliothèque complète
  */
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   Tooltip,
   TooltipContent,
@@ -25,6 +27,7 @@ import {
   ChevronRight,
   Bike,
   PersonStanding,
+  Flame,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAthletes } from "@/contexts/AthleteContext";
@@ -62,7 +65,7 @@ export function DashboardRecommendationsCard({
   maxSuggestions = 4,
 }: DashboardRecommendationsCardProps) {
   const { currentAthlete } = useAthletes();
-  const { snapshots, tests, checkins } = useCloudDataContext();
+  const { snapshots, tests, checkins, updateSnapshot } = useCloudDataContext();
 
   // Get active snapshot
   const activeSnapshot = useMemo((): DbSnapshot | null => {
@@ -74,6 +77,28 @@ export function DashboardRecommendationsCard({
     }
     return snapshot || null;
   }, [currentAthlete, snapshots]);
+
+  // Local state for force development mode, synced with snapshot
+  const [forceDevelopmentMode, setForceDevelopmentMode] = useState(
+    activeSnapshot?.force_development_mode ?? false
+  );
+
+  // Sync local state when active snapshot changes
+  useMemo(() => {
+    const persistedValue = activeSnapshot?.force_development_mode ?? false;
+    if (persistedValue !== forceDevelopmentMode) {
+      setForceDevelopmentMode(persistedValue);
+    }
+  }, [activeSnapshot?.id, activeSnapshot?.force_development_mode]);
+
+  // Handler to update force development mode and persist to database
+  const handleForceDevelopmentModeChange = async (checked: boolean) => {
+    setForceDevelopmentMode(checked);
+    
+    if (activeSnapshot) {
+      await updateSnapshot(activeSnapshot.id, { force_development_mode: checked });
+    }
+  };
 
   // Build recommendations
   const recommendations = useMemo(() => {
@@ -194,12 +219,12 @@ export function DashboardRecommendationsCard({
       },
       injuryRiskRun,
       fatigueScore,
-      forceDevelopmentMode: activeSnapshot.force_development_mode ?? false,
+      forceDevelopmentMode,
       lowCRRJustification,
     };
 
     return suggestWahooWorkouts(context);
-  }, [currentAthlete, activeSnapshot, snapshots, tests, checkins]);
+  }, [currentAthlete, activeSnapshot, snapshots, tests, checkins, forceDevelopmentMode]);
 
   if (!currentAthlete || !recommendations) {
     return null;
@@ -228,6 +253,22 @@ export function DashboardRecommendationsCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
+        {/* Force Development Mode Toggle */}
+        <div className="flex items-center justify-between gap-3 p-2 rounded-md bg-muted/30 border border-dashed">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <Flame className="h-4 w-4 text-orange-500 flex-shrink-0" />
+            <Label htmlFor="force-dev-mode-dashboard" className="text-xs font-medium cursor-pointer truncate">
+              Forcer développement
+            </Label>
+          </div>
+          <Switch
+            id="force-dev-mode-dashboard"
+            checked={forceDevelopmentMode}
+            onCheckedChange={handleForceDevelopmentModeChange}
+            disabled={!activeSnapshot}
+          />
+        </div>
+
         {topSuggestions.length > 0 ? (
           <>
             <div className="space-y-2">
