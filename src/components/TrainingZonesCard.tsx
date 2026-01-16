@@ -132,9 +132,19 @@ function ZoneRow({
               {zone.fcMax ? `${zone.fcMax.min}-${zone.fcMax.max}%` : "N/A"}
             </p>
           </div>
-          <div className="text-right">
+          <div className="text-right min-w-[100px]">
             <p className="text-xs text-muted-foreground">VMA</p>
             <p className="font-mono text-foreground">{zone.vma.min}-{zone.vma.max}%</p>
+            {absoluteValues.vmaKmh && (
+              <p className="font-mono text-xs text-muted-foreground">
+                {absoluteValues.vmaKmh.min.toFixed(1)}-{absoluteValues.vmaKmh.max.toFixed(1)} km/h
+              </p>
+            )}
+            {absoluteValues.paceMinPerKm && (
+              <p className="font-mono text-xs text-primary/80">
+                {absoluteValues.paceMinPerKm.min} → {absoluteValues.paceMinPerKm.max}
+              </p>
+            )}
           </div>
           <div className="text-right">
             <p className="text-xs text-muted-foreground">FTP</p>
