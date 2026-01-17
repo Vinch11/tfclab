@@ -109,8 +109,8 @@ export function PerformanceRiskMatrix({ params, compact = false }: PerformanceRi
             <p className="text-[10px] text-muted-foreground mb-0.5">Risque Blessure CAP</p>
             <Badge variant="outline" className={cn(
               "text-xs",
-              matrix.before.position.x === "low" ? "border-green-500 text-green-700 dark:text-green-400" :
-              matrix.before.position.x === "moderate" ? "border-amber-500 text-amber-700 dark:text-amber-400" :
+              matrix.before.position.xNumeric === 0 ? "border-green-500 text-green-700 dark:text-green-400" :
+              matrix.before.position.xNumeric === 1 ? "border-amber-500 text-amber-700 dark:text-amber-400" :
               "border-red-500 text-red-700 dark:text-red-400"
             )}>
               {matrix.injuryRiskLabel}
@@ -120,8 +120,8 @@ export function PerformanceRiskMatrix({ params, compact = false }: PerformanceRi
             <p className="text-[10px] text-muted-foreground mb-0.5">Risque Performance</p>
             <Badge variant="outline" className={cn(
               "text-xs",
-              matrix.before.position.y === "low" ? "border-green-500 text-green-700 dark:text-green-400" :
-              matrix.before.position.y === "moderate" ? "border-amber-500 text-amber-700 dark:text-amber-400" :
+              matrix.before.position.yNumeric === 0 ? "border-green-500 text-green-700 dark:text-green-400" :
+              matrix.before.position.yNumeric === 1 ? "border-amber-500 text-amber-700 dark:text-amber-400" :
               "border-red-500 text-red-700 dark:text-red-400"
             )}>
               {matrix.performanceRiskLabel}
