@@ -56,7 +56,11 @@ export default function App() {
                   element={
                     <AuthGate>
                       <OnboardingGate>
-                        <TemplatesPage />
+                        <CloudDataProvider>
+                          <AthleteProvider>
+                            <TemplatesPage />
+                          </AthleteProvider>
+                        </CloudDataProvider>
                       </OnboardingGate>
                     </AuthGate>
                   }
