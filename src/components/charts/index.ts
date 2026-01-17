@@ -58,3 +58,30 @@ export {
   type PerformanceMetric,
   type PerformanceZone,
 } from "@/lib/performanceRanges";
+
+// WorkoutAdvisoryEngine™ - Recommandations de séances intelligentes
+export {
+  WorkoutAdvisoryCard,
+  WorkoutAdvisoryBadge,
+  WorkoutAdvisoryList,
+  EXAMPLE_ADVISORY_DISPLAY,
+} from "../WorkoutAdvisoryCard";
+export {
+  generateWorkoutAdvisories,
+  getWorkoutAdvisory,
+  WORKOUT_PHYSIO_TAGS,
+  FATIGUE_THRESHOLDS,
+  ADVISORY_MESSAGES,
+  WORKOUT_ADVISORY_DISCLAIMER,
+  ACADEMY_WORKOUT_CHAPTER,
+  ASSISTANT_WORKOUT_RESPONSE,
+  type WorkoutAdvisory,
+  type WorkoutPhysioTags,
+  type AdvisoryStatus,
+  type AdvisoryContext,
+  type AdvisoryEngineOutput,
+  type Platform,
+  type IntensityType,
+  type LoadLevel,
+  type DurationClass,
+} from "@/lib/workoutAdvisoryEngine";
