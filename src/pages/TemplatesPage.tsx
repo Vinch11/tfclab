@@ -1670,7 +1670,7 @@ export default function TemplatesPage() {
                     <SelectContent>
                       {athletes.map((a) => (
                         <SelectItem key={a.id} value={a.id}>
-                          {a.name} ({a.goal || "IM"})
+                          {a.nom} ({a.objectif || "IM"})
                         </SelectItem>
                       ))}
                     </SelectContent>
