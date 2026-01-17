@@ -216,10 +216,15 @@ export function getFatigueLevel(score: number): FatigueLevel {
 
 // =============================================
 // CALCUL DES SOUS-INDICES
+// Pondérations FatigueIndex™ officielles:
+// - Charge récente: 40%
+// - Durabilité/TTE: 25%
+// - Profil métabolique: 20%
+// - Signaux subjectifs: 15%
 // =============================================
 
 /**
- * A) Indice Charge Récente (35%)
+ * A) Indice Charge Récente (40%)
  * Compare TSS 7j à la charge habituelle
  * Plus la charge est élevée, plus la fatigue augmente
  */
@@ -263,9 +268,9 @@ function computeChargeRecenteIndex(
 }
 
 /**
- * B) Indice TTE (25%)
+ * B) Indice Durabilité / TTE (25%)
  * Compare TTE effectif à la cible selon l'objectif
- * TTE inférieur = fatigue ou manque de robustesse
+ * TTE inférieur = fatigue plus impactante (un même TSS fatigue plus un athlète peu durable)
  */
 function computeTTEIndex(
   tteEffectif: TTEEffectif,
@@ -304,9 +309,9 @@ function computeTTEIndex(
 }
 
 /**
- * NEW: Indice Fatigue Perçue (20%)
+ * D) Indice Signaux Subjectifs (15%)
  * Convertit le ressenti 1-10 en indice 0-100
- * 1=Frais (0%), 5=Neutre (45%), 10=Épuisé (100%)
+ * Cohérence avec les données physiologiques. Ne jamais surpondérer seul.
  */
 function computeFatiguePercueIndex(
   fatiguePercue: number | null
@@ -328,8 +333,10 @@ function computeFatiguePercueIndex(
 }
 
 /**
- * C) Indice Fraîcheur / Race Readiness (25%)
- * Inverse du Race Readiness (haut RR = faible fatigue)
+ * C) Indice Profil Métabolique (20%)
+ * VLamax élevé = fatigue glycolytique plus rapide
+ * VLamax bas = fatigue plus progressive
+ * Combiné avec la fraîcheur métabolique du Race Readiness
  */
 function computeFraicheurIndex(
   raceReadiness: RaceReadinessEffectif
@@ -347,8 +354,9 @@ function computeFraicheurIndex(
 }
 
 /**
- * D) Indice Modulateurs Individuels (15%)
- * Âge + Profil VLamax
+ * E) Indice Modulateurs Individuels (facteur correctif interne)
+ * Âge + ajustements fins
+ * Note: Ce facteur est intégré dans le calcul métabolique
  */
 function computeModulateursIndex(
   age: number | null,
@@ -452,13 +460,17 @@ export function computeFatigueEffectif(params: ComputeFatigueParams): FatigueEff
     modulateurs: modulateursResult.index
   };
 
-  // Pondérations (nouvelles: 30/20/20/20/10)
+  // Pondérations FatigueIndex™ officielles (40/25/20/15)
+  // - Charge récente: 40%
+  // - Durabilité/TTE: 25%
+  // - Profil métabolique: 20% (fraîcheur + modulateurs combinés)
+  // - Signaux subjectifs: 15%
   const weights = {
-    chargeRecente: 0.30,
-    fatiguePercue: 0.20,
-    tte: 0.20,
-    fraicheur: 0.20,
-    modulateurs: 0.10
+    chargeRecente: 0.40,      // A) Charge récente
+    fatiguePercue: 0.15,      // D) Signaux subjectifs
+    tte: 0.25,                // B) Durabilité / TTE
+    fraicheur: 0.12,          // C) Profil métabolique (partie fraîcheur)
+    modulateurs: 0.08         // C) Profil métabolique (partie VLamax/âge)
   };
 
   // Contributions pondérées
