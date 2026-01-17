@@ -38,6 +38,8 @@ import {
   type WahooSuggestion 
 } from "@/lib/wahoo/wahooSuggestionEngine";
 import { computeCAPInjuryRisk as computeCAPInjuryRiskEngine } from "@/lib/capInjuryRisk";
+import { getTemplateById, PROGRAM_TEMPLATES } from "@/data/programTemplates";
+import type { TemplateWeek, TemplateSession } from "@/lib/templates/docxTemplateLoader";
 
 // =============================================
 // TYPES
@@ -64,6 +66,7 @@ export interface ReportSections {
   ageAdjustment: boolean;   // Ajustement par l'Âge (AAI)
   twoForCoaching: boolean;  // Analyse Two For Coaching Lab™
   wahoo: boolean;           // Suggestions Wahoo SYSTM
+  planSuggestion: boolean;  // Suggestion de Plan
   zones: boolean;           // Zones d'entraînement
   historique: boolean;      // Historique Snapshots
   tests: boolean;           // Historique Tests
@@ -88,6 +91,7 @@ export const DEFAULT_REPORT_SECTIONS: ReportSections = {
   ageAdjustment: true,
   twoForCoaching: true,
   wahoo: true,
+  planSuggestion: true,
   zones: true,
   historique: true,
   tests: true,
@@ -107,6 +111,7 @@ const SECTION_LABELS: Record<keyof ReportSections, string> = {
   ageAdjustment: "Ajustement Âge (AAI)",
   twoForCoaching: "Analyse Two For Coaching Lab™",
   wahoo: "Suggestions Wahoo",
+  planSuggestion: "Suggestion de Plan",
   zones: "Zones d'entraînement",
   historique: "Historique Snapshots",
   tests: "Historique Tests",
@@ -2539,6 +2544,59 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   ` : '';
 
   // =============================================
+  // D.ter SUGGESTION DE PLAN (Template chargé)
+  // =============================================
+  // Récupérer le template chargé depuis localStorage
+  const loadedTemplateId = localStorage.getItem("vlab-selected-template");
+  const loadedTemplate = loadedTemplateId ? getTemplateById(loadedTemplateId) : null;
+  
+  const planSuggestionHTML = loadedTemplate && loadedTemplate.weeks.length > 0 ? `
+    <section id="plan-suggestion" class="section pagebreak">
+      <h2>D.ter Suggestion de Plan</h2>
+      
+      <div class="card cardHighlight">
+        <h3>📋 ${htmlEscape(loadedTemplate.name)}</h3>
+        <p class="muted">Programme ${loadedTemplate.weeks.length} semaines • Objectif: ${loadedTemplate.target}</p>
+      </div>
+      
+      ${loadedTemplate.weeks.map(week => `
+        <div class="card mt" style="page-break-inside: avoid;">
+          <h3 style="margin-bottom: 8px;">
+            <span class="badge badgePrimary">S${week.weekNumber}</span>
+            ${week.theme ? `<span style="margin-left: 8px;">${htmlEscape(week.theme)}</span>` : ''}
+            ${week.phase ? `<span class="badge" style="margin-left: 8px; background: var(--muted); color: var(--muted-foreground);">${htmlEscape(week.phase)}</span>` : ''}
+          </h3>
+          ${week.coachAdvice ? `<div class="alert alertInfo mb" style="font-size: 11px;"><b>💡 Conseil:</b> ${htmlEscape(week.coachAdvice)}</div>` : ''}
+          <table style="font-size: 11px;">
+            <thead>
+              <tr>
+                <th style="width: 60px;">Jour</th>
+                <th style="width: 80px;">Sport</th>
+                <th>Séance</th>
+                <th>Détails</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${week.sessions.map(session => `
+                <tr>
+                  <td><b>${htmlEscape(session.day || '')}</b></td>
+                  <td><span class="badge" style="font-size: 10px;">${htmlEscape(session.sport || session.discipline || session.type || '—')}</span></td>
+                  <td><b>${htmlEscape(session.title || '')}</b></td>
+                  <td class="muted">${htmlEscape(session.details || session.description || session.notes || '')}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `).join('')}
+      
+      <div class="alert alertInfo mt">
+        💡 Ce plan est une suggestion basée sur l'objectif de l'athlète. Il doit être adapté par le coach selon le contexte individuel et les données physiologiques.
+      </div>
+    </section>
+  ` : '';
+
+  // =============================================
   // F. ZONES D'ENTRAÎNEMENT Z1→Z7 (GRILLE OFFICIELLE)
   // =============================================
   // Préparer les refs pour le calcul des zones absolues
@@ -3473,6 +3531,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       ageAdjustment: false,
       twoForCoaching: false,
       wahoo: false,
+      planSuggestion: false,
       zones: false,
       historique: false,
       tests: false,
