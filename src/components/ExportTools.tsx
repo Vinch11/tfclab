@@ -3342,6 +3342,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         ${options.sections.ageAdjustment ? aaiHTML : ''}
         ${options.sections.twoForCoaching ? lorangHTML : ''}
         ${options.sections.wahoo ? wahooHTML : ''}
+        ${options.sections.planSuggestion ? planSuggestionHTML : ''}
         ${options.sections.zones ? zonesHTML : ''}
         ${options.sections.historique ? snapshotsHTML : ''}
         ${options.sections.tests ? testsHTML : ''}
