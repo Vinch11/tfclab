@@ -237,15 +237,16 @@ export function TwoForCoachingAnalysis({
                       <h4 className="font-semibold text-foreground">À propos de cette analyse</h4>
                     </div>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      <strong className="text-foreground">TWO FOR COACHING LAB™</strong> propose une lecture physiologique intégrée développée par Two For Coaching.
-                      Cette analyse s'inspire des principes de la physiologie de l'endurance (travaux de Mader, Heck, et des approches issues de l'école allemande popularisées notamment par Dan Lorang), sans constituer une mesure directe ni un outil officiel de ces auteurs.
+                      <strong className="text-foreground">Two For Coaching Lab Method™</strong> est une méthodologie d'analyse physiologique appliquée à l'entraînement d'endurance, conçue pour aider les coachs à interpréter des données complexes et guider la prise de décision stratégique.
                     </p>
                     <div className="p-3 rounded-lg bg-secondary/50 border border-border">
                       <p className="text-xs text-muted-foreground leading-relaxed">
-                        Les valeurs présentées (ex : VLamax, TTE, Race Readiness) sont des <strong className="text-foreground">estimations modélisées</strong> destinées à guider la décision du coach.
-                        Elles doivent toujours être interprétées avec esprit critique, contexte terrain et confrontation à l'expérience pratique.
+                        Les valeurs présentées (VLamax, TTE, Race Readiness) sont des <strong className="text-foreground">estimations modélisées</strong>. Elle ne remplace ni l'expertise du coach, ni un test physiologique de laboratoire.
                       </p>
                     </div>
+                    <p className="text-xs text-muted-foreground italic mt-2">
+                      S'inspire des travaux de Mader, Heck, Jones, Burnley, Seiler — implémentation indépendante et propriétaire.
+                    </p>
                     <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
                       <p className="text-xs text-muted-foreground">
                         👉 <span className="font-medium text-foreground">Outil d'aide à la décision</span> — ne remplace pas le jugement du coach ni un test physiologique complet.

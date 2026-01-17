@@ -15,7 +15,7 @@ interface TrainingZone {
   duration: string;
 }
 
-const lorangZones: TrainingZone[] = [
+const methodZones: TrainingZone[] = [
   {
     id: 1,
     name: "Récupération Active",
@@ -106,7 +106,7 @@ export function TrainingZones() {
       </div>
 
       <div className="space-y-3">
-        {lorangZones.map((zone) => {
+        {methodZones.map((zone) => {
           const Icon = zone.icon;
           const isSelected = selectedZone === zone.id;
 

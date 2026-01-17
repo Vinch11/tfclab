@@ -606,15 +606,19 @@ Vérifie le **TSS 7j** et le **statut TTE** dans le tableau de bord.`
 export const METHODOLOGY_ARTICLES: KnowledgeArticle[] = [
   {
     id: "method_two_for_coaching_lab",
-    title: "Comprendre l'Analyse Two For Coaching Lab™",
+    title: "Comprendre la Two For Coaching Lab Method™",
     category: "methodology",
-    tags: ["Two For Coaching Lab", "méthodologie", "VLamax", "TTE", "estimation", "modélisation", "limites"],
+    tags: ["Two For Coaching Lab Method", "méthodologie", "VLamax", "TTE", "estimation", "modélisation", "limites"],
     level: "athlete",
-    lastUpdated: "2026-01-13",
-    contentMarkdown: `## Comprendre l'Analyse Two For Coaching Lab™
+    lastUpdated: "2026-01-17",
+    contentMarkdown: `## Two For Coaching Lab Method™
 
-**TWO FOR COACHING LAB™** propose une lecture physiologique intégrée développée par Two For Coaching.
-Cette analyse s'inspire des principes de la physiologie de l'endurance (travaux de Mader, Heck, et des approches issues de l'école allemande popularisées notamment par Dan Lorang), sans constituer une mesure directe ni un outil officiel de ces auteurs.
+**Two For Coaching Lab Method™** est une méthodologie d'analyse physiologique appliquée à l'entraînement d'endurance, conçue pour aider les coachs à interpréter des données complexes, estimer des profils énergétiques, et guider la prise de décision stratégique.
+
+Elle ne remplace ni l'expertise humaine du coach, ni un test physiologique de laboratoire.
+Elle structure, hiérarchise et contextualise les informations disponibles afin de réduire l'incertitude et d'augmenter la cohérence des choix d'entraînement.
+
+La Two For Coaching Lab Method™ s'inspire de travaux scientifiques reconnus en physiologie de l'exercice (Mader, Heck, Jones, Burnley, Seiler, etc.), mais constitue une implémentation indépendante, originale et propriétaire.
 
 ### Pourquoi l'app utilise des estimations
 

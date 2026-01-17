@@ -12,7 +12,7 @@ export const MARATHON_WEEKS: TemplateWeek[] = [
     phase: "🟥 Construction",
     sessions: [
       { day: "Lundi", type: "Repos / Mobilité", details: "OFF. Séance de 20' de mobilité hanches/chevilles.", notes: "Le marathonien moderne doit être mobile pour être économe." },
-      { day: "Mardi", type: "VO2max (Court)", details: "50'-1h. 20' WU + 2 séries de [8 x 30\" Vite / 30\" Lent] R:4' + CD. Vite=Z5.", notes: "Lorang place la VO2max au début pour élever le plafond tant que tu es frais." },
+      { day: "Mardi", type: "VO2max (Court)", details: "50'-1h. 20' WU + 2 séries de [8 x 30\" Vite / 30\" Lent] R:4' + CD. Vite=Z5.", notes: "La Two For Coaching Lab Method™ place la VO2max au début pour élever le plafond tant que tu es frais." },
       { day: "Mercredi", type: "Endurance Z2", details: "45'-1h. Course continue Z2 stricte. Test conversation possible.", notes: "Si 4h30 : Alterne 9' course / 1' marche." },
       { day: "Jeudi", type: "Renforcement", details: "45' Force Lourde. Squats, Fentes, Deadlift (séries 8-10 réps).", notes: "Un muscle fort est un muscle économe." },
       { day: "Vendredi", type: "Cross-Training", details: "Repos ou 45' Vélo/Natation Z1/Z2.", notes: "Préserver les articulations. Pas d'impact." },

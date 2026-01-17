@@ -2414,12 +2414,12 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       <h2>D. Analyse Two For Coaching Lab™</h2>
       
       <div class="alert alertInfo mb">
-        <b>ℹ️ À propos de cette analyse</b><br>
+        <b>ℹ️ Two For Coaching Lab Method™</b><br>
         <span style="font-size:12px;">
-          TWO FOR COACHING LAB™ propose une lecture physiologique intégrée développée par Two For Coaching.
-          Cette analyse s'inspire des principes de la physiologie de l'endurance (travaux de Mader, Heck, et des approches issues de l'école allemande popularisées notamment par Dan Lorang), sans constituer une mesure directe ni un outil officiel de ces auteurs.<br><br>
-          Les valeurs présentées (ex : VLamax, TTE, Race Readiness) sont des <b>estimations modélisées</b> destinées à guider la décision du coach.
-          Elles doivent toujours être interprétées avec esprit critique, contexte terrain et confrontation à l'expérience pratique.
+          <b>Méthodologie d'analyse physiologique</b> appliquée à l'entraînement d'endurance, conçue pour aider les coachs à interpréter des données complexes, estimer des profils énergétiques, et guider la prise de décision stratégique.<br><br>
+          Elle ne remplace ni l'expertise humaine du coach, ni un test physiologique de laboratoire.<br>
+          Les valeurs présentées (VLamax, TTE, Race Readiness) sont des <b>estimations modélisées</b> destinées à guider la décision du coach.<br><br>
+          <i>S'inspire des travaux de Mader, Heck, Jones, Burnley, Seiler — implémentation indépendante et propriétaire.</i>
         </span>
       </div>
       
@@ -3214,12 +3214,12 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       <!-- Fondements Scientifiques -->
       <div class="card pagebreakAvoid mt">
         <h3>🧠 Fondements scientifiques</h3>
-        <p class="muted">Cette méthodologie s'appuie sur des modèles énergétiques reconnus et des données terrain validées :</p>
+        <p class="muted">La Two For Coaching Lab Method™ s'appuie sur des modèles énergétiques reconnus et des données terrain validées :</p>
         <ul class="muted">
-          <li>Modèles énergétiques (Mader, INSCYD-like)</li>
+          <li>Modèles énergétiques (Mader, Heck, Jones, Burnley)</li>
           <li>Relations VLamax ↔ oxydation glucidique</li>
-          <li>Concepts utilisés par Dan Lorang, WKO, INSCYD</li>
-          <li>Données terrain + logique staff (pas de boîte noire)</li>
+          <li>Travaux de physiologie de l'exercice (Seiler, école allemande)</li>
+          <li>Implémentation indépendante, originale et propriétaire</li>
         </ul>
         <div class="alert alertSuccess mt">
           <b>✅ Objectif transparence</b> : chaque score est explicable et chaque recommandation est justifiée.
