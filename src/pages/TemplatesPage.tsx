@@ -41,6 +41,7 @@ import {
 import { getTemplateProfiles, getClosestProfile, type TemplateProfilePair } from "@/data/templateProfiles";
 
 import { useCloudData, DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
+import { useAthletes } from "@/contexts/AthleteContext";
 import { computeVLamaxEffectif, getSourceColor, getSourceBgColor, type VLamaxSource } from "@/lib/vlamaxEffectif";
 import { computeTTEEffectif } from "@/lib/tteEffectif";
 import { computeRaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
@@ -1052,7 +1053,10 @@ function AnnotationsPanelV2({ annotations }: { annotations: AnnotationV2[] }) {
 
 export default function TemplatesPage() {
   const navigate = useNavigate();
-  const { athletes, snapshots, tests, loading: cloudLoading } = useCloudData();
+  const { snapshots, tests, loading: cloudLoading } = useCloudData();
+  
+  // ✅ Utiliser AthleteContext pour synchroniser avec le Dashboard
+  const { athletes, selectedAthleteId, setSelectedAthleteId } = useAthletes();
 
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>(() => {
     return localStorage.getItem("vlab-selected-template") || PROGRAM_TEMPLATES[0]?.id || "";
@@ -1068,7 +1072,6 @@ export default function TemplatesPage() {
     const saved = localStorage.getItem("vlab-templates-staff-mode");
     return saved === "true";
   });
-  const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
   
   // Persist staff mode to localStorage
   useEffect(() => {
@@ -1187,15 +1190,8 @@ export default function TemplatesPage() {
     [selectedTemplateId]
   );
 
-  // Persist selected athlete
-  useEffect(() => {
-    const saved = localStorage.getItem("vlab-selected-athlete");
-    if (saved && athletes.some((a) => a.id === saved)) {
-      setSelectedAthleteId(saved);
-    } else if (athletes.length > 0) {
-      setSelectedAthleteId(athletes[0].id);
-    }
-  }, [athletes]);
+  // ✅ L'athlète sélectionné est maintenant géré par AthleteContext
+  // et synchronisé avec le Dashboard automatiquement
 
   // Persist selected section per template
   useEffect(() => {
