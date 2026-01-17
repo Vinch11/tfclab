@@ -35,3 +35,26 @@ export {
   getQualityMessage,
   type DataQualityStats 
 } from "../DataQualityBlock";
+
+// Système de plages de performance réalistes
+export {
+  PerformanceRangeDisplay,
+  PerformanceRangeInline,
+  PerformanceRangeGroup,
+} from "../PerformanceRangeDisplay";
+export {
+  computeFtpKgRange,
+  computeTTERange,
+  computeVLamaxRange,
+  computeVO2maxRange,
+  computePerformanceRange,
+  getCurrentZone,
+  generateRangeInterpretation,
+  PERFORMANCE_RANGE_DISCLAIMER,
+  WHY_NO_SINGLE_TARGET,
+  ACADEMY_RANGES_CHAPTER,
+  type PerformanceRange,
+  type PerformanceRangeContext,
+  type PerformanceMetric,
+  type PerformanceZone,
+} from "@/lib/performanceRanges";

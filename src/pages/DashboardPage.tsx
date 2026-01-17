@@ -56,6 +56,15 @@ import { AmbitionTargetsCard } from "@/components/AmbitionTargetsCard";
 import { DataQualityBlock, calculateDataQualityStats } from "@/components/DataQualityBlock";
 import type { ScoreSource } from "@/lib/scoreEnvelope";
 
+// Système de plages de performance réalistes
+import { 
+  computeFtpKgRange, 
+  computeTTERange, 
+  computeVLamaxRange,
+  type PerformanceRangeContext 
+} from "@/lib/performanceRanges";
+import { PerformanceRangeDisplay } from "@/components/PerformanceRangeDisplay";
+
 // =============================================
 // HELPERS
 // =============================================
@@ -361,6 +370,20 @@ export default function DashboardPage() {
     
     const dataQualityStats = calculateDataQualityStats(dataSources);
     
+    // Calculer les plages de performance réalistes
+    const rangeContext: PerformanceRangeContext = {
+      age: athleteAge,
+      discipline: objectif,
+      vlamaxEffectif: vlamaxEffectif.value,
+      vo2max: activeSnapshot.vo2max,
+      weeklyVolume: null,
+      currentValue: ftpKg,
+    };
+    
+    const ftpKgRange = computeFtpKgRange(rangeContext);
+    const tteRange = computeTTERange({ ...rangeContext, currentValue: tteEffectif.tte_min });
+    const vlamaxRange = computeVLamaxRange({ ...rangeContext, currentValue: vlamaxEffectif.value });
+    
     return {
       vlamaxEffectif,
       tteEffectif,
@@ -378,6 +401,10 @@ export default function DashboardPage() {
       priorities,
       tteTarget,
       dataQualityStats,
+      // Nouvelles plages de performance
+      ftpKgRange,
+      tteRange,
+      vlamaxRange,
     };
   }, [currentAthlete, snapshots, tests, checkins]);
 
@@ -441,6 +468,9 @@ export default function DashboardPage() {
     dataQualityStats,
     priorities,
     tteTarget,
+    ftpKgRange,
+    tteRange,
+    vlamaxRange,
   } = dashboardData;
 
   const objectif = currentAthlete.objectif || "IM";
@@ -954,6 +984,17 @@ export default function DashboardPage() {
   );
 
   // =============================================
+  // RENDER: PERFORMANCE RANGES (Plages réalistes)
+  // =============================================
+  
+  const renderPerformanceRanges = (): ReactNode => (
+    <div className="space-y-4">
+      <PerformanceRangeDisplay range={ftpKgRange} title="Plage FTP/kg réaliste à moyen terme" />
+      <PerformanceRangeDisplay range={tteRange} title="Plage TTE réaliste" />
+    </div>
+  );
+
+  // =============================================
   // SECTIONS CONFIGURATION
   // =============================================
 
@@ -961,6 +1002,7 @@ export default function DashboardPage() {
     { id: "athlete-context", render: renderAthleteContext },
     { id: "data-quality", render: renderDataQuality },
     { id: "ambition-targets", render: renderAmbitionTargets },
+    { id: "performance-ranges", render: renderPerformanceRanges },
     { id: "quick-fatigue", render: renderQuickFatigueInput },
     { id: "fatigue", render: renderFatigueCard },
     { id: "fatigue-comparison", render: renderFatigueComparisonChart },
