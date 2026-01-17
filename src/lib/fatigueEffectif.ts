@@ -1,13 +1,21 @@
 // =============================================
-// FATIGUE FONCTIONNELLE — Two For Coaching Lab
+// FATIGUE INDEX™ — Two For Coaching Lab
+// Système officiel de quantification de la fatigue
 // Source unique de vérité
 // =============================================
 //
 // DÉFINITION OFFICIELLE :
-// "La fatigue correspond à une diminution estimée de la capacité de l'athlète 
-// à exprimer son potentiel physiologique actuel, en raison de la charge récente, 
-// de la durabilité à l'effort (TTE), de la fraîcheur métabolique et de facteurs individuels.
-// Ce score est un indicateur fonctionnel d'aide à la décision, et non une mesure biologique directe."
+// "La fatigue dans Two For Coaching Lab représente le niveau de contrainte
+// physiologique et fonctionnelle récente susceptible de limiter
+// l'expression du potentiel de performance, indépendamment du niveau de forme."
+//
+// CE N'EST PAS :
+// - une blessure
+// - un diagnostic médical
+// - une valeur absolue
+//
+// C'EST :
+// - un INDICE fonctionnel d'état du système
 //
 // =============================================
 
@@ -19,45 +27,67 @@ import { VLamaxEffectif } from "./vlamaxEffectif";
 // DÉFINITION OFFICIELLE (pour affichage UI)
 // =============================================
 
-export const FATIGUE_METHODOLOGY = {
-  title: "Fatigue fonctionnelle – Two For Coaching Lab",
-  definition: `La fatigue correspond à une diminution estimée de la capacité de l'athlète à exprimer son potentiel physiologique actuel, en raison de la charge récente, de la durabilité à l'effort (TTE), de la fraîcheur métabolique, du ressenti subjectif et de facteurs individuels.
+export const FATIGUE_INDEX_DEFINITION = `La fatigue dans Two For Coaching Lab représente le niveau de contrainte
+physiologique et fonctionnelle récente susceptible de limiter
+l'expression du potentiel de performance,
+indépendamment du niveau de forme.
 
-Ce score combine données objectives (TSS, TTE) et subjectives (fatigue perçue par l'athlète). C'est un indicateur fonctionnel d'aide à la décision, et non une mesure biologique directe.`,
+Ce n'est PAS :
+• une blessure
+• un diagnostic médical  
+• une valeur absolue
+
+C'est :
+• un INDICE fonctionnel d'état du système`;
+
+export const FATIGUE_INDEX_DISCLAIMER = `Cet indice est un outil d'aide à la décision.
+Il ne remplace ni l'expertise du coach,
+ni un suivi médical.`;
+
+export const FATIGUE_POSITIVE_NOTE = `Une fatigue élevée n'est pas négative en soi.
+Elle devient problématique si elle empêche l'absorption de la charge.`;
+
+export const FATIGUE_METHODOLOGY = {
+  title: "FatigueIndex™ – Two For Coaching Lab",
+  definition: FATIGUE_INDEX_DEFINITION,
   pillars: [
     {
+      id: "charge",
       name: "Charge récente",
-      weight: 30,
-      description: "Comparaison de la charge hebdomadaire (TSS 7j) à la charge habituelle de l'athlète. Plus la charge récente est élevée, plus la fatigue augmente."
+      weight: 40,
+      emoji: "📊",
+      description: "Basée sur TSS 7j, nombre de séances consécutives et densité d'intensité. Normalisée par rapport au profil de l'athlète."
     },
     {
-      name: "Fatigue perçue (subjective)",
+      id: "durability",
+      name: "Durabilité / TTE",
+      weight: 25,
+      emoji: "⏱️",
+      description: "Si TTE effectif est bas par rapport à la cible → fatigue plus impactante. Un même TSS fatigue plus un athlète peu durable."
+    },
+    {
+      id: "metabolic",
+      name: "Profil métabolique",
       weight: 20,
-      description: "Ressenti de l'athlète sur une échelle de 1 (frais) à 10 (épuisé). Cette donnée subjective capture ce que les métriques objectives ne détectent pas toujours."
+      emoji: "🧬",
+      description: "VLamax élevé = fatigue glycolytique plus rapide. VLamax bas = fatigue plus progressive."
     },
     {
-      name: "Durabilité – TTE effectif",
-      weight: 20,
-      description: "Comparaison du TTE effectif à la cible selon l'objectif. Un TTE inférieur à la cible indique une fatigue accrue ou un manque de robustesse."
-    },
-    {
-      name: "Fraîcheur métabolique (Race Readiness)",
-      weight: 20,
-      description: "Utilise le score Race Readiness déjà calculé. Plus la fraîcheur est basse, plus la fatigue augmente."
-    },
-    {
-      name: "Facteurs modérateurs individuels",
-      weight: 10,
-      description: "Âge de l'athlète et profil VLamax. Un VLamax bas = fatigue plus lente mais récupération plus longue. Un VLamax élevé = fatigue rapide mais récupération plus courte."
+      id: "subjective",
+      name: "Signaux subjectifs",
+      weight: 15,
+      emoji: "💭",
+      description: "Check-in fatigue / stress (1–10). Cohérence avec les données physiologiques. Ne jamais surpondérer seul."
     }
   ],
-  formula: `Fatigue (%) = 
-    0.30 × Indice Charge Récente 
-  + 0.20 × Indice Fatigue Perçue
-  + 0.20 × Indice TTE 
-  + 0.20 × Indice Fraîcheur 
-  + 0.10 × Indice Modulateurs`,
-  disclaimer: "Les scores sont des estimations combinant données objectives et subjectives. Ils doivent être interprétés avec le contexte. Le jugement du coach prime sur l'algorithme."
+  formula: `FatigueIndex (%) =
+  0.40 × ChargeScore
++ 0.25 × DurabilityPenalty
++ 0.20 × MetabolicPenalty
++ 0.15 × SubjectiveScore
+
+Chaque sous-score est normalisé sur 0–100.`,
+  disclaimer: FATIGUE_INDEX_DISCLAIMER
 };
 
 // =============================================
@@ -78,50 +108,40 @@ export interface FatigueLevel {
 export const FATIGUE_SCALE: FatigueLevel[] = [
   {
     min: 0,
-    max: 15,
-    label: "Très frais",
-    shortLabel: "Frais",
-    description: "Potentiel pleinement exprimable. Conditions optimales pour la performance.",
+    max: 30,
+    label: "Fatigue faible",
+    shortLabel: "🟢 Faible",
+    description: "Fraîcheur maximale. Potentiel pleinement exprimable. Conditions optimales pour la performance ou test.",
     color: "success",
     colorClass: "text-green-600 dark:text-green-400",
     badgeClass: "bg-green-500/20 text-green-700 dark:text-green-300 border-green-500/50"
   },
   {
-    min: 15,
-    max: 30,
-    label: "Fatigue légère",
-    shortLabel: "Légère",
-    description: "Charge bien absorbée. Capacité quasi-intacte.",
-    color: "info",
-    colorClass: "text-blue-600 dark:text-blue-400",
-    badgeClass: "bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/50"
-  },
-  {
     min: 30,
-    max: 45,
+    max: 55,
     label: "Fatigue modérée",
-    shortLabel: "Modérée",
-    description: "Vigilance sur l'intensité. Capacité à exprimer le potentiel légèrement réduite.",
+    shortLabel: "🟡 Modérée",
+    description: "Fatigue gérable. Charge en cours d'absorption. Capacité légèrement réduite mais fonctionnelle.",
     color: "warning",
     colorClass: "text-amber-600 dark:text-amber-400",
     badgeClass: "bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/50"
   },
   {
-    min: 45,
-    max: 60,
+    min: 55,
+    max: 75,
     label: "Fatigue élevée",
-    shortLabel: "Élevée",
-    description: "Risque de stagnation ou surmenage. Réduire l'intensité recommandé.",
+    shortLabel: "🟠 Élevée",
+    description: "Attention qualité des séances. Risque de stagnation si maintenue. Réduire l'intensité recommandé.",
     color: "destructive",
     colorClass: "text-orange-600 dark:text-orange-400",
     badgeClass: "bg-orange-500/20 text-orange-700 dark:text-orange-300 border-orange-500/50"
   },
   {
-    min: 60,
+    min: 75,
     max: 100,
     label: "Fatigue critique",
-    shortLabel: "Critique",
-    description: "Priorité récupération. Risque de blessure ou surentraînement.",
+    shortLabel: "🔴 Critique",
+    description: "Zone rouge. Risque de surperformance ou blessure. Priorité absolue à la récupération.",
     color: "critical",
     colorClass: "text-red-600 dark:text-red-400",
     badgeClass: "bg-red-500/20 text-red-700 dark:text-red-300 border-red-500/50"
@@ -133,22 +153,22 @@ export const FATIGUE_SCALE: FatigueLevel[] = [
 // =============================================
 
 export interface FatigueContributions {
-  chargeRecente: number;      // 0-100
-  fatiguePercue: number;      // 0-100 (NEW: subjective)
-  tte: number;                // 0-100
-  fraicheur: number;          // 0-100
-  modulateurs: number;        // 0-100
+  chargeRecente: number;      // 0-100 (Charge récente - 40%)
+  fatiguePercue: number;      // 0-100 (Signaux subjectifs - 15%)
+  tte: number;                // 0-100 (TTE/Durabilité - 25%)
+  fraicheur: number;          // 0-100 (Profil métabolique - 20%)
+  modulateurs: number;        // 0-100 (Facteurs modérateurs)
 }
 
 export interface FatigueEffectif {
-  score: number;                    // 0-100 (score final)
+  score: number;                    // 0-100 (FatigueIndex final)
   level: FatigueLevel;              // Niveau d'interprétation
   contributions: FatigueContributions;
   contributionsWeighted: {          // Contributions pondérées (pour affichage)
-    chargeRecente: number;
-    fatiguePercue: number;
-    tte: number;
-    fraicheur: number;
+    chargeRecente: number;          // × 0.40
+    fatiguePercue: number;          // × 0.15
+    tte: number;                    // × 0.25
+    fraicheur: number;              // × 0.20
     modulateurs: number;
   };
   confidence: number;               // 0-1
