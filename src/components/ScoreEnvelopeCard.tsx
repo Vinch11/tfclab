@@ -1,11 +1,14 @@
 /**
  * ScoreEnvelopeCard - Composant unifié combinant ScoreEnvelopeDisplay + MetricHelpButton
  * Pour un affichage cohérent des métriques partout dans l'app
+ * 
+ * MISE À JOUR: Intègre le système de badges scientifiques pour la transparence des données
  */
 
 import { ScoreEnvelope } from "@/lib/scoreEnvelope";
 import { ScoreEnvelopeDisplay } from "@/components/ScoreEnvelopeDisplay";
 import { MetricHelpButton } from "@/components/MetricHelpButton";
+import { ScientificBadge, createScientificMetadata, LowConfidenceWarning } from "@/components/ScientificBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -60,6 +63,13 @@ export function ScoreEnvelopeCard({
   }
 
   // Mode carte avec header personnalisé incluant le bouton d'aide
+  const scientificMetadata = createScientificMetadata(
+    envelope.source,
+    envelope.confidence,
+    envelope.confidenceLabel,
+    { academySection: envelope.metricId }
+  );
+
   return (
     <Card className={cn("relative", className)}>
       {/* Header avec titre et bouton aide */}
@@ -85,6 +95,15 @@ export function ScoreEnvelopeCard({
           mode={mode}
           showRecommendations={showRecommendations}
         />
+        
+        {/* Badge scientifique avec transparence */}
+        <div className="mt-3 pt-2 border-t border-border/50">
+          <ScientificBadge 
+            metadata={scientificMetadata}
+            metricName={envelope.metricId}
+            compact={true}
+          />
+        </div>
       </CardContent>
     </Card>
   );
@@ -130,19 +149,30 @@ function ScoreEnvelopeCardContent({
     return "";
   };
 
+  // Icônes et couleurs harmonisées selon le système de transparence scientifique
   const getSourceIcon = () => {
     switch (source) {
-      case "MEASURED": return "🔬";
-      case "ESTIMATED": return "🧠";
-      case "MODELLED": return "🔁";
+      case "MEASURED": return "🧪"; // Mesurée - cohérent avec badges
+      case "ESTIMATED": return "📐"; // Estimée - cohérent avec badges
+      case "MODELLED": return "🧠"; // Modélisée
       case "DERIVED": return "📊";
       default: return "❓";
     }
   };
 
+  // Couleurs alignées sur le système de badges scientifiques
+  const getSourceColor = () => {
+    switch (source) {
+      case "MEASURED": return "text-green-600 dark:text-green-400";
+      case "ESTIMATED": return "text-amber-600 dark:text-amber-400";
+      case "MODELLED": return "text-blue-600 dark:text-blue-400";
+      default: return "text-muted-foreground";
+    }
+  };
+
   const getConfidenceColor = () => {
     if (confidence >= 0.85) return "text-green-600 bg-green-100 dark:bg-green-900/30";
-    if (confidence >= 0.65) return "text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30";
+    if (confidence >= 0.65) return "text-amber-600 bg-amber-100 dark:bg-amber-900/30";
     return "text-red-600 bg-red-100 dark:bg-red-900/30";
   };
 

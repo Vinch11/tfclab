@@ -52,6 +52,10 @@ import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 import { QuickAmbitionSelector } from "@/components/QuickAmbitionSelector";
 import { AmbitionTargetsCard } from "@/components/AmbitionTargetsCard";
 
+// Système de transparence scientifique
+import { DataQualityBlock, calculateDataQualityStats } from "@/components/DataQualityBlock";
+import type { ScoreSource } from "@/lib/scoreEnvelope";
+
 // =============================================
 // HELPERS
 // =============================================
@@ -329,6 +333,34 @@ export default function DashboardPage() {
     // Filtrer tests pour cet athlète
     const athleteTests = tests.filter(t => t.athlete_id === athleteId);
     
+    // Calculer les statistiques de qualité des données
+    // Map les sources des différentes métriques vers ScoreSource
+    const mapToScoreSource = (source: string): ScoreSource => {
+      switch (source) {
+        case "snapshot": return "MEASURED";
+        case "test": return "ESTIMATED";
+        case "estimated": return "MODELLED";
+        case "observed": return "MEASURED";
+        case "chrono": return "MEASURED";
+        case "tss": return "ESTIMATED";
+        case "default": return "MODELLED";
+        default: return "UNKNOWN";
+      }
+    };
+    
+    const dataSources: (ScoreSource | undefined)[] = [
+      mapToScoreSource(vlamaxEffectif.source),
+      mapToScoreSource(tteEffectif.source),
+      // FTP/kg depuis snapshot = mesuré si présent
+      activeSnapshot.ftp ? "MEASURED" as ScoreSource : undefined,
+      // VO2max depuis snapshot
+      activeSnapshot.vo2max ? "MEASURED" as ScoreSource : undefined,
+      // Fatigue = toujours modélisée (composite)
+      "MODELLED" as ScoreSource,
+    ].filter(Boolean);
+    
+    const dataQualityStats = calculateDataQualityStats(dataSources);
+    
     return {
       vlamaxEffectif,
       tteEffectif,
@@ -345,6 +377,7 @@ export default function DashboardPage() {
       phase,
       priorities,
       tteTarget,
+      dataQualityStats,
     };
   }, [currentAthlete, snapshots, tests, checkins]);
 
@@ -405,6 +438,7 @@ export default function DashboardPage() {
     athleteTests,
     coachSummary,
     phase,
+    dataQualityStats,
     priorities,
     tteTarget,
   } = dashboardData;
@@ -912,11 +946,20 @@ export default function DashboardPage() {
   };
 
   // =============================================
+  // RENDER: DATA QUALITY BLOCK
+  // =============================================
+  
+  const renderDataQuality = (): ReactNode => (
+    <DataQualityBlock stats={dataQualityStats} />
+  );
+
+  // =============================================
   // SECTIONS CONFIGURATION
   // =============================================
 
   const sections = [
     { id: "athlete-context", render: renderAthleteContext },
+    { id: "data-quality", render: renderDataQuality },
     { id: "ambition-targets", render: renderAmbitionTargets },
     { id: "quick-fatigue", render: renderQuickFatigueInput },
     { id: "fatigue", render: renderFatigueCard },

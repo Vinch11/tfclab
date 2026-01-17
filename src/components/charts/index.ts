@@ -18,3 +18,20 @@ export { AmbitionProgressChart, calculateAmbitionPredictions, type AmbitionPredi
 export { ScoreEnvelopeCard, ScoreEnvelopeCardGroup, ScoreEnvelopeInlineCard } from "../ScoreEnvelopeCard";
 export { ScoreEnvelopeDisplay, ScoreEnvelopeGrid, ScoreEnvelopeInline } from "../ScoreEnvelopeDisplay";
 export { MetricHelpButton } from "../MetricHelpButton";
+
+// Système de transparence scientifique
+export { 
+  ScientificBadge, 
+  LowConfidenceWarning,
+  createScientificMetadata,
+  PEDAGOGICAL_TEXTS,
+  type ScientificMetadata,
+  type DataOrigin
+} from "../ScientificBadge";
+export { 
+  DataQualityBlock, 
+  DataQualityInline,
+  calculateDataQualityStats,
+  getQualityMessage,
+  type DataQualityStats 
+} from "../DataQualityBlock";
