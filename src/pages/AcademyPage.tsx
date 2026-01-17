@@ -331,18 +331,20 @@ export default function AcademyPage() {
               <Card className="border-primary/20 bg-primary/5">
                 <CardContent className="p-4 sm:p-6">
                   <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
-                    Two For Coaching Lab est une application d'aide à la décision destinée aux coachs et athlètes d'endurance.
+                    <strong className="text-foreground">Two For Coaching Lab Method™</strong> est une méthodologie d'analyse physiologique appliquée à l'entraînement d'endurance, conçue pour aider les coachs à interpréter des données complexes, estimer des profils énergétiques, et guider la prise de décision stratégique.
                   </p>
                   <Separator className="my-4" />
                   <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
-                    Elle s'appuie sur des modèles physiologiques issus de la littérature scientifique internationale, 
-                    en particulier l'école allemande de physiologie de l'exercice (Mader, Heck, Billat), ainsi que sur 
-                    des travaux plus récents en métabolisme, économie de locomotion et durabilité de la performance.
+                    Elle ne remplace ni l'expertise humaine du coach, ni un test physiologique de laboratoire.
+                    Elle structure, hiérarchise et contextualise les informations disponibles afin de réduire l'incertitude et d'augmenter la cohérence des choix d'entraînement.
+                  </p>
+                  <Separator className="my-4" />
+                  <p className="text-xs text-muted-foreground italic leading-relaxed">
+                    S'inspire des travaux scientifiques reconnus (Mader, Heck, Jones, Burnley, Seiler) — implémentation indépendante, originale et propriétaire.
                   </p>
                   <Separator className="my-4" />
                   <p className="text-foreground font-medium leading-relaxed text-sm sm:text-base">
-                    L'application ne cherche pas à prédire la performance, mais à éclairer les décisions d'entraînement 
-                    en rendant visibles les compromis physiologiques (performance, fatigue, risque).
+                    La Two For Coaching Lab Method™ est un outil d'aide à la décision, pas une vérité physiologique absolue.
                   </p>
                 </CardContent>
               </Card>
