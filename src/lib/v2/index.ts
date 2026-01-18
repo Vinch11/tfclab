@@ -435,6 +435,26 @@ export {
   type IFSCChatbotQA
 } from './ifsc';
 
+// Metabolic Balance Map™ - Graphique signature TFCL
+export {
+  MAP_ZONES,
+  MAP_PEDAGOGY,
+  ACADEMY_METABOLIC_MAP_MODULE,
+  PDF_MAP_SECTION,
+  CHATBOT_MAP_QA,
+  generateMetabolicBalanceMapData,
+  computeAthleteMapPosition,
+  computeProjectedPosition,
+  generateMapExplanation,
+  type MapZoneId,
+  type MapZone,
+  type AthleteMapPosition,
+  type MapDataPoint,
+  type MetabolicBalanceMapData,
+  type MapInput,
+  type MapExplanation
+} from './metabolicBalanceMap';
+
 // Method Framework (Cadre Officiel Consolidé)
 export {
   METHOD_OFFICIAL_POSITIONING,
