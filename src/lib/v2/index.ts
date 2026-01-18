@@ -299,3 +299,30 @@ export {
   type LeverAnnotation,
   type ChatbotLeverResponse
 } from './trainingLevers';
+
+// Cadence & Force
+export {
+  CADENCE_KEY_PRINCIPLE,
+  VLAMAX_FORCE_CADENCE_RELATION,
+  EX_SPRINTER_PROFILE,
+  IDEAL_CADENCE_SAFEGUARDS,
+  CADENCE_RANGES,
+  CADENCE_RECOMMENDATIONS,
+  CADENCE_CHATBOT_QA,
+  CADENCE_SYNTHESIS,
+  CADENCE_FORCE_DOCUMENT,
+  ACADEMY_CADENCE_MODULE,
+  getCadenceInterpretation,
+  generateCadenceRecommendation,
+  findCadenceChatbotAnswer,
+  generateCadenceAnnotation,
+  analyzeCadenceForceProfile,
+  getCadenceSynthesisMessage,
+  shouldRecommendLowCadenceWork,
+  type CadenceRange,
+  type ForceProfile,
+  type CadenceInterpretation,
+  type CadenceRecommendation,
+  type CadenceChatbotQA,
+  type CadenceAnnotation
+} from './cadenceForce';
