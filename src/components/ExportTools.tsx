@@ -60,13 +60,16 @@ export interface ReportSections {
   compass: boolean;         // Metabolic Performance Compass
   indicateurs: boolean;     // Indicateurs Clés
   raceReadiness: boolean;   // Race Readiness
+  injuryRisk: boolean;      // Risque de Blessure CAP
   ambitionTargets: boolean; // Cibles par Niveau d'Ambition
   ambitionPredictions: boolean; // Prédictions d'Ambition
   evolutionCharts: boolean; // Graphiques d'évolution
   ageAdjustment: boolean;   // Ajustement par l'Âge (AAI)
+  methodology: boolean;     // Méthodologies d'entraînement
   twoForCoaching: boolean;  // Analyse Two For Coaching Lab™
   wahoo: boolean;           // Suggestions Wahoo SYSTM
   planSuggestion: boolean;  // Suggestion de Plan
+  templateRecommendation: boolean; // Template recommandé
   zones: boolean;           // Zones d'entraînement
   historique: boolean;      // Historique Profils
   tests: boolean;           // Historique Tests
@@ -85,13 +88,16 @@ export const DEFAULT_REPORT_SECTIONS: ReportSections = {
   compass: true,
   indicateurs: true,
   raceReadiness: true,
+  injuryRisk: true,
   ambitionTargets: true,
   ambitionPredictions: true,
   evolutionCharts: true,
   ageAdjustment: true,
+  methodology: true,
   twoForCoaching: true,
   wahoo: true,
   planSuggestion: true,
+  templateRecommendation: true,
   zones: true,
   historique: true,
   tests: true,
@@ -105,13 +111,16 @@ const SECTION_LABELS: Record<keyof ReportSections, string> = {
   compass: "Metabolic Compass™",
   indicateurs: "Indicateurs Clés",
   raceReadiness: "Race Readiness",
+  injuryRisk: "Risque de Blessure CAP",
   ambitionTargets: "Cibles par Ambition",
   ambitionPredictions: "Prédictions Ambition",
   evolutionCharts: "Graphiques Évolution",
   ageAdjustment: "Ajustement Âge (AAI)",
+  methodology: "Méthodologies Entraînement",
   twoForCoaching: "Analyse Two For Coaching Lab™",
   wahoo: "Suggestions Wahoo",
   planSuggestion: "Suggestion de Plan",
+  templateRecommendation: "Template Recommandé",
   zones: "Zones d'entraînement",
   historique: "Historique Snapshots",
   tests: "Historique Tests",
@@ -987,13 +996,20 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       <div class="tocTitle">📑 SOMMAIRE — Rapport de Modélisation Physiologique</div>
       <div class="tocRow"><a href="#positionnement">1. Positionnement & Comment lire ce rapport</a></div>
       <div class="tocRow"><a href="#executif">2. Synthèse Exécutive</a></div>
-      <div class="tocRow"><a href="#donnees">3. Données d'entrée & Fiabilité</a></div>
-      <div class="tocRow"><a href="#analyse">4. Analyse Physiologique Détaillée</a></div>
+      <div class="tocRow"><a href="#compass">3. Metabolic Performance Compass™</a></div>
+      <div class="tocRow"><a href="#indicateurs">4. Indicateurs Clés</a></div>
       <div class="tocRow"><a href="#readiness">5. Race Readiness</a></div>
-      <div class="tocRow"><a href="#aai">6. Ajustement par l'Âge (AAI)</a></div>
-      <div class="tocRow"><a href="#limites">7. Limites & Alertes</a></div>
-      <div class="tocRow"><a href="#recommandations">8. Recommandations d'entraînement</a></div>
-      <div class="tocRow"><a href="#zones">9. Zones d'entraînement</a></div>
+      <div class="tocRow"><a href="#injury-risk">6. Risque de Blessure CAP</a></div>
+      <div class="tocRow"><a href="#ambition-targets">7. Cibles par Niveau d'Ambition</a></div>
+      <div class="tocRow"><a href="#evolution-charts">8. Graphiques d'Évolution</a></div>
+      <div class="tocRow"><a href="#aai">9. Ajustement par l'Âge (AAI)</a></div>
+      <div class="tocRow"><a href="#methodology">10. Méthodologies d'Entraînement</a></div>
+      <div class="tocRow"><a href="#twoforcoaching">11. Analyse Two For Coaching Lab™</a></div>
+      <div class="tocRow"><a href="#wahoo">12. Suggestions Wahoo SYSTM</a></div>
+      <div class="tocRow"><a href="#template-recommendation">13. Template Recommandé</a></div>
+      <div class="tocRow"><a href="#zones">14. Zones d'entraînement</a></div>
+      <div class="tocRow"><a href="#comprendre">15. Comprendre mes scores</a></div>
+      <div class="tocRow"><a href="#qualite">16. Qualité des données</a></div>
     </div>
   `;
 
@@ -2597,6 +2613,333 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   ` : '';
 
   // =============================================
+  // SECTION RISQUE DE BLESSURE CAP (DÉTAILLÉ)
+  // =============================================
+  const injuryRiskHTML = capInjuryRisk ? `
+    <section id="injury-risk" class="section pagebreakAvoid">
+      <h2>🦵 Risque de Blessure CAP</h2>
+      
+      <div class="card ${capInjuryRisk.level >= 3 ? 'cardError' : capInjuryRisk.level >= 2 ? 'cardWarning' : 'cardSuccess'}">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+          <div>
+            <div style="font-size:32px;margin-bottom:8px;">${capInjuryRisk.icon}</div>
+            <div style="font-size:22px;font-weight:700;">${htmlEscape(capInjuryRisk.label)}</div>
+            <div class="muted">Indice global: ${Math.round(capInjuryRisk.globalIndex * 100)}%</div>
+          </div>
+          <div style="text-align:center;">
+            <div class="big ${capInjuryRisk.level >= 3 ? 'error' : capInjuryRisk.level >= 2 ? 'warning' : 'success'}">${capInjuryRisk.level}/4</div>
+            <div class="muted">Niveau de risque</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card mt">
+        <h3>📊 Décomposition des facteurs de risque</h3>
+        <div class="grid3 mt">
+          <div style="text-align:center;">
+            <div class="muted" style="font-size:11px;">Contribution VLamax</div>
+            <div class="progressBar mt" style="height:20px;">
+              <div class="progressFill" style="width:${Math.round(capInjuryRisk.factors.vlamaxContribution * 100)}%;background:${capInjuryRisk.factors.vlamaxContribution > 0.5 ? 'var(--warning)' : 'var(--success)'}"></div>
+            </div>
+            <div style="font-size:14px;font-weight:600;margin-top:4px;">${Math.round(capInjuryRisk.factors.vlamaxContribution * 100)}%</div>
+            <div class="muted" style="font-size:10px;">VLamax élevée = fatigue neuromusculaire</div>
+          </div>
+          <div style="text-align:center;">
+            <div class="muted" style="font-size:11px;">Contribution TTE</div>
+            <div class="progressBar mt" style="height:20px;">
+              <div class="progressFill" style="width:${Math.round(capInjuryRisk.factors.tteContribution * 100)}%;background:${capInjuryRisk.factors.tteContribution > 0.5 ? 'var(--warning)' : 'var(--success)'}"></div>
+            </div>
+            <div style="font-size:14px;font-weight:600;margin-top:4px;">${Math.round(capInjuryRisk.factors.tteContribution * 100)}%</div>
+            <div class="muted" style="font-size:10px;">TTE insuffisant = risque d'effondrement</div>
+          </div>
+          <div style="text-align:center;">
+            <div class="muted" style="font-size:11px;">Contribution Charge</div>
+            <div class="progressBar mt" style="height:20px;">
+              <div class="progressFill" style="width:${Math.round(capInjuryRisk.factors.chargeContribution * 100)}%;background:${capInjuryRisk.factors.chargeContribution > 0.5 ? 'var(--error)' : 'var(--success)'}"></div>
+            </div>
+            <div style="font-size:14px;font-weight:600;margin-top:4px;">${Math.round(capInjuryRisk.factors.chargeContribution * 100)}%</div>
+            <div class="muted" style="font-size:10px;">Charge excessive = surmenage</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card mt">
+        <h3>💬 Analyse Staff</h3>
+        <p style="line-height:1.6;">${htmlEscape(capInjuryRisk.staffAnalysis)}</p>
+      </div>
+      
+      <div class="alert ${capInjuryRisk.level >= 3 ? 'alertError' : capInjuryRisk.level >= 2 ? 'alertWarning' : 'alertSuccess'} mt">
+        <b>${capInjuryRisk.level >= 3 ? '🚨 Attention requise :' : capInjuryRisk.level >= 2 ? '⚠️ Vigilance recommandée :' : '✅ Risque maîtrisé :'}</b><br>
+        ${capInjuryRisk.level >= 3 
+          ? 'Risque de blessure élevé. Réduire la charge d\'entraînement et surveiller les signaux de fatigue.'
+          : capInjuryRisk.level >= 2 
+            ? 'Risque modéré. Surveiller les douleurs, respecter les jours de récupération.'
+            : 'Le profil de risque est acceptable. Maintenir une progression graduelle.'
+        }
+      </div>
+    </section>
+  ` : '';
+
+  // =============================================
+  // SECTION MÉTHODOLOGIES D'ENTRAÎNEMENT
+  // =============================================
+  const methodologyHTML = `
+    <section id="methodology" class="section pagebreak">
+      <h2>📚 Méthodologies d'Entraînement</h2>
+      
+      <div class="alert alertInfo mb">
+        <b>ℹ️ Guide des approches d'entraînement</b><br>
+        Chaque méthodologie a ses forces et convient à des profils et objectifs différents. TFCL intègre les meilleurs éléments selon le profil métabolique.
+      </div>
+      
+      <!-- TFCL -->
+      <div class="card cardHighlight" style="border-left:4px solid #10b981;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <span class="badge" style="background:linear-gradient(135deg, #10b981, #14b8a6);color:white;padding:8px 16px;font-size:14px;">TFCL</span>
+          <div>
+            <div style="font-weight:700;">Two For Coaching Lab™</div>
+            <div class="muted">Approche métabolique VLamax-centrée</div>
+          </div>
+        </div>
+        <div class="grid2 mt">
+          <div>
+            <h4>🎯 Principes clés</h4>
+            <ul class="muted" style="font-size:11px;">
+              <li>Modulation VLamax selon l'objectif (↓ pour endurance, ↑ pour explosivité)</li>
+              <li>Séances TTE pour développer l'endurance au seuil</li>
+              <li>Zones basées sur le modèle physiologique (VO2, VLamax, seuils)</li>
+              <li>Périodisation non-linéaire avec blocs métaboliques ciblés</li>
+            </ul>
+          </div>
+          <div>
+            <h4>📌 Profils adaptés</h4>
+            <ul class="muted" style="font-size:11px;">
+              <li>Triathlètes longue distance (70.3, Ironman)</li>
+              <li>Marathoniens et ultra-traileurs</li>
+              <li>Athlètes avec VLamax à optimiser</li>
+            </ul>
+            <div class="muted mt" style="font-size:10px;font-style:italic;">Réf: Mader 2003, San-Millán 2018</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- CLASSIQUE (Friel) -->
+      <div class="card mt" style="border-left:4px solid #64748b;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <span class="badge" style="background:#64748b;color:white;padding:8px 16px;">CLASSIQUE</span>
+          <div>
+            <div style="font-weight:700;">Périodisation Linéaire (Friel)</div>
+            <div class="muted">Base → Build → Peak → Race</div>
+          </div>
+        </div>
+        <div class="grid2 mt">
+          <div>
+            <h4>🎯 Principes clés</h4>
+            <ul class="muted" style="font-size:11px;">
+              <li>Progression linéaire du volume vers l'intensité</li>
+              <li>Phases distinctes avec objectifs clairs</li>
+              <li>Montée en charge progressive sur 3-4 semaines</li>
+              <li>Semaine de récupération systématique</li>
+            </ul>
+          </div>
+          <div>
+            <h4>📌 Profils adaptés</h4>
+            <ul class="muted" style="font-size:11px;">
+              <li>Débutants à intermédiaires</li>
+              <li>Athlètes avec un seul objectif annuel majeur</li>
+              <li>Récupération bien tolérée</li>
+            </ul>
+            <div class="muted mt" style="font-size:10px;font-style:italic;">Réf: Joe Friel, The Triathlete's Training Bible</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- INVERSÉE -->
+      <div class="card mt" style="border-left:4px solid #f59e0b;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <span class="badge" style="background:#f59e0b;color:white;padding:8px 16px;">INVERSÉE</span>
+          <div>
+            <div style="font-weight:700;">Périodisation Inversée</div>
+            <div class="muted">Intensité d'abord, endurance ensuite</div>
+          </div>
+        </div>
+        <div class="grid2 mt">
+          <div>
+            <h4>🎯 Principes clés</h4>
+            <ul class="muted" style="font-size:11px;">
+              <li>Développement de la puissance maximale en premier</li>
+              <li>Extension progressive de la durabilité</li>
+              <li>Séances courtes et intenses en début de cycle</li>
+              <li>Allongement progressif des efforts</li>
+            </ul>
+          </div>
+          <div>
+            <h4>📌 Profils adaptés</h4>
+            <ul class="muted" style="font-size:11px;">
+              <li>Athlètes avec base aérobie solide</li>
+              <li>Profils manquant de "punch"</li>
+              <li>Préparation hivernale courte</li>
+            </ul>
+            <div class="muted mt" style="font-size:10px;font-style:italic;">Réf: Renato Canova, école kényane</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- POLARISÉE -->
+      <div class="card mt" style="border-left:4px solid #ef4444;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <span class="badge" style="background:#ef4444;color:white;padding:8px 16px;">POLARISÉE</span>
+          <div>
+            <div style="font-weight:700;">Entraînement Polarisé</div>
+            <div class="muted">80% facile / 20% très dur</div>
+          </div>
+        </div>
+        <div class="grid2 mt">
+          <div>
+            <h4>🎯 Principes clés</h4>
+            <ul class="muted" style="font-size:11px;">
+              <li>Distribution 80/20 ou 75/5/20</li>
+              <li>Beaucoup de Z1-Z2, très peu de Z3-Z4</li>
+              <li>Séances HIIT vraiment intenses (≥VO2max)</li>
+              <li>Récupération active entre les séances dures</li>
+            </ul>
+          </div>
+          <div>
+            <h4>📌 Profils adaptés</h4>
+            <ul class="muted" style="font-size:11px;">
+              <li>Athlètes élites avec gros volume</li>
+              <li>Sports d'endurance pure (cyclisme, ski de fond)</li>
+              <li>Athlètes supportant les pics d'intensité</li>
+            </ul>
+            <div class="muted mt" style="font-size:10px;font-style:italic;">Réf: Stephen Seiler, études norvégiennes</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- LORANG -->
+      <div class="card mt" style="border-left:4px solid #8b5cf6;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <span class="badge" style="background:#8b5cf6;color:white;padding:8px 16px;">LORANG</span>
+          <div>
+            <div style="font-weight:700;">Blocs d'Accumulation (Lorang)</div>
+            <div class="muted">Blocs mono-focus intensifs</div>
+          </div>
+        </div>
+        <div class="grid2 mt">
+          <div>
+            <h4>🎯 Principes clés</h4>
+            <ul class="muted" style="font-size:11px;">
+              <li>Blocs courts (7-10 jours) très ciblés</li>
+              <li>Accumulation de stimulus spécifique</li>
+              <li>Récupération entre blocs</li>
+              <li>Alternance qualités (endurance, seuil, VO2max)</li>
+            </ul>
+          </div>
+          <div>
+            <h4>📌 Profils adaptés</h4>
+            <ul class="muted" style="font-size:11px;">
+              <li>Athlètes expérimentés</li>
+              <li>Profils avec temps d'entraînement limité</li>
+              <li>Phases de développement ciblé</li>
+            </ul>
+            <div class="muted mt" style="font-size:10px;font-style:italic;">Réf: Dan Lorang, Jan Frodeno coaching</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Recommandation personnalisée -->
+      <div class="card cardHighlight mt">
+        <h3>🧭 Recommandation pour votre profil</h3>
+        <p class="muted" style="line-height:1.6;">
+          ${vlamax.value !== null && vlamax.value > 0.40
+            ? `<b>Profil glycolytique (VLamax: ${fmt(vlamax.value, 2)})</b> → La méthode <b>TFCL</b> ou <b>Polarisée</b> est recommandée pour réduire votre VLamax. Éviter les séances de type Z4b/Z5 prolongées qui maintiendraient un VLamax élevé.`
+            : vlamax.value !== null && vlamax.value < 0.30
+              ? `<b>Profil endurant (VLamax: ${fmt(vlamax.value, 2)})</b> → Méthode <b>Inversée</b> ou <b>Classique</b> avec du travail de puissance peut aider à développer votre punch. Intégrer du Z6/Z7 occasionnel.`
+              : `<b>Profil équilibré</b> → Toutes les méthodologies peuvent convenir. <b>TFCL</b> reste recommandé pour optimiser finement votre profil selon l'objectif (${getObjectifLabel(athlete.goal)}).`
+          }
+          ${tte.tte_min < 40 
+            ? `<br><br><b>TTE insuffisant (${tte.tte_min} min)</b> → Prioriser les séances de seuil prolongées (Tempo, Sweet Spot) quelle que soit la méthodologie choisie.`
+            : ''
+          }
+        </p>
+      </div>
+    </section>
+  `;
+
+  // =============================================
+  // SECTION TEMPLATE RECOMMANDÉ
+  // =============================================
+  const recommendedTemplateId = athlete.goal === "IM" || athlete.goal === "Ironman" ? "IRONMAN_KONA"
+    : athlete.goal === "70.3" || athlete.goal === "IM703" ? "IRONMAN_703"
+    : athlete.goal === "Marathon" ? "MARATHON"
+    : athlete.goal === "Semi" || athlete.goal === "Semi-marathon" ? "SEMI_MARATHON"
+    : null;
+  
+  const recommendedTemplate = recommendedTemplateId ? getTemplateById(recommendedTemplateId) : null;
+  
+  const templateRecommendationHTML = recommendedTemplate ? `
+    <section id="template-recommendation" class="section pagebreakAvoid">
+      <h2>📋 Template Recommandé</h2>
+      
+      <div class="card cardHighlight">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+          <div style="font-size:32px;">📄</div>
+          <div>
+            <div style="font-size:18px;font-weight:700;">${htmlEscape(recommendedTemplate.name)}</div>
+            <div class="muted">Objectif: ${htmlEscape(recommendedTemplate.target)} • ${recommendedTemplate.weeks.length} semaines</div>
+          </div>
+        </div>
+        
+        <p class="muted">Ce template est recommandé en fonction de votre objectif <b>${getObjectifLabel(athlete.goal)}</b>. Il propose une structure de périodisation adaptée avec les phases clés de préparation.</p>
+        
+        <div class="grid3 mt">
+          <div style="text-align:center;">
+            <div class="muted">Durée</div>
+            <div class="medium">${recommendedTemplate.weeks.length} sem.</div>
+          </div>
+          <div style="text-align:center;">
+            <div class="muted">Phases</div>
+            <div class="medium">${[...new Set(recommendedTemplate.weeks.map(w => w.phase).filter(Boolean))].length}</div>
+          </div>
+          <div style="text-align:center;">
+            <div class="muted">Séances/sem</div>
+            <div class="medium">~${Math.round(recommendedTemplate.weeks.reduce((acc, w) => acc + w.sessions.length, 0) / recommendedTemplate.weeks.length)}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card mt">
+        <h3>📅 Aperçu des phases</h3>
+        <table style="font-size:11px;">
+          <thead>
+            <tr>
+              <th>Semaine</th>
+              <th>Phase</th>
+              <th>Thème</th>
+              <th>Nb séances</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${recommendedTemplate.weeks.slice(0, 8).map(week => `
+              <tr>
+                <td><span class="badge badgePrimary">S${week.weekNumber}</span></td>
+                <td>${htmlEscape(week.phase || '—')}</td>
+                <td>${htmlEscape(week.theme || '—')}</td>
+                <td>${week.sessions.length}</td>
+              </tr>
+            `).join('')}
+            ${recommendedTemplate.weeks.length > 8 ? `<tr><td colspan="4" class="muted" style="text-align:center;">... et ${recommendedTemplate.weeks.length - 8} semaines supplémentaires</td></tr>` : ''}
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="alert alertInfo mt">
+        💡 Ce template est disponible dans l'application. Chargez-le depuis la section "Templates" pour voir le détail complet des séances.
+      </div>
+    </section>
+  ` : '';
+
+  // =============================================
   // F. ZONES D'ENTRAÎNEMENT Z1→Z7 (GRILLE OFFICIELLE)
   // =============================================
   // Préparer les refs pour le calcul des zones absolues
@@ -3336,13 +3679,16 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         ${options.sections.compass ? compassHTML : ''}
         ${options.sections.indicateurs ? indicateursHTML : ''}
         ${options.sections.raceReadiness ? raceReadinessHTML : ''}
+        ${options.sections.injuryRisk ? injuryRiskHTML : ''}
         ${options.sections.ambitionTargets ? ambitionTargetsHTML : ''}
         ${options.sections.ambitionPredictions ? ambitionPredictionsHTML : ''}
         ${options.sections.evolutionCharts ? evolutionChartsHTML : ''}
         ${options.sections.ageAdjustment ? aaiHTML : ''}
+        ${options.sections.methodology ? methodologyHTML : ''}
         ${options.sections.twoForCoaching ? lorangHTML : ''}
         ${options.sections.wahoo ? wahooHTML : ''}
         ${options.sections.planSuggestion ? planSuggestionHTML : ''}
+        ${options.sections.templateRecommendation ? templateRecommendationHTML : ''}
         ${options.sections.zones ? zonesHTML : ''}
         ${options.sections.historique ? snapshotsHTML : ''}
         ${options.sections.tests ? testsHTML : ''}
@@ -3526,13 +3872,16 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       compass: false,
       indicateurs: false,
       raceReadiness: false,
+      injuryRisk: false,
       ambitionTargets: false,
       ambitionPredictions: false,
       evolutionCharts: false,
       ageAdjustment: false,
+      methodology: false,
       twoForCoaching: false,
       wahoo: false,
       planSuggestion: false,
+      templateRecommendation: false,
       zones: false,
       historique: false,
       tests: false,
