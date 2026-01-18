@@ -14,7 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { 
   ChevronRight, Calendar, Flame, Heart, Timer, TrendingUp, Zap, 
   Target, AlertTriangle, Dumbbell, Clock, MapPin, X, ArrowLeftRight,
-  Eye, Layers, CheckCircle2, BarChart3
+  Eye, Layers, CheckCircle2, BarChart3, Lightbulb
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RUNNING_TEMPLATES } from "@/lib/templates/runningTemplatesStore";
@@ -105,32 +105,82 @@ function formatDuration(min: number): string {
 }
 
 // =============================================
-// SESSION CARD
+// SESSION CARD - Detailed View
 // =============================================
 
-function SessionCard({ session }: { session: RunningSession }) {
+function SessionCard({ session, expanded = false }: { session: RunningSession; expanded?: boolean }) {
+  const [isOpen, setIsOpen] = useState(expanded);
+  
   return (
     <div className={cn(
-      "p-2 rounded-lg border text-sm",
+      "rounded-lg border text-sm transition-all",
       session.isKey ? "bg-primary/5 border-primary/30" : "bg-muted/30 border-border/50"
     )}>
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <SessionTypeIcon type={session.type} />
-          <span className="font-medium text-xs">{session.title}</span>
-          {session.isKey && (
-            <Badge className="bg-primary/20 text-primary text-[9px] px-1 py-0">CLÉ</Badge>
+      {/* Header - always visible */}
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full p-3 flex items-start justify-between gap-2 text-left hover:bg-muted/50 transition-colors rounded-lg"
+      >
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge variant="outline" className="text-[10px] font-mono bg-background shrink-0">
+              {session.day}
+            </Badge>
+            <SessionTypeIcon type={session.type} />
+            <span className="font-medium text-sm">{session.title}</span>
+            {session.isKey && (
+              <Badge className="bg-primary/20 text-primary text-[9px] px-1.5 py-0.5">CLÉ</Badge>
+            )}
+          </div>
+          {!isOpen && session.details && (
+            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{session.details}</p>
           )}
         </div>
-        <span className="text-[10px] text-muted-foreground shrink-0">
-          {formatDuration(session.duration_min)}
-        </span>
-      </div>
-      {session.notes && (
-        <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{session.notes}</p>
-      )}
-      {session.intensity_hint && (
-        <Badge variant="outline" className="text-[9px] mt-1">{session.intensity_hint}</Badge>
+        <div className="flex items-center gap-2 shrink-0">
+          <Badge variant="secondary" className="text-[10px] font-mono">
+            {formatDuration(session.duration_min)}
+          </Badge>
+          <ChevronRight className={cn(
+            "h-4 w-4 text-muted-foreground transition-transform",
+            isOpen && "rotate-90"
+          )} />
+        </div>
+      </button>
+      
+      {/* Expanded content */}
+      {isOpen && (
+        <div className="px-3 pb-3 space-y-2 border-t border-dashed">
+          {/* Details - Main workout description */}
+          {session.details && (
+            <div className="pt-2">
+              <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">
+                Contenu de la séance
+              </div>
+              <p className="text-sm bg-background p-2 rounded border font-mono whitespace-pre-wrap">
+                {session.details}
+              </p>
+            </div>
+          )}
+          
+          {/* Intensity hint */}
+          {session.intensity_hint && (
+            <div className="flex items-center gap-2">
+              <Zap className="h-3 w-3 text-amber-500" />
+              <span className="text-xs text-muted-foreground">Intensité:</span>
+              <Badge variant="outline" className="text-[10px]">{session.intensity_hint}</Badge>
+            </div>
+          )}
+          
+          {/* Coach notes */}
+          {session.notes && (
+            <div className="bg-amber-50 dark:bg-amber-900/20 p-2 rounded border border-amber-200 dark:border-amber-800">
+              <div className="flex items-start gap-2">
+                <Lightbulb className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-xs text-amber-800 dark:text-amber-200">{session.notes}</p>
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
