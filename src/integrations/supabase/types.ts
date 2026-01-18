@@ -284,11 +284,15 @@ export type Database = {
           gi_issues_flag: boolean | null
           id: string
           low_crr_justification: string | null
+          map5min_w: number | null
           metabolic_profile: string | null
           metabolic_score: number | null
           objectif: string | null
+          p30s_w: number | null
+          p60s_w: number | null
           pace_threshold_sec_per_km: number | null
           pmax_5s: number | null
+          protocol_quality: number | null
           run_duration_min: number | null
           run_economy_label: string | null
           run_economy_score: number | null
@@ -329,11 +333,15 @@ export type Database = {
           gi_issues_flag?: boolean | null
           id?: string
           low_crr_justification?: string | null
+          map5min_w?: number | null
           metabolic_profile?: string | null
           metabolic_score?: number | null
           objectif?: string | null
+          p30s_w?: number | null
+          p60s_w?: number | null
           pace_threshold_sec_per_km?: number | null
           pmax_5s?: number | null
+          protocol_quality?: number | null
           run_duration_min?: number | null
           run_economy_label?: string | null
           run_economy_score?: number | null
@@ -374,11 +382,15 @@ export type Database = {
           gi_issues_flag?: boolean | null
           id?: string
           low_crr_justification?: string | null
+          map5min_w?: number | null
           metabolic_profile?: string | null
           metabolic_score?: number | null
           objectif?: string | null
+          p30s_w?: number | null
+          p60s_w?: number | null
           pace_threshold_sec_per_km?: number | null
           pmax_5s?: number | null
+          protocol_quality?: number | null
           run_duration_min?: number | null
           run_economy_label?: string | null
           run_economy_score?: number | null

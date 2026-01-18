@@ -1,6 +1,9 @@
 // FatMax TFCL™
 export * from "./fatmaxTFCL";
 
+// VLamax Bike V2 Enhanced (new formula with power indices)
+export * from './vlamaxBikeV2Enhanced';
+
 /**
  * TWO FOR COACHING LAB V2 — Index
  * 
