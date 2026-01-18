@@ -60,9 +60,17 @@ export {
   getFatigueLevelColor,
   getFatigueBadgeClass,
   getFatigueProgressColor,
+  getFatigueIcon,
+  FATIGUE_PHILOSOPHY,
+  FATIGUE_SCALE,
+  ACADEMY_FATIGUE_MODULE,
+  PDF_FATIGUE_SECTION,
+  FATIGUE_CHATBOT_QA,
   type FatigueFonctionnelleV2,
   type FatigueLevelV2,
   type FatigueOriginV2,
+  type FatiguePillarV2,
+  type FatiguePillarResult,
   type FatigueComponentV2,
   type FatigueV2Input
 } from './fatigueV2';
