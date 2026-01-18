@@ -187,3 +187,29 @@ export {
   getEthicsStatement,
   generatePdfSummary
 } from './officialReference';
+
+// Coach Charter
+export {
+  COACH_ROLE,
+  DATA_READING_RULES,
+  SCORES_USAGE,
+  VLAMAX_USAGE,
+  TTE_USAGE,
+  FATIGUE_RISK_USAGE,
+  RACE_READINESS_USAGE,
+  ATHLETE_COMMUNICATION,
+  LAB_TESTS_LIMITS,
+  PROFESSIONAL_RESPONSIBILITY,
+  COACH_CHARTER,
+  ACADEMY_COACH_CHARTER_MODULE,
+  PDF_COACH_CHARTER_SECTION,
+  getCharterSection,
+  getCoachRoleText,
+  getDataReadingRules,
+  getRecommendedPhrase,
+  getPhraseToAvoid,
+  getProfessionalResponsibilityText,
+  hasCompletedCharterModule,
+  generateCharterPdfSummary,
+  type CoachCharterSection
+} from './coachCharter';
