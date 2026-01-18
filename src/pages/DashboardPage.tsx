@@ -58,6 +58,9 @@ import { AmbitionTargetsCard } from "@/components/AmbitionTargetsCard";
 
 // Calibration TFCL V2
 import { VLamaxV2DisplayCard } from "@/components/VLamaxV2DisplayCard";
+import { FatMaxTFCLCard } from "@/components/FatMaxTFCLCard";
+import { FatMaxRaceIntensityChart } from "@/components/charts/FatMaxRaceIntensityChart";
+import { computeFatMaxTFCL, FatMaxObjectif } from "@/lib/v2/fatmaxTFCL";
 import { ObjectifPrincipal } from "@/lib/reference";
 
 // Système de transparence scientifique
@@ -1079,6 +1082,67 @@ export default function DashboardPage() {
   );
 
   // =============================================
+  // RENDER: FATMAX TFCL CARD
+  // =============================================
+  
+  const renderFatMaxTFCL = (): ReactNode => {
+    // Normaliser l'objectif pour FatMax
+    const normalizedObjectif = (objectif === "IM" ? "Ironman" : objectif) as FatMaxObjectif;
+    
+    return (
+      <FatMaxTFCLCard
+        vlamaxEffectif={vlamaxEffectif.value}
+        vlamaxConfidence={vlamaxEffectif.confidence}
+        tteEffectif={tteEffectif.tte_min}
+        tteConfidence={tteEffectif.confidence}
+        fatigueIndex={fatigueEffectif.score}
+        objectif={normalizedObjectif}
+        ftp={snapshot.ftp}
+      />
+    );
+  };
+
+  // =============================================
+  // RENDER: FATMAX RACE INTENSITY CHART
+  // =============================================
+  
+  const renderFatMaxChart = (): ReactNode => {
+    // Normaliser l'objectif pour FatMax
+    const normalizedObjectif = (objectif === "IM" ? "Ironman" : objectif) as FatMaxObjectif;
+    
+    const fatmaxResult = computeFatMaxTFCL({
+      vlamaxEffectif: vlamaxEffectif.value,
+      vlamaxConfidence: vlamaxEffectif.confidence,
+      vo2maxEffectif: null,
+      tteEffectif: tteEffectif.tte_min,
+      tteConfidence: tteEffectif.confidence,
+      fatigueIndex: fatigueEffectif.score,
+      objectif: normalizedObjectif,
+      ftp: snapshot.ftp,
+    });
+    
+    if (!fatmaxResult) return null;
+    
+    // Intensité course cible selon objectif
+    const raceIntensityMap: Record<string, number> = {
+      Ironman: 70,
+      "70.3": 78,
+      Marathon: 82,
+      Semi: 86,
+      "10km": 92,
+    };
+    const raceIntensity = raceIntensityMap[normalizedObjectif] ?? 75;
+    
+    return (
+      <FatMaxRaceIntensityChart
+        fatmax={fatmaxResult}
+        raceIntensityPct={raceIntensity}
+        staffMode={true}
+      />
+    );
+  };
+
+  // =============================================
   // RENDER: PERFORMANCE RANGES (Plages réalistes)
   // =============================================
   
@@ -1105,6 +1169,8 @@ export default function DashboardPage() {
     { id: "bike-injury-risk", render: renderBikeInjuryRiskCard },
     { id: "coach-summary", render: renderCoachSummary },
     { id: "piliers", render: renderPiliers },
+    { id: "fatmax-tfcl", render: renderFatMaxTFCL },
+    { id: "fatmax-chart", render: renderFatMaxChart },
     { id: "ftp-targets", render: renderFtpKgTargets },
     { id: "vlamax-targets", render: renderVLamaxTargets },
     { id: "nutrition", render: renderNutrition },

@@ -33,6 +33,7 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   { id: "ftp-targets", label: "FTP/kg — zones cibles", icon: "Target", defaultVisible: true },
   { id: "vlamax-v2-calibration", label: "VLamax TFCL V2", icon: "Zap", defaultVisible: true },
   { id: "fatmax-tfcl", label: "FatMax TFCL™", icon: "Flame", defaultVisible: true },
+  { id: "fatmax-chart", label: "FatMax vs Race Intensity", icon: "BarChart", defaultVisible: true },
   { id: "dashboard-recommendations", label: "Recommandations", icon: "Sparkles", defaultVisible: true },
   { id: "action-buttons", label: "Boutons d'action", icon: "Settings", defaultVisible: true },
   { id: "charge-recente", label: "Charge Récente", icon: "Activity", defaultVisible: true },
