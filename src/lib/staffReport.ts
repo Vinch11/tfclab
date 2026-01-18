@@ -145,6 +145,25 @@ export interface AmbitionPredictionSection {
   trendSummary: string;
 }
 
+// Section TFCL Reference Week pour PDF
+export interface TFCLReferenceWeekSection {
+  isComplete: boolean;
+  completedTests: string[];
+  missingData: string[];
+  testValues: {
+    p30s_w: number | null;
+    p60s_w: number | null;
+    map5min_w: number | null;
+    ftp_w: number | null;
+    tte_observed_min: number | null;
+    protocol_quality: number | null;
+  };
+  confidenceAdjustment: number;
+  confidenceAdjustmentLabel: string;
+  qualityLabel: string;
+  testDates: string | null;
+}
+
 export interface StaffReport {
   // Métadonnées
   athleteName: string;
@@ -163,6 +182,7 @@ export interface StaffReport {
   fatigueRisk: FatigueRiskSection;
   trainingRecommendations: TrainingRecommendationsSection;
   ambitionPredictions: AmbitionPredictionSection;
+  tfclReferenceWeek: TFCLReferenceWeekSection;
   staffInterpretation: StaffInterpretation;
   raceStrategy: RaceStrategy;
   nutritionSummary: NutritionSummary;
@@ -189,6 +209,16 @@ export interface GenerateStaffReportParams {
   poids: number | null;
   fcMax: number | null;
   ambition?: AmbitionLevel;
+  // TFCL Reference Week data
+  tfclData?: {
+    p30s_w?: number | null;
+    p60s_w?: number | null;
+    map5min_w?: number | null;
+    ftp_w?: number | null;
+    tte_observed_min?: number | null;
+    protocol_quality?: number | null;
+    testDates?: string | null;
+  };
 }
 
 // =============================================
@@ -538,6 +568,7 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     fatigueScore,
     injuryRiskRun,
     ambition = DEFAULT_AMBITION,
+    tfclData,
   } = params;
   
   // Déterminer la limitation principale
@@ -756,6 +787,9 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     ambition,
   });
   
+  // Générer la section TFCL Reference Week
+  const tfclReferenceWeek = generateTFCLReferenceWeekSection(tfclData);
+  
   const ambitionDef = getAmbitionDefinition(ambition);
   
   return {
@@ -773,6 +807,7 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     fatigueRisk,
     trainingRecommendations,
     ambitionPredictions,
+    tfclReferenceWeek,
     staffInterpretation,
     raceStrategy,
     nutritionSummary,
@@ -1090,5 +1125,95 @@ function generateAmbitionPredictionsSection(params: GenerateAmbitionPredictionsP
     predictions,
     currentAmbitionPrediction,
     trendSummary,
+  };
+}
+
+// =============================================
+// TFCL REFERENCE WEEK SECTION (pour PDF)
+// =============================================
+
+function generateTFCLReferenceWeekSection(
+  tfclData?: GenerateStaffReportParams["tfclData"]
+): TFCLReferenceWeekSection {
+  const p30s = tfclData?.p30s_w ?? null;
+  const p60s = tfclData?.p60s_w ?? null;
+  const map5min = tfclData?.map5min_w ?? null;
+  const ftpW = tfclData?.ftp_w ?? null;
+  const tte = tfclData?.tte_observed_min ?? null;
+  const quality = tfclData?.protocol_quality ?? null;
+  
+  // Determine completed tests
+  const completedTests: string[] = [];
+  const missingData: string[] = [];
+  
+  if (p30s !== null && p60s !== null) {
+    completedTests.push("D1 - Test Glycolytique (P30s + P60s)");
+  } else {
+    if (p30s === null) missingData.push("P30s (Puissance 30s)");
+    if (p60s === null) missingData.push("P60s (Puissance 60s)");
+  }
+  
+  if (map5min !== null) {
+    completedTests.push("D3 - Test MAP 5 min");
+  } else {
+    missingData.push("MAP 5min (Puissance Aérobie Maximale)");
+  }
+  
+  if (ftpW !== null && tte !== null) {
+    completedTests.push("D5 - Test FTP + TTE");
+  } else {
+    if (ftpW === null) missingData.push("FTP (Puissance au Seuil)");
+    if (tte === null) missingData.push("TTE (Time To Exhaustion)");
+  }
+  
+  // VLamax V2 Enhanced requires P30, P60, MAP, TTE
+  const isComplete = p30s !== null && p60s !== null && map5min !== null && tte !== null;
+  
+  // Calculate confidence adjustment based on protocol quality
+  let confidenceAdjustment = 0;
+  let confidenceAdjustmentLabel = "Aucun ajustement";
+  
+  if (quality !== null) {
+    if (quality <= 2) {
+      confidenceAdjustment = -0.10;
+      confidenceAdjustmentLabel = "-10% (qualité insuffisante)";
+    } else if (quality === 3) {
+      confidenceAdjustment = 0;
+      confidenceAdjustmentLabel = "0% (qualité standard)";
+    } else if (quality === 4) {
+      confidenceAdjustment = 0.05;
+      confidenceAdjustmentLabel = "+5% (bonne qualité)";
+    } else if (quality === 5) {
+      confidenceAdjustment = 0.10;
+      confidenceAdjustmentLabel = "+10% (excellente qualité)";
+    }
+  }
+  
+  // Quality label
+  const qualityLabels: Record<number, string> = {
+    1: "Très faible",
+    2: "Faible",
+    3: "Standard",
+    4: "Bonne",
+    5: "Excellente",
+  };
+  const qualityLabel = quality !== null ? qualityLabels[quality] || "Non évalué" : "Non évalué";
+  
+  return {
+    isComplete,
+    completedTests,
+    missingData,
+    testValues: {
+      p30s_w: p30s,
+      p60s_w: p60s,
+      map5min_w: map5min,
+      ftp_w: ftpW,
+      tte_observed_min: tte,
+      protocol_quality: quality,
+    },
+    confidenceAdjustment,
+    confidenceAdjustmentLabel,
+    qualityLabel,
+    testDates: tfclData?.testDates ?? null,
   };
 }
