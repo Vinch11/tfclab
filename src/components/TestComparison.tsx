@@ -20,12 +20,12 @@ export function TestComparison({ athlete }: TestComparisonProps) {
           <div>
             <h2 className="text-xl font-semibold text-foreground">Évolution</h2>
             <p className="text-sm text-muted-foreground">
-              Minimum 2 snapshots requis pour comparer
+              Minimum 2 profils requis pour comparer
             </p>
           </div>
         </div>
         <p className="text-center text-muted-foreground py-8">
-          Ajoutez au moins 2 snapshots pour voir l'évolution
+          Ajoutez au moins 2 profils pour voir l'évolution
         </p>
       </div>
     );

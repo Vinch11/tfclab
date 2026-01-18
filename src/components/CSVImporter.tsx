@@ -123,7 +123,7 @@ export function CSVImporter({ onImport }: CSVImporterProps) {
     }));
 
     onImport(snapshots);
-    toast.success(`${snapshots.length} snapshot(s) importé(s)`);
+    toast.success(`${snapshots.length} profil(s) importé(s)`);
     setOpen(false);
     setParsedData([]);
     setFileName("");

@@ -68,7 +68,7 @@ export interface ReportSections {
   wahoo: boolean;           // Suggestions Wahoo SYSTM
   planSuggestion: boolean;  // Suggestion de Plan
   zones: boolean;           // Zones d'entraînement
-  historique: boolean;      // Historique Snapshots
+  historique: boolean;      // Historique Profils
   tests: boolean;           // Historique Tests
   checkins: boolean;        // Check-ins
   comprendre: boolean;      // Comprendre mes scores

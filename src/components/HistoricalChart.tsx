@@ -158,7 +158,7 @@ export function HistoricalChart({ athlete }: HistoricalChartProps) {
                   </div>
                 ) : (
                   <div className="text-center text-muted-foreground py-8">
-                    Ajoutez plus de snapshots pour voir l&apos;évolution
+                    Ajoutez plus de profils pour voir l&apos;évolution
                   </div>
                 )}
 
