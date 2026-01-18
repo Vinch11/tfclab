@@ -342,8 +342,375 @@ function getStatusLabel(score: number): string {
 }
 
 // =============================================
-// CALCULATE COMPLETUDE SCORE
+// BUILD NUTRITION V2 HTML SECTION
 // =============================================
+
+function buildNutritionV2HTML(payload: ExportPayload): string {
+  const { nutritionV2, athlete } = payload;
+  
+  if (!nutritionV2) {
+    return `
+      <section id="nutrition-v2" class="section pagebreakAvoid">
+        <h2>🍎 Nutrition Prédictive V2</h2>
+        <div class="alert alertWarning">
+          <b>⚠️ Données insuffisantes</b><br>
+          Le poids est requis pour calculer les besoins glucidiques. Renseignez le poids dans le snapshot.
+        </div>
+      </section>
+    `;
+  }
+
+  const riskBadgeClass = nutritionV2.glycogenRisk === 'low' ? 'badgeSuccess' 
+    : nutritionV2.glycogenRisk === 'moderate' ? 'badge' 
+    : nutritionV2.glycogenRisk === 'high' ? 'badgeWarning' : 'badgeError';
+  
+  const riskCardClass = nutritionV2.glycogenRisk === 'low' ? 'cardSuccess' 
+    : nutritionV2.glycogenRisk === 'moderate' ? '' 
+    : nutritionV2.glycogenRisk === 'high' ? 'cardWarning' : 'cardError';
+
+  const goal = athlete.goal || "IM";
+  const segments = generateRaceSegments(goal, nutritionV2);
+  const philosophyText = htmlEscape(NUTRITION_PHILOSOPHY.principle.replace(/\n/g, ' '));
+
+  const contributorsHTML = nutritionV2.contributors.map(c => {
+    const colorStyle = c.direction === 'up' ? 'var(--warning)' : c.direction === 'down' ? 'var(--success)' : 'var(--muted)';
+    const prefix = c.direction === 'up' ? '+' : '';
+    return `<tr>
+      <td><b>${htmlEscape(c.label)}</b></td>
+      <td>${htmlEscape(c.value)}</td>
+      <td style="color:${colorStyle};">${prefix}${c.adjustment} g/h</td>
+      <td class="muted">${htmlEscape(c.explanation)}</td>
+    </tr>`;
+  }).join('');
+
+  const segmentsHTML = segments.map(seg => `<tr>
+    <td><b>${htmlEscape(seg.name)}</b></td>
+    <td>${seg.durationMin} min</td>
+    <td>${seg.intensityPct}% FTP</td>
+    <td>${seg.carbsPerHour} g/h</td>
+    <td><b>${seg.totalCarbs} g</b></td>
+    <td class="muted">${htmlEscape(seg.timing)}</td>
+  </tr>`).join('');
+
+  const totalCarbs = segments.reduce((sum, s) => sum + s.totalCarbs, 0);
+
+  const recommendationsHTML = nutritionV2.recommendations.map(r => `<li>${htmlEscape(r)}</li>`).join('');
+
+  const warningsHTML = nutritionV2.warnings.length > 0 ? `
+    <div class="alert alertWarning mt">
+      <b>⚠️ Points d'attention</b>
+      <ul style="margin:8px 0 0 0;">
+        ${nutritionV2.warnings.map(w => `<li>${htmlEscape(w)}</li>`).join('')}
+      </ul>
+    </div>
+  ` : '';
+
+  return `
+    <section id="nutrition-v2" class="section pagebreak">
+      <h2>🍎 Nutrition Prédictive V2 — TFCL™</h2>
+      
+      <div class="alert alertInfo mb">
+        <b>📋 Philosophie TFCL™ :</b> ${philosophyText}
+      </div>
+      
+      <div class="card ${riskCardClass}">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+          <div>
+            <div class="muted" style="font-size:11px;">Besoins glucidiques estimés</div>
+            <div class="big" style="margin:8px 0;">${nutritionV2.carbsMin}–${nutritionV2.carbsMax} g/h</div>
+            <div style="font-size:14px;font-weight:600;">Valeur centrale : ${nutritionV2.carbsCentral} g/h</div>
+          </div>
+          <div style="text-align:center;">
+            <div class="muted" style="font-size:11px;">Risque glycogène</div>
+            <div style="margin:8px 0;">
+              <span class="badge ${riskBadgeClass}" style="font-size:14px;padding:8px 16px;">${htmlEscape(nutritionV2.glycogenRiskLabel)}</span>
+            </div>
+            <div class="muted" style="font-size:11px;">Score: ${nutritionV2.glycogenRiskScore}/4</div>
+          </div>
+          <div style="text-align:center;">
+            <div class="muted" style="font-size:11px;">Confiance</div>
+            <div class="medium" style="margin:8px 0;">${Math.round(nutritionV2.confidence * 100)}%</div>
+            <div class="muted" style="font-size:11px;">${nutritionV2.sportLabel}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card mt">
+        <h3>💡 Pourquoi ce chiffre ?</h3>
+        <p style="line-height:1.6;">${htmlEscape(nutritionV2.whyThisNumber)}</p>
+      </div>
+      
+      <div class="card mt">
+        <h3>📊 Décomposition du calcul</h3>
+        <table>
+          <thead>
+            <tr><th>Facteur</th><th>Valeur</th><th>Ajustement</th><th>Explication</th></tr>
+          </thead>
+          <tbody>${contributorsHTML}</tbody>
+        </table>
+      </div>
+      
+      <div class="card mt">
+        <h3>🏁 Stratégie nutritionnelle par segment</h3>
+        <p class="muted mb">Estimation des besoins et timing d'apport pour ${htmlEscape(getObjectifLabel(goal))}</p>
+        <table>
+          <thead>
+            <tr><th>Segment</th><th>Durée</th><th>Intensité</th><th>Apport</th><th>Total</th><th>Timing</th></tr>
+          </thead>
+          <tbody>
+            ${segmentsHTML}
+            <tr style="background:var(--soft);font-weight:700;">
+              <td colspan="4">TOTAL COURSE</td>
+              <td>${totalCarbs} g</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="card mt">
+        <h3>✅ Recommandations</h3>
+        <ul>${recommendationsHTML}</ul>
+      </div>
+      
+      ${warningsHTML}
+      
+      <div class="alert alertInfo mt" style="font-size:11px;">
+        <b>📋 Disclaimer :</b> ${htmlEscape(nutritionV2.disclaimer)}
+      </div>
+    </section>
+  `;
+}
+
+function generateRaceSegments(goal: string, nutrition: NutritionPredictiveV2): Array<{
+  name: string;
+  durationMin: number;
+  intensityPct: number;
+  carbsPerHour: number;
+  totalCarbs: number;
+  timing: string;
+}> {
+  const baseCarbsPerHour = nutrition.carbsCentral;
+  
+  if (goal === "IM" || goal === "Ironman") {
+    return [
+      { name: "Natation", durationMin: 70, intensityPct: 75, carbsPerHour: Math.round(baseCarbsPerHour * 0.3), totalCarbs: Math.round(70 / 60 * baseCarbsPerHour * 0.3), timing: "Gel dans les 10 dernières minutes" },
+      { name: "T1", durationMin: 5, intensityPct: 50, carbsPerHour: 0, totalCarbs: 0, timing: "Hydratation uniquement" },
+      { name: "Vélo (0-90km)", durationMin: 150, intensityPct: 72, carbsPerHour: baseCarbsPerHour, totalCarbs: Math.round(150 / 60 * baseCarbsPerHour), timing: "Débuter dès 15min, toutes les 15-20min" },
+      { name: "Vélo (90-180km)", durationMin: 180, intensityPct: 68, carbsPerHour: Math.round(baseCarbsPerHour * 0.95), totalCarbs: Math.round(180 / 60 * baseCarbsPerHour * 0.95), timing: "Alterner solide/liquide" },
+      { name: "T2", durationMin: 5, intensityPct: 50, carbsPerHour: 0, totalCarbs: 0, timing: "Gel rapide + hydratation" },
+      { name: "Marathon (0-21km)", durationMin: 120, intensityPct: 78, carbsPerHour: Math.round(baseCarbsPerHour * 0.85), totalCarbs: Math.round(120 / 60 * baseCarbsPerHour * 0.85), timing: "Gel/boisson toutes les 20-25min" },
+      { name: "Marathon (21-42km)", durationMin: 150, intensityPct: 72, carbsPerHour: Math.round(baseCarbsPerHour * 0.75), totalCarbs: Math.round(150 / 60 * baseCarbsPerHour * 0.75), timing: "Maintenir apports, coca/gel" }
+    ];
+  } else if (goal === "70.3" || goal === "703" || goal === "Half") {
+    return [
+      { name: "Natation", durationMin: 35, intensityPct: 80, carbsPerHour: Math.round(baseCarbsPerHour * 0.3), totalCarbs: Math.round(35 / 60 * baseCarbsPerHour * 0.3), timing: "Gel 5min avant sortie eau" },
+      { name: "T1", durationMin: 3, intensityPct: 50, carbsPerHour: 0, totalCarbs: 0, timing: "Hydratation" },
+      { name: "Vélo", durationMin: 150, intensityPct: 78, carbsPerHour: baseCarbsPerHour, totalCarbs: Math.round(150 / 60 * baseCarbsPerHour), timing: "Débuter immédiatement, toutes les 15min" },
+      { name: "T2", durationMin: 3, intensityPct: 50, carbsPerHour: 0, totalCarbs: 0, timing: "Gel rapide" },
+      { name: "Semi-Marathon", durationMin: 100, intensityPct: 85, carbsPerHour: Math.round(baseCarbsPerHour * 0.8), totalCarbs: Math.round(100 / 60 * baseCarbsPerHour * 0.8), timing: "Gel toutes les 25min" }
+    ];
+  } else if (goal === "Marathon") {
+    return [
+      { name: "0-10km", durationMin: 50, intensityPct: 82, carbsPerHour: baseCarbsPerHour, totalCarbs: Math.round(50 / 60 * baseCarbsPerHour), timing: "Premier gel à 30min" },
+      { name: "10-21km", durationMin: 55, intensityPct: 82, carbsPerHour: baseCarbsPerHour, totalCarbs: Math.round(55 / 60 * baseCarbsPerHour), timing: "Maintenir rythme" },
+      { name: "21-30km", durationMin: 45, intensityPct: 80, carbsPerHour: Math.round(baseCarbsPerHour * 0.9), totalCarbs: Math.round(45 / 60 * baseCarbsPerHour * 0.9), timing: "Gel + boisson" },
+      { name: "30-42km", durationMin: 60, intensityPct: 78, carbsPerHour: Math.round(baseCarbsPerHour * 0.85), totalCarbs: Math.round(60 / 60 * baseCarbsPerHour * 0.85), timing: "Apports réguliers" }
+    ];
+  } else if (goal === "Semi") {
+    return [
+      { name: "0-10km", durationMin: 48, intensityPct: 88, carbsPerHour: baseCarbsPerHour, totalCarbs: Math.round(48 / 60 * baseCarbsPerHour), timing: "Gel à 25min si >1h30" },
+      { name: "10-21km", durationMin: 52, intensityPct: 86, carbsPerHour: Math.round(baseCarbsPerHour * 0.9), totalCarbs: Math.round(52 / 60 * baseCarbsPerHour * 0.9), timing: "Second gel vers 15km" }
+    ];
+  }
+  
+  // Default
+  const dur = (nutrition.targetDurationHours || 3) * 30;
+  const int = nutrition.targetIntensityPct || 75;
+  return [
+    { name: "Première moitié", durationMin: Math.round(dur), intensityPct: Math.round(int), carbsPerHour: baseCarbsPerHour, totalCarbs: Math.round(dur / 60 * baseCarbsPerHour), timing: "Débuter tôt, régularité" },
+    { name: "Seconde moitié", durationMin: Math.round(dur), intensityPct: Math.round(int * 0.95), carbsPerHour: Math.round(baseCarbsPerHour * 0.9), totalCarbs: Math.round(dur / 60 * baseCarbsPerHour * 0.9), timing: "Maintenir apports" }
+  ];
+}
+
+// =============================================
+// BUILD FATMAX TFCL HTML SECTION
+// =============================================
+
+function buildFatMaxTFCLHTML(payload: ExportPayload): string {
+  const { fatmaxTFCL, effectiveRefs } = payload;
+  
+  if (!fatmaxTFCL) {
+    return `
+      <section id="fatmax-tfcl" class="section pagebreakAvoid">
+        <h2>🔥 FatMax TFCL™</h2>
+        <div class="alert alertWarning">
+          <b>⚠️ Données insuffisantes</b><br>
+          La VLamax est requise pour estimer la FatMax. Renseignez ou faites estimer la VLamax.
+        </div>
+      </section>
+    `;
+  }
+
+  const confidenceBadgeClass = fatmaxTFCL.confidenceLevel === 'HIGH' ? 'badgeSuccess' 
+    : fatmaxTFCL.confidenceLevel === 'MEDIUM' ? 'badgeWarning' : 'badgeError';
+  
+  const zoneColorClass = fatmaxTFCL.metabolicZone === 'lipid_dominant' ? 'success' 
+    : fatmaxTFCL.metabolicZone === 'balanced' ? '' : 'warning';
+
+  const minWatts = effectiveRefs.ftp ? Math.round(effectiveRefs.ftp * fatmaxTFCL.minPctFTP / 100) : null;
+  const maxWatts = effectiveRefs.ftp ? Math.round(effectiveRefs.ftp * fatmaxTFCL.maxPctFTP / 100) : null;
+  const centerWatts = effectiveRefs.ftp ? Math.round(effectiveRefs.ftp * fatmaxTFCL.centerPctFTP / 100) : null;
+
+  const wattsInfo = centerWatts ? `<div class="muted" style="margin-top:4px;">${minWatts}–${maxWatts} W (centre: ${centerWatts} W)</div>` : '';
+
+  const svgMinX = 10 + ((fatmaxTFCL.minPctFTP - 50) / 40) * 380;
+  const svgWidth = ((fatmaxTFCL.maxPctFTP - fatmaxTFCL.minPctFTP) / 40) * 380;
+  const svgCenterX = 10 + ((fatmaxTFCL.centerPctFTP - 50) / 40) * 380;
+
+  const adjustmentsHTML = fatmaxTFCL.adjustments.map(adj => {
+    const valText = adj.id === 'base' ? adj.value + '% FTP' : (adj.value > 0 ? '+' : '') + adj.value + '%';
+    const dirColor = adj.direction === 'up' ? 'var(--success)' : adj.direction === 'down' ? 'var(--warning)' : 'var(--muted)';
+    const dirText = adj.direction === 'up' ? '↑ Hausse' : adj.direction === 'down' ? '↓ Baisse' : '— Neutre';
+    return `<tr>
+      <td><b>${htmlEscape(adj.label)}</b></td>
+      <td>${valText}</td>
+      <td style="color:${dirColor};">${dirText}</td>
+      <td class="muted">${htmlEscape(adj.explanation)}</td>
+    </tr>`;
+  }).join('');
+
+  return `
+    <section id="fatmax-tfcl" class="section pagebreak">
+      <h2>🔥 FatMax TFCL™ — Zone d'Oxydation Lipidique Maximale</h2>
+      
+      <div class="alert alertInfo mb">
+        <b>📋 Définition TFCL™ :</b> ${htmlEscape(FATMAX_DEFINITIONS.official)}
+      </div>
+      
+      <div class="card cardHighlight">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+          <div>
+            <div class="muted" style="font-size:11px;">Zone FatMax estimée</div>
+            <div class="big" style="margin:8px 0;">${fatmaxTFCL.minPctFTP}–${fatmaxTFCL.maxPctFTP}% FTP</div>
+            <div style="font-size:14px;">Centre : <b>${fatmaxTFCL.centerPctFTP}% FTP</b></div>
+            ${wattsInfo}
+          </div>
+          <div style="text-align:center;">
+            <div class="muted" style="font-size:11px;">Confiance</div>
+            <div style="margin:8px 0;">
+              <span class="badge ${confidenceBadgeClass}" style="font-size:14px;padding:8px 16px;">${htmlEscape(fatmaxTFCL.confidenceLabel)}</span>
+            </div>
+            <div class="muted" style="font-size:11px;">${Math.round(fatmaxTFCL.confidence * 100)}%</div>
+          </div>
+          <div style="text-align:center;">
+            <div class="muted" style="font-size:11px;">Profil métabolique</div>
+            <div class="medium ${zoneColorClass}" style="margin:8px 0;">${htmlEscape(fatmaxTFCL.zoneLabel)}</div>
+            <div class="muted" style="font-size:11px;">Objectif: ${htmlEscape(fatmaxTFCL.objectifLabel)}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card mt">
+        <h3>📊 Visualisation de la zone FatMax</h3>
+        <div style="margin:20px 0;">
+          <svg width="100%" height="80" viewBox="0 0 400 80" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <linearGradient id="fatmaxGradPdf" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#16a34a"/>
+                <stop offset="40%" style="stop-color:#22c55e"/>
+                <stop offset="60%" style="stop-color:#eab308"/>
+                <stop offset="100%" style="stop-color:#ef4444"/>
+              </linearGradient>
+            </defs>
+            <rect x="10" y="25" width="380" height="25" rx="4" fill="url(#fatmaxGradPdf)"/>
+            <rect x="${svgMinX}" y="20" width="${svgWidth}" height="35" rx="4" fill="rgba(34, 197, 94, 0.3)" stroke="#16a34a" stroke-width="2"/>
+            <line x1="${svgCenterX}" y1="15" x2="${svgCenterX}" y2="60" stroke="#111" stroke-width="3"/>
+            <text x="10" y="70" font-size="10" fill="#666">50%</text>
+            <text x="105" y="70" font-size="10" fill="#666">60%</text>
+            <text x="200" y="70" font-size="10" fill="#666">70%</text>
+            <text x="295" y="70" font-size="10" fill="#666">80%</text>
+            <text x="380" y="70" font-size="10" fill="#666" text-anchor="end">90%</text>
+            <text x="${svgCenterX}" y="12" font-size="11" fill="#16a34a" text-anchor="middle" font-weight="700">FatMax</text>
+          </svg>
+          <div style="text-align:center;margin-top:8px;">
+            <span style="display:inline-block;width:20px;height:12px;background:rgba(34, 197, 94, 0.3);border:2px solid #16a34a;border-radius:2px;margin-right:6px;"></span>
+            <span class="muted" style="font-size:11px;">Zone FatMax (${fatmaxTFCL.minPctFTP}–${fatmaxTFCL.maxPctFTP}% FTP)</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card mt">
+        <h3>⚙️ Ajustements appliqués au calcul</h3>
+        <table>
+          <thead><tr><th>Facteur</th><th>Valeur</th><th>Direction</th><th>Explication</th></tr></thead>
+          <tbody>${adjustmentsHTML}</tbody>
+        </table>
+      </div>
+      
+      <div class="card mt">
+        <h3>💡 Interprétation pour l'athlète</h3>
+        <p style="line-height:1.6;">${htmlEscape(fatmaxTFCL.interpretation)}</p>
+      </div>
+      
+      <div class="card mt">
+        <h3>📋 Note technique (Staff)</h3>
+        <p class="muted" style="line-height:1.6;">${htmlEscape(fatmaxTFCL.staffNote)}</p>
+      </div>
+      
+      <div class="card mt">
+        <h3>🎯 Applications pratiques</h3>
+        <div class="grid2">
+          <div>
+            <h4>Pour l'entraînement</h4>
+            <ul class="muted">
+              <li>Zone cible pour les sorties longues Z2</li>
+              <li>Travail de la filière lipidique</li>
+              <li>Séances "fat adaptation" à jeun (si tolérées)</li>
+              <li>Récupération active dans cette zone</li>
+            </ul>
+          </div>
+          <div>
+            <h4>Pour la course</h4>
+            <ul class="muted">
+              <li>Repère pour le pacing sur longue distance</li>
+              <li>Si intensité course > FatMax : nutrition critique</li>
+              <li>Marge avant basculement glucidique</li>
+              <li>Ajuster l'intensité si problèmes digestifs</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card mt">
+        <h3>📈 Comment améliorer sa FatMax</h3>
+        <div class="grid3">
+          <div style="text-align:center;padding:12px;">
+            <div style="font-size:24px;margin-bottom:8px;">↓</div>
+            <div style="font-weight:600;margin-bottom:4px;">Baisser la VLamax</div>
+            <div class="muted" style="font-size:11px;">Séances Z2 longues, tempo prolongé</div>
+          </div>
+          <div style="text-align:center;padding:12px;">
+            <div style="font-size:24px;margin-bottom:8px;">↑</div>
+            <div style="font-weight:600;margin-bottom:4px;">Augmenter la TTE</div>
+            <div class="muted" style="font-size:11px;">Blocs de durabilité, séances seuil</div>
+          </div>
+          <div style="text-align:center;padding:12px;">
+            <div style="font-size:24px;margin-bottom:8px;">⚖️</div>
+            <div style="font-weight:600;margin-bottom:4px;">Optimiser composition</div>
+            <div class="muted" style="font-size:11px;">Ratio masse maigre/grasse</div>
+          </div>
+        </div>
+        <p class="muted mt" style="text-align:center;font-size:11px;">Délai typique : 6-12 semaines pour observer des changements significatifs.</p>
+      </div>
+      
+      <div class="alert alertWarning mt" style="font-size:11px;">
+        <b>⚠️ Avertissement scientifique :</b> ${htmlEscape(fatmaxTFCL.disclaimer)}
+      </div>
+    </section>
+  `;
+}
+
 
 function calculateCompletude(
   effectiveRefs: EffectiveRefs,
