@@ -52,6 +52,9 @@ import { SortableSectionsContainer } from "@/components/SortableSectionsContaine
 
 // ✅ VLamax TFCL V2 - Calibration avec percentiles
 import { VLamaxV2DisplayCard } from "@/components/VLamaxV2DisplayCard";
+import { FatMaxTFCLCard } from "@/components/FatMaxTFCLCard";
+import { FatMaxRaceIntensityChart } from "@/components/charts/FatMaxRaceIntensityChart";
+import { computeFatMaxTFCL, FatMaxObjectif } from "@/lib/v2/fatmaxTFCL";
 import { ObjectifPrincipal } from "@/lib/reference";
 
 // ✅ FIX 11 - Effective Refs (source unique de vérité)
