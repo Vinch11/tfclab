@@ -717,13 +717,15 @@ const Index = () => {
           },
           {
             id: "vlamax-v2-calibration",
-            render: () => currentAthlete && vlamaxEffectif.value !== null && (
+            render: () => currentAthlete && (
               <VLamaxV2DisplayCard
-                objectif={(currentAthlete.goal || "IM") as ObjectifPrincipal}
-                vlamax={vlamaxEffectif.value}
+                objectif={(
+                  (currentAthlete.goal === "IM" ? "Ironman" : currentAthlete.goal) || "Ironman"
+                ) as ObjectifPrincipal}
+                vlamax={vlamaxEffectif.value ?? Number.NaN}
                 vlamaxSource={vlamaxEffectif.source === "test" ? "test_terrain" : "estimation"}
                 vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? undefined}
-                sex={(legacyAthlete?.sexe === "F" ? "F" : "H")}
+                sex={legacyAthlete?.sexe === "F" ? "F" : "H"}
                 age={calculateAge(currentAthlete.birth_date) ?? undefined}
               />
             ),

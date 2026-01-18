@@ -690,8 +690,8 @@ export default function DashboardPage() {
 
       {/* PILIER 1bis: VLamax TFCL V2 - Calibration avec percentiles */}
       <VLamaxV2DisplayCard
-        objectif={objectif as ObjectifPrincipal}
-        vlamax={vlamaxEffectif.value ?? 0}
+        objectif={(objectif === "IM" ? "Ironman" : objectif) as ObjectifPrincipal}
+        vlamax={vlamaxEffectif.value ?? Number.NaN}
         vlamaxSource={vlamaxEffectif.source === "test" ? "test_terrain" : "estimation"}
         vo2max={snapshot.vo2max ?? undefined}
         sex={currentAthlete.sexe === "F" ? "F" : "H"}
