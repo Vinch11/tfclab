@@ -1,5 +1,6 @@
 /**
- * VLamax V2 — Modèle Consolidé
+ * VLamax V2 — Modèle TFCL™ (Two For Coaching Lab)
+ * VERSION OFFICIELLE V2 — Formule robuste et bornée
  * 
  * Sources scientifiques de référence :
  * - Mader & Heck (1986–2006)
@@ -11,10 +12,33 @@
  * PRINCIPE V2 :
  * - La VLamax n'est JAMAIS une valeur unique
  * - Toujours exprimée comme une PLAGE avec confiance
- * - Bornes physiologiques strictes (0.20 – 1.00)
+ * - Bornes physiologiques strictes (0.20 – 0.90)
+ * 
+ * CETTE FORMULE NE REMPLACE PAS UN TEST LACTATE.
+ * Elle produit une ESTIMATION CONTEXTUALISÉE avec indice de confiance.
  */
 
 import { PHYSIOLOGICAL_BOUNDS, CONFIDENCE_LEVELS, SCIENTIFIC_REFERENCES } from './scientificConfig';
+
+// =============================================
+// 1️⃣ RAPPEL CONCEPTUEL (TEXTE À AFFICHER)
+// =============================================
+
+export const VLAMAX_CONCEPT = {
+  title: "VLamax — Définition",
+  icon: "⚡",
+  
+  officialText: `VLamax représente la vitesse maximale de production de lactate
+via la filière glycolytique.
+Elle ne mesure pas la performance,
+mais le PROFIL MÉTABOLIQUE.`,
+  
+  keyPoint: "VLamax élevé ≠ bonne ou mauvaise chose. C'est une caractéristique du profil.",
+  
+  whyEstimation: `Cette valeur est une estimation car elle nécessiterait un test lactate
+pour être mesurée directement. La formule TFCL™ V2 utilise les données terrain
+disponibles pour produire une approximation bornée et contextualisée.`
+};
 
 // =============================================
 // TYPES V2
@@ -49,6 +73,9 @@ export interface VLamaxRangeV2 {
   
   // Alertes éventuelles
   warnings: string[];
+  
+  // V2: Source officielle
+  sourceLabel: string;
 }
 
 export type VLamaxSourceV2 = 
@@ -58,45 +85,48 @@ export type VLamaxSourceV2 =
   | 'pmax_5s'          // Pmax 5s vélo
   | 'durability'       // Estimation via TTE/durabilité
   | 'ftp_pmax_ratio'   // Ratio FTP / Pmax
+  | 'tfcl_v2'          // Formule TFCL V2 (nouvelle)
   | 'ramp_test'        // Test rampe
   | 'historical'       // Données historiques
   | 'estimated';       // Estimation pure
 
 export type VLamaxCategoryV2 = 
-  | 'ultra_endurance'  // ≤ 0.25 — Ultra-endurant
-  | 'endurance'        // 0.26–0.35 — Profil endurant
-  | 'balanced'         // 0.36–0.45 — Équilibré
-  | 'power'            // 0.46–0.55 — Profil puissance
-  | 'sprinter'         // 0.56–0.70 — Sprinter
-  | 'extreme_sprinter'; // > 0.70 — Sprinter extrême
+  | 'ultra_endurance'  // ≤ 0.30 — Très endurant / profil IM
+  | 'endurance'        // 0.30–0.45 — Endurance équilibrée
+  | 'balanced'         // 0.45–0.60 — Profil mixte
+  | 'power';           // > 0.60 — Profil glycolytique / explosif
 
 export interface VLamaxV2Input {
-  // Données vélo
-  pmax_5s?: number | null;
+  // Données vélo (V2 officielle)
+  pmax_5s?: number | null;       // Pmax 5-15s (requis pour précision)
   pmax_10s?: number | null;
-  ftp?: number | null;
-  weight_kg?: number | null;
+  pmax_15s?: number | null;      // Alternative à 5s
+  ftp?: number | null;           // FTP en Watts (requis)
+  weight_kg?: number | null;     // Poids (pour FTP/kg)
+  tte_min?: number | null;       // TTE effectif en minutes (requis)
+  age?: number | null;           // Âge pour correction
+  
+  // Métriques secondaires
   cadence_avg?: number | null;
   tss_7d?: number | null;
   
   // Données CAP
-  sprint_15s_distance?: number | null;  // Distance en mètres
-  sprint_power?: number | null;         // Puissance sprint Stryd/Garmin
+  sprint_15s_distance?: number | null;
+  sprint_power?: number | null;
   vma?: number | null;
-  css?: number | null;                  // Seuil CAP (sec/km)
-  
-  // TTE pour cross-validation
-  tte_min?: number | null;
+  css?: number | null;
   
   // Mesures directes (priorité)
   vlamax_labo?: number | null;
   vlamax_test?: number | null;
   
-  // Objectif pour contextualisation
+  // Contexte
   objectif?: string;
-  
-  // Sport principal
   sport?: 'velo' | 'cap' | 'both';
+  
+  // V2: Qualité des données
+  tte_is_measured?: boolean;     // TTE issu d'un test ou bloc stable
+  pmax_is_real?: boolean;        // Pmax réel (pas estimé)
 }
 
 // =============================================
@@ -105,113 +135,234 @@ export interface VLamaxV2Input {
 
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 
-function getVLamaxCategory(value: number): VLamaxCategoryV2 {
-  if (value <= 0.25) return 'ultra_endurance';
-  if (value <= 0.35) return 'endurance';
-  if (value <= 0.45) return 'balanced';
-  if (value <= 0.55) return 'power';
-  if (value <= 0.70) return 'sprinter';
-  return 'extreme_sprinter';
+// =============================================
+// 6️⃣ INTERPRÉTATION OFFICIELLE V2
+// =============================================
+
+export function getVLamaxCategory(value: number): VLamaxCategoryV2 {
+  if (value < 0.30) return 'ultra_endurance';
+  if (value <= 0.45) return 'endurance';
+  if (value <= 0.60) return 'balanced';
+  return 'power';
 }
 
-function getCategoryLabel(category: VLamaxCategoryV2): string {
+export function getCategoryLabel(category: VLamaxCategoryV2): string {
   switch (category) {
-    case 'ultra_endurance': return '🏔️ Ultra-endurant';
-    case 'endurance': return '🚴 Profil endurant';
-    case 'balanced': return '⚖️ Équilibré';
-    case 'power': return '💪 Profil puissance';
-    case 'sprinter': return '⚡ Sprinter';
-    case 'extreme_sprinter': return '🔥 Sprinter extrême';
+    case 'ultra_endurance': return '🏔️ Très endurant / profil IM';
+    case 'endurance': return '🚴 Endurance équilibrée';
+    case 'balanced': return '⚖️ Profil mixte';
+    case 'power': return '⚡ Profil glycolytique / explosif';
+  }
+}
+
+export function getCategoryDescription(category: VLamaxCategoryV2): string {
+  switch (category) {
+    case 'ultra_endurance': 
+      return 'Profil idéal pour les épreuves de très longue durée (Ironman, ultra). Excellente utilisation des graisses.';
+    case 'endurance': 
+      return 'Bon équilibre pour les épreuves d\'endurance (marathon, 70.3). Bonne économie de substrat.';
+    case 'balanced': 
+      return 'Profil polyvalent. Peut performer sur des formats variés avec adaptation.';
+    case 'power': 
+      return 'Profil orienté puissance/sprint. Nécessite attention particulière sur efforts longs.';
   }
 }
 
 // =============================================
-// CALCUL V2 — VÉLO
+// 4️⃣ FORMULE V2 OFFICIELLE TFCL™ — VÉLO
 // =============================================
 
-function computeVLamaxVeloV2(input: VLamaxV2Input): { value: number; confidence: number; sources: VLamaxSourceV2[] } {
+/**
+ * FORMULE V2 OFFICIELLE pour l'estimation VLamax Vélo
+ * 
+ * Étape A — Indice Glycolytique Relatif (IGR)
+ * IGR = clamp((Pmax / FTP) × (40 / TTE), 0.8, 2.2)
+ * 
+ * Étape B — Estimation brute
+ * VLamax_brut = 0.25 + 0.45 × clamp((IGR - 1.0) / 1.0, 0, 1)
+ * 
+ * Étape C — Correction âge
+ * Si âge > 40: -0.02
+ * Si âge > 50: -0.04
+ * 
+ * Étape D — Bornage final
+ * VLamax_final = clamp(VLamax, 0.20, 0.90)
+ */
+function computeVLamaxVeloV2(input: VLamaxV2Input): { 
+  value: number; 
+  confidence: number; 
+  sources: VLamaxSourceV2[];
+  formula: 'tfcl_v2' | 'fallback';
+  components?: {
+    igr: number;
+    vlamaxBrut: number;
+    ageCorrection: number;
+  };
+} {
   const sources: VLamaxSourceV2[] = [];
-  const estimates: { value: number; weight: number; source: VLamaxSourceV2 }[] = [];
+  const { ftp, weight_kg, tte_min, age, pmax_5s, pmax_10s, pmax_15s, tte_is_measured, pmax_is_real } = input;
   
-  const { pmax_5s, ftp, weight_kg, tte_min, tss_7d, cadence_avg } = input;
+  // Déterminer Pmax (prendre le meilleur disponible ≤15s)
+  const pmax = pmax_5s ?? pmax_10s ?? pmax_15s ?? null;
   
-  // 1) Estimation via ratio FTP / Pmax (si disponible)
-  if (pmax_5s && ftp && weight_kg && weight_kg > 0) {
-    const ftpKg = ftp / weight_kg;
-    const pmaxKg = pmax_5s / weight_kg;
+  // =============================================
+  // CAS IDÉAL: FTP + TTE + Pmax disponibles
+  // → Formule TFCL V2 complète
+  // =============================================
+  if (ftp != null && ftp > 0 && tte_min != null && tte_min > 0 && pmax != null && pmax > 0) {
+    sources.push('tfcl_v2');
+    if (pmax_5s) sources.push('pmax_5s');
+    sources.push('durability');
     
-    // Ratio Pmax/FTP : plus élevé = VLamax plus haute
-    const ratio = pmaxKg / ftpKg;
+    // ÉTAPE A: Indice Glycolytique Relatif (IGR)
+    // Référence: 40 min = endurance "neutre"
+    const rawIGR = (pmax / ftp) * (40 / tte_min);
+    const igr = clamp(rawIGR, 0.8, 2.2);
     
-    // Mapping empirique basé sur INSCYD et littérature
-    // Ratio 3.0 ≈ VLamax 0.35, Ratio 4.0 ≈ VLamax 0.55
-    let estimated = 0.20 + (ratio - 2.0) * 0.10;
+    // ÉTAPE B: Estimation brute VLamax
+    // Mapping: IGR = 1.0 → VLamax = 0.25
+    //          IGR = 2.0 → VLamax = 0.70
+    const normalizedIGR = clamp((igr - 1.0) / 1.0, 0, 1);
+    let vlamaxBrut = 0.25 + 0.45 * normalizedIGR;
     
-    // Ajustement FTP/kg
-    if (ftpKg >= 4.5) estimated -= 0.05; // Bon aérobie
-    if (ftpKg >= 5.0) estimated -= 0.05;
-    if (ftpKg < 3.5) estimated += 0.05;
+    // ÉTAPE C: Correction âge
+    let ageCorrection = 0;
+    if (age != null) {
+      if (age > 50) {
+        ageCorrection = -0.04;
+      } else if (age > 40) {
+        ageCorrection = -0.02;
+      }
+    }
     
-    estimated = clamp(estimated, PHYSIOLOGICAL_BOUNDS.VLAMAX.MIN, PHYSIOLOGICAL_BOUNDS.VLAMAX.MAX);
+    const vlamaxWithAge = vlamaxBrut + ageCorrection;
     
-    estimates.push({ value: estimated, weight: 0.35, source: 'ftp_pmax_ratio' });
-    sources.push('ftp_pmax_ratio');
+    // ÉTAPE D: Bornage final
+    const vlamaxFinal = clamp(vlamaxWithAge, 0.20, 0.90);
+    
+    // ÉTAPE 5: Calcul de la confiance
+    let confidence = 0.55; // Base pour estimation
+    
+    // Bonus: données complètes (FTP + TTE + Pmax)
+    confidence += 0.15;
+    
+    // Bonus: TTE mesuré (test ou bloc stable)
+    if (tte_is_measured) {
+      confidence += 0.10;
+    }
+    
+    // Bonus: Pmax réel (pas estimé)
+    if (pmax_is_real) {
+      confidence += 0.10;
+    }
+    
+    // Bornes de confiance: 0.55 - 0.90
+    confidence = clamp(confidence, 0.55, 0.90);
+    
+    return {
+      value: Number(vlamaxFinal.toFixed(2)),
+      confidence,
+      sources,
+      formula: 'tfcl_v2',
+      components: {
+        igr: Number(igr.toFixed(2)),
+        vlamaxBrut: Number(vlamaxBrut.toFixed(2)),
+        ageCorrection
+      }
+    };
   }
   
-  // 2) Estimation via Pmax seul
-  if (pmax_5s && !ftp) {
-    // Pmax > 1200W = typiquement VLamax élevée
-    let estimated = 0.35;
-    if (pmax_5s >= 1500) estimated = 0.60;
-    else if (pmax_5s >= 1300) estimated = 0.50;
-    else if (pmax_5s >= 1100) estimated = 0.45;
-    else if (pmax_5s >= 900) estimated = 0.40;
-    else estimated = 0.35;
+  // =============================================
+  // FALLBACK: FTP + TTE disponibles (sans Pmax)
+  // → Estimation via durabilité uniquement
+  // =============================================
+  if (ftp != null && ftp > 0 && tte_min != null && tte_min > 0) {
+    sources.push('durability');
     
-    estimates.push({ value: estimated, weight: 0.20, source: 'pmax_5s' });
-    sources.push('pmax_5s');
-  }
-  
-  // 3) Estimation via durabilité/TTE (cross-validation)
-  if (tte_min !== null && tte_min !== undefined) {
     // TTE élevé = VLamax probablement basse
     let estimated: number;
-    if (tte_min >= 60) estimated = 0.30;
+    if (tte_min >= 60) estimated = 0.28;
+    else if (tte_min >= 55) estimated = 0.32;
     else if (tte_min >= 50) estimated = 0.38;
-    else if (tte_min >= 40) estimated = 0.45;
-    else if (tte_min >= 30) estimated = 0.55;
-    else estimated = 0.65;
+    else if (tte_min >= 45) estimated = 0.44;
+    else if (tte_min >= 40) estimated = 0.50;
+    else if (tte_min >= 35) estimated = 0.55;
+    else estimated = 0.62;
     
-    estimates.push({ value: estimated, weight: 0.25, source: 'durability' });
-    sources.push('durability');
-  }
-  
-  // 4) Ajustement via charge (TSS 7d)
-  if (tss_7d !== null && tss_7d !== undefined && estimates.length > 0) {
-    // Charge élevée → adaptation aérobie → tend vers VLamax plus basse
-    let modifier = 0;
-    if (tss_7d >= 600) modifier = -0.02;
-    else if (tss_7d >= 400) modifier = -0.01;
-    else if (tss_7d < 200) modifier = +0.02;
+    // Ajustement FTP/kg si disponible
+    if (weight_kg != null && weight_kg > 0) {
+      const ftpKg = ftp / weight_kg;
+      if (ftpKg >= 4.5) estimated -= 0.04;
+      if (ftpKg >= 5.0) estimated -= 0.03;
+      if (ftpKg < 3.5) estimated += 0.03;
+    }
     
-    estimates.forEach(e => {
-      e.value = clamp(e.value + modifier, PHYSIOLOGICAL_BOUNDS.VLAMAX.MIN, PHYSIOLOGICAL_BOUNDS.VLAMAX.MAX);
-    });
+    // Correction âge
+    if (age != null) {
+      if (age > 50) estimated -= 0.03;
+      else if (age > 40) estimated -= 0.02;
+    }
+    
+    estimated = clamp(estimated, 0.20, 0.90);
+    
+    // Confiance plus faible sans Pmax
+    let confidence = 0.50;
+    if (tte_is_measured) confidence += 0.08;
+    confidence = clamp(confidence, 0.45, 0.70);
+    
+    return {
+      value: Number(estimated.toFixed(2)),
+      confidence,
+      sources,
+      formula: 'fallback'
+    };
   }
   
-  // Moyenne pondérée
-  if (estimates.length === 0) {
-    return { value: 0.42, confidence: 0.30, sources: ['estimated'] };
+  // =============================================
+  // FALLBACK: FTP + Pmax (sans TTE)
+  // → Estimation via ratio uniquement
+  // =============================================
+  if (ftp != null && ftp > 0 && pmax != null && pmax > 0) {
+    sources.push('ftp_pmax_ratio');
+    if (pmax_5s) sources.push('pmax_5s');
+    
+    const ratio = pmax / ftp;
+    
+    // Mapping ratio → VLamax
+    // Ratio 2.5 ≈ 0.35, Ratio 3.5 ≈ 0.50, Ratio 4.5 ≈ 0.65
+    let estimated = 0.30 + (ratio - 2.0) * 0.12;
+    
+    // Ajustement FTP/kg
+    if (weight_kg != null && weight_kg > 0) {
+      const ftpKg = ftp / weight_kg;
+      if (ftpKg >= 4.5) estimated -= 0.04;
+      if (ftpKg >= 5.0) estimated -= 0.03;
+      if (ftpKg < 3.5) estimated += 0.03;
+    }
+    
+    estimated = clamp(estimated, 0.20, 0.90);
+    
+    let confidence = 0.48;
+    if (pmax_is_real) confidence += 0.07;
+    confidence = clamp(confidence, 0.40, 0.65);
+    
+    return {
+      value: Number(estimated.toFixed(2)),
+      confidence,
+      sources,
+      formula: 'fallback'
+    };
   }
   
-  const totalWeight = estimates.reduce((sum, e) => sum + e.weight, 0);
-  const weightedSum = estimates.reduce((sum, e) => sum + e.value * e.weight, 0);
-  const value = clamp(weightedSum / totalWeight, PHYSIOLOGICAL_BOUNDS.VLAMAX.MIN, PHYSIOLOGICAL_BOUNDS.VLAMAX.MAX);
-  
-  // Confiance basée sur nombre de sources et qualité
-  const confidence = Math.min(0.75, 0.40 + sources.length * 0.10);
-  
-  return { value, confidence, sources };
+  // =============================================
+  // AUCUNE DONNÉE SUFFISANTE
+  // =============================================
+  return { 
+    value: 0.42, 
+    confidence: 0.30, 
+    sources: ['estimated'],
+    formula: 'fallback'
+  };
 }
 
 // =============================================
@@ -324,7 +475,8 @@ export function computeVLamaxV2(input: VLamaxV2Input): VLamaxRangeV2 {
       isLocked: true,
       category,
       categoryLabel: getCategoryLabel(category),
-      warnings
+      warnings,
+      sourceLabel: 'Mesuré (Lactate labo)'
     };
   }
   
@@ -347,7 +499,8 @@ export function computeVLamaxV2(input: VLamaxV2Input): VLamaxRangeV2 {
       isLocked: false,
       category,
       categoryLabel: getCategoryLabel(category),
-      warnings
+      warnings,
+      sourceLabel: 'Test terrain structuré'
     };
   }
   
@@ -414,6 +567,13 @@ export function computeVLamaxV2(input: VLamaxV2Input): VLamaxRangeV2 {
     warnings.push('Profil ultra-endurant — capacité glycolytique limitée');
   }
   
+  // Déterminer le label de source
+  const sourceLabel = allSources.includes('tfcl_v2') 
+    ? 'Modélisé (TFCL V2)' 
+    : allSources.includes('lactate_lab') 
+      ? 'Mesuré (Lactate labo)'
+      : 'Estimé (données terrain)';
+  
   return {
     central: Number(finalValue.toFixed(2)),
     min: Number(clamp(finalValue - uncertainty, PHYSIOLOGICAL_BOUNDS.VLAMAX.MIN, PHYSIOLOGICAL_BOUNDS.VLAMAX.MAX).toFixed(2)),
@@ -427,7 +587,8 @@ export function computeVLamaxV2(input: VLamaxV2Input): VLamaxRangeV2 {
     isLocked: false,
     category,
     categoryLabel: getCategoryLabel(category),
-    warnings
+    warnings,
+    sourceLabel
   };
 }
 
@@ -455,6 +616,7 @@ export function getVLamaxSourcesLabel(sources: VLamaxSourceV2[]): string {
     pmax_5s: "Pmax 5s",
     durability: "Durabilité",
     ftp_pmax_ratio: "FTP/Pmax",
+    tfcl_v2: "TFCL V2",
     ramp_test: "Test rampe",
     historical: "Historique",
     estimated: "Estimation",
@@ -472,8 +634,43 @@ export function getVLamaxCategoryColor(category: VLamaxCategoryV2): string {
       return 'text-green-600 dark:text-green-400';
     case 'power':
       return 'text-amber-600 dark:text-amber-400';
-    case 'sprinter':
-    case 'extreme_sprinter':
-      return 'text-red-600 dark:text-red-400';
   }
 }
+
+// =============================================
+// 8️⃣ ALIGNEMENT ACADEMY — POURQUOI CETTE VLAMAX EST UNE ESTIMATION
+// =============================================
+
+export const VLAMAX_ESTIMATION_EXPLAINER = {
+  title: "Pourquoi cette VLamax est une estimation",
+  icon: "🔬",
+  
+  hypotheses: [
+    "Le rapport Pmax/FTP reflète le potentiel glycolytique relatif",
+    "Le TTE (durabilité au seuil) est inversement corrélé à la VLamax",
+    "L'âge influence légèrement la capacité glycolytique maximale"
+  ],
+  
+  limits: [
+    "La VLamax réelle ne peut être mesurée que par test lactate",
+    "Les valeurs terrain peuvent être influencées par la fatigue du jour",
+    "Le Pmax dépend aussi de facteurs neuromusculaires non-métaboliques",
+    "Cette estimation est valable dans un contexte d'entraînement structuré"
+  ],
+  
+  vsLabTest: `Un test lactate laboratoire mesure directement la cinétique de production 
+et d'élimination du lactate sous effort standardisé. Il fournit une VLamax avec 
+une précision de ±0.02 mmol/L/s.
+
+La formule TFCL V2 produit une estimation avec une précision de ±0.05-0.10 mmol/L/s 
+selon la qualité des données d'entrée. Cette estimation est suffisante pour 
+orienter les choix d'entraînement mais ne remplace pas une mesure directe 
+pour un diagnostic fin.`,
+  
+  whenToMeasure: [
+    "Objectif Ironman ou ultra-endurance avec enjeu de performance",
+    "Doute sur l'orientation du profil métabolique",
+    "Stagnation malgré entraînement adapté",
+    "Préparation d'un pic de forme majeur"
+  ]
+};
