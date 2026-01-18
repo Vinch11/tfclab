@@ -415,7 +415,141 @@ export function StaffReport({
 
         <Separator />
 
-        {/* 5️⃣ INTERPRÉTATION STAFF */}
+        {/* TFCL REFERENCE WEEK — QUALITÉ DES TESTS */}
+        <div>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            TFCL REFERENCE WEEK — QUALITÉ DES TESTS
+            {report.tfclReferenceWeek.isComplete ? (
+              <Badge variant="outline" className="text-[10px] border-emerald-500/50 text-emerald-600">
+                Profil complet
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-[10px] border-amber-500/50 text-amber-600">
+                Profil partiel
+              </Badge>
+            )}
+          </h3>
+          
+          <div className={cn(
+            "p-4 rounded-lg border",
+            report.tfclReferenceWeek.isComplete
+              ? "bg-emerald-500/5 border-emerald-500/20"
+              : "bg-amber-500/5 border-amber-500/20"
+          )}>
+            {/* Test Values Grid */}
+            <div className="grid grid-cols-3 md:grid-cols-5 gap-3 mb-4">
+              <div className="text-center p-2 rounded bg-background/50">
+                <p className="text-xs text-muted-foreground mb-1">P30s</p>
+                <p className="font-bold text-lg">
+                  {report.tfclReferenceWeek.testValues.p30s_w !== null 
+                    ? `${report.tfclReferenceWeek.testValues.p30s_w}W` 
+                    : "—"}
+                </p>
+              </div>
+              <div className="text-center p-2 rounded bg-background/50">
+                <p className="text-xs text-muted-foreground mb-1">P60s</p>
+                <p className="font-bold text-lg">
+                  {report.tfclReferenceWeek.testValues.p60s_w !== null 
+                    ? `${report.tfclReferenceWeek.testValues.p60s_w}W` 
+                    : "—"}
+                </p>
+              </div>
+              <div className="text-center p-2 rounded bg-background/50">
+                <p className="text-xs text-muted-foreground mb-1">MAP 5min</p>
+                <p className="font-bold text-lg">
+                  {report.tfclReferenceWeek.testValues.map5min_w !== null 
+                    ? `${report.tfclReferenceWeek.testValues.map5min_w}W` 
+                    : "—"}
+                </p>
+              </div>
+              <div className="text-center p-2 rounded bg-background/50">
+                <p className="text-xs text-muted-foreground mb-1">FTP</p>
+                <p className="font-bold text-lg">
+                  {report.tfclReferenceWeek.testValues.ftp_w !== null 
+                    ? `${report.tfclReferenceWeek.testValues.ftp_w}W` 
+                    : "—"}
+                </p>
+              </div>
+              <div className="text-center p-2 rounded bg-background/50">
+                <p className="text-xs text-muted-foreground mb-1">TTE</p>
+                <p className="font-bold text-lg">
+                  {report.tfclReferenceWeek.testValues.tte_observed_min !== null 
+                    ? `${report.tfclReferenceWeek.testValues.tte_observed_min}min` 
+                    : "—"}
+                </p>
+              </div>
+            </div>
+            
+            {/* Protocol Quality & Confidence */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="p-3 rounded bg-background/50">
+                <p className="text-xs text-muted-foreground mb-1">Qualité du protocole (coach)</p>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-lg">
+                    {report.tfclReferenceWeek.testValues.protocol_quality ?? "—"}/5
+                  </span>
+                  <Badge variant="outline" className="text-xs">
+                    {report.tfclReferenceWeek.qualityLabel}
+                  </Badge>
+                </div>
+              </div>
+              <div className="p-3 rounded bg-background/50">
+                <p className="text-xs text-muted-foreground mb-1">Impact sur la confiance</p>
+                <p className={cn(
+                  "font-semibold",
+                  report.tfclReferenceWeek.confidenceAdjustment > 0 && "text-emerald-600 dark:text-emerald-400",
+                  report.tfclReferenceWeek.confidenceAdjustment < 0 && "text-red-600 dark:text-red-400"
+                )}>
+                  {report.tfclReferenceWeek.confidenceAdjustmentLabel}
+                </p>
+              </div>
+            </div>
+            
+            {/* Completed Tests */}
+            {report.tfclReferenceWeek.completedTests.length > 0 && (
+              <div className="mb-3">
+                <p className="text-xs font-medium text-muted-foreground mb-1">Tests complétés :</p>
+                <ul className="text-xs space-y-0.5">
+                  {report.tfclReferenceWeek.completedTests.map((test, i) => (
+                    <li key={i} className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                      <CheckCircle className="h-3 w-3" />
+                      {test}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            {/* Missing Data */}
+            {report.tfclReferenceWeek.missingData.length > 0 && (
+              <div className="p-2 rounded bg-amber-500/10 border border-amber-500/20">
+                <p className="text-xs font-medium text-amber-700 dark:text-amber-400 mb-1">
+                  Données manquantes :
+                </p>
+                <ul className="text-xs text-amber-600 dark:text-amber-400 space-y-0.5">
+                  {report.tfclReferenceWeek.missingData.map((data, i) => (
+                    <li key={i}>• {data}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            {/* Test Dates */}
+            {report.tfclReferenceWeek.testDates && (
+              <p className="text-xs text-muted-foreground mt-3">
+                Dates des tests : {report.tfclReferenceWeek.testDates}
+              </p>
+            )}
+          </div>
+          
+          <p className="text-[10px] text-muted-foreground mt-2 italic">
+            💡 Confiance ajustée par qualité du protocole (coach).
+            {!report.tfclReferenceWeek.isComplete && " Profil partiel — VLamax prudente."}
+          </p>
+        </div>
+
+        <Separator />
         <div>
           <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
             <Activity className="h-4 w-4" />
