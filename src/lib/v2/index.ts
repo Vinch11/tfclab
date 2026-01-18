@@ -93,3 +93,37 @@ export {
 export {
   ACADEMY_V2_MODULE
 } from './academyV2';
+
+// Validation Framework
+export {
+  // Textes officiels
+  VALIDATION_TEXTS,
+  
+  // Classification des données
+  CONFIDENCE_BADGES,
+  PARAMETER_CLASSIFICATION,
+  type DataConfidenceLevel,
+  type DataConfidenceInfo,
+  
+  // Moteur recommandation test labo
+  computeLabTestRecommendation,
+  LAB_TRIGGER_MESSAGES,
+  type LabTestTrigger,
+  type LabTestRecommendation,
+  type LabTestEngineInput,
+  
+  // Échelle d'utilisation
+  USAGE_LEVELS,
+  getAthleteLevel,
+  getUsageLevelInfo,
+  type AthleteLevel,
+  type UsageLevelInfo,
+  
+  // Statut de validation
+  computeValidationStatus,
+  type ValidationStatus,
+  type PhysiologicalValidationStatus,
+  
+  // Academy module
+  ACADEMY_LAB_TEST_MODULE,
+} from './validationFramework';
