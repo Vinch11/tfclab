@@ -45,6 +45,21 @@ export function VLamaxV2DisplayCard({
   age,
   compact = false,
 }: VLamaxV2DisplayCardProps) {
+  // Valeur manquante ou invalide
+  if (!Number.isFinite(vlamax) || vlamax <= 0) {
+    return (
+      <Card className="overflow-hidden">
+        <CardContent className="p-4">
+          <div className="text-center text-muted-foreground">
+            <Zap className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">Calibration TFCL indisponible</p>
+            <p className="text-xs">Renseigner une VLamax (test ou estimation)</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   // Calibrer VLamax avec le système TFCL V2
   const display = calibrateVLamaxV2({
     objectif,
