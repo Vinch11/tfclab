@@ -369,12 +369,12 @@ export function useCloudData() {
   const updateSnapshot = async (id: string, updates: Partial<DbSnapshot>) => {
     const { error } = await supabase.from("snapshots").update(updates).eq("id", id);
     if (error) {
-      toast.error("Erreur lors de la mise à jour du snapshot");
+      toast.error("Erreur lors de la mise à jour du profil");
       if (import.meta.env.DEV) console.error("Update snapshot error");
       return false;
     }
     setSnapshots((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
-    toast.success("Snapshot mis à jour");
+    toast.success("Profil mis à jour");
     return true;
   };
 
@@ -390,7 +390,7 @@ export function useCloudData() {
     setAthletes((prev) => prev.map((a) => 
       a.active_snapshot_id === id ? { ...a, active_snapshot_id: null } : a
     ));
-    toast.success("Snapshot supprimé");
+    toast.success("Profil supprimé");
     return true;
   };
 

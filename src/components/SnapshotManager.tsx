@@ -1,10 +1,12 @@
 // =============================================
-// SNAPSHOT MANAGER - Gestion des snapshots Two For Coaching Lab™ (Cloud)
+// PROFIL PHYSIOLOGIQUE MANAGER - Gestion des Profils Two For Coaching Lab™ (Cloud)
+// Anciennement "Snapshot Manager"
 // + TTE PRO: LOAD (FTP+TSS7d) / OBSERVED (test)
 // + ÉCONOMIE CAP: allure/FC/dérive
 // =============================================
 
 import { useState, useMemo } from "react";
+import { PROFILE_TERMINOLOGY, PROFILE_DEFINITION, PROFILE_SAFEGUARD } from "@/lib/v2/profileTerminology";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1015,7 +1017,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Camera className="h-5 w-5" />
-            Snapshots — {athleteName}
+            {PROFILE_TERMINOLOGY.pluralShort} — {athleteName}
           </CardTitle>
 
           <div className="flex gap-2 flex-wrap">
@@ -1037,12 +1039,12 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl">
                   <DialogHeader>
-                    <DialogTitle>Comparaison de snapshots</DialogTitle>
+                    <DialogTitle>Comparaison de {PROFILE_TERMINOLOGY.pluralShort.toLowerCase()}</DialogTitle>
                   </DialogHeader>
 
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
-                      <Label>Snapshot A (avant)</Label>
+                      <Label>Profil A (avant)</Label>
                       <Select value={compareA} onValueChange={setCompareA}>
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner" />
@@ -1058,7 +1060,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                     </div>
 
                     <div>
-                      <Label>Snapshot B (après)</Label>
+                      <Label>Profil B (après)</Label>
                       <Select value={compareB} onValueChange={setCompareB}>
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner" />
@@ -1083,12 +1085,12 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
               <DialogTrigger asChild>
                 <Button size="sm" onClick={resetForm}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Nouveau snapshot
+                  {PROFILE_TERMINOLOGY.actions.create}
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-lg">
                 <DialogHeader>
-                  <DialogTitle>Créer un snapshot</DialogTitle>
+                  <DialogTitle>{PROFILE_TERMINOLOGY.actions.create}</DialogTitle>
                 </DialogHeader>
                 {renderForm()}
                 <Button onClick={handleCreate} className="mt-4">
@@ -1100,7 +1102,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         </div>
 
         <p className="text-sm text-muted-foreground">
-          Un snapshot = une photo du profil physiologique à un moment clé. Base de l'analyse Two For Coaching Lab™.
+          {PROFILE_DEFINITION.summary} Base de l'analyse Two For Coaching Lab™.
         </p>
       </CardHeader>
 
@@ -1108,8 +1110,8 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         {snapshots.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <Camera className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Aucun snapshot pour cet athlète.</p>
-            <p className="text-sm">Créez un snapshot après un test clé ou à la fin d'un cycle.</p>
+            <p>Aucun {PROFILE_TERMINOLOGY.shortName.toLowerCase()} pour cet athlète.</p>
+            <p className="text-sm">Créez un profil après un test clé ou à la fin d'un cycle.</p>
           </div>
         ) : (
           snapshots.map(renderSnapshotCard)
@@ -1120,7 +1122,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Modifier le snapshot</DialogTitle>
+            <DialogTitle>{PROFILE_TERMINOLOGY.actions.edit}</DialogTitle>
           </DialogHeader>
           {renderForm()}
           <Button onClick={handleUpdate} className="mt-4">

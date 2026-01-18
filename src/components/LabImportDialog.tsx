@@ -501,7 +501,7 @@ export function LabImportDialog({
                 Annuler
               </Button>
               <Button onClick={handleCreateSnapshot}>
-                Créer Snapshot PRO
+                Créer Profil PRO
               </Button>
             </div>
           </div>
