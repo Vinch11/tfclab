@@ -1,19 +1,23 @@
 /**
- * Nutrition Prédictive V2 — Estimation besoins glucidiques (g/h)
+ * TWO FOR COACHING LAB METHOD™ — Nutrition Prédictive V2
  * 
- * Sources scientifiques :
- * - Burke L.M. et al. (2019) – Carbohydrate periodization
- * - Jeukendrup A. (2014) – CHO feeding during exercise
- * - Thomas D.T. et al. (2016) – ACSM position stand
+ * Estimation des besoins glucidiques (g/h) en fonction du PROFIL MÉTABOLIQUE.
  * 
- * MODÈLE V2 :
- * - Entrées : VLamax, VO2max, objectif, intensité cible, durée
- * - Sorties : Fourchette glucides (g/h), risque hypoglycémique
- * - Lien avec stratégie d'entraînement
+ * DONNÉES D'ENTRÉE UNIFIÉES :
+ * - vlamaxEffectif (valeur + confiance)
+ * - tteEffectif (min)
+ * - sport (bike / run)
+ * - durée cible (race ou séance)
+ * - intensité cible (% FTP ou allure)
+ * - poids (kg)
+ * 
+ * ❌ Ne PAS utiliser de données nutritionnelles déclaratives.
+ * 
+ * CE MODULE CONSEILLE. Il n'automatise rien.
+ * Ces valeurs sont des ESTIMATIONS, pas une prescription médicale.
  */
 
-import { CONFIDENCE_LEVELS } from './scientificConfig';
-import { VLamaxRangeV2 } from './vlamaxV2';
+import { METHOD_VERSION_DISPLAY } from './scientificGovernance';
 
 // =============================================
 // TYPES V2
@@ -21,110 +25,117 @@ import { VLamaxRangeV2 } from './vlamaxV2';
 
 export type NutritionRiskV2 = 'low' | 'moderate' | 'high' | 'critical';
 
+export interface NutritionContributor {
+  id: string;
+  label: string;
+  value: string;
+  adjustment: number;  // g/h
+  direction: 'up' | 'down' | 'neutral';
+  explanation: string;
+}
+
 export interface NutritionPredictiveV2 {
   // Plage glucides recommandée (g/h)
   carbsMin: number;
   carbsMax: number;
   carbsCentral: number;
   
-  // Risque hypoglycémique
-  hypoglycemicRisk: NutritionRiskV2;
-  hypoglycemicRiskLabel: string;
-  hypoglycemicRiskEmoji: string;
+  // Risque glycogène (déplétion)
+  glycogenRisk: NutritionRiskV2;
+  glycogenRiskLabel: string;
+  glycogenRiskScore: number;  // 0-4
   
   // Confiance
   confidence: number;
   
   // Sport et contexte
-  sport: 'velo' | 'cap' | 'triathlon';
+  sport: 'velo' | 'cap';
   sportLabel: string;
-  sportFactor: number;  // Multiplicateur digestif
+  baseRate: number;  // Taux de base (g/h)
   
-  // Durée estimée
-  estimatedDuration: number | null;  // heures
+  // Durée et intensité
+  targetDurationHours: number | null;
+  targetIntensityPct: number | null;
   
-  // Décomposition contributeurs
-  contributors: {
-    vlamaxImpact: string;
-    vo2maxImpact: string;
-    intensityImpact: string;
-    durationImpact: string;
-    sportImpact: string;
-  };
+  // Contributeurs détaillés
+  contributors: NutritionContributor[];
   
-  // Lien stratégie entraînement
-  trainingStrategy: {
-    message: string;
-    recommendations: string[];
-  };
+  // Message pédagogique
+  whyThisNumber: string;
   
-  // Plafonnement Race Readiness
-  raceReadinessCap: number | null;
+  // Recommandations
+  recommendations: string[];
   
   // Avertissements
   warnings: string[];
+  
+  // Disclaimer
+  disclaimer: string;
 }
 
 export interface NutritionV2Input {
-  // VLamax (V2)
-  vlamaxV2?: VLamaxRangeV2 | null;
-  vlamaxValue?: number | null;  // Fallback V1
+  // VLamax effectif
+  vlamaxValue: number | null;
+  vlamaxConfidence?: number;
   
-  // VO2max
-  vo2max?: number | null;
-  
-  // Objectif
-  objectif?: string;
-  
-  // Intensité cible (% FTP ou seuil)
-  intensityPct?: number | null;
-  
-  // Durée prévue (heures)
-  expectedDuration?: number | null;
+  // TTE effectif
+  tteMin: number | null;
   
   // Sport
-  sport?: 'velo' | 'cap' | 'triathlon';
+  sport: 'velo' | 'cap';
   
-  // Race Readiness actuelle
-  raceReadiness?: number | null;
+  // Durée cible (heures)
+  targetDurationHours: number | null;
+  
+  // Intensité cible (% FTP ou seuil)
+  targetIntensityPct: number | null;
+  
+  // Poids (kg)
+  weightKg: number | null;
 }
 
 // =============================================
-// CONSTANTES
+// CONSTANTES OFFICIELLES TFCL™
 // =============================================
 
-const SPORT_FACTORS = {
-  velo: 1.00,       // Référence
-  triathlon: 0.90,  // Transition digestive
-  cap: 0.75,        // Réduction 25%
+export const NUTRITION_PHILOSOPHY = {
+  principle: `VLamax élevé → dépendance glucides ↑
+TTE court → tolérance glycogène ↓
+Durée longue → risque déplétion ↑
+CAP > Vélo → coût glycogène ↑ à intensité égale`,
+  
+  disclaimer: `Ces valeurs sont des estimations basées sur
+le profil métabolique, pas une prescription médicale.`,
+  
+  safeguard: `Ce module CONSEILLE. Il n'automatise rien.
+La décision finale appartient à l'athlète et son encadrement.`
 };
 
-const SPORT_LABELS = {
-  velo: 'Vélo',
-  cap: 'Course à Pied',
-  triathlon: 'Triathlon',
-};
-
-// Tables base par VLamax category
-const BASE_CARBS_BY_VLAMAX: Record<string, [number, number]> = {
-  ultra_endurance: [50, 65],   // VLamax ≤ 0.25
-  endurance: [60, 75],         // 0.26–0.35
-  balanced: [70, 85],          // 0.36–0.45
-  power: [80, 95],             // 0.46–0.55
-  sprinter: [90, 110],         // 0.56–0.70
-  extreme_sprinter: [100, 120], // > 0.70
-};
-
-// Ajustement par objectif (durée)
-const DURATION_ADJUSTMENTS: Record<string, number> = {
-  ironman: -10,    // Ultra-longue = économiser
-  ultra: -10,
-  marathon: -5,
-  trail_long: -5,
-  '70.3': 0,
-  semi: 0,
-  olympic: +5,
-  sprint: +10,     // Court = tolérance intensité
+export const NUTRITION_RISK_SCALE = {
+  low: { 
+    min: 0, max: 1, 
+    label: "Faible", 
+    color: 'success' as const,
+    message: "Risque de déplétion glycogène contrôlé." 
+  },
+  moderate: { 
+    min: 2, max: 2, 
+    label: "Modéré", 
+    color: 'info' as const,
+    message: "Attention à la stratégie nutritionnelle." 
+  },
+  high: { 
+    min: 3, max: 3, 
+    label: "Élevé", 
+    color: 'warning' as const,
+    message: "Risque significatif. Nutrition critique." 
+  },
+  critical: { 
+    min: 4, max: 4, 
+    label: "Critique", 
+    color: 'destructive' as const,
+    message: "Déplétion probable. Stratégie nutritionnelle impérative." 
+  }
 };
 
 // =============================================
@@ -133,81 +144,136 @@ const DURATION_ADJUSTMENTS: Record<string, number> = {
 
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 
-function detectSport(objectif: string): 'velo' | 'cap' | 'triathlon' {
-  const obj = objectif.toLowerCase();
-  if (obj.includes('marathon') || obj.includes('semi') || obj.includes('trail') || obj.includes('10k') || obj.includes('course')) {
-    return 'cap';
-  }
-  if (obj.includes('ironman') || obj.includes('triathlon') || obj.includes('70.3') || obj.includes('half')) {
-    return 'triathlon';
-  }
-  return 'velo';
-}
-
-function getVlamaxCategory(value: number): string {
-  if (value <= 0.25) return 'ultra_endurance';
-  if (value <= 0.35) return 'endurance';
-  if (value <= 0.45) return 'balanced';
-  if (value <= 0.55) return 'power';
-  if (value <= 0.70) return 'sprinter';
-  return 'extreme_sprinter';
-}
-
-function normalizeObjectif(objectif: string): string {
-  const obj = objectif.toLowerCase();
-  if (obj.includes('ironman') || obj.includes('im ') || obj === 'im') return 'ironman';
-  if (obj.includes('ultra') || obj.includes('trail_long')) return 'ultra';
-  if (obj.includes('marathon') && !obj.includes('semi')) return 'marathon';
-  if (obj.includes('70.3') || obj.includes('half ironman')) return '70.3';
-  if (obj.includes('semi') || obj.includes('half-marathon')) return 'semi';
-  if (obj.includes('olympic') || obj.includes('od')) return 'olympic';
-  if (obj.includes('sprint')) return 'sprint';
-  return 'marathon';
-}
-
-function getHypoglycemicRisk(carbsRequired: number, sport: 'velo' | 'cap' | 'triathlon'): NutritionRiskV2 {
-  // Seuils de tolérance digestive par sport
-  const thresholds = {
-    velo: { low: 65, moderate: 85, high: 100 },
-    triathlon: { low: 60, moderate: 80, high: 95 },
-    cap: { low: 55, moderate: 70, high: 85 },
-  };
-  
-  const t = thresholds[sport];
-  if (carbsRequired <= t.low) return 'low';
-  if (carbsRequired <= t.moderate) return 'moderate';
-  if (carbsRequired <= t.high) return 'high';
+function getRiskFromScore(score: number): NutritionRiskV2 {
+  if (score <= 1) return 'low';
+  if (score === 2) return 'moderate';
+  if (score === 3) return 'high';
   return 'critical';
 }
 
 function getRiskLabel(risk: NutritionRiskV2): string {
-  switch (risk) {
-    case 'low': return 'Faible';
-    case 'moderate': return 'Modéré';
-    case 'high': return 'Élevé';
-    case 'critical': return 'Critique';
-  }
+  return NUTRITION_RISK_SCALE[risk].label;
 }
 
-function getRiskEmoji(risk: NutritionRiskV2): string {
-  switch (risk) {
-    case 'low': return '🟢';
-    case 'moderate': return '🟡';
-    case 'high': return '🟠';
-    case 'critical': return '🔴';
-  }
+// =============================================
+// FORMULE V2 OFFICIELLE TFCL™
+// =============================================
+
+/**
+ * Étape A — Taux de base (g/h)
+ * Vélo : 0.9 × poids
+ * CAP : 1.05 × poids
+ * Bornes : min 40 g/h, max 90 g/h
+ */
+function computeBaseRate(weightKg: number, sport: 'velo' | 'cap'): number {
+  const multiplier = sport === 'cap' ? 1.05 : 0.9;
+  const base = weightKg * multiplier;
+  return clamp(Math.round(base), 40, 90);
 }
 
-function estimateDuration(objectif: string): number | null {
-  const obj = objectif.toLowerCase();
-  if (obj.includes('ironman') || obj.includes('im full')) return 10;
-  if (obj.includes('70.3') || obj.includes('half ironman')) return 5;
-  if (obj.includes('marathon') && !obj.includes('semi')) return 3.5;
-  if (obj.includes('semi')) return 1.75;
-  if (obj.includes('ultra')) return 12;
-  if (obj.includes('olympic')) return 2.5;
-  if (obj.includes('sprint')) return 1.25;
-  return null;
+/**
+ * Étape B — Modulation par VLamax
+ * Si VLamax < 0.35 → -10 g/h  
+ * Si VLamax 0.35–0.55 → neutre  
+ * Si VLamax > 0.55 → +10 à +20 g/h
+ */
+function computeVlamaxAdjustment(vlamax: number | null): { adjustment: number; explanation: string } {
+  if (vlamax === null) {
+    return { adjustment: 0, explanation: "VLamax inconnue — modulation neutre" };
+  }
+  
+  if (vlamax < 0.35) {
+    return { adjustment: -10, explanation: "VLamax basse (<0.35) → économie glucidique naturelle" };
+  }
+  if (vlamax <= 0.55) {
+    return { adjustment: 0, explanation: "VLamax équilibrée (0.35-0.55) → besoins standards" };
+  }
+  if (vlamax <= 0.65) {
+    return { adjustment: 10, explanation: "VLamax élevée (>0.55) → dépendance glucidique accrue" };
+  }
+  return { adjustment: 20, explanation: "VLamax très élevée (>0.65) → forte combustion glucidique" };
+}
+
+/**
+ * Étape C — Modulation par TTE
+ * Si TTE < 45 min → +10 g/h  
+ * Si TTE > 55 min → -5 g/h
+ */
+function computeTTEAdjustment(tte: number | null): { adjustment: number; explanation: string } {
+  if (tte === null) {
+    return { adjustment: 0, explanation: "TTE inconnu — modulation neutre" };
+  }
+  
+  if (tte < 45) {
+    return { adjustment: 10, explanation: "TTE court (<45 min) → tolérance glycogène réduite" };
+  }
+  if (tte > 55) {
+    return { adjustment: -5, explanation: "TTE long (>55 min) → meilleure endurance glycogène" };
+  }
+  return { adjustment: 0, explanation: "TTE standard (45-55 min) → besoins neutres" };
+}
+
+/**
+ * Étape D — Modulation par durée
+ * Durée > 3h → +5 à +10 g/h  
+ * Durée > 4h → fractionner + sel prioritaire
+ */
+function computeDurationAdjustment(durationHours: number | null): { adjustment: number; explanation: string; warnings: string[] } {
+  const warnings: string[] = [];
+  
+  if (durationHours === null) {
+    return { adjustment: 0, explanation: "Durée inconnue — modulation neutre", warnings };
+  }
+  
+  if (durationHours > 4) {
+    warnings.push("Durée > 4h : fractionner les apports, priorité hydratation + sel");
+    return { adjustment: 10, explanation: "Durée très longue (>4h) → besoins augmentés + fractionnement", warnings };
+  }
+  if (durationHours > 3) {
+    return { adjustment: 5, explanation: "Durée longue (>3h) → besoins légèrement augmentés", warnings };
+  }
+  if (durationHours < 1.5) {
+    return { adjustment: -5, explanation: "Durée courte (<1h30) → besoins réduits", warnings };
+  }
+  return { adjustment: 0, explanation: "Durée standard (1h30-3h) — besoins neutres", warnings };
+}
+
+/**
+ * Étape E — Modulation par intensité
+ */
+function computeIntensityAdjustment(intensityPct: number | null): { adjustment: number; explanation: string } {
+  if (intensityPct === null) {
+    return { adjustment: 0, explanation: "Intensité inconnue — modulation neutre" };
+  }
+  
+  if (intensityPct >= 85) {
+    return { adjustment: 10, explanation: "Intensité haute (≥85%) → combustion glucidique maximale" };
+  }
+  if (intensityPct >= 75) {
+    return { adjustment: 5, explanation: "Intensité seuil (75-85%) → besoins augmentés" };
+  }
+  if (intensityPct <= 60) {
+    return { adjustment: -10, explanation: "Intensité basse (≤60%) → économie glucidique" };
+  }
+  return { adjustment: 0, explanation: "Intensité modérée (60-75%) — besoins neutres" };
+}
+
+/**
+ * Indice de risque nutritionnel (0-4)
+ * +1 si VLamax > 0.55
+ * +1 si TTE < 45
+ * +1 si durée > 3h
+ * +1 si CAP
+ */
+function computeGlycogenRiskScore(input: NutritionV2Input): number {
+  let score = 0;
+  
+  if (input.vlamaxValue !== null && input.vlamaxValue > 0.55) score++;
+  if (input.tteMin !== null && input.tteMin < 45) score++;
+  if (input.targetDurationHours !== null && input.targetDurationHours > 3) score++;
+  if (input.sport === 'cap') score++;
+  
+  return clamp(score, 0, 4);
 }
 
 // =============================================
@@ -215,150 +281,215 @@ function estimateDuration(objectif: string): number | null {
 // =============================================
 
 export function computeNutritionV2(input: NutritionV2Input): NutritionPredictiveV2 | null {
-  const warnings: string[] = [];
+  const { vlamaxValue, vlamaxConfidence = 0.7, tteMin, sport, targetDurationHours, targetIntensityPct, weightKg } = input;
   
-  // Extraire VLamax
-  let vlamaxValue: number | null = null;
-  if (input.vlamaxV2?.central !== undefined) {
-    vlamaxValue = input.vlamaxV2.central;
-  } else if (input.vlamaxValue !== null && input.vlamaxValue !== undefined) {
-    vlamaxValue = input.vlamaxValue;
-  }
-  
-  if (vlamaxValue === null) {
+  // Poids obligatoire pour le calcul de base
+  if (weightKg === null || weightKg <= 0) {
     return null;
   }
   
-  // Sport et objectif
-  const objectif = input.objectif || "";
-  const sport = input.sport || detectSport(objectif);
-  const sportFactor = SPORT_FACTORS[sport];
+  const warnings: string[] = [];
+  const contributors: NutritionContributor[] = [];
   
-  // Catégorie VLamax
-  const category = getVlamaxCategory(vlamaxValue);
-  const baseRange = BASE_CARBS_BY_VLAMAX[category] || [70, 85];
+  // Étape A — Taux de base
+  const baseRate = computeBaseRate(weightKg, sport);
+  contributors.push({
+    id: 'base',
+    label: 'Taux de base',
+    value: `${baseRate} g/h`,
+    adjustment: baseRate,
+    direction: 'neutral',
+    explanation: sport === 'cap' 
+      ? `CAP : 1.05 × ${weightKg} kg = ${baseRate} g/h`
+      : `Vélo : 0.9 × ${weightKg} kg = ${baseRate} g/h`
+  });
   
-  // Ajustement durée
-  const normObjectif = normalizeObjectif(objectif);
-  const durationAdj = DURATION_ADJUSTMENTS[normObjectif] || 0;
-  
-  // Ajustement intensité
-  let intensityAdj = 0;
-  if (input.intensityPct !== null && input.intensityPct !== undefined) {
-    if (input.intensityPct >= 85) intensityAdj = 10;
-    else if (input.intensityPct >= 75) intensityAdj = 5;
-    else if (input.intensityPct <= 65) intensityAdj = -10;
-    else if (input.intensityPct <= 60) intensityAdj = -15;
+  // Étape B — Modulation VLamax
+  const vlamaxAdj = computeVlamaxAdjustment(vlamaxValue);
+  if (vlamaxAdj.adjustment !== 0) {
+    contributors.push({
+      id: 'vlamax',
+      label: 'Modulation VLamax',
+      value: vlamaxValue !== null ? `${vlamaxValue.toFixed(2)} mmol/L/s` : '—',
+      adjustment: vlamaxAdj.adjustment,
+      direction: vlamaxAdj.adjustment > 0 ? 'up' : 'down',
+      explanation: vlamaxAdj.explanation
+    });
   }
   
-  // Ajustement VO2max (athlètes élite = meilleure capacité)
-  let vo2maxAdj = 0;
-  if (input.vo2max !== null && input.vo2max !== undefined) {
-    if (input.vo2max >= 70) vo2maxAdj = 5;
-    else if (input.vo2max >= 60) vo2maxAdj = 0;
-    else if (input.vo2max <= 45) vo2maxAdj = -5;
+  // Étape C — Modulation TTE
+  const tteAdj = computeTTEAdjustment(tteMin);
+  if (tteAdj.adjustment !== 0) {
+    contributors.push({
+      id: 'tte',
+      label: 'Modulation TTE',
+      value: tteMin !== null ? `${tteMin} min` : '—',
+      adjustment: tteAdj.adjustment,
+      direction: tteAdj.adjustment > 0 ? 'up' : 'down',
+      explanation: tteAdj.explanation
+    });
+  }
+  
+  // Étape D — Modulation durée
+  const durationAdj = computeDurationAdjustment(targetDurationHours);
+  if (durationAdj.adjustment !== 0) {
+    contributors.push({
+      id: 'duration',
+      label: 'Modulation durée',
+      value: targetDurationHours !== null ? `${targetDurationHours}h` : '—',
+      adjustment: durationAdj.adjustment,
+      direction: durationAdj.adjustment > 0 ? 'up' : 'down',
+      explanation: durationAdj.explanation
+    });
+  }
+  warnings.push(...durationAdj.warnings);
+  
+  // Étape E — Modulation intensité
+  const intensityAdj = computeIntensityAdjustment(targetIntensityPct);
+  if (intensityAdj.adjustment !== 0) {
+    contributors.push({
+      id: 'intensity',
+      label: 'Modulation intensité',
+      value: targetIntensityPct !== null ? `${targetIntensityPct}%` : '—',
+      adjustment: intensityAdj.adjustment,
+      direction: intensityAdj.adjustment > 0 ? 'up' : 'down',
+      explanation: intensityAdj.explanation
+    });
   }
   
   // Calcul final
-  let carbsMinBase = baseRange[0] + durationAdj + intensityAdj + vo2maxAdj;
-  let carbsMaxBase = baseRange[1] + durationAdj + intensityAdj + vo2maxAdj;
+  const totalAdjustment = vlamaxAdj.adjustment + tteAdj.adjustment + durationAdj.adjustment + intensityAdj.adjustment;
+  const rawResult = baseRate + totalAdjustment;
   
-  // Application facteur sport
-  const carbsMin = Math.round(carbsMinBase * sportFactor);
-  const carbsMax = Math.round(carbsMaxBase * sportFactor);
-  const carbsCentral = Math.round((carbsMin + carbsMax) / 2);
+  // Étape F — Bornage final (40-100 g/h)
+  const carbsCentral = clamp(Math.round(rawResult), 40, 100);
+  const carbsMin = clamp(carbsCentral - 5, 40, 100);
+  const carbsMax = clamp(carbsCentral + 5, 40, 100);
   
-  // Risque hypoglycémique
-  const hypoglycemicRisk = getHypoglycemicRisk(carbsCentral, sport);
-  
-  // Durée estimée
-  const estimatedDuration = input.expectedDuration || estimateDuration(objectif);
-  
-  // Plafonnement Race Readiness
-  let raceReadinessCap: number | null = null;
-  if (hypoglycemicRisk === 'high') {
-    raceReadinessCap = 85;
-  } else if (hypoglycemicRisk === 'critical') {
-    raceReadinessCap = 75;
-    warnings.push('Besoins glucidiques dépassent la capacité d\'absorption — nutrition facteur limitant');
-  }
+  // Risque glycogène
+  const riskScore = computeGlycogenRiskScore(input);
+  const glycogenRisk = getRiskFromScore(riskScore);
   
   // Confiance
-  let confidence = 0.60;
-  if (input.vlamaxV2) confidence += 0.15;
-  if (input.vo2max) confidence += 0.10;
-  if (input.intensityPct) confidence += 0.10;
-  confidence = clamp(confidence, 0, 0.90);
+  let confidence = 0.50;
+  if (vlamaxValue !== null) confidence += 0.15;
+  if (tteMin !== null) confidence += 0.10;
+  if (targetDurationHours !== null) confidence += 0.10;
+  if (targetIntensityPct !== null) confidence += 0.10;
+  if (vlamaxConfidence > 0.7) confidence += 0.05;
+  confidence = clamp(confidence, 0.45, 0.90);
   
-  // Contributeurs
-  const contributors = {
-    vlamaxImpact: vlamaxValue >= 0.50 
-      ? 'VLamax élevée → forte combustion glucidique (+15-25 g/h)'
-      : vlamaxValue <= 0.35
-        ? 'VLamax basse → économie glucidique (-10-20 g/h)'
-        : 'VLamax modérée → besoins standards',
-    vo2maxImpact: input.vo2max 
-      ? (input.vo2max >= 65 ? 'VO2max élevé → tolérance accrue' : 'VO2max standard')
-      : 'VO2max inconnu',
-    intensityImpact: input.intensityPct
-      ? (input.intensityPct >= 80 ? 'Intensité haute → besoins augmentés' : 'Intensité modérée')
-      : 'Intensité standard supposée',
-    durationImpact: estimatedDuration
-      ? (estimatedDuration >= 5 ? 'Longue durée → économiser les stocks' : 'Durée gérable')
-      : 'Durée inconnue',
-    sportImpact: sport === 'cap'
-      ? 'CAP → tolérance digestive réduite (-25%)'
-      : sport === 'triathlon'
-        ? 'Triathlon → transition digestive à gérer (-10%)'
-        : 'Vélo → tolérance optimale',
-  };
+  // Message pédagogique
+  const whyThisNumber = generateWhyThisNumber(input, carbsCentral, contributors);
   
-  // Stratégie entraînement
-  const trainingStrategy = {
-    message: hypoglycemicRisk === 'critical'
-      ? 'Priorité : réduire la dépendance glucidique (travail VLamax) avant d\'optimiser la stratégie nutritionnelle.'
-      : hypoglycemicRisk === 'high'
-        ? 'Entraînement digestif recommandé. Tester la stratégie en conditions de course.'
-        : 'Stratégie nutritionnelle standard applicable. Affiner avec tests terrain.',
-    recommendations: hypoglycemicRisk === 'critical' || hypoglycemicRisk === 'high'
-      ? [
-          'Séances endurance basse intensité pour améliorer l\'oxydation lipidique',
-          'Travail spécifique pour abaisser la VLamax',
-          'Entraînement digestif progressif',
-          'Tests nutrition en situation de course'
-        ]
-      : [
-          'Tester la stratégie nutritionnelle à l\'entraînement',
-          'Varier les sources de glucides',
-          'Ajuster selon les conditions (chaleur, stress)'
-        ]
-  };
+  // Recommandations
+  const recommendations = generateRecommendations(glycogenRisk, sport, targetDurationHours);
   
-  // Warnings sport spécifiques
-  if (sport === 'cap' && carbsCentral >= 70) {
-    warnings.push('Besoins élevés en CAP — risque digestif. Entraînement digestif obligatoire.');
+  // Warnings supplémentaires
+  if (sport === 'cap' && carbsCentral >= 75) {
+    warnings.push("Besoins élevés en CAP — risque digestif. Entraînement digestif recommandé.");
   }
-  if (category === 'extreme_sprinter' || category === 'sprinter') {
-    warnings.push('Profil sprinter — forte dépendance glucidique. Considérer travail VLamax.');
+  if (vlamaxValue !== null && vlamaxValue > 0.60) {
+    warnings.push("Profil glycolytique — forte dépendance glucidique. Considérer travail VLamax.");
+  }
+  if (glycogenRisk === 'critical') {
+    warnings.push("Risque de déplétion élevé — stratégie nutritionnelle impérative.");
   }
   
   return {
     carbsMin,
     carbsMax,
     carbsCentral,
-    hypoglycemicRisk,
-    hypoglycemicRiskLabel: getRiskLabel(hypoglycemicRisk),
-    hypoglycemicRiskEmoji: getRiskEmoji(hypoglycemicRisk),
+    glycogenRisk,
+    glycogenRiskLabel: getRiskLabel(glycogenRisk),
+    glycogenRiskScore: riskScore,
     confidence,
     sport,
-    sportLabel: SPORT_LABELS[sport],
-    sportFactor,
-    estimatedDuration,
+    sportLabel: sport === 'cap' ? 'Course à Pied' : 'Vélo',
+    baseRate,
+    targetDurationHours,
+    targetIntensityPct,
     contributors,
-    trainingStrategy,
-    raceReadinessCap,
-    warnings
+    whyThisNumber,
+    recommendations,
+    warnings,
+    disclaimer: NUTRITION_PHILOSOPHY.disclaimer
   };
+}
+
+// =============================================
+// GÉNÉRATION TEXTES
+// =============================================
+
+function generateWhyThisNumber(
+  input: NutritionV2Input,
+  result: number,
+  contributors: NutritionContributor[]
+): string {
+  const parts: string[] = [];
+  
+  parts.push(`Ce chiffre de ${result} g/h est calculé à partir de votre poids (${input.weightKg} kg) et de votre profil métabolique.`);
+  
+  if (input.vlamaxValue !== null) {
+    if (input.vlamaxValue > 0.55) {
+      parts.push(`Votre VLamax élevée (${input.vlamaxValue.toFixed(2)}) indique une forte dépendance aux glucides.`);
+    } else if (input.vlamaxValue < 0.35) {
+      parts.push(`Votre VLamax basse (${input.vlamaxValue.toFixed(2)}) vous permet une économie glucidique naturelle.`);
+    }
+  }
+  
+  if (input.tteMin !== null && input.tteMin < 45) {
+    parts.push(`Votre TTE court (${input.tteMin} min) suggère une tolérance glycogène plus limitée.`);
+  }
+  
+  if (input.sport === 'cap') {
+    parts.push("En course à pied, le coût énergétique est supérieur au vélo à intensité égale.");
+  }
+  
+  return parts.join(" ");
+}
+
+function generateRecommendations(
+  risk: NutritionRiskV2,
+  sport: 'velo' | 'cap',
+  duration: number | null
+): string[] {
+  const recs: string[] = [];
+  
+  switch (risk) {
+    case 'low':
+      recs.push("Stratégie nutritionnelle standard applicable");
+      recs.push("Tester en conditions d'entraînement avant la course");
+      break;
+    case 'moderate':
+      recs.push("Planifier la stratégie nutritionnelle avec attention");
+      recs.push("Tester les produits et le timing en entraînement");
+      recs.push("Prévoir une marge de sécurité (+10%)");
+      break;
+    case 'high':
+      recs.push("Entraînement digestif progressif recommandé");
+      recs.push("Tester systématiquement en conditions de course");
+      recs.push("Considérer le travail métabolique (VLamax)");
+      recs.push("Fractionner les apports pour optimiser l'absorption");
+      break;
+    case 'critical':
+      recs.push("Stratégie nutritionnelle prioritaire et impérative");
+      recs.push("Entraînement digestif obligatoire sur plusieurs semaines");
+      recs.push("Travail métabolique pour réduire la dépendance glucidique");
+      recs.push("Consultation nutritionniste sportif recommandée");
+      break;
+  }
+  
+  if (sport === 'cap') {
+    recs.push("Privilégier les formes liquides ou gels très dilués");
+  }
+  
+  if (duration !== null && duration > 4) {
+    recs.push("Alterner glucides + sels minéraux sur la durée");
+    recs.push("Prévoir des apports solides si toléré");
+  }
+  
+  return recs;
 }
 
 // =============================================
@@ -367,26 +498,157 @@ export function computeNutritionV2(input: NutritionV2Input): NutritionPredictive
 
 export function getNutritionRiskColor(risk: NutritionRiskV2): string {
   switch (risk) {
-    case 'low': return 'text-green-600 dark:text-green-400';
-    case 'moderate': return 'text-amber-600 dark:text-amber-400';
-    case 'high': return 'text-orange-600 dark:text-orange-400';
-    case 'critical': return 'text-red-600 dark:text-red-400';
+    case 'low': return 'text-success';
+    case 'moderate': return 'text-primary';
+    case 'high': return 'text-warning';
+    case 'critical': return 'text-destructive';
   }
 }
 
 export function getNutritionBadgeClass(risk: NutritionRiskV2): string {
   switch (risk) {
     case 'low':
-      return 'bg-green-500/20 text-green-700 dark:text-green-300 border-green-500/50';
+      return 'bg-success/20 text-success border-success/50';
     case 'moderate':
-      return 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/50';
+      return 'bg-primary/20 text-primary border-primary/50';
     case 'high':
-      return 'bg-orange-500/20 text-orange-700 dark:text-orange-300 border-orange-500/50';
+      return 'bg-warning/20 text-warning border-warning/50';
     case 'critical':
-      return 'bg-red-500/20 text-red-700 dark:text-red-300 border-red-500/50';
+      return 'bg-destructive/20 text-destructive border-destructive/50';
   }
 }
 
 export function formatCarbsRange(nutrition: NutritionPredictiveV2): string {
   return `${nutrition.carbsMin}–${nutrition.carbsMax} g/h`;
 }
+
+export function getNutritionRiskIcon(risk: NutritionRiskV2): string {
+  switch (risk) {
+    case 'low': return '✅';
+    case 'moderate': return '⚠️';
+    case 'high': return '🔶';
+    case 'critical': return '🛑';
+  }
+}
+
+// =============================================
+// MODULE ACADEMY
+// =============================================
+
+export const ACADEMY_NUTRITION_MODULE = {
+  id: 'nutrition-predictive-v2',
+  title: 'Nutrition Prédictive V2',
+  icon: '🍎',
+  duration: '12 min',
+  
+  sections: [
+    {
+      id: 'principle',
+      title: 'Le principe',
+      content: `La nutrition prédictive V2 estime vos besoins glucidiques (g/h)
+en fonction de votre PROFIL MÉTABOLIQUE réel, pas de valeurs génériques.
+
+VLamax élevé → Plus de glucides nécessaires
+TTE court → Moins de tolérance aux stocks bas
+CAP → Coût supérieur au vélo à intensité égale`
+    },
+    {
+      id: 'formula',
+      title: 'La formule',
+      content: `TAUX DE BASE
+• Vélo : 0.9 × poids (kg)
+• CAP : 1.05 × poids (kg)
+
+MODULATIONS
+• VLamax < 0.35 : -10 g/h
+• VLamax > 0.55 : +10 à +20 g/h
+• TTE < 45 min : +10 g/h
+• TTE > 55 min : -5 g/h
+• Durée > 3h : +5 à +10 g/h
+
+BORNAGE : 40-100 g/h`
+    },
+    {
+      id: 'risk',
+      title: "L'indice de risque",
+      content: `Le risque de déplétion glycogène est calculé sur 4 facteurs :
+• VLamax > 0.55 : +1
+• TTE < 45 min : +1
+• Durée > 3h : +1
+• Sport = CAP : +1
+
+Score 0-1 → Faible
+Score 2 → Modéré
+Score 3 → Élevé
+Score 4 → Critique`
+    },
+    {
+      id: 'limits',
+      title: 'Limites et précautions',
+      content: `Ce module CONSEILLE, il n'automatise rien.
+
+Ces valeurs sont des ESTIMATIONS basées sur le profil métabolique.
+Ce n'est pas une prescription médicale.
+
+Toujours tester en entraînement avant une compétition.
+Consulter un nutritionniste sportif pour les cas critiques.`
+    }
+  ]
+};
+
+// =============================================
+// CONTENU PDF
+// =============================================
+
+export const PDF_NUTRITION_SECTION = {
+  title: 'Nutrition Prédictive V2',
+  subtitle: 'Estimation des besoins glucidiques',
+  
+  generateContent: (nutrition: NutritionPredictiveV2): string => {
+    return `BESOINS GLUCIDIQUES ESTIMÉS
+Plage recommandée : ${nutrition.carbsMin}–${nutrition.carbsMax} g/h
+Valeur centrale : ${nutrition.carbsCentral} g/h
+
+RISQUE DE DÉPLÉTION GLYCOGÈNE
+Niveau : ${nutrition.glycogenRiskLabel} (score ${nutrition.glycogenRiskScore}/4)
+
+CONTEXTE
+Sport : ${nutrition.sportLabel}
+Durée cible : ${nutrition.targetDurationHours ? nutrition.targetDurationHours + 'h' : 'Non spécifiée'}
+Intensité : ${nutrition.targetIntensityPct ? nutrition.targetIntensityPct + '%' : 'Non spécifiée'}
+
+POURQUOI CE CHIFFRE
+${nutrition.whyThisNumber}
+
+RECOMMANDATIONS
+${nutrition.recommendations.map(r => `• ${r}`).join('\n')}
+
+${nutrition.warnings.length > 0 ? `AVERTISSEMENTS\n${nutrition.warnings.map(w => `⚠️ ${w}`).join('\n')}` : ''}
+
+---
+${NUTRITION_PHILOSOPHY.disclaimer}`;
+  }
+};
+
+// =============================================
+// CHATBOT Q&A
+// =============================================
+
+export const NUTRITION_CHATBOT_QA = [
+  {
+    question: "Comment est calculé mon besoin en glucides ?",
+    answer: "Le calcul part de votre poids (0.9×kg pour vélo, 1.05×kg pour CAP), puis ajuste selon votre VLamax, TTE, durée prévue et intensité. Le résultat est borné entre 40 et 100 g/h."
+  },
+  {
+    question: "Pourquoi mon risque glycogène est élevé ?",
+    answer: "Le risque augmente avec : VLamax > 0.55 (+1), TTE < 45 min (+1), durée > 3h (+1), et sport = CAP (+1). Un score de 3-4 indique un risque élevé à critique."
+  },
+  {
+    question: "Ces valeurs remplacent-elles un nutritionniste ?",
+    answer: "Non. Ces valeurs sont des estimations basées sur votre profil métabolique. Pour une stratégie nutritionnelle personnalisée, consultez un nutritionniste sportif."
+  },
+  {
+    question: "Pourquoi la CAP demande plus de glucides que le vélo ?",
+    answer: "À intensité égale, la course à pied a un coût énergétique supérieur au vélo en raison de l'impact mécanique et du travail musculaire différent."
+  }
+];
