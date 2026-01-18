@@ -401,3 +401,31 @@ export {
   type IFSCAnnotation,
   type IFSCChatbotQA
 } from './ifsc';
+
+// Method Framework (Cadre Officiel Consolidé)
+export {
+  METHOD_OFFICIAL_POSITIONING,
+  PILLAR_MEASURED,
+  PILLAR_MODELED,
+  PILLAR_ADVISED,
+  METHOD_PILLARS,
+  PERFORMANCE_RANGES,
+  RANGE_RULE,
+  SCORE_DISPLAY_RULES,
+  SCORE_DISPLAY_FORMAT,
+  DASHBOARD_UI_RULE,
+  PDF_INTRO_PAGE,
+  ACADEMY_METHOD_FRAMEWORK,
+  CHATBOT_METHOD_RULES,
+  METHOD_FRAMEWORK_DOCUMENT,
+  getPillarForData,
+  getDataSourceBadge,
+  formatScoreWithRange,
+  getRangeCategory,
+  generateRangeJustification,
+  type DataPillar,
+  type PillarDefinition,
+  type RangeCategory as MethodRangeCategory,
+  type PerformanceRange,
+  type ScoreDisplayRule
+} from './methodFramework';
