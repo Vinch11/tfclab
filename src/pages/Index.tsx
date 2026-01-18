@@ -50,6 +50,10 @@ import { ChargeRecenteCard } from "@/components/ChargeRecenteCard";
 import { computeCRR } from "@/lib/chargeRecenteReference";
 import { SortableSectionsContainer } from "@/components/SortableSectionsContainer";
 
+// ✅ VLamax TFCL V2 - Calibration avec percentiles
+import { VLamaxV2DisplayCard } from "@/components/VLamaxV2DisplayCard";
+import { ObjectifPrincipal } from "@/lib/reference";
+
 // ✅ FIX 11 - Effective Refs (source unique de vérité)
 import { getEffectiveRefs, computeFtpKg, getMissingFields } from "@/lib/effectiveRefs";
 
@@ -708,6 +712,19 @@ const Index = () => {
                 vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
                 vlamax={vlamaxEffectif.value}
                 weeklyVolume={null}
+              />
+            ),
+          },
+          {
+            id: "vlamax-v2-calibration",
+            render: () => currentAthlete && vlamaxEffectif.value !== null && (
+              <VLamaxV2DisplayCard
+                objectif={(currentAthlete.goal || "IM") as ObjectifPrincipal}
+                vlamax={vlamaxEffectif.value}
+                vlamaxSource={vlamaxEffectif.source === "test" ? "test_terrain" : "estimation"}
+                vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? undefined}
+                sex={(legacyAthlete?.sexe === "F" ? "F" : "H")}
+                age={calculateAge(currentAthlete.birth_date) ?? undefined}
               />
             ),
           },
