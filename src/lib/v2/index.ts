@@ -104,7 +104,7 @@ export {
   type InjuryRiskV2Input
 } from './injuryRiskV2';
 
-// Injury Risk Unified (CAP & Vélo) — NEW
+// Injury Risk Unified TFCL™ (CAP & Vélo)
 export {
   // Philosophy & Constants
   INJURY_RISK_PHILOSOPHY,
@@ -113,6 +113,7 @@ export {
   INJURY_RISK_LEGAL_DISCLAIMER,
   
   // Compute functions
+  computeInjuryRiskTFCL,
   computeCAPInjuryRisk,
   computeBikeInjuryRisk,
   computePerformanceRiskPosition,
@@ -134,7 +135,9 @@ export {
   type InjuryRiskEnvelope,
   type CAPRiskInput,
   type BikeRiskInput,
-  type PerformanceRiskPosition
+  type PerformanceRiskPosition,
+  type InjuryRiskSport,
+  type InjuryRiskTFCLInput
 } from './injuryRiskUnified';
 
 // Academy V2
