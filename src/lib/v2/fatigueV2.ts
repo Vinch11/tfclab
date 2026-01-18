@@ -1,20 +1,23 @@
 /**
- * Fatigue Fonctionnelle V2 — Score explicable
+ * TWO FOR COACHING LAB METHOD™ — Fatigue Quantifiée V2
+ * 
+ * La fatigue est un ÉTAT MULTIFACTORIEL, pas une valeur unique.
+ * 
+ * TFCL utilise 3 PILIERS :
+ * 1. CHARGE — TSS_7d, évolution TSS
+ * 2. RÉPONSE — TTE effectif, Race Readiness fraîcheur
+ * 3. RESSENTI — Check-in fatigue / stress (1-10)
+ * 
+ * FORMULE V2 :
+ * Fatigue = 100 - moyenne pondérée (Charge 40%, Réponse 35%, Ressenti 25%)
  * 
  * Sources scientifiques :
  * - Impellizzeri F.M. et al. (2019) – Training load
  * - Halson S.L. (2014) – Recovery monitoring  
  * - Saw A.E. et al. (2016) – Subjective measures
- * 
- * FORMULE V2 — Composite pondéré explicite :
- * - Charge récente (35%)
- * - Stress subjectif (20%)
- * - Qualité récupération (20%)
- * - Durabilité récente (15%)
- * - Variabilité performances (10%)
  */
 
-import { PHYSIOLOGICAL_BOUNDS, CONFIDENCE_LEVELS } from './scientificConfig';
+import { METHOD_VERSION_DISPLAY } from './scientificGovernance';
 
 // =============================================
 // TYPES V2
@@ -22,7 +25,21 @@ import { PHYSIOLOGICAL_BOUNDS, CONFIDENCE_LEVELS } from './scientificConfig';
 
 export type FatigueLevelV2 = 'fresh' | 'functional' | 'elevated' | 'critical';
 
-export type FatigueOriginV2 = 'charge' | 'stress' | 'metabolic' | 'recovery' | 'mixed';
+export type FatiguePillarV2 = 'charge' | 'response' | 'feeling';
+
+export type FatigueOriginV2 = 'charge' | 'response' | 'feeling' | 'mixed';
+
+export interface FatiguePillarResult {
+  id: FatiguePillarV2;
+  label: string;
+  icon: string;
+  score: number;           // 0-100 (score normalisé du pilier)
+  weight: number;          // Poids dans la formule
+  contribution: number;    // score × weight
+  confidence: number;      // 0-1
+  explanation: string;
+  details: string[];
+}
 
 export interface FatigueFonctionnelleV2 {
   // Score global (0-100%)
@@ -41,23 +58,15 @@ export interface FatigueFonctionnelleV2 {
   origin: FatigueOriginV2;
   originLabel: string;
   
-  // Décomposition des composantes (0-100 chacune)
-  components: {
-    charge: FatigueComponentV2;
-    stress: FatigueComponentV2;
-    recovery: FatigueComponentV2;
-    durability: FatigueComponentV2;
-    variability: FatigueComponentV2;
+  // Décomposition par pilier
+  pillars: {
+    charge: FatiguePillarResult;
+    response: FatiguePillarResult;
+    feeling: FatiguePillarResult;
   };
   
-  // Contributions pondérées au score final
-  contributions: {
-    charge: number;
-    stress: number;
-    recovery: number;
-    durability: number;
-    variability: number;
-  };
+  // Explication "D'où vient ta fatigue aujourd'hui"
+  whyFatigued: string;
   
   // Recommandations (non automatiques)
   recommendations: string[];
@@ -66,64 +75,96 @@ export interface FatigueFonctionnelleV2 {
   trend: 'improving' | 'stable' | 'worsening' | null;
   trendLabel: string | null;
   
+  // Advisory layer triggers
+  advisoryTriggers: {
+    showAlert: boolean;
+    priorityRecovery: boolean;
+    suggestDeload: boolean;
+    injuryWarning: boolean;
+  };
+  
   // Avertissements
   warnings: string[];
-}
-
-export interface FatigueComponentV2 {
-  score: number;      // 0-100
-  weight: number;     // Poids dans la formule
-  label: string;
-  description: string;
-  confidence: number;
+  
+  // Disclaimer
+  disclaimer: string;
 }
 
 export interface FatigueV2Input {
-  // Charge
-  tss7d?: number | null;
-  tss7dHabituel?: number | null;
-  sessionCount7d?: number | null;
-  intensitySessions7d?: number | null;
+  // ===== PILIER 1: CHARGE =====
+  tss7d: number | null;               // TSS des 7 derniers jours
+  tssTarget: number | null;           // TSS cible/habituel (ex: 500)
+  tssTrend?: 'rising' | 'stable' | 'falling' | null;  // Tendance TSS
   
-  // Stress subjectif (1-10)
-  stressLevel?: number | null;
+  // ===== PILIER 2: RÉPONSE =====
+  tteEffectif: number | null;         // TTE effectif (min)
+  tteTarget?: number | null;          // TTE cible
+  tteStability?: 'stable' | 'slight_drop' | 'significant_drop' | null;
+  raceReadinessFreshness?: number | null;  // 0-100
   
-  // Récupération
-  sleepQuality?: number | null;     // 1-10
-  recoveryRating?: number | null;   // 1-10
-  hrv?: number | null;              // Si disponible
+  // ===== PILIER 3: RESSENTI =====
+  checkinFatigue?: number | null;     // 1-10 (fatigue perçue)
+  checkinStress?: number | null;      // 1-10 (stress perçu)
+  sleepQuality?: number | null;       // 1-10
   
-  // Durabilité
-  tteMin?: number | null;
-  tteTarget?: number | null;
-  
-  // Variabilité performances
-  performanceVariability?: number | null; // % d'écart-type
-  
-  // Fatigue perçue directe (1-10)
-  fatiguePercue?: number | null;
-  
-  // VLamax pour profil métabolique
-  vlamaxValue?: number | null;
-  
-  // Contexte
+  // ===== CONTEXTE =====
   age?: number | null;
   objectif?: string;
-  
-  // Historique (pour tendance)
-  previousScore?: number | null;
+  previousScore?: number | null;      // Pour calcul tendance
 }
 
 // =============================================
-// CONSTANTES
+// CONSTANTES OFFICIELLES TFCL™
 // =============================================
 
-const WEIGHTS = {
-  charge: 0.35,
-  stress: 0.20,
-  recovery: 0.20,
-  durability: 0.15,
-  variability: 0.10,
+export const FATIGUE_PHILOSOPHY = {
+  concept: `La fatigue est un ÉTAT MULTIFACTORIEL, pas une valeur unique.
+TFCL utilise 3 piliers : Charge, Réponse, Ressenti.`,
+  
+  disclaimer: `La fatigue est une estimation contextuelle,
+pas un diagnostic médical.`,
+  
+  formula: `Fatigue = 100 - moyenne pondérée :
+• 0.40 × Score_Charge
+• 0.35 × Score_Réponse  
+• 0.25 × Score_Ressenti`
+};
+
+export const FATIGUE_SCALE = {
+  fresh: { 
+    min: 0, max: 30, 
+    label: "Frais", 
+    color: 'success' as const,
+    emoji: '🟢',
+    message: "Fraîcheur maximale. Potentiel pleinement exprimable."
+  },
+  functional: { 
+    min: 30, max: 50, 
+    label: "Fatigue fonctionnelle", 
+    color: 'info' as const,
+    emoji: '🟡',
+    message: "Fatigue normale d'entraînement. Charge en absorption."
+  },
+  elevated: { 
+    min: 50, max: 70, 
+    label: "Fatigue accumulée", 
+    color: 'warning' as const,
+    emoji: '🟠',
+    message: "Attention qualité des séances. Surveiller récupération."
+  },
+  critical: { 
+    min: 70, max: 100, 
+    label: "Risque surcharge", 
+    color: 'destructive' as const,
+    emoji: '🔴',
+    message: "Zone rouge. Priorité absolue à la récupération."
+  }
+};
+
+const WEIGHTS: Record<FatiguePillarV2, number> = {
+  charge: 0.40,
+  response: 0.35,
+  feeling: 0.25
 };
 
 // =============================================
@@ -133,66 +174,42 @@ const WEIGHTS = {
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 
 function getLevel(score: number): FatigueLevelV2 {
-  if (score <= PHYSIOLOGICAL_BOUNDS.FATIGUE.FRESH_THRESHOLD) return 'fresh';
-  if (score <= PHYSIOLOGICAL_BOUNDS.FATIGUE.FUNCTIONAL_THRESHOLD) return 'functional';
-  if (score <= PHYSIOLOGICAL_BOUNDS.FATIGUE.HIGH_THRESHOLD) return 'elevated';
+  if (score < 30) return 'fresh';
+  if (score < 50) return 'functional';
+  if (score < 70) return 'elevated';
   return 'critical';
 }
 
-function getLevelLabel(level: FatigueLevelV2): string {
-  switch (level) {
-    case 'fresh': return 'Frais';
-    case 'functional': return 'Fonctionnelle';
-    case 'elevated': return 'Élevée';
-    case 'critical': return 'Critique';
-  }
+function getLevelInfo(level: FatigueLevelV2) {
+  return FATIGUE_SCALE[level];
 }
 
-function getLevelEmoji(level: FatigueLevelV2): string {
-  switch (level) {
-    case 'fresh': return '🟢';
-    case 'functional': return '🟡';
-    case 'elevated': return '🟠';
-    case 'critical': return '🔴';
-  }
-}
-
-function getLevelDescription(level: FatigueLevelV2): string {
-  switch (level) {
-    case 'fresh':
-      return 'Fraîcheur maximale. Potentiel pleinement exprimable. Conditions optimales.';
-    case 'functional':
-      return 'Fatigue gérable. Charge en cours d\'absorption. Capacité légèrement réduite.';
-    case 'elevated':
-      return 'Attention qualité des séances. Risque stagnation si maintenue.';
-    case 'critical':
-      return 'Zone rouge. Priorité absolue à la récupération. Risque surmenage.';
-  }
-}
-
-function getOrigin(components: FatigueV2Input & { computed: Record<string, number> }): FatigueOriginV2 {
-  const { computed } = components;
+function getOrigin(pillars: { charge: FatiguePillarResult; response: FatiguePillarResult; feeling: FatiguePillarResult }): FatigueOriginV2 {
+  const scores = [
+    { id: 'charge' as const, score: pillars.charge.score },
+    { id: 'response' as const, score: pillars.response.score },
+    { id: 'feeling' as const, score: pillars.feeling.score }
+  ];
   
-  const max = Math.max(
-    computed.charge || 0,
-    computed.stress || 0,
-    computed.recovery || 0,
-    computed.durability || 0
-  );
+  // Trouver le pilier avec le score le plus haut (= plus fatigué)
+  scores.sort((a, b) => b.score - a.score);
   
-  if (max === computed.charge) return 'charge';
-  if (max === computed.stress) return 'stress';
-  if (max === computed.recovery) return 'recovery';
-  if (max === computed.durability) return 'metabolic';
-  return 'mixed';
+  const maxScore = scores[0].score;
+  const secondScore = scores[1].score;
+  
+  // Si les deux premiers sont proches, c'est mixte
+  if (maxScore - secondScore < 10) {
+    return 'mixed';
+  }
+  
+  return scores[0].id;
 }
 
 function getOriginLabel(origin: FatigueOriginV2): string {
   switch (origin) {
     case 'charge': return '📊 Charge récente';
-    case 'stress': return '😰 Stress subjectif';
-    case 'metabolic': return '🧬 Profil métabolique';
-    case 'recovery': return '😴 Qualité récupération';
+    case 'response': return '🧬 Réponse physiologique';
+    case 'feeling': return '😰 Ressenti';
     case 'mixed': return '⚖️ Multifactoriel';
   }
 }
@@ -216,173 +233,297 @@ function getTrendLabel(trend: 'improving' | 'stable' | 'worsening' | null): stri
 }
 
 // =============================================
-// CALCUL DES COMPOSANTES
+// CALCUL PILIER 1 : CHARGE
 // =============================================
 
-function computeChargeComponent(input: FatigueV2Input): FatigueComponentV2 {
-  const { tss7d, tss7dHabituel, sessionCount7d, intensitySessions7d } = input;
-  let score = 40;
+function computeChargePillar(input: FatigueV2Input): FatiguePillarResult {
+  const { tss7d, tssTarget, tssTrend } = input;
+  
+  let score = 50; // Default neutre
   let confidence = 0.5;
+  const details: string[] = [];
   
-  if (tss7d !== null && tss7d !== undefined) {
-    const ref = tss7dHabituel ?? 450;
-    const ratio = tss7d / ref;
+  // Score basé sur ratio TSS
+  if (tss7d !== null && tss7d >= 0) {
+    const target = tssTarget ?? 450; // Référence par défaut
+    const ratio = tss7d / target;
     
-    if (ratio <= 0.5) score = 10;
-    else if (ratio <= 0.7) score = 20;
-    else if (ratio <= 0.9) score = 35;
-    else if (ratio <= 1.1) score = 50;
-    else if (ratio <= 1.3) score = 70;
-    else if (ratio <= 1.5) score = 85;
-    else score = 95;
+    // Charge_score = clamp(TSS_7d / TSS_cible × 100, 0, 120)
+    score = clamp(ratio * 100, 0, 120);
     
-    confidence = tss7dHabituel ? 0.9 : 0.7;
+    // Normaliser sur 0-100 pour le calcul final
+    score = clamp(score, 0, 100);
+    
+    confidence = tssTarget !== null ? 0.85 : 0.65;
+    details.push(`TSS 7j: ${tss7d} (cible: ${target})`);
+    details.push(`Ratio: ${(ratio * 100).toFixed(0)}%`);
+  } else {
+    details.push("TSS non disponible — estimation par défaut");
   }
   
-  // Ajustement densité séances
-  if (sessionCount7d !== null && sessionCount7d !== undefined) {
-    if (sessionCount7d >= 10) score += 10;
-    else if (sessionCount7d >= 7) score += 5;
-    else if (sessionCount7d <= 3) score -= 5;
+  // Ajustement tendance
+  if (tssTrend === 'rising') {
+    score += 10;
+    details.push("Tendance TSS ↑ (+10)");
+  } else if (tssTrend === 'falling') {
+    score -= 5;
+    details.push("Tendance TSS ↓ (-5)");
   }
   
-  // Ajustement intensité
-  if (intensitySessions7d !== null && intensitySessions7d !== undefined) {
-    if (intensitySessions7d >= 4) score += 10;
-    else if (intensitySessions7d >= 3) score += 5;
-    else if (intensitySessions7d <= 1) score -= 5;
-  }
+  score = clamp(score, 0, 100);
+  
+  const explanation = score > 70 
+    ? "Charge récente élevée — accumulation fatigue"
+    : score > 50 
+      ? "Charge modérée — fatigue normale d'entraînement"
+      : "Charge contrôlée — récupération favorisée";
   
   return {
-    score: clamp(score, 0, 100),
-    weight: WEIGHTS.charge,
-    label: 'Charge récente',
-    description: 'TSS 7j, densité et intensité des séances',
-    confidence
-  };
-}
-
-function computeStressComponent(input: FatigueV2Input): FatigueComponentV2 {
-  const { stressLevel, fatiguePercue } = input;
-  let score = 45;
-  let confidence = 0.4;
-  
-  if (stressLevel !== null && stressLevel !== undefined) {
-    score = clamp((stressLevel - 1) * 100 / 9, 0, 100);
-    confidence = 0.8;
-  } else if (fatiguePercue !== null && fatiguePercue !== undefined) {
-    score = clamp((fatiguePercue - 1) * 100 / 9, 0, 100);
-    confidence = 0.7;
-  }
-  
-  return {
+    id: 'charge',
+    label: 'Charge',
+    icon: '📊',
     score,
-    weight: WEIGHTS.stress,
-    label: 'Stress subjectif',
-    description: 'Niveau de stress perçu (1-10)',
-    confidence
+    weight: WEIGHTS.charge,
+    contribution: Math.round(score * WEIGHTS.charge),
+    confidence,
+    explanation,
+    details
   };
 }
 
-function computeRecoveryComponent(input: FatigueV2Input): FatigueComponentV2 {
-  const { sleepQuality, recoveryRating, hrv } = input;
+// =============================================
+// CALCUL PILIER 2 : RÉPONSE
+// =============================================
+
+function computeResponsePillar(input: FatigueV2Input): FatiguePillarResult {
+  const { tteEffectif, tteTarget, tteStability, raceReadinessFreshness } = input;
+  
+  let score = 50;
+  let confidence = 0.5;
+  const details: string[] = [];
+  
+  // Score basé sur stabilité TTE
+  if (tteStability !== null && tteStability !== undefined) {
+    switch (tteStability) {
+      case 'stable':
+        score = 20; // 80-100 inversé
+        details.push("TTE stable → réponse optimale");
+        confidence = 0.80;
+        break;
+      case 'slight_drop':
+        score = 50; // 60-80 inversé
+        details.push("TTE légèrement diminué → fatigue fonctionnelle");
+        confidence = 0.75;
+        break;
+      case 'significant_drop':
+        score = 80; // <60 inversé
+        details.push("TTE en chute nette → fatigue significative");
+        confidence = 0.85;
+        break;
+    }
+  } else if (tteEffectif !== null && tteTarget !== null) {
+    // Calcul basé sur ratio TTE/cible
+    const ratio = tteEffectif / tteTarget;
+    if (ratio >= 1.0) {
+      score = 20;
+      details.push(`TTE ${tteEffectif} min ≥ cible ${tteTarget} min`);
+    } else if (ratio >= 0.9) {
+      score = 35;
+      details.push(`TTE légèrement sous la cible (${(ratio * 100).toFixed(0)}%)`);
+    } else if (ratio >= 0.8) {
+      score = 55;
+      details.push(`TTE diminué (${(ratio * 100).toFixed(0)}% de la cible)`);
+    } else {
+      score = 75;
+      details.push(`TTE en chute (${(ratio * 100).toFixed(0)}% de la cible)`);
+    }
+    confidence = 0.70;
+  } else if (tteEffectif !== null) {
+    // TTE sans cible — estimation
+    const defaultTarget = 50;
+    const ratio = tteEffectif / defaultTarget;
+    score = clamp(100 - ratio * 100, 0, 100);
+    details.push(`TTE ${tteEffectif} min (cible estimée: ${defaultTarget} min)`);
+    confidence = 0.55;
+  } else {
+    details.push("TTE non disponible");
+  }
+  
+  // Intégration Race Readiness fraîcheur
+  if (raceReadinessFreshness !== null && raceReadinessFreshness !== undefined) {
+    // Fraîcheur élevée = moins fatigué
+    const freshnessScore = clamp(100 - raceReadinessFreshness, 0, 100);
+    score = (score + freshnessScore) / 2;
+    details.push(`Fraîcheur Race Readiness: ${raceReadinessFreshness}%`);
+    confidence = Math.max(confidence, 0.70);
+  }
+  
+  score = clamp(score, 0, 100);
+  
+  const explanation = score > 60
+    ? "Réponse physiologique dégradée — durabilité impactée"
+    : score > 40
+      ? "Réponse normale — capacités maintenues"
+      : "Réponse optimale — fraîcheur physiologique";
+  
+  return {
+    id: 'response',
+    label: 'Réponse',
+    icon: '🧬',
+    score,
+    weight: WEIGHTS.response,
+    contribution: Math.round(score * WEIGHTS.response),
+    confidence,
+    explanation,
+    details
+  };
+}
+
+// =============================================
+// CALCUL PILIER 3 : RESSENTI
+// =============================================
+
+function computeFeelingPillar(input: FatigueV2Input): FatiguePillarResult {
+  const { checkinFatigue, checkinStress, sleepQuality } = input;
+  
   let score = 50;
   let confidence = 0.4;
+  const details: string[] = [];
   let factors = 0;
   
-  if (sleepQuality !== null && sleepQuality !== undefined) {
-    // Inverser : qualité élevée = fatigue basse
-    score = clamp(100 - (sleepQuality - 1) * 100 / 9, 0, 100);
+  // Ressenti_score = (10 - stress) × 10
+  if (checkinStress !== null && checkinStress !== undefined) {
+    const stressScore = clamp((checkinStress - 1) / 9 * 100, 0, 100);
+    score = stressScore;
+    details.push(`Stress perçu: ${checkinStress}/10`);
     confidence = 0.75;
     factors++;
   }
   
-  if (recoveryRating !== null && recoveryRating !== undefined) {
-    const recoveryScore = clamp(100 - (recoveryRating - 1) * 100 / 9, 0, 100);
-    score = factors > 0 ? (score + recoveryScore) / 2 : recoveryScore;
+  if (checkinFatigue !== null && checkinFatigue !== undefined) {
+    const fatigueScore = clamp((checkinFatigue - 1) / 9 * 100, 0, 100);
+    score = factors > 0 ? (score + fatigueScore) / 2 : fatigueScore;
+    details.push(`Fatigue perçue: ${checkinFatigue}/10`);
     confidence = Math.max(confidence, 0.75);
     factors++;
   }
   
-  // HRV (si disponible) — complexe, simplification
-  if (hrv !== null && hrv !== undefined) {
-    // HRV bas = stress/fatigue, HRV haut = récupération
-    // Normalisation approximative sur 20-100
-    const hrvNorm = clamp((hrv - 20) / 80, 0, 1);
-    const hrvScore = 100 - hrvNorm * 100;
-    score = factors > 0 ? (score + hrvScore) / 2 : hrvScore;
-    confidence = 0.85;
+  if (sleepQuality !== null && sleepQuality !== undefined) {
+    // Inverser : qualité élevée = moins fatigué
+    const sleepScore = clamp(100 - ((sleepQuality - 1) / 9 * 100), 0, 100);
+    score = factors > 0 ? (score * 0.7 + sleepScore * 0.3) : sleepScore;
+    details.push(`Qualité sommeil: ${sleepQuality}/10`);
+    confidence = Math.max(confidence, 0.70);
+    factors++;
   }
   
+  if (factors === 0) {
+    details.push("Aucun check-in disponible — estimation par défaut");
+  }
+  
+  score = clamp(score, 0, 100);
+  
+  const explanation = score > 60
+    ? "Ressenti de fatigue élevé — récupération prioritaire"
+    : score > 40
+      ? "Ressenti modéré — surveillance recommandée"
+      : "Bon ressenti — état subjectif favorable";
+  
   return {
+    id: 'feeling',
+    label: 'Ressenti',
+    icon: '😊',
     score,
-    weight: WEIGHTS.recovery,
-    label: 'Qualité récupération',
-    description: 'Sommeil, ressenti, HRV',
-    confidence
+    weight: WEIGHTS.feeling,
+    contribution: Math.round(score * WEIGHTS.feeling),
+    confidence,
+    explanation,
+    details
   };
 }
 
-function computeDurabilityComponent(input: FatigueV2Input): FatigueComponentV2 {
-  const { tteMin, tteTarget, vlamaxValue } = input;
-  let score = 50;
-  let confidence = 0.4;
+// =============================================
+// GÉNÉRATION TEXTES
+// =============================================
+
+function generateWhyFatigued(
+  score: number,
+  pillars: { charge: FatiguePillarResult; response: FatiguePillarResult; feeling: FatiguePillarResult },
+  origin: FatigueOriginV2
+): string {
+  const level = getLevel(score);
   
-  if (tteMin !== null && tteMin !== undefined) {
-    const target = tteTarget ?? 50;
-    const ratio = tteMin / target;
-    
-    if (ratio >= 1.1) score = 15;
-    else if (ratio >= 1.0) score = 25;
-    else if (ratio >= 0.9) score = 40;
-    else if (ratio >= 0.8) score = 55;
-    else if (ratio >= 0.7) score = 75;
-    else score = 90;
-    
-    confidence = 0.75;
+  if (level === 'fresh') {
+    return "Tu es frais ! Tous les indicateurs sont au vert. C'est le moment idéal pour les séances clés.";
   }
   
-  // Ajustement VLamax
-  if (vlamaxValue !== null && vlamaxValue !== undefined) {
-    if (vlamaxValue >= 0.55) score += 10; // Glycolytique = fatigue rapide
-    else if (vlamaxValue >= 0.45) score += 5;
-    else if (vlamaxValue <= 0.30) score -= 10;
-    else if (vlamaxValue <= 0.35) score -= 5;
-    
-    confidence = Math.max(confidence, 0.65);
+  const parts: string[] = [];
+  
+  if (pillars.charge.score > 60) {
+    parts.push(`ta charge récente est élevée (${pillars.charge.score}%)`);
+  }
+  if (pillars.response.score > 60) {
+    parts.push(`ta réponse physiologique montre des signes de fatigue`);
+  }
+  if (pillars.feeling.score > 60) {
+    parts.push(`ton ressenti indique de la fatigue`);
   }
   
-  return {
-    score: clamp(score, 0, 100),
-    weight: WEIGHTS.durability,
-    label: 'Durabilité récente',
-    description: 'TTE vs cible + profil métabolique',
-    confidence
-  };
+  if (parts.length === 0) {
+    return "Fatigue modérée, probablement liée à l'accumulation normale d'entraînement.";
+  }
+  
+  const mainReason = parts.join(", ");
+  return `Aujourd'hui, ta fatigue vient principalement de : ${mainReason}.`;
 }
 
-function computeVariabilityComponent(input: FatigueV2Input): FatigueComponentV2 {
-  const { performanceVariability } = input;
-  let score = 40;
-  let confidence = 0.3;
+function generateRecommendations(
+  score: number,
+  pillars: { charge: FatiguePillarResult; response: FatiguePillarResult; feeling: FatiguePillarResult }
+): string[] {
+  const level = getLevel(score);
+  const recs: string[] = [];
   
-  if (performanceVariability !== null && performanceVariability !== undefined) {
-    // Variabilité élevée = fatigue probable
-    if (performanceVariability <= 3) score = 20;
-    else if (performanceVariability <= 5) score = 35;
-    else if (performanceVariability <= 8) score = 50;
-    else if (performanceVariability <= 12) score = 70;
-    else score = 85;
-    
-    confidence = 0.7;
+  if (level === 'fresh') {
+    recs.push("Profiter de cette fraîcheur pour les séances qualitatives");
+    return recs;
   }
   
+  if (level === 'functional') {
+    recs.push("Maintenir le plan d'entraînement avec surveillance");
+    if (pillars.feeling.score > 50) {
+      recs.push("Attention au ressenti — écouter son corps");
+    }
+    return recs;
+  }
+  
+  // Elevated ou Critical
+  if (pillars.charge.score > 60) {
+    recs.push("Réduire la charge de 20-30% cette semaine");
+  }
+  if (pillars.response.score > 60) {
+    recs.push("Allonger les temps de récupération entre séances");
+  }
+  if (pillars.feeling.score > 60) {
+    recs.push("Prioriser le sommeil (7-9h) et la gestion du stress");
+  }
+  
+  if (level === 'critical') {
+    recs.push("Semaine de récupération active fortement recommandée");
+    recs.push("Envisager consultation si persistance > 7 jours");
+  }
+  
+  return recs;
+}
+
+function generateAdvisoryTriggers(score: number, trend: 'improving' | 'stable' | 'worsening' | null) {
+  const level = getLevel(score);
+  
   return {
-    score,
-    weight: WEIGHTS.variability,
-    label: 'Variabilité performances',
-    description: 'Écart-type des performances récentes',
-    confidence
+    showAlert: score > 60,
+    priorityRecovery: score > 60,
+    suggestDeload: score > 75,
+    injuryWarning: score > 75 || (score > 60 && trend === 'worsening')
   };
 }
 
@@ -393,103 +534,76 @@ function computeVariabilityComponent(input: FatigueV2Input): FatigueComponentV2 
 export function computeFatigueV2(input: FatigueV2Input): FatigueFonctionnelleV2 {
   const warnings: string[] = [];
   
-  // Calcul composantes
-  const charge = computeChargeComponent(input);
-  const stress = computeStressComponent(input);
-  const recovery = computeRecoveryComponent(input);
-  const durability = computeDurabilityComponent(input);
-  const variability = computeVariabilityComponent(input);
+  // Calcul des 3 piliers
+  const chargePillar = computeChargePillar(input);
+  const responsePillar = computeResponsePillar(input);
+  const feelingPillar = computeFeelingPillar(input);
   
-  // Contributions pondérées
-  const contributions = {
-    charge: Math.round(charge.score * charge.weight),
-    stress: Math.round(stress.score * stress.weight),
-    recovery: Math.round(recovery.score * recovery.weight),
-    durability: Math.round(durability.score * durability.weight),
-    variability: Math.round(variability.score * variability.weight),
+  const pillars = {
+    charge: chargePillar,
+    response: responsePillar,
+    feeling: feelingPillar
   };
   
-  // Score final
+  // Score final = moyenne pondérée des piliers
   const rawScore = 
-    charge.score * charge.weight +
-    stress.score * stress.weight +
-    recovery.score * recovery.weight +
-    durability.score * durability.weight +
-    variability.score * variability.weight;
+    chargePillar.score * chargePillar.weight +
+    responsePillar.score * responsePillar.weight +
+    feelingPillar.score * feelingPillar.weight;
   
   const score = clamp(Math.round(rawScore), 0, 100);
   
-  // Confiance moyenne
+  // Confiance moyenne pondérée
   const confidence = clamp(
-    charge.confidence * charge.weight +
-    stress.confidence * stress.weight +
-    recovery.confidence * recovery.weight +
-    durability.confidence * durability.weight +
-    variability.confidence * variability.weight,
-    0, 1
+    chargePillar.confidence * chargePillar.weight +
+    responsePillar.confidence * responsePillar.weight +
+    feelingPillar.confidence * feelingPillar.weight,
+    0.4, 0.95
   );
   
-  // Niveau
+  // Niveau et infos
   const level = getLevel(score);
+  const levelInfo = getLevelInfo(level);
   
-  // Origine
-  const computed = {
-    charge: contributions.charge,
-    stress: contributions.stress,
-    recovery: contributions.recovery,
-    durability: contributions.durability
-  };
-  const origin = getOrigin({ ...input, computed });
+  // Origine principale
+  const origin = getOrigin(pillars);
   
   // Tendance
   const trend = getTrend(score, input.previousScore ?? null);
   
-  // Recommandations
-  const recommendations: string[] = [];
-  if (level === 'elevated' || level === 'critical') {
-    if (contributions.charge >= 30) {
-      recommendations.push('Réduire la charge de 20-30% cette semaine');
-    }
-    if (contributions.stress >= 15) {
-      recommendations.push('Intégrer techniques de gestion du stress');
-    }
-    if (contributions.recovery >= 15) {
-      recommendations.push('Prioriser qualité du sommeil (7-9h)');
-    }
-    if (level === 'critical') {
-      recommendations.push('Semaine de récupération active recommandée');
-    }
-  }
+  // Génération textes
+  const whyFatigued = generateWhyFatigued(score, pillars, origin);
+  const recommendations = generateRecommendations(score, pillars);
+  const advisoryTriggers = generateAdvisoryTriggers(score, trend);
   
   // Warnings
   if (level === 'critical' && trend === 'worsening') {
-    warnings.push('Fatigue critique en aggravation — intervention urgente');
+    warnings.push("Fatigue critique en aggravation — intervention urgente recommandée");
   }
-  if (contributions.charge >= 35 && contributions.stress >= 15) {
-    warnings.push('Cumul charge + stress élevé — risque de surmenage');
+  if (chargePillar.score > 70 && feelingPillar.score > 70) {
+    warnings.push("Cumul charge + ressenti élevé — risque de surmenage");
+  }
+  if (advisoryTriggers.injuryWarning) {
+    warnings.push("Risque blessure accru — prudence sur les intensités");
   }
   
   return {
     score,
     level,
-    levelLabel: getLevelLabel(level),
-    levelEmoji: getLevelEmoji(level),
-    levelDescription: getLevelDescription(level),
+    levelLabel: levelInfo.label,
+    levelEmoji: levelInfo.emoji,
+    levelDescription: levelInfo.message,
     confidence,
     origin,
     originLabel: getOriginLabel(origin),
-    components: {
-      charge,
-      stress,
-      recovery,
-      durability,
-      variability
-    },
-    contributions,
+    pillars,
+    whyFatigued,
     recommendations,
     trend,
     trendLabel: getTrendLabel(trend),
-    warnings
+    advisoryTriggers,
+    warnings,
+    disclaimer: FATIGUE_PHILOSOPHY.disclaimer
   };
 }
 
@@ -499,29 +613,213 @@ export function computeFatigueV2(input: FatigueV2Input): FatigueFonctionnelleV2 
 
 export function getFatigueLevelColor(level: FatigueLevelV2): string {
   switch (level) {
-    case 'fresh': return 'text-green-600 dark:text-green-400';
-    case 'functional': return 'text-amber-600 dark:text-amber-400';
-    case 'elevated': return 'text-orange-600 dark:text-orange-400';
-    case 'critical': return 'text-red-600 dark:text-red-400';
+    case 'fresh': return 'text-success';
+    case 'functional': return 'text-primary';
+    case 'elevated': return 'text-warning';
+    case 'critical': return 'text-destructive';
   }
 }
 
 export function getFatigueBadgeClass(level: FatigueLevelV2): string {
   switch (level) {
     case 'fresh':
-      return 'bg-green-500/20 text-green-700 dark:text-green-300 border-green-500/50';
+      return 'bg-success/20 text-success border-success/50';
     case 'functional':
-      return 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/50';
+      return 'bg-primary/20 text-primary border-primary/50';
     case 'elevated':
-      return 'bg-orange-500/20 text-orange-700 dark:text-orange-300 border-orange-500/50';
+      return 'bg-warning/20 text-warning border-warning/50';
     case 'critical':
-      return 'bg-red-500/20 text-red-700 dark:text-red-300 border-red-500/50';
+      return 'bg-destructive/20 text-destructive border-destructive/50';
   }
 }
 
 export function getFatigueProgressColor(score: number): string {
-  if (score <= 30) return 'bg-green-500';
-  if (score <= 55) return 'bg-amber-500';
-  if (score <= 75) return 'bg-orange-500';
-  return 'bg-red-500';
+  if (score < 30) return 'bg-success';
+  if (score < 50) return 'bg-primary';
+  if (score < 70) return 'bg-warning';
+  return 'bg-destructive';
+}
+
+export function getFatigueIcon(level: FatigueLevelV2): string {
+  return FATIGUE_SCALE[level].emoji;
+}
+
+// =============================================
+// MODULE ACADEMY
+// =============================================
+
+export const ACADEMY_FATIGUE_MODULE = {
+  id: 'fatigue-quantifiee',
+  title: 'Comprendre la fatigue quantifiée',
+  icon: '😴',
+  duration: '12 min',
+  
+  sections: [
+    {
+      id: 'concept',
+      title: 'Le concept',
+      content: `La fatigue n'est PAS un chiffre unique.
+C'est un ÉTAT MULTIFACTORIEL basé sur 3 piliers :
+
+📊 CHARGE — Volume et intensité récents (TSS)
+🧬 RÉPONSE — Comment ton corps répond (TTE, fraîcheur)
+😊 RESSENTI — Ce que tu ressens (stress, sommeil)`
+    },
+    {
+      id: 'formula',
+      title: 'La formule TFCL™',
+      content: `Fatigue = moyenne pondérée des 3 piliers :
+
+• Charge : 40%
+• Réponse : 35%  
+• Ressenti : 25%
+
+Chaque pilier est normalisé sur 0-100.
+Le score final est également sur 0-100.`
+    },
+    {
+      id: 'interpretation',
+      title: 'Interprétation',
+      content: `< 30 → FRAIS
+Potentiel pleinement exprimable. Moment idéal pour les séances clés.
+
+30-50 → FATIGUE FONCTIONNELLE
+Fatigue normale d'entraînement. Charge en cours d'absorption.
+
+50-70 → FATIGUE ACCUMULÉE
+Attention à la qualité des séances. Risque stagnation.
+
+> 70 → RISQUE SURCHARGE
+Zone rouge. Priorité absolue à la récupération.`
+    },
+    {
+      id: 'errors',
+      title: 'Erreurs fréquentes',
+      content: `❌ "Score bas = pas assez d'entraînement"
+→ Non, score bas = fraîcheur = opportunité de performance
+
+❌ "Je me sens bien donc pas fatigué"
+→ Le ressenti n'est qu'un pilier. Charge et réponse comptent aussi.
+
+❌ "Score élevé = je dois m'arrêter"
+→ Non, score élevé = adapter, pas forcément stopper.`
+    },
+    {
+      id: 'coach-cases',
+      title: 'Cas pratiques coach',
+      content: `CAS 1 : Athlète à 65% fatigue, ressenti OK
+→ La charge et/ou la réponse sont élevées. Surveiller TTE.
+
+CAS 2 : Athlète à 45% fatigue, mauvais ressenti
+→ Fatigue fonctionnelle normale mais stress perçu élevé.
+→ Vérifier facteurs extra-sportifs.
+
+CAS 3 : Athlète à 80% fatigue depuis 5 jours
+→ Surcharge probable. Semaine récup active recommandée.`
+    }
+  ]
+};
+
+// =============================================
+// CONTENU PDF
+// =============================================
+
+export const PDF_FATIGUE_SECTION = {
+  title: 'Fatigue Quantifiée V2',
+  subtitle: 'État multifactoriel TFCL™',
+  
+  generateContent: (fatigue: FatigueFonctionnelleV2, history14d?: number[]): string => {
+    let content = `SCORE ACTUEL
+Fatigue : ${fatigue.score}% — ${fatigue.levelLabel}
+Confiance : ${Math.round(fatigue.confidence * 100)}%
+Origine principale : ${fatigue.originLabel}
+
+DÉCOMPOSITION PAR PILIER
+📊 Charge : ${fatigue.pillars.charge.score}% (×${fatigue.pillars.charge.weight} = ${fatigue.pillars.charge.contribution}%)
+🧬 Réponse : ${fatigue.pillars.response.score}% (×${fatigue.pillars.response.weight} = ${fatigue.pillars.response.contribution}%)
+😊 Ressenti : ${fatigue.pillars.feeling.score}% (×${fatigue.pillars.feeling.weight} = ${fatigue.pillars.feeling.contribution}%)
+
+EXPLICATION
+${fatigue.whyFatigued}
+
+RECOMMANDATIONS
+${fatigue.recommendations.map(r => `• ${r}`).join('\n')}
+`;
+
+    if (history14d && history14d.length > 0) {
+      content += `
+HISTORIQUE 14 JOURS
+${history14d.map((s, i) => `J-${14 - i}: ${s}%`).join(' | ')}
+
+TENDANCE
+${fatigue.trendLabel || 'Non disponible'}
+`;
+    }
+
+    if (fatigue.warnings.length > 0) {
+      content += `
+AVERTISSEMENTS
+${fatigue.warnings.map(w => `⚠️ ${w}`).join('\n')}
+`;
+    }
+
+    content += `
+---
+${fatigue.disclaimer}`;
+
+    return content;
+  },
+  
+  generateEvolutionPrevisible: (currentScore: number, trend: string | null): string => {
+    if (trend === 'improving') {
+      return `Évolution prévisible : Amélioration attendue si maintien récupération.
+Score projeté J+7 : ${Math.max(currentScore - 10, 15)}–${Math.max(currentScore - 5, 20)}%`;
+    }
+    if (trend === 'worsening') {
+      return `Évolution prévisible : Dégradation probable sans intervention.
+Score projeté J+7 : ${Math.min(currentScore + 5, 95)}–${Math.min(currentScore + 15, 100)}%
+Action recommandée : Réduction charge immédiate.`;
+    }
+    return `Évolution prévisible : Stabilisation attendue.
+Score projeté J+7 : ${Math.max(currentScore - 5, 10)}–${Math.min(currentScore + 5, 90)}%`;
+  }
+};
+
+// =============================================
+// CHATBOT Q&A
+// =============================================
+
+export const FATIGUE_CHATBOT_QA = [
+  {
+    question: "Comment est calculée ma fatigue ?",
+    answer: "Ta fatigue est calculée à partir de 3 piliers : Charge (40%), Réponse physiologique (35%), et Ressenti (25%). Chaque pilier est évalué sur 0-100, puis la moyenne pondérée donne ton score final."
+  },
+  {
+    question: "Pourquoi ma fatigue est élevée alors que je me sens bien ?",
+    answer: "Le ressenti n'est qu'un pilier (25%). Si ta charge récente est élevée ou si ta réponse physiologique (TTE) montre des signes de fatigue, ton score global peut être élevé malgré un bon ressenti."
+  },
+  {
+    question: "Que faire si ma fatigue dépasse 70% ?",
+    answer: "Au-delà de 70%, la récupération devient prioritaire. Réduire la charge de 20-30%, privilégier le sommeil, et surveiller l'évolution. Si ça persiste plus de 7 jours, envisager une semaine de récupération active."
+  },
+  {
+    question: "La fatigue est-elle un diagnostic médical ?",
+    answer: "Non. La fatigue quantifiée est une estimation contextuelle basée sur des données d'entraînement, pas un diagnostic médical. En cas de fatigue persistante ou de symptômes inhabituels, consulter un professionnel de santé."
+  }
+];
+
+// Legacy exports for compatibility
+export type FatigueComponentV2 = FatiguePillarResult;
+
+export interface FatigueV2InputLegacy extends FatigueV2Input {
+  tss7dHabituel?: number | null;
+  sessionCount7d?: number | null;
+  intensitySessions7d?: number | null;
+  stressLevel?: number | null;
+  recoveryRating?: number | null;
+  hrv?: number | null;
+  tteMin?: number | null;
+  performanceVariability?: number | null;
+  fatiguePercue?: number | null;
+  vlamaxValue?: number | null;
 }

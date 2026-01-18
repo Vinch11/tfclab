@@ -99,26 +99,34 @@ export function FatigueV2Card({ data, showDetails = true }: FatigueV2CardProps) 
           </div>
         )}
 
-        {/* Description */}
-        <div className="text-xs text-muted-foreground bg-muted/30 rounded-md p-2">
-          {data.levelDescription}
-        </div>
+        {/* Explication "D'où vient ta fatigue" */}
+        {'whyFatigued' in data && (data as any).whyFatigued ? (
+          <div className="text-xs text-muted-foreground bg-muted/30 rounded-md p-2">
+            <span className="font-medium">D'où vient ta fatigue :</span> {(data as any).whyFatigued}
+          </div>
+        ) : (
+          <div className="text-xs text-muted-foreground bg-muted/30 rounded-md p-2">
+            {data.levelDescription}
+          </div>
+        )}
 
-        {/* Details accordion */}
-        {showDetails && (
+        {/* Details accordion - Piliers */}
+        {showDetails && 'pillars' in data && (
           <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="components" className="border-none">
+            <AccordionItem value="pillars" className="border-none">
               <AccordionTrigger className="text-xs py-2">
-                Décomposition des composantes
+                Décomposition par pilier
               </AccordionTrigger>
               <AccordionContent>
                 <div className="space-y-2">
-                  {Object.entries(data.components).map(([key, comp]) => (
+                  {Object.entries(data.pillars).map(([key, pillar]: [string, any]) => (
                     <div key={key} className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">{comp.label}</span>
+                      <span className="text-muted-foreground">
+                        {pillar.icon} {pillar.label}
+                      </span>
                       <div className="flex items-center gap-2">
-                        <Progress value={comp.score} className="w-16 h-1.5" />
-                        <span className="w-8 text-right font-mono">{comp.score}%</span>
+                        <Progress value={pillar.score} className="w-16 h-1.5" />
+                        <span className="w-8 text-right font-mono">{pillar.score}%</span>
                       </div>
                     </div>
                   ))}
@@ -145,6 +153,18 @@ export function FatigueV2Card({ data, showDetails = true }: FatigueV2CardProps) 
           </div>
         )}
 
+        {/* Advisory triggers */}
+        {'advisoryTriggers' in data && data.advisoryTriggers?.showAlert && (
+          <div className="p-2 bg-warning/10 border border-warning/30 rounded-md">
+            <div className="flex items-center gap-1 text-xs font-medium text-warning">
+              <AlertTriangle className="h-3 w-3" />
+              {data.advisoryTriggers.suggestDeload 
+                ? "Semaine de décharge recommandée" 
+                : "Récupération prioritaire"}
+            </div>
+          </div>
+        )}
+
         {/* Warnings */}
         {data.warnings.length > 0 && (
           <div className="space-y-1">
@@ -160,7 +180,9 @@ export function FatigueV2Card({ data, showDetails = true }: FatigueV2CardProps) 
         {/* Disclaimer */}
         <div className="flex items-start gap-2 pt-2 border-t text-[10px] text-muted-foreground">
           <Info className="h-3 w-3 mt-0.5 shrink-0" />
-          <span>Score composite Two For Coaching Lab V2™</span>
+          <span>
+            {'disclaimer' in data ? data.disclaimer : 'Score composite Two For Coaching Lab V2™'}
+          </span>
         </div>
       </CardContent>
     </Card>
