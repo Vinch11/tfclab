@@ -537,3 +537,29 @@ export {
   type CadenceProfileInput,
   type CadenceProfileResult
 } from './signatureCharts';
+
+// Physiological Versioning System
+export {
+  PHYSIO_ENGINES,
+  PHYSIO_ENGINE_CHANGELOG,
+  VALIDATION_LEVELS,
+  SCIENTIFIC_REFERENCES_GLOBAL,
+  LEGAL_DISCLAIMER,
+  NON_RETROACTIVITY_RULE,
+  ACADEMY_SCIENTIFIC_VALIDATION,
+  PDF_METHODOLOGY_SECTION,
+  VERSIONING_CHATBOT_QA,
+  getEngineVersion,
+  getEngineVersionCode,
+  getValidationBadge,
+  getEngineChangelog,
+  formatEngineVersion,
+  createSnapshotMetadata,
+  type EngineId,
+  type ValidationLevel,
+  type ImpactLevel,
+  type PhysioEngineVersion,
+  type ScientificReference,
+  type ChangelogEntry,
+  type SnapshotEngineMetadata
+} from './physiologicalVersioning';
