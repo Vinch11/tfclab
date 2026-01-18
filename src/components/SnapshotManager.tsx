@@ -89,11 +89,22 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   const [isEditOpen, setIsEditOpen] = usePersistedDialogState(`snapshot-edit-${athleteId}`, false);
   const [isCompareOpen, setIsCompareOpen] = useState(false);
 
-  const [editingSnapshot, setEditingSnapshot] = useState<DbSnapshot | null>(null);
+  // Persist the editing snapshot ID to restore state after page navigation
+  const [editingSnapshotId, setEditingSnapshotId] = usePersistedFormState<{ id: string | null }>(
+    `snapshot-editing-id-${athleteId}`,
+    { id: null }
+  );
+  
   const [compareA, setCompareA] = useState<string>("");
   const [compareB, setCompareB] = useState<string>("");
 
   const snapshots = getSnapshotsForAthlete(athleteId);
+  
+  // Derive editingSnapshot from persisted ID
+  const editingSnapshot = useMemo(() => {
+    if (!editingSnapshotId.id) return null;
+    return snapshots.find(s => s.id === editingSnapshotId.id) || null;
+  }, [editingSnapshotId.id, snapshots]);
 
   // Use persisted form state to survive page minimize/restore
   const [formData, setFormData, clearFormData] = usePersistedFormState(
@@ -103,6 +114,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
   const resetForm = () => {
     clearFormData();
+    setEditingSnapshotId({ id: null });
   };
 
   const loadSnapshotToForm = (s: DbSnapshot) => {
@@ -281,7 +293,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     });
 
     setIsEditOpen(false);
-    setEditingSnapshot(null);
+    setEditingSnapshotId({ id: null });
   };
 
   const handleDelete = async (id: string) => {
@@ -291,7 +303,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   };
 
   const openEdit = (s: DbSnapshot) => {
-    setEditingSnapshot(s);
+    setEditingSnapshotId({ id: s.id });
     loadSnapshotToForm(s);
     setIsEditOpen(true);
   };
