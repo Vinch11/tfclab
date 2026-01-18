@@ -16,7 +16,7 @@ import {
   Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -29,7 +29,6 @@ import { TFCLTestSheet } from "./TFCLTestSheet";
 import { TFCLCompletionSummary } from "./TFCLCompletionSummary";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAthletes } from "@/contexts/AthleteContext";
-import { AthleteSelector } from "@/components/AthleteSelector";
 
 export function TFCLTestingWeekPage() {
   const navigate = useNavigate();
@@ -106,26 +105,37 @@ export function TFCLTestingWeekPage() {
       {/* Content */}
       <main className="container mx-auto px-4 py-6 pb-24 max-w-4xl space-y-6">
         {/* Athlete Selector */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Target className="h-4 w-4" />
-              Sélectionner l'athlète
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <AthleteSelector
-              athletes={athletes}
-              selectedAthleteId={selectedAthleteId}
-              onSelectAthlete={setSelectedAthleteId}
-            />
-            {!selectedAthlete && (
-              <p className="text-sm text-muted-foreground mt-2">
-                Sélectionnez un athlète pour commencer la semaine de tests
-              </p>
-            )}
-          </CardContent>
-        </Card>
+        {/* Athlete selection from context */}
+        {!selectedAthlete ? (
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="text-sm">
+              Sélectionnez un athlète depuis le tableau de bord pour commencer la semaine de tests.
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                Athlète sélectionné
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                  <Target className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-medium">{selectedAthlete.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Objectif: {selectedAthlete.goal || "Non défini"}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Completion Summary */}
         {selectedAthlete && completionStatus && (
