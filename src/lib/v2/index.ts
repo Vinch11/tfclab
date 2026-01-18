@@ -78,7 +78,7 @@ export {
   type NutritionV2Input
 } from './nutritionV2';
 
-// Injury Risk V2
+// Injury Risk V2 (legacy)
 export {
   computeInjuryRiskV2,
   getInjuryRiskColor,
@@ -88,6 +88,39 @@ export {
   type InjuryRiskFactorV2,
   type InjuryRiskV2Input
 } from './injuryRiskV2';
+
+// Injury Risk Unified (CAP & Vélo) — NEW
+export {
+  // Philosophy & Constants
+  INJURY_RISK_PHILOSOPHY,
+  INJURY_RISK_DATA_SOURCES,
+  INJURY_RISK_SCALE,
+  INJURY_RISK_LEGAL_DISCLAIMER,
+  
+  // Compute functions
+  computeCAPInjuryRisk,
+  computeBikeInjuryRisk,
+  computePerformanceRiskPosition,
+  getInjuryRiskAnnotations,
+  
+  // UI Helpers
+  getInjuryRiskIcon,
+  getInjuryRiskColorClass,
+  getInjuryRiskBadgeClass as getInjuryRiskBadgeClassUnified,
+  
+  // Academy & PDF
+  ACADEMY_INJURY_RISK_MODULE,
+  PDF_INJURY_RISK_SECTION,
+  INJURY_RISK_CHATBOT_QA,
+  
+  // Types
+  type InjuryRiskLevelUnified,
+  type InjuryRiskDriver,
+  type InjuryRiskEnvelope,
+  type CAPRiskInput,
+  type BikeRiskInput,
+  type PerformanceRiskPosition
+} from './injuryRiskUnified';
 
 // Academy V2
 export {

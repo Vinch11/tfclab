@@ -45,9 +45,13 @@ import { FtpKgTargetsCard } from "@/components/FtpKgTargetsCard";
 import { VLamaxTargetsCard } from "@/components/VLamaxTargetsCard";
 import { FatigueCard } from "@/components/FatigueCard";
 import { RunInjuryRiskCard } from "@/components/RunInjuryRiskCard";
+import { InjuryRiskCAPCard } from "@/components/InjuryRiskCAPCard";
+import { InjuryRiskBikeCard } from "@/components/InjuryRiskBikeCard";
 import { QuickFatigueInput } from "@/components/QuickFatigueInput";
 import { FatigueComparisonChart } from "@/components/FatigueComparisonChart";
 import { computeRunInjuryRisk, RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
+import { computeCAPInjuryRisk, computeBikeInjuryRisk, type InjuryRiskEnvelope } from "@/lib/v2/injuryRiskUnified";
+import { computeIFSC } from "@/lib/v2/ifsc";
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 import { QuickAmbitionSelector } from "@/components/QuickAmbitionSelector";
 import { AmbitionTargetsCard } from "@/components/AmbitionTargetsCard";
@@ -300,13 +304,50 @@ export default function DashboardPage() {
       objectif,
     });
     
-    // Run Injury Risk (risque blessure CAP)
+    // Run Injury Risk (risque blessure CAP) - Legacy
     const runInjuryRisk = computeRunInjuryRisk({
       fatigueEffectif,
       vlamaxEffectif,
       tteEffectif,
       tss7d: activeSnapshot.tss_7d ?? null,
       runLoad7d: null, // Pas encore disponible
+      age: athleteAge,
+      objectif,
+    });
+    
+    // NEW: Injury Risk Unified (CAP)
+    const capInjuryRisk = computeCAPInjuryRisk({
+      vlamaxValue: vlamaxEffectif.value,
+      economyLevel: activeSnapshot.run_economy_label ?? null,
+      tteMin: tteEffectif.tte_min,
+      fatiguePct: fatigueEffectif.score,
+      tss7d: activeSnapshot.tss_7d ?? null,
+      runLoad7d: null,
+      age: athleteAge,
+      objectif,
+    });
+    
+    // NEW: Compute IFSC for bike injury risk
+    const ifscResult = computeIFSC({
+      ftp: activeSnapshot.ftp ?? null,
+      weightKg: activeSnapshot.weight_kg ?? null,
+      tteMin: tteEffectif.tte_min,
+      tteSource: tteEffectif.source,
+      vlamax: vlamaxEffectif.value,
+      vlamaxConfidence: vlamaxEffectif.confidence,
+      spontaneousCadenceRpm: (activeSnapshot as any).bike_cadence_rpm ?? null,
+      objectif,
+      age: athleteAge,
+    });
+    
+    // NEW: Injury Risk Unified (Vélo)
+    const bikeInjuryRisk = computeBikeInjuryRisk({
+      vlamaxValue: vlamaxEffectif.value,
+      ifscScore: ifscResult.score,
+      tteMin: tteEffectif.tte_min,
+      fatiguePct: fatigueEffectif.score,
+      tss7d: activeSnapshot.tss_7d ?? null,
+      longRideDurationMin: null, // Pas encore disponible
       age: athleteAge,
       objectif,
     });
@@ -391,6 +432,9 @@ export default function DashboardPage() {
       nutritionEstimate,
       fatigueEffectif,
       runInjuryRisk,
+      capInjuryRisk,
+      bikeInjuryRisk,
+      ifscResult,
       ftpKg,
       athleteAge,
       snapshot: activeSnapshot,
@@ -458,6 +502,9 @@ export default function DashboardPage() {
     nutritionEstimate,
     fatigueEffectif,
     runInjuryRisk,
+    capInjuryRisk,
+    bikeInjuryRisk,
+    ifscResult,
     ftpKg,
     athleteAge,
     snapshot,
@@ -928,7 +975,7 @@ export default function DashboardPage() {
   );
 
   // =============================================
-  // RENDER: RUN INJURY RISK CARD
+  // RENDER: RUN INJURY RISK CARD (Legacy)
   // =============================================
   
   const renderRunInjuryRiskCard = (): ReactNode => {
@@ -939,6 +986,40 @@ export default function DashboardPage() {
     return (
       <RunInjuryRiskCard
         riskEnvelope={runInjuryRisk}
+        isStaffMode={true}
+      />
+    );
+  };
+
+  // =============================================
+  // RENDER: CAP INJURY RISK CARD (Unified V2)
+  // =============================================
+  
+  const renderCAPInjuryRiskCard = (): ReactNode => {
+    // Afficher uniquement si objectif implique la CAP
+    const capObjectifs = ["Marathon", "Semi", "Course", "Trail", "TrailCourt", "TrailLong", "Ultra", "IM", "Ironman", "703", "Half", "Sprint", "Olympic"];
+    if (!capObjectifs.includes(objectif)) return null;
+    
+    return (
+      <InjuryRiskCAPCard
+        riskEnvelope={capInjuryRisk}
+        isStaffMode={true}
+      />
+    );
+  };
+
+  // =============================================
+  // RENDER: BIKE INJURY RISK CARD (Unified V2)
+  // =============================================
+  
+  const renderBikeInjuryRiskCard = (): ReactNode => {
+    // Afficher uniquement si objectif implique le vélo
+    const bikeObjectifs = ["IM", "Ironman", "703", "Half", "Sprint", "Olympic"];
+    if (!bikeObjectifs.includes(objectif)) return null;
+    
+    return (
+      <InjuryRiskBikeCard
+        riskEnvelope={bikeInjuryRisk}
         isStaffMode={true}
       />
     );
@@ -1006,7 +1087,8 @@ export default function DashboardPage() {
     { id: "quick-fatigue", render: renderQuickFatigueInput },
     { id: "fatigue", render: renderFatigueCard },
     { id: "fatigue-comparison", render: renderFatigueComparisonChart },
-    { id: "run-injury-risk", render: renderRunInjuryRiskCard },
+    { id: "cap-injury-risk", render: renderCAPInjuryRiskCard },
+    { id: "bike-injury-risk", render: renderBikeInjuryRiskCard },
     { id: "coach-summary", render: renderCoachSummary },
     { id: "piliers", render: renderPiliers },
     { id: "ftp-targets", render: renderFtpKgTargets },
