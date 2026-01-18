@@ -15,6 +15,7 @@ import Index from "./pages/Index";
 import TemplatesPage from "./pages/TemplatesPage";
 import AcademyPage from "./pages/AcademyPage";
 import NotFound from "./pages/NotFound";
+import { TFCLTestingWeekPage } from "./components/TFCLTestingWeek";
 
 const queryClient = new QueryClient();
 
@@ -71,6 +72,20 @@ export default function App() {
                     <AuthGate>
                       <OnboardingGate>
                         <AcademyPage />
+                      </OnboardingGate>
+                    </AuthGate>
+                  }
+                />
+                <Route
+                  path="/tfcl-testing-week"
+                  element={
+                    <AuthGate>
+                      <OnboardingGate>
+                        <CloudDataProvider>
+                          <AthleteProvider>
+                            <TFCLTestingWeekPage />
+                          </AthleteProvider>
+                        </CloudDataProvider>
                       </OnboardingGate>
                     </AuthGate>
                   }
