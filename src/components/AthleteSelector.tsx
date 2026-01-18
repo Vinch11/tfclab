@@ -119,7 +119,7 @@ export function AthleteSelector({
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">Snapshots</p>
+                <p className="text-xs text-muted-foreground">Profils</p>
                 <p className="font-mono font-semibold text-success">
                   {selectedAthlete.historique?.length || 0}
                 </p>

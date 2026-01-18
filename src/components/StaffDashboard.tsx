@@ -494,11 +494,11 @@ export function StaffDashboard({
           {showScientificDetails && (
             <div className="mt-3 space-y-2 text-xs text-muted-foreground">
               <p>• Les valeurs sont issues d'estimations terrain</p>
-              <p>• La précision dépend de la qualité des snapshots</p>
+              <p>• La précision dépend de la qualité des profils</p>
               <p>• Les indicateurs guident la décision, ils ne remplacent pas l'expertise du coach</p>
               <Separator className="my-2" />
               <p className="italic">
-                {snapshotDate ? `Snapshot du ${snapshotDate}` : "Pas de snapshot"} • 
+                {snapshotDate ? `Profil du ${snapshotDate}` : "Pas de profil"} • 
                 VLamax: {vlamaxEffectif.source} ({Math.round(vlamaxEffectif.confidence * 100)}%) • 
                 TTE: {tteEffectif.source} ({Math.round(tteEffectif.confidence * 100)}%)
               </p>
