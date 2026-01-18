@@ -1,12 +1,14 @@
 // =============================================
-// GRAPHIQUE ÉVOLUTION HISTORIQUE VLamax / TTE
+// GRAPHIQUE ÉVOLUTION HISTORIQUE VLamax / TTE — TFCL™
+// Graphique Signature #3
 // Basé sur les snapshots cloud + tests VLamax
+// Avec bandes de confiance et tendances
 // =============================================
 
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Calendar, Info, FlaskConical } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Calendar, Info, FlaskConical, AlertTriangle } from "lucide-react";
 import { 
   LineChart, 
   Line, 
@@ -16,15 +18,19 @@ import {
   Tooltip, 
   ResponsiveContainer, 
   Legend,
-  ReferenceLine
+  ReferenceLine,
+  Area,
+  ComposedChart
 } from "recharts";
 import { DbSnapshot, DbTest } from "@/hooks/useCloudData";
 import { cn } from "@/lib/utils";
+import { EVOLUTION_CHART, computeEvolutionTrend, CHART_DISCLAIMERS } from "@/lib/v2/signatureCharts";
 
 interface SnapshotEvolutionChartProps {
   snapshots: DbSnapshot[];
   tests?: DbTest[];
   athleteName?: string;
+  compact?: boolean;
 }
 
 interface ChartDataPoint {
@@ -37,7 +43,7 @@ interface ChartDataPoint {
   source: "snapshot" | "test";
 }
 
-export function SnapshotEvolutionChart({ snapshots, tests = [], athleteName }: SnapshotEvolutionChartProps) {
+export function SnapshotEvolutionChart({ snapshots, tests = [], athleteName, compact = false }: SnapshotEvolutionChartProps) {
   // Préparer les données triées par date (fusion snapshots + tests)
   const chartData = useMemo<ChartDataPoint[]>(() => {
     const dataPoints: ChartDataPoint[] = [];
@@ -91,10 +97,21 @@ export function SnapshotEvolutionChart({ snapshots, tests = [], athleteName }: S
     );
   }, [snapshots, tests]);
 
-  // Calculer les tendances
+  // Calculer les tendances avec la nouvelle fonction TFCL
   const trends = useMemo(() => {
     if (chartData.length < 2) return null;
     
+    // Utiliser computeEvolutionTrend pour les tendances avancées
+    const evolutionResult = computeEvolutionTrend(chartData.map(d => ({
+      date: d.date,
+      vlamax: d.vlamax,
+      vlamaxConfidence: d.confidence ?? undefined,
+      tte: d.tte,
+      tteConfidence: d.confidence ?? undefined,
+      source: d.source as "snapshot" | "test" | "estimate"
+    })));
+    
+    // Calcul des deltas simples pour l'affichage
     const first = chartData[0];
     const last = chartData[chartData.length - 1];
     
@@ -105,8 +122,31 @@ export function SnapshotEvolutionChart({ snapshots, tests = [], athleteName }: S
       ? last.tte - first.tte
       : null;
     
-    return { vlamaxDelta, tteDelta };
+    return { 
+      vlamaxDelta, 
+      tteDelta, 
+      vlamaxTrend: evolutionResult.vlamax,
+      tteTrend: evolutionResult.tte,
+      interpretation: evolutionResult.interpretation
+    };
   }, [chartData]);
+
+  // Données avec bandes de confiance
+  const chartDataWithBands = useMemo(() => {
+    return chartData.map(d => ({
+      ...d,
+      vlamaxUpper: d.vlamax !== null ? Math.min(0.70, d.vlamax + (d.confidence ? 0.05 * (1 - d.confidence) : 0.03)) : null,
+      vlamaxLower: d.vlamax !== null ? Math.max(0.20, d.vlamax - (d.confidence ? 0.05 * (1 - d.confidence) : 0.03)) : null,
+      tteUpper: d.tte !== null ? Math.min(80, d.tte + (d.confidence ? 5 * (1 - d.confidence) : 3)) : null,
+      tteLower: d.tte !== null ? Math.max(20, d.tte - (d.confidence ? 5 * (1 - d.confidence) : 3)) : null,
+    }));
+  }, [chartData]);
+
+  const getTrendIcon = (trend: string) => {
+    if (trend === "up") return <TrendingUp className="w-3 h-3" />;
+    if (trend === "down") return <TrendingDown className="w-3 h-3" />;
+    return <Minus className="w-3 h-3" />;
+  };
 
   if (chartData.length === 0) {
     return (
@@ -144,31 +184,32 @@ export function SnapshotEvolutionChart({ snapshots, tests = [], athleteName }: S
   }
 
   return (
-    <Card>
+    <Card className={cn(compact && "border-0 shadow-none")}>
       <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-primary" />
-              Évolution VLamax & TTE
+              {EVOLUTION_CHART.title}
             </CardTitle>
             <CardDescription>
               {athleteName ? `${athleteName} — ` : ""}{chartData.length} snapshots
             </CardDescription>
           </div>
           
-          {/* Tendances */}
+          {/* Tendances avec icônes */}
           {trends && (
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               {trends.vlamaxDelta !== null && (
                 <Badge 
                   variant="outline" 
                   className={cn(
-                    "font-mono",
-                    trends.vlamaxDelta < 0 ? "text-green-600 border-green-300" : 
-                    trends.vlamaxDelta > 0 ? "text-amber-600 border-amber-300" : ""
+                    "font-mono flex items-center gap-1",
+                    trends.vlamaxTrend === "down" ? "text-green-600 border-green-300" : 
+                    trends.vlamaxTrend === "up" ? "text-amber-600 border-amber-300" : ""
                   )}
                 >
+                  {getTrendIcon(trends.vlamaxTrend)}
                   VLamax: {trends.vlamaxDelta > 0 ? "+" : ""}{trends.vlamaxDelta.toFixed(2)}
                 </Badge>
               )}
@@ -176,24 +217,40 @@ export function SnapshotEvolutionChart({ snapshots, tests = [], athleteName }: S
                 <Badge 
                   variant="outline"
                   className={cn(
-                    "font-mono",
-                    trends.tteDelta > 0 ? "text-green-600 border-green-300" : 
-                    trends.tteDelta < 0 ? "text-amber-600 border-amber-300" : ""
+                    "font-mono flex items-center gap-1",
+                    trends.tteTrend === "up" ? "text-green-600 border-green-300" : 
+                    trends.tteTrend === "down" ? "text-amber-600 border-amber-300" : ""
                   )}
                 >
+                  {getTrendIcon(trends.tteTrend)}
                   TTE: {trends.tteDelta > 0 ? "+" : ""}{trends.tteDelta} min
                 </Badge>
               )}
             </div>
           )}
         </div>
+        
+        {/* Interprétation de tendance */}
+        {trends?.interpretation && (
+          <div className={cn(
+            "mt-2 p-2 rounded-lg text-xs flex items-start gap-2",
+            trends.vlamaxTrend === "up" && trends.tteTrend === "down" 
+              ? "bg-amber-500/10 text-amber-700 dark:text-amber-400"
+              : "bg-muted/50"
+          )}>
+            {trends.vlamaxTrend === "up" && trends.tteTrend === "down" && (
+              <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+            )}
+            <span>{trends.interpretation}</span>
+          </div>
+        )}
       </CardHeader>
       
       <CardContent>
-        {/* Graphique principal */}
-        <div className="h-64 mt-4">
+        {/* Graphique principal avec bandes de confiance */}
+        <div className={cn("mt-4", compact ? "h-48" : "h-64")}>
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+            <ComposedChart data={chartDataWithBands} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
               <XAxis 
                 dataKey="dateFormatted" 
@@ -236,6 +293,26 @@ export function SnapshotEvolutionChart({ snapshots, tests = [], athleteName }: S
                 formatter={(value) => <span style={{ color: 'hsl(var(--foreground))' }}>{value}</span>}
               />
               
+              {/* Bande de confiance VLamax */}
+              <Area
+                yAxisId="vlamax"
+                type="monotone"
+                dataKey="vlamaxUpper"
+                stroke="none"
+                fill="#06b6d4"
+                fillOpacity={0.1}
+                connectNulls
+              />
+              <Area
+                yAxisId="vlamax"
+                type="monotone"
+                dataKey="vlamaxLower"
+                stroke="none"
+                fill="#ffffff"
+                fillOpacity={1}
+                connectNulls
+              />
+              
               {/* Ligne VLamax - Cyan vif */}
               <Line 
                 yAxisId="vlamax"
@@ -270,8 +347,16 @@ export function SnapshotEvolutionChart({ snapshots, tests = [], athleteName }: S
                 strokeDasharray="5 5" 
                 opacity={0.4}
               />
-            </LineChart>
+            </ComposedChart>
           </ResponsiveContainer>
+        </div>
+
+        {/* Disclaimer */}
+        <div className="mt-3 flex items-start gap-2 p-2 bg-muted/30 rounded-lg">
+          <Info className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
+          <p className="text-[10px] text-muted-foreground">
+            {CHART_DISCLAIMERS.evolution}
+          </p>
         </div>
 
         {/* Tableau détaillé */}

@@ -13,6 +13,7 @@ export { StaffModeToggle } from "./StaffModeToggle";
 export { ScientificChartsDashboard } from "./ScientificChartsDashboard";
 export { MetabolicPerformanceCompass, CompassMini, COMPASS_METHODOLOGY } from "./MetabolicPerformanceCompass";
 export { AmbitionProgressChart, calculateAmbitionPredictions, type AmbitionPrediction } from "./AmbitionProgressChart";
+export { CadenceProfileChart } from "./CadenceProfileChart";
 
 // Composants unifiés d'affichage des métriques
 export { ScoreEnvelopeCard, ScoreEnvelopeCardGroup, ScoreEnvelopeInlineCard } from "../ScoreEnvelopeCard";

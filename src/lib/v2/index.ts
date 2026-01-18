@@ -512,3 +512,28 @@ export {
   type PerformanceRange,
   type ScoreDisplayRule
 } from './methodFramework';
+
+// Signature Charts TFCL™
+export {
+  SIGNATURE_CHARTS_DOC,
+  COMPASS_CHART,
+  RISK_MATRIX_CHART,
+  EVOLUTION_CHART,
+  CADENCE_PROFILE_CHART,
+  CHART_DISCLAIMERS,
+  ACADEMY_CHARTS_MODULES,
+  PDF_CHARTS_SECTION,
+  CHARTS_CHATBOT_QA,
+  computeCompassZones,
+  computeRiskMatrixPosition,
+  computeEvolutionTrend,
+  computeCadenceProfilePosition,
+  type CompassZoneInput,
+  type CompassZoneResult,
+  type RiskMatrixInput,
+  type RiskMatrixResult,
+  type EvolutionDataPoint,
+  type EvolutionChartResult,
+  type CadenceProfileInput,
+  type CadenceProfileResult
+} from './signatureCharts';
