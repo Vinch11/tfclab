@@ -1415,16 +1415,18 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       <div class="tocRow"><a href="#indicateurs">4. Indicateurs Clés</a></div>
       <div class="tocRow"><a href="#readiness">5. Race Readiness</a></div>
       <div class="tocRow"><a href="#injury-risk">6. Risque de Blessure CAP</a></div>
-      <div class="tocRow"><a href="#ambition-targets">7. Cibles par Niveau d'Ambition</a></div>
-      <div class="tocRow"><a href="#evolution-charts">8. Graphiques d'Évolution</a></div>
-      <div class="tocRow"><a href="#aai">9. Ajustement par l'Âge (AAI)</a></div>
-      <div class="tocRow"><a href="#methodology">10. Méthodologies d'Entraînement</a></div>
-      <div class="tocRow"><a href="#twoforcoaching">11. Analyse Two For Coaching Lab™</a></div>
-      <div class="tocRow"><a href="#wahoo">12. Suggestions Wahoo SYSTM</a></div>
-      <div class="tocRow"><a href="#template-recommendation">13. Template Recommandé</a></div>
-      <div class="tocRow"><a href="#zones">14. Zones d'entraînement</a></div>
-      <div class="tocRow"><a href="#comprendre">15. Comprendre mes scores</a></div>
-      <div class="tocRow"><a href="#qualite">16. Qualité des données</a></div>
+      <div class="tocRow"><a href="#nutrition-v2">7. Nutrition Prédictive V2</a></div>
+      <div class="tocRow"><a href="#fatmax-tfcl">8. FatMax TFCL™</a></div>
+      <div class="tocRow"><a href="#ambition-targets">9. Cibles par Niveau d'Ambition</a></div>
+      <div class="tocRow"><a href="#evolution-charts">10. Graphiques d'Évolution</a></div>
+      <div class="tocRow"><a href="#aai">11. Ajustement par l'Âge (AAI)</a></div>
+      <div class="tocRow"><a href="#methodology">12. Méthodologies d'Entraînement</a></div>
+      <div class="tocRow"><a href="#twoforcoaching">13. Analyse Two For Coaching Lab™</a></div>
+      <div class="tocRow"><a href="#wahoo">14. Suggestions Wahoo SYSTM</a></div>
+      <div class="tocRow"><a href="#template-recommendation">15. Template Recommandé</a></div>
+      <div class="tocRow"><a href="#zones">16. Zones d'entraînement</a></div>
+      <div class="tocRow"><a href="#comprendre">17. Comprendre mes scores</a></div>
+      <div class="tocRow"><a href="#qualite">18. Qualité des données</a></div>
     </div>
   `;
 
