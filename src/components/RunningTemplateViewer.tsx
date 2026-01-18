@@ -155,8 +155,8 @@ export function WeekDetailDialog({ week, templateName, trigger }: WeekDetailDial
       <DialogTrigger asChild>
         {trigger}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl h-[85vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-primary" />
             Semaine {week.week_number} - {week.title}
@@ -164,8 +164,8 @@ export function WeekDetailDialog({ week, templateName, trigger }: WeekDetailDial
           <p className="text-sm text-muted-foreground">{templateName}</p>
         </DialogHeader>
         
-        <ScrollArea className="flex-1 pr-4">
-          <div className="space-y-4">
+        <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+          <div className="space-y-4 pb-4">
             {/* Meta Info */}
             <div className="flex flex-wrap gap-2">
               <PhaseBadge phase={week.meta.phase} size="md" />
@@ -219,7 +219,7 @@ export function WeekDetailDialog({ week, templateName, trigger }: WeekDetailDial
               </div>
             </div>
           </div>
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );
