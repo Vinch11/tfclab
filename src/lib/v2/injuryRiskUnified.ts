@@ -112,33 +112,38 @@ export const INJURY_RISK_DATA_SOURCES = {
 // 3️⃣ ÉCHELLE OFFICIELLE (0-100)
 // ============================================
 
+// ============================================
+// 3️⃣ ÉCHELLE OFFICIELLE TFCL™ (0-100)
+// Seuils officiels: <30 faible, 30-50 vigilance, 50-70 élevé, >70 critique
+// ============================================
+
 export const INJURY_RISK_SCALE = {
   FAIBLE: { 
     min: 0, 
-    max: 25, 
+    max: 29, 
     label: "Faible", 
     color: 'success' as const,
     icon: "✅",
     message: "Risque faible. Entraînement normal autorisé."
   },
   MODERE: { 
-    min: 26, 
-    max: 45, 
-    label: "Modéré", 
+    min: 30, 
+    max: 50, 
+    label: "Vigilance", 
     color: 'info' as const,
     icon: "⚠️",
     message: "Vigilance recommandée sur la densité de qualité."
   },
   ELEVE: { 
-    min: 46, 
-    max: 65, 
+    min: 51, 
+    max: 70, 
     label: "Élevé", 
     color: 'warning' as const,
     icon: "🔶",
-    message: "Limiter intensité, surveiller récupération."
+    message: "Limiter intensité, surveiller récupération. Suggestion ajustement."
   },
   CRITIQUE: { 
-    min: 66, 
+    min: 71, 
     max: 100, 
     label: "Critique", 
     color: 'destructive' as const,
@@ -154,9 +159,10 @@ export const INJURY_RISK_SCALE = {
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 
 function getRiskLevel(score: number): InjuryRiskLevelUnified {
-  if (score <= 25) return 'FAIBLE';
-  if (score <= 45) return 'MODERE';
-  if (score <= 65) return 'ELEVE';
+  // Seuils officiels TFCL™: <30, 30-50, 50-70, >70
+  if (score < 30) return 'FAIBLE';
+  if (score <= 50) return 'MODERE';
+  if (score <= 70) return 'ELEVE';
   return 'CRITIQUE';
 }
 
@@ -186,79 +192,73 @@ export interface CAPRiskInput {
   objectif: string;
 }
 
+// ============================================
+// PONDÉRATIONS OFFICIELLES TFCL™ — CAP
+// Risque mécanique DOMINANT
+// Fatigue: 0.35, VLamax: 0.25, TTE: 0.25, Économie: 0.15
+// ============================================
+
 const CAP_WEIGHTS = {
+  fatigue: 0.35,
   vlamax: 0.25,
+  tte: 0.25,
   economy: 0.15,
-  tte: 0.20,
-  fatigue: 0.20,
-  load: 0.10,
-  age: 0.10
 };
 
+// ============================================
+// CALCUL DES COMPOSANTES — FORMULES TFCL™
+// ============================================
+
+/**
+ * VLamax_factor TFCL™:
+ * - <0.35 → risque faible (10)
+ * - 0.35–0.55 → neutre (30)
+ * - >0.55 → risque élevé (60)
+ */
 function computeCAPVlamaxComponent(vlamax: number | null): { component: number; known: boolean } {
-  if (vlamax === null) return { component: 50, known: false };
+  if (vlamax === null) return { component: 30, known: false };
   
-  // VLamax élevé = coût énergétique accru = risque mécanique
-  if (vlamax <= 0.35) return { component: 10, known: true };
-  if (vlamax <= 0.42) return { component: 25, known: true };
-  if (vlamax <= 0.50) return { component: 45, known: true };
-  if (vlamax <= 0.58) return { component: 65, known: true };
-  if (vlamax <= 0.68) return { component: 80, known: true };
-  return { component: 95, known: true };
+  if (vlamax < 0.35) return { component: 10, known: true };
+  if (vlamax <= 0.55) return { component: 30, known: true };
+  return { component: 60, known: true };
 }
 
+/**
+ * TTE_factor TFCL™:
+ * - >55 min → risque faible (10)
+ * - 45–55 → neutre (30)
+ * - <45 → risque élevé (60)
+ */
+function computeCAPTTEComponent(tte: number | null, _objectif: string): { component: number; known: boolean } {
+  if (tte === null) return { component: 30, known: false };
+  
+  if (tte > 55) return { component: 10, known: true };
+  if (tte >= 45) return { component: 30, known: true };
+  return { component: 60, known: true };
+}
+
+/**
+ * Economie_factor TFCL™:
+ * - stable → 10
+ * - dérive modérée → 30
+ * - dérive forte → 60
+ */
 function computeCAPEconomyComponent(level: string | null): { component: number; known: boolean } {
-  if (!level) return { component: 50, known: false };
+  if (!level) return { component: 30, known: false };
   
   const normalized = level.toLowerCase();
-  if (normalized === 'excellent') return { component: 10, known: true };
-  if (normalized === 'good' || normalized === 'bonne') return { component: 25, known: true };
-  if (normalized === 'average' || normalized === 'moyenne') return { component: 50, known: true };
-  return { component: 80, known: true }; // weak / faible
+  if (normalized === 'excellent' || normalized === 'stable') return { component: 10, known: true };
+  if (normalized === 'good' || normalized === 'bonne' || normalized === 'moyenne' || normalized === 'average') return { component: 30, known: true };
+  return { component: 60, known: true }; // weak / faible / dérive forte
 }
 
-function computeCAPTTEComponent(tte: number | null, objectif: string): { component: number; known: boolean } {
-  if (tte === null) return { component: 50, known: false };
-  
-  const targetMap: Record<string, number> = {
-    Marathon: 50, Semi: 45, Trail: 50, TrailLong: 55, IM: 55, "703": 50
-  };
-  const target = targetMap[objectif] || 45;
-  
-  const ratio = tte / target;
-  if (ratio >= 1.10) return { component: 10, known: true };
-  if (ratio >= 1.00) return { component: 25, known: true };
-  if (ratio >= 0.85) return { component: 50, known: true };
-  if (ratio >= 0.70) return { component: 75, known: true };
-  return { component: 90, known: true };
-}
-
+/**
+ * Fatigue_factor (basé sur Fatigue Quantifiée TFCL™)
+ * Score direct de 0-100
+ */
 function computeFatigueComponent(fatiguePct: number): number {
-  if (fatiguePct <= 30) return 10;
-  if (fatiguePct <= 45) return 30;
-  if (fatiguePct <= 60) return 55;
-  if (fatiguePct <= 75) return 75;
-  return 95;
-}
-
-function computeLoadComponent(runLoad7d: number | null, tss7d: number | null): { component: number; known: boolean; isProxy: boolean } {
-  if (runLoad7d !== null && runLoad7d > 0) {
-    const component = clamp((runLoad7d / 500) * 100, 0, 100);
-    return { component, known: true, isProxy: false };
-  }
-  if (tss7d !== null && tss7d > 0) {
-    const component = clamp((tss7d / 600) * 100, 0, 100);
-    return { component, known: true, isProxy: true };
-  }
-  return { component: 40, known: false, isProxy: false };
-}
-
-function computeAgeComponent(age: number | null): { component: number; known: boolean } {
-  if (age === null) return { component: 30, known: false };
-  if (age < 30) return { component: 10, known: true };
-  if (age < 40) return { component: 25, known: true };
-  if (age < 50) return { component: 45, known: true };
-  return { component: 65, known: true };
+  // La fatigue est déjà sur 0-100, on la renvoie directement
+  return clamp(fatiguePct, 0, 100);
 }
 
 // ============================================
@@ -271,52 +271,17 @@ export function computeCAPInjuryRisk(input: CAPRiskInput): InjuryRiskEnvelope {
     tss7d, runLoad7d, age, objectif
   } = input;
   
-  // Calcul des composantes
-  const vlamaxResult = computeCAPVlamaxComponent(vlamaxValue);
-  const economyResult = computeCAPEconomyComponent(economyLevel);
-  const tteResult = computeCAPTTEComponent(tteMin, objectif);
+  // Calcul des composantes (4 piliers TFCL™)
   const fatigueComp = computeFatigueComponent(fatiguePct);
-  const loadResult = computeLoadComponent(runLoad7d, tss7d);
-  const ageResult = computeAgeComponent(age);
+  const vlamaxResult = computeCAPVlamaxComponent(vlamaxValue);
+  const tteResult = computeCAPTTEComponent(tteMin, objectif);
+  const economyResult = computeCAPEconomyComponent(economyLevel);
   
-  // Construire les drivers
+  // Construire les drivers (ordre TFCL™: Fatigue > VLamax > TTE > Économie)
   const drivers: InjuryRiskDriver[] = [
     {
-      id: 'vlamax',
-      label: 'VLamax CAP',
-      value: vlamaxValue !== null ? `${vlamaxValue.toFixed(2)} mmol/L/s` : '—',
-      component: vlamaxResult.component,
-      weight: CAP_WEIGHTS.vlamax,
-      impact: getDriverImpact(vlamaxResult.component),
-      explanation: vlamaxValue !== null && vlamaxValue > 0.50 
-        ? 'VLamax élevé → coût énergétique accru → contraintes mécaniques augmentées'
-        : 'VLamax contrôlé → risque mécanique normal'
-    },
-    {
-      id: 'economy',
-      label: 'Économie de course',
-      value: economyLevel || '—',
-      component: economyResult.component,
-      weight: CAP_WEIGHTS.economy,
-      impact: getDriverImpact(economyResult.component),
-      explanation: economyResult.component > 60 
-        ? 'Économie faible → surcoût mécanique → risque blessure accru'
-        : 'Économie acceptable → contraintes normales'
-    },
-    {
-      id: 'tte',
-      label: 'Durabilité (TTE)',
-      value: tteMin !== null ? `${tteMin} min` : '—',
-      component: tteResult.component,
-      weight: CAP_WEIGHTS.tte,
-      impact: getDriverImpact(tteResult.component),
-      explanation: tteResult.component > 60 
-        ? 'TTE insuffisant → fatigue précoce → compensations mécaniques'
-        : 'Durabilité correcte → risque contrôlé'
-    },
-    {
       id: 'fatigue',
-      label: 'Fatigue fonctionnelle',
+      label: 'Fatigue Quantifiée TFCL™',
       value: `${fatiguePct}%`,
       component: fatigueComp,
       weight: CAP_WEIGHTS.fatigue,
@@ -326,42 +291,58 @@ export function computeCAPInjuryRisk(input: CAPRiskInput): InjuryRiskEnvelope {
         : 'Fatigue contrôlée → risque normal'
     },
     {
-      id: 'load',
-      label: loadResult.isProxy ? 'Charge (proxy global)' : 'Charge CAP',
-      value: runLoad7d !== null ? `${runLoad7d} TSS` : tss7d !== null ? `~${tss7d} TSS` : '—',
-      component: loadResult.component,
-      weight: CAP_WEIGHTS.load,
-      impact: getDriverImpact(loadResult.component),
-      explanation: loadResult.component > 60 
-        ? 'Charge récente élevée → accumulation fatigue mécanique'
-        : 'Charge contrôlée'
+      id: 'vlamax',
+      label: 'VLamax CAP',
+      value: vlamaxValue !== null ? `${vlamaxValue.toFixed(2)} mmol/L/s` : '—',
+      component: vlamaxResult.component,
+      weight: CAP_WEIGHTS.vlamax,
+      impact: getDriverImpact(vlamaxResult.component),
+      explanation: vlamaxValue !== null && vlamaxValue > 0.55 
+        ? 'VLamax > 0.55 → +10-20 g/h glycolyse → contraintes mécaniques augmentées'
+        : vlamaxValue !== null && vlamaxValue < 0.35
+          ? 'VLamax < 0.35 → -10 g/h glycolyse → risque réduit'
+          : 'VLamax neutre (0.35-0.55) → risque standard'
     },
     {
-      id: 'age',
-      label: 'Âge',
-      value: age !== null ? `${age} ans` : '—',
-      component: ageResult.component,
-      weight: CAP_WEIGHTS.age,
-      impact: getDriverImpact(ageResult.component),
-      explanation: age !== null && age >= 45 
-        ? 'Âge > 45 → récupération mécanique plus lente'
-        : 'Récupération mécanique normale'
+      id: 'tte',
+      label: 'TTE effectif',
+      value: tteMin !== null ? `${tteMin} min` : '—',
+      component: tteResult.component,
+      weight: CAP_WEIGHTS.tte,
+      impact: getDriverImpact(tteResult.component),
+      explanation: tteMin !== null && tteMin < 45 
+        ? 'TTE < 45 min → fatigue précoce → compensations mécaniques'
+        : tteMin !== null && tteMin > 55
+          ? 'TTE > 55 min → durabilité excellente → risque réduit'
+          : 'TTE dans la norme → risque contrôlé'
+    },
+    {
+      id: 'economy',
+      label: 'Économie de course',
+      value: economyLevel || '—',
+      component: economyResult.component,
+      weight: CAP_WEIGHTS.economy,
+      impact: getDriverImpact(economyResult.component),
+      explanation: economyResult.component > 60 
+        ? 'Économie faible / dérive FC forte → surcoût mécanique'
+        : economyResult.component < 30
+          ? 'Économie stable → contraintes optimales'
+          : 'Économie modérée → contraintes normales'
     }
   ];
   
-  // Score final
+  // Score final TFCL™: 0.35×Fatigue + 0.25×VLamax + 0.25×TTE + 0.15×Économie
   const rawScore = drivers.reduce((sum, d) => sum + d.component * d.weight, 0);
   const score = clamp(Math.round(rawScore), 0, 100);
   
   // Confiance
   let confidence = 0.5;
-  if (vlamaxResult.known) confidence += 0.15;
-  if (tteResult.known) confidence += 0.15;
-  if (loadResult.known) confidence += 0.10;
-  if (ageResult.known) confidence += 0.10;
+  if (vlamaxResult.known) confidence += 0.20;
+  if (tteResult.known) confidence += 0.20;
+  if (economyResult.known) confidence += 0.10;
   confidence = clamp(confidence, 0.4, 0.95);
   
-  // Niveau
+  // Niveau (seuils TFCL™: <30, 30-50, 50-70, >70)
   const level = getRiskLevel(score);
   const levelInfo = getLevelInfo(level);
   
@@ -473,61 +454,48 @@ export interface BikeRiskInput {
   objectif: string;
 }
 
+// ============================================
+// PONDÉRATIONS OFFICIELLES TFCL™ — VÉLO
+// Risque métabolique DOMINANT
+// Fatigue: 0.40, VLamax: 0.35, TTE: 0.25
+// ============================================
+
 const BIKE_WEIGHTS = {
-  ifsc: 0.25,
-  vlamax: 0.20,
-  tte: 0.20,
-  fatigue: 0.15,
-  longRide: 0.10,
-  age: 0.10
+  fatigue: 0.40,
+  vlamax: 0.35,
+  tte: 0.25,
 };
 
-function computeBikeIFSCComponent(ifscScore: number | null): { component: number; known: boolean } {
-  if (ifscScore === null) return { component: 50, known: false };
-  
-  // IFSC bas = force fragile = risque augmenté
-  if (ifscScore >= 76) return { component: 10, known: true };  // Robust
-  if (ifscScore >= 56) return { component: 25, known: true };  // Functional
-  if (ifscScore >= 31) return { component: 50, known: true };  // Limited
-  return { component: 80, known: true };                       // Fragile
-}
+// ============================================
+// CALCUL DES COMPOSANTES VÉLO — FORMULES TFCL™
+// ============================================
 
+/**
+ * VLamax_factor Vélo TFCL™:
+ * - <0.35 → risque faible (10)
+ * - 0.35–0.55 → neutre (30)
+ * - >0.55 → risque élevé (60)
+ */
 function computeBikeVlamaxComponent(vlamax: number | null): { component: number; known: boolean } {
-  if (vlamax === null) return { component: 50, known: false };
+  if (vlamax === null) return { component: 30, known: false };
   
-  // En vélo, VLamax élevé = tolérance au couple faible sur durée
-  if (vlamax <= 0.30) return { component: 10, known: true };
-  if (vlamax <= 0.40) return { component: 25, known: true };
-  if (vlamax <= 0.50) return { component: 45, known: true };
-  if (vlamax <= 0.60) return { component: 65, known: true };
-  return { component: 85, known: true };
+  if (vlamax < 0.35) return { component: 10, known: true };
+  if (vlamax <= 0.55) return { component: 30, known: true };
+  return { component: 60, known: true };
 }
 
-function computeBikeTTEComponent(tte: number | null, objectif: string): { component: number; known: boolean } {
-  if (tte === null) return { component: 50, known: false };
+/**
+ * TTE_factor Vélo TFCL™:
+ * - >55 min → risque faible (10)
+ * - 45–55 → neutre (30)
+ * - <45 → risque élevé (60)
+ */
+function computeBikeTTEComponent(tte: number | null, _objectif: string): { component: number; known: boolean } {
+  if (tte === null) return { component: 30, known: false };
   
-  const targetMap: Record<string, number> = {
-    IM: 60, "703": 55, Marathon: 50, Semi: 45
-  };
-  const target = targetMap[objectif] || 50;
-  
-  const ratio = tte / target;
-  if (ratio >= 1.10) return { component: 10, known: true };
-  if (ratio >= 1.00) return { component: 25, known: true };
-  if (ratio >= 0.85) return { component: 50, known: true };
-  if (ratio >= 0.70) return { component: 70, known: true };
-  return { component: 85, known: true };
-}
-
-function computeLongRideComponent(durationMin: number | null): { component: number; known: boolean } {
-  if (durationMin === null) return { component: 40, known: false };
-  
-  // Sorties > 4h = risque augmenté si répétées
-  if (durationMin <= 120) return { component: 15, known: true };
-  if (durationMin <= 180) return { component: 30, known: true };
-  if (durationMin <= 240) return { component: 50, known: true };
-  if (durationMin <= 300) return { component: 70, known: true };
-  return { component: 85, known: true };
+  if (tte > 55) return { component: 10, known: true };
+  if (tte >= 45) return { component: 30, known: true };
+  return { component: 60, known: true };
 }
 
 // ============================================
@@ -540,26 +508,23 @@ export function computeBikeInjuryRisk(input: BikeRiskInput): InjuryRiskEnvelope 
     tss7d, longRideDurationMin, age, objectif
   } = input;
   
-  // Calcul des composantes
-  const ifscResult = computeBikeIFSCComponent(ifscScore);
+  // Calcul des composantes (3 piliers TFCL™ Vélo)
+  const fatigueComp = computeFatigueComponent(fatiguePct);
   const vlamaxResult = computeBikeVlamaxComponent(vlamaxValue);
   const tteResult = computeBikeTTEComponent(tteMin, objectif);
-  const fatigueComp = computeFatigueComponent(fatiguePct);
-  const longRideResult = computeLongRideComponent(longRideDurationMin);
-  const ageResult = computeAgeComponent(age);
   
-  // Construire les drivers
+  // Construire les drivers (ordre TFCL™: Fatigue > VLamax > TTE)
   const drivers: InjuryRiskDriver[] = [
     {
-      id: 'ifsc',
-      label: 'IFSC™ (Force spécifique)',
-      value: ifscScore !== null ? `${ifscScore}/100` : '—',
-      component: ifscResult.component,
-      weight: BIKE_WEIGHTS.ifsc,
-      impact: getDriverImpact(ifscResult.component),
-      explanation: ifscScore !== null && ifscScore < 40 
-        ? 'IFSC bas → force fragile → risque sur sorties force/basse cadence'
-        : 'Force spécifique acceptable'
+      id: 'fatigue',
+      label: 'Fatigue Quantifiée TFCL™',
+      value: `${fatiguePct}%`,
+      component: fatigueComp,
+      weight: BIKE_WEIGHTS.fatigue,
+      impact: getDriverImpact(fatigueComp),
+      explanation: fatigueComp > 60 
+        ? 'Fatigue élevée → risque tendineux et technique dégradée'
+        : 'Fatigue contrôlée → risque normal'
     },
     {
       id: 'vlamax',
@@ -568,69 +533,38 @@ export function computeBikeInjuryRisk(input: BikeRiskInput): InjuryRiskEnvelope 
       component: vlamaxResult.component,
       weight: BIKE_WEIGHTS.vlamax,
       impact: getDriverImpact(vlamaxResult.component),
-      explanation: vlamaxValue !== null && vlamaxValue > 0.50 
-        ? 'VLamax élevé → tolérance au couple faible sur durée'
-        : 'VLamax contrôlé → risque métabolique normal'
+      explanation: vlamaxValue !== null && vlamaxValue > 0.55 
+        ? 'VLamax > 0.55 → dépendance glycolyse élevée → risque métabolique accru'
+        : vlamaxValue !== null && vlamaxValue < 0.35
+          ? 'VLamax < 0.35 → efficience aérobie → risque réduit'
+          : 'VLamax neutre → risque métabolique standard'
     },
     {
       id: 'tte',
-      label: 'Durabilité (TTE)',
+      label: 'TTE effectif',
       value: tteMin !== null ? `${tteMin} min` : '—',
       component: tteResult.component,
       weight: BIKE_WEIGHTS.tte,
       impact: getDriverImpact(tteResult.component),
-      explanation: tteResult.component > 60 
-        ? 'TTE insuffisant → fatigue précoce → technique dégradée'
-        : 'Durabilité correcte'
-    },
-    {
-      id: 'fatigue',
-      label: 'Fatigue fonctionnelle',
-      value: `${fatiguePct}%`,
-      component: fatigueComp,
-      weight: BIKE_WEIGHTS.fatigue,
-      impact: getDriverImpact(fatigueComp),
-      explanation: fatigueComp > 60 
-        ? 'Fatigue élevée → risque tendineux accru'
-        : 'Fatigue contrôlée'
-    },
-    {
-      id: 'longRide',
-      label: 'Durée sorties longues',
-      value: longRideDurationMin !== null ? `${Math.round(longRideDurationMin / 60)}h` : '—',
-      component: longRideResult.component,
-      weight: BIKE_WEIGHTS.longRide,
-      impact: getDriverImpact(longRideResult.component),
-      explanation: longRideResult.component > 60 
-        ? 'Sorties très longues répétées → surcharge progressive'
-        : 'Volume longue durée acceptable'
-    },
-    {
-      id: 'age',
-      label: 'Âge',
-      value: age !== null ? `${age} ans` : '—',
-      component: ageResult.component,
-      weight: BIKE_WEIGHTS.age,
-      impact: getDriverImpact(ageResult.component),
-      explanation: age !== null && age >= 45 
-        ? 'Âge > 45 → récupération plus lente'
-        : 'Récupération normale'
+      explanation: tteMin !== null && tteMin < 45 
+        ? 'TTE < 45 min → fatigue précoce → technique dégradée'
+        : tteMin !== null && tteMin > 55
+          ? 'TTE > 55 min → durabilité excellente → risque réduit'
+          : 'TTE correct → risque contrôlé'
     }
   ];
   
-  // Score final
+  // Score final TFCL™: 0.40×Fatigue + 0.35×VLamax + 0.25×TTE
   const rawScore = drivers.reduce((sum, d) => sum + d.component * d.weight, 0);
   const score = clamp(Math.round(rawScore), 0, 100);
   
   // Confiance
   let confidence = 0.5;
-  if (ifscResult.known) confidence += 0.15;
-  if (vlamaxResult.known) confidence += 0.10;
-  if (tteResult.known) confidence += 0.15;
-  if (longRideResult.known) confidence += 0.10;
+  if (vlamaxResult.known) confidence += 0.25;
+  if (tteResult.known) confidence += 0.25;
   confidence = clamp(confidence, 0.4, 0.95);
   
-  // Niveau
+  // Niveau (seuils TFCL™: <30, 30-50, 50-70, >70)
   const level = getRiskLevel(score);
   const levelInfo = getLevelInfo(level);
   
@@ -957,7 +891,7 @@ export function getInjuryRiskBadgeClass(level: InjuryRiskLevelUnified): string {
 export const INJURY_RISK_CHATBOT_QA = [
   {
     question: "Pourquoi mon risque blessure est élevé alors que je me sens bien ?",
-    answer: `Le risque blessure est basé sur des indicateurs objectifs (VLamax, TTE, fatigue, charge) 
+    answer: `Le risque blessure TFCL™ est basé sur des indicateurs objectifs (Fatigue, VLamax, TTE, Économie) 
 qui peuvent indiquer un écart entre les contraintes imposées et la capacité de récupération,
 même si les sensations sont bonnes. C'est précisément ce décalage qui génère des blessures "surprises".`
   },
@@ -975,5 +909,61 @@ même si les sensations sont bonnes. C'est précisément ce décalage qui génè
     answer: `Oui, et c'est très fréquent. La CAP impose des contraintes mécaniques (impacts répétés) 
 que le vélo n'a pas. Un athlète peut avoir un risque CAP élevé mais un risque Vélo faible.
 C'est pourquoi on recommande parfois de reporter la charge sur le vélo.`
+  },
+  {
+    question: "Comment est calculé le risque blessure TFCL™ ?",
+    answer: `Formule CAP: 0.35×Fatigue + 0.25×VLamax_factor + 0.25×TTE_factor + 0.15×Économie_factor
+Formule Vélo: 0.40×Fatigue + 0.35×VLamax_factor + 0.25×TTE_factor
+
+Seuils VLamax: <0.35 → faible, 0.35-0.55 → neutre, >0.55 → élevé
+Seuils TTE: >55 min → faible, 45-55 → neutre, <45 → élevé
+
+Interprétation: <30 faible, 30-50 vigilance, 50-70 élevé, >70 critique`
   }
 ];
+
+// ============================================
+// FONCTION UNIFIÉE computeInjuryRiskTFCL()
+// ============================================
+
+export type InjuryRiskSport = 'run' | 'bike';
+
+export interface InjuryRiskTFCLInput {
+  sport: InjuryRiskSport;
+  vlamaxValue: number | null;
+  tteMin: number | null;
+  fatiguePct: number;
+  economyLevel?: string | null;  // CAP only
+  tss7d?: number | null;
+  objectif?: string;
+}
+
+/**
+ * Fonction principale TFCL™ pour calculer l'indice de risque blessure
+ * selon le sport (CAP ou Vélo)
+ */
+export function computeInjuryRiskTFCL(input: InjuryRiskTFCLInput): InjuryRiskEnvelope {
+  if (input.sport === 'run') {
+    return computeCAPInjuryRisk({
+      vlamaxValue: input.vlamaxValue,
+      economyLevel: input.economyLevel ?? null,
+      tteMin: input.tteMin,
+      fatiguePct: input.fatiguePct,
+      tss7d: input.tss7d ?? null,
+      runLoad7d: null,
+      age: null,
+      objectif: input.objectif ?? 'Marathon'
+    });
+  }
+  
+  return computeBikeInjuryRisk({
+    vlamaxValue: input.vlamaxValue,
+    ifscScore: null,
+    tteMin: input.tteMin,
+    fatiguePct: input.fatiguePct,
+    tss7d: input.tss7d ?? null,
+    longRideDurationMin: null,
+    age: null,
+    objectif: input.objectif ?? 'IM'
+  });
+}
