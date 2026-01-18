@@ -36,11 +36,64 @@ mais permet de structurer des décisions cohérentes
 
   shortStatement: "Système d'aide à la décision fondé sur la physiologie de l'endurance moderne.",
   
+  // ===== CE QUE TFCL N'EST PAS =====
+  isNot: [
+    {
+      id: "planner",
+      label: "Un planificateur automatique",
+      explanation: "TFCL ne génère jamais de plan d'entraînement sans validation humaine"
+    },
+    {
+      id: "medical",
+      label: "Un outil médical",
+      explanation: "TFCL ne diagnostique pas, ne prescrit pas, ne remplace pas un médecin"
+    },
+    {
+      id: "oracle",
+      label: "Un oracle de performance",
+      explanation: "TFCL ne prédit pas les résultats de course"
+    },
+    {
+      id: "lab_replacement",
+      label: "Un remplacement de test labo",
+      explanation: "Quand une mesure directe est nécessaire, TFCL ne suffit pas"
+    }
+  ],
+  
+  // ===== CE QUE TFCL EST =====
+  is: [
+    {
+      id: "analysis_engine",
+      label: "Un moteur d'analyse physiologique",
+      explanation: "TFCL structure la complexité physiologique en informations exploitables"
+    },
+    {
+      id: "decision_aid",
+      label: "Une aide à la décision coach",
+      explanation: "TFCL éclaire les choix sans les imposer"
+    },
+    {
+      id: "transparency_tool",
+      label: "Un outil de transparence",
+      explanation: "TFCL distingue ce qui est mesuré, modélisé, interprété et conseillé"
+    },
+    {
+      id: "risk_manager",
+      label: "Un gestionnaire de risques",
+      explanation: "TFCL alerte sur fatigue, blessure, incohérences"
+    }
+  ],
+  
   coreValues: [
     "Décisions cohérentes basées sur des données",
     "Transparence sur les sources et la confiance",
     "Le coach reste décisionnaire final"
-  ]
+  ],
+  
+  // ===== TEXTE OFFICIEL =====
+  officialStatementFull: `Two For Coaching Lab propose une lecture scientifique,
+contextuelle et prudente de la performance.
+Il éclaire la décision, il ne la remplace pas.`
 };
 
 // ============================================
@@ -530,6 +583,151 @@ export function generateRangeJustification(factors: {
 }
 
 // ============================================
+// GRAPHIQUES SIGNATURE TFCL™
+// ============================================
+
+export const SIGNATURE_CHARTS = {
+  id: 'charts',
+  title: "Graphiques Signature TFCL™",
+  icon: "📊",
+  
+  charts: [
+    {
+      id: "metabolic_compass",
+      name: "Metabolic Performance Compass™",
+      description: "Profil énergétique 2D (VLamax × Durabilité)",
+      axes: { x: "VLamax", y: "Durabilité" },
+      zones: ["Endurance", "Équilibré", "Explosif", "Fragile"]
+    },
+    {
+      id: "metabolic_balance_map",
+      name: "Metabolic Balance Map™",
+      description: "Graphique à bulles (VLamax × TTE, taille = FTP/kg, couleur = Risque)",
+      axes: { x: "VLamax effectif", y: "TTE effectif" },
+      encoding: { size: "FTP/kg", color: "Risque blessure" }
+    },
+    {
+      id: "risk_matrix",
+      name: "Matrice Performance / Risque Blessure",
+      description: "Position de l'athlète sur les axes Performance et Risque",
+      axes: { x: "Risque Blessure", y: "Potentiel Performance" },
+      quadrants: ["Optimal", "Risque-Perf", "Safe-Dev", "Danger"]
+    },
+    {
+      id: "evolution_chart",
+      name: "Évolution VLamax / TTE",
+      description: "Suivi temporel des indicateurs clés",
+      type: "time_series"
+    }
+  ]
+};
+
+// ============================================
+// MODULES ACADEMY COMPLETS
+// ============================================
+
+export const ACADEMY_MODULES_COMPLETE = {
+  id: 'academy_modules',
+  title: "Modules Academy TFCL™",
+  icon: "🎓",
+  
+  modules: [
+    {
+      id: "read_report",
+      title: "Lire un rapport TFCL",
+      duration: "15 min",
+      objectives: [
+        "Distinguer Mesuré / Modélisé / Conseillé",
+        "Interpréter les indices de confiance",
+        "Comprendre les plages réalistes"
+      ],
+      casePractice: "Analyser un rapport type et identifier les zones d'attention"
+    },
+    {
+      id: "understand_estimation",
+      title: "Comprendre une estimation",
+      duration: "20 min",
+      objectives: [
+        "Pourquoi VLamax et TTE sont des estimations",
+        "Comment la confiance est calculée",
+        "Quand une donnée est fiable ou exploratoire"
+      ],
+      casePractice: "Comparer VLamax labo vs estimation terrain"
+    },
+    {
+      id: "decide_as_coach",
+      title: "Décider en coach",
+      duration: "25 min",
+      objectives: [
+        "Croiser TFCL avec le contexte athlète",
+        "Prioriser les axes de travail",
+        "Gérer les alertes (fatigue, risque, nutrition)"
+      ],
+      casePractice: "Athlète avec risque blessure élevé mais bon potentiel"
+    },
+    {
+      id: "practical_cases",
+      title: "Cas pratiques",
+      duration: "30 min",
+      cases: [
+        "Athlète en phase de développement VLamax",
+        "Préparation Ironman - gestion nutrition",
+        "Athlète en surcharge (risque élevé)",
+        "Retour de blessure - réintégration progressive"
+      ]
+    }
+  ]
+};
+
+// ============================================
+// RÈGLES CHATBOT COMPLÈTES
+// ============================================
+
+export const CHATBOT_COMPLETE_RULES = {
+  id: 'chatbot_complete',
+  title: "Règles Chatbot TFCL™",
+  icon: "💬",
+  
+  must: [
+    "Répondre de manière contextualisée TFCL",
+    "Expliquer les calculs quand demandé",
+    "Rappeler les limites des estimations",
+    "Mentionner la confiance des valeurs"
+  ],
+  
+  forbidden: [
+    "Diagnostic médical",
+    "Prescription fermée (faire X, pas Y)",
+    "Prédiction de performance garantie",
+    "Recommandation sans nuance"
+  ],
+  
+  responseTemplates: {
+    intro: "Selon la méthode TFCL™, ",
+    confidence: "(confiance: {value}%)",
+    limitation: "Cette estimation est basée sur {source}. {limitation}",
+    coaching: "Options à considérer (décision coach) :"
+  },
+  
+  exampleQA: [
+    {
+      question: "Comment est calculé mon VLamax ?",
+      answer: `Votre VLamax est estimée selon la méthode TFCL™, 
+basée sur le rapport entre puissance max courte et seuil fonctionnel. 
+Cette estimation (confiance ~70%) n'est pas une mesure directe par lactate.
+Elle doit être interprétée dans le contexte de votre objectif.`
+    },
+    {
+      question: "Pourquoi mon risque blessure est élevé ?",
+      answer: `Votre risque blessure CAP est estimé à partir de la formule TFCL™ :
+0.35×Fatigue + 0.25×VLamax + 0.25×TTE + 0.15×Économie.
+Les facteurs contributifs sont détaillés dans votre dashboard.
+Cet indice est contextuel, pas un diagnostic médical.`
+    }
+  ]
+};
+
+// ============================================
 // DOCUMENT COMPLET
 // ============================================
 
@@ -546,7 +744,11 @@ export const METHOD_FRAMEWORK_DOCUMENT = {
     { id: 'ranges', title: RANGE_RULE.title, icon: RANGE_RULE.icon, content: RANGE_RULE },
     { id: 'scores', title: "Affichage des Scores", icon: "📊", content: SCORE_DISPLAY_RULES },
     { id: 'dashboard', title: DASHBOARD_UI_RULE.title, icon: DASHBOARD_UI_RULE.icon, content: DASHBOARD_UI_RULE },
+    { id: 'charts', title: SIGNATURE_CHARTS.title, icon: SIGNATURE_CHARTS.icon, content: SIGNATURE_CHARTS },
     { id: 'pdf', title: PDF_INTRO_PAGE.title, icon: PDF_INTRO_PAGE.icon, content: PDF_INTRO_PAGE },
-    { id: 'chatbot', title: CHATBOT_METHOD_RULES.title, icon: CHATBOT_METHOD_RULES.icon, content: CHATBOT_METHOD_RULES }
-  ]
+    { id: 'academy', title: ACADEMY_MODULES_COMPLETE.title, icon: ACADEMY_MODULES_COMPLETE.icon, content: ACADEMY_MODULES_COMPLETE },
+    { id: 'chatbot', title: CHATBOT_COMPLETE_RULES.title, icon: CHATBOT_COMPLETE_RULES.icon, content: CHATBOT_COMPLETE_RULES }
+  ],
+  
+  officialStatement: METHOD_OFFICIAL_POSITIONING.officialStatementFull
 };

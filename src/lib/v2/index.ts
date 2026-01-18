@@ -473,7 +473,7 @@ export {
   type MapExplanation
 } from './metabolicBalanceMap';
 
-// Method Framework (Cadre Officiel Consolidé)
+// Method Framework (Cadre Officiel Consolidé TFCL™)
 export {
   METHOD_OFFICIAL_POSITIONING,
   PILLAR_MEASURED,
@@ -488,6 +488,9 @@ export {
   PDF_INTRO_PAGE,
   ACADEMY_METHOD_FRAMEWORK,
   CHATBOT_METHOD_RULES,
+  SIGNATURE_CHARTS,
+  ACADEMY_MODULES_COMPLETE,
+  CHATBOT_COMPLETE_RULES,
   METHOD_FRAMEWORK_DOCUMENT,
   getPillarForData,
   getDataSourceBadge,
