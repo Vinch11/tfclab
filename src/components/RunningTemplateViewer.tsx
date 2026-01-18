@@ -66,53 +66,173 @@ function FocusBadge({ focus, size = "sm" }: { focus: WeekFocus; size?: "sm" | "m
   );
 }
 
-// Methodology Badge Component
-function MethodologyBadge({ methodology, size = "sm" }: { methodology?: TrainingMethodology; size?: "sm" | "md" }) {
+// =============================================
+// METHODOLOGY JUSTIFICATIONS
+// =============================================
+
+interface MethodologyJustification {
+  label: string;
+  description: string;
+  keyPrinciples: string[];
+  templateJustification: string;
+  references: string[];
+  bg: string;
+  text: string;
+}
+
+const METHODOLOGY_CONFIG: Record<TrainingMethodology, MethodologyJustification> = {
+  TFCL: { 
+    bg: "bg-gradient-to-r from-emerald-500 to-teal-500", 
+    text: "text-white", 
+    label: "TFCL",
+    description: "Two For Coaching Lab™ - Approche métabolique VLamax-centrée",
+    keyPrinciples: [
+      "Modulation VLamax selon l'objectif (↓ pour endurance, ↑ pour explosivité)",
+      "Séances TTE (Time To Exhaustion) pour développer l'endurance au seuil",
+      "Zones d'intensité basées sur le modèle physiologique (VO2, VLamax, seuils)",
+      "Périodisation non-linéaire avec blocs métaboliques ciblés"
+    ],
+    templateJustification: "Ce template intègre des séances spécifiques TTE, du travail à allure marathon/semi contrôlé, et une structure de phases guidée par les indicateurs métaboliques (VLamax, économie de course).",
+    references: ["Mader 2003", "San-Millán 2018", "Methodology TFCL 2024"]
+  },
+  CLASSIQUE: { 
+    bg: "bg-gradient-to-r from-slate-500 to-gray-600", 
+    text: "text-white", 
+    label: "Classique",
+    description: "Friel / Périodisation linéaire traditionnelle",
+    keyPrinciples: [
+      "Périodisation linéaire: Base → Build → Peak → Taper",
+      "Volume élevé en phase de base, réduction progressive",
+      "Augmentation graduelle de l'intensité spécifique",
+      "Semaines de récupération structurées (3:1 ou 4:1)"
+    ],
+    templateJustification: "Ce template suit la progression linéaire classique avec une phase de base volumineuse, un développement progressif de l'intensité spécifique, et un affûtage traditionnel.",
+    references: ["Joe Friel - Training Bible", "Tudor Bompa - Periodization"]
+  },
+  INVERSE: { 
+    bg: "bg-gradient-to-r from-violet-500 to-purple-600", 
+    text: "text-white", 
+    label: "Inversé",
+    description: "Canova / Périodisation inversée - Spécificité précoce",
+    keyPrinciples: [
+      "Travail à allure spécifique dès les premières semaines",
+      "Longues sorties avec finales à allure cible précoces",
+      "Réduction du volume d'intensité près de la course",
+      "Moins de travail de base, plus de spécificité continue"
+    ],
+    templateJustification: "Ce template introduit l'allure spécifique dès le début du cycle avec des séances AS42/AS21 précoces et des finales progressives en long run.",
+    references: ["Renato Canova - Marathon Training", "Brad Hudson - Run Faster"]
+  },
+  POLARISEE: { 
+    bg: "bg-gradient-to-r from-sky-500 to-blue-600", 
+    text: "text-white", 
+    label: "Polarisée",
+    description: "Modèle 80/20 - Low Intensity + High Intensity",
+    keyPrinciples: [
+      "80% du volume en Zone 1-2 (très facile)",
+      "20% en Zone 4-5 (haute intensité)",
+      "Évitement de la Zone 3 (tempo)",
+      "Récupération maximisée entre les séances clés"
+    ],
+    templateJustification: "Ce template applique le modèle polarisé avec un volume majoritaire en endurance fondamentale, des séances VMA/VO2 ciblées, et peu de travail au seuil.",
+    references: ["Stephen Seiler", "Norwegian Model", "Stöggl & Sperlich 2014"]
+  },
+  LORANG: { 
+    bg: "bg-gradient-to-r from-amber-500 to-orange-600", 
+    text: "text-white", 
+    label: "Lorang",
+    description: "Olav Alexander Bu / Norwegian Double-Threshold Model",
+    keyPrinciples: [
+      "Doubles séances seuil (matin + soir) plusieurs fois/semaine",
+      "Intensité modérée mais volume d'intensité élevé",
+      "Récupération courte entre les blocs seuil",
+      "Développement du seuil par accumulation de temps"
+    ],
+    templateJustification: "Ce template inclut des doubles journées seuil, un volume important de travail à intensité modérée-haute, et une structure permettant l'accumulation de minutes au seuil.",
+    references: ["Olav Alexander Bu", "Marius Bakken", "Ingebrigtsen Training"]
+  },
+};
+
+// Methodology Badge Component with Tooltip Justification
+function MethodologyBadge({ 
+  methodology, 
+  size = "sm",
+  showTooltip = true,
+}: { 
+  methodology?: TrainingMethodology; 
+  size?: "sm" | "md";
+  showTooltip?: boolean;
+}) {
   if (!methodology) return null;
   
-  const config: Record<TrainingMethodology, { bg: string; text: string; label: string; description: string }> = {
-    TFCL: { 
-      bg: "bg-gradient-to-r from-emerald-500 to-teal-500", 
-      text: "text-white", 
-      label: "TFCL",
-      description: "Métabolique VLamax-centré"
-    },
-    CLASSIQUE: { 
-      bg: "bg-gradient-to-r from-slate-500 to-gray-600", 
-      text: "text-white", 
-      label: "Classique",
-      description: "Friel / Périodisation linéaire"
-    },
-    INVERSE: { 
-      bg: "bg-gradient-to-r from-violet-500 to-purple-600", 
-      text: "text-white", 
-      label: "Inversé",
-      description: "Canova / Spécificité précoce"
-    },
-    POLARISEE: { 
-      bg: "bg-gradient-to-r from-sky-500 to-blue-600", 
-      text: "text-white", 
-      label: "Polarisée",
-      description: "80/20 Low + High intensity"
-    },
-    LORANG: { 
-      bg: "bg-gradient-to-r from-amber-500 to-orange-600", 
-      text: "text-white", 
-      label: "Lorang",
-      description: "Olav Bu / Double seuil"
-    },
-  };
-  
-  const c = config[methodology];
+  const config = METHODOLOGY_CONFIG[methodology];
   const sizeClass = size === "md" ? "text-xs px-2.5 py-1" : "text-[10px] px-2 py-0.5";
   
-  return (
+  const badge = (
     <Badge 
-      className={`${c.bg} ${c.text} ${sizeClass} border-0 font-semibold`}
-      title={c.description}
+      className={`${config.bg} ${config.text} ${sizeClass} border-0 font-semibold cursor-help`}
     >
-      {c.label}
+      {config.label}
     </Badge>
+  );
+  
+  if (!showTooltip) return badge;
+  
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        {badge}
+      </DialogTrigger>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Badge className={`${config.bg} ${config.text} text-sm px-3 py-1 border-0`}>
+              {config.label}
+            </Badge>
+            <span className="text-base">{config.description}</span>
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 text-sm">
+          {/* Principes clés */}
+          <div className="space-y-2">
+            <h4 className="font-semibold flex items-center gap-2 text-primary">
+              <Target className="h-4 w-4" />
+              Principes clés de cette méthodologie
+            </h4>
+            <ul className="space-y-1.5 pl-6">
+              {config.keyPrinciples.map((principle, i) => (
+                <li key={i} className="text-muted-foreground list-disc">
+                  {principle}
+                </li>
+              ))}
+            </ul>
+          </div>
+          
+          {/* Justification du tag */}
+          <div className="space-y-2">
+            <h4 className="font-semibold flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+              <CheckCircle2 className="h-4 w-4" />
+              Pourquoi ce template est tagué "{config.label}"
+            </h4>
+            <p className="text-muted-foreground bg-muted/50 p-3 rounded-lg border border-dashed">
+              {config.templateJustification}
+            </p>
+          </div>
+          
+          {/* Références */}
+          <div className="pt-2 border-t">
+            <p className="text-xs text-muted-foreground flex flex-wrap gap-2 items-center">
+              <span className="font-medium">Références:</span>
+              {config.references.map((ref, i) => (
+                <Badge key={i} variant="outline" className="text-[10px]">
+                  {ref}
+                </Badge>
+              ))}
+            </p>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
