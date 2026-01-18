@@ -1551,79 +1551,136 @@ export default function TemplatesPage() {
       </header>
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-4 sm:space-y-6 max-w-7xl">
-        {/* Template Selection */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Sélectionner un template prédéfini
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Select 
-              value={selectedTemplateId} 
-              onValueChange={(v) => {
-                setSelectedTemplateId(v);
-                setIsLoaded(false);
-                setWeeks([]);
-                setSections([]);
-                setSelectedSectionId(null);
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Choisir un template" />
-              </SelectTrigger>
-              <SelectContent>
-                {PROGRAM_TEMPLATES.map((t) => (
-                  <SelectItem key={t.id} value={t.id}>
-                    {t.name} ({t.target})
-                    {t.multiSections && " 📑"}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={handleLoadTemplate} disabled={isLoading || !selectedTemplateId}>
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                Charger le template
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => navigate("/tfcl-testing-week")}
-                className="gap-2"
-              >
-                <Beaker className="h-4 w-4" />
-                Semaine de Référence TFCL
-              </Button>
-              {isLoaded && (
-                <>
-                  <Button variant="outline" onClick={handleCopyAll}>
-                    <Copy className="h-4 w-4 mr-2" />
-                    Copier tout
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={handleClearCache}>
-                    Vider le cache
-                  </Button>
-                  <Button 
-                    variant="destructive" 
-                    size="sm" 
-                    onClick={() => {
+        {/* Template Selection - Collapsible with Running Templates */}
+        <Collapsible defaultOpen={!isLoaded}>
+          <Card className="overflow-hidden">
+            <CollapsibleTrigger className="w-full">
+              <CardHeader className="pb-3 flex flex-row items-center justify-between hover:bg-muted/30 transition-colors">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Bibliothèque de Templates
+                  <Badge variant="outline" className="ml-2">
+                    {PROGRAM_TEMPLATES.length + RUNNING_TEMPLATES.length} plans
+                  </Badge>
+                </CardTitle>
+                <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform data-[state=open]:rotate-180" />
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="space-y-6 pt-0">
+                {/* Triathlon/Ironman Templates */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Activity className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-semibold">Templates Triathlon / Ironman</span>
+                    <Badge variant="secondary" className="text-xs">{PROGRAM_TEMPLATES.length} plans</Badge>
+                  </div>
+                  <Select 
+                    value={selectedTemplateId} 
+                    onValueChange={(v) => {
+                      setSelectedTemplateId(v);
                       setIsLoaded(false);
                       setWeeks([]);
                       setSections([]);
                       setSelectedSectionId(null);
-                      localStorage.removeItem("vlab-template-loaded");
-                      toast.success("Template fermé");
                     }}
                   >
-                    Fermer le template
-                  </Button>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choisir un template triathlon" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PROGRAM_TEMPLATES.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.name} ({t.target})
+                          {t.multiSections && " 📑"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <div className="flex flex-wrap gap-2">
+                    <Button onClick={handleLoadTemplate} disabled={isLoading || !selectedTemplateId}>
+                      {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                      Charger le template
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => navigate("/tfcl-testing-week")}
+                      className="gap-2"
+                    >
+                      <Beaker className="h-4 w-4" />
+                      Semaine de Référence TFCL
+                    </Button>
+                    {isLoaded && (
+                      <>
+                        <Button variant="outline" onClick={handleCopyAll}>
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copier tout
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={handleClearCache}>
+                          Vider le cache
+                        </Button>
+                        <Button 
+                          variant="destructive" 
+                          size="sm" 
+                          onClick={() => {
+                            setIsLoaded(false);
+                            setWeeks([]);
+                            setSections([]);
+                            setSelectedSectionId(null);
+                            localStorage.removeItem("vlab-template-loaded");
+                            toast.success("Template fermé");
+                          }}
+                        >
+                          Fermer le template
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Divider */}
+                <div className="border-t border-dashed pt-4">
+                  {/* Running Templates */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <PersonStanding className="h-4 w-4 text-orange-500" />
+                      <span className="text-sm font-semibold">Running Templates</span>
+                      <Badge variant="outline" className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 border-orange-200">
+                        {RUNNING_TEMPLATES.length} plans
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        {RUNNING_TEMPLATES.filter(t => t.goal === "marathon").length} Marathon • {RUNNING_TEMPLATES.filter(t => t.goal === "semi").length} Semi
+                      </Badge>
+                    </div>
+                    
+                    {/* Interactive Running Templates Grid with Comparison */}
+                    <RunningTemplateGrid />
+
+                    {/* Week Selector TFCL - Collapsible */}
+                    <Collapsible defaultOpen={false}>
+                      <div className="pt-4 border-t border-dashed">
+                        <CollapsibleTrigger className="flex items-center justify-between w-full py-2 hover:bg-muted/50 rounded-lg px-2 transition-colors">
+                          <div className="flex items-center gap-2">
+                            <Beaker className="h-4 w-4 text-primary" />
+                            <span className="text-sm font-medium">Week Selector TFCL™</span>
+                            <Badge variant="outline" className="text-[10px]">Suggestion IA</Badge>
+                          </div>
+                          <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform data-[state=open]:rotate-180" />
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <div className="pt-2">
+                            <WeekSelectorTFCL />
+                          </div>
+                        </CollapsibleContent>
+                      </div>
+                    </Collapsible>
+                  </div>
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
         {/* Section Selection (if multi-section) */}
         {isLoaded && sections.length > 1 && (
@@ -1650,52 +1707,6 @@ export default function TemplatesPage() {
             </CardContent>
           </Card>
         )}
-
-        {/* Running Templates Section - Enhanced */}
-        <Collapsible defaultOpen={false}>
-          <Card className="overflow-hidden">
-            <CollapsibleTrigger className="w-full">
-              <CardHeader className="pb-3 flex flex-row items-center justify-between bg-gradient-to-r from-orange-500/10 to-transparent">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <PersonStanding className="h-5 w-5 text-orange-500" />
-                  Running Templates
-                  <Badge variant="outline" className="ml-2 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 border-orange-200">
-                    {RUNNING_TEMPLATES.length} plans
-                  </Badge>
-                  <Badge variant="secondary" className="text-xs">
-                    {RUNNING_TEMPLATES.filter(t => t.goal === "marathon").length} Marathon • {RUNNING_TEMPLATES.filter(t => t.goal === "semi").length} Semi
-                  </Badge>
-                </CardTitle>
-                <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform" />
-              </CardHeader>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <CardContent className="space-y-6 pt-2">
-                {/* Interactive Running Templates Grid with Comparison */}
-                <RunningTemplateGrid />
-
-                {/* Week Selector TFCL - Collapsible */}
-                <Collapsible defaultOpen={false}>
-                  <div className="pt-4 border-t border-dashed">
-                    <CollapsibleTrigger className="flex items-center justify-between w-full py-2 hover:bg-muted/50 rounded-lg px-2 transition-colors">
-                      <div className="flex items-center gap-2">
-                        <Beaker className="h-4 w-4 text-primary" />
-                        <span className="text-sm font-medium">Week Selector TFCL™</span>
-                        <Badge variant="outline" className="text-[10px]">Suggestion IA</Badge>
-                      </div>
-                      <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform data-[state=open]:rotate-180" />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <div className="pt-2">
-                        <WeekSelectorTFCL />
-                      </div>
-                    </CollapsibleContent>
-                  </div>
-                </Collapsible>
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
 
         {/* Staff Mode Toggle - always visible when template selected */}
         <Card>
