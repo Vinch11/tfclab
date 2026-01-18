@@ -358,12 +358,12 @@ export function WeekSelectorTFCL({ onInsertWeek, defaultRaceType }: WeekSelector
               <Calendar className="h-4 w-4 text-muted-foreground" />
               Phase (optionnel)
             </Label>
-            <Select value={phaseManual} onValueChange={(v) => { setPhaseManual(v as RunningPhase | ""); setShowResults(false); }}>
+            <Select value={phaseManual || "auto"} onValueChange={(v) => { setPhaseManual(v === "auto" ? "" : v as RunningPhase); setShowResults(false); }}>
               <SelectTrigger className="bg-background">
                 <SelectValue placeholder="Auto (selon profil)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">🔄 Auto</SelectItem>
+                <SelectItem value="auto">🔄 Auto</SelectItem>
                 <SelectItem value="BASE">🏗️ Base / Construction</SelectItem>
                 <SelectItem value="BUILD">📈 Build / Développement</SelectItem>
                 <SelectItem value="SPECIFIC">🎯 Spécifique</SelectItem>
