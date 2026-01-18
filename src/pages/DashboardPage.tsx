@@ -56,6 +56,10 @@ import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 import { QuickAmbitionSelector } from "@/components/QuickAmbitionSelector";
 import { AmbitionTargetsCard } from "@/components/AmbitionTargetsCard";
 
+// Calibration TFCL V2
+import { VLamaxV2DisplayCard } from "@/components/VLamaxV2DisplayCard";
+import { ObjectifPrincipal } from "@/lib/reference";
+
 // Système de transparence scientifique
 import { DataQualityBlock, calculateDataQualityStats } from "@/components/DataQualityBlock";
 import type { ScoreSource } from "@/lib/scoreEnvelope";
@@ -683,6 +687,16 @@ export default function DashboardPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* PILIER 1bis: VLamax TFCL V2 - Calibration avec percentiles */}
+      <VLamaxV2DisplayCard
+        objectif={objectif as ObjectifPrincipal}
+        vlamax={vlamaxEffectif.value ?? 0}
+        vlamaxSource={vlamaxEffectif.source === "test" ? "test_terrain" : "estimation"}
+        vo2max={snapshot.vo2max ?? undefined}
+        sex={currentAthlete.sexe === "F" ? "F" : "H"}
+        age={athleteAge ?? undefined}
+      />
 
       {/* PILIER 2: TTE Effectif */}
       <Card>
