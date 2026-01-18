@@ -434,7 +434,7 @@ function WeekCard({ week, templateName, onSelectForComparison, isSelectedForComp
 }
 
 // =============================================
-// WEEK COMPARISON VIEW
+// WEEK COMPARISON VIEW - Enhanced
 // =============================================
 
 interface WeekComparisonProps {
@@ -444,75 +444,343 @@ interface WeekComparisonProps {
 }
 
 export function WeekComparisonView({ weeks, onRemove, onClear }: WeekComparisonProps) {
+  const [viewMode, setViewMode] = useState<"overview" | "sessions" | "metrics">("overview");
+  const [expandedSessions, setExpandedSessions] = useState<Record<string, boolean>>({});
+  
   if (weeks.length === 0) return null;
 
+  // Calculate aggregate metrics for comparison
+  const getWeekStats = (week: RunningWeek) => {
+    const totalDuration = week.sessions.reduce((sum, s) => sum + s.duration_min, 0);
+    const keySessions = week.sessions.filter(s => s.isKey).length;
+    const sessionTypes = week.sessions.reduce((acc, s) => {
+      acc[s.type] = (acc[s.type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    return { totalDuration, keySessions, sessionTypes, sessionCount: week.sessions.length };
+  };
+
+  const allStats = weeks.map(w => ({ ...w, stats: getWeekStats(w.week) }));
+  const maxDuration = Math.max(...allStats.map(w => w.stats.totalDuration));
+
+  const toggleSession = (weekId: string, sessionIdx: number) => {
+    const key = `${weekId}-${sessionIdx}`;
+    setExpandedSessions(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
   return (
-    <Card className="border-2 border-dashed border-primary/50 bg-primary/5">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base flex items-center justify-between">
-          <span className="flex items-center gap-2">
-            <ArrowLeftRight className="h-4 w-4 text-primary" />
-            Comparaison de semaines ({weeks.length})
-          </span>
-          <Button variant="ghost" size="sm" onClick={onClear} className="text-xs h-7">
-            <X className="h-3 w-3 mr-1" />
-            Effacer
-          </Button>
-        </CardTitle>
+    <Card className="border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <ArrowLeftRight className="h-5 w-5 text-primary" />
+            Comparaison de semaines
+            <Badge variant="secondary" className="text-xs">{weeks.length}/4</Badge>
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            {/* View Mode Tabs */}
+            <div className="flex border rounded-lg overflow-hidden">
+              <button
+                onClick={() => setViewMode("overview")}
+                className={cn(
+                  "px-3 py-1 text-xs transition-colors",
+                  viewMode === "overview" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                )}
+              >
+                Vue d'ensemble
+              </button>
+              <button
+                onClick={() => setViewMode("sessions")}
+                className={cn(
+                  "px-3 py-1 text-xs transition-colors border-x",
+                  viewMode === "sessions" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                )}
+              >
+                Séances
+              </button>
+              <button
+                onClick={() => setViewMode("metrics")}
+                className={cn(
+                  "px-3 py-1 text-xs transition-colors",
+                  viewMode === "metrics" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                )}
+              >
+                Métriques
+              </button>
+            </div>
+            <Button variant="ghost" size="sm" onClick={onClear} className="text-xs h-7">
+              <X className="h-3 w-3 mr-1" />
+              Effacer
+            </Button>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="w-full">
-          <div className="flex gap-4 pb-2" style={{ minWidth: `${weeks.length * 280}px` }}>
-            {weeks.map(({ week, templateName }) => (
-              <div 
-                key={week.week_id} 
-                className="w-[260px] shrink-0 p-3 rounded-lg border bg-card"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <div className="font-medium text-sm">S{week.week_number} - {week.title}</div>
-                    <div className="text-[10px] text-muted-foreground">{templateName}</div>
-                  </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-6 w-6 p-0"
-                    onClick={() => onRemove(week.week_id)}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </div>
-
-                <div className="flex flex-wrap gap-1 mb-2">
-                  <PhaseBadge phase={week.meta.phase} />
-                  <FocusBadge focus={week.meta.focus} />
-                </div>
-
-                <div className="space-y-1 mb-3">
-                  <LoadBar level={week.meta.load_level} label="Charge" />
-                  <LoadBar level={week.meta.intensity_density} label="Intensité" />
-                  <LoadBar level={week.meta.longrun_level} label="Long run" />
-                </div>
-
-                <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                  {week.sessions.map((session, idx) => (
-                    <div 
-                      key={idx} 
-                      className={cn(
-                        "p-1.5 rounded text-[10px] flex items-center gap-1.5",
-                        session.isKey ? "bg-primary/10 border border-primary/20" : "bg-muted/50"
-                      )}
-                    >
-                      <SessionTypeIcon type={session.type} />
-                      <span className="flex-1 truncate">{session.title}</span>
-                      <span className="text-muted-foreground shrink-0">{formatDuration(session.duration_min)}</span>
+        {/* Overview Mode */}
+        {viewMode === "overview" && (
+          <div className="overflow-x-auto">
+            <div className="flex gap-4 pb-2" style={{ minWidth: `${weeks.length * 300}px` }}>
+              {allStats.map(({ week, templateName, stats }) => (
+                <div 
+                  key={week.week_id} 
+                  className="w-[280px] shrink-0 p-4 rounded-lg border bg-card shadow-sm"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <div className="font-semibold text-sm">S{week.week_number} - {week.title}</div>
+                      <div className="text-[10px] text-muted-foreground">{templateName}</div>
                     </div>
-                  ))}
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 w-6 p-0 hover:bg-destructive/20"
+                      onClick={() => onRemove(week.week_id)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    <PhaseBadge phase={week.meta.phase} size="md" />
+                    <FocusBadge focus={week.meta.focus} size="md" />
+                  </div>
+
+                  {/* Volume bar */}
+                  <div className="mb-3">
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-muted-foreground">Volume</span>
+                      <span className="font-mono font-medium">{formatDuration(stats.totalDuration)}</span>
+                    </div>
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-primary to-primary/60 rounded-full transition-all"
+                        style={{ width: `${(stats.totalDuration / maxDuration) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5 mb-3">
+                    <LoadBar level={week.meta.load_level} label="Charge" />
+                    <LoadBar level={week.meta.intensity_density} label="Intensité" />
+                    <LoadBar level={week.meta.longrun_level} label="Long run" />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-center">
+                    <div className="p-2 rounded bg-muted/50">
+                      <div className="text-lg font-bold">{stats.sessionCount}</div>
+                      <div className="text-[10px] text-muted-foreground">Séances</div>
+                    </div>
+                    <div className="p-2 rounded bg-amber-100 dark:bg-amber-900/30">
+                      <div className="text-lg font-bold text-amber-700 dark:text-amber-400">{stats.keySessions}</div>
+                      <div className="text-[10px] text-muted-foreground">Clés</div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </ScrollArea>
+        )}
+
+        {/* Sessions Mode - Side by side comparison */}
+        {viewMode === "sessions" && (
+          <div className="overflow-x-auto">
+            <div className="flex gap-4 pb-2" style={{ minWidth: `${weeks.length * 320}px` }}>
+              {weeks.map(({ week, templateName }) => (
+                <div 
+                  key={week.week_id} 
+                  className="w-[300px] shrink-0 space-y-2"
+                >
+                  <div className="flex items-center justify-between p-2 bg-muted/50 rounded-lg sticky top-0">
+                    <div>
+                      <div className="font-semibold text-sm">S{week.week_number}</div>
+                      <div className="text-[10px] text-muted-foreground truncate max-w-[200px]">{templateName}</div>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 w-6 p-0"
+                      onClick={() => onRemove(week.week_id)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+                    {week.sessions.map((session, idx) => {
+                      const isExpanded = expandedSessions[`${week.week_id}-${idx}`];
+                      return (
+                        <div 
+                          key={idx}
+                          className={cn(
+                            "rounded-lg border text-sm transition-all",
+                            session.isKey ? "bg-primary/5 border-primary/30" : "bg-card"
+                          )}
+                        >
+                          <button
+                            onClick={() => toggleSession(week.week_id, idx)}
+                            className="w-full p-2 flex items-center gap-2 text-left hover:bg-muted/50 transition-colors rounded-lg"
+                          >
+                            <Badge variant="outline" className="text-[9px] font-mono shrink-0">
+                              {session.day.slice(0, 3)}
+                            </Badge>
+                            <SessionTypeIcon type={session.type} />
+                            <span className="flex-1 text-xs truncate">{session.title}</span>
+                            {session.isKey && (
+                              <Badge className="bg-primary/20 text-primary text-[8px] px-1">CLÉ</Badge>
+                            )}
+                            <span className="text-[10px] text-muted-foreground font-mono">
+                              {formatDuration(session.duration_min)}
+                            </span>
+                            <ChevronRight className={cn(
+                              "h-3 w-3 text-muted-foreground transition-transform",
+                              isExpanded && "rotate-90"
+                            )} />
+                          </button>
+                          
+                          {isExpanded && (
+                            <div className="px-2 pb-2 space-y-2 border-t border-dashed">
+                              {session.details && (
+                                <div className="pt-2">
+                                  <p className="text-[11px] bg-muted/50 p-2 rounded font-mono">
+                                    {session.details}
+                                  </p>
+                                </div>
+                              )}
+                              {session.notes && (
+                                <div className="flex items-start gap-1.5 bg-amber-50 dark:bg-amber-900/20 p-1.5 rounded">
+                                  <Lightbulb className="h-3 w-3 text-amber-600 shrink-0 mt-0.5" />
+                                  <p className="text-[10px] text-amber-800 dark:text-amber-200">{session.notes}</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Metrics Mode - Table comparison */}
+        {viewMode === "metrics" && (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left p-2 font-medium text-muted-foreground">Métrique</th>
+                  {weeks.map(({ week, templateName }) => (
+                    <th key={week.week_id} className="text-center p-2 min-w-[120px]">
+                      <div className="font-semibold">S{week.week_number}</div>
+                      <div className="text-[10px] text-muted-foreground font-normal truncate max-w-[100px] mx-auto">
+                        {templateName.split(' ')[0]}
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b">
+                  <td className="p-2 text-muted-foreground">Phase</td>
+                  {weeks.map(({ week }) => (
+                    <td key={week.week_id} className="text-center p-2">
+                      <PhaseBadge phase={week.meta.phase} size="md" />
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b">
+                  <td className="p-2 text-muted-foreground">Focus</td>
+                  {weeks.map(({ week }) => (
+                    <td key={week.week_id} className="text-center p-2">
+                      <FocusBadge focus={week.meta.focus} size="md" />
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b bg-muted/30">
+                  <td className="p-2 text-muted-foreground font-medium">Volume total</td>
+                  {allStats.map(({ week, stats }) => (
+                    <td key={week.week_id} className="text-center p-2 font-mono font-bold">
+                      {formatDuration(stats.totalDuration)}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b">
+                  <td className="p-2 text-muted-foreground">Nb séances</td>
+                  {allStats.map(({ week, stats }) => (
+                    <td key={week.week_id} className="text-center p-2 font-mono">
+                      {stats.sessionCount}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b">
+                  <td className="p-2 text-muted-foreground">Séances clés</td>
+                  {allStats.map(({ week, stats }) => (
+                    <td key={week.week_id} className="text-center p-2">
+                      <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                        {stats.keySessions}
+                      </Badge>
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b">
+                  <td className="p-2 text-muted-foreground">Charge</td>
+                  {weeks.map(({ week }) => (
+                    <td key={week.week_id} className="text-center p-2">
+                      <div className="flex items-center justify-center gap-1">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <div 
+                            key={i} 
+                            className={cn(
+                              "w-2 h-2 rounded-full",
+                              i < week.meta.load_level ? "bg-primary" : "bg-muted"
+                            )}
+                          />
+                        ))}
+                      </div>
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b">
+                  <td className="p-2 text-muted-foreground">Intensité</td>
+                  {weeks.map(({ week }) => (
+                    <td key={week.week_id} className="text-center p-2">
+                      <div className="flex items-center justify-center gap-1">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <div 
+                            key={i} 
+                            className={cn(
+                              "w-2 h-2 rounded-full",
+                              i < week.meta.intensity_density ? "bg-orange-500" : "bg-muted"
+                            )}
+                          />
+                        ))}
+                      </div>
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b">
+                  <td className="p-2 text-muted-foreground">Risque blessure</td>
+                  {weeks.map(({ week }) => (
+                    <td key={week.week_id} className="text-center p-2">
+                      <Badge variant={week.meta.injury_risk_tag === "HIGH" ? "destructive" : "outline"} className="text-[10px]">
+                        {week.meta.injury_risk_tag}
+                      </Badge>
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Quick add hint */}
+        {weeks.length < 4 && (
+          <p className="text-[10px] text-muted-foreground text-center mt-3 pt-3 border-t border-dashed">
+            💡 Cliquez sur les checkboxes dans les plans pour ajouter des semaines à comparer (max 4)
+          </p>
+        )}
       </CardContent>
     </Card>
   );
