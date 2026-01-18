@@ -734,6 +734,53 @@ const Index = () => {
             ),
           },
           {
+            id: "fatmax-tfcl",
+            render: () => currentAthlete && (
+              <FatMaxTFCLCard
+                vlamaxEffectif={vlamaxEffectif.value}
+                vlamaxConfidence={vlamaxEffectif.confidence}
+                tteEffectif={tteEffectif.tte_min}
+                tteConfidence={tteEffectif.confidence}
+                fatigueIndex={null}
+                objectif={(currentAthlete.goal === "IM" ? "Ironman" : currentAthlete.goal) || "Ironman"}
+                ftp={effectiveRefs.ftp}
+              />
+            ),
+          },
+          {
+            id: "fatmax-chart",
+            render: () => {
+              if (!currentAthlete) return null;
+              const normalizedObjectif = ((currentAthlete.goal === "IM" ? "Ironman" : currentAthlete.goal) || "Ironman") as FatMaxObjectif;
+              const fatmaxResult = computeFatMaxTFCL({
+                vlamaxEffectif: vlamaxEffectif.value,
+                vlamaxConfidence: vlamaxEffectif.confidence,
+                vo2maxEffectif: null,
+                tteEffectif: tteEffectif.tte_min,
+                tteConfidence: tteEffectif.confidence,
+                fatigueIndex: null,
+                objectif: normalizedObjectif,
+                ftp: effectiveRefs.ftp ?? null,
+              });
+              if (!fatmaxResult) return null;
+              // Intensité course cible selon objectif
+              const raceIntensityMap: Record<string, number> = {
+                Ironman: 70,
+                "70.3": 78,
+                Marathon: 82,
+                Semi: 86,
+                "10km": 92,
+              };
+              const raceIntensity = raceIntensityMap[normalizedObjectif] ?? 75;
+              return (
+                <FatMaxRaceIntensityChart
+                  fatmax={fatmaxResult}
+                  raceIntensityPct={raceIntensity}
+                />
+              );
+            },
+          },
+          {
             id: "dashboard-recommendations",
             render: () => currentAthlete && (
               <DashboardRecommendationsCard
