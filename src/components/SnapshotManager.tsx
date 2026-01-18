@@ -17,7 +17,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Calendar, Pin, HelpCircle } from "lucide-react";
+import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Calendar, Pin, HelpCircle, Beaker } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { LabImportDialog } from "@/components/LabImportDialog";
 import { DbSnapshot, useCloudData } from "@/hooks/useCloudData";
 import { deriveMetabolicProfile, generateTwoForCoachingInsights, calculateDelta, formatValue } from "@/types/snapshot";
@@ -80,6 +81,7 @@ const INITIAL_FORM_STATE = {
 };
 
 export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSnapshotId, staffMode = false }: SnapshotManagerProps) {
+  const navigate = useNavigate();
   const { getSnapshotsForAthlete, addSnapshot, updateSnapshot, deleteSnapshot, setActiveSnapshot } = useCloudData();
 
   // Use persisted dialog states to survive page minimize/restore
@@ -1147,6 +1149,16 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
           <div className="flex gap-2 flex-wrap">
             {/* ✅ NOUVEAU: Import Lab PDF */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/tfcl-testing-week")}
+              className="gap-2"
+            >
+              <Beaker className="h-4 w-4" />
+              Semaine TFCL
+            </Button>
+            
             <LabImportDialog
               athleteId={athleteId}
               athleteName={athleteName}

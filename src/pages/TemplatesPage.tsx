@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronLeft, FileText, AlertTriangle, Copy, CheckCircle2, Loader2, User, Layers, Lightbulb, BookOpen, BarChart3, Target, ChevronDown, Info, Zap, Activity, ArrowLeftRight } from "lucide-react";
+import { ChevronLeft, FileText, AlertTriangle, Copy, CheckCircle2, Loader2, User, Layers, Lightbulb, BookOpen, BarChart3, Target, ChevronDown, Info, Zap, Activity, ArrowLeftRight, Beaker } from "lucide-react";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
@@ -1583,6 +1583,14 @@ export default function TemplatesPage() {
               <Button onClick={handleLoadTemplate} disabled={isLoading || !selectedTemplateId}>
                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 Charger le template
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => navigate("/tfcl-testing-week")}
+                className="gap-2"
+              >
+                <Beaker className="h-4 w-4" />
+                Semaine de Référence TFCL
               </Button>
               {isLoaded && (
                 <>

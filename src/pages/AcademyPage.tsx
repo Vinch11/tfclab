@@ -17,7 +17,9 @@ import {
   Mountain,
   Timer,
   Printer,
-  Download
+  Download,
+  Beaker,
+  ArrowRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -299,14 +301,21 @@ export default function AcademyPage() {
       {/* Content */}
       <main className="container mx-auto px-4 py-6 pb-24 max-w-4xl">
         <Tabs defaultValue="charte" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="charte" className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
-              Charte de lecture
+              <span className="hidden sm:inline">Charte de lecture</span>
+              <span className="sm:hidden">Charte</span>
             </TabsTrigger>
             <TabsTrigger value="reference" className="flex items-center gap-2">
               <BookOpen className="w-4 h-4" />
-              Référentiel scientifique
+              <span className="hidden sm:inline">Référentiel</span>
+              <span className="sm:hidden">Réf.</span>
+            </TabsTrigger>
+            <TabsTrigger value="protocols" className="flex items-center gap-2">
+              <Beaker className="w-4 h-4" />
+              <span className="hidden sm:inline">Protocoles TFCL</span>
+              <span className="sm:hidden">Protocoles</span>
             </TabsTrigger>
           </TabsList>
           
@@ -726,6 +735,157 @@ export default function AcademyPage() {
           </AccordionItem>
 
         </Accordion>
+          </TabsContent>
+
+          <TabsContent value="protocols">
+            <div className="space-y-6">
+              {/* Introduction */}
+              <Card className="border-primary/30 bg-primary/5">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                      <Beaker className="w-5 h-5" />
+                    </div>
+                    Protocoles officiels TFCL
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-muted-foreground">
+                    Ces protocoles standardisés permettent de calibrer les indicateurs physiologiques 
+                    de Two For Coaching Lab™ avec une précision maximale. Ils sont conçus pour être 
+                    réalisés sur le terrain par le coach et l'athlète.
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Semaine de Référence TFCL */}
+              <Card className="border-blue-500/30 hover:border-blue-500/50 transition-colors cursor-pointer" onClick={() => navigate("/tfcl-testing-week")}>
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-lg bg-blue-500/10 text-blue-500">
+                      <Beaker className="w-6 h-6" />
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold text-lg">Semaine de Référence TFCL</h3>
+                        <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <p className="text-muted-foreground text-sm">
+                        Programme de 7 jours pour calibrer la VLamax V2 Enhanced via les tests P30s, P60s, MAP 5min et TTE.
+                      </p>
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        <span className="px-2 py-1 rounded text-xs bg-blue-500/10 text-blue-600 border border-blue-500/20">
+                          P30s + P60s (Glycolytique)
+                        </span>
+                        <span className="px-2 py-1 rounded text-xs bg-green-500/10 text-green-600 border border-green-500/20">
+                          MAP 5min (Aérobie max)
+                        </span>
+                        <span className="px-2 py-1 rounded text-xs bg-orange-500/10 text-orange-600 border border-orange-500/20">
+                          FTP + TTE (Durabilité)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Why Section */}
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="why" className="border rounded-lg bg-card">
+                  <AccordionTrigger className="px-4 hover:no-underline">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <Target className="h-4 w-4 text-primary" />
+                      Pourquoi une Semaine de Référence ?
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-4 pb-4 space-y-3 text-sm text-muted-foreground">
+                    <p>
+                      <strong className="text-foreground">Problème :</strong> La VLamax V1 est estimée à partir de ratios indirects (FTP/Pmax). 
+                      Cette méthode produit une incertitude de ±0.10 mmol/L/s, insuffisante pour un coaching de précision.
+                    </p>
+                    <p>
+                      <strong className="text-foreground">Solution :</strong> La Semaine de Référence TFCL mesure directement les contributions 
+                      glycolytique (P30s, P60s) et aérobie (MAP 5min), puis valide la durabilité (TTE). Résultat : une VLamax avec ±0.05 mmol/L/s d'incertitude.
+                    </p>
+                    <p>
+                      <strong className="text-foreground">Impact :</strong> Zones d'intensité plus précises, nutrition prédictive fiable, 
+                      recommandations d'entraînement contextualisées.
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="validity" className="border rounded-lg bg-card mt-3">
+                  <AccordionTrigger className="px-4 hover:no-underline">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <Clock className="h-4 w-4 text-green-500" />
+                      Conditions de validité
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-4 pb-4 space-y-2 text-sm text-muted-foreground">
+                    <ul className="space-y-2">
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-500">✓</span>
+                        <span>Athlète reposé en début de semaine (pas de bloc intensif les 3 jours précédents)</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-500">✓</span>
+                        <span>Capteur de puissance calibré, environnement contrôlé (home trainer ou parcours plat)</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-500">✓</span>
+                        <span>Respect strict des protocoles d'échauffement et de récupération</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-500">✓</span>
+                        <span>Qualité du protocole évaluée par le coach (1-5) pour pondérer la confiance</span>
+                      </li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="errors" className="border rounded-lg bg-card mt-3">
+                  <AccordionTrigger className="px-4 hover:no-underline">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <ShieldCheck className="h-4 w-4 text-orange-500" />
+                      Erreurs fréquentes à éviter
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-4 pb-4 space-y-2 text-sm text-muted-foreground">
+                    <ul className="space-y-2">
+                      <li className="flex items-start gap-2">
+                        <span className="text-orange-500">⚠️</span>
+                        <span><strong>Sprint trop long :</strong> Partir trop fort sur le 60s → effondrement → P60s sous-estimée</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-orange-500">⚠️</span>
+                        <span><strong>Cadence forcée :</strong> Cadence &gt;115 rpm non naturelle → biais glycolytique artificiel</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-orange-500">⚠️</span>
+                        <span><strong>MAP irrégulière :</strong> Variabilité &gt;10% → test invalidé, à refaire</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-orange-500">⚠️</span>
+                        <span><strong>TTE avec pacing agressif :</strong> Partir &gt;105% FTP → fatigue prématurée → TTE sous-estimé</span>
+                      </li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+
+              {/* CTA */}
+              <div className="flex justify-center pt-4">
+                <Button 
+                  onClick={() => navigate("/tfcl-testing-week")} 
+                  className="gap-2"
+                  size="lg"
+                >
+                  <Beaker className="h-5 w-5" />
+                  Accéder à la Semaine de Référence TFCL
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </main>
