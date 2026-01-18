@@ -1,3 +1,6 @@
+// FatMax TFCL™
+export * from "./fatmaxTFCL";
+
 /**
  * TWO FOR COACHING LAB V2 — Index
  * 
