@@ -75,9 +75,11 @@ export function WeekSelectorTFCL({ onInsertWeek }: WeekSelectorTFCLProps) {
 
     // Race Readiness (for fatigue calc)
     const readinessResult = computeRaceReadinessEffectif({
-      tss7d: activeSnapshot.tss_7d,
-      tteEffectif: tteResult,
       objectif,
+      vlamaxEffectif: vlamaxResult,
+      tteEffectif: tteResult,
+      ftp: activeSnapshot.ftp ?? null,
+      poids: activeSnapshot.weight_kg ?? null,
     });
 
     // Fatigue
@@ -122,7 +124,7 @@ export function WeekSelectorTFCL({ onInsertWeek }: WeekSelectorTFCLProps) {
       age: selectedAthlete.birth_date 
         ? Math.floor((Date.now() - new Date(selectedAthlete.birth_date).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
         : null,
-      sex: selectedAthlete.sex,
+      sex: null, // Sex not stored in DbAthlete yet
       objectif,
     };
   }, [selectedAthlete, activeSnapshot, tests, snapshots]);
