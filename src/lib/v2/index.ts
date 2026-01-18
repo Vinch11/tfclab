@@ -127,3 +127,63 @@ export {
   // Academy module
   ACADEMY_LAB_TEST_MODULE,
 } from './validationFramework';
+
+// Scientific Governance
+export {
+  METHOD_VERSION,
+  METHOD_VERSION_DISPLAY,
+  METHOD_VERSION_FULL,
+  CURRENT_VERSION,
+  EXPERIMENTAL_VERSION,
+  STABILITY_RULE,
+  METHOD_V1_SPECIFICATION,
+  SCIENTIFIC_CHANGELOG,
+  EVOLUTION_RULES,
+  FORBIDDEN_CHANGES,
+  V2_EXPERIMENTAL_CONFIG,
+  PDF_FOOTER_TEXT,
+  PDF_METHODOLOGY_PAGE,
+  ASSISTANT_VERSION_RULES,
+  ACADEMY_VERSIONING_MODULE,
+  OFFICIAL_POSITIONING,
+  getCurrentMethodVersion,
+  getExperimentalVersion,
+  formatVersionText,
+  getChangelogByType,
+  getChangelogForVersion,
+  areVersionsCompatible,
+  generatePdfFooter,
+  formatAssistantResponse,
+  getV1Modules,
+  getModuleSpec,
+  type MethodVersion,
+  type VersionType,
+  type ChangeType,
+  type ScientificChangeLog,
+  type EvolutionRule,
+  type ExperimentalConfig,
+  type MethodSpecification,
+  type ModuleSpec
+} from './scientificGovernance';
+
+// Official Reference Document
+export {
+  OFFICIAL_INTRODUCTION,
+  FOUNDING_PHILOSOPHY,
+  MEASURED_DATA,
+  MODELED_DATA,
+  CONFIDENCE_INDICES,
+  APPLICATION_OUTPUTS,
+  RACE_READINESS_DEFINITION,
+  APP_CAPABILITIES,
+  RESPONSIBILITY_ETHICS,
+  VERSIONING_STATEMENT,
+  OFFICIAL_REFERENCE_DOCUMENT,
+  getReferenceSection,
+  getOfficialIntroduction,
+  getCentralPrinciple,
+  getConfidenceRule,
+  getRaceReadinessStatement,
+  getEthicsStatement,
+  generatePdfSummary
+} from './officialReference';
