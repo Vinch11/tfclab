@@ -65,6 +65,7 @@ export const MARATHON_TEMPLATE: RunningTemplate = {
   goal: "marathon",
   weeks_count: MARATHON_WEEKS.length,
   description: "Template marathon complet basé sur la méthodologie Two For Coaching Lab™. Phases: Construction → Endurance Force → Seuil/VLaMax → Spécifique → Affûtage.",
+  methodology: "TFCL",
   sections: [MARATHON_SECTION_PERFORMANCE],
 };
 
@@ -85,6 +86,7 @@ export const SEMI_MARATHON_TEMPLATE: RunningTemplate = {
   goal: "semi",
   weeks_count: SEMI_MARATHON_WEEKS.length,
   description: "Template semi-marathon sur 12 semaines. Phases: Développement Moteur → Seuil & Endurance → Spécifique → Affûtage.",
+  methodology: "TFCL",
   sections: [SEMI_SECTION_PERFORMANCE],
 };
 
