@@ -52,6 +52,7 @@ import { SortableSectionsContainer } from "@/components/SortableSectionsContaine
 
 // ✅ VLamax TFCL V2 - Calibration avec percentiles
 import { VLamaxV2DisplayCard } from "@/components/VLamaxV2DisplayCard";
+import { VLamaxBikeV2EnhancedCard } from "@/components/VLamaxBikeV2EnhancedCard";
 import { FatMaxTFCLCard } from "@/components/FatMaxTFCLCard";
 import { FatMaxRaceIntensityChart } from "@/components/charts/FatMaxRaceIntensityChart";
 import { computeFatMaxTFCL, FatMaxObjectif } from "@/lib/v2/fatmaxTFCL";
@@ -715,6 +716,26 @@ const Index = () => {
                 vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
                 vlamax={vlamaxEffectif.value}
                 weeklyVolume={null}
+              />
+            ),
+          },
+          {
+            id: "vlamax-bike-v2-enhanced",
+            render: () => currentAthlete && effectiveCloudSnapshot && (
+              <VLamaxBikeV2EnhancedCard
+                input={{
+                  ftp: effectiveCloudSnapshot.ftp ?? 0,
+                  p30s_w: (effectiveCloudSnapshot as unknown as Record<string, unknown>).p30s_w as number | null,
+                  p60s_w: (effectiveCloudSnapshot as unknown as Record<string, unknown>).p60s_w as number | null,
+                  map5min_w: (effectiveCloudSnapshot as unknown as Record<string, unknown>).map5min_w as number | null,
+                  tte_min: effectiveCloudSnapshot.tte_observed_min ?? tteEffectif.tte_min,
+                  pmax_5s: effectiveCloudSnapshot.pmax_5s ?? undefined,
+                  weight_kg: effectiveCloudSnapshot.weight_kg ?? undefined,
+                  protocol_quality: ((effectiveCloudSnapshot as unknown as Record<string, unknown>).protocol_quality as 1 | 2 | 3 | 4 | 5) ?? 3,
+                  objectif: currentAthlete.goal || "IM",
+                  vo2max: effectiveCloudSnapshot.vo2max ?? currentAthlete.vo2max ?? undefined,
+                  sex: legacyAthlete?.sexe === "F" ? "F" : "H",
+                }}
               />
             ),
           },

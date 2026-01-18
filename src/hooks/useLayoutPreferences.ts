@@ -31,6 +31,7 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   { id: "quick-fatigue", label: "Fatigue (saisie rapide)", icon: "Zap", defaultVisible: true },
   { id: "low-crr-justification", label: "Justification charge faible", icon: "AlertTriangle", defaultVisible: true },
   { id: "ftp-targets", label: "FTP/kg — zones cibles", icon: "Target", defaultVisible: true },
+  { id: "vlamax-bike-v2-enhanced", label: "VLamax Vélo V2 Enhanced", icon: "Zap", defaultVisible: true },
   { id: "vlamax-v2-calibration", label: "VLamax TFCL V2", icon: "Zap", defaultVisible: true },
   { id: "fatmax-tfcl", label: "FatMax TFCL™", icon: "Flame", defaultVisible: true },
   { id: "fatmax-chart", label: "FatMax vs Race Intensity", icon: "BarChart", defaultVisible: true },

@@ -58,6 +58,7 @@ import { AmbitionTargetsCard } from "@/components/AmbitionTargetsCard";
 
 // Calibration TFCL V2
 import { VLamaxV2DisplayCard } from "@/components/VLamaxV2DisplayCard";
+import { VLamaxBikeV2EnhancedCard } from "@/components/VLamaxBikeV2EnhancedCard";
 import { FatMaxTFCLCard } from "@/components/FatMaxTFCLCard";
 import { FatMaxRaceIntensityChart } from "@/components/charts/FatMaxRaceIntensityChart";
 import { computeFatMaxTFCL, FatMaxObjectif } from "@/lib/v2/fatmaxTFCL";
@@ -1157,9 +1158,32 @@ export default function DashboardPage() {
   // SECTIONS CONFIGURATION
   // =============================================
 
+  // =============================================
+  // RENDER: VLAMAX BIKE V2 ENHANCED
+  // =============================================
+  
+  const renderVLamaxBikeV2Enhanced = (): ReactNode => (
+    <VLamaxBikeV2EnhancedCard
+      input={{
+        ftp: snapshot.ftp ?? 0,
+        p30s_w: (snapshot as unknown as Record<string, unknown>).p30s_w as number | null,
+        p60s_w: (snapshot as unknown as Record<string, unknown>).p60s_w as number | null,
+        map5min_w: (snapshot as unknown as Record<string, unknown>).map5min_w as number | null,
+        tte_min: snapshot.tte_observed_min ?? tteEffectif.tte_min,
+        pmax_5s: snapshot.pmax_5s ?? undefined,
+        weight_kg: snapshot.weight_kg ?? undefined,
+        protocol_quality: ((snapshot as unknown as Record<string, unknown>).protocol_quality as 1 | 2 | 3 | 4 | 5) ?? 3,
+        objectif,
+        vo2max: snapshot.vo2max ?? undefined,
+        sex: currentAthlete.sexe === "F" ? "F" : "H",
+      }}
+    />
+  );
+
   const sections = [
     { id: "athlete-context", render: renderAthleteContext },
     { id: "data-quality", render: renderDataQuality },
+    { id: "vlamax-bike-v2-enhanced", render: renderVLamaxBikeV2Enhanced },
     { id: "ambition-targets", render: renderAmbitionTargets },
     { id: "performance-ranges", render: renderPerformanceRanges },
     { id: "quick-fatigue", render: renderQuickFatigueInput },
