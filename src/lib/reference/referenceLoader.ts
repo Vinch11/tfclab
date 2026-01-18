@@ -21,6 +21,13 @@ import {
   computeCalibrationEnvelope,
 } from "./referenceCalibration";
 
+import {
+  buildClusterSelectionEnvelope,
+  ClusterSelectionEnvelope,
+  ClusterSelectorInput,
+  SportReference,
+} from "./clusterSelector";
+
 // =============================================
 // TYPES
 // =============================================
@@ -31,6 +38,11 @@ export interface TFCLReferenceSystem {
   cycling: ReferenceStats;
   triathlon: ReferenceStats;
   running: ReferenceStats;
+}
+
+export interface AutoCalibratedVLamax {
+  calibration: CalibrationEnvelope;
+  clusterSelection: ClusterSelectionEnvelope;
 }
 
 // =============================================
@@ -63,11 +75,12 @@ export function getReferenceStats(sport: SportType): ReferenceStats {
 }
 
 // =============================================
-// CLUSTER MATCHING
+// CLUSTER MATCHING (LEGACY - kept for compatibility)
 // =============================================
 
 /**
  * Mapping objectif → cluster suggéré
+ * @deprecated Use autoSelectClusterAndCalibrate instead
  */
 export const OBJECTIVE_TO_CLUSTER: Record<string, { sport: SportType; type: string }> = {
   // Triathlon
@@ -91,6 +104,7 @@ export const OBJECTIVE_TO_CLUSTER: Record<string, { sport: SportType; type: stri
 
 /**
  * Détermine le cluster approprié en fonction de l'objectif et du niveau
+ * @deprecated Use autoSelectClusterAndCalibrate instead
  */
 export function suggestCluster(
   objectif: string,
@@ -118,11 +132,69 @@ export function suggestCluster(
 }
 
 // =============================================
-// CALIBRATION INTEGRATION
+// AUTO CLUSTER SELECTION V2
+// =============================================
+
+/**
+ * Sélection automatique du cluster et calibration VLamax
+ * NOUVELLE API RECOMMANDÉE
+ */
+export function autoSelectClusterAndCalibrate(
+  value: number,
+  input: ClusterSelectorInput
+): AutoCalibratedVLamax | null {
+  // 1. Build cluster selection envelope
+  const clusterSelection = buildClusterSelectionEnvelope(input);
+  
+  // 2. Get reference stats for the selected sport
+  const stats = getReferenceStats(clusterSelection.sportRef as SportType);
+  
+  // 3. Find the cluster stats
+  const clusterStats = findBestMatchingCluster(
+    stats, 
+    clusterSelection.clusterId, 
+    input.sex
+  );
+  
+  if (!clusterStats) {
+    return null;
+  }
+  
+  // 4. Compute calibration envelope
+  const calibration = computeCalibrationEnvelope(
+    value,
+    clusterSelection.sportRef,
+    clusterStats,
+    clusterSelection.clusterLabel
+  );
+  
+  // 5. Adjust calibration confidence based on cluster selection confidence
+  const adjustedCalibration: CalibrationEnvelope = {
+    ...calibration,
+    confidence_adjustment: calibration.confidence_adjustment * clusterSelection.confidence,
+  };
+  
+  // 6. Add cluster selection warnings to calibration
+  if (clusterSelection.confidence < 0.6) {
+    adjustedCalibration.warnings = [
+      ...adjustedCalibration.warnings,
+      "Référentiel approximatif — interprétation prudente requise",
+    ];
+  }
+  
+  return {
+    calibration: adjustedCalibration,
+    clusterSelection,
+  };
+}
+
+// =============================================
+// LEGACY CALIBRATION (kept for compatibility)
 // =============================================
 
 /**
  * Calibre une valeur VLamax avec le référentiel approprié
+ * @deprecated Use autoSelectClusterAndCalibrate for full auto-selection
  */
 export function calibrateVLamax(
   value: number,
@@ -130,24 +202,38 @@ export function calibrateVLamax(
   sex?: "H" | "F",
   forceSport?: SportType
 ): CalibrationEnvelope | null {
-  // Trouver le cluster approprié
-  const clusterStats = suggestCluster(objectif, forceSport, sex);
+  // Use new auto-selection system
+  const result = autoSelectClusterAndCalibrate(value, {
+    objectif,
+    sex,
+    sportFocus: forceSport === "cycling" ? "bike" : forceSport === "running" ? "run" : undefined,
+  });
   
-  if (!clusterStats) {
-    return null;
+  return result?.calibration || null;
+}
+
+/**
+ * Calibre une valeur VLamax avec contexte complet (VO2max, etc.)
+ * NOUVELLE API RECOMMANDÉE
+ */
+export function calibrateVLamaxWithContext(
+  value: number,
+  objectif: string,
+  options: {
+    sex?: "H" | "F";
+    vo2max?: number;
+    sportFocus?: "bike" | "run" | "swim" | "all";
+    forceCluster?: string;
   }
-  
-  // Déterminer le sport utilisé
-  const mapping = OBJECTIVE_TO_CLUSTER[objectif];
-  const sport = mapping?.sport || forceSport || "triathlon";
-  
-  // Générer l'enveloppe de calibration
-  return computeCalibrationEnvelope(
-    value,
-    sport,
-    clusterStats,
-    getClusterLabel(clusterStats.type)
-  );
+): AutoCalibratedVLamax | null {
+  return autoSelectClusterAndCalibrate(value, {
+    objectif,
+    sex: options.sex,
+    vo2max: options.vo2max,
+    vlamax: value,
+    sportFocus: options.sportFocus,
+    forceCluster: options.forceCluster,
+  });
 }
 
 // =============================================
@@ -234,43 +320,74 @@ export interface VLamaxPDFSection {
   source: string;
   confidence: number;
   calibration: CalibrationEnvelope | null;
+  clusterSelection?: ClusterSelectionEnvelope;
   text: string;
 }
 
 /**
  * Génère la section VLamax pour le PDF staff
+ * Version améliorée avec Auto Cluster Selection
  */
 export function generateVLamaxPDFSection(
   value: number,
   source: string,
   confidence: number,
   objectif: string,
-  sex?: "H" | "F"
+  options?: {
+    sex?: "H" | "F";
+    vo2max?: number;
+  }
 ): VLamaxPDFSection {
-  const calibration = calibrateVLamax(value, objectif, sex);
+  const result = autoSelectClusterAndCalibrate(value, {
+    objectif,
+    sex: options?.sex,
+    vo2max: options?.vo2max,
+    vlamax: value,
+  });
   
   let text: string;
   
-  if (calibration) {
+  if (result) {
+    const { calibration, clusterSelection } = result;
+    
     text = `VLamax estimée : ${value.toFixed(2)} mmol/L/s (confiance ${(confidence * 100).toFixed(0)}%).
-Dans le référentiel "${calibration.cluster_label}", cela correspond à P${calibration.percentile}.
+
+Référentiel utilisé : ${clusterSelection.clusterLabel} (confiance ${(clusterSelection.confidence * 100).toFixed(0)}%)
+${clusterSelection.rationale.map(r => `• ${r}`).join("\n")}
+
+Dans ce référentiel, la valeur correspond à P${calibration.percentile}.
 Plage observée (P25–P75) : ${calibration.range_p25_p75.low.toFixed(2)}–${calibration.range_p25_p75.high.toFixed(2)}.
+Plage large (P10–P90) : ${calibration.range_p10_p90.low.toFixed(2)}–${calibration.range_p10_p90.high.toFixed(2)}.
+
 Interprétation : ${calibration.interpretation}`;
     
     if (source === "estimated" || source === "snapshot") {
-      text += "\nNote : estimation modélisée, confirmation labo recommandée si enjeu compétitif élevé.";
+      text += "\n\nNote : estimation modélisée, confirmation labo recommandée si enjeu compétitif élevé.";
     }
-  } else {
-    text = `VLamax estimée : ${value.toFixed(2)} mmol/L/s (confiance ${(confidence * 100).toFixed(0)}%).
+    
+    if (clusterSelection.confidence < 0.6) {
+      text += "\n\n⚠️ Référentiel approximatif — données incomplètes. Interprétation prudente requise.";
+    }
+    
+    return {
+      value,
+      source,
+      confidence,
+      calibration,
+      clusterSelection,
+      text,
+    };
+  }
+  
+  text = `VLamax estimée : ${value.toFixed(2)} mmol/L/s (confiance ${(confidence * 100).toFixed(0)}%).
 Aucun référentiel applicable pour l'objectif "${objectif}".
 Interprétation limitée — utiliser avec prudence.`;
-  }
   
   return {
     value,
     source,
     confidence,
-    calibration,
+    calibration: null,
     text,
   };
 }
