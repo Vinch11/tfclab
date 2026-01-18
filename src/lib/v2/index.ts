@@ -326,3 +326,29 @@ export {
   type CadenceChatbotQA,
   type CadenceAnnotation
 } from './cadenceForce';
+
+// Cadence Work Ranges
+export {
+  METHODOLOGICAL_PRINCIPLE,
+  DATA_SOURCES,
+  BIKE_WORK_RANGES,
+  CAP_OBSERVATION,
+  THRESHOLDS,
+  CADENCE_WORK_RANGES_DOCUMENT,
+  ACADEMY_CADENCE_RANGES_MODULE,
+  CADENCE_RANGE_CHATBOT_QA,
+  computeCadenceWorkRanges,
+  getRangeColorClass,
+  getRangeIconClass,
+  formatRpmRange,
+  formatZones,
+  generateCadenceRangeAnnotation,
+  findCadenceRangeChatbotAnswer,
+  type SportType as CadenceRangeSportType,
+  type RangeCategory,
+  type CadenceWorkRange,
+  type CadenceRangeResult,
+  type CadenceWorkRangesInput,
+  type CadenceRangeAnnotation,
+  type CadenceRangeChatbotQA
+} from './cadenceWorkRanges';
