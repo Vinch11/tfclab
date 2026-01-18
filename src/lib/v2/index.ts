@@ -72,10 +72,17 @@ export {
   computeNutritionV2,
   getNutritionRiskColor,
   getNutritionBadgeClass,
+  getNutritionRiskIcon,
   formatCarbsRange,
+  NUTRITION_PHILOSOPHY,
+  NUTRITION_RISK_SCALE,
+  ACADEMY_NUTRITION_MODULE,
+  PDF_NUTRITION_SECTION,
+  NUTRITION_CHATBOT_QA,
   type NutritionPredictiveV2,
   type NutritionRiskV2,
-  type NutritionV2Input
+  type NutritionV2Input,
+  type NutritionContributor
 } from './nutritionV2';
 
 // Injury Risk V2 (legacy)
