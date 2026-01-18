@@ -18,17 +18,26 @@ export {
   V2_TEXTS
 } from './scientificConfig';
 
-// VLamax V2
+// VLamax V2 — Formule Officielle TFCL™
 export { 
   computeVLamaxV2,
+  computeVLamaxBikeV2,
   formatVLamaxRangeLabel,
   getVLamaxConfidenceLabel,
   getVLamaxSourcesLabel,
   getVLamaxCategoryColor,
+  getVLamaxCategory,
+  getCategoryLabel,
+  getCategoryDescription,
+  VLAMAX_CONCEPT,
+  VLAMAX_SCALE,
+  VLAMAX_ESTIMATION_EXPLAINER,
+  VLAMAX_CHATBOT_QA,
   type VLamaxRangeV2,
   type VLamaxSourceV2,
   type VLamaxCategoryV2,
-  type VLamaxV2Input
+  type VLamaxV2Input,
+  type VLamaxBikeV2Result
 } from './vlamaxV2';
 
 // TTE V2
