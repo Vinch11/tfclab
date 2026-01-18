@@ -89,12 +89,15 @@ export const SEMI_MARATHON_TEMPLATE: RunningTemplate = {
 };
 
 // =============================================
-// COMBINED STORE
+// COMBINED STORE (inclut Excel imports)
 // =============================================
+
+import { EXCEL_RUNNING_TEMPLATES, getAllExcelWeeks, getExcelWeeksByGoal } from "@/data/excelRunningTemplates";
 
 export const RUNNING_TEMPLATES: RunningTemplate[] = [
   MARATHON_TEMPLATE,
   SEMI_MARATHON_TEMPLATE,
+  ...EXCEL_RUNNING_TEMPLATES,
 ];
 
 /**
@@ -125,15 +128,16 @@ export function getAllRunningWeeks(): RunningWeek[] {
 }
 
 /**
- * Filtre les semaines par objectif
+ * Filtre les semaines par objectif (inclut Excel templates)
  */
 export function getWeeksByGoal(goal: "marathon" | "semi"): RunningWeek[] {
-  const template = RUNNING_TEMPLATES.find(t => t.goal === goal);
-  if (!template) return [];
-  
+  const templates = RUNNING_TEMPLATES.filter(t => t.goal === goal);
   const weeks: RunningWeek[] = [];
-  template.sections.forEach(section => {
-    weeks.push(...section.weeks);
+  
+  templates.forEach(template => {
+    template.sections.forEach(section => {
+      weeks.push(...section.weeks);
+    });
   });
   
   return weeks;
