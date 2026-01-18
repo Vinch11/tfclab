@@ -213,3 +213,32 @@ export {
   generateCharterPdfSummary,
   type CoachCharterSection
 } from './coachCharter';
+
+// Method Definition
+export {
+  METHOD_PHILOSOPHY,
+  METHOD_LEVELS,
+  SCIENTIFIC_PILLARS,
+  VLAMAX_POSITIONING,
+  TTE_POSITIONING,
+  REALISTIC_RANGES,
+  SAFEGUARDS,
+  COACH_CENTRAL_ROLE,
+  METHOD_LIMITS,
+  TRACEABILITY_EVOLUTION,
+  METHOD_DEFINITION,
+  ACADEMY_METHOD_MODULE,
+  PDF_METHOD_SECTION,
+  getMethodLevel,
+  getMethodLevelByNumber,
+  getMethodSection,
+  getPhilosophyText,
+  getFundamentalPrinciples,
+  getScientificKeyStatement,
+  getLevelBadge,
+  getLevelColor,
+  generateMethodPdfSummary,
+  classifyData,
+  type MethodLevel,
+  type MethodSection
+} from './methodDefinition';
