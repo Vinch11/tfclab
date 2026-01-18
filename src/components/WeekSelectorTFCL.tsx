@@ -222,8 +222,20 @@ export function WeekSelectorTFCL({ onInsertWeek, defaultRaceType }: WeekSelector
   }, [athleteTruth, raceType, ambition, phaseManual, raceDate, showResults, selectedTemplateFilter]);
 
   const handleSuggest = () => {
-    if (selectedAthleteId) {
+    console.log("[WeekSelectorTFCL] handleSuggest called", {
+      selectedAthleteId,
+      athleteTruth,
+      raceType,
+      ambition
+    });
+    
+    if (selectedAthleteId && athleteTruth) {
       setShowResults(true);
+    } else {
+      console.warn("[WeekSelectorTFCL] Cannot suggest: missing athlete or athleteTruth", {
+        hasAthleteId: !!selectedAthleteId,
+        hasAthleteTruth: !!athleteTruth
+      });
     }
   };
 
@@ -417,13 +429,23 @@ export function WeekSelectorTFCL({ onInsertWeek, defaultRaceType }: WeekSelector
         <Button 
           onClick={handleSuggest} 
           className="w-full h-12 text-base font-semibold"
-          disabled={!selectedAthleteId}
+          disabled={!selectedAthleteId || !athleteTruth}
           size="lg"
         >
           <Zap className="h-5 w-5 mr-2" />
           Suggérer une semaine
           <ChevronRight className="h-4 w-4 ml-2" />
         </Button>
+        
+        {/* Debug info when no athleteTruth */}
+        {selectedAthleteId && !athleteTruth && (
+          <Alert variant="destructive" className="mt-2">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              Aucun snapshot actif pour cet athlète. Créez d'abord un snapshot avec des données physiologiques.
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Results */}
         {suggestions && (
