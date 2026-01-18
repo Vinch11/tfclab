@@ -43,6 +43,16 @@ export type RunningGoal = "marathon" | "semi";
 export type AmbitionLevel = "FINISH" | "PERF" | "SUB" | "ELITE";
 
 /**
+ * Méthodologie d'entraînement
+ * - TFCL: Two For Coaching Lab (métabolique, VLamax-centré)
+ * - CLASSIQUE: Friel / Periodisation traditionnelle (linéaire)
+ * - INVERSE: Renato Canova (spécificité précoce)
+ * - POLARISEE: 80/20, low intensity + high intensity
+ * - LORANG: Olav Bu / double seuil
+ */
+export type TrainingMethodology = "TFCL" | "CLASSIQUE" | "INVERSE" | "POLARISEE" | "LORANG";
+
+/**
  * Session individuelle d'une semaine running
  */
 export interface RunningSession {
@@ -94,6 +104,7 @@ export interface RunningTemplate {
   goal: RunningGoal;
   weeks_count: number;
   description?: string;
+  methodology?: TrainingMethodology;
   sections: RunningTemplateSection[];
 }
 

@@ -23,7 +23,8 @@ import type {
   RunningWeek, 
   RunningSession, 
   RunningPhase, 
-  WeekFocus 
+  WeekFocus,
+  TrainingMethodology,
 } from "@/types/runningTemplate";
 
 // =============================================
@@ -61,6 +62,56 @@ function FocusBadge({ focus, size = "sm" }: { focus: WeekFocus; size?: "sm" | "m
     <Badge variant="outline" className={`${sizeClass} flex items-center gap-1`}>
       <span className={c.color}>{c.icon}</span>
       {focus}
+    </Badge>
+  );
+}
+
+// Methodology Badge Component
+function MethodologyBadge({ methodology, size = "sm" }: { methodology?: TrainingMethodology; size?: "sm" | "md" }) {
+  if (!methodology) return null;
+  
+  const config: Record<TrainingMethodology, { bg: string; text: string; label: string; description: string }> = {
+    TFCL: { 
+      bg: "bg-gradient-to-r from-emerald-500 to-teal-500", 
+      text: "text-white", 
+      label: "TFCL",
+      description: "Métabolique VLamax-centré"
+    },
+    CLASSIQUE: { 
+      bg: "bg-gradient-to-r from-slate-500 to-gray-600", 
+      text: "text-white", 
+      label: "Classique",
+      description: "Friel / Périodisation linéaire"
+    },
+    INVERSE: { 
+      bg: "bg-gradient-to-r from-violet-500 to-purple-600", 
+      text: "text-white", 
+      label: "Inversé",
+      description: "Canova / Spécificité précoce"
+    },
+    POLARISEE: { 
+      bg: "bg-gradient-to-r from-sky-500 to-blue-600", 
+      text: "text-white", 
+      label: "Polarisée",
+      description: "80/20 Low + High intensity"
+    },
+    LORANG: { 
+      bg: "bg-gradient-to-r from-amber-500 to-orange-600", 
+      text: "text-white", 
+      label: "Lorang",
+      description: "Olav Bu / Double seuil"
+    },
+  };
+  
+  const c = config[methodology];
+  const sizeClass = size === "md" ? "text-xs px-2.5 py-1" : "text-[10px] px-2 py-0.5";
+  
+  return (
+    <Badge 
+      className={`${c.bg} ${c.text} ${sizeClass} border-0 font-semibold`}
+      title={c.description}
+    >
+      {c.label}
     </Badge>
   );
 }
@@ -304,7 +355,7 @@ export function TemplateDetailDialog({
       </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 flex-wrap">
             <Target className="h-5 w-5 text-primary" />
             {template.name}
             <Badge className={cn(
@@ -315,6 +366,7 @@ export function TemplateDetailDialog({
             )}>
               {template.goal === "marathon" ? "42K" : "21K"}
             </Badge>
+            <MethodologyBadge methodology={template.methodology} size="md" />
           </DialogTitle>
           <p className="text-sm text-muted-foreground">{template.description}</p>
         </DialogHeader>
@@ -926,6 +978,7 @@ function TemplateCard({ template, onSelectWeekForComparison, comparisonWeeks = [
               {template.sections[0].ambition}
             </Badge>
           )}
+          <MethodologyBadge methodology={template.methodology} />
         </div>
 
         <TemplateDetailDialog 

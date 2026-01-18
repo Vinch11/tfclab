@@ -893,6 +893,7 @@ export const EXCEL_RUNNING_TEMPLATES: RunningTemplate[] = [
     goal: "semi",
     weeks_count: 16,
     description: "Plan semi-marathon 16 semaines pour objectif 1h20 (~3:47/km). Profil compétiteur confirmé avec VMA élevée.",
+    methodology: "POLARISEE",
     sections: [{
       id: "semi-1h20-perf",
       name: "Performance 1h20",
@@ -906,6 +907,7 @@ export const EXCEL_RUNNING_TEMPLATES: RunningTemplate[] = [
     goal: "semi",
     weeks_count: 16,
     description: "Plan semi-marathon 16 semaines pour objectif 1h30 (~4:16/km). Profil performance confirmé.",
+    methodology: "CLASSIQUE",
     sections: [{
       id: "semi-1h30-perf",
       name: "Performance 1h30",
@@ -919,6 +921,7 @@ export const EXCEL_RUNNING_TEMPLATES: RunningTemplate[] = [
     goal: "semi",
     weeks_count: 16,
     description: "Plan semi-marathon 16 semaines pour objectif 1h40 (~4:44/km). Profil performance accessible.",
+    methodology: "CLASSIQUE",
     sections: [{
       id: "semi-1h40-perf",
       name: "Performance 1h40",
@@ -932,6 +935,7 @@ export const EXCEL_RUNNING_TEMPLATES: RunningTemplate[] = [
     goal: "marathon",
     weeks_count: 16,
     description: "Plan marathon 16 semaines pour objectif 2h30 (~3:33/km). Profil élite avec gros volume.",
+    methodology: "LORANG",
     sections: [{
       id: "marathon-2h30-perf",
       name: "Performance 2h30",
@@ -945,6 +949,7 @@ export const EXCEL_RUNNING_TEMPLATES: RunningTemplate[] = [
     goal: "marathon",
     weeks_count: 16,
     description: "Plan marathon 16 semaines pour objectif 4h00 (~5:41/km). Profil finisher/performance accessible.",
+    methodology: "INVERSE",
     sections: [{
       id: "marathon-4h-perf",
       name: "Performance 4h00",
