@@ -40,6 +40,9 @@ import {
 import { computeCAPInjuryRisk as computeCAPInjuryRiskEngine } from "@/lib/capInjuryRisk";
 import { getTemplateById, PROGRAM_TEMPLATES } from "@/data/programTemplates";
 import type { TemplateWeek, TemplateSession } from "@/lib/templates/docxTemplateLoader";
+// ✅ NEW: Import FatMax TFCL et Nutrition V2
+import { computeFatMaxTFCL, type FatMaxTFCLResult, FATMAX_DEFINITIONS, FATMAX_ACADEMY_CONTENT } from "@/lib/v2/fatmaxTFCL";
+import { computeNutritionV2, type NutritionPredictiveV2, NUTRITION_PHILOSOPHY } from "@/lib/v2/nutritionV2";
 
 // =============================================
 // TYPES
@@ -61,6 +64,8 @@ export interface ReportSections {
   indicateurs: boolean;     // Indicateurs Clés
   raceReadiness: boolean;   // Race Readiness
   injuryRisk: boolean;      // Risque de Blessure CAP
+  nutritionV2: boolean;     // Nutrition Prédictive V2
+  fatmaxTFCL: boolean;      // FatMax TFCL
   ambitionTargets: boolean; // Cibles par Niveau d'Ambition
   ambitionPredictions: boolean; // Prédictions d'Ambition
   evolutionCharts: boolean; // Graphiques d'évolution
@@ -89,6 +94,8 @@ export const DEFAULT_REPORT_SECTIONS: ReportSections = {
   indicateurs: true,
   raceReadiness: true,
   injuryRisk: true,
+  nutritionV2: true,
+  fatmaxTFCL: true,
   ambitionTargets: true,
   ambitionPredictions: true,
   evolutionCharts: true,
@@ -112,6 +119,8 @@ const SECTION_LABELS: Record<keyof ReportSections, string> = {
   indicateurs: "Indicateurs Clés",
   raceReadiness: "Race Readiness",
   injuryRisk: "Risque de Blessure CAP",
+  nutritionV2: "Nutrition Prédictive V2",
+  fatmaxTFCL: "FatMax TFCL™",
   ambitionTargets: "Cibles par Ambition",
   ambitionPredictions: "Prédictions Ambition",
   evolutionCharts: "Graphiques Évolution",
@@ -184,6 +193,10 @@ interface ExportPayload {
     vlamaxInterpretation: ReturnType<typeof interpretVLamaxByAge>;
     nutritionAdjustment: ReturnType<typeof getAgeNutritionAdjustment>;
   };
+  // ✅ NEW: FatMax TFCL
+  fatmaxTFCL: FatMaxTFCLResult | null;
+  // ✅ NEW: Nutrition V2
+  nutritionV2: NutritionPredictiveV2 | null;
   // ✅ NEW: Ambition Targets
   ambition: {
     current: AmbitionLevel;
@@ -612,6 +625,41 @@ function buildExportPayload(
       const nutritionAdjustment = getAgeNutritionAdjustment(age);
       return { age, aai, vlamaxInterpretation, nutritionAdjustment };
     })(),
+    // ✅ NEW: FatMax TFCL
+    fatmaxTFCL: computeFatMaxTFCL({
+      vlamaxEffectif: vlamax.value,
+      vlamaxConfidence: vlamax.confidence,
+      vo2maxEffectif: effectiveRefs.vo2max,
+      tteEffectif: tte.tte_min,
+      tteConfidence: tte.confidence,
+      fatigueIndex: null, // TODO: add from checkins if available
+      objectif: (athlete.goal || "IM") as "IM" | "70.3" | "Marathon" | "Semi" | "10km" | "Ironman",
+      ftp: effectiveRefs.ftp,
+    }),
+    // ✅ NEW: Nutrition V2
+    nutritionV2: computeNutritionV2({
+      vlamaxValue: vlamax.value,
+      vlamaxConfidence: vlamax.confidence,
+      tteMin: tte.tte_min,
+      sport: ["Marathon", "Semi", "Trail", "TrailLong", "TrailCourt", "Ultra", "Course"].includes(athlete.goal || "") ? "cap" : "velo",
+      targetDurationHours: (() => {
+        const goal = athlete.goal || "IM";
+        const durationMap: Record<string, number> = {
+          IM: 10, Ironman: 10, "70.3": 5, "703": 5, Half: 5,
+          Marathon: 3.5, Semi: 1.75, Trail: 4, TrailLong: 8, TrailCourt: 2, Ultra: 12,
+        };
+        return durationMap[goal] || 5;
+      })(),
+      targetIntensityPct: (() => {
+        const goal = athlete.goal || "IM";
+        const intensityMap: Record<string, number> = {
+          IM: 70, Ironman: 70, "70.3": 78, "703": 78, Half: 78,
+          Marathon: 82, Semi: 88, Trail: 75, TrailLong: 65, TrailCourt: 80, Ultra: 60,
+        };
+        return intensityMap[goal] || 75;
+      })(),
+      weightKg: effectiveRefs.weightKg,
+    }),
     // ✅ NEW: Ambition Targets
     ambition: (() => {
       const objectif = athlete.goal || "IM";
@@ -3680,6 +3728,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         ${options.sections.indicateurs ? indicateursHTML : ''}
         ${options.sections.raceReadiness ? raceReadinessHTML : ''}
         ${options.sections.injuryRisk ? injuryRiskHTML : ''}
+        ${options.sections.nutritionV2 ? buildNutritionV2HTML(payload) : ''}
+        ${options.sections.fatmaxTFCL ? buildFatMaxTFCLHTML(payload) : ''}
         ${options.sections.ambitionTargets ? ambitionTargetsHTML : ''}
         ${options.sections.ambitionPredictions ? ambitionPredictionsHTML : ''}
         ${options.sections.evolutionCharts ? evolutionChartsHTML : ''}
@@ -3873,6 +3923,8 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       indicateurs: false,
       raceReadiness: false,
       injuryRisk: false,
+      nutritionV2: false,
+      fatmaxTFCL: false,
       ambitionTargets: false,
       ambitionPredictions: false,
       evolutionCharts: false,
