@@ -242,3 +242,31 @@ export {
   type MethodLevel,
   type MethodSection
 } from './methodDefinition';
+
+// Sport Specifics
+export {
+  SPORT_CONTEXTS,
+  MULTISPORT_PRINCIPLE,
+  CYCLING_SPECIFICS,
+  RUNNING_SPECIFICS,
+  TRIATHLON_SPECIFICS,
+  METHODOLOGICAL_CONSEQUENCES,
+  MULTISPORT_SAFEGUARDS,
+  CONTEXTUAL_MESSAGES,
+  METRIC_WEIGHTS,
+  SPORT_SPECIFICS_DOCUMENT,
+  ACADEMY_SPORT_SPECIFICS_MODULE,
+  getSportContext,
+  getSportSpecifics,
+  getContextualMessage,
+  getMessagesForMetric,
+  getMetricWeight,
+  applySpweightToValue,
+  getSportRiskStatement,
+  getSportKeyInsight,
+  generateCrossportMessage,
+  type SportType,
+  type SportContext,
+  type SportContextualMessage,
+  type MetricWeight
+} from './sportSpecifics';
