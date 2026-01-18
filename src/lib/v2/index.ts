@@ -352,3 +352,52 @@ export {
   type CadenceRangeAnnotation,
   type CadenceRangeChatbotQA
 } from './cadenceWorkRanges';
+
+// Profile Terminology (ex-Snapshot)
+export {
+  PROFILE_TERMINOLOGY,
+  PROFILE_DEFINITION,
+  PROFILE_DATA_CATEGORIES,
+  PROFILE_FIELDS,
+  PROFILE_SAFEGUARD,
+  PDF_PROFILE_SECTION,
+  ACADEMY_PROFILE_MODULE,
+  PROFILE_CHATBOT_QA,
+  PROFILE_TERMINOLOGY_DOCUMENT,
+  getProfileName,
+  getFieldCategory,
+  getCategoryInfo,
+  getFieldBadge,
+  getFieldBadgeColor,
+  findProfileChatbotAnswer,
+  type DataCategory,
+  type ProfileDataField,
+  type ProfileChatbotQA
+} from './profileTerminology';
+
+// IFSC - Indice de Force Spécifique Cycliste
+export {
+  IFSC_PRINCIPLE,
+  IFSC_DATA_SOURCES,
+  IFSC_SCALE,
+  CADENCE_FORCE_MATRIX,
+  IFSC_SAFEGUARD,
+  IFSC_DOCUMENT,
+  ACADEMY_IFSC_MODULE,
+  IFSC_CHATBOT_QA,
+  computeIFSC,
+  getCadenceForceInterpretation,
+  getIFSCScaleInfo,
+  getIFSCColor,
+  getIFSCBgColor,
+  getRiskColor,
+  formatIFSCScore,
+  generateIFSCAnnotation,
+  findIFSCChatbotAnswer,
+  type IFSCLevel,
+  type IFSCResult,
+  type IFSCInput,
+  type CadenceForceMatrix,
+  type IFSCAnnotation,
+  type IFSCChatbotQA
+} from './ifsc';
