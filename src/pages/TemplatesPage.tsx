@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronLeft, FileText, AlertTriangle, Copy, CheckCircle2, Loader2, User, Layers, Lightbulb, BookOpen, BarChart3, Target, ChevronDown, Info, Zap, Activity, ArrowLeftRight, Beaker } from "lucide-react";
+import { ChevronLeft, FileText, AlertTriangle, Copy, CheckCircle2, Loader2, User, Layers, Lightbulb, BookOpen, BarChart3, Target, ChevronDown, Info, Zap, Activity, ArrowLeftRight, Beaker, PersonStanding } from "lucide-react";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
@@ -70,6 +70,9 @@ import {
   type SuggestionEngineOutput,
 } from "@/lib/wahoo/wahooSuggestionEngine";
 import { WahooSuggestionsPanel } from "@/components/WahooSuggestionsPanel";
+import { WeekSelectorTFCL } from "@/components/WeekSelectorTFCL";
+import { RUNNING_TEMPLATES, getWeeksByGoal } from "@/lib/templates/runningTemplatesStore";
+import type { RunningTemplate, RunningWeek, WeekSuggestion } from "@/types/runningTemplate";
 
 function getSportBadgeColor(sport: string | undefined): string {
   if (!sport) return "bg-muted text-muted-foreground";
@@ -1646,6 +1649,81 @@ export default function TemplatesPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Running Templates Section */}
+        <Collapsible defaultOpen={false}>
+          <Card>
+            <CollapsibleTrigger className="w-full">
+              <CardHeader className="pb-3 flex flex-row items-center justify-between">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <PersonStanding className="h-4 w-4 text-orange-500" />
+                  Running Templates
+                  <Badge variant="outline" className="ml-2">CAP</Badge>
+                </CardTitle>
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="space-y-4">
+                {/* Templates list */}
+                <div className="grid md:grid-cols-2 gap-4">
+                  {RUNNING_TEMPLATES.map(template => (
+                    <Card key={template.id} className="border-dashed">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm flex items-center justify-between">
+                          <span>{template.name}</span>
+                          <Badge variant={template.goal === "marathon" ? "default" : "secondary"}>
+                            {template.goal === "marathon" ? "42K" : "21K"}
+                          </Badge>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="text-xs text-muted-foreground space-y-2">
+                        <p>{template.description}</p>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs">{template.weeks_count} semaines</Badge>
+                          <Badge variant="outline" className="text-xs">{template.sections.length} section(s)</Badge>
+                        </div>
+                        <Accordion type="single" collapsible className="mt-2">
+                          {template.sections.map(section => (
+                            <AccordionItem key={section.id} value={section.id}>
+                              <AccordionTrigger className="text-xs py-2">
+                                {section.name} ({section.weeks.length} sem.)
+                              </AccordionTrigger>
+                              <AccordionContent>
+                                <div className="space-y-1 max-h-48 overflow-y-auto">
+                                  {section.weeks.map(week => (
+                                    <div 
+                                      key={week.week_id} 
+                                      className="text-xs p-2 rounded bg-muted/50 flex items-center justify-between"
+                                    >
+                                      <div>
+                                        <span className="font-medium">S{week.week_number}:</span>{" "}
+                                        <span className="text-muted-foreground">{week.title}</span>
+                                      </div>
+                                      <div className="flex gap-1">
+                                        <Badge variant="outline" className="text-[10px]">{week.meta.phase}</Badge>
+                                        <Badge variant="outline" className="text-[10px]">{week.meta.focus}</Badge>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </AccordionContent>
+                            </AccordionItem>
+                          ))}
+                        </Accordion>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Week Selector TFCL */}
+                <div className="pt-4 border-t">
+                  <WeekSelectorTFCL />
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
         {/* Staff Mode Toggle - always visible when template selected */}
         <Card>
