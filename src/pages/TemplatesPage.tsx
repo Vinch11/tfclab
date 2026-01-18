@@ -71,6 +71,7 @@ import {
 } from "@/lib/wahoo/wahooSuggestionEngine";
 import { WahooSuggestionsPanel } from "@/components/WahooSuggestionsPanel";
 import { WeekSelectorTFCL } from "@/components/WeekSelectorTFCL";
+import { RunningTemplateGrid } from "@/components/RunningTemplateViewer";
 import { RUNNING_TEMPLATES, getWeeksByGoal } from "@/lib/templates/runningTemplatesStore";
 import type { RunningTemplate, RunningWeek, WeekSuggestion } from "@/types/runningTemplate";
 
@@ -1670,135 +1671,8 @@ export default function TemplatesPage() {
             </CollapsibleTrigger>
             <CollapsibleContent>
               <CardContent className="space-y-6 pt-2">
-                {/* Templates Grid - Marathon */}
-                <div className="space-y-3">
-                  <h4 className="text-sm font-semibold flex items-center gap-2">
-                    <Target className="h-4 w-4 text-orange-500" />
-                    Marathon (42K)
-                  </h4>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {RUNNING_TEMPLATES.filter(t => t.goal === "marathon").map(template => (
-                      <Card key={template.id} className="border hover:border-primary/50 transition-colors">
-                        <CardHeader className="pb-2 pt-3 px-3">
-                          <CardTitle className="text-sm flex items-center justify-between">
-                            <span className="truncate">{template.name}</span>
-                            <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 text-[10px]">
-                              42K
-                            </Badge>
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="px-3 pb-3 space-y-2">
-                          <p className="text-[11px] text-muted-foreground line-clamp-2">{template.description}</p>
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <Badge variant="outline" className="text-[10px]">{template.weeks_count} sem.</Badge>
-                            {template.sections[0]?.ambition && (
-                              <Badge 
-                                variant="outline" 
-                                className={`text-[10px] ${
-                                  template.sections[0].ambition === "ELITE" ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30" :
-                                  template.sections[0].ambition === "SUB" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30" :
-                                  template.sections[0].ambition === "PERF" ? "bg-green-100 text-green-700 dark:bg-green-900/30" :
-                                  "bg-gray-100 text-gray-700"
-                                }`}
-                              >
-                                {template.sections[0].ambition}
-                              </Badge>
-                            )}
-                          </div>
-                          <Accordion type="single" collapsible>
-                            <AccordionItem value="weeks" className="border-none">
-                              <AccordionTrigger className="text-[11px] py-1.5 text-muted-foreground hover:no-underline">
-                                Voir les semaines
-                              </AccordionTrigger>
-                              <AccordionContent>
-                                <div className="space-y-1 max-h-40 overflow-y-auto pr-1">
-                                  {template.sections.flatMap(section => section.weeks).map(week => (
-                                    <div 
-                                      key={week.week_id} 
-                                      className="text-[10px] p-1.5 rounded bg-muted/50 flex items-center justify-between gap-1"
-                                    >
-                                      <span className="font-medium shrink-0">S{week.week_number}</span>
-                                      <span className="text-muted-foreground truncate flex-1">{week.title}</span>
-                                      <div className="flex gap-0.5 shrink-0">
-                                        <Badge variant="outline" className="text-[8px] px-1 py-0">{week.meta.phase}</Badge>
-                                        <Badge variant="outline" className="text-[8px] px-1 py-0">{week.meta.focus}</Badge>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </AccordionContent>
-                            </AccordionItem>
-                          </Accordion>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Templates Grid - Semi */}
-                <div className="space-y-3">
-                  <h4 className="text-sm font-semibold flex items-center gap-2">
-                    <Target className="h-4 w-4 text-blue-500" />
-                    Semi-Marathon (21K)
-                  </h4>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {RUNNING_TEMPLATES.filter(t => t.goal === "semi").map(template => (
-                      <Card key={template.id} className="border hover:border-primary/50 transition-colors">
-                        <CardHeader className="pb-2 pt-3 px-3">
-                          <CardTitle className="text-sm flex items-center justify-between">
-                            <span className="truncate">{template.name}</span>
-                            <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 text-[10px]">
-                              21K
-                            </Badge>
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="px-3 pb-3 space-y-2">
-                          <p className="text-[11px] text-muted-foreground line-clamp-2">{template.description}</p>
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <Badge variant="outline" className="text-[10px]">{template.weeks_count} sem.</Badge>
-                            {template.sections[0]?.ambition && (
-                              <Badge 
-                                variant="outline" 
-                                className={`text-[10px] ${
-                                  template.sections[0].ambition === "ELITE" ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30" :
-                                  template.sections[0].ambition === "SUB" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30" :
-                                  template.sections[0].ambition === "PERF" ? "bg-green-100 text-green-700 dark:bg-green-900/30" :
-                                  "bg-gray-100 text-gray-700"
-                                }`}
-                              >
-                                {template.sections[0].ambition}
-                              </Badge>
-                            )}
-                          </div>
-                          <Accordion type="single" collapsible>
-                            <AccordionItem value="weeks" className="border-none">
-                              <AccordionTrigger className="text-[11px] py-1.5 text-muted-foreground hover:no-underline">
-                                Voir les semaines
-                              </AccordionTrigger>
-                              <AccordionContent>
-                                <div className="space-y-1 max-h-40 overflow-y-auto pr-1">
-                                  {template.sections.flatMap(section => section.weeks).map(week => (
-                                    <div 
-                                      key={week.week_id} 
-                                      className="text-[10px] p-1.5 rounded bg-muted/50 flex items-center justify-between gap-1"
-                                    >
-                                      <span className="font-medium shrink-0">S{week.week_number}</span>
-                                      <span className="text-muted-foreground truncate flex-1">{week.title}</span>
-                                      <div className="flex gap-0.5 shrink-0">
-                                        <Badge variant="outline" className="text-[8px] px-1 py-0">{week.meta.phase}</Badge>
-                                        <Badge variant="outline" className="text-[8px] px-1 py-0">{week.meta.focus}</Badge>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </AccordionContent>
-                            </AccordionItem>
-                          </Accordion>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
+                {/* Interactive Running Templates Grid with Comparison */}
+                <RunningTemplateGrid />
 
                 {/* Week Selector TFCL - Enhanced */}
                 <div className="pt-4 border-t border-dashed">
