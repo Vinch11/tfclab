@@ -64,6 +64,11 @@ const INITIAL_FORM_STATE = {
   weight_kg: "",
   fat_pct: "",
   pmax_5s: "",
+  // ✅ VLamax Bike V2 Enhanced - Power indices
+  p30s_w: "",
+  p60s_w: "",
+  map5min_w: "",
+  protocol_quality: "3",
   tte_mode: "LOAD",
   tss_7d: "",
   tte_observed_min: "",
@@ -99,6 +104,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   };
 
   const loadSnapshotToForm = (s: DbSnapshot) => {
+    const snapshotAny = s as unknown as Record<string, unknown>;
     setFormData({
       date: s.date || new Date().toISOString().slice(0, 10),
       cycle_tag: s.cycle_tag || "",
@@ -113,8 +119,14 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       fat_pct: s.fat_pct != null ? String(s.fat_pct) : "",
       pmax_5s: s.pmax_5s != null ? String(s.pmax_5s) : "",
 
+      // ✅ VLamax Bike V2 Enhanced - Power indices
+      p30s_w: snapshotAny.p30s_w != null ? String(snapshotAny.p30s_w) : "",
+      p60s_w: snapshotAny.p60s_w != null ? String(snapshotAny.p60s_w) : "",
+      map5min_w: snapshotAny.map5min_w != null ? String(snapshotAny.map5min_w) : "",
+      protocol_quality: snapshotAny.protocol_quality != null ? String(snapshotAny.protocol_quality) : "3",
+
       // ✅ PRO TTE
-      tte_mode: (s.tte_mode as any) || "LOAD",
+      tte_mode: (s.tte_mode as string) || "LOAD",
       tss_7d: s.tss_7d != null ? String(s.tss_7d) : "",
       tte_observed_min: s.tte_observed_min != null ? String(s.tte_observed_min) : "",
 
@@ -155,6 +167,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       fcMax: fcMax ? Math.round(fcMax) : null,
     });
 
+    // Note: Utiliser "as any" pour les nouveaux champs jusqu'à la régénération des types Supabase
     await addSnapshot({
       athlete_id: athleteId,
       coach_id: "", // replaced in hook
@@ -172,8 +185,16 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       fat_pct: parseNum(formData.fat_pct),
       pmax_5s: parseNum(formData.pmax_5s) ? Math.round(parseNum(formData.pmax_5s)!) : null,
 
+      // ✅ VLamax Bike V2 Enhanced - Power indices (cast as any until types regenerated)
+      ...({
+        p30s_w: parseNum(formData.p30s_w) ? Math.round(parseNum(formData.p30s_w)!) : null,
+        p60s_w: parseNum(formData.p60s_w) ? Math.round(parseNum(formData.p60s_w)!) : null,
+        map5min_w: parseNum(formData.map5min_w) ? Math.round(parseNum(formData.map5min_w)!) : null,
+        protocol_quality: parseNum(formData.protocol_quality) ? Math.round(parseNum(formData.protocol_quality)!) : 3,
+      } as Record<string, unknown>),
+
       // ✅ PRO TTE
-      tte_mode: (formData.tte_mode as any) || "LOAD",
+      tte_mode: (formData.tte_mode as string) || "LOAD",
       tss_7d: parseNum(formData.tss_7d) ? Math.round(parseNum(formData.tss_7d)!) : null,
       tte_observed_min: parseNum(formData.tte_observed_min) ? Math.round(parseNum(formData.tte_observed_min)!) : null,
 
@@ -231,8 +252,16 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       fat_pct: parseNum(formData.fat_pct),
       pmax_5s: parseNum(formData.pmax_5s) ? Math.round(parseNum(formData.pmax_5s)!) : null,
 
+      // ✅ VLamax Bike V2 Enhanced - Power indices (cast as any until types regenerated)
+      ...({
+        p30s_w: parseNum(formData.p30s_w) ? Math.round(parseNum(formData.p30s_w)!) : null,
+        p60s_w: parseNum(formData.p60s_w) ? Math.round(parseNum(formData.p60s_w)!) : null,
+        map5min_w: parseNum(formData.map5min_w) ? Math.round(parseNum(formData.map5min_w)!) : null,
+        protocol_quality: parseNum(formData.protocol_quality) ? Math.round(parseNum(formData.protocol_quality)!) : 3,
+      } as Record<string, unknown>),
+
       // ✅ PRO TTE
-      tte_mode: (formData.tte_mode as any) || "LOAD",
+      tte_mode: (formData.tte_mode as string) || "LOAD",
       tss_7d: parseNum(formData.tss_7d) ? Math.round(parseNum(formData.tss_7d)!) : null,
       tte_observed_min: parseNum(formData.tte_observed_min) ? Math.round(parseNum(formData.tte_observed_min)!) : null,
 
@@ -443,6 +472,102 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
             onChange={(e) => setFormData({ ...formData, css: e.target.value })}
           />
         </div>
+      </div>
+
+      {/* ✅ VLamax Bike V2 Enhanced - Power Indices */}
+      <div className="p-4 rounded-lg border-2 border-amber-500/30 bg-amber-500/5">
+        <div className="flex items-center gap-2 mb-3">
+          <p className="text-base font-semibold">⚡ Indices de Puissance (VLamax V2)</p>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-sm">
+                <p className="font-medium mb-2">Formule VLamax V2 Enhanced</p>
+                <p className="text-xs mb-2">Ces indices de puissance permettent une estimation VLamax plus précise et discriminante.</p>
+                <p className="text-xs">P30s, P60s = meilleurs efforts sur 30s et 60s. MAP5min = puissance max aérobie sur 5 minutes.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <Badge variant="outline" className="text-[10px] ml-auto">Staff avancé</Badge>
+        </div>
+        
+        <div className="p-3 rounded-lg bg-background/50 border border-border mb-4">
+          <p className="text-sm text-muted-foreground">
+            Compléter ces données pour activer la formule VLamax V2 Enhanced avec calibration cluster TFCL.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div>
+            <Label htmlFor="p30s_w">P30s (W)</Label>
+            <Input
+              id="p30s_w"
+              type="number"
+              placeholder="850"
+              value={formData.p30s_w}
+              onChange={(e) => setFormData({ ...formData, p30s_w: e.target.value })}
+            />
+            <p className="text-xs text-muted-foreground mt-1">Meilleur 30s</p>
+          </div>
+          <div>
+            <Label htmlFor="p60s_w">P60s (W)</Label>
+            <Input
+              id="p60s_w"
+              type="number"
+              placeholder="650"
+              value={formData.p60s_w}
+              onChange={(e) => setFormData({ ...formData, p60s_w: e.target.value })}
+            />
+            <p className="text-xs text-muted-foreground mt-1">Meilleur 1 min</p>
+          </div>
+          <div>
+            <Label htmlFor="map5min_w">MAP 5min (W)</Label>
+            <Input
+              id="map5min_w"
+              type="number"
+              placeholder="350"
+              value={formData.map5min_w}
+              onChange={(e) => setFormData({ ...formData, map5min_w: e.target.value })}
+            />
+            <p className="text-xs text-muted-foreground mt-1">Puissance aérobie max</p>
+          </div>
+          <div>
+            <Label htmlFor="protocol_quality">Qualité protocole</Label>
+            <Select value={formData.protocol_quality} onValueChange={(v) => setFormData({ ...formData, protocol_quality: v })}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">1 - Très faible</SelectItem>
+                <SelectItem value="2">2 - Faible</SelectItem>
+                <SelectItem value="3">3 - Moyenne</SelectItem>
+                <SelectItem value="4">4 - Bonne</SelectItem>
+                <SelectItem value="5">5 - Excellente</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground mt-1">Fiabilité des tests</p>
+          </div>
+        </div>
+        
+        {/* Indicateur de couverture */}
+        {(() => {
+          const hasP30 = !!formData.p30s_w;
+          const hasP60 = !!formData.p60s_w;
+          const hasMAP = !!formData.map5min_w;
+          const hasFTP = !!formData.ftp;
+          const count = [hasP30, hasP60, hasMAP, hasFTP].filter(Boolean).length;
+          const complete = count >= 3;
+          return (
+            <div className={`mt-3 p-2 rounded text-xs ${complete ? "bg-green-500/10 text-green-700 dark:text-green-400" : "bg-amber-500/10 text-amber-700 dark:text-amber-400"}`}>
+              {complete 
+                ? `✓ VLamax V2 Enhanced activée (${count}/4 indices)`
+                : `⚠️ ${count}/4 indices renseignés — ajouter P30s, P60s ou MAP5min pour activer V2 Enhanced`
+              }
+            </div>
+          );
+        })()}
       </div>
 
       {/* ✅ TTE PRO */}
