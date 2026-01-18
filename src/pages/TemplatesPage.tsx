@@ -1674,10 +1674,24 @@ export default function TemplatesPage() {
                 {/* Interactive Running Templates Grid with Comparison */}
                 <RunningTemplateGrid />
 
-                {/* Week Selector TFCL - Enhanced */}
-                <div className="pt-4 border-t border-dashed">
-                  <WeekSelectorTFCL />
-                </div>
+                {/* Week Selector TFCL - Collapsible */}
+                <Collapsible defaultOpen={false}>
+                  <div className="pt-4 border-t border-dashed">
+                    <CollapsibleTrigger className="flex items-center justify-between w-full py-2 hover:bg-muted/50 rounded-lg px-2 transition-colors">
+                      <div className="flex items-center gap-2">
+                        <Beaker className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium">Week Selector TFCL™</span>
+                        <Badge variant="outline" className="text-[10px]">Suggestion IA</Badge>
+                      </div>
+                      <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform data-[state=open]:rotate-180" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="pt-2">
+                        <WeekSelectorTFCL />
+                      </div>
+                    </CollapsibleContent>
+                  </div>
+                </Collapsible>
               </CardContent>
             </CollapsibleContent>
           </Card>
