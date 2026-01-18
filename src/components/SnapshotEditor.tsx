@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Edit, Save } from "lucide-react";
 import { useCloudData, DbSnapshot } from "@/hooks/useCloudData";
+import { PROFILE_TERMINOLOGY } from "@/lib/v2/profileTerminology";
 
 interface SnapshotEditorProps {
   snapshot: DbSnapshot;
@@ -101,7 +102,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Edit className="w-5 h-5 text-primary" />
-            Édition du snapshot (manuel)
+            {PROFILE_TERMINOLOGY.actions.edit} (manuel)
           </DialogTitle>
           <DialogDescription>
             Modifie les valeurs et sauvegarde dans le cloud.

@@ -171,7 +171,7 @@ export function EnergyProfileChart({ data, staffMode = false, className }: Energ
                   ? "VLamax non disponible"
                   : "TTE non disponible"}
             </p>
-            <p className="text-xs mt-1">Créez un snapshot ou effectuez un test</p>
+            <p className="text-xs mt-1">Créez un profil ou effectuez un test</p>
           </div>
         ) : (
           <>

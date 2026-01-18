@@ -224,7 +224,7 @@ export function RaceReadinessCard({
                 )}
               </div>
             <p className="text-sm text-muted-foreground">
-              Snapshot: {snap.date} {athlete.active_snapshot_id ? "(actif)" : "(plus récent)"}
+              Profil: {snap.date} {athlete.active_snapshot_id ? "(actif)" : "(plus récent)"}
             </p>
           </div>
         </div>
@@ -458,7 +458,7 @@ export function RaceReadinessCard({
           Analyse personnalisée
         </h3>
         <div className="text-sm text-muted-foreground space-y-2">
-          <p><strong className="text-foreground">Snapshot :</strong> {snap.date} {athlete.active_snapshot_id ? "(actif)" : "(plus récent)"}</p>
+          <p><strong className="text-foreground">Profil Référence :</strong> {snap.date} {athlete.active_snapshot_id ? "(actif)" : "(plus récent)"}</p>
           <p><strong className="text-foreground">Objectif :</strong> {getObjectifLabel(athlete.objectif || athlete.goal || "IM")}</p>
           
           {vlamaxEffectif.value !== null && (

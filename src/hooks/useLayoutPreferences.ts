@@ -22,7 +22,7 @@ export const PROFIL_SECTIONS: SectionDefinition[] = [
   { id: "athlete-refs", label: "Références Athlète", icon: "User", defaultVisible: true },
   { id: "athlete-profile", label: "Profil Athlète", icon: "User", defaultVisible: true },
   { id: "two-for-coaching", label: "Analyse Two For Coaching Lab™", icon: "Brain", defaultVisible: true },
-  { id: "evolution-chart", label: "Évolution Snapshots", icon: "TrendingUp", defaultVisible: true },
+  { id: "evolution-chart", label: "Évolution Profils", icon: "TrendingUp", defaultVisible: true },
   { id: "training-zones", label: "Zones d'entraînement", icon: "Target", defaultVisible: true },
 ];
 
