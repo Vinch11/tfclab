@@ -1,13 +1,12 @@
 /**
  * AmbitionProgressMini - Aperçu compact de la progression vers les cibles d'ambition
  * Affiche une jauge circulaire miniature avec le % de progression global
+ * Animation de pulsation quand progression >= 85%
  */
 
 import { useMemo } from "react";
-import { TrendingUp, ChevronUp, ChevronDown, Minus, Target } from "lucide-react";
+import { ChevronUp, ChevronDown, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format, parseISO, differenceInDays } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   getVLamaxRange,
   getTTETargetByAmbition,
@@ -25,7 +24,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge";
 
 // =============================================
 // TYPES
@@ -102,11 +100,13 @@ function getTrend(
 function ProgressRing({ 
   progress, 
   size = 40, 
-  strokeWidth = 4 
+  strokeWidth = 4,
+  shouldPulse = false,
 }: { 
   progress: number | null; 
   size?: number; 
   strokeWidth?: number;
+  shouldPulse?: boolean;
 }) {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
@@ -122,7 +122,14 @@ function ProgressRing({
   };
 
   return (
-    <svg width={size} height={size} className="transform -rotate-90">
+    <svg 
+      width={size} 
+      height={size} 
+      className={cn(
+        "transform -rotate-90",
+        shouldPulse && "animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]"
+      )}
+    >
       {/* Background circle */}
       <circle
         cx={size / 2}
@@ -257,6 +264,9 @@ export function AmbitionProgressMini({
     }
   }, [trend]);
 
+  // Animation pulsation si progression >= 85%
+  const shouldPulse = progress !== null && progress >= 85;
+
   if (progress === null) {
     return null; // Ne rien afficher si pas de données
   }
@@ -270,12 +280,13 @@ export function AmbitionProgressMini({
             className={cn(
               "flex items-center gap-2 p-2 rounded-lg border bg-card/50 hover:bg-card transition-colors cursor-pointer",
               "focus:outline-none focus:ring-2 focus:ring-primary/50",
+              shouldPulse && "ring-2 ring-amber-400/50 shadow-lg shadow-amber-400/20",
               className
             )}
           >
             {/* Mini ring progress */}
             <div className="relative">
-              <ProgressRing progress={progress} size={36} strokeWidth={3} />
+              <ProgressRing progress={progress} size={36} strokeWidth={3} shouldPulse={shouldPulse} />
               <div className="absolute inset-0 flex items-center justify-center">
                 <span className="text-[10px] font-bold tabular-nums">
                   {progress}%
