@@ -41,6 +41,10 @@ export interface ClusterSelectorInput {
   vlamax?: number;
   sportFocus?: "bike" | "run" | "swim" | "all";
   forceCluster?: string;
+  // Nouveau: ambition explicite de l'athlète
+  ambitionLevel?: "finisher" | "performance" | "podium" | "elite";
+  // Nouveau: temps cible (pour running)
+  targetTime?: string; // ex: "sub3", "sub330", "sub4"
 }
 
 // =============================================
@@ -205,13 +209,25 @@ export function selectReferenceSport(
 }
 
 /**
- * Infère le niveau de l'athlète basé sur VO2max
+ * Infère le niveau de l'athlète basé sur VO2max ET l'ambition déclarée
+ * L'ambition a priorité si elle est explicitement déclarée
  */
 export function inferLevelByVo2(
   sex: "H" | "F" | undefined,
   sportRef: SportReference,
-  vo2max: number | undefined
+  vo2max: number | undefined,
+  ambitionLevel?: "finisher" | "performance" | "podium" | "elite"
 ): InferredLevel {
+  // Si ambition explicitement déclarée, l'utiliser comme guide principal
+  if (ambitionLevel) {
+    switch (ambitionLevel) {
+      case "elite": return sportRef === "running" ? "ELITE" : "PRO";
+      case "podium": return sportRef === "triathlon" ? "AG_PERF" : "PERF";
+      case "performance": return sportRef === "triathlon" ? "AG_PERF" : "PERF";
+      case "finisher": return "AMATEUR";
+    }
+  }
+  
   if (!vo2max || vo2max <= 0) {
     return "UNKNOWN";
   }
@@ -244,6 +260,30 @@ export function inferLevelByVo2(
   }
   
   return "UNKNOWN";
+}
+
+/**
+ * Explique pourquoi ce niveau a été choisi
+ */
+export function explainLevelInference(
+  sex: "H" | "F" | undefined,
+  sportRef: SportReference,
+  vo2max: number | undefined,
+  ambitionLevel?: "finisher" | "performance" | "podium" | "elite"
+): string {
+  if (ambitionLevel) {
+    return `Niveau basé sur l'ambition déclarée: "${ambitionLevel}"`;
+  }
+  
+  if (!vo2max) {
+    return "VO2max non renseigné → niveau par défaut (conservateur)";
+  }
+  
+  const sexKey = sex || "H";
+  const thresholds = VO2_THRESHOLDS[sportRef][sexKey];
+  const gender = sex === "F" ? "femme" : "homme";
+  
+  return `VO2max = ${vo2max.toFixed(1)} ml/kg/min (${gender}) → seuils ${sportRef}`;
 }
 
 /**
@@ -325,7 +365,6 @@ export function selectCluster(
  */
 export function computeClusterMatchConfidence(input: ClusterSelectorInput): number {
   let confidence = 0.6; // Base
-  const rationale: string[] = [];
   
   // +0.15 if sex known
   if (input.sex) {
@@ -337,6 +376,11 @@ export function computeClusterMatchConfidence(input: ClusterSelectorInput): numb
     confidence += 0.15;
   }
   
+  // +0.15 if ambition explicitly set (strong signal)
+  if (input.ambitionLevel) {
+    confidence += 0.15;
+  }
+  
   // +0.10 if objective maps clearly
   const obj = input.objectif.toLowerCase();
   const clearObjectives = ["im", "ironman", "703", "marathon", "semi", "10k", "trail"];
@@ -344,15 +388,20 @@ export function computeClusterMatchConfidence(input: ClusterSelectorInput): numb
     confidence += 0.10;
   }
   
+  // +0.05 if target time specified
+  if (input.targetTime) {
+    confidence += 0.05;
+  }
+  
   // +0.10 if inferred level is not UNKNOWN
   const sportRef = selectReferenceSport(input.objectif, input.sportFocus);
-  const level = inferLevelByVo2(input.sex, sportRef, input.vo2max);
+  const level = inferLevelByVo2(input.sex, sportRef, input.vo2max, input.ambitionLevel);
   if (level !== "UNKNOWN") {
     confidence += 0.10;
   }
   
-  // Penalties
-  if (!input.vo2max) {
+  // Penalties (reduced if ambition is set)
+  if (!input.vo2max && !input.ambitionLevel) {
     confidence -= 0.15;
   }
   if (!input.sex) {
@@ -367,22 +416,32 @@ export function computeClusterMatchConfidence(input: ClusterSelectorInput): numb
  * Construit l'enveloppe complète de sélection de cluster
  */
 export function buildClusterSelectionEnvelope(input: ClusterSelectorInput): ClusterSelectionEnvelope {
-  const { objectif, sex, vo2max, vlamax, sportFocus, forceCluster } = input;
+  const { objectif, sex, vo2max, vlamax, sportFocus, forceCluster, ambitionLevel, targetTime } = input;
   
   const rationale: string[] = [];
   const warnings: string[] = [];
   
   // 1. Sport reference
   const sportRef = selectReferenceSport(objectif, sportFocus);
-  rationale.push(`Objectif "${objectif}" → référentiel ${sportRef}`);
+  rationale.push(`Objectif "${objectif}" → référentiel ${getSportRefLabel(sportRef)}`);
   
-  // 2. Infer level
-  const inferredLevel = inferLevelByVo2(sex, sportRef, vo2max);
-  if (vo2max) {
-    rationale.push(`VO2max=${vo2max.toFixed(1)} (${sex || "?"}) → niveau ${inferredLevel}`);
+  // 2. Infer level with ambition priority
+  const inferredLevel = inferLevelByVo2(sex, sportRef, vo2max, ambitionLevel);
+  
+  if (ambitionLevel) {
+    rationale.push(`Ambition déclarée "${ambitionLevel}" → niveau ${getInferredLevelLabel(inferredLevel)}`);
+    if (vo2max) {
+      // Vérifier cohérence ambition / VO2max
+      const vo2Level = inferLevelByVo2(sex, sportRef, vo2max);
+      if (vo2Level !== inferredLevel && vo2Level !== "UNKNOWN") {
+        warnings.push(`Attention: VO2max (${vo2max.toFixed(1)}) suggère niveau ${getInferredLevelLabel(vo2Level)}, mais ambition est "${ambitionLevel}"`);
+      }
+    }
+  } else if (vo2max) {
+    rationale.push(`VO2max = ${vo2max.toFixed(1)} ml/kg/min (${sex || "sexe non précisé"}) → niveau ${getInferredLevelLabel(inferredLevel)}`);
   } else {
-    rationale.push(`VO2max inconnu → niveau estimé conservateur`);
-    warnings.push("VO2max non renseigné : référentiel approximatif");
+    rationale.push(`Ni VO2max ni ambition renseignés → niveau estimé conservateur (${getInferredLevelLabel(inferredLevel)})`);
+    warnings.push("Renseigner l'ambition ou le VO2max pour un référentiel plus précis");
   }
   
   // 3. Select cluster
