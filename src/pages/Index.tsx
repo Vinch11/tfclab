@@ -53,6 +53,7 @@ import { SortableSectionsContainer } from "@/components/SortableSectionsContaine
 // ✅ VLamax TFCL V2 - Calibration avec percentiles
 import { VLamaxV2DisplayCard } from "@/components/VLamaxV2DisplayCard";
 import { VLamaxBikeV2EnhancedCard } from "@/components/VLamaxBikeV2EnhancedCard";
+import { VLamaxExplainedCard } from "@/components/VLamaxExplainedCard";
 import { FatMaxTFCLCard } from "@/components/FatMaxTFCLCard";
 import { FatMaxRaceIntensityChart } from "@/components/charts/FatMaxRaceIntensityChart";
 import { computeFatMaxTFCL, FatMaxObjectif } from "@/lib/v2/fatmaxTFCL";
@@ -722,7 +723,7 @@ const Index = () => {
           {
             id: "vlamax-bike-v2-enhanced",
             render: () => currentAthlete && effectiveCloudSnapshot && (
-              <VLamaxBikeV2EnhancedCard
+              <VLamaxExplainedCard
                 input={{
                   ftp: effectiveCloudSnapshot.ftp ?? 0,
                   p30s_w: (effectiveCloudSnapshot as unknown as Record<string, unknown>).p30s_w as number | null,
@@ -736,6 +737,7 @@ const Index = () => {
                   vo2max: effectiveCloudSnapshot.vo2max ?? currentAthlete.vo2max ?? undefined,
                   sex: legacyAthlete?.sexe === "F" ? "F" : "H",
                 }}
+                ambitionLevel="performance"
               />
             ),
           },
