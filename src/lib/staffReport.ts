@@ -188,6 +188,81 @@ export interface StaffReport {
   nutritionSummary: NutritionSummary;
   wahooSuggestions: WahooSuggestionsSection;
   finalVerdict: FinalVerdict;
+  
+  // ✅ NOUVELLES SECTIONS V2
+  metabolicProfileComplete: MetabolicProfileCompleteSection;
+  nutritionV2Detailed: NutritionV2DetailedSection;
+  vlamaxCombinedTriathlon: VLamaxCombinedTriathlonSection | null;
+  trainingLeversSection: TrainingLeversSection;
+  methodologyRecommendation: MethodologyRecommendationSection;
+}
+
+// =============================================
+// NOUVELLES INTERFACES V2
+// =============================================
+
+export interface MetabolicProfileCompleteSection {
+  vlamaxValue: number | null;
+  vlamaxLabel: string;
+  vlamaxCategory: string;
+  vlamaxPercentile: string | null;
+  tteValue: number | null;
+  tteLabel: string;
+  tteCategory: string;
+  ftpKg: number | null;
+  ftpKgLabel: string;
+  ftpKgCategory: string;
+  radarData: { axis: string; value: number; target: number }[];
+  overallBalance: "equilibre" | "glycolytique" | "endurant" | "mixte";
+  overallBalanceLabel: string;
+  interpretation: string;
+  gaps: { metric: string; gap: string; priority: "high" | "medium" | "low" }[];
+}
+
+export interface NutritionV2DetailedSection {
+  carbsMin: number;
+  carbsMax: number;
+  carbsCentral: number;
+  glycogenRisk: string;
+  glycogenRiskScore: number;
+  glycogenRiskIcon: string;
+  sportLabel: string;
+  contributors: { label: string; adjustment: string; explanation: string }[];
+  whyThisNumber: string;
+  recommendations: string[];
+  warnings: string[];
+  segmentStrategy: { segment: string; duration: string; carbsPerHour: string; totalGrams: string; notes: string }[] | null;
+  totalRaceCarbs: number | null;
+}
+
+export interface VLamaxCombinedTriathlonSection {
+  vlamaxBike: number | null;
+  vlamaxBikeLabel: string;
+  vlamaxRun: number | null;
+  vlamaxRunLabel: string;
+  delta: number | null;
+  deltaInterpretation: string;
+  profileCoherence: "coherent" | "divergent";
+  nutritionImpact: string;
+  trainingPriority: string;
+}
+
+export interface TrainingLeversSection {
+  sport: string;
+  sportLabel: string;
+  keyStatement: string;
+  priorityLevers: { name: string; effect: string; riskLevel: string }[];
+  cautionLevers: { name: string; effect: string; conditions: string[] }[];
+  discouragedLevers: { name: string; reason: string }[];
+}
+
+export interface MethodologyRecommendationSection {
+  recommendedApproach: string;
+  recommendedApproachLabel: string;
+  justification: string;
+  keyPrinciples: string[];
+  alternativeApproaches: { name: string; suitability: string }[];
+  disclaimer: string;
 }
 
 import { AmbitionLevel, DEFAULT_AMBITION, getAmbitionDefinition } from "@/types/ambitionLevel";
@@ -790,6 +865,41 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
   // Générer la section TFCL Reference Week
   const tfclReferenceWeek = generateTFCLReferenceWeekSection(tfclData);
   
+  // ✅ NOUVELLES SECTIONS V2
+  const metabolicProfileComplete = generateMetabolicProfileCompleteSection({
+    vlamaxEffectif,
+    tteEffectif,
+    ftp,
+    poids,
+    objectif,
+    ambition,
+  });
+  
+  const nutritionV2Detailed = generateNutritionV2DetailedSection({
+    vlamaxEffectif,
+    tteEffectif,
+    poids,
+    objectif,
+  });
+  
+  const vlamaxCombinedTriathlon = isTriathlonObjectif(objectif) 
+    ? generateVLamaxCombinedTriathlonSection({ vlamaxEffectif, objectif })
+    : null;
+  
+  const trainingLeversSection = generateTrainingLeversSection({
+    objectif,
+    vlamaxEffectif,
+    tteEffectif,
+    fatigueScore,
+    injuryRiskRun,
+  });
+  
+  const methodologyRecommendation = generateMethodologyRecommendationSection({
+    vlamaxEffectif,
+    tteEffectif,
+    objectif,
+  });
+  
   const ambitionDef = getAmbitionDefinition(ambition);
   
   return {
@@ -813,6 +923,12 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     nutritionSummary,
     wahooSuggestions,
     finalVerdict,
+    // ✅ NOUVELLES SECTIONS
+    metabolicProfileComplete,
+    nutritionV2Detailed,
+    vlamaxCombinedTriathlon,
+    trainingLeversSection,
+    methodologyRecommendation,
   };
 }
 
@@ -1215,5 +1331,588 @@ function generateTFCLReferenceWeekSection(
     confidenceAdjustmentLabel,
     qualityLabel,
     testDates: tfclData?.testDates ?? null,
+  };
+}
+
+// =============================================
+// NOUVELLES SECTIONS V2 — GÉNÉRATION
+// =============================================
+
+function isTriathlonObjectif(objectif: string): boolean {
+  return ["IM", "Ironman", "703", "Half", "70.3"].includes(objectif);
+}
+
+function getVLamaxCategory(vlamax: number | null): string {
+  if (vlamax === null) return "Inconnu";
+  if (vlamax < 0.30) return "Diesel";
+  if (vlamax < 0.40) return "Endurant";
+  if (vlamax < 0.55) return "Équilibré";
+  if (vlamax < 0.70) return "Explosif";
+  return "Sprinter";
+}
+
+function getTTECategory(tte: number | null): string {
+  if (tte === null) return "Inconnu";
+  if (tte >= 60) return "Excellent";
+  if (tte >= 50) return "Bon";
+  if (tte >= 40) return "Correct";
+  if (tte >= 30) return "Insuffisant";
+  return "Critique";
+}
+
+function getFTPKgCategory(ftpKg: number | null): string {
+  if (ftpKg === null) return "Inconnu";
+  if (ftpKg >= 4.5) return "Elite";
+  if (ftpKg >= 4.0) return "Très bon";
+  if (ftpKg >= 3.5) return "Bon";
+  if (ftpKg >= 3.0) return "Correct";
+  return "À développer";
+}
+
+function generateMetabolicProfileCompleteSection(params: {
+  vlamaxEffectif: VLamaxEffectif;
+  tteEffectif: TTEEffectif;
+  ftp: number | null;
+  poids: number | null;
+  objectif: string;
+  ambition: AmbitionLevel;
+}): MetabolicProfileCompleteSection {
+  const { vlamaxEffectif, tteEffectif, ftp, poids, objectif, ambition } = params;
+  const ftpKg = ftp && poids && poids > 0 ? ftp / poids : null;
+  
+  // Calculate normalized values for radar (0-100)
+  const vlamaxNorm = vlamaxEffectif.value !== null 
+    ? Math.max(0, Math.min(100, 100 - ((vlamaxEffectif.value - 0.20) / 0.70) * 100))
+    : 0;
+  const tteNorm = tteEffectif.tte_min !== null 
+    ? Math.min(100, (tteEffectif.tte_min / 60) * 100)
+    : 0;
+  const ftpKgNorm = ftpKg !== null 
+    ? Math.min(100, (ftpKg / 5.0) * 100)
+    : 0;
+  
+  // Determine overall balance
+  let overallBalance: "equilibre" | "glycolytique" | "endurant" | "mixte" = "equilibre";
+  if (vlamaxEffectif.value !== null) {
+    if (vlamaxEffectif.value < 0.35) overallBalance = "endurant";
+    else if (vlamaxEffectif.value > 0.55) overallBalance = "glycolytique";
+    else if (tteEffectif.tte_min !== null && tteEffectif.tte_min < 45) overallBalance = "mixte";
+  }
+  
+  const balanceLabels = {
+    equilibre: "Profil équilibré",
+    glycolytique: "Profil glycolytique (explosif)",
+    endurant: "Profil endurant (diesel)",
+    mixte: "Profil mixte (TTE à travailler)",
+  };
+  
+  // Calculate gaps
+  const gaps: { metric: string; gap: string; priority: "high" | "medium" | "low" }[] = [];
+  
+  if (vlamaxEffectif.value !== null && vlamaxEffectif.value > 0.50) {
+    gaps.push({
+      metric: "VLamax",
+      gap: `Actuel ${vlamaxEffectif.value.toFixed(2)} → Cible <0.45`,
+      priority: "high",
+    });
+  }
+  if (tteEffectif.tte_min !== null && tteEffectif.tte_min < 45) {
+    gaps.push({
+      metric: "TTE",
+      gap: `Actuel ${tteEffectif.tte_min} min → Cible >50 min`,
+      priority: "high",
+    });
+  }
+  if (ftpKg !== null && ftpKg < 3.5) {
+    gaps.push({
+      metric: "FTP/kg",
+      gap: `Actuel ${ftpKg.toFixed(2)} → Cible >3.8 W/kg`,
+      priority: "medium",
+    });
+  }
+  
+  // Interpretation
+  let interpretation = "";
+  if (overallBalance === "endurant") {
+    interpretation = "Excellent profil pour les longues distances. La VLamax basse permet une bonne économie lipidique. Focus sur la puissance et le TTE.";
+  } else if (overallBalance === "glycolytique") {
+    interpretation = "Profil explosif avec forte dépendance glucidique. Travail d'abaissement VLamax prioritaire pour les objectifs longue distance.";
+  } else if (overallBalance === "mixte") {
+    interpretation = "Profil intermédiaire avec TTE à consolider. L'endurance spécifique sera clé pour progresser.";
+  } else {
+    interpretation = "Profil polyvalent permettant une bonne adaptabilité. Affiner selon les priorités de l'objectif.";
+  }
+  
+  return {
+    vlamaxValue: vlamaxEffectif.value,
+    vlamaxLabel: vlamaxEffectif.value !== null ? `${vlamaxEffectif.value.toFixed(2)} mmol/L/s` : "—",
+    vlamaxCategory: getVLamaxCategory(vlamaxEffectif.value),
+    vlamaxPercentile: null, // Could be added from cluster data
+    tteValue: tteEffectif.tte_min,
+    tteLabel: tteEffectif.tte_min !== null ? `${tteEffectif.tte_min} min` : "—",
+    tteCategory: getTTECategory(tteEffectif.tte_min),
+    ftpKg,
+    ftpKgLabel: ftpKg !== null ? `${ftpKg.toFixed(2)} W/kg` : "—",
+    ftpKgCategory: getFTPKgCategory(ftpKg),
+    radarData: [
+      { axis: "VLamax", value: vlamaxNorm, target: 70 },
+      { axis: "TTE", value: tteNorm, target: 85 },
+      { axis: "FTP/kg", value: ftpKgNorm, target: 75 },
+    ],
+    overallBalance,
+    overallBalanceLabel: balanceLabels[overallBalance],
+    interpretation,
+    gaps,
+  };
+}
+
+function generateNutritionV2DetailedSection(params: {
+  vlamaxEffectif: VLamaxEffectif;
+  tteEffectif: TTEEffectif;
+  poids: number | null;
+  objectif: string;
+}): NutritionV2DetailedSection {
+  const { vlamaxEffectif, tteEffectif, poids, objectif } = params;
+  
+  // Determine sport and duration based on objectif
+  const isCAP = ["Marathon", "Semi", "10km", "Trail", "TrailCourt", "TrailLong", "Ultra"].includes(objectif);
+  const sport = isCAP ? "cap" : "velo";
+  const sportLabel = isCAP ? "Course à pied" : "Vélo";
+  
+  // Duration estimates by objectif
+  const durationMap: Record<string, number> = {
+    IM: 10, Ironman: 10, "703": 5, Half: 5,
+    Marathon: 3.5, Semi: 1.75, "10km": 0.75,
+    Trail: 4, TrailCourt: 2, TrailLong: 8, Ultra: 12,
+  };
+  const targetDuration = durationMap[objectif] ?? 4;
+  
+  // Base calculation
+  const weightKg = poids ?? 70;
+  const baseRate = isCAP ? Math.round(weightKg * 1.05) : Math.round(weightKg * 0.9);
+  
+  // Adjustments
+  const contributors: { label: string; adjustment: string; explanation: string }[] = [];
+  let totalAdjustment = 0;
+  
+  contributors.push({
+    label: "Taux de base",
+    adjustment: `${baseRate} g/h`,
+    explanation: `${sportLabel}: ${isCAP ? "1.05" : "0.9"} × ${weightKg} kg`,
+  });
+  
+  // VLamax adjustment
+  if (vlamaxEffectif.value !== null) {
+    let adj = 0;
+    let expl = "";
+    if (vlamaxEffectif.value < 0.35) {
+      adj = -10;
+      expl = "VLamax basse (<0.35) → économie glucidique naturelle";
+    } else if (vlamaxEffectif.value > 0.65) {
+      adj = 20;
+      expl = "VLamax très élevée (>0.65) → forte combustion glucidique";
+    } else if (vlamaxEffectif.value > 0.55) {
+      adj = 10;
+      expl = "VLamax élevée (>0.55) → dépendance glucidique accrue";
+    }
+    if (adj !== 0) {
+      totalAdjustment += adj;
+      contributors.push({
+        label: "Modulation VLamax",
+        adjustment: `${adj > 0 ? "+" : ""}${adj} g/h`,
+        explanation: expl,
+      });
+    }
+  }
+  
+  // TTE adjustment
+  if (tteEffectif.tte_min !== null) {
+    let adj = 0;
+    let expl = "";
+    if (tteEffectif.tte_min < 45) {
+      adj = 10;
+      expl = "TTE court (<45 min) → tolérance glycogène réduite";
+    } else if (tteEffectif.tte_min > 55) {
+      adj = -5;
+      expl = "TTE long (>55 min) → meilleure endurance glycogène";
+    }
+    if (adj !== 0) {
+      totalAdjustment += adj;
+      contributors.push({
+        label: "Modulation TTE",
+        adjustment: `${adj > 0 ? "+" : ""}${adj} g/h`,
+        explanation: expl,
+      });
+    }
+  }
+  
+  // Duration adjustment
+  if (targetDuration > 4) {
+    totalAdjustment += 10;
+    contributors.push({
+      label: "Modulation durée",
+      adjustment: "+10 g/h",
+      explanation: "Durée très longue (>4h) → besoins augmentés",
+    });
+  } else if (targetDuration > 3) {
+    totalAdjustment += 5;
+    contributors.push({
+      label: "Modulation durée",
+      adjustment: "+5 g/h",
+      explanation: "Durée longue (>3h) → besoins légèrement augmentés",
+    });
+  }
+  
+  // Final calculation
+  const carbsCentral = Math.max(40, Math.min(100, baseRate + totalAdjustment));
+  const carbsMin = Math.max(40, carbsCentral - 5);
+  const carbsMax = Math.min(100, carbsCentral + 5);
+  
+  // Risk score
+  let riskScore = 0;
+  if (vlamaxEffectif.value !== null && vlamaxEffectif.value > 0.55) riskScore++;
+  if (tteEffectif.tte_min !== null && tteEffectif.tte_min < 45) riskScore++;
+  if (targetDuration > 3) riskScore++;
+  if (isCAP) riskScore++;
+  
+  const riskLabels = ["Faible", "Modéré", "Élevé", "Élevé", "Critique"];
+  const riskIcons = ["✅", "⚠️", "🔶", "🔶", "🛑"];
+  
+  // Recommendations
+  const recommendations: string[] = [];
+  if (riskScore >= 3) {
+    recommendations.push("Entraînement digestif régulier recommandé");
+    recommendations.push("Fractionner les apports toutes les 15-20 min");
+  }
+  if (carbsCentral >= 70) {
+    recommendations.push("Privilégier les gels + boissons isotoniques");
+  }
+  if (isCAP) {
+    recommendations.push("Tester la tolérance digestive à l'entraînement");
+  }
+  recommendations.push("Adapter en fonction des conditions météo");
+  
+  // Warnings
+  const warnings: string[] = [];
+  if (vlamaxEffectif.value !== null && vlamaxEffectif.value > 0.60) {
+    warnings.push("Profil glycolytique — forte dépendance glucidique");
+  }
+  if (isCAP && carbsCentral >= 75) {
+    warnings.push("Besoins élevés en CAP — risque digestif");
+  }
+  if (riskScore >= 3) {
+    warnings.push("Risque de déplétion élevé — stratégie nutritionnelle impérative");
+  }
+  
+  // Segment strategy for triathlon
+  let segmentStrategy: NutritionV2DetailedSection["segmentStrategy"] = null;
+  let totalRaceCarbs: number | null = null;
+  
+  if (isTriathlonObjectif(objectif)) {
+    const isFullIM = ["IM", "Ironman"].includes(objectif);
+    segmentStrategy = isFullIM
+      ? [
+          { segment: "Natation", duration: "1h00-1h15", carbsPerHour: "0", totalGrams: "0", notes: "Pas d'apport pendant la natation" },
+          { segment: "T1", duration: "5-10 min", carbsPerHour: "—", totalGrams: "30-40", notes: "Gel/boisson rapide" },
+          { segment: "Vélo", duration: "5h00-6h00", carbsPerHour: `${carbsCentral - 5}-${carbsCentral + 5}`, totalGrams: `${Math.round((carbsCentral) * 5.5)}`, notes: "Régularité absolue" },
+          { segment: "T2", duration: "5 min", carbsPerHour: "—", totalGrams: "20-30", notes: "Gel rapide" },
+          { segment: "Marathon", duration: "3h30-5h00", carbsPerHour: `${Math.round(carbsCentral * 1.1)}-${Math.round(carbsCentral * 1.2)}`, totalGrams: `${Math.round((carbsCentral * 1.1) * 4)}`, notes: "Fractionner ++" },
+        ]
+      : [
+          { segment: "Natation", duration: "30-40 min", carbsPerHour: "0", totalGrams: "0", notes: "Pas d'apport" },
+          { segment: "T1", duration: "3-5 min", carbsPerHour: "—", totalGrams: "20", notes: "Gel rapide" },
+          { segment: "Vélo", duration: "2h30-3h00", carbsPerHour: `${carbsCentral - 5}-${carbsCentral + 5}`, totalGrams: `${Math.round((carbsCentral) * 2.75)}`, notes: "Régularité" },
+          { segment: "T2", duration: "3 min", carbsPerHour: "—", totalGrams: "15-20", notes: "Gel" },
+          { segment: "Semi-Marathon", duration: "1h30-2h00", carbsPerHour: `${Math.round(carbsCentral * 1.05)}`, totalGrams: `${Math.round((carbsCentral * 1.05) * 1.75)}`, notes: "Gels fractionnés" },
+        ];
+    
+    totalRaceCarbs = segmentStrategy.reduce((sum, seg) => {
+      const grams = parseInt(seg.totalGrams) || 0;
+      return sum + grams;
+    }, 0);
+  } else if (["Marathon", "Semi"].includes(objectif)) {
+    segmentStrategy = objectif === "Marathon"
+      ? [
+          { segment: "0-10 km", duration: "45-55 min", carbsPerHour: `${carbsCentral - 5}`, totalGrams: `${Math.round((carbsCentral - 5) * 0.85)}`, notes: "Démarrage progressif" },
+          { segment: "10-25 km", duration: "1h10-1h20", carbsPerHour: `${carbsCentral}`, totalGrams: `${Math.round(carbsCentral * 1.25)}`, notes: "Régularité maximale" },
+          { segment: "25-42 km", duration: "1h20-1h40", carbsPerHour: `${carbsCentral + 5}`, totalGrams: `${Math.round((carbsCentral + 5) * 1.5)}`, notes: "Renforcer si signes de fatigue" },
+        ]
+      : [
+          { segment: "0-10 km", duration: "40-50 min", carbsPerHour: `${carbsCentral - 5}`, totalGrams: `${Math.round((carbsCentral - 5) * 0.75)}`, notes: "Modéré" },
+          { segment: "10-21 km", duration: "45-55 min", carbsPerHour: `${carbsCentral}`, totalGrams: `${Math.round(carbsCentral * 0.85)}`, notes: "Stable" },
+        ];
+    
+    totalRaceCarbs = segmentStrategy.reduce((sum, seg) => {
+      const grams = parseInt(seg.totalGrams) || 0;
+      return sum + grams;
+    }, 0);
+  }
+  
+  // Why this number
+  const whyThisNumber = `Votre besoin estimé de ${carbsCentral} g/h est calculé à partir de votre poids (${weightKg} kg), ` +
+    `votre VLamax (${vlamaxEffectif.value?.toFixed(2) ?? "inconnue"}), ` +
+    `votre TTE (${tteEffectif.tte_min ?? "inconnu"} min), ` +
+    `et la durée estimée de votre objectif (${targetDuration}h).`;
+  
+  return {
+    carbsMin,
+    carbsMax,
+    carbsCentral,
+    glycogenRisk: riskLabels[riskScore] || "Inconnu",
+    glycogenRiskScore: riskScore,
+    glycogenRiskIcon: riskIcons[riskScore] || "⚪",
+    sportLabel,
+    contributors,
+    whyThisNumber,
+    recommendations,
+    warnings,
+    segmentStrategy,
+    totalRaceCarbs,
+  };
+}
+
+function generateVLamaxCombinedTriathlonSection(params: {
+  vlamaxEffectif: VLamaxEffectif;
+  objectif: string;
+}): VLamaxCombinedTriathlonSection {
+  const { vlamaxEffectif, objectif } = params;
+  
+  // For now, same VLamax for bike and run (could be differentiated later)
+  const vlamaxBike = vlamaxEffectif.value;
+  const vlamaxRun = vlamaxEffectif.value; // In reality, run VLamax is often slightly lower
+  
+  const delta = vlamaxBike !== null && vlamaxRun !== null ? vlamaxBike - vlamaxRun : null;
+  
+  let deltaInterpretation = "";
+  let profileCoherence: "coherent" | "divergent" = "coherent";
+  
+  if (delta !== null) {
+    if (Math.abs(delta) < 0.05) {
+      deltaInterpretation = "Profils cohérents entre vélo et CAP. Stratégie nutritionnelle unifiée possible.";
+      profileCoherence = "coherent";
+    } else if (delta > 0) {
+      deltaInterpretation = `Profil plus glycolytique à vélo (+${delta.toFixed(2)}). Attention à la gestion glucides sur segment vélo.`;
+      profileCoherence = "divergent";
+    } else {
+      deltaInterpretation = `Profil plus glycolytique en CAP (${delta.toFixed(2)}). Vigilance sur le marathon après vélo.`;
+      profileCoherence = "divergent";
+    }
+  } else {
+    deltaInterpretation = "Données insuffisantes pour comparer les profils.";
+  }
+  
+  // Nutrition impact
+  let nutritionImpact = "";
+  if (vlamaxBike !== null && vlamaxBike > 0.55) {
+    nutritionImpact = "VLamax élevée : apports glucidiques importants nécessaires sur le segment vélo et CAP.";
+  } else if (vlamaxBike !== null && vlamaxBike < 0.35) {
+    nutritionImpact = "VLamax basse : bonne économie lipidique, apports modérés suffisants.";
+  } else {
+    nutritionImpact = "Profil équilibré : stratégie nutritionnelle standard recommandée.";
+  }
+  
+  // Training priority
+  let trainingPriority = "";
+  if (vlamaxBike !== null && vlamaxBike > 0.50) {
+    trainingPriority = "Priorité : travail d'abaissement VLamax en vélo (Z2 longue, force basse cadence).";
+  } else if (vlamaxBike !== null && vlamaxBike < 0.35) {
+    trainingPriority = "Priorité : développement puissance et TTE (le moteur endurant est déjà installé).";
+  } else {
+    trainingPriority = "Priorité : équilibre entre développement TTE et maintien du profil métabolique.";
+  }
+  
+  return {
+    vlamaxBike,
+    vlamaxBikeLabel: vlamaxBike !== null ? `${vlamaxBike.toFixed(2)} mmol/L/s` : "—",
+    vlamaxRun,
+    vlamaxRunLabel: vlamaxRun !== null ? `${vlamaxRun.toFixed(2)} mmol/L/s` : "—",
+    delta,
+    deltaInterpretation,
+    profileCoherence,
+    nutritionImpact,
+    trainingPriority,
+  };
+}
+
+function generateTrainingLeversSection(params: {
+  objectif: string;
+  vlamaxEffectif: VLamaxEffectif;
+  tteEffectif: TTEEffectif;
+  fatigueScore?: number;
+  injuryRiskRun?: { level: string; score: number };
+}): TrainingLeversSection {
+  const { objectif, vlamaxEffectif, tteEffectif, fatigueScore, injuryRiskRun } = params;
+  
+  // Determine sport
+  const isTri = isTriathlonObjectif(objectif);
+  const isRun = ["Marathon", "Semi", "10km", "Trail", "TrailCourt", "TrailLong", "Ultra"].includes(objectif);
+  const sport = isTri ? "triathlon" : isRun ? "running" : "cycling";
+  const sportLabel = isTri ? "Triathlon" : isRun ? "Course à pied" : "Vélo";
+  
+  // Key statement based on sport
+  const keyStatements: Record<string, string> = {
+    triathlon: "On développe le moteur en vélo, on protège la structure en course à pied.",
+    running: "La régularité et l'économie priment sur le volume.",
+    cycling: "Le développement de la durabilité et l'abaissement VLamax sont les clés de la performance longue distance.",
+  };
+  
+  // Priority levers based on profile
+  const priorityLevers: { name: string; effect: string; riskLevel: string }[] = [];
+  const cautionLevers: { name: string; effect: string; conditions: string[] }[] = [];
+  const discouragedLevers: { name: string; reason: string }[] = [];
+  
+  // Common priority levers
+  priorityLevers.push({
+    name: "Endurance Z2 longue",
+    effect: "Baisse VLamax, amélioration économie lipidique",
+    riskLevel: "Faible",
+  });
+  
+  if (vlamaxEffectif.value !== null && vlamaxEffectif.value > 0.45) {
+    priorityLevers.push({
+      name: "Force basse cadence (50-65 rpm)",
+      effect: "Sollicitation fibres lentes, baisse contribution glycolytique",
+      riskLevel: "Faible",
+    });
+  }
+  
+  if (tteEffectif.tte_min !== null && tteEffectif.tte_min < 50) {
+    priorityLevers.push({
+      name: "Tempo étendu (Sweet Spot)",
+      effect: "Développement TTE et endurance au seuil",
+      riskLevel: "Modéré",
+    });
+  }
+  
+  // Caution levers
+  if (isTri) {
+    cautionLevers.push({
+      name: "Brick intensif (enchaînement vélo-CAP)",
+      effect: "Simulation course réelle",
+      conditions: ["TTE vélo > 40 min", "Fatigue < 50%", "Expérience triathlon"],
+    });
+  }
+  
+  if (vlamaxEffectif.value !== null && vlamaxEffectif.value < 0.40) {
+    cautionLevers.push({
+      name: "Intervalles VO2max",
+      effect: "Développement puissance aérobie",
+      conditions: ["Profil déjà endurant", "Fatigue basse", "Période de construction"],
+    });
+  }
+  
+  // Discouraged levers based on context
+  if (fatigueScore !== undefined && fatigueScore > 60) {
+    discouragedLevers.push({
+      name: "Séances haute intensité",
+      reason: "Fatigue élevée — risque de surentraînement",
+    });
+  }
+  
+  if (injuryRiskRun && injuryRiskRun.level === "élevé") {
+    discouragedLevers.push({
+      name: "Volume CAP élevé",
+      reason: "Risque blessure CAP élevé — privilégier le vélo",
+    });
+  }
+  
+  if (vlamaxEffectif.value !== null && vlamaxEffectif.value > 0.55 && isTri) {
+    discouragedLevers.push({
+      name: "Sprints/intervalles courts répétés",
+      reason: "VLamax déjà élevée — risque d'aggravation du profil glycolytique",
+    });
+  }
+  
+  return {
+    sport,
+    sportLabel,
+    keyStatement: keyStatements[sport] || "",
+    priorityLevers,
+    cautionLevers,
+    discouragedLevers,
+  };
+}
+
+function generateMethodologyRecommendationSection(params: {
+  vlamaxEffectif: VLamaxEffectif;
+  tteEffectif: TTEEffectif;
+  objectif: string;
+}): MethodologyRecommendationSection {
+  const { vlamaxEffectif, tteEffectif, objectif } = params;
+  
+  // Determine recommended approach
+  let recommendedApproach = "tfcl";
+  let recommendedApproachLabel = "TFCL (Two For Coaching Lab)";
+  let justification = "";
+  
+  if (vlamaxEffectif.value !== null) {
+    if (vlamaxEffectif.value > 0.55) {
+      recommendedApproach = "inversee";
+      recommendedApproachLabel = "Méthode Inversée (Dan Lorang)";
+      justification = "Profil glycolytique élevé nécessitant un abaissement VLamax prioritaire via force basse cadence et endurance Z2 prolongée.";
+    } else if (vlamaxEffectif.value < 0.35) {
+      recommendedApproach = "classique";
+      recommendedApproachLabel = "Méthode Classique (pyramidale)";
+      justification = "Profil endurant déjà installé. Focus sur le développement de la puissance et du TTE via une approche pyramidale.";
+    } else if (tteEffectif.tte_min !== null && tteEffectif.tte_min < 45) {
+      recommendedApproach = "tfcl";
+      recommendedApproachLabel = "TFCL (Two For Coaching Lab)";
+      justification = "Profil équilibré mais TTE insuffisant. Approche TFCL pour développer simultanément l'endurance et optimiser le profil.";
+    } else {
+      recommendedApproach = "polarisee";
+      recommendedApproachLabel = "Méthode Polarisée";
+      justification = "Profil bien équilibré. Approche polarisée (80% Z2, 20% Z4-Z5) pour maintenir le profil tout en progressant.";
+    }
+  } else {
+    justification = "Données VLamax insuffisantes — approche TFCL recommandée par défaut pour établir le profil.";
+  }
+  
+  // Key principles
+  const keyPrinciples: string[] = [];
+  if (recommendedApproach === "inversee") {
+    keyPrinciples.push("Force basse cadence 2-3x/semaine");
+    keyPrinciples.push("Z2 longue (3-5h) hebdomadaire");
+    keyPrinciples.push("Éviter les intervalles courts répétés");
+    keyPrinciples.push("Patience : 8-12 semaines pour effets significatifs");
+  } else if (recommendedApproach === "classique") {
+    keyPrinciples.push("Base aérobie solide (Z2)");
+    keyPrinciples.push("Progression pyramidale vers le seuil");
+    keyPrinciples.push("Travail VO2max en phase de construction");
+    keyPrinciples.push("Spécifique en phase de compétition");
+  } else if (recommendedApproach === "polarisee") {
+    keyPrinciples.push("80% du volume en Z1-Z2");
+    keyPrinciples.push("20% en Z4-Z5 (pas de Z3)");
+    keyPrinciples.push("Séparation stricte intensités");
+    keyPrinciples.push("Récupération complète entre qualités");
+  } else {
+    keyPrinciples.push("Approche intégrée VLamax + TTE");
+    keyPrinciples.push("Flexibilité selon le contexte");
+    keyPrinciples.push("Monitoring continu des indicateurs");
+    keyPrinciples.push("Ajustement selon la réponse individuelle");
+  }
+  
+  // Alternative approaches
+  const alternativeApproaches: { name: string; suitability: string }[] = [
+    {
+      name: "Polarisée",
+      suitability: recommendedApproach === "polarisee" ? "Recommandée" : "Compatible si profil équilibré",
+    },
+    {
+      name: "Inversée (Lorang)",
+      suitability: recommendedApproach === "inversee" ? "Recommandée" : vlamaxEffectif.value !== null && vlamaxEffectif.value > 0.50 ? "Très adaptée" : "Optionnelle",
+    },
+    {
+      name: "Classique (Pyramidale)",
+      suitability: recommendedApproach === "classique" ? "Recommandée" : "Compatible tous profils",
+    },
+  ];
+  
+  return {
+    recommendedApproach,
+    recommendedApproachLabel,
+    justification,
+    keyPrinciples,
+    alternativeApproaches,
+    disclaimer: "Cette recommandation est basée sur le profil physiologique actuel. Elle doit être adaptée au contexte, à l'historique de l'athlète et aux contraintes de temps.",
   };
 }
