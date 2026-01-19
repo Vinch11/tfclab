@@ -35,7 +35,7 @@ import { RunningEconomyResult } from "@/lib/runningEconomy";
 import { computeCAPInjuryRisk } from "@/lib/capInjuryRisk";
 import { PerformanceRiskMatrixCompact } from "@/components/PerformanceRiskMatrix";
 import { getAxisLabel, getAxisColor } from "@/lib/wahoo/wahooSuggestionEngine";
-import { MetabolicPerformanceCompass } from "@/components/charts/MetabolicPerformanceCompass";
+import { MetabolicPerformanceCompassV2 as MetabolicPerformanceCompass } from "@/components/charts/MetabolicPerformanceCompassV2";
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 
 interface StaffReportProps {
