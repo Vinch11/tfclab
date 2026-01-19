@@ -35,6 +35,7 @@ import { TTEEffectif, getTTETarget, getSourceLabel } from "@/lib/tteEffectif";
 import { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { NutritionEstimate } from "@/lib/nutritionPredictive";
 import { ProfileRadarChart } from "@/components/ProfileRadarChart";
+import { DecisionRobustnessCard } from "@/components/DecisionRobustnessCard";
 import { getAgeAdjustedTargets, computeAgeAdjustmentIndex } from "@/lib/ageAdjustment";
 import { AmbitionLevel, DEFAULT_AMBITION, AMBITION_DEFINITIONS } from "@/types/ambitionLevel";
 
@@ -53,6 +54,8 @@ interface StaffDashboardProps {
   snapshotDate: string | null;
   athleteAge?: number | null;
   ambition?: AmbitionLevel; // Niveau d'ambition pour ajustement des cibles
+  snapshot?: unknown; // Pour DecisionRobustnessCard
+  vo2max?: number | null;
 }
 
 // =============================================
@@ -174,6 +177,8 @@ export function StaffDashboard({
   snapshotDate,
   athleteAge,
   ambition = DEFAULT_AMBITION,
+  snapshot,
+  vo2max,
 }: StaffDashboardProps) {
   const [showScientificDetails, setShowScientificDetails] = useState(false);
 
@@ -652,7 +657,19 @@ export function StaffDashboard({
         </CardContent>
       </Card>
 
-      {/* BLOC 6: CADRE SCIENTIFIQUE & LIMITES */}
+      {/* BLOC 6: DECISION ROBUSTNESS CURVE */}
+      {snapshot && (
+        <DecisionRobustnessCard
+          snapshot={snapshot as import("@/hooks/useCloudData").DbSnapshot}
+          vo2max={vo2max}
+          ambition={ambition === "finisher" ? "finisher" : ambition === "elite" ? "elite" : "competitor"}
+          objectif={objectif}
+          clusterAvailable={true}
+          compact
+        />
+      )}
+
+      {/* BLOC 7: CADRE SCIENTIFIQUE & LIMITES */}
       <Card className="bg-muted/30 border-dashed">
         <CardContent className="p-4">
           <Button

@@ -16,6 +16,7 @@ export { CompassMini, COMPASS_METHODOLOGY } from "./MetabolicPerformanceCompass"
 export { AmbitionProgressChart, calculateAmbitionPredictions, type AmbitionPrediction } from "./AmbitionProgressChart";
 export { AmbitionProgressMini } from "./AmbitionProgressMini";
 export { CadenceProfileChart } from "./CadenceProfileChart";
+export { DecisionRobustnessCurve } from "./DecisionRobustnessCurve";
 
 // Composants unifiés d'affichage des métriques
 export { ScoreEnvelopeCard, ScoreEnvelopeCardGroup, ScoreEnvelopeInlineCard } from "../ScoreEnvelopeCard";
