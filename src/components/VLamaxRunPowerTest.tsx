@@ -12,7 +12,8 @@ import {
   AlertCircle,
   ChevronDown,
   Zap,
-  Activity
+  Activity,
+  Calendar
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { Athlete } from "@/types/athlete";
 import { StoredTestResult } from "@/types/testLibrary";
@@ -33,13 +40,19 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   ReferenceLine,
   Legend
 } from "recharts";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
+import { calculateAge } from "@/lib/ageAdjustment";
+import {
+  getAgeAdjustedVLamaxProfil,
+  getAgeAdjustedVLamaxThresholds,
+  computeAgeAdjustmentIndex,
+} from "@/lib/ageAdjustment";
 
 interface VLamaxRunPowerTestProps {
   athlete: Athlete | null;
@@ -113,34 +126,58 @@ function computeConfidence(powerSprint1: number, powerSprint2: number): number {
   }
 }
 
-// Interprétation du profil
-function getProfileInterpretation(vlamax: number): {
+// Interprétation du profil avec ajustement par âge
+function getProfileInterpretation(
+  vlamax: number,
+  age: number | null
+): {
   label: string;
   color: string;
   bgColor: string;
   description: string;
+  ageContext: string | null;
 } {
-  if (vlamax < 0.40) {
-    return {
-      label: "Profil très économique",
-      color: "text-blue-600",
-      bgColor: "bg-blue-100 dark:bg-blue-900/30",
-      description: "Excellente économie de course. Faible sollicitation glycolytique, idéal pour ultra-endurance."
-    };
-  } else if (vlamax <= 0.65) {
-    return {
-      label: "Profil Équilibré",
-      color: "text-green-600",
-      bgColor: "bg-green-100 dark:bg-green-900/30",
-      description: "Polyvalence métabolique. Capacité à gérer des efforts variés avec une bonne économie."
-    };
-  } else {
-    return {
-      label: "Profil fortement glycolytique",
-      color: "text-orange-600",
-      bgColor: "bg-orange-100 dark:bg-orange-900/30",
-      description: "Forte capacité anaérobie. Avantage sur les changements de rythme et les efforts courts."
-    };
+  const { profil, label: profilLabel, ageContext } = getAgeAdjustedVLamaxProfil(vlamax, age);
+  const thresholds = getAgeAdjustedVLamaxThresholds(age);
+  
+  // Mapper le profil vers les couleurs et descriptions spécifiques CAP puissance
+  switch (profil) {
+    case "diesel":
+    case "endurant":
+      return {
+        label: `Profil très économique${age !== null && age >= 40 ? " (ajusté)" : ""}`,
+        color: "text-blue-600",
+        bgColor: "bg-blue-100 dark:bg-blue-900/30",
+        description: "Excellente économie de course. Faible sollicitation glycolytique, idéal pour ultra-endurance.",
+        ageContext
+      };
+    case "equilibre":
+      return {
+        label: `Profil Équilibré${age !== null && age >= 40 ? " (ajusté)" : ""}`,
+        color: "text-green-600",
+        bgColor: "bg-green-100 dark:bg-green-900/30",
+        description: "Polyvalence métabolique. Capacité à gérer des efforts variés avec une bonne économie.",
+        ageContext
+      };
+    case "explosif":
+    case "sprinter":
+      return {
+        label: `Profil fortement glycolytique${age !== null && age >= 40 ? " (ajusté)" : ""}`,
+        color: "text-orange-600",
+        bgColor: "bg-orange-100 dark:bg-orange-900/30",
+        description: age !== null && age >= 40
+          ? "Forte capacité anaérobie pour l'âge. Vigilance sur la récupération et les efforts prolongés."
+          : "Forte capacité anaérobie. Avantage sur les changements de rythme et les efforts courts.",
+        ageContext
+      };
+    default:
+      return {
+        label: "Profil Équilibré",
+        color: "text-green-600",
+        bgColor: "bg-green-100 dark:bg-green-900/30",
+        description: "Polyvalence métabolique.",
+        ageContext: null
+      };
   }
 }
 
@@ -301,7 +338,8 @@ export function VLamaxRunPowerTest({
     }));
   }, [allRunTests]);
 
-  const profile = result ? getProfileInterpretation(result.vlamax) : null;
+  const athleteAge = athlete?.dateNaissance ? calculateAge(athlete.dateNaissance) : null;
+  const profile = result ? getProfileInterpretation(result.vlamax, athleteAge) : null;
 
   return (
     <div className={cn("space-y-6", className)}>
@@ -719,7 +757,7 @@ export function VLamaxRunPowerTest({
                       tick={{ fontSize: 11 }}
                       className="text-muted-foreground"
                     />
-                    <Tooltip
+                    <RechartsTooltip
                       contentStyle={{
                         backgroundColor: "hsl(var(--popover))",
                         border: "1px solid hsl(var(--border))",
@@ -774,7 +812,7 @@ export function VLamaxRunPowerTest({
             {/* Liste des tests récents */}
             <div className="space-y-2">
               {allRunTests.slice(-5).reverse().map((test) => {
-                const testProfile = test.vlamax ? getProfileInterpretation(test.vlamax) : null;
+                const testProfile = test.vlamax ? getProfileInterpretation(test.vlamax, athleteAge) : null;
                 const isPowerTest = test.nom.includes("Puissance");
                 return (
                   <div
