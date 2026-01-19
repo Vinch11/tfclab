@@ -173,19 +173,17 @@ export function VLamaxCombinedCard({
   const [isOpen, setIsOpen] = useState(!defaultCollapsed);
 
   // Vérifier si au moins une valeur est disponible
-  const hasData = (vlamaxBike !== null && vlamaxBike > 0) || (vlamaxRun !== null && vlamaxRun > 0);
-
-  if (!hasData) {
-    return null;
-  }
+  const hasBikeData = vlamaxBike !== null && vlamaxBike > 0;
+  const hasRunData = vlamaxRun !== null && vlamaxRun > 0;
+  const hasAnyData = hasBikeData || hasRunData;
 
   // Calculer la différence Vélo vs CAP
   const delta = vlamaxBike && vlamaxRun ? vlamaxBike - vlamaxRun : null;
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className="overflow-hidden">
-        <CardHeader className="pb-2">
+      <Card className="overflow-hidden border-amber-200/50 dark:border-amber-900/30">
+        <CardHeader className="pb-2 bg-gradient-to-r from-amber-50/50 to-orange-50/50 dark:from-amber-950/20 dark:to-orange-950/20">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Zap className="h-4 w-4 text-amber-500" />
@@ -203,30 +201,43 @@ export function VLamaxCombinedCard({
         </CardHeader>
 
         <CollapsibleContent>
-          <CardContent className="space-y-4">
-            {/* Vue côte à côte */}
-            <div className="flex gap-3">
-              <ProfileColumn sport="bike" vlamax={vlamaxBike} age={age} icon={Bike} />
-              <ProfileColumn sport="run" vlamax={vlamaxRun} age={age} icon={Footprints} />
-            </div>
-
-            {/* Analyse delta */}
-            {delta !== null && (
-              <div className="p-3 rounded-lg bg-muted/50 border">
-                <div className="flex items-center gap-2 mb-1">
-                  <Info className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-xs font-medium">Analyse comparative</span>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {Math.abs(delta) < 0.05 ? (
-                    <>Profils <strong className="text-foreground">cohérents</strong> entre vélo et CAP. Stratégie nutritionnelle unifiée possible.</>
-                  ) : delta > 0 ? (
-                    <>Profil <strong className="text-orange-500">plus glycolytique</strong> à vélo (+{delta.toFixed(2)}). Attention à la gestion glucides sur segment vélo.</>
-                  ) : (
-                    <>Profil <strong className="text-orange-500">plus glycolytique</strong> en CAP ({delta.toFixed(2)}). Vigilance sur le marathon après vélo.</>
-                  )}
+          <CardContent className="space-y-4 pt-4">
+            {!hasAnyData ? (
+              // État sans données
+              <div className="p-4 rounded-lg bg-muted/30 border border-dashed text-center">
+                <Zap className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+                <p className="text-sm font-medium text-muted-foreground">Données VLamax non disponibles</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Complétez un test VLamax ou ajoutez les données dans le snapshot pour voir la comparaison Vélo/CAP.
                 </p>
               </div>
+            ) : (
+              <>
+                {/* Vue côte à côte */}
+                <div className="flex gap-3">
+                  <ProfileColumn sport="bike" vlamax={vlamaxBike} age={age} icon={Bike} />
+                  <ProfileColumn sport="run" vlamax={vlamaxRun} age={age} icon={Footprints} />
+                </div>
+
+                {/* Analyse delta */}
+                {delta !== null && (
+                  <div className="p-3 rounded-lg bg-muted/50 border">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Info className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-xs font-medium">Analyse comparative</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {Math.abs(delta) < 0.05 ? (
+                        <>Profils <strong className="text-foreground">cohérents</strong> entre vélo et CAP. Stratégie nutritionnelle unifiée possible.</>
+                      ) : delta > 0 ? (
+                        <>Profil <strong className="text-orange-500">plus glycolytique</strong> à vélo (+{delta.toFixed(2)}). Attention à la gestion glucides sur segment vélo.</>
+                      ) : (
+                        <>Profil <strong className="text-orange-500">plus glycolytique</strong> en CAP ({delta.toFixed(2)}). Vigilance sur le marathon après vélo.</>
+                      )}
+                    </p>
+                  </div>
+                )}
+              </>
             )}
 
             {/* Note objectif */}
