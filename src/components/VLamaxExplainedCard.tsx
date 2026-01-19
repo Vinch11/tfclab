@@ -3,7 +3,7 @@
  * Explique clairement le VLamax, le choix du cluster et les implications pratiques
  * 
  * IMPORTANT: Cette carte utilise vlamaxEffectif comme SOURCE UNIQUE DE VÉRITÉ
- * et intègre l'ajustement par âge pour l'interprétation du niveau
+ * et intègre l'ajustement par âge via le composant unifié VLamaxInterpretationPanel
  */
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,9 +36,6 @@ import {
   Target,
   BarChart3,
   Users,
-  Activity,
-  TrendingUp,
-  CheckCircle2,
   Calendar,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -47,19 +44,16 @@ import {
   computeVLamaxBikeV2Enhanced,
   VLamaxBikeV2EnhancedInput,
   getVLamaxV2EnhancedColor,
-  getVLamaxV2EnhancedCategory,
   CLUSTER_VLAMAX_STATS,
 } from "@/lib/v2/vlamaxBikeV2Enhanced";
 import {
   getInferredLevelLabel,
 } from "@/lib/reference/clusterSelector";
 import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
-import {
-  getAgeAdjustedVLamaxProfil,
-  getVLamaxAgeStatus,
-  computeAgeAdjustmentIndex,
-  getAgeAdjustedVLamaxThresholds,
-} from "@/lib/ageAdjustment";
+import { computeAgeAdjustmentIndex, getAgeAdjustedVLamaxThresholds } from "@/lib/ageAdjustment";
+
+// ✅ Utilisation du composant unifié pour l'interprétation
+import { VLamaxInterpretationPanel } from "@/components/VLamaxInterpretationPanel";
 
 interface VLamaxExplainedCardProps {
   // Source unique de vérité — si fourni, utiliser cette valeur
@@ -100,89 +94,7 @@ const AMBITION_TARGETS: Record<string, { min: number; max: number; label: string
   },
 };
 
-// Messages d'interprétation selon profil et objectif
-function getInterpretation(
-  vlamax: number,
-  target: { min: number; max: number } | undefined,
-  objectif: string
-): { status: "optimal" | "acceptable" | "work_needed"; message: string; actions: string[] } {
-  const obj = objectif.toLowerCase();
-  const isLongDistance = obj.includes("im") || obj.includes("ironman") || obj.includes("703") || 
-                         obj.includes("marathon") || obj.includes("ultra") || obj.includes("trail");
-  
-  if (!target) {
-    // Pas de cible définie, interpréter selon objectif
-    if (isLongDistance) {
-      if (vlamax <= 0.40) {
-        return {
-          status: "optimal",
-          message: "Profil bien adapté aux efforts de longue durée.",
-          actions: ["Maintenir le travail d'endurance", "Éviter les séances sprint intensives"]
-        };
-      } else if (vlamax <= 0.55) {
-        return {
-          status: "acceptable",
-          message: "Profil correct mais perfectible pour le long distance.",
-          actions: ["Augmenter le volume Z2", "Réduire les intervalles très courts", "Travail FatMax"]
-        };
-      } else {
-        return {
-          status: "work_needed",
-          message: "Profil glycolytique — adaptation nécessaire pour le long distance.",
-          actions: ["Réorienter vers endurance longue", "Limiter les sprints", "Séances tempo prolongées", "Patience: 12-24 semaines minimum"]
-        };
-      }
-    } else {
-      // Court/sprint
-      if (vlamax >= 0.55) {
-        return {
-          status: "optimal",
-          message: "Profil explosif adapté aux efforts courts.",
-          actions: ["Maintenir le travail de puissance", "Sprints réguliers"]
-        };
-      } else if (vlamax >= 0.40) {
-        return {
-          status: "acceptable",
-          message: "Profil équilibré — développement glycolytique possible.",
-          actions: ["Ajouter des intervalles courts", "Travail sprint 15-30s"]
-        };
-      } else {
-        return {
-          status: "work_needed",
-          message: "Profil très aérobie — adaptation pour efforts courts.",
-          actions: ["Intervalles très courts haute intensité", "Sprints répétés", "Réduire le volume Z2 excessif"]
-        };
-      }
-    }
-  }
-
-  // Avec cible définie
-  if (vlamax >= target.min && vlamax <= target.max) {
-    return {
-      status: "optimal",
-      message: `VLamax dans la plage cible (${target.min.toFixed(2)}-${target.max.toFixed(2)}).`,
-      actions: ["Maintenir l'équilibre actuel", "Affiner selon la phase de saison"]
-    };
-  } else if (vlamax < target.min) {
-    const diff = target.min - vlamax;
-    return {
-      status: diff > 0.10 ? "work_needed" : "acceptable",
-      message: `VLamax ${diff > 0.10 ? "nettement" : "légèrement"} en dessous de la cible.`,
-      actions: diff > 0.10 
-        ? ["Ajouter du travail glycolytique", "Intervalles courts haute intensité", "Sprints réguliers"]
-        : ["Ajustement mineur possible", "Quelques séances sprint"]
-    };
-  } else {
-    const diff = vlamax - target.max;
-    return {
-      status: diff > 0.10 ? "work_needed" : "acceptable",
-      message: `VLamax ${diff > 0.10 ? "nettement" : "légèrement"} au-dessus de la cible.`,
-      actions: diff > 0.10
-        ? ["Augmenter le volume Z2", "Réduire les sprints", "Travail tempo prolongé", "12-24 semaines d'adaptation"]
-        : ["Ajustement léger", "Plus d'endurance longue"]
-    };
-  }
-}
+// ✅ La logique d'interprétation est maintenant dans VLamaxInterpretationPanel
 
 export function VLamaxExplainedCard({
   vlamaxEffectif,
@@ -207,21 +119,12 @@ export function VLamaxExplainedCard({
   
   // Confiance et source
   const confidence = hasEffectif ? vlamaxEffectif!.confidence : (v2Result?.confidence ?? 0);
-  const sourceLabel = hasEffectif ? vlamaxEffectif!.label : (v2Result?.formulaLabel ?? "Calcul");
-  
-  // ============================================
-  // AJUSTEMENT PAR ÂGE
-  // ============================================
-  const ageIndex = computeAgeAdjustmentIndex(age ?? null);
-  const ageThresholds = getAgeAdjustedVLamaxThresholds(age ?? null);
-  const { profil, label: profilLabel, ageContext } = getAgeAdjustedVLamaxProfil(displayValue, age ?? null);
-  const ageStatus = getVLamaxAgeStatus(displayValue, age ?? null, input?.objectif || "IM");
   
   // Déterminer la cible selon l'ambition (ajustée pour l'âge si master)
   let effectiveTarget = targetVLamax || (ambitionLevel ? AMBITION_TARGETS[ambitionLevel] : undefined);
   
   // Ajuster les cibles pour les masters (tolérance plus large)
-  if (effectiveTarget && age !== null && age >= 40) {
+  if (effectiveTarget && age !== null && age !== undefined && age >= 40) {
     const ageOffset = age >= 50 ? 0.08 : 0.04;
     effectiveTarget = {
       ...effectiveTarget,
@@ -230,9 +133,8 @@ export function VLamaxExplainedCard({
     };
   }
   
-  // Cluster et interprétation depuis V2
+  // Cluster depuis V2
   const cluster = v2Result?.cluster;
-  const interpretation = getInterpretation(displayValue, effectiveTarget, input?.objectif || "IM");
 
   // Statistiques du cluster pour comparaison
   const clusterStats = cluster ? CLUSTER_VLAMAX_STATS[cluster.clusterId] : null;
@@ -245,15 +147,9 @@ export function VLamaxExplainedCard({
       ? "bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/50"
       : "bg-red-500/20 text-red-700 dark:text-red-300 border-red-500/50";
 
-  // Status badge (combinant interpretation et ageStatus)
-  const finalStatus = ageStatus.status;
-  const statusConfig = {
-    optimal: { icon: CheckCircle2, color: "text-green-600 dark:text-green-400", bg: "bg-green-500/10", label: "Optimal" },
-    acceptable: { icon: Activity, color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500/10", label: "Acceptable" },
-    work_needed: { icon: TrendingUp, color: "text-red-600 dark:text-red-400", bg: "bg-red-500/10", label: "À travailler" },
-  };
-  const status = statusConfig[finalStatus];
-  const StatusIcon = status.icon;
+  // Seuils ajustés pour affichage dans le tooltip
+  const ageIndex = computeAgeAdjustmentIndex(age ?? null);
+  const ageThresholds = getAgeAdjustedVLamaxThresholds(age ?? null);
 
   return (
     <Card className="overflow-hidden">
@@ -269,7 +165,7 @@ export function VLamaxExplainedCard({
             )}
           </CardTitle>
           <div className="flex items-center gap-2">
-            {age !== null && age > 0 && (
+            {age !== null && age !== undefined && age > 0 && (
               <Badge variant="outline" className="text-[10px] flex items-center gap-1">
                 <Calendar className="h-2.5 w-2.5" />
                 {age} ans
@@ -283,40 +179,48 @@ export function VLamaxExplainedCard({
       </CardHeader>
       
       <CardContent className="space-y-4">
-        {/* Section 1: Valeur et profil ajusté à l'âge */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="text-center p-3 bg-muted/30 rounded-lg">
-            <div className={cn("text-3xl font-bold font-mono", getVLamaxV2EnhancedColor(displayValue))}>
-              {displayValue.toFixed(2)}
-            </div>
-            <div className="text-xs text-muted-foreground">mmol/L/s</div>
-            <div className="text-sm font-medium mt-1">{profilLabel}</div>
+        {/* ✅ Section 1+2: Utilisation du composant unifié VLamaxInterpretationPanel */}
+        <VLamaxInterpretationPanel
+          vlamax={displayValue}
+          age={age}
+          sport="bike"
+          objectif={input?.objectif || "IM"}
+          targetRange={effectiveTarget ? [effectiveTarget.min, effectiveTarget.max] : undefined}
+          showAgeContext={true}
+          showActions={true}
+        />
+
+        {/* Informations techniques supplémentaires */}
+        <div className="grid grid-cols-2 gap-3 p-3 bg-muted/20 rounded-lg">
+          <div className="space-y-1">
             {hasEffectif && vlamaxEffectif?.source && (
-              <Badge variant="secondary" className="text-[10px] mt-1">
-                {vlamaxEffectif.source === "snapshot" ? "Mesure labo" : 
-                 vlamaxEffectif.source === "test" ? "Test terrain" : "Estimé"}
-              </Badge>
-            )}
-          </div>
-          
-          <div className="flex flex-col justify-center space-y-2">
-            {v2Result && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Plage estimée:</span>
-                <span className="font-mono text-sm">{v2Result.rangeMin.toFixed(2)} – {v2Result.rangeMax.toFixed(2)}</span>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-muted-foreground">Source:</span>
+                <Badge variant="secondary" className="text-[10px]">
+                  {vlamaxEffectif.source === "snapshot" ? "Mesure labo" : 
+                   vlamaxEffectif.source === "test" ? "Test terrain" : "Estimé"}
+                </Badge>
               </div>
             )}
+            {v2Result && (
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-muted-foreground">Plage estimée:</span>
+                <span className="font-mono">{v2Result.rangeMin.toFixed(2)} – {v2Result.rangeMax.toFixed(2)}</span>
+              </div>
+            )}
+          </div>
+          <div className="space-y-1">
             {effectiveTarget && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 text-xs">
                 <Target className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs text-muted-foreground">Cible{age !== null && age >= 40 ? " (ajustée)" : ""}:</span>
-                <span className="font-mono text-sm text-primary">
+                <span className="text-muted-foreground">Cible{age !== null && age !== undefined && age >= 40 ? " (ajustée)" : ""}:</span>
+                <span className="font-mono text-primary">
                   {effectiveTarget.min.toFixed(2)} – {effectiveTarget.max.toFixed(2)}
                 </span>
               </div>
             )}
             {/* Seuils ajustés par âge */}
-            {age !== null && age >= 30 && (
+            {age !== null && age !== undefined && age >= 30 && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
@@ -337,52 +241,6 @@ export function VLamaxExplainedCard({
                 </Tooltip>
               </TooltipProvider>
             )}
-          </div>
-        </div>
-
-        {/* Section 1.5: Contexte âge si pertinent */}
-        {ageContext && (
-          <div className="p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg text-xs text-blue-700 dark:text-blue-300">
-            <div className="flex items-start gap-2">
-              <Calendar className="h-4 w-4 shrink-0 mt-0.5" />
-              <span>{ageContext}</span>
-            </div>
-          </div>
-        )}
-
-        {/* Section 2: Interprétation coach avec ajustement âge */}
-        <div className={cn("p-3 rounded-lg border", status.bg)}>
-          <div className="flex items-start gap-2">
-            <StatusIcon className={cn("h-5 w-5 mt-0.5 shrink-0", status.color)} />
-            <div className="space-y-2 flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className={cn("font-medium", status.color)}>{status.label}</span>
-                {ambitionLevel && (
-                  <Badge variant="outline" className="text-[10px]">
-                    Ambition: {AMBITION_TARGETS[ambitionLevel]?.label}
-                  </Badge>
-                )}
-                {ageStatus.ageImpact && (
-                  <Badge variant="secondary" className="text-[10px]">
-                    {ageStatus.ageImpact}
-                  </Badge>
-                )}
-              </div>
-              <p className="text-sm">{ageStatus.message}</p>
-              
-              {/* Actions recommandées */}
-              <div className="space-y-1 mt-2">
-                <p className="text-xs font-medium text-muted-foreground">Actions recommandées:</p>
-                <ul className="space-y-1">
-                  {ageStatus.actions.map((action, i) => (
-                    <li key={i} className="flex items-start gap-2 text-xs">
-                      <span className="text-primary">→</span>
-                      <span>{action}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
           </div>
         </div>
 
