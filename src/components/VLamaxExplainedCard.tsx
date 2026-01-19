@@ -1,6 +1,9 @@
 /**
  * VLamaxExplainedCard — Version pédagogique détaillée pour coachs
  * Explique clairement le VLamax, le choix du cluster et les implications pratiques
+ * 
+ * IMPORTANT: Cette carte utilise vlamaxEffectif comme SOURCE UNIQUE DE VÉRITÉ
+ * et intègre l'ajustement par âge pour l'interprétation du niveau
  */
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,6 +39,7 @@ import {
   Activity,
   TrendingUp,
   CheckCircle2,
+  Calendar,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -49,14 +53,26 @@ import {
 import {
   getInferredLevelLabel,
 } from "@/lib/reference/clusterSelector";
+import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
+import {
+  getAgeAdjustedVLamaxProfil,
+  getVLamaxAgeStatus,
+  computeAgeAdjustmentIndex,
+  getAgeAdjustedVLamaxThresholds,
+} from "@/lib/ageAdjustment";
 
 interface VLamaxExplainedCardProps {
-  input: VLamaxBikeV2EnhancedInput;
+  // Source unique de vérité — si fourni, utiliser cette valeur
+  vlamaxEffectif?: VLamaxEffectif | null;
+  // Fallback: données pour calcul V2 Enhanced
+  input?: VLamaxBikeV2EnhancedInput;
+  // Âge de l'athlète (en années)
+  age?: number | null;
   ambitionLevel?: "finisher" | "performance" | "podium" | "elite";
   targetVLamax?: { min: number; max: number };
 }
 
-// Mapping ambition → objectifs VLamax recommandés
+// Mapping ambition → objectifs VLamax recommandés (ajustables selon âge)
 const AMBITION_TARGETS: Record<string, { min: number; max: number; label: string; description: string }> = {
   "finisher": {
     min: 0.40,
@@ -169,37 +185,74 @@ function getInterpretation(
 }
 
 export function VLamaxExplainedCard({
+  vlamaxEffectif,
   input,
+  age,
   ambitionLevel,
   targetVLamax,
 }: VLamaxExplainedCardProps) {
-  const result = computeVLamaxBikeV2Enhanced(input);
+  // ============================================
+  // SOURCE UNIQUE DE VÉRITÉ: vlamaxEffectif
+  // Si fourni, on l'utilise. Sinon fallback sur calcul V2
+  // ============================================
+  const hasEffectif = vlamaxEffectif && vlamaxEffectif.value !== null;
   
-  // Déterminer la cible selon l'ambition
-  const effectiveTarget = targetVLamax || (ambitionLevel ? AMBITION_TARGETS[ambitionLevel] : undefined);
+  // Calcul V2 Enhanced (fallback ou pour détails techniques)
+  const v2Result = input ? computeVLamaxBikeV2Enhanced(input) : null;
   
-  // Cluster et interprétation
-  const cluster = result.cluster;
-  const interpretation = getInterpretation(result.value, effectiveTarget, input.objectif || "");
+  // Valeur VLamax à afficher (source unique)
+  const displayValue = hasEffectif 
+    ? vlamaxEffectif!.value! 
+    : v2Result?.value ?? 0;
+  
+  // Confiance et source
+  const confidence = hasEffectif ? vlamaxEffectif!.confidence : (v2Result?.confidence ?? 0);
+  const sourceLabel = hasEffectif ? vlamaxEffectif!.label : (v2Result?.formulaLabel ?? "Calcul");
+  
+  // ============================================
+  // AJUSTEMENT PAR ÂGE
+  // ============================================
+  const ageIndex = computeAgeAdjustmentIndex(age ?? null);
+  const ageThresholds = getAgeAdjustedVLamaxThresholds(age ?? null);
+  const { profil, label: profilLabel, ageContext } = getAgeAdjustedVLamaxProfil(displayValue, age ?? null);
+  const ageStatus = getVLamaxAgeStatus(displayValue, age ?? null, input?.objectif || "IM");
+  
+  // Déterminer la cible selon l'ambition (ajustée pour l'âge si master)
+  let effectiveTarget = targetVLamax || (ambitionLevel ? AMBITION_TARGETS[ambitionLevel] : undefined);
+  
+  // Ajuster les cibles pour les masters (tolérance plus large)
+  if (effectiveTarget && age !== null && age >= 40) {
+    const ageOffset = age >= 50 ? 0.08 : 0.04;
+    effectiveTarget = {
+      ...effectiveTarget,
+      min: effectiveTarget.min + ageOffset / 2,
+      max: effectiveTarget.max + ageOffset,
+    };
+  }
+  
+  // Cluster et interprétation depuis V2
+  const cluster = v2Result?.cluster;
+  const interpretation = getInterpretation(displayValue, effectiveTarget, input?.objectif || "IM");
 
   // Statistiques du cluster pour comparaison
   const clusterStats = cluster ? CLUSTER_VLAMAX_STATS[cluster.clusterId] : null;
 
   // Badge confiance
   const confidenceBadgeClass =
-    result.confidence >= 0.75
+    confidence >= 0.75
       ? "bg-green-500/20 text-green-700 dark:text-green-300 border-green-500/50"
-      : result.confidence >= 0.55
+      : confidence >= 0.55
       ? "bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/50"
       : "bg-red-500/20 text-red-700 dark:text-red-300 border-red-500/50";
 
-  // Status badge
+  // Status badge (combinant interpretation et ageStatus)
+  const finalStatus = ageStatus.status;
   const statusConfig = {
     optimal: { icon: CheckCircle2, color: "text-green-600 dark:text-green-400", bg: "bg-green-500/10", label: "Optimal" },
     acceptable: { icon: Activity, color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500/10", label: "Acceptable" },
     work_needed: { icon: TrendingUp, color: "text-red-600 dark:text-red-400", bg: "bg-red-500/10", label: "À travailler" },
   };
-  const status = statusConfig[interpretation.status];
+  const status = statusConfig[finalStatus];
   const StatusIcon = status.icon;
 
   return (
@@ -209,61 +262,119 @@ export function VLamaxExplainedCard({
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <Zap className="h-4 w-4 text-amber-500" />
             VLamax Vélo — Analyse Détaillée
+            {hasEffectif && (
+              <Badge variant="outline" className="text-[10px] border-blue-500/50 text-blue-600 dark:text-blue-400">
+                Référence
+              </Badge>
+            )}
           </CardTitle>
-          <Badge className={cn("text-[10px]", confidenceBadgeClass)}>
-            {result.confidenceLabel}
-          </Badge>
+          <div className="flex items-center gap-2">
+            {age !== null && age > 0 && (
+              <Badge variant="outline" className="text-[10px] flex items-center gap-1">
+                <Calendar className="h-2.5 w-2.5" />
+                {age} ans
+              </Badge>
+            )}
+            <Badge className={cn("text-[10px]", confidenceBadgeClass)}>
+              {confidence >= 0.8 ? "Très fiable" : confidence >= 0.6 ? "Fiable" : confidence >= 0.4 ? "Modéré" : "Faible"}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       
       <CardContent className="space-y-4">
-        {/* Section 1: Valeur et catégorie */}
+        {/* Section 1: Valeur et profil ajusté à l'âge */}
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center p-3 bg-muted/30 rounded-lg">
-            <div className={cn("text-3xl font-bold font-mono", getVLamaxV2EnhancedColor(result.value))}>
-              {result.value.toFixed(2)}
+            <div className={cn("text-3xl font-bold font-mono", getVLamaxV2EnhancedColor(displayValue))}>
+              {displayValue.toFixed(2)}
             </div>
             <div className="text-xs text-muted-foreground">mmol/L/s</div>
-            <div className="text-sm font-medium mt-1">{getVLamaxV2EnhancedCategory(result.value)}</div>
+            <div className="text-sm font-medium mt-1">{profilLabel}</div>
+            {hasEffectif && vlamaxEffectif?.source && (
+              <Badge variant="secondary" className="text-[10px] mt-1">
+                {vlamaxEffectif.source === "snapshot" ? "Mesure labo" : 
+                 vlamaxEffectif.source === "test" ? "Test terrain" : "Estimé"}
+              </Badge>
+            )}
           </div>
           
           <div className="flex flex-col justify-center space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Plage estimée:</span>
-              <span className="font-mono text-sm">{result.rangeMin.toFixed(2)} – {result.rangeMax.toFixed(2)}</span>
-            </div>
+            {v2Result && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Plage estimée:</span>
+                <span className="font-mono text-sm">{v2Result.rangeMin.toFixed(2)} – {v2Result.rangeMax.toFixed(2)}</span>
+              </div>
+            )}
             {effectiveTarget && (
               <div className="flex items-center gap-2">
                 <Target className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs text-muted-foreground">Cible:</span>
+                <span className="text-xs text-muted-foreground">Cible{age !== null && age >= 40 ? " (ajustée)" : ""}:</span>
                 <span className="font-mono text-sm text-primary">
                   {effectiveTarget.min.toFixed(2)} – {effectiveTarget.max.toFixed(2)}
                 </span>
               </div>
             )}
+            {/* Seuils ajustés par âge */}
+            {age !== null && age >= 30 && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <div className="flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400">
+                      <Info className="h-3 w-3" />
+                      <span>Seuils ajustés {ageIndex.label}</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="text-xs">
+                      À {age} ans, les seuils de profil sont ajustés:<br/>
+                      • Diesel: &lt; {ageThresholds.diesel.toFixed(2)}<br/>
+                      • Endurant: &lt; {ageThresholds.endurant.toFixed(2)}<br/>
+                      • Équilibré: &lt; {ageThresholds.equilibre.toFixed(2)}<br/>
+                      • Explosif: &lt; {ageThresholds.explosif.toFixed(2)}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         </div>
 
-        {/* Section 2: Interprétation coach */}
+        {/* Section 1.5: Contexte âge si pertinent */}
+        {ageContext && (
+          <div className="p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg text-xs text-blue-700 dark:text-blue-300">
+            <div className="flex items-start gap-2">
+              <Calendar className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>{ageContext}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Section 2: Interprétation coach avec ajustement âge */}
         <div className={cn("p-3 rounded-lg border", status.bg)}>
           <div className="flex items-start gap-2">
             <StatusIcon className={cn("h-5 w-5 mt-0.5 shrink-0", status.color)} />
             <div className="space-y-2 flex-1">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className={cn("font-medium", status.color)}>{status.label}</span>
                 {ambitionLevel && (
                   <Badge variant="outline" className="text-[10px]">
                     Ambition: {AMBITION_TARGETS[ambitionLevel]?.label}
                   </Badge>
                 )}
+                {ageStatus.ageImpact && (
+                  <Badge variant="secondary" className="text-[10px]">
+                    {ageStatus.ageImpact}
+                  </Badge>
+                )}
               </div>
-              <p className="text-sm">{interpretation.message}</p>
+              <p className="text-sm">{ageStatus.message}</p>
               
               {/* Actions recommandées */}
               <div className="space-y-1 mt-2">
                 <p className="text-xs font-medium text-muted-foreground">Actions recommandées:</p>
                 <ul className="space-y-1">
-                  {interpretation.actions.map((action, i) => (
+                  {ageStatus.actions.map((action, i) => (
                     <li key={i} className="flex items-start gap-2 text-xs">
                       <span className="text-primary">→</span>
                       <span>{action}</span>
@@ -345,13 +456,13 @@ export function VLamaxExplainedCard({
                     </div>
                     
                     {/* Positionnement athlète */}
-                    {result.percentile !== undefined && (
+                    {v2Result?.percentile !== undefined && (
                       <div className="mt-2 p-2 bg-primary/5 rounded text-xs">
                         <span className="text-muted-foreground">Position de l'athlète: </span>
                         <span className="font-medium">
-                          Percentile {result.percentile}
-                          {result.percentile <= 25 && " (VLamax basse par rapport au groupe)"}
-                          {result.percentile >= 75 && " (VLamax élevée par rapport au groupe)"}
+                          Percentile {v2Result.percentile}
+                          {v2Result.percentile <= 25 && " (VLamax basse par rapport au groupe)"}
+                          {v2Result.percentile >= 75 && " (VLamax élevée par rapport au groupe)"}
                         </span>
                       </div>
                     )}
@@ -380,13 +491,14 @@ export function VLamaxExplainedCard({
             </AccordionItem>
 
             {/* Section détails calcul */}
+            {v2Result && (
             <AccordionItem value="calculation" className="border rounded-lg px-3 mt-2">
               <AccordionTrigger className="py-2 hover:no-underline">
                 <div className="flex items-center gap-2 text-sm">
                   <BarChart3 className="h-4 w-4 text-muted-foreground" />
                   <span>Détails du calcul</span>
                   <Badge variant="secondary" className="text-[10px] ml-2">
-                    {result.formulaLabel}
+                    {v2Result.formulaLabel}
                   </Badge>
                 </div>
               </AccordionTrigger>
@@ -394,7 +506,7 @@ export function VLamaxExplainedCard({
                 {/* Sources */}
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-xs text-muted-foreground">Sources utilisées:</span>
-                  {result.sources.map((source) => (
+                  {v2Result.sources.map((source) => (
                     <Badge key={source} variant="secondary" className="text-[10px]">
                       {source}
                     </Badge>
@@ -402,11 +514,11 @@ export function VLamaxExplainedCard({
                 </div>
 
                 {/* Composants si disponibles */}
-                {result.components && (
+                {v2Result.components && (
                   <div className="space-y-2">
                     <p className="text-xs font-medium">Composants du calcul:</p>
                     <div className="grid grid-cols-2 gap-2 text-xs">
-                      {result.components.r30 !== null && (
+                      {v2Result.components.r30 !== null && (
                         <div className="p-2 bg-muted/30 rounded">
                           <TooltipProvider>
                             <Tooltip>
@@ -418,10 +530,10 @@ export function VLamaxExplainedCard({
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
-                          <p className="font-mono font-medium">{result.components.r30.toFixed(2)}</p>
+                          <p className="font-mono font-medium">{v2Result.components.r30.toFixed(2)}</p>
                         </div>
                       )}
-                      {result.components.r60 !== null && (
+                      {v2Result.components.r60 !== null && (
                         <div className="p-2 bg-muted/30 rounded">
                           <TooltipProvider>
                             <Tooltip>
@@ -433,10 +545,10 @@ export function VLamaxExplainedCard({
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
-                          <p className="font-mono font-medium">{result.components.r60.toFixed(2)}</p>
+                          <p className="font-mono font-medium">{v2Result.components.r60.toFixed(2)}</p>
                         </div>
                       )}
-                      {result.components.rfm !== null && (
+                      {v2Result.components.rfm !== null && (
                         <div className="p-2 bg-muted/30 rounded">
                           <TooltipProvider>
                             <Tooltip>
@@ -448,10 +560,10 @@ export function VLamaxExplainedCard({
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
-                          <p className="font-mono font-medium">{result.components.rfm.toFixed(2)}</p>
+                          <p className="font-mono font-medium">{v2Result.components.rfm.toFixed(2)}</p>
                         </div>
                       )}
-                      {result.components.D !== null && (
+                      {v2Result.components.D !== null && (
                         <div className="p-2 bg-muted/30 rounded">
                           <TooltipProvider>
                             <Tooltip>
@@ -463,7 +575,7 @@ export function VLamaxExplainedCard({
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
-                          <p className="font-mono font-medium">{input.tte_min ?? "—"} min</p>
+                          <p className="font-mono font-medium">{input?.tte_min ?? "—"} min</p>
                         </div>
                       )}
                     </div>
@@ -471,17 +583,18 @@ export function VLamaxExplainedCard({
                     {/* Score G */}
                     <div className="p-2 bg-primary/5 rounded flex items-center justify-between">
                       <span className="text-xs text-muted-foreground">Score composite G:</span>
-                      <span className="font-mono font-medium">{(result.components.scoreG * 100).toFixed(1)}%</span>
+                      <span className="font-mono font-medium">{(v2Result.components.scoreG * 100).toFixed(1)}%</span>
                     </div>
                   </div>
                 )}
 
                 {/* Message pédagogique */}
                 <p className="text-xs text-muted-foreground italic p-2 bg-muted/30 rounded">
-                  {result.pedagogicalMessage}
+                  {v2Result.pedagogicalMessage}
                 </p>
               </AccordionContent>
             </AccordionItem>
+            )}
           </Accordion>
         )}
 
@@ -519,9 +632,9 @@ export function VLamaxExplainedCard({
         </Collapsible>
 
         {/* Warnings */}
-        {result.warnings.length > 0 && (
+        {v2Result && v2Result.warnings.length > 0 && (
           <div className="space-y-1 pt-2 border-t">
-            {result.warnings.slice(0, 3).map((w, i) => (
+            {v2Result.warnings.slice(0, 3).map((w, i) => (
               <div key={i} className="flex items-start gap-2 text-[10px] text-amber-600 dark:text-amber-400">
                 <AlertTriangle className="h-3 w-3 shrink-0 mt-0.5" />
                 <span>{w}</span>
