@@ -23,7 +23,9 @@ import {
   ChevronDown,
   ChevronUp,
   Star,
-  Radar
+  Radar,
+  User,
+  Gauge
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -281,6 +283,22 @@ export function StaffDashboard({
               <Activity className="h-3 w-3" />
               {PHASE_LABELS[phase] || phase}
             </Badge>
+            {athleteAge !== null && athleteAge !== undefined && (
+              <Badge 
+                variant="outline" 
+                className={cn(
+                  "gap-1",
+                  ageInfo.category === "master1" && "border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+                  ageInfo.category === "master2" && "border-orange-500/50 bg-orange-500/10 text-orange-700 dark:text-orange-400"
+                )}
+              >
+                <User className="h-3 w-3" />
+                {athleteAge} ans
+                {(ageInfo.category === "master1" || ageInfo.category === "master2") && (
+                  <span className="ml-1 opacity-75">• Master</span>
+                )}
+              </Badge>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -525,6 +543,49 @@ export function StaffDashboard({
                 <p className="text-muted-foreground">cible: {radarTargets.ftpKgTarget}</p>
               </div>
             </div>
+            
+            {/* Bloc Ajustement Âge */}
+            {athleteAge !== null && athleteAge !== undefined && (
+              <div className={cn(
+                "mt-3 p-3 rounded-lg border text-xs",
+                ageInfo.category === "master1" || ageInfo.category === "master2"
+                  ? "bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800"
+                  : "bg-muted/30 border-border"
+              )}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Gauge className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  <span className="font-semibold text-foreground">Ajustement par âge</span>
+                  {ageInfo.aai < 1.0 && (
+                    <Badge variant="outline" className="text-xs py-0 h-5 border-amber-500/50 text-amber-700 dark:text-amber-400">
+                      Actif
+                    </Badge>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-muted-foreground mb-1">Catégorie</p>
+                    <p className="font-medium text-foreground">{ageInfo.label}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground mb-1">Facteur AAI</p>
+                    <p className="font-medium text-foreground font-mono">
+                      {(ageInfo.aai * 100).toFixed(0)}%
+                      {ageInfo.aai < 1.0 && (
+                        <span className="text-muted-foreground ml-1">
+                          (−{((1 - ageInfo.aai) * 100).toFixed(0)}%)
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                {(ageInfo.category === "master1" || ageInfo.category === "master2") && (
+                  <p className="mt-2 text-muted-foreground leading-relaxed">
+                    Les cibles VLamax ({radarTargets.vlamaxIdeal}), TTE ({radarTargets.tteTarget} min) et FTP/kg ({radarTargets.ftpKgTarget}) sont ajustées pour tenir compte de l'âge. 
+                    Multiplicateur de risque: ×{ageInfo.riskMultiplier.toFixed(2)}
+                  </p>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
