@@ -597,21 +597,18 @@ export function MetabolicPerformanceCompassV2({
         </div>
 
         {/* Bloc Ajustement Âge */}
-        {athleteAge !== null && (
-          <div className={cn(
-            "p-3 rounded-lg border text-xs",
-            ageInfo.category === "master1" || ageInfo.category === "master2"
-              ? "bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800"
-              : "bg-muted/30 border-border"
-          )}>
-            <div className="flex items-center gap-2 mb-2">
-              <Gauge className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-              <span className="font-semibold text-foreground">Ajustement par âge</span>
-              {ageInfo.aai < 1.0 && (
-                <Badge variant="outline" className="text-xs py-0 h-5 border-amber-500/50 text-amber-700 dark:text-amber-400">
-                  Actif
-                </Badge>
-              )}
+        {/* Section Cibles Physiologiques */}
+        <div className={cn(
+          "p-3 rounded-lg border text-xs",
+          "bg-muted/30 border-border"
+        )}>
+          <div className="flex items-center gap-2 mb-2">
+            <Target className="h-4 w-4 text-primary" />
+            <span className="font-semibold text-foreground">Cibles physiologiques</span>
+            <Badge variant="outline" className="text-xs py-0 h-5 border-primary/50 text-primary">
+              {getAmbitionDefinition(currentAmbition).shortLabel}
+            </Badge>
+            {athleteAge !== null && (
               <Badge 
                 variant="outline" 
                 className={cn(
@@ -623,32 +620,29 @@ export function MetabolicPerformanceCompassV2({
                 <User className="h-3 w-3" />
                 {athleteAge} ans
               </Badge>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <p className="text-muted-foreground mb-1">Catégorie</p>
-                <p className="font-medium text-foreground">{ageInfo.label}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground mb-1">Facteur AAI</p>
-                <p className="font-medium text-foreground font-mono">
-                  {(ageInfo.aai * 100).toFixed(0)}%
-                  {ageInfo.aai < 1.0 && (
-                    <span className="text-muted-foreground ml-1">
-                      (−{((1 - ageInfo.aai) * 100).toFixed(0)}%)
-                    </span>
-                  )}
-                </p>
-              </div>
-            </div>
-            {(ageInfo.category === "master1" || ageInfo.category === "master2") && (
-              <p className="mt-2 text-muted-foreground leading-relaxed">
-                Les cibles VLamax ({ageTargets.vlamaxOptimal.toFixed(2)}), TTE ({ageTargets.tteTarget} min) et FTP/kg ({ageTargets.ftpKgTarget.toFixed(1)}) sont ajustées pour tenir compte de l'âge. 
-                Multiplicateur de risque: ×{ageInfo.riskMultiplier.toFixed(2)}
-              </p>
             )}
           </div>
-        )}
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <p className="text-muted-foreground mb-1">VLamax cible</p>
+              <p className="font-medium text-foreground font-mono">{ageTargets.vlamaxOptimal.toFixed(2)}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground mb-1">TTE cible</p>
+              <p className="font-medium text-foreground font-mono">{ageTargets.tteTarget} min</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground mb-1">FTP/kg cible</p>
+              <p className="font-medium text-foreground font-mono">{ageTargets.ftpKgTarget.toFixed(1)}</p>
+            </div>
+          </div>
+          <p className="mt-2 text-muted-foreground leading-relaxed">
+            Cibles définies par <span className="font-medium text-foreground">objectif</span> et <span className="font-medium text-foreground">ambition ({getAmbitionDefinition(currentAmbition).shortLabel})</span>.
+            {ageTargets.ageAdjustmentApplied && (
+              <span className="ml-1">TTE ajusté pour {ageInfo.label}.</span>
+            )}
+          </p>
+        </div>
 
         <div className="grid grid-cols-2 gap-3">
           {chartData.map((axis) => {

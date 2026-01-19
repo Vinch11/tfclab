@@ -993,6 +993,7 @@ const Index = () => {
                 ftpKg={ftp_kg}
                 snapshotDate={effectiveCloudSnapshot?.date ?? null}
                 athleteAge={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
+                ambition={currentAmbition}
               />
             ),
           },
