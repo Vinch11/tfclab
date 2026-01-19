@@ -156,6 +156,12 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
   // Nouveaux champs pour Fatigue
   const [tss7d, setTss7d] = useState(snapshot.tss_7d != null ? String(snapshot.tss_7d) : "");
   const [tteObserved, setTteObserved] = useState(snapshot.tte_observed_min != null ? String(snapshot.tte_observed_min) : "");
+  
+  // ✅ Champs pour calcul VLamax CAP
+  const [paceThreshold, setPaceThreshold] = useState(snapshot.pace_threshold_sec_per_km != null ? String(snapshot.pace_threshold_sec_per_km) : "");
+  const [sprint15s, setSprint15s] = useState(snapshot.sprint_15s_distance != null ? String(snapshot.sprint_15s_distance) : "");
+  const [runPowerMax, setRunPowerMax] = useState(snapshot.running_power_max != null ? String(snapshot.running_power_max) : "");
+  const [runPowerThreshold, setRunPowerThreshold] = useState(snapshot.running_power_threshold != null ? String(snapshot.running_power_threshold) : "");
 
   const handleSave = async () => {
     await updateSnapshot(snapshot.id, {
@@ -175,6 +181,11 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
       // ✅ Nouveaux champs Fatigue
       tss_7d: numOrNull(tss7d) != null ? Math.round(numOrNull(tss7d)!) : null,
       tte_observed_min: numOrNull(tteObserved) != null ? Math.round(numOrNull(tteObserved)!) : null,
+      // ✅ Champs pour calcul VLamax CAP
+      pace_threshold_sec_per_km: numOrNull(paceThreshold) != null ? Math.round(numOrNull(paceThreshold)!) : null,
+      sprint_15s_distance: numOrNull(sprint15s),
+      running_power_max: numOrNull(runPowerMax),
+      running_power_threshold: numOrNull(runPowerThreshold),
     });
     setOpen(false);
   };
@@ -196,6 +207,11 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
       // Nouveaux champs
       setTss7d(snapshot.tss_7d != null ? String(snapshot.tss_7d) : "");
       setTteObserved(snapshot.tte_observed_min != null ? String(snapshot.tte_observed_min) : "");
+      // VLamax CAP fields
+      setPaceThreshold(snapshot.pace_threshold_sec_per_km != null ? String(snapshot.pace_threshold_sec_per_km) : "");
+      setSprint15s(snapshot.sprint_15s_distance != null ? String(snapshot.sprint_15s_distance) : "");
+      setRunPowerMax(snapshot.running_power_max != null ? String(snapshot.running_power_max) : "");
+      setRunPowerThreshold(snapshot.running_power_threshold != null ? String(snapshot.running_power_threshold) : "");
     }
     setOpen(isOpen);
   };
@@ -269,11 +285,63 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
             setVlamaxRun={setVlamaxRun}
             staffMode={staffMode}
             vma={numOrNull(vma)}
-            paceThresholdSecPerKm={snapshot.pace_threshold_sec_per_km ?? null}
+            paceThresholdSecPerKm={numOrNull(paceThreshold)}
             tteMin={numOrNull(tteObserved)}
-            sprint15sDistance={snapshot.sprint_15s_distance ?? null}
-            runningPowerMax={snapshot.running_power_max ?? null}
+            sprint15sDistance={numOrNull(sprint15s)}
+            runningPowerMax={numOrNull(runPowerMax)}
           />
+          
+          {/* ====== SECTION DONNÉES CAP (running) ====== */}
+          <div className="col-span-4 pt-3 border-t border-border">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
+              🏃 Données Course (VLamax CAP)
+            </p>
+          </div>
+
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right">Allure Seuil (s/km)</Label>
+            <Input 
+              className="col-span-3" 
+              type="number" 
+              placeholder="Ex: 270 (4:30/km)"
+              value={paceThreshold} 
+              onChange={(e) => setPaceThreshold(e.target.value)} 
+            />
+          </div>
+
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right">Sprint 15s (m)</Label>
+            <Input 
+              className="col-span-3" 
+              type="number" 
+              step="0.1"
+              placeholder="Ex: 85"
+              value={sprint15s} 
+              onChange={(e) => setSprint15s(e.target.value)} 
+            />
+          </div>
+
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right">Puissance Max CAP (W)</Label>
+            <Input 
+              className="col-span-3" 
+              type="number" 
+              placeholder="Ex: 450"
+              value={runPowerMax} 
+              onChange={(e) => setRunPowerMax(e.target.value)} 
+            />
+          </div>
+
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right">Puissance Seuil CAP (W)</Label>
+            <Input 
+              className="col-span-3" 
+              type="number" 
+              placeholder="Ex: 280"
+              value={runPowerThreshold} 
+              onChange={(e) => setRunPowerThreshold(e.target.value)} 
+            />
+          </div>
 
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right">VMA (km/h)</Label>
