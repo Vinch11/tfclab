@@ -54,6 +54,7 @@ import { SortableSectionsContainer } from "@/components/SortableSectionsContaine
 import { VLamaxV2DisplayCard } from "@/components/VLamaxV2DisplayCard";
 import { VLamaxExplainedCard } from "@/components/VLamaxExplainedCard";
 import { VLamaxRunExplainedCard } from "@/components/VLamaxRunExplainedCard";
+import { VLamaxCombinedCard } from "@/components/VLamaxCombinedCard";
 import { FatMaxTFCLCard } from "@/components/FatMaxTFCLCard";
 import { FatMaxRaceIntensityChart } from "@/components/charts/FatMaxRaceIntensityChart";
 import { computeFatMaxTFCL, FatMaxObjectif } from "@/lib/v2/fatmaxTFCL";
@@ -776,12 +777,23 @@ const Index = () => {
                   />
                 )}
                 
-                {/* Analyse détaillée CAP - pour multi-sport (Triathlon, Marathon, etc.) */}
-                {effectiveCloudSnapshot && (currentAthlete.goal === "IM" || currentAthlete.goal === "70.3" || currentAthlete.goal === "Marathon" || currentAthlete.goal === "Semi") && (
+                {/* Vue combinée Vélo + CAP pour triathlètes */}
+                {(currentAthlete.goal === "IM" || currentAthlete.goal === "70.3") && (
+                  <VLamaxCombinedCard
+                    vlamaxBike={vlamaxEffectif.value}
+                    vlamaxRun={vlamaxEffectif.value} // Même valeur pour l'instant, à séparer si données distinctes disponibles
+                    age={calculateAge(currentAthlete.birth_date)}
+                    objectif={currentAthlete.goal === "IM" ? "Ironman" : "70.3"}
+                    defaultCollapsed={false}
+                  />
+                )}
+
+                {/* Analyse détaillée CAP - pour multi-sport (Marathon, Semi) */}
+                {effectiveCloudSnapshot && (currentAthlete.goal === "Marathon" || currentAthlete.goal === "Semi") && (
                   <VLamaxRunExplainedCard
                     vlamax={vlamaxEffectif.value}
                     age={calculateAge(currentAthlete.birth_date)}
-                    objectif={currentAthlete.goal === "IM" ? "Ironman" : currentAthlete.goal || "Marathon"}
+                    objectif={currentAthlete.goal || "Marathon"}
                     defaultCollapsed={true}
                   />
                 )}
