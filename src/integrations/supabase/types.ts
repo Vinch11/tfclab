@@ -308,6 +308,7 @@ export type Database = {
           vlamax: number | null
           vlamax_is_reference: boolean | null
           vlamax_protocol: string | null
+          vlamax_run: number | null
           vlamax_source: string | null
           vma: number | null
           vo2max: number | null
@@ -357,6 +358,7 @@ export type Database = {
           vlamax?: number | null
           vlamax_is_reference?: boolean | null
           vlamax_protocol?: string | null
+          vlamax_run?: number | null
           vlamax_source?: string | null
           vma?: number | null
           vo2max?: number | null
@@ -406,6 +408,7 @@ export type Database = {
           vlamax?: number | null
           vlamax_is_reference?: boolean | null
           vlamax_protocol?: string | null
+          vlamax_run?: number | null
           vlamax_source?: string | null
           vma?: number | null
           vo2max?: number | null
