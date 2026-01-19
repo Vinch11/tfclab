@@ -621,39 +621,241 @@ export function StaffReport({
         <div>
           <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
             <Utensils className="h-4 w-4" />
-            NUTRITION — VERSION STAFF
+            NUTRITION PRÉDICTIVE V2
+            <Badge variant="outline" className="text-[10px]">
+              {report.nutritionV2Detailed.glycogenRiskIcon} {report.nutritionV2Detailed.glycogenRisk}
+            </Badge>
           </h3>
           <div className={cn(
             "p-4 rounded-lg border",
-            report.nutritionSummary.isLimitingFactor 
+            report.nutritionV2Detailed.glycogenRiskScore >= 3 
               ? "bg-red-500/5 border-red-500/20" 
               : "bg-muted/30"
           )}>
-            <div className="grid grid-cols-3 gap-4 text-sm">
+            {/* Besoins principaux */}
+            <div className="grid grid-cols-3 gap-4 text-sm mb-4">
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Besoin estimé</p>
-                <p className="font-bold text-lg">{report.nutritionSummary.carbsEstimate}</p>
+                <p className="text-xs text-muted-foreground mb-1">Besoins glucides</p>
+                <p className="font-bold text-lg">{report.nutritionV2Detailed.carbsMin}–{report.nutritionV2Detailed.carbsMax} g/h</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Risque</p>
-                <p className="font-bold text-lg flex items-center gap-2">
-                  <span>{report.nutritionSummary.riskIcon}</span>
-                  {report.nutritionSummary.riskLevel}
-                </p>
+                <p className="text-xs text-muted-foreground mb-1">Risque déplétion</p>
+                <p className="font-bold text-lg">{report.nutritionV2Detailed.glycogenRiskIcon} {report.nutritionV2Detailed.glycogenRisk}</p>
               </div>
-              <div className="col-span-1">
-                <p className="text-xs text-muted-foreground mb-1">Impact</p>
-                <p className={cn(
-                  "font-semibold text-sm",
-                  report.nutritionSummary.isLimitingFactor ? "text-red-600 dark:text-red-400" : "text-muted-foreground"
-                )}>
-                  {report.nutritionSummary.keyMessage}
-                </p>
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Sport</p>
+                <p className="font-bold">{report.nutritionV2Detailed.sportLabel}</p>
               </div>
             </div>
+            
+            {/* Contributeurs détaillés */}
+            <div className="mb-4 p-3 rounded bg-background/50">
+              <p className="text-xs font-medium text-muted-foreground mb-2">Composition du calcul :</p>
+              <div className="space-y-1">
+                {report.nutritionV2Detailed.contributors.map((c, i) => (
+                  <div key={i} className="flex justify-between text-xs">
+                    <span>{c.label}</span>
+                    <span className="font-mono">{c.adjustment}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Stratégie par segment (triathlon/marathon) */}
+            {report.nutritionV2Detailed.segmentStrategy && (
+              <div className="mb-4">
+                <p className="text-xs font-medium text-muted-foreground mb-2">Stratégie par segment :</p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left py-1">Segment</th>
+                        <th className="text-left py-1">Durée</th>
+                        <th className="text-left py-1">g/h</th>
+                        <th className="text-left py-1">Total</th>
+                        <th className="text-left py-1">Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {report.nutritionV2Detailed.segmentStrategy.map((seg, i) => (
+                        <tr key={i} className="border-b border-muted">
+                          <td className="py-1 font-medium">{seg.segment}</td>
+                          <td className="py-1">{seg.duration}</td>
+                          <td className="py-1">{seg.carbsPerHour}</td>
+                          <td className="py-1 font-bold">{seg.totalGrams}g</td>
+                          <td className="py-1 text-muted-foreground">{seg.notes}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {report.nutritionV2Detailed.totalRaceCarbs && (
+                  <p className="text-xs font-bold mt-2">
+                    Total course : ~{report.nutritionV2Detailed.totalRaceCarbs}g de glucides
+                  </p>
+                )}
+              </div>
+            )}
+            
+            {/* Recommandations */}
+            {report.nutritionV2Detailed.recommendations.length > 0 && (
+              <div className="mb-3">
+                <p className="text-xs font-medium text-muted-foreground mb-1">Recommandations :</p>
+                <ul className="text-xs space-y-0.5">
+                  {report.nutritionV2Detailed.recommendations.map((r, i) => (
+                    <li key={i} className="flex items-start gap-1">
+                      <span className="text-primary">•</span> {r}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            {/* Warnings */}
+            {report.nutritionV2Detailed.warnings.length > 0 && (
+              <div className="p-2 rounded bg-amber-500/10 border border-amber-500/20">
+                {report.nutritionV2Detailed.warnings.map((w, i) => (
+                  <p key={i} className="text-[10px] text-amber-700 dark:text-amber-400">⚠️ {w}</p>
+                ))}
+              </div>
+            )}
           </div>
           <p className="text-[10px] text-muted-foreground mt-2 italic">
             ⚠️ Estimation uniquement. Pas de plan alimentaire détaillé – valider avec un nutritionniste.
+          </p>
+        </div>
+
+        <Separator />
+        
+        {/* 7️⃣ PROFIL MÉTABOLIQUE COMPLET */}
+        <div>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+            <Activity className="h-4 w-4" />
+            PROFIL MÉTABOLIQUE COMPLET
+            <Badge variant="outline" className="text-[10px]">
+              {report.metabolicProfileComplete.overallBalanceLabel}
+            </Badge>
+          </h3>
+          <div className="p-4 rounded-lg bg-muted/30 border">
+            <div className="grid grid-cols-3 gap-4 mb-4">
+              <div className="text-center p-3 rounded bg-background/50">
+                <p className="text-xs text-muted-foreground">VLamax</p>
+                <p className="font-bold text-lg">{report.metabolicProfileComplete.vlamaxLabel}</p>
+                <Badge variant="outline" className="text-[9px] mt-1">{report.metabolicProfileComplete.vlamaxCategory}</Badge>
+              </div>
+              <div className="text-center p-3 rounded bg-background/50">
+                <p className="text-xs text-muted-foreground">TTE</p>
+                <p className="font-bold text-lg">{report.metabolicProfileComplete.tteLabel}</p>
+                <Badge variant="outline" className="text-[9px] mt-1">{report.metabolicProfileComplete.tteCategory}</Badge>
+              </div>
+              <div className="text-center p-3 rounded bg-background/50">
+                <p className="text-xs text-muted-foreground">FTP/kg</p>
+                <p className="font-bold text-lg">{report.metabolicProfileComplete.ftpKgLabel}</p>
+                <Badge variant="outline" className="text-[9px] mt-1">{report.metabolicProfileComplete.ftpKgCategory}</Badge>
+              </div>
+            </div>
+            
+            <p className="text-sm mb-3">{report.metabolicProfileComplete.interpretation}</p>
+            
+            {report.metabolicProfileComplete.gaps.length > 0 && (
+              <div className="p-3 rounded bg-amber-500/10 border border-amber-500/20">
+                <p className="text-xs font-medium text-amber-700 dark:text-amber-400 mb-2">Écarts à combler :</p>
+                {report.metabolicProfileComplete.gaps.map((gap, i) => (
+                  <p key={i} className="text-xs text-amber-700 dark:text-amber-400">
+                    • <strong>{gap.metric}</strong> : {gap.gap}
+                  </p>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <Separator />
+        
+        {/* 8️⃣ LEVIERS D'ENTRAÎNEMENT */}
+        <div>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            LEVIERS D'ENTRAÎNEMENT — {report.trainingLeversSection.sportLabel.toUpperCase()}
+          </h3>
+          <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 mb-3">
+            <p className="text-sm font-medium italic">"{report.trainingLeversSection.keyStatement}"</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-3">
+            <div className="p-3 rounded-lg bg-green-500/5 border border-green-500/20">
+              <h4 className="text-xs font-semibold text-green-700 dark:text-green-400 mb-2 flex items-center gap-1">
+                <CheckCircle className="h-3 w-3" /> Prioritaires
+              </h4>
+              {report.trainingLeversSection.priorityLevers.map((l, i) => (
+                <div key={i} className="text-xs mb-2">
+                  <p className="font-medium">{l.name}</p>
+                  <p className="text-muted-foreground">{l.effect}</p>
+                </div>
+              ))}
+            </div>
+            <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/20">
+              <h4 className="text-xs font-semibold text-amber-700 dark:text-amber-400 mb-2 flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3" /> Prudence
+              </h4>
+              {report.trainingLeversSection.cautionLevers.map((l, i) => (
+                <div key={i} className="text-xs mb-2">
+                  <p className="font-medium">{l.name}</p>
+                  <p className="text-muted-foreground">Si : {l.conditions.join(", ")}</p>
+                </div>
+              ))}
+            </div>
+            <div className="p-3 rounded-lg bg-red-500/5 border border-red-500/20">
+              <h4 className="text-xs font-semibold text-red-700 dark:text-red-400 mb-2 flex items-center gap-1">
+                <XCircle className="h-3 w-3" /> À éviter
+              </h4>
+              {report.trainingLeversSection.discouragedLevers.map((l, i) => (
+                <div key={i} className="text-xs mb-2">
+                  <p className="font-medium">{l.name}</p>
+                  <p className="text-muted-foreground">{l.reason}</p>
+                </div>
+              ))}
+              {report.trainingLeversSection.discouragedLevers.length === 0 && (
+                <p className="text-xs text-muted-foreground">Aucune contre-indication majeure</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <Separator />
+        
+        {/* 9️⃣ MÉTHODOLOGIE RECOMMANDÉE */}
+        <div>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+            <Target className="h-4 w-4" />
+            MÉTHODOLOGIE RECOMMANDÉE
+          </h3>
+          <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 mb-3">
+            <p className="font-bold text-lg mb-1">{report.methodologyRecommendation.recommendedApproachLabel}</p>
+            <p className="text-sm">{report.methodologyRecommendation.justification}</p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="p-3 rounded-lg bg-muted/30">
+              <p className="text-xs font-medium text-muted-foreground mb-2">Principes clés :</p>
+              <ul className="text-xs space-y-1">
+                {report.methodologyRecommendation.keyPrinciples.map((p, i) => (
+                  <li key={i} className="flex items-start gap-1">
+                    <span className="text-primary">•</span> {p}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="p-3 rounded-lg bg-muted/30">
+              <p className="text-xs font-medium text-muted-foreground mb-2">Alternatives :</p>
+              {report.methodologyRecommendation.alternativeApproaches.map((a, i) => (
+                <div key={i} className="text-xs flex justify-between mb-1">
+                  <span>{a.name}</span>
+                  <Badge variant="outline" className="text-[9px]">{a.suitability}</Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-2 italic">
+            {report.methodologyRecommendation.disclaimer}
           </p>
         </div>
 
