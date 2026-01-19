@@ -1,6 +1,7 @@
 /**
  * Hook pour gérer les préférences de disposition des sections
  * Stockage: localStorage + sync cloud (profiles.layout_preferences)
+ * Supporte l'ordre ET la visibilité des sections
  */
 
 import { useState, useEffect, useCallback } from "react";
@@ -15,6 +16,12 @@ export interface SectionDefinition {
   label: string;
   icon?: string;
   defaultVisible: boolean;
+}
+
+// Configuration d'une section sauvegardée
+export interface SectionConfig {
+  id: string;
+  visible: boolean;
 }
 
 // Sections disponibles pour chaque onglet
@@ -55,20 +62,50 @@ export const ALL_SECTIONS: Record<TabId, SectionDefinition[]> = {
   dashboard: DASHBOARD_SECTIONS,
 };
 
+// Format de stockage amélioré avec visibilité
 export interface LayoutPreferences {
+  profil?: SectionConfig[];
+  evolution?: SectionConfig[];
+  dashboard?: SectionConfig[];
+}
+
+// Format legacy (juste les IDs) pour migration
+type LegacyLayoutPreferences = {
   profil?: string[];
   evolution?: string[];
   dashboard?: string[];
-}
+};
 
 interface UseLayoutPreferencesReturn {
   getSectionOrder: (tabId: TabId) => string[];
+  getVisibleSections: (tabId: TabId) => string[];
+  getSectionConfigs: (tabId: TabId) => SectionConfig[];
+  setSectionConfigs: (tabId: TabId, configs: SectionConfig[]) => Promise<void>;
+  toggleSectionVisibility: (tabId: TabId, sectionId: string) => Promise<void>;
   setSectionOrder: (tabId: TabId, order: string[]) => Promise<void>;
   resetToDefault: (tabId: TabId) => Promise<void>;
   loading: boolean;
 }
 
 const STORAGE_KEY = "vlab-layout-preferences";
+
+// Migrer les anciennes préférences (string[]) vers le nouveau format (SectionConfig[])
+function migratePreferences(prefs: LayoutPreferences | LegacyLayoutPreferences, tabId: TabId): SectionConfig[] | undefined {
+  const tabPrefs = prefs[tabId];
+  if (!tabPrefs || tabPrefs.length === 0) return undefined;
+  
+  // Vérifier si c'est le nouveau format
+  if (typeof tabPrefs[0] === 'object' && 'id' in tabPrefs[0]) {
+    return tabPrefs as SectionConfig[];
+  }
+  
+  // Migrer depuis l'ancien format (string[])
+  const defaults = ALL_SECTIONS[tabId];
+  return (tabPrefs as string[]).map(id => ({
+    id,
+    visible: defaults.find(d => d.id === id)?.defaultVisible ?? true
+  }));
+}
 
 export function useLayoutPreferences(): UseLayoutPreferencesReturn {
   const { user } = useAuth();
@@ -81,7 +118,16 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
       try {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
-          setPreferences(JSON.parse(stored));
+          const parsed = JSON.parse(stored);
+          // Migrer si nécessaire
+          const migrated: LayoutPreferences = {};
+          for (const tabId of ['profil', 'evolution', 'dashboard'] as TabId[]) {
+            const tabConfigs = migratePreferences(parsed, tabId);
+            if (tabConfigs) {
+              migrated[tabId] = tabConfigs;
+            }
+          }
+          setPreferences(migrated);
         }
       } catch {
         // Ignore parse errors
@@ -105,10 +151,17 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
           .maybeSingle();
 
         if (!error && data?.layout_preferences) {
-          const cloudPrefs = data.layout_preferences as LayoutPreferences;
-          setPreferences(prev => ({ ...prev, ...cloudPrefs }));
-          // Mettre à jour le localStorage aussi
-          localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...preferences, ...cloudPrefs }));
+          const cloudPrefs = data.layout_preferences as LayoutPreferences | LegacyLayoutPreferences;
+          // Migrer si nécessaire
+          const migrated: LayoutPreferences = {};
+          for (const tabId of ['profil', 'evolution', 'dashboard'] as TabId[]) {
+            const tabConfigs = migratePreferences(cloudPrefs, tabId);
+            if (tabConfigs) {
+              migrated[tabId] = tabConfigs;
+            }
+          }
+          setPreferences(prev => ({ ...prev, ...migrated }));
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...preferences, ...migrated }));
         }
       } catch {
         // Fallback sur localStorage uniquement
@@ -118,47 +171,80 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
     syncFromCloud();
   }, [user]);
 
-  const getSectionOrder = useCallback((tabId: TabId): string[] => {
-    const customOrder = preferences[tabId];
+  // Obtenir les configs de section pour un onglet
+  const getSectionConfigs = useCallback((tabId: TabId): SectionConfig[] => {
+    const savedConfigs = preferences[tabId];
     const defaultSections = ALL_SECTIONS[tabId];
-    const allIds = defaultSections.map(s => s.id);
     
-    // Sections critiques à toujours afficher en premier si absentes des préférences sauvegardées
-    const criticalSections = ["quick-fatigue", "ftp-targets", "action-buttons"];
-    
-    if (customOrder && customOrder.length > 0) {
-      // Ajouter les sections qui pourraient être nouvelles (pas dans l'ordre sauvegardé)
-      const missingIds = allIds.filter(id => !customOrder.includes(id));
+    if (savedConfigs && savedConfigs.length > 0) {
+      // Ajouter les nouvelles sections qui n'existent pas dans les préférences sauvegardées
+      const savedIds = new Set(savedConfigs.map(c => c.id));
+      const missingConfigs = defaultSections
+        .filter(s => !savedIds.has(s.id))
+        .map(s => ({ id: s.id, visible: s.defaultVisible }));
       
-      // Mettre les sections critiques manquantes au début
-      const criticalMissing = missingIds.filter(id => criticalSections.includes(id));
-      const otherMissing = missingIds.filter(id => !criticalSections.includes(id));
+      // Filtrer les sections supprimées et ajouter les nouvelles à la fin
+      const validConfigs = savedConfigs.filter(c => 
+        defaultSections.some(s => s.id === c.id)
+      );
       
-      return [...criticalMissing, ...customOrder.filter(id => allIds.includes(id)), ...otherMissing];
+      return [...validConfigs, ...missingConfigs];
     }
     
-    return defaultSections.map(s => s.id);
+    // Retourner les défauts
+    return defaultSections.map(s => ({ id: s.id, visible: s.defaultVisible }));
   }, [preferences]);
 
-  const setSectionOrder = useCallback(async (tabId: TabId, order: string[]) => {
-    const newPrefs = { ...preferences, [tabId]: order };
+  // Obtenir l'ordre des sections (tous les IDs)
+  const getSectionOrder = useCallback((tabId: TabId): string[] => {
+    return getSectionConfigs(tabId).map(c => c.id);
+  }, [getSectionConfigs]);
+
+  // Obtenir uniquement les sections visibles
+  const getVisibleSections = useCallback((tabId: TabId): string[] => {
+    return getSectionConfigs(tabId)
+      .filter(c => c.visible)
+      .map(c => c.id);
+  }, [getSectionConfigs]);
+
+  // Sauvegarder les configs
+  const setSectionConfigs = useCallback(async (tabId: TabId, configs: SectionConfig[]) => {
+    const newPrefs = { ...preferences, [tabId]: configs };
     setPreferences(newPrefs);
     
-    // Sauvegarder en localStorage immédiatement
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newPrefs));
 
-    // Sync cloud si connecté
     if (user) {
       try {
+        // Convertir en format JSON compatible avec Supabase
+        const jsonPrefs = JSON.parse(JSON.stringify(newPrefs));
         await supabase
           .from("profiles")
-          .update({ layout_preferences: newPrefs })
+          .update({ layout_preferences: jsonPrefs })
           .eq("user_id", user.id);
       } catch {
-        // Echec silencieux, localStorage reste la source de vérité
+        // Echec silencieux
       }
     }
   }, [preferences, user]);
+
+  // Toggle la visibilité d'une section
+  const toggleSectionVisibility = useCallback(async (tabId: TabId, sectionId: string) => {
+    const configs = getSectionConfigs(tabId);
+    const updatedConfigs = configs.map(c => 
+      c.id === sectionId ? { ...c, visible: !c.visible } : c
+    );
+    await setSectionConfigs(tabId, updatedConfigs);
+  }, [getSectionConfigs, setSectionConfigs]);
+
+  // Mettre à jour l'ordre (préserve la visibilité)
+  const setSectionOrder = useCallback(async (tabId: TabId, order: string[]) => {
+    const currentConfigs = getSectionConfigs(tabId);
+    const configMap = new Map(currentConfigs.map(c => [c.id, c]));
+    
+    const newConfigs = order.map(id => configMap.get(id) || { id, visible: true });
+    await setSectionConfigs(tabId, newConfigs);
+  }, [getSectionConfigs, setSectionConfigs]);
 
   const resetToDefault = useCallback(async (tabId: TabId) => {
     const newPrefs = { ...preferences };
@@ -169,9 +255,11 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
 
     if (user) {
       try {
+        // Convertir en format JSON compatible avec Supabase
+        const jsonPrefs = JSON.parse(JSON.stringify(newPrefs));
         await supabase
           .from("profiles")
-          .update({ layout_preferences: newPrefs })
+          .update({ layout_preferences: jsonPrefs })
           .eq("user_id", user.id);
       } catch {
         // Echec silencieux
@@ -181,6 +269,10 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
 
   return {
     getSectionOrder,
+    getVisibleSections,
+    getSectionConfigs,
+    setSectionConfigs,
+    toggleSectionVisibility,
     setSectionOrder,
     resetToDefault,
     loading,

@@ -1,6 +1,7 @@
 /**
  * Container pour gérer les sections réorganisables d'un onglet
  * Combine le drag & drop direct ET le bouton d'accès à la modal
+ * Supporte la visibilité des sections
  */
 
 import { useState, useMemo, ReactNode } from "react";
@@ -20,11 +21,12 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
-import { Settings2, GripVertical, Check, X } from "lucide-react";
+import { Settings2, GripVertical, Check, X, Eye, EyeOff } from "lucide-react";
 import { SortableSectionWrapper } from "./SortableSectionWrapper";
 import { LayoutConfigModal } from "./LayoutConfigModal";
 import { 
   type TabId, 
+  type SectionConfig,
   ALL_SECTIONS,
   useLayoutPreferences 
 } from "@/hooks/useLayoutPreferences";
@@ -49,10 +51,14 @@ export function SortableSectionsContainer({
   sections,
   className,
 }: SortableSectionsContainerProps) {
-  const { getSectionOrder, setSectionOrder } = useLayoutPreferences();
+  const { 
+    getSectionConfigs, 
+    setSectionConfigs, 
+    getVisibleSections 
+  } = useLayoutPreferences();
   const [isEditMode, setIsEditMode] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [tempOrder, setTempOrder] = useState<string[]>([]);
+  const [tempConfigs, setTempConfigs] = useState<SectionConfig[]>([]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -61,13 +67,21 @@ export function SortableSectionsContainer({
     })
   );
 
-  // Ordre actuel des sections
-  const currentOrder = useMemo(() => {
-    return getSectionOrder(tabId);
-  }, [getSectionOrder, tabId]);
+  // Configs actuelles des sections
+  const currentConfigs = useMemo(() => {
+    return getSectionConfigs(tabId);
+  }, [getSectionConfigs, tabId]);
 
-  // Ordre à utiliser (temp en mode édition, sinon current)
-  const displayOrder = isEditMode ? tempOrder : currentOrder;
+  // Configs à utiliser (temp en mode édition, sinon current)
+  const displayConfigs = isEditMode ? tempConfigs : currentConfigs;
+
+  // Ordre d'affichage (tous en mode edit, seulement visibles sinon)
+  const displayOrder = useMemo(() => {
+    if (isEditMode) {
+      return displayConfigs.map(c => c.id);
+    }
+    return displayConfigs.filter(c => c.visible).map(c => c.id);
+  }, [displayConfigs, isEditMode]);
 
   // Sections ordonnées avec leur rendu
   const orderedSections = useMemo(() => {
@@ -76,24 +90,39 @@ export function SortableSectionsContainer({
       .filter((s): s is SectionRenderer => s !== undefined);
   }, [displayOrder, sections]);
 
+  // Vérifier si une section est visible
+  const isSectionVisible = (id: string): boolean => {
+    const config = displayConfigs.find(c => c.id === id);
+    return config?.visible ?? true;
+  };
+
   // Entrer en mode édition
   const enterEditMode = () => {
-    setTempOrder([...currentOrder]);
+    setTempConfigs([...currentConfigs]);
     setIsEditMode(true);
   };
 
   // Annuler l'édition
   const cancelEditMode = () => {
     setIsEditMode(false);
-    setTempOrder([]);
+    setTempConfigs([]);
   };
 
   // Sauvegarder les changements
   const saveChanges = async () => {
-    await setSectionOrder(tabId, tempOrder);
+    await setSectionConfigs(tabId, tempConfigs);
     setIsEditMode(false);
-    setTempOrder([]);
+    setTempConfigs([]);
     toast.success("Disposition sauvegardée");
+  };
+
+  // Toggle visibilité d'une section en mode édition
+  const toggleVisibility = (sectionId: string) => {
+    setTempConfigs(configs => 
+      configs.map(c => 
+        c.id === sectionId ? { ...c, visible: !c.visible } : c
+      )
+    );
   };
 
   // Gérer le drag & drop
@@ -101,10 +130,10 @@ export function SortableSectionsContainer({
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      setTempOrder((items) => {
-        const oldIndex = items.indexOf(active.id as string);
-        const newIndex = items.indexOf(over.id as string);
-        return arrayMove(items, oldIndex, newIndex);
+      setTempConfigs((configs) => {
+        const oldIndex = configs.findIndex(c => c.id === active.id);
+        const newIndex = configs.findIndex(c => c.id === over.id);
+        return arrayMove(configs, oldIndex, newIndex);
       });
     }
   };
@@ -115,12 +144,19 @@ export function SortableSectionsContainer({
     return def?.label || id;
   };
 
+  // Compter les sections visibles
+  const visibleCount = displayConfigs.filter(c => c.visible).length;
+  const totalCount = displayConfigs.length;
+
   return (
     <div className={cn("relative", className)}>
       {/* Bouton flottant pour organiser */}
-      <div className="flex justify-end mb-4 gap-2">
+      <div className="flex justify-end mb-4 gap-2 items-center">
         {isEditMode ? (
           <>
+            <span className="text-xs text-muted-foreground mr-2">
+              {visibleCount}/{totalCount} visibles
+            </span>
             <Button
               variant="ghost"
               size="sm"
@@ -165,7 +201,9 @@ export function SortableSectionsContainer({
       {/* Indication mode édition */}
       {isEditMode && (
         <div className="mb-4 p-3 bg-primary/5 border border-primary/20 rounded-lg text-sm text-muted-foreground">
-          <span className="font-medium text-primary">Mode réorganisation</span> — Glissez les sections pour modifier leur ordre.
+          <span className="font-medium text-primary">Mode réorganisation</span> — 
+          Glissez les sections pour modifier leur ordre. 
+          Cliquez sur <Eye className="inline h-3.5 w-3.5 mx-1" /> pour masquer/afficher.
         </div>
       )}
 
@@ -186,6 +224,8 @@ export function SortableSectionsContainer({
                 id={section.id}
                 isEditMode={isEditMode}
                 label={getSectionLabel(section.id)}
+                isVisible={isSectionVisible(section.id)}
+                onToggleVisibility={() => toggleVisibility(section.id)}
               >
                 {section.render()}
               </SortableSectionWrapper>
