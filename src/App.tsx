@@ -16,6 +16,7 @@ import TemplatesPage from "./pages/TemplatesPage";
 import AcademyPage from "./pages/AcademyPage";
 import NotFound from "./pages/NotFound";
 import { TFCLTestingWeekPage } from "./components/TFCLTestingWeek";
+import { CAPTestingWeekPage } from "./components/CAPTestingWeek";
 
 const queryClient = new QueryClient();
 
@@ -89,6 +90,20 @@ export default function App() {
                       </OnboardingGate>
                     </AuthGate>
                   }
+                />
+                <Route
+                  path="/cap-testing-week"
+                  element={
+                    <AuthGate>
+                      <OnboardingGate>
+                        <CloudDataProvider>
+                          <AthleteProvider>
+                            <CAPTestingWeekPage />
+                          </AthleteProvider>
+                        </CloudDataProvider>
+                      </OnboardingGate>
+                    </AuthGate>
+                }
                 />
                 <Route
                   path="*"
