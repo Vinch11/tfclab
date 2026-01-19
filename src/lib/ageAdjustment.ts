@@ -715,8 +715,13 @@ export function adjustRaceReadinessRiskByAge(
 }
 
 // =============================================
-// CIBLES VLAMAX AJUSTÉES PAR ÂGE ET OBJECTIF
+// CIBLES AJUSTÉES PAR OBJECTIF ET AMBITION
 // Source unique pour tous les composants (Radar, Compass, PDF, etc.)
+// =============================================
+// 
+// IMPORTANT: La VLamax n'est PAS ajustée par l'âge.
+// Elle est définie UNIQUEMENT par l'objectif et l'ambition de l'athlète.
+// Seul TTE peut être ajusté légèrement pour les masters.
 // =============================================
 
 import { 
@@ -737,70 +742,59 @@ export interface AgeAdjustedTargets {
 }
 
 /**
- * Retourne les cibles VLamax/TTE/FTP ajustées par âge et objectif
- * Cette fonction est la SOURCE UNIQUE pour tous les composants de visualisation
+ * Retourne les cibles VLamax/TTE/FTP basées sur l'objectif et l'ambition
  * 
- * L'ajustement par âge modifie les seuils de la manière suivante:
- * - < 30 ans: cibles de référence (aucun ajustement)
- * - 30-39 ans: optimal +0.02, max +0.03
- * - 40-49 ans: optimal +0.05, max +0.07
- * - ≥ 50 ans: optimal +0.08, max +0.10
+ * MODIFICATION IMPORTANTE (2024):
+ * - VLamax n'est PLUS ajustée par l'âge
+ * - VLamax dépend UNIQUEMENT de l'objectif et de l'ambition
+ * - Seul TTE peut être légèrement réduit pour les masters (meilleure récupération)
  * 
- * Cela signifie qu'un athlète de 50 ans avec objectif IM a une cible VLamax de 0.38
- * au lieu de 0.30 pour un jeune, car sa capacité glycolytique naturelle est plus basse.
+ * Logique:
+ * - La cible VLamax représente le profil métabolique idéal pour l'objectif
+ * - Un athlète de 50 ans visant un IM avec ambition "elite" a la même cible VLamax
+ *   qu'un athlète de 25 ans avec le même objectif et ambition
  */
 export function getAgeAdjustedTargets(
   objectif: string,
   age: number | null,
   ambition: AmbitionLevel = DEFAULT_AMBITION
 ): AgeAdjustedTargets {
-  // Récupérer les cibles de base depuis la source unique
+  // Récupérer les cibles de base depuis la source unique (objectif + ambition)
   const baseVlamaxRange = getVLamaxRange(objectif, ambition);
   const baseTteTarget = getTTETargetByAmbition(objectif, ambition);
   const baseFtpKgTarget = getFtpKgTargetByAmbition(objectif, ambition);
   
   const ageIndex = computeAgeAdjustmentIndex(age);
   
-  // Ajustement VLamax par âge
-  // La capacité glycolytique diminue avec l'âge, donc on relève les seuils
-  // pour que les athlètes masters ne soient pas pénalisés injustement
-  let vlamaxOptimalAdjust = 0;
-  let vlamaxMaxAdjust = 0;
-  let tteReduction = 0;
+  // VLamax: PAS d'ajustement par âge - définie par objectif + ambition uniquement
+  const vlamaxOptimal = baseVlamaxRange.optimal;
+  const vlamaxMax = baseVlamaxRange.max;
   
+  // TTE: Légère réduction pour les masters (récupération plus longue)
+  // Mais la cible reste exigeante pour garantir la performance
+  let tteReduction = 0;
   switch (ageIndex.category) {
     case "young":
-      // Référence, aucun ajustement
-      break;
     case "prime":
-      vlamaxOptimalAdjust = 0.02;
-      vlamaxMaxAdjust = 0.03;
-      tteReduction = 2; // -2 min sur TTE cible
+      // Pas de réduction pour < 40 ans
       break;
     case "master1":
-      vlamaxOptimalAdjust = 0.05;
-      vlamaxMaxAdjust = 0.07;
-      tteReduction = 5; // -5 min sur TTE cible
+      tteReduction = 3; // -3 min sur TTE cible (40-49 ans)
       break;
     case "master2":
-      vlamaxOptimalAdjust = 0.08;
-      vlamaxMaxAdjust = 0.10;
-      tteReduction = 8; // -8 min sur TTE cible
+      tteReduction = 5; // -5 min sur TTE cible (50+ ans)
       break;
   }
   
-  const vlamaxOptimal = Math.min(0.60, baseVlamaxRange.optimal + vlamaxOptimalAdjust);
-  const vlamaxMax = Math.min(0.70, baseVlamaxRange.max + vlamaxMaxAdjust);
   const tteTarget = Math.max(35, baseTteTarget - tteReduction);
   
-  // FTP/kg n'est pas ajusté par l'âge (c'est une mesure objective)
-  // mais l'atteinte de la cible est valorisée différemment
+  // FTP/kg n'est pas ajusté par l'âge (mesure objective de performance)
   
   let explanation = "";
-  if (ageIndex.category === "young" || age === null) {
-    explanation = "Cibles de référence (aucun ajustement d'âge)";
+  if (ageIndex.category === "young" || ageIndex.category === "prime" || age === null) {
+    explanation = `Cibles définies par objectif (${objectif}) et ambition`;
   } else {
-    explanation = `Cibles ajustées pour ${ageIndex.label}: VLamax optimal relevé de ${(vlamaxOptimalAdjust * 100).toFixed(0)} points`;
+    explanation = `Cibles définies par objectif et ambition. TTE ajusté pour ${ageIndex.label} (-${tteReduction} min)`;
   }
   
   return {
@@ -808,7 +802,7 @@ export function getAgeAdjustedTargets(
     vlamaxMax,
     tteTarget,
     ftpKgTarget: baseFtpKgTarget,
-    ageAdjustmentApplied: ageIndex.category !== "young" && age !== null,
+    ageAdjustmentApplied: tteReduction > 0,
     ageCategory: ageIndex.category,
     explanation,
   };
@@ -816,13 +810,15 @@ export function getAgeAdjustedTargets(
 
 /**
  * Version simplifiée pour les composants qui n'ont besoin que de VLamax optimal
+ * Note: Retourne la cible basée sur objectif + ambition (pas d'ajustement d'âge)
  */
 export function getAgeAdjustedVLamaxOptimal(
   objectif: string,
   age: number | null,
   ambition?: AmbitionLevel
 ): number {
-  return getAgeAdjustedTargets(objectif, age, ambition).vlamaxOptimal;
+  // L'âge n'affecte plus la VLamax cible - on délègue directement
+  return getVLamaxRange(objectif, ambition || DEFAULT_AMBITION).optimal;
 }
 
 // =============================================
@@ -838,14 +834,14 @@ Il ajuste l'interprétation physiologique pour proposer des recommandations plus
   
   principles: [
     "L'âge ne modifie PAS vos valeurs mesurées (FTP, VLamax, TTE)",
-    "L'âge MODIFIE l'interprétation et les recommandations",
-    "Un VLamax de 0.55 à 25 ans ≠ un VLamax de 0.55 à 50 ans",
-    "Les cibles TTE sont ajustées pour être réalistes et sécuritaires",
+    "L'âge MODIFIE l'interprétation et les recommandations de récupération",
+    "La VLamax cible dépend de votre OBJECTIF et AMBITION, pas de votre âge",
+    "Les cibles TTE sont légèrement ajustées pour les masters (récupération)",
     "La nutrition est adaptée à la tolérance physiologique liée à l'âge",
   ],
   
-  staffNote: `À niveau de préparation égal, l'âge modifie la tolérance au stress métabolique.
-Les recommandations sont ajustées en conséquence.`,
+  staffNote: `La VLamax cible est définie par l'objectif et l'ambition de l'athlète.
+L'âge influence l'interprétation du profil et les recommandations, pas la cible elle-même.`,
   
   disclaimer: "Ces ajustements sont basés sur la littérature scientifique et l'expérience de terrain. Ils ne remplacent pas un avis médical.",
 };
