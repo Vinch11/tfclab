@@ -61,6 +61,7 @@ interface ExportToolsProps {
 export interface ReportSections {
   synthese: boolean;        // Synthèse Exécutive
   compass: boolean;         // Metabolic Performance Compass
+  profilMetabolique: boolean; // Profil Métabolique Complet (Radar Chart)
   indicateurs: boolean;     // Indicateurs Clés
   raceReadiness: boolean;   // Race Readiness
   injuryRisk: boolean;      // Risque de Blessure CAP
@@ -91,6 +92,7 @@ interface ExportOptions {
 export const DEFAULT_REPORT_SECTIONS: ReportSections = {
   synthese: true,
   compass: true,
+  profilMetabolique: true,
   indicateurs: true,
   raceReadiness: true,
   injuryRisk: true,
@@ -116,6 +118,7 @@ export const DEFAULT_REPORT_SECTIONS: ReportSections = {
 const SECTION_LABELS: Record<keyof ReportSections, string> = {
   synthese: "Synthèse Exécutive",
   compass: "Metabolic Compass™",
+  profilMetabolique: "Profil Métabolique Complet",
   indicateurs: "Indicateurs Clés",
   raceReadiness: "Race Readiness",
   injuryRisk: "Risque de Blessure CAP",
@@ -1872,6 +1875,234 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
           </div>
         </div>
         ${cScores.mainStrength ? '<p class="muted mt">✓ Point fort: ' + htmlEscape(cScores.mainStrength) + '</p>' : ''}
+      </div>
+    </section>
+  `;
+
+
+  // =============================================
+  // C-bis. PROFIL MÉTABOLIQUE COMPLET (RADAR CHART)
+  // =============================================
+  
+  // Calculer les scores normalisés (0-100) pour le radar
+  const normalizeVlamax = (value: number | null, objectif: string): number => {
+    if (value === null) return 0;
+    // VLamax idéale selon objectif (plus basse = mieux pour longue distance)
+    const idealValues: Record<string, number> = {
+      IM: 0.25, Ironman: 0.25, "703": 0.30, Half: 0.30,
+      Marathon: 0.28, Semi: 0.32, Trail: 0.30, Ultra: 0.25
+    };
+    const ideal = idealValues[objectif] || 0.30;
+    // Plus on est proche de l'idéal, plus le score est élevé
+    const deviation = Math.abs(value - ideal);
+    const maxDeviation = 0.5;
+    return Math.max(0, Math.min(100, Math.round((1 - deviation / maxDeviation) * 100)));
+  };
+  
+  const normalizeTTE = (value: number, target: number): number => {
+    // Score basé sur l'atteinte de la cible
+    if (value >= target) return 100;
+    return Math.max(0, Math.round((value / target) * 100));
+  };
+  
+  const normalizeFtpKg = (value: number | null, target: number): number => {
+    if (!value) return 0;
+    if (value >= target) return 100;
+    return Math.max(0, Math.round((value / target) * 100));
+  };
+  
+  const currentVlamaxScore = normalizeVlamax(vlamax.value, athlete.goal || "703");
+  const currentTTEScore = normalizeTTE(tte.tte_min, targets.tteTarget);
+  const currentFtpKgScore = normalizeFtpKg(ftpKg, targets.ftpKgTarget);
+  
+  // Cibles idéales (toujours 100%)
+  const targetVlamaxScore = 100;
+  const targetTTEScore = 100;
+  const targetFtpKgScore = 100;
+  
+  // Calculer l'écart moyen
+  const avgCurrent = (currentVlamaxScore + currentTTEScore + currentFtpKgScore) / 3;
+  const avgTarget = (targetVlamaxScore + targetTTEScore + targetFtpKgScore) / 3;
+  const gapPercent = Math.round(((avgTarget - avgCurrent) / avgTarget) * 100);
+  
+  // Écarts individuels
+  const vlamaxGap = targetVlamaxScore - currentVlamaxScore;
+  const tteGap = targetTTEScore - currentTTEScore;
+  const ftpKgGap = targetFtpKgScore - currentFtpKgScore;
+  
+  // Déterminer les couleurs des écarts
+  const getGapColor = (gap: number): string => {
+    if (gap <= 5) return "#16a34a"; // vert
+    if (gap <= 15) return "#d97706"; // orange
+    return "#dc2626"; // rouge
+  };
+  
+  const getGapBg = (gap: number): string => {
+    if (gap <= 5) return "rgba(22,163,74,0.1)";
+    if (gap <= 15) return "rgba(217,119,6,0.1)";
+    return "rgba(220,38,38,0.1)";
+  };
+  
+  const profilMetaboliqueHTML = `
+    <section id="profil-metabolique" class="section pagebreakAvoid">
+      <h2>🎯 Profil Métabolique Complet — VLamax / TTE / FTP</h2>
+      
+      <div class="alert alertInfo mb">
+        <b>📊 Radar de Performance :</b> Ce graphique compare votre profil actuel aux cibles idéales pour votre objectif (${getObjectifLabel(athlete.goal)}). 
+        Plus la zone colorée se rapproche du pentagone extérieur, plus le profil est optimisé.
+      </div>
+      
+      <div class="card cardHighlight">
+        <div style="display:flex;flex-wrap:wrap;gap:24px;align-items:center;">
+          
+          <!-- RADAR CHART SVG -->
+          <div style="flex:1;min-width:280px;">
+            <svg width="100%" viewBox="0 0 300 280" preserveAspectRatio="xMidYMid meet" style="max-width:320px;margin:0 auto;display:block;">
+              <defs>
+                <linearGradient id="radarFillCurrent" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#0891b2" stop-opacity="0.4"/>
+                  <stop offset="100%" stop-color="#0e7490" stop-opacity="0.25"/>
+                </linearGradient>
+                <linearGradient id="radarFillTarget" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#2563eb" stop-opacity="0.15"/>
+                  <stop offset="100%" stop-color="#1d4ed8" stop-opacity="0.08"/>
+                </linearGradient>
+              </defs>
+              
+              <!-- Centre: 150, 130 | Rayon max: 100 -->
+              <!-- Grilles de fond (triangles concentriques) -->
+              <polygon points="150,30 237,180 63,180" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+              <polygon points="150,55 212,155 88,155" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+              <polygon points="150,80 187,130 113,130" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+              <polygon points="150,105 162,130 138,130" fill="none" stroke="#e2e8f0" stroke-width="0.5"/>
+              
+              <!-- Axes -->
+              <line x1="150" y1="130" x2="150" y2="30" stroke="#cbd5e1" stroke-width="1"/>
+              <line x1="150" y1="130" x2="237" y2="180" stroke="#cbd5e1" stroke-width="1"/>
+              <line x1="150" y1="130" x2="63" y2="180" stroke="#cbd5e1" stroke-width="1"/>
+              
+              <!-- Polygone CIBLE (idéal) - fond -->
+              <polygon points="150,30 237,180 63,180" fill="url(#radarFillTarget)" stroke="#2563eb" stroke-width="2" stroke-dasharray="6 3"/>
+              
+              <!-- Polygone ACTUEL - calculé dynamiquement -->
+              <!-- VLamax = haut (y diminue), TTE = bas droite, FTP/kg = bas gauche -->
+              <!-- Formule: score/100 * rayon_max (100) depuis le centre -->
+              <polygon points="${150},${130 - (currentVlamaxScore / 100) * 100} ${150 + (currentTTEScore / 100) * 87},${130 + (currentTTEScore / 100) * 50} ${150 - (currentFtpKgScore / 100) * 87},${130 + (currentFtpKgScore / 100) * 50}" 
+                fill="url(#radarFillCurrent)" stroke="#0891b2" stroke-width="2.5"/>
+              
+              <!-- Points sur chaque axe (profil actuel) -->
+              <circle cx="150" cy="${130 - (currentVlamaxScore / 100) * 100}" r="6" fill="#0891b2" stroke="#fff" stroke-width="2"/>
+              <circle cx="${150 + (currentTTEScore / 100) * 87}" cy="${130 + (currentTTEScore / 100) * 50}" r="6" fill="#0891b2" stroke="#fff" stroke-width="2"/>
+              <circle cx="${150 - (currentFtpKgScore / 100) * 87}" cy="${130 + (currentFtpKgScore / 100) * 50}" r="6" fill="#0891b2" stroke="#fff" stroke-width="2"/>
+              
+              <!-- Labels des axes -->
+              <text x="150" y="18" text-anchor="middle" font-size="11" font-weight="700" fill="#0891b2">VLamax</text>
+              <text x="150" y="28" text-anchor="middle" font-size="9" fill="#64748b">${currentVlamaxScore}%</text>
+              
+              <text x="250" y="190" text-anchor="start" font-size="11" font-weight="700" fill="#ea580c">TTE</text>
+              <text x="250" y="202" text-anchor="start" font-size="9" fill="#64748b">${currentTTEScore}%</text>
+              
+              <text x="50" y="190" text-anchor="end" font-size="11" font-weight="700" fill="#16a34a">FTP/kg</text>
+              <text x="50" y="202" text-anchor="end" font-size="9" fill="#64748b">${currentFtpKgScore}%</text>
+              
+              <!-- Légende -->
+              <rect x="80" y="245" width="12" height="12" rx="2" fill="#0891b2" fill-opacity="0.4" stroke="#0891b2" stroke-width="1.5"/>
+              <text x="96" y="255" font-size="10" fill="#334155">Profil actuel</text>
+              
+              <rect x="170" y="245" width="12" height="12" rx="2" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="3 2"/>
+              <text x="186" y="255" font-size="10" fill="#334155">Cible idéale</text>
+            </svg>
+          </div>
+          
+          <!-- MÉTRIQUES DÉTAILLÉES -->
+          <div style="flex:1;min-width:250px;">
+            <div style="margin-bottom:16px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                <span style="font-size:14px;font-weight:700;color:#111;">Écart moyen à combler</span>
+                <span style="font-size:24px;font-weight:800;color:${gapPercent <= 10 ? '#16a34a' : gapPercent <= 25 ? '#d97706' : '#dc2626'};">${gapPercent > 0 ? gapPercent : 0}%</span>
+              </div>
+              ${gapPercent <= 0 ? '<div style="background:#dcfce7;color:#16a34a;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;text-align:center;">✓ Profil aligné avec la cible</div>' : ''}
+            </div>
+            
+            <!-- Détail par métrique -->
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div style="padding:10px 12px;border-radius:8px;background:${getGapBg(vlamaxGap)};">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div>
+                    <div style="font-size:12px;font-weight:600;color:#0891b2;">VLamax</div>
+                    <div style="font-size:11px;color:#64748b;">${vlamax.value !== null ? fmt(vlamax.value, 2) + ' mmol/L/s' : '—'}</div>
+                  </div>
+                  <div style="text-align:right;">
+                    <div style="font-size:14px;font-weight:700;">${currentVlamaxScore}%</div>
+                    <div style="font-size:11px;color:${getGapColor(vlamaxGap)};">${vlamaxGap > 0 ? '−' + vlamaxGap + '%' : vlamaxGap < 0 ? '+' + Math.abs(vlamaxGap) + '%' : '✓'}</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div style="padding:10px 12px;border-radius:8px;background:${getGapBg(tteGap)};">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div>
+                    <div style="font-size:12px;font-weight:600;color:#ea580c;">TTE</div>
+                    <div style="font-size:11px;color:#64748b;">${tte.tte_min} min (cible: ${targets.tteTarget} min)</div>
+                  </div>
+                  <div style="text-align:right;">
+                    <div style="font-size:14px;font-weight:700;">${currentTTEScore}%</div>
+                    <div style="font-size:11px;color:${getGapColor(tteGap)};">${tteGap > 0 ? '−' + tteGap + '%' : tteGap < 0 ? '+' + Math.abs(tteGap) + '%' : '✓'}</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div style="padding:10px 12px;border-radius:8px;background:${getGapBg(ftpKgGap)};">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div>
+                    <div style="font-size:12px;font-weight:600;color:#16a34a;">FTP/kg</div>
+                    <div style="font-size:11px;color:#64748b;">${ftpKg ? fmt(ftpKg, 2) : '—'} W/kg (cible: ${fmt(targets.ftpKgTarget, 1)} W/kg)</div>
+                  </div>
+                  <div style="text-align:right;">
+                    <div style="font-size:14px;font-weight:700;">${currentFtpKgScore}%</div>
+                    <div style="font-size:11px;color:${getGapColor(ftpKgGap)};">${ftpKgGap > 0 ? '−' + ftpKgGap + '%' : ftpKgGap < 0 ? '+' + Math.abs(ftpKgGap) + '%' : '✓'}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- PRIORITÉS D'AMÉLIORATION -->
+        <div class="mt" style="border-top:1px solid #e2e8f0;padding-top:16px;">
+          <h4 style="margin:0 0 12px 0;font-size:13px;">📋 Priorités d'amélioration</h4>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            ${vlamaxGap > 15 ? '<div style="background:#fee2e2;color:#b91c1c;padding:6px 12px;border-radius:6px;font-size:11px;"><b>🔴 VLamax :</b> Travail prioritaire — séances Z2 longues, éviter les sprints</div>' : ''}
+            ${tteGap > 15 ? '<div style="background:#fee2e2;color:#b91c1c;padding:6px 12px;border-radius:6px;font-size:11px;"><b>🔴 TTE :</b> Développer l\'endurance au seuil — intervalles longs 95-105% FTP</div>' : ''}
+            ${ftpKgGap > 15 ? '<div style="background:#fee2e2;color:#b91c1c;padding:6px 12px;border-radius:6px;font-size:11px;"><b>🔴 FTP/kg :</b> Améliorer la puissance — sweet spot et travail VO2max</div>' : ''}
+            ${vlamaxGap > 5 && vlamaxGap <= 15 ? '<div style="background:#fef3c7;color:#92400e;padding:6px 12px;border-radius:6px;font-size:11px;"><b>🟡 VLamax :</b> Optimisation en cours — maintenir le volume Z2</div>' : ''}
+            ${tteGap > 5 && tteGap <= 15 ? '<div style="background:#fef3c7;color:#92400e;padding:6px 12px;border-radius:6px;font-size:11px;"><b>🟡 TTE :</b> Progression — augmenter la durée des séances au seuil</div>' : ''}
+            ${ftpKgGap > 5 && ftpKgGap <= 15 ? '<div style="background:#fef3c7;color:#92400e;padding:6px 12px;border-radius:6px;font-size:11px;"><b>🟡 FTP/kg :</b> Affûtage — blocs de travail spécifique</div>' : ''}
+            ${gapPercent <= 10 ? '<div style="background:#dcfce7;color:#166534;padding:6px 12px;border-radius:6px;font-size:11px;"><b>✅ Profil optimisé :</b> Maintenir l\'équilibre et affûter pour la compétition</div>' : ''}
+          </div>
+        </div>
+      </div>
+      
+      <!-- EXPLICATION PÉDAGOGIQUE -->
+      <div class="card mt">
+        <h4 style="margin:0 0 8px 0;">📖 Comment lire ce graphique ?</h4>
+        <div class="grid3" style="gap:16px;">
+          <div>
+            <div style="font-weight:600;color:#0891b2;font-size:12px;">VLamax (haut)</div>
+            <p class="muted" style="font-size:11px;margin:4px 0 0 0;">Mesure la capacité glycolytique. Pour la longue distance, une VLamax basse (proche de 0.25-0.30) est idéale.</p>
+          </div>
+          <div>
+            <div style="font-weight:600;color:#ea580c;font-size:12px;">TTE (droite)</div>
+            <p class="muted" style="font-size:11px;margin:4px 0 0 0;">Durée de maintien à FTP. Plus le TTE est élevé, meilleure est l'endurance au seuil.</p>
+          </div>
+          <div>
+            <div style="font-weight:600;color:#16a34a;font-size:12px;">FTP/kg (gauche)</div>
+            <p class="muted" style="font-size:11px;margin:4px 0 0 0;">Puissance relative au poids. Indicateur clé de performance en montée et sur le plat.</p>
+          </div>
+        </div>
+        <div class="alert alertWarning mt" style="margin-bottom:0;">
+          <b>⚠️ Note :</b> Ce radar est une simplification visuelle. Les 3 métriques sont interdépendantes et doivent être analysées ensemble dans le contexte de l'objectif sportif.
+        </div>
       </div>
     </section>
   `;
@@ -4149,6 +4380,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         ${positionnementHTML}
         ${options.sections.synthese ? executifHTML : ''}
         ${options.sections.compass ? compassHTML : ''}
+        ${options.sections.profilMetabolique ? profilMetaboliqueHTML : ''}
         ${options.sections.indicateurs ? indicateursHTML : ''}
         ${options.sections.raceReadiness ? raceReadinessHTML : ''}
         ${options.sections.injuryRisk ? injuryRiskHTML : ''}
@@ -4344,6 +4576,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
     const allFalse: ReportSections = {
       synthese: false,
       compass: false,
+      profilMetabolique: false,
       indicateurs: false,
       raceReadiness: false,
       injuryRisk: false,
