@@ -165,6 +165,18 @@ export function useAssistantContext(
     }) : null;
     
     // Race Readiness effectif
+    // Calculer l'âge de l'athlète
+    const athleteAge = athlete.birth_date ? (() => {
+      const birthDate = new Date(athlete.birth_date);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age;
+    })() : null;
+    
     const raceReadinessEffectif = tteEffectif ? computeRaceReadinessEffectif({
       objectif: athlete.goal || "IM",
       vlamaxEffectif,
@@ -175,6 +187,8 @@ export function useAssistantContext(
       seance_specifique_validee: false,
       fcMax: effectiveRefs.fcMax ?? null,
       deriveCardiaque: effectiveSnapshot?.run_hr_drift_pct ?? null,
+      // ✅ Ajout âge pour uniformisation avec Compass
+      athleteAge,
     }) : null;
     
     // CRR status

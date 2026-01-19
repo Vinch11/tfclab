@@ -257,14 +257,28 @@ export default function DashboardPage() {
     });
     
     // Race Readiness Effectif (source unique)
+    // Calculer l'âge
+    const athleteAge = currentAthlete.birth_date ? (() => {
+      const birthDate = new Date(currentAthlete.birth_date);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age;
+    })() : null;
+    
     const raceReadiness = computeRaceReadinessEffectif({
       objectif,
       vlamaxEffectif,
       tteEffectif,
       ftp: activeSnapshot.ftp ?? null,
       poids: activeSnapshot.weight_kg ?? null,
-      fatigue_ok: true, // Simplified
+      fatigue_ok: true,
       seance_specifique_validee: false,
+      // ✅ Ajout âge pour uniformisation avec Compass
+      athleteAge,
     });
     
     // Nutrition Prédictive
@@ -281,17 +295,7 @@ export default function DashboardPage() {
       ? activeSnapshot.ftp / activeSnapshot.weight_kg
       : null;
     
-    // Âge de l'athlète
-    let athleteAge: number | null = null;
-    if (currentAthlete.birth_date) {
-      const birthDate = new Date(currentAthlete.birth_date);
-      const today = new Date();
-      athleteAge = today.getFullYear() - birthDate.getFullYear();
-      const m = today.getMonth() - birthDate.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        athleteAge--;
-      }
-    }
+    // athleteAge déjà calculé plus haut pour Race Readiness
     
     // Récupérer la fatigue perçue depuis les check-ins récents
     const athleteCheckins = checkins.filter(c => c.athlete_id === athleteId);
