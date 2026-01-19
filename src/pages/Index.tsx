@@ -52,8 +52,8 @@ import { SortableSectionsContainer } from "@/components/SortableSectionsContaine
 
 // ✅ VLamax TFCL V2 - Calibration avec percentiles
 import { VLamaxV2DisplayCard } from "@/components/VLamaxV2DisplayCard";
-import { VLamaxBikeV2EnhancedCard } from "@/components/VLamaxBikeV2EnhancedCard";
 import { VLamaxExplainedCard } from "@/components/VLamaxExplainedCard";
+import { VLamaxRunExplainedCard } from "@/components/VLamaxRunExplainedCard";
 import { FatMaxTFCLCard } from "@/components/FatMaxTFCLCard";
 import { FatMaxRaceIntensityChart } from "@/components/charts/FatMaxRaceIntensityChart";
 import { computeFatMaxTFCL, FatMaxObjectif } from "@/lib/v2/fatmaxTFCL";
@@ -740,29 +740,6 @@ const Index = () => {
             ),
           },
           {
-            id: "vlamax-bike-v2-enhanced",
-            render: () => currentAthlete && effectiveCloudSnapshot && (
-              <VLamaxExplainedCard
-                vlamaxEffectif={vlamaxEffectif}
-                age={calculateAge(currentAthlete.birth_date)}
-                input={{
-                  ftp: effectiveCloudSnapshot.ftp ?? 0,
-                  p30s_w: (effectiveCloudSnapshot as unknown as Record<string, unknown>).p30s_w as number | null,
-                  p60s_w: (effectiveCloudSnapshot as unknown as Record<string, unknown>).p60s_w as number | null,
-                  map5min_w: (effectiveCloudSnapshot as unknown as Record<string, unknown>).map5min_w as number | null,
-                  tte_min: effectiveCloudSnapshot.tte_observed_min ?? tteEffectif.tte_min,
-                  pmax_5s: effectiveCloudSnapshot.pmax_5s ?? undefined,
-                  weight_kg: effectiveCloudSnapshot.weight_kg ?? undefined,
-                  protocol_quality: ((effectiveCloudSnapshot as unknown as Record<string, unknown>).protocol_quality as 1 | 2 | 3 | 4 | 5) ?? 3,
-                  objectif: currentAthlete.goal || "IM",
-                  vo2max: effectiveCloudSnapshot.vo2max ?? currentAthlete.vo2max ?? undefined,
-                  sex: legacyAthlete?.sexe === "F" ? "F" : "H",
-                }}
-                ambitionLevel={currentAmbition as "finisher" | "performance" | "podium" | "elite"}
-              />
-            ),
-          },
-          {
             id: "vlamax-v2-calibration",
             render: () => currentAthlete && (
               <div className="space-y-3">
@@ -776,7 +753,7 @@ const Index = () => {
                   sex={legacyAthlete?.sexe === "F" ? "F" : "H"}
                   age={calculateAge(currentAthlete.birth_date) ?? undefined}
                 />
-                {/* Analyse détaillée repliée par défaut */}
+                {/* Analyse détaillée Vélo - repliée par défaut */}
                 {effectiveCloudSnapshot && (
                   <VLamaxExplainedCard
                     vlamaxEffectif={vlamaxEffectif}
@@ -795,6 +772,16 @@ const Index = () => {
                       sex: legacyAthlete?.sexe === "F" ? "F" : "H",
                     }}
                     ambitionLevel={currentAmbition as "finisher" | "performance" | "podium" | "elite"}
+                    defaultCollapsed={true}
+                  />
+                )}
+                
+                {/* Analyse détaillée CAP - pour multi-sport (Triathlon, Marathon, etc.) */}
+                {effectiveCloudSnapshot && (currentAthlete.goal === "IM" || currentAthlete.goal === "70.3" || currentAthlete.goal === "Marathon" || currentAthlete.goal === "Semi") && (
+                  <VLamaxRunExplainedCard
+                    vlamax={vlamaxEffectif.value}
+                    age={calculateAge(currentAthlete.birth_date)}
+                    objectif={currentAthlete.goal === "IM" ? "Ironman" : currentAthlete.goal || "Marathon"}
                     defaultCollapsed={true}
                   />
                 )}
