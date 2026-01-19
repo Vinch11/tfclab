@@ -17,6 +17,7 @@ export interface Snapshot {
   ftp?: number;
   css?: number;
   vo2max?: number;
+  vlamax_run?: number; // VLamax CAP (mmol/L/s), distinct de vlamax (vélo)
   vlamax?: number;
   weight_kg?: number;
   fat_pct?: number;

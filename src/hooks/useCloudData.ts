@@ -44,6 +44,7 @@ export interface DbSnapshot {
   css?: number | null;
   vo2max?: number | null;
   vlamax?: number | null;
+  vlamax_run?: number | null; // VLamax CAP distinct de vlamax (vélo)
   weight_kg?: number | null;
   fat_pct?: number | null;
   pmax_5s?: number | null;
