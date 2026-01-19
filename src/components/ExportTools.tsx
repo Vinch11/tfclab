@@ -21,7 +21,7 @@ import { reglesTwoForCoaching, getPrioriteLabel, getSeancesRecommandees, Priorit
 import { SEANCES } from "@/types/seances";
 import { computeNutritionEstimate, type NutritionEstimate } from "@/lib/nutritionPredictive";
 import { computeCAPInjuryRisk, getCAPRiskIcon } from "@/lib/capInjuryRisk";
-import { calculateAge, computeAgeAdjustmentIndex, type AgeAdjustmentIndex, interpretVLamaxByAge, getAgeNutritionAdjustment } from "@/lib/ageAdjustment";
+import { calculateAge, computeAgeAdjustmentIndex, type AgeAdjustmentIndex, interpretVLamaxByAge, getAgeNutritionAdjustment, getAgeAdjustedVLamaxProfil, getVLamaxAgeStatus, type VLamaxProfil } from "@/lib/ageAdjustment";
 import { AmbitionLevel, DEFAULT_AMBITION, getAmbitionDefinition, AMBITION_LEVELS_ORDERED, AMBITION_DEFINITIONS } from "@/types/ambitionLevel";
 import { getTargetsForAmbition, AMBITION_TARGETS } from "@/lib/physiologicalTargets";
 import logoUrl from "@/assets/logo-2fc.png";
@@ -1185,6 +1185,36 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     ? effectiveRefs.ftp / effectiveRefs.weightKg 
     : null;
 
+  // ✅ NEW: Profil VLamax ajusté par âge
+  const vlamaxProfilAgeAdjusted = getAgeAdjustedVLamaxProfil(vlamax.value, ageAdjustment.age);
+  const vlamaxAgeStatus = getVLamaxAgeStatus(vlamax.value, ageAdjustment.age, athlete.goal || "IM");
+  
+  // Helper pour couleur profil
+  const getProfilColor = (profil: VLamaxProfil): string => {
+    switch (profil) {
+      case "diesel": return "#0891b2"; // cyan
+      case "endurant": return "#06b6d4"; // cyan lighter
+      case "equilibre": return "#16a34a"; // green
+      case "explosif": return "#ea580c"; // orange
+      case "sprinter": return "#dc2626"; // red
+      default: return "#64748b";
+    }
+  };
+  
+  const getProfilBgColor = (profil: VLamaxProfil): string => {
+    switch (profil) {
+      case "diesel": return "rgba(8,145,178,0.1)";
+      case "endurant": return "rgba(6,182,212,0.1)";
+      case "equilibre": return "rgba(22,163,74,0.1)";
+      case "explosif": return "rgba(234,88,12,0.1)";
+      case "sprinter": return "rgba(220,38,38,0.1)";
+      default: return "#f1f5f9";
+    }
+  };
+  
+  const vlamaxProfilColor = getProfilColor(vlamaxProfilAgeAdjusted.profil);
+  const vlamaxProfilBgColor = getProfilBgColor(vlamaxProfilAgeAdjusted.profil);
+
   // =============================================
   // CSS STYLES
   // =============================================
@@ -1352,9 +1382,10 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <div class="grid3 mt">
               <div>
                 <span class="muted">VLamax</span><br>
-                <span class="medium ${vlamax.value !== null && vlamax.value > targets.vlamaxMax ? 'warning' : vlamax.value !== null && vlamax.value < targets.vlamaxMin ? 'warning' : 'success'}">${vlamax.value !== null ? fmt(vlamax.value, 2) : "—"}</span>
-                <br><span class="badge ${vlamaxStatus.cssClass}" style="font-size:9px;">${vlamaxStatus.icon} ${vlamaxStatus.label}</span>
+                <span class="medium" style="color:${vlamaxProfilColor};">${vlamax.value !== null ? fmt(vlamax.value, 2) : "—"}</span>
+                <br><span class="badge" style="font-size:9px;background:${vlamaxProfilBgColor};color:${vlamaxProfilColor};">${vlamaxProfilAgeAdjusted.label}</span>
                 <br><span class="muted" style="font-size:10px;">Confiance: ${vlamax.confidence >= 0.7 ? "élevée" : vlamax.confidence >= 0.4 ? "modérée" : "faible"}</span>
+                ${ageAdjustment.age !== null && ageAdjustment.age >= 40 ? '<br><span class="muted" style="font-size:9px;font-style:italic;">Seuils ajustés pour ' + ageAdjustment.aai.label + '</span>' : ''}
               </div>
               <div>
                 <span class="muted">TTE</span><br>
@@ -1602,10 +1633,16 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             </tr>
             <tr>
               <td><b>VLamax</b></td>
-              <td>${vlamax.value !== null ? fmt(vlamax.value, 2) : "—"} mmol/L/s</td>
+              <td>
+                ${vlamax.value !== null ? fmt(vlamax.value, 2) : "—"} mmol/L/s
+                <br><span style="font-size:10px;color:${vlamaxProfilColor};font-weight:600;">${vlamaxProfilAgeAdjusted.label}</span>
+              </td>
               <td><span class="badge ${vlamaxStatus.cssClass}">${vlamaxStatus.icon} ${vlamaxStatus.label}</span></td>
               <td><span class="badge ${vlamax.confidence >= 0.7 ? 'badgeSuccess' : vlamax.confidence >= 0.4 ? 'badgeWarning' : 'badgeError'}">${vlamax.confidence >= 0.7 ? 'Élevée' : vlamax.confidence >= 0.4 ? 'Modérée' : 'Faible'}</span></td>
-              <td class="muted">${vlamax.value !== null ? (vlamax.value < targets.vlamaxMax ? `VLamax ${vlamax.source === "estimated" ? "estimée" : ""} ${vlamax.value < 0.35 ? "basse" : "modérée"} suggérant un profil favorable à l'endurance longue${vlamax.source === "estimated" ? ", sous réserve de confirmation par lactate" : ""}.` : `VLamax ${vlamax.source === "estimated" ? "estimée " : ""}élevée suggérant une dépendance glucidique à surveiller.`) : "Données insuffisantes."}</td>
+              <td class="muted">
+                ${htmlEscape(vlamaxAgeStatus.message)}
+                ${vlamaxProfilAgeAdjusted.ageContext ? '<br><i style="font-size:10px;">🎂 ' + htmlEscape(vlamaxProfilAgeAdjusted.ageContext) + '</i>' : ''}
+              </td>
             </tr>
             <tr>
               <td><b>TTE</b></td>
@@ -1846,24 +1883,42 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     <section id="indicateurs" class="section">
       <h2>B. Indicateurs clés + Interprétation</h2>
       
-      <div class="card pagebreakAvoid">
-        <h3>1️⃣ VLamax (effectif)</h3>
+      <div class="card pagebreakAvoid" style="border-left: 4px solid ${vlamaxProfilColor};">
+        <h3>1️⃣ VLamax (effectif) — Profil Métabolique</h3>
+        
+        <!-- Profil visuel -->
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;padding:12px;border-radius:10px;background:${vlamaxProfilBgColor};">
+          <div style="text-align:center;">
+            <div style="font-size:32px;font-weight:800;color:${vlamaxProfilColor};">${vlamax.value !== null ? fmt(vlamax.value, 2) : "—"}</div>
+            <div style="font-size:11px;color:${vlamaxProfilColor};">mmol/L/s</div>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:16px;font-weight:700;color:${vlamaxProfilColor};">${vlamaxProfilAgeAdjusted.label}</div>
+            <div style="font-size:11px;color:var(--muted);">Confiance: ${fmtPct(vlamax.confidence)} | Source: ${htmlEscape(vlamax.label)}</div>
+            ${vlamaxProfilAgeAdjusted.ageContext ? '<div style="font-size:10px;font-style:italic;color:var(--muted);margin-top:4px;">🎂 ' + htmlEscape(vlamaxProfilAgeAdjusted.ageContext) + '</div>' : ''}
+          </div>
+          <div style="text-align:center;">
+            <span class="badge ${vlamaxAgeStatus.status === 'optimal' ? 'badgeSuccess' : vlamaxAgeStatus.status === 'acceptable' ? 'badgeWarning' : 'badgeError'}" style="font-size:11px;padding:6px 12px;">
+              ${vlamaxAgeStatus.status === 'optimal' ? '✓ Optimal' : vlamaxAgeStatus.status === 'acceptable' ? '○ Acceptable' : '⚠ À travailler'}
+            </span>
+          </div>
+        </div>
+        
         <div class="grid2">
           <div>
             <div class="kv">
-              <div class="k">Valeur</div><div class="v">${vlamax.value !== null ? fmt(vlamax.value, 2) : "—"} mmol/L/s</div>
-              <div class="k">Source</div><div class="v">${htmlEscape(vlamax.label)}</div>
-              <div class="k">Confiance</div><div class="v">${fmtPct(vlamax.confidence)}</div>
               <div class="k">Cible (${getObjectifLabel(athlete.goal)})</div><div class="v">${fmt(targets.vlamaxMin, 2)} – ${fmt(targets.vlamaxMax, 2)} (idéal: ${fmt(targets.vlamaxIdeal, 2)})</div>
-              <div class="k">Statut</div><div class="v"><span class="badge ${raceReadiness.details.vlamax >= 20 ? 'badgeSuccess' : raceReadiness.details.vlamax >= 15 ? 'badgeWarning' : 'badgeError'}">${raceReadiness.details.vlamax >= 20 ? 'OK' : raceReadiness.details.vlamax >= 15 ? 'WARNING' : 'CRITICAL'}</span></div>
+              ${ageAdjustment.age !== null && ageAdjustment.age >= 40 ? '<div class="k">Âge athlète</div><div class="v">' + ageAdjustment.age + ' ans (' + ageAdjustment.aai.label + ')</div>' : ''}
+              <div class="k">Niveau risque</div><div class="v">${vlamaxAgeStatus.level === 'low' ? '🟢 Faible' : vlamaxAgeStatus.level === 'moderate' ? '🟡 Modéré' : vlamaxAgeStatus.level === 'high' ? '🟠 Élevé' : '🔴 Très élevé'}</div>
             </div>
+            ${vlamaxAgeStatus.ageImpact ? '<p style="font-size:10px;font-style:italic;color:var(--muted);margin-top:8px;">ℹ️ ' + htmlEscape(vlamaxAgeStatus.ageImpact) + '</p>' : ''}
           </div>
           <div>
-            <h4>Ce que ça signifie</h4>
-            <p class="muted">${vlamax.value !== null ? (vlamax.value > targets.vlamaxMax ? "VLamax trop élevée = dépendance excessive aux glucides, fatigue précoce sur efforts longs." : vlamax.value < targets.vlamaxMin ? "VLamax trop basse = manque de punch, difficulté sur les changements de rythme." : "VLamax dans la plage optimale pour cet objectif.") : "Donnée indisponible."}</p>
-            <h4>Action coach</h4>
+            <h4>Interprétation</h4>
+            <p class="muted">${htmlEscape(vlamaxAgeStatus.message)}</p>
+            <h4>Actions recommandées</h4>
             <ul class="muted">
-              ${vlamax.value !== null && vlamax.value > targets.vlamaxMax ? "<li>Privilégier les sorties longues Z2</li><li>Éviter les sprints</li><li>Séances sweet spot longues</li>" : vlamax.value !== null && vlamax.value < targets.vlamaxMin ? "<li>Ajouter des sprints courts (5-15s)</li><li>Intervalles haute intensité</li>" : "<li>Maintenir l'équilibre actuel</li><li>Affûtage pré-compétition</li>"}
+              ${vlamaxAgeStatus.actions.map(a => '<li>' + htmlEscape(a) + '</li>').join('')}
             </ul>
           </div>
         </div>
