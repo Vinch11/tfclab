@@ -322,12 +322,23 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
   }
   
   // Endurance base check (only if not already in recovery and CRR not justified as faible_adherence)
+  // IMPORTANT: Si NEED_FTP_UP est détecté, ne pas ajouter NEED_ENDURANCE_BASE car le FTP faible 
+  // fausse la composante endurance. Résoudre le FTP d'abord.
+  const hasFtpNeed = needs.includes("NEED_FTP_UP");
   const ignoreCRRForEndurance = lowCRRJustification === "faible_adherence";
+  
+  // En mode forceDevelopmentMode, ignorer l'endurance base pour prioriser le développement
+  const ignoreEnduranceForDevelopment = forceDevelopmentMode && (hasFtpNeed || needs.includes("NEED_VLAMAX_DOWN"));
+  
   const hasEnduranceIssue = 
     (raceReadiness.details.endurance !== undefined && raceReadiness.details.endurance < 60) ||
     (hasLowCRR && !ignoreCRRForEndurance && !lowCRRJustification);
     
-  if (hasEnduranceIssue && !needs.includes("NEED_RECOVERY")) {
+  // Ne pas ajouter NEED_ENDURANCE_BASE si:
+  // - On est déjà en récupération
+  // - NEED_FTP_UP est détecté (faux positif sur l'endurance)
+  // - forceDevelopmentMode est activé et on a des besoins de développement
+  if (hasEnduranceIssue && !needs.includes("NEED_RECOVERY") && !hasFtpNeed && !ignoreEnduranceForDevelopment) {
     needs.push("NEED_ENDURANCE_BASE");
     if (raceReadiness.details.endurance !== undefined && raceReadiness.details.endurance < 60) {
       const msg = `Composante endurance faible (${raceReadiness.details.endurance}%) → base aérobie à consolider.`;
@@ -339,6 +350,11 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
       rationale.push(msg);
       rationaleByNeed.NEED_ENDURANCE_BASE.push(msg);
     }
+  } else if (hasFtpNeed && hasEnduranceIssue) {
+    // Ajouter une note explicative
+    const note = `Composante endurance faible (${raceReadiness.details.endurance ?? "?"}%) mais causée par FTP insuffisant → priorité au développement FTP.`;
+    rationale.push(note);
+    rationaleByNeed.NEED_FTP_UP.push(note);
   }
   
   // === RULE E: NEED_VO2_UP (lowest priority, controlled usage) ===
@@ -356,14 +372,28 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
   }
   
   // Limit to 2 needs max to avoid confusion
-  const priorityOrder: WahooNeed[] = [
-    "NEED_RECOVERY",
-    "NEED_FTP_UP",
-    "NEED_VLAMAX_DOWN", 
-    "NEED_TTE_UP",
-    "NEED_ENDURANCE_BASE",
-    "NEED_VO2_UP"
-  ];
+  // En mode forceDevelopmentMode, prioriser les besoins de développement
+  let priorityOrder: WahooNeed[];
+  if (forceDevelopmentMode) {
+    // Prioriser développement: FTP, VLAMAX, VO2, TTE avant endurance
+    priorityOrder = [
+      "NEED_RECOVERY",      // Toujours #1 si vraiment nécessaire
+      "NEED_FTP_UP",        // Développement prioritaire
+      "NEED_VLAMAX_DOWN",   // Développement métabolique
+      "NEED_VO2_UP",        // Développement plafond
+      "NEED_TTE_UP",        // Développement endurance spécifique
+      "NEED_ENDURANCE_BASE" // Base (moins prioritaire en mode dev)
+    ];
+  } else {
+    priorityOrder = [
+      "NEED_RECOVERY",
+      "NEED_FTP_UP",
+      "NEED_VLAMAX_DOWN", 
+      "NEED_TTE_UP",
+      "NEED_ENDURANCE_BASE",
+      "NEED_VO2_UP"
+    ];
+  }
   
   const sortedNeeds = needs.sort((a, b) => priorityOrder.indexOf(a) - priorityOrder.indexOf(b));
   const limitedNeeds = sortedNeeds.slice(0, 2);
