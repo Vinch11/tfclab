@@ -11,10 +11,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Edit, Save, Calculator, Sparkles, HelpCircle } from "lucide-react";
+import { Edit, Save, Calculator, Sparkles, HelpCircle, BookOpen } from "lucide-react";
 import { useCloudData, DbSnapshot } from "@/hooks/useCloudData";
 import { PROFILE_TERMINOLOGY } from "@/lib/v2/profileTerminology";
 import { estimateVLamaxCap, canEstimateVLamaxCap } from "@/lib/v2/vlamaxCapEstimator";
+import { RunningTestProtocolsGuide } from "@/components/RunningTestProtocolsGuide";
 import {
   Tooltip,
   TooltipContent,
@@ -359,9 +360,19 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
           
           {/* ====== SECTION DONNÉES CAP (running) ====== */}
           <div className="col-span-4 pt-3 border-t border-border">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
-              🏃 Données Course (VLamax CAP)
-            </p>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                🏃 Données Course (VLamax CAP)
+              </p>
+              <RunningTestProtocolsGuide 
+                trigger={
+                  <Button variant="ghost" size="sm" className="h-6 text-xs gap-1">
+                    <BookOpen className="w-3 h-3" />
+                    Guide des tests
+                  </Button>
+                }
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-4 items-center gap-4">
