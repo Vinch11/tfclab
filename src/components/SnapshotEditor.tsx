@@ -37,6 +37,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
   const [weight, setWeight] = useState(snapshot.weight_kg != null ? String(snapshot.weight_kg) : "");
   const [vo2, setVo2] = useState(snapshot.vo2max != null ? String(snapshot.vo2max) : "");
   const [vlamax, setVlamax] = useState(snapshot.vlamax != null ? String(snapshot.vlamax) : "");
+  const [vlamaxRun, setVlamaxRun] = useState(snapshot.vlamax_run != null ? String(snapshot.vlamax_run) : "");
   const [vma, setVma] = useState(snapshot.vma != null ? String(snapshot.vma) : "");
   const [fcmax, setFcmax] = useState(snapshot.fc_max != null ? String(snapshot.fc_max) : "");
   const [css, setCss] = useState(snapshot.css != null ? String(snapshot.css) : "");
@@ -55,6 +56,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
       vo2max: numOrNull(vo2),
       // ✅ VLamax uniquement sauvegardée en mode Staff
       vlamax: staffMode ? numOrNull(vlamax) : snapshot.vlamax,
+      vlamax_run: staffMode ? numOrNull(vlamaxRun) : snapshot.vlamax_run,
       vma: numOrNull(vma),
       fc_max: numOrNull(fcmax) != null ? Math.round(numOrNull(fcmax)!) : null,
       css: numOrNull(css),
@@ -75,6 +77,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
       setWeight(snapshot.weight_kg != null ? String(snapshot.weight_kg) : "");
       setVo2(snapshot.vo2max != null ? String(snapshot.vo2max) : "");
       setVlamax(snapshot.vlamax != null ? String(snapshot.vlamax) : "");
+      setVlamaxRun(snapshot.vlamax_run != null ? String(snapshot.vlamax_run) : "");
       setVma(snapshot.vma != null ? String(snapshot.vma) : "");
       setFcmax(snapshot.fc_max != null ? String(snapshot.fc_max) : "");
       setCss(snapshot.css != null ? String(snapshot.css) : "");
@@ -135,15 +138,30 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
             <Input className="col-span-3" type="number" value={vo2} onChange={(e) => setVo2(e.target.value)} />
           </div>
 
-          {/* ✅ VLamax - Uniquement visible en mode Staff */}
+          {/* ✅ VLamax Vélo - Uniquement visible en mode Staff */}
           {staffMode ? (
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">VLamax (mesurée)</Label>
+              <Label className="text-right">VLamax Vélo</Label>
               <Input className="col-span-3 border-primary/50" type="number" step="0.01" placeholder="0.40 (lactate)" value={vlamax} onChange={(e) => setVlamax(e.target.value)} />
             </div>
           ) : (
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right text-muted-foreground">VLamax</Label>
+              <Label className="text-right text-muted-foreground">VLamax Vélo</Label>
+              <div className="col-span-3 h-10 px-3 py-2 rounded-md border border-border bg-muted/50 text-sm text-muted-foreground flex items-center">
+                Calculée automatiquement
+              </div>
+            </div>
+          )}
+
+          {/* ✅ VLamax CAP - Uniquement visible en mode Staff */}
+          {staffMode ? (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">VLamax CAP</Label>
+              <Input className="col-span-3 border-accent/50" type="number" step="0.01" placeholder="0.35 (course)" value={vlamaxRun} onChange={(e) => setVlamaxRun(e.target.value)} />
+            </div>
+          ) : (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right text-muted-foreground">VLamax CAP</Label>
               <div className="col-span-3 h-10 px-3 py-2 rounded-md border border-border bg-muted/50 text-sm text-muted-foreground flex items-center">
                 Calculée automatiquement
               </div>
