@@ -27,6 +27,36 @@ const numOrNull = (v: string): number | null => {
   return Number.isFinite(n) ? n : null;
 };
 
+// ✅ Convertit mm:ss ou secondes vers secondes
+const parsePaceToSeconds = (v: string): number | null => {
+  const trimmed = v.trim();
+  if (!trimmed) return null;
+  
+  // Format mm:ss (ex: 4:30)
+  if (trimmed.includes(":")) {
+    const parts = trimmed.split(":");
+    if (parts.length === 2) {
+      const min = parseInt(parts[0], 10);
+      const sec = parseInt(parts[1], 10);
+      if (Number.isFinite(min) && Number.isFinite(sec) && min >= 0 && sec >= 0 && sec < 60) {
+        return min * 60 + sec;
+      }
+    }
+    return null;
+  }
+  
+  // Format secondes (ex: 270)
+  const n = Number(trimmed);
+  return Number.isFinite(n) && n > 0 ? n : null;
+};
+
+// ✅ Convertit secondes vers mm:ss
+const secondsToMmSs = (seconds: number): string => {
+  const min = Math.floor(seconds / 60);
+  const sec = Math.round(seconds % 60);
+  return `${min}:${sec.toString().padStart(2, "0")}`;
+};
+
 // ✅ Composant pour le champ VLamax CAP avec calcul automatique
 interface VLamaxCapFieldProps {
   vlamaxRun: string;
@@ -182,7 +212,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
       tss_7d: numOrNull(tss7d) != null ? Math.round(numOrNull(tss7d)!) : null,
       tte_observed_min: numOrNull(tteObserved) != null ? Math.round(numOrNull(tteObserved)!) : null,
       // ✅ Champs pour calcul VLamax CAP
-      pace_threshold_sec_per_km: numOrNull(paceThreshold) != null ? Math.round(numOrNull(paceThreshold)!) : null,
+      pace_threshold_sec_per_km: parsePaceToSeconds(paceThreshold),
       sprint_15s_distance: numOrNull(sprint15s),
       running_power_max: numOrNull(runPowerMax),
       running_power_threshold: numOrNull(runPowerThreshold),
@@ -299,14 +329,21 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
           </div>
 
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Allure Seuil (s/km)</Label>
-            <Input 
-              className="col-span-3" 
-              type="number" 
-              placeholder="Ex: 270 (4:30/km)"
-              value={paceThreshold} 
-              onChange={(e) => setPaceThreshold(e.target.value)} 
-            />
+            <Label className="text-right">Allure Seuil</Label>
+            <div className="col-span-3 flex gap-2 items-center">
+              <Input 
+                className="flex-1" 
+                type="text" 
+                placeholder="4:30 ou 270"
+                value={paceThreshold} 
+                onChange={(e) => setPaceThreshold(e.target.value)} 
+              />
+              {paceThreshold && parsePaceToSeconds(paceThreshold) && (
+                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                  = {secondsToMmSs(parsePaceToSeconds(paceThreshold)!)}/km
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-4 items-center gap-4">
