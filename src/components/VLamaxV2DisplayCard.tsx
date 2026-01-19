@@ -114,17 +114,13 @@ export function VLamaxV2DisplayCard({
               <Badge variant="outline" className="text-[10px]">
                 P{display.percentile}
               </Badge>
-              <Badge className={cn("text-[10px]", getConfidenceBadgeClass(display.confidence.level))}>
-                {display.confidence.level === "HIGH" ? "🟢" : display.confidence.level === "MEDIUM" ? "🟡" : "🔴"}
-              </Badge>
+              <span className={cn("text-sm", zoneColors[display.zone])}>
+                {display.zoneLabel}
+              </span>
             </div>
           </TooltipTrigger>
           <TooltipContent className="max-w-xs">
-            <div className="space-y-1 text-xs">
-              <p className="font-medium">{display.interpretation}</p>
-              <p>Plage TFCL : {display.range.p25.toFixed(2)} – {display.range.p75.toFixed(2)}</p>
-              <p>{display.confidence.badge}</p>
-            </div>
+            <p className="text-xs">{display.interpretation}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -134,15 +130,10 @@ export function VLamaxV2DisplayCard({
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <Zap className="h-4 w-4 text-amber-500" />
-            VLamax TFCL V2
-          </CardTitle>
-          <Badge className={cn("text-[10px]", getConfidenceBadgeClass(display.confidence.level))}>
-            {display.confidence.badge}
-          </Badge>
-        </div>
+        <CardTitle className="text-sm font-medium flex items-center gap-2">
+          <Zap className="h-4 w-4 text-amber-500" />
+          VLamax TFCL V2
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Valeur principale */}
@@ -195,24 +186,6 @@ export function VLamaxV2DisplayCard({
             <TrendingUp className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
             <p className="text-xs">{display.interpretation}</p>
           </div>
-        </div>
-
-        {/* Warnings (si pertinents) */}
-        {display.calibration.warnings.length > 0 && (
-          <div className="space-y-1">
-            {display.calibration.warnings.slice(0, 2).map((w, i) => (
-              <div key={i} className="flex items-start gap-2 text-[10px] text-amber-600 dark:text-amber-400">
-                <AlertTriangle className="h-3 w-3 shrink-0 mt-0.5" />
-                <span>{w}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Disclaimer */}
-        <div className="flex items-start gap-2 pt-2 border-t text-[10px] text-muted-foreground">
-          <Info className="h-3 w-3 shrink-0 mt-0.5" />
-          <span>Estimation calibrée TFCL V2 — Interprétation coach requise</span>
         </div>
       </CardContent>
     </Card>
