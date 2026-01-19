@@ -1,5 +1,5 @@
 /**
- * Modal de configuration de l'ordre des sections
+ * Modal de configuration de l'ordre et visibilité des sections
  */
 
 import { useState, useEffect } from "react";
@@ -30,11 +30,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { GripVertical, RotateCcw, Check, X } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { GripVertical, RotateCcw, Check, X, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { 
   type TabId, 
-  type SectionDefinition, 
+  type SectionDefinition,
+  type SectionConfig,
   ALL_SECTIONS,
   useLayoutPreferences 
 } from "@/hooks/useLayoutPreferences";
@@ -48,7 +50,17 @@ interface LayoutConfigModalProps {
 }
 
 // Composant pour une section dans la liste
-function SortableItem({ section, index }: { section: SectionDefinition; index: number }) {
+function SortableItem({ 
+  section, 
+  index, 
+  visible, 
+  onToggleVisibility 
+}: { 
+  section: SectionDefinition; 
+  index: number;
+  visible: boolean;
+  onToggleVisibility: () => void;
+}) {
   const {
     attributes,
     listeners,
@@ -70,7 +82,8 @@ function SortableItem({ section, index }: { section: SectionDefinition; index: n
       className={cn(
         "flex items-center gap-3 p-3 bg-card border border-border rounded-lg",
         "hover:border-primary/30 transition-colors",
-        isDragging && "opacity-50 shadow-lg"
+        isDragging && "opacity-50 shadow-lg",
+        !visible && "opacity-60 bg-muted/50"
       )}
     >
       <div
@@ -81,11 +94,36 @@ function SortableItem({ section, index }: { section: SectionDefinition; index: n
         <GripVertical className="h-4 w-4 text-muted-foreground" />
       </div>
       
-      <Badge variant="outline" className="w-6 h-6 flex items-center justify-center p-0 text-xs">
+      <Badge 
+        variant={visible ? "outline" : "secondary"} 
+        className="w-6 h-6 flex items-center justify-center p-0 text-xs"
+      >
         {index + 1}
       </Badge>
       
-      <span className="font-medium text-sm flex-1">{section.label}</span>
+      <span className={cn(
+        "font-medium text-sm flex-1",
+        !visible && "text-muted-foreground line-through"
+      )}>
+        {section.label}
+      </span>
+
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onToggleVisibility}
+        className={cn(
+          "h-8 w-8 p-0",
+          visible ? "text-primary hover:text-primary/80" : "text-muted-foreground hover:text-foreground"
+        )}
+        title={visible ? "Masquer cette section" : "Afficher cette section"}
+      >
+        {visible ? (
+          <Eye className="h-4 w-4" />
+        ) : (
+          <EyeOff className="h-4 w-4" />
+        )}
+      </Button>
     </div>
   );
 }
@@ -96,8 +134,8 @@ export function LayoutConfigModal({
   tabId,
   tabLabel,
 }: LayoutConfigModalProps) {
-  const { getSectionOrder, setSectionOrder, resetToDefault } = useLayoutPreferences();
-  const [localOrder, setLocalOrder] = useState<string[]>([]);
+  const { getSectionConfigs, setSectionConfigs, resetToDefault } = useLayoutPreferences();
+  const [localConfigs, setLocalConfigs] = useState<SectionConfig[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
 
   const sensors = useSensors(
@@ -107,37 +145,49 @@ export function LayoutConfigModal({
     })
   );
 
-  // Initialiser l'ordre local quand la modal s'ouvre
+  // Initialiser les configs locales quand la modal s'ouvre
   useEffect(() => {
     if (open) {
-      setLocalOrder(getSectionOrder(tabId));
+      setLocalConfigs(getSectionConfigs(tabId));
       setHasChanges(false);
     }
-  }, [open, tabId, getSectionOrder]);
+  }, [open, tabId, getSectionConfigs]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      setLocalOrder((items) => {
-        const oldIndex = items.indexOf(active.id as string);
-        const newIndex = items.indexOf(over.id as string);
-        return arrayMove(items, oldIndex, newIndex);
+      setLocalConfigs((configs) => {
+        const oldIndex = configs.findIndex(c => c.id === active.id);
+        const newIndex = configs.findIndex(c => c.id === over.id);
+        return arrayMove(configs, oldIndex, newIndex);
       });
       setHasChanges(true);
     }
   };
 
+  const handleToggleVisibility = (sectionId: string) => {
+    setLocalConfigs(configs => 
+      configs.map(c => 
+        c.id === sectionId ? { ...c, visible: !c.visible } : c
+      )
+    );
+    setHasChanges(true);
+  };
+
   const handleSave = async () => {
-    await setSectionOrder(tabId, localOrder);
+    await setSectionConfigs(tabId, localConfigs);
     toast.success("Disposition sauvegardée");
     onOpenChange(false);
   };
 
   const handleReset = async () => {
     await resetToDefault(tabId);
-    const defaultOrder = ALL_SECTIONS[tabId].map(s => s.id);
-    setLocalOrder(defaultOrder);
+    const defaultConfigs = ALL_SECTIONS[tabId].map(s => ({ 
+      id: s.id, 
+      visible: s.defaultVisible 
+    }));
+    setLocalConfigs(defaultConfigs);
     setHasChanges(true);
     toast.info("Disposition réinitialisée");
   };
@@ -146,10 +196,17 @@ export function LayoutConfigModal({
     onOpenChange(false);
   };
 
+  // Compter les sections visibles
+  const visibleCount = localConfigs.filter(c => c.visible).length;
+  const totalCount = localConfigs.length;
+
   // Mapper les IDs aux définitions de sections
-  const orderedSections = localOrder
-    .map(id => ALL_SECTIONS[tabId].find(s => s.id === id))
-    .filter((s): s is SectionDefinition => s !== undefined);
+  const orderedSections = localConfigs
+    .map(config => {
+      const def = ALL_SECTIONS[tabId].find(s => s.id === config.id);
+      return def ? { ...def, visible: config.visible } : null;
+    })
+    .filter((s): s is SectionDefinition & { visible: boolean } => s !== null);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -160,7 +217,10 @@ export function LayoutConfigModal({
             Organiser les sections
           </DialogTitle>
           <DialogDescription>
-            Réorganisez les sections de l'onglet <strong>{tabLabel}</strong> par glisser-déposer.
+            Réorganisez et masquez les sections de l'onglet <strong>{tabLabel}</strong>.
+            <span className="block mt-1 text-xs">
+              {visibleCount}/{totalCount} sections visibles
+            </span>
           </DialogDescription>
         </DialogHeader>
 
@@ -171,7 +231,7 @@ export function LayoutConfigModal({
             onDragEnd={handleDragEnd}
           >
             <SortableContext
-              items={localOrder}
+              items={localConfigs.map(c => c.id)}
               strategy={verticalListSortingStrategy}
             >
               <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
@@ -179,7 +239,9 @@ export function LayoutConfigModal({
                   <SortableItem 
                     key={section.id} 
                     section={section} 
-                    index={index} 
+                    index={index}
+                    visible={section.visible}
+                    onToggleVisibility={() => handleToggleVisibility(section.id)}
                   />
                 ))}
               </div>

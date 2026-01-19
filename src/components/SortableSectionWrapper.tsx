@@ -1,17 +1,23 @@
 /**
- * Wrapper pour rendre une section réorganisable via drag & drop
+ * Wrapper pour une section réorganisable
+ * Fournit le handle de drag et les indicateurs visuels en mode édition
+ * Supporte le toggle de visibilité
  */
 
+import { ReactNode } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical } from "lucide-react";
+import { GripVertical, Eye, EyeOff } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface SortableSectionWrapperProps {
   id: string;
-  children: React.ReactNode;
+  children: ReactNode;
   isEditMode: boolean;
   label?: string;
+  isVisible?: boolean;
+  onToggleVisibility?: () => void;
 }
 
 export function SortableSectionWrapper({
@@ -19,6 +25,8 @@ export function SortableSectionWrapper({
   children,
   isEditMode,
   label,
+  isVisible = true,
+  onToggleVisibility,
 }: SortableSectionWrapperProps) {
   const {
     attributes,
@@ -44,32 +52,62 @@ export function SortableSectionWrapper({
       style={style}
       className={cn(
         "relative group",
-        isDragging && "opacity-50 z-50"
+        isDragging && "opacity-50 z-50",
+        !isVisible && "opacity-60"
       )}
     >
-      {/* Handle de drag */}
-      <div
-        {...attributes}
-        {...listeners}
-        className={cn(
-          "absolute -left-2 top-1/2 -translate-y-1/2 z-10",
-          "bg-muted border border-border rounded-md p-1.5",
-          "cursor-grab active:cursor-grabbing",
-          "opacity-0 group-hover:opacity-100 transition-opacity",
-          "hover:bg-primary/10 hover:border-primary/30",
-          isDragging && "opacity-100"
+      {/* Controls flottants */}
+      <div className="absolute -left-2 top-4 z-10 flex flex-col gap-1">
+        {/* Handle de drag */}
+        <div
+          {...attributes}
+          {...listeners}
+          className={cn(
+            "bg-muted border border-border rounded-md p-1.5",
+            "cursor-grab active:cursor-grabbing",
+            "opacity-0 group-hover:opacity-100 transition-opacity",
+            "hover:bg-primary/10 hover:border-primary/30",
+            isDragging && "opacity-100"
+          )}
+          title={`Déplacer: ${label || id}`}
+        >
+          <GripVertical className="h-4 w-4 text-muted-foreground" />
+        </div>
+
+        {/* Bouton visibilité */}
+        {onToggleVisibility && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onToggleVisibility}
+            className={cn(
+              "h-8 w-8 p-0 bg-muted border border-border rounded-md",
+              "opacity-0 group-hover:opacity-100 transition-opacity",
+              isVisible 
+                ? "text-primary hover:text-primary/80 hover:bg-primary/10" 
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            )}
+            title={isVisible ? "Masquer cette section" : "Afficher cette section"}
+          >
+            {isVisible ? (
+              <Eye className="h-3.5 w-3.5" />
+            ) : (
+              <EyeOff className="h-3.5 w-3.5" />
+            )}
+          </Button>
         )}
-        title={`Déplacer: ${label || id}`}
-      >
-        <GripVertical className="h-4 w-4 text-muted-foreground" />
       </div>
       
       {/* Bordure en mode édition */}
       <div
         className={cn(
           "rounded-lg transition-all",
-          "ring-2 ring-dashed ring-primary/20",
-          isDragging && "ring-primary/50"
+          "ring-2 ring-dashed",
+          isVisible 
+            ? "ring-primary/20" 
+            : "ring-muted-foreground/20",
+          isDragging && "ring-primary/50",
+          !isVisible && "bg-muted/30"
         )}
       >
         {children}
@@ -77,7 +115,11 @@ export function SortableSectionWrapper({
       
       {/* Label en mode édition */}
       {label && (
-        <div className="absolute -top-2.5 left-8 px-2 bg-background text-xs text-muted-foreground font-medium">
+        <div className={cn(
+          "absolute -top-2.5 left-12 px-2 bg-background text-xs font-medium flex items-center gap-1.5",
+          isVisible ? "text-muted-foreground" : "text-muted-foreground/60"
+        )}>
+          {!isVisible && <EyeOff className="h-3 w-3" />}
           {label}
         </div>
       )}
