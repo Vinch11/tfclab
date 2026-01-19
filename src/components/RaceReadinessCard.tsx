@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Target, TrendingUp, Zap, Heart, Activity, ChevronRight, HelpCircle, Footprints, AlertTriangle, Battery, BatteryLow, TrendingDown, Shield, Info, ChevronDown, ChevronUp, Bike, PersonStanding } from "lucide-react";
+import { Target, TrendingUp, Zap, Heart, Activity, ChevronRight, HelpCircle, Footprints, AlertTriangle, Battery, BatteryLow, TrendingDown, Shield, Info, ChevronDown, ChevronUp, Bike, PersonStanding, User, CheckCircle2 } from "lucide-react";
 import { ProfileRadarChart } from "@/components/ProfileRadarChart";
 import { cn } from "@/lib/utils";
 import { useCloudData } from "@/hooks/useCloudData";
@@ -17,6 +17,7 @@ import { RaceReadinessEffectif, getScoreColor, getScoreBgColor, getObjectifLabel
 import { TTEGuard, isTTEUnavailable } from "@/components/TTEGuard";
 import { getEconomyRaceReadinessBonus } from "@/lib/runningEconomySnapshot";
 import { EnergyDriftResult, getFactorLabel, getFactorColor } from "@/lib/energyDrift";
+import { computeAgeAdjustmentIndex } from "@/lib/ageAdjustment";
 
 interface RaceReadinessCardProps {
   athlete: any;
@@ -24,6 +25,7 @@ interface RaceReadinessCardProps {
   tteEffectif?: TTEEffectif;
   readiness?: RaceReadinessEffectif;
   energyDrift?: EnergyDriftResult;
+  athleteAge?: number | null; // ✅ AJOUT pour badge d'ajustement âge
   onGoToSnapshots?: () => void;
   onGoToMethodology?: () => void;
 }
@@ -43,6 +45,7 @@ export function RaceReadinessCard({
   tteEffectif: tteEffectifProp,
   readiness: readinessProp,
   energyDrift,
+  athleteAge, // ✅ AJOUT
   onGoToSnapshots,
   onGoToMethodology
 }: RaceReadinessCardProps) {
@@ -119,6 +122,10 @@ export function RaceReadinessCard({
   
   // État pour le panneau méthodologie
   const [showMethodology, setShowMethodology] = useState(false);
+  
+  // ✅ Calcul de l'info d'ajustement par âge (comme Compass)
+  const ageInfo = useMemo(() => computeAgeAdjustmentIndex(athleteAge ?? null), [athleteAge]);
+  const isAgeAdjusted = ageInfo.category === "master1" || ageInfo.category === "master2";
   
   const scoreColor = getScoreColor(readiness.score);
   const scoreBg = getScoreBgColor(readiness.score);
@@ -231,6 +238,43 @@ export function RaceReadinessCard({
         <div className={cn("px-4 py-2 rounded-xl", `bg-${readiness.color}/10`)}>
           <span className={cn("font-semibold", scoreColor)}>{readiness.label}</span>
         </div>
+      </div>
+
+      {/* ✅ BADGE AJUSTEMENT ÂGE + CIBLES SYNCHRONISÉES (comme Compass) */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        {/* Badge âge */}
+        {athleteAge !== null && athleteAge !== undefined && (
+          <Badge 
+            variant="outline" 
+            className={cn(
+              "text-xs py-1 px-2 gap-1",
+              ageInfo.category === "master1" && "border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+              ageInfo.category === "master2" && "border-orange-500/50 bg-orange-500/10 text-orange-700 dark:text-orange-400",
+              (ageInfo.category === "young" || ageInfo.category === "prime") && "border-muted-foreground/30"
+            )}
+          >
+            <User className="h-3 w-3" />
+            {athleteAge} ans
+            {isAgeAdjusted && " • TTE ajusté"}
+          </Badge>
+        )}
+        
+        {/* Badge synchronisation cibles */}
+        <Badge variant="outline" className="text-xs py-1 px-2 gap-1 border-green-500/50 bg-green-500/10 text-green-700 dark:text-green-400">
+          <CheckCircle2 className="h-3 w-3" />
+          Cibles synchronisées
+        </Badge>
+        
+        {/* Affichage cibles utilisées */}
+        {readiness.targets && (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>TTE cible:</span>
+            <span className="font-mono font-medium text-foreground">{readiness.targets.tteTarget} min</span>
+            {isAgeAdjusted && (
+              <span className="text-amber-600 dark:text-amber-400">(ajusté {ageInfo.label})</span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Debug VLamax + TTE source */}

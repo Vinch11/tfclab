@@ -18,6 +18,7 @@ import {
   VLamaxAgeInterpretation, 
   TTEAgeTarget 
 } from "@/components/AgeAdjustmentInfo";
+import { TargetSyncVerifier } from "@/components/TargetSyncVerifier";
 
 import type { VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import type { TTEEffectif } from "@/lib/tteEffectif";
@@ -137,9 +138,19 @@ export function RaceReadinessPage({
             tteEffectif={tteEffectif}
             readiness={readiness}
             energyDrift={energyDrift}
+            athleteAge={athleteAge} // ✅ AJOUT pour badge d'ajustement âge
             onGoToSnapshots={onGoToSnapshots}
             onGoToMethodology={onGoToMethodology}
           />
+
+          {/* ✅ Test visuel de synchronisation des cibles (Staff Mode) */}
+          {isCoachMode && athleteAge !== null && (
+            <TargetSyncVerifier
+              objectif={objectif}
+              athleteAge={athleteAge}
+              ambition={ambition}
+            />
+          )}
 
           {/* Interprétations ajustées par âge */}
           {birthDate && (
