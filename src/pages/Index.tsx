@@ -1212,7 +1212,7 @@ const Index = () => {
                   fcMax={effectiveRefs.fcMax ?? null}
                   tss7d={effectiveCloudSnapshot?.tss_7d ?? null}
                   snapshotUpdatedAt={effectiveCloudSnapshot?.updated_at ?? null}
-                  athleteAge={athleteAge}
+                  athleteAge={currentAthlete?.birth_date ? calculateAge(currentAthlete.birth_date) : null}
                   ambition={currentAmbition}
                   onGoToSnapshots={() => {
                     setShowSnapshots(true);
