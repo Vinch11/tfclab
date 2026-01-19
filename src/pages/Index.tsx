@@ -765,16 +765,40 @@ const Index = () => {
           {
             id: "vlamax-v2-calibration",
             render: () => currentAthlete && (
-              <VLamaxV2DisplayCard
-                objectif={(
-                  (currentAthlete.goal === "IM" ? "Ironman" : currentAthlete.goal) || "Ironman"
-                ) as ObjectifPrincipal}
-                vlamax={vlamaxEffectif.value ?? Number.NaN}
-                vlamaxSource={vlamaxEffectif.source === "test" ? "test_terrain" : "estimation"}
-                vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? undefined}
-                sex={legacyAthlete?.sexe === "F" ? "F" : "H"}
-                age={calculateAge(currentAthlete.birth_date) ?? undefined}
-              />
+              <div className="space-y-3">
+                <VLamaxV2DisplayCard
+                  objectif={(
+                    (currentAthlete.goal === "IM" ? "Ironman" : currentAthlete.goal) || "Ironman"
+                  ) as ObjectifPrincipal}
+                  vlamax={vlamaxEffectif.value ?? Number.NaN}
+                  vlamaxSource={vlamaxEffectif.source === "test" ? "test_terrain" : "estimation"}
+                  vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? undefined}
+                  sex={legacyAthlete?.sexe === "F" ? "F" : "H"}
+                  age={calculateAge(currentAthlete.birth_date) ?? undefined}
+                />
+                {/* Analyse détaillée repliée par défaut */}
+                {effectiveCloudSnapshot && (
+                  <VLamaxExplainedCard
+                    vlamaxEffectif={vlamaxEffectif}
+                    age={calculateAge(currentAthlete.birth_date)}
+                    input={{
+                      ftp: effectiveCloudSnapshot.ftp ?? 0,
+                      p30s_w: (effectiveCloudSnapshot as unknown as Record<string, unknown>).p30s_w as number | null,
+                      p60s_w: (effectiveCloudSnapshot as unknown as Record<string, unknown>).p60s_w as number | null,
+                      map5min_w: (effectiveCloudSnapshot as unknown as Record<string, unknown>).map5min_w as number | null,
+                      tte_min: effectiveCloudSnapshot.tte_observed_min ?? tteEffectif.tte_min,
+                      pmax_5s: effectiveCloudSnapshot.pmax_5s ?? undefined,
+                      weight_kg: effectiveCloudSnapshot.weight_kg ?? undefined,
+                      protocol_quality: ((effectiveCloudSnapshot as unknown as Record<string, unknown>).protocol_quality as 1 | 2 | 3 | 4 | 5) ?? 3,
+                      objectif: currentAthlete.goal || "IM",
+                      vo2max: effectiveCloudSnapshot.vo2max ?? currentAthlete.vo2max ?? undefined,
+                      sex: legacyAthlete?.sexe === "F" ? "F" : "H",
+                    }}
+                    ambitionLevel={currentAmbition as "finisher" | "performance" | "podium" | "elite"}
+                    defaultCollapsed={true}
+                  />
+                )}
+              </div>
             ),
           },
           {
