@@ -66,6 +66,11 @@ export interface DbSnapshot {
   low_crr_justification?: string | null;
   // Force development mode toggle
   force_development_mode?: boolean | null;
+  // ✅ VLamax CAP estimation fields
+  pace_threshold_sec_per_km?: number | null; // Pace seuil CAP (sec/km)
+  sprint_15s_distance?: number | null;       // Distance sprint 15s (mètres)
+  running_power_max?: number | null;         // Puissance max course (W)
+  running_power_threshold?: number | null;   // Puissance seuil course (W)
   created_at?: string;
   updated_at?: string;
 }
