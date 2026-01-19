@@ -500,18 +500,14 @@ export function AmbitionProgressChart({
   // Calculate predictions for each ambition level
   const predictions = useMemo(() => calculateAmbitionPredictions(chartData, objectif), [chartData, objectif]);
 
-  // Show toast notifications for new alerts
+  // Track shown alerts without displaying toast notifications
   useEffect(() => {
     alerts.forEach((alert) => {
       if (!alertsShown.has(alert.id) && (alert.type === "reached" || alert.type === "exceeded")) {
-        toast({
-          title: alert.type === "exceeded" ? "🏆 Objectif dépassé !" : "✓ Objectif atteint",
-          description: alert.message,
-        });
         setAlertsShown((prev) => new Set([...prev, alert.id]));
       }
     });
-  }, [alerts, alertsShown, toast]);
+  }, [alerts, alertsShown]);
 
   // Toggle ambition visibility for comparison
   const toggleAmbitionVisibility = (amb: AmbitionLevel) => {
