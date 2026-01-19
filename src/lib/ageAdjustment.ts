@@ -208,6 +208,244 @@ export function getTTETargetForAge(objectif: string, age: number | null): { min:
 // =============================================
 
 /**
+ * Seuils de profil VLamax ajustés selon l'âge
+ * Un VLamax de 0.49 à 50 ans = "élevé" (profil glycolytique)
+ * Un VLamax de 0.49 à 25 ans = "modéré" (profil équilibré/débutant)
+ * 
+ * L'âge abaisse les seuils car:
+ * - La capacité glycolytique diminue naturellement avec l'âge
+ * - Une VLamax "normale" à 50 ans équivaut à une VLamax "haute" à 25 ans
+ */
+export interface AgeAdjustedVLamaxThresholds {
+  diesel: number;       // < diesel = Diesel Ultra-Endurant
+  endurant: number;     // < endurant = Endurant
+  equilibre: number;    // < equilibre = Équilibré
+  explosif: number;     // < explosif = Explosif
+  // >= explosif = Sprinter
+}
+
+/**
+ * Retourne les seuils de profil VLamax ajustés par âge
+ * 
+ * < 30 ans: seuils standards (référence)
+ * 30-39 ans: seuils abaissés de 0.03
+ * 40-49 ans: seuils abaissés de 0.08
+ * ≥ 50 ans: seuils abaissés de 0.12
+ */
+export function getAgeAdjustedVLamaxThresholds(age: number | null): AgeAdjustedVLamaxThresholds {
+  // Seuils de référence (< 30 ans)
+  const baseThresholds: AgeAdjustedVLamaxThresholds = {
+    diesel: 0.35,
+    endurant: 0.45,
+    equilibre: 0.55,
+    explosif: 0.65,
+  };
+
+  if (age === null || age < 30) {
+    return baseThresholds;
+  }
+
+  // Réduction progressive des seuils avec l'âge
+  let reduction = 0;
+  if (age < 40) {
+    reduction = 0.03;
+  } else if (age < 50) {
+    reduction = 0.08;
+  } else {
+    reduction = 0.12;
+  }
+
+  return {
+    diesel: baseThresholds.diesel - reduction,
+    endurant: baseThresholds.endurant - reduction,
+    equilibre: baseThresholds.equilibre - reduction,
+    explosif: baseThresholds.explosif - reduction,
+  };
+}
+
+/**
+ * Détermine le profil VLamax ajusté par âge
+ */
+export type VLamaxProfil = "diesel" | "endurant" | "equilibre" | "explosif" | "sprinter";
+
+export function getAgeAdjustedVLamaxProfil(
+  vlamax: number | null,
+  age: number | null
+): { profil: VLamaxProfil; label: string; ageContext: string | null } {
+  if (vlamax === null) {
+    return { profil: "equilibre", label: "Non défini", ageContext: null };
+  }
+
+  const thresholds = getAgeAdjustedVLamaxThresholds(age);
+  const ageCategory = computeAgeAdjustmentIndex(age);
+
+  let profil: VLamaxProfil;
+  let label: string;
+
+  if (vlamax < thresholds.diesel) {
+    profil = "diesel";
+    label = "Diesel Ultra-Endurant";
+  } else if (vlamax < thresholds.endurant) {
+    profil = "endurant";
+    label = "Endurant";
+  } else if (vlamax < thresholds.equilibre) {
+    profil = "equilibre";
+    label = "Équilibré";
+  } else if (vlamax < thresholds.explosif) {
+    profil = "explosif";
+    label = "Explosif";
+  } else {
+    profil = "sprinter";
+    label = "Sprinter";
+  }
+
+  // Message contexte âge
+  let ageContext: string | null = null;
+  if (age !== null && age >= 40) {
+    // Calculer ce que serait le profil sans ajustement
+    const baseThresholds = getAgeAdjustedVLamaxThresholds(null);
+    let baseProfil: VLamaxProfil;
+    if (vlamax < baseThresholds.diesel) baseProfil = "diesel";
+    else if (vlamax < baseThresholds.endurant) baseProfil = "endurant";
+    else if (vlamax < baseThresholds.equilibre) baseProfil = "equilibre";
+    else if (vlamax < baseThresholds.explosif) baseProfil = "explosif";
+    else baseProfil = "sprinter";
+
+    if (profil !== baseProfil) {
+      ageContext = `À ${age} ans, une VLamax de ${vlamax.toFixed(2)} correspond à un profil "${label}" (équivalent à "${getProfilLabelFromProfil(baseProfil)}" chez un athlète < 30 ans)`;
+    } else {
+      ageContext = `Ajustement âge (${ageCategory.label}) pris en compte`;
+    }
+  }
+
+  return { profil, label, ageContext };
+}
+
+function getProfilLabelFromProfil(profil: VLamaxProfil): string {
+  switch (profil) {
+    case "diesel": return "Diesel Ultra-Endurant";
+    case "endurant": return "Endurant";
+    case "equilibre": return "Équilibré";
+    case "explosif": return "Explosif";
+    case "sprinter": return "Sprinter";
+  }
+}
+
+/**
+ * Vérifie si le VLamax est adapté à l'objectif en tenant compte de l'âge
+ * Retourne un status avec message pédagogique
+ */
+export interface VLamaxAgeStatus {
+  status: "optimal" | "acceptable" | "work_needed";
+  level: "low" | "moderate" | "high" | "very_high";
+  message: string;
+  ageImpact: string;
+  actions: string[];
+}
+
+export function getVLamaxAgeStatus(
+  vlamax: number | null,
+  age: number | null,
+  objectif: string
+): VLamaxAgeStatus {
+  if (vlamax === null) {
+    return {
+      status: "work_needed",
+      level: "moderate",
+      message: "VLamax non disponible",
+      ageImpact: "",
+      actions: ["Effectuer un test VLamax"]
+    };
+  }
+
+  const isLongDistance = /im|ironman|703|marathon|ultra|trail/i.test(objectif);
+  const { profil, label, ageContext } = getAgeAdjustedVLamaxProfil(vlamax, age);
+  const ageIndex = computeAgeAdjustmentIndex(age);
+  
+  let status: VLamaxAgeStatus["status"];
+  let level: VLamaxAgeStatus["level"];
+  let message: string;
+  let actions: string[] = [];
+
+  if (isLongDistance) {
+    // Pour longue distance, on veut un VLamax bas
+    switch (profil) {
+      case "diesel":
+      case "endurant":
+        status = "optimal";
+        level = "low";
+        message = `Profil ${label} — excellent pour ${objectif}`;
+        actions = ["Maintenir le volume Z2", "Éviter les séances sprint intensives"];
+        break;
+      case "equilibre":
+        status = ageIndex.category === "young" ? "acceptable" : "work_needed";
+        level = "moderate";
+        message = ageIndex.category === "young" 
+          ? `Profil ${label} — acceptable avec marge de progression`
+          : `Profil ${label} — travail prioritaire pour ${objectif}`;
+        actions = ageIndex.category === "young"
+          ? ["Augmenter progressivement le volume Z2", "Réduire les intervalles courts"]
+          : ["Bloc 6+ semaines Z2 dominant", "Réduire intensité haute"];
+        break;
+      case "explosif":
+        status = "work_needed";
+        level = "high";
+        message = `Profil ${label} — adaptation métabolique nécessaire`;
+        actions = ["Réorienter vers endurance longue", "Limiter les sprints", "Patience: 12-24 semaines"];
+        break;
+      case "sprinter":
+        status = "work_needed";
+        level = "very_high";
+        message = `Profil ${label} — réorientation majeure requise pour ${objectif}`;
+        actions = ["Priorité absolue: réduire VLamax", "8+ semaines volume pur", "Éviter toute séance glycolytique"];
+        break;
+    }
+
+    // Ajustement selon l'âge pour les profils à risque
+    if (ageIndex.category === "master1" || ageIndex.category === "master2") {
+      if (profil === "equilibre" || profil === "explosif") {
+        status = "work_needed";
+        actions.unshift("Priorité fraîcheur et récupération");
+      }
+    }
+  } else {
+    // Pour courte distance, on tolère un VLamax plus haut
+    switch (profil) {
+      case "diesel":
+        status = "acceptable";
+        level = "low";
+        message = `Profil ${label} — peut limiter les performances en sprint`;
+        actions = ["Ajouter des intervalles courts si souhaité", "Travail force/vitesse"];
+        break;
+      case "endurant":
+      case "equilibre":
+        status = "optimal";
+        level = "moderate";
+        message = `Profil ${label} — équilibré pour ${objectif}`;
+        actions = ["Maintenir l'équilibre actuel"];
+        break;
+      case "explosif":
+      case "sprinter":
+        status = "optimal";
+        level = "high";
+        message = `Profil ${label} — adapté aux efforts explosifs`;
+        actions = ["Maintenir le travail de puissance"];
+        break;
+    }
+  }
+
+  return {
+    status,
+    level,
+    message,
+    ageImpact: ageContext || (age !== null && age >= 30 
+      ? `Seuils ajustés pour ${ageIndex.label}` 
+      : ""),
+    actions
+  };
+}
+
+/**
  * Interprète le VLamax en fonction de l'âge
  * La valeur ne change pas, mais le niveau de risque glycolytique dépend de l'âge
  * 
@@ -221,9 +459,10 @@ export function interpretVLamaxByAge(
   age: number | null
 ): AgeVLamaxInterpretation {
   const ageIndex = computeAgeAdjustmentIndex(age);
+  const thresholds = getAgeAdjustedVLamaxThresholds(age);
 
   // VLamax faible → toujours OK quel que soit l'âge
-  if (vlamax === null || vlamax <= 0.35) {
+  if (vlamax === null || vlamax < thresholds.endurant) {
     return {
       riskLevel: "exploitable",
       label: "Optimal",
@@ -232,8 +471,8 @@ export function interpretVLamaxByAge(
     };
   }
 
-  // VLamax modéré (0.35-0.50)
-  if (vlamax <= 0.50) {
+  // VLamax modéré (equilibre)
+  if (vlamax < thresholds.equilibre) {
     switch (ageIndex.category) {
       case "young":
         return {
@@ -260,8 +499,8 @@ export function interpretVLamaxByAge(
     }
   }
 
-  // VLamax élevé (0.50-0.70)
-  if (vlamax <= 0.70) {
+  // VLamax élevé (explosif)
+  if (vlamax < thresholds.explosif) {
     switch (ageIndex.category) {
       case "young":
         return {
@@ -294,7 +533,7 @@ export function interpretVLamaxByAge(
     }
   }
 
-  // VLamax très élevé (> 0.70)
+  // VLamax très élevé (> explosif = sprinter)
   switch (ageIndex.category) {
     case "young":
       return {
