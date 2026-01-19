@@ -724,6 +724,8 @@ const Index = () => {
             id: "vlamax-bike-v2-enhanced",
             render: () => currentAthlete && effectiveCloudSnapshot && (
               <VLamaxExplainedCard
+                vlamaxEffectif={vlamaxEffectif}
+                age={calculateAge(currentAthlete.birth_date)}
                 input={{
                   ftp: effectiveCloudSnapshot.ftp ?? 0,
                   p30s_w: (effectiveCloudSnapshot as unknown as Record<string, unknown>).p30s_w as number | null,
@@ -737,7 +739,7 @@ const Index = () => {
                   vo2max: effectiveCloudSnapshot.vo2max ?? currentAthlete.vo2max ?? undefined,
                   sex: legacyAthlete?.sexe === "F" ? "F" : "H",
                 }}
-                ambitionLevel="performance"
+                ambitionLevel={currentAmbition as "finisher" | "performance" | "podium" | "elite"}
               />
             ),
           },
