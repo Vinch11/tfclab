@@ -36,7 +36,15 @@ interface AmbitionProgressMiniProps {
   weightKg?: number | null;
   className?: string;
   onClick?: () => void;
+  onMetricClick?: (sectionId: string) => void;
 }
+
+// Mapping métrique -> section ID dans le dashboard
+const METRIC_SECTION_MAP: Record<string, string> = {
+  vlamax: "vlamax-v2-calibration",
+  tte: "compass", // TTE intégré dans le compass
+  ftpKg: "ftp-targets",
+};
 
 // =============================================
 // HELPERS
@@ -167,6 +175,7 @@ export function AmbitionProgressMini({
   weightKg,
   className,
   onClick,
+  onMetricClick,
 }: AmbitionProgressMiniProps) {
   const ambDef = getAmbitionDefinition(ambition);
 
@@ -312,11 +321,17 @@ export function AmbitionProgressMini({
               {ambDef.icon} Progression vers "{ambDef.label}"
             </p>
             
-            {/* Métriques individuelles */}
+            {/* Métriques individuelles - cliquables */}
             <div className="space-y-1 pt-1 border-t border-border/50">
               {metrics.vlamax && (
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">VLamax</span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onMetricClick?.(METRIC_SECTION_MAP.vlamax);
+                  }}
+                  className="flex items-center justify-between text-xs w-full hover:bg-muted/50 rounded px-1 py-0.5 transition-colors group"
+                >
+                  <span className="text-muted-foreground group-hover:text-foreground">VLamax →</span>
                   <span className="font-mono">
                     <span className="font-medium">{metrics.vlamax.value?.toFixed(2)}</span>
                     <span className="text-muted-foreground"> → {metrics.vlamax.target.toFixed(2)}</span>
@@ -324,11 +339,17 @@ export function AmbitionProgressMini({
                       ({metrics.vlamax.progress}%)
                     </span>
                   </span>
-                </div>
+                </button>
               )}
               {metrics.tte && (
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">TTE</span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onMetricClick?.(METRIC_SECTION_MAP.tte);
+                  }}
+                  className="flex items-center justify-between text-xs w-full hover:bg-muted/50 rounded px-1 py-0.5 transition-colors group"
+                >
+                  <span className="text-muted-foreground group-hover:text-foreground">TTE →</span>
                   <span className="font-mono">
                     <span className="font-medium">{metrics.tte.value}′</span>
                     <span className="text-muted-foreground"> → {metrics.tte.target}′</span>
@@ -336,11 +357,17 @@ export function AmbitionProgressMini({
                       ({metrics.tte.progress}%)
                     </span>
                   </span>
-                </div>
+                </button>
               )}
               {metrics.ftpKg && (
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">FTP/kg</span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onMetricClick?.(METRIC_SECTION_MAP.ftpKg);
+                  }}
+                  className="flex items-center justify-between text-xs w-full hover:bg-muted/50 rounded px-1 py-0.5 transition-colors group"
+                >
+                  <span className="text-muted-foreground group-hover:text-foreground">FTP/kg →</span>
                   <span className="font-mono">
                     <span className="font-medium">{metrics.ftpKg.value?.toFixed(2)}</span>
                     <span className="text-muted-foreground"> → {metrics.ftpKg.target.toFixed(2)}</span>
@@ -348,12 +375,12 @@ export function AmbitionProgressMini({
                       ({metrics.ftpKg.progress}%)
                     </span>
                   </span>
-                </div>
+                </button>
               )}
             </div>
             
             <p className="text-[10px] text-muted-foreground pt-1 border-t border-border/50">
-              Cliquez pour voir le graphique complet
+              Cliquez sur une métrique pour y accéder
             </p>
           </div>
         </TooltipContent>

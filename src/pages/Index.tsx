@@ -582,6 +582,12 @@ const Index = () => {
                         el.scrollIntoView({ behavior: "smooth", block: "start" });
                       }
                     }}
+                    onMetricClick={(sectionId) => {
+                      const el = document.getElementById(`section-${sectionId}`);
+                      if (el) {
+                        el.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }
+                    }}
                   />
                 </div>
 
