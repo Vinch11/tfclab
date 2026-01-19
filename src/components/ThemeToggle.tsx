@@ -1,20 +1,47 @@
-import { Moon, Sun } from "lucide-react";
-import { useTheme } from "@/contexts/ThemeContext";
+import { Sun, Moon, Sparkles, Building2 } from "lucide-react";
+import { useTheme, THEME_CONFIG, type Theme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+const ThemeIcons: Record<Theme, React.ElementType> = {
+  light: Sun,
+  dark: Moon,
+  modern: Sparkles,
+  classic: Building2,
+};
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
+  const config = THEME_CONFIG[theme];
+  const Icon = ThemeIcons[theme];
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={toggleTheme}
-      className="h-9 w-9 rounded-lg shrink-0"
-    >
-      <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-      <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-      <span className="sr-only">Changer le thème</span>
-    </Button>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className="h-9 w-9 rounded-lg shrink-0 relative overflow-hidden group"
+          >
+            <Icon className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
+            <span className="sr-only">Changer le thème ({config.label})</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="bg-popover border-border">
+          <div className="text-center">
+            <p className="font-medium">{config.label}</p>
+            <p className="text-xs text-muted-foreground">{config.description}</p>
+            <p className="text-xs text-muted-foreground mt-1">Cliquer pour changer</p>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
