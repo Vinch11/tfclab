@@ -23,6 +23,8 @@ import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { TTEEffectif } from "@/lib/tteEffectif";
 import { computeNutritionEstimate, applyNutritionalCap, type NutritionalRiskIndex } from "@/lib/nutritionPredictive";
 import { computeRunningEconomy, applyEconomyCap, type RunningEconomyResult, type EconomyLevel } from "@/lib/runningEconomy";
+import { getAgeAdjustedTargets } from "@/lib/ageAdjustment";
+import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 
 // =============================================
 // DÉFINITION OFFICIELLE (pour affichage UI)
@@ -241,6 +243,9 @@ export interface ComputeRaceReadinessParams {
   fcMoyenneEndurance?: number | null;
   allureEndurance?: number | null;
   deriveCardiaque?: number | null;
+  // ✅ AJOUT: Paramètres pour cibles ajustées (unification avec Compass)
+  athleteAge?: number | null;
+  ambition?: AmbitionLevel;
 }
 
 // =============================================
@@ -462,8 +467,38 @@ export function getWeightsBySport(objectif: string, sport?: RaceReadinessSport):
 
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 
-export function getTargets(objectif: string): RaceTargets {
-  return TARGETS_BY_OBJECTIF[objectif] || DEFAULT_TARGETS;
+/**
+ * Retourne les cibles physiologiques ajustées par âge et ambition
+ * ✅ SOURCE UNIQUE DE VÉRITÉ: utilise getAgeAdjustedTargets pour synchronisation avec Compass
+ */
+export function getTargets(objectif: string, athleteAge?: number | null, ambition?: AmbitionLevel): RaceTargets {
+  const baseTargets = TARGETS_BY_OBJECTIF[objectif] || DEFAULT_TARGETS;
+  
+  // Si âge ou ambition fournis, utiliser les cibles ajustées
+  if (athleteAge !== null && athleteAge !== undefined) {
+    const adjusted = getAgeAdjustedTargets(objectif, athleteAge, ambition || DEFAULT_AMBITION);
+    return {
+      vlamaxMin: baseTargets.vlamaxMin,
+      vlamaxMax: adjusted.vlamaxMax,
+      vlamaxIdeal: adjusted.vlamaxOptimal,
+      tteTarget: adjusted.tteTarget, // ✅ TTE ajusté par âge
+      ftpKgTarget: adjusted.ftpKgTarget,
+    };
+  }
+  
+  // Si seulement ambition fournie, utiliser les cibles par ambition sans ajustement d'âge
+  if (ambition) {
+    const adjusted = getAgeAdjustedTargets(objectif, null, ambition);
+    return {
+      vlamaxMin: baseTargets.vlamaxMin,
+      vlamaxMax: adjusted.vlamaxMax,
+      vlamaxIdeal: adjusted.vlamaxOptimal,
+      tteTarget: adjusted.tteTarget,
+      ftpKgTarget: adjusted.ftpKgTarget,
+    };
+  }
+  
+  return baseTargets;
 }
 
 export function getRaceWeights(objectif: string): RaceWeights {
@@ -737,12 +772,15 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
     fcMoyenneEndurance = null,
     allureEndurance = null,
     deriveCardiaque = null,
+    // ✅ AJOUT: Paramètres pour cibles ajustées
+    athleteAge = null,
+    ambition,
   } = params;
 
   const reasonsMissing: string[] = [];
   
-  // Récupérer les targets et weights pour l'objectif
-  const targets = getTargets(objectif);
+  // ✅ FIX: Récupérer les targets AVEC ajustement par âge et ambition
+  const targets = getTargets(objectif, athleteAge, ambition);
   const weights = getRaceWeights(objectif);
 
   // =====================

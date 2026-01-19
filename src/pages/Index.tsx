@@ -374,14 +374,16 @@ const Index = () => {
       vlamaxEffectif,
       tteEffectif,
       ftp,
-      poids: poids ?? undefined, // ✅ FIX 11: null -> undefined pour calculs
+      poids: poids ?? undefined,
       fatigue_ok: true,
       seance_specifique_validee: false,
       fcMax: effectiveRefs.fcMax ?? null,
-      // ✅ FIX: Passer la dérive cardiaque depuis le snapshot
       deriveCardiaque: effectiveCloudSnapshot?.run_hr_drift_pct ?? null,
+      // ✅ FIX: Passer âge et ambition pour synchroniser avec Compass
+      athleteAge: currentAthlete?.birth_date ? calculateAge(currentAthlete.birth_date) : null,
+      ambition: currentAmbition,
     });
-  }, [currentAthlete, vlamaxEffectif, tteEffectif, ftp, poids, effectiveRefs, effectiveCloudSnapshot]);
+  }, [currentAthlete, vlamaxEffectif, tteEffectif, ftp, poids, effectiveRefs, effectiveCloudSnapshot, currentAmbition]);
 
   // ✅ NUTRITION ESTIMATE - Pour rapport staff
   const nutritionEstimate = useMemo(() => {
