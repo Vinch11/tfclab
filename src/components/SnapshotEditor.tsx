@@ -33,20 +33,43 @@ interface VLamaxCapFieldProps {
   setVlamaxRun: (v: string) => void;
   staffMode: boolean;
   vma: number | null;
-  css: number | null;
+  paceThresholdSecPerKm: number | null;
   tteMin: number | null;
+  sprint15sDistance: number | null;
+  runningPowerMax: number | null;
 }
 
-function VLamaxCapField({ vlamaxRun, setVlamaxRun, staffMode, vma, css, tteMin }: VLamaxCapFieldProps) {
+function VLamaxCapField({ 
+  vlamaxRun, 
+  setVlamaxRun, 
+  staffMode, 
+  vma, 
+  paceThresholdSecPerKm, 
+  tteMin,
+  sprint15sDistance,
+  runningPowerMax
+}: VLamaxCapFieldProps) {
   const canEstimate = useMemo(() => 
-    canEstimateVLamaxCap({ vma, css, paceThreshold: null, tteMin }),
-    [vma, css, tteMin]
+    canEstimateVLamaxCap({ 
+      vma, 
+      paceThresholdSecPerKm, 
+      tteMin,
+      sprint15sDistance,
+      runningPowerMax
+    }),
+    [vma, paceThresholdSecPerKm, tteMin, sprint15sDistance, runningPowerMax]
   );
 
   const estimatedValue = useMemo(() => {
     if (!canEstimate) return null;
-    return estimateVLamaxCap({ vma, css, paceThreshold: null, tteMin });
-  }, [vma, css, tteMin, canEstimate]);
+    return estimateVLamaxCap({ 
+      vma, 
+      paceThresholdSecPerKm, 
+      tteMin,
+      sprint15sDistance,
+      runningPowerMax
+    });
+  }, [vma, paceThresholdSecPerKm, tteMin, sprint15sDistance, runningPowerMax, canEstimate]);
 
   const handleAutoCalculate = () => {
     if (estimatedValue) {
@@ -112,6 +135,7 @@ function VLamaxCapField({ vlamaxRun, setVlamaxRun, staffMode, vma, css, tteMin }
     </div>
   );
 }
+
 
 export function SnapshotEditor({ snapshot, trigger, staffMode = false }: SnapshotEditorProps) {
   const { updateSnapshot } = useCloudData();
@@ -245,8 +269,10 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
             setVlamaxRun={setVlamaxRun}
             staffMode={staffMode}
             vma={numOrNull(vma)}
-            css={numOrNull(css)}
+            paceThresholdSecPerKm={snapshot.pace_threshold_sec_per_km ?? null}
             tteMin={numOrNull(tteObserved)}
+            sprint15sDistance={snapshot.sprint_15s_distance ?? null}
+            runningPowerMax={snapshot.running_power_max ?? null}
           />
 
           <div className="grid grid-cols-4 items-center gap-4">
