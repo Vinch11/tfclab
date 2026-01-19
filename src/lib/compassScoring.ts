@@ -87,9 +87,24 @@ export interface CompassTargets {
 
 /**
  * Build CompassTargets from centralized physiological targets
- * Now uses ambition level for adaptive thresholds
+ * Now uses ambition level AND age for adaptive thresholds
  */
-function getTargets(objectif: string, ambition: AmbitionLevel = DEFAULT_AMBITION): CompassTargets {
+function getTargets(objectif: string, ambition: AmbitionLevel = DEFAULT_AMBITION, age?: number | null): CompassTargets {
+  // Si l'âge est fourni, utiliser les cibles ajustées par âge
+  if (age !== null && age !== undefined) {
+    const { getAgeAdjustedTargets } = require("@/lib/ageAdjustment");
+    const ageTargets = getAgeAdjustedTargets(objectif, age, ambition);
+    return {
+      objectif,
+      ftpKgTarget: ageTargets.ftpKgTarget,
+      tteTarget: ageTargets.tteTarget,
+      vlamaxIdeal: ageTargets.vlamaxOptimal,
+      vlamaxMax: ageTargets.vlamaxMax,
+      chargeOptimale: getChargeOptimale(objectif, ambition),
+    };
+  }
+  
+  // Sans âge, utiliser les cibles de base
   const vlamaxRange = getVLamaxRange(objectif, ambition);
   return {
     objectif,
@@ -294,6 +309,128 @@ export function computeProfilMetabolique(
 }
 
 // =============================================
+// VERSIONS AVEC AJUSTEMENT PAR ÂGE
+// =============================================
+
+/**
+ * Tolérance à l'Effort avec ajustement par âge des cibles
+ */
+export function computeToleranceEffortWithAge(
+  tteEffectif: TTEEffectif,
+  objectif: string,
+  ambition?: AmbitionLevel,
+  athleteAge?: number | null
+): CompassAxisScore {
+  const targets = getTargets(objectif, ambition, athleteAge);
+  const tteValue = tteEffectif.tte_min;
+  
+  if (tteEffectif.source === "unknown" || tteValue === null || tteValue <= 0) {
+    return {
+      score: 50,
+      rawScore: 50,
+      label: "Tolérance à l'Effort",
+      explanation: "TTE non disponible – score neutre appliqué",
+      formula: "TTE_score = (TTE_effectif / TTE_cible) × 100",
+      inputs: { tteValue: null, tteTarget: targets.tteTarget, source: tteEffectif.source },
+      confidence: tteEffectif.confidence,
+      source: tteEffectif.source
+    };
+  }
+  
+  const rawScore = (tteValue / targets.tteTarget) * 100;
+  const score = clamp(Math.round(rawScore), 0, 100);
+  
+  const ageNote = athleteAge && athleteAge >= 30 ? ` (cible ajustée pour ${athleteAge} ans)` : "";
+  
+  let explanation: string;
+  if (tteValue >= targets.tteTarget + 5) {
+    explanation = `TTE excellent (${tteValue} min ≥ ${targets.tteTarget + 5} min)${ageNote}`;
+  } else if (tteValue >= targets.tteTarget) {
+    explanation = `TTE cible atteinte (${tteValue} min = cible ${targets.tteTarget} min)${ageNote}`;
+  } else if (tteValue >= targets.tteTarget - 5) {
+    explanation = `TTE proche de la cible (${tteValue} min, cible: ${targets.tteTarget} min)${ageNote}`;
+  } else {
+    explanation = `TTE insuffisant (${tteValue} min << ${targets.tteTarget} min)${ageNote}`;
+  }
+  
+  return {
+    score,
+    rawScore: Math.round(rawScore),
+    label: "Tolérance à l'Effort",
+    explanation,
+    formula: `TTE_score = (${tteValue} / ${targets.tteTarget}) × 100 = ${rawScore.toFixed(0)}`,
+    inputs: { tteValue, tteTarget: targets.tteTarget, source: tteEffectif.source },
+    confidence: tteEffectif.confidence,
+    source: tteEffectif.source
+  };
+}
+
+/**
+ * Profil Métabolique avec ajustement par âge des cibles VLamax
+ */
+export function computeProfilMetaboliqueWithAge(
+  vlamaxEffectif: VLamaxEffectif,
+  objectif: string,
+  ambition?: AmbitionLevel,
+  athleteAge?: number | null
+): CompassAxisScore {
+  const targets = getTargets(objectif, ambition, athleteAge);
+  const vlamaxValue = vlamaxEffectif.value;
+  
+  if (vlamaxEffectif.source === "unknown" || vlamaxValue === null) {
+    return {
+      score: 50,
+      rawScore: 50,
+      label: "Profil Métabolique",
+      explanation: "VLamax non disponible – score neutre appliqué",
+      formula: "VLamax_score = 100 - ((VLamax - VLamax_optimal) / plage) × 100",
+      inputs: { vlamaxValue: null, vlamaxIdeal: targets.vlamaxIdeal, vlamaxMax: targets.vlamaxMax },
+      confidence: vlamaxEffectif.confidence,
+      source: vlamaxEffectif.source
+    };
+  }
+  
+  let score: number;
+  const plage = targets.vlamaxMax - targets.vlamaxIdeal;
+  const ageNote = athleteAge && athleteAge >= 30 ? ` (cible ajustée pour ${athleteAge} ans)` : "";
+  
+  let explanation: string;
+  
+  if (vlamaxValue <= targets.vlamaxIdeal) {
+    score = 100;
+    explanation = `VLamax optimale (${vlamaxValue.toFixed(2)} ≤ ${targets.vlamaxIdeal.toFixed(2)}) – profil oxydatif idéal${ageNote}`;
+  }
+  else if (vlamaxValue <= targets.vlamaxMax) {
+    const deviation = vlamaxValue - targets.vlamaxIdeal;
+    const rawScore = 100 - (deviation / plage) * 30;
+    score = Math.round(rawScore);
+    explanation = `VLamax acceptable (${vlamaxValue.toFixed(2)}) – légèrement au-dessus de l'idéal (${targets.vlamaxIdeal.toFixed(2)})${ageNote}`;
+  }
+  else {
+    const excess = vlamaxValue - targets.vlamaxMax;
+    const rawScore = 70 - excess * 200;
+    score = Math.max(20, Math.round(rawScore));
+    explanation = `VLamax élevée (${vlamaxValue.toFixed(2)} > ${targets.vlamaxMax.toFixed(2)}) – profil glycolytique excessif${ageNote}`;
+  }
+  
+  return {
+    score: clamp(score, 0, 100),
+    rawScore: score,
+    label: "Profil Métabolique",
+    explanation,
+    formula: `VLamax_score = 100 - ((${vlamaxValue.toFixed(2)} - ${targets.vlamaxIdeal.toFixed(2)}) / ${plage.toFixed(2)}) × 100`,
+    inputs: { 
+      vlamaxValue: Math.round(vlamaxValue * 100) / 100, 
+      vlamaxIdeal: targets.vlamaxIdeal, 
+      vlamaxMax: targets.vlamaxMax,
+      source: vlamaxEffectif.source
+    },
+    confidence: vlamaxEffectif.confidence,
+    source: vlamaxEffectif.source
+  };
+}
+
+// =============================================
 // AXE 4 : ROBUSTESSE (Composite avec intégration fatigue/CAP)
 // =============================================
 // 
@@ -476,6 +613,8 @@ export interface ComputeCompassParams {
   objectif: string;
   // Niveau d'ambition pour seuils adaptatifs
   ambition?: AmbitionLevel;
+  // Âge de l'athlète pour ajustement des cibles
+  athleteAge?: number | null;
   // Paramètres pour intégration fatigue
   fatigueEffectif?: FatigueEffectif | null;
   runInjuryRisk?: RunInjuryRiskEnvelope | null;
@@ -485,10 +624,10 @@ export interface ComputeCompassParams {
 export function computeCompassScores(params: ComputeCompassParams): CompassScores {
   const { 
     ftp, poids, vlamaxEffectif, tteEffectif, crr, objectif, ambition,
-    fatigueEffectif, runInjuryRisk, sportFocus 
+    athleteAge, fatigueEffectif, runInjuryRisk, sportFocus 
   } = params;
   
-  // Calculer les 4 axes avec ambition
+  // Calculer les 4 axes avec ambition ET ajustement par âge
   const capaciteAerobieRaw = computeCapaciteAerobie(ftp, poids, objectif, ambition);
   
   // Moduler la capacité aérobie par la fatigue si disponible
@@ -496,8 +635,8 @@ export function computeCompassScores(params: ComputeCompassParams): CompassScore
     ? modulateCapaciteAerobieByFatigue(capaciteAerobieRaw, fatigueEffectif)
     : capaciteAerobieRaw;
   
-  const toleranceEffort = computeToleranceEffort(tteEffectif, objectif, ambition);
-  const profilMetabolique = computeProfilMetabolique(vlamaxEffectif, objectif, ambition);
+  const toleranceEffort = computeToleranceEffortWithAge(tteEffectif, objectif, ambition, athleteAge);
+  const profilMetabolique = computeProfilMetaboliqueWithAge(vlamaxEffectif, objectif, ambition, athleteAge);
   const chargeScore = computeChargeScore(crr, objectif);
   
   // Robustesse intègre le risque CAP/fatigue selon le sport

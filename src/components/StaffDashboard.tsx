@@ -33,6 +33,7 @@ import { TTEEffectif, getTTETarget, getSourceLabel } from "@/lib/tteEffectif";
 import { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { NutritionEstimate } from "@/lib/nutritionPredictive";
 import { ProfileRadarChart } from "@/components/ProfileRadarChart";
+import { getAgeAdjustedTargets, computeAgeAdjustmentIndex } from "@/lib/ageAdjustment";
 
 // =============================================
 // TYPES
@@ -47,6 +48,7 @@ interface StaffDashboardProps {
   nutritionEstimate: NutritionEstimate | null;
   ftpKg: number | null;
   snapshotDate: string | null;
+  athleteAge?: number | null; // Âge de l'athlète pour ajustement des cibles
 }
 
 // =============================================
@@ -166,10 +168,21 @@ export function StaffDashboard({
   nutritionEstimate,
   ftpKg,
   snapshotDate,
+  athleteAge,
 }: StaffDashboardProps) {
   const [showScientificDetails, setShowScientificDetails] = useState(false);
 
-  const tteTarget = getTTETarget(objectif);
+  // Cibles ajustées par âge - SOURCE UNIQUE pour tous les graphiques
+  const ageAdjustedTargets = useMemo(() => 
+    getAgeAdjustedTargets(objectif, athleteAge ?? null), 
+    [objectif, athleteAge]
+  );
+  const ageInfo = useMemo(() => 
+    computeAgeAdjustmentIndex(athleteAge ?? null), 
+    [athleteAge]
+  );
+  
+  const tteTarget = ageAdjustedTargets.tteTarget;
   const coachSummary = generateCoachSummary(vlamaxEffectif, tteEffectif, raceReadiness, objectif);
   const phase = getPhaseFromObjectif(objectif);
   
@@ -202,17 +215,12 @@ export function StaffDashboard({
   // RADAR CHART SCORES CALCULATIONS
   // =============================================
   
-  // Targets par objectif pour les scores normalisés
-  const radarTargets = useMemo(() => {
-    const isLongDistance = ["IM", "Ironman", "Marathon", "Ultra", "TrailLong", "703", "Half"].includes(objectif);
-    const isMidDistance = ["Semi", "TrailCourt", "Olympic"].includes(objectif);
-    
-    return {
-      vlamaxIdeal: isLongDistance ? 0.28 : isMidDistance ? 0.35 : 0.45,
-      tteTarget: tteTarget,
-      ftpKgTarget: isLongDistance ? 4.0 : isMidDistance ? 3.8 : 3.5,
-    };
-  }, [objectif, tteTarget]);
+  // Utilisation des cibles ajustées par âge depuis ageAdjustedTargets
+  const radarTargets = useMemo(() => ({
+    vlamaxIdeal: ageAdjustedTargets.vlamaxOptimal,
+    tteTarget: ageAdjustedTargets.tteTarget,
+    ftpKgTarget: ageAdjustedTargets.ftpKgTarget,
+  }), [ageAdjustedTargets]);
 
   // Normaliser VLamax (0-100): plus on est proche de l'idéal, plus le score est élevé
   const normalizeVlamax = (value: number | null): number => {

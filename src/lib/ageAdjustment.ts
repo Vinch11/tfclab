@@ -715,6 +715,117 @@ export function adjustRaceReadinessRiskByAge(
 }
 
 // =============================================
+// CIBLES VLAMAX AJUSTÉES PAR ÂGE ET OBJECTIF
+// Source unique pour tous les composants (Radar, Compass, PDF, etc.)
+// =============================================
+
+import { 
+  getVLamaxRange, 
+  getTTETargetByAmbition, 
+  getFtpKgTargetByAmbition 
+} from "@/lib/physiologicalTargets";
+import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
+
+export interface AgeAdjustedTargets {
+  vlamaxOptimal: number;
+  vlamaxMax: number;
+  tteTarget: number;
+  ftpKgTarget: number;
+  ageAdjustmentApplied: boolean;
+  ageCategory: "young" | "prime" | "master1" | "master2";
+  explanation: string;
+}
+
+/**
+ * Retourne les cibles VLamax/TTE/FTP ajustées par âge et objectif
+ * Cette fonction est la SOURCE UNIQUE pour tous les composants de visualisation
+ * 
+ * L'ajustement par âge modifie les seuils de la manière suivante:
+ * - < 30 ans: cibles de référence (aucun ajustement)
+ * - 30-39 ans: optimal +0.02, max +0.03
+ * - 40-49 ans: optimal +0.05, max +0.07
+ * - ≥ 50 ans: optimal +0.08, max +0.10
+ * 
+ * Cela signifie qu'un athlète de 50 ans avec objectif IM a une cible VLamax de 0.38
+ * au lieu de 0.30 pour un jeune, car sa capacité glycolytique naturelle est plus basse.
+ */
+export function getAgeAdjustedTargets(
+  objectif: string,
+  age: number | null,
+  ambition: AmbitionLevel = DEFAULT_AMBITION
+): AgeAdjustedTargets {
+  // Récupérer les cibles de base depuis la source unique
+  const baseVlamaxRange = getVLamaxRange(objectif, ambition);
+  const baseTteTarget = getTTETargetByAmbition(objectif, ambition);
+  const baseFtpKgTarget = getFtpKgTargetByAmbition(objectif, ambition);
+  
+  const ageIndex = computeAgeAdjustmentIndex(age);
+  
+  // Ajustement VLamax par âge
+  // La capacité glycolytique diminue avec l'âge, donc on relève les seuils
+  // pour que les athlètes masters ne soient pas pénalisés injustement
+  let vlamaxOptimalAdjust = 0;
+  let vlamaxMaxAdjust = 0;
+  let tteReduction = 0;
+  
+  switch (ageIndex.category) {
+    case "young":
+      // Référence, aucun ajustement
+      break;
+    case "prime":
+      vlamaxOptimalAdjust = 0.02;
+      vlamaxMaxAdjust = 0.03;
+      tteReduction = 2; // -2 min sur TTE cible
+      break;
+    case "master1":
+      vlamaxOptimalAdjust = 0.05;
+      vlamaxMaxAdjust = 0.07;
+      tteReduction = 5; // -5 min sur TTE cible
+      break;
+    case "master2":
+      vlamaxOptimalAdjust = 0.08;
+      vlamaxMaxAdjust = 0.10;
+      tteReduction = 8; // -8 min sur TTE cible
+      break;
+  }
+  
+  const vlamaxOptimal = Math.min(0.60, baseVlamaxRange.optimal + vlamaxOptimalAdjust);
+  const vlamaxMax = Math.min(0.70, baseVlamaxRange.max + vlamaxMaxAdjust);
+  const tteTarget = Math.max(35, baseTteTarget - tteReduction);
+  
+  // FTP/kg n'est pas ajusté par l'âge (c'est une mesure objective)
+  // mais l'atteinte de la cible est valorisée différemment
+  
+  let explanation = "";
+  if (ageIndex.category === "young" || age === null) {
+    explanation = "Cibles de référence (aucun ajustement d'âge)";
+  } else {
+    explanation = `Cibles ajustées pour ${ageIndex.label}: VLamax optimal relevé de ${(vlamaxOptimalAdjust * 100).toFixed(0)} points`;
+  }
+  
+  return {
+    vlamaxOptimal,
+    vlamaxMax,
+    tteTarget,
+    ftpKgTarget: baseFtpKgTarget,
+    ageAdjustmentApplied: ageIndex.category !== "young" && age !== null,
+    ageCategory: ageIndex.category,
+    explanation,
+  };
+}
+
+/**
+ * Version simplifiée pour les composants qui n'ont besoin que de VLamax optimal
+ */
+export function getAgeAdjustedVLamaxOptimal(
+  objectif: string,
+  age: number | null,
+  ambition?: AmbitionLevel
+): number {
+  return getAgeAdjustedTargets(objectif, age, ambition).vlamaxOptimal;
+}
+
+// =============================================
 // TEXTE PÉDAGOGIQUE
 // =============================================
 
