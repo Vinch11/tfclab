@@ -7,6 +7,8 @@
 import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { TTEEffectif } from "@/lib/tteEffectif";
 import { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
+import { computeCompassScores, CompassScores, ComputeCompassParams } from "@/lib/compassScoring";
+import { computeCRR } from "@/lib/chargeRecenteReference";
 import { NutritionEstimate, computeNutritionEstimate } from "@/lib/nutritionPredictive";
 import { RunningEconomyResult } from "@/lib/runningEconomy";
 import { computeCAPInjuryRisk, CAPInjuryRiskResult, getCAPRiskIcon } from "@/lib/capInjuryRisk";
@@ -217,6 +219,8 @@ export interface MetabolicProfileCompleteSection {
   overallBalanceLabel: string;
   interpretation: string;
   gaps: { metric: string; gap: string; priority: "high" | "medium" | "low" }[];
+  // ✅ Score unifié du Compass pour cohérence dashboard/rapport
+  compassScores?: CompassScores;
 }
 
 export interface NutritionV2DetailedSection {
@@ -284,6 +288,10 @@ export interface GenerateStaffReportParams {
   poids: number | null;
   fcMax: number | null;
   ambition?: AmbitionLevel;
+  // ✅ Données supplémentaires pour calculs unifiés
+  tss7d?: number | null;
+  snapshotUpdatedAt?: string | null;
+  athleteAge?: number | null;
   // TFCL Reference Week data
   tfclData?: {
     p30s_w?: number | null;
@@ -644,6 +652,10 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     injuryRiskRun,
     ambition = DEFAULT_AMBITION,
     tfclData,
+    // ✅ Nouveaux paramètres pour calculs unifiés
+    tss7d,
+    snapshotUpdatedAt,
+    athleteAge,
   } = params;
   
   // Déterminer la limitation principale
@@ -865,7 +877,7 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
   // Générer la section TFCL Reference Week
   const tfclReferenceWeek = generateTFCLReferenceWeekSection(tfclData);
   
-  // ✅ NOUVELLES SECTIONS V2
+  // ✅ NOUVELLES SECTIONS V2 - Utilise computeCompassScores unifié
   const metabolicProfileComplete = generateMetabolicProfileCompleteSection({
     vlamaxEffectif,
     tteEffectif,
@@ -873,6 +885,10 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     poids,
     objectif,
     ambition,
+    tss7d,
+    snapshotDate,
+    snapshotUpdatedAt,
+    athleteAge,
   });
   
   const nutritionV2Detailed = generateNutritionV2DetailedSection({
@@ -1376,22 +1392,33 @@ function generateMetabolicProfileCompleteSection(params: {
   poids: number | null;
   objectif: string;
   ambition: AmbitionLevel;
+  tss7d?: number | null;
+  snapshotDate?: string | null;
+  snapshotUpdatedAt?: string | null;
+  athleteAge?: number | null;
 }): MetabolicProfileCompleteSection {
-  const { vlamaxEffectif, tteEffectif, ftp, poids, objectif, ambition } = params;
+  const { vlamaxEffectif, tteEffectif, ftp, poids, objectif, ambition, tss7d, snapshotDate, snapshotUpdatedAt, athleteAge } = params;
   const ftpKg = ftp && poids && poids > 0 ? ftp / poids : null;
   
-  // Calculate normalized values for radar (0-100)
-  const vlamaxNorm = vlamaxEffectif.value !== null 
-    ? Math.max(0, Math.min(100, 100 - ((vlamaxEffectif.value - 0.20) / 0.70) * 100))
-    : 0;
-  const tteNorm = tteEffectif.tte_min !== null 
-    ? Math.min(100, (tteEffectif.tte_min / 60) * 100)
-    : 0;
-  const ftpKgNorm = ftpKg !== null 
-    ? Math.min(100, (ftpKg / 5.0) * 100)
-    : 0;
+  // ✅ UTILISER computeCompassScores COMME SOURCE UNIQUE DE VÉRITÉ
+  const crr = computeCRR({ tss7d: tss7d ?? null, snapshotDate: snapshotDate ?? null, snapshotUpdatedAt: snapshotUpdatedAt ?? null });
+  const compassScores = computeCompassScores({
+    ftp,
+    poids,
+    vlamaxEffectif,
+    tteEffectif,
+    crr,
+    objectif,
+    ambition,
+    athleteAge,
+  });
   
-  // Determine overall balance
+  // Utiliser les scores du Compass pour le radar
+  const vlamaxNorm = compassScores.profilMetabolique.score;
+  const tteNorm = compassScores.toleranceEffort.score;
+  const ftpKgNorm = compassScores.capaciteAerobie.score;
+  
+  // Determine overall balance (basé sur les données brutes)
   let overallBalance: "equilibre" | "glycolytique" | "endurant" | "mixte" = "equilibre";
   if (vlamaxEffectif.value !== null) {
     if (vlamaxEffectif.value < 0.35) overallBalance = "endurant";
@@ -1406,63 +1433,66 @@ function generateMetabolicProfileCompleteSection(params: {
     mixte: "Profil mixte (TTE à travailler)",
   };
   
-  // Calculate gaps
+  // Calculate gaps using compass interpretation
   const gaps: { metric: string; gap: string; priority: "high" | "medium" | "low" }[] = [];
   
-  if (vlamaxEffectif.value !== null && vlamaxEffectif.value > 0.50) {
+  if (compassScores.profilMetabolique.score < 70) {
     gaps.push({
       metric: "VLamax",
-      gap: `Actuel ${vlamaxEffectif.value.toFixed(2)} → Cible <0.45`,
-      priority: "high",
+      gap: compassScores.profilMetabolique.explanation,
+      priority: compassScores.profilMetabolique.score < 50 ? "high" : "medium",
     });
   }
-  if (tteEffectif.tte_min !== null && tteEffectif.tte_min < 45) {
+  if (compassScores.toleranceEffort.score < 70) {
     gaps.push({
       metric: "TTE",
-      gap: `Actuel ${tteEffectif.tte_min} min → Cible >50 min`,
-      priority: "high",
+      gap: compassScores.toleranceEffort.explanation,
+      priority: compassScores.toleranceEffort.score < 50 ? "high" : "medium",
     });
   }
-  if (ftpKg !== null && ftpKg < 3.5) {
+  if (compassScores.capaciteAerobie.score < 70) {
     gaps.push({
       metric: "FTP/kg",
-      gap: `Actuel ${ftpKg.toFixed(2)} → Cible >3.8 W/kg`,
-      priority: "medium",
+      gap: compassScores.capaciteAerobie.explanation,
+      priority: compassScores.capaciteAerobie.score < 50 ? "high" : "medium",
     });
   }
   
-  // Interpretation
+  // Interpretation basée sur le score global du Compass
   let interpretation = "";
-  if (overallBalance === "endurant") {
-    interpretation = "Excellent profil pour les longues distances. La VLamax basse permet une bonne économie lipidique. Focus sur la puissance et le TTE.";
-  } else if (overallBalance === "glycolytique") {
-    interpretation = "Profil explosif avec forte dépendance glucidique. Travail d'abaissement VLamax prioritaire pour les objectifs longue distance.";
-  } else if (overallBalance === "mixte") {
-    interpretation = "Profil intermédiaire avec TTE à consolider. L'endurance spécifique sera clé pour progresser.";
+  if (compassScores.globalScore >= 80) {
+    interpretation = `Profil ${compassScores.globalLabel}. ${compassScores.mainStrength ? `Point fort: ${compassScores.mainStrength}.` : ""} L'athlète est bien positionné pour son objectif.`;
+  } else if (compassScores.globalScore >= 65) {
+    interpretation = `${compassScores.globalLabel}. ${compassScores.mainLimitation ? `Priorité: développer ${compassScores.mainLimitation}.` : ""} Bon potentiel d'amélioration.`;
+  } else if (compassScores.globalScore >= 50) {
+    interpretation = `${compassScores.globalLabel}. ${compassScores.mainLimitation ? `Limitation principale: ${compassScores.mainLimitation}.` : ""} Travail structuré nécessaire.`;
   } else {
-    interpretation = "Profil polyvalent permettant une bonne adaptabilité. Affiner selon les priorités de l'objectif.";
+    interpretation = `${compassScores.globalLabel}. Plusieurs axes à développer prioritairement. Focus sur ${compassScores.mainLimitation || "l'endurance de base"}.`;
   }
   
   return {
     vlamaxValue: vlamaxEffectif.value,
     vlamaxLabel: vlamaxEffectif.value !== null ? `${vlamaxEffectif.value.toFixed(2)} mmol/L/s` : "—",
     vlamaxCategory: getVLamaxCategory(vlamaxEffectif.value),
-    vlamaxPercentile: null, // Could be added from cluster data
+    vlamaxPercentile: null,
     tteValue: tteEffectif.tte_min,
     tteLabel: tteEffectif.tte_min !== null ? `${tteEffectif.tte_min} min` : "—",
     tteCategory: getTTECategory(tteEffectif.tte_min),
     ftpKg,
     ftpKgLabel: ftpKg !== null ? `${ftpKg.toFixed(2)} W/kg` : "—",
     ftpKgCategory: getFTPKgCategory(ftpKg),
+    // ✅ Utiliser les scores du Compass pour cohérence
     radarData: [
-      { axis: "VLamax", value: vlamaxNorm, target: 70 },
-      { axis: "TTE", value: tteNorm, target: 85 },
-      { axis: "FTP/kg", value: ftpKgNorm, target: 75 },
+      { axis: "VLamax", value: vlamaxNorm, target: 80 },
+      { axis: "TTE", value: tteNorm, target: 80 },
+      { axis: "FTP/kg", value: ftpKgNorm, target: 80 },
     ],
     overallBalance,
     overallBalanceLabel: balanceLabels[overallBalance],
     interpretation,
     gaps,
+    // ✅ Ajouter les scores du Compass pour usage dans le rapport
+    compassScores,
   };
 }
 

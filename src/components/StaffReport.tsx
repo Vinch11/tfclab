@@ -51,6 +51,8 @@ interface StaffReportProps {
   poids: number | null;
   fcMax: number | null;
   tss7d?: number | null;
+  snapshotUpdatedAt?: string | null;
+  athleteAge?: number | null;
   ambition?: AmbitionLevel;
   onExportPDF?: () => void;
 }
@@ -68,10 +70,12 @@ export function StaffReport({
   poids,
   fcMax,
   tss7d,
+  snapshotUpdatedAt,
+  athleteAge,
   ambition,
   onExportPDF,
 }: StaffReportProps) {
-  // Générer le rapport
+  // Générer le rapport avec tous les paramètres pour calculs unifiés
   const report = generateStaffReport({
     athleteName,
     objectif,
@@ -85,6 +89,9 @@ export function StaffReport({
     poids,
     fcMax,
     ambition,
+    tss7d,
+    snapshotUpdatedAt,
+    athleteAge,
   });
 
   const getTrafficLightColors = (light: "green" | "orange" | "red") => {

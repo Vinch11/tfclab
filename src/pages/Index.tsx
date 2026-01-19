@@ -1210,6 +1210,10 @@ const Index = () => {
                   ftp={ftp}
                   poids={poids ?? null}
                   fcMax={effectiveRefs.fcMax ?? null}
+                  tss7d={effectiveCloudSnapshot?.tss_7d ?? null}
+                  snapshotUpdatedAt={effectiveCloudSnapshot?.updated_at ?? null}
+                  athleteAge={athleteAge}
+                  ambition={currentAmbition}
                   onGoToSnapshots={() => {
                     setShowSnapshots(true);
                     setShowTestLibrary(false);

@@ -41,6 +41,10 @@ interface RaceReadinessPageProps {
   ftp: number;
   poids: number | null;
   fcMax: number | null;
+  tss7d?: number | null;
+  snapshotUpdatedAt?: string | null;
+  athleteAge?: number | null;
+  ambition?: import("@/types/ambitionLevel").AmbitionLevel;
   onGoToSnapshots: () => void;
   onGoToMethodology: () => void;
 }
@@ -60,6 +64,10 @@ export function RaceReadinessPage({
   ftp,
   poids,
   fcMax,
+  tss7d,
+  snapshotUpdatedAt,
+  athleteAge,
+  ambition,
   onGoToSnapshots,
   onGoToMethodology,
 }: RaceReadinessPageProps) {
@@ -187,6 +195,10 @@ export function RaceReadinessPage({
               ftp={ftp}
               poids={poids}
               fcMax={fcMax}
+              tss7d={tss7d}
+              snapshotUpdatedAt={snapshotUpdatedAt}
+              athleteAge={athleteAge}
+              ambition={ambition}
             />
           )}
         </>
