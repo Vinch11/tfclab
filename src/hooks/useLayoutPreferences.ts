@@ -39,7 +39,7 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   { id: "low-crr-justification", label: "Justification charge faible", icon: "AlertTriangle", defaultVisible: true },
   { id: "ftp-targets", label: "FTP/kg — zones cibles", icon: "Target", defaultVisible: true },
   { id: "vlamax-bike-v2-enhanced", label: "VLamax Vélo — Analyse Détaillée", icon: "Zap", defaultVisible: true },
-  { id: "vlamax-v2-calibration", label: "VLamax TFCL V2 (compact)", icon: "Zap", defaultVisible: false },
+  { id: "vlamax-v2-calibration", label: "VLamax TFCL V2 (compact)", icon: "Zap", defaultVisible: true },
   { id: "fatmax-tfcl", label: "FatMax TFCL™", icon: "Flame", defaultVisible: true },
   { id: "fatmax-chart", label: "FatMax vs Race Intensity", icon: "BarChart", defaultVisible: true },
   { id: "dashboard-recommendations", label: "Recommandations", icon: "Sparkles", defaultVisible: true },
@@ -47,6 +47,7 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   { id: "charge-recente", label: "Charge Récente", icon: "Activity", defaultVisible: true },
   { id: "compass", label: "Metabolic Compass", icon: "Compass", defaultVisible: true },
   { id: "scientific-charts", label: "Graphiques Scientifiques", icon: "BarChart", defaultVisible: true },
+  { id: "ambition-progress", label: "Progression Ambition", icon: "TrendingUp", defaultVisible: true },
   { id: "staff-dashboard", label: "Staff Dashboard", icon: "Users", defaultVisible: true },
 ];
 
