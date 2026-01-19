@@ -1,9 +1,11 @@
 /**
- * VLamaxExplainedCard — Version pédagogique détaillée pour coachs
+ * VLamaxExplainedCard — Version pédagogique détaillée pour coachs (Vélo)
  * Explique clairement le VLamax, le choix du cluster et les implications pratiques
  * 
  * IMPORTANT: Cette carte utilise vlamaxEffectif comme SOURCE UNIQUE DE VÉRITÉ
  * et intègre l'ajustement par âge via le composant unifié VLamaxInterpretationPanel
+ * 
+ * Version repliable pour intégration TFCL V2
  */
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +21,7 @@ import {
   HelpCircle,
   ChevronDown,
 } from "lucide-react";
+import { useState } from "react";
 
 import {
   computeVLamaxBikeV2Enhanced,
@@ -38,6 +41,8 @@ interface VLamaxExplainedCardProps {
   age?: number | null;
   ambitionLevel?: "finisher" | "performance" | "podium" | "elite";
   targetVLamax?: { min: number; max: number };
+  // Option pour démarrer replié
+  defaultCollapsed?: boolean;
 }
 
 // Mapping ambition → objectifs VLamax recommandés (ajustables selon âge)
@@ -68,15 +73,16 @@ const AMBITION_TARGETS: Record<string, { min: number; max: number; label: string
   },
 };
 
-// ✅ La logique d'interprétation est maintenant dans VLamaxInterpretationPanel
-
 export function VLamaxExplainedCard({
   vlamaxEffectif,
   input,
   age,
   ambitionLevel,
   targetVLamax,
+  defaultCollapsed = false,
 }: VLamaxExplainedCardProps) {
+  const [isOpen, setIsOpen] = useState(!defaultCollapsed);
+
   // ============================================
   // SOURCE UNIQUE DE VÉRITÉ: vlamaxEffectif
   // Si fourni, on l'utilise. Sinon fallback sur calcul V2
@@ -105,68 +111,79 @@ export function VLamaxExplainedCard({
   }
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <Zap className="h-4 w-4 text-amber-500" />
-          VLamax Vélo — Analyse Détaillée
-        </CardTitle>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        {/* ✅ Section 1+2: Utilisation du composant unifié VLamaxInterpretationPanel */}
-        <VLamaxInterpretationPanel
-          vlamax={displayValue}
-          age={age}
-          sport="bike"
-          objectif={input?.objectif || "IM"}
-          targetRange={effectiveTarget ? [effectiveTarget.min, effectiveTarget.max] : undefined}
-          showAgeContext={true}
-          showActions={true}
-        />
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Zap className="h-4 w-4 text-amber-500" />
+              VLamax Vélo — Analyse Détaillée
+            </CardTitle>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+              </Button>
+            </CollapsibleTrigger>
+          </div>
+        </CardHeader>
+        
+        <CollapsibleContent>
+          <CardContent className="space-y-4">
+            {/* ✅ Section 1+2: Utilisation du composant unifié VLamaxInterpretationPanel */}
+            <VLamaxInterpretationPanel
+              vlamax={displayValue}
+              age={age}
+              sport="bike"
+              objectif={input?.objectif || "IM"}
+              targetRange={effectiveTarget ? [effectiveTarget.min, effectiveTarget.max] : undefined}
+              showAgeContext={true}
+              showActions={true}
+            />
 
-        {/* Section Qu'est-ce que VLamax ? */}
-        <Collapsible>
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm" className="w-full justify-between text-xs">
-              <span className="flex items-center gap-2">
-                <HelpCircle className="h-3 w-3" />
-                Qu'est-ce que le VLamax ?
+            {/* Section Qu'est-ce que VLamax ? */}
+            <Collapsible>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="w-full justify-between text-xs">
+                  <span className="flex items-center gap-2">
+                    <HelpCircle className="h-3 w-3" />
+                    Qu'est-ce que le VLamax ?
+                  </span>
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-2 space-y-2 text-xs text-muted-foreground">
+                <p>
+                  <strong>VLamax</strong> (Vitesse maximale de production de lactate) mesure la capacité 
+                  du système glycolytique à produire de l'énergie rapidement.
+                </p>
+                <div className="grid grid-cols-2 gap-2 my-2">
+                  <div className="p-2 bg-cyan-500/10 rounded">
+                    <p className="font-medium text-cyan-700 dark:text-cyan-300">VLamax basse (&lt;0.40)</p>
+                    <p className="mt-1">Profil endurant. Idéal pour Ironman, marathon, ultra.</p>
+                  </div>
+                  <div className="p-2 bg-red-500/10 rounded">
+                    <p className="font-medium text-red-700 dark:text-red-300">VLamax élevée (&gt;0.60)</p>
+                    <p className="mt-1">Profil explosif. Adapté sprint, piste, efforts courts.</p>
+                  </div>
+                </div>
+                <p>
+                  <strong>Important:</strong> VLamax élevé n'est ni bon ni mauvais — c'est une caractéristique 
+                  du profil métabolique qui doit être adaptée à l'objectif.
+                </p>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* Disclaimer */}
+            <div className="flex items-start gap-2 pt-2 border-t text-[10px] text-muted-foreground">
+              <Info className="h-3 w-3 shrink-0 mt-0.5" />
+              <span>
+                Estimation Two For Coaching Lab™ — Ne remplace pas un test lactate. 
+                Interprétation coach requise.
               </span>
-              <ChevronDown className="h-3 w-3" />
-            </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="pt-2 space-y-2 text-xs text-muted-foreground">
-            <p>
-              <strong>VLamax</strong> (Vitesse maximale de production de lactate) mesure la capacité 
-              du système glycolytique à produire de l'énergie rapidement.
-            </p>
-            <div className="grid grid-cols-2 gap-2 my-2">
-              <div className="p-2 bg-cyan-500/10 rounded">
-                <p className="font-medium text-cyan-700 dark:text-cyan-300">VLamax basse (&lt;0.40)</p>
-                <p className="mt-1">Profil endurant. Idéal pour Ironman, marathon, ultra.</p>
-              </div>
-              <div className="p-2 bg-red-500/10 rounded">
-                <p className="font-medium text-red-700 dark:text-red-300">VLamax élevée (&gt;0.60)</p>
-                <p className="mt-1">Profil explosif. Adapté sprint, piste, efforts courts.</p>
-              </div>
             </div>
-            <p>
-              <strong>Important:</strong> VLamax élevé n'est ni bon ni mauvais — c'est une caractéristique 
-              du profil métabolique qui doit être adaptée à l'objectif.
-            </p>
-          </CollapsibleContent>
-        </Collapsible>
-
-        {/* Disclaimer */}
-        <div className="flex items-start gap-2 pt-2 border-t text-[10px] text-muted-foreground">
-          <Info className="h-3 w-3 shrink-0 mt-0.5" />
-          <span>
-            Estimation Two For Coaching Lab™ — Ne remplace pas un test lactate. 
-            Interprétation coach requise.
-          </span>
-        </div>
-      </CardContent>
-    </Card>
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
   );
 }
