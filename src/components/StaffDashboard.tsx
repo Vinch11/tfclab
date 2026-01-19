@@ -22,7 +22,8 @@ import {
   Info,
   ChevronDown,
   ChevronUp,
-  Star
+  Star,
+  Radar
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +32,7 @@ import { VLamaxEffectif, getSourceColor, getConfidenceLabel } from "@/lib/vlamax
 import { TTEEffectif, getTTETarget, getSourceLabel } from "@/lib/tteEffectif";
 import { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { NutritionEstimate } from "@/lib/nutritionPredictive";
+import { ProfileRadarChart } from "@/components/ProfileRadarChart";
 
 // =============================================
 // TYPES
@@ -195,6 +197,65 @@ export function StaffDashboard({
     
     return list;
   }, [tteEffectif, tteTarget, vlamaxEffectif, nutritionEstimate]);
+
+  // =============================================
+  // RADAR CHART SCORES CALCULATIONS
+  // =============================================
+  
+  // Targets par objectif pour les scores normalisés
+  const radarTargets = useMemo(() => {
+    const isLongDistance = ["IM", "Ironman", "Marathon", "Ultra", "TrailLong", "703", "Half"].includes(objectif);
+    const isMidDistance = ["Semi", "TrailCourt", "Olympic"].includes(objectif);
+    
+    return {
+      vlamaxIdeal: isLongDistance ? 0.28 : isMidDistance ? 0.35 : 0.45,
+      tteTarget: tteTarget,
+      ftpKgTarget: isLongDistance ? 4.0 : isMidDistance ? 3.8 : 3.5,
+    };
+  }, [objectif, tteTarget]);
+
+  // Normaliser VLamax (0-100): plus on est proche de l'idéal, plus le score est élevé
+  const normalizeVlamax = (value: number | null): number => {
+    if (value === null) return 0;
+    const ideal = radarTargets.vlamaxIdeal;
+    const maxDeviation = 0.5;
+    const deviation = Math.abs(value - ideal);
+    return Math.max(0, Math.min(100, Math.round((1 - deviation / maxDeviation) * 100)));
+  };
+
+  // Normaliser TTE (0-100): score basé sur l'atteinte de la cible
+  const normalizeTTE = (value: number): number => {
+    const target = radarTargets.tteTarget;
+    if (value >= target) return 100;
+    return Math.max(0, Math.round((value / target) * 100));
+  };
+
+  // Normaliser FTP/kg (0-100)
+  const normalizeFtpKg = (value: number | null): number => {
+    if (!value) return 0;
+    const target = radarTargets.ftpKgTarget;
+    if (value >= target) return 100;
+    return Math.max(0, Math.round((value / target) * 100));
+  };
+
+  // Scores radar calculés
+  const radarScores = useMemo(() => ({
+    currentVlamax: normalizeVlamax(vlamaxEffectif.value),
+    currentTTE: normalizeTTE(tteEffectif.tte_min),
+    currentFtpKg: normalizeFtpKg(ftpKg),
+    targetVlamax: 100,
+    targetTTE: 100,
+    targetFtpKg: 100,
+  }), [vlamaxEffectif.value, tteEffectif.tte_min, ftpKg, radarTargets]);
+
+  // Déterminer le sport pour le radar
+  const sportType: "velo" | "course" | "triathlon" = useMemo(() => {
+    const runObjectifs = ["Marathon", "Semi", "Trail", "TrailCourt", "TrailLong", "Ultra", "Course"];
+    const triObjectifs = ["IM", "Ironman", "703", "Half", "Olympic", "Sprint"];
+    if (runObjectifs.includes(objectif)) return "course";
+    if (triObjectifs.includes(objectif)) return "triathlon";
+    return "velo";
+  }, [objectif]);
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -408,6 +469,54 @@ export function StaffDashboard({
               <span className="font-medium text-foreground">Message : </span>
               {raceReadiness.messageStaff}
             </p>
+          </CardContent>
+        </Card>
+
+        {/* RADAR CHART: Profil Métabolique Complet */}
+        <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-accent/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Radar className="h-5 w-5 text-primary" />
+              Profil Métabolique Complet
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Visualisation radar des 3 métriques clés vs cibles {OBJECTIF_LABELS[objectif] || objectif}
+            </p>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <ProfileRadarChart
+              currentVlamax={radarScores.currentVlamax}
+              currentTTE={radarScores.currentTTE}
+              currentFtpKg={radarScores.currentFtpKg}
+              targetVlamax={radarScores.targetVlamax}
+              targetTTE={radarScores.targetTTE}
+              targetFtpKg={radarScores.targetFtpKg}
+              objectif={OBJECTIF_LABELS[objectif] || objectif}
+              sport={sportType}
+            />
+            
+            {/* Valeurs brutes pour contexte */}
+            <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+              <div className="p-2 bg-cyan-500/10 rounded-lg text-center">
+                <p className="text-cyan-600 dark:text-cyan-400 font-medium">VLamax</p>
+                <p className="font-bold text-foreground">
+                  {vlamaxEffectif.value !== null ? vlamaxEffectif.value.toFixed(2) : "—"}
+                </p>
+                <p className="text-muted-foreground">cible: {radarTargets.vlamaxIdeal}</p>
+              </div>
+              <div className="p-2 bg-orange-500/10 rounded-lg text-center">
+                <p className="text-orange-600 dark:text-orange-400 font-medium">TTE</p>
+                <p className="font-bold text-foreground">{tteEffectif.tte_min} min</p>
+                <p className="text-muted-foreground">cible: {radarTargets.tteTarget} min</p>
+              </div>
+              <div className="p-2 bg-green-500/10 rounded-lg text-center">
+                <p className="text-green-600 dark:text-green-400 font-medium">FTP/kg</p>
+                <p className="font-bold text-foreground">
+                  {ftpKg !== null ? ftpKg.toFixed(2) : "—"}
+                </p>
+                <p className="text-muted-foreground">cible: {radarTargets.ftpKgTarget}</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
