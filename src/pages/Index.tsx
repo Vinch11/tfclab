@@ -778,7 +778,7 @@ const Index = () => {
                 )}
                 
                 {/* Vue combinée Vélo + CAP pour triathlètes */}
-                {(currentAthlete.goal === "IM" || currentAthlete.goal === "70.3") && (
+                {(currentAthlete.goal === "IM" || currentAthlete.goal === "70.3" || currentAthlete.goal === "703") && (
                   <VLamaxCombinedCard
                     vlamaxBike={vlamaxEffectif.value}
                     vlamaxRun={vlamaxEffectif.value} // Même valeur pour l'instant, à séparer si données distinctes disponibles
