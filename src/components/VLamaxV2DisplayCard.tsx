@@ -189,22 +189,6 @@ export function VLamaxV2DisplayCard({
           </div>
         </div>
 
-        {/* Plage TFCL */}
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="p-2 bg-muted/30 rounded">
-            <span className="text-muted-foreground">Plage optimale</span>
-            <p className="font-mono font-medium">
-              {display.range.p25.toFixed(2)} – {display.range.p75.toFixed(2)}
-            </p>
-          </div>
-          <div className="p-2 bg-muted/30 rounded">
-            <span className="text-muted-foreground">Plage large</span>
-            <p className="font-mono font-medium">
-              {display.range.p10.toFixed(2)} – {display.range.p90.toFixed(2)}
-            </p>
-          </div>
-        </div>
-
         {/* Interprétation */}
         <div className="p-3 bg-muted/30 rounded-lg">
           <div className="flex items-start gap-2">
@@ -213,36 +197,7 @@ export function VLamaxV2DisplayCard({
           </div>
         </div>
 
-        {/* Cluster utilisé */}
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">Référentiel</span>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge variant="outline" className="text-[10px] cursor-help">
-                  {display.cluster.clusterLabel.split(" ").slice(0, 3).join(" ")}
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent>
-                <div className="text-xs space-y-1">
-                  <p className="font-medium">{display.cluster.clusterLabel}</p>
-                  <p>Confiance cluster : {(display.cluster.confidence * 100).toFixed(0)}%</p>
-                  {display.cluster.warnings.length > 0 && (
-                    <p className="text-amber-500">⚠️ {display.cluster.warnings[0]}</p>
-                  )}
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-
-        {/* Source et confiance */}
-        <div className="flex items-center justify-between text-xs border-t pt-2">
-          <span className="text-muted-foreground">{display.confidence.sourceLabel}</span>
-          <span className="text-muted-foreground">{display.confidence.margin}</span>
-        </div>
-
-        {/* Warnings */}
+        {/* Warnings (si pertinents) */}
         {display.calibration.warnings.length > 0 && (
           <div className="space-y-1">
             {display.calibration.warnings.slice(0, 2).map((w, i) => (
