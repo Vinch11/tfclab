@@ -43,7 +43,7 @@ export function SortableSectionWrapper({
   };
 
   if (!isEditMode) {
-    return <>{children}</>;
+    return <div id={`section-${id}`}>{children}</div>;
   }
 
   return (
