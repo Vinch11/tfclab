@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,10 +11,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Edit, Save } from "lucide-react";
+import { Edit, Save, Calculator, Sparkles } from "lucide-react";
 import { useCloudData, DbSnapshot } from "@/hooks/useCloudData";
 import { PROFILE_TERMINOLOGY } from "@/lib/v2/profileTerminology";
-
+import { estimateVLamaxCap, canEstimateVLamaxCap } from "@/lib/v2/vlamaxCapEstimator";
 interface SnapshotEditorProps {
   snapshot: DbSnapshot;
   trigger?: React.ReactNode;
@@ -26,6 +26,92 @@ const numOrNull = (v: string): number | null => {
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
 };
+
+// ✅ Composant pour le champ VLamax CAP avec calcul automatique
+interface VLamaxCapFieldProps {
+  vlamaxRun: string;
+  setVlamaxRun: (v: string) => void;
+  staffMode: boolean;
+  vma: number | null;
+  css: number | null;
+  tteMin: number | null;
+}
+
+function VLamaxCapField({ vlamaxRun, setVlamaxRun, staffMode, vma, css, tteMin }: VLamaxCapFieldProps) {
+  const canEstimate = useMemo(() => 
+    canEstimateVLamaxCap({ vma, css, paceThreshold: null, tteMin }),
+    [vma, css, tteMin]
+  );
+
+  const estimatedValue = useMemo(() => {
+    if (!canEstimate) return null;
+    return estimateVLamaxCap({ vma, css, paceThreshold: null, tteMin });
+  }, [vma, css, tteMin, canEstimate]);
+
+  const handleAutoCalculate = () => {
+    if (estimatedValue) {
+      setVlamaxRun(estimatedValue.value.toFixed(2));
+    }
+  };
+
+  if (staffMode) {
+    return (
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label className="text-right">VLamax CAP</Label>
+        <div className="col-span-3 flex gap-2">
+          <Input 
+            className="flex-1 border-accent/50" 
+            type="number" 
+            step="0.01" 
+            placeholder="0.35 (course)" 
+            value={vlamaxRun} 
+            onChange={(e) => setVlamaxRun(e.target.value)} 
+          />
+          {canEstimate && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={handleAutoCalculate}
+              title={estimatedValue 
+                ? `Calculer: ${estimatedValue.value.toFixed(2)} (${estimatedValue.sources.join(", ")})` 
+                : "Calculer VLamax CAP"
+              }
+              className="shrink-0 border-accent/50 hover:bg-accent/10"
+            >
+              <Sparkles className="w-4 h-4 text-accent" />
+            </Button>
+          )}
+        </div>
+        {estimatedValue && canEstimate && (
+          <div className="col-span-4 text-xs text-muted-foreground ml-auto pr-2">
+            Estimation: <span className="font-medium text-accent">{estimatedValue.value.toFixed(2)}</span>
+            <span className="ml-1">({estimatedValue.sources.join(" + ")})</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-4 items-center gap-4">
+      <Label className="text-right text-muted-foreground">VLamax CAP</Label>
+      <div className="col-span-3 h-10 px-3 py-2 rounded-md border border-border bg-muted/50 text-sm text-muted-foreground flex items-center justify-between">
+        <span>
+          {estimatedValue 
+            ? `Estimée: ${estimatedValue.value.toFixed(2)}` 
+            : "Calculée automatiquement"
+          }
+        </span>
+        {estimatedValue && (
+          <span className="text-xs opacity-70">
+            ({Math.round(estimatedValue.confidence * 100)}% confiance)
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export function SnapshotEditor({ snapshot, trigger, staffMode = false }: SnapshotEditorProps) {
   const { updateSnapshot } = useCloudData();
@@ -153,20 +239,15 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
             </div>
           )}
 
-          {/* ✅ VLamax CAP - Uniquement visible en mode Staff */}
-          {staffMode ? (
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">VLamax CAP</Label>
-              <Input className="col-span-3 border-accent/50" type="number" step="0.01" placeholder="0.35 (course)" value={vlamaxRun} onChange={(e) => setVlamaxRun(e.target.value)} />
-            </div>
-          ) : (
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right text-muted-foreground">VLamax CAP</Label>
-              <div className="col-span-3 h-10 px-3 py-2 rounded-md border border-border bg-muted/50 text-sm text-muted-foreground flex items-center">
-                Calculée automatiquement
-              </div>
-            </div>
-          )}
+          {/* ✅ VLamax CAP - Avec calcul automatique */}
+          <VLamaxCapField
+            vlamaxRun={vlamaxRun}
+            setVlamaxRun={setVlamaxRun}
+            staffMode={staffMode}
+            vma={numOrNull(vma)}
+            css={numOrNull(css)}
+            tteMin={numOrNull(tteObserved)}
+          />
 
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right">VMA (km/h)</Label>
