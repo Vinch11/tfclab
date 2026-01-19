@@ -163,15 +163,20 @@ export function AmbitionProgressMini({
 }: AmbitionProgressMiniProps) {
   const ambDef = getAmbitionDefinition(ambition);
 
-  // Calculer les données
-  const { progress, trend, metricsCount } = useMemo(() => {
+  // Calculer les données avec métriques individuelles
+  const { progress, trend, metricsCount, metrics } = useMemo(() => {
     const sorted = [...snapshots]
       .filter((s) => s.date)
       .sort((a, b) => a.date.localeCompare(b.date))
       .slice(-6);
 
     if (sorted.length === 0) {
-      return { progress: null, trend: "unknown" as const, metricsCount: 0 };
+      return { 
+        progress: null, 
+        trend: "unknown" as const, 
+        metricsCount: 0,
+        metrics: { vlamax: null, tte: null, ftpKg: null }
+      };
     }
 
     const progressData = sorted.map((s) => {
@@ -199,6 +204,15 @@ export function AmbitionProgressMini({
       ambition
     );
 
+    // Calculer les progressions individuelles
+    const vlamaxRange = getVLamaxRange(objectif, ambition);
+    const tteTarget = getTTETargetByAmbition(objectif, ambition);
+    const ftpKgTarget = getFtpKgTargetByAmbition(objectif, ambition);
+
+    const vlamaxProgress = calculateProgress(latest.vlamax ?? null, vlamaxRange.optimal, true);
+    const tteProgress = calculateProgress(latest.tte_observed_min ?? null, tteTarget, false);
+    const ftpKgProgress = calculateProgress(latestFtpKg, ftpKgTarget, false);
+
     // Compter les métriques disponibles
     let count = 0;
     if (latest.vlamax !== null) count++;
@@ -209,6 +223,23 @@ export function AmbitionProgressMini({
       progress: currentProgress,
       trend: getTrend(progressData),
       metricsCount: count,
+      metrics: {
+        vlamax: vlamaxProgress !== null ? { 
+          value: latest.vlamax, 
+          progress: Math.round(vlamaxProgress),
+          target: vlamaxRange.optimal
+        } : null,
+        tte: tteProgress !== null ? { 
+          value: latest.tte_observed_min, 
+          progress: Math.round(tteProgress),
+          target: tteTarget
+        } : null,
+        ftpKg: ftpKgProgress !== null ? { 
+          value: latestFtpKg, 
+          progress: Math.round(ftpKgProgress),
+          target: ftpKgTarget
+        } : null,
+      },
     };
   }, [snapshots, objectif, ambition, weightKg]);
 
@@ -265,18 +296,52 @@ export function AmbitionProgressMini({
           </button>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="max-w-xs">
-          <div className="space-y-1">
+          <div className="space-y-2">
             <p className="font-medium text-sm">
               {ambDef.icon} Progression vers "{ambDef.label}"
             </p>
-            <p className="text-xs text-muted-foreground">
-              {progress >= 100 
-                ? "🎉 Cibles atteintes !" 
-                : progress >= 85
-                ? "Proche des objectifs"
-                : `${100 - progress}% restant avant les cibles`}
-            </p>
-            <p className="text-xs text-muted-foreground">
+            
+            {/* Métriques individuelles */}
+            <div className="space-y-1 pt-1 border-t border-border/50">
+              {metrics.vlamax && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">VLamax</span>
+                  <span className="font-mono">
+                    <span className="font-medium">{metrics.vlamax.value?.toFixed(2)}</span>
+                    <span className="text-muted-foreground"> → {metrics.vlamax.target.toFixed(2)}</span>
+                    <span className={cn("ml-1", metrics.vlamax.progress >= 100 ? "text-emerald-500" : "text-amber-500")}>
+                      ({metrics.vlamax.progress}%)
+                    </span>
+                  </span>
+                </div>
+              )}
+              {metrics.tte && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">TTE</span>
+                  <span className="font-mono">
+                    <span className="font-medium">{metrics.tte.value}′</span>
+                    <span className="text-muted-foreground"> → {metrics.tte.target}′</span>
+                    <span className={cn("ml-1", metrics.tte.progress >= 100 ? "text-emerald-500" : "text-amber-500")}>
+                      ({metrics.tte.progress}%)
+                    </span>
+                  </span>
+                </div>
+              )}
+              {metrics.ftpKg && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">FTP/kg</span>
+                  <span className="font-mono">
+                    <span className="font-medium">{metrics.ftpKg.value?.toFixed(2)}</span>
+                    <span className="text-muted-foreground"> → {metrics.ftpKg.target.toFixed(2)}</span>
+                    <span className={cn("ml-1", metrics.ftpKg.progress >= 100 ? "text-emerald-500" : "text-amber-500")}>
+                      ({metrics.ftpKg.progress}%)
+                    </span>
+                  </span>
+                </div>
+              )}
+            </div>
+            
+            <p className="text-[10px] text-muted-foreground pt-1 border-t border-border/50">
               Cliquez pour voir le graphique complet
             </p>
           </div>
