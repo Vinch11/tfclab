@@ -337,6 +337,18 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
   }) : null;
   
   // Race Readiness
+  // Calculer l'âge de l'athlète
+  const athleteAge = athlete?.birth_date ? (() => {
+    const birthDate = new Date(athlete.birth_date);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  })() : null;
+  
   const raceReadiness = tteEffectif && vlamaxEffectif ? computeRaceReadinessEffectif({
     objectif: athlete?.goal || "IM",
     vlamaxEffectif,
@@ -347,6 +359,8 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
     seance_specifique_validee: false,
     fcMax: effectiveRefs?.fcMax ?? null,
     deriveCardiaque: effectiveSnapshot?.run_hr_drift_pct ?? null,
+    // ✅ Ajout âge pour uniformisation avec Compass
+    athleteAge,
   }) : null;
   
   // Charge récente
