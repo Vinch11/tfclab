@@ -299,8 +299,11 @@ export type Database = {
           run_hr_drift_pct: number | null
           run_hr_ref_bpm: number | null
           run_pace_ref_sec_per_km: number | null
+          running_power_max: number | null
+          running_power_threshold: number | null
           source: string
           sport_main: string | null
+          sprint_15s_distance: number | null
           tss_7d: number | null
           tte_mode: string | null
           tte_observed_min: number | null
@@ -349,8 +352,11 @@ export type Database = {
           run_hr_drift_pct?: number | null
           run_hr_ref_bpm?: number | null
           run_pace_ref_sec_per_km?: number | null
+          running_power_max?: number | null
+          running_power_threshold?: number | null
           source?: string
           sport_main?: string | null
+          sprint_15s_distance?: number | null
           tss_7d?: number | null
           tte_mode?: string | null
           tte_observed_min?: number | null
@@ -399,8 +405,11 @@ export type Database = {
           run_hr_drift_pct?: number | null
           run_hr_ref_bpm?: number | null
           run_pace_ref_sec_per_km?: number | null
+          running_power_max?: number | null
+          running_power_threshold?: number | null
           source?: string
           sport_main?: string | null
+          sprint_15s_distance?: number | null
           tss_7d?: number | null
           tte_mode?: string | null
           tte_observed_min?: number | null
