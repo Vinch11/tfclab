@@ -11,10 +11,46 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Edit, Save, Calculator, Sparkles } from "lucide-react";
+import { Edit, Save, Calculator, Sparkles, HelpCircle } from "lucide-react";
 import { useCloudData, DbSnapshot } from "@/hooks/useCloudData";
 import { PROFILE_TERMINOLOGY } from "@/lib/v2/profileTerminology";
 import { estimateVLamaxCap, canEstimateVLamaxCap } from "@/lib/v2/vlamaxCapEstimator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+// ✅ Composant Label avec aide contextuelle
+interface LabelWithHelpProps {
+  label: string;
+  help: string;
+  example?: string;
+}
+
+function LabelWithHelp({ label, help, example }: LabelWithHelpProps) {
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Label className="text-right flex items-center justify-end gap-1 cursor-help">
+            {label}
+            <HelpCircle className="w-3 h-3 text-muted-foreground" />
+          </Label>
+        </TooltipTrigger>
+        <TooltipContent side="left" className="max-w-[280px]">
+          <p className="text-sm">{help}</p>
+          {example && (
+            <p className="text-xs text-muted-foreground mt-1 italic">
+              Ex: {example}
+            </p>
+          )}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
 interface SnapshotEditorProps {
   snapshot: DbSnapshot;
   trigger?: React.ReactNode;
@@ -329,7 +365,11 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
           </div>
 
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Allure Seuil</Label>
+            <LabelWithHelp 
+              label="Allure Seuil" 
+              help="Allure que vous pouvez tenir ~1h en course à pied. Correspond au seuil lactique 2 (SL2). Saisissez en mm:ss ou en secondes."
+              example="4:30/km ou 270s pour un coureur avec VMA 17"
+            />
             <div className="col-span-3 flex gap-2 items-center">
               <Input 
                 className="flex-1" 
@@ -347,7 +387,11 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
           </div>
 
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Sprint 15s (m)</Label>
+            <LabelWithHelp 
+              label="Sprint 15s (m)" 
+              help="Distance parcourue lors d'un sprint maximal de 15 secondes sur piste ou terrain plat. Mesure la puissance anaérobie lactique."
+              example="80-90m pour amateur, 95-105m pour élite"
+            />
             <Input 
               className="col-span-3" 
               type="number" 
@@ -359,7 +403,11 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
           </div>
 
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Puissance Max CAP (W)</Label>
+            <LabelWithHelp 
+              label="Puissance Max CAP (W)" 
+              help="Puissance maximale mesurée par un capteur de running power (Stryd, Garmin, etc.) lors d'un sprint ou effort très court (5-10s)."
+              example="400-500W pour amateur, 600-800W pour élite"
+            />
             <Input 
               className="col-span-3" 
               type="number" 
@@ -370,7 +418,11 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
           </div>
 
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Puissance Seuil CAP (W)</Label>
+            <LabelWithHelp 
+              label="Puissance Seuil CAP (W)" 
+              help="Puissance moyenne au seuil lactique (FTP course), mesurée par capteur de running power. Correspond à l'effort tenable ~1h."
+              example="250-300W pour amateur, 320-400W pour élite"
+            />
             <Input 
               className="col-span-3" 
               type="number" 
