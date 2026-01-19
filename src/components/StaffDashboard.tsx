@@ -36,6 +36,7 @@ import { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { NutritionEstimate } from "@/lib/nutritionPredictive";
 import { ProfileRadarChart } from "@/components/ProfileRadarChart";
 import { getAgeAdjustedTargets, computeAgeAdjustmentIndex } from "@/lib/ageAdjustment";
+import { AmbitionLevel, DEFAULT_AMBITION, AMBITION_DEFINITIONS } from "@/types/ambitionLevel";
 
 // =============================================
 // TYPES
@@ -50,7 +51,8 @@ interface StaffDashboardProps {
   nutritionEstimate: NutritionEstimate | null;
   ftpKg: number | null;
   snapshotDate: string | null;
-  athleteAge?: number | null; // Âge de l'athlète pour ajustement des cibles
+  athleteAge?: number | null;
+  ambition?: AmbitionLevel; // Niveau d'ambition pour ajustement des cibles
 }
 
 // =============================================
@@ -171,13 +173,17 @@ export function StaffDashboard({
   ftpKg,
   snapshotDate,
   athleteAge,
+  ambition = DEFAULT_AMBITION,
 }: StaffDashboardProps) {
   const [showScientificDetails, setShowScientificDetails] = useState(false);
 
-  // Cibles ajustées par âge - SOURCE UNIQUE pour tous les graphiques
+  // Récupérer le label de l'ambition pour affichage
+  const ambitionLabel = AMBITION_DEFINITIONS[ambition]?.shortLabel || "AG";
+
+  // Cibles basées sur OBJECTIF + AMBITION (VLamax n'est plus ajustée par âge)
   const ageAdjustedTargets = useMemo(() => 
-    getAgeAdjustedTargets(objectif, athleteAge ?? null), 
-    [objectif, athleteAge]
+    getAgeAdjustedTargets(objectif, athleteAge ?? null, ambition), 
+    [objectif, athleteAge, ambition]
   );
   const ageInfo = useMemo(() => 
     computeAgeAdjustmentIndex(athleteAge ?? null), 
@@ -553,37 +559,32 @@ export function StaffDashboard({
                   : "bg-muted/30 border-border"
               )}>
                 <div className="flex items-center gap-2 mb-2">
-                  <Gauge className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                  <span className="font-semibold text-foreground">Ajustement par âge</span>
-                  {ageInfo.aai < 1.0 && (
-                    <Badge variant="outline" className="text-xs py-0 h-5 border-amber-500/50 text-amber-700 dark:text-amber-400">
-                      Actif
-                    </Badge>
+                  <Target className="h-4 w-4 text-primary" />
+                  <span className="font-semibold text-foreground">Cibles physiologiques</span>
+                  <Badge variant="outline" className="text-xs py-0 h-5 border-primary/50 text-primary">
+                    {ambitionLabel}
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-3 gap-3 text-sm">
+                  <div>
+                    <p className="text-muted-foreground mb-1">VLamax cible</p>
+                    <p className="font-medium text-foreground font-mono">{radarTargets.vlamaxIdeal.toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground mb-1">TTE cible</p>
+                    <p className="font-medium text-foreground font-mono">{radarTargets.tteTarget} min</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground mb-1">FTP/kg cible</p>
+                    <p className="font-medium text-foreground font-mono">{radarTargets.ftpKgTarget}</p>
+                  </div>
+                </div>
+                <p className="mt-2 text-muted-foreground leading-relaxed text-xs">
+                  Cibles définies par <span className="font-medium text-foreground">objectif ({OBJECTIF_LABELS[objectif] || objectif})</span> et <span className="font-medium text-foreground">ambition ({ambitionLabel})</span>.
+                  {ageAdjustedTargets.ageAdjustmentApplied && (
+                    <span> TTE ajusté pour {ageInfo.label}.</span>
                   )}
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-muted-foreground mb-1">Catégorie</p>
-                    <p className="font-medium text-foreground">{ageInfo.label}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground mb-1">Facteur AAI</p>
-                    <p className="font-medium text-foreground font-mono">
-                      {(ageInfo.aai * 100).toFixed(0)}%
-                      {ageInfo.aai < 1.0 && (
-                        <span className="text-muted-foreground ml-1">
-                          (−{((1 - ageInfo.aai) * 100).toFixed(0)}%)
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                </div>
-                {(ageInfo.category === "master1" || ageInfo.category === "master2") && (
-                  <p className="mt-2 text-muted-foreground leading-relaxed">
-                    Les cibles VLamax ({radarTargets.vlamaxIdeal}), TTE ({radarTargets.tteTarget} min) et FTP/kg ({radarTargets.ftpKgTarget}) sont ajustées pour tenir compte de l'âge. 
-                    Multiplicateur de risque: ×{ageInfo.riskMultiplier.toFixed(2)}
-                  </p>
-                )}
+                </p>
               </div>
             )}
           </CardContent>
