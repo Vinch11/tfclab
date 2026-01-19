@@ -45,7 +45,7 @@ import { computeEnergyDrift, EnergyDriftResult } from "@/lib/energyDrift";
 import { EnergyDriftBadge } from "@/components/EnergyDriftBadge";
 import { DashboardGauges } from "@/components/DashboardGauges";
 import { StaffDashboard } from "@/components/StaffDashboard";
-import { ScientificChartsDashboard, MetabolicPerformanceCompass, AmbitionProgressChart } from "@/components/charts";
+import { ScientificChartsDashboard, MetabolicPerformanceCompass, AmbitionProgressChart, AmbitionProgressMini } from "@/components/charts";
 import { ChargeRecenteCard } from "@/components/ChargeRecenteCard";
 import { computeCRR } from "@/lib/chargeRecenteReference";
 import { SortableSectionsContainer } from "@/components/SortableSectionsContainer";
@@ -559,24 +559,37 @@ const Index = () => {
               <AgeAdjustmentBadge birthDate={currentAthlete.birth_date} variant="inline" />
             )}
 
-            {/* Ambition (visible sur mobile) */}
+            {/* Mini aperçu progression ambition + sélecteur ambition */}
             {currentAthlete && (
-              <div className="rounded-xl border bg-muted/20 p-3">
+              <div className="rounded-xl border bg-muted/20 p-3 space-y-3">
+                {/* Header avec mini-aperçu */}
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <Star className="h-4 w-4 text-primary" />
                     <span className="text-sm font-medium">Ambition</span>
                   </div>
-                  <Badge variant="outline" className="text-xs">
-                    {getAmbitionDefinition(currentAmbition).icon} {getAmbitionDefinition(currentAmbition).shortLabel}
-                  </Badge>
+                  
+                  {/* Mini aperçu de la progression */}
+                  <AmbitionProgressMini
+                    snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id)}
+                    objectif={currentAthlete.goal || "IM"}
+                    ambition={currentAmbition}
+                    weightKg={effectiveRefs.weightKg}
+                    onClick={() => {
+                      // Scroll vers la section ambition-progress
+                      const el = document.getElementById("section-ambition-progress");
+                      if (el) {
+                        el.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }
+                    }}
+                  />
                 </div>
 
                 <Select
                   value={currentAmbition}
                   onValueChange={(v) => updateCurrentAthleteAmbition(v as AmbitionLevel)}
                 >
-                  <SelectTrigger className="mt-2 h-10">
+                  <SelectTrigger className="h-10">
                     <SelectValue placeholder="Choisir un niveau" />
                   </SelectTrigger>
                   <SelectContent>
@@ -591,7 +604,7 @@ const Index = () => {
                   </SelectContent>
                 </Select>
 
-                <p className="text-xs text-muted-foreground mt-2">
+                <p className="text-xs text-muted-foreground">
                   Les cibles VLamax, TTE et FTP/kg ainsi que les recommandations s'ajustent selon ce niveau.
                 </p>
               </div>

@@ -14,6 +14,7 @@ export { ScientificChartsDashboard } from "./ScientificChartsDashboard";
 export { MetabolicPerformanceCompassV2 as MetabolicPerformanceCompass, MetabolicPerformanceCompassV2 } from "./MetabolicPerformanceCompassV2";
 export { CompassMini, COMPASS_METHODOLOGY } from "./MetabolicPerformanceCompass";
 export { AmbitionProgressChart, calculateAmbitionPredictions, type AmbitionPrediction } from "./AmbitionProgressChart";
+export { AmbitionProgressMini } from "./AmbitionProgressMini";
 export { CadenceProfileChart } from "./CadenceProfileChart";
 
 // Composants unifiés d'affichage des métriques
