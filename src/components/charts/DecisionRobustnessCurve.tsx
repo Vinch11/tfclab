@@ -245,6 +245,22 @@ export function DecisionRobustnessCurve({
           <p className="text-xs text-muted-foreground text-center mt-1">
             {precisionScore.zoneLabel}
           </p>
+          {/* Texte explicatif condensé pour mode compact */}
+          <div className="mt-3 pt-3 border-t border-border">
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              <strong className="text-foreground">Rendements décroissants</strong> : au-delà d'un seuil, 
+              chaque % de précision supplémentaire apporte peu aux décisions coaching. 
+              {precisionScore.zone === "robust" && (
+                <span className="text-green-600 dark:text-green-400"> Zone TFCL optimale.</span>
+              )}
+              {precisionScore.zone === "illusion" && (
+                <span className="text-destructive"> Tests complémentaires recommandés.</span>
+              )}
+              {precisionScore.zone === "absolute" && (
+                <span className="text-blue-600 dark:text-blue-400"> Précision laboratoire atteinte.</span>
+              )}
+            </p>
+          </div>
         </CardContent>
       </Card>
     );
