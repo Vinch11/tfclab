@@ -25,6 +25,8 @@ import {
   Clock,
   Calendar,
   Scale,
+  Heart,
+  Calculator,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StaffReport as StaffReportType, generateStaffReport, GenerateStaffReportParams } from "@/lib/staffReport";
@@ -38,6 +40,7 @@ import { PerformanceRiskMatrixCompact } from "@/components/PerformanceRiskMatrix
 import { getAxisLabel, getAxisColor } from "@/lib/wahoo/wahooSuggestionEngine";
 import { MetabolicPerformanceCompassV2 as MetabolicPerformanceCompass } from "@/components/charts/MetabolicPerformanceCompassV2";
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
+import { computePillarCalculations } from "@/components/ReadinessPillarDetail";
 import type { DbSnapshot } from "@/hooks/useCloudData";
 
 interface StaffReportProps {
@@ -204,6 +207,9 @@ export function StaffReport({
             </div>
           </div>
         </div>
+
+        {/* 1.5️⃣ DÉTAILS DE CALCUL RACE READINESS */}
+        <RaceReadinessCalculationDetails readiness={readiness} />
 
         {/* 2️⃣ INDICATEURS CLÉS */}
         <div>
@@ -990,5 +996,123 @@ export function StaffReport({
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+/**
+ * Composant pour afficher les détails de calcul Race Readiness dans le rapport exporté
+ */
+function RaceReadinessCalculationDetails({ readiness }: { readiness: RaceReadinessEffectif }) {
+  const calculations = computePillarCalculations(readiness);
+  
+  const pillars = [
+    { key: "vlamax" as const, label: "VLamax", icon: <Zap className="w-4 h-4 text-primary" />, weight: readiness.weights.vlamax },
+    { key: "endurance" as const, label: "Endurance (TTE)", icon: <Activity className="w-4 h-4 text-accent" />, weight: readiness.weights.tte },
+    { key: "puissance" as const, label: "Puissance (FTP/kg)", icon: <TrendingUp className="w-4 h-4 text-warning" />, weight: readiness.weights.ftpKg },
+    { key: "fraicheur" as const, label: "Fraîcheur", icon: <Heart className="w-4 h-4 text-success" />, weight: readiness.weights.freshness },
+  ];
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "optimal": return "text-success bg-success/10 border-success/30";
+      case "acceptable": return "text-warning bg-warning/10 border-warning/30";
+      case "needs_work": return "text-destructive bg-destructive/10 border-destructive/30";
+      default: return "text-muted-foreground bg-muted/30 border-border";
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "optimal": return "Optimal";
+      case "acceptable": return "Acceptable";
+      case "needs_work": return "À améliorer";
+      default: return "Manquant";
+    }
+  };
+
+  return (
+    <div className="print:break-inside-avoid">
+      <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+        <Calculator className="h-4 w-4" />
+        DÉTAILS DE CALCUL — RACE READINESS ({readiness.score}/100)
+      </h3>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {pillars.map(pillar => {
+          const calc = calculations[pillar.key];
+          return (
+            <div 
+              key={pillar.key}
+              className={cn(
+                "p-3 rounded-lg border",
+                getStatusColor(calc.status)
+              )}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  {pillar.icon}
+                  <span className="font-semibold text-sm">{pillar.label}</span>
+                  <span className="text-xs text-muted-foreground">({pillar.weight}%)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono font-bold">{calc.finalScore}/25</span>
+                  <Badge variant="outline" className="text-[10px]">
+                    {getStatusLabel(calc.status)}
+                  </Badge>
+                </div>
+              </div>
+              
+              {/* Valeurs */}
+              <div className="grid grid-cols-2 gap-2 mb-2 text-xs">
+                <div className="p-1.5 rounded bg-background/50">
+                  <span className="text-muted-foreground">Actuel: </span>
+                  <span className="font-mono font-medium">
+                    {calc.currentValue !== null
+                      ? pillar.key === "vlamax"
+                        ? calc.currentValue.toFixed(2)
+                        : pillar.key === "endurance"
+                        ? `${calc.currentValue} min`
+                        : pillar.key === "puissance"
+                        ? `${calc.currentValue.toFixed(1)} W/kg`
+                        : `${Math.round(calc.rawScore)}%`
+                      : "—"}
+                  </span>
+                </div>
+                <div className="p-1.5 rounded bg-primary/5">
+                  <span className="text-muted-foreground">Cible: </span>
+                  <span className="font-mono font-medium text-primary">
+                    {pillar.key === "vlamax"
+                      ? `≤${calc.targetValue.toFixed(2)}`
+                      : pillar.key === "endurance"
+                      ? `≥${calc.targetValue} min`
+                      : pillar.key === "puissance"
+                      ? `≥${calc.targetValue.toFixed(1)} W/kg`
+                      : "≥70%"}
+                  </span>
+                </div>
+              </div>
+              
+              {/* Formule */}
+              <div className="p-2 rounded bg-muted/20 mb-2">
+                <p className="text-[10px] font-medium text-muted-foreground mb-0.5">Calcul:</p>
+                <p className="text-[10px] font-mono">{calc.formula}</p>
+              </div>
+              
+              {/* Explication */}
+              <p className="text-[10px] text-muted-foreground italic">
+                💡 {calc.explanation}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+      
+      {/* Légende */}
+      <div className="mt-3 p-2 rounded-lg bg-muted/20 border text-[10px] text-muted-foreground">
+        <strong>Score final:</strong> Σ (Score pilier × Poids) = {readiness.score}/100 • 
+        <strong className="ml-2">Confiance:</strong> {Math.round(readiness.confidence * 100)}%
+      </div>
+    </div>
   );
 }

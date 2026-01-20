@@ -35,7 +35,12 @@ import {
   Check,
   User,
   BarChart3,
-  TrendingUp
+  TrendingUp,
+  FlaskConical,
+  Dumbbell,
+  BookOpen,
+  GraduationCap,
+  Trophy
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -236,9 +241,13 @@ export function LayoutPreferencesEditor() {
   } = useLayoutPreferences();
 
   const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
-    { id: "profil", label: "Profil", icon: <User className="w-4 h-4" /> },
     { id: "dashboard", label: "Dashboard", icon: <BarChart3 className="w-4 h-4" /> },
-    { id: "evolution", label: "Évolution", icon: <TrendingUp className="w-4 h-4" /> },
+    { id: "profil", label: "Profil", icon: <User className="w-4 h-4" /> },
+    { id: "tests", label: "Tests", icon: <FlaskConical className="w-4 h-4" /> },
+    { id: "seances", label: "Bibliothèque", icon: <Dumbbell className="w-4 h-4" /> },
+    { id: "templates", label: "Templates", icon: <BookOpen className="w-4 h-4" /> },
+    { id: "academy", label: "Academy", icon: <GraduationCap className="w-4 h-4" /> },
+    { id: "race-readiness", label: "Race Readiness", icon: <Trophy className="w-4 h-4" /> },
   ];
 
   return (
@@ -253,15 +262,22 @@ export function LayoutPreferencesEditor() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="profil" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-4">
-            {tabs.map(tab => (
-              <TabsTrigger key={tab.id} value={tab.id} className="gap-1.5">
-                {tab.icon}
-                <span className="hidden sm:inline">{tab.label}</span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
+        <Tabs defaultValue="dashboard" className="w-full">
+          {/* Scrollable tabs for all menu items */}
+          <div className="overflow-x-auto -mx-1 px-1 pb-2">
+            <TabsList className="inline-flex w-auto min-w-full gap-1 mb-4">
+              {tabs.map(tab => (
+                <TabsTrigger 
+                  key={tab.id} 
+                  value={tab.id} 
+                  className="gap-1.5 px-3 py-2 whitespace-nowrap flex-shrink-0"
+                >
+                  {tab.icon}
+                  <span className="text-xs sm:text-sm">{tab.label}</span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
 
           {tabs.map(tab => (
             <TabsContent key={tab.id} value={tab.id}>
