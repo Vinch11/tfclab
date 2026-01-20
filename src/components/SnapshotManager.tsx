@@ -910,7 +910,15 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <Badge variant="outline" className="text-[10px] ml-auto">Estimation auto</Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              className="ml-auto h-7 text-xs gap-1"
+              onClick={() => navigate("/cap-testing-week")}
+            >
+              <Beaker className="w-3 h-3" />
+              Semaine Tests CAP
+            </Button>
           </div>
           
           <div className="p-3 rounded-lg bg-background/50 border border-border mb-4">
