@@ -35,6 +35,8 @@ import { TTEEffectif, getTTETarget, getSourceLabel } from "@/lib/tteEffectif";
 import { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { NutritionEstimate } from "@/lib/nutritionPredictive";
 import { ProfileRadarChart } from "@/components/ProfileRadarChart";
+import { RaceReadinessCard } from "@/components/RaceReadinessCard";
+import { EnergyDriftResult } from "@/lib/energyDrift";
 
 import { getAgeAdjustedTargets, computeAgeAdjustmentIndex } from "@/lib/ageAdjustment";
 import { AmbitionLevel, DEFAULT_AMBITION, AMBITION_DEFINITIONS } from "@/types/ambitionLevel";
@@ -56,6 +58,9 @@ interface StaffDashboardProps {
   ambition?: AmbitionLevel; // Niveau d'ambition pour ajustement des cibles
   snapshot?: unknown; // Pour DecisionRobustnessCard
   vo2max?: number | null;
+  // ✅ AJOUT: Props pour RaceReadinessCard complet
+  athlete?: unknown; // Objet athlete complet pour RaceReadinessCard
+  energyDrift?: unknown; // EnergyDriftResult pour RaceReadinessCard
 }
 
 // =============================================
@@ -179,6 +184,8 @@ export function StaffDashboard({
   ambition = DEFAULT_AMBITION,
   snapshot,
   vo2max,
+  athlete,
+  energyDrift,
 }: StaffDashboardProps) {
   const [showScientificDetails, setShowScientificDetails] = useState(false);
 
@@ -459,55 +466,67 @@ export function StaffDashboard({
           </CardContent>
         </Card>
 
-        {/* PILIER 3: Race Readiness */}
-        <Card>
-          <CardContent className="p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-green-500" />
-                <span className="font-semibold">Race Readiness</span>
+        {/* PILIER 3: Race Readiness - Utilise le composant complet */}
+        {athlete ? (
+          <RaceReadinessCard
+            athlete={athlete}
+            vlamaxEffectif={vlamaxEffectif}
+            tteEffectif={tteEffectif}
+            readiness={raceReadiness}
+            energyDrift={energyDrift as EnergyDriftResult}
+            athleteAge={athleteAge}
+          />
+        ) : (
+          // Fallback si athlete n'est pas passé
+          <Card>
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-primary" />
+                  <span className="font-semibold">Race Readiness</span>
+                </div>
+                {getStatusBadge(readinessStatus.status, readinessStatus.label)}
               </div>
-              {getStatusBadge(readinessStatus.status, readinessStatus.label)}
-            </div>
-            
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold font-mono">{raceReadiness.score}</span>
-              <span className="text-sm text-muted-foreground">%</span>
-            </div>
-            
-            <Progress 
-              value={raceReadiness.score} 
-              className="h-2" 
-            />
-            
-            <p className="text-xs text-muted-foreground italic">
-              Score pondéré selon l'objectif ({OBJECTIF_LABELS[objectif] || objectif})
-            </p>
-            
-            {/* Détail par composante */}
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              <div className="p-2 bg-muted/50 rounded text-center">
-                <p className="text-muted-foreground">Métabolisme</p>
-                <p className="font-bold">{raceReadiness.details.vlamax}/25</p>
+              
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold font-mono">{raceReadiness.score}</span>
+                <span className="text-sm text-muted-foreground">%</span>
               </div>
-              <div className="p-2 bg-muted/50 rounded text-center">
-                <p className="text-muted-foreground">Endurance</p>
-                <p className="font-bold">{raceReadiness.details.endurance}/25</p>
+              
+              <Progress 
+                value={raceReadiness.score} 
+                className="h-2" 
+              />
+              
+              <p className="text-xs text-muted-foreground italic">
+                Score pondéré selon l'objectif ({OBJECTIF_LABELS[objectif] || objectif})
+              </p>
+              
+              {/* Détail par composante */}
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="p-2 bg-muted/50 rounded text-center">
+                  <p className="text-muted-foreground">Métabolisme</p>
+                  <p className="font-bold">{raceReadiness.details.vlamax}/25</p>
+                </div>
+                <div className="p-2 bg-muted/50 rounded text-center">
+                  <p className="text-muted-foreground">Endurance</p>
+                  <p className="font-bold">{raceReadiness.details.endurance}/25</p>
+                </div>
+                <div className="p-2 bg-muted/50 rounded text-center">
+                  <p className="text-muted-foreground">Puissance</p>
+                  <p className="font-bold">{raceReadiness.details.puissance}/25</p>
+                </div>
               </div>
-              <div className="p-2 bg-muted/50 rounded text-center">
-                <p className="text-muted-foreground">Puissance</p>
-                <p className="font-bold">{raceReadiness.details.puissance}/25</p>
-              </div>
-            </div>
-            
-            <Separator />
-            
-            <p className="text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">Message : </span>
-              {raceReadiness.messageStaff}
-            </p>
-          </CardContent>
-        </Card>
+              
+              <Separator />
+              
+              <p className="text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">Message : </span>
+                {raceReadiness.messageStaff}
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* RADAR CHART: Profil Métabolique Complet */}
         <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-accent/5">
