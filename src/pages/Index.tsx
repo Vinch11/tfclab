@@ -87,6 +87,8 @@ import {
   Settings2,
   CalendarDays,
   Star,
+  Trophy,
+  Calculator,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Switch } from "@/components/ui/switch";
@@ -1198,7 +1200,7 @@ const Index = () => {
         return (
           <div className="animate-fade-in">
             {renderAthleteSelector()}
-            {legacyAthlete && (
+            {legacyAthlete ? (
               <div className="mt-6">
                 <RaceReadinessPage
                   athleteName={currentAthlete?.name || "Athlète"}
@@ -1226,6 +1228,28 @@ const Index = () => {
                   }}
                   onGoToMethodology={() => setActiveTab("methodology")}
                 />
+              </div>
+            ) : (
+              <div className="mt-6 flex flex-col items-center justify-center py-16 px-4">
+                <div className="text-center max-w-md space-y-4">
+                  <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                    <Trophy className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-foreground">
+                    Aucun athlète sélectionné
+                  </h3>
+                  <p className="text-muted-foreground">
+                    Sélectionnez un athlète avec un profil complet pour afficher son analyse Race Readiness.
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setActiveTab("profil")}
+                    className="mt-4"
+                  >
+                    <Calculator className="w-4 h-4 mr-2" />
+                    Créer un profil
+                  </Button>
+                </div>
               </div>
             )}
           </div>
