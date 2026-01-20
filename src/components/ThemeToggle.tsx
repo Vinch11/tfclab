@@ -1,4 +1,4 @@
-import { Moon, Building2 } from "lucide-react";
+import { Moon, Building2, Mountain, Zap, Sunrise, Snowflake, Flame, TreePine } from "lucide-react";
 import { useTheme, THEME_CONFIG, type Theme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +11,12 @@ import {
 const ThemeIcons: Record<Theme, React.ElementType> = {
   dark: Moon,
   classic: Building2,
+  endurance: Mountain,
+  neon: Zap,
+  aube: Sunrise,
+  cryo: Snowflake,
+  performance: Flame,
+  nature: TreePine,
 };
 
 export function ThemeToggle() {
