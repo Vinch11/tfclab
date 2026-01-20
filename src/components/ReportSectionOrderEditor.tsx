@@ -1,6 +1,6 @@
 /**
  * Report Section Order Editor
- * Permet de réorganiser l'ordre des sections dans le rapport exporté
+ * Permet de réorganiser l'ordre et la visibilité des sections dans le rapport exporté
  */
 
 import { useState, useEffect } from "react";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import { 
   FileText, 
   GripVertical, 
@@ -17,6 +18,7 @@ import {
   EyeOff,
   ChevronUp,
   ChevronDown,
+  LayoutList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -38,10 +40,11 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import type { ReportSections } from "./ExportTools";
 
-// Clé localStorage pour l'ordre des sections
-const STORAGE_KEY = "vlab-export-section-order";
+// Clés localStorage
+const ORDER_STORAGE_KEY = "vlab-export-section-order";
+const VISIBILITY_STORAGE_KEY = "vlab-export-sections";
 
-// Labels des sections
+// Labels des sections avec icônes miniatures
 export const SECTION_LABELS: Record<keyof ReportSections, string> = {
   synthese: "Synthèse Exécutive",
   compass: "Metabolic Compass™",
@@ -66,6 +69,46 @@ export const SECTION_LABELS: Record<keyof ReportSections, string> = {
   checkins: "Check-ins",
   comprendre: "Comprendre mes scores",
   qualite: "Qualité des données",
+};
+
+// Catégories pour regroupement visuel
+const SECTION_CATEGORIES: Record<keyof ReportSections, string> = {
+  synthese: "Synthèse",
+  compass: "Analyse",
+  profilMetabolique: "Analyse",
+  indicateurs: "Analyse",
+  raceReadiness: "Performance",
+  injuryRisk: "Performance",
+  nutritionV2: "Nutrition",
+  fatmaxTFCL: "Nutrition",
+  ambitionTargets: "Objectifs",
+  ambitionPredictions: "Objectifs",
+  evolutionCharts: "Historique",
+  ageAdjustment: "Profil",
+  methodology: "Entraînement",
+  twoForCoaching: "Entraînement",
+  wahoo: "Entraînement",
+  planSuggestion: "Entraînement",
+  templateRecommendation: "Entraînement",
+  zones: "Entraînement",
+  historique: "Historique",
+  tests: "Historique",
+  checkins: "Historique",
+  comprendre: "Aide",
+  qualite: "Aide",
+};
+
+// Couleurs par catégorie
+const CATEGORY_COLORS: Record<string, string> = {
+  "Synthèse": "bg-primary/20 text-primary",
+  "Analyse": "bg-blue-500/20 text-blue-600",
+  "Performance": "bg-green-500/20 text-green-600",
+  "Nutrition": "bg-orange-500/20 text-orange-600",
+  "Objectifs": "bg-purple-500/20 text-purple-600",
+  "Historique": "bg-gray-500/20 text-gray-600",
+  "Profil": "bg-cyan-500/20 text-cyan-600",
+  "Entraînement": "bg-amber-500/20 text-amber-600",
+  "Aide": "bg-muted text-muted-foreground",
 };
 
 // Ordre par défaut
@@ -95,13 +138,39 @@ export const DEFAULT_SECTION_ORDER: (keyof ReportSections)[] = [
   "qualite",
 ];
 
+// Visibilité par défaut (toutes visibles)
+const DEFAULT_VISIBILITY: Record<keyof ReportSections, boolean> = {
+  synthese: true,
+  compass: true,
+  profilMetabolique: true,
+  indicateurs: true,
+  raceReadiness: true,
+  injuryRisk: true,
+  nutritionV2: true,
+  fatmaxTFCL: true,
+  ambitionTargets: true,
+  ambitionPredictions: true,
+  evolutionCharts: true,
+  ageAdjustment: true,
+  methodology: true,
+  twoForCoaching: true,
+  wahoo: true,
+  planSuggestion: true,
+  templateRecommendation: true,
+  zones: true,
+  historique: true,
+  tests: true,
+  checkins: true,
+  comprendre: true,
+  qualite: true,
+};
+
 // Récupérer l'ordre des sections depuis localStorage
 export function getSectionOrder(): (keyof ReportSections)[] {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(ORDER_STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored) as (keyof ReportSections)[];
-      // Valider et compléter avec les sections manquantes
       const validKeys = new Set(DEFAULT_SECTION_ORDER);
       const filteredParsed = parsed.filter(k => validKeys.has(k));
       const missing = DEFAULT_SECTION_ORDER.filter(k => !filteredParsed.includes(k));
@@ -113,21 +182,52 @@ export function getSectionOrder(): (keyof ReportSections)[] {
   return DEFAULT_SECTION_ORDER;
 }
 
+// Récupérer la visibilité des sections
+export function getSectionVisibility(): Record<keyof ReportSections, boolean> {
+  try {
+    const stored = localStorage.getItem(VISIBILITY_STORAGE_KEY);
+    if (stored) {
+      return { ...DEFAULT_VISIBILITY, ...JSON.parse(stored) };
+    }
+  } catch {
+    // Ignore errors
+  }
+  return DEFAULT_VISIBILITY;
+}
+
 // Sauvegarder l'ordre des sections
 export function saveSectionOrder(order: (keyof ReportSections)[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(order));
+  localStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(order));
+}
+
+// Sauvegarder la visibilité des sections
+export function saveSectionVisibility(visibility: Record<keyof ReportSections, boolean>) {
+  localStorage.setItem(VISIBILITY_STORAGE_KEY, JSON.stringify(visibility));
 }
 
 interface SortableItemProps {
   id: keyof ReportSections;
   label: string;
+  category: string;
   index: number;
   total: number;
+  isVisible: boolean;
+  onToggleVisibility: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
 }
 
-function SortableItem({ id, label, index, total, onMoveUp, onMoveDown }: SortableItemProps) {
+function SortableItem({ 
+  id, 
+  label, 
+  category,
+  index, 
+  total, 
+  isVisible,
+  onToggleVisibility,
+  onMoveUp, 
+  onMoveDown 
+}: SortableItemProps) {
   const {
     attributes,
     listeners,
@@ -147,8 +247,9 @@ function SortableItem({ id, label, index, total, onMoveUp, onMoveDown }: Sortabl
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center gap-2 p-2 rounded-lg bg-muted/30 border transition-all",
-        isDragging && "opacity-50 shadow-lg scale-[1.02] z-50 bg-background"
+        "flex items-center gap-2 p-2 rounded-lg border transition-all",
+        isDragging && "opacity-50 shadow-lg scale-[1.02] z-50 bg-background",
+        isVisible ? "bg-muted/30" : "bg-muted/10 opacity-60"
       )}
     >
       <button
@@ -161,7 +262,19 @@ function SortableItem({ id, label, index, total, onMoveUp, onMoveDown }: Sortabl
       
       <span className="text-xs font-medium text-muted-foreground w-5">{index + 1}</span>
       
-      <span className="flex-1 text-sm truncate">{label}</span>
+      <Badge variant="secondary" className={cn("text-[10px] px-1.5 py-0", CATEGORY_COLORS[category])}>
+        {category}
+      </Badge>
+      
+      <span className={cn("flex-1 text-sm truncate", !isVisible && "line-through text-muted-foreground")}>
+        {label}
+      </span>
+      
+      <Switch
+        checked={isVisible}
+        onCheckedChange={onToggleVisibility}
+        className="scale-75"
+      />
       
       <div className="flex gap-0.5">
         <button
@@ -183,8 +296,85 @@ function SortableItem({ id, label, index, total, onMoveUp, onMoveDown }: Sortabl
   );
 }
 
+/** Aperçu miniature du rapport */
+function ReportPreview({ 
+  order, 
+  visibility 
+}: { 
+  order: (keyof ReportSections)[]; 
+  visibility: Record<keyof ReportSections, boolean>;
+}) {
+  const visibleSections = order.filter(k => visibility[k]);
+  const hiddenCount = order.length - visibleSections.length;
+
+  return (
+    <div className="p-4 rounded-xl bg-secondary/30 border border-border">
+      <div className="flex items-center gap-2 mb-3">
+        <LayoutList className="h-4 w-4 text-primary" />
+        <span className="text-sm font-medium">Aperçu du rapport</span>
+        <Badge variant="outline" className="text-xs ml-auto">
+          {visibleSections.length} sections
+        </Badge>
+      </div>
+      
+      {/* Miniature visuelle */}
+      <div className="relative bg-background rounded-lg border border-border p-3 max-h-[200px] overflow-hidden">
+        {/* Header du rapport */}
+        <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
+          <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center">
+            <FileText className="h-4 w-4 text-primary" />
+          </div>
+          <div className="flex-1">
+            <div className="h-2 w-24 rounded bg-foreground/20" />
+            <div className="h-1.5 w-16 rounded bg-muted-foreground/20 mt-1" />
+          </div>
+        </div>
+        
+        {/* Sections miniatures */}
+        <div className="space-y-1.5">
+          {visibleSections.slice(0, 8).map((key, index) => {
+            const category = SECTION_CATEGORIES[key];
+            return (
+              <div key={key} className="flex items-center gap-2">
+                <div className={cn(
+                  "w-1.5 h-4 rounded-full",
+                  CATEGORY_COLORS[category]?.replace("text-", "bg-").split(" ")[0] || "bg-muted"
+                )} />
+                <div className="h-2 flex-1 rounded bg-muted" style={{ 
+                  maxWidth: `${70 + Math.random() * 30}%` 
+                }} />
+              </div>
+            );
+          })}
+          
+          {visibleSections.length > 8 && (
+            <div className="text-center text-xs text-muted-foreground pt-1">
+              +{visibleSections.length - 8} autres sections...
+            </div>
+          )}
+        </div>
+        
+        {/* Gradient overlay */}
+        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent" />
+      </div>
+      
+      {/* Stats */}
+      <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
+        <span>{visibleSections.length} visibles</span>
+        {hiddenCount > 0 && (
+          <span className="flex items-center gap-1">
+            <EyeOff className="h-3 w-3" />
+            {hiddenCount} masquées
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function ReportSectionOrderEditor() {
   const [order, setOrder] = useState<(keyof ReportSections)[]>(getSectionOrder);
+  const [visibility, setVisibility] = useState<Record<keyof ReportSections, boolean>>(getSectionVisibility);
   const [hasChanges, setHasChanges] = useState(false);
 
   const sensors = useSensors(
@@ -202,8 +392,9 @@ export function ReportSectionOrderEditor() {
   useEffect(() => {
     if (hasChanges) {
       saveSectionOrder(order);
+      saveSectionVisibility(visibility);
     }
-  }, [order, hasChanges]);
+  }, [order, visibility, hasChanges]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -225,13 +416,45 @@ export function ReportSectionOrderEditor() {
     setHasChanges(true);
   };
 
-  const resetOrder = () => {
+  const toggleVisibility = (key: keyof ReportSections) => {
+    setVisibility(prev => ({ ...prev, [key]: !prev[key] }));
+    setHasChanges(true);
+  };
+
+  const resetAll = () => {
     setOrder(DEFAULT_SECTION_ORDER);
+    setVisibility(DEFAULT_VISIBILITY);
     saveSectionOrder(DEFAULT_SECTION_ORDER);
+    saveSectionVisibility(DEFAULT_VISIBILITY);
     setHasChanges(false);
   };
 
+  const showAll = () => {
+    const allVisible = Object.fromEntries(
+      DEFAULT_SECTION_ORDER.map(k => [k, true])
+    ) as Record<keyof ReportSections, boolean>;
+    setVisibility(allVisible);
+    setHasChanges(true);
+  };
+
+  const hideOptional = () => {
+    // Masquer les sections moins essentielles
+    const optionalSections: (keyof ReportSections)[] = [
+      "wahoo", "planSuggestion", "templateRecommendation", 
+      "checkins", "comprendre", "qualite", "historique", "tests"
+    ];
+    setVisibility(prev => {
+      const newVis = { ...prev };
+      optionalSections.forEach(k => { newVis[k] = false; });
+      return newVis;
+    });
+    setHasChanges(true);
+  };
+
+  const visibleCount = Object.values(visibility).filter(Boolean).length;
   const isDefaultOrder = JSON.stringify(order) === JSON.stringify(DEFAULT_SECTION_ORDER);
+  const isDefaultVisibility = JSON.stringify(visibility) === JSON.stringify(DEFAULT_VISIBILITY);
+  const isDefault = isDefaultOrder && isDefaultVisibility;
 
   return (
     <Card>
@@ -239,14 +462,14 @@ export function ReportSectionOrderEditor() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <FileText className="w-5 h-5 text-primary" />
-            <CardTitle className="text-lg">Ordre des sections du rapport</CardTitle>
+            <CardTitle className="text-lg">Personnalisation du rapport</CardTitle>
           </div>
           
           <Button
             variant="ghost"
             size="sm"
-            onClick={resetOrder}
-            disabled={isDefaultOrder}
+            onClick={resetAll}
+            disabled={isDefault}
             className="gap-2"
           >
             <RotateCcw className="h-4 w-4" />
@@ -254,40 +477,86 @@ export function ReportSectionOrderEditor() {
           </Button>
         </div>
         <CardDescription>
-          Glissez-déposez pour réorganiser les sections dans le rapport PDF exporté
+          Réorganisez et masquez les sections du rapport PDF exporté
         </CardDescription>
       </CardHeader>
       
       <CardContent>
-        <ScrollArea className="h-[400px] pr-4">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext items={order} strategy={verticalListSortingStrategy}>
-              <div className="space-y-1">
-                {order.map((sectionKey, index) => (
-                  <SortableItem
-                    key={sectionKey}
-                    id={sectionKey}
-                    label={SECTION_LABELS[sectionKey]}
-                    index={index}
-                    total={order.length}
-                    onMoveUp={() => moveItem(index, "up")}
-                    onMoveDown={() => moveItem(index, "down")}
-                  />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Éditeur de sections */}
+          <div className="lg:col-span-2">
+            {/* Actions rapides */}
+            <div className="flex items-center gap-2 mb-3">
+              <Button variant="outline" size="sm" onClick={showAll} className="text-xs gap-1">
+                <Eye className="h-3 w-3" />
+                Tout afficher
+              </Button>
+              <Button variant="outline" size="sm" onClick={hideOptional} className="text-xs gap-1">
+                <EyeOff className="h-3 w-3" />
+                Mode minimal
+              </Button>
+              <span className="text-xs text-muted-foreground ml-auto">
+                {visibleCount}/{order.length} visibles
+              </span>
+            </div>
+            
+            <ScrollArea className="h-[350px] pr-4">
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext items={order} strategy={verticalListSortingStrategy}>
+                  <div className="space-y-1">
+                    {order.map((sectionKey, index) => (
+                      <SortableItem
+                        key={sectionKey}
+                        id={sectionKey}
+                        label={SECTION_LABELS[sectionKey]}
+                        category={SECTION_CATEGORIES[sectionKey]}
+                        index={index}
+                        total={order.length}
+                        isVisible={visibility[sectionKey]}
+                        onToggleVisibility={() => toggleVisibility(sectionKey)}
+                        onMoveUp={() => moveItem(index, "up")}
+                        onMoveDown={() => moveItem(index, "down")}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            </ScrollArea>
+          </div>
+          
+          {/* Aperçu */}
+          <div className="lg:col-span-1">
+            <ReportPreview order={order} visibility={visibility} />
+            
+            {/* Légende des catégories */}
+            <div className="mt-4 p-3 rounded-lg bg-muted/20 border border-border">
+              <p className="text-xs font-medium text-muted-foreground mb-2">Catégories</p>
+              <div className="flex flex-wrap gap-1.5">
+                {Object.entries(CATEGORY_COLORS).slice(0, 6).map(([cat, colorClass]) => (
+                  <Badge 
+                    key={cat} 
+                    variant="secondary" 
+                    className={cn("text-[10px] px-1.5 py-0", colorClass)}
+                  >
+                    {cat}
+                  </Badge>
                 ))}
               </div>
-            </SortableContext>
-          </DndContext>
-        </ScrollArea>
+            </div>
+          </div>
+        </div>
         
-        <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground border-t pt-3">
-          <span>{order.length} sections</span>
+        <Separator className="my-4" />
+        
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span>Les modifications sont sauvegardées automatiquement</span>
           {hasChanges && (
-            <Badge variant="outline" className="text-xs">
-              Modifications sauvegardées
+            <Badge variant="outline" className="text-xs gap-1">
+              ✓ Sauvegardé
             </Badge>
           )}
         </div>
