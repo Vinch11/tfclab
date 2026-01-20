@@ -62,6 +62,7 @@ const INITIAL_FORM_STATE = {
   css: "",
   vo2max: "",
   vlamax: "",
+  vlamax_run: "", // ✅ VLamax CAP
   weight_kg: "",
   fat_pct: "",
   pmax_5s: "",
@@ -73,10 +74,16 @@ const INITIAL_FORM_STATE = {
   tte_mode: "LOAD",
   tss_7d: "",
   tte_observed_min: "",
+  // 🏃 Économie CAP
   run_pace_ref: "",
   run_hr_ref: "",
   run_duration_min: "",
   run_hr_drift_pct: "",
+  // 🏃 VLamax CAP (données pour estimation)
+  pace_threshold: "",
+  sprint_15s: "",
+  run_power_max: "",
+  run_power_threshold: "",
   coach_notes: "",
 };
 
@@ -129,6 +136,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       css: s.css != null ? String(s.css) : "",
       vo2max: s.vo2max != null ? String(s.vo2max) : "",
       vlamax: s.vlamax != null ? String(s.vlamax) : "",
+      vlamax_run: s.vlamax_run != null ? String(s.vlamax_run) : "", // ✅ VLamax CAP
       weight_kg: s.weight_kg != null ? String(s.weight_kg) : "",
       fat_pct: s.fat_pct != null ? String(s.fat_pct) : "",
       pmax_5s: s.pmax_5s != null ? String(s.pmax_5s) : "",
@@ -149,6 +157,12 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       run_hr_ref: s.run_hr_ref_bpm != null ? String(s.run_hr_ref_bpm) : "",
       run_duration_min: s.run_duration_min != null ? String(s.run_duration_min) : "",
       run_hr_drift_pct: s.run_hr_drift_pct != null ? String(s.run_hr_drift_pct) : "",
+
+      // 🏃 VLamax CAP (données pour estimation)
+      pace_threshold: s.pace_threshold_sec_per_km != null ? formatSecToPace(s.pace_threshold_sec_per_km) : "",
+      sprint_15s: s.sprint_15s_distance != null ? String(s.sprint_15s_distance) : "",
+      run_power_max: s.running_power_max != null ? String(s.running_power_max) : "",
+      run_power_threshold: s.running_power_threshold != null ? String(s.running_power_threshold) : "",
 
       coach_notes: s.coach_notes || "",
     });
@@ -182,6 +196,10 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     });
 
     // Note: Utiliser "as any" pour les nouveaux champs jusqu'à la régénération des types Supabase
+    // Parse VLamax CAP fields
+    const vlamaxRun = staffMode ? parseNum(formData.vlamax_run) : null;
+    const paceThresholdSec = parsePaceToSec(formData.pace_threshold);
+
     await addSnapshot({
       athlete_id: athleteId,
       coach_id: "", // replaced in hook
@@ -195,6 +213,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       css: parseNum(formData.css),
       vo2max,
       vlamax, // ✅ Null si mode standard, valeur si mode Staff
+      vlamax_run: vlamaxRun, // ✅ VLamax CAP
       weight_kg: parseNum(formData.weight_kg),
       fat_pct: parseNum(formData.fat_pct),
       pmax_5s: parseNum(formData.pmax_5s) ? Math.round(parseNum(formData.pmax_5s)!) : null,
@@ -219,6 +238,12 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       run_hr_drift_pct: runDrift,
       run_economy_score: economyResult.score,
       run_economy_label: economyResult.label,
+
+      // 🏃 VLamax CAP (données pour estimation)
+      pace_threshold_sec_per_km: paceThresholdSec ? Math.round(paceThresholdSec) : null,
+      sprint_15s_distance: parseNum(formData.sprint_15s),
+      running_power_max: parseNum(formData.run_power_max) ? Math.round(parseNum(formData.run_power_max)!) : null,
+      running_power_threshold: parseNum(formData.run_power_threshold) ? Math.round(parseNum(formData.run_power_threshold)!) : null,
 
       metabolic_profile: profile,
       metabolic_score: score,
@@ -252,6 +277,10 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       fcMax: fcMax ? Math.round(fcMax) : null,
     });
 
+    // Parse VLamax CAP fields
+    const vlamaxRun = staffMode ? parseNum(formData.vlamax_run) : editingSnapshot.vlamax_run;
+    const paceThresholdSec = parsePaceToSec(formData.pace_threshold);
+
     await updateSnapshot(editingSnapshot.id, {
       date: formData.date,
       cycle_tag: formData.cycle_tag || null,
@@ -262,6 +291,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       css: parseNum(formData.css),
       vo2max,
       vlamax, // ✅ Conserve valeur existante si mode standard
+      vlamax_run: vlamaxRun, // ✅ VLamax CAP
       weight_kg: parseNum(formData.weight_kg),
       fat_pct: parseNum(formData.fat_pct),
       pmax_5s: parseNum(formData.pmax_5s) ? Math.round(parseNum(formData.pmax_5s)!) : null,
@@ -286,6 +316,12 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       run_hr_drift_pct: runDrift,
       run_economy_score: economyResult.score,
       run_economy_label: economyResult.label,
+
+      // 🏃 VLamax CAP (données pour estimation)
+      pace_threshold_sec_per_km: paceThresholdSec ? Math.round(paceThresholdSec) : null,
+      sprint_15s_distance: parseNum(formData.sprint_15s),
+      running_power_max: parseNum(formData.run_power_max) ? Math.round(parseNum(formData.run_power_max)!) : null,
+      running_power_threshold: parseNum(formData.run_power_threshold) ? Math.round(parseNum(formData.run_power_threshold)!) : null,
 
       metabolic_profile: profile,
       metabolic_score: score,
@@ -854,6 +890,139 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
               La précision dépend directement de la qualité des données saisies.
             </p>
           </div>
+        </div>
+      )}
+
+      {/* 🏃 DONNÉES VLAMAX CAP (pour estimation) */}
+      {isRunningObjective(athleteGoal) && (
+        <div className="p-4 rounded-lg border-2 border-accent/30 bg-accent/5">
+          <div className="flex items-center gap-2 mb-3">
+            <p className="text-base font-semibold">🏃 Données VLamax CAP</p>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-sm">
+                  <p className="font-medium mb-2">Données pour estimer la VLamax Course</p>
+                  <p className="text-xs mb-2">Ces données permettent de calculer automatiquement la VLamax CAP, distincte de la VLamax vélo.</p>
+                  <p className="text-xs">Plus vous remplissez de champs, plus l'estimation sera précise.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <Badge variant="outline" className="text-[10px] ml-auto">Estimation auto</Badge>
+          </div>
+          
+          <div className="p-3 rounded-lg bg-background/50 border border-border mb-4">
+            <p className="text-sm text-muted-foreground">
+              Ces données servent à estimer la VLamax spécifique à la course à pied (glycolyse en course).
+              Différente de la VLamax vélo car la biomécanique et le recrutement musculaire diffèrent.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="pace_threshold">Allure Seuil (min:sec/km)</Label>
+              <Input
+                id="pace_threshold"
+                type="text"
+                placeholder="4:30"
+                value={formData.pace_threshold}
+                onChange={(e) => setFormData({ ...formData, pace_threshold: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground mt-1">Allure tenable ~1h (SL2)</p>
+            </div>
+            <div>
+              <Label htmlFor="sprint_15s">Sprint 15s (mètres)</Label>
+              <Input
+                id="sprint_15s"
+                type="number"
+                step="0.1"
+                placeholder="85"
+                value={formData.sprint_15s}
+                onChange={(e) => setFormData({ ...formData, sprint_15s: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground mt-1">Distance sur 15s max</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mt-3">
+            <div>
+              <Label htmlFor="run_power_max">Puissance Max CAP (W)</Label>
+              <Input
+                id="run_power_max"
+                type="number"
+                placeholder="450"
+                value={formData.run_power_max}
+                onChange={(e) => setFormData({ ...formData, run_power_max: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground mt-1">Stryd/Garmin: sprint 5-10s</p>
+            </div>
+            <div>
+              <Label htmlFor="run_power_threshold">Puissance Seuil CAP (W)</Label>
+              <Input
+                id="run_power_threshold"
+                type="number"
+                placeholder="280"
+                value={formData.run_power_threshold}
+                onChange={(e) => setFormData({ ...formData, run_power_threshold: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground mt-1">rFTP / effort ~1h</p>
+            </div>
+          </div>
+
+          {/* VLamax CAP en mode Staff */}
+          {staffMode && (
+            <div className="mt-4 pt-4 border-t border-border">
+              <Label htmlFor="vlamax_run" className="flex items-center gap-1.5">
+                <span>VLamax CAP (mesurée)</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p className="text-xs">
+                        Mode Staff : VLamax CAP mesurée en laboratoire.
+                        Cette valeur verrouille l'estimation automatique.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </Label>
+              <Input
+                id="vlamax_run"
+                type="number"
+                step="0.01"
+                placeholder="0.35 (course)"
+                value={formData.vlamax_run}
+                onChange={(e) => setFormData({ ...formData, vlamax_run: e.target.value })}
+                className="border-primary/50 mt-1"
+              />
+              <p className="text-xs text-primary mt-1">
+                ✓ Verrouille la VLamax CAP (confiance 95%)
+              </p>
+            </div>
+          )}
+
+          {/* Indicateur de couverture */}
+          {(() => {
+            const hasPace = !!formData.pace_threshold;
+            const hasSprint = !!formData.sprint_15s;
+            const hasPowerMax = !!formData.run_power_max;
+            const hasPowerThreshold = !!formData.run_power_threshold;
+            const hasVma = !!formData.vma;
+            const count = [hasPace, hasSprint, hasPowerMax, hasPowerThreshold].filter(Boolean).length;
+            const canEstimate = hasVma && count >= 1;
+            return (
+              <div className={`mt-3 p-2 rounded text-xs ${canEstimate ? "bg-accent/10 text-accent-foreground" : "bg-muted/50 text-muted-foreground"}`}>
+                {canEstimate 
+                  ? `✓ Estimation VLamax CAP possible (${count}/4 sources + VMA)`
+                  : `⚠️ Renseigner VMA + au moins 1 donnée pour activer l'estimation`
+                }
+              </div>
+            );
+          })()}
         </div>
       )}
 
