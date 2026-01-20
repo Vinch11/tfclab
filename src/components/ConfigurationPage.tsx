@@ -4,13 +4,12 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Settings, Palette, Moon, Sun, Sparkles, Check } from "lucide-react";
+import { Settings, Palette, Check } from "lucide-react";
 import { useTheme, THEME_CONFIG, THEME_ORDER, Theme } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
+import { LayoutPreferencesEditor } from "./LayoutPreferencesEditor";
 
 export function ConfigurationPage() {
   const { theme, setTheme, themeConfig } = useTheme();
@@ -93,15 +92,15 @@ export function ConfigurationPage() {
         </CardContent>
       </Card>
 
-      {/* Section Préférences (extensible) */}
+      {/* Section Layout Preferences */}
+      <LayoutPreferencesEditor />
+
+      {/* Section Préférences générales */}
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-primary" />
-            <CardTitle className="text-lg">Préférences</CardTitle>
-          </div>
+          <CardTitle className="text-lg">Autres préférences</CardTitle>
           <CardDescription>
-            Options d'affichage et de personnalisation
+            Options d'affichage supplémentaires
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -113,16 +112,6 @@ export function ConfigurationPage() {
               </p>
             </div>
             <Badge variant="outline">Via Dashboard</Badge>
-          </div>
-
-          <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border">
-            <div>
-              <Label className="font-medium">Sections personnalisables</Label>
-              <p className="text-sm text-muted-foreground">
-                Réorganisez les cartes du dashboard par glisser-déposer
-              </p>
-            </div>
-            <Badge variant="outline">Drag & Drop</Badge>
           </div>
 
           <Separator />
