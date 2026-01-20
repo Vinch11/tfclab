@@ -24,6 +24,7 @@ import {
   ChevronDown,
   Clock,
   Calendar,
+  Scale,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StaffReport as StaffReportType, generateStaffReport, GenerateStaffReportParams } from "@/lib/staffReport";
@@ -37,6 +38,8 @@ import { PerformanceRiskMatrixCompact } from "@/components/PerformanceRiskMatrix
 import { getAxisLabel, getAxisColor } from "@/lib/wahoo/wahooSuggestionEngine";
 import { MetabolicPerformanceCompassV2 as MetabolicPerformanceCompass } from "@/components/charts/MetabolicPerformanceCompassV2";
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
+import { computePrecisionScoreTFCL, decisionQualityFromPrecision, computeLabRecommendation, type PrecisionInput } from "@/lib/v2/decisionRobustness";
+import type { DbSnapshot } from "@/hooks/useCloudData";
 
 interface StaffReportProps {
   athleteName: string;
@@ -54,6 +57,8 @@ interface StaffReportProps {
   snapshotUpdatedAt?: string | null;
   athleteAge?: number | null;
   ambition?: AmbitionLevel;
+  snapshot?: DbSnapshot | null; // ✅ Pour Decision Robustness
+  vo2max?: number | null;
   onExportPDF?: () => void;
 }
 
@@ -73,6 +78,8 @@ export function StaffReport({
   snapshotUpdatedAt,
   athleteAge,
   ambition,
+  snapshot,
+  vo2max,
   onExportPDF,
 }: StaffReportProps) {
   // Générer le rapport avec tous les paramètres pour calculs unifiés

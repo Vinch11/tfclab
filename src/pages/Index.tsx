@@ -1038,6 +1038,8 @@ const Index = () => {
                 snapshotDate={effectiveCloudSnapshot?.date ?? null}
                 athleteAge={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
                 ambition={currentAmbition}
+                snapshot={effectiveCloudSnapshot}
+                vo2max={effectiveCloudSnapshot?.vo2max ?? null}
               />
             ),
           },
