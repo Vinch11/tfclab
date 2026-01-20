@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Calendar, Pin, HelpCircle, Beaker } from "lucide-react";
+import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Calendar, Pin, HelpCircle, Beaker, Wand2, Bike, PersonStanding } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { LabImportDialog } from "@/components/LabImportDialog";
 import { DbSnapshot, useCloudData } from "@/hooks/useCloudData";
@@ -47,6 +47,14 @@ const CAP_OBJECTIVES = [
 function isRunningObjective(goal: string | null | undefined): boolean {
   if (!goal) return false;
   return CAP_OBJECTIVES.includes(goal);
+}
+
+// Triathlon objectives where bike vs run comparison is relevant
+const TRIATHLON_OBJECTIVES = ["IM", "Ironman", "70.3", "703", "TriathlonLD", "TriathlonOD"];
+
+function isTriathlonObjective(goal: string | null | undefined): boolean {
+  if (!goal) return false;
+  return TRIATHLON_OBJECTIVES.includes(goal);
 }
 
 interface SnapshotManagerProps {
@@ -1073,9 +1081,24 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
               <div className={`mt-3 p-4 rounded-lg border border-border ${confidenceBg}`}>
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-sm font-medium">📊 Estimation VLamax CAP</p>
-                  <div className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium ${confidenceColor}`}>
-                    <span>{confidenceIcon}</span>
-                    <span>Confiance {confidencePct}%</span>
+                  <div className="flex items-center gap-2">
+                    <div className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium ${confidenceColor}`}>
+                      <span>{confidenceIcon}</span>
+                      <span>Confiance {confidencePct}%</span>
+                    </div>
+                    {/* Bouton Appliquer l'estimation - uniquement en mode Staff */}
+                    {staffMode && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 gap-1.5 text-xs border-primary/50 hover:bg-primary/10"
+                        onClick={() => setFormData({ ...formData, vlamax_run: estimate.value.toFixed(2) })}
+                      >
+                        <Wand2 className="w-3 h-3" />
+                        Appliquer
+                      </Button>
+                    )}
                   </div>
                 </div>
                 
@@ -1089,6 +1112,66 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                     <p>{sourcesDescription}</p>
                   </div>
                 </div>
+                
+                {/* Graphique comparaison Bike vs CAP pour triathlètes */}
+                {isTriathlonObjective(athleteGoal) && formData.vlamax && (
+                  <div className="mb-3 p-3 rounded-lg bg-background/50 border border-border">
+                    <p className="text-xs font-medium text-foreground mb-2 flex items-center gap-2">
+                      <Bike className="w-3 h-3" />
+                      Comparaison VLamax Vélo vs CAP
+                    </p>
+                    <div className="flex items-end gap-2 h-16">
+                      {/* Barre Vélo */}
+                      <div className="flex-1 flex flex-col items-center">
+                        <div 
+                          className="w-full bg-blue-500/80 rounded-t transition-all"
+                          style={{ height: `${Math.min(100, (parseNum(formData.vlamax) ?? 0) / 0.8 * 100)}%` }}
+                        />
+                        <p className="text-xs mt-1 font-medium">{parseNum(formData.vlamax)?.toFixed(2) ?? "—"}</p>
+                        <p className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                          <Bike className="w-2.5 h-2.5" /> Vélo
+                        </p>
+                      </div>
+                      {/* Barre CAP */}
+                      <div className="flex-1 flex flex-col items-center">
+                        <div 
+                          className="w-full bg-green-500/80 rounded-t transition-all"
+                          style={{ height: `${Math.min(100, estimate.value / 0.8 * 100)}%` }}
+                        />
+                        <p className="text-xs mt-1 font-medium">{estimate.value.toFixed(2)}</p>
+                        <p className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                          <PersonStanding className="w-2.5 h-2.5" /> CAP
+                        </p>
+                      </div>
+                      {/* Delta */}
+                      <div className="flex-1 flex flex-col items-center justify-end">
+                        {(() => {
+                          const bikeVal = parseNum(formData.vlamax) ?? 0;
+                          const delta = estimate.value - bikeVal;
+                          const deltaColor = delta > 0.05 ? "text-amber-600" : delta < -0.05 ? "text-green-600" : "text-muted-foreground";
+                          return (
+                            <>
+                              <p className={`text-sm font-bold ${deltaColor}`}>
+                                {delta > 0 ? "+" : ""}{delta.toFixed(2)}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground">Δ</p>
+                            </>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-2 text-center">
+                      {(() => {
+                        const bikeVal = parseNum(formData.vlamax) ?? 0;
+                        const delta = estimate.value - bikeVal;
+                        if (Math.abs(delta) < 0.03) return "Profils similaires entre vélo et course";
+                        if (delta > 0.05) return "⚠️ CAP plus glycolytique — attention sur marathon vélo";
+                        if (delta < -0.05) return "✓ CAP plus endurant — bon signe pour IM/70.3";
+                        return "Légère différence entre disciplines";
+                      })()}
+                    </p>
+                  </div>
+                )}
                 
                 {/* Détails de calcul */}
                 {estimate.details && (
