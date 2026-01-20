@@ -1,4 +1,4 @@
-import { Sun, Moon, Sparkles, Building2 } from "lucide-react";
+import { Moon, Building2 } from "lucide-react";
 import { useTheme, THEME_CONFIG, type Theme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,9 +9,7 @@ import {
 } from "@/components/ui/tooltip";
 
 const ThemeIcons: Record<Theme, React.ElementType> = {
-  light: Sun,
   dark: Moon,
-  modern: Sparkles,
   classic: Building2,
 };
 
