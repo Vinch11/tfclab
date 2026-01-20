@@ -1012,6 +1012,7 @@ const Index = () => {
                   snapshotUpdatedAt: effectiveCloudSnapshot?.updated_at ?? null,
                   objectif: currentAthlete.goal || "IM",
                   ambition: currentAmbition,
+                  athleteAge: currentAthlete?.birth_date ? calculateAge(currentAthlete.birth_date) : null,
                 }}
                 staffMode={staffMode}
               />
