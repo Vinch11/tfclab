@@ -1,22 +1,12 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
-export type Theme = "light" | "dark" | "modern" | "classic";
+export type Theme = "dark" | "classic";
 
 export const THEME_CONFIG: Record<Theme, { label: string; icon: string; description: string }> = {
-  light: {
-    label: "Clair",
-    icon: "☀️",
-    description: "Fond blanc, lecture optimale",
-  },
   dark: {
     label: "Sombre",
     icon: "🌙",
     description: "Fond noir, reposant pour les yeux",
-  },
-  modern: {
-    label: "Moderne",
-    icon: "✨",
-    description: "Violet néon, style premium",
   },
   classic: {
     label: "Classique",
@@ -25,7 +15,7 @@ export const THEME_CONFIG: Record<Theme, { label: string; icon: string; descript
   },
 };
 
-export const THEME_ORDER: Theme[] = ["light", "dark", "modern", "classic"];
+export const THEME_ORDER: Theme[] = ["dark", "classic"];
 
 interface ThemeContextType {
   theme: Theme;
@@ -41,7 +31,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("theme") as Theme;
       if (stored && THEME_ORDER.includes(stored)) return stored;
-      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     }
     return "dark";
   });
