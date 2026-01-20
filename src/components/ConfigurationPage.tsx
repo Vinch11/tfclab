@@ -140,6 +140,42 @@ function ThemePreview({ themeKey }: { themeKey: Theme }) {
       primary: "bg-[hsl(220,65%,35%)]",
       accent: "bg-[hsl(45,90%,48%)]",
     },
+    endurance: {
+      bg: "bg-[hsl(30,20%,12%)]",
+      card: "bg-[hsl(30,18%,16%)]",
+      primary: "bg-[hsl(145,45%,42%)]",
+      accent: "bg-[hsl(32,65%,50%)]",
+    },
+    neon: {
+      bg: "bg-[hsl(260,20%,6%)]",
+      card: "bg-[hsl(260,25%,10%)]",
+      primary: "bg-[hsl(180,100%,50%)]",
+      accent: "bg-[hsl(320,100%,60%)]",
+    },
+    aube: {
+      bg: "bg-[hsl(25,35%,96%)]",
+      card: "bg-[hsl(30,40%,99%)]",
+      primary: "bg-[hsl(20,90%,55%)]",
+      accent: "bg-[hsl(5,85%,60%)]",
+    },
+    cryo: {
+      bg: "bg-[hsl(210,30%,96%)]",
+      card: "bg-white",
+      primary: "bg-[hsl(200,80%,50%)]",
+      accent: "bg-[hsl(195,70%,42%)]",
+    },
+    performance: {
+      bg: "bg-[hsl(0,0%,6%)]",
+      card: "bg-[hsl(0,0%,10%)]",
+      primary: "bg-[hsl(0,85%,55%)]",
+      accent: "bg-[hsl(45,90%,55%)]",
+    },
+    nature: {
+      bg: "bg-[hsl(60,25%,95%)]",
+      card: "bg-[hsl(60,30%,98%)]",
+      primary: "bg-[hsl(135,35%,45%)]",
+      accent: "bg-[hsl(30,55%,50%)]",
+    },
   };
 
   const styles = previewStyles[themeKey];
@@ -147,10 +183,7 @@ function ThemePreview({ themeKey }: { themeKey: Theme }) {
   return (
     <div className={cn("rounded-lg p-3 h-24", styles.bg)}>
       <div className={cn("rounded-md p-2 h-full flex gap-2", styles.card)}>
-        {/* Sidebar miniature */}
         <div className={cn("w-3 rounded-sm", styles.primary)} />
-        
-        {/* Content area */}
         <div className="flex-1 space-y-1.5">
           <div className={cn("h-2 w-12 rounded-full", styles.primary)} />
           <div className="flex gap-1">

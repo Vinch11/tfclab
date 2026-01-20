@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
-export type Theme = "dark" | "classic";
+export type Theme = "dark" | "classic" | "endurance" | "neon" | "aube" | "cryo" | "performance" | "nature";
 
 export const THEME_CONFIG: Record<Theme, { label: string; icon: string; description: string }> = {
   dark: {
@@ -13,9 +13,39 @@ export const THEME_CONFIG: Record<Theme, { label: string; icon: string; descript
     icon: "🏛️",
     description: "Bleu marine et or, professionnel",
   },
+  endurance: {
+    label: "Endurance",
+    icon: "🏃",
+    description: "Tons terreux évoquant trail/nature",
+  },
+  neon: {
+    label: "Néon Sport",
+    icon: "⚡",
+    description: "Style cyberpunk/gaming intense",
+  },
+  aube: {
+    label: "Aube",
+    icon: "🌅",
+    description: "Couleurs chaudes motivantes",
+  },
+  cryo: {
+    label: "Cryo",
+    icon: "🧊",
+    description: "Minimaliste froid et technique",
+  },
+  performance: {
+    label: "Performance",
+    icon: "🔥",
+    description: "Énergie et puissance",
+  },
+  nature: {
+    label: "Nature",
+    icon: "🌲",
+    description: "Calme et récupération",
+  },
 };
 
-export const THEME_ORDER: Theme[] = ["dark", "classic"];
+export const THEME_ORDER: Theme[] = ["dark", "classic", "endurance", "neon", "aube", "cryo", "performance", "nature"];
 
 interface ThemeContextType {
   theme: Theme;
