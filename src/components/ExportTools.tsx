@@ -902,7 +902,9 @@ function buildExportPayload(
     vlamaxEffectif: vlamax,
     tteEffectif: tte,
     crr,
-    objectif: athlete.goal || "IM"
+    objectif: athlete.goal || "IM",
+    ambition,
+    athleteAge
   });
   
   // ✅ Calculer sportFocus dynamiquement comme dans le dashboard
