@@ -260,8 +260,10 @@ export function StaffReport({
                 poids,
                 tss7d: tss7d ?? null,
                 snapshotDate,
+                snapshotUpdatedAt: snapshotUpdatedAt ?? null,
                 objectif,
                 ambition: ambition || DEFAULT_AMBITION,
+                athleteAge: athleteAge ?? null, // ✅ FIX: Ajout pour synchronisation TTE âge-ajusté
               }}
               compact={true}
               className="print:break-inside-avoid"
