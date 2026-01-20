@@ -827,8 +827,9 @@ function buildExportPayload(
     fatigue_ok: true,
     seance_specifique_validee: false,
     fcMax: effectiveRefs.fcMax,
-    // ✅ Ajout âge pour uniformisation avec Compass
+    // ✅ FIX: Ajout âge ET ambition pour synchronisation parfaite avec l'UI
     athleteAge,
+    ambition,
   });
 
   // Calculer Dan Lorang
