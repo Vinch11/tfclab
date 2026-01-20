@@ -63,6 +63,9 @@ import { ObjectifPrincipal } from "@/lib/reference";
 // ✅ FIX 11 - Effective Refs (source unique de vérité)
 import { getEffectiveRefs, computeFtpKg, getMissingFields } from "@/lib/effectiveRefs";
 
+// ✅ Guide interactif de complétion des données
+import { DataCompletionGuide } from "@/components/DataCompletionGuide";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -714,6 +717,21 @@ const Index = () => {
             ),
           },
           {
+            id: "data-completion-guide",
+            render: () => currentAthlete && effectiveCloudSnapshot && (
+              <DataCompletionGuide
+                snapshot={effectiveCloudSnapshot}
+                athleteGoal={currentAthlete.goal || "IM"}
+                onNavigateToProfile={() => {
+                  setActiveTab("profil");
+                  setShowSnapshots(true);
+                }}
+                onNavigateToCAPTest={() => navigate("/cap-testing-week")}
+                onNavigateToTFCLTest={() => navigate("/tfcl-testing-week")}
+              />
+            ),
+          },
+          {
             id: "quick-fatigue",
             render: () => currentAthlete && (
               <QuickFatigueInput
@@ -1250,22 +1268,22 @@ const Index = () => {
               ) : (
                 <div className="mt-6 space-y-6">
                   {/* Barre de progression */}
-                  <Card className="border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20">
+                  <Card className="border-warning/30 bg-warning/5">
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg flex items-center gap-2">
-                          <ClipboardCheck className="w-5 h-5 text-amber-600" />
+                          <ClipboardCheck className="w-5 h-5 text-warning-foreground" />
                           Profil incomplet pour Race Readiness
                         </CardTitle>
-                        <Badge variant="outline" className="text-amber-700 border-amber-300 bg-amber-100 dark:bg-amber-900/30">
+                        <Badge variant="secondary" className="bg-warning/20 text-warning-foreground border-warning/30">
                           {completionPercent}% complété
                         </Badge>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="w-full bg-amber-100 dark:bg-amber-900/30 rounded-full h-2.5">
+                      <div className="w-full bg-warning/20 rounded-full h-2.5">
                         <div 
-                          className="bg-amber-500 h-2.5 rounded-full transition-all duration-500"
+                          className="bg-warning h-2.5 rounded-full transition-all duration-500"
                           style={{ width: `${completionPercent}%` }}
                         />
                       </div>
@@ -1283,16 +1301,16 @@ const Index = () => {
                               key={item.key}
                               className={`flex items-center justify-between p-3 rounded-lg border ${
                                 item.priority === "critique" 
-                                  ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800" 
+                                  ? "bg-destructive/10 border-destructive/30" 
                                   : item.priority === "important"
-                                  ? "bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800"
+                                  ? "bg-warning/10 border-warning/30"
                                   : "bg-muted/50 border-border"
                               }`}
                             >
                               <div className="flex items-center gap-3">
                                 <div className={`w-2 h-2 rounded-full ${
-                                  item.priority === "critique" ? "bg-red-500" : 
-                                  item.priority === "important" ? "bg-amber-500" : "bg-muted-foreground"
+                                  item.priority === "critique" ? "bg-destructive" : 
+                                  item.priority === "important" ? "bg-warning" : "bg-muted-foreground"
                                 }`} />
                                 <div>
                                   <p className="text-sm font-medium">{item.label}</p>
@@ -1300,14 +1318,8 @@ const Index = () => {
                                 </div>
                               </div>
                               <Badge 
-                                variant="outline" 
-                                className={`text-xs ${
-                                  item.priority === "critique" 
-                                    ? "text-red-600 border-red-300" 
-                                    : item.priority === "important"
-                                    ? "text-amber-600 border-amber-300"
-                                    : "text-muted-foreground"
-                                }`}
+                                variant={item.priority === "critique" ? "destructive" : "outline"}
+                                className="text-xs"
                               >
                                 {item.priority}
                               </Badge>
@@ -1339,8 +1351,8 @@ const Index = () => {
                       </div>
 
                       {/* Guide rapide */}
-                      <div className="mt-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
-                        <p className="text-xs text-blue-700 dark:text-blue-300">
+                      <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                        <p className="text-xs text-primary">
                           <strong>💡 Guide rapide :</strong> Pour obtenir VLamax et TTE, effectuez un test de puissance critique 
                           (CP test) ou utilisez l'estimateur TFCL dans l'onglet Profil. Un test terrain de 20-40 min suffit 
                           pour les premières estimations.
