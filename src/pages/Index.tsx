@@ -1196,39 +1196,160 @@ const Index = () => {
           </div>
         );
 
-      case "race-readiness":
+      case "race-readiness": {
+        // Vérification des données minimales requises
+        const hasVlamax = vlamaxEffectif !== null && vlamaxEffectif !== undefined;
+        const hasTTE = tteEffectif !== null && tteEffectif !== undefined;
+        const hasFTP = ftp !== null && ftp !== undefined && ftp > 0;
+        const hasPoids = poids !== null && poids !== undefined && poids > 0;
+        const hasObjectif = currentAthlete?.goal !== null && currentAthlete?.goal !== undefined;
+        
+        const missingData = [];
+        if (!hasVlamax) missingData.push({ key: "vlamax", label: "VLamax", description: "Capacité glycolytique maximale", priority: "critique" });
+        if (!hasTTE) missingData.push({ key: "tte", label: "TTE", description: "Time To Exhaustion à FTP", priority: "critique" });
+        if (!hasFTP) missingData.push({ key: "ftp", label: "FTP", description: "Functional Threshold Power", priority: "important" });
+        if (!hasPoids) missingData.push({ key: "poids", label: "Poids", description: "Poids corporel (kg)", priority: "important" });
+        if (!hasObjectif) missingData.push({ key: "objectif", label: "Objectif", description: "Distance/format de course cible", priority: "recommandé" });
+        
+        const hasCriticalData = hasVlamax && hasTTE;
+        const completionPercent = Math.round(([hasVlamax, hasTTE, hasFTP, hasPoids, hasObjectif].filter(Boolean).length / 5) * 100);
+        
         return (
           <div className="animate-fade-in">
             {renderAthleteSelector()}
             {legacyAthlete ? (
-              <div className="mt-6">
-                <RaceReadinessPage
-                  athleteName={currentAthlete?.name || "Athlète"}
-                  objectif={currentAthlete?.goal || "IM"}
-                  snapshotDate={effectiveCloudSnapshot?.date || null}
-                  legacyAthlete={legacyAthlete}
-                  vlamaxEffectif={vlamaxEffectif}
-                  tteEffectif={tteEffectif}
-                  readiness={raceReadinessEffectif}
-                  nutritionEstimate={nutritionEstimate}
-                  runningEconomy={runningEconomyResult}
-                  energyDrift={energyDrift}
-                  ftp={ftp}
-                  poids={poids ?? null}
-                  fcMax={effectiveRefs.fcMax ?? null}
-                  tss7d={effectiveCloudSnapshot?.tss_7d ?? null}
-                  snapshotUpdatedAt={effectiveCloudSnapshot?.updated_at ?? null}
-                  athleteAge={currentAthlete?.birth_date ? calculateAge(currentAthlete.birth_date) : null}
-                  ambition={currentAmbition}
-                  onGoToSnapshots={() => {
-                    setShowSnapshots(true);
-                    setShowTestLibrary(false);
-                    setShowPhysioAnalysis(false);
-                    setShowCheckins(false);
-                  }}
-                  onGoToMethodology={() => setActiveTab("methodology")}
-                />
-              </div>
+              hasCriticalData ? (
+                <div className="mt-6">
+                  <RaceReadinessPage
+                    athleteName={currentAthlete?.name || "Athlète"}
+                    objectif={currentAthlete?.goal || "IM"}
+                    snapshotDate={effectiveCloudSnapshot?.date || null}
+                    legacyAthlete={legacyAthlete}
+                    vlamaxEffectif={vlamaxEffectif}
+                    tteEffectif={tteEffectif}
+                    readiness={raceReadinessEffectif}
+                    nutritionEstimate={nutritionEstimate}
+                    runningEconomy={runningEconomyResult}
+                    energyDrift={energyDrift}
+                    ftp={ftp}
+                    poids={poids ?? null}
+                    fcMax={effectiveRefs.fcMax ?? null}
+                    tss7d={effectiveCloudSnapshot?.tss_7d ?? null}
+                    snapshotUpdatedAt={effectiveCloudSnapshot?.updated_at ?? null}
+                    athleteAge={currentAthlete?.birth_date ? calculateAge(currentAthlete.birth_date) : null}
+                    ambition={currentAmbition}
+                    onGoToSnapshots={() => {
+                      setShowSnapshots(true);
+                      setShowTestLibrary(false);
+                      setShowPhysioAnalysis(false);
+                      setShowCheckins(false);
+                    }}
+                    onGoToMethodology={() => setActiveTab("methodology")}
+                  />
+                </div>
+              ) : (
+                <div className="mt-6 space-y-6">
+                  {/* Barre de progression */}
+                  <Card className="border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <ClipboardCheck className="w-5 h-5 text-amber-600" />
+                          Profil incomplet pour Race Readiness
+                        </CardTitle>
+                        <Badge variant="outline" className="text-amber-700 border-amber-300 bg-amber-100 dark:bg-amber-900/30">
+                          {completionPercent}% complété
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="w-full bg-amber-100 dark:bg-amber-900/30 rounded-full h-2.5">
+                        <div 
+                          className="bg-amber-500 h-2.5 rounded-full transition-all duration-500"
+                          style={{ width: `${completionPercent}%` }}
+                        />
+                      </div>
+                      
+                      <p className="text-sm text-muted-foreground">
+                        L'analyse Race Readiness nécessite des données physiologiques minimales pour fournir des recommandations fiables.
+                      </p>
+
+                      {/* Liste des données manquantes */}
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-foreground">Données manquantes :</p>
+                        <div className="grid gap-2">
+                          {missingData.map((item) => (
+                            <div 
+                              key={item.key}
+                              className={`flex items-center justify-between p-3 rounded-lg border ${
+                                item.priority === "critique" 
+                                  ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800" 
+                                  : item.priority === "important"
+                                  ? "bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800"
+                                  : "bg-muted/50 border-border"
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`w-2 h-2 rounded-full ${
+                                  item.priority === "critique" ? "bg-red-500" : 
+                                  item.priority === "important" ? "bg-amber-500" : "bg-muted-foreground"
+                                }`} />
+                                <div>
+                                  <p className="text-sm font-medium">{item.label}</p>
+                                  <p className="text-xs text-muted-foreground">{item.description}</p>
+                                </div>
+                              </div>
+                              <Badge 
+                                variant="outline" 
+                                className={`text-xs ${
+                                  item.priority === "critique" 
+                                    ? "text-red-600 border-red-300" 
+                                    : item.priority === "important"
+                                    ? "text-amber-600 border-amber-300"
+                                    : "text-muted-foreground"
+                                }`}
+                              >
+                                {item.priority}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                        <Button 
+                          onClick={() => {
+                            setActiveTab("profil");
+                            setShowSnapshots(true);
+                          }}
+                          className="flex-1"
+                        >
+                          <Settings2 className="w-4 h-4 mr-2" />
+                          Compléter le profil
+                        </Button>
+                        <Button 
+                          variant="outline"
+                          onClick={() => setActiveTab("tests")}
+                          className="flex-1"
+                        >
+                          <Zap className="w-4 h-4 mr-2" />
+                          Réaliser des tests
+                        </Button>
+                      </div>
+
+                      {/* Guide rapide */}
+                      <div className="mt-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
+                        <p className="text-xs text-blue-700 dark:text-blue-300">
+                          <strong>💡 Guide rapide :</strong> Pour obtenir VLamax et TTE, effectuez un test de puissance critique 
+                          (CP test) ou utilisez l'estimateur TFCL dans l'onglet Profil. Un test terrain de 20-40 min suffit 
+                          pour les premières estimations.
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )
             ) : (
               <div className="mt-6 flex flex-col items-center justify-center py-16 px-4">
                 <div className="text-center max-w-md space-y-4">
@@ -1254,6 +1375,7 @@ const Index = () => {
             )}
           </div>
         );
+      }
 
 
 
