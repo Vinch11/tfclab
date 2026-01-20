@@ -27,6 +27,7 @@ interface ReadinessPillarDetailProps {
   color: string;
   calculation: PillarCalculation;
   weight: number; // % du score final
+  defaultOpen?: boolean; // Optionnel: afficher ouvert par défaut
 }
 
 export function ReadinessPillarDetail({
@@ -37,6 +38,7 @@ export function ReadinessPillarDetail({
   color,
   calculation,
   weight,
+  defaultOpen = false,
 }: ReadinessPillarDetailProps) {
   const getStatusBadge = (status: PillarCalculation["status"]) => {
     switch (status) {
@@ -76,9 +78,9 @@ export function ReadinessPillarDetail({
       : "bg-destructive";
 
   return (
-    <Collapsible>
-      <div className="p-3 rounded-xl bg-secondary/20 border border-border">
-        <CollapsibleTrigger className="w-full">
+    <Collapsible defaultOpen={defaultOpen}>
+      <div className="p-3 rounded-xl bg-secondary/20 border border-border hover:border-primary/30 transition-all">
+        <CollapsibleTrigger className="w-full group">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className={cn("w-5 h-5", color)}>{icon}</span>
@@ -87,7 +89,12 @@ export function ReadinessPillarDetail({
             </div>
             <div className="flex items-center gap-2">
               <span className={cn("font-mono font-bold", color)}>{value}/25</span>
-              <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform ui-expanded:rotate-180" />
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                  Voir calcul
+                </span>
+                <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+              </div>
             </div>
           </div>
           <div className="mt-2 h-2 bg-secondary rounded-full overflow-hidden">
