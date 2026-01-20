@@ -953,10 +953,18 @@ const Index = () => {
 
                 {/* Contenu conditionnel */}
                 {showTestLibrary && <TestProtocols athlete={legacyAthlete} />}
-                {showPhysioAnalysis && <PhysiologicalAnalysis athlete={legacyAthlete} vlamaxEffectif={vlamaxEffectif} tteEffectif={tteEffectif} readiness={raceReadinessEffectif} onGoToSnapshots={() => {
-                  setShowSnapshots(true);
-                  setShowPhysioAnalysis(false);
-                }} />}
+                {showPhysioAnalysis && <PhysiologicalAnalysis 
+                  athlete={legacyAthlete} 
+                  vlamaxEffectif={vlamaxEffectif} 
+                  tteEffectif={tteEffectif} 
+                  readiness={raceReadinessEffectif} 
+                  ambition={currentAmbition}
+                  athleteAge={currentAthlete?.birth_date ? calculateAge(currentAthlete.birth_date) : null}
+                  onGoToSnapshots={() => {
+                    setShowSnapshots(true);
+                    setShowPhysioAnalysis(false);
+                  }} 
+                />}
                 
                 {showSnapshots && currentAthlete && (
                   <SnapshotManager

@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Athlete, getDernierSnapshot } from "@/types/athlete";
+import { AmbitionLevel } from "@/types/ambitionLevel";
 import {
   analysePhysiologiqueComplete,
   TestVLamaxResult,
@@ -44,9 +45,11 @@ interface PhysiologicalAnalysisProps {
   tteEffectif?: TTEEffectif;
   readiness?: RaceReadinessEffectif;
   onGoToSnapshots?: () => void;
+  ambition?: AmbitionLevel;
+  athleteAge?: number | null;
 }
 
-export function PhysiologicalAnalysis({ athlete, vlamaxEffectif, tteEffectif: tteEffectifProp, readiness: readinessProp, onGoToSnapshots }: PhysiologicalAnalysisProps) {
+export function PhysiologicalAnalysis({ athlete, vlamaxEffectif, tteEffectif: tteEffectifProp, readiness: readinessProp, onGoToSnapshots, ambition, athleteAge }: PhysiologicalAnalysisProps) {
   const snapshot = getDernierSnapshot(athlete);
   
   // ✅ FIX 8: VLamax STRICTEMENT depuis vlamaxEffectif - AUCUN RECALCUL
@@ -145,6 +148,8 @@ export function PhysiologicalAnalysis({ athlete, vlamaxEffectif, tteEffectif: tt
             tss7d: snapshot?.tss_7j ?? null,
             snapshotDate: snapshot?.date ?? null,
             objectif: athlete.objectif || "IM",
+            ambition: ambition,
+            athleteAge: athleteAge,
           }}
           staffMode={true}
         />
