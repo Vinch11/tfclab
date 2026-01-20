@@ -346,6 +346,32 @@ export function DecisionRobustnessCurve({
           </ResponsiveContainer>
         </div>
 
+        {/* Texte explicatif pédagogique */}
+        <div className="p-4 rounded-lg border border-border bg-muted/30 space-y-3">
+          <div className="flex items-start gap-3">
+            <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+            <div className="space-y-2 text-sm">
+              <p className="font-medium text-foreground">
+                Pourquoi cette courbe ?
+              </p>
+              <p className="text-muted-foreground">
+                La <strong className="text-foreground">Decision Robustness Curve™</strong> illustre la loi des <em>rendements décroissants</em> : 
+                au-delà d'un certain niveau de précision physiologique, chaque point supplémentaire 
+                apporte un gain marginal pour la qualité des décisions coaching.
+              </p>
+              <p className="text-muted-foreground">
+                <strong className="text-foreground">TFCL</strong> se positionne dans la zone de <em>décision robuste</em> : 
+                suffisamment précis pour guider l'entraînement efficacement, 
+                tout en restant transparent sur les limites méthodologiques.
+              </p>
+              <p className="text-muted-foreground text-xs italic">
+                Les tests laboratoire (zone "Labo") offrent une précision maximale, 
+                utile dans des cas spécifiques (athlète élite, incohérence détectée, objectif majeur à fort enjeu).
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Légende des zones */}
         <div className="grid grid-cols-3 gap-2 text-xs">
           {DECISION_ZONES.map((zone) => (
