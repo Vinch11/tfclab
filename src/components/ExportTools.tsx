@@ -43,6 +43,8 @@ import type { TemplateWeek, TemplateSession } from "@/lib/templates/docxTemplate
 // ✅ NEW: Import FatMax TFCL et Nutrition V2
 import { computeFatMaxTFCL, type FatMaxTFCLResult, FATMAX_DEFINITIONS, FATMAX_ACADEMY_CONTENT } from "@/lib/v2/fatmaxTFCL";
 import { computeNutritionV2, type NutritionPredictiveV2, NUTRITION_PHILOSOPHY } from "@/lib/v2/nutritionV2";
+import { generateAthleteReadiness, type AthleteReadinessReport } from "@/lib/athleteReadiness";
+import { User, Shield } from "lucide-react";
 
 // =============================================
 // TYPES
@@ -4423,6 +4425,330 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
 }
 
 // =============================================
+// ATHLETE REPORT HTML (Simplified, encouraging)
+// =============================================
+
+function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): string {
+  const { athlete, raceReadiness } = payload;
+  const athleteReport = generateAthleteReadiness(
+    raceReadiness,
+    athlete.goal || "IM",
+    null
+  );
+  
+  const scoreColors: Record<string, { bg: string; border: string; text: string }> = {
+    green: { bg: "#dcfce7", border: "#16a34a", text: "#166534" },
+    orange: { bg: "#fed7aa", border: "#ea580c", text: "#9a3412" },
+    red: { bg: "#fecaca", border: "#dc2626", text: "#991b1b" },
+  };
+  
+  const colors = scoreColors[athleteReport.scoreColor] || scoreColors.orange;
+  
+  const wellPreparedHTML = athleteReport.wellPrepared.map(item => `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;">
+      <span style="color:#16a34a;font-size:18px;">✓</span>
+      <span>${htmlEscape(item)}</span>
+    </div>
+  `).join('');
+  
+  const toWatchHTML = athleteReport.toWatch.length > 0 ? athleteReport.toWatch.map(item => `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;">
+      <span style="color:#ea580c;font-size:18px;">⚠</span>
+      <span>${htmlEscape(item)}</span>
+    </div>
+  `).join('') : '<div style="color:#666;padding:8px 0;">Aucun point d\'attention majeur</div>';
+  
+  const reportDate = new Date().toLocaleDateString("fr-FR", { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+
+  return `
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Mon État de Forme — ${htmlEscape(athlete.name)}</title>
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+          background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+          min-height: 100vh;
+          padding: 40px 20px;
+          line-height: 1.6;
+          color: #1e293b;
+        }
+        
+        .container {
+          max-width: 700px;
+          margin: 0 auto;
+        }
+        
+        .header {
+          text-align: center;
+          margin-bottom: 30px;
+        }
+        
+        .header img {
+          height: 50px;
+          margin-bottom: 10px;
+        }
+        
+        .header h1 {
+          font-size: 28px;
+          font-weight: 700;
+          color: #0f172a;
+          margin-bottom: 4px;
+        }
+        
+        .header .subtitle {
+          font-size: 14px;
+          color: #64748b;
+        }
+        
+        .header .athlete-name {
+          display: inline-block;
+          background: #f1f5f9;
+          padding: 6px 16px;
+          border-radius: 20px;
+          font-size: 14px;
+          font-weight: 500;
+          margin-top: 12px;
+        }
+        
+        .card {
+          background: white;
+          border-radius: 16px;
+          padding: 24px;
+          margin-bottom: 20px;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .main-message {
+          background: ${colors.bg};
+          border: 2px solid ${colors.border};
+          border-radius: 16px;
+          padding: 24px;
+          text-align: center;
+          margin-bottom: 24px;
+        }
+        
+        .main-message p {
+          font-size: 20px;
+          font-weight: 600;
+          color: ${colors.text};
+        }
+        
+        .score-section {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 24px;
+          padding: 20px 0;
+          margin-bottom: 24px;
+        }
+        
+        .score-circle {
+          width: 100px;
+          height: 100px;
+          border-radius: 50%;
+          background: ${colors.border};
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 10px 25px -5px ${colors.border}40;
+        }
+        
+        .score-circle span {
+          font-size: 32px;
+          font-weight: 700;
+          color: white;
+        }
+        
+        .score-text {
+          text-align: center;
+        }
+        
+        .score-text p {
+          font-size: 18px;
+          font-weight: 600;
+          color: ${colors.text};
+        }
+        
+        .section-title {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 18px;
+          font-weight: 600;
+          margin-bottom: 16px;
+          color: #0f172a;
+        }
+        
+        .section-title .icon {
+          font-size: 22px;
+        }
+        
+        .divider {
+          height: 1px;
+          background: #e2e8f0;
+          margin: 24px 0;
+        }
+        
+        .advice-card {
+          background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+          border-radius: 12px;
+          padding: 20px;
+          margin-top: 16px;
+        }
+        
+        .advice-card .label {
+          font-size: 12px;
+          font-weight: 600;
+          color: #3b82f6;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 8px;
+        }
+        
+        .advice-card p {
+          font-size: 16px;
+          font-weight: 500;
+          color: #1e40af;
+        }
+        
+        .nutrition-card {
+          background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+          border-radius: 12px;
+          padding: 20px;
+        }
+        
+        .nutrition-card .icon {
+          font-size: 24px;
+          margin-bottom: 8px;
+        }
+        
+        .nutrition-card .label {
+          font-size: 12px;
+          font-weight: 600;
+          color: #b45309;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 8px;
+        }
+        
+        .nutrition-card p {
+          font-size: 15px;
+          color: #92400e;
+        }
+        
+        .confidence-section {
+          background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+          border-radius: 12px;
+          padding: 24px;
+          text-align: center;
+          margin-top: 20px;
+        }
+        
+        .confidence-section .icon {
+          font-size: 32px;
+          margin-bottom: 12px;
+        }
+        
+        .confidence-section p {
+          font-size: 16px;
+          color: #166534;
+          font-weight: 500;
+        }
+        
+        .footer {
+          text-align: center;
+          margin-top: 30px;
+          padding: 20px;
+          color: #64748b;
+          font-size: 12px;
+        }
+        
+        @media print {
+          body { background: white; padding: 20px; }
+          .card { box-shadow: none; border: 1px solid #e2e8f0; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          ${logoBase64 ? `<img src="${logoBase64}" alt="Two For Coaching Lab" />` : ''}
+          <h1>Mon État de Forme</h1>
+          <p class="subtitle">TWO FOR COACHING LAB™</p>
+          <span class="athlete-name">${htmlEscape(athlete.name)}</span>
+        </div>
+        
+        <div class="main-message">
+          <p>${htmlEscape(athleteReport.mainMessage)}</p>
+        </div>
+        
+        <div class="card">
+          <div class="score-section">
+            <div class="score-circle">
+              <span>${athleteReport.score}%</span>
+            </div>
+            <div class="score-text">
+              <p>${htmlEscape(athleteReport.scoreText)}</p>
+            </div>
+          </div>
+          
+          <div class="divider"></div>
+          
+          <div class="section-title">
+            <span class="icon">✓</span>
+            <span>Ce qui est bien préparé</span>
+          </div>
+          ${wellPreparedHTML}
+          
+          <div class="divider"></div>
+          
+          <div class="section-title">
+            <span class="icon">⚠</span>
+            <span>Ce qui doit être surveillé</span>
+          </div>
+          ${toWatchHTML}
+          
+          <div class="advice-card">
+            <div class="label">💡 Conseil clé</div>
+            <p>${htmlEscape(athleteReport.keyAdvice)}</p>
+          </div>
+        </div>
+        
+        <div class="card nutrition-card">
+          <div class="icon">🍎</div>
+          <div class="label">Nutrition</div>
+          <p>${htmlEscape(athleteReport.nutritionMessage)}</p>
+        </div>
+        
+        <div class="confidence-section">
+          <div class="icon">💪</div>
+          <p>${htmlEscape(athleteReport.confidenceMessage)}</p>
+        </div>
+        
+        <div class="footer">
+          <p>Rapport généré le ${reportDate}</p>
+          <p style="margin-top:4px;">Two For Coaching Lab™ — Performance & Metabolic Analysis</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+// =============================================
 // EXPORT CSV
 // =============================================
 
@@ -4578,6 +4904,32 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
     });
   };
 
+  const handleExportAthletePDF = async () => {
+    if (!exportCheck.ok) {
+      toast.error("Export impossible", { description: exportCheck.reason });
+      return;
+    }
+    
+    const logoBase64 = await imageToBase64(logoUrl);
+    const html = buildAthleteReportHTML(payload, logoBase64);
+    
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `mon-etat-de-forme-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    
+    toast.success("Rapport Athlète téléchargé", {
+      description: "Un rapport simplifié et encourageant pour l'athlète."
+    });
+  };
+
   const toggleSection = (key: keyof ReportSections) => {
     setSections(prev => ({ ...prev, [key]: !prev[key] }));
   };
@@ -4628,7 +4980,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 flex-wrap">
       <Button 
         variant="outline" 
         size="sm" 
@@ -4636,61 +4988,80 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
         className="gap-2"
       >
         <FileSpreadsheet className="h-4 w-4" />
-        Export CSV
-      </Button>
-      <Button 
-        variant="outline" 
-        size="sm" 
-        onClick={handleExportPDF}
-        className="gap-2"
-      >
-        <FileText className="h-4 w-4" />
-        📄 Export PDF Staff
+        CSV
       </Button>
       
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-            <Settings2 className="h-4 w-4" />
+          <Button variant="outline" size="sm" className="gap-2">
+            <FileText className="h-4 w-4" />
+            📄 Export PDF
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-80" align="end">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium">Rubriques du rapport</p>
-              <span className="text-xs text-muted-foreground">{selectedCount}/{totalCount}</span>
-            </div>
+        <PopoverContent className="w-72" align="end">
+          <div className="space-y-3">
+            <p className="text-sm font-medium">Choisir le type de rapport</p>
             
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={selectAll} className="text-xs h-7">
-                Tout sélectionner
-              </Button>
-              <Button variant="outline" size="sm" onClick={deselectAll} className="text-xs h-7">
-                Tout désélectionner
-              </Button>
-            </div>
-            
-            <div className="max-h-64 overflow-y-auto space-y-2 pr-2">
-              {(Object.keys(SECTION_LABELS) as Array<keyof ReportSections>).map((key) => (
-                <div key={key} className="flex items-center justify-between py-1">
-                  <Label 
-                    htmlFor={`section-${key}`} 
-                    className="text-sm cursor-pointer flex-1"
-                  >
-                    {SECTION_LABELS[key]}
-                  </Label>
-                  <Switch
-                    id={`section-${key}`}
-                    checked={sections[key]}
-                    onCheckedChange={() => toggleSection(key)}
-                  />
+            <div className="space-y-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportAthletePDF}
+                className="w-full justify-start gap-3 h-auto py-3"
+              >
+                <User className="h-5 w-5 text-primary" />
+                <div className="text-left">
+                  <div className="font-medium">Rapport Athlète</div>
+                  <div className="text-xs text-muted-foreground">Simple, encourageant, pour l'athlète</div>
                 </div>
-              ))}
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportPDF}
+                className="w-full justify-start gap-3 h-auto py-3"
+              >
+                <Shield className="h-5 w-5 text-primary" />
+                <div className="text-left">
+                  <div className="font-medium">Rapport Staff</div>
+                  <div className="text-xs text-muted-foreground">Complet, technique, pour le coach</div>
+                </div>
+              </Button>
             </div>
             
-            <p className="text-xs text-muted-foreground border-t pt-2">
-              Sélectionnez les sections à inclure dans le rapport PDF exporté.
-            </p>
+            <div className="border-t pt-3">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-medium text-muted-foreground">Sections Staff ({selectedCount}/{totalCount})</p>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="sm" onClick={selectAll} className="text-xs h-6 px-2">
+                    Tout
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={deselectAll} className="text-xs h-6 px-2">
+                    Rien
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="max-h-48 overflow-y-auto space-y-1 pr-1">
+                {(Object.keys(SECTION_LABELS) as Array<keyof ReportSections>).map((key) => (
+                  <div key={key} className="flex items-center justify-between py-0.5">
+                    <Label 
+                      htmlFor={`section-${key}`} 
+                      className="text-xs cursor-pointer flex-1 truncate"
+                    >
+                      {SECTION_LABELS[key]}
+                    </Label>
+                    <Switch
+                      id={`section-${key}`}
+                      checked={sections[key]}
+                      onCheckedChange={() => toggleSection(key)}
+                      className="scale-75"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </PopoverContent>
       </Popover>
