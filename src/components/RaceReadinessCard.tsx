@@ -29,6 +29,10 @@ interface RaceReadinessCardProps {
   athleteAge?: number | null; // ✅ AJOUT pour badge d'ajustement âge
   onGoToSnapshots?: () => void;
   onGoToMethodology?: () => void;
+  /** Mode compact pour le dashboard - affiche score + bouton expand */
+  compact?: boolean;
+  /** État initial du mode compact (déplié ou non) */
+  defaultExpanded?: boolean;
 }
 // Fonction utilitaire pour récupérer le snapshot effectif
 function pickEffectiveSnapshot(snapshots: DbSnapshot[], athleteId: string, activeSnapshotId?: string | null) {
@@ -46,9 +50,11 @@ export function RaceReadinessCard({
   tteEffectif: tteEffectifProp,
   readiness: readinessProp,
   energyDrift,
-  athleteAge, // ✅ AJOUT
+  athleteAge,
   onGoToSnapshots,
-  onGoToMethodology
+  onGoToMethodology,
+  compact = false,
+  defaultExpanded = false,
 }: RaceReadinessCardProps) {
   const {
     snapshots
@@ -124,6 +130,9 @@ export function RaceReadinessCard({
   // État pour le panneau méthodologie
   const [showMethodology, setShowMethodology] = useState(false);
   
+  // État pour le mode compact (expansion/collapse)
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  
   // ✅ Calcul de l'info d'ajustement par âge (comme Compass)
   const ageInfo = useMemo(() => computeAgeAdjustmentIndex(athleteAge ?? null), [athleteAge]);
   const isAgeAdjusted = ageInfo.category === "master1" || ageInfo.category === "master2";
@@ -153,7 +162,7 @@ export function RaceReadinessCard({
       </div>;
   }
 
-  const detailItems = [{
+  const pillarsData = [{
     key: "vlamax",
     label: "VLamax",
     icon: Zap,
@@ -178,6 +187,149 @@ export function RaceReadinessCard({
     value: readiness.details.fraicheur,
     color: "text-success"
   }];
+
+  // Calcul détaillé des piliers
+  const pillarCalculations = computePillarCalculations(readiness);
+
+  // Mode compact : header cliquable + contenu collapsible
+  if (compact) {
+    return (
+      <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+        <div className="glass-card overflow-hidden">
+          {/* Header compact cliquable */}
+          <CollapsibleTrigger asChild>
+            <div className="p-4 cursor-pointer hover:bg-secondary/30 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={cn("p-2.5 rounded-xl", scoreBg)}>
+                    <Target className={cn("w-5 h-5", scoreColor)} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-foreground">Race Readiness</h3>
+                      <Badge 
+                        variant="outline" 
+                        className={cn("text-xs", scoreBg, scoreColor)}
+                      >
+                        {readiness.label}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Confiance {Math.round(readiness.confidence * 100)}%
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  {/* Score grand format */}
+                  <div className="text-right">
+                    <span className={cn("text-3xl font-bold font-mono", scoreColor)}>
+                      {readiness.score}
+                    </span>
+                    <span className="text-sm text-muted-foreground">/100</span>
+                  </div>
+                  
+                  {/* Chevron expand */}
+                  <div className="p-1.5 rounded-lg bg-secondary/50">
+                    {isExpanded ? (
+                      <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Mini résumé des 4 piliers (toujours visible) */}
+              <div className="grid grid-cols-4 gap-2 mt-3">
+                {pillarsData.map((pillar) => {
+                  const percentage = (pillar.value / 25) * 100;
+                  const pillColor = percentage >= 70 ? "bg-success" : percentage >= 40 ? "bg-warning" : "bg-destructive";
+                  return (
+                    <div key={pillar.key} className="text-center">
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <pillar.icon className="w-3 h-3 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">{pillar.label}</span>
+                      </div>
+                      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div 
+                          className={cn("h-full rounded-full transition-all", pillColor)} 
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                      <span className="text-xs font-mono font-medium">{pillar.value}/25</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </CollapsibleTrigger>
+          
+          {/* Contenu détaillé (collapsé par défaut) */}
+          <CollapsibleContent>
+            <div className="border-t border-border p-4 space-y-4 animate-accordion-down">
+              {/* Badges */}
+              <div className="flex flex-wrap items-center gap-2">
+                {athleteAge !== null && athleteAge !== undefined && (
+                  <Badge 
+                    variant="outline" 
+                    className={cn(
+                      "text-xs py-1 px-2 gap-1",
+                      ageInfo.category === "master1" && "border-warning/50 bg-warning/10 text-warning",
+                      ageInfo.category === "master2" && "border-destructive/50 bg-destructive/10 text-destructive",
+                      (ageInfo.category === "young" || ageInfo.category === "prime") && "border-muted-foreground/30"
+                    )}
+                  >
+                    <User className="h-3 w-3" />
+                    {athleteAge} ans
+                    {isAgeAdjusted && " • TTE ajusté"}
+                  </Badge>
+                )}
+                
+                <Badge variant="outline" className="text-xs py-1 px-2 gap-1 border-success/50 bg-success/10 text-success">
+                  <CheckCircle2 className="h-3 w-3" />
+                  Cibles synchronisées
+                </Badge>
+              </div>
+              
+              {/* Piliers détaillés */}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                  <Info className="w-3 h-3" />
+                  Cliquez sur chaque pilier pour voir le calcul détaillé
+                </p>
+                {pillarsData.map((pillar, index) => (
+                  <ReadinessPillarDetail
+                    key={pillar.key}
+                    pillarKey={pillar.key as "vlamax" | "endurance" | "puissance" | "fraicheur"}
+                    label={pillar.label}
+                    icon={<pillar.icon className="w-4 h-4" />}
+                    value={pillar.value}
+                    color={pillar.color}
+                    calculation={pillarCalculations[pillar.key as keyof typeof pillarCalculations]}
+                    weight={readiness.weights[pillar.key === "fraicheur" ? "freshness" : pillar.key as keyof typeof readiness.weights] || 25}
+                    defaultOpen={index === 0}
+                  />
+                ))}
+              </div>
+              
+              {/* Interprétation courte */}
+              {readiness.interpretation && (
+                <div className="p-3 rounded-lg bg-secondary/20 border border-border">
+                  <p className="text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">Résumé : </span>
+                    {readiness.whyThisScore?.slice(0, 200)}...
+                  </p>
+                </div>
+              )}
+            </div>
+          </CollapsibleContent>
+        </div>
+      </Collapsible>
+    );
+  }
+
+  // Mode complet (non-compact) - affichage original
   return <div className="glass-card p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -471,7 +623,7 @@ export function RaceReadinessCard({
         <div className="space-y-3">
           {(() => {
             const calculations = computePillarCalculations(readiness);
-            return detailItems.map((item, index) => (
+            return pillarsData.map((item, index) => (
               <ReadinessPillarDetail
                 key={item.key}
                 pillarKey={item.key as "vlamax" | "endurance" | "puissance" | "fraicheur"}

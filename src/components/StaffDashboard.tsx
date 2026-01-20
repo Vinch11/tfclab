@@ -475,6 +475,8 @@ export function StaffDashboard({
             readiness={raceReadiness}
             energyDrift={energyDrift as EnergyDriftResult}
             athleteAge={athleteAge}
+            compact={true}
+            defaultExpanded={false}
           />
         ) : (
           // Fallback si athlete n'est pas passé
