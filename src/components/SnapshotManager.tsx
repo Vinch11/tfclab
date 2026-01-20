@@ -30,6 +30,12 @@ import {
   getEconomyLabelStyle,
   getEconomyRaceReadinessBonus
 } from "@/lib/runningEconomySnapshot";
+import { 
+  estimateVLamaxCap, 
+  canEstimateVLamaxCap, 
+  getEstimationSourcesDescription,
+  VLamaxCapEstimateInput
+} from "@/lib/v2/vlamaxCapEstimator";
 import { usePersistedFormState, usePersistedDialogState } from "@/hooks/usePersistedFormState";
 
 // CAP objectives where running economy is critical
@@ -1013,21 +1019,108 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
             </div>
           )}
 
-          {/* Indicateur de couverture */}
+          {/* Estimation VLamax CAP en temps réel */}
           {(() => {
-            const hasPace = !!formData.pace_threshold;
-            const hasSprint = !!formData.sprint_15s;
-            const hasPowerMax = !!formData.run_power_max;
-            const hasPowerThreshold = !!formData.run_power_threshold;
-            const hasVma = !!formData.vma;
-            const count = [hasPace, hasSprint, hasPowerMax, hasPowerThreshold].filter(Boolean).length;
-            const canEstimate = hasVma && count >= 1;
+            const paceThresholdSec = parsePaceToSec(formData.pace_threshold);
+            const vmaNum = parseNum(formData.vma);
+            const tteNum = parseNum(formData.tte_observed_min);
+            
+            const estimationInput: VLamaxCapEstimateInput = {
+              vma: vmaNum,
+              paceThresholdSecPerKm: paceThresholdSec,
+              tteMin: tteNum,
+              sprint15sDistance: parseNum(formData.sprint_15s),
+              runningPowerMax: parseNum(formData.run_power_max),
+              runningPowerThreshold: parseNum(formData.run_power_threshold),
+            };
+            
+            const canEstimate = canEstimateVLamaxCap(estimationInput);
+            
+            if (!canEstimate) {
+              return (
+                <div className="mt-3 p-3 rounded-lg bg-muted/50 border border-border text-center">
+                  <p className="text-sm text-muted-foreground">
+                    ⚠️ Renseignez VMA + au moins 1 donnée pour activer l'estimation VLamax CAP
+                  </p>
+                </div>
+              );
+            }
+            
+            const estimate = estimateVLamaxCap(estimationInput);
+            const sourcesDescription = getEstimationSourcesDescription(estimate);
+            
+            // Couleur selon confiance
+            const confidencePct = Math.round(estimate.confidence * 100);
+            let confidenceColor = "text-muted-foreground";
+            let confidenceBg = "bg-muted/30";
+            let confidenceIcon = "⚠️";
+            
+            if (confidencePct >= 70) {
+              confidenceColor = "text-green-600 dark:text-green-400";
+              confidenceBg = "bg-green-500/10";
+              confidenceIcon = "✅";
+            } else if (confidencePct >= 50) {
+              confidenceColor = "text-blue-600 dark:text-blue-400";
+              confidenceBg = "bg-blue-500/10";
+              confidenceIcon = "✔️";
+            } else if (confidencePct >= 35) {
+              confidenceColor = "text-amber-600 dark:text-amber-400";
+              confidenceBg = "bg-amber-500/10";
+              confidenceIcon = "⚠️";
+            }
+            
             return (
-              <div className={`mt-3 p-2 rounded text-xs ${canEstimate ? "bg-accent/10 text-accent-foreground" : "bg-muted/50 text-muted-foreground"}`}>
-                {canEstimate 
-                  ? `✓ Estimation VLamax CAP possible (${count}/4 sources + VMA)`
-                  : `⚠️ Renseigner VMA + au moins 1 donnée pour activer l'estimation`
-                }
+              <div className={`mt-3 p-4 rounded-lg border border-border ${confidenceBg}`}>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-medium">📊 Estimation VLamax CAP</p>
+                  <div className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium ${confidenceColor}`}>
+                    <span>{confidenceIcon}</span>
+                    <span>Confiance {confidencePct}%</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-4 mb-3">
+                  <div className="text-center">
+                    <p className="text-3xl font-bold text-foreground">{estimate.value.toFixed(2)}</p>
+                    <p className="text-xs text-muted-foreground">mmol/L/s</p>
+                  </div>
+                  <div className="flex-1 text-sm text-muted-foreground">
+                    <p className="font-medium text-foreground mb-1">Sources utilisées:</p>
+                    <p>{sourcesDescription}</p>
+                  </div>
+                </div>
+                
+                {/* Détails de calcul */}
+                {estimate.details && (
+                  <div className="text-xs text-muted-foreground p-2 rounded bg-background/50 border border-border">
+                    <p className="font-medium mb-1">Détail du calcul:</p>
+                    <p>{estimate.details}</p>
+                  </div>
+                )}
+                
+                {/* Interprétation */}
+                <div className="mt-3 pt-3 border-t border-border text-xs">
+                  {estimate.value < 0.35 && (
+                    <p className="text-green-600 dark:text-green-400">
+                      🌱 <strong>Profil endurant</strong> — Excellente capacité aérobie, faible production lactique
+                    </p>
+                  )}
+                  {estimate.value >= 0.35 && estimate.value < 0.45 && (
+                    <p className="text-blue-600 dark:text-blue-400">
+                      ⚖️ <strong>Profil équilibré</strong> — Bonne polyvalence métabolique
+                    </p>
+                  )}
+                  {estimate.value >= 0.45 && estimate.value < 0.55 && (
+                    <p className="text-amber-600 dark:text-amber-400">
+                      💪 <strong>Profil glycolytique modéré</strong> — Capacité anaérobie solide
+                    </p>
+                  )}
+                  {estimate.value >= 0.55 && (
+                    <p className="text-orange-600 dark:text-orange-400">
+                      🔥 <strong>Profil glycolytique élevé</strong> — Grande puissance anaérobie, attention sur ultra-endurance
+                    </p>
+                  )}
+                </div>
               </div>
             );
           })()}
