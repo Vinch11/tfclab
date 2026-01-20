@@ -1058,7 +1058,7 @@ const Index = () => {
           },
           {
             id: "staff-dashboard",
-            render: () => currentAthlete && (
+            render: () => currentAthlete && legacyAthlete && (
               <StaffDashboard
                 athleteName={currentAthlete.name}
                 objectif={currentAthlete.goal || "IM"}
@@ -1072,6 +1072,8 @@ const Index = () => {
                 ambition={currentAmbition}
                 snapshot={effectiveCloudSnapshot}
                 vo2max={effectiveCloudSnapshot?.vo2max ?? null}
+                athlete={legacyAthlete}
+                energyDrift={energyDrift}
               />
             ),
           },
