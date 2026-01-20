@@ -1204,7 +1204,7 @@ const Index = () => {
         const hasPoids = poids !== null && poids !== undefined && poids > 0;
         const hasObjectif = currentAthlete?.goal !== null && currentAthlete?.goal !== undefined;
         
-        const missingData = [];
+        const missingData: Array<{ key: string; label: string; description: string; priority: string }> = [];
         if (!hasVlamax) missingData.push({ key: "vlamax", label: "VLamax", description: "Capacité glycolytique maximale", priority: "critique" });
         if (!hasTTE) missingData.push({ key: "tte", label: "TTE", description: "Time To Exhaustion à FTP", priority: "critique" });
         if (!hasFTP) missingData.push({ key: "ftp", label: "FTP", description: "Functional Threshold Power", priority: "important" });
