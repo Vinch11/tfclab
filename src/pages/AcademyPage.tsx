@@ -48,7 +48,7 @@ import { Badge } from "@/components/ui/badge";
 import { UNIFIED_TARGETS } from "@/lib/physiologicalTargets";
 import { AmbitionTargetsTable } from "@/components/AmbitionTargetsTable";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { ACADEMY_DECISION_ROBUSTNESS } from "@/data/academyDecisionRobustness";
+
 
 // Catégories d'objectifs pour le filtre
 type ObjectiveCategory = "all" | "triathlon" | "running" | "trail";
@@ -320,11 +320,6 @@ export default function AcademyPage() {
               <Beaker className="w-4 h-4" />
               <span className="hidden sm:inline">Protocoles</span>
               <span className="sm:hidden">Proto.</span>
-            </TabsTrigger>
-            <TabsTrigger value="decision" className="flex items-center gap-2">
-              <Scale className="w-4 h-4" />
-              <span className="hidden sm:inline">Décision</span>
-              <span className="sm:hidden">Déc.</span>
             </TabsTrigger>
           </TabsList>
           
@@ -898,108 +893,6 @@ export default function AcademyPage() {
           </TabsContent>
 
           {/* TAB 4: DÉCISION ROBUSTE */}
-          <TabsContent value="decision">
-            <div className="space-y-6">
-              {/* En-tête */}
-              <Card className="border-primary/20 bg-primary/5">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                      <Scale className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">{ACADEMY_DECISION_ROBUSTNESS.title}</CardTitle>
-                      <p className="text-sm text-muted-foreground">{ACADEMY_DECISION_ROBUSTNESS.subtitle}</p>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground whitespace-pre-line">{ACADEMY_DECISION_ROBUSTNESS.introduction}</p>
-                </CardContent>
-              </Card>
-
-              {/* Sections */}
-              <Accordion type="multiple" defaultValue={["section-0", "section-1"]} className="space-y-4">
-                {ACADEMY_DECISION_ROBUSTNESS.sections.map((section, index) => (
-                  <AccordionItem key={index} value={`section-${index}`} className="border rounded-lg bg-card">
-                    <AccordionTrigger className="px-4 hover:no-underline">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${index === 0 ? "bg-primary/10 text-primary" : index === 1 ? "bg-accent/50 text-accent-foreground" : index === 2 ? "bg-destructive/10 text-destructive" : "bg-secondary text-secondary-foreground"}`}>
-                          {index === 0 ? <TrendingUp className="w-5 h-5" /> : 
-                           index === 1 ? <Layers className="w-5 h-5" /> : 
-                           index === 2 ? <AlertTriangle className="w-5 h-5" /> : 
-                           index === 3 ? <Target className="w-5 h-5" /> :
-                           <CheckCircle className="w-5 h-5" />}
-                        </div>
-                        <span className="font-semibold text-left">{section.title}</span>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="px-4 pb-4">
-                      <div className="prose prose-sm dark:prose-invert max-w-none">
-                        <div className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
-                          {section.content.split('\n').map((line, i) => {
-                            if (line.startsWith('### ')) {
-                              return <h4 key={i} className="text-foreground font-semibold mt-4 mb-2">{line.replace('### ', '')}</h4>;
-                            }
-                            if (line.startsWith('**') && line.endsWith('**')) {
-                              return <p key={i} className="font-medium text-foreground">{line.replace(/\*\*/g, '')}</p>;
-                            }
-                            if (line.startsWith('- ')) {
-                              return <li key={i} className="ml-4">{line.replace('- ', '')}</li>;
-                            }
-                            if (line.startsWith('> ')) {
-                              return <blockquote key={i} className="border-l-4 border-primary/50 pl-4 italic my-3">{line.replace('> ', '')}</blockquote>;
-                            }
-                            if (line === '---') {
-                              return <Separator key={i} className="my-4" />;
-                            }
-                            if (line.trim() === '') {
-                              return <br key={i} />;
-                            }
-                            return <p key={i}>{line}</p>;
-                          })}
-                        </div>
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-
-              {/* Conclusion */}
-              <Card className="border-accent/30 bg-accent/5">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-accent" />
-                    À retenir
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-sm text-muted-foreground whitespace-pre-line">
-                    {ACADEMY_DECISION_ROBUSTNESS.conclusion.split('\n').map((line, i) => {
-                      if (line.startsWith('## ')) return null; // Skip the heading
-                      if (line.match(/^\d\./)) {
-                        return <p key={i} className="my-1">✓ {line.replace(/^\d\.\s/, '')}</p>;
-                      }
-                      if (line.trim() === '') return null;
-                      return <p key={i} className="italic mt-3">{line}</p>;
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* CTA */}
-              <div className="flex justify-center">
-                <Button 
-                  onClick={() => navigate("/")} 
-                  className="gap-2"
-                  variant="outline"
-                >
-                  <ArrowRight className="h-4 w-4" />
-                  Retour au Dashboard
-                </Button>
-              </div>
-            </div>
-          </TabsContent>
         </Tabs>
       </main>
     </div>
