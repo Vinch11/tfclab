@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 // Définition des sections par onglet
-export type TabId = "profil" | "evolution" | "dashboard";
+export type TabId = "profil" | "dashboard" | "evolution" | "tests" | "seances" | "templates" | "academy" | "race-readiness";
 
 export interface SectionDefinition {
   id: string;
@@ -51,6 +51,34 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   { id: "staff-dashboard", label: "Staff Dashboard", icon: "Users", defaultVisible: true },
 ];
 
+export const TESTS_SECTIONS: SectionDefinition[] = [
+  { id: "vlamax-testing", label: "Tests VLamax", icon: "Zap", defaultVisible: true },
+  { id: "cap-testing", label: "Tests CAP", icon: "Footprints", defaultVisible: true },
+  { id: "tfcl-testing", label: "Semaine TFCL", icon: "Calendar", defaultVisible: true },
+];
+
+export const SEANCES_SECTIONS: SectionDefinition[] = [
+  { id: "workout-library", label: "Bibliothèque Séances", icon: "Dumbbell", defaultVisible: true },
+  { id: "wahoo-library", label: "Séances Wahoo", icon: "Activity", defaultVisible: true },
+];
+
+export const TEMPLATES_SECTIONS: SectionDefinition[] = [
+  { id: "week-selector", label: "Sélecteur de Semaines", icon: "Calendar", defaultVisible: true },
+  { id: "template-viewer", label: "Visualiseur Templates", icon: "FileText", defaultVisible: true },
+];
+
+export const ACADEMY_SECTIONS: SectionDefinition[] = [
+  { id: "theory-content", label: "Contenu Théorique", icon: "BookOpen", defaultVisible: true },
+  { id: "protocols", label: "Protocoles", icon: "FlaskConical", defaultVisible: true },
+];
+
+export const RACE_READINESS_SECTIONS: SectionDefinition[] = [
+  { id: "readiness-card", label: "Score Race Readiness", icon: "Trophy", defaultVisible: true },
+  { id: "nutrition-timing", label: "Nutrition & Timing", icon: "Utensils", defaultVisible: true },
+  { id: "running-economy", label: "Économie de Course", icon: "Footprints", defaultVisible: true },
+  { id: "staff-report", label: "Rapport Staff", icon: "FileText", defaultVisible: true },
+];
+
 export const EVOLUTION_SECTIONS: SectionDefinition[] = [
   { id: "historical-chart", label: "Graphique Historique", icon: "LineChart", defaultVisible: true },
   { id: "scientific-dashboard", label: "Dashboard Scientifique", icon: "BarChart", defaultVisible: true },
@@ -59,8 +87,13 @@ export const EVOLUTION_SECTIONS: SectionDefinition[] = [
 
 export const ALL_SECTIONS: Record<TabId, SectionDefinition[]> = {
   profil: PROFIL_SECTIONS,
-  evolution: EVOLUTION_SECTIONS,
   dashboard: DASHBOARD_SECTIONS,
+  evolution: EVOLUTION_SECTIONS,
+  tests: TESTS_SECTIONS,
+  seances: SEANCES_SECTIONS,
+  templates: TEMPLATES_SECTIONS,
+  academy: ACADEMY_SECTIONS,
+  "race-readiness": RACE_READINESS_SECTIONS,
 };
 
 // Format de stockage amélioré avec visibilité
