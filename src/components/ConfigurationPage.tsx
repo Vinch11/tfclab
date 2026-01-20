@@ -10,7 +10,7 @@ import { Settings, Palette, Check } from "lucide-react";
 import { useTheme, THEME_CONFIG, THEME_ORDER, Theme } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
 import { LayoutPreferencesEditor } from "./LayoutPreferencesEditor";
-
+import { ReportSectionOrderEditor } from "./ReportSectionOrderEditor";
 export function ConfigurationPage() {
   const { theme, setTheme, themeConfig } = useTheme();
 
@@ -94,6 +94,9 @@ export function ConfigurationPage() {
 
       {/* Section Layout Preferences */}
       <LayoutPreferencesEditor />
+
+      {/* Section Ordre des Sections du Rapport */}
+      <ReportSectionOrderEditor />
 
       {/* Section Préférences générales */}
       <Card>
