@@ -45,6 +45,7 @@ import { computeFatMaxTFCL, type FatMaxTFCLResult, FATMAX_DEFINITIONS, FATMAX_AC
 import { computeNutritionV2, type NutritionPredictiveV2, NUTRITION_PHILOSOPHY } from "@/lib/v2/nutritionV2";
 import { generateAthleteReadiness, type AthleteReadinessReport } from "@/lib/athleteReadiness";
 import { User, Shield } from "lucide-react";
+import { SECTION_LABELS, getSectionOrder, DEFAULT_SECTION_ORDER } from "./ReportSectionOrderEditor";
 
 // =============================================
 // TYPES
@@ -117,31 +118,7 @@ export const DEFAULT_REPORT_SECTIONS: ReportSections = {
   qualite: true,
 };
 
-const SECTION_LABELS: Record<keyof ReportSections, string> = {
-  synthese: "Synthèse Exécutive",
-  compass: "Metabolic Compass™",
-  profilMetabolique: "Profil Métabolique Complet",
-  indicateurs: "Indicateurs Clés",
-  raceReadiness: "Race Readiness",
-  injuryRisk: "Risque de Blessure CAP",
-  nutritionV2: "Nutrition Prédictive V2",
-  fatmaxTFCL: "FatMax TFCL™",
-  ambitionTargets: "Cibles par Ambition",
-  ambitionPredictions: "Prédictions Ambition",
-  evolutionCharts: "Graphiques Évolution",
-  ageAdjustment: "Ajustement Âge (AAI)",
-  methodology: "Méthodologies Entraînement",
-  twoForCoaching: "Analyse Two For Coaching Lab™",
-  wahoo: "Suggestions Wahoo",
-  planSuggestion: "Suggestion de Plan",
-  templateRecommendation: "Template Recommandé",
-  zones: "Zones d'entraînement",
-  historique: "Historique Snapshots",
-  tests: "Historique Tests",
-  checkins: "Check-ins",
-  comprendre: "Comprendre mes scores",
-  qualite: "Qualité des données",
-};
+// SECTION_LABELS, getSectionOrder and DEFAULT_SECTION_ORDER are imported from ReportSectionOrderEditor
 
 // Payload normalisé pour toutes les sections du rapport
 interface ExportPayload {
@@ -4944,7 +4921,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
               </div>
               
               <div className="max-h-48 overflow-y-auto space-y-1 pr-1">
-                {(Object.keys(SECTION_LABELS) as Array<keyof ReportSections>).map((key) => (
+                {getSectionOrder().map((key) => (
                   <div key={key} className="flex items-center justify-between py-0.5">
                     <Label 
                       htmlFor={`section-${key}`} 
