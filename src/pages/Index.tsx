@@ -66,6 +66,9 @@ import { getEffectiveRefs, computeFtpKg, getMissingFields } from "@/lib/effectiv
 // ✅ Guide interactif de complétion des données
 import { DataCompletionGuide } from "@/components/DataCompletionGuide";
 
+// ✅ Page de configuration (thèmes, préférences)
+import { ConfigurationPage } from "@/components/ConfigurationPage";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -1406,6 +1409,9 @@ const Index = () => {
             <IndexSeancesView />
           </div>
         );
+
+      case "configuration":
+        return <ConfigurationPage />;
 
       default:
         return null;
