@@ -38,7 +38,6 @@ import { PerformanceRiskMatrixCompact } from "@/components/PerformanceRiskMatrix
 import { getAxisLabel, getAxisColor } from "@/lib/wahoo/wahooSuggestionEngine";
 import { MetabolicPerformanceCompassV2 as MetabolicPerformanceCompass } from "@/components/charts/MetabolicPerformanceCompassV2";
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
-import { computePrecisionScoreTFCL, decisionQualityFromPrecision, computeLabRecommendation, type PrecisionInput } from "@/lib/v2/decisionRobustness";
 import type { DbSnapshot } from "@/hooks/useCloudData";
 
 interface StaffReportProps {
@@ -57,7 +56,7 @@ interface StaffReportProps {
   snapshotUpdatedAt?: string | null;
   athleteAge?: number | null;
   ambition?: AmbitionLevel;
-  snapshot?: DbSnapshot | null; // ✅ Pour Decision Robustness
+  snapshot?: DbSnapshot | null;
   vo2max?: number | null;
   onExportPDF?: () => void;
 }
