@@ -23,12 +23,13 @@ import { TTEEffectif } from "@/lib/tteEffectif";
 import { ChargeRecenteReference, computeChargeScore, ChargeScore } from "@/lib/chargeRecenteReference";
 import { FatigueEffectif } from "@/lib/fatigueEffectif";
 import { RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
-import { 
-  getVLamaxRange, 
-  getTTETargetByAmbition, 
-  getFtpKgTargetByAmbition, 
+import { getAgeAdjustedTargets } from "@/lib/ageAdjustment";
+import {
+  getVLamaxRange,
+  getTTETargetByAmbition,
+  getFtpKgTargetByAmbition,
   getChargeOptimale,
-  VLamaxTargets
+  VLamaxTargets,
 } from "@/lib/physiologicalTargets";
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 
@@ -92,7 +93,6 @@ export interface CompassTargets {
 function getTargets(objectif: string, ambition: AmbitionLevel = DEFAULT_AMBITION, age?: number | null): CompassTargets {
   // Si l'âge est fourni, utiliser les cibles ajustées par âge
   if (age !== null && age !== undefined) {
-    const { getAgeAdjustedTargets } = require("@/lib/ageAdjustment");
     const ageTargets = getAgeAdjustedTargets(objectif, age, ambition);
     return {
       objectif,
@@ -103,7 +103,7 @@ function getTargets(objectif: string, ambition: AmbitionLevel = DEFAULT_AMBITION
       chargeOptimale: getChargeOptimale(objectif, ambition),
     };
   }
-  
+
   // Sans âge, utiliser les cibles de base
   const vlamaxRange = getVLamaxRange(objectif, ambition);
   return {
