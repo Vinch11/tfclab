@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { FileText, FileSpreadsheet, AlertCircle, Settings2 } from "lucide-react";
+import { FileText, AlertCircle, Settings2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 import type { DbAthlete, DbSnapshot, DbTest, DbCheckin } from "@/hooks/useCloudData";
@@ -4749,80 +4749,6 @@ function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): str
 }
 
 // =============================================
-// EXPORT CSV
-// =============================================
-
-function buildCSV(payload: ExportPayload): string {
-  const { athlete, effectiveSnapshot, effectiveRefs, vlamax, tte, raceReadiness, snapshotHistory, tests, completude } = payload;
-  
-  const ftpKg = effectiveRefs.ftp && effectiveRefs.weightKg && effectiveRefs.weightKg > 0 
-    ? effectiveRefs.ftp / effectiveRefs.weightKg 
-    : null;
-  
-  let csv = "Champ,Valeur\n";
-  csv += `Nom,${athlete.name}\n`;
-  csv += `Objectif,${getObjectifLabel(athlete.goal)}\n`;
-  csv += `Date export,${new Date().toLocaleDateString("fr-FR")}\n`;
-  csv += `Complétude,${completude.score}%\n`;
-  csv += `\n`;
-  csv += `=== INDICATEURS EFFECTIFS ===\n`;
-  csv += `VLamax,${vlamax.value !== null ? vlamax.value.toFixed(2) : "—"}\n`;
-  csv += `VLamax source,${vlamax.label}\n`;
-  csv += `VLamax confiance,${(vlamax.confidence * 100).toFixed(0)}%\n`;
-  csv += `VLamax verrouillée,${vlamax.isLocked ? "Oui" : "Non"}\n`;
-  csv += `TTE (min),${tte.tte_min}\n`;
-  csv += `TTE source,${tte.source}\n`;
-  csv += `TTE confiance,${(tte.confidence * 100).toFixed(0)}%\n`;
-  csv += `TTE cible,${tte.target}\n`;
-  csv += `Race Readiness,${raceReadiness.score}/100\n`;
-  csv += `Race Readiness label,${raceReadiness.label}\n`;
-  csv += `\n`;
-  csv += `=== RÉFÉRENCES EFFECTIVES ===\n`;
-  csv += `FCmax,${effectiveRefs.fcMax ?? "—"}\n`;
-  csv += `VMA,${effectiveRefs.vma ?? "—"}\n`;
-  csv += `FTP,${effectiveRefs.ftp ?? "—"}\n`;
-  csv += `Poids,${effectiveRefs.weightKg ? effectiveRefs.weightKg.toFixed(1) : "—"}\n`;
-  csv += `FTP/kg,${ftpKg ? ftpKg.toFixed(2) : "—"}\n`;
-  csv += `VO2max,${effectiveRefs.vo2max ? effectiveRefs.vo2max.toFixed(1) : "—"}\n`;
-  
-  if (effectiveSnapshot) {
-    csv += `\n`;
-    csv += `=== SNAPSHOT EFFECTIF ===\n`;
-    csv += `Date,${effectiveSnapshot.date}\n`;
-    csv += `Source,${effectiveSnapshot.source || "manual"}\n`;
-    csv += `Cycle,${effectiveSnapshot.cycle_tag || "—"}\n`;
-    csv += `TSS 7d,${effectiveSnapshot.tss_7d ?? "—"}\n`;
-  }
-
-  if (snapshotHistory.length > 0) {
-    csv += `\n`;
-    csv += `=== HISTORIQUE SNAPSHOTS ===\n`;
-    csv += `Date,FTP,Poids,FTP/kg,TSS_7d,VO2max,VLamax,Source\n`;
-    snapshotHistory
-      .slice()
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .forEach(snap => {
-        const snapFtpKg = snap.ftp && snap.weight_kg ? (snap.ftp / snap.weight_kg).toFixed(2) : "";
-        csv += `${snap.date},${snap.ftp ?? ""},${snap.weight_kg ?? ""},${snapFtpKg},${snap.tss_7d ?? ""},${snap.vo2max ?? ""},${snap.vlamax ?? ""},${snap.source || ""}\n`;
-      });
-  }
-
-  if (tests.length > 0) {
-    csv += `\n`;
-    csv += `=== HISTORIQUE TESTS ===\n`;
-    csv += `Date,Type,Nom,VLamax,Fiabilité,Note\n`;
-    tests
-      .slice()
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .forEach(t => {
-        csv += `${t.date},${t.type || ""},${t.name || ""},${t.vlamax ?? ""},${t.reliability ?? ""},${(t.note || "").replace(/,/g, ";")}\n`;
-      });
-  }
-
-  return csv;
-}
-
-// =============================================
 // COMPONENT
 // =============================================
 
@@ -4847,26 +4773,6 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
   
   const payload = buildExportPayload(athlete, snapshots, tests, checkins, ambition);
   const exportCheck = canExport(payload);
-
-  const handleExportCSV = () => {
-    if (!exportCheck.ok) {
-      toast.error("Export impossible", { description: exportCheck.reason });
-      return;
-    }
-    
-    const csv = buildCSV(payload);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${athlete.name.replace(/\s+/g, "_")}_2FC_Lab.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-    
-    toast.success("Export CSV terminé", {
-      description: `Fichier téléchargé`
-    });
-  };
 
   const handleExportPDF = async () => {
     if (!exportCheck.ok) {
@@ -4981,15 +4887,6 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <Button 
-        variant="outline" 
-        size="sm" 
-        onClick={handleExportCSV}
-        className="gap-2"
-      >
-        <FileSpreadsheet className="h-4 w-4" />
-        CSV
-      </Button>
       
       <Popover>
         <PopoverTrigger asChild>
