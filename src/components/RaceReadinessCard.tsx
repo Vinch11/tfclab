@@ -18,6 +18,7 @@ import { TTEGuard, isTTEUnavailable } from "@/components/TTEGuard";
 import { getEconomyRaceReadinessBonus } from "@/lib/runningEconomySnapshot";
 import { EnergyDriftResult, getFactorLabel, getFactorColor } from "@/lib/energyDrift";
 import { computeAgeAdjustmentIndex } from "@/lib/ageAdjustment";
+import { ReadinessPillarDetail, computePillarCalculations } from "@/components/ReadinessPillarDetail";
 
 interface RaceReadinessCardProps {
   athlete: any;
@@ -461,22 +462,26 @@ export function RaceReadinessCard({
           </div>
         </div>
 
-        <div className="space-y-4">
-          {detailItems.map(item => <div key={item.key} className="p-3 rounded-xl bg-secondary/20 border border-border">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <item.icon className={cn("w-4 h-4", item.color)} />
-                  <span className="text-sm font-medium text-foreground">{item.label}</span>
-                </div>
-                <span className={cn("font-mono font-bold", item.color)}>{item.value}/25</span>
-              </div>
-              <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                <div className={cn("h-full rounded-full transition-all duration-500", scoreBg)} style={{
-              width: `${item.value / 25 * 100}%`,
-              opacity: 0.7
-            }} />
-              </div>
-            </div>)}
+        <div className="space-y-3">
+          {(() => {
+            const calculations = computePillarCalculations(readiness);
+            return detailItems.map(item => (
+              <ReadinessPillarDetail
+                key={item.key}
+                pillarKey={item.key as "vlamax" | "endurance" | "puissance" | "fraicheur"}
+                label={item.label}
+                icon={<item.icon className="w-4 h-4" />}
+                value={item.value}
+                color={item.color}
+                calculation={calculations[item.key as keyof typeof calculations]}
+                weight={readiness.weights[
+                  item.key === "vlamax" ? "vlamax" :
+                  item.key === "endurance" ? "tte" :
+                  item.key === "puissance" ? "ftpKg" : "freshness"
+                ]}
+              />
+            ));
+          })()}
         </div>
       </div>
 
