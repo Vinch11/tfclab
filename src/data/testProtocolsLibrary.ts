@@ -543,6 +543,293 @@ export const RUN_TTE: IntegratedTestProtocol = {
 };
 
 // ========================================
+// TESTS FATMAX VÉLO
+// ========================================
+
+export const BIKE_FATMAX_ESTIMATION: IntegratedTestProtocol = {
+  id: "bike_fatmax_estimation",
+  name: "Test FatMax Vélo – Estimation Oxydation Lipidique",
+  shortName: "FatMax Vélo",
+  sport: "bike",
+  category: "FATMAX",
+  difficulty: "moderate",
+  
+  objective: "Estimer la zone FatMax (puissance à laquelle l'oxydation des graisses est maximale) via un protocole par paliers progressifs avec suivi de la fréquence cardiaque et de la perception d'effort.",
+  targetParameters: ["FatMax W", "FatMax %FTP", "Zone lipidique optimale"],
+  expectedPrecision: "medium",
+  reliabilityScore: 0.75,
+  
+  equipment: [
+    { name: "Home trainer ou parcours plat", required: true },
+    { name: "Capteur de puissance calibré", required: true },
+    { name: "Cardio-fréquencemètre précis", required: true },
+    { name: "Chronomètre", required: true }
+  ],
+  
+  validityConditions: [
+    { id: "fasted", label: "À jeun depuis ≥10h OU repas léger >3h avant", critical: true },
+    { id: "rest24h", label: "24-48h sans intensité haute", critical: true },
+    { id: "hydration", label: "Hydratation normale (eau uniquement)", critical: true },
+    { id: "caffeine", label: "Pas de caféine le jour du test", critical: false },
+    { id: "temperature", label: "Température stable (18-22°C)", critical: false }
+  ],
+  
+  warmup: [
+    { durationMin: 10, description: "Zone 1 très facile", intensity: "50% FTP" },
+    { durationMin: 5, description: "Légère montée vers Z2", intensity: "55-60% FTP" }
+  ],
+  
+  protocol: [
+    { stepNumber: 1, description: "Démarrer à 45% FTP", durationMin: 6, notes: "Cadence stable 85-95 rpm" },
+    { stepNumber: 2, description: "Monter à 50% FTP", durationMin: 6, notes: "Noter FC moyenne et RPE fin de palier" },
+    { stepNumber: 3, description: "Monter à 55% FTP", durationMin: 6, notes: "Noter FC moyenne et RPE fin de palier" },
+    { stepNumber: 4, description: "Monter à 60% FTP", durationMin: 6, notes: "Noter FC moyenne et RPE fin de palier" },
+    { stepNumber: 5, description: "Monter à 65% FTP", durationMin: 6, notes: "Noter FC moyenne et RPE fin de palier" },
+    { stepNumber: 6, description: "Monter à 70% FTP (optionnel)", durationMin: 6, notes: "Si respiration encore nasale possible" },
+    { stepNumber: 7, description: "Identifier le palier où RPE passe de 3-4 à 5-6", notes: "= Crossover point estimé" }
+  ],
+  
+  pacingRules: [
+    "Cadence stable 85-95 rpm tout le test",
+    "Respiration principalement nasale sur paliers bas",
+    "Ne pas parler pendant les paliers",
+    "Boire par petites gorgées si nécessaire"
+  ],
+  
+  validationCriteria: [
+    { id: "hr_stable", label: "FC stable (<5 bpm de variation) sur chaque palier", threshold: "5 bpm" },
+    { id: "rpe_progression", label: "RPE progresse logiquement avec paliers", invalidFlag: "rpe_incoherent" },
+    { id: "crossover_clear", label: "Point de crossover identifiable", invalidFlag: "crossover_unclear" }
+  ],
+  
+  inputFields: [
+    { key: "ftp", label: "FTP utilisé", unit: "W", type: "number", min: 100, max: 500, step: 1, required: true },
+    { key: "hr_45pct", label: "FC moyenne à 45%", unit: "bpm", type: "number", min: 80, max: 180, step: 1, required: true },
+    { key: "hr_50pct", label: "FC moyenne à 50%", unit: "bpm", type: "number", min: 80, max: 180, step: 1, required: true },
+    { key: "hr_55pct", label: "FC moyenne à 55%", unit: "bpm", type: "number", min: 80, max: 180, step: 1, required: true },
+    { key: "hr_60pct", label: "FC moyenne à 60%", unit: "bpm", type: "number", min: 80, max: 190, step: 1, required: true },
+    { key: "hr_65pct", label: "FC moyenne à 65%", unit: "bpm", type: "number", min: 90, max: 200, step: 1, required: true },
+    { key: "rpe_crossover_pct", label: "% FTP au crossover (RPE 4→5)", unit: "%", type: "number", min: 45, max: 80, step: 5, required: true },
+    { key: "respiration_nasal_max_pct", label: "% FTP max respiration nasale", unit: "%", type: "number", min: 45, max: 75, step: 5, required: false }
+  ],
+  
+  tfclImpact: [
+    { parameter: "FatMax", confidenceBoost: 0.15, description: "Calibration zone FatMax" },
+    { parameter: "Nutrition longue distance", confidenceBoost: 0.10, description: "Affine les recommandations nutrition" }
+  ],
+  
+  compute: (inputs) => {
+    const ftp = inputs.ftp;
+    const crossoverPct = inputs.rpe_crossover_pct;
+    const nasalMaxPct = inputs.respiration_nasal_max_pct;
+    
+    if (!ftp || !crossoverPct) {
+      return { ok: false, error: "Données requises manquantes", confidence: 0, rawData: inputs };
+    }
+    
+    // FatMax estimé = crossover point - 5% (zone juste avant transition)
+    const fatmaxPct = crossoverPct - 5;
+    const fatmaxW = Math.round(ftp * fatmaxPct / 100);
+    
+    // Zone FatMax = fatmaxPct ± 5%
+    const fatmaxLow = Math.round(ftp * (fatmaxPct - 5) / 100);
+    const fatmaxHigh = Math.round(ftp * (fatmaxPct + 5) / 100);
+    
+    // Confiance basée sur cohérence des données
+    let confidence = 0.75;
+    
+    // Vérifier progression FC logique
+    const hrs = [inputs.hr_45pct, inputs.hr_50pct, inputs.hr_55pct, inputs.hr_60pct, inputs.hr_65pct].filter(Boolean);
+    if (hrs.length >= 4) {
+      const progressionOk = hrs.every((hr, i) => i === 0 || hr >= hrs[i - 1]);
+      if (!progressionOk) confidence -= 0.10;
+    }
+    
+    // Bonus si respiration nasale cohérente avec crossover
+    if (nasalMaxPct && Math.abs(nasalMaxPct - crossoverPct) <= 10) {
+      confidence += 0.05;
+    }
+    
+    return {
+      ok: true,
+      result: {
+        primaryValue: fatmaxW,
+        normalizedValue: fatmaxPct,
+        unit: "W",
+        label: `FatMax ~${fatmaxW}W (${fatmaxPct}% FTP)`
+      },
+      confidence: Math.min(0.85, confidence),
+      rawData: { 
+        ...inputs, 
+        fatmaxW, 
+        fatmaxPct, 
+        fatmaxLow, 
+        fatmaxHigh
+      }
+    };
+  }
+};
+
+// ========================================
+// TESTS ÉCONOMIE DE COURSE
+// ========================================
+
+export const RUN_ECONOMY: IntegratedTestProtocol = {
+  id: "run_economy",
+  name: "Test Économie de Course – Coût Énergétique",
+  shortName: "Économie CAP",
+  sport: "run",
+  category: "ECONOMY",
+  difficulty: "moderate",
+  
+  objective: "Estimer l'économie de course (coût énergétique par km) via un test sous-maximal avec mesure de la fréquence cardiaque à allure constante. Plus la FC est basse à une allure donnée, meilleure est l'économie.",
+  targetParameters: ["Économie (HR/pace)", "Coût cardiaque", "Efficience relative"],
+  expectedPrecision: "medium",
+  reliabilityScore: 0.70,
+  
+  equipment: [
+    { name: "Piste 400m ou parcours plat mesuré", required: true },
+    { name: "Montre GPS avec allure instantanée", required: true },
+    { name: "Cardio-fréquencemètre précis (ceinture)", required: true },
+    { name: "Capteur de puissance running (optionnel)", required: false, alternatives: ["Stryd", "Garmin Running Power"] }
+  ],
+  
+  validityConditions: [
+    { id: "rest24h", label: "24-48h sans intensité haute", critical: true },
+    { id: "flat", label: "Surface plate et régulière", critical: true },
+    { id: "weather", label: "Conditions météo stables (pas de vent >10 km/h)", critical: true },
+    { id: "nutrition", label: "Repas léger 2-3h avant", critical: false },
+    { id: "shoes", label: "Chaussures habituelles d'entraînement", critical: false }
+  ],
+  
+  warmup: [
+    { durationMin: 15, description: "Footing très progressif", intensity: "Z1-Z2" },
+    { durationMin: 5, description: "Gammes techniques légères" },
+    { durationMin: 5, description: "3×30s à l'allure test", intensity: "Allure marathon" }
+  ],
+  
+  protocol: [
+    { stepNumber: 1, description: "Palier 1 : 6 min à allure marathon + 30 sec/km", durationMin: 6, notes: "Allure très confortable" },
+    { stepNumber: 2, description: "Récupération", durationMin: 2, notes: "Marche ou trot très léger" },
+    { stepNumber: 3, description: "Palier 2 : 6 min à allure marathon", durationMin: 6, notes: "Allure marathon estimée" },
+    { stepNumber: 4, description: "Récupération", durationMin: 2, notes: "Marche ou trot très léger" },
+    { stepNumber: 5, description: "Palier 3 : 6 min à allure semi-marathon", durationMin: 6, notes: "Allure semi estimée" },
+    { stepNumber: 6, description: "Noter FC moyenne des 3 dernières minutes de chaque palier" }
+  ],
+  
+  pacingRules: [
+    "Allure TRÈS stable sur chaque palier (variabilité <5 sec/km)",
+    "Cadence naturelle (ne pas forcer une cadence particulière)",
+    "Respiration régulière, ne pas parler",
+    "Laisser la FC se stabiliser (ignorer les 3 premières minutes)"
+  ],
+  
+  validationCriteria: [
+    { id: "pace_stable", label: "Allure stable sur chaque palier (<5 sec/km)", threshold: "5 sec/km" },
+    { id: "hr_stable", label: "FC stabilisée (<3 bpm de variation) sur 3 dernières min", threshold: "3 bpm" },
+    { id: "hr_progression", label: "FC augmente logiquement entre paliers", invalidFlag: "hr_incoherent" }
+  ],
+  
+  inputFields: [
+    { key: "pace_1", label: "Allure palier 1 (lent)", unit: "sec/km", type: "number", min: 240, max: 600, step: 1, required: true },
+    { key: "hr_1", label: "FC moyenne palier 1 (min 3-6)", unit: "bpm", type: "number", min: 100, max: 180, step: 1, required: true },
+    { key: "pace_2", label: "Allure palier 2 (marathon)", unit: "sec/km", type: "number", min: 210, max: 480, step: 1, required: true },
+    { key: "hr_2", label: "FC moyenne palier 2 (min 3-6)", unit: "bpm", type: "number", min: 110, max: 190, step: 1, required: true },
+    { key: "pace_3", label: "Allure palier 3 (semi)", unit: "sec/km", type: "number", min: 180, max: 420, step: 1, required: true },
+    { key: "hr_3", label: "FC moyenne palier 3 (min 3-6)", unit: "bpm", type: "number", min: 120, max: 200, step: 1, required: true },
+    { key: "fc_max", label: "FC max connue", unit: "bpm", type: "number", min: 150, max: 220, step: 1, required: false },
+    { key: "power_avg", label: "Puissance moyenne (si dispo)", unit: "W", type: "number", min: 150, max: 500, step: 1, required: false }
+  ],
+  
+  tfclImpact: [
+    { parameter: "Économie de course", confidenceBoost: 0.15, description: "Calibration économie via test terrain" },
+    { parameter: "Prédiction performance", confidenceBoost: 0.10, description: "Affine les prédictions marathon/semi" }
+  ],
+  
+  compute: (inputs) => {
+    const { pace_1, hr_1, pace_2, hr_2, pace_3, hr_3, fc_max, power_avg } = inputs;
+    
+    if (!pace_1 || !hr_1 || !pace_2 || !hr_2 || !pace_3 || !hr_3) {
+      return { ok: false, error: "Données requises manquantes", confidence: 0, rawData: inputs };
+    }
+    
+    // Calculer le "coût cardiaque" par km/h
+    // Plus bas = meilleure économie
+    const speed1 = 3600 / pace_1; // km/h
+    const speed2 = 3600 / pace_2;
+    const speed3 = 3600 / pace_3;
+    
+    const costPerKmh_1 = hr_1 / speed1;
+    const costPerKmh_2 = hr_2 / speed2;
+    const costPerKmh_3 = hr_3 / speed3;
+    
+    const avgCost = (costPerKmh_1 + costPerKmh_2 + costPerKmh_3) / 3;
+    
+    // Interpréter le coût cardiaque
+    // Référence : ~10-12 bpm/(km/h) = excellente économie
+    // ~14-16 bpm/(km/h) = économie moyenne
+    // >18 bpm/(km/h) = économie à améliorer
+    let economyLabel: string;
+    let economyScore: number;
+    
+    if (avgCost <= 11) {
+      economyLabel = "Excellente";
+      economyScore = 95;
+    } else if (avgCost <= 13) {
+      economyLabel = "Très bonne";
+      economyScore = 85;
+    } else if (avgCost <= 15) {
+      economyLabel = "Bonne";
+      economyScore = 70;
+    } else if (avgCost <= 17) {
+      economyLabel = "Moyenne";
+      economyScore = 55;
+    } else {
+      economyLabel = "À améliorer";
+      economyScore = 40;
+    }
+    
+    // Confiance
+    let confidence = 0.70;
+    
+    // Vérifier progression logique
+    if (hr_1 < hr_2 && hr_2 < hr_3) {
+      confidence += 0.05;
+    } else {
+      confidence -= 0.10;
+    }
+    
+    // Bonus si FC max connue (permet calcul %FCmax)
+    if (fc_max) {
+      confidence += 0.05;
+    }
+    
+    // Bonus si puissance disponible
+    if (power_avg) {
+      confidence += 0.05;
+    }
+    
+    return {
+      ok: true,
+      result: {
+        primaryValue: economyScore,
+        normalizedValue: avgCost,
+        unit: "bpm/(km/h)",
+        label: `Économie : ${economyLabel} (${avgCost.toFixed(1)} bpm/km/h)`
+      },
+      confidence: Math.min(0.85, confidence),
+      rawData: { 
+        ...inputs, 
+        speed1, speed2, speed3,
+        costPerKmh_1, costPerKmh_2, costPerKmh_3,
+        avgCost,
+        economyScore
+      }
+    };
+  }
+};
+
+// ========================================
 // SEMAINE DE RÉFÉRENCE TFCL
 // ========================================
 
@@ -583,8 +870,10 @@ export const TFCL_REFERENCE_WEEK: {
 export const INTEGRATED_TESTS_LIBRARY: IntegratedTestProtocol[] = [
   BIKE_VLAMAX_SPRINT_15S,
   BIKE_TTE_FTP,
+  BIKE_FATMAX_ESTIMATION,
   RUN_VLAMAX_SPRINT_15S,
-  RUN_TTE
+  RUN_TTE,
+  RUN_ECONOMY
 ];
 
 // Helpers
