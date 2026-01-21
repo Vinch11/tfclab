@@ -19,7 +19,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { id: "dashboard", label: "Dashboard", shortLabel: "Dash", icon: Calculator },
   { id: "profil", label: "Profil", icon: Calculator },
-  { id: "tests", label: "Tests", icon: FlaskConical },
+  { id: "tests", label: "Tests", icon: FlaskConical, route: "/tests" },
   { id: "seances", label: "Bibliothèque", shortLabel: "Biblio", icon: Dumbbell },
   { id: "templates", label: "Templates", shortLabel: "Templ", icon: BookOpen, route: "/templates" },
   { id: "academy", label: "Academy", icon: GraduationCap, route: "/academy" },
