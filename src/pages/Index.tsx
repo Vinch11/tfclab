@@ -1184,19 +1184,9 @@ const Index = () => {
         );
 
       case "tests":
-        return (
-          <div className="space-y-6 animate-fade-in">
-            {renderAthleteSelector()}
-            <VLamaxTestingPage 
-              athlete={legacyAthlete} 
-              cloudTests={tests.filter(t => t.athlete_id === currentAthlete?.id)}
-              onAddTest={addTest}
-              onDeleteTest={deleteTest}
-            />
-            <TestComparison athlete={legacyAthlete} />
-            <TestProtocols athlete={legacyAthlete} />
-          </div>
-        );
+        // ✅ Rediriger vers le module Tests détaillé (/tests)
+        navigate("/tests");
+        return null;
 
       case "nolio":
         return (
