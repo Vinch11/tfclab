@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { usePersistedDialogState } from "@/hooks/usePersistedFormState";
 import { Navigation } from "@/components/Navigation";
 import { MetricCard } from "@/components/MetricCard";
 import { TrainingZonesCard } from "@/components/TrainingZonesCard";
@@ -172,7 +173,8 @@ const Index = () => {
   const [showTestLibrary, setShowTestLibrary] = useState(false);
   const [showPhysioAnalysis, setShowPhysioAnalysis] = useState(false);
   
-  const [showSnapshots, setShowSnapshots] = useState(false);
+  // ✅ Persisted state for snapshot panel to survive page minimize/restore
+  const [showSnapshots, setShowSnapshots] = usePersistedDialogState("vlab-show-snapshots", false);
   const [showCheckins, setShowCheckins] = useState(false);
 
   // ✅ Mode Staff toggle (affichage expert avec indices de confiance)
