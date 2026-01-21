@@ -1158,11 +1158,12 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     athlete, effectiveSnapshot, effectiveRefs, 
     vlamax, tte, raceReadiness, lorang,
     tests, snapshotHistory, checkins, completude, reportDate,
-    nutritionEstimate, capInjuryRisk, ageAdjustment
+    nutritionEstimate, capInjuryRisk, ageAdjustment, ambition
   } = payload;
   
   const refs = getAthleteRefsForZones(effectiveRefs);
-  const targets = getTargets(athlete.goal || "IM");
+  // ✅ FIX: Passer âge et ambition pour utiliser les cibles dynamiques (cohérence avec l'app)
+  const targets = getTargets(athlete.goal || "IM", ageAdjustment.age, ambition.current);
   const weights = getRaceWeights(athlete.goal || "IM");
 
   // =============================================
