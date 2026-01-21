@@ -15,13 +15,15 @@ import {
   PersonStanding,
   Target,
   Filter,
-  Info
+  Info,
+  Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 
@@ -30,9 +32,9 @@ import { TestLibraryView } from "@/components/tests/TestLibraryView";
 import { CompletedTestsView } from "@/components/tests/CompletedTestsView";
 import { TestHistoryView } from "@/components/tests/TestHistoryView";
 import { TestExecutionSheet } from "@/components/tests/TestExecutionSheet";
-import { AthleteSelector } from "@/components/AthleteSelector";
 
 import { IntegratedTestProtocol, INTEGRATED_TESTS_LIBRARY } from "@/data/testProtocolsLibrary";
+import type { Json } from "@/integrations/supabase/types";
 
 export default function TestsPage() {
   const navigate = useNavigate();
@@ -66,15 +68,16 @@ export default function TestsPage() {
   const handleSaveTest = async (testData: Record<string, unknown>) => {
     if (!selectedAthlete || !activeTest) return;
     
-    await addTest({
-      athlete_id: selectedAthlete.id,
-      type: activeTest.category,
-      name: activeTest.name,
-      sport: activeTest.sport,
-      raw: testData,
-      reliability: activeTest.reliabilityScore,
-      vlamax: testData.estimatedVlamax as number || null
-    });
+    await addTest(
+      selectedAthlete.id,
+      activeTest.category,
+      activeTest.name,
+      activeTest.sport,
+      activeTest.reliabilityScore,
+      (testData.estimatedVlamax as number) || null,
+      testData as Json,
+      null
+    );
     
     handleCloseTest();
   };
@@ -118,11 +121,24 @@ export default function TestsPage() {
         {/* Athlete Selector */}
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="flex-1 max-w-xs">
-            <AthleteSelector
-              athletes={athletes}
-              selectedId={selectedAthleteId}
-              onSelect={setSelectedAthleteId}
-            />
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-muted-foreground" />
+              <Select
+                value={selectedAthleteId || ""}
+                onValueChange={setSelectedAthleteId}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Sélectionner un athlète" />
+                </SelectTrigger>
+                <SelectContent>
+                  {athletes.map((athlete) => (
+                    <SelectItem key={athlete.id} value={athlete.id}>
+                      {athlete.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
           {selectedAthlete && (
@@ -219,14 +235,14 @@ export default function TestsPage() {
               
               <TabsContent value="completed" className="mt-6">
                 <CompletedTestsView
-                  tests={athleteTests}
+                  tests={athleteTests as any}
                   sportFilter={sportFilter}
                 />
               </TabsContent>
               
               <TabsContent value="history" className="mt-6">
                 <TestHistoryView
-                  tests={athleteTests}
+                  tests={athleteTests as any}
                   sportFilter={sportFilter}
                 />
               </TabsContent>
