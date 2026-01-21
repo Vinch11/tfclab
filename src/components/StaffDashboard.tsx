@@ -4,6 +4,7 @@
 // =============================================
 
 import { useState, useMemo } from "react";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -165,6 +166,20 @@ function getRaceReadinessStatus(score: number): { status: "ok" | "warning" | "cr
   if (score >= 80) return { status: "ok", label: "Race Ready!" };
   if (score >= 60) return { status: "warning", label: "En progression" };
   return { status: "critical", label: "Non prêt" };
+}
+
+// Wrapper pour RaceReadinessCard avec préférences utilisateur
+function RaceReadinessCardWithPreferences(props: Omit<React.ComponentProps<typeof RaceReadinessCard>, 'compact' | 'defaultExpanded'>) {
+  const { preferences } = useUserPreferences();
+  const isCompact = preferences.raceReadinessCompactMode ?? true;
+  
+  return (
+    <RaceReadinessCard
+      {...props}
+      compact={isCompact}
+      defaultExpanded={!isCompact}
+    />
+  );
 }
 
 // =============================================
@@ -468,15 +483,13 @@ export function StaffDashboard({
 
         {/* PILIER 3: Race Readiness - Utilise le composant complet */}
         {athlete ? (
-          <RaceReadinessCard
+          <RaceReadinessCardWithPreferences
             athlete={athlete}
             vlamaxEffectif={vlamaxEffectif}
             tteEffectif={tteEffectif}
             readiness={raceReadiness}
             energyDrift={energyDrift as EnergyDriftResult}
             athleteAge={athleteAge}
-            compact={true}
-            defaultExpanded={false}
           />
         ) : (
           // Fallback si athlete n'est pas passé
