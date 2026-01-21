@@ -1298,11 +1298,101 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       @media print {
         body { margin: 10mm; padding: 0; font-size: 11px; }
         .noPrint { display:none !important; }
-        .pagebreak { page-break-before: always; }
-        .pagebreakAvoid { break-inside: avoid; page-break-inside: avoid; }
-        .cover { min-height: auto; page-break-after: always; }
-        h2 { font-size: 14px; }
-        .card { padding: 10px; }
+        
+        /* === PAGE BREAK CONTROLS === */
+        .pagebreak { page-break-before: always; break-before: page; }
+        .pagebreakAvoid { break-inside: avoid !important; page-break-inside: avoid !important; }
+        .cover { min-height: auto; page-break-after: always; break-after: page; }
+        
+        /* === PREVENT SECTION HEADERS FROM BEING ORPHANED === */
+        h2 { 
+          font-size: 14px; 
+          page-break-after: avoid !important; 
+          break-after: avoid !important;
+          page-break-inside: avoid !important;
+          break-inside: avoid !important;
+        }
+        h3, h4 { 
+          page-break-after: avoid !important; 
+          break-after: avoid !important;
+          orphans: 3;
+          widows: 3;
+        }
+        
+        /* === CARDS AND CONTENT BLOCKS - NEVER SPLIT === */
+        .card { 
+          padding: 10px; 
+          break-inside: avoid !important; 
+          page-break-inside: avoid !important;
+        }
+        .alert {
+          break-inside: avoid !important;
+          page-break-inside: avoid !important;
+        }
+        
+        /* === SECTIONS - KEEP TOGETHER WHEN POSSIBLE === */
+        .section {
+          break-inside: avoid-page;
+          page-break-inside: avoid;
+        }
+        
+        /* === TABLES - PREVENT AWKWARD BREAKS === */
+        table { 
+          break-inside: avoid !important; 
+          page-break-inside: avoid !important;
+        }
+        thead { 
+          display: table-header-group; 
+        }
+        tfoot { 
+          display: table-footer-group; 
+        }
+        tr { 
+          break-inside: avoid !important; 
+          page-break-inside: avoid !important;
+        }
+        
+        /* === GRIDS - KEEP TOGETHER === */
+        .grid2, .grid3, .grid4 {
+          break-inside: avoid !important;
+          page-break-inside: avoid !important;
+        }
+        
+        /* === LISTS - PREVENT ORPHANED ITEMS === */
+        ul, ol {
+          orphans: 2;
+          widows: 2;
+        }
+        li {
+          break-inside: avoid;
+          page-break-inside: avoid;
+        }
+        
+        /* === KEY-VALUE PAIRS - KEEP TOGETHER === */
+        .kv {
+          break-inside: avoid !important;
+          page-break-inside: avoid !important;
+        }
+        
+        /* === SVG CHARTS - NEVER SPLIT === */
+        svg {
+          break-inside: avoid !important;
+          page-break-inside: avoid !important;
+        }
+        
+        /* === PROGRESS BARS AND VISUAL ELEMENTS === */
+        .progressBar, .scoreCircle {
+          break-inside: avoid !important;
+          page-break-inside: avoid !important;
+        }
+        
+        /* === TOC - KEEP ON SINGLE PAGE === */
+        .toc {
+          break-inside: avoid !important;
+          page-break-inside: avoid !important;
+          page-break-after: always;
+          break-after: page;
+        }
       }
       @media screen and (max-width: 768px) {
         .grid2, .grid3, .grid4 { grid-template-columns: 1fr; }
