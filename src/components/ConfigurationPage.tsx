@@ -6,13 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
-import { Settings, Palette, Check } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Settings, Palette, Check, LayoutDashboard, Trophy } from "lucide-react";
 import { useTheme, THEME_CONFIG, THEME_ORDER, Theme } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
 import { LayoutPreferencesEditor } from "./LayoutPreferencesEditor";
 import { ReportSectionOrderEditor } from "./ReportSectionOrderEditor";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
+
 export function ConfigurationPage() {
   const { theme, setTheme, themeConfig } = useTheme();
+  const { preferences, setPreference } = useUserPreferences();
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -98,16 +102,42 @@ export function ConfigurationPage() {
       {/* Section Ordre des Sections du Rapport */}
       <ReportSectionOrderEditor />
 
-      {/* Section Préférences générales */}
+      {/* Section Préférences d'affichage */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Autres préférences</CardTitle>
+          <div className="flex items-center gap-2">
+            <LayoutDashboard className="w-5 h-5 text-primary" />
+            <CardTitle className="text-lg">Préférences d'affichage</CardTitle>
+          </div>
           <CardDescription>
-            Options d'affichage supplémentaires
+            Personnalisez le comportement par défaut des composants
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border">
+          {/* Race Readiness compact mode */}
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border hover:border-primary/30 transition-colors">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Trophy className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <Label className="font-medium text-base">Race Readiness — Mode compact</Label>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Affiche une version résumée sur le Dashboard avec possibilité d'étendre les détails
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={preferences.raceReadinessCompactMode ?? true}
+              onCheckedChange={(checked) => setPreference('raceReadinessCompactMode', checked)}
+              className="ml-4"
+            />
+          </div>
+
+          <Separator />
+
+          {/* Staff mode info */}
+          <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20 border">
             <div>
               <Label className="font-medium">Mode Coach (Staff)</Label>
               <p className="text-sm text-muted-foreground">
@@ -116,8 +146,6 @@ export function ConfigurationPage() {
             </div>
             <Badge variant="outline">Via Dashboard</Badge>
           </div>
-
-          <Separator />
 
           <div className="text-xs text-muted-foreground text-center py-2">
             TWO FOR COACHING LAB™ — Version TFCL-V2.0
