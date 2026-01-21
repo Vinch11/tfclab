@@ -74,6 +74,7 @@ export interface ReportSections {
   ambitionPredictions: boolean; // Prédictions d'Ambition
   evolutionCharts: boolean; // Graphiques d'évolution
   ageAdjustment: boolean;   // Ajustement par l'Âge (AAI)
+  ambitionLegend: boolean;  // Légende des cibles par ambition
   methodology: boolean;     // Méthodologies d'entraînement
   twoForCoaching: boolean;  // Analyse Two For Coaching Lab™
   wahoo: boolean;           // Suggestions Wahoo SYSTM
@@ -105,6 +106,7 @@ export const DEFAULT_REPORT_SECTIONS: ReportSections = {
   ambitionPredictions: true,
   evolutionCharts: true,
   ageAdjustment: true,
+  ambitionLegend: true,
   methodology: true,
   twoForCoaching: true,
   wahoo: true,
@@ -3213,6 +3215,85 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   ` : '';
 
   // =============================================
+  // LÉGENDE DES CIBLES PAR AMBITION
+  // =============================================
+  const ambitionLegendHTML = `
+    <section id="ambition-legend" class="section pagebreakAvoid">
+      <h2>Légende des cibles par niveau d'ambition</h2>
+      
+      <div class="alert alertInfo mb">
+        <b>ℹ️ Comment lire les cibles</b><br>
+        <span style="font-size:12px;">
+          Les cibles physiologiques (VLamax, TTE, FTP/kg) varient selon le <b>niveau d'ambition</b> sélectionné pour l'athlète.
+          Plus l'ambition est élevée, plus les exigences physiologiques sont strictes.
+          Le niveau actuel de cet athlète est : <b>${ambition.icon} ${ambition.label}</b>
+        </span>
+      </div>
+
+      <div class="card">
+        <h3>📊 Cibles par niveau d'ambition pour ${getObjectifLabel(athlete.goal)}</h3>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:25%">Ambition</th>
+              <th style="text-align:center">VLamax optimal</th>
+              <th style="text-align:center">TTE cible</th>
+              <th style="text-align:center">FTP/kg cible</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${ambition.allTargets.map(t => `
+              <tr style="${t.ambition === ambition.current ? 'background: linear-gradient(90deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%); font-weight: 600;' : ''}">
+                <td>
+                  <span style="font-size:16px;">${t.icon}</span> ${t.label}
+                  ${t.ambition === ambition.current ? '<span class="badge badgeSuccess" style="margin-left:8px;font-size:10px;">ACTUEL</span>' : ''}
+                </td>
+                <td style="text-align:center">≤ ${fmt(t.targets.vlamax.optimal, 2)}</td>
+                <td style="text-align:center">≥ ${t.targets.tte_min} min</td>
+                <td style="text-align:center">≥ ${fmt(t.targets.ftp_kg_min, 1)} W/kg</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid2 mt">
+        <div class="card">
+          <h4>🎯 Niveau actuel : ${ambition.icon} ${ambition.label}</h4>
+          <div class="kv">
+            <div class="k">VLamax cible</div>
+            <div class="v">${fmt(ambition.targets.vlamax.min, 2)} – ${fmt(ambition.targets.vlamax.max, 2)} (optimal: ${fmt(ambition.targets.vlamax.optimal, 2)})</div>
+            <div class="k">TTE cible</div>
+            <div class="v">≥ ${ambition.targets.tte_min} min</div>
+            <div class="k">FTP/kg cible</div>
+            <div class="v">≥ ${fmt(ambition.targets.ftp_kg_min, 1)} W/kg</div>
+          </div>
+        </div>
+        <div class="card">
+          <h4>📈 Progression vers les niveaux supérieurs</h4>
+          ${ambition.allTargets.filter(t => !t.isReached && t.progress.global !== null).slice(0, 3).map(t => `
+            <div style="margin-bottom:8px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                <span>${t.icon} ${t.label}</span>
+                <span style="font-size:12px;color:var(--muted);">${Math.round(t.progress.global || 0)}%</span>
+              </div>
+              <div class="progressBar">
+                <div class="progressFill" style="width:${Math.min(100, t.progress.global || 0)}%;background:${(t.progress.global || 0) >= 80 ? '#22c55e' : (t.progress.global || 0) >= 50 ? '#eab308' : '#f97316'};"></div>
+              </div>
+              ${t.weeksToReach ? '<div style="font-size:10px;color:var(--muted);margin-top:2px;">~' + t.weeksToReach + ' semaines estimées</div>' : ''}
+            </div>
+          `).join('') || '<div class="muted">Tous les niveaux sont atteints ou données insuffisantes</div>'}
+        </div>
+      </div>
+
+      <div class="alert alertWarning mt">
+        <b>💡 Note importante :</b> Les cibles VLamax sont définies par l'objectif et l'ambition uniquement. 
+        Seul le TTE peut être légèrement ajusté pour les athlètes Master (40+) pour refléter les réalités physiologiques de récupération.
+      </div>
+    </section>
+  `;
+
+  // =============================================
   // E. ANALYSE TWO FOR COACHING LAB™
   // =============================================
   const lorangHTML = `
@@ -4477,6 +4558,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         ${options.sections.ambitionPredictions ? ambitionPredictionsHTML : ''}
         ${options.sections.evolutionCharts ? evolutionChartsHTML : ''}
         ${options.sections.ageAdjustment ? aaiHTML : ''}
+        ${options.sections.ambitionLegend ? ambitionLegendHTML : ''}
         ${options.sections.methodology ? methodologyHTML : ''}
         ${options.sections.twoForCoaching ? lorangHTML : ''}
         ${options.sections.wahoo ? wahooHTML : ''}
@@ -4929,6 +5011,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       ambitionPredictions: false,
       evolutionCharts: false,
       ageAdjustment: false,
+      ambitionLegend: false,
       methodology: false,
       twoForCoaching: false,
       wahoo: false,
