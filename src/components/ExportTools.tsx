@@ -11,6 +11,15 @@ import { FileText, AlertCircle, Settings2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 import type { DbAthlete, DbSnapshot, DbTest, DbCheckin } from "@/hooks/useCloudData";
+// ✅ NEW: Import Calibration Layer
+import { 
+  blendOutputs,
+  computeModelOutputs,
+  computeTestOutputs,
+  type CalibrationResult,
+  type TestData
+} from "@/lib/calibration";
+import { generateTestCalibrationSection, type TestCalibrationSection } from "@/lib/calibration/testCalibrationSection";
 import { getEffectiveSnapshot, getEffectiveRefs, type EffectiveRefs } from "@/lib/effectiveRefs";
 import { computeVLamaxEffectif, type VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { computeTTEEffectif, type TTEEffectif } from "@/lib/tteEffectif";
@@ -83,6 +92,7 @@ export interface ReportSections {
   zones: boolean;           // Zones d'entraînement
   historique: boolean;      // Historique Profils
   tests: boolean;           // Historique Tests
+  testsCalibration: boolean; // ✅ NEW: Tests & Calibration TFCL
   checkins: boolean;        // Check-ins
   comprendre: boolean;      // Comprendre mes scores
   qualite: boolean;         // Qualité des données
@@ -115,6 +125,7 @@ export const DEFAULT_REPORT_SECTIONS: ReportSections = {
   zones: true,
   historique: true,
   tests: true,
+  testsCalibration: true, // ✅ NEW
   checkins: true,
   comprendre: true,
   qualite: true,
@@ -4042,6 +4053,190 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   `;
 
   // =============================================
+  // SECTION TESTS & CALIBRATION TFCL (NEW)
+  // =============================================
+  const testsCalibrationSection = generateTestCalibrationSection(tests, athlete.id, null);
+  
+  const testsCalibrationHTML = `
+    <section id="tests-calibration" class="section pagebreak">
+      <h2>🧪 Tests Réalisés & Calibration TFCL</h2>
+      
+      <div class="alert alertInfo mb">
+        <b>📋 Philosophie TFCL</b> : Les tests terrain augmentent la robustesse des décisions en réduisant l'incertitude du modèle.
+        Ils ne transforment pas une estimation en mesure médicale, mais améliorent la cohérence physiologique.
+      </div>
+      
+      ${testsCalibrationSection.testsRealises.length > 0 ? `
+        <div class="card">
+          <h3>📊 Tests réalisés</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type de test</th>
+                <th>Résultat brut</th>
+                <th>Validité</th>
+                <th>Qualité protocole</th>
+                <th>Confiance</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${testsCalibrationSection.testsRealises.map(test => `
+                <tr>
+                  <td>${test.date}</td>
+                  <td><b>${htmlEscape(test.type)}</b></td>
+                  <td class="mono">${htmlEscape(test.resultBrut)}</td>
+                  <td>
+                    <span class="badge ${test.validite === 'OK' ? 'badgeSuccess' : test.validite === 'WARNING' ? 'badgeWarning' : 'badgeError'}">
+                      ${test.validite === 'OK' ? '✓ OK' : test.validite === 'WARNING' ? '⚠ À vérifier' : '✗ Invalide'}
+                    </span>
+                  </td>
+                  <td>
+                    <div style="display:flex;gap:2px;">
+                      ${Array.from({ length: 5 }, (_, i) => 
+                        `<div style="width:8px;height:16px;border-radius:2px;background:${i < test.qualiteProtocole ? 'var(--primary)' : 'var(--soft)'}"></div>`
+                      ).join('')}
+                    </div>
+                  </td>
+                  <td><span class="badge ${test.confidence >= 0.7 ? 'badgeSuccess' : test.confidence >= 0.4 ? 'badgeWarning' : 'badgeError'}">${Math.round(test.confidence * 100)}%</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : `
+        <div class="card" style="text-align:center;padding:32px;">
+          <div style="font-size:40px;margin-bottom:12px;">🧪</div>
+          <h3>Aucun test TFCL réalisé</h3>
+          <p class="muted">Les tests terrain permettent de calibrer les modèles physiologiques et d'améliorer la confiance des estimations.</p>
+          <div class="alert alertInfo mt">
+            💡 <b>Recommandation</b> : Planifier une semaine de tests TFCL (Sprint 15s, TTE, MAP) pour calibrer le profil.
+          </div>
+        </div>
+      `}
+      
+      ${testsCalibrationSection.impactCalibration.length > 0 ? `
+        <div class="card mt">
+          <h3>⚖️ Impact de la calibration AVANT / APRÈS</h3>
+          <p class="muted mb">Comparaison des valeurs modélisées (avant tests) et calibrées (après tests).</p>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>Métrique</th>
+                <th>AVANT (modèle)</th>
+                <th>APRÈS (calibré)</th>
+                <th>Delta</th>
+                <th>Impact</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${testsCalibrationSection.impactCalibration.map(item => {
+                const beforeVal = item.before.value !== null ? (item.metric === 'VLamax' ? item.before.value.toFixed(2) + ' mmol/L/s' : item.metric === 'TTE' ? item.before.value.toFixed(0) + ' min' : item.before.value.toFixed(0) + ' W') : '—';
+                const afterVal = item.after.value !== null ? (item.metric === 'VLamax' ? item.after.value.toFixed(2) + ' mmol/L/s' : item.metric === 'TTE' ? item.after.value.toFixed(0) + ' min' : item.after.value.toFixed(0) + ' W') : '—';
+                const deltaSign = item.delta !== null && item.delta >= 0 ? '+' : '';
+                const deltaVal = item.delta !== null ? deltaSign + (item.metric === 'VLamax' ? item.delta.toFixed(2) : item.delta.toFixed(0)) : '—';
+                const impactColor = item.impact.quality === 'high' ? 'var(--success)' : item.impact.quality === 'medium' ? 'var(--warning)' : 'var(--muted)';
+                
+                return `
+                  <tr>
+                    <td><b>${item.metric}</b></td>
+                    <td class="mono">
+                      ${beforeVal}
+                      <br><span class="muted" style="font-size:10px;">Conf: ${Math.round(item.before.confidence * 100)}%</span>
+                    </td>
+                    <td class="mono">
+                      <b>${afterVal}</b>
+                      <br><span class="muted" style="font-size:10px;">Conf: ${Math.round(item.after.confidence * 100)}%</span>
+                    </td>
+                    <td style="color:${item.delta !== null && item.delta !== 0 ? (item.metric === 'VLamax' && item.delta < 0 ? 'var(--success)' : item.metric === 'VLamax' && item.delta > 0 ? 'var(--warning)' : 'var(--foreground)') : 'var(--muted)'}">
+                      <b>${deltaVal}</b>
+                    </td>
+                    <td>
+                      <span style="color:${impactColor};font-weight:600;">
+                        ${item.impact.message}
+                      </span>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Visual Before/After comparison -->
+        <div class="grid2 mt">
+          <div class="card" style="background:linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);border:1px solid #e2e8f0;">
+            <h4 style="display:flex;align-items:center;gap:8px;">
+              <span style="background:#64748b;color:white;padding:4px 8px;border-radius:6px;font-size:11px;">AVANT</span>
+              Modèle seul
+            </h4>
+            <div class="muted" style="font-size:12px;margin-top:8px;">
+              Estimations basées sur les données de base du snapshot (FTP, poids, charge) sans validation terrain.
+            </div>
+            <div style="margin-top:12px;">
+              ${testsCalibrationSection.impactCalibration.map(item => `
+                <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--soft);">
+                  <span class="muted">${item.metric}</span>
+                  <span class="mono">${item.before.value !== null ? (item.metric === 'VLamax' ? item.before.value.toFixed(2) : item.before.value.toFixed(0)) : '—'}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          
+          <div class="card" style="background:linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);border:1px solid #86efac;">
+            <h4 style="display:flex;align-items:center;gap:8px;">
+              <span style="background:#16a34a;color:white;padding:4px 8px;border-radius:6px;font-size:11px;">APRÈS</span>
+              Calibré par tests
+            </h4>
+            <div class="muted" style="font-size:12px;margin-top:8px;">
+              Valeurs fusionnées avec les résultats des tests TFCL. Confiance renforcée.
+            </div>
+            <div style="margin-top:12px;">
+              ${testsCalibrationSection.impactCalibration.map(item => `
+                <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(22,163,74,0.2);">
+                  <span class="muted">${item.metric}</span>
+                  <span class="mono" style="font-weight:600;">${item.after.value !== null ? (item.metric === 'VLamax' ? item.after.value.toFixed(2) : item.after.value.toFixed(0)) : '—'}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      ` : ''}
+      
+      <!-- Confidence globale -->
+      <div class="card mt" style="text-align:center;padding:24px;">
+        <div class="muted" style="font-size:11px;text-transform:uppercase;">Confiance globale du modèle calibré</div>
+        <div style="font-size:48px;font-weight:800;color:${testsCalibrationSection.globalConfidence >= 0.8 ? 'var(--success)' : testsCalibrationSection.globalConfidence >= 0.6 ? 'var(--primary)' : 'var(--warning)'};">
+          ${Math.round(testsCalibrationSection.globalConfidence * 100)}%
+        </div>
+        <div style="font-size:14px;color:${testsCalibrationSection.globalConfidence >= 0.8 ? 'var(--success)' : testsCalibrationSection.globalConfidence >= 0.6 ? 'var(--primary)' : 'var(--warning)'};">
+          ${testsCalibrationSection.globalConfidence >= 0.8 ? 'Cohérence élevée' : testsCalibrationSection.globalConfidence >= 0.6 ? 'Cohérence modérée' : 'Lecture prudente'}
+        </div>
+      </div>
+      
+      <!-- Notes de calibration -->
+      ${testsCalibrationSection.notes.length > 0 ? `
+        <div class="card mt">
+          <h4>📝 Notes de calibration</h4>
+          <ul class="muted">
+            ${testsCalibrationSection.notes.map(note => `<li>${htmlEscape(note)}</li>`).join('')}
+          </ul>
+        </div>
+      ` : ''}
+      
+      <!-- Avertissement -->
+      <div class="alert alertWarning mt">
+        <b>⚠️ Avertissement</b><br>
+        ${htmlEscape(testsCalibrationSection.avertissement)}
+        <br><br>
+        <b>Important :</b> Les valeurs calibrées restent dépendantes du protocole et du contexte (fatigue, nutrition, environnement).
+        Un test labo est recommandé si une décision critique dépend d'une précision maximale.
+      </div>
+    </section>
+  `;
+
+  // =============================================
   // I. CHECK-INS (si dispo)
   // =============================================
   const sortedCheckins = [...checkins].sort((a, b) => new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime());
@@ -4567,6 +4762,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         ${options.sections.zones ? zonesHTML : ''}
         ${options.sections.historique ? snapshotsHTML : ''}
         ${options.sections.tests ? testsHTML : ''}
+        ${options.sections.testsCalibration ? testsCalibrationHTML : ''}
         ${options.sections.checkins ? checkinsHTML : ''}
         ${options.sections.comprendre ? comprendreHTML : ''}
         ${options.sections.qualite ? qualiteHTML : ''}
@@ -5020,6 +5216,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       zones: false,
       historique: false,
       tests: false,
+      testsCalibration: false, // ✅ NEW
       checkins: false,
       comprendre: false,
       qualite: false,
