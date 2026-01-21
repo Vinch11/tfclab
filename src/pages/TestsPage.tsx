@@ -72,6 +72,8 @@ export default function TestsPage() {
     const confidence = (testData.confidence as number) || activeTest.reliabilityScore;
     const estimatedVlamax = testData.estimatedVlamax as number | null;
     const tteMinutes = testData.tte_minutes as number | null;
+    const fatmaxW = testData.fatmaxW as number | null;
+    const economyScore = testData.economyScore as number | null;
     
     // Déterminer la valeur VLamax à stocker selon le type de test
     let vlamaxValue: number | null = null;
@@ -80,15 +82,22 @@ export default function TestsPage() {
     }
     
     // Enrichir les raw data avec les métadonnées du protocole
+    // IMPORTANT: category est la clé pour le mapping dans useCalibration
     const enrichedRawData = {
       ...testData,
       protocolId: activeTest.id,
-      category: activeTest.category,
+      category: activeTest.category, // VLAMAX, TTE, FATMAX, ECONOMY
       sport: activeTest.sport,
       targetParameters: activeTest.targetParameters,
       reliabilityScore: activeTest.reliabilityScore,
-      // Stocker TTE si c'est un test TTE
+      // Stocker TTE explicitement si c'est un test TTE
       ...(activeTest.category === "TTE" && tteMinutes ? { tte_minutes: tteMinutes } : {}),
+      // Stocker FatMax si c'est un test FatMax
+      ...(activeTest.category === "FATMAX" && fatmaxW ? { fatmaxW } : {}),
+      // Stocker Economy si c'est un test Economy
+      ...(activeTest.category === "ECONOMY" && economyScore ? { economyScore } : {}),
+      // Stocker VLamax estimée pour le mapping
+      ...(activeTest.category === "VLAMAX" && estimatedVlamax ? { estimatedVlamax } : {}),
       // Stocker les impacts TFCL
       tfclImpact: activeTest.tfclImpact.map(i => ({
         parameter: i.parameter,
@@ -96,9 +105,10 @@ export default function TestsPage() {
       }))
     };
     
+    // Utiliser la catégorie comme type pour faciliter le mapping
     await addTest(
       selectedAthlete.id,
-      activeTest.id, // Utiliser l'ID du protocole comme type
+      activeTest.category, // Utiliser la catégorie (VLAMAX, TTE, etc.) pour le mapping
       activeTest.name,
       activeTest.sport,
       confidence,
