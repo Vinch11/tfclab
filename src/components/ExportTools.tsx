@@ -7,8 +7,9 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { FileText, AlertCircle, Settings2 } from "lucide-react";
+import { FileText, AlertCircle, Settings2, Presentation } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { generateExecutiveDeck, type ExecutiveDeckPayload, type ExecutiveDeckOptions, DEFAULT_DECK_OPTIONS } from "@/lib/exports/pptxExecutiveDeck";
 import { toast } from "sonner";
 import type { DbAthlete, DbSnapshot, DbTest, DbCheckin } from "@/hooks/useCloudData";
 import { getEffectiveSnapshot, getEffectiveRefs, type EffectiveRefs } from "@/lib/effectiveRefs";
@@ -5039,9 +5040,82 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
     );
   }
 
+  const [deckOptions, setDeckOptions] = useState<ExecutiveDeckOptions>(DEFAULT_DECK_OPTIONS);
+
+  const handleExportPPTX = async () => {
+    if (!exportCheck.ok) {
+      toast.error("Export impossible", { description: exportCheck.reason });
+      return;
+    }
+    
+    const deckPayload: ExecutiveDeckPayload = {
+      athlete: athlete,
+      effectiveSnapshot: payload.effectiveSnapshot,
+      vlamax: payload.vlamax,
+      tte: payload.tte,
+      raceReadiness: payload.raceReadiness,
+      compassScores: payload.compassScores,
+      nutritionV2: payload.nutritionV2,
+      ambition: payload.ambition.current,
+      ageAdjustment: { age: payload.ageAdjustment.age },
+      lorang: {
+        priorite: payload.lorang.priorite,
+        prioriteLabel: payload.lorang.prioriteLabel,
+        alertes: payload.lorang.alertes,
+        recommandations: payload.lorang.recommandations
+      },
+      snapshotHistory: payload.snapshotHistory,
+      tests: payload.tests
+    };
+    
+    try {
+      await generateExecutiveDeck(deckPayload, deckOptions);
+      toast.success("Executive Deck généré", {
+        description: "Présentation PowerPoint téléchargée."
+      });
+    } catch (error) {
+      console.error("PPTX export error:", error);
+      toast.error("Erreur d'export", { description: "Impossible de générer le PowerPoint." });
+    }
+  };
+
   return (
     <div className="flex items-center gap-2 flex-wrap">
       
+      {/* PowerPoint Export Button */}
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" size="sm" className="gap-2">
+            <Presentation className="h-4 w-4" />
+            📊 Executive Deck
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-72" align="end">
+          <div className="space-y-3">
+            <p className="text-sm font-medium">TFCL Executive Performance Deck™</p>
+            <p className="text-xs text-muted-foreground">Présentation consulting-style PowerPoint</p>
+            
+            <div className="space-y-2 border-t pt-3">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="include-annex" className="text-xs">Inclure annexe staff</Label>
+                <Switch
+                  id="include-annex"
+                  checked={deckOptions.includeStaffAnnex}
+                  onCheckedChange={(v) => setDeckOptions(prev => ({ ...prev, includeStaffAnnex: v }))}
+                  className="scale-75"
+                />
+              </div>
+            </div>
+            
+            <Button onClick={handleExportPPTX} className="w-full gap-2">
+              <Presentation className="h-4 w-4" />
+              Générer PowerPoint
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
+      
+      {/* PDF Export Button */}
       <Popover>
         <PopoverTrigger asChild>
           <Button variant="outline" size="sm" className="gap-2">
