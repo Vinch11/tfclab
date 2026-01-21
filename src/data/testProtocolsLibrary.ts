@@ -114,7 +114,7 @@ export interface IntegratedTestProtocol {
     result?: TestResult;
     error?: string;
     confidence: number;
-    rawData: Record<string, number>;
+    rawData: Record<string, number | string>;
   };
 }
 
@@ -182,6 +182,7 @@ export const BIKE_VLAMAX_SPRINT_15S: IntegratedTestProtocol = {
   ],
   
   inputFields: [
+    { key: "ftp_reference", label: "FTP actuel (référence)", unit: "W", type: "number", min: 100, max: 500, step: 1, required: true, placeholder: "ex: 280" },
     { key: "power15s_1", label: "Puissance moyenne sprint 1", unit: "W", type: "number", min: 200, max: 2500, step: 1, required: true },
     { key: "power15s_2", label: "Puissance moyenne sprint 2", unit: "W", type: "number", min: 200, max: 2500, step: 1, required: true },
     { key: "power15s_3", label: "Puissance moyenne sprint 3 (opt)", unit: "W", type: "number", min: 200, max: 2500, step: 1, required: false },
@@ -198,6 +199,7 @@ export const BIKE_VLAMAX_SPRINT_15S: IntegratedTestProtocol = {
     const p1 = inputs.power15s_1;
     const p2 = inputs.power15s_2;
     const p3 = inputs.power15s_3 || 0;
+    const ftp = inputs.ftp_reference || 250; // FTP de référence si disponible
     
     if (!p1 || !p2) {
       return { ok: false, error: "Puissances requises", confidence: 0, rawData: inputs };
@@ -213,19 +215,49 @@ export const BIKE_VLAMAX_SPRINT_15S: IntegratedTestProtocol = {
     if (variance > 5) confidence = 0.70;
     if (variance > 10) confidence = 0.55;
     
-    // VLamax estimation (simplified model)
-    const vlamax = avgPower / 1800; // Normalized to typical range
+    /**
+     * FORMULE VLAMAX AMÉLIORÉE
+     * Basée sur le Sprint Ratio (P15s / FTP) et la relation avec la capacité glycolytique
+     * 
+     * Références: 
+     * - Mader & Heck (1986) - Modèle énergétique
+     * - San Millán (2015) - Relation VLamax/performance
+     * 
+     * Sprint Ratio typiques:
+     * - 2.0-2.2 = VLamax basse (0.25-0.35) - profil endurant
+     * - 2.3-2.6 = VLamax moyenne (0.35-0.50) - profil équilibré
+     * - 2.7-3.2 = VLamax haute (0.50-0.70) - profil explosif
+     * - >3.2 = VLamax très haute (0.70-0.95) - sprinteur
+     */
+    const sprintRatio = avgPower / ftp;
+    
+    // Formule de conversion Sprint Ratio → VLamax
+    // VLamax = 0.15 + (SR - 1.8) * 0.35, clampé entre 0.20 et 0.95
+    let vlamax = 0.15 + (sprintRatio - 1.8) * 0.35;
+    vlamax = Math.max(0.20, Math.min(0.95, vlamax));
+    
+    // Ajustement confiance si FTP non fourni
+    if (!inputs.ftp_reference) {
+      confidence *= 0.85; // Réduire confiance si estimation sans FTP
+    }
     
     return {
       ok: true,
       result: {
         primaryValue: avgPower,
-        normalizedValue: Math.min(0.95, Math.max(0.20, vlamax)),
+        normalizedValue: vlamax,
         unit: "W",
         label: "Puissance 15s"
       },
       confidence,
-      rawData: { ...inputs, avgPower, variance, estimatedVlamax: vlamax }
+      rawData: { 
+        ...inputs, 
+        avgPower, 
+        variance, 
+        sprintRatio,
+        estimatedVlamax: vlamax,
+        formula: "VLamax = 0.15 + (SR - 1.8) * 0.35"
+      }
     };
   }
 };
@@ -315,10 +347,24 @@ export const BIKE_TTE_FTP: IntegratedTestProtocol = {
     if (powerDiff > 5) confidence = 0.60;
     
     // HR drift analysis if available
+    let hrDrift: number | undefined;
     if (inputs.hr_start && inputs.hr_end) {
-      const hrDrift = inputs.hr_end - inputs.hr_start;
+      hrDrift = inputs.hr_end - inputs.hr_start;
       if (hrDrift < 5 || hrDrift > 20) confidence -= 0.05;
     }
+    
+    /**
+     * ANALYSE TTE
+     * TTE < 35 min = faible endurance au seuil
+     * TTE 35-50 min = endurance modérée
+     * TTE 50-70 min = bonne endurance
+     * TTE > 70 min = excellente endurance (profil Ironman)
+     */
+    let tteCategory: string;
+    if (tte < 35) tteCategory = "faible";
+    else if (tte < 50) tteCategory = "modéré";
+    else if (tte < 70) tteCategory = "bon";
+    else tteCategory = "excellent";
     
     return {
       ok: true,
@@ -329,7 +375,14 @@ export const BIKE_TTE_FTP: IntegratedTestProtocol = {
         label: "TTE observé"
       },
       confidence,
-      rawData: { ...inputs, powerDiff }
+      rawData: { 
+        ...inputs, 
+        powerDiff,
+        hrDrift: hrDrift ?? 0,
+        tte_minutes: tte, // Stocker explicitement pour le mapping
+        tteCategory,
+        category: "TTE" // Marquer le type pour le mapping
+      }
     };
   }
 };

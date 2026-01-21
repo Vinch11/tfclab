@@ -68,14 +68,42 @@ export default function TestsPage() {
   const handleSaveTest = async (testData: Record<string, unknown>) => {
     if (!selectedAthlete || !activeTest) return;
     
+    // Extraire les valeurs clés du résultat pour alimenter les calculs
+    const confidence = (testData.confidence as number) || activeTest.reliabilityScore;
+    const estimatedVlamax = testData.estimatedVlamax as number | null;
+    const tteMinutes = testData.tte_minutes as number | null;
+    
+    // Déterminer la valeur VLamax à stocker selon le type de test
+    let vlamaxValue: number | null = null;
+    if (activeTest.category === "VLAMAX" && estimatedVlamax !== null && estimatedVlamax !== undefined) {
+      vlamaxValue = estimatedVlamax;
+    }
+    
+    // Enrichir les raw data avec les métadonnées du protocole
+    const enrichedRawData = {
+      ...testData,
+      protocolId: activeTest.id,
+      category: activeTest.category,
+      sport: activeTest.sport,
+      targetParameters: activeTest.targetParameters,
+      reliabilityScore: activeTest.reliabilityScore,
+      // Stocker TTE si c'est un test TTE
+      ...(activeTest.category === "TTE" && tteMinutes ? { tte_minutes: tteMinutes } : {}),
+      // Stocker les impacts TFCL
+      tfclImpact: activeTest.tfclImpact.map(i => ({
+        parameter: i.parameter,
+        confidenceBoost: i.confidenceBoost
+      }))
+    };
+    
     await addTest(
       selectedAthlete.id,
-      activeTest.category,
+      activeTest.id, // Utiliser l'ID du protocole comme type
       activeTest.name,
       activeTest.sport,
-      activeTest.reliabilityScore,
-      (testData.estimatedVlamax as number) || null,
-      testData as Json,
+      confidence,
+      vlamaxValue,
+      enrichedRawData as Json,
       null
     );
     
