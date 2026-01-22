@@ -93,6 +93,7 @@ export interface ReportSections {
   historique: boolean;      // Historique Profils
   tests: boolean;           // Historique Tests
   testsCalibration: boolean; // ✅ NEW: Tests & Calibration TFCL
+  fitImports: boolean;      // ✅ NEW: Tests Observés (import FIT)
   checkins: boolean;        // Check-ins
   comprendre: boolean;      // Comprendre mes scores
   qualite: boolean;         // Qualité des données
@@ -125,7 +126,8 @@ export const DEFAULT_REPORT_SECTIONS: ReportSections = {
   zones: true,
   historique: true,
   tests: true,
-  testsCalibration: true, // ✅ NEW
+  testsCalibration: true,
+  fitImports: true, // ✅ NEW: Tests Observés (import FIT)
   checkins: true,
   comprendre: true,
   qualite: true,
@@ -4237,6 +4239,166 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   `;
 
   // =============================================
+  // H.5 FIT IMPORTS SECTION (Tests terrain)
+  // =============================================
+  const fitImportTests = tests.filter(t => 
+    t.type === 'FIT_IMPORT' || 
+    (t.raw && typeof t.raw === 'object' && (t.raw as Record<string, unknown>).source === 'FIT_IMPORT')
+  );
+  
+  // Helper to build FIT test rows
+  const buildFitTestRows = (): string => {
+    return fitImportTests.map(t => {
+      const raw = t.raw as Record<string, unknown> | null;
+      const rawMetrics = raw?.metrics as Record<string, unknown> | undefined;
+      const bestEfforts = (raw?.bestEfforts || rawMetrics?.bestEfforts || {}) as Record<string, number>;
+      const protocolQuality = (raw?.protocolQuality || rawMetrics?.protocolQuality || 3) as number;
+      const confidence = t.reliability ?? 0.7;
+      
+      // Build metrics summary
+      const metricsLines: string[] = [];
+      if (bestEfforts.p5s) metricsLines.push('P5s: ' + bestEfforts.p5s + 'W');
+      if (bestEfforts.p15s) metricsLines.push('P15s: ' + bestEfforts.p15s + 'W');
+      if (bestEfforts.p30s) metricsLines.push('P30s: ' + bestEfforts.p30s + 'W');
+      if (bestEfforts.p60s) metricsLines.push('P60s: ' + bestEfforts.p60s + 'W');
+      if (bestEfforts.p5min) metricsLines.push('P5min: ' + bestEfforts.p5min + 'W');
+      if (bestEfforts.p20min) metricsLines.push('P20min: ' + bestEfforts.p20min + 'W');
+      const ftpEstimated = rawMetrics?.ftpEstimated || raw?.ftpEstimated;
+      if (ftpEstimated) metricsLines.push('FTP: ' + ftpEstimated + 'W');
+      const tteObserved = rawMetrics?.tteObservedMin || raw?.tteObservedMin;
+      if (tteObserved) metricsLines.push('TTE: ' + tteObserved + 'min');
+      const driftPct = rawMetrics?.driftPct || raw?.driftPct;
+      if (driftPct !== undefined && typeof driftPct === 'number') metricsLines.push('Drift: ' + driftPct.toFixed(1) + '%');
+      
+      const metricsDisplay = metricsLines.length > 0 ? metricsLines.join('<br>') : '—';
+      
+      const qualityBars = Array.from({ length: 5 }, (_, i) => 
+        '<div style="width:8px;height:16px;border-radius:2px;background:' + (i < protocolQuality ? 'var(--primary)' : 'var(--soft)') + '"></div>'
+      ).join('');
+      
+      const badgeClass = confidence >= 0.7 ? 'badgeSuccess' : confidence >= 0.4 ? 'badgeWarning' : 'badgeError';
+      
+      return '<tr>' +
+        '<td>' + htmlEscape(dtStr(t.date)) + '</td>' +
+        '<td><b>' + htmlEscape(t.name || t.type) + '</b><br><span class="muted" style="font-size:11px;">Source: FIT import</span></td>' +
+        '<td class="mono" style="font-size:12px;">' + metricsDisplay + '</td>' +
+        '<td><div style="display:flex;gap:2px;">' + qualityBars + '</div><span class="muted" style="font-size:11px;">' + protocolQuality + '/5</span></td>' +
+        '<td><span class="badge ' + badgeClass + '">' + Math.round(confidence * 100) + '%</span></td>' +
+        '</tr>';
+    }).join('');
+  };
+  
+  // Helper to build aggregated best efforts
+  const buildAggregatedBestEfforts = (): string => {
+    const allEfforts: Record<string, number> = {};
+    fitImportTests.forEach(t => {
+      const raw = t.raw as Record<string, unknown> | null;
+      const rawMetrics = raw?.metrics as Record<string, unknown> | undefined;
+      const bestEfforts = (raw?.bestEfforts || rawMetrics?.bestEfforts || {}) as Record<string, number>;
+      Object.entries(bestEfforts).forEach(([key, val]) => {
+        if (typeof val === 'number' && (!allEfforts[key] || val > allEfforts[key])) {
+          allEfforts[key] = val;
+        }
+      });
+    });
+    
+    const effortLabels: Record<string, string> = {
+      p5s: '5 sec', p15s: '15 sec', p30s: '30 sec', p60s: '60 sec',
+      p5min: '5 min', p12min: '12 min', p20min: '20 min', p40min: '40 min', p60min: '60 min',
+    };
+    
+    const effortsToShow = ['p5s', 'p15s', 'p30s', 'p60s', 'p5min', 'p20min'];
+    return effortsToShow.map(key => 
+      '<div style="text-align:center;padding:12px;background:var(--soft);border-radius:8px;">' +
+      '<div class="muted" style="font-size:11px;text-transform:uppercase;">' + (effortLabels[key] || key) + '</div>' +
+      '<div style="font-size:24px;font-weight:700;color:var(--primary);">' + (allEfforts[key] ? allEfforts[key] + 'W' : '—') + '</div>' +
+      '</div>'
+    ).join('');
+  };
+  
+  const fitImportsHTML = fitImportTests.length > 0 ? `
+    <section id="fit-imports" class="section pagebreak">
+      <h2>📁 Tests Observés (Import FIT)</h2>
+      
+      <div class="alert alertInfo mb">
+        <b>📋 Philosophie terrain</b> : Les valeurs issues de fichiers FIT sont des observations terrain. 
+        Leur interprétation dépend du protocole, des conditions de l'exercice et de la calibration des capteurs.
+      </div>
+      
+      <div class="card">
+        <h3>🏃 Séances importées (${fitImportTests.length})</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Type de test</th>
+              <th>Métriques clés</th>
+              <th>Qualité protocole</th>
+              <th>Confiance</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${buildFitTestRows()}
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="card mt">
+        <h3>⚡ Synthèse Best Efforts (tous imports)</h3>
+        <p class="muted mb">Meilleurs segments de puissance observés sur l'ensemble des fichiers FIT importés.</p>
+        <div class="grid4">
+          ${buildAggregatedBestEfforts()}
+        </div>
+      </div>
+      
+      <div class="card mt">
+        <h3>📈 Impact sur le profil de référence</h3>
+        <div class="muted mb">Ces tests observés peuvent alimenter les champs suivants du profil physiologique :</div>
+        <div class="grid2">
+          <div style="padding:12px;background:var(--soft);border-radius:8px;">
+            <b>Puissance courte durée</b>
+            <ul class="muted" style="font-size:12px;margin-top:6px;">
+              <li>P30s (p30s_w) → VLamax calibration</li>
+              <li>P60s (p60s_w) → capacité glycolytique</li>
+            </ul>
+          </div>
+          <div style="padding:12px;background:var(--soft);border-radius:8px;">
+            <b>Capacité aérobie</b>
+            <ul class="muted" style="font-size:12px;margin-top:6px;">
+              <li>P5min (MAP proxy)</li>
+              <li>P20min → FTP estimation</li>
+              <li>TTE observé → durabilité</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
+      <div class="alert alertWarning mt">
+        <b>⚠️ Limites des observations terrain</b><br>
+        Les valeurs issues du FIT dépendent de la qualité du protocole (échauffement, pacing, conditions).
+        Elles ne remplacent pas un test en laboratoire mais permettent de valider et affiner les estimations du modèle.
+      </div>
+    </section>
+  ` : `
+    <section id="fit-imports" class="section pagebreakAvoid">
+      <h2>📁 Tests Observés (Import FIT)</h2>
+      
+      <div class="alert alertInfo mb">
+        <b>📋 Philosophie terrain</b> : Les valeurs issues de fichiers FIT sont des observations terrain.
+      </div>
+      
+      <div class="card" style="text-align:center;padding:32px;">
+        <div style="font-size:40px;margin-bottom:12px;">📁</div>
+        <h3>Aucun fichier FIT importé</h3>
+        <p class="muted">L'import de fichiers FIT permet d'observer les métriques terrain (best efforts, FTP, TTE, drift) et d'améliorer la calibration du profil.</p>
+        <div class="alert alertInfo mt">
+          💡 <b>Conseil</b> : Importez des séances tests (FTP 20min, sprints, Z2 long) pour valider les estimations du modèle.
+        </div>
+      </div>
+    </section>
+  `;
+
+  // =============================================
   // I. CHECK-INS (si dispo)
   // =============================================
   const sortedCheckins = [...checkins].sort((a, b) => new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime());
@@ -4763,6 +4925,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         ${options.sections.historique ? snapshotsHTML : ''}
         ${options.sections.tests ? testsHTML : ''}
         ${options.sections.testsCalibration ? testsCalibrationHTML : ''}
+        ${options.sections.fitImports ? fitImportsHTML : ''}
         ${options.sections.checkins ? checkinsHTML : ''}
         ${options.sections.comprendre ? comprendreHTML : ''}
         ${options.sections.qualite ? qualiteHTML : ''}
@@ -5216,7 +5379,8 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       zones: false,
       historique: false,
       tests: false,
-      testsCalibration: false, // ✅ NEW
+      testsCalibration: false,
+      fitImports: false, // ✅ NEW
       checkins: false,
       comprendre: false,
       qualite: false,
