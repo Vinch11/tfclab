@@ -5,6 +5,7 @@
 
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { 
   ChevronLeft,
   FlaskConical,
@@ -16,7 +17,8 @@ import {
   Target,
   Filter,
   Info,
-  Users
+  Users,
+  Upload
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -32,6 +34,7 @@ import { TestLibraryView } from "@/components/tests/TestLibraryView";
 import { CompletedTestsView } from "@/components/tests/CompletedTestsView";
 import { TestHistoryView } from "@/components/tests/TestHistoryView";
 import { TestExecutionSheet } from "@/components/tests/TestExecutionSheet";
+import { FitImportDialog, type FitTestSaveData, type ProfileUpdates } from "@/components/FitImportDialog";
 
 import { IntegratedTestProtocol, INTEGRATED_TESTS_LIBRARY } from "@/data/testProtocolsLibrary";
 import type { Json } from "@/integrations/supabase/types";
@@ -39,11 +42,12 @@ import type { Json } from "@/integrations/supabase/types";
 export default function TestsPage() {
   const navigate = useNavigate();
   const { athletes, selectedAthleteId, setSelectedAthleteId } = useAthletes();
-  const { tests, addTest } = useCloudDataContext();
+  const { tests, addTest, snapshots, updateSnapshot } = useCloudDataContext();
   
   const [activeTab, setActiveTab] = useState("library");
   const [activeTest, setActiveTest] = useState<IntegratedTestProtocol | null>(null);
   const [sportFilter, setSportFilter] = useState<"all" | "bike" | "run">("all");
+  const [fitImportOpen, setFitImportOpen] = useState(false);
   
   const selectedAthlete = useMemo(
     () => athletes.find(a => a.id === selectedAthleteId) || null,
@@ -54,6 +58,16 @@ export default function TestsPage() {
     if (!selectedAthlete) return [];
     return tests.filter(t => t.athlete_id === selectedAthlete.id);
   }, [tests, selectedAthlete]);
+
+  const currentSnapshot = useMemo(() => {
+    if (!selectedAthlete) return null;
+    const athleteSnapshots = snapshots.filter(s => s.athlete_id === selectedAthlete.id);
+    // Get active snapshot or most recent
+    if (selectedAthlete.active_snapshot_id) {
+      return athleteSnapshots.find(s => s.id === selectedAthlete.active_snapshot_id) ?? athleteSnapshots[0] ?? null;
+    }
+    return athleteSnapshots[0] ?? null;
+  }, [snapshots, selectedAthlete]);
   
   const completedTestsCount = athleteTests.length;
   
@@ -118,8 +132,51 @@ export default function TestsPage() {
     );
     
     handleCloseTest();
+    toast.success("Test enregistré avec succès");
   };
-  
+
+  // Handler for FIT import
+  const handleSaveFitTest = async (data: FitTestSaveData) => {
+    if (!selectedAthlete) return;
+    
+    const rawData = {
+      category: "FIT_IMPORT",
+      source: "FIT_IMPORT",
+      testType: data.type,
+      metrics: data.metrics,
+      bestEfforts: data.bestEfforts,
+      protocolQuality: data.protocolQuality,
+      fileMeta: data.fileMeta,
+      // Store key metrics at root level for calibration layer
+      ftp: data.metrics.ftp,
+      map5min: data.metrics.map,
+      p30s: data.metrics.p30s,
+      p60s: data.metrics.p60s,
+      tte_observed_min: data.metrics.tte_observed_min,
+      drift_percent: data.metrics.drift_percent,
+    };
+
+    await addTest(
+      selectedAthlete.id,
+      "FIT_IMPORT",
+      `Import FIT - ${data.type}`,
+      "bike",
+      data.confidence,
+      null,
+      rawData as Json,
+      `Fichier: ${data.fileMeta.fileName}`
+    );
+  };
+
+  const handleUpdateProfileFromFit = async (updates: ProfileUpdates) => {
+    if (!currentSnapshot) {
+      toast.error("Aucun snapshot actif pour mettre à jour");
+      return;
+    }
+    
+    await updateSnapshot(currentSnapshot.id, updates as Record<string, unknown>);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -181,6 +238,15 @@ export default function TestsPage() {
           
           {selectedAthlete && (
             <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setFitImportOpen(true)}
+                className="gap-1"
+              >
+                <Upload className="w-4 h-4" />
+                <span className="hidden sm:inline">Importer .FIT</span>
+              </Button>
               <Badge variant="secondary" className="gap-1">
                 <ClipboardList className="w-3 h-3" />
                 {completedTestsCount} test{completedTestsCount !== 1 ? "s" : ""} réalisé{completedTestsCount !== 1 ? "s" : ""}
@@ -296,6 +362,19 @@ export default function TestsPage() {
           athlete={selectedAthlete}
           onClose={handleCloseTest}
           onSave={handleSaveTest}
+        />
+      )}
+
+      {/* FIT Import Dialog */}
+      {selectedAthlete && (
+        <FitImportDialog
+          open={fitImportOpen}
+          onOpenChange={setFitImportOpen}
+          athleteId={selectedAthlete.id}
+          athleteName={selectedAthlete.name}
+          currentSnapshot={currentSnapshot}
+          onSaveTest={handleSaveFitTest}
+          onUpdateProfile={handleUpdateProfileFromFit}
         />
       )}
     </div>
