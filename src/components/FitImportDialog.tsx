@@ -44,6 +44,7 @@ import {
   CheckCircle2,
   Loader2,
 } from "lucide-react";
+import { DriftSegmentSelector } from "./DriftSegmentSelector";
 import {
   Collapsible,
   CollapsibleContent,
@@ -577,38 +578,19 @@ export function FitImportDialog({
               )}
             </div>
 
-            {/* Drift Analysis */}
-            {analysis.driftAnalysis?.isValid && (
-              <Card>
-                <CardContent className="py-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Heart className="w-4 h-4 text-red-500" />
-                      <span className="text-sm font-medium">
-                        Drift Pa:HR
-                      </span>
-                    </div>
-                    <Badge
-                      variant={
-                        analysis.driftAnalysis.driftLevel === "low"
-                          ? "default"
-                          : analysis.driftAnalysis.driftLevel === "moderate"
-                          ? "secondary"
-                          : "destructive"
-                      }
-                    >
-                      {analysis.driftAnalysis.driftPercent.toFixed(1)}% (
-                      {analysis.driftAnalysis.driftLevel === "low"
-                        ? "Faible"
-                        : analysis.driftAnalysis.driftLevel === "moderate"
-                        ? "Modéré"
-                        : "Élevé"}
-                      )
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {/* Drift Analysis with Manual Selection */}
+            <DriftSegmentSelector
+              session={analysis.session}
+              initialDrift={analysis.driftAnalysis}
+              onDriftCalculated={(drift) => {
+                if (drift && analysis) {
+                  setAnalysis({
+                    ...analysis,
+                    driftAnalysis: drift,
+                  });
+                }
+              }}
+            />
 
             {/* Protocol Quality */}
             <Card>
