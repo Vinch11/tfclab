@@ -69,6 +69,9 @@ import { getEffectiveRefs, computeFtpKg, getMissingFields } from "@/lib/effectiv
 // ✅ Guide interactif de complétion des données
 import { DataCompletionGuide } from "@/components/DataCompletionGuide";
 
+// ✅ Checklist de démarrage pour nouveaux coachs
+import { GettingStartedChecklist } from "@/components/GettingStartedChecklist";
+
 // ✅ Page de configuration (thèmes, préférences)
 import { ConfigurationPage } from "@/components/ConfigurationPage";
 
@@ -741,6 +744,25 @@ const Index = () => {
       case "dashboard":
         // Sections réorganisables pour le Dashboard
         const dashboardSections = [
+          {
+            id: "getting-started",
+            render: () => currentAthlete && (
+              <GettingStartedChecklist
+                athlete={{
+                  id: currentAthlete.id,
+                  name: currentAthlete.name,
+                  goal: currentAthlete.goal,
+                }}
+                snapshot={effectiveCloudSnapshot}
+                onNavigateToProfile={() => {
+                  setActiveTab("profil");
+                  setShowSnapshots(true);
+                }}
+                onNavigateToTests={() => setActiveTab("tests")}
+                onNavigateToAcademy={() => navigate("/academy")}
+              />
+            ),
+          },
           {
             id: "athlete-refs",
             render: () => currentAthlete && (
