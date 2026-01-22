@@ -2,6 +2,7 @@
 // ÉCRAN 1 - LISTE DES ATHLÈTES
 // =============================================
 
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,13 +10,21 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, User, Target, ChevronRight, Trash2, Bike, Footprints, Waves } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
+import { useCloudDataContext } from "@/contexts/CloudDataContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { getDernierSnapshot, getObjectifLabel } from "@/types/athlete";
 import { calculVLamaxSnapshot } from "@/lib/athleteStore";
 import { SportType } from "@/types/snapshotNolio";
+import { AthleteImportExport, AthleteExportData } from "@/components/AthleteImportExport";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export default function AthletesListPage() {
   const navigate = useNavigate();
-  const { athletes, setSelectedAthleteId, deleteAthlete } = useAthletes();
+  const { athletes, setSelectedAthleteId, deleteAthlete, refresh } = useAthletes();
+  const { athletes: dbAthletes, snapshots, tests, checkins, loadData } = useCloudDataContext();
+  const { user } = useAuth();
+  const [importing, setImporting] = useState(false);
 
   const handleSelectAthlete = (athleteId: string) => {
     setSelectedAthleteId(athleteId);
@@ -45,9 +54,128 @@ export default function AthletesListPage() {
     return counts;
   };
 
+  // Import handler - inserts athletes with all related data into Supabase
+  const handleImport = async (data: AthleteExportData): Promise<{ imported: number; errors: string[] }> => {
+    if (!user) {
+      return { imported: 0, errors: ["Non connecté"] };
+    }
+
+    setImporting(true);
+    const errors: string[] = [];
+    let imported = 0;
+
+    for (const item of data.athletes) {
+      try {
+        // 1. Create athlete with new ID
+        const { data: newAthlete, error: athleteError } = await supabase
+          .from("athletes")
+          .insert({
+            coach_id: user.id,
+            name: item.athlete.name,
+            goal: item.athlete.goal,
+            refs: item.athlete.refs,
+            vo2max: item.athlete.vo2max,
+            birth_date: item.athlete.birth_date,
+          })
+          .select()
+          .single();
+
+        if (athleteError || !newAthlete) {
+          errors.push(`Athlète "${item.athlete.name}": ${athleteError?.message || "erreur inconnue"}`);
+          continue;
+        }
+
+        const newAthleteId = newAthlete.id;
+        const oldToNewSnapshotId = new Map<string, string>();
+
+        // 2. Import snapshots
+        for (const snap of item.snapshots) {
+          const { id: _oldId, athlete_id: _oldAthleteId, created_at: _ca, updated_at: _ua, ...snapData } = snap;
+          const { data: newSnap, error: snapError } = await supabase
+            .from("snapshots")
+            .insert({
+              ...snapData,
+              athlete_id: newAthleteId,
+              coach_id: user.id,
+            })
+            .select()
+            .single();
+
+          if (snapError) {
+            errors.push(`Snapshot pour "${item.athlete.name}": ${snapError.message}`);
+          } else if (newSnap) {
+            oldToNewSnapshotId.set(snap.id, newSnap.id);
+          }
+        }
+
+        // 3. Update active_snapshot_id if it was set
+        if (item.athlete.active_snapshot_id && oldToNewSnapshotId.has(item.athlete.active_snapshot_id)) {
+          await supabase
+            .from("athletes")
+            .update({ active_snapshot_id: oldToNewSnapshotId.get(item.athlete.active_snapshot_id) })
+            .eq("id", newAthleteId);
+        }
+
+        // 4. Import tests
+        for (const test of item.tests) {
+          const { id: _oldId, athlete_id: _oldAthleteId, ...testData } = test;
+          const { error: testError } = await supabase
+            .from("tests")
+            .insert({
+              ...testData,
+              athlete_id: newAthleteId,
+              coach_id: user.id,
+            });
+
+          if (testError) {
+            errors.push(`Test pour "${item.athlete.name}": ${testError.message}`);
+          }
+        }
+
+        // 5. Import checkins
+        for (const checkin of item.checkins) {
+          const { id: _oldId, athlete_id: _oldAthleteId, created_at: _ca, updated_at: _ua, ...checkinData } = checkin;
+          const { error: checkinError } = await supabase
+            .from("checkins")
+            .insert({
+              ...checkinData,
+              athlete_id: newAthleteId,
+              coach_id: user.id,
+            });
+
+          if (checkinError) {
+            errors.push(`Check-in pour "${item.athlete.name}": ${checkinError.message}`);
+          }
+        }
+
+        imported++;
+      } catch (err) {
+        errors.push(`Erreur inattendue pour "${item.athlete.name}": ${err instanceof Error ? err.message : "erreur"}`);
+      }
+    }
+
+    // Refresh data to show new athletes
+    await loadData();
+    await refresh();
+    setImporting(false);
+
+    return { imported, errors };
+  };
+
   return (
     <AppLayout title="Mes Athlètes">
       <div className="space-y-4 animate-fade-in">
+        {/* Import/Export buttons */}
+        <div className="flex justify-end">
+          <AthleteImportExport
+            athletes={dbAthletes}
+            snapshots={snapshots}
+            tests={tests}
+            checkins={checkins}
+            onImport={handleImport}
+          />
+        </div>
+
         {/* Liste des athlètes */}
         <div className="space-y-3">
           {athletes.map((athlete) => {
