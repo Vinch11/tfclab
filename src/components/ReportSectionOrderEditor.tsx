@@ -67,7 +67,8 @@ export const SECTION_LABELS: Record<keyof ReportSections, string> = {
   zones: "Zones d'entraînement",
   historique: "Historique Snapshots",
   tests: "Historique Tests",
-  testsCalibration: "Tests & Calibration TFCL", // ✅ NEW
+  testsCalibration: "Tests & Calibration TFCL",
+  fitImports: "📁 Tests Observés (import FIT)", // ✅ NEW
   checkins: "Check-ins",
   comprendre: "Comprendre mes scores",
   qualite: "Qualité des données",
@@ -96,7 +97,8 @@ const SECTION_CATEGORIES: Record<keyof ReportSections, string> = {
   zones: "Entraînement",
   historique: "Historique",
   tests: "Historique",
-  testsCalibration: "Analyse", // ✅ NEW
+  testsCalibration: "Analyse",
+  fitImports: "Analyse", // ✅ NEW: Tests terrain
   checkins: "Historique",
   comprendre: "Aide",
   qualite: "Aide",
@@ -138,7 +140,8 @@ export const DEFAULT_SECTION_ORDER: (keyof ReportSections)[] = [
   "zones",
   "historique",
   "tests",
-  "testsCalibration", // ✅ NEW
+  "testsCalibration",
+  "fitImports", // ✅ NEW: Tests terrain (import FIT)
   "checkins",
   "comprendre",
   "qualite",
@@ -167,7 +170,8 @@ const DEFAULT_VISIBILITY: Record<keyof ReportSections, boolean> = {
   zones: true,
   historique: true,
   tests: true,
-  testsCalibration: true, // ✅ NEW
+  testsCalibration: true,
+  fitImports: true, // ✅ NEW
   checkins: true,
   comprendre: true,
   qualite: true,
