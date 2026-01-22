@@ -410,6 +410,52 @@ export function TestExecutionSheet({ test, athlete, onClose, onSave }: TestExecu
                   </CardContent>
                 </Card>
                 
+                {/* Traçabilité des calculs */}
+                {computedResult.calculationTrace && computedResult.calculationTrace.length > 0 && (
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Info className="w-4 h-4 text-purple-500" />
+                        Traçabilité du calcul
+                        <Badge variant="outline" className="ml-2 text-xs">
+                          {computedResult.calculationTrace.length} étapes
+                        </Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {computedResult.calculationTrace.map((step, index) => (
+                          <div 
+                            key={index} 
+                            className="flex items-start gap-3 p-2 rounded-lg bg-muted/30"
+                          >
+                            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-medium shrink-0 mt-0.5">
+                              {index + 1}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-sm font-medium truncate">
+                                  {step.step}
+                                </span>
+                                <span className="text-sm font-mono font-bold text-primary">
+                                  {typeof step.value === 'number' 
+                                    ? step.value.toFixed(3) 
+                                    : step.value}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-3 p-2 rounded bg-blue-500/5 border border-blue-500/20">
+                        <p className="text-xs text-muted-foreground">
+                          <strong>TFCL™:</strong> Chaque étape du calcul est traçable pour garantir la transparence.
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+                
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm flex items-center gap-2">
