@@ -237,19 +237,17 @@ export default function TestsPage() {
           </div>
           
           {selectedAthlete && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Button
-                variant="outline"
-                size="sm"
                 onClick={() => setFitImportOpen(true)}
-                className="gap-1"
+                className="gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-md"
               >
                 <Upload className="w-4 h-4" />
-                <span className="hidden sm:inline">Importer .FIT</span>
+                <span>Importer fichier .FIT</span>
               </Button>
               <Badge variant="secondary" className="gap-1">
                 <ClipboardList className="w-3 h-3" />
-                {completedTestsCount} test{completedTestsCount !== 1 ? "s" : ""} réalisé{completedTestsCount !== 1 ? "s" : ""}
+                {completedTestsCount} test{completedTestsCount !== 1 ? "s" : ""}
               </Badge>
             </div>
           )}
