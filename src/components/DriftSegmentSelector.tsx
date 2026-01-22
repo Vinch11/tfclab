@@ -10,7 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Heart, Timer, ArrowRight, RotateCcw } from "lucide-react";
+import { Heart, Timer, ArrowRight, RotateCcw, TrendingUp } from "lucide-react";
+import { DriftRatioChart } from "@/components/DriftRatioChart";
 import type { FitSession, DriftAnalysis } from "@/lib/fitImport/types";
 
 interface DriftSegmentSelectorProps {
@@ -251,6 +252,19 @@ export function DriftSegmentSelector({
             </div>
           </div>
         )}
+
+        {/* Visual Drift Chart */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <TrendingUp className="w-3 h-3" />
+            <span>Évolution du ratio Pa:HR (W/bpm)</span>
+          </div>
+          <DriftRatioChart
+            session={session}
+            segmentRange={manualMode ? range : [10, 95]}
+            showSegmentHighlight={manualMode}
+          />
+        </div>
 
         {/* Drift Result */}
         {activeDrift?.isValid ? (
