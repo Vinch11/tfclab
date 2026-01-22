@@ -15,6 +15,7 @@ import Index from "./pages/Index";
 import TemplatesPage from "./pages/TemplatesPage";
 import AcademyPage from "./pages/AcademyPage";
 import TestsPage from "./pages/TestsPage";
+import AthletesListPage from "./pages/AthletesListPage";
 import NotFound from "./pages/NotFound";
 import { TFCLTestingWeekPage } from "./components/TFCLTestingWeek";
 import { CAPTestingWeekPage } from "./components/CAPTestingWeek";
@@ -86,6 +87,20 @@ export default function App() {
                         <CloudDataProvider>
                           <AthleteProvider>
                             <TestsPage />
+                          </AthleteProvider>
+                        </CloudDataProvider>
+                      </OnboardingGate>
+                    </AuthGate>
+                  }
+                />
+                <Route
+                  path="/athletes"
+                  element={
+                    <AuthGate>
+                      <OnboardingGate>
+                        <CloudDataProvider>
+                          <AthleteProvider>
+                            <AthletesListPage />
                           </AthleteProvider>
                         </CloudDataProvider>
                       </OnboardingGate>
