@@ -8,7 +8,8 @@ import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, User, Target, ChevronRight, Trash2, Bike, Footprints, Waves } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Plus, User, Target, ChevronRight, Trash2, Bike, Footprints, Waves, Download } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,8 +26,14 @@ export default function AthletesListPage() {
   const { athletes: dbAthletes, snapshots, tests, checkins, loadData } = useCloudDataContext();
   const { user } = useAuth();
   const [importing, setImporting] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const handleSelectAthlete = (athleteId: string) => {
+    if (selectionMode) {
+      toggleSelection(athleteId);
+      return;
+    }
     setSelectedAthleteId(athleteId);
     navigate("/dashboard");
   };
@@ -41,6 +48,84 @@ export default function AthletesListPage() {
     if (confirm("Supprimer cet athlète ?")) {
       deleteAthlete(athleteId);
     }
+  };
+
+  // Toggle selection mode
+  const toggleSelectionMode = () => {
+    setSelectionMode(!selectionMode);
+    if (selectionMode) {
+      setSelectedIds(new Set());
+    }
+  };
+
+  // Toggle single athlete selection
+  const toggleSelection = (athleteId: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(athleteId)) {
+        next.delete(athleteId);
+      } else {
+        next.add(athleteId);
+      }
+      return next;
+    });
+  };
+
+  // Select/deselect all
+  const selectAll = () => {
+    setSelectedIds(new Set(dbAthletes.map(a => a.id)));
+  };
+
+  const deselectAll = () => {
+    setSelectedIds(new Set());
+  };
+
+  // Export selected athletes
+  const exportSelected = () => {
+    if (selectedIds.size === 0) {
+      toast.error("Sélectionnez au moins un athlète");
+      return;
+    }
+
+    const exportData: AthleteExportData = {
+      version: "2.0.0",
+      exportedAt: new Date().toISOString(),
+      exportedFrom: window.location.origin,
+      athletes: Array.from(selectedIds).map(athleteId => {
+        const athlete = dbAthletes.find(a => a.id === athleteId);
+        if (!athlete) return null;
+
+        const athleteSnapshots = snapshots.filter(s => s.athlete_id === athleteId);
+        const athleteTests = tests.filter(t => t.athlete_id === athleteId);
+        const athleteCheckins = checkins.filter(c => c.athlete_id === athleteId);
+
+        const { coach_id: _c1, ...athleteWithoutCoach } = athlete;
+        const snapshotsWithoutCoach = athleteSnapshots.map(({ coach_id: _c, ...s }) => s);
+        const testsWithoutCoach = athleteTests.map(({ coach_id: _c, ...t }) => t);
+        const checkinsWithoutCoach = athleteCheckins.map(({ coach_id: _c, ...ch }) => ch);
+
+        return {
+          athlete: athleteWithoutCoach,
+          snapshots: snapshotsWithoutCoach,
+          tests: testsWithoutCoach,
+          checkins: checkinsWithoutCoach
+        };
+      }).filter(Boolean) as AthleteExportData["athletes"]
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `athletes-export-${new Date().toISOString().split("T")[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast.success(`${selectedIds.size} athlète(s) exporté(s)`);
+    setSelectionMode(false);
+    setSelectedIds(new Set());
   };
 
   // Get sports count for athlete
@@ -165,16 +250,50 @@ export default function AthletesListPage() {
   return (
     <AppLayout title="Mes Athlètes">
       <div className="space-y-4 animate-fade-in">
+        {/* Selection mode toolbar */}
+        {selectionMode && (
+          <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg border border-primary/20">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium">
+                {selectedIds.size} sur {dbAthletes.length} sélectionné(s)
+              </span>
+              <div className="flex gap-2">
+                <Button variant="ghost" size="sm" onClick={selectAll}>
+                  Tout
+                </Button>
+                <Button variant="ghost" size="sm" onClick={deselectAll}>
+                  Aucun
+                </Button>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={toggleSelectionMode}>
+                Annuler
+              </Button>
+              <Button size="sm" onClick={exportSelected} disabled={selectedIds.size === 0}>
+                <Download className="w-4 h-4 mr-2" />
+                Exporter ({selectedIds.size})
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Import/Export buttons */}
-        <div className="flex justify-end">
-          <AthleteImportExport
-            athletes={dbAthletes}
-            snapshots={snapshots}
-            tests={tests}
-            checkins={checkins}
-            onImport={handleImport}
-          />
-        </div>
+        {!selectionMode && (
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={toggleSelectionMode} className="gap-2">
+              <Checkbox className="w-4 h-4" />
+              Sélectionner
+            </Button>
+            <AthleteImportExport
+              athletes={dbAthletes}
+              snapshots={snapshots}
+              tests={tests}
+              checkins={checkins}
+              onImport={handleImport}
+            />
+          </div>
+        )}
 
         {/* Liste des athlètes */}
         <div className="space-y-3">
@@ -182,16 +301,29 @@ export default function AthletesListPage() {
             const snapshot = getDernierSnapshot(athlete);
             const vlamax = snapshot ? calculVLamaxSnapshot(snapshot, athlete.objectif) : null;
             const sportsCount = getSportsCount(athlete.historique);
+            const isSelected = selectedIds.has(athlete.id);
 
             return (
               <Card
                 key={athlete.id}
-                className="cursor-pointer hover:border-primary/50 transition-all duration-200 group"
+                className={`cursor-pointer transition-all duration-200 group ${
+                  isSelected 
+                    ? "border-primary bg-primary/5" 
+                    : "hover:border-primary/50"
+                }`}
                 onClick={() => handleSelectAthlete(athlete.id)}
               >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
+                      {selectionMode && (
+                        <Checkbox 
+                          checked={isSelected}
+                          onCheckedChange={() => toggleSelection(athlete.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="shrink-0"
+                        />
+                      )}
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                         <User className="h-6 w-6 text-primary" />
                       </div>
@@ -242,7 +374,7 @@ export default function AthletesListPage() {
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
-                      <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                      {!selectionMode && <ChevronRight className="h-5 w-5 text-muted-foreground" />}
                     </div>
                   </div>
                 </CardContent>
