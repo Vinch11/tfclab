@@ -51,6 +51,7 @@ import { ChargeRecenteCard } from "@/components/ChargeRecenteCard";
 import { computeCRR } from "@/lib/chargeRecenteReference";
 import { DecisionReliabilityCard } from "@/components/DecisionReliabilityCard";
 import { computeFullDRE, DecisionReliabilityResult } from "@/lib/v2/decisionReliabilityEngine";
+import { useDecisionReliability } from "@/hooks/useDecisionReliability";
 import { SortableSectionsContainer } from "@/components/SortableSectionsContainer";
 
 // ✅ VLamax TFCL V2 - Calibration avec percentiles
@@ -460,6 +461,34 @@ const Index = () => {
         : "normal",
     });
   }, [currentAthlete, user, effectiveCloudSnapshot, vlamaxEffectif, tteEffectif]);
+
+  // ✅ PERSISTANCE AUTOMATIQUE DRE - Hook pour sauvegarder en base
+  const { 
+    calculateAndPersist: persistDRE, 
+    markAsReferenceWeek 
+  } = useDecisionReliability(
+    currentAthlete?.id ?? null, 
+    effectiveCloudSnapshot?.id ?? null
+  );
+
+  // ✅ Persistance automatique quand le snapshot change
+  useEffect(() => {
+    if (!effectiveCloudSnapshot || !currentAthlete || !user) return;
+    
+    // Persister le DRE en base de données
+    const persistAsync = async () => {
+      try {
+        await persistDRE(effectiveCloudSnapshot);
+        console.log("[DRE] Score de fiabilité persisté pour snapshot:", effectiveCloudSnapshot.id);
+      } catch (err) {
+        console.error("[DRE] Erreur persistance:", err);
+      }
+    };
+    
+    // Debounce pour éviter trop d'appels
+    const timeoutId = setTimeout(persistAsync, 1000);
+    return () => clearTimeout(timeoutId);
+  }, [effectiveCloudSnapshot?.id, currentAthlete?.id, user?.id, persistDRE]);
 
   // Handlers
   const handleAddAthlete = async () => {
@@ -1106,10 +1135,10 @@ const Index = () => {
                 result={decisionReliability}
                 onMarkAsReference={async () => {
                   if (!effectiveCloudSnapshot) return;
-                  await updateSnapshot(effectiveCloudSnapshot.id, { 
-                    vlamax_is_reference: true 
-                  } as unknown as Partial<typeof effectiveCloudSnapshot>);
-                  toast.success("Semaine de Référence TFCL activée");
+                  // Utiliser le hook pour marquer ET persister
+                  await markAsReferenceWeek(effectiveCloudSnapshot.id);
+                  // Recalculer et persister le DRE avec le bonus
+                  await persistDRE(effectiveCloudSnapshot);
                 }}
                 onOpenTests={() => setActiveTab("tests")}
                 defaultExpanded={false}
