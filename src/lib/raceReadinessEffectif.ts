@@ -474,31 +474,18 @@ const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(ma
 export function getTargets(objectif: string, athleteAge?: number | null, ambition?: AmbitionLevel): RaceTargets {
   const baseTargets = TARGETS_BY_OBJECTIF[objectif] || DEFAULT_TARGETS;
   
-  // Si âge ou ambition fournis, utiliser les cibles ajustées
-  if (athleteAge !== null && athleteAge !== undefined) {
-    const adjusted = getAgeAdjustedTargets(objectif, athleteAge, ambition || DEFAULT_AMBITION);
-    return {
-      vlamaxMin: baseTargets.vlamaxMin,
-      vlamaxMax: adjusted.vlamaxMax,
-      vlamaxIdeal: adjusted.vlamaxOptimal,
-      tteTarget: adjusted.tteTarget, // ✅ TTE ajusté par âge
-      ftpKgTarget: adjusted.ftpKgTarget,
-    };
-  }
+  // ✅ FIX: Toujours utiliser les cibles ajustées par ambition (pas de fallback sur cibles statiques)
+  // Utiliser DEFAULT_AMBITION si ambition non fournie
+  const effectiveAmbition = ambition || DEFAULT_AMBITION;
+  const adjusted = getAgeAdjustedTargets(objectif, athleteAge ?? null, effectiveAmbition);
   
-  // Si seulement ambition fournie, utiliser les cibles par ambition sans ajustement d'âge
-  if (ambition) {
-    const adjusted = getAgeAdjustedTargets(objectif, null, ambition);
-    return {
-      vlamaxMin: baseTargets.vlamaxMin,
-      vlamaxMax: adjusted.vlamaxMax,
-      vlamaxIdeal: adjusted.vlamaxOptimal,
-      tteTarget: adjusted.tteTarget,
-      ftpKgTarget: adjusted.ftpKgTarget,
-    };
-  }
-  
-  return baseTargets;
+  return {
+    vlamaxMin: baseTargets.vlamaxMin,
+    vlamaxMax: adjusted.vlamaxMax,
+    vlamaxIdeal: adjusted.vlamaxOptimal,
+    tteTarget: adjusted.tteTarget,
+    ftpKgTarget: adjusted.ftpKgTarget,
+  };
 }
 
 export function getRaceWeights(objectif: string): RaceWeights {
