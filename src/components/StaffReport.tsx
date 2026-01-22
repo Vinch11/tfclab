@@ -15,6 +15,8 @@ import {
   CheckCircle, 
   XCircle,
   TrendingUp,
+  TrendingDown,
+  Minus,
   Utensils,
   Activity,
   Download,
@@ -27,6 +29,8 @@ import {
   Scale,
   Heart,
   Calculator,
+  Shield,
+  Lightbulb,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StaffReport as StaffReportType, generateStaffReport, GenerateStaffReportParams } from "@/lib/staffReport";
@@ -41,6 +45,8 @@ import { getAxisLabel, getAxisColor } from "@/lib/wahoo/wahooSuggestionEngine";
 import { MetabolicPerformanceCompassV2 as MetabolicPerformanceCompass } from "@/components/charts/MetabolicPerformanceCompassV2";
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 import { computePillarCalculations } from "@/components/ReadinessPillarDetail";
+import { computeFullDRE, DecisionReliabilityResult, Scenario } from "@/lib/v2/decisionReliabilityEngine";
+import { DecisionReliabilityBadge, DecisionReliabilityProgress } from "@/components/DecisionReliabilityBadge";
 import type { DbSnapshot } from "@/hooks/useCloudData";
 
 interface StaffReportProps {
@@ -101,6 +107,32 @@ export function StaffReport({
     tss7d,
     snapshotUpdatedAt,
     athleteAge,
+  });
+
+  // ✅ DECISION RELIABILITY ENGINE - Calcul pour le rapport
+  const decisionReliability: DecisionReliabilityResult = computeFullDRE({
+    snapshotId: snapshot?.id ?? "",
+    athleteId: snapshot?.athlete_id ?? "",
+    coachId: snapshot?.coach_id ?? "",
+    objective: objectif,
+    
+    vlamax: vlamaxEffectif.value,
+    vlamaxConfidence: vlamaxEffectif.confidence,
+    tteMin: tteEffectif.tte_min,
+    tteConfidence: tteEffectif.confidence,
+    fatmaxPct: null,
+    vo2max: vo2max ?? null,
+    ftp: ftp,
+    weightKg: poids,
+    p30s: (snapshot as unknown as Record<string, unknown>)?.p30s_w as number | null ?? null,
+    p1min: (snapshot as unknown as Record<string, unknown>)?.p60s_w as number | null ?? null,
+    map5min: (snapshot as unknown as Record<string, unknown>)?.map5min_w as number | null ?? null,
+    pmax5s: snapshot?.pmax_5s ?? null,
+    
+    isReferenceWeek: (snapshot as unknown as Record<string, unknown>)?.vlamax_is_reference === true,
+    fatigueState: ((snapshot as unknown as Record<string, unknown>)?.fatigue_state as string) === "fatigued" ? "fatigued" 
+      : ((snapshot as unknown as Record<string, unknown>)?.fatigue_state as string) === "fresh" ? "fresh" 
+      : "normal",
   });
 
   const getTrafficLightColors = (light: "green" | "orange" | "red") => {
@@ -275,6 +307,68 @@ export function StaffReport({
               className="print:break-inside-avoid"
             />
           </div>
+        </div>
+
+        <Separator />
+
+        {/* 2.5️⃣ DECISION RELIABILITY ENGINE™ — SCÉNARIOS DE COURSE */}
+        <div>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            DECISION RELIABILITY ENGINE™
+            <DecisionReliabilityBadge 
+              score={decisionReliability.decisionConfidenceScore} 
+              level={decisionReliability.decisionLevel} 
+            />
+          </h3>
+          
+          {/* Score principal */}
+          <div className="p-4 rounded-lg bg-muted/30 border mb-4">
+            <DecisionReliabilityProgress 
+              score={decisionReliability.decisionConfidenceScore} 
+              level={decisionReliability.decisionLevel} 
+            />
+            <p className="text-sm text-center mt-2">{decisionReliability.mainMessage}</p>
+            
+            {decisionReliability.isReferenceWeek && (
+              <div className="flex items-center justify-center gap-2 mt-2 text-xs text-primary">
+                <CheckCircle className="w-3 h-3" />
+                <span>Semaine de Référence TFCL (+{(decisionReliability.referenceWeekBoost * 100).toFixed(0)}% confiance)</span>
+              </div>
+            )}
+          </div>
+          
+          {/* Scénarios de course */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium flex items-center gap-2">
+              <Lightbulb className="w-4 h-4 text-yellow-500" />
+              Scénarios de course
+            </h4>
+            <div className="grid md:grid-cols-3 gap-3">
+              {decisionReliability.scenarios.map((scenario) => (
+                <ScenarioCardCompact key={scenario.type} scenario={scenario} />
+              ))}
+            </div>
+          </div>
+          
+          {/* Alertes */}
+          {decisionReliability.warnings.length > 0 && (
+            <div className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+              <p className="text-xs font-medium text-amber-700 dark:text-amber-400 mb-2 flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3" />
+                Alertes ({decisionReliability.warnings.length})
+              </p>
+              <ul className="text-xs text-amber-700 dark:text-amber-400 space-y-1">
+                {decisionReliability.warnings.slice(0, 3).map((warning, i) => (
+                  <li key={i}>• {warning}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
+          <p className="text-[10px] text-muted-foreground mt-3 italic">
+            💡 "La meilleure décision possible, avec transparence sur l'incertitude" — DRE v1.0
+          </p>
         </div>
 
         <Separator />
@@ -1112,6 +1206,67 @@ function RaceReadinessCalculationDetails({ readiness }: { readiness: RaceReadine
       <div className="mt-3 p-2 rounded-lg bg-muted/20 border text-[10px] text-muted-foreground">
         <strong>Score final:</strong> Σ (Score pilier × Poids) = {readiness.score}/100 • 
         <strong className="ml-2">Confiance:</strong> {Math.round(readiness.confidence * 100)}%
+      </div>
+    </div>
+  );
+}
+
+// =====================================================
+// SCENARIO CARD COMPACT (pour StaffReport PDF)
+// =====================================================
+
+interface ScenarioCardCompactProps {
+  scenario: Scenario;
+}
+
+function ScenarioCardCompact({ scenario }: ScenarioCardCompactProps) {
+  const config = {
+    conservative: {
+      color: "text-blue-600 dark:text-blue-400",
+      bgColor: "bg-blue-500/10",
+      borderColor: "border-blue-500/30",
+      icon: Shield
+    },
+    optimal: {
+      color: "text-emerald-600 dark:text-emerald-400",
+      bgColor: "bg-emerald-500/10",
+      borderColor: "border-emerald-500/30",
+      icon: Target
+    },
+    aggressive: {
+      color: "text-orange-600 dark:text-orange-400",
+      bgColor: "bg-orange-500/10",
+      borderColor: "border-orange-500/30",
+      icon: TrendingUp
+    }
+  };
+
+  const c = config[scenario.type];
+  const Icon = c.icon;
+
+  const riskIcon = (level: 'low' | 'medium' | 'high') => {
+    if (level === 'low') return <TrendingDown className="w-2.5 h-2.5 text-emerald-500" />;
+    if (level === 'medium') return <Minus className="w-2.5 h-2.5 text-yellow-500" />;
+    return <TrendingUp className="w-2.5 h-2.5 text-red-500" />;
+  };
+
+  return (
+    <div className={cn("p-3 rounded-lg border", c.bgColor, c.borderColor)}>
+      <div className="flex items-center gap-2 mb-2">
+        <Icon className={cn("w-4 h-4", c.color)} />
+        <span className={cn("font-semibold text-sm", c.color)}>{scenario.label}</span>
+      </div>
+      <p className="text-[11px] text-muted-foreground mb-2 leading-relaxed">{scenario.recommendation}</p>
+      <div className="flex gap-2 text-[9px] border-t pt-2 mt-2">
+        <span className="flex items-center gap-0.5">
+          {riskIcon(scenario.risks.fatigue)} Fatigue
+        </span>
+        <span className="flex items-center gap-0.5">
+          {riskIcon(scenario.risks.injury)} Blessure
+        </span>
+        <span className="flex items-center gap-0.5">
+          {riskIcon(scenario.risks.glycogenDepletion)} Glycogène
+        </span>
       </div>
     </div>
   );

@@ -49,6 +49,8 @@ import { StaffDashboard } from "@/components/StaffDashboard";
 import { ScientificChartsDashboard, MetabolicPerformanceCompass, AmbitionProgressChart, AmbitionProgressMini } from "@/components/charts";
 import { ChargeRecenteCard } from "@/components/ChargeRecenteCard";
 import { computeCRR } from "@/lib/chargeRecenteReference";
+import { DecisionReliabilityCard } from "@/components/DecisionReliabilityCard";
+import { computeFullDRE, DecisionReliabilityResult } from "@/lib/v2/decisionReliabilityEngine";
 import { SortableSectionsContainer } from "@/components/SortableSectionsContainer";
 
 // ✅ VLamax TFCL V2 - Calibration avec percentiles
@@ -427,6 +429,34 @@ const Index = () => {
       tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
     });
   }, [vlamaxEffectif, tteEffectif, currentAthlete, effectiveCloudSnapshot]);
+
+  // ✅ DECISION RELIABILITY ENGINE - Score de confiance décisionnelle
+  const decisionReliability = useMemo<DecisionReliabilityResult>(() => {
+    return computeFullDRE({
+      snapshotId: effectiveCloudSnapshot?.id ?? "",
+      athleteId: currentAthlete?.id ?? "",
+      coachId: user?.id ?? "",
+      objective: currentAthlete?.goal || "IM",
+      
+      vlamax: vlamaxEffectif.value,
+      vlamaxConfidence: vlamaxEffectif.confidence,
+      tteMin: tteEffectif.tte_min,
+      tteConfidence: tteEffectif.confidence,
+      fatmaxPct: null,
+      vo2max: effectiveCloudSnapshot?.vo2max ?? null,
+      ftp: effectiveCloudSnapshot?.ftp ?? null,
+      weightKg: effectiveCloudSnapshot?.weight_kg ?? null,
+      p30s: (effectiveCloudSnapshot as unknown as Record<string, unknown>)?.p30s_w as number | null ?? null,
+      p1min: (effectiveCloudSnapshot as unknown as Record<string, unknown>)?.p60s_w as number | null ?? null,
+      map5min: (effectiveCloudSnapshot as unknown as Record<string, unknown>)?.map5min_w as number | null ?? null,
+      pmax5s: effectiveCloudSnapshot?.pmax_5s ?? null,
+      
+      isReferenceWeek: (effectiveCloudSnapshot as unknown as Record<string, unknown>)?.vlamax_is_reference === true,
+      fatigueState: ((effectiveCloudSnapshot as unknown as Record<string, unknown>)?.fatigue_state as string) === "fatigued" ? "fatigued" 
+        : ((effectiveCloudSnapshot as unknown as Record<string, unknown>)?.fatigue_state as string) === "fresh" ? "fresh" 
+        : "normal",
+    });
+  }, [currentAthlete, user, effectiveCloudSnapshot, vlamaxEffectif, tteEffectif]);
 
   // Handlers
   const handleAddAthlete = async () => {
@@ -1044,6 +1074,23 @@ const Index = () => {
                 tss7d={effectiveCloudSnapshot?.tss_7d}
                 sport="velo"
                 initialStaffMode={staffMode}
+              />
+            ),
+          },
+          {
+            id: "decision-reliability",
+            render: () => currentAthlete && staffMode && (
+              <DecisionReliabilityCard
+                result={decisionReliability}
+                onMarkAsReference={async () => {
+                  if (!effectiveCloudSnapshot) return;
+                  await updateSnapshot(effectiveCloudSnapshot.id, { 
+                    vlamax_is_reference: true 
+                  } as unknown as Partial<typeof effectiveCloudSnapshot>);
+                  toast.success("Semaine de Référence TFCL activée");
+                }}
+                onOpenTests={() => setActiveTab("tests")}
+                defaultExpanded={false}
               />
             ),
           },
