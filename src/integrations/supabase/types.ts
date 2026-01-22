@@ -165,6 +165,51 @@ export type Database = {
           },
         ]
       }
+      coach_feedback_blocks: {
+        Row: {
+          actual_response_rating: number | null
+          adjustment_applied: boolean | null
+          athlete_id: string
+          block_end_date: string
+          block_start_date: string
+          coach_id: string
+          created_at: string
+          id: string
+          model_coherence_rating: number | null
+          notes: string | null
+          observed_fatigue: string | null
+          suggested_adjustments: Json | null
+        }
+        Insert: {
+          actual_response_rating?: number | null
+          adjustment_applied?: boolean | null
+          athlete_id: string
+          block_end_date: string
+          block_start_date: string
+          coach_id: string
+          created_at?: string
+          id?: string
+          model_coherence_rating?: number | null
+          notes?: string | null
+          observed_fatigue?: string | null
+          suggested_adjustments?: Json | null
+        }
+        Update: {
+          actual_response_rating?: number | null
+          adjustment_applied?: boolean | null
+          athlete_id?: string
+          block_end_date?: string
+          block_start_date?: string
+          coach_id?: string
+          created_at?: string
+          id?: string
+          model_coherence_rating?: number | null
+          notes?: string | null
+          observed_fatigue?: string | null
+          suggested_adjustments?: Json | null
+        }
+        Relationships: []
+      }
       daily_checkins: {
         Row: {
           athlete_id: string
@@ -262,6 +307,152 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      reliability_scores: {
+        Row: {
+          athlete_id: string
+          cadence_hr_efficiency: number | null
+          calculation_version: string | null
+          coach_fatigue_observed: string | null
+          coach_id: string
+          coach_model_coherence_rating: number | null
+          coach_response_accuracy_rating: number | null
+          coach_validation_date: string | null
+          coach_validation_notes: string | null
+          coach_validation_status: string | null
+          consistency_flags: Json | null
+          consistency_score: number | null
+          created_at: string
+          decision_confidence_score: number | null
+          decision_level: string | null
+          durability_cadence_stability: number | null
+          durability_consistency_score: number | null
+          durability_hr_drift_pct: number | null
+          durability_rpe_final: number | null
+          durability_z2_duration_min: number | null
+          economy_score: number | null
+          environmental_conditions: string | null
+          id: string
+          incoherence_detected: boolean | null
+          is_reference_week: boolean
+          nutrition_pre_test: string | null
+          pace_hr_drift_ratio: number | null
+          perceived_fatigue: number | null
+          power_hr_stability: number | null
+          protocol_quality_score: number | null
+          raw_calculation_data: Json | null
+          reference_date: string | null
+          reference_week_confidence_boost: number | null
+          sensors_calibrated: boolean | null
+          sleep_quality: string | null
+          snapshot_id: string
+          updated_at: string
+          vlamax_dispersion: number | null
+          vlamax_indices: Json | null
+          vlamax_median: number | null
+          vlamax_multi_confidence: number | null
+          vlamax_range_high: number | null
+          vlamax_range_low: number | null
+        }
+        Insert: {
+          athlete_id: string
+          cadence_hr_efficiency?: number | null
+          calculation_version?: string | null
+          coach_fatigue_observed?: string | null
+          coach_id: string
+          coach_model_coherence_rating?: number | null
+          coach_response_accuracy_rating?: number | null
+          coach_validation_date?: string | null
+          coach_validation_notes?: string | null
+          coach_validation_status?: string | null
+          consistency_flags?: Json | null
+          consistency_score?: number | null
+          created_at?: string
+          decision_confidence_score?: number | null
+          decision_level?: string | null
+          durability_cadence_stability?: number | null
+          durability_consistency_score?: number | null
+          durability_hr_drift_pct?: number | null
+          durability_rpe_final?: number | null
+          durability_z2_duration_min?: number | null
+          economy_score?: number | null
+          environmental_conditions?: string | null
+          id?: string
+          incoherence_detected?: boolean | null
+          is_reference_week?: boolean
+          nutrition_pre_test?: string | null
+          pace_hr_drift_ratio?: number | null
+          perceived_fatigue?: number | null
+          power_hr_stability?: number | null
+          protocol_quality_score?: number | null
+          raw_calculation_data?: Json | null
+          reference_date?: string | null
+          reference_week_confidence_boost?: number | null
+          sensors_calibrated?: boolean | null
+          sleep_quality?: string | null
+          snapshot_id: string
+          updated_at?: string
+          vlamax_dispersion?: number | null
+          vlamax_indices?: Json | null
+          vlamax_median?: number | null
+          vlamax_multi_confidence?: number | null
+          vlamax_range_high?: number | null
+          vlamax_range_low?: number | null
+        }
+        Update: {
+          athlete_id?: string
+          cadence_hr_efficiency?: number | null
+          calculation_version?: string | null
+          coach_fatigue_observed?: string | null
+          coach_id?: string
+          coach_model_coherence_rating?: number | null
+          coach_response_accuracy_rating?: number | null
+          coach_validation_date?: string | null
+          coach_validation_notes?: string | null
+          coach_validation_status?: string | null
+          consistency_flags?: Json | null
+          consistency_score?: number | null
+          created_at?: string
+          decision_confidence_score?: number | null
+          decision_level?: string | null
+          durability_cadence_stability?: number | null
+          durability_consistency_score?: number | null
+          durability_hr_drift_pct?: number | null
+          durability_rpe_final?: number | null
+          durability_z2_duration_min?: number | null
+          economy_score?: number | null
+          environmental_conditions?: string | null
+          id?: string
+          incoherence_detected?: boolean | null
+          is_reference_week?: boolean
+          nutrition_pre_test?: string | null
+          pace_hr_drift_ratio?: number | null
+          perceived_fatigue?: number | null
+          power_hr_stability?: number | null
+          protocol_quality_score?: number | null
+          raw_calculation_data?: Json | null
+          reference_date?: string | null
+          reference_week_confidence_boost?: number | null
+          sensors_calibrated?: boolean | null
+          sleep_quality?: string | null
+          snapshot_id?: string
+          updated_at?: string
+          vlamax_dispersion?: number | null
+          vlamax_indices?: Json | null
+          vlamax_median?: number | null
+          vlamax_multi_confidence?: number | null
+          vlamax_range_high?: number | null
+          vlamax_range_low?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reliability_scores_snapshot_id_fkey"
+            columns: ["snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "snapshots"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       snapshots: {
         Row: {
