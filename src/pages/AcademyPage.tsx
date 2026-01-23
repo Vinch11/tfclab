@@ -316,6 +316,11 @@ export default function AcademyPage() {
               <span className="hidden sm:inline">Référentiel</span>
               <span className="sm:hidden">Réf.</span>
             </TabsTrigger>
+            <TabsTrigger value="simulation" className="flex items-center gap-2">
+              <Target className="w-4 h-4" />
+              <span className="hidden sm:inline">Simulation</span>
+              <span className="sm:hidden">Simu.</span>
+            </TabsTrigger>
             <TabsTrigger value="protocols" className="flex items-center gap-2">
               <Beaker className="w-4 h-4" />
               <span className="hidden sm:inline">Protocoles</span>
@@ -739,6 +744,443 @@ export default function AcademyPage() {
           </AccordionItem>
 
         </Accordion>
+          </TabsContent>
+
+          {/* TAB: SIMULATION DE COURSE */}
+          <TabsContent value="simulation">
+            <div className="space-y-6">
+              {/* Introduction */}
+              <Card className="border-purple-500/30 bg-purple-500/5">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-purple-500/10 text-purple-500">
+                      <Target className="w-5 h-5" />
+                    </div>
+                    🏁 Simulation de Course TFCL™
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-muted-foreground">
+                    La Simulation de Course TFCL™ compare des <strong className="text-foreground">scénarios de pacing et de nutrition</strong> en fonction 
+                    de votre profil métabolique. Elle ne prédit pas un résultat exact.
+                  </p>
+                  <div className="p-4 rounded-lg bg-muted/50 border">
+                    <p className="text-sm font-medium text-foreground">
+                      💡 Philosophie TFCL™ : "Privilégier toujours une décision robuste à une précision illusoire."
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Toggle BASIC / PRO */}
+              <Tabs defaultValue="basic" className="space-y-4">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="basic" className="flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>BASIC — Décision robuste</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="pro" className="flex items-center gap-2">
+                    <Zap className="w-4 h-4" />
+                    <span>PRO — Analyse complète</span>
+                  </TabsTrigger>
+                </TabsList>
+
+                {/* BASIC Content */}
+                <TabsContent value="basic" className="space-y-4">
+                  <Card className="border-green-500/30 bg-green-500/5">
+                    <CardContent className="p-4">
+                      <p className="text-sm text-muted-foreground">
+                        Version simplifiée basée sur des indicateurs robustes. 
+                        <strong className="text-foreground"> Recommandée si les données sont partielles.</strong>
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Accordion type="multiple" defaultValue={["basic-why", "basic-inputs"]} className="space-y-3">
+                    {/* Leçon 1: Pourquoi une version BASIC ? */}
+                    <AccordionItem value="basic-why" className="border rounded-lg bg-card">
+                      <AccordionTrigger className="px-4 hover:no-underline">
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                          Leçon 1 : Pourquoi une version simplifiée ?
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4 space-y-3 text-sm text-muted-foreground">
+                        <p>
+                          <strong className="text-foreground">La version BASIC n'est PAS une version dégradée.</strong> Elle est 
+                          volontairement plus conservative et plus robuste.
+                        </p>
+                        <div className="space-y-2">
+                          <p className="font-medium text-foreground">Quand utiliser la version BASIC ?</p>
+                          <ul className="space-y-1 pl-4">
+                            <li>• Données physiologiques incomplètes</li>
+                            <li>• Première course sur un format donné</li>
+                            <li>• Athlète loisir ou autonome</li>
+                            <li>• Besoin d'une décision rapide et sûre</li>
+                          </ul>
+                        </div>
+                        <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                          <p className="text-sm">
+                            ⚠️ <strong>Ce que BASIC ne fait pas :</strong> pas de temps exact, pas de simulation segment par segment, 
+                            pas de courbe de glycogène.
+                          </p>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    {/* Leçon 2: Données utilisées */}
+                    <AccordionItem value="basic-inputs" className="border rounded-lg bg-card">
+                      <AccordionTrigger className="px-4 hover:no-underline">
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                          <Layers className="h-4 w-4 text-blue-500" />
+                          Leçon 2 : Données utilisées en mode BASIC
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4 space-y-3 text-sm text-muted-foreground">
+                        <Table className="text-xs">
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Donnée</TableHead>
+                              <TableHead>Obligatoire</TableHead>
+                              <TableHead>Utilisation</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            <TableRow>
+                              <TableCell>Type de course</TableCell>
+                              <TableCell><Badge variant="default" className="bg-green-500">Oui</Badge></TableCell>
+                              <TableCell>Définit durée et intensité</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>Disponibilité TFCL™</TableCell>
+                              <TableCell><Badge variant="outline">Recommandé</Badge></TableCell>
+                              <TableCell>Module le risque global</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>Race Readiness V2</TableCell>
+                              <TableCell><Badge variant="outline">Recommandé</Badge></TableCell>
+                              <TableCell>Zone d'intensité conseillée</TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="text-sm">
+                            💡 VLamax, FatMax et TTE ne sont <strong>PAS</strong> utilisés explicitement en mode BASIC.
+                          </p>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    {/* Leçon 3: Outputs */}
+                    <AccordionItem value="basic-outputs" className="border rounded-lg bg-card">
+                      <AccordionTrigger className="px-4 hover:no-underline">
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                          <TrendingUp className="h-4 w-4 text-purple-500" />
+                          Leçon 3 : Ce qui est affiché
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4 space-y-3 text-sm text-muted-foreground">
+                        <Table className="text-xs">
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Élément</TableHead>
+                              <TableHead>Valeurs</TableHead>
+                              <TableHead>Signification</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            <TableRow>
+                              <TableCell>Zone d'intensité</TableCell>
+                              <TableCell>Sous contrôle / Limite / À risque</TableCell>
+                              <TableCell>Compatibilité avec l'état actuel</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>Risque global</TableCell>
+                              <TableCell>LOW / MODERATE / HIGH</TableCell>
+                              <TableCell>Risque global de la course</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>Scénario recommandé</TableCell>
+                              <TableCell>Conservateur / Optimal / Agressif</TableCell>
+                              <TableCell>Direction sans détails chiffrés</TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                        <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30">
+                          <p className="text-sm">
+                            ✅ <strong>Pas de temps exact.</strong> L'objectif est de guider la DÉCISION, pas de prédire un chrono.
+                          </p>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    {/* Leçon 4: Garde-fous */}
+                    <AccordionItem value="basic-guardrails" className="border rounded-lg bg-card">
+                      <AccordionTrigger className="px-4 hover:no-underline">
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                          <AlertTriangle className="h-4 w-4 text-amber-500" />
+                          Leçon 4 : Garde-fous automatiques
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4 space-y-3 text-sm text-muted-foreground">
+                        <Table className="text-xs">
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Condition</TableHead>
+                              <TableHead>Type</TableHead>
+                              <TableHead>Message</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            <TableRow>
+                              <TableCell>Disponibilité &lt; 50%</TableCell>
+                              <TableCell><Badge className="bg-amber-500">⚠️ Warning</Badge></TableCell>
+                              <TableCell>Disponibilité faible : prudence.</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>Risque blessure élevé</TableCell>
+                              <TableCell><Badge className="bg-red-500">🚨 Critical</Badge></TableCell>
+                              <TableCell>Attention aux scénarios agressifs.</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>Chaleur forte</TableCell>
+                              <TableCell><Badge className="bg-amber-500">⚠️ Warning</Badge></TableCell>
+                              <TableCell>Adapter hydratation et pacing.</TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="text-sm">
+                            🎯 Ces garde-fous sont des <strong>recommandations</strong>. Le coach reste décisionnaire.
+                          </p>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </TabsContent>
+
+                {/* PRO Content */}
+                <TabsContent value="pro" className="space-y-4">
+                  <Card className="border-purple-500/30 bg-purple-500/5">
+                    <CardContent className="p-4">
+                      <p className="text-sm text-muted-foreground">
+                        Version avancée intégrant <strong className="text-foreground">VLamax, TTE, FatMax et nutrition</strong>. 
+                        Recommandée pour une analyse staff.
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Accordion type="multiple" defaultValue={["pro-requirements"]} className="space-y-3">
+                    {/* Leçon 1: Données requises */}
+                    <AccordionItem value="pro-requirements" className="border rounded-lg bg-card">
+                      <AccordionTrigger className="px-4 hover:no-underline">
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                          <Layers className="h-4 w-4 text-purple-500" />
+                          Leçon 1 : Données requises pour le mode PRO
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4 space-y-3 text-sm text-muted-foreground">
+                        <Table className="text-xs">
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Donnée</TableHead>
+                              <TableHead>Obligatoire</TableHead>
+                              <TableHead>Impact si manquante</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            <TableRow>
+                              <TableCell>VLamax (discipline)</TableCell>
+                              <TableCell><Badge className="bg-red-500">Critique</Badge></TableCell>
+                              <TableCell>Dépendance glycolytique inconnue</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>TTE effectif</TableCell>
+                              <TableCell><Badge className="bg-red-500">Critique</Badge></TableCell>
+                              <TableCell>Point de rupture imprécis</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>FatMax TFCL™</TableCell>
+                              <TableCell><Badge className="bg-amber-500">Important</Badge></TableCell>
+                              <TableCell>Risque glycogène sous-estimé</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>Nutrition (g/h)</TableCell>
+                              <TableCell><Badge variant="outline">Optionnel</Badge></TableCell>
+                              <TableCell>Valeur par défaut (60 g/h)</TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                        <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                          <p className="text-sm">
+                            ⚠️ Si 2+ données manquantes → <strong>BASIC recommandé</strong>, PRO dégradé.
+                          </p>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    {/* Leçon 2: Segments */}
+                    <AccordionItem value="pro-segments" className="border rounded-lg bg-card">
+                      <AccordionTrigger className="px-4 hover:no-underline">
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                          <TrendingUp className="h-4 w-4 text-blue-500" />
+                          Leçon 2 : Analyse segment par segment
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4 space-y-3 text-sm text-muted-foreground">
+                        <p>
+                          La version PRO décompose la course en <strong className="text-foreground">segments (10% de la distance)</strong>. 
+                          Pour chaque segment, l'app calcule un FuelRiskIndex et estime le glycogène restant.
+                        </p>
+                        <Table className="text-xs">
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Métrique</TableHead>
+                              <TableHead>Plage</TableHead>
+                              <TableHead>Signification</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            <TableRow>
+                              <TableCell>FuelRiskIndex</TableCell>
+                              <TableCell>0–100</TableCell>
+                              <TableCell>Risque d'épuisement glycogène</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>Glycogène restant</TableCell>
+                              <TableCell>0–100%</TableCell>
+                              <TableCell>Réserves estimées</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>Point de bascule</TableCell>
+                              <TableCell>km X</TableCell>
+                              <TableCell>Où le risque devient critique</TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="text-sm">
+                            🎯 <strong>Facteurs du FuelRiskIndex :</strong> Intensité &gt; FatMax (+20-40 pts), VLamax haute (+15-25 pts), 
+                            TTE faible (+10-15 pts), Nutrition (-5 à -20 pts).
+                          </p>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    {/* Leçon 3: Scénarios */}
+                    <AccordionItem value="pro-scenarios" className="border rounded-lg bg-card">
+                      <AccordionTrigger className="px-4 hover:no-underline">
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                          <Scale className="h-4 w-4 text-green-500" />
+                          Leçon 3 : Comparaison des 3 scénarios
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4 space-y-3 text-sm text-muted-foreground">
+                        <Table className="text-xs">
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Scénario</TableHead>
+                              <TableHead>Intensité</TableHead>
+                              <TableHead>Risque</TableHead>
+                              <TableHead>Succès</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            <TableRow>
+                              <TableCell>🛡️ Conservateur</TableCell>
+                              <TableCell>-5% vs optimal</TableCell>
+                              <TableCell><Badge className="bg-green-500">Faible</Badge></TableCell>
+                              <TableCell>85–95%</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>⚡ Optimal</TableCell>
+                              <TableCell>Référence</TableCell>
+                              <TableCell><Badge className="bg-amber-500">Modéré</Badge></TableCell>
+                              <TableCell>70–85%</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>🚀 Agressif</TableCell>
+                              <TableCell>+5% vs optimal</TableCell>
+                              <TableCell><Badge className="bg-red-500">Élevé</Badge></TableCell>
+                              <TableCell>50–70%</TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                        <div className="space-y-2">
+                          <p className="font-medium text-foreground">Ce que chaque scénario affiche :</p>
+                          <ul className="space-y-1 pl-4">
+                            <li>• Temps estimé SOUS FORME DE PLAGE (ex: 3h05–3h15)</li>
+                            <li>• Intensité cible (%FTP ou allure)</li>
+                            <li>• Point de bascule (km où le risque augmente)</li>
+                            <li>• Probabilité de succès</li>
+                          </ul>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    {/* Leçon 4: Nutrition */}
+                    <AccordionItem value="pro-nutrition" className="border rounded-lg bg-card">
+                      <AccordionTrigger className="px-4 hover:no-underline">
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                          <Apple className="h-4 w-4 text-amber-500" />
+                          Leçon 4 : Intégration nutrition
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4 space-y-3 text-sm text-muted-foreground">
+                        <p>
+                          Les g/h planifiés sont intégrés dans le modèle Fuel & Risk. La nutrition <strong className="text-foreground">RÉDUIT</strong> 
+                          le risque d'épuisement mais ne l'<strong className="text-foreground">ANNULE jamais</strong>.
+                        </p>
+                        <Table className="text-xs">
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Apport planifié</TableHead>
+                              <TableHead>Réduction FuelRisk</TableHead>
+                              <TableHead>Commentaire</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            <TableRow>
+                              <TableCell>&lt; 40 g/h</TableCell>
+                              <TableCell>-5 pts</TableCell>
+                              <TableCell>Insuffisant pour courses longues</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>60–80 g/h</TableCell>
+                              <TableCell>-15 pts</TableCell>
+                              <TableCell>Recommandé pour Ironman</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>&gt; 100 g/h</TableCell>
+                              <TableCell>-20 pts max</TableCell>
+                              <TableCell>Pas de bénéfice supplémentaire</TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                        <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                          <p className="text-sm">
+                            ⚠️ Le modèle ne calcule PAS les grammes exacts nécessaires et ne prédit pas la tolérance gastrique.
+                          </p>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </TabsContent>
+              </Tabs>
+
+              {/* CTA */}
+              <div className="flex justify-center pt-4">
+                <Button 
+                  onClick={() => navigate("/race-simulation")} 
+                  className="gap-2"
+                  size="lg"
+                >
+                  <Target className="h-5 w-5" />
+                  Accéder au Simulateur de Course
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="protocols">
