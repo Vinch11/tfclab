@@ -1,6 +1,6 @@
 /**
  * Race Simulation Module TFCL™
- * Simulateur de scénarios de course avec estimation de temps et risque glycogène
+ * Simulateur de scénarios de course avec modes BASIC et PRO
  */
 
 import React, { useState, useMemo } from 'react';
@@ -33,9 +33,13 @@ import {
   Cookie,
   Activity,
   BarChart3,
+  Gauge,
+  Sparkles,
+  BookOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
+  SimulationMode,
   RaceType,
   AmbitionLevel,
   HeatCondition,
@@ -43,13 +47,22 @@ import {
   ScenarioType,
   RaceSimulationInput,
   RaceSimulationResult,
+  BasicSimulationInput,
+  BasicSimulationResult,
   PacingScenario,
   computeRaceSimulation,
+  computeBasicSimulation,
+  checkProModeEligibility,
   getScenarioColor,
   getScenarioBgColor,
   getDepletionRiskColor,
   getDepletionRiskBgColor,
+  getBasicRiskColor,
+  getBasicRiskBgColor,
+  getIntensityZoneColor,
+  getIntensityZoneBgColor,
   SIMULATION_DEFINITIONS,
+  SIMULATION_MODE_LABELS,
 } from '@/lib/v2/raceSimulation';
 import { GlycogenDepletionChart } from '@/components/charts/GlycogenDepletionChart';
 import { FatMaxRaceIntensityChart } from '@/components/charts/FatMaxRaceIntensityChart';
@@ -65,6 +78,7 @@ interface RaceSimulationModuleProps {
   fatmax?: FatMaxTFCLResult | null;
   disponibiliteScore?: number | null;
   disponibiliteLevel?: string | null;
+  raceReadinessScore?: number | null;
   injuryRiskLevel?: string | null;
   ftp?: number | null;
   vma?: number | null;
@@ -76,6 +90,7 @@ interface RaceSimulationModuleProps {
   compact?: boolean;
   staffMode?: boolean;
   defaultRaceType?: RaceType;
+  defaultMode?: SimulationMode;
 }
 
 const SCENARIO_ICONS: Record<ScenarioType, typeof Shield> = {
@@ -93,6 +108,7 @@ export function RaceSimulationModule({
   fatmax = null,
   disponibiliteScore = null,
   disponibiliteLevel = null,
+  raceReadinessScore = null,
   injuryRiskLevel = null,
   ftp = null,
   vma = null,
@@ -102,8 +118,10 @@ export function RaceSimulationModule({
   compact = false,
   staffMode = false,
   defaultRaceType = 'Marathon',
+  defaultMode = 'basic',
 }: RaceSimulationModuleProps) {
   // State
+  const [simulationMode, setSimulationMode] = useState<SimulationMode>(defaultMode);
   const [raceType, setRaceType] = useState<RaceType>(defaultRaceType);
   const [ambition, setAmbition] = useState<AmbitionLevel>('perf');
   const [heat, setHeat] = useState<HeatCondition>('moderate');
@@ -113,8 +131,8 @@ export function RaceSimulationModule({
   const [selectedScenario, setSelectedScenario] = useState<ScenarioType>('optimal');
   const [showSimulation, setShowSimulation] = useState(false);
   
-  // Input pour la simulation
-  const simulationInput: RaceSimulationInput = useMemo(() => ({
+  // Pro mode eligibility check
+  const proInput: RaceSimulationInput = useMemo(() => ({
     raceType,
     raceDate: null,
     distanceKm: null,
@@ -144,21 +162,128 @@ export function RaceSimulationModule({
     fatmax, disponibiliteScore, disponibiliteLevel, injuryRiskLevel, ftp, vma, paceThreshold, weight
   ]);
   
-  // Résultat simulation
-  const simulation = useMemo(() => {
-    if (!showSimulation) return null;
-    return computeRaceSimulation(simulationInput);
-  }, [simulationInput, showSimulation]);
+  const proEligibility = useMemo(() => checkProModeEligibility(proInput), [proInput]);
   
-  // Scénario sélectionné
+  // Basic input
+  const basicInput: BasicSimulationInput = useMemo(() => ({
+    raceType,
+    ambition,
+    heat,
+    terrain,
+    disponibiliteScore,
+    disponibiliteLevel,
+    raceReadinessScore,
+    ftp,
+    vma,
+    paceThreshold,
+    injuryRiskLevel,
+  }), [raceType, ambition, heat, terrain, disponibiliteScore, disponibiliteLevel, raceReadinessScore, ftp, vma, paceThreshold, injuryRiskLevel]);
+  
+  // Résultats simulation
+  const basicSimulation = useMemo(() => {
+    if (!showSimulation || simulationMode !== 'basic') return null;
+    return computeBasicSimulation(basicInput);
+  }, [basicInput, showSimulation, simulationMode]);
+  
+  const proSimulation = useMemo(() => {
+    if (!showSimulation || simulationMode !== 'pro') return null;
+    return computeRaceSimulation(proInput);
+  }, [proInput, showSimulation, simulationMode]);
+  
+  // Scénario sélectionné (PRO only)
   const currentScenario = useMemo(() => {
-    if (!simulation) return null;
-    return simulation.scenarios.find(s => s.type === selectedScenario) ?? simulation.scenarios[1];
-  }, [simulation, selectedScenario]);
+    if (!proSimulation) return null;
+    return proSimulation.scenarios.find(s => s.type === selectedScenario) ?? proSimulation.scenarios[1];
+  }, [proSimulation, selectedScenario]);
   
   const handleSimulate = () => {
     setShowSimulation(true);
   };
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MODE SELECTOR
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  const ModeSelector = () => (
+    <Card className="border-2 border-dashed">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Gauge className="w-4 h-4" />
+          Taille de l'analyse
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          {(['basic', 'pro'] as SimulationMode[]).map((mode) => {
+            const isSelected = simulationMode === mode;
+            const modeInfo = SIMULATION_MODE_LABELS[mode];
+            const isProDisabled = mode === 'pro' && !proEligibility.eligible;
+            
+            return (
+              <button
+                key={mode}
+                onClick={() => !isProDisabled && setSimulationMode(mode)}
+                disabled={isProDisabled}
+                className={cn(
+                  "p-4 rounded-lg border-2 transition-all text-left relative",
+                  isSelected 
+                    ? mode === 'basic'
+                      ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                      : "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                    : "border-border hover:border-muted-foreground/50",
+                  isProDisabled && "opacity-50 cursor-not-allowed"
+                )}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  {mode === 'basic' ? (
+                    <Shield className={cn("w-5 h-5", isSelected ? "text-green-600" : "text-muted-foreground")} />
+                  ) : (
+                    <Sparkles className={cn("w-5 h-5", isSelected ? "text-blue-600" : "text-muted-foreground")} />
+                  )}
+                  <Badge 
+                    variant={isSelected ? "default" : "secondary"}
+                    className={cn(
+                      isSelected && mode === 'basic' && "bg-green-600",
+                      isSelected && mode === 'pro' && "bg-blue-600"
+                    )}
+                  >
+                    {modeInfo.badge}
+                  </Badge>
+                </div>
+                <div className={cn(
+                  "font-medium text-sm mb-1",
+                  isSelected 
+                    ? mode === 'basic' ? "text-green-700 dark:text-green-300" : "text-blue-700 dark:text-blue-300"
+                    : "text-foreground"
+                )}>
+                  {mode === 'basic' ? "Décision robuste" : "Analyse complète"}
+                </div>
+                <div className="text-xs text-muted-foreground line-clamp-2">
+                  {modeInfo.description}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        
+        {/* Message éligibilité PRO */}
+        {!proEligibility.eligible && (
+          <Alert variant="default">
+            <Info className="h-4 w-4" />
+            <AlertDescription className="text-xs">
+              {proEligibility.message}
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {/* Philosophie */}
+        <div className="p-3 bg-muted/30 rounded-lg text-xs text-muted-foreground italic">
+          <BookOpen className="w-3 h-3 inline mr-1" />
+          {SIMULATION_DEFINITIONS.philosophy}
+        </div>
+      </CardContent>
+    </Card>
+  );
   
   // ═══════════════════════════════════════════════════════════════════════════
   // CONFIGURATION PANEL
@@ -166,6 +291,9 @@ export function RaceSimulationModule({
   
   const ConfigPanel = () => (
     <div className="space-y-6">
+      {/* Sélecteur de mode */}
+      <ModeSelector />
+      
       {/* Type de course */}
       <div className="space-y-2">
         <Label>Type de course</Label>
@@ -235,93 +363,260 @@ export function RaceSimulationModule({
         </div>
       </div>
       
-      {/* Nutrition */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Label className="flex items-center gap-2">
-            <Cookie className="w-4 h-4" />
-            Nutrition planifiée
-          </Label>
-          <Switch checked={useNutrition} onCheckedChange={setUseNutrition} />
-        </div>
-        
-        {useNutrition && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span>Glucides (g/h)</span>
-              <span className="font-medium">{plannedCarbsGH} g/h</span>
-            </div>
-            <Slider
-              value={[plannedCarbsGH]}
-              onValueChange={([v]) => setPlannedCarbsGH(v)}
-              min={30}
-              max={120}
-              step={5}
-              className="w-full"
-            />
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>30 g/h</span>
-              <span>120 g/h</span>
-            </div>
+      {/* Nutrition (PRO only) */}
+      {simulationMode === 'pro' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label className="flex items-center gap-2">
+              <Cookie className="w-4 h-4" />
+              Nutrition planifiée
+            </Label>
+            <Switch checked={useNutrition} onCheckedChange={setUseNutrition} />
           </div>
-        )}
-      </div>
+          
+          {useNutrition && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span>Glucides (g/h)</span>
+                <span className="font-medium">{plannedCarbsGH} g/h</span>
+              </div>
+              <Slider
+                value={[plannedCarbsGH]}
+                onValueChange={([v]) => setPlannedCarbsGH(v)}
+                min={30}
+                max={120}
+                step={5}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>30 g/h</span>
+                <span>120 g/h</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
       
       {/* Profil TFCL utilisé */}
       <div className="p-3 bg-muted/50 rounded-lg space-y-2">
         <div className="text-sm font-medium flex items-center gap-2">
           <Activity className="w-4 h-4" />
           Profil TFCL utilisé
+          <Badge variant="outline" className="text-xs">
+            {simulationMode === 'basic' ? 'Simplifié' : 'Complet'}
+          </Badge>
         </div>
         <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">VLamax</span>
-            <span className={vlamaxEffectif ? "font-medium" : "text-muted-foreground"}>
-              {vlamaxEffectif ? `${vlamaxEffectif.toFixed(2)} mmol/L/s` : "—"}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">TTE</span>
-            <span className={tteMin ? "font-medium" : "text-muted-foreground"}>
-              {tteMin ? `${tteMin} min` : "—"}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">FatMax</span>
-            <span className={fatmax ? "font-medium" : "text-muted-foreground"}>
-              {fatmax ? `${fatmax.minPctFTP}-${fatmax.maxPctFTP}%` : "—"}
-            </span>
-          </div>
+          {simulationMode === 'pro' && (
+            <>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">VLamax</span>
+                <span className={vlamaxEffectif ? "font-medium" : "text-muted-foreground"}>
+                  {vlamaxEffectif ? `${vlamaxEffectif.toFixed(2)} mmol/L/s` : "—"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">TTE</span>
+                <span className={tteMin ? "font-medium" : "text-muted-foreground"}>
+                  {tteMin ? `${tteMin} min` : "—"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">FatMax</span>
+                <span className={fatmax ? "font-medium" : "text-muted-foreground"}>
+                  {fatmax ? `${fatmax.minPctFTP}-${fatmax.maxPctFTP}%` : "—"}
+                </span>
+              </div>
+            </>
+          )}
           <div className="flex justify-between">
             <span className="text-muted-foreground">Disponibilité</span>
             <span className={disponibiliteScore ? "font-medium" : "text-muted-foreground"}>
               {disponibiliteScore ? `${Math.round(disponibiliteScore)}/100` : "—"}
             </span>
           </div>
+          {raceReadinessScore && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Race Readiness</span>
+              <span className="font-medium">{Math.round(raceReadinessScore)}/100</span>
+            </div>
+          )}
         </div>
       </div>
       
       {/* Bouton simuler */}
       <Button onClick={handleSimulate} className="w-full" size="lg">
         <BarChart3 className="w-4 h-4 mr-2" />
-        Simuler les scénarios
+        {simulationMode === 'basic' ? 'Analyser (BASIC)' : 'Simuler les scénarios (PRO)'}
       </Button>
     </div>
   );
   
   // ═══════════════════════════════════════════════════════════════════════════
-  // RESULTS PANEL
+  // BASIC RESULTS PANEL
   // ═══════════════════════════════════════════════════════════════════════════
   
-  const ResultsPanel = () => {
-    if (!simulation) return null;
+  const BasicResultsPanel = () => {
+    if (!basicSimulation) return null;
     
     return (
       <div className="space-y-6">
+        {/* Badge version */}
+        <div className="flex items-center justify-between">
+          <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
+            <Shield className="w-3 h-3 mr-1" />
+            VERSION BASIC
+          </Badge>
+          <span className="text-sm text-muted-foreground">
+            {basicSimulation.raceLabel} - {basicSimulation.ambitionLabel}
+          </span>
+        </div>
+        
         {/* Garde-fous */}
-        {simulation.guardrails.length > 0 && (
+        {basicSimulation.guardrails.length > 0 && (
           <div className="space-y-2">
-            {simulation.guardrails.map((guardrail, i) => (
+            {basicSimulation.guardrails.map((guardrail, i) => (
+              <Alert key={i} variant={guardrail.type === 'critical' ? 'destructive' : 'default'}>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>{guardrail.title}</AlertTitle>
+                <AlertDescription>{guardrail.message}</AlertDescription>
+              </Alert>
+            ))}
+          </div>
+        )}
+        
+        {/* Zone d'intensité */}
+        <Card className={cn("border-2", getIntensityZoneBgColor(basicSimulation.intensityZone))}>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <div className="text-sm text-muted-foreground mb-1">Zone d'intensité conseillée</div>
+              <div className={cn("text-3xl font-bold", getIntensityZoneColor(basicSimulation.intensityZone))}>
+                {basicSimulation.intensityZoneLabel}
+              </div>
+              <p className="text-sm mt-2 text-muted-foreground">
+                {basicSimulation.intensityZoneDescription}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Indice global de risque */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm text-muted-foreground mb-1">Indice global de risque</div>
+                <div className={cn("text-2xl font-bold", getBasicRiskColor(basicSimulation.globalRiskLevel))}>
+                  {basicSimulation.globalRiskLevel}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {basicSimulation.globalRiskLabel}
+                </div>
+              </div>
+              <div className={cn("p-4 rounded-full", getBasicRiskBgColor(basicSimulation.globalRiskLevel))}>
+                <Gauge className={cn("w-8 h-8", getBasicRiskColor(basicSimulation.globalRiskLevel))} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Messages secondaires */}
+        {basicSimulation.secondaryMessages.length > 0 && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Info className="w-4 h-4" />
+                Points d'attention
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2">
+                {basicSimulation.secondaryMessages.map((msg, i) => (
+                  <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                    <ChevronRight className="w-4 h-4 mt-0.5 text-amber-500 flex-shrink-0" />
+                    {msg}
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        )}
+        
+        {/* Scénarios simples */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Scénarios disponibles</CardTitle>
+            <CardDescription>Le coach choisit le scénario adapté</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {(['conservative', 'optimal', 'aggressive'] as ScenarioType[]).map((type) => {
+              const Icon = SCENARIO_ICONS[type];
+              const isRecommended = basicSimulation.recommendedScenario === type;
+              
+              return (
+                <div
+                  key={type}
+                  className={cn(
+                    "p-3 rounded-lg border flex items-center gap-3",
+                    isRecommended && getScenarioBgColor(type)
+                  )}
+                >
+                  <Icon className={cn("w-5 h-5", getScenarioColor(type))} />
+                  <div className="flex-1">
+                    <span className="text-sm font-medium">{basicSimulation.scenarioLabels[type]}</span>
+                  </div>
+                  {isRecommended && (
+                    <Badge variant="secondary" className="text-xs">Recommandé</Badge>
+                  )}
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+        
+        {/* Disclaimer */}
+        <div className="p-3 bg-muted/50 rounded-lg text-xs text-muted-foreground">
+          <Info className="w-4 h-4 inline mr-1" />
+          {basicSimulation.disclaimer}
+        </div>
+        
+        {/* Bouton retour */}
+        <Button 
+          variant="outline" 
+          onClick={() => setShowSimulation(false)}
+          className="w-full"
+        >
+          Modifier les paramètres
+        </Button>
+      </div>
+    );
+  };
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PRO RESULTS PANEL
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  const ProResultsPanel = () => {
+    if (!proSimulation) return null;
+    
+    return (
+      <div className="space-y-6">
+        {/* Badge version */}
+        <div className="flex items-center justify-between">
+          <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+            <Sparkles className="w-3 h-3 mr-1" />
+            VERSION PRO
+          </Badge>
+          <Badge variant="outline" className="flex items-center gap-1">
+            <Zap className="w-3 h-3" />
+            {proSimulation.sourcesUsed.length} sources
+          </Badge>
+        </div>
+        
+        {/* Garde-fous */}
+        {proSimulation.guardrails.length > 0 && (
+          <div className="space-y-2">
+            {proSimulation.guardrails.map((guardrail, i) => (
               <Alert key={i} variant={guardrail.type === 'critical' ? 'destructive' : 'default'}>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>{guardrail.title}</AlertTitle>
@@ -337,15 +632,15 @@ export function RaceSimulationModule({
             <div className="text-center">
               <div className="text-sm text-muted-foreground mb-1">Temps probable</div>
               <div className="text-3xl font-bold text-primary">
-                {simulation.estimatedTimeLabel}
+                {proSimulation.estimatedTimeLabel}
               </div>
               <div className="flex items-center justify-center gap-2 mt-2">
                 <Badge variant="outline">
-                  Confiance: {simulation.timeConfidenceLabel}
+                  Confiance: {proSimulation.timeConfidenceLabel}
                 </Badge>
-                {simulation.missingData.length > 0 && (
+                {proSimulation.missingData.length > 0 && (
                   <Badge variant="secondary" className="text-xs">
-                    {simulation.missingData.length} données manquantes
+                    {proSimulation.missingData.length} données manquantes
                   </Badge>
                 )}
               </div>
@@ -357,10 +652,10 @@ export function RaceSimulationModule({
         <div className="space-y-3">
           <Label>Scénarios de pacing</Label>
           <div className="grid grid-cols-3 gap-2">
-            {simulation.scenarios.map((scenario) => {
+            {proSimulation.scenarios.map((scenario) => {
               const Icon = SCENARIO_ICONS[scenario.type];
               const isSelected = selectedScenario === scenario.type;
-              const isRecommended = simulation.recommendedScenario === scenario.type;
+              const isRecommended = proSimulation.recommendedScenario === scenario.type;
               
               return (
                 <button
@@ -473,7 +768,7 @@ export function RaceSimulationModule({
         {currentScenario && (
           <GlycogenDepletionChart
             segments={currentScenario.segments}
-            distanceKm={simulation.distanceKm}
+            distanceKm={proSimulation.distanceKm}
             compact={compact}
           />
         )}
@@ -488,7 +783,7 @@ export function RaceSimulationModule({
         )}
         
         {/* Ce qui ferait échouer */}
-        {simulation.failureRisks.length > 0 && (
+        {proSimulation.failureRisks.length > 0 && (
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2 text-orange-600 dark:text-orange-400">
@@ -498,7 +793,7 @@ export function RaceSimulationModule({
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {simulation.failureRisks.map((risk) => (
+                {proSimulation.failureRisks.map((risk) => (
                   <div key={risk.id} className="flex items-start gap-2 text-sm">
                     <Badge 
                       variant={risk.probability === 'high' ? 'destructive' : 'secondary'}
@@ -520,7 +815,7 @@ export function RaceSimulationModule({
         {/* Disclaimer */}
         <div className="p-3 bg-muted/50 rounded-lg text-xs text-muted-foreground">
           <Info className="w-4 h-4 inline mr-1" />
-          {simulation.disclaimer}
+          {proSimulation.disclaimer}
         </div>
         
         {/* Bouton retour config */}
@@ -550,22 +845,32 @@ export function RaceSimulationModule({
             </CardTitle>
             <CardDescription>
               {showSimulation 
-                ? `${simulation?.raceLabel} - ${simulation?.ambitionLabel}`
+                ? simulationMode === 'basic'
+                  ? `${basicSimulation?.raceLabel} - ${basicSimulation?.ambitionLabel} (BASIC)`
+                  : `${proSimulation?.raceLabel} - ${proSimulation?.ambitionLabel} (PRO)`
                 : "Comparez des scénarios de pacing et nutrition"
               }
             </CardDescription>
           </div>
-          {showSimulation && simulation && (
-            <Badge variant="outline" className="flex items-center gap-1">
-              <Zap className="w-3 h-3" />
-              {simulation.sourcesUsed.length} sources
+          {showSimulation && (
+            <Badge 
+              variant="outline" 
+              className={cn(
+                simulationMode === 'basic' 
+                  ? "border-green-500 text-green-600" 
+                  : "border-blue-500 text-blue-600"
+              )}
+            >
+              {simulationMode === 'basic' ? 'BASIC' : 'PRO'}
             </Badge>
           )}
         </div>
       </CardHeader>
       <CardContent>
         <ScrollArea className={compact ? "h-[400px]" : "h-auto"}>
-          {showSimulation ? <ResultsPanel /> : <ConfigPanel />}
+          {!showSimulation && <ConfigPanel />}
+          {showSimulation && simulationMode === 'basic' && <BasicResultsPanel />}
+          {showSimulation && simulationMode === 'pro' && <ProResultsPanel />}
         </ScrollArea>
       </CardContent>
     </Card>
