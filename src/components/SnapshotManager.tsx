@@ -1033,6 +1033,21 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
             const vmaNum = parseNum(formData.vma);
             const tteNum = parseNum(formData.tte_observed_min);
             
+            // Calculer économie de course pour ajustement confiance
+            const runPaceSec = parsePaceToSec(formData.run_pace_ref);
+            const runHr = parseNum(formData.run_hr_ref);
+            const runDuration = parseNum(formData.run_duration_min);
+            const runDrift = parseNum(formData.run_hr_drift_pct);
+            const fcMax = parseNum(formData.fc_max);
+            
+            const economyResult = computeRunEconomyScore({
+              paceSec: runPaceSec ? Math.round(runPaceSec) : null,
+              hr: runHr ? Math.round(runHr) : null,
+              durationMin: runDuration ? Math.round(runDuration) : null,
+              driftPct: runDrift,
+              fcMax: fcMax ? Math.round(fcMax) : null,
+            });
+            
             const estimationInput: VLamaxCapEstimateInput = {
               vma: vmaNum,
               paceThresholdSecPerKm: paceThresholdSec,
@@ -1040,6 +1055,10 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
               sprint15sDistance: parseNum(formData.sprint_15s),
               runningPowerMax: parseNum(formData.run_power_max),
               runningPowerThreshold: parseNum(formData.run_power_threshold),
+              // Économie de course (calculée en temps réel)
+              runEconomyScore: economyResult.score,
+              runHrDriftPct: runDrift,
+              runPaceRefSecPerKm: runPaceSec,
             };
             
             const canEstimate = canEstimateVLamaxCap(estimationInput);
