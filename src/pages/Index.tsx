@@ -102,6 +102,7 @@ import {
   Star,
   Trophy,
   Calculator,
+  Shield,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Switch } from "@/components/ui/switch";
@@ -632,6 +633,21 @@ const Index = () => {
             {/* Affichage âge + AAI */}
             {currentAthlete && (
               <AgeAdjustmentBadge birthDate={currentAthlete.birth_date} variant="inline" />
+            )}
+
+            {/* ✅ Toggle Mode Staff - Affiche le DRE et options avancées */}
+            {currentAthlete && (
+              <div className="flex items-center justify-between p-2 rounded-lg bg-muted/30 border border-border/50">
+                <div className="flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Mode Staff</span>
+                </div>
+                <Switch
+                  checked={staffMode}
+                  onCheckedChange={setStaffMode}
+                  className="data-[state=checked]:bg-primary"
+                />
+              </div>
             )}
 
             {/* Mini aperçu progression ambition + sélecteur ambition */}
