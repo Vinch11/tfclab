@@ -49,3 +49,11 @@ export {
   formatTestType,
   calculateOverallConfidence,
 } from "./analyzer";
+
+// Running Economy Analyzer
+export {
+  analyzeRunningEconomy,
+  isEligibleForRunningEconomy,
+  type RunningEconomyFitResult,
+  type RunningDriftAnalysis,
+} from "./runningEconomyAnalyzer";

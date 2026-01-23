@@ -66,6 +66,7 @@ export type DetectedTestType =
   | "SPRINT_60S"
   | "Z2_DRIFT"
   | "TTE_THRESHOLD"
+  | "RUN_ECONOMY"  // Économie de course (~60 min)
   | "UNKNOWN";
 
 // Résultat de la détection du type de test
