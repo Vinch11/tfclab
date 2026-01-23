@@ -700,6 +700,477 @@ function buildFatMaxTFCLHTML(payload: ExportPayload): string {
   `;
 }
 
+// =============================================
+// BUILD RACE SIMULATION HTML SECTION (BASIC / PRO)
+// =============================================
+
+import {
+  computeBasicSimulation,
+  computeRaceSimulation,
+  checkProModeEligibility,
+  SIMULATION_DEFINITIONS,
+  PDF_SIMULATION_BASIC_SECTION,
+  PDF_SIMULATION_PRO_SECTION,
+  type BasicSimulationResult,
+  type RaceSimulationResult,
+  type SimulationMode,
+  type RaceType,
+  type AmbitionLevel as SimAmbitionLevel,
+} from "@/lib/v2/raceSimulation";
+
+function buildRaceSimulationHTML(
+  payload: ExportPayload,
+  mode: SimulationMode = 'pro'
+): string {
+  const { effectiveSnapshot, effectiveRefs, vlamax, tte, raceReadiness } = payload;
+  const goal = (payload.athlete.goal || "IM") as RaceType;
+  
+  // Check PRO eligibility
+  const eligibility = checkProModeEligibility({
+    raceType: goal,
+    heat: 'moderate',
+    terrain: 'flat',
+    ambition: 'perf',
+    vlamaxEffectif: vlamax.value,
+    vlamaxConfidence: vlamax.confidence ?? 0.5,
+    vlamaxDiscipline: 'bike',
+    tteMin: tte.tte_min,
+    tteConfidence: tte.confidence ?? 0.5,
+    fatmaxCenterPct: payload.fatmaxTFCL?.centerPctFTP ?? null,
+    fatmaxRange: payload.fatmaxTFCL ? [payload.fatmaxTFCL.minPctFTP, payload.fatmaxTFCL.maxPctFTP] : null,
+    disponibiliteScore: 75, // Default decent value for PDF
+    disponibiliteLevel: 'good',
+    ftp: effectiveRefs.ftp ?? null,
+    vma: effectiveRefs.vma ?? null,
+    weight: effectiveRefs.weightKg ?? null,
+  });
+
+  const actualMode = mode === 'pro' && eligibility.eligible ? 'pro' : 'basic';
+
+  if (actualMode === 'basic') {
+    return buildBasicSimulationHTML(payload, goal, eligibility);
+  } else {
+    return buildProSimulationHTML(payload, goal, eligibility);
+  }
+}
+
+function buildBasicSimulationHTML(
+  payload: ExportPayload,
+  goal: RaceType,
+  eligibility: ReturnType<typeof checkProModeEligibility>
+): string {
+  const { raceReadiness } = payload;
+  
+  // Compute basic simulation
+  const basicResult = computeBasicSimulation({
+    raceType: goal,
+    ambition: 'perf' as SimAmbitionLevel,
+    heat: 'moderate',
+    terrain: 'flat',
+    disponibiliteScore: 75,
+    disponibiliteLevel: 'good',
+    raceReadinessScore: raceReadiness.score,
+  });
+  
+  const riskColorClass = basicResult.globalRiskLevel === 'LOW' ? 'badgeSuccess' 
+    : basicResult.globalRiskLevel === 'MODERATE' ? 'badge' : 'badgeError';
+  
+  const zoneColorClass = basicResult.intensityZone === 'controlled' ? 'cardSuccess' 
+    : basicResult.intensityZone === 'limit' ? '' : 'cardError';
+  
+  const guardrailsHTML = basicResult.guardrails.length > 0 
+    ? basicResult.guardrails.map(g => `
+        <div class="alert ${g.type === 'critical' ? 'alertError' : 'alertWarning'}" style="margin-bottom:8px;">
+          <b>${g.icon} ${htmlEscape(g.title)}</b><br>
+          ${htmlEscape(g.message)}
+        </div>
+      `).join('')
+    : '';
+
+  const messagesHTML = basicResult.secondaryMessages.length > 0
+    ? `<ul style="margin:8px 0;padding-left:20px;">${basicResult.secondaryMessages.map(m => `<li>${htmlEscape(m)}</li>`).join('')}</ul>`
+    : '';
+
+  return `
+    <section id="race-simulation" class="section pagebreak">
+      <h2>🏁 ${htmlEscape(PDF_SIMULATION_BASIC_SECTION.title)}</h2>
+      
+      <div class="alert alertInfo mb">
+        <b>📋 Philosophie TFCL™ :</b> ${htmlEscape(SIMULATION_DEFINITIONS.philosophy)}
+      </div>
+      
+      <div style="display:inline-block;margin-bottom:12px;padding:4px 12px;background:#e2e8f0;border-radius:16px;font-size:11px;font-weight:600;">
+        MODE BASIC — Décision robuste
+      </div>
+      
+      ${!eligibility.eligible ? `
+        <div class="alert alertWarning mb">
+          <b>ℹ️ Mode BASIC activé :</b> ${htmlEscape(eligibility.message)}
+        </div>
+      ` : ''}
+      
+      <div class="card ${zoneColorClass}" style="margin-bottom:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+          <div>
+            <div class="muted" style="font-size:11px;">Zone d'intensité conseillée</div>
+            <div class="big" style="margin:8px 0;">${htmlEscape(basicResult.intensityZoneLabel)}</div>
+            <div style="font-size:14px;">${htmlEscape(basicResult.intensityZoneDescription)}</div>
+          </div>
+          <div style="text-align:center;">
+            <div class="muted" style="font-size:11px;">Risque global</div>
+            <div style="margin:8px 0;">
+              <span class="badge ${riskColorClass}" style="font-size:14px;padding:8px 16px;">${htmlEscape(basicResult.globalRiskLabel)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card mt">
+        <h3>💬 Message principal</h3>
+        <p style="font-size:14px;line-height:1.6;font-weight:500;">${htmlEscape(basicResult.primaryMessage)}</p>
+        ${messagesHTML}
+      </div>
+      
+      <div class="card mt">
+        <h3>🎯 Scénarios disponibles</h3>
+        <table>
+          <thead>
+            <tr><th>Scénario</th><th>Description</th><th>Recommandé</th></tr>
+          </thead>
+          <tbody>
+            <tr${basicResult.recommendedScenario === 'conservative' ? ' style="background:#dcfce7;"' : ''}>
+              <td><b>🛡️ Conservateur</b></td>
+              <td>${htmlEscape(basicResult.scenarioLabels.conservative)}</td>
+              <td>${basicResult.recommendedScenario === 'conservative' ? '✅ Oui' : ''}</td>
+            </tr>
+            <tr${basicResult.recommendedScenario === 'optimal' ? ' style="background:#fef9c3;"' : ''}>
+              <td><b>⚡ Optimal</b></td>
+              <td>${htmlEscape(basicResult.scenarioLabels.optimal)}</td>
+              <td>${basicResult.recommendedScenario === 'optimal' ? '✅ Oui' : ''}</td>
+            </tr>
+            <tr${basicResult.recommendedScenario === 'aggressive' ? ' style="background:#fee2e2;"' : ''}>
+              <td><b>🚀 Agressif</b></td>
+              <td>${htmlEscape(basicResult.scenarioLabels.aggressive)}</td>
+              <td>${basicResult.recommendedScenario === 'aggressive' ? '✅ Oui' : ''}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      ${guardrailsHTML ? `<div class="mt">${guardrailsHTML}</div>` : ''}
+      
+      <div class="alert alertInfo mt" style="font-size:11px;">
+        <b>📋 Disclaimer :</b> ${htmlEscape(basicResult.disclaimer)}
+      </div>
+    </section>
+  `;
+}
+
+function buildProSimulationHTML(
+  payload: ExportPayload,
+  goal: RaceType,
+  eligibility: ReturnType<typeof checkProModeEligibility>
+): string {
+  const { vlamax, tte, effectiveRefs, fatmaxTFCL, nutritionV2 } = payload;
+  
+  // Compute PRO simulation
+  const proResult = computeRaceSimulation({
+    raceType: goal,
+    heat: 'moderate',
+    terrain: 'flat',
+    ambition: 'perf' as SimAmbitionLevel,
+    vlamaxEffectif: vlamax.value,
+    vlamaxConfidence: vlamax.confidence ?? 0.5,
+    vlamaxDiscipline: 'bike',
+    tteMin: tte.tte_min,
+    tteConfidence: tte.confidence ?? 0.5,
+    fatmaxCenterPct: fatmaxTFCL?.centerPctFTP ?? null,
+    fatmaxRange: fatmaxTFCL ? [fatmaxTFCL.minPctFTP, fatmaxTFCL.maxPctFTP] : null,
+    disponibiliteScore: 75,
+    disponibiliteLevel: 'good',
+    ftp: effectiveRefs.ftp ?? null,
+    vma: effectiveRefs.vma ?? null,
+    weight: effectiveRefs.weightKg ?? null,
+    plannedCarbsGH: nutritionV2?.carbsCentral ?? 60,
+  });
+  
+  const depletionBadgeClass = proResult.globalDepletionRisk === 'LOW' ? 'badgeSuccess' 
+    : proResult.globalDepletionRisk === 'MEDIUM' ? 'badge' 
+    : proResult.globalDepletionRisk === 'HIGH' ? 'badgeWarning' : 'badgeError';
+  
+  const confidenceBadgeClass = proResult.timeConfidence >= 0.7 ? 'badgeSuccess' 
+    : proResult.timeConfidence >= 0.5 ? 'badge' : 'badgeWarning';
+
+  const guardrailsHTML = proResult.guardrails.length > 0 
+    ? proResult.guardrails.map(g => `
+        <div class="alert ${g.type === 'critical' ? 'alertError' : 'alertWarning'}" style="margin-bottom:8px;">
+          <b>${g.icon} ${htmlEscape(g.title)}</b><br>
+          ${htmlEscape(g.message)}
+        </div>
+      `).join('')
+    : '';
+
+  const failureRisksHTML = proResult.failureRisks.length > 0
+    ? `
+      <div class="card mt">
+        <h3>⚠️ Ce qui ferait échouer ce scénario</h3>
+        <table>
+          <thead>
+            <tr><th>Risque</th><th>Description</th><th>Probabilité</th></tr>
+          </thead>
+          <tbody>
+            ${proResult.failureRisks.map(r => {
+              const probColor = r.probability === 'high' ? '#dc2626' : r.probability === 'moderate' ? '#f59e0b' : '#16a34a';
+              const probLabel = r.probability === 'high' ? 'Élevée' : r.probability === 'moderate' ? 'Modérée' : 'Faible';
+              return `<tr>
+                <td><b>${htmlEscape(r.label)}</b></td>
+                <td>${htmlEscape(r.description)}</td>
+                <td style="color:${probColor};font-weight:600;">${probLabel}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    `
+    : '';
+
+  const scenariosHTML = proResult.scenarios.map(scenario => {
+    const scenarioColor = scenario.type === 'conservative' ? '#16a34a' 
+      : scenario.type === 'optimal' ? '#f59e0b' : '#dc2626';
+    const scenarioIcon = scenario.type === 'conservative' ? '🛡️' 
+      : scenario.type === 'optimal' ? '⚡' : '🚀';
+    const isRecommended = scenario.type === proResult.recommendedScenario;
+    
+    const segmentsTableHTML = scenario.segments.slice(0, 5).map(seg => {
+      const riskColor = seg.depletionRisk === 'LOW' ? '#16a34a' 
+        : seg.depletionRisk === 'MEDIUM' ? '#f59e0b' 
+        : seg.depletionRisk === 'HIGH' ? '#dc2626' : '#7c3aed';
+      return `<tr>
+        <td>${seg.segmentIndex + 1}</td>
+        <td>${seg.distanceKm.toFixed(1)} km</td>
+        <td>${seg.intensityPct}%</td>
+        <td style="color:${riskColor};font-weight:600;">${seg.depletionRisk}</td>
+        <td>${seg.glycogenRemaining}%</td>
+      </tr>`;
+    }).join('');
+
+    const warningsHTML = scenario.warnings.length > 0 
+      ? `<div class="muted" style="margin-top:8px;font-size:11px;">⚠️ ${scenario.warnings.join(' | ')}</div>` 
+      : '';
+
+    const strengthsHTML = scenario.strengths.length > 0 
+      ? `<div style="margin-top:8px;font-size:11px;color:#16a34a;">✅ ${scenario.strengths.join(' | ')}</div>` 
+      : '';
+
+    return `
+      <div class="card mt" style="border-left:4px solid ${scenarioColor};${isRecommended ? 'background:rgba(251,191,36,0.08);' : ''}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <h3 style="margin:0;">${scenarioIcon} ${htmlEscape(scenario.label)}</h3>
+          ${isRecommended ? '<span class="badge badgeSuccess">✅ RECOMMANDÉ</span>' : ''}
+        </div>
+        <p class="muted" style="margin-bottom:12px;">${htmlEscape(scenario.description)}</p>
+        
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+          <div style="text-align:center;background:var(--soft);padding:10px;border-radius:8px;">
+            <div class="muted" style="font-size:10px;">Temps estimé</div>
+            <div style="font-size:16px;font-weight:700;">${formatMinutesToTime(scenario.estimatedTimeRange[0])}–${formatMinutesToTime(scenario.estimatedTimeRange[1])}</div>
+          </div>
+          <div style="text-align:center;background:var(--soft);padding:10px;border-radius:8px;">
+            <div class="muted" style="font-size:10px;">Intensité</div>
+            <div style="font-size:16px;font-weight:700;">${scenario.targetIntensityPct}% FTP</div>
+          </div>
+          <div style="text-align:center;background:var(--soft);padding:10px;border-radius:8px;">
+            <div class="muted" style="font-size:10px;">Succès</div>
+            <div style="font-size:16px;font-weight:700;color:${scenarioColor};">${Math.round(scenario.successProbability * 100)}%</div>
+          </div>
+          <div style="text-align:center;background:var(--soft);padding:10px;border-radius:8px;">
+            <div class="muted" style="font-size:10px;">Risque fuel</div>
+            <div style="font-size:16px;font-weight:700;">${scenario.overallFuelRisk}/100</div>
+          </div>
+        </div>
+        
+        ${scenario.breakpointKm ? `
+          <div class="alert alertWarning" style="margin-bottom:12px;">
+            <b>🚨 Point de bascule :</b> km ${scenario.breakpointKm.toFixed(1)} — ${htmlEscape(scenario.breakpointRisk || '')}
+          </div>
+        ` : ''}
+        
+        <table style="font-size:11px;">
+          <thead>
+            <tr><th>#</th><th>Distance</th><th>Intensité</th><th>Risque</th><th>Glycogène</th></tr>
+          </thead>
+          <tbody>${segmentsTableHTML}</tbody>
+        </table>
+        
+        ${strengthsHTML}
+        ${warningsHTML}
+      </div>
+    `;
+  }).join('');
+
+  // Build SVG glycogen chart
+  const optimalScenario = proResult.scenarios.find(s => s.type === 'optimal') || proResult.scenarios[0];
+  const glycogenChartSVG = buildGlycogenChartSVG(optimalScenario.segments);
+
+  return `
+    <section id="race-simulation" class="section pagebreak">
+      <h2>🏁 ${htmlEscape(PDF_SIMULATION_PRO_SECTION.title)}</h2>
+      
+      <div class="alert alertInfo mb">
+        <b>📋 Philosophie TFCL™ :</b> ${htmlEscape(SIMULATION_DEFINITIONS.philosophy)}
+      </div>
+      
+      <div style="display:inline-block;margin-bottom:12px;padding:4px 12px;background:#8b5cf6;color:white;border-radius:16px;font-size:11px;font-weight:600;">
+        MODE PRO — Analyse complète
+      </div>
+      
+      <div class="card cardHighlight" style="margin-bottom:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+          <div>
+            <div class="muted" style="font-size:11px;">Temps probable</div>
+            <div class="big" style="margin:8px 0;">${htmlEscape(proResult.estimatedTimeLabel)}</div>
+            <div style="font-size:14px;">${htmlEscape(proResult.raceLabel)} — ${htmlEscape(proResult.ambitionLabel)}</div>
+          </div>
+          <div style="text-align:center;">
+            <div class="muted" style="font-size:11px;">Confiance</div>
+            <div style="margin:8px 0;">
+              <span class="badge ${confidenceBadgeClass}" style="font-size:14px;padding:8px 16px;">${htmlEscape(proResult.timeConfidenceLabel)}</span>
+            </div>
+            <div class="muted" style="font-size:11px;">${Math.round(proResult.timeConfidence * 100)}%</div>
+          </div>
+          <div style="text-align:center;">
+            <div class="muted" style="font-size:11px;">Risque glycogène</div>
+            <div style="margin:8px 0;">
+              <span class="badge ${depletionBadgeClass}" style="font-size:14px;padding:8px 16px;">${proResult.globalDepletionRisk}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      ${guardrailsHTML ? `<div class="mb">${guardrailsHTML}</div>` : ''}
+      
+      <div class="card mt">
+        <h3>📊 Simulation glycogène — Scénario Optimal</h3>
+        ${glycogenChartSVG}
+        <p class="muted" style="text-align:center;font-size:11px;margin-top:8px;">
+          Évolution estimée des réserves de glycogène au fil de la course.
+        </p>
+      </div>
+      
+      <h3 style="margin-top:24px;">📈 Comparaison des scénarios</h3>
+      ${scenariosHTML}
+      
+      ${failureRisksHTML}
+      
+      <div class="card mt">
+        <h3>📋 Hypothèses utilisées</h3>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+          <div>
+            <div class="muted" style="font-size:10px;">Sources utilisées</div>
+            <ul style="margin:4px 0;padding-left:16px;font-size:11px;">
+              ${proResult.sourcesUsed.map(s => `<li>${htmlEscape(s)}</li>`).join('')}
+            </ul>
+          </div>
+          <div>
+            <div class="muted" style="font-size:10px;">Données manquantes</div>
+            ${proResult.missingData.length > 0 
+              ? `<ul style="margin:4px 0;padding-left:16px;font-size:11px;color:#f59e0b;">${proResult.missingData.map(m => `<li>${htmlEscape(m)}</li>`).join('')}</ul>`
+              : `<p style="font-size:11px;color:#16a34a;">Aucune donnée manquante</p>`
+            }
+          </div>
+          <div>
+            <div class="muted" style="font-size:10px;">Confiance données</div>
+            <p style="font-size:11px;">${Math.round(eligibility.confidence * 100)}%</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="alert alertInfo mt" style="font-size:11px;">
+        <b>📋 Disclaimer :</b> ${htmlEscape(proResult.disclaimer)}
+      </div>
+      
+      <div class="alert mt" style="font-size:11px;background:#f1f5f9;">
+        <b>🔬 Méthodologie :</b> ${htmlEscape(proResult.methodology)}
+      </div>
+    </section>
+  `;
+}
+
+function formatMinutesToTime(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = Math.round(minutes % 60);
+  if (h === 0) return `${m}min`;
+  return `${h}h${m.toString().padStart(2, '0')}`;
+}
+
+function buildGlycogenChartSVG(segments: { segmentIndex: number; glycogenRemaining: number; depletionRisk: string }[]): string {
+  if (segments.length < 2) return '<p class="muted">Pas assez de segments pour afficher le graphique.</p>';
+  
+  const width = 500;
+  const height = 120;
+  const padding = 40;
+  const chartWidth = width - padding * 2;
+  const chartHeight = height - 30;
+  
+  const points = segments.map((seg, i) => ({
+    x: padding + (i / (segments.length - 1)) * chartWidth,
+    y: 15 + ((100 - seg.glycogenRemaining) / 100) * chartHeight,
+    glycogen: seg.glycogenRemaining,
+    risk: seg.depletionRisk,
+  }));
+  
+  const pathD = points.map((p, i) => (i === 0 ? 'M' : 'L') + ` ${p.x} ${p.y}`).join(' ');
+  const areaD = pathD + ` L ${points[points.length - 1].x} ${height - 15} L ${points[0].x} ${height - 15} Z`;
+  
+  const circles = points.map(p => {
+    const color = p.risk === 'LOW' ? '#16a34a' : p.risk === 'MEDIUM' ? '#f59e0b' : p.risk === 'HIGH' ? '#dc2626' : '#7c3aed';
+    return `<circle cx="${p.x}" cy="${p.y}" r="5" fill="${color}" stroke="#fff" stroke-width="2"/>`;
+  }).join('');
+  
+  // Add horizontal reference lines
+  const refLines = [100, 75, 50, 25, 0].map(pct => {
+    const y = 15 + ((100 - pct) / 100) * chartHeight;
+    return `
+      <line x1="${padding}" y1="${y}" x2="${width - padding}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4 2"/>
+      <text x="${padding - 5}" y="${y + 3}" font-size="8" fill="#64748b" text-anchor="end">${pct}%</text>
+    `;
+  }).join('');
+  
+  // Add danger zone
+  const dangerY = 15 + ((100 - 25) / 100) * chartHeight;
+  
+  return `
+    <svg width="100%" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" style="max-width:100%;height:auto;">
+      <defs>
+        <linearGradient id="glycogenGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#16a34a" stop-opacity="0.3"/>
+          <stop offset="50%" stop-color="#f59e0b" stop-opacity="0.2"/>
+          <stop offset="100%" stop-color="#dc2626" stop-opacity="0.3"/>
+        </linearGradient>
+      </defs>
+      
+      <!-- Danger zone -->
+      <rect x="${padding}" y="${dangerY}" width="${chartWidth}" height="${height - 15 - dangerY}" fill="#fef2f2" rx="4"/>
+      <text x="${width - padding - 5}" y="${dangerY + 12}" font-size="8" fill="#dc2626" text-anchor="end">Zone critique</text>
+      
+      ${refLines}
+      
+      <!-- Area fill -->
+      <path d="${areaD}" fill="url(#glycogenGradient)"/>
+      
+      <!-- Line -->
+      <path d="${pathD}" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      
+      <!-- Points -->
+      ${circles}
+      
+      <!-- Labels -->
+      <text x="${width / 2}" y="${height - 2}" font-size="9" fill="#64748b" text-anchor="middle">Progression course (segments)</text>
+      <text x="12" y="${height / 2}" font-size="9" fill="#64748b" text-anchor="middle" transform="rotate(-90 12 ${height / 2})">Glycogène %</text>
+    </svg>
+  `;
+}
+
 
 function calculateCompletude(
   effectiveRefs: EffectiveRefs,
@@ -5002,6 +5473,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         ${options.sections.indicateurs ? indicateursHTML : ''}
         ${options.sections.raceReadiness ? raceReadinessHTML : ''}
         ${options.sections.disponibiliteTFCL ? disponibiliteTFCLHTML : ''}
+        ${options.sections.raceSimulation ? buildRaceSimulationHTML(payload, 'pro') : ''}
         ${options.sections.injuryRisk ? injuryRiskHTML : ''}
         ${options.sections.nutritionV2 ? buildNutritionV2HTML(payload) : ''}
         ${options.sections.fatmaxTFCL ? buildFatMaxTFCLHTML(payload) : ''}
