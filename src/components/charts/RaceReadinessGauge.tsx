@@ -143,7 +143,7 @@ export function RaceReadinessGauge({
                   <SegmentBar label="VLamax" value={details.vlamax} max={25} />
                   <SegmentBar label="Endurance" value={details.endurance} max={25} />
                   <SegmentBar label="Puissance" value={details.puissance} max={25} />
-                  <SegmentBar label="Fraîcheur" value={details.fraicheur} max={25} />
+                  <SegmentBar label="Disponibilité" value={details.fraicheur} max={25} />
                 </div>
               </div>
             )}
