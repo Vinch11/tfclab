@@ -148,6 +148,7 @@ export function formatTestType(type: DetectedTestType): string {
     SPRINT_60S: "Sprint 60s",
     Z2_DRIFT: "Sortie Z2 (Drift)",
     TTE_THRESHOLD: "TTE au seuil",
+    RUN_ECONOMY: "Économie Course",
     UNKNOWN: "Non identifié",
   };
   return labels[type] ?? type;

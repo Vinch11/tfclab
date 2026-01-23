@@ -56,9 +56,12 @@ import {
   validateFitFile,
   analyzeFitSession,
   calculateOverallConfidence,
+  analyzeRunningEconomy,
+  isEligibleForRunningEconomy,
   type FitAnalysisResult,
   type DetectedTestType,
   type ProfileUpdatePreview,
+  type RunningEconomyFitResult,
 } from "@/lib/fitImport";
 import type { DbSnapshot } from "@/hooks/useCloudData";
 
@@ -111,6 +114,13 @@ export interface ProfileUpdates {
   ftp?: number;
   tte_observed_min?: number;
   protocol_quality?: number;
+  // Running Economy fields
+  run_pace_ref_sec_per_km?: number;
+  run_hr_ref_bpm?: number;
+  run_duration_min?: number;
+  run_hr_drift_pct?: number;
+  run_economy_score?: number;
+  run_economy_label?: string;
 }
 
 const TEST_TYPE_OPTIONS: { value: DetectedTestType; label: string }[] = [
@@ -123,6 +133,7 @@ const TEST_TYPE_OPTIONS: { value: DetectedTestType; label: string }[] = [
   { value: "SPRINT_60S", label: "Sprint 60s" },
   { value: "Z2_DRIFT", label: "Sortie Z2 (Drift)" },
   { value: "TTE_THRESHOLD", label: "TTE au seuil" },
+  { value: "RUN_ECONOMY", label: "🏃 Économie Course" },
   { value: "UNKNOWN", label: "Non identifié" },
 ];
 
@@ -140,6 +151,7 @@ export function FitImportDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [analysis, setAnalysis] = useState<FitAnalysisResult | null>(null);
+  const [runningEconomyResult, setRunningEconomyResult] = useState<RunningEconomyFitResult | null>(null);
   const [selectedTestType, setSelectedTestType] = useState<DetectedTestType | null>(null);
   const [updateProfile, setUpdateProfile] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
@@ -149,6 +161,7 @@ export function FitImportDialog({
     setStep("upload");
     setFile(null);
     setAnalysis(null);
+    setRunningEconomyResult(null);
     setSelectedTestType(null);
     setUpdateProfile(false);
     setShowDetails(false);
@@ -180,7 +193,23 @@ export function FitImportDialog({
         currentSnapshot?.ftp ?? undefined
       );
       setAnalysis(result);
-      setSelectedTestType(result.testType.type);
+      
+      // Analyser l'économie de course si éligible
+      const runEligibility = isEligibleForRunningEconomy(session);
+      if (runEligibility.eligible) {
+        const runEconomy = analyzeRunningEconomy(session, currentSnapshot?.fc_max);
+        setRunningEconomyResult(runEconomy);
+        // Si c'est une course ~60min, suggérer RUN_ECONOMY comme type
+        if (session.movingTimeSec >= 2400 && runEconomy.isApplicable) {
+          setSelectedTestType("RUN_ECONOMY");
+        } else {
+          setSelectedTestType(result.testType.type);
+        }
+      } else {
+        setRunningEconomyResult(null);
+        setSelectedTestType(result.testType.type);
+      }
+      
       setStep("review");
       toast.success("Fichier analysé avec succès");
     } catch (error) {
