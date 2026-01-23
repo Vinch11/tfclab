@@ -85,7 +85,8 @@ export interface ReportSections {
   profilMetabolique: boolean; // Profil Métabolique Complet (Radar Chart)
   indicateurs: boolean;     // Indicateurs Clés
   raceReadiness: boolean;   // Race Readiness
-  disponibiliteTFCL: boolean; // ✅ NEW: Disponibilité TFCL™
+  disponibiliteTFCL: boolean; // ✅ Disponibilité TFCL™
+  raceSimulation: boolean;  // ✅ NEW: Simulation de Course TFCL™
   injuryRisk: boolean;      // Risque de Blessure CAP
   nutritionV2: boolean;     // Nutrition Prédictive V2
   fatmaxTFCL: boolean;      // FatMax TFCL
@@ -102,8 +103,8 @@ export interface ReportSections {
   zones: boolean;           // Zones d'entraînement
   historique: boolean;      // Historique Profils
   tests: boolean;           // Historique Tests
-  testsCalibration: boolean; // ✅ NEW: Tests & Calibration TFCL
-  fitImports: boolean;      // ✅ NEW: Tests Observés (import FIT)
+  testsCalibration: boolean; // ✅ Tests & Calibration TFCL
+  fitImports: boolean;      // ✅ Tests Observés (import FIT)
   checkins: boolean;        // Check-ins
   comprendre: boolean;      // Comprendre mes scores
   qualite: boolean;         // Qualité des données
@@ -5456,7 +5457,8 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       profilMetabolique: false,
       indicateurs: false,
       raceReadiness: false,
-      disponibiliteTFCL: false, // ✅ NEW
+      disponibiliteTFCL: false,
+      raceSimulation: false, // ✅ NEW
       injuryRisk: false,
       nutritionV2: false,
       fatmaxTFCL: false,
