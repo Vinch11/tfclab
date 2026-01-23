@@ -241,7 +241,7 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
       rationaleByNeed.NEED_RECOVERY.push(msg);
     }
     if (hasSevereFreshnessIssue) {
-      const msg = `Fraîcheur critique (<30%) → récupération prioritaire.`;
+      const msg = `Disponibilité critique (<30%) → récupération prioritaire.`;
       rationale.push(msg);
       rationaleByNeed.NEED_RECOVERY.push(msg);
     }

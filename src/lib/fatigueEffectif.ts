@@ -555,7 +555,7 @@ function generateStaffMessage(
   lines.push(`• Charge récente : +${weighted.chargeRecente}% (indice brut: ${contributions.chargeRecente}%)`);
   lines.push(`• Fatigue perçue : +${weighted.fatiguePercue}% (indice brut: ${contributions.fatiguePercue}%)`);
   lines.push(`• TTE effectif : +${weighted.tte}% (indice brut: ${contributions.tte}%)`);
-  lines.push(`• Fraîcheur métabolique : +${weighted.fraicheur}% (indice brut: ${contributions.fraicheur}%)`);
+  lines.push(`• Disponibilité métabolique : +${weighted.fraicheur}% (indice brut: ${contributions.fraicheur}%)`);
   lines.push(`• Facteurs individuels : +${weighted.modulateurs}% (indice brut: ${contributions.modulateurs}%)`);
   
   return lines.join("\n");

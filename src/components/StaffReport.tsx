@@ -1103,7 +1103,7 @@ function RaceReadinessCalculationDetails({ readiness }: { readiness: RaceReadine
     { key: "vlamax" as const, label: "VLamax", icon: <Zap className="w-4 h-4 text-primary" />, weight: readiness.weights.vlamax },
     { key: "endurance" as const, label: "Endurance (TTE)", icon: <Activity className="w-4 h-4 text-accent" />, weight: readiness.weights.tte },
     { key: "puissance" as const, label: "Puissance (FTP/kg)", icon: <TrendingUp className="w-4 h-4 text-warning" />, weight: readiness.weights.ftpKg },
-    { key: "fraicheur" as const, label: "Fraîcheur", icon: <Heart className="w-4 h-4 text-success" />, weight: readiness.weights.freshness },
+    { key: "fraicheur" as const, label: "Disponibilité", icon: <Heart className="w-4 h-4 text-success" />, weight: readiness.weights.freshness },
   ];
 
   const getStatusColor = (status: string) => {
