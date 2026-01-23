@@ -123,33 +123,33 @@ export default function App() {
                   }
                 />
                 <Route
-125:                   path="/cap-testing-week"
-126:                   element={
-127:                     <AuthGate>
-128:                       <OnboardingGate>
-129:                         <CloudDataProvider>
-130:                           <AthleteProvider>
-131:                             <CAPTestingWeekPage />
-132:                           </AthleteProvider>
-133:                         </CloudDataProvider>
-134:                       </OnboardingGate>
-135:                     </AuthGate>
-136:                 }
-137:                 />
-138:                 <Route
-139:                   path="/race-simulation"
-140:                   element={
-141:                     <AuthGate>
-142:                       <OnboardingGate>
-143:                         <CloudDataProvider>
-144:                           <AthleteProvider>
-145:                             <RaceSimulationPage />
-146:                           </AthleteProvider>
-147:                         </CloudDataProvider>
-148:                       </OnboardingGate>
-149:                     </AuthGate>
-150:                   }
-151:                 />
+                  path="/cap-testing-week"
+                  element={
+                    <AuthGate>
+                      <OnboardingGate>
+                        <CloudDataProvider>
+                          <AthleteProvider>
+                            <CAPTestingWeekPage />
+                          </AthleteProvider>
+                        </CloudDataProvider>
+                      </OnboardingGate>
+                    </AuthGate>
+                  }
+                />
+                <Route
+                  path="/race-simulation"
+                  element={
+                    <AuthGate>
+                      <OnboardingGate>
+                        <CloudDataProvider>
+                          <AthleteProvider>
+                            <RaceSimulationPage />
+                          </AthleteProvider>
+                        </CloudDataProvider>
+                      </OnboardingGate>
+                    </AuthGate>
+                  }
+                />
                 <Route
                   path="*"
                   element={

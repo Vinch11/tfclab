@@ -51,7 +51,8 @@ export const SECTION_LABELS: Record<keyof ReportSections, string> = {
   profilMetabolique: "Profil Métabolique Complet",
   indicateurs: "Indicateurs Clés",
   raceReadiness: "Race Readiness",
-  disponibiliteTFCL: "Disponibilité TFCL™", // ✅ NEW
+  disponibiliteTFCL: "Disponibilité TFCL™",
+  raceSimulation: "Simulation de Course TFCL™", // ✅ NEW
   injuryRisk: "Risque de Blessure CAP",
   nutritionV2: "Nutrition Prédictive V2",
   fatmaxTFCL: "FatMax TFCL™",
@@ -82,7 +83,8 @@ const SECTION_CATEGORIES: Record<keyof ReportSections, string> = {
   profilMetabolique: "Analyse",
   indicateurs: "Analyse",
   raceReadiness: "Performance",
-  disponibiliteTFCL: "Performance", // ✅ NEW
+  disponibiliteTFCL: "Performance",
+  raceSimulation: "Performance", // ✅ NEW
   injuryRisk: "Performance",
   nutritionV2: "Nutrition",
   fatmaxTFCL: "Nutrition",
@@ -126,7 +128,8 @@ export const DEFAULT_SECTION_ORDER: (keyof ReportSections)[] = [
   "profilMetabolique",
   "indicateurs",
   "raceReadiness",
-  "disponibiliteTFCL", // ✅ NEW
+  "disponibiliteTFCL",
+  "raceSimulation", // ✅ NEW
   "injuryRisk",
   "nutritionV2",
   "fatmaxTFCL",
@@ -157,7 +160,8 @@ export const DEFAULT_VISIBILITY: Record<keyof ReportSections, boolean> = {
   profilMetabolique: true,
   indicateurs: true,
   raceReadiness: true,
-  disponibiliteTFCL: true, // ✅ NEW
+  disponibiliteTFCL: true,
+  raceSimulation: true, // ✅ NEW
   injuryRisk: true,
   nutritionV2: true,
   fatmaxTFCL: true,
