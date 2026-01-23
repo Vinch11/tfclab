@@ -708,5 +708,312 @@ export const academySections: AcademySection[] = [
         staffOnly: true
       }
     ]
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SIMULATION DE COURSE TFCL™ — MODULE ACADEMY
+  // 8 leçons : 4 BASIC + 4 PRO
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // BASIC LESSONS (4)
+  {
+    id: "simulation-basic-why",
+    title: "Simulation BASIC : pourquoi une version simplifiée ?",
+    level: "basic",
+    tags: ["simulation", "basic", "scénario", "décision", "robuste"],
+    blocks: [
+      {
+        type: "text",
+        title: "Philosophie TFCL™",
+        content: "TFCL privilégie toujours une décision robuste à une précision illusoire. La version BASIC n'est PAS une version dégradée. Elle est volontairement plus conservative et plus robuste."
+      },
+      {
+        type: "bullets",
+        title: "Quand utiliser la version BASIC ?",
+        content: [
+          "Données physiologiques incomplètes (VLamax, TTE ou FatMax manquants)",
+          "Première course sur un format donné",
+          "Athlète loisir ou autonome",
+          "Besoin d'une décision rapide et sûre",
+          "Coach voulant aller vite sans sur-analyse"
+        ]
+      },
+      {
+        type: "callout",
+        title: "Ce que BASIC ne fait pas",
+        content: "La version BASIC ne donne PAS de temps exact, pas de simulation segment par segment, pas de courbe de glycogène. Elle donne une DIRECTION et un NIVEAU DE RISQUE."
+      }
+    ]
+  },
+  {
+    id: "simulation-basic-inputs",
+    title: "Simulation BASIC : données utilisées",
+    level: "basic",
+    tags: ["simulation", "basic", "inputs", "données"],
+    blocks: [
+      {
+        type: "table",
+        title: "Données utilisées en mode BASIC",
+        content: {
+          headers: ["Donnée", "Obligatoire", "Utilisation"],
+          rows: [
+            ["Type de course (IM/Marathon/etc.)", "✅ Oui", "Définit la durée et l'intensité de référence"],
+            ["Allure cible ou FTP/VMA", "Optionnel", "Ajuste les estimations d'intensité"],
+            ["Disponibilité TFCL™", "Recommandé", "Module le risque global selon l'état du jour"],
+            ["Race Readiness V2", "Recommandé", "Détermine la zone d'intensité conseillée"]
+          ]
+        }
+      },
+      {
+        type: "callout",
+        title: "Ce qui N'est PAS utilisé en BASIC",
+        content: "VLamax chiffrée, FatMax chiffrée, TTE chiffré. Ces données peuvent être présentes mais ne sont pas explicitement intégrées dans le calcul BASIC."
+      },
+      {
+        type: "bullets",
+        title: "Pourquoi cette limitation ?",
+        content: [
+          "Réduire le risque d'erreur de calibration",
+          "Éviter les faux-positifs sur des données incertaines",
+          "Proposer une décision 'worst-case' acceptable"
+        ]
+      }
+    ]
+  },
+  {
+    id: "simulation-basic-outputs",
+    title: "Simulation BASIC : ce qui est affiché",
+    level: "basic",
+    tags: ["simulation", "basic", "outputs", "zone", "risque"],
+    blocks: [
+      {
+        type: "table",
+        title: "Outputs de la version BASIC",
+        content: {
+          headers: ["Élément", "Valeurs possibles", "Signification"],
+          rows: [
+            ["Zone d'intensité", "Sous contrôle / Limite / À risque", "Indique si l'objectif est compatible avec l'état actuel"],
+            ["Indice global de risque", "LOW / MODERATE / HIGH", "Résume le risque global de la course"],
+            ["Message principal", "Texte descriptif", "Explication claire et actionnable"],
+            ["Scénario recommandé", "Conservateur / Optimal / Agressif", "Sans détails chiffrés, juste une direction"]
+          ]
+        }
+      },
+      {
+        type: "callout",
+        title: "Pas de temps exact",
+        content: "La version BASIC ne donne JAMAIS de temps estimé. C'est volontaire. L'objectif est de guider la DÉCISION, pas de prédire un chrono."
+      },
+      {
+        type: "bullets",
+        title: "Exemples de messages BASIC",
+        content: [
+          "'Ce scénario est compatible avec ton état actuel'",
+          "'Risque de dérive si pacing agressif'",
+          "'Disponibilité insuffisante pour ce scénario'"
+        ]
+      }
+    ]
+  },
+  {
+    id: "simulation-basic-guardrails",
+    title: "Simulation BASIC : garde-fous automatiques",
+    level: "basic",
+    tags: ["simulation", "basic", "garde-fous", "alerte", "sécurité"],
+    blocks: [
+      {
+        type: "text",
+        content: "La simulation affiche automatiquement des garde-fous si certaines conditions sont détectées. Ces alertes sont prioritaires sur les scénarios."
+      },
+      {
+        type: "table",
+        title: "Garde-fous BASIC",
+        content: {
+          headers: ["Condition", "Type", "Message affiché"],
+          rows: [
+            ["Disponibilité < 50%", "⚠️ Warning", "Disponibilité faible aujourd'hui : simulation informative mais prudence."],
+            ["Risque blessure CAP élevé", "🚨 Critical", "Risque CAP élevé : attention aux scénarios agressifs."],
+            ["Chaleur forte", "⚠️ Warning", "Chaleur forte : adapter l'hydratation et le pacing."],
+            ["Terrain avec dénivelé", "ℹ️ Info", "Dénivelé : gérer l'effort dans les montées."]
+          ]
+        }
+      },
+      {
+        type: "callout",
+        title: "Le coach décide",
+        content: "Ces garde-fous sont des RECOMMANDATIONS. L'app ne bloque jamais un scénario. Le coach reste décisionnaire."
+      }
+    ]
+  },
+
+  // PRO LESSONS (4)
+  {
+    id: "simulation-pro-requirements",
+    title: "Simulation PRO : données requises",
+    level: "staff",
+    tags: ["simulation", "pro", "staff", "données", "VLamax", "TTE", "FatMax"],
+    blocks: [
+      {
+        type: "text",
+        title: "Accès au mode PRO",
+        content: "La version PRO n'est accessible QUE si les données minimales sont présentes. Sans ces données, un bandeau indique 'Données insuffisantes pour la version PRO. La version BASIC est recommandée.'"
+      },
+      {
+        type: "table",
+        title: "Données requises pour le mode PRO",
+        content: {
+          headers: ["Donnée", "Obligatoire", "Impact si manquante"],
+          rows: [
+            ["VLamax (discipline pertinente)", "✅ Critique", "Impossible de calculer la dépendance glycolytique"],
+            ["TTE effectif", "✅ Critique", "Impossible d'estimer le point de rupture"],
+            ["FatMax TFCL™ (plage)", "✅ Important", "Crossover imprécis, risque glycogène sous-estimé"],
+            ["Disponibilité TFCL™", "Recommandé", "Confiance réduite sur l'état du jour"],
+            ["Nutrition planifiée (g/h)", "Optionnel", "Modèle utilise une valeur par défaut (60 g/h)"]
+          ]
+        }
+      },
+      {
+        type: "bullets",
+        title: "Calcul de l'éligibilité PRO",
+        content: [
+          "Si 0 donnée manquante → PRO accessible, confiance maximale",
+          "Si 1 donnée manquante → PRO accessible, confiance réduite",
+          "Si 2+ données manquantes → BASIC recommandé, PRO dégradé"
+        ],
+        staffOnly: true
+      }
+    ]
+  },
+  {
+    id: "simulation-pro-segments",
+    title: "Simulation PRO : analyse segment par segment",
+    level: "staff",
+    tags: ["simulation", "pro", "segments", "glycogène", "fuel", "risk"],
+    blocks: [
+      {
+        type: "text",
+        title: "Découpage de la course",
+        content: "La version PRO décompose la course en segments (10% de la distance chacun). Pour chaque segment, l'app calcule un FuelRiskIndex et estime le glycogène restant."
+      },
+      {
+        type: "table",
+        title: "Métriques par segment",
+        content: {
+          headers: ["Métrique", "Plage", "Signification"],
+          rows: [
+            ["FuelRiskIndex", "0–100", "Risque d'épuisement glycogène (0=sûr, 100=critique)"],
+            ["DepletionRisk", "LOW/MEDIUM/HIGH/CRITICAL", "Catégorie de risque pour ce segment"],
+            ["Glycogène restant", "0–100%", "Estimation des réserves restantes"],
+            ["RPE estimé", "1–10", "Effort perçu probable"],
+            ["Carbs needed (g/h)", "Variable", "Apport glucidique recommandé pour ce segment"]
+          ]
+        }
+      },
+      {
+        type: "callout",
+        title: "Point de bascule",
+        content: "Le modèle identifie le 'breakpointKm' : le kilomètre où le risque passe de modéré à élevé. C'est le point critique de la course.",
+        staffOnly: true
+      },
+      {
+        type: "bullets",
+        title: "Facteurs du FuelRiskIndex",
+        content: [
+          "Intensité > FatMax → +20-40 points",
+          "VLamax haute (>0.5) → +15-25 points",
+          "TTE faible (<40 min) → +10-15 points",
+          "Durée longue → accumulation progressive",
+          "Nutrition planifiée → mitigation (-5 à -20 points)"
+        ],
+        staffOnly: true
+      }
+    ]
+  },
+  {
+    id: "simulation-pro-scenarios",
+    title: "Simulation PRO : comparaison des scénarios",
+    level: "staff",
+    tags: ["simulation", "pro", "scénarios", "conservateur", "optimal", "agressif"],
+    blocks: [
+      {
+        type: "text",
+        title: "Les 3 scénarios PRO",
+        content: "La version PRO génère 3 scénarios de pacing avec des intensités et des risques différents. Le coach choisit le scénario adapté à la situation."
+      },
+      {
+        type: "table",
+        title: "Comparaison des scénarios",
+        content: {
+          headers: ["Scénario", "Intensité", "Risque", "Probabilité succès", "Usage"],
+          rows: [
+            ["🛡️ Conservateur", "-5% vs optimal", "Faible", "85–95%", "Finish quasi-garanti, marge de sécurité"],
+            ["⚡ Optimal", "Intensité de référence", "Modéré", "70–85%", "Équilibre risque/performance"],
+            ["🚀 Agressif", "+5% vs optimal", "Élevé", "50–70%", "Performance maximale, risque de défaillance"]
+          ]
+        }
+      },
+      {
+        type: "bullets",
+        title: "Ce que chaque scénario affiche",
+        content: [
+          "Temps estimé SOUS FORME DE PLAGE (ex: 3h05–3h15)",
+          "Intensité cible (%FTP ou allure)",
+          "Point de bascule (km où le risque augmente)",
+          "Probabilité de succès",
+          "Points forts et avertissements"
+        ],
+        staffOnly: true
+      },
+      {
+        type: "callout",
+        title: "Scénario recommandé",
+        content: "L'app indique automatiquement le scénario recommandé selon le profil. Si Disponibilité faible ou Risque blessure élevé → Conservateur recommandé.",
+        staffOnly: true
+      }
+    ]
+  },
+  {
+    id: "simulation-pro-nutrition",
+    title: "Simulation PRO : intégration nutrition",
+    level: "staff",
+    tags: ["simulation", "pro", "nutrition", "glucides", "glycogène", "g/h"],
+    blocks: [
+      {
+        type: "text",
+        title: "Rôle de la nutrition dans le modèle",
+        content: "Les g/h planifiés sont intégrés dans le modèle Fuel & Risk. La nutrition RÉDUIT le risque d'épuisement glycogène mais ne l'ANNULE jamais."
+      },
+      {
+        type: "table",
+        title: "Impact de la nutrition",
+        content: {
+          headers: ["Apport planifié", "Réduction FuelRisk", "Commentaire"],
+          rows: [
+            ["< 40 g/h", "Faible (-5 pts)", "Insuffisant pour courses longues"],
+            ["40–60 g/h", "Modéré (-10 pts)", "Standard, acceptable pour 70.3/Marathon"],
+            ["60–80 g/h", "Bon (-15 pts)", "Recommandé pour Ironman"],
+            ["80–100 g/h", "Excellent (-20 pts)", "Tolérance gastrique requise"],
+            ["> 100 g/h", "Maximum (-20 pts)", "Au-delà, pas de bénéfice supplémentaire modélisé"]
+          ]
+        }
+      },
+      {
+        type: "callout",
+        title: "Avertissement nutrition",
+        content: "Si les apports planifiés sont insuffisants pour la durée de course, l'app affiche un avertissement : 'Nutrition insuffisante pour la durée estimée. Risque glycogène accru.'",
+        staffOnly: true
+      },
+      {
+        type: "bullets",
+        title: "Ce que le modèle NE fait PAS",
+        content: [
+          "Calculer les grammes exacts nécessaires",
+          "Prédire la tolérance gastrique",
+          "Recommander des produits spécifiques",
+          "Remplacer une stratégie nutrition personnalisée"
+        ],
+        staffOnly: true
+      }
+    ]
   }
 ];
