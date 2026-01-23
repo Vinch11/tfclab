@@ -32,6 +32,7 @@ import { AgeAdjustmentBadge } from "@/components/AgeAdjustmentBadge";
 import { NutritionPredictive } from "@/components/NutritionPredictive";
 import { NutritionTimingCard } from "@/components/NutritionTimingCard";
 import { RunningEconomyModule } from "@/components/RunningEconomyModule";
+import { RunningEconomySummaryCard } from "@/components/RunningEconomySummaryCard";
 import { SaisonPhasesView } from "@/components/SaisonPhasesView";
 import { StaffReport } from "@/components/StaffReport";
 import { StaffBriefingCard } from "@/components/StaffBriefingCard";
@@ -1190,6 +1191,15 @@ const Index = () => {
                 vo2max={effectiveCloudSnapshot?.vo2max ?? null}
                 athlete={legacyAthlete}
                 energyDrift={energyDrift}
+              />
+            ),
+          },
+          {
+            id: "running-economy-summary",
+            render: () => currentAthlete && (
+              <RunningEconomySummaryCard
+                snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id)}
+                staffMode={staffMode}
               />
             ),
           },
