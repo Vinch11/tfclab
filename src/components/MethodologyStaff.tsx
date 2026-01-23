@@ -114,7 +114,7 @@ export function MethodologyStaff({ onGoToTab }: MethodologyStaffProps) {
                 <p className="text-xs text-muted-foreground mt-1">Puissance ou allure au seuil rapportée au poids</p>
               </div>
               <div className="p-3 rounded-lg bg-secondary/50 border border-border">
-                <p className="font-medium text-foreground text-sm">Fraîcheur</p>
+                <p className="font-medium text-foreground text-sm">Disponibilité TFCL™</p>
                 <p className="text-xs text-muted-foreground mt-1">État de fatigue, séance spécifique validée</p>
               </div>
             </div>
@@ -134,7 +134,7 @@ export function MethodologyStaff({ onGoToTab }: MethodologyStaffProps) {
                     <th className="text-center py-2 px-2 text-foreground">VLamax</th>
                     <th className="text-center py-2 px-2 text-foreground">TTE</th>
                     <th className="text-center py-2 px-2 text-foreground">FTP/kg</th>
-                    <th className="text-center py-2 px-2 text-foreground">Fraîcheur</th>
+                    <th className="text-center py-2 px-2 text-foreground">Dispo.</th>
                   </tr>
                 </thead>
                 <tbody className="text-muted-foreground">

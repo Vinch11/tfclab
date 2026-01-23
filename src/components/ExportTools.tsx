@@ -2366,7 +2366,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
           <div class="progressBar mt"><div class="progressFill" style="width:${(raceReadiness.details.puissance / 25) * 100}%; background:${raceReadiness.details.puissance >= 20 ? 'var(--success)' : 'var(--warning)'}"></div></div>
         </div>
         <div class="card">
-          <div class="muted">Fraîcheur</div>
+          <div class="muted">Disponibilité TFCL™</div>
           <div class="medium">${raceReadiness.details.fraicheur}/25</div>
           <div class="progressBar mt"><div class="progressFill" style="width:${(raceReadiness.details.fraicheur / 25) * 100}%; background:${raceReadiness.details.fraicheur >= 18 ? 'var(--success)' : 'var(--warning)'}"></div></div>
         </div>
@@ -2390,6 +2390,107 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
           </div>
         </div>
       ` : ''}
+    </section>
+  `;
+
+  // =============================================
+  // D. DISPONIBILITÉ TFCL™ (NEW)
+  // =============================================
+  // Calculer la disponibilité depuis les check-ins
+  const sortedCheckinsForDispo = [...checkins].sort((a, b) => new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime());
+  const latestCheckinForDispo = sortedCheckinsForDispo[0];
+  
+  let disponibiliteResult: DisponibiliteTFCL | null = null;
+  if (latestCheckinForDispo) {
+    const dispoInput: TFCLReadinessInput = {
+      sleep: latestCheckinForDispo.sleep ?? null,
+      fatigue: latestCheckinForDispo.fatigue ?? null,
+      soreness: latestCheckinForDispo.soreness ?? null,
+      stress: latestCheckinForDispo.stress ?? null,
+      motivation: latestCheckinForDispo.motivation ?? null,
+      alerts: latestCheckinForDispo.pain_flag ? { asymmetric_pain: true } : undefined,
+      objective: {
+        tss7d: effectiveSnapshot?.tss_7d ?? null,
+        tssTarget: 350,
+      },
+    };
+    disponibiliteResult = computeDisponibiliteTFCL(dispoInput);
+  }
+  
+  const disponibiliteTFCLHTML = disponibiliteResult ? `
+    <section id="disponibilite-tfcl" class="section pagebreakAvoid">
+      <h2>📊 Disponibilité TFCL™</h2>
+      
+      <div class="alert alertInfo mb">
+        <b>⚠️ ${PDF_DISPONIBILITE_SECTION.disclaimer}</b>
+      </div>
+      
+      <div class="card cardHighlight mb">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+          <div>
+            <div class="muted" style="font-size:11px;">Score de Disponibilité</div>
+            <div class="big" style="margin:8px 0;color:${disponibiliteResult.level === 'high' ? 'var(--success)' : disponibiliteResult.level === 'moderate' ? 'var(--warning)' : 'var(--error)'}">
+              ${disponibiliteResult.levelEmoji} ${disponibiliteResult.score}/100
+            </div>
+            <div style="font-size:14px;font-weight:600;">${htmlEscape(disponibiliteResult.levelLabel)}</div>
+          </div>
+          <div style="text-align:center;">
+            <div class="muted" style="font-size:11px;">Recommandation</div>
+            <div style="margin:8px 0;padding:8px 16px;border-radius:8px;background:${disponibiliteResult.interpretation.recommendation === 'maintain' ? 'var(--success)' : disponibiliteResult.interpretation.recommendation === 'adapt' ? 'var(--warning)' : 'var(--error)'};color:white;font-weight:600;">
+              ${disponibiliteResult.interpretation.recommendationLabel}
+            </div>
+          </div>
+          <div style="text-align:center;">
+            <div class="muted" style="font-size:11px;">Confiance</div>
+            <div class="medium" style="margin:8px 0;">${disponibiliteResult.confidenceLabel}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="grid2">
+        <div class="card">
+          <h3>📋 Scores subjectifs</h3>
+          <div style="display:grid;gap:8px;">
+            ${Object.entries(disponibiliteResult.breakdown.subjective.details).map(([key, value]) => `
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span class="muted">${key.charAt(0).toUpperCase() + key.slice(1)}</span>
+                <span style="font-weight:600;">${value ?? '—'}/10</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        
+        <div class="card">
+          <h3>💡 Raisons principales</h3>
+          <ul style="margin:0;padding-left:16px;">
+            ${disponibiliteResult.interpretation.mainReasons.map(r => `<li>${htmlEscape(r)}</li>`).join('')}
+          </ul>
+        </div>
+      </div>
+      
+      ${disponibiliteResult.hasAlerts ? `
+        <div class="alert alertError mt">
+          <b>🚨 Alertes actives</b>
+          <ul style="margin:8px 0 0 0;">
+            ${disponibiliteResult.alertMessages.map(a => `<li>${htmlEscape(a)}</li>`).join('')}
+          </ul>
+        </div>
+      ` : ''}
+      
+      <div class="card mt" style="background:var(--soft);">
+        <h4>📖 ${PDF_DISPONIBILITE_SECTION.title}</h4>
+        ${PDF_DISPONIBILITE_SECTION.content.map(c => `
+          <p><b>${c.heading}:</b> ${htmlEscape(c.text)}</p>
+        `).join('')}
+      </div>
+    </section>
+  ` : `
+    <section id="disponibilite-tfcl" class="section pagebreakAvoid">
+      <h2>📊 Disponibilité TFCL™</h2>
+      <div class="alert alertWarning">
+        <b>⚠️ Données insuffisantes</b><br>
+        Aucun check-in récent n'a été enregistré. Complétez le questionnaire TFCL Daily Readiness Check pour obtenir votre score de disponibilité.
+      </div>
     </section>
   `;
 
@@ -4899,6 +5000,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         ${options.sections.profilMetabolique ? profilMetaboliqueHTML : ''}
         ${options.sections.indicateurs ? indicateursHTML : ''}
         ${options.sections.raceReadiness ? raceReadinessHTML : ''}
+        ${options.sections.disponibiliteTFCL ? disponibiliteTFCLHTML : ''}
         ${options.sections.injuryRisk ? injuryRiskHTML : ''}
         ${options.sections.nutritionV2 ? buildNutritionV2HTML(payload) : ''}
         ${options.sections.fatmaxTFCL ? buildFatMaxTFCLHTML(payload) : ''}

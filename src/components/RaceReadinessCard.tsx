@@ -182,7 +182,7 @@ export function RaceReadinessCard({
     color: "text-warning"
   }, {
     key: "fraicheur",
-    label: "Fraîcheur",
+    label: "Disponibilité",
     icon: Heart,
     value: readiness.details.fraicheur,
     color: "text-success"

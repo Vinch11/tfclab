@@ -53,6 +53,8 @@ import { StaffDashboard } from "@/components/StaffDashboard";
 import { ScientificChartsDashboard, MetabolicPerformanceCompass, AmbitionProgressChart, AmbitionProgressMini } from "@/components/charts";
 import { ChargeRecenteCard } from "@/components/ChargeRecenteCard";
 import { computeCRR } from "@/lib/chargeRecenteReference";
+import { RaceReadinessV2Module } from "@/components/RaceReadinessV2Module";
+import { computeCompassScores, type CompassScores } from "@/lib/compassScoring";
 import { DecisionReliabilityCard } from "@/components/DecisionReliabilityCard";
 import { computeFullDRE, DecisionReliabilityResult } from "@/lib/v2/decisionReliabilityEngine";
 import { useDecisionReliability } from "@/hooks/useDecisionReliability";
@@ -1050,6 +1052,58 @@ const Index = () => {
                 <FatMaxRaceIntensityChart
                   fatmax={fatmaxResult}
                   raceIntensityPct={raceIntensity}
+                />
+              );
+            },
+          },
+          {
+            id: "race-readiness-v2",
+            render: () => {
+              if (!currentAthlete) return null;
+              
+              // Récupérer les check-ins et calculer les données
+              const athleteCheckins = getCheckinsForAthlete(currentAthlete.id);
+              const sortedCheckins = [...athleteCheckins].sort((a, b) => 
+                new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime()
+              );
+              const latestCheckin = sortedCheckins[0] || null;
+              
+              // Données objectives depuis le snapshot
+              const objectiveData = effectiveCloudSnapshot ? {
+                tss7d: effectiveCloudSnapshot.tss_7d ?? null,
+                tssTarget: 350,
+              } : undefined;
+              
+              // Calculer le Compass si les données sont disponibles
+              const crr = computeCRR({
+                tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
+                snapshotDate: effectiveCloudSnapshot?.date ?? null,
+                snapshotUpdatedAt: effectiveCloudSnapshot?.updated_at ?? null,
+              });
+              
+              const compass = computeCompassScores({
+                ftp: effectiveRefs.ftp,
+                poids: effectiveRefs.weightKg,
+                vlamaxEffectif,
+                tteEffectif,
+                crr,
+                objectif: currentAthlete.goal || "IM",
+                ambition: currentAmbition,
+                athleteAge: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
+              });
+              
+              return (
+                <RaceReadinessV2Module
+                  compass={compass}
+                  latestCheckin={latestCheckin}
+                  objectiveData={objectiveData}
+                  guardrails={{
+                    fatigueIndex: effectiveCloudSnapshot?.tss_7d ? Math.min(100, (effectiveCloudSnapshot.tss_7d / 7)) : undefined,
+                  }}
+                  athleteName={currentAthlete.name}
+                  objectif={currentAthlete.goal || "IM"}
+                  compact={!staffMode}
+                  defaultTab="overview"
                 />
               );
             },

@@ -266,7 +266,7 @@ export function computePillarCalculations(
           : "needs_work",
   };
 
-  // Fraîcheur
+  // Disponibilité (anciennement Fraîcheur)
   const freshnessRawScore = details.fraicheur * 4;
   const freshnessCalculation: PillarCalculation = {
     currentValue: freshnessRawScore,
@@ -276,9 +276,9 @@ export function computePillarCalculations(
     formula: `Base 70 ${inputsUsed.fatigue_ok ? "+ 20 (fatigue OK)" : "- 30 (fatigue)"} ${inputsUsed.seance_specifique ? "+ 10 (séance spé)" : ""} ${confidence < 0.5 ? "- 10 (conf. faible)" : ""}`,
     explanation: inputsUsed.fatigue_ok
       ? inputsUsed.seance_specifique
-        ? "État de fraîcheur optimal avec séance spécifique validée. Prêt pour la compétition."
+        ? "Disponibilité optimale avec séance spécifique validée. Prêt pour la compétition."
         : "Fatigue sous contrôle. Finalisez avec une séance spécifique avant la course."
-      : "Signes de fatigue détectés. Priorisez la récupération avant l'objectif.",
+      : "Signaux de fatigue détectés. Priorisez la récupération avant l'objectif.",
     status: freshnessRawScore >= 80
       ? "optimal"
       : freshnessRawScore >= 60
