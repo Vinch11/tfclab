@@ -218,19 +218,26 @@ export default function TestsPage() {
           <div className="flex-1 max-w-xs">
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-muted-foreground" />
-              <Select
+            <Select
                 value={selectedAthleteId || ""}
                 onValueChange={setSelectedAthleteId}
+                disabled={athletes.length === 0}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Sélectionner un athlète" />
+                  <SelectValue placeholder={athletes.length === 0 ? "Aucun athlète" : "Sélectionner un athlète"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {athletes.map((athlete) => (
-                    <SelectItem key={athlete.id} value={athlete.id}>
-                      {athlete.name}
-                    </SelectItem>
-                  ))}
+                  {athletes.length === 0 ? (
+                    <div className="px-3 py-6 text-center text-sm text-muted-foreground">
+                      Aucun athlète disponible
+                    </div>
+                  ) : (
+                    athletes.map((athlete) => (
+                      <SelectItem key={athlete.id} value={athlete.id}>
+                        {athlete.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
