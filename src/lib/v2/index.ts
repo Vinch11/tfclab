@@ -7,6 +7,9 @@ export * from './vlamaxBikeV2Enhanced';
 // Disponibilité TFCL™ (remplace Fraîcheur)
 export * from './disponibiliteTFCL';
 
+// Race Readiness V2 (Potentiel × Disponibilité → Décision)
+export * from './raceReadinessV2';
+
 /**
  * TWO FOR COACHING LAB V2 — Index
  * 
