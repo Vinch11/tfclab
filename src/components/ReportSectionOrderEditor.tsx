@@ -51,6 +51,7 @@ export const SECTION_LABELS: Record<keyof ReportSections, string> = {
   profilMetabolique: "Profil Métabolique Complet",
   indicateurs: "Indicateurs Clés",
   raceReadiness: "Race Readiness",
+  disponibiliteTFCL: "Disponibilité TFCL™", // ✅ NEW
   injuryRisk: "Risque de Blessure CAP",
   nutritionV2: "Nutrition Prédictive V2",
   fatmaxTFCL: "FatMax TFCL™",
@@ -68,7 +69,7 @@ export const SECTION_LABELS: Record<keyof ReportSections, string> = {
   historique: "Historique Snapshots",
   tests: "Historique Tests",
   testsCalibration: "Tests & Calibration TFCL",
-  fitImports: "📁 Tests Observés (import FIT)", // ✅ NEW
+  fitImports: "📁 Tests Observés (import FIT)",
   checkins: "Check-ins",
   comprendre: "Comprendre mes scores",
   qualite: "Qualité des données",
@@ -81,6 +82,7 @@ const SECTION_CATEGORIES: Record<keyof ReportSections, string> = {
   profilMetabolique: "Analyse",
   indicateurs: "Analyse",
   raceReadiness: "Performance",
+  disponibiliteTFCL: "Performance", // ✅ NEW
   injuryRisk: "Performance",
   nutritionV2: "Nutrition",
   fatmaxTFCL: "Nutrition",
@@ -98,7 +100,7 @@ const SECTION_CATEGORIES: Record<keyof ReportSections, string> = {
   historique: "Historique",
   tests: "Historique",
   testsCalibration: "Analyse",
-  fitImports: "Analyse", // ✅ NEW: Tests terrain
+  fitImports: "Analyse",
   checkins: "Historique",
   comprendre: "Aide",
   qualite: "Aide",
@@ -124,6 +126,7 @@ export const DEFAULT_SECTION_ORDER: (keyof ReportSections)[] = [
   "profilMetabolique",
   "indicateurs",
   "raceReadiness",
+  "disponibiliteTFCL", // ✅ NEW
   "injuryRisk",
   "nutritionV2",
   "fatmaxTFCL",
@@ -141,19 +144,20 @@ export const DEFAULT_SECTION_ORDER: (keyof ReportSections)[] = [
   "historique",
   "tests",
   "testsCalibration",
-  "fitImports", // ✅ NEW: Tests terrain (import FIT)
+  "fitImports",
   "checkins",
   "comprendre",
   "qualite",
 ];
 
-// Visibilité par défaut (toutes visibles)
-const DEFAULT_VISIBILITY: Record<keyof ReportSections, boolean> = {
+// Visibilité par défaut (toutes visibles) - Also exported as DEFAULT_REPORT_SECTIONS
+export const DEFAULT_VISIBILITY: Record<keyof ReportSections, boolean> = {
   synthese: true,
   compass: true,
   profilMetabolique: true,
   indicateurs: true,
   raceReadiness: true,
+  disponibiliteTFCL: true, // ✅ NEW
   injuryRisk: true,
   nutritionV2: true,
   fatmaxTFCL: true,
@@ -171,11 +175,14 @@ const DEFAULT_VISIBILITY: Record<keyof ReportSections, boolean> = {
   historique: true,
   tests: true,
   testsCalibration: true,
-  fitImports: true, // ✅ NEW
+  fitImports: true,
   checkins: true,
   comprendre: true,
   qualite: true,
 };
+
+// Export alias for backward compatibility
+export const DEFAULT_REPORT_SECTIONS = DEFAULT_VISIBILITY;
 
 // Récupérer l'ordre des sections depuis localStorage
 export function getSectionOrder(): (keyof ReportSections)[] {

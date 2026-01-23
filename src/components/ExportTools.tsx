@@ -54,7 +54,16 @@ import { computeFatMaxTFCL, type FatMaxTFCLResult, FATMAX_DEFINITIONS, FATMAX_AC
 import { computeNutritionV2, type NutritionPredictiveV2, NUTRITION_PHILOSOPHY } from "@/lib/v2/nutritionV2";
 import { generateAthleteReadiness, type AthleteReadinessReport } from "@/lib/athleteReadiness";
 import { User, Shield } from "lucide-react";
-import { SECTION_LABELS, getSectionOrder, DEFAULT_SECTION_ORDER } from "./ReportSectionOrderEditor";
+import { SECTION_LABELS, getSectionOrder, DEFAULT_SECTION_ORDER, DEFAULT_REPORT_SECTIONS } from "./ReportSectionOrderEditor";
+// ✅ NEW: Import Disponibilité TFCL™
+import { 
+  computeDisponibiliteTFCL, 
+  type TFCLReadinessInput, 
+  type DisponibiliteTFCL,
+  PDF_DISPONIBILITE_SECTION,
+  DISPONIBILITE_PHILOSOPHY,
+  DISPONIBILITE_SCALE
+} from "@/lib/v2/disponibiliteTFCL";
 
 // =============================================
 // TYPES
@@ -76,6 +85,7 @@ export interface ReportSections {
   profilMetabolique: boolean; // Profil Métabolique Complet (Radar Chart)
   indicateurs: boolean;     // Indicateurs Clés
   raceReadiness: boolean;   // Race Readiness
+  disponibiliteTFCL: boolean; // ✅ NEW: Disponibilité TFCL™
   injuryRisk: boolean;      // Risque de Blessure CAP
   nutritionV2: boolean;     // Nutrition Prédictive V2
   fatmaxTFCL: boolean;      // FatMax TFCL
@@ -104,34 +114,15 @@ interface ExportOptions {
   sections: ReportSections;
 }
 
-export const DEFAULT_REPORT_SECTIONS: ReportSections = {
-  synthese: true,
-  compass: true,
-  profilMetabolique: true,
-  indicateurs: true,
-  raceReadiness: true,
-  injuryRisk: true,
-  nutritionV2: true,
-  fatmaxTFCL: true,
-  ambitionTargets: true,
-  ambitionPredictions: true,
-  evolutionCharts: true,
-  ageAdjustment: true,
-  ambitionLegend: true,
-  methodology: true,
-  twoForCoaching: true,
-  wahoo: true,
-  planSuggestion: true,
-  templateRecommendation: true,
-  zones: true,
-  historique: true,
-  tests: true,
-  testsCalibration: true,
-  fitImports: true, // ✅ NEW: Tests Observés (import FIT)
-  checkins: true,
-  comprendre: true,
-  qualite: true,
-};
+// ReportSections interface - defines available sections in PDF export
+// DEFAULT_REPORT_SECTIONS is imported from ReportSectionOrderEditor
+
+interface ExportOptions {
+  includeWahooSuggestions: boolean;
+  sections: ReportSections;
+}
+
+// Note: DEFAULT_REPORT_SECTIONS is now defined in ReportSectionOrderEditor
 
 // SECTION_LABELS, getSectionOrder and DEFAULT_SECTION_ORDER are imported from ReportSectionOrderEditor
 
@@ -5363,6 +5354,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       profilMetabolique: false,
       indicateurs: false,
       raceReadiness: false,
+      disponibiliteTFCL: false, // ✅ NEW
       injuryRisk: false,
       nutritionV2: false,
       fatmaxTFCL: false,
@@ -5380,7 +5372,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       historique: false,
       tests: false,
       testsCalibration: false,
-      fitImports: false, // ✅ NEW
+      fitImports: false,
       checkins: false,
       comprendre: false,
       qualite: false,
