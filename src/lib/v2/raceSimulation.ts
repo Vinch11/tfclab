@@ -19,11 +19,14 @@
 // TYPES
 // ═══════════════════════════════════════════════════════════════════════════════
 
+export type SimulationMode = 'basic' | 'pro';
 export type RaceType = 'IM' | '70.3' | 'Marathon' | 'Semi' | '10km';
 export type AmbitionLevel = 'finish' | 'perf' | 'sub' | 'elite';
 export type HeatCondition = 'low' | 'moderate' | 'high';
 export type TerrainType = 'flat' | 'hilly';
 export type ScenarioType = 'conservative' | 'optimal' | 'aggressive';
+export type BasicRiskLevel = 'LOW' | 'MODERATE' | 'HIGH';
+export type BasicIntensityZone = 'controlled' | 'limit' | 'at_risk';
 export type DepletionRisk = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
 export interface RaceSimulationInput {
@@ -143,6 +146,47 @@ export interface FailureRisk {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// BASIC MODE TYPES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface BasicSimulationResult {
+  mode: 'basic';
+  raceType: RaceType;
+  raceLabel: string;
+  ambition: AmbitionLevel;
+  ambitionLabel: string;
+  
+  // Zone d'intensité conseillée
+  intensityZone: BasicIntensityZone;
+  intensityZoneLabel: string;
+  intensityZoneDescription: string;
+  
+  // Indice global de risque
+  globalRiskLevel: BasicRiskLevel;
+  globalRiskLabel: string;
+  
+  // Messages clairs
+  primaryMessage: string;
+  secondaryMessages: string[];
+  
+  // Scénarios simples (sans détails)
+  scenarioLabels: { conservative: string; optimal: string; aggressive: string };
+  recommendedScenario: ScenarioType;
+  
+  // Garde-fous
+  guardrails: SimulationGuardrail[];
+  
+  // Disclaimer
+  disclaimer: string;
+}
+
+export interface ProSimulationResult extends RaceSimulationResult {
+  mode: 'pro';
+}
+
+export type UnifiedSimulationResult = BasicSimulationResult | ProSimulationResult;
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // CONSTANTES
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -204,6 +248,29 @@ Les conditions réelles de course peuvent significativement modifier les résult
   athleteExplanation: `Cette simulation montre différentes stratégies de course
 et leurs risques associés (épuisement glycogène, fatigue).
 Choisis le scénario adapté à tes objectifs avec ton coach.`,
+
+  philosophy: `TFCL privilégie toujours une décision robuste à une précision illusoire.
+La version BASIC est volontairement prudente.
+La version PRO apporte plus de finesse, pas plus de certitude.`,
+
+  basicDescription: `Version simplifiée basée sur des indicateurs robustes. 
+Recommandée si les données sont partielles.`,
+
+  proDescription: `Version avancée intégrant VLamax, TTE, FatMax et nutrition. 
+Recommandée pour une analyse staff.`,
+};
+
+export const SIMULATION_MODE_LABELS: Record<SimulationMode, { label: string; badge: string; description: string }> = {
+  basic: {
+    label: "BASIC – Décision robuste",
+    badge: "BASIC",
+    description: "Version simplifiée basée sur des indicateurs robustes. Recommandée si les données sont partielles.",
+  },
+  pro: {
+    label: "PRO – Analyse complète",
+    badge: "PRO",
+    description: "Version avancée intégrant VLamax, TTE, FatMax et nutrition. Recommandée pour une analyse staff.",
+  },
 };
 
 export const SIMULATION_ACADEMY = {
@@ -238,6 +305,75 @@ La simulation intègre vos apports planifiés.`,
       content: `• Conservateur : faible risque, temps plus lent mais finish quasi-garanti
 • Optimal : équilibre risque/performance, pour la majorité des situations
 • Agressif : performance maximale mais risque élevé de défaillance`,
+    },
+  ],
+};
+
+export const SIMULATION_ACADEMY_BASIC = {
+  title: "Simulation BASIC : décider sans sur-précision",
+  sections: [
+    {
+      title: "Pourquoi une version BASIC ?",
+      content: `La version BASIC n'est PAS une version dégradée. 
+Elle est volontairement plus conservative et plus robuste.
+Idéale quand les données sont incomplètes ou pour une première approche.`,
+    },
+    {
+      title: "Ce qui est utilisé",
+      content: `• Type de course et allure cible
+• Disponibilité TFCL™ (état du jour)
+• Race Readiness V2 (potentiel global)
+Pas de chiffres VLamax ou TTE explicites.`,
+    },
+    {
+      title: "Ce qui est affiché",
+      content: `• Zone d'intensité : Sous contrôle / Limite / À risque
+• Indice global : LOW / MODERATE / HIGH
+• Messages clairs et actionnables`,
+    },
+    {
+      title: "Quand l'utiliser ?",
+      content: `• Première course sur un format
+• Données physiologiques incomplètes
+• Besoin d'une décision rapide et sûre`,
+    },
+  ],
+};
+
+export const SIMULATION_ACADEMY_PRO = {
+  title: "Simulation PRO : exploiter VLamax, TTE et FatMax",
+  sections: [
+    {
+      title: "Données requises",
+      content: `• VLamax (discipline pertinente, vélo ou CAP)
+• TTE effectif
+• FatMax TFCL™ (plage)
+• Disponibilité TFCL™
+Sans ces données, la version PRO reste accessible mais avec confiance réduite.`,
+    },
+    {
+      title: "Analyse segment par segment",
+      content: `La version PRO décompose la course en segments (10% distance).
+Pour chaque segment : risque glycogène, intensité relative, RPE estimé.
+Identification du "point de bascule" où le risque devient critique.`,
+    },
+    {
+      title: "Comparaison de scénarios",
+      content: `• Conservateur : finish quasi-garanti, marge de sécurité
+• Optimal : équilibre risque/performance
+• Agressif : performance maximale, risque de défaillance élevé`,
+    },
+    {
+      title: "Nutrition intégrée",
+      content: `Les g/h planifiés sont intégrés dans le modèle Fuel & Risk.
+La simulation montre l'impact de la nutrition sur les réserves glycogène.
+Avertissement si apports insuffisants pour la durée de course.`,
+    },
+    {
+      title: "Quand l'utiliser ?",
+      content: `• Profil physiologique bien documenté
+• Course importante avec objectif chrono
+• Analyse staff avant briefing`,
     },
   ],
 };
@@ -709,11 +845,286 @@ export function getScenarioBgColor(type: ScenarioType): string {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// BASIC MODE SIMULATION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface BasicSimulationInput {
+  raceType: RaceType;
+  ambition: AmbitionLevel;
+  heat: HeatCondition;
+  terrain: TerrainType;
+  
+  // Données simplifiées
+  disponibiliteScore: number | null;
+  disponibiliteLevel: string | null;
+  raceReadinessScore?: number | null; // 0-100
+  ftp?: number | null;
+  vma?: number | null;
+  paceThreshold?: number | null;
+  injuryRiskLevel?: string | null;
+}
+
+/**
+ * Calcule la zone d'intensité BASIC
+ */
+function computeBasicIntensityZone(
+  ambition: AmbitionLevel,
+  disponibiliteScore: number | null,
+  raceReadinessScore: number | null
+): { zone: BasicIntensityZone; label: string; description: string } {
+  const dispo = disponibiliteScore ?? 70;
+  const readiness = raceReadinessScore ?? 70;
+  const globalScore = (dispo + readiness) / 2;
+  
+  // Ajustement selon ambition
+  const ambitionPenalty: Record<AmbitionLevel, number> = {
+    finish: 0,
+    perf: 10,
+    sub: 20,
+    elite: 30,
+  };
+  
+  const adjustedScore = globalScore - ambitionPenalty[ambition];
+  
+  if (adjustedScore >= 60) {
+    return {
+      zone: 'controlled',
+      label: "Sous contrôle",
+      description: "Ce scénario est compatible avec ton état actuel.",
+    };
+  } else if (adjustedScore >= 40) {
+    return {
+      zone: 'limit',
+      label: "Limite",
+      description: "Risque de dérive si pacing agressif. Prudence recommandée.",
+    };
+  } else {
+    return {
+      zone: 'at_risk',
+      label: "À risque",
+      description: "Disponibilité insuffisante pour ce scénario.",
+    };
+  }
+}
+
+/**
+ * Calcule le risque global BASIC
+ */
+function computeBasicGlobalRisk(
+  ambition: AmbitionLevel,
+  heat: HeatCondition,
+  terrain: TerrainType,
+  disponibiliteScore: number | null,
+  injuryRiskLevel: string | null
+): { level: BasicRiskLevel; label: string } {
+  let riskScore = 0;
+  
+  // Ambition
+  const ambitionRisk: Record<AmbitionLevel, number> = {
+    finish: 0,
+    perf: 15,
+    sub: 30,
+    elite: 45,
+  };
+  riskScore += ambitionRisk[ambition];
+  
+  // Conditions
+  if (heat === 'high') riskScore += 20;
+  else if (heat === 'moderate') riskScore += 10;
+  
+  if (terrain === 'hilly') riskScore += 15;
+  
+  // Disponibilité
+  const dispo = disponibiliteScore ?? 70;
+  if (dispo < 50) riskScore += 25;
+  else if (dispo < 70) riskScore += 10;
+  
+  // Risque blessure
+  if (injuryRiskLevel === 'high' || injuryRiskLevel === 'critical') {
+    riskScore += 20;
+  }
+  
+  if (riskScore >= 60) return { level: 'HIGH', label: "Élevé" };
+  if (riskScore >= 30) return { level: 'MODERATE', label: "Modéré" };
+  return { level: 'LOW', label: "Faible" };
+}
+
+export function computeBasicSimulation(input: BasicSimulationInput): BasicSimulationResult {
+  const raceLabel = RACE_LABELS[input.raceType];
+  const ambitionLabel = AMBITION_LABELS[input.ambition];
+  
+  // Zone d'intensité
+  const intensityResult = computeBasicIntensityZone(
+    input.ambition,
+    input.disponibiliteScore,
+    input.raceReadinessScore ?? null
+  );
+  
+  // Risque global
+  const riskResult = computeBasicGlobalRisk(
+    input.ambition,
+    input.heat,
+    input.terrain,
+    input.disponibiliteScore,
+    input.injuryRiskLevel ?? null
+  );
+  
+  // Messages
+  const secondaryMessages: string[] = [];
+  
+  if (input.disponibiliteScore && input.disponibiliteScore < 50) {
+    secondaryMessages.push("Disponibilité insuffisante pour un scénario agressif.");
+  }
+  if (input.heat === 'high') {
+    secondaryMessages.push("Chaleur forte : adapter l'hydratation et le pacing.");
+  }
+  if (input.terrain === 'hilly') {
+    secondaryMessages.push("Dénivelé : gérer l'effort dans les montées.");
+  }
+  if (input.injuryRiskLevel === 'high' || input.injuryRiskLevel === 'critical') {
+    secondaryMessages.push("Risque blessure élevé : privilégier un scénario conservateur.");
+  }
+  
+  // Scénario recommandé
+  let recommendedScenario: ScenarioType = 'optimal';
+  if (riskResult.level === 'HIGH' || intensityResult.zone === 'at_risk') {
+    recommendedScenario = 'conservative';
+  }
+  
+  // Garde-fous
+  const guardrails: SimulationGuardrail[] = [];
+  
+  if (input.disponibiliteScore && input.disponibiliteScore < 50) {
+    guardrails.push({
+      type: 'warning',
+      icon: '⚠️',
+      title: "Disponibilité faible",
+      message: "Disponibilité faible aujourd'hui : simulation informative mais prudence.",
+    });
+  }
+  
+  if (input.injuryRiskLevel === 'high' || input.injuryRiskLevel === 'critical') {
+    guardrails.push({
+      type: 'critical',
+      icon: '🚨',
+      title: "Risque blessure",
+      message: "Risque CAP élevé : attention aux scénarios agressifs.",
+    });
+  }
+  
+  return {
+    mode: 'basic',
+    raceType: input.raceType,
+    raceLabel,
+    ambition: input.ambition,
+    ambitionLabel,
+    intensityZone: intensityResult.zone,
+    intensityZoneLabel: intensityResult.label,
+    intensityZoneDescription: intensityResult.description,
+    globalRiskLevel: riskResult.level,
+    globalRiskLabel: riskResult.label,
+    primaryMessage: intensityResult.description,
+    secondaryMessages,
+    scenarioLabels: {
+      conservative: "Conservateur – finish quasi-garanti",
+      optimal: "Optimal – équilibre risque/performance",
+      aggressive: "Agressif – performance maximale, risque élevé",
+    },
+    recommendedScenario,
+    guardrails,
+    disclaimer: SIMULATION_DEFINITIONS.disclaimer,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MODE ELIGIBILITY CHECK
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface ProModeEligibility {
+  eligible: boolean;
+  missingData: string[];
+  confidence: number;
+  message: string;
+}
+
+export function checkProModeEligibility(input: RaceSimulationInput): ProModeEligibility {
+  const missingData: string[] = [];
+  
+  if (input.vlamaxEffectif == null) missingData.push("VLamax");
+  if (input.tteMin == null) missingData.push("TTE");
+  if (input.fatmaxCenterPct == null) missingData.push("FatMax TFCL");
+  if (input.disponibiliteScore == null) missingData.push("Disponibilité TFCL");
+  
+  const eligible = missingData.length <= 1;
+  
+  let confidence = 1.0 - (missingData.length * 0.2);
+  if (input.vlamaxConfidence < 0.6) confidence -= 0.1;
+  if (input.tteConfidence < 0.6) confidence -= 0.1;
+  confidence = clamp(confidence, 0.3, 1.0);
+  
+  const message = eligible
+    ? missingData.length === 0
+      ? "Profil complet. Version PRO disponible avec confiance maximale."
+      : `Version PRO disponible. Donnée manquante : ${missingData.join(', ')}.`
+    : `Données insuffisantes pour la version PRO. La version BASIC est recommandée. Manquant : ${missingData.join(', ')}.`;
+  
+  return { eligible, missingData, confidence, message };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADDITIONAL UI HELPERS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export function getBasicRiskColor(level: BasicRiskLevel): string {
+  switch (level) {
+    case 'LOW': return 'text-green-600 dark:text-green-400';
+    case 'MODERATE': return 'text-amber-600 dark:text-amber-400';
+    case 'HIGH': return 'text-red-600 dark:text-red-400';
+  }
+}
+
+export function getBasicRiskBgColor(level: BasicRiskLevel): string {
+  switch (level) {
+    case 'LOW': return 'bg-green-100 dark:bg-green-900/30';
+    case 'MODERATE': return 'bg-amber-100 dark:bg-amber-900/30';
+    case 'HIGH': return 'bg-red-100 dark:bg-red-900/30';
+  }
+}
+
+export function getIntensityZoneColor(zone: BasicIntensityZone): string {
+  switch (zone) {
+    case 'controlled': return 'text-green-600 dark:text-green-400';
+    case 'limit': return 'text-amber-600 dark:text-amber-400';
+    case 'at_risk': return 'text-red-600 dark:text-red-400';
+  }
+}
+
+export function getIntensityZoneBgColor(zone: BasicIntensityZone): string {
+  switch (zone) {
+    case 'controlled': return 'bg-green-100 dark:bg-green-900/30 border-green-200 dark:border-green-800';
+    case 'limit': return 'bg-amber-100 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800';
+    case 'at_risk': return 'bg-red-100 dark:bg-red-900/30 border-red-200 dark:border-red-800';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // PDF EXPORT
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export const PDF_SIMULATION_SECTION = {
   title: "Simulation de Course TFCL™",
   description: "Scénarios de pacing et risque glycogène",
+  disclaimer: SIMULATION_DEFINITIONS.disclaimer,
+};
+
+export const PDF_SIMULATION_BASIC_SECTION = {
+  title: "Simulation de Course — VERSION BASIC",
+  description: "Décision robuste basée sur indicateurs simplifiés",
+  disclaimer: SIMULATION_DEFINITIONS.disclaimer,
+};
+
+export const PDF_SIMULATION_PRO_SECTION = {
+  title: "Simulation de Course — VERSION PRO",
+  description: "Analyse complète avec VLamax, TTE, FatMax",
   disclaimer: SIMULATION_DEFINITIONS.disclaimer,
 };

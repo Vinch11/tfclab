@@ -15,7 +15,7 @@ import { computeVLamaxEffectif } from '@/lib/vlamaxEffectif';
 import { computeTTEEffectif } from '@/lib/tteEffectif';
 import { computeFatMaxTFCL } from '@/lib/v2/fatmaxTFCL';
 import { computeDisponibiliteTFCL, TFCLReadinessInput } from '@/lib/v2/disponibiliteTFCL';
-import { SIMULATION_ACADEMY, SIMULATION_DEFINITIONS } from '@/lib/v2/raceSimulation';
+import { SIMULATION_ACADEMY, SIMULATION_ACADEMY_BASIC, SIMULATION_ACADEMY_PRO, SIMULATION_DEFINITIONS } from '@/lib/v2/raceSimulation';
 
 export default function RaceSimulationPage() {
   const navigate = useNavigate();
@@ -147,14 +147,29 @@ export default function RaceSimulationPage() {
           staffMode
         />
         
-        {/* Academy section */}
-        <div className="grid gap-4 md:grid-cols-2">
-          {SIMULATION_ACADEMY.sections.slice(0, 4).map((section, i) => (
-            <div key={i} className="p-4 bg-muted/50 rounded-lg">
-              <h3 className="font-medium mb-2">{section.title}</h3>
-              <p className="text-sm text-muted-foreground">{section.content}</p>
-            </div>
-          ))}
+        {/* Academy section - versions BASIC et PRO */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold">Academy — Simulation BASIC vs PRO</h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            {SIMULATION_ACADEMY_BASIC.sections.slice(0, 2).map((section, i) => (
+              <div key={`basic-${i}`} className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xs font-medium px-2 py-0.5 bg-green-200 dark:bg-green-800 rounded">BASIC</span>
+                  <h3 className="font-medium text-sm">{section.title}</h3>
+                </div>
+                <p className="text-xs text-muted-foreground">{section.content}</p>
+              </div>
+            ))}
+            {SIMULATION_ACADEMY_PRO.sections.slice(0, 2).map((section, i) => (
+              <div key={`pro-${i}`} className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xs font-medium px-2 py-0.5 bg-blue-200 dark:bg-blue-800 rounded">PRO</span>
+                  <h3 className="font-medium text-sm">{section.title}</h3>
+                </div>
+                <p className="text-xs text-muted-foreground">{section.content}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </main>
     </div>
