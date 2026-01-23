@@ -11,7 +11,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Edit, Save, Calculator, Sparkles, HelpCircle, BookOpen } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Edit, Save, Calculator, Sparkles, HelpCircle, BookOpen, Bike, PersonStanding, Settings } from "lucide-react";
 import { useCloudData, DbSnapshot } from "@/hooks/useCloudData";
 import { PROFILE_TERMINOLOGY } from "@/lib/v2/profileTerminology";
 import { estimateVLamaxCap, canEstimateVLamaxCap } from "@/lib/v2/vlamaxCapEstimator";
@@ -305,64 +306,128 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4 overflow-y-auto flex-1 pr-2">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Date</Label>
-            <Input className="col-span-3" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-          </div>
+        <Tabs defaultValue="general" className="flex-1 overflow-hidden flex flex-col">
+          <TabsList className="grid w-full grid-cols-3 shrink-0">
+            <TabsTrigger value="general" className="gap-1.5">
+              <Settings className="w-3.5 h-3.5" />
+              Général
+            </TabsTrigger>
+            <TabsTrigger value="bike" className="gap-1.5">
+              <Bike className="w-3.5 h-3.5" />
+              Vélo
+            </TabsTrigger>
+            <TabsTrigger value="run" className="gap-1.5">
+              <PersonStanding className="w-3.5 h-3.5" />
+              Course
+            </TabsTrigger>
+          </TabsList>
 
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">FTP (W)</Label>
-            <Input className="col-span-3" type="number" value={ftp} onChange={(e) => setFtp(e.target.value)} />
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Pmax 5s (W)</Label>
-            <Input className="col-span-3" type="number" value={pmax5s} onChange={(e) => setPmax5s(e.target.value)} />
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Poids (kg)</Label>
-            <Input className="col-span-3" type="number" value={weight} onChange={(e) => setWeight(e.target.value)} />
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">VO₂max</Label>
-            <Input className="col-span-3" type="number" value={vo2} onChange={(e) => setVo2(e.target.value)} />
-          </div>
-
-          {/* ✅ VLamax Vélo - Uniquement visible en mode Staff */}
-          {staffMode ? (
+          {/* ====== ONGLET GÉNÉRAL ====== */}
+          <TabsContent value="general" className="mt-4 overflow-y-auto flex-1 pr-2 space-y-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">VLamax Vélo</Label>
-              <Input className="col-span-3 border-primary/50" type="number" step="0.01" placeholder="0.40 (lactate)" value={vlamax} onChange={(e) => setVlamax(e.target.value)} />
+              <Label className="text-right">Date</Label>
+              <Input className="col-span-3" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             </div>
-          ) : (
+
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right text-muted-foreground">VLamax Vélo</Label>
-              <div className="col-span-3 h-10 px-3 py-2 rounded-md border border-border bg-muted/50 text-sm text-muted-foreground flex items-center">
-                Calculée automatiquement
+              <Label className="text-right">Poids (kg)</Label>
+              <Input className="col-span-3" type="number" value={weight} onChange={(e) => setWeight(e.target.value)} />
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">VO₂max</Label>
+              <Input className="col-span-3" type="number" value={vo2} onChange={(e) => setVo2(e.target.value)} />
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">FC max</Label>
+              <Input className="col-span-3" type="number" value={fcmax} onChange={(e) => setFcmax(e.target.value)} />
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">Masse grasse (%)</Label>
+              <Input className="col-span-3" type="number" step="0.1" value={fat} onChange={(e) => setFat(e.target.value)} />
+            </div>
+
+            {/* Section Fatigue & Charge */}
+            <div className="pt-3 border-t border-border">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
+                Charge & Fatigue
+              </p>
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">TSS 7 jours</Label>
+              <Input 
+                className="col-span-3" 
+                type="number" 
+                placeholder="Ex: 350"
+                value={tss7d} 
+                onChange={(e) => setTss7d(e.target.value)} 
+              />
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">TTE observé (min)</Label>
+              <Input 
+                className="col-span-3" 
+                type="number" 
+                placeholder="Ex: 45"
+                value={tteObserved} 
+                onChange={(e) => setTteObserved(e.target.value)} 
+              />
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">Confiance (0–1)</Label>
+              <Input className="col-span-3" type="number" step="0.1" min="0" max="1" value={confidence} onChange={(e) => setConfidence(e.target.value)} />
+            </div>
+          </TabsContent>
+
+          {/* ====== ONGLET VÉLO ====== */}
+          <TabsContent value="bike" className="mt-4 overflow-y-auto flex-1 pr-2 space-y-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">FTP (W)</Label>
+              <Input className="col-span-3" type="number" value={ftp} onChange={(e) => setFtp(e.target.value)} />
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">Pmax 5s (W)</Label>
+              <Input className="col-span-3" type="number" value={pmax5s} onChange={(e) => setPmax5s(e.target.value)} />
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">CSS</Label>
+              <Input className="col-span-3" type="number" step="0.01" value={css} onChange={(e) => setCss(e.target.value)} />
+            </div>
+
+            {/* VLamax Vélo */}
+            {staffMode ? (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right">VLamax Vélo</Label>
+                <Input className="col-span-3 border-primary/50" type="number" step="0.01" placeholder="0.40 (lactate)" value={vlamax} onChange={(e) => setVlamax(e.target.value)} />
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right text-muted-foreground">VLamax Vélo</Label>
+                <div className="col-span-3 h-10 px-3 py-2 rounded-md border border-border bg-muted/50 text-sm text-muted-foreground flex items-center">
+                  Calculée automatiquement
+                </div>
+              </div>
+            )}
 
-          {/* ✅ VLamax CAP - Avec calcul automatique */}
-          <VLamaxCapField
-            vlamaxRun={vlamaxRun}
-            setVlamaxRun={setVlamaxRun}
-            staffMode={staffMode}
-            vma={numOrNull(vma)}
-            paceThresholdSecPerKm={numOrNull(paceThreshold)}
-            tteMin={numOrNull(tteObserved)}
-            sprint15sDistance={numOrNull(sprint15s)}
-            runningPowerMax={numOrNull(runPowerMax)}
-          />
-          
-          {/* ====== SECTION DONNÉES CAP (running) ====== */}
-          <div className="col-span-4 pt-3 border-t border-border">
-            <div className="flex items-center justify-between mb-3">
+            <div className="p-3 rounded-lg bg-muted/30 border border-border">
+              <p className="text-xs text-muted-foreground">
+                💡 <strong>Conseil :</strong> Complétez FTP et Pmax 5s pour un calcul précis de la VLamax vélo.
+              </p>
+            </div>
+          </TabsContent>
+
+          {/* ====== ONGLET COURSE ====== */}
+          <TabsContent value="run" className="mt-4 overflow-y-auto flex-1 pr-2 space-y-4">
+            <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                🏃 Données Course (VLamax CAP)
+                Données pour VLamax CAP
               </p>
               <RunningTestProtocolsGuide 
                 trigger={
@@ -373,130 +438,106 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
                 }
               />
             </div>
-          </div>
 
-          <div className="grid grid-cols-4 items-center gap-4">
-            <LabelWithHelp 
-              label="Allure Seuil" 
-              help="Allure que vous pouvez tenir ~1h en course à pied. Correspond au seuil lactique 2 (SL2). Saisissez en mm:ss ou en secondes."
-              example="4:30/km ou 270s pour un coureur avec VMA 17"
-            />
-            <div className="col-span-3 flex gap-2 items-center">
-              <Input 
-                className="flex-1" 
-                type="text" 
-                placeholder="4:30 ou 270"
-                value={paceThreshold} 
-                onChange={(e) => setPaceThreshold(e.target.value)} 
-              />
-              {paceThreshold && parsePaceToSeconds(paceThreshold) && (
-                <span className="text-xs text-muted-foreground whitespace-nowrap">
-                  = {secondsToMmSs(parsePaceToSeconds(paceThreshold)!)}/km
-                </span>
-              )}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">VMA (km/h)</Label>
+              <Input className="col-span-3" type="number" step="0.1" value={vma} onChange={(e) => setVma(e.target.value)} />
             </div>
-          </div>
 
-          <div className="grid grid-cols-4 items-center gap-4">
-            <LabelWithHelp 
-              label="Sprint 15s (m)" 
-              help="Distance parcourue lors d'un sprint maximal de 15 secondes sur piste ou terrain plat. Mesure la puissance anaérobie lactique."
-              example="80-90m pour amateur, 95-105m pour élite"
+            <div className="grid grid-cols-4 items-center gap-4">
+              <LabelWithHelp 
+                label="Allure Seuil" 
+                help="Allure que vous pouvez tenir ~1h en course à pied. Correspond au seuil lactique 2 (SL2). Saisissez en mm:ss ou en secondes."
+                example="4:30/km ou 270s pour un coureur avec VMA 17"
+              />
+              <div className="col-span-3 flex gap-2 items-center">
+                <Input 
+                  className="flex-1" 
+                  type="text" 
+                  placeholder="4:30 ou 270"
+                  value={paceThreshold} 
+                  onChange={(e) => setPaceThreshold(e.target.value)} 
+                />
+                {paceThreshold && parsePaceToSeconds(paceThreshold) && (
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                    = {secondsToMmSs(parsePaceToSeconds(paceThreshold)!)}/km
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <LabelWithHelp 
+                label="Sprint 15s (m)" 
+                help="Distance parcourue lors d'un sprint maximal de 15 secondes sur piste ou terrain plat. Mesure la puissance anaérobie lactique."
+                example="80-90m pour amateur, 95-105m pour élite"
+              />
+              <Input 
+                className="col-span-3" 
+                type="number" 
+                step="0.1"
+                placeholder="Ex: 85"
+                value={sprint15s} 
+                onChange={(e) => setSprint15s(e.target.value)} 
+              />
+            </div>
+
+            {/* Section Running Power */}
+            <div className="pt-3 border-t border-border">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
+                ⚡ Running Power (optionnel)
+              </p>
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <LabelWithHelp 
+                label="Puissance Max (W)" 
+                help="Puissance maximale mesurée par un capteur de running power (Stryd, Garmin, etc.) lors d'un sprint ou effort très court (5-10s)."
+                example="400-500W pour amateur, 600-800W pour élite"
+              />
+              <Input 
+                className="col-span-3" 
+                type="number" 
+                placeholder="Ex: 450"
+                value={runPowerMax} 
+                onChange={(e) => setRunPowerMax(e.target.value)} 
+              />
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <LabelWithHelp 
+                label="Puissance Seuil (W)" 
+                help="Puissance moyenne au seuil lactique (FTP course), mesurée par capteur de running power. Correspond à l'effort tenable ~1h."
+                example="250-300W pour amateur, 320-400W pour élite"
+              />
+              <Input 
+                className="col-span-3" 
+                type="number" 
+                placeholder="Ex: 280"
+                value={runPowerThreshold} 
+                onChange={(e) => setRunPowerThreshold(e.target.value)} 
+              />
+            </div>
+
+            {/* VLamax CAP */}
+            <div className="pt-3 border-t border-border">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
+                Résultat VLamax CAP
+              </p>
+            </div>
+
+            <VLamaxCapField
+              vlamaxRun={vlamaxRun}
+              setVlamaxRun={setVlamaxRun}
+              staffMode={staffMode}
+              vma={numOrNull(vma)}
+              paceThresholdSecPerKm={parsePaceToSeconds(paceThreshold)}
+              tteMin={numOrNull(tteObserved)}
+              sprint15sDistance={numOrNull(sprint15s)}
+              runningPowerMax={numOrNull(runPowerMax)}
             />
-            <Input 
-              className="col-span-3" 
-              type="number" 
-              step="0.1"
-              placeholder="Ex: 85"
-              value={sprint15s} 
-              onChange={(e) => setSprint15s(e.target.value)} 
-            />
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <LabelWithHelp 
-              label="Puissance Max CAP (W)" 
-              help="Puissance maximale mesurée par un capteur de running power (Stryd, Garmin, etc.) lors d'un sprint ou effort très court (5-10s)."
-              example="400-500W pour amateur, 600-800W pour élite"
-            />
-            <Input 
-              className="col-span-3" 
-              type="number" 
-              placeholder="Ex: 450"
-              value={runPowerMax} 
-              onChange={(e) => setRunPowerMax(e.target.value)} 
-            />
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <LabelWithHelp 
-              label="Puissance Seuil CAP (W)" 
-              help="Puissance moyenne au seuil lactique (FTP course), mesurée par capteur de running power. Correspond à l'effort tenable ~1h."
-              example="250-300W pour amateur, 320-400W pour élite"
-            />
-            <Input 
-              className="col-span-3" 
-              type="number" 
-              placeholder="Ex: 280"
-              value={runPowerThreshold} 
-              onChange={(e) => setRunPowerThreshold(e.target.value)} 
-            />
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">VMA (km/h)</Label>
-            <Input className="col-span-3" type="number" step="0.1" value={vma} onChange={(e) => setVma(e.target.value)} />
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">FC max</Label>
-            <Input className="col-span-3" type="number" value={fcmax} onChange={(e) => setFcmax(e.target.value)} />
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">CSS</Label>
-            <Input className="col-span-3" type="number" step="0.01" value={css} onChange={(e) => setCss(e.target.value)} />
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Masse grasse (%)</Label>
-            <Input className="col-span-3" type="number" step="0.1" value={fat} onChange={(e) => setFat(e.target.value)} />
-          </div>
-
-          {/* ====== SECTION FATIGUE & CHARGE ====== */}
-          <div className="col-span-4 pt-3 border-t border-border">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
-              Charge & Fatigue
-            </p>
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">TSS 7 jours</Label>
-            <Input 
-              className="col-span-3" 
-              type="number" 
-              placeholder="Ex: 350"
-              value={tss7d} 
-              onChange={(e) => setTss7d(e.target.value)} 
-            />
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">TTE observé (min)</Label>
-            <Input 
-              className="col-span-3" 
-              type="number" 
-              placeholder="Ex: 45"
-              value={tteObserved} 
-              onChange={(e) => setTteObserved(e.target.value)} 
-            />
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Confiance (0–1)</Label>
-            <Input className="col-span-3" type="number" step="0.1" min="0" max="1" value={confidence} onChange={(e) => setConfidence(e.target.value)} />
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
