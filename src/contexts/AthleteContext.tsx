@@ -25,6 +25,7 @@ interface AthleteContextType {
 
 const AthleteContext = createContext<AthleteContextType | undefined>(undefined);
 const LS_SELECTED = "vinceslab-selected-athlete";
+const SS_SELECTED = "vinceslab-selected-athlete-session"; // ✅ Backup pour iOS
 
 function normalizeRefs(refs: any): any {
   const r = refs && typeof refs === "object" ? refs : {};
@@ -39,6 +40,30 @@ function normalizeRefs(refs: any): any {
   };
 }
 
+// ✅ Récupération robuste: essaie localStorage, puis sessionStorage
+function getPersistedAthleteId(): string | null {
+  try {
+    return localStorage.getItem(LS_SELECTED) || sessionStorage.getItem(SS_SELECTED) || null;
+  } catch {
+    return null;
+  }
+}
+
+// ✅ Sauvegarde duale pour survivre aux purges iOS
+function persistAthleteId(id: string | null) {
+  try {
+    if (id) {
+      localStorage.setItem(LS_SELECTED, id);
+      sessionStorage.setItem(SS_SELECTED, id);
+    } else {
+      localStorage.removeItem(LS_SELECTED);
+      sessionStorage.removeItem(SS_SELECTED);
+    }
+  } catch {
+    // Silently fail if storage is unavailable
+  }
+}
+
 export function AthleteProvider({ children }: { children: ReactNode }) {
   const cloud = useCloudDataContext();
   const {
@@ -49,15 +74,14 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
     loadData,
   } = cloud;
 
-  // selected athlete id persisté localement
+  // selected athlete id persisté localement (dual storage)
   const [selectedAthleteId, setSelectedAthleteIdState] = useState<string | null>(() => {
-    return localStorage.getItem(LS_SELECTED) || null;
+    return getPersistedAthleteId();
   });
 
   const setSelectedAthleteId = (id: string | null) => {
     setSelectedAthleteIdState(id);
-    if (id) localStorage.setItem(LS_SELECTED, id);
-    else localStorage.removeItem(LS_SELECTED);
+    persistAthleteId(id);
   };
 
   // “UI athletes” : on expose une forme proche de ton ancien type Athlete
