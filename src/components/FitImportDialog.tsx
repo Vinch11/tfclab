@@ -41,6 +41,8 @@ import {
   Database,
   ChevronDown,
   ChevronUp,
+  Footprints,
+  Gauge,
   CheckCircle2,
   Loader2,
 } from "lucide-react";
@@ -363,6 +365,7 @@ export function FitImportDialog({
       if (updateProfile) {
         const profileUpdates: ProfileUpdates = {};
         
+        // Données vélo standard
         if (analysis.bestEfforts.p30s) {
           profileUpdates.p30s_w = analysis.bestEfforts.p30s;
         }
@@ -382,6 +385,16 @@ export function FitImportDialog({
         }
         profileUpdates.protocol_quality = analysis.protocolQuality.score;
 
+        // Données économie de course si applicable
+        if (selectedTestType === "RUN_ECONOMY" && runningEconomyResult?.isApplicable) {
+          profileUpdates.run_pace_ref_sec_per_km = runningEconomyResult.runPaceRefSecPerKm;
+          profileUpdates.run_hr_ref_bpm = runningEconomyResult.runHrRefBpm;
+          profileUpdates.run_duration_min = runningEconomyResult.runDurationMin;
+          profileUpdates.run_hr_drift_pct = runningEconomyResult.runHrDriftPct;
+          profileUpdates.run_economy_score = runningEconomyResult.economyScore;
+          profileUpdates.run_economy_label = runningEconomyResult.economyLabel;
+        }
+
         await onUpdateProfile(profileUpdates);
         toast.success("Profil de référence mis à jour");
       }
@@ -399,6 +412,7 @@ export function FitImportDialog({
     file,
     selectedTestType,
     updateProfile,
+    runningEconomyResult,
     onSaveTest,
     onUpdateProfile,
     handleClose,
@@ -607,6 +621,136 @@ export function FitImportDialog({
               )}
             </div>
 
+            {/* Running Economy Results - Affichage conditionnel */}
+            {selectedTestType === "RUN_ECONOMY" && runningEconomyResult?.isApplicable && (
+              <Card className="border-green-500/30 bg-green-500/5">
+                <CardHeader className="py-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Footprints className="w-4 h-4 text-green-600" />
+                    Économie de Course
+                    <Badge 
+                      variant={runningEconomyResult.economyLevel === "excellent" || runningEconomyResult.economyLevel === "good" ? "default" : "secondary"}
+                      className="ml-2"
+                    >
+                      Confiance: {runningEconomyResult.confidence}%
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0 space-y-4">
+                  {/* Métriques principales */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="p-3 bg-background rounded-lg border">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Timer className="w-3 h-3 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">Allure moy.</span>
+                      </div>
+                      <p className="text-lg font-bold">{formatPaceDisplay(runningEconomyResult.avgPaceSecPerKm)}</p>
+                      <p className="text-xs text-muted-foreground">/km</p>
+                    </div>
+                    
+                    <div className="p-3 bg-background rounded-lg border">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Heart className="w-3 h-3 text-red-500" />
+                        <span className="text-xs text-muted-foreground">FC moy.</span>
+                      </div>
+                      <p className="text-lg font-bold">{runningEconomyResult.avgHeartRate}</p>
+                      <p className="text-xs text-muted-foreground">bpm</p>
+                    </div>
+                    
+                    <div className="p-3 bg-background rounded-lg border">
+                      <div className="flex items-center gap-2 mb-1">
+                        <TrendingUp className="w-3 h-3 text-orange-500" />
+                        <span className="text-xs text-muted-foreground">Dérive Pa:HR</span>
+                      </div>
+                      <p className={`text-lg font-bold ${
+                        runningEconomyResult.hrDriftLevel === "excellent" ? "text-green-600" :
+                        runningEconomyResult.hrDriftLevel === "good" ? "text-green-500" :
+                        runningEconomyResult.hrDriftLevel === "moderate" ? "text-yellow-600" :
+                        "text-red-500"
+                      }`}>
+                        {runningEconomyResult.hrDriftPct.toFixed(1)}%
+                      </p>
+                      <p className="text-xs text-muted-foreground">{runningEconomyResult.hrDriftLevel}</p>
+                    </div>
+                    
+                    <div className="p-3 bg-background rounded-lg border border-green-500/30">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Gauge className="w-3 h-3 text-green-600" />
+                        <span className="text-xs text-muted-foreground">Score</span>
+                      </div>
+                      <p className="text-lg font-bold text-green-600">{runningEconomyResult.economyScore}</p>
+                      <p className="text-xs text-muted-foreground">/100</p>
+                    </div>
+                  </div>
+
+                  {/* Niveau d'économie */}
+                  <div className="flex items-center justify-between p-3 bg-background rounded-lg border">
+                    <span className="text-sm font-medium">Niveau d'économie</span>
+                    <Badge 
+                      variant={
+                        runningEconomyResult.economyLevel === "excellent" ? "default" :
+                        runningEconomyResult.economyLevel === "good" ? "default" :
+                        runningEconomyResult.economyLevel === "average" ? "secondary" :
+                        "outline"
+                      }
+                      className={
+                        runningEconomyResult.economyLevel === "excellent" ? "bg-green-600" :
+                        runningEconomyResult.economyLevel === "good" ? "bg-green-500" :
+                        ""
+                      }
+                    >
+                      {runningEconomyResult.economyLabel}
+                    </Badge>
+                  </div>
+
+                  {/* Détails de dérive si disponible */}
+                  {runningEconomyResult.driftAnalysis?.isValid && (
+                    <Collapsible>
+                      <CollapsibleTrigger asChild>
+                        <Button variant="ghost" size="sm" className="w-full justify-between text-xs">
+                          <span>Voir détails dérive 1ère/2ème moitié</span>
+                          <ChevronDown className="w-4 h-4" />
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-2">
+                        <div className="grid grid-cols-2 gap-3 p-3 bg-muted/50 rounded-lg text-sm">
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">1ère moitié</p>
+                            <p>Allure: {formatPaceDisplay(runningEconomyResult.driftAnalysis.pace1stHalf)}/km</p>
+                            <p>FC: {runningEconomyResult.driftAnalysis.hr1stHalf} bpm</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">2ème moitié</p>
+                            <p>Allure: {formatPaceDisplay(runningEconomyResult.driftAnalysis.pace2ndHalf)}/km</p>
+                            <p>FC: {runningEconomyResult.driftAnalysis.hr2ndHalf} bpm</p>
+                          </div>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )}
+
+                  {/* Notes de qualité et warnings */}
+                  {(runningEconomyResult.qualityNotes.length > 0 || runningEconomyResult.warnings.length > 0) && (
+                    <div className="space-y-2">
+                      {runningEconomyResult.warnings.length > 0 && (
+                        <Alert variant="destructive" className="py-2">
+                          <AlertTriangle className="h-4 w-4" />
+                          <AlertDescription className="text-xs">
+                            {runningEconomyResult.warnings.join(" • ")}
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                      {runningEconomyResult.qualityNotes.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          {runningEconomyResult.qualityNotes.slice(0, 3).join(" • ")}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             {/* Drift Analysis with Manual Selection */}
             <DriftSegmentSelector
               session={analysis.session}
@@ -780,4 +924,12 @@ function MetricBadge({
       <p className={`font-bold ${highlight ? "text-primary" : ""}`}>{value}</p>
     </div>
   );
+}
+
+// Helper pour formater l'allure
+function formatPaceDisplay(secPerKm: number): string {
+  if (!secPerKm || secPerKm <= 0) return "—";
+  const min = Math.floor(secPerKm / 60);
+  const sec = Math.round(secPerKm % 60);
+  return `${min}:${sec.toString().padStart(2, "0")}`;
 }
