@@ -5,6 +5,7 @@
  * - Sprint 15s terrain (distance)
  * - Puissance course (Stryd/Garmin Running Power)
  * - TTE (cross-validation)
+ * - Économie de course (ajustement confiance via FIT import)
  * 
  * ⚠️ CSS = Critical Swim Speed (natation) - NON UTILISÉ ici
  * On utilise pace_threshold_sec_per_km (pace seuil CAP)
@@ -17,14 +18,23 @@ export interface VLamaxCapEstimateInput {
   sprint15sDistance?: number | null;     // Distance parcourue en 15s (mètres)
   runningPowerMax?: number | null;       // Puissance max course (W) - Stryd/Garmin
   runningPowerThreshold?: number | null; // Puissance seuil course (W)
+  // Données économie de course (import FIT)
+  runEconomyScore?: number | null;       // Score 0-100 d'économie de course
+  runHrDriftPct?: number | null;         // Dérive cardiaque (%)
+  runPaceRefSecPerKm?: number | null;    // Allure de référence (sec/km)
 }
 
 export interface VLamaxCapEstimate {
   value: number;
   confidence: number;
+  confidenceAdjustment: number;          // Ajustement lié à l'économie
   sources: string[];
   method: string;
   details?: string;
+  economyImpact?: {                      // Impact de l'économie sur l'estimation
+    modifier: number;
+    reason: string;
+  };
 }
 
 const clamp = (val: number, min: number, max: number): number => 
@@ -44,12 +54,16 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
     tteMin, 
     sprint15sDistance, 
     runningPowerMax, 
-    runningPowerThreshold 
+    runningPowerThreshold,
+    runEconomyScore,
+    runHrDriftPct,
   } = input;
   
   const sources: string[] = [];
   const estimates: { value: number; weight: number; source: string }[] = [];
   let details = "";
+  let economyConfidenceAdjustment = 0;
+  let economyImpact: { modifier: number; reason: string } | undefined;
 
   // =============================================
   // SOURCE 1: Sprint 15s terrain (HAUTE FIABILITÉ)
@@ -203,12 +217,72 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
   }
 
   // =============================================
+  // SOURCE 6: Économie de Course (AJUSTEMENT CONFIANCE)
+  // =============================================
+  if (runEconomyScore != null && runEconomyScore > 0) {
+    /**
+     * Économie de course ajuste la CONFIANCE, pas la valeur:
+     * - Score élevé (≥70) → +10-15% confiance (données terrain fiables)
+     * - Score moyen (40-70) → +5% confiance
+     * - Score faible (<40) → 0% (données non fiables)
+     * 
+     * La dérive cardiaque module aussi:
+     * - Faible dérive (<6%) → bonus additionnel
+     * - Forte dérive (>12%) → pénalité
+     */
+    if (runEconomyScore >= 75) {
+      economyConfidenceAdjustment = 0.15;
+      economyImpact = { 
+        modifier: 0.15, 
+        reason: "Excellente économie de course, données FIT très fiables" 
+      };
+    } else if (runEconomyScore >= 55) {
+      economyConfidenceAdjustment = 0.10;
+      economyImpact = { 
+        modifier: 0.10, 
+        reason: "Bonne économie de course, données FIT fiables" 
+      };
+    } else if (runEconomyScore >= 40) {
+      economyConfidenceAdjustment = 0.05;
+      economyImpact = { 
+        modifier: 0.05, 
+        reason: "Économie moyenne, données FIT utilisables" 
+      };
+    } else {
+      economyConfidenceAdjustment = 0;
+      economyImpact = { 
+        modifier: 0, 
+        reason: "Économie fragile, confiance non ajustée" 
+      };
+    }
+    
+    // Modulation par la dérive cardiaque
+    if (runHrDriftPct != null) {
+      if (runHrDriftPct < 5 && economyConfidenceAdjustment > 0) {
+        economyConfidenceAdjustment += 0.05;
+        economyImpact.modifier += 0.05;
+        economyImpact.reason += " + faible dérive FC";
+      } else if (runHrDriftPct > 12) {
+        economyConfidenceAdjustment = Math.max(0, economyConfidenceAdjustment - 0.05);
+        economyImpact.modifier = Math.max(0, economyImpact.modifier - 0.05);
+        economyImpact.reason += " (pénalité dérive élevée)";
+      }
+    }
+    
+    if (economyConfidenceAdjustment > 0) {
+      sources.push("Économie CAP");
+      details += `Économie: ${runEconomyScore}/100 → conf. +${(economyConfidenceAdjustment * 100).toFixed(0)}%. `;
+    }
+  }
+
+  // =============================================
   // CALCUL FINAL
   // =============================================
   if (estimates.length === 0) {
     return {
       value: 0.42, // Valeur par défaut conservatrice
       confidence: 0.15,
+      confidenceAdjustment: 0,
       sources: ["Défaut"],
       method: "default",
       details: "Données insuffisantes pour estimation"
@@ -226,7 +300,10 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
   if (sources.includes("Ratio P")) confidence += 0.10;
   if (sources.includes("Seuil/VMA")) confidence += 0.10;
   if (sources.includes("TTE")) confidence += 0.05;
-  confidence = Math.min(0.85, confidence);
+  
+  // Ajout bonus économie de course
+  confidence += economyConfidenceAdjustment;
+  confidence = Math.min(0.95, confidence); // Cap légèrement plus haut avec économie
 
   // Méthode utilisée
   let method = "combined";
@@ -236,14 +313,18 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
     method = "sprint_power";
   } else if (sources.includes("Seuil/VMA")) {
     method = "ratio_based";
+  } else if (sources.includes("Économie CAP")) {
+    method = sources.length === 1 ? "economy_only" : "economy_enhanced";
   }
 
   return {
     value: Math.round(value * 100) / 100,
     confidence,
+    confidenceAdjustment: economyConfidenceAdjustment,
     sources,
     method,
-    details: details.trim()
+    details: details.trim(),
+    economyImpact
   };
 }
 
