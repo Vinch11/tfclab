@@ -294,7 +294,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
         )}
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Edit className="w-5 h-5 text-primary" />
@@ -305,7 +305,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4">
+        <div className="grid gap-4 py-4 overflow-y-auto flex-1 pr-2">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right">Date</Label>
             <Input className="col-span-3" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
