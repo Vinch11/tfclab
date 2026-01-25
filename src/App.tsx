@@ -18,6 +18,7 @@ import TestsPage from "./pages/TestsPage";
 import AthletesListPage from "./pages/AthletesListPage";
 import NotFound from "./pages/NotFound";
 import RaceSimulationPage from "./pages/RaceSimulationPage";
+import FatiguePage from "./pages/FatiguePage";
 import { TFCLTestingWeekPage } from "./components/TFCLTestingWeek";
 import { CAPTestingWeekPage } from "./components/CAPTestingWeek";
 
@@ -144,6 +145,20 @@ export default function App() {
                         <CloudDataProvider>
                           <AthleteProvider>
                             <RaceSimulationPage />
+                          </AthleteProvider>
+                        </CloudDataProvider>
+                      </OnboardingGate>
+                    </AuthGate>
+                  }
+                />
+                <Route
+                  path="/fatigue"
+                  element={
+                    <AuthGate>
+                      <OnboardingGate>
+                        <CloudDataProvider>
+                          <AthleteProvider>
+                            <FatiguePage />
                           </AthleteProvider>
                         </CloudDataProvider>
                       </OnboardingGate>
