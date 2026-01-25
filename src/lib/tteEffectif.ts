@@ -177,6 +177,38 @@ export function formatTTEDisplay(tte: TTEEffectif): string {
   return `${tte.tte_min} min`;
 }
 
+/**
+ * Formate le TTE avec une plage adaptative basée sur la confiance
+ * Confiance haute → plage étroite, Confiance faible → plage large
+ */
+export function formatTTEWithRange(tte: TTEEffectif): string {
+  if (tte.source === "unknown") return "—";
+  
+  // Calculer la marge selon la confiance (précision adaptative)
+  let marginMin: number;
+  if (tte.confidence >= 0.9) {
+    marginMin = 2; // ±2 min
+  } else if (tte.confidence >= 0.75) {
+    marginMin = 3; // ±3 min
+  } else if (tte.confidence >= 0.55) {
+    marginMin = 5; // ±5 min
+  } else if (tte.confidence >= 0.4) {
+    marginMin = 8; // ±8 min
+  } else {
+    marginMin = 12; // ±12 min
+  }
+  
+  // Si marge <= 2 min et confiance haute, afficher juste la valeur
+  if (marginMin <= 2 && tte.source === "observed") {
+    return `${tte.tte_min} min`;
+  }
+  
+  const low = Math.max(20, tte.tte_min - marginMin);
+  const high = Math.min(90, tte.tte_min + marginMin);
+  
+  return `${tte.tte_min} min [${low}–${high}]`;
+}
+
 export function getSourceLabel(source: TTESource): string {
   switch (source) {
     case "observed":

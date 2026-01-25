@@ -200,8 +200,10 @@ function getCategoryInfo(category: RaceReadinessV2Category) {
 }
 
 function getConfidenceLabel(confidence: number): string {
-  if (confidence >= 0.75) return "Élevée";
-  if (confidence >= 0.5) return "Moyenne";
+  if (confidence >= 0.80) return "Très élevée";
+  if (confidence >= 0.70) return "Élevée";
+  if (confidence >= 0.55) return "Moyenne";
+  if (confidence >= 0.40) return "Limitée";
   return "Faible";
 }
 
@@ -221,7 +223,8 @@ function getDataSourceType(source: string): DataSourceType {
 export function extractPotentialFromCompass(compass: CompassScores): PotentialScore {
   const { capaciteAerobie, toleranceEffort, profilMetabolique, robustesse, globalScore } = compass;
   
-  // Calcul de la plage (±5 si confiance moyenne, ±10 si faible)
+  // Calcul de la plage avec précision adaptative
+  // Plus la confiance est haute, plus la plage est étroite
   const avgConfidence = (
     capaciteAerobie.confidence + 
     toleranceEffort.confidence + 
@@ -229,7 +232,20 @@ export function extractPotentialFromCompass(compass: CompassScores): PotentialSc
     robustesse.confidence
   ) / 4;
   
-  const rangeMargin = avgConfidence >= 0.7 ? 3 : avgConfidence >= 0.5 ? 5 : 8;
+  // Marges affinées selon le niveau de confiance
+  let rangeMargin: number;
+  if (avgConfidence >= 0.8) {
+    rangeMargin = 2; // Confiance très haute → ±2 points
+  } else if (avgConfidence >= 0.7) {
+    rangeMargin = 3; // Confiance haute → ±3 points
+  } else if (avgConfidence >= 0.55) {
+    rangeMargin = 5; // Confiance moyenne → ±5 points
+  } else if (avgConfidence >= 0.4) {
+    rangeMargin = 7; // Confiance limitée → ±7 points
+  } else {
+    rangeMargin = 10; // Confiance faible → ±10 points
+  }
+  
   const range: [number, number] = [
     Math.max(0, globalScore - rangeMargin),
     Math.min(100, globalScore + rangeMargin),
