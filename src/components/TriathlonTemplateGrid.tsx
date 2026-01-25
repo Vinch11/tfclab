@@ -807,7 +807,7 @@ function GoalDateSuggester() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   
   const { currentAthlete } = useAthletes();
-  const { snapshots } = useCloudDataContext();
+  const { snapshots, tests } = useCloudDataContext();
   
   const templates = useMemo(() => getTriathlonTemplates(), []);
   const template = templates.find(t => t.target === selectedGoal);
@@ -820,13 +820,37 @@ function GoalDateSuggester() {
     return snapshots.find(s => s.id === snapshotId) || null;
   }, [currentAthlete, snapshots]);
   
+  // Get athlete tests for VLamax
+  const athleteTests = useMemo(() => {
+    if (!currentAthlete) return [];
+    return tests.filter(t => t.athlete_id === currentAthlete.id);
+  }, [currentAthlete, tests]);
+  
   // Compute athlete physiological profile
   const athleteProfile = useMemo((): AthleteProfileData | null => {
     if (!currentAthlete) return null;
     
-    // Get VLamax directly from snapshot (simplified approach)
-    const vlamax = activeSnapshot?.vlamax ?? activeSnapshot?.vlamax_run ?? null;
-    const vlamaxConfidence = vlamax !== null ? 0.75 : 0;
+    // Get VLamax: prioritize snapshot, then tests
+    let vlamax: number | null = activeSnapshot?.vlamax ?? activeSnapshot?.vlamax_run ?? null;
+    let vlamaxConfidence = 0;
+    let vlamaxSource = "unknown";
+    
+    // If no VLamax in snapshot, check tests
+    if (vlamax === null && athleteTests.length > 0) {
+      // Find most recent test with VLamax
+      const testsWithVlamax = athleteTests
+        .filter(t => t.vlamax !== null && t.vlamax !== undefined)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      
+      if (testsWithVlamax.length > 0) {
+        vlamax = testsWithVlamax[0].vlamax;
+        vlamaxConfidence = 0.75; // Test terrain
+        vlamaxSource = testsWithVlamax[0].type || "test";
+      }
+    } else if (vlamax !== null) {
+      vlamaxConfidence = 0.95; // Snapshot = mesure directe
+      vlamaxSource = "snapshot";
+    }
     
     // Get TTE directly from snapshot
     const tte = activeSnapshot?.tte_observed_min ?? null;
@@ -858,7 +882,7 @@ function GoalDateSuggester() {
       injuryRiskLabel: injuryRisk.label,
       objectif: currentAthlete.objectif || selectedGoal
     };
-  }, [currentAthlete, activeSnapshot, selectedGoal]);
+  }, [currentAthlete, activeSnapshot, athleteTests, selectedGoal]);
   
   const suggestion = useMemo(() => {
     if (!raceDate || !template) return null;
