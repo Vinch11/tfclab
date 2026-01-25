@@ -1417,6 +1417,7 @@ const Index = () => {
                   ftp: effectiveRefs.ftp ?? 250,
                   fcMax: effectiveCloudSnapshot.fc_max ?? 180,
                 }}
+                observedTTE={effectiveCloudSnapshot.tte_mode === "OBSERVED" ? effectiveCloudSnapshot.tte_observed_min : null}
               />
             ),
           },

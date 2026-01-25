@@ -45,6 +45,8 @@ import {
 
 interface WhatIfSimulatorProps {
   initialProfile?: Partial<MetabolicProfile>;
+  /** TTE mesuré réel de l'athlète (si disponible) — affiché comme référence */
+  observedTTE?: number | null;
   className?: string;
 }
 
@@ -145,7 +147,7 @@ function MetricCompare({
 // MAIN COMPONENT
 // =============================================
 
-export function WhatIfSimulator({ initialProfile, className }: WhatIfSimulatorProps) {
+export function WhatIfSimulator({ initialProfile, observedTTE, className }: WhatIfSimulatorProps) {
   // Default profile
   const defaultProfile: MetabolicProfile = {
     vo2max: initialProfile?.vo2max || 55,
@@ -228,7 +230,6 @@ export function WhatIfSimulator({ initialProfile, className }: WhatIfSimulatorPr
           <CardTitle className="text-base flex items-center gap-2">
             <Beaker className="h-5 w-5 text-primary" />
             Simulateur What-If
-            <Badge variant="outline" className="text-[10px]">INSCYD-style</Badge>
           </CardTitle>
           {hasChanges && (
             <Button variant="ghost" size="sm" onClick={handleReset} className="h-7 text-xs gap-1">
@@ -418,11 +419,16 @@ export function WhatIfSimulator({ initialProfile, className }: WhatIfSimulatorPr
             />
             <MetricCompare 
               label="TTE @ FTP" 
-              current={currentPrediction.tteAtFTP} 
-              simulated={simulatedPrediction.tteAtFTP}
+              current={observedTTE ?? currentPrediction.tteAtFTP} 
+              simulated={observedTTE ?? simulatedPrediction.tteAtFTP}
               unit=" min"
               icon={Clock}
             />
+            {observedTTE && (
+              <div className="text-[10px] text-muted-foreground ml-6">
+                TTE mesuré : {observedTTE} min (valeur réelle)
+              </div>
+            )}
             <MetricCompare 
               label="FatMax" 
               current={currentPrediction.fatMaxIntensity} 
