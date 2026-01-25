@@ -86,6 +86,10 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   { id: "low-crr-justification", label: "Justification charge faible", icon: "AlertTriangle", category: "outils", defaultVisible: false },
   { id: "scientific-charts", label: "Graphiques Scientifiques", icon: "BarChart", category: "outils", defaultVisible: false },
   { id: "staff-dashboard", label: "Staff Dashboard", icon: "Users", category: "outils", defaultVisible: false },
+  
+  // 🔬 INSCYD-style Simulator
+  { id: "what-if-simulator", label: "Simulateur What-If", icon: "Beaker", category: "analyse", defaultVisible: true },
+  { id: "lactate-prediction", label: "Courbe de Lactate", icon: "TrendingUp", category: "analyse", defaultVisible: true },
 ];
 
 export const TESTS_SECTIONS: SectionDefinition[] = [
