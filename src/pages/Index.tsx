@@ -50,7 +50,7 @@ import { computeEnergyDrift, EnergyDriftResult } from "@/lib/energyDrift";
 import { EnergyDriftBadge } from "@/components/EnergyDriftBadge";
 import { DashboardGauges } from "@/components/DashboardGauges";
 import { StaffDashboard } from "@/components/StaffDashboard";
-import { ScientificChartsDashboard, MetabolicPerformanceCompass, AmbitionProgressChart, AmbitionProgressMini } from "@/components/charts";
+import { ScientificChartsDashboard, MetabolicPerformanceCompass, AmbitionProgressChart, AmbitionProgressMini, CompactMetricsGrid } from "@/components/charts";
 import { ChargeRecenteCard } from "@/components/ChargeRecenteCard";
 import { computeCRR } from "@/lib/chargeRecenteReference";
 import { RaceReadinessV2Module } from "@/components/RaceReadinessV2Module";
@@ -1278,6 +1278,25 @@ const Index = () => {
                 }}
                 vlamaxEffectif={vlamaxEffectif}
                 tteEffectif={tteEffectif}
+              />
+            ),
+          },
+          {
+            id: "compact-metrics-grid",
+            render: () => currentAthlete && (
+              <CompactMetricsGrid
+                vo2max={effectiveCloudSnapshot?.vo2max}
+                vlamax={vlamaxEffectif.value}
+                ftp={effectiveRefs.ftp}
+                weight={effectiveRefs.weightKg}
+                tteMin={tteEffectif.tte_min}
+                fatmax={effectiveCloudSnapshot?.ftp ? Math.round((effectiveCloudSnapshot.ftp) * 0.65) : null}
+                fatPct={effectiveCloudSnapshot?.fat_pct}
+                fcMax={effectiveCloudSnapshot?.fc_max}
+                vma={effectiveCloudSnapshot?.vma}
+                tss7d={effectiveCloudSnapshot?.tss_7d}
+                readinessScore={null}
+                objectif={currentAthlete.goal === "IM" ? "Ironman Kona" : currentAthlete.goal === "703" ? "Ironman 70.3" : currentAthlete.goal || "Marathon"}
               />
             ),
           },
