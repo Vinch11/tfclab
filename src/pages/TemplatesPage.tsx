@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronLeft, FileText, AlertTriangle, Copy, CheckCircle2, Loader2, User, Layers, Lightbulb, BookOpen, BarChart3, Target, ChevronDown, Info, Zap, Activity, ArrowLeftRight, Beaker, PersonStanding } from "lucide-react";
+import { ChevronLeft, FileText, AlertTriangle, Copy, CheckCircle2, Loader2, User, Layers, Lightbulb, BookOpen, BarChart3, Target, ChevronDown, Info, Zap, Activity, ArrowLeftRight, Beaker, PersonStanding, Users } from "lucide-react";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
@@ -1546,6 +1546,29 @@ export default function TemplatesPage() {
             <div className="flex-1 min-w-0">
               <h1 className="text-base sm:text-lg lg:text-xl font-bold text-foreground truncate">Templates de Programmation</h1>
               <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Plans staff-grade avec annotations V2</p>
+            </div>
+            
+            {/* Athlete Selector */}
+            <div className="flex items-center gap-2 shrink-0">
+              <Users className="h-4 w-4 text-muted-foreground hidden sm:block" />
+              <Select
+                value={selectedAthleteId || undefined}
+                onValueChange={(id) => setSelectedAthleteId(id)}
+              >
+                <SelectTrigger className="w-[140px] sm:w-[180px] h-9 bg-secondary/50">
+                  <SelectValue placeholder="Athlète..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {athletes.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      <div className="flex items-center gap-2">
+                        <User className="h-3 w-3 text-muted-foreground" />
+                        <span className="truncate">{a.nom || `Athlète ${a.id.slice(0, 6)}`}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
