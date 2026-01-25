@@ -419,42 +419,51 @@ function computeSegmentFuelRisk(
   tteMin: number | null,
   segmentIndex: number,
   totalSegments: number,
-  plannedCarbsGH: number | null
+  plannedCarbsGH: number | null,
+  scenarioType?: ScenarioType
 ): number {
   let risk = 0;
   
-  // Base: intensité vs FatMax
+  // Base: intensité vs FatMax - impact différencié par scénario
   const fatmax = fatmaxMax ?? fatmaxCenter ?? 70;
   const intensityDelta = intensityPct - fatmax;
   
+  // Facteur scénario pour le risque
+  const scenarioRiskFactor = scenarioType === 'conservative' ? 0.6 
+    : scenarioType === 'aggressive' ? 1.5 
+    : 1.0;
+  
   if (intensityDelta > 0) {
-    // Au-dessus de FatMax → dépendance glucidique
-    risk += 20 + Math.min(30, intensityDelta * 2);
+    // Au-dessus de FatMax → dépendance glucidique - impact plus fort
+    risk += (25 + Math.min(40, intensityDelta * 3)) * scenarioRiskFactor;
+  } else {
+    // En dessous de FatMax → faible risque (encore plus faible en conservateur)
+    risk += Math.max(0, 10 + intensityDelta) * scenarioRiskFactor;
   }
   
-  // VLamax adjustment
+  // VLamax adjustment - impact plus prononcé
   const vlamax = vlamaxEffectif ?? 0.45;
   if (vlamax > 0.5) {
-    risk += 15 + (vlamax - 0.5) * 50;
+    risk += (20 + (vlamax - 0.5) * 80) * scenarioRiskFactor;
   } else if (vlamax < 0.35) {
-    risk -= 10; // Bonus métabolisme aérobie
+    risk -= 15; // Bonus métabolisme aérobie plus fort
   }
   
   // TTE adjustment
   const tte = tteMin ?? 45;
   if (tte < 40) {
-    risk += 10 + (40 - tte);
+    risk += (12 + (40 - tte) * 1.5) * scenarioRiskFactor;
   } else if (tte > 60) {
-    risk -= 5; // Bonus durabilité
+    risk -= 8; // Bonus durabilité plus fort
   }
   
-  // Progression fatigue (segments tardifs = plus risqués)
-  const progressionFactor = segmentIndex / totalSegments;
-  risk += progressionFactor * 15;
+  // Progression fatigue (segments tardifs = plus risqués) - progression non-linéaire
+  const progressionFactor = Math.pow(segmentIndex / totalSegments, 1.5);
+  risk += progressionFactor * 25 * scenarioRiskFactor;
   
-  // Mitigation nutrition
+  // Mitigation nutrition - effet augmenté
   if (plannedCarbsGH && plannedCarbsGH > 0) {
-    const nutritionMitigation = Math.min(20, plannedCarbsGH / 5);
+    const nutritionMitigation = Math.min(25, plannedCarbsGH / 4);
     risk -= nutritionMitigation;
   }
   
@@ -470,25 +479,47 @@ function computeGlycogenRemaining(
   intensityPct: number,
   fatmaxCenter: number | null,
   vlamaxEffectif: number | null,
-  plannedCarbsGH: number | null
+  plannedCarbsGH: number | null,
+  scenarioType?: ScenarioType
 ): number {
-  // Modèle simplifié: on part de 100% et on décroît
+  // Modèle amélioré: variation significative selon le scénario
   const baseDepletion = 100 / totalSegments;
   
-  // Facteur d'intensité
+  // Facteur d'intensité - impact beaucoup plus fort au-dessus de FatMax
   const fatmax = fatmaxCenter ?? 70;
-  const intensityFactor = intensityPct > fatmax 
-    ? 1 + (intensityPct - fatmax) / 50 
-    : 0.8;
+  const intensityDelta = intensityPct - fatmax;
+  let intensityFactor: number;
   
-  // Facteur VLamax
+  if (intensityDelta > 15) {
+    // Très au-dessus de FatMax = déplétion rapide
+    intensityFactor = 1.8 + (intensityDelta - 15) * 0.04;
+  } else if (intensityDelta > 0) {
+    // Au-dessus de FatMax = déplétion modérée
+    intensityFactor = 1.2 + (intensityDelta * 0.04);
+  } else {
+    // En dessous de FatMax = déplétion lente
+    intensityFactor = 0.6 + (intensityDelta + 10) * 0.02;
+  }
+  
+  // Facteur VLamax - impact plus prononcé
   const vlamax = vlamaxEffectif ?? 0.45;
-  const vlamaxFactor = 1 + (vlamax - 0.4) * 1.5;
+  const vlamaxFactor = 1 + (vlamax - 0.35) * 2;
   
-  // Réapprovisionnement nutrition
-  const carbsRefuel = plannedCarbsGH ? Math.min(0.3, plannedCarbsGH / 300) : 0;
+  // Facteur scénario - différencie visuellement les courbes
+  let scenarioFactor = 1.0;
+  if (scenarioType === 'conservative') {
+    scenarioFactor = 0.7; // Déplétion beaucoup plus lente
+  } else if (scenarioType === 'aggressive') {
+    scenarioFactor = 1.4; // Déplétion beaucoup plus rapide
+  }
   
-  const depletionPerSegment = baseDepletion * intensityFactor * vlamaxFactor - carbsRefuel * baseDepletion;
+  // Réapprovisionnement nutrition - effet plus réaliste
+  const carbsRefuel = plannedCarbsGH ? Math.min(0.4, plannedCarbsGH / 250) : 0;
+  
+  // Progression non-linéaire (fatigue qui s'accumule)
+  const progressionMultiplier = 1 + (segmentIndex / totalSegments) * 0.3;
+  
+  const depletionPerSegment = (baseDepletion * intensityFactor * vlamaxFactor * scenarioFactor * progressionMultiplier) - (carbsRefuel * baseDepletion);
   const totalDepletion = depletionPerSegment * (segmentIndex + 1);
   
   return clamp(100 - totalDepletion, 0, 100);
@@ -504,17 +535,18 @@ function generateScenario(
   baseIntensity: number,
   baseDuration: number
 ): PacingScenario {
-  // Ajustements par type de scénario
+  // Ajustements par type de scénario - intensité plus différenciée
   const intensityOffset: Record<ScenarioType, number> = {
-    conservative: -5,
+    conservative: -7,
     optimal: 0,
-    aggressive: +5,
+    aggressive: +6,
   };
   
+  // Durées plus différenciées entre scénarios
   const durationMultiplier: Record<ScenarioType, number> = {
-    conservative: 1.1,
+    conservative: 1.06,
     optimal: 1.0,
-    aggressive: 0.92,
+    aggressive: 0.94,
   };
   
   const scenarioLabels: Record<ScenarioType, { label: string; description: string }> = {
@@ -565,7 +597,8 @@ function generateScenario(
       input.tteMin,
       i,
       numSegments,
-      input.plannedCarbsGH
+      input.plannedCarbsGH,
+      type
     );
     
     const glycogenRemaining = computeGlycogenRemaining(
@@ -574,7 +607,8 @@ function generateScenario(
       targetIntensity,
       input.fatmaxCenterPct,
       input.vlamaxEffectif,
-      input.plannedCarbsGH
+      input.plannedCarbsGH,
+      type
     );
     
     // Détecter point de bascule
@@ -635,16 +669,20 @@ function generateScenario(
   if (type === 'optimal') {
     strengths.push("Bon équilibre risque/performance");
   }
+  if (type === 'aggressive') {
+    strengths.push("Chrono optimal si conditions parfaites");
+  }
   
-  // Plage de temps
-  const timeVariation = type === 'conservative' ? 0.05 : type === 'aggressive' ? 0.08 : 0.06;
+  // Plage de temps plus étroite par scénario
+  // Plages de temps beaucoup plus étroites (2-3%)
+  const timeVariation = type === 'conservative' ? 0.025 : type === 'aggressive' ? 0.03 : 0.02;
   
   return {
     type,
     label: scenarioLabels[type].label,
     description: scenarioLabels[type].description,
     targetIntensityPct: targetIntensity,
-    targetIntensityRange: [targetIntensity - 2, targetIntensity + 2],
+    targetIntensityRange: [targetIntensity - 1, targetIntensity + 1],
     estimatedTimeMin: adjustedDuration,
     estimatedTimeRange: [
       adjustedDuration * (1 - timeVariation),

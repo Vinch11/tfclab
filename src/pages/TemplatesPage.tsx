@@ -1891,10 +1891,14 @@ export default function TemplatesPage() {
               </CardHeader>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <CardContent className="pt-0 space-y-4">
-                <p className="text-xs text-muted-foreground">
-                  Sélectionnez un template pour afficher le graphique de volume par phase et le détail des semaines.
-                </p>
+              <CardContent className="pt-0 space-y-6">
+                {/* Excel Plan Importer */}
+                <ExcelPlanImporter />
+                
+                <div className="border-t pt-4 space-y-4">
+                  <p className="text-xs text-muted-foreground">
+                    Ou sélectionnez un template préinstallé pour afficher le graphique de volume par phase.
+                  </p>
                 
                 <Select 
                   value={selectedTemplateId} 
@@ -1976,6 +1980,7 @@ export default function TemplatesPage() {
                       </Button>
                     </>
                   )}
+                </div>
                 </div>
               </CardContent>
             </CollapsibleContent>
