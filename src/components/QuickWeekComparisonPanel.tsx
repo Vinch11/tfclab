@@ -1,54 +1,81 @@
 // =============================================
 // QUICK WEEK COMPARISON PANEL - Dropdown-based
+// Supports Running + Triathlon templates
 // Two For Coaching Lab
 // =============================================
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import { 
   ArrowLeftRight, X, Plus, Timer, Flame, Heart, TrendingUp, Zap, 
-  Target, Dumbbell, CheckCircle2, BarChart3, Calendar, Clock, Layers
+  Target, Dumbbell, CheckCircle2, BarChart3, Calendar, Clock, Layers,
+  Waves, Bike, Footprints
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RUNNING_TEMPLATES } from "@/lib/templates/runningTemplatesStore";
-import type { RunningTemplate, RunningWeek, RunningPhase, WeekFocus } from "@/types/runningTemplate";
+import { PROGRAM_TEMPLATES } from "@/data/programTemplates";
+import { useImportedPlans } from "@/components/ExcelPlanImporter";
+import { 
+  type UnifiedWeek, 
+  runningWeekToUnified, 
+  triathlonWeekToUnified 
+} from "@/lib/templates/excelTemplateParser";
+import type { RunningTemplate, RunningWeek } from "@/types/runningTemplate";
 
 // =============================================
 // HELPER COMPONENTS
 // =============================================
 
-function PhaseBadge({ phase }: { phase: RunningPhase }) {
+function PhaseBadge({ phase }: { phase: string }) {
   const config: Record<string, { bg: string; text: string }> = {
-    BASE: { bg: "bg-blue-100 dark:bg-blue-900/30", text: "text-blue-700 dark:text-blue-300" },
-    BUILD: { bg: "bg-green-100 dark:bg-green-900/30", text: "text-green-700 dark:text-green-300" },
-    SPECIFIC: { bg: "bg-purple-100 dark:bg-purple-900/30", text: "text-purple-700 dark:text-purple-300" },
-    TAPER: { bg: "bg-amber-100 dark:bg-amber-900/30", text: "text-amber-700 dark:text-amber-300" },
+    BASE: { bg: "bg-blue-500/20", text: "text-blue-400" },
+    BUILD: { bg: "bg-green-500/20", text: "text-green-400" },
+    SPECIFIC: { bg: "bg-purple-500/20", text: "text-purple-400" },
+    TAPER: { bg: "bg-amber-500/20", text: "text-amber-400" },
   };
   const c = config[phase] || config.BASE;
   return (
-    <Badge variant="outline" className={`${c.bg} ${c.text} text-[10px] px-1.5 py-0.5`}>
+    <Badge variant="outline" className={cn(c.bg, c.text, "text-[10px] px-1.5 py-0.5 border-0")}>
       {phase}
     </Badge>
   );
 }
 
-function FocusBadge({ focus }: { focus: WeekFocus }) {
+function FocusBadge({ focus }: { focus: string }) {
   const config: Record<string, { icon: React.ReactNode; color: string }> = {
-    TTE: { icon: <Timer className="h-2.5 w-2.5" />, color: "text-orange-600" },
-    VO2: { icon: <Flame className="h-2.5 w-2.5" />, color: "text-red-600" },
-    ECONOMY: { icon: <TrendingUp className="h-2.5 w-2.5" />, color: "text-blue-600" },
-    ENDURANCE: { icon: <Heart className="h-2.5 w-2.5" />, color: "text-green-600" },
-    SPEED: { icon: <Zap className="h-2.5 w-2.5" />, color: "text-purple-600" },
+    TTE: { icon: <Timer className="h-2.5 w-2.5" />, color: "text-orange-500" },
+    VO2: { icon: <Flame className="h-2.5 w-2.5" />, color: "text-red-500" },
+    ECONOMY: { icon: <TrendingUp className="h-2.5 w-2.5" />, color: "text-blue-500" },
+    ENDURANCE: { icon: <Heart className="h-2.5 w-2.5" />, color: "text-green-500" },
+    SPEED: { icon: <Zap className="h-2.5 w-2.5" />, color: "text-purple-500" },
   };
   const c = config[focus] || config.ENDURANCE;
   return (
-    <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 flex items-center gap-0.5">
+    <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 flex items-center gap-0.5 border-muted-foreground/30">
       <span className={c.color}>{c.icon}</span>
       {focus}
+    </Badge>
+  );
+}
+
+function TemplateTypeBadge({ type }: { type: "running" | "triathlon" }) {
+  if (type === "triathlon") {
+    return (
+      <Badge className="bg-cyan-500/20 text-cyan-400 border-0 text-[9px] px-1">
+        <Waves className="h-2.5 w-2.5 mr-0.5" />
+        TRI
+      </Badge>
+    );
+  }
+  return (
+    <Badge className="bg-orange-500/20 text-orange-400 border-0 text-[9px] px-1">
+      <Footprints className="h-2.5 w-2.5 mr-0.5" />
+      RUN
     </Badge>
   );
 }
@@ -67,33 +94,51 @@ function formatDuration(minutes: number): string {
 // =============================================
 
 interface WeekSlot {
-  templateId: string | null;
   weekId: string | null;
 }
 
 interface WeekSlotSelectorProps {
   slot: WeekSlot;
   slotIndex: number;
-  allWeeks: { template: RunningTemplate; week: RunningWeek }[];
-  onSelect: (templateId: string, weekId: string) => void;
+  allWeeks: UnifiedWeek[];
+  onSelect: (weekId: string) => void;
   onClear: () => void;
 }
 
 function WeekSlotSelector({ slot, slotIndex, allWeeks, onSelect, onClear }: WeekSlotSelectorProps) {
-  const selectedWeek = slot.templateId && slot.weekId 
-    ? allWeeks.find(w => w.template.id === slot.templateId && w.week.week_id === slot.weekId)
+  const selectedWeek = slot.weekId 
+    ? allWeeks.find(w => w.id === slot.weekId)
     : null;
   
   const totalDuration = selectedWeek 
-    ? selectedWeek.week.sessions.reduce((sum, s) => sum + s.duration_min, 0) 
+    ? selectedWeek.sessions.reduce((sum, s) => sum + s.durationMin, 0) 
     : 0;
   const keySessions = selectedWeek 
-    ? selectedWeek.week.sessions.filter(s => s.isKey).length 
+    ? selectedWeek.sessions.filter(s => s.isKey).length 
     : 0;
+
+  // Group weeks by template for better organization
+  const groupedByTemplate = useMemo(() => {
+    const groups: Record<string, { name: string; type: "running" | "triathlon"; goal: string; weeks: UnifiedWeek[] }> = {};
+    
+    allWeeks.forEach(week => {
+      if (!groups[week.templateId]) {
+        groups[week.templateId] = {
+          name: week.templateName,
+          type: week.templateType,
+          goal: week.goal,
+          weeks: [],
+        };
+      }
+      groups[week.templateId].weeks.push(week);
+    });
+    
+    return groups;
+  }, [allWeeks]);
 
   return (
     <div className={cn(
-      "flex-1 min-w-[200px] rounded-lg border-2 border-dashed transition-all",
+      "flex-1 min-w-[220px] rounded-lg border-2 border-dashed transition-all",
       selectedWeek 
         ? "border-primary/50 bg-primary/5" 
         : "border-muted-foreground/30 hover:border-muted-foreground/50"
@@ -102,11 +147,14 @@ function WeekSlotSelector({ slot, slotIndex, allWeeks, onSelect, onClear }: Week
         <div className="p-3 space-y-2">
           <div className="flex items-start justify-between gap-2">
             <div className="space-y-1">
-              <div className="text-xs font-semibold">
-                S{selectedWeek.week.week_number} • {selectedWeek.week.title}
+              <div className="flex items-center gap-1.5">
+                <TemplateTypeBadge type={selectedWeek.templateType} />
+                <span className="text-xs font-semibold">
+                  S{selectedWeek.weekNumber} • {selectedWeek.title}
+                </span>
               </div>
-              <div className="text-[10px] text-muted-foreground truncate max-w-[160px]">
-                {selectedWeek.template.name}
+              <div className="text-[10px] text-muted-foreground truncate max-w-[180px]">
+                {selectedWeek.templateName}
               </div>
             </div>
             <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={onClear}>
@@ -115,8 +163,8 @@ function WeekSlotSelector({ slot, slotIndex, allWeeks, onSelect, onClear }: Week
           </div>
           
           <div className="flex flex-wrap gap-1">
-            <PhaseBadge phase={selectedWeek.week.meta.phase} />
-            <FocusBadge focus={selectedWeek.week.meta.focus} />
+            <PhaseBadge phase={selectedWeek.meta.phase} />
+            <FocusBadge focus={selectedWeek.meta.focus} />
           </div>
           
           <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
@@ -125,8 +173,10 @@ function WeekSlotSelector({ slot, slotIndex, allWeeks, onSelect, onClear }: Week
               {formatDuration(totalDuration)}
             </span>
             <span>•</span>
-            <span>{selectedWeek.week.sessions.length} séances</span>
-            <span className="text-amber-600">({keySessions} clés)</span>
+            <span>{selectedWeek.sessions.length} séances</span>
+            {keySessions > 0 && (
+              <span className="text-amber-500">({keySessions} clés)</span>
+            )}
           </div>
           
           {/* Load Bars Mini */}
@@ -136,7 +186,7 @@ function WeekSlotSelector({ slot, slotIndex, allWeeks, onSelect, onClear }: Week
               <div className="flex-1 h-1.5 bg-muted rounded overflow-hidden">
                 <div 
                   className="h-full bg-orange-500" 
-                  style={{ width: `${selectedWeek.week.meta.load_level * 20}%` }}
+                  style={{ width: `${selectedWeek.meta.loadLevel * 20}%` }}
                 />
               </div>
             </div>
@@ -145,7 +195,7 @@ function WeekSlotSelector({ slot, slotIndex, allWeeks, onSelect, onClear }: Week
               <div className="flex-1 h-1.5 bg-muted rounded overflow-hidden">
                 <div 
                   className="h-full bg-red-500" 
-                  style={{ width: `${selectedWeek.week.meta.intensity_density * 20}%` }}
+                  style={{ width: `${selectedWeek.meta.intensityDensity * 20}%` }}
                 />
               </div>
             </div>
@@ -159,35 +209,49 @@ function WeekSlotSelector({ slot, slotIndex, allWeeks, onSelect, onClear }: Week
           </div>
           <Select
             value=""
-            onValueChange={(value) => {
-              const [templateId, weekId] = value.split("::");
-              onSelect(templateId, weekId);
-            }}
+            onValueChange={(value) => onSelect(value)}
           >
-            <SelectTrigger className="h-8 text-xs">
+            <SelectTrigger className="h-9 text-xs bg-background border-muted-foreground/30">
               <SelectValue placeholder="Sélectionner une semaine..." />
             </SelectTrigger>
-            <SelectContent className="bg-popover max-h-64">
-              {/* Group by template */}
-              {RUNNING_TEMPLATES.map(template => (
-                <div key={template.id}>
-                  <div className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground bg-muted/30 sticky top-0">
-                    {template.name} • {template.goal === "marathon" ? "42K" : "21K"}
-                  </div>
-                  {template.sections.flatMap(s => s.weeks).map(week => (
-                    <SelectItem 
-                      key={`${template.id}::${week.week_id}`} 
-                      value={`${template.id}::${week.week_id}`}
-                      className="text-xs"
-                    >
-                      S{week.week_number} • {week.title}
-                      <span className="ml-1 text-muted-foreground">
-                        ({week.meta.phase})
+            <SelectContent 
+              className="bg-popover border-border max-h-80 z-[100]"
+              position="popper"
+              sideOffset={4}
+            >
+              <ScrollArea className="max-h-72">
+                {Object.entries(groupedByTemplate).map(([templateId, group]) => (
+                  <div key={templateId} className="mb-1">
+                    {/* Template Header */}
+                    <div className="px-2 py-1.5 bg-muted/50 sticky top-0 z-10 flex items-center gap-2">
+                      <TemplateTypeBadge type={group.type} />
+                      <span className="text-[10px] font-semibold text-foreground truncate">
+                        {group.name}
                       </span>
-                    </SelectItem>
-                  ))}
-                </div>
-              ))}
+                      <Badge variant="outline" className="text-[9px] px-1 ml-auto">
+                        {group.goal.toUpperCase()}
+                      </Badge>
+                    </div>
+                    
+                    {/* Weeks */}
+                    {group.weeks.map(week => (
+                      <SelectItem 
+                        key={week.id}
+                        value={week.id}
+                        className="text-xs py-2 pl-4 focus:bg-accent"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-muted-foreground w-6">
+                            S{week.weekNumber}
+                          </span>
+                          <span className="truncate max-w-[140px]">{week.title}</span>
+                          <PhaseBadge phase={week.meta.phase} />
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </div>
+                ))}
+              </ScrollArea>
             </SelectContent>
           </Select>
         </div>
@@ -201,12 +265,11 @@ function WeekSlotSelector({ slot, slotIndex, allWeeks, onSelect, onClear }: Week
 // =============================================
 
 interface ComparisonMetrics {
-  week: RunningWeek;
-  templateName: string;
+  week: UnifiedWeek;
   totalDuration: number;
   keySessions: number;
-  sessionTypes: Record<string, number>;
   sessionCount: number;
+  sportBreakdown: Record<string, number>;
 }
 
 function ComparisonTable({ metrics }: { metrics: ComparisonMetrics[] }) {
@@ -222,12 +285,15 @@ function ComparisonTable({ metrics }: { metrics: ComparisonMetrics[] }) {
             <th className="px-3 py-2 text-left font-medium">Métrique</th>
             {metrics.map((m, i) => (
               <th key={i} className="px-3 py-2 text-center font-medium">
-                S{m.week.week_number}
+                <div className="flex flex-col items-center gap-0.5">
+                  <TemplateTypeBadge type={m.week.templateType} />
+                  <span>S{m.week.weekNumber}</span>
+                </div>
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y">
+        <tbody className="divide-y divide-border">
           <tr>
             <td className="px-3 py-2 text-muted-foreground">Volume total</td>
             {metrics.map((m, i) => (
@@ -255,7 +321,7 @@ function ComparisonTable({ metrics }: { metrics: ComparisonMetrics[] }) {
           <tr>
             <td className="px-3 py-2 text-muted-foreground">Séances clés</td>
             {metrics.map((m, i) => (
-              <td key={i} className="px-3 py-2 text-center font-mono text-amber-600">
+              <td key={i} className="px-3 py-2 text-center font-mono text-amber-500">
                 {m.keySessions}
               </td>
             ))}
@@ -286,7 +352,7 @@ function ComparisonTable({ metrics }: { metrics: ComparisonMetrics[] }) {
                       key={level}
                       className={cn(
                         "w-2 h-2 rounded-full mx-0.5",
-                        level <= m.week.meta.load_level ? "bg-orange-500" : "bg-muted"
+                        level <= m.week.meta.loadLevel ? "bg-orange-500" : "bg-muted"
                       )}
                     />
                   ))}
@@ -304,7 +370,7 @@ function ComparisonTable({ metrics }: { metrics: ComparisonMetrics[] }) {
                       key={level}
                       className={cn(
                         "w-2 h-2 rounded-full mx-0.5",
-                        level <= m.week.meta.intensity_density ? "bg-red-500" : "bg-muted"
+                        level <= m.week.meta.intensityDensity ? "bg-red-500" : "bg-muted"
                       )}
                     />
                   ))}
@@ -319,17 +385,53 @@ function ComparisonTable({ metrics }: { metrics: ComparisonMetrics[] }) {
                 <Badge 
                   variant="outline" 
                   className={cn(
-                    "text-[10px]",
-                    m.week.meta.injury_risk_tag === "LOW" ? "bg-green-100 text-green-700" :
-                    m.week.meta.injury_risk_tag === "MED" ? "bg-amber-100 text-amber-700" :
-                    "bg-red-100 text-red-700"
+                    "text-[10px] border-0",
+                    m.week.meta.injuryRisk === "LOW" ? "bg-green-500/20 text-green-400" :
+                    m.week.meta.injuryRisk === "MED" ? "bg-amber-500/20 text-amber-400" :
+                    "bg-red-500/20 text-red-400"
                   )}
                 >
-                  {m.week.meta.injury_risk_tag}
+                  {m.week.meta.injuryRisk}
                 </Badge>
               </td>
             ))}
           </tr>
+          
+          {/* Sport Breakdown for Triathlon */}
+          {metrics.some(m => m.week.templateType === "triathlon") && (
+            <>
+              <tr>
+                <td className="px-3 py-2 text-muted-foreground flex items-center gap-1">
+                  <Waves className="h-3 w-3" /> Natation
+                </td>
+                {metrics.map((m, i) => (
+                  <td key={i} className="px-3 py-2 text-center font-mono text-cyan-400">
+                    {formatDuration(m.sportBreakdown["Natation"] || 0)}
+                  </td>
+                ))}
+              </tr>
+              <tr>
+                <td className="px-3 py-2 text-muted-foreground flex items-center gap-1">
+                  <Bike className="h-3 w-3" /> Vélo
+                </td>
+                {metrics.map((m, i) => (
+                  <td key={i} className="px-3 py-2 text-center font-mono text-green-400">
+                    {formatDuration(m.sportBreakdown["Vélo"] || 0)}
+                  </td>
+                ))}
+              </tr>
+              <tr>
+                <td className="px-3 py-2 text-muted-foreground flex items-center gap-1">
+                  <Footprints className="h-3 w-3" /> CAP
+                </td>
+                {metrics.map((m, i) => (
+                  <td key={i} className="px-3 py-2 text-center font-mono text-orange-400">
+                    {formatDuration(m.sportBreakdown["CAP"] || 0)}
+                  </td>
+                ))}
+              </tr>
+            </>
+          )}
         </tbody>
       </table>
     </div>
@@ -342,23 +444,63 @@ function ComparisonTable({ metrics }: { metrics: ComparisonMetrics[] }) {
 
 export function QuickWeekComparisonPanel() {
   const [slots, setSlots] = useState<WeekSlot[]>([
-    { templateId: null, weekId: null },
-    { templateId: null, weekId: null },
+    { weekId: null },
+    { weekId: null },
   ]);
+  
+  const { plans: importedPlans, refresh: refreshImported } = useImportedPlans();
 
-  // Flatten all weeks from all templates
-  const allWeeks = useMemo(() => {
-    return RUNNING_TEMPLATES.flatMap(template => 
-      template.sections.flatMap(section => 
-        section.weeks.map(week => ({ template, week }))
-      )
-    );
+  // Refresh imported plans on mount
+  useEffect(() => {
+    refreshImported();
   }, []);
 
-  const handleSelect = (slotIndex: number, templateId: string, weekId: string) => {
+  // Build unified week list from all sources
+  const allWeeks = useMemo(() => {
+    const weeks: UnifiedWeek[] = [];
+    
+    // 1. Running templates
+    RUNNING_TEMPLATES.forEach(template => {
+      template.sections.forEach(section => {
+        section.weeks.forEach(week => {
+          weeks.push(runningWeekToUnified(week, template.name, template.goal));
+        });
+      });
+    });
+    
+    // 2. Triathlon templates (static)
+    PROGRAM_TEMPLATES.forEach(template => {
+      if (template.weeks) {
+        template.weeks.forEach(week => {
+          weeks.push(triathlonWeekToUnified(
+            week, 
+            template.id, 
+            template.name, 
+            template.target.toLowerCase()
+          ));
+        });
+      }
+    });
+    
+    // 3. Imported plans
+    importedPlans.forEach(plan => {
+      plan.weeks.forEach(week => {
+        weeks.push(triathlonWeekToUnified(
+          week,
+          plan.id,
+          `📥 ${plan.name}`,
+          plan.goal
+        ));
+      });
+    });
+    
+    return weeks;
+  }, [importedPlans]);
+
+  const handleSelect = (slotIndex: number, weekId: string) => {
     setSlots(prev => {
       const newSlots = [...prev];
-      newSlots[slotIndex] = { templateId, weekId };
+      newSlots[slotIndex] = { weekId };
       return newSlots;
     });
   };
@@ -366,21 +508,21 @@ export function QuickWeekComparisonPanel() {
   const handleClear = (slotIndex: number) => {
     setSlots(prev => {
       const newSlots = [...prev];
-      newSlots[slotIndex] = { templateId: null, weekId: null };
+      newSlots[slotIndex] = { weekId: null };
       return newSlots;
     });
   };
 
   const handleAddSlot = () => {
     if (slots.length < 4) {
-      setSlots(prev => [...prev, { templateId: null, weekId: null }]);
+      setSlots(prev => [...prev, { weekId: null }]);
     }
   };
 
   const handleClearAll = () => {
     setSlots([
-      { templateId: null, weekId: null },
-      { templateId: null, weekId: null },
+      { weekId: null },
+      { weekId: null },
     ]);
   };
 
@@ -388,32 +530,30 @@ export function QuickWeekComparisonPanel() {
   const comparisonMetrics: ComparisonMetrics[] = useMemo(() => {
     return slots
       .map(slot => {
-        if (!slot.templateId || !slot.weekId) return null;
-        const found = allWeeks.find(
-          w => w.template.id === slot.templateId && w.week.week_id === slot.weekId
-        );
-        if (!found) return null;
+        if (!slot.weekId) return null;
+        const week = allWeeks.find(w => w.id === slot.weekId);
+        if (!week) return null;
         
-        const totalDuration = found.week.sessions.reduce((sum, s) => sum + s.duration_min, 0);
-        const keySessions = found.week.sessions.filter(s => s.isKey).length;
-        const sessionTypes = found.week.sessions.reduce((acc, s) => {
-          acc[s.type] = (acc[s.type] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>);
+        const totalDuration = week.sessions.reduce((sum, s) => sum + s.durationMin, 0);
+        const keySessions = week.sessions.filter(s => s.isKey).length;
+        const sportBreakdown: Record<string, number> = {};
+        
+        week.sessions.forEach(s => {
+          sportBreakdown[s.sport] = (sportBreakdown[s.sport] || 0) + s.durationMin;
+        });
         
         return {
-          week: found.week,
-          templateName: found.template.name,
+          week,
           totalDuration,
           keySessions,
-          sessionTypes,
-          sessionCount: found.week.sessions.length,
+          sessionCount: week.sessions.length,
+          sportBreakdown,
         };
       })
       .filter((m): m is ComparisonMetrics => m !== null);
   }, [slots, allWeeks]);
 
-  const hasAnySelection = slots.some(s => s.templateId && s.weekId);
+  const hasAnySelection = slots.some(s => s.weekId);
 
   return (
     <Card className="border-primary/30">
@@ -444,7 +584,7 @@ export function QuickWeekComparisonPanel() {
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-xs text-muted-foreground">
-          Sélectionnez jusqu'à 4 semaines via les dropdowns pour comparer volume, charge et intensité côte à côte.
+          Sélectionnez jusqu'à 4 semaines (Running ou Triathlon) pour comparer volume, charge et intensité côte à côte.
         </p>
         
         {/* Week Slots */}
@@ -455,7 +595,7 @@ export function QuickWeekComparisonPanel() {
               slot={slot}
               slotIndex={index}
               allWeeks={allWeeks}
-              onSelect={(templateId, weekId) => handleSelect(index, templateId, weekId)}
+              onSelect={(weekId) => handleSelect(index, weekId)}
               onClear={() => handleClear(index)}
             />
           ))}

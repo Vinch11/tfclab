@@ -75,6 +75,7 @@ import { RunningTemplateGrid } from "@/components/RunningTemplateViewer";
 import { QuickWeekComparisonPanel } from "@/components/QuickWeekComparisonPanel";
 import { TriathlonTemplateGrid } from "@/components/TriathlonTemplateGrid";
 import { GoalWeekSuggester } from "@/components/GoalWeekSuggester";
+import { ExcelPlanImporter } from "@/components/ExcelPlanImporter";
 import { RUNNING_TEMPLATES, getWeeksByGoal } from "@/lib/templates/runningTemplatesStore";
 import type { RunningTemplate, RunningWeek, WeekSuggestion } from "@/types/runningTemplate";
 
