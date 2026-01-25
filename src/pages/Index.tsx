@@ -1414,8 +1414,6 @@ const Index = () => {
                   vo2max: effectiveCloudSnapshot.vo2max ?? 55,
                   vlamax: vlamaxEffectif.value ?? 0.45,
                   weight: effectiveRefs.weightKg ?? 70,
-                  ftp: effectiveRefs.ftp ?? 250,
-                  fcMax: effectiveCloudSnapshot.fc_max ?? 180,
                 }}
                 observedTTE={effectiveCloudSnapshot.tte_mode === "OBSERVED" ? effectiveCloudSnapshot.tte_observed_min : null}
                 observedFTP={effectiveRefs.ftp ?? null}
