@@ -48,16 +48,16 @@ export const PROFIL_SECTIONS: SectionDefinition[] = [
 ];
 
 export const DASHBOARD_SECTIONS: SectionDefinition[] = [
-  // 👤 Profil athlète (en haut)
-  { id: "athlete-profile-card", label: "Carte Profil Athlète", icon: "UserCircle", category: "profil", defaultVisible: true },
-  
   // 🎯 Onboarding & Guide
   { id: "getting-started", label: "Guide de démarrage", icon: "Rocket", category: "onboarding", defaultVisible: true },
   { id: "data-completion-guide", label: "Complétion des données", icon: "CheckCircle", category: "onboarding", defaultVisible: true },
   
   // 👤 Profil athlète + Ambition
-  { id: "athlete-refs", label: "Profil & Références", icon: "User", category: "profil", defaultVisible: true },
+  { id: "athlete-refs", label: "Profil & Références", icon: "User", category: "profil", defaultVisible: false },
   { id: "ambition-progress", label: "Évolution vers les cibles", icon: "TrendingUp", category: "profil", defaultVisible: true },
+  
+  // 👤 Carte Profil Athlète (juste au-dessus du Compass)
+  { id: "athlete-profile-card", label: "Carte Profil Athlète", icon: "UserCircle", category: "profil", defaultVisible: true },
   
   // ⚡ Métriques VLamax/TTE
   { id: "compass", label: "Metabolic Compass", icon: "Compass", category: "metriques", defaultVisible: true },
