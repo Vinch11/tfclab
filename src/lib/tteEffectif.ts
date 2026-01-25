@@ -184,11 +184,14 @@ export function formatTTEDisplay(tte: TTEEffectif): string {
 export function formatTTEWithRange(tte: TTEEffectif): string {
   if (tte.source === "unknown") return "—";
   
-  // Calculer la marge selon la confiance (précision adaptative)
+  // TTE mesuré = valeur exacte, pas de plage
+  if (tte.source === "observed") {
+    return `${tte.tte_min} min`;
+  }
+  
+  // Pour les estimations: marge selon la confiance (précision adaptative)
   let marginMin: number;
-  if (tte.confidence >= 0.9) {
-    marginMin = 2; // ±2 min
-  } else if (tte.confidence >= 0.75) {
+  if (tte.confidence >= 0.75) {
     marginMin = 3; // ±3 min
   } else if (tte.confidence >= 0.55) {
     marginMin = 5; // ±5 min
@@ -196,11 +199,6 @@ export function formatTTEWithRange(tte: TTEEffectif): string {
     marginMin = 8; // ±8 min
   } else {
     marginMin = 12; // ±12 min
-  }
-  
-  // Si marge <= 2 min et confiance haute, afficher juste la valeur
-  if (marginMin <= 2 && tte.source === "observed") {
-    return `${tte.tte_min} min`;
   }
   
   const low = Math.max(20, tte.tte_min - marginMin);
