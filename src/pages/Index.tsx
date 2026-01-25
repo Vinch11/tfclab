@@ -82,9 +82,6 @@ import { GettingStartedChecklist } from "@/components/GettingStartedChecklist";
 // ✅ Page de configuration (thèmes, préférences)
 import { ConfigurationPage } from "@/components/ConfigurationPage";
 
-// ✅ INSCYD-style simulators
-import { WhatIfSimulator } from "@/components/WhatIfSimulator";
-import { LactatePredictionCurve } from "@/components/LactatePredictionCurve";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1407,40 +1404,13 @@ const Index = () => {
             ),
           },
           {
-            id: "what-if-simulator",
+            id: "metabolic-power-curve",
             render: () => currentAthlete && effectiveCloudSnapshot && (
-              <WhatIfSimulator
-                initialProfile={{
-                  vo2max: effectiveCloudSnapshot.vo2max ?? 55,
-                  vlamax: vlamaxEffectif.value ?? 0.45,
-                  weight: effectiveRefs.weightKg ?? 70,
-                }}
-                observedTTE={effectiveCloudSnapshot.tte_mode === "OBSERVED" ? effectiveCloudSnapshot.tte_observed_min : null}
-                observedFTP={effectiveRefs.ftp ?? null}
-              />
-            ),
-          },
-          {
-            id: "lactate-prediction",
-            render: () => currentAthlete && effectiveCloudSnapshot && (
-              <LactatePredictionCurve
-                vo2max={effectiveCloudSnapshot.vo2max ?? 55}
-                vlamax={vlamaxEffectif.value ?? 0.45}
-                ftp={effectiveRefs.ftp ?? 250}
-                weight={effectiveRefs.weightKg ?? 70}
-              />
-            ),
-          },
-          {
-            id: "carb-burn-rate",
-            render: () => currentAthlete && effectiveCloudSnapshot && (
-              <CarbBurnRateChart
+              <MetabolicPowerCurve
                 vo2max={effectiveCloudSnapshot.vo2max ?? 55}
                 vlamax={vlamaxEffectif.value ?? 0.45}
                 weight={effectiveRefs.weightKg ?? 70}
                 ftp={effectiveRefs.ftp ?? 250}
-                targetIntensity={currentAthlete.goal === "IM" ? 68 : currentAthlete.goal === "703" ? 78 : 82}
-                raceType={currentAthlete.goal || "IM"}
               />
             ),
           },

@@ -88,9 +88,6 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   { id: "staff-dashboard", label: "Staff Dashboard", icon: "Users", category: "outils", defaultVisible: false },
   
   // 🔬 INSCYD-style Simulator
-  { id: "what-if-simulator", label: "Simulateur What-If", icon: "Beaker", category: "analyse", defaultVisible: true },
-  { id: "lactate-prediction", label: "Courbe de Lactate", icon: "TrendingUp", category: "analyse", defaultVisible: true },
-  { id: "carb-burn-rate", label: "Carb Burn Rate", icon: "Flame", category: "analyse", defaultVisible: true },
   { id: "metabolic-power-curve", label: "Metabolic Power Curve", icon: "Zap", category: "analyse", defaultVisible: true },
 ];
 
