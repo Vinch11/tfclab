@@ -71,8 +71,9 @@ const navigationGroups = [
     label: "Suivi & Fatigue",
     defaultOpen: false,
     items: [
-      { id: "fatigue", label: "Fatigue & Readiness", icon: Activity, tab: "fatigue" },
-      { id: "zones", label: "Zones d'entraînement", icon: Target, tab: "zones" },
+      // Ces fonctions sont disponibles dans le dashboard (sections réorganisables)
+      // Pas de tab dédié - on redirige vers le dashboard
+      { id: "dashboard-fatigue", label: "Fatigue & Readiness", icon: Activity, route: "/", tab: "dashboard" },
     ],
   },
   {
