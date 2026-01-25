@@ -72,6 +72,7 @@ import {
 import { WahooSuggestionsPanel } from "@/components/WahooSuggestionsPanel";
 import { WeekSelectorTFCL } from "@/components/WeekSelectorTFCL";
 import { RunningTemplateGrid } from "@/components/RunningTemplateViewer";
+import { GoalWeekSuggester } from "@/components/GoalWeekSuggester";
 import { RUNNING_TEMPLATES, getWeeksByGoal } from "@/lib/templates/runningTemplatesStore";
 import type { RunningTemplate, RunningWeek, WeekSuggestion } from "@/types/runningTemplate";
 
@@ -1653,6 +1654,9 @@ export default function TemplatesPage() {
                         {RUNNING_TEMPLATES.filter(t => t.goal === "marathon").length} Marathon • {RUNNING_TEMPLATES.filter(t => t.goal === "semi").length} Semi
                       </Badge>
                     </div>
+
+                    {/* Goal Week Suggester - Date-based suggestions */}
+                    <GoalWeekSuggester />
                     
                     {/* Interactive Running Templates Grid with Comparison */}
                     <RunningTemplateGrid />
