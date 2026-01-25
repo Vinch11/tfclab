@@ -1377,6 +1377,71 @@ export default function TemplatesPage() {
     );
   }, [templateProfiles, athleteMetrics]);
 
+  // Build AthleteTruthRunning for GoalWeekSuggester synchronization
+  const athleteTruthRunning = useMemo(() => {
+    if (!selectedAthlete || !selectedSnapshot) return undefined;
+    
+    // Calculate age from birth_date
+    let age: number | null = null;
+    if (selectedAthlete.birth_date) {
+      const birthDate = new Date(selectedAthlete.birth_date);
+      const today = new Date();
+      age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+    }
+
+    // Map fatigue state to index and level
+    const fatigueState = (selectedSnapshot as any)?.fatigue_state;
+    let fatigueIndex = 40;
+    let fatigueLevel = "MODERE";
+    if (fatigueState === "high" || fatigueState === "élevé") {
+      fatigueIndex = 70;
+      fatigueLevel = "ELEVE";
+    } else if (fatigueState === "low" || fatigueState === "faible") {
+      fatigueIndex = 20;
+      fatigueLevel = "FAIBLE";
+    } else if (fatigueState === "ok" || fatigueState === "moderate") {
+      fatigueIndex = 45;
+      fatigueLevel = "MODERE";
+    }
+
+    // Compute CAP injury risk locally (to avoid circular dependency)
+    const localInjuryRisk = computeCAPInjuryRisk({
+      vlamaxValue: athleteMetrics.vlamaxEffectif.value,
+      tteValue: athleteMetrics.tteEffectif.value,
+      objectif: selectedAthlete.goal || "marathon",
+    });
+
+    return {
+      vlamax_run: {
+        value: athleteMetrics.vlamaxEffectif.value,
+        confidence: athleteMetrics.vlamaxEffectif.confidence || 0.5,
+        source: athleteMetrics.vlamaxEffectif.source || "unknown",
+      },
+      tte_run: {
+        value: athleteMetrics.tteEffectif.value,
+        confidence: athleteMetrics.tteEffectif.confidence || 0.5,
+        source: athleteMetrics.tteEffectif.source || "unknown",
+      },
+      fatigueIndex,
+      fatigueLevel,
+      runInjuryRisk: {
+        score: localInjuryRisk.totalScore,
+        level: localInjuryRisk.label,
+      },
+      economy_run: selectedSnapshot.run_economy_score ? {
+        score: selectedSnapshot.run_economy_score,
+        label: selectedSnapshot.run_economy_label || "Moyenne",
+      } : undefined,
+      age,
+      sex: selectedAthlete.sex,
+      objectif: selectedAthlete.goal || "marathon",
+    };
+  }, [selectedAthlete, selectedSnapshot, athleteMetrics]);
+
   // Generate V2 annotations
   const annotationsV2 = useMemo(() => {
     if (!staffMode || !athleteMetrics.signals || displayedWeeks.length === 0) return [];
@@ -1679,7 +1744,10 @@ export default function TemplatesPage() {
                     </div>
 
                     {/* Goal Week Suggester - Date-based suggestions */}
-                    <GoalWeekSuggester />
+                    <GoalWeekSuggester 
+                      athleteTruth={athleteTruthRunning}
+                      defaultGoal={selectedAthlete?.goal === "semi" || selectedAthlete?.goal?.toLowerCase().includes("semi") ? "semi" : "marathon"}
+                    />
                     
                     {/* Interactive Running Templates Grid with Comparison */}
                     <RunningTemplateGrid />
