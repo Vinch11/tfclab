@@ -1131,24 +1131,9 @@ const Index = () => {
                 {/* Boutons - responsive grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:flex lg:flex-wrap gap-2 sm:gap-3">
                   <Button
-                    variant={showTestLibrary ? "default" : "outline"}
-                    onClick={() => {
-                      setShowTestLibrary(!showTestLibrary);
-                      setShowPhysioAnalysis(false);
-                      setShowSnapshots(false);
-                      setShowCheckins(false);
-                    }}
-                    className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 sm:h-10"
-                  >
-                    <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                    <span className="truncate">Tests</span>
-                  </Button>
-
-                  <Button
                     variant={showPhysioAnalysis ? "default" : "outline"}
                     onClick={() => {
                       setShowPhysioAnalysis(!showPhysioAnalysis);
-                      setShowTestLibrary(false);
                       setShowSnapshots(false);
                       setShowCheckins(false);
                     }}
@@ -1162,7 +1147,6 @@ const Index = () => {
                     variant={showSnapshots ? "default" : "outline"}
                     onClick={() => {
                       setShowSnapshots(!showSnapshots);
-                      setShowTestLibrary(false);
                       setShowPhysioAnalysis(false);
                       setShowCheckins(false);
                     }}
@@ -1176,7 +1160,6 @@ const Index = () => {
                     variant={showCheckins ? "default" : "outline"}
                     onClick={() => {
                       setShowCheckins(!showCheckins);
-                      setShowTestLibrary(false);
                       setShowPhysioAnalysis(false);
                       setShowSnapshots(false);
                     }}
@@ -1208,7 +1191,6 @@ const Index = () => {
                 </div>
 
                 {/* Contenu conditionnel */}
-                {showTestLibrary && <TestProtocols athlete={legacyAthlete} />}
                 {showPhysioAnalysis && <PhysiologicalAnalysis 
                   athlete={legacyAthlete} 
                   vlamaxEffectif={vlamaxEffectif} 
