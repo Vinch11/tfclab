@@ -203,7 +203,6 @@ const Index = () => {
     localStorage.setItem("vlab-active-tab", activeTab);
   }, [activeTab]);
   
-  const [showTestLibrary, setShowTestLibrary] = useState(false);
   const [showPhysioAnalysis, setShowPhysioAnalysis] = useState(false);
   
   // ✅ Persisted state for snapshot panel to survive page minimize/restore
@@ -1393,17 +1392,6 @@ const Index = () => {
                 vlamax={vlamaxEffectif.value ?? 0.45}
                 weight={effectiveRefs.weightKg ?? 70}
                 ftp={effectiveRefs.ftp ?? 250}
-              />
-            ),
-          },
-          {
-            id: "metabolic-power-curve",
-            render: () => currentAthlete && effectiveCloudSnapshot && (
-              <MetabolicPowerCurve
-                vo2max={effectiveCloudSnapshot.vo2max ?? 55}
-                vlamax={vlamaxEffectif.value ?? 0.45}
-                weight={effectiveRefs.weightKg ?? 70}
-                ftp={effectiveRefs.ftp ?? 250}
                 pMax5s={effectiveCloudSnapshot.pmax_5s ?? undefined}
               />
             ),
@@ -1593,7 +1581,6 @@ const Index = () => {
                     ambition={currentAmbition}
                     onGoToSnapshots={() => {
                       setShowSnapshots(true);
-                      setShowTestLibrary(false);
                       setShowPhysioAnalysis(false);
                       setShowCheckins(false);
                     }}
