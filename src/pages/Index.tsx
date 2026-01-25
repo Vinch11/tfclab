@@ -802,34 +802,6 @@ const Index = () => {
         // Sections réorganisables pour le Dashboard
         const dashboardSections = [
           {
-            id: "athlete-profile-card",
-            render: () => currentAthlete && legacyAthlete && (
-              <AthleteProfile 
-                athlete={legacyAthlete} 
-                onUpdate={() => {}} 
-                onSaveToCloud={async (data) => {
-                  await updateAthlete(currentAthlete.id, { 
-                    ...data,
-                    sex: data.sex 
-                  });
-                }}
-                onUpdateMasseGrasse={async (val) => {
-                  const existingRefs = (currentAthlete.refs as Record<string, unknown>) || {};
-                  await updateAthlete(currentAthlete.id, { 
-                    refs: { ...existingRefs, fatPct: val } as any
-                  });
-                }}
-                snapshotFatPct={effectiveCloudSnapshot?.fat_pct}
-                onOpenSnapshots={() => {
-                  setActiveTab("profil");
-                  setShowSnapshots(true);
-                }}
-                vlamaxEffectif={vlamaxEffectif}
-                tteEffectif={tteEffectif}
-              />
-            ),
-          },
-          {
             id: "getting-started",
             render: () => currentAthlete && (
               <GettingStartedChecklist
@@ -1278,6 +1250,34 @@ const Index = () => {
                 onUpdate={async (value) => {
                   await updateSnapshot(effectiveCloudSnapshot.id, { tss_7d: value });
                 }}
+              />
+            ),
+          },
+          {
+            id: "athlete-profile-card",
+            render: () => currentAthlete && legacyAthlete && (
+              <AthleteProfile 
+                athlete={legacyAthlete} 
+                onUpdate={() => {}} 
+                onSaveToCloud={async (data) => {
+                  await updateAthlete(currentAthlete.id, { 
+                    ...data,
+                    sex: data.sex 
+                  });
+                }}
+                onUpdateMasseGrasse={async (val) => {
+                  const existingRefs = (currentAthlete.refs as Record<string, unknown>) || {};
+                  await updateAthlete(currentAthlete.id, { 
+                    refs: { ...existingRefs, fatPct: val } as any
+                  });
+                }}
+                snapshotFatPct={effectiveCloudSnapshot?.fat_pct}
+                onOpenSnapshots={() => {
+                  setActiveTab("profil");
+                  setShowSnapshots(true);
+                }}
+                vlamaxEffectif={vlamaxEffectif}
+                tteEffectif={tteEffectif}
               />
             ),
           },
