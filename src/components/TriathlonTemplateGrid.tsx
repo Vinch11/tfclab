@@ -18,12 +18,15 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { 
   ChevronRight, Calendar as CalendarIcon, Flame, Heart, Timer, TrendingUp, Zap, 
   Target, Dumbbell, Clock, Eye, CheckCircle2, Lightbulb, Waves, Bike, PersonStanding, 
-  BarChart3, X, ArrowLeftRight
+  BarChart3, X, ArrowLeftRight, AlertTriangle, Activity, User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PROGRAM_TEMPLATES } from "@/data/programTemplates";
 import type { TemplateWeek, TemplateSession } from "@/lib/templates/docxTemplateLoader";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { useAthletes } from "@/contexts/AthleteContext";
+import { useCloudDataContext } from "@/contexts/CloudDataContext";
+import { computeCAPInjuryRisk, type CAPRiskLevel } from "@/lib/capInjuryRisk";
 
 // =============================================
 // TYPES
@@ -558,7 +561,244 @@ function TemplateCard({ template }: { template: TriathlonTemplate }) {
 }
 
 // =============================================
-// GOAL DATE SUGGESTER
+// ATHLETE PROFILE BADGE
+// =============================================
+
+interface AthleteProfileData {
+  name: string;
+  vlamax: number | null;
+  vlamaxConfidence: number;
+  tte: number | null;
+  tteConfidence: number;
+  fatigueState: string;
+  fatigueIndex: number;
+  injuryRiskLevel: CAPRiskLevel;
+  injuryRiskLabel: string;
+  objectif: string;
+}
+
+function AthleteProfileBadge({ profile }: { profile: AthleteProfileData | null }) {
+  if (!profile) {
+    return (
+      <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg border border-dashed">
+        <User className="h-4 w-4 text-muted-foreground" />
+        <span className="text-xs text-muted-foreground">Aucun athlète sélectionné</span>
+      </div>
+    );
+  }
+
+  const getRiskColor = (level: CAPRiskLevel) => {
+    switch (level) {
+      case 0: return "text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-300";
+      case 1: return "text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300";
+      case 2: return "text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-300";
+      case 3: return "text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-300";
+    }
+  };
+
+  const getFatigueColor = (index: number) => {
+    if (index >= 70) return "text-red-600";
+    if (index >= 55) return "text-amber-600";
+    return "text-green-600";
+  };
+
+  return (
+    <div className="p-3 bg-background rounded-lg border space-y-2">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <User className="h-4 w-4 text-primary" />
+          <span className="font-medium text-sm">{profile.name}</span>
+          <Badge variant="outline" className="text-[10px]">{profile.objectif}</Badge>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {/* VLamax */}
+        <div className="bg-muted/50 rounded p-2">
+          <div className="text-[10px] text-muted-foreground uppercase">VLamax</div>
+          <div className="font-mono font-bold text-sm">
+            {profile.vlamax !== null ? profile.vlamax.toFixed(2) : "—"}
+          </div>
+          {profile.vlamax !== null && (
+            <div className="text-[10px] text-muted-foreground">
+              {Math.round(profile.vlamaxConfidence * 100)}% conf.
+            </div>
+          )}
+        </div>
+        
+        {/* TTE */}
+        <div className="bg-muted/50 rounded p-2">
+          <div className="text-[10px] text-muted-foreground uppercase">TTE</div>
+          <div className="font-mono font-bold text-sm">
+            {profile.tte !== null ? `${profile.tte}'` : "—"}
+          </div>
+          {profile.tte !== null && (
+            <div className="text-[10px] text-muted-foreground">
+              {Math.round(profile.tteConfidence * 100)}% conf.
+            </div>
+          )}
+        </div>
+        
+        {/* Fatigue */}
+        <div className="bg-muted/50 rounded p-2">
+          <div className="text-[10px] text-muted-foreground uppercase">Fatigue</div>
+          <div className={cn("font-mono font-bold text-sm", getFatigueColor(profile.fatigueIndex))}>
+            {profile.fatigueIndex}%
+          </div>
+          <div className="text-[10px] text-muted-foreground capitalize">
+            {profile.fatigueState}
+          </div>
+        </div>
+        
+        {/* Injury Risk */}
+        <div className="bg-muted/50 rounded p-2">
+          <div className="text-[10px] text-muted-foreground uppercase">Risque CAP</div>
+          <Badge variant="outline" className={cn("text-[10px] font-medium", getRiskColor(profile.injuryRiskLevel))}>
+            {profile.injuryRiskLabel}
+          </Badge>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// =============================================
+// PERSONALIZED RECOMMENDATION PANEL
+// =============================================
+
+interface PersonalizedRecommendation {
+  type: "info" | "warning" | "success";
+  title: string;
+  message: string;
+}
+
+function getPersonalizedRecommendations(
+  profile: AthleteProfileData | null,
+  phase: TriathlonPhase,
+  goal: TriathlonGoal
+): PersonalizedRecommendation[] {
+  if (!profile) return [];
+  
+  const recommendations: PersonalizedRecommendation[] = [];
+  
+  // VLamax analysis
+  if (profile.vlamax !== null) {
+    const vlamaxThreshold = goal === "IM" ? 0.38 : 0.42;
+    if (profile.vlamax > vlamaxThreshold + 0.1) {
+      recommendations.push({
+        type: "warning",
+        title: "VLamax élevée",
+        message: `VLamax de ${profile.vlamax.toFixed(2)} supérieure au seuil ${goal === "IM" ? "Ironman" : "70.3"} (${vlamaxThreshold}). Privilégier les séances Z2 longues vélo pour développer le profil aérobie.`
+      });
+    } else if (profile.vlamax <= vlamaxThreshold) {
+      recommendations.push({
+        type: "success",
+        title: "Profil aérobie optimal",
+        message: `VLamax bien adaptée pour ${goal === "IM" ? "l'Ironman" : "le 70.3"}. Maintenir le volume Z2 actuel.`
+      });
+    }
+  }
+  
+  // TTE analysis
+  if (profile.tte !== null) {
+    const tteThreshold = goal === "IM" ? 55 : 50;
+    if (profile.tte < tteThreshold - 5) {
+      recommendations.push({
+        type: "warning",
+        title: "TTE insuffisant",
+        message: `TTE de ${profile.tte}min inférieur à la cible ${goal === "IM" ? "Ironman" : "70.3"} (${tteThreshold}min). Intégrer des blocs tempo prolongés au seuil.`
+      });
+    } else if (profile.tte >= tteThreshold) {
+      recommendations.push({
+        type: "success",
+        title: "Endurance seuil excellente",
+        message: `TTE de ${profile.tte}min bien adapté pour la distance. Peut supporter les séances de haute qualité.`
+      });
+    }
+  }
+  
+  // Fatigue analysis
+  if (profile.fatigueIndex >= 70) {
+    recommendations.push({
+      type: "warning",
+      title: "Fatigue élevée détectée",
+      message: "Réduire le volume de 20-30% cette semaine. Privilégier récupération active et sommeil."
+    });
+  } else if (profile.fatigueIndex >= 55) {
+    recommendations.push({
+      type: "info",
+      title: "Fatigue modérée",
+      message: "Maintenir le volume mais réduire l'intensité des séances clés si nécessaire."
+    });
+  }
+  
+  // Injury risk analysis
+  if (profile.injuryRiskLevel >= 2) {
+    recommendations.push({
+      type: "warning",
+      title: "Risque blessure CAP",
+      message: "Limiter les CAP longues. Transférer le volume sur le vélo pour préserver l'intégrité musculo-tendineuse."
+    });
+  }
+  
+  // Phase-specific recommendations
+  if (phase === "TAPER" && profile.fatigueIndex < 40) {
+    recommendations.push({
+      type: "info",
+      title: "Phase Affûtage",
+      message: "Niveau de fatigue bas → peut maintenir quelques intensités courtes pour rester affûté."
+    });
+  }
+  
+  if (phase === "VO2MAX" && profile.injuryRiskLevel >= 2) {
+    recommendations.push({
+      type: "warning",
+      title: "Phase VO2 risquée",
+      message: "Risque blessure élevé incompatible avec les séances VO2 CAP. Réaliser les séances intensives à vélo."
+    });
+  }
+  
+  return recommendations;
+}
+
+function RecommendationPanel({ recommendations }: { recommendations: PersonalizedRecommendation[] }) {
+  if (recommendations.length === 0) return null;
+  
+  return (
+    <div className="space-y-2 pt-2 border-t border-dashed">
+      <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+        <Activity className="h-3 w-3" />
+        Recommandations personnalisées
+      </div>
+      <div className="space-y-1.5">
+        {recommendations.map((rec, idx) => (
+          <div 
+            key={idx}
+            className={cn(
+              "p-2 rounded text-xs",
+              rec.type === "warning" && "bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800",
+              rec.type === "success" && "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800",
+              rec.type === "info" && "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
+            )}
+          >
+            <div className="flex items-start gap-2">
+              {rec.type === "warning" && <AlertTriangle className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />}
+              {rec.type === "success" && <CheckCircle2 className="h-3.5 w-3.5 text-green-600 shrink-0 mt-0.5" />}
+              {rec.type === "info" && <Lightbulb className="h-3.5 w-3.5 text-blue-600 shrink-0 mt-0.5" />}
+              <div>
+                <div className="font-medium">{rec.title}</div>
+                <div className="text-muted-foreground">{rec.message}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// =============================================
+// GOAL DATE SUGGESTER (with athlete profile)
 // =============================================
 
 function GoalDateSuggester() {
@@ -566,8 +806,59 @@ function GoalDateSuggester() {
   const [selectedGoal, setSelectedGoal] = useState<TriathlonGoal>("703");
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   
+  const { currentAthlete } = useAthletes();
+  const { snapshots } = useCloudDataContext();
+  
   const templates = useMemo(() => getTriathlonTemplates(), []);
   const template = templates.find(t => t.target === selectedGoal);
+  
+  // Get active snapshot for current athlete
+  const activeSnapshot = useMemo(() => {
+    if (!currentAthlete) return null;
+    const snapshotId = currentAthlete.active_snapshot_id;
+    if (!snapshotId) return snapshots.find(s => s.athlete_id === currentAthlete.id) || null;
+    return snapshots.find(s => s.id === snapshotId) || null;
+  }, [currentAthlete, snapshots]);
+  
+  // Compute athlete physiological profile
+  const athleteProfile = useMemo((): AthleteProfileData | null => {
+    if (!currentAthlete) return null;
+    
+    // Get VLamax directly from snapshot (simplified approach)
+    const vlamax = activeSnapshot?.vlamax ?? activeSnapshot?.vlamax_run ?? null;
+    const vlamaxConfidence = vlamax !== null ? 0.75 : 0;
+    
+    // Get TTE directly from snapshot
+    const tte = activeSnapshot?.tte_observed_min ?? null;
+    const tteConfidence = tte !== null ? 0.75 : 0;
+    
+    // Map fatigue state
+    const fatigueState = (activeSnapshot as any)?.fatigue_state || "ok";
+    let fatigueIndex = 40;
+    if (fatigueState === "high" || fatigueState === "élevé") fatigueIndex = 70;
+    else if (fatigueState === "low" || fatigueState === "faible") fatigueIndex = 20;
+    else if (fatigueState === "ok" || fatigueState === "moderate") fatigueIndex = 45;
+    
+    // Compute CAP injury risk
+    const injuryRisk = computeCAPInjuryRisk({
+      vlamaxValue: vlamax,
+      tteValue: tte,
+      objectif: currentAthlete.objectif || selectedGoal
+    });
+    
+    return {
+      name: currentAthlete.nom,
+      vlamax,
+      vlamaxConfidence,
+      tte,
+      tteConfidence,
+      fatigueState,
+      fatigueIndex,
+      injuryRiskLevel: injuryRisk.level,
+      injuryRiskLabel: injuryRisk.label,
+      objectif: currentAthlete.objectif || selectedGoal
+    };
+  }, [currentAthlete, activeSnapshot, selectedGoal]);
   
   const suggestion = useMemo(() => {
     if (!raceDate || !template) return null;
@@ -588,6 +879,12 @@ function GoalDateSuggester() {
       templateName: template.name,
     };
   }, [raceDate, template]);
+  
+  // Get personalized recommendations
+  const recommendations = useMemo(() => {
+    if (!suggestion) return [];
+    return getPersonalizedRecommendations(athleteProfile, suggestion.phase, selectedGoal);
+  }, [athleteProfile, suggestion, selectedGoal]);
 
   return (
     <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
@@ -598,6 +895,9 @@ function GoalDateSuggester() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
+        {/* Athlete Profile Badge */}
+        <AthleteProfileBadge profile={athleteProfile} />
+        
         <div className="flex items-center gap-2 flex-wrap">
           <Tabs value={selectedGoal} onValueChange={(v) => setSelectedGoal(v as TriathlonGoal)}>
             <TabsList className="h-8">
@@ -657,6 +957,9 @@ function GoalDateSuggester() {
             {suggestion.week.theme && (
               <p className="text-xs text-muted-foreground">{suggestion.week.theme}</p>
             )}
+            
+            {/* Personalized recommendations */}
+            <RecommendationPanel recommendations={recommendations} />
           </div>
         )}
       </CardContent>
