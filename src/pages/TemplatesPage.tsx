@@ -1664,12 +1664,14 @@ export default function TemplatesPage() {
             </CollapsibleTrigger>
             <CollapsibleContent>
               <CardContent className="space-y-6 pt-0">
-                {/* Triathlon/Ironman Templates */}
+                {/* Triathlon/Ironman Templates - excluding Marathon/Semi which are in Running section */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <Activity className="h-4 w-4 text-primary" />
                     <span className="text-sm font-semibold">Templates Triathlon / Ironman</span>
-                    <Badge variant="secondary" className="text-xs">{PROGRAM_TEMPLATES.length} plans</Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      {PROGRAM_TEMPLATES.filter(t => t.target === "IM" || t.target === "703").length} plans
+                    </Badge>
                   </div>
                   <Select 
                     value={selectedTemplateId} 
@@ -1685,12 +1687,14 @@ export default function TemplatesPage() {
                       <SelectValue placeholder="Choisir un template triathlon" />
                     </SelectTrigger>
                     <SelectContent>
-                      {PROGRAM_TEMPLATES.map((t) => (
-                        <SelectItem key={t.id} value={t.id}>
-                          {t.name} ({t.target})
-                          {t.multiSections && " 📑"}
-                        </SelectItem>
-                      ))}
+                      {PROGRAM_TEMPLATES
+                        .filter(t => t.target === "IM" || t.target === "703")
+                        .map((t) => (
+                          <SelectItem key={t.id} value={t.id}>
+                            {t.name} ({t.target})
+                            {t.multiSections && " 📑"}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
 
