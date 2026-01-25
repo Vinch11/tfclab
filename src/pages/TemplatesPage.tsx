@@ -1677,87 +1677,6 @@ export default function TemplatesPage() {
                   
                   {/* Interactive Triathlon Templates Grid with Date Suggester */}
                   <TriathlonTemplateGrid />
-                  
-                  {/* Actions for loading full template */}
-                  <Collapsible defaultOpen={false}>
-                    <div className="pt-3 border-t border-dashed">
-                      <CollapsibleTrigger className="flex items-center justify-between w-full py-2 hover:bg-muted/50 rounded-lg px-2 transition-colors">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm font-medium text-muted-foreground">Charger template complet (mode avancé)</span>
-                        </div>
-                        <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform data-[state=open]:rotate-180" />
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <div className="pt-3 space-y-3">
-                          <Select 
-                            value={selectedTemplateId} 
-                            onValueChange={(v) => {
-                              setSelectedTemplateId(v);
-                              setIsLoaded(false);
-                              setWeeks([]);
-                              setSections([]);
-                              setSelectedSectionId(null);
-                            }}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Choisir un template triathlon" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-background">
-                              {PROGRAM_TEMPLATES
-                                .filter(t => t.target === "IM" || t.target === "703")
-                                .map((t) => (
-                                  <SelectItem key={t.id} value={t.id}>
-                                    {t.name} ({t.target})
-                                    {t.multiSections && " 📑"}
-                                  </SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
-
-                          <div className="flex flex-wrap gap-2">
-                            <Button onClick={handleLoadTemplate} disabled={isLoading || !selectedTemplateId}>
-                              {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                              Charger le template
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              onClick={() => navigate("/tfcl-testing-week")}
-                              className="gap-2"
-                            >
-                              <Beaker className="h-4 w-4" />
-                              Semaine de Référence TFCL
-                            </Button>
-                            {isLoaded && (
-                              <>
-                                <Button variant="outline" onClick={handleCopyAll}>
-                                  <Copy className="h-4 w-4 mr-2" />
-                                  Copier tout
-                                </Button>
-                                <Button variant="ghost" size="sm" onClick={handleClearCache}>
-                                  Vider le cache
-                                </Button>
-                                <Button 
-                                  variant="destructive" 
-                                  size="sm" 
-                                  onClick={() => {
-                                    setIsLoaded(false);
-                                    setWeeks([]);
-                                    setSections([]);
-                                    setSelectedSectionId(null);
-                                    localStorage.removeItem("vlab-template-loaded");
-                                    toast.success("Template fermé");
-                                  }}
-                                >
-                                  Fermer le template
-                                </Button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </CollapsibleContent>
-                    </div>
-                  </Collapsible>
                 </div>
 
                 {/* Divider */}
@@ -1948,6 +1867,115 @@ export default function TemplatesPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Advanced Mode - Load Full Template (ALL templates) */}
+        <Card className="border-dashed">
+          <Collapsible defaultOpen={false}>
+            <CollapsibleTrigger className="w-full">
+              <CardHeader className="py-3 hover:bg-muted/30 transition-colors">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Charger template complet (mode avancé)
+                    <Badge variant="outline" className="text-[10px]">
+                      {PROGRAM_TEMPLATES.length} plans
+                    </Badge>
+                  </CardTitle>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform data-[state=open]:rotate-180" />
+                </div>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="pt-0 space-y-4">
+                <p className="text-xs text-muted-foreground">
+                  Sélectionnez un template pour afficher le graphique de volume par phase et le détail des semaines.
+                </p>
+                
+                <Select 
+                  value={selectedTemplateId} 
+                  onValueChange={(v) => {
+                    setSelectedTemplateId(v);
+                    setIsLoaded(false);
+                    setWeeks([]);
+                    setSections([]);
+                    setSelectedSectionId(null);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choisir un template" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background max-h-80">
+                    {/* Triathlon Templates */}
+                    <div className="px-2 py-1 text-xs font-semibold text-muted-foreground border-b">
+                      🏊 Triathlon
+                    </div>
+                    {PROGRAM_TEMPLATES
+                      .filter(t => t.target === "IM" || t.target === "703")
+                      .map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.name} ({t.target})
+                          {t.multiSections && " 📑"}
+                        </SelectItem>
+                      ))}
+                    
+                    {/* Running Templates */}
+                    <div className="px-2 py-1 text-xs font-semibold text-muted-foreground border-b border-t mt-1">
+                      🏃 Running
+                    </div>
+                    {PROGRAM_TEMPLATES
+                      .filter(t => t.target === "Marathon" || t.target === "Semi")
+                      .map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.name} ({t.target})
+                          {t.multiSections && " 📑"}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+
+                <div className="flex flex-wrap gap-2">
+                  <Button onClick={handleLoadTemplate} disabled={isLoading || !selectedTemplateId}>
+                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                    Charger le template
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => navigate("/tfcl-testing-week")}
+                    className="gap-2"
+                  >
+                    <Beaker className="h-4 w-4" />
+                    Semaine TFCL
+                  </Button>
+                  {isLoaded && (
+                    <>
+                      <Button variant="outline" onClick={handleCopyAll}>
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copier tout
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={handleClearCache}>
+                        Vider le cache
+                      </Button>
+                      <Button 
+                        variant="destructive" 
+                        size="sm" 
+                        onClick={() => {
+                          setIsLoaded(false);
+                          setWeeks([]);
+                          setSections([]);
+                          setSelectedSectionId(null);
+                          localStorage.removeItem("vlab-template-loaded");
+                          toast.success("Template fermé");
+                        }}
+                      >
+                        Fermer
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Collapsible>
+        </Card>
 
         {/* Phase Volume Chart */}
         {isLoaded && displayedWeeks.length > 0 && !showComparisonMode && (
