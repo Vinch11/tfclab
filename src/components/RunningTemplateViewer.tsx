@@ -376,48 +376,52 @@ export function WeekDetailDialog({ week, templateName, trigger }: WeekDetailDial
       <DialogTrigger asChild>
         {trigger}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl h-[85vh] flex flex-col">
-        <DialogHeader className="flex-shrink-0">
-          <DialogTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-primary" />
-            Semaine {week.week_number} - {week.title}
-          </DialogTitle>
-          <p className="text-sm text-muted-foreground">{templateName}</p>
-        </DialogHeader>
-        
-        <div className="flex-1 overflow-y-auto pr-2 -mr-2">
-          <div className="space-y-4 pb-4">
-            {/* Meta Info */}
-            <div className="flex flex-wrap gap-2">
-              <PhaseBadge phase={week.meta.phase} size="md" />
-              <FocusBadge focus={week.meta.focus} size="md" />
-              <Badge variant={week.meta.injury_risk_tag === "HIGH" ? "destructive" : "outline"} className="text-xs">
-                Risque: {week.meta.injury_risk_tag}
-              </Badge>
-            </div>
+      <DialogContent className="max-w-2xl h-[85vh] flex flex-col p-0">
+        {/* Fixed Header */}
+        <div className="flex-shrink-0 p-6 pb-4 border-b">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              Semaine {week.week_number} - {week.title}
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">{templateName}</p>
+          </DialogHeader>
+          
+          {/* Meta Info */}
+          <div className="flex flex-wrap gap-2 mt-4">
+            <PhaseBadge phase={week.meta.phase} size="md" />
+            <FocusBadge focus={week.meta.focus} size="md" />
+            <Badge variant={week.meta.injury_risk_tag === "HIGH" ? "destructive" : "outline"} className="text-xs">
+              Risque: {week.meta.injury_risk_tag}
+            </Badge>
+          </div>
 
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-3 mt-4">
+            <div className="text-center p-3 rounded-lg bg-card border">
+              <div className="text-lg font-bold font-mono text-primary">{formatDuration(totalDuration)}</div>
+              <div className="text-[10px] text-muted-foreground">Volume total</div>
+            </div>
+            <div className="text-center p-3 rounded-lg bg-card border">
+              <div className="text-lg font-bold font-mono">{week.sessions.length}</div>
+              <div className="text-[10px] text-muted-foreground">Séances</div>
+            </div>
+            <div className="text-center p-3 rounded-lg bg-card border">
+              <div className="text-lg font-bold font-mono text-amber-600">{keySessions.length}</div>
+              <div className="text-[10px] text-muted-foreground">Séances clés</div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6 pt-4">
+          <div className="space-y-4 pb-4">
             {/* Summary */}
             <div className="p-3 rounded-lg bg-muted/50 border">
               <p className="text-sm">{week.summary}</p>
               {week.coachAdvice && (
                 <p className="text-xs text-muted-foreground mt-2 italic">💡 {week.coachAdvice}</p>
               )}
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="text-center p-3 rounded-lg bg-card border">
-                <div className="text-lg font-bold font-mono text-primary">{formatDuration(totalDuration)}</div>
-                <div className="text-[10px] text-muted-foreground">Volume total</div>
-              </div>
-              <div className="text-center p-3 rounded-lg bg-card border">
-                <div className="text-lg font-bold font-mono">{week.sessions.length}</div>
-                <div className="text-[10px] text-muted-foreground">Séances</div>
-              </div>
-              <div className="text-center p-3 rounded-lg bg-card border">
-                <div className="text-lg font-bold font-mono text-amber-600">{keySessions.length}</div>
-                <div className="text-[10px] text-muted-foreground">Séances clés</div>
-              </div>
             </div>
 
             {/* Load Indicators */}
@@ -429,9 +433,9 @@ export function WeekDetailDialog({ week, templateName, trigger }: WeekDetailDial
 
             {/* Sessions */}
             <div className="space-y-2">
-              <h4 className="text-sm font-medium flex items-center gap-2">
+              <h4 className="text-sm font-medium flex items-center gap-2 sticky top-0 bg-background py-2 z-10">
                 <Layers className="h-4 w-4" />
-                Séances de la semaine
+                Séances de la semaine ({week.sessions.length})
               </h4>
               <div className="space-y-2">
                 {week.sessions.map((session, idx) => (
@@ -473,67 +477,69 @@ export function TemplateDetailDialog({
       <DialogTrigger asChild>
         {trigger}
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 flex-wrap">
-            <Target className="h-5 w-5 text-primary" />
-            {template.name}
-            <Badge className={cn(
-              "ml-2",
-              template.goal === "marathon" 
-                ? "bg-gradient-to-r from-orange-500 to-red-500 text-white border-0" 
-                : "bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0"
-            )}>
-              {template.goal === "marathon" ? "42K" : "21K"}
-            </Badge>
-            <MethodologyBadge methodology={template.methodology} size="md" />
-          </DialogTitle>
-          <p className="text-sm text-muted-foreground">{template.description}</p>
-        </DialogHeader>
-        
-        {template.sections.length > 1 && (
-          <Tabs value={selectedSection} onValueChange={setSelectedSection}>
-            <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${template.sections.length}, 1fr)` }}>
-              {template.sections.map(section => (
-                <TabsTrigger key={section.id} value={section.id} className="text-xs">
-                  {section.name}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-        )}
-        
-        <ScrollArea className="flex-1 pr-4">
-          <div className="space-y-3 py-2">
-            {/* Stats Bar */}
-            <div className="flex gap-3 flex-wrap">
-              <Badge variant="outline">{currentSection?.weeks.length || allWeeks.length} semaines</Badge>
-              {currentSection?.ambition && (
-                <Badge variant="outline" className={cn(
-                  currentSection.ambition === "ELITE" ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30" :
-                  currentSection.ambition === "SUB" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30" :
-                  currentSection.ambition === "PERF" ? "bg-green-100 text-green-700 dark:bg-green-900/30" :
-                  "bg-gray-100 text-gray-700"
-                )}>
-                  {currentSection.ambition}
-                </Badge>
-              )}
-            </div>
-
-            {/* Weeks Grid */}
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {(currentSection?.weeks || allWeeks).map(week => (
-                <WeekCard 
-                  key={week.week_id} 
-                  week={week} 
-                  templateName={template.name}
-                  onSelectForComparison={onSelectWeekForComparison}
-                  isSelectedForComparison={comparisonWeeks.includes(week.week_id)}
-                />
-              ))}
-            </div>
+      <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
+        {/* Fixed Header */}
+        <div className="flex-shrink-0 p-6 pb-4 border-b">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 flex-wrap">
+              <Target className="h-5 w-5 text-primary" />
+              {template.name}
+              <Badge className={cn(
+                "ml-2",
+                template.goal === "marathon" 
+                  ? "bg-gradient-to-r from-orange-500 to-red-500 text-white border-0" 
+                  : "bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0"
+              )}>
+                {template.goal === "marathon" ? "42K" : "21K"}
+              </Badge>
+              <MethodologyBadge methodology={template.methodology} size="md" />
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">{template.description}</p>
+          </DialogHeader>
+          
+          {template.sections.length > 1 && (
+            <Tabs value={selectedSection} onValueChange={setSelectedSection} className="mt-4">
+              <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${template.sections.length}, 1fr)` }}>
+                {template.sections.map(section => (
+                  <TabsTrigger key={section.id} value={section.id} className="text-xs">
+                    {section.name}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          )}
+          
+          {/* Stats Bar */}
+          <div className="flex gap-3 flex-wrap mt-4">
+            <Badge variant="outline">{currentSection?.weeks.length || allWeeks.length} semaines</Badge>
+            {currentSection?.ambition && (
+              <Badge variant="outline" className={cn(
+                currentSection.ambition === "ELITE" ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30" :
+                currentSection.ambition === "SUB" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30" :
+                currentSection.ambition === "PERF" ? "bg-green-100 text-green-700 dark:bg-green-900/30" :
+                "bg-gray-100 text-gray-700"
+              )}>
+                {currentSection.ambition}
+              </Badge>
+            )}
           </div>
-        </ScrollArea>
+        </div>
+        
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6 pt-4">
+          {/* Weeks Grid */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 pb-4">
+            {(currentSection?.weeks || allWeeks).map(week => (
+              <WeekCard 
+                key={week.week_id} 
+                week={week} 
+                templateName={template.name}
+                onSelectForComparison={onSelectWeekForComparison}
+                isSelectedForComparison={comparisonWeeks.includes(week.week_id)}
+              />
+            ))}
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
