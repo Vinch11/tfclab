@@ -108,21 +108,27 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
   );
 
   const handleNavClick = (item: typeof navigationGroups[0]["items"][0]) => {
-    if (item.route) {
-      // Si on a un tab spécifique, le passer en state
-      if (item.tab) {
-        navigate(item.route, { state: { activeTab: item.tab } });
-      } else {
-        navigate(item.route);
-      }
-    } else if (item.tab) {
-      // If we're not on the main page, navigate first
-      if (location.pathname !== "/") {
-        navigate("/", { state: { activeTab: item.tab } });
-      } else {
-        // On est déjà sur /, on change juste le tab
+    // Cas 1: Item avec route externe (ex: /tests, /athletes, /race-simulation)
+    if (item.route && item.route !== "/") {
+      navigate(item.route);
+      return;
+    }
+    
+    // Cas 2: Item avec tab (navigation interne sur la page principale)
+    if (item.tab) {
+      if (location.pathname === "/") {
+        // Déjà sur la page principale - changer directement le tab
         onTabChange(item.tab);
+      } else {
+        // Sur une autre page - naviguer vers "/" avec le state
+        navigate("/", { state: { activeTab: item.tab } });
       }
+      return;
+    }
+    
+    // Cas 3: Route "/" sans tab spécifique
+    if (item.route === "/") {
+      navigate("/");
     }
   };
 
