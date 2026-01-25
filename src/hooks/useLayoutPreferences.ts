@@ -48,6 +48,9 @@ export const PROFIL_SECTIONS: SectionDefinition[] = [
 ];
 
 export const DASHBOARD_SECTIONS: SectionDefinition[] = [
+  // 👤 Profil athlète (en haut)
+  { id: "athlete-profile-card", label: "Carte Profil Athlète", icon: "UserCircle", category: "profil", defaultVisible: true },
+  
   // 🎯 Onboarding & Guide
   { id: "getting-started", label: "Guide de démarrage", icon: "Rocket", category: "onboarding", defaultVisible: true },
   { id: "data-completion-guide", label: "Complétion des données", icon: "CheckCircle", category: "onboarding", defaultVisible: true },
