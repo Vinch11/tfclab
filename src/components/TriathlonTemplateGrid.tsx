@@ -1,6 +1,7 @@
 // =============================================
 // TRIATHLON TEMPLATE GRID - Interactive Plan Viewer
 // Two For Coaching Lab
+// Similar structure to RunningTemplateViewer
 // =============================================
 
 import { useState, useMemo } from "react";
@@ -14,14 +15,15 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   ChevronRight, Calendar as CalendarIcon, Flame, Heart, Timer, TrendingUp, Zap, 
-  Target, Dumbbell, Clock, Eye, CheckCircle2, Lightbulb, Waves, Bike, PersonStanding
+  Target, Dumbbell, Clock, Eye, CheckCircle2, Lightbulb, Waves, Bike, PersonStanding, 
+  BarChart3, X, ArrowLeftRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PROGRAM_TEMPLATES } from "@/data/programTemplates";
 import type { TemplateWeek, TemplateSession } from "@/lib/templates/docxTemplateLoader";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 // =============================================
 // TYPES
@@ -35,6 +37,7 @@ interface TriathlonTemplate {
   name: string;
   target: TriathlonGoal;
   weeks: TemplateWeek[];
+  description: string;
 }
 
 // =============================================
@@ -49,6 +52,9 @@ function getTriathlonTemplates(): TriathlonTemplate[] {
       name: t.name,
       target: t.target as TriathlonGoal,
       weeks: t.weeks,
+      description: t.target === "IM" 
+        ? "Plan complet Ironman 140.6 - Méthodologie TFCL™" 
+        : "Plan complet Ironman 70.3 - Méthodologie TFCL™",
     }));
 }
 
@@ -84,23 +90,43 @@ function getPhaseLabel(phase: TriathlonPhase): string {
   return labels[phase] || phase;
 }
 
-function getWeekNumberFromDate(raceDate: Date, templateWeeksCount: number): number {
-  const today = new Date();
-  const weeksToRace = differenceInWeeks(raceDate, today);
-  
-  if (weeksToRace < 0) return templateWeeksCount;
-  if (weeksToRace >= templateWeeksCount) return 1;
-  
-  return templateWeeksCount - weeksToRace;
-}
-
 function getSportIcon(sport: string) {
   const lower = (sport || "").toLowerCase();
   if (lower.includes("natation") || lower.includes("swim")) return <Waves className="h-3 w-3 text-blue-500" />;
   if (lower.includes("vélo") || lower.includes("bike")) return <Bike className="h-3 w-3 text-green-500" />;
   if (lower.includes("cap") || lower.includes("course") || lower.includes("run")) return <PersonStanding className="h-3 w-3 text-orange-500" />;
-  if (lower.includes("brick")) return <Zap className="h-3 w-3 text-purple-500" />;
+  if (lower.includes("brick") || lower.includes("+")) return <Zap className="h-3 w-3 text-purple-500" />;
   return <Clock className="h-3 w-3 text-muted-foreground" />;
+}
+
+function parseDurationMinutes(text: string): number {
+  if (!text) return 0;
+  const hourMinMatch = text.match(/(\d+)h(\d+)?/i);
+  if (hourMinMatch) {
+    const hours = parseInt(hourMinMatch[1], 10);
+    const minutes = hourMinMatch[2] ? parseInt(hourMinMatch[2], 10) : 0;
+    return hours * 60 + minutes;
+  }
+  const minOnlyMatch = text.match(/(\d+)['′]/);
+  if (minOnlyMatch) return parseInt(minOnlyMatch[1], 10);
+  return 0;
+}
+
+function formatDuration(min: number): string {
+  if (min >= 60) {
+    const h = Math.floor(min / 60);
+    const m = min % 60;
+    return m > 0 ? `${h}h${m.toString().padStart(2, "0")}` : `${h}h`;
+  }
+  return `${min}'`;
+}
+
+function getWeekNumberFromDate(raceDate: Date, templateWeeksCount: number): number {
+  const today = new Date();
+  const weeksToRace = differenceInWeeks(raceDate, today);
+  if (weeksToRace < 0) return templateWeeksCount;
+  if (weeksToRace >= templateWeeksCount) return 1;
+  return templateWeeksCount - weeksToRace;
 }
 
 // =============================================
@@ -125,55 +151,345 @@ function PhaseBadge({ phase, size = "sm" }: { phase: TriathlonPhase; size?: "sm"
 }
 
 // =============================================
-// WEEK DETAIL DIALOG
+// VOLUME BY PHASE CHART
 // =============================================
 
-function WeekDetailDialog({ week, templateName }: { week: TemplateWeek; templateName: string }) {
-  const phase = parsePhaseFromWeek(week);
+function VolumeByPhaseChart({ weeks }: { weeks: TemplateWeek[] }) {
+  const data = useMemo(() => {
+    const phaseVolumes: Record<string, { swim: number; bike: number; run: number; phase: string }> = {};
+    
+    weeks.forEach(week => {
+      const phase = week.phase || "Autre";
+      if (!phaseVolumes[phase]) {
+        phaseVolumes[phase] = { swim: 0, bike: 0, run: 0, phase };
+      }
+      
+      week.sessions.forEach(session => {
+        const discipline = (session.discipline || session.sport || "").toLowerCase();
+        const description = session.details || session.description || "";
+        const duration = parseDurationMinutes(description);
+        
+        if (discipline.includes("natation") || discipline.includes("swim")) {
+          phaseVolumes[phase].swim += duration;
+        } else if (discipline.includes("vélo") || discipline.includes("bike")) {
+          phaseVolumes[phase].bike += duration;
+        } else if (discipline.includes("cap") || discipline.includes("run") || discipline.includes("course")) {
+          phaseVolumes[phase].run += duration;
+        } else if (discipline.includes("brick") || discipline.includes("+")) {
+          // Split brick sessions
+          phaseVolumes[phase].bike += duration * 0.7;
+          phaseVolumes[phase].run += duration * 0.3;
+        }
+      });
+    });
+
+    return Object.values(phaseVolumes).map(p => ({
+      phase: p.phase.replace(/^.*Phase \d+\s*:\s*/i, "").slice(0, 15),
+      swim: Math.round(p.swim / 60 * 10) / 10,
+      bike: Math.round(p.bike / 60 * 10) / 10,
+      run: Math.round(p.run / 60 * 10) / 10,
+    }));
+  }, [weeks]);
+
+  const totalHours = data.reduce((acc, d) => acc + d.swim + d.bike + d.run, 0);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-medium flex items-center gap-2">
+          <BarChart3 className="h-4 w-4 text-primary" />
+          Volume par Phase
+        </h4>
+        <Badge variant="secondary" className="font-mono text-xs">
+          {totalHours.toFixed(0)}h total
+        </Badge>
+      </div>
+      
+      {/* Summary Stats */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="bg-blue-500/10 rounded-lg p-2 text-center">
+          <div className="text-sm font-bold text-blue-600 dark:text-blue-400 font-mono">
+            {data.reduce((acc, d) => acc + d.swim, 0).toFixed(1)}h
+          </div>
+          <div className="text-[10px] text-muted-foreground">🏊 Natation</div>
+        </div>
+        <div className="bg-green-500/10 rounded-lg p-2 text-center">
+          <div className="text-sm font-bold text-green-600 dark:text-green-400 font-mono">
+            {data.reduce((acc, d) => acc + d.bike, 0).toFixed(1)}h
+          </div>
+          <div className="text-[10px] text-muted-foreground">🚴 Vélo</div>
+        </div>
+        <div className="bg-orange-500/10 rounded-lg p-2 text-center">
+          <div className="text-sm font-bold text-orange-600 dark:text-orange-400 font-mono">
+            {data.reduce((acc, d) => acc + d.run, 0).toFixed(1)}h
+          </div>
+          <div className="text-[10px] text-muted-foreground">🏃 CAP</div>
+        </div>
+      </div>
+      
+      {/* Chart */}
+      <div className="h-48 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 40 }}>
+            <XAxis 
+              dataKey="phase" 
+              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} 
+              angle={-35}
+              textAnchor="end"
+              height={50}
+              interval={0}
+            />
+            <YAxis 
+              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} 
+              tickFormatter={(v) => `${v}h`}
+              width={35}
+            />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'hsl(var(--background))', 
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '8px',
+                fontSize: '12px'
+              }}
+            />
+            <Bar dataKey="swim" stackId="a" fill="hsl(217, 91%, 60%)" name="Natation" />
+            <Bar dataKey="bike" stackId="a" fill="hsl(142, 71%, 45%)" name="Vélo" />
+            <Bar dataKey="run" stackId="a" fill="hsl(24, 95%, 53%)" name="CAP" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+// =============================================
+// SESSION CARD
+// =============================================
+
+function SessionCard({ session, expanded = false }: { session: TemplateSession; expanded?: boolean }) {
+  const [isOpen, setIsOpen] = useState(expanded);
+  const duration = parseDurationMinutes(session.details || session.description || "");
   
+  return (
+    <div className={cn(
+      "rounded-lg border text-sm transition-all bg-card"
+    )}>
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full p-3 flex items-start justify-between gap-2 text-left hover:bg-muted/50 transition-colors rounded-lg"
+      >
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge variant="outline" className="text-[10px] font-mono bg-background shrink-0">
+              {session.day}
+            </Badge>
+            {getSportIcon(session.discipline || session.sport || "")}
+            <span className="font-medium text-sm">{session.title || session.discipline}</span>
+          </div>
+          {!isOpen && (session.details || session.description) && (
+            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
+              {session.details || session.description}
+            </p>
+          )}
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {duration > 0 && (
+            <Badge variant="secondary" className="text-[10px] font-mono">
+              {formatDuration(duration)}
+            </Badge>
+          )}
+          <ChevronRight className={cn(
+            "h-4 w-4 text-muted-foreground transition-transform",
+            isOpen && "rotate-90"
+          )} />
+        </div>
+      </button>
+      
+      {isOpen && (
+        <div className="px-3 pb-3 space-y-2 border-t border-dashed">
+          {(session.details || session.description) && (
+            <div className="pt-2">
+              <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">
+                Contenu de la séance
+              </div>
+              <p className="text-sm bg-muted/50 p-2 rounded border font-mono whitespace-pre-wrap">
+                {session.details || session.description}
+              </p>
+            </div>
+          )}
+          
+          {session.notes && (
+            <div className="bg-amber-50 dark:bg-amber-900/20 p-2 rounded border border-amber-200 dark:border-amber-800">
+              <div className="flex items-start gap-2">
+                <Lightbulb className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-xs text-amber-800 dark:text-amber-200">{session.notes}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// =============================================
+// WEEK CARD
+// =============================================
+
+function WeekCard({ week, templateName }: { week: TemplateWeek; templateName: string }) {
+  const phase = parsePhaseFromWeek(week);
+  const [isOpen, setIsOpen] = useState(false);
+  
+  const sportCounts = useMemo(() => {
+    const counts = { swim: 0, bike: 0, run: 0 };
+    week.sessions.forEach(s => {
+      const sport = (s.discipline || s.sport || "").toLowerCase();
+      if (sport.includes("natation") || sport.includes("swim")) counts.swim++;
+      else if (sport.includes("vélo") || sport.includes("bike")) counts.bike++;
+      else if (sport.includes("cap") || sport.includes("run") || sport.includes("course")) counts.run++;
+    });
+    return counts;
+  }, [week.sessions]);
+
+  const totalDuration = week.sessions.reduce((sum, s) => {
+    return sum + parseDurationMinutes(s.details || s.description || "");
+  }, 0);
+
+  return (
+    <Card className="border transition-all hover:border-primary/30">
+      <CardContent className="p-3 space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-sm">S{week.weekNumber}</span>
+            <PhaseBadge phase={phase} />
+          </div>
+          <Badge variant="secondary" className="text-[10px] font-mono">
+            {formatDuration(totalDuration)}
+          </Badge>
+        </div>
+        
+        {week.theme && (
+          <p className="text-xs text-muted-foreground line-clamp-1">{week.theme}</p>
+        )}
+        
+        <div className="flex items-center gap-3 text-xs">
+          {sportCounts.swim > 0 && (
+            <span className="flex items-center gap-1 text-blue-600">
+              <Waves className="h-3 w-3" />{sportCounts.swim}
+            </span>
+          )}
+          {sportCounts.bike > 0 && (
+            <span className="flex items-center gap-1 text-green-600">
+              <Bike className="h-3 w-3" />{sportCounts.bike}
+            </span>
+          )}
+          {sportCounts.run > 0 && (
+            <span className="flex items-center gap-1 text-orange-600">
+              <PersonStanding className="h-3 w-3" />{sportCounts.run}
+            </span>
+          )}
+          <span className="text-muted-foreground">• {week.sessions.length} séances</span>
+        </div>
+        
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="w-full text-xs h-7">
+              <Eye className="h-3 w-3 mr-1" />
+              Voir les séances
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-0">
+            <div className="flex-shrink-0 p-6 pb-4 border-b">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <CalendarIcon className="h-5 w-5 text-primary" />
+                  Semaine {week.weekNumber} - {week.theme || "Programme"}
+                </DialogTitle>
+                <p className="text-sm text-muted-foreground">{templateName}</p>
+              </DialogHeader>
+              <div className="flex flex-wrap gap-2 mt-4">
+                <PhaseBadge phase={phase} size="md" />
+                <Badge variant="outline" className="text-xs">{week.sessions.length} séances</Badge>
+                <Badge variant="outline" className="text-xs font-mono">{formatDuration(totalDuration)}</Badge>
+              </div>
+            </div>
+            <ScrollArea className="flex-1 p-6 pt-4">
+              <div className="space-y-2">
+                {week.sessions.map((session, idx) => (
+                  <SessionCard key={idx} session={session} />
+                ))}
+              </div>
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
+      </CardContent>
+    </Card>
+  );
+}
+
+// =============================================
+// TEMPLATE DETAIL DIALOG
+// =============================================
+
+interface TemplateDetailDialogProps {
+  template: TriathlonTemplate;
+  trigger: React.ReactNode;
+}
+
+function TemplateDetailDialog({ template, trigger }: TemplateDetailDialogProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-7 text-xs gap-1">
-          <Eye className="h-3 w-3" />
-          Détails
-        </Button>
+        {trigger}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[85vh]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <span>Semaine {week.weekNumber}</span>
-            <PhaseBadge phase={phase} size="md" />
-          </DialogTitle>
-          <p className="text-sm text-muted-foreground">{templateName}</p>
-        </DialogHeader>
-        <ScrollArea className="max-h-[60vh] pr-4">
-          <div className="space-y-4">
-            {week.theme && (
-              <div className="p-3 bg-muted/50 rounded-lg">
-                <p className="text-sm font-medium">{week.theme}</p>
-              </div>
-            )}
+      <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
+        <div className="flex-shrink-0 p-6 pb-4 border-b">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Dumbbell className="h-5 w-5 text-primary" />
+              {template.name}
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">{template.description}</p>
+          </DialogHeader>
+          
+          <div className="flex gap-3 flex-wrap mt-4">
+            <Badge 
+              className={cn(
+                "border-0 text-xs",
+                template.target === "IM" 
+                  ? "bg-gradient-to-r from-red-500 to-orange-500 text-white" 
+                  : "bg-gradient-to-r from-blue-500 to-cyan-500 text-white"
+              )}
+            >
+              {template.target === "IM" ? "Ironman 140.6" : "Ironman 70.3"}
+            </Badge>
+            <Badge variant="outline">{template.weeks.length} semaines</Badge>
+            <Badge variant="outline" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+              TFCL™
+            </Badge>
+          </div>
+        </div>
+        
+        <ScrollArea className="flex-1 p-6 pt-4">
+          <div className="space-y-6">
+            {/* Volume Chart */}
+            <VolumeByPhaseChart weeks={template.weeks} />
             
-            <div className="space-y-3">
-              {week.sessions.map((session, idx) => (
-                <div key={idx} className="p-3 border rounded-lg space-y-2">
-                  <div className="flex items-center gap-2">
-                    {getSportIcon(session.discipline || session.sport || "")}
-                    <span className="font-medium text-sm">{session.day}</span>
-                    <Badge variant="secondary" className="text-xs">
-                      {session.discipline || session.sport}
-                    </Badge>
-                    {session.title && (
-                      <span className="text-xs text-muted-foreground">• {session.title}</span>
-                    )}
-                  </div>
-                  <p className="text-sm">{session.details || session.description}</p>
-                  {session.notes && (
-                    <p className="text-xs text-muted-foreground italic">💡 {session.notes}</p>
-                  )}
-                </div>
-              ))}
+            {/* Weeks Grid */}
+            <div>
+              <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+                <CalendarIcon className="h-4 w-4" />
+                Toutes les semaines
+              </h4>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {template.weeks.map(week => (
+                  <WeekCard 
+                    key={week.weekNumber} 
+                    week={week} 
+                    templateName={template.name}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </ScrollArea>
@@ -183,20 +499,75 @@ function WeekDetailDialog({ week, templateName }: { week: TemplateWeek; template
 }
 
 // =============================================
+// TEMPLATE CARD
+// =============================================
+
+function TemplateCard({ template }: { template: TriathlonTemplate }) {
+  const totalSessions = template.weeks.reduce((sum, w) => sum + w.sessions.length, 0);
+  
+  // Calculate total volume
+  const totalVolume = template.weeks.reduce((sum, week) => {
+    return sum + week.sessions.reduce((wSum, s) => {
+      return wSum + parseDurationMinutes(s.details || s.description || "");
+    }, 0);
+  }, 0);
+
+  return (
+    <Card className="border hover:border-primary/50 transition-colors group">
+      <CardHeader className="pb-2 pt-3 px-3">
+        <CardTitle className="text-sm flex items-center justify-between">
+          <span className="truncate">{template.name}</span>
+          <Badge className={cn(
+            "border-0 text-[10px]",
+            template.target === "IM" 
+              ? "bg-gradient-to-r from-red-500 to-orange-500 text-white" 
+              : "bg-gradient-to-r from-blue-500 to-cyan-500 text-white"
+          )}>
+            {template.target === "IM" ? "140.6" : "70.3"}
+          </Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="px-3 pb-3 space-y-2">
+        <p className="text-[11px] text-muted-foreground line-clamp-2">{template.description}</p>
+        
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <Badge variant="outline" className="text-[10px]">{template.weeks.length} sem.</Badge>
+          <Badge variant="outline" className="text-[10px]">{totalSessions} séances</Badge>
+          <Badge variant="outline" className="text-[10px] font-mono">{formatDuration(totalVolume)}</Badge>
+          <Badge 
+            variant="outline" 
+            className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+          >
+            TFCL™
+          </Badge>
+        </div>
+
+        <TemplateDetailDialog 
+          template={template}
+          trigger={
+            <Button variant="outline" size="sm" className="w-full text-xs h-8 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+              <Eye className="h-3 w-3 mr-1.5" />
+              Voir le plan complet
+              <ChevronRight className="h-3 w-3 ml-auto" />
+            </Button>
+          }
+        />
+      </CardContent>
+    </Card>
+  );
+}
+
+// =============================================
 // GOAL DATE SUGGESTER
 // =============================================
 
-interface GoalDateSuggesterProps {
-  goal: TriathlonGoal;
-  onWeekSelect?: (week: TemplateWeek, templateName: string) => void;
-}
-
-function GoalDateSuggester({ goal, onWeekSelect }: GoalDateSuggesterProps) {
+function GoalDateSuggester() {
   const [raceDate, setRaceDate] = useState<Date | undefined>();
+  const [selectedGoal, setSelectedGoal] = useState<TriathlonGoal>("703");
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   
-  const templates = useMemo(() => getTriathlonTemplates().filter(t => t.target === goal), [goal]);
-  const template = templates[0];
+  const templates = useMemo(() => getTriathlonTemplates(), []);
+  const template = templates.find(t => t.target === selectedGoal);
   
   const suggestion = useMemo(() => {
     if (!raceDate || !template) return null;
@@ -218,31 +589,33 @@ function GoalDateSuggester({ goal, onWeekSelect }: GoalDateSuggesterProps) {
     };
   }, [raceDate, template]);
 
-  if (!template) return null;
-
   return (
     <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
           <Target className="h-4 w-4 text-primary" />
           Suggestion par date d'objectif
-          <Badge variant="outline" className="text-[10px]">
-            {goal === "IM" ? "Ironman" : "70.3"}
-          </Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex items-center gap-2 flex-wrap">
+          <Tabs value={selectedGoal} onValueChange={(v) => setSelectedGoal(v as TriathlonGoal)}>
+            <TabsList className="h-8">
+              <TabsTrigger value="703" className="text-xs px-3 h-7">70.3</TabsTrigger>
+              <TabsTrigger value="IM" className="text-xs px-3 h-7">Ironman</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          
           <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
-                  "w-[200px] justify-start text-left font-normal",
+                  "w-[180px] justify-start text-left font-normal h-8 text-xs",
                   !raceDate && "text-muted-foreground"
                 )}
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
+                <CalendarIcon className="mr-2 h-3 w-3" />
                 {raceDate ? format(raceDate, "PPP", { locale: fr }) : "Date de course"}
               </Button>
             </PopoverTrigger>
@@ -262,7 +635,7 @@ function GoalDateSuggester({ goal, onWeekSelect }: GoalDateSuggesterProps) {
           </Popover>
           
           {raceDate && (
-            <Button variant="ghost" size="sm" onClick={() => setRaceDate(undefined)}>
+            <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => setRaceDate(undefined)}>
               Effacer
             </Button>
           )}
@@ -284,95 +657,8 @@ function GoalDateSuggester({ goal, onWeekSelect }: GoalDateSuggesterProps) {
             {suggestion.week.theme && (
               <p className="text-xs text-muted-foreground">{suggestion.week.theme}</p>
             )}
-            
-            <div className="flex items-center gap-2 pt-1">
-              <WeekDetailDialog week={suggestion.week} templateName={suggestion.templateName} />
-              {onWeekSelect && (
-                <Button 
-                  size="sm" 
-                  variant="default"
-                  className="h-7 text-xs"
-                  onClick={() => onWeekSelect(suggestion.week, suggestion.templateName)}
-                >
-                  Utiliser cette semaine
-                </Button>
-              )}
-            </div>
           </div>
         )}
-      </CardContent>
-    </Card>
-  );
-}
-
-// =============================================
-// WEEK CARD
-// =============================================
-
-function WeekCard({ week, templateName, isCurrentWeek }: { 
-  week: TemplateWeek; 
-  templateName: string;
-  isCurrentWeek?: boolean;
-}) {
-  const phase = parsePhaseFromWeek(week);
-  
-  // Count sessions by sport
-  const sportCounts = useMemo(() => {
-    const counts = { swim: 0, bike: 0, run: 0, other: 0 };
-    week.sessions.forEach(s => {
-      const sport = (s.discipline || s.sport || "").toLowerCase();
-      if (sport.includes("natation") || sport.includes("swim")) counts.swim++;
-      else if (sport.includes("vélo") || sport.includes("bike")) counts.bike++;
-      else if (sport.includes("cap") || sport.includes("run") || sport.includes("course")) counts.run++;
-      else if (!sport.includes("repos")) counts.other++;
-    });
-    return counts;
-  }, [week.sessions]);
-
-  return (
-    <Card className={cn(
-      "hover:shadow-md transition-all cursor-pointer group",
-      isCurrentWeek && "ring-2 ring-primary"
-    )}>
-      <CardContent className="p-3 space-y-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-sm">S{week.weekNumber}</span>
-            <PhaseBadge phase={phase} />
-          </div>
-          {isCurrentWeek && (
-            <Badge className="bg-primary text-primary-foreground text-[10px]">
-              Cette semaine
-            </Badge>
-          )}
-        </div>
-        
-        {week.theme && (
-          <p className="text-xs text-muted-foreground line-clamp-1">{week.theme}</p>
-        )}
-        
-        {/* Sport distribution */}
-        <div className="flex items-center gap-2 text-xs">
-          {sportCounts.swim > 0 && (
-            <span className="flex items-center gap-1 text-blue-600">
-              <Waves className="h-3 w-3" />{sportCounts.swim}
-            </span>
-          )}
-          {sportCounts.bike > 0 && (
-            <span className="flex items-center gap-1 text-green-600">
-              <Bike className="h-3 w-3" />{sportCounts.bike}
-            </span>
-          )}
-          {sportCounts.run > 0 && (
-            <span className="flex items-center gap-1 text-orange-600">
-              <PersonStanding className="h-3 w-3" />{sportCounts.run}
-            </span>
-          )}
-        </div>
-        
-        <div className="pt-1">
-          <WeekDetailDialog week={week} templateName={templateName} />
-        </div>
       </CardContent>
     </Card>
   );
@@ -383,56 +669,49 @@ function WeekCard({ week, templateName, isCurrentWeek }: {
 // =============================================
 
 export function TriathlonTemplateGrid() {
-  const [selectedGoal, setSelectedGoal] = useState<TriathlonGoal>("703");
-  
   const templates = useMemo(() => getTriathlonTemplates(), []);
-  const filteredTemplates = useMemo(
-    () => templates.filter(t => t.target === selectedGoal),
-    [templates, selectedGoal]
-  );
   
+  const im703Templates = templates.filter(t => t.target === "703");
+  const imFullTemplates = templates.filter(t => t.target === "IM");
+
   return (
-    <div className="space-y-4">
-      {/* Goal Selector */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <Select value={selectedGoal} onValueChange={(v) => setSelectedGoal(v as TriathlonGoal)}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="bg-background">
-            <SelectItem value="703">Ironman 70.3</SelectItem>
-            <SelectItem value="IM">Ironman Full</SelectItem>
-          </SelectContent>
-        </Select>
-        
-        <Badge variant="secondary" className="text-xs">
-          {filteredTemplates.reduce((acc, t) => acc + t.weeks.length, 0)} semaines
-        </Badge>
-      </div>
-      
+    <div className="space-y-6">
       {/* Date-based Suggester */}
-      <GoalDateSuggester goal={selectedGoal} />
+      <GoalDateSuggester />
       
-      {/* Templates Grid */}
-      {filteredTemplates.map(template => (
-        <div key={template.id} className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Dumbbell className="h-4 w-4 text-primary" />
-            <span className="font-medium text-sm">{template.name}</span>
-            <Badge variant="outline" className="text-xs">{template.weeks.length} sem.</Badge>
-          </div>
-          
-          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
-            {template.weeks.map(week => (
-              <WeekCard 
-                key={week.weekNumber} 
-                week={week} 
-                templateName={template.name}
-              />
+      {/* Ironman 70.3 Templates */}
+      {im703Templates.length > 0 && (
+        <div className="space-y-3">
+          <h4 className="text-sm font-semibold flex items-center gap-2">
+            <Zap className="h-4 w-4 text-blue-500" />
+            Ironman 70.3
+            <Badge variant="outline" className="text-[10px]">{im703Templates.length} plan(s)</Badge>
+          </h4>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {im703Templates.map(template => (
+              <TemplateCard key={template.id} template={template} />
             ))}
           </div>
         </div>
-      ))}
+      )}
+
+      {/* Ironman Full Templates */}
+      {imFullTemplates.length > 0 && (
+        <div className="space-y-3">
+          <h4 className="text-sm font-semibold flex items-center gap-2">
+            <Flame className="h-4 w-4 text-red-500" />
+            Ironman (140.6)
+            <Badge variant="outline" className="text-[10px]">{imFullTemplates.length} plan(s)</Badge>
+          </h4>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {imFullTemplates.map(template => (
+              <TemplateCard key={template.id} template={template} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+export default TriathlonTemplateGrid;
