@@ -50,7 +50,7 @@ import { computeEnergyDrift, EnergyDriftResult } from "@/lib/energyDrift";
 import { EnergyDriftBadge } from "@/components/EnergyDriftBadge";
 import { DashboardGauges } from "@/components/DashboardGauges";
 import { StaffDashboard } from "@/components/StaffDashboard";
-import { ScientificChartsDashboard, MetabolicPerformanceCompass, AmbitionProgressChart, AmbitionProgressMini, CompactMetricsGrid } from "@/components/charts";
+import { ScientificChartsDashboard, MetabolicPerformanceCompass, AmbitionProgressChart, AmbitionProgressMini, CompactMetricsGrid, CarbBurnRateChart, MetabolicPowerCurve } from "@/components/charts";
 import { ChargeRecenteCard } from "@/components/ChargeRecenteCard";
 import { computeCRR } from "@/lib/chargeRecenteReference";
 import { RaceReadinessV2Module } from "@/components/RaceReadinessV2Module";
@@ -1428,6 +1428,31 @@ const Index = () => {
                 vlamax={vlamaxEffectif.value ?? 0.45}
                 ftp={effectiveRefs.ftp ?? 250}
                 weight={effectiveRefs.weightKg ?? 70}
+              />
+            ),
+          },
+          {
+            id: "carb-burn-rate",
+            render: () => currentAthlete && effectiveCloudSnapshot && (
+              <CarbBurnRateChart
+                vo2max={effectiveCloudSnapshot.vo2max ?? 55}
+                vlamax={vlamaxEffectif.value ?? 0.45}
+                weight={effectiveRefs.weightKg ?? 70}
+                ftp={effectiveRefs.ftp ?? 250}
+                targetIntensity={currentAthlete.goal === "IM" ? 68 : currentAthlete.goal === "703" ? 78 : 82}
+                raceType={currentAthlete.goal || "IM"}
+              />
+            ),
+          },
+          {
+            id: "metabolic-power-curve",
+            render: () => currentAthlete && effectiveCloudSnapshot && (
+              <MetabolicPowerCurve
+                vo2max={effectiveCloudSnapshot.vo2max ?? 55}
+                vlamax={vlamaxEffectif.value ?? 0.45}
+                weight={effectiveRefs.weightKg ?? 70}
+                ftp={effectiveRefs.ftp ?? 250}
+                pMax5s={effectiveCloudSnapshot.pmax_5s ?? undefined}
               />
             ),
           },
