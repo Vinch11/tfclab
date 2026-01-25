@@ -568,6 +568,8 @@ interface AthleteProfileData {
   name: string;
   vlamax: number | null;
   vlamaxConfidence: number;
+  vlamaxSource: "test" | "snapshot" | "unknown";
+  vlamaxDate: string | null;
   tte: number | null;
   tteConfidence: number;
   fatigueState: string;
@@ -602,6 +604,37 @@ function AthleteProfileBadge({ profile }: { profile: AthleteProfileData | null }
     return "text-green-600";
   };
 
+  const getSourceLabel = (source: "test" | "snapshot" | "unknown") => {
+    switch (source) {
+      case "test": return "Test terrain";
+      case "snapshot": return "Mesure labo";
+      default: return "Inconnue";
+    }
+  };
+
+  const getSourceColor = (source: "test" | "snapshot" | "unknown") => {
+    switch (source) {
+      case "test": return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300";
+      case "snapshot": return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300";
+      default: return "bg-muted text-muted-foreground";
+    }
+  };
+
+  const getDataFreshness = (dateStr: string | null): { label: string; color: string } => {
+    if (!dateStr) return { label: "Date inconnue", color: "text-muted-foreground" };
+    
+    const date = new Date(dateStr);
+    const now = new Date();
+    const daysDiff = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysDiff <= 7) return { label: `${daysDiff}j`, color: "text-green-600" };
+    if (daysDiff <= 30) return { label: `${Math.floor(daysDiff / 7)}sem`, color: "text-amber-600" };
+    if (daysDiff <= 90) return { label: `${Math.floor(daysDiff / 30)}mois`, color: "text-orange-600" };
+    return { label: `>${Math.floor(daysDiff / 30)}mois`, color: "text-red-600" };
+  };
+
+  const freshness = getDataFreshness(profile.vlamaxDate);
+
   return (
     <div className="p-3 bg-background rounded-lg border space-y-2">
       <div className="flex items-center justify-between flex-wrap gap-2">
@@ -610,12 +643,28 @@ function AthleteProfileBadge({ profile }: { profile: AthleteProfileData | null }
           <span className="font-medium text-sm">{profile.name}</span>
           <Badge variant="outline" className="text-[10px]">{profile.objectif}</Badge>
         </div>
+        {/* Data freshness indicator */}
+        {profile.vlamaxDate && (
+          <div className="flex items-center gap-1.5">
+            <Clock className="h-3 w-3 text-muted-foreground" />
+            <span className={cn("text-[10px] font-medium", freshness.color)}>
+              Données: {freshness.label}
+            </span>
+          </div>
+        )}
       </div>
       
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {/* VLamax */}
+        {/* VLamax with source */}
         <div className="bg-muted/50 rounded p-2">
-          <div className="text-[10px] text-muted-foreground uppercase">VLamax</div>
+          <div className="flex items-center justify-between gap-1">
+            <div className="text-[10px] text-muted-foreground uppercase">VLamax</div>
+            {profile.vlamax !== null && (
+              <Badge variant="outline" className={cn("text-[8px] px-1 py-0", getSourceColor(profile.vlamaxSource))}>
+                {profile.vlamaxSource === "test" ? "Terrain" : profile.vlamaxSource === "snapshot" ? "Labo" : "?"}
+              </Badge>
+            )}
+          </div>
           <div className="font-mono font-bold text-sm">
             {profile.vlamax !== null ? profile.vlamax.toFixed(2) : "—"}
           </div>
@@ -833,7 +882,8 @@ function GoalDateSuggester() {
     // Get VLamax: prioritize snapshot, then tests
     let vlamax: number | null = activeSnapshot?.vlamax ?? activeSnapshot?.vlamax_run ?? null;
     let vlamaxConfidence = 0;
-    let vlamaxSource = "unknown";
+    let vlamaxSource: "test" | "snapshot" | "unknown" = "unknown";
+    let vlamaxDate: string | null = null;
     
     // If no VLamax in snapshot, check tests
     if (vlamax === null && athleteTests.length > 0) {
@@ -845,11 +895,13 @@ function GoalDateSuggester() {
       if (testsWithVlamax.length > 0) {
         vlamax = testsWithVlamax[0].vlamax;
         vlamaxConfidence = 0.75; // Test terrain
-        vlamaxSource = testsWithVlamax[0].type || "test";
+        vlamaxSource = "test";
+        vlamaxDate = testsWithVlamax[0].date;
       }
     } else if (vlamax !== null) {
       vlamaxConfidence = 0.95; // Snapshot = mesure directe
       vlamaxSource = "snapshot";
+      vlamaxDate = activeSnapshot?.date ?? null;
     }
     
     // Get TTE directly from snapshot
@@ -874,6 +926,8 @@ function GoalDateSuggester() {
       name: currentAthlete.nom,
       vlamax,
       vlamaxConfidence,
+      vlamaxSource,
+      vlamaxDate,
       tte,
       tteConfidence,
       fatigueState,
