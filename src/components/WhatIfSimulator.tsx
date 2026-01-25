@@ -1,6 +1,6 @@
 // =============================================
-// WHAT-IF SCENARIO SIMULATOR - INSCYD-inspired
-// Two For Coaching Lab
+// WHAT-IF SCENARIO SIMULATOR - Mader Model Based
+// Two For Coaching Lab - Scientific precision
 // =============================================
 
 import { useState, useMemo, useEffect } from "react";
@@ -13,21 +13,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { 
   Beaker, TrendingUp, Target, Clock, Zap, Activity, 
-  Scale, RefreshCcw, ArrowRight, ChevronRight, AlertTriangle, Crosshair
+  Scale, RefreshCcw, ArrowRight, ChevronRight, AlertTriangle, 
+  Crosshair, Flame, Info
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
-  MetabolicProfile,
-  WhatIfScenario,
-  predictPerformance,
-  generateLactateCurve,
-  generateWhatIfScenarios,
-  PerformancePrediction,
-  calibrateVLamaxFromFTP,
+  MaderProfile,
+  MaderPredictions,
+  predictMaderPerformance,
+  generateMaderLactateCurve,
+  calibrateVLamaxFromMLSS,
   calibrateVLamaxFromTTE,
-  calibrateVLamaxFromFatMax,
-  calibrateVO2maxFromFTP
-} from "@/lib/v2/metabolicSimulator";
+  calibrateVLamaxFromFatMax
+} from "@/lib/v2/maderMetabolicModel";
 import {
   LineChart,
   Line,
@@ -37,7 +35,9 @@ import {
   Tooltip,
   ResponsiveContainer,
   ReferenceLine,
-  Legend
+  Legend,
+  Area,
+  ComposedChart
 } from "recharts";
 
 // =============================================
@@ -47,7 +47,7 @@ import {
 type SimulatorMode = "calibration" | "objectif";
 
 interface WhatIfSimulatorProps {
-  initialProfile?: Partial<MetabolicProfile>;
+  initialProfile?: Partial<MaderProfile>;
   observedTTE?: number | null;
   observedFTP?: number | null;
   observedFatMax?: number | null;
@@ -73,11 +73,19 @@ function LactateTooltip({ active, payload }: any) {
         </div>
         <div className="flex justify-between gap-4">
           <span className="text-muted-foreground">Puissance:</span>
-          <span className="font-mono">{Math.round(data?.watts)}W</span>
+          <span className="font-mono">{data?.power}W</span>
         </div>
         <div className="flex justify-between gap-4">
           <span className="text-muted-foreground">Lactate:</span>
-          <span className="font-mono font-semibold">{data?.lactate?.toFixed(1)} mmol/L</span>
+          <span className="font-mono font-semibold">{data?.lactate} mmol/L</span>
+        </div>
+        <div className="flex justify-between gap-4">
+          <span className="text-muted-foreground">Lipides:</span>
+          <span className="font-mono">{data?.fatOx} g/min</span>
+        </div>
+        <div className="flex justify-between gap-4">
+          <span className="text-muted-foreground">Glucides:</span>
+          <span className="font-mono">{data?.carbOx} g/min</span>
         </div>
       </div>
     </div>
@@ -95,7 +103,8 @@ function MetricCompare({
   unit,
   icon: Icon,
   isInverse = false,
-  observed
+  observed,
+  showDivergence = false
 }: { 
   label: string; 
   current: number | string; 
@@ -104,6 +113,7 @@ function MetricCompare({
   icon: any;
   isInverse?: boolean;
   observed?: number | null;
+  showDivergence?: boolean;
 }) {
   const currentNum = typeof current === "string" ? parseFloat(current) : current;
   const simulatedNum = typeof simulated === "string" ? parseFloat(simulated) : simulated;
@@ -114,20 +124,29 @@ function MetricCompare({
   const isPositive = isInverse ? diff < 0 : diff > 0;
   const isNegative = isInverse ? diff > 0 : diff < 0;
   
+  // Check divergence from observed
+  const divergence = observed ? Math.abs(currentNum - observed) / observed * 100 : 0;
+  const hasDivergence = showDivergence && divergence > 15;
+  
   return (
-    <div className="flex items-center justify-between p-2 rounded-lg bg-muted/30 border">
+    <div className={cn(
+      "flex items-center justify-between p-2 rounded-lg border",
+      hasDivergence ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800" : "bg-muted/30"
+    )}>
       <div className="flex items-center gap-2">
         <Icon className="h-4 w-4 text-muted-foreground" />
         <div className="flex flex-col">
           <span className="text-xs text-muted-foreground">{label}</span>
           {observed && (
-            <span className="text-[9px] text-green-600">Mesuré: {observed}{unit}</span>
+            <span className="text-[9px] text-green-600 dark:text-green-400">
+              Mesuré: {observed}{unit}
+            </span>
           )}
         </div>
       </div>
       <div className="flex items-center gap-2">
         <span className="text-sm font-mono">
-          {typeof current === "string" ? current : current.toFixed(1)}{unit}
+          {typeof current === "string" ? current : Math.round(currentNum)}{unit}
         </span>
         <ArrowRight className="h-3 w-3 text-muted-foreground" />
         <span className={cn(
@@ -135,7 +154,7 @@ function MetricCompare({
           isPositive && "text-green-600",
           isNegative && "text-red-600"
         )}>
-          {typeof simulated === "string" ? simulated : simulated.toFixed(1)}{unit}
+          {typeof simulated === "string" ? simulated : Math.round(simulatedNum)}{unit}
         </span>
         {diff !== 0 && (
           <Badge 
@@ -231,110 +250,110 @@ export function WhatIfSimulator({
   className 
 }: WhatIfSimulatorProps) {
   // Default profile
-  const defaultProfile: MetabolicProfile = {
+  const defaultProfile: MaderProfile = {
     vo2max: initialProfile?.vo2max || 55,
     vlamax: initialProfile?.vlamax || 0.45,
     weight: initialProfile?.weight || 70,
-    ftp: initialProfile?.ftp || 250,
-    fcMax: initialProfile?.fcMax || 180
   };
   
   // State
   const [current] = useState(defaultProfile);
   const [simulated, setSimulated] = useState(defaultProfile);
   const [mode, setMode] = useState<SimulatorMode>("calibration");
-  const [activeTab, setActiveTab] = useState<"base" | "derived" | "presets">("base");
+  const [activeTab, setActiveTab] = useState<"base" | "derived" | "substrate">("base");
   
   // Derived targets (for objectif mode)
-  const [targetFTP, setTargetFTP] = useState(defaultProfile.ftp);
+  const [targetFTP, setTargetFTP] = useState(0);
   const [targetTTE, setTargetTTE] = useState(45);
   const [targetFatMax, setTargetFatMax] = useState(65);
   
-  // Initialize targets from predictions
-  const initialPrediction = useMemo(() => predictPerformance(defaultProfile), []);
+  // Predictions from Mader model
+  const currentPrediction = useMemo(() => predictMaderPerformance(current), [current]);
+  const simulatedPrediction = useMemo(() => predictMaderPerformance(simulated), [simulated]);
   
+  // Initialize targets from predictions or observed values
   useEffect(() => {
-    setTargetFTP(observedFTP ?? initialPrediction.ftpWatts);
-    setTargetTTE(observedTTE ?? initialPrediction.tteAtFTP);
-    setTargetFatMax(observedFatMax ?? initialPrediction.fatMaxIntensity);
-  }, [initialPrediction, observedFTP, observedTTE, observedFatMax]);
+    setTargetFTP(observedFTP ?? currentPrediction.mlssPower);
+    setTargetTTE(observedTTE ?? currentPrediction.tteAtMLSS);
+    setTargetFatMax(observedFatMax ?? currentPrediction.fatMaxIntensity);
+  }, [currentPrediction, observedFTP, observedTTE, observedFatMax]);
   
-  // Predictions
-  const currentPrediction = useMemo(() => predictPerformance(current), [current]);
-  const simulatedPrediction = useMemo(() => predictPerformance(simulated), [simulated]);
-  
-  // Lactate curves
+  // Lactate curves from Mader model
   const currentLactateCurve = useMemo(() => 
-    generateLactateCurve(current.vo2max, current.vlamax, current.ftp), 
-    [current]
+    generateMaderLactateCurve(current), [current]
   );
   const simulatedLactateCurve = useMemo(() => 
-    generateLactateCurve(simulated.vo2max, simulated.vlamax, simulated.ftp), 
-    [simulated]
+    generateMaderLactateCurve(simulated), [simulated]
   );
   
-  // Preset scenarios
-  const presetScenarios = useMemo(() => generateWhatIfScenarios(current), [current]);
-  
-  // Inverse calibration when in objectif mode and derived values change
+  // Inverse calibration when in objectif mode
   useEffect(() => {
     if (mode !== "objectif") return;
     
-    // Calculate required VLamax for each target
-    const vlamaxForFTP = calibrateVLamaxFromFTP(targetFTP, current.vo2max, simulated.weight);
-    const vlamaxForTTE = calibrateVLamaxFromTTE(targetTTE, current.vo2max);
-    const vlamaxForFatMax = calibrateVLamaxFromFatMax(targetFatMax);
+    // Calculate required VLamax for each target using Mader model
+    const vlamaxForFTP = calibrateVLamaxFromMLSS(targetFTP, current.vo2max, simulated.weight);
+    const vlamaxForTTE = calibrateVLamaxFromTTE(targetTTE, current.vo2max, simulated.weight, targetFTP);
+    const vlamaxForFatMax = calibrateVLamaxFromFatMax(targetFatMax, current.vo2max, simulated.weight);
     
-    // Use weighted average prioritizing TTE (most reliable)
+    // Weighted average - TTE is most reliable indicator
     const avgVlamax = (vlamaxForFTP * 0.3 + vlamaxForTTE * 0.5 + vlamaxForFatMax * 0.2);
-    const requiredVO2 = calibrateVO2maxFromFTP(targetFTP, avgVlamax, simulated.weight);
     
     setSimulated(prev => ({
       ...prev,
-      vlamax: Number(avgVlamax.toFixed(3)),
-      vo2max: Number(requiredVO2.toFixed(1))
+      vlamax: Number(avgVlamax.toFixed(3))
     }));
   }, [mode, targetFTP, targetTTE, targetFatMax, current.vo2max, simulated.weight]);
   
   // Handlers
-  const handleBaseChange = (key: keyof MetabolicProfile, value: number) => {
+  const handleBaseChange = (key: keyof MaderProfile, value: number) => {
     setSimulated(prev => ({ ...prev, [key]: value }));
   };
   
   const handleReset = () => {
     setSimulated(current);
-    setTargetFTP(observedFTP ?? currentPrediction.ftpWatts);
-    setTargetTTE(observedTTE ?? currentPrediction.tteAtFTP);
+    setTargetFTP(observedFTP ?? currentPrediction.mlssPower);
+    setTargetTTE(observedTTE ?? currentPrediction.tteAtMLSS);
     setTargetFatMax(observedFatMax ?? currentPrediction.fatMaxIntensity);
-  };
-  
-  const applyPreset = (scenario: WhatIfScenario) => {
-    setSimulated(prev => ({
-      ...prev,
-      vo2max: scenario.vo2max,
-      vlamax: scenario.vlamax,
-      weight: scenario.weight
-    }));
   };
   
   // Combined lactate data for chart
   const combinedLactateData = useMemo(() => {
     return currentLactateCurve.map((point, i) => ({
       intensity: point.intensity,
+      power: point.power,
       current: point.lactate,
       simulated: simulatedLactateCurve[i]?.lactate || 0,
       zone: point.zone,
-      watts: point.watts
+      fatOx: point.fatOx,
+      carbOx: point.carbOx
     }));
   }, [currentLactateCurve, simulatedLactateCurve]);
+  
+  // Substrate data for visualization
+  const substrateData = useMemo(() => {
+    return simulatedLactateCurve.map(point => ({
+      intensity: point.intensity,
+      power: point.power,
+      fatOx: point.fatOx * 60, // Convert to g/h
+      carbOx: point.carbOx * 60, // Convert to g/h
+      lactate: point.lactate
+    }));
+  }, [simulatedLactateCurve]);
   
   const hasChanges = 
     simulated.vo2max !== current.vo2max ||
     simulated.vlamax !== current.vlamax ||
     simulated.weight !== current.weight;
   
+  // Check for model-observed divergence
+  const ftpDivergence = observedFTP ? 
+    Math.abs(currentPrediction.mlssPower - observedFTP) / observedFTP * 100 : 0;
+  const tteDivergence = observedTTE ? 
+    Math.abs(currentPrediction.tteAtMLSS - observedTTE) / observedTTE * 100 : 0;
+  const hasMajorDivergence = ftpDivergence > 15 || tteDivergence > 30;
+  
   // Check feasibility of targets
-  const infeasibleTarget = mode === "objectif" && (simulated.vlamax < 0.18 || simulated.vlamax > 0.95);
+  const infeasibleTarget = mode === "objectif" && (simulated.vlamax < 0.15 || simulated.vlamax > 1.0);
   
   return (
     <Card className={cn("overflow-hidden", className)}>
@@ -342,7 +361,10 @@ export function WhatIfSimulator({
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
             <Beaker className="h-5 w-5 text-primary" />
-            Simulateur What-If
+            Simulateur Métabolique
+            <Badge variant="outline" className="text-[9px] font-normal">
+              Mader Model
+            </Badge>
           </CardTitle>
           <div className="flex items-center gap-2">
             {hasChanges && (
@@ -362,20 +384,32 @@ export function WhatIfSimulator({
           </div>
           <div className="flex items-center gap-2">
             <span className={cn("text-xs", mode === "calibration" && "font-semibold text-primary")}>
-              Calibration
+              Exploration
             </span>
             <Switch
               checked={mode === "objectif"}
               onCheckedChange={(checked) => setMode(checked ? "objectif" : "calibration")}
             />
             <span className={cn("text-xs", mode === "objectif" && "font-semibold text-primary")}>
-              Objectif
+              Objectifs
             </span>
           </div>
         </div>
       </CardHeader>
       
       <CardContent className="space-y-4 pt-4">
+        {/* Divergence Warning */}
+        {hasMajorDivergence && mode === "calibration" && (
+          <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 flex items-start gap-2">
+            <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div className="text-xs text-amber-700 dark:text-amber-300">
+              <span className="font-semibold">Écart modèle/terrain détecté.</span>
+              {" "}Le modèle prédit {currentPrediction.tteAtMLSS}min TTE vs {observedTTE}min mesuré. 
+              Ajustez VLamax ou passez en mode Objectifs pour calibrer.
+            </div>
+          </div>
+        )}
+        
         {/* Mode Description */}
         <div className={cn(
           "p-2 rounded-lg text-xs",
@@ -385,12 +419,12 @@ export function WhatIfSimulator({
           {mode === "calibration" ? (
             <div className="flex items-start gap-2">
               <Activity className="h-4 w-4 mt-0.5 flex-shrink-0" />
-              <span>Ajustez VO2max, VLamax, Poids pour voir l'impact sur FTP, TTE et FatMax</span>
+              <span>Explorez l'impact de VO2max, VLamax et Poids sur les seuils et substrats (modèle Mader)</span>
             </div>
           ) : (
             <div className="flex items-start gap-2">
               <Crosshair className="h-4 w-4 mt-0.5 flex-shrink-0" />
-              <span>Définissez vos objectifs FTP/TTE/FatMax - le modèle calcule les paramètres requis</span>
+              <span>Définissez vos objectifs FTP/TTE/FatMax → le modèle calcule la VLamax requise</span>
             </div>
           )}
         </div>
@@ -399,12 +433,10 @@ export function WhatIfSimulator({
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="base" className="text-xs">
-              {mode === "calibration" ? "Paramètres" : "Poids"}
+              {mode === "calibration" ? "Paramètres" : "Objectifs"}
             </TabsTrigger>
-            <TabsTrigger value="derived" className="text-xs">
-              {mode === "calibration" ? "Prédictions" : "Objectifs"}
-            </TabsTrigger>
-            <TabsTrigger value="presets" className="text-xs">Scénarios</TabsTrigger>
+            <TabsTrigger value="derived" className="text-xs">Performance</TabsTrigger>
+            <TabsTrigger value="substrate" className="text-xs">Substrats</TabsTrigger>
           </TabsList>
           
           {/* BASE PARAMETERS TAB */}
@@ -448,90 +480,10 @@ export function WhatIfSimulator({
               </>
             ) : (
               <>
-                {/* In objectif mode, only weight is adjustable as base param */}
                 <ParameterSlider
-                  label="Poids cible"
-                  icon={Scale}
-                  current={current.weight}
-                  value={simulated.weight}
-                  onChange={(v) => handleBaseChange("weight", v)}
-                  min={45}
-                  max={120}
-                  step={0.5}
-                  unit="kg"
-                />
-                
-                {/* Show calculated base params */}
-                <div className="p-3 rounded-lg bg-muted/50 space-y-2">
-                  <h5 className="text-xs font-semibold text-muted-foreground">Paramètres requis calculés:</h5>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">VO2max requis:</span>
-                      <span className="font-mono font-semibold">{simulated.vo2max.toFixed(1)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">VLamax requise:</span>
-                      <span className="font-mono font-semibold">{simulated.vlamax.toFixed(3)}</span>
-                    </div>
-                  </div>
-                </div>
-                
-                {infeasibleTarget && (
-                  <div className="p-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 flex items-start gap-2">
-                    <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
-                    <span className="text-xs text-red-700 dark:text-red-300">
-                      Objectifs non réalistes - VLamax hors plage physiologique ({simulated.vlamax.toFixed(2)})
-                    </span>
-                  </div>
-                )}
-              </>
-            )}
-          </TabsContent>
-          
-          {/* DERIVED / OBJECTIVES TAB */}
-          <TabsContent value="derived" className="space-y-3 mt-4">
-            {mode === "calibration" ? (
-              // Show predicted values (read-only in calibration mode)
-              <div className="space-y-1.5">
-                <MetricCompare 
-                  label="FTP" 
-                  current={currentPrediction.ftpWatts} 
-                  simulated={simulatedPrediction.ftpWatts}
-                  unit="W"
+                  label="FTP cible (MLSS)"
                   icon={Zap}
-                  observed={observedFTP}
-                />
-                <MetricCompare 
-                  label="FTP/kg" 
-                  current={currentPrediction.ftpWkg} 
-                  simulated={simulatedPrediction.ftpWkg}
-                  unit=" W/kg"
-                  icon={Scale}
-                />
-                <MetricCompare 
-                  label="TTE @ FTP" 
-                  current={currentPrediction.tteAtFTP} 
-                  simulated={simulatedPrediction.tteAtFTP}
-                  unit=" min"
-                  icon={Clock}
-                  observed={observedTTE}
-                />
-                <MetricCompare 
-                  label="FatMax" 
-                  current={currentPrediction.fatMaxIntensity} 
-                  simulated={simulatedPrediction.fatMaxIntensity}
-                  unit="%"
-                  icon={Activity}
-                  observed={observedFatMax}
-                />
-              </div>
-            ) : (
-              // Editable targets in objectif mode
-              <>
-                <ParameterSlider
-                  label="FTP cible"
-                  icon={Zap}
-                  current={observedFTP ?? currentPrediction.ftpWatts}
+                  current={observedFTP ?? currentPrediction.mlssPower}
                   value={targetFTP}
                   onChange={setTargetFTP}
                   min={100}
@@ -544,11 +496,11 @@ export function WhatIfSimulator({
                 <ParameterSlider
                   label="TTE cible"
                   icon={Clock}
-                  current={observedTTE ?? currentPrediction.tteAtFTP}
+                  current={observedTTE ?? currentPrediction.tteAtMLSS}
                   value={targetTTE}
                   onChange={setTargetTTE}
                   min={15}
-                  max={90}
+                  max={120}
                   step={1}
                   unit="min"
                   decimals={0}
@@ -556,7 +508,7 @@ export function WhatIfSimulator({
                 />
                 <ParameterSlider
                   label="FatMax cible"
-                  icon={Activity}
+                  icon={Flame}
                   current={observedFatMax ?? currentPrediction.fatMaxIntensity}
                   value={targetFatMax}
                   onChange={setTargetFatMax}
@@ -567,30 +519,167 @@ export function WhatIfSimulator({
                   decimals={0}
                   highlight
                 />
+                
+                <ParameterSlider
+                  label="Poids cible"
+                  icon={Scale}
+                  current={current.weight}
+                  value={simulated.weight}
+                  onChange={(v) => handleBaseChange("weight", v)}
+                  min={45}
+                  max={120}
+                  step={0.5}
+                  unit="kg"
+                />
+                
+                {/* Show calculated VLamax */}
+                <div className="p-3 rounded-lg bg-muted/50 space-y-2">
+                  <h5 className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                    <Info className="h-3 w-3" />
+                    VLamax requise calculée
+                  </h5>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">VLamax effective:</span>
+                    <span className={cn(
+                      "font-mono font-bold text-lg",
+                      infeasibleTarget ? "text-red-600" : "text-primary"
+                    )}>
+                      {simulated.vlamax.toFixed(3)} mmol/L/s
+                    </span>
+                  </div>
+                  {infeasibleTarget && (
+                    <p className="text-[10px] text-red-600">
+                      Objectifs hors limites physiologiques
+                    </p>
+                  )}
+                </div>
               </>
             )}
           </TabsContent>
           
-          {/* PRESETS TAB */}
-          <TabsContent value="presets" className="mt-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {presetScenarios.slice(1).map((scenario, i) => (
-                <Button
-                  key={i}
-                  variant="outline"
-                  size="sm"
-                  className="h-auto py-2 flex-col items-start text-left"
-                  onClick={() => {
-                    if (mode === "objectif") setMode("calibration");
-                    applyPreset(scenario);
-                  }}
-                >
-                  <span className="text-xs font-medium">{scenario.label}</span>
-                  <span className="text-[10px] text-muted-foreground">
-                    VO2: {scenario.vo2max.toFixed(0)} • VLa: {scenario.vlamax.toFixed(2)}
-                  </span>
-                </Button>
-              ))}
+          {/* PERFORMANCE TAB */}
+          <TabsContent value="derived" className="space-y-3 mt-4">
+            <div className="space-y-1.5">
+              <MetricCompare 
+                label="MLSS / FTP" 
+                current={currentPrediction.mlssPower} 
+                simulated={simulatedPrediction.mlssPower}
+                unit="W"
+                icon={Zap}
+                observed={observedFTP}
+                showDivergence
+              />
+              <MetricCompare 
+                label="FTP/kg" 
+                current={currentPrediction.mlssWkg} 
+                simulated={simulatedPrediction.mlssWkg}
+                unit=" W/kg"
+                icon={Scale}
+              />
+              <MetricCompare 
+                label="LT1 (2mmol)" 
+                current={currentPrediction.lt1Power} 
+                simulated={simulatedPrediction.lt1Power}
+                unit="W"
+                icon={Activity}
+              />
+              <MetricCompare 
+                label="LT2 (4mmol)" 
+                current={currentPrediction.lt2Power} 
+                simulated={simulatedPrediction.lt2Power}
+                unit="W"
+                icon={Activity}
+              />
+              <MetricCompare 
+                label="TTE @ MLSS" 
+                current={currentPrediction.tteAtMLSS} 
+                simulated={simulatedPrediction.tteAtMLSS}
+                unit=" min"
+                icon={Clock}
+                observed={observedTTE}
+                showDivergence
+              />
+              <MetricCompare 
+                label="FatMax" 
+                current={currentPrediction.fatMaxIntensity} 
+                simulated={simulatedPrediction.fatMaxIntensity}
+                unit="%"
+                icon={Flame}
+                observed={observedFatMax}
+                showDivergence
+              />
+              <MetricCompare 
+                label="MAP (VO2max)" 
+                current={currentPrediction.pMax} 
+                simulated={simulatedPrediction.pMax}
+                unit="W"
+                icon={TrendingUp}
+              />
+            </div>
+          </TabsContent>
+          
+          {/* SUBSTRATE TAB */}
+          <TabsContent value="substrate" className="space-y-3 mt-4">
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 border">
+                <div className="text-[10px] text-muted-foreground">FatMax Rate</div>
+                <div className="font-mono font-bold text-lg text-amber-700 dark:text-amber-400">
+                  {simulatedPrediction.fatMaxGrams} g/min
+                </div>
+                <div className="text-[10px]">@ {simulatedPrediction.fatMaxPower}W</div>
+              </div>
+              <div className="p-2 rounded-lg bg-orange-50 dark:bg-orange-900/20 border">
+                <div className="text-[10px] text-muted-foreground">Glucides @ FatMax</div>
+                <div className="font-mono font-bold text-lg text-orange-700 dark:text-orange-400">
+                  {simulatedPrediction.carbAtFatMax} g/h
+                </div>
+                <div className="text-[10px]">carbs simultanés</div>
+              </div>
+            </div>
+            
+            {/* Substrate Chart */}
+            <div className="h-40 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={substrateData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                  <XAxis 
+                    dataKey="intensity" 
+                    tick={{ fontSize: 9 }} 
+                    tickFormatter={(v) => `${v}%`}
+                  />
+                  <YAxis 
+                    tick={{ fontSize: 9 }} 
+                    label={{ value: "g/h", angle: -90, position: "insideLeft", fontSize: 9 }}
+                  />
+                  <Tooltip 
+                    formatter={(value: number, name: string) => [
+                      `${Math.round(value)} g/h`, 
+                      name === "fatOx" ? "Lipides" : "Glucides"
+                    ]}
+                  />
+                  <Legend 
+                    verticalAlign="top" 
+                    height={25}
+                    formatter={(value) => (
+                      <span className="text-[10px]">{value === "fatOx" ? "Lipides" : "Glucides"}</span>
+                    )}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="fatOx" 
+                    fill="hsl(45, 93%, 80%)" 
+                    stroke="hsl(45, 93%, 47%)"
+                    stackId="1"
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="carbOx" 
+                    fill="hsl(24, 95%, 80%)" 
+                    stroke="hsl(24, 95%, 53%)"
+                    stackId="1"
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
             </div>
           </TabsContent>
         </Tabs>
@@ -599,32 +688,30 @@ export function WhatIfSimulator({
         <div className="space-y-2">
           <h4 className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
             <TrendingUp className="h-3 w-3" />
-            Courbe de Lactate Prédictive
+            Courbe de Lactate (Cinétique Mader)
           </h4>
-          <div className="h-44 w-full">
+          <div className="h-40 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={combinedLactateData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                 <XAxis 
                   dataKey="intensity" 
-                  tick={{ fontSize: 10 }} 
+                  tick={{ fontSize: 9 }} 
                   tickFormatter={(v) => `${v}%`}
-                  label={{ value: "% VO2max", position: "bottom", fontSize: 10, offset: -5 }}
                 />
                 <YAxis 
-                  tick={{ fontSize: 10 }} 
+                  tick={{ fontSize: 9 }} 
                   domain={[0, 12]}
-                  tickFormatter={(v) => `${v}`}
-                  label={{ value: "mmol/L", angle: -90, position: "insideLeft", fontSize: 10 }}
+                  label={{ value: "mmol/L", angle: -90, position: "insideLeft", fontSize: 9 }}
                 />
                 <Tooltip content={<LactateTooltip />} />
-                <ReferenceLine y={2} stroke="hsl(142, 71%, 45%)" strokeDasharray="5 5" label={{ value: "LT1", fontSize: 9 }} />
-                <ReferenceLine y={4} stroke="hsl(24, 95%, 53%)" strokeDasharray="5 5" label={{ value: "LT2", fontSize: 9 }} />
+                <ReferenceLine y={2} stroke="hsl(142, 71%, 45%)" strokeDasharray="5 5" label={{ value: "LT1", fontSize: 8 }} />
+                <ReferenceLine y={4} stroke="hsl(24, 95%, 53%)" strokeDasharray="5 5" label={{ value: "LT2", fontSize: 8 }} />
                 <Legend 
                   verticalAlign="top" 
-                  height={30}
+                  height={25}
                   formatter={(value) => (
-                    <span className="text-xs">{value === "current" ? "Actuel" : "Simulé"}</span>
+                    <span className="text-[10px]">{value === "current" ? "Actuel" : "Simulé"}</span>
                   )}
                 />
                 <Line 
@@ -649,87 +736,9 @@ export function WhatIfSimulator({
           </div>
         </div>
         
-        {/* Performance Impact Summary (only in calibration mode) */}
-        {mode === "calibration" && (
-          <div className="space-y-2">
-            <h4 className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-              <Target className="h-3 w-3" />
-              Impact sur la Performance
-            </h4>
-            <div className="space-y-1.5">
-              <MetricCompare 
-                label="FTP" 
-                current={currentPrediction.ftpWatts} 
-                simulated={simulatedPrediction.ftpWatts}
-                unit="W"
-                icon={Zap}
-                observed={observedFTP}
-              />
-              <MetricCompare 
-                label="TTE @ FTP" 
-                current={currentPrediction.tteAtFTP} 
-                simulated={simulatedPrediction.tteAtFTP}
-                unit=" min"
-                icon={Clock}
-                observed={observedTTE}
-              />
-              <MetricCompare 
-                label="FatMax" 
-                current={currentPrediction.fatMaxIntensity} 
-                simulated={simulatedPrediction.fatMaxIntensity}
-                unit="%"
-                icon={Activity}
-                observed={observedFatMax}
-              />
-            </div>
-          </div>
-        )}
-        
-        {/* Race Time Predictions */}
-        <div className="space-y-2">
-          <h4 className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-            <Clock className="h-3 w-3" />
-            Prédictions de Temps de Course
-          </h4>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="p-2 rounded-lg bg-muted/30 border">
-              <div className="text-[10px] text-muted-foreground">Semi-Marathon</div>
-              <div className="flex items-center gap-1">
-                <span className="text-sm font-mono">{currentPrediction.halfMarathon}</span>
-                <ChevronRight className="h-3 w-3" />
-                <span className="text-sm font-mono font-semibold text-primary">{simulatedPrediction.halfMarathon}</span>
-              </div>
-            </div>
-            <div className="p-2 rounded-lg bg-muted/30 border">
-              <div className="text-[10px] text-muted-foreground">Marathon</div>
-              <div className="flex items-center gap-1">
-                <span className="text-sm font-mono">{currentPrediction.marathon}</span>
-                <ChevronRight className="h-3 w-3" />
-                <span className="text-sm font-mono font-semibold text-primary">{simulatedPrediction.marathon}</span>
-              </div>
-            </div>
-            <div className="p-2 rounded-lg bg-muted/30 border">
-              <div className="text-[10px] text-muted-foreground">Ironman 70.3</div>
-              <div className="flex items-center gap-1">
-                <span className="text-sm font-mono">{currentPrediction.ironman70_3}</span>
-                <ChevronRight className="h-3 w-3" />
-                <span className="text-sm font-mono font-semibold text-primary">{simulatedPrediction.ironman70_3}</span>
-              </div>
-            </div>
-            <div className="p-2 rounded-lg bg-muted/30 border">
-              <div className="text-[10px] text-muted-foreground">Ironman</div>
-              <div className="flex items-center gap-1">
-                <span className="text-sm font-mono">{currentPrediction.ironman}</span>
-                <ChevronRight className="h-3 w-3" />
-                <span className="text-sm font-mono font-semibold text-primary">{simulatedPrediction.ironman}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        
         {/* Disclaimer */}
         <p className="text-[10px] text-muted-foreground text-center pt-2 border-t">
-          Estimations basées sur le modèle métabolique simplifié. Usage indicatif uniquement.
+          Modèle basé sur Mader (2003), Heck & Schulz (2002). Cinétique du lactate et substrats couplés.
         </p>
       </CardContent>
     </Card>
