@@ -109,13 +109,20 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
 
   const handleNavClick = (item: typeof navigationGroups[0]["items"][0]) => {
     if (item.route) {
-      navigate(item.route);
+      // Si on a un tab spécifique, le passer en state
+      if (item.tab) {
+        navigate(item.route, { state: { activeTab: item.tab } });
+      } else {
+        navigate(item.route);
+      }
     } else if (item.tab) {
       // If we're not on the main page, navigate first
       if (location.pathname !== "/") {
-        navigate("/");
+        navigate("/", { state: { activeTab: item.tab } });
+      } else {
+        // On est déjà sur /, on change juste le tab
+        onTabChange(item.tab);
       }
-      onTabChange(item.tab);
     }
   };
 
