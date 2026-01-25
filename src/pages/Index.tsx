@@ -110,7 +110,7 @@ import {
   Calculator,
   Shield,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
@@ -143,6 +143,7 @@ import {
 const Index = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // ✅ Cloud data pour les données brutes (snapshots, tests, checkins)
   const { snapshots, tests, checkins, loading, addAthlete, updateAthlete, deleteAthlete, addTest, deleteTest, updateSnapshot, addCheckin, updateCheckin, getCheckinsForAthlete } = useCloudDataContext();
@@ -176,11 +177,25 @@ const Index = () => {
   const validTabs = ["dashboard", "profil", "race-readiness", "seances", "configuration"];
   
   const [activeTab, setActiveTab] = useState(() => {
-    // Restaurer l'onglet depuis localStorage au chargement
+    // D'abord, vérifier si on a un state de navigation
+    const navigationState = location.state as { activeTab?: string } | null;
+    if (navigationState?.activeTab && validTabs.includes(navigationState.activeTab)) {
+      return navigationState.activeTab;
+    }
+    
+    // Sinon, restaurer l'onglet depuis localStorage
     const saved = localStorage.getItem("vlab-active-tab");
     // Valider que le tab existe, sinon fallback sur dashboard
     return saved && validTabs.includes(saved) ? saved : "dashboard";
   });
+  
+  // Écouter les changements de navigation pour mettre à jour le tab si nécessaire
+  useEffect(() => {
+    const navigationState = location.state as { activeTab?: string } | null;
+    if (navigationState?.activeTab && validTabs.includes(navigationState.activeTab)) {
+      setActiveTab(navigationState.activeTab);
+    }
+  }, [location.state]);
   
   // Persister l'onglet actif dans localStorage
   useEffect(() => {
