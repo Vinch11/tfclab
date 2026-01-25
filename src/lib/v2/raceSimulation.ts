@@ -751,15 +751,39 @@ export function computeRaceSimulation(input: RaceSimulationInput): RaceSimulatio
   const conservativeScenario = scenarios.find(s => s.type === 'conservative')!;
   const aggressiveScenario = scenarios.find(s => s.type === 'aggressive')!;
   
-  const timeRangeMin = aggressiveScenario.estimatedTimeRange[0];
-  const timeRangeMax = conservativeScenario.estimatedTimeRange[1];
+  // Calculer la plage globale à partir des scénarios individuels
+  // Au lieu d'utiliser les extrêmes, on utilise le scénario optimal comme référence
+  const optimalCenter = optimalScenario.estimatedTimeMin;
   
-  // Confiance
-  let timeConfidence = 0.7;
-  if (missingData.length >= 2) timeConfidence -= 0.2;
-  if (input.vlamaxConfidence < 0.6) timeConfidence -= 0.1;
-  if (input.tteConfidence < 0.6) timeConfidence -= 0.1;
-  timeConfidence = clamp(timeConfidence, 0.3, 0.9);
+  // Confiance basée sur les données disponibles
+  let timeConfidence = 70; // Score sur 100
+  if (missingData.length >= 2) timeConfidence -= 20;
+  if (input.vlamaxConfidence < 0.6) timeConfidence -= 10;
+  if (input.tteConfidence < 0.6) timeConfidence -= 10;
+  
+  // Bonus si données calibrées
+  const hasCalibration = input.vlamaxEffectif !== null && input.tteMin !== null;
+  if (hasCalibration && input.vlamaxConfidence >= 0.7) {
+    timeConfidence += 10;
+  }
+  
+  timeConfidence = clamp(timeConfidence, 30, 90);
+  
+  // Appliquer la précision adaptative - plages resserrées si confiance élevée
+  let uncertaintyPct: number;
+  if (timeConfidence >= 75) {
+    uncertaintyPct = 0.02; // ±2% (~5min pour 4h)
+  } else if (timeConfidence >= 55) {
+    uncertaintyPct = 0.04; // ±4% (~10min pour 4h)
+  } else if (timeConfidence >= 40) {
+    uncertaintyPct = 0.07; // ±7%
+  } else {
+    uncertaintyPct = 0.10; // ±10%
+  }
+  
+  // Calculer la plage finale en utilisant l'incertitude
+  const timeRangeMin = optimalCenter * (1 - uncertaintyPct);
+  const timeRangeMax = optimalCenter * (1 + uncertaintyPct);
   
   // Garde-fous
   const guardrails: SimulationGuardrail[] = [];
@@ -829,8 +853,8 @@ export function computeRaceSimulation(input: RaceSimulationInput): RaceSimulatio
     ambitionLabel: AMBITION_LABELS[input.ambition],
     estimatedTimeRange: [timeRangeMin, timeRangeMax],
     estimatedTimeLabel: `${formatDuration(timeRangeMin)} – ${formatDuration(timeRangeMax)}`,
-    timeConfidence,
-    timeConfidenceLabel: timeConfidence >= 0.7 ? "Bonne" : timeConfidence >= 0.5 ? "Moyenne" : "Faible",
+    timeConfidence: timeConfidence / 100, // Normaliser en 0-1 pour compatibilité
+    timeConfidenceLabel: timeConfidence >= 75 ? "Haute" : timeConfidence >= 55 ? "Moyenne" : timeConfidence >= 40 ? "Limitée" : "Faible",
     scenarios,
     recommendedScenario,
     globalFuelRisk: optimalScenario.overallFuelRisk,

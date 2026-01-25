@@ -274,6 +274,57 @@ export function formatVLamaxDisplay(vlamax: VLamaxEffectif): string {
   return vlamax.value.toFixed(2);
 }
 
+/**
+ * Formate la VLamax avec une plage adaptative basée sur la confiance
+ * Confiance haute → plage étroite, Confiance faible → plage large
+ */
+export function formatVLamaxWithRange(vlamax: VLamaxEffectif): string {
+  if (vlamax.value === null) return "—";
+  
+  // Calculer la marge selon la confiance (précision adaptative)
+  let marginPct: number;
+  if (vlamax.confidence >= 0.9) {
+    marginPct = 0.03; // ±0.03 mmol/L/s (~5%)
+  } else if (vlamax.confidence >= 0.75) {
+    marginPct = 0.05; // ±0.05
+  } else if (vlamax.confidence >= 0.55) {
+    marginPct = 0.08; // ±0.08
+  } else if (vlamax.confidence >= 0.4) {
+    marginPct = 0.12; // ±0.12
+  } else {
+    marginPct = 0.15; // ±0.15
+  }
+  
+  // Si mesure lactate avec haute confiance, afficher juste la valeur
+  if (marginPct <= 0.03 && vlamax.source === "snapshot" && vlamax.isLocked) {
+    return `${vlamax.value.toFixed(2)} mmol/L/s`;
+  }
+  
+  const low = Math.max(0.15, vlamax.value - marginPct);
+  const high = Math.min(0.95, vlamax.value + marginPct);
+  
+  return `${vlamax.value.toFixed(2)} [${low.toFixed(2)}–${high.toFixed(2)}]`;
+}
+
+/**
+ * Retourne une plage de valeurs pour la VLamax selon la confiance
+ */
+export function getVLamaxRange(vlamax: VLamaxEffectif): { low: number; high: number } {
+  if (vlamax.value === null) return { low: 0.35, high: 0.55 };
+  
+  let marginPct: number;
+  if (vlamax.confidence >= 0.9) marginPct = 0.03;
+  else if (vlamax.confidence >= 0.75) marginPct = 0.05;
+  else if (vlamax.confidence >= 0.55) marginPct = 0.08;
+  else if (vlamax.confidence >= 0.4) marginPct = 0.12;
+  else marginPct = 0.15;
+  
+  return {
+    low: Math.max(0.15, vlamax.value - marginPct),
+    high: Math.min(0.95, vlamax.value + marginPct),
+  };
+}
+
 // =============================================
 // CONVERSION VERS SCORE ENVELOPE (Staff-Grade)
 // =============================================

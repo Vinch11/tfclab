@@ -327,24 +327,45 @@ export function computeMultiIndexVlamax(input: VLamaxMultiIndexInput): MultiInde
     ? (values[values.length / 2 - 1] + values[values.length / 2]) / 2
     : values[Math.floor(values.length / 2)];
   
-  // P25 et P75
-  const p25Index = Math.floor(values.length * 0.25);
-  const p75Index = Math.floor(values.length * 0.75);
-  const rangeLow = values[p25Index] || values[0];
-  const rangeHigh = values[p75Index] || values[values.length - 1];
-  
   // Dispersion (écart-type)
   const mean = values.reduce((a, b) => a + b, 0) / values.length;
   const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / values.length;
   const dispersion = Math.sqrt(variance);
   
   // Confiance inversement proportionnelle à la dispersion
-  // dispersion < 0.05 = confiance haute, > 0.15 = confiance basse
-  let confidence = 1.0 - (dispersion / 0.20);
+  // dispersion < 0.03 = confiance très haute, > 0.15 = confiance basse
+  let confidence = 1.0 - (dispersion / 0.18);
   confidence = Math.max(0.50, Math.min(0.95, confidence));
   
+  // Plages affinées selon la confiance
+  // Si dispersion faible → plages étroites autour de la médiane
+  // Si dispersion élevée → utiliser P25/P75 classiques
+  let rangeLow: number;
+  let rangeHigh: number;
+  
+  if (dispersion <= 0.03 && values.length >= 3) {
+    // Très bonne convergence → plage étroite ±0.02
+    rangeLow = Math.max(0.15, median - 0.025);
+    rangeHigh = Math.min(0.95, median + 0.025);
+    confidence = Math.max(confidence, 0.85);
+  } else if (dispersion <= 0.06 && values.length >= 2) {
+    // Bonne convergence → plage modérée ±0.04
+    rangeLow = Math.max(0.15, median - 0.04);
+    rangeHigh = Math.min(0.95, median + 0.04);
+  } else if (dispersion <= 0.10) {
+    // Convergence moyenne → plage basée sur écart-type
+    rangeLow = Math.max(0.15, median - dispersion * 1.2);
+    rangeHigh = Math.min(0.95, median + dispersion * 1.2);
+  } else {
+    // Dispersion élevée → P25/P75 classiques
+    const p25Index = Math.floor(values.length * 0.25);
+    const p75Index = Math.floor(values.length * 0.75);
+    rangeLow = values[p25Index] || values[0];
+    rangeHigh = values[p75Index] || values[values.length - 1];
+  }
+  
   if (dispersion > 0.10) {
-    flags.push(`Dispersion élevée (σ=${dispersion.toFixed(3)}) - indices divergents`);
+    flags.push(`Dispersion modérée (σ=${dispersion.toFixed(3)}) - vérifier les protocoles`);
   }
   
   if (dispersion > 0.15) {

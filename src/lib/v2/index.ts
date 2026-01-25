@@ -575,3 +575,29 @@ export {
   type ChangelogEntry,
   type SnapshotEngineMetadata
 } from './physiologicalVersioning';
+
+// Adaptive Precision Engine™
+export {
+  // Configuration
+  CONFIDENCE_THRESHOLDS,
+  UNCERTAINTY_MULTIPLIERS,
+  TIME_UNCERTAINTY_MULTIPLIERS,
+  
+  // Functions
+  getConfidenceLevel,
+  getEffectiveUncertainty,
+  computeAdaptiveRange,
+  computeAdaptiveTimeRange,
+  computeAdaptiveVLamaxRange,
+  computeAdaptiveScore,
+  
+  // Documentation
+  PRECISION_METHODOLOGY,
+  ACADEMY_ADAPTIVE_PRECISION,
+  
+  // Types
+  type ConfidenceLevel,
+  type PrecisionConfig,
+  type AdaptiveRange,
+  type TimeRange,
+} from './adaptivePrecision';
