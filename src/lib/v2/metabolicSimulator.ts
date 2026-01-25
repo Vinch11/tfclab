@@ -344,3 +344,113 @@ export function compareScenarios(
     };
   });
 }
+
+// =============================================
+// INVERSE CALIBRATION - Back-calculate base params from targets
+// =============================================
+
+/**
+ * Inverse calibration: Given target FTP, find required VLamax
+ * Rearranging: FTP = (VO2max * 0.075 - VLamax * 0.45) * weight
+ * => VLamax = (VO2max * 0.075 - FTP/weight) / 0.45
+ */
+export function calibrateVLamaxFromFTP(
+  targetFTP: number,
+  vo2max: number,
+  weight: number
+): number {
+  const ftpWkg = targetFTP / weight;
+  const requiredVlamax = (vo2max * 0.075 - ftpWkg) / 0.45;
+  return Math.max(0.15, Math.min(1.0, Number(requiredVlamax.toFixed(3))));
+}
+
+/**
+ * Inverse calibration: Given target TTE, find required VLamax
+ * From: TTE = 45 + (0.6 - VLamax) * 80 + (VO2max - 50) * 0.5
+ * => VLamax = 0.6 - (TTE - 45 - (VO2max - 50) * 0.5) / 80
+ */
+export function calibrateVLamaxFromTTE(
+  targetTTE: number,
+  vo2max: number
+): number {
+  const vo2Bonus = (vo2max - 50) * 0.5;
+  const requiredVlamax = 0.6 - (targetTTE - 45 - vo2Bonus) / 80;
+  return Math.max(0.15, Math.min(1.0, Number(requiredVlamax.toFixed(3))));
+}
+
+/**
+ * Inverse calibration: Given target FatMax %, find required VLamax
+ * From: FatMax = 80 - VLamax * 40
+ * => VLamax = (80 - FatMax) / 40
+ */
+export function calibrateVLamaxFromFatMax(
+  targetFatMaxPct: number
+): number {
+  const requiredVlamax = (80 - targetFatMaxPct) / 40;
+  return Math.max(0.15, Math.min(1.0, Number(requiredVlamax.toFixed(3))));
+}
+
+/**
+ * Calculate required VO2max to achieve target FTP with current VLamax
+ * From: FTP = (VO2max * 0.075 - VLamax * 0.45) * weight
+ * => VO2max = (FTP/weight + VLamax * 0.45) / 0.075
+ */
+export function calibrateVO2maxFromFTP(
+  targetFTP: number,
+  vlamax: number,
+  weight: number
+): number {
+  const ftpWkg = targetFTP / weight;
+  const requiredVO2 = (ftpWkg + vlamax * 0.45) / 0.075;
+  return Math.max(35, Math.min(90, Number(requiredVO2.toFixed(1))));
+}
+
+/**
+ * Full inverse calibration result
+ */
+export interface InverseCalibrationResult {
+  requiredVLamax: number;
+  requiredVO2max: number;
+  feasible: boolean;
+  note: string;
+}
+
+/**
+ * Check if a target is physiologically achievable
+ */
+export function validateTargetFeasibility(
+  targetFTP: number,
+  targetTTE: number,
+  targetFatMax: number,
+  currentVO2max: number,
+  currentWeight: number
+): InverseCalibrationResult {
+  const vlamaxFromFTP = calibrateVLamaxFromFTP(targetFTP, currentVO2max, currentWeight);
+  const vlamaxFromTTE = calibrateVLamaxFromTTE(targetTTE, currentVO2max);
+  const vlamaxFromFatMax = calibrateVLamaxFromFatMax(targetFatMax);
+  
+  // Check for consistency across metrics
+  const dispersion = Math.abs(vlamaxFromFTP - vlamaxFromTTE) + Math.abs(vlamaxFromTTE - vlamaxFromFatMax);
+  const avgVlamax = (vlamaxFromFTP + vlamaxFromTTE + vlamaxFromFatMax) / 3;
+  
+  let feasible = true;
+  let note = "";
+  
+  if (avgVlamax < 0.18) {
+    feasible = false;
+    note = "VLamax cible trop basse (<0.18) - irréaliste physiologiquement";
+  } else if (avgVlamax > 0.95) {
+    feasible = false;
+    note = "VLamax cible trop haute (>0.95) - profil non-endurance";
+  } else if (dispersion > 0.2) {
+    feasible = false;
+    note = "Objectifs incohérents entre eux - ajustez un seul paramètre à la fois";
+  }
+  
+  return {
+    requiredVLamax: avgVlamax,
+    requiredVO2max: calibrateVO2maxFromFTP(targetFTP, avgVlamax, currentWeight),
+    feasible,
+    note
+  };
+}
