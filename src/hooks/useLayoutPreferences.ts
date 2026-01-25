@@ -34,9 +34,13 @@ export const PROFIL_SECTIONS: SectionDefinition[] = [
 ];
 
 export const DASHBOARD_SECTIONS: SectionDefinition[] = [
+  // 🎯 Onboarding & Guide
+  { id: "getting-started", label: "Guide de démarrage", icon: "Rocket", defaultVisible: true },
+  { id: "data-completion-guide", label: "Complétion des données", icon: "CheckCircle", defaultVisible: true },
+  
   // 🥇 Priorité 1: Profil athlète + Ambition (usage fréquent)
   { id: "athlete-refs", label: "Profil & Références", icon: "User", defaultVisible: true },
-  { id: "ambition-progress", label: "Progression Ambition", icon: "TrendingUp", defaultVisible: true },
+  { id: "ambition-progress", label: "Évolution vers les cibles", icon: "TrendingUp", defaultVisible: true },
   
   // 🥈 Priorité 2: Métriques VLamax/TTE (usage fréquent)
   { id: "compass", label: "Metabolic Compass", icon: "Compass", defaultVisible: true },
@@ -50,6 +54,8 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   { id: "charge-recente", label: "Charge Récente", icon: "Activity", defaultVisible: true },
   
   // 📊 Priorité 4: Analyse & Recommandations
+  { id: "race-readiness-v2", label: "Race Readiness V2", icon: "Trophy", defaultVisible: true },
+  { id: "running-economy-summary", label: "Économie de course", icon: "Footprints", defaultVisible: true },
   { id: "fatmax-tfcl", label: "FatMax TFCL™", icon: "Flame", defaultVisible: true },
   { id: "fatmax-chart", label: "FatMax vs Race Intensity", icon: "BarChart", defaultVisible: true },
   { id: "dashboard-recommendations", label: "Recommandations", icon: "Sparkles", defaultVisible: true },
