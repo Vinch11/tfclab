@@ -99,12 +99,16 @@ function SortableItem({
       </div>
       
       {showIndex && (
-        <Badge 
-          variant={visible ? "outline" : "secondary"} 
-          className="w-5 h-5 flex items-center justify-center p-0 text-[10px]"
+        <span 
+          className={cn(
+            "w-5 h-5 flex items-center justify-center p-0 text-[10px] rounded-full border",
+            visible 
+              ? "border-border text-foreground" 
+              : "bg-muted text-muted-foreground"
+          )}
         >
           {index + 1}
-        </Badge>
+        </span>
       )}
       
       <span className={cn(

@@ -172,10 +172,14 @@ const Index = () => {
     } as DbAthlete;
   }, [contextCurrentAthlete]);
 
+  // Tabs valides gérés par cette page
+  const validTabs = ["dashboard", "profil", "race-readiness", "seances", "configuration"];
+  
   const [activeTab, setActiveTab] = useState(() => {
     // Restaurer l'onglet depuis localStorage au chargement
     const saved = localStorage.getItem("vlab-active-tab");
-    return saved || "dashboard";
+    // Valider que le tab existe, sinon fallback sur dashboard
+    return saved && validTabs.includes(saved) ? saved : "dashboard";
   });
   
   // Persister l'onglet actif dans localStorage
@@ -1665,6 +1669,11 @@ const Index = () => {
         return <ConfigurationPage />;
 
       default:
+        // Fallback vers le dashboard pour les tabs inconnus
+        // On force le retour au dashboard pour éviter les écrans vides
+        if (activeTab !== "dashboard") {
+          setActiveTab("dashboard");
+        }
         return null;
     }
   };
