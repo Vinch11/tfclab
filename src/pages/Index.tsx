@@ -82,6 +82,10 @@ import { GettingStartedChecklist } from "@/components/GettingStartedChecklist";
 // ✅ Page de configuration (thèmes, préférences)
 import { ConfigurationPage } from "@/components/ConfigurationPage";
 
+// ✅ INSCYD-style simulators
+import { WhatIfSimulator } from "@/components/WhatIfSimulator";
+import { LactatePredictionCurve } from "@/components/LactatePredictionCurve";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -1399,6 +1403,31 @@ const Index = () => {
               <RunningEconomySummaryCard
                 snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id)}
                 staffMode={staffMode}
+              />
+            ),
+          },
+          {
+            id: "what-if-simulator",
+            render: () => currentAthlete && effectiveCloudSnapshot && (
+              <WhatIfSimulator
+                initialProfile={{
+                  vo2max: effectiveCloudSnapshot.vo2max ?? 55,
+                  vlamax: vlamaxEffectif.value ?? 0.45,
+                  weight: effectiveRefs.weightKg ?? 70,
+                  ftp: effectiveRefs.ftp ?? 250,
+                  fcMax: effectiveCloudSnapshot.fc_max ?? 180,
+                }}
+              />
+            ),
+          },
+          {
+            id: "lactate-prediction",
+            render: () => currentAthlete && effectiveCloudSnapshot && (
+              <LactatePredictionCurve
+                vo2max={effectiveCloudSnapshot.vo2max ?? 55}
+                vlamax={vlamaxEffectif.value ?? 0.45}
+                ftp={effectiveRefs.ftp ?? 250}
+                weight={effectiveRefs.weightKg ?? 70}
               />
             ),
           },
