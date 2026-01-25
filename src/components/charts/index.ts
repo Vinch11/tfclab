@@ -18,6 +18,8 @@ export { AmbitionProgressMini } from "./AmbitionProgressMini";
 export { CadenceProfileChart } from "./CadenceProfileChart";
 export { MiniGauge } from "./MiniGauge";
 export { CompactMetricsGrid } from "./CompactMetricsGrid";
+export { CarbBurnRateChart } from "./CarbBurnRateChart";
+export { MetabolicPowerCurve } from "./MetabolicPowerCurve";
 
 
 // Composants unifiés d'affichage des métriques
