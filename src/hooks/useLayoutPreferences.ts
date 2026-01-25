@@ -15,8 +15,22 @@ export interface SectionDefinition {
   id: string;
   label: string;
   icon?: string;
+  category?: string;
+  categoryColor?: string;
   defaultVisible: boolean;
 }
+
+// Définition des catégories avec couleurs
+export const SECTION_CATEGORIES = {
+  onboarding: { label: "🎯 Démarrage", color: "bg-blue-500/10 text-blue-600 border-blue-500/30" },
+  profil: { label: "👤 Profil & Ambition", color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30" },
+  metriques: { label: "⚡ Métriques", color: "bg-amber-500/10 text-amber-600 border-amber-500/30" },
+  fatigue: { label: "💤 Fatigue & Readiness", color: "bg-purple-500/10 text-purple-600 border-purple-500/30" },
+  analyse: { label: "📊 Analyse & Course", color: "bg-rose-500/10 text-rose-600 border-rose-500/30" },
+  outils: { label: "⚙️ Outils", color: "bg-slate-500/10 text-slate-600 border-slate-500/30" },
+} as const;
+
+export type SectionCategory = keyof typeof SECTION_CATEGORIES;
 
 // Configuration d'une section sauvegardée
 export interface SectionConfig {
@@ -35,37 +49,37 @@ export const PROFIL_SECTIONS: SectionDefinition[] = [
 
 export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   // 🎯 Onboarding & Guide
-  { id: "getting-started", label: "Guide de démarrage", icon: "Rocket", defaultVisible: true },
-  { id: "data-completion-guide", label: "Complétion des données", icon: "CheckCircle", defaultVisible: true },
+  { id: "getting-started", label: "Guide de démarrage", icon: "Rocket", category: "onboarding", defaultVisible: true },
+  { id: "data-completion-guide", label: "Complétion des données", icon: "CheckCircle", category: "onboarding", defaultVisible: true },
   
-  // 🥇 Priorité 1: Profil athlète + Ambition (usage fréquent)
-  { id: "athlete-refs", label: "Profil & Références", icon: "User", defaultVisible: true },
-  { id: "ambition-progress", label: "Évolution vers les cibles", icon: "TrendingUp", defaultVisible: true },
+  // 👤 Profil athlète + Ambition
+  { id: "athlete-refs", label: "Profil & Références", icon: "User", category: "profil", defaultVisible: true },
+  { id: "ambition-progress", label: "Évolution vers les cibles", icon: "TrendingUp", category: "profil", defaultVisible: true },
   
-  // 🥈 Priorité 2: Métriques VLamax/TTE (usage fréquent)
-  { id: "compass", label: "Metabolic Compass", icon: "Compass", defaultVisible: true },
-  { id: "vlamax-bike-v2-enhanced", label: "VLamax Vélo — Analyse Détaillée", icon: "Zap", defaultVisible: true },
-  { id: "ftp-targets", label: "FTP/kg — zones cibles", icon: "Target", defaultVisible: true },
+  // ⚡ Métriques VLamax/TTE
+  { id: "compass", label: "Metabolic Compass", icon: "Compass", category: "metriques", defaultVisible: true },
+  { id: "vlamax-bike-v2-enhanced", label: "VLamax Vélo — Analyse Détaillée", icon: "Zap", category: "metriques", defaultVisible: true },
+  { id: "ftp-targets", label: "FTP/kg — zones cibles", icon: "Target", category: "metriques", defaultVisible: true },
+  { id: "vlamax-v2-calibration", label: "VLamax TFCL V2 (compact)", icon: "Zap", category: "metriques", defaultVisible: false },
   
-  // 🥉 Priorité 3: Fatigue + Readiness (usage fréquent)
-  { id: "disponibilite-tfcl", label: "Disponibilité TFCL™ (fatigue)", icon: "Target", defaultVisible: true },
-  { id: "daily-readiness-check", label: "TFCL Daily Readiness", icon: "ClipboardCheck", defaultVisible: true },
-  { id: "quick-fatigue", label: "Fatigue (saisie rapide)", icon: "Zap", defaultVisible: true },
-  { id: "charge-recente", label: "Charge Récente", icon: "Activity", defaultVisible: true },
+  // 💤 Fatigue + Readiness
+  { id: "disponibilite-tfcl", label: "Disponibilité TFCL™", icon: "Target", category: "fatigue", defaultVisible: true },
+  { id: "daily-readiness-check", label: "TFCL Daily Readiness", icon: "ClipboardCheck", category: "fatigue", defaultVisible: true },
+  { id: "quick-fatigue", label: "Fatigue (saisie rapide)", icon: "Zap", category: "fatigue", defaultVisible: true },
+  { id: "charge-recente", label: "Charge Récente", icon: "Activity", category: "fatigue", defaultVisible: true },
   
-  // 📊 Priorité 4: Analyse & Recommandations
-  { id: "race-readiness-v2", label: "Race Readiness V2", icon: "Trophy", defaultVisible: true },
-  { id: "running-economy-summary", label: "Économie de course", icon: "Footprints", defaultVisible: true },
-  { id: "fatmax-tfcl", label: "FatMax TFCL™", icon: "Flame", defaultVisible: true },
-  { id: "fatmax-chart", label: "FatMax vs Race Intensity", icon: "BarChart", defaultVisible: true },
-  { id: "dashboard-recommendations", label: "Recommandations", icon: "Sparkles", defaultVisible: true },
+  // 📊 Analyse & Course
+  { id: "race-readiness-v2", label: "Race Readiness V2", icon: "Trophy", category: "analyse", defaultVisible: true },
+  { id: "running-economy-summary", label: "Économie de course", icon: "Footprints", category: "analyse", defaultVisible: true },
+  { id: "fatmax-tfcl", label: "FatMax TFCL™", icon: "Flame", category: "analyse", defaultVisible: true },
+  { id: "fatmax-chart", label: "FatMax vs Race Intensity", icon: "BarChart", category: "analyse", defaultVisible: true },
+  { id: "dashboard-recommendations", label: "Recommandations", icon: "Sparkles", category: "analyse", defaultVisible: true },
   
-  // ⚙️ Priorité 5: Autres outils
-  { id: "action-buttons", label: "Boutons d'action", icon: "Settings", defaultVisible: true },
-  { id: "vlamax-v2-calibration", label: "VLamax TFCL V2 (compact)", icon: "Zap", defaultVisible: false },
-  { id: "low-crr-justification", label: "Justification charge faible", icon: "AlertTriangle", defaultVisible: false },
-  { id: "scientific-charts", label: "Graphiques Scientifiques", icon: "BarChart", defaultVisible: false },
-  { id: "staff-dashboard", label: "Staff Dashboard", icon: "Users", defaultVisible: false },
+  // ⚙️ Outils
+  { id: "action-buttons", label: "Boutons d'action", icon: "Settings", category: "outils", defaultVisible: true },
+  { id: "low-crr-justification", label: "Justification charge faible", icon: "AlertTriangle", category: "outils", defaultVisible: false },
+  { id: "scientific-charts", label: "Graphiques Scientifiques", icon: "BarChart", category: "outils", defaultVisible: false },
+  { id: "staff-dashboard", label: "Staff Dashboard", icon: "Users", category: "outils", defaultVisible: false },
 ];
 
 export const TESTS_SECTIONS: SectionDefinition[] = [
