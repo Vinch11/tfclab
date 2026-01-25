@@ -36,6 +36,9 @@ export const PROFIL_SECTIONS: SectionDefinition[] = [
 export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   { id: "athlete-refs", label: "Profil & Références", icon: "User", defaultVisible: true },
   { id: "quick-fatigue", label: "Fatigue (saisie rapide)", icon: "Zap", defaultVisible: true },
+  // ✅ Nouvelles mesures de fatigue (TFCL V2) — basées sur check-in + charge objective
+  { id: "disponibilite-tfcl", label: "Disponibilité TFCL™ (fatigue)", icon: "Target", defaultVisible: true },
+  { id: "daily-readiness-check", label: "TFCL Daily Readiness", icon: "ClipboardCheck", defaultVisible: true },
   { id: "low-crr-justification", label: "Justification charge faible", icon: "AlertTriangle", defaultVisible: true },
   { id: "ftp-targets", label: "FTP/kg — zones cibles", icon: "Target", defaultVisible: true },
   { id: "vlamax-bike-v2-enhanced", label: "VLamax Vélo — Analyse Détaillée", icon: "Zap", defaultVisible: true },
