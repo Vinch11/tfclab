@@ -1486,6 +1486,13 @@ export default function TemplatesPage() {
     else if (fatigueState === "moderate" || fatigueState === "modéré") fatigueStatus = "moderate";
     else if (fatigueState === "low" || fatigueState === "faible") fatigueStatus = "low";
 
+    // Compute CAP injury risk locally to avoid TDZ issues
+    const localCapRisk = computeCAPInjuryRisk({
+      vlamaxValue: athleteMetrics.vlamaxEffectif.value,
+      tteValue: athleteMetrics.tteEffectif.value,
+      objectif: selectedAthlete.goal || "IM",
+    });
+
     const input: SuggestionEngineInput = {
       vlamaxEffectif: athleteMetrics.vlamaxEffectif.value,
       vlamaxConfidence: athleteMetrics.vlamaxEffectif.confidence,
@@ -1493,13 +1500,13 @@ export default function TemplatesPage() {
       tteConfidence: athleteMetrics.tteEffectif.confidence,
       raceReadinessScore: athleteMetrics.readinessScore,
       fatigueStatus,
-      capInjuryRisk: capInjuryRisk?.level as any,
+      capInjuryRisk: localCapRisk?.level as any,
       sport: "TRI",
       objectif: selectedAthlete.goal || "IM",
     };
 
     return generateWahooSuggestions(input);
-  }, [selectedAthlete, staffMode, athleteMetrics, selectedSnapshot, capInjuryRisk]);
+  }, [selectedAthlete, staffMode, athleteMetrics, selectedSnapshot]);
 
   const handleLoadTemplate = async () => {
     const template = getTemplateById(selectedTemplateId);
