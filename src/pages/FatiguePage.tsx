@@ -14,6 +14,7 @@ import { DisponibiliteTFCLCard } from "@/components/DisponibiliteTFCLCard";
 import { TFCLDailyReadinessCheck } from "@/components/TFCLDailyReadinessCheck";
 import { FatigueV2Card } from "@/components/FatigueV2Card";
 import { ChargeRecenteCard } from "@/components/ChargeRecenteCard";
+import { ChargeInputCard } from "@/components/ChargeInputCard";
 import { 
   Battery, 
   Target, 
@@ -42,7 +43,7 @@ import {
 
 export default function FatiguePage() {
   const { athletes, selectedAthleteId, setSelectedAthleteId, currentAthlete } = useAthletes();
-  const { checkins, snapshots, addCheckin, updateCheckin } = useCloudData();
+  const { checkins, snapshots, addCheckin, updateCheckin, updateSnapshot } = useCloudData();
   const [staffMode, setStaffMode] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -165,10 +166,10 @@ export default function FatiguePage() {
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <Battery className="h-6 w-6 text-primary" />
-              Fatigue & Récupération
+              Fatigue et Gestion
             </h1>
             <p className="text-muted-foreground text-sm">
-              Suivi complet de la disponibilité et de la fatigue fonctionnelle
+              Suivi de la charge, fatigue et disponibilité
             </p>
           </div>
           
@@ -291,8 +292,23 @@ export default function FatiguePage() {
                   )}
                 </div>
 
-                {/* Charge récente + Synthèse */}
+                {/* Saisie Charge + Charge récente */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Carte de saisie de la charge */}
+                  <ChargeInputCard
+                    athleteId={selectedAthleteId}
+                    athleteName={currentAthlete?.nom || currentAthlete?.name || "Athlète"}
+                    currentTss7d={activeSnapshot?.tss_7d ?? null}
+                    targetTss={objectif === "IM" ? 550 : objectif === "Marathon" ? 450 : 400}
+                    objectif={objectif}
+                    onSave={async (tss7d) => {
+                      if (activeSnapshot) {
+                        await updateSnapshot(activeSnapshot.id, { tss_7d: tss7d });
+                      }
+                    }}
+                  />
+
+                  {/* Charge récente (lecture) */}
                   <ChargeRecenteCard
                     crr={crr}
                     objectif={objectif}

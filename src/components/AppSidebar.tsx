@@ -68,10 +68,10 @@ const navigationGroups = [
   },
   {
     id: "suivi",
-    label: "Suivi & Fatigue",
+    label: "Suivi",
     defaultOpen: true,
     items: [
-      { id: "fatigue", label: "Fatigue & Readiness", icon: Activity, route: "/fatigue" },
+      { id: "fatigue", label: "Fatigue et Gestion", icon: Activity, route: "/fatigue" },
     ],
   },
   {
