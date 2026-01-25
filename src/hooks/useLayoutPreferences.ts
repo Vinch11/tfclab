@@ -59,6 +59,9 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   // 👤 Carte Profil Athlète (juste au-dessus du Compass)
   { id: "athlete-profile-card", label: "Carte Profil Athlète", icon: "UserCircle", category: "profil", defaultVisible: true },
   
+  // 📊 Aperçu rapide (grille de mini-jauges)
+  { id: "compact-metrics-grid", label: "Aperçu Rapide (Mini-Jauges)", icon: "Activity", category: "metriques", defaultVisible: true },
+  
   // ⚡ Métriques VLamax/TTE
   { id: "compass", label: "Metabolic Compass", icon: "Compass", category: "metriques", defaultVisible: true },
   { id: "vlamax-bike-v2-enhanced", label: "VLamax Vélo — Analyse Détaillée", icon: "Zap", category: "metriques", defaultVisible: true },
