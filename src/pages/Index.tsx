@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { usePersistedDialogState } from "@/hooks/usePersistedFormState";
-import { Navigation } from "@/components/Navigation";
+import { SidebarLayout } from "@/components/SidebarLayout";
 import { MetricCard } from "@/components/MetricCard";
 import { TrainingZonesCard } from "@/components/TrainingZonesCard";
 import { TestProtocols } from "@/components/TestProtocols";
@@ -1670,47 +1670,22 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+    <SidebarLayout
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      staffMode={staffMode}
+      onStaffModeChange={setStaffMode}
+    >
+      {/* Background decorations */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
       </div>
 
-      <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
-
-      {/* Header user + Mode Staff toggle */}
-      <div className="container mx-auto px-4 pt-4">
-        <div className="flex justify-between items-center flex-wrap gap-2">
-          <div className="text-sm text-muted-foreground">Connecté: {user?.email}</div>
-          <div className="flex items-center gap-4">
-            {/* Mode Staff Toggle */}
-            <div className="flex items-center gap-2">
-              <Settings2 className="h-4 w-4 text-muted-foreground" />
-              <Label htmlFor="staff-mode" className="text-sm font-medium cursor-pointer">
-                Mode Staff
-              </Label>
-              <Switch
-                id="staff-mode"
-                checked={staffMode}
-                onCheckedChange={setStaffMode}
-              />
-            </div>
-            <Button variant="ghost" size="sm" onClick={async () => signOut()}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Déconnexion
-            </Button>
-          </div>
-        </div>
-        {staffMode && (
-          <div className="mt-2 text-xs text-success bg-success/10 px-3 py-1 rounded-full inline-flex items-center gap-1">
-            <span>🟢</span> Affichage Expert — Indices de confiance visibles
-          </div>
-        )}
-      </div>
-
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8 lg:py-10 relative max-w-7xl">
+      {/* Main content */}
+      <div className="max-w-7xl mx-auto">
         {renderContent()}
-      </main>
+      </div>
 
       <footer className="border-t border-border mt-8 sm:mt-12 py-4 sm:py-6 safe-area-inset-bottom">
         <div className="container mx-auto px-4 text-center text-xs sm:text-sm text-muted-foreground">
@@ -1723,7 +1698,7 @@ const Index = () => {
         selectedAthleteId={selectedAthleteId} 
         currentPage={activeTab} 
       />
-    </div>
+    </SidebarLayout>
   );
 };
 

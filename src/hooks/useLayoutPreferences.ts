@@ -34,24 +34,32 @@ export const PROFIL_SECTIONS: SectionDefinition[] = [
 ];
 
 export const DASHBOARD_SECTIONS: SectionDefinition[] = [
+  // 🥇 Priorité 1: Profil athlète + Ambition (usage fréquent)
   { id: "athlete-refs", label: "Profil & Références", icon: "User", defaultVisible: true },
-  { id: "quick-fatigue", label: "Fatigue (saisie rapide)", icon: "Zap", defaultVisible: true },
-  // ✅ Nouvelles mesures de fatigue (TFCL V2) — basées sur check-in + charge objective
+  { id: "ambition-progress", label: "Progression Ambition", icon: "TrendingUp", defaultVisible: true },
+  
+  // 🥈 Priorité 2: Métriques VLamax/TTE (usage fréquent)
+  { id: "compass", label: "Metabolic Compass", icon: "Compass", defaultVisible: true },
+  { id: "vlamax-bike-v2-enhanced", label: "VLamax Vélo — Analyse Détaillée", icon: "Zap", defaultVisible: true },
+  { id: "ftp-targets", label: "FTP/kg — zones cibles", icon: "Target", defaultVisible: true },
+  
+  // 🥉 Priorité 3: Fatigue + Readiness (usage fréquent)
   { id: "disponibilite-tfcl", label: "Disponibilité TFCL™ (fatigue)", icon: "Target", defaultVisible: true },
   { id: "daily-readiness-check", label: "TFCL Daily Readiness", icon: "ClipboardCheck", defaultVisible: true },
-  { id: "low-crr-justification", label: "Justification charge faible", icon: "AlertTriangle", defaultVisible: true },
-  { id: "ftp-targets", label: "FTP/kg — zones cibles", icon: "Target", defaultVisible: true },
-  { id: "vlamax-bike-v2-enhanced", label: "VLamax Vélo — Analyse Détaillée", icon: "Zap", defaultVisible: true },
-  { id: "vlamax-v2-calibration", label: "VLamax TFCL V2 (compact)", icon: "Zap", defaultVisible: true },
+  { id: "quick-fatigue", label: "Fatigue (saisie rapide)", icon: "Zap", defaultVisible: true },
+  { id: "charge-recente", label: "Charge Récente", icon: "Activity", defaultVisible: true },
+  
+  // 📊 Priorité 4: Analyse & Recommandations
   { id: "fatmax-tfcl", label: "FatMax TFCL™", icon: "Flame", defaultVisible: true },
   { id: "fatmax-chart", label: "FatMax vs Race Intensity", icon: "BarChart", defaultVisible: true },
   { id: "dashboard-recommendations", label: "Recommandations", icon: "Sparkles", defaultVisible: true },
+  
+  // ⚙️ Priorité 5: Autres outils
   { id: "action-buttons", label: "Boutons d'action", icon: "Settings", defaultVisible: true },
-  { id: "charge-recente", label: "Charge Récente", icon: "Activity", defaultVisible: true },
-  { id: "compass", label: "Metabolic Compass", icon: "Compass", defaultVisible: true },
-  { id: "scientific-charts", label: "Graphiques Scientifiques", icon: "BarChart", defaultVisible: true },
-  { id: "ambition-progress", label: "Progression Ambition", icon: "TrendingUp", defaultVisible: true },
-  { id: "staff-dashboard", label: "Staff Dashboard", icon: "Users", defaultVisible: true },
+  { id: "vlamax-v2-calibration", label: "VLamax TFCL V2 (compact)", icon: "Zap", defaultVisible: false },
+  { id: "low-crr-justification", label: "Justification charge faible", icon: "AlertTriangle", defaultVisible: false },
+  { id: "scientific-charts", label: "Graphiques Scientifiques", icon: "BarChart", defaultVisible: false },
+  { id: "staff-dashboard", label: "Staff Dashboard", icon: "Users", defaultVisible: false },
 ];
 
 export const TESTS_SECTIONS: SectionDefinition[] = [
