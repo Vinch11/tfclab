@@ -15,6 +15,7 @@ import { TFCLDailyReadinessCheck } from "@/components/TFCLDailyReadinessCheck";
 import { FatigueV2Card } from "@/components/FatigueV2Card";
 import { ChargeRecenteCard } from "@/components/ChargeRecenteCard";
 import { ChargeInputCard } from "@/components/ChargeInputCard";
+import { ChargeEvolutionChart } from "@/components/ChargeEvolutionChart";
 import { 
   Battery, 
   Target, 
@@ -292,6 +293,14 @@ export default function FatiguePage() {
                   )}
                 </div>
 
+                {/* Graphique d'évolution de la charge */}
+                <ChargeEvolutionChart
+                  snapshots={snapshots}
+                  athleteId={selectedAthleteId}
+                  objectif={objectif}
+                  currentTss7d={activeSnapshot?.tss_7d ?? null}
+                />
+
                 {/* Saisie Charge + Charge récente */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Carte de saisie de la charge */}
@@ -314,44 +323,44 @@ export default function FatiguePage() {
                     objectif={objectif}
                     staffMode={staffMode}
                   />
-
-                  {/* Synthèse Disponibilité */}
-                  {latestCheckin && (
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm flex items-center gap-2">
-                          <Activity className="h-4 w-4 text-primary" />
-                          État actuel
-                        </CardTitle>
-                        <CardDescription className="text-xs">
-                          Synthèse Fatigue × Disponibilité
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-muted-foreground">Disponibilité</span>
-                          <Badge variant="outline" className="font-mono">
-                            {latestCheckin.readiness ?? '—'}/100
-                          </Badge>
-                        </div>
-                        {fatigueV2 && (
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-muted-foreground">Fatigue</span>
-                            <Badge variant="outline" className="font-mono">
-                              {fatigueV2.score}% ({fatigueV2.levelLabel})
-                            </Badge>
-                          </div>
-                        )}
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-muted-foreground">Charge 7j</span>
-                          <Badge variant="secondary">
-                            {crr.value ?? '—'} TSS
-                          </Badge>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
                 </div>
+
+                {/* Synthèse Disponibilité */}
+                {latestCheckin && (
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Activity className="h-4 w-4 text-primary" />
+                        État actuel
+                      </CardTitle>
+                      <CardDescription className="text-xs">
+                        Synthèse Fatigue × Disponibilité
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-muted-foreground">Disponibilité</span>
+                        <Badge variant="outline" className="font-mono">
+                          {latestCheckin.readiness ?? '—'}/100
+                        </Badge>
+                      </div>
+                      {fatigueV2 && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Fatigue</span>
+                          <Badge variant="outline" className="font-mono">
+                            {fatigueV2.score}% ({fatigueV2.levelLabel})
+                          </Badge>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-muted-foreground">Charge 7j</span>
+                        <Badge variant="secondary">
+                          {crr.value ?? '—'} TSS
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
 
               {/* Check-in Tab */}
