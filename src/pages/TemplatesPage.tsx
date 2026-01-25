@@ -72,6 +72,7 @@ import {
 import { WahooSuggestionsPanel } from "@/components/WahooSuggestionsPanel";
 import { WeekSelectorTFCL } from "@/components/WeekSelectorTFCL";
 import { RunningTemplateGrid } from "@/components/RunningTemplateViewer";
+import { QuickWeekComparisonPanel } from "@/components/QuickWeekComparisonPanel";
 import { TriathlonTemplateGrid } from "@/components/TriathlonTemplateGrid";
 import { GoalWeekSuggester } from "@/components/GoalWeekSuggester";
 import { RUNNING_TEMPLATES, getWeeksByGoal } from "@/lib/templates/runningTemplatesStore";
@@ -1699,6 +1700,9 @@ export default function TemplatesPage() {
                       athleteTruth={athleteTruthRunning}
                       defaultGoal={selectedAthlete?.goal === "semi" || selectedAthlete?.goal?.toLowerCase().includes("semi") ? "semi" : "marathon"}
                     />
+                    
+                    {/* Quick Week Comparison Panel - Dropdown-based */}
+                    <QuickWeekComparisonPanel />
                     
                     {/* Interactive Running Templates Grid with Comparison */}
                     <RunningTemplateGrid />
