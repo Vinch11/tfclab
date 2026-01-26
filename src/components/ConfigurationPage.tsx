@@ -7,16 +7,19 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Settings, Palette, Check, LayoutDashboard, Trophy } from "lucide-react";
+import { Settings, Palette, Check, LayoutDashboard, Trophy, BookOpen } from "lucide-react";
 import { useTheme, THEME_CONFIG, THEME_ORDER, Theme } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
 import { LayoutPreferencesEditor } from "./LayoutPreferencesEditor";
 import { ReportSectionOrderEditor } from "./ReportSectionOrderEditor";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
+import { useGettingStartedVisibility } from "./GettingStartedChecklist";
+import { Button } from "@/components/ui/button";
 
 export function ConfigurationPage() {
   const { theme, setTheme, themeConfig } = useTheme();
   const { preferences, setPreference } = useUserPreferences();
+  const gettingStartedVisibility = useGettingStartedVisibility();
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -145,6 +148,33 @@ export function ConfigurationPage() {
               </p>
             </div>
             <Badge variant="outline">Via Dashboard</Badge>
+          </div>
+
+          <Separator />
+
+          {/* Getting Started Guide */}
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border hover:border-primary/30 transition-colors">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <BookOpen className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <Label className="font-medium text-base">Guide "Bien démarrer"</Label>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  {gettingStartedVisibility.isHidden 
+                    ? "Le guide d'aide au démarrage est actuellement masqué"
+                    : "Le guide d'aide au démarrage est visible sur le dashboard"}
+                </p>
+              </div>
+            </div>
+            <Button
+              variant={gettingStartedVisibility.isHidden ? "default" : "outline"}
+              size="sm"
+              onClick={gettingStartedVisibility.isHidden ? gettingStartedVisibility.show : gettingStartedVisibility.hide}
+              className="ml-4"
+            >
+              {gettingStartedVisibility.isHidden ? "Afficher" : "Masquer"}
+            </Button>
           </div>
 
           <div className="text-xs text-muted-foreground text-center py-2">

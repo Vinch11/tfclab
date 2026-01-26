@@ -94,7 +94,6 @@ import {
   Zap,
   Target,
   Flame,
-  BookOpen,
   Brain,
   Dumbbell,
   Plus,
@@ -806,34 +805,22 @@ const Index = () => {
         const dashboardSections = [
           {
             id: "getting-started",
-            render: () => currentAthlete && (
-              gettingStartedVisibility.isHidden ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={gettingStartedVisibility.show}
-                  className="flex items-center gap-2 text-muted-foreground"
-                >
-                  <BookOpen className="w-4 h-4" />
-                  Réafficher le guide "Bien démarrer"
-                </Button>
-              ) : (
-                <GettingStartedChecklist
-                  athlete={{
-                    id: currentAthlete.id,
-                    name: currentAthlete.name,
-                    goal: currentAthlete.goal,
-                  }}
-                  snapshot={effectiveCloudSnapshot}
-                  onNavigateToProfile={() => {
-                    setActiveTab("profil");
-                    setShowSnapshots(true);
-                  }}
-                  onNavigateToTests={() => setActiveTab("tests")}
-                  onNavigateToAcademy={() => navigate("/academy")}
-                  onDismiss={gettingStartedVisibility.hide}
-                />
-              )
+            render: () => currentAthlete && !gettingStartedVisibility.isHidden && (
+              <GettingStartedChecklist
+                athlete={{
+                  id: currentAthlete.id,
+                  name: currentAthlete.name,
+                  goal: currentAthlete.goal,
+                }}
+                snapshot={effectiveCloudSnapshot}
+                onNavigateToProfile={() => {
+                  setActiveTab("profil");
+                  setShowSnapshots(true);
+                }}
+                onNavigateToTests={() => setActiveTab("tests")}
+                onNavigateToAcademy={() => navigate("/academy")}
+                onDismiss={gettingStartedVisibility.hide}
+              />
             ),
           },
           {
