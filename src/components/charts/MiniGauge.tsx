@@ -1,5 +1,6 @@
 /**
  * MiniGauge - Composant de jauge compacte style INSCYD
+ * Optimisé pour mobile et touch
  */
 
 import { cn } from "@/lib/utils";
@@ -40,13 +41,28 @@ export function MiniGauge({
     : 180;
 
   return (
-    <div className={cn("bg-card border border-border/50 rounded-lg p-3 hover:border-primary/30 transition-colors", className)}>
-      <div className="text-xs font-medium text-muted-foreground mb-2 truncate" title={label}>
+    <div 
+      className={cn(
+        // Base styles
+        "bg-card border border-border/50 rounded-lg hover:border-primary/30 transition-colors",
+        // Responsive padding
+        "p-2 sm:p-3",
+        // Touch-friendly sizing
+        "touch-target",
+        className
+      )}
+    >
+      {/* Label - responsive text */}
+      <div 
+        className="text-[10px] sm:text-xs font-medium text-muted-foreground mb-1.5 sm:mb-2 truncate" 
+        title={label}
+      >
         {label}
       </div>
       
+      {/* Gauge SVG - responsive height */}
       <div className="relative flex justify-center">
-        <svg viewBox="0 0 100 55" className="w-full h-auto max-h-[60px]">
+        <svg viewBox="0 0 100 55" className="w-full h-auto max-h-[50px] sm:max-h-[60px]">
           {/* Fond gris de la jauge */}
           <path
             d="M 10 50 A 40 40 0 0 1 90 50"
@@ -92,17 +108,18 @@ export function MiniGauge({
         </svg>
       </div>
       
-      {/* Valeurs */}
-      <div className="text-center mt-1 space-y-0.5">
-        <div className="flex items-baseline justify-center gap-1">
-          <span className="text-lg font-bold text-foreground">
+      {/* Valeurs - responsive text */}
+      <div className="text-center mt-0.5 sm:mt-1 space-y-0">
+        <div className="flex items-baseline justify-center gap-0.5 sm:gap-1">
+          <span className="text-base sm:text-lg font-bold text-foreground">
             {value !== null ? formatValue(value) : "—"}
           </span>
-          <span className="text-xs text-muted-foreground">{unit}</span>
+          <span className="text-[9px] sm:text-xs text-muted-foreground">{unit}</span>
         </div>
         {secondaryValue && (
-          <div className="text-xs text-muted-foreground">
-            {secondaryLabel}: <span className="font-medium">{secondaryValue}</span>
+          <div className="text-[9px] sm:text-xs text-muted-foreground">
+            <span className="hidden xs:inline">{secondaryLabel}: </span>
+            <span className="font-medium">{secondaryValue}</span>
           </div>
         )}
       </div>
