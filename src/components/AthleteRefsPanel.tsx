@@ -4,13 +4,30 @@
 // =============================================
 
 import { useState, useEffect, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { User, Activity, Save, AlertCircle, Calendar } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { 
+  User, 
+  Activity, 
+  Save, 
+  AlertCircle, 
+  Calendar, 
+  Zap, 
+  Timer, 
+  Weight, 
+  Target, 
+  ArrowRight, 
+  CheckCircle2, 
+  ChevronRight,
+  ChevronDown
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useCloudData, DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
 import { AgeAdjustmentBadge } from "@/components/AgeAdjustmentBadge";
@@ -25,7 +42,24 @@ import {
 interface AthleteRefsPanelProps {
   athlete: DbAthlete;
   snapshots: DbSnapshot[];
+  snapshot?: {
+    ftp?: number | null;
+    weight_kg?: number | null;
+    vlamax?: number | null;
+    vlamax_run?: number | null;
+    tte_observed_min?: number | null;
+    vo2max?: number | null;
+    pmax_5s?: number | null;
+    p30s_w?: number | null;
+    vma?: number | null;
+    css?: number | null;
+    fc_max?: number | null;
+  } | null;
+  athleteGoal?: string;
   onUpdate?: () => void;
+  onNavigateToProfile?: () => void;
+  onNavigateToCAPTest?: () => void;
+  onNavigateToTFCLTest?: () => void;
   compact?: boolean;
 }
 
@@ -53,7 +87,17 @@ const PHYSIO_FIELDS: RefFieldConfig[] = [
   { key: "vo2max", label: "VO₂max", unit: "ml/kg/min", placeholder: "55", step: "0.1", min: 20, max: 100, profileKey: "vo2max" },
 ];
 
-export function AthleteRefsPanel({ athlete, snapshots, onUpdate, compact = false }: AthleteRefsPanelProps) {
+export function AthleteRefsPanel({ 
+  athlete, 
+  snapshots, 
+  snapshot,
+  athleteGoal = "IM",
+  onUpdate, 
+  onNavigateToProfile,
+  onNavigateToCAPTest,
+  onNavigateToTFCLTest,
+  compact = false 
+}: AthleteRefsPanelProps) {
   const { updateAthlete } = useCloudData();
   
   // Calcul des refs effectives
@@ -64,6 +108,7 @@ export function AthleteRefsPanel({ athlete, snapshots, onUpdate, compact = false
   const [birthDate, setBirthDate] = useState(athlete.birth_date || "");
   const [isDirty, setIsDirty] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [isCompactExpanded, setIsCompactExpanded] = useState(false);
 
   // Initialiser le formulaire avec les valeurs profil actuelles
   useEffect(() => {
@@ -175,30 +220,81 @@ export function AthleteRefsPanel({ athlete, snapshots, onUpdate, compact = false
     );
   };
 
-  // Mode compact pour sidebar
+  // Mode compact pour dashboard - intègre les données manquantes
   if (compact) {
     const missingCount = Object.values(effective.sources).filter(s => s === "none").length;
     
+    // Calculer les données manquantes du snapshot (métaboliques)
+    const isTriathlon = ["IM", "Ironman", "70.3", "703", "TriathlonLD"].includes(athleteGoal);
+    const isRunning = ["Marathon", "Semi", "Course", "Trail"].includes(athleteGoal);
+    
+    const metabolicFields = [
+      { key: "vlamax", label: "VLamax Vélo", value: snapshot?.vlamax, priority: isTriathlon ? "critical" : isRunning ? "recommended" : "critical" as const },
+      { key: "tte", label: "TTE", value: snapshot?.tte_observed_min, priority: "critical" as const },
+      { key: "ftp", label: "FTP", value: snapshot?.ftp, priority: isRunning ? "recommended" : "critical" as const },
+      { key: "pmax_5s", label: "Pmax 5s", value: snapshot?.pmax_5s, priority: "important" as const },
+      { key: "p30s_w", label: "P30s", value: snapshot?.p30s_w, priority: "important" as const },
+      ...(isTriathlon || isRunning ? [
+        { key: "vlamax_run", label: "VLamax CAP", value: snapshot?.vlamax_run, priority: "critical" as const },
+        { key: "vma", label: "VMA", value: snapshot?.vma, priority: "important" as const },
+      ] : []),
+      { key: "vo2max", label: "VO₂max", value: snapshot?.vo2max, priority: "recommended" as const },
+      { key: "fc_max", label: "FC Max", value: snapshot?.fc_max, priority: "recommended" as const },
+    ];
+    
+    const missingMetabolic = metabolicFields.filter(f => f.value == null);
+    const criticalMissing = missingMetabolic.filter(f => f.priority === "critical");
+    const totalFieldCount = [...ANTHROPO_FIELDS, ...PHYSIO_FIELDS].length + metabolicFields.length;
+    const completedCount = totalFieldCount - missingCount - missingMetabolic.length;
+    const completionPct = Math.round((completedCount / totalFieldCount) * 100);
+    const hasCriticalMissing = criticalMissing.length > 0 || missingCount > 2;
+    const isComplete = missingCount === 0 && missingMetabolic.length === 0;
+    
     return (
-      <Card className="border-border/50">
+      <Card className={cn(
+        "border-border/50",
+        hasCriticalMissing && "border-warning/30",
+        isComplete && "border-primary/30 bg-primary/5"
+      )}>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <User className="h-4 w-4" />
-            Profil & Références
-            {missingCount > 0 && (
-              <Badge variant="outline" className="ml-auto bg-warning/10 text-warning border-warning/30">
-                <AlertCircle className="h-3 w-3 mr-1" />
-                {missingCount} manquant{missingCount > 1 ? "s" : ""}
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Profil & Données
+            </CardTitle>
+            {isComplete ? (
+              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
+                <CheckCircle2 className="h-3 w-3 mr-1" />
+                Complet
+              </Badge>
+            ) : (
+              <Badge variant="outline" className={cn(
+                hasCriticalMissing 
+                  ? "bg-warning/10 text-warning border-warning/30"
+                  : "bg-muted text-muted-foreground"
+              )}>
+                {completionPct}%
               </Badge>
             )}
-          </CardTitle>
+          </div>
+          {!isComplete && (
+            <Progress 
+              value={completionPct} 
+              className={cn("h-1.5 mt-2", hasCriticalMissing && "[&>div]:bg-warning")}
+            />
+          )}
         </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-2 gap-2 text-sm">
+        
+        <CardContent className="space-y-3 pt-0">
+          {/* Références actuelles - toujours visible */}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
             {[...ANTHROPO_FIELDS, ...PHYSIO_FIELDS].slice(0, 6).map(field => (
-              <div key={field.key} className="flex justify-between">
-                <span className="text-muted-foreground">{field.label}:</span>
-                <span className={effective.sources[field.key] === "none" ? "text-muted-foreground" : ""}>
+              <div key={field.key} className="flex justify-between items-center">
+                <span className="text-muted-foreground text-xs">{field.label}:</span>
+                <span className={cn(
+                  "text-xs font-medium",
+                  effective.sources[field.key] === "none" ? "text-muted-foreground" : ""
+                )}>
                   {effective[field.key] != null 
                     ? `${effective[field.key]!.toFixed(field.step === "0.1" ? 1 : 0)} ${field.unit}`
                     : "—"
@@ -207,6 +303,117 @@ export function AthleteRefsPanel({ athlete, snapshots, onUpdate, compact = false
               </div>
             ))}
           </div>
+          
+          {/* Section données manquantes (collapsible) */}
+          {!isComplete && (
+            <>
+              <Separator className="my-2" />
+              
+              <Collapsible open={isCompactExpanded} onOpenChange={setIsCompactExpanded}>
+                <CollapsibleTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      "w-full justify-between p-2 h-auto",
+                      hasCriticalMissing ? "bg-destructive/5 hover:bg-destructive/10" : "bg-muted/50 hover:bg-muted"
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className={cn(
+                        "h-3.5 w-3.5",
+                        hasCriticalMissing ? "text-destructive" : "text-warning"
+                      )} />
+                      <span className="text-xs font-medium">
+                        {missingCount + missingMetabolic.length} donnée{(missingCount + missingMetabolic.length) > 1 ? "s" : ""} manquante{(missingCount + missingMetabolic.length) > 1 ? "s" : ""}
+                      </span>
+                    </div>
+                    {isCompactExpanded ? (
+                      <ChevronDown className="h-3.5 w-3.5" />
+                    ) : (
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent className="pt-2 space-y-2">
+                  {/* Champs critiques */}
+                  {criticalMissing.length > 0 && (
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-destructive flex items-center gap-1">
+                        <Zap className="h-3 w-3" /> Critiques
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {criticalMissing.map(f => (
+                          <Badge key={f.key} variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/30">
+                            {f.label}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Champs profil manquants */}
+                  {missingCount > 0 && (
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                        <User className="h-3 w-3" /> Profil
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {[...ANTHROPO_FIELDS, ...PHYSIO_FIELDS]
+                          .filter(f => effective.sources[f.key] === "none")
+                          .map(f => (
+                            <Badge key={f.key} variant="outline" className="text-xs">
+                              {f.label}
+                            </Badge>
+                          ))
+                        }
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Actions rapides */}
+                  <div className="pt-2 space-y-1.5">
+                    {onNavigateToProfile && (
+                      <Button
+                        onClick={onNavigateToProfile}
+                        size="sm"
+                        variant={hasCriticalMissing ? "default" : "secondary"}
+                        className="w-full h-7 text-xs"
+                      >
+                        <ArrowRight className="h-3 w-3 mr-1" />
+                        Compléter le profil
+                      </Button>
+                    )}
+                    <div className="flex gap-1.5">
+                      {onNavigateToTFCLTest && (
+                        <Button 
+                          onClick={onNavigateToTFCLTest}
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 h-7 text-xs"
+                        >
+                          <Zap className="h-3 w-3 mr-1" />
+                          Tests TFCL
+                        </Button>
+                      )}
+                      {onNavigateToCAPTest && (
+                        <Button 
+                          onClick={onNavigateToCAPTest}
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 h-7 text-xs"
+                        >
+                          <Activity className="h-3 w-3 mr-1" />
+                          Tests CAP
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            </>
+          )}
         </CardContent>
       </Card>
     );
