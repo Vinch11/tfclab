@@ -77,7 +77,7 @@ import { getEffectiveRefs, computeFtpKg, getMissingFields } from "@/lib/effectiv
 import { DataCompletionGuide } from "@/components/DataCompletionGuide";
 
 // ✅ Checklist de démarrage pour nouveaux coachs
-import { GettingStartedChecklist } from "@/components/GettingStartedChecklist";
+import { GettingStartedChecklist, useGettingStartedVisibility } from "@/components/GettingStartedChecklist";
 
 // ✅ Page de configuration (thèmes, préférences)
 import { ConfigurationPage } from "@/components/ConfigurationPage";
@@ -218,6 +218,9 @@ const Index = () => {
   useEffect(() => {
     localStorage.setItem("vlab-staff-mode", staffMode.toString());
   }, [staffMode]);
+
+  // ✅ Visibilité persistante du guide "Bien démarrer"
+  const gettingStartedVisibility = useGettingStartedVisibility();
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newAthleteName, setNewAthleteName] = useState("");
@@ -804,20 +807,33 @@ const Index = () => {
           {
             id: "getting-started",
             render: () => currentAthlete && (
-              <GettingStartedChecklist
-                athlete={{
-                  id: currentAthlete.id,
-                  name: currentAthlete.name,
-                  goal: currentAthlete.goal,
-                }}
-                snapshot={effectiveCloudSnapshot}
-                onNavigateToProfile={() => {
-                  setActiveTab("profil");
-                  setShowSnapshots(true);
-                }}
-                onNavigateToTests={() => setActiveTab("tests")}
-                onNavigateToAcademy={() => navigate("/academy")}
-              />
+              gettingStartedVisibility.isHidden ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={gettingStartedVisibility.show}
+                  className="flex items-center gap-2 text-muted-foreground"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  Réafficher le guide "Bien démarrer"
+                </Button>
+              ) : (
+                <GettingStartedChecklist
+                  athlete={{
+                    id: currentAthlete.id,
+                    name: currentAthlete.name,
+                    goal: currentAthlete.goal,
+                  }}
+                  snapshot={effectiveCloudSnapshot}
+                  onNavigateToProfile={() => {
+                    setActiveTab("profil");
+                    setShowSnapshots(true);
+                  }}
+                  onNavigateToTests={() => setActiveTab("tests")}
+                  onNavigateToAcademy={() => navigate("/academy")}
+                  onDismiss={gettingStartedVisibility.hide}
+                />
+              )
             ),
           },
           {
