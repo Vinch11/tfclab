@@ -143,32 +143,32 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border bg-sidebar">
-      {/* Header avec logo */}
-      <SidebarHeader className="p-3 border-b border-border">
+      {/* Header avec logo - mobile optimized */}
+      <SidebarHeader className="p-2 sm:p-3 border-b border-border safe-area-inset-top">
         <div className="flex items-center gap-2">
-          <img src={logo} alt="2FC Lab" className={cn("h-10 w-auto", collapsed && "h-8")} />
+          <img src={logo} alt="2FC Lab" className={cn("h-8 sm:h-10 w-auto", collapsed && "h-7 sm:h-8")} />
           {!collapsed && (
             <div className="min-w-0">
-              <h1 className="text-sm font-bold text-foreground truncate">Two 4 Coaching Lab</h1>
-              <p className="text-[10px] text-muted-foreground">Performance Analysis</p>
+              <h1 className="text-xs sm:text-sm font-bold text-foreground truncate">Two 4 Coaching Lab</h1>
+              <p className="text-[9px] sm:text-[10px] text-muted-foreground">Performance Analysis</p>
             </div>
           )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-2">
-        {/* Mode Staff Toggle */}
+      <SidebarContent className="px-1 sm:px-2 ios-scroll">
+        {/* Mode Staff Toggle - mobile optimized */}
         {!collapsed && (
-          <div className="p-3 my-2 rounded-lg bg-muted/50 border border-border/50">
+          <div className="p-2 sm:p-3 my-1 sm:my-2 rounded-lg bg-muted/50 border border-border/50">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Shield className={cn("h-4 w-4", staffMode ? "text-primary" : "text-muted-foreground")} />
-                <span className="text-sm font-medium">Mode Staff</span>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Shield className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4", staffMode ? "text-primary" : "text-muted-foreground")} />
+                <span className="text-xs sm:text-sm font-medium">Mode Staff</span>
               </div>
               <Switch
                 checked={staffMode}
                 onCheckedChange={onStaffModeChange}
-                className="data-[state=checked]:bg-primary"
+                className="data-[state=checked]:bg-primary scale-90 sm:scale-100"
               />
             </div>
           </div>
@@ -273,27 +273,27 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
         </SidebarGroup>
       </SidebarContent>
 
-      {/* Footer */}
-      <SidebarFooter className="p-3 border-t border-border">
+      {/* Footer - mobile optimized with safe area */}
+      <SidebarFooter className="p-2 sm:p-3 border-t border-border safe-area-inset-bottom">
         {!collapsed && user && (
-          <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-            <span className="truncate max-w-[120px]">{user.email}</span>
+          <div className="flex items-center justify-between text-[10px] sm:text-xs text-muted-foreground mb-1 sm:mb-2">
+            <span className="truncate max-w-[100px] sm:max-w-[120px]">{user.email}</span>
           </div>
         )}
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-1.5 sm:gap-2">
           <ThemeToggle />
           {!collapsed && (
             <button
               onClick={signOut}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors touch-target-sm"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span>Déconnexion</span>
             </button>
           )}
           {collapsed && (
-            <SidebarMenuButton onClick={signOut} tooltip="Déconnexion">
-              <LogOut className="h-4 w-4" />
+            <SidebarMenuButton onClick={signOut} tooltip="Déconnexion" className="touch-target-sm">
+              <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </SidebarMenuButton>
           )}
         </div>

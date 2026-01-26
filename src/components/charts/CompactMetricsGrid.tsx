@@ -68,18 +68,19 @@ export function CompactMetricsGrid({
   return (
     <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-        <CardHeader className="pb-2">
+        <CardHeader className="pb-2 px-3 sm:px-6">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Activity className="h-4 w-4 text-primary" />
-              Aperçu Rapide – Métriques Clés
+            <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-sm sm:text-base">
+              <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+              <span className="hidden xs:inline">Aperçu Rapide – Métriques Clés</span>
+              <span className="xs:hidden">Métriques Clés</span>
             </CardTitle>
             <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <Button variant="ghost" size="sm" className="h-7 w-7 sm:h-8 sm:w-8 p-0 touch-target-sm">
                 {isExpanded ? (
-                  <ChevronUp className="h-4 w-4" />
+                  <ChevronUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 ) : (
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 )}
               </Button>
             </CollapsibleTrigger>
@@ -87,8 +88,9 @@ export function CompactMetricsGrid({
         </CardHeader>
         
         <CollapsibleContent>
-          <CardContent className="pt-2">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+          <CardContent className="pt-2 px-3 sm:px-6">
+            {/* Mobile: 2 cols, Tablet: 3 cols, Desktop: 4-6 cols */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
               {/* VO2max */}
               <MiniGauge
                 label="VO2max"
@@ -205,10 +207,10 @@ export function CompactMetricsGrid({
               )}
             </div>
             
-            <div className="mt-3 pt-3 border-t border-border/30">
-              <p className="text-xs text-muted-foreground text-center">
-                🎯 Objectif: <span className="font-medium">{objectif || "Non défini"}</span>
-                {" • "}Zones optimales adaptées au profil cible
+            <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-border/30">
+              <p className="text-[10px] sm:text-xs text-muted-foreground text-center">
+                🎯 <span className="hidden xs:inline">Objectif:</span> <span className="font-medium">{objectif || "Non défini"}</span>
+                <span className="hidden sm:inline">{" • "}Zones optimales adaptées au profil cible</span>
               </p>
             </div>
           </CardContent>
