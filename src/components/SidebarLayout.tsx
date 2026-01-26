@@ -1,5 +1,6 @@
 /**
  * SidebarLayout – Layout principal avec sidebar collapsible
+ * Optimisé pour iPhone et iPad
  */
 
 import { ReactNode } from "react";
@@ -7,6 +8,7 @@ import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/s
 import { AppSidebar } from "@/components/AppSidebar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SidebarLayoutProps {
   children: ReactNode;
@@ -23,9 +25,11 @@ export function SidebarLayout({
   staffMode,
   onStaffModeChange,
 }: SidebarLayoutProps) {
+  const isMobile = useIsMobile();
+
   return (
-    <SidebarProvider defaultOpen={true}>
-      <div className="min-h-screen flex w-full">
+    <SidebarProvider defaultOpen={!isMobile}>
+      <div className="min-h-svh flex w-full">
         <AppSidebar
           activeTab={activeTab}
           onTabChange={onTabChange}
@@ -33,22 +37,26 @@ export function SidebarLayout({
           onStaffModeChange={onStaffModeChange}
         />
         <SidebarInset className="flex flex-col flex-1">
-          {/* Header with trigger */}
-          <header className="sticky top-0 z-40 flex h-12 items-center gap-3 border-b border-border bg-background/95 backdrop-blur px-4">
-            <SidebarTrigger className="-ml-1" />
+          {/* Header with trigger - mobile optimized */}
+          <header className="sticky top-0 z-40 flex h-12 sm:h-14 items-center gap-2 sm:gap-3 border-b border-border bg-background/95 backdrop-blur px-3 sm:px-4 safe-area-inset-top">
+            <SidebarTrigger className="-ml-1 touch-target-sm" />
             
-            {/* Staff mode indicator badge */}
+            {/* Staff mode indicator badge - compact on mobile */}
             {staffMode && (
-              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
-                <span className="w-1.5 h-1.5 bg-primary rounded-full mr-1.5 animate-pulse" />
-                Affichage Expert — Indices de confiance visibles
+              <Badge 
+                variant="secondary" 
+                className="bg-primary/10 text-primary border-primary/20 text-[10px] sm:text-xs py-0.5 px-1.5 sm:py-1 sm:px-2"
+              >
+                <span className="w-1.5 h-1.5 bg-primary rounded-full mr-1 sm:mr-1.5 animate-pulse" />
+                <span className="hidden xs:inline">Affichage Expert</span>
+                <span className="xs:hidden">Expert</span>
               </Badge>
             )}
           </header>
 
-          {/* Main content */}
-          <main className="flex-1 overflow-auto">
-            <div className="container mx-auto px-4 py-6">
+          {/* Main content - mobile optimized padding */}
+          <main className="flex-1 overflow-auto ios-scroll">
+            <div className="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 pb-20 sm:pb-6">
               {children}
             </div>
           </main>
