@@ -1376,6 +1376,18 @@ const Index = () => {
             ),
           },
           {
+            id: "tfcl-analysis",
+            render: () => currentAthlete && legacyAthlete && (
+              <TwoForCoachingAnalysis 
+                athlete={legacyAthlete} 
+                vlamaxEffectif={vlamaxEffectif} 
+                tteEffectif={tteEffectif} 
+                readiness={raceReadinessEffectif} 
+                onGoToSnapshots={() => setShowSnapshots(true)} 
+              />
+            ),
+          },
+          {
             id: "running-economy-summary",
             render: () => currentAthlete && (
               <RunningEconomySummaryCard
