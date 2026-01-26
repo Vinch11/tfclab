@@ -50,10 +50,9 @@ export const PROFIL_SECTIONS: SectionDefinition[] = [
 export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   // 🎯 Onboarding & Guide
   { id: "getting-started", label: "Guide de démarrage", icon: "Rocket", category: "onboarding", defaultVisible: true },
-  { id: "data-completion-guide", label: "Complétion des données", icon: "CheckCircle", category: "onboarding", defaultVisible: true },
   
   // 👤 Profil athlète + Ambition
-  { id: "athlete-refs", label: "Profil & Références", icon: "User", category: "profil", defaultVisible: false },
+  { id: "athlete-refs", label: "Profil & Données", icon: "User", category: "profil", defaultVisible: true },
   { id: "ambition-progress", label: "Évolution vers les cibles", icon: "TrendingUp", category: "profil", defaultVisible: true },
   
   // 👤 Carte Profil Athlète (juste au-dessus du Compass)

@@ -842,14 +842,6 @@ const Index = () => {
               <AthleteRefsPanel
                 athlete={currentAthlete}
                 snapshots={snapshots}
-                compact
-              />
-            ),
-          },
-          {
-            id: "data-completion-guide",
-            render: () => currentAthlete && effectiveCloudSnapshot && (
-              <DataCompletionGuide
                 snapshot={effectiveCloudSnapshot}
                 athleteGoal={currentAthlete.goal || "IM"}
                 onNavigateToProfile={() => {
@@ -858,6 +850,7 @@ const Index = () => {
                 }}
                 onNavigateToCAPTest={() => navigate("/cap-testing-week")}
                 onNavigateToTFCLTest={() => navigate("/tfcl-testing-week")}
+                compact
               />
             ),
           },
