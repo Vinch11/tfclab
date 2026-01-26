@@ -63,6 +63,26 @@ interface GettingStartedChecklistProps {
   className?: string;
 }
 
+// Hook pour gérer la visibilité du guide de manière persistante
+export function useGettingStartedVisibility() {
+  const [isHidden, setIsHidden] = useState(() => {
+    return localStorage.getItem("getting-started-hidden") === "true";
+  });
+
+  const hide = () => {
+    localStorage.setItem("getting-started-hidden", "true");
+    setIsHidden(true);
+  };
+
+  const show = () => {
+    localStorage.removeItem("getting-started-hidden");
+    localStorage.removeItem("getting-started-dismissed");
+    setIsHidden(false);
+  };
+
+  return { isHidden, hide, show };
+}
+
 // =============================================
 // MAIN COMPONENT
 // =============================================
@@ -80,7 +100,8 @@ export function GettingStartedChecklist({
   const [isExpanded, setIsExpanded] = useState(true);
   const [isDismissed, setIsDismissed] = useState(() => {
     const dismissed = localStorage.getItem("getting-started-dismissed");
-    return dismissed === "true";
+    const hidden = localStorage.getItem("getting-started-hidden");
+    return dismissed === "true" || hidden === "true";
   });
 
   // Définir les étapes de la checklist
@@ -161,13 +182,15 @@ export function GettingStartedChecklist({
 
   // Gérer la fermeture définitive
   const handleDismiss = () => {
+    localStorage.setItem("getting-started-hidden", "true");
     localStorage.setItem("getting-started-dismissed", "true");
     setIsDismissed(true);
     onDismiss?.();
   };
 
-  // Reset pour debugging
+  // Reset pour debugging (exposé via le hook useGettingStartedVisibility)
   const handleReset = () => {
+    localStorage.removeItem("getting-started-hidden");
     localStorage.removeItem("getting-started-dismissed");
     localStorage.removeItem("academy-visited");
     setIsDismissed(false);
