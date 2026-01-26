@@ -1,6 +1,7 @@
 /**
  * ChargeEvolutionChart – Graphique d'évolution de la charge TSS sur 4 semaines
  * Affiche la tendance de la charge d'entraînement avec zones de référence
+ * Optimisé pour mobile et touch
  */
 
 import { useMemo } from "react";
@@ -21,6 +22,12 @@ import {
 } from "recharts";
 import { getCRRTargets, type CRRTargets } from "@/lib/chargeRecenteReference";
 import type { DbSnapshot } from "@/hooks/useCloudData";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { 
+  ResponsiveChartTooltip, 
+  mobileTooltipProps,
+  getResponsiveMargins 
+} from "@/components/charts/ResponsiveChartTooltip";
 
 interface ChargeEvolutionChartProps {
   snapshots: DbSnapshot[];
@@ -120,17 +127,52 @@ export function ChargeEvolutionChart({
   }, [chartData]);
 
   const hasData = chartData.some(d => d.tss !== null);
+  const isMobile = useIsMobile();
+  const margins = getResponsiveMargins(isMobile);
+
+  // Custom tooltip component
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (!active || !payload?.length) return null;
+    const data = payload[0].payload as WeekData;
+    
+    const getStatusLabel = () => {
+      if (data.tss === null) return null;
+      if (data.tss < targets.chargeMinimale) return { text: "Charge faible", color: "text-muted-foreground" };
+      if (data.tss <= targets.chargeOptimale) return { text: "Zone optimale ✓", color: "text-success" };
+      if (data.tss <= targets.chargeMaximale) return { text: "Charge élevée", color: "text-warning" };
+      return { text: "⚠️ Surcharge", color: "text-destructive" };
+    };
+    
+    const status = getStatusLabel();
+    
+    return (
+      <ResponsiveChartTooltip
+        active={active}
+        title={data.weekLabel}
+        subtitle={data.date}
+        rows={[
+          { label: "TSS", value: data.tss, unit: "pts", highlight: true, color: "text-primary" },
+        ]}
+      >
+        {status && (
+          <p className={cn("text-xs mt-2 font-medium", status.color)}>
+            {status.text}
+          </p>
+        )}
+      </ResponsiveChartTooltip>
+    );
+  };
 
   return (
     <Card className={cn("", className)}>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Activity className="h-5 w-5 text-primary" />
-              Évolution de la charge
+      <CardHeader className="pb-2 px-3 sm:px-6">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="min-w-0">
+            <CardTitle className="text-sm sm:text-base flex items-center gap-1.5 sm:gap-2">
+              <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+              <span className="truncate">Évolution de la charge</span>
             </CardTitle>
-            <CardDescription className="text-xs">
+            <CardDescription className="text-[10px] sm:text-xs">
               TSS hebdomadaire sur 4 semaines
             </CardDescription>
           </div>
@@ -139,7 +181,7 @@ export function ChargeEvolutionChart({
             <Badge 
               variant="outline" 
               className={cn(
-                "gap-1",
+                "gap-1 text-[10px] sm:text-xs flex-shrink-0",
                 trend.direction === "up" && "text-destructive border-destructive/30",
                 trend.direction === "down" && "text-primary border-primary/30",
                 trend.direction === "neutral" && "text-muted-foreground"
@@ -148,24 +190,25 @@ export function ChargeEvolutionChart({
               {trend.direction === "up" && <TrendingUp className="h-3 w-3" />}
               {trend.direction === "down" && <TrendingDown className="h-3 w-3" />}
               {trend.direction === "neutral" && <Minus className="h-3 w-3" />}
-              {trend.label}
-              {trend.change !== 0 && ` (${trend.change > 0 ? "+" : ""}${trend.change}%)`}
+              <span className="hidden xs:inline">{trend.label}</span>
+              {trend.change !== 0 && <span className="xs:hidden">{trend.change > 0 ? "+" : ""}{trend.change}%</span>}
+              {trend.change !== 0 && <span className="hidden xs:inline">({trend.change > 0 ? "+" : ""}{trend.change}%)</span>}
             </Badge>
           )}
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4 px-2 sm:px-6">
         {!hasData ? (
-          <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">
+          <div className="h-[160px] sm:h-[200px] flex items-center justify-center text-muted-foreground text-xs sm:text-sm">
             Pas de données de charge disponibles
           </div>
         ) : (
           <>
-            {/* Graphique */}
-            <div className="h-[200px]">
+            {/* Graphique - hauteur responsive */}
+            <div className="h-[160px] sm:h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                <LineChart data={chartData} margin={margins}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   
                   {/* Zones de référence */}
@@ -182,25 +225,28 @@ export function ChargeEvolutionChart({
                     }}
                   />
                   
+                  {/* Axes optimisés mobile */}
                   <XAxis 
                     dataKey="weekLabel" 
-                    tick={{ fontSize: 11 }}
+                    tick={{ fontSize: isMobile ? 10 : 11 }}
                     tickLine={false}
                     axisLine={false}
+                    interval={0}
                   />
                   <YAxis 
-                    tick={{ fontSize: 11 }}
+                    tick={{ fontSize: isMobile ? 10 : 11 }}
                     tickLine={false}
                     axisLine={false}
                     domain={[0, 'auto']}
+                    width={isMobile ? 30 : 40}
                   />
                   
-                  {/* Lignes de référence */}
+                  {/* Lignes de référence - labels cachés sur mobile */}
                   <ReferenceLine 
                     y={targets.chargeOptimale} 
                     stroke="hsl(var(--primary))" 
                     strokeDasharray="5 5"
-                    label={{ 
+                    label={isMobile ? undefined : { 
                       value: `Optimal (${targets.chargeOptimale})`, 
                       position: "right",
                       fontSize: 9,
@@ -211,7 +257,7 @@ export function ChargeEvolutionChart({
                     y={targets.chargeMaximale} 
                     stroke="hsl(var(--destructive))" 
                     strokeDasharray="5 5"
-                    label={{ 
+                    label={isMobile ? undefined : { 
                       value: `Max (${targets.chargeMaximale})`, 
                       position: "right",
                       fontSize: 9,
@@ -220,29 +266,8 @@ export function ChargeEvolutionChart({
                   />
                   
                   <Tooltip 
-                    content={({ active, payload }) => {
-                      if (!active || !payload?.length) return null;
-                      const data = payload[0].payload as WeekData;
-                      return (
-                        <div className="bg-popover border rounded-lg shadow-lg p-3 text-sm">
-                          <p className="font-medium">{data.weekLabel}</p>
-                          <p className="text-muted-foreground text-xs">{data.date}</p>
-                          <p className="mt-1">
-                            <span className="font-semibold text-primary">
-                              {data.tss ?? "—"} TSS
-                            </span>
-                          </p>
-                          {data.tss !== null && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {data.tss < targets.chargeMinimale && "Charge faible"}
-                              {data.tss >= targets.chargeMinimale && data.tss <= targets.chargeOptimale && "Zone optimale ✓"}
-                              {data.tss > targets.chargeOptimale && data.tss <= targets.chargeMaximale && "Charge élevée"}
-                              {data.tss > targets.chargeMaximale && "⚠️ Surcharge"}
-                            </p>
-                          )}
-                        </div>
-                      );
-                    }}
+                    content={<CustomTooltip />}
+                    {...mobileTooltipProps}
                   />
                   
                   <Line
@@ -250,38 +275,47 @@ export function ChargeEvolutionChart({
                     dataKey="tss"
                     stroke="hsl(var(--primary))"
                     strokeWidth={2}
-                    dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, fill: "hsl(var(--primary))" }}
+                    dot={{ 
+                      fill: "hsl(var(--primary))", 
+                      strokeWidth: 2, 
+                      r: isMobile ? 5 : 4 
+                    }}
+                    activeDot={{ 
+                      r: isMobile ? 8 : 6, 
+                      fill: "hsl(var(--primary))",
+                      stroke: "hsl(var(--background))",
+                      strokeWidth: 2
+                    }}
                     connectNulls
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
             
-            {/* Stats résumé */}
-            <div className="grid grid-cols-3 gap-2 text-center border-t pt-3">
+            {/* Stats résumé - responsive */}
+            <div className="grid grid-cols-3 gap-1 sm:gap-2 text-center border-t pt-2 sm:pt-3">
               <div>
-                <p className="text-xs text-muted-foreground">Moyenne</p>
-                <p className="font-semibold">{stats.avg ?? "—"}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Moyenne</p>
+                <p className="text-sm sm:text-base font-semibold">{stats.avg ?? "—"}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Min</p>
-                <p className="font-semibold text-primary">{stats.min ?? "—"}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Min</p>
+                <p className="text-sm sm:text-base font-semibold text-primary">{stats.min ?? "—"}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Max</p>
-                <p className="font-semibold text-destructive">{stats.max ?? "—"}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Max</p>
+                <p className="text-sm sm:text-base font-semibold text-destructive">{stats.max ?? "—"}</p>
               </div>
             </div>
             
-            {/* Légende */}
-            <div className="flex flex-wrap gap-3 text-xs text-muted-foreground pt-1">
+            {/* Légende - plus compacte sur mobile */}
+            <div className="flex flex-wrap gap-2 sm:gap-3 text-[10px] sm:text-xs text-muted-foreground pt-1">
               <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-primary/20 border border-primary rounded" />
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-primary/20 border border-primary rounded" />
                 <span>Zone optimale</span>
               </div>
               <div className="flex items-center gap-1">
-                <div className="w-6 h-0.5 bg-destructive" style={{ borderTop: "2px dashed" }} />
+                <div className="w-4 sm:w-6 h-0.5 bg-destructive" style={{ borderTop: "2px dashed" }} />
                 <span>Seuil max</span>
               </div>
             </div>

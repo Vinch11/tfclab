@@ -21,6 +21,17 @@ export { CompactMetricsGrid } from "./CompactMetricsGrid";
 export { CarbBurnRateChart } from "./CarbBurnRateChart";
 export { MetabolicPowerCurve } from "./MetabolicPowerCurve";
 
+// Utilitaires pour graphiques responsives (mobile/touch)
+export {
+  ResponsiveChartTooltip,
+  mobileTooltipProps,
+  responsiveAxisProps,
+  responsiveDotProps,
+  responsiveGridProps,
+  useIsTouchDevice,
+  getResponsiveMargins,
+} from "./ResponsiveChartTooltip";
+
 
 // Composants unifiés d'affichage des métriques
 export { ScoreEnvelopeCard, ScoreEnvelopeCardGroup, ScoreEnvelopeInlineCard } from "../ScoreEnvelopeCard";

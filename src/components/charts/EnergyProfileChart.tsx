@@ -1,6 +1,7 @@
 /**
  * Energy Profile Chart – VLamax vs TTE
  * Scatter plot avec zones colorées staff-grade
+ * Optimisé pour mobile et touch
  */
 
 import { useMemo } from "react";
@@ -19,6 +20,12 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { 
+  ResponsiveChartTooltip,
+  mobileTooltipProps,
+  getResponsiveMargins 
+} from "./ResponsiveChartTooltip";
 
 interface EnergyProfileData {
   vlamaxValue: number | null;
@@ -83,47 +90,34 @@ const CustomTooltip = ({ active, payload, staffMode }: any) => {
   
   const data = payload[0].payload;
   
+  const mainRows = [
+    { label: "VLamax", value: data.vlamax?.toFixed(2), unit: "mmol/L/s" },
+    { label: "TTE", value: data.tte, unit: "min" },
+  ];
+  
+  const staffRows = staffMode ? [
+    { label: "Source VLamax", value: data.vlamaxSource },
+    { label: "Confiance VLamax", value: `${Math.round(data.vlamaxConfidence * 100)}%` },
+    { label: "Source TTE", value: data.tteSource },
+    { label: "Confiance TTE", value: `${Math.round(data.tteConfidence * 100)}%` },
+  ] : undefined;
+  
   return (
-    <div className="bg-background/95 backdrop-blur border border-border rounded-lg p-3 shadow-lg max-w-xs">
-      <p className="font-semibold text-foreground mb-2">{data.label}</p>
-      <div className="space-y-1 text-sm">
-        <div className="flex justify-between gap-4">
-          <span className="text-muted-foreground">VLamax:</span>
-          <span className="font-mono">{data.vlamax?.toFixed(2) || "—"} mmol/L/s</span>
-        </div>
-        <div className="flex justify-between gap-4">
-          <span className="text-muted-foreground">TTE:</span>
-          <span className="font-mono">{data.tte || "—"} min</span>
-        </div>
-        {staffMode && (
-          <>
-            <div className="border-t border-border my-2" />
-            <div className="flex justify-between gap-4">
-              <span className="text-muted-foreground">Source VLamax:</span>
-              <span className="text-xs">{data.vlamaxSource}</span>
-            </div>
-            <div className="flex justify-between gap-4">
-              <span className="text-muted-foreground">Confiance VLamax:</span>
-              <span className="font-mono">{Math.round(data.vlamaxConfidence * 100)}%</span>
-            </div>
-            <div className="flex justify-between gap-4">
-              <span className="text-muted-foreground">Source TTE:</span>
-              <span className="text-xs">{data.tteSource}</span>
-            </div>
-            <div className="flex justify-between gap-4">
-              <span className="text-muted-foreground">Confiance TTE:</span>
-              <span className="font-mono">{Math.round(data.tteConfidence * 100)}%</span>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+    <ResponsiveChartTooltip
+      active={active}
+      title={data.label}
+      rows={mainRows}
+      staffRows={staffRows}
+      staffMode={staffMode}
+    />
   );
 };
 
 export function EnergyProfileChart({ data, staffMode = false, className }: EnergyProfileChartProps) {
   const { vlamaxValue, vlamaxSource, vlamaxConfidence, tteValue, tteSource, tteConfidence, objectif } = data;
   const targets = getTargets(objectif);
+  const isMobile = useIsMobile();
+  const margins = getResponsiveMargins(isMobile);
   
   const isDataMissing = vlamaxValue === null || tteValue === null;
   const isLowConfidence = vlamaxConfidence < 0.4 || tteConfidence < 0.4;
@@ -147,12 +141,12 @@ export function EnergyProfileChart({ data, staffMode = false, className }: Energ
 
   return (
     <Card className={cn("overflow-hidden", isDataMissing && "opacity-60", className)}>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base flex items-center gap-2">
-          <span>Energy Profile – VLamax vs TTE</span>
+      <CardHeader className="pb-2 px-3 sm:px-6">
+        <CardTitle className="text-sm sm:text-base flex flex-wrap items-center gap-1.5 sm:gap-2">
+          <span className="truncate">Energy Profile</span>
           {profileZone && (
             <span 
-              className="text-xs px-2 py-0.5 rounded-full"
+              className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap"
               style={{ backgroundColor: profileZone.color, color: 'white' }}
             >
               {profileZone.label}
@@ -160,32 +154,32 @@ export function EnergyProfileChart({ data, staffMode = false, className }: Energ
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-2 sm:px-6">
         {isDataMissing ? (
-          <div className="h-48 sm:h-64 flex flex-col items-center justify-center text-muted-foreground">
-            <AlertTriangle className="w-8 h-8 mb-2 opacity-50" />
-            <p className="text-sm text-center">
+          <div className="h-40 sm:h-48 md:h-64 flex flex-col items-center justify-center text-muted-foreground">
+            <AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8 mb-2 opacity-50" />
+            <p className="text-xs sm:text-sm text-center px-4">
               {vlamaxValue === null && tteValue === null 
                 ? "VLamax et TTE non disponibles"
                 : vlamaxValue === null 
                   ? "VLamax non disponible"
                   : "TTE non disponible"}
             </p>
-            <p className="text-xs mt-1">Créez un profil ou effectuez un test</p>
+            <p className="text-[10px] sm:text-xs mt-1">Créez un profil ou effectuez un test</p>
           </div>
         ) : (
           <>
             {isLowConfidence && (
-              <div className="mb-2 p-2 bg-warning/10 border border-warning/30 rounded-lg flex items-start gap-2">
-                <Info className="w-4 h-4 text-warning mt-0.5 shrink-0" />
-                <p className="text-xs text-warning">
-                  Confiance données limitée – interpréter avec prudence
+              <div className="mb-2 p-1.5 sm:p-2 bg-warning/10 border border-warning/30 rounded-lg flex items-start gap-1.5 sm:gap-2">
+                <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-warning mt-0.5 shrink-0" />
+                <p className="text-[10px] sm:text-xs text-warning">
+                  Confiance limitée – interpréter avec prudence
                 </p>
               </div>
             )}
-            <div className="h-48 sm:h-64">
+            <div className="h-40 sm:h-48 md:h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <ScatterChart margin={{ top: 10, right: 10, bottom: 30, left: 0 }}>
+                <ScatterChart margin={margins}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                   
                   {/* Zones de fond */}
@@ -226,40 +220,62 @@ export function EnergyProfileChart({ data, staffMode = false, className }: Energ
                     fillOpacity={0.15}
                   />
                   
-                  {/* Lignes cibles */}
+                  {/* Lignes cibles - labels cachés sur mobile */}
                   <ReferenceLine
                     x={targets.vlamaxTarget}
                     stroke="hsl(var(--foreground))"
                     strokeDasharray="5 5"
                     strokeOpacity={0.5}
-                    label={{ value: `Cible ${targets.vlamaxTarget}`, position: 'top', fontSize: 10 }}
+                    label={isMobile ? undefined : { 
+                      value: `Cible ${targets.vlamaxTarget}`, 
+                      position: 'top', 
+                      fontSize: 10 
+                    }}
                   />
                   <ReferenceLine
                     y={targets.tteTarget}
                     stroke="hsl(var(--foreground))"
                     strokeDasharray="5 5"
                     strokeOpacity={0.5}
-                    label={{ value: `${targets.tteTarget} min`, position: 'right', fontSize: 10 }}
+                    label={isMobile ? undefined : { 
+                      value: `${targets.tteTarget} min`, 
+                      position: 'right', 
+                      fontSize: 10 
+                    }}
                   />
                   
                   <XAxis
                     type="number"
                     dataKey="vlamax"
                     domain={[0.2, 0.8]}
-                    tickCount={7}
-                    tick={{ fontSize: 10 }}
-                    label={{ value: 'VLamax (mmol/L/s)', position: 'bottom', fontSize: 11, offset: 0 }}
+                    tickCount={isMobile ? 4 : 7}
+                    tick={{ fontSize: isMobile ? 9 : 10 }}
+                    label={isMobile ? undefined : { 
+                      value: 'VLamax (mmol/L/s)', 
+                      position: 'bottom', 
+                      fontSize: 11, 
+                      offset: 0 
+                    }}
                   />
                   <YAxis
                     type="number"
                     dataKey="tte"
                     domain={[25, 80]}
-                    tickCount={6}
-                    tick={{ fontSize: 10 }}
-                    label={{ value: 'TTE (min)', angle: -90, position: 'insideLeft', fontSize: 11 }}
+                    tickCount={isMobile ? 4 : 6}
+                    tick={{ fontSize: isMobile ? 9 : 10 }}
+                    width={isMobile ? 25 : 35}
+                    label={isMobile ? undefined : { 
+                      value: 'TTE (min)', 
+                      angle: -90, 
+                      position: 'insideLeft', 
+                      fontSize: 11 
+                    }}
                   />
                   
-                  <Tooltip content={<CustomTooltip staffMode={staffMode} />} />
+                  <Tooltip 
+                    content={<CustomTooltip staffMode={staffMode} />}
+                    {...mobileTooltipProps}
+                  />
                   
                   <Scatter data={chartData} fill="hsl(var(--primary))">
                     {chartData.map((entry, index) => (
@@ -268,7 +284,7 @@ export function EnergyProfileChart({ data, staffMode = false, className }: Energ
                         fill={profileZone?.color || "hsl(var(--primary))"}
                         stroke="hsl(var(--background))"
                         strokeWidth={2}
-                        r={8}
+                        r={isMobile ? 10 : 8}
                       />
                     ))}
                   </Scatter>
@@ -276,9 +292,21 @@ export function EnergyProfileChart({ data, staffMode = false, className }: Energ
               </ResponsiveContainer>
             </div>
             
+            {/* Labels mobiles sous le graphique */}
+            {isMobile && (
+              <div className="flex justify-between text-[10px] text-muted-foreground mt-1 px-2">
+                <span>VLamax →</span>
+                <span>TTE ↑</span>
+              </div>
+            )}
+            
             {staffMode && (
-              <div className="mt-3 p-2 bg-muted/50 rounded-lg text-xs text-muted-foreground">
-                <p><strong>Objectif:</strong> {objectif} | <strong>VLamax cible:</strong> ≤{targets.vlamaxTarget} | <strong>TTE cible:</strong> ≥{targets.tteTarget} min</p>
+              <div className="mt-2 sm:mt-3 p-1.5 sm:p-2 bg-muted/50 rounded-lg text-[10px] sm:text-xs text-muted-foreground">
+                <p>
+                  <strong>Objectif:</strong> {objectif} | 
+                  <strong> VLamax cible:</strong> ≤{targets.vlamaxTarget} | 
+                  <strong> TTE cible:</strong> ≥{targets.tteTarget} min
+                </p>
               </div>
             )}
           </>
