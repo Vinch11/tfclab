@@ -13,6 +13,9 @@ export * from './disponibiliteTFCL';
 // Race Readiness V2 (Potentiel × Disponibilité → Décision)
 export * from './raceReadinessV2';
 
+// Système de symptômes terrain et matrice décisionnelle
+export * from "./tfclSymptoms";
+
 /**
  * TWO FOR COACHING LAB V2 — Index
  * 

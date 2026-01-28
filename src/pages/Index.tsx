@@ -72,6 +72,7 @@ import { ObjectifPrincipal } from "@/lib/reference";
 
 // ✅ TFCL Decision Matrix — Cœur décisionnel coach-grade
 import { TFCLDecisionMatrixCard } from "@/components/TFCLDecisionMatrixCard";
+import { TFCLDecisionMatrixTable } from "@/components/TFCLDecisionMatrixTable";
 import { type TFCLDecisionInput, type TFCLObjective } from "@/lib/v2/tfclDecisionMatrix";
 
 // ✅ FIX 11 - Effective Refs (source unique de vérité)
@@ -1370,6 +1371,54 @@ const Index = () => {
                     ambition: currentAmbition,
                   }}
                   compact={!staffMode}
+                />
+              );
+            },
+          },
+          {
+            id: "tfcl-symptom-matrix",
+            render: () => {
+              if (!currentAthlete) return null;
+              
+              // Cibles pour la catégorisation des métriques
+              const vlamaxTarget = currentAmbition === "elite" ? 0.35 : currentAmbition === "competitor" ? 0.45 : 0.55;
+              const vo2maxTarget = currentAmbition === "elite" ? 70 : currentAmbition === "competitor" ? 62 : 55;
+              const tteTarget = currentAmbition === "elite" ? 50 : currentAmbition === "competitor" ? 40 : 35;
+              const fatmaxTarget = currentAmbition === "elite" ? 60 : currentAmbition === "competitor" ? 55 : 50;
+              
+              // Score de fraîcheur depuis le dernier checkin
+              const athleteCheckins = (checkins || []).filter(c => c.athlete_id === currentAthlete.id);
+              const sortedCheckins = [...athleteCheckins].sort((a, b) => 
+                new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime()
+              );
+              const checkin = sortedCheckins[0] || null;
+              
+              let freshnessScore: number | null = null;
+              if (checkin) {
+                const dispResult = computeDisponibiliteTFCL({
+                  sleep: checkin.sleep,
+                  fatigue: checkin.fatigue,
+                  soreness: checkin.soreness,
+                  stress: checkin.stress,
+                  motivation: checkin.motivation,
+                  objective: { tss7d: effectiveCloudSnapshot?.tss_7d ?? null },
+                });
+                freshnessScore = dispResult.score;
+              }
+              
+              return (
+                <TFCLDecisionMatrixTable
+                  metrics={{
+                    vo2max: effectiveCloudSnapshot?.vo2max ?? null,
+                    vo2maxTarget,
+                    vlamax: vlamaxEffectif.value,
+                    vlamaxTarget,
+                    tte: tteEffectif.tte_min,
+                    tteTarget,
+                    fatmax: null, // Pas de valeur directe FatMax
+                    fatmaxTarget,
+                    freshness: freshnessScore,
+                  }}
                 />
               );
             },
