@@ -104,28 +104,35 @@ export default function RaceSimulationPage() {
   }, [selectedAthlete?.goal]);
   
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b">
-        <div className="container mx-auto px-4 py-3 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+    <div className="min-h-screen bg-background pb-safe">
+      {/* Header - iOS optimized with safe area */}
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b pt-safe">
+        <div className="container mx-auto px-4 py-3 flex items-center gap-3">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => navigate(-1)}
+            className="min-w-[44px] min-h-[44px] touch-manipulation"
+          >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <div>
-            <h1 className="text-xl font-bold">Simulation de Course TFCL™</h1>
-            <p className="text-sm text-muted-foreground">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg sm:text-xl font-bold truncate">
+              Simulation de Course TFCL™
+            </h1>
+            <p className="text-sm text-muted-foreground truncate">
               {selectedAthlete?.name ?? 'Aucun athlète sélectionné'}
             </p>
           </div>
         </div>
       </header>
       
-      {/* Content */}
-      <main className="container mx-auto px-4 py-6 space-y-6">
-        {/* Info banner */}
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertDescription>
+      {/* Content - iOS optimized spacing */}
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
+        {/* Info banner - compact on mobile */}
+        <Alert className="text-sm">
+          <Info className="h-4 w-4 flex-shrink-0" />
+          <AlertDescription className="text-xs sm:text-sm leading-relaxed">
             {SIMULATION_DEFINITIONS.official}
           </AlertDescription>
         </Alert>
@@ -147,30 +154,37 @@ export default function RaceSimulationPage() {
           staffMode
         />
         
-        {/* Academy section - versions BASIC et PRO */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Academy — Simulation BASIC vs PRO</h2>
-          <div className="grid gap-4 md:grid-cols-2">
+        {/* Academy section - versions BASIC et PRO - collapsible on mobile */}
+        <details className="group" open>
+          <summary className="flex items-center justify-between cursor-pointer list-none py-2 touch-manipulation">
+            <h2 className="text-base sm:text-lg font-semibold">
+              Academy — Simulation BASIC vs PRO
+            </h2>
+            <span className="text-muted-foreground text-sm group-open:rotate-180 transition-transform">
+              ▼
+            </span>
+          </summary>
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 pt-3">
             {SIMULATION_ACADEMY_BASIC.sections.slice(0, 2).map((section, i) => (
-              <div key={`basic-${i}`} className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+              <div key={`basic-${i}`} className="p-3 sm:p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-xs font-medium px-2 py-0.5 bg-green-200 dark:bg-green-800 rounded">BASIC</span>
-                  <h3 className="font-medium text-sm">{section.title}</h3>
+                  <h3 className="font-medium text-xs sm:text-sm">{section.title}</h3>
                 </div>
-                <p className="text-xs text-muted-foreground">{section.content}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{section.content}</p>
               </div>
             ))}
             {SIMULATION_ACADEMY_PRO.sections.slice(0, 2).map((section, i) => (
-              <div key={`pro-${i}`} className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div key={`pro-${i}`} className="p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-xs font-medium px-2 py-0.5 bg-blue-200 dark:bg-blue-800 rounded">PRO</span>
-                  <h3 className="font-medium text-sm">{section.title}</h3>
+                  <h3 className="font-medium text-xs sm:text-sm">{section.title}</h3>
                 </div>
-                <p className="text-xs text-muted-foreground">{section.content}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{section.content}</p>
               </div>
             ))}
           </div>
-        </div>
+        </details>
       </main>
     </div>
   );
