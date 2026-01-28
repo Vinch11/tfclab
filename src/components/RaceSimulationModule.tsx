@@ -1378,6 +1378,38 @@ export function RaceSimulationModule({
           {simulationAccess.enabled && (
             <>
               <AccessStatusHeader />
+              
+              {/* Quick config summary when simulation is active */}
+              {showSimulation && (
+                <div className="mb-4 p-3 bg-muted/50 rounded-lg">
+                  <div className="flex flex-wrap items-center gap-2 justify-between">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
+                      <Badge variant="outline" className="font-medium">
+                        {raceType}
+                      </Badge>
+                      <span className="text-muted-foreground">·</span>
+                      <span className="capitalize">{ambition}</span>
+                      <span className="text-muted-foreground hidden sm:inline">·</span>
+                      <span className="hidden sm:inline text-muted-foreground">
+                        {heat === 'low' ? 'Froid' : heat === 'moderate' ? 'Tempéré' : 'Chaud'}
+                      </span>
+                      <span className="text-muted-foreground hidden sm:inline">·</span>
+                      <span className="hidden sm:inline text-muted-foreground">
+                        {terrain === 'flat' ? 'Plat' : 'Dénivelé'}
+                      </span>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setShowSimulation(false)}
+                      className="h-7 px-2 text-xs touch-manipulation"
+                    >
+                      Modifier
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
               {!showSimulation && <ConfigPanel />}
               {showSimulation && simulationMode === 'basic' && <BasicResultsPanel />}
               {showSimulation && simulationMode === 'pro' && <ProResultsPanel />}
