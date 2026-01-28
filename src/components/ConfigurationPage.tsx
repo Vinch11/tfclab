@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Settings, Palette, Check, LayoutDashboard, Trophy, BookOpen } from "lucide-react";
 import { useTheme, THEME_CONFIG, THEME_ORDER, Theme } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
-import { LayoutPreferencesEditor } from "./LayoutPreferencesEditor";
+import { AdvancedLayoutEditor } from "./AdvancedLayoutEditor";
 import { ReportSectionOrderEditor } from "./ReportSectionOrderEditor";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { useGettingStartedVisibility } from "./GettingStartedChecklist";
@@ -99,8 +99,8 @@ export function ConfigurationPage() {
         </CardContent>
       </Card>
 
-      {/* Section Layout Preferences */}
-      <LayoutPreferencesEditor />
+      {/* Section Layout Preferences - Éditeur Avancé */}
+      <AdvancedLayoutEditor />
 
       {/* Section Ordre des Sections du Rapport */}
       <ReportSectionOrderEditor />

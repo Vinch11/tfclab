@@ -36,6 +36,15 @@ export type SectionCategory = keyof typeof SECTION_CATEGORIES;
 export interface SectionConfig {
   id: string;
   visible: boolean;
+  collapsedByDefault?: boolean; // Section minimisée par défaut
+  movedToTab?: TabId; // Si la section a été déplacée vers un autre onglet
+}
+
+// Configuration des sections déplacées (cross-tab)
+export interface MovedSectionConfig {
+  sectionId: string;
+  originalTab: TabId;
+  targetTab: TabId;
 }
 
 // Sections disponibles pour chaque onglet
@@ -146,6 +155,12 @@ export interface LayoutPreferences {
   profil?: SectionConfig[];
   evolution?: SectionConfig[];
   dashboard?: SectionConfig[];
+  tests?: SectionConfig[];
+  seances?: SectionConfig[];
+  templates?: SectionConfig[];
+  academy?: SectionConfig[];
+  "race-readiness"?: SectionConfig[];
+  movedSections?: MovedSectionConfig[];
 }
 
 // Format legacy (juste les IDs) pour migration
@@ -161,8 +176,13 @@ interface UseLayoutPreferencesReturn {
   getSectionConfigs: (tabId: TabId) => SectionConfig[];
   setSectionConfigs: (tabId: TabId, configs: SectionConfig[]) => Promise<void>;
   toggleSectionVisibility: (tabId: TabId, sectionId: string) => Promise<void>;
+  toggleCollapsedByDefault: (tabId: TabId, sectionId: string) => Promise<void>;
+  moveSection: (sectionId: string, fromTab: TabId, toTab: TabId) => Promise<void>;
+  getMovedSections: () => MovedSectionConfig[];
+  getEffectiveSections: (tabId: TabId) => SectionConfig[];
   setSectionOrder: (tabId: TabId, order: string[]) => Promise<void>;
   resetToDefault: (tabId: TabId) => Promise<void>;
+  resetAllToDefault: () => Promise<void>;
   loading: boolean;
 }
 
@@ -198,9 +218,10 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
           const parsed = JSON.parse(stored);
-          // Migrer si nécessaire
-          const migrated: LayoutPreferences = {};
-          for (const tabId of ['profil', 'evolution', 'dashboard'] as TabId[]) {
+          // Migrer si nécessaire - inclure tous les onglets
+          const migrated: LayoutPreferences = { movedSections: parsed.movedSections || [] };
+          const allTabs: TabId[] = ['profil', 'evolution', 'dashboard', 'tests', 'seances', 'templates', 'academy', 'race-readiness'];
+          for (const tabId of allTabs) {
             const tabConfigs = migratePreferences(parsed, tabId);
             if (tabConfigs) {
               migrated[tabId] = tabConfigs;
@@ -316,6 +337,80 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
     await setSectionConfigs(tabId, updatedConfigs);
   }, [getSectionConfigs, setSectionConfigs]);
 
+  // Toggle l'état "minimisé par défaut" d'une section
+  const toggleCollapsedByDefault = useCallback(async (tabId: TabId, sectionId: string) => {
+    const configs = getSectionConfigs(tabId);
+    const updatedConfigs = configs.map(c => 
+      c.id === sectionId ? { ...c, collapsedByDefault: !c.collapsedByDefault } : c
+    );
+    await setSectionConfigs(tabId, updatedConfigs);
+  }, [getSectionConfigs, setSectionConfigs]);
+
+  // Déplacer une section d'un onglet à un autre
+  const moveSection = useCallback(async (sectionId: string, fromTab: TabId, toTab: TabId) => {
+    if (fromTab === toTab) return;
+
+    const newPrefs = { ...preferences };
+    const movedSections = [...(newPrefs.movedSections || [])];
+    
+    // Vérifier si cette section a déjà été déplacée
+    const existingMoveIndex = movedSections.findIndex(m => m.sectionId === sectionId);
+    
+    // Trouver l'onglet d'origine (peut être différent si déjà déplacé)
+    let originalTab = fromTab;
+    if (existingMoveIndex !== -1) {
+      originalTab = movedSections[existingMoveIndex].originalTab;
+      movedSections.splice(existingMoveIndex, 1);
+    }
+    
+    // Si on revient à l'onglet d'origine, on supprime simplement l'entrée
+    if (toTab !== originalTab) {
+      movedSections.push({
+        sectionId,
+        originalTab,
+        targetTab: toTab,
+      });
+    }
+    
+    newPrefs.movedSections = movedSections;
+    
+    // Supprimer la section de l'onglet source
+    const fromConfigs = getSectionConfigs(fromTab);
+    const sectionConfig = fromConfigs.find(c => c.id === sectionId);
+    newPrefs[fromTab] = fromConfigs.filter(c => c.id !== sectionId);
+    
+    // Ajouter la section à l'onglet cible
+    const toConfigs = getSectionConfigs(toTab);
+    if (sectionConfig && !toConfigs.some(c => c.id === sectionId)) {
+      newPrefs[toTab] = [...toConfigs, { ...sectionConfig, movedToTab: undefined }];
+    }
+    
+    setPreferences(newPrefs);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(newPrefs));
+
+    if (user) {
+      try {
+        const jsonPrefs = JSON.parse(JSON.stringify(newPrefs));
+        await supabase
+          .from("profiles")
+          .update({ layout_preferences: jsonPrefs })
+          .eq("user_id", user.id);
+      } catch {
+        // Echec silencieux
+      }
+    }
+  }, [preferences, getSectionConfigs, user]);
+
+  // Obtenir la liste des sections déplacées
+  const getMovedSections = useCallback((): MovedSectionConfig[] => {
+    return preferences.movedSections || [];
+  }, [preferences]);
+
+  // Obtenir les sections effectives pour un onglet (incluant les sections déplacées)
+  const getEffectiveSections = useCallback((tabId: TabId): SectionConfig[] => {
+    return getSectionConfigs(tabId);
+  }, [getSectionConfigs]);
+
   // Mettre à jour l'ordre (préserve la visibilité)
   const setSectionOrder = useCallback(async (tabId: TabId, order: string[]) => {
     const currentConfigs = getSectionConfigs(tabId);
@@ -328,13 +423,19 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
   const resetToDefault = useCallback(async (tabId: TabId) => {
     const newPrefs = { ...preferences };
     delete newPrefs[tabId];
-    setPreferences(newPrefs);
     
+    // Supprimer les sections déplacées depuis/vers cet onglet
+    if (newPrefs.movedSections) {
+      newPrefs.movedSections = newPrefs.movedSections.filter(
+        m => m.originalTab !== tabId && m.targetTab !== tabId
+      );
+    }
+    
+    setPreferences(newPrefs);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newPrefs));
 
     if (user) {
       try {
-        // Convertir en format JSON compatible avec Supabase
         const jsonPrefs = JSON.parse(JSON.stringify(newPrefs));
         await supabase
           .from("profiles")
@@ -346,14 +447,36 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
     }
   }, [preferences, user]);
 
+  const resetAllToDefault = useCallback(async () => {
+    const newPrefs: LayoutPreferences = {};
+    setPreferences(newPrefs);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(newPrefs));
+
+    if (user) {
+      try {
+        await supabase
+          .from("profiles")
+          .update({ layout_preferences: {} })
+          .eq("user_id", user.id);
+      } catch {
+        // Echec silencieux
+      }
+    }
+  }, [user]);
+
   return {
     getSectionOrder,
     getVisibleSections,
     getSectionConfigs,
     setSectionConfigs,
     toggleSectionVisibility,
+    toggleCollapsedByDefault,
+    moveSection,
+    getMovedSections,
+    getEffectiveSections,
     setSectionOrder,
     resetToDefault,
+    resetAllToDefault,
     loading,
   };
 }
