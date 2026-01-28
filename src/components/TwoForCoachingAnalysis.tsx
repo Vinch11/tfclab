@@ -18,6 +18,8 @@ import { TTEGuard, isTTEUnavailable } from "@/components/TTEGuard";
 import { computeNutritionEstimate } from "@/lib/nutritionPredictive";
 import { computeNutritionTiming, type DigestiveTolerance, getRiskBadgeIcon } from "@/lib/nutritionTiming";
 import { computeEnergyDrift, type EnergyDriftResult } from "@/lib/energyDrift";
+import { getTargetsForAmbition, normalizeObjective } from "@/lib/physiologicalTargets";
+import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 
 interface TwoForCoachingAnalysisProps {
   athlete: Athlete;
@@ -106,9 +108,15 @@ export function TwoForCoachingAnalysis({
   const recommendations = getRecommandationsPriorite(analysis.priorite);
   const seancesRecommandees = getSeancesRecommandees(analysis.priorite);
 
-  // Targets
-  const ftpTarget = athlete.objectif === "IM" ? 4.6 : 4.8;
-  const tteTarget = athlete.objectif === "IM" ? 55 : 45;
+  // ✅ Targets dynamiques depuis physiologicalTargets (source unique)
+  const ambition: AmbitionLevel = (athlete as any).ambition ?? DEFAULT_AMBITION;
+  const normalizedObj = normalizeObjective(athlete.objectif || "703");
+  const targets = useMemo(() => getTargetsForAmbition(normalizedObj, ambition), [normalizedObj, ambition]);
+  
+  const ftpTarget = targets.ftp_kg_min;
+  const tteTarget = targets.tte_min;
+  const vlamaxMin = targets.vlamax.min;
+  const vlamaxMax = targets.vlamax.max;
 
   // =============================================
   // NUTRITION PRÉDICTIVE
@@ -328,11 +336,11 @@ export function TwoForCoachingAnalysis({
               {vlamaxEffectif.source}
             </span>
           </div>
-          <p className={cn("text-lg font-bold font-mono", vlamax > 0.45 ? "text-warning" : vlamax < 0.28 ? "text-destructive" : "text-success")}>
+          <p className={cn("text-lg font-bold font-mono", vlamax > vlamaxMax ? "text-warning" : vlamax < vlamaxMin ? "text-destructive" : "text-success")}>
             {vlamaxEffectif.value !== null ? vlamaxEffectif.value.toFixed(2) : "—"}
           </p>
           <p className="text-xs text-muted-foreground">
-            conf {Math.round(vlamaxEffectif.confidence * 100)}% • Cible: 0.25-0.{athlete.objectif === "IM" ? "40" : "45"}
+            conf {Math.round(vlamaxEffectif.confidence * 100)}% • Cible: {vlamaxMin.toFixed(2)}-{vlamaxMax.toFixed(2)}
           </p>
         </div>
 

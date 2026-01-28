@@ -19,6 +19,12 @@ import {
   type SuggestionEngineOutput,
   type WahooSuggestion 
 } from "@/lib/wahoo/wahooSuggestionEngine";
+import { 
+  detectUnifiedLimiter, 
+  mapLimiterToReportType,
+  type UnifiedLimiterInput,
+  type UnifiedLimiter 
+} from "@/lib/v2/unifiedLimiterDetection";
 // =============================================
 // TYPES
 // =============================================
@@ -325,16 +331,61 @@ function getObjectifLabel(objectif: string): string {
   return labels[objectif] || objectif;
 }
 
+/**
+ * ✅ REFACTORISÉ: Utilise maintenant le moteur unifié detectUnifiedLimiter
+ * pour garantir la cohérence avec TFCLDecisionMatrix et le Compass
+ */
 function determineMainLimitation(params: {
   readiness: RaceReadinessEffectif;
   vlamaxEffectif: VLamaxEffectif;
   tteEffectif: TTEEffectif;
   nutritionEstimate: NutritionEstimate | null;
   runningEconomy: RunningEconomyResult | null;
+  objectif: string;
+  ambition: AmbitionLevel;
+  ftp: number | null;
+  poids: number | null;
+  availabilityScore?: number | null;
+  hasHealthAlerts?: boolean;
 }): { type: LimitationType; label: string } {
-  const { readiness, vlamaxEffectif, tteEffectif, nutritionEstimate, runningEconomy } = params;
+  const { 
+    readiness, 
+    vlamaxEffectif, 
+    tteEffectif, 
+    nutritionEstimate, 
+    runningEconomy,
+    objectif,
+    ambition,
+    ftp,
+    poids,
+    availabilityScore,
+    hasHealthAlerts 
+  } = params;
   
-  // Vérifier les plafonnements en priorité
+  // Calculer FTP/kg
+  const ftpKg = (ftp && poids && poids > 0) ? ftp / poids : null;
+  
+  // Construire l'input pour le moteur unifié
+  const unifiedInput: UnifiedLimiterInput = {
+    vo2max: null, // TODO: ajouter si disponible dans le snapshot
+    ftpKg,
+    vlamax: vlamaxEffectif.value,
+    tte: tteEffectif.tte_min,
+    fatmax: null, // Estimation possible via VLamax
+    economyScore: runningEconomy?.isApplicable ? (runningEconomy.capScore ?? null) : null,
+    availabilityScore: availabilityScore ?? null,
+    hasHealthAlerts: hasHealthAlerts ?? false,
+    objectif,
+    ambition,
+  };
+  
+  // Appeler le moteur unifié
+  const unifiedResult = detectUnifiedLimiter(unifiedInput);
+  
+  // Mapper le résultat vers le format legacy
+  const limiterType = mapLimiterToReportType(unifiedResult.primaryLimiter) as LimitationType;
+  
+  // Conserver la logique de plafonnement existante
   if (readiness.wasCappedByEconomy && runningEconomy?.level === "very_weak") {
     return { type: "economy", label: "Économie de course" };
   }
@@ -342,32 +393,16 @@ function determineMainLimitation(params: {
     return { type: "nutrition", label: "Risque nutritionnel" };
   }
   
-  // Analyser les scores par composant
-  const { details } = readiness;
-  const scores = [
-    { type: "metabolic" as LimitationType, score: details.vlamax, label: "VLamax (métabolique)" },
-    { type: "endurance" as LimitationType, score: details.endurance, label: "TTE (endurance)" },
-    { type: "power" as LimitationType, score: details.puissance, label: "Puissance relative" },
-  ];
-  
-  // Trouver le plus faible
-  const weakest = scores.sort((a, b) => a.score - b.score)[0];
-  
-  // Si économie faible et applicable
-  if (runningEconomy?.isApplicable && (runningEconomy.level === "weak" || runningEconomy.level === "very_weak")) {
-    return { type: "economy", label: "Économie de course" };
-  }
-  
-  // Si nutrition à risque élevé
+  // Si nutrition à risque élevé et pas capté par le moteur unifié
   if (nutritionEstimate && (nutritionEstimate.riskLevel === "high" || nutritionEstimate.riskLevel === "critical")) {
     return { type: "nutrition", label: "Risque nutritionnel" };
   }
   
-  if (weakest.score < 15) {
-    return { type: weakest.type, label: weakest.label };
-  }
-  
-  return { type: "none", label: "Aucune limitation majeure" };
+  // Utiliser le résultat du moteur unifié
+  return { 
+    type: limiterType, 
+    label: unifiedResult.limiterLabel 
+  };
 }
 
 function determineTrafficLight(readiness: RaceReadinessEffectif): TrafficLight {
@@ -658,13 +693,19 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     athleteAge,
   } = params;
   
-  // Déterminer la limitation principale
+  // Déterminer la limitation principale (utilise désormais le moteur unifié)
   const limitation = determineMainLimitation({
     readiness,
     vlamaxEffectif,
     tteEffectif,
     nutritionEstimate,
     runningEconomy,
+    objectif,
+    ambition: ambition ?? DEFAULT_AMBITION,
+    ftp,
+    poids,
+    availabilityScore: readiness.details.fraicheur ?? null,
+    hasHealthAlerts: readiness.wasCappedByNutrition || readiness.wasCappedByEconomy,
   });
   
   // Générer le feu tricolore
