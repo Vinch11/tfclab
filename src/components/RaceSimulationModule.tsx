@@ -117,6 +117,36 @@ function formatDurationCompact(minutes: number): string {
   return `${h}h${m.toString().padStart(2, '0')}`;
 }
 
+// Helper pour calculer l'allure (min/km) à partir de la VMA et du % d'intensité
+function computePaceFromVMA(vmaKmh: number | null, intensityPct: number): string | null {
+  if (!vmaKmh || vmaKmh <= 0) return null;
+  
+  // Vitesse cible = VMA × (intensité / 100)
+  const targetSpeedKmh = vmaKmh * (intensityPct / 100);
+  if (targetSpeedKmh <= 0) return null;
+  
+  // Allure = 60 / vitesse (min/km)
+  const paceMinPerKm = 60 / targetSpeedKmh;
+  const mins = Math.floor(paceMinPerKm);
+  const secs = Math.round((paceMinPerKm - mins) * 60);
+  
+  return `${mins}'${secs.toString().padStart(2, '0')}"`;
+}
+
+// Helper pour formater une plage d'allures
+function computePaceRangeFromVMA(
+  vmaKmh: number | null, 
+  intensityRange: [number, number]
+): string | null {
+  if (!vmaKmh || vmaKmh <= 0) return null;
+  
+  const paceFast = computePaceFromVMA(vmaKmh, intensityRange[1]); // Plus rapide (intensité haute)
+  const paceSlow = computePaceFromVMA(vmaKmh, intensityRange[0]); // Plus lent (intensité basse)
+  
+  if (!paceFast || !paceSlow) return null;
+  return `${paceFast} – ${paceSlow}`;
+}
+
 const SCENARIO_ICONS: Record<ScenarioType, typeof Shield> = {
   conservative: Shield,
   optimal: Scale,
@@ -908,16 +938,48 @@ export function RaceSimulationModule({
                     {isRunning ? '% VMA' : '% FTP'}
                   </div>
                 </div>
-                <div className="p-3 bg-muted/50 rounded-lg">
-                  <div className="text-xs text-muted-foreground">Temps estimé</div>
-                  <div className="text-lg font-bold">
-                    {formatDurationCompact(currentScenario.estimatedTimeMin)}
+                {/* Allure cible pour running, Temps estimé pour vélo */}
+                {isRunning && vma ? (
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <div className="text-xs text-muted-foreground">Allure cible</div>
+                    <div className="text-lg font-bold font-mono">
+                      {computePaceFromVMA(vma, currentScenario.targetIntensityPct) ?? '—'}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {computePaceRangeFromVMA(vma, currentScenario.targetIntensityRange) ?? 'min/km'}
+                    </div>
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    {formatDurationCompact(currentScenario.estimatedTimeRange[0])} – {formatDurationCompact(currentScenario.estimatedTimeRange[1])}
+                ) : (
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <div className="text-xs text-muted-foreground">Temps estimé</div>
+                    <div className="text-lg font-bold">
+                      {formatDurationCompact(currentScenario.estimatedTimeMin)}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {formatDurationCompact(currentScenario.estimatedTimeRange[0])} – {formatDurationCompact(currentScenario.estimatedTimeRange[1])}
+                    </div>
+                  </div>
+                )}
+              </div>
+              {/* Temps estimé séparé pour running (on a besoin des deux) */}
+              {isRunning && (
+                <div className="p-3 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-xs text-muted-foreground">Temps estimé</div>
+                      <div className="text-base font-bold">
+                        {formatDurationCompact(currentScenario.estimatedTimeMin)}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-muted-foreground">Plage</div>
+                      <div className="text-sm text-muted-foreground">
+                        {formatDurationCompact(currentScenario.estimatedTimeRange[0])} – {formatDurationCompact(currentScenario.estimatedTimeRange[1])}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-3 bg-muted/50 rounded-lg">
                   <div className="text-xs text-muted-foreground">Probabilité succès</div>
