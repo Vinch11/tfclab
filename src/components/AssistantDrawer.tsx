@@ -72,6 +72,9 @@ const QUICK_SUGGESTIONS = [
   { label: "Race Readiness ?", query: "C'est quoi le Race Readiness ?" },
   { label: "Importer PDF", query: "Comment importer un PDF de test ?" },
   { label: "Zone grise ?", query: "C'est quoi la zone grise ?" },
+  // Race Readiness Signature suggestions
+  { label: "Décision Go/Adjust ?", query: "Pourquoi la décision Race Readiness est Go/Adjust/No-Go pour cet athlète ?" },
+  { label: "Potentiel × Dispo ?", query: "Comment le Potentiel et la Disponibilité sont calculés dans Race Readiness Signature ?" },
   // Wahoo suggestions
   { label: "Wahoo suggestions", query: "Quelles séances Wahoo sont recommandées pour mon profil ?" },
   { label: "Pourquoi Endurance 1.5 ?", query: "Pourquoi Endurance 1.5 est proposée ?" },

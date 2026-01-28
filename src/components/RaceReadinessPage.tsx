@@ -20,6 +20,7 @@ import {
 } from "@/components/AgeAdjustmentInfo";
 import { TargetSyncVerifier } from "@/components/TargetSyncVerifier";
 import { type LorangStrategyInput } from "@/lib/v2/lorangStrategyEngine";
+import { type RaceReadinessInput } from "@/components/RaceReadinessSignatureChart";
 
 import type { VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import type { TTEEffectif } from "@/lib/tteEffectif";
@@ -317,6 +318,50 @@ function StaffReportWithLorang({
     };
   }, [vlamaxEffectif, tteEffectif, readiness, ambition, objectif, athleteAge, tss7d]);
   
+  // Construire le raceReadinessSignatureInput
+  const raceReadinessSignatureInput = useMemo((): RaceReadinessInput | null => {
+    // Mapper discipline
+    const disciplineMap: Record<string, 'IM' | '703' | 'marathon' | 'semi' | '10k' | 'cycling' | 'trail'> = {
+      'IM': 'IM',
+      '703': '703',
+      'Marathon': 'marathon',
+      'Semi': 'semi',
+    };
+    const discipline = disciplineMap[objectif] || '703';
+    
+    // Cibles selon objectif
+    const vo2maxTarget = objectif === "IM" ? 55 : objectif === "703" ? 52 : 48;
+    const vlamaxTarget = objectif === "IM" ? 0.35 : objectif === "703" ? 0.40 : 0.45;
+    const tteTarget = objectif === "IM" ? 55 : objectif === "703" ? 45 : 35;
+    
+    return {
+      physiology: {
+        vo2max: null,
+        vo2maxTarget,
+        vlamax: vlamaxEffectif.value,
+        vlamaxTarget,
+        tte: tteEffectif.tte_min,
+        tteTarget,
+        economy: null,
+        trend: undefined,
+      },
+      availability: {
+        hrvStatus: undefined,
+        tss7d: tss7d ?? null,
+        tss28d: null,
+        subjectiveFatigue: null,
+        sleepQuality: null,
+        motivation: null,
+        soreness: null,
+        stress: null,
+        hasRedFlags: false,
+      },
+      discipline,
+      ambition: ambition || 'competitor',
+      daysToRace: null,
+    };
+  }, [vlamaxEffectif, tteEffectif, objectif, ambition, tss7d]);
+  
   return (
     <StaffReport
       athleteName={athleteName}
@@ -335,6 +380,7 @@ function StaffReportWithLorang({
       athleteAge={athleteAge}
       ambition={ambition}
       lorangInput={lorangInput}
+      raceReadinessSignatureInput={raceReadinessSignatureInput}
     />
   );
 }

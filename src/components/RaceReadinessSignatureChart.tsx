@@ -416,10 +416,10 @@ function determineDecisionZone(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CALCUL PRINCIPAL
+// CALCUL PRINCIPAL (exporté pour utilisation externe)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function computeRaceReadiness(input: RaceReadinessInput): RaceReadinessResult {
+export function computeRaceReadinessSignature(input: RaceReadinessInput): RaceReadinessResult {
   const potential = computePotentialLevel(input);
   const availability = computeAvailabilityLevel(input);
   const { zone, recommendation } = determineDecisionZone(potential.level, availability.level);
@@ -608,7 +608,7 @@ export function RaceReadinessSignatureChart({
   compact = false,
   className,
 }: RaceReadinessSignatureChartProps) {
-  const result = useMemo(() => computeRaceReadiness(input), [input]);
+  const result = useMemo(() => computeRaceReadinessSignature(input), [input]);
   
   const zoneStyles: Record<DecisionZone, string> = {
     red: "bg-destructive/10 border-destructive/30",
@@ -808,6 +808,5 @@ export function RaceReadinessSignatureChart({
   );
 }
 
-// Export pour réutilisation
-export { computeRaceReadiness };
+// Export par défaut
 export default RaceReadinessSignatureChart;
