@@ -3,13 +3,15 @@
 // Two For Coaching Lab – Performance & Metabolic Report
 // =============================================
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { FileText, AlertCircle, Settings2 } from "lucide-react";
+import { FileText, AlertCircle, Settings2, Eye, ChevronRight } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { PDFPreviewPanel } from "./PDFPreviewPanel";
 import type { DbAthlete, DbSnapshot, DbTest, DbCheckin } from "@/hooks/useCloudData";
 // ✅ NEW: Import Calibration Layer
 import { 
@@ -5983,41 +5985,68 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
             📄 Export PDF
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-72" align="end">
-          <div className="space-y-3">
-            <p className="text-sm font-medium">Choisir le type de rapport</p>
-            
-            <div className="space-y-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExportAthletePDF}
-                className="w-full justify-start gap-3 h-auto py-3"
-              >
-                <User className="h-5 w-5 text-primary" />
-                <div className="text-left">
-                  <div className="font-medium">Rapport Athlète</div>
-                  <div className="text-xs text-muted-foreground">Simple, encourageant, pour l'athlète</div>
-                </div>
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExportPDF}
-                className="w-full justify-start gap-3 h-auto py-3"
-              >
-                <Shield className="h-5 w-5 text-primary" />
-                <div className="text-left">
-                  <div className="font-medium">Rapport Staff</div>
-                  <div className="text-xs text-muted-foreground">Complet, technique, pour le coach</div>
-                </div>
-              </Button>
+        <PopoverContent className="w-[420px] p-0" align="end">
+          <Tabs defaultValue="preview" className="w-full">
+            <div className="border-b px-3 pt-3 pb-2">
+              <p className="text-sm font-medium mb-2">Exporter le rapport</p>
+              <TabsList className="grid w-full grid-cols-2 h-8">
+                <TabsTrigger value="preview" className="text-xs gap-1.5">
+                  <Eye className="h-3 w-3" />
+                  Aperçu
+                </TabsTrigger>
+                <TabsTrigger value="sections" className="text-xs gap-1.5">
+                  <Settings2 className="h-3 w-3" />
+                  Sections ({selectedCount})
+                </TabsTrigger>
+              </TabsList>
             </div>
             
-            <div className="border-t pt-3">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-medium text-muted-foreground">Sections Staff ({selectedCount}/{totalCount})</p>
+            {/* Onglet Aperçu */}
+            <TabsContent value="preview" className="mt-0 p-3 space-y-3">
+              {/* Preview Panel */}
+              <PDFPreviewPanel 
+                sections={sections} 
+                athleteName={athlete?.name}
+              />
+              
+              {/* Boutons d'export */}
+              <div className="space-y-2 pt-2 border-t">
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={handleExportPDF}
+                  className="w-full justify-start gap-3 h-auto py-2.5"
+                >
+                  <Shield className="h-4 w-4" />
+                  <div className="text-left flex-1">
+                    <div className="font-medium text-sm">Rapport Staff</div>
+                    <div className="text-[10px] opacity-80">Complet, technique, pour le coach</div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 opacity-50" />
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportAthletePDF}
+                  className="w-full justify-start gap-3 h-auto py-2.5"
+                >
+                  <User className="h-4 w-4 text-primary" />
+                  <div className="text-left flex-1">
+                    <div className="font-medium text-sm">Rapport Athlète</div>
+                    <div className="text-[10px] text-muted-foreground">Simple, encourageant</div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 opacity-50" />
+                </Button>
+              </div>
+            </TabsContent>
+            
+            {/* Onglet Sections */}
+            <TabsContent value="sections" className="mt-0 p-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-medium text-muted-foreground">
+                  Sections Staff ({selectedCount}/{totalCount})
+                </p>
                 <div className="flex gap-1">
                   <Button variant="ghost" size="sm" onClick={selectAll} className="text-xs h-6 px-2">
                     Tout
@@ -6028,9 +6057,9 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
                 </div>
               </div>
               
-              <div className="max-h-48 overflow-y-auto space-y-1 pr-1">
+              <div className="max-h-[280px] overflow-y-auto space-y-1 pr-1 border rounded-md p-2 bg-muted/20">
                 {getSectionOrder().map((key) => (
-                  <div key={key} className="flex items-center justify-between py-0.5">
+                  <div key={key} className="flex items-center justify-between py-1 px-1 hover:bg-muted/50 rounded transition-colors">
                     <Label 
                       htmlFor={`section-${key}`} 
                       className="text-xs cursor-pointer flex-1 truncate"
@@ -6046,8 +6075,19 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
+              
+              {/* Bouton export depuis l'onglet sections */}
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleExportPDF}
+                className="w-full gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                Générer le rapport Staff
+              </Button>
+            </TabsContent>
+          </Tabs>
         </PopoverContent>
       </Popover>
     </div>
