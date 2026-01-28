@@ -281,14 +281,14 @@ export function RaceSimulationModule({
   
   const ModeSelector = () => (
     <Card className="border-2 border-dashed">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
+      <CardHeader className="pb-3 px-3 sm:px-6">
+        <CardTitle className="text-sm sm:text-base flex items-center gap-2">
           <Gauge className="w-4 h-4" />
           Taille de l'analyse
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
+      <CardContent className="space-y-4 px-3 sm:px-6">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3">
           {(['basic', 'pro'] as SimulationMode[]).map((mode) => {
             const isSelected = simulationMode === mode;
             const modeInfo = SIMULATION_MODE_LABELS[mode];
@@ -300,24 +300,25 @@ export function RaceSimulationModule({
                 onClick={() => !isProDisabled && setSimulationMode(mode)}
                 disabled={isProDisabled}
                 className={cn(
-                  "p-4 rounded-lg border-2 transition-all text-left relative",
+                  "p-3 sm:p-4 rounded-lg border-2 transition-all text-left relative touch-manipulation min-h-[88px]",
                   isSelected 
                     ? mode === 'basic'
                       ? "border-green-500 bg-green-50 dark:bg-green-900/20"
                       : "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                    : "border-border hover:border-muted-foreground/50",
+                    : "border-border hover:border-muted-foreground/50 active:bg-muted/50",
                   isProDisabled && "opacity-50 cursor-not-allowed"
                 )}
               >
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
                   {mode === 'basic' ? (
-                    <Shield className={cn("w-5 h-5", isSelected ? "text-green-600" : "text-muted-foreground")} />
+                    <Shield className={cn("w-4 h-4 sm:w-5 sm:h-5", isSelected ? "text-green-600" : "text-muted-foreground")} />
                   ) : (
-                    <Sparkles className={cn("w-5 h-5", isSelected ? "text-blue-600" : "text-muted-foreground")} />
+                    <Sparkles className={cn("w-4 h-4 sm:w-5 sm:h-5", isSelected ? "text-blue-600" : "text-muted-foreground")} />
                   )}
                   <Badge 
                     variant={isSelected ? "default" : "secondary"}
                     className={cn(
+                      "text-[10px] sm:text-xs",
                       isSelected && mode === 'basic' && "bg-green-600",
                       isSelected && mode === 'pro' && "bg-blue-600"
                     )}
@@ -326,14 +327,14 @@ export function RaceSimulationModule({
                   </Badge>
                 </div>
                 <div className={cn(
-                  "font-medium text-sm mb-1",
+                  "font-medium text-xs sm:text-sm mb-0.5 sm:mb-1",
                   isSelected 
                     ? mode === 'basic' ? "text-green-700 dark:text-green-300" : "text-blue-700 dark:text-blue-300"
                     : "text-foreground"
                 )}>
                   {mode === 'basic' ? "Décision robuste" : "Analyse complète"}
                 </div>
-                <div className="text-xs text-muted-foreground line-clamp-2">
+                <div className="text-[10px] sm:text-xs text-muted-foreground line-clamp-2 leading-tight">
                   {modeInfo.description}
                 </div>
               </button>
@@ -851,27 +852,27 @@ export function RaceSimulationModule({
           </div>
         )}
         
-        {/* Temps estimé du scénario sélectionné */}
+        {/* Temps estimé du scénario sélectionné - optimisé mobile */}
         {currentScenario && (
           <Card className="border-2 border-primary/20">
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 sm:pt-6 px-3 sm:px-6">
               <div className="text-center">
-                <div className="text-sm text-muted-foreground mb-1">
-                  Temps probable ({currentScenario.label})
+                <div className="text-xs sm:text-sm text-muted-foreground mb-1">
+                  Temps ({currentScenario.label})
                 </div>
-                <div className="text-3xl font-bold text-primary">
+                <div className="text-2xl sm:text-3xl font-bold text-primary">
                   {formatDurationCompact(currentScenario.estimatedTimeRange[0])} – {formatDurationCompact(currentScenario.estimatedTimeRange[1])}
                 </div>
-                <div className="text-sm text-muted-foreground mt-1">
+                <div className="text-xs sm:text-sm text-muted-foreground mt-1">
                   Centre: {formatDurationCompact(currentScenario.estimatedTimeMin)}
                 </div>
-                <div className="flex items-center justify-center gap-2 mt-2">
-                  <Badge variant="outline">
-                    Confiance: {proSimulation.timeConfidenceLabel}
+                <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 mt-2">
+                  <Badge variant="outline" className="text-[10px] sm:text-xs">
+                    {proSimulation.timeConfidenceLabel}
                   </Badge>
                   <Badge 
                     variant="secondary" 
-                    className={cn("text-xs", getScenarioBgColor(currentScenario.type))}
+                    className={cn("text-[10px] sm:text-xs", getScenarioBgColor(currentScenario.type))}
                   >
                     {currentScenario.type === 'conservative' ? 'Sécurisé' : 
                      currentScenario.type === 'optimal' ? 'Équilibré' : 'Ambitieux'}
@@ -882,10 +883,10 @@ export function RaceSimulationModule({
           </Card>
         )}
         
-        {/* Sélection scénario */}
+        {/* Sélection scénario - optimisé tactile */}
         <div className="space-y-3">
-          <Label>Scénarios de pacing</Label>
-          <div className="grid grid-cols-3 gap-2">
+          <Label className="text-sm sm:text-base">Scénarios de pacing</Label>
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
             {proSimulation.scenarios.map((scenario) => {
               const Icon = SCENARIO_ICONS[scenario.type];
               const isSelected = selectedScenario === scenario.type;
@@ -896,24 +897,24 @@ export function RaceSimulationModule({
                   key={scenario.type}
                   onClick={() => setSelectedScenario(scenario.type)}
                   className={cn(
-                    "p-3 rounded-lg border-2 transition-all text-left",
+                    "p-2 sm:p-3 rounded-lg border-2 transition-all text-left touch-manipulation min-h-[80px] active:scale-[0.98]",
                     isSelected 
                       ? getScenarioBgColor(scenario.type) + " border-current"
-                      : "border-border hover:border-muted-foreground/50"
+                      : "border-border hover:border-muted-foreground/50 active:bg-muted/50"
                   )}
                 >
-                  <div className="flex items-center gap-2 mb-1">
-                    <Icon className={cn("w-4 h-4", getScenarioColor(scenario.type))} />
-                    <span className={cn("font-medium text-sm", isSelected && getScenarioColor(scenario.type))}>
+                  <div className="flex items-center gap-1 sm:gap-2 mb-1">
+                    <Icon className={cn("w-3.5 h-3.5 sm:w-4 sm:h-4", getScenarioColor(scenario.type))} />
+                    <span className={cn("font-medium text-[11px] sm:text-sm truncate", isSelected && getScenarioColor(scenario.type))}>
                       {scenario.label}
                     </span>
                   </div>
                   {isRecommended && (
-                    <Badge variant="secondary" className="text-xs mb-1">
+                    <Badge variant="secondary" className="text-[9px] sm:text-xs mb-1 px-1 sm:px-1.5">
                       Recommandé
                     </Badge>
                   )}
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-[10px] sm:text-xs text-muted-foreground">
                     ~{Math.round(scenario.estimatedTimeMin)} min
                   </div>
                 </button>
@@ -922,49 +923,49 @@ export function RaceSimulationModule({
           </div>
         </div>
         
-        {/* Détails du scénario sélectionné */}
+        {/* Détails du scénario sélectionné - optimisé mobile */}
         {currentScenario && (
           <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className={cn("text-lg flex items-center gap-2", getScenarioColor(currentScenario.type))}>
-                  {React.createElement(SCENARIO_ICONS[currentScenario.type], { className: "w-5 h-5" })}
-                  {currentScenario.label}
+            <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6">
+              <div className="flex items-center justify-between gap-2">
+                <CardTitle className={cn("text-base sm:text-lg flex items-center gap-1.5 sm:gap-2 min-w-0", getScenarioColor(currentScenario.type))}>
+                  {React.createElement(SCENARIO_ICONS[currentScenario.type], { className: "w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" })}
+                  <span className="truncate">{currentScenario.label}</span>
                 </CardTitle>
-                <Badge className={getDepletionRiskBgColor(currentScenario.overallDepletionRisk)}>
-                  Risque: {currentScenario.overallDepletionRisk}
+                <Badge className={cn("text-[10px] sm:text-xs flex-shrink-0", getDepletionRiskBgColor(currentScenario.overallDepletionRisk))}>
+                  {currentScenario.overallDepletionRisk}
                 </Badge>
               </div>
-              <CardDescription>{currentScenario.description}</CardDescription>
+              <CardDescription className="text-xs sm:text-sm line-clamp-2">{currentScenario.description}</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Métriques clés */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 bg-muted/50 rounded-lg">
-                  <div className="text-xs text-muted-foreground">Intensité cible</div>
-                  <div className="text-lg font-bold">{currentScenario.targetIntensityPct}%</div>
-                  <div className="text-xs text-muted-foreground">
-                    {isRunning ? '% VMA' : '% FTP'}
+            <CardContent className="space-y-3 sm:space-y-4 px-3 sm:px-6">
+              {/* Métriques clés - grille responsive */}
+              <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                <div className="p-2 sm:p-3 bg-muted/50 rounded-lg">
+                  <div className="text-[10px] sm:text-xs text-muted-foreground">Intensité</div>
+                  <div className="text-base sm:text-lg font-bold">{currentScenario.targetIntensityPct}%</div>
+                  <div className="text-[10px] sm:text-xs text-muted-foreground">
+                    {isRunning ? 'VMA' : 'FTP'}
                   </div>
                 </div>
                 {/* Allure cible pour running, Temps estimé pour vélo */}
                 {isRunning && vma ? (
-                  <div className="p-3 bg-muted/50 rounded-lg">
-                    <div className="text-xs text-muted-foreground">Allure cible</div>
-                    <div className="text-lg font-bold font-mono">
+                  <div className="p-2 sm:p-3 bg-muted/50 rounded-lg">
+                    <div className="text-[10px] sm:text-xs text-muted-foreground">Allure</div>
+                    <div className="text-base sm:text-lg font-bold font-mono">
                       {computePaceFromVMA(vma, currentScenario.targetIntensityPct) ?? '—'}
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {computePaceRangeFromVMA(vma, currentScenario.targetIntensityRange) ?? 'min/km'}
+                    <div className="text-[10px] sm:text-xs text-muted-foreground truncate">
+                      {computePaceRangeFromVMA(vma, currentScenario.targetIntensityRange) ?? '/km'}
                     </div>
                   </div>
                 ) : (
-                  <div className="p-3 bg-muted/50 rounded-lg">
-                    <div className="text-xs text-muted-foreground">Temps estimé</div>
-                    <div className="text-lg font-bold">
+                  <div className="p-2 sm:p-3 bg-muted/50 rounded-lg">
+                    <div className="text-[10px] sm:text-xs text-muted-foreground">Temps</div>
+                    <div className="text-base sm:text-lg font-bold">
                       {formatDurationCompact(currentScenario.estimatedTimeMin)}
                     </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-[10px] sm:text-xs text-muted-foreground">
                       {formatDurationCompact(currentScenario.estimatedTimeRange[0])} – {formatDurationCompact(currentScenario.estimatedTimeRange[1])}
                     </div>
                   </div>
@@ -972,30 +973,30 @@ export function RaceSimulationModule({
               </div>
               {/* Temps estimé séparé pour running (on a besoin des deux) */}
               {isRunning && (
-                <div className="p-3 bg-muted/50 rounded-lg">
+                <div className="p-2 sm:p-3 bg-muted/50 rounded-lg">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-xs text-muted-foreground">Temps estimé</div>
-                      <div className="text-base font-bold">
+                      <div className="text-[10px] sm:text-xs text-muted-foreground">Temps estimé</div>
+                      <div className="text-sm sm:text-base font-bold">
                         {formatDurationCompact(currentScenario.estimatedTimeMin)}
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xs text-muted-foreground">Plage</div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-[10px] sm:text-xs text-muted-foreground">Plage</div>
+                      <div className="text-xs sm:text-sm text-muted-foreground">
                         {formatDurationCompact(currentScenario.estimatedTimeRange[0])} – {formatDurationCompact(currentScenario.estimatedTimeRange[1])}
                       </div>
                     </div>
                   </div>
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 bg-muted/50 rounded-lg">
-                  <div className="text-xs text-muted-foreground">Probabilité succès</div>
-                  <div className="text-lg font-bold">{Math.round(currentScenario.successProbability * 100)}%</div>
+              <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                <div className="p-2 sm:p-3 bg-muted/50 rounded-lg">
+                  <div className="text-[10px] sm:text-xs text-muted-foreground">Succès</div>
+                  <div className="text-base sm:text-lg font-bold">{Math.round(currentScenario.successProbability * 100)}%</div>
                   <Progress 
                     value={currentScenario.successProbability * 100} 
-                    className="h-1.5 mt-1"
+                    className="h-1 sm:h-1.5 mt-1"
                   />
                 </div>
                 <div className="p-3 bg-muted/50 rounded-lg">
@@ -1327,28 +1328,29 @@ export function RaceSimulationModule({
   
   return (
     <Card className={cn("", className)}>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Timer className="w-5 h-5 text-primary" />
-              Simulation de Course TFCL™
+      <CardHeader className="px-3 sm:px-6 pb-3 sm:pb-4">
+        <div className="flex items-start sm:items-center justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-lg">
+              <Timer className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
+              <span className="truncate">Simulation TFCL™</span>
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs sm:text-sm mt-0.5 line-clamp-1 sm:line-clamp-none">
               {!simulationAccess.enabled
-                ? "Simulation désactivée — Race Readiness insuffisant"
+                ? "Race Readiness insuffisant"
                 : showSimulation 
                   ? simulationMode === 'basic'
-                    ? `${basicSimulation?.raceLabel} - ${basicSimulation?.ambitionLabel} (BASIC)`
-                    : `${proSimulation?.raceLabel} - ${proSimulation?.ambitionLabel} (PRO)`
-                  : "Comparez des scénarios de pacing et nutrition"
+                    ? `${basicSimulation?.raceLabel} - ${basicSimulation?.ambitionLabel}`
+                    : `${proSimulation?.raceLabel} - ${proSimulation?.ambitionLabel}`
+                  : "Comparez des scénarios"
               }
             </CardDescription>
           </div>
-          {/* Status badge */}
+          {/* Status badge - compact on mobile */}
           <Badge 
             variant="outline" 
             className={cn(
+              "text-[10px] sm:text-xs flex-shrink-0 whitespace-nowrap",
               !simulationAccess.enabled 
                 ? "border-destructive text-destructive"
                 : showSimulation 
@@ -1367,8 +1369,8 @@ export function RaceSimulationModule({
           </Badge>
         </div>
       </CardHeader>
-      <CardContent>
-        <ScrollArea className={compact ? "h-[400px]" : "h-auto"}>
+      <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+        <ScrollArea className={compact ? "h-[400px]" : "h-auto max-h-[80vh] sm:max-h-none"}>
           {/* Access blocked: show blocked panel */}
           {!simulationAccess.enabled && <AccessBlockedPanel />}
           
