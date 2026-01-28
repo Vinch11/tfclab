@@ -54,6 +54,7 @@ import { ScientificChartsDashboard, MetabolicPerformanceCompass, AmbitionProgres
 import { ChargeRecenteCard } from "@/components/ChargeRecenteCard";
 import { computeCRR } from "@/lib/chargeRecenteReference";
 import { RaceReadinessV2Module } from "@/components/RaceReadinessV2Module";
+import { RaceReadinessSignatureChart, type RaceReadinessInput } from "@/components/RaceReadinessSignatureChart";
 import { computeCompassScores, type CompassScores } from "@/lib/compassScoring";
 import { DecisionReliabilityCard } from "@/components/DecisionReliabilityCard";
 import { computeFullDRE, DecisionReliabilityResult } from "@/lib/v2/decisionReliabilityEngine";
@@ -1064,6 +1065,72 @@ const Index = () => {
                 <FatMaxRaceIntensityChart
                   fatmax={fatmaxResult}
                   raceIntensityPct={raceIntensity}
+                />
+              );
+            },
+          },
+          {
+            id: "race-readiness-signature",
+            render: () => {
+              if (!currentAthlete) return null;
+              
+              // Récupérer le dernier checkin
+              const athleteCheckins = (checkins || []).filter(c => c.athlete_id === currentAthlete.id);
+              const sortedCheckins = [...athleteCheckins].sort((a, b) => 
+                new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime()
+              );
+              const checkin = sortedCheckins[0] || null;
+              
+              // Cibles selon ambition
+              const vlamaxTarget = currentAmbition === "elite" ? 0.35 : currentAmbition === "competitor" ? 0.45 : 0.55;
+              const vo2maxTarget = currentAmbition === "elite" ? 70 : currentAmbition === "competitor" ? 62 : 55;
+              const tteTarget = currentAmbition === "elite" ? 50 : currentAmbition === "competitor" ? 40 : 35;
+              
+              // Mapper discipline
+              const disciplineMap: Record<string, 'IM' | '703' | 'marathon' | 'semi' | '10k' | 'cycling' | 'trail'> = {
+                'IM': 'IM',
+                '703': '703',
+                'Marathon': 'marathon',
+                'Semi': 'semi',
+              };
+              const discipline = disciplineMap[currentAthlete.goal || '703'] || '703';
+              
+              // Calcul du ratio charge aiguë/chronique
+              const tss7d = effectiveCloudSnapshot?.tss_7d ?? null;
+              const tss28d = tss7d ? tss7d * 4 : null; // Estimation basée sur la charge 7j
+              
+              // Construire l'input
+              const raceReadinessInput: RaceReadinessInput = {
+                physiology: {
+                  vo2max: effectiveCloudSnapshot?.vo2max ?? null,
+                  vo2maxTarget,
+                  vlamax: vlamaxEffectif.value,
+                  vlamaxTarget,
+                  tte: tteEffectif.tte_min,
+                  tteTarget,
+                  economy: effectiveCloudSnapshot?.run_economy_score ?? null,
+                  trend: undefined,
+                },
+                availability: {
+                  hrvStatus: null,
+                  tss7d,
+                  tss28d,
+                  subjectiveFatigue: checkin?.fatigue ?? null,
+                  sleepQuality: checkin?.sleep ?? null,
+                  motivation: checkin?.motivation ?? null,
+                  soreness: checkin?.soreness ?? null,
+                  stress: checkin?.stress ?? null,
+                  hasRedFlags: false,
+                },
+                discipline,
+                ambition: currentAmbition,
+                daysToRace: null,
+              };
+              
+              return (
+                <RaceReadinessSignatureChart
+                  input={raceReadinessInput}
+                  compact={!staffMode}
                 />
               );
             },
