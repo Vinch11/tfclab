@@ -851,27 +851,36 @@ export function RaceSimulationModule({
           </div>
         )}
         
-        {/* Temps estimé global */}
-        <Card className="border-2 border-primary/20">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <div className="text-sm text-muted-foreground mb-1">Temps probable</div>
-              <div className="text-3xl font-bold text-primary">
-                {proSimulation.estimatedTimeLabel}
-              </div>
-              <div className="flex items-center justify-center gap-2 mt-2">
-                <Badge variant="outline">
-                  Confiance: {proSimulation.timeConfidenceLabel}
-                </Badge>
-                {proSimulation.missingData.length > 0 && (
-                  <Badge variant="secondary" className="text-xs">
-                    {proSimulation.missingData.length} données manquantes
+        {/* Temps estimé du scénario sélectionné */}
+        {currentScenario && (
+          <Card className="border-2 border-primary/20">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <div className="text-sm text-muted-foreground mb-1">
+                  Temps probable ({currentScenario.label})
+                </div>
+                <div className="text-3xl font-bold text-primary">
+                  {formatDurationCompact(currentScenario.estimatedTimeRange[0])} – {formatDurationCompact(currentScenario.estimatedTimeRange[1])}
+                </div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  Centre: {formatDurationCompact(currentScenario.estimatedTimeMin)}
+                </div>
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  <Badge variant="outline">
+                    Confiance: {proSimulation.timeConfidenceLabel}
                   </Badge>
-                )}
+                  <Badge 
+                    variant="secondary" 
+                    className={cn("text-xs", getScenarioBgColor(currentScenario.type))}
+                  >
+                    {currentScenario.type === 'conservative' ? 'Sécurisé' : 
+                     currentScenario.type === 'optimal' ? 'Équilibré' : 'Ambitieux'}
+                  </Badge>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
         
         {/* Sélection scénario */}
         <div className="space-y-3">
