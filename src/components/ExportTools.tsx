@@ -54,7 +54,7 @@ import { computeFatMaxTFCL, type FatMaxTFCLResult, FATMAX_DEFINITIONS, FATMAX_AC
 import { computeNutritionV2, type NutritionPredictiveV2, NUTRITION_PHILOSOPHY } from "@/lib/v2/nutritionV2";
 import { generateAthleteReadiness, type AthleteReadinessReport } from "@/lib/athleteReadiness";
 import { User, Shield } from "lucide-react";
-import { SECTION_LABELS, getSectionOrder, DEFAULT_SECTION_ORDER, DEFAULT_REPORT_SECTIONS } from "./ReportSectionOrderEditor";
+import { SECTION_LABELS, getSectionOrder, getSectionVisibility, DEFAULT_SECTION_ORDER, DEFAULT_REPORT_SECTIONS } from "./ReportSectionOrderEditor";
 // ✅ NEW: Import Disponibilité TFCL™
 import { 
   computeDisponibiliteTFCL, 
@@ -5443,8 +5443,50 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   `;
 
   // =============================================
-  // ASSEMBLE HTML
+  // ASSEMBLE HTML — RESPECT DE L'ORDRE PERSONNALISÉ
   // =============================================
+  
+  // Map des sections vers leur contenu HTML
+  const sectionHTMLMap: Record<keyof ReportSections, string> = {
+    synthese: executifHTML,
+    compass: compassHTML,
+    profilMetabolique: profilMetaboliqueHTML,
+    indicateurs: indicateursHTML,
+    raceReadiness: raceReadinessHTML,
+    disponibiliteTFCL: disponibiliteTFCLHTML,
+    raceSimulation: buildRaceSimulationHTML(payload, 'pro'),
+    injuryRisk: injuryRiskHTML,
+    nutritionV2: buildNutritionV2HTML(payload),
+    fatmaxTFCL: buildFatMaxTFCLHTML(payload),
+    ambitionTargets: ambitionTargetsHTML,
+    ambitionPredictions: ambitionPredictionsHTML,
+    evolutionCharts: evolutionChartsHTML,
+    ageAdjustment: aaiHTML,
+    ambitionLegend: ambitionLegendHTML,
+    methodology: methodologyHTML,
+    twoForCoaching: lorangHTML,
+    wahoo: wahooHTML,
+    planSuggestion: planSuggestionHTML,
+    templateRecommendation: templateRecommendationHTML,
+    zones: zonesHTML,
+    historique: snapshotsHTML,
+    tests: testsHTML,
+    testsCalibration: testsCalibrationHTML,
+    fitImports: fitImportsHTML,
+    checkins: checkinsHTML,
+    comprendre: comprendreHTML,
+    qualite: qualiteHTML,
+  };
+  
+  // Récupérer l'ordre personnalisé des sections
+  const sectionOrder = getSectionOrder();
+  
+  // Assembler les sections dans l'ordre personnalisé
+  const orderedSectionsHTML = sectionOrder
+    .filter((key) => options.sections[key]) // Seulement les sections visibles
+    .map((key) => sectionHTMLMap[key])
+    .join('\n');
+
   return `
     <!doctype html>
     <html lang="fr">
@@ -5467,34 +5509,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         ${tocHTML}
         
         ${positionnementHTML}
-        ${options.sections.synthese ? executifHTML : ''}
-        ${options.sections.compass ? compassHTML : ''}
-        ${options.sections.profilMetabolique ? profilMetaboliqueHTML : ''}
-        ${options.sections.indicateurs ? indicateursHTML : ''}
-        ${options.sections.raceReadiness ? raceReadinessHTML : ''}
-        ${options.sections.disponibiliteTFCL ? disponibiliteTFCLHTML : ''}
-        ${options.sections.raceSimulation ? buildRaceSimulationHTML(payload, 'pro') : ''}
-        ${options.sections.injuryRisk ? injuryRiskHTML : ''}
-        ${options.sections.nutritionV2 ? buildNutritionV2HTML(payload) : ''}
-        ${options.sections.fatmaxTFCL ? buildFatMaxTFCLHTML(payload) : ''}
-        ${options.sections.ambitionTargets ? ambitionTargetsHTML : ''}
-        ${options.sections.ambitionPredictions ? ambitionPredictionsHTML : ''}
-        ${options.sections.evolutionCharts ? evolutionChartsHTML : ''}
-        ${options.sections.ageAdjustment ? aaiHTML : ''}
-        ${options.sections.ambitionLegend ? ambitionLegendHTML : ''}
-        ${options.sections.methodology ? methodologyHTML : ''}
-        ${options.sections.twoForCoaching ? lorangHTML : ''}
-        ${options.sections.wahoo ? wahooHTML : ''}
-        ${options.sections.planSuggestion ? planSuggestionHTML : ''}
-        ${options.sections.templateRecommendation ? templateRecommendationHTML : ''}
-        ${options.sections.zones ? zonesHTML : ''}
-        ${options.sections.historique ? snapshotsHTML : ''}
-        ${options.sections.tests ? testsHTML : ''}
-        ${options.sections.testsCalibration ? testsCalibrationHTML : ''}
-        ${options.sections.fitImports ? fitImportsHTML : ''}
-        ${options.sections.checkins ? checkinsHTML : ''}
-        ${options.sections.comprendre ? comprendreHTML : ''}
-        ${options.sections.qualite ? qualiteHTML : ''}
+        ${orderedSectionsHTML}
         
         ${footerHTML}
       </body>
@@ -5831,18 +5846,8 @@ function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): str
 // =============================================
 
 export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMode = false, ambition = DEFAULT_AMBITION }: ExportToolsProps) {
-  // Charger les sections depuis le localStorage
-  const [sections, setSections] = useState<ReportSections>(() => {
-    const stored = localStorage.getItem("vlab-export-sections");
-    if (stored) {
-      try {
-        return { ...DEFAULT_REPORT_SECTIONS, ...JSON.parse(stored) };
-      } catch {
-        return DEFAULT_REPORT_SECTIONS;
-      }
-    }
-    return DEFAULT_REPORT_SECTIONS;
-  });
+  // Charger les sections depuis le localStorage via la fonction utilitaire
+  const [sections, setSections] = useState<ReportSections>(getSectionVisibility);
   
   // Persister les sections
   useEffect(() => {
