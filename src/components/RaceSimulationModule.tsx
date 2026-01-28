@@ -109,6 +109,14 @@ interface RaceSimulationModuleProps {
   defaultMode?: SimulationMode;
 }
 
+// Helper pour formater les durées
+function formatDurationCompact(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = Math.round(minutes % 60);
+  if (h === 0) return `${m}min`;
+  return `${h}h${m.toString().padStart(2, '0')}`;
+}
+
 const SCENARIO_ICONS: Record<ScenarioType, typeof Shield> = {
   conservative: Shield,
   optimal: Scale,
@@ -326,10 +334,144 @@ export function RaceSimulationModule({
   // CONFIGURATION PANEL
   // ═══════════════════════════════════════════════════════════════════════════
   
+  // Détecter si c'est un objectif course à pied
+  const isRunning = ['Marathon', 'Semi', '10km'].includes(raceType);
+  
   const ConfigPanel = () => (
     <div className="space-y-6">
       {/* Sélecteur de mode */}
       <ModeSelector />
+      
+      {/* Affichage des modificateurs Race Readiness si présents */}
+      {simulationAccess.enabled && simulationAccess.status !== 'GREEN' && (
+        <Card className={cn(
+          "border-2",
+          simulationAccess.status === 'ORANGE' && "border-amber-500/50 bg-amber-50/50 dark:bg-amber-900/10",
+          simulationAccess.status === 'BLUE' && "border-blue-500/50 bg-blue-50/50 dark:bg-blue-900/10"
+        )}>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              {simulationAccess.status === 'ORANGE' ? (
+                <>
+                  <AlertCircle className="w-4 h-4 text-amber-500" />
+                  <span className="text-amber-700 dark:text-amber-300">Modificateurs appliqués</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 text-blue-500" />
+                  <span className="text-blue-700 dark:text-blue-300">Mode avancé actif</span>
+                </>
+              )}
+              <Badge variant="outline" className="text-xs ml-auto">
+                {ACCESS_STATUS_LABELS[simulationAccess.status].emoji} {ACCESS_STATUS_LABELS[simulationAccess.status].label}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+              {/* FTP/Seuil effectif */}
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">
+                  {isRunning ? 'VMA effective' : 'FTP effectif'}
+                </span>
+                <span className={cn(
+                  "font-mono font-medium",
+                  simulationAccess.modifiers.effectiveFtpMultiplier[1] < 1 ? "text-amber-600" : 
+                  simulationAccess.modifiers.effectiveFtpMultiplier[0] > 1 ? "text-blue-600" : ""
+                )}>
+                  {Math.round(simulationAccess.modifiers.effectiveFtpMultiplier[0] * 100)}-{Math.round(simulationAccess.modifiers.effectiveFtpMultiplier[1] * 100)}%
+                </span>
+              </div>
+              
+              {/* FatMax shift */}
+              {simulationAccess.modifiers.fatmaxShiftPct !== 0 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Décalage FatMax</span>
+                  <span className={cn(
+                    "font-mono font-medium",
+                    simulationAccess.modifiers.fatmaxShiftPct < 0 ? "text-amber-600" : "text-emerald-600"
+                  )}>
+                    {simulationAccess.modifiers.fatmaxShiftPct > 0 ? '+' : ''}{simulationAccess.modifiers.fatmaxShiftPct}%
+                  </span>
+                </div>
+              )}
+              
+              {/* Glycogen depletion */}
+              {simulationAccess.modifiers.glycogenDepletionRateMultiplier !== 1 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Déplétion glycogène</span>
+                  <span className={cn(
+                    "font-mono font-medium",
+                    simulationAccess.modifiers.glycogenDepletionRateMultiplier > 1 ? "text-amber-600" : "text-emerald-600"
+                  )}>
+                    ×{simulationAccess.modifiers.glycogenDepletionRateMultiplier.toFixed(2)}
+                  </span>
+                </div>
+              )}
+              
+              {/* TTE multiplier */}
+              {simulationAccess.modifiers.tteUsableMultiplier !== 1 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">TTE utilisable</span>
+                  <span className={cn(
+                    "font-mono font-medium",
+                    simulationAccess.modifiers.tteUsableMultiplier < 1 ? "text-amber-600" : "text-emerald-600"
+                  )}>
+                    ×{simulationAccess.modifiers.tteUsableMultiplier.toFixed(2)}
+                  </span>
+                </div>
+              )}
+              
+              {/* Scénarios autorisés */}
+              <div className="col-span-2 flex items-center justify-between pt-1 border-t border-border/50 mt-1">
+                <span className="text-muted-foreground">Scénarios</span>
+                <div className="flex gap-1">
+                  {(['conservative', 'optimal', 'aggressive'] as const).map((s) => {
+                    const allowed = simulationAccess.modifiers.allowedScenarios.includes(s);
+                    const labels: Record<string, string> = {
+                      conservative: 'C',
+                      optimal: 'O',
+                      aggressive: 'A'
+                    };
+                    return (
+                      <span
+                        key={s}
+                        className={cn(
+                          "w-5 h-5 rounded text-xs flex items-center justify-center font-medium",
+                          allowed 
+                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300" 
+                            : "bg-muted text-muted-foreground line-through"
+                        )}
+                        title={allowed ? `${s} disponible` : `${s} désactivé`}
+                      >
+                        {labels[s]}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+              
+              {/* Stratégies pacing (mode BLUE) */}
+              {simulationAccess.status === 'BLUE' && (
+                <div className="col-span-2 flex gap-2 pt-1">
+                  {simulationAccess.modifiers.negativeSplitAllowed && (
+                    <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
+                      <Rocket className="w-3 h-3 mr-1" />
+                      Negative split
+                    </Badge>
+                  )}
+                  {simulationAccess.modifiers.lateRaceIntensityBoostAllowed && (
+                    <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
+                      <Zap className="w-3 h-3 mr-1" />
+                      Boost final
+                    </Badge>
+                  )}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
       
       {/* Type de course */}
       <div className="space-y-2">
@@ -461,7 +603,7 @@ export function RaceSimulationModule({
               <div className="flex justify-between">
                 <span className="text-muted-foreground">FatMax</span>
                 <span className={fatmax ? "font-medium" : "text-muted-foreground"}>
-                  {fatmax ? `${fatmax.minPctFTP}-${fatmax.maxPctFTP}%` : "—"}
+                  {fatmax ? `${fatmax.minPctFTP}-${fatmax.maxPctFTP}% ${isRunning ? 'VMA' : 'FTP'}` : "—"}
                 </span>
               </div>
             </>
@@ -476,6 +618,22 @@ export function RaceSimulationModule({
             <div className="flex justify-between">
               <span className="text-muted-foreground">Race Readiness</span>
               <span className="font-medium">{Math.round(raceReadinessScore)}/100</span>
+            </div>
+          )}
+          {/* Afficher VMA pour course / FTP pour vélo */}
+          {isRunning ? (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">VMA</span>
+              <span className={vma ? "font-medium" : "text-muted-foreground"}>
+                {vma ? `${vma.toFixed(1)} km/h` : "—"}
+              </span>
+            </div>
+          ) : (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">FTP</span>
+              <span className={ftp ? "font-medium" : "text-muted-foreground"}>
+                {ftp ? `${ftp} W` : "—"}
+              </span>
             </div>
           )}
         </div>
@@ -747,9 +905,20 @@ export function RaceSimulationModule({
                   <div className="text-xs text-muted-foreground">Intensité cible</div>
                   <div className="text-lg font-bold">{currentScenario.targetIntensityPct}%</div>
                   <div className="text-xs text-muted-foreground">
-                    {vlamaxDiscipline === 'bike' ? 'FTP' : 'VMA'}
+                    {isRunning ? '% VMA' : '% FTP'}
                   </div>
                 </div>
+                <div className="p-3 bg-muted/50 rounded-lg">
+                  <div className="text-xs text-muted-foreground">Temps estimé</div>
+                  <div className="text-lg font-bold">
+                    {formatDurationCompact(currentScenario.estimatedTimeMin)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {formatDurationCompact(currentScenario.estimatedTimeRange[0])} – {formatDurationCompact(currentScenario.estimatedTimeRange[1])}
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
                 <div className="p-3 bg-muted/50 rounded-lg">
                   <div className="text-xs text-muted-foreground">Probabilité succès</div>
                   <div className="text-lg font-bold">{Math.round(currentScenario.successProbability * 100)}%</div>
@@ -757,6 +926,15 @@ export function RaceSimulationModule({
                     value={currentScenario.successProbability * 100} 
                     className="h-1.5 mt-1"
                   />
+                </div>
+                <div className="p-3 bg-muted/50 rounded-lg">
+                  <div className="text-xs text-muted-foreground">Risque global</div>
+                  <div className={cn("text-lg font-bold", getDepletionRiskColor(currentScenario.overallDepletionRisk))}>
+                    {currentScenario.overallDepletionRisk}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Indice: {Math.round(currentScenario.overallFuelRisk)}/100
+                  </div>
                 </div>
               </div>
               

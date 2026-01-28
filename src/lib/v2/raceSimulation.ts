@@ -562,18 +562,18 @@ function generateScenario(
   const allowedScenarios = readinessModifiers?.allowedScenarios ?? ['conservative', 'optimal', 'aggressive'];
   const isScenarioAllowed = allowedScenarios.includes(type);
   
-  // Ajustements par type de scénario - intensité plus différenciée
+  // Ajustements par type de scénario - intensité nettement différenciée
   const intensityOffset: Record<ScenarioType, number> = {
-    conservative: -7,
+    conservative: -10,  // Beaucoup plus conservateur
     optimal: 0,
-    aggressive: +6,
+    aggressive: +8,     // Plus agressif
   };
   
-  // Durées plus différenciées entre scénarios
+  // Durées nettement différenciées entre scénarios (impact visible sur le temps)
   const durationMultiplier: Record<ScenarioType, number> = {
-    conservative: 1.06,
+    conservative: 1.10,   // +10% temps (finisher secure)
     optimal: 1.0,
-    aggressive: 0.94,
+    aggressive: 0.92,     // -8% temps (chrono ambitieux)
   };
   
   const scenarioLabels: Record<ScenarioType, { label: string; description: string }> = {
