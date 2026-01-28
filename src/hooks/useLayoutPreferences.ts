@@ -61,6 +61,9 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   // 📊 Aperçu rapide (grille de mini-jauges)
   { id: "compact-metrics-grid", label: "Aperçu Rapide (Mini-Jauges)", icon: "Activity", category: "metriques", defaultVisible: true },
   
+  // 🧠 MATRICE DÉCISIONNELLE TFCL — Cœur du système
+  { id: "tfcl-decision-matrix", label: "Décision Coach TFCL™", icon: "Brain", category: "analyse", defaultVisible: true },
+  
   // ⚡ Métriques VLamax/TTE
   { id: "compass", label: "Metabolic Compass", icon: "Compass", category: "metriques", defaultVisible: true },
   { id: "vlamax-bike-v2-enhanced", label: "VLamax Vélo — Analyse Détaillée", icon: "Zap", category: "metriques", defaultVisible: true },
