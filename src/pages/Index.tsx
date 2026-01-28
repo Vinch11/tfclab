@@ -77,6 +77,7 @@ import { type TFCLDecisionInput, type TFCLObjective } from "@/lib/v2/tfclDecisio
 
 // ✅ Lorang Strategy Engine — Leviers opérationnels TFCL
 import { LorangStrategyCard } from "@/components/LorangStrategyCard";
+import { LorangDecisionFlowChart } from "@/components/LorangDecisionFlowChart";
 import { type LorangStrategyInput } from "@/lib/v2/lorangStrategyEngine";
 
 // ✅ FIX 11 - Effective Refs (source unique de vérité)
@@ -1509,11 +1510,22 @@ const Index = () => {
               };
               
               return (
-                <LorangStrategyCard
-                  input={lorangInput}
-                  showStaffLevers={staffMode}
-                  compact={!staffMode}
-                />
+                <div className="space-y-4">
+                  {/* Graphique Signature TFCL - Limiter → Levier → Décision */}
+                  <LorangDecisionFlowChart
+                    input={lorangInput}
+                    showStaffLevers={staffMode}
+                  />
+                  
+                  {/* Carte détaillée (visible uniquement en mode staff) */}
+                  {staffMode && (
+                    <LorangStrategyCard
+                      input={lorangInput}
+                      showStaffLevers={staffMode}
+                      compact={false}
+                    />
+                  )}
+                </div>
               );
             },
           },
