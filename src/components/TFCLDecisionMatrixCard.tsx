@@ -9,6 +9,7 @@
  * - Diagnostic coach
  * - Focus entraînement
  * - Narratif athlète
+ * - Sources des données (traçabilité)
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
@@ -16,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { 
   Target, 
@@ -30,6 +32,10 @@ import {
   Flame,
   Battery,
   Brain,
+  Database,
+  FlaskConical,
+  Calculator,
+  ClipboardList,
 } from "lucide-react";
 import { useState } from "react";
 import {
@@ -41,6 +47,7 @@ import {
   type TFCLDecisionResult,
   type TFCLDomainAnalysis,
   type DecisionCase,
+  type DataSource,
 } from "@/lib/v2/tfclDecisionMatrix";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -110,6 +117,48 @@ function getDomainIcon(domain: TFCLDomainAnalysis["domain"]) {
     case "specific_endurance": return <Clock className="h-4 w-4" />;
     case "energetic": return <Flame className="h-4 w-4" />;
     case "availability": return <Battery className="h-4 w-4" />;
+  }
+}
+
+// Helper pour l'icône et le style de la source
+function getSourceInfo(source: DataSource): { icon: React.ReactNode; label: string; colorClass: string } {
+  switch (source) {
+    case "snapshot":
+      return { 
+        icon: <Database className="h-3 w-3" />, 
+        label: "Snapshot", 
+        colorClass: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30" 
+      };
+    case "test":
+      return { 
+        icon: <FlaskConical className="h-3 w-3" />, 
+        label: "Test", 
+        colorClass: "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30" 
+      };
+    case "estimation":
+      return { 
+        icon: <Calculator className="h-3 w-3" />, 
+        label: "Estimation", 
+        colorClass: "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30" 
+      };
+    case "checkin":
+      return { 
+        icon: <ClipboardList className="h-3 w-3" />, 
+        label: "Check-in", 
+        colorClass: "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/30" 
+      };
+    case "calcul":
+      return { 
+        icon: <Calculator className="h-3 w-3" />, 
+        label: "Calculé", 
+        colorClass: "text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/30" 
+      };
+    default:
+      return { 
+        icon: <Info className="h-3 w-3" />, 
+        label: "Inconnu", 
+        colorClass: "text-muted-foreground bg-muted/30" 
+      };
   }
 }
 
@@ -335,55 +384,92 @@ function DomainRow({ domain }: { domain: TFCLDomainAnalysis }) {
     limiting: "Limitant",
   };
   
+  const sourceInfo = getSourceInfo(domain.source);
+  
   return (
-    <div className={cn(
-      "flex items-center gap-3 p-2 rounded-md border",
-      domain.isLimiting 
-        ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800" 
-        : "bg-muted/30 border-border"
-    )}>
-      {/* Icône */}
+    <TooltipProvider>
       <div className={cn(
-        "shrink-0",
+        "flex items-center gap-3 p-2.5 rounded-md border",
         domain.isLimiting 
-          ? "text-red-600 dark:text-red-400" 
-          : "text-muted-foreground"
+          ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800" 
+          : "bg-muted/30 border-border"
       )}>
-        {getDomainIcon(domain.domain)}
-      </div>
-      
-      {/* Label */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-sm">{domain.emoji}</span>
-          <span className={cn(
-            "text-sm font-medium truncate",
-            domain.isLimiting && "text-red-700 dark:text-red-300"
-          )}>
-            {domain.label}
-          </span>
+        {/* Icône */}
+        <div className={cn(
+          "shrink-0",
+          domain.isLimiting 
+            ? "text-red-600 dark:text-red-400" 
+            : "text-muted-foreground"
+        )}>
+          {getDomainIcon(domain.domain)}
         </div>
-      </div>
-      
-      {/* Score */}
-      <div className="shrink-0 text-right">
-        <div className="flex items-center gap-2">
-          {domain.metric.raw !== null && (
-            <span className="text-xs text-muted-foreground">
-              {typeof domain.metric.raw === "number" 
-                ? domain.metric.raw.toFixed(domain.domain === "glycolytic" ? 2 : 0)
-                : domain.metric.raw}
+        
+        {/* Label domaine + métrique */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-sm">{domain.emoji}</span>
+            <span className={cn(
+              "text-sm font-medium",
+              domain.isLimiting && "text-red-700 dark:text-red-300"
+            )}>
+              {domain.label}
             </span>
-          )}
-          <Badge 
-            variant="outline" 
-            className={cn("text-[10px]", getMetricStatusBadgeClass(domain.metric.status))}
-          >
-            {statusLabels[domain.metric.status]}
-          </Badge>
+            <span className="text-[10px] text-muted-foreground">
+              : {domain.metricName}
+            </span>
+          </div>
+          
+          {/* Source badge avec tooltip */}
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className={cn(
+                  "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium cursor-help",
+                  sourceInfo.colorClass
+                )}>
+                  {sourceInfo.icon}
+                  {sourceInfo.label}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-xs">
+                <p className="text-xs">
+                  {domain.sourceLabel || `Donnée issue de: ${sourceInfo.label}`}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </div>
+        
+        {/* Valeur + cible + statut */}
+        <div className="shrink-0 text-right">
+          <div className="flex flex-col items-end gap-0.5">
+            {domain.metric.raw !== null && (
+              <div className="flex items-center gap-1">
+                <span className="text-sm font-semibold">
+                  {typeof domain.metric.raw === "number" 
+                    ? domain.metric.raw.toFixed(domain.domain === "glycolytic" ? 2 : 0)
+                    : domain.metric.raw}
+                </span>
+                <span className="text-[10px] text-muted-foreground">
+                  {domain.metricUnit}
+                </span>
+              </div>
+            )}
+            <div className="flex items-center gap-1">
+              <span className="text-[9px] text-muted-foreground">
+                cible: {domain.metric.target.toFixed(domain.domain === "glycolytic" ? 2 : 0)}
+              </span>
+              <Badge 
+                variant="outline" 
+                className={cn("text-[9px] px-1 py-0", getMetricStatusBadgeClass(domain.metric.status))}
+              >
+                {statusLabels[domain.metric.status]}
+              </Badge>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }
 

@@ -1326,16 +1326,44 @@ const Index = () => {
               return (
                 <TFCLDecisionMatrixCard
                   input={{
-                    vo2max: effectiveCloudSnapshot?.vo2max ?? null,
-                    vlamax: vlamaxEffectif.value,
-                    tte: tteEffectif.tte_min,
-                    fatMaxPctVO2: fatmaxResult?.centerPctFTP ?? null,
-                    fatOxidationMax: null,
-                    crossoverPctVO2: null,
-                    freshnessScore: disponibiliteScore,
-                    tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
-                    tss28d: null,
-                    subjectiveFatigue: checkin?.fatigue ?? null,
+                    vo2max: { 
+                      value: effectiveCloudSnapshot?.vo2max ?? null, 
+                      source: effectiveCloudSnapshot?.vo2max ? "snapshot" : "estimation",
+                      sourceLabel: effectiveCloudSnapshot?.vo2max ? "Snapshot athlète" : undefined
+                    },
+                    vlamax: { 
+                      value: vlamaxEffectif.value, 
+                      source: vlamaxEffectif.source === "snapshot" ? "snapshot" : vlamaxEffectif.source === "estimated" ? "estimation" : "test",
+                      sourceLabel: vlamaxEffectif.source === "snapshot" ? "Snapshot athlète" : vlamaxEffectif.source === "estimated" ? "Estimation physiologique" : "Test terrain"
+                    },
+                    tte: { 
+                      value: tteEffectif.tte_min, 
+                      source: tteEffectif.source === "observed" ? "test" : tteEffectif.source === "estimated" ? "estimation" : "estimation",
+                      sourceLabel: tteEffectif.source === "observed" ? "TTE observé" : "Estimation physiologique"
+                    },
+                    fatMaxPctVO2: { 
+                      value: fatmaxResult?.centerPctFTP ?? null, 
+                      source: fatmaxResult ? "calcul" : "estimation",
+                      sourceLabel: fatmaxResult ? "Calcul FatMax TFCL" : undefined
+                    },
+                    fatOxidationMax: { value: null, source: "estimation" },
+                    crossoverPctVO2: { value: null, source: "estimation" },
+                    freshnessScore: { 
+                      value: disponibiliteScore, 
+                      source: checkin ? "checkin" : "calcul",
+                      sourceLabel: checkin ? "Check-in quotidien" : "Score calculé"
+                    },
+                    tss7d: { 
+                      value: effectiveCloudSnapshot?.tss_7d ?? null, 
+                      source: effectiveCloudSnapshot?.tss_7d ? "snapshot" : "estimation",
+                      sourceLabel: effectiveCloudSnapshot?.tss_7d ? "Charge TSS 7j" : undefined
+                    },
+                    tss28d: { value: null, source: "estimation" },
+                    subjectiveFatigue: { 
+                      value: checkin?.fatigue ?? null, 
+                      source: checkin?.fatigue ? "checkin" : "estimation",
+                      sourceLabel: checkin?.fatigue ? "Check-in quotidien" : undefined
+                    },
                     confidenceScore: Math.round((vlamaxEffectif.confidence + tteEffectif.confidence) / 2 * 100),
                     discipline: currentAthlete.goal === "Marathon" || currentAthlete.goal === "Semi" ? "cap" : "tri",
                     objective: (currentAthlete.goal || "703") as TFCLObjective,

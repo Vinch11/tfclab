@@ -42,20 +42,29 @@ export type TrainingLever =
 
 export type DecisionCase = "A" | "B" | "C" | "D" | "E";
 
+// Source des données pour la traçabilité
+export type DataSource = "snapshot" | "test" | "estimation" | "checkin" | "calcul";
+
+export interface DataWithSource<T> {
+  value: T;
+  source: DataSource;
+  sourceLabel?: string; // Ex: "Test Sprint 15s", "Estimation basée sur FTP"
+}
+
 export interface TFCLDecisionInput {
-  // Physiologie (valeurs effectives)
-  vo2max: number | null;          // ml/kg/min
-  vlamax: number | null;          // mmol/L/s
-  tte: number | null;             // minutes
-  fatMaxPctVO2: number | null;    // % VO2max au FatMax
-  fatOxidationMax: number | null; // g/min
-  crossoverPctVO2: number | null; // % VO2max au crossover
+  // Physiologie (valeurs effectives) avec source
+  vo2max: DataWithSource<number | null>;
+  vlamax: DataWithSource<number | null>;
+  tte: DataWithSource<number | null>;
+  fatMaxPctVO2: DataWithSource<number | null>;
+  fatOxidationMax: DataWithSource<number | null>;
+  crossoverPctVO2: DataWithSource<number | null>;
   
-  // Disponibilité
-  freshnessScore: number | null;  // 0-100
-  tss7d: number | null;           // Charge 7 jours
-  tss28d: number | null;          // Charge 28 jours (optionnel)
-  subjectiveFatigue: number | null; // 0-10
+  // Disponibilité avec source
+  freshnessScore: DataWithSource<number | null>;
+  tss7d: DataWithSource<number | null>;
+  tss28d: DataWithSource<number | null>;
+  subjectiveFatigue: DataWithSource<number | null>;
   
   // Qualité des données
   confidenceScore: number;        // 0-100
@@ -81,6 +90,10 @@ export interface TFCLDomainAnalysis {
   label: string;
   emoji: string;
   metric: NormalizedMetric;
+  metricName: string;        // Ex: "VO2max", "VLamax"
+  metricUnit: string;        // Ex: "ml/kg/min", "mmol/L/s"
+  source: DataSource;
+  sourceLabel?: string;
   isLimiting: boolean;
 }
 
@@ -646,21 +659,30 @@ function generateAthleteNarrative(
 // FONCTION PRINCIPALE
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// Mapping domaine -> infos métriques
+const METRIC_INFO: Record<LimitingFactorDomain, { name: string; unit: string }> = {
+  aerobic_engine: { name: "VO2max", unit: "ml/kg/min" },
+  glycolytic: { name: "VLamax", unit: "mmol/L/s" },
+  specific_endurance: { name: "TTE", unit: "min" },
+  energetic: { name: "FatMax", unit: "% VO2" },
+  availability: { name: "Fraîcheur", unit: "pts" },
+};
+
 export function computeTFCLDecisionMatrix(input: TFCLDecisionInput): TFCLDecisionResult {
   const objective = normalizeObjective(input.objective);
   const weights = DOMAIN_WEIGHTS[objective] || DOMAIN_WEIGHTS["703"];
   const confidence = input.confidenceScore;
   
-  // 1. Normaliser chaque métrique
+  // 1. Normaliser chaque métrique (extraire .value du DataWithSource)
   const vo2maxMetric = normalizeVO2max(
-    input.vo2max, 
+    input.vo2max.value, 
     objective, 
     weights.aerobic_engine, 
     confidence
   );
   
   const vlamaxMetric = normalizeVLamax(
-    input.vlamax, 
+    input.vlamax.value, 
     objective, 
     input.ambition, 
     weights.glycolytic, 
@@ -668,7 +690,7 @@ export function computeTFCLDecisionMatrix(input: TFCLDecisionInput): TFCLDecisio
   );
   
   const tteMetric = normalizeTTE(
-    input.tte, 
+    input.tte.value, 
     objective, 
     input.ambition, 
     weights.specific_endurance, 
@@ -676,47 +698,67 @@ export function computeTFCLDecisionMatrix(input: TFCLDecisionInput): TFCLDecisio
   );
   
   const fatmaxMetric = normalizeFatMax(
-    input.fatMaxPctVO2, 
+    input.fatMaxPctVO2.value, 
     objective, 
     weights.energetic, 
     confidence
   );
   
   const freshnessMetric = normalizeFreshness(
-    input.freshnessScore, 
+    input.freshnessScore.value, 
     weights.availability
   );
   
-  // 2. Construire les analyses par domaine
+  // 2. Construire les analyses par domaine avec source et infos métriques
   const domains: TFCLDomainAnalysis[] = [
     {
       domain: "aerobic_engine",
       ...DOMAIN_INFO.aerobic_engine,
       metric: vo2maxMetric,
+      metricName: METRIC_INFO.aerobic_engine.name,
+      metricUnit: METRIC_INFO.aerobic_engine.unit,
+      source: input.vo2max.source,
+      sourceLabel: input.vo2max.sourceLabel,
       isLimiting: false,
     },
     {
       domain: "glycolytic",
       ...DOMAIN_INFO.glycolytic,
       metric: vlamaxMetric,
+      metricName: METRIC_INFO.glycolytic.name,
+      metricUnit: METRIC_INFO.glycolytic.unit,
+      source: input.vlamax.source,
+      sourceLabel: input.vlamax.sourceLabel,
       isLimiting: false,
     },
     {
       domain: "specific_endurance",
       ...DOMAIN_INFO.specific_endurance,
       metric: tteMetric,
+      metricName: METRIC_INFO.specific_endurance.name,
+      metricUnit: METRIC_INFO.specific_endurance.unit,
+      source: input.tte.source,
+      sourceLabel: input.tte.sourceLabel,
       isLimiting: false,
     },
     {
       domain: "energetic",
       ...DOMAIN_INFO.energetic,
       metric: fatmaxMetric,
+      metricName: METRIC_INFO.energetic.name,
+      metricUnit: METRIC_INFO.energetic.unit,
+      source: input.fatMaxPctVO2.source,
+      sourceLabel: input.fatMaxPctVO2.sourceLabel,
       isLimiting: false,
     },
     {
       domain: "availability",
       ...DOMAIN_INFO.availability,
       metric: freshnessMetric,
+      metricName: METRIC_INFO.availability.name,
+      metricUnit: METRIC_INFO.availability.unit,
+      source: input.freshnessScore.source,
+      sourceLabel: input.freshnessScore.sourceLabel,
       isLimiting: false,
     },
   ];
