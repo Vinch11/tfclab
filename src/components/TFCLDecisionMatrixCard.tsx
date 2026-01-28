@@ -345,7 +345,22 @@ export function TFCLDecisionMatrixCard({
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="mt-2 space-y-2">
+              <div className="mt-2 space-y-3">
+                {/* Légende des sources */}
+                <div className="p-2.5 rounded-md bg-muted/30 border border-border">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-2">
+                    Légende des sources
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <SourceLegendItem source="snapshot" />
+                    <SourceLegendItem source="test" />
+                    <SourceLegendItem source="estimation" />
+                    <SourceLegendItem source="checkin" />
+                    <SourceLegendItem source="calcul" />
+                  </div>
+                </div>
+                
+                {/* Lignes de domaines */}
                 {result.domains.map((domain) => (
                   <DomainRow key={domain.domain} domain={domain} />
                 ))}
@@ -370,6 +385,40 @@ export function TFCLDecisionMatrixCard({
         </p>
       </CardContent>
     </Card>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SOUS-COMPOSANT: Légende source
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const SOURCE_DESCRIPTIONS: Record<DataSource, string> = {
+  snapshot: "Valeur issue du dernier snapshot physiologique de l'athlète",
+  test: "Valeur mesurée lors d'un test terrain ou laboratoire",
+  estimation: "Valeur estimée par le modèle TFCL (données partielles)",
+  checkin: "Valeur déclarée via le check-in quotidien de l'athlète",
+  calcul: "Valeur calculée à partir d'autres métriques disponibles",
+};
+
+function SourceLegendItem({ source }: { source: DataSource }) {
+  const info = getSourceInfo(source);
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className={cn(
+            "inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium cursor-help",
+            info.colorClass
+          )}>
+            {info.icon}
+            {info.label}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="max-w-xs">
+          <p className="text-xs">{SOURCE_DESCRIPTIONS[source]}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
