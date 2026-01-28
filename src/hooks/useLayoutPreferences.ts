@@ -79,6 +79,7 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   { id: "charge-recente", label: "Charge Récente", icon: "Activity", category: "fatigue", defaultVisible: true },
   
   // 📊 Analyse & Course
+  { id: "race-readiness-signature", label: "Race Readiness Signature™", icon: "Target", category: "analyse", defaultVisible: true },
   { id: "race-readiness-v2", label: "Race Readiness V2", icon: "Trophy", category: "analyse", defaultVisible: true },
   { id: "running-economy-summary", label: "Économie de course", icon: "Footprints", category: "analyse", defaultVisible: true },
   { id: "fatmax-tfcl", label: "FatMax TFCL™", icon: "Flame", category: "analyse", defaultVisible: true },
