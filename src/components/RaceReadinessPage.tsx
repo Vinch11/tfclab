@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,7 @@ import {
   TTEAgeTarget 
 } from "@/components/AgeAdjustmentInfo";
 import { TargetSyncVerifier } from "@/components/TargetSyncVerifier";
+import { type LorangStrategyInput } from "@/lib/v2/lorangStrategyEngine";
 
 import type { VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import type { TTEEffectif } from "@/lib/tteEffectif";
@@ -194,7 +195,7 @@ export function RaceReadinessPage({
 
           {/* Rapport Staff Pré-Course */}
           {snapshotDate && (
-            <StaffReport
+            <StaffReportWithLorang
               athleteName={athleteName}
               objectif={objectif}
               snapshotDate={snapshotDate}
@@ -224,5 +225,116 @@ export function RaceReadinessPage({
         </>
       )}
     </div>
+  );
+}
+
+// Composant wrapper pour générer lorangInput et le passer au StaffReport
+function StaffReportWithLorang({
+  athleteName,
+  objectif,
+  snapshotDate,
+  vlamaxEffectif,
+  tteEffectif,
+  readiness,
+  nutritionEstimate,
+  runningEconomy,
+  ftp,
+  poids,
+  fcMax,
+  tss7d,
+  snapshotUpdatedAt,
+  athleteAge,
+  ambition,
+}: {
+  athleteName: string;
+  objectif: string;
+  snapshotDate: string;
+  vlamaxEffectif: VLamaxEffectif;
+  tteEffectif: TTEEffectif;
+  readiness: RaceReadinessEffectif;
+  nutritionEstimate: NutritionEstimate;
+  runningEconomy: RunningEconomyResult;
+  ftp: number;
+  poids: number | null;
+  fcMax: number | null;
+  tss7d?: number | null;
+  snapshotUpdatedAt?: string | null;
+  athleteAge?: number | null;
+  ambition?: import("@/types/ambitionLevel").AmbitionLevel;
+}) {
+  // Construire le lorangInput
+  const lorangInput = useMemo((): LorangStrategyInput | null => {
+    const currentAmbition = ambition || 'age_group';
+    
+    // Cibles selon ambition
+    const vlamaxTarget = currentAmbition === "elite" ? 0.35 : currentAmbition === "competitor" ? 0.45 : 0.55;
+    const vo2maxTarget = currentAmbition === "elite" ? 70 : currentAmbition === "competitor" ? 62 : 55;
+    const tteTarget = currentAmbition === "elite" ? 50 : currentAmbition === "competitor" ? 40 : 35;
+    const fatmaxTarget = currentAmbition === "elite" ? 60 : currentAmbition === "competitor" ? 55 : 50;
+    
+    // Mapper discipline
+    const disciplineMap: Record<string, 'IM' | '703' | 'marathon' | 'semi' | '10k' | 'cycling' | 'trail'> = {
+      'IM': 'IM',
+      '703': '703',
+      'Marathon': 'marathon',
+      'Semi': 'semi',
+    };
+    const discipline = disciplineMap[objectif] || '703';
+    
+    return {
+      physiology: {
+        vo2max: null, // Not available in this context
+        vo2maxTarget,
+        vlamax: vlamaxEffectif.value,
+        vlamaxTarget,
+        tte: tteEffectif.tte_min,
+        tteTarget,
+        fatmax: null,
+        fatmaxTarget,
+        economy: null,
+      },
+      athlete: {
+        age: athleteAge ?? null,
+        discipline,
+        ambition: currentAmbition,
+        hasGIIssues: false,
+      },
+      availability: {
+        score: readiness.score ?? 50,
+        level: readiness.score >= 75 ? 'high' : readiness.score >= 50 ? 'moderate' : readiness.score >= 25 ? 'low' : 'critical',
+        hasAlerts: false,
+        hrvOutOfRange2Days: false,
+      },
+      context: {
+        daysToRace: null,
+        isRaceWeek: false,
+        currentPhase: 'build',
+      },
+      load: {
+        tss7d: tss7d ?? null,
+        tss28d: null,
+      },
+    };
+  }, [vlamaxEffectif, tteEffectif, readiness, ambition, objectif, athleteAge, tss7d]);
+  
+  return (
+    <StaffReport
+      athleteName={athleteName}
+      objectif={objectif}
+      snapshotDate={snapshotDate}
+      vlamaxEffectif={vlamaxEffectif}
+      tteEffectif={tteEffectif}
+      readiness={readiness}
+      nutritionEstimate={nutritionEstimate}
+      runningEconomy={runningEconomy}
+      ftp={ftp}
+      poids={poids}
+      fcMax={fcMax}
+      tss7d={tss7d}
+      snapshotUpdatedAt={snapshotUpdatedAt}
+      athleteAge={athleteAge}
+      ambition={ambition}
+      lorangInput={lorangInput}
+    />
   );
 }
