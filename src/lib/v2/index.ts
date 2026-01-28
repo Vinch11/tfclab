@@ -1,3 +1,6 @@
+// Unified Limiter Detection — Single Source of Truth for Limiting Factors
+export * from "./unifiedLimiterDetection";
+
 // FatMax TFCL™
 export * from "./fatmaxTFCL";
 
