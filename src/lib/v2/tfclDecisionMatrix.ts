@@ -16,9 +16,10 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import { getTargetsForAmbition, type ObjectiveTargets } from "@/lib/physiologicalTargets";
+import { getTargetsForAmbition, normalizeObjective as normalizePhysiologicalObjective, type ObjectiveTargets } from "@/lib/physiologicalTargets";
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 import { METHOD_VERSION_DISPLAY } from "./scientificGovernance";
+import { detectUnifiedLimiter, type UnifiedLimiterResult, LIMITER_INFO } from "./unifiedLimiterDetection";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -232,7 +233,7 @@ const DOMAIN_WEIGHTS: Record<TFCLObjective, Record<LimitingFactorDomain, number>
   },
 };
 
-// Cibles FatMax par objectif (% VO2max)
+// Cibles FatMax par objectif (% VO2max) — UNIFIED avec unifiedLimiterDetection.ts
 const FATMAX_TARGETS: Record<TFCLObjective, { min: number; optimal: number }> = {
   IM: { min: 55, optimal: 65 },
   "703": { min: 50, optimal: 60 },
@@ -245,18 +246,8 @@ const FATMAX_TARGETS: Record<TFCLObjective, { min: number; optimal: number }> = 
   Olympic: { min: 42, optimal: 50 },
 };
 
-// Cibles VO2max par objectif (ml/kg/min) - valeurs de référence
-const VO2MAX_TARGETS: Record<TFCLObjective, { min: number; optimal: number }> = {
-  IM: { min: 55, optimal: 65 },
-  "703": { min: 55, optimal: 65 },
-  Marathon: { min: 55, optimal: 65 },
-  Semi: { min: 52, optimal: 62 },
-  "10km": { min: 55, optimal: 68 },
-  Trail: { min: 55, optimal: 65 },
-  Ultra: { min: 52, optimal: 62 },
-  Sprint: { min: 58, optimal: 70 },
-  Olympic: { min: 58, optimal: 68 },
-};
+// NOTE: VO2max targets removed — now derived from physiologicalTargets.ts via FTP/kg
+// Les cibles FTP/kg sont la source de vérité pour le "moteur aérobie"
 
 // Seuil de fraîcheur critique
 const FRESHNESS_CRITICAL_THRESHOLD = 40;
@@ -320,11 +311,17 @@ function normalizeObjective(obj: string): TFCLObjective {
 function normalizeVO2max(
   value: number | null,
   objective: TFCLObjective,
+  ambition: AmbitionLevel,
   weight: number,
   confidence: number
 ): NormalizedMetric {
-  const targets = VO2MAX_TARGETS[objective];
-  const target = targets.optimal;
+  // VO2max normalization now derived from FTP/kg targets (FTP/kg × ~12-14 ≈ VO2max)
+  // Uses physiologicalTargets as single source of truth
+  const targets = getTargetsForAmbition(objective, ambition);
+  // Approximate VO2max target from FTP/kg (typical ratio for endurance athletes)
+  const vo2maxFromFtp = targets.ftp_kg_min * 13;
+  const target = vo2maxFromFtp;
+  const minTarget = vo2maxFromFtp * 0.85;
   
   if (value === null) {
     return { raw: null, score: 50, gap: 0, weight, weightedImpact: 0, target, status: "acceptable" };
@@ -338,7 +335,7 @@ function normalizeVO2max(
   const gap = value - target;
   const weightedImpact = gap < 0 ? Math.abs(gap) * weight * (confidence / 100) : 0;
   
-  const status = value >= target ? "optimal" : value >= targets.min ? "acceptable" : "limiting";
+  const status = value >= target ? "optimal" : value >= minTarget ? "acceptable" : "limiting";
   
   return { raw: value, score, gap, weight, weightedImpact, target, status };
 }
@@ -677,6 +674,7 @@ export function computeTFCLDecisionMatrix(input: TFCLDecisionInput): TFCLDecisio
   const vo2maxMetric = normalizeVO2max(
     input.vo2max.value, 
     objective, 
+    input.ambition,
     weights.aerobic_engine, 
     confidence
   );
