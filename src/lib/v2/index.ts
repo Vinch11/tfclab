@@ -16,6 +16,9 @@ export * from './raceReadinessV2';
 // Système de symptômes terrain et matrice décisionnelle
 export * from "./tfclSymptoms";
 
+// Lorang Strategy Engine — Leviers opérationnels TFCL
+export * from "./lorangStrategyEngine";
+
 /**
  * TWO FOR COACHING LAB V2 — Index
  * 
