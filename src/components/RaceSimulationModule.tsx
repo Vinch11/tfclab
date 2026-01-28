@@ -1370,18 +1370,19 @@ export function RaceSimulationModule({
         </div>
       </CardHeader>
       <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
-        <ScrollArea className={compact ? "h-[400px]" : "h-auto max-h-[80vh] sm:max-h-none"}>
+        {/* Mobile: no ScrollArea wrapper (native scroll), Desktop: use ScrollArea for compact mode */}
+        <div className={compact ? "hidden" : "block"}>
           {/* Access blocked: show blocked panel */}
           {!simulationAccess.enabled && <AccessBlockedPanel />}
           
           {/* Access granted: show normal UI */}
           {simulationAccess.enabled && (
-            <>
+            <div className="space-y-4">
               <AccessStatusHeader />
               
               {/* Quick config summary when simulation is active */}
               {showSimulation && (
-                <div className="mb-4 p-3 bg-muted/50 rounded-lg">
+                <div className="p-3 bg-muted/50 rounded-lg">
                   <div className="flex flex-wrap items-center gap-2 justify-between">
                     <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
                       <Badge variant="outline" className="font-medium">
@@ -1413,9 +1414,38 @@ export function RaceSimulationModule({
               {!showSimulation && <ConfigPanel />}
               {showSimulation && simulationMode === 'basic' && <BasicResultsPanel />}
               {showSimulation && simulationMode === 'pro' && <ProResultsPanel />}
-            </>
+            </div>
           )}
-        </ScrollArea>
+        </div>
+        
+        {/* Compact mode: use ScrollArea */}
+        {compact && (
+          <ScrollArea className="h-[400px]">
+            {!simulationAccess.enabled && <AccessBlockedPanel />}
+            {simulationAccess.enabled && (
+              <div className="space-y-4">
+                <AccessStatusHeader />
+                {showSimulation && (
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <div className="flex flex-wrap items-center gap-2 justify-between">
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
+                        <Badge variant="outline" className="font-medium">{raceType}</Badge>
+                        <span className="text-muted-foreground">·</span>
+                        <span className="capitalize">{ambition}</span>
+                      </div>
+                      <Button variant="ghost" size="sm" onClick={() => setShowSimulation(false)} className="h-7 px-2 text-xs touch-manipulation">
+                        Modifier
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                {!showSimulation && <ConfigPanel />}
+                {showSimulation && simulationMode === 'basic' && <BasicResultsPanel />}
+                {showSimulation && simulationMode === 'pro' && <ProResultsPanel />}
+              </div>
+            )}
+          </ScrollArea>
+        )}
       </CardContent>
     </Card>
   );
