@@ -1,6 +1,10 @@
 /**
  * Race Simulation Module TFCL™
  * Simulateur de scénarios de course avec modes BASIC et PRO
+ * 
+ * CONNEXION Race Readiness → Simulation:
+ * - Race Readiness a TOUJOURS priorité sur la Simulation
+ * - Accès conditionnel: RED=disabled, ORANGE=limited, GREEN=standard, BLUE=advanced
  */
 
 import React, { useState, useMemo } from 'react';
@@ -36,6 +40,8 @@ import {
   Gauge,
   Sparkles,
   BookOpen,
+  Lock,
+  AlertCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -67,6 +73,15 @@ import {
 import { GlycogenDepletionChart } from '@/components/charts/GlycogenDepletionChart';
 import { FatMaxRaceIntensityChart } from '@/components/charts/FatMaxRaceIntensityChart';
 import { FatMaxTFCLResult } from '@/lib/v2/fatmaxTFCL';
+import {
+  computeSimulationAccess,
+  getSimulationContextMessages,
+  ACCESS_LEVEL_COLORS,
+  ACCESS_STATUS_LABELS,
+  SIMULATION_ACCESS_DEFINITIONS,
+  type SimulationAccessResult,
+} from '@/lib/v2/raceReadinessSimulationConnector';
+import type { RaceReadinessV2Result } from '@/lib/v2/raceReadinessV2';
 
 interface RaceSimulationModuleProps {
   // Profil TFCL (automatique)
@@ -79,6 +94,7 @@ interface RaceSimulationModuleProps {
   disponibiliteScore?: number | null;
   disponibiliteLevel?: string | null;
   raceReadinessScore?: number | null;
+  raceReadinessResult?: RaceReadinessV2Result | null;
   injuryRiskLevel?: string | null;
   ftp?: number | null;
   vma?: number | null;
@@ -109,6 +125,7 @@ export function RaceSimulationModule({
   disponibiliteScore = null,
   disponibiliteLevel = null,
   raceReadinessScore = null,
+  raceReadinessResult = null,
   injuryRiskLevel = null,
   ftp = null,
   vma = null,
@@ -130,6 +147,23 @@ export function RaceSimulationModule({
   const [useNutrition, setUseNutrition] = useState(true);
   const [selectedScenario, setSelectedScenario] = useState<ScenarioType>('optimal');
   const [showSimulation, setShowSimulation] = useState(false);
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RACE READINESS → SIMULATION ACCESS CONTROL
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  const simulationAccess = useMemo(() => 
+    computeSimulationAccess(raceReadinessResult, raceReadinessScore ?? undefined),
+    [raceReadinessResult, raceReadinessScore]
+  );
+  
+  const accessMessages = useMemo(() => 
+    getSimulationContextMessages(simulationAccess, raceReadinessResult),
+    [simulationAccess, raceReadinessResult]
+  );
+  
+  // Filtrer les scénarios autorisés
+  const allowedScenarios = simulationAccess.modifiers.allowedScenarios;
   
   // Pro mode eligibility check
   const proInput: RaceSimulationInput = useMemo(() => ({
@@ -831,6 +865,128 @@ export function RaceSimulationModule({
   };
   
   // ═══════════════════════════════════════════════════════════════════════════
+  // ACCESS BLOCKED PANEL (RED STATUS)
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  const AccessBlockedPanel = () => (
+    <div className="space-y-6">
+      {/* Status badge */}
+      <div className="flex items-center justify-center">
+        <Badge 
+          variant="destructive" 
+          className="gap-2 px-4 py-2 text-base"
+        >
+          <Lock className="w-4 h-4" />
+          Simulation Non Disponible
+        </Badge>
+      </div>
+      
+      {/* Explanation card */}
+      <Card className="border-destructive/30 bg-destructive/5">
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-4">
+            <div className="p-3 rounded-full bg-destructive/10">
+              <AlertCircle className="w-8 h-8 text-destructive" />
+            </div>
+            <div className="flex-1 space-y-2">
+              <h3 className="font-semibold text-destructive">
+                {simulationAccess.message}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {simulationAccess.explanation}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      {/* Context messages */}
+      {accessMessages.map((msg, i) => (
+        <Alert 
+          key={i} 
+          variant={msg.type === 'critical' ? 'destructive' : 'default'}
+        >
+          <span className="mr-2">{msg.icon}</span>
+          <AlertTitle>{msg.title}</AlertTitle>
+          <AlertDescription>{msg.content}</AlertDescription>
+        </Alert>
+      ))}
+      
+      {/* Recommendations */}
+      {simulationAccess.recommendations.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Target className="w-4 h-4" />
+              Recommandations
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {simulationAccess.recommendations.map((rec, i) => (
+                <li key={i} className="flex items-center gap-2 text-sm">
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  {rec}
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+      
+      {/* Principle reminder */}
+      <div className="p-4 bg-muted/30 rounded-lg border text-center space-y-2">
+        <p className="text-sm font-medium">
+          {SIMULATION_ACCESS_DEFINITIONS.title}
+        </p>
+        <p className="text-xs text-muted-foreground italic">
+          {SIMULATION_ACCESS_DEFINITIONS.principle}
+        </p>
+      </div>
+    </div>
+  );
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ACCESS STATUS HEADER
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  const AccessStatusHeader = () => {
+    if (simulationAccess.status === 'RED') return null;
+    
+    const colors = ACCESS_LEVEL_COLORS[simulationAccess.accessLevel];
+    const statusInfo = ACCESS_STATUS_LABELS[simulationAccess.status];
+    
+    return (
+      <div className={cn(
+        "flex items-center gap-2 p-2 rounded-lg border mb-4",
+        colors.bg, colors.border
+      )}>
+        <span className="text-lg">{statusInfo.emoji}</span>
+        <div className="flex-1">
+          <span className={cn("text-sm font-medium", colors.text)}>
+            Mode {statusInfo.label}
+          </span>
+          {simulationAccess.status === 'ORANGE' && (
+            <span className="text-xs text-muted-foreground ml-2">
+              — Paramètres modérés
+            </span>
+          )}
+          {simulationAccess.status === 'BLUE' && (
+            <span className="text-xs text-muted-foreground ml-2">
+              — Stratégies avancées disponibles
+            </span>
+          )}
+        </div>
+        {simulationAccess.warnings.length > 0 && (
+          <Badge variant="outline" className={cn("text-xs", colors.text)}>
+            {simulationAccess.warnings.length} avertissement{simulationAccess.warnings.length > 1 ? 's' : ''}
+          </Badge>
+        )}
+      </div>
+    );
+  };
+  
+  // ═══════════════════════════════════════════════════════════════════════════
   // RENDER
   // ═══════════════════════════════════════════════════════════════════════════
   
@@ -844,33 +1000,52 @@ export function RaceSimulationModule({
               Simulation de Course TFCL™
             </CardTitle>
             <CardDescription>
-              {showSimulation 
-                ? simulationMode === 'basic'
-                  ? `${basicSimulation?.raceLabel} - ${basicSimulation?.ambitionLabel} (BASIC)`
-                  : `${proSimulation?.raceLabel} - ${proSimulation?.ambitionLabel} (PRO)`
-                : "Comparez des scénarios de pacing et nutrition"
+              {!simulationAccess.enabled
+                ? "Simulation désactivée — Race Readiness insuffisant"
+                : showSimulation 
+                  ? simulationMode === 'basic'
+                    ? `${basicSimulation?.raceLabel} - ${basicSimulation?.ambitionLabel} (BASIC)`
+                    : `${proSimulation?.raceLabel} - ${proSimulation?.ambitionLabel} (PRO)`
+                  : "Comparez des scénarios de pacing et nutrition"
               }
             </CardDescription>
           </div>
-          {showSimulation && (
-            <Badge 
-              variant="outline" 
-              className={cn(
-                simulationMode === 'basic' 
-                  ? "border-green-500 text-green-600" 
-                  : "border-blue-500 text-blue-600"
-              )}
-            >
-              {simulationMode === 'basic' ? 'BASIC' : 'PRO'}
-            </Badge>
-          )}
+          {/* Status badge */}
+          <Badge 
+            variant="outline" 
+            className={cn(
+              !simulationAccess.enabled 
+                ? "border-destructive text-destructive"
+                : showSimulation 
+                  ? simulationMode === 'basic' 
+                    ? "border-green-500 text-green-600" 
+                    : "border-blue-500 text-blue-600"
+                  : ACCESS_LEVEL_COLORS[simulationAccess.accessLevel].border + " " + ACCESS_LEVEL_COLORS[simulationAccess.accessLevel].text
+            )}
+          >
+            {!simulationAccess.enabled 
+              ? '🔴 BLOQUÉ'
+              : showSimulation 
+                ? simulationMode === 'basic' ? 'BASIC' : 'PRO'
+                : ACCESS_STATUS_LABELS[simulationAccess.status].emoji + ' ' + ACCESS_STATUS_LABELS[simulationAccess.status].label.toUpperCase()
+            }
+          </Badge>
         </div>
       </CardHeader>
       <CardContent>
         <ScrollArea className={compact ? "h-[400px]" : "h-auto"}>
-          {!showSimulation && <ConfigPanel />}
-          {showSimulation && simulationMode === 'basic' && <BasicResultsPanel />}
-          {showSimulation && simulationMode === 'pro' && <ProResultsPanel />}
+          {/* Access blocked: show blocked panel */}
+          {!simulationAccess.enabled && <AccessBlockedPanel />}
+          
+          {/* Access granted: show normal UI */}
+          {simulationAccess.enabled && (
+            <>
+              <AccessStatusHeader />
+              {!showSimulation && <ConfigPanel />}
+              {showSimulation && simulationMode === 'basic' && <BasicResultsPanel />}
+              {showSimulation && simulationMode === 'pro' && <ProResultsPanel />}
+            </>
+          )}
         </ScrollArea>
       </CardContent>
     </Card>
