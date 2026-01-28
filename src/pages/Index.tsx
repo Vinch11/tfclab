@@ -75,6 +75,10 @@ import { TFCLDecisionMatrixCard } from "@/components/TFCLDecisionMatrixCard";
 import { TFCLDecisionMatrixTable } from "@/components/TFCLDecisionMatrixTable";
 import { type TFCLDecisionInput, type TFCLObjective } from "@/lib/v2/tfclDecisionMatrix";
 
+// ✅ Lorang Strategy Engine — Leviers opérationnels TFCL
+import { LorangStrategyCard } from "@/components/LorangStrategyCard";
+import { type LorangStrategyInput } from "@/lib/v2/lorangStrategyEngine";
+
 // ✅ FIX 11 - Effective Refs (source unique de vérité)
 import { getEffectiveRefs, computeFtpKg, getMissingFields } from "@/lib/effectiveRefs";
 
@@ -1419,6 +1423,96 @@ const Index = () => {
                     fatmaxTarget,
                     freshness: freshnessScore,
                   }}
+                />
+              );
+            },
+          },
+          {
+            id: "lorang-strategy",
+            render: () => {
+              if (!currentAthlete) return null;
+              
+              // Cibles pour la stratégie
+              const vlamaxTarget = currentAmbition === "elite" ? 0.35 : currentAmbition === "competitor" ? 0.45 : 0.55;
+              const vo2maxTarget = currentAmbition === "elite" ? 70 : currentAmbition === "competitor" ? 62 : 55;
+              const tteTarget = currentAmbition === "elite" ? 50 : currentAmbition === "competitor" ? 40 : 35;
+              const fatmaxTarget = currentAmbition === "elite" ? 60 : currentAmbition === "competitor" ? 55 : 50;
+              
+              // Score de disponibilité depuis le dernier checkin
+              const athleteCheckins = (checkins || []).filter(c => c.athlete_id === currentAthlete.id);
+              const sortedCheckins = [...athleteCheckins].sort((a, b) => 
+                new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime()
+              );
+              const checkin = sortedCheckins[0] || null;
+              
+              let availabilityScore = 50;
+              let availabilityLevel: 'high' | 'moderate' | 'low' | 'critical' = 'moderate';
+              let hasAlerts = false;
+              let hrvOutOfRange2Days = false;
+              
+              if (checkin) {
+                const dispResult = computeDisponibiliteTFCL({
+                  sleep: checkin.sleep,
+                  fatigue: checkin.fatigue,
+                  soreness: checkin.soreness,
+                  stress: checkin.stress,
+                  motivation: checkin.motivation,
+                  objective: { tss7d: effectiveCloudSnapshot?.tss_7d ?? null },
+                });
+                availabilityScore = dispResult.score;
+                availabilityLevel = dispResult.level;
+                hasAlerts = dispResult.hasAlerts;
+              }
+              
+              // Mapper discipline
+              const disciplineMap: Record<string, 'IM' | '703' | 'marathon' | 'semi' | '10k' | 'cycling' | 'trail'> = {
+                'IM': 'IM',
+                '703': '703',
+                'Marathon': 'marathon',
+                'Semi': 'semi',
+              };
+              const discipline = disciplineMap[currentAthlete.goal || '703'] || '703';
+              
+              const lorangInput: LorangStrategyInput = {
+                physiology: {
+                  vo2max: effectiveCloudSnapshot?.vo2max ?? null,
+                  vo2maxTarget,
+                  vlamax: vlamaxEffectif.value,
+                  vlamaxTarget,
+                  tte: tteEffectif.tte_min,
+                  tteTarget,
+                  fatmax: null,
+                  fatmaxTarget,
+                  economy: effectiveCloudSnapshot?.run_economy_score ?? null,
+                },
+                athlete: {
+                  age: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
+                  discipline,
+                  ambition: currentAmbition,
+                  hasGIIssues: (effectiveCloudSnapshot as any)?.gi_issues_flag ?? false,
+                },
+                availability: {
+                  score: availabilityScore,
+                  level: availabilityLevel,
+                  hasAlerts,
+                  hrvOutOfRange2Days,
+                },
+                context: {
+                  daysToRace: null,
+                  isRaceWeek: false,
+                  currentPhase: 'build',
+                },
+                load: {
+                  tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
+                  tss28d: null,
+                },
+              };
+              
+              return (
+                <LorangStrategyCard
+                  input={lorangInput}
+                  showStaffLevers={staffMode}
+                  compact={!staffMode}
                 />
               );
             },

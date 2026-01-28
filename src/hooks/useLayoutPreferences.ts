@@ -64,6 +64,7 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   // 🧠 MATRICE DÉCISIONNELLE TFCL — Cœur du système
   { id: "tfcl-decision-matrix", label: "Décision Coach TFCL™", icon: "Brain", category: "analyse", defaultVisible: true },
   { id: "tfcl-symptom-matrix", label: "Matrice Symptômes TFCL™", icon: "Stethoscope", category: "analyse", defaultVisible: true },
+  { id: "lorang-strategy", label: "Lorang Strategy Engine™", icon: "Target", category: "analyse", defaultVisible: true },
   
   // ⚡ Métriques VLamax/TTE
   { id: "compass", label: "Metabolic Compass", icon: "Compass", category: "metriques", defaultVisible: true },
