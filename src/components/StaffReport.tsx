@@ -31,6 +31,9 @@ import {
   Calculator,
   Shield,
   Lightbulb,
+  Brain,
+  Ban,
+  ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StaffReport as StaffReportType, generateStaffReport, GenerateStaffReportParams } from "@/lib/staffReport";
@@ -47,6 +50,7 @@ import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 import { computePillarCalculations } from "@/components/ReadinessPillarDetail";
 import { computeFullDRE, DecisionReliabilityResult, Scenario } from "@/lib/v2/decisionReliabilityEngine";
 import { DecisionReliabilityBadge, DecisionReliabilityProgress } from "@/components/DecisionReliabilityBadge";
+import { computeLorangStrategy, type LorangStrategyInput, type LorangStrategyResult, LIMITER_DEFINITIONS, LEVER_DEFINITIONS } from "@/lib/v2/lorangStrategyEngine";
 import type { DbSnapshot } from "@/hooks/useCloudData";
 
 interface StaffReportProps {
@@ -67,6 +71,7 @@ interface StaffReportProps {
   ambition?: AmbitionLevel;
   snapshot?: DbSnapshot | null;
   vo2max?: number | null;
+  lorangInput?: LorangStrategyInput | null;
   onExportPDF?: () => void;
 }
 
@@ -88,6 +93,7 @@ export function StaffReport({
   ambition,
   snapshot,
   vo2max,
+  lorangInput,
   onExportPDF,
 }: StaffReportProps) {
   // Générer le rapport avec tous les paramètres pour calculs unifiés
@@ -372,6 +378,9 @@ export function StaffReport({
         </div>
 
         <Separator />
+
+        {/* 2.6️⃣ LORANG STRATEGY ENGINE — LIMITER → LEVIER → DÉCISION */}
+        {lorangInput && <LorangStrategySection input={lorangInput} />}
 
         {/* 3️⃣ RISQUE BLESSURE CAP */}
         <div>
@@ -1269,5 +1278,161 @@ function ScenarioCardCompact({ scenario }: ScenarioCardCompactProps) {
         </span>
       </div>
     </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// LORANG STRATEGY SECTION — Pour le rapport PDF
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function LorangStrategySection({ input }: { input: LorangStrategyInput }) {
+  const result = computeLorangStrategy(input);
+  
+  // Config des couleurs pour les limiteurs
+  const limiterColors: Record<string, { bg: string; border: string; text: string }> = {
+    motor: { bg: "bg-blue-500/10", border: "border-blue-500/30", text: "text-blue-700 dark:text-blue-400" },
+    glycolytic: { bg: "bg-destructive/10", border: "border-destructive/30", text: "text-destructive" },
+    metabolic: { bg: "bg-amber-500/10", border: "border-amber-500/30", text: "text-amber-700 dark:text-amber-400" },
+    neuromuscular: { bg: "bg-orange-500/10", border: "border-orange-500/30", text: "text-orange-700 dark:text-orange-400" },
+    availability: { bg: "bg-slate-500/10", border: "border-slate-500/30", text: "text-slate-700 dark:text-slate-400" },
+  };
+  
+  const limiterStyle = limiterColors[result.primaryLimiter] || limiterColors.motor;
+  
+  return (
+    <>
+      <Separator />
+      
+      <div className="print:break-inside-avoid">
+        <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+          <Brain className="h-4 w-4" />
+          LORANG STRATEGY ENGINE — LIMITER → LEVIER → DÉCISION
+          <Badge variant="outline" className="text-[10px]">TFCL Method™</Badge>
+        </h3>
+        
+        {/* Flow Chart Compact */}
+        <div className="flex flex-col md:flex-row items-stretch gap-2 mb-4">
+          {/* Block 1: Limiter */}
+          <div className={cn(
+            "flex-1 p-3 rounded-lg border",
+            limiterStyle.bg,
+            limiterStyle.border
+          )}>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xl">{result.limiterIcon}</span>
+              <div>
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Limiteur</p>
+                <p className={cn("text-sm font-bold", limiterStyle.text)}>
+                  {result.limiterLabel}
+                </p>
+              </div>
+            </div>
+            <p className="text-[10px] text-muted-foreground">{result.limiterExplanation}</p>
+          </div>
+          
+          {/* Arrow */}
+          <div className="hidden md:flex items-center justify-center px-2">
+            <ArrowRight className="h-4 w-4 text-primary" />
+          </div>
+          
+          {/* Block 2: Levers */}
+          <div className="flex-1 p-3 rounded-lg border border-primary/30 bg-primary/5">
+            <div className="flex items-center gap-2 mb-2">
+              <Zap className="h-4 w-4 text-primary" />
+              <div>
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Leviers</p>
+                <p className="text-sm font-bold text-primary">
+                  {result.activatedLevers.length} levier{result.activatedLevers.length > 1 ? 's' : ''} actif{result.activatedLevers.length > 1 ? 's' : ''}
+                </p>
+              </div>
+            </div>
+            <div className="space-y-1">
+              {result.activatedLevers.slice(0, 2).map((lever) => (
+                <div key={lever.lever} className="flex items-center gap-1 text-xs">
+                  <span>{lever.icon}</span>
+                  <span className="font-medium">{lever.label}</span>
+                  <Badge variant="outline" className="text-[8px] h-3 px-1">P{lever.priority}</Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Arrow */}
+          <div className="hidden md:flex items-center justify-center px-2">
+            <ArrowRight className="h-4 w-4 text-primary" />
+          </div>
+          
+          {/* Block 3: Decision */}
+          <div className="flex-1 p-3 rounded-lg border border-green-500/30 bg-green-500/5">
+            <div className="flex items-center gap-2 mb-2">
+              <Calendar className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <div>
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Décision</p>
+                <p className="text-sm font-bold text-green-700 dark:text-green-400">
+                  {result.templateSuggestion.weekLabel}
+                </p>
+              </div>
+            </div>
+            <p className="text-[10px] text-muted-foreground">{result.templateSuggestion.reasoning}</p>
+          </div>
+        </div>
+        
+        {/* Sprint Ban Warning */}
+        {result.hasSprintBan && (
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-destructive/10 border border-destructive/30 mb-3">
+            <Ban className="h-4 w-4 text-destructive" />
+            <span className="text-xs font-medium text-destructive">Sprint Ban Mode ON — Sprints et micro-intervalles explosifs interdits</span>
+          </div>
+        )}
+        
+        {/* Summary */}
+        <div className="grid md:grid-cols-2 gap-3 mb-3">
+          <div className="p-3 rounded-lg bg-green-500/5 border border-green-500/20">
+            <p className="text-xs font-medium text-green-700 dark:text-green-400 mb-1 flex items-center gap-1">
+              <CheckCircle className="h-3 w-3" /> Action principale
+            </p>
+            <p className="text-xs">{result.summary.mainAction}</p>
+            <p className="text-[10px] text-muted-foreground mt-1">{result.summary.whyThis}</p>
+          </div>
+          <div className="p-3 rounded-lg bg-destructive/5 border border-destructive/20">
+            <p className="text-xs font-medium text-destructive mb-1 flex items-center gap-1">
+              <XCircle className="h-3 w-3" /> À éviter
+            </p>
+            <p className="text-xs">{result.summary.whyNotOthers}</p>
+          </div>
+        </div>
+        
+        {/* Prohibitions */}
+        {result.prohibitions.length > 0 && (
+          <div className="mb-3">
+            <p className="text-xs font-medium text-destructive mb-2">Interdictions actives :</p>
+            <div className="flex flex-wrap gap-2">
+              {result.prohibitions.map((p) => (
+                <Badge key={p.prohibition} variant="outline" className="text-[10px] border-destructive/50 text-destructive">
+                  ❌ {p.label}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Confidence */}
+        <div className="flex items-center justify-between text-[10px]">
+          <Badge 
+            variant="outline" 
+            className={cn(
+              result.confidence === 'high' 
+                ? "border-green-500/50 text-green-600"
+                : result.confidence === 'moderate'
+                ? "border-amber-500/50 text-amber-600"
+                : "border-destructive/50 text-destructive"
+            )}
+          >
+            Confiance : {result.confidenceLabel}
+          </Badge>
+          <span className="text-muted-foreground italic">{result.disclaimer}</span>
+        </div>
+      </div>
+    </>
   );
 }
