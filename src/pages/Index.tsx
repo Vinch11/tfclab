@@ -70,6 +70,10 @@ import { FatMaxRaceIntensityChart } from "@/components/charts/FatMaxRaceIntensit
 import { computeFatMaxTFCL, FatMaxObjectif } from "@/lib/v2/fatmaxTFCL";
 import { ObjectifPrincipal } from "@/lib/reference";
 
+// ✅ TFCL Decision Matrix — Cœur décisionnel coach-grade
+import { TFCLDecisionMatrixCard } from "@/components/TFCLDecisionMatrixCard";
+import { type TFCLDecisionInput, type TFCLObjective } from "@/lib/v2/tfclDecisionMatrix";
+
 // ✅ FIX 11 - Effective Refs (source unique de vérité)
 import { getEffectiveRefs, computeFtpKg, getMissingFields } from "@/lib/effectiveRefs";
 
@@ -1277,6 +1281,70 @@ const Index = () => {
                 objectif={currentAthlete.goal === "IM" ? "Ironman Kona" : currentAthlete.goal === "703" ? "Ironman 70.3" : currentAthlete.goal || "Marathon"}
               />
             ),
+          },
+          {
+            id: "tfcl-decision-matrix",
+            render: () => {
+              if (!currentAthlete) return null;
+              
+              // Calculer FatMax pour l'input
+              const normalizedObjectif = ((currentAthlete.goal === "IM" ? "Ironman" : currentAthlete.goal) || "Ironman") as FatMaxObjectif;
+              const fatmaxResult = computeFatMaxTFCL({
+                vlamaxEffectif: vlamaxEffectif.value,
+                vlamaxConfidence: vlamaxEffectif.confidence,
+                vo2maxEffectif: effectiveCloudSnapshot?.vo2max ?? null,
+                tteEffectif: tteEffectif.tte_min,
+                tteConfidence: tteEffectif.confidence,
+                fatigueIndex: null,
+                objectif: normalizedObjectif,
+                ftp: effectiveRefs.ftp,
+              });
+              
+              // Obtenir le dernier checkin pour la disponibilité
+              const athleteCheckins = (checkins || []).filter(c => c.athlete_id === currentAthlete.id);
+              const sortedCheckins = [...athleteCheckins].sort((a, b) => 
+                new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime()
+              );
+              const checkin = sortedCheckins[0] || null;
+              
+              // Calculer disponibilité si on a un checkin
+              let disponibiliteScore: number | null = null;
+              if (checkin) {
+                const dispResult = computeDisponibiliteTFCL({
+                  sleep: checkin.sleep,
+                  fatigue: checkin.fatigue,
+                  soreness: checkin.soreness,
+                  stress: checkin.stress,
+                  motivation: checkin.motivation,
+                  objective: {
+                    tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
+                  },
+                });
+                disponibiliteScore = dispResult.score;
+              }
+              
+              return (
+                <TFCLDecisionMatrixCard
+                  input={{
+                    vo2max: effectiveCloudSnapshot?.vo2max ?? null,
+                    vlamax: vlamaxEffectif.value,
+                    tte: tteEffectif.tte_min,
+                    fatMaxPctVO2: fatmaxResult?.centerPctFTP ?? null,
+                    fatOxidationMax: null,
+                    crossoverPctVO2: null,
+                    freshnessScore: disponibiliteScore,
+                    tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
+                    tss28d: null,
+                    subjectiveFatigue: checkin?.fatigue ?? null,
+                    confidenceScore: Math.round((vlamaxEffectif.confidence + tteEffectif.confidence) / 2 * 100),
+                    discipline: currentAthlete.goal === "Marathon" || currentAthlete.goal === "Semi" ? "cap" : "tri",
+                    objective: (currentAthlete.goal || "703") as TFCLObjective,
+                    ambition: currentAmbition,
+                  }}
+                  compact={!staffMode}
+                />
+              );
+            },
           },
           {
             id: "compass",

@@ -1,6 +1,9 @@
 // FatMax TFCL™
 export * from "./fatmaxTFCL";
 
+// TFCL Decision Matrix™ — Matrice Décisionnelle Officielle
+export * from "./tfclDecisionMatrix";
+
 // VLamax Bike V2 Enhanced (new formula with power indices)
 export * from './vlamaxBikeV2Enhanced';
 
