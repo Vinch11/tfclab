@@ -190,10 +190,13 @@ export function RaceSimulationModule({
     vma,
     paceThreshold,
     weight,
+    // ✅ Passer les modificateurs Race Readiness au moteur de simulation
+    readinessModifiers: simulationAccess.enabled ? simulationAccess.modifiers : null,
   }), [
     raceType, ambition, heat, terrain, plannedCarbsGH, useNutrition,
     vlamaxEffectif, vlamaxConfidence, vlamaxDiscipline, tteMin, tteConfidence,
-    fatmax, disponibiliteScore, disponibiliteLevel, injuryRiskLevel, ftp, vma, paceThreshold, weight
+    fatmax, disponibiliteScore, disponibiliteLevel, injuryRiskLevel, ftp, vma, paceThreshold, weight,
+    simulationAccess // Ajout de la dépendance
   ]);
   
   const proEligibility = useMemo(() => checkProModeEligibility(proInput), [proInput]);

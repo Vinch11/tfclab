@@ -12,8 +12,16 @@
  * - VLamax élevée → crossover plus bas, déplétion plus rapide
  * - TTE faible → dérive et rupture plus tôt
  * - Nutrition planifiée → réduit le risque mais ne l'annule pas
+ * 
+ * INTÉGRATION RACE READINESS:
+ * - Les modificateurs du connecteur Race Readiness → Simulation sont appliqués
+ * - FTP/VMA effectifs ajustés selon la disponibilité
+ * - FatMax décalé si disponibilité réduite
+ * - Taux de déplétion glycogène modifié
  * ═══════════════════════════════════════════════════════════════════════════════
  */
+
+import type { SimulationModifiers } from './raceReadinessSimulationConnector';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -60,6 +68,9 @@ export interface RaceSimulationInput {
   vma?: number | null;           // km/h
   paceThreshold?: number | null; // sec/km
   weight?: number | null;        // kg
+  
+  // Modificateurs Race Readiness (optionnel)
+  readinessModifiers?: SimulationModifiers | null;
 }
 
 export interface SegmentResult {
@@ -420,12 +431,14 @@ function computeSegmentFuelRisk(
   segmentIndex: number,
   totalSegments: number,
   plannedCarbsGH: number | null,
-  scenarioType?: ScenarioType
+  scenarioType?: ScenarioType,
+  readinessModifiers?: SimulationModifiers | null
 ): number {
   let risk = 0;
   
-  // Base: intensité vs FatMax - impact différencié par scénario
-  const fatmax = fatmaxMax ?? fatmaxCenter ?? 70;
+  // Appliquer le décalage FatMax si modificateurs présents
+  const fatmaxShift = readinessModifiers?.fatmaxShiftPct ?? 0;
+  const fatmax = (fatmaxMax ?? fatmaxCenter ?? 70) + fatmaxShift;
   const intensityDelta = intensityPct - fatmax;
   
   // Facteur scénario pour le risque
@@ -449,17 +462,21 @@ function computeSegmentFuelRisk(
     risk -= 15; // Bonus métabolisme aérobie plus fort
   }
   
-  // TTE adjustment
-  const tte = tteMin ?? 45;
+  // TTE adjustment - appliquer multiplicateur si présent
+  const tteUsableMultiplier = readinessModifiers?.tteUsableMultiplier ?? 1.0;
+  const tte = (tteMin ?? 45) * tteUsableMultiplier;
   if (tte < 40) {
     risk += (12 + (40 - tte) * 1.5) * scenarioRiskFactor;
   } else if (tte > 60) {
     risk -= 8; // Bonus durabilité plus fort
   }
   
+  // Appliquer élargissement des zones de risque si présent
+  const riskZoneWidening = readinessModifiers?.riskZoneWidening ?? 1.0;
+  
   // Progression fatigue (segments tardifs = plus risqués) - progression non-linéaire
   const progressionFactor = Math.pow(segmentIndex / totalSegments, 1.5);
-  risk += progressionFactor * 25 * scenarioRiskFactor;
+  risk += progressionFactor * 25 * scenarioRiskFactor * riskZoneWidening;
   
   // Mitigation nutrition - effet augmenté
   if (plannedCarbsGH && plannedCarbsGH > 0) {
@@ -480,13 +497,15 @@ function computeGlycogenRemaining(
   fatmaxCenter: number | null,
   vlamaxEffectif: number | null,
   plannedCarbsGH: number | null,
-  scenarioType?: ScenarioType
+  scenarioType?: ScenarioType,
+  readinessModifiers?: SimulationModifiers | null
 ): number {
   // Modèle amélioré: variation significative selon le scénario
   const baseDepletion = 100 / totalSegments;
   
-  // Facteur d'intensité - impact beaucoup plus fort au-dessus de FatMax
-  const fatmax = fatmaxCenter ?? 70;
+  // Appliquer le décalage FatMax si modificateurs présents
+  const fatmaxShift = readinessModifiers?.fatmaxShiftPct ?? 0;
+  const fatmax = (fatmaxCenter ?? 70) + fatmaxShift;
   const intensityDelta = intensityPct - fatmax;
   let intensityFactor: number;
   
@@ -513,13 +532,16 @@ function computeGlycogenRemaining(
     scenarioFactor = 1.4; // Déplétion beaucoup plus rapide
   }
   
+  // Appliquer multiplicateur de déplétion glycogène du connecteur
+  const glycogenDepletionMultiplier = readinessModifiers?.glycogenDepletionRateMultiplier ?? 1.0;
+  
   // Réapprovisionnement nutrition - effet plus réaliste
   const carbsRefuel = plannedCarbsGH ? Math.min(0.4, plannedCarbsGH / 250) : 0;
   
   // Progression non-linéaire (fatigue qui s'accumule)
   const progressionMultiplier = 1 + (segmentIndex / totalSegments) * 0.3;
   
-  const depletionPerSegment = (baseDepletion * intensityFactor * vlamaxFactor * scenarioFactor * progressionMultiplier) - (carbsRefuel * baseDepletion);
+  const depletionPerSegment = (baseDepletion * intensityFactor * vlamaxFactor * scenarioFactor * progressionMultiplier * glycogenDepletionMultiplier) - (carbsRefuel * baseDepletion);
   const totalDepletion = depletionPerSegment * (segmentIndex + 1);
   
   return clamp(100 - totalDepletion, 0, 100);
@@ -533,8 +555,13 @@ function generateScenario(
   type: ScenarioType,
   input: RaceSimulationInput,
   baseIntensity: number,
-  baseDuration: number
+  baseDuration: number,
+  readinessModifiers?: SimulationModifiers | null
 ): PacingScenario {
+  // Vérifier si ce scénario est autorisé par les modificateurs
+  const allowedScenarios = readinessModifiers?.allowedScenarios ?? ['conservative', 'optimal', 'aggressive'];
+  const isScenarioAllowed = allowedScenarios.includes(type);
+  
   // Ajustements par type de scénario - intensité plus différenciée
   const intensityOffset: Record<ScenarioType, number> = {
     conservative: -7,
@@ -559,12 +586,24 @@ function generateScenario(
       description: "Équilibre risque/performance. Recommandé pour la plupart des situations.",
     },
     aggressive: {
-      label: "Agressif",
-      description: "Performance maximale mais risque élevé de défaillance. Réservé aux conditions idéales.",
+      label: isScenarioAllowed 
+        ? "Agressif" 
+        : "Agressif (non disponible)",
+      description: isScenarioAllowed
+        ? "Performance maximale mais risque élevé de défaillance. Réservé aux conditions idéales."
+        : "Ce scénario est désactivé en raison de la disponibilité physiologique actuelle.",
     },
   };
   
-  const targetIntensity = clamp(baseIntensity + intensityOffset[type], 50, 98);
+  // Appliquer les multiplicateurs FTP/seuil effectifs
+  const ftpMultiplier = readinessModifiers 
+    ? (readinessModifiers.effectiveFtpMultiplier[0] + readinessModifiers.effectiveFtpMultiplier[1]) / 2
+    : 1.0;
+  
+  // Ajuster l'intensité de base selon les modificateurs
+  const adjustedBaseIntensity = baseIntensity * ftpMultiplier;
+  
+  const targetIntensity = clamp(adjustedBaseIntensity + intensityOffset[type], 50, 98);
   const estimatedDuration = baseDuration * durationMultiplier[type];
   
   // Ajustements conditions
@@ -587,7 +626,21 @@ function generateScenario(
   
   for (let i = 0; i < numSegments; i++) {
     // Intensité légèrement variable (fatigue progression)
-    const segmentIntensity = targetIntensity - (i * 0.5); // Léger negative split naturel
+    // Appliquer les options de pacing selon les modificateurs
+    const negativeSplitAllowed = readinessModifiers?.negativeSplitAllowed ?? false;
+    const lateBoostAllowed = readinessModifiers?.lateRaceIntensityBoostAllowed ?? false;
+    
+    let segmentIntensity: number;
+    if (negativeSplitAllowed && type === 'aggressive' && i >= numSegments - 3) {
+      // Negative split : intensité croissante en fin de course (mode BLUE uniquement)
+      segmentIntensity = targetIntensity + ((i - (numSegments - 3)) * 1.5);
+    } else if (lateBoostAllowed && type === 'aggressive' && i === numSegments - 1) {
+      // Boost final autorisé
+      segmentIntensity = targetIntensity + 3;
+    } else {
+      // Légère dérive naturelle
+      segmentIntensity = targetIntensity - (i * 0.5);
+    }
     
     const fuelRisk = computeSegmentFuelRisk(
       targetIntensity,
@@ -598,7 +651,8 @@ function generateScenario(
       i,
       numSegments,
       input.plannedCarbsGH,
-      type
+      type,
+      readinessModifiers
     );
     
     const glycogenRemaining = computeGlycogenRemaining(
@@ -608,7 +662,8 @@ function generateScenario(
       input.fatmaxCenterPct,
       input.vlamaxEffectif,
       input.plannedCarbsGH,
-      type
+      type,
+      readinessModifiers
     );
     
     // Détecter point de bascule
@@ -708,6 +763,9 @@ export function computeRaceSimulation(input: RaceSimulationInput): RaceSimulatio
   const baseIntensity = AMBITION_INTENSITY[input.raceType][input.ambition];
   const baseDuration = input.targetDurationMin ?? REFERENCE_DURATIONS[input.raceType][input.ambition];
   
+  // Récupérer les modificateurs Race Readiness
+  const readinessModifiers = input.readinessModifiers;
+  
   // Sources utilisées
   const sourcesUsed: string[] = [];
   const missingData: string[] = [];
@@ -726,15 +784,26 @@ export function computeRaceSimulation(input: RaceSimulationInput): RaceSimulatio
   if (input.ftp != null) sourcesUsed.push("FTP");
   if (input.vma != null) sourcesUsed.push("VMA");
   
-  // Générer les 3 scénarios
+  // Ajouter source si modificateurs appliqués
+  if (readinessModifiers) {
+    sourcesUsed.push("Race Readiness Modifiers");
+  }
+  
+  // Déterminer les scénarios autorisés
+  const allowedScenarios = readinessModifiers?.allowedScenarios ?? ['conservative', 'optimal', 'aggressive'];
+  
+  // Générer les 3 scénarios avec modificateurs
   const scenarios: PacingScenario[] = [
-    generateScenario('conservative', input, baseIntensity, baseDuration),
-    generateScenario('optimal', input, baseIntensity, baseDuration),
-    generateScenario('aggressive', input, baseIntensity, baseDuration),
+    generateScenario('conservative', input, baseIntensity, baseDuration, readinessModifiers),
+    generateScenario('optimal', input, baseIntensity, baseDuration, readinessModifiers),
+    generateScenario('aggressive', input, baseIntensity, baseDuration, readinessModifiers),
   ];
   
-  // Recommandation
+  // Recommandation — prendre en compte les scénarios autorisés par Race Readiness
   let recommendedScenario: ScenarioType = 'optimal';
+  
+  // Si scénario agressif non autorisé par les modificateurs, ne jamais le recommander
+  const canRecommendAggressive = allowedScenarios.includes('aggressive');
   
   if (input.disponibiliteScore && input.disponibiliteScore < 50) {
     recommendedScenario = 'conservative';
@@ -742,8 +811,13 @@ export function computeRaceSimulation(input: RaceSimulationInput): RaceSimulatio
   if (input.injuryRiskLevel === 'high' || input.injuryRiskLevel === 'critical') {
     recommendedScenario = 'conservative';
   }
-  if (input.ambition === 'elite' && input.disponibiliteScore && input.disponibiliteScore > 70) {
+  if (canRecommendAggressive && input.ambition === 'elite' && input.disponibiliteScore && input.disponibiliteScore > 70) {
     recommendedScenario = 'aggressive';
+  }
+  
+  // Si le scénario optimal n'est pas autorisé, forcer conservateur
+  if (!allowedScenarios.includes('optimal') && recommendedScenario === 'optimal') {
+    recommendedScenario = 'conservative';
   }
   
   // Temps global
@@ -813,6 +887,30 @@ export function computeRaceSimulation(input: RaceSimulationInput): RaceSimulatio
       title: "Données incomplètes",
       message: `Données manquantes : ${missingData.join(', ')}. Confiance réduite.`,
     });
+  }
+  
+  // Garde-fou pour les modificateurs Race Readiness
+  if (readinessModifiers) {
+    // Ajouter un avertissement si FTP/seuil effectif est réduit
+    const ftpMultiplier = (readinessModifiers.effectiveFtpMultiplier[0] + readinessModifiers.effectiveFtpMultiplier[1]) / 2;
+    if (ftpMultiplier < 0.97) {
+      guardrails.push({
+        type: 'warning',
+        icon: '⚡',
+        title: "Paramètres ajustés",
+        message: `FTP effectif réduit à ${Math.round(ftpMultiplier * 100)}% • FatMax décalé de ${readinessModifiers.fatmaxShiftPct}% en raison de la disponibilité.`,
+      });
+    }
+    
+    // Avertir si scénario agressif désactivé
+    if (!readinessModifiers.allowedScenarios.includes('aggressive')) {
+      guardrails.push({
+        type: 'warning',
+        icon: '🚫',
+        title: "Scénario agressif non disponible",
+        message: "La disponibilité physiologique actuelle ne permet pas un scénario agressif.",
+      });
+    }
   }
   
   // Risques d'échec
