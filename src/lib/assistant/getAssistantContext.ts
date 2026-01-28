@@ -3,7 +3,7 @@
 // Source of truth pour le contexte runtime
 // =============================================
 
-import { DbAthlete, DbSnapshot, DbTest } from "@/hooks/useCloudData";
+import { DbAthlete, DbSnapshot, DbTest, DbCheckin } from "@/hooks/useCloudData";
 import { computeVLamaxEffectif, VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { computeTTEEffectif, TTEEffectif } from "@/lib/tteEffectif";
 import { computeRaceReadinessEffectif, RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
@@ -22,6 +22,14 @@ import {
   matchWahooSession,
   type WahooWorkoutMapping 
 } from "@/data/wahooMapping";
+import {
+  computeRaceReadinessSignature,
+  type RaceReadinessInput,
+  type RaceReadinessResult,
+} from "@/components/RaceReadinessSignatureChart";
+
+// Re-export types for external use
+export type { RaceReadinessResult as RaceReadinessSignatureResult };
 
 // =============================================
 // TYPES
@@ -57,6 +65,9 @@ export interface AssistantContextPacket {
   vlamaxEffectif: VLamaxEffectif | null;
   tteEffectif: TTEEffectif | null;
   raceReadiness: RaceReadinessEffectif | null;
+  
+  // Race Readiness Signature (nouveau système Potentiel × Disponibilité)
+  raceReadinessSignature: RaceReadinessResult | null;
   
   // Charge récente
   chargeRecente: {
@@ -379,6 +390,39 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
     tteTarget: tteEffectif?.target ?? null,
   }) : null;
   
+  // Race Readiness Signature (nouveau système Potentiel × Disponibilité)
+  let raceReadinessSignature: RaceReadinessResult | null = null;
+  if (athlete?.goal) {
+    // Construire l'input pour le calcul
+    const signatureInput: RaceReadinessInput = {
+      physiology: {
+        vo2max: effectiveSnapshot?.vo2max ?? null,
+        vo2maxTarget: athlete.goal === "IM" ? 55 : athlete.goal === "703" ? 52 : 48,
+        vlamax: vlamaxEffectif?.value ?? null,
+        vlamaxTarget: athlete.goal === "IM" ? 0.35 : athlete.goal === "703" ? 0.40 : 0.45,
+        tte: tteEffectif?.tte_min ?? null,
+        tteTarget: athlete.goal === "IM" ? 55 : athlete.goal === "703" ? 45 : 35,
+        economy: null, // TODO: ajouter si disponible
+        trend: undefined,
+      },
+      availability: {
+        hrvStatus: undefined,
+        tss7d,
+        tss28d: null, // TODO: ajouter si disponible
+        subjectiveFatigue: null,
+        sleepQuality: null,
+        motivation: null,
+        soreness: null,
+        stress: null,
+        hasRedFlags: false,
+      },
+      discipline: athlete.goal as 'IM' | '703' | 'marathon' | 'semi' | '10k' | 'cycling' | 'trail',
+      ambition: 'competitor',
+      daysToRace: null,
+    };
+    
+    raceReadinessSignature = computeRaceReadinessSignature(signatureInput);
+  }
   // Champs manquants
   const missingFields = identifyMissingFields(athlete, effectiveSnapshot);
   
@@ -457,6 +501,7 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
     vlamaxEffectif,
     tteEffectif,
     raceReadiness,
+    raceReadinessSignature,
     chargeRecente: {
       tss7d,
       status: chargeStatus,
@@ -537,11 +582,38 @@ export function formatContextForPrompt(context: AssistantContextPacket): string 
     parts.push(`- Statut: ${t.status}`);
   }
   
-  // Race Readiness
+  // Race Readiness (ancien système)
   if (context.raceReadiness) {
     const r = context.raceReadiness;
-    parts.push(`## Race Readiness: ${r.score}/100 (${r.label})`);
+    parts.push(`## Race Readiness Legacy: ${r.score}/100 (${r.label})`);
     parts.push(`- Confiance: ${(r.confidence * 100).toFixed(0)}%`);
+  }
+  
+  // Race Readiness Signature (nouveau système Potentiel × Disponibilité)
+  if (context.raceReadinessSignature) {
+    const rr = context.raceReadinessSignature;
+    parts.push(`\n## RACE READINESS SIGNATURE (Potentiel × Disponibilité → Décision)`);
+    parts.push(`### Potentiel Physiologique: ${rr.potentialLabel} (score: ${rr.potentialScore}/100)`);
+    if (rr.potentialReasons.length > 0) {
+      parts.push(`Raisons: ${rr.potentialReasons.join(", ")}`);
+    }
+    parts.push(`### Disponibilité/Fraîcheur: ${rr.availabilityLabel} (score: ${rr.availabilityScore}/100)`);
+    if (rr.availabilityReasons.length > 0) {
+      parts.push(`Raisons: ${rr.availabilityReasons.join(", ")}`);
+    }
+    parts.push(`### DÉCISION: ${rr.decisionIcon} ${rr.decisionLabel}`);
+    parts.push(`- Zone: ${rr.decisionZone.toUpperCase()}`);
+    parts.push(`- Statut: ${rr.recommendation.status.toUpperCase()}`);
+    parts.push(`- Titre: ${rr.recommendation.title}`);
+    parts.push(`- Message: ${rr.recommendation.message}`);
+    parts.push(`- Actions recommandées:`);
+    for (const action of rr.recommendation.actions) {
+      parts.push(`  • ${action}`);
+    }
+    parts.push(`- Confiance données: ${rr.confidenceLabel}`);
+    if (rr.confidenceReasons.length > 0) {
+      parts.push(`- Limitations: ${rr.confidenceReasons.join(", ")}`);
+    }
   }
   
   // Charge récente

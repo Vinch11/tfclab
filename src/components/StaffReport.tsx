@@ -34,6 +34,7 @@ import {
   Brain,
   Ban,
   ArrowRight,
+  Crosshair,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StaffReport as StaffReportType, generateStaffReport, GenerateStaffReportParams } from "@/lib/staffReport";
@@ -51,6 +52,11 @@ import { computePillarCalculations } from "@/components/ReadinessPillarDetail";
 import { computeFullDRE, DecisionReliabilityResult, Scenario } from "@/lib/v2/decisionReliabilityEngine";
 import { DecisionReliabilityBadge, DecisionReliabilityProgress } from "@/components/DecisionReliabilityBadge";
 import { computeLorangStrategy, type LorangStrategyInput, type LorangStrategyResult, LIMITER_DEFINITIONS, LEVER_DEFINITIONS } from "@/lib/v2/lorangStrategyEngine";
+import { 
+  computeRaceReadinessSignature, 
+  type RaceReadinessInput, 
+  type RaceReadinessResult 
+} from "@/components/RaceReadinessSignatureChart";
 import type { DbSnapshot } from "@/hooks/useCloudData";
 
 interface StaffReportProps {
@@ -72,6 +78,7 @@ interface StaffReportProps {
   snapshot?: DbSnapshot | null;
   vo2max?: number | null;
   lorangInput?: LorangStrategyInput | null;
+  raceReadinessSignatureInput?: RaceReadinessInput | null;
   onExportPDF?: () => void;
 }
 
@@ -94,6 +101,7 @@ export function StaffReport({
   snapshot,
   vo2max,
   lorangInput,
+  raceReadinessSignatureInput,
   onExportPDF,
 }: StaffReportProps) {
   // Générer le rapport avec tous les paramètres pour calculs unifiés
@@ -381,6 +389,9 @@ export function StaffReport({
 
         {/* 2.6️⃣ LORANG STRATEGY ENGINE — LIMITER → LEVIER → DÉCISION */}
         {lorangInput && <LorangStrategySection input={lorangInput} />}
+
+        {/* 2.7️⃣ RACE READINESS SIGNATURE — POTENTIEL × DISPONIBILITÉ → DÉCISION */}
+        {raceReadinessSignatureInput && <RaceReadinessSignatureSection input={raceReadinessSignatureInput} />}
 
         {/* 3️⃣ RISQUE BLESSURE CAP */}
         <div>
@@ -1432,6 +1443,144 @@ function LorangStrategySection({ input }: { input: LorangStrategyInput }) {
           </Badge>
           <span className="text-muted-foreground italic">{result.disclaimer}</span>
         </div>
+      </div>
+    </>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// RACE READINESS SIGNATURE SECTION — Potentiel × Disponibilité → Décision
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function RaceReadinessSignatureSection({ input }: { input: RaceReadinessInput }) {
+  const result = computeRaceReadinessSignature(input);
+  
+  // Couleurs des zones de décision
+  const zoneColors: Record<string, { bg: string; border: string; text: string }> = {
+    red: { bg: "bg-destructive/10", border: "border-destructive/30", text: "text-destructive" },
+    orange: { bg: "bg-amber-500/10", border: "border-amber-500/30", text: "text-amber-700 dark:text-amber-400" },
+    green: { bg: "bg-green-500/10", border: "border-green-500/30", text: "text-green-700 dark:text-green-400" },
+    blue: { bg: "bg-blue-500/10", border: "border-blue-500/30", text: "text-blue-700 dark:text-blue-400" },
+  };
+  
+  const zoneStyle = zoneColors[result.decisionZone] || zoneColors.orange;
+  
+  return (
+    <>
+      <Separator />
+      
+      <div className="print:break-inside-avoid">
+        <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+          <Crosshair className="h-4 w-4" />
+          RACE READINESS SIGNATURE — POTENTIEL × DISPONIBILITÉ → DÉCISION
+          <Badge variant="outline" className="text-[10px]">TFCL Method™</Badge>
+        </h3>
+        
+        {/* Matrice 2D simplifiée */}
+        <div className="flex flex-col md:flex-row items-stretch gap-2 mb-4">
+          {/* Block 1: Potentiel Physiologique */}
+          <div className="flex-1 p-3 rounded-lg border border-primary/30 bg-primary/5">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="h-4 w-4 text-primary" />
+              <div>
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Potentiel Physiologique</p>
+                <p className="text-sm font-bold text-primary">
+                  {result.potentialLabel} ({result.potentialScore}/100)
+                </p>
+              </div>
+            </div>
+            <div className="space-y-0.5">
+              {result.potentialReasons.slice(0, 2).map((reason, i) => (
+                <p key={i} className="text-[10px] text-muted-foreground">• {reason}</p>
+              ))}
+            </div>
+          </div>
+          
+          {/* Opérateur × */}
+          <div className="hidden md:flex items-center justify-center px-2">
+            <span className="text-xl font-bold text-muted-foreground">×</span>
+          </div>
+          
+          {/* Block 2: Disponibilité */}
+          <div className="flex-1 p-3 rounded-lg border border-green-500/30 bg-green-500/5">
+            <div className="flex items-center gap-2 mb-2">
+              <Heart className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <div>
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Disponibilité / Fraîcheur</p>
+                <p className="text-sm font-bold text-green-700 dark:text-green-400">
+                  {result.availabilityLabel} ({result.availabilityScore}/100)
+                </p>
+              </div>
+            </div>
+            <div className="space-y-0.5">
+              {result.availabilityReasons.slice(0, 2).map((reason, i) => (
+                <p key={i} className="text-[10px] text-muted-foreground">• {reason}</p>
+              ))}
+            </div>
+          </div>
+          
+          {/* Arrow */}
+          <div className="hidden md:flex items-center justify-center px-2">
+            <ArrowRight className="h-4 w-4 text-primary" />
+          </div>
+          
+          {/* Block 3: Décision */}
+          <div className={cn(
+            "flex-1 p-3 rounded-lg border",
+            zoneStyle.bg,
+            zoneStyle.border
+          )}>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xl">{result.decisionIcon}</span>
+              <div>
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Décision TFCL</p>
+                <p className={cn("text-sm font-bold", zoneStyle.text)}>
+                  {result.recommendation.title}
+                </p>
+              </div>
+            </div>
+            <p className="text-[10px] text-muted-foreground">{result.recommendation.message}</p>
+          </div>
+        </div>
+        
+        {/* Actions recommandées */}
+        <div className="grid md:grid-cols-2 gap-3 mb-3">
+          <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+            <p className="text-xs font-medium text-primary mb-1 flex items-center gap-1">
+              <Lightbulb className="h-3 w-3" /> Actions recommandées
+            </p>
+            <ul className="space-y-0.5">
+              {result.recommendation.actions.map((action, i) => (
+                <li key={i} className="text-xs text-muted-foreground">• {action}</li>
+              ))}
+            </ul>
+          </div>
+          <div className={cn(
+            "p-3 rounded-lg border",
+            result.confidenceReasons.length > 0 ? "bg-amber-500/5 border-amber-500/20" : "bg-green-500/5 border-green-500/20"
+          )}>
+            <p className={cn(
+              "text-xs font-medium mb-1 flex items-center gap-1",
+              result.confidenceReasons.length > 0 ? "text-amber-700 dark:text-amber-400" : "text-green-700 dark:text-green-400"
+            )}>
+              <Info className="h-3 w-3" /> Confiance : {result.confidenceLabel}
+            </p>
+            {result.confidenceReasons.length > 0 ? (
+              <ul className="space-y-0.5">
+                {result.confidenceReasons.map((reason, i) => (
+                  <li key={i} className="text-[10px] text-muted-foreground">⚠️ {reason}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-[10px] text-muted-foreground">Données suffisantes pour une décision robuste.</p>
+            )}
+          </div>
+        </div>
+        
+        {/* Philosophie */}
+        <p className="text-[10px] text-muted-foreground italic">
+          💡 "Race Readiness ≠ Fitness. Capacité à exprimer son potentiel le jour J, pas la valeur maximale de ce potentiel."
+        </p>
       </div>
     </>
   );
