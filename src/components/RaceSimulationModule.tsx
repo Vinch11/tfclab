@@ -1050,6 +1050,89 @@ export function RaceSimulationModule({
           />
         )}
         
+        {/* Tableau des segments avec allures (running uniquement) */}
+        {currentScenario && isRunning && vma && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Timer className="w-4 h-4" />
+                Progression par segment
+              </CardTitle>
+              <CardDescription>
+                Allure cible et risque par kilomètre
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2 px-1 font-medium text-muted-foreground">Km</th>
+                      <th className="text-center py-2 px-1 font-medium text-muted-foreground">Intensité</th>
+                      <th className="text-center py-2 px-1 font-medium text-muted-foreground">Allure</th>
+                      <th className="text-center py-2 px-1 font-medium text-muted-foreground">Glyco.</th>
+                      <th className="text-center py-2 px-1 font-medium text-muted-foreground">Risque</th>
+                      <th className="text-center py-2 px-1 font-medium text-muted-foreground">RPE</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentScenario.segments.map((seg, idx) => {
+                      const pace = computePaceFromVMA(vma, seg.intensityPct);
+                      return (
+                        <tr 
+                          key={idx} 
+                          className={cn(
+                            "border-b border-border/50 transition-colors",
+                            seg.depletionRisk === 'CRITICAL' && "bg-destructive/10",
+                            seg.depletionRisk === 'HIGH' && "bg-amber-500/10"
+                          )}
+                        >
+                          <td className="py-1.5 px-1 font-medium">
+                            {Math.round(seg.distanceKm)} km
+                          </td>
+                          <td className="text-center py-1.5 px-1">
+                            {Math.round(seg.intensityPct)}%
+                          </td>
+                          <td className="text-center py-1.5 px-1 font-mono font-medium">
+                            {pace ?? '—'}
+                          </td>
+                          <td className="text-center py-1.5 px-1">
+                            <span className={cn(
+                              seg.glycogenRemaining < 30 ? "text-destructive font-medium" :
+                              seg.glycogenRemaining < 50 ? "text-amber-600" : ""
+                            )}>
+                              {Math.round(seg.glycogenRemaining)}%
+                            </span>
+                          </td>
+                          <td className="text-center py-1.5 px-1">
+                            <Badge 
+                              variant="secondary" 
+                              className={cn(
+                                "text-[10px] px-1.5",
+                                getDepletionRiskBgColor(seg.depletionRisk),
+                                getDepletionRiskColor(seg.depletionRisk)
+                              )}
+                            >
+                              {seg.depletionRisk}
+                            </Badge>
+                          </td>
+                          <td className="text-center py-1.5 px-1 text-muted-foreground">
+                            {seg.rpeEstimate.toFixed(1)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-3 text-xs text-muted-foreground">
+                <strong>Lecture :</strong> L'allure est calculée à partir de la VMA ({vma.toFixed(1)} km/h) 
+                et de l'intensité cible du segment. Le RPE (Rating of Perceived Exertion) indique l'effort perçu sur 10.
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
         {/* Graphique FatMax vs Intensité */}
         {fatmax && currentScenario && (
           <FatMaxRaceIntensityChart
