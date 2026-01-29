@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Target,
   AlertTriangle,
@@ -493,6 +494,8 @@ export function computeRaceReadinessSignature(input: RaceReadinessInput): RaceRe
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function MatrixChart({ result }: { result: RaceReadinessResult }) {
+  const isMobile = useIsMobile();
+  
   // Position du point (0-100 sur chaque axe)
   const pointX = result.potentialScore;
   const pointY = result.availabilityScore;
@@ -523,7 +526,10 @@ function MatrixChart({ result }: { result: RaceReadinessResult }) {
   ];
   
   return (
-    <div className="relative w-full aspect-square max-w-[400px] mx-auto">
+    <div className={cn(
+      "relative w-full aspect-square mx-auto",
+      isMobile ? "max-w-[280px]" : "max-w-[400px]"
+    )}>
       {/* SVG Matrix */}
       <svg viewBox="0 0 100 100" className="w-full h-full">
         {/* Background zones */}
@@ -550,51 +556,70 @@ function MatrixChart({ result }: { result: RaceReadinessResult }) {
         <line x1="0" y1="100" x2="100" y2="100" stroke="currentColor" strokeOpacity="0.5" strokeWidth="0.5" />
         <line x1="0" y1="0" x2="0" y2="100" stroke="currentColor" strokeOpacity="0.5" strokeWidth="0.5" />
         
-        {/* Athlete point with glow */}
+        {/* Athlete point with glow - plus grand sur mobile */}
         <circle
           cx={pointX}
           cy={100 - pointY}
-          r="6"
+          r={isMobile ? 8 : 6}
           className="fill-primary/30"
         />
         <circle
           cx={pointX}
           cy={100 - pointY}
-          r="4"
+          r={isMobile ? 6 : 4}
           className="fill-primary stroke-background"
           strokeWidth="1"
         />
         <circle
           cx={pointX}
           cy={100 - pointY}
-          r="1.5"
+          r={isMobile ? 2 : 1.5}
           className="fill-background"
         />
       </svg>
       
-      {/* Axis labels */}
-      <div className="absolute bottom-0 left-0 right-0 flex justify-between text-[9px] text-muted-foreground px-1 -mb-5">
-        <span>Faible</span>
-        <span>Suffisant</span>
-        <span>Élevé</span>
-        <span>Très élevé</span>
-      </div>
-      <div className="absolute top-0 bottom-0 left-0 flex flex-col justify-between text-[9px] text-muted-foreground py-1 -ml-16 w-14 text-right">
-        <span>Très Dispo</span>
-        <span>Disponible</span>
-        <span>Fragile</span>
-        <span>Épuisé</span>
-      </div>
+      {/* Axis labels - simplifiés sur mobile */}
+      {isMobile ? (
+        <>
+          <div className="absolute bottom-0 left-0 right-0 flex justify-between text-[8px] text-muted-foreground px-0.5 -mb-4">
+            <span>Faible</span>
+            <span>Élevé</span>
+          </div>
+          <div className="absolute top-0 bottom-0 left-0 flex flex-col justify-between text-[8px] text-muted-foreground py-0.5 -ml-10 w-9 text-right">
+            <span>Dispo</span>
+            <span>Épuisé</span>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="absolute bottom-0 left-0 right-0 flex justify-between text-[9px] text-muted-foreground px-1 -mb-5">
+            <span>Faible</span>
+            <span>Suffisant</span>
+            <span>Élevé</span>
+            <span>Très élevé</span>
+          </div>
+          <div className="absolute top-0 bottom-0 left-0 flex flex-col justify-between text-[9px] text-muted-foreground py-1 -ml-16 w-14 text-right">
+            <span>Très Dispo</span>
+            <span>Disponible</span>
+            <span>Fragile</span>
+            <span>Épuisé</span>
+          </div>
+        </>
+      )}
       
-      {/* Axis titles */}
-      <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 text-xs font-medium flex items-center gap-1">
-        <Activity className="h-3 w-3" />
-        <span>Potentiel Physiologique</span>
-      </div>
-      <div className="absolute top-1/2 -left-24 -translate-y-1/2 -rotate-90 text-xs font-medium flex items-center gap-1">
-        <Heart className="h-3 w-3" />
-        <span>Disponibilité</span>
-      </div>
+      {/* Axis titles - masqués sur mobile */}
+      {!isMobile && (
+        <>
+          <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 text-xs font-medium flex items-center gap-1">
+            <Activity className="h-3 w-3" />
+            <span>Potentiel Physiologique</span>
+          </div>
+          <div className="absolute top-1/2 -left-24 -translate-y-1/2 -rotate-90 text-xs font-medium flex items-center gap-1">
+            <Heart className="h-3 w-3" />
+            <span>Disponibilité</span>
+          </div>
+        </>
+      )}
     </div>
   );
 }

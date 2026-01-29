@@ -6,6 +6,7 @@
 
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -55,6 +56,7 @@ export function TFCLDecisionChart({
   const [staffMode, setStaffMode] = useState(initialStaffMode);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showWhy, setShowWhy] = useState(false);
+  const isMobile = useIsMobile();
   
   const { potential, availability, readiness, flags, penalties, explanation } = result;
   
@@ -128,32 +130,48 @@ export function TFCLDecisionChart({
       </CardHeader>
       
       <CardContent className="space-y-4">
-        {/* Graphique 2D */}
-        <div className="relative aspect-square max-w-sm mx-auto border rounded-lg overflow-hidden">
+        {/* Graphique 2D - Optimisé mobile */}
+        <div className={cn(
+          "relative mx-auto border rounded-lg overflow-hidden",
+          // Taille adaptative avec plus d'espace pour les labels
+          isMobile ? "aspect-square max-w-[280px]" : "aspect-square max-w-sm"
+        )}>
           {/* Quadrants de fond */}
           <div className="absolute inset-0 grid grid-cols-2 grid-rows-2">
             {/* Top Left - Build Engine (Orange) */}
             <div className={cn("relative", quadrantColors.topLeft)}>
-              <span className="absolute top-2 left-2 text-xs font-medium text-orange-700 dark:text-orange-400">
-                🟠 Construire
+              <span className={cn(
+                "absolute font-medium text-orange-700 dark:text-orange-400",
+                isMobile ? "top-1 left-1 text-[10px]" : "top-2 left-2 text-xs"
+              )}>
+                {isMobile ? "🟠" : "🟠 Construire"}
               </span>
             </div>
             {/* Top Right - GO (Green) */}
             <div className={cn("relative", quadrantColors.topRight)}>
-              <span className="absolute top-2 right-2 text-xs font-medium text-green-700 dark:text-green-400">
-                🟢 GO
+              <span className={cn(
+                "absolute font-medium text-green-700 dark:text-green-400",
+                isMobile ? "top-1 right-1 text-[10px]" : "top-2 right-2 text-xs"
+              )}>
+                {isMobile ? "🟢" : "🟢 GO"}
               </span>
             </div>
             {/* Bottom Left - Caution (Red) */}
             <div className={cn("relative", quadrantColors.bottomLeft)}>
-              <span className="absolute bottom-2 left-2 text-xs font-medium text-red-700 dark:text-red-400">
-                🔴 Prudence
+              <span className={cn(
+                "absolute font-medium text-red-700 dark:text-red-400",
+                isMobile ? "bottom-1 left-1 text-[10px]" : "bottom-2 left-2 text-xs"
+              )}>
+                {isMobile ? "🔴" : "🔴 Prudence"}
               </span>
             </div>
             {/* Bottom Right - Recovery (Yellow) */}
             <div className={cn("relative", quadrantColors.bottomRight)}>
-              <span className="absolute bottom-2 right-2 text-xs font-medium text-yellow-700 dark:text-yellow-400">
-                🟡 Récupérer
+              <span className={cn(
+                "absolute font-medium text-yellow-700 dark:text-yellow-400",
+                isMobile ? "bottom-1 right-1 text-[10px]" : "bottom-2 right-2 text-xs"
+              )}>
+                {isMobile ? "🟡" : "🟡 Récupérer"}
               </span>
             </div>
           </div>
@@ -166,17 +184,23 @@ export function TFCLDecisionChart({
             <div className="absolute top-0 bottom-0 left-1/2 w-px bg-border" />
           </div>
           
-          {/* Point de l'athlète */}
+          {/* Point de l'athlète - plus grand sur mobile pour touch */}
           <Tooltip>
             <TooltipTrigger asChild>
               <div 
-                className="absolute w-6 h-6 -ml-3 -mb-3 rounded-full bg-primary border-2 border-primary-foreground shadow-lg cursor-pointer transition-transform hover:scale-110 z-10 flex items-center justify-center"
+                className={cn(
+                  "absolute rounded-full bg-primary border-2 border-primary-foreground shadow-lg cursor-pointer transition-transform hover:scale-110 z-10 flex items-center justify-center",
+                  isMobile ? "w-8 h-8 -ml-4 -mb-4" : "w-6 h-6 -ml-3 -mb-3"
+                )}
                 style={{
                   left: `${pointX}%`,
                   bottom: `${pointY}%`,
                 }}
               >
-                <span className="text-[10px] font-bold text-primary-foreground">
+                <span className={cn(
+                  "font-bold text-primary-foreground",
+                  isMobile ? "text-xs" : "text-[10px]"
+                )}>
                   {readiness.score}
                 </span>
               </div>
@@ -203,19 +227,40 @@ export function TFCLDecisionChart({
             </TooltipContent>
           </Tooltip>
           
-          {/* Labels des axes */}
-          <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs text-muted-foreground font-medium">
-            Potentiel →
-          </div>
-          <div className="absolute -left-6 top-1/2 -translate-y-1/2 -rotate-90 text-xs text-muted-foreground font-medium">
-            Disponibilité →
-          </div>
+          {/* Labels des axes - masqués sur mobile, affichés sous le graphique */}
+          {!isMobile && (
+            <>
+              <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs text-muted-foreground font-medium">
+                Potentiel →
+              </div>
+              <div className="absolute -left-6 top-1/2 -translate-y-1/2 -rotate-90 text-xs text-muted-foreground font-medium whitespace-nowrap">
+                Disponibilité →
+              </div>
+            </>
+          )}
           
-          {/* Graduation */}
-          <div className="absolute bottom-1 left-1 text-[10px] text-muted-foreground">0</div>
-          <div className="absolute bottom-1 right-1 text-[10px] text-muted-foreground">100</div>
-          <div className="absolute top-1 left-1 text-[10px] text-muted-foreground">100</div>
+          {/* Graduation - simplifiée sur mobile */}
+          <div className={cn(
+            "absolute text-muted-foreground",
+            isMobile ? "bottom-0.5 left-0.5 text-[8px]" : "bottom-1 left-1 text-[10px]"
+          )}>0</div>
+          <div className={cn(
+            "absolute text-muted-foreground",
+            isMobile ? "bottom-0.5 right-0.5 text-[8px]" : "bottom-1 right-1 text-[10px]"
+          )}>100</div>
+          <div className={cn(
+            "absolute text-muted-foreground",
+            isMobile ? "top-0.5 left-0.5 text-[8px]" : "top-1 left-1 text-[10px]"
+          )}>100</div>
         </div>
+        
+        {/* Labels des axes en dessous sur mobile */}
+        {isMobile && (
+          <div className="flex justify-between text-[10px] text-muted-foreground mt-2 px-4">
+            <span>← Potentiel →</span>
+            <span>↑ Dispo ↓</span>
+          </div>
+        )}
         
         {/* Résumé du quadrant */}
         <div className={cn("p-4 rounded-lg border", quadrantInfo.bgColor)}>
