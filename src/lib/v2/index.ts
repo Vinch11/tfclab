@@ -613,3 +613,55 @@ export {
   type AdaptiveRange,
   type TimeRange,
 } from './adaptivePrecision';
+
+// Pacing Envelope™ TFCL — Système de discipline de pacing
+export {
+  // Engine
+  computePacingEnvelope,
+  getZoneColor,
+  getZoneBgColor,
+  getZoneChartColor,
+  getIntensityZone,
+  formatEnvelopeRange,
+  formatEnvelopeWithCenter,
+  PACING_ENVELOPE_DEFINITIONS,
+  type PacingEnvelopeInput,
+  type PacingEnvelopeResult,
+  type EnvelopeBoundary,
+  type EnvelopeZone,
+  type EnvelopeZoneDefinition,
+  type RaceObjective as PacingRaceObjective,
+  type PacingProfile,
+  type PacingProfile_Metadata,
+} from './pacingEnvelopeEngine';
+
+// Discipline Rules
+export {
+  generateDisciplineRules,
+  getCategoryColor,
+  getCategoryBgColor,
+  getCategoryLabel as getRuleCategoryLabel,
+  getPriorityIcon,
+  type DisciplineRule,
+  type DisciplineRulesResult,
+  type DisciplineRulesInput,
+  type RuleCategory,
+  type RulePriority,
+} from './pacingDisciplineRules';
+
+// Scenario Simulator
+export {
+  simulatePacingScenarios,
+  getSeverityColor,
+  getSeverityBgColor,
+  getSeverityLabel,
+  getPhaseLabel,
+  formatConsequenceImpact,
+  SCENARIO_DEFINITIONS,
+  type PacingScenario,
+  type ScenarioSimulationInput,
+  type ScenarioSimulationResult,
+  type ScenarioType,
+  type ConsequenceSeverity,
+  type RacePhase,
+} from './pacingScenarioSimulator';

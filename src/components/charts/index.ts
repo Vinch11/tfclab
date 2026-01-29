@@ -20,6 +20,7 @@ export { MiniGauge } from "./MiniGauge";
 export { CompactMetricsGrid } from "./CompactMetricsGrid";
 export { CarbBurnRateChart } from "./CarbBurnRateChart";
 export { MetabolicPowerCurve } from "./MetabolicPowerCurve";
+export { PacingDisciplineChart } from "./PacingDisciplineChart";
 
 // Utilitaires pour graphiques responsives (mobile/touch)
 export {

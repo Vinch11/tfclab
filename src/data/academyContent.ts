@@ -1015,5 +1015,315 @@ export const academySections: AcademySection[] = [
         staffOnly: true
       }
     ]
+  },
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PACING ENVELOPE™ TFCL — LEÇONS ACADEMY
+  // ═══════════════════════════════════════════════════════════════════════════════
+  {
+    id: "pacing-envelope-intro",
+    title: "Pourquoi les meilleurs perdent en allant trop vite",
+    level: "basic",
+    tags: ["pacing", "envelope", "discipline", "Dan Lorang", "endurance", "stratégie"],
+    blocks: [
+      {
+        type: "text",
+        title: "Le paradoxe de la performance",
+        content: "En endurance, les plus rapides ne sont pas ceux qui partent le plus vite, mais ceux qui savent se freiner. Dan Lorang, coach de Jan Frodeno et Anne Haug, l'a démontré : la discipline de pacing est plus importante que la puissance brute."
+      },
+      {
+        type: "callout",
+        title: "Citation clé",
+        content: "\"Les 30 premières minutes sont NON NÉGOCIABLES. Laisser partir les autres est une stratégie, pas un échec.\" — Philosophie Dan Lorang"
+      },
+      {
+        type: "bullets",
+        title: "Pourquoi baisser la VLamax rend le pacing plus critique",
+        content: [
+          "Une VLamax basse = excellente efficacité lipidique (utilisation des graisses)",
+          "MAIS aussi = moins de 'tampon glycolytique' pour absorber les erreurs",
+          "Chaque dépassement consomme disproportionnellement le glycogène",
+          "L'erreur précoce coûte plus cher qu'elle ne rapporte en temps gagné"
+        ]
+      },
+      {
+        type: "text",
+        title: "Le concept du Pacing Envelope™",
+        content: "Le pacing n'est PAS un % de FTP ni une allure fixe. Le pacing EST un couloir physiologique sécurisé avec des zones à risque et des règles comportementales claires. Ce couloir est calculé selon votre profil métabolique réel (VLamax, TTE, FatMax)."
+      },
+      {
+        type: "table",
+        title: "Les 4 zones du Pacing Envelope™",
+        content: {
+          headers: ["Zone", "Description", "Risque", "Action"],
+          rows: [
+            ["🔵 Sous-exploitation", "< Limite basse -5%", "Faible", "Sécurité mais rendement sous-optimal"],
+            ["🟢 Optimale", "Limite basse → Limite haute", "Minimal", "Zone cible — oxydation énergétique optimale"],
+            ["🟠 Tolérée", "Limite haute → +10%", "Modéré", "Tolérable ponctuellement — discipline requise"],
+            ["🔴 Interdite", "> Limite haute +10%", "Critique", "Activation glycolytique excessive — INTERDIT"]
+          ]
+        }
+      }
+    ]
+  },
+  {
+    id: "pacing-envelope-vlamax",
+    title: "VLamax basse : le profil sensible au pacing",
+    level: "staff",
+    tags: ["pacing", "VLamax", "profil sensible", "Ironman", "marathon", "métabolisme"],
+    blocks: [
+      {
+        type: "text",
+        title: "Pourquoi le profil VLamax basse est 'sensible'",
+        content: "Un athlète avec VLamax < 0.35 mmol/L/s possède un excellent moteur aérobie mais un système glycolytique réduit. C'est une force pour l'endurance, mais aussi une vulnérabilité : chaque erreur de pacing amplifie les conséquences métaboliques."
+      },
+      {
+        type: "callout",
+        title: "🟣 Badge Profil Sensible",
+        content: "Ce profil métabolique offre un rendement élevé mais une faible tolérance aux erreurs. La discipline prime sur la puissance instantanée."
+      },
+      {
+        type: "bullets",
+        title: "Caractéristiques du profil sensible",
+        content: [
+          "Enveloppe de pacing TRÈS étroite (±4-6% seulement)",
+          "Tolérance zéro aux dépassements précoces",
+          "Dérive > +5% pendant > 3 min = perturbation métabolique majeure",
+          "Récupération plus lente après chaque erreur"
+        ],
+        staffOnly: true
+      },
+      {
+        type: "table",
+        title: "Comparaison largeur d'enveloppe selon VLamax",
+        content: {
+          headers: ["VLamax", "Profil", "Largeur enveloppe", "Tolérance erreur"],
+          rows: [
+            ["< 0.35", "Sensible", "±4-5%", "Très faible"],
+            ["0.35–0.45", "Modéré", "±5-7%", "Faible"],
+            ["0.45–0.55", "Équilibré", "±6-8%", "Modérée"],
+            ["> 0.55", "Tolérant", "±8-12%", "Élevée (mais glycogène limité)"]
+          ]
+        },
+        staffOnly: true
+      },
+      {
+        type: "callout",
+        title: "Point staff",
+        content: "Pour un athlète profil sensible, la consigne n'est pas 'pousser moins' mais 'être plus précis'. La performance vient de la constance, pas des pics d'intensité.",
+        staffOnly: true
+      }
+    ]
+  },
+  {
+    id: "pacing-envelope-errors",
+    title: "Anatomie d'une erreur de pacing",
+    level: "basic",
+    tags: ["pacing", "erreur", "glycogène", "déplétion", "conséquences"],
+    blocks: [
+      {
+        type: "text",
+        title: "L'erreur précoce : la plus coûteuse",
+        content: "Une erreur de pacing dans le premier tiers de la course coûte exponentiellement plus qu'en fin de parcours. Le corps a moins de temps pour compenser, et les réserves de glycogène sont entamées trop tôt."
+      },
+      {
+        type: "table",
+        title: "Coût métabolique d'une erreur selon le moment",
+        content: {
+          headers: ["Moment de l'erreur", "Impact glycogène", "Impact performance", "Récupérabilité"],
+          rows: [
+            ["Premier tiers", "-15 à -25%", "-5 à -10%", "Très difficile"],
+            ["Tiers médian", "-10 à -15%", "-3 à -5%", "Possible"],
+            ["Dernier tiers", "-5 à -10%", "-1 à -3%", "Limitée (course presque finie)"]
+          ]
+        }
+      },
+      {
+        type: "bullets",
+        title: "Scénarios d'erreurs typiques",
+        content: [
+          "Départ explosif (+15% pendant 5 min) → Rupture probable avant 2/3 du parcours",
+          "Suivi du groupe (+10% pendant 10 min au départ) → Déplétion anticipée, final compromis",
+          "Tentative de rattraper un retard (middle push) → Épuisement progressif",
+          "Côte trop intense → Chaque côte est une dette à rembourser sur le plat"
+        ]
+      },
+      {
+        type: "callout",
+        title: "La règle d'or",
+        content: "En endurance, on ne rattrape pas un retard au premier tiers. On le PAIE au dernier tiers. La dette métabolique n'a pas de crédit."
+      }
+    ]
+  },
+  {
+    id: "pacing-envelope-discipline",
+    title: "Les règles de discipline de pacing",
+    level: "staff",
+    tags: ["pacing", "discipline", "règles", "coach", "Dan Lorang"],
+    blocks: [
+      {
+        type: "text",
+        title: "Discipline vs Courage",
+        content: "Dan Lorang privilégie la discipline au courage. Le courage pousse à suivre, à attaquer, à 'répondre'. La discipline permet de laisser partir, de résister à la pression sociale, de s'en tenir au plan."
+      },
+      {
+        type: "table",
+        title: "Règles non négociables par format",
+        content: {
+          headers: ["Format", "Règle principale", "Interdiction"],
+          rows: [
+            ["Ironman", "Première heure vélo = installation, pas de push", "Mode héros sur vélo = marche sur marathon"],
+            ["70.3", "Départ vélo -5% sous plafond, montée progressive", "Suivre le peloton si au-dessus de l'enveloppe"],
+            ["Marathon", "Negative split : 2ème moitié > 1ère moitié", "Accélération sur le 1er km"],
+            ["Semi", "5 premiers km = 5-10 sec/km plus lents", "Push avant le 15e km"],
+            ["10 km", "2 premiers km = installation du rythme", "Départ explosif sprint"]
+          ]
+        },
+        staffOnly: true
+      },
+      {
+        type: "bullets",
+        title: "Phrases coach à utiliser",
+        content: [
+          "\"Les 30 premières minutes sont non négociables.\"",
+          "\"Laisser partir les autres est une stratégie.\"",
+          "\"Ce profil ne tolère pas les pics précoces.\"",
+          "\"La discipline prime sur la puissance instantanée.\"",
+          "\"Chaque watt économisé maintenant est une minute gagnée plus tard.\""
+        ],
+        staffOnly: true
+      },
+      {
+        type: "callout",
+        title: "Règle de dérive",
+        content: "Toute dérive > limite haute pendant plus de X minutes est interdite. X dépend du profil : profil sensible = 2-3 min, profil tolérant = 5-7 min.",
+        staffOnly: true
+      }
+    ]
+  },
+  {
+    id: "pacing-envelope-readiness",
+    title: "Pacing et Race Readiness : ajustement du jour J",
+    level: "staff",
+    tags: ["pacing", "readiness", "disponibilité", "ajustement", "jour J"],
+    blocks: [
+      {
+        type: "text",
+        title: "L'enveloppe s'adapte à l'état du jour",
+        content: "Le Pacing Envelope™ n'est pas figé. Il se réduit automatiquement si le Race Readiness est faible. Aujourd'hui, la robustesse prime sur l'ambition."
+      },
+      {
+        type: "table",
+        title: "Ajustement enveloppe selon Readiness",
+        content: {
+          headers: ["Race Readiness", "Ajustement", "Message"],
+          rows: [
+            ["> 80%", "Aucun", "État optimal — enveloppe normale"],
+            ["70-80%", "-1% plafond", "État modéré — rester dans la zone optimale"],
+            ["60-70%", "-2-3% plafond", "État réduit — scénario conservateur recommandé"],
+            ["< 60%", "-4-5% plafond", "État faible — robustesse absolue, finisher mode"]
+          ]
+        },
+        staffOnly: true
+      },
+      {
+        type: "callout",
+        title: "Message automatique",
+        content: "Si Readiness < 70% : 'Aujourd'hui, la robustesse prime sur l'ambition.' Ce message s'affiche dans le briefing staff et sur le Pacing Envelope™.",
+        staffOnly: true
+      },
+      {
+        type: "bullets",
+        title: "Ce que TFCL ne fait PAS",
+        content: [
+          "Prescrire automatiquement une allure",
+          "Forcer une décision",
+          "Bloquer l'athlète dans une zone",
+          "Remplacer le jugement du coach"
+        ],
+        staffOnly: true
+      }
+    ]
+  },
+  {
+    id: "pacing-envelope-cases",
+    title: "Études de cas : Ironman et Marathon",
+    level: "basic",
+    tags: ["pacing", "étude de cas", "Ironman", "marathon", "exemple"],
+    blocks: [
+      {
+        type: "text",
+        title: "Cas 1 : L'Ironman trop rapide au départ vélo",
+        content: "Athlète profil VLamax 0.32, FTP 280W, objectif 10h30. Départ vélo à 85% FTP (238W) au lieu de l'enveloppe 68-74% (190-207W). Résultat : Glycogène épuisé au km 130, marathon marché, temps final 12h15."
+      },
+      {
+        type: "callout",
+        title: "Analyse",
+        content: "L'erreur de +15% pendant les 30 premières minutes a consommé l'équivalent de 45 min de réserve glycogène. Le profil sensible a amplifié les conséquences. Leçon : même 'bien se sentir' au départ n'est pas une autorisation de dépasser."
+      },
+      {
+        type: "text",
+        title: "Cas 2 : Le Marathon negative split réussi",
+        content: "Athlète profil VLamax 0.42, allure seuil 4:00/km, objectif sub-3h00. Départ à 4:22/km (5 premiers km), stabilisation à 4:15/km, derniers 10 km à 4:05/km. Temps final : 2h57."
+      },
+      {
+        type: "bullets",
+        title: "Clés du succès",
+        content: [
+          "Premier 5 km volontairement 10 sec/km plus lent que l'objectif",
+          "Installation progressive dans la zone optimale",
+          "Accélération autorisée uniquement après le 30e km",
+          "Finir avec la sensation de pouvoir en donner plus"
+        ]
+      },
+      {
+        type: "callout",
+        title: "Différence entre performance instantanée et performance durable",
+        content: "La performance instantanée = ce que l'athlète peut produire à un instant T. La performance durable = ce que l'athlète peut maintenir sur la distance. TFCL optimise la performance durable."
+      }
+    ]
+  },
+  {
+    id: "pacing-envelope-philosophy",
+    title: "Philosophie : pourquoi TFCL ne prescrit pas",
+    level: "staff",
+    tags: ["pacing", "philosophie", "coach", "autonomie", "décision"],
+    blocks: [
+      {
+        type: "text",
+        title: "TFCL explique, simule, cadre — mais ne prescrit pas",
+        content: "Le Pacing Envelope™ est un outil d'aide à la décision, pas un système automatique. Le coach garde toujours la main. L'athlète reste responsable de son exécution."
+      },
+      {
+        type: "bullets",
+        title: "Ce que TFCL fait",
+        content: [
+          "Définit un couloir physiologique sécurisé",
+          "Génère des règles comportementales claires",
+          "Simule les conséquences métaboliques des erreurs",
+          "Affiche les risques sans bloquer",
+          "Éduque l'athlète à l'autonomie"
+        ]
+      },
+      {
+        type: "bullets",
+        title: "Ce que TFCL ne fait PAS",
+        content: [
+          "Prescrire automatiquement une allure exacte",
+          "Forcer une décision de pacing",
+          "Remplacer l'expertise du coach",
+          "Garantir un résultat"
+        ]
+      },
+      {
+        type: "callout",
+        title: "Orientation autonomie athlète",
+        content: "L'objectif final est que l'athlète comprenne SON profil et SOIT CAPABLE de prendre les bonnes décisions en course, même sans le coach dans l'oreillette. L'éducation prime sur la prescription."
+      },
+      {
+        type: "text",
+        title: "Conclusion : la discipline comme compétence",
+        content: "La discipline de pacing n'est pas une contrainte imposée, c'est une compétence à développer. Les meilleurs athlètes d'endurance ne sont pas ceux qui ignorent leurs limites, mais ceux qui les respectent avec précision."
+      }
+    ]
   }
 ];
