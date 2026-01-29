@@ -1027,18 +1027,6 @@ const Index = () => {
                     defaultCollapsed={true}
                   />
                 )}
-                
-                {/* Vue combinée Vélo + CAP pour triathlètes */}
-                {(currentAthlete.goal === "IM" || currentAthlete.goal === "70.3" || currentAthlete.goal === "703") && (
-                  <VLamaxCombinedCard
-                    vlamaxBike={vlamaxEffectif.value}
-                    vlamaxRun={effectiveCloudSnapshot?.vlamax_run ?? null}
-                    age={calculateAge(currentAthlete.birth_date)}
-                    objectif={currentAthlete.goal === "IM" ? "Ironman" : "70.3"}
-                    defaultCollapsed={false}
-                  />
-                )}
-
                 {/* Analyse détaillée CAP - pour multi-sport (Marathon, Semi) */}
                 {effectiveCloudSnapshot && (currentAthlete.goal === "Marathon" || currentAthlete.goal === "Semi") && (
                   <VLamaxRunExplainedCard
@@ -1050,6 +1038,25 @@ const Index = () => {
                 )}
               </div>
             ),
+          },
+          {
+            id: "vlamax-combined",
+            render: () => {
+              if (!currentAthlete) return null;
+              // N'afficher que pour les objectifs triathlon
+              const isTriathlon = currentAthlete.goal === "IM" || currentAthlete.goal === "70.3" || currentAthlete.goal === "703";
+              if (!isTriathlon) return null;
+              
+              return (
+                <VLamaxCombinedCard
+                  vlamaxBike={vlamaxEffectif.value}
+                  vlamaxRun={effectiveCloudSnapshot?.vlamax_run ?? null}
+                  age={calculateAge(currentAthlete.birth_date)}
+                  objectif={currentAthlete.goal === "IM" ? "Ironman" : "70.3"}
+                  defaultCollapsed={false}
+                />
+              );
+            },
           },
           {
             id: "fatmax-tfcl",
