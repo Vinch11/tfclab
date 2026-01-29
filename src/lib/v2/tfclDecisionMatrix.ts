@@ -61,6 +61,9 @@ export interface TFCLDecisionInput {
   fatOxidationMax: DataWithSource<number | null>;
   crossoverPctVO2: DataWithSource<number | null>;
   
+  // Expression aérobie (optionnel, pour détail faiblesse)
+  ftpKg?: DataWithSource<number | null>;
+  
   // Disponibilité avec source
   freshnessScore: DataWithSource<number | null>;
   tss7d: DataWithSource<number | null>;
@@ -74,6 +77,7 @@ export interface TFCLDecisionInput {
   discipline: "velo" | "cap" | "tri";
   objective: TFCLObjective;
   ambition: AmbitionLevel;
+  age: number | null;             // Âge pour ajustement des cibles VO2max
 }
 
 export interface NormalizedMetric {
@@ -312,20 +316,36 @@ function normalizeObjective(obj: string): TFCLObjective {
 // NORMALISATION DES MÉTRIQUES
 // ═══════════════════════════════════════════════════════════════════════════════
 
+/**
+ * Calcule le facteur d'ajustement VO2max par âge
+ * Basé sur le déclin physiologique naturel (~7-10% par décennie après 30 ans)
+ */
+function getVo2maxAgeFactor(age: number | null): number {
+  if (age === null || age < 30) return 1.0;
+  if (age < 40) return 0.95;
+  if (age < 50) return 0.88;
+  if (age < 60) return 0.80;
+  return 0.72;
+}
+
 function normalizeVO2max(
   value: number | null,
   objective: TFCLObjective,
   ambition: AmbitionLevel,
   weight: number,
-  confidence: number
+  confidence: number,
+  age: number | null = null
 ): NormalizedMetric {
   // VO2max normalization now derived from FTP/kg targets (FTP/kg × ~12-14 ≈ VO2max)
   // Uses physiologicalTargets as single source of truth
   const targets = getTargetsForAmbition(objective, ambition);
   // Approximate VO2max target from FTP/kg (typical ratio for endurance athletes)
-  const vo2maxFromFtp = targets.ftp_kg_min * 13;
-  const target = vo2maxFromFtp;
-  const minTarget = vo2maxFromFtp * 0.85;
+  const baseVo2max = targets.ftp_kg_min * 13;
+  
+  // Apply age adjustment factor
+  const ageFactor = getVo2maxAgeFactor(age);
+  const target = Math.round(baseVo2max * ageFactor * 10) / 10;
+  const minTarget = target * 0.85;
   
   if (value === null) {
     return { raw: null, score: 50, gap: 0, weight, weightedImpact: 0, target, status: "acceptable" };
@@ -680,7 +700,8 @@ export function computeTFCLDecisionMatrix(input: TFCLDecisionInput): TFCLDecisio
     objective, 
     input.ambition,
     weights.aerobic_engine, 
-    confidence
+    confidence,
+    input.age
   );
   
   const vlamaxMetric = normalizeVLamax(

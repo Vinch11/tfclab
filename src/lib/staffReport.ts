@@ -347,6 +347,7 @@ function determineMainLimitation(params: {
   poids: number | null;
   availabilityScore?: number | null;
   hasHealthAlerts?: boolean;
+  age?: number | null;
 }): { type: LimitationType; label: string } {
   const { 
     readiness, 
@@ -359,7 +360,8 @@ function determineMainLimitation(params: {
     ftp,
     poids,
     availabilityScore,
-    hasHealthAlerts 
+    hasHealthAlerts,
+    age
   } = params;
   
   // Calculer FTP/kg
@@ -377,6 +379,7 @@ function determineMainLimitation(params: {
     hasHealthAlerts: hasHealthAlerts ?? false,
     objectif,
     ambition,
+    age: age ?? null,
   };
   
   // Appeler le moteur unifié
@@ -706,6 +709,7 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     poids,
     availabilityScore: readiness.details.fraicheur ?? null,
     hasHealthAlerts: readiness.wasCappedByNutrition || readiness.wasCappedByEconomy,
+    age: athleteAge ?? null,
   });
   
   // Générer le feu tricolore

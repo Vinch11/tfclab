@@ -1494,6 +1494,7 @@ const Index = () => {
                     discipline: currentAthlete.goal === "Marathon" || currentAthlete.goal === "Semi" ? "cap" : "tri",
                     objective: (currentAthlete.goal || "703") as TFCLObjective,
                     ambition: currentAmbition,
+                    age: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
                   }}
                   compact={!staffMode}
                 />
