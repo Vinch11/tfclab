@@ -4091,25 +4091,25 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
           <div style="text-align:center;">
             <div class="muted" style="font-size:11px;">Contribution VLamax</div>
             <div class="progressBar mt" style="height:20px;">
-              <div class="progressFill" style="width:${Math.round(capInjuryRisk.factors.vlamaxContribution * 100)}%;background:${capInjuryRisk.factors.vlamaxContribution > 0.5 ? 'var(--warning)' : 'var(--success)'}"></div>
+              <div class="progressFill" style="width:${Math.min(100, Math.round(capInjuryRisk.factors.vlamaxContribution))}%;background:${capInjuryRisk.factors.vlamaxContribution > 50 ? 'var(--warning)' : 'var(--success)'}"></div>
             </div>
-            <div style="font-size:14px;font-weight:600;margin-top:4px;">${Math.round(capInjuryRisk.factors.vlamaxContribution * 100)}%</div>
+            <div style="font-size:14px;font-weight:600;margin-top:4px;">${Math.round(capInjuryRisk.factors.vlamaxContribution)}%</div>
             <div class="muted" style="font-size:10px;">VLamax élevée = fatigue neuromusculaire</div>
           </div>
           <div style="text-align:center;">
             <div class="muted" style="font-size:11px;">Contribution TTE</div>
             <div class="progressBar mt" style="height:20px;">
-              <div class="progressFill" style="width:${Math.round(capInjuryRisk.factors.tteContribution * 100)}%;background:${capInjuryRisk.factors.tteContribution > 0.5 ? 'var(--warning)' : 'var(--success)'}"></div>
+              <div class="progressFill" style="width:${Math.min(100, Math.round(capInjuryRisk.factors.tteContribution))}%;background:${capInjuryRisk.factors.tteContribution > 50 ? 'var(--warning)' : 'var(--success)'}"></div>
             </div>
-            <div style="font-size:14px;font-weight:600;margin-top:4px;">${Math.round(capInjuryRisk.factors.tteContribution * 100)}%</div>
+            <div style="font-size:14px;font-weight:600;margin-top:4px;">${Math.round(capInjuryRisk.factors.tteContribution)}%</div>
             <div class="muted" style="font-size:10px;">TTE insuffisant = risque d'effondrement</div>
           </div>
           <div style="text-align:center;">
             <div class="muted" style="font-size:11px;">Contribution Charge</div>
             <div class="progressBar mt" style="height:20px;">
-              <div class="progressFill" style="width:${Math.round(capInjuryRisk.factors.chargeContribution * 100)}%;background:${capInjuryRisk.factors.chargeContribution > 0.5 ? 'var(--error)' : 'var(--success)'}"></div>
+              <div class="progressFill" style="width:${Math.min(100, Math.round(capInjuryRisk.factors.chargeContribution))}%;background:${capInjuryRisk.factors.chargeContribution > 50 ? 'var(--error)' : 'var(--success)'}"></div>
             </div>
-            <div style="font-size:14px;font-weight:600;margin-top:4px;">${Math.round(capInjuryRisk.factors.chargeContribution * 100)}%</div>
+            <div style="font-size:14px;font-weight:600;margin-top:4px;">${Math.round(capInjuryRisk.factors.chargeContribution)}%</div>
             <div class="muted" style="font-size:10px;">Charge excessive = surmenage</div>
           </div>
         </div>
