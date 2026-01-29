@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Info, Calendar, FileText } from 'lucide-react';
+import { ArrowLeft, Info, Calendar, FileText, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,6 +15,7 @@ import { RaceSimulationModule } from '@/components/RaceSimulationModule';
 import { PacingEnvelopeCard } from '@/components/PacingEnvelopeCard';
 import { RaceDayBriefingMode } from '@/components/RaceDayBriefingMode';
 import { StaffPacingReportV2 } from '@/components/StaffPacingReportV2';
+import { RaceDayMode } from '@/components/RaceDayMode';
 import { useAthletes } from '@/contexts/AthleteContext';
 import { useCloudData } from '@/hooks/useCloudData';
 import { computeVLamaxEffectif } from '@/lib/vlamaxEffectif';
@@ -31,6 +32,7 @@ export default function RaceSimulationPage() {
   const navigate = useNavigate();
   const { currentAthlete: selectedAthlete } = useAthletes();
   const { snapshots, tests, checkins } = useCloudData();
+  const [showRaceDayMode, setShowRaceDayMode] = React.useState(false);
   
   // Compute effectifs
   const athleteId = selectedAthlete?.id ?? '';
@@ -203,26 +205,37 @@ export default function RaceSimulationPage() {
             </p>
           </div>
           
-          {/* Briefing Jour J button */}
+          {/* Race-Day Mode button */}
           {envelope && rules && scenarios && (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-1">
-                  <Calendar className="h-4 w-4" />
-                  <span className="hidden sm:inline">Briefing Jour J</span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-                <RaceDayBriefingMode
-                  athleteName={selectedAthlete?.name ?? 'Athlète'}
-                  envelope={envelope}
-                  rules={rules}
-                  scenarios={scenarios}
-                  raceObjective={raceObjective}
-                  raceReadinessScore={raceReadinessScore}
-                />
-              </DialogContent>
-            </Dialog>
+            <>
+              <Button 
+                variant="default" 
+                size="sm" 
+                className="gap-1"
+                onClick={() => setShowRaceDayMode(true)}
+              >
+                <Smartphone className="h-4 w-4" />
+                <span className="hidden sm:inline">Race-Day</span>
+              </Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-1">
+                    <Calendar className="h-4 w-4" />
+                    <span className="hidden sm:inline">Briefing</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                  <RaceDayBriefingMode
+                    athleteName={selectedAthlete?.name ?? 'Athlète'}
+                    envelope={envelope}
+                    rules={rules}
+                    scenarios={scenarios}
+                    raceObjective={raceObjective}
+                    raceReadinessScore={raceReadinessScore}
+                  />
+                </DialogContent>
+              </Dialog>
+            </>
           )}
         </div>
       </header>
@@ -337,6 +350,19 @@ export default function RaceSimulationPage() {
           </div>
         </details>
       </main>
+
+      {/* Race-Day Mode Fullscreen */}
+      {showRaceDayMode && envelope && rules && scenarios && (
+        <RaceDayMode
+          athleteName={selectedAthlete?.name ?? 'Athlète'}
+          envelope={envelope}
+          rules={rules}
+          scenarios={scenarios}
+          raceObjective={raceObjective}
+          raceReadinessScore={raceReadinessScore}
+          onClose={() => setShowRaceDayMode(false)}
+        />
+      )}
     </div>
   );
 }
