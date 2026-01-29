@@ -5888,13 +5888,42 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       const fileName = `rapport-staff-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.html`;
       link.download = fileName;
       
-      // Pour iOS Safari: ouvrir dans un nouvel onglet au lieu de télécharger
+      // Pour iOS Safari: utiliser Web Share API pour partage natif
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      if (isIOS) {
-        // Sur iOS, ouvrir le blob directement dans un nouvel onglet
+      if (isIOS && navigator.share && navigator.canShare) {
+        // Créer un fichier pour le partage natif iOS
+        const file = new File([blob], fileName, { type: "text/html" });
+        const shareData = { files: [file], title: `Rapport Staff - ${athlete.name}` };
+        
+        if (navigator.canShare(shareData)) {
+          try {
+            await navigator.share(shareData);
+            toast.success("Rapport partagé", {
+              description: "Le rapport a été partagé avec succès."
+            });
+          } catch (shareError) {
+            // L'utilisateur a annulé le partage ou erreur
+            if ((shareError as Error).name !== 'AbortError') {
+              console.error("Erreur de partage:", shareError);
+              // Fallback: ouvrir dans un nouvel onglet
+              window.open(url, '_blank');
+              toast.info("Rapport ouvert", {
+                description: "Appuyez sur le bouton Partage en bas de l'écran pour sauvegarder."
+              });
+            }
+          }
+        } else {
+          // Fallback si canShare retourne false
+          window.open(url, '_blank');
+          toast.info("Rapport ouvert", {
+            description: "Appuyez sur le bouton Partage en bas de l'écran pour sauvegarder."
+          });
+        }
+      } else if (isIOS) {
+        // Fallback iOS sans Web Share API
         window.open(url, '_blank');
-        toast.success("Rapport ouvert", {
-          description: "Utilisez Partager > Enregistrer en fichiers pour sauvegarder le rapport."
+        toast.info("Rapport ouvert", {
+          description: "Appuyez sur le bouton Partage en bas de l'écran pour sauvegarder."
         });
       } else {
         document.body.appendChild(link);
@@ -5930,12 +5959,36 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       
       const fileName = `mon-etat-de-forme-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.html`;
       
-      // Pour iOS Safari: ouvrir dans un nouvel onglet au lieu de télécharger
+      // Pour iOS Safari: utiliser Web Share API pour partage natif
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      if (isIOS) {
+      if (isIOS && navigator.share && navigator.canShare) {
+        const file = new File([blob], fileName, { type: "text/html" });
+        const shareData = { files: [file], title: `Mon État de Forme - ${athlete.name}` };
+        
+        if (navigator.canShare(shareData)) {
+          try {
+            await navigator.share(shareData);
+            toast.success("Rapport partagé", {
+              description: "Le rapport a été partagé avec succès."
+            });
+          } catch (shareError) {
+            if ((shareError as Error).name !== 'AbortError') {
+              window.open(url, '_blank');
+              toast.info("Rapport ouvert", {
+                description: "Appuyez sur le bouton Partage en bas de l'écran pour sauvegarder."
+              });
+            }
+          }
+        } else {
+          window.open(url, '_blank');
+          toast.info("Rapport ouvert", {
+            description: "Appuyez sur le bouton Partage en bas de l'écran pour sauvegarder."
+          });
+        }
+      } else if (isIOS) {
         window.open(url, '_blank');
-        toast.success("Rapport ouvert", {
-          description: "Utilisez Partager > Enregistrer en fichiers pour sauvegarder le rapport."
+        toast.info("Rapport ouvert", {
+          description: "Appuyez sur le bouton Partage en bas de l'écran pour sauvegarder."
         });
       } else {
         const link = document.createElement("a");
