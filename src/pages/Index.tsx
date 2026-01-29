@@ -1043,19 +1043,36 @@ const Index = () => {
             id: "vlamax-combined",
             render: () => {
               if (!currentAthlete) return null;
-              // N'afficher que pour les objectifs triathlon
-              const isTriathlon = currentAthlete.goal === "IM" || currentAthlete.goal === "70.3" || currentAthlete.goal === "703";
-              if (!isTriathlon) return null;
               
-              return (
-                <VLamaxCombinedCard
-                  vlamaxBike={vlamaxEffectif.value}
-                  vlamaxRun={effectiveCloudSnapshot?.vlamax_run ?? null}
-                  age={calculateAge(currentAthlete.birth_date)}
-                  objectif={currentAthlete.goal === "IM" ? "Ironman" : "70.3"}
-                  defaultCollapsed={false}
-                />
-              );
+              const isTriathlon = currentAthlete.goal === "IM" || currentAthlete.goal === "70.3" || currentAthlete.goal === "703";
+              const isRunning = currentAthlete.goal === "Marathon" || currentAthlete.goal === "Semi" || currentAthlete.goal === "10km";
+              
+              // Triathlon: comparaison Vélo vs CAP
+              if (isTriathlon) {
+                return (
+                  <VLamaxCombinedCard
+                    vlamaxBike={vlamaxEffectif.value}
+                    vlamaxRun={effectiveCloudSnapshot?.vlamax_run ?? null}
+                    age={calculateAge(currentAthlete.birth_date)}
+                    objectif={currentAthlete.goal === "IM" ? "Ironman" : "70.3"}
+                    defaultCollapsed={false}
+                  />
+                );
+              }
+              
+              // Course à pied: VLamax CAP détaillée, dépliée par défaut
+              if (isRunning) {
+                return (
+                  <VLamaxRunExplainedCard
+                    vlamax={vlamaxEffectif.value}
+                    age={calculateAge(currentAthlete.birth_date)}
+                    objectif={currentAthlete.goal || "Marathon"}
+                    defaultCollapsed={false}
+                  />
+                );
+              }
+              
+              return null;
             },
           },
           {

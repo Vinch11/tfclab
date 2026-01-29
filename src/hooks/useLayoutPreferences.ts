@@ -78,7 +78,7 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   // ⚡ Métriques VLamax/TTE
   { id: "compass", label: "Metabolic Compass", icon: "Compass", category: "metriques", defaultVisible: true },
   { id: "vlamax-bike-v2-enhanced", label: "VLamax Vélo — Analyse Détaillée", icon: "Zap", category: "metriques", defaultVisible: true },
-  { id: "vlamax-combined", label: "VLamax Vélo vs CAP (Triathlon)", icon: "GitCompare", category: "metriques", defaultVisible: true },
+  { id: "vlamax-combined", label: "VLamax Vélo/CAP (Comparaison)", icon: "GitCompare", category: "metriques", defaultVisible: true },
   { id: "ftp-targets", label: "FTP/kg — zones cibles", icon: "Target", category: "metriques", defaultVisible: true },
   { id: "vlamax-v2-calibration", label: "VLamax TFCL V2 (compact)", icon: "Zap", category: "metriques", defaultVisible: false },
   
