@@ -101,13 +101,13 @@ export function LorangStrategyCard({
           <div className="flex-1">
             <CardTitle className="text-lg flex items-center gap-2">
               <Brain className="h-5 w-5 text-primary" />
-              <span>Lorang Strategy Engine</span>
+              <span>TFCL Strategy Engine</span>
               <Badge variant="outline" className="text-[9px] font-normal">
                 TFCL Method™
               </Badge>
             </CardTitle>
             <p className="text-xs text-muted-foreground mt-1">
-              Stratégie d'entraînement basée sur la méthodologie Dan Lorang
+              Stratégie d'entraînement TFCL (inspirée Dan Lorang)
             </p>
           </div>
           

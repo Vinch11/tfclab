@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import {
   Target,
   AlertTriangle,
@@ -495,6 +496,8 @@ export function computeRaceReadinessSignature(input: RaceReadinessInput): RaceRe
 
 function MatrixChart({ result }: { result: RaceReadinessResult }) {
   const isMobile = useIsMobile();
+  // iPad (≤1024px) : on réduit aussi la densité des labels
+  const isCompact = useMediaQuery("(max-width: 1024px)");
   
   // Position du point (0-100 sur chaque axe)
   const pointX = result.potentialScore;
@@ -503,35 +506,50 @@ function MatrixChart({ result }: { result: RaceReadinessResult }) {
   // Zones de couleur (SVG)
   const zones = [
     // Rouge: bas-gauche
-    { x: 0, y: 0, width: 35, height: 35, color: "hsl(var(--destructive) / 0.3)" },
-    { x: 0, y: 35, width: 35, height: 25, color: "hsl(var(--destructive) / 0.3)" },
-    { x: 35, y: 0, width: 25, height: 35, color: "hsl(var(--destructive) / 0.3)" },
+    { x: 0, y: 0, width: 35, height: 35, color: "hsl(var(--destructive) / 0.28)" },
+    { x: 0, y: 35, width: 35, height: 25, color: "hsl(var(--destructive) / 0.28)" },
+    { x: 35, y: 0, width: 25, height: 35, color: "hsl(var(--destructive) / 0.28)" },
     
     // Orange: milieu-bas et bas-milieu
-    { x: 35, y: 35, width: 25, height: 25, color: "rgba(245, 158, 11, 0.3)" },
-    { x: 0, y: 60, width: 35, height: 20, color: "rgba(245, 158, 11, 0.3)" },
-    { x: 60, y: 0, width: 20, height: 35, color: "rgba(245, 158, 11, 0.3)" },
-    { x: 60, y: 35, width: 20, height: 25, color: "rgba(245, 158, 11, 0.3)" },
-    { x: 35, y: 60, width: 25, height: 20, color: "rgba(245, 158, 11, 0.3)" },
+    { x: 35, y: 35, width: 25, height: 25, color: "hsl(var(--warning) / 0.26)" },
+    { x: 0, y: 60, width: 35, height: 20, color: "hsl(var(--warning) / 0.26)" },
+    { x: 60, y: 0, width: 20, height: 35, color: "hsl(var(--warning) / 0.26)" },
+    { x: 60, y: 35, width: 20, height: 25, color: "hsl(var(--warning) / 0.26)" },
+    { x: 35, y: 60, width: 25, height: 20, color: "hsl(var(--warning) / 0.26)" },
     
     // Vert: centre-haut et milieu
-    { x: 0, y: 80, width: 35, height: 20, color: "rgba(34, 197, 94, 0.3)" },
-    { x: 35, y: 80, width: 25, height: 20, color: "rgba(34, 197, 94, 0.3)" },
-    { x: 60, y: 60, width: 20, height: 40, color: "rgba(34, 197, 94, 0.3)" },
-    { x: 80, y: 35, width: 20, height: 45, color: "rgba(34, 197, 94, 0.3)" },
-    { x: 80, y: 0, width: 20, height: 35, color: "rgba(245, 158, 11, 0.3)" },
+    { x: 0, y: 80, width: 35, height: 20, color: "hsl(var(--success) / 0.22)" },
+    { x: 35, y: 80, width: 25, height: 20, color: "hsl(var(--success) / 0.22)" },
+    { x: 60, y: 60, width: 20, height: 40, color: "hsl(var(--success) / 0.22)" },
+    { x: 80, y: 35, width: 20, height: 45, color: "hsl(var(--success) / 0.22)" },
+    { x: 80, y: 0, width: 20, height: 35, color: "hsl(var(--warning) / 0.26)" },
     
     // Bleu: haut-droite
-    { x: 80, y: 80, width: 20, height: 20, color: "rgba(59, 130, 246, 0.4)" },
+    { x: 80, y: 80, width: 20, height: 20, color: "hsl(var(--primary) / 0.22)" },
   ];
+
+  const xLabels = isMobile
+    ? (["Faible", "Élevé"] as const)
+    : isCompact
+      ? (["Faible", "Suffisant", "Élevé"] as const)
+      : (["Faible", "Suffisant", "Élevé", "Très élevé"] as const);
+
+  const yLabels = isMobile
+    ? (["Dispo", "Épuisé"] as const)
+    : isCompact
+      ? (["Très dispo", "Dispo", "Épuisé"] as const)
+      : (["Très Dispo", "Disponible", "Fragile", "Épuisé"] as const);
   
   return (
-    <div className={cn(
-      "relative w-full aspect-square mx-auto",
-      isMobile ? "max-w-[280px]" : "max-w-[400px]"
-    )}>
-      {/* SVG Matrix */}
-      <svg viewBox="0 0 100 100" className="w-full h-full">
+    <div
+      className={cn(
+        "w-full mx-auto",
+        isMobile ? "max-w-[280px]" : isCompact ? "max-w-[360px]" : "max-w-[400px]",
+      )}
+    >
+      <div className="relative w-full aspect-square">
+        {/* SVG Matrix */}
+        <svg viewBox="0 0 100 100" className="w-full h-full">
         {/* Background zones */}
         {zones.map((zone, i) => (
           <rect
@@ -576,49 +594,61 @@ function MatrixChart({ result }: { result: RaceReadinessResult }) {
           r={isMobile ? 2 : 1.5}
           className="fill-background"
         />
-      </svg>
-      
-      {/* Axis labels - simplifiés sur mobile */}
-      {isMobile ? (
-        <>
-          <div className="absolute bottom-0 left-0 right-0 flex justify-between text-[8px] text-muted-foreground px-0.5 -mb-4">
-            <span>Faible</span>
-            <span>Élevé</span>
-          </div>
-          <div className="absolute top-0 bottom-0 left-0 flex flex-col justify-between text-[8px] text-muted-foreground py-0.5 -ml-10 w-9 text-right">
-            <span>Dispo</span>
-            <span>Épuisé</span>
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="absolute bottom-0 left-0 right-0 flex justify-between text-[9px] text-muted-foreground px-1 -mb-5">
-            <span>Faible</span>
-            <span>Suffisant</span>
-            <span>Élevé</span>
-            <span>Très élevé</span>
-          </div>
-          <div className="absolute top-0 bottom-0 left-0 flex flex-col justify-between text-[9px] text-muted-foreground py-1 -ml-16 w-14 text-right">
-            <span>Très Dispo</span>
-            <span>Disponible</span>
-            <span>Fragile</span>
-            <span>Épuisé</span>
-          </div>
-        </>
-      )}
-      
-      {/* Axis titles - masqués sur mobile */}
-      {!isMobile && (
-        <>
-          <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 text-xs font-medium flex items-center gap-1">
-            <Activity className="h-3 w-3" />
-            <span>Potentiel Physiologique</span>
-          </div>
-          <div className="absolute top-1/2 -left-24 -translate-y-1/2 -rotate-90 text-xs font-medium flex items-center gap-1">
-            <Heart className="h-3 w-3" />
-            <span>Disponibilité</span>
-          </div>
-        </>
+        </svg>
+
+        {/* Y labels (Disponibilité) */}
+        <div
+          className={cn(
+            "absolute inset-y-0 flex flex-col justify-between text-muted-foreground",
+            isMobile
+              ? "left-1 py-1 text-[8px] text-left"
+              : isCompact
+                ? "left-0 -translate-x-full pr-2 w-12 py-1 text-[9px] text-right"
+                : "left-0 -translate-x-full pr-3 w-14 py-1 text-[9px] text-right",
+          )}
+        >
+          {yLabels.map((label) => (
+            <span key={label}>{label}</span>
+          ))}
+        </div>
+
+        {/* Axis titles (desktop only) */}
+        {!isCompact && (
+          <>
+            <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 text-xs font-medium flex items-center gap-1">
+              <Activity className="h-3 w-3" />
+              <span>Potentiel Physiologique</span>
+            </div>
+            <div className="absolute top-1/2 -left-24 -translate-y-1/2 -rotate-90 text-xs font-medium flex items-center gap-1">
+              <Heart className="h-3 w-3" />
+              <span>Disponibilité</span>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* X labels (Potentiel) */}
+      <div
+        className={cn(
+          "mt-2 flex justify-between text-muted-foreground",
+          isMobile ? "text-[8px] px-0.5" : "text-[9px] px-1",
+        )}
+      >
+        {xLabels.map((label) => (
+          <span key={label}>{label}</span>
+        ))}
+      </div>
+
+      {/* Axis titles (compact screens: iPad/iPhone) */}
+      {isCompact && (
+        <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground px-0.5">
+          <span className="flex items-center gap-1">
+            <Activity className="h-3 w-3" /> Potentiel
+          </span>
+          <span className="flex items-center gap-1">
+            <Heart className="h-3 w-3" /> Dispo
+          </span>
+        </div>
       )}
     </div>
   );
