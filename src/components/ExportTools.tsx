@@ -710,6 +710,7 @@ import {
   computeBasicSimulation,
   computeRaceSimulation,
   checkProModeEligibility,
+  normalizeRaceType,
   SIMULATION_DEFINITIONS,
   PDF_SIMULATION_BASIC_SECTION,
   PDF_SIMULATION_PRO_SECTION,
@@ -725,7 +726,8 @@ function buildRaceSimulationHTML(
   mode: SimulationMode = 'pro'
 ): string {
   const { effectiveSnapshot, effectiveRefs, vlamax, tte, raceReadiness } = payload;
-  const goal = (payload.athlete.goal || "IM") as RaceType;
+  // Normaliser le type de course pour éviter les erreurs
+  const goal = normalizeRaceType(payload.athlete.goal || "IM");
   
   // Check PRO eligibility
   const eligibility = checkProModeEligibility({
