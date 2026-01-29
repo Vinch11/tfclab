@@ -203,6 +203,34 @@ export interface StaffReport {
   vlamaxCombinedTriathlon: VLamaxCombinedTriathlonSection | null;
   trainingLeversSection: TrainingLeversSection;
   methodologyRecommendation: MethodologyRecommendationSection;
+  
+  // ✅ SECTION COMPARATIF VO2MAX AVEC/SANS ÂGE
+  vo2maxAgeComparison: VO2maxAgeComparisonSection;
+}
+
+// =============================================
+// INTERFACE VO2MAX AGE COMPARISON
+// =============================================
+
+export interface VO2maxAgeComparisonSection {
+  hasAgeAdjustment: boolean;
+  age: number | null;
+  ageFactor: number;
+  reductionPercent: number;
+  objectifLabel: string;
+  currentAmbition: string;
+  currentAmbitionLabel: string;
+  currentVo2max: number | null;
+  rows: {
+    ambition: string;
+    ambitionLabel: string;
+    emoji: string;
+    baseTarget: number;
+    adjustedTarget: number;
+    difference: number;
+    isCurrent: boolean;
+  }[];
+  explanation: string;
 }
 
 // =============================================
@@ -990,6 +1018,13 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     vlamaxCombinedTriathlon,
     trainingLeversSection,
     methodologyRecommendation,
+    // ✅ SECTION COMPARATIF VO2MAX AVEC/SANS ÂGE
+    vo2maxAgeComparison: generateVO2maxAgeComparisonSection({
+      objectif,
+      ambition,
+      age: athleteAge ?? null,
+      currentVo2max: null, // Could be added from params if available
+    }),
   };
 }
 
@@ -1989,5 +2024,74 @@ function generateMethodologyRecommendationSection(params: {
     keyPrinciples,
     alternativeApproaches,
     disclaimer: "Cette recommandation est basée sur le profil physiologique actuel. Elle doit être adaptée au contexte, à l'historique de l'athlète et aux contraintes de temps.",
+  };
+}
+
+// =============================================
+// VO2MAX AGE COMPARISON SECTION
+// =============================================
+
+import { 
+  getVo2maxTarget, 
+  getVo2maxAgeFactor 
+} from "@/lib/v2/unifiedLimiterDetection";
+
+const AMBITION_LABELS_REPORT: Record<string, { label: string; emoji: string }> = {
+  finisher: { label: "Finisher", emoji: "🎯" },
+  age_group: { label: "Age Group", emoji: "🏅" },
+  competitor: { label: "Compétiteur", emoji: "🥈" },
+  elite: { label: "Élite", emoji: "🏆" },
+};
+
+function generateVO2maxAgeComparisonSection(params: {
+  objectif: string;
+  ambition: AmbitionLevel;
+  age: number | null;
+  currentVo2max: number | null;
+}): VO2maxAgeComparisonSection {
+  const { objectif, ambition, age, currentVo2max } = params;
+  
+  const ageFactor = getVo2maxAgeFactor(age);
+  const hasAgeAdjustment = age !== null && age >= 30;
+  const reductionPercent = hasAgeAdjustment ? Math.round((1 - ageFactor) * 100) : 0;
+  
+  const ambitions = ["finisher", "age_group", "competitor", "elite"];
+  
+  const rows = ambitions.map((amb) => {
+    const baseTarget = getVo2maxTarget(objectif, amb, null); // Sans âge
+    const adjustedTarget = getVo2maxTarget(objectif, amb, age); // Avec âge
+    const difference = adjustedTarget - baseTarget;
+    const ambitionInfo = AMBITION_LABELS_REPORT[amb] || { label: amb, emoji: "📊" };
+
+    return {
+      ambition: amb,
+      ambitionLabel: ambitionInfo.label,
+      emoji: ambitionInfo.emoji,
+      baseTarget,
+      adjustedTarget,
+      difference,
+      isCurrent: amb === ambition,
+    };
+  });
+  
+  const explanation = hasAgeAdjustment
+    ? `Les cibles sont réduites de ${reductionPercent}% pour tenir compte du déclin naturel du VO₂max avec l'âge (${age} ans). Ces valeurs restent des objectifs ambitieux et réalistes.`
+    : age !== null
+      ? `À ${age} ans, les cibles VO₂max de référence s'appliquent sans ajustement (< 30 ans = référence).`
+      : "Aucune date de naissance renseignée — les cibles de référence < 30 ans s'appliquent.";
+
+  const currentAmbitionInfo = AMBITION_LABELS_REPORT[ambition] || { label: ambition, emoji: "📊" };
+  
+  return {
+    hasAgeAdjustment,
+    age,
+    ageFactor,
+    reductionPercent,
+    objectifLabel: getObjectifLabel(objectif),
+    currentAmbition: ambition,
+    currentAmbitionLabel: currentAmbitionInfo.label,
+    currentVo2max,
+    rows,
+    explanation,
   };
 }

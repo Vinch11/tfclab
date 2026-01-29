@@ -93,6 +93,9 @@ import { GettingStartedChecklist, useGettingStartedVisibility } from "@/componen
 // ✅ Page de configuration (thèmes, préférences)
 import { ConfigurationPage } from "@/components/ConfigurationPage";
 
+// ✅ VO2max Age Comparison Card
+import { VO2maxAgeComparisonCard } from "@/components/VO2maxAgeComparisonCard";
+
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1074,6 +1077,17 @@ const Index = () => {
               
               return null;
             },
+          },
+          {
+            id: "vo2max-age-comparison",
+            render: () => currentAthlete && (
+              <VO2maxAgeComparisonCard
+                objectif={currentAthlete.goal || "IM"}
+                age={calculateAge(currentAthlete.birth_date)}
+                currentVo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
+                ambition={currentAmbition}
+              />
+            ),
           },
           {
             id: "fatmax-tfcl",
