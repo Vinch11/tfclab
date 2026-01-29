@@ -66,6 +66,7 @@ export interface UnifiedLimiterInput {
   // Contexte
   objectif: string;
   ambition: AmbitionLevel;
+  age: number | null;               // Âge pour ajustement des cibles
 }
 
 export interface UnifiedGapAnalysis {
@@ -211,7 +212,7 @@ function getFatmaxTargets(objectif: string): { min: number; optimal: number } {
   return FATMAX_TARGETS[normalized] || FATMAX_TARGETS["703"];
 }
 
-// Cibles VO2max par objectif et ambition (ml/kg/min)
+// Cibles VO2max par objectif et ambition (ml/kg/min) — VALEURS DE RÉFÉRENCE < 30 ANS
 const VO2MAX_TARGETS: Record<string, Record<string, number>> = {
   IM: { finisher: 45, age_group: 52, competitor: 58, elite: 65 },
   "703": { finisher: 48, age_group: 55, competitor: 60, elite: 68 },
@@ -223,10 +224,50 @@ const VO2MAX_TARGETS: Record<string, Record<string, number>> = {
   Olympic: { finisher: 50, age_group: 58, competitor: 62, elite: 72 },
 };
 
-function getVo2maxTarget(objectif: string, ambition: string): number {
+/**
+ * Calcule le facteur d'ajustement VO2max par âge
+ * Basé sur le déclin physiologique naturel (~7-10% par décennie après 30 ans)
+ * 
+ * < 30 ans : 1.00 (référence)
+ * 30-39 ans : 0.95 (−5%)
+ * 40-49 ans : 0.88 (−12%)
+ * 50-59 ans : 0.80 (−20%)
+ * ≥ 60 ans : 0.72 (−28%)
+ */
+export function getVo2maxAgeFactor(age: number | null): number {
+  if (age === null || age < 30) return 1.0;
+  if (age < 40) return 0.95;
+  if (age < 50) return 0.88;
+  if (age < 60) return 0.80;
+  return 0.72;
+}
+
+/**
+ * Retourne un message explicatif sur l'ajustement VO2max par âge
+ */
+export function getVo2maxAgeAdjustmentLabel(age: number | null): string | null {
+  if (age === null || age < 30) return null;
+  const factor = getVo2maxAgeFactor(age);
+  const reductionPct = Math.round((1 - factor) * 100);
+  return `Cible ajustée à ${age} ans (−${reductionPct}% vs < 30 ans)`;
+}
+
+/**
+ * Retourne la cible VO2max ajustée selon objectif, ambition ET âge
+ * 
+ * Exemple: Elite Marathon
+ * - < 30 ans → 70 ml/kg/min
+ * - 40 ans → 70 × 0.88 = 61.6 ml/kg/min
+ * - 55 ans → 70 × 0.80 = 56 ml/kg/min
+ */
+export function getVo2maxTarget(objectif: string, ambition: string, age: number | null = null): number {
   const normalized = normalizeObjective(objectif);
   const targets = VO2MAX_TARGETS[normalized] || VO2MAX_TARGETS["703"];
-  return targets[ambition] || targets.age_group;
+  const baseTarget = targets[ambition] || targets.age_group;
+  
+  // Application du facteur âge
+  const ageFactor = getVo2maxAgeFactor(age);
+  return Math.round(baseTarget * ageFactor * 10) / 10; // Arrondi à 1 décimale
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -261,8 +302,8 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   });
   
   // 1b. Analyse VO2max (Capacité Aérobie) - séparée de FTP/kg
-  // Note: VO2max target estimée basée sur ambition et objectif
-  const vo2maxTarget = getVo2maxTarget(normalized, input.ambition);
+  // Note: VO2max target ajustée selon ambition, objectif ET âge
+  const vo2maxTarget = getVo2maxTarget(normalized, input.ambition, input.age);
   const vo2maxGap = input.vo2max !== null 
     ? (input.vo2max - vo2maxTarget) / vo2maxTarget 
     : 0;
