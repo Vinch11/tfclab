@@ -132,14 +132,9 @@ export function MetabolicPowerCurve({
   const data = useMemo(() => {
     const points: PowerDataPoint[] = [];
     
+    // Calculate all points first
     for (const duration of DURATION_POINTS) {
       const power = calculatePowerAtDuration(duration, vo2max, vlamax, weight, ftp);
-      
-      // Override 5s if actual pMax is provided
-      if (duration === 5 && pMax5s) {
-        power.totalPower = pMax5s;
-        power.anaerobicPower = pMax5s - power.aerobicPower;
-      }
       
       points.push({
         duration,
@@ -150,6 +145,42 @@ export function MetabolicPowerCurve({
         aerobicPct: Math.round((power.aerobicPower / power.totalPower) * 100),
         zone: getZoneFromDuration(duration)
       });
+    }
+    
+    // If pMax5s is provided, use it as the ceiling for all durations
+    // Power cannot increase with longer duration, so cap all values
+    if (pMax5s) {
+      // Override 5s with actual value
+      const p5sIndex = points.findIndex(p => p.duration === 5);
+      if (p5sIndex >= 0) {
+        points[p5sIndex].totalPower = pMax5s;
+        points[p5sIndex].anaerobicPower = Math.max(0, pMax5s - points[p5sIndex].aerobicPower);
+        points[p5sIndex].aerobicPct = Math.round((points[p5sIndex].aerobicPower / pMax5s) * 100);
+      }
+      
+      // Cap all shorter durations to pMax5s (they can't exceed peak power)
+      for (let i = 0; i < points.length; i++) {
+        if (points[i].totalPower > pMax5s) {
+          const ratio = pMax5s / points[i].totalPower;
+          points[i].totalPower = pMax5s;
+          points[i].aerobicPower = Math.round(points[i].aerobicPower * ratio);
+          points[i].anaerobicPower = pMax5s - points[i].aerobicPower;
+          points[i].aerobicPct = Math.round((points[i].aerobicPower / pMax5s) * 100);
+        }
+      }
+      
+      // Ensure power decreases monotonically with duration (can't go up)
+      for (let i = 1; i < points.length; i++) {
+        if (points[i].totalPower > points[i - 1].totalPower) {
+          // Cap to previous value
+          const prevTotal = points[i - 1].totalPower;
+          const ratio = prevTotal / points[i].totalPower;
+          points[i].totalPower = prevTotal;
+          points[i].aerobicPower = Math.min(points[i].aerobicPower, prevTotal);
+          points[i].anaerobicPower = prevTotal - points[i].aerobicPower;
+          points[i].aerobicPct = Math.round((points[i].aerobicPower / prevTotal) * 100);
+        }
+      }
     }
     
     return points;
