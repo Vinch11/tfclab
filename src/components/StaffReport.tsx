@@ -37,7 +37,12 @@ import {
   Crosshair,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { StaffReport as StaffReportType, generateStaffReport, GenerateStaffReportParams } from "@/lib/staffReport";
+import { 
+  StaffReport as StaffReportType, 
+  generateStaffReport, 
+  GenerateStaffReportParams,
+  VO2maxAgeComparisonSection as VO2maxAgeComparisonSectionType 
+} from "@/lib/staffReport";
 import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { TTEEffectif } from "@/lib/tteEffectif";
 import { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
@@ -322,6 +327,11 @@ export function StaffReport({
             />
           </div>
         </div>
+
+        <Separator />
+
+        {/* 2.4️⃣ CIBLES VO2MAX — COMPARATIF AVEC/SANS ÂGE */}
+        <VO2maxAgeComparisonSection section={report.vo2maxAgeComparison} />
 
         <Separator />
 
@@ -1288,6 +1298,113 @@ function ScenarioCardCompact({ scenario }: ScenarioCardCompactProps) {
           {riskIcon(scenario.risks.glycogenDepletion)} Glycogène
         </span>
       </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// VO2MAX AGE COMPARISON SECTION — Comparatif avec/sans ajustement d'âge
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function VO2maxAgeComparisonSection({ section }: { section: VO2maxAgeComparisonSectionType }) {
+  return (
+    <div className="print:break-inside-avoid">
+      <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+        <Activity className="h-4 w-4" />
+        CIBLES VO₂MAX — COMPARATIF AVEC/SANS ÂGE
+        {section.hasAgeAdjustment && (
+          <Badge variant="secondary" className="text-[10px] bg-amber-500/10 text-amber-600 border-amber-500/30">
+            <Calendar className="w-3 h-3 mr-1" />
+            {section.age} ans (−{section.reductionPercent}%)
+          </Badge>
+        )}
+      </h3>
+      
+      {/* Contexte */}
+      <div className="mb-4 p-3 rounded-lg bg-muted/30 border">
+        <p className="text-xs text-muted-foreground">{section.explanation}</p>
+      </div>
+      
+      {/* Tableau comparatif */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border">
+              <th className="text-left py-2 font-medium text-muted-foreground">Ambition</th>
+              <th className="text-center py-2 font-medium text-muted-foreground">Cible &lt;30 ans</th>
+              <th className="text-center py-2 font-medium text-muted-foreground">
+                Cible ajustée
+                {section.hasAgeAdjustment && <Calendar className="w-3 h-3 inline ml-1" />}
+              </th>
+              <th className="text-center py-2 font-medium text-muted-foreground">Δ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {section.rows.map((row) => (
+              <tr 
+                key={row.ambition}
+                className={cn(
+                  "border-b border-border/50",
+                  row.isCurrent && "bg-primary/5"
+                )}
+              >
+                <td className="py-2">
+                  <div className="flex items-center gap-2">
+                    <span>{row.emoji}</span>
+                    <span className={cn("font-medium", row.isCurrent && "text-primary")}>
+                      {row.ambitionLabel}
+                    </span>
+                    {row.isCurrent && (
+                      <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 bg-primary/10 text-primary border-primary/30">
+                        Actuel
+                      </Badge>
+                    )}
+                  </div>
+                </td>
+                <td className="text-center py-2 font-mono text-xs">
+                  {row.baseTarget} ml/kg/min
+                </td>
+                <td className="text-center py-2">
+                  <span className={cn(
+                    "font-mono text-xs font-semibold",
+                    section.hasAgeAdjustment ? "text-amber-600 dark:text-amber-400" : "text-foreground"
+                  )}>
+                    {row.adjustedTarget} ml/kg/min
+                  </span>
+                </td>
+                <td className="text-center py-2">
+                  {section.hasAgeAdjustment ? (
+                    <span className="font-mono text-[10px] text-amber-600 dark:text-amber-400">
+                      {row.difference > 0 ? "+" : ""}{row.difference.toFixed(1)}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-muted-foreground">—</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      
+      {/* VO2max actuel si disponible */}
+      {section.currentVo2max !== null && (
+        <div className="mt-3 p-3 bg-primary/10 rounded-lg border border-primary/30">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Activity className="w-4 h-4 text-primary" />
+              <span className="text-sm text-muted-foreground">VO₂max actuel</span>
+            </div>
+            <span className="font-mono font-bold text-primary">
+              {Math.round(section.currentVo2max)} ml/kg/min
+            </span>
+          </div>
+        </div>
+      )}
+      
+      <p className="text-[10px] text-muted-foreground mt-3 italic">
+        💡 "Le déclin naturel du VO₂max (~7-10%/décennie après 30 ans) est compensé pour maintenir des objectifs réalistes et motivants."
+      </p>
     </div>
   );
 }
