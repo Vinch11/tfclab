@@ -503,29 +503,33 @@ function MatrixChart({ result }: { result: RaceReadinessResult }) {
   const pointX = result.potentialScore;
   const pointY = result.availabilityScore;
   
-  // Zones de couleur (SVG)
+  // Zones de couleur (SVG) - couleurs alignées avec la légende
+  // Rouge (No-Go): red-500 = #ef4444
+  // Orange (Ajuster): amber-500 = #f59e0b
+  // Vert (Go): emerald-500 = #10b981
+  // Bleu (Ambitieux): sky-500 = #0ea5e9
   const zones = [
     // Rouge: bas-gauche
-    { x: 0, y: 0, width: 35, height: 35, color: "hsl(var(--destructive) / 0.28)" },
-    { x: 0, y: 35, width: 35, height: 25, color: "hsl(var(--destructive) / 0.28)" },
-    { x: 35, y: 0, width: 25, height: 35, color: "hsl(var(--destructive) / 0.28)" },
+    { x: 0, y: 0, width: 35, height: 35, color: "rgba(239, 68, 68, 0.35)" },
+    { x: 0, y: 35, width: 35, height: 25, color: "rgba(239, 68, 68, 0.35)" },
+    { x: 35, y: 0, width: 25, height: 35, color: "rgba(239, 68, 68, 0.35)" },
     
     // Orange: milieu-bas et bas-milieu
-    { x: 35, y: 35, width: 25, height: 25, color: "hsl(var(--warning) / 0.26)" },
-    { x: 0, y: 60, width: 35, height: 20, color: "hsl(var(--warning) / 0.26)" },
-    { x: 60, y: 0, width: 20, height: 35, color: "hsl(var(--warning) / 0.26)" },
-    { x: 60, y: 35, width: 20, height: 25, color: "hsl(var(--warning) / 0.26)" },
-    { x: 35, y: 60, width: 25, height: 20, color: "hsl(var(--warning) / 0.26)" },
+    { x: 35, y: 35, width: 25, height: 25, color: "rgba(245, 158, 11, 0.35)" },
+    { x: 0, y: 60, width: 35, height: 20, color: "rgba(245, 158, 11, 0.35)" },
+    { x: 60, y: 0, width: 20, height: 35, color: "rgba(245, 158, 11, 0.35)" },
+    { x: 60, y: 35, width: 20, height: 25, color: "rgba(245, 158, 11, 0.35)" },
+    { x: 35, y: 60, width: 25, height: 20, color: "rgba(245, 158, 11, 0.35)" },
     
     // Vert: centre-haut et milieu
-    { x: 0, y: 80, width: 35, height: 20, color: "hsl(var(--success) / 0.22)" },
-    { x: 35, y: 80, width: 25, height: 20, color: "hsl(var(--success) / 0.22)" },
-    { x: 60, y: 60, width: 20, height: 40, color: "hsl(var(--success) / 0.22)" },
-    { x: 80, y: 35, width: 20, height: 45, color: "hsl(var(--success) / 0.22)" },
-    { x: 80, y: 0, width: 20, height: 35, color: "hsl(var(--warning) / 0.26)" },
+    { x: 0, y: 80, width: 35, height: 20, color: "rgba(16, 185, 129, 0.35)" },
+    { x: 35, y: 80, width: 25, height: 20, color: "rgba(16, 185, 129, 0.35)" },
+    { x: 60, y: 60, width: 20, height: 40, color: "rgba(16, 185, 129, 0.35)" },
+    { x: 80, y: 35, width: 20, height: 45, color: "rgba(16, 185, 129, 0.35)" },
+    { x: 80, y: 0, width: 20, height: 35, color: "rgba(245, 158, 11, 0.35)" },
     
     // Bleu: haut-droite
-    { x: 80, y: 80, width: 20, height: 20, color: "hsl(var(--primary) / 0.22)" },
+    { x: 80, y: 80, width: 20, height: 20, color: "rgba(14, 165, 233, 0.35)" },
   ];
 
   const xLabels = isMobile
