@@ -15,6 +15,10 @@
  */
 
 import { METHOD_VERSION_DISPLAY } from './scientificGovernance';
+import { type AerobicWeaknessDetail } from './unifiedLimiterDetection';
+
+// Re-export pour usage externe
+export type { AerobicWeaknessDetail };
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES PRINCIPAUX
@@ -53,6 +57,8 @@ export interface LorangStrategyInput {
   physiology: {
     vo2max: number | null;
     vo2maxTarget: number;
+    ftpKg: number | null;        // FTP/kg (expression aérobie)
+    ftpKgTarget: number | null;  // Cible FTP/kg
     vlamax: number | null;
     vlamaxTarget: number;
     tte: number | null;
@@ -122,12 +128,17 @@ export interface LorangProhibitionRule {
   explanation: string;
 }
 
+
 export interface LorangStrategyResult {
   // Limiteur principal identifié
   primaryLimiter: LorangLimiter;
   limiterLabel: string;
   limiterIcon: string;
   limiterExplanation: string;
+  
+  // Détail faiblesse aérobie (si limiteur = motor)
+  aerobicWeaknessDetail: AerobicWeaknessDetail;
+  aerobicWeaknessLabel: string | null;
   
   // Leviers activés (max 3)
   activatedLevers: LorangLeverActivation[];
@@ -294,6 +305,85 @@ export const PROHIBITION_DEFINITIONS: Record<LorangProhibition, {
     reason: "Risque RED-S ou fatigue excessive dans ce contexte",
   },
 };
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CIBLES FTP/KG PAR OBJECTIF ET AMBITION (pour détection faiblesse aérobie)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const FTP_KG_TARGETS: Record<string, Record<string, number>> = {
+  IM:       { finisher: 2.5, age_group: 3.0, competitor: 3.5, elite: 4.0 },
+  '703':    { finisher: 2.8, age_group: 3.2, competitor: 3.8, elite: 4.3 },
+  marathon: { finisher: 2.0, age_group: 2.5, competitor: 3.0, elite: 3.5 },
+  semi:     { finisher: 2.2, age_group: 2.7, competitor: 3.2, elite: 3.7 },
+  '10k':    { finisher: 2.5, age_group: 3.0, competitor: 3.5, elite: 4.0 },
+  cycling:  { finisher: 3.0, age_group: 3.5, competitor: 4.0, elite: 4.5 },
+  trail:    { finisher: 2.2, age_group: 2.7, competitor: 3.2, elite: 3.7 },
+};
+
+function getFtpKgTarget(discipline: string, ambition: string): number {
+  return FTP_KG_TARGETS[discipline]?.[ambition] ?? FTP_KG_TARGETS['703'][ambition] ?? 3.0;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ANALYSE FAIBLESSE AÉROBIE (VO2max vs FTP/kg)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function computeAerobicWeaknessDetail(
+  input: LorangStrategyInput,
+  limiter: LorangLimiter
+): { detail: AerobicWeaknessDetail; label: string | null } {
+  // Uniquement pertinent si le limiteur est "motor"
+  if (limiter !== 'motor') {
+    return { detail: 'none', label: null };
+  }
+
+  const { physiology, athlete } = input;
+  const vo2max = physiology.vo2max;
+  const ftpKg = physiology.ftpKg;
+  const vo2maxTarget = physiology.vo2maxTarget;
+  const ftpKgTarget = physiology.ftpKgTarget ?? getFtpKgTarget(athlete.discipline, athlete.ambition);
+
+  // Calcul des gaps
+  const vo2maxGap = vo2max !== null ? (vo2max - vo2maxTarget) / vo2maxTarget : null;
+  const ftpKgGap = ftpKg !== null && ftpKgTarget > 0 
+    ? (ftpKg - ftpKgTarget) / ftpKgTarget 
+    : null;
+
+  // Seuils: -10% = limite acceptable, en dessous = faiblesse
+  const vo2maxLow = vo2maxGap !== null && vo2maxGap < -0.1;
+  const ftpKgLow = ftpKgGap !== null && ftpKgGap < -0.1;
+
+  if (vo2maxLow && ftpKgLow) {
+    return {
+      detail: 'both_low',
+      label: 'Capacité aérobie (VO₂max) ET expression aérobie (FTP/kg) insuffisantes',
+    };
+  }
+
+  if (vo2maxLow) {
+    return {
+      detail: 'vo2max_low',
+      label: 'Capacité aérobie (VO₂max) insuffisante — plafond trop bas',
+    };
+  }
+
+  if (ftpKgLow) {
+    return {
+      detail: 'ftp_kg_low',
+      label: 'Expression aérobie (FTP/kg) insuffisante — rendement limité',
+    };
+  }
+
+  // Si données manquantes mais limiteur moteur identifié
+  if (vo2maxGap === null && ftpKgGap === null) {
+    return {
+      detail: 'none',
+      label: 'Données insuffisantes pour préciser la faiblesse aérobie',
+    };
+  }
+
+  return { detail: 'none', label: null };
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // LOGIQUE D'IDENTIFICATION DU LIMITEUR
@@ -729,21 +819,24 @@ export function computeLorangStrategy(input: LorangStrategyInput): LorangStrateg
   const limiterResult = identifyPrimaryLimiter(input);
   const limiterDef = LIMITER_DEFINITIONS[limiterResult.limiter];
   
-  // 2. Activation des leviers
+  // 2. Calcul du détail de faiblesse aérobie (si limiteur = motor)
+  const aerobicAnalysis = computeAerobicWeaknessDetail(input, limiterResult.limiter);
+  
+  // 3. Activation des leviers
   const activatedLevers = activateLevers(input, limiterResult.limiter);
   
-  // 3. Calcul des interdictions
+  // 4. Calcul des interdictions
   const prohibitions = computeProhibitions(input, limiterResult.limiter, activatedLevers);
   const hasSprintBan = prohibitions.some(p => p.prohibition === 'sprints');
   
-  // 4. Suggestion template
+  // 5. Suggestion template
   const templateSuggestion = suggestTemplateWeek(
     limiterResult.limiter, 
     activatedLevers, 
     input.context
   );
   
-  // 5. Synthèse
+  // 6. Synthèse
   const primaryLever = activatedLevers[0];
   const summary = {
     mainAction: primaryLever 
@@ -755,19 +848,27 @@ export function computeLorangStrategy(input: LorangStrategyInput): LorangStrateg
       : "Aucune contre-indication majeure",
   };
   
-  // 6. Message athlète
+  // 7. Message athlète
   const athleteMessage = generateAthleteMessage(limiterResult.limiter, activatedLevers, hasSprintBan);
   
-  // 7. Confiance globale
+  // 8. Confiance globale
   const confidenceLabel = limiterResult.confidence === 'high' ? "Élevée"
     : limiterResult.confidence === 'moderate' ? "Modérée"
     : "Faible";
+  
+  // 9. Explication enrichie pour limiteur moteur
+  const enrichedExplanation = limiterResult.limiter === 'motor' && aerobicAnalysis.label
+    ? `${limiterDef.description} → ${aerobicAnalysis.label}`
+    : limiterDef.description;
   
   return {
     primaryLimiter: limiterResult.limiter,
     limiterLabel: limiterDef.label,
     limiterIcon: limiterDef.icon,
-    limiterExplanation: limiterDef.description,
+    limiterExplanation: enrichedExplanation,
+    
+    aerobicWeaknessDetail: aerobicAnalysis.detail,
+    aerobicWeaknessLabel: aerobicAnalysis.label,
     
     activatedLevers,
     

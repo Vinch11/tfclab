@@ -1598,6 +1598,10 @@ const Index = () => {
                 physiology: {
                   vo2max: effectiveCloudSnapshot?.vo2max ?? null,
                   vo2maxTarget,
+                  ftpKg: effectiveCloudSnapshot?.ftp && effectiveCloudSnapshot?.weight_kg
+                    ? effectiveCloudSnapshot.ftp / effectiveCloudSnapshot.weight_kg
+                    : null,
+                  ftpKgTarget: null, // Sera calculé automatiquement par le moteur
                   vlamax: vlamaxEffectif.value,
                   vlamaxTarget,
                   tte: tteEffectif.tte_min,
