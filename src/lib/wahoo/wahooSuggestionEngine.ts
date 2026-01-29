@@ -290,7 +290,9 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
   const hasLowCRR = CRR.value !== null && CRR.value < 250;
   
   // Handle low CRR based on justification
-  if (hasLowCRR && lowCRRJustification) {
+  // IMPORTANT: En mode forceDevelopmentMode, on ignore les justifications qui déclenchent la récupération
+  // sauf si la fatigue est vraiment sévère (déjà capturée par needsSevereRecovery ci-dessus)
+  if (hasLowCRR && lowCRRJustification && !forceDevelopmentMode) {
     switch (lowCRRJustification) {
       case "decharge":
         // Deload week: light recovery suggestions
@@ -319,6 +321,10 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
         // Don't add any need based on CRR - will use other physiological priorities
         break;
     }
+  } else if (hasLowCRR && lowCRRJustification && forceDevelopmentMode) {
+    // En mode forceDevelopmentMode, on note que la justification est ignorée
+    const msg = `Mode développement actif → justification CRR (${lowCRRJustification}) ignorée, priorité au développement.`;
+    rationale.push(msg);
   }
   
   // Endurance base check (only if not already in recovery and CRR not justified as faible_adherence)
