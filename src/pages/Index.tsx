@@ -579,23 +579,20 @@ const Index = () => {
 
   const renderAthleteSelector = () => (
     <Card className="border-border/50">
-      <CardHeader className="pb-2 sm:pb-3">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-          <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-            <User className="h-4 w-4 sm:h-5 sm:w-5" />
-            Athlète
-          </CardTitle>
-          <div className="flex items-center gap-2">
+      <CardContent className="py-3 px-3 sm:px-4">
+        {athletes.length === 0 ? (
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground text-sm">Aucun athlète</span>
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" variant="outline" className="h-8 text-xs sm:text-sm">
-                  <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
+                <Button size="sm" variant="outline" className="h-8">
+                  <Plus className="h-3.5 w-3.5 mr-1" />
                   Ajouter
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-[90vw] sm:max-w-md">
                 <DialogHeader>
-                  <DialogTitle className="text-base sm:text-lg">Nouvel athlète</DialogTitle>
+                  <DialogTitle>Nouvel athlète</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 pt-4">
                   <div>
@@ -616,9 +613,6 @@ const Index = () => {
                       max={new Date().toISOString().split("T")[0]}
                       className="mt-1"
                     />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Utilisée pour ajuster les cibles physiologiques
-                    </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium">Objectif</label>
@@ -634,85 +628,44 @@ const Index = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button onClick={handleAddAthlete} className="w-full">
-                    Créer l'athlète
-                  </Button>
+                  <Button onClick={handleAddAthlete} className="w-full">Créer</Button>
                 </div>
               </DialogContent>
             </Dialog>
-
-            {athletes.length > 0 && (
-              <Button size="sm" variant="ghost" onClick={handleDeleteAthlete} className="h-8 w-8 p-0">
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
-            )}
           </div>
-        </div>
-      </CardHeader>
-
-      <CardContent className="pt-0">
-        {athletes.length === 0 ? (
-          <p className="text-muted-foreground text-xs sm:text-sm">Aucun athlète. Cliquez sur Ajouter pour commencer.</p>
         ) : (
           <div className="space-y-2">
-            <Select value={selectedAthleteId || ""} onValueChange={setSelectedAthleteId}>
-              <SelectTrigger className="h-9 sm:h-10 text-sm">
-                <SelectValue placeholder="Sélectionner un athlète" />
-              </SelectTrigger>
-              <SelectContent>
-                {athletes.map((a) => (
-                  <SelectItem key={a.id} value={a.id}>
-                    {a.nom} ({a.objectif || "IM"})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {/* Ligne principale : Sélecteur + Ambition + Actions */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Sélecteur athlète */}
+              <Select value={selectedAthleteId || ""} onValueChange={setSelectedAthleteId}>
+                <SelectTrigger className="h-9 w-auto min-w-[140px] max-w-[200px] text-sm">
+                  <User className="h-3.5 w-3.5 mr-1.5 text-muted-foreground shrink-0" />
+                  <SelectValue placeholder="Athlète" />
+                </SelectTrigger>
+                <SelectContent>
+                  {athletes.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      {a.nom} ({a.objectif || "IM"})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-            {/* Affichage âge + AAI */}
-            {currentAthlete && (
-              <AgeAdjustmentBadge birthDate={currentAthlete.birth_date} variant="inline" />
-            )}
+              {/* Badge âge compact */}
+              {currentAthlete && (
+                <AgeAdjustmentBadge birthDate={currentAthlete.birth_date} variant="inline" />
+              )}
 
-            {/* Mode Staff toggle supprimé ici — utiliser uniquement le toggle global du header */}
-
-            {/* Mini aperçu progression ambition + sélecteur ambition */}
-            {currentAthlete && (
-              <div className="rounded-xl border bg-muted/20 p-3 space-y-3">
-                {/* Header avec mini-aperçu */}
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <Star className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium">Ambition</span>
-                  </div>
-                  
-                  {/* Mini aperçu de la progression */}
-                  <AmbitionProgressMini
-                    snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id)}
-                    objectif={currentAthlete.goal || "IM"}
-                    ambition={currentAmbition}
-                    weightKg={effectiveRefs.weightKg}
-                    onClick={() => {
-                      // Scroll vers la section ambition-progress
-                      const el = document.getElementById("section-ambition-progress");
-                      if (el) {
-                        el.scrollIntoView({ behavior: "smooth", block: "start" });
-                      }
-                    }}
-                    onMetricClick={(sectionId) => {
-                      const el = document.getElementById(`section-${sectionId}`);
-                      if (el) {
-                        el.scrollIntoView({ behavior: "smooth", block: "start" });
-                      }
-                    }}
-                  />
-                </div>
-
+              {/* Sélecteur ambition compact */}
+              {currentAthlete && (
                 <Select
                   value={currentAmbition}
                   onValueChange={(v) => updateCurrentAthleteAmbition(v as AmbitionLevel)}
                 >
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="Choisir un niveau" />
+                  <SelectTrigger className="h-9 w-auto min-w-[130px] max-w-[160px] text-sm">
+                    <Star className="h-3.5 w-3.5 mr-1.5 text-primary shrink-0" />
+                    <SelectValue placeholder="Ambition" />
                   </SelectTrigger>
                   <SelectContent>
                     {AMBITION_LEVELS_ORDERED.map((level) => {
@@ -725,12 +678,88 @@ const Index = () => {
                     })}
                   </SelectContent>
                 </Select>
+              )}
 
-                <p className="text-xs text-muted-foreground">
-                  Les cibles VLamax, TTE et FTP/kg ainsi que les recommandations s'ajustent selon ce niveau.
-                </p>
+              {/* Mini aperçu progression */}
+              {currentAthlete && (
+                <AmbitionProgressMini
+                  snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id)}
+                  objectif={currentAthlete.goal || "IM"}
+                  ambition={currentAmbition}
+                  weightKg={effectiveRefs.weightKg}
+                  onClick={() => {
+                    const el = document.getElementById("section-ambition-progress");
+                    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                  onMetricClick={(sectionId) => {
+                    const el = document.getElementById(`section-${sectionId}`);
+                    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                />
+              )}
+
+              {/* Spacer pour pousser les actions à droite */}
+              <div className="flex-1" />
+
+              {/* Actions compactes */}
+              <div className="flex items-center gap-1">
+                <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-[90vw] sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Nouvel athlète</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-4">
+                      <div>
+                        <label className="text-sm font-medium">Nom</label>
+                        <Input
+                          value={newAthleteName}
+                          onChange={(e) => setNewAthleteName(e.target.value)}
+                          placeholder="Nom de l'athlète"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Date de naissance</label>
+                        <Input
+                          type="date"
+                          value={newAthleteBirthDate}
+                          onChange={(e) => setNewAthleteBirthDate(e.target.value)}
+                          max={new Date().toISOString().split("T")[0]}
+                          className="mt-1"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Pour ajuster les cibles physiologiques
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Objectif</label>
+                        <Select value={newAthleteGoal} onValueChange={setNewAthleteGoal}>
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="IM">Ironman</SelectItem>
+                            <SelectItem value="703">70.3 / Half</SelectItem>
+                            <SelectItem value="Marathon">Marathon</SelectItem>
+                            <SelectItem value="Semi">Semi-Marathon</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Button onClick={handleAddAthlete} className="w-full">Créer</Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                <Button size="sm" variant="ghost" onClick={handleDeleteAthlete} className="h-8 w-8 p-0">
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
               </div>
-            )}
+            </div>
           </div>
         )}
       </CardContent>
