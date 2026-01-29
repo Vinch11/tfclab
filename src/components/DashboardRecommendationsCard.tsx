@@ -3,7 +3,7 @@
  * Affiche les suggestions prioritaires avec un lien vers la bibliothèque complète
  */
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -83,12 +83,10 @@ export function DashboardRecommendationsCard({
     activeSnapshot?.force_development_mode ?? false
   );
 
-  // Sync local state when active snapshot changes
-  useMemo(() => {
+  // Sync local state when active snapshot changes (use useEffect, not useMemo)
+  useEffect(() => {
     const persistedValue = activeSnapshot?.force_development_mode ?? false;
-    if (persistedValue !== forceDevelopmentMode) {
-      setForceDevelopmentMode(persistedValue);
-    }
+    setForceDevelopmentMode(persistedValue);
   }, [activeSnapshot?.id, activeSnapshot?.force_development_mode]);
 
   // Handler to update force development mode and persist to database
