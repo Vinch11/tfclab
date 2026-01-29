@@ -21,7 +21,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
-import { Settings2, GripVertical, Check, X, Eye, EyeOff } from "lucide-react";
+import { Settings2, GripVertical, Check, X, Eye, EyeOff, RotateCcw } from "lucide-react";
 import { SortableSectionWrapper } from "./SortableSectionWrapper";
 import { LayoutConfigModal } from "./LayoutConfigModal";
 import { 
@@ -54,7 +54,7 @@ export function SortableSectionsContainer({
   const { 
     getSectionConfigs, 
     setSectionConfigs, 
-    getVisibleSections 
+    resetToDefault,
   } = useLayoutPreferences();
   const [isEditMode, setIsEditMode] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -114,6 +114,13 @@ export function SortableSectionsContainer({
     setIsEditMode(false);
     setTempConfigs([]);
     toast.success("Disposition sauvegardée");
+  };
+
+  const resetLayout = async () => {
+    await resetToDefault(tabId);
+    setIsEditMode(false);
+    setTempConfigs([]);
+    toast.success("Disposition réinitialisée");
   };
 
   // Toggle visibilité d'une section en mode édition
@@ -217,20 +224,41 @@ export function SortableSectionsContainer({
           items={displayOrder}
           strategy={verticalListSortingStrategy}
         >
-          <div className="space-y-6">
-            {orderedSections.map(section => (
-              <SortableSectionWrapper
-                key={section.id}
-                id={section.id}
-                isEditMode={isEditMode}
-                label={getSectionLabel(section.id)}
-                isVisible={isSectionVisible(section.id)}
-                onToggleVisibility={() => toggleVisibility(section.id)}
-              >
-                {section.render()}
-              </SortableSectionWrapper>
-            ))}
-          </div>
+          {orderedSections.length === 0 && !isEditMode ? (
+            <div className="rounded-lg border border-dashed border-border p-6 sm:p-8 text-center">
+              <p className="text-sm font-medium text-foreground">
+                Aucune section visible
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Toutes les sections de cet onglet sont masquées (ou non disponibles).
+              </p>
+              <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-2">
+                <Button variant="outline" size="sm" onClick={enterEditMode} className="gap-1.5">
+                  <GripVertical className="h-4 w-4" />
+                  Gérer les sections
+                </Button>
+                <Button variant="ghost" size="sm" onClick={resetLayout} className="gap-1.5">
+                  <RotateCcw className="h-4 w-4" />
+                  Réinitialiser
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {orderedSections.map(section => (
+                <SortableSectionWrapper
+                  key={section.id}
+                  id={section.id}
+                  isEditMode={isEditMode}
+                  label={getSectionLabel(section.id)}
+                  isVisible={isSectionVisible(section.id)}
+                  onToggleVisibility={() => toggleVisibility(section.id)}
+                >
+                  {section.render()}
+                </SortableSectionWrapper>
+              ))}
+            </div>
+          )}
         </SortableContext>
       </DndContext>
 
