@@ -7,11 +7,12 @@ import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
-  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, 
+  AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, 
   ReferenceLine, CartesianGrid, Legend
 } from "recharts";
-import { Zap, Timer, Flame, Target } from "lucide-react";
+import { Zap, Timer, Flame, Target, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface MetabolicPowerCurveProps {
   vo2max: number;       // ml/kg/min
@@ -269,11 +270,28 @@ export function MetabolicPowerCurve({
             <div className="text-[9px] text-muted-foreground">P5' (MAP)</div>
             <div className="text-[9px] text-blue-400">{p5min.aerobicPct}% Aér</div>
           </div>
-          <div className="bg-green-500/10 rounded-lg p-2 text-center">
-            <div className="text-lg font-bold text-green-500 font-mono">{ftp || p20min.totalPower}</div>
-            <div className="text-[9px] text-muted-foreground">{ftp ? 'FTP mesuré' : 'P20\' (est.)'}</div>
-            <div className="text-[9px] text-blue-400">{p20min.aerobicPct}% Aér</div>
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="bg-green-500/10 rounded-lg p-2 text-center cursor-help relative">
+                  <Info className="h-3 w-3 absolute top-1 right-1 text-muted-foreground" />
+                  <div className="text-lg font-bold text-green-500 font-mono">{ftp || p20min.totalPower}</div>
+                  <div className="text-[9px] text-muted-foreground">{ftp ? 'FTP mesuré' : 'P20\' (est.)'}</div>
+                  <div className="text-[9px] text-blue-400">{p20min.aerobicPct}% Aér</div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-xs text-xs">
+                <p className="font-semibold mb-1">FTP mesuré vs P20' estimé</p>
+                <p className="text-muted-foreground">
+                  <strong>FTP mesuré</strong> : puissance réelle maintenue 20-60min en test terrain ou labo.
+                </p>
+                <p className="text-muted-foreground mt-1">
+                  <strong>P20' estimé</strong> : puissance théorique calculée par le modèle métabolique (VO₂max × VLamax).
+                  Peut différer du FTP réel de ±5-10%.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           <div className="bg-blue-500/10 rounded-lg p-2 text-center">
             <div className="text-lg font-bold text-blue-500 font-mono">{p60min.totalPower}</div>
             <div className="text-[9px] text-muted-foreground">P60'</div>
@@ -316,7 +334,7 @@ export function MetabolicPowerCurve({
                 tickFormatter={(v) => `${v}W`}
                 domain={['dataMin - 50', 'dataMax + 50']}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <RechartsTooltip content={<CustomTooltip />} />
               <Legend 
                 verticalAlign="top"
                 height={30}
