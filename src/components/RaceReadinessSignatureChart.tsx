@@ -665,11 +665,20 @@ export function RaceReadinessSignatureChart({
 }: RaceReadinessSignatureChartProps) {
   const result = useMemo(() => computeRaceReadinessSignature(input), [input]);
   
-  const zoneStyles: Record<DecisionZone, string> = {
-    red: "bg-destructive/10 border-destructive/30",
-    orange: "bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-700",
-    green: "bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-700",
-    blue: "bg-blue-50 dark:bg-blue-950/30 border-blue-300 dark:border-blue-700",
+  // Styles pour la Decision Card (fond doux)
+  const cardStyles: Record<DecisionZone, string> = {
+    red: "bg-red-100 dark:bg-red-950/40 border-red-400 dark:border-red-700",
+    orange: "bg-amber-100 dark:bg-amber-950/40 border-amber-400 dark:border-amber-700",
+    green: "bg-emerald-100 dark:bg-emerald-950/40 border-emerald-400 dark:border-emerald-700",
+    blue: "bg-sky-100 dark:bg-sky-950/40 border-sky-400 dark:border-sky-700",
+  };
+  
+  // Styles vibrantes et distinctes pour la légende
+  const legendStyles: Record<DecisionZone, string> = {
+    red: "bg-red-500",
+    orange: "bg-amber-500",
+    green: "bg-emerald-500",
+    blue: "bg-sky-500",
   };
   
   const zoneIcons: Record<DecisionZone, React.ReactNode> = {
@@ -720,17 +729,17 @@ export function RaceReadinessSignatureChart({
           <div className="flex flex-col items-center">
             <MatrixChart result={result} />
             
-            {/* Legend */}
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
+            {/* Legend - Couleurs vibrantes et distinctes */}
+            <div className="mt-8 flex flex-wrap justify-center gap-4">
               {[
-                { zone: 'red' as DecisionZone, label: 'No-Go' },
-                { zone: 'orange' as DecisionZone, label: 'Ajuster' },
-                { zone: 'green' as DecisionZone, label: 'Go' },
-                { zone: 'blue' as DecisionZone, label: 'Ambitieux' },
-              ].map(({ zone, label }) => (
-                <div key={zone} className="flex items-center gap-1.5 text-[10px]">
-                  <div className={cn("w-3 h-3 rounded-sm", zoneStyles[zone].split(' ')[0])} />
-                  <span>{label}</span>
+                { zone: 'red' as DecisionZone, label: 'No-Go', icon: '❌' },
+                { zone: 'orange' as DecisionZone, label: 'Ajuster', icon: '⚠️' },
+                { zone: 'green' as DecisionZone, label: 'Go', icon: '✅' },
+                { zone: 'blue' as DecisionZone, label: 'Ambitieux', icon: '🚀' },
+              ].map(({ zone, label, icon }) => (
+                <div key={zone} className="flex items-center gap-2 text-xs font-medium">
+                  <div className={cn("w-4 h-4 rounded-md shadow-sm", legendStyles[zone])} />
+                  <span className="text-foreground">{icon} {label}</span>
                 </div>
               ))}
             </div>
@@ -741,7 +750,7 @@ export function RaceReadinessSignatureChart({
             {/* Decision Card */}
             <div className={cn(
               "p-4 rounded-xl border-2",
-              zoneStyles[result.decisionZone]
+              cardStyles[result.decisionZone]
             )}>
               <div className="flex items-center gap-3 mb-3">
                 {zoneIcons[result.decisionZone]}
