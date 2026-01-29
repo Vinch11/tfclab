@@ -270,8 +270,8 @@ export function MetabolicPowerCurve({
             <div className="text-[9px] text-blue-400">{p5min.aerobicPct}% Aér</div>
           </div>
           <div className="bg-green-500/10 rounded-lg p-2 text-center">
-            <div className="text-lg font-bold text-green-500 font-mono">{p20min.totalPower}</div>
-            <div className="text-[9px] text-muted-foreground">P20' (FTP)</div>
+            <div className="text-lg font-bold text-green-500 font-mono">{ftp || p20min.totalPower}</div>
+            <div className="text-[9px] text-muted-foreground">{ftp ? 'FTP mesuré' : 'P20\' (est.)'}</div>
             <div className="text-[9px] text-blue-400">{p20min.aerobicPct}% Aér</div>
           </div>
           <div className="bg-blue-500/10 rounded-lg p-2 text-center">
