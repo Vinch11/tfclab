@@ -5865,34 +5865,52 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       return;
     }
     
-    // Convert logo to base64 for embedding in the PDF
-    const logoBase64 = await imageToBase64(logoUrl);
-    
-    const exportOptions: ExportOptions = {
-      includeWahooSuggestions: sections.wahoo,
-      sections
-    };
-    
-    const html = buildStaffGradeReportHTML(payload, logoBase64, exportOptions);
-    
-    // Méthode alternative sans popup: créer un blob et télécharger
-    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    
-    // Créer un lien de téléchargement
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `rapport-staff-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.html`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    // Nettoyer l'URL blob après un délai
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    
-    toast.success("Rapport téléchargé", {
-      description: "Ouvrez le fichier HTML et utilisez Imprimer > Enregistrer en PDF."
-    });
+    try {
+      // Convert logo to base64 for embedding in the PDF
+      const logoBase64 = await imageToBase64(logoUrl);
+      
+      const exportOptions: ExportOptions = {
+        includeWahooSuggestions: sections.wahoo,
+        sections
+      };
+      
+      const html = buildStaffGradeReportHTML(payload, logoBase64, exportOptions);
+      
+      // Méthode alternative sans popup: créer un blob et télécharger
+      const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      
+      // Créer un lien de téléchargement
+      const link = document.createElement("a");
+      link.href = url;
+      const fileName = `rapport-staff-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.html`;
+      link.download = fileName;
+      
+      // Pour iOS Safari: ouvrir dans un nouvel onglet au lieu de télécharger
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      if (isIOS) {
+        // Sur iOS, ouvrir le blob directement dans un nouvel onglet
+        window.open(url, '_blank');
+        toast.success("Rapport ouvert", {
+          description: "Utilisez Partager > Enregistrer en fichiers pour sauvegarder le rapport."
+        });
+      } else {
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success("Rapport téléchargé", {
+          description: "Ouvrez le fichier HTML et utilisez Imprimer > Enregistrer en PDF."
+        });
+      }
+      
+      // Nettoyer l'URL blob après un délai
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } catch (error) {
+      console.error("Erreur lors de l'export PDF:", error);
+      toast.error("Erreur d'export", { 
+        description: error instanceof Error ? error.message : "Une erreur est survenue lors de la génération du rapport." 
+      });
+    }
   };
 
   const handleExportAthletePDF = async () => {
@@ -5901,24 +5919,41 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       return;
     }
     
-    const logoBase64 = await imageToBase64(logoUrl);
-    const html = buildAthleteReportHTML(payload, logoBase64);
-    
-    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `mon-etat-de-forme-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.html`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    
-    toast.success("Rapport Athlète téléchargé", {
-      description: "Un rapport simplifié et encourageant pour l'athlète."
-    });
+    try {
+      const logoBase64 = await imageToBase64(logoUrl);
+      const html = buildAthleteReportHTML(payload, logoBase64);
+      
+      const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      
+      const fileName = `mon-etat-de-forme-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.html`;
+      
+      // Pour iOS Safari: ouvrir dans un nouvel onglet au lieu de télécharger
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      if (isIOS) {
+        window.open(url, '_blank');
+        toast.success("Rapport ouvert", {
+          description: "Utilisez Partager > Enregistrer en fichiers pour sauvegarder le rapport."
+        });
+      } else {
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success("Rapport Athlète téléchargé", {
+          description: "Un rapport simplifié et encourageant pour l'athlète."
+        });
+      }
+      
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } catch (error) {
+      console.error("Erreur lors de l'export Athlète:", error);
+      toast.error("Erreur d'export", { 
+        description: error instanceof Error ? error.message : "Une erreur est survenue lors de la génération du rapport." 
+      });
+    }
   };
 
   const toggleSection = (key: keyof ReportSections) => {
