@@ -34,6 +34,13 @@ export type UnifiedLimiter =
   | "neuromuscular"       // Économie / force
   | "none";               // Profil équilibré
 
+// Sous-type pour préciser la faiblesse aérobie
+export type AerobicWeaknessDetail = 
+  | "vo2max_low"          // Capacité aérobie (plafond) insuffisante
+  | "ftp_kg_low"          // Expression aérobie (puissance/poids) insuffisante
+  | "both_low"            // Les deux sont limitants
+  | "none";               // Pas de faiblesse aérobie
+
 export type UnifiedLever = 
   | "increase_vo2max"
   | "decrease_vlamax"
@@ -78,6 +85,10 @@ export interface UnifiedLimiterResult {
   limiterLabel: string;
   limiterEmoji: string;
   limiterExplanation: string;
+  
+  // Détail faiblesse aérobie (si applicable)
+  aerobicWeaknessDetail: AerobicWeaknessDetail;
+  aerobicWeaknessLabel: string | null;
   
   // Levier prioritaire
   primaryLever: UnifiedLever;
@@ -200,6 +211,24 @@ function getFatmaxTargets(objectif: string): { min: number; optimal: number } {
   return FATMAX_TARGETS[normalized] || FATMAX_TARGETS["703"];
 }
 
+// Cibles VO2max par objectif et ambition (ml/kg/min)
+const VO2MAX_TARGETS: Record<string, Record<string, number>> = {
+  IM: { finisher: 45, age_group: 52, competitor: 58, elite: 65 },
+  "703": { finisher: 48, age_group: 55, competitor: 60, elite: 68 },
+  Marathon: { finisher: 48, age_group: 55, competitor: 62, elite: 70 },
+  Semi: { finisher: 50, age_group: 55, competitor: 62, elite: 72 },
+  Trail: { finisher: 50, age_group: 55, competitor: 60, elite: 68 },
+  Ultra: { finisher: 48, age_group: 52, competitor: 58, elite: 65 },
+  Sprint: { finisher: 50, age_group: 58, competitor: 65, elite: 75 },
+  Olympic: { finisher: 50, age_group: 58, competitor: 62, elite: 72 },
+};
+
+function getVo2maxTarget(objectif: string, ambition: string): number {
+  const normalized = normalizeObjective(objectif);
+  const targets = VO2MAX_TARGETS[normalized] || VO2MAX_TARGETS["703"];
+  return targets[ambition] || targets.age_group;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // FONCTION PRINCIPALE
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -212,10 +241,11 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   
   const gapAnalysis: UnifiedGapAnalysis[] = [];
   
-  // 1. Analyse FTP/kg (Aerobic Engine)
+  // 1. Analyse FTP/kg (Expression Aérobie)
   const ftpKgGap = input.ftpKg !== null 
     ? (input.ftpKg - targets.ftp_kg_min) / targets.ftp_kg_min 
     : 0;
+  const ftpKgLimiting = input.ftpKg !== null && input.ftpKg < targets.ftp_kg_min * 0.9;
   gapAnalysis.push({
     metric: "FTP/kg",
     value: input.ftpKg,
@@ -228,6 +258,27 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
       : "limiting",
     weight: weights.aerobic,
     weightedImpact: ftpKgGap < 0 ? Math.abs(ftpKgGap) * weights.aerobic * 100 : 0,
+  });
+  
+  // 1b. Analyse VO2max (Capacité Aérobie) - séparée de FTP/kg
+  // Note: VO2max target estimée basée sur ambition et objectif
+  const vo2maxTarget = getVo2maxTarget(normalized, input.ambition);
+  const vo2maxGap = input.vo2max !== null 
+    ? (input.vo2max - vo2maxTarget) / vo2maxTarget 
+    : 0;
+  const vo2maxLimiting = input.vo2max !== null && input.vo2max < vo2maxTarget * 0.9;
+  gapAnalysis.push({
+    metric: "VO2max",
+    value: input.vo2max,
+    target: vo2maxTarget,
+    gap: input.vo2max !== null ? input.vo2max - vo2maxTarget : 0,
+    gapPercent: vo2maxGap * 100,
+    status: input.vo2max === null ? "acceptable"
+      : input.vo2max >= vo2maxTarget ? "optimal"
+      : input.vo2max >= vo2maxTarget * 0.9 ? "acceptable"
+      : "limiting",
+    weight: weights.aerobic * 0.9, // Légèrement moins que FTP/kg car moins directement mesurable
+    weightedImpact: vo2maxGap < 0 ? Math.abs(vo2maxGap) * weights.aerobic * 0.9 * 100 : 0,
   });
   
   // 2. Analyse VLamax (Glycolytic)
@@ -338,6 +389,7 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   if (topGap.weightedImpact > 5) {
     switch (topGap.metric) {
       case "FTP/kg":
+      case "VO2max":
         primaryLimiter = "aerobic_engine";
         primaryLever = "increase_vo2max";
         break;
@@ -364,6 +416,28 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     }
   }
   
+  // Calcul du détail de faiblesse aérobie
+  const ftpKgAnalysis = gapAnalysis.find(g => g.metric === "FTP/kg");
+  const vo2maxAnalysis = gapAnalysis.find(g => g.metric === "VO2max");
+  const ftpKgIsLimiting = ftpKgAnalysis?.status === "limiting";
+  const vo2maxIsLimiting = vo2maxAnalysis?.status === "limiting";
+  
+  let aerobicWeaknessDetail: AerobicWeaknessDetail = "none";
+  let aerobicWeaknessLabel: string | null = null;
+  
+  if (primaryLimiter === "aerobic_engine") {
+    if (ftpKgIsLimiting && vo2maxIsLimiting) {
+      aerobicWeaknessDetail = "both_low";
+      aerobicWeaknessLabel = "Capacité (VO₂max) ET Expression (FTP/kg) insuffisantes";
+    } else if (vo2maxIsLimiting) {
+      aerobicWeaknessDetail = "vo2max_low";
+      aerobicWeaknessLabel = "Capacité aérobie (VO₂max) insuffisante — plafond trop bas";
+    } else if (ftpKgIsLimiting) {
+      aerobicWeaknessDetail = "ftp_kg_low";
+      aerobicWeaknessLabel = "Expression aérobie (FTP/kg) insuffisante — puissance relative trop faible";
+    }
+  }
+  
   // Calcul de la robustesse (gap clair entre 1er et 2ème limiteur)
   const gapDifference = topGap.weightedImpact - secondGap.weightedImpact;
   const isRobust = gapDifference > 10 || topGap.weightedImpact > 20;
@@ -387,7 +461,12 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     primaryLimiter,
     limiterLabel: limiterInfo.label,
     limiterEmoji: limiterInfo.emoji,
-    limiterExplanation: limiterInfo.description,
+    limiterExplanation: primaryLimiter === "aerobic_engine" && aerobicWeaknessLabel
+      ? `${limiterInfo.description} → ${aerobicWeaknessLabel}`
+      : limiterInfo.description,
+    
+    aerobicWeaknessDetail,
+    aerobicWeaknessLabel,
     
     primaryLever,
     leverLabel: leverInfo.label,
@@ -408,7 +487,7 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
       : "Limitée",
     
     targetsUsed: targets,
-    version: "1.0.0",
+    version: "1.1.0",
   };
 }
 

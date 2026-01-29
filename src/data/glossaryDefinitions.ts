@@ -14,6 +14,16 @@ export interface GlossaryTerm {
 }
 
 export const GLOSSARY_TERMS: GlossaryTerm[] = [
+  // Moteur aérobie (terme global)
+  {
+    id: "moteur-aerobie",
+    term: "Moteur aérobie",
+    shortDefinition: "Ensemble VO₂max (capacité) + FTP/kg (expression)",
+    fullDefinition: "Le 'moteur aérobie' englobe deux composantes liées mais distinctes : la VO₂max (le plafond, la cylindrée maximale) et le FTP/kg (l'expression, la puissance effectivement exploitable). Une faiblesse aérobie peut venir du plafond trop bas (VO₂max) OU d'une mauvaise exploitation de ce plafond (FTP/kg).",
+    example: "VO₂max 55 ml/kg/min avec FTP/kg 3.2 W/kg → le plafond est bon mais l'expression est insuffisante",
+    relatedTerms: ["VO2max", "FTP/kg", "VLamax"],
+    category: "physiological",
+  },
   // Métabolique
   {
     id: "vlamax",
