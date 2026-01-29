@@ -242,6 +242,52 @@ const REFERENCE_DURATIONS: Record<RaceType, Record<AmbitionLevel, number>> = {
   '10km': { finish: 60, perf: 48, sub: 42, elite: 36 },
 };
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// NORMALISATION DES TYPES DE COURSE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const RACE_TYPE_ALIASES: Record<string, RaceType> = {
+  'IM': 'IM',
+  'Ironman': 'IM',
+  'ironman': 'IM',
+  'IRONMAN': 'IM',
+  '70.3': '70.3',
+  '703': '70.3',
+  'Half': '70.3',
+  'half': '70.3',
+  'HALF': '70.3',
+  'Marathon': 'Marathon',
+  'marathon': 'Marathon',
+  'MARATHON': 'Marathon',
+  'Semi': 'Semi',
+  'semi': 'Semi',
+  'SEMI': 'Semi',
+  'SemiMarathon': 'Semi',
+  'Semi-Marathon': 'Semi',
+  '10km': '10km',
+  '10K': '10km',
+  '10k': '10km',
+};
+
+/**
+ * Normalise un type de course vers les valeurs supportées
+ */
+export function normalizeRaceType(input: string): RaceType {
+  const normalized = RACE_TYPE_ALIASES[input];
+  if (normalized) return normalized;
+  
+  // Fallback: essayer de détecter par contenu
+  const lower = input.toLowerCase();
+  if (lower.includes('ironman') || lower === 'im') return 'IM';
+  if (lower.includes('70.3') || lower === '703' || lower.includes('half')) return '70.3';
+  if (lower.includes('marathon') && !lower.includes('semi')) return 'Marathon';
+  if (lower.includes('semi')) return 'Semi';
+  if (lower.includes('10')) return '10km';
+  
+  // Default to 70.3 as safe middle ground
+  return '70.3';
+}
+
 export const SIMULATION_DEFINITIONS = {
   official: `La Simulation de Course TFCL™ compare des scénarios de pacing et de nutrition 
 en fonction de votre profil métabolique. Elle ne prédit pas un résultat exact.`,
@@ -759,9 +805,12 @@ function generateScenario(
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export function computeRaceSimulation(input: RaceSimulationInput): RaceSimulationResult {
-  const distanceKm = input.distanceKm ?? RACE_DISTANCES[input.raceType];
-  const baseIntensity = AMBITION_INTENSITY[input.raceType][input.ambition];
-  const baseDuration = input.targetDurationMin ?? REFERENCE_DURATIONS[input.raceType][input.ambition];
+  // Normaliser le type de course pour éviter les erreurs d'accès
+  const raceType = normalizeRaceType(input.raceType);
+  
+  const distanceKm = input.distanceKm ?? RACE_DISTANCES[raceType];
+  const baseIntensity = AMBITION_INTENSITY[raceType]?.[input.ambition] ?? 70;
+  const baseDuration = input.targetDurationMin ?? REFERENCE_DURATIONS[raceType]?.[input.ambition] ?? 180;
   
   // Récupérer les modificateurs Race Readiness
   const readinessModifiers = input.readinessModifiers;
@@ -1110,8 +1159,10 @@ function computeBasicGlobalRisk(
 }
 
 export function computeBasicSimulation(input: BasicSimulationInput): BasicSimulationResult {
-  const raceLabel = RACE_LABELS[input.raceType];
-  const ambitionLabel = AMBITION_LABELS[input.ambition];
+  // Normaliser le type de course
+  const raceType = normalizeRaceType(input.raceType);
+  const raceLabel = RACE_LABELS[raceType] ?? input.raceType;
+  const ambitionLabel = AMBITION_LABELS[input.ambition] ?? input.ambition;
   
   // Zone d'intensité
   const intensityResult = computeBasicIntensityZone(
