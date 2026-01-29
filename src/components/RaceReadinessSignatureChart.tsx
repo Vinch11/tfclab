@@ -510,26 +510,26 @@ function MatrixChart({ result }: { result: RaceReadinessResult }) {
   // Bleu (Ambitieux): sky-500 = #0ea5e9
   const zones = [
     // Rouge: bas-gauche
-    { x: 0, y: 0, width: 35, height: 35, color: "rgba(239, 68, 68, 0.35)" },
-    { x: 0, y: 35, width: 35, height: 25, color: "rgba(239, 68, 68, 0.35)" },
-    { x: 35, y: 0, width: 25, height: 35, color: "rgba(239, 68, 68, 0.35)" },
+    { x: 0, y: 0, width: 35, height: 35, color: "rgba(239, 68, 68, 0.55)" },
+    { x: 0, y: 35, width: 35, height: 25, color: "rgba(239, 68, 68, 0.55)" },
+    { x: 35, y: 0, width: 25, height: 35, color: "rgba(239, 68, 68, 0.55)" },
     
     // Orange: milieu-bas et bas-milieu
-    { x: 35, y: 35, width: 25, height: 25, color: "rgba(245, 158, 11, 0.35)" },
-    { x: 0, y: 60, width: 35, height: 20, color: "rgba(245, 158, 11, 0.35)" },
-    { x: 60, y: 0, width: 20, height: 35, color: "rgba(245, 158, 11, 0.35)" },
-    { x: 60, y: 35, width: 20, height: 25, color: "rgba(245, 158, 11, 0.35)" },
-    { x: 35, y: 60, width: 25, height: 20, color: "rgba(245, 158, 11, 0.35)" },
+    { x: 35, y: 35, width: 25, height: 25, color: "rgba(245, 158, 11, 0.55)" },
+    { x: 0, y: 60, width: 35, height: 20, color: "rgba(245, 158, 11, 0.55)" },
+    { x: 60, y: 0, width: 20, height: 35, color: "rgba(245, 158, 11, 0.55)" },
+    { x: 60, y: 35, width: 20, height: 25, color: "rgba(245, 158, 11, 0.55)" },
+    { x: 35, y: 60, width: 25, height: 20, color: "rgba(245, 158, 11, 0.55)" },
     
     // Vert: centre-haut et milieu
-    { x: 0, y: 80, width: 35, height: 20, color: "rgba(16, 185, 129, 0.35)" },
-    { x: 35, y: 80, width: 25, height: 20, color: "rgba(16, 185, 129, 0.35)" },
-    { x: 60, y: 60, width: 20, height: 40, color: "rgba(16, 185, 129, 0.35)" },
-    { x: 80, y: 35, width: 20, height: 45, color: "rgba(16, 185, 129, 0.35)" },
-    { x: 80, y: 0, width: 20, height: 35, color: "rgba(245, 158, 11, 0.35)" },
+    { x: 0, y: 80, width: 35, height: 20, color: "rgba(16, 185, 129, 0.55)" },
+    { x: 35, y: 80, width: 25, height: 20, color: "rgba(16, 185, 129, 0.55)" },
+    { x: 60, y: 60, width: 20, height: 40, color: "rgba(16, 185, 129, 0.55)" },
+    { x: 80, y: 35, width: 20, height: 45, color: "rgba(16, 185, 129, 0.55)" },
+    { x: 80, y: 0, width: 20, height: 35, color: "rgba(245, 158, 11, 0.55)" },
     
     // Bleu: haut-droite
-    { x: 80, y: 80, width: 20, height: 20, color: "rgba(14, 165, 233, 0.35)" },
+    { x: 80, y: 80, width: 20, height: 20, color: "rgba(14, 165, 233, 0.55)" },
   ];
 
   const xLabels = isMobile
