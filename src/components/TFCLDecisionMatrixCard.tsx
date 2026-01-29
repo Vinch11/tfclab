@@ -227,6 +227,12 @@ export function TFCLDecisionMatrixCard({
                   {result.limitingFactorLabel}
                 </span>
               </div>
+              {/* Détail de faiblesse aérobie si applicable */}
+              {result.aerobicWeaknessLabel && (
+                <p className="text-[10px] text-muted-foreground mt-1 italic">
+                  → {result.aerobicWeaknessLabel}
+                </p>
+              )}
             </div>
             
             {/* Levier prioritaire */}

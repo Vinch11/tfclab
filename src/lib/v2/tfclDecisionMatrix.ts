@@ -19,7 +19,7 @@
 import { getTargetsForAmbition, normalizeObjective as normalizePhysiologicalObjective, type ObjectiveTargets } from "@/lib/physiologicalTargets";
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 import { METHOD_VERSION_DISPLAY } from "./scientificGovernance";
-import { detectUnifiedLimiter, type UnifiedLimiterResult, LIMITER_INFO } from "./unifiedLimiterDetection";
+import { detectUnifiedLimiter, type UnifiedLimiterResult, LIMITER_INFO, type AerobicWeaknessDetail } from "./unifiedLimiterDetection";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -109,6 +109,10 @@ export interface TFCLDecisionResult {
   limitingFactor: LimitingFactorDomain;
   limitingFactorLabel: string;
   limitingFactorEmoji: string;
+  
+  // Détail faiblesse aérobie (si facteur limitant = aerobic_engine)
+  aerobicWeaknessDetail: AerobicWeaknessDetail;
+  aerobicWeaknessLabel: string | null;
   
   // Levier prioritaire
   lever: TrainingLever;
@@ -800,10 +804,42 @@ export function computeTFCLDecisionMatrix(input: TFCLDecisionInput): TFCLDecisio
   
   const diagnosisFull = `${DECISION_CASE_INFO[decisionCase].label}: ${DECISION_CASE_INFO[decisionCase].condition}. ${diagnosisShort}`;
   
+  // 6. Calculer le détail de faiblesse aérobie si applicable
+  let aerobicWeaknessDetail: AerobicWeaknessDetail = "none";
+  let aerobicWeaknessLabel: string | null = null;
+  
+  if (limitingFactor === "aerobic_engine") {
+    const vo2maxDomain = domains.find(d => d.domain === "aerobic_engine");
+    const vo2maxLimiting = vo2maxDomain?.metric.status === "limiting";
+    
+    // On vérifie aussi FTP/kg si on l'a dans les données
+    // Pour l'instant on se base sur la VO2max et on infère le FTP/kg
+    if (vo2maxLimiting && vo2maxDomain) {
+      const vo2maxValue = vo2maxDomain.metric.raw;
+      const vo2maxTarget = vo2maxDomain.metric.target;
+      
+      // Si VO2max très en dessous de la cible -> capacité insuffisante
+      if (vo2maxValue !== null && vo2maxValue < vo2maxTarget * 0.85) {
+        aerobicWeaknessDetail = "vo2max_low";
+        aerobicWeaknessLabel = "Capacité aérobie (VO₂max) insuffisante — plafond trop bas";
+      } else if (vo2maxValue !== null && vo2maxValue < vo2maxTarget) {
+        // VO2max proche mais pas optimal -> probablement FTP/kg
+        aerobicWeaknessDetail = "ftp_kg_low";
+        aerobicWeaknessLabel = "Expression aérobie (FTP/kg) insuffisante — puissance relative trop faible";
+      } else {
+        aerobicWeaknessDetail = "both_low";
+        aerobicWeaknessLabel = "Capacité ET Expression aérobie à développer";
+      }
+    }
+  }
+  
   return {
     limitingFactor,
     limitingFactorLabel: DOMAIN_INFO[limitingFactor].label,
     limitingFactorEmoji: DOMAIN_INFO[limitingFactor].emoji,
+    
+    aerobicWeaknessDetail,
+    aerobicWeaknessLabel,
     
     lever,
     leverLabel: LEVER_INFO[lever].label,
