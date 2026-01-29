@@ -1,6 +1,7 @@
 /**
  * Race Simulation Page TFCL™
  * Page dédiée à la simulation de course
+ * Intègre le Pacing Envelope™ TFCL
  */
 
 import React from 'react';
@@ -8,7 +9,9 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RaceSimulationModule } from '@/components/RaceSimulationModule';
+import { PacingEnvelopeCard } from '@/components/PacingEnvelopeCard';
 import { useAthletes } from '@/contexts/AthleteContext';
 import { useCloudData } from '@/hooks/useCloudData';
 import { computeVLamaxEffectif } from '@/lib/vlamaxEffectif';
@@ -16,6 +19,7 @@ import { computeTTEEffectif } from '@/lib/tteEffectif';
 import { computeFatMaxTFCL } from '@/lib/v2/fatmaxTFCL';
 import { computeDisponibiliteTFCL, TFCLReadinessInput } from '@/lib/v2/disponibiliteTFCL';
 import { SIMULATION_ACADEMY, SIMULATION_ACADEMY_BASIC, SIMULATION_ACADEMY_PRO, SIMULATION_DEFINITIONS } from '@/lib/v2/raceSimulation';
+import type { RaceObjective } from '@/lib/v2/pacingEnvelopeEngine';
 
 export default function RaceSimulationPage() {
   const navigate = useNavigate();
@@ -94,7 +98,7 @@ export default function RaceSimulationPage() {
     return computeDisponibiliteTFCL(input);
   }, [latestCheckin, activeSnapshot]);
   
-  // Determine discipline
+  // Determine discipline and race objective
   const discipline: 'bike' | 'run' = React.useMemo(() => {
     const goal = selectedAthlete?.goal ?? '';
     if (goal.includes('Marathon') || goal.includes('Semi') || goal.includes('10km')) {
@@ -102,6 +106,35 @@ export default function RaceSimulationPage() {
     }
     return 'bike';
   }, [selectedAthlete?.goal]);
+  
+  // Normalize race objective for Pacing Envelope
+  const raceObjective: RaceObjective = React.useMemo(() => {
+    const goal = selectedAthlete?.goal ?? 'IM';
+    if (goal.includes('Marathon') && !goal.includes('Semi')) return 'Marathon';
+    if (goal.includes('Semi')) return 'Semi';
+    if (goal.includes('10km') || goal.includes('10k')) return '10km';
+    if (goal.includes('70.3') || goal.includes('703')) return '70.3';
+    return 'IM';
+  }, [selectedAthlete?.goal]);
+  
+  // Race duration estimation (for chart)
+  const raceDurationMin = React.useMemo(() => {
+    switch (raceObjective) {
+      case 'IM': return 300;
+      case '70.3': return 150;
+      case 'Marathon': return 210;
+      case 'Semi': return 100;
+      case '10km': return 45;
+      default: return 180;
+    }
+  }, [raceObjective]);
+  
+  // Compute Race Readiness Score for Pacing Envelope
+  const raceReadinessScore = React.useMemo(() => {
+    if (!disponibilite) return null;
+    // Simple approximation based on disponibilité
+    return disponibilite.score;
+  }, [disponibilite]);
   
   return (
     <div className="min-h-screen bg-background pb-safe">
@@ -137,52 +170,76 @@ export default function RaceSimulationPage() {
           </AlertDescription>
         </Alert>
         
-        {/* Module principal */}
-        <RaceSimulationModule
-          vlamaxEffectif={vlamaxEffectif?.value}
-          vlamaxConfidence={vlamaxEffectif?.confidence ?? 0.5}
-          vlamaxDiscipline={discipline}
-          tteMin={tteEffectif?.tte_min}
-          tteConfidence={tteEffectif?.confidence ?? 0.5}
-          fatmax={fatmax}
-          disponibiliteScore={disponibilite?.score}
-          disponibiliteLevel={disponibilite?.level}
-          ftp={activeSnapshot?.ftp}
-          vma={activeSnapshot?.vma}
-          paceThreshold={activeSnapshot?.pace_threshold_sec_per_km}
-          weight={activeSnapshot?.weight_kg}
-          staffMode
-        />
+        {/* Tabs: Simulation vs Pacing Envelope */}
+        <Tabs defaultValue="envelope" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 h-10">
+            <TabsTrigger value="envelope" className="text-sm">Pacing Envelope™</TabsTrigger>
+            <TabsTrigger value="simulation" className="text-sm">Simulation Fuel</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="envelope" className="mt-4">
+            <PacingEnvelopeCard
+              input={{
+                vlamaxEffectif: vlamaxEffectif,
+                tteEffectif: tteEffectif,
+                fatmax: fatmax,
+                raceReadinessScore: raceReadinessScore,
+                fatigueIndex: latestCheckin?.fatigue ? latestCheckin.fatigue * 10 : null,
+                raceObjective: raceObjective,
+                sport: discipline,
+                ftp: activeSnapshot?.ftp,
+                vma: activeSnapshot?.vma,
+                paceThreshold: activeSnapshot?.pace_threshold_sec_per_km,
+                weight: activeSnapshot?.weight_kg,
+              }}
+              raceDurationMin={raceDurationMin}
+              staffMode
+            />
+          </TabsContent>
+          
+          <TabsContent value="simulation" className="mt-4">
+            <RaceSimulationModule
+              vlamaxEffectif={vlamaxEffectif?.value}
+              vlamaxConfidence={vlamaxEffectif?.confidence ?? 0.5}
+              vlamaxDiscipline={discipline}
+              tteMin={tteEffectif?.tte_min}
+              tteConfidence={tteEffectif?.confidence ?? 0.5}
+              fatmax={fatmax}
+              disponibiliteScore={disponibilite?.score}
+              disponibiliteLevel={disponibilite?.level}
+              ftp={activeSnapshot?.ftp}
+              vma={activeSnapshot?.vma}
+              paceThreshold={activeSnapshot?.pace_threshold_sec_per_km}
+              weight={activeSnapshot?.weight_kg}
+              staffMode
+            />
+          </TabsContent>
+        </Tabs>
         
-        {/* Academy section - versions BASIC et PRO - collapsible on mobile */}
-        <details className="group" open>
+        {/* Academy section - collapsible on mobile */}
+        <details className="group">
           <summary className="flex items-center justify-between cursor-pointer list-none py-2 touch-manipulation">
             <h2 className="text-base sm:text-lg font-semibold">
-              Academy — Simulation BASIC vs PRO
+              Academy — Pacing & Simulation
             </h2>
             <span className="text-muted-foreground text-sm group-open:rotate-180 transition-transform">
               ▼
             </span>
           </summary>
           <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 pt-3">
-            {SIMULATION_ACADEMY_BASIC.sections.slice(0, 2).map((section, i) => (
-              <div key={`basic-${i}`} className="p-3 sm:p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-medium px-2 py-0.5 bg-green-200 dark:bg-green-800 rounded">BASIC</span>
-                  <h3 className="font-medium text-xs sm:text-sm">{section.title}</h3>
-                </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">{section.content}</p>
-              </div>
-            ))}
-            {SIMULATION_ACADEMY_PRO.sections.slice(0, 2).map((section, i) => (
-              <div key={`pro-${i}`} className="p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-medium px-2 py-0.5 bg-blue-200 dark:bg-blue-800 rounded">PRO</span>
-                  <h3 className="font-medium text-xs sm:text-sm">{section.title}</h3>
-                </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">{section.content}</p>
-              </div>
-            ))}
+            <div className="p-3 sm:p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+              <h3 className="font-medium text-sm mb-2">Pacing Envelope™</h3>
+              <p className="text-xs text-muted-foreground">
+                Le couloir physiologique de pacing définit les limites sécurisées selon votre profil métabolique.
+                TFCL ne prescrit pas une allure — il explique, simule et cadre la décision.
+              </p>
+            </div>
+            <div className="p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <h3 className="font-medium text-sm mb-2">Simulation Fuel & Risk</h3>
+              <p className="text-xs text-muted-foreground">
+                {SIMULATION_DEFINITIONS.methodology}
+              </p>
+            </div>
           </div>
         </details>
       </main>
