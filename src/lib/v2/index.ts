@@ -665,3 +665,34 @@ export {
   type ConsequenceSeverity,
   type RacePhase,
 } from './pacingScenarioSimulator';
+
+// Race Day Briefing (Athlete mode)
+export {
+  generateRaceDayBriefing,
+  getToneColor,
+  getToneBgColor,
+  getZoneColorClass,
+  getZoneBorderClass,
+  type AthleteBriefingInput,
+  type RaceDayBriefingResult,
+  type KeyMessage,
+  type GoldenRule,
+  type CriticalError,
+  type SimplifiedZone,
+} from './raceDayBriefing';
+
+// Staff Pacing Report V2
+export {
+  generateStaffPacingReport,
+  getMetricStatusColor,
+  getMetricStatusBg,
+  getSeverityColor as getStaffSeverityColor,
+  getSeverityBadgeColor,
+  type StaffPacingReportInput,
+  type StaffPacingReportResult,
+  type ToleranceProfile,
+  type EnvelopeTechnical,
+  type ErrorScenario,
+  type CoachCommunication,
+  type SimulationLink,
+} from './staffPacingReport';
