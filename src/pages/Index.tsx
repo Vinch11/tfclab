@@ -1085,6 +1085,7 @@ const Index = () => {
                 objectif={currentAthlete.goal || "IM"}
                 age={calculateAge(currentAthlete.birth_date)}
                 currentVo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
+                currentTTE={effectiveCloudSnapshot?.tte_observed_min ?? null}
                 ambition={currentAmbition}
               />
             ),
