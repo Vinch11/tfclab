@@ -106,7 +106,7 @@ export function ReadinessPillarDetail({
         </CollapsibleTrigger>
 
         <CollapsibleContent>
-          <div className="mt-3 pt-3 border-t border-border/50 space-y-3">
+          <div className="mt-4 pt-4 border-t border-border/50 space-y-4">
             {/* Statut */}
             <div className="flex items-center justify-between">
               {getStatusBadge(calculation.status)}
@@ -115,11 +115,11 @@ export function ReadinessPillarDetail({
               </span>
             </div>
 
-            {/* Valeur actuelle vs cible */}
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="p-2 rounded-lg bg-secondary/40">
-                <span className="text-muted-foreground">Actuel</span>
-                <p className="font-mono font-bold text-foreground">
+            {/* Valeur actuelle vs cible - meilleur espacement */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-xl bg-secondary/50 border border-border/30">
+                <span className="text-[11px] uppercase tracking-wide text-muted-foreground block mb-1">Actuel</span>
+                <p className="font-mono text-base font-bold text-foreground">
                   {calculation.currentValue !== null
                     ? pillarKey === "vlamax"
                       ? calculation.currentValue.toFixed(2)
@@ -131,9 +131,9 @@ export function ReadinessPillarDetail({
                     : "—"}
                 </p>
               </div>
-              <div className="p-2 rounded-lg bg-primary/10">
-                <span className="text-muted-foreground">Cible</span>
-                <p className="font-mono font-bold text-primary">
+              <div className="p-3 rounded-xl bg-primary/15 border border-primary/20">
+                <span className="text-[11px] uppercase tracking-wide text-muted-foreground block mb-1">Cible</span>
+                <p className="font-mono text-base font-bold text-primary">
                   {pillarKey === "vlamax"
                     ? `≤${calculation.targetValue.toFixed(2)}`
                     : pillarKey === "endurance"
@@ -145,16 +145,19 @@ export function ReadinessPillarDetail({
               </div>
             </div>
 
-            {/* Formule de calcul */}
-            <div className="p-2 rounded-lg bg-muted/30 border border-border/50">
-              <p className="text-xs font-medium text-muted-foreground mb-1">Calcul :</p>
-              <p className="text-xs font-mono text-foreground">{calculation.formula}</p>
+            {/* Formule de calcul - meilleure lisibilité */}
+            <div className="p-3 rounded-xl bg-muted/20 border border-border/40">
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2">Calcul</p>
+              <p className="text-sm font-mono text-foreground leading-relaxed">{calculation.formula}</p>
             </div>
 
-            {/* Explication */}
-            <p className="text-xs text-muted-foreground italic">
-              💡 {calculation.explanation}
-            </p>
+            {/* Explication - plus visible */}
+            <div className="flex gap-2 p-3 rounded-xl bg-warning/5 border border-warning/10">
+              <span className="text-base">💡</span>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {calculation.explanation}
+              </p>
+            </div>
           </div>
         </CollapsibleContent>
       </div>
