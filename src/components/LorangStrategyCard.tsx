@@ -133,6 +133,13 @@ export function LorangStrategyCard({
               <p className="text-lg font-semibold text-primary">
                 {result.limiterLabel}
               </p>
+              {/* Détail faiblesse aérobie si applicable */}
+              {result.aerobicWeaknessDetail !== 'none' && result.aerobicWeaknessLabel && (
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1">
+                  <span>→</span>
+                  <span>{result.aerobicWeaknessLabel}</span>
+                </p>
+              )}
             </div>
           </div>
           <p className="text-sm text-muted-foreground mt-2">

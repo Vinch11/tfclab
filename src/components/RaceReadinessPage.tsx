@@ -286,6 +286,8 @@ function StaffReportWithLorang({
       physiology: {
         vo2max: null, // Not available in this context
         vo2maxTarget,
+        ftpKg: null, // Not available in this context
+        ftpKgTarget: null, // Sera calculé automatiquement par le moteur
         vlamax: vlamaxEffectif.value,
         vlamaxTarget,
         tte: tteEffectif.tte_min,
