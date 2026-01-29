@@ -18,6 +18,7 @@ import {
   Legend,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -190,6 +191,7 @@ export function MetabolicPerformanceCompassV2({
 }: MetabolicPerformanceCompassV2Props) {
   const [staffMode, setStaffMode] = useState(initialStaffMode);
   const [compareMode, setCompareMode] = useState(false);
+  const isMobile = useIsMobile();
   
   const currentAmbition = data.ambition || DEFAULT_AMBITION;
   const athleteAge = data.athleteAge ?? null;
@@ -446,27 +448,36 @@ export function MetabolicPerformanceCompassV2({
           </div>
         </div>
 
-        {/* Graphique Radar AMÉLIORÉ */}
-        <div className="relative rounded-xl bg-muted/20 border p-4">
-          {/* Légende des zones */}
-          <div className="flex items-center justify-center gap-4 mb-2 text-[10px]">
+        {/* Graphique Radar AMÉLIORÉ - Optimisé mobile */}
+        <div className="relative rounded-xl bg-muted/20 border p-2 sm:p-4">
+          {/* Légende des zones - simplifiée sur mobile */}
+          <div className={cn(
+            "flex items-center justify-center gap-2 sm:gap-4 mb-2",
+            isMobile ? "text-[8px]" : "text-[10px]"
+          )}>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-full bg-red-500/30 border border-red-500" />
-              <span className="text-muted-foreground">&lt;50 À développer</span>
+              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-red-500/30 border border-red-500" />
+              <span className="text-muted-foreground">{isMobile ? "<50" : "<50 À développer"}</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-full bg-amber-500/30 border border-amber-500" />
-              <span className="text-muted-foreground">50-70 En progression</span>
+              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-amber-500/30 border border-amber-500" />
+              <span className="text-muted-foreground">{isMobile ? "50-70" : "50-70 En progression"}</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-full bg-green-500/30 border border-green-500" />
-              <span className="text-muted-foreground">&gt;70 Prêt</span>
+              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-green-500/30 border border-green-500" />
+              <span className="text-muted-foreground">{isMobile ? ">70" : ">70 Prêt"}</span>
             </div>
           </div>
 
-          <div className="h-72">
+          <div className={cn(isMobile ? "h-56" : "h-72")}>
             <ResponsiveContainer width="100%" height="100%">
-              <RadarChart data={chartData} margin={{ top: 30, right: 50, bottom: 30, left: 50 }}>
+              <RadarChart 
+                data={chartData} 
+                margin={isMobile 
+                  ? { top: 20, right: 35, bottom: 20, left: 35 } 
+                  : { top: 30, right: 50, bottom: 30, left: 50 }
+                }
+              >
                 <defs>
                   <linearGradient id="radarGradientV2" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.5} />
@@ -485,7 +496,7 @@ export function MetabolicPerformanceCompassV2({
                   gridType="polygon"
                 />
                 
-                {/* Labels des axes avec scores */}
+                {/* Labels des axes avec scores - optimisés mobile */}
                 <PolarAngleAxis 
                   dataKey="axisShort"
                   tick={({ payload, x, y, cx, cy }) => {
@@ -494,27 +505,30 @@ export function MetabolicPerformanceCompassV2({
                     const icon = dataPoint?.icon || "";
                     const scoreColor = getScoreColor(score);
                     
-                    // Position du texte
-                    const dx = x > cx ? 15 : x < cx ? -15 : 0;
-                    const dy = y > cy ? 15 : y < cy ? -20 : 0;
+                    // Position du texte - plus proche du centre sur mobile
+                    const dx = x > cx ? (isMobile ? 8 : 15) : x < cx ? (isMobile ? -8 : -15) : 0;
+                    const dy = y > cy ? (isMobile ? 8 : 15) : y < cy ? (isMobile ? -12 : -20) : 0;
                     
                     return (
                       <g transform={`translate(${x + dx},${y + dy})`}>
                         <text
                           textAnchor="middle"
                           dominantBaseline="central"
-                          className="fill-foreground text-xs font-semibold"
+                          className={cn(
+                            "fill-foreground font-semibold",
+                            isMobile ? "text-[9px]" : "text-xs"
+                          )}
                         >
-                          {icon} {payload.value}
+                          {icon} {isMobile ? payload.value.substring(0, 4) : payload.value}
                         </text>
                         <text
                           textAnchor="middle"
                           dominantBaseline="central"
-                          y={14}
-                          className="text-sm font-bold"
+                          y={isMobile ? 10 : 14}
+                          className={cn("font-bold", isMobile ? "text-[10px]" : "text-sm")}
                           fill={scoreColor}
                         >
-                          {score}/100
+                          {score}
                         </text>
                       </g>
                     );
@@ -522,12 +536,12 @@ export function MetabolicPerformanceCompassV2({
                   tickLine={false}
                 />
                 
-                {/* Axe radial avec graduations claires */}
+                {/* Axe radial avec graduations - moins de ticks sur mobile */}
                 <PolarRadiusAxis 
                   angle={90} 
                   domain={[0, 100]} 
-                  tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} 
-                  tickCount={6}
+                  tick={{ fontSize: isMobile ? 8 : 10, fill: "hsl(var(--muted-foreground))" }} 
+                  tickCount={isMobile ? 3 : 6}
                   axisLine={false}
                 />
                 
@@ -548,11 +562,11 @@ export function MetabolicPerformanceCompassV2({
                   dataKey="current" 
                   stroke="hsl(var(--primary))" 
                   fill="url(#radarGradientV2)"
-                  strokeWidth={3} 
+                  strokeWidth={isMobile ? 2 : 3} 
                   dot={{ 
-                    r: 6, 
+                    r: isMobile ? 5 : 6, 
                     fill: "hsl(var(--primary))", 
-                    strokeWidth: 3, 
+                    strokeWidth: 2, 
                     stroke: "hsl(var(--background))" 
                   }} 
                 />
@@ -562,21 +576,21 @@ export function MetabolicPerformanceCompassV2({
                     if (!active || !payload?.[0]) return null;
                     const data = payload[0].payload;
                     return (
-                      <div className="bg-card border rounded-lg shadow-lg p-3 max-w-xs">
+                      <div className="bg-card border rounded-lg shadow-lg p-2 sm:p-3 max-w-[200px] sm:max-w-xs">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="text-lg">{data.icon}</span>
-                          <span className="font-semibold">{data.axisShort}</span>
-                          <span className="ml-auto font-bold text-lg" style={{ color: getScoreColor(data.current) }}>
+                          <span className="text-base sm:text-lg">{data.icon}</span>
+                          <span className="font-semibold text-xs sm:text-sm">{data.axisShort}</span>
+                          <span className="ml-auto font-bold text-sm sm:text-lg" style={{ color: getScoreColor(data.current) }}>
                             {data.current}/100
                           </span>
                         </div>
-                        <p className="text-xs text-muted-foreground mb-2">{data.explanation}</p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground mb-2">{data.explanation}</p>
                         {staffMode && (
-                          <p className="text-[10px] font-mono text-muted-foreground/70 border-t pt-2">{data.formula}</p>
+                          <p className="text-[9px] sm:text-[10px] font-mono text-muted-foreground/70 border-t pt-2">{data.formula}</p>
                         )}
-                        <div className="flex items-center gap-1 mt-2 text-[10px]">
+                        <div className="flex items-center gap-1 mt-2 text-[9px] sm:text-[10px]">
                           <span className="text-muted-foreground">Confiance:</span>
-                          <Progress value={data.confidence * 100} className="h-1 w-16" />
+                          <Progress value={data.confidence * 100} className="h-1 w-12 sm:w-16" />
                           <span>{(data.confidence * 100).toFixed(0)}%</span>
                         </div>
                       </div>
@@ -584,16 +598,32 @@ export function MetabolicPerformanceCompassV2({
                   }}
                 />
                 
-                <Legend 
-                  wrapperStyle={{ fontSize: 11, paddingTop: 10 }}
-                  payload={[
-                    { value: 'Score actuel', type: 'rect', color: 'hsl(var(--primary))' },
-                    { value: 'Cible (80+)', type: 'line', color: 'hsl(142, 76%, 36%)' }
-                  ]}
-                />
+                {!isMobile && (
+                  <Legend 
+                    wrapperStyle={{ fontSize: 11, paddingTop: 10 }}
+                    payload={[
+                      { value: 'Score actuel', type: 'rect', color: 'hsl(var(--primary))' },
+                      { value: 'Cible (80+)', type: 'line', color: 'hsl(142, 76%, 36%)' }
+                    ]}
+                  />
+                )}
               </RadarChart>
             </ResponsiveContainer>
           </div>
+          
+          {/* Légende mobile en dessous */}
+          {isMobile && (
+            <div className="flex justify-center gap-4 mt-2 text-[9px] text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-sm bg-primary" />
+                Actuel
+              </span>
+              <span className="flex items-center gap-1">
+                <div className="w-2 h-0.5 bg-green-600 border-dashed" />
+                Cible
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Bloc Ajustement Âge */}
