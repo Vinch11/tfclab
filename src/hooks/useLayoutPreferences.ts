@@ -104,6 +104,9 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   
   // 🔬 INSCYD-style Simulator
   { id: "metabolic-power-curve", label: "Metabolic Power Curve", icon: "Zap", category: "analyse", defaultVisible: true },
+  
+  // 👤 Comparaison Âge
+  { id: "vo2max-age-comparison", label: "Cibles VO₂max — Comparatif âge", icon: "Calendar", category: "profil", defaultVisible: true },
 ];
 
 export const TESTS_SECTIONS: SectionDefinition[] = [
