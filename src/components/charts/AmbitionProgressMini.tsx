@@ -306,11 +306,11 @@ export function AmbitionProgressMini({
             {/* Label + trend */}
             <div className="flex flex-col items-start">
               <div className="flex items-center gap-1">
-                <span className="text-xs font-medium">{ambDef.shortLabel}</span>
+                <span className="text-xs font-medium">Cibles</span>
                 {TrendIcon}
               </div>
               <span className="text-[10px] text-muted-foreground">
-                {metricsCount}/3 métriques
+                {ambDef.shortLabel} · {metricsCount}/3
               </span>
             </div>
           </button>
