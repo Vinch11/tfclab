@@ -1317,7 +1317,7 @@ function LorangStrategySection({ input }: { input: LorangStrategyInput }) {
       <div className="print:break-inside-avoid">
         <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
           <Brain className="h-4 w-4" />
-          LORANG STRATEGY ENGINE — LIMITER → LEVIER → DÉCISION
+          TFCL STRATEGY ENGINE — LIMITER → LEVIER → DÉCISION
           <Badge variant="outline" className="text-[10px]">TFCL Method™</Badge>
         </h3>
         
