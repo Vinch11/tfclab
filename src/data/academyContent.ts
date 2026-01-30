@@ -1548,5 +1548,111 @@ export const academySections: AcademySection[] = [
         ]
       }
     ]
+  },
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // LEÇON LONG DISTANCE — Why Long-Distance Races Punish the Brave
+  // ═══════════════════════════════════════════════════════════════════════════════
+  {
+    id: "long-distance-pacing-discipline",
+    title: "Why Long-Distance Races Punish the Brave",
+    level: "staff",
+    tags: ["pacing", "Ironman", "marathon", "ultra", "glycogène", "discipline", "VLamax", "LDRI", "longue distance"],
+    blocks: [
+      {
+        type: "callout",
+        title: "Philosophie TFCL Longue Distance",
+        content: "\"Les athlètes ne perdent pas leur course en étant trop conservateurs au départ, mais en dépassant leur tolérance métabolique trop tôt.\" — La discipline est invisible. L'effondrement est spectaculaire."
+      },
+      {
+        type: "text",
+        title: "Le LDRI: Long Distance Risk Index",
+        content: "TFCL calcule un indice de risque spécifique longue distance (0-100) basé sur: la durée de course, la VLamax, l'âge (>40 = sensibilité accrue), la confiance TTE, et l'historique de fade en fin de course. Plus le LDRI est élevé, plus le couloir de pacing doit être étroit."
+      },
+      {
+        type: "table",
+        title: "Niveau de risque LDRI",
+        content: {
+          headers: ["Score LDRI", "Niveau", "Implication pacing"],
+          rows: [
+            ["< 30", "Faible", "Profil robuste — discipline standard"],
+            ["30-55", "Modéré", "Attention requise — rester dans zone safe"],
+            ["55-75", "Élevé", "Discipline absolue — marge de sécurité obligatoire"],
+            ["> 75", "Critique", "Toute erreur précoce = conséquences irréversibles"]
+          ]
+        }
+      },
+      {
+        type: "text",
+        title: "Inertie Métabolique: le point de non-retour",
+        content: "L'activation glycolytique précoce NE PEUT PAS être inversée. Le lactate accumulé dans les 30-60 premières minutes persiste et s'accumule tout au long de la course. Se sentir 'bien' au départ ≠ un bon pacing. Le métabolisme n'est pas la sensation. L'effondrement arrive 2-3h APRÈS l'erreur, pas immédiatement."
+      },
+      {
+        type: "bullets",
+        title: "Irréversibilité de la Dette Glycogène",
+        content: [
+          "Chaque gramme de glycogène consommé précocement en sur-régime = indisponible pour la fin",
+          "À 70% de déplétion, la capacité à maintenir l'intensité chute brutalement",
+          "Sur Ironman: 6% trop haut au départ = 45 min perdues à l'arrivée",
+          "INTERDICTION de 'banker du temps' — chaque minute gagnée tôt coûte 3-5 minutes tard"
+        ]
+      },
+      {
+        type: "text",
+        title: "Le Discipline Buffer: cible vs maximum",
+        content: "TFCL distingue l'intensité MAXIMUM autorisée (haut de zone Safe) de l'intensité RECOMMANDÉE (Discipline Target). La Discipline Target est 4-6% SOUS le maximum. C'est l'intensité où les élites courent. Ils ne frôlent pas la limite — ils restent délibérément en dessous."
+      },
+      {
+        type: "table",
+        title: "Comparaison Pacing Vélo Ironman: Élite vs Age-Group",
+        content: {
+          headers: ["Segment", "Élite", "Age-Group typique"],
+          rows: [
+            ["0-30 km", "68-70% FTP", "78-82% FTP"],
+            ["90-120 km", "71-73% FTP", "70-72% FTP"],
+            ["150-180 km", "72-75% FTP", "62-66% FTP"],
+            ["Marathon", "Course stable", "Marche/Arrêts"]
+          ]
+        }
+      },
+      {
+        type: "text",
+        title: "Le Glycogen Collapse Threshold",
+        content: "TFCL modélise un seuil d'intensité au-dessus duquel l'oxydation glucidique domine complètement (typiquement FatMax + 10-15%). Au-delà de ce seuil pendant plus de 30-45 min cumulées, le drift métabolique devient irréversible. Message clé: \"Au-dessus de ce seuil, la perte de performance est différée mais inévitable.\""
+      },
+      {
+        type: "bullets",
+        title: "Les 3 Scénarios de Pacing",
+        content: [
+          "DISCIPLINÉ: Intensité sous la cible — sensation 'trop facile' au départ → finish stable/négatif split",
+          "AMBITIEUX: Au plafond zone Safe — bon ressenti mais vulnérable aux aléas → décroissance progressive",
+          "AGRESSIF: Au-dessus zone Safe — sensation 'fort' (faux signal) → effondrement brutal"
+        ]
+      },
+      {
+        type: "text",
+        title: "Pourquoi les Élites Semblent 'Lents' à la TV",
+        content: "Jan Frodeno (Ironman): ses 10 premiers km vélo semblent 'faciles' en TV. Eliud Kipchoge (Marathon): son premier semi semble 'contrôlé'. Gustav Iden: départ vélo 'prudent'. Ils savent tous que la discipline précoce = vitesse tardive. Leur objectif n'est pas de se sentir fort au départ. Leur objectif est d'ÊTRE ENCORE FORT à l'arrivée."
+      },
+      {
+        type: "callout",
+        title: "Message Staff Report",
+        content: "\"Pour cet athlète, aller plus fort tôt RÉDUIRA la performance finale. Le succès longue distance se décide AVANT la mi-course. Une intensité exprimée sans référence n'a aucune valeur physiologique.\""
+      },
+      {
+        type: "bullets",
+        title: "Règles UI TFCL",
+        content: [
+          "Vue Athlète: seule la Discipline Target est affichée (pas le max)",
+          "Vue Coach: enveloppe complète + scénarios + LDRI",
+          "Override Coach: justification écrite obligatoire + warning logged dans le rapport",
+          "Aucun encouragement à dépasser l'enveloppe — TFCL favorise la qualité du finish"
+        ]
+      },
+      {
+        type: "callout",
+        title: "Citation finale",
+        content: "\"Discipline is invisible. Collapse is spectacular.\" — L'objectif n'est pas de se sentir fort au départ. L'objectif est d'être ENCORE fort à l'arrivée."
+      }
+    ]
   }
 ];

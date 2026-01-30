@@ -733,3 +733,20 @@ export {
   type IntensityInput,
   type IntensityReferenceSummary,
 } from './intensityReferenceEngine';
+
+// Pacing Envelope Long Distance Extension (TFCL)
+export {
+  computeLongDistanceEnvelope,
+  LONG_DISTANCE_THRESHOLD_HOURS,
+  CRITICAL_DURATION_HOURS,
+  FATMAX_MAX_OFFSET_LONG,
+  LONG_DISTANCE_PHILOSOPHY,
+  LONG_DISTANCE_ACADEMY_CONTENT,
+  type LongDistanceInput,
+  type LongDistanceEnvelopeResult,
+  type LongDistanceRiskIndex,
+  type DisciplineBuffer,
+  type GlycogenCollapseThreshold,
+  type PacingScenarioType,
+  type HistoricalFade,
+} from './pacingEnvelopeLongDistance';
