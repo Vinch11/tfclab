@@ -92,11 +92,38 @@ export interface NutritionV2Input {
   
   // Poids (kg)
   weightKg: number | null;
+  
+  // Gut training avancé (entraînement digestif validé)
+  // Si true, permet des apports jusqu'à 120 g/h
+  advancedGutTraining?: boolean;
 }
 
 // =============================================
 // CONSTANTES OFFICIELLES TFCL™
 // =============================================
+
+/**
+ * Bornes de nutrition (g/h)
+ * 
+ * STANDARD: 40-90 g/h — athlète sans entraînement digestif spécifique
+ * ADVANCED: 90-120 g/h — athlète avec "gut training" validé
+ * 
+ * Références scientifiques:
+ * - Burke L.M. et al. (2019): Elite marathoners up to 90-100 g/h
+ * - Jeukendrup A. (2017): World Tour cyclists achieving 100-120 g/h
+ * - Pfeiffer B. et al. (2012): Ironman athletes 90-108 g/h
+ * - Viribay A. et al. (2020): 120 g/h achievable with training
+ */
+export const NUTRITION_BOUNDS = {
+  // Athlètes standards (pas de gut training spécifique)
+  STANDARD: { min: 40, max: 90 },
+  
+  // Athlètes avec gut training avancé validé
+  ADVANCED: { min: 50, max: 120 },
+  
+  // Seuil à partir duquel un warning est affiché
+  GUT_TRAINING_THRESHOLD: 90,
+};
 
 export const NUTRITION_PHILOSOPHY = {
   principle: `VLamax élevé → dépendance glucides ↑
@@ -108,7 +135,10 @@ CAP > Vélo → coût glycogène ↑ à intensité égale`,
 le profil métabolique, pas une prescription médicale.`,
   
   safeguard: `Ce module CONSEILLE. Il n'automatise rien.
-La décision finale appartient à l'athlète et son encadrement.`
+La décision finale appartient à l'athlète et son encadrement.`,
+  
+  gutTraining: `Apports > 90 g/h nécessitent un entraînement digestif
+progressif sur 4-8 semaines. Références: Jeukendrup 2017, Viribay 2020.`
 };
 
 export const NUTRITION_RISK_SCALE = {
@@ -361,10 +391,27 @@ export function computeNutritionV2(input: NutritionV2Input): NutritionPredictive
   const totalAdjustment = vlamaxAdj.adjustment + tteAdj.adjustment + durationAdj.adjustment + intensityAdj.adjustment;
   const rawResult = baseRate + totalAdjustment;
   
-  // Étape F — Bornage final (40-100 g/h)
-  const carbsCentral = clamp(Math.round(rawResult), 40, 100);
-  const carbsMin = clamp(carbsCentral - 5, 40, 100);
-  const carbsMax = clamp(carbsCentral + 5, 40, 100);
+  // Déterminer les bornes selon le niveau de gut training
+  const advancedGutTraining = input.advancedGutTraining ?? false;
+  const bounds = advancedGutTraining ? NUTRITION_BOUNDS.ADVANCED : NUTRITION_BOUNDS.STANDARD;
+  
+  // Étape F — Bornage final (adapté au niveau de gut training)
+  // Standard: 40-90 g/h | Advanced: 50-120 g/h
+  const carbsCentral = clamp(Math.round(rawResult), bounds.min, bounds.max);
+  const carbsMin = clamp(carbsCentral - 5, bounds.min, bounds.max);
+  const carbsMax = clamp(carbsCentral + 5, bounds.min, bounds.max);
+  
+  // Ajouter un contributeur si gut training avancé actif
+  if (advancedGutTraining) {
+    contributors.push({
+      id: 'gut_training',
+      label: 'Gut Training Avancé',
+      value: 'Activé',
+      adjustment: 0,
+      direction: 'up',
+      explanation: 'Bornes étendues (50-120 g/h) — entraînement digestif validé'
+    });
+  }
   
   // Risque glycogène
   const riskScore = computeGlycogenRiskScore(input);
@@ -394,6 +441,16 @@ export function computeNutritionV2(input: NutritionV2Input): NutritionPredictive
   }
   if (glycogenRisk === 'critical') {
     warnings.push("Risque de déplétion élevé — stratégie nutritionnelle impérative.");
+  }
+  
+  // Warning si besoins > 90 g/h sans gut training avancé
+  if (carbsCentral > NUTRITION_BOUNDS.GUT_TRAINING_THRESHOLD && !advancedGutTraining) {
+    warnings.push(`Besoins > ${NUTRITION_BOUNDS.GUT_TRAINING_THRESHOLD} g/h — entraînement digestif progressif sur 4-8 semaines requis.`);
+  }
+  
+  // Warning si gut training activé
+  if (advancedGutTraining && carbsCentral >= 100) {
+    warnings.push("Apports ≥100 g/h — valider la tolérance en conditions d'entraînement avant la course.");
   }
   
   return {
