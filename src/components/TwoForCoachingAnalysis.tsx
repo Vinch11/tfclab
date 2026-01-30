@@ -19,6 +19,7 @@ import { computeNutritionEstimate } from "@/lib/nutritionPredictive";
 import { computeNutritionTiming, type DigestiveTolerance, getRiskBadgeIcon } from "@/lib/nutritionTiming";
 import { computeEnergyDrift, type EnergyDriftResult } from "@/lib/energyDrift";
 import { getTargetsForAmbition, normalizeObjective } from "@/lib/physiologicalTargets";
+import { normalizeRaceTypeForDisplay } from "@/lib/raceTypeNormalization";
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 
 interface TwoForCoachingAnalysisProps {
@@ -264,7 +265,7 @@ export function TwoForCoachingAnalysis({
                 </PopoverContent>
               </Popover>
             </div>
-            <p className="text-sm text-muted-foreground">Objectif: {athlete.objectif === "IM" ? "Ironman" : athlete.objectif === "703" ? "70.3" : athlete.objectif}</p>
+            <p className="text-sm text-muted-foreground">Objectif: {normalizeRaceTypeForDisplay(athlete.objectif)}</p>
           </div>
         </div>
 

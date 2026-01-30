@@ -409,16 +409,22 @@ const UNIFIED_TARGETS: Record<string, LeveledTargets> = Object.fromEntries(
 );
 
 // Aliases for common objective names
+// ✅ FIX: Supporter tous les formats de 70.3 (703, 70.3, Half, etc.)
 const OBJECTIVE_ALIASES: Record<string, string> = {
   "Ironman": "IM",
   "ironman": "IM",
   "im": "IM",
-  "70.3": "703",
+  "70.3": "703",   // Format avec point → clé interne
+  "70,3": "703",   // Format avec virgule (français)
   "Half": "703",
   "half": "703",
+  "HALF": "703",
   "marathon": "Marathon",
+  "MARATHON": "Marathon",
   "semi": "Semi",
+  "SEMI": "Semi",
   "Semi-Marathon": "Semi",
+  "SemiMarathon": "Semi",
   "trail": "Trail",
   "TrailCourt": "Trail",
   "TrailShort": "Trail",
@@ -430,6 +436,9 @@ const OBJECTIVE_ALIASES: Record<string, string> = {
   "olympic": "Olympic",
   "olympique": "Olympic",
   "Course": "Semi",
+  "10km": "10km",
+  "10K": "10km",
+  "10k": "10km",
 };
 
 // =============================================

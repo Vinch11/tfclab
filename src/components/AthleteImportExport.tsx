@@ -28,6 +28,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { normalizeRaceTypeForDisplay } from "@/lib/raceTypeNormalization";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -281,7 +282,7 @@ export function AthleteImportExport({
                       </div>
                     </div>
                     {athlete.goal && (
-                      <Badge variant="outline" className="shrink-0">{athlete.goal}</Badge>
+                      <Badge variant="outline" className="shrink-0">{normalizeRaceTypeForDisplay(athlete.goal)}</Badge>
                     )}
                   </div>
                 );
@@ -369,7 +370,7 @@ export function AthleteImportExport({
                         </div>
                       </div>
                       {item.athlete.goal && (
-                        <Badge variant="outline">{item.athlete.goal}</Badge>
+                        <Badge variant="outline">{normalizeRaceTypeForDisplay(item.athlete.goal)}</Badge>
                       )}
                     </div>
                   ))}
