@@ -167,7 +167,13 @@ Le coach garde toujours la main sur la décision finale.`,
 La discipline prime sur la puissance instantanée.`,
 
   lorang_philosophy: `"Les 30 premières minutes sont NON NÉGOCIABLES." — Philosophie Dan Lorang
-L'erreur précoce coûte plus qu'elle ne rapporte.`,
+L'erreur précoce coûte plus qu'elle ne rapporte. Favoriser TOUJOURS les negative splits.`,
+
+  negative_split_strategy: `STRATÉGIE NEGATIVE SPLIT TFCL:
+• Phase 1 (0-20%): Départ CONSERVATEUR — bas de l'enveloppe
+• Phase 2 (20-70%): Installation PROGRESSIVE vers le centre
+• Phase 3 (>70%): Montée CONTRÔLÉE vers le haut si disponibilité
+→ L'accumulation de lactate en début de course compromet la performance finale.`,
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
