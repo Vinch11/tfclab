@@ -62,6 +62,9 @@ import {
   type RaceReadinessInput, 
   type RaceReadinessResult 
 } from "@/components/RaceReadinessSignatureChart";
+import { PacingEnvelopeBar, PacingEnvelopeBarInline } from "@/components/charts/PacingEnvelopeBar";
+import { computePacingEnvelope, type PacingEnvelopeInput, type RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
+import { computeFatMaxTFCL } from "@/lib/v2/fatmaxTFCL";
 import type { DbSnapshot } from "@/hooks/useCloudData";
 
 interface StaffReportProps {
@@ -152,6 +155,43 @@ export function StaffReport({
     fatigueState: ((snapshot as unknown as Record<string, unknown>)?.fatigue_state as string) === "fatigued" ? "fatigued" 
       : ((snapshot as unknown as Record<string, unknown>)?.fatigue_state as string) === "fresh" ? "fresh" 
       : "normal",
+  });
+
+  // ✅ PACING ENVELOPE™ TFCL - Calcul pour le rapport
+  const raceObjectiveMap: Record<string, RaceObjective> = {
+    "Ironman": "IM",
+    "IM": "IM",
+    "70.3": "70.3",
+    "Ironman 70.3": "70.3",
+    "Marathon": "Marathon",
+    "Semi-Marathon": "Semi",
+    "Semi": "Semi",
+    "10km": "10km",
+  };
+  const pacingRaceObjective: RaceObjective = raceObjectiveMap[objectif] ?? "Marathon";
+  const pacingSport: "bike" | "run" = objectif.includes("km") || objectif.includes("Marathon") || objectif.includes("Semi") ? "run" : "bike";
+  
+  const fatmax = computeFatMaxTFCL({
+    vlamaxEffectif: vlamaxEffectif.value,
+    vlamaxConfidence: vlamaxEffectif.confidence,
+    vo2maxEffectif: vo2max ?? null,
+    tteEffectif: tteEffectif.tte_min,
+    tteConfidence: tteEffectif.confidence,
+    fatigueIndex: null,
+    objectif: pacingRaceObjective,
+    ftp: ftp ?? null,
+  });
+
+  const pacingEnvelope = computePacingEnvelope({
+    vlamaxEffectif,
+    tteEffectif,
+    fatmax,
+    raceReadinessScore: readiness.score,
+    fatigueIndex: null,
+    raceObjective: pacingRaceObjective,
+    sport: pacingSport,
+    ftp: ftp ?? undefined,
+    weight: poids ?? undefined,
   });
 
   const getTrafficLightColors = (light: "green" | "orange" | "red") => {
@@ -757,6 +797,76 @@ export function StaffReport({
             <span className="font-medium text-amber-700 dark:text-amber-400">
               {report.raceStrategy.criticalNutritionWindow}
             </span>
+          </div>
+        )}
+
+        <Separator />
+
+        {/* 5.5️⃣ PACING ENVELOPE™ — DISCIPLINE MÉTABOLIQUE */}
+        {pacingEnvelope && (
+          <div>
+            <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+              <Target className="h-4 w-4" />
+              PACING ENVELOPE™ — DISCIPLINE MÉTABOLIQUE
+              <Badge 
+                variant="outline" 
+                className={cn(
+                  "text-[10px]",
+                  pacingEnvelope.confidenceLevel === "HIGH" && "border-emerald-500/50 text-emerald-600",
+                  pacingEnvelope.confidenceLevel === "MEDIUM" && "border-blue-500/50 text-blue-600",
+                  pacingEnvelope.confidenceLevel === "LOW" && "border-amber-500/50 text-amber-600"
+                )}
+              >
+                Confiance {pacingEnvelope.confidenceLabel}
+              </Badge>
+            </h3>
+            
+            {/* Graphique signature TFCL */}
+            <PacingEnvelopeBar
+              envelope={pacingEnvelope}
+              targetIntensityPct={pacingEnvelope.boundary.centerPct}
+              targetLabel="Intensité cible course"
+              showFatmaxMarker={true}
+              showMLSSMarker={true}
+              fatmaxPct={fatmax?.centerPctFTP}
+              mlssPct={pacingEnvelope.boundary.highPct + 3}
+              staffMode={true}
+              compact={false}
+              className="print:break-inside-avoid"
+            />
+            
+            {/* Explication staff */}
+            <div className="mt-4 p-4 rounded-lg bg-primary/5 border border-primary/20">
+              <p className="text-xs font-medium text-primary mb-2 flex items-center gap-1">
+                <Info className="h-3 w-3" />
+                Pourquoi le pacing est contraint par la physiologie, pas l'ambition
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Pour cet athlète, aller plus fort en début de course <strong>réduira</strong> la performance finale.
+                L'enveloppe de pacing est calculée à partir du profil métabolique réel: VLamax ({vlamaxEffectif.value?.toFixed(2) ?? "N/A"}), 
+                TTE ({tteEffectif.tte_min}min), et FatMax estimé.
+              </p>
+              
+              {pacingEnvelope.pacingProfile.type === "sensitive" && (
+                <div className="mt-3 p-2 rounded bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
+                  <p className="text-[10px] text-purple-700 dark:text-purple-300">
+                    ⚠️ <strong>Profil sensible détecté.</strong> {pacingEnvelope.pacingProfile.description}
+                  </p>
+                </div>
+              )}
+              
+              {pacingEnvelope.readinessMessage && (
+                <div className="mt-2 p-2 rounded bg-muted/50">
+                  <p className="text-[10px] text-muted-foreground">
+                    📉 Race Readiness: {pacingEnvelope.readinessMessage}
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            <p className="text-[10px] text-muted-foreground mt-3 italic text-center">
+              💡 "{pacingEnvelope.methodology}"
+            </p>
           </div>
         )}
 
