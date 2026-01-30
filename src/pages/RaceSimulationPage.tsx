@@ -38,7 +38,8 @@ export default function RaceSimulationPage() {
   
   // Compute effectifs
   const athleteId = selectedAthlete?.id ?? '';
-  const objectif = selectedAthlete?.goal ?? 'IM';
+  // ✅ FIX: Le contexte expose 'objectif', pas 'goal'
+  const objectif = selectedAthlete?.objectif ?? selectedAthlete?.goal ?? 'IM';
   const activeSnapshotId = selectedAthlete?.active_snapshot_id ?? null;
   
   const vlamaxEffectif = React.useMemo(() => {
@@ -110,22 +111,22 @@ export default function RaceSimulationPage() {
   
   // Determine discipline and race objective
   const discipline: 'bike' | 'run' = React.useMemo(() => {
-    const goal = selectedAthlete?.goal ?? '';
-    if (goal.includes('Marathon') || goal.includes('Semi') || goal.includes('10km')) {
+    // ✅ FIX: Utiliser 'objectif' qui est déjà normalisé depuis le contexte
+    if (objectif.includes('Marathon') || objectif.includes('Semi') || objectif.includes('10km')) {
       return 'run';
     }
     return 'bike';
-  }, [selectedAthlete?.goal]);
+  }, [objectif]);
   
   // Normalize race objective for Pacing Envelope
   const raceObjective: RaceObjective = React.useMemo(() => {
-    const goal = selectedAthlete?.goal ?? 'IM';
-    if (goal.includes('Marathon') && !goal.includes('Semi')) return 'Marathon';
-    if (goal.includes('Semi')) return 'Semi';
-    if (goal.includes('10km') || goal.includes('10k')) return '10km';
-    if (goal.includes('70.3') || goal.includes('703')) return '70.3';
+    // ✅ FIX: Gérer les formats '703' et '70.3'
+    if (objectif.includes('Marathon') && !objectif.includes('Semi')) return 'Marathon';
+    if (objectif.includes('Semi')) return 'Semi';
+    if (objectif.includes('10km') || objectif.includes('10k')) return '10km';
+    if (objectif === '703' || objectif === '70.3' || objectif.includes('70.3')) return '70.3';
     return 'IM';
-  }, [selectedAthlete?.goal]);
+  }, [objectif]);
   
   // Race duration estimation (for chart)
   const raceDurationMin = React.useMemo(() => {
