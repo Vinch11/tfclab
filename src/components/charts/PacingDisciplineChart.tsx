@@ -70,6 +70,18 @@ interface PacingDisciplineChartProps {
 // HELPERS
 // ═══════════════════════════════════════════════════════════════════════════════
 
+/**
+ * Génère les points du graphique Pacing Envelope
+ * 
+ * LOGIQUE CORRIGÉE:
+ * Le Pacing Envelope affiche des ZONES D'INTENSITÉ CONSTANTES sur toute la durée.
+ * L'intensité cible (% FTP/VMA) ne change PAS avec le temps — c'est l'intensité MOYENNE
+ * que l'athlète doit maintenir pour toute la course.
+ * 
+ * Le graphique montre donc:
+ * - Une ligne constante au CENTRE de l'enveloppe
+ * - Les zones colorées (optimale, tolérée, interdite) comme bandes horizontales
+ */
 function generateIdealPacing(
   envelope: PacingEnvelopeResult,
   totalDuration: number,
@@ -95,21 +107,9 @@ function generateIdealPacing(
       timeLabel = h > 0 ? `${h}h${m.toString().padStart(2, "0")}` : `${m}min`;
     }
     
-    // Pacing idéal: progression légère du bas vers le centre
-    let intensity: number;
-    if (progress < 0.15) {
-      // Départ conservateur
-      intensity = boundary.lowPct + (boundary.centerPct - boundary.lowPct) * 0.3;
-    } else if (progress < 0.7) {
-      // Installation progressive
-      intensity = boundary.lowPct + (boundary.centerPct - boundary.lowPct) * (0.3 + progress * 0.8);
-    } else {
-      // Maintien ou légère augmentation finale
-      intensity = boundary.centerPct + (boundary.highPct - boundary.centerPct) * (progress - 0.7) * 1.5;
-    }
-    
-    // Clamp dans les limites
-    intensity = Math.min(boundary.highPct, Math.max(boundary.lowPct, intensity));
+    // INTENSITÉ CONSTANTE = Centre de l'enveloppe
+    // Le % d'intensité cible est le MÊME tout au long de la course
+    const intensity = boundary.centerPct;
     
     points.push({
       time: timeValue,
