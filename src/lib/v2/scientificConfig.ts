@@ -35,12 +35,16 @@ export const SCIENTIFIC_REFERENCES = {
     "Mader A. (1986) – Glycolysis model",
     "Heck H. et al. (1985) – Lactate threshold", 
     "INSCYD public documentation (2020+)",
-    "PCr kinetics / Sprint contribution models"
+    "PCr kinetics / Sprint contribution models",
+    "Audit TFCL 2025: variance ±0.08 mmol/L/s recommandée"
   ],
   TTE: [
     "Jones A.M. & Burnley M. (2009) – Critical power",
     "Poole D.C. et al. (2016) – Endurance capacity",
-    "Seiler S. (2010) – Polarized training"
+    "Seiler S. (2010) – Polarized training",
+    "Skiba P.F. et al. (2012) – W' reconstitution model",
+    "Monod & Scherrer (1965) – Critical Power concept",
+    "Jones A.M. & Vanhatalo A. (2017) – Critical Power applications"
   ],
   FATIGUE: [
     "Impellizzeri F.M. et al. (2019) – Training load",
@@ -59,6 +63,23 @@ export const SCIENTIFIC_REFERENCES = {
     "Barnes K.R. & Kilding A.E. (2015) – Running economy",
     "Saunders P.U. et al. (2004) – Economy determinants",
     "Moore I.S. (2016) – Biomechanics of RE"
+  ],
+  PACING: [
+    "Abbiss C.R. & Laursen P.B. (2008) – Pacing strategies",
+    "Lorang D. (coaching philosophy) – Envelope-based pacing",
+    "TrainingPeaks power file analysis (2020+)"
+  ],
+  CROSSOVER: [
+    "Brooks G.A. & Mercier J. (1994) – Crossover concept",
+    "Achten J. & Jeukendrup A.E. (2003) – FatMax determination"
+  ],
+  WPRIME: [
+    "Skiba P.F. et al. (2012) – W' reconstitution",
+    "Burnley M. & Jones A.M. (2018) – Power-duration relationship"
+  ],
+  EFFICIENCY: [
+    "Coyle E.F. (1992) – Cycling efficiency",
+    "Moseley L. & Jeukendrup A.E. (2001) – Efficiency changes with duration"
   ]
 };
 

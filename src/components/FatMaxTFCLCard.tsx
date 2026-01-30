@@ -153,6 +153,35 @@ export function FatMaxTFCLCard({
           </p>
         </div>
 
+        {/* NOUVEAU: Crossover Zone */}
+        <div className="p-3 bg-amber-50/50 dark:bg-amber-950/20 rounded-lg border border-amber-200/50 dark:border-amber-800/30">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-amber-500" />
+              <span className="text-sm font-medium">Crossover Zone</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="w-3.5 h-3.5 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="text-xs">
+                      Zone de transition où l'utilisation des glucides dépasse les lipides (50/50).
+                      Au-dessus de cette zone, la dépendance glucidique augmente significativement.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <span className="font-mono text-sm font-medium text-amber-600 dark:text-amber-400">
+              {fatmax.crossoverZone[0]}–{fatmax.crossoverZone[1]}% FTP
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1.5">
+            8-12% au-dessus de FatMax — transition lipides/glucides
+          </p>
+        </div>
+
         {/* Zone métabolique */}
         <div className="flex items-center justify-center gap-2 text-sm">
           <Zap className={cn("w-4 h-4", getMetabolicZoneColor(fatmax.metabolicZone))} />

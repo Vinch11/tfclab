@@ -15,6 +15,8 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
+import { calculateCrossoverZone } from './scenarioEngine';
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -28,6 +30,12 @@ export interface FatMaxTFCLResult {
   centerPctFTP: number;
   minPctFTP: number;
   maxPctFTP: number;
+  
+  // NOUVEAU: Crossover Zone (50% lipides / 50% glucides)
+  // Zone où l'utilisation des glucides dépasse les lipides
+  // Typiquement 8-12% au-dessus de FatMax
+  crossoverZone: [number, number];
+  crossoverZoneLabel: string;
   
   // Confiance
   confidence: number;           // 0-1
@@ -274,15 +282,27 @@ export function computeFatMaxTFCL(input: FatMaxTFCLInput): FatMaxTFCLResult | nu
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 9: Textes explicatifs
+  // STEP 9: Crossover Zone (8-12% above FatMax)
+  // ─────────────────────────────────────────────────────────────────────────────
+  const crossoverZone = calculateCrossoverZone({
+    fatmaxPct: adjustedCenter,
+    vlamaxValue: vlamaxEffectif,
+    confidence: globalConfidence,
+  });
+  const crossoverZoneLabel = `Zone de transition lipides/glucides: ${crossoverZone[0]}–${crossoverZone[1]}% FTP`;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // STEP 10: Textes explicatifs
   // ─────────────────────────────────────────────────────────────────────────────
   const interpretation = generateAthleteInterpretation(adjustedCenter, metabolicZone, normalizedObjectif);
-  const staffNote = generateStaffNote(input, adjustedCenter, globalConfidence);
+  const staffNote = generateStaffNote(input, adjustedCenter, globalConfidence, crossoverZone);
 
   return {
     centerPctFTP: Math.round(adjustedCenter),
     minPctFTP: Math.round(minPctFTP),
     maxPctFTP: Math.round(maxPctFTP),
+    crossoverZone,
+    crossoverZoneLabel,
     confidence: globalConfidence,
     confidenceLevel,
     confidenceLabel,
@@ -327,11 +347,16 @@ function generateAthleteInterpretation(
 function generateStaffNote(
   input: FatMaxTFCLInput,
   center: number,
-  confidence: number
+  confidence: number,
+  crossoverZone?: [number, number]
 ): string {
   const parts: string[] = [];
   
   parts.push(`FatMax estimée à ${center}% FTP (confiance ${(confidence * 100).toFixed(0)}%).`);
+  
+  if (crossoverZone) {
+    parts.push(`Crossover Zone: ${crossoverZone[0]}–${crossoverZone[1]}% FTP.`);
+  }
   
   if (input.vlamaxEffectif !== null) {
     parts.push(`VLamax source: ${input.vlamaxEffectif.toFixed(2)} mmol/L/s.`);
