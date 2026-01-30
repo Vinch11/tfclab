@@ -51,12 +51,25 @@ export interface PacingEnvelopeInput {
   weight?: number | null;                // kg
 }
 
+export type IntensityReferenceBase = 
+  | "fatmax"
+  | "race_intensity"  
+  | "ftp"
+  | "vma"
+  | "threshold_pace";
+
 export interface EnvelopeBoundary {
-  lowPct: number;      // % FTP/VMA - limite basse optimale
-  centerPct: number;   // % FTP/VMA - centre de l'enveloppe
-  highPct: number;     // % FTP/VMA - limite haute optimale
-  toleratedPct: number; // % FTP/VMA - limite zone tolérée
-  forbiddenPct: number; // % FTP/VMA - début zone interdite
+  lowPct: number;      // % de la référence - limite basse optimale
+  centerPct: number;   // % de la référence - centre de l'enveloppe
+  highPct: number;     // % de la référence - limite haute optimale
+  toleratedPct: number; // % de la référence - limite zone tolérée
+  forbiddenPct: number; // % de la référence - début zone interdite
+  
+  // TFCL V2: Référence d'intensité explicite
+  referenceBase: IntensityReferenceBase;
+  referenceLabel: string;
+  referenceShortLabel: string;
+  isFallbackReference: boolean;
 }
 
 export interface EnvelopeZoneDefinition {
@@ -313,12 +326,39 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
   const toleratedPct = clamp(highPct + 10, highPct + 5, 100);
   const forbiddenPct = toleratedPct;
 
+  // TFCL V2: Déterminer la référence d'intensité explicite
+  let referenceBase: IntensityReferenceBase;
+  let referenceLabel: string;
+  let referenceShortLabel: string;
+  let isFallbackReference: boolean;
+
+  if (fatmax != null && fatmax.centerPctFTP > 0) {
+    referenceBase = "fatmax";
+    referenceLabel = "FatMax TFCL™";
+    referenceShortLabel = "FatMax";
+    isFallbackReference = false;
+  } else if (sport === "bike") {
+    referenceBase = "ftp";
+    referenceLabel = "FTP (Functional Threshold Power)";
+    referenceShortLabel = "FTP";
+    isFallbackReference = true;
+  } else {
+    referenceBase = "vma";
+    referenceLabel = "VMA (Vitesse Maximale Aérobie)";
+    referenceShortLabel = "VMA";
+    isFallbackReference = true;
+  }
+
   const boundary: EnvelopeBoundary = {
     lowPct: Math.round(lowPct),
     centerPct: Math.round(centerPct),
     highPct: Math.round(highPct),
     toleratedPct: Math.round(toleratedPct),
     forbiddenPct: Math.round(forbiddenPct),
+    referenceBase,
+    referenceLabel,
+    referenceShortLabel,
+    isFallbackReference,
   };
 
   // ─────────────────────────────────────────────────────────────────────────────

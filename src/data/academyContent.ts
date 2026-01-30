@@ -1325,5 +1325,108 @@ export const academySections: AcademySection[] = [
         content: "La discipline de pacing n'est pas une contrainte imposée, c'est une compétence à développer. Les meilleurs athlètes d'endurance ne sont pas ceux qui ignorent leurs limites, mais ceux qui les respectent avec précision."
       }
     ]
+  },
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // NOUVELLE LEÇON: Références d'intensité TFCL V2
+  // ═══════════════════════════════════════════════════════════════════════════════
+  {
+    id: "intensity-reference-explained",
+    title: "Pourquoi 80% ne veut rien dire sans référence",
+    level: "basic",
+    tags: ["intensité", "pacing", "FTP", "FatMax", "VMA", "physiologie", "INSCYD", "référence"],
+    blocks: [
+      {
+        type: "callout",
+        title: "Règle fondamentale TFCL V2",
+        content: "Une intensité sans référence physiologique n'a AUCUNE valeur. 80% de quoi ? Cette question doit toujours avoir une réponse claire."
+      },
+      {
+        type: "text",
+        title: "Le problème des pourcentages abstraits",
+        content: "Dans l'entraînement classique, on voit souvent des prescriptions du type 'roule à 75%' ou 'zone 3 à 85%'. Mais 85% de QUOI exactement ? Le FTP ? Le seuil lactique ? La puissance à FatMax ? Chaque référence implique une sollicitation métabolique radicalement différente."
+      },
+      {
+        type: "bullets",
+        title: "Exemples concrets d'erreur de pacing",
+        content: [
+          "80% de FTP ≠ 80% de FatMax : sur un Ironman, cette confusion peut coûter 45 minutes",
+          "75% de VMA ≠ 75% d'allure marathon : la charge glycolytique est totalement différente",
+          "Un athlète à VLamax basse qui roule à '85%' sans savoir de quoi risque l'explosion glycogénique",
+          "Le même pourcentage pour deux profils différents → conséquences opposées"
+        ]
+      },
+      {
+        type: "table",
+        title: "Impact réel : même % mais références différentes",
+        content: {
+          headers: ["Référence", "Valeur 75%", "Système sollicité", "Durabilité (IM)"],
+          rows: [
+            ["FatMax", "75% FatMax", "Aérobie pur (lipides)", "✓ Excellent"],
+            ["FTP", "75% FTP (≈60% VO2max)", "Mixte modéré", "✓ Correct"],
+            ["Seuil LT2", "75% LT2", "Aérobie dominante", "✓ Bon"],
+            ["MAP/PMA", "75% PMA", "Glycolyse ++", "✗ Impossible"],
+            ["Allure 10km", "75% v10k", "Zone haute", "✗ Non durable"]
+          ]
+        }
+      },
+      {
+        type: "text",
+        title: "Cas Ironman : la surconsommation glycogénique",
+        content: "Un athlète qui 'se sent bien' à 82% de FTP alors que son FatMax est à 68% de FTP consomme du glycogène 3x plus vite que nécessaire. Après 4h, ses réserves sont épuisées. C'est invisible au départ, catastrophique à l'arrivée."
+      },
+      {
+        type: "callout",
+        title: "Philosophie Dan Lorang / INSCYD",
+        content: "Dans la méthodologie INSCYD, chaque intensité est TOUJOURS rattachée à un seuil métabolique mesuré (FatMax, MLSS, VLamax). TFCL adopte exactement cette logique : on ne parle jamais de % abstrait."
+      },
+      {
+        type: "bullets",
+        title: "La hiérarchie TFCL des références",
+        content: [
+          "Priorité 1 (métabolique) : FatMax, Allure Course cible, Seuil métabolique",
+          "Priorité 2 (power-based) : FTP (vélo), VMA (course), Allure seuil",
+          "Priorité 3 (VO2max work) : MAP/PMA, %VMA haute",
+          "Si référence manquante → affichage 'estimation indirecte' obligatoire"
+        ]
+      },
+      {
+        type: "text",
+        title: "Comment TFCL affiche les intensités",
+        content: "Dans toute l'application, une intensité est TOUJOURS affichée sous la forme 'X% de [RÉFÉRENCE]' avec un code couleur indiquant le système énergétique dominant : vert = aérobie, orange = mixte, rouge = glycolyse. Un badge indique si la référence est physiologique (FatMax) ou un fallback (FTP sans données métaboliques)."
+      },
+      {
+        type: "table",
+        title: "Code couleur des systèmes énergétiques",
+        content: {
+          headers: ["Couleur", "Système", "Signification", "Durabilité"],
+          rows: [
+            ["🟢 Vert", "Aérobie dominant", "Oxydation lipidique prioritaire", "Très haute"],
+            ["🟠 Orange", "Zone mixte", "Glycolyse croissante, gestion requise", "Modérée"],
+            ["🔴 Rouge", "Glycolyse dominante", "Consommation rapide du glycogène", "Limitée"]
+          ]
+        }
+      },
+      {
+        type: "callout",
+        title: "Message clé pour le coach",
+        content: "On ne s'entraîne pas à des watts. On ne s'entraîne pas à des %. On s'entraîne à des SYSTÈMES ÉNERGÉTIQUES. La puissance ou l'allure ne sont que des indicateurs au service de cette cible physiologique."
+      },
+      {
+        type: "bullets",
+        title: "Actions concrètes pour le coach",
+        content: [
+          "Toujours préciser la référence quand tu prescris une intensité",
+          "Vérifier que l'athlète comprend POURQUOI cette zone et pas une autre",
+          "Utiliser le Pacing Envelope™ qui intègre automatiquement les bonnes références",
+          "En cas de doute sur la référence → afficher le warning TFCL",
+          "Éduquer l'athlète à reconnaître les sensations associées à chaque zone"
+        ]
+      },
+      {
+        type: "text",
+        title: "Conclusion : la précision comme crédibilité",
+        content: "Un coach qui dit '80% de FatMax pour économiser le glycogène' a une crédibilité scientifique. Un coach qui dit 'roule à 80%' sans plus de détails laisse place à l'interprétation. TFCL impose cette rigueur pour aligner discours, physiologie et résultats."
+      }
+    ]
   }
 ];

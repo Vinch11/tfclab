@@ -81,33 +81,51 @@ function EnvelopeSummary({ envelope }: { envelope: PacingEnvelopeResult }) {
   const { boundary, envelopeWidth, envelopeWidthLabel, pacingProfile, confidenceLabel } = envelope;
   
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      {/* Centre */}
-      <div className="bg-green-100 dark:bg-green-900/30 rounded-lg p-3 text-center">
-        <div className="text-2xl font-bold text-green-600 dark:text-green-400 font-mono">
-          {boundary.centerPct}%
+    <div className="space-y-3">
+      {/* Référence d'intensité - TFCL V2 */}
+      <div className={cn(
+        "flex items-center gap-2 p-2 rounded-lg text-xs",
+        boundary.isFallbackReference 
+          ? "bg-orange-100 dark:bg-orange-900/30 border border-orange-300 dark:border-orange-700"
+          : "bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700"
+      )}>
+        <Info className="h-3 w-3 flex-shrink-0" />
+        <span>
+          Intensités exprimées en <strong>% de {boundary.referenceShortLabel}</strong>
+          {boundary.isFallbackReference && (
+            <span className="text-orange-600 dark:text-orange-400 ml-1">(estimation indirecte)</span>
+          )}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {/* Centre */}
+        <div className="bg-green-100 dark:bg-green-900/30 rounded-lg p-3 text-center">
+          <div className="text-2xl font-bold text-green-600 dark:text-green-400 font-mono">
+            {boundary.centerPct}%
+          </div>
+          <div className="text-[10px] text-muted-foreground">de {boundary.referenceShortLabel}</div>
         </div>
-        <div className="text-[10px] text-muted-foreground">Centre</div>
-      </div>
-      
-      {/* Plage */}
-      <div className="bg-muted rounded-lg p-3 text-center">
-        <div className="text-lg font-bold font-mono">
-          {boundary.lowPct}–{boundary.highPct}%
+        
+        {/* Plage */}
+        <div className="bg-muted rounded-lg p-3 text-center">
+          <div className="text-lg font-bold font-mono">
+            {boundary.lowPct}–{boundary.highPct}%
+          </div>
+          <div className="text-[10px] text-muted-foreground">Zone Optimale</div>
         </div>
-        <div className="text-[10px] text-muted-foreground">Zone Optimale</div>
-      </div>
-      
-      {/* Largeur */}
-      <div className="bg-muted rounded-lg p-3 text-center">
-        <div className="text-lg font-bold font-mono">±{envelopeWidth}%</div>
-        <div className="text-[10px] text-muted-foreground">{envelopeWidthLabel.split(" ")[0]}</div>
-      </div>
-      
-      {/* Confiance */}
-      <div className="bg-muted rounded-lg p-3 text-center">
-        <div className="text-lg font-bold">{confidenceLabel}</div>
-        <div className="text-[10px] text-muted-foreground">Confiance</div>
+        
+        {/* Largeur */}
+        <div className="bg-muted rounded-lg p-3 text-center">
+          <div className="text-lg font-bold font-mono">±{envelopeWidth}%</div>
+          <div className="text-[10px] text-muted-foreground">{envelopeWidthLabel.split(" ")[0]}</div>
+        </div>
+        
+        {/* Confiance */}
+        <div className="bg-muted rounded-lg p-3 text-center">
+          <div className="text-lg font-bold">{confidenceLabel}</div>
+          <div className="text-[10px] text-muted-foreground">Confiance</div>
+        </div>
       </div>
     </div>
   );
