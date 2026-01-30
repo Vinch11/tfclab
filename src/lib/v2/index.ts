@@ -22,6 +22,9 @@ export * from "./tfclSymptoms";
 // Lorang Strategy Engine — Leviers opérationnels TFCL
 export * from "./lorangStrategyEngine";
 
+// Usable Pacing Ceiling (Race Readiness + Simulation Engine V2)
+export * from "./usablePacingCeiling";
+
 /**
  * TWO FOR COACHING LAB V2 — Index
  * 
