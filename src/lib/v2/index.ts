@@ -696,3 +696,40 @@ export {
   type CoachCommunication,
   type SimulationLink,
 } from './staffPacingReport';
+
+// Live Decision Engine (Coach Only)
+export {
+  computeLiveDecision,
+  getPhaseLabel as getLivePhaseLabel,
+  getDecisionColor,
+  getDecisionBg,
+  type LiveDataPoint,
+  type LiveSessionInput,
+  type LiveDecisionResult,
+  type ConformityAnalysis,
+  type RiskAnalysis,
+  type RiskFlag,
+  type CoachDecision,
+  type SuggestedMessage,
+  type DecisionLevel,
+  type ConformityStatus,
+} from './liveDecisionEngine';
+
+// Intensity Reference Engine (TFCL V2)
+export {
+  resolveIntensity,
+  formatIntensityWithRef,
+  isValidIntensityDisplay,
+  getIntensityWarning,
+  getReferencesForSport,
+  generateIntensityReferenceSummary,
+  INTENSITY_REFERENCES,
+  ENERGY_SYSTEM_CONFIG,
+  type Sport as IntensitySport,
+  type IntensityReferenceType,
+  type EnergySystem,
+  type IntensityReference,
+  type ResolvedIntensity,
+  type IntensityInput,
+  type IntensityReferenceSummary,
+} from './intensityReferenceEngine';
