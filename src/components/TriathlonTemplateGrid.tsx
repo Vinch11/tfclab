@@ -21,6 +21,7 @@ import {
   BarChart3, X, ArrowLeftRight, AlertTriangle, Activity, User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { normalizeRaceTypeForDisplay } from "@/lib/raceTypeNormalization";
 import { PROGRAM_TEMPLATES } from "@/data/programTemplates";
 import type { TemplateWeek, TemplateSession } from "@/lib/templates/docxTemplateLoader";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
@@ -641,7 +642,7 @@ function AthleteProfileBadge({ profile }: { profile: AthleteProfileData | null }
         <div className="flex items-center gap-2">
           <User className="h-4 w-4 text-primary" />
           <span className="font-medium text-sm">{profile.name}</span>
-          <Badge variant="outline" className="text-[10px]">{profile.objectif}</Badge>
+          <Badge variant="outline" className="text-[10px]">{normalizeRaceTypeForDisplay(profile.objectif)}</Badge>
         </div>
         {/* Data freshness indicator */}
         {profile.vlamaxDate && (

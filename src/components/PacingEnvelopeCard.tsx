@@ -27,6 +27,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { normalizeRaceTypeForDisplay } from "@/lib/raceTypeNormalization";
 
 import { 
   computePacingEnvelope, 
@@ -354,7 +355,7 @@ export function PacingEnvelopeCard({
               <Activity className="h-5 w-5 text-primary" />
               <CardTitle className="text-base">Pacing Envelope™</CardTitle>
             </div>
-            <Badge variant="outline">{input.raceObjective}</Badge>
+            <Badge variant="outline">{normalizeRaceTypeForDisplay(input.raceObjective)}</Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -385,7 +386,7 @@ export function PacingEnvelopeCard({
                 {envelope.pacingProfile.badge}
               </Badge>
             )}
-            <Badge variant="outline">{input.raceObjective}</Badge>
+            <Badge variant="outline">{normalizeRaceTypeForDisplay(input.raceObjective)}</Badge>
             {staffMode && (
               <Badge variant="secondary" className="text-[10px]">STAFF</Badge>
             )}

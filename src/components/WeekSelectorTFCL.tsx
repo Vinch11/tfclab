@@ -18,6 +18,7 @@ import {
   Shield, TrendingUp, Clock, Flame, Heart, MapPin, ChevronRight, Dumbbell,
   BarChart3, Timer
 } from "lucide-react";
+import { normalizeRaceTypeForDisplay } from "@/lib/raceTypeNormalization";
 
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
@@ -295,7 +296,7 @@ export function WeekSelectorTFCL({ onInsertWeek, defaultRaceType }: WeekSelector
                   <SelectItem key={a.id} value={a.id}>
                     <div className="flex items-center gap-2">
                       <span>{a.name}</span>
-                      {a.goal && <Badge variant="outline" className="text-[10px]">{a.goal}</Badge>}
+                      {a.goal && <Badge variant="outline" className="text-[10px]">{normalizeRaceTypeForDisplay(a.goal)}</Badge>}
                     </div>
                   </SelectItem>
                 ))}
