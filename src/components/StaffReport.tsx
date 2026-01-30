@@ -63,7 +63,14 @@ import {
   type RaceReadinessResult 
 } from "@/components/RaceReadinessSignatureChart";
 import { PacingEnvelopeBar, PacingEnvelopeBarInline } from "@/components/charts/PacingEnvelopeBar";
+import { LongDistanceEnvelopeChart, LongDistanceEnvelopeInline } from "@/components/charts/LongDistanceEnvelopeChart";
 import { computePacingEnvelope, type PacingEnvelopeInput, type RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
+import { 
+  computeLongDistanceEnvelope, 
+  LONG_DISTANCE_THRESHOLD_HOURS,
+  LONG_DISTANCE_PHILOSOPHY,
+  type LongDistanceEnvelopeResult 
+} from "@/lib/v2/pacingEnvelopeLongDistance";
 import { computeFatMaxTFCL } from "@/lib/v2/fatmaxTFCL";
 import type { DbSnapshot } from "@/hooks/useCloudData";
 
@@ -193,6 +200,34 @@ export function StaffReport({
     ftp: ftp ?? undefined,
     weight: poids ?? undefined,
   });
+
+  // ✅ LONG DISTANCE PACING - Extension pour épreuves > 90min
+  const raceDurationMap: Record<string, number> = {
+    "Ironman": 10,
+    "IM": 10,
+    "70.3": 5,
+    "Ironman 70.3": 5,
+    "Marathon": 3.5,
+    "Semi-Marathon": 1.75,
+    "Semi": 1.75,
+    "10km": 0.75,
+  };
+  const estimatedDurationHours = raceDurationMap[objectif] ?? 3;
+  const isLongDistance = estimatedDurationHours >= LONG_DISTANCE_THRESHOLD_HOURS;
+
+  const longDistanceEnvelope: LongDistanceEnvelopeResult | null = isLongDistance && pacingEnvelope
+    ? computeLongDistanceEnvelope({
+        baseEnvelope: pacingEnvelope,
+        targetDurationHours: estimatedDurationHours,
+        vlamaxValue: vlamaxEffectif.value,
+        vlamaxConfidence: vlamaxEffectif.confidence,
+        tteConfidence: tteEffectif.confidence,
+        athleteAge: athleteAge ?? null,
+        fatmaxPct: fatmax?.centerPctFTP ?? null,
+        historicalFadePattern: null,
+        glycogenAvailability: null,
+      })
+    : null;
 
   const getTrafficLightColors = (light: "green" | "orange" | "red") => {
     switch (light) {
@@ -867,6 +902,117 @@ export function StaffReport({
             <p className="text-[10px] text-muted-foreground mt-3 italic text-center">
               💡 "{pacingEnvelope.methodology}"
             </p>
+          </div>
+        )}
+
+        {/* 5.6️⃣ LONG DISTANCE PACING DISCIPLINE — Pour événements > 90min */}
+        {longDistanceEnvelope && (
+          <div className="print:break-inside-avoid">
+            <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              LONG DISTANCE PACING DISCIPLINE
+              <Badge 
+                variant="outline" 
+                className={cn(
+                  "text-[10px]",
+                  longDistanceEnvelope.ldri.level === "low" && "border-emerald-500/50 text-emerald-600",
+                  longDistanceEnvelope.ldri.level === "moderate" && "border-blue-500/50 text-blue-600",
+                  longDistanceEnvelope.ldri.level === "high" && "border-amber-500/50 text-amber-600",
+                  longDistanceEnvelope.ldri.level === "critical" && "border-red-500/50 text-red-600"
+                )}
+              >
+                LDRI: {longDistanceEnvelope.ldri.score}/100
+              </Badge>
+              <Badge variant="outline" className="text-[10px]">
+                ~{estimatedDurationHours}h
+              </Badge>
+            </h3>
+            
+            {/* Graphique Long Distance */}
+            <LongDistanceEnvelopeChart
+              envelope={longDistanceEnvelope}
+              currentTargetPct={longDistanceEnvelope.disciplineBuffer.disciplineTargetPct}
+              staffMode={true}
+              compact={false}
+              className="print:break-inside-avoid"
+            />
+            
+            {/* Section explicative staff */}
+            <div className="mt-4 p-4 rounded-lg bg-primary/5 border border-primary/20">
+              <p className="text-xs font-medium text-primary mb-2 flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3" />
+                {longDistanceEnvelope.keyMessages.staffReportMessage}
+              </p>
+              
+              {/* Discipline Target vs Safe Zone */}
+              <div className="grid grid-cols-2 gap-4 mt-3 p-3 rounded bg-muted/30">
+                <div className="text-center">
+                  <p className="text-[10px] text-muted-foreground mb-1">Cible Discipline</p>
+                  <p className="text-xl font-bold text-primary">
+                    {longDistanceEnvelope.disciplineBuffer.disciplineTargetPct}%
+                  </p>
+                  <p className="text-[9px] text-muted-foreground">
+                    {longDistanceEnvelope.disciplineBuffer.bufferMarginPct}% sous le max
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[10px] text-muted-foreground mb-1">Seuil Glycogène</p>
+                  <p className="text-xl font-bold text-amber-600 dark:text-amber-400">
+                    {longDistanceEnvelope.glycogenThreshold.thresholdPct}%
+                  </p>
+                  <p className="text-[9px] text-muted-foreground">
+                    Max {longDistanceEnvelope.glycogenThreshold.maxDurationMinutes}min au-dessus
+                  </p>
+                </div>
+              </div>
+              
+              {/* Avertissement banking time */}
+              <div className="mt-3 p-2 rounded bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                <p className="text-[10px] text-red-700 dark:text-red-300">
+                  <strong>⛔ INTERDICTION de "banker du temps"</strong> — 
+                  Chaque minute gagnée précocement coûte 3-5 minutes en fin de course.
+                </p>
+              </div>
+              
+              {/* Conséquences scénarios */}
+              <div className="mt-3">
+                <p className="text-xs font-medium text-muted-foreground mb-2">Scénarios de pacing:</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {longDistanceEnvelope.scenarios.map((scenario) => (
+                    <div 
+                      key={scenario.type}
+                      className={cn(
+                        "p-2 rounded-lg border text-center",
+                        scenario.color === "green" && "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800",
+                        scenario.color === "orange" && "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800",
+                        scenario.color === "red" && "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
+                      )}
+                    >
+                      <p className={cn(
+                        "text-[10px] font-bold",
+                        scenario.color === "green" && "text-emerald-700 dark:text-emerald-300",
+                        scenario.color === "orange" && "text-amber-700 dark:text-amber-300",
+                        scenario.color === "red" && "text-red-700 dark:text-red-300"
+                      )}>
+                        {scenario.label}
+                      </p>
+                      <p className="text-lg font-bold">{scenario.avgIntensityPct}%</p>
+                      <p className="text-[9px] text-muted-foreground">{scenario.outcome}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            {/* Phrase signature Long Distance */}
+            <div className="mt-3 p-3 rounded-lg bg-muted/50 border text-center">
+              <p className="text-xs italic text-muted-foreground">
+                "{LONG_DISTANCE_PHILOSOPHY.discipline}"
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                L'objectif n'est pas de se sentir fort au départ. L'objectif est d'ÊTRE ENCORE FORT à l'arrivée.
+              </p>
+            </div>
           </div>
         )}
 
