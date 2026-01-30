@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Info, Calendar, FileText, Smartphone } from 'lucide-react';
+import { ArrowLeft, Info, Calendar, FileText, Smartphone, Radio } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -16,6 +16,7 @@ import { PacingEnvelopeCard } from '@/components/PacingEnvelopeCard';
 import { RaceDayBriefingMode } from '@/components/RaceDayBriefingMode';
 import { StaffPacingReportV2 } from '@/components/StaffPacingReportV2';
 import { RaceDayMode } from '@/components/RaceDayMode';
+import { LiveDecisionMode } from '@/components/LiveDecisionMode';
 import { useAthletes } from '@/contexts/AthleteContext';
 import { useCloudData } from '@/hooks/useCloudData';
 import { computeVLamaxEffectif } from '@/lib/vlamaxEffectif';
@@ -33,6 +34,7 @@ export default function RaceSimulationPage() {
   const { currentAthlete: selectedAthlete } = useAthletes();
   const { snapshots, tests, checkins } = useCloudData();
   const [showRaceDayMode, setShowRaceDayMode] = React.useState(false);
+  const [showLiveMode, setShowLiveMode] = React.useState(false);
   
   // Compute effectifs
   const athleteId = selectedAthlete?.id ?? '';
@@ -205,9 +207,21 @@ export default function RaceSimulationPage() {
             </p>
           </div>
           
-          {/* Race-Day Mode button */}
+          {/* Mode buttons */}
           {envelope && rules && scenarios && (
             <>
+              {/* Live Decision Mode - Coach Only */}
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                className="gap-1"
+                onClick={() => setShowLiveMode(true)}
+              >
+                <Radio className="h-4 w-4" />
+                <span className="hidden sm:inline">Live</span>
+              </Button>
+              
+              {/* Race-Day Mode - Athlete */}
               <Button 
                 variant="default" 
                 size="sm" 
@@ -217,6 +231,8 @@ export default function RaceSimulationPage() {
                 <Smartphone className="h-4 w-4" />
                 <span className="hidden sm:inline">Race-Day</span>
               </Button>
+              
+              {/* Briefing Dialog */}
               <Dialog>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-1">
@@ -361,6 +377,22 @@ export default function RaceSimulationPage() {
           raceObjective={raceObjective}
           raceReadinessScore={raceReadinessScore}
           onClose={() => setShowRaceDayMode(false)}
+        />
+      )}
+
+      {/* Live Decision Mode - Coach Only */}
+      {showLiveMode && envelope && (
+        <LiveDecisionMode
+          athleteName={selectedAthlete?.name ?? 'Athlète'}
+          envelope={envelope}
+          raceObjective={raceObjective}
+          raceReadinessScore={raceReadinessScore}
+          vlamaxValue={vlamaxEffectif?.value ?? null}
+          tteMin={tteEffectif?.tte_min ?? null}
+          targetPowerOrPace={activeSnapshot?.ftp ?? 250}
+          targetHR={activeSnapshot?.fc_max ? Math.round(activeSnapshot.fc_max * 0.75) : null}
+          totalExpectedDurationMin={raceDurationMin}
+          onClose={() => setShowLiveMode(false)}
         />
       )}
     </div>
