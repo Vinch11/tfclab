@@ -120,6 +120,8 @@ const SECTION_DESCRIPTIONS: Partial<Record<keyof ReportSections, string>> = {
   raceReadiness: "Score de préparation course",
   disponibiliteTFCL: "État de disponibilité du jour",
   raceSimulation: "Scénarios de pacing et nutrition",
+  pacingEnvelope: "Corridors Safe/Risk/Forbidden basés VLamax",
+  longDistancePacing: "LDRI et seuils glycogène (>90min)",
   injuryRisk: "Évaluation du risque de blessure CAP",
   nutritionV2: "Besoins glucidiques personnalisés",
   fatmaxTFCL: "Zone d'oxydation lipidique optimale",
