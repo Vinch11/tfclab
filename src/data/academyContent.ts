@@ -1654,5 +1654,67 @@ export const academySections: AcademySection[] = [
         content: "\"Discipline is invisible. Collapse is spectacular.\" — L'objectif n'est pas de se sentir fort au départ. L'objectif est d'être ENCORE fort à l'arrivée."
       }
     ]
+  },
+  {
+    id: "race-readiness-v2-engine",
+    title: "Pourquoi la Forme Seule ne Gagne pas les Courses",
+    level: "staff",
+    tags: ["race readiness", "disponibilité", "pacing", "simulation", "décision", "V2"],
+    blocks: [
+      {
+        type: "text",
+        title: "Principe fondamental TFCL",
+        content: "Performance jour J = Potentiel × Disponibilité × Discipline. TFCL n'évalue jamais l'un sans les autres. La forme (potentiel) définit le plafond possible. La disponibilité (Race Readiness) définit ce qui est accessible aujourd'hui. La discipline (Pacing Envelope) garantit l'exécution."
+      },
+      {
+        type: "callout",
+        title: "La disponibilité fluctue plus vite que la forme",
+        content: "VO2max, FTP et VLamax mettent des semaines à changer. La disponibilité peut changer en une nuit. Sommeil, stress, voyage, nutrition et récupération modulent la fraction du potentiel accessible AUJOURD'HUI."
+      },
+      {
+        type: "table",
+        title: "Plafond Utilisable (Usable Pacing Ceiling)",
+        content: {
+          headers: ["Concept", "Définition", "Formule"],
+          rows: [
+            ["Plafond Absolu", "Limite haute de l'enveloppe de pacing (potentiel)", "Envelope upper bound"],
+            ["Plafond Utilisable", "Intensité MAX autorisée aujourd'hui", "Envelope × Race Readiness %"],
+            ["Cible Discipline", "Intensité recommandée (3-5% sous le plafond)", "Usable ceiling - Buffer"]
+          ]
+        }
+      },
+      {
+        type: "bullets",
+        title: "Statuts de décision",
+        content: [
+          "CRITIQUE (<50): Pacing sévèrement restreint ou simulation désactivée",
+          "RESTREINT (50-65): Scénarios conservateurs uniquement",
+          "NORMAL (65-80): Accès complet avec marges standards",
+          "OPTIMAL (>80): Stratégies ambitieuses disponibles avec risques explicites"
+        ],
+        staffOnly: true
+      },
+      {
+        type: "callout",
+        title: "Conséquences, pas prédictions",
+        content: "La simulation TFCL ne prédit PAS les temps d'arrivée. Elle simule des CONSÉQUENCES. Pour chaque choix de pacing: Quand l'athlète perd-il le contrôle métabolique? La récupération est-elle possible? Quel est le coût de l'agressivité précoce?"
+      },
+      {
+        type: "bullets",
+        title: "Templates de phrases TFCL",
+        content: [
+          "\"Ce pacing dépasse ce que ton corps peut défendre aujourd'hui.\"",
+          "\"La fatigue apparaîtra avant de pouvoir être gérée.\"",
+          "\"Tu empruntes une énergie que tu ne pourras pas rembourser.\"",
+          "\"La décision prioritise la stabilité du finish sur la performance précoce.\""
+        ]
+      },
+      {
+        type: "callout",
+        title: "Message clé",
+        content: "\"La meilleure décision est celle que ton corps peut exécuter aujourd'hui.\" — TFCL ne promeut jamais le risque pour l'ego ou le classement. La simulation est éducative, pas prédictive. Race Readiness gate toujours le Pacing.",
+        staffOnly: true
+      }
+    ]
   }
 ];

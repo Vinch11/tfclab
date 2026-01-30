@@ -23,6 +23,7 @@ export { MetabolicPowerCurve } from "./MetabolicPowerCurve";
 export { PacingDisciplineChart } from "./PacingDisciplineChart";
 export { PacingEnvelopeBar, PacingEnvelopeBarInline } from "./PacingEnvelopeBar";
 export { LongDistanceEnvelopeChart, LongDistanceEnvelopeInline } from "./LongDistanceEnvelopeChart";
+export { PotentialAvailabilityDecisionChart } from "./PotentialAvailabilityDecisionChart";
 
 // Utilitaires pour graphiques responsives (mobile/touch)
 export {
