@@ -128,21 +128,24 @@ export interface PacingEnvelopeResult {
 // CONSTANTES
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// Intensités de course validées par données terrain (TrainingPeaks, études scientifiques)
+// Sources: Kona power files, études Springer Sport Sciences for Health (2025)
+// Ces valeurs représentent les intensités MOYENNES observées sur le circuit
 const RACE_BASE_INTENSITY: Record<RaceObjective, number> = {
-  IM: 68,
-  "70.3": 76,
-  Marathon: 72,
-  Semi: 80,
-  "10km": 88,
+  IM: 72,       // Age-groupers: 65-75% | Pros: 78-82% → moyenne réaliste
+  "70.3": 78,   // Consensus: 75-80% | Pros: 80-85%
+  Marathon: 78, // ~78-82% VMA pour un marathon bien exécuté
+  Semi: 84,     // ~82-88% VMA pour un semi-marathon
+  "10km": 92,   // ~90-95% VMA pour un 10km
 };
 
-// Largeur de base par objectif (plus long = plus étroit)
+// Largeur de base par objectif (plus long = plus étroit car moins de marge d'erreur)
 const RACE_BASE_WIDTH: Record<RaceObjective, number> = {
-  IM: 5,       // ±5% = très étroit pour Ironman
-  "70.3": 6,
-  Marathon: 5,
-  Semi: 7,
-  "10km": 10,
+  IM: 5,       // ±5% = étroit car durée longue (8-17h)
+  "70.3": 6,   // ±6% = modéré
+  Marathon: 5, // ±5% = étroit
+  Semi: 7,     // ±7% = plus large
+  "10km": 10,  // ±10% = large car durée courte
 };
 
 export const PACING_ENVELOPE_DEFINITIONS = {
