@@ -49,8 +49,11 @@ export const SCIENTIFIC_REFERENCES = {
   ],
   NUTRITION: [
     "Burke L.M. et al. (2019) – Carbohydrate periodization",
-    "Jeukendrup A. (2014) – CHO feeding during exercise",
-    "Thomas D.T. et al. (2016) – ACSM position stand"
+    "Jeukendrup A. (2014, 2017) – CHO feeding during exercise, gut training",
+    "Thomas D.T. et al. (2016) – ACSM position stand",
+    "Pfeiffer B. et al. (2012) – Ironman nutrition study (90-108 g/h)",
+    "Viribay A. et al. (2020) – 120 g/h achievable with training",
+    "Stellingwerff T. (2012) – Elite marathon nutrition strategies"
   ],
   ECONOMY: [
     "Barnes K.R. & Kilding A.E. (2015) – Running economy",

@@ -26,8 +26,11 @@ import {
   TrendingUp, 
   TrendingDown,
   Minus,
-  HelpCircle
+  HelpCircle,
+  Zap
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import {
   computeNutritionV2,
@@ -35,6 +38,7 @@ import {
   getNutritionRiskIcon,
   formatCarbsRange,
   NUTRITION_PHILOSOPHY,
+  NUTRITION_BOUNDS,
   type NutritionV2Input,
   type NutritionPredictiveV2,
   type NutritionContributor,
@@ -52,6 +56,8 @@ interface NutritionV2CardProps {
   targetDurationHours?: number | null;
   targetIntensityPct?: number | null;
   weightKg: number | null;
+  advancedGutTraining?: boolean;
+  onGutTrainingChange?: (enabled: boolean) => void;
   staffMode?: boolean;
   className?: string;
 }
@@ -127,6 +133,8 @@ export function NutritionV2Card({
   targetDurationHours = null,
   targetIntensityPct = null,
   weightKg,
+  advancedGutTraining = false,
+  onGutTrainingChange,
   staffMode = false,
   className
 }: NutritionV2CardProps) {
@@ -140,10 +148,11 @@ export function NutritionV2Card({
       sport,
       targetDurationHours,
       targetIntensityPct,
-      weightKg
+      weightKg,
+      advancedGutTraining
     };
     return computeNutritionV2(input);
-  }, [vlamaxValue, vlamaxConfidence, tteMin, sport, targetDurationHours, targetIntensityPct, weightKg]);
+  }, [vlamaxValue, vlamaxConfidence, tteMin, sport, targetDurationHours, targetIntensityPct, weightKg, advancedGutTraining]);
   
   if (!nutrition) {
     return (
@@ -200,6 +209,28 @@ export function NutritionV2Card({
       </CardHeader>
       
       <CardContent className="space-y-4">
+        {/* Gut Training Toggle */}
+        {onGutTrainingChange && (
+          <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border/50">
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-warning" />
+              <div>
+                <Label htmlFor="gut-training-toggle" className="text-sm font-medium cursor-pointer">
+                  Gut Training Avancé
+                </Label>
+                <p className="text-[10px] text-muted-foreground">
+                  Étend les bornes jusqu'à 120 g/h (Jeukendrup 2017)
+                </p>
+              </div>
+            </div>
+            <Switch
+              id="gut-training-toggle"
+              checked={advancedGutTraining}
+              onCheckedChange={onGutTrainingChange}
+            />
+          </div>
+        )}
+        
         {/* Main result */}
         <div className="text-center p-4 bg-muted/30 rounded-lg">
           <p className="text-xs text-muted-foreground mb-1">Plage recommandée</p>
