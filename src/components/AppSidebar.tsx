@@ -21,6 +21,7 @@ import {
   LogOut,
   Shield,
   Play,
+  Smartphone,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -64,6 +65,7 @@ const navigationGroups = [
       { id: "tests", label: "Tests & Protocoles", icon: FlaskConical, route: "/tests" },
       { id: "race-readiness", label: "Race Readiness", icon: Trophy, tab: "race-readiness" },
       { id: "race-simulation", label: "Simulation", icon: Play, route: "/race-simulation" },
+      { id: "race-day", label: "Race-Day Mode", icon: Smartphone, route: "/race-day" },
     ],
   },
   {
