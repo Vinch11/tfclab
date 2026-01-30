@@ -88,7 +88,9 @@ export interface ReportSections {
   indicateurs: boolean;     // Indicateurs Clés
   raceReadiness: boolean;   // Race Readiness
   disponibiliteTFCL: boolean; // ✅ Disponibilité TFCL™
-  raceSimulation: boolean;  // ✅ NEW: Simulation de Course TFCL™
+  raceSimulation: boolean;  // ✅ Simulation de Course TFCL™
+  pacingEnvelope: boolean;  // ✅ Pacing Envelope™ - Discipline Métabolique
+  longDistancePacing: boolean; // ✅ Long Distance Pacing Discipline
   injuryRisk: boolean;      // Risque de Blessure CAP
   nutritionV2: boolean;     // Nutrition Prédictive V2
   fatmaxTFCL: boolean;      // FatMax TFCL
@@ -5459,6 +5461,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     raceReadiness: raceReadinessHTML,
     disponibiliteTFCL: disponibiliteTFCLHTML,
     raceSimulation: buildRaceSimulationHTML(payload, 'pro'),
+    pacingEnvelope: '', // Rendered in StaffReport component
+    longDistancePacing: '', // Rendered in StaffReport component
     injuryRisk: injuryRiskHTML,
     nutritionV2: buildNutritionV2HTML(payload),
     fatmaxTFCL: buildFatMaxTFCLHTML(payload),
@@ -6027,7 +6031,9 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       indicateurs: false,
       raceReadiness: false,
       disponibiliteTFCL: false,
-      raceSimulation: false, // ✅ NEW
+      raceSimulation: false,
+      pacingEnvelope: false,
+      longDistancePacing: false,
       injuryRisk: false,
       nutritionV2: false,
       fatmaxTFCL: false,

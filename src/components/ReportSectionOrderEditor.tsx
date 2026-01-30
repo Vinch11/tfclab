@@ -52,7 +52,9 @@ export const SECTION_LABELS: Record<keyof ReportSections, string> = {
   indicateurs: "Indicateurs Clés",
   raceReadiness: "Race Readiness",
   disponibiliteTFCL: "Disponibilité TFCL™",
-  raceSimulation: "Simulation de Course TFCL™", // ✅ NEW
+  raceSimulation: "Simulation de Course TFCL™",
+  pacingEnvelope: "📊 Pacing Envelope™",
+  longDistancePacing: "🏃 Long Distance Pacing Discipline",
   injuryRisk: "Risque de Blessure CAP",
   nutritionV2: "Nutrition Prédictive V2",
   fatmaxTFCL: "FatMax TFCL™",
@@ -84,7 +86,9 @@ const SECTION_CATEGORIES: Record<keyof ReportSections, string> = {
   indicateurs: "Analyse",
   raceReadiness: "Performance",
   disponibiliteTFCL: "Performance",
-  raceSimulation: "Performance", // ✅ NEW
+  raceSimulation: "Performance",
+  pacingEnvelope: "Performance",
+  longDistancePacing: "Performance",
   injuryRisk: "Performance",
   nutritionV2: "Nutrition",
   fatmaxTFCL: "Nutrition",
@@ -129,7 +133,9 @@ export const DEFAULT_SECTION_ORDER: (keyof ReportSections)[] = [
   "indicateurs",
   "raceReadiness",
   "disponibiliteTFCL",
-  "raceSimulation", // ✅ NEW
+  "raceSimulation",
+  "pacingEnvelope",
+  "longDistancePacing",
   "injuryRisk",
   "nutritionV2",
   "fatmaxTFCL",
@@ -161,7 +167,9 @@ export const DEFAULT_VISIBILITY: Record<keyof ReportSections, boolean> = {
   indicateurs: true,
   raceReadiness: true,
   disponibiliteTFCL: true,
-  raceSimulation: true, // ✅ NEW
+  raceSimulation: true,
+  pacingEnvelope: true,
+  longDistancePacing: true,
   injuryRisk: true,
   nutritionV2: true,
   fatmaxTFCL: true,
