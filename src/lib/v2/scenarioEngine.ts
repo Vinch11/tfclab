@@ -321,17 +321,47 @@ export function estimateMechanicalEfficiency(params: {
 
 /**
  * Génère les 3 scénarios VLamax avec variance ±0.08 mmol/L/s
+ * 
+ * IMPORTANT: Si source = 'test_labo' ou 'test_terrain', variance réduite
+ * car les données mesurées sont plus fiables.
  */
 export function generateVLamaxScenarios(params: {
   centralValue: number;
   confidence: number;
-}): ScenarioSet<VLamaxScenario> {
-  const { centralValue, confidence } = params;
+  source?: 'estimation' | 'test_terrain' | 'test_labo';
+}): ScenarioSet<VLamaxScenario> & { isObserved: boolean } {
+  const { centralValue, confidence, source = 'estimation' } = params;
   
-  // Variance selon confiance (audit: ±0.08 mmol/L/s proposé)
-  const variance = confidence >= 0.75 ? 0.05 : confidence >= 0.5 ? 0.08 : 0.12;
+  // Données labo = très fiable, scénario unique
+  const isLabMeasured = source === 'test_labo' && confidence >= 0.9;
   
-  const scenarios: ScenarioSet<VLamaxScenario> = {
+  if (isLabMeasured) {
+    const labScenario: VLamaxScenario = {
+      value: centralValue,
+      range: [centralValue - 0.02, centralValue + 0.02], // ±0.02 pour erreur de mesure
+      successProbability: 0.98,
+      label: 'VLamax mesurée (labo lactate)',
+    };
+    
+    return {
+      conservative: labScenario,
+      optimal: labScenario,
+      aggressive: labScenario,
+      recommended: 'optimal',
+      confidence: 0.95,
+      isObserved: true,
+    };
+  }
+  
+  // Variance selon confiance et source (audit: ±0.08 mmol/L/s proposé)
+  let variance: number;
+  if (source === 'test_terrain') {
+    variance = confidence >= 0.75 ? 0.04 : 0.06; // Terrain = plus fiable que estimation
+  } else {
+    variance = confidence >= 0.75 ? 0.05 : confidence >= 0.5 ? 0.08 : 0.12;
+  }
+  
+  const scenarios: ScenarioSet<VLamaxScenario> & { isObserved: boolean } = {
     conservative: {
       value: Math.max(0.20, centralValue + variance * 0.5), // VLamax plus haute = plus conservateur pour endurance
       range: [centralValue, centralValue + variance],
@@ -352,6 +382,7 @@ export function generateVLamaxScenarios(params: {
     },
     recommended: confidence >= 0.7 ? 'optimal' : 'conservative',
     confidence,
+    isObserved: source === 'test_terrain',
   };
   
   return scenarios;
@@ -359,18 +390,46 @@ export function generateVLamaxScenarios(params: {
 
 /**
  * Génère les 3 scénarios TTE avec modèle W'
+ * 
+ * IMPORTANT: Si source = 'observed', retourne uniquement le scénario optimal
+ * car une mesure directe ne nécessite pas de scénarios alternatifs.
  */
 export function generateTTEScenarios(params: {
   centralValue: number;
   confidence: number;
   wprime?: number;
-}): ScenarioSet<TTEScenario> {
-  const { centralValue, confidence, wprime = 20 } = params;
+  source?: 'observed' | 'estimated' | 'unknown';
+}): ScenarioSet<TTEScenario> & { isObserved: boolean } {
+  const { centralValue, confidence, wprime = 20, source = 'estimated' } = params;
   
-  // Variance selon confiance
+  // Si TTE observé (mesuré par test), pas besoin de scénarios
+  // La valeur est factuelle, confiance maximale
+  const isObserved = source === 'observed' && confidence >= 0.9;
+  
+  if (isObserved) {
+    // Scénario unique pour données observées
+    const observedScenario: TTEScenario = {
+      value: centralValue,
+      range: [centralValue, centralValue], // Pas de plage
+      wprime,
+      successProbability: 0.98, // Très haute confiance
+      label: 'TTE mesuré (test terrain)',
+    };
+    
+    return {
+      conservative: observedScenario,
+      optimal: observedScenario,
+      aggressive: observedScenario,
+      recommended: 'optimal',
+      confidence: 0.95,
+      isObserved: true,
+    };
+  }
+  
+  // Variance selon confiance pour les estimations
   const variance = confidence >= 0.75 ? 4 : confidence >= 0.5 ? 6 : 10;
   
-  const scenarios: ScenarioSet<TTEScenario> = {
+  const scenarios: ScenarioSet<TTEScenario> & { isObserved: boolean } = {
     conservative: {
       value: Math.max(25, centralValue - variance),
       range: [Math.max(25, centralValue - variance * 1.5), centralValue],
@@ -394,6 +453,7 @@ export function generateTTEScenarios(params: {
     },
     recommended: confidence >= 0.7 ? 'optimal' : 'conservative',
     confidence,
+    isObserved: false,
   };
   
   return scenarios;
