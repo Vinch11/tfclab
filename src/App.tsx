@@ -19,6 +19,7 @@ import AthletesListPage from "./pages/AthletesListPage";
 import NotFound from "./pages/NotFound";
 import RaceSimulationPage from "./pages/RaceSimulationPage";
 import RaceDayModePage from "./pages/RaceDayModePage";
+import LiveDecisionModePage from "./pages/LiveDecisionModePage";
 import FatiguePage from "./pages/FatiguePage";
 import { TFCLTestingWeekPage } from "./components/TFCLTestingWeek";
 import { CAPTestingWeekPage } from "./components/CAPTestingWeek";
@@ -174,6 +175,20 @@ export default function App() {
                         <CloudDataProvider>
                           <AthleteProvider>
                             <RaceDayModePage />
+                          </AthleteProvider>
+                        </CloudDataProvider>
+                      </OnboardingGate>
+                    </AuthGate>
+                  }
+                />
+                <Route
+                  path="/live-decision"
+                  element={
+                    <AuthGate>
+                      <OnboardingGate>
+                        <CloudDataProvider>
+                          <AthleteProvider>
+                            <LiveDecisionModePage />
                           </AthleteProvider>
                         </CloudDataProvider>
                       </OnboardingGate>
