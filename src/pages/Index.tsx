@@ -96,6 +96,10 @@ import { ConfigurationPage } from "@/components/ConfigurationPage";
 // ✅ VO2max Age Comparison Card
 import { VO2maxAgeComparisonCard } from "@/components/VO2maxAgeComparisonCard";
 
+// ✅ Scénarios TTE & VLamax (3 niveaux: Conservateur, Optimal, Agressif)
+import { TTEScenarioDisplay, VLamaxScenarioDisplay } from "@/components/ScenarioComparisonCard";
+import { generateTTEScenarios, generateVLamaxScenarios } from "@/lib/v2/scenarioEngine";
+
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1134,6 +1138,46 @@ const Index = () => {
                   fatmax={fatmaxResult}
                   raceIntensityPct={raceIntensity}
                 />
+              );
+            },
+          },
+          {
+            id: "scenarios-tte-vlamax",
+            render: () => {
+              if (!currentAthlete) return null;
+              
+              // Générer les scénarios TTE
+              const tteSource = tteEffectif.source === 'observed' ? 'observed' : 'estimated';
+              const tteScenarios = generateTTEScenarios({
+                centralValue: tteEffectif.tte_min,
+                confidence: tteEffectif.confidence,
+                source: tteSource,
+              });
+              
+              // Générer les scénarios VLamax
+              // Source 'test' = test terrain, 'snapshot' = labo potentiellement
+              const vlamaxSource = vlamaxEffectif.source === 'test' ? 'test_terrain' : 
+                                   vlamaxEffectif.source === 'snapshot' ? 'test_labo' : 'estimation';
+              const vlamaxScenarios = generateVLamaxScenarios({
+                centralValue: vlamaxEffectif.value ?? 0.5,
+                confidence: vlamaxEffectif.confidence,
+                source: vlamaxSource,
+              });
+              
+              // Si les deux sont observés, pas besoin d'afficher les scénarios
+              if (tteScenarios.isObserved && vlamaxScenarios.isObserved) {
+                return null;
+              }
+              
+              return (
+                <div className="space-y-4">
+                  {!tteScenarios.isObserved && (
+                    <TTEScenarioDisplay scenarios={tteScenarios} compact={!staffMode} />
+                  )}
+                  {!vlamaxScenarios.isObserved && (
+                    <VLamaxScenarioDisplay scenarios={vlamaxScenarios} compact={!staffMode} />
+                  )}
+                </div>
               );
             },
           },
