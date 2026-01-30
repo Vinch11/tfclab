@@ -1428,5 +1428,125 @@ export const academySections: AcademySection[] = [
         content: "Un coach qui dit '80% de FatMax pour économiser le glycogène' a une crédibilité scientifique. Un coach qui dit 'roule à 80%' sans plus de détails laisse place à l'interprétation. TFCL impose cette rigueur pour aligner discours, physiologie et résultats."
       }
     ]
+  },
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // LEÇON PACING ENVELOPE™ — Discipline beats ambition
+  // ═══════════════════════════════════════════════════════════════════════════════
+  {
+    id: "pacing-envelope-discipline",
+    title: "Pacing Envelope™: Why discipline beats ambition",
+    level: "basic",
+    tags: ["pacing", "discipline", "VLamax", "endurance", "Ironman", "marathon", "métabolisme", "Dan Lorang"],
+    blocks: [
+      {
+        type: "callout",
+        title: "Philosophie TFCL",
+        content: "Le Pacing Envelope™ n'est PAS un outil de prédiction. C'est un SYSTÈME DE CONTRAINTE DÉCISIONNELLE. Il définit ce que l'athlète peut faire, ce qui est tolérable mais risqué, et ce qui est interdit le jour de course."
+      },
+      {
+        type: "text",
+        title: "Le paradoxe de la VLamax basse",
+        content: "Un athlète avec une VLamax réduite (< 0.35 mmol/L/s) possède un excellent rendement énergétique — mais une tolérance quasi nulle aux erreurs de pacing. Ce profil, typique des athlètes ultra-endurance élites, est le plus performant ET le plus fragile. L'erreur précoce coûte plus qu'elle ne rapporte."
+      },
+      {
+        type: "table",
+        title: "Impact de la VLamax sur la tolérance au sur-pacing",
+        content: {
+          headers: ["Profil VLamax", "Largeur Envelope", "Tolérance erreur", "Stratégie"],
+          rows: [
+            ["< 0.30 (très basse)", "±4-5%", "Quasi nulle", "Discipline absolue"],
+            ["0.30-0.45 (modérée)", "±5-7%", "Faible", "Prudence recommandée"],
+            ["> 0.55 (élevée)", "±8-12%", "Modérée", "Plus de flexibilité"]
+          ]
+        }
+      },
+      {
+        type: "bullets",
+        title: "Pourquoi le sur-pacing précoce est irréversible",
+        content: [
+          "L'activation glycolytique précoce augmente IRRÉVERSIBLEMENT la consommation de glycogène",
+          "Le lactate accumulé dans les 30 premières minutes persiste tout au long de la course",
+          "Se sentir 'bien' au départ ≠ un bon pacing (sensation vs métabolisme)",
+          "L'effondrement arrive 2-3h après l'erreur, pas immédiatement"
+        ]
+      },
+      {
+        type: "callout",
+        title: "Citation Dan Lorang",
+        content: "\"Les 30 premières minutes sont NON NÉGOCIABLES.\" — La discipline en début de course détermine la capacité à performer en fin de course."
+      },
+      {
+        type: "text",
+        title: "Les 3 zones du Pacing Envelope™",
+        content: "Le système définit trois zones claires basées sur la physiologie métabolique, pas sur les sensations ou l'ambition:"
+      },
+      {
+        type: "bullets",
+        title: "Zone SAFE (Verte)",
+        content: [
+          "Production de lactate < clearance (équilibre métabolique)",
+          "Oxydation lipidique significative (épargne glycogène)",
+          "Déplétion glycogénique compatible avec la durée de course",
+          "C'est LA zone cible pour l'ultra-endurance"
+        ]
+      },
+      {
+        type: "bullets",
+        title: "Zone RISK (Orange)",
+        content: [
+          "Intensité soutenable à court terme MAIS métaboliquement dangereuse",
+          "Contribution glycolytique en forte hausse",
+          "Tolérable ponctuellement (côte, relance) mais retour rapide requis",
+          "Chaque minute dans cette zone coûte du glycogène irremplaçable"
+        ]
+      },
+      {
+        type: "bullets",
+        title: "Zone FORBIDDEN (Rouge)",
+        content: [
+          "Accélère la déplétion glycogénique",
+          "Accumulation lactate au-delà de la clearance",
+          "Provoque un effondrement du pacing en fin de course",
+          "INTERDIT sur longue distance — quelle que soit la sensation"
+        ]
+      },
+      {
+        type: "text",
+        title: "Le cas concret Ironman",
+        content: "Un athlète qui 'se sent bien' à 78% de FTP alors que son envelope SAFE est 65-72% consomme du glycogène 3x plus vite. Après 4h de vélo, ses réserves sont critiques. Le marathon devient une marche forcée. L'écart de 6% au départ = 45 min perdues à l'arrivée."
+      },
+      {
+        type: "table",
+        title: "Règles Coach — Système de warnings",
+        content: {
+          headers: ["Situation", "Warning TFCL", "Action recommandée"],
+          rows: [
+            ["Target en zone RISK", "⚠️ Risque de déplétion glycogénique prématurée", "Message: \"Stabilise maintenant\""],
+            ["Target en zone FORBIDDEN", "🔴 Pacing hors enveloppe TFCL", "Intervention: \"Reviens dans le plan\""],
+            ["VLamax confidence < 70%", "ℹ️ Enveloppe construite avec confiance modérée", "Considérer Reference Week TFCL"]
+          ]
+        }
+      },
+      {
+        type: "text",
+        title: "La performance élite = être ennuyeux au départ",
+        content: "Jan Frodeno, Kristian Blummenfelt, Eliud Kipchoge — tous ces champions partagent une caractéristique: ils commencent SOUS leur potentiel apparent. L'objectif n'est pas de se sentir fort au départ. L'objectif est d'être ENCORE fort à l'arrivée."
+      },
+      {
+        type: "callout",
+        title: "Message clé de la leçon",
+        content: "\"The goal is not to feel strong early. The goal is to still be strong late.\" — Le Pacing Envelope™ existe pour protéger l'athlète de sa propre ambition."
+      },
+      {
+        type: "bullets",
+        title: "Intégration dans TFCL",
+        content: [
+          "Le Pacing Envelope™ alimente Race Readiness, Simulation et Race-Day Briefing",
+          "Une intensité sans référence = interdite pour le pacing jour J",
+          "Le coach peut override mais doit justifier (responsabilité explicite)",
+          "L'athlète ne peut PAS modifier les zones lui-même"
+        ]
+      }
+    ]
   }
 ];
