@@ -25,6 +25,9 @@ export * from "./lorangStrategyEngine";
 // Usable Pacing Ceiling (Race Readiness + Simulation Engine V2)
 export * from "./usablePacingCeiling";
 
+// Scenario Engine (3-scenarios unified system)
+export * from './scenarioEngine';
+
 /**
  * TWO FOR COACHING LAB V2 — Index
  * 
