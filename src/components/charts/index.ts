@@ -22,6 +22,7 @@ export { CarbBurnRateChart } from "./CarbBurnRateChart";
 export { MetabolicPowerCurve } from "./MetabolicPowerCurve";
 export { PacingDisciplineChart } from "./PacingDisciplineChart";
 export { PacingEnvelopeBar, PacingEnvelopeBarInline } from "./PacingEnvelopeBar";
+export { LongDistanceEnvelopeChart, LongDistanceEnvelopeInline } from "./LongDistanceEnvelopeChart";
 
 // Utilitaires pour graphiques responsives (mobile/touch)
 export {
