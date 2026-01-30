@@ -71,16 +71,26 @@ interface PacingDisciplineChartProps {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /**
- * Génère les points du graphique Pacing Envelope
+ * Génère les points du graphique Pacing Envelope — Stratégie NEGATIVE SPLIT
  * 
- * LOGIQUE CORRIGÉE:
- * Le Pacing Envelope affiche des ZONES D'INTENSITÉ CONSTANTES sur toute la durée.
- * L'intensité cible (% FTP/VMA) ne change PAS avec le temps — c'est l'intensité MOYENNE
- * que l'athlète doit maintenir pour toute la course.
+ * PHILOSOPHIE DAN LORANG:
+ * "Les 30 premières minutes sont NON NÉGOCIABLES."
+ * L'erreur précoce coûte plus qu'elle ne rapporte. Favoriser les negative splits.
  * 
- * Le graphique montre donc:
- * - Une ligne constante au CENTRE de l'enveloppe
- * - Les zones colorées (optimale, tolérée, interdite) comme bandes horizontales
+ * STRATÉGIE EN 3 PHASES:
+ * 1. PHASE CONSERVATRICE (0-20% de la course, minimum 30 min)
+ *    → Départ au BAS de l'enveloppe (lowPct + 20% de la largeur)
+ *    → But: éviter accumulation de lactate, stabiliser métabolisme
+ * 
+ * 2. PHASE D'INSTALLATION (20%-70% de la course)
+ *    → Montée progressive vers le CENTRE de l'enveloppe
+ *    → But: trouver son rythme de croisière
+ * 
+ * 3. PHASE FINALE (>70% de la course)
+ *    → Possibilité d'aller vers le HAUT de l'enveloppe si disponibilité
+ *    → But: utiliser les réserves restantes
+ * 
+ * Le graphique montre donc une courbe ASCENDANTE (negative split visuel)
  */
 function generateIdealPacing(
   envelope: PacingEnvelopeResult,
@@ -91,6 +101,9 @@ function generateIdealPacing(
   const points: ChartDataPoint[] = [];
   const { boundary } = envelope;
   const steps = 20;
+  
+  // Largeur de l'enveloppe optimale
+  const envelopeWidth = boundary.highPct - boundary.lowPct;
   
   for (let i = 0; i <= steps; i++) {
     const progress = i / steps;
@@ -107,9 +120,41 @@ function generateIdealPacing(
       timeLabel = h > 0 ? `${h}h${m.toString().padStart(2, "0")}` : `${m}min`;
     }
     
-    // INTENSITÉ CONSTANTE = Centre de l'enveloppe
-    // Le % d'intensité cible est le MÊME tout au long de la course
-    const intensity = boundary.centerPct;
+    // ═══════════════════════════════════════════════════════════════════════════
+    // STRATÉGIE NEGATIVE SPLIT (Philosophie Dan Lorang)
+    // ═══════════════════════════════════════════════════════════════════════════
+    let intensity: number;
+    
+    // Phase 1: CONSERVATRICE (0-20% ou premiers 30 min minimum)
+    // Départ au bas de l'enveloppe + 20% de la largeur
+    const conservativePhaseEnd = 0.20;
+    
+    // Phase 2: INSTALLATION (20%-70%)
+    // Montée progressive vers le centre
+    const installationPhaseEnd = 0.70;
+    
+    if (progress <= conservativePhaseEnd) {
+      // Phase 1: Départ conservateur — bas de l'enveloppe + marge de sécurité
+      // "Les 30 premières minutes sont NON NÉGOCIABLES"
+      intensity = boundary.lowPct + envelopeWidth * 0.2;
+      
+    } else if (progress <= installationPhaseEnd) {
+      // Phase 2: Installation progressive vers le centre
+      // Interpolation linéaire du bas vers le centre
+      const phaseProgress = (progress - conservativePhaseEnd) / (installationPhaseEnd - conservativePhaseEnd);
+      const startIntensity = boundary.lowPct + envelopeWidth * 0.2;
+      intensity = startIntensity + (boundary.centerPct - startIntensity) * phaseProgress;
+      
+    } else {
+      // Phase 3: Finale — possibilité d'aller vers le haut si disponibilité
+      // Interpolation du centre vers le haut (mais pas au-delà de highPct - 1)
+      const phaseProgress = (progress - installationPhaseEnd) / (1 - installationPhaseEnd);
+      const targetHigh = boundary.highPct - 1; // Marge de sécurité
+      intensity = boundary.centerPct + (targetHigh - boundary.centerPct) * phaseProgress * 0.8;
+    }
+    
+    // Clamp dans les limites de l'enveloppe optimale
+    intensity = Math.min(boundary.highPct, Math.max(boundary.lowPct, intensity));
     
     points.push({
       time: timeValue,
