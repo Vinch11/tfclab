@@ -147,17 +147,18 @@ const RACE_BASE_WIDTH: Record<RaceObjective, number> = {
 
 export const PACING_ENVELOPE_DEFINITIONS = {
   official: `Le Pacing Envelope™ TFCL est un couloir physiologique d'intensité autorisée, 
-basé sur le profil métabolique de l'athlète. Il ne prescrit pas une allure exacte, 
-mais définit les limites sécurisées pour optimiser la performance.`,
+basé sur le profil métabolique de l'athlète. Les intensités sont exprimées en % de FTP (vélo) 
+ou VMA (course), correspondant aux intensités réelles de compétition.`,
 
   disclaimer: `TFCL NE PRESCRIT PAS une allure. TFCL EXPLIQUE, SIMULE et CADRE la décision.
 Le coach garde toujours la main sur la décision finale.`,
 
   methodology: `Calcul basé sur:
-• FatMax TFCL™ (centre de l'enveloppe si disponible)
+• Intensité de course selon objectif (centre de l'enveloppe)
 • VLamax effectif (détermine la largeur — basse = étroit)
 • TTE effectif (stabilise l'enveloppe — élevé = plus robuste)
-• Race Readiness (réduit l'enveloppe si faible)`,
+• FatMax TFCL™ (indicateur métabolique, ajuste les limites)
+• Race Readiness (réduit le plafond si faible)`,
 
   sensitive_profile: `Ce profil métabolique offre un rendement élevé mais une faible tolérance aux erreurs.
 La discipline prime sur la puissance instantanée.`,
@@ -210,15 +211,22 @@ function getConfidenceLabel(confidence: number): string {
 /**
  * Calcule le Pacing Envelope™ TFCL selon la méthodologie Dan Lorang
  * 
- * A) Centre de l'enveloppe:
- *    - Si FatMax TFCL existe → centre = FatMax
- *    - Sinon → centre = intensité de référence selon objectif
+ * LOGIQUE CORRIGÉE:
+ * 
+ * A) Centre de l'enveloppe = INTENSITÉ DE COURSE (pas FatMax!)
+ *    - L'intensité de course est TOUJOURS au-dessus de FatMax en compétition
+ *    - 70.3: ~76-80% FTP | IM: ~68-72% FTP | Marathon: ~72-75% VMA
+ *    - FatMax (~55-65% FTP) sert de PLANCHER, pas de centre
  * 
  * B) Largeur de l'enveloppe:
- *    - VLamax basse → enveloppe étroite (±4-6%)
+ *    - VLamax basse → enveloppe étroite (±4-6%) car moins de marge glycolytique
  *    - VLamax élevée → enveloppe plus large (±8-12%)
- *    - TTE élevé → enveloppe stabilisée
- *    - Race Readiness faible → réduction de l'enveloppe
+ *    - TTE élevé → stabilité accrue
+ *    - Race Readiness faible → réduction du plafond
+ * 
+ * C) FatMax sert à:
+ *    - Définir le plancher métabolique (en dessous = sous-exploitation)
+ *    - Ajuster la limite basse de l'enveloppe
  */
 export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelopeResult | null {
   const {
@@ -235,17 +243,24 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
   const missingData: string[] = [];
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 1: Centre de l'enveloppe
+  // STEP 1: Centre de l'enveloppe = INTENSITÉ DE COURSE (pas FatMax!)
+  // L'intensité de course pour un 70.3 est ~76-80% FTP, pas 62% (FatMax)
   // ─────────────────────────────────────────────────────────────────────────────
-  let centerPct: number;
+  let centerPct: number = RACE_BASE_INTENSITY[raceObjective];
   
+  // Ajustement fin si FatMax disponible (athlètes à haute FatMax peuvent tenir plus haut)
   if (fatmax != null && fatmax.centerPctFTP > 0) {
-    // FatMax disponible = source prioritaire
-    centerPct = fatmax.centerPctFTP;
     sourcesUsed.push("FatMax TFCL™");
+    
+    // Si FatMax haute (>68% FTP), l'athlète peut soutenir une intensité légèrement plus élevée
+    if (fatmax.centerPctFTP > 68) {
+      centerPct = Math.min(centerPct + 2, 88); // Boost max +2%
+    }
+    // Si FatMax très basse (<55% FTP), l'athlète devra être plus conservateur
+    else if (fatmax.centerPctFTP < 55) {
+      centerPct = Math.max(centerPct - 2, 65); // Réduction max -2%
+    }
   } else {
-    // Fallback: intensité de référence selon objectif
-    centerPct = RACE_BASE_INTENSITY[raceObjective];
     missingData.push("FatMax");
   }
 
@@ -326,27 +341,24 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
   const toleratedPct = clamp(highPct + 10, highPct + 5, 100);
   const forbiddenPct = toleratedPct;
 
-  // TFCL V2: Déterminer la référence d'intensité explicite
+  // TFCL V2: Référence d'intensité explicite
+  // Le pacing est TOUJOURS exprimé en % de FTP (vélo) ou VMA (course)
+  // FatMax n'est PAS la référence - c'est un indicateur métabolique
   let referenceBase: IntensityReferenceBase;
   let referenceLabel: string;
   let referenceShortLabel: string;
   let isFallbackReference: boolean;
 
-  if (fatmax != null && fatmax.centerPctFTP > 0) {
-    referenceBase = "fatmax";
-    referenceLabel = "FatMax TFCL™";
-    referenceShortLabel = "FatMax";
-    isFallbackReference = false;
-  } else if (sport === "bike") {
+  if (sport === "bike") {
     referenceBase = "ftp";
     referenceLabel = "FTP (Functional Threshold Power)";
     referenceShortLabel = "FTP";
-    isFallbackReference = true;
+    isFallbackReference = input.ftp == null;
   } else {
     referenceBase = "vma";
     referenceLabel = "VMA (Vitesse Maximale Aérobie)";
     referenceShortLabel = "VMA";
-    isFallbackReference = true;
+    isFallbackReference = input.vma == null;
   }
 
   const boundary: EnvelopeBoundary = {
