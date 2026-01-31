@@ -2,7 +2,7 @@
 // ÉCRAN 2 - PROFIL ATHLÈTE (Création/Édition)
 // =============================================
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -18,6 +18,10 @@ import { calculateAge, computeAgeAdjustmentIndex, AGE_METHODOLOGY } from "@/lib/
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED, DEFAULT_AMBITION, getAmbitionDefinition } from "@/types/ambitionLevel";
+import { ObjectifHistorySelector } from "@/components/ObjectifHistorySelector";
+
+// Clé localStorage pour l'historique des objectifs par athlète
+const OBJECTIF_HISTORY_KEY = "tfcl-objectif-history";
 
 export default function AthleteEditPage() {
   const navigate = useNavigate();
@@ -35,6 +39,45 @@ export default function AthleteEditPage() {
   const [masseGrasse, setMasseGrasse] = useState(
     editingAthlete?.masse_grasse == null ? "" : String(editingAthlete.masse_grasse),
   );
+  
+  // Historique des objectifs précédents pour cet athlète
+  const [objectifHistory, setObjectifHistory] = useState<ObjectifType[]>([]);
+  
+  // Charger l'historique des objectifs au montage
+  useEffect(() => {
+    if (!editingAthlete?.id) return;
+    try {
+      const stored = localStorage.getItem(OBJECTIF_HISTORY_KEY);
+      if (stored) {
+        const allHistory = JSON.parse(stored) as Record<string, ObjectifType[]>;
+        setObjectifHistory(allHistory[editingAthlete.id] || []);
+      }
+    } catch {
+      // Ignore parsing errors
+    }
+  }, [editingAthlete?.id]);
+  
+  // Sauvegarder l'historique quand l'objectif change
+  const handleObjectifChange = (newObjectif: ObjectifType) => {
+    const oldObjectif = objectif;
+    setObjectif(newObjectif);
+    
+    // Ajouter l'ancien objectif à l'historique (s'il est différent du nouveau)
+    if (oldObjectif && oldObjectif !== newObjectif && editingAthlete?.id) {
+      const newHistory = [oldObjectif, ...objectifHistory.filter(o => o !== oldObjectif)].slice(0, 5);
+      setObjectifHistory(newHistory);
+      
+      // Persister dans localStorage
+      try {
+        const stored = localStorage.getItem(OBJECTIF_HISTORY_KEY);
+        const allHistory = stored ? JSON.parse(stored) : {};
+        allHistory[editingAthlete.id] = newHistory;
+        localStorage.setItem(OBJECTIF_HISTORY_KEY, JSON.stringify(allHistory));
+      } catch {
+        // Ignore storage errors
+      }
+    }
+  };
   
   // Calcul de l'âge et de l'AAI pour affichage informatif
   const age = calculateAge(dateNaissance);
@@ -95,37 +138,36 @@ export default function AthleteEditPage() {
               <Input id="nom" placeholder="Nom de l'athlète" value={nom} onChange={(e) => setNom(e.target.value)} />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Sexe</Label>
-                <Select value={sexe} onValueChange={(v) => setSexe(v as SexeType)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="M">Homme</SelectItem>
-                    <SelectItem value="F">Femme</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <Label>Sexe</Label>
+              <Select value={sexe} onValueChange={(v) => setSexe(v as SexeType)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="M">Homme</SelectItem>
+                  <SelectItem value="F">Femme</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-              <div className="space-y-2">
-                <Label>Objectif</Label>
-                <Select value={objectif} onValueChange={(v) => setObjectif(v as ObjectifType)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="IM">Ironman</SelectItem>
-                    <SelectItem value="703">70.3 / Half Ironman</SelectItem>
-                    <SelectItem value="Marathon">Marathon</SelectItem>
-                    <SelectItem value="Semi">Semi-Marathon</SelectItem>
-                    <SelectItem value="TrailShort">Trail court (20–40km)</SelectItem>
-                    <SelectItem value="TrailMountain">Trail montagne (40–80km)</SelectItem>
-                    <SelectItem value="TrailUltra">Ultra trail (80km+)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Objectif avec historique */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                Objectif
+              </Label>
+              <ObjectifHistorySelector
+                currentObjectif={objectif}
+                previousObjectifs={objectifHistory}
+                onObjectifChange={handleObjectifChange}
+                showHistory={!isNew}
+              />
+              {!isNew && objectifHistory.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Vous pouvez restaurer un objectif précédent via l'historique ci-dessus.
+                </p>
+              )}
             </div>
 
             {/* Niveau d'ambition */}
