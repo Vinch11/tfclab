@@ -1,0 +1,306 @@
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * RUNNING GUIDANCE PAGE — Écran "Guidance Coach — semaine en cours"
+ * 
+ * Double carte : Profil verrouillé + Décision hebdomadaire
+ * Objectif : Décision en 30 secondes.
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
+
+import { useMemo, useState } from "react";
+import { AppLayout } from "@/components/AppLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { 
+  RefreshCw, 
+  AlertTriangle, 
+  Clock, 
+  ArrowRight,
+  Info
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAthletes } from "@/contexts/AthleteContext";
+import { useCloudData } from "@/hooks/useCloudData";
+import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
+import { RunningFocusModeIndicator } from "@/components/RunningFocusModeIndicator";
+import { LockedProfileCard } from "./LockedProfileCard";
+import { WeeklyDecisionCard } from "./WeeklyDecisionCard";
+import {
+  createRunningPhysioProfile,
+  computeWeeklyDecision,
+  checkRecalibrationAlerts,
+  type RunningPhysioProfile,
+  type RunningWeeklyDecision,
+  type RunningObjectiveDistance,
+  type WeeklyInputs,
+} from "@/lib/v2/runningDoubleLoop";
+import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
+import { computeDisponibiliteTFCL } from "@/lib/v2/disponibiliteTFCL";
+
+export function RunningGuidancePage() {
+  const navigate = useNavigate();
+  const { currentAthlete } = useAthletes();
+  const { snapshots, tests, checkins } = useCloudData();
+  const { isRunningOnly, raceType, raceLabel } = useRunningFocusMode();
+  
+  // État local pour simulation (en prod, viendrait de la DB)
+  const [showRecalibrationDialog, setShowRecalibrationDialog] = useState(false);
+  
+  // Récupérer le snapshot actif
+  const activeSnapshot = useMemo(() => {
+    if (!currentAthlete) return null;
+    const athleteSnapshots = snapshots.filter(s => s.athlete_id === currentAthlete.id);
+    if (currentAthlete.active_snapshot_id) {
+      return athleteSnapshots.find(s => s.id === currentAthlete.active_snapshot_id) || null;
+    }
+    return athleteSnapshots.sort((a, b) => b.date.localeCompare(a.date))[0] || null;
+  }, [currentAthlete, snapshots]);
+  
+  // Calculer VLamax effectif
+  const vlamaxEffectif = useMemo(() => {
+    if (!currentAthlete) return null;
+    return computeVLamaxEffectif({
+      athleteId: currentAthlete.id,
+      objectif: currentAthlete.goal || "Marathon",
+      activeSnapshotId: currentAthlete.active_snapshot_id,
+      tests,
+      snapshots,
+    });
+  }, [currentAthlete, tests, snapshots]);
+  
+  // Créer le profil verrouillé (en prod, stocké en DB)
+  const lockedProfile = useMemo((): RunningPhysioProfile | null => {
+    if (!currentAthlete || !raceType) return null;
+    
+    // Mapper le raceType vers RunningObjectiveDistance
+    const objectiveMap: Record<string, RunningObjectiveDistance> = {
+      "5K": "5K",
+      "10K": "10K",
+      "Semi": "Semi",
+      "Marathon": "Marathon",
+      "Trail": "Trail",
+      "TrailShort": "Trail",
+      "TrailMountain": "Trail",
+      "TrailUltra": "Trail",
+    };
+    
+    const objective = objectiveMap[raceType] || "Marathon";
+    
+    return createRunningPhysioProfile({
+      athlete_id: currentAthlete.id,
+      objective_distance: objective,
+      vo2max: activeSnapshot?.vo2max ?? currentAthlete.vo2max ?? 50,
+      vo2max_confidence: 0.7,
+      vo2max_source: activeSnapshot?.vo2max ? "snapshot" : "estimation",
+      vlamax_cap: vlamaxEffectif?.value ?? 0.38,
+      vlamax_confidence: vlamaxEffectif?.confidence ?? 0.6,
+      vlamax_source: vlamaxEffectif?.source === "test" ? "field_test" : "estimation",
+      durability_min: activeSnapshot?.tte_observed_min ?? 60,
+      durability_confidence: activeSnapshot?.tte_observed_min ? 0.8 : 0.5,
+      economy_score: activeSnapshot?.run_economy_score ?? undefined,
+      lock_duration_days: 28,
+    });
+  }, [currentAthlete, raceType, activeSnapshot, vlamaxEffectif]);
+  
+  // Récupérer les inputs hebdomadaires
+  const weeklyInputs = useMemo((): WeeklyInputs => {
+    if (!currentAthlete) return {};
+    
+    // Récupérer le dernier checkin
+    const athleteCheckins = checkins
+      .filter(c => c.athlete_id === currentAthlete.id)
+      .sort((a, b) => b.date_iso.localeCompare(a.date_iso));
+    const latestCheckin = athleteCheckins[0];
+    
+    // Calculer disponibilité
+    const dispo = computeDisponibiliteTFCL({
+      sleep: latestCheckin?.sleep ?? null,
+      fatigue: latestCheckin?.fatigue ?? null,
+      soreness: latestCheckin?.soreness ?? null,
+      stress: latestCheckin?.stress ?? null,
+      motivation: latestCheckin?.motivation ?? null,
+      alerts: {
+        joint_pain: latestCheckin?.pain_flag ?? false,
+      },
+      objective: {
+        tss7d: activeSnapshot?.tss_7d ?? null,
+      },
+    });
+    
+    return {
+      availability_score: dispo.score,
+      sleep_quality: latestCheckin?.sleep ?? undefined,
+      fatigue_level: latestCheckin?.fatigue ?? undefined,
+      stress_level: latestCheckin?.stress ?? undefined,
+      motivation: latestCheckin?.motivation ?? undefined,
+      pain_flag: latestCheckin?.pain_flag ?? false,
+      tss_7d: activeSnapshot?.tss_7d ?? undefined,
+      hr_drift_pct: activeSnapshot?.run_hr_drift_pct ?? undefined,
+    };
+  }, [currentAthlete, checkins, activeSnapshot]);
+  
+  // Calculer la décision hebdomadaire
+  const weeklyDecision = useMemo((): RunningWeeklyDecision | null => {
+    if (!lockedProfile) return null;
+    return computeWeeklyDecision(lockedProfile, weeklyInputs);
+  }, [lockedProfile, weeklyInputs]);
+  
+  // Vérifier les alertes de recalibration
+  const recalibrationAlerts = useMemo(() => {
+    if (!lockedProfile) return [];
+    return checkRecalibrationAlerts(lockedProfile);
+  }, [lockedProfile]);
+  
+  // Si pas en mode running
+  if (!isRunningOnly) {
+    return (
+      <AppLayout title="Guidance Coach">
+        <div className="max-w-2xl mx-auto p-4">
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertTitle>Running Focus Mode™ requis</AlertTitle>
+            <AlertDescription>
+              Cette page est réservée aux athlètes avec un objectif course à pied 
+              (5K, 10K, Semi, Marathon, Trail).
+              <br />
+              <Button 
+                variant="link" 
+                className="p-0 h-auto"
+                onClick={() => navigate("/")}
+              >
+                Retour au Dashboard
+              </Button>
+            </AlertDescription>
+          </Alert>
+        </div>
+      </AppLayout>
+    );
+  }
+  
+  // Si pas d'athlète sélectionné
+  if (!currentAthlete) {
+    return (
+      <AppLayout title="Guidance Coach">
+        <div className="max-w-2xl mx-auto p-4">
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Aucun athlète sélectionné</AlertTitle>
+            <AlertDescription>
+              Sélectionnez un athlète pour accéder à la guidance de semaine.
+            </AlertDescription>
+          </Alert>
+        </div>
+      </AppLayout>
+    );
+  }
+  
+  return (
+    <AppLayout title="Guidance Coach">
+      <div className="max-w-2xl mx-auto space-y-4 animate-fade-in">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <RunningFocusModeIndicator showDetails />
+            <div>
+              <h1 className="text-lg font-semibold">{currentAthlete.name}</h1>
+              <p className="text-sm text-muted-foreground">
+                Guidance semaine • {raceLabel}
+              </p>
+            </div>
+          </div>
+          <Badge variant="outline" className="text-xs">
+            <Clock className="h-3 w-3 mr-1" />
+            Décision en 30s
+          </Badge>
+        </div>
+        
+        {/* Alertes recalibration */}
+        {recalibrationAlerts.length > 0 && (
+          <div className="space-y-2">
+            {recalibrationAlerts.map((alert, i) => (
+              <Alert 
+                key={i} 
+                variant={alert.severity === "urgent" ? "destructive" : "default"}
+              >
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle className="flex items-center gap-2">
+                  Recalibration recommandée
+                  <Badge variant="outline" className="text-xs">
+                    {alert.severity}
+                  </Badge>
+                </AlertTitle>
+                <AlertDescription>
+                  {alert.message}
+                  <p className="mt-1 text-sm font-medium">{alert.suggested_action}</p>
+                </AlertDescription>
+              </Alert>
+            ))}
+          </div>
+        )}
+        
+        {/* Double carte */}
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* Carte Profil verrouillé */}
+          {lockedProfile && (
+            <LockedProfileCard
+              profile={lockedProfile}
+              onRequestRecalibration={() => setShowRecalibrationDialog(true)}
+            />
+          )}
+          
+          {/* Carte Décision hebdo */}
+          {weeklyDecision && (
+            <WeeklyDecisionCard
+              decision={weeklyDecision}
+              onViewSuggestions={() => navigate("/templates")}
+            />
+          )}
+        </div>
+        
+        {/* Message méthodologique */}
+        <Card className="bg-muted/30">
+          <CardContent className="py-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-primary/10 rounded-full">
+                <Info className="h-4 w-4 text-primary" />
+              </div>
+              <div className="text-sm">
+                <p className="font-medium text-foreground">
+                  Méthode TFCL™ — Double Boucle CAP
+                </p>
+                <p className="text-muted-foreground mt-1">
+                  Les paramètres physiologiques évoluent lentement (4-6 semaines). 
+                  TFCL pilote l'exécution semaine par semaine sans modifier le profil verrouillé.
+                  Le coach reste décisionnaire.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Actions rapides */}
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => navigate("/fatigue")}
+          >
+            Mettre à jour disponibilité
+            <ArrowRight className="h-4 w-4 ml-1" />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => navigate("/tests")}
+          >
+            Ajouter un test CAP
+            <ArrowRight className="h-4 w-4 ml-1" />
+          </Button>
+        </div>
+      </div>
+    </AppLayout>
+  );
+}
