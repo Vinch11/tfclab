@@ -244,6 +244,11 @@ function VO2maxTable({
             const isCurrentAmbition = row.key === ambition;
             const status = getStatusForValue(currentVo2max ?? null, row.adjustedTarget);
             
+            // Delta = VO₂max actuel - cible ajustée (écart de l'athlète par rapport à la cible)
+            const athleteDelta = currentVo2max != null 
+              ? currentVo2max - row.adjustedTarget 
+              : null;
+            
             return (
               <tr 
                 key={row.key}
@@ -282,9 +287,14 @@ function VO2maxTable({
                   </div>
                 </td>
                 <td className="text-center py-2.5">
-                  {hasAgeAdjustment ? (
-                    <span className="font-mono text-xs text-amber-600 dark:text-amber-400">
-                      {row.difference > 0 ? "+" : ""}{row.difference.toFixed(1)}
+                  {athleteDelta !== null ? (
+                    <span className={cn(
+                      "font-mono text-xs",
+                      athleteDelta >= 0 
+                        ? "text-emerald-600 dark:text-emerald-400" 
+                        : "text-red-600 dark:text-red-400"
+                    )}>
+                      {athleteDelta >= 0 ? "+" : ""}{athleteDelta.toFixed(1)}
                     </span>
                   ) : (
                     <span className="text-xs text-muted-foreground">—</span>
