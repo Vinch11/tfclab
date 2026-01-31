@@ -22,6 +22,7 @@ import LiveDecisionModePage from "./pages/LiveDecisionModePage";
 import FatiguePage from "./pages/FatiguePage";
 import { TFCLTestingWeekPage } from "./components/TFCLTestingWeek";
 import { CAPTestingWeekPage } from "./components/CAPTestingWeek";
+import { RunningGuidancePage } from "./components/RunningWeeklyGuidance";
 
 const queryClient = new QueryClient();
 
@@ -169,6 +170,18 @@ export default function App() {
                       <OnboardingGate>
                         <AthleteProviders>
                           <LiveDecisionModePage />
+                        </AthleteProviders>
+                      </OnboardingGate>
+                    </AuthGate>
+                  }
+                />
+                <Route
+                  path="/running-guidance"
+                  element={
+                    <AuthGate>
+                      <OnboardingGate>
+                        <AthleteProviders>
+                          <RunningGuidancePage />
                         </AthleteProviders>
                       </OnboardingGate>
                     </AuthGate>
