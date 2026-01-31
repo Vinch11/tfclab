@@ -5,8 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { CloudDataProvider } from "@/contexts/CloudDataContext";
-import { AthleteProvider } from "@/contexts/AthleteContext";
+import { AthleteProviders } from "@/components/AthleteProviders";
 import { AuthGate } from "@/components/AuthGate";
 import { OnboardingGate } from "@/components/OnboardingGate";
 import AuthPage from "./pages/AuthPage";
@@ -50,11 +49,9 @@ export default function App() {
                   element={
                     <AuthGate>
                       <OnboardingGate>
-                        <CloudDataProvider>
-                          <AthleteProvider>
-                            <Index />
-                          </AthleteProvider>
-                        </CloudDataProvider>
+                        <AthleteProviders>
+                          <Index />
+                        </AthleteProviders>
                       </OnboardingGate>
                     </AuthGate>
                   }
@@ -64,11 +61,9 @@ export default function App() {
                   element={
                     <AuthGate>
                       <OnboardingGate>
-                        <CloudDataProvider>
-                          <AthleteProvider>
-                            <TemplatesPage />
-                          </AthleteProvider>
-                        </CloudDataProvider>
+                        <AthleteProviders>
+                          <TemplatesPage />
+                        </AthleteProviders>
                       </OnboardingGate>
                     </AuthGate>
                   }
@@ -88,11 +83,9 @@ export default function App() {
                   element={
                     <AuthGate>
                       <OnboardingGate>
-                        <CloudDataProvider>
-                          <AthleteProvider>
-                            <TestsPage />
-                          </AthleteProvider>
-                        </CloudDataProvider>
+                        <AthleteProviders>
+                          <TestsPage />
+                        </AthleteProviders>
                       </OnboardingGate>
                     </AuthGate>
                   }
@@ -102,11 +95,9 @@ export default function App() {
                   element={
                     <AuthGate>
                       <OnboardingGate>
-                        <CloudDataProvider>
-                          <AthleteProvider>
-                            <AthletesListPage />
-                          </AthleteProvider>
-                        </CloudDataProvider>
+                        <AthleteProviders>
+                          <AthletesListPage />
+                        </AthleteProviders>
                       </OnboardingGate>
                     </AuthGate>
                   }
@@ -116,11 +107,9 @@ export default function App() {
                   element={
                     <AuthGate>
                       <OnboardingGate>
-                        <CloudDataProvider>
-                          <AthleteProvider>
-                            <TFCLTestingWeekPage />
-                          </AthleteProvider>
-                        </CloudDataProvider>
+                        <AthleteProviders>
+                          <TFCLTestingWeekPage />
+                        </AthleteProviders>
                       </OnboardingGate>
                     </AuthGate>
                   }
@@ -130,11 +119,9 @@ export default function App() {
                   element={
                     <AuthGate>
                       <OnboardingGate>
-                        <CloudDataProvider>
-                          <AthleteProvider>
-                            <CAPTestingWeekPage />
-                          </AthleteProvider>
-                        </CloudDataProvider>
+                        <AthleteProviders>
+                          <CAPTestingWeekPage />
+                        </AthleteProviders>
                       </OnboardingGate>
                     </AuthGate>
                   }
@@ -144,11 +131,9 @@ export default function App() {
                   element={
                     <AuthGate>
                       <OnboardingGate>
-                        <CloudDataProvider>
-                          <AthleteProvider>
-                            <RaceSimulationPage />
-                          </AthleteProvider>
-                        </CloudDataProvider>
+                        <AthleteProviders>
+                          <RaceSimulationPage />
+                        </AthleteProviders>
                       </OnboardingGate>
                     </AuthGate>
                   }
@@ -158,11 +143,9 @@ export default function App() {
                   element={
                     <AuthGate>
                       <OnboardingGate>
-                        <CloudDataProvider>
-                          <AthleteProvider>
-                            <FatiguePage />
-                          </AthleteProvider>
-                        </CloudDataProvider>
+                        <AthleteProviders>
+                          <FatiguePage />
+                        </AthleteProviders>
                       </OnboardingGate>
                     </AuthGate>
                   }
@@ -172,11 +155,9 @@ export default function App() {
                   element={
                     <AuthGate>
                       <OnboardingGate>
-                        <CloudDataProvider>
-                          <AthleteProvider>
-                            <RaceDayModePage />
-                          </AthleteProvider>
-                        </CloudDataProvider>
+                        <AthleteProviders>
+                          <RaceDayModePage />
+                        </AthleteProviders>
                       </OnboardingGate>
                     </AuthGate>
                   }
@@ -186,11 +167,9 @@ export default function App() {
                   element={
                     <AuthGate>
                       <OnboardingGate>
-                        <CloudDataProvider>
-                          <AthleteProvider>
-                            <LiveDecisionModePage />
-                          </AthleteProvider>
-                        </CloudDataProvider>
+                        <AthleteProviders>
+                          <LiveDecisionModePage />
+                        </AthleteProviders>
                       </OnboardingGate>
                     </AuthGate>
                   }
@@ -200,11 +179,9 @@ export default function App() {
                   element={
                     <AuthGate>
                       <OnboardingGate>
-                        <CloudDataProvider>
-                          <AthleteProvider>
-                            <NotFound />
-                          </AthleteProvider>
-                        </CloudDataProvider>
+                        <AthleteProviders>
+                          <NotFound />
+                        </AthleteProviders>
                       </OnboardingGate>
                     </AuthGate>
                   }

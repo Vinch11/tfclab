@@ -1716,5 +1716,88 @@ export const academySections: AcademySection[] = [
         staffOnly: true
       }
     ]
+  },
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // RUNNING FOCUS MODE™ — Leçon obligatoire
+  // ═══════════════════════════════════════════════════════════════════════════════
+  {
+    id: "running-focus-mode",
+    title: "Running Focus Mode™ : Pourquoi TFCL sépare course et vélo",
+    level: "basic",
+    tags: ["running", "cap", "course", "méthodologie", "running-focus-mode", "rfm"],
+    blocks: [
+      {
+        type: "text",
+        content: "Le Running Focus Mode™ est une couche architecturale fondamentale de TFCL qui active un environnement 100% course à pied lorsque l'athlète a un objectif CAP (5K, 10K, Semi, Marathon, Trail). Ce n'est pas un simple filtre visuel, mais un verrou disciplinaire scientifiquement justifié."
+      },
+      {
+        type: "callout",
+        title: "Pourquoi cette séparation ?",
+        content: "Un modèle unique CAP/Vélo serait scientifiquement FAUX. Les différences métaboliques et biomécaniques entre les deux disciplines sont trop importantes pour permettre une transposition directe des données."
+      },
+      {
+        type: "bullets",
+        title: "Différences métaboliques CAP vs Vélo",
+        content: [
+          "VLamax vélo ≠ VLamax CAP : les fibres recrutées et les patterns de contraction diffèrent",
+          "Le coût énergétique de la course est dominé par les oscillations verticales (économie de course)",
+          "L'oxydation lipidique à même intensité relative est différente selon le sport",
+          "La dérive cardiaque suit des patterns distincts (impact vs pédalage)"
+        ]
+      },
+      {
+        type: "bullets",
+        title: "Contraintes mécaniques spécifiques CAP",
+        content: [
+          "Impact répétés : 2-3x le poids du corps à chaque foulée",
+          "Stress tendineux : Achille, fascia plantaire, ITB",
+          "Fatigue neuromusculaire : la force excentrique diminue progressivement",
+          "Cadence optimale : 180 spm ≠ 90 rpm vélo (le double !)"
+        ]
+      },
+      {
+        type: "table",
+        title: "Comparaison des métriques clés",
+        content: {
+          headers: ["Domaine", "Course à pied (CAP)", "Vélo"],
+          rows: [
+            ["Intensité de référence", "% vVO2max, Allure (min/km)", "% FTP, Puissance (W)"],
+            ["Seuil principal", "Allure Seuil, VMA", "FTP, MAP"],
+            ["Métabolisme", "VLamax CAP", "VLamax Vélo"],
+            ["Efficacité", "Économie de course (ml O2/kg/km)", "Efficacité brute (%)"],
+            ["Durabilité", "Time to Exhaustion à allure", "TTE à FTP"],
+            ["Fatigue", "Mécanique + Métabolique", "Principalement métabolique"]
+          ]
+        }
+      },
+      {
+        type: "text",
+        title: "Ce que le Running Focus Mode™ change",
+        content: "Lorsque RUNNING_ONLY est actif, l'application masque automatiquement FTP, PMA, MAP vélo, cadence vélo, zones de puissance vélo, et toutes les références triathlon. Les analyses parlent exclusivement en allure (min/km), % vVO2max, VMA, et économie de course."
+      },
+      {
+        type: "bullets",
+        title: "Indicateurs clés en Running Focus Mode™",
+        content: [
+          "VO2max CAP : capacité aérobie maximale en course",
+          "VLamax CAP : capacité glycolytique spécifique course",
+          "Économie de course : coût énergétique par kilomètre",
+          "Durabilité d'allure : temps limite à l'allure cible",
+          "Dérive cardiaque : augmentation FC à allure constante",
+          "Fatigue mécanique : stress musculaire et articulaire"
+        ]
+      },
+      {
+        type: "callout",
+        title: "Message pour le coach",
+        content: "En Running Focus Mode™, toute recommandation vélo est interdite. Les leviers d'optimisation sont 100% CAP : intervalles VO2max, tempo/seuil, allure spécifique, volume aérobie, technique d'économie, discipline de pacing, renforcement musculaire.",
+        staffOnly: true
+      },
+      {
+        type: "text",
+        title: "Objectif stratégique",
+        content: "Le Running Focus Mode™ positionne TFCL comme un outil NÉ pour la course à pied, crédible face aux solutions de laboratoire. Il réduit la charge cognitive du coach CAP en éliminant tout le bruit disciplinaire non pertinent, permettant une prise de décision plus claire et plus rapide."
+      }
+    ]
   }
 ];
