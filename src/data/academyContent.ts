@@ -1799,5 +1799,84 @@ export const academySections: AcademySection[] = [
         content: "Le Running Focus Mode™ positionne TFCL comme un outil NÉ pour la course à pied, crédible face aux solutions de laboratoire. Il réduit la charge cognitive du coach CAP en éliminant tout le bruit disciplinaire non pertinent, permettant une prise de décision plus claire et plus rapide."
       }
     ]
+  },
+  {
+    id: "race-readiness-cap",
+    title: "Pourquoi être en forme ne suffit pas — Race Readiness CAP",
+    level: "basic",
+    tags: ["race readiness", "disponibilité", "potentiel", "CAP", "running", "Dan Lorang", "decision"],
+    blocks: [
+      {
+        type: "text",
+        title: "La question centrale du Race Readiness",
+        content: "Le Race Readiness TFCL répond à UNE question : 'L'athlète peut-il exprimer son potentiel physiologique CAP aujourd'hui ?' Ce score ne mesure pas la forme absolue, mais la capacité à mobiliser le potentiel existant sans dégradation excessive ni risque disproportionné."
+      },
+      {
+        type: "callout",
+        title: "Race Readiness ≠ Potentiel",
+        content: "Un athlète avec un excellent VO2max et une VLamax optimale peut échouer le jour J si sa disponibilité est compromise. Le Race Readiness capture cette interaction entre physiologie (stable) et disponibilité (variable)."
+      },
+      {
+        type: "table",
+        title: "Les 3 piliers du Race Readiness CAP",
+        content: {
+          headers: ["Pilier", "Description", "Impact"],
+          rows: [
+            ["Potentiel (verrouillé)", "VLamax, VO2max, Durabilité — profil physiologique stable", "Définit le plafond de performance possible"],
+            ["Disponibilité (variable)", "Sommeil, fatigue, douleur, stress, motivation", "Module la capacité à atteindre ce plafond"],
+            ["Contexte risque", "Âge, historique blessure, phase du plan, importance course", "Ajuste la tolérance au risque"]
+          ]
+        }
+      },
+      {
+        type: "table",
+        title: "Interprétation des états Race Readiness",
+        content: {
+          headers: ["État", "Score", "Signification", "Implication pacing"],
+          rows: [
+            ["🟢 GREEN", "≥ 75%", "Conditions réunies pour exprimer le potentiel", "Allure planifiée autorisée"],
+            ["🟠 ORANGE", "50-74%", "Course possible, vigilance accrue", "Pacing très discipliné, départ prudent"],
+            ["🔴 RED", "< 50%", "Potentiel non exprimable aujourd'hui", "Course déconseillée ou allure très conservatrice"]
+          ]
+        }
+      },
+      {
+        type: "bullets",
+        title: "Pourquoi des athlètes 'en forme' échouent",
+        content: [
+          "Fatigue résiduelle non assimilée malgré un profil physiologique optimal",
+          "Stress mental élevé bloquant l'accès aux ressources énergétiques",
+          "Douleur légère qui s'amplifie sous effort prolongé",
+          "Mauvaise qualité de sommeil altérant la coordination neuromusculaire",
+          "Charge récente excessive créant un déficit de fraîcheur"
+        ]
+      },
+      {
+        type: "callout",
+        title: "Lien avec la méthode Dan Lorang",
+        content: "Dan Lorang insiste : 'La physiologie évolue lentement, les décisions doivent être prises souvent.' Le Race Readiness est l'outil de la boucle rapide : il évalue chaque jour si l'athlète peut performer sans modifier le profil physiologique verrouillé.",
+        staffOnly: true
+      },
+      {
+        type: "bullets",
+        title: "Application pratique pour le coach",
+        content: [
+          "GREEN : Exécuter le plan tel que prévu",
+          "ORANGE : Réduire l'intensité de 10%, éviter les efforts explosifs, surveiller la dérive cardiaque",
+          "RED : Proposer report de course ou allure très conservatrice (-20%), priorité récupération"
+        ],
+        staffOnly: true
+      },
+      {
+        type: "text",
+        title: "Garde-fou scientifique",
+        content: "Le Race Readiness ne promet jamais de performance. Il indique une plage d'expression (80-100% du potentiel) et un facteur limitant principal. Le pacing reste une conséquence directe du score : plus le readiness est bas, plus la discipline de pacing doit être stricte."
+      },
+      {
+        type: "callout",
+        title: "Message clé",
+        content: "TFCL distingue le potentiel physiologique de la capacité à l'exprimer le jour J. C'est cette distinction qui fait la différence entre un plan d'entraînement et une stratégie de course réussie."
+      }
+    ]
   }
 ];
