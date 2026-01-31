@@ -73,6 +73,8 @@ import {
 } from "@/lib/v2/pacingEnvelopeLongDistance";
 import { computeFatMaxTFCL } from "@/lib/v2/fatmaxTFCL";
 import type { DbSnapshot } from "@/hooks/useCloudData";
+import { DoubleBoucleCAPSection } from "@/components/StaffReportDoubleBoucleCAP";
+import type { RunningPhysioProfile, RunningWeeklyDecision } from "@/lib/v2/runningDoubleLoop";
 
 interface StaffReportProps {
   athleteName: string;
@@ -94,6 +96,8 @@ interface StaffReportProps {
   vo2max?: number | null;
   lorangInput?: LorangStrategyInput | null;
   raceReadinessSignatureInput?: RaceReadinessInput | null;
+  runningProfile?: RunningPhysioProfile | null;
+  runningWeeklyDecision?: RunningWeeklyDecision | null;
   onExportPDF?: () => void;
 }
 
@@ -117,6 +121,8 @@ export function StaffReport({
   vo2max,
   lorangInput,
   raceReadinessSignatureInput,
+  runningProfile,
+  runningWeeklyDecision,
   onExportPDF,
 }: StaffReportProps) {
   // Générer le rapport avec tous les paramètres pour calculs unifiés
@@ -477,6 +483,14 @@ export function StaffReport({
 
         {/* 2.7️⃣ RACE READINESS SIGNATURE — POTENTIEL × DISPONIBILITÉ → DÉCISION */}
         {raceReadinessSignatureInput && <RaceReadinessSignatureSection input={raceReadinessSignatureInput} />}
+
+        {/* 2.8️⃣ DOUBLE BOUCLE CAP — PROFIL VERROUILLÉ + DÉCISION HEBDOMADAIRE */}
+        {runningProfile && (
+          <DoubleBoucleCAPSection 
+            profile={runningProfile} 
+            decision={runningWeeklyDecision} 
+          />
+        )}
 
         {/* 3️⃣ RISQUE BLESSURE CAP */}
         <div>
