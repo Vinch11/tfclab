@@ -12,6 +12,7 @@ export interface ProModules {
 
 // Objectifs 100% course (+ renfo)
 const RUNNING_ONLY_GOALS = [
+  "5K", "5k", "10K", "10k", "10km",
   "Semi", "Marathon", 
   "Trail", "TrailShort", "TrailMountain", "TrailUltra"
 ];

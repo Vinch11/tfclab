@@ -1,6 +1,7 @@
 // =============================================
 // DASHBOARD STAFF - Two For Coaching Lab
 // Tour de contrôle décisionnelle - Lisible en < 10 secondes
+// Running Focus Mode™ Integration
 // =============================================
 
 import { useState, useMemo, ReactNode } from "react";
@@ -32,6 +33,9 @@ import {
 import { cn } from "@/lib/utils";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudData } from "@/hooks/useCloudData";
+import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
+import { RunningFocusModeIndicator } from "@/components/RunningFocusModeIndicator";
+import { RunningFocusWrapper } from "@/components/RunningFocusWrapper";
 
 // Sources uniques de données
 import { computeVLamaxEffectif, VLamaxEffectif, getSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
@@ -202,6 +206,7 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const { currentAthlete, updateAthlete } = useAthletes();
   const { snapshots, tests, checkins } = useCloudData();
+  const { isRunningOnly, raceLabel } = useRunningFocusMode();
   const [showScientificDetails, setShowScientificDetails] = useState(false);
 
   // =============================================
@@ -1184,27 +1189,50 @@ export default function DashboardPage() {
     />
   );
 
-  const sections = [
+  // =============================================
+  // SECTIONS CONFIGURATION - Running Focus Mode Aware
+  // =============================================
+  
+  // Sections communes (toujours affichées)
+  const commonSections = [
     { id: "athlete-context", render: renderAthleteContext },
     { id: "data-quality", render: renderDataQuality },
-    { id: "vlamax-bike-v2-enhanced", render: renderVLamaxBikeV2Enhanced },
     { id: "ambition-targets", render: renderAmbitionTargets },
     { id: "performance-ranges", render: renderPerformanceRanges },
     { id: "quick-fatigue", render: renderQuickFatigueInput },
     { id: "fatigue", render: renderFatigueCard },
     { id: "fatigue-comparison", render: renderFatigueComparisonChart },
     { id: "cap-injury-risk", render: renderCAPInjuryRiskCard },
-    { id: "bike-injury-risk", render: renderBikeInjuryRiskCard },
     { id: "coach-summary", render: renderCoachSummary },
     { id: "piliers", render: renderPiliers },
     { id: "fatmax-tfcl", render: renderFatMaxTFCL },
     { id: "fatmax-chart", render: renderFatMaxChart },
-    { id: "ftp-targets", render: renderFtpKgTargets },
     { id: "vlamax-targets", render: renderVLamaxTargets },
     { id: "nutrition", render: renderNutrition },
     { id: "priorities", render: renderPriorities },
     { id: "scientific", render: renderScientific },
   ];
+  
+  // Sections vélo uniquement (masquées en Running Focus Mode)
+  const bikeSections = [
+    { id: "vlamax-bike-v2-enhanced", render: renderVLamaxBikeV2Enhanced },
+    { id: "bike-injury-risk", render: renderBikeInjuryRiskCard },
+    { id: "ftp-targets", render: renderFtpKgTargets },
+  ];
+  
+  // Construire les sections finales en fonction du mode
+  const sections = isRunningOnly 
+    ? commonSections // Mode running: uniquement sections communes
+    : [
+        // Mode triathlon/vélo: inclure les sections vélo au bon endroit
+        ...commonSections.slice(0, 2), // athlete-context, data-quality
+        ...bikeSections.slice(0, 1),   // vlamax-bike-v2-enhanced
+        ...commonSections.slice(2, 10), // ambition-targets -> piliers
+        ...bikeSections.slice(1, 2),   // bike-injury-risk
+        ...commonSections.slice(10, 14), // fatmax-tfcl -> vlamax-targets
+        ...bikeSections.slice(2, 3),   // ftp-targets
+        ...commonSections.slice(14),   // nutrition -> scientific
+      ];
 
   // =============================================
   // RENDER: MAIN DASHBOARD
@@ -1212,7 +1240,24 @@ export default function DashboardPage() {
   
   return (
     <AppLayout title="Dashboard">
-      <div className="animate-fade-in max-w-2xl mx-auto">
+      <div className="animate-fade-in max-w-2xl mx-auto space-y-4">
+        {/* Running Focus Mode Indicator */}
+        {isRunningOnly && (
+          <div className="flex items-center justify-between p-3 bg-primary/5 rounded-lg border border-primary/20">
+            <div className="flex items-center gap-3">
+              <RunningFocusModeIndicator showDetails compact={false} />
+              {raceLabel && (
+                <span className="text-sm text-muted-foreground">
+                  Objectif: <span className="font-medium text-foreground">{raceLabel}</span>
+                </span>
+              )}
+            </div>
+            <Badge variant="outline" className="text-xs">
+              100% CAP
+            </Badge>
+          </div>
+        )}
+        
         <SortableSectionsContainer
           tabId="dashboard"
           tabLabel="Dashboard"
