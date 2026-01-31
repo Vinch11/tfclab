@@ -756,3 +756,67 @@ export {
   type PacingScenarioType,
   type HistoricalFade,
 } from './pacingEnvelopeLongDistance';
+
+// Running Double Loop — Boucle Lente + Boucle Rapide CAP
+export {
+  // Types Boucle Lente
+  type RunningPhysioProfile,
+  type RunningObjectiveDistance,
+  type RunningPriorityLever,
+  type LockedMetric,
+  type MetricSource,
+  
+  // Types Boucle Rapide
+  type RunningWeeklyDecision,
+  type WeeklyInputs,
+  type WeeklyConstraints,
+  type ReadinessLevel,
+  type RiskLevel,
+  type StrategyStatus,
+  type WeeklyFocus,
+  type IntensityAllowed,
+  
+  // Types Recalibration
+  type RecalibrationAlert,
+  type RecalibrationTrigger,
+  
+  // Constantes
+  LEVER_BY_OBJECTIVE,
+  LEVER_INFO,
+  
+  // Fonctions
+  createRunningPhysioProfile,
+  computeWeeklyDecision,
+  checkRecalibrationAlerts,
+} from './runningDoubleLoop';
+
+// Race Readiness Running — Module 100% CAP
+export {
+  // Types
+  type RaceReadinessRun,
+  type ReadinessState,
+  type LimitingFactor,
+  type PacingDiscipline,
+  type ReadinessImplications,
+  type AvailabilityRun,
+  type RiskContextRun,
+  type PlanPhase,
+  type RaceImportance,
+  
+  // Constantes
+  READINESS_STATE_INFO,
+  LIMITING_FACTOR_INFO,
+  
+  // Fonctions
+  computeRaceReadinessRun,
+  applyReadinessToDecision,
+  weeklyInputsToAvailability,
+} from './raceReadinessRunning';
+
+// Running Limiter Detection — Limiteurs 100% CAP
+export {
+  type RunningLimiterResult,
+  type RunningLimiterInput,
+  type RunningGapAnalysis,
+  detectRunningLimiter,
+} from './runningLimiterDetection';

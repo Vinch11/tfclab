@@ -2,12 +2,12 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  * RUNNING GUIDANCE PAGE — Écran "Guidance Coach — semaine en cours"
  * 
- * Double carte : Profil verrouillé + Décision hebdomadaire
+ * Double carte : Profil verrouillé + Décision hebdomadaire + Race Readiness
  * Objectif : Décision en 30 secondes.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +28,8 @@ import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
 import { RunningFocusModeIndicator } from "@/components/RunningFocusModeIndicator";
 import { LockedProfileCard } from "./LockedProfileCard";
 import { WeeklyDecisionCard } from "./WeeklyDecisionCard";
+import { RaceReadinessRunCard } from "@/components/RaceReadinessRunCard";
+import { RaceReadinessRunForm } from "@/components/RaceReadinessRunForm";
 import {
   createRunningPhysioProfile,
   computeWeeklyDecision,
@@ -37,6 +39,13 @@ import {
   type RunningObjectiveDistance,
   type WeeklyInputs,
 } from "@/lib/v2/runningDoubleLoop";
+import {
+  computeRaceReadinessRun,
+  applyReadinessToDecision,
+  type AvailabilityRun,
+  type RaceReadinessRun,
+  type RiskContextRun,
+} from "@/lib/v2/raceReadinessRunning";
 import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { computeDisponibiliteTFCL } from "@/lib/v2/disponibiliteTFCL";
 
@@ -142,11 +151,47 @@ export function RunningGuidancePage() {
     };
   }, [currentAthlete, checkins, activeSnapshot]);
   
-  // Calculer la décision hebdomadaire
+  // État pour le Race Readiness (formulaire)
+  const [availability, setAvailability] = useState<AvailabilityRun>({
+    sleep_quality: weeklyInputs.sleep_quality ?? 3,
+    fatigue_level: weeklyInputs.fatigue_level ?? 3,
+    muscle_soreness: 0,
+    pain_flag: weeklyInputs.pain_flag ?? false,
+    mental_stress: weeklyInputs.stress_level ?? 3,
+    motivation: weeklyInputs.motivation ?? 3,
+  });
+  
+  // Calculer le Race Readiness
+  const raceReadiness = useMemo((): RaceReadinessRun | null => {
+    if (!lockedProfile) return null;
+    
+    const riskContext: RiskContextRun = {
+      age_factor: 1.0,
+      injury_history_cap: false,
+      plan_phase: "SPECIFIC",
+      race_importance: "A",
+    };
+    
+    return computeRaceReadinessRun(lockedProfile, availability, riskContext);
+  }, [lockedProfile, availability]);
+  
+  // Calculer la décision hebdomadaire (modifiée par le readiness)
   const weeklyDecision = useMemo((): RunningWeeklyDecision | null => {
     if (!lockedProfile) return null;
-    return computeWeeklyDecision(lockedProfile, weeklyInputs);
-  }, [lockedProfile, weeklyInputs]);
+    const baseDecision = computeWeeklyDecision(lockedProfile, weeklyInputs);
+    
+    // Appliquer le readiness à la décision
+    if (raceReadiness) {
+      return applyReadinessToDecision(baseDecision, raceReadiness);
+    }
+    
+    return baseDecision;
+  }, [lockedProfile, weeklyInputs, raceReadiness]);
+  
+  // Handler pour mise à jour de la disponibilité
+  const handleAvailabilityUpdate = useCallback((newAvailability: AvailabilityRun) => {
+    setAvailability(newAvailability);
+  }, []);
   
   // Vérifier les alertes de recalibration
   const recalibrationAlerts = useMemo(() => {
@@ -241,7 +286,25 @@ export function RunningGuidancePage() {
           </div>
         )}
         
-        {/* Double carte */}
+        {/* Section Race Readiness CAP */}
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* Formulaire disponibilité */}
+          <RaceReadinessRunForm
+            onSubmit={handleAvailabilityUpdate}
+            initialValues={availability}
+          />
+          
+          {/* Carte Race Readiness */}
+          <RaceReadinessRunCard
+            readiness={raceReadiness}
+            objective={raceLabel || "CAP"}
+            isStaffMode={true}
+          />
+        </div>
+        
+        <Separator />
+        
+        {/* Double carte : Profil + Décision */}
         <div className="grid gap-4 md:grid-cols-2">
           {/* Carte Profil verrouillé */}
           {lockedProfile && (
