@@ -1878,5 +1878,84 @@ export const academySections: AcademySection[] = [
         content: "TFCL distingue le potentiel physiologique de la capacité à l'exprimer le jour J. C'est cette distinction qui fait la différence entre un plan d'entraînement et une stratégie de course réussie."
       }
     ]
+  },
+  {
+    id: "pacing-envelope-cap",
+    title: "Pourquoi les meilleurs perdent en allant trop vite — Pacing Envelope™ CAP",
+    level: "basic",
+    tags: ["pacing", "envelope", "CAP", "running", "Dan Lorang", "marathon", "discipline"],
+    blocks: [
+      {
+        type: "text",
+        title: "Le concept du Pacing Envelope™",
+        content: "Le Pacing Envelope™ TFCL est la plage d'intensité et d'allure dans laquelle l'athlète peut évoluer SANS déclencher un coût métabolique irréversible avant la fin de la course. Ce module NE calcule PAS un temps magique. Il définit ce qui est AUTORISÉ, RISQUÉ et INTERDIT."
+      },
+      {
+        type: "callout",
+        title: "Philosophie Dan Lorang",
+        content: "'Si tu te sens facile au km 5, TU NE CHANGES RIEN. La course commence après le km 30.' L'erreur précoce coûte TOUJOURS plus cher qu'elle ne rapporte. C'est une loi physiologique, pas une opinion."
+      },
+      {
+        type: "table",
+        title: "Les 3 zones de pacing CAP",
+        content: {
+          headers: ["Zone", "Description", "Utilisation"],
+          rows: [
+            ["🟢 VERTE (Sustainable)", "Effort tenable jusqu'à la ligne d'arrivée", "Zone de référence — reste ici le plus longtemps possible"],
+            ["🟠 ORANGE (Conditionnelle)", "Effort possible mais avec coût cumulatif", "Utilisable uniquement si pacing parfait jusque-là — pas avant 50% de course"],
+            ["🔴 ROUGE (Interdite)", "Déclenchement probable de dérive lactate/glycogène", "INTERDIT en début de course — coût irréversible"]
+          ]
+        }
+      },
+      {
+        type: "bullets",
+        title: "Physiologie du départ trop rapide",
+        content: [
+          "L'intensité élevée précoce épuise les stocks de glycogène plus rapidement que prévu",
+          "La production de lactate dépasse la capacité d'élimination (VLamax élevée = risque accru)",
+          "La dérive cardiaque s'installe : même allure = coût énergétique croissant",
+          "Le 'mur du marathon' est une conséquence directe d'un pacing mal maîtrisé",
+          "Les 5% de temps 'gagnés' au début coûtent 15-20% de temps perdu à la fin"
+        ]
+      },
+      {
+        type: "table",
+        title: "Impact de la VLamax sur le pacing",
+        content: {
+          headers: ["VLamax", "Profil", "Largeur enveloppe", "Stratégie"],
+          rows: [
+            ["< 0.30", "Très sensible", "Étroite (±4%)", "Discipline maximale — aucune marge d'erreur"],
+            ["0.30-0.45", "Modéré", "Standard (±6%)", "Discipline élevée — negative split recommandé"],
+            ["> 0.45", "Tolérant", "Large (±10%)", "Plus de marge — mais pas de carte blanche"]
+          ]
+        }
+      },
+      {
+        type: "callout",
+        title: "Règles d'or TFCL — Pacing CAP",
+        content: "1. JAMAIS entrer en zone rouge dans le premier tiers\\n2. Toute entrée en zone orange avant 50% = pénalité finale\\n3. Le negative split n'est autorisé que si VLamax basse ET readiness GREEN\\n4. 'Facile au km 10' = tu es EXACTEMENT où tu dois être",
+        staffOnly: true
+      },
+      {
+        type: "bullets",
+        title: "Cas réels : discipline vs ambition",
+        content: [
+          "Marathon de Berlin 2019 : Kipchoge maintient 2'52\"/km jusqu'au km 35 malgré les jambes fraîches",
+          "Marathon de Paris 2022 : Leader à 2'55\"/km au km 10, finit à 3'15\"/km — effondrement glycogénique",
+          "Semi de Nice 2023 : Athlète TFCL respecte la zone verte, perd 45s au km 5, gagne 2min sur le final",
+          "10km de Lyon : Départ à 100% VMA, abandon au km 7 — accumulation lactique non récupérable"
+        ]
+      },
+      {
+        type: "text",
+        title: "Le briefing athlète TFCL",
+        content: "Le jour de la course, l'athlète reçoit 3 règles maximum et 1 phrase clé. Pas de tableaux complexes, pas de zones multiples à retenir. Exemple : 'Interdit de dépasser 4'15\"/km avant le km 30. Si tu te sens facile, tu ne changes rien.' La simplicité est la clé de l'exécution sous stress."
+      },
+      {
+        type: "callout",
+        title: "Message TFCL officiel",
+        content: "TFCL ne cherche pas l'allure parfaite, mais l'allure la plus robuste jusqu'à la ligne. La discipline de pacing n'est pas une limitation — c'est une stratégie de performance."
+      }
+    ]
   }
 ];

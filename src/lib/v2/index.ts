@@ -820,3 +820,26 @@ export {
   type RunningGapAnalysis,
   detectRunningLimiter,
 } from './runningLimiterDetection';
+
+// Pacing Envelope Running — Course à pied
+export {
+  // Types
+  type RunningDistance,
+  type PacingZoneRun,
+  type AthleteExperience,
+  type PacingInputsRun,
+  type PacingZoneDefinitionRun,
+  type PacingRulesRun,
+  type PacingScenarioRun,
+  type PacingBriefingRun,
+  type PacingEnvelopeRunResult,
+  
+  // Constantes
+  PACING_ZONE_COLORS,
+  PACING_ZONE_LABELS,
+  
+  // Fonctions
+  computePacingEnvelopeRun,
+  formatPace,
+  pctThresholdToSecPerKm,
+} from './pacingEnvelopeRunning';
