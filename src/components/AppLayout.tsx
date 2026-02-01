@@ -1,8 +1,11 @@
-import { ReactNode } from "react";
+import { ReactNode, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Users, LayoutDashboard, Calendar, CalendarDays, TrendingUp, ChevronLeft } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { NextRaceIndicator } from "@/components/NextRaceIndicator";
+import { useAthletes } from "@/contexts/AthleteContext";
+import { useAthleteRaceGoals } from "@/hooks/useAthleteRaceGoals";
 import logo2fc from "@/assets/logo-2fc.png";
 
 interface AppLayoutProps {
@@ -15,6 +18,8 @@ interface AppLayoutProps {
 export function AppLayout({ children, title, subtitle, showBack = false }: AppLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { currentAthlete } = useAthletes();
+  const { raceGoals } = useAthleteRaceGoals(currentAthlete?.id || null);
 
   const navItems = [
     { path: "/", label: "Accueil", icon: LayoutDashboard },
@@ -25,6 +30,13 @@ export function AppLayout({ children, title, subtitle, showBack = false }: AppLa
   ];
 
   const isActive = (path: string) => location.pathname === path;
+
+  const scrollToObjectives = () => {
+    const objectivesSection = document.getElementById("objectives-section");
+    if (objectivesSection) {
+      objectivesSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -47,7 +59,17 @@ export function AppLayout({ children, title, subtitle, showBack = false }: AppLa
                 {subtitle && <p className="text-xs sm:text-sm text-muted-foreground truncate">{subtitle}</p>}
               </div>
             </div>
-            <ThemeToggle />
+            <div className="flex items-center gap-2 sm:gap-3">
+              {raceGoals.length > 0 && (
+                <NextRaceIndicator
+                  raceGoals={raceGoals}
+                  currentGoal={currentAthlete?.objectif || null}
+                  compact
+                  onClick={scrollToObjectives}
+                />
+              )}
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </header>
