@@ -7,7 +7,8 @@ import { cn } from "@/lib/utils";
 
 interface MiniGaugeProps {
   label: string;
-  value: number | null;
+  // Certains appels historiques peuvent passer `undefined` (ex: données pas encore chargées)
+  value: number | null | undefined;
   unit: string;
   min?: number;
   max?: number;
@@ -28,7 +29,7 @@ export function MiniGauge({
   secondaryLabel,
   className,
 }: MiniGaugeProps) {
-  const safeValue = value ?? 0;
+  const safeValue = typeof value === "number" && Number.isFinite(value) ? value : 0;
   const percentage = Math.min(Math.max((safeValue - min) / (max - min), 0), 1);
   const angle = percentage * 180;
   
@@ -112,7 +113,7 @@ export function MiniGauge({
       <div className="text-center mt-0.5 sm:mt-1 space-y-0">
         <div className="flex items-baseline justify-center gap-0.5 sm:gap-1">
           <span className="text-base sm:text-lg font-bold text-foreground">
-            {value !== null ? formatValue(value) : "—"}
+            {typeof value === "number" && Number.isFinite(value) ? formatValue(value) : "—"}
           </span>
           <span className="text-[9px] sm:text-xs text-muted-foreground">{unit}</span>
         </div>
