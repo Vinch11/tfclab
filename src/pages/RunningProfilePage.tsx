@@ -7,7 +7,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,6 +42,7 @@ import { RunningFocusModeIndicator } from "@/components/RunningFocusModeIndicato
 import { InjuryRiskCAPCard } from "@/components/InjuryRiskCAPCard";
 import { VLamaxRunExplainedCard } from "@/components/VLamaxRunExplainedCard";
 import { RaceReadinessRunCard } from "@/components/RaceReadinessRunCard";
+import { RaceReadinessRunForm } from "@/components/RaceReadinessRunForm";
 
 // Logique et calculs
 import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
@@ -57,7 +58,7 @@ import { PacingEnvelopeRunCard } from "@/components/PacingEnvelopeRunCard";
 export default function RunningProfilePage() {
   const navigate = useNavigate();
   const { currentAthlete } = useAthletes();
-  const { snapshots, tests, checkins } = useCloudDataContext();
+  const { snapshots, tests, checkins, addCheckin, updateCheckin } = useCloudDataContext();
   const { isRunningOnly, raceType, raceLabel, targets, distanceKm } = useRunningFocusMode();
 
   // État local pour SidebarLayout
@@ -297,6 +298,41 @@ export default function RunningProfilePage() {
     });
   }, [raceReadiness, raceType, effectiveCloudSnapshot, vlamaxEffectif, tteEffectif, currentAthlete]);
 
+  // Handler for availability form submission
+  const handleAvailabilitySubmit = useCallback((availability: AvailabilityRun) => {
+    if (!currentAthlete) return;
+    
+    const today = new Date().toISOString().split("T")[0];
+    
+    // Check if there's already a checkin for today
+    const todayCheckin = checkins.find(
+      c => c.athlete_id === currentAthlete.id && c.date_iso === today
+    );
+    
+    const checkinData = {
+      sleep: availability.sleep_quality,
+      fatigue: availability.fatigue_level,
+      soreness: availability.muscle_soreness,
+      pain_flag: availability.pain_flag,
+      stress: availability.mental_stress,
+      motivation: availability.motivation,
+      notes: availability.pain_location || null,
+    };
+    
+    if (todayCheckin) {
+      // Update existing checkin
+      updateCheckin(todayCheckin.id, checkinData);
+    } else {
+      // Add new checkin - use athlete's coach_id
+      addCheckin({
+        athlete_id: currentAthlete.id,
+        coach_id: currentAthlete.coach_id || "",
+        date_iso: today,
+        ...checkinData,
+      });
+    }
+  }, [currentAthlete, checkins, addCheckin, updateCheckin]);
+
   // Redirect si pas en Running Focus Mode
   if (!isRunningOnly) {
     return (
@@ -507,6 +543,37 @@ export default function RunningProfilePage() {
             <InjuryRiskCAPCard
               riskEnvelope={capInjuryRisk}
               isStaffMode={staffMode}
+            />
+
+            {/* Formulaire de disponibilité quotidienne */}
+            <RaceReadinessRunForm
+              onSubmit={handleAvailabilitySubmit}
+              initialValues={{
+                sleep_quality: checkins.find(c => 
+                  c.athlete_id === currentAthlete.id && 
+                  c.date_iso === new Date().toISOString().split("T")[0]
+                )?.sleep ?? 3,
+                fatigue_level: checkins.find(c => 
+                  c.athlete_id === currentAthlete.id && 
+                  c.date_iso === new Date().toISOString().split("T")[0]
+                )?.fatigue ?? 3,
+                muscle_soreness: checkins.find(c => 
+                  c.athlete_id === currentAthlete.id && 
+                  c.date_iso === new Date().toISOString().split("T")[0]
+                )?.soreness ?? 0,
+                pain_flag: checkins.find(c => 
+                  c.athlete_id === currentAthlete.id && 
+                  c.date_iso === new Date().toISOString().split("T")[0]
+                )?.pain_flag ?? false,
+                mental_stress: checkins.find(c => 
+                  c.athlete_id === currentAthlete.id && 
+                  c.date_iso === new Date().toISOString().split("T")[0]
+                )?.stress ?? 3,
+                motivation: checkins.find(c => 
+                  c.athlete_id === currentAthlete.id && 
+                  c.date_iso === new Date().toISOString().split("T")[0]
+                )?.motivation ?? 3,
+              }}
             />
 
             {/* Race Readiness Running Card */}
