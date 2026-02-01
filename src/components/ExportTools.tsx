@@ -91,6 +91,8 @@ export interface ReportSections {
   raceSimulation: boolean;  // ✅ Simulation de Course TFCL™
   pacingEnvelope: boolean;  // ✅ Pacing Envelope™ - Discipline Métabolique
   longDistancePacing: boolean; // ✅ Long Distance Pacing Discipline
+  raceReadinessRunning: boolean; // ✅ Race Readiness CAP V2 (Running)
+  pacingEnvelopeRunning: boolean; // ✅ Pacing Envelope™ CAP (Running)
   injuryRisk: boolean;      // Risque de Blessure CAP
   nutritionV2: boolean;     // Nutrition Prédictive V2
   fatmaxTFCL: boolean;      // FatMax TFCL
@@ -1629,6 +1631,250 @@ async function imageToBase64(url: string): Promise<string> {
   } catch {
     return "";
   }
+}
+
+// =============================================
+// BUILD RACE READINESS RUNNING HTML (CAP V2)
+// =============================================
+
+function buildRaceReadinessRunningHTML(payload: ExportPayload): string {
+  const { effectiveSnapshot, raceReadiness, athlete } = payload;
+  
+  const vlamax_run = effectiveSnapshot?.vlamax_run ?? effectiveSnapshot?.vlamax ?? null;
+  const durability = effectiveSnapshot?.tte_observed_min ?? 45;
+  const vo2max = effectiveSnapshot?.vo2max ?? null;
+  const readinessScore = raceReadiness.score;
+  
+  const getStateColor = (score: number) => {
+    if (score >= 80) return { color: "#16a34a", bg: "rgba(22,163,74,0.1)", label: "GREEN", message: "Conditions optimales" };
+    if (score >= 60) return { color: "#d97706", bg: "rgba(217,119,6,0.1)", label: "ORANGE", message: "Prudence recommandée" };
+    return { color: "#dc2626", bg: "rgba(220,38,38,0.1)", label: "RED", message: "Risque élevé" };
+  };
+  
+  const state = getStateColor(readinessScore);
+  const isRunningFocus = athlete.goal?.includes("Marathon") || athlete.goal?.includes("Semi") || athlete.goal?.includes("10K") || athlete.goal?.includes("Trail");
+  const intensityCap = readinessScore >= 80 ? 100 : readinessScore >= 60 ? 90 : 80;
+  const pacingDiscipline = readinessScore >= 80 ? "NORMAL" : readinessScore >= 60 ? "STRICT" : "VERY_STRICT";
+  
+  return `
+    <section id="race-readiness-running" class="section pagebreakAvoid">
+      <h2>🏃 Race Readiness CAP V2 — TFCL Method™</h2>
+      
+      <div class="alert alertInfo mb">
+        <b>📋 Concept :</b> Le Race Readiness mesure la capacité à exprimer le potentiel physiologique CAP <em>aujourd'hui</em>. 
+        Il sépare le <b>Potentiel (profil verrouillé)</b> de la <b>Disponibilité (boucle rapide)</b>.
+      </div>
+      
+      <div class="card" style="border-color: ${state.color}; background: ${state.bg};">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+          <div>
+            <div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Race Readiness CAP</div>
+            <div style="font-size:42px;font-weight:800;color:${state.color};">${readinessScore}%</div>
+            <div style="font-size:14px;font-weight:600;color:${state.color};">${state.message}</div>
+          </div>
+          <div style="text-align:center;">
+            <div class="badge" style="font-size:16px;padding:12px 24px;background:${state.bg};color:${state.color};border:2px solid ${state.color};">
+              ${state.label}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="grid2 mt">
+        <div class="card">
+          <h3>🔒 Potentiel Verrouillé (Boucle Lente)</h3>
+          <div class="kv mt">
+            <div class="k">VLamax CAP</div><div class="v">${vlamax_run ? vlamax_run.toFixed(2) + ' mmol/L/s' : '—'}</div>
+            <div class="k">VO₂max</div><div class="v">${vo2max ? vo2max + ' ml/kg/min' : '—'}</div>
+            <div class="k">Durabilité</div><div class="v">${durability} min</div>
+            <div class="k">Objectif</div><div class="v">${htmlEscape(athlete.goal || '—')}</div>
+          </div>
+          <p class="muted mt" style="font-size:10px;font-style:italic;">
+            Ce profil ne change que par recalibration (4-6 semaines).
+          </p>
+        </div>
+        
+        <div class="card">
+          <h3>⚡ Implications Opérationnelles</h3>
+          <div class="kv mt">
+            <div class="k">Intensité max autorisée</div><div class="v" style="font-weight:700;color:${state.color};">${intensityCap}% du potentiel</div>
+            <div class="k">Discipline pacing</div><div class="v"><span class="badge ${pacingDiscipline === 'NORMAL' ? 'badgeSuccess' : pacingDiscipline === 'STRICT' ? 'badgeWarning' : 'badgeError'}">${pacingDiscipline}</span></div>
+            <div class="k">Course autorisée</div><div class="v">${readinessScore >= 50 ? '✅ Oui' : '⛔ Non recommandé'}</div>
+            <div class="k">Allure départ</div><div class="v">${readinessScore >= 80 ? 'Nominale' : readinessScore >= 60 ? 'Prudente (-3%)' : 'Conservative (-5%)'}</div>
+          </div>
+        </div>
+      </div>
+      
+      ${!isRunningFocus ? `
+        <div class="alert alertWarning mt">
+          <b>ℹ️ Note :</b> L'objectif actuel (${htmlEscape(athlete.goal || '—')}) n'est pas un objectif CAP pur. 
+          Pour un rapport Running complet, définissez un objectif course (10K, Semi, Marathon, Trail).
+        </div>
+      ` : ''}
+      
+      <div class="alert alertWarning mt" style="font-size:11px;">
+        <b>⚠️ TFCL Method™ :</b> Race Readiness ≠ Potentiel absolu. Un athlète à 100% de potentiel peut avoir un Race Readiness de 60% s'il est fatigué. 
+        Le score guide les ajustements opérationnels, pas la valeur intrinsèque de l'athlète.
+      </div>
+    </section>
+  `;
+}
+
+// =============================================
+// BUILD PACING ENVELOPE RUNNING HTML (CAP)
+// =============================================
+
+function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
+  const { effectiveSnapshot, raceReadiness, athlete } = payload;
+  
+  const threshold_pace = effectiveSnapshot?.pace_threshold_sec_per_km ?? null;
+  const vlamax_run = effectiveSnapshot?.vlamax_run ?? effectiveSnapshot?.vlamax ?? null;
+  const readinessScore = raceReadiness.score;
+  
+  const goal = athlete.goal || "Marathon";
+  let distance: "10K" | "HM" | "MARATHON" = "MARATHON";
+  if (goal.includes("10K") || goal.includes("10k")) distance = "10K";
+  else if (goal.includes("Semi") || goal.includes("HM") || goal.includes("21")) distance = "HM";
+  
+  const zones = {
+    MARATHON: { green: [88, 92], orange: [92, 95], red: [95, 105] },
+    HM: { green: [90, 94], orange: [94, 97], red: [97, 105] },
+    "10K": { green: [92, 96], orange: [96, 100], red: [100, 110] },
+  };
+  
+  const zone = zones[distance];
+  
+  const formatPace = (secPerKm: number) => {
+    const min = Math.floor(secPerKm / 60);
+    const sec = Math.round(secPerKm % 60);
+    return \`\${min}'\${sec.toString().padStart(2, '0')}"\`;
+  };
+  
+  const greenPace = threshold_pace ? {
+    min: formatPace(threshold_pace / (zone.green[1] / 100)),
+    max: formatPace(threshold_pace / (zone.green[0] / 100)),
+  } : null;
+  
+  const orangePace = threshold_pace ? {
+    min: formatPace(threshold_pace / (zone.orange[1] / 100)),
+    max: formatPace(threshold_pace / (zone.orange[0] / 100)),
+  } : null;
+  
+  const getDisciplineLevel = () => {
+    if (!vlamax_run) return { level: "MODERATE", color: "#d97706" };
+    if (vlamax_run < 0.30) return { level: "VERY_HIGH", color: "#dc2626" };
+    if (vlamax_run < 0.35) return { level: "HIGH", color: "#ea580c" };
+    if (vlamax_run < 0.45) return { level: "MODERATE", color: "#d97706" };
+    return { level: "LOW", color: "#16a34a" };
+  };
+  
+  const discipline = getDisciplineLevel();
+  
+  const scenarios = [
+    { type: "DISCIPLINED", label: "Robuste", pct: zone.green[0], successRate: 95, color: "#16a34a" },
+    { type: "OPTIMISTIC", label: "Standard", pct: (zone.green[1] + zone.orange[0]) / 2, successRate: 75, color: "#d97706" },
+    { type: "AGGRESSIVE", label: "Ambitieux", pct: zone.orange[1], successRate: 50, color: "#dc2626" },
+  ];
+  
+  const distanceLabels: Record<string, string> = { "10K": "10 km", HM: "Semi-Marathon", MARATHON: "Marathon" };
+  
+  return \`
+    <section id="pacing-envelope-running" class="section pagebreak">
+      <h2>🏃 Pacing Envelope™ CAP — \${distanceLabels[distance]}</h2>
+      
+      <div class="alert alertInfo mb">
+        <b>📋 Concept :</b> Le Pacing Envelope™ définit la plage d'intensité AUTORISÉE sans déclencher un coût métabolique irréversible. 
+        Il délimite ce qui est <b>autorisé / risqué / interdit</b>.
+      </div>
+      
+      <div class="card cardHighlight">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+          <div>
+            <div class="muted" style="font-size:11px;">Niveau de discipline requis</div>
+            <div style="font-size:24px;font-weight:700;color:\${discipline.color};">\${discipline.level}</div>
+          </div>
+          \${vlamax_run && vlamax_run < 0.35 ? '<div class="badge badgeWarning">⚠️ Profil VLamax Sensible</div>' : ''}
+          <div style="text-align:right;">
+            <div class="muted" style="font-size:11px;">Allure seuil</div>
+            <div style="font-size:18px;font-weight:600;">\${threshold_pace ? formatPace(threshold_pace) + '/km' : '—'}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card mt">
+        <h3>🎯 Zones de Pacing</h3>
+        <table>
+          <thead>
+            <tr><th>Zone</th><th>% Seuil</th><th>Allure</th><th>Risque</th><th>Consigne</th></tr>
+          </thead>
+          <tbody>
+            <tr style="background:rgba(22,163,74,0.1);">
+              <td><span style="color:#16a34a;font-weight:700;">🟢 VERTE</span></td>
+              <td>\${zone.green[0]}-\${zone.green[1]}%</td>
+              <td>\${greenPace ? greenPace.min + ' - ' + greenPace.max : '—'}</td>
+              <td><span class="badge badgeSuccess">Faible</span></td>
+              <td>Zone durable — première moitié</td>
+            </tr>
+            <tr style="background:rgba(217,119,6,0.1);">
+              <td><span style="color:#d97706;font-weight:700;">🟠 ORANGE</span></td>
+              <td>\${zone.orange[0]}-\${zone.orange[1]}%</td>
+              <td>\${orangePace ? orangePace.min + ' - ' + orangePace.max : '—'}</td>
+              <td><span class="badge badgeWarning">Modéré</span></td>
+              <td>Conditionnelle — si sensations OK</td>
+            </tr>
+            <tr style="background:rgba(220,38,38,0.1);">
+              <td><span style="color:#dc2626;font-weight:700;">🔴 ROUGE</span></td>
+              <td>>\${zone.red[0]}%</td>
+              <td>—</td>
+              <td><span class="badge badgeError">Élevé</span></td>
+              <td><b>INTERDITE</b> — déplétion certaine</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="card mt">
+        <h3>📊 Scénarios de Pacing</h3>
+        <div class="grid3">
+          \${scenarios.map(s => \`
+            <div style="padding:12px;border-radius:8px;border:1px solid \${s.color};background:\${s.color}10;">
+              <div style="font-size:14px;font-weight:700;color:\${s.color};">\${s.label}</div>
+              <div class="muted" style="font-size:11px;">Intensité: \${s.pct.toFixed(0)}% seuil</div>
+              <div style="margin-top:8px;">
+                <div class="progressBar" style="height:8px;">
+                  <div class="progressFill" style="width:\${s.successRate}%;background:\${s.color};"></div>
+                </div>
+                <div style="font-size:11px;text-align:right;margin-top:4px;">Succès: \${s.successRate}%</div>
+              </div>
+            </div>
+          \`).join('')}
+        </div>
+      </div>
+      
+      <div class="card mt">
+        <h3>🎯 Règles de Pacing par Tiers</h3>
+        <div class="grid3">
+          <div style="padding:12px;background:rgba(22,163,74,0.1);border-radius:8px;">
+            <div style="font-weight:600;color:#16a34a;">Premier tiers (0-33%)</div>
+            <p class="muted" style="font-size:11px;margin-top:8px;"><b>Max:</b> Zone verte uniquement<br><b>Règle:</b> Conservative</p>
+          </div>
+          <div style="padding:12px;background:rgba(59,130,246,0.1);border-radius:8px;">
+            <div style="font-weight:600;color:#3b82f6;">Tiers médian (33-66%)</div>
+            <p class="muted" style="font-size:11px;margin-top:8px;"><b>Variation:</b> ±2% autorisée<br><b>Règle:</b> Installer le rythme</p>
+          </div>
+          <div style="padding:12px;background:rgba(234,88,12,0.1);border-radius:8px;">
+            <div style="font-weight:600;color:#ea580c;">Dernier tiers (66-100%)</div>
+            <p class="muted" style="font-size:11px;margin-top:8px;"><b>Push:</b> Si glycogène OK<br><b>Règle:</b> Montée progressive</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="alert alertWarning mt" style="font-size:11px;">
+        <b>⚠️ Règles non négociables :</b> Premier tiers conservateur • Ne pas dépasser le plafond • Surveiller dérive FC >5%
+        \${vlamax_run && vlamax_run < 0.35 ? '<br>• <b>Profil sensible:</b> discipline absolue' : ''}
+      </div>
+    </section>
+  \`;
 }
 
 // =============================================
@@ -5463,6 +5709,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     raceSimulation: buildRaceSimulationHTML(payload, 'pro'),
     pacingEnvelope: '', // Rendered in StaffReport component
     longDistancePacing: '', // Rendered in StaffReport component
+    raceReadinessRunning: buildRaceReadinessRunningHTML(payload),
+    pacingEnvelopeRunning: buildPacingEnvelopeRunningHTML(payload),
     injuryRisk: injuryRiskHTML,
     nutritionV2: buildNutritionV2HTML(payload),
     fatmaxTFCL: buildFatMaxTFCLHTML(payload),
@@ -6034,6 +6282,8 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       raceSimulation: false,
       pacingEnvelope: false,
       longDistancePacing: false,
+      raceReadinessRunning: false,
+      pacingEnvelopeRunning: false,
       injuryRisk: false,
       nutritionV2: false,
       fatmaxTFCL: false,
