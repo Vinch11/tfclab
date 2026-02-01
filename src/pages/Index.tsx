@@ -102,6 +102,10 @@ import { VO2maxAgeComparisonCard } from "@/components/VO2maxAgeComparisonCard";
 import { TTEScenarioDisplay, VLamaxScenarioDisplay } from "@/components/ScenarioComparisonCard";
 import { generateTTEScenarios, generateVLamaxScenarios } from "@/lib/v2/scenarioEngine";
 
+// ✅ Athlete Objective Manager — Gestion des objectifs
+import { AthleteObjectiveManager } from "@/components/AthleteObjectiveManager";
+import { useAthleteRaceGoals } from "@/hooks/useAthleteRaceGoals";
+
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -166,7 +170,7 @@ const Index = () => {
   const location = useLocation();
 
   // ✅ Cloud data pour les données brutes (snapshots, tests, checkins)
-  const { snapshots, tests, checkins, loading, addAthlete, updateAthlete, deleteAthlete, addTest, deleteTest, updateSnapshot, addCheckin, updateCheckin, getCheckinsForAthlete } = useCloudDataContext();
+  const { snapshots, tests, checkins, loading, loadData, addAthlete, updateAthlete, deleteAthlete, addTest, deleteTest, updateSnapshot, addCheckin, updateCheckin, getCheckinsForAthlete } = useCloudDataContext();
   
   // ✅ Utiliser AthleteContext pour la synchronisation avec les composants de recommandation
   const { 
@@ -195,6 +199,16 @@ const Index = () => {
       created_at: "", // Non utilisé dans Index
     } as DbAthlete;
   }, [contextCurrentAthlete]);
+
+  // ✅ Race Goals - Gestion des objectifs de course (après currentAthlete)
+  const { 
+    raceGoals, 
+    addRaceGoal, 
+    deleteRaceGoal, 
+    updateAthleteGoal, 
+    restoreRaceGoal,
+    loading: raceGoalsLoading,
+  } = useAthleteRaceGoals(currentAthlete?.id ?? null);
 
   // Tabs valides gérés par cette page
   const validTabs = ["dashboard", "profil", "race-readiness", "seances", "configuration"];
@@ -1957,6 +1971,27 @@ const Index = () => {
       case "profil":
         // Sections réorganisables pour l'onglet Profil
         const profilSections = [
+          {
+            id: "objective-manager",
+            render: () => currentAthlete && (
+              <AthleteObjectiveManager
+                athleteId={currentAthlete.id}
+                currentGoal={currentAthlete.goal}
+                raceGoals={raceGoals}
+                onGoalChange={async (goal) => {
+                  await updateAthleteGoal(goal);
+                  // Rafraîchir les données cloud pour propager le changement
+                  await loadData();
+                }}
+                onAddRaceGoal={async (goal) => {
+                  await addRaceGoal(goal);
+                }}
+                onDeleteRaceGoal={deleteRaceGoal}
+                onRestoreRaceGoal={restoreRaceGoal}
+                loading={raceGoalsLoading}
+              />
+            ),
+          },
           {
             id: "athlete-refs",
             render: () => currentAthlete && (
