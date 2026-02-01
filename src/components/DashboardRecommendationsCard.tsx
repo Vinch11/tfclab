@@ -4,6 +4,7 @@
  */
 
 import { useMemo, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,10 +29,12 @@ import {
   Bike,
   PersonStanding,
   Flame,
+  Footprints,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
+import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
 import { DbSnapshot } from "@/hooks/useCloudData";
 
 import {
@@ -64,8 +67,10 @@ export function DashboardRecommendationsCard({
   onNavigateToLibrary,
   maxSuggestions = 4,
 }: DashboardRecommendationsCardProps) {
+  const navigate = useNavigate();
   const { currentAthlete } = useAthletes();
   const { snapshots, tests, checkins, updateSnapshot } = useCloudDataContext();
+  const { isRunningOnly, raceLabel } = useRunningFocusMode();
 
   // Get active snapshot
   const activeSnapshot = useMemo((): DbSnapshot | null => {
@@ -266,6 +271,22 @@ export function DashboardRecommendationsCard({
             disabled={!activeSnapshot}
           />
         </div>
+
+        {/* Running Profile Link - visible only in Running Focus Mode */}
+        {isRunningOnly && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/running-profile")}
+            className="w-full justify-between text-primary border-primary/30 hover:bg-primary/5"
+          >
+            <span className="flex items-center gap-2">
+              <Footprints className="h-4 w-4" />
+              Profil Running {raceLabel && `(${raceLabel})`}
+            </span>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        )}
 
         {topSuggestions.length > 0 ? (
           <>
