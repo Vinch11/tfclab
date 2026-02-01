@@ -68,19 +68,19 @@ export function CompactMetricsGrid({
   return (
     <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-        <CardHeader className="pb-2 px-3 sm:px-6">
+        <CardHeader className="py-2 px-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-sm sm:text-base">
-              <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+            <CardTitle className="flex items-center gap-1.5 text-xs sm:text-sm">
+              <Activity className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary" />
               <span className="hidden xs:inline">Aperçu Rapide – Métriques Clés</span>
-              <span className="xs:hidden">Métriques Clés</span>
+              <span className="xs:hidden">Métriques</span>
             </CardTitle>
             <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-7 w-7 sm:h-8 sm:w-8 p-0 touch-target-sm">
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
                 {isExpanded ? (
-                  <ChevronUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <ChevronUp className="h-3 w-3" />
                 ) : (
-                  <ChevronDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <ChevronDown className="h-3 w-3" />
                 )}
               </Button>
             </CollapsibleTrigger>
@@ -88,19 +88,18 @@ export function CompactMetricsGrid({
         </CardHeader>
         
         <CollapsibleContent>
-          <CardContent className="pt-2 px-3 sm:px-6">
-            {/* Mobile: 2 cols, Tablet: 3 cols, Desktop: 4-6 cols */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
+          <CardContent className="pt-0 pb-2 px-2 sm:px-3">
+            {/* Grille ultra-compacte: 3 cols mobile, 4 tablet, 6 desktop */}
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-1.5 sm:gap-2">
               {/* VO2max */}
               <MiniGauge
                 label="VO2max"
                 value={vo2max}
-                unit="ml/min/kg"
+                unit="ml/kg"
                 min={30}
                 max={85}
                 optimal={{ min: 55, max: 75 }}
-                secondaryLabel="Relatif"
-                secondaryValue={vo2max ? `${vo2max.toFixed(1)}` : undefined}
+                className="compact-gauge"
               />
               
               {/* VLamax */}
@@ -111,28 +110,29 @@ export function CompactMetricsGrid({
                 min={0.15}
                 max={1.0}
                 optimal={getVlamaxOptimal()}
+                className="compact-gauge"
               />
               
               {/* FTP/kg */}
               <MiniGauge
-                label="FTP Relatif"
+                label="FTP/kg"
                 value={ftpKg}
                 unit="W/kg"
                 min={1.5}
                 max={6.5}
                 optimal={{ min: 3.5, max: 5.0 }}
-                secondaryLabel="Absolu"
-                secondaryValue={ftp ? `${ftp}W` : undefined}
+                className="compact-gauge"
               />
               
               {/* TTE */}
               <MiniGauge
-                label="TTE Endurance"
+                label="TTE"
                 value={tteMin}
                 unit="min"
                 min={20}
                 max={90}
                 optimal={getTTEOptimal()}
+                className="compact-gauge"
               />
               
               {/* FatMax */}
@@ -144,6 +144,7 @@ export function CompactMetricsGrid({
                   min={100}
                   max={350}
                   optimal={{ min: 180, max: 280 }}
+                  className="compact-gauge"
                 />
               )}
               
@@ -155,6 +156,7 @@ export function CompactMetricsGrid({
                   unit="bpm"
                   min={140}
                   max={220}
+                  className="compact-gauge"
                 />
               )}
               
@@ -167,50 +169,54 @@ export function CompactMetricsGrid({
                   min={12}
                   max={24}
                   optimal={{ min: 16, max: 21 }}
+                  className="compact-gauge"
                 />
               )}
               
               {/* Masse grasse */}
               {fatPct !== undefined && fatPct !== null && (
                 <MiniGauge
-                  label="Masse Grasse"
+                  label="Fat %"
                   value={fatPct}
                   unit="%"
                   min={5}
                   max={30}
                   optimal={{ min: 8, max: 15 }}
+                  className="compact-gauge"
                 />
               )}
               
               {/* TSS 7j */}
               {tss7d !== undefined && tss7d !== null && (
                 <MiniGauge
-                  label="Charge 7j"
+                  label="TSS 7j"
                   value={tss7d}
                   unit="TSS"
                   min={0}
                   max={1200}
                   optimal={{ min: 400, max: 800 }}
+                  className="compact-gauge"
                 />
               )}
               
               {/* Readiness */}
               {readinessScore !== undefined && readinessScore !== null && (
                 <MiniGauge
-                  label="Race Readiness"
+                  label="Ready"
                   value={readinessScore}
                   unit="%"
                   min={0}
                   max={100}
                   optimal={{ min: 70, max: 100 }}
+                  className="compact-gauge"
                 />
               )}
             </div>
             
-            <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-border/30">
-              <p className="text-[10px] sm:text-xs text-muted-foreground text-center">
-                🎯 <span className="hidden xs:inline">Objectif:</span> <span className="font-medium">{objectif || "Non défini"}</span>
-                <span className="hidden sm:inline">{" • "}Zones optimales adaptées au profil cible</span>
+            <div className="mt-1.5 pt-1.5 border-t border-border/30">
+              <p className="text-[9px] sm:text-[10px] text-muted-foreground text-center">
+                🎯 <span className="font-medium">{objectif || "Non défini"}</span>
+                <span className="hidden sm:inline">{" • "}Zones optimales adaptées</span>
               </p>
             </div>
           </CardContent>
