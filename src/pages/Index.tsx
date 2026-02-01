@@ -646,12 +646,12 @@ const Index = () => {
             </Dialog>
           </div>
         ) : (
-          <div className="space-y-2">
-            {/* Ligne principale : Sélecteur + Ambition + Actions */}
+          <div className="space-y-3">
+            {/* Ligne 1: Sélecteur athlète + Badge âge + Actions */}
             <div className="flex items-center gap-2 flex-wrap">
               {/* Sélecteur athlète */}
               <Select value={selectedAthleteId || ""} onValueChange={setSelectedAthleteId}>
-                <SelectTrigger className="h-9 w-auto min-w-[140px] max-w-[200px] text-sm">
+                <SelectTrigger className="h-9 w-auto min-w-[120px] max-w-[180px] text-sm shrink-0">
                   <User className="h-3.5 w-3.5 mr-1.5 text-muted-foreground shrink-0" />
                   <SelectValue placeholder="Athlète" />
                 </SelectTrigger>
@@ -666,52 +666,58 @@ const Index = () => {
 
               {/* Badge âge compact */}
               {currentAthlete && (
-                <AgeAdjustmentBadge birthDate={currentAthlete.birth_date} variant="inline" />
+                <div className="shrink-0">
+                  <AgeAdjustmentBadge birthDate={currentAthlete.birth_date} variant="inline" />
+                </div>
               )}
 
-              {/* Sélecteur ambition compact */}
+              {/* Spacer pour pousser les actions à droite sur desktop */}
+              <div className="hidden sm:flex flex-1 min-w-[20px]" />
+
+              {/* Sélecteur ambition compact - visible sur desktop uniquement dans cette ligne */}
               {currentAthlete && (
-                <Select
-                  value={currentAmbition}
-                  onValueChange={(v) => updateCurrentAthleteAmbition(v as AmbitionLevel)}
-                >
-                  <SelectTrigger className="h-9 w-auto min-w-[130px] max-w-[160px] text-sm">
-                    <Star className="h-3.5 w-3.5 mr-1.5 text-primary shrink-0" />
-                    <SelectValue placeholder="Ambition" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {AMBITION_LEVELS_ORDERED.map((level) => {
-                      const def = getAmbitionDefinition(level);
-                      return (
-                        <SelectItem key={level} value={level}>
-                          {def.icon} {def.label}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
+                <div className="hidden md:block shrink-0">
+                  <Select
+                    value={currentAmbition}
+                    onValueChange={(v) => updateCurrentAthleteAmbition(v as AmbitionLevel)}
+                  >
+                    <SelectTrigger className="h-9 w-auto min-w-[110px] max-w-[140px] text-sm">
+                      <Star className="h-3.5 w-3.5 mr-1.5 text-primary shrink-0" />
+                      <SelectValue placeholder="Ambition" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {AMBITION_LEVELS_ORDERED.map((level) => {
+                        const def = getAmbitionDefinition(level);
+                        return (
+                          <SelectItem key={level} value={level}>
+                            {def.icon} {def.label}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
               )}
 
-              {/* Mini aperçu progression */}
+              {/* Mini aperçu progression - visible sur desktop */}
               {currentAthlete && (
-                <AmbitionProgressMini
-                  snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id)}
-                  objectif={currentAthlete.goal || "IM"}
-                  ambition={currentAmbition}
-                  weightKg={effectiveRefs.weightKg}
-                  onClick={() => {
-                    const el = document.getElementById("section-ambition-progress");
-                    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }}
-                  onMetricClick={(sectionId) => {
-                    const el = document.getElementById(`section-${sectionId}`);
-                    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }}
-                />
+                <div className="hidden md:block shrink-0">
+                  <AmbitionProgressMini
+                    snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id)}
+                    objectif={currentAthlete.goal || "IM"}
+                    ambition={currentAmbition}
+                    weightKg={effectiveRefs.weightKg}
+                    onClick={() => {
+                      const el = document.getElementById("section-ambition-progress");
+                      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
+                    onMetricClick={(sectionId) => {
+                      const el = document.getElementById(`section-${sectionId}`);
+                      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
+                  />
+                </div>
               )}
-
-              {/* Spacer pour pousser les actions à droite */}
-              <div className="flex-1" />
 
               {/* Actions compactes */}
               <div className="flex items-center gap-1">
@@ -772,6 +778,46 @@ const Index = () => {
                 </Button>
               </div>
             </div>
+
+            {/* Ligne 2 (mobile only): Ambition + Progress */}
+            {currentAthlete && (
+              <div className="flex items-center gap-2 md:hidden flex-wrap">
+                <Select
+                  value={currentAmbition}
+                  onValueChange={(v) => updateCurrentAthleteAmbition(v as AmbitionLevel)}
+                >
+                  <SelectTrigger className="h-9 flex-1 min-w-[120px] text-sm">
+                    <Star className="h-3.5 w-3.5 mr-1.5 text-primary shrink-0" />
+                    <SelectValue placeholder="Ambition" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {AMBITION_LEVELS_ORDERED.map((level) => {
+                      const def = getAmbitionDefinition(level);
+                      return (
+                        <SelectItem key={level} value={level}>
+                          {def.icon} {def.label}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+
+                <AmbitionProgressMini
+                  snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id)}
+                  objectif={currentAthlete.goal || "IM"}
+                  ambition={currentAmbition}
+                  weightKg={effectiveRefs.weightKg}
+                  onClick={() => {
+                    const el = document.getElementById("section-ambition-progress");
+                    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                  onMetricClick={(sectionId) => {
+                    const el = document.getElementById(`section-${sectionId}`);
+                    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                />
+              </div>
+            )}
           </div>
         )}
       </CardContent>
