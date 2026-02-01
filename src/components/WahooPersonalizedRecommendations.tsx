@@ -31,6 +31,7 @@ import {
   Info,
   Brain,
   Flame,
+  Footprints,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAthletes } from "@/contexts/AthleteContext";
@@ -89,6 +90,8 @@ const AXIS_CONFIG: Record<string, { icon: typeof Zap; color: string; label: stri
   VLAMAX: { icon: Zap, color: "text-amber-500", label: "VLamax ↓" },
   TTE: { icon: Clock, color: "text-blue-500", label: "TTE ↑" },
   FTP: { icon: Zap, color: "text-orange-500", label: "FTP ↑" },
+  VMA: { icon: Footprints, color: "text-green-500", label: "VMA ↑" },       // ✅ Running
+  ECONOMY: { icon: Target, color: "text-teal-500", label: "Économie CAP" }, // ✅ Running
   ENDURANCE: { icon: Heart, color: "text-green-500", label: "Endurance" },
   FRESHNESS: { icon: Activity, color: "text-purple-500", label: "Récupération" },
   VO2: { icon: TrendingUp, color: "text-red-500", label: "VO₂max ↑" },

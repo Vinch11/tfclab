@@ -29,7 +29,9 @@ import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 export type WahooNeed =
   | "NEED_VLAMAX_DOWN"
   | "NEED_TTE_UP"
-  | "NEED_FTP_UP"
+  | "NEED_FTP_UP"        // Vélo/Triathlon uniquement
+  | "NEED_VMA_UP"        // ✅ Running uniquement - équivalent VMA/allure seuil
+  | "NEED_ECONOMY_UP"    // ✅ Running uniquement - économie de course
   | "NEED_ENDURANCE_BASE"
   | "NEED_RECOVERY"
   | "NEED_VO2_UP";
@@ -55,7 +57,7 @@ export const LOW_CRR_JUSTIFICATION_EFFECTS: Record<LowCRRJustification, string> 
   faible_adherence: "TSS ignoré → séances basées sur priorités physiologiques",
 };
 
-export type TargetAxis = "VLAMAX" | "TTE" | "FTP" | "ENDURANCE" | "FRESHNESS" | "VO2";
+export type TargetAxis = "VLAMAX" | "TTE" | "FTP" | "VMA" | "ECONOMY" | "ENDURANCE" | "FRESHNESS" | "VO2";
 
 /**
  * Temporal phases for workout suggestions
@@ -204,6 +206,8 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
   const rationaleByNeed: Record<WahooNeed, string[]> = {
     NEED_RECOVERY: [],
     NEED_FTP_UP: [],
+    NEED_VMA_UP: [],       // ✅ Running only
+    NEED_ECONOMY_UP: [],   // ✅ Running only
     NEED_VLAMAX_DOWN: [],
     NEED_TTE_UP: [],
     NEED_ENDURANCE_BASE: [],
@@ -212,7 +216,10 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
   
   const { objectif, sportFocus, vlamaxEffectif, tteEffectif, raceReadiness, CRR, injuryRiskRun, fatigueScore, ftpKg, forceDevelopmentMode, ambition } = context;
   
-  // Priority order: RECOVERY > FTP_UP > VLAMAX_DOWN > TTE_UP > ENDURANCE_BASE > VO2_UP
+  // ✅ RUNNING FOCUS MODE CHECK
+  const isRunningFocus = sportFocus === "run";
+  
+  // Priority order: RECOVERY > FTP_UP/VMA_UP > VLAMAX_DOWN > TTE_UP > ENDURANCE_BASE > VO2_UP
   
   // === RULE D: NEED_RECOVERY (highest priority ONLY for severe cases) ===
   // fatigueScore here is "perceived form" from checkins: 1=Nul, 10=Top
@@ -247,17 +254,31 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
     }
   }
   
-  // === RULE F: NEED_FTP_UP (for bike/tri when FTP is below target) ===
+  // === RULE F: NEED_FTP_UP (for bike/tri ONLY when FTP is below target) ===
+  // ✅ JAMAIS appliqué en Running Focus Mode
   const isBikeOrTri = sportFocus === "bike" || sportFocus === "tri";
   const effectiveAmbition = ambition || DEFAULT_AMBITION;
   const ftpTarget = getFtpKgTargetByAmbition(objectif, effectiveAmbition);
   const hasFtpDeficit = ftpKg !== undefined && ftpKg !== null && ftpKg < ftpTarget * 0.90;
   
-  if (isBikeOrTri && hasFtpDeficit && !needsSevereRecovery) {
+  if (isBikeOrTri && hasFtpDeficit && !needsSevereRecovery && !isRunningFocus) {
     needs.push("NEED_FTP_UP");
     const msg = `FTP/kg insuffisant (${ftpKg?.toFixed(2)} W/kg < cible ${ftpTarget.toFixed(1)} W/kg pour ${objectif}/${effectiveAmbition}) → développer la puissance au seuil.`;
     rationale.push(msg);
     rationaleByNeed.NEED_FTP_UP.push(msg);
+  }
+  
+  // === RULE G: NEED_VMA_UP (for running ONLY - equivalent to FTP development) ===
+  // ✅ Uniquement en Running Focus Mode
+  if (isRunningFocus && !needsSevereRecovery) {
+    // Simplified check - in running, VMA development is key for shorter distances
+    const isShortRunning = ["5K", "10K", "Semi"].includes(objectif);
+    if (isShortRunning) {
+      needs.push("NEED_VMA_UP");
+      const msg = `Objectif ${objectif} → développer la VMA et l'allure seuil par des séances spécifiques CAP.`;
+      rationale.push(msg);
+      rationaleByNeed.NEED_VMA_UP.push(msg);
+    }
   }
   
   // === RULE A: NEED_VLAMAX_DOWN ===
@@ -379,12 +400,15 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
   
   // Limit to 2 needs max to avoid confusion
   // En mode forceDevelopmentMode, prioriser les besoins de développement
+  // ✅ En Running Focus Mode, utiliser VMA_UP/ECONOMY_UP au lieu de FTP_UP
   let priorityOrder: WahooNeed[];
   if (forceDevelopmentMode) {
-    // Prioriser développement: FTP, VLAMAX, VO2, TTE avant endurance
+    // Prioriser développement: FTP/VMA, VLAMAX, VO2, TTE avant endurance
     priorityOrder = [
       "NEED_RECOVERY",      // Toujours #1 si vraiment nécessaire
-      "NEED_FTP_UP",        // Développement prioritaire
+      "NEED_VMA_UP",        // ✅ Running: VMA prioritaire
+      "NEED_FTP_UP",        // Vélo: Développement prioritaire
+      "NEED_ECONOMY_UP",    // ✅ Running: Économie
       "NEED_VLAMAX_DOWN",   // Développement métabolique
       "NEED_VO2_UP",        // Développement plafond
       "NEED_TTE_UP",        // Développement endurance spécifique
@@ -393,7 +417,9 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
   } else {
     priorityOrder = [
       "NEED_RECOVERY",
-      "NEED_FTP_UP",
+      "NEED_VMA_UP",        // ✅ Running
+      "NEED_FTP_UP",        // Vélo
+      "NEED_ECONOMY_UP",    // ✅ Running
       "NEED_VLAMAX_DOWN", 
       "NEED_TTE_UP",
       "NEED_ENDURANCE_BASE",
@@ -422,6 +448,10 @@ function needToAxis(need: WahooNeed): WahooPhysioAxis[] {
       return ["TTE_UP", "THRESHOLD_MLSS"];
     case "NEED_FTP_UP":
       return ["THRESHOLD_MLSS", "TTE_UP"];
+    case "NEED_VMA_UP":          // ✅ Running equivalent
+      return ["VO2_UP", "THRESHOLD_MLSS"];
+    case "NEED_ECONOMY_UP":      // ✅ Running economy
+      return ["ENDURANCE_BASE", "VLAMAX_DOWN"];
     case "NEED_ENDURANCE_BASE":
       return ["ENDURANCE_BASE"];
     case "NEED_RECOVERY":
@@ -439,6 +469,10 @@ export function needToTargetAxis(need: WahooNeed): TargetAxis {
       return "TTE";
     case "NEED_FTP_UP":
       return "FTP";
+    case "NEED_VMA_UP":          // ✅ Running
+      return "VMA";
+    case "NEED_ECONOMY_UP":      // ✅ Running
+      return "ECONOMY";
     case "NEED_ENDURANCE_BASE":
       return "ENDURANCE";
     case "NEED_RECOVERY":
@@ -663,6 +697,13 @@ function generateWhyMessage(
     
     case "NEED_FTP_UP":
       return `FTP/kg ${ftpKg?.toFixed(2) ?? "?"} W/kg < cible ${getFtpKgTarget(objectif).toFixed(1)} W/kg (${objectif}). Cette séance développe la puissance au seuil et améliore le FTP.`;
+    
+    // ✅ RUNNING FOCUS MODE - New needs
+    case "NEED_VMA_UP":
+      return `Objectif ${objectif} → développer la VMA par des séances de fractionné spécifique course à pied.`;
+    
+    case "NEED_ECONOMY_UP":
+      return `Améliorer l'économie de course pour ${objectif}. Travail technique et renforcement spécifique CAP.`;
       
     case "NEED_ENDURANCE_BASE":
       return `Base aérobie insuffisante pour l'objectif ${objectif}. Cette séance construit les fondations de l'endurance.`;
@@ -939,6 +980,10 @@ function mapTargetAxisToNeed(axis: TargetAxis): WahooNeed {
       return "NEED_TTE_UP";
     case "FTP":
       return "NEED_FTP_UP";
+    case "VMA":           // ✅ Running
+      return "NEED_VMA_UP";
+    case "ECONOMY":       // ✅ Running
+      return "NEED_ECONOMY_UP";
     case "ENDURANCE":
       return "NEED_ENDURANCE_BASE";
     case "FRESHNESS":
@@ -1069,6 +1114,10 @@ export function getAxisIcon(axis: TargetAxis): string {
       return "⏱️";
     case "FTP":
       return "⚡";
+    case "VMA":           // ✅ Running
+      return "🏃";
+    case "ECONOMY":       // ✅ Running
+      return "🎯";
     case "ENDURANCE":
       return "🔋";
     case "FRESHNESS":
@@ -1086,6 +1135,10 @@ export function getNeedLabel(need: WahooNeed): string {
       return "Durabilité TTE";
     case "NEED_FTP_UP":
       return "Développer FTP";
+    case "NEED_VMA_UP":         // ✅ Running
+      return "Développer VMA";
+    case "NEED_ECONOMY_UP":     // ✅ Running
+      return "Économie CAP";
     case "NEED_ENDURANCE_BASE":
       return "Base aérobie";
     case "NEED_RECOVERY":

@@ -1,6 +1,10 @@
 /**
  * CompactMetricsGrid - Grille de mini-jauges pour aperçu rapide
  * Style inspiré INSCYD
+ * 
+ * ✅ RUNNING FOCUS MODE: Adapte les métriques affichées selon le mode
+ * - Mode Running: VMA, Allure Seuil, Économie CAP → PAS de FTP/kg
+ * - Mode Triathlon/Vélo: FTP/kg, FatMax, etc.
  */
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,21 +13,29 @@ import { Activity, ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
 
 interface CompactMetricsGridProps {
-  // Données physiologiques
+  // Données physiologiques communes
   vo2max?: number | null;
   vlamax?: number | null;
-  ftp?: number | null;
-  weight?: number | null;
   tteMin?: number | null;
-  fatmax?: number | null;
-  fatPct?: number | null;
   fcMax?: number | null;
-  vma?: number | null;
-  tss7d?: number | null;
   readinessScore?: number | null;
   objectif?: string;
+  
+  // Données vélo/triathlon (masquées en Running Focus Mode)
+  ftp?: number | null;
+  weight?: number | null;
+  fatmax?: number | null;
+  fatPct?: number | null;
+  tss7d?: number | null;
+  
+  // Données running (prioritaires en Running Focus Mode)
+  vma?: number | null;
+  paceThreshold?: number | null;  // Allure seuil en sec/km
+  runEconomyScore?: number | null; // Score économie 0-100
+  durabilityScore?: number | null; // Score durabilité 0-100
 }
 
 export function CompactMetricsGrid({
@@ -39,14 +51,42 @@ export function CompactMetricsGrid({
   tss7d,
   readinessScore,
   objectif,
+  paceThreshold,
+  runEconomyScore,
+  durabilityScore,
 }: CompactMetricsGridProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const { isRunningOnly, raceLabel } = useRunningFocusMode();
   
-  // FTP/kg calculé
-  const ftpKg = ftp && weight ? ftp / weight : null;
+  // FTP/kg calculé (uniquement si pas en Running Focus Mode)
+  const ftpKg = !isRunningOnly && ftp && weight ? ftp / weight : null;
+  
+  // Convertir allure seuil en format min:sec/km pour affichage
+  const formatPace = (secPerKm: number | null | undefined): string | null => {
+    if (!secPerKm) return null;
+    const min = Math.floor(secPerKm / 60);
+    const sec = Math.round(secPerKm % 60);
+    return `${min}:${sec.toString().padStart(2, '0')}`;
+  };
   
   // Définir les zones optimales selon l'objectif
   const getVlamaxOptimal = () => {
+    // En Running Focus Mode, utiliser les cibles CAP
+    if (isRunningOnly) {
+      switch (objectif) {
+        case "5K": return { min: 0.40, max: 0.55 };
+        case "10K": return { min: 0.35, max: 0.45 };
+        case "Semi": return { min: 0.30, max: 0.40 };
+        case "Marathon": return { min: 0.25, max: 0.35 };
+        case "Trail":
+        case "TrailShort":
+        case "TrailMountain":
+        case "TrailUltra":
+          return { min: 0.25, max: 0.40 };
+        default: return { min: 0.30, max: 0.45 };
+      }
+    }
+    // Mode Triathlon/Vélo
     switch (objectif) {
       case "Ironman Kona": return { min: 0.25, max: 0.35 };
       case "Ironman 70.3": return { min: 0.30, max: 0.40 };
@@ -57,6 +97,16 @@ export function CompactMetricsGrid({
   };
   
   const getTTEOptimal = () => {
+    // En Running Focus Mode, TTE = durabilité d'allure
+    if (isRunningOnly) {
+      switch (objectif) {
+        case "5K": return { min: 20, max: 30 };
+        case "10K": return { min: 35, max: 50 };
+        case "Semi": return { min: 50, max: 70 };
+        case "Marathon": return { min: 60, max: 90 };
+        default: return { min: 40, max: 60 };
+      }
+    }
     switch (objectif) {
       case "Ironman Kona": return { min: 55, max: 75 };
       case "Ironman 70.3": return { min: 45, max: 60 };
@@ -91,9 +141,9 @@ export function CompactMetricsGrid({
           <CardContent className="pt-0 pb-2 px-2 sm:px-3">
             {/* Grille ultra-compacte: 3 cols mobile, 4 tablet, 6 desktop */}
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-1.5 sm:gap-2">
-              {/* VO2max */}
+              {/* VO2max - Toujours affiché mais label adapté */}
               <MiniGauge
-                label="VO2max"
+                label={isRunningOnly ? "VO2max CAP" : "VO2max"}
                 value={vo2max}
                 unit="ml/kg"
                 min={30}
@@ -102,9 +152,9 @@ export function CompactMetricsGrid({
                 className="compact-gauge"
               />
               
-              {/* VLamax */}
+              {/* VLamax - Label adapté en Running Focus Mode */}
               <MiniGauge
-                label="VLamax"
+                label={isRunningOnly ? "VLamax CAP" : "VLamax"}
                 value={vlamax}
                 unit="mmol/l/s"
                 min={0.15}
@@ -113,55 +163,10 @@ export function CompactMetricsGrid({
                 className="compact-gauge"
               />
               
-              {/* FTP/kg */}
-              <MiniGauge
-                label="FTP/kg"
-                value={ftpKg}
-                unit="W/kg"
-                min={1.5}
-                max={6.5}
-                optimal={{ min: 3.5, max: 5.0 }}
-                className="compact-gauge"
-              />
+              {/* ═══ RUNNING FOCUS MODE: Métriques spécifiques CAP ═══ */}
               
-              {/* TTE */}
-              <MiniGauge
-                label="TTE"
-                value={tteMin}
-                unit="min"
-                min={20}
-                max={90}
-                optimal={getTTEOptimal()}
-                className="compact-gauge"
-              />
-              
-              {/* FatMax */}
-              {fatmax !== undefined && fatmax !== null && (
-                <MiniGauge
-                  label="FatMax"
-                  value={fatmax}
-                  unit="W"
-                  min={100}
-                  max={350}
-                  optimal={{ min: 180, max: 280 }}
-                  className="compact-gauge"
-                />
-              )}
-              
-              {/* FC Max */}
-              {fcMax !== undefined && fcMax !== null && (
-                <MiniGauge
-                  label="FC Max"
-                  value={fcMax}
-                  unit="bpm"
-                  min={140}
-                  max={220}
-                  className="compact-gauge"
-                />
-              )}
-              
-              {/* VMA */}
-              {vma !== undefined && vma !== null && (
+              {/* VMA - Prioritaire en Running Focus Mode */}
+              {isRunningOnly && vma !== undefined && vma !== null && (
                 <MiniGauge
                   label="VMA"
                   value={vma}
@@ -173,8 +178,98 @@ export function CompactMetricsGrid({
                 />
               )}
               
-              {/* Masse grasse */}
-              {fatPct !== undefined && fatPct !== null && (
+              {/* Économie de course - Running Focus Mode uniquement */}
+              {isRunningOnly && runEconomyScore !== undefined && runEconomyScore !== null && (
+                <MiniGauge
+                  label="Économie"
+                  value={runEconomyScore}
+                  unit="score"
+                  min={0}
+                  max={100}
+                  optimal={{ min: 70, max: 95 }}
+                  className="compact-gauge"
+                />
+              )}
+              
+              {/* Durabilité d'allure - Running Focus Mode */}
+              {isRunningOnly && durabilityScore !== undefined && durabilityScore !== null && (
+                <MiniGauge
+                  label="Durabilité"
+                  value={durabilityScore}
+                  unit="score"
+                  min={0}
+                  max={100}
+                  optimal={{ min: 70, max: 95 }}
+                  className="compact-gauge"
+                />
+              )}
+              
+              {/* ═══ MODE VÉLO/TRIATHLON: Métriques spécifiques ═══ */}
+              
+              {/* FTP/kg - MASQUÉ en Running Focus Mode */}
+              {!isRunningOnly && ftpKg !== null && (
+                <MiniGauge
+                  label="FTP/kg"
+                  value={ftpKg}
+                  unit="W/kg"
+                  min={1.5}
+                  max={6.5}
+                  optimal={{ min: 3.5, max: 5.0 }}
+                  className="compact-gauge"
+                />
+              )}
+              
+              {/* TTE - Toujours affiché, label adapté */}
+              <MiniGauge
+                label={isRunningOnly ? "Durée seuil" : "TTE"}
+                value={tteMin}
+                unit="min"
+                min={20}
+                max={90}
+                optimal={getTTEOptimal()}
+                className="compact-gauge"
+              />
+              
+              {/* FatMax - MASQUÉ en Running Focus Mode */}
+              {!isRunningOnly && fatmax !== undefined && fatmax !== null && (
+                <MiniGauge
+                  label="FatMax"
+                  value={fatmax}
+                  unit="W"
+                  min={100}
+                  max={350}
+                  optimal={{ min: 180, max: 280 }}
+                  className="compact-gauge"
+                />
+              )}
+              
+              {/* FC Max - Toujours visible */}
+              {fcMax !== undefined && fcMax !== null && (
+                <MiniGauge
+                  label="FC Max"
+                  value={fcMax}
+                  unit="bpm"
+                  min={140}
+                  max={220}
+                  className="compact-gauge"
+                />
+              )}
+              
+              {/* VMA en mode non-running (si disponible) */}
+              {!isRunningOnly && vma !== undefined && vma !== null && (
+                <MiniGauge
+                  label="VMA"
+                  value={vma}
+                  unit="km/h"
+                  min={12}
+                  max={24}
+                  optimal={{ min: 16, max: 21 }}
+                  className="compact-gauge"
+                />
+              )}
+              
+              {/* Masse grasse - MASQUÉ en Running Focus Mode */}
+              {!isRunningOnly && fatPct !== undefined && fatPct !== null && (
                 <MiniGauge
                   label="Fat %"
                   value={fatPct}
@@ -186,8 +281,8 @@ export function CompactMetricsGrid({
                 />
               )}
               
-              {/* TSS 7j */}
-              {tss7d !== undefined && tss7d !== null && (
+              {/* TSS 7j - MASQUÉ en Running Focus Mode */}
+              {!isRunningOnly && tss7d !== undefined && tss7d !== null && (
                 <MiniGauge
                   label="TSS 7j"
                   value={tss7d}
@@ -199,7 +294,7 @@ export function CompactMetricsGrid({
                 />
               )}
               
-              {/* Readiness */}
+              {/* Readiness - Toujours visible */}
               {readinessScore !== undefined && readinessScore !== null && (
                 <MiniGauge
                   label="Ready"
@@ -215,8 +310,10 @@ export function CompactMetricsGrid({
             
             <div className="mt-1.5 pt-1.5 border-t border-border/30">
               <p className="text-[9px] sm:text-[10px] text-muted-foreground text-center">
-                🎯 <span className="font-medium">{objectif || "Non défini"}</span>
-                <span className="hidden sm:inline">{" • "}Zones optimales adaptées</span>
+                {isRunningOnly ? "🏃" : "🎯"} <span className="font-medium">{raceLabel || objectif || "Non défini"}</span>
+                <span className="hidden sm:inline">
+                  {" • "}{isRunningOnly ? "Running Focus Mode™ actif" : "Zones optimales adaptées"}
+                </span>
               </p>
             </div>
           </CardContent>
