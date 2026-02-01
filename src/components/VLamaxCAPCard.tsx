@@ -1,12 +1,13 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
- * VLAMAX CAP CARD V2 — Running Focus Mode™ + Calibration Continue
+ * VLAMAX CAP CARD V2 — Running Focus Mode™ + Calibration Continue + Cloud Sync
  * 
  * Affichage de la VLamax spécifique course à pied avec:
  * - Baseline vs Calibrated (transparence AVANT/APRÈS)
  * - Plage P25-P75
  * - Confiance et preuves utilisées
  * - Badge recalibration recommandée
+ * - ✅ Cloud persistence via useRunningProfileCloud
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
@@ -18,6 +19,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
 import { useCalibrationEvidence } from "@/hooks/useCalibrationEvidence";
+import { useRunningProfileCloud } from "@/hooks/useRunningProfileCloud";
 import { 
   RUNNING_RACE_LABELS,
   type RunningRaceType 
@@ -31,6 +33,9 @@ import {
   AlertTriangle,
   Brain,
   Lock,
+  Cloud,
+  CloudOff,
+  Loader2,
 } from "lucide-react";
 
 interface VLamaxCAPCardProps {
@@ -60,12 +65,30 @@ export function VLamaxCAPCard({
     isLocked,
   } = useCalibrationEvidence(athleteId);
   
-  // Valeurs calibrées ou fallback
-  const modelledVlamax = liveCalibration?.vlamax_modelled ?? vlamaxValue;
-  const calibratedVlamax = liveCalibration?.vlamax_calibrated ?? vlamaxValue;
-  const confidence = liveCalibration?.confidence ?? vlamaxConfidence;
+  // ✅ Cloud persistence
+  const {
+    runningProfile,
+    hasProfile: hasCloudProfile,
+    loading: cloudLoading,
+    saving: cloudSaving,
+  } = useRunningProfileCloud(athleteId);
+  
+  // Use Cloud data if available, fallback to props
+  const cloudVlamax = runningProfile?.vlamax_run?.value ?? null;
+  const cloudVo2max = runningProfile?.vo2max_run?.value ?? null;
+  const cloudEconomy = runningProfile?.economy_run?.value ?? null;
+  
+  // Valeurs calibrées ou fallback (prioritize Cloud data)
+  const effectiveVlamax = cloudVlamax ?? vlamaxValue;
+  const modelledVlamax = liveCalibration?.vlamax_modelled ?? effectiveVlamax;
+  const calibratedVlamax = liveCalibration?.vlamax_calibrated ?? effectiveVlamax;
+  const confidence = liveCalibration?.confidence ?? runningProfile?.vlamax_run?.confidence ?? vlamaxConfidence;
   const delta = liveCalibration?.delta ?? 0;
   const hasCalibration = liveCalibration !== null && windowEvidences.length > 0;
+  
+  // Effective VO2max and Economy (Cloud or props)
+  const effectiveVo2max = cloudVo2max ?? vo2max;
+  const effectiveEconomy = cloudEconomy ?? economyScore;
   
   if (!raceType || !targets) {
     return null;
@@ -135,6 +158,21 @@ export function VLamaxCAPCard({
             )}
           </CardTitle>
           <div className="flex items-center gap-2">
+            {/* Cloud sync indicator */}
+            {cloudLoading ? (
+              <Badge variant="outline" className="text-xs gap-1 text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" />
+              </Badge>
+            ) : hasCloudProfile ? (
+              <Badge variant="outline" className="text-xs gap-1 text-emerald-600 border-emerald-300">
+                <Cloud className="h-3 w-3" />
+                Synced
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-xs gap-1 text-muted-foreground">
+                <CloudOff className="h-3 w-3" />
+              </Badge>
+            )}
             {isLocked && (
               <Badge variant="outline" className="text-xs gap-1">
                 <Lock className="h-3 w-3" />
@@ -259,16 +297,18 @@ export function VLamaxCAPCard({
               {Math.round(confidence * 100)}%
             </span>
           </div>
-          {vo2max && (
+          {effectiveVo2max && (
             <div>
               <span className="text-muted-foreground">VO2max:</span>
-              <span className="ml-1 font-medium">{vo2max} ml/kg/min</span>
+              <span className="ml-1 font-medium">{effectiveVo2max} ml/kg/min</span>
+              {cloudVo2max && <Cloud className="inline h-3 w-3 ml-1 text-emerald-500" />}
             </div>
           )}
-          {economyScore !== null && (
+          {effectiveEconomy !== null && effectiveEconomy !== undefined && (
             <div>
               <span className="text-muted-foreground">Économie:</span>
-              <span className="ml-1 font-medium">{economyScore}/100</span>
+              <span className="ml-1 font-medium">{effectiveEconomy}/100</span>
+              {cloudEconomy && <Cloud className="inline h-3 w-3 ml-1 text-emerald-500" />}
             </div>
           )}
         </div>

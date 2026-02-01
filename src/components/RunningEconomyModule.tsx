@@ -1,5 +1,5 @@
 // =============================================
-// MODULE ÉCONOMIE DE COURSE (CAP) - Staff
+// MODULE ÉCONOMIE DE COURSE (CAP) - Staff + Cloud Sync
 // =============================================
 
 import React from "react";
@@ -18,7 +18,10 @@ import {
   Info,
   ChevronDown,
   Utensils,
-  BookOpen
+  BookOpen,
+  Cloud,
+  CloudOff,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -29,8 +32,10 @@ import {
   RUNNING_ECONOMY_METHODOLOGY,
   type RunningEconomyInput,
 } from "@/lib/runningEconomy";
+import { useRunningProfileCloud } from "@/hooks/useRunningProfileCloud";
 
 interface RunningEconomyModuleProps {
+  athleteId?: string;
   fcMax: number | null;
   fcMoyenneEndurance?: number | null;
   allureEndurance?: number | null;
@@ -43,6 +48,7 @@ interface RunningEconomyModuleProps {
 }
 
 export function RunningEconomyModule({
+  athleteId,
   fcMax,
   fcMoyenneEndurance = null,
   allureEndurance = null,
@@ -53,13 +59,24 @@ export function RunningEconomyModule({
   sport,
   staffMode = false,
 }: RunningEconomyModuleProps) {
+  // ✅ Cloud persistence - get economy from Cloud if available
+  const {
+    runningProfile,
+    hasProfile: hasCloudProfile,
+    loading: cloudLoading,
+  } = useRunningProfileCloud(athleteId ?? null);
+  
+  // Use Cloud economy if available
+  const cloudEconomy = runningProfile?.economy_run?.value ?? null;
+  const cloudDurability = runningProfile?.durability_run?.value ?? null;
+  const effectiveTteMin = cloudDurability ?? tteMin;
   // Calculer l'économie de course
   const input: RunningEconomyInput = {
     fcMax,
     fcMoyenneEndurance,
     allureEndurance,
     deriveCardiaque,
-    tteMin,
+    tteMin: effectiveTteMin,
     objectif,
     sport,
   };
@@ -99,9 +116,23 @@ export function RunningEconomyModule({
             </div>
           </div>
           
-          <Badge className={cn("px-3 py-1", getEconomyBadgeClass(economy.color))}>
-            {economy.levelIcon} {economy.levelLabel}
-          </Badge>
+          <div className="flex items-center gap-2">
+            {/* Cloud sync indicator */}
+            {cloudLoading ? (
+              <Badge variant="outline" className="text-xs gap-1 text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" />
+              </Badge>
+            ) : hasCloudProfile && cloudEconomy !== null ? (
+              <Badge variant="outline" className="text-xs gap-1 text-emerald-600 border-emerald-300">
+                <Cloud className="h-3 w-3" />
+                Cloud
+              </Badge>
+            ) : null}
+            
+            <Badge className={cn("px-3 py-1", getEconomyBadgeClass(economy.color))}>
+              {economy.levelIcon} {economy.levelLabel}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       
