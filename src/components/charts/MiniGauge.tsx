@@ -41,13 +41,16 @@ export function MiniGauge({
     ? ((optimal.max - min) / (max - min)) * 180 
     : 180;
 
+  // Detect compact mode via className
+  const isCompact = className?.includes("compact-gauge");
+
   return (
     <div 
       className={cn(
         // Base styles
         "bg-card border border-border/50 rounded-lg hover:border-primary/30 transition-colors",
-        // Responsive padding
-        "p-2 sm:p-3",
+        // Compact vs normal padding
+        isCompact ? "p-1.5 sm:p-2" : "p-2 sm:p-3",
         // Touch-friendly sizing
         "touch-target",
         className
@@ -55,7 +58,10 @@ export function MiniGauge({
     >
       {/* Label - responsive text */}
       <div 
-        className="text-[10px] sm:text-xs font-medium text-muted-foreground mb-1.5 sm:mb-2 truncate" 
+        className={cn(
+          "font-medium text-muted-foreground truncate",
+          isCompact ? "text-[8px] sm:text-[9px] mb-0.5 sm:mb-1" : "text-[10px] sm:text-xs mb-1.5 sm:mb-2"
+        )}
         title={label}
       >
         {label}
@@ -63,13 +69,19 @@ export function MiniGauge({
       
       {/* Gauge SVG - responsive height */}
       <div className="relative flex justify-center">
-        <svg viewBox="0 0 100 55" className="w-full h-auto max-h-[50px] sm:max-h-[60px]">
+        <svg 
+          viewBox="0 0 100 55" 
+          className={cn(
+            "w-full h-auto",
+            isCompact ? "max-h-[32px] sm:max-h-[40px]" : "max-h-[50px] sm:max-h-[60px]"
+          )}
+        >
           {/* Fond gris de la jauge */}
           <path
             d="M 10 50 A 40 40 0 0 1 90 50"
             fill="none"
             stroke="hsl(var(--muted))"
-            strokeWidth="8"
+            strokeWidth={isCompact ? "10" : "8"}
             strokeLinecap="round"
           />
           
@@ -79,7 +91,7 @@ export function MiniGauge({
               d={describeArc(50, 50, 40, optimalStartAngle, optimalEndAngle)}
               fill="none"
               stroke="hsl(var(--success) / 0.3)"
-              strokeWidth="8"
+              strokeWidth={isCompact ? "10" : "8"}
               strokeLinecap="round"
             />
           )}
@@ -89,7 +101,7 @@ export function MiniGauge({
             d={describeArc(50, 50, 40, 0, angle)}
             fill="none"
             stroke={getGaugeColor(percentage, optimal, min, max, safeValue)}
-            strokeWidth="8"
+            strokeWidth={isCompact ? "10" : "8"}
             strokeLinecap="round"
           />
           
@@ -100,24 +112,30 @@ export function MiniGauge({
             x2={50 + 35 * Math.cos((180 - angle) * Math.PI / 180)}
             y2={50 - 35 * Math.sin((180 - angle) * Math.PI / 180)}
             stroke="hsl(var(--foreground))"
-            strokeWidth="2"
+            strokeWidth={isCompact ? "1.5" : "2"}
             strokeLinecap="round"
           />
           
           {/* Centre de l'aiguille */}
-          <circle cx="50" cy="50" r="4" fill="hsl(var(--foreground))" />
+          <circle cx="50" cy="50" r={isCompact ? 3 : 4} fill="hsl(var(--foreground))" />
         </svg>
       </div>
       
       {/* Valeurs - responsive text */}
-      <div className="text-center mt-0.5 sm:mt-1 space-y-0">
-        <div className="flex items-baseline justify-center gap-0.5 sm:gap-1">
-          <span className="text-base sm:text-lg font-bold text-foreground">
+      <div className={cn("text-center space-y-0", isCompact ? "mt-0" : "mt-0.5 sm:mt-1")}>
+        <div className="flex items-baseline justify-center gap-0.5">
+          <span className={cn(
+            "font-bold text-foreground",
+            isCompact ? "text-xs sm:text-sm" : "text-base sm:text-lg"
+          )}>
             {typeof value === "number" && Number.isFinite(value) ? formatValue(value) : "—"}
           </span>
-          <span className="text-[9px] sm:text-xs text-muted-foreground">{unit}</span>
+          <span className={cn(
+            "text-muted-foreground",
+            isCompact ? "text-[7px] sm:text-[8px]" : "text-[9px] sm:text-xs"
+          )}>{unit}</span>
         </div>
-        {secondaryValue && (
+        {secondaryValue && !isCompact && (
           <div className="text-[9px] sm:text-xs text-muted-foreground">
             <span className="hidden xs:inline">{secondaryLabel}: </span>
             <span className="font-medium">{secondaryValue}</span>
