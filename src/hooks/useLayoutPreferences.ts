@@ -49,6 +49,7 @@ export interface MovedSectionConfig {
 
 // Sections disponibles pour chaque onglet
 export const PROFIL_SECTIONS: SectionDefinition[] = [
+  { id: "objective-manager", label: "Objectif & Courses", icon: "Target", category: "profil", defaultVisible: true },
   { id: "athlete-refs", label: "Références Athlète", icon: "User", defaultVisible: true },
   { id: "athlete-profile", label: "Profil Athlète", icon: "User", defaultVisible: true },
   { id: "two-for-coaching", label: "Analyse Two For Coaching Lab™", icon: "Brain", defaultVisible: true },
@@ -62,6 +63,7 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   
   // 👤 Profil athlète + Ambition
   { id: "athlete-refs", label: "Profil & Données", icon: "User", category: "profil", defaultVisible: true },
+  { id: "objective-manager", label: "Objectif & Historique", icon: "Target", category: "profil", defaultVisible: true },
   { id: "ambition-progress", label: "Évolution vers les cibles", icon: "TrendingUp", category: "profil", defaultVisible: true },
   
   // 👤 Carte Profil Athlète (juste au-dessus du Compass)
@@ -283,16 +285,30 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
     if (savedConfigs && savedConfigs.length > 0) {
       // Ajouter les nouvelles sections qui n'existent pas dans les préférences sauvegardées
       const savedIds = new Set(savedConfigs.map(c => c.id));
-      const missingConfigs = defaultSections
+      let missingConfigs = defaultSections
         .filter(s => !savedIds.has(s.id))
         .map(s => ({ id: s.id, visible: s.defaultVisible }));
       
-      // Filtrer les sections supprimées et ajouter les nouvelles à la fin
+      // Filtrer les sections supprimées et ajouter les nouvelles
       const validConfigs = savedConfigs.filter(c => 
         defaultSections.some(s => s.id === c.id)
       );
-      
-      return [...validConfigs, ...missingConfigs];
+
+      // ✅ Important: insérer "objective-manager" à un endroit attendu (sinon il finit tout en bas)
+      // Cas typique: l'utilisateur a déjà une disposition sauvegardée avant l'ajout de la section.
+      const objectiveDef = defaultSections.find(s => s.id === "objective-manager");
+      const objectiveMissing = objectiveDef && missingConfigs.some(c => c.id === "objective-manager");
+
+      const merged = [...validConfigs];
+      if (objectiveMissing && objectiveDef) {
+        const objectiveConfig: SectionConfig = { id: "objective-manager", visible: objectiveDef.defaultVisible };
+        const afterAthleteRefsIdx = merged.findIndex(c => c.id === "athlete-refs");
+        if (afterAthleteRefsIdx >= 0) merged.splice(afterAthleteRefsIdx + 1, 0, objectiveConfig);
+        else merged.unshift(objectiveConfig);
+        missingConfigs = missingConfigs.filter(c => c.id !== "objective-manager");
+      }
+
+      return [...merged, ...missingConfigs];
     }
     
     // Retourner les défauts
