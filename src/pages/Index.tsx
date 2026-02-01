@@ -36,6 +36,8 @@ import { NutritionPredictive } from "@/components/NutritionPredictive";
 import { NutritionTimingCard } from "@/components/NutritionTimingCard";
 import { RunningEconomyModule } from "@/components/RunningEconomyModule";
 import { RunningEconomySummaryCard } from "@/components/RunningEconomySummaryCard";
+import { VLamaxCAPCard } from "@/components/VLamaxCAPCard";
+import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
 import { SaisonPhasesView } from "@/components/SaisonPhasesView";
 import { StaffReport } from "@/components/StaffReport";
 import { StaffBriefingCard } from "@/components/StaffBriefingCard";
@@ -173,6 +175,9 @@ const Index = () => {
     selectedAthleteId, 
     setSelectedAthleteId 
   } = useAthletes();
+
+  // ✅ Running Focus Mode - activé automatiquement pour objectifs CAP
+  const { isRunningOnly, raceType, raceLabel, targets: runningTargets } = useRunningFocusMode();
 
   // Mapper currentAthlete du contexte vers le format DbAthlete attendu par Index
   const currentAthlete = useMemo(() => {
@@ -1080,6 +1085,47 @@ const Index = () => {
               }
               
               return null;
+            },
+          },
+          // ✅ RUNNING FOCUS MODE SECTIONS — affiché uniquement en mode CAP
+          {
+            id: "vlamax-cap-card",
+            render: () => {
+              // Afficher uniquement en Running Focus Mode
+              if (!isRunningOnly || !currentAthlete) return null;
+              
+              return (
+                <VLamaxCAPCard
+                  athleteId={currentAthlete.id}
+                  vlamaxValue={vlamaxEffectif.value}
+                  vlamaxSource={vlamaxEffectif.source === "test" ? "test" : vlamaxEffectif.source === "snapshot" ? "snapshot" : "estimation"}
+                  vlamaxConfidence={vlamaxEffectif.confidence}
+                  vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
+                  economyScore={effectiveCloudSnapshot?.run_economy_score ?? null}
+                />
+              );
+            },
+          },
+          {
+            id: "running-economy-module",
+            render: () => {
+              // Afficher uniquement en Running Focus Mode
+              if (!isRunningOnly || !currentAthlete) return null;
+              
+              return (
+                <RunningEconomyModule
+                  athleteId={currentAthlete.id}
+                  fcMax={effectiveRefs.fcMax ?? null}
+                  fcMoyenneEndurance={effectiveCloudSnapshot?.run_hr_ref_bpm ?? null}
+                  allureEndurance={effectiveCloudSnapshot?.run_pace_ref_sec_per_km ?? null}
+                  deriveCardiaque={effectiveCloudSnapshot?.run_hr_drift_pct ?? null}
+                  tteMin={tteEffectif.tte_min}
+                  objectif={currentAthlete.goal || "Marathon"}
+                  vlamax={vlamaxEffectif.value}
+                  sport="run"
+                  staffMode={staffMode}
+                />
+              );
             },
           },
           {
