@@ -46,6 +46,7 @@ import { RaceReadinessRunCard } from "@/components/RaceReadinessRunCard";
 import { RaceReadinessRunForm } from "@/components/RaceReadinessRunForm";
 import { PacingEnvelopeRunCard } from "@/components/PacingEnvelopeRunCard";
 import { SortableSectionsContainer } from "@/components/SortableSectionsContainer";
+import { MetabolicCompassCAP } from "@/components/charts";
 
 // Logique et calculs
 import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
@@ -332,6 +333,32 @@ export default function RunningProfilePage() {
     if (!currentAthlete) return [];
 
     return [
+      {
+        id: "compass-cap",
+        render: () => (
+          <MetabolicCompassCAP
+            data={{
+              vo2max: effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null,
+              vma: effectiveCloudSnapshot?.vma ?? null,
+              vlamaxCap: vlamaxEffectif.value,
+              paceThresholdSecPerKm: effectiveCloudSnapshot?.pace_threshold_sec_per_km ?? null,
+              paceEnduranceSecPerKm: effectiveCloudSnapshot?.run_pace_ref_sec_per_km ?? null,
+              tteMin: tteEffectif.tte_min,
+              hrDriftPct: effectiveCloudSnapshot?.run_hr_drift_pct ?? null,
+              economyIndex: effectiveCloudSnapshot?.run_economy_score ?? null,
+              economyLevel: effectiveCloudSnapshot?.run_economy_label ?? null,
+              fcMax: effectiveRefs.fcMax ?? null,
+              fcEndurance: effectiveCloudSnapshot?.run_hr_ref_bpm ?? null,
+              sprint15sDistance: effectiveCloudSnapshot?.sprint_15s_distance ?? null,
+              runningPowerMax: effectiveCloudSnapshot?.running_power_max ?? null,
+              objectif: raceType || athleteGoal,
+              ambition: (currentAthlete.refs as Record<string, unknown>)?.ambition as any,
+              athleteAge: athleteAge,
+            }}
+            staffMode={staffMode}
+          />
+        ),
+      },
       {
         id: "vlamax-cap-card",
         render: () => (
