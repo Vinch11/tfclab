@@ -963,6 +963,26 @@ const Index = () => {
             ),
           },
           {
+            id: "objective-manager",
+            render: () => currentAthlete && (
+              <AthleteObjectiveManager
+                athleteId={currentAthlete.id}
+                currentGoal={currentAthlete.goal}
+                raceGoals={raceGoals}
+                onGoalChange={async (goal) => {
+                  await updateAthleteGoal(goal);
+                  await loadData();
+                }}
+                onAddRaceGoal={async (goal) => {
+                  await addRaceGoal(goal);
+                }}
+                onDeleteRaceGoal={deleteRaceGoal}
+                onRestoreRaceGoal={restoreRaceGoal}
+                loading={raceGoalsLoading}
+              />
+            ),
+          },
+          {
             id: "disponibilite-tfcl",
             render: () => {
               if (!currentAthlete) return null;
