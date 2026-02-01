@@ -531,7 +531,7 @@ export function computeFatigueEffectif(params: ComputeFatigueParams): FatigueEff
       fatiguePercue: fatiguePercue ?? null,
       tteEffectif: tteEffectif.tte_min,
       tteTarget: getTTETarget(objectif),
-      raceReadiness: raceReadiness.score,
+      raceReadiness: raceReadiness?.score ?? null,
       age: age ?? null,
       vlamax: vlamaxEffectif?.value ?? null
     }
