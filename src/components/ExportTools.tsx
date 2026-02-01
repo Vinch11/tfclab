@@ -110,6 +110,7 @@ export interface ReportSections {
   historique: boolean;      // Historique Profils
   tests: boolean;           // Historique Tests
   testsCalibration: boolean; // ✅ Tests & Calibration TFCL
+  calibrationEvidence: boolean; // ✅ Calibration Evidence Summary
   fitImports: boolean;      // ✅ Tests Observés (import FIT)
   checkins: boolean;        // Check-ins
   comprendre: boolean;      // Comprendre mes scores
@@ -5055,9 +5056,149 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   `;
 
   // =============================================
+  // H.5bis CALIBRATION EVIDENCE SUMMARY SECTION
+  // =============================================
+  const buildCalibrationEvidenceHTML = (): string => {
+    // For now we use testsCalibrationSection which has some calibration info
+    // In a full implementation, this would use data from calibration_evidence table
+    const evidenceCount = testsCalibrationSection.testsRealises.length;
+    const highQualityCount = testsCalibrationSection.testsRealises.filter(t => t.qualiteProtocole >= 4).length;
+    const validCount = testsCalibrationSection.testsRealises.filter(t => t.validite === "OK").length;
+    const avgConfidence = evidenceCount > 0 
+      ? testsCalibrationSection.testsRealises.reduce((sum, t) => sum + t.confidence, 0) / evidenceCount 
+      : 0;
+    
+    return `
+      <section id="calibration-evidence" class="section pagebreak">
+        <h2>🔬 Calibration Evidence Summary</h2>
+        
+        <div class="alert alertInfo mb">
+          <b>📋 Philosophie TFCL™</b> : La calibration continue utilise les preuves terrain 
+          pour affiner le modèle métabolique. Chaque preuve est pondérée selon sa qualité de protocole, 
+          sa validité et sa récence (fenêtre glissante de 42 jours).
+        </div>
+        
+        <!-- KPIs Evidence -->
+        <div class="grid4 mb">
+          <div class="card" style="text-align:center;padding:16px;">
+            <div class="muted" style="font-size:11px;text-transform:uppercase;">Preuves totales</div>
+            <div style="font-size:36px;font-weight:800;color:var(--primary);">${evidenceCount}</div>
+            <div class="muted" style="font-size:11px;">dans la fenêtre</div>
+          </div>
+          <div class="card" style="text-align:center;padding:16px;">
+            <div class="muted" style="font-size:11px;text-transform:uppercase;">Haute qualité</div>
+            <div style="font-size:36px;font-weight:800;color:${highQualityCount > 0 ? 'var(--success)' : 'var(--muted)'};">${highQualityCount}</div>
+            <div class="muted" style="font-size:11px;">protocole 4-5/5</div>
+          </div>
+          <div class="card" style="text-align:center;padding:16px;">
+            <div class="muted" style="font-size:11px;text-transform:uppercase;">Validées</div>
+            <div style="font-size:36px;font-weight:800;color:${validCount === evidenceCount && validCount > 0 ? 'var(--success)' : validCount > 0 ? 'var(--warning)' : 'var(--muted)'};">${validCount}</div>
+            <div class="muted" style="font-size:11px;">sans anomalie</div>
+          </div>
+          <div class="card" style="text-align:center;padding:16px;">
+            <div class="muted" style="font-size:11px;text-transform:uppercase;">Confiance moy.</div>
+            <div style="font-size:36px;font-weight:800;color:${avgConfidence >= 0.7 ? 'var(--success)' : avgConfidence >= 0.5 ? 'var(--warning)' : 'var(--error)'};">${Math.round(avgConfidence * 100)}%</div>
+            <div class="muted" style="font-size:11px;">pondération</div>
+          </div>
+        </div>
+        
+        ${evidenceCount > 0 ? `
+          <!-- Timeline des preuves -->
+          <div class="card">
+            <h3>📈 Timeline des preuves terrain</h3>
+            <p class="muted mb">Preuves utilisées pour la calibration continue du modèle VLamax.</p>
+            
+            <div style="position:relative;padding-left:24px;border-left:2px solid var(--soft);">
+              ${testsCalibrationSection.testsRealises.map((test, idx) => {
+                const validityIcon = test.validite === "OK" ? "✅" : test.validite === "WARNING" ? "⚠️" : "❌";
+                const qualityStars = "★".repeat(test.qualiteProtocole) + "☆".repeat(5 - test.qualiteProtocole);
+                return `
+                  <div style="position:relative;padding:12px 0;${idx < testsCalibrationSection.testsRealises.length - 1 ? 'border-bottom:1px dashed var(--soft);' : ''}">
+                    <div style="position:absolute;left:-32px;top:12px;width:16px;height:16px;border-radius:50%;background:${test.validite === "OK" ? 'var(--success)' : test.validite === "WARNING" ? 'var(--warning)' : 'var(--error)'};display:flex;align-items:center;justify-content:center;">
+                      <span style="font-size:10px;color:white;">•</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
+                      <div>
+                        <div style="font-weight:600;font-size:13px;">${htmlEscape(test.type)}</div>
+                        <div class="muted" style="font-size:11px;">${test.date} • ${test.resultBrut}</div>
+                      </div>
+                      <div style="text-align:right;">
+                        <div style="font-size:12px;">${validityIcon} ${qualityStars}</div>
+                        <div class="muted" style="font-size:10px;">Confiance: ${Math.round(test.confidence * 100)}%</div>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+          
+          <!-- Légende des types de preuves -->
+          <div class="card mt">
+            <h3>🏷️ Types de preuves acceptées</h3>
+            <div class="grid3 mt">
+              <div style="padding:12px;background:var(--soft);border-radius:8px;">
+                <div style="font-weight:600;color:var(--primary);">⚡ Sprint 15s</div>
+                <div class="muted" style="font-size:11px;">Test de puissance maximale courte durée. Poids: 85%</div>
+              </div>
+              <div style="padding:12px;background:var(--soft);border-radius:8px;">
+                <div style="font-weight:600;color:var(--primary);">📊 P30 / P60</div>
+                <div class="muted" style="font-size:11px;">Puissance soutenue 30-60 secondes. Poids: 75-80%</div>
+              </div>
+              <div style="padding:12px;background:var(--soft);border-radius:8px;">
+                <div style="font-weight:600;color:var(--primary);">🎯 MAP</div>
+                <div class="muted" style="font-size:11px;">Puissance Maximale Aérobie. Poids: 70%</div>
+              </div>
+              <div style="padding:12px;background:var(--soft);border-radius:8px;">
+                <div style="font-weight:600;color:var(--primary);">⏱️ TTE Observé</div>
+                <div class="muted" style="font-size:11px;">Time to Exhaustion mesuré. Poids: 65%</div>
+              </div>
+              <div style="padding:12px;background:var(--soft);border-radius:8px;">
+                <div style="font-weight:600;color:var(--primary);">🏁 Course Paced</div>
+                <div class="muted" style="font-size:11px;">Performance en compétition. Poids: 50%</div>
+              </div>
+              <div style="padding:12px;background:var(--soft);border-radius:8px;">
+                <div style="font-weight:600;color:var(--primary);">📉 Drift / Économie</div>
+                <div class="muted" style="font-size:11px;">Analyse de dérive et efficacité. Poids: 35-40%</div>
+              </div>
+            </div>
+          </div>
+        ` : `
+          <div class="card" style="text-align:center;padding:32px;">
+            <div style="font-size:48px;margin-bottom:16px;">🔍</div>
+            <h3>Aucune preuve terrain enregistrée</h3>
+            <p class="muted">Ajoutez des tests, imports FIT ou analyses post-course pour calibrer le modèle.</p>
+          </div>
+        `}
+        
+        <!-- Formule de pondération -->
+        <div class="card mt">
+          <h3>📐 Formule de pondération</h3>
+          <div style="background:var(--soft);padding:16px;border-radius:8px;font-family:monospace;font-size:12px;">
+            <div style="margin-bottom:8px;"><b>Poids final = Base × Qualité × Décroissance temporelle</b></div>
+            <div class="muted">
+              • Base: poids intrinsèque du type de test (35-85%)<br>
+              • Qualité: multiplicateur selon protocole (1-5 → 0.5-1.0)<br>
+              • Décroissance: exp(-âge_jours / 42) sur fenêtre glissante
+            </div>
+          </div>
+        </div>
+        
+        <div class="alert alertWarning mt">
+          <b>⚠️ Rappel</b> : Les preuves terrain augmentent la robustesse des décisions en réduisant 
+          l'incertitude du modèle. Elles ne transforment pas une estimation en mesure médicale, 
+          mais améliorent la cohérence physiologique.
+        </div>
+      </section>
+    `;
+  };
+  
+  const calibrationEvidenceHTML = buildCalibrationEvidenceHTML();
+
+  // =============================================
   // H.5 FIT IMPORTS SECTION (Tests terrain)
   // =============================================
-  const fitImportTests = tests.filter(t => 
+  const fitImportTests = tests.filter(t =>
     t.type === 'FIT_IMPORT' || 
     (t.raw && typeof t.raw === 'object' && (t.raw as Record<string, unknown>).source === 'FIT_IMPORT')
   );
@@ -5728,6 +5869,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     historique: snapshotsHTML,
     tests: testsHTML,
     testsCalibration: testsCalibrationHTML,
+    calibrationEvidence: calibrationEvidenceHTML,
     fitImports: fitImportsHTML,
     checkins: checkinsHTML,
     comprendre: comprendreHTML,
@@ -6301,6 +6443,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       historique: false,
       tests: false,
       testsCalibration: false,
+      calibrationEvidence: false,
       fitImports: false,
       checkins: false,
       comprendre: false,
