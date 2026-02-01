@@ -145,6 +145,107 @@ export const EVOLUTION_SECTIONS: SectionDefinition[] = [
   { id: "sport-analysis", label: "Analyse par Sport", icon: "Activity", defaultVisible: true },
 ];
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * RUNNING FOCUS MODE FILTER — Sections à masquer en mode CAP/Trail
+ * 
+ * Ces sections sont automatiquement masquées lorsque l'objectif est running-only
+ * (5K, 10K, Semi, Marathon, Trail, TrailShort, TrailMountain, TrailUltra)
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
+
+// Sections spécifiques vélo/triathlon — masquées en Running Focus Mode
+export const CYCLING_TRIATHLON_SECTIONS: string[] = [
+  // Vélo spécifiques
+  "ftp-targets",                    // FTP/kg — zones cibles vélo
+  "vlamax-bike-v2-enhanced",        // VLamax Vélo — Analyse Détaillée
+  "vlamax-v2-calibration",          // VLamax TFCL V2 compact vélo
+  "low-crr-justification",          // Justification charge faible (TSS vélo)
+  "fatmax-chart",                   // FatMax vs Race Intensity (vélo focus)
+  "metabolic-power-curve",          // Metabolic Power Curve (vélo)
+  
+  // Triathlon spécifiques
+  "vlamax-combined",                // VLamax Vélo/CAP (comparaison tri)
+  
+  // Scénarios vélo-centriques
+  "scenarios-tte-vlamax",           // Scénarios TTE/VLamax (vélo-centric)
+];
+
+// Sections visibles UNIQUEMENT en Running Focus Mode
+export const RUNNING_ONLY_SECTIONS: string[] = [
+  "vlamax-cap-card",                // VLamax CAP Card
+  "running-economy-module",         // Running Economy Module
+];
+
+// Sections universelles (toujours visibles)
+export const UNIVERSAL_SECTIONS: string[] = [
+  "getting-started",
+  "athlete-refs",
+  "objective-manager",
+  "ambition-progress",
+  "athlete-profile-card",
+  "compact-metrics-grid",
+  "tfcl-decision-matrix",
+  "tfcl-symptom-matrix",
+  "lorang-strategy",
+  "compass",
+  "disponibilite-tfcl",
+  "daily-readiness-check",
+  "quick-fatigue",
+  "charge-recente",
+  "race-readiness-signature",
+  "race-readiness-v2",
+  "running-economy-summary",
+  "fatmax-tfcl",
+  "dashboard-recommendations",
+  "action-buttons",
+  "scientific-charts",
+  "staff-dashboard",
+  "vo2max-age-comparison",
+];
+
+/**
+ * Vérifie si une section doit être masquée en Running Focus Mode
+ */
+export function shouldHideSectionInRunningMode(sectionId: string): boolean {
+  return CYCLING_TRIATHLON_SECTIONS.includes(sectionId);
+}
+
+/**
+ * Vérifie si une section n'est visible QU'EN Running Focus Mode
+ */
+export function isRunningOnlySection(sectionId: string): boolean {
+  return RUNNING_ONLY_SECTIONS.includes(sectionId);
+}
+
+/**
+ * Filtre les sections selon le Running Focus Mode
+ */
+export function filterSectionsForRunningMode(
+  sectionIds: string[], 
+  isRunningOnly: boolean
+): string[] {
+  return sectionIds.filter(id => {
+    // Si Running Focus Mode actif
+    if (isRunningOnly) {
+      // Masquer les sections vélo/tri
+      if (shouldHideSectionInRunningMode(id)) {
+        return false;
+      }
+      // Afficher toutes les autres
+      return true;
+    } else {
+      // Mode normal (non-running)
+      // Masquer les sections running-only
+      if (isRunningOnlySection(id)) {
+        return false;
+      }
+      // Afficher toutes les autres
+      return true;
+    }
+  });
+}
+
 export const ALL_SECTIONS: Record<TabId, SectionDefinition[]> = {
   profil: PROFIL_SECTIONS,
   dashboard: DASHBOARD_SECTIONS,

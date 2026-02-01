@@ -1,7 +1,7 @@
 /**
  * Container pour gérer les sections réorganisables d'un onglet
  * Combine le drag & drop direct ET le bouton d'accès à la modal
- * Supporte la visibilité des sections
+ * Supporte la visibilité des sections ET le filtrage Running Focus Mode
  */
 
 import { useState, useMemo, ReactNode } from "react";
@@ -21,6 +21,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Settings2, GripVertical, Check, X, Eye, EyeOff, RotateCcw } from "lucide-react";
 import { SortableSectionWrapper } from "./SortableSectionWrapper";
 import { LayoutConfigModal } from "./LayoutConfigModal";
@@ -28,8 +29,12 @@ import {
   type TabId, 
   type SectionConfig,
   ALL_SECTIONS,
-  useLayoutPreferences 
+  useLayoutPreferences,
+  filterSectionsForRunningMode,
+  shouldHideSectionInRunningMode,
+  isRunningOnlySection,
 } from "@/hooks/useLayoutPreferences";
+import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -56,6 +61,10 @@ export function SortableSectionsContainer({
     setSectionConfigs, 
     resetToDefault,
   } = useLayoutPreferences();
+  
+  // ✅ Running Focus Mode - filtre automatique des sections vélo/tri
+  const { isRunningOnly, raceLabel } = useRunningFocusMode();
+  
   const [isEditMode, setIsEditMode] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tempConfigs, setTempConfigs] = useState<SectionConfig[]>([]);
@@ -75,13 +84,32 @@ export function SortableSectionsContainer({
   // Configs à utiliser (temp en mode édition, sinon current)
   const displayConfigs = isEditMode ? tempConfigs : currentConfigs;
 
-  // Ordre d'affichage (tous en mode edit, seulement visibles sinon)
+  // ✅ Ordre d'affichage avec filtrage Running Focus Mode
   const displayOrder = useMemo(() => {
+    let order: string[];
+    
     if (isEditMode) {
-      return displayConfigs.map(c => c.id);
+      order = displayConfigs.map(c => c.id);
+    } else {
+      order = displayConfigs.filter(c => c.visible).map(c => c.id);
     }
-    return displayConfigs.filter(c => c.visible).map(c => c.id);
-  }, [displayConfigs, isEditMode]);
+    
+    // Appliquer le filtre Running Focus Mode (sauf en mode édition)
+    if (!isEditMode) {
+      order = filterSectionsForRunningMode(order, isRunningOnly);
+    }
+    
+    return order;
+  }, [displayConfigs, isEditMode, isRunningOnly]);
+
+  // Compter les sections masquées par le Running Focus Mode
+  const hiddenByRunningMode = useMemo(() => {
+    if (!isRunningOnly) return 0;
+    return displayConfigs
+      .filter(c => c.visible)
+      .filter(c => shouldHideSectionInRunningMode(c.id))
+      .length;
+  }, [displayConfigs, isRunningOnly]);
 
   // Sections ordonnées avec leur rendu
   const orderedSections = useMemo(() => {
@@ -157,6 +185,24 @@ export function SortableSectionsContainer({
 
   return (
     <div className={cn("relative", className)}>
+      {/* Running Focus Mode Indicator */}
+      {isRunningOnly && hiddenByRunningMode > 0 && !isEditMode && (
+        <div className="mb-4 p-3 bg-primary/5 border border-primary/20 rounded-lg flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🏃</span>
+            <div>
+              <span className="font-medium text-primary text-sm">Running Focus Mode™</span>
+              {raceLabel && (
+                <span className="text-muted-foreground text-sm ml-1.5">• {raceLabel}</span>
+              )}
+            </div>
+          </div>
+          <Badge variant="secondary" className="text-xs">
+            {hiddenByRunningMode} section{hiddenByRunningMode > 1 ? "s" : ""} vélo/tri masquée{hiddenByRunningMode > 1 ? "s" : ""}
+          </Badge>
+        </div>
+      )}
+
       {/* Bouton flottant pour organiser */}
       <div className="flex justify-end mb-4 gap-2 items-center">
         {isEditMode ? (

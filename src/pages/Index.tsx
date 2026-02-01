@@ -750,6 +750,14 @@ const Index = () => {
                 </div>
               )}
 
+              {/* Running Focus Mode Badge - visible quand actif */}
+              {isRunningOnly && (
+                <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium shrink-0">
+                  <span>🏃</span>
+                  <span>Running Only</span>
+                </div>
+              )}
+
               {/* Mini aperçu progression - visible sur desktop */}
               {currentAthlete && (
                 <div className="hidden md:block shrink-0">
