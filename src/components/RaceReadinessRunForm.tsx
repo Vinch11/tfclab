@@ -78,14 +78,6 @@ export function RaceReadinessRunForm({
     });
   }, []);
 
-  // Auto-submit on changes (optional behavior)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      onSubmit(values);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [values, onSubmit]);
-
   return (
     <Card className={cn("overflow-hidden", className)}>
       <CardHeader className="pb-3">
