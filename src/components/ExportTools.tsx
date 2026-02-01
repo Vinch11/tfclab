@@ -96,6 +96,7 @@ export interface ReportSections {
   raceSimulation: boolean;  // ✅ Simulation de Course TFCL™
   pacingEnvelope: boolean;  // ✅ Pacing Envelope™ - Discipline Métabolique
   longDistancePacing: boolean; // ✅ Long Distance Pacing Discipline
+  doubleBoucleCAP: boolean; // ✅ Double Boucle CAP (Running)
   raceReadinessRunning: boolean; // ✅ Race Readiness CAP V2 (Running)
   pacingEnvelopeRunning: boolean; // ✅ Pacing Envelope™ CAP (Running)
   injuryRisk: boolean;      // Risque de Blessure CAP
@@ -1878,6 +1879,360 @@ function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
       <div class="alert alertWarning mt" style="font-size:11px;">
         <b>⚠️ Règles non négociables :</b> Premier tiers conservateur • Ne pas dépasser le plafond • Surveiller dérive FC >5%
         ${vlamax_run && vlamax_run < 0.35 ? '<br>• <b>Profil sensible:</b> discipline absolue' : ''}
+      </div>
+    </section>
+  `;
+}
+
+// =============================================
+// BUILD PACING ENVELOPE HTML (Vélo/Tri)
+// =============================================
+
+function buildPacingEnvelopeHTML(payload: ExportPayload): string {
+  const { effectiveRefs, vlamax, athlete } = payload;
+  
+  const ftp = effectiveRefs.ftp ?? null;
+  const vlamaxValue = vlamax.value;
+  
+  if (!ftp || !vlamaxValue) {
+    return `
+      <section id="pacing-envelope" class="section pagebreakAvoid">
+        <h2>📊 Pacing Envelope™ — Discipline Métabolique</h2>
+        <div class="alert alertWarning">
+          <b>⚠️ Données insuffisantes :</b> FTP et/ou VLamax manquants pour générer l'enveloppe de pacing.
+        </div>
+      </section>
+    `;
+  }
+  
+  // Calcul des zones basées sur VLamax
+  const safetyMargin = vlamaxValue < 0.35 ? 5 : vlamaxValue < 0.45 ? 3 : 2;
+  const greenZone = { min: 70, max: 85 - safetyMargin };
+  const orangeZone = { min: 85 - safetyMargin, max: 92 - safetyMargin };
+  const redZone = { min: 92 - safetyMargin, max: 100 };
+  
+  const greenWatts = { min: Math.round(ftp * greenZone.min / 100), max: Math.round(ftp * greenZone.max / 100) };
+  const orangeWatts = { min: Math.round(ftp * orangeZone.min / 100), max: Math.round(ftp * orangeZone.max / 100) };
+  const redWatts = { min: Math.round(ftp * redZone.min / 100), max: Math.round(ftp * redZone.max / 100) };
+  
+  const disciplineLevel = vlamaxValue < 0.30 ? "TRÈS ÉLEVÉE" : vlamaxValue < 0.40 ? "ÉLEVÉE" : vlamaxValue < 0.50 ? "MODÉRÉE" : "STANDARD";
+  const disciplineColor = vlamaxValue < 0.30 ? "#dc2626" : vlamaxValue < 0.40 ? "#ea580c" : vlamaxValue < 0.50 ? "#d97706" : "#16a34a";
+  
+  return `
+    <section id="pacing-envelope" class="section pagebreak">
+      <h2>📊 Pacing Envelope™ — Discipline Métabolique</h2>
+      
+      <div class="alert alertInfo mb">
+        <b>📋 Concept :</b> Le Pacing Envelope™ définit les corridors d'intensité basés sur votre VLamax. 
+        Plus votre VLamax est bas, plus le risque de déplétion glycogénique est élevé → discipline accrue requise.
+      </div>
+      
+      <div class="card cardHighlight">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+          <div>
+            <div class="muted" style="font-size:11px;">Niveau de discipline requis</div>
+            <div style="font-size:24px;font-weight:700;color:${disciplineColor};">${disciplineLevel}</div>
+            <div class="muted" style="font-size:11px;margin-top:4px;">VLamax: ${vlamaxValue.toFixed(2)} mmol/L/s</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="muted" style="font-size:11px;">FTP Référence</div>
+            <div style="font-size:18px;font-weight:600;">${ftp}W</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card mt">
+        <h3>🎯 Zones de Pacing</h3>
+        <table>
+          <thead>
+            <tr><th>Zone</th><th>% FTP</th><th>Puissance</th><th>Risque</th><th>Usage</th></tr>
+          </thead>
+          <tbody>
+            <tr style="background:rgba(22,163,74,0.1);">
+              <td><span style="color:#16a34a;font-weight:700;">🟢 SAFE</span></td>
+              <td>${greenZone.min}-${greenZone.max}%</td>
+              <td>${greenWatts.min}-${greenWatts.max}W</td>
+              <td><span class="badge badgeSuccess">Faible</span></td>
+              <td>Zone principale longue distance</td>
+            </tr>
+            <tr style="background:rgba(217,119,6,0.1);">
+              <td><span style="color:#d97706;font-weight:700;">🟠 RISK</span></td>
+              <td>${orangeZone.min}-${orangeZone.max}%</td>
+              <td>${orangeWatts.min}-${orangeWatts.max}W</td>
+              <td><span class="badge badgeWarning">Modéré</span></td>
+              <td>Conditionnelle — dernière phase</td>
+            </tr>
+            <tr style="background:rgba(220,38,38,0.1);">
+              <td><span style="color:#dc2626;font-weight:700;">🔴 FORBIDDEN</span></td>
+              <td>>${redZone.min}%</td>
+              <td>>${redWatts.min}W</td>
+              <td><span class="badge badgeError">Élevé</span></td>
+              <td><b>INTERDITE</b> — déplétion garantie</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="alert alertWarning mt" style="font-size:11px;">
+        <b>⚠️ TFCL Method™ :</b> Ces zones sont calculées dynamiquement à partir de votre profil métabolique. 
+        Un VLamax bas implique une marge de sécurité plus importante pour éviter l'effondrement glycogénique.
+      </div>
+    </section>
+  `;
+}
+
+// =============================================
+// BUILD LONG DISTANCE PACING HTML
+// =============================================
+
+function buildLongDistancePacingHTML(payload: ExportPayload): string {
+  const { effectiveRefs, vlamax, athlete, raceReadiness } = payload;
+  
+  const ftp = effectiveRefs.ftp ?? null;
+  const vlamaxValue = vlamax.value;
+  const objectif = athlete.goal || "IM";
+  
+  // Déterminer si c'est un objectif longue distance
+  const isLongDistance = ["IM", "Ironman", "Marathon", "Ultra", "TrailLong", "Ironman Kona"].includes(objectif);
+  
+  if (!isLongDistance) {
+    return `
+      <section id="long-distance-pacing" class="section pagebreakAvoid">
+        <h2>🏃 Long Distance Pacing Discipline</h2>
+        <div class="alert alertInfo">
+          <b>ℹ️ Note :</b> Cette section s'applique uniquement aux épreuves >90 minutes (Ironman, Marathon, Ultra).
+          L'objectif actuel (${htmlEscape(objectif)}) n'est pas classé comme longue distance.
+        </div>
+      </section>
+    `;
+  }
+  
+  if (!ftp || !vlamaxValue) {
+    return `
+      <section id="long-distance-pacing" class="section pagebreakAvoid">
+        <h2>🏃 Long Distance Pacing Discipline</h2>
+        <div class="alert alertWarning">
+          <b>⚠️ Données insuffisantes :</b> FTP et/ou VLamax manquants.
+        </div>
+      </section>
+    `;
+  }
+  
+  // Calcul LDRI (Long Distance Risk Index)
+  const ldri = Math.max(0, Math.min(100, 
+    100 - (vlamaxValue * 100) - (raceReadiness.score < 70 ? 15 : 0)
+  ));
+  const ldriColor = ldri > 70 ? "#dc2626" : ldri > 50 ? "#d97706" : "#16a34a";
+  const ldriLabel = ldri > 70 ? "ÉLEVÉ" : ldri > 50 ? "MODÉRÉ" : "FAIBLE";
+  
+  // Seuil de collapse glycogénique estimé
+  const collapseThreshold = vlamaxValue < 0.30 ? 82 : vlamaxValue < 0.40 ? 85 : 88;
+  const disciplineTarget = collapseThreshold - 5;
+  
+  return `
+    <section id="long-distance-pacing" class="section pagebreak">
+      <h2>🏃 Long Distance Pacing Discipline — LDRI</h2>
+      
+      <div class="alert alertInfo mb">
+        <b>📋 Concept LDRI :</b> Le Long Distance Risk Index quantifie le risque d'effondrement glycogénique 
+        sur les épreuves >90 minutes. Il intègre le profil VLamax et l'état de préparation.
+      </div>
+      
+      <div class="card" style="border-color:${ldriColor};background:${ldriColor}10;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+          <div>
+            <div class="muted" style="font-size:11px;text-transform:uppercase;">Long Distance Risk Index</div>
+            <div style="font-size:42px;font-weight:800;color:${ldriColor};">${ldri.toFixed(0)}</div>
+            <div style="font-size:14px;font-weight:600;color:${ldriColor};">Risque ${ldriLabel}</div>
+          </div>
+          <div style="text-align:center;padding:16px;background:white;border-radius:8px;">
+            <div class="muted" style="font-size:11px;">Objectif</div>
+            <div style="font-size:16px;font-weight:600;">${htmlEscape(objectif)}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="grid2 mt">
+        <div class="card">
+          <h3>⚠️ Seuil Glycogen Collapse</h3>
+          <div style="font-size:28px;font-weight:700;color:#dc2626;">${collapseThreshold}% FTP</div>
+          <p class="muted" style="font-size:11px;margin-top:8px;">
+            Au-delà de ce seuil pendant une durée prolongée, le risque d'effondrement métabolique devient significatif.
+          </p>
+          <div class="alert alertError mt" style="font-size:10px;">
+            <b>❌ NE JAMAIS DÉPASSER</b> ce seuil pendant les 2 premiers tiers de la course.
+          </div>
+        </div>
+        
+        <div class="card">
+          <h3>🎯 Cible Discipline</h3>
+          <div style="font-size:28px;font-weight:700;color:#16a34a;">${disciplineTarget}% FTP</div>
+          <p class="muted" style="font-size:11px;margin-top:8px;">
+            Cible recommandée pour le premier tiers de la course (marge de sécurité de 5% sous le seuil).
+          </p>
+          <div class="alert alertSuccess mt" style="font-size:10px;">
+            <b>✅ ZONE SÛRE</b> — Préserve les réserves glycogéniques pour le final.
+          </div>
+        </div>
+      </div>
+      
+      <div class="card mt">
+        <h3>📈 Stratégie de Pacing Long Distance</h3>
+        <div class="grid3" style="gap:8px;">
+          <div style="padding:12px;background:rgba(22,163,74,0.1);border-radius:8px;text-align:center;">
+            <div style="font-weight:600;color:#16a34a;">Premier tiers</div>
+            <div style="font-size:24px;font-weight:700;color:#16a34a;">${disciplineTarget}%</div>
+            <p class="muted" style="font-size:10px;">Conservateur</p>
+          </div>
+          <div style="padding:12px;background:rgba(217,119,6,0.1);border-radius:8px;text-align:center;">
+            <div style="font-weight:600;color:#d97706;">Deuxième tiers</div>
+            <div style="font-size:24px;font-weight:700;color:#d97706;">${disciplineTarget + 2}%</div>
+            <p class="muted" style="font-size:10px;">Stable</p>
+          </div>
+          <div style="padding:12px;background:rgba(234,88,12,0.1);border-radius:8px;text-align:center;">
+            <div style="font-weight:600;color:#ea580c;">Dernier tiers</div>
+            <div style="font-size:24px;font-weight:700;color:#ea580c;">Push si OK</div>
+            <p class="muted" style="font-size:10px;">Si glycogène préservé</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="alert alertWarning mt" style="font-size:11px;">
+        <b>💡 TFCL Philosophy :</b> "Pour cet athlète, aller plus fort tôt RÉDUIRA la performance finale. 
+        Le succès longue distance se décide AVANT la mi-course."
+      </div>
+    </section>
+  `;
+}
+
+// =============================================
+// BUILD DOUBLE BOUCLE CAP HTML (Running)
+// =============================================
+
+function buildDoubleBoucleCAPHTML(payload: ExportPayload): string {
+  const { effectiveSnapshot, raceReadiness, athlete, vlamax } = payload;
+  
+  const vlamax_run = effectiveSnapshot?.vlamax_run ?? effectiveSnapshot?.vlamax ?? null;
+  const vo2max = effectiveSnapshot?.vo2max ?? null;
+  const durability = effectiveSnapshot?.tte_observed_min ?? 45;
+  const objectif = athlete.goal || "Marathon";
+  
+  // Déterminer si c'est un objectif CAP
+  const isRunningFocus = ["Marathon", "Semi-Marathon", "Semi", "10K", "Trail", "TrailCourt", "TrailLong", "Ultra"].some(
+    g => objectif.includes(g)
+  );
+  
+  if (!isRunningFocus) {
+    return `
+      <section id="double-boucle-cap" class="section pagebreakAvoid">
+        <h2>🔄 Double Boucle CAP — TFCL Method™</h2>
+        <div class="alert alertInfo">
+          <b>ℹ️ Note :</b> Cette section s'applique aux objectifs Course à Pied (Marathon, Semi, Trail...).
+          L'objectif actuel (${htmlEscape(objectif)}) n'est pas un objectif CAP.
+        </div>
+      </section>
+    `;
+  }
+  
+  // Déterminer le levier prioritaire
+  const getPriorityLever = () => {
+    if (!vlamax_run) return { lever: "ENDURANCE", emoji: "🫀", label: "Endurance Aérobie" };
+    if (vlamax_run > 0.45) return { lever: "VLAMAX_DOWN", emoji: "⬇️", label: "Baisser VLamax" };
+    if (durability < 40) return { lever: "TTE_UP", emoji: "⏱️", label: "Améliorer Durabilité" };
+    if (vo2max && vo2max < 55) return { lever: "VO2_UP", emoji: "🔥", label: "Développer VO2max" };
+    return { lever: "MAINTAIN", emoji: "✅", label: "Maintien Profil" };
+  };
+  
+  const lever = getPriorityLever();
+  const readinessScore = raceReadiness.score;
+  const readinessColor = readinessScore >= 80 ? "#16a34a" : readinessScore >= 60 ? "#d97706" : "#dc2626";
+  const readinessLabel = readinessScore >= 80 ? "Bonne" : readinessScore >= 60 ? "Modérée" : "Faible";
+  
+  // Confiance simulée
+  const confidence = vlamax.confidence;
+  
+  return `
+    <section id="double-boucle-cap" class="section pagebreak">
+      <h2>🔄 Double Boucle CAP — TFCL Method™</h2>
+      
+      <div class="alert alertInfo mb">
+        <b>📋 Concept :</b> La Double Boucle sépare le <b>Profil Verrouillé</b> (boucle lente, 4-6 semaines) 
+        de la <b>Décision Hebdomadaire</b> (boucle rapide). La physiologie évolue lentement, les décisions doivent être prises souvent.
+      </div>
+      
+      <div class="grid2">
+        <!-- BOUCLE LENTE -->
+        <div class="card" style="border:2px solid var(--primary);background:rgba(37,99,235,0.05);">
+          <h3 style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:18px;">🔒</span>
+            Boucle Lente (4-6 sem)
+          </h3>
+          
+          <div class="kv mt">
+            <div class="k">VLamax CAP</div>
+            <div class="v">${vlamax_run ? vlamax_run.toFixed(2) + ' mmol/L/s' : '—'}</div>
+            
+            <div class="k">VO₂max</div>
+            <div class="v">${vo2max ? vo2max + ' ml/kg/min' : '—'}</div>
+            
+            <div class="k">Durabilité</div>
+            <div class="v">${durability} min</div>
+            
+            <div class="k">Objectif</div>
+            <div class="v">${htmlEscape(objectif)}</div>
+          </div>
+          
+          <div style="margin-top:16px;padding:12px;background:rgba(0,0,0,0.05);border-radius:8px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:20px;">${lever.emoji}</span>
+              <div>
+                <div style="font-size:12px;font-weight:600;color:var(--primary);">${lever.label}</div>
+                <div style="font-size:10px;color:#64748b;">Levier prioritaire du bloc</div>
+              </div>
+            </div>
+          </div>
+          
+          <p class="muted" style="font-size:10px;margin-top:12px;font-style:italic;">
+            Ce profil ne change que par recalibration planifiée (pas de modification continue).
+          </p>
+        </div>
+        
+        <!-- BOUCLE RAPIDE -->
+        <div class="card" style="border:2px solid ${readinessColor};">
+          <h3 style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:18px;">⚡</span>
+            Boucle Rapide (hebdo)
+          </h3>
+          
+          <div style="padding:16px;background:${readinessColor}15;border-radius:8px;text-align:center;margin-top:12px;">
+            <div style="font-size:11px;color:#64748b;text-transform:uppercase;">Disponibilité</div>
+            <div style="font-size:28px;font-weight:700;color:${readinessColor};">${readinessLabel}</div>
+            <div style="font-size:12px;color:${readinessColor};">Score: ${readinessScore}%</div>
+          </div>
+          
+          <div class="kv mt">
+            <div class="k">Intensité autorisée</div>
+            <div class="v">${readinessScore >= 80 ? 'Haute ✓' : readinessScore >= 60 ? 'Modérée' : 'Faible ✗'}</div>
+            
+            <div class="k">Long run</div>
+            <div class="v">${readinessScore >= 50 ? '✓ Autorisé' : '✗ Non recommandé'}</div>
+            
+            <div class="k">Séances clés max</div>
+            <div class="v">${readinessScore >= 80 ? '3' : readinessScore >= 60 ? '2' : '1'}</div>
+            
+            <div class="k">Confiance</div>
+            <div class="v">${Math.round(confidence * 100)}%</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card mt" style="background:rgba(0,0,0,0.02);">
+        <p style="font-size:11px;color:#64748b;">
+          <b>💡 Double Boucle TFCL™ :</b> La boucle lente verrouille le profil physiologique 
+          pendant 4-6 semaines (pas de recalibration permanente). La boucle rapide ajuste les décisions 
+          hebdomadaires sans modifier les seuils physiologiques. 
+          <em>"La physiologie évolue lentement, les décisions doivent être prises souvent."</em>
+        </p>
       </div>
     </section>
   `;
@@ -5927,8 +6282,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     raceReadiness: raceReadinessHTML,
     disponibiliteTFCL: disponibiliteTFCLHTML,
     raceSimulation: buildRaceSimulationHTML(payload, 'pro'),
-    pacingEnvelope: '', // Rendered in StaffReport component
-    longDistancePacing: '', // Rendered in StaffReport component
+    pacingEnvelope: buildPacingEnvelopeHTML(payload),
+    longDistancePacing: buildLongDistancePacingHTML(payload),
+    doubleBoucleCAP: buildDoubleBoucleCAPHTML(payload),
     raceReadinessRunning: buildRaceReadinessRunningHTML(payload),
     pacingEnvelopeRunning: buildPacingEnvelopeRunningHTML(payload),
     injuryRisk: injuryRiskHTML,
@@ -6503,6 +6859,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       raceSimulation: false,
       pacingEnvelope: false,
       longDistancePacing: false,
+      doubleBoucleCAP: false,
       raceReadinessRunning: false,
       pacingEnvelopeRunning: false,
       injuryRisk: false,
