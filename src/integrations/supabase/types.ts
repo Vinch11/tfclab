@@ -97,6 +97,142 @@ export type Database = {
           },
         ]
       }
+      calibration_evidence: {
+        Row: {
+          athlete_id: string
+          calibration_weight: number | null
+          coach_id: string
+          confidence_evidence: number
+          created_at: string
+          date: string
+          evidence_type: string
+          fatigue_index: number | null
+          id: string
+          notes: string | null
+          protocol_quality: number
+          raw_values: Json
+          source_type: string
+          updated_at: string
+          used_in_calibration: boolean
+          validity: string
+        }
+        Insert: {
+          athlete_id: string
+          calibration_weight?: number | null
+          coach_id: string
+          confidence_evidence?: number
+          created_at?: string
+          date?: string
+          evidence_type: string
+          fatigue_index?: number | null
+          id?: string
+          notes?: string | null
+          protocol_quality?: number
+          raw_values?: Json
+          source_type: string
+          updated_at?: string
+          used_in_calibration?: boolean
+          validity?: string
+        }
+        Update: {
+          athlete_id?: string
+          calibration_weight?: number | null
+          coach_id?: string
+          confidence_evidence?: number
+          created_at?: string
+          date?: string
+          evidence_type?: string
+          fatigue_index?: number | null
+          id?: string
+          notes?: string | null
+          protocol_quality?: number
+          raw_values?: Json
+          source_type?: string
+          updated_at?: string
+          used_in_calibration?: boolean
+          validity?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calibration_evidence_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calibration_snapshots: {
+        Row: {
+          athlete_id: string
+          calibration_window_end: string | null
+          calibration_window_start: string | null
+          coach_id: string
+          confidence: number
+          created_at: string
+          date: string
+          evidence_ids: string[] | null
+          id: string
+          is_locked: boolean
+          lock_until: string | null
+          notes: string | null
+          recalibration_reason: string | null
+          recalibration_recommended: boolean
+          vlamax_calibrated: number | null
+          vlamax_modelled: number | null
+          vlamax_range_p25: number | null
+          vlamax_range_p75: number | null
+        }
+        Insert: {
+          athlete_id: string
+          calibration_window_end?: string | null
+          calibration_window_start?: string | null
+          coach_id: string
+          confidence?: number
+          created_at?: string
+          date?: string
+          evidence_ids?: string[] | null
+          id?: string
+          is_locked?: boolean
+          lock_until?: string | null
+          notes?: string | null
+          recalibration_reason?: string | null
+          recalibration_recommended?: boolean
+          vlamax_calibrated?: number | null
+          vlamax_modelled?: number | null
+          vlamax_range_p25?: number | null
+          vlamax_range_p75?: number | null
+        }
+        Update: {
+          athlete_id?: string
+          calibration_window_end?: string | null
+          calibration_window_start?: string | null
+          coach_id?: string
+          confidence?: number
+          created_at?: string
+          date?: string
+          evidence_ids?: string[] | null
+          id?: string
+          is_locked?: boolean
+          lock_until?: string | null
+          notes?: string | null
+          recalibration_reason?: string | null
+          recalibration_recommended?: boolean
+          vlamax_calibrated?: number | null
+          vlamax_modelled?: number | null
+          vlamax_range_p25?: number | null
+          vlamax_range_p75?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calibration_snapshots_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checkins: {
         Row: {
           athlete_id: string
@@ -209,6 +345,53 @@ export type Database = {
           suggested_adjustments?: Json | null
         }
         Relationships: []
+      }
+      coach_overrides: {
+        Row: {
+          action: string
+          after_value: Json | null
+          athlete_id: string
+          before_value: Json | null
+          coach_id: string
+          created_at: string
+          date: string
+          id: string
+          module: string
+          reason: string
+        }
+        Insert: {
+          action: string
+          after_value?: Json | null
+          athlete_id: string
+          before_value?: Json | null
+          coach_id: string
+          created_at?: string
+          date?: string
+          id?: string
+          module: string
+          reason: string
+        }
+        Update: {
+          action?: string
+          after_value?: Json | null
+          athlete_id?: string
+          before_value?: Json | null
+          coach_id?: string
+          created_at?: string
+          date?: string
+          id?: string
+          module?: string
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_overrides_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       daily_checkins: {
         Row: {
