@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User, Save, Target, Scale, Activity, Percent, Camera, Info, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Athlete, ObjectifType, SexeType, getObjectifLabel, getDernierSnapshot } from "@/types/athlete";
 import { SnapshotNolio, scoreConfiance, estimerTTE } from "@/types/snapshotNolio";
@@ -12,6 +13,7 @@ import { toast } from "sonner";
 import { getAmbitionDefinition, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { AthleteObjectiveManager } from "./AthleteObjectiveManager";
+import { ObjectivesTimeline } from "./ObjectivesTimeline";
 import { useAthleteRaceGoals, type RaceGoal } from "@/hooks/useAthleteRaceGoals";
 
 interface AthleteProfileProps {
@@ -405,7 +407,7 @@ export function AthleteProfile({
             </div>
           )}
           
-          {/* ✅ Gestionnaire d'objectifs (si showObjectiveManager activé) */}
+          {/* ✅ Timeline des objectifs (si showObjectiveManager activé) */}
           {showObjectiveManager && athleteId && (
             <Collapsible open={isObjectivesExpanded} onOpenChange={setIsObjectivesExpanded}>
               <CollapsibleTrigger asChild>
@@ -415,21 +417,22 @@ export function AthleteProfile({
                 >
                   <span className="flex items-center gap-2">
                     <Target className="h-4 w-4" />
-                    <span>Gérer les objectifs</span>
+                    <span>Historique des objectifs</span>
+                    {raceGoals.length > 0 && (
+                      <Badge variant="secondary" className="text-xs ml-1">
+                        {raceGoals.length}
+                      </Badge>
+                    )}
                   </span>
                   {isObjectivesExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent className="pt-4">
-                <AthleteObjectiveManager
-                  athleteId={athleteId}
-                  currentGoal={formData.objectif}
+                <ObjectivesTimeline
                   raceGoals={raceGoals}
-                  onGoalChange={handleGoalChange}
-                  onAddRaceGoal={handleAddRaceGoal}
-                  onDeleteRaceGoal={deleteRaceGoal}
-                  onRestoreRaceGoal={handleRestoreRaceGoal}
-                  loading={raceGoalsLoading}
+                  currentGoal={formData.objectif}
+                  onRestoreGoal={handleRestoreRaceGoal}
+                  onDeleteGoal={deleteRaceGoal}
                 />
               </CollapsibleContent>
             </Collapsible>
