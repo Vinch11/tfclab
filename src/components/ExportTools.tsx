@@ -19,7 +19,11 @@ import {
   computeModelOutputs,
   computeTestOutputs,
   type CalibrationResult,
-  type TestData
+  type TestData,
+  type CalibrationEvidence,
+  type EvidenceType,
+  CALIBRATION_WINDOW_DAYS,
+  computeEvidenceWeight,
 } from "@/lib/calibration";
 import { generateTestCalibrationSection, type TestCalibrationSection } from "@/lib/calibration/testCalibrationSection";
 import { getEffectiveSnapshot, getEffectiveRefs, type EffectiveRefs } from "@/lib/effectiveRefs";
@@ -78,6 +82,7 @@ interface ExportToolsProps {
   checkins?: DbCheckin[];
   staffMode?: boolean;
   ambition?: AmbitionLevel;
+  calibrationEvidences?: CalibrationEvidence[]; // ✅ NEW: Real Cloud calibration evidence
 }
 
 // Sections disponibles dans le rapport
@@ -1884,7 +1889,7 @@ function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
 // et explicitement non dogmatique
 // =============================================
 
-function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, options: ExportOptions = { includeWahooSuggestions: true, sections: DEFAULT_REPORT_SECTIONS }): string {
+function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, options: ExportOptions = { includeWahooSuggestions: true, sections: DEFAULT_REPORT_SECTIONS }, calibrationEvidences: CalibrationEvidence[] = []): string {
   const { 
     athlete, effectiveSnapshot, effectiveRefs, 
     vlamax, tte, raceReadiness, lorang,
@@ -5059,14 +5064,58 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   // H.5bis CALIBRATION EVIDENCE SUMMARY SECTION
   // =============================================
   const buildCalibrationEvidenceHTML = (): string => {
-    // For now we use testsCalibrationSection which has some calibration info
-    // In a full implementation, this would use data from calibration_evidence table
-    const evidenceCount = testsCalibrationSection.testsRealises.length;
-    const highQualityCount = testsCalibrationSection.testsRealises.filter(t => t.qualiteProtocole >= 4).length;
-    const validCount = testsCalibrationSection.testsRealises.filter(t => t.validite === "OK").length;
+    // ✅ Use real Cloud calibration evidence data
+    const now = new Date();
+    const windowStart = new Date(now);
+    windowStart.setDate(windowStart.getDate() - CALIBRATION_WINDOW_DAYS);
+    
+    // Filter evidences within the calibration window
+    const windowEvidences = calibrationEvidences.filter(e => {
+      const evidenceDate = new Date(e.date);
+      return evidenceDate >= windowStart && evidenceDate <= now;
+    });
+    
+    const evidenceCount = windowEvidences.length;
+    const highQualityCount = windowEvidences.filter(e => e.protocol_quality >= 4).length;
+    const validCount = windowEvidences.filter(e => e.validity === "OK").length;
+    const checkCount = windowEvidences.filter(e => e.validity === "CHECK").length;
+    const invalidCount = windowEvidences.filter(e => e.validity === "INVALID").length;
+    
+    // Compute average confidence weighted by evidence weight
     const avgConfidence = evidenceCount > 0 
-      ? testsCalibrationSection.testsRealises.reduce((sum, t) => sum + t.confidence, 0) / evidenceCount 
+      ? windowEvidences.reduce((sum, e) => sum + computeEvidenceWeight(e), 0) / evidenceCount 
       : 0;
+    
+    // Evidence type labels for display
+    const EVIDENCE_TYPE_LABELS: Record<EvidenceType, string> = {
+      SPRINT_15S: "Sprint 15s",
+      P30: "Puissance 30s",
+      P60: "Puissance 60s",
+      MAP: "MAP/PMA",
+      TTE_OBS: "TTE Observé",
+      PACED_RACE: "Course Paced",
+      DRIFT: "Dérive Cardiaque",
+      ECONOMY: "Économie de course",
+    };
+    
+    // Evidence type icons for display
+    const EVIDENCE_TYPE_ICONS: Record<EvidenceType, string> = {
+      SPRINT_15S: "⚡",
+      P30: "📊",
+      P60: "📊",
+      MAP: "🎯",
+      TTE_OBS: "⏱️",
+      PACED_RACE: "🏁",
+      DRIFT: "📉",
+      ECONOMY: "💨",
+    };
+    
+    // Source type labels
+    const SOURCE_TYPE_LABELS: Record<string, string> = {
+      TEST_PROTOCOL: "Test Protocole",
+      FIT_IMPORT: "Import FIT",
+      POST_RACE: "Post-Course",
+    };
     
     return `
       <section id="calibration-evidence" class="section pagebreak">
@@ -5075,56 +5124,82 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         <div class="alert alertInfo mb">
           <b>📋 Philosophie TFCL™</b> : La calibration continue utilise les preuves terrain 
           pour affiner le modèle métabolique. Chaque preuve est pondérée selon sa qualité de protocole, 
-          sa validité et sa récence (fenêtre glissante de 42 jours).
+          sa validité et sa récence (fenêtre glissante de ${CALIBRATION_WINDOW_DAYS} jours).
         </div>
         
         <!-- KPIs Evidence -->
         <div class="grid4 mb">
           <div class="card" style="text-align:center;padding:16px;">
-            <div class="muted" style="font-size:11px;text-transform:uppercase;">Preuves totales</div>
+            <div class="muted" style="font-size:11px;text-transform:uppercase;">Preuves terrain</div>
             <div style="font-size:36px;font-weight:800;color:var(--primary);">${evidenceCount}</div>
-            <div class="muted" style="font-size:11px;">dans la fenêtre</div>
+            <div class="muted" style="font-size:11px;">dans fenêtre ${CALIBRATION_WINDOW_DAYS}j</div>
           </div>
           <div class="card" style="text-align:center;padding:16px;">
             <div class="muted" style="font-size:11px;text-transform:uppercase;">Haute qualité</div>
             <div style="font-size:36px;font-weight:800;color:${highQualityCount > 0 ? 'var(--success)' : 'var(--muted)'};">${highQualityCount}</div>
-            <div class="muted" style="font-size:11px;">protocole 4-5/5</div>
+            <div class="muted" style="font-size:11px;">protocole 4-5★</div>
           </div>
           <div class="card" style="text-align:center;padding:16px;">
-            <div class="muted" style="font-size:11px;text-transform:uppercase;">Validées</div>
-            <div style="font-size:36px;font-weight:800;color:${validCount === evidenceCount && validCount > 0 ? 'var(--success)' : validCount > 0 ? 'var(--warning)' : 'var(--muted)'};">${validCount}</div>
-            <div class="muted" style="font-size:11px;">sans anomalie</div>
+            <div class="muted" style="font-size:11px;text-transform:uppercase;">Validité</div>
+            <div style="font-size:24px;font-weight:800;">
+              <span style="color:var(--success);">${validCount}✓</span>
+              ${checkCount > 0 ? `<span style="color:var(--warning);margin-left:4px;">${checkCount}⚠</span>` : ''}
+              ${invalidCount > 0 ? `<span style="color:var(--error);margin-left:4px;">${invalidCount}✗</span>` : ''}
+            </div>
+            <div class="muted" style="font-size:11px;">OK / Check / Invalid</div>
           </div>
           <div class="card" style="text-align:center;padding:16px;">
-            <div class="muted" style="font-size:11px;text-transform:uppercase;">Confiance moy.</div>
-            <div style="font-size:36px;font-weight:800;color:${avgConfidence >= 0.7 ? 'var(--success)' : avgConfidence >= 0.5 ? 'var(--warning)' : 'var(--error)'};">${Math.round(avgConfidence * 100)}%</div>
-            <div class="muted" style="font-size:11px;">pondération</div>
+            <div class="muted" style="font-size:11px;text-transform:uppercase;">Poids moyen</div>
+            <div style="font-size:36px;font-weight:800;color:${avgConfidence >= 0.6 ? 'var(--success)' : avgConfidence >= 0.4 ? 'var(--warning)' : 'var(--error)'};">${Math.round(avgConfidence * 100)}%</div>
+            <div class="muted" style="font-size:11px;">pondération calibration</div>
           </div>
         </div>
         
         ${evidenceCount > 0 ? `
-          <!-- Timeline des preuves -->
+          <!-- Timeline des preuves Cloud -->
           <div class="card">
-            <h3>📈 Timeline des preuves terrain</h3>
-            <p class="muted mb">Preuves utilisées pour la calibration continue du modèle VLamax.</p>
+            <h3>📈 Timeline des preuves terrain (Cloud)</h3>
+            <p class="muted mb">Preuves enregistrées et utilisées pour la calibration continue VLamax.</p>
             
             <div style="position:relative;padding-left:24px;border-left:2px solid var(--soft);">
-              ${testsCalibrationSection.testsRealises.map((test, idx) => {
-                const validityIcon = test.validite === "OK" ? "✅" : test.validite === "WARNING" ? "⚠️" : "❌";
-                const qualityStars = "★".repeat(test.qualiteProtocole) + "☆".repeat(5 - test.qualiteProtocole);
+              ${windowEvidences.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((evidence, idx) => {
+                const validityIcon = evidence.validity === "OK" ? "✅" : evidence.validity === "CHECK" ? "⚠️" : "❌";
+                const qualityStars = "★".repeat(evidence.protocol_quality) + "☆".repeat(5 - evidence.protocol_quality);
+                const weight = computeEvidenceWeight(evidence);
+                const vlamax = evidence.raw_values?.vlamax_estimated as number | undefined;
+                const evidenceDate = new Date(evidence.date);
+                const daysAgo = Math.floor((now.getTime() - evidenceDate.getTime()) / (1000 * 60 * 60 * 24));
+                
                 return `
-                  <div style="position:relative;padding:12px 0;${idx < testsCalibrationSection.testsRealises.length - 1 ? 'border-bottom:1px dashed var(--soft);' : ''}">
-                    <div style="position:absolute;left:-32px;top:12px;width:16px;height:16px;border-radius:50%;background:${test.validite === "OK" ? 'var(--success)' : test.validite === "WARNING" ? 'var(--warning)' : 'var(--error)'};display:flex;align-items:center;justify-content:center;">
+                  <div style="position:relative;padding:12px 0;${idx < windowEvidences.length - 1 ? 'border-bottom:1px dashed var(--soft);' : ''}">
+                    <div style="position:absolute;left:-32px;top:12px;width:16px;height:16px;border-radius:50%;background:${evidence.validity === "OK" ? 'var(--success)' : evidence.validity === "CHECK" ? 'var(--warning)' : 'var(--error)'};display:flex;align-items:center;justify-content:center;">
                       <span style="font-size:10px;color:white;">•</span>
                     </div>
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
                       <div>
-                        <div style="font-weight:600;font-size:13px;">${htmlEscape(test.type)}</div>
-                        <div class="muted" style="font-size:11px;">${test.date} • ${test.resultBrut}</div>
+                        <div style="font-weight:600;font-size:13px;">
+                          ${EVIDENCE_TYPE_ICONS[evidence.evidence_type] || "📋"} ${EVIDENCE_TYPE_LABELS[evidence.evidence_type] || evidence.evidence_type}
+                        </div>
+                        <div class="muted" style="font-size:11px;">
+                          ${evidenceDate.toLocaleDateString("fr-FR")} 
+                          <span style="color:var(--primary);font-weight:500;">(il y a ${daysAgo}j)</span>
+                          • ${SOURCE_TYPE_LABELS[evidence.source_type] || evidence.source_type}
+                        </div>
+                        ${vlamax !== undefined ? `
+                          <div style="font-size:11px;margin-top:4px;font-family:monospace;">
+                            VLamax estimé: <b>${vlamax.toFixed(2)} mmol/L/s</b>
+                          </div>
+                        ` : ''}
+                        ${evidence.notes ? `<div class="muted" style="font-size:10px;font-style:italic;margin-top:4px;">"${htmlEscape(evidence.notes)}"</div>` : ''}
                       </div>
                       <div style="text-align:right;">
                         <div style="font-size:12px;">${validityIcon} ${qualityStars}</div>
-                        <div class="muted" style="font-size:10px;">Confiance: ${Math.round(test.confidence * 100)}%</div>
+                        <div style="font-size:11px;margin-top:4px;">
+                          Poids: <b style="color:${weight >= 0.6 ? 'var(--success)' : weight >= 0.4 ? 'var(--warning)' : 'var(--muted)'};">${Math.round(weight * 100)}%</b>
+                        </div>
+                        ${evidence.fatigue_index !== null && evidence.fatigue_index !== undefined ? `
+                          <div class="muted" style="font-size:10px;">Fatigue: ${evidence.fatigue_index}%</div>
+                        ` : ''}
                       </div>
                     </div>
                   </div>
@@ -5139,27 +5214,27 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <div class="grid3 mt">
               <div style="padding:12px;background:var(--soft);border-radius:8px;">
                 <div style="font-weight:600;color:var(--primary);">⚡ Sprint 15s</div>
-                <div class="muted" style="font-size:11px;">Test de puissance maximale courte durée. Poids: 85%</div>
+                <div class="muted" style="font-size:11px;">Test de puissance maximale courte durée. Poids base: 85%</div>
               </div>
               <div style="padding:12px;background:var(--soft);border-radius:8px;">
                 <div style="font-weight:600;color:var(--primary);">📊 P30 / P60</div>
-                <div class="muted" style="font-size:11px;">Puissance soutenue 30-60 secondes. Poids: 75-80%</div>
+                <div class="muted" style="font-size:11px;">Puissance soutenue 30-60 secondes. Poids base: 75-80%</div>
               </div>
               <div style="padding:12px;background:var(--soft);border-radius:8px;">
                 <div style="font-weight:600;color:var(--primary);">🎯 MAP</div>
-                <div class="muted" style="font-size:11px;">Puissance Maximale Aérobie. Poids: 70%</div>
+                <div class="muted" style="font-size:11px;">Puissance Maximale Aérobie. Poids base: 70%</div>
               </div>
               <div style="padding:12px;background:var(--soft);border-radius:8px;">
                 <div style="font-weight:600;color:var(--primary);">⏱️ TTE Observé</div>
-                <div class="muted" style="font-size:11px;">Time to Exhaustion mesuré. Poids: 65%</div>
+                <div class="muted" style="font-size:11px;">Time to Exhaustion mesuré. Poids base: 65%</div>
               </div>
               <div style="padding:12px;background:var(--soft);border-radius:8px;">
                 <div style="font-weight:600;color:var(--primary);">🏁 Course Paced</div>
-                <div class="muted" style="font-size:11px;">Performance en compétition. Poids: 50%</div>
+                <div class="muted" style="font-size:11px;">Performance en compétition. Poids base: 50%</div>
               </div>
               <div style="padding:12px;background:var(--soft);border-radius:8px;">
-                <div style="font-weight:600;color:var(--primary);">📉 Drift / Économie</div>
-                <div class="muted" style="font-size:11px;">Analyse de dérive et efficacité. Poids: 35-40%</div>
+                <div style="font-weight:600;color:var(--primary);">📉 Drift / 💨 Économie</div>
+                <div class="muted" style="font-size:11px;">Analyse de dérive et efficacité. Poids base: 35-40%</div>
               </div>
             </div>
           </div>
@@ -5168,26 +5243,30 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <div style="font-size:48px;margin-bottom:16px;">🔍</div>
             <h3>Aucune preuve terrain enregistrée</h3>
             <p class="muted">Ajoutez des tests, imports FIT ou analyses post-course pour calibrer le modèle.</p>
+            <p class="muted" style="font-size:11px;margin-top:8px;">
+              Les preuves terrain permettent d'affiner la VLamax modélisée avec des données réelles.
+            </p>
           </div>
         `}
         
         <!-- Formule de pondération -->
         <div class="card mt">
-          <h3>📐 Formule de pondération</h3>
+          <h3>📐 Formule de pondération TFCL™</h3>
           <div style="background:var(--soft);padding:16px;border-radius:8px;font-family:monospace;font-size:12px;">
             <div style="margin-bottom:8px;"><b>Poids final = Base × Qualité × Décroissance temporelle</b></div>
             <div class="muted">
-              • Base: poids intrinsèque du type de test (35-85%)<br>
-              • Qualité: multiplicateur selon protocole (1-5 → 0.5-1.0)<br>
-              • Décroissance: exp(-âge_jours / 42) sur fenêtre glissante
+              • <b>Base</b>: poids intrinsèque du type de test (35-85%)<br>
+              • <b>Qualité</b>: multiplicateur selon protocole (★1-5 → 0.5-1.0)<br>
+              • <b>Décroissance</b>: exp(-âge_jours / ${CALIBRATION_WINDOW_DAYS}) sur fenêtre glissante<br>
+              • <b>Validité</b>: OK=100%, CHECK=50%, INVALID=0%
             </div>
           </div>
         </div>
         
         <div class="alert alertWarning mt">
-          <b>⚠️ Rappel</b> : Les preuves terrain augmentent la robustesse des décisions en réduisant 
-          l'incertitude du modèle. Elles ne transforment pas une estimation en mesure médicale, 
-          mais améliorent la cohérence physiologique.
+          <b>⚠️ Rappel méthodologique</b> : Les preuves terrain augmentent la robustesse des décisions 
+          en réduisant l'incertitude du modèle. Elles ne transforment pas une estimation en mesure médicale, 
+          mais améliorent la cohérence physiologique du profil calibré.
         </div>
       </section>
     `;
@@ -6243,7 +6322,7 @@ function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): str
 // COMPONENT
 // =============================================
 
-export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMode = false, ambition = DEFAULT_AMBITION }: ExportToolsProps) {
+export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMode = false, ambition = DEFAULT_AMBITION, calibrationEvidences = [] }: ExportToolsProps) {
   // Charger les sections depuis le localStorage via la fonction utilitaire
   const [sections, setSections] = useState<ReportSections>(getSectionVisibility);
   
@@ -6270,7 +6349,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
         sections
       };
       
-      const html = buildStaffGradeReportHTML(payload, logoBase64, exportOptions);
+      const html = buildStaffGradeReportHTML(payload, logoBase64, exportOptions, calibrationEvidences);
       
       // Méthode alternative sans popup: créer un blob et télécharger
       const blob = new Blob([html], { type: "text/html;charset=utf-8" });
