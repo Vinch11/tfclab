@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AthleteProviders } from "@/components/AthleteProviders";
@@ -24,6 +24,7 @@ import { TFCLTestingWeekPage } from "./components/TFCLTestingWeek";
 import { CAPTestingWeekPage } from "./components/CAPTestingWeek";
 import { RunningGuidancePage } from "./components/RunningWeeklyGuidance";
 import RunningProfilePage from "./pages/RunningProfilePage";
+import AthleteEditPage from "./pages/AthleteEditPage";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,10 @@ export default function App() {
             <AuthProvider>
               <Routes>
                 <Route path="/auth" element={<AuthPage />} />
+
+                {/* Legacy/alias routes */}
+                <Route path="/dashboard" element={<Navigate to="/" replace />} />
+                <Route path="/AthleteEditPage" element={<Navigate to="/athleteEditPage" replace />} />
                 <Route
                   path="/onboarding"
                   element={
@@ -99,6 +104,33 @@ export default function App() {
                       <OnboardingGate>
                         <AthleteProviders>
                           <AthletesListPage />
+                        </AthleteProviders>
+                      </OnboardingGate>
+                    </AuthGate>
+                  }
+                />
+
+                {/* Athlete profile (create/edit) */}
+                <Route
+                  path="/athlete/:id"
+                  element={
+                    <AuthGate>
+                      <OnboardingGate>
+                        <AthleteProviders>
+                          <AthleteEditPage />
+                        </AthleteProviders>
+                      </OnboardingGate>
+                    </AuthGate>
+                  }
+                />
+                {/* Compat route (no id -> uses current athlete) */}
+                <Route
+                  path="/athleteEditPage"
+                  element={
+                    <AuthGate>
+                      <OnboardingGate>
+                        <AthleteProviders>
+                          <AthleteEditPage />
                         </AthleteProviders>
                       </OnboardingGate>
                     </AuthGate>
