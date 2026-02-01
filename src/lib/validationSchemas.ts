@@ -74,15 +74,15 @@ export const checkinSchema = z.object({
   athlete_id: z.string().uuid(),
   date_iso: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format de date invalide"),
   week_tag: z.string().max(20).nullable().optional(),
-  sleep: z.number().int().min(1).max(10).nullable().optional(),
-  fatigue: z.number().int().min(1).max(10).nullable().optional(),
-  soreness: z.number().int().min(0).max(10).nullable().optional(), // 0 = "Aucune" courbature
-  stress: z.number().int().min(1).max(10).nullable().optional(),
-  motivation: z.number().int().min(1).max(10).nullable().optional(),
-  rpe_key1: z.number().int().min(1).max(10).nullable().optional(),
-  rpe_key2: z.number().int().min(1).max(10).nullable().optional(),
+  sleep: intOptional(1, 10),
+  fatigue: intOptional(1, 10),
+  soreness: intOptional(0, 10), // 0 = "Aucune" courbature
+  stress: intOptional(1, 10),
+  motivation: intOptional(1, 10),
+  rpe_key1: intOptional(1, 10),
+  rpe_key2: intOptional(1, 10),
   pain_flag: z.boolean().nullable().optional(),
-  readiness: z.number().int().min(0).max(100).nullable().optional(),
+  readiness: intOptional(0, 100),
   notes: z.string().max(2000).nullable().optional(),
 });
 
