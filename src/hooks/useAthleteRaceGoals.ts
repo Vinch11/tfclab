@@ -154,10 +154,14 @@ export function useAthleteRaceGoals(athleteId: string | null) {
   }, [athleteId, queryClient]);
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // UPDATE ATHLETE GOAL (main goal field)
+  // UPDATE ATHLETE GOAL (main goal field) + ADD TO HISTORY
   // ═══════════════════════════════════════════════════════════════════════════
 
-  const updateAthleteGoal = useCallback(async (goal: ObjectifType): Promise<boolean> => {
+  const updateAthleteGoal = useCallback(async (goal: ObjectifType, options?: { 
+    raceName?: string; 
+    raceDate?: string;
+    skipHistory?: boolean;
+  }): Promise<boolean> => {
     if (!athleteId) {
       toast.error("Aucun athlète sélectionné");
       return false;
@@ -166,6 +170,12 @@ export function useAthleteRaceGoals(athleteId: string | null) {
     setSaving(true);
     
     try {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData.user) {
+        throw new Error("Non authentifié");
+      }
+
+      // 1. Update the athlete's current goal
       const { error } = await supabase
         .from('athletes')
         .update({ goal })
@@ -176,9 +186,41 @@ export function useAthleteRaceGoals(athleteId: string | null) {
         throw error;
       }
 
+      // 2. Add to race goals history (unless skipped or already exists recently)
+      if (!options?.skipHistory) {
+        // Check if this goal type was already added in the last 7 days
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        
+        const recentSameGoal = raceGoals.find(
+          g => g.race_type === goal && new Date(g.created_at) > sevenDaysAgo
+        );
+
+        if (!recentSameGoal) {
+          // Default race date is 3 months from now if not specified
+          const defaultRaceDate = new Date();
+          defaultRaceDate.setMonth(defaultRaceDate.getMonth() + 3);
+          
+          await supabase
+            .from('athlete_race_goals')
+            .insert({
+              athlete_id: athleteId,
+              coach_id: userData.user.id,
+              race_type: goal,
+              race_name: options?.raceName ?? null,
+              race_date: options?.raceDate ?? defaultRaceDate.toISOString().split('T')[0],
+              plan_start_date: new Date().toISOString().split('T')[0],
+            });
+          
+          // Invalidate race goals cache
+          queryClient.invalidateQueries({ queryKey: ['athlete-race-goals', athleteId] });
+        }
+      }
+
       // Invalidate athlete cache
       queryClient.invalidateQueries({ queryKey: ['cloud-data'] });
       
+      toast.success(`Objectif mis à jour: ${goal}`);
       return true;
     } catch (error) {
       console.error('Error updating athlete goal:', error);
@@ -187,7 +229,7 @@ export function useAthleteRaceGoals(athleteId: string | null) {
     } finally {
       setSaving(false);
     }
-  }, [athleteId, queryClient]);
+  }, [athleteId, queryClient, raceGoals]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // RESTORE RACE GOAL (set as current)
