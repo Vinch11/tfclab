@@ -14,14 +14,13 @@ import {
   GraduationCap,
   Trophy,
   Settings,
-  Zap,
   Activity,
-  Target,
   ChevronDown,
   LogOut,
   Shield,
   Play,
   Smartphone,
+  Footprints,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -43,10 +42,11 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ThemeToggle } from "@/components/ThemeToggle";
 import logo from "@/assets/logo-2fc.png";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
 import { useState } from "react";
 
-// Définition des groupes de navigation
-const navigationGroups = [
+// Définition des groupes de navigation de base
+const baseNavigationGroups = [
   {
     id: "athlete",
     label: "Athlète",
@@ -54,6 +54,7 @@ const navigationGroups = [
     items: [
       { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, route: "/", tab: "dashboard" },
       { id: "profil", label: "Profil Métabolique", icon: User, tab: "profil" },
+      { id: "running-profile", label: "Profil Running", icon: Footprints, route: "/running-profile", runningOnly: true },
       { id: "athletes", label: "Mes Athlètes", icon: Users, route: "/athletes" },
     ],
   },
@@ -88,6 +89,8 @@ const navigationGroups = [
   },
 ];
 
+type NavItem = typeof baseNavigationGroups[0]["items"][0];
+
 interface AppSidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
@@ -100,14 +103,21 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
   const navigate = useNavigate();
   const { state } = useSidebar();
   const { user, signOut } = useAuth();
+  const { isRunningOnly } = useRunningFocusMode();
   const collapsed = state === "collapsed";
+
+  // Filter navigation items based on Running Focus Mode
+  const navigationGroups = baseNavigationGroups.map(group => ({
+    ...group,
+    items: group.items.filter(item => !('runningOnly' in item) || !item.runningOnly || isRunningOnly)
+  }));
 
   // Track which groups are open
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
-    navigationGroups.reduce((acc, g) => ({ ...acc, [g.id]: g.defaultOpen }), {})
+    baseNavigationGroups.reduce((acc, g) => ({ ...acc, [g.id]: g.defaultOpen }), {})
   );
 
-  const handleNavClick = (item: typeof navigationGroups[0]["items"][0]) => {
+  const handleNavClick = (item: NavItem) => {
     // Cas 1: Item avec route externe (ex: /tests, /athletes, /race-simulation)
     if (item.route && item.route !== "/") {
       navigate(item.route);
@@ -132,7 +142,7 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
     }
   };
 
-  const isActive = (item: typeof navigationGroups[0]["items"][0]) => {
+  const isActive = (item: NavItem) => {
     if (item.route) {
       return location.pathname === item.route;
     }
