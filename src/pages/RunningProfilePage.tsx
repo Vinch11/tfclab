@@ -41,6 +41,7 @@ import { RunningEconomySummaryCard } from "@/components/RunningEconomySummaryCar
 import { RunningFocusModeIndicator } from "@/components/RunningFocusModeIndicator";
 import { InjuryRiskCAPCard } from "@/components/InjuryRiskCAPCard";
 import { VLamaxRunExplainedCard } from "@/components/VLamaxRunExplainedCard";
+import { RaceReadinessRunCard } from "@/components/RaceReadinessRunCard";
 
 // Logique et calculs
 import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
@@ -49,6 +50,7 @@ import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { calculateAge } from "@/lib/ageAdjustment";
 import { computeCAPInjuryRisk } from "@/lib/v2/injuryRiskUnified";
 import { computeFatigueEffectif } from "@/lib/fatigueEffectif";
+import { computeRaceReadinessRun, type AvailabilityRun } from "@/lib/v2/raceReadinessRunning";
 
 export default function RunningProfilePage() {
   const navigate = useNavigate();
@@ -178,6 +180,86 @@ export default function RunningProfilePage() {
       objectif: athleteGoal,
     });
   }, [vlamaxEffectif, effectiveCloudSnapshot, tteEffectif, fatigueResult, athleteAge, athleteGoal]);
+
+  // Race Readiness Running
+  const raceReadiness = useMemo(() => {
+    if (!currentAthlete) return null;
+    
+    // Get latest checkin for availability inputs
+    const athleteCheckins = checkins.filter(c => c.athlete_id === currentAthlete.id);
+    const latestCheckin = athleteCheckins.length > 0 
+      ? [...athleteCheckins].sort((a, b) => b.date_iso.localeCompare(a.date_iso))[0]
+      : null;
+    
+    // Build availability from latest checkin or defaults
+    const availability: AvailabilityRun = {
+      sleep_quality: latestCheckin?.sleep ?? 3,
+      fatigue_level: latestCheckin?.fatigue ?? 3,
+      muscle_soreness: latestCheckin?.soreness ?? 1,
+      pain_flag: latestCheckin?.pain_flag ?? false,
+      mental_stress: latestCheckin?.stress ?? 3,
+      motivation: latestCheckin?.motivation ?? 3,
+      hr_drift_flag: effectiveCloudSnapshot?.run_hr_drift_pct 
+        ? effectiveCloudSnapshot.run_hr_drift_pct > 8 
+        : undefined,
+      recent_load_flag: effectiveCloudSnapshot?.tss_7d 
+        ? effectiveCloudSnapshot.tss_7d > 500 
+        : undefined,
+    };
+    
+    // Build running physio profile (full RunningPhysioProfile structure)
+    const objectiveDistance = raceType === "5K" ? "5K" 
+      : raceType === "10K" ? "10K" 
+      : raceType === "Semi" ? "Semi" 
+      : raceType === "Marathon" ? "Marathon" 
+      : "Trail";
+    
+    const now = new Date().toISOString();
+    const profile = {
+      athlete_id: currentAthlete.id,
+      objective_distance: objectiveDistance as "5K" | "10K" | "Semi" | "Marathon" | "Trail",
+      
+      // Métriques physiologiques CAP verrouillées
+      vo2max_run: {
+        value: effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? 50,
+        confidence: 0.7,
+        source: "snapshot" as const,
+      },
+      vlamax_run: {
+        value: vlamaxEffectif.value ?? 0.4,
+        confidence: vlamaxEffectif.confidence,
+        source: vlamaxEffectif.source === "test" ? "field_test" as const : "estimation" as const,
+      },
+      durability_run: {
+        value: tteEffectif.tte_min,
+        confidence: tteEffectif.source === "observed" ? 0.9 : 0.6,
+        source: tteEffectif.source === "observed" ? "field_test" as const : "estimation" as const,
+      },
+      economy_run: effectiveCloudSnapshot?.run_economy_score ? {
+        value: effectiveCloudSnapshot.run_economy_score,
+        confidence: 0.7,
+        source: "snapshot" as const,
+      } : undefined,
+      
+      // Levier prioritaire
+      priority_lever: "reduce_vlamax" as const,
+      lever_rationale: "Focus marathon - réduction VLamax prioritaire",
+      
+      // Gestion verrouillage
+      last_calibration_date: calibrationSnapshot?.date ?? now,
+      lock_duration_days: 42,
+      next_recalibration_date: now,
+      locked: calibrationSnapshot?.is_locked ?? false,
+      
+      // Métadonnées
+      created_at: now,
+      updated_at: now,
+      calibration_source: "auto" as const,
+    };
+    
+    return computeRaceReadinessRun(profile, availability);
+  }, [currentAthlete, checkins, effectiveCloudSnapshot, vlamaxEffectif, tteEffectif, calibrationSnapshot, raceType]);
+
   // Redirect si pas en Running Focus Mode
   if (!isRunningOnly) {
     return (
@@ -390,6 +472,12 @@ export default function RunningProfilePage() {
               isStaffMode={staffMode}
             />
 
+            {/* Race Readiness Running Card */}
+            <RaceReadinessRunCard
+              readiness={raceReadiness}
+              objective={raceLabel || athleteGoal}
+              isStaffMode={staffMode}
+            />
 
             {/* Métriques clés */}
             <Card>
