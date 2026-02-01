@@ -2,7 +2,7 @@
 // ÉCRAN 2 - PROFIL ATHLÈTE (Création/Édition)
 // =============================================
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -18,10 +18,8 @@ import { calculateAge, computeAgeAdjustmentIndex, AGE_METHODOLOGY } from "@/lib/
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED, DEFAULT_AMBITION, getAmbitionDefinition } from "@/types/ambitionLevel";
-import { ObjectifHistorySelector } from "@/components/ObjectifHistorySelector";
-
-// Clé localStorage pour l'historique des objectifs par athlète
-const OBJECTIF_HISTORY_KEY = "tfcl-objectif-history";
+import { AthleteObjectiveManager } from "@/components/AthleteObjectiveManager";
+import { useAthleteRaceGoals } from "@/hooks/useAthleteRaceGoals";
 
 export default function AthleteEditPage() {
   const navigate = useNavigate();
@@ -40,43 +38,46 @@ export default function AthleteEditPage() {
     editingAthlete?.masse_grasse == null ? "" : String(editingAthlete.masse_grasse),
   );
   
-  // Historique des objectifs précédents pour cet athlète
-  const [objectifHistory, setObjectifHistory] = useState<ObjectifType[]>([]);
+  // Cloud-based race goals
+  const { 
+    raceGoals, 
+    addRaceGoal, 
+    deleteRaceGoal, 
+    updateAthleteGoal,
+    restoreRaceGoal,
+    loading: goalsLoading 
+  } = useAthleteRaceGoals(editingAthlete?.id ?? null);
   
-  // Charger l'historique des objectifs au montage
-  useEffect(() => {
-    if (!editingAthlete?.id) return;
-    try {
-      const stored = localStorage.getItem(OBJECTIF_HISTORY_KEY);
-      if (stored) {
-        const allHistory = JSON.parse(stored) as Record<string, ObjectifType[]>;
-        setObjectifHistory(allHistory[editingAthlete.id] || []);
-      }
-    } catch {
-      // Ignore parsing errors
-    }
-  }, [editingAthlete?.id]);
-  
-  // Sauvegarder l'historique quand l'objectif change
-  const handleObjectifChange = (newObjectif: ObjectifType) => {
-    const oldObjectif = objectif;
+  // Handle objective change (updates athlete goal + local state)
+  const handleObjectifChange = async (newObjectif: ObjectifType) => {
     setObjectif(newObjectif);
-    
-    // Ajouter l'ancien objectif à l'historique (s'il est différent du nouveau)
-    if (oldObjectif && oldObjectif !== newObjectif && editingAthlete?.id) {
-      const newHistory = [oldObjectif, ...objectifHistory.filter(o => o !== oldObjectif)].slice(0, 5);
-      setObjectifHistory(newHistory);
-      
-      // Persister dans localStorage
-      try {
-        const stored = localStorage.getItem(OBJECTIF_HISTORY_KEY);
-        const allHistory = stored ? JSON.parse(stored) : {};
-        allHistory[editingAthlete.id] = newHistory;
-        localStorage.setItem(OBJECTIF_HISTORY_KEY, JSON.stringify(allHistory));
-      } catch {
-        // Ignore storage errors
-      }
+    if (editingAthlete?.id) {
+      await updateAthleteGoal(newObjectif);
     }
+  };
+  
+  // Handle adding a new race goal
+  const handleAddRaceGoal = async (goal: {
+    athlete_id: string;
+    race_type: string;
+    race_name: string | null;
+    race_date: string;
+    plan_start_date: string | null;
+  }) => {
+    if (!editingAthlete?.id) return;
+    await addRaceGoal({
+      athlete_id: editingAthlete.id,
+      race_type: goal.race_type,
+      race_name: goal.race_name,
+      race_date: goal.race_date,
+      plan_start_date: goal.plan_start_date,
+    });
+  };
+  
+  // Handle restoring a race goal
+  const handleRestoreRaceGoal = async (goal: any) => {
+    await restoreRaceGoal(goal);
+    setObjectif(goal.race_type as ObjectifType);
   };
   
   // Calcul de l'âge et de l'AAI pour affichage informatif
@@ -151,24 +152,42 @@ export default function AthleteEditPage() {
               </Select>
             </div>
 
-            {/* Objectif avec historique */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Target className="h-4 w-4" />
-                Objectif
-              </Label>
-              <ObjectifHistorySelector
-                currentObjectif={objectif}
-                previousObjectifs={objectifHistory}
-                onObjectifChange={handleObjectifChange}
-                showHistory={!isNew}
+            {/* Objectif avec historique Cloud */}
+            {!isNew && editingAthlete?.id ? (
+              <AthleteObjectiveManager
+                athleteId={editingAthlete.id}
+                currentGoal={objectif}
+                raceGoals={raceGoals}
+                onGoalChange={handleObjectifChange}
+                onAddRaceGoal={handleAddRaceGoal}
+                onDeleteRaceGoal={deleteRaceGoal}
+                onRestoreRaceGoal={handleRestoreRaceGoal}
+                loading={goalsLoading}
               />
-              {!isNew && objectifHistory.length > 0 && (
-                <p className="text-xs text-muted-foreground">
-                  Vous pouvez restaurer un objectif précédent via l'historique ci-dessus.
-                </p>
-              )}
-            </div>
+            ) : (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Target className="h-4 w-4" />
+                  Objectif
+                </Label>
+                <Select value={objectif} onValueChange={(v) => setObjectif(v as ObjectifType)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="IM">Ironman</SelectItem>
+                    <SelectItem value="703">70.3</SelectItem>
+                    <SelectItem value="Marathon">Marathon</SelectItem>
+                    <SelectItem value="Semi">Semi-Marathon</SelectItem>
+                    <SelectItem value="10K">10K</SelectItem>
+                    <SelectItem value="5K">5K</SelectItem>
+                    <SelectItem value="TrailShort">Trail court</SelectItem>
+                    <SelectItem value="TrailMountain">Trail montagne</SelectItem>
+                    <SelectItem value="TrailUltra">Ultra trail</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {/* Niveau d'ambition */}
             <div className="space-y-2">

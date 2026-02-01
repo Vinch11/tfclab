@@ -13,12 +13,12 @@ import { Plus, User, Target, ChevronRight, Trash2, Bike, Footprints, Waves, Down
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { getDernierSnapshot, getObjectifLabel } from "@/types/athlete";
-import { calculVLamaxSnapshot } from "@/lib/athleteStore";
+import { getObjectifLabel } from "@/types/athlete";
 import { SportType } from "@/types/snapshotNolio";
 import { AthleteImportExport, AthleteExportData } from "@/components/AthleteImportExport";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import type { Tables } from "@/integrations/supabase/types";
 
 export default function AthletesListPage() {
   const navigate = useNavigate();
@@ -128,13 +128,17 @@ export default function AthletesListPage() {
     setSelectedIds(new Set());
   };
 
-  // Get sports count for athlete
-  const getSportsCount = (historique: any[]): Record<SportType, number> => {
+  // Get sports count for athlete from snapshots instead of legacy historique
+  const getSportsCountFromSnapshots = (athleteId: string): Record<SportType, number> => {
     const counts: Record<SportType, number> = { vélo: 0, course: 0, natation: 0 };
-    historique.forEach((h) => {
-      if (counts[h.sport as SportType] !== undefined) {
-        counts[h.sport as SportType]++;
-      }
+    const athleteSnapshots = snapshots.filter(s => s.athlete_id === athleteId);
+    athleteSnapshots.forEach((s) => {
+      // Cast to full snapshot type to access sport_main
+      const fullSnapshot = s as unknown as Tables<"snapshots">;
+      const sport = fullSnapshot.sport_main;
+      if (sport === 'bike') counts['vélo']++;
+      else if (sport === 'run') counts['course']++;
+      else if (sport === 'swim') counts['natation']++;
     });
     return counts;
   };
@@ -298,11 +302,14 @@ export default function AthletesListPage() {
         {/* Liste des athlètes */}
         <div className="space-y-3">
           {athletes.map((athlete) => {
-            const snapshot = getDernierSnapshot(athlete);
-            const vlamax = snapshot ? calculVLamaxSnapshot(snapshot, athlete.objectif) : null;
-            const sportsCount = getSportsCount(athlete.historique);
+            // Use cloud snapshots instead of legacy historique
+            const athleteSnapshots = snapshots.filter(s => s.athlete_id === athlete.id);
+            const latestSnapshot = athleteSnapshots.length > 0 
+              ? athleteSnapshots.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
+              : null;
+            const vlamax = latestSnapshot?.vlamax ?? null;
+            const sportsCount = getSportsCountFromSnapshots(athlete.id);
             const isSelected = selectedIds.has(athlete.id);
-
             return (
               <Card
                 key={athlete.id}
