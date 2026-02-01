@@ -93,7 +93,18 @@ export {
   type RunningEconomyV2Input
 } from './runningEconomyV2';
 
-// Fatigue V2
+// Compass CAP (Running-Specific 6-Axis Compass)
+export {
+  computeCompassCAPScores,
+  getCompassCAPChartData,
+  getVO2maxTarget,
+  getVVO2maxTarget,
+  getPaceThresholdTarget,
+  type CompassCAPScores,
+  type CompassCAPAxisScore,
+  type CompassCAPInput,
+} from '../compassScoringCAP';
+
 export {
   computeFatigueV2,
   getFatigueLevelColor,
