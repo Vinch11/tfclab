@@ -76,7 +76,7 @@ export const checkinSchema = z.object({
   week_tag: z.string().max(20).nullable().optional(),
   sleep: z.number().int().min(1).max(10).nullable().optional(),
   fatigue: z.number().int().min(1).max(10).nullable().optional(),
-  soreness: z.number().int().min(1).max(10).nullable().optional(),
+  soreness: z.number().int().min(0).max(10).nullable().optional(), // 0 = "Aucune" courbature
   stress: z.number().int().min(1).max(10).nullable().optional(),
   motivation: z.number().int().min(1).max(10).nullable().optional(),
   rpe_key1: z.number().int().min(1).max(10).nullable().optional(),
