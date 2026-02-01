@@ -681,9 +681,18 @@ const Index = () => {
                     value={currentAmbition}
                     onValueChange={(v) => updateCurrentAthleteAmbition(v as AmbitionLevel)}
                   >
-                    <SelectTrigger className="h-9 w-auto min-w-[110px] max-w-[140px] text-sm">
-                      <Star className="h-3.5 w-3.5 mr-1.5 text-primary shrink-0" />
-                      <SelectValue placeholder="Ambition" />
+                    <SelectTrigger className="h-9 w-auto min-w-[130px] max-w-[180px] text-sm">
+                      <SelectValue placeholder="Ambition">
+                        {(() => {
+                          const def = getAmbitionDefinition(currentAmbition);
+                          return (
+                            <span className="flex items-center gap-1.5 truncate">
+                              <span>{def.icon}</span>
+                              <span className="truncate">{def.label}</span>
+                            </span>
+                          );
+                        })()}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {AMBITION_LEVELS_ORDERED.map((level) => {
