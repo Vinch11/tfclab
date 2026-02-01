@@ -51,6 +51,8 @@ import { calculateAge } from "@/lib/ageAdjustment";
 import { computeCAPInjuryRisk } from "@/lib/v2/injuryRiskUnified";
 import { computeFatigueEffectif } from "@/lib/fatigueEffectif";
 import { computeRaceReadinessRun, type AvailabilityRun } from "@/lib/v2/raceReadinessRunning";
+import { computePacingEnvelopeRun, type RunningDistance } from "@/lib/v2/pacingEnvelopeRunning";
+import { PacingEnvelopeRunCard } from "@/components/PacingEnvelopeRunCard";
 
 export default function RunningProfilePage() {
   const navigate = useNavigate();
@@ -259,6 +261,41 @@ export default function RunningProfilePage() {
     
     return computeRaceReadinessRun(profile, availability);
   }, [currentAthlete, checkins, effectiveCloudSnapshot, vlamaxEffectif, tteEffectif, calibrationSnapshot, raceType]);
+
+  // Pacing Envelope Running
+  const pacingEnvelope = useMemo(() => {
+    if (!raceReadiness) return null;
+    
+    // Map raceType to RunningDistance
+    const distanceMap: Record<string, RunningDistance> = {
+      "10K": "10K",
+      "Semi": "HM",
+      "Marathon": "MARATHON",
+      "Trail": "MARATHON", // Treat Trail like Marathon for pacing
+    };
+    const distance = distanceMap[raceType] ?? "MARATHON";
+    
+    // Calculate threshold pace from effectiveCloudSnapshot or estimate from VMA
+    let thresholdPace: number | null = effectiveCloudSnapshot?.pace_threshold_sec_per_km ?? null;
+    
+    // If no threshold pace, estimate from VMA (threshold ≈ 85% VMA)
+    if (!thresholdPace && effectiveCloudSnapshot?.vma) {
+      const vmaKmh = effectiveCloudSnapshot.vma;
+      const thresholdKmh = vmaKmh * 0.85;
+      thresholdPace = Math.round(3600 / thresholdKmh);
+    }
+    
+    return computePacingEnvelopeRun({
+      distance,
+      vlamax_run_v2: vlamaxEffectif.value,
+      vo2max_run: effectiveCloudSnapshot?.vo2max ?? currentAthlete?.vo2max ?? null,
+      threshold_pace: thresholdPace,
+      durability_index: tteEffectif.tte_min,
+      race_readiness_state: raceReadiness.readiness_state,
+      race_readiness_score: raceReadiness.readiness_score,
+      athlete_experience: "MEDIUM", // Default, could be extended with athlete data
+    });
+  }, [raceReadiness, raceType, effectiveCloudSnapshot, vlamaxEffectif, tteEffectif, currentAthlete]);
 
   // Redirect si pas en Running Focus Mode
   if (!isRunningOnly) {
@@ -476,6 +513,12 @@ export default function RunningProfilePage() {
             <RaceReadinessRunCard
               readiness={raceReadiness}
               objective={raceLabel || athleteGoal}
+              isStaffMode={staffMode}
+            />
+
+            {/* Pacing Envelope Running Card */}
+            <PacingEnvelopeRunCard
+              result={pacingEnvelope}
               isStaffMode={staffMode}
             />
 
