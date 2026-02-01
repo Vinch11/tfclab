@@ -1747,7 +1747,7 @@ function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
   const formatPace = (secPerKm: number) => {
     const min = Math.floor(secPerKm / 60);
     const sec = Math.round(secPerKm % 60);
-    return \`\${min}'\${sec.toString().padStart(2, '0')}"\`;
+    return `${min}'${sec.toString().padStart(2, '0')}"`;
   };
   
   const greenPace = threshold_pace ? {
@@ -1778,9 +1778,9 @@ function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
   
   const distanceLabels: Record<string, string> = { "10K": "10 km", HM: "Semi-Marathon", MARATHON: "Marathon" };
   
-  return \`
+  return `
     <section id="pacing-envelope-running" class="section pagebreak">
-      <h2>🏃 Pacing Envelope™ CAP — \${distanceLabels[distance]}</h2>
+      <h2>🏃 Pacing Envelope™ CAP — ${distanceLabels[distance]}</h2>
       
       <div class="alert alertInfo mb">
         <b>📋 Concept :</b> Le Pacing Envelope™ définit la plage d'intensité AUTORISÉE sans déclencher un coût métabolique irréversible. 
@@ -1791,12 +1791,12 @@ function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
           <div>
             <div class="muted" style="font-size:11px;">Niveau de discipline requis</div>
-            <div style="font-size:24px;font-weight:700;color:\${discipline.color};">\${discipline.level}</div>
+            <div style="font-size:24px;font-weight:700;color:${discipline.color};">${discipline.level}</div>
           </div>
-          \${vlamax_run && vlamax_run < 0.35 ? '<div class="badge badgeWarning">⚠️ Profil VLamax Sensible</div>' : ''}
+          ${vlamax_run && vlamax_run < 0.35 ? '<div class="badge badgeWarning">⚠️ Profil VLamax Sensible</div>' : ''}
           <div style="text-align:right;">
             <div class="muted" style="font-size:11px;">Allure seuil</div>
-            <div style="font-size:18px;font-weight:600;">\${threshold_pace ? formatPace(threshold_pace) + '/km' : '—'}</div>
+            <div style="font-size:18px;font-weight:600;">${threshold_pace ? formatPace(threshold_pace) + '/km' : '—'}</div>
           </div>
         </div>
       </div>
@@ -1810,21 +1810,21 @@ function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
           <tbody>
             <tr style="background:rgba(22,163,74,0.1);">
               <td><span style="color:#16a34a;font-weight:700;">🟢 VERTE</span></td>
-              <td>\${zone.green[0]}-\${zone.green[1]}%</td>
-              <td>\${greenPace ? greenPace.min + ' - ' + greenPace.max : '—'}</td>
+              <td>${zone.green[0]}-${zone.green[1]}%</td>
+              <td>${greenPace ? greenPace.min + ' - ' + greenPace.max : '—'}</td>
               <td><span class="badge badgeSuccess">Faible</span></td>
               <td>Zone durable — première moitié</td>
             </tr>
             <tr style="background:rgba(217,119,6,0.1);">
               <td><span style="color:#d97706;font-weight:700;">🟠 ORANGE</span></td>
-              <td>\${zone.orange[0]}-\${zone.orange[1]}%</td>
-              <td>\${orangePace ? orangePace.min + ' - ' + orangePace.max : '—'}</td>
+              <td>${zone.orange[0]}-${zone.orange[1]}%</td>
+              <td>${orangePace ? orangePace.min + ' - ' + orangePace.max : '—'}</td>
               <td><span class="badge badgeWarning">Modéré</span></td>
               <td>Conditionnelle — si sensations OK</td>
             </tr>
             <tr style="background:rgba(220,38,38,0.1);">
               <td><span style="color:#dc2626;font-weight:700;">🔴 ROUGE</span></td>
-              <td>>\${zone.red[0]}%</td>
+              <td>>${zone.red[0]}%</td>
               <td>—</td>
               <td><span class="badge badgeError">Élevé</span></td>
               <td><b>INTERDITE</b> — déplétion certaine</td>
@@ -1836,18 +1836,18 @@ function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
       <div class="card mt">
         <h3>📊 Scénarios de Pacing</h3>
         <div class="grid3">
-          \${scenarios.map(s => \`
-            <div style="padding:12px;border-radius:8px;border:1px solid \${s.color};background:\${s.color}10;">
-              <div style="font-size:14px;font-weight:700;color:\${s.color};">\${s.label}</div>
-              <div class="muted" style="font-size:11px;">Intensité: \${s.pct.toFixed(0)}% seuil</div>
+          ${scenarios.map(s => `
+            <div style="padding:12px;border-radius:8px;border:1px solid ${s.color};background:${s.color}10;">
+              <div style="font-size:14px;font-weight:700;color:${s.color};">${s.label}</div>
+              <div class="muted" style="font-size:11px;">Intensité: ${s.pct.toFixed(0)}% seuil</div>
               <div style="margin-top:8px;">
                 <div class="progressBar" style="height:8px;">
-                  <div class="progressFill" style="width:\${s.successRate}%;background:\${s.color};"></div>
+                  <div class="progressFill" style="width:${s.successRate}%;background:${s.color};"></div>
                 </div>
-                <div style="font-size:11px;text-align:right;margin-top:4px;">Succès: \${s.successRate}%</div>
+                <div style="font-size:11px;text-align:right;margin-top:4px;">Succès: ${s.successRate}%</div>
               </div>
             </div>
-          \`).join('')}
+          `).join('')}
         </div>
       </div>
       
@@ -1871,10 +1871,10 @@ function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
       
       <div class="alert alertWarning mt" style="font-size:11px;">
         <b>⚠️ Règles non négociables :</b> Premier tiers conservateur • Ne pas dépasser le plafond • Surveiller dérive FC >5%
-        \${vlamax_run && vlamax_run < 0.35 ? '<br>• <b>Profil sensible:</b> discipline absolue' : ''}
+        ${vlamax_run && vlamax_run < 0.35 ? '<br>• <b>Profil sensible:</b> discipline absolue' : ''}
       </div>
     </section>
-  \`;
+  `;
 }
 
 // =============================================
