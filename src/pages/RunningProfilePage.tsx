@@ -39,7 +39,7 @@ import { VLamaxCAPCard } from "@/components/VLamaxCAPCard";
 import { RunningEconomyModule } from "@/components/RunningEconomyModule";
 import { RunningEconomySummaryCard } from "@/components/RunningEconomySummaryCard";
 import { RunningFocusModeIndicator } from "@/components/RunningFocusModeIndicator";
-
+import { InjuryRiskCAPCard } from "@/components/InjuryRiskCAPCard";
 import { VLamaxRunExplainedCard } from "@/components/VLamaxRunExplainedCard";
 
 // Logique et calculs
@@ -47,6 +47,8 @@ import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { computeTTEEffectif } from "@/lib/tteEffectif";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { calculateAge } from "@/lib/ageAdjustment";
+import { computeCAPInjuryRisk } from "@/lib/v2/injuryRiskUnified";
+import { computeFatigueEffectif } from "@/lib/fatigueEffectif";
 
 export default function RunningProfilePage() {
   const navigate = useNavigate();
@@ -144,7 +146,38 @@ export default function RunningProfilePage() {
     });
   }, [effectiveCloudSnapshot, effectiveRefs, athleteGoal]);
 
+  // Fatigue Effectif
+  const fatigueResult = useMemo(() => {
+    const athleteCheckins = checkins.filter(c => c.athlete_id === currentAthlete?.id);
+    const latestCheckin = athleteCheckins.length > 0 
+      ? [...athleteCheckins].sort((a, b) => b.date_iso.localeCompare(a.date_iso))[0]
+      : null;
+    
+    return computeFatigueEffectif({
+      tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
+      tss7dHabituel: null,
+      fatiguePercue: latestCheckin?.fatigue ?? null,
+      tteEffectif: tteEffectif,
+      raceReadiness: null,
+      vlamaxEffectif: vlamaxEffectif,
+      age: athleteAge,
+      objectif: athleteGoal,
+    });
+  }, [checkins, currentAthlete?.id, effectiveCloudSnapshot, tteEffectif, vlamaxEffectif, athleteAge, athleteGoal]);
 
+  // CAP Injury Risk
+  const capInjuryRisk = useMemo(() => {
+    return computeCAPInjuryRisk({
+      vlamaxValue: vlamaxEffectif.value,
+      economyLevel: effectiveCloudSnapshot?.run_economy_label ?? null,
+      tteMin: tteEffectif.tte_min,
+      fatiguePct: fatigueResult.score,
+      tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
+      runLoad7d: null,
+      age: athleteAge,
+      objectif: athleteGoal,
+    });
+  }, [vlamaxEffectif, effectiveCloudSnapshot, tteEffectif, fatigueResult, athleteAge, athleteGoal]);
   // Redirect si pas en Running Focus Mode
   if (!isRunningOnly) {
     return (
@@ -349,6 +382,12 @@ export default function RunningProfilePage() {
             <RunningEconomySummaryCard
               snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id)}
               staffMode={staffMode}
+            />
+
+            {/* Injury Risk CAP Card */}
+            <InjuryRiskCAPCard
+              riskEnvelope={capInjuryRisk}
+              isStaffMode={staffMode}
             />
 
 
