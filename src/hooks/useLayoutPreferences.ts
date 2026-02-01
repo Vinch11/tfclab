@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 // Définition des sections par onglet
-export type TabId = "profil" | "dashboard" | "evolution" | "tests" | "seances" | "templates" | "academy" | "race-readiness";
+export type TabId = "profil" | "dashboard" | "evolution" | "tests" | "seances" | "templates" | "academy" | "race-readiness" | "running-profile";
 
 export interface SectionDefinition {
   id: string;
@@ -145,6 +145,32 @@ export const EVOLUTION_SECTIONS: SectionDefinition[] = [
   { id: "sport-analysis", label: "Analyse par Sport", icon: "Activity", defaultVisible: true },
 ];
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// RUNNING PROFILE SECTIONS — Sections spécifiques au profil CAP
+// ═══════════════════════════════════════════════════════════════════════════════
+export const RUNNING_PROFILE_SECTIONS: SectionDefinition[] = [
+  // 🎯 Profil VLamax CAP
+  { id: "vlamax-cap-card", label: "VLamax CAP", icon: "Zap", category: "metriques", defaultVisible: true },
+  { id: "vlamax-cap-explained", label: "VLamax CAP Expliquée", icon: "BookOpen", category: "metriques", defaultVisible: true },
+  { id: "calibration-summary", label: "Calibration Continue", icon: "Brain", category: "metriques", defaultVisible: true },
+  
+  // ⚡ Économie & Performance
+  { id: "running-economy-module", label: "Économie de Course", icon: "Activity", category: "analyse", defaultVisible: true },
+  { id: "running-economy-summary", label: "Synthèse Économie", icon: "TrendingUp", category: "analyse", defaultVisible: true },
+  
+  // 🛡️ Risque & Readiness
+  { id: "injury-risk-cap", label: "Risque Blessure CAP", icon: "Shield", category: "fatigue", defaultVisible: true },
+  { id: "availability-form", label: "Disponibilité du Jour", icon: "ClipboardCheck", category: "fatigue", defaultVisible: true },
+  { id: "race-readiness-run", label: "Race Readiness CAP", icon: "Trophy", category: "fatigue", defaultVisible: true },
+  
+  // 📊 Pacing & Métriques
+  { id: "pacing-envelope-run", label: "Enveloppe Pacing", icon: "Target", category: "analyse", defaultVisible: true },
+  { id: "key-metrics-run", label: "Métriques Clés Running", icon: "BarChart", category: "metriques", defaultVisible: true },
+  
+  // 🔗 Liens rapides
+  { id: "quick-links", label: "Liens Rapides", icon: "Link", category: "outils", defaultVisible: true },
+];
+
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * RUNNING FOCUS MODE FILTER — Sections à masquer en mode CAP/Trail
@@ -255,6 +281,7 @@ export const ALL_SECTIONS: Record<TabId, SectionDefinition[]> = {
   templates: TEMPLATES_SECTIONS,
   academy: ACADEMY_SECTIONS,
   "race-readiness": RACE_READINESS_SECTIONS,
+  "running-profile": RUNNING_PROFILE_SECTIONS,
 };
 
 // Format de stockage amélioré avec visibilité
@@ -267,6 +294,7 @@ export interface LayoutPreferences {
   templates?: SectionConfig[];
   academy?: SectionConfig[];
   "race-readiness"?: SectionConfig[];
+  "running-profile"?: SectionConfig[];
   movedSections?: MovedSectionConfig[];
 }
 
@@ -327,7 +355,7 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
           const parsed = JSON.parse(stored);
           // Migrer si nécessaire - inclure tous les onglets
           const migrated: LayoutPreferences = { movedSections: parsed.movedSections || [] };
-          const allTabs: TabId[] = ['profil', 'evolution', 'dashboard', 'tests', 'seances', 'templates', 'academy', 'race-readiness'];
+          const allTabs: TabId[] = ['profil', 'evolution', 'dashboard', 'tests', 'seances', 'templates', 'academy', 'race-readiness', 'running-profile'];
           for (const tabId of allTabs) {
             const tabConfigs = migratePreferences(parsed, tabId);
             if (tabConfigs) {

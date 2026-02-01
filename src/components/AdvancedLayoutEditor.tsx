@@ -84,6 +84,7 @@ const TAB_LABELS: Record<TabId, string> = {
   templates: "Templates",
   academy: "Academy",
   "race-readiness": "Race Readiness",
+  "running-profile": "Profil Running",
 };
 
 function SortableSectionItem({ 
