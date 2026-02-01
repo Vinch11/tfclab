@@ -1,0 +1,229 @@
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * USE ATHLETE RACE GOALS — Cloud persistence for athlete objectives
+ * 
+ * Manages athlete race goals with full CRUD:
+ * - Add new race goals
+ * - Update current goal
+ * - Delete goals
+ * - Restore previous goals
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
+
+import { useState, useCallback, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import type { ObjectifType } from "@/types/athlete";
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TYPES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface RaceGoal {
+  id: string;
+  athlete_id: string;
+  coach_id: string;
+  race_type: string;
+  race_name: string | null;
+  race_date: string;
+  plan_start_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AddRaceGoalInput {
+  athlete_id: string;
+  race_type: string;
+  race_name: string | null;
+  race_date: string;
+  plan_start_date: string | null;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// HOOK
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export function useAthleteRaceGoals(athleteId: string | null) {
+  const queryClient = useQueryClient();
+  const [saving, setSaving] = useState(false);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // FETCH RACE GOALS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  const { data: raceGoals = [], isLoading: loading, refetch } = useQuery({
+    queryKey: ['athlete-race-goals', athleteId],
+    queryFn: async () => {
+      if (!athleteId) return [];
+      
+      const { data, error } = await supabase
+        .from('athlete_race_goals')
+        .select('*')
+        .eq('athlete_id', athleteId)
+        .order('race_date', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching race goals:', error);
+        throw error;
+      }
+      
+      return data as RaceGoal[];
+    },
+    enabled: !!athleteId,
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ADD RACE GOAL
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  const addRaceGoal = useCallback(async (input: AddRaceGoalInput): Promise<RaceGoal | null> => {
+    if (!athleteId) {
+      toast.error("Aucun athlète sélectionné");
+      return null;
+    }
+
+    setSaving(true);
+    
+    try {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData.user) {
+        throw new Error("Non authentifié");
+      }
+
+      const { data, error } = await supabase
+        .from('athlete_race_goals')
+        .insert({
+          athlete_id: input.athlete_id,
+          coach_id: userData.user.id,
+          race_type: input.race_type,
+          race_name: input.race_name,
+          race_date: input.race_date,
+          plan_start_date: input.plan_start_date,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error adding race goal:', error);
+        throw error;
+      }
+
+      // Invalidate cache
+      queryClient.invalidateQueries({ queryKey: ['athlete-race-goals', athleteId] });
+      
+      return data as RaceGoal;
+    } catch (error) {
+      console.error('Error adding race goal:', error);
+      toast.error("Erreur lors de l'ajout de l'objectif");
+      return null;
+    } finally {
+      setSaving(false);
+    }
+  }, [athleteId, queryClient]);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DELETE RACE GOAL
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  const deleteRaceGoal = useCallback(async (goalId: string): Promise<boolean> => {
+    setSaving(true);
+    
+    try {
+      const { error } = await supabase
+        .from('athlete_race_goals')
+        .delete()
+        .eq('id', goalId);
+
+      if (error) {
+        console.error('Error deleting race goal:', error);
+        throw error;
+      }
+
+      // Invalidate cache
+      queryClient.invalidateQueries({ queryKey: ['athlete-race-goals', athleteId] });
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting race goal:', error);
+      toast.error("Erreur lors de la suppression");
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  }, [athleteId, queryClient]);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // UPDATE ATHLETE GOAL (main goal field)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  const updateAthleteGoal = useCallback(async (goal: ObjectifType): Promise<boolean> => {
+    if (!athleteId) {
+      toast.error("Aucun athlète sélectionné");
+      return false;
+    }
+
+    setSaving(true);
+    
+    try {
+      const { error } = await supabase
+        .from('athletes')
+        .update({ goal })
+        .eq('id', athleteId);
+
+      if (error) {
+        console.error('Error updating athlete goal:', error);
+        throw error;
+      }
+
+      // Invalidate athlete cache
+      queryClient.invalidateQueries({ queryKey: ['cloud-data'] });
+      
+      return true;
+    } catch (error) {
+      console.error('Error updating athlete goal:', error);
+      toast.error("Erreur lors de la mise à jour de l'objectif");
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  }, [athleteId, queryClient]);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RESTORE RACE GOAL (set as current)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  const restoreRaceGoal = useCallback(async (goal: RaceGoal): Promise<boolean> => {
+    // Simply update the athlete's current goal to match this race goal
+    return updateAthleteGoal(goal.race_type as ObjectifType);
+  }, [updateAthleteGoal]);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // GET HISTORY (unique previous objectives)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  const previousObjectifs = useMemo(() => {
+    return [...new Set(raceGoals.map(g => g.race_type as ObjectifType))];
+  }, [raceGoals]);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RETURN
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  return {
+    // Data
+    raceGoals,
+    previousObjectifs,
+    
+    // Operations
+    addRaceGoal,
+    deleteRaceGoal,
+    updateAthleteGoal,
+    restoreRaceGoal,
+    refetch,
+    
+    // State
+    loading,
+    saving,
+  };
+}

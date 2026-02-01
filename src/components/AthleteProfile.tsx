@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Save, Target, Scale, Activity, Percent, Camera, Info, Loader2 } from "lucide-react";
+import { User, Save, Target, Scale, Activity, Percent, Camera, Info, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Athlete, ObjectifType, SexeType, getObjectifLabel, getDernierSnapshot } from "@/types/athlete";
 import { SnapshotNolio, scoreConfiance, estimerTTE } from "@/types/snapshotNolio";
@@ -10,9 +10,13 @@ import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { TTEEffectif } from "@/lib/tteEffectif";
 import { toast } from "sonner";
 import { getAmbitionDefinition, DEFAULT_AMBITION } from "@/types/ambitionLevel";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { AthleteObjectiveManager } from "./AthleteObjectiveManager";
+import { useAthleteRaceGoals, type RaceGoal } from "@/hooks/useAthleteRaceGoals";
 
 interface AthleteProfileProps {
   athlete: Athlete;
+  athleteId?: string; // Cloud ID for race goals
   onUpdate: (athlete: Athlete) => void;
   // ✅ Callback pour sauvegarde cloud des données athlète
   onSaveToCloud?: (data: { name?: string; goal?: string; sex?: string }) => Promise<void>;
@@ -25,12 +29,36 @@ interface AthleteProfileProps {
   // ✅ VLamax et TTE effectifs (source unique de vérité)
   vlamaxEffectif?: VLamaxEffectif;
   tteEffectif?: TTEEffectif;
+  // ✅ Option d'afficher le gestionnaire d'objectifs complet
+  showObjectiveManager?: boolean;
 }
 
-export function AthleteProfile({ athlete, onUpdate, onSaveToCloud, onUpdateMasseGrasse, snapshotFatPct, onOpenSnapshots, vlamaxEffectif, tteEffectif }: AthleteProfileProps) {
+export function AthleteProfile({ 
+  athlete, 
+  athleteId,
+  onUpdate, 
+  onSaveToCloud, 
+  onUpdateMasseGrasse, 
+  snapshotFatPct, 
+  onOpenSnapshots, 
+  vlamaxEffectif, 
+  tteEffectif,
+  showObjectiveManager = false,
+}: AthleteProfileProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Athlete>(athlete);
   const [isSaving, setIsSaving] = useState(false);
+  const [isObjectivesExpanded, setIsObjectivesExpanded] = useState(false);
+
+  // Race goals hook (only if athleteId provided)
+  const {
+    raceGoals,
+    addRaceGoal,
+    deleteRaceGoal,
+    updateAthleteGoal,
+    restoreRaceGoal,
+    loading: raceGoalsLoading,
+  } = useAthleteRaceGoals(athleteId ?? null);
 
   // Synchroniser formData avec athlete quand il change
   useEffect(() => {
@@ -42,6 +70,28 @@ export function AthleteProfile({ athlete, onUpdate, onSaveToCloud, onUpdateMasse
   const vlamax = vlamaxEffectif?.value ?? 0;
   const tte = tteEffectif?.tte_min ?? (snapshot ? estimerTTE(snapshot.ftp, snapshot.tss_7j) : 0);
   const confiance = vlamaxEffectif?.confidence ?? (snapshot ? scoreConfiance(snapshot) / 100 : 0);
+
+  // Handle goal change with cloud sync
+  const handleGoalChange = async (goal: ObjectifType) => {
+    if (onSaveToCloud) {
+      await onSaveToCloud({ goal });
+    }
+    if (athleteId) {
+      await updateAthleteGoal(goal);
+    }
+    onUpdate({ ...athlete, objectif: goal, updatedAt: new Date().toISOString() });
+  };
+
+  // Handle add race goal
+  const handleAddRaceGoal = async (input: Omit<RaceGoal, 'id' | 'coach_id' | 'created_at' | 'updated_at'>) => {
+    await addRaceGoal(input);
+  };
+
+  // Handle restore race goal
+  const handleRestoreRaceGoal = async (goal: RaceGoal) => {
+    await restoreRaceGoal(goal);
+    onUpdate({ ...athlete, objectif: goal.race_type as ObjectifType, updatedAt: new Date().toISOString() });
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -353,6 +403,36 @@ export function AthleteProfile({ athlete, onUpdate, onSaveToCloud, onUpdateMasse
                 </Button>
               )}
             </div>
+          )}
+          
+          {/* ✅ Gestionnaire d'objectifs (si showObjectiveManager activé) */}
+          {showObjectiveManager && athleteId && (
+            <Collapsible open={isObjectivesExpanded} onOpenChange={setIsObjectivesExpanded}>
+              <CollapsibleTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-between mt-4 text-muted-foreground hover:text-foreground"
+                >
+                  <span className="flex items-center gap-2">
+                    <Target className="h-4 w-4" />
+                    <span>Gérer les objectifs</span>
+                  </span>
+                  {isObjectivesExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-4">
+                <AthleteObjectiveManager
+                  athleteId={athleteId}
+                  currentGoal={formData.objectif}
+                  raceGoals={raceGoals}
+                  onGoalChange={handleGoalChange}
+                  onAddRaceGoal={handleAddRaceGoal}
+                  onDeleteRaceGoal={deleteRaceGoal}
+                  onRestoreRaceGoal={handleRestoreRaceGoal}
+                  loading={raceGoalsLoading}
+                />
+              </CollapsibleContent>
+            </Collapsible>
           )}
         </div>
       )}
