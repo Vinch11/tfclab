@@ -23,6 +23,7 @@ import FatiguePage from "./pages/FatiguePage";
 import { TFCLTestingWeekPage } from "./components/TFCLTestingWeek";
 import { CAPTestingWeekPage } from "./components/CAPTestingWeek";
 import { RunningGuidancePage } from "./components/RunningWeeklyGuidance";
+import RunningProfilePage from "./pages/RunningProfilePage";
 
 const queryClient = new QueryClient();
 
@@ -182,6 +183,18 @@ export default function App() {
                       <OnboardingGate>
                         <AthleteProviders>
                           <RunningGuidancePage />
+                        </AthleteProviders>
+                      </OnboardingGate>
+                    </AuthGate>
+                  }
+                />
+                <Route
+                  path="/running-profile"
+                  element={
+                    <AuthGate>
+                      <OnboardingGate>
+                        <AthleteProviders>
+                          <RunningProfilePage />
                         </AthleteProviders>
                       </OnboardingGate>
                     </AuthGate>
