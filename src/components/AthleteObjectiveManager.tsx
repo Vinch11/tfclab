@@ -71,8 +71,10 @@ interface AthleteObjectiveManagerProps {
   onDeleteRaceGoal: (goalId: string) => Promise<boolean | void>;
   onRestoreRaceGoal: (goal: RaceGoal) => Promise<boolean | void>;
   loading?: boolean;
+  compact?: boolean; // Mode compact pour le dashboard
   className?: string;
 }
+
 
 // Tous les objectifs disponibles groupés par catégorie
 const OBJECTIF_GROUPS = {
@@ -118,6 +120,7 @@ export function AthleteObjectiveManager({
   onDeleteRaceGoal,
   onRestoreRaceGoal,
   loading = false,
+  compact = false,
   className,
 }: AthleteObjectiveManagerProps) {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -137,6 +140,23 @@ export function AthleteObjectiveManager({
       new Date(b.race_date).getTime() - new Date(a.race_date).getTime()
     );
   }, [raceGoals]);
+
+  // Get next upcoming race
+  const nextRace = useMemo(() => {
+    const now = new Date();
+    const futureRaces = raceGoals
+      .filter(g => new Date(g.race_date) >= now)
+      .sort((a, b) => new Date(a.race_date).getTime() - new Date(b.race_date).getTime());
+    return futureRaces[0] || null;
+  }, [raceGoals]);
+
+  // Days remaining to next race
+  const daysRemaining = useMemo(() => {
+    if (!nextRace) return null;
+    const diff = Math.ceil((new Date(nextRace.race_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+    return diff >= 0 ? diff : null;
+  }, [nextRace]);
+
 
   // Get current goal info
   const currentGoalInfo = useMemo(() => {
@@ -227,6 +247,250 @@ export function AthleteObjectiveManager({
     }
   };
 
+  // Compact mode - single row with essential info
+  if (compact) {
+    return (
+      <Card className={cn("border-primary/20", className)}>
+        <CardContent className="py-3 px-4">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            {/* Left: Current goal + next race */}
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Target className="h-4 w-4 text-primary shrink-0" />
+                <span className="font-semibold text-foreground">
+                  {currentGoalInfo?.label || getObjectifLabel(currentGoal as ObjectifType) || "Non défini"}
+                </span>
+              </div>
+              
+              {/* Next race indicator */}
+              {nextRace && daysRemaining !== null && (
+                <div className={cn(
+                  "flex items-center gap-2 px-2.5 py-1 rounded-full text-xs border",
+                  daysRemaining <= 7 ? "bg-red-500/10 border-red-500/30 text-red-600" :
+                  daysRemaining <= 30 ? "bg-amber-500/10 border-amber-500/30 text-amber-600" :
+                  daysRemaining <= 60 ? "bg-blue-500/10 border-blue-500/30 text-blue-600" :
+                  "bg-emerald-500/10 border-emerald-500/30 text-emerald-600"
+                )}>
+                  <CalendarIcon className="h-3 w-3" />
+                  <span className="font-semibold">J-{daysRemaining}</span>
+                  {nextRace.race_name && (
+                    <span className="text-muted-foreground truncate max-w-[100px]" title={nextRace.race_name}>
+                      {nextRace.race_name}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Right: Actions */}
+            <div className="flex items-center gap-2">
+              {loading && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsEditing(true)}
+                disabled={saving}
+                className="h-7 px-2 text-xs"
+              >
+                <Edit2 className="h-3 w-3 mr-1" />
+                Modifier
+              </Button>
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" disabled={saving} className="h-7 px-2 text-xs">
+                    <Plus className="h-3 w-3 mr-1" />
+                    Ajouter
+                  </Button>
+                </DialogTrigger>
+                {/* Dialog content is the same */}
+                <DialogContent className="sm:max-w-[500px]">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Target className="h-5 w-5 text-primary" />
+                      Ajouter un nouvel objectif
+                    </DialogTitle>
+                    <DialogDescription>
+                      Définissez un nouvel objectif de course pour cet athlète
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label>Type de course *</Label>
+                      <Select value={newGoalType} onValueChange={setNewGoalType}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner un type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(OBJECTIF_GROUPS).map(([key, group]) => (
+                            <div key={key}>
+                              <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                                {group.label}
+                              </div>
+                              {group.options.map((opt) => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </SelectItem>
+                              ))}
+                            </div>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Nom de la course (optionnel)</Label>
+                      <Input
+                        value={newGoalName}
+                        onChange={(e) => setNewGoalName(e.target.value)}
+                        placeholder="ex: Marathon de Paris 2025"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Date de la course *</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !newGoalDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {newGoalDate ? format(newGoalDate, "PPP", { locale: fr }) : "Sélectionner une date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={newGoalDate}
+                            onSelect={setNewGoalDate}
+                            disabled={(date) => date < new Date()}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                  
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                      Annuler
+                    </Button>
+                    <Button onClick={handleAddRaceGoal} disabled={saving || !newGoalType || !newGoalDate}>
+                      {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
+                      Ajouter
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+              
+              {raceGoals.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+                  className="h-7 px-2 text-xs"
+                >
+                  <History className="h-3 w-3 mr-1" />
+                  {raceGoals.length}
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Quick edit mode inline */}
+          {isEditing && (
+            <div className="mt-3 pt-3 border-t border-border/50">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Select value={currentGoal as string} onValueChange={handleQuickGoalChange} disabled={saving}>
+                  <SelectTrigger className="h-8 w-auto min-w-[140px] text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(OBJECTIF_GROUPS).map(([key, group]) => (
+                      <div key={key}>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                          {group.label}
+                        </div>
+                        {group.options.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </div>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)} className="h-8">
+                  Annuler
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Collapsible history */}
+          {isHistoryOpen && raceGoals.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-border/50 space-y-2">
+              {sortedRaceGoals.slice(0, 3).map((goal) => {
+                const isPast = isGoalPast(goal.race_date);
+                const isCurrent = goal.race_type === currentGoal;
+                
+                return (
+                  <div
+                    key={goal.id}
+                    className={cn(
+                      "flex items-center justify-between p-2 rounded text-xs",
+                      isCurrent ? "bg-primary/5" : "bg-muted/30"
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{getObjectifLabel(goal.race_type as ObjectifType)}</span>
+                      {goal.race_name && <span className="text-muted-foreground truncate max-w-[100px]">{goal.race_name}</span>}
+                      <span className="text-muted-foreground">{format(parseISO(goal.race_date), "dd/MM/yy")}</span>
+                      {isCurrent && <Badge variant="default" className="text-[10px] h-4">Actuel</Badge>}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {!isCurrent && (
+                        <Button variant="ghost" size="sm" onClick={() => handleRestore(goal)} className="h-6 px-1.5 text-xs">
+                          <RotateCcw className="h-3 w-3" />
+                        </Button>
+                      )}
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-6 px-1.5 text-xs text-destructive">
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Supprimer cet objectif ?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Cette action est irréversible.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDelete(goal.id)}>
+                              Supprimer
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Full mode (default)
   return (
     <Card className={cn("border-primary/20", className)}>
       <CardHeader className="pb-3">
@@ -254,6 +518,44 @@ export function AthleteObjectiveManager({
       </CardHeader>
       
       <CardContent className="space-y-4">
+        {/* Next race prominent display */}
+        {nextRace && daysRemaining !== null && (
+          <div className={cn(
+            "p-3 rounded-lg border flex items-center justify-between",
+            daysRemaining <= 7 ? "bg-red-500/5 border-red-500/30" :
+            daysRemaining <= 30 ? "bg-amber-500/5 border-amber-500/30" :
+            daysRemaining <= 60 ? "bg-blue-500/5 border-blue-500/30" :
+            "bg-emerald-500/5 border-emerald-500/30"
+          )}>
+            <div className="flex items-center gap-3">
+              <CalendarIcon className={cn(
+                "h-5 w-5",
+                daysRemaining <= 7 ? "text-red-500" :
+                daysRemaining <= 30 ? "text-amber-500" :
+                daysRemaining <= 60 ? "text-blue-500" :
+                "text-emerald-500"
+              )} />
+              <div>
+                <p className="text-sm font-medium">
+                  {nextRace.race_name || getObjectifLabel(nextRace.race_type as ObjectifType)}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {format(parseISO(nextRace.race_date), "EEEE d MMMM yyyy", { locale: fr })}
+                </p>
+              </div>
+            </div>
+            <Badge className={cn(
+              "text-sm px-3 py-1",
+              daysRemaining <= 7 ? "bg-red-500" :
+              daysRemaining <= 30 ? "bg-amber-500" :
+              daysRemaining <= 60 ? "bg-blue-500" :
+              "bg-emerald-500"
+            )}>
+              J-{daysRemaining}
+            </Badge>
+          </div>
+        )}
+
         {/* Current Goal Display */}
         {!isEditing ? (
           <div className="p-4 rounded-lg bg-gradient-to-r from-primary/5 to-accent/5 border border-primary/20">

@@ -106,6 +106,10 @@ import { generateTTEScenarios, generateVLamaxScenarios } from "@/lib/v2/scenario
 import { AthleteObjectiveManager } from "@/components/AthleteObjectiveManager";
 import { useAthleteRaceGoals } from "@/hooks/useAthleteRaceGoals";
 
+// ✅ Header components - Quick selectors & Next Race
+import { NextRaceIndicator } from "@/components/NextRaceIndicator";
+import { QuickObjectiveSelector } from "@/components/QuickObjectiveSelector";
+
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -686,7 +690,20 @@ const Index = () => {
               )}
 
               {/* Spacer pour pousser les actions à droite sur desktop */}
-              <div className="hidden sm:flex flex-1 min-w-[20px]" />
+              <div className="hidden sm:flex flex-1 min-w-[8px]" />
+
+              {/* Sélecteur objectif rapide - visible sur desktop */}
+              {currentAthlete && (
+                <div className="hidden md:block shrink-0">
+                  <QuickObjectiveSelector
+                    currentGoal={currentAthlete.goal}
+                    onGoalChange={async (goal) => {
+                      await updateAthleteGoal(goal);
+                      await loadData();
+                    }}
+                  />
+                </div>
+              )}
 
               {/* Sélecteur ambition compact - visible sur desktop uniquement dans cette ligne */}
               {currentAthlete && (
@@ -695,7 +712,7 @@ const Index = () => {
                     value={currentAmbition}
                     onValueChange={(v) => updateCurrentAthleteAmbition(v as AmbitionLevel)}
                   >
-                    <SelectTrigger className="h-9 w-auto min-w-[130px] max-w-[180px] text-sm">
+                    <SelectTrigger className="h-9 w-auto min-w-[120px] max-w-[160px] text-sm">
                       <SelectValue placeholder="Ambition">
                         {(() => {
                           const def = getAmbitionDefinition(currentAmbition);
@@ -719,6 +736,17 @@ const Index = () => {
                       })}
                     </SelectContent>
                   </Select>
+                </div>
+              )}
+
+              {/* Prochaine course - visible sur desktop */}
+              {currentAthlete && raceGoals.length > 0 && (
+                <div className="hidden lg:block shrink-0">
+                  <NextRaceIndicator
+                    raceGoals={raceGoals}
+                    currentGoal={currentAthlete.goal}
+                    compact
+                  />
                 </div>
               )}
 
@@ -979,6 +1007,7 @@ const Index = () => {
                 onDeleteRaceGoal={deleteRaceGoal}
                 onRestoreRaceGoal={restoreRaceGoal}
                 loading={raceGoalsLoading}
+                compact
               />
             ),
           },
