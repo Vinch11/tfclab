@@ -739,13 +739,17 @@ const Index = () => {
                 </div>
               )}
 
-              {/* Prochaine course - visible sur desktop */}
+              {/* Prochaine course - visible sur desktop, cliquable */}
               {currentAthlete && raceGoals.length > 0 && (
                 <div className="hidden lg:block shrink-0">
                   <NextRaceIndicator
                     raceGoals={raceGoals}
                     currentGoal={currentAthlete.goal}
                     compact
+                    onClick={() => {
+                      const el = document.getElementById("section-objective-manager");
+                      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
                   />
                 </div>
               )}
