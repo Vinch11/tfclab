@@ -176,7 +176,7 @@ export default function RunningProfilePage() {
       vlamaxValue: vlamaxEffectif.value,
       economyLevel: effectiveCloudSnapshot?.run_economy_label ?? null,
       tteMin: tteEffectif.tte_min,
-      fatiguePct: fatigueResult.score,
+      fatiguePct: fatigueResult?.score ?? 40, // Fallback si fatigueResult est undefined
       tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
       runLoad7d: null,
       age: athleteAge,

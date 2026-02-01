@@ -193,7 +193,7 @@ export interface ComputeFatigueParams {
   tss7dHabituel?: number | null;     // Charge habituelle de référence (si disponible)
   fatiguePercue?: number | null;     // NEW: Fatigue perçue (1-10, 1=frais, 10=épuisé)
   tteEffectif: TTEEffectif;
-  raceReadiness: RaceReadinessEffectif;
+  raceReadiness?: RaceReadinessEffectif | null;  // NULLABLE: peut être null si pas encore calculé
   vlamaxEffectif?: VLamaxEffectif | null;
   age?: number | null;
   objectif: string;
@@ -339,8 +339,13 @@ function computeFatiguePercueIndex(
  * Combiné avec la fraîcheur métabolique du Race Readiness
  */
 function computeFraicheurIndex(
-  raceReadiness: RaceReadinessEffectif
+  raceReadiness: RaceReadinessEffectif | null | undefined
 ): { index: number; confidence: number } {
+  // Gestion robuste si raceReadiness est null/undefined
+  if (!raceReadiness || raceReadiness.score == null) {
+    return { index: 50, confidence: 0.3 }; // Valeur neutre
+  }
+
   const rr = raceReadiness.score;
 
   // Inverse : RR élevé = fatigue basse
