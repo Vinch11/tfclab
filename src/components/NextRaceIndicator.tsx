@@ -23,6 +23,7 @@ interface NextRaceIndicatorProps {
   currentGoal: string | null;
   className?: string;
   compact?: boolean;
+  onClick?: () => void;
 }
 
 export function NextRaceIndicator({
@@ -30,6 +31,7 @@ export function NextRaceIndicator({
   currentGoal,
   className,
   compact = false,
+  onClick,
 }: NextRaceIndicatorProps) {
   // Trouver la prochaine course (future, triée par date)
   const nextRace = useMemo(() => {
@@ -82,7 +84,14 @@ export function NextRaceIndicator({
 
   if (compact) {
     return (
-      <div className={cn("flex items-center gap-1.5", className)}>
+      <button
+        onClick={onClick}
+        className={cn(
+          "flex items-center gap-1.5 transition-opacity hover:opacity-80 cursor-pointer",
+          className
+        )}
+        title="Voir les détails de l'objectif"
+      >
         <Badge variant="outline" className={cn("text-xs gap-1 border", urgencyBg)}>
           <Timer className={cn("h-3 w-3", urgencyColor)} />
           <span className={cn("font-semibold", urgencyColor)}>J-{daysRemaining}</span>
@@ -90,7 +99,7 @@ export function NextRaceIndicator({
         <span className="text-xs text-muted-foreground truncate max-w-[120px]" title={raceName}>
           {raceName}
         </span>
-      </div>
+      </button>
     );
   }
 
