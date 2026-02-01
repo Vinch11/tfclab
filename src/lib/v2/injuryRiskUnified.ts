@@ -255,9 +255,14 @@ function computeCAPEconomyComponent(level: string | null): { component: number; 
 /**
  * Fatigue_factor (basé sur Fatigue Quantifiée TFCL™)
  * Score direct de 0-100
+ * Gestion robuste des valeurs null/undefined/NaN
  */
-function computeFatigueComponent(fatiguePct: number): number {
-  // La fatigue est déjà sur 0-100, on la renvoie directement
+function computeFatigueComponent(fatiguePct: number | null | undefined): number {
+  // Valeur par défaut si null/undefined/NaN
+  if (fatiguePct == null || !Number.isFinite(fatiguePct)) {
+    return 40; // Valeur neutre par défaut
+  }
+  // La fatigue est déjà sur 0-100, on la renvoie clampée
   return clamp(fatiguePct, 0, 100);
 }
 
