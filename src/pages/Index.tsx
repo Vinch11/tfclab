@@ -52,7 +52,7 @@ import { computeEnergyDrift, EnergyDriftResult } from "@/lib/energyDrift";
 import { EnergyDriftBadge } from "@/components/EnergyDriftBadge";
 import { DashboardGauges } from "@/components/DashboardGauges";
 import { StaffDashboard } from "@/components/StaffDashboard";
-import { ScientificChartsDashboard, MetabolicPerformanceCompass, AmbitionProgressChart, AmbitionProgressMini, CompactMetricsGrid, CarbBurnRateChart, MetabolicPowerCurve } from "@/components/charts";
+import { ScientificChartsDashboard, MetabolicPerformanceCompass, MetabolicCompassCAP, AmbitionProgressChart, AmbitionProgressMini, CompactMetricsGrid, CarbBurnRateChart, MetabolicPowerCurve } from "@/components/charts";
 import { ChargeRecenteCard } from "@/components/ChargeRecenteCard";
 import { computeCRR } from "@/lib/chargeRecenteReference";
 import { RaceReadinessV2Module } from "@/components/RaceReadinessV2Module";
@@ -1892,21 +1892,45 @@ const Index = () => {
           {
             id: "compass",
             render: () => currentAthlete && (
-              <MetabolicPerformanceCompass
-                data={{
-                  vlamaxEffectif: vlamaxEffectif,
-                  tteEffectif: tteEffectif,
-                  ftp: effectiveRefs.ftp,
-                  poids: effectiveRefs.weightKg,
-                  tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
-                  snapshotDate: effectiveCloudSnapshot?.date ?? null,
-                  snapshotUpdatedAt: effectiveCloudSnapshot?.updated_at ?? null,
-                  objectif: currentAthlete.goal || "IM",
-                  ambition: currentAmbition,
-                  athleteAge: currentAthlete?.birth_date ? calculateAge(currentAthlete.birth_date) : null,
-                }}
-                staffMode={staffMode}
-              />
+              isRunningOnly ? (
+                <MetabolicCompassCAP
+                  data={{
+                    vo2max: effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null,
+                    vma: effectiveCloudSnapshot?.vma ?? null,
+                    vlamaxCap: vlamaxEffectif.value,
+                    paceThresholdSecPerKm: effectiveCloudSnapshot?.pace_threshold_sec_per_km ?? null,
+                    paceEnduranceSecPerKm: effectiveCloudSnapshot?.run_pace_ref_sec_per_km ?? null,
+                    tteMin: tteEffectif.tte_min,
+                    hrDriftPct: effectiveCloudSnapshot?.run_hr_drift_pct ?? null,
+                    economyIndex: effectiveCloudSnapshot?.run_economy_score ?? null,
+                    economyLevel: effectiveCloudSnapshot?.run_economy_label ?? null,
+                    fcMax: effectiveRefs.fcMax ?? null,
+                    fcEndurance: effectiveCloudSnapshot?.run_hr_ref_bpm ?? null,
+                    sprint15sDistance: effectiveCloudSnapshot?.sprint_15s_distance ?? null,
+                    runningPowerMax: effectiveCloudSnapshot?.running_power_max ?? null,
+                    objectif: raceType || currentAthlete.goal || "Marathon",
+                    ambition: currentAmbition,
+                    athleteAge: currentAthlete?.birth_date ? calculateAge(currentAthlete.birth_date) : null,
+                  }}
+                  staffMode={staffMode}
+                />
+              ) : (
+                <MetabolicPerformanceCompass
+                  data={{
+                    vlamaxEffectif: vlamaxEffectif,
+                    tteEffectif: tteEffectif,
+                    ftp: effectiveRefs.ftp,
+                    poids: effectiveRefs.weightKg,
+                    tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
+                    snapshotDate: effectiveCloudSnapshot?.date ?? null,
+                    snapshotUpdatedAt: effectiveCloudSnapshot?.updated_at ?? null,
+                    objectif: currentAthlete.goal || "IM",
+                    ambition: currentAmbition,
+                    athleteAge: currentAthlete?.birth_date ? calculateAge(currentAthlete.birth_date) : null,
+                  }}
+                  staffMode={staffMode}
+                />
+              )
             ),
           },
           {
