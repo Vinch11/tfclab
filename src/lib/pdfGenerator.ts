@@ -2,10 +2,9 @@
  * PDF Generator Utility
  * Uses jsPDF + html2canvas for reliable cross-platform PDF generation
  * Especially important for iOS Safari compatibility
+ * 
+ * NOTE: Libraries are dynamically imported to reduce initial bundle size
  */
-
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 
 export interface PDFGeneratorOptions {
   filename: string;
@@ -14,6 +13,10 @@ export interface PDFGeneratorOptions {
   scale?: number;
   onProgress?: (progress: number) => void;
 }
+
+// Dynamic imports to reduce bundle size
+const getJsPDF = () => import("jspdf").then((m) => m.default);
+const getHtml2Canvas = () => import("html2canvas").then((m) => m.default);
 
 /**
  * Generate PDF from HTML string
@@ -29,6 +32,12 @@ export async function generatePDFFromHTML(
     scale = 2,
     onProgress,
   } = options;
+
+  // Dynamically load libraries
+  const [jsPDF, html2canvas] = await Promise.all([
+    getJsPDF(),
+    getHtml2Canvas(),
+  ]);
 
   // Create temporary container
   const container = document.createElement("div");
@@ -93,7 +102,6 @@ export async function generatePDFFromHTML(
     // Handle multi-page content
     let heightLeft = imgHeight;
     let position = 0;
-    let pageNum = 1;
 
     pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
     heightLeft -= pageHeight;
@@ -103,7 +111,6 @@ export async function generatePDFFromHTML(
       pdf.addPage();
       pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
-      pageNum++;
     }
 
     onProgress?.(90);

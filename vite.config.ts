@@ -46,7 +46,7 @@ export default defineConfig(({ mode }) => ({
         ]
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10MB pour accommoder les librairies PDF
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,woff,ttf,json}"]
 ,
         navigateFallback: "/index.html",
