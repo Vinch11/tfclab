@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { PDFPreviewPanel } from "./PDFPreviewPanel";
 import { exportHTMLToPDF } from "@/lib/pdfGenerator";
+import { openPrintableHTML, isIOSDevice } from "@/lib/openPrintableHTML";
 import type { DbAthlete, DbSnapshot, DbTest, DbCheckin } from "@/hooks/useCloudData";
 // ✅ NEW: Import Calibration Layer
 import { 
@@ -6702,8 +6703,9 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
     if (isExporting) return;
     setIsExporting(true);
     
-    const toastId = toast.loading("Génération du PDF en cours...", {
-      description: "Cela peut prendre quelques secondes."
+    const isIOS = isIOSDevice();
+    const toastId = toast.loading(isIOS ? "Ouverture de la version imprimable..." : "Génération du PDF en cours...", {
+      description: isIOS ? "Un nouvel onglet va s’ouvrir." : "Cela peut prendre quelques secondes."
     });
     
     try {
@@ -6717,19 +6719,34 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       
       const html = buildStaffGradeReportHTML(payload, logoBase64, exportOptions, calibrationEvidences);
       const fileName = `rapport-staff-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`;
-      
-      await exportHTMLToPDF(html, {
-        filename: fileName,
-        orientation: "portrait",
-        format: "a4",
-        scale: 2,
-      });
-      
-      toast.success("PDF généré avec succès !", {
-        id: toastId,
-        description: "Le rapport a été téléchargé.",
-        duration: 5000
-      });
+
+      if (isIOS) {
+        // iOS: prefer HTML printable (more reliable than canvas-based PDF → avoids blank PDFs)
+        openPrintableHTML(html, {
+          filenameHint: fileName,
+          includeInstructions: true,
+          autoPrint: false,
+        });
+
+        toast.success("Version imprimable ouverte", {
+          id: toastId,
+          description: "Dans l’onglet : Partager → Imprimer → Enregistrer en PDF.",
+          duration: 6000,
+        });
+      } else {
+        await exportHTMLToPDF(html, {
+          filename: fileName,
+          orientation: "portrait",
+          format: "a4",
+          scale: 2,
+        });
+
+        toast.success("PDF généré avec succès !", {
+          id: toastId,
+          description: "Le rapport a été téléchargé.",
+          duration: 5000,
+        });
+      }
     } catch (error) {
       console.error("Erreur lors de l'export PDF:", error);
       toast.error("Erreur d'export", { 
@@ -6750,27 +6767,42 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
     if (isExporting) return;
     setIsExporting(true);
     
-    const toastId = toast.loading("Génération du PDF Athlète...", {
-      description: "Préparation du rapport simplifié."
+    const isIOS = isIOSDevice();
+    const toastId = toast.loading(isIOS ? "Ouverture du rapport imprimable..." : "Génération du PDF Athlète...", {
+      description: isIOS ? "Un nouvel onglet va s’ouvrir." : "Préparation du rapport simplifié."
     });
     
     try {
       const logoBase64 = await imageToBase64(logoUrl);
       const html = buildAthleteReportHTML(payload, logoBase64);
       const fileName = `mon-etat-de-forme-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`;
-      
-      await exportHTMLToPDF(html, {
-        filename: fileName,
-        orientation: "portrait",
-        format: "a4",
-        scale: 2,
-      });
-      
-      toast.success("PDF Athlète généré !", {
-        id: toastId,
-        description: "Un rapport simplifié et encourageant.",
-        duration: 5000
-      });
+
+      if (isIOS) {
+        openPrintableHTML(html, {
+          filenameHint: fileName,
+          includeInstructions: true,
+          autoPrint: false,
+        });
+
+        toast.success("Rapport ouvert", {
+          id: toastId,
+          description: "Dans l’onglet : Partager → Imprimer → Enregistrer en PDF.",
+          duration: 6000,
+        });
+      } else {
+        await exportHTMLToPDF(html, {
+          filename: fileName,
+          orientation: "portrait",
+          format: "a4",
+          scale: 2,
+        });
+
+        toast.success("PDF Athlète généré !", {
+          id: toastId,
+          description: "Un rapport simplifié et encourageant.",
+          duration: 5000,
+        });
+      }
     } catch (error) {
       console.error("Erreur lors de l'export Athlète:", error);
       toast.error("Erreur d'export", { 
