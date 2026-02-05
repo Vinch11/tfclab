@@ -7,11 +7,12 @@ import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { FileText, AlertCircle, Settings2, Eye, ChevronRight } from "lucide-react";
+import { FileText, AlertCircle, Settings2, Eye, ChevronRight, Loader2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { PDFPreviewPanel } from "./PDFPreviewPanel";
+import { exportHTMLToPDF } from "@/lib/pdfGenerator";
 import type { DbAthlete, DbSnapshot, DbTest, DbCheckin } from "@/hooks/useCloudData";
 // ✅ NEW: Import Calibration Layer
 import { 
@@ -6690,11 +6691,20 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
   const payload = buildExportPayload(athlete, snapshots, tests, checkins, ambition);
   const exportCheck = canExport(payload);
 
+  const [isExporting, setIsExporting] = useState(false);
+
   const handleExportPDF = async () => {
     if (!exportCheck.ok) {
       toast.error("Export impossible", { description: exportCheck.reason });
       return;
     }
+    
+    if (isExporting) return;
+    setIsExporting(true);
+    
+    const toastId = toast.loading("Génération du PDF en cours...", {
+      description: "Cela peut prendre quelques secondes."
+    });
     
     try {
       // Convert logo to base64 for embedding in the PDF
@@ -6706,63 +6716,28 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       };
       
       const html = buildStaffGradeReportHTML(payload, logoBase64, exportOptions, calibrationEvidences);
+      const fileName = `rapport-staff-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`;
       
-      // Méthode alternative sans popup: créer un blob et télécharger
-      const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
+      await exportHTMLToPDF(html, {
+        filename: fileName,
+        orientation: "portrait",
+        format: "a4",
+        scale: 2,
+      });
       
-      // Créer un lien de téléchargement
-      const fileName = `rapport-staff-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.html`;
-      
-      // Détecter iOS Safari
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-      
-      if (isIOS) {
-        // Sur iOS: ouvrir directement le HTML dans un nouvel onglet 
-        // C'est la méthode la plus fiable car:
-        // 1. navigator.share avec fichiers HTML ne fonctionne pas toujours
-        // 2. Le téléchargement direct peut être bloqué
-        // L'utilisateur peut ensuite utiliser le bouton Partage natif de Safari
-        
-        // Créer une nouvelle fenêtre et y écrire le HTML directement
-        const newWindow = window.open('', '_blank');
-        if (newWindow) {
-          newWindow.document.write(html);
-          newWindow.document.close();
-          toast.success("Rapport ouvert", {
-            description: "Utilisez l'icône Partage (⎙) puis 'Imprimer' ou 'Enregistrer en PDF'.",
-            duration: 6000
-          });
-        } else {
-          // Fallback si popup bloquée - utiliser data URI
-          const dataUri = 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
-          window.location.href = dataUri;
-          toast.info("Rapport affiché", {
-            description: "Utilisez le bouton Partage pour sauvegarder.",
-            duration: 6000
-          });
-        }
-      } else {
-        // Desktop et Android: téléchargement direct
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        toast.success("Rapport téléchargé", {
-          description: "Ouvrez le fichier HTML et utilisez Imprimer > Enregistrer en PDF."
-        });
-      }
-      
-      // Nettoyer l'URL blob après un délai
-      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      toast.success("PDF généré avec succès !", {
+        id: toastId,
+        description: "Le rapport a été téléchargé.",
+        duration: 5000
+      });
     } catch (error) {
       console.error("Erreur lors de l'export PDF:", error);
       toast.error("Erreur d'export", { 
+        id: toastId,
         description: error instanceof Error ? error.message : "Une erreur est survenue lors de la génération du rapport." 
       });
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -6772,56 +6747,38 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       return;
     }
     
+    if (isExporting) return;
+    setIsExporting(true);
+    
+    const toastId = toast.loading("Génération du PDF Athlète...", {
+      description: "Préparation du rapport simplifié."
+    });
+    
     try {
       const logoBase64 = await imageToBase64(logoUrl);
       const html = buildAthleteReportHTML(payload, logoBase64);
+      const fileName = `mon-etat-de-forme-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`;
       
-      const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
+      await exportHTMLToPDF(html, {
+        filename: fileName,
+        orientation: "portrait",
+        format: "a4",
+        scale: 2,
+      });
       
-      const fileName = `mon-etat-de-forme-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.html`;
-      
-      // Détecter iOS Safari
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      
-      if (isIOS) {
-        // Sur iOS: ouvrir directement le HTML dans un nouvel onglet 
-        const newWindow = window.open('', '_blank');
-        if (newWindow) {
-          newWindow.document.write(html);
-          newWindow.document.close();
-          toast.success("Rapport ouvert", {
-            description: "Utilisez l'icône Partage (⎙) puis 'Imprimer' ou 'Enregistrer en PDF'.",
-            duration: 6000
-          });
-        } else {
-          // Fallback si popup bloquée - utiliser data URI
-          const dataUri = 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
-          window.location.href = dataUri;
-          toast.info("Rapport affiché", {
-            description: "Utilisez le bouton Partage pour sauvegarder.",
-            duration: 6000
-          });
-        }
-      } else {
-        // Desktop et Android: téléchargement direct
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        toast.success("Rapport Athlète téléchargé", {
-          description: "Un rapport simplifié et encourageant pour l'athlète."
-        });
-      }
-      
-      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      toast.success("PDF Athlète généré !", {
+        id: toastId,
+        description: "Un rapport simplifié et encourageant.",
+        duration: 5000
+      });
     } catch (error) {
       console.error("Erreur lors de l'export Athlète:", error);
       toast.error("Erreur d'export", { 
+        id: toastId,
         description: error instanceof Error ? error.message : "Une erreur est survenue lors de la génération du rapport." 
       });
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -6925,9 +6882,14 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
                   variant="default"
                   size="sm"
                   onClick={handleExportPDF}
+                  disabled={isExporting}
                   className="w-full justify-start gap-3 h-auto py-2.5"
                 >
-                  <Shield className="h-4 w-4" />
+                  {isExporting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Shield className="h-4 w-4" />
+                  )}
                   <div className="text-left flex-1">
                     <div className="font-medium text-sm">Rapport Staff</div>
                     <div className="text-[10px] opacity-80">Complet, technique, pour le coach</div>
@@ -6939,9 +6901,14 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
                   variant="outline"
                   size="sm"
                   onClick={handleExportAthletePDF}
+                  disabled={isExporting}
                   className="w-full justify-start gap-3 h-auto py-2.5"
                 >
-                  <User className="h-4 w-4 text-primary" />
+                  {isExporting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <User className="h-4 w-4 text-primary" />
+                  )}
                   <div className="text-left flex-1">
                     <div className="font-medium text-sm">Rapport Athlète</div>
                     <div className="text-[10px] text-muted-foreground">Simple, encourageant</div>
@@ -6991,10 +6958,15 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
                 variant="default"
                 size="sm"
                 onClick={handleExportPDF}
+                disabled={isExporting}
                 className="w-full gap-2"
               >
-                <FileText className="h-4 w-4" />
-                Générer le rapport Staff
+                {isExporting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <FileText className="h-4 w-4" />
+                )}
+                {isExporting ? "Génération en cours..." : "Générer le rapport Staff"}
               </Button>
             </TabsContent>
           </Tabs>
