@@ -190,9 +190,9 @@ function ImpactSummaryCard({ impact }: { impact: ImpactSummary }) {
         ))}
         
         <div className="flex items-center gap-2 pt-2 border-t">
-          <span className="text-xs text-muted-foreground">Confiance globale:</span>
+          <span className="text-xs text-muted-foreground">Fiabilité:</span>
           <Badge variant={impact.overallConfidence >= 70 ? "default" : "secondary"}>
-            {impact.overallConfidence}%
+            {impact.overallConfidence >= 70 ? "Élevée" : impact.overallConfidence >= 50 ? "Modérée" : "Limitée"}
           </Badge>
           {impact.overallConfidence < 60 && (
             <span className="text-[10px] text-amber-600">
@@ -258,8 +258,8 @@ function DiffReasonDialog({
           
           {/* Confidence */}
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span>Confiance:</span>
-            <Badge variant="secondary">{Math.round(diff.confidence * 100)}%</Badge>
+            <span>Fiabilité:</span>
+            <Badge variant="secondary">{diff.confidence >= 0.7 ? "Élevée" : diff.confidence >= 0.5 ? "Modérée" : "Limitée"}</Badge>
           </div>
         </div>
       </DialogContent>
@@ -350,7 +350,7 @@ export function PlanComparisonView({
               {diffMap.length} modification{diffMap.length > 1 ? "s" : ""}
             </Badge>
             <Badge variant="outline">
-              Confiance: {impactSummary.overallConfidence}%
+              Fiabilité: {impactSummary.overallConfidence >= 70 ? "Élevée" : impactSummary.overallConfidence >= 50 ? "Modérée" : "Limitée"}
             </Badge>
             <Badge variant="outline" className="text-amber-600 border-amber-300">
               ⚠️ Simulation uniquement

@@ -395,9 +395,9 @@ export function TestExecutionSheet({ test, athlete, onClose, onSave }: TestExecu
                       <div className="text-center p-3 rounded-lg bg-muted/50">
                         <BadgeCheck className={`w-5 h-5 mx-auto mb-1 ${getConfidenceLabel(computedResult.confidence).color}`} />
                         <div className="text-sm font-medium">
-                          {(computedResult.confidence * 100).toFixed(0)}%
+                          {computedResult.confidence >= 0.7 ? "Fiable" : computedResult.confidence >= 0.5 ? "Modéré" : "Prudence"}
                         </div>
-                        <div className="text-xs text-muted-foreground">Confiance</div>
+                        <div className="text-xs text-muted-foreground">Fiabilité</div>
                       </div>
                       <div className="text-center p-3 rounded-lg bg-muted/50">
                         <Target className="w-5 h-5 mx-auto mb-1 text-purple-500" />

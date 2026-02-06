@@ -527,7 +527,7 @@ export function AssistantDrawer({
                       {item.status && getStatusIcon(item.status)}
                       {item.confidence !== undefined && (
                         <span className="text-[10px] text-muted-foreground">
-                          ({(item.confidence * 100).toFixed(0)}%)
+                          {item.confidence >= 0.7 ? "Fiable" : item.confidence >= 0.5 ? "Modéré" : "Limité"}
                         </span>
                       )}
                     </div>

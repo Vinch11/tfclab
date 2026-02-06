@@ -70,7 +70,7 @@ export function VLamaxExplanationCard({ isStaffMode = false, compact = false }: 
                       VLamax mesurée (lactate)
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Confiance ~95% • Mode Staff uniquement • Verrouille la valeur
+                      🧪 Référence absolue • Mode Staff uniquement • Verrouille la valeur
                     </p>
                   </div>
                 </div>
@@ -85,7 +85,7 @@ export function VLamaxExplanationCard({ isStaffMode = false, compact = false }: 
                       Test terrain structuré
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Confiance ~75% • Sprint 15s, all-out, ramp test
+                      🏃 Donnée terrain • Sprint 15s, all-out, ramp test
                     </p>
                   </div>
                 </div>
@@ -100,7 +100,7 @@ export function VLamaxExplanationCard({ isStaffMode = false, compact = false }: 
                       Estimation via snapshot
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Confiance ~55% • Basée sur FTP/kg et Pmax
+                      📐 Estimation indirecte • Basée sur FTP/kg et Pmax
                     </p>
                   </div>
                 </div>
@@ -112,7 +112,7 @@ export function VLamaxExplanationCard({ isStaffMode = false, compact = false }: 
                   <div>
                     <p className="text-sm font-medium">Valeur par défaut</p>
                     <p className="text-xs text-muted-foreground">
-                      Confiance faible • Avertissement affiché
+                      ❓ Données insuffisantes • Avertissement affiché
                     </p>
                   </div>
                 </div>

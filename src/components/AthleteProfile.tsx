@@ -386,8 +386,8 @@ export function AthleteProfile({
                       <p className="text-2xl font-bold font-mono text-primary">{tte}<span className="text-sm text-muted-foreground ml-1">min</span></p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-muted-foreground">Confiance données</p>
-                      <p className="text-2xl font-bold font-mono text-success">{Math.round(confiance * 100)}<span className="text-sm text-muted-foreground ml-1">%</span></p>
+                      <p className="text-sm text-muted-foreground">Source VLamax</p>
+                      <p className="text-lg font-medium text-foreground">{vlamaxEffectif?.source === "test" ? "🧪 Test" : vlamaxEffectif?.source === "snapshot" ? "📋 Snapshot" : "📐 Estimation"}</p>
                     </div>
                   </div>
                 </div>

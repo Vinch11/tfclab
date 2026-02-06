@@ -544,11 +544,11 @@ export function NutritionPredictive({
           </>
         )}
 
-        {/* Confidence (mode staff) */}
+        {/* Source info (mode staff) */}
         {staffMode && confidence !== undefined && (
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Info className="w-3 h-3" />
-            <span>Confiance VLamax source : {Math.round(confidence * 100)}%</span>
+            <span>VLamax source : {confidence >= 0.7 ? "🧪 Test fiable" : confidence >= 0.5 ? "🏃 Terrain" : "📐 Estimation"}</span>
           </div>
         )}
 

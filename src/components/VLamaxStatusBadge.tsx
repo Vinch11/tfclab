@@ -205,10 +205,10 @@ export function VLamaxStatusBadge({
               <span className="font-medium">{vlamax.label}</span>
             </div>
             <div className="flex items-center gap-2 text-sm">
-              {getConfidenceIcon(vlamax.confidence, "h-4 w-4")}
-              <span className="text-muted-foreground">Confiance:</span>
-              <span className={getConfidenceColor(vlamax.confidence)}>
-                {Math.round(vlamax.confidence * 100)}% ({getConfidenceLabel(vlamax.confidence)})
+              {getSourceIcon(vlamax.source, "h-4 w-4")}
+              <span className="text-muted-foreground">Source:</span>
+              <span className={getSourceColor(vlamax.source)}>
+                {getSourceLabel(vlamax.source)}
               </span>
             </div>
             {detailsText && (
@@ -257,16 +257,6 @@ export function VLamaxCardDisplay({
       </div>
       {showConfidenceBar && (
         <div className="space-y-1">
-          <div className="h-1.5 rounded-full bg-muted/30 overflow-hidden">
-            <div 
-              className={cn(
-                "h-full rounded-full transition-all duration-500",
-                vlamax.confidence >= 0.6 ? "bg-emerald-500" : 
-                vlamax.confidence >= 0.4 ? "bg-amber-500" : "bg-red-500"
-              )}
-              style={{ width: `${vlamax.confidence * 100}%` }}
-            />
-          </div>
           <div className="flex items-center justify-between text-xs">
             <span className={cn(
               "px-1.5 py-0.5 rounded",
@@ -274,9 +264,6 @@ export function VLamaxCardDisplay({
               getSourceColor(vlamax.source)
             )}>
               {getSourceLabel(vlamax.source)}
-            </span>
-            <span className={getConfidenceColor(vlamax.confidence)}>
-              {getConfidenceLabel(vlamax.confidence)}
             </span>
           </div>
         </div>
@@ -303,10 +290,6 @@ export function VLamaxMetricRow({ vlamax, className }: VLamaxMetricRowProps) {
       <span className="font-mono font-bold">{formatVLamaxValue(vlamax.value)}</span>
       <span className={cn("px-2 py-0.5 rounded text-xs", getSourceBgColor(vlamax.source), getSourceColor(vlamax.source))}>
         {getSourceLabel(vlamax.source)}
-      </span>
-      <span className="text-muted-foreground">•</span>
-      <span className={cn("text-xs", getConfidenceColor(vlamax.confidence))}>
-        conf {Math.round(vlamax.confidence * 100)}%
       </span>
     </div>
   );

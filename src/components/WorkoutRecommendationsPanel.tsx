@@ -188,11 +188,9 @@ Indices liés: ${recommendation.linked_indices.join(", ")}
               </div>
             )}
 
-            {/* Confiance */}
+            {/* Source */}
             <div className="flex items-center gap-2 text-xs">
-              <span className="text-muted-foreground">Confiance:</span>
-              <Progress value={recommendation.confidence * 100} className="h-1.5 w-20" />
-              <span className="font-mono">{Math.round(recommendation.confidence * 100)}%</span>
+              <span className="text-muted-foreground">Basé sur: données {recommendation.confidence >= 0.7 ? "fiables" : recommendation.confidence >= 0.5 ? "modérées" : "limitées"}</span>
             </div>
 
             {/* Bouton Assistant */}

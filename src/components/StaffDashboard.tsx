@@ -387,20 +387,10 @@ export function StaffDashboard({
                 </span>
               </div>
               <div className="flex items-center gap-1">
-                <span className="text-muted-foreground">Confiance:</span>
-                <div className="flex items-center gap-0.5">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star 
-                      key={i} 
-                      className={cn(
-                        "h-3 w-3",
-                        i <= Math.round(vlamaxEffectif.confidence * 5) 
-                          ? "text-amber-500 fill-amber-500" 
-                          : "text-muted-foreground/30"
-                      )} 
-                    />
-                  ))}
-                </div>
+                <span className="text-muted-foreground">Source:</span>
+                <span className={getSourceColor(vlamaxEffectif.source)}>
+                  {vlamaxEffectif.label}
+                </span>
               </div>
             </div>
             
@@ -457,8 +447,8 @@ export function StaffDashboard({
                 </span>
               </div>
               <div className="flex items-center gap-1">
-                <span className="text-muted-foreground">Confiance:</span>
-                <span>{getConfidenceLabel(tteEffectif.confidence)}</span>
+                <span className="text-muted-foreground">Source:</span>
+                <span>{getSourceLabel(tteEffectif.source)}</span>
               </div>
             </div>
             
@@ -718,8 +708,8 @@ export function StaffDashboard({
               <Separator className="my-2" />
               <p className="italic">
                 {snapshotDate ? `Profil du ${snapshotDate}` : "Pas de profil"} • 
-                VLamax: {vlamaxEffectif.source} ({Math.round(vlamaxEffectif.confidence * 100)}%) • 
-                TTE: {tteEffectif.source} ({Math.round(tteEffectif.confidence * 100)}%)
+                VLamax: {vlamaxEffectif.source} • 
+                TTE: {tteEffectif.source}
               </p>
             </div>
           )}

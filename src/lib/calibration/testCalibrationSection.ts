@@ -136,14 +136,14 @@ export function generateTestCalibrationPDFText(section: TestCalibrationSection):
     lines.push("");
   }
   
-  // Confiance
+  // Cohérence
   const confLabel = section.globalConfidence >= 0.80 
     ? "cohérence élevée" 
     : section.globalConfidence >= 0.60 
       ? "cohérence modérée" 
       : "lecture prudente";
   
-  lines.push(`Confiance globale : ${(section.globalConfidence * 100).toFixed(0)}% (${confLabel})`);
+  lines.push(`Cohérence globale : ${confLabel}`);
   lines.push("");
   
   // Avertissement

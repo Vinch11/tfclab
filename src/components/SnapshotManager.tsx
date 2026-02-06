@@ -424,7 +424,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
               className="border-primary/50"
             />
             <p className="text-xs text-primary mt-1">
-              ✓ Verrouille la VLamax (confiance 95%)
+              ✓ Verrouille la VLamax (source: test labo)
             </p>
           </div>
         ) : (
@@ -455,7 +455,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         )}
 
         <div>
-          <Label htmlFor="confidence">Confiance (0-1)</Label>
+          <Label htmlFor="confidence">Niveau de fiabilité (0-1)</Label>
           <Input
             id="confidence"
             type="number"
@@ -712,7 +712,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                     Source: <b className="text-foreground">{getSourceLabel(tte.source)}</b>
                   </span>
                   <span className={`px-2 py-1 rounded border ${tte.confidence < 0.6 ? "bg-warning/10 border-warning/50" : "bg-background border-border"}`}>
-                    Confiance: <b className="text-foreground">{Math.round(tte.confidence * 100)}%</b>
+                    Fiabilité: <b className="text-foreground">{tte.confidence >= 0.7 ? "Élevée" : tte.confidence >= 0.5 ? "Modérée" : "Limitée"}</b>
                   </span>
                 </div>
                 {isIncomplete && (
@@ -1022,7 +1022,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                 className="border-primary/50 mt-1"
               />
               <p className="text-xs text-primary mt-1">
-                ✓ Verrouille la VLamax CAP (confiance 95%)
+                ✓ Verrouille la VLamax CAP (source: test labo)
               </p>
             </div>
           )}
@@ -1076,25 +1076,22 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
             const estimate = estimateVLamaxCap(estimationInput);
             const sourcesDescription = getEstimationSourcesDescription(estimate);
             
-            // Couleur selon confiance
-            const confidencePct = Math.round(estimate.confidence * 100);
-            let confidenceColor = "text-muted-foreground";
-            let confidenceBg = "bg-muted/30";
-            let confidenceIcon = "⚠️";
-            
-            if (confidencePct >= 70) {
-              confidenceColor = "text-green-600 dark:text-green-400";
-              confidenceBg = "bg-green-500/10";
-              confidenceIcon = "✅";
-            } else if (confidencePct >= 50) {
-              confidenceColor = "text-blue-600 dark:text-blue-400";
-              confidenceBg = "bg-blue-500/10";
-              confidenceIcon = "✔️";
-            } else if (confidencePct >= 35) {
-              confidenceColor = "text-amber-600 dark:text-amber-400";
-              confidenceBg = "bg-amber-500/10";
-              confidenceIcon = "⚠️";
-            }
+            // Icône/label selon source
+            const sourceLabel = estimate.confidence >= 0.70 
+              ? "🏃 Test terrain" 
+              : estimate.confidence >= 0.50 
+                ? "📐 Estimation fiable" 
+                : "⚠️ Estimation limitée";
+            const confidenceBg = estimate.confidence >= 0.70 
+              ? "bg-green-500/10" 
+              : estimate.confidence >= 0.50 
+                ? "bg-blue-500/10" 
+                : "bg-amber-500/10";
+            const confidenceColor = estimate.confidence >= 0.70 
+              ? "text-green-600 dark:text-green-400" 
+              : estimate.confidence >= 0.50 
+                ? "text-blue-600 dark:text-blue-400" 
+                : "text-amber-600 dark:text-amber-400";
             
             return (
               <div className={`mt-3 p-4 rounded-lg border border-border ${confidenceBg}`}>
@@ -1102,8 +1099,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                   <p className="text-sm font-medium">📊 Estimation VLamax CAP</p>
                   <div className="flex items-center gap-2">
                     <div className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium ${confidenceColor}`}>
-                      <span>{confidenceIcon}</span>
-                      <span>Confiance {confidencePct}%</span>
+                      <span>{sourceLabel}</span>
                     </div>
                     {/* Bouton Appliquer l'estimation - uniquement en mode Staff */}
                     {staffMode && (
@@ -1308,7 +1304,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                   Source TTE: <b className="text-foreground">{getSourceLabel(tteEff.source)}</b>
                 </span>
                 <span className="px-2 py-1 rounded bg-background border border-border">
-                  Confiance TTE: <b className="text-foreground">{Math.round(tteEff.confidence * 100)}%</b>
+                  Fiabilité TTE: <b className="text-foreground">{tteEff.confidence >= 0.7 ? "Élevée" : tteEff.confidence >= 0.5 ? "Modérée" : "Limitée"}</b>
                 </span>
               </div>
             </div>
