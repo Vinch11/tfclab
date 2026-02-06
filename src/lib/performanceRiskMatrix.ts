@@ -748,7 +748,7 @@ export const MATRIX_STAFF_ANALYSIS_TEMPLATE = (result: PerformanceRiskMatrixResu
 ### Position actuelle : ${before.position.zoneEmoji} ${before.position.zoneLabel}
 
 **Potentiel de performance** : ${performance.range.min}–${performance.range.max} /100 (${performance.bandLabel})
-Confiance : ${Math.round(performance.confidence * 100)}%
+Fiabilité : ${performance.confidence >= 0.8 ? "Élevée" : performance.confidence >= 0.6 ? "Modérée" : "Limitée"}
 
 **Fatigue** : ${fatigue.value}% ${fatigue.trendEmoji} — ${fatigue.zoneLabel}
 Contributeurs : ${fatigue.contributors.join(', ')}

@@ -95,7 +95,8 @@ export function generateAnalysisSummary(result: FitAnalysisResult): string {
   const lines: string[] = [];
 
   // Type de test
-  lines.push(`**Type de test:** ${formatTestType(result.testType.type)} (confiance: ${Math.round(result.testType.confidence * 100)}%)`);
+  const confLabel = result.testType.confidence >= 0.8 ? "élevée" : result.testType.confidence >= 0.6 ? "modérée" : "limitée";
+  lines.push(`**Type de test:** ${formatTestType(result.testType.type)} (fiabilité ${confLabel})`);
 
   // Best efforts
   const efforts: string[] = [];
