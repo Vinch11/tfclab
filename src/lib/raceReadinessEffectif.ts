@@ -168,6 +168,7 @@ export interface ConfidenceInterpretation {
 export interface RaceReadinessEffectif {
   score: number;                 // 0-100 (après plafonnement nutritionnel + économie)
   rawScore: number;              // Score avant plafonnement
+  isInsufficient: boolean;       // true si données critiques manquantes (VLamax, FTP, TTE)
   label: string;                 // "Race Ready!", "En progression", etc.
   color: "success" | "warning" | "destructive";
   details: RaceReadinessDetails;
@@ -500,7 +501,7 @@ export function getRaceWeights(objectif: string): RaceWeights {
  * Score VLamax: dans la plage cible = 100%, sinon pénalité linéaire
  */
 function scoreVLamax(vlamax: number | null, targets: RaceTargets): number {
-  if (vlamax === null) return 40; // score neutre si manquant
+  if (vlamax === null) return 0; // Pas de score fictif sans donnée
   
   // Dans la plage cible
   if (vlamax >= targets.vlamaxMin && vlamax <= targets.vlamaxMax) {
@@ -529,7 +530,7 @@ function scoreVLamax(vlamax: number | null, targets: RaceTargets): number {
  * Score TTE: >= target = 100%, sinon ratio proportionnel
  */
 function scoreTTE(tte: number | null, targets: RaceTargets): number {
-  if (tte === null) return 30; // score faible si manquant
+  if (tte === null) return 0; // Pas de score fictif sans donnée
   
   if (tte >= targets.tteTarget) {
     return 100;
@@ -543,7 +544,7 @@ function scoreTTE(tte: number | null, targets: RaceTargets): number {
  * Score FTP/kg: >= target = 100%, sinon ratio proportionnel
  */
 function scoreFtpKg(ftpKg: number | null, targets: RaceTargets): number {
-  if (ftpKg === null) return 40; // score neutre si manquant
+  if (ftpKg === null) return 0; // Pas de score fictif sans donnée
   
   if (ftpKg >= targets.ftpKgTarget) {
     // Cap à 110% pour ne pas survaloriser
@@ -994,9 +995,12 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
   const sport = getSportFromObjectif(objectif);
   const sportSpec = SPORT_SPECIFICITY[sport];
 
+  const isInsufficient = vlamax === null && tte === null && ftpKg === null;
+
   return {
     score: finalScore,
     rawScore: baseScore,
+    isInsufficient,
     label,
     color,
     details,

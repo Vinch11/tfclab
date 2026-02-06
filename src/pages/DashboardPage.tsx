@@ -775,45 +775,55 @@ export default function DashboardPage() {
               <Target className="h-5 w-5 text-green-500" />
               <span className="font-semibold">Race Readiness</span>
             </div>
-            {getStatusBadge(readinessStatus.status, readinessStatus.label)}
+            {!raceReadiness.isInsufficient && getStatusBadge(readinessStatus.status, readinessStatus.label)}
           </div>
           
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold font-mono">{raceReadiness.score}</span>
-            <span className="text-sm text-muted-foreground">%</span>
-          </div>
-          
-          <Progress 
-            value={raceReadiness.score} 
-            className="h-2" 
-          />
-          
-          <p className="text-xs text-muted-foreground italic">
-            Score pondéré selon l'objectif ({OBJECTIF_LABELS[objectif] || objectif})
-          </p>
-          
-          {/* Détail par composante */}
-          <div className="grid grid-cols-3 gap-2 text-xs">
-            <div className="p-2 bg-muted/50 rounded text-center">
-              <p className="text-muted-foreground">Métabolisme</p>
-              <p className="font-bold">{raceReadiness.details.vlamax}/25</p>
+          {raceReadiness.isInsufficient ? (
+            <div className="flex flex-col items-center justify-center py-4 text-muted-foreground">
+              <AlertTriangle className="w-8 h-8 mb-2 opacity-50" />
+              <p className="text-sm text-center">Données insuffisantes</p>
+              <p className="text-xs mt-1">Renseignez VLamax, FTP et/ou TTE pour obtenir un score</p>
             </div>
-            <div className="p-2 bg-muted/50 rounded text-center">
-              <p className="text-muted-foreground">Endurance</p>
-              <p className="font-bold">{raceReadiness.details.endurance}/25</p>
-            </div>
-            <div className="p-2 bg-muted/50 rounded text-center">
-              <p className="text-muted-foreground">Puissance</p>
-              <p className="font-bold">{raceReadiness.details.puissance}/25</p>
-            </div>
-          </div>
-          
-          <Separator />
-          
-          <p className="text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">Message : </span>
-            {raceReadiness.messageStaff}
-          </p>
+          ) : (
+            <>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold font-mono">{raceReadiness.score}</span>
+                <span className="text-sm text-muted-foreground">%</span>
+              </div>
+              
+              <Progress 
+                value={raceReadiness.score} 
+                className="h-2" 
+              />
+              
+              <p className="text-xs text-muted-foreground italic">
+                Score pondéré selon l'objectif ({OBJECTIF_LABELS[objectif] || objectif})
+              </p>
+              
+              {/* Détail par composante */}
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="p-2 bg-muted/50 rounded text-center">
+                  <p className="text-muted-foreground">Métabolisme</p>
+                  <p className="font-bold">{raceReadiness.details.vlamax}/25</p>
+                </div>
+                <div className="p-2 bg-muted/50 rounded text-center">
+                  <p className="text-muted-foreground">Endurance</p>
+                  <p className="font-bold">{raceReadiness.details.endurance}/25</p>
+                </div>
+                <div className="p-2 bg-muted/50 rounded text-center">
+                  <p className="text-muted-foreground">Puissance</p>
+                  <p className="font-bold">{raceReadiness.details.puissance}/25</p>
+                </div>
+              </div>
+              
+              <Separator />
+              
+              <p className="text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">Message : </span>
+                {raceReadiness.messageStaff}
+              </p>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>
