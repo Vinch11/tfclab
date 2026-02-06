@@ -361,7 +361,7 @@ export function computeVLamaxV2(input: VLamaxV2Input): VLamaxV2Result {
     detailParts.push(`EWMA α=${EWMA_ALPHA} appliqué`);
   }
   detailParts.push(`Effectif: ${effective.toFixed(2)} ± ${errorMargin.toFixed(2)}`);
-  detailParts.push(`Confiance: ${(confidence * 100).toFixed(0)}%`);
+  detailParts.push(`Fiabilité: ${confidence >= 0.8 ? 'Élevée' : confidence >= 0.6 ? 'Modérée' : confidence >= 0.4 ? 'Limitée' : 'Exploratoire'}`);
   if (sourceLabels.length > 0) {
     detailParts.push(`Sources: ${sourceLabels.join(", ")}`);
   }
