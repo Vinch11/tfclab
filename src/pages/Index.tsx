@@ -65,6 +65,7 @@ import { SortableSectionsContainer } from "@/components/SortableSectionsContaine
 
 // ✅ VLamax TFCL V2 - Calibration avec percentiles
 import { VLamaxV2DisplayCard } from "@/components/VLamaxV2DisplayCard";
+import { VLamaxZoneConfidenceChart } from "@/components/charts/VLamaxZoneConfidenceChart";
 import { VLamaxExplainedCard } from "@/components/VLamaxExplainedCard";
 import { VLamaxRunExplainedCard } from "@/components/VLamaxRunExplainedCard";
 import { VLamaxCombinedCard } from "@/components/VLamaxCombinedCard";
@@ -1157,6 +1158,13 @@ const Index = () => {
                   vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? undefined}
                   sex={legacyAthlete?.sexe === "F" ? "F" : "H"}
                   age={calculateAge(currentAthlete.birth_date) ?? undefined}
+                  staffMode={staffMode}
+                  v2Result={vlamaxEffectif.v2 ?? undefined}
+                />
+                {/* Graphique signature: Zone × Confiance */}
+                <VLamaxZoneConfidenceChart
+                  v2Result={vlamaxEffectif.v2 ?? null}
+                  sport={(effectiveCloudSnapshot as unknown as Record<string, unknown>)?.sport_main === "run" ? "cap" : "velo"}
                 />
                 {/* Analyse détaillée Vélo - repliée par défaut */}
                 {effectiveCloudSnapshot && (
