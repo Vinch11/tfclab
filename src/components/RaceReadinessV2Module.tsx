@@ -150,33 +150,134 @@ export function RaceReadinessV2Module({
           <div>
             <CardTitle className="text-lg flex items-center gap-2">
               <Target className="h-5 w-5 text-primary" />
-              Race Readiness TFCL™ V2
+              Race Readiness — Décision Coach
             </CardTitle>
             <CardDescription>
-              Potentiel × Disponibilité → Décision
+              Potentiel × Disponibilité → MIN = Décision
             </CardDescription>
           </div>
           <Badge 
             variant="outline" 
             className={cn("text-lg px-3 py-1", getRaceReadinessV2BadgeClass(result.readiness.category))}
           >
-            {result.readiness.categoryEmoji} {result.readiness.score}
+            {result.readiness.categoryEmoji} {result.readiness.categoryLabel}
           </Badge>
         </div>
       </CardHeader>
       
       <CardContent className="space-y-4">
-        {/* Onglets */}
+        {/* Deux blocs : Potentiel + Disponibilité */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* POTENTIEL */}
+          <div className="p-4 rounded-lg bg-muted/30 border">
+            <div className="flex items-center gap-2 mb-2">
+              <Zap className="h-5 w-5 text-primary" />
+              <span className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                Potentiel physiologique
+              </span>
+            </div>
+            <p className="text-xl font-bold">{result.potential.levelLabel}</p>
+            <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
+              <div 
+                className="h-full bg-primary rounded-full transition-all"
+                style={{ width: `${result.potential.score}%` }}
+              />
+            </div>
+            {result.potential.dominantLevers.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1">
+                {result.potential.dominantLevers.slice(0, 3).map((l, i) => (
+                  <Badge key={i} variant="secondary" className="text-[10px]">{l}</Badge>
+                ))}
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground mt-2">
+              Confiance : {(result.potential.confidence * 100).toFixed(0)}%
+              {result.potential.range && ` · Plage : ${result.potential.range[0]}–${result.potential.range[1]}`}
+            </p>
+          </div>
+          
+          {/* DISPONIBILITÉ */}
+          <div className="p-4 rounded-lg bg-muted/30 border">
+            <div className="flex items-center gap-2 mb-2">
+              <Battery className="h-5 w-5 text-primary" />
+              <span className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                Disponibilité actuelle
+              </span>
+            </div>
+            <p className="text-xl font-bold">{result.availability.levelLabel}</p>
+            <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
+              <div 
+                className="h-full bg-primary rounded-full transition-all"
+                style={{ width: `${result.availability.score}%` }}
+              />
+            </div>
+            {result.availability.factors.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1">
+                {result.availability.factors.slice(0, 3).map((f, i) => (
+                  <Badge key={i} variant="secondary" className="text-[10px]">{f}</Badge>
+                ))}
+              </div>
+            )}
+            {result.availability.alerts.length > 0 && (
+              <div className="mt-2 p-1.5 rounded bg-red-500/10 border border-red-500/30">
+                <p className="text-[10px] text-red-600 dark:text-red-400">
+                  {result.availability.alerts.join(' | ')}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Flèche visuelle : Disponibilité borne la décision */}
+        <div className="flex items-center justify-center gap-3 py-2">
+          <span className="text-xs text-muted-foreground">MIN(</span>
+          <Badge variant="outline" className="text-xs">
+            <Zap className="h-3 w-3 mr-1" />
+            {result.potential.levelLabel}
+          </Badge>
+          <span className="text-xs text-muted-foreground">,</span>
+          <Badge variant="outline" className="text-xs">
+            <Battery className="h-3 w-3 mr-1" />
+            {result.availability.levelLabel}
+          </Badge>
+          <span className="text-xs text-muted-foreground">)</span>
+          <ArrowRight className="h-4 w-4 text-primary" />
+          <Badge className={cn("text-xs", getRaceReadinessV2BadgeClass(result.readiness.category))}>
+            {result.readiness.categoryEmoji} {result.readiness.categoryLabel}
+          </Badge>
+        </div>
+        
+        {/* Message coach-centric */}
+        <div className={cn(
+          "p-4 rounded-lg border",
+          getRaceReadinessV2BadgeClass(result.readiness.category)
+        )}>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
+            Ce que tu peux décider aujourd'hui
+          </p>
+          <p className="text-sm font-medium">{result.readiness.coachMessage}</p>
+        </div>
+        
+        {/* Alertes */}
+        {(result.flags.healthAlert || result.flags.injuryRiskHigh || result.flags.fatigueCritical) && (
+          <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+            <ul className="text-xs text-red-600 dark:text-red-400 space-y-1">
+              {result.penalties.reasons.map((reason, i) => (
+                <li key={i}>⚠ {reason}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        
+        {/* Onglets détaillés */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="overview" className="text-xs">Vue</TabsTrigger>
             <TabsTrigger value="potential" className="text-xs">Potentiel</TabsTrigger>
-            <TabsTrigger value="availability" className="text-xs">Dispo</TabsTrigger>
-            <TabsTrigger value="decision" className="text-xs">Décision</TabsTrigger>
+            <TabsTrigger value="decision" className="text-xs">Pourquoi ?</TabsTrigger>
           </TabsList>
           
-          {/* Vue d'ensemble */}
-          <TabsContent value="overview" className="pt-4 space-y-4">
+          <TabsContent value="overview" className="pt-4">
             <TFCLDecisionChart 
               result={result}
               athleteName={athleteName}
@@ -184,168 +285,48 @@ export function RaceReadinessV2Module({
             />
           </TabsContent>
           
-          {/* Potentiel */}
           <TabsContent value="potential" className="pt-4 space-y-4">
             <div className="p-4 rounded-lg bg-muted/30 border">
-              <div className="flex items-center gap-2 mb-3">
-                <Zap className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold">Potentiel (Metabolic Performance Compass™)</h3>
-              </div>
-              
               <p className="text-sm text-muted-foreground mb-4">
                 {RACE_READINESS_V2_DEFINITIONS.potential.definition}
               </p>
-              
               <div className="grid grid-cols-2 gap-3">
-                <ScoreCard 
-                  label="Capacité Aérobie" 
-                  value={result.potential.sources.aerobic.value}
-                  type={result.potential.sources.aerobic.type}
-                />
-                <ScoreCard 
-                  label="Tolérance Effort" 
-                  value={result.potential.sources.tolerance.value}
-                  type={result.potential.sources.tolerance.type}
-                />
-                <ScoreCard 
-                  label="Profil Métabolique" 
-                  value={result.potential.sources.metabolic.value}
-                  type={result.potential.sources.metabolic.type}
-                />
-                <ScoreCard 
-                  label="Robustesse" 
-                  value={result.potential.sources.robustness.value}
-                  type={result.potential.sources.robustness.type}
-                />
-              </div>
-              
-              <Separator className="my-4" />
-              
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-2xl font-bold">{result.potential.score}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Plage : {result.potential.range?.[0]}–{result.potential.range?.[1]}
-                  </p>
-                </div>
-                <div className="text-right text-xs text-muted-foreground">
-                  <p>Confiance : {(result.potential.confidence * 100).toFixed(0)}%</p>
-                  {result.potential.mainStrength && (
-                    <p className="text-green-600">+ {result.potential.mainStrength}</p>
-                  )}
-                  {result.potential.mainLimitation && (
-                    <p className="text-orange-600">⚠ {result.potential.mainLimitation}</p>
-                  )}
-                </div>
+                <ScoreCard label="Capacité Aérobie" value={result.potential.sources.aerobic.value} type={result.potential.sources.aerobic.type} />
+                <ScoreCard label="Tolérance Effort" value={result.potential.sources.tolerance.value} type={result.potential.sources.tolerance.type} />
+                <ScoreCard label="Profil Métabolique" value={result.potential.sources.metabolic.value} type={result.potential.sources.metabolic.type} />
+                <ScoreCard label="Robustesse" value={result.potential.sources.robustness.value} type={result.potential.sources.robustness.type} />
               </div>
             </div>
           </TabsContent>
           
-          {/* Disponibilité */}
-          <TabsContent value="availability" className="pt-4 space-y-4">
-            <div className="p-4 rounded-lg bg-muted/30 border">
-              <div className="flex items-center gap-2 mb-3">
-                <Battery className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold">Disponibilité (Disponibilité TFCL™)</h3>
-              </div>
-              
-              <p className="text-sm text-muted-foreground mb-4">
-                {RACE_READINESS_V2_DEFINITIONS.availability.definition}
-              </p>
-              
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <p className="text-2xl font-bold">{result.availability.score}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {result.availability.recommendation}
-                  </p>
-                </div>
-                <Badge variant="outline">
-                  Confiance {(result.availability.confidence * 100).toFixed(0)}%
-                </Badge>
-              </div>
-              
-              {result.availability.factors.length > 0 && (
-                <div>
-                  <p className="text-xs font-medium mb-2">Facteurs :</p>
-                  <div className="flex flex-wrap gap-1">
-                    {result.availability.factors.map((f, i) => (
-                      <Badge key={i} variant="secondary" className="text-xs">
-                        {f}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {result.availability.alerts.length > 0 && (
-                <div className="mt-3 p-2 rounded bg-red-500/10 border border-red-500/30">
-                  <p className="text-xs text-red-600 dark:text-red-400">
-                    {result.availability.alerts.join(' | ')}
-                  </p>
-                </div>
-              )}
+          <TabsContent value="decision" className="pt-4 space-y-3">
+            <div className="p-3 rounded-lg bg-muted/50 text-sm">
+              <p className="font-medium mb-2">Justification</p>
+              <p>{result.readiness.justification}</p>
             </div>
-          </TabsContent>
-          
-          {/* Décision */}
-          <TabsContent value="decision" className="pt-4 space-y-4">
-            <div className="p-4 rounded-lg bg-muted/30 border">
-              <div className="flex items-center gap-2 mb-3">
-                <Target className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold">Décision (Race Readiness TFCL™)</h3>
+            <div className="p-3 rounded-lg bg-muted/50 text-sm">
+              <p className="font-medium mb-2">Explication</p>
+              <p>{result.explanation.why}</p>
+            </div>
+            {result.explanation.suggestedFocus.length > 0 && (
+              <div>
+                <p className="text-xs font-medium mb-1">Focus suggéré :</p>
+                <ul className="text-xs text-muted-foreground space-y-1">
+                  {result.explanation.suggestedFocus.map((f, i) => (
+                    <li key={i}>→ {f}</li>
+                  ))}
+                </ul>
               </div>
-              
-              <p className="text-sm text-muted-foreground mb-4">
-                {RACE_READINESS_V2_DEFINITIONS.decision.definition}
-              </p>
-              
-              <div className={cn(
-                "p-4 rounded-lg border mb-4",
-                getRaceReadinessV2BadgeClass(result.readiness.category)
-              )}>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-3xl font-bold">{result.readiness.score}</p>
-                    <p className="text-sm font-medium">{result.readiness.categoryLabel}</p>
-                  </div>
-                  <div className="text-4xl">{result.readiness.categoryEmoji}</div>
-                </div>
-              </div>
-              
-              {/* Formule */}
-              <div className="p-3 rounded bg-muted/50 text-xs font-mono mb-4">
-                <p>RR = 0.65 × P + 0.35 × D - Pénalités</p>
-                <p className="text-muted-foreground">
-                  = 0.65×{result.potential.score} + 0.35×{result.availability.score} - {result.penalties.total}
-                </p>
-                <p className="text-muted-foreground">
-                  = {result.readiness.rawScore} - {result.penalties.total} = {result.readiness.score}
-                </p>
-              </div>
-              
-              {/* Explication */}
-              <div className="space-y-3">
-                <p className="text-sm">{result.explanation.why}</p>
-                
-                {result.explanation.suggestedFocus.length > 0 && (
-                  <div>
-                    <p className="text-xs font-medium mb-1">Focus suggéré :</p>
-                    <ul className="text-xs text-muted-foreground space-y-1">
-                      {result.explanation.suggestedFocus.map((f, i) => (
-                        <li key={i}>→ {f}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
+            )}
+            <div className="p-3 rounded bg-muted/30 text-xs font-mono">
+              <p>RR = MIN({result.potential.score}, {result.availability.score}) - {result.penalties.total} = {result.readiness.score}</p>
             </div>
           </TabsContent>
         </Tabs>
         
-        {/* Définitions (footer) */}
+        {/* Disclaimer TFCL */}
         <div className="flex items-center gap-2 pt-2 border-t border-dashed text-xs text-muted-foreground">
-          <Info className="h-3 w-3" />
+          <Info className="h-3 w-3 shrink-0" />
           <span>{result.disclaimer}</span>
         </div>
       </CardContent>
