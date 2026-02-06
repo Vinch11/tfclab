@@ -10,8 +10,13 @@ import { AthleteReadinessReport } from "@/components/AthleteReadinessReport";
 import { StaffReport } from "@/components/StaffReport";
 import { NutritionPredictive } from "@/components/NutritionPredictive";
 import { NutritionTimingCard } from "@/components/NutritionTimingCard";
+import { NutritionV2Card } from "@/components/NutritionV2Card";
+import { PacingEnvelopeCard } from "@/components/PacingEnvelopeCard";
+import { DoubleBoucleCAPCard } from "@/components/DoubleBoucleCAPCard";
 import { RunningEconomyModule } from "@/components/RunningEconomyModule";
 import { generateAthleteReadiness } from "@/lib/athleteReadiness";
+import { computeFatMaxTFCL } from "@/lib/v2/fatmaxTFCL";
+import { type PacingEnvelopeInput } from "@/lib/v2/pacingEnvelopeEngine";
 import { 
   AgeAdjustmentInfo, 
   AgeRiskAlert, 
@@ -48,6 +53,8 @@ interface RaceReadinessPageProps {
   snapshotUpdatedAt?: string | null;
   athleteAge?: number | null;
   ambition?: import("@/types/ambitionLevel").AmbitionLevel;
+  vo2max?: number | null;
+  vma?: number | null;
   onGoToSnapshots: () => void;
   onGoToMethodology: () => void;
 }
@@ -71,10 +78,20 @@ export function RaceReadinessPage({
   snapshotUpdatedAt,
   athleteAge,
   ambition,
+  vo2max,
+  vma,
   onGoToSnapshots,
   onGoToMethodology,
 }: RaceReadinessPageProps) {
   const [isCoachMode, setIsCoachMode] = useState(true);
+  
+  const sport = useMemo(() => {
+    return ["Marathon", "Semi", "Trail", "TrailLong", "10K", "5K"].includes(objectif) ? "cap" as const : "velo" as const;
+  }, [objectif]);
+  
+  const pacingSport = useMemo(() => {
+    return ["Marathon", "Semi", "Trail", "10K", "5K"].includes(objectif) ? "run" as const : "bike" as const;
+  }, [objectif]);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -192,6 +209,54 @@ export function RaceReadinessPage({
             objectif={objectif}
             vlamax={vlamaxEffectif.value}
             staffMode={true}
+          />
+
+          {/* Nutrition Prédictive V2 */}
+          <NutritionV2Card
+            vlamaxValue={vlamaxEffectif.value}
+            vlamaxConfidence={vlamaxEffectif.confidence}
+            tteMin={tteEffectif.tte_min}
+            sport={sport}
+            weightKg={poids}
+            staffMode={true}
+          />
+
+          {/* Pacing Envelope™ */}
+          {(() => {
+            const normalizedObj = (objectif === "IM" ? "Ironman" : objectif) as any;
+            const fatmaxResult = computeFatMaxTFCL({
+              vlamaxEffectif: vlamaxEffectif.value,
+              vlamaxConfidence: vlamaxEffectif.confidence,
+              vo2maxEffectif: vo2max ?? null,
+              tteEffectif: tteEffectif.tte_min,
+              tteConfidence: tteEffectif.confidence,
+              fatigueIndex: null,
+              objectif: normalizedObj,
+              ftp: ftp || undefined,
+            });
+            const pacingInput: PacingEnvelopeInput = {
+              vlamaxEffectif,
+              tteEffectif,
+              fatmax: fatmaxResult,
+              raceReadinessScore: readiness.score,
+              fatigueIndex: null,
+              raceObjective: (objectif || "IM") as any,
+              sport: pacingSport,
+              ftp: ftp || undefined,
+              vma: vma ?? undefined,
+              weight: poids ?? undefined,
+            };
+            return <PacingEnvelopeCard input={pacingInput} staffMode={true} />;
+          })()}
+
+          {/* Double Boucle CAP */}
+          <DoubleBoucleCAPCard
+            vlamaxRun={vlamaxEffectif.value}
+            vo2max={vo2max ?? null}
+            durability={tteEffectif.tte_min}
+            objectif={objectif}
+            readinessScore={readiness.score}
+            confidence={vlamaxEffectif.confidence}
           />
 
           {/* Rapport Staff Pré-Course */}
