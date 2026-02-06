@@ -37,8 +37,14 @@ export interface VLamaxCapEstimate {
   };
 }
 
+import { PHYSIOLOGICAL_BOUNDS } from "./vlamaxV2Engine";
+
 const clamp = (val: number, min: number, max: number): number => 
   Math.max(min, Math.min(max, val));
+
+/** Clamp CAP physiologique: [0.20, 0.90] */
+const clampCap = (val: number): number => 
+  clamp(val, PHYSIOLOGICAL_BOUNDS.cap.min, PHYSIOLOGICAL_BOUNDS.cap.max);
 
 /**
  * Estime VLamax CAP à partir des données de course à pied
@@ -277,7 +283,7 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
 
   const totalWeight = estimates.reduce((sum, e) => sum + e.weight, 0);
   const weightedValue = estimates.reduce((sum, e) => sum + e.value * e.weight, 0) / totalWeight;
-  const value = clamp(weightedValue, 0.20, 0.80);
+  const value = clampCap(weightedValue);
   
   // Confiance basée sur les sources disponibles
   let confidence = 0.30; // Base
