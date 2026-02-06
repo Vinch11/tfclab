@@ -32,6 +32,7 @@ import {
   VALIDATION_TEXTS
 } from '@/lib/v2/validationFramework';
 import { cn } from '@/lib/utils';
+import { getConfidenceLabel, getConfidenceColorClass } from '@/lib/confidenceDisplay';
 
 // =============================================
 // TYPES
@@ -94,11 +95,11 @@ export function ValidationStatusCard({
           <p className="text-xs text-muted-foreground">{status.detailedMessage}</p>
         </div>
         
-        {/* Confiance globale */}
+        {/* Fiabilité globale */}
         <div className="space-y-1">
           <div className="flex justify-between text-xs">
-            <span className="text-muted-foreground">Confiance globale</span>
-            <span className="font-medium">{Math.round(status.overallConfidence * 100)}%</span>
+            <span className="text-muted-foreground">Fiabilité globale</span>
+            <span className={cn("font-medium", getConfidenceColorClass(status.overallConfidence))}>{getConfidenceLabel(status.overallConfidence)}</span>
           </div>
           <Progress 
             value={status.overallConfidence * 100} 

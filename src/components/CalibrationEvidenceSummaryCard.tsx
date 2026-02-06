@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Scale, Calendar, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getConfidenceLabel, getConfidenceColorClass } from "@/lib/confidenceDisplay";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -139,8 +140,8 @@ export function CalibrationEvidenceSummaryCard({ athleteId, className }: Calibra
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <div className="text-right">
-                    <div className="text-xs text-muted-foreground">Confiance</div>
-                    <div className="font-mono text-sm">{Math.round(ev.confidence_evidence * 100)}%</div>
+                    <div className="text-xs text-muted-foreground">Fiabilité</div>
+                    <div className={cn("font-mono text-sm", getConfidenceColorClass(ev.confidence_evidence))}>{getConfidenceLabel(ev.confidence_evidence)}</div>
                   </div>
                   {ev.calibration_weight !== null && ev.calibration_weight > 0 && (
                     <div className="text-right">

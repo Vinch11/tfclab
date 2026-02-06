@@ -35,6 +35,7 @@ import { VLamaxMetricRow } from "@/components/VLamaxStatusBadge";
 import { TTEEffectif, getSourceColor as getTTESourceColor, getSourceLabel, toTTEEnvelope } from "@/lib/tteEffectif";
 import { RaceReadinessEffectif, toRaceReadinessEnvelope } from "@/lib/raceReadinessEffectif";
 import { cn } from "@/lib/utils";
+import { getConfidenceLabelFromPercent, getConfidenceColorClassFromPercent } from "@/lib/confidenceDisplay";
 import { getEconomyLabelStyle, getEconomyRaceReadinessBonus } from "@/lib/runningEconomySnapshot";
 import { computeNutritionEstimate, type NutritionEstimate, type Sport } from "@/lib/nutritionPredictive";
 import { ScientificChartsDashboard, MetabolicPerformanceCompass, ScoreEnvelopeInlineCard } from "@/components/charts";
@@ -184,11 +185,11 @@ export function PhysiologicalAnalysis({ athlete, vlamaxEffectif, tteEffectif: tt
               </div>
             </div>
             
-            {/* Indice de confiance */}
+            {/* Indice de fiabilité */}
             <div className="text-center p-3 rounded-lg bg-muted/50">
-              <div className="text-xs text-muted-foreground mb-1">Confiance</div>
-              <div className={`text-2xl font-bold ${analyse.confiance >= 70 ? 'text-green-500' : analyse.confiance >= 50 ? 'text-amber-500' : 'text-red-500'}`}>
-                {analyse.confiance}%
+              <div className="text-xs text-muted-foreground mb-1">Fiabilité</div>
+              <div className={cn("text-2xl font-bold", getConfidenceColorClassFromPercent(analyse.confiance))}>
+                {getConfidenceLabelFromPercent(analyse.confiance)}
               </div>
               <div className="text-xs text-muted-foreground">
                 {tests.length} test{tests.length > 1 ? 's' : ''}

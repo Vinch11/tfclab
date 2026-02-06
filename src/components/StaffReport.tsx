@@ -37,6 +37,7 @@ import {
   Crosshair,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getConfidenceLabel } from "@/lib/confidenceDisplay";
 import { 
   StaffReport as StaffReportType, 
   generateStaffReport, 
@@ -531,14 +532,14 @@ export function StaffReport({
                 <p className="text-xs text-muted-foreground mb-1">VLamax effectif</p>
                 <p className="font-bold">{report.capInjuryRisk.vlamaxValue}</p>
                 <p className="text-[10px] text-muted-foreground">
-                  {report.capInjuryRisk.vlamaxSource} • {Math.round(report.capInjuryRisk.vlamaxConfidence * 100)}%
+                  {report.capInjuryRisk.vlamaxSource} • Fiabilité {getConfidenceLabel(report.capInjuryRisk.vlamaxConfidence)}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground mb-1">TTE effectif</p>
                 <p className="font-bold">{report.capInjuryRisk.tteValue}</p>
                 <p className="text-[10px] text-muted-foreground">
-                  {report.capInjuryRisk.tteSource} • {Math.round(report.capInjuryRisk.tteConfidence * 100)}%
+                  {report.capInjuryRisk.tteSource} • Fiabilité {getConfidenceLabel(report.capInjuryRisk.tteConfidence)}
                 </p>
               </div>
               <div>
@@ -1350,7 +1351,7 @@ export function StaffReport({
                           </div>
                         )}
                         <p className="text-[10px] text-muted-foreground">
-                          Confiance : {Math.round(suggestion.confidence * 100)}%
+                          Fiabilité : {getConfidenceLabel(suggestion.confidence)}
                         </p>
                       </CollapsibleContent>
                     </div>
@@ -1505,7 +1506,7 @@ function RaceReadinessCalculationDetails({ readiness }: { readiness: RaceReadine
       {/* Légende */}
       <div className="mt-3 p-2 rounded-lg bg-muted/20 border text-[10px] text-muted-foreground">
         <strong>Score final:</strong> Σ (Score pilier × Poids) = {readiness.score}/100 • 
-        <strong className="ml-2">Confiance:</strong> {Math.round(readiness.confidence * 100)}%
+        <strong className="ml-2">Fiabilité :</strong> {getConfidenceLabel(readiness.confidence)}
       </div>
     </div>
   );

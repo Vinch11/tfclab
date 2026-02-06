@@ -38,7 +38,8 @@ import { RunningFocusModeIndicator } from "@/components/RunningFocusModeIndicato
 import { RunningFocusWrapper } from "@/components/RunningFocusWrapper";
 
 // Sources uniques de données
-import { computeVLamaxEffectif, VLamaxEffectif, getSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
+import { computeVLamaxEffectif, VLamaxEffectif, getSourceColor } from "@/lib/vlamaxEffectif";
+import { getConfidenceLabel } from "@/lib/confidenceDisplay";
 import { computeTTEEffectif, TTEEffectif, getTTETarget, getSourceLabel } from "@/lib/tteEffectif";
 import { computeRaceReadinessEffectif, RaceReadinessEffectif, getSportFromObjectif } from "@/lib/raceReadinessEffectif";
 import { computeNutritionEstimate, NutritionEstimate } from "@/lib/nutritionPredictive";
@@ -920,8 +921,8 @@ export default function DashboardPage() {
             <Separator className="my-2" />
             <p className="italic">
               Snapshot du {snapshot.date} • 
-              VLamax: {vlamaxEffectif.source} ({Math.round(vlamaxEffectif.confidence * 100)}%) • 
-              TTE: {tteEffectif.source} ({Math.round(tteEffectif.confidence * 100)}%)
+              VLamax: {vlamaxEffectif.source} (Fiabilité {getConfidenceLabel(vlamaxEffectif.confidence)}) • 
+              TTE: {tteEffectif.source} (Fiabilité {getConfidenceLabel(tteEffectif.confidence)})
             </p>
           </div>
         )}

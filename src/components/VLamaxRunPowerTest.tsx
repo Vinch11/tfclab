@@ -16,6 +16,7 @@ import {
   Calendar
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getConfidenceLabel, getConfidenceColorClass } from "@/lib/confidenceDisplay";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -313,7 +314,7 @@ export function VLamaxRunPowerTest({
         <div className="space-y-1 text-sm">
           <p>VLamax CAP: <strong>{result.vlamax.toFixed(2)} mmol/L/s</strong></p>
           <p>Source: Power-based field test</p>
-          <p>Confiance: {Math.round(result.confidence * 100)}%</p>
+          <p>Fiabilité: {getConfidenceLabel(result.confidence)}</p>
         </div>
       )
     });
@@ -669,8 +670,8 @@ export function VLamaxRunPowerTest({
             {/* Métriques détaillées */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <div className="p-3 rounded-lg bg-secondary/20 text-center">
-                <p className="text-xs text-muted-foreground">Confiance</p>
-                <p className="text-lg font-semibold">{Math.round(result.confidence * 100)}%</p>
+                <p className="text-xs text-muted-foreground">Fiabilité</p>
+                <p className={cn("text-lg font-semibold", getConfidenceColorClass(result.confidence))}>{getConfidenceLabel(result.confidence)}</p>
               </div>
               <div className="p-3 rounded-lg bg-secondary/20 text-center">
                 <p className="text-xs text-muted-foreground">P15 (W/kg)</p>

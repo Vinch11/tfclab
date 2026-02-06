@@ -20,6 +20,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getConfidenceLabel } from "@/lib/confidenceDisplay";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { 
   ResponsiveChartTooltip,
@@ -97,9 +98,9 @@ const CustomTooltip = ({ active, payload, staffMode }: any) => {
   
   const staffRows = staffMode ? [
     { label: "Source VLamax", value: data.vlamaxSource },
-    { label: "Confiance VLamax", value: `${Math.round(data.vlamaxConfidence * 100)}%` },
+    { label: "Fiabilité VLamax", value: getConfidenceLabel(data.vlamaxConfidence) },
     { label: "Source TTE", value: data.tteSource },
-    { label: "Confiance TTE", value: `${Math.round(data.tteConfidence * 100)}%` },
+    { label: "Fiabilité TTE", value: getConfidenceLabel(data.tteConfidence) },
   ] : undefined;
   
   return (
