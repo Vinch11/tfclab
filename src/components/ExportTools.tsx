@@ -60,6 +60,9 @@ import type { TemplateWeek, TemplateSession } from "@/lib/templates/docxTemplate
 import { computeFatMaxTFCL, type FatMaxTFCLResult, FATMAX_DEFINITIONS, FATMAX_ACADEMY_CONTENT } from "@/lib/v2/fatmaxTFCL";
 import { computeNutritionV2, type NutritionPredictiveV2, NUTRITION_PHILOSOPHY } from "@/lib/v2/nutritionV2";
 import { generateAthleteReadiness, type AthleteReadinessReport } from "@/lib/athleteReadiness";
+// ✅ NEW: Strategic Roadmap Engine
+import { computeStrategicRoadmap, type StrategicRoadmap, type RoadmapPhase as SmartRoadmapPhase } from "@/lib/v2/strategicRoadmap";
+import { detectUnifiedLimiter, type UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
 import { User, Shield } from "lucide-react";
 import { SECTION_LABELS, getSectionOrder, getSectionVisibility, DEFAULT_SECTION_ORDER, DEFAULT_REPORT_SECTIONS } from "./ReportSectionOrderEditor";
 // ✅ NEW: Import Disponibilité TFCL™
@@ -2242,107 +2245,53 @@ function buildDoubleBoucleCAPHTML(payload: ExportPayload): string {
 }
 
 // =============================================
-// ROADMAP STRATÉGIQUE — GANTT SVG (PDF)
+// ROADMAP STRATÉGIQUE — SMART GANTT SVG (PDF)
+// Uses computeStrategicRoadmap engine for metabolic-aware phases
 // =============================================
 
-interface RoadmapPhase {
-  name: string;
-  subtitle: string;
-  startWeek: number;
-  endWeek: number;
-  color: string;
-}
-
-function getRoadmapPhases(goal: string | null): { phases: RoadmapPhase[]; totalWeeks: number; title: string } {
-  switch (goal) {
-    case "IM":
-      return {
-        title: "Roadmap Stratégique : 24 Semaines vers l'Ironman",
-        totalWeeks: 24,
-        phases: [
-          { name: "Neuro & Vélocité", subtitle: "Phase 1: Vitesse/VO2Max", startWeek: 1, endWeek: 4, color: "#9ca3af" },
-          { name: "Force Endurance K3", subtitle: "Phase 2: Force & Seuil", startWeek: 5, endWeek: 8, color: "#60a5fa" },
-          { name: "Volume d'intensité & The Big Week", subtitle: "Phase 3: Spécifique", startWeek: 9, endWeek: 18, color: "#1e3a5f" },
-          { name: "Fraîcheur & Densité", subtitle: "Phase 4: Affûtage", startWeek: 20, endWeek: 24, color: "#86efac" },
-        ],
-      };
-    case "703":
-      return {
-        title: "Roadmap Stratégique : 24 Semaines vers le 70.3",
-        totalWeeks: 24,
-        phases: [
-          { name: "Neuro & Vélocité", subtitle: "Phase 1: Vitesse/VO2Max", startWeek: 1, endWeek: 5, color: "#9ca3af" },
-          { name: "Force Endurance", subtitle: "Phase 2: Force & Seuil", startWeek: 6, endWeek: 10, color: "#60a5fa" },
-          { name: "Spécifique Race Pace", subtitle: "Phase 3: Spécifique", startWeek: 11, endWeek: 19, color: "#1e3a5f" },
-          { name: "Affûtage", subtitle: "Phase 4: Affûtage", startWeek: 21, endWeek: 24, color: "#86efac" },
-        ],
-      };
-    case "Marathon":
-      return {
-        title: "Roadmap Stratégique : 24 Semaines vers le Marathon",
-        totalWeeks: 24,
-        phases: [
-          { name: "Base Aérobie", subtitle: "Phase 1: Endurance", startWeek: 1, endWeek: 6, color: "#9ca3af" },
-          { name: "Développement", subtitle: "Phase 2: Seuil & Force", startWeek: 7, endWeek: 12, color: "#60a5fa" },
-          { name: "Spécifique Marathon", subtitle: "Phase 3: Allure Cible", startWeek: 13, endWeek: 20, color: "#1e3a5f" },
-          { name: "Affûtage", subtitle: "Phase 4: Affûtage", startWeek: 21, endWeek: 24, color: "#86efac" },
-        ],
-      };
-    case "Semi":
-      return {
-        title: "Roadmap Stratégique : 12 Semaines vers le Semi-Marathon",
-        totalWeeks: 12,
-        phases: [
-          { name: "Base & Vitesse", subtitle: "Phase 1: VO2Max", startWeek: 1, endWeek: 3, color: "#9ca3af" },
-          { name: "Développement Seuil", subtitle: "Phase 2: Seuil", startWeek: 4, endWeek: 7, color: "#60a5fa" },
-          { name: "Spécifique Semi", subtitle: "Phase 3: Allure Cible", startWeek: 8, endWeek: 10, color: "#1e3a5f" },
-          { name: "Affûtage", subtitle: "Phase 4: Affûtage", startWeek: 11, endWeek: 12, color: "#86efac" },
-        ],
-      };
-    default:
-      return {
-        title: "Roadmap Stratégique d'Entraînement",
-        totalWeeks: 24,
-        phases: [
-          { name: "Construction", subtitle: "Phase 1: Base", startWeek: 1, endWeek: 6, color: "#9ca3af" },
-          { name: "Développement", subtitle: "Phase 2: Build", startWeek: 7, endWeek: 12, color: "#60a5fa" },
-          { name: "Spécifique", subtitle: "Phase 3: Peak", startWeek: 13, endWeek: 20, color: "#1e3a5f" },
-          { name: "Affûtage", subtitle: "Phase 4: Taper", startWeek: 21, endWeek: 24, color: "#86efac" },
-        ],
-      };
-  }
-}
-
 function buildRoadmapHTML(payload: ExportPayload): string {
-  const { phases, totalWeeks, title } = getRoadmapPhases(payload.athlete.goal);
+  const limiterResult = detectUnifiedLimiter({
+    vo2max: payload.effectiveSnapshot?.vo2max ?? null,
+    ftpKg: payload.effectiveRefs.ftp && payload.effectiveRefs.weightKg
+      ? payload.effectiveRefs.ftp / payload.effectiveRefs.weightKg : null,
+    vlamax: payload.vlamax.value,
+    tte: payload.tte.tte_min,
+    fatmax: null,
+    economyScore: payload.effectiveSnapshot?.run_economy_score ?? null,
+    availabilityScore: null,
+    hasHealthAlerts: false,
+    objectif: payload.athlete.goal || "IM",
+    ambition: (payload.ambition?.current as any) || "competitive",
+    age: null,
+  });
 
-  const W = 900;
-  const H = 340;
-  const marginLeft = 60;
-  const marginRight = 30;
-  const chartTop = 40;
+  const roadmap = computeStrategicRoadmap({ objectif: payload.athlete.goal, limiterResult });
+  const { phases, totalWeeks, title } = roadmap;
+
+  const W = 900, H = 360, marginLeft = 60, marginRight = 30, chartTop = 40;
   const chartBottom = H - 60;
   const chartWidth = W - marginLeft - marginRight;
   const weekWidth = chartWidth / totalWeeks;
 
-  // Build week labels
-  const weekLabels = Array.from({ length: totalWeeks }, (_, i) => {
-    const x = marginLeft + i * weekWidth + weekWidth / 2;
-    return `<text x="${x}" y="${chartBottom + 30}" text-anchor="end" transform="rotate(-45 ${x} ${chartBottom + 30})" font-size="10" fill="#374151">Week ${i + 1}</text>`;
-  }).join('\n');
+  const step = totalWeeks <= 12 ? 1 : 2;
+  const weekLabels = Array.from({ length: totalWeeks }, (_, i) => i + 1)
+    .filter(w => w % step === 1 || step === 1)
+    .map(w => {
+      const x = marginLeft + (w - 0.5) * weekWidth;
+      return `<text x="${x}" y="${chartBottom + 30}" text-anchor="end" transform="rotate(-45 ${x} ${chartBottom + 30})" font-size="10" fill="#374151">S${w}</text>`;
+    }).join('\n');
 
-  // Axis lines
   const axisLine = `<line x1="${marginLeft}" y1="${chartTop}" x2="${marginLeft}" y2="${chartBottom}" stroke="#9ca3af" stroke-width="1"/>`;
   const baseLine = `<line x1="${marginLeft}" y1="${chartBottom}" x2="${W - marginRight}" y2="${chartBottom}" stroke="#9ca3af" stroke-width="1"/>`;
 
-  // Build phase bars (staggered vertically like the reference image)
   const barHeight = 32;
   const phaseBars = phases.map((phase, idx) => {
     const x = marginLeft + (phase.startWeek - 1) * weekWidth;
     const width = (phase.endWeek - phase.startWeek + 1) * weekWidth;
     const yOffset = chartTop + 20 + idx * 50;
-    const textColor = phase.color === '#1e3a5f' ? '#ffffff' : (phase.color === '#86efac' ? '#1e3a5f' : '#1e293b');
-
+    const isDark = phase.color === '#1e3a5f';
+    const isGreen = phase.color === '#86efac';
+    const textColor = isDark ? '#ffffff' : (isGreen ? '#1e3a5f' : '#1e293b');
     return `
       <text x="${x + width / 2}" y="${yOffset - 6}" text-anchor="middle" font-size="11" font-weight="600" fill="#1e293b">${phase.name}</text>
       <rect x="${x}" y="${yOffset}" width="${width}" height="${barHeight}" rx="6" fill="${phase.color}" />
@@ -2350,11 +2299,33 @@ function buildRoadmapHTML(payload: ExportPayload): string {
     `;
   }).join('\n');
 
+  const phaseDetailsHTML = phases.map(phase => `
+    <div style="padding:12px;border:1px solid #e2e8f0;border-radius:8px;background:#ffffff;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <div style="width:12px;height:12px;border-radius:3px;background:${phase.color};"></div>
+        <span style="font-weight:600;font-size:13px;color:#1e293b;">${phase.name}</span>
+        <span style="font-size:11px;color:#64748b;">S${phase.startWeek}\u2013S${phase.endWeek}</span>
+      </div>
+      <p style="font-size:11px;color:#475569;margin-bottom:6px;">${phase.focus}</p>
+      ${phase.levers.length > 0 ? `
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px;">
+          ${phase.levers.map(l => `<span style="font-size:10px;padding:2px 6px;background:#f1f5f9;border-radius:4px;color:#334155;">${l}</span>`).join('')}
+        </div>
+      ` : ''}
+      ${phase.targets.length > 0 ? `
+        <div style="margin-top:4px;">
+          ${phase.targets.map(t => `<div style="font-size:10px;color:#0369a1;">\u{1F3AF} ${t}</div>`).join('')}
+        </div>
+      ` : ''}
+    </div>
+  `).join('');
+
   return `
     <section class="page-break" style="margin-top:36px;">
       <div class="card" style="padding:28px;">
         <h2 style="font-size:20px;font-weight:700;margin-bottom:4px;color:#1e293b;">\u{1F4CB} ${title}</h2>
-        <p style="font-size:12px;color:#64748b;margin-bottom:20px;">Périodisation stratégique — Two For Coaching Lab\u2122</p>
+        <p style="font-size:12px;color:#64748b;margin-bottom:4px;">Périodisation stratégique — Two For Coaching Lab\u2122</p>
+        ${roadmap.personalized ? `<p style="font-size:11px;color:#0369a1;margin-bottom:16px;padding:6px 10px;background:#f0f9ff;border-radius:6px;border:1px solid #bae6fd;">${roadmap.limiterSummary}</p>` : '<div style="margin-bottom:16px;"></div>'}
         <div style="background:#ffffff;border-radius:8px;padding:12px;border:1px solid #e2e8f0;">
           <svg width="100%" viewBox="0 0 ${W} ${H}" style="background:#ffffff;" xmlns="http://www.w3.org/2000/svg">
             <rect x="0" y="0" width="${W}" height="${H}" fill="#ffffff"/>
@@ -2364,13 +2335,8 @@ function buildRoadmapHTML(payload: ExportPayload): string {
             ${weekLabels}
           </svg>
         </div>
-        <div style="margin-top:16px;display:flex;gap:16px;flex-wrap:wrap;">
-          ${phases.map(p => `
-            <div style="display:flex;align-items:center;gap:6px;">
-              <div style="width:14px;height:14px;border-radius:3px;background:${p.color};"></div>
-              <span style="font-size:11px;color:#475569;">${p.subtitle} — ${p.name}</span>
-            </div>
-          `).join('')}
+        <div style="margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          ${phaseDetailsHTML}
         </div>
       </div>
     </section>
