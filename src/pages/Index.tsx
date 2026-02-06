@@ -1181,6 +1181,7 @@ const Index = () => {
                   age={calculateAge(currentAthlete.birth_date) ?? undefined}
                   staffMode={staffMode}
                   v2Result={vlamaxEffectif.v2 ?? undefined}
+                  ambition={currentAmbition}
                 />
                 {/* Graphique signature: Zone × Confiance */}
                 <VLamaxZoneConfidenceChart
@@ -1842,6 +1843,7 @@ const Index = () => {
                   vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? undefined}
                   sex={legacyAthlete?.sexe === "F" ? "F" : "H"}
                   age={calculateAge(currentAthlete.birth_date) ?? undefined}
+                  ambition={currentAmbition}
                 />
                 {effectiveCloudSnapshot && (
                   <VLamaxExplainedCard

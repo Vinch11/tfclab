@@ -2,8 +2,9 @@
  * VLamaxV2DisplayCard — Carte d'affichage VLamax calibrée TFCL V2 Staff-Grade
  * Affiche:
  * - Athlète: ≈ 0.39 (jamais la valeur brute)
- * - Staff: 0.39 ± 0.05 (confiance 70%)
+ * - Staff: 0.39 ± 0.05 + source badge
  * - Percentile, plage TFCL, warning de variation
+ * - Comparaison avec cibles par ambition
  */
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +22,9 @@ import {
   TrendingUp,
   Lock,
   Info,
+  ArrowDown,
+  ArrowUp,
+  Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +43,8 @@ import {
   getV2SourceBgColor,
   VLAMAX_V2_ACADEMY_TEXT,
 } from "@/lib/v2/vlamaxV2Engine";
+import { getVLamaxRange, normalizeObjective, type VLamaxTargets } from "@/lib/physiologicalTargets";
+import { AmbitionLevel, DEFAULT_AMBITION, getAmbitionDefinition } from "@/types/ambitionLevel";
 
 interface VLamaxV2DisplayCardProps {
   objectif: ObjectifPrincipal;
@@ -48,10 +54,12 @@ interface VLamaxV2DisplayCardProps {
   sex?: "H" | "F";
   age?: number;
   compact?: boolean;
-  /** Mode staff: affiche marge d'erreur + confiance + détails */
+  /** Mode staff: affiche marge d'erreur + source + détails */
   staffMode?: boolean;
   /** Résultat V2 complet (si disponible, enrichit l'affichage) */
   v2Result?: VLamaxV2Result;
+  /** Niveau d'ambition pour les cibles */
+  ambition?: AmbitionLevel;
 }
 
 export function VLamaxV2DisplayCard({
@@ -64,6 +72,7 @@ export function VLamaxV2DisplayCard({
   compact = false,
   staffMode = false,
   v2Result,
+  ambition = DEFAULT_AMBITION,
 }: VLamaxV2DisplayCardProps) {
   // Valeur manquante ou invalide
   if (!Number.isFinite(vlamax) || vlamax <= 0) {
@@ -261,6 +270,13 @@ export function VLamaxV2DisplayCard({
           </div>
         </div>
 
+        {/* Comparaison avec cibles par ambition */}
+        <VLamaxTargetComparison 
+          vlamax={vlamax} 
+          objectif={objectif} 
+          ambition={ambition} 
+        />
+
         {/* Interprétation */}
         <div className="p-3 bg-muted/30 rounded-lg">
           <div className="flex items-start gap-2">
@@ -290,5 +306,105 @@ export function VLamaxV2DisplayCard({
         )}
       </CardContent>
     </Card>
+  );
+}
+
+// =============================================
+// SUB-COMPONENT: Comparaison VLamax vs Cibles
+// =============================================
+
+function VLamaxTargetComparison({ 
+  vlamax, 
+  objectif, 
+  ambition 
+}: { 
+  vlamax: number; 
+  objectif: ObjectifPrincipal; 
+  ambition: AmbitionLevel;
+}) {
+  const normalizedObj = normalizeObjective(objectif);
+  const targets = getVLamaxRange(normalizedObj, ambition);
+  const ambitionDef = getAmbitionDefinition(ambition);
+
+  if (!targets) return null;
+
+  const isTooHigh = vlamax > targets.max;
+  const isTooLow = vlamax < targets.min;
+  const isOptimal = vlamax >= targets.min && vlamax <= targets.max;
+  const delta = isTooHigh 
+    ? vlamax - targets.max 
+    : isTooLow 
+      ? vlamax - targets.min 
+      : vlamax - targets.optimal;
+
+  const statusColor = isOptimal 
+    ? "text-green-600 dark:text-green-400" 
+    : isTooHigh 
+      ? "text-amber-600 dark:text-amber-400" 
+      : "text-blue-600 dark:text-blue-400";
+  
+  const statusBg = isOptimal 
+    ? "bg-green-500/10 border-green-500/30" 
+    : isTooHigh 
+      ? "bg-amber-500/10 border-amber-500/30" 
+      : "bg-blue-500/10 border-blue-500/30";
+
+  const StatusIcon = isOptimal ? Check : isTooHigh ? ArrowUp : ArrowDown;
+
+  const statusLabel = isOptimal 
+    ? "Dans la cible" 
+    : isTooHigh 
+      ? "Au-dessus de la cible" 
+      : "En-dessous de la cible";
+
+  const explanation = isOptimal
+    ? `VLamax dans la plage optimale (${targets.min.toFixed(2)}–${targets.max.toFixed(2)}) pour un ${normalizedObj} niveau ${ambitionDef.label}.`
+    : isTooHigh
+      ? `VLamax trop élevée (+${delta.toFixed(2)}) par rapport au max ${targets.max.toFixed(2)} pour un ${normalizedObj} ${ambitionDef.label}. Dépendance glycolytique excessive — privilégier Z2/Tempo, réduire le travail VMA/Sprint.`
+      : `VLamax basse (${Math.abs(delta).toFixed(2)} sous le min ${targets.min.toFixed(2)}) pour un ${normalizedObj} ${ambitionDef.label}. Capacité anaérobie réduite — possible manque de punch en fin de course.`;
+
+  return (
+    <div className={cn("p-3 rounded-lg border", statusBg)}>
+      <div className="flex items-center gap-2 mb-2">
+        <StatusIcon className={cn("h-4 w-4", statusColor)} />
+        <span className={cn("text-xs font-semibold", statusColor)}>{statusLabel}</span>
+        <Badge variant="outline" className="text-[10px] ml-auto">
+          {ambitionDef.icon} {ambitionDef.label}
+        </Badge>
+      </div>
+      
+      {/* Barre visuelle cible vs actuel */}
+      <div className="relative h-6 bg-muted/50 rounded-full overflow-hidden mb-2">
+        {/* Zone cible */}
+        <div 
+          className="absolute h-full bg-green-200/60 dark:bg-green-800/30"
+          style={{ 
+            left: `${Math.max(0, ((targets.min - 0.15) / 0.90) * 100)}%`, 
+            width: `${((targets.max - targets.min) / 0.90) * 100}%` 
+          }}
+        />
+        {/* Optimal marker */}
+        <div 
+          className="absolute top-0 bottom-0 w-0.5 bg-green-600 dark:bg-green-400"
+          style={{ left: `${((targets.optimal - 0.15) / 0.90) * 100}%` }}
+        />
+        {/* Athlete position */}
+        <div 
+          className={cn("absolute top-1 bottom-1 w-3 rounded-full border-2 border-background", 
+            isOptimal ? "bg-green-500" : isTooHigh ? "bg-amber-500" : "bg-blue-500"
+          )}
+          style={{ left: `${Math.min(95, Math.max(2, ((vlamax - 0.15) / 0.90) * 100))}%`, transform: 'translateX(-50%)' }}
+        />
+      </div>
+
+      {/* Labels */}
+      <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-2">
+        <span>Cible: {targets.min.toFixed(2)}–{targets.max.toFixed(2)}</span>
+        <span>Optimal: {targets.optimal.toFixed(2)}</span>
+        <span>Δ {delta >= 0 ? '+' : ''}{delta.toFixed(2)}</span>
+      </div>
+
+      <p className="text-[11px] text-muted-foreground">{explanation}</p>
+    </div>
   );
 }
