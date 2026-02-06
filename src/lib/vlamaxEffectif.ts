@@ -157,7 +157,9 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
 
   // =============================================
   // C) ESTIMATION (priorité #3)
-  // Basée sur FTP/kg et Pmax - heuristique prudente
+  // Basée sur FTP/kg et Pmax - interpolation CONTINUE
+  // Chaque athlète obtient une valeur unique grâce à des
+  // fonctions linéaires au lieu de paliers discrets
   // =============================================
   if (effectiveSnapshot) {
     const { ftp, pmax_5s, weight_kg } = effectiveSnapshot;
@@ -168,28 +170,35 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
     if (hasMinimumData) {
       const ftpKg = ftp! / weight_kg!;
       
-      // Heuristique simple et prudente
-      let base = 0.45;
+      // Interpolation continue FTP/kg → VLamax
+      // FTP/kg 2.5 → ~0.55, FTP/kg 4.0 → ~0.42, FTP/kg 5.5 → ~0.30
+      // Pente: -0.083 par W/kg
+      const ftpContribution = 0.55 - (ftpKg - 2.5) * 0.0833;
       
-      // Ajustement selon FTP/kg (athlète endurant = VLamax plus basse)
-      if (ftpKg >= 4.5) base -= 0.05;
-      if (ftpKg >= 5.0) base -= 0.05;
-      if (ftpKg < 3.5) base += 0.05;
+      let estimated: number;
+      let confidence = 0.50;
       
-      // Ajustement selon Pmax (puissance explosive = VLamax plus haute)
-      if (pmax_5s != null) {
-        if (pmax_5s >= 1100) base += 0.05;
-        if (pmax_5s >= 1300) base += 0.03;
-        if (pmax_5s < 900) base -= 0.03;
+      if (pmax_5s != null && pmax_5s > 0) {
+        // Ajustement continu Pmax → ratio anaérobie
+        // Pmax/kg: ratio élevé = plus glycolytique
+        const pmaxKg = pmax_5s / weight_kg!;
+        // pmaxKg 12 → +0.00, pmaxKg 16 → +0.05, pmaxKg 20 → +0.10
+        const pmaxAdjustment = (pmaxKg - 12) * 0.0125;
+        
+        // Moyenne pondérée: FTP/kg pèse 65%, Pmax 35%
+        estimated = ftpContribution * 0.65 + (ftpContribution + pmaxAdjustment) * 0.35;
+        confidence = 0.58; // Plus de données → meilleure confiance
+      } else {
+        estimated = ftpContribution;
       }
       
-      // Clamp entre 0.25 et 0.80
-      const estimated = Math.max(0.25, Math.min(0.80, base));
+      // Arrondi au centième (précision 0.01)
+      estimated = Math.max(0.20, Math.min(0.80, estimated));
       
       return {
         value: Number(estimated.toFixed(2)),
         source: "estimated",
-        confidence: 0.55, // Estimation = confiance modérée
+        confidence,
         label: "VLamax (estimé)"
       };
     }

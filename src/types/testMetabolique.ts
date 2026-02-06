@@ -37,9 +37,9 @@ export const estimateVLamaxFromTest = (test: TestMetabolique, poids: number): nu
   const cpWkg = test.cp / poids;
   const anaerobicRatio = peakWkg / cpWkg;
   
-  // Simplified VLamax estimation
-  const estimatedVlamax = 0.15 + (anaerobicRatio - 2.5) * 0.15;
-  return Math.max(0.2, Math.min(0.9, estimatedVlamax));
+  // Interpolation continue: ratio 2.0 → 0.22, ratio 3.0 → 0.37, ratio 4.0 → 0.52
+  const estimatedVlamax = 0.22 + (anaerobicRatio - 2.0) * 0.15;
+  return Math.max(0.15, Math.min(0.85, Math.round(estimatedVlamax * 100) / 100));
 };
 
 // Helper to format TTE

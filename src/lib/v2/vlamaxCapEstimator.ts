@@ -70,24 +70,24 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
   // =============================================
   if (sprint15sDistance !== null && sprint15sDistance !== undefined && sprint15sDistance > 0) {
     /**
-     * Distance 15s sprint terrain:
-     * - ≥100m → Sprinter, VLamax très haute
-     * - 90-100m → VLamax haute
-     * - 80-90m → VLamax modérée-haute
-     * - 70-80m → VLamax modérée
-     * - <70m → VLamax basse
+     * Interpolation continue distance 15s → VLamax
+     * 55m → 0.25, 80m → 0.42, 105m → 0.75
+     * Fonction linéaire par morceaux pour continuité
      */
     let estimated: number;
-    if (sprint15sDistance >= 105) estimated = 0.75;
-    else if (sprint15sDistance >= 95) estimated = 0.62;
-    else if (sprint15sDistance >= 85) estimated = 0.50;
-    else if (sprint15sDistance >= 75) estimated = 0.42;
-    else if (sprint15sDistance >= 65) estimated = 0.35;
-    else estimated = 0.30;
+    if (sprint15sDistance <= 55) estimated = 0.25;
+    else if (sprint15sDistance >= 110) estimated = 0.80;
+    else if (sprint15sDistance <= 80) {
+      // 55-80m: 0.25 → 0.42 (pente: 0.0068/m)
+      estimated = 0.25 + (sprint15sDistance - 55) * 0.0068;
+    } else {
+      // 80-110m: 0.42 → 0.80 (pente: 0.0127/m)
+      estimated = 0.42 + (sprint15sDistance - 80) * 0.0127;
+    }
     
     estimates.push({ value: estimated, weight: 0.40, source: "Sprint 15s" });
     sources.push("Sprint 15s");
-    details += `Sprint 15s: ${sprint15sDistance}m → ${estimated.toFixed(2)}. `;
+    details += `Sprint 15s: ${sprint15sDistance}m → ${estimated.toFixed(3)}. `;
   }
 
   // =============================================
@@ -95,24 +95,20 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
   // =============================================
   if (runningPowerMax !== null && runningPowerMax !== undefined && runningPowerMax > 0) {
     /**
-     * Puissance max sprint CAP (Stryd/Garmin):
-     * - ≥1000W → Sprinter élite
-     * - 800-1000W → Très puissant
-     * - 600-800W → Puissant
-     * - 450-600W → Modéré
-     * - <450W → Économe/endurant
+     * Interpolation continue Puissance max → VLamax
+     * 350W → 0.28, 700W → 0.50, 1050W → 0.72
      */
     let estimated: number;
-    if (runningPowerMax >= 1000) estimated = 0.72;
-    else if (runningPowerMax >= 850) estimated = 0.60;
-    else if (runningPowerMax >= 700) estimated = 0.50;
-    else if (runningPowerMax >= 550) estimated = 0.42;
-    else if (runningPowerMax >= 400) estimated = 0.35;
-    else estimated = 0.30;
+    if (runningPowerMax <= 300) estimated = 0.25;
+    else if (runningPowerMax >= 1100) estimated = 0.78;
+    else {
+      // 300-1100W: interpolation linéaire 0.25 → 0.78
+      estimated = 0.25 + (runningPowerMax - 300) * 0.000663;
+    }
     
     estimates.push({ value: estimated, weight: 0.35, source: "Puissance Max" });
     sources.push("Puissance CAP");
-    details += `Pmax: ${runningPowerMax}W → ${estimated.toFixed(2)}. `;
+    details += `Pmax: ${runningPowerMax}W → ${estimated.toFixed(3)}. `;
   }
 
   // =============================================
@@ -121,22 +117,20 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
   if (runningPowerMax && runningPowerThreshold && runningPowerThreshold > 0) {
     const powerRatio = runningPowerThreshold / runningPowerMax;
     /**
-     * Ratio Puissance seuil / Puissance max:
-     * - ratio ≥0.75 → VLamax très basse (excellent durabilité)
-     * - ratio 0.65-0.75 → VLamax basse-modérée
-     * - ratio 0.55-0.65 → VLamax modérée
-     * - ratio <0.55 → VLamax haute
+     * Interpolation continue ratio puissance → VLamax
+     * ratio 0.80 → 0.25, ratio 0.65 → 0.45, ratio 0.50 → 0.65
      */
     let estimated: number;
-    if (powerRatio >= 0.78) estimated = 0.28;
-    else if (powerRatio >= 0.72) estimated = 0.35;
-    else if (powerRatio >= 0.65) estimated = 0.42;
-    else if (powerRatio >= 0.58) estimated = 0.50;
-    else estimated = 0.60;
+    if (powerRatio >= 0.85) estimated = 0.22;
+    else if (powerRatio <= 0.45) estimated = 0.70;
+    else {
+      // 0.45-0.85: interpolation linéaire inverse (ratio haut = VLamax basse)
+      estimated = 0.70 - (powerRatio - 0.45) * 1.20;
+    }
     
     estimates.push({ value: estimated, weight: 0.25, source: "Ratio Puissance" });
     sources.push("Ratio P");
-    details += `Ratio P: ${(powerRatio * 100).toFixed(0)}% → ${estimated.toFixed(2)}. `;
+    details += `Ratio P: ${(powerRatio * 100).toFixed(1)}% → ${estimated.toFixed(3)}. `;
   }
 
   // =============================================
@@ -148,26 +142,23 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
     const ratio = paceKmh / vma;
     
     /**
-     * Ratio Vitesse Seuil / VMA:
-     * - ratio ≥0.92 → VLamax très basse (excellent endurance)
-     * - ratio 0.88-0.92 → VLamax basse
-     * - ratio 0.84-0.88 → VLamax modérée
-     * - ratio 0.80-0.84 → VLamax modérée-haute
-     * - ratio <0.80 → VLamax haute (profil glycolytique)
+     * Interpolation continue ratio seuil/VMA → VLamax
+     * ratio 0.95 → 0.22, ratio 0.85 → 0.42, ratio 0.75 → 0.62
+     * Pente: -2.0 par unité de ratio
      */
     let estimated: number;
-    if (ratio >= 0.92) estimated = 0.28;
-    else if (ratio >= 0.88) estimated = 0.35;
-    else if (ratio >= 0.84) estimated = 0.42;
-    else if (ratio >= 0.80) estimated = 0.50;
-    else if (ratio >= 0.76) estimated = 0.58;
-    else estimated = 0.65;
+    if (ratio >= 0.95) estimated = 0.22;
+    else if (ratio <= 0.70) estimated = 0.72;
+    else {
+      // 0.70-0.95: interpolation linéaire inverse
+      estimated = 0.72 - (ratio - 0.70) * 2.0;
+    }
     
     // Poids inférieur si on a déjà des sources directes (sprint/puissance)
     const weight = estimates.length > 0 ? 0.20 : 0.55;
     estimates.push({ value: estimated, weight, source: "Ratio Seuil/VMA" });
     sources.push("Seuil/VMA");
-    details += `Ratio: ${(ratio * 100).toFixed(0)}% → ${estimated.toFixed(2)}. `;
+    details += `Ratio: ${(ratio * 100).toFixed(1)}% → ${estimated.toFixed(3)}. `;
   }
 
   // =============================================
@@ -175,20 +166,15 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
   // =============================================
   if (vma !== null && vma > 0 && estimates.length === 0) {
     /**
-     * VMA seule (fallback très approximatif):
-     * - VMA élevée → souvent corrélée à capacité mixte
-     * - Estimation conservatrice vers le centre
+     * Interpolation continue VMA seule (fallback)
+     * VMA 14 → 0.50, VMA 18 → 0.44, VMA 22 → 0.38
+     * Pente douce: -0.015 par km/h
      */
-    let estimated: number;
-    if (vma >= 22) estimated = 0.40;
-    else if (vma >= 20) estimated = 0.42;
-    else if (vma >= 18) estimated = 0.44;
-    else if (vma >= 16) estimated = 0.46;
-    else estimated = 0.48;
+    const estimated = clamp(0.50 - (vma - 14) * 0.015, 0.30, 0.55);
     
     estimates.push({ value: estimated, weight: 0.30, source: "VMA seule" });
     sources.push("VMA");
-    details += `VMA: ${vma} km/h → ${estimated.toFixed(2)} (fallback). `;
+    details += `VMA: ${vma} km/h → ${estimated.toFixed(3)} (fallback). `;
   }
 
   // =============================================
