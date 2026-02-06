@@ -71,6 +71,17 @@ import {
   DISPONIBILITE_PHILOSOPHY,
   DISPONIBILITE_SCALE
 } from "@/lib/v2/disponibiliteTFCL";
+// ✅ NEW: Import Race Readiness V2 décisionnel
+import {
+  computeDecisionTFCL,
+  type RaceReadinessV2Result,
+  type ComputeDecisionInput,
+  POTENTIAL_LEVELS,
+  DISPONIBILITE_DECISION_LEVELS,
+  RACE_READINESS_V2_CATEGORIES,
+  RACE_READINESS_V2_DISCLAIMER,
+  RACE_READINESS_V2_DEFINITIONS,
+} from "@/lib/v2/raceReadinessV2";
 
 // =============================================
 // TYPES
@@ -1647,83 +1658,83 @@ async function imageToBase64(url: string): Promise<string> {
 // =============================================
 
 function buildRaceReadinessRunningHTML(payload: ExportPayload): string {
-  const { effectiveSnapshot, raceReadiness, athlete } = payload;
+  const { effectiveSnapshot, athlete, compassScores: cs } = payload;
   
-  const vlamax_run = effectiveSnapshot?.vlamax_run ?? effectiveSnapshot?.vlamax ?? null;
-  const durability = effectiveSnapshot?.tte_observed_min ?? 45;
-  const vo2max = effectiveSnapshot?.vo2max ?? null;
-  const readinessScore = raceReadiness.score;
+  // Compute V2 for running
+  const sortedCheckins = [...(payload.checkins || [])].sort((a, b) => new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime());
+  const latestCk = sortedCheckins[0];
+  let dispoRun: DisponibiliteTFCL | undefined;
+  if (latestCk) {
+    dispoRun = computeDisponibiliteTFCL({
+      sleep: latestCk.sleep ?? null, fatigue: latestCk.fatigue ?? null,
+      soreness: latestCk.soreness ?? null, stress: latestCk.stress ?? null,
+      motivation: latestCk.motivation ?? null,
+      alerts: latestCk.pain_flag ? { asymmetric_pain: true } : undefined,
+      objective: { tss7d: effectiveSnapshot?.tss_7d ?? null, tssTarget: 350 },
+    });
+  }
+  const rrV2Run = computeDecisionTFCL({ compass: cs, disponibilite: dispoRun });
   
-  const getStateColor = (score: number) => {
-    if (score >= 80) return { color: "#16a34a", bg: "rgba(22,163,74,0.1)", label: "GREEN", message: "Conditions optimales" };
-    if (score >= 60) return { color: "#d97706", bg: "rgba(217,119,6,0.1)", label: "ORANGE", message: "Prudence recommandée" };
-    return { color: "#dc2626", bg: "rgba(220,38,38,0.1)", label: "RED", message: "Risque élevé" };
-  };
+  const color = rrV2Run.readiness.category === 'ready' ? '#16a34a' 
+    : rrV2Run.readiness.category === 'solid' ? '#2563eb'
+    : rrV2Run.readiness.category === 'in_progress' ? '#d97706' : '#dc2626';
+  const bg = `${color}11`;
   
-  const state = getStateColor(readinessScore);
-  const isRunningFocus = athlete.goal?.includes("Marathon") || athlete.goal?.includes("Semi") || athlete.goal?.includes("10K") || athlete.goal?.includes("Trail");
-  const intensityCap = readinessScore >= 80 ? 100 : readinessScore >= 60 ? 90 : 80;
-  const pacingDiscipline = readinessScore >= 80 ? "NORMAL" : readinessScore >= 60 ? "STRICT" : "VERY_STRICT";
+  const intensityAllowed = rrV2Run.availability.level === 'available' ? 'OUI' 
+    : rrV2Run.availability.level === 'available_caution' ? 'Modérée uniquement' : 'NON';
+  const intensityColor = rrV2Run.availability.level === 'available' ? '#16a34a' 
+    : rrV2Run.availability.level === 'available_caution' ? '#d97706' : '#dc2626';
   
   return `
     <section id="race-readiness-running" class="section pagebreakAvoid">
       <h2>🏃 Race Readiness CAP V2 — TFCL Method™</h2>
       
       <div class="alert alertInfo mb">
-        <b>📋 Concept :</b> Le Race Readiness mesure la capacité à exprimer le potentiel physiologique CAP <em>aujourd'hui</em>. 
-        Il sépare le <b>Potentiel (profil verrouillé)</b> de la <b>Disponibilité (boucle rapide)</b>.
+        <b>📋 Concept :</b> Race Readiness = MIN(Potentiel, Disponibilité). 
+        La disponibilité <b>borne</b> la décision, quel que soit le potentiel.
       </div>
       
-      <div class="card" style="border-color: ${state.color}; background: ${state.bg};">
+      <div class="card" style="border-color:${color};background:${bg};">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
           <div>
-            <div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Race Readiness CAP</div>
-            <div style="font-size:42px;font-weight:800;color:${state.color};">${readinessScore}%</div>
-            <div style="font-size:14px;font-weight:600;color:${state.color};">${state.message}</div>
+            <div class="muted" style="font-size:11px;text-transform:uppercase;">Race Readiness CAP</div>
+            <div style="font-size:32px;font-weight:800;color:${color};">${rrV2Run.readiness.categoryEmoji} ${rrV2Run.readiness.categoryLabel}</div>
           </div>
-          <div style="text-align:center;">
-            <div class="badge" style="font-size:16px;padding:12px 24px;background:${state.bg};color:${state.color};border:2px solid ${state.color};">
-              ${state.label}
-            </div>
+          <div class="badge" style="font-size:14px;padding:10px 20px;background:${bg};color:${color};border:2px solid ${color};">
+            ${rrV2Run.readiness.confidenceLabel}
           </div>
         </div>
       </div>
       
       <div class="grid2 mt">
         <div class="card">
-          <h3>🔒 Potentiel Verrouillé (Boucle Lente)</h3>
+          <h3>🔒 Potentiel CAP</h3>
+          <div style="font-size:20px;font-weight:700;">${POTENTIAL_LEVELS[rrV2Run.potential.level].emoji} ${rrV2Run.potential.levelLabel}</div>
           <div class="kv mt">
-            <div class="k">VLamax CAP</div><div class="v">${vlamax_run ? vlamax_run.toFixed(2) + ' mmol/L/s' : '—'}</div>
-            <div class="k">VO₂max</div><div class="v">${vo2max ? vo2max + ' ml/kg/min' : '—'}</div>
-            <div class="k">Durabilité</div><div class="v">${durability} min</div>
-            <div class="k">Objectif</div><div class="v">${htmlEscape(athlete.goal || '—')}</div>
+            <div class="k">VLamax CAP</div><div class="v">${effectiveSnapshot?.vlamax_run?.toFixed(2) ?? effectiveSnapshot?.vlamax?.toFixed(2) ?? '—'} mmol/L/s</div>
+            <div class="k">VO₂max</div><div class="v">${effectiveSnapshot?.vo2max ?? '—'} ml/kg/min</div>
+            <div class="k">Durabilité</div><div class="v">${effectiveSnapshot?.tte_observed_min ?? '—'} min</div>
           </div>
-          <p class="muted mt" style="font-size:10px;font-style:italic;">
-            Ce profil ne change que par recalibration (4-6 semaines).
-          </p>
         </div>
-        
         <div class="card">
-          <h3>⚡ Implications Opérationnelles</h3>
+          <h3>⚡ Disponibilité</h3>
+          <div style="font-size:20px;font-weight:700;color:${intensityColor};">${DISPONIBILITE_DECISION_LEVELS[rrV2Run.availability.level].emoji} ${rrV2Run.availability.levelLabel}</div>
           <div class="kv mt">
-            <div class="k">Intensité max autorisée</div><div class="v" style="font-weight:700;color:${state.color};">${intensityCap}% du potentiel</div>
-            <div class="k">Discipline pacing</div><div class="v"><span class="badge ${pacingDiscipline === 'NORMAL' ? 'badgeSuccess' : pacingDiscipline === 'STRICT' ? 'badgeWarning' : 'badgeError'}">${pacingDiscipline}</span></div>
-            <div class="k">Course autorisée</div><div class="v">${readinessScore >= 50 ? '✅ Oui' : '⛔ Non recommandé'}</div>
-            <div class="k">Allure départ</div><div class="v">${readinessScore >= 80 ? 'Nominale' : readinessScore >= 60 ? 'Prudente (-3%)' : 'Conservative (-5%)'}</div>
+            <div class="k">Intensité autorisée</div><div class="v" style="font-weight:700;color:${intensityColor};">${intensityAllowed}</div>
+            <div class="k">Course autorisée</div><div class="v">${rrV2Run.availability.level !== 'not_available' ? '✅ Oui' : '⛔ Non recommandé'}</div>
           </div>
+          ${rrV2Run.availability.alerts.length > 0 ? `
+            <div class="alert alertError mt" style="font-size:11px;">${rrV2Run.availability.alerts.join(' | ')}</div>
+          ` : ''}
         </div>
       </div>
       
-      ${!isRunningFocus ? `
-        <div class="alert alertWarning mt">
-          <b>ℹ️ Note :</b> L'objectif actuel (${htmlEscape(athlete.goal || '—')}) n'est pas un objectif CAP pur. 
-          Pour un rapport Running complet, définissez un objectif course (10K, Semi, Marathon, Trail).
-        </div>
-      ` : ''}
+      <div class="card mt" style="border-color:${color};background:${bg};">
+        <p style="font-size:12px;font-weight:500;">${htmlEscape(rrV2Run.readiness.coachMessage)}</p>
+      </div>
       
       <div class="alert alertWarning mt" style="font-size:11px;">
-        <b>⚠️ TFCL Method™ :</b> Race Readiness ≠ Potentiel absolu. Un athlète à 100% de potentiel peut avoir un Race Readiness de 60% s'il est fatigué. 
-        Le score guide les ajustements opérationnels, pas la valeur intrinsèque de l'athlète.
+        <b>⚠️ TFCL Method™ :</b> ${htmlEscape(RACE_READINESS_V2_DISCLAIMER)}
       </div>
     </section>
   `;
@@ -3589,83 +3600,157 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   `;
 
   // =============================================
-  // D. RACE READINESS (STAFF)
+  // D. RACE READINESS V2 — DÉCISIONNEL (STAFF)
   // =============================================
+  
+  // Compute disponibilité for V2 (needed before raceReadinessHTML)
+  const sortedCheckinsForDispoV2 = [...checkins].sort((a, b) => new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime());
+  const latestCheckinForDispoV2 = sortedCheckinsForDispoV2[0];
+  
+  let dispoResultV2: DisponibiliteTFCL | null = null;
+  if (latestCheckinForDispoV2) {
+    dispoResultV2 = computeDisponibiliteTFCL({
+      sleep: latestCheckinForDispoV2.sleep ?? null,
+      fatigue: latestCheckinForDispoV2.fatigue ?? null,
+      soreness: latestCheckinForDispoV2.soreness ?? null,
+      stress: latestCheckinForDispoV2.stress ?? null,
+      motivation: latestCheckinForDispoV2.motivation ?? null,
+      alerts: latestCheckinForDispoV2.pain_flag ? { asymmetric_pain: true } : undefined,
+      objective: {
+        tss7d: effectiveSnapshot?.tss_7d ?? null,
+        tssTarget: 350,
+      },
+    });
+  }
+  
+  // Compute Race Readiness V2
+  const rrV2Input: ComputeDecisionInput = {
+    compass: payload.compassScores,
+    disponibilite: dispoResultV2 ?? undefined,
+  };
+  const rrV2: RaceReadinessV2Result = computeDecisionTFCL(rrV2Input);
+  
+  const rrV2Color = rrV2.readiness.category === 'ready' ? '#16a34a' 
+    : rrV2.readiness.category === 'solid' ? '#2563eb'
+    : rrV2.readiness.category === 'in_progress' ? '#d97706'
+    : '#dc2626';
+  const rrV2Bg = rrV2.readiness.category === 'ready' ? 'rgba(22,163,74,0.08)' 
+    : rrV2.readiness.category === 'solid' ? 'rgba(37,99,235,0.08)'
+    : rrV2.readiness.category === 'in_progress' ? 'rgba(217,119,6,0.08)'
+    : 'rgba(220,38,38,0.08)';
+  
+  const potColor = rrV2.potential.level === 'very_high' || rrV2.potential.level === 'high' ? '#16a34a' 
+    : rrV2.potential.level === 'moderate' ? '#d97706' : '#dc2626';
+  const availColor = rrV2.availability.level === 'available' ? '#16a34a' 
+    : rrV2.availability.level === 'available_caution' ? '#d97706' : '#dc2626';
+  
   const raceReadinessHTML = `
     <section id="race" class="section pagebreak">
-      <h2>C. Race Readiness (Staff)</h2>
+      <h2>C. Race Readiness V2 — Décision Coach</h2>
       
-      <div class="card ${raceReadiness.score >= 80 ? 'cardSuccess' : raceReadiness.score >= 60 ? 'cardWarning' : 'cardError'}">
-        <div class="grid2">
+      <div class="alert alertInfo mb">
+        <b>📋 Philosophie TFCL :</b> ${htmlEscape(RACE_READINESS_V2_DISCLAIMER)}
+      </div>
+      
+      <!-- DÉCISION FINALE -->
+      <div class="card" style="border-color:${rrV2Color};background:${rrV2Bg};">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
           <div>
-            <div style="display:flex;align-items:center;gap:16px;">
-              <div class="scoreCircle" style="border-color:${raceReadiness.score >= 80 ? 'var(--success)' : raceReadiness.score >= 60 ? 'var(--warning)' : 'var(--error)'}; color:${raceReadiness.score >= 80 ? 'var(--success)' : raceReadiness.score >= 60 ? 'var(--warning)' : 'var(--error)'}">
-                ${raceReadiness.score}
-              </div>
-              <div>
-                <div style="font-size:20px;font-weight:700;">${raceReadiness.label}</div>
-                <div class="muted">Race Readiness pour ${getObjectifLabel(athlete.goal)}</div>
-              </div>
+            <div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Race Readiness TFCL™</div>
+            <div style="font-size:32px;font-weight:800;color:${rrV2Color};">${rrV2.readiness.categoryEmoji} ${rrV2.readiness.categoryLabel}</div>
+            <div class="muted" style="font-size:12px;">Confiance : ${rrV2.readiness.confidenceLabel}</div>
+          </div>
+          <div style="text-align:center;">
+            <div class="badge" style="font-size:14px;padding:10px 20px;background:${rrV2Bg};color:${rrV2Color};border:2px solid ${rrV2Color};">
+              MIN(Potentiel, Disponibilité)
             </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- DOUBLE BOUCLE : Potentiel + Disponibilité -->
+      <div class="grid2 mt">
+        <div class="card">
+          <h3 style="color:${potColor};">🔒 Boucle 1 — Potentiel Physiologique</h3>
+          <div style="font-size:24px;font-weight:700;color:${potColor};margin:8px 0;">
+            ${POTENTIAL_LEVELS[rrV2.potential.level].emoji} ${rrV2.potential.levelLabel}
+          </div>
+          <div class="progressBar"><div class="progressFill" style="width:${rrV2.potential.score}%;background:${potColor};"></div></div>
+          <div class="kv mt">
+            <div class="k">Aérobie</div><div class="v">${rrV2.potential.sources.aerobic.value}/100 <span class="muted">(${rrV2.potential.sources.aerobic.type})</span></div>
+            <div class="k">Tolérance</div><div class="v">${rrV2.potential.sources.tolerance.value}/100 <span class="muted">(${rrV2.potential.sources.tolerance.type})</span></div>
+            <div class="k">Métabolique</div><div class="v">${rrV2.potential.sources.metabolic.value}/100 <span class="muted">(${rrV2.potential.sources.metabolic.type})</span></div>
+            <div class="k">Robustesse</div><div class="v">${rrV2.potential.sources.robustness.value}/100 <span class="muted">(${rrV2.potential.sources.robustness.type})</span></div>
+          </div>
+          ${rrV2.potential.dominantLevers.length > 0 ? `
+            <p class="muted mt" style="font-size:11px;"><b>Leviers :</b> ${rrV2.potential.dominantLevers.join(', ')}</p>
+          ` : ''}
+          <p class="muted mt" style="font-size:10px;font-style:italic;">Confiance : ${(rrV2.potential.confidence * 100).toFixed(0)}%${rrV2.potential.range ? ` · Plage : ${rrV2.potential.range[0]}–${rrV2.potential.range[1]}` : ''}</p>
+        </div>
+        
+        <div class="card">
+          <h3 style="color:${availColor};">⚡ Boucle 2 — Disponibilité Actuelle</h3>
+          <div style="font-size:24px;font-weight:700;color:${availColor};margin:8px 0;">
+            ${DISPONIBILITE_DECISION_LEVELS[rrV2.availability.level].emoji} ${rrV2.availability.levelLabel}
+          </div>
+          <div class="progressBar"><div class="progressFill" style="width:${rrV2.availability.score}%;background:${availColor};"></div></div>
+          ${rrV2.availability.factors.length > 0 ? `
             <div class="mt">
-              <div class="progressBar">
-                <div class="progressFill" style="width:${raceReadiness.score}%; background:${raceReadiness.score >= 80 ? 'var(--success)' : raceReadiness.score >= 60 ? 'var(--warning)' : 'var(--error)'}"></div>
-              </div>
+              <p class="muted" style="font-size:11px;"><b>Facteurs :</b></p>
+              <ul class="muted" style="font-size:11px;">
+                ${rrV2.availability.factors.map(f => `<li>${htmlEscape(f)}</li>`).join('')}
+              </ul>
             </div>
-          </div>
-          <div>
-            <h4>Pondération ${getObjectifLabel(athlete.goal)}</h4>
-            <div class="kv">
-              <div class="k">VLamax</div><div class="v">${weights.vlamax}%</div>
-              <div class="k">TTE (endurance)</div><div class="v">${weights.tte}%</div>
-              <div class="k">FTP/kg (puissance)</div><div class="v">${weights.ftpKg}%</div>
-              <div class="k">Fraîcheur</div><div class="v">${weights.freshness}%</div>
+          ` : ''}
+          ${rrV2.availability.alerts.length > 0 ? `
+            <div class="alert alertError mt" style="font-size:11px;">
+              ${rrV2.availability.alerts.map(a => `⚠ ${htmlEscape(a)}`).join('<br/>')}
             </div>
-          </div>
+          ` : ''}
         </div>
       </div>
-
-      <div class="grid4 mt">
-        <div class="card">
-          <div class="muted">VLamax</div>
-          <div class="medium">${raceReadiness.details.vlamax}/25</div>
-          <div class="progressBar mt"><div class="progressFill" style="width:${(raceReadiness.details.vlamax / 25) * 100}%; background:${raceReadiness.details.vlamax >= 20 ? 'var(--success)' : 'var(--warning)'}"></div></div>
-        </div>
-        <div class="card">
-          <div class="muted">Endurance</div>
-          <div class="medium">${raceReadiness.details.endurance}/25</div>
-          <div class="progressBar mt"><div class="progressFill" style="width:${(raceReadiness.details.endurance / 25) * 100}%; background:${raceReadiness.details.endurance >= 20 ? 'var(--success)' : 'var(--warning)'}"></div></div>
-        </div>
-        <div class="card">
-          <div class="muted">Puissance</div>
-          <div class="medium">${raceReadiness.details.puissance}/25</div>
-          <div class="progressBar mt"><div class="progressFill" style="width:${(raceReadiness.details.puissance / 25) * 100}%; background:${raceReadiness.details.puissance >= 20 ? 'var(--success)' : 'var(--warning)'}"></div></div>
-        </div>
-        <div class="card">
-          <div class="muted">Disponibilité TFCL™</div>
-          <div class="medium">${raceReadiness.details.fraicheur}/25</div>
-          <div class="progressBar mt"><div class="progressFill" style="width:${(raceReadiness.details.fraicheur / 25) * 100}%; background:${raceReadiness.details.fraicheur >= 18 ? 'var(--success)' : 'var(--warning)'}"></div></div>
-        </div>
+      
+      <!-- LOGIQUE VISUELLE MIN -->
+      <div class="card mt" style="text-align:center;padding:12px;">
+        <span class="muted" style="font-size:12px;">
+          MIN( <b style="color:${potColor};">${rrV2.potential.levelLabel}</b> , <b style="color:${availColor};">${rrV2.availability.levelLabel}</b> )
+          → <b style="color:${rrV2Color};">${rrV2.readiness.categoryEmoji} ${rrV2.readiness.categoryLabel}</b>
+        </span>
       </div>
-
+      
+      <!-- MESSAGE COACH -->
+      <div class="card mt" style="border-color:${rrV2Color};background:${rrV2Bg};">
+        <h3>🎯 Ce que tu peux décider aujourd'hui</h3>
+        <p style="font-size:14px;font-weight:500;">${htmlEscape(rrV2.readiness.coachMessage)}</p>
+      </div>
+      
+      <!-- JUSTIFICATION -->
       <div class="card mt">
-        <h3>💡 Explication du score</h3>
-        <p>${htmlEscape(raceReadiness.messageStaff)}</p>
-        ${raceReadiness.wasCappedByNutrition ? `<div class="alert alertWarning">⚠️ Score plafonné par risque nutritionnel: ${raceReadiness.nutritionalCapReason || "Risque élevé"}</div>` : ''}
-        ${raceReadiness.wasCappedByEconomy ? `<div class="alert alertWarning">🏃 Score plafonné par économie de course: ${raceReadiness.economyCapReason || "Économie insuffisante"}</div>` : ''}
-      </div>
-
-      ${raceReadiness.reasonsMissing.length > 0 ? `
-        <div class="card mt">
-          <h3>🎯 Ce qui manque pour gagner des points</h3>
-          <ul>
-            ${raceReadiness.reasonsMissing.map(r => `<li>${htmlEscape(r)}</li>`).join("")}
-          </ul>
-          <div class="alert alertInfo mt">
-            <b>Actions recommandées:</b> Ajoutez les données manquantes dans le snapshot (TSS 7d, TTE mesuré) ou via les tests VLamax pour améliorer la précision du score.
+        <h3>💡 Justification</h3>
+        <p>${htmlEscape(rrV2.readiness.justification)}</p>
+        <p class="muted mt">${htmlEscape(rrV2.explanation.why)}</p>
+        ${rrV2.explanation.suggestedFocus.length > 0 ? `
+          <div class="mt">
+            <p style="font-size:11px;font-weight:600;">Focus suggéré :</p>
+            <ul class="muted" style="font-size:11px;">
+              ${rrV2.explanation.suggestedFocus.map(f => `<li>→ ${htmlEscape(f)}</li>`).join('')}
+            </ul>
           </div>
+        ` : ''}
+      </div>
+      
+      ${(rrV2.flags.healthAlert || rrV2.flags.injuryRiskHigh || rrV2.flags.fatigueCritical) ? `
+        <div class="alert alertError mt">
+          <b>⚠️ Garde-fous activés</b>
+          <ul style="font-size:11px;">
+            ${rrV2.penalties.reasons.map(r => `<li>${htmlEscape(r)}</li>`).join('')}
+          </ul>
         </div>
       ` : ''}
+      
+      <div class="card mt" style="font-family:monospace;font-size:11px;background:#f9fafb;padding:8px 12px;">
+        RR = MIN(${rrV2.potential.score}, ${rrV2.availability.score}) − ${rrV2.penalties.total} = ${rrV2.readiness.score}
+      </div>
     </section>
   `;
 
