@@ -1,19 +1,13 @@
 /**
- * TWO FOR COACHING LAB METHOD™ — Race Readiness V2 Décisionnel
+ * TWO FOR COACHING LAB METHOD™ — Race Readiness V2 Officiel
  * 
- * DOUBLE BOUCLE DÉCISIONNELLE :
- * 1) POTENTIEL physiologique (stable, évolue lentement ≥ 4 semaines)
- * 2) DISPONIBILITÉ actuelle (dynamique, court terme)
+ * SÉPARATION CLAIRE :
+ * - POTENTIEL (Metabolic Performance Compass™) = profil physiologique structurel
+ * - DISPONIBILITÉ (Disponibilité TFCL™) = état du jour
+ * - DÉCISION (Race Readiness TFCL™) = capacité à performer/absorber
  * 
- * RÈGLE ABSOLUE :
- * Race Readiness = MIN(Potentiel, Disponibilité)
- * Aucune recommandation ne peut dépasser la disponibilité,
- * même si le potentiel est élevé.
- * 
- * POSITIONNEMENT OFFICIEL TFCL :
- * "Race Readiness TFCL n'indique pas si l'athlète est en forme.
- *  Il indique si la performance est autorisée aujourd'hui,
- *  au regard de son potentiel réel et de sa disponibilité physiologique."
+ * RÈGLE TFCL :
+ * "Ce score ne prédit pas un résultat. Il guide la décision."
  */
 
 import type { CompassScores } from "@/lib/compassScoring";
@@ -21,29 +15,20 @@ import type { DisponibiliteTFCL, TFCLReadinessInput } from "./disponibiliteTFCL"
 import { computeDisponibiliteTFCL } from "./disponibiliteTFCL";
 
 // =============================================
-// TYPES — NIVEAUX DÉCISIONNELS
+// TYPES
 // =============================================
 
-/** Potentiel physiologique : 5 niveaux stables */
-export type PotentialLevel = 'very_low' | 'low' | 'moderate' | 'high' | 'very_high';
-
-/** Disponibilité : 3 niveaux opérationnels */
-export type DisponibiliteDecisionLevel = 'available' | 'available_caution' | 'not_available';
-
-/** Catégorie décisionnelle finale (plus de score abstrait) */
 export type RaceReadinessV2Category = 
-  | 'preparation_required'  // Préparation requise
-  | 'in_progress'           // En progression
-  | 'solid'                 // Solide
-  | 'ready'                 // Prêt (sous conditions)
+  | 'preparation_required'  // <50
+  | 'in_progress'           // 50-65
+  | 'solid'                 // 65-80
+  | 'ready'                 // >80
 ;
 
 export type DataSourceType = 'measured' | 'estimated' | 'modeled';
 
 export interface PotentialScore {
-  score: number;                   // 0-100 (interne, pour positionnement graphique)
-  level: PotentialLevel;           // Niveau affiché (jamais le score brut)
-  levelLabel: string;
+  score: number;                   // 0-100
   range?: [number, number];        // Plage si incertitude
   confidence: number;              // 0-1
   sources: {
@@ -54,16 +39,13 @@ export interface PotentialScore {
   };
   mainStrength: string | null;
   mainLimitation: string | null;
-  dominantLevers: string[];        // Leviers dominants
   explanation: string;
 }
 
 export interface AvailabilityScore {
-  score: number;                   // 0-100 (interne)
-  level: DisponibiliteDecisionLevel;
-  levelLabel: string;
+  score: number;                   // 0-100
   confidence: number;              // 0-1
-  factors: string[];               // Raisons explicites
+  factors: string[];
   alerts: string[];
   recommendation: string;
 }
@@ -76,22 +58,19 @@ export interface DecisionFlags {
 }
 
 export interface RaceReadinessV2Result {
-  // Les 2 boucles
+  // Les 3 piliers
   potential: PotentialScore;
   availability: AvailabilityScore;
   
-  // Décision finale (MIN rule)
+  // Décision finale
   readiness: {
-    score: number;                 // 0-100 (= MIN(P, D) - penalties)
-    rawScore: number;              // MIN(P, D) avant pénalités
+    score: number;                 // 0-100
+    rawScore: number;              // Avant pénalités
     category: RaceReadinessV2Category;
     categoryLabel: string;
     categoryEmoji: string;
-    confidenceGlobal: number;
+    confidenceGlobal: number;      // min(conf_potential, conf_availability)
     confidenceLabel: string;
-    // Justification lisible
-    justification: string;
-    coachMessage: string;          // "Ce que tu peux décider aujourd'hui"
   };
   
   // Garde-fous
@@ -108,10 +87,10 @@ export interface RaceReadinessV2Result {
     suggestedFocus: string[];
   };
   
-  // Pondérations (historique, mais MIN rule appliquée)
+  // Pondérations utilisées
   weights: {
-    potential: number;
-    availability: number;
+    potential: number;             // 0.65
+    availability: number;          // 0.35
   };
   
   // Métadonnées
@@ -121,41 +100,12 @@ export interface RaceReadinessV2Result {
 }
 
 // =============================================
-// CONSTANTES OFFICIELLES V2 DÉCISIONNEL
+// CONSTANTES OFFICIELLES
 // =============================================
 
 export const RACE_READINESS_V2_WEIGHTS = {
   potential: 0.65,
   availability: 0.35,
-};
-
-export const POTENTIAL_LEVELS = {
-  very_low: { min: 0, max: 30, label: "Très bas", emoji: "🔴" },
-  low: { min: 30, max: 45, label: "Bas", emoji: "🟠" },
-  moderate: { min: 45, max: 60, label: "Modéré", emoji: "🟡" },
-  high: { min: 60, max: 80, label: "Élevé", emoji: "🟢" },
-  very_high: { min: 80, max: 100, label: "Très élevé", emoji: "🔵" },
-};
-
-export const DISPONIBILITE_DECISION_LEVELS = {
-  available: { 
-    min: 60, max: 100, 
-    label: "Disponible", 
-    emoji: "🟢",
-    description: "Toutes les séances sont envisageables."
-  },
-  available_caution: { 
-    min: 35, max: 60, 
-    label: "Disponible avec prudence", 
-    emoji: "🟡",
-    description: "Adapter l'intensité. Écouter les signaux."
-  },
-  not_available: { 
-    min: 0, max: 35, 
-    label: "Non disponible", 
-    emoji: "🔴",
-    description: "Reporter les séances exigeantes. Priorité récupération."
-  },
 };
 
 export const RACE_READINESS_V2_CATEGORIES = {
@@ -198,43 +148,37 @@ export const RACE_READINESS_V2_PENALTIES = {
 
 export const RACE_READINESS_V2_DEFINITIONS = {
   potential: {
-    title: "Boucle 1 — Potentiel Physiologique",
-    definition: `Le potentiel représente ce que l'athlète peut faire en théorie.
-Basé sur VO2max, VLamax V2, TTE, économie, FatMax et leur confiance.
-Il est exprimé en NIVEAU (pas en score), avec une plage réaliste.
-Le potentiel n'est recalculé que sur des fenêtres ≥ 4 semaines.`,
+    title: "Potentiel (Metabolic Performance Compass™)",
+    definition: `Le potentiel représente le profil physiologique structurel (moteur), 
+relativement stable à court terme. Il est basé sur VLamax, TTE, VO2max, 
+économie, FatMax et leur confiance.`,
   },
   availability: {
-    title: "Boucle 2 — Disponibilité Actuelle",
-    definition: `La disponibilité mesure la capacité réelle à exploiter le potentiel aujourd'hui.
-Sources : charge récente, HRV, sommeil, fatigue, douleurs, motivation.
-Une alerte majeure suffit à plafonner la disponibilité.
-Trois niveaux : Disponible / Disponible avec prudence / Non disponible.`,
+    title: "Disponibilité (Disponibilité TFCL™)",
+    definition: `La disponibilité représente l'état du jour : fatigue, stress, 
+récupération et signaux objectifs/subjectifs. Elle varie rapidement 
+et module la capacité à exprimer le potentiel.`,
   },
   decision: {
-    title: "Décision — Race Readiness TFCL™",
-    definition: `Race Readiness = MIN(Potentiel, Disponibilité).
-Aucune recommandation ne peut dépasser la disponibilité.
-Ce score ne prédit pas un résultat. Il indique si la performance
-est autorisée aujourd'hui, au regard du potentiel réel et de
-la disponibilité physiologique.`,
+    title: "Décision (Race Readiness TFCL™)",
+    definition: `Race Readiness est un indicateur décisionnel composite qui répond :
+Que peut-on raisonnablement exiger maintenant (séance clé / course) 
+compte tenu du potentiel ET de la disponibilité ?`,
   },
 };
 
 export const RACE_READINESS_V2_DISCLAIMER = 
-  "Race Readiness TFCL n'indique pas si l'athlète est en forme. Il indique si la performance est autorisée aujourd'hui.";
-
-export const RACE_READINESS_V2_POSITIONING = 
-  `Race Readiness TFCL n'indique pas si l'athlète est en forme.
-Il indique si la performance est autorisée aujourd'hui,
-au regard de son potentiel réel et de sa disponibilité physiologique.`;
+  "Ce score ne prédit pas un résultat. Il guide la décision.";
 
 export const RACE_READINESS_V2_FORMULA = `
-Race Readiness = MIN(Potentiel, Disponibilité) - Pénalités
+RaceReadiness = clamp(
+  0.65 × Potentiel_score + 0.35 × Disponibilité_score - Pénalités,
+  0, 100
+)
 
-Règle absolue :
-- La disponibilité BORNE la décision
-- Un potentiel élevé ne compense JAMAIS une indisponibilité
+Justification :
+- Le potentiel pèse plus (profil de fond)
+- La disponibilité module l'expression (court terme)
 - Les garde-fous appliquent des pénalités non négociables
 `;
 
@@ -253,28 +197,6 @@ function getCategory(score: number): RaceReadinessV2Category {
 
 function getCategoryInfo(category: RaceReadinessV2Category) {
   return RACE_READINESS_V2_CATEGORIES[category];
-}
-
-function getPotentialLevel(score: number): PotentialLevel {
-  if (score >= 80) return 'very_high';
-  if (score >= 60) return 'high';
-  if (score >= 45) return 'moderate';
-  if (score >= 30) return 'low';
-  return 'very_low';
-}
-
-function getPotentialLevelLabel(level: PotentialLevel): string {
-  return POTENTIAL_LEVELS[level].label;
-}
-
-function getDisponibiliteDecisionLevel(score: number): DisponibiliteDecisionLevel {
-  if (score >= 60) return 'available';
-  if (score >= 35) return 'available_caution';
-  return 'not_available';
-}
-
-function getDisponibiliteDecisionLabel(level: DisponibiliteDecisionLevel): string {
-  return DISPONIBILITE_DECISION_LEVELS[level].label;
 }
 
 function getConfidenceLabel(confidence: number): string {
@@ -329,22 +251,8 @@ export function extractPotentialFromCompass(compass: CompassScores): PotentialSc
     Math.min(100, globalScore + rangeMargin),
   ];
   
-  const level = getPotentialLevel(globalScore);
-  
-  // Leviers dominants
-  const dominantLevers: string[] = [];
-  if (capaciteAerobie.score >= 70) dominantLevers.push("VO2max favorable");
-  if (profilMetabolique.score >= 70) dominantLevers.push("VLamax favorable");
-  if (toleranceEffort.score >= 70) dominantLevers.push("TTE favorable");
-  if (robustesse.score >= 70) dominantLevers.push("Robustesse favorable");
-  if (capaciteAerobie.score < 50) dominantLevers.push("VO2max limitante");
-  if (profilMetabolique.score < 50) dominantLevers.push("VLamax limitante");
-  if (toleranceEffort.score < 50) dominantLevers.push("TTE limitante");
-  
   return {
     score: globalScore,
-    level,
-    levelLabel: getPotentialLevelLabel(level),
     range,
     confidence: avgConfidence,
     sources: {
@@ -367,7 +275,6 @@ export function extractPotentialFromCompass(compass: CompassScores): PotentialSc
     },
     mainStrength: compass.mainStrength,
     mainLimitation: compass.mainLimitation,
-    dominantLevers,
     explanation: generatePotentialExplanation(compass),
   };
 }
@@ -392,13 +299,8 @@ function generatePotentialExplanation(compass: CompassScores): string {
 // =============================================
 
 export function extractAvailabilityScore(disponibilite: DisponibiliteTFCL): AvailabilityScore {
-  const score = disponibilite.score;
-  const level = getDisponibiliteDecisionLevel(score);
-  
   return {
-    score,
-    level,
-    levelLabel: getDisponibiliteDecisionLabel(level),
+    score: disponibilite.score,
     confidence: disponibilite.confidence === 'high' ? 0.9 : 
                 disponibilite.confidence === 'medium' ? 0.7 : 0.5,
     factors: disponibilite.interpretation.mainReasons,
@@ -494,8 +396,11 @@ export function computeDecisionTFCL(input: ComputeDecisionInput): RaceReadinessV
     dataCompleteness: compass.dataCompleteness,
   });
   
-  // 4. Calcul du score Race Readiness V2 — RÈGLE MIN
-  const rawScore = Math.min(potential.score, availability.score);
+  // 4. Calcul du score Race Readiness V2
+  const rawScore = 
+    (RACE_READINESS_V2_WEIGHTS.potential * potential.score) + 
+    (RACE_READINESS_V2_WEIGHTS.availability * availability.score);
+  
   const finalScore = clamp(Math.round(rawScore - penalties.total), 0, 100);
   
   // 5. Catégorisation
@@ -513,11 +418,7 @@ export function computeDecisionTFCL(input: ComputeDecisionInput): RaceReadinessV
     dataIncomplete: compass.dataCompleteness < 0.5,
   };
   
-  // 8. Justification lisible
-  const justification = generateJustification(potential, availability, penalties);
-  const coachMessage = generateCoachMessage(potential, availability, category);
-  
-  // 9. Génération de l'explication
+  // 8. Génération de l'explication
   const explanation = generateExplanation(potential, availability, category, penalties, flags);
   
   return {
@@ -531,15 +432,13 @@ export function computeDecisionTFCL(input: ComputeDecisionInput): RaceReadinessV
       categoryEmoji: categoryInfo.emoji,
       confidenceGlobal,
       confidenceLabel: getConfidenceLabel(confidenceGlobal),
-      justification,
-      coachMessage,
     },
     flags,
     penalties,
     explanation,
     weights: RACE_READINESS_V2_WEIGHTS,
     timestamp: new Date().toISOString(),
-    version: 'v2.1-min-rule',
+    version: 'v2.0',
     disclaimer: RACE_READINESS_V2_DISCLAIMER,
   };
 }
@@ -547,53 +446,6 @@ export function computeDecisionTFCL(input: ComputeDecisionInput): RaceReadinessV
 // =============================================
 // GÉNÉRATION D'EXPLICATION
 // =============================================
-
-// Justification lisible pour la décision
-function generateJustification(
-  potential: PotentialScore,
-  availability: AvailabilityScore,
-  penalties: { total: number; reasons: string[] }
-): string {
-  const limiting = potential.score <= availability.score ? 'potentiel' : 'disponibilité';
-  let text = `Décision bornée par la ${limiting} (${limiting === 'potentiel' ? potential.levelLabel : availability.levelLabel}).`;
-  
-  if (penalties.total > 0) {
-    text += ` Pénalités : ${penalties.reasons.join(', ')}.`;
-  }
-  
-  if (potential.dominantLevers.length > 0) {
-    text += ` Leviers : ${potential.dominantLevers.join(', ')}.`;
-  }
-  
-  return text;
-}
-
-// Message coach-centric "Ce que tu peux décider aujourd'hui"
-function generateCoachMessage(
-  potential: PotentialScore,
-  availability: AvailabilityScore,
-  category: RaceReadinessV2Category
-): string {
-  if (availability.level === 'not_available') {
-    return "Aucune séance intense autorisée. Priorité récupération. Le potentiel est là, mais la disponibilité ne permet pas de l'exploiter.";
-  }
-  if (availability.level === 'available_caution') {
-    if (potential.level === 'high' || potential.level === 'very_high') {
-      return "Séance adaptée possible. Réduire l'intensité et surveiller les signaux. Le moteur est prêt mais la fraîcheur impose la prudence.";
-    }
-    return "Séance légère uniquement. Double limitation : moteur en construction ET disponibilité réduite.";
-  }
-  if (potential.level === 'very_high') {
-    return "Toutes les séances sont autorisées. Conditions optimales pour viser haut.";
-  }
-  if (potential.level === 'high') {
-    return "Séances clés possibles. Profil solide et disponibilité favorable.";
-  }
-  if (potential.level === 'moderate') {
-    return "Séances de développement recommandées. Construire le moteur progressivement.";
-  }
-  return "Focus fondamentaux. Le moteur doit se développer avant d'exiger de la performance.";
-}
 
 function generateExplanation(
   potential: PotentialScore,

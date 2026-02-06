@@ -85,12 +85,12 @@ export function TFCLDecisionChart({
             <div>
               <p className="font-semibold">{readiness.categoryLabel}</p>
               <p className="text-xs text-muted-foreground">
-                {potential.levelLabel} × {availability.levelLabel} → MIN
+                P:{potential.score} × D:{availability.score} → {readiness.score}
               </p>
             </div>
           </div>
           <Badge variant="outline" className={getRaceReadinessV2BadgeClass(readiness.category)}>
-            {readiness.categoryLabel}
+            {readiness.score}/100
           </Badge>
         </div>
       </div>
@@ -272,21 +272,21 @@ export function TFCLDecisionChart({
             </div>
           </div>
           
-          {/* Scores détaillés - show levels not raw scores */}
+          {/* Scores détaillés */}
           <div className="grid grid-cols-3 gap-3 mt-3">
             <div className="text-center p-2 rounded bg-background/50">
               <Zap className="h-4 w-4 mx-auto mb-1 text-primary" />
-              <p className="text-sm font-bold">{potential.levelLabel}</p>
+              <p className="text-lg font-bold">{potential.score}</p>
               <p className="text-[10px] text-muted-foreground">Potentiel</p>
             </div>
             <div className="text-center p-2 rounded bg-background/50">
               <Battery className="h-4 w-4 mx-auto mb-1 text-primary" />
-              <p className="text-sm font-bold">{availability.levelLabel}</p>
+              <p className="text-lg font-bold">{availability.score}</p>
               <p className="text-[10px] text-muted-foreground">Disponibilité</p>
             </div>
             <div className="text-center p-2 rounded bg-background/50">
               <Target className="h-4 w-4 mx-auto mb-1 text-primary" />
-              <p className="text-sm font-bold">{readiness.categoryLabel}</p>
+              <p className="text-lg font-bold">{readiness.score}</p>
               <p className="text-[10px] text-muted-foreground">Décision</p>
             </div>
           </div>
@@ -420,7 +420,7 @@ export function TFCLDecisionChart({
               
               {/* Formule */}
               <div className="p-2 rounded bg-muted/30 text-xs font-mono">
-                <p>RR = MIN({potential.score}, {availability.score}) - {penalties.total}</p>
+                <p>RR = 0.65×{potential.score} + 0.35×{availability.score} - {penalties.total}</p>
                 <p className="text-muted-foreground">= {readiness.rawScore} - {penalties.total} = {readiness.score}</p>
               </div>
               
