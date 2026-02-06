@@ -335,11 +335,30 @@ export function PacingEnvelopeCard({
     });
   }, [envelope, input, raceDistanceKm, raceDurationMin]);
   
-  if (!envelope) {
+  // Guard: données insuffisantes si aucune donnée métabolique
+  const isInsufficient = !envelope || (
+    input.vlamaxEffectif?.value === null && 
+    input.tteEffectif?.tte_min === 0 && 
+    input.ftp === null
+  );
+
+  if (isInsufficient) {
     return (
-      <Card className={className}>
-        <CardContent className="p-6 text-center text-muted-foreground">
-          Données insuffisantes pour calculer le Pacing Envelope™
+      <Card className={cn("opacity-60", className)}>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Activity className="h-5 w-5" />
+            Pacing Envelope™
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
+            <AlertTriangle className="w-8 h-8 mb-2 opacity-50" />
+            <p className="text-sm font-medium">Données insuffisantes</p>
+            <p className="text-xs mt-1 text-center max-w-xs">
+              Renseignez au minimum FTP, VLamax ou TTE dans un snapshot pour calculer l'enveloppe de pacing.
+            </p>
+          </div>
         </CardContent>
       </Card>
     );

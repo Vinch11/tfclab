@@ -67,6 +67,31 @@ export function SyntheseExecutiveCard({
     items.push({ label: "VO₂max", value: `${vo2max} ml/kg/min`, status: vo2max >= 60 ? "ok" : vo2max >= 50 ? "warning" : "critical", source: "snapshot" });
   }
 
+  // Guard: données insuffisantes
+  const isInsufficient = vlamaxEffectif.value === null && !ftp && !vo2max && completude.score === 0;
+
+  if (isInsufficient) {
+    return (
+      <Card className="opacity-60">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <FileText className="h-4 w-4 text-primary" />
+            Synthèse Exécutive — {athleteName}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
+            <AlertTriangle className="w-8 h-8 mb-2 opacity-50" />
+            <p className="text-sm font-medium">Données insuffisantes</p>
+            <p className="text-xs mt-1 text-center max-w-xs">
+              Ajoutez un snapshot avec FTP, VLamax ou VO₂max pour générer la synthèse.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader className="pb-3">

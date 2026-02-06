@@ -4,7 +4,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { HelpCircle, Target, Zap, Timer, Apple, Activity } from "lucide-react";
+import { HelpCircle, Target, Zap, Timer, Apple, Activity, AlertTriangle } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -29,7 +29,7 @@ interface ComprendreScoresCardProps {
   tteMin: number;
   ftpKg: number | null;
   vo2max: number | null;
-  readinessScore: number;
+  readinessScore: number | null;
   objectif: string;
   className?: string;
 }
@@ -38,6 +38,31 @@ export function ComprendreScoresCard({
   vlamaxValue, tteMin, ftpKg, vo2max, readinessScore, objectif, className
 }: ComprendreScoresCardProps) {
   const [openId, setOpenId] = useState<string | null>(null);
+
+  // Guard: données insuffisantes
+  const isInsufficient = vlamaxValue === null && ftpKg === null && vo2max === null && (readinessScore === null || readinessScore === 0);
+
+  if (isInsufficient) {
+    return (
+      <Card className={cn("opacity-60", className)}>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <HelpCircle className="h-4 w-4 text-primary" />
+            Comprendre mes scores
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
+            <AlertTriangle className="w-8 h-8 mb-2 opacity-50" />
+            <p className="text-sm font-medium">Données insuffisantes</p>
+            <p className="text-xs mt-1 text-center max-w-xs">
+              Ajoutez un snapshot avec vos données physiologiques pour voir l'analyse de vos scores.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const isLongDistance = ["IM", "Ironman", "Marathon", "703", "Half", "Ultra", "TrailLong"].includes(objectif);
 
@@ -76,8 +101,8 @@ export function ComprendreScoresCard({
       id: "readiness",
       icon: <Target className="h-4 w-4" />,
       label: "Race Readiness",
-      value: `${readinessScore}/100`,
-      status: readinessScore >= 80 ? "ok" : readinessScore >= 60 ? "warning" : "critical",
+      value: readinessScore !== null ? `${readinessScore}/100` : null,
+      status: readinessScore === null ? "neutral" : readinessScore >= 80 ? "ok" : readinessScore >= 60 ? "warning" : "critical",
       whatItMeans: "Score composite évaluant votre préparation globale pour votre objectif. Il combine profil métabolique, endurance, puissance et fraîcheur.",
       howToImprove: "Améliorer les indicateurs individuels (VLamax, TTE, FTP/kg) et assurer une bonne récupération.",
       targetRange: "≥ 80/100 pour être compétitif",
