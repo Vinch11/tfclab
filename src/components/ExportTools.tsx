@@ -2226,8 +2226,8 @@ function buildDoubleBoucleCAPHTML(payload: ExportPayload): string {
             <div class="k">Séances clés max</div>
             <div class="v">${readinessScore >= 80 ? '3' : readinessScore >= 60 ? '2' : '1'}</div>
             
-            <div class="k">Confiance</div>
-            <div class="v">${Math.round(confidence * 100)}%</div>
+            <div class="k">Fiabilité</div>
+            <div class="v">${confidence >= 0.8 ? 'Élevée' : confidence >= 0.6 ? 'Modérée' : 'Limitée'}</div>
           </div>
         </div>
       </div>
@@ -2352,9 +2352,9 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
   if (!v2 || v2.effective === null) {
     return `
       <section id="vlamax-zone-confidence" class="section pagebreakAvoid">
-        <h2>⚡ VLamax = Zone × Confiance</h2>
+        <h2>⚡ VLamax = Zone × Fiabilité</h2>
         <div class="card">
-          <p class="muted" style="text-align:center;">Données insuffisantes pour positionner l'athlète sur le graphique VLamax Zone × Confiance.</p>
+          <p class="muted" style="text-align:center;">Données insuffisantes pour positionner l'athlète sur le graphique VLamax Zone × Fiabilité.</p>
         </div>
       </section>
     `;
@@ -2425,11 +2425,11 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
 
   return `
     <section id="vlamax-zone-confidence" class="section pagebreakAvoid">
-      <h2>⚡ VLamax = Zone physiologique × Confiance</h2>
+      <h2>⚡ VLamax = Zone physiologique × Fiabilité</h2>
       
       <div class="alert alertInfo mb" style="font-size:11px;">
-        <b>📊 Graphique signature TFCL :</b> Ce graphique positionne l'athlète selon sa zone physiologique VLamax (axe X) et le niveau de confiance de la mesure (axe Y). 
-        La décision coaching doit reposer sur la <b>zone + confiance</b>, pas sur le centième.
+        <b>📊 Graphique signature TFCL :</b> Ce graphique positionne l'athlète selon sa zone physiologique VLamax (axe X) et le niveau de fiabilité de la mesure (axe Y). 
+        La décision coaching doit reposer sur la <b>zone + source</b>, pas sur le centième.
       </div>
 
       <div class="card cardHighlight">
@@ -2474,7 +2474,7 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
           
           <!-- Axis labels -->
           <text x="${(pad.left + W - pad.right) / 2}" y="${H - 5}" font-size="10" fill="#334155" text-anchor="middle">VLamax (mmol/L/s)</text>
-          <text x="12" y="${(pad.top + H - pad.bottom) / 2}" font-size="10" fill="#334155" text-anchor="middle" transform="rotate(-90, 12, ${(pad.top + H - pad.bottom) / 2})">Confiance</text>
+          <text x="12" y="${(pad.top + H - pad.bottom) / 2}" font-size="10" fill="#334155" text-anchor="middle" transform="rotate(-90, 12, ${(pad.top + H - pad.bottom) / 2})">Fiabilité</text>
           
           <!-- Error bar -->
           <line x1="${errLeft}" y1="${ay}" x2="${errRight}" y2="${ay}" stroke="${athleteZone.textColor}" stroke-width="2.5" stroke-opacity="0.5"/>
@@ -2496,7 +2496,7 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
           </div>
           <div style="text-align:right;">
             <span class="badge ${v2.confidence >= 0.7 ? 'badgeSuccess' : v2.confidence >= 0.5 ? 'badgeWarning' : 'badgeError'}" style="font-size:11px;padding:5px 12px;">
-              🛡️ ${confLabel} (${(v2.confidence * 100).toFixed(0)}%)
+              🛡️ ${confLabel}
             </span>
           </div>
         </div>
@@ -2519,7 +2519,7 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
 
         ${v2.confidence < 0.4 ? `
           <div class="alert alertWarning mt" style="font-size:11px;">
-            <b>⚠️ Confiance insuffisante pour une recommandation automatique.</b><br>
+            <b>⚠️ Fiabilité insuffisante pour une recommandation automatique.</b><br>
             La VLamax est positionnée à titre indicatif. Réalisez un test terrain ou importez des données supplémentaires pour fiabiliser la décision.
           </div>
         ` : ''}
@@ -2527,7 +2527,7 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
 
       <div class="alert alertInfo mt" style="font-size:10px;">
         <b>💡 Pourquoi ce graphique ?</b> La VLamax est une estimation continue influencée par la qualité des données, la fatigue et le type de test. 
-        TFCL affiche volontairement une valeur avec marge d'erreur et niveau de confiance, car la décision d'entraînement dépend davantage de la <b>zone physiologique</b> que d'un chiffre isolé. 
+        TFCL affiche volontairement une valeur avec marge d'erreur et niveau de fiabilité, car la décision d'entraînement dépend davantage de la <b>zone physiologique</b> que d'un chiffre isolé. 
         Une variation de ±0.02 est physiologiquement normale et ne justifie pas un changement de stratégie.
       </div>
     </section>
@@ -3302,7 +3302,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <div class="kv">
               <div class="k">Score</div><div class="v"><b>${cScores.capaciteAerobie.score}/100</b></div>
               <div class="k">Formule</div><div class="v" style="font-size:10px;">${htmlEscape(cScores.capaciteAerobie.formula)}</div>
-              <div class="k">Confiance</div><div class="v">${Math.round(cScores.capaciteAerobie.confidence * 100)}%</div>
+              <div class="k">Source</div><div class="v">${cScores.capaciteAerobie.confidence >= 0.8 ? '🧪 Mesuré' : cScores.capaciteAerobie.confidence >= 0.6 ? '🏃 Terrain' : '📐 Estimé'}</div>
             </div>
             <p class="muted" style="font-size:11px;margin-top:8px;">${htmlEscape(cScores.capaciteAerobie.explanation)}</p>
           </div>
@@ -3311,7 +3311,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <div class="kv">
               <div class="k">Score</div><div class="v"><b>${cScores.toleranceEffort.score}/100</b></div>
               <div class="k">Formule</div><div class="v" style="font-size:10px;">${htmlEscape(cScores.toleranceEffort.formula)}</div>
-              <div class="k">Confiance</div><div class="v">${Math.round(cScores.toleranceEffort.confidence * 100)}%</div>
+              <div class="k">Source</div><div class="v">${cScores.toleranceEffort.confidence >= 0.8 ? '🧪 Mesuré' : cScores.toleranceEffort.confidence >= 0.6 ? '🏃 Terrain' : '📐 Estimé'}</div>
             </div>
             <p class="muted" style="font-size:11px;margin-top:8px;">${htmlEscape(cScores.toleranceEffort.explanation)}</p>
           </div>
@@ -3320,7 +3320,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <div class="kv">
               <div class="k">Score</div><div class="v"><b>${cScores.profilMetabolique.score}/100</b></div>
               <div class="k">Formule</div><div class="v" style="font-size:10px;">${htmlEscape(cScores.profilMetabolique.formula)}</div>
-              <div class="k">Confiance</div><div class="v">${Math.round(cScores.profilMetabolique.confidence * 100)}%</div>
+              <div class="k">Source</div><div class="v">${cScores.profilMetabolique.confidence >= 0.8 ? '🧪 Mesuré' : cScores.profilMetabolique.confidence >= 0.6 ? '🏃 Terrain' : '📐 Estimé'}</div>
             </div>
             <p class="muted" style="font-size:11px;margin-top:8px;">${htmlEscape(cScores.profilMetabolique.explanation)}</p>
           </div>
@@ -3329,7 +3329,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <div class="kv">
               <div class="k">Score</div><div class="v"><b>${cScores.robustesse.score}/100</b></div>
               <div class="k">Formule</div><div class="v" style="font-size:10px;">${htmlEscape(cScores.robustesse.formula)}</div>
-              <div class="k">Confiance</div><div class="v">${Math.round(cScores.robustesse.confidence * 100)}%</div>
+              <div class="k">Source</div><div class="v">${cScores.robustesse.confidence >= 0.8 ? '🧪 Mesuré' : cScores.robustesse.confidence >= 0.6 ? '🏃 Terrain' : '📐 Estimé'}</div>
             </div>
             <p class="muted" style="font-size:11px;margin-top:8px;">${htmlEscape(cScores.robustesse.explanation)}</p>
           </div>
