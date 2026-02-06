@@ -1,5 +1,6 @@
 /**
  * Comprendre Mes Scores — Explication pédagogique des métriques TFCL
+ * ✅ Seuils contextualisés par ambition (plus de seuils fixes universels)
  */
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +13,14 @@ import {
 } from "@/components/ui/collapsible";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { AmbitionLevel, DEFAULT_AMBITION, getAmbitionDefinition } from "@/types/ambitionLevel";
+import {
+  evaluateVLamax,
+  evaluateTTE,
+  evaluateFtpKg,
+  evaluateVO2max,
+  evaluateReadiness,
+} from "@/lib/ambitionThresholds";
 
 interface ScoreExplanation {
   id: string;
@@ -31,11 +40,12 @@ interface ComprendreScoresCardProps {
   vo2max: number | null;
   readinessScore: number | null;
   objectif: string;
+  ambition?: AmbitionLevel;
   className?: string;
 }
 
 export function ComprendreScoresCard({
-  vlamaxValue, tteMin, ftpKg, vo2max, readinessScore, objectif, className
+  vlamaxValue, tteMin, ftpKg, vo2max, readinessScore, objectif, ambition = DEFAULT_AMBITION, className
 }: ComprendreScoresCardProps) {
   const [openId, setOpenId] = useState<string | null>(null);
 
@@ -65,6 +75,13 @@ export function ComprendreScoresCard({
   }
 
   const isLongDistance = ["IM", "Ironman", "Marathon", "703", "Half", "Ultra", "TrailLong"].includes(objectif);
+  const ambDef = getAmbitionDefinition(ambition);
+
+  // Évaluations dynamiques par ambition
+  const vlamaxEval = evaluateVLamax(vlamaxValue, objectif, ambition);
+  const tteEval = evaluateTTE(tteMin || null, objectif, ambition);
+  const ftpKgEval = evaluateFtpKg(ftpKg, objectif, ambition);
+  const readinessEval = evaluateReadiness(readinessScore, ambition);
 
   const scores: ScoreExplanation[] = [
     {
@@ -72,53 +89,54 @@ export function ComprendreScoresCard({
       icon: <Zap className="h-4 w-4" />,
       label: "VLamax",
       value: vlamaxValue !== null ? `${vlamaxValue.toFixed(2)} mmol/L/s` : null,
-      status: vlamaxValue === null ? "neutral" : vlamaxValue <= 0.40 ? "ok" : vlamaxValue <= 0.50 ? "warning" : "critical",
+      status: vlamaxEval.status,
       whatItMeans: "La VLamax mesure votre capacité glycolytique maximale. Plus elle est basse, mieux vous utilisez les graisses comme source d'énergie — un atout crucial en endurance longue distance.",
       howToImprove: "Séances Z2 longues (3-5h), tempo prolongé, éviter les sprints courts en période de préparation foncière.",
-      targetRange: isLongDistance ? "< 0.40 mmol/L/s" : "< 0.55 mmol/L/s",
+      targetRange: vlamaxEval.target,
     },
     {
       id: "tte",
       icon: <Timer className="h-4 w-4" />,
       label: "TTE (Time To Exhaustion)",
-      value: `${tteMin} min`,
-      status: tteMin >= 50 ? "ok" : tteMin >= 38 ? "warning" : "critical",
+      value: tteMin > 0 ? `${tteMin} min` : null,
+      status: tteEval.status,
       whatItMeans: "Le TTE représente combien de temps vous pouvez tenir à votre seuil fonctionnel (FTP). Plus il est élevé, plus vous maintenez une intensité élevée longtemps.",
       howToImprove: "Blocs de travail au seuil (2x20-30min), intervalles longs à 95-105% FTP, progression du volume au seuil.",
-      targetRange: isLongDistance ? "≥ 45 min" : "≥ 35 min",
+      targetRange: tteEval.target,
     },
     {
       id: "ftpkg",
       icon: <Activity className="h-4 w-4" />,
       label: "FTP/kg",
       value: ftpKg !== null ? `${ftpKg.toFixed(2)} W/kg` : null,
-      status: ftpKg === null ? "neutral" : ftpKg >= 4.0 ? "ok" : ftpKg >= 3.2 ? "warning" : "critical",
+      status: ftpKgEval.status,
       whatItMeans: "Votre puissance au seuil rapportée au poids. C'est l'indicateur le plus utilisé pour comparer la performance cycliste relative entre athlètes.",
       howToImprove: "Sweet spot (88-93% FTP), intervalles VO2max, optimisation du poids corporel.",
-      targetRange: isLongDistance ? "≥ 3.5 W/kg" : "≥ 3.0 W/kg",
+      targetRange: ftpKgEval.target,
     },
     {
       id: "readiness",
       icon: <Target className="h-4 w-4" />,
       label: "Race Readiness",
       value: readinessScore !== null ? `${readinessScore}/100` : null,
-      status: readinessScore === null ? "neutral" : readinessScore >= 80 ? "ok" : readinessScore >= 60 ? "warning" : "critical",
+      status: readinessEval.status,
       whatItMeans: "Score composite évaluant votre préparation globale pour votre objectif. Il combine profil métabolique, endurance, puissance et fraîcheur.",
       howToImprove: "Améliorer les indicateurs individuels (VLamax, TTE, FTP/kg) et assurer une bonne récupération.",
-      targetRange: "≥ 80/100 pour être compétitif",
+      targetRange: readinessEval.target,
     },
   ];
 
   if (vo2max !== null) {
+    const vo2Eval = evaluateVO2max(vo2max, objectif, ambition);
     scores.splice(2, 0, {
       id: "vo2max",
       icon: <Activity className="h-4 w-4" />,
       label: "VO2max",
       value: `${vo2max.toFixed(1)} mL/kg/min`,
-      status: vo2max >= 60 ? "ok" : vo2max >= 50 ? "warning" : "critical",
+      status: vo2Eval.status,
       whatItMeans: "Votre consommation maximale d'oxygène. C'est le « moteur » aérobie — plus il est élevé, plus votre plafond de performance est haut.",
       howToImprove: "Intervalles VO2max (3-5min à 105-120% FTP), séances de côtes, course à pied en VMA.",
-      targetRange: isLongDistance ? "≥ 55 mL/kg/min" : "≥ 50 mL/kg/min",
+      targetRange: vo2Eval.target,
     });
   }
 
@@ -134,12 +152,17 @@ export function ComprendreScoresCard({
   return (
     <Card className={className}>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
-          <HelpCircle className="h-4 w-4 text-primary" />
-          Comprendre mes scores
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2">
+            <HelpCircle className="h-4 w-4 text-primary" />
+            Comprendre mes scores
+          </CardTitle>
+          <Badge variant="outline" className="text-[10px]">
+            {ambDef.icon} {ambDef.shortLabel}
+          </Badge>
+        </div>
         <p className="text-xs text-muted-foreground">
-          Cliquez sur un indicateur pour comprendre sa signification et comment l'améliorer.
+          Cibles ajustées pour le niveau <strong>{ambDef.label}</strong>. Cliquez sur un indicateur pour comprendre sa signification.
         </p>
       </CardHeader>
       <CardContent className="space-y-2">

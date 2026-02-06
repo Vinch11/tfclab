@@ -2135,6 +2135,7 @@ const Index = () => {
                 poids={effectiveRefs.weightKg ?? null}
                 vo2max={effectiveCloudSnapshot?.vo2max ?? null}
                 tss7d={effectiveCloudSnapshot?.tss_7d ?? null}
+                ambition={currentAmbition}
                 completude={{
                   score: Math.round(([
                     vlamaxEffectif.value !== null, tteEffectif.tte_min > 0,
@@ -2162,6 +2163,7 @@ const Index = () => {
                 objectif={currentAthlete.goal || "IM"}
                 readinessScore={raceReadinessEffectif.isInsufficient ? null : raceReadinessEffectif.score}
                 confidence={vlamaxEffectif.confidence}
+                ambition={currentAmbition}
               />
             ),
           },
@@ -2176,6 +2178,7 @@ const Index = () => {
                 vo2max={effectiveCloudSnapshot?.vo2max ?? null}
                 readinessScore={raceReadinessEffectif.isInsufficient ? null : raceReadinessEffectif.score}
                 objectif={currentAthlete.goal || "IM"}
+                ambition={currentAmbition}
               />
             ),
           },
