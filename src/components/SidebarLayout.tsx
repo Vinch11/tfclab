@@ -38,6 +38,7 @@ export function SidebarLayout({
           staffMode={staffMode}
           onStaffModeChange={onStaffModeChange}
           onExportClick={onExportClick}
+          exportAlwaysVisible
         />
         <SidebarInset className="flex flex-col flex-1">
           {/* Header with trigger - mobile optimized */}
