@@ -9,7 +9,6 @@ import {
   User,
   Users,
   FlaskConical,
-  Dumbbell,
   BookOpen,
   GraduationCap,
   Trophy,
@@ -45,51 +44,65 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
 import { useState } from "react";
 
-// Définition des groupes de navigation de base
-const baseNavigationGroups = [
+// Type explicite pour les items de navigation
+interface NavItem {
+  id: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  route?: string;
+  tab?: string;
+  runningOnly?: boolean;
+}
+
+interface NavGroup {
+  id: string;
+  label: string;
+  defaultOpen: boolean;
+  items: NavItem[];
+}
+
+// Définition des groupes de navigation restructurés (3 onglets principaux)
+const baseNavigationGroups: NavGroup[] = [
   {
-    id: "athlete",
-    label: "Athlète",
+    id: "principal",
+    label: "Principal",
     defaultOpen: true,
     items: [
       { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, route: "/", tab: "dashboard" },
-      { id: "profil", label: "Profil Métabolique", icon: User, tab: "profil" },
-      { id: "running-profile", label: "Profil Running", icon: Footprints, route: "/running-profile", runningOnly: true },
-      { id: "athletes", label: "Mes Athlètes", icon: Users, route: "/athletes" },
-    ],
-  },
-  {
-    id: "analyse",
-    label: "Analyse",
-    defaultOpen: true,
-    items: [
-      { id: "tests", label: "Tests & Protocoles", icon: FlaskConical, route: "/tests" },
-      { id: "race-readiness", label: "Race Readiness", icon: Trophy, tab: "race-readiness" },
-      { id: "race-simulation", label: "Simulation", icon: Play, route: "/race-simulation" },
-      { id: "race-day", label: "Race-Day Mode", icon: Smartphone, route: "/race-day" },
-    ],
-  },
-  {
-    id: "suivi",
-    label: "Suivi",
-    defaultOpen: true,
-    items: [
-      { id: "fatigue", label: "Fatigue et Gestion", icon: Activity, route: "/fatigue" },
+      { id: "profil", label: "Profil", icon: User, tab: "profil" },
+      { id: "strategie", label: "Stratégie", icon: Trophy, tab: "strategie" },
     ],
   },
   {
     id: "outils",
     label: "Outils",
+    defaultOpen: true,
+    items: [
+      { id: "athletes", label: "Mes Athlètes", icon: Users, route: "/athletes" },
+      { id: "tests", label: "Tests & Protocoles", icon: FlaskConical, route: "/tests" },
+      { id: "race-simulation", label: "Simulation", icon: Play, route: "/race-simulation" },
+      { id: "running-profile", label: "Profil Running", icon: Footprints, route: "/running-profile", runningOnly: true },
+    ],
+  },
+  {
+    id: "terrain",
+    label: "Sur le terrain",
     defaultOpen: false,
     items: [
-      { id: "seances", label: "Bibliothèque", icon: Dumbbell, tab: "seances" },
+      { id: "race-day", label: "Race-Day", icon: Smartphone, route: "/race-day" },
+      { id: "fatigue", label: "Suivi Fatigue", icon: Activity, route: "/fatigue" },
+    ],
+  },
+  {
+    id: "ressources",
+    label: "Ressources",
+    defaultOpen: false,
+    items: [
       { id: "templates", label: "Templates", icon: BookOpen, route: "/templates" },
       { id: "academy", label: "Academy", icon: GraduationCap, route: "/academy" },
     ],
   },
 ];
-
-type NavItem = typeof baseNavigationGroups[0]["items"][0];
 
 interface AppSidebarProps {
   activeTab: string;
