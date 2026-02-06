@@ -16,6 +16,7 @@ interface SidebarLayoutProps {
   onTabChange: (tab: string) => void;
   staffMode: boolean;
   onStaffModeChange: (value: boolean) => void;
+  onExportClick?: () => void;
 }
 
 export function SidebarLayout({
@@ -24,6 +25,7 @@ export function SidebarLayout({
   onTabChange,
   staffMode,
   onStaffModeChange,
+  onExportClick,
 }: SidebarLayoutProps) {
   const isMobile = useIsMobile();
 
@@ -35,6 +37,7 @@ export function SidebarLayout({
           onTabChange={onTabChange}
           staffMode={staffMode}
           onStaffModeChange={onStaffModeChange}
+          onExportClick={onExportClick}
         />
         <SidebarInset className="flex flex-col flex-1">
           {/* Header with trigger - mobile optimized */}
