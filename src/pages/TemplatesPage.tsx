@@ -899,9 +899,9 @@ function MetricBox({ label, value, unit, source, confidence }: {
       </div>
       <p className="font-mono text-lg font-bold">{value}</p>
       {unit && <p className="text-[10px] text-muted-foreground">{unit}</p>}
-      {confidence !== undefined && (
+      {source && (
         <p className="text-[10px] text-muted-foreground/70 mt-0.5">
-          conf {Math.round(confidence * 100)}%
+          {source === "test_labo" ? "🧪 Labo" : source === "test_terrain" ? "🏃 Terrain" : source === "observed" ? "📋 Observé" : "📐 Estim."}
         </p>
       )}
     </div>

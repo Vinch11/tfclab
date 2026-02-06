@@ -196,7 +196,7 @@ function VLamaxCapField({
         </span>
         {estimatedValue && (
           <span className="text-xs opacity-70">
-            ({Math.round(estimatedValue.confidence * 100)}% confiance)
+            ({estimatedValue.sources?.join(", ") || "estimée"})
           </span>
         )}
       </div>
@@ -379,7 +379,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
             </div>
 
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">Confiance (0–1)</Label>
+              <Label className="text-right">Fiabilité (0–1)</Label>
               <Input className="col-span-3" type="number" step="0.1" min="0" max="1" value={confidence} onChange={(e) => setConfidence(e.target.value)} />
             </div>
           </TabsContent>

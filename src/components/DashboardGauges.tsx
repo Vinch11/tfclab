@@ -278,39 +278,21 @@ export function DashboardGauges(props: DashboardGaugesProps) {
             />
           )}
 
-          {/* Barres de confiance compactes */}
+          {/* Sources compactes */}
           <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-2">
             <div className="text-center min-w-0">
-              <div className="h-1 rounded-full bg-muted/30 overflow-hidden">
-                <div 
-                  className="h-full bg-primary/60 rounded-full transition-all duration-500"
-                  style={{ width: `${vlamaxEnvelope.confidence * 100}%` }}
-                />
-              </div>
               <span className="text-[8px] sm:text-[9px] text-muted-foreground truncate block">
-                Conf. {Math.round(vlamaxEnvelope.confidence * 100)}%
+                VLamax: {vlamaxEnvelope.source === "MEASURED" ? "🧪" : vlamaxEnvelope.source === "ESTIMATED" ? "🏃" : "📐"} {vlamaxEnvelope.source === "MEASURED" ? "Labo" : vlamaxEnvelope.source === "ESTIMATED" ? "Terrain" : "Estim."}
               </span>
             </div>
             <div className="text-center min-w-0">
-              <div className="h-1 rounded-full bg-muted/30 overflow-hidden">
-                <div 
-                  className="h-full bg-primary/60 rounded-full transition-all duration-500"
-                  style={{ width: `${tteEnvelope.confidence * 100}%` }}
-                />
-              </div>
               <span className="text-[8px] sm:text-[9px] text-muted-foreground truncate block">
-                Conf. {Math.round(tteEnvelope.confidence * 100)}%
+                TTE: {tteEnvelope.source === "MEASURED" ? "📋" : "📐"} {tteEnvelope.source === "MEASURED" ? "Observé" : "Estim."}
               </span>
             </div>
             <div className="text-center min-w-0">
-              <div className="h-1 rounded-full bg-muted/30 overflow-hidden">
-                <div 
-                  className="h-full bg-primary/60 rounded-full transition-all duration-500"
-                  style={{ width: `${raceReadinessEnvelope.confidence * 100}%` }}
-                />
-              </div>
               <span className="text-[8px] sm:text-[9px] text-muted-foreground truncate block">
-                Conf. {Math.round(raceReadinessEnvelope.confidence * 100)}%
+                Readiness: {raceReadinessEnvelope.source === "MEASURED" ? "📋" : "📐"} {raceReadinessEnvelope.source === "MEASURED" ? "Observé" : "Modèle"}
               </span>
             </div>
           </div>
@@ -415,39 +397,21 @@ export function DashboardGauges(props: DashboardGaugesProps) {
           />
         )}
 
-        {/* Confidence bars - responsive grid */}
+        {/* Sources compactes */}
         <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-2">
           <div className="text-center min-w-0">
-            <div className="h-1 rounded-full bg-muted/30 overflow-hidden">
-              <div 
-                className="h-full bg-primary/60 rounded-full transition-all duration-500"
-                style={{ width: `${vlamax.confidence * 100}%` }}
-              />
-            </div>
             <span className="text-[8px] sm:text-[9px] text-muted-foreground truncate block">
-              Conf. {Math.round(vlamax.confidence * 100)}%
+              VLamax: {vlamax.label || "📐 Estim."}
             </span>
           </div>
           <div className="text-center min-w-0">
-            <div className="h-1 rounded-full bg-muted/30 overflow-hidden">
-              <div 
-                className="h-full bg-primary/60 rounded-full transition-all duration-500"
-                style={{ width: `${tte.confidence * 100}%` }}
-              />
-            </div>
             <span className="text-[8px] sm:text-[9px] text-muted-foreground truncate block">
-              Conf. {Math.round(tte.confidence * 100)}%
+              TTE: {tte.tte_min ? "📋 Calculé" : "📐 Estim."}
             </span>
           </div>
           <div className="text-center min-w-0">
-            <div className="h-1 rounded-full bg-muted/30 overflow-hidden">
-              <div 
-                className="h-full bg-primary/60 rounded-full transition-all duration-500"
-                style={{ width: `${raceReadiness.confidence * 100}%` }}
-              />
-            </div>
             <span className="text-[8px] sm:text-[9px] text-muted-foreground truncate block">
-              Conf. {Math.round(raceReadiness.confidence * 100)}%
+              Readiness: 📐 Modèle
             </span>
           </div>
         </div>

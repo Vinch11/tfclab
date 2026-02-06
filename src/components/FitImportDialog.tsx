@@ -501,7 +501,7 @@ export function FitImportDialog({
                     : "outline"
                 }
               >
-                Confiance: {Math.round(overallConfidence * 100)}%
+                Qualité: {overallConfidence >= 0.7 ? "Élevée" : overallConfidence >= 0.5 ? "Modérée" : "Limitée"}
               </Badge>
             </div>
 
@@ -632,7 +632,7 @@ export function FitImportDialog({
                       variant={runningEconomyResult.economyLevel === "excellent" || runningEconomyResult.economyLevel === "good" ? "default" : "secondary"}
                       className="ml-2"
                     >
-                      Confiance: {runningEconomyResult.confidence}%
+                      Qualité: {runningEconomyResult.confidence >= 70 ? "Élevée" : runningEconomyResult.confidence >= 50 ? "Modérée" : "Limitée"}
                     </Badge>
                   </CardTitle>
                 </CardHeader>

@@ -184,9 +184,9 @@ export function IFSCCard({
           </p>
         </div>
 
-        {/* Confiance */}
+        {/* Source */}
         <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>Confiance : {Math.round(ifsc.confidence * 100)}%</span>
+          <span>Source TTE : {tteSource === "observed" ? "📋 Observé" : "📐 Estimé"}</span>
           <span>IFSC™</span>
         </div>
       </CardContent>

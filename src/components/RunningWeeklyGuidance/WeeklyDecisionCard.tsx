@@ -191,11 +191,11 @@ export function WeeklyDecisionCard({
           </p>
         </div>
         
-        {/* Confiance */}
+        {/* Fiabilité */}
         <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Confiance décision</span>
+          <span className="text-muted-foreground">Fiabilité données</span>
           <Badge variant="outline" className="text-xs">
-            {Math.round(decision.confidence * 100)}%
+            {decision.confidence >= 0.75 ? "Élevée" : decision.confidence >= 0.5 ? "Modérée" : "Limitée"}
           </Badge>
         </div>
         

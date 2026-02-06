@@ -94,7 +94,7 @@ export function TestComparison({ athlete }: TestComparisonProps) {
                   </span>
                 </div>
                 <span className="text-xs text-muted-foreground">
-                  Confiance: {current.confiance}%
+                  {new Date(current.date).toLocaleDateString("fr-FR")}
                 </span>
               </div>
 

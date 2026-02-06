@@ -112,7 +112,7 @@ export function TTETargetChart({
               <div className="p-2 bg-warning/10 border border-warning/30 rounded-lg flex items-start gap-2">
                 <Info className="w-4 h-4 text-warning mt-0.5 shrink-0" />
                 <p className="text-xs text-warning">
-                  Source: {tteSource} | Confiance: {Math.round(tteConfidence * 100)}%
+                  Source: {tteSource} — {tteConfidence >= 0.7 ? "Fiable" : tteConfidence >= 0.5 ? "Modéré" : "Prudence"}
                 </p>
               </div>
             )}
@@ -192,7 +192,7 @@ export function TTETargetChart({
             {staffMode && (
               <div className="p-2 bg-muted/50 rounded-lg text-xs text-muted-foreground space-y-1">
                 <p><strong>Source:</strong> {tteSource}</p>
-                <p><strong>Confiance:</strong> {Math.round(tteConfidence * 100)}%</p>
+                <p><strong>Fiabilité:</strong> {tteConfidence >= 0.7 ? "Élevée" : tteConfidence >= 0.5 ? "Modérée" : "Limitée"}</p>
                 <p><strong>Interprétation:</strong> {statusInfo?.message}</p>
               </div>
             )}
