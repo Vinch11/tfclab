@@ -52,7 +52,7 @@ export function ScenarioComparisonCard<T>({
           )}
         </div>
         <p className="text-xs text-muted-foreground">
-          Confiance globale: {Math.round(scenarios.confidence * 100)}%
+          3 scénarios basés sur la marge d'erreur du modèle
         </p>
       </CardHeader>
       <CardContent className={compact ? "pt-0" : undefined}>

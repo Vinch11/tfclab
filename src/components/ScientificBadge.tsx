@@ -307,13 +307,8 @@ function ScientificDialog({
             </div>
 
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Indice de confiance</span>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">{metadata.confidenceLabel}</span>
-                <span className="text-xs text-muted-foreground">
-                  ({Math.round(metadata.confidence * 100)}%)
-                </span>
-              </div>
+              <span className="text-sm text-muted-foreground">Fiabilité</span>
+              <span className="text-sm font-medium">{metadata.confidenceLabel}</span>
             </div>
 
             <div>

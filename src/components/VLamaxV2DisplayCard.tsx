@@ -21,7 +21,6 @@ import {
   TrendingUp,
   Lock,
   Info,
-  ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -34,9 +33,10 @@ import type { VLamaxV2Result } from "@/lib/v2/vlamaxV2Engine";
 import {
   formatVLamaxAthlete,
   formatVLamaxStaff,
-  getV2ConfidenceColor,
-  getV2ConfidenceLabel,
   getV2SourceColor,
+  getV2SourceLabel,
+  getV2SourceEmoji,
+  getV2SourceBgColor,
   VLAMAX_V2_ACADEMY_TEXT,
 } from "@/lib/v2/vlamaxV2Engine";
 
@@ -184,15 +184,19 @@ export function VLamaxV2DisplayCard({
           <div className="text-xs text-muted-foreground">
             {display.unit}
           </div>
-          {/* Staff: marge + confiance */}
+          {/* Staff: marge d'erreur + source */}
           {staffMode && v2Result && (
             <div className="mt-1 flex items-center justify-center gap-2 text-xs">
               <Badge 
                 variant="outline" 
-                className={cn("text-[10px]", getV2ConfidenceColor(v2Result.confidence))}
+                className={cn(
+                  "text-[10px] gap-1",
+                  getV2SourceBgColor(v2Result.source),
+                  getV2SourceColor(v2Result.source)
+                )}
               >
-                <ShieldCheck className="h-3 w-3 mr-1" />
-                {getV2ConfidenceLabel(v2Result.confidence)} ({(v2Result.confidence * 100).toFixed(0)}%)
+                <span>{getV2SourceEmoji(v2Result.source)}</span>
+                {getV2SourceLabel(v2Result.source)}
               </Badge>
               <span className="text-muted-foreground">
                 ± {v2Result.errorMargin.toFixed(2)}
