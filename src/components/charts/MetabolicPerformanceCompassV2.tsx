@@ -616,9 +616,8 @@ export function MetabolicPerformanceCompassV2({
                           <p className="text-[9px] sm:text-[10px] font-mono text-muted-foreground/70 border-t pt-2">{data.formula}</p>
                         )}
                         <div className="flex items-center gap-1 mt-2 text-[9px] sm:text-[10px]">
-                          <span className="text-muted-foreground">Confiance:</span>
-                          <Progress value={data.confidence * 100} className="h-1 w-12 sm:w-16" />
-                          <span>{(data.confidence * 100).toFixed(0)}%</span>
+                          <span className="text-muted-foreground">Source:</span>
+                          <span>{data.confidence >= 0.8 ? '🧪 Mesuré' : data.confidence >= 0.6 ? '🏃 Terrain' : '📐 Estimé'}</span>
                         </div>
                       </div>
                     );
@@ -750,8 +749,8 @@ export function MetabolicPerformanceCompassV2({
                   <div className="mt-2 pt-2 border-t border-dashed">
                     <p className="text-[9px] font-mono text-muted-foreground/60">{axis.formula}</p>
                     <div className="flex items-center gap-1 mt-1 text-[9px]">
-                      <span className="text-muted-foreground">Confiance:</span>
-                      <span className="font-medium">{(axis.confidence * 100).toFixed(0)}%</span>
+                      <span className="text-muted-foreground">Fiabilité:</span>
+                      <span className="font-medium">{axis.confidence >= 0.8 ? 'Élevée' : axis.confidence >= 0.6 ? 'Modérée' : 'Limitée'}</span>
                     </div>
                   </div>
                 )}
