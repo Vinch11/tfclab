@@ -85,10 +85,10 @@ export default function AthleteEditPage() {
   const ageIndex = computeAgeAdjustmentIndex(age);
   const ambitionDef = getAmbitionDefinition(ambition);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!nom.trim()) {
       toast.error("Le nom est requis");
-      return;
+      return false;
     }
 
     const athleteData: Athlete = {
@@ -107,20 +107,26 @@ export default function AthleteEditPage() {
       historique: editingAthlete?.historique || [],
     };
 
-    if (isNew) {
-      addAthlete(athleteData);
-      toast.success("Athlète créé");
-    } else {
-      updateAthlete(athleteData);
-      toast.success("Profil mis à jour");
+    try {
+      if (isNew) {
+        await addAthlete(athleteData);
+        toast.success("Athlète créé");
+      } else {
+        await updateAthlete(athleteData);
+        toast.success("Profil mis à jour");
+      }
+      setSelectedAthleteId(athleteData.id);
+      return true;
+    } catch (e) {
+      console.error("Erreur sauvegarde athlète:", e);
+      toast.error("Erreur lors de la sauvegarde");
+      return false;
     }
-
-    setSelectedAthleteId(athleteData.id);
   };
 
-  const handleSaveAndContinue = () => {
-    handleSave();
-    navigate("/snapshot");
+  const handleSaveAndContinue = async () => {
+    const ok = await handleSave();
+    if (ok) navigate("/snapshot");
   };
 
   return (
