@@ -84,6 +84,9 @@ import { LorangStrategyCard } from "@/components/LorangStrategyCard";
 import { LorangDecisionFlowChart } from "@/components/LorangDecisionFlowChart";
 import { type LorangStrategyInput } from "@/lib/v2/lorangStrategyEngine";
 
+// ✅ Roadmap Stratégique
+import { RoadmapStrategique } from "@/components/RoadmapStrategique";
+import { detectUnifiedLimiter, type UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
 // ✅ FIX 11 - Effective Refs (source unique de vérité)
 import { getEffectiveRefs, computeFtpKg, getMissingFields } from "@/lib/effectiveRefs";
 
@@ -542,6 +545,24 @@ const Index = () => {
         : "normal",
     });
   }, [currentAthlete, user, effectiveCloudSnapshot, vlamaxEffectif, tteEffectif]);
+
+  // ✅ UNIFIED LIMITER - Pour Roadmap Stratégique
+  const unifiedLimiterResult = useMemo<UnifiedLimiterResult | null>(() => {
+    if (!currentAthlete) return null;
+    return detectUnifiedLimiter({
+      vo2max: effectiveCloudSnapshot?.vo2max ?? null,
+      ftpKg: ftp_kg,
+      vlamax: vlamaxEffectif.value,
+      tte: tteEffectif.tte_min,
+      fatmax: null,
+      economyScore: effectiveCloudSnapshot?.run_economy_score ?? null,
+      availabilityScore: null,
+      hasHealthAlerts: false,
+      objectif: currentAthlete.goal || "IM",
+      ambition: currentAmbition,
+      age: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
+    });
+  }, [currentAthlete, effectiveCloudSnapshot, ftp_kg, vlamaxEffectif, tteEffectif, currentAmbition]);
 
   // ✅ PERSISTANCE AUTOMATIQUE DRE - Hook pour sauvegarder en base
   const { 
@@ -1499,6 +1520,15 @@ const Index = () => {
               <DashboardRecommendationsCard
                 onNavigateToLibrary={() => setActiveTab("strategie")}
                 maxSuggestions={4}
+              />
+            ),
+          },
+          {
+            id: "roadmap-strategique",
+            render: () => currentAthlete && staffMode && (
+              <RoadmapStrategique
+                objectif={currentAthlete.goal}
+                limiterResult={unifiedLimiterResult}
               />
             ),
           },
