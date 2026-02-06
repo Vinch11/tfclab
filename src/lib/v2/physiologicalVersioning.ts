@@ -826,7 +826,9 @@ export const PDF_METHODOLOGY_SECTION = {
       content += `### ${engine.versionCode}\n`;
       content += `${badge.icon} ${badge.label}\n`;
       content += `${engine.descriptionShort}\n`;
-      content += `Confiance: ${engine.confidenceRange[0]*100}% - ${engine.confidenceRange[1]*100}%\n\n`;
+      const lowLabel = engine.confidenceRange[0] >= 0.8 ? "Élevée" : engine.confidenceRange[0] >= 0.6 ? "Modérée" : "Limitée";
+      const highLabel = engine.confidenceRange[1] >= 0.8 ? "Élevée" : engine.confidenceRange[1] >= 0.6 ? "Modérée" : "Limitée";
+      content += `Fiabilité: ${lowLabel} – ${highLabel}\n\n`;
     });
     
     content += `## Avertissements\n`;

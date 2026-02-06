@@ -626,9 +626,9 @@ export function formatEnvelopeForStaff(envelope: ScoreEnvelope): string {
     UNKNOWN: "❔",
   }[envelope.source];
 
-  const confStr = `${Math.round(envelope.confidence * 100)}%`;
+  const confLabel = envelope.confidence >= 0.8 ? "élevée" : envelope.confidence >= 0.6 ? "modérée" : envelope.confidence >= 0.4 ? "limitée" : "exploratoire";
 
-  return `${valueStr} ${envelope.unit || ""} ${rangeStr} — ${sourceIcon} ${envelope.source.toLowerCase()} — confiance ${confStr}`;
+  return `${valueStr} ${envelope.unit || ""} ${rangeStr} — ${sourceIcon} ${envelope.source.toLowerCase()} — fiabilité ${confLabel}`;
 }
 
 /**

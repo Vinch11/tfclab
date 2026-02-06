@@ -118,7 +118,7 @@ export function getVLamaxEffectif(
         source: "estimé", // Estimation via snapshot
         confidence,
         label: "VLamax (estimé)",
-        details: `Basé sur snapshot du ${formatDate(effectiveSnapshot.date)}, confiance ${Math.round(confidence * 100)}%`
+        details: `Basé sur snapshot du ${formatDate(effectiveSnapshot.date)}, fiabilité ${confidence >= 0.8 ? "élevée" : confidence >= 0.6 ? "modérée" : "limitée"}`
       };
     }
   }

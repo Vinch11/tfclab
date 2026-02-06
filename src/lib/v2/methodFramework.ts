@@ -281,8 +281,8 @@ export const SCORE_DISPLAY_RULES: ScoreDisplayRule[] = [
   },
   {
     id: 'confidence',
-    rule: 'Toujours inclure un indice de confiance',
-    example: '(confiance 72%)'
+    rule: 'Toujours inclure un niveau de fiabilité',
+    example: '(fiabilité modérée)'
   },
   {
     id: 'context',
@@ -292,8 +292,8 @@ export const SCORE_DISPLAY_RULES: ScoreDisplayRule[] = [
 ];
 
 export const SCORE_DISPLAY_FORMAT = {
-  template: '{metric} : {min}–{max} / {scale} (confiance {confidence}%)',
-  example: 'Performance métabolique : 62–68 / 100 (confiance 72%)',
+  template: '{metric} : {min}–{max} / {scale} (fiabilité {confidenceLabel})',
+  example: 'Performance métabolique : 62–68 / 100 (fiabilité modérée)',
   
   requiredElements: [
     'Valeur ou plage',
@@ -415,8 +415,8 @@ Distinguer les deux est essentiel pour une interprétation correcte.`,
     {
       id: "uncertainty",
       title: "Incertitude physiologique",
-      content: `Aucun modèle n'est parfait. L'indice de confiance quantifie cette incertitude.
-Une confiance de 80% signifie que 20% de l'information reste incertaine.`,
+      content: `Aucun modèle n'est parfait. Le niveau de fiabilité quantifie cette incertitude.
+Une fiabilité "Élevée" signifie que les données sont cohérentes et issues de sources multiples.`,
       keyPoints: [
         "Confiance = qualité de l'estimation",
         "Plus les données sont précises, plus la confiance est haute",
@@ -471,8 +471,8 @@ export const CHATBOT_METHOD_RULES = {
     },
     {
       id: 'mention_confidence',
-      rule: "Mentionner le niveau de confiance",
-      example: "Avec une confiance de 72%..."
+      rule: "Mentionner le niveau de fiabilité",
+      example: "Avec une fiabilité modérée..."
     }
   ],
   
@@ -529,7 +529,8 @@ export function formatScoreWithRange(
   scale: number,
   confidence: number
 ): string {
-  return `${metric} : ${min}–${max} / ${scale} (confiance ${Math.round(confidence * 100)}%)`;
+  const label = confidence >= 0.8 ? "élevée" : confidence >= 0.6 ? "modérée" : confidence >= 0.4 ? "limitée" : "exploratoire";
+  return `${metric} : ${min}–${max} / ${scale} (fiabilité ${label})`;
 }
 
 /**
@@ -704,7 +705,7 @@ export const CHATBOT_COMPLETE_RULES = {
   
   responseTemplates: {
     intro: "Selon la méthode TFCL™, ",
-    confidence: "(confiance: {value}%)",
+    confidence: "(fiabilité: {label})",
     limitation: "Cette estimation est basée sur {source}. {limitation}",
     coaching: "Options à considérer (décision coach) :"
   },
@@ -714,7 +715,7 @@ export const CHATBOT_COMPLETE_RULES = {
       question: "Comment est calculé mon VLamax ?",
       answer: `Votre VLamax est estimée selon la méthode TFCL™, 
 basée sur le rapport entre puissance max courte et seuil fonctionnel. 
-Cette estimation (confiance ~70%) n'est pas une mesure directe par lactate.
+Cette estimation (fiabilité modérée) n'est pas une mesure directe par lactate.
 Elle doit être interprétée dans le contexte de votre objectif.`
     },
     {
