@@ -215,6 +215,33 @@ export function MetabolicPerformanceCompassV2({
     });
   }, [data, currentAmbition, athleteAge]);
 
+  // Guard: si aucune donnée réelle, afficher un placeholder
+  if (scores.dataCompleteness === 0) {
+    return (
+      <Card className={cn("border-dashed border-muted-foreground/30", className)}>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <Compass className="w-5 h-5 text-muted-foreground" />
+            <CardTitle className="text-base text-muted-foreground">Metabolic Performance Compass™</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
+            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+              <AlertTriangle className="w-6 h-6 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Données insuffisantes</p>
+              <p className="text-xs text-muted-foreground/70 mt-1 max-w-xs">
+                Renseignez au moins FTP, poids ou VLamax dans un snapshot pour activer le Compass.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   // Scores pour tous les niveaux d'ambition (mode comparaison)
   const allAmbitionScores = useMemo(() => {
     if (!compareMode) return null;
