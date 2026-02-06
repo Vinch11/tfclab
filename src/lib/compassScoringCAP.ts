@@ -201,12 +201,12 @@ function computeVO2maxAxis(
   
   if (vo2max === null || vo2max <= 0) {
     return {
-      score: 50, rawScore: 50,
+      score: 0, rawScore: 0,
       label: "VO₂max", shortLabel: "VO₂max",
-      explanation: "VO₂max non disponible — score neutre",
-      formula: "VO2_score = (VO2 / cible) × 100",
+      explanation: "VO₂max non renseigné — aucune estimation possible",
+      formula: "Données manquantes",
       inputs: { vo2max: null, target },
-      confidence: 0.2, source: "unknown",
+      confidence: 0, source: "unknown",
       icon: "🫁", color: "hsl(200, 70%, 50%)"
     };
   }
@@ -248,12 +248,12 @@ function computeVLamaxCAPAxis(
   
   if (vlamaxCap === null) {
     return {
-      score: 50, rawScore: 50,
+      score: 0, rawScore: 0,
       label: "VLamax CAP", shortLabel: "VLamax",
-      explanation: "VLamax CAP non disponible — score neutre",
-      formula: "VLamax_score = 100 - écart × pénalité",
+      explanation: "VLamax CAP non renseignée — aucune estimation possible",
+      formula: "Données manquantes",
       inputs: { vlamaxCap: null, optimal, max },
-      confidence: 0.2, source: "unknown",
+      confidence: 0, source: "unknown",
       icon: "⚡", color: "hsl(45, 90%, 50%)"
     };
   }
@@ -293,12 +293,12 @@ function computeEconomyAxis(
 ): CompassCAPAxisScore {
   if (economyIndex === null) {
     return {
-      score: 50, rawScore: 50,
+      score: 0, rawScore: 0,
       label: "Économie", shortLabel: "Économie",
-      explanation: "Économie de course non évaluée — score neutre",
-      formula: "Economy_score = index direct (0-100)",
+      explanation: "Économie de course non renseignée — aucune estimation possible",
+      formula: "Données manquantes",
       inputs: { economyIndex: null, economyLevel: null },
-      confidence: 0.2, source: "unknown",
+      confidence: 0, source: "unknown",
       icon: "🦶", color: "hsl(160, 60%, 45%)"
     };
   }
@@ -339,12 +339,12 @@ function computeDurabilityAxis(
   // Si aucune donnée
   if (tteMin === null && hrDriftPct === null) {
     return {
-      score: 50, rawScore: 50,
+      score: 0, rawScore: 0,
       label: "Durabilité", shortLabel: "Durabilité",
-      explanation: "Durabilité non évaluée — score neutre",
-      formula: "Durability_score = f(TTE, drift)",
+      explanation: "Durabilité non renseignée — aucune estimation possible",
+      formula: "Données manquantes",
       inputs: { tteMin: null, hrDriftPct: null, tteTarget },
-      confidence: 0.2, source: "unknown",
+      confidence: 0, source: "unknown",
       icon: "💪", color: "hsl(280, 60%, 55%)"
     };
   }
@@ -414,12 +414,12 @@ function computeVVO2maxAxis(
   
   if (vma === null || vma <= 0) {
     return {
-      score: 50, rawScore: 50,
+      score: 0, rawScore: 0,
       label: "vVO₂max", shortLabel: "vVO₂max",
-      explanation: "VMA/vVO₂max non disponible — score neutre",
-      formula: "vVO2_score = (VMA / cible) × 100",
+      explanation: "VMA non renseignée — aucune estimation possible",
+      formula: "Données manquantes",
       inputs: { vma: null, target },
-      confidence: 0.2, source: "unknown",
+      confidence: 0, source: "unknown",
       icon: "🚀", color: "hsl(340, 70%, 55%)"
     };
   }
@@ -459,12 +459,12 @@ function computePaceThresholdAxis(
   
   if (paceThresholdSecPerKm === null || paceThresholdSecPerKm <= 0) {
     return {
-      score: 50, rawScore: 50,
+      score: 0, rawScore: 0,
       label: "Allure Seuil", shortLabel: "Seuil",
-      explanation: "Allure seuil non disponible — score neutre",
-      formula: "Pace_score = (cible / allure) × 100",
+      explanation: "Allure seuil non renseignée — aucune estimation possible",
+      formula: "Données manquantes",
       inputs: { pace: null, target },
-      confidence: 0.2, source: "unknown",
+      confidence: 0, source: "unknown",
       icon: "⏱️", color: "hsl(25, 85%, 50%)"
     };
   }

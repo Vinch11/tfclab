@@ -142,13 +142,13 @@ export function computeCapaciteAerobie(
   // Données manquantes
   if (ftp === null || poids === null || poids <= 0) {
     return {
-      score: 50,
-      rawScore: 50,
+      score: 0,
+      rawScore: 0,
       label: "Capacité Aérobie",
-      explanation: "FTP ou poids non disponible – score neutre appliqué",
-      formula: "FTP_score = (FTP_kg / FTP_ref) × 100",
+      explanation: "FTP ou poids non renseigné — aucune estimation possible",
+      formula: "Données manquantes",
       inputs: { ftp, poids, ftpKg: null, ftpRef: targets.ftpKgTarget },
-      confidence: 0.2,
+      confidence: 0,
       source: "unknown"
     };
   }
@@ -199,13 +199,13 @@ export function computeToleranceEffort(
   // TTE inconnu
   if (tteEffectif.source === "unknown" || tteValue === null || tteValue <= 0) {
     return {
-      score: 50,
-      rawScore: 50,
+      score: 0,
+      rawScore: 0,
       label: "Tolérance à l'Effort",
-      explanation: "TTE non disponible – score neutre appliqué",
-      formula: "TTE_score = (TTE_effectif / TTE_cible) × 100",
+      explanation: "TTE non renseigné — aucune estimation possible",
+      formula: "Données manquantes",
       inputs: { tteValue: null, tteTarget: targets.tteTarget, source: tteEffectif.source },
-      confidence: tteEffectif.confidence,
+      confidence: 0,
       source: tteEffectif.source
     };
   }
@@ -256,13 +256,13 @@ export function computeProfilMetabolique(
   // VLamax inconnu
   if (vlamaxEffectif.source === "unknown" || vlamaxValue === null) {
     return {
-      score: 50,
-      rawScore: 50,
+      score: 0,
+      rawScore: 0,
       label: "Profil Métabolique",
-      explanation: "VLamax non disponible – score neutre appliqué",
-      formula: "VLamax_score = 100 - ((VLamax - VLamax_optimal) / plage) × 100",
+      explanation: "VLamax non renseignée — aucune estimation possible",
+      formula: "Données manquantes",
       inputs: { vlamaxValue: null, vlamaxIdeal: targets.vlamaxIdeal, vlamaxMax: targets.vlamaxMax },
-      confidence: vlamaxEffectif.confidence,
+      confidence: 0,
       source: vlamaxEffectif.source
     };
   }
@@ -326,13 +326,13 @@ export function computeToleranceEffortWithAge(
   
   if (tteEffectif.source === "unknown" || tteValue === null || tteValue <= 0) {
     return {
-      score: 50,
-      rawScore: 50,
+      score: 0,
+      rawScore: 0,
       label: "Tolérance à l'Effort",
-      explanation: "TTE non disponible – score neutre appliqué",
-      formula: "TTE_score = (TTE_effectif / TTE_cible) × 100",
+      explanation: "TTE non renseigné — aucune estimation possible",
+      formula: "Données manquantes",
       inputs: { tteValue: null, tteTarget: targets.tteTarget, source: tteEffectif.source },
-      confidence: tteEffectif.confidence,
+      confidence: 0,
       source: tteEffectif.source
     };
   }
@@ -379,13 +379,13 @@ export function computeProfilMetaboliqueWithAge(
   
   if (vlamaxEffectif.source === "unknown" || vlamaxValue === null) {
     return {
-      score: 50,
-      rawScore: 50,
+      score: 0,
+      rawScore: 0,
       label: "Profil Métabolique",
-      explanation: "VLamax non disponible – score neutre appliqué",
-      formula: "VLamax_score = 100 - ((VLamax - VLamax_optimal) / plage) × 100",
+      explanation: "VLamax non renseignée — aucune estimation possible",
+      formula: "Données manquantes",
       inputs: { vlamaxValue: null, vlamaxIdeal: targets.vlamaxIdeal, vlamaxMax: targets.vlamaxMax },
-      confidence: vlamaxEffectif.confidence,
+      confidence: 0,
       source: vlamaxEffectif.source
     };
   }
