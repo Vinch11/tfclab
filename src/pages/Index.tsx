@@ -2249,7 +2249,7 @@ const Index = () => {
       onTabChange={setActiveTab}
       staffMode={staffMode}
       onStaffModeChange={setStaffMode}
-      onExportClick={currentAthlete ? () => setExportOpen(true) : undefined}
+      onExportClick={() => setExportOpen(true)}
     >
       {/* Background decorations */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
@@ -2275,13 +2275,24 @@ const Index = () => {
       />
 
       {/* Export Tools - triggered from sidebar */}
-      {currentAthlete && (
+      {exportOpen && currentAthlete && (
         <ExportTools 
           athlete={currentAthlete}
           snapshots={snapshots}
           tests={tests}
           staffMode={staffMode}
           ambition={currentAmbition}
+          open={exportOpen}
+          onOpenChange={setExportOpen}
+        />
+      )}
+      {exportOpen && !currentAthlete && (
+        <ExportTools 
+          athlete={null as any}
+          snapshots={[]}
+          tests={[]}
+          staffMode={staffMode}
+          ambition={"loisir" as any}
           open={exportOpen}
           onOpenChange={setExportOpen}
         />
