@@ -1,12 +1,15 @@
 /**
  * Double Boucle CAP — TFCL Method™
  * Boucle lente (profil verrouillé 4-6 sem) + Boucle rapide (décision hebdo)
+ * ✅ Seuils contextualisés par ambition
  */
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Lock, Zap, RefreshCw, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AmbitionLevel, DEFAULT_AMBITION, getAmbitionDefinition } from "@/types/ambitionLevel";
+import { evaluateVLamax, evaluateReadiness } from "@/lib/ambitionThresholds";
 
 interface DoubleBoucleCAPCardProps {
   vlamaxRun: number | null;
@@ -15,10 +18,12 @@ interface DoubleBoucleCAPCardProps {
   objectif: string;
   readinessScore: number | null;
   confidence: number;
+  ambition?: AmbitionLevel;
 }
 
-export function DoubleBoucleCAPCard({ vlamaxRun, vo2max, durability, objectif, readinessScore, confidence }: DoubleBoucleCAPCardProps) {
+export function DoubleBoucleCAPCard({ vlamaxRun, vo2max, durability, objectif, readinessScore, confidence, ambition = DEFAULT_AMBITION }: DoubleBoucleCAPCardProps) {
   const isRunning = ["Marathon", "Semi-Marathon", "Semi", "10K", "5K", "Trail", "TrailShort", "TrailMountain", "TrailUltra"].some(g => objectif.includes(g));
+  const ambDef = getAmbitionDefinition(ambition);
 
   // Guard: données insuffisantes si running mais pas de données physio
   if (isRunning && vlamaxRun === null && vo2max === null && durability === 0) {
@@ -59,27 +64,36 @@ export function DoubleBoucleCAPCard({ vlamaxRun, vo2max, durability, objectif, r
     );
   }
 
+  // Évaluations dynamiques par ambition
+  const vlamaxEval = evaluateVLamax(vlamaxRun, objectif, ambition);
+  const readinessEval = evaluateReadiness(readinessScore, ambition);
+
   const getLever = () => {
     if (!vlamaxRun) return { emoji: "🫀", label: "Endurance Aérobie" };
-    if (vlamaxRun > 0.45) return { emoji: "⬇️", label: "Baisser VLamax" };
+    if (vlamaxEval.status === "critical") return { emoji: "⬇️", label: "Baisser VLamax" };
     if (durability < 40) return { emoji: "⏱️", label: "Améliorer Durabilité" };
     if (vo2max && vo2max < 55) return { emoji: "🔥", label: "Développer VO2max" };
     return { emoji: "✅", label: "Maintien Profil" };
   };
 
   const lever = getLever();
+  const readinessColor = readinessEval.status === "ok" ? "text-green-600" : readinessEval.status === "warning" ? "text-amber-600" : "text-red-600";
+  const readinessLabel = readinessEval.status === "ok" ? "Bonne" : readinessEval.status === "warning" ? "Modérée" : "Faible";
+  const readinessBg = readinessEval.status === "ok" ? "bg-green-500/10 border-green-500/20" : readinessEval.status === "warning" ? "bg-amber-500/10 border-amber-500/20" : "bg-red-500/10 border-red-500/20";
   const rs = readinessScore ?? 0;
-  const readinessColor = rs >= 80 ? "text-green-600" : rs >= 60 ? "text-amber-600" : "text-red-600";
-  const readinessLabel = rs >= 80 ? "Bonne" : rs >= 60 ? "Modérée" : "Faible";
-  const readinessBg = rs >= 80 ? "bg-green-500/10 border-green-500/20" : rs >= 60 ? "bg-amber-500/10 border-amber-500/20" : "bg-red-500/10 border-red-500/20";
 
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
-          <RefreshCw className="h-4 w-4 text-primary" />
-          Double Boucle CAP — TFCL Method™
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2">
+            <RefreshCw className="h-4 w-4 text-primary" />
+            Double Boucle CAP — TFCL Method™
+          </CardTitle>
+          <Badge variant="outline" className="text-[10px]">
+            {ambDef.icon} {ambDef.shortLabel}
+          </Badge>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="rounded-lg p-3 bg-primary/5 border border-primary/10">
@@ -120,12 +134,12 @@ export function DoubleBoucleCAPCard({ vlamaxRun, vo2max, durability, objectif, r
             <div className={cn("rounded-lg p-4 text-center", readinessBg)}>
               <p className="text-[10px] text-muted-foreground uppercase">Disponibilité</p>
               <p className={cn("text-2xl font-bold", readinessColor)}>{readinessLabel}</p>
-              <p className={cn("text-xs", readinessColor)}>Score: {rs}%</p>
+              <p className={cn("text-xs", readinessColor)}>Score: {rs}% • Cible: {readinessEval.target}</p>
             </div>
             <div className="space-y-2 text-xs">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Intensité autorisée</span>
-                <span className="font-medium">{rs >= 80 ? 'Haute ✓' : rs >= 60 ? 'Modérée' : 'Faible ✗'}</span>
+                <span className="font-medium">{readinessEval.status === "ok" ? 'Haute ✓' : readinessEval.status === "warning" ? 'Modérée' : 'Faible ✗'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Long run</span>
@@ -133,7 +147,7 @@ export function DoubleBoucleCAPCard({ vlamaxRun, vo2max, durability, objectif, r
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Séances clés max</span>
-                <span className="font-medium">{rs >= 80 ? '3' : rs >= 60 ? '2' : '1'}</span>
+                <span className="font-medium">{readinessEval.status === "ok" ? '3' : readinessEval.status === "warning" ? '2' : '1'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Confiance</span>
