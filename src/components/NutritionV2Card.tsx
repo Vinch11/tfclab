@@ -154,7 +154,10 @@ export function NutritionV2Card({
     return computeNutritionV2(input);
   }, [vlamaxValue, vlamaxConfidence, tteMin, sport, targetDurationHours, targetIntensityPct, weightKg, advancedGutTraining]);
   
-  if (!nutrition) {
+  // Guard: données insuffisantes (pas de VLamax ni TTE ni poids)
+  const isInsufficient = !nutrition || (vlamaxValue === null && (tteMin === null || tteMin === 0) && weightKg === null);
+
+  if (isInsufficient) {
     return (
       <Card className={cn("opacity-60", className)}>
         <CardHeader className="pb-2">
@@ -164,10 +167,12 @@ export function NutritionV2Card({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-center justify-center py-4 text-muted-foreground">
+          <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
             <AlertTriangle className="w-8 h-8 mb-2 opacity-50" />
-            <p className="text-sm text-center">Poids requis pour le calcul</p>
-            <p className="text-xs mt-1">Renseignez le poids dans le profil</p>
+            <p className="text-sm font-medium">Données insuffisantes</p>
+            <p className="text-xs mt-1 text-center max-w-xs">
+              Renseignez au minimum le poids et idéalement VLamax ou TTE pour estimer les besoins nutritionnels.
+            </p>
           </div>
         </CardContent>
       </Card>

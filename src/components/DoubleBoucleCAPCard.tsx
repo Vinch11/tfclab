@@ -5,7 +5,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Lock, Zap, RefreshCw } from "lucide-react";
+import { Lock, Zap, RefreshCw, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface DoubleBoucleCAPCardProps {
@@ -13,12 +13,34 @@ interface DoubleBoucleCAPCardProps {
   vo2max: number | null;
   durability: number;
   objectif: string;
-  readinessScore: number;
+  readinessScore: number | null;
   confidence: number;
 }
 
 export function DoubleBoucleCAPCard({ vlamaxRun, vo2max, durability, objectif, readinessScore, confidence }: DoubleBoucleCAPCardProps) {
   const isRunning = ["Marathon", "Semi-Marathon", "Semi", "10K", "5K", "Trail", "TrailShort", "TrailMountain", "TrailUltra"].some(g => objectif.includes(g));
+
+  // Guard: données insuffisantes si running mais pas de données physio
+  if (isRunning && vlamaxRun === null && vo2max === null && durability === 0) {
+    return (
+      <Card className="opacity-60">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <RefreshCw className="h-4 w-4" /> Double Boucle CAP
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
+            <AlertTriangle className="w-8 h-8 mb-2 opacity-50" />
+            <p className="text-sm font-medium">Données insuffisantes</p>
+            <p className="text-xs mt-1 text-center max-w-xs">
+              Renseignez VLamax, VO₂max ou TTE dans un snapshot pour activer la Double Boucle.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (!isRunning) {
     return (
@@ -46,9 +68,10 @@ export function DoubleBoucleCAPCard({ vlamaxRun, vo2max, durability, objectif, r
   };
 
   const lever = getLever();
-  const readinessColor = readinessScore >= 80 ? "text-green-600" : readinessScore >= 60 ? "text-amber-600" : "text-red-600";
-  const readinessLabel = readinessScore >= 80 ? "Bonne" : readinessScore >= 60 ? "Modérée" : "Faible";
-  const readinessBg = readinessScore >= 80 ? "bg-green-500/10 border-green-500/20" : readinessScore >= 60 ? "bg-amber-500/10 border-amber-500/20" : "bg-red-500/10 border-red-500/20";
+  const rs = readinessScore ?? 0;
+  const readinessColor = rs >= 80 ? "text-green-600" : rs >= 60 ? "text-amber-600" : "text-red-600";
+  const readinessLabel = rs >= 80 ? "Bonne" : rs >= 60 ? "Modérée" : "Faible";
+  const readinessBg = rs >= 80 ? "bg-green-500/10 border-green-500/20" : rs >= 60 ? "bg-amber-500/10 border-amber-500/20" : "bg-red-500/10 border-red-500/20";
 
   return (
     <Card>
@@ -97,20 +120,20 @@ export function DoubleBoucleCAPCard({ vlamaxRun, vo2max, durability, objectif, r
             <div className={cn("rounded-lg p-4 text-center", readinessBg)}>
               <p className="text-[10px] text-muted-foreground uppercase">Disponibilité</p>
               <p className={cn("text-2xl font-bold", readinessColor)}>{readinessLabel}</p>
-              <p className={cn("text-xs", readinessColor)}>Score: {readinessScore}%</p>
+              <p className={cn("text-xs", readinessColor)}>Score: {rs}%</p>
             </div>
             <div className="space-y-2 text-xs">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Intensité autorisée</span>
-                <span className="font-medium">{readinessScore >= 80 ? 'Haute ✓' : readinessScore >= 60 ? 'Modérée' : 'Faible ✗'}</span>
+                <span className="font-medium">{rs >= 80 ? 'Haute ✓' : rs >= 60 ? 'Modérée' : 'Faible ✗'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Long run</span>
-                <span className="font-medium">{readinessScore >= 50 ? '✓ Autorisé' : '✗ Non recommandé'}</span>
+                <span className="font-medium">{rs >= 50 ? '✓ Autorisé' : '✗ Non recommandé'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Séances clés max</span>
-                <span className="font-medium">{readinessScore >= 80 ? '3' : readinessScore >= 60 ? '2' : '1'}</span>
+                <span className="font-medium">{rs >= 80 ? '3' : rs >= 60 ? '2' : '1'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Confiance</span>
