@@ -1879,7 +1879,7 @@ const Index = () => {
                 tteValue={tteEffectif.tte_min}
                 tteSource={tteEffectif.source}
                 tteConfidence={tteEffectif.confidence}
-                readinessScore={raceReadinessEffectif.score}
+                readinessScore={raceReadinessEffectif.isInsufficient ? null : raceReadinessEffectif.score}
                 readinessDetails={{
                   vlamax: raceReadinessEffectif.details?.vlamax ?? 0,
                   endurance: raceReadinessEffectif.details?.endurance ?? 0,
@@ -2160,7 +2160,7 @@ const Index = () => {
                 vo2max={effectiveCloudSnapshot?.vo2max ?? null}
                 durability={tteEffectif.tte_min}
                 objectif={currentAthlete.goal || "IM"}
-                readinessScore={raceReadinessEffectif.score}
+                readinessScore={raceReadinessEffectif.isInsufficient ? null : raceReadinessEffectif.score}
                 confidence={vlamaxEffectif.confidence}
               />
             ),
@@ -2174,7 +2174,7 @@ const Index = () => {
                 tteMin={tteEffectif.tte_min}
                 ftpKg={ftp_kg}
                 vo2max={effectiveCloudSnapshot?.vo2max ?? null}
-                readinessScore={raceReadinessEffectif.score}
+                readinessScore={raceReadinessEffectif.isInsufficient ? null : raceReadinessEffectif.score}
                 objectif={currentAthlete.goal || "IM"}
               />
             ),

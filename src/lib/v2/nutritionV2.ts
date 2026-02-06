@@ -318,6 +318,11 @@ export function computeNutritionV2(input: NutritionV2Input): NutritionPredictive
     return null;
   }
   
+  // Sans aucune donnée physiologique (VLamax + TTE), l'estimation est trop générique
+  if (vlamaxValue === null && tteMin === null) {
+    return null;
+  }
+  
   const warnings: string[] = [];
   const contributors: NutritionContributor[] = [];
   
