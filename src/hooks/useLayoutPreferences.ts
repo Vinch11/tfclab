@@ -139,6 +139,16 @@ export const RACE_READINESS_SECTIONS: SectionDefinition[] = [
   { id: "staff-report", label: "Rapport Staff", icon: "FileText", defaultVisible: true },
 ];
 
+export const STRATEGIE_SECTIONS: SectionDefinition[] = [
+  { id: "race-readiness-page", label: "Race Readiness", icon: "Trophy", category: "analyse", defaultVisible: true },
+  { id: "nutrition-v2", label: "Nutrition V2", icon: "Utensils", category: "analyse", defaultVisible: true },
+  { id: "pacing-envelope", label: "Pacing Envelope", icon: "Target", category: "analyse", defaultVisible: true },
+  { id: "synthese-executive", label: "Synthèse Executive", icon: "FileText", category: "analyse", defaultVisible: true },
+  { id: "double-boucle-cap", label: "Double Boucle CAP", icon: "GitCompare", category: "analyse", defaultVisible: true },
+  { id: "comprendre-scores", label: "Comprendre mes Scores", icon: "HelpCircle", category: "outils", defaultVisible: true },
+  { id: "seances-library", label: "Séances & Bibliothèque", icon: "Dumbbell", category: "outils", defaultVisible: true },
+];
+
 export const EVOLUTION_SECTIONS: SectionDefinition[] = [
   { id: "historical-chart", label: "Graphique Historique", icon: "LineChart", defaultVisible: true },
   { id: "scientific-dashboard", label: "Dashboard Scientifique", icon: "BarChart", defaultVisible: true },
@@ -282,7 +292,7 @@ export const ALL_SECTIONS: Record<TabId, SectionDefinition[]> = {
   academy: ACADEMY_SECTIONS,
   "race-readiness": RACE_READINESS_SECTIONS,
   "running-profile": RUNNING_PROFILE_SECTIONS,
-  strategie: [],
+  strategie: STRATEGIE_SECTIONS,
 };
 
 // Format de stockage amélioré avec visibilité
