@@ -110,6 +110,17 @@ import { useAthleteRaceGoals } from "@/hooks/useAthleteRaceGoals";
 import { NextRaceIndicator } from "@/components/NextRaceIndicator";
 import { QuickObjectiveSelector } from "@/components/QuickObjectiveSelector";
 
+// ✅ Sections rapport intégrées dans les onglets
+import { SyntheseExecutiveCard } from "@/components/SyntheseExecutiveCard";
+import { NutritionV2Card } from "@/components/NutritionV2Card";
+import { PacingEnvelopeCard } from "@/components/PacingEnvelopeCard";
+import { DoubleBoucleCAPCard } from "@/components/DoubleBoucleCAPCard";
+import { WahooSuggestionsCard } from "@/components/WahooSuggestionsCard";
+import { ComprendreScoresCard } from "@/components/ComprendreScoresCard";
+import { CalibrationEvidenceSummaryCard } from "@/components/CalibrationEvidenceSummaryCard";
+import { suggestWahooWorkouts, type SuggestionEngineContext } from "@/lib/wahoo/wahooSuggestionEngine";
+import { computeNutritionV2 } from "@/lib/v2/nutritionV2";
+import { type PacingEnvelopeInput } from "@/lib/v2/pacingEnvelopeEngine";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -2039,6 +2050,116 @@ const Index = () => {
               />
             ),
           },
+          {
+            id: "synthese-executive",
+            render: () => currentAthlete && (
+              <SyntheseExecutiveCard
+                athleteName={currentAthlete.name}
+                objectif={currentAthlete.goal || "IM"}
+                vlamaxEffectif={vlamaxEffectif}
+                tteEffectif={tteEffectif}
+                raceReadiness={raceReadinessEffectif}
+                ftp={effectiveRefs.ftp ?? null}
+                poids={effectiveRefs.weightKg ?? null}
+                vo2max={effectiveCloudSnapshot?.vo2max ?? null}
+                tss7d={effectiveCloudSnapshot?.tss_7d ?? null}
+                completude={{
+                  score: Math.round(([
+                    vlamaxEffectif.value !== null,
+                    tteEffectif.tte_min > 0,
+                    effectiveRefs.ftp !== null,
+                    effectiveRefs.weightKg !== null,
+                    effectiveCloudSnapshot?.vo2max !== null,
+                  ].filter(Boolean).length / 5) * 100),
+                  manquants: [
+                    ...(vlamaxEffectif.value === null ? ["VLamax"] : []),
+                    ...(effectiveRefs.ftp === null ? ["FTP"] : []),
+                    ...(effectiveRefs.weightKg === null ? ["Poids"] : []),
+                    ...(effectiveCloudSnapshot?.vo2max == null ? ["VO2max"] : []),
+                  ],
+                }}
+              />
+            ),
+          },
+          {
+            id: "nutrition-v2",
+            render: () => {
+              if (!currentAthlete) return null;
+              const sport = ["Marathon", "Semi", "Trail", "TrailLong", "10K", "5K"].includes(currentAthlete.goal || "") ? "cap" as const : "velo" as const;
+              return (
+                <NutritionV2Card
+                  vlamaxValue={vlamaxEffectif.value}
+                  vlamaxConfidence={vlamaxEffectif.confidence}
+                  tteMin={tteEffectif.tte_min}
+                  sport={sport}
+                  weightKg={effectiveRefs.weightKg ?? null}
+                  staffMode={staffMode}
+                />
+              );
+            },
+          },
+          {
+            id: "pacing-envelope",
+            render: () => {
+              if (!currentAthlete) return null;
+              const normalizedObjectif = ((currentAthlete.goal === "IM" ? "Ironman" : currentAthlete.goal) || "Ironman") as any;
+              const fatmaxResult = computeFatMaxTFCL({
+                vlamaxEffectif: vlamaxEffectif.value,
+                vlamaxConfidence: vlamaxEffectif.confidence,
+                vo2maxEffectif: effectiveCloudSnapshot?.vo2max ?? null,
+                tteEffectif: tteEffectif.tte_min,
+                tteConfidence: tteEffectif.confidence,
+                fatigueIndex: null,
+                objectif: normalizedObjectif,
+                ftp: effectiveRefs.ftp,
+              });
+              const sport = ["Marathon", "Semi", "Trail", "10K", "5K"].includes(currentAthlete.goal || "") ? "run" as const : "bike" as const;
+              const pacingInput: PacingEnvelopeInput = {
+                vlamaxEffectif: vlamaxEffectif,
+                tteEffectif: tteEffectif,
+                fatmax: fatmaxResult,
+                raceReadinessScore: raceReadinessEffectif.score,
+                fatigueIndex: null,
+                raceObjective: (currentAthlete.goal || "IM") as any,
+                sport,
+                ftp: effectiveRefs.ftp,
+                vma: effectiveCloudSnapshot?.vma ?? null,
+                weight: effectiveRefs.weightKg,
+              };
+              return (
+                <PacingEnvelopeCard
+                  input={pacingInput}
+                  staffMode={staffMode}
+                />
+              );
+            },
+          },
+          {
+            id: "double-boucle-cap",
+            render: () => currentAthlete && (
+              <DoubleBoucleCAPCard
+                vlamaxRun={vlamaxEffectif.value}
+                vo2max={effectiveCloudSnapshot?.vo2max ?? null}
+                durability={tteEffectif.tte_min}
+                objectif={currentAthlete.goal || "IM"}
+                readinessScore={raceReadinessEffectif.score}
+                confidence={vlamaxEffectif.confidence}
+              />
+            ),
+          },
+          {
+            id: "comprendre-scores",
+            render: () => currentAthlete && (
+              <ComprendreScoresCard
+                vlamaxValue={vlamaxEffectif.value}
+                tteMin={tteEffectif.tte_min}
+                ftpKg={ftp_kg}
+                vo2max={effectiveCloudSnapshot?.vo2max ?? null}
+                readinessScore={raceReadinessEffectif.score}
+                objectif={currentAthlete.goal || "IM"}
+              />
+            ),
+          },
         ];
 
         return (
@@ -2150,6 +2271,25 @@ const Index = () => {
             id: "training-zones",
             render: () => <TrainingZonesCard staffMode={staffMode} />,
           },
+          {
+            id: "calibration-evidence-profil",
+            render: () => currentAthlete && staffMode && (
+              <CalibrationEvidenceSummaryCard athleteId={currentAthlete.id} />
+            ),
+          },
+          {
+            id: "comprendre-scores-profil",
+            render: () => currentAthlete && (
+              <ComprendreScoresCard
+                vlamaxValue={vlamaxEffectif.value}
+                tteMin={tteEffectif.tte_min}
+                ftpKg={ftp_kg}
+                vo2max={effectiveCloudSnapshot?.vo2max ?? null}
+                readinessScore={raceReadinessEffectif.score}
+                objectif={currentAthlete.goal || "IM"}
+              />
+            ),
+          },
         ];
 
         return (
@@ -2243,6 +2383,8 @@ const Index = () => {
                     snapshotUpdatedAt={effectiveCloudSnapshot?.updated_at ?? null}
                     athleteAge={currentAthlete?.birth_date ? calculateAge(currentAthlete.birth_date) : null}
                     ambition={currentAmbition}
+                    vo2max={effectiveCloudSnapshot?.vo2max ?? null}
+                    vma={effectiveCloudSnapshot?.vma ?? null}
                     onGoToSnapshots={() => {
                       setShowSnapshots(true);
                       setShowPhysioAnalysis(false);
