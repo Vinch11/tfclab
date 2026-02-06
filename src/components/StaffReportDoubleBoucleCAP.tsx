@@ -24,6 +24,7 @@ import {
   Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getConfidenceLabel, getConfidenceColorClass } from "@/lib/confidenceDisplay";
 import {
   type RunningPhysioProfile,
   type RunningWeeklyDecision,
@@ -137,7 +138,7 @@ export function DoubleBoucleCAPSection({
             {/* Progression et confiance */}
             <div className="mt-3 flex items-center justify-between text-[10px] text-muted-foreground">
               <span>Progression bloc : {Math.round(lockProgress)}%</span>
-              <span>Confiance : {Math.round(confidence * 100)}%</span>
+              <span>Fiabilité : {getConfidenceLabel(confidence)}</span>
             </div>
             
             {/* Barre de progression simplifiée */}
@@ -320,9 +321,9 @@ function WeeklyDecisionSection({ decision }: { decision: RunningWeeklyDecision }
       
       {/* Confiance */}
       <div className="mt-2 flex items-center justify-between text-[10px]">
-        <span className="text-muted-foreground">Confiance décision</span>
-        <Badge variant="outline" className="text-[9px] px-1.5 py-0">
-          {Math.round(decision.confidence * 100)}%
+        <span className="text-muted-foreground">Fiabilité décision</span>
+        <Badge variant="outline" className={cn("text-[9px] px-1.5 py-0", getConfidenceColorClass(decision.confidence))}>
+          {getConfidenceLabel(decision.confidence)}
         </Badge>
       </div>
     </div>

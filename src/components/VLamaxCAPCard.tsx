@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { getConfidenceLabel, getConfidenceColorClass } from "@/lib/confidenceDisplay";
 import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
 import { useCalibrationEvidence } from "@/hooks/useCalibrationEvidence";
 import { useRunningProfileCloud } from "@/hooks/useRunningProfileCloud";
@@ -292,9 +293,9 @@ export function VLamaxCAPCard({
             </span>
           </div>
           <div>
-            <span className="text-muted-foreground">Confiance:</span>
-            <span className="ml-1 font-medium">
-              {Math.round(confidence * 100)}%
+            <span className="text-muted-foreground">Fiabilité:</span>
+            <span className={cn("ml-1 font-medium", getConfidenceColorClass(confidence))}>
+              {getConfidenceLabel(confidence)}
             </span>
           </div>
           {effectiveVo2max && (

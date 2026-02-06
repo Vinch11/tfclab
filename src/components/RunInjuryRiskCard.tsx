@@ -18,6 +18,7 @@ import {
   Lightbulb
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getConfidenceLabel, getConfidenceColorClass } from "@/lib/confidenceDisplay";
 import { 
   RunInjuryRiskEnvelope,
   getRunInjuryRiskIcon,
@@ -146,8 +147,8 @@ export function RunInjuryRiskCard({
                 {riskEnvelope.levelLabel}
               </Badge>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Confiance : {Math.round(riskEnvelope.confidence * 100)}%
+            <p className={cn("text-xs mt-1", getConfidenceColorClass(riskEnvelope.confidence))}>
+              Fiabilité : {getConfidenceLabel(riskEnvelope.confidence)}
             </p>
           </div>
           <div className="text-4xl">

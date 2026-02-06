@@ -32,6 +32,7 @@ import {
   Footprints,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getConfidenceLabel, getConfidenceColorClass } from "@/lib/confidenceDisplay";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
@@ -340,8 +341,8 @@ function SuggestionRow({ suggestion }: { suggestion: WahooSuggestion }) {
                 <span>Priorité {suggestion.priority}</span>
               </div>
             </div>
-            <Badge variant="outline" className="text-[10px] shrink-0">
-              {Math.round(suggestion.confidence * 100)}%
+            <Badge variant="outline" className={cn("text-[10px] shrink-0", getConfidenceColorClass(suggestion.confidence))}>
+              {getConfidenceLabel(suggestion.confidence)}
             </Badge>
           </div>
         </TooltipTrigger>

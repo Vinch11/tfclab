@@ -32,6 +32,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { getConfidenceLabel, getConfidenceColorClass } from "@/lib/confidenceDisplay";
 import {
   computeNutritionV2,
   getNutritionBadgeClass,
@@ -254,10 +255,10 @@ export function NutritionV2Card({
           label={nutrition.glycogenRiskLabel}
         />
         
-        {/* Confidence */}
+        {/* Fiabilité */}
         <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Confiance</span>
-          <span className="font-mono">{Math.round(nutrition.confidence * 100)}%</span>
+          <span className="text-muted-foreground">Fiabilité</span>
+          <span className={cn("font-medium", getConfidenceColorClass(nutrition.confidence))}>{getConfidenceLabel(nutrition.confidence)}</span>
         </div>
         
         {/* Why this number */}
