@@ -91,6 +91,7 @@ export interface ReportSections {
   synthese: boolean;        // Synthèse Exécutive
   compass: boolean;         // Metabolic Performance Compass
   profilMetabolique: boolean; // Profil Métabolique Complet (Radar Chart)
+  vlamaxZoneConfidence: boolean; // ⚡ VLamax = Zone × Confiance (graphique signature)
   indicateurs: boolean;     // Indicateurs Clés
   raceReadiness: boolean;   // Race Readiness
   disponibiliteTFCL: boolean; // ✅ Disponibilité TFCL™
@@ -2234,6 +2235,195 @@ function buildDoubleBoucleCAPHTML(payload: ExportPayload): string {
           hebdomadaires sans modifier les seuils physiologiques. 
           <em>"La physiologie évolue lentement, les décisions doivent être prises souvent."</em>
         </p>
+      </div>
+    </section>
+  `;
+}
+
+// =============================================
+// VLAMAX ZONE × CONFIANCE — SVG CHART (PDF)
+// =============================================
+
+function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
+  const v2 = payload.vlamax.v2;
+  if (!v2 || v2.effective === null) {
+    return `
+      <section id="vlamax-zone-confidence" class="section pagebreakAvoid">
+        <h2>⚡ VLamax = Zone × Confiance</h2>
+        <div class="card">
+          <p class="muted" style="text-align:center;">Données insuffisantes pour positionner l'athlète sur le graphique VLamax Zone × Confiance.</p>
+        </div>
+      </section>
+    `;
+  }
+
+  const goal = payload.athlete.goal || "";
+  const isRun = ["Marathon", "Semi", "Trail", "TrailLong", "TrailCourt", "Ultra", "Course"].includes(goal);
+  const xMin = 0.20;
+  const xMax = isRun ? 0.90 : 1.05;
+  const xRange = xMax - xMin;
+
+  // Zones physiologiques
+  const zones = [
+    { id: "diesel",    label: "Diesel",    min: 0.20, max: 0.30, color: "rgba(59,130,246,0.20)",  textColor: "#2563eb" },
+    { id: "endurance", label: "Endurance", min: 0.30, max: 0.40, color: "rgba(34,197,94,0.20)",   textColor: "#16a34a" },
+    { id: "allround",  label: "All-round", min: 0.40, max: 0.55, color: "rgba(234,179,8,0.20)",   textColor: "#a16207" },
+    { id: "puncheur",  label: "Puncheur",  min: 0.55, max: 0.70, color: "rgba(249,115,22,0.20)",  textColor: "#c2410c" },
+    { id: "sprinter",  label: "Sprinter",  min: 0.70, max: 1.10, color: "rgba(239,68,68,0.20)",   textColor: "#dc2626" },
+  ].filter(z => z.min < xMax && z.max > xMin).map(z => ({
+    ...z,
+    min: Math.max(z.min, xMin),
+    max: Math.min(z.max, xMax),
+  }));
+
+  // SVG dimensions
+  const W = 500, H = 300;
+  const pad = { top: 25, right: 30, bottom: 50, left: 55 };
+  const plotW = W - pad.left - pad.right;
+  const plotH = H - pad.top - pad.bottom;
+
+  const toX = (v: number) => pad.left + ((v - xMin) / xRange) * plotW;
+  const toY = (c: number) => pad.top + (1 - c) * plotH;
+
+  // Athlete point
+  const ax = toX(v2.effective!);
+  const ay = toY(v2.confidence);
+  const errLeft = toX(v2.effective! - v2.errorMargin);
+  const errRight = toX(v2.effective! + v2.errorMargin);
+
+  // Find zone for color
+  const athleteZone = zones.find(z => v2.effective! >= z.min && v2.effective! < z.max) || zones[2];
+  const opacity = Math.max(0.5, v2.confidence);
+
+  // Confidence labels
+  const confLevels = [
+    { y: 0.0, label: "Exploratoire" },
+    { y: 0.4, label: "Tendance" },
+    { y: 0.6, label: "Décision utilisable" },
+    { y: 0.8, label: "Décision robuste" },
+  ];
+
+  // Source label
+  const sourceLabel = v2.source === "test_labo" ? "Test labo" 
+    : v2.source === "test_terrain" ? "Test terrain" 
+    : v2.source === "semaine_reference" ? "Semaine référence"
+    : v2.source === "estimation" ? "Estimation continue" : "—";
+
+  // Badges
+  const badges: string[] = [];
+  if (v2.confidence < 0.6) badges.push("⚠️ Décision à confirmer");
+  if (v2.variationWarning) badges.push("🔄 Variation détectée");
+
+  // Confidence label
+  const confLabel = v2.confidence >= 0.85 ? "Très fiable" 
+    : v2.confidence >= 0.70 ? "Fiable" 
+    : v2.confidence >= 0.50 ? "Modéré" 
+    : v2.confidence >= 0.35 ? "Faible" : "Fragile";
+
+  return `
+    <section id="vlamax-zone-confidence" class="section pagebreakAvoid">
+      <h2>⚡ VLamax = Zone physiologique × Confiance</h2>
+      
+      <div class="alert alertInfo mb" style="font-size:11px;">
+        <b>📊 Graphique signature TFCL :</b> Ce graphique positionne l'athlète selon sa zone physiologique VLamax (axe X) et le niveau de confiance de la mesure (axe Y). 
+        La décision coaching doit reposer sur la <b>zone + confiance</b>, pas sur le centième.
+      </div>
+
+      <div class="card cardHighlight">
+        ${badges.length > 0 ? `<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">${badges.map(b => `<span class="badge badgeWarning" style="font-size:10px;padding:4px 10px;">${b}</span>`).join('')}</div>` : ''}
+        
+        <svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" style="max-width:520px;margin:0 auto;display:block;">
+          <!-- Zone bands -->
+          ${zones.map(z => `<rect x="${toX(z.min)}" y="${pad.top}" width="${toX(z.max) - toX(z.min)}" height="${plotH}" fill="${z.color}" />`).join('\n          ')}
+          
+          <!-- Grid lines -->
+          ${[0.2, 0.4, 0.6, 0.8, 1.0].map(c => `<line x1="${pad.left}" y1="${toY(c)}" x2="${W - pad.right}" y2="${toY(c)}" stroke="#e2e8f0" stroke-width="0.5" stroke-dasharray="4 4"/>`).join('\n          ')}
+          
+          <!-- Confidence threshold lines -->
+          ${[0.4, 0.6, 0.8].map(c => `<line x1="${pad.left}" y1="${toY(c)}" x2="${W - pad.right}" y2="${toY(c)}" stroke="#94a3b8" stroke-width="1" stroke-dasharray="6 3"/>`).join('\n          ')}
+          
+          <!-- Confidence level labels -->
+          ${confLevels.map(cl => `<text x="${W - pad.right + 3}" y="${toY(cl.y) + 4}" font-size="7" fill="#64748b" text-anchor="start">${cl.label}</text>`).join('\n          ')}
+          
+          <!-- Zone labels at top -->
+          ${zones.map(z => {
+            const cx = (toX(z.min) + toX(z.max)) / 2;
+            return `<text x="${cx}" y="${pad.top - 8}" font-size="9" fill="${z.textColor}" text-anchor="middle" font-weight="600">${z.label}</text>`;
+          }).join('\n          ')}
+          
+          <!-- Axes -->
+          <line x1="${pad.left}" y1="${pad.top}" x2="${pad.left}" y2="${H - pad.bottom}" stroke="#334155" stroke-width="1.5"/>
+          <line x1="${pad.left}" y1="${H - pad.bottom}" x2="${W - pad.right}" y2="${H - pad.bottom}" stroke="#334155" stroke-width="1.5"/>
+          
+          <!-- X axis ticks -->
+          ${Array.from({ length: Math.round(xRange / 0.1) + 1 }, (_, i) => xMin + i * 0.1).filter(v => v <= xMax + 0.001).map(v => `
+            <line x1="${toX(v)}" y1="${H - pad.bottom}" x2="${toX(v)}" y2="${H - pad.bottom + 5}" stroke="#334155" stroke-width="1"/>
+            <text x="${toX(v)}" y="${H - pad.bottom + 16}" font-size="9" fill="#334155" text-anchor="middle">${v.toFixed(1)}</text>
+          `).join('')}
+          
+          <!-- Y axis ticks -->
+          ${[0, 0.2, 0.4, 0.6, 0.8, 1.0].map(c => `
+            <line x1="${pad.left - 5}" y1="${toY(c)}" x2="${pad.left}" y2="${toY(c)}" stroke="#334155" stroke-width="1"/>
+            <text x="${pad.left - 8}" y="${toY(c) + 3}" font-size="9" fill="#334155" text-anchor="end">${c.toFixed(1)}</text>
+          `).join('')}
+          
+          <!-- Axis labels -->
+          <text x="${(pad.left + W - pad.right) / 2}" y="${H - 5}" font-size="10" fill="#334155" text-anchor="middle">VLamax (mmol/L/s)</text>
+          <text x="12" y="${(pad.top + H - pad.bottom) / 2}" font-size="10" fill="#334155" text-anchor="middle" transform="rotate(-90, 12, ${(pad.top + H - pad.bottom) / 2})">Confiance</text>
+          
+          <!-- Error bar -->
+          <line x1="${errLeft}" y1="${ay}" x2="${errRight}" y2="${ay}" stroke="${athleteZone.textColor}" stroke-width="2.5" stroke-opacity="0.5"/>
+          <line x1="${errLeft}" y1="${ay - 4}" x2="${errLeft}" y2="${ay + 4}" stroke="${athleteZone.textColor}" stroke-width="1.5" stroke-opacity="0.5"/>
+          <line x1="${errRight}" y1="${ay - 4}" x2="${errRight}" y2="${ay + 4}" stroke="${athleteZone.textColor}" stroke-width="1.5" stroke-opacity="0.5"/>
+          
+          <!-- Athlete point -->
+          <circle cx="${ax}" cy="${ay}" r="8" fill="${athleteZone.textColor}" fill-opacity="${opacity}" stroke="#fff" stroke-width="2.5"/>
+        </svg>
+
+        <!-- Summary row -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding:12px;background:#f8fafc;border-radius:10px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:14px;height:14px;border-radius:50%;background:${athleteZone.textColor};opacity:${opacity};border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
+            <div>
+              <span style="font-size:18px;font-weight:800;font-family:ui-monospace,monospace;">≈ ${v2.effective!.toFixed(2)}</span>
+              <span style="font-size:12px;color:#64748b;margin-left:6px;">± ${v2.errorMargin.toFixed(2)}</span>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <span class="badge ${v2.confidence >= 0.7 ? 'badgeSuccess' : v2.confidence >= 0.5 ? 'badgeWarning' : 'badgeError'}" style="font-size:11px;padding:5px 12px;">
+              🛡️ ${confLabel} (${(v2.confidence * 100).toFixed(0)}%)
+            </span>
+          </div>
+        </div>
+
+        <!-- Details -->
+        <div class="grid3 mt">
+          <div class="card" style="padding:10px;">
+            <div style="font-size:10px;color:#64748b;">Zone</div>
+            <div style="font-size:14px;font-weight:700;color:${athleteZone.textColor};">${athleteZone.label}</div>
+          </div>
+          <div class="card" style="padding:10px;">
+            <div style="font-size:10px;color:#64748b;">Source</div>
+            <div style="font-size:12px;font-weight:600;">${sourceLabel}</div>
+          </div>
+          <div class="card" style="padding:10px;">
+            <div style="font-size:10px;color:#64748b;">Plage</div>
+            <div style="font-size:12px;font-weight:600;font-family:ui-monospace,monospace;">${v2.range ? `${v2.range.low.toFixed(2)} – ${v2.range.high.toFixed(2)}` : '—'}</div>
+          </div>
+        </div>
+
+        ${v2.confidence < 0.4 ? `
+          <div class="alert alertWarning mt" style="font-size:11px;">
+            <b>⚠️ Confiance insuffisante pour une recommandation automatique.</b><br>
+            La VLamax est positionnée à titre indicatif. Réalisez un test terrain ou importez des données supplémentaires pour fiabiliser la décision.
+          </div>
+        ` : ''}
+      </div>
+
+      <div class="alert alertInfo mt" style="font-size:10px;">
+        <b>💡 Pourquoi ce graphique ?</b> La VLamax est une estimation continue influencée par la qualité des données, la fatigue et le type de test. 
+        TFCL affiche volontairement une valeur avec marge d'erreur et niveau de confiance, car la décision d'entraînement dépend davantage de la <b>zone physiologique</b> que d'un chiffre isolé. 
+        Une variation de ±0.02 est physiologiquement normale et ne justifie pas un changement de stratégie.
       </div>
     </section>
   `;
@@ -6279,6 +6469,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     synthese: executifHTML,
     compass: compassHTML,
     profilMetabolique: profilMetaboliqueHTML,
+    vlamaxZoneConfidence: buildVLamaxZoneConfidenceHTML(payload),
     indicateurs: indicateursHTML,
     raceReadiness: raceReadinessHTML,
     disponibiliteTFCL: disponibiliteTFCLHTML,
@@ -6793,6 +6984,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       synthese: false,
       compass: false,
       profilMetabolique: false,
+      vlamaxZoneConfidence: false,
       indicateurs: false,
       raceReadiness: false,
       disponibiliteTFCL: false,
