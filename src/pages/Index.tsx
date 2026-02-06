@@ -1488,7 +1488,6 @@ const Index = () => {
                   }}
                   athleteName={currentAthlete.name}
                   objectif={currentAthlete.goal || "IM"}
-                  compact={!staffMode}
                   defaultTab="overview"
                 />
               );
