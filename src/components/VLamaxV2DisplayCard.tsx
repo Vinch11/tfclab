@@ -1,6 +1,9 @@
 /**
- * VLamaxV2DisplayCard — Carte d'affichage VLamax calibrée TFCL V2
- * Affiche la valeur, le percentile, la plage TFCL et la confiance
+ * VLamaxV2DisplayCard — Carte d'affichage VLamax calibrée TFCL V2 Staff-Grade
+ * Affiche:
+ * - Athlète: ≈ 0.39 (jamais la valeur brute)
+ * - Staff: 0.39 ± 0.05 (confiance 70%)
+ * - Percentile, plage TFCL, warning de variation
  */
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,9 +17,11 @@ import {
 import { 
   Zap, 
   AlertTriangle, 
-  Info, 
   Target,
   TrendingUp,
+  Lock,
+  Info,
+  ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +30,15 @@ import {
   ObjectifPrincipal,
   getConfidenceBadgeClass,
 } from "@/lib/reference";
+import type { VLamaxV2Result } from "@/lib/v2/vlamaxV2Engine";
+import {
+  formatVLamaxAthlete,
+  formatVLamaxStaff,
+  getV2ConfidenceColor,
+  getV2ConfidenceLabel,
+  getV2SourceColor,
+  VLAMAX_V2_ACADEMY_TEXT,
+} from "@/lib/v2/vlamaxV2Engine";
 
 interface VLamaxV2DisplayCardProps {
   objectif: ObjectifPrincipal;
@@ -34,6 +48,10 @@ interface VLamaxV2DisplayCardProps {
   sex?: "H" | "F";
   age?: number;
   compact?: boolean;
+  /** Mode staff: affiche marge d'erreur + confiance + détails */
+  staffMode?: boolean;
+  /** Résultat V2 complet (si disponible, enrichit l'affichage) */
+  v2Result?: VLamaxV2Result;
 }
 
 export function VLamaxV2DisplayCard({
@@ -44,6 +62,8 @@ export function VLamaxV2DisplayCard({
   sex,
   age,
   compact = false,
+  staffMode = false,
+  v2Result,
 }: VLamaxV2DisplayCardProps) {
   // Valeur manquante ou invalide
   if (!Number.isFinite(vlamax) || vlamax <= 0) {
@@ -103,6 +123,11 @@ export function VLamaxV2DisplayCard({
   // Position du percentile sur la barre (0-100)
   const percentilePosition = Math.min(100, Math.max(0, display.percentile));
 
+  // Formatage selon mode
+  const displayValue = v2Result
+    ? (staffMode ? formatVLamaxStaff(v2Result) : formatVLamaxAthlete(v2Result))
+    : (staffMode ? `${display.value.toFixed(2)}` : `≈ ${display.value.toFixed(2)}`);
+
   if (compact) {
     return (
       <TooltipProvider>
@@ -110,17 +135,27 @@ export function VLamaxV2DisplayCard({
           <TooltipTrigger asChild>
             <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 cursor-help">
               <Zap className="h-4 w-4 text-amber-500" />
-              <span className="font-mono font-bold">{display.value.toFixed(2)}</span>
+              <span className="font-mono font-bold">{displayValue}</span>
+              {v2Result?.isLocked && <Lock className="h-3 w-3 text-blue-500" />}
               <Badge variant="outline" className="text-[10px]">
                 P{display.percentile}
               </Badge>
               <span className={cn("text-sm", zoneColors[display.zone])}>
                 {display.zoneLabel}
               </span>
+              {v2Result?.variationWarning && (
+                <AlertTriangle className="h-3 w-3 text-amber-500" />
+              )}
             </div>
           </TooltipTrigger>
-          <TooltipContent className="max-w-xs">
+          <TooltipContent className="max-w-xs space-y-1">
             <p className="text-xs">{display.interpretation}</p>
+            {v2Result && staffMode && (
+              <p className="text-xs text-muted-foreground">{v2Result.details}</p>
+            )}
+            {v2Result?.variationWarning && (
+              <p className="text-xs text-amber-500">{v2Result.variationMessage}</p>
+            )}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -133,16 +168,48 @@ export function VLamaxV2DisplayCard({
         <CardTitle className="text-sm font-medium flex items-center gap-2">
           <Zap className="h-4 w-4 text-amber-500" />
           VLamax TFCL V2
+          {v2Result?.isLocked && (
+            <Badge variant="outline" className="text-[10px] gap-1">
+              <Lock className="h-3 w-3" /> Verrouillée
+            </Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Valeur principale */}
         <div className="text-center">
           <div className="text-3xl font-bold tracking-tight font-mono">
-            {display.value.toFixed(2)}
+            {displayValue}
           </div>
-          <div className="text-xs text-muted-foreground">{display.unit}</div>
+          <div className="text-xs text-muted-foreground">
+            {display.unit}
+          </div>
+          {/* Staff: marge + confiance */}
+          {staffMode && v2Result && (
+            <div className="mt-1 flex items-center justify-center gap-2 text-xs">
+              <Badge 
+                variant="outline" 
+                className={cn("text-[10px]", getV2ConfidenceColor(v2Result.confidence))}
+              >
+                <ShieldCheck className="h-3 w-3 mr-1" />
+                {getV2ConfidenceLabel(v2Result.confidence)} ({(v2Result.confidence * 100).toFixed(0)}%)
+              </Badge>
+              <span className="text-muted-foreground">
+                ± {v2Result.errorMargin.toFixed(2)}
+              </span>
+            </div>
+          )}
         </div>
+
+        {/* Warning variation */}
+        {v2Result?.variationWarning && (
+          <div className="flex items-center gap-2 p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+            <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
+            <p className="text-xs text-amber-700 dark:text-amber-300">
+              {v2Result.variationMessage}
+            </p>
+          </div>
+        )}
 
         {/* Zone et Percentile */}
         <div className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
@@ -172,6 +239,16 @@ export function VLamaxV2DisplayCard({
               className="absolute h-full bg-green-200 dark:bg-green-900/50"
               style={{ left: "25%", width: "50%" }}
             />
+            {/* Plage d'erreur (si V2) */}
+            {v2Result?.range && (
+              <div 
+                className="absolute h-full bg-amber-200/50 dark:bg-amber-900/30"
+                style={{ 
+                  left: `${Math.max(0, percentilePosition - v2Result.errorMargin * 100)}%`, 
+                  width: `${Math.min(100, v2Result.errorMargin * 200)}%` 
+                }}
+              />
+            )}
             {/* Indicateur de position */}
             <div 
               className={cn("absolute w-3 h-3 rounded-full -top-0.5 transform -translate-x-1/2 border-2 border-background", zoneBgColors[display.zone])}
@@ -187,6 +264,26 @@ export function VLamaxV2DisplayCard({
             <p className="text-xs">{display.interpretation}</p>
           </div>
         </div>
+
+        {/* Staff: détails techniques */}
+        {staffMode && v2Result && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground cursor-help">
+                  <Info className="h-3 w-3" />
+                  <span>{v2Result.details}</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-sm">
+                <p className="text-xs font-medium mb-1">{VLAMAX_V2_ACADEMY_TEXT.title}</p>
+                <p className="text-xs text-muted-foreground whitespace-pre-line">
+                  {VLAMAX_V2_ACADEMY_TEXT.body}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
       </CardContent>
     </Card>
   );

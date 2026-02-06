@@ -11,29 +11,83 @@
 // 2. VLamax test terrain structuré → confiance 0.75
 // 3. VLamax estimée via snapshot → confiance 0.55
 // 4. Valeur par défaut → confiance faible + avertissement
+//
+// V2 STAFF-GRADE:
+// - Bornage physiologique obligatoire (clamp)
+// - Séparation raw vs effective
+// - Lissage EWMA anti-bruit
+// - Marge d'erreur ±
+// - Score de confiance visible staff
 // =============================================
 
+import {
+  computeVLamaxV2,
+  VLamaxV2Result,
+  VLamaxV2Source,
+  VLamaxV2Input,
+  SportContext,
+  CalibrationLogEntry,
+  PHYSIOLOGICAL_BOUNDS,
+  clampVLamax,
+  formatVLamaxAthlete,
+  formatVLamaxStaff,
+  formatVLamaxRange,
+  getV2SourceColor,
+  getV2SourceBgColor,
+  getV2ConfidenceColor,
+  getV2ConfidenceLabel,
+  VLAMAX_V2_ACADEMY_TEXT,
+  type ErrorMarginFactors,
+} from "./v2/vlamaxV2Engine";
+
+// Re-export V2 types for consumers
+export type { VLamaxV2Result, VLamaxV2Source, CalibrationLogEntry, SportContext, ErrorMarginFactors };
+export {
+  computeVLamaxV2,
+  PHYSIOLOGICAL_BOUNDS,
+  clampVLamax,
+  formatVLamaxAthlete,
+  formatVLamaxStaff,
+  formatVLamaxRange,
+  getV2SourceColor,
+  getV2SourceBgColor,
+  getV2ConfidenceColor,
+  getV2ConfidenceLabel,
+  VLAMAX_V2_ACADEMY_TEXT,
+};
+
 // =============================================
-// TYPES
+// TYPES (legacy compat)
 // =============================================
 
 export type VLamaxSource = "test" | "snapshot" | "estimated" | "unknown";
 
 // Détails optionnels pour affichage enrichi
 export interface VLamaxDetails {
-  testType?: string;    // Type du test (ex: "SPRINT_15S", "LACTATE")
-  testName?: string;    // Nom du test (ex: "Sprint 15s", "Mesure lactate labo")
-  date?: string;        // Date du test ou snapshot
-  protocol?: string;    // Protocole utilisé (pour mesure lactate)
+  testType?: string;
+  testName?: string;
+  date?: string;
+  protocol?: string;
 }
 
 export interface VLamaxEffectif {
   value: number | null;
   source: VLamaxSource;
-  confidence: number; // 0 à 1
+  confidence: number;
   label: string;
-  details?: VLamaxDetails; // Détails pour affichage enrichi
-  isLocked?: boolean; // true si VLamax mesurée (Staff mode) - désactive estimation
+  details?: VLamaxDetails;
+  isLocked?: boolean;
+  /** V2: marge d'erreur ± */
+  errorMargin?: number;
+  /** V2: plage effective */
+  range?: { low: number; high: number };
+  /** V2: warning de variation */
+  variationWarning?: boolean;
+  variationMessage?: string;
+  /** V2: valeur brute (staff only) */
+  rawValue?: number;
+  /** V2: résultat complet V2 */
+  v2?: VLamaxV2Result;
 }
 
 // Types pour les données cloud
@@ -42,19 +96,19 @@ interface TestCloud {
   vlamax: number | null;
   date?: string;
   created_at?: string;
-  type?: string;   // Type de test (ex: "SPRINT_15S", "LACTATE_LAB")
-  name?: string;   // Nom du test
+  type?: string;
+  name?: string;
 }
 
 interface SnapshotCloud {
   id: string;
   athlete_id: string;
   date: string;
-  // VLamax dans snapshot = VLamax mesurée (Staff mode uniquement)
   vlamax?: number | null;
   ftp?: number | null;
   pmax_5s?: number | null;
   weight_kg?: number | null;
+  sport_main?: string | null;
 }
 
 interface ComputeVLamaxEffectifParams {
@@ -63,33 +117,45 @@ interface ComputeVLamaxEffectifParams {
   activeSnapshotId?: string | null;
   tests: TestCloud[];
   snapshots: SnapshotCloud[];
+  /** V2: valeur effective précédente (pour EWMA) */
+  previousEffective?: number | null;
 }
 
 // =============================================
-// FONCTION PRINCIPALE
+// HELPERS INTERNES
 // =============================================
 
-/**
- * Calcule la VLamax effective selon la hiérarchie stricte:
- * 
- * A) VLamax mesurée lactate (snapshot avec source "staff") → confiance 0.95
- *    → Valeur VERROUILLÉE, désactive toute estimation
- * 
- * B) Test terrain structuré avec vlamax non-null → confiance 0.75
- *    → Test all-out, sprint 15s, ramp test, etc.
- * 
- * C) Estimation basée sur ftp/pmax_5s/weight → confiance 0.55
- *    → Heuristique prudente basée sur les données snapshot
- * 
- * D) Aucune donnée → value = null, source = "unknown"
- *    → Avertissement affiché
- */
-export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLamaxEffectif {
-  const { athleteId, objectif, activeSnapshotId, tests, snapshots } = params;
+function snapshotSportToContext(sportMain?: string | null): SportContext {
+  if (sportMain === "run" || sportMain === "cap" || sportMain === "course") return "cap";
+  if (sportMain === "swim" || sportMain === "natation") return "natation";
+  return "velo";
+}
 
-  // =============================================
-  // STEP 0: Déterminer le snapshot effectif
-  // =============================================
+function mapV2SourceToLegacy(s: VLamaxV2Source): VLamaxSource {
+  switch (s) {
+    case "test_labo": return "snapshot";
+    case "semaine_reference": return "test";
+    case "test_terrain": return "test";
+    case "estimation": return "estimated";
+    case "unknown": return "unknown";
+  }
+}
+
+function computeDataAgeDays(dateStr?: string): number {
+  if (!dateStr) return 0;
+  try {
+    return Math.max(0, Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000));
+  } catch { return 0; }
+}
+
+// =============================================
+// FONCTION PRINCIPALE (V2 Staff-Grade)
+// =============================================
+
+export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLamaxEffectif {
+  const { athleteId, objectif, activeSnapshotId, tests, snapshots, previousEffective } = params;
+
+  // Déterminer le snapshot effectif
   const athleteSnapshots = snapshots.filter(s => s.athlete_id === athleteId);
   let effectiveSnapshot: SnapshotCloud | null = null;
   
@@ -98,40 +164,42 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
       effectiveSnapshot = athleteSnapshots.find(s => s.id === activeSnapshotId) || null;
     }
     if (!effectiveSnapshot) {
-      // Prendre le plus récent par date
       effectiveSnapshot = [...athleteSnapshots].sort((a, b) => 
         b.date.localeCompare(a.date)
       )[0];
     }
   }
 
+  const sport = snapshotSportToContext(effectiveSnapshot?.sport_main);
+
   // =============================================
-  // A) SOURCE SNAPSHOT STAFF (priorité #1 - VLamax mesurée lactate)
-  // Cette VLamax vient du mode Staff = mesure laboratoire
-  // Elle VERROUILLE la valeur et désactive toute autre source
+  // A) SOURCE SNAPSHOT STAFF (VLamax mesurée lactate)
   // =============================================
   if (effectiveSnapshot && effectiveSnapshot.vlamax != null) {
-    return {
-      value: Number(effectiveSnapshot.vlamax.toFixed(2)),
-      source: "snapshot",
-      confidence: 0.95, // Confiance maximale car mesure lactate
-      label: "VLamax (mesurée)",
-      details: {
-        date: effectiveSnapshot.date,
-        protocol: "Mesure lactate (Staff mode)"
-      },
-      isLocked: true // Valeur verrouillée
+    const ageDays = computeDataAgeDays(effectiveSnapshot.date);
+    const v2Input: VLamaxV2Input = {
+      rawValue: effectiveSnapshot.vlamax,
+      source: "test_labo",
+      sport,
+      previousEffective,
+      factors: { sourceCount: 1, temporalStability: 0.1, dataAgeDays: ageDays },
+      sourceLabels: ["Mesure lactate (Staff mode)"],
+      reason: "VLamax mesurée — valeur verrouillée",
     };
+    const v2 = computeVLamaxV2(v2Input);
+    return wrapV2Result(v2, {
+      testType: "LACTATE_LAB",
+      date: effectiveSnapshot.date,
+      protocol: "Mesure lactate (Staff mode)",
+    });
   }
 
   // =============================================
-  // B) SOURCE TEST TERRAIN (priorité #2)
-  // Tests structurés: sprint 15s, all-out, ramp test, etc.
+  // B) SOURCE TEST TERRAIN
   // =============================================
   const athleteTests = tests.filter(t => t.athlete_id === athleteId && t.vlamax != null);
   
   if (athleteTests.length > 0) {
-    // Trier par date décroissante (plus récent d'abord)
     const sortedTests = [...athleteTests].sort((a, b) => {
       const dateA = a.date || a.created_at || "";
       const dateB = b.date || b.created_at || "";
@@ -139,128 +207,143 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
     });
     
     const mostRecentTest = sortedTests[0];
-    const vlamax = mostRecentTest.vlamax!;
     const testDate = mostRecentTest.date || mostRecentTest.created_at || "";
+    const ageDays = computeDataAgeDays(testDate);
     
-    return {
-      value: Number(vlamax.toFixed(2)),
-      source: "test",
-      confidence: 0.75, // Test terrain = confiance modérée-haute
-      label: "VLamax (test terrain)",
-      details: {
-        testType: mostRecentTest.type,
-        testName: mostRecentTest.name,
-        date: testDate.slice(0, 10),
-      }
+    const v2Input: VLamaxV2Input = {
+      rawValue: mostRecentTest.vlamax!,
+      source: "test_terrain",
+      sport,
+      previousEffective,
+      factors: {
+        sourceCount: sortedTests.length,
+        temporalStability: sortedTests.length > 1 ? computeTestStability(sortedTests) : 0.5,
+        dataAgeDays: ageDays,
+      },
+      sourceLabels: [mostRecentTest.name || mostRecentTest.type || "Test terrain"],
+      reason: `Test terrain: ${mostRecentTest.name || mostRecentTest.type}`,
     };
+    const v2 = computeVLamaxV2(v2Input);
+    return wrapV2Result(v2, {
+      testType: mostRecentTest.type,
+      testName: mostRecentTest.name,
+      date: testDate.slice(0, 10),
+    });
   }
 
   // =============================================
-  // C) ESTIMATION (priorité #3)
-  // Basée sur FTP/kg et Pmax - interpolation CONTINUE
-  // Chaque athlète obtient une valeur unique grâce à des
-  // fonctions linéaires au lieu de paliers discrets
+  // C) ESTIMATION (interpolation continue)
   // =============================================
   if (effectiveSnapshot) {
     const { ftp, pmax_5s, weight_kg } = effectiveSnapshot;
-    
-    // Vérifie si on a assez de données pour estimer
     const hasMinimumData = ftp != null && weight_kg != null && weight_kg > 0;
     
     if (hasMinimumData) {
       const ftpKg = ftp! / weight_kg!;
       
       // Interpolation continue FTP/kg → VLamax
-      // FTP/kg 2.5 → ~0.55, FTP/kg 4.0 → ~0.42, FTP/kg 5.5 → ~0.30
-      // Pente: -0.083 par W/kg
       const ftpContribution = 0.55 - (ftpKg - 2.5) * 0.0833;
       
       let estimated: number;
-      let confidence = 0.50;
+      let sourceCount = 1;
+      const sourceLabels: string[] = [`FTP/kg: ${ftpKg.toFixed(2)}`];
       
       if (pmax_5s != null && pmax_5s > 0) {
-        // Ajustement continu Pmax → ratio anaérobie
-        // Pmax/kg: ratio élevé = plus glycolytique
         const pmaxKg = pmax_5s / weight_kg!;
-        // pmaxKg 12 → +0.00, pmaxKg 16 → +0.05, pmaxKg 20 → +0.10
         const pmaxAdjustment = (pmaxKg - 12) * 0.0125;
-        
-        // Moyenne pondérée: FTP/kg pèse 65%, Pmax 35%
         estimated = ftpContribution * 0.65 + (ftpContribution + pmaxAdjustment) * 0.35;
-        confidence = 0.58; // Plus de données → meilleure confiance
+        sourceCount = 2;
+        sourceLabels.push(`Pmax/kg: ${pmaxKg.toFixed(1)}`);
       } else {
         estimated = ftpContribution;
       }
       
-      // Arrondi au centième (précision 0.01)
-      estimated = Math.max(0.20, Math.min(0.80, estimated));
+      const ageDays = computeDataAgeDays(effectiveSnapshot.date);
       
-      return {
-        value: Number(estimated.toFixed(2)),
-        source: "estimated",
-        confidence,
-        label: "VLamax (estimé)"
+      const v2Input: VLamaxV2Input = {
+        rawValue: estimated,
+        source: "estimation",
+        sport,
+        previousEffective,
+        factors: {
+          sourceCount,
+          temporalStability: 0.5,
+          dataAgeDays: ageDays,
+        },
+        sourceLabels,
+        reason: "Estimation continue FTP/kg" + (pmax_5s ? " + Pmax/kg" : ""),
       };
+      const v2 = computeVLamaxV2(v2Input);
+      return wrapV2Result(v2);
     }
   }
 
   // =============================================
-  // D) UNKNOWN (priorité #4)
+  // D) UNKNOWN
   // =============================================
-  return {
-    value: null,
+  const v2 = computeVLamaxV2({
+    rawValue: null,
     source: "unknown",
-    confidence: 0.2,
-    label: "VLamax (non disponible)"
-  };
+    sport,
+    sourceLabels: [],
+    reason: "Aucune donnée disponible",
+  });
+  return wrapV2Result(v2);
 }
 
 // =============================================
-// HELPER
+// WRAPPER V2 → VLamaxEffectif (legacy compat)
 // =============================================
 
-function getEstimatedOrUnknown(objectif: string): VLamaxEffectif {
-  // Sans snapshot, on ne peut pas estimer de manière fiable
-  // Retourner unknown plutôt qu'une valeur arbitraire
+function wrapV2Result(v2: VLamaxV2Result, details?: VLamaxDetails): VLamaxEffectif {
   return {
-    value: null,
-    source: "unknown",
-    confidence: 0.2,
-    label: "VLamax (non disponible)"
+    value: v2.effective,
+    source: mapV2SourceToLegacy(v2.source),
+    confidence: v2.confidence,
+    label: v2.label,
+    details,
+    isLocked: v2.isLocked,
+    errorMargin: v2.errorMargin,
+    range: v2.range ?? undefined,
+    variationWarning: v2.variationWarning,
+    variationMessage: v2.variationMessage,
+    rawValue: v2.raw ?? undefined,
+    v2,
   };
 }
 
+function computeTestStability(tests: TestCloud[]): number {
+  const values = tests
+    .filter(t => t.vlamax != null)
+    .map(t => t.vlamax!);
+  if (values.length < 2) return 0.5;
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / values.length;
+  const cv = Math.sqrt(variance) / mean;
+  return Math.min(1, cv * 5); // Normalize: CV of 0.2 → stability 1.0
+}
+
 // =============================================
-// HELPERS UI
+// HELPERS UI (legacy compat + V2)
 // =============================================
 
 export function getSourceColor(source: VLamaxSource): string {
   switch (source) {
-    case "test":
-      return "text-green-600 dark:text-green-400";
-    case "snapshot":
-      return "text-blue-600 dark:text-blue-400";
-    case "estimated":
-      return "text-amber-600 dark:text-amber-400";
-    case "unknown":
-      return "text-muted-foreground";
-    default:
-      return "text-muted-foreground";
+    case "test":      return "text-green-600 dark:text-green-400";
+    case "snapshot":   return "text-blue-600 dark:text-blue-400";
+    case "estimated":  return "text-amber-600 dark:text-amber-400";
+    case "unknown":    return "text-muted-foreground";
+    default:           return "text-muted-foreground";
   }
 }
 
 export function getSourceBgColor(source: VLamaxSource): string {
   switch (source) {
-    case "test":
-      return "bg-green-100 dark:bg-green-900/30";
-    case "snapshot":
-      return "bg-blue-100 dark:bg-blue-900/30";
-    case "estimated":
-      return "bg-amber-100 dark:bg-amber-900/30";
-    case "unknown":
-      return "bg-muted";
-    default:
-      return "bg-muted";
+    case "test":      return "bg-green-100 dark:bg-green-900/30";
+    case "snapshot":   return "bg-blue-100 dark:bg-blue-900/30";
+    case "estimated":  return "bg-amber-100 dark:bg-amber-900/30";
+    case "unknown":    return "bg-muted";
+    default:           return "bg-muted";
   }
 }
 
@@ -280,57 +363,48 @@ export function getConfidenceLabel(confidence: number): string {
 
 export function formatVLamaxDisplay(vlamax: VLamaxEffectif): string {
   if (vlamax.value === null) return "—";
+  // V2: utiliser le format athlète (≈) pour les estimations
+  if (vlamax.v2) return formatVLamaxAthlete(vlamax.v2);
   return vlamax.value.toFixed(2);
 }
 
 /**
  * Formate la VLamax avec une plage adaptative basée sur la confiance
- * Confiance haute → plage étroite, Confiance faible → plage large
  */
 export function formatVLamaxWithRange(vlamax: VLamaxEffectif): string {
+  // V2: utiliser le range V2 si disponible
+  if (vlamax.v2) return formatVLamaxRange(vlamax.v2);
+  
   if (vlamax.value === null) return "—";
   
-  // Calculer la marge selon la confiance (précision adaptative)
-  let marginPct: number;
-  if (vlamax.confidence >= 0.9) {
-    marginPct = 0.03; // ±0.03 mmol/L/s (~5%)
-  } else if (vlamax.confidence >= 0.75) {
-    marginPct = 0.05; // ±0.05
-  } else if (vlamax.confidence >= 0.55) {
-    marginPct = 0.08; // ±0.08
-  } else if (vlamax.confidence >= 0.4) {
-    marginPct = 0.12; // ±0.12
-  } else {
-    marginPct = 0.15; // ±0.15
-  }
+  const margin = vlamax.errorMargin ?? (
+    vlamax.confidence >= 0.9 ? 0.02 :
+    vlamax.confidence >= 0.75 ? 0.04 :
+    vlamax.confidence >= 0.55 ? 0.06 :
+    0.08
+  );
   
-  // Si mesure lactate avec haute confiance, afficher juste la valeur
-  if (marginPct <= 0.03 && vlamax.source === "snapshot" && vlamax.isLocked) {
+  if (vlamax.isLocked && margin <= 0.02) {
     return `${vlamax.value.toFixed(2)} mmol/L/s`;
   }
   
-  const low = Math.max(0.15, vlamax.value - marginPct);
-  const high = Math.min(0.95, vlamax.value + marginPct);
+  const low = Math.max(0.20, vlamax.value - margin);
+  const high = Math.min(1.05, vlamax.value + margin);
   
   return `${vlamax.value.toFixed(2)} [${low.toFixed(2)}–${high.toFixed(2)}]`;
 }
 
 /**
- * Retourne une plage de valeurs pour la VLamax selon la confiance
+ * Retourne une plage de valeurs pour la VLamax
  */
 export function getVLamaxRange(vlamax: VLamaxEffectif): { low: number; high: number } {
+  if (vlamax.range) return vlamax.range;
   if (vlamax.value === null) return { low: 0.35, high: 0.55 };
   
-  let marginPct: number;
-  if (vlamax.confidence >= 0.9) marginPct = 0.03;
-  else if (vlamax.confidence >= 0.75) marginPct = 0.05;
-  else if (vlamax.confidence >= 0.55) marginPct = 0.08;
-  else if (vlamax.confidence >= 0.4) marginPct = 0.12;
-  else marginPct = 0.15;
-  
+  const margin = vlamax.errorMargin ?? 0.06;
   return {
-    low: Math.max(0.15, vlamax.value - marginPct),
-    high: Math.min(0.95, vlamax.value + marginPct),
+    low: Math.max(0.20, vlamax.value - margin),
+    high: Math.min(1.05, vlamax.value + margin),
   };
 }
 
@@ -344,14 +418,10 @@ import {
   buildVLamaxEnvelope 
 } from "./scoreEnvelope";
 
-/**
- * Convertit un VLamaxEffectif en ScoreEnvelope universel
- */
 export function toVLamaxEnvelope(
   vlamax: VLamaxEffectif, 
   objectif: string
 ): ScoreEnvelope {
-  // Mapper les sources VLamax -> ScoreSource
   const sourceMap: Record<VLamaxSource, ScoreSource> = {
     test: vlamax.isLocked ? "MEASURED" : "ESTIMATED",
     snapshot: "MEASURED",
@@ -361,7 +431,6 @@ export function toVLamaxEnvelope(
 
   const source = sourceMap[vlamax.source];
   
-  // Générer les détails contextuels
   const why: string[] = [];
   const recommendations: string[] = [];
 
@@ -373,6 +442,12 @@ export function toVLamaxEnvelope(
   }
   if (vlamax.isLocked) {
     why.push("🔒 VLamax verrouillée (mesure lactate)");
+  }
+  if (vlamax.errorMargin) {
+    why.push(`Marge: ± ${vlamax.errorMargin.toFixed(2)}`);
+  }
+  if (vlamax.variationWarning && vlamax.variationMessage) {
+    recommendations.push(vlamax.variationMessage);
   }
 
   return buildVLamaxEnvelope(
