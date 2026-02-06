@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 // Définition des sections par onglet
-export type TabId = "profil" | "dashboard" | "evolution" | "tests" | "seances" | "templates" | "academy" | "race-readiness" | "running-profile";
+export type TabId = "profil" | "dashboard" | "evolution" | "tests" | "seances" | "templates" | "academy" | "race-readiness" | "running-profile" | "strategie";
 
 export interface SectionDefinition {
   id: string;
@@ -282,6 +282,7 @@ export const ALL_SECTIONS: Record<TabId, SectionDefinition[]> = {
   academy: ACADEMY_SECTIONS,
   "race-readiness": RACE_READINESS_SECTIONS,
   "running-profile": RUNNING_PROFILE_SECTIONS,
+  strategie: [],
 };
 
 // Format de stockage amélioré avec visibilité
