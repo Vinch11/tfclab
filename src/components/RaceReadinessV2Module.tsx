@@ -196,7 +196,7 @@ export function RaceReadinessV2Module({
                       </p>
                     </div>
                     <div className="text-right text-xs text-muted-foreground">
-                      <p>Confiance : {(result.potential.confidence * 100).toFixed(0)}%</p>
+                      <p>Source : {result.potential.sources.aerobic.type === 'measured' ? '🧪 Mesuré' : result.potential.sources.aerobic.type === 'estimated' ? '📐 Estimé' : '🧮 Modélisé'}</p>
                       {result.potential.mainStrength && (
                         <p className="text-green-600">+ {result.potential.mainStrength}</p>
                       )}
@@ -227,7 +227,7 @@ export function RaceReadinessV2Module({
                       </p>
                     </div>
                     <Badge variant="outline">
-                      Confiance {(result.availability.confidence * 100).toFixed(0)}%
+                      {result.availability.confidence >= 0.8 ? '🟢 Fiabilité élevée' : result.availability.confidence >= 0.6 ? '🟡 Fiabilité modérée' : '🟠 Fiabilité limitée'}
                     </Badge>
                   </div>
                   
