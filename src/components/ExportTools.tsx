@@ -2265,11 +2265,11 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
 
   // Zones physiologiques
   const zones = [
-    { id: "diesel",    label: "Diesel",    min: 0.20, max: 0.30, color: "rgba(59,130,246,0.20)",  textColor: "#2563eb" },
-    { id: "endurance", label: "Endurance", min: 0.30, max: 0.40, color: "rgba(34,197,94,0.20)",   textColor: "#16a34a" },
-    { id: "allround",  label: "All-round", min: 0.40, max: 0.55, color: "rgba(234,179,8,0.20)",   textColor: "#a16207" },
-    { id: "puncheur",  label: "Puncheur",  min: 0.55, max: 0.70, color: "rgba(249,115,22,0.20)",  textColor: "#c2410c" },
-    { id: "sprinter",  label: "Sprinter",  min: 0.70, max: 1.10, color: "rgba(239,68,68,0.20)",   textColor: "#dc2626" },
+    { id: "diesel",    label: "Diesel",    min: 0.20, max: 0.30, color: "rgba(59,130,246,0.15)",  textColor: "#1d4ed8" },
+    { id: "endurance", label: "Endurance", min: 0.30, max: 0.40, color: "rgba(34,197,94,0.15)",   textColor: "#15803d" },
+    { id: "allround",  label: "All-round", min: 0.40, max: 0.55, color: "rgba(234,179,8,0.15)",   textColor: "#92400e" },
+    { id: "puncheur",  label: "Puncheur",  min: 0.55, max: 0.70, color: "rgba(249,115,22,0.15)",  textColor: "#9a3412" },
+    { id: "sprinter",  label: "Sprinter",  min: 0.70, max: 1.10, color: "rgba(239,68,68,0.15)",   textColor: "#b91c1c" },
   ].filter(z => z.min < xMax && z.max > xMin).map(z => ({
     ...z,
     min: Math.max(z.min, xMin),
@@ -2332,7 +2332,9 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
       <div class="card cardHighlight">
         ${badges.length > 0 ? `<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">${badges.map(b => `<span class="badge badgeWarning" style="font-size:10px;padding:4px 10px;">${b}</span>`).join('')}</div>` : ''}
         
-        <svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" style="max-width:520px;margin:0 auto;display:block;">
+        <svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" style="max-width:520px;margin:0 auto;display:block;background:#ffffff;">
+          <!-- White background -->
+          <rect x="0" y="0" width="${W}" height="${H}" fill="#ffffff"/>
           <!-- Zone bands -->
           ${zones.map(z => `<rect x="${toX(z.min)}" y="${pad.top}" width="${toX(z.max) - toX(z.min)}" height="${plotH}" fill="${z.color}" />`).join('\n          ')}
           
@@ -2502,8 +2504,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   // =============================================
   const css = `
     <style>
-      :root { --fg:#111; --muted:#555; --border:#ddd; --bg:#fff; --soft:#f7f7f7; --success:#16a34a; --warning:#d97706; --error:#dc2626; --primary:#2563eb; }
+      :root { --fg:#111; --muted:#555; --border:#ddd; --bg:#ffffff; --soft:#f7f7f7; --success:#16a34a; --warning:#d97706; --error:#dc2626; --primary:#2563eb; }
       * { box-sizing: border-box; }
+      html, body { background: #ffffff !important; }
       body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; color: var(--fg); margin: 0; padding: 24px; line-height: 1.5; font-size: 13px; }
       h1 { margin: 0; font-size: 28px; letter-spacing: 0.2px; }
       h2 { margin: 24px 0 12px 0; font-size: 18px; border-bottom: 2px solid var(--primary); padding-bottom: 6px; color: var(--primary); page-break-after: avoid; }
@@ -2514,8 +2517,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
       .tag { border:1px solid var(--border); border-radius: 999px; padding: 4px 12px; font-size: 11px; display:inline-block; background: var(--soft); }
       .tagPrimary { border-color: var(--primary); background: rgba(37,99,235,0.1); color: var(--primary); font-weight: 600; }
-      .card { border:1px solid var(--border); border-radius: 14px; padding: 16px; background: var(--bg); margin-bottom: 12px; break-inside: avoid; }
-      .cardHighlight { border-color: var(--primary); background: linear-gradient(135deg, rgba(37,99,235,0.03), rgba(37,99,235,0.08)); }
+      .card { border:1px solid var(--border); border-radius: 14px; padding: 16px; background: #ffffff; margin-bottom: 12px; break-inside: avoid; }
+      .cardHighlight { border-color: var(--primary); background: #ffffff; box-shadow: 0 2px 8px rgba(37,99,235,0.08); }
       .cardSuccess { border-color: var(--success); background: rgba(22,163,74,0.05); }
       .cardWarning { border-color: var(--warning); background: rgba(217,119,6,0.05); }
       .cardError { border-color: var(--error); background: rgba(220,38,38,0.05); }
@@ -2579,7 +2582,10 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       .scoreCircle { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; border: 4px solid; }
       .noPrint { margin: 12px 0; padding: 12px; background: #f0f9ff; border-radius: 8px; }
       @media print {
+        html, body { background: #ffffff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
         body { margin: 10mm; padding: 0; font-size: 11px; }
+        .card, .cardHighlight { background: #ffffff !important; }
+        svg { background: #ffffff !important; }
         .noPrint { display:none !important; }
         
         /* === PAGE BREAK CONTROLS === */
@@ -3147,12 +3153,13 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         </div>
         
         <div style="display:flex;justify-content:center;margin:20px 0;">
-          <svg width="340" height="340" viewBox="0 0 340 340" style="overflow:visible;">
+          <svg width="340" height="340" viewBox="0 0 340 340" style="overflow:visible;background:#ffffff;">
+            <rect x="0" y="0" width="340" height="340" fill="#ffffff"/>
             <!-- Grilles de fond (diamants concentriques) -->
-            <polygon points="170,70 270,170 170,270 70,170" fill="none" stroke="#ddd" stroke-width="1"/>
-            <polygon points="170,95 245,170 170,245 95,170" fill="none" stroke="#ddd" stroke-width="1"/>
-            <polygon points="170,120 220,170 170,220 120,170" fill="none" stroke="#ddd" stroke-width="1"/>
-            <polygon points="170,145 195,170 170,195 145,170" fill="none" stroke="#ddd" stroke-width="1"/>
+            <polygon points="170,70 270,170 170,270 70,170" fill="none" stroke="#cbd5e1" stroke-width="1"/>
+            <polygon points="170,95 245,170 170,245 95,170" fill="none" stroke="#cbd5e1" stroke-width="1"/>
+            <polygon points="170,120 220,170 170,220 120,170" fill="none" stroke="#cbd5e1" stroke-width="1"/>
+            <polygon points="170,145 195,170 170,195 145,170" fill="none" stroke="#e2e8f0" stroke-width="1"/>
             <!-- Axes -->
             <line x1="170" y1="70" x2="170" y2="270" stroke="#eee" stroke-width="1"/>
             <line x1="70" y1="170" x2="270" y2="170" stroke="#eee" stroke-width="1"/>
@@ -3326,7 +3333,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
           
           <!-- RADAR CHART SVG -->
           <div style="flex:1;min-width:280px;">
-            <svg width="100%" viewBox="0 0 300 280" preserveAspectRatio="xMidYMid meet" style="max-width:320px;margin:0 auto;display:block;">
+            <svg width="100%" viewBox="0 0 300 280" preserveAspectRatio="xMidYMid meet" style="max-width:320px;margin:0 auto;display:block;background:#ffffff;">
+              <rect x="0" y="0" width="300" height="280" fill="#ffffff"/>
               <defs>
                 <linearGradient id="radarFillCurrent" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stop-color="#0891b2" stop-opacity="0.4"/>
