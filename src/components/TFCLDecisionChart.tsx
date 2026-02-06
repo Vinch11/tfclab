@@ -394,7 +394,7 @@ export function TFCLDecisionChart({
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  Confiance : {(potential.confidence * 100).toFixed(0)}% | 
+                  Fiabilité : {potential.confidence >= 0.8 ? 'Élevée' : potential.confidence >= 0.6 ? 'Modérée' : 'Limitée'} | 
                   Plage : {potential.range?.[0]}–{potential.range?.[1]}
                 </p>
               </div>
@@ -413,7 +413,7 @@ export function TFCLDecisionChart({
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  Confiance : {(availability.confidence * 100).toFixed(0)}% | 
+                  Fiabilité : {availability.confidence >= 0.8 ? 'Élevée' : availability.confidence >= 0.6 ? 'Modérée' : 'Limitée'} | 
                   Recommandation : {availability.recommendation}
                 </p>
               </div>
@@ -424,14 +424,14 @@ export function TFCLDecisionChart({
                 <p className="text-muted-foreground">= {readiness.rawScore} - {penalties.total} = {readiness.score}</p>
               </div>
               
-              {/* Confiance globale */}
+              {/* Fiabilité globale */}
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground flex items-center gap-1">
                   <Shield className="h-3 w-3" />
-                  Confiance globale
+                  Fiabilité globale
                 </span>
                 <Badge variant="outline">
-                  {readiness.confidenceLabel} ({(readiness.confidenceGlobal * 100).toFixed(0)}%)
+                  {readiness.confidenceLabel}
                 </Badge>
               </div>
             </CollapsibleContent>

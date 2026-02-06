@@ -123,7 +123,7 @@ function ChartTooltip({ active, payload }: CustomTooltipProps) {
       <p className="font-semibold">
         VLamax : {data.x.toFixed(2)} ± {data.errorMargin.toFixed(2)}
       </p>
-      <p>Confiance : {data.y.toFixed(2)}</p>
+      <p>Fiabilité : {getDecisionLabel(data.y)}</p>
       <p className="text-muted-foreground text-xs">
         Source : {getSourceLabel(data.source)}
       </p>
@@ -284,16 +284,22 @@ export function VLamaxZoneConfidenceChart({
                 type="number"
                 dataKey="y"
                 domain={[0, 1]}
-                tickCount={6}
-                tickFormatter={(v: number) => v.toFixed(1)}
+                tickCount={5}
+                ticks={[0, 0.4, 0.6, 0.8, 1.0]}
+                tickFormatter={(v: number) => {
+                  if (v >= 0.8) return "Robuste";
+                  if (v >= 0.6) return "Utilisable";
+                  if (v >= 0.4) return "Tendance";
+                  return "Exploratoire";
+                }}
                 label={{
-                  value: "Confiance",
+                  value: "Fiabilité",
                   angle: -90,
                   position: "insideLeft",
                   offset: 0,
                   style: { fontSize: 11, fill: "hsl(var(--muted-foreground))" },
                 }}
-                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }}
               />
 
               <RechartsTooltip content={<ChartTooltip />} />
@@ -389,7 +395,7 @@ export function VLamaxZoneConfidenceChart({
               className="text-[10px] gap-1"
             >
               <ShieldCheck className="h-3 w-3" />
-              {getV2ConfidenceLabel(confidence)} ({(confidence * 100).toFixed(0)}%)
+              {getDecisionLabel(confidence)}
             </Badge>
           </div>
         </div>
