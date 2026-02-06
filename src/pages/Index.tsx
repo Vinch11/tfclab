@@ -247,9 +247,12 @@ const Index = () => {
   
   // Écouter les changements de navigation pour mettre à jour le tab si nécessaire
   useEffect(() => {
-    const navigationState = location.state as { activeTab?: string } | null;
+    const navigationState = location.state as { activeTab?: string; openExport?: boolean } | null;
     if (navigationState?.activeTab && validTabs.includes(navigationState.activeTab)) {
       setActiveTab(navigationState.activeTab);
+    }
+    if (navigationState?.openExport) {
+      setExportOpen(true);
     }
   }, [location.state]);
   

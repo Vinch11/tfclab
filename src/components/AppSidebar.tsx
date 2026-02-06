@@ -111,9 +111,10 @@ interface AppSidebarProps {
   staffMode: boolean;
   onStaffModeChange: (value: boolean) => void;
   onExportClick?: () => void;
+  exportAlwaysVisible?: boolean;
 }
 
-export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChange, onExportClick }: AppSidebarProps) {
+export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChange, onExportClick, exportAlwaysVisible }: AppSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { state } = useSidebar();
@@ -278,14 +279,20 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
 
         <SidebarSeparator className="my-2" />
 
-        {/* Export PDF */}
-        {onExportClick && (
+        {/* Export PDF - always visible */}
+        {(onExportClick || exportAlwaysVisible) && (
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    onClick={onExportClick}
+                    onClick={() => {
+                      if (onExportClick) {
+                        onExportClick();
+                      } else {
+                        navigate("/", { state: { openExport: true } });
+                      }
+                    }}
                     tooltip={collapsed ? "Export PDF" : undefined}
                   >
                     <FileText className="h-4 w-4" />
