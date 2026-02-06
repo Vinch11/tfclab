@@ -397,11 +397,11 @@ export function formatVLamaxAthlete(result: VLamaxV2Result): string {
 }
 
 /**
- * Affichage coach/staff: VLamax = 0.39 ± 0.05 (confiance 70%)
+ * Affichage coach/staff: VLamax = 0.39 ± 0.05 (Test terrain)
  */
 export function formatVLamaxStaff(result: VLamaxV2Result): string {
   if (result.effective === null) return "— (données insuffisantes)";
-  return `${result.effective.toFixed(2)} ± ${result.errorMargin.toFixed(2)} (confiance ${(result.confidence * 100).toFixed(0)}%)`;
+  return `${result.effective.toFixed(2)} ± ${result.errorMargin.toFixed(2)}`;
 }
 
 /**
@@ -429,6 +429,28 @@ Une variation de ±0.02 est physiologiquement normale et ne justifie pas à elle
 // HELPERS UI
 // =============================================
 
+/** Labels humains pour la source de la donnée */
+export function getV2SourceLabel(source: VLamaxV2Source): string {
+  switch (source) {
+    case "test_labo":         return "Test labo";
+    case "semaine_reference": return "Sem. référence";
+    case "test_terrain":      return "Test terrain";
+    case "estimation":        return "Estimation";
+    case "unknown":           return "Non déterminée";
+  }
+}
+
+/** Emoji pour la source */
+export function getV2SourceEmoji(source: VLamaxV2Source): string {
+  switch (source) {
+    case "test_labo":         return "🧪";
+    case "semaine_reference": return "📋";
+    case "test_terrain":      return "🏃";
+    case "estimation":        return "📐";
+    case "unknown":           return "❓";
+  }
+}
+
 export function getV2SourceColor(source: VLamaxV2Source): string {
   switch (source) {
     case "test_labo":         return "text-green-600 dark:text-green-400";
@@ -449,12 +471,14 @@ export function getV2SourceBgColor(source: VLamaxV2Source): string {
   }
 }
 
+/** @deprecated Kept for internal use only - not displayed to coaches */
 export function getV2ConfidenceColor(confidence: number): string {
   if (confidence >= 0.75) return "text-green-600 dark:text-green-400";
   if (confidence >= 0.50) return "text-amber-600 dark:text-amber-400";
   return "text-red-600 dark:text-red-400";
 }
 
+/** @deprecated Kept for internal use only - not displayed to coaches */
 export function getV2ConfidenceLabel(confidence: number): string {
   if (confidence >= 0.85) return "Très fiable";
   if (confidence >= 0.70) return "Fiable";

@@ -399,14 +399,14 @@ export function WeekSelectorTFCL({ onInsertWeek, defaultRaceType }: WeekSelector
                   {athleteTruth.vlamax_run.value?.toFixed(2) || "—"}
                 </div>
                 <div className="text-[10px] text-muted-foreground">VLamax</div>
-                <div className="text-[9px] text-muted-foreground/70">{athleteTruth.vlamax_run.confidence}% conf.</div>
+                <div className="text-[9px] text-muted-foreground/70">{athleteTruth.vlamax_run.source === "estimation" ? "📐 Estimation" : athleteTruth.vlamax_run.source === "test_terrain" ? "🏃 Test terrain" : athleteTruth.vlamax_run.source === "test_labo" ? "🧪 Labo" : athleteTruth.vlamax_run.source}</div>
               </div>
               <div className="text-center p-3 rounded-lg bg-muted/50">
                 <div className="text-lg font-bold font-mono text-primary">
                   {athleteTruth.tte_run.value || "—"}<span className="text-xs">min</span>
                 </div>
                 <div className="text-[10px] text-muted-foreground">TTE</div>
-                <div className="text-[9px] text-muted-foreground/70">{athleteTruth.tte_run.confidence}% conf.</div>
+                <div className="text-[9px] text-muted-foreground/70">{athleteTruth.tte_run.source === "observed" ? "📋 Observé" : athleteTruth.tte_run.source === "estimation" ? "📐 Estimation" : athleteTruth.tte_run.source}</div>
               </div>
               <div className="text-center p-3 rounded-lg bg-muted/50">
                 <div className={`text-lg font-bold font-mono ${getFatigueColor(athleteTruth.fatigueIndex)}`}>
@@ -498,7 +498,7 @@ export function WeekSelectorTFCL({ onInsertWeek, defaultRaceType }: WeekSelector
                 Top 3 Suggestions
               </h4>
               <Badge variant="outline" className="text-xs">
-                Confiance: {suggestions.confidenceLabel}
+                Fiabilité: {suggestions.confidenceLabel}
               </Badge>
             </div>
 

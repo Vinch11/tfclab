@@ -10,7 +10,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+// Progress removed - no longer showing confidence %
 import { Separator } from "@/components/ui/separator";
 import { Lock, Unlock, RefreshCw, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -118,23 +118,27 @@ export function PhysiologicalProfilePanel({
 
         <Separator />
 
-        {/* Confidence */}
+        {/* Source */}
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Confiance globale</span>
-            <Badge variant={confidence >= 0.75 ? "default" : confidence >= 0.55 ? "secondary" : "outline"}>
-              {(confidence * 100).toFixed(0)}%
+            <span className="text-sm font-medium">Source de la donnée</span>
+            <Badge variant={
+              latestSnapshot?.vlamax_calibrated != null ? "default" : "secondary"
+            }>
+              {latestSnapshot?.vlamax_calibrated != null 
+                ? "📋 Calibration continue" 
+                : modelledVlamax 
+                  ? "📐 Estimation" 
+                  : "❓ Non déterminée"
+              }
             </Badge>
           </div>
-          <Progress value={confidence * 100} className="h-2" />
           <p className="text-xs text-muted-foreground">
-            {confidence >= 0.85 
-              ? "Calibration haute qualité — enveloppe serrée"
-              : confidence >= 0.70
-                ? "Calibration standard — légère marge sécurité"
-                : confidence >= 0.55
-                  ? "Calibration modérée — enveloppe conservatrice"
-                  : "Calibration faible — forte marge sécurité"
+            {latestSnapshot?.vlamax_calibrated != null 
+              ? "Valeur calibrée à partir d'évidences terrain accumulées"
+              : modelledVlamax
+                ? "Valeur estimée — le coach juge la validité selon le contexte"
+                : "Aucune donnée disponible"
             }
           </p>
         </div>
