@@ -20,6 +20,7 @@ import {
   Play,
   Smartphone,
   Footprints,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -109,9 +110,10 @@ interface AppSidebarProps {
   onTabChange: (tab: string) => void;
   staffMode: boolean;
   onStaffModeChange: (value: boolean) => void;
+  onExportClick?: () => void;
 }
 
-export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChange }: AppSidebarProps) {
+export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChange, onExportClick }: AppSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { state } = useSidebar();
@@ -275,6 +277,25 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
         ))}
 
         <SidebarSeparator className="my-2" />
+
+        {/* Export PDF */}
+        {onExportClick && (
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={onExportClick}
+                    tooltip={collapsed ? "Export PDF" : undefined}
+                  >
+                    <FileText className="h-4 w-4" />
+                    {!collapsed && <span>Export PDF</span>}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {/* Configuration */}
         <SidebarGroup>

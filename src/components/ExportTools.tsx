@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { FileText, AlertCircle, Settings2, Eye, ChevronRight, Loader2 } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { PDFPreviewPanel } from "./PDFPreviewPanel";
@@ -86,7 +86,9 @@ interface ExportToolsProps {
   checkins?: DbCheckin[];
   staffMode?: boolean;
   ambition?: AmbitionLevel;
-  calibrationEvidences?: CalibrationEvidence[]; // ✅ NEW: Real Cloud calibration evidence
+  calibrationEvidences?: CalibrationEvidence[];
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 // Sections disponibles dans le rapport
@@ -6982,7 +6984,7 @@ function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): str
 // COMPONENT
 // =============================================
 
-export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMode = false, ambition = DEFAULT_AMBITION, calibrationEvidences = [] }: ExportToolsProps) {
+export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMode = false, ambition = DEFAULT_AMBITION, calibrationEvidences = [], open: controlledOpen, onOpenChange }: ExportToolsProps) {
   // Charger les sections depuis le localStorage via la fonction utilitaire
   const [sections, setSections] = useState<ReportSections>(getSectionVisibility);
   
@@ -7138,143 +7140,144 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
 
   if (!exportCheck.ok) {
     return (
-      <div className="flex items-center gap-2 text-muted-foreground text-sm">
-        <AlertCircle className="h-4 w-4" />
-        <span>{exportCheck.reason}</span>
-      </div>
+      <Dialog open={controlledOpen} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-[440px]">
+          <DialogHeader>
+            <DialogTitle>Export impossible</DialogTitle>
+          </DialogHeader>
+          <div className="flex items-center gap-2 text-muted-foreground text-sm p-4">
+            <AlertCircle className="h-4 w-4" />
+            <span>{exportCheck.reason}</span>
+          </div>
+        </DialogContent>
+      </Dialog>
     );
   }
 
   return (
-    <div className="flex items-center gap-2 flex-wrap">
-      
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" className="gap-2">
-            <FileText className="h-4 w-4" />
-            📄 Export PDF
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[420px] p-0" align="end">
-          <Tabs defaultValue="preview" className="w-full">
-            <div className="border-b px-3 pt-3 pb-2">
-              <p className="text-sm font-medium mb-2">Exporter le rapport</p>
-              <TabsList className="grid w-full grid-cols-2 h-8">
-                <TabsTrigger value="preview" className="text-xs gap-1.5">
-                  <Eye className="h-3 w-3" />
-                  Aperçu
-                </TabsTrigger>
-                <TabsTrigger value="sections" className="text-xs gap-1.5">
-                  <Settings2 className="h-3 w-3" />
-                  Sections ({selectedCount})
-                </TabsTrigger>
-              </TabsList>
-            </div>
+    <Dialog open={controlledOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[440px] p-0">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Exporter le rapport</DialogTitle>
+        </DialogHeader>
+        <Tabs defaultValue="preview" className="w-full">
+          <div className="border-b px-3 pt-3 pb-2">
+            <p className="text-sm font-medium mb-2">Exporter le rapport</p>
+            <TabsList className="grid w-full grid-cols-2 h-8">
+              <TabsTrigger value="preview" className="text-xs gap-1.5">
+                <Eye className="h-3 w-3" />
+                Aperçu
+              </TabsTrigger>
+              <TabsTrigger value="sections" className="text-xs gap-1.5">
+                <Settings2 className="h-3 w-3" />
+                Sections ({selectedCount})
+              </TabsTrigger>
+            </TabsList>
+          </div>
+          
+          {/* Onglet Aperçu */}
+          <TabsContent value="preview" className="mt-0 p-3 space-y-3">
+            {/* Preview Panel */}
+            <PDFPreviewPanel 
+              sections={sections} 
+              athleteName={athlete?.name}
+            />
             
-            {/* Onglet Aperçu */}
-            <TabsContent value="preview" className="mt-0 p-3 space-y-3">
-              {/* Preview Panel */}
-              <PDFPreviewPanel 
-                sections={sections} 
-                athleteName={athlete?.name}
-              />
-              
-              {/* Boutons d'export */}
-              <div className="space-y-2 pt-2 border-t">
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={handleExportPDF}
-                  disabled={isExporting}
-                  className="w-full justify-start gap-3 h-auto py-2.5"
-                >
-                  {isExporting ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Shield className="h-4 w-4" />
-                  )}
-                  <div className="text-left flex-1">
-                    <div className="font-medium text-sm">Rapport Staff</div>
-                    <div className="text-[10px] opacity-80">Complet, technique, pour le coach</div>
-                  </div>
-                  <ChevronRight className="h-4 w-4 opacity-50" />
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleExportAthletePDF}
-                  disabled={isExporting}
-                  className="w-full justify-start gap-3 h-auto py-2.5"
-                >
-                  {isExporting ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <User className="h-4 w-4 text-primary" />
-                  )}
-                  <div className="text-left flex-1">
-                    <div className="font-medium text-sm">Rapport Athlète</div>
-                    <div className="text-[10px] text-muted-foreground">Simple, encourageant</div>
-                  </div>
-                  <ChevronRight className="h-4 w-4 opacity-50" />
-                </Button>
-              </div>
-            </TabsContent>
-            
-            {/* Onglet Sections */}
-            <TabsContent value="sections" className="mt-0 p-3 space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-medium text-muted-foreground">
-                  Sections Staff ({selectedCount}/{totalCount})
-                </p>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="sm" onClick={selectAll} className="text-xs h-6 px-2">
-                    Tout
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={deselectAll} className="text-xs h-6 px-2">
-                    Rien
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="max-h-[280px] overflow-y-auto space-y-1 pr-1 border rounded-md p-2 bg-muted/20">
-                {getSectionOrder().map((key) => (
-                  <div key={key} className="flex items-center justify-between py-1 px-1 hover:bg-muted/50 rounded transition-colors">
-                    <Label 
-                      htmlFor={`section-${key}`} 
-                      className="text-xs cursor-pointer flex-1 truncate"
-                    >
-                      {SECTION_LABELS[key]}
-                    </Label>
-                    <Switch
-                      id={`section-${key}`}
-                      checked={sections[key]}
-                      onCheckedChange={() => toggleSection(key)}
-                      className="scale-75"
-                    />
-                  </div>
-                ))}
-              </div>
-              
-              {/* Bouton export depuis l'onglet sections */}
+            {/* Boutons d'export */}
+            <div className="space-y-2 pt-2 border-t">
               <Button
                 variant="default"
                 size="sm"
                 onClick={handleExportPDF}
                 disabled={isExporting}
-                className="w-full gap-2"
+                className="w-full justify-start gap-3 h-auto py-2.5"
               >
                 {isExporting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <FileText className="h-4 w-4" />
+                  <Shield className="h-4 w-4" />
                 )}
-                {isExporting ? "Génération en cours..." : "Générer le rapport Staff"}
+                <div className="text-left flex-1">
+                  <div className="font-medium text-sm">Rapport Staff</div>
+                  <div className="text-[10px] opacity-80">Complet, technique, pour le coach</div>
+                </div>
+                <ChevronRight className="h-4 w-4 opacity-50" />
               </Button>
-            </TabsContent>
-          </Tabs>
-        </PopoverContent>
-      </Popover>
-    </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportAthletePDF}
+                disabled={isExporting}
+                className="w-full justify-start gap-3 h-auto py-2.5"
+              >
+                {isExporting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <User className="h-4 w-4 text-primary" />
+                )}
+                <div className="text-left flex-1">
+                  <div className="font-medium text-sm">Rapport Athlète</div>
+                  <div className="text-[10px] text-muted-foreground">Simple, encourageant</div>
+                </div>
+                <ChevronRight className="h-4 w-4 opacity-50" />
+              </Button>
+            </div>
+          </TabsContent>
+          
+          {/* Onglet Sections */}
+          <TabsContent value="sections" className="mt-0 p-3 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium text-muted-foreground">
+                Sections Staff ({selectedCount}/{totalCount})
+              </p>
+              <div className="flex gap-1">
+                <Button variant="ghost" size="sm" onClick={selectAll} className="text-xs h-6 px-2">
+                  Tout
+                </Button>
+                <Button variant="ghost" size="sm" onClick={deselectAll} className="text-xs h-6 px-2">
+                  Rien
+                </Button>
+              </div>
+            </div>
+            
+            <div className="max-h-[280px] overflow-y-auto space-y-1 pr-1 border rounded-md p-2 bg-muted/20">
+              {getSectionOrder().map((key) => (
+                <div key={key} className="flex items-center justify-between py-1 px-1 hover:bg-muted/50 rounded transition-colors">
+                  <Label 
+                    htmlFor={`section-${key}`} 
+                    className="text-xs cursor-pointer flex-1 truncate"
+                  >
+                    {SECTION_LABELS[key]}
+                  </Label>
+                  <Switch
+                    id={`section-${key}`}
+                    checked={sections[key]}
+                    onCheckedChange={() => toggleSection(key)}
+                    className="scale-75"
+                  />
+                </div>
+              ))}
+            </div>
+            
+            {/* Bouton export depuis l'onglet sections */}
+            <Button
+              variant="default"
+              size="sm"
+              onClick={handleExportPDF}
+              disabled={isExporting}
+              className="w-full gap-2"
+            >
+              {isExporting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <FileText className="h-4 w-4" />
+              )}
+              {isExporting ? "Génération en cours..." : "Générer le rapport Staff"}
+            </Button>
+          </TabsContent>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
   );
 }

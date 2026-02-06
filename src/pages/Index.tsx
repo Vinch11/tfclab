@@ -263,6 +263,7 @@ const Index = () => {
   // ✅ Persisted state for snapshot panel to survive page minimize/restore
   const [showSnapshots, setShowSnapshots] = usePersistedDialogState("vlab-show-snapshots", false);
   const [showCheckins, setShowCheckins] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
 
   // ✅ Mode Staff toggle (affichage expert avec indices de confiance)
   const [staffMode, setStaffMode] = useState<boolean>(() => {
@@ -1588,15 +1589,6 @@ const Index = () => {
                     <span className="truncate">Simulation</span>
                   </Button>
 
-                  {currentAthlete && (
-                    <ExportTools 
-                      athlete={currentAthlete}
-                      snapshots={snapshots}
-                      tests={tests}
-                      staffMode={staffMode}
-                      ambition={currentAmbition}
-                    />
-                  )}
                 </div>
 
                 {/* Contenu conditionnel */}
@@ -2257,6 +2249,7 @@ const Index = () => {
       onTabChange={setActiveTab}
       staffMode={staffMode}
       onStaffModeChange={setStaffMode}
+      onExportClick={currentAthlete ? () => setExportOpen(true) : undefined}
     >
       {/* Background decorations */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
@@ -2280,6 +2273,19 @@ const Index = () => {
         selectedAthleteId={selectedAthleteId} 
         currentPage={activeTab} 
       />
+
+      {/* Export Tools - triggered from sidebar */}
+      {currentAthlete && (
+        <ExportTools 
+          athlete={currentAthlete}
+          snapshots={snapshots}
+          tests={tests}
+          staffMode={staffMode}
+          ambition={currentAmbition}
+          open={exportOpen}
+          onOpenChange={setExportOpen}
+        />
+      )}
     </SidebarLayout>
   );
 };
