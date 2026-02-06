@@ -81,6 +81,7 @@ export const SECTION_LABELS: Record<keyof ReportSections, string> = {
   checkins: "Check-ins",
   comprendre: "Comprendre mes scores",
   qualite: "Qualité des données",
+  roadmap: "📋 Roadmap Stratégique",
 };
 
 // Catégories pour regroupement visuel
@@ -120,6 +121,7 @@ const SECTION_CATEGORIES: Record<keyof ReportSections, string> = {
   checkins: "Historique",
   comprendre: "Aide",
   qualite: "Aide",
+  roadmap: "Entraînement",
 };
 
 // Couleurs par catégorie
@@ -173,6 +175,7 @@ export const DEFAULT_SECTION_ORDER: (keyof ReportSections)[] = [
   "checkins",
   "comprendre",
   "qualite",
+  "roadmap",
 ];
 
 // Visibilité par défaut (toutes visibles) - Also exported as DEFAULT_REPORT_SECTIONS
@@ -212,6 +215,7 @@ export const DEFAULT_VISIBILITY: Record<keyof ReportSections, boolean> = {
   checkins: true,
   comprendre: true,
   qualite: true,
+  roadmap: true,
 };
 
 // Export alias for backward compatibility

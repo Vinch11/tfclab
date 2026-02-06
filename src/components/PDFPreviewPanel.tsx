@@ -80,6 +80,7 @@ const SECTION_ICONS: Record<keyof ReportSections, React.ComponentType<{ classNam
   checkins: Heart,
   comprendre: BookOpen,
   qualite: CheckSquare,
+  roadmap: BarChart3,
 };
 
 // Catégories avec couleurs
@@ -119,6 +120,7 @@ const SECTION_CATEGORIES: Record<keyof ReportSections, { label: string; color: s
   checkins: { label: "Suivi", color: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400" },
   comprendre: { label: "Aide", color: "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400" },
   qualite: { label: "Qualité", color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
+  roadmap: { label: "Entraînement", color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
 };
 
 // Descriptions courtes pour l'aperçu

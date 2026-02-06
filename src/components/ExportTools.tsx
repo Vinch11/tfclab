@@ -123,6 +123,7 @@ export interface ReportSections {
   checkins: boolean;        // Check-ins
   comprendre: boolean;      // Comprendre mes scores
   qualite: boolean;         // Qualité des données
+  roadmap: boolean;         // Roadmap Stratégique
 }
 
 interface ExportOptions {
@@ -2235,6 +2236,142 @@ function buildDoubleBoucleCAPHTML(payload: ExportPayload): string {
           hebdomadaires sans modifier les seuils physiologiques. 
           <em>"La physiologie évolue lentement, les décisions doivent être prises souvent."</em>
         </p>
+      </div>
+    </section>
+  `;
+}
+
+// =============================================
+// ROADMAP STRATÉGIQUE — GANTT SVG (PDF)
+// =============================================
+
+interface RoadmapPhase {
+  name: string;
+  subtitle: string;
+  startWeek: number;
+  endWeek: number;
+  color: string;
+}
+
+function getRoadmapPhases(goal: string | null): { phases: RoadmapPhase[]; totalWeeks: number; title: string } {
+  switch (goal) {
+    case "IM":
+      return {
+        title: "Roadmap Stratégique : 24 Semaines vers l'Ironman",
+        totalWeeks: 24,
+        phases: [
+          { name: "Neuro & Vélocité", subtitle: "Phase 1: Vitesse/VO2Max", startWeek: 1, endWeek: 4, color: "#9ca3af" },
+          { name: "Force Endurance K3", subtitle: "Phase 2: Force & Seuil", startWeek: 5, endWeek: 8, color: "#60a5fa" },
+          { name: "Volume d'intensité & The Big Week", subtitle: "Phase 3: Spécifique", startWeek: 9, endWeek: 18, color: "#1e3a5f" },
+          { name: "Fraîcheur & Densité", subtitle: "Phase 4: Affûtage", startWeek: 20, endWeek: 24, color: "#86efac" },
+        ],
+      };
+    case "703":
+      return {
+        title: "Roadmap Stratégique : 24 Semaines vers le 70.3",
+        totalWeeks: 24,
+        phases: [
+          { name: "Neuro & Vélocité", subtitle: "Phase 1: Vitesse/VO2Max", startWeek: 1, endWeek: 5, color: "#9ca3af" },
+          { name: "Force Endurance", subtitle: "Phase 2: Force & Seuil", startWeek: 6, endWeek: 10, color: "#60a5fa" },
+          { name: "Spécifique Race Pace", subtitle: "Phase 3: Spécifique", startWeek: 11, endWeek: 19, color: "#1e3a5f" },
+          { name: "Affûtage", subtitle: "Phase 4: Affûtage", startWeek: 21, endWeek: 24, color: "#86efac" },
+        ],
+      };
+    case "Marathon":
+      return {
+        title: "Roadmap Stratégique : 24 Semaines vers le Marathon",
+        totalWeeks: 24,
+        phases: [
+          { name: "Base Aérobie", subtitle: "Phase 1: Endurance", startWeek: 1, endWeek: 6, color: "#9ca3af" },
+          { name: "Développement", subtitle: "Phase 2: Seuil & Force", startWeek: 7, endWeek: 12, color: "#60a5fa" },
+          { name: "Spécifique Marathon", subtitle: "Phase 3: Allure Cible", startWeek: 13, endWeek: 20, color: "#1e3a5f" },
+          { name: "Affûtage", subtitle: "Phase 4: Affûtage", startWeek: 21, endWeek: 24, color: "#86efac" },
+        ],
+      };
+    case "Semi":
+      return {
+        title: "Roadmap Stratégique : 12 Semaines vers le Semi-Marathon",
+        totalWeeks: 12,
+        phases: [
+          { name: "Base & Vitesse", subtitle: "Phase 1: VO2Max", startWeek: 1, endWeek: 3, color: "#9ca3af" },
+          { name: "Développement Seuil", subtitle: "Phase 2: Seuil", startWeek: 4, endWeek: 7, color: "#60a5fa" },
+          { name: "Spécifique Semi", subtitle: "Phase 3: Allure Cible", startWeek: 8, endWeek: 10, color: "#1e3a5f" },
+          { name: "Affûtage", subtitle: "Phase 4: Affûtage", startWeek: 11, endWeek: 12, color: "#86efac" },
+        ],
+      };
+    default:
+      return {
+        title: "Roadmap Stratégique d'Entraînement",
+        totalWeeks: 24,
+        phases: [
+          { name: "Construction", subtitle: "Phase 1: Base", startWeek: 1, endWeek: 6, color: "#9ca3af" },
+          { name: "Développement", subtitle: "Phase 2: Build", startWeek: 7, endWeek: 12, color: "#60a5fa" },
+          { name: "Spécifique", subtitle: "Phase 3: Peak", startWeek: 13, endWeek: 20, color: "#1e3a5f" },
+          { name: "Affûtage", subtitle: "Phase 4: Taper", startWeek: 21, endWeek: 24, color: "#86efac" },
+        ],
+      };
+  }
+}
+
+function buildRoadmapHTML(payload: ExportPayload): string {
+  const { phases, totalWeeks, title } = getRoadmapPhases(payload.athlete.goal);
+
+  const W = 900;
+  const H = 340;
+  const marginLeft = 60;
+  const marginRight = 30;
+  const chartTop = 40;
+  const chartBottom = H - 60;
+  const chartWidth = W - marginLeft - marginRight;
+  const weekWidth = chartWidth / totalWeeks;
+
+  // Build week labels
+  const weekLabels = Array.from({ length: totalWeeks }, (_, i) => {
+    const x = marginLeft + i * weekWidth + weekWidth / 2;
+    return `<text x="${x}" y="${chartBottom + 30}" text-anchor="end" transform="rotate(-45 ${x} ${chartBottom + 30})" font-size="10" fill="#374151">Week ${i + 1}</text>`;
+  }).join('\n');
+
+  // Axis lines
+  const axisLine = `<line x1="${marginLeft}" y1="${chartTop}" x2="${marginLeft}" y2="${chartBottom}" stroke="#9ca3af" stroke-width="1"/>`;
+  const baseLine = `<line x1="${marginLeft}" y1="${chartBottom}" x2="${W - marginRight}" y2="${chartBottom}" stroke="#9ca3af" stroke-width="1"/>`;
+
+  // Build phase bars (staggered vertically like the reference image)
+  const barHeight = 32;
+  const phaseBars = phases.map((phase, idx) => {
+    const x = marginLeft + (phase.startWeek - 1) * weekWidth;
+    const width = (phase.endWeek - phase.startWeek + 1) * weekWidth;
+    const yOffset = chartTop + 20 + idx * 50;
+    const textColor = phase.color === '#1e3a5f' ? '#ffffff' : (phase.color === '#86efac' ? '#1e3a5f' : '#1e293b');
+
+    return `
+      <text x="${x + width / 2}" y="${yOffset - 6}" text-anchor="middle" font-size="11" font-weight="600" fill="#1e293b">${phase.name}</text>
+      <rect x="${x}" y="${yOffset}" width="${width}" height="${barHeight}" rx="6" fill="${phase.color}" />
+      <text x="${x + width / 2}" y="${yOffset + barHeight / 2 + 4}" text-anchor="middle" font-size="10" font-weight="500" fill="${textColor}">${phase.subtitle}</text>
+    `;
+  }).join('\n');
+
+  return `
+    <section class="page-break" style="margin-top:36px;">
+      <div class="card" style="padding:28px;">
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:4px;color:#1e293b;">\u{1F4CB} ${title}</h2>
+        <p style="font-size:12px;color:#64748b;margin-bottom:20px;">Périodisation stratégique — Two For Coaching Lab\u2122</p>
+        <div style="background:#ffffff;border-radius:8px;padding:12px;border:1px solid #e2e8f0;">
+          <svg width="100%" viewBox="0 0 ${W} ${H}" style="background:#ffffff;" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0" y="0" width="${W}" height="${H}" fill="#ffffff"/>
+            ${axisLine}
+            ${baseLine}
+            ${phaseBars}
+            ${weekLabels}
+          </svg>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:16px;flex-wrap:wrap;">
+          ${phases.map(p => `
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="width:14px;height:14px;border-radius:3px;background:${p.color};"></div>
+              <span style="font-size:11px;color:#475569;">${p.subtitle} — ${p.name}</span>
+            </div>
+          `).join('')}
+        </div>
       </div>
     </section>
   `;
@@ -6509,6 +6646,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     checkins: checkinsHTML,
     comprendre: comprendreHTML,
     qualite: qualiteHTML,
+    roadmap: buildRoadmapHTML(payload),
   };
   
   // Récupérer l'ordre personnalisé des sections
@@ -7024,6 +7162,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       checkins: false,
       comprendre: false,
       qualite: false,
+      roadmap: false,
     };
     setSections(allFalse);
   };
