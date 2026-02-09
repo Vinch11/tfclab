@@ -8,13 +8,13 @@ import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Separator } from "@/components/ui/separator";
 import { 
   ArrowLeftRight, X, Plus, Timer, Flame, Heart, TrendingUp, Zap, 
   Target, Dumbbell, CheckCircle2, BarChart3, Calendar, Clock, Layers,
-  Waves, Bike, Footprints
+  Waves, Bike, Footprints, Search, ChevronsUpDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RUNNING_TEMPLATES } from "@/lib/templates/runningTemplatesStore";
@@ -106,6 +106,8 @@ interface WeekSlotSelectorProps {
 }
 
 function WeekSlotSelector({ slot, slotIndex, allWeeks, onSelect, onClear }: WeekSlotSelectorProps) {
+  const [open, setOpen] = useState(false);
+
   const selectedWeek = slot.weekId 
     ? allWeeks.find(w => w.id === slot.weekId)
     : null;
@@ -207,53 +209,72 @@ function WeekSlotSelector({ slot, slotIndex, allWeeks, onSelect, onClear }: Week
             <Plus className="h-3 w-3" />
             Slot {slotIndex + 1}
           </div>
-          <Select
-            value=""
-            onValueChange={(value) => onSelect(value)}
-          >
-            <SelectTrigger className="h-9 text-xs bg-background border-muted-foreground/30">
-              <SelectValue placeholder="Sélectionner une semaine..." />
-            </SelectTrigger>
-            <SelectContent 
-              className="bg-popover border-border max-h-80 z-[100]"
-              position="popper"
-              sideOffset={4}
-            >
-              <ScrollArea className="max-h-72">
-                {Object.entries(groupedByTemplate).map(([templateId, group]) => (
-                  <div key={templateId} className="mb-1">
-                    {/* Template Header */}
-                    <div className="px-2 py-1.5 bg-muted/50 sticky top-0 z-10 flex items-center gap-2">
-                      <TemplateTypeBadge type={group.type} />
-                      <span className="text-[10px] font-semibold text-foreground truncate">
-                        {group.name}
-                      </span>
-                      <Badge variant="outline" className="text-[9px] px-1 ml-auto">
-                        {group.goal.toUpperCase()}
-                      </Badge>
-                    </div>
-                    
-                    {/* Weeks */}
-                    {group.weeks.map(week => (
-                      <SelectItem 
-                        key={week.id}
-                        value={week.id}
-                        className="text-xs py-2 pl-4 focus:bg-accent"
-                      >
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={open}
+                className="w-full h-9 justify-between text-xs bg-background border-muted-foreground/30"
+              >
+                <span className="text-muted-foreground flex items-center gap-1.5">
+                  <Search className="h-3 w-3" />
+                  Rechercher une semaine...
+                </span>
+                <ChevronsUpDown className="h-3 w-3 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[320px] p-0 z-[100]" align="start">
+              <Command>
+                <CommandInput placeholder="Rechercher par nom, phase, semaine..." className="text-xs h-9" />
+                <CommandList className="max-h-[300px]">
+                  <CommandEmpty className="py-4 text-xs text-center text-muted-foreground">
+                    Aucune semaine trouvée.
+                  </CommandEmpty>
+                  {Object.entries(groupedByTemplate).map(([templateId, group]) => (
+                    <CommandGroup 
+                      key={templateId} 
+                      heading={
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-muted-foreground w-6">
-                            S{week.weekNumber}
-                          </span>
-                          <span className="truncate max-w-[140px]">{week.title}</span>
-                          <PhaseBadge phase={week.meta.phase} />
+                          <TemplateTypeBadge type={group.type} />
+                          <span className="truncate">{group.name}</span>
+                          <Badge variant="outline" className="text-[9px] px-1 ml-auto">
+                            {group.goal.toUpperCase()}
+                          </Badge>
                         </div>
-                      </SelectItem>
-                    ))}
-                  </div>
-                ))}
-              </ScrollArea>
-            </SelectContent>
-          </Select>
+                      }
+                    >
+                      {group.weeks.map(week => {
+                        const dur = week.sessions.reduce((s, sess) => s + sess.durationMin, 0);
+                        return (
+                          <CommandItem
+                            key={week.id}
+                            value={`${group.name} S${week.weekNumber} ${week.title} ${week.meta.phase} ${week.meta.focus}`}
+                            onSelect={() => {
+                              onSelect(week.id);
+                              setOpen(false);
+                            }}
+                            className="text-xs py-2 cursor-pointer"
+                          >
+                            <div className="flex items-center gap-2 w-full">
+                              <span className="font-mono text-muted-foreground w-6 shrink-0">
+                                S{week.weekNumber}
+                              </span>
+                              <span className="truncate flex-1">{week.title}</span>
+                              <PhaseBadge phase={week.meta.phase} />
+                              <span className="text-[10px] text-muted-foreground shrink-0">
+                                {formatDuration(dur)}
+                              </span>
+                            </div>
+                          </CommandItem>
+                        );
+                      })}
+                    </CommandGroup>
+                  ))}
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>
       )}
     </div>
