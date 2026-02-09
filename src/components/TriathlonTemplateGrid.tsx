@@ -4,7 +4,7 @@
 // Similar structure to RunningTemplateViewer
 // =============================================
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { format, differenceInWeeks } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -438,11 +438,13 @@ function WeekCard({ week, templateName }: { week: TemplateWeek; templateName: st
 interface TemplateDetailDialogProps {
   template: TriathlonTemplate;
   trigger: React.ReactNode;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-function TemplateDetailDialog({ template, trigger }: TemplateDetailDialogProps) {
+function TemplateDetailDialog({ template, trigger, isOpen, onOpenChange }: TemplateDetailDialogProps) {
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         {trigger}
       </DialogTrigger>
@@ -506,7 +508,7 @@ function TemplateDetailDialog({ template, trigger }: TemplateDetailDialogProps) 
 // TEMPLATE CARD
 // =============================================
 
-function TemplateCard({ template }: { template: TriathlonTemplate }) {
+function TemplateCard({ template, isOpen, onOpenChange }: { template: TriathlonTemplate; isOpen: boolean; onOpenChange: (open: boolean) => void }) {
   const totalSessions = template.weeks.reduce((sum, w) => sum + w.sessions.length, 0);
   
   // Calculate total volume
@@ -548,6 +550,8 @@ function TemplateCard({ template }: { template: TriathlonTemplate }) {
 
         <TemplateDetailDialog 
           template={template}
+          isOpen={isOpen}
+          onOpenChange={onOpenChange}
           trigger={
             <Button variant="outline" size="sm" className="w-full text-xs h-8 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
               <Eye className="h-3 w-3 mr-1.5" />
@@ -1053,6 +1057,21 @@ function GoalDateSuggester() {
 export function TriathlonTemplateGrid() {
   const templates = useMemo(() => getTriathlonTemplates(), []);
   
+  // Persist which template dialog is open
+  const [openTemplateId, setOpenTemplateId] = useState<string | null>(() => {
+    return localStorage.getItem("vlab-open-triathlon-template") || null;
+  });
+
+  const handleOpenChange = useCallback((templateId: string, open: boolean) => {
+    if (open) {
+      setOpenTemplateId(templateId);
+      localStorage.setItem("vlab-open-triathlon-template", templateId);
+    } else {
+      setOpenTemplateId(null);
+      localStorage.removeItem("vlab-open-triathlon-template");
+    }
+  }, []);
+
   const im703Templates = templates.filter(t => t.target === "703");
   const imFullTemplates = templates.filter(t => t.target === "IM");
 
@@ -1071,7 +1090,7 @@ export function TriathlonTemplateGrid() {
           </h4>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
             {im703Templates.map(template => (
-              <TemplateCard key={template.id} template={template} />
+              <TemplateCard key={template.id} template={template} isOpen={openTemplateId === template.id} onOpenChange={(open) => handleOpenChange(template.id, open)} />
             ))}
           </div>
         </div>
@@ -1087,7 +1106,7 @@ export function TriathlonTemplateGrid() {
           </h4>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
             {imFullTemplates.map(template => (
-              <TemplateCard key={template.id} template={template} />
+              <TemplateCard key={template.id} template={template} isOpen={openTemplateId === template.id} onOpenChange={(open) => handleOpenChange(template.id, open)} />
             ))}
           </div>
         </div>
