@@ -5,6 +5,7 @@
 // =============================================
 
 import { useState, useMemo, useCallback } from "react";
+import { useCustomTemplates } from "@/hooks/useCustomTemplates";
 import { format, differenceInWeeks } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +19,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { 
   ChevronRight, Calendar as CalendarIcon, Flame, Heart, Timer, TrendingUp, Zap, 
   Target, Dumbbell, Clock, Eye, CheckCircle2, Lightbulb, Waves, Bike, PersonStanding, 
-  BarChart3, X, ArrowLeftRight, AlertTriangle, Activity, User
+  BarChart3, X, ArrowLeftRight, AlertTriangle, Activity, User, Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { normalizeRaceTypeForDisplay } from "@/lib/raceTypeNormalization";
@@ -28,6 +29,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } fro
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { computeCAPInjuryRisk, type CAPRiskLevel } from "@/lib/capInjuryRisk";
+import { CSVTemplateImporter } from "@/components/CSVTemplateImporter";
 
 // =============================================
 // TYPES
@@ -508,7 +510,7 @@ function TemplateDetailDialog({ template, trigger, isOpen, onOpenChange }: Templ
 // TEMPLATE CARD
 // =============================================
 
-function TemplateCard({ template, isOpen, onOpenChange }: { template: TriathlonTemplate; isOpen: boolean; onOpenChange: (open: boolean) => void }) {
+function TemplateCard({ template, isOpen, onOpenChange, isCustom, onDelete }: { template: TriathlonTemplate; isOpen: boolean; onOpenChange: (open: boolean) => void; isCustom?: boolean; onDelete?: () => void }) {
   const totalSessions = template.weeks.reduce((sum, w) => sum + w.sessions.length, 0);
   
   // Calculate total volume
@@ -523,14 +525,19 @@ function TemplateCard({ template, isOpen, onOpenChange }: { template: TriathlonT
       <CardHeader className="pb-2 pt-3 px-3">
         <CardTitle className="text-sm flex items-center justify-between">
           <span className="truncate">{template.name}</span>
-          <Badge className={cn(
-            "border-0 text-[10px]",
-            template.target === "IM" 
-              ? "bg-gradient-to-r from-red-500 to-orange-500 text-white" 
-              : "bg-gradient-to-r from-blue-500 to-cyan-500 text-white"
-          )}>
-            {template.target === "IM" ? "140.6" : "70.3"}
-          </Badge>
+          <div className="flex items-center gap-1">
+            {isCustom && (
+              <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">CSV</Badge>
+            )}
+            <Badge className={cn(
+              "border-0 text-[10px]",
+              template.target === "IM" 
+                ? "bg-gradient-to-r from-red-500 to-orange-500 text-white" 
+                : "bg-gradient-to-r from-blue-500 to-cyan-500 text-white"
+            )}>
+              {template.target === "IM" ? "140.6" : "70.3"}
+            </Badge>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="px-3 pb-3 space-y-2">
@@ -540,12 +547,14 @@ function TemplateCard({ template, isOpen, onOpenChange }: { template: TriathlonT
           <Badge variant="outline" className="text-[10px]">{template.weeks.length} sem.</Badge>
           <Badge variant="outline" className="text-[10px]">{totalSessions} séances</Badge>
           <Badge variant="outline" className="text-[10px] font-mono">{formatDuration(totalVolume)}</Badge>
-          <Badge 
-            variant="outline" 
-            className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-          >
-            TFCL™
-          </Badge>
+          {!isCustom && (
+            <Badge 
+              variant="outline" 
+              className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+            >
+              TFCL™
+            </Badge>
+          )}
         </div>
 
         <TemplateDetailDialog 
@@ -560,6 +569,12 @@ function TemplateCard({ template, isOpen, onOpenChange }: { template: TriathlonT
             </Button>
           }
         />
+        {isCustom && onDelete && (
+          <Button variant="ghost" size="sm" className="w-full text-xs h-7 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={onDelete}>
+            <Trash2 className="h-3 w-3 mr-1.5" />
+            Supprimer
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
@@ -1055,8 +1070,25 @@ function GoalDateSuggester() {
 // =============================================
 
 export function TriathlonTemplateGrid() {
-  const templates = useMemo(() => getTriathlonTemplates(), []);
+  const staticTemplates = useMemo(() => getTriathlonTemplates(), []);
+  const { templates: customTemplates, addTemplate, deleteTemplate } = useCustomTemplates();
   
+  // Merge static + custom into unified TriathlonTemplate[]
+  const customAsTriathlon: TriathlonTemplate[] = useMemo(() => 
+    customTemplates
+      .filter(ct => ct.target === "IM" || ct.target === "703")
+      .map(ct => ({
+        id: ct.id,
+        name: ct.name,
+        target: ct.target as TriathlonGoal,
+        weeks: ct.weeks,
+        description: ct.description || "Plan importé via CSV",
+      })),
+    [customTemplates]
+  );
+
+  const customIds = useMemo(() => new Set(customTemplates.map(c => c.id)), [customTemplates]);
+
   // Persist which template dialog is open
   const [openTemplateId, setOpenTemplateId] = useState<string | null>(() => {
     return localStorage.getItem("vlab-open-triathlon-template") || null;
@@ -1072,13 +1104,25 @@ export function TriathlonTemplateGrid() {
     }
   }, []);
 
-  const im703Templates = templates.filter(t => t.target === "703");
-  const imFullTemplates = templates.filter(t => t.target === "IM");
+  const handleDelete = useCallback(async (id: string) => {
+    if (confirm("Supprimer ce template ?")) {
+      await deleteTemplate(id);
+    }
+  }, [deleteTemplate]);
+
+  const allTemplates = [...staticTemplates, ...customAsTriathlon];
+  const im703Templates = allTemplates.filter(t => t.target === "703");
+  const imFullTemplates = allTemplates.filter(t => t.target === "IM");
 
   return (
     <div className="space-y-6">
       {/* Date-based Suggester */}
       <GoalDateSuggester />
+
+      {/* CSV Import button */}
+      <div className="flex justify-end">
+        <CSVTemplateImporter onImport={addTemplate} />
+      </div>
       
       {/* Ironman 70.3 Templates */}
       {im703Templates.length > 0 && (
@@ -1090,7 +1134,14 @@ export function TriathlonTemplateGrid() {
           </h4>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
             {im703Templates.map(template => (
-              <TemplateCard key={template.id} template={template} isOpen={openTemplateId === template.id} onOpenChange={(open) => handleOpenChange(template.id, open)} />
+              <TemplateCard 
+                key={template.id} 
+                template={template} 
+                isOpen={openTemplateId === template.id} 
+                onOpenChange={(open) => handleOpenChange(template.id, open)}
+                isCustom={customIds.has(template.id)}
+                onDelete={customIds.has(template.id) ? () => handleDelete(template.id) : undefined}
+              />
             ))}
           </div>
         </div>
@@ -1106,7 +1157,14 @@ export function TriathlonTemplateGrid() {
           </h4>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
             {imFullTemplates.map(template => (
-              <TemplateCard key={template.id} template={template} isOpen={openTemplateId === template.id} onOpenChange={(open) => handleOpenChange(template.id, open)} />
+              <TemplateCard 
+                key={template.id} 
+                template={template} 
+                isOpen={openTemplateId === template.id} 
+                onOpenChange={(open) => handleOpenChange(template.id, open)}
+                isCustom={customIds.has(template.id)}
+                onDelete={customIds.has(template.id) ? () => handleDelete(template.id) : undefined}
+              />
             ))}
           </div>
         </div>
