@@ -402,7 +402,7 @@ function WeekCard({ week, templateName }: { week: TemplateWeek; templateName: st
               Voir les séances
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-0">
+          <DialogContent className="max-w-2xl h-[85vh] flex flex-col p-0">
             <div className="flex-shrink-0 p-6 pb-4 border-b">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
@@ -417,13 +417,13 @@ function WeekCard({ week, templateName }: { week: TemplateWeek; templateName: st
                 <Badge variant="outline" className="text-xs font-mono">{formatDuration(totalDuration)}</Badge>
               </div>
             </div>
-            <ScrollArea className="flex-1 p-6 pt-4">
-              <div className="space-y-2">
+            <div className="flex-1 overflow-y-auto p-6 pt-4">
+              <div className="space-y-2 pb-4">
                 {week.sessions.map((session, idx) => (
                   <SessionCard key={idx} session={session} />
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           </DialogContent>
         </Dialog>
       </CardContent>
