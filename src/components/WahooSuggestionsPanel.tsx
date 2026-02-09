@@ -279,7 +279,7 @@ export function WahooSuggestionsPanel({
   athleteName,
   onAskAssistant
 }: WahooSuggestionsPanelProps) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
