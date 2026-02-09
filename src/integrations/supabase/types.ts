@@ -393,6 +393,45 @@ export type Database = {
           },
         ]
       }
+      custom_templates: {
+        Row: {
+          coach_id: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          source: string
+          target: string
+          updated_at: string
+          weeks_count: number
+          weeks_json: Json
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          source?: string
+          target?: string
+          updated_at?: string
+          weeks_count?: number
+          weeks_json?: Json
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          source?: string
+          target?: string
+          updated_at?: string
+          weeks_count?: number
+          weeks_json?: Json
+        }
+        Relationships: []
+      }
       daily_checkins: {
         Row: {
           athlete_id: string
