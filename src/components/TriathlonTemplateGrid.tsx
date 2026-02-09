@@ -35,7 +35,7 @@ import { CSVTemplateImporter } from "@/components/CSVTemplateImporter";
 // TYPES
 // =============================================
 
-type TriathlonGoal = "IM" | "703";
+type TriathlonGoal = "IM" | "703" | "Marathon" | "Semi";
 type TriathlonPhase = "VO2MAX" | "SEUIL" | "ENDURANCE" | "SPECIFIQUE" | "TAPER";
 
 interface TriathlonTemplate {
@@ -464,12 +464,13 @@ function TemplateDetailDialog({ template, trigger, isOpen, onOpenChange }: Templ
             <Badge 
               className={cn(
                 "border-0 text-xs",
-                template.target === "IM" 
-                  ? "bg-gradient-to-r from-red-500 to-orange-500 text-white" 
-                  : "bg-gradient-to-r from-blue-500 to-cyan-500 text-white"
+                template.target === "IM" ? "bg-gradient-to-r from-red-500 to-orange-500 text-white" 
+                  : template.target === "703" ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white"
+                  : template.target === "Marathon" ? "bg-gradient-to-r from-amber-500 to-yellow-500 text-white"
+                  : "bg-gradient-to-r from-teal-500 to-emerald-500 text-white"
               )}
             >
-              {template.target === "IM" ? "Ironman 140.6" : "Ironman 70.3"}
+              {template.target === "IM" ? "Ironman 140.6" : template.target === "703" ? "Ironman 70.3" : template.target === "Marathon" ? "Marathon" : "Semi-Marathon"}
             </Badge>
             <Badge variant="outline">{template.weeks.length} semaines</Badge>
             <Badge variant="outline" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
@@ -531,11 +532,12 @@ function TemplateCard({ template, isOpen, onOpenChange, isCustom, onDelete }: { 
             )}
             <Badge className={cn(
               "border-0 text-[10px]",
-              template.target === "IM" 
-                ? "bg-gradient-to-r from-red-500 to-orange-500 text-white" 
-                : "bg-gradient-to-r from-blue-500 to-cyan-500 text-white"
+              template.target === "IM" ? "bg-gradient-to-r from-red-500 to-orange-500 text-white" 
+                : template.target === "703" ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white"
+                : template.target === "Marathon" ? "bg-gradient-to-r from-amber-500 to-yellow-500 text-white"
+                : "bg-gradient-to-r from-teal-500 to-emerald-500 text-white"
             )}>
-              {template.target === "IM" ? "140.6" : "70.3"}
+              {template.target === "IM" ? "140.6" : template.target === "703" ? "70.3" : template.target === "Marathon" ? "Marathon" : "Semi"}
             </Badge>
           </div>
         </CardTitle>
@@ -1075,15 +1077,13 @@ export function TriathlonTemplateGrid() {
   
   // Merge static + custom into unified TriathlonTemplate[]
   const customAsTriathlon: TriathlonTemplate[] = useMemo(() => 
-    customTemplates
-      .filter(ct => ct.target === "IM" || ct.target === "703")
-      .map(ct => ({
-        id: ct.id,
-        name: ct.name,
-        target: ct.target as TriathlonGoal,
-        weeks: ct.weeks,
-        description: ct.description || "Plan importé via CSV",
-      })),
+    customTemplates.map(ct => ({
+      id: ct.id,
+      name: ct.name,
+      target: ct.target as TriathlonGoal,
+      weeks: ct.weeks,
+      description: ct.description || "Plan importé via CSV",
+    })),
     [customTemplates]
   );
 
@@ -1113,62 +1113,46 @@ export function TriathlonTemplateGrid() {
   const allTemplates = [...staticTemplates, ...customAsTriathlon];
   const im703Templates = allTemplates.filter(t => t.target === "703");
   const imFullTemplates = allTemplates.filter(t => t.target === "IM");
+  const marathonTemplates = allTemplates.filter(t => t.target === "Marathon");
+  const semiTemplates = allTemplates.filter(t => t.target === "Semi");
+
+  const renderSection = (title: string, icon: React.ReactNode, templates: TriathlonTemplate[]) => {
+    if (templates.length === 0) return null;
+    return (
+      <div className="space-y-3">
+        <h4 className="text-sm font-semibold flex items-center gap-2">
+          {icon}
+          {title}
+          <Badge variant="outline" className="text-[10px]">{templates.length} plan(s)</Badge>
+        </h4>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {templates.map(template => (
+            <TemplateCard 
+              key={template.id} 
+              template={template} 
+              isOpen={openTemplateId === template.id} 
+              onOpenChange={(open) => handleOpenChange(template.id, open)}
+              isCustom={customIds.has(template.id)}
+              onDelete={customIds.has(template.id) ? () => handleDelete(template.id) : undefined}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
-      {/* Date-based Suggester */}
       <GoalDateSuggester />
 
-      {/* CSV Import button */}
       <div className="flex justify-end">
         <CSVTemplateImporter onImport={addTemplate} />
       </div>
       
-      {/* Ironman 70.3 Templates */}
-      {im703Templates.length > 0 && (
-        <div className="space-y-3">
-          <h4 className="text-sm font-semibold flex items-center gap-2">
-            <Zap className="h-4 w-4 text-blue-500" />
-            Ironman 70.3
-            <Badge variant="outline" className="text-[10px]">{im703Templates.length} plan(s)</Badge>
-          </h4>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {im703Templates.map(template => (
-              <TemplateCard 
-                key={template.id} 
-                template={template} 
-                isOpen={openTemplateId === template.id} 
-                onOpenChange={(open) => handleOpenChange(template.id, open)}
-                isCustom={customIds.has(template.id)}
-                onDelete={customIds.has(template.id) ? () => handleDelete(template.id) : undefined}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Ironman Full Templates */}
-      {imFullTemplates.length > 0 && (
-        <div className="space-y-3">
-          <h4 className="text-sm font-semibold flex items-center gap-2">
-            <Flame className="h-4 w-4 text-red-500" />
-            Ironman (140.6)
-            <Badge variant="outline" className="text-[10px]">{imFullTemplates.length} plan(s)</Badge>
-          </h4>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {imFullTemplates.map(template => (
-              <TemplateCard 
-                key={template.id} 
-                template={template} 
-                isOpen={openTemplateId === template.id} 
-                onOpenChange={(open) => handleOpenChange(template.id, open)}
-                isCustom={customIds.has(template.id)}
-                onDelete={customIds.has(template.id) ? () => handleDelete(template.id) : undefined}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+      {renderSection("Ironman 70.3", <Zap className="h-4 w-4 text-blue-500" />, im703Templates)}
+      {renderSection("Ironman (140.6)", <Flame className="h-4 w-4 text-red-500" />, imFullTemplates)}
+      {renderSection("Marathon", <PersonStanding className="h-4 w-4 text-amber-500" />, marathonTemplates)}
+      {renderSection("Semi-Marathon", <Activity className="h-4 w-4 text-teal-500" />, semiTemplates)}
     </div>
   );
 }
