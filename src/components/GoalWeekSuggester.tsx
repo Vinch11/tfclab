@@ -6,7 +6,7 @@
 import { useState, useMemo } from "react";
 import { format, differenceInWeeks, addWeeks } from "date-fns";
 import { fr } from "date-fns/locale";
-import { CalendarIcon, Target, Lightbulb, CheckCircle2, AlertTriangle, ArrowRight, Zap } from "lucide-react";
+import { CalendarIcon, Target, Lightbulb, CheckCircle2, AlertTriangle, ArrowRight, Zap, User } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -430,6 +430,55 @@ export function GoalWeekSuggester({ defaultGoal = "marathon", athleteTruth, onWe
             </Popover>
           </div>
         </div>
+
+        {/* Athlete Profile Summary */}
+        {athleteTruth && (
+          <div className="p-3 bg-muted/30 rounded-lg border border-dashed space-y-1.5">
+            <div className="flex items-center gap-2">
+              <User className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs font-medium">Profil athlète</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="bg-background rounded p-2">
+                <div className="text-[10px] text-muted-foreground uppercase">VLamax</div>
+                <div className="font-mono font-bold text-sm">
+                  {athleteTruth.vlamax_run?.value != null ? athleteTruth.vlamax_run.value.toFixed(2) : "—"}
+                </div>
+                {athleteTruth.vlamax_run?.value != null && (
+                  <div className="text-[10px] text-muted-foreground">
+                    {Math.round((athleteTruth.vlamax_run.confidence || 0) * 100)}% conf.
+                  </div>
+                )}
+              </div>
+              <div className="bg-background rounded p-2">
+                <div className="text-[10px] text-muted-foreground uppercase">TTE</div>
+                <div className="font-mono font-bold text-sm">
+                  {athleteTruth.tte_run?.value != null ? `${athleteTruth.tte_run.value}'` : "—"}
+                </div>
+                {athleteTruth.tte_run?.value != null && (
+                  <div className="text-[10px] text-muted-foreground">
+                    {Math.round((athleteTruth.tte_run.confidence || 0) * 100)}% conf.
+                  </div>
+                )}
+              </div>
+              <div className="bg-background rounded p-2">
+                <div className="text-[10px] text-muted-foreground uppercase">Fatigue</div>
+                <div className="font-mono font-bold text-sm">
+                  {athleteTruth.fatigueIndex ?? "—"}
+                </div>
+                <div className="text-[10px] text-muted-foreground capitalize">
+                  {athleteTruth.fatigueLevel || "—"}
+                </div>
+              </div>
+              <div className="bg-background rounded p-2">
+                <div className="text-[10px] text-muted-foreground uppercase">Risque CAP</div>
+                <div className="text-xs font-medium">
+                  {athleteTruth.runInjuryRisk?.level || "—"}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Info Banner when date selected */}
         {goalDate && selectedTemplate && weeksToRace !== null && calculatedPhase && (
