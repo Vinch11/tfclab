@@ -76,6 +76,7 @@ import { computeFatMaxTFCL } from "@/lib/v2/fatmaxTFCL";
 import type { DbSnapshot } from "@/hooks/useCloudData";
 import { DoubleBoucleCAPSection } from "@/components/StaffReportDoubleBoucleCAP";
 import type { RunningPhysioProfile, RunningWeeklyDecision } from "@/lib/v2/runningDoubleLoop";
+import { LactateCorrespondenceCard } from "@/components/LactateCorrespondenceCard";
 
 interface StaffReportProps {
   athleteName: string;
@@ -1368,7 +1369,22 @@ export function StaffReport({
           </>
         )}
 
-        {/* 8️⃣ FEU TRICOLORE FINAL */}
+        {/* 8️⃣ SEUILS TFCL & CORRESPONDANCE LACTIQUE */}
+        <div>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+            💧 SEUILS TFCL & CORRESPONDANCE LACTIQUE
+          </h3>
+          <LactateCorrespondenceCard
+            vlamaxEffectif={vlamaxEffectif}
+            tteEffectif={tteEffectif}
+            ftp={ftp}
+            sport={objectif}
+            staffMode={true}
+          />
+        </div>
+        <Separator />
+
+        {/* 9️⃣ FEU TRICOLORE FINAL */}
         <div className={cn(
           "p-6 rounded-xl border-2 text-center",
           getTrafficLightColors(report.finalVerdict.trafficLight)
