@@ -113,6 +113,7 @@ export function LactateCorrespondenceCard({
                   <TableRow className="bg-muted/30">
                     <TableHead className="text-xs font-semibold">Élément TFCL</TableHead>
                     <TableHead className="text-xs font-semibold">Correspondance lactique</TableHead>
+                    <TableHead className="text-xs font-semibold">Source données</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -120,6 +121,11 @@ export function LactateCorrespondenceCard({
                     <TableRow key={row.element}>
                       <TableCell className="text-sm font-medium py-2.5">{row.element}</TableCell>
                       <TableCell className="text-sm text-muted-foreground py-2.5">{row.correspondence}</TableCell>
+                      <TableCell className="py-2.5">
+                        <Badge variant="outline" className="text-[10px] font-normal">
+                          {row.dataSource}
+                        </Badge>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
