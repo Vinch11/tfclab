@@ -121,6 +121,7 @@ import { PacingEnvelopeCard } from "@/components/PacingEnvelopeCard";
 import { DoubleBoucleCAPCard } from "@/components/DoubleBoucleCAPCard";
 import { WahooSuggestionsCard } from "@/components/WahooSuggestionsCard";
 import { ComprendreScoresCard } from "@/components/ComprendreScoresCard";
+import { LactateCorrespondenceCard } from "@/components/LactateCorrespondenceCard";
 import { CalibrationEvidenceSummaryCard } from "@/components/CalibrationEvidenceSummaryCard";
 import { suggestWahooWorkouts, type SuggestionEngineContext } from "@/lib/wahoo/wahooSuggestionEngine";
 import { computeNutritionV2 } from "@/lib/v2/nutritionV2";
@@ -1948,6 +1949,19 @@ const Index = () => {
               <CalibrationEvidenceSummaryCard athleteId={currentAthlete.id} />
             ),
           },
+          {
+            id: "lactate-thresholds-profil",
+            render: () => currentAthlete && (
+              <LactateCorrespondenceCard
+                vlamaxEffectif={vlamaxEffectif}
+                tteEffectif={tteEffectif}
+                ftp={effectiveRefs.ftp ?? null}
+                sport={currentAthlete.goal || "IM"}
+                staffMode={staffMode}
+                compact
+              />
+            ),
+          },
         ];
 
         return (
@@ -2183,6 +2197,19 @@ const Index = () => {
                     ...(effectiveCloudSnapshot?.vo2max == null ? ["VO2max"] : []),
                   ],
                 }}
+              />
+            ),
+          },
+          // Correspondances Lactiques TFCL
+          {
+            id: "lactate-correspondence",
+            render: () => currentAthlete && (
+              <LactateCorrespondenceCard
+                vlamaxEffectif={vlamaxEffectif}
+                tteEffectif={tteEffectif}
+                ftp={effectiveRefs.ftp ?? null}
+                sport={currentAthlete.goal || "IM"}
+                staffMode={staffMode}
               />
             ),
           },
