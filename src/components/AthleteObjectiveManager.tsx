@@ -150,12 +150,23 @@ export function AthleteObjectiveManager({
     return futureRaces[0] || null;
   }, [raceGoals]);
 
-  // Days remaining to next race
+  // Days & weeks remaining to next race
   const daysRemaining = useMemo(() => {
     if (!nextRace) return null;
     const diff = Math.ceil((new Date(nextRace.race_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
     return diff >= 0 ? diff : null;
   }, [nextRace]);
+
+  const weeksRemaining = useMemo(() => {
+    if (daysRemaining === null) return null;
+    return Math.floor(daysRemaining / 7);
+  }, [daysRemaining]);
+
+  const countdownLabel = daysRemaining !== null
+    ? weeksRemaining && weeksRemaining > 0
+      ? `J-${daysRemaining} • ${weeksRemaining} sem.`
+      : `J-${daysRemaining}`
+    : null;
 
 
   // Get current goal info
@@ -437,6 +448,8 @@ export function AthleteObjectiveManager({
               {sortedRaceGoals.slice(0, 3).map((goal) => {
                 const isPast = isGoalPast(goal.race_date);
                 const isCurrent = goal.race_type === currentGoal;
+                const goalDays = !isPast ? Math.ceil((new Date(goal.race_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
+                const goalWeeks = goalDays !== null ? Math.floor(goalDays / 7) : null;
                 
                 return (
                   <div
@@ -446,11 +459,16 @@ export function AthleteObjectiveManager({
                       isCurrent ? "bg-primary/5" : "bg-muted/30"
                     )}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-medium">{getObjectifLabel(goal.race_type as ObjectifType)}</span>
                       {goal.race_name && <span className="text-muted-foreground truncate max-w-[100px]">{goal.race_name}</span>}
                       <span className="text-muted-foreground">{format(parseISO(goal.race_date), "dd/MM/yy")}</span>
                       {isCurrent && <Badge variant="default" className="text-[10px] h-4">Actuel</Badge>}
+                      {goalDays !== null && (
+                        <Badge variant="outline" className="text-[10px] h-4">
+                          J-{goalDays}{goalWeeks != null && goalWeeks > 0 ? ` • ${goalWeeks}s` : ""}
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex items-center gap-1">
                       {!isCurrent && (
@@ -552,6 +570,9 @@ export function AthleteObjectiveManager({
               "bg-emerald-500"
             )}>
               J-{daysRemaining}
+              {weeksRemaining != null && weeksRemaining > 0 && (
+                <span className="text-xs font-normal ml-1">• {weeksRemaining} sem.</span>
+              )}
             </Badge>
           </div>
         )}
@@ -770,6 +791,8 @@ export function AthleteObjectiveManager({
               sortedRaceGoals.map((goal) => {
                 const isPast = isGoalPast(goal.race_date);
                 const isCurrent = goal.race_type === currentGoal;
+                const gDays = !isPast ? Math.ceil((new Date(goal.race_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
+                const gWeeks = gDays !== null ? Math.floor(gDays / 7) : null;
                 
                 return (
                   <div
@@ -798,6 +821,11 @@ export function AthleteObjectiveManager({
                           {isPast && !isCurrent && (
                             <Badge variant="outline" className="text-xs text-muted-foreground">
                               Passé
+                            </Badge>
+                          )}
+                          {gDays !== null && (
+                            <Badge variant="outline" className="text-xs">
+                              J-{gDays}{gWeeks != null && gWeeks > 0 ? ` • ${gWeeks} sem.` : ""}
                             </Badge>
                           )}
                         </div>
