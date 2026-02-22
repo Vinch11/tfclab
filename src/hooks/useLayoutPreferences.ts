@@ -55,6 +55,7 @@ export const PROFIL_SECTIONS: SectionDefinition[] = [
   { id: "two-for-coaching", label: "Analyse Two For Coaching Lab™", icon: "Brain", defaultVisible: true },
   { id: "evolution-chart", label: "Évolution Profils", icon: "TrendingUp", defaultVisible: true },
   { id: "training-zones", label: "Zones d'entraînement", icon: "Target", defaultVisible: true },
+  { id: "lactate-thresholds-profil", label: "Seuils Lactiques TFCL", icon: "Droplets", category: "metriques", defaultVisible: true },
 ];
 
 export const DASHBOARD_SECTIONS: SectionDefinition[] = [
@@ -145,6 +146,7 @@ export const STRATEGIE_SECTIONS: SectionDefinition[] = [
   { id: "pacing-envelope", label: "Pacing Envelope", icon: "Target", category: "analyse", defaultVisible: true },
   { id: "synthese-executive", label: "Synthèse Executive", icon: "FileText", category: "analyse", defaultVisible: true },
   { id: "double-boucle-cap", label: "Double Boucle CAP", icon: "GitCompare", category: "analyse", defaultVisible: true },
+  { id: "lactate-correspondence", label: "Correspondances Lactiques TFCL", icon: "Droplets", category: "analyse", defaultVisible: true },
   { id: "comprendre-scores", label: "Comprendre mes Scores", icon: "HelpCircle", category: "outils", defaultVisible: true },
   { id: "seances-library", label: "Séances & Bibliothèque", icon: "Dumbbell", category: "outils", defaultVisible: true },
 ];
