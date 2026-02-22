@@ -70,6 +70,7 @@ interface AthleteObjectiveManagerProps {
   onAddRaceGoal: (goal: Omit<RaceGoal, 'id' | 'coach_id' | 'created_at' | 'updated_at'>) => Promise<void>;
   onDeleteRaceGoal: (goalId: string) => Promise<boolean | void>;
   onRestoreRaceGoal: (goal: RaceGoal) => Promise<boolean | void>;
+  onUpdateRaceGoalDate?: (goalId: string, newDate: string) => Promise<void>;
   loading?: boolean;
   compact?: boolean; // Mode compact pour le dashboard
   className?: string;
@@ -119,6 +120,7 @@ export function AthleteObjectiveManager({
   onAddRaceGoal,
   onDeleteRaceGoal,
   onRestoreRaceGoal,
+  onUpdateRaceGoalDate,
   loading = false,
   compact = false,
   className,
@@ -127,6 +129,8 @@ export function AthleteObjectiveManager({
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [editingDateGoalId, setEditingDateGoalId] = useState<string | null>(null);
+  const [editDate, setEditDate] = useState<Date | undefined>(undefined);
   
   // New goal form state
   const [newGoalType, setNewGoalType] = useState<string>("");
@@ -253,6 +257,22 @@ export function AthleteObjectiveManager({
       toast.success("Objectif supprimé");
     } catch (error) {
       toast.error("Erreur lors de la suppression");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Handle update race goal date
+  const handleUpdateDate = async (goalId: string) => {
+    if (!editDate || !onUpdateRaceGoalDate) return;
+    setSaving(true);
+    try {
+      await onUpdateRaceGoalDate(goalId, format(editDate, 'yyyy-MM-dd'));
+      setEditingDateGoalId(null);
+      setEditDate(undefined);
+      toast.success("Date mise à jour");
+    } catch (error) {
+      toast.error("Erreur lors de la mise à jour de la date");
     } finally {
       setSaving(false);
     }
@@ -837,14 +857,64 @@ export function AthleteObjectiveManager({
                         )}
                         
                         <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <CalendarIcon className="h-3 w-3" />
-                            {format(parseISO(goal.race_date), "d MMMM yyyy", { locale: fr })}
-                          </span>
-                          {goal.plan_start_date && (
-                            <span className="text-muted-foreground/60">
-                              Prépa: {format(parseISO(goal.plan_start_date), "d MMM", { locale: fr })}
-                            </span>
+                          {editingDateGoalId === goal.id ? (
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button variant="outline" size="sm" className="h-7 text-xs">
+                                    <CalendarIcon className="h-3 w-3 mr-1" />
+                                    {editDate ? format(editDate, "d MMM yyyy", { locale: fr }) : "Choisir"}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                  <Calendar
+                                    mode="single"
+                                    selected={editDate}
+                                    onSelect={setEditDate}
+                                    initialFocus
+                                    className={cn("p-3 pointer-events-auto")}
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                              <Button
+                                variant="default"
+                                size="sm"
+                                className="h-7 text-xs"
+                                disabled={!editDate || saving}
+                                onClick={() => handleUpdateDate(goal.id)}
+                              >
+                                <Save className="h-3 w-3 mr-1" />
+                                OK
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 text-xs"
+                                onClick={() => { setEditingDateGoalId(null); setEditDate(undefined); }}
+                              >
+                                Annuler
+                              </Button>
+                            </div>
+                          ) : (
+                            <>
+                              <button
+                                className="flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer"
+                                onClick={() => {
+                                  setEditingDateGoalId(goal.id);
+                                  setEditDate(parseISO(goal.race_date));
+                                }}
+                                title="Modifier la date"
+                              >
+                                <CalendarIcon className="h-3 w-3" />
+                                {format(parseISO(goal.race_date), "d MMMM yyyy", { locale: fr })}
+                                <Edit2 className="h-2.5 w-2.5 ml-0.5 opacity-50" />
+                              </button>
+                              {goal.plan_start_date && (
+                                <span className="text-muted-foreground/60">
+                                  Prépa: {format(parseISO(goal.plan_start_date), "d MMM", { locale: fr })}
+                                </span>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>

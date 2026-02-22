@@ -241,6 +241,33 @@ export function useAthleteRaceGoals(athleteId: string | null) {
   }, [updateAthleteGoal]);
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // UPDATE RACE GOAL DATE
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  const updateRaceGoalDate = useCallback(async (goalId: string, newDate: string): Promise<void> => {
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('athlete_race_goals')
+        .update({ race_date: newDate })
+        .eq('id', goalId);
+
+      if (error) {
+        console.error('Error updating race goal date:', error);
+        throw error;
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['athlete-race-goals', athleteId] });
+    } catch (error) {
+      console.error('Error updating race goal date:', error);
+      toast.error("Erreur lors de la mise à jour de la date");
+      throw error;
+    } finally {
+      setSaving(false);
+    }
+  }, [athleteId, queryClient]);
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // GET HISTORY (unique previous objectives)
   // ═══════════════════════════════════════════════════════════════════════════
 
@@ -262,6 +289,7 @@ export function useAthleteRaceGoals(athleteId: string | null) {
     deleteRaceGoal,
     updateAthleteGoal,
     restoreRaceGoal,
+    updateRaceGoalDate,
     refetch,
     
     // State
