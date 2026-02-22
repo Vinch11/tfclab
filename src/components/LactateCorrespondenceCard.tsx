@@ -79,13 +79,19 @@ export function LactateCorrespondenceCard({
       <CardContent className="space-y-4">
         {/* Insufficient data guard */}
         {isInsufficient ? (
-          <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50 border border-dashed">
-            <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0" />
-            <div>
-              <p className="text-sm font-medium">Données insuffisantes</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {thresholds.notes.join(" ")}
-              </p>
+          <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50 border border-dashed">
+            <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+            <div className="space-y-1.5">
+              <p className="text-sm font-medium">Données insuffisantes pour LT1 / LT2</p>
+              <ul className="text-xs text-muted-foreground space-y-0.5 list-disc pl-4">
+                {!ftp && <li>FTP manquant — ajoutez un snapshot avec la puissance au seuil</li>}
+                {thresholds.sport === "unknown" && <li>Sport non identifié — renseignez l'objectif de l'athlète</li>}
+              </ul>
+              {thresholds.notes.length > 0 && (
+                <p className="text-xs text-muted-foreground italic mt-1">
+                  {thresholds.notes.join(" ")}
+                </p>
+              )}
             </div>
           </div>
         ) : (
