@@ -227,6 +227,7 @@ const Index = () => {
     deleteRaceGoal, 
     updateAthleteGoal, 
     restoreRaceGoal,
+    updateRaceGoalDate,
     loading: raceGoalsLoading,
   } = useAthleteRaceGoals(currentAthlete?.id ?? null);
 
@@ -1056,6 +1057,7 @@ const Index = () => {
                 }}
                 onDeleteRaceGoal={deleteRaceGoal}
                 onRestoreRaceGoal={restoreRaceGoal}
+                onUpdateRaceGoalDate={updateRaceGoalDate}
                 loading={raceGoalsLoading}
                 compact
               />
@@ -1751,6 +1753,7 @@ const Index = () => {
                 }}
                 onDeleteRaceGoal={deleteRaceGoal}
                 onRestoreRaceGoal={restoreRaceGoal}
+                onUpdateRaceGoalDate={updateRaceGoalDate}
                 loading={raceGoalsLoading}
               />
             ),

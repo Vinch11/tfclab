@@ -45,6 +45,7 @@ export default function AthleteEditPage() {
     deleteRaceGoal, 
     updateAthleteGoal,
     restoreRaceGoal,
+    updateRaceGoalDate,
     loading: goalsLoading 
   } = useAthleteRaceGoals(editingAthlete?.id ?? null);
   
@@ -168,6 +169,7 @@ export default function AthleteEditPage() {
                 onAddRaceGoal={handleAddRaceGoal}
                 onDeleteRaceGoal={deleteRaceGoal}
                 onRestoreRaceGoal={handleRestoreRaceGoal}
+                onUpdateRaceGoalDate={updateRaceGoalDate}
                 loading={goalsLoading}
               />
             ) : (
