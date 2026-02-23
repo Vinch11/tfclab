@@ -68,6 +68,7 @@ import { SortableSectionsContainer } from "@/components/SortableSectionsContaine
 // ✅ VLamax TFCL V2 - Carte unifiée (Phase 1 UX)
 import { VLamaxUnifiedCard } from "@/components/VLamaxUnifiedCard";
 import { VLamaxZoneConfidenceChart } from "@/components/charts/VLamaxZoneConfidenceChart";
+import { VLamaxEstimationWidget } from "@/components/charts/VLamaxEstimationWidget";
 import { FatMaxTFCLCard } from "@/components/FatMaxTFCLCard";
 import { FatMaxRaceIntensityChart } from "@/components/charts/FatMaxRaceIntensityChart";
 import { computeFatMaxTFCL, FatMaxObjectif } from "@/lib/v2/fatmaxTFCL";
@@ -1284,6 +1285,16 @@ const Index = () => {
                   {/* Graphique signature: Zone × Confiance */}
                   <VLamaxZoneConfidenceChart
                     v2Result={vlamaxEffectif.v2 ?? null}
+                    sport={(effectiveCloudSnapshot as unknown as Record<string, unknown>)?.sport_main === "run" ? "cap" : "velo"}
+                  />
+                  {/* Estimation VLamax avec évolution temps réel */}
+                  <VLamaxEstimationWidget
+                    vlamaxEffectif={vlamaxEffectif}
+                    snapshots={snapshots}
+                    athleteId={currentAthlete.id}
+                    objectif={currentAthlete.goal || "IM"}
+                    ambition={currentAmbition}
+                    age={calculateAge(currentAthlete.birth_date)}
                     sport={(effectiveCloudSnapshot as unknown as Record<string, unknown>)?.sport_main === "run" ? "cap" : "velo"}
                   />
                 </div>

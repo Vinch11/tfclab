@@ -26,6 +26,7 @@ export { PacingEnvelopeBar, PacingEnvelopeBarInline } from "./PacingEnvelopeBar"
 export { LongDistanceEnvelopeChart, LongDistanceEnvelopeInline } from "./LongDistanceEnvelopeChart";
 export { PotentialAvailabilityDecisionChart } from "./PotentialAvailabilityDecisionChart";
 export { PacingEnvelopeRunChart } from "./PacingEnvelopeRunChart";
+export { VLamaxEstimationWidget } from "./VLamaxEstimationWidget";
 
 // Utilitaires pour graphiques responsives (mobile/touch)
 export {
