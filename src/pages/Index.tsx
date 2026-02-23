@@ -90,6 +90,9 @@ import { type LorangStrategyInput } from "@/lib/v2/lorangStrategyEngine";
 // ✅ Coach Decision Center — Carte unifiée (Phase 1e UX)
 import { CoachDecisionUnifiedCard } from "@/components/CoachDecisionUnifiedCard";
 
+// ✅ Profil & Ambition — Carte unifiée (Phase 1f UX)
+import { ProfilAmbitionUnifiedCard } from "@/components/ProfilAmbitionUnifiedCard";
+
 // ✅ Roadmap Stratégique
 import { RoadmapStrategique } from "@/components/RoadmapStrategique";
 import { detectUnifiedLimiter, type UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
@@ -1029,30 +1032,14 @@ const Index = () => {
               />
             ),
           },
+          // ✅ Phase 1f: Profil & Ambition Unifiée
           {
-            id: "athlete-refs",
+            id: "profil-ambition-unified",
             render: () => currentAthlete && (
-              <AthleteRefsPanel
+              <ProfilAmbitionUnifiedCard
                 athlete={currentAthlete}
                 snapshots={snapshots}
-                snapshot={effectiveCloudSnapshot}
-                athleteGoal={currentAthlete.goal || "IM"}
-                onNavigateToProfile={() => {
-                  setActiveTab("profil");
-                  setShowSnapshots(true);
-                }}
-                onNavigateToCAPTest={() => navigate("/cap-testing-week")}
-                onNavigateToTFCLTest={() => navigate("/tfcl-testing-week")}
-                compact
-              />
-            ),
-          },
-          {
-            id: "objective-manager",
-            render: () => currentAthlete && (
-              <AthleteObjectiveManager
-                athleteId={currentAthlete.id}
-                currentGoal={currentAthlete.goal}
+                effectiveCloudSnapshot={effectiveCloudSnapshot}
                 raceGoals={raceGoals}
                 onGoalChange={async (goal) => {
                   await updateAthleteGoal(goal);
@@ -1064,10 +1051,26 @@ const Index = () => {
                 onDeleteRaceGoal={deleteRaceGoal}
                 onRestoreRaceGoal={restoreRaceGoal}
                 onUpdateRaceGoalDate={updateRaceGoalDate}
-                loading={raceGoalsLoading}
-                compact
+                raceGoalsLoading={raceGoalsLoading}
+                ambition={currentAmbition}
+                weightKg={effectiveRefs.weightKg}
+                onNavigateToProfile={() => {
+                  setActiveTab("profil");
+                  setShowSnapshots(true);
+                }}
+                onNavigateToCAPTest={() => navigate("/cap-testing-week")}
+                onNavigateToTFCLTest={() => navigate("/tfcl-testing-week")}
+                onUpdate={() => loadData()}
               />
             ),
+          },
+          {
+            id: "athlete-refs",
+            render: () => null,
+          },
+          {
+            id: "objective-manager",
+            render: () => null,
           },
           // ✅ Phase 1d: Fatigue & Disponibilité Unifiée
           {
@@ -1899,14 +1902,7 @@ const Index = () => {
           },
           {
             id: "ambition-progress",
-            render: () => currentAthlete && (
-              <AmbitionProgressChart
-                snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id)}
-                objectif={currentAthlete.goal || "IM"}
-                ambition={currentAmbition}
-                weightKg={effectiveRefs.weightKg}
-              />
-            ),
+            render: () => null,
           },
           {
             id: "staff-dashboard",

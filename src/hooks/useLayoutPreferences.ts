@@ -63,9 +63,11 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   { id: "getting-started", label: "Guide de démarrage", icon: "Rocket", category: "onboarding", defaultVisible: true },
   
   // 👤 Profil athlète + Ambition
-  { id: "athlete-refs", label: "Profil & Données", icon: "User", category: "profil", defaultVisible: true },
-  { id: "objective-manager", label: "Objectif & Historique", icon: "Target", category: "profil", defaultVisible: true },
-  { id: "ambition-progress", label: "Évolution vers les cibles", icon: "TrendingUp", category: "profil", defaultVisible: true },
+  // ✅ Phase 1f: Profil & Ambition unifiée
+  { id: "profil-ambition-unified", label: "Profil & Ambition (unifiée)", icon: "User", category: "profil", defaultVisible: true },
+  { id: "athlete-refs", label: "Profil & Données (legacy)", icon: "User", category: "profil", defaultVisible: false },
+  { id: "objective-manager", label: "Objectif & Historique (legacy)", icon: "Target", category: "profil", defaultVisible: false },
+  { id: "ambition-progress", label: "Évolution vers les cibles (legacy)", icon: "TrendingUp", category: "profil", defaultVisible: false },
   
   // 👤 Carte Profil Athlète (juste au-dessus du Compass)
   { id: "athlete-profile-card", label: "Carte Profil Athlète", icon: "UserCircle", category: "profil", defaultVisible: true },
@@ -226,6 +228,7 @@ export const UNIVERSAL_SECTIONS: string[] = [
   "objective-manager",
   "ambition-progress",
   "athlete-profile-card",
+  "profil-ambition-unified",
   "compact-metrics-grid",
   "tfcl-decision-matrix",
   "tfcl-symptom-matrix",
