@@ -73,10 +73,11 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   // 📊 Aperçu rapide (grille de mini-jauges)
   { id: "compact-metrics-grid", label: "Aperçu Rapide (Mini-Jauges)", icon: "Activity", category: "metriques", defaultVisible: true },
   
-  // 🧠 MATRICE DÉCISIONNELLE TFCL — Cœur du système
-  { id: "tfcl-decision-matrix", label: "Décision Coach TFCL™", icon: "Brain", category: "analyse", defaultVisible: true },
-  { id: "tfcl-symptom-matrix", label: "Matrice Symptômes TFCL™", icon: "Stethoscope", category: "analyse", defaultVisible: true },
-  { id: "lorang-strategy", label: "Lorang Strategy Engine™", icon: "Target", category: "analyse", defaultVisible: true },
+  // 🧠 MATRICE DÉCISIONNELLE TFCL — Consolidé Phase 1e UX
+  { id: "coach-decision-unified", label: "Centre Décisionnel TFCL™ (unifié)", icon: "Brain", category: "analyse", defaultVisible: true },
+  { id: "tfcl-decision-matrix", label: "Décision Coach TFCL™ (legacy)", icon: "Brain", category: "analyse", defaultVisible: false },
+  { id: "tfcl-symptom-matrix", label: "Matrice Symptômes TFCL™ (legacy)", icon: "Stethoscope", category: "analyse", defaultVisible: false },
+  { id: "lorang-strategy", label: "Lorang Strategy Engine™ (legacy)", icon: "Target", category: "analyse", defaultVisible: false },
   
   // ⚡ Métriques VLamax/TTE (consolidé Phase 1 UX)
   { id: "compass", label: "Metabolic Compass", icon: "Compass", category: "metriques", defaultVisible: true },
@@ -227,6 +228,9 @@ export const UNIVERSAL_SECTIONS: string[] = [
   "athlete-profile-card",
   "compact-metrics-grid",
   "tfcl-decision-matrix",
+  "tfcl-symptom-matrix",
+  "lorang-strategy",
+  "coach-decision-unified",
   "tfcl-symptom-matrix",
   "lorang-strategy",
   "compass",
