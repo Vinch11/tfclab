@@ -9,11 +9,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Calendar, ChevronLeft, ChevronRight, Dumbbell, Waves, Bike,
   Footprints, Moon, FileText, Zap, Save, Loader2, CheckCircle2,
+  RefreshCw, Printer,
 } from "lucide-react";
 import { format, addDays, startOfWeek } from "date-fns";
 import { fr } from "date-fns/locale";
 import type { ParsedPlan, ParsedWeek, ParsedSession } from "@/lib/aiPlanParser";
 import { mapSessionsToDates } from "@/lib/aiPlanParser";
+import { exportAIPlanToPDF } from "@/lib/aiPlanPDFExport";
 
 function getSportIcon(sport: string) {
   const s = sport.toLowerCase();
@@ -140,13 +142,20 @@ interface AIPlanViewerProps {
   onSaveToPlan?: () => void;
   isSaving?: boolean;
   isSaved?: boolean;
+  onRegenerateWeek?: (weekNumber: number) => void;
+  isRegenerating?: boolean;
+  athleteName?: string;
 }
 
-export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved }: AIPlanViewerProps) {
+export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, isRegenerating, athleteName }: AIPlanViewerProps) {
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [viewMode, setViewMode] = useState<"week" | "all">("week");
 
   const currentWeek = plan.weeks[selectedWeek];
+
+  const handleExportPDF = () => {
+    exportAIPlanToPDF(plan, athleteName);
+  };
 
   return (
     <div className="space-y-4">
@@ -158,17 +167,22 @@ export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved 
               <h3 className="font-bold text-base">{plan.title}</h3>
               <p className="text-xs text-muted-foreground">{plan.totalWeeks} semaines • {plan.phases.length} phases</p>
             </div>
-            {onSaveToPlan && (
-              <Button size="sm" onClick={onSaveToPlan} disabled={isSaving || isSaved}>
-                {isSaved ? (
-                  <><CheckCircle2 className="h-4 w-4 mr-1" /> Sauvegardé</>
-                ) : isSaving ? (
-                  <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Sauvegarde...</>
-                ) : (
-                  <><Save className="h-4 w-4 mr-1" /> Sauvegarder au planning</>
-                )}
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button variant="outline" size="sm" onClick={handleExportPDF}>
+                <Printer className="h-4 w-4 mr-1" /> PDF
               </Button>
-            )}
+              {onSaveToPlan && (
+                <Button size="sm" onClick={onSaveToPlan} disabled={isSaving || isSaved}>
+                  {isSaved ? (
+                    <><CheckCircle2 className="h-4 w-4 mr-1" /> Sauvegardé</>
+                  ) : isSaving ? (
+                    <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Sauvegarde...</>
+                  ) : (
+                    <><Save className="h-4 w-4 mr-1" /> Sauvegarder au planning</>
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Phase overview */}
@@ -212,9 +226,22 @@ export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved 
             >
               <ChevronLeft className="h-4 w-4 mr-1" /> Précédente
             </Button>
-            <span className="text-sm font-medium">
-              {selectedWeek + 1} / {plan.weeks.length}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">
+                {selectedWeek + 1} / {plan.weeks.length}
+              </span>
+              {onRegenerateWeek && (
+                <Button
+                  variant="outline" size="sm"
+                  onClick={() => onRegenerateWeek(currentWeek.weekNumber)}
+                  disabled={isRegenerating}
+                  className="text-xs"
+                >
+                  {isRegenerating ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <RefreshCw className="h-3.5 w-3.5 mr-1" />}
+                  Régénérer
+                </Button>
+              )}
+            </div>
             <Button
               variant="ghost" size="sm"
               disabled={selectedWeek >= plan.weeks.length - 1}

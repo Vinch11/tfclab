@@ -10,7 +10,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { athleteData, planConfig } = await req.json();
+    const { athleteData, planConfig, regenerateWeek } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -125,7 +125,18 @@ Tu DOIS structurer ta réponse EXACTEMENT dans ce format pour permettre le parsi
 - Cite les métriques de l'athlète pour justifier chaque choix
 - Si des données manquent, adapte prudemment et mentionne les hypothèses`;
 
-    const userPrompt = buildUserPrompt(athleteData, planConfig);
+    let userPrompt: string;
+    if (regenerateWeek) {
+      userPrompt = `Régénère UNIQUEMENT la Semaine ${regenerateWeek.weekNumber} du plan.
+Contexte : ${regenerateWeek.phase || "Phase inconnue"}, thème "${regenerateWeek.theme || "Standard"}".
+Plan total : ${regenerateWeek.totalWeeks} semaines.
+
+${buildUserPrompt(athleteData, planConfig)}
+
+IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format tableau obligatoire. Pas les autres semaines.`;
+    } else {
+      userPrompt = buildUserPrompt(athleteData, planConfig);
+    }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
