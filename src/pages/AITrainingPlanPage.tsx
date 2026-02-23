@@ -66,14 +66,25 @@ export default function AITrainingPlanPage() {
   const navigate = useNavigate();
   const { currentAthlete } = useAthletes();
   const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete } = useCloudDataContext();
-  const { response, isLoading, generatePlan, reset } = useAITrainingPlan();
+  const { response, isLoading, generatePlan, reset, setResponse } = useAITrainingPlan();
   const [copied, setCopied] = useState(false);
   const [resultView, setResultView] = useState<"interactive" | "markdown">("interactive");
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
 
-  // Form state
+  // Persistence key per athlete
+  const persistKey = currentAthlete ? `tfcl_ai_plan_${currentAthlete.id}` : null;
+
+  // Form state — restore from localStorage if available
+  const savedState = useMemo(() => {
+    if (!persistKey) return null;
+    try {
+      const raw = localStorage.getItem(persistKey);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }, [persistKey]);
+
   const [objective, setObjective] = useState(currentAthlete?.goal || "703");
   const [raceName, setRaceName] = useState("");
   const [raceDate, setRaceDate] = useState("");
@@ -81,6 +92,31 @@ export default function AITrainingPlanPage() {
   const [sessionsPerWeek, setSessionsPerWeek] = useState("7");
   const [ambition, setAmbition] = useState<string>(DEFAULT_AMBITION);
   const [constraints, setConstraints] = useState("");
+
+  // Restore persisted plan + config on athlete change
+  useEffect(() => {
+    if (!savedState) return;
+    if (savedState.response) setResponse(savedState.response);
+    if (savedState.objective) setObjective(savedState.objective);
+    if (savedState.raceName) setRaceName(savedState.raceName);
+    if (savedState.raceDate) setRaceDate(savedState.raceDate);
+    if (savedState.weeklyHours) setWeeklyHours(savedState.weeklyHours);
+    if (savedState.sessionsPerWeek) setSessionsPerWeek(savedState.sessionsPerWeek);
+    if (savedState.ambition) setAmbition(savedState.ambition);
+    if (savedState.constraints) setConstraints(savedState.constraints);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [persistKey]);
+
+  // Persist plan when response changes (after generation completes)
+  useEffect(() => {
+    if (!persistKey || isLoading) return;
+    if (!response) {
+      localStorage.removeItem(persistKey);
+      return;
+    }
+    const state = { response, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints };
+    localStorage.setItem(persistKey, JSON.stringify(state));
+  }, [response, isLoading, persistKey, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints]);
 
   useEffect(() => {
     if (currentAthlete?.goal) setObjective(currentAthlete.goal);
@@ -526,7 +562,7 @@ export default function AITrainingPlanPage() {
                     <Button variant="ghost" size="sm" onClick={handleCopy}>
                       {copied ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => { reset(); setIsSaved(false); }}>
+                    <Button variant="ghost" size="sm" onClick={() => { reset(); setIsSaved(false); if (persistKey) localStorage.removeItem(persistKey); }}>
                       <RotateCcw className="h-4 w-4" />
                     </Button>
                   </div>
