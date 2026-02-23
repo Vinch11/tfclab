@@ -1,10 +1,10 @@
 /**
  * AI Training Plan Page — TFCL™ Plan Generator
  * Generates personalized training plans using AI + TFCL methodology
- * Phase 2: Interactive structured view + save to planning
+ * Supports multi-athlete batch generation + comparison
  */
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,10 +15,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Progress } from "@/components/ui/progress";
 import {
   ChevronLeft, Sparkles, Calendar, Target, Clock, Loader2,
   AlertTriangle, Zap, User, RotateCcw, Copy, CheckCircle2,
-  FileText, LayoutGrid,
+  FileText, LayoutGrid, Users, GitCompareArrows,
 } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
@@ -34,6 +36,7 @@ import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 import { parseAIPlan, mapSessionsToDates, type ParsedPlan } from "@/lib/aiPlanParser";
 import { AIPlanViewer } from "@/components/AIPlanViewer";
+import { AIPlanComparison } from "@/components/AIPlanComparison";
 import { SavedPlanCalendar } from "@/components/SavedPlanCalendar";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -53,6 +56,16 @@ const AMBITION_OPTIONS = [
   { value: "ELITE", label: "Élite" },
 ];
 
+const LEVER_LABELS: Record<string, string> = {
+  increase_vo2max: "Développer VO2max",
+  decrease_vlamax: "Réduire VLamax (Sprint Ban)",
+  increase_tte: "Augmenter TTE",
+  increase_fat_oxidation: "Améliorer FatMax / Train Low",
+  recovery: "Récupération prioritaire",
+  force_endurance: "Force Max / SFR",
+  increase_ftp_kg: "Développer FTP/kg",
+};
+
 function calculateAge(birthDate: string): number {
   const birth = new Date(birthDate);
   const today = new Date();
@@ -62,16 +75,40 @@ function calculateAge(birthDate: string): number {
   return age;
 }
 
+// ---- Types for multi-athlete plans ----
+interface AthleteComputedContext {
+  data: PlanAthleteData;
+  limiterResult: ReturnType<typeof detectUnifiedLimiter>;
+}
+
+interface MultiPlanEntry {
+  athleteId: string;
+  athleteName: string;
+  objective: string;
+  ambition: string;
+  response: string;
+  parsedPlan: ParsedPlan | null;
+  limiterResult: ReturnType<typeof detectUnifiedLimiter> | null;
+}
+
 export default function AITrainingPlanPage() {
   const navigate = useNavigate();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
   const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete } = useCloudDataContext();
   const { response, isLoading, generatePlan, reset, setResponse } = useAITrainingPlan();
   const [copied, setCopied] = useState(false);
-  const [resultView, setResultView] = useState<"interactive" | "markdown">("interactive");
+  const [resultView, setResultView] = useState<"interactive" | "markdown" | "compare">("interactive");
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
+
+  // Multi-athlete mode
+  const [isMultiMode, setIsMultiMode] = useState(false);
+  const [selectedAthleteIds, setSelectedAthleteIds] = useState<string[]>([]);
+  const [multiPlans, setMultiPlans] = useState<MultiPlanEntry[]>([]);
+  const [isBatchGenerating, setIsBatchGenerating] = useState(false);
+  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0, currentName: "" });
+  const batchAbortRef = useRef(false);
 
   // Persistence key per athlete
   const persistKey = currentAthlete ? `tfcl_ai_plan_${currentAthlete.id}` : null;
@@ -85,7 +122,7 @@ export default function AITrainingPlanPage() {
     } catch { return null; }
   }, [persistKey]);
 
-  const [objective, setObjective] = useState(currentAthlete?.goal || "703");
+  const [objective, setObjective] = useState(currentAthlete?.objectif || "703");
   const [raceName, setRaceName] = useState("");
   const [raceDate, setRaceDate] = useState("");
   const [weeklyHours, setWeeklyHours] = useState("10");
@@ -93,9 +130,9 @@ export default function AITrainingPlanPage() {
   const [ambition, setAmbition] = useState<string>(DEFAULT_AMBITION);
   const [constraints, setConstraints] = useState("");
 
-  // Restore persisted plan + config on athlete change
+  // Restore persisted plan + config on athlete change (single mode only)
   useEffect(() => {
-    if (!savedState) return;
+    if (isMultiMode || !savedState) return;
     if (savedState.response) setResponse(savedState.response);
     if (savedState.objective) setObjective(savedState.objective);
     if (savedState.raceName) setRaceName(savedState.raceName);
@@ -109,14 +146,14 @@ export default function AITrainingPlanPage() {
 
   // Persist plan when response changes (after generation completes)
   useEffect(() => {
-    if (!persistKey || isLoading) return;
+    if (isMultiMode || !persistKey || isLoading) return;
     if (!response) {
       localStorage.removeItem(persistKey);
       return;
     }
     const state = { response, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints };
     localStorage.setItem(persistKey, JSON.stringify(state));
-  }, [response, isLoading, persistKey, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints]);
+  }, [response, isLoading, persistKey, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, isMultiMode]);
 
   useEffect(() => {
     if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
@@ -130,22 +167,20 @@ export default function AITrainingPlanPage() {
     }
   }, [isLoading]);
 
-  // Compute athlete data
-  const athleteContext = useMemo(() => {
-    if (!currentAthlete) return null;
-
-    const athleteSnapshots = getSnapshotsForAthlete(currentAthlete.id);
-    const athleteTests = getTestsForAthlete(currentAthlete.id);
-    const refs = getEffectiveRefs(currentAthlete, athleteSnapshots);
+  // Compute athlete context for a given athlete
+  const computeAthleteContext = useCallback((athlete: any, obj: string, amb: string): AthleteComputedContext | null => {
+    const athleteSnapshots = getSnapshotsForAthlete(athlete.id);
+    const athleteTests = getTestsForAthlete(athlete.id);
+    const refs = getEffectiveRefs(athlete, athleteSnapshots);
     const activeSnap = refs.snapshotUsed;
     if (!activeSnap) return null;
 
     const ftpKg = computeFtpKg(refs);
 
     const vlamaxEff = computeVLamaxEffectif({
-      athleteId: currentAthlete.id,
-      objectif: objective,
-      activeSnapshotId: currentAthlete.active_snapshot_id,
+      athleteId: athlete.id,
+      objectif: obj,
+      activeSnapshotId: athlete.active_snapshot_id,
       tests: athleteTests,
       snapshots: athleteSnapshots,
     });
@@ -155,11 +190,11 @@ export default function AITrainingPlanPage() {
       tss_7d: activeSnap.tss_7d,
       tte_mode: activeSnap.tte_mode,
       tte_observed_min: activeSnap.tte_observed_min,
-      objectif: objective,
+      objectif: obj,
     });
 
     const data: PlanAthleteData = {
-      nom: currentAthlete.nom,
+      nom: athlete.nom,
       ftp: refs.ftp,
       weightKg: refs.weightKg,
       vlamax: vlamaxEff.value,
@@ -181,13 +216,19 @@ export default function AITrainingPlanPage() {
       economyScore: activeSnap.run_economy_score ?? null,
       availabilityScore: null,
       hasHealthAlerts: false,
-      objectif: objective,
-      ambition: ambition as AmbitionLevel,
-      age: currentAthlete.dateNaissance ? calculateAge(currentAthlete.dateNaissance) : null,
+      objectif: obj,
+      ambition: amb as AmbitionLevel,
+      age: athlete.dateNaissance ? calculateAge(athlete.dateNaissance) : null,
     });
 
     return { data, limiterResult };
-  }, [currentAthlete, snapshots, tests, objective, ambition, getSnapshotsForAthlete, getTestsForAthlete]);
+  }, [getSnapshotsForAthlete, getTestsForAthlete]);
+
+  // Current athlete context (single mode)
+  const athleteContext = useMemo(() => {
+    if (!currentAthlete) return null;
+    return computeAthleteContext(currentAthlete, objective, ambition);
+  }, [currentAthlete, snapshots, tests, objective, ambition, computeAthleteContext]);
 
   const weeksAvailable = useMemo(() => {
     if (!raceDate) return null;
@@ -213,47 +254,149 @@ export default function AITrainingPlanPage() {
     return nextMonday;
   }, []);
 
-  const handleGenerate = () => {
-    if (!athleteContext) {
-      toast.error("Sélectionnez un athlète avec un snapshot actif");
-      return;
-    }
-
+  // Build config for generation
+  const buildConfig = useCallback((limiterResult: ReturnType<typeof detectUnifiedLimiter> | null, athleteAmbition?: string): PlanConfig => {
     const limiters: string[] = [];
-    const r = athleteContext.limiterResult;
-    if (r.primaryLimiter !== "none") {
-      limiters.push(`${r.limiterLabel} — ${r.limiterExplanation}`);
+    if (limiterResult && limiterResult.primaryLimiter !== "none") {
+      limiters.push(`${limiterResult.limiterLabel} — ${limiterResult.limiterExplanation}`);
+      limiterResult.gapAnalysis
+        .filter(g => g.status === "limiting")
+        .forEach(g => limiters.push(`${g.metric}: ${g.value?.toFixed(2) ?? "?"} vs cible ${g.target?.toFixed(2)}`));
     }
-    r.gapAnalysis
-      .filter(g => g.status === "limiting")
-      .forEach(g => limiters.push(`${g.metric}: ${g.value?.toFixed(2) ?? "?"} vs cible ${g.target?.toFixed(2)}`));
 
-    const leverLabels: Record<string, string> = {
-      increase_vo2max: "Développer VO2max",
-      decrease_vlamax: "Réduire VLamax (Sprint Ban)",
-      increase_tte: "Augmenter TTE",
-      increase_fat_oxidation: "Améliorer FatMax / Train Low",
-      recovery: "Récupération prioritaire",
-      force_endurance: "Force Max / SFR",
-      increase_ftp_kg: "Développer FTP/kg",
-    };
-    const levers = [r.primaryLever].map(l => leverLabels[l] || l);
+    const levers = limiterResult ? [limiterResult.primaryLever].map(l => LEVER_LABELS[l] || l) : [];
 
-    const config: PlanConfig = {
+    const amb = athleteAmbition || ambition;
+    return {
       objective: OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective,
       raceName: raceName || undefined,
       raceDate: raceDate || undefined,
       weeksAvailable: weeksAvailable ?? undefined,
       weeklyHours: parseFloat(weeklyHours) || undefined,
       sessionsPerWeek: parseInt(sessionsPerWeek) || undefined,
-      ambition: AMBITION_OPTIONS.find(a => a.value === ambition)?.label || ambition,
+      ambition: AMBITION_OPTIONS.find(a => a.value === amb)?.label || amb,
       constraints: constraints || undefined,
       identifiedLimiters: limiters.length > 0 ? limiters : undefined,
       activeLevers: levers.length > 0 ? levers : undefined,
     };
+  }, [objective, raceName, raceDate, weeksAvailable, weeklyHours, sessionsPerWeek, ambition, constraints]);
 
+  // Single athlete generation
+  const handleGenerate = () => {
+    if (!athleteContext) {
+      toast.error("Sélectionnez un athlète avec un snapshot actif");
+      return;
+    }
+    const config = buildConfig(athleteContext.limiterResult);
     generatePlan(athleteContext.data, config);
   };
+
+  // Multi-athlete batch generation
+  const handleBatchGenerate = useCallback(async () => {
+    if (selectedAthleteIds.length === 0) {
+      toast.error("Sélectionnez au moins un athlète");
+      return;
+    }
+
+    batchAbortRef.current = false;
+    setIsBatchGenerating(true);
+    setMultiPlans([]);
+    setBatchProgress({ current: 0, total: selectedAthleteIds.length, currentName: "" });
+
+    const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
+    const results: MultiPlanEntry[] = [];
+
+    for (let i = 0; i < selectedAthleteIds.length; i++) {
+      if (batchAbortRef.current) break;
+
+      const athleteId = selectedAthleteIds[i];
+      const athlete = athletes.find(a => a.id === athleteId);
+      if (!athlete) continue;
+
+      const athleteAmb = athlete.ambition?.toUpperCase() || ambition;
+      const athleteObj = athlete.objectif || objective;
+      const ctx = computeAthleteContext(athlete, athleteObj, athleteAmb);
+      
+      setBatchProgress({ current: i + 1, total: selectedAthleteIds.length, currentName: athlete.nom });
+
+      if (!ctx) {
+        toast.warning(`${athlete.nom} : aucun snapshot actif, ignoré.`);
+        continue;
+      }
+
+      const config = buildConfig(ctx.limiterResult, athleteAmb);
+      // Override objective with athlete's own
+      config.objective = OBJECTIVE_OPTIONS.find(o => o.value === athleteObj)?.label || athleteObj;
+
+      try {
+        const resp = await fetch(PLAN_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ athleteData: ctx.data, planConfig: config }),
+        });
+
+        if (!resp.ok || !resp.body) {
+          toast.error(`Erreur pour ${athlete.nom}`);
+          continue;
+        }
+
+        // Stream the response
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buf = "";
+        let fullText = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buf += decoder.decode(value, { stream: true });
+          let idx: number;
+          while ((idx = buf.indexOf("\n")) !== -1) {
+            let line = buf.slice(0, idx);
+            buf = buf.slice(idx + 1);
+            if (line.endsWith("\r")) line = line.slice(0, -1);
+            if (!line.startsWith("data: ")) continue;
+            const json = line.slice(6).trim();
+            if (json === "[DONE]") break;
+            try {
+              const p = JSON.parse(json);
+              const c = p.choices?.[0]?.delta?.content;
+              if (c) fullText += c;
+            } catch {}
+          }
+        }
+
+        let parsed: ParsedPlan | null = null;
+        try {
+          const plan = parseAIPlan(fullText);
+          parsed = plan.weeks.length > 0 ? plan : null;
+        } catch {}
+
+        const entry: MultiPlanEntry = {
+          athleteId,
+          athleteName: athlete.nom,
+          objective: OBJECTIVE_OPTIONS.find(o => o.value === athleteObj)?.label || athleteObj,
+          ambition: AMBITION_OPTIONS.find(a => a.value === athleteAmb)?.label || athleteAmb,
+          response: fullText,
+          parsedPlan: parsed,
+          limiterResult: ctx.limiterResult,
+        };
+        results.push(entry);
+        setMultiPlans([...results]);
+      } catch (err: any) {
+        toast.error(`Erreur pour ${athlete.nom}: ${err.message}`);
+      }
+    }
+
+    setIsBatchGenerating(false);
+    if (results.length > 0) {
+      toast.success(`${results.length} plan(s) généré(s) !`);
+      if (results.length > 1) setResultView("compare");
+    }
+  }, [selectedAthleteIds, athletes, objective, ambition, computeAthleteContext, buildConfig]);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(response);
@@ -271,8 +414,6 @@ export default function AITrainingPlanPage() {
       if (!user) throw new Error("Non authentifié");
 
       const mapped = mapSessionsToDates(parsedPlan.weeks, planStartDate);
-
-      // Build rows for training_plan table
       const rows = mapped
         .filter(m => !m.session.isRest)
         .map(({ session, date }) => ({
@@ -365,10 +506,8 @@ export default function AITrainingPlanPage() {
         }
       }
 
-      // Parse the regenerated week and splice it into the response
       if (fullText) {
         toast.success(`Semaine ${weekNumber} régénérée !`);
-        // We append the regeneration result as a note — full re-parse would need the complete response updated
         toast.info("Consultez le Markdown pour le détail de la semaine régénérée.");
       }
     } catch (err: any) {
@@ -378,8 +517,44 @@ export default function AITrainingPlanPage() {
     }
   }, [athleteContext, parsedPlan, objective, weeklyHours, sessionsPerWeek, ambition, constraints]);
 
+  // Toggle athlete selection (multi mode)
+  const toggleAthleteSelection = (id: string) => {
+    setSelectedAthleteIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
+  // Compute limiter for any athlete (for display in selector)
+  const getAthleteLimiter = useCallback((athlete: any) => {
+    const obj = athlete.objectif || objective;
+    const amb = (athlete.ambition || ambition).toUpperCase();
+    const ctx = computeAthleteContext(athlete, obj, amb);
+    return ctx?.limiterResult || null;
+  }, [computeAthleteContext, objective, ambition]);
+
   const hasData = !!athleteContext;
   const limiter = athleteContext?.limiterResult;
+
+  // Comparison data for multi-plans
+  const comparisonData = useMemo(() => {
+    return multiPlans
+      .filter(p => p.parsedPlan !== null)
+      .map(p => ({
+        athleteId: p.athleteId,
+        athleteName: p.athleteName,
+        objective: p.objective,
+        ambition: p.ambition,
+        limiterLabel: p.limiterResult?.limiterLabel,
+        limiterEmoji: p.limiterResult?.limiterEmoji,
+        leverLabel: p.limiterResult ? (LEVER_LABELS[p.limiterResult.primaryLever] || p.limiterResult.leverLabel) : undefined,
+        leverEmoji: p.limiterResult?.leverEmoji,
+        parsedPlan: p.parsedPlan!,
+      }));
+  }, [multiPlans]);
+
+  // Currently viewed multi-plan athlete
+  const [viewedMultiAthleteId, setViewedMultiAthleteId] = useState<string | null>(null);
+  const viewedMultiPlan = multiPlans.find(p => p.athleteId === viewedMultiAthleteId);
 
   return (
     <AppLayout title="Plan IA TFCL™">
@@ -398,54 +573,136 @@ export default function AITrainingPlanPage() {
               Plan d'entraînement personnalisé par IA
             </p>
           </div>
+          {/* Multi/Single toggle */}
+          <Button
+            variant={isMultiMode ? "default" : "outline"}
+            size="sm"
+            onClick={() => {
+              setIsMultiMode(!isMultiMode);
+              if (!isMultiMode) {
+                setSelectedAthleteIds([]);
+                setMultiPlans([]);
+              }
+            }}
+            className="flex items-center gap-1.5"
+          >
+            {isMultiMode ? <Users className="h-4 w-4" /> : <User className="h-4 w-4" />}
+            {isMultiMode ? "Multi-athlètes" : "Mono"}
+          </Button>
         </div>
 
         {/* Athlete Selector */}
         {athletes.length > 0 ? (
           <Card>
             <CardContent className="p-4">
-              <Label className="text-xs text-muted-foreground mb-2 block">Athlète</Label>
-              <Select
-                value={currentAthlete?.id || ""}
-                onValueChange={(id) => {
-                  setSelectedAthleteId(id);
-                  reset();
-                  setIsSaved(false);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un athlète" />
-                </SelectTrigger>
-                <SelectContent>
-                  {athletes.map((a) => {
-                    const objLabel = OBJECTIVE_OPTIONS.find(o => o.value === a.objectif)?.label || a.objectif;
-                    const ambLabel = AMBITION_OPTIONS.find(o => o.value?.toUpperCase() === a.ambition?.toUpperCase())?.label || a.ambition;
-                    return (
-                      <SelectItem key={a.id} value={a.id}>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{a.nom}</span>
-                          <span className="text-xs text-muted-foreground">• {objLabel}</span>
-                          {ambLabel && <span className="text-xs text-muted-foreground">• {ambLabel}</span>}
-                        </div>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
+              {!isMultiMode ? (
+                /* Single athlete selector */
+                <>
+                  <Label className="text-xs text-muted-foreground mb-2 block">Athlète</Label>
+                  <Select
+                    value={currentAthlete?.id || ""}
+                    onValueChange={(id) => {
+                      setSelectedAthleteId(id);
+                      reset();
+                      setIsSaved(false);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner un athlète" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {athletes.map((a) => {
+                        const objLabel = OBJECTIVE_OPTIONS.find(o => o.value === a.objectif)?.label || a.objectif;
+                        const ambLabel = AMBITION_OPTIONS.find(o => o.value?.toUpperCase() === a.ambition?.toUpperCase())?.label || a.ambition;
+                        return (
+                          <SelectItem key={a.id} value={a.id}>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{a.nom}</span>
+                              <span className="text-xs text-muted-foreground">• {objLabel}</span>
+                              {ambLabel && <span className="text-xs text-muted-foreground">• {ambLabel}</span>}
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
 
-              {/* Quick info about selected athlete */}
-              {currentAthlete && limiter && limiter.primaryLimiter !== "none" && (
-                <div className="flex items-center gap-2 mt-2 flex-wrap">
-                  <Badge variant="secondary" className="text-[10px]">
-                    {OBJECTIVE_OPTIONS.find(o => o.value === currentAthlete.objectif)?.label || currentAthlete.objectif}
-                  </Badge>
-                  <Badge variant="outline" className="text-[10px]">
-                    {AMBITION_OPTIONS.find(o => o.value?.toUpperCase() === currentAthlete.ambition?.toUpperCase())?.label || currentAthlete.ambition}
-                  </Badge>
-                  <Badge variant="destructive" className="text-[10px]">
-                    {limiter.limiterEmoji} {limiter.limiterLabel}
-                  </Badge>
-                </div>
+                  {currentAthlete && limiter && limiter.primaryLimiter !== "none" && (
+                    <div className="flex items-center gap-2 mt-2 flex-wrap">
+                      <Badge variant="secondary" className="text-[10px]">
+                        {OBJECTIVE_OPTIONS.find(o => o.value === currentAthlete.objectif)?.label || currentAthlete.objectif}
+                      </Badge>
+                      <Badge variant="outline" className="text-[10px]">
+                        {AMBITION_OPTIONS.find(o => o.value?.toUpperCase() === currentAthlete.ambition?.toUpperCase())?.label || currentAthlete.ambition}
+                      </Badge>
+                      <Badge variant="destructive" className="text-[10px]">
+                        {limiter.limiterEmoji} {limiter.limiterLabel}
+                      </Badge>
+                    </div>
+                  )}
+                </>
+              ) : (
+                /* Multi athlete selector */
+                <>
+                  <div className="flex items-center justify-between mb-3">
+                    <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Users className="h-3.5 w-3.5" />
+                      Sélectionnez les athlètes ({selectedAthleteIds.length}/{athletes.length})
+                    </Label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs h-7"
+                      onClick={() => {
+                        if (selectedAthleteIds.length === athletes.length) {
+                          setSelectedAthleteIds([]);
+                        } else {
+                          setSelectedAthleteIds(athletes.map(a => a.id));
+                        }
+                      }}
+                    >
+                      {selectedAthleteIds.length === athletes.length ? "Tout désélectionner" : "Tout sélectionner"}
+                    </Button>
+                  </div>
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                    {athletes.map((a) => {
+                      const objLabel = OBJECTIVE_OPTIONS.find(o => o.value === a.objectif)?.label || a.objectif;
+                      const ambLabel = AMBITION_OPTIONS.find(o => o.value?.toUpperCase() === a.ambition?.toUpperCase())?.label || a.ambition;
+                      const athleteLimiter = getAthleteLimiter(a);
+                      const isSelected = selectedAthleteIds.includes(a.id);
+                      const generatedPlan = multiPlans.find(p => p.athleteId === a.id);
+
+                      return (
+                        <div
+                          key={a.id}
+                          className={`flex items-center gap-3 p-2.5 rounded-lg border cursor-pointer transition-colors ${
+                            isSelected ? "border-primary/50 bg-primary/5" : "border-border hover:border-muted-foreground/30"
+                          }`}
+                          onClick={() => toggleAthleteSelection(a.id)}
+                        >
+                          <Checkbox checked={isSelected} />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-sm truncate">{a.nom}</span>
+                              {generatedPlan?.parsedPlan && (
+                                <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                              <Badge variant="secondary" className="text-[9px]">{objLabel}</Badge>
+                              <Badge variant="outline" className="text-[9px]">{ambLabel}</Badge>
+                              {athleteLimiter && athleteLimiter.primaryLimiter !== "none" && (
+                                <Badge variant="destructive" className="text-[9px]">
+                                  {athleteLimiter.limiterEmoji} {athleteLimiter.limiterLabel}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>
@@ -465,7 +722,7 @@ export default function AITrainingPlanPage() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Target className="h-4 w-4 text-primary" />
-                  Configuration
+                  Configuration {isMultiMode && "(commune)"}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -479,6 +736,11 @@ export default function AITrainingPlanPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {isMultiMode && (
+                    <p className="text-[10px] text-muted-foreground">
+                      💡 L'objectif propre de chaque athlète sera utilisé si différent.
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -499,17 +761,19 @@ export default function AITrainingPlanPage() {
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Niveau d'ambition</Label>
-                  <Select value={ambition} onValueChange={setAmbition}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {AMBITION_OPTIONS.map(a => (
-                        <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {!isMultiMode && (
+                  <div className="space-y-2">
+                    <Label>Niveau d'ambition</Label>
+                    <Select value={ambition} onValueChange={setAmbition}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {AMBITION_OPTIONS.map(a => (
+                          <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
@@ -537,8 +801,8 @@ export default function AITrainingPlanPage() {
               </CardContent>
             </Card>
 
-            {/* Detected Limiters */}
-            {limiter && limiter.primaryLimiter !== "none" && (
+            {/* Detected Limiters (single mode only) */}
+            {!isMultiMode && limiter && limiter.primaryLimiter !== "none" && (
               <Card className="border-primary/30 bg-primary/5">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
@@ -566,118 +830,233 @@ export default function AITrainingPlanPage() {
             )}
 
             {/* Generate Button */}
-            <Button
-              onClick={handleGenerate}
-              disabled={isLoading || !hasData}
-              className="w-full"
-              size="lg"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Génération en cours...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Générer le Plan TFCL™
-                </>
-              )}
-            </Button>
+            {!isMultiMode ? (
+              <Button
+                onClick={handleGenerate}
+                disabled={isLoading || !hasData}
+                className="w-full"
+                size="lg"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Génération en cours...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Générer le Plan TFCL™
+                  </>
+                )}
+              </Button>
+            ) : (
+              <div className="space-y-2">
+                <Button
+                  onClick={handleBatchGenerate}
+                  disabled={isBatchGenerating || selectedAthleteIds.length === 0}
+                  className="w-full"
+                  size="lg"
+                >
+                  {isBatchGenerating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      {batchProgress.currentName} ({batchProgress.current}/{batchProgress.total})
+                    </>
+                  ) : (
+                    <>
+                      <Users className="h-4 w-4 mr-2" />
+                      Générer {selectedAthleteIds.length} plan{selectedAthleteIds.length > 1 ? "s" : ""}
+                    </>
+                  )}
+                </Button>
+                {isBatchGenerating && (
+                  <Progress value={(batchProgress.current / batchProgress.total) * 100} className="h-1.5" />
+                )}
+                {isBatchGenerating && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => { batchAbortRef.current = true; }}
+                  >
+                    Annuler
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Right: Result */}
           <div className="lg:col-span-2">
-            {response ? (
-              <div className="space-y-4">
-                {/* View Toggle + Actions */}
-                <div className="flex items-center justify-between">
-                  <Tabs value={resultView} onValueChange={(v) => setResultView(v as "interactive" | "markdown")}>
+            {isMultiMode ? (
+              /* Multi-athlete results */
+              multiPlans.length > 0 ? (
+                <div className="space-y-4">
+                  {/* View toggle */}
+                  <Tabs value={resultView} onValueChange={(v) => setResultView(v as any)}>
                     <TabsList>
-                      <TabsTrigger value="interactive" className="flex items-center gap-1">
-                        <LayoutGrid className="h-3.5 w-3.5" /> Interactif
+                      <TabsTrigger value="compare" className="flex items-center gap-1" disabled={comparisonData.length < 2}>
+                        <GitCompareArrows className="h-3.5 w-3.5" /> Comparaison
                       </TabsTrigger>
-                      <TabsTrigger value="markdown" className="flex items-center gap-1">
-                        <FileText className="h-3.5 w-3.5" /> Markdown
+                      <TabsTrigger value="interactive" className="flex items-center gap-1">
+                        <LayoutGrid className="h-3.5 w-3.5" /> Détail
                       </TabsTrigger>
                     </TabsList>
                   </Tabs>
-                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="sm" onClick={handleCopy}>
-                      {copied ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => { reset(); setIsSaved(false); if (persistKey) localStorage.removeItem(persistKey); }}>
-                      <RotateCcw className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
 
-                {/* Streaming indicator */}
-                {isLoading && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Génération en cours... Le plan interactif sera disponible à la fin.
-                  </div>
-                )}
+                  {resultView === "compare" && comparisonData.length >= 2 && (
+                    <AIPlanComparison plans={comparisonData} />
+                  )}
 
-                {/* Interactive View */}
-                {resultView === "interactive" && parsedPlan ? (
-                  <AIPlanViewer
-                    plan={parsedPlan}
-                    startDate={planStartDate}
-                    onSaveToPlan={handleSaveToPlan}
-                    isSaving={isSaving}
-                    isSaved={isSaved}
-                    onRegenerateWeek={handleRegenerateWeek}
-                    isRegenerating={isRegenerating}
-                    athleteName={currentAthlete?.nom}
-                  />
-                ) : resultView === "interactive" && !isLoading ? (
-                  <Card>
-                    <CardContent className="p-6 text-center space-y-2">
-                      <AlertTriangle className="h-8 w-8 text-amber-500 mx-auto" />
-                      <p className="text-sm text-muted-foreground">
-                        Le parsing du plan n'a pas pu extraire de semaines structurées.
-                        Consultez la vue Markdown pour le contenu brut.
-                      </p>
-                      <Button variant="outline" size="sm" onClick={() => setResultView("markdown")}>
-                        Voir le Markdown
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ) : null}
-
-                {/* Markdown View */}
-                {resultView === "markdown" && (
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-primary" />
-                        Plan Généré
-                        {isLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="prose prose-sm dark:prose-invert max-w-none overflow-x-auto">
-                        <ReactMarkdown>{response}</ReactMarkdown>
+                  {resultView === "interactive" && (
+                    <div className="space-y-4">
+                      {/* Athlete tabs for individual view */}
+                      <div className="flex flex-wrap gap-2">
+                        {multiPlans.map(p => (
+                          <Button
+                            key={p.athleteId}
+                            variant={viewedMultiAthleteId === p.athleteId ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setViewedMultiAthleteId(p.athleteId)}
+                            className="text-xs"
+                          >
+                            <User className="h-3 w-3 mr-1" />
+                            {p.athleteName}
+                            {p.parsedPlan && <CheckCircle2 className="h-3 w-3 ml-1" />}
+                          </Button>
+                        ))}
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            ) : (
-              <Card className="h-full min-h-[400px] flex items-center justify-center">
-                <div className="text-center space-y-3 p-8">
-                  <Sparkles className="h-12 w-12 text-muted-foreground/30 mx-auto" />
-                  <h3 className="text-lg font-semibold text-muted-foreground">Plan IA TFCL™</h3>
-                  <p className="text-sm text-muted-foreground max-w-md">
-                    Configurez les paramètres et cliquez sur "Générer" pour obtenir un plan
-                    d'entraînement personnalisé basé sur la méthodologie TFCL™ et le profil
-                    physiologique de votre athlète.
-                  </p>
+
+                      {viewedMultiPlan?.parsedPlan ? (
+                        <AIPlanViewer
+                          plan={viewedMultiPlan.parsedPlan}
+                          startDate={planStartDate}
+                          athleteName={viewedMultiPlan.athleteName}
+                        />
+                      ) : viewedMultiPlan ? (
+                        <Card>
+                          <CardContent className="p-6">
+                            <div className="prose prose-sm dark:prose-invert max-w-none overflow-x-auto">
+                              <ReactMarkdown>{viewedMultiPlan.response}</ReactMarkdown>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ) : (
+                        <Card>
+                          <CardContent className="p-6 text-center text-sm text-muted-foreground">
+                            Sélectionnez un athlète ci-dessus pour voir son plan en détail.
+                          </CardContent>
+                        </Card>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </Card>
-           )}
+              ) : !isBatchGenerating ? (
+                <Card className="h-full min-h-[400px] flex items-center justify-center">
+                  <div className="text-center space-y-3 p-8">
+                    <Users className="h-12 w-12 text-muted-foreground/30 mx-auto" />
+                    <h3 className="text-lg font-semibold text-muted-foreground">Plans Multi-Athlètes</h3>
+                    <p className="text-sm text-muted-foreground max-w-md">
+                      Sélectionnez plusieurs athlètes et générez leurs plans pour les comparer
+                      côte à côte. Chaque plan utilisera l'objectif, l'ambition et les faiblesses
+                      propres à chaque athlète.
+                    </p>
+                  </div>
+                </Card>
+              ) : null
+            ) : (
+              /* Single athlete results */
+              response ? (
+                <div className="space-y-4">
+                  {/* View Toggle + Actions */}
+                  <div className="flex items-center justify-between">
+                    <Tabs value={resultView} onValueChange={(v) => setResultView(v as "interactive" | "markdown")}>
+                      <TabsList>
+                        <TabsTrigger value="interactive" className="flex items-center gap-1">
+                          <LayoutGrid className="h-3.5 w-3.5" /> Interactif
+                        </TabsTrigger>
+                        <TabsTrigger value="markdown" className="flex items-center gap-1">
+                          <FileText className="h-3.5 w-3.5" /> Markdown
+                        </TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="sm" onClick={handleCopy}>
+                        {copied ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => { reset(); setIsSaved(false); if (persistKey) localStorage.removeItem(persistKey); }}>
+                        <RotateCcw className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Streaming indicator */}
+                  {isLoading && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Génération en cours... Le plan interactif sera disponible à la fin.
+                    </div>
+                  )}
+
+                  {/* Interactive View */}
+                  {resultView === "interactive" && parsedPlan ? (
+                    <AIPlanViewer
+                      plan={parsedPlan}
+                      startDate={planStartDate}
+                      onSaveToPlan={handleSaveToPlan}
+                      isSaving={isSaving}
+                      isSaved={isSaved}
+                      onRegenerateWeek={handleRegenerateWeek}
+                      isRegenerating={isRegenerating}
+                      athleteName={currentAthlete?.nom}
+                    />
+                  ) : resultView === "interactive" && !isLoading ? (
+                    <Card>
+                      <CardContent className="p-6 text-center space-y-2">
+                        <AlertTriangle className="h-8 w-8 text-amber-500 mx-auto" />
+                        <p className="text-sm text-muted-foreground">
+                          Le parsing du plan n'a pas pu extraire de semaines structurées.
+                          Consultez la vue Markdown pour le contenu brut.
+                        </p>
+                        <Button variant="outline" size="sm" onClick={() => setResultView("markdown")}>
+                          Voir le Markdown
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ) : null}
+
+                  {/* Markdown View */}
+                  {resultView === "markdown" && (
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Sparkles className="h-4 w-4 text-primary" />
+                          Plan Généré
+                          {isLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="prose prose-sm dark:prose-invert max-w-none overflow-x-auto">
+                          <ReactMarkdown>{response}</ReactMarkdown>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              ) : (
+                <Card className="h-full min-h-[400px] flex items-center justify-center">
+                  <div className="text-center space-y-3 p-8">
+                    <Sparkles className="h-12 w-12 text-muted-foreground/30 mx-auto" />
+                    <h3 className="text-lg font-semibold text-muted-foreground">Plan IA TFCL™</h3>
+                    <p className="text-sm text-muted-foreground max-w-md">
+                      Configurez les paramètres et cliquez sur "Générer" pour obtenir un plan
+                      d'entraînement personnalisé basé sur la méthodologie TFCL™ et le profil
+                      physiologique de votre athlète.
+                    </p>
+                  </div>
+                </Card>
+              )
+            )}
           </div>
         </div>
 
