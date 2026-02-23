@@ -108,7 +108,7 @@ export function RaceDayMode({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-background flex flex-col overflow-hidden select-none">
+    <div className="fixed inset-0 z-[100] bg-background flex flex-col overflow-hidden select-none safe-area-inset">
       {/* Header minimal */}
       <header className="flex items-center justify-between px-4 py-3 border-b bg-background/95 backdrop-blur print:hidden">
         <div className="flex items-center gap-2">

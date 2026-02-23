@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LazyTabsContent } from "@/components/ui/lazy-tabs-content";
+import { SwipeableTabsContent } from "@/components/ui/swipeable-tabs";
 import { TFCLDecisionChart } from "./TFCLDecisionChart";
 import {
   type RaceReadinessV2Result,
@@ -263,13 +264,19 @@ export function RaceReadinessUnifiedCard({
             {/* ── TABS ── */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className={cn("grid w-full", signatureInput ? "grid-cols-4" : "grid-cols-3")}>
-                <TabsTrigger value="vue" className="text-xs">Vue d'ensemble</TabsTrigger>
+                <TabsTrigger value="vue" className="text-xs sm:text-sm min-h-[44px]">Vue d'ensemble</TabsTrigger>
                 {signatureInput && (
-                  <TabsTrigger value="matrice" className="text-xs">Matrice</TabsTrigger>
+                  <TabsTrigger value="matrice" className="text-xs sm:text-sm min-h-[44px]">Matrice</TabsTrigger>
                 )}
-                <TabsTrigger value="decision" className="text-xs">Décision</TabsTrigger>
-                <TabsTrigger value="details" className="text-xs">Détails</TabsTrigger>
+                <TabsTrigger value="decision" className="text-xs sm:text-sm min-h-[44px]">Décision</TabsTrigger>
+                <TabsTrigger value="details" className="text-xs sm:text-sm min-h-[44px]">Détails</TabsTrigger>
               </TabsList>
+
+              <SwipeableTabsContent 
+                tabs={signatureInput ? ["vue", "matrice", "decision", "details"] : ["vue", "decision", "details"]} 
+                activeTab={activeTab} 
+                onTabChange={setActiveTab}
+              >
 
               {/* ── Tab: Vue d'ensemble (TFCL Decision Chart) ── */}
               <TabsContent value="vue" className="pt-4">
@@ -399,6 +406,7 @@ export function RaceReadinessUnifiedCard({
                   )}
                 </div>
               </LazyTabsContent>
+              </SwipeableTabsContent>
             </Tabs>
 
             {/* ── Disclaimer ── */}

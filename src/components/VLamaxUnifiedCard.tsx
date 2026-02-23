@@ -52,6 +52,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LazyTabsContent } from "@/components/ui/lazy-tabs-content";
+import { SwipeableTabsContent } from "@/components/ui/swipeable-tabs";
 import {
   calibrateVLamaxV2,
   ObjectifPrincipal,
@@ -273,21 +274,27 @@ export function VLamaxUnifiedCard({
           <Tabs value={effectiveTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${showComparison ? 3 : 2}, 1fr)` }}>
               {showBike && (
-                <TabsTrigger value="bike" className="text-xs gap-1">
+                <TabsTrigger value="bike" className="text-xs sm:text-sm gap-1 min-h-[44px]">
                   <Bike className="h-3 w-3" /> Vélo
                 </TabsTrigger>
               )}
               {showRun && (
-                <TabsTrigger value="run" className="text-xs gap-1">
+                <TabsTrigger value="run" className="text-xs sm:text-sm gap-1 min-h-[44px]">
                   <Footprints className="h-3 w-3" /> CAP
                 </TabsTrigger>
               )}
               {showComparison && (
-                <TabsTrigger value="compare" className="text-xs">
+                <TabsTrigger value="compare" className="text-xs sm:text-sm min-h-[44px]">
                   Comparaison
                 </TabsTrigger>
               )}
             </TabsList>
+
+            <SwipeableTabsContent 
+              tabs={[...(showBike ? ["bike"] : []), ...(showRun ? ["run"] : []), ...(showComparison ? ["compare"] : [])]} 
+              activeTab={effectiveTab} 
+              onTabChange={setActiveTab}
+            >
             
             {showBike && (
               <TabsContent value="bike" className="mt-3 space-y-3">
@@ -326,6 +333,7 @@ export function VLamaxUnifiedCard({
                 />
               </LazyTabsContent>
             )}
+            </SwipeableTabsContent>
           </Tabs>
         ) : showBike ? (
           <BikeAnalysisSection

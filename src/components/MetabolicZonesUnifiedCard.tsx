@@ -40,6 +40,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LazyTabsContent } from "@/components/ui/lazy-tabs-content";
+import { SwipeableTabsContent } from "@/components/ui/swipeable-tabs";
 import {
   computeFatMaxTFCL,
   type FatMaxTFCLInput,
@@ -216,18 +217,24 @@ export function MetabolicZonesUnifiedCard({
         {/* ═══ TABS ═══ */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${hasLactateData ? 3 : 2}, 1fr)` }}>
-            <TabsTrigger value="fatmax" className="text-xs gap-1">
+            <TabsTrigger value="fatmax" className="text-xs sm:text-sm gap-1 min-h-[44px]">
               <Flame className="h-3 w-3" /> FatMax
             </TabsTrigger>
             {hasLactateData && (
-              <TabsTrigger value="lactate" className="text-xs gap-1">
+              <TabsTrigger value="lactate" className="text-xs sm:text-sm gap-1 min-h-[44px]">
                 <Droplets className="h-3 w-3" /> Seuils
               </TabsTrigger>
             )}
-            <TabsTrigger value="crossover" className="text-xs gap-1">
+            <TabsTrigger value="crossover" className="text-xs sm:text-sm gap-1 min-h-[44px]">
               <BarChart3 className="h-3 w-3" /> Crossover
             </TabsTrigger>
           </TabsList>
+
+          <SwipeableTabsContent 
+            tabs={hasLactateData ? ["fatmax", "lactate", "crossover"] : ["fatmax", "crossover"]} 
+            activeTab={activeTab} 
+            onTabChange={setActiveTab}
+          >
 
           {/* FatMax Tab */}
           <TabsContent value="fatmax" className="mt-3 space-y-3">
@@ -245,6 +252,7 @@ export function MetabolicZonesUnifiedCard({
           <LazyTabsContent value="crossover" activeValue={activeTab} showLoader className="mt-3 space-y-3">
             <CrossoverTabContent fatmax={fatmax} objectif={normalizedObjectif} />
           </LazyTabsContent>
+          </SwipeableTabsContent>
         </Tabs>
 
         {/* ═══ ÉDUCATION ═══ */}
