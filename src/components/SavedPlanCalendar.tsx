@@ -1,6 +1,6 @@
 /**
  * SavedPlanCalendar — Calendar view of training_plan sessions saved from AI plans
- * Groups sessions by week with sport-colored cards
+ * Groups sessions by week with sport-colored cards + inline edit
  */
 import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,13 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Calendar, ChevronLeft, ChevronRight, Trash2, Waves, Bike,
-  Footprints, Moon, Dumbbell, Loader2, AlertTriangle,
+  Footprints, Moon, Dumbbell, Loader2, Pencil,
 } from "lucide-react";
-import { format, startOfWeek, addDays, isSameWeek, parseISO, isAfter, isBefore } from "date-fns";
+import { format, startOfWeek, addDays, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { toast } from "sonner";
+import { SessionEditDialog } from "@/components/SessionEditDialog";
 
 interface TrainingPlanRow {
   id: string;
@@ -63,6 +64,15 @@ function getSportStyle(sport: string): string {
   }
 }
 
+function getStatusBadge(status: string) {
+  switch (status) {
+    case "COMPLETED": return <Badge className="text-[9px] bg-green-500/15 text-green-700 dark:text-green-300">✅</Badge>;
+    case "SKIPPED": return <Badge className="text-[9px] bg-red-500/15 text-red-700 dark:text-red-300">⏭️</Badge>;
+    case "ADJUSTED": return <Badge className="text-[9px] bg-amber-500/15 text-amber-700 dark:text-amber-300">🔄</Badge>;
+    default: return null;
+  }
+}
+
 const DAY_NAMES = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
 export function SavedPlanCalendar() {
@@ -71,38 +81,28 @@ export function SavedPlanCalendar() {
   const [loading, setLoading] = useState(true);
   const [weekOffset, setWeekOffset] = useState(0);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [editSession, setEditSession] = useState<TrainingPlanRow | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
 
-  // Fetch sessions
   useEffect(() => {
-    if (!currentAthlete) {
-      setSessions([]);
-      setLoading(false);
-      return;
-    }
-
-    const fetch = async () => {
+    if (!currentAthlete) { setSessions([]); setLoading(false); return; }
+    const fetchData = async () => {
       setLoading(true);
       const { data, error } = await supabase
         .from("training_plan")
         .select("id, date, phase, custom_workout_title, custom_workout_description, status, notes, workout_id, adjusted")
         .eq("athlete_id", currentAthlete.id)
         .order("date", { ascending: true });
-
-      if (error) {
-        console.error("Fetch training plan error:", error);
-        toast.error("Erreur chargement du planning");
-      }
+      if (error) { console.error(error); toast.error("Erreur chargement planning"); }
       setSessions((data as TrainingPlanRow[]) || []);
       setLoading(false);
     };
-    fetch();
+    fetchData();
   }, [currentAthlete]);
 
-  // Compute visible weeks
   const allWeeks = useMemo(() => {
     if (sessions.length === 0) return [];
     const weekMap = new Map<string, { weekStart: Date; sessions: TrainingPlanRow[] }>();
-
     for (const s of sessions) {
       const d = parseISO(s.date);
       const ws = startOfWeek(d, { weekStartsOn: 1 });
@@ -110,7 +110,6 @@ export function SavedPlanCalendar() {
       if (!weekMap.has(key)) weekMap.set(key, { weekStart: ws, sessions: [] });
       weekMap.get(key)!.sessions.push(s);
     }
-
     return Array.from(weekMap.values()).sort((a, b) => a.weekStart.getTime() - b.weekStart.getTime());
   }, [sessions]);
 
@@ -119,163 +118,171 @@ export function SavedPlanCalendar() {
   const handleDelete = async (id: string) => {
     setDeleting(id);
     const { error } = await supabase.from("training_plan").delete().eq("id", id);
-    if (error) {
-      toast.error("Erreur suppression");
-    } else {
-      setSessions(prev => prev.filter(s => s.id !== id));
-      toast.success("Séance supprimée");
-    }
+    if (error) toast.error("Erreur suppression");
+    else { setSessions(prev => prev.filter(s => s.id !== id)); toast.success("Séance supprimée"); }
     setDeleting(null);
+  };
+
+  const handleEdit = (s: TrainingPlanRow) => {
+    setEditSession(s);
+    setEditOpen(true);
+  };
+
+  const handleSaved = (updated: any) => {
+    setSessions(prev => prev.map(s => s.id === updated.id ? { ...s, ...updated } : s));
   };
 
   if (!currentAthlete) {
     return (
-      <Card>
-        <CardContent className="p-6 text-center text-muted-foreground text-sm">
-          Sélectionnez un athlète pour voir le planning.
-        </CardContent>
-      </Card>
+      <Card><CardContent className="p-6 text-center text-muted-foreground text-sm">
+        Sélectionnez un athlète pour voir le planning.
+      </CardContent></Card>
     );
   }
 
   if (loading) {
     return (
-      <Card>
-        <CardContent className="p-6 space-y-3">
-          <Skeleton className="h-6 w-48" />
-          <div className="grid grid-cols-7 gap-2">
-            {Array.from({ length: 7 }).map((_, i) => (
-              <Skeleton key={i} className="h-24" />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <Card><CardContent className="p-6 space-y-3">
+        <Skeleton className="h-6 w-48" />
+        <div className="grid grid-cols-7 gap-2">
+          {Array.from({ length: 7 }).map((_, i) => <Skeleton key={i} className="h-24" />)}
+        </div>
+      </CardContent></Card>
     );
   }
 
   if (allWeeks.length === 0) {
     return (
-      <Card>
-        <CardContent className="p-6 text-center space-y-2">
-          <Calendar className="h-8 w-8 text-muted-foreground/30 mx-auto" />
-          <p className="text-sm text-muted-foreground">
-            Aucune séance planifiée. Générez un plan IA et sauvegardez-le pour le voir ici.
-          </p>
-        </CardContent>
-      </Card>
+      <Card><CardContent className="p-6 text-center space-y-2">
+        <Calendar className="h-8 w-8 text-muted-foreground/30 mx-auto" />
+        <p className="text-sm text-muted-foreground">
+          Aucune séance planifiée. Générez un plan IA et sauvegardez-le.
+        </p>
+      </CardContent></Card>
     );
   }
 
+  // Count statuses
+  const completed = sessions.filter(s => s.status === "COMPLETED").length;
+  const skipped = sessions.filter(s => s.status === "SKIPPED").length;
+
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-primary" />
-            Planning Enregistré
-          </CardTitle>
-          <Badge variant="secondary" className="text-xs">
-            {sessions.length} séances • {allWeeks.length} semaines
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Week navigation */}
-        <div className="flex items-center justify-between">
-          <Button
-            variant="ghost" size="sm"
-            disabled={weekOffset === 0}
-            onClick={() => setWeekOffset(w => w - 1)}
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" /> Sem. préc.
-          </Button>
-          <div className="text-center">
-            {currentWeekData && (
-              <>
-                <p className="text-sm font-semibold">
-                  {format(currentWeekData.weekStart, "d MMM", { locale: fr })} — {format(addDays(currentWeekData.weekStart, 6), "d MMM yyyy", { locale: fr })}
-                </p>
-                {currentWeekData.sessions[0]?.phase && (
-                  <p className="text-xs text-muted-foreground">{currentWeekData.sessions[0].phase}</p>
-                )}
-              </>
-            )}
+    <>
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-primary" />
+              Planning Enregistré
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              {completed > 0 && <Badge variant="secondary" className="text-[10px]">✅ {completed}</Badge>}
+              {skipped > 0 && <Badge variant="secondary" className="text-[10px]">⏭️ {skipped}</Badge>}
+              <Badge variant="secondary" className="text-xs">
+                {sessions.length} séances • {allWeeks.length} sem.
+              </Badge>
+            </div>
           </div>
-          <Button
-            variant="ghost" size="sm"
-            disabled={weekOffset >= allWeeks.length - 1}
-            onClick={() => setWeekOffset(w => w + 1)}
-          >
-            Sem. suiv. <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
-        </div>
-
-        {/* Calendar grid */}
-        {currentWeekData && (
-          <div className="grid grid-cols-7 gap-1.5">
-            {/* Day headers */}
-            {DAY_NAMES.map(d => (
-              <div key={d} className="text-center text-xs font-medium text-muted-foreground py-1">{d}</div>
-            ))}
-
-            {/* Day cells */}
-            {Array.from({ length: 7 }).map((_, dayIdx) => {
-              const cellDate = addDays(currentWeekData.weekStart, dayIdx);
-              const daySessions = currentWeekData.sessions.filter(
-                s => format(parseISO(s.date), "yyyy-MM-dd") === format(cellDate, "yyyy-MM-dd")
-              );
-              const isToday = format(cellDate, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
-
-              return (
-                <div
-                  key={dayIdx}
-                  className={`min-h-[100px] rounded-lg border p-1.5 space-y-1 ${
-                    isToday ? "border-primary bg-primary/5" : "border-border bg-card"
-                  }`}
-                >
-                  <p className={`text-xs font-mono ${isToday ? "text-primary font-bold" : "text-muted-foreground"}`}>
-                    {format(cellDate, "d")}
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Week navigation */}
+          <div className="flex items-center justify-between">
+            <Button variant="ghost" size="sm" disabled={weekOffset === 0} onClick={() => setWeekOffset(w => w - 1)}>
+              <ChevronLeft className="h-4 w-4 mr-1" /> Préc.
+            </Button>
+            <div className="text-center">
+              {currentWeekData && (
+                <>
+                  <p className="text-sm font-semibold">
+                    {format(currentWeekData.weekStart, "d MMM", { locale: fr })} — {format(addDays(currentWeekData.weekStart, 6), "d MMM yyyy", { locale: fr })}
                   </p>
-                  {daySessions.map(s => {
-                    const sport = getSportFromTitle(s.custom_workout_title);
-                    const title = s.custom_workout_title?.replace(/^[^—]+—\s*/, "") || "Séance";
-                    return (
-                      <div
-                        key={s.id}
-                        className={`rounded p-1.5 border text-xs group relative ${getSportStyle(sport)}`}
-                      >
-                        <div className="flex items-center gap-1">
-                          {getSportIcon(sport)}
-                          <span className="font-medium truncate flex-1">{title}</span>
-                        </div>
-                        {s.custom_workout_description && (
-                          <p className="text-[10px] opacity-70 mt-0.5 line-clamp-2">{s.custom_workout_description}</p>
-                        )}
-                        <button
-                          onClick={() => handleDelete(s.id)}
-                          className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-destructive/20"
-                          disabled={deleting === s.id}
-                        >
-                          {deleting === s.id ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Trash2 className="h-3 w-3 text-destructive" />
-                          )}
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
+                  {currentWeekData.sessions[0]?.phase && (
+                    <p className="text-xs text-muted-foreground">{currentWeekData.sessions[0].phase}</p>
+                  )}
+                </>
+              )}
+            </div>
+            <Button variant="ghost" size="sm" disabled={weekOffset >= allWeeks.length - 1} onClick={() => setWeekOffset(w => w + 1)}>
+              Suiv. <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
           </div>
-        )}
 
-        {/* Week counter */}
-        <p className="text-xs text-center text-muted-foreground">
-          Semaine {weekOffset + 1} / {allWeeks.length}
-        </p>
-      </CardContent>
-    </Card>
+          {/* Calendar grid */}
+          {currentWeekData && (
+            <div className="grid grid-cols-7 gap-1.5">
+              {DAY_NAMES.map(d => (
+                <div key={d} className="text-center text-xs font-medium text-muted-foreground py-1">{d}</div>
+              ))}
+              {Array.from({ length: 7 }).map((_, dayIdx) => {
+                const cellDate = addDays(currentWeekData.weekStart, dayIdx);
+                const daySessions = currentWeekData.sessions.filter(
+                  s => format(parseISO(s.date), "yyyy-MM-dd") === format(cellDate, "yyyy-MM-dd")
+                );
+                const isToday = format(cellDate, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
+
+                return (
+                  <div
+                    key={dayIdx}
+                    className={`min-h-[100px] rounded-lg border p-1.5 space-y-1 ${
+                      isToday ? "border-primary bg-primary/5" : "border-border bg-card"
+                    }`}
+                  >
+                    <p className={`text-xs font-mono ${isToday ? "text-primary font-bold" : "text-muted-foreground"}`}>
+                      {format(cellDate, "d")}
+                    </p>
+                    {daySessions.map(s => {
+                      const sport = getSportFromTitle(s.custom_workout_title);
+                      const title = s.custom_workout_title?.replace(/^[^—]+—\s*/, "") || "Séance";
+                      return (
+                        <div
+                          key={s.id}
+                          className={`rounded p-1.5 border text-xs group relative cursor-pointer ${getSportStyle(sport)}`}
+                          onClick={() => handleEdit(s)}
+                        >
+                          <div className="flex items-center gap-1">
+                            {getSportIcon(sport)}
+                            <span className="font-medium truncate flex-1">{title}</span>
+                            {getStatusBadge(s.status)}
+                          </div>
+                          {s.custom_workout_description && (
+                            <p className="text-[10px] opacity-70 mt-0.5 line-clamp-2">{s.custom_workout_description}</p>
+                          )}
+                          <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity flex gap-0.5">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleEdit(s); }}
+                              className="p-0.5 rounded hover:bg-primary/20"
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }}
+                              className="p-0.5 rounded hover:bg-destructive/20"
+                              disabled={deleting === s.id}
+                            >
+                              {deleting === s.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3 text-destructive" />}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <p className="text-xs text-center text-muted-foreground">
+            Semaine {weekOffset + 1} / {allWeeks.length} • Cliquez sur une séance pour la modifier
+          </p>
+        </CardContent>
+      </Card>
+
+      <SessionEditDialog
+        session={editSession}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        onSaved={handleSaved}
+      />
+    </>
   );
 }
