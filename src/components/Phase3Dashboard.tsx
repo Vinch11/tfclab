@@ -1,10 +1,8 @@
 /**
  * ═══════════════════════════════════════════════════════════════
- * PHASE 3 DASHBOARD — IA Générative & Progression
+ * TFCL™ GUIDANCE — Coach IA basé sur la méthodologie TFCL
  * 
- * Composants:
- * - StreaksCard: streaks, XP, niveau, barres de progression
- * - AICoachingCard: recommandations IA en streaming
+ * Carte d'analyse IA contextuelle par athlète
  * ═══════════════════════════════════════════════════════════════
  */
 
@@ -204,7 +202,7 @@ function AICoachingCard({
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
             <Brain className="h-5 w-5 text-primary" />
-            Coach IA
+            TFCL™ Guidance
           </CardTitle>
           {hasGenerated && (
             <Button
@@ -234,13 +232,16 @@ function AICoachingCard({
               className="text-center py-6"
             >
               <Brain className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground mb-4">
-                Obtenez des recommandations personnalisées basées sur le profil métabolique de{" "}
-                <strong>{athlete.name}</strong>.
+              <p className="text-sm text-muted-foreground mb-1">
+                Analyse TFCL™ personnalisée pour{" "}
+                <strong>{athlete.name}</strong>
+              </p>
+              <p className="text-xs text-muted-foreground/70 mb-4">
+                Limiteur prioritaire · Levier opérationnel · Recommandations
               </p>
               <Button onClick={handleGenerate} className="gap-2">
                 <Sparkles className="h-4 w-4" />
-                Analyser avec l'IA
+                Lancer l'analyse TFCL™
               </Button>
             </motion.div>
           ) : (
