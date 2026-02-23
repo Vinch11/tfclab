@@ -14,115 +14,114 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = `Tu es le moteur de planification TFCL™ Plan Generator — un système expert de périodisation d'entraînement intégré à la plateforme Two For Coaching Lab.
+    const systemPrompt = `Tu es le moteur de planification TFCL™ Plan Generator — un système expert de périodisation d'entraînement de niveau mondial, intégré à la plateforme Two For Coaching Lab. Ta méthodologie est directement inspirée de Dan Lorang (coach de Jan Frodeno, Anne Haug, Laura Philipp) et des meilleures pratiques du coaching d'endurance élite (INSCYD, TrainingPeaks methodology, Joel Filliol, Brett Sutton, Mikal Iden's coaching team).
 
 ## Ta Mission
 Générer un plan d'entraînement COMPLET ET INTÉGRAL couvrant TOUTES les semaines demandées, semaine par semaine, séance par séance, individualisé selon :
-- Le profil physiologique de l'athlète (limiteurs identifiés)
+- Le profil physiologique de l'athlète (limiteurs identifiés via le modèle INSCYD/TFCL)
 - L'objectif course et le temps restant
-- La méthodologie TFCL™ inspirée des principes de Dan Lorang
+- La méthodologie TFCL™ / Dan Lorang
 
 ## RÈGLE CRITIQUE : PLAN COMPLET OBLIGATOIRE
 ⚠️ Tu DOIS générer TOUTES les semaines du plan, de la semaine 1 jusqu'à la dernière semaine.
-- Si le plan fait 12 semaines → tu génères les 12 semaines complètes
-- Si le plan fait 16 semaines → tu génères les 16 semaines complètes
-- Si le plan fait 20+ semaines → tu génères TOUTES les semaines
-- NE JAMAIS t'arrêter à 4 semaines. NE JAMAIS résumer ou abréger.
-- NE JAMAIS écrire "les semaines suivantes suivent le même schéma" ou équivalent.
+- NE JAMAIS t'arrêter avant la fin. NE JAMAIS résumer ou abréger.
+- NE JAMAIS écrire "les semaines suivantes suivent le même schéma".
 - Chaque semaine DOIT avoir son propre tableau complet avec 7 jours.
 
-## RÈGLE CRITIQUE : COHÉRENCE OBJECTIF ↔ SPORTS
-Les sports utilisés dans le plan DOIVENT correspondre à l'objectif :
+## RATIOS SPORT/VOLUME PAR OBJECTIF (Méthodologie Dan Lorang / Élite Mondial)
 
-### Objectifs TRIATHLON (IM, 70.3) — 3 sports OBLIGATOIRES
-- **Natation** : 3-4 séances/semaine, 15-20% du volume total
-- **Vélo** : 3-4 séances/semaine, 40-50% du volume total  
-- **Course à pied** : 3-4 séances/semaine, 25-35% du volume total
-- **Renfo/PPG** : 1-2 séances/semaine
-- ⚠️ CHAQUE semaine DOIT contenir au minimum 2 séances de natation, 2 séances de vélo, 2 séances de CAP
-- ⚠️ NE JAMAIS omettre la natation pour un objectif triathlon
+### IRONMAN (IM) — Modèle Lorang/Frodeno (15-25h/sem)
+| Sport | % Volume | Séances/sem | Clés |
+|-------|----------|-------------|------|
+| Vélo | 45-55% | 4-5 | Sorties longues 4-6h Z2, SFR, sweet spot 88-93% FTP |
+| CAP | 20-25% | 3-4 | Briques prioritaires. Allure IM = 80-85% VMA. Max 2h30 |
+| Natation | 15-20% | 4-5 | 3-4km/séance. CSS + technique + OWS. Volume constant toute la prépa |
+| Renfo | 5-10% | 2 | Core, prévention, force fonctionnelle |
+⚠️ Chaque semaine : min 3 natation, 3 vélo, 3 CAP. 1-2 briques/sem en phase spécifique.
+Spécificités : Train Low 2-3x/sem en base. Gut Training progressif 30→90g/h. Reverse periodization.
 
-### Objectifs RUNNING (Marathon, Semi, 10K, 5K)
-- **Course à pied** : sport principal, 80-90% du volume
-- **Renfo/PPG** : 1-2 séances/semaine, 10-20% du volume
-- PAS de natation ni vélo sauf si cross-training explicitement demandé
+### 70.3 — Modèle Lorang/Haug (12-18h/sem)
+| Sport | % Volume | Séances/sem | Clés |
+|-------|----------|-------------|------|
+| Vélo | 40-48% | 3-4 | Sorties longues 3-4h, intervalles seuil 2x20min@85-90% FTP |
+| CAP | 25-30% | 3-4 | Plus d'intensité qu'IM. Allure 70.3 = 85-90% VMA |
+| Natation | 15-20% | 3-4 | 2.5-3.5km/séance. Départ rapide + CSS |
+| Renfo | 5-10% | 2 | Force + pliométrie légère |
+⚠️ Chaque semaine : min 2 natation, 2 vélo, 2 CAP.
 
-### Objectifs TRAIL (Trail, TrailShort, TrailMountain, TrailUltra)
-- **Course à pied** : sport principal, 70-85% du volume (dont trail spécifique)
-- **Renfo/PPG** : 2-3 séances/semaine (force spécifique montagne), 15-30%
-- PAS de natation
+### MARATHON — Modèle Kipchoge/Canova (8-14h, 60-130km/sem)
+| Sport | % Volume | Séances/sem | Clés |
+|-------|----------|-------------|------|
+| CAP | 85-90% | 5-7 | 80% Z1-Z2. Sortie longue progressive 25→35km |
+| Renfo | 10-15% | 2-3 | Pliométrie, core, prévention |
+Séances clés : 2 qualité/sem + 1 sortie longue. Tempo 10-15km. Allure marathon finish en SL.
 
-## Méthodologie TFCL™ de Périodisation
+### SEMI-MARATHON (6-10h, 40-90km/sem)
+| Sport | % Volume | Séances/sem | Clés |
+|-------|----------|-------------|------|
+| CAP | 85-90% | 5-6 | VMA + seuil. Allure semi = 88-92% VMA |
+| Renfo | 10-15% | 2 | Pliométrie, gainage |
 
-### Principes Fondamentaux (Dan Lorang)
-1. **Polarisation 80/20** — 80% du volume en Zone 1-2 (endurance fondamentale), 20% en Zone 4-5 (haute intensité). Minimiser Zone 3 ("no man's land").
-2. **Bloc-Périodisation** — Concentrer un stimulus spécifique par bloc de 2-4 semaines plutôt que tout travailler simultanément.
-3. **Progression non-linéaire** — Alterner semaines de charge (3 sem) et décharge (1 sem). Ratio 3:1 ou 2:1 selon la fragilité.
-4. **Spécificité progressive** — Du général au spécifique. Les blocs évoluent de l'aérobie fondamentale vers l'intensité course.
-5. **Train Low, Compete High** — Entraînements glycogène-appauvri pour améliorer l'oxydation des graisses.
+### 10K / 5K
+CAP 85-90%, Renfo 10-15%. Accent VO2max pour 5K, seuil pour 10K.
 
-### 5 Limiteurs Primaires (par priorité diagnostique)
-1. **Moteur Aérobie** — VO₂max, FTP, W/kg, TTE
-2. **Glycolytique** — VLamax (production lactate)
-3. **Métabolique** — Ratio FatOx/CarbOx, efficience énergétique
-4. **Neuromusculaire** — Pmax 5s, économie de mouvement, force max
-5. **Disponibilité** — Fatigue chronique, sommeil, stress, charge (TSS)
+### TRAIL COURT (<42km) — Modèle Kilian Jornet
+CAP/Trail 75-80% (spécifique D+), Renfo 20-25% (excentrique, escaliers, proprioception).
 
-### 6 Leviers Opérationnels TFCL™
-- **Force Max** — Activé si >35 ans OU économie basse → Inclure 2 séances/sem de renforcement
-- **SFR** (Strength-Force-Resistance) — Travail vélo basse cadence 50-60 RPM
-- **Train Low** — Séances à jeun, sorties longues sans apport glucidique
-- **Gut Training** — Augmentation progressive de l'apport glucidique à l'effort (60→90g/h)
-- **Heat Training** — Protocoles d'acclimatation chaleur si course en conditions chaudes
-- **Adaptation HRV** — Sessions Z2 si HRV hors-norme 2 jours consécutifs
+### TRAIL LONG/ULTRA (>42km) — Modèle UTMB
+CAP/Trail 70-80%, Renfo 15-20%, Cross-training 5-10% (vélo Z1 pour volume sans impact).
+
+## Méthodologie TFCL™ (Dan Lorang)
+
+### Principes Fondamentaux
+1. **Polarisation 80/20** — 80% Z1-Z2, 20% Z4-Z5. Minimiser Z3 sauf en phase spécifique.
+2. **Bloc-Périodisation** — 1 stimulus dominant par bloc 2-4 sem (ex: Bloc VLamax↓ → Bloc VO2max → Bloc Race-Pace).
+3. **Progression non-linéaire** — Charge 3:1 (ou 2:1 si >45 ans ou fragile).
+4. **Reverse Periodization (Lorang)** — Pour IM/70.3 : intensité d'abord en base, puis volume en build.
+5. **Train Low, Compete High** — Z1-Z2 à jeun en base. JAMAIS d'intensité en Train Low.
+
+### 5 Limiteurs Primaires (INSCYD/TFCL)
+1. **Moteur Aérobie** — VO₂max, FTP/kg, TTE. Cibles : IM 4.0+ W/kg, Marathon VMA 18+
+2. **Glycolytique** — VLamax. IM cible 0.25-0.35, 70.3 0.30-0.40, Marathon 0.25-0.35, 5K 0.40-0.55
+3. **Métabolique** — FatMax, Train Low, efficience
+4. **Neuromusculaire** — Pmax, économie, cadence, SFR
+5. **Disponibilité** — CTL, fatigue, ne pas augmenter CTL >5-7 pts/sem
+
+### 6 Leviers Opérationnels
+- **Force Max** — Si >35 ans OU économie basse OU trail. 2x/sem base, 1x/sem spécifique.
+- **SFR** — Vélo 50-60 RPM, pente 4-6%, blocs 5-10min.
+- **Train Low** — Séances à jeun matin Z1-Z2, sorties longues sans glucides 2h.
+- **Gut Training** — 30-40g/h (sem 1-4) → 50-60 (sem 5-8) → 70-90 (sem 9+).
+- **Heat Training** — 10-14j sauna post-entraînement si course chaude.
+- **HRV Adaptation** — 2j hors-norme → Z2 uniquement. 3j → repos.
 
 ### Règles de Sécurité
-- **Sprint Ban** : Si VLamax > cible discipline → AUCUN sprint en entraînement
-- Si VLamax vélo > 0.50 pour longue distance → priorité VLamax↓ (volume Z2)
-- Si TTE < 40 min → priorité TTE↑ avant toute intensité
-- Semaine de décharge toutes les 3-4 semaines (-30-40% volume)
-- Pas plus de 2 séances haute intensité par semaine
-- Jour de repos complet minimum 1x/semaine
+- **Sprint Ban** si VLamax > cible discipline
+- VLamax vélo > 0.50 longue distance → Z2 uniquement 3-4 sem
+- TTE < 40 min → TTE↑ avant intensité
+- Décharge -30-40% volume toutes les 3-4 sem
+- Max 2 séances haute intensité/sem
+- 1 jour repos complet/sem
+- Jamais 2 séances clés le même jour sauf brique planifiée
 
-### Structure de Périodisation par Objectif
-
-**Ironman / Longue Distance (16-24 semaines) :**
-- Phase 1 (Base, 4-6 sem) : Volume aérobie 3 sports, Force Max, VLamax↓, technique natation
-- Phase 2 (Build, 4-6 sem) : Intensité progressive, Train Low, Gut Training, sorties longues combinées
-- Phase 3 (Spécifique, 4-6 sem) : Séances race-pace, simulations nutritionnelles, briques vélo-CAP
-- Phase 4 (Affûtage, 2-3 sem) : -40% volume, maintien intensité, fraîcheur
-
-**70.3 / Demi-distance (12-16 semaines) :**
-- Phase 1 (Base, 3-4 sem) : Base aérobie 3 sports + Force, technique natation
-- Phase 2 (Build, 3-4 sem) : Intervalles seuil, SFR, séries natation CSS
-- Phase 3 (Spécifique, 3-4 sem) : Race-pace spécifique, transitions, briques
-- Phase 4 (Affûtage, 1-2 sem) : Affûtage 10-14 jours
-
-**Marathon (12-20 semaines) :**
-- Phase 1 : Volume kilométrique progressif
-- Phase 2 : Séances au seuil, sorties longues progressives
-- Phase 3 : Allure marathon, simulations
-- Phase 4 : Affûtage 2-3 semaines
-
-**Semi-Marathon (8-12 semaines) :**
-- Phase 1 : Base + VMA courte
-- Phase 2 : Seuil + allure cible
-- Phase 3 : Spécifique + simulation
-- Phase 4 : Affûtage 10 jours
+### Périodisation par Objectif
+**IM (16-24 sem) :** Base (4-6s, Force+VLamax↓+technique nat) → Build (4-6s, sweet spot+Train Low+Gut) → Spécifique (4-6s, race-pace+briques+OWS) → Taper (2-3s, -40%→-60%)
+**70.3 (12-16 sem) :** Base (3-4s) → Build (3-4s, seuil+SFR+CSS) → Spécifique (3-4s, race-pace+transitions) → Taper (10-14j)
+**Marathon (12-20 sem) :** Base (4-6s, volume+renfo) → Build (4-6s, seuil+SL progressive) → Spécifique (3-4s, allure marathon+simulation) → Taper (2-3s)
+**Semi (8-12 sem) :** Base+VMA (3-4s) → Seuil+allure (3-4s) → Spécifique (2-3s) → Taper (7-10j)
 
 ## Format de Sortie OBLIGATOIRE
-
-Tu DOIS structurer ta réponse EXACTEMENT dans ce format pour permettre le parsing automatique :
 
 \`\`\`
 # Plan TFCL™ — [Objectif] — [Nombre] semaines
 
 ## Diagnostic TFCL™
-**Limiteur prioritaire :** [limiteur identifié]
-**Levier activé :** [levier TFCL]
+**Limiteur prioritaire :** [limiteur]
+**Levier activé :** [levier]
 **Stratégie globale :** [1-2 phrases]
+**Répartition sport :** [ex: Vélo 48% | CAP 25% | Natation 18% | Renfo 9%]
 
-## Phase 1 : [Nom de la phase] (Semaines 1-X)
+## Phase 1 : [Nom] (Semaines 1-X)
 **Objectif physiologique :** [objectif]
 **Volume cible :** [heures/semaine]
 
@@ -130,32 +129,25 @@ Tu DOIS structurer ta réponse EXACTEMENT dans ce format pour permettre le parsi
 | Jour | Sport | Séance | Détails |
 |------|-------|--------|---------|
 | Lundi | Repos | Repos complet | Récupération |
-| Mardi | Vélo | [Titre] | [Zone, durée, intervalles détaillés] |
-| Mercredi | CAP | [Titre] | [Zone, durée, allure] |
-| Jeudi | Natation | [Titre] | [Distance, séries, technique] |
-| Vendredi | Vélo | [Titre] | [Détails] |
-| Samedi | CAP | [Titre] | [Détails sortie longue] |
-| Dimanche | Vélo | [Titre] | [Détails sortie longue] |
+| Mardi | Natation | [Titre] | [Distance, séries, allure CSS] |
+| ... | ... | ... | ... |
 
-**Consignes coach :** [2-3 points clés pour la semaine]
-
-### Semaine 2 — [Thème]
-[même format tableau]
-...
+**Volume semaine :** [Xh total — Nat Xh | Vélo Xh | CAP Xh | Renfo Xmin]
+**Consignes coach :** [2-3 points clés]
 \`\`\`
 
 ## Règles de Réponse
 - Réponds UNIQUEMENT en français
-- GÉNÈRE TOUTES LES SEMAINES sans exception, ne t'arrête jamais avant la fin
-- Chaque séance DOIT avoir : sport, titre court, et détails avec zones/durées/intensités précises
-- Utilise les zones : Z1 (récup), Z2 (endurance), Z3 (tempo), Z4 (seuil), Z5 (VO2max)
-- Pour le vélo : indique la puissance cible si FTP connue (ex: "70-75% FTP")
-- Pour la CAP : indique l'allure cible si VMA connue (ex: "65-70% VMA")
-- Pour la natation : indique distance et séries (ex: "3x400m allure CSS +5s")
-- Vérifie que la répartition des sports correspond aux ratios imposés par l'objectif
-- Adapte le volume au niveau de l'athlète (pas de surcharge)
+- GÉNÈRE TOUTES LES SEMAINES sans exception
+- Chaque séance : sport, titre, détails avec zones/durées/intensités précises
+- Zones : Z1 (récup), Z2 (endurance), Z3 (tempo/sweet spot), Z4 (seuil), Z5 (VO2max)
+- Vélo : puissance cible %FTP + watts si connu
+- CAP : allure cible %VMA + min/km si connu
+- Natation : distance + séries + allure CSS
+- Indique le volume total par semaine avec répartition par sport
+- Respecte STRICTEMENT les ratios sport imposés par l'objectif
 - Cite les métriques de l'athlète pour justifier chaque choix
-- Si des données manquent, adapte prudemment et mentionne les hypothèses`;
+- Si données manquantes, adapte prudemment et mentionne les hypothèses`;
 
     let userPrompt: string;
     if (regenerateWeek) {
@@ -269,13 +261,31 @@ function buildUserPrompt(data: any, config: any): string {
 
   // Sport coherence reminder based on objective
   const obj = (config.objective || "").toUpperCase();
-  if (obj === "IM" || obj === "703") {
-    lines.push("\n### ⚠️ RAPPEL COHÉRENCE TRIATHLON");
-    lines.push("Cet objectif est un TRIATHLON. Tu DOIS inclure natation, vélo ET course à pied dans CHAQUE semaine.");
-    lines.push("- Minimum 2 séances natation/semaine (technique + endurance)");
-    lines.push("- Minimum 2 séances vélo/semaine");
-    lines.push("- Minimum 2 séances CAP/semaine");
-    lines.push("- 1-2 briques (enchaînements) par semaine en phase spécifique");
+  if (obj === "IM") {
+    lines.push("\n### ⚠️ RAPPEL COHÉRENCE IRONMAN");
+    lines.push("Objectif IRONMAN → applique les ratios Lorang/Frodeno :");
+    lines.push("- Vélo 45-55% | CAP 20-25% | Natation 15-20% | Renfo 5-10%");
+    lines.push("- Min 3 natation/sem (technique + CSS + OWS), 4 vélo/sem, 3 CAP/sem");
+    lines.push("- Briques vélo→CAP 1-2x/sem en phase spécifique");
+    lines.push("- Train Low 2-3x/sem en phase base");
+    lines.push("- Gut Training progressif obligatoire");
+  } else if (obj === "703") {
+    lines.push("\n### ⚠️ RAPPEL COHÉRENCE 70.3");
+    lines.push("Objectif 70.3 → applique les ratios Lorang/Haug :");
+    lines.push("- Vélo 40-48% | CAP 25-30% | Natation 15-20% | Renfo 5-10%");
+    lines.push("- Min 3 natation/sem, 3 vélo/sem, 3 CAP/sem");
+    lines.push("- Plus d'intensité seuil/tempo qu'en IM");
+  } else if (obj === "MARATHON") {
+    lines.push("\n### ⚠️ RAPPEL COHÉRENCE MARATHON");
+    lines.push("- CAP 85-90% | Renfo 10-15%. Pas de natation ni vélo.");
+    lines.push("- 2 séances qualité/sem + 1 sortie longue progressive");
+  } else if (obj === "SEMI") {
+    lines.push("\n### ⚠️ RAPPEL COHÉRENCE SEMI");
+    lines.push("- CAP 85-90% | Renfo 10-15%. Accent VMA + seuil.");
+  } else if (["TRAIL", "TRAILSHORT", "TRAILMOUNTAIN", "TRAILULTRA"].includes(obj)) {
+    lines.push("\n### ⚠️ RAPPEL COHÉRENCE TRAIL");
+    lines.push("- CAP/Trail 70-80% | Renfo spécifique 20-25%");
+    lines.push("- Force excentrique, côtes, proprioception obligatoires");
   }
 
   const weeks = config.weeksAvailable || 12;
