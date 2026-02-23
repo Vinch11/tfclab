@@ -29,6 +29,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LazyTabsContent } from "@/components/ui/lazy-tabs-content";
 import {
   type DisponibiliteTFCL,
   type TFCLReadinessInput,
@@ -268,8 +269,8 @@ export function FatigueDisponibiliteUnifiedCard({
                 />
               </TabsContent>
 
-              {/* ── Tab: Check-in (Daily Readiness Form) ── */}
-              <TabsContent value="checkin" className="pt-4">
+              {/* ── Tab: Check-in — deferred ── */}
+              <LazyTabsContent value="checkin" activeValue={activeTab} className="pt-4">
                 <TFCLDailyReadinessCheck
                   athleteId={athleteId}
                   athleteName={athleteName}
@@ -278,18 +279,18 @@ export function FatigueDisponibiliteUnifiedCard({
                   showStaffAlerts={staffMode}
                   compact={false}
                 />
-              </TabsContent>
+              </LazyTabsContent>
 
-              {/* ── Tab: Charge Récente ── */}
+              {/* ── Tab: Charge — deferred ── */}
               {showChargeTab && crr && (
-                <TabsContent value="charge" className="pt-4">
+                <LazyTabsContent value="charge" activeValue={activeTab} className="pt-4">
                   <ChargeRecenteCard
                     crr={crr}
                     objectif={objectif}
                     staffMode={staffMode}
                     onUpdate={onCRRUpdate}
                   />
-                </TabsContent>
+                </LazyTabsContent>
               )}
             </Tabs>
           </CardContent>

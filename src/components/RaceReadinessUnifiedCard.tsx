@@ -32,6 +32,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LazyTabsContent } from "@/components/ui/lazy-tabs-content";
 import { TFCLDecisionChart } from "./TFCLDecisionChart";
 import {
   type RaceReadinessV2Result,
@@ -279,18 +280,18 @@ export function RaceReadinessUnifiedCard({
                 />
               </TabsContent>
 
-              {/* ── Tab: Matrice Potentiel × Disponibilité ── */}
+              {/* ── Tab: Matrice — deferred ── */}
               {signatureInput && (
-                <TabsContent value="matrice" className="pt-4">
+                <LazyTabsContent value="matrice" activeValue={activeTab} showLoader className="pt-4">
                   <RaceReadinessSignatureChart
                     input={signatureInput}
                     compact={!staffMode}
                   />
-                </TabsContent>
+                </LazyTabsContent>
               )}
 
               {/* ── Tab: Décision TFCL ── */}
-              <TabsContent value="decision" className="pt-4 space-y-4">
+              <LazyTabsContent value="decision" activeValue={activeTab} className="pt-4 space-y-4">
                 <div className="p-4 rounded-lg bg-muted/30 border">
                   <div className="flex items-center gap-2 mb-3">
                     <Target className="h-5 w-5 text-primary" />
@@ -338,10 +339,10 @@ export function RaceReadinessUnifiedCard({
                     </div>
                   )}
                 </div>
-              </TabsContent>
+              </LazyTabsContent>
 
               {/* ── Tab: Détails Potentiel + Disponibilité ── */}
-              <TabsContent value="details" className="pt-4 space-y-4">
+              <LazyTabsContent value="details" activeValue={activeTab} className="pt-4 space-y-4">
                 {/* Potentiel */}
                 <div className="p-4 rounded-lg bg-muted/30 border">
                   <div className="flex items-center gap-2 mb-3">
@@ -397,7 +398,7 @@ export function RaceReadinessUnifiedCard({
                     </div>
                   )}
                 </div>
-              </TabsContent>
+              </LazyTabsContent>
             </Tabs>
 
             {/* ── Disclaimer ── */}
