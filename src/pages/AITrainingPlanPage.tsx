@@ -42,6 +42,8 @@ const OBJECTIVE_OPTIONS = [
   { value: "703", label: "Ironman 70.3" },
   { value: "Marathon", label: "Marathon" },
   { value: "Semi", label: "Semi-Marathon" },
+  { value: "10K", label: "10 km" },
+  { value: "StartToRun", label: "Start to Run (5-10 km)" },
 ];
 
 const AMBITION_OPTIONS = [
