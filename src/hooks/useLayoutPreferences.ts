@@ -86,11 +86,12 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   { id: "vlamax-bike-v2-enhanced", label: "VLamax Vélo — Détaillée (legacy)", icon: "Zap", category: "metriques", defaultVisible: false },
   { id: "vlamax-combined", label: "VLamax Comparaison (legacy)", icon: "GitCompare", category: "metriques", defaultVisible: false },
   
-  // 💤 Fatigue + Readiness
-  { id: "disponibilite-tfcl", label: "Disponibilité TFCL™", icon: "Target", category: "fatigue", defaultVisible: true },
-  { id: "daily-readiness-check", label: "TFCL Daily Readiness", icon: "ClipboardCheck", category: "fatigue", defaultVisible: true },
-  { id: "quick-fatigue", label: "Fatigue (saisie rapide)", icon: "Zap", category: "fatigue", defaultVisible: true },
-  { id: "charge-recente", label: "Charge Récente", icon: "Activity", category: "fatigue", defaultVisible: true },
+  // 💤 Fatigue + Readiness (consolidé Phase 1d UX)
+  { id: "fatigue-disponibilite-unified", label: "Fatigue & Disponibilité (unifiée)", icon: "Battery", category: "fatigue", defaultVisible: true },
+  { id: "disponibilite-tfcl", label: "Disponibilité TFCL™ (legacy)", icon: "Target", category: "fatigue", defaultVisible: false },
+  { id: "daily-readiness-check", label: "TFCL Daily Readiness (legacy)", icon: "ClipboardCheck", category: "fatigue", defaultVisible: false },
+  { id: "quick-fatigue", label: "Fatigue (saisie rapide) (legacy)", icon: "Zap", category: "fatigue", defaultVisible: false },
+  { id: "charge-recente", label: "Charge Récente (legacy)", icon: "Activity", category: "fatigue", defaultVisible: false },
   
   // 📊 Analyse & Course
   { id: "race-readiness-unified", label: "Race Readiness TFCL™ (unifiée)", icon: "Target", category: "analyse", defaultVisible: true },
@@ -229,6 +230,7 @@ export const UNIVERSAL_SECTIONS: string[] = [
   "tfcl-symptom-matrix",
   "lorang-strategy",
   "compass",
+  "fatigue-disponibilite-unified",
   "disponibilite-tfcl",
   "daily-readiness-check",
   "quick-fatigue",
