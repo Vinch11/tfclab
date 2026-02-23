@@ -10,11 +10,12 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { LazyTabsContent } from "@/components/ui/lazy-tabs-content";
 import { User, Target, TrendingUp, CalendarIcon } from "lucide-react";
 
 import { AthleteRefsPanel } from "./AthleteRefsPanel";
@@ -105,6 +106,7 @@ export function ProfilAmbitionUnifiedCard({
   onUpdate,
   className,
 }: ProfilAmbitionUnifiedCardProps) {
+  const [activeTab, setActiveTab] = useState("profil");
   const ambDef = getAmbitionDefinition(ambition);
   
   // Next race countdown
@@ -167,7 +169,7 @@ export function ProfilAmbitionUnifiedCard({
       </CardHeader>
 
       <CardContent className="pt-0 px-0">
-        <Tabs defaultValue="profil">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-4 pt-2">
             <TabsTrigger value="profil" className="text-xs gap-1.5">
               <User className="h-3.5 w-3.5" />
@@ -183,7 +185,7 @@ export function ProfilAmbitionUnifiedCard({
             </TabsTrigger>
           </TabsList>
 
-          {/* Profil Tab — AthleteRefsPanel */}
+          {/* Profil Tab — default, always mounted */}
           <TabsContent value="profil" className="px-4 pb-4 mt-0">
             <AthleteRefsPanel
               athlete={athlete}
@@ -198,8 +200,8 @@ export function ProfilAmbitionUnifiedCard({
             />
           </TabsContent>
 
-          {/* Objectif Tab — AthleteObjectiveManager */}
-          <TabsContent value="objectif" className="px-4 pb-4 mt-0">
+          {/* Objectif Tab — deferred */}
+          <LazyTabsContent value="objectif" activeValue={activeTab} className="px-4 pb-4 mt-0">
             <AthleteObjectiveManager
               athleteId={athlete.id}
               currentGoal={athlete.goal}
@@ -213,10 +215,10 @@ export function ProfilAmbitionUnifiedCard({
               compact
               className="border-0 shadow-none"
             />
-          </TabsContent>
+          </LazyTabsContent>
 
-          {/* Progression Tab — AmbitionProgressChart */}
-          <TabsContent value="progression" className="px-4 pb-4 mt-0">
+          {/* Progression Tab — deferred (heavy chart) */}
+          <LazyTabsContent value="progression" activeValue={activeTab} showLoader className="px-4 pb-4 mt-0">
             <AmbitionProgressChart
               snapshots={snapshots.filter(s => s.athlete_id === athlete.id)}
               objectif={athlete.goal || "IM"}
@@ -224,7 +226,7 @@ export function ProfilAmbitionUnifiedCard({
               weightKg={weightKg}
               className="border-0 shadow-none"
             />
-          </TabsContent>
+          </LazyTabsContent>
         </Tabs>
       </CardContent>
     </Card>

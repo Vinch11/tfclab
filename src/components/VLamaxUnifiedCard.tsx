@@ -51,6 +51,7 @@ import {
   Minus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LazyTabsContent } from "@/components/ui/lazy-tabs-content";
 import {
   calibrateVLamaxV2,
   ObjectifPrincipal,
@@ -160,6 +161,7 @@ export function VLamaxUnifiedCard({
   className,
 }: VLamaxUnifiedCardProps) {
   const [showEducation, setShowEducation] = useState(false);
+  const [activeTab, setActiveTab] = useState<string | undefined>(undefined);
   
   const vlamax = vlamaxEffectif.value;
   
@@ -169,6 +171,7 @@ export function VLamaxUnifiedCard({
   const showComparison = isTriathlon && vlamax !== null && vlamaxRun !== null;
   
   const defaultTab = isRunningOnly ? "run" : "bike";
+  const effectiveTab = activeTab ?? defaultTab;
   
   // Profile for header
   const { profil } = useMemo(
@@ -267,7 +270,7 @@ export function VLamaxUnifiedCard({
         
         {/* ═══ TABS: Vélo / CAP / Comparaison ═══ */}
         {(showBike && showRun) ? (
-          <Tabs defaultValue={defaultTab} className="w-full">
+          <Tabs value={effectiveTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${showComparison ? 3 : 2}, 1fr)` }}>
               {showBike && (
                 <TabsTrigger value="bike" className="text-xs gap-1">
@@ -299,7 +302,7 @@ export function VLamaxUnifiedCard({
             )}
             
             {showRun && (
-              <TabsContent value="run" className="mt-3 space-y-3">
+              <LazyTabsContent value="run" activeValue={effectiveTab} className="mt-3 space-y-3">
                 <RunAnalysisSection
                   vlamax={vlamaxRun ?? vlamax}
                   age={age}
@@ -310,18 +313,18 @@ export function VLamaxUnifiedCard({
                   vo2max={vo2max}
                   economyScore={economyScore}
                 />
-              </TabsContent>
+              </LazyTabsContent>
             )}
             
             {showComparison && (
-              <TabsContent value="compare" className="mt-3 space-y-3">
+              <LazyTabsContent value="compare" activeValue={effectiveTab} className="mt-3 space-y-3">
                 <ComparisonSection
                   vlamaxBike={vlamax}
                   vlamaxRun={vlamaxRun!}
                   age={age}
                   objectif={objectif}
                 />
-              </TabsContent>
+              </LazyTabsContent>
             )}
           </Tabs>
         ) : showBike ? (

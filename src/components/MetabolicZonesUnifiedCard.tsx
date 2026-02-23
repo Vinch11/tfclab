@@ -39,6 +39,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LazyTabsContent } from "@/components/ui/lazy-tabs-content";
 import {
   computeFatMaxTFCL,
   type FatMaxTFCLInput,
@@ -93,6 +94,7 @@ export function MetabolicZonesUnifiedCard({
   compact = false,
   className,
 }: MetabolicZonesUnifiedCardProps) {
+  const [activeTab, setActiveTab] = useState("fatmax");
   const [showEducation, setShowEducation] = useState(false);
 
   const normalizedObjectif = (objectif === "IM" ? "Ironman" : objectif) as FatMaxObjectif;
@@ -212,7 +214,7 @@ export function MetabolicZonesUnifiedCard({
 
       <CardContent className="space-y-4 pt-0">
         {/* ═══ TABS ═══ */}
-        <Tabs defaultValue="fatmax" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${hasLactateData ? 3 : 2}, 1fr)` }}>
             <TabsTrigger value="fatmax" className="text-xs gap-1">
               <Flame className="h-3 w-3" /> FatMax
@@ -232,17 +234,17 @@ export function MetabolicZonesUnifiedCard({
             <FatMaxTabContent fatmax={fatmax} ftp={ftp} compact={compact} staffMode={staffMode} />
           </TabsContent>
 
-          {/* Lactate Thresholds Tab */}
+          {/* Lactate Thresholds Tab — deferred */}
           {hasLactateData && (
-            <TabsContent value="lactate" className="mt-3 space-y-3">
+            <LazyTabsContent value="lactate" activeValue={activeTab} className="mt-3 space-y-3">
               <LactateTabContent thresholds={thresholds} staffMode={staffMode} ftp={ftp} />
-            </TabsContent>
+            </LazyTabsContent>
           )}
 
-          {/* Crossover Tab */}
-          <TabsContent value="crossover" className="mt-3 space-y-3">
+          {/* Crossover Tab — deferred */}
+          <LazyTabsContent value="crossover" activeValue={activeTab} showLoader className="mt-3 space-y-3">
             <CrossoverTabContent fatmax={fatmax} objectif={normalizedObjectif} />
-          </TabsContent>
+          </LazyTabsContent>
         </Tabs>
 
         {/* ═══ ÉDUCATION ═══ */}

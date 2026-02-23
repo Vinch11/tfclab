@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { LazyTabsContent } from "@/components/ui/lazy-tabs-content";
 import {
   Brain,
   Target,
@@ -152,23 +153,23 @@ export function CoachDecisionUnifiedCard({
             />
           </TabsContent>
 
-          {/* Symptoms Tab — Reuse existing TFCLDecisionMatrixTable */}
-          <TabsContent value="symptoms" className="px-4 pb-4 mt-0">
+          {/* Symptoms Tab — Deferred rendering */}
+          <LazyTabsContent value="symptoms" activeValue={activeTab} className="px-4 pb-4 mt-0">
             <TFCLDecisionMatrixTable
               metrics={symptomMetrics}
               className="border-0 shadow-none"
             />
-          </TabsContent>
+          </LazyTabsContent>
 
-          {/* Levers Tab — Reuse existing LorangStrategyCard */}
-          <TabsContent value="levers" className="px-4 pb-4 mt-0">
+          {/* Levers Tab — Deferred rendering */}
+          <LazyTabsContent value="levers" activeValue={activeTab} className="px-4 pb-4 mt-0">
             <LorangStrategyCard
               input={lorangInput}
               showStaffLevers={staffMode}
               compact={compact}
               className="border-0 shadow-none"
             />
-          </TabsContent>
+          </LazyTabsContent>
         </Tabs>
       </CardContent>
     </Card>
