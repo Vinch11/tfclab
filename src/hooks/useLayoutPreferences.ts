@@ -116,7 +116,10 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   
   // 👤 Comparaison Âge
   { id: "vo2max-age-comparison", label: "Cibles VO₂max — Comparatif âge", icon: "Calendar", category: "profil", defaultVisible: true },
-  
+
+  // 🤖 AI Coaching & Progression
+  { id: "ai-coaching-progression", label: "AI Coaching & Progression", icon: "Brain", category: "analyse", defaultVisible: true },
+
   // ✅ Lorang Test Checklist
   { id: "lorang-test-checklist", label: "Checklist Tests Lorang", icon: "ClipboardCheck", category: "analyse", defaultVisible: true },
 ];
