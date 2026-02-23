@@ -10,6 +10,7 @@ import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import {
   Brain, Flame, Sparkles, Trophy, Target, Loader2, RotateCcw,
@@ -172,6 +173,7 @@ function AICoachingCard({
 }) {
   const { response, isLoading, generateRecommendations, reset } = useAICoaching();
   const [hasGenerated, setHasGenerated] = useState(false);
+  const [isEnabled, setIsEnabled] = useState(true);
 
   const handleGenerate = () => {
     setHasGenerated(true);
@@ -197,80 +199,102 @@ function AICoachingCard({
   };
 
   return (
-    <Card className="overflow-hidden border-primary/20">
+    <Card className={cn("overflow-hidden border-primary/20 transition-opacity", !isEnabled && "opacity-60")}>
       <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 via-primary/10 to-transparent border-b">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
             <Brain className="h-5 w-5 text-primary" />
             TFCL™ Guidance
           </CardTitle>
-          {hasGenerated && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                reset();
-                setHasGenerated(false);
+          <div className="flex items-center gap-2">
+            {hasGenerated && isEnabled && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  reset();
+                  setHasGenerated(false);
+                }}
+                className="h-8 text-xs gap-1"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Réinitialiser
+              </Button>
+            )}
+            <Switch
+              checked={isEnabled}
+              onCheckedChange={(v) => {
+                setIsEnabled(v);
+                if (!v) { reset(); setHasGenerated(false); }
               }}
-              className="h-8 text-xs gap-1"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              Réinitialiser
-            </Button>
-          )}
+              aria-label="Activer TFCL™ Guidance"
+            />
+          </div>
         </div>
       </CardHeader>
 
-      <CardContent className="pt-4">
-        <AnimatePresence mode="wait">
-          {!hasGenerated ? (
-            <motion.div
-              key="prompt"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              className="text-center py-6"
-            >
-              <Brain className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground mb-1">
-                Analyse TFCL™ personnalisée pour{" "}
-                <strong>{athlete.name}</strong>
-              </p>
-              <p className="text-xs text-muted-foreground/70 mb-4">
-                Limiteur prioritaire · Levier opérationnel · Recommandations
-              </p>
-              <Button onClick={handleGenerate} className="gap-2">
-                <Sparkles className="h-4 w-4" />
-                Lancer l'analyse TFCL™
-              </Button>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="response"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              {isLoading && !response && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Analyse en cours...
-                </div>
-              )}
-              {response && (
-                <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed">
-                  <ReactMarkdown>{response}</ReactMarkdown>
-                </div>
-              )}
-              {isLoading && response && (
-                <div className="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground">
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  <span>Génération en cours...</span>
-                </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </CardContent>
+      <AnimatePresence>
+        {isEnabled && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <CardContent className="pt-4">
+              <AnimatePresence mode="wait">
+                {!hasGenerated ? (
+                  <motion.div
+                    key="prompt"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    className="text-center py-6"
+                  >
+                    <Brain className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+                    <p className="text-sm text-muted-foreground mb-1">
+                      Analyse TFCL™ personnalisée pour{" "}
+                      <strong>{athlete.name}</strong>
+                    </p>
+                    <p className="text-xs text-muted-foreground/70 mb-4">
+                      Limiteur prioritaire · Levier opérationnel · Recommandations
+                    </p>
+                    <Button onClick={handleGenerate} className="gap-2">
+                      <Sparkles className="h-4 w-4" />
+                      Lancer l'analyse TFCL™
+                    </Button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="response"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
+                    {isLoading && !response && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Analyse en cours...
+                      </div>
+                    )}
+                    {response && (
+                      <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed">
+                        <ReactMarkdown>{response}</ReactMarkdown>
+                      </div>
+                    )}
+                    {isLoading && response && (
+                      <div className="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        <span>Génération en cours...</span>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </CardContent>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Card>
   );
 }
