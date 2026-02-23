@@ -124,10 +124,11 @@ interface AppSidebarProps {
 export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChange, onExportClick, exportAlwaysVisible }: AppSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { state } = useSidebar();
+  const { state, isMobile, openMobile } = useSidebar();
   const { user, signOut } = useAuth();
   const { isRunningOnly } = useRunningFocusMode();
-  const collapsed = state === "collapsed";
+  // On mobile, the sidebar opens as a Sheet — always show labels when open
+  const collapsed = isMobile ? false : state === "collapsed";
 
   // Filter navigation items based on Running Focus Mode
   const navigationGroups = baseNavigationGroups.map(group => ({
