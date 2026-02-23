@@ -1,215 +1,280 @@
-// =============================================
-// COMPOSANT DASHBOARD PHASE 3 - IA & GAMIFICATION
-// =============================================
+/**
+ * ═══════════════════════════════════════════════════════════════
+ * PHASE 3 DASHBOARD — IA Générative & Progression
+ * 
+ * Composants:
+ * - StreaksCard: streaks, XP, niveau, barres de progression
+ * - AICoachingCard: recommandations IA en streaming
+ * ═══════════════════════════════════════════════════════════════
+ */
 
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Bike, Footprints, Waves, Brain, AlertTriangle, Trophy, Target, Sparkles } from "lucide-react";
-import { Athlete } from "@/types/athlete";
+import { Button } from "@/components/ui/button";
 import {
-  genererRecommandationsIA,
-  verifierAlertes,
-  calculerScoreGlobal,
-  genererBadges,
-  getNiveauPerformance,
-  Recommendation,
-  Alert,
-} from "@/lib/iaRecommandations";
-import { SportType } from "@/types/snapshotNolio";
+  Brain, Flame, Sparkles, Trophy, Target, Loader2, RotateCcw,
+} from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
-interface Phase3DashboardProps {
-  athlete: Athlete;
+import { calculateStreaks, getLevelName, getLevelIcon } from "@/lib/streaksEngine";
+import { useAICoaching } from "@/hooks/useAICoaching";
+import type { DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
+import type { AmbitionLevel } from "@/types/ambitionLevel";
+
+// ── Props ──────────────────────────────────────────────────────
+
+export interface Phase3DashboardProps {
+  athlete: DbAthlete;
+  snapshots: DbSnapshot[];
+  effectiveSnapshot?: {
+    ftp?: number | null;
+    weight_kg?: number | null;
+    vlamax?: number | null;
+    vlamax_run?: number | null;
+    tte_observed_min?: number | null;
+    vo2max?: number | null;
+    pmax_5s?: number | null;
+    vma?: number | null;
+    css?: number | null;
+    fc_max?: number | null;
+  } | null;
+  ambition?: AmbitionLevel;
 }
 
-const sportIcons: Record<SportType, React.ReactNode> = {
-  vélo: <Bike className="h-4 w-4" />,
-  course: <Footprints className="h-4 w-4" />,
-  natation: <Waves className="h-4 w-4" />,
-};
+// ── Main Component ─────────────────────────────────────────────
 
-export function Phase3Dashboard({ athlete }: Phase3DashboardProps) {
-  const recommendations = genererRecommandationsIA(athlete);
-  const alertes = verifierAlertes(athlete);
-  const scoreGlobal = calculerScoreGlobal(athlete);
-  const badges = genererBadges(athlete);
-  const niveau = getNiveauPerformance(scoreGlobal);
+export function Phase3Dashboard({
+  athlete,
+  snapshots,
+  effectiveSnapshot,
+  ambition,
+}: Phase3DashboardProps) {
+  const athleteSnapshots = useMemo(
+    () => snapshots.filter((s) => s.athlete_id === athlete.id),
+    [snapshots, athlete.id]
+  );
 
-  const badgesObtenus = badges.filter((b) => b.obtenu);
+  const streaks = useMemo(() => calculateStreaks(athleteSnapshots), [athleteSnapshots]);
 
   return (
     <div className="space-y-4">
-      {/* Score Global & Niveau */}
-      <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-primary/20">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-primary" />
-              <span className="font-medium">Score Global</span>
-            </div>
-            <Badge variant="outline" className={cn("text-sm", niveau.couleur)}>
-              {niveau.icon} {niveau.niveau}
-            </Badge>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-4xl font-bold">{scoreGlobal}</span>
-            <div className="flex-1">
-              <Progress value={scoreGlobal} className="h-3" />
-              <p className="text-xs text-muted-foreground mt-1">sur 100 points</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Badges */}
-      <Card className="border-border/50">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-amber-500" />
-            Badges obtenus
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {badgesObtenus.map((badge) => (
-              <Badge
-                key={badge.id}
-                variant="secondary"
-                className="py-1.5 px-3 text-sm"
-              >
-                <span className="mr-1">{badge.icon}</span>
-                {badge.nom}
-              </Badge>
-            ))}
-            {badgesObtenus.length === 0 && (
-              <p className="text-sm text-muted-foreground">Aucun badge obtenu</p>
-            )}
-          </div>
-          {/* Badges non obtenus */}
-          <div className="mt-3 pt-3 border-t border-border/50">
-            <p className="text-xs text-muted-foreground mb-2">Prochains objectifs :</p>
-            <div className="flex flex-wrap gap-2">
-              {badges
-                .filter((b) => !b.obtenu)
-                .slice(0, 3)
-                .map((badge) => (
-                  <Badge
-                    key={badge.id}
-                    variant="outline"
-                    className="py-1 px-2 text-xs opacity-50"
-                  >
-                    {badge.icon} {badge.nom}
-                  </Badge>
-                ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Alertes Intelligentes */}
-      {alertes.length > 0 && (
-        <Card className="border-warning/50 bg-warning/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2 text-warning">
-              <AlertTriangle className="h-4 w-4" />
-              Alertes ({alertes.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {alertes.map((alerte, idx) => (
-                <AlertRow key={idx} alerte={alerte} />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Recommandations IA */}
-      <Card className="border-border/50">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Brain className="h-4 w-4 text-primary" />
-            Recommandations IA
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {recommendations.map((rec, idx) => (
-              <RecommendationRow key={idx} recommendation={rec} />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <StreaksCard streaks={streaks} />
+      <AICoachingCard
+        athlete={athlete}
+        snapshot={effectiveSnapshot}
+        snapshotCount={athleteSnapshots.length}
+        ambition={ambition}
+      />
     </div>
   );
 }
 
-// Alert Row Component
-function AlertRow({ alerte }: { alerte: Alert }) {
-  const typeStyles = {
-    danger: "bg-destructive/10 border-destructive/30 text-destructive",
-    warning: "bg-warning/10 border-warning/30 text-warning",
-    info: "bg-primary/10 border-primary/30 text-primary",
-  };
+// ── Streaks & XP Card ──────────────────────────────────────────
+
+function StreaksCard({ streaks }: { streaks: ReturnType<typeof calculateStreaks> }) {
+  const levelName = getLevelName(streaks.level);
+  const levelIcon = getLevelIcon(streaks.level);
 
   return (
-    <div
-      className={cn(
-        "p-3 rounded-lg border flex items-start gap-3",
-        typeStyles[alerte.type]
-      )}
-    >
-      <span className="text-lg">{alerte.icon}</span>
-      <div className="flex-1">
-        <div className="flex items-center gap-2 mb-1">
-          {sportIcons[alerte.sport]}
-          <span className="font-medium text-sm capitalize">{alerte.sport}</span>
-        </div>
-        <p className="text-sm">{alerte.message}</p>
-      </div>
-    </div>
-  );
-}
-
-// Recommendation Row Component
-function RecommendationRow({ recommendation }: { recommendation: Recommendation }) {
-  const urgenceStyles = {
-    haute: "bg-destructive/10 border-destructive/30",
-    moyenne: "bg-warning/10 border-warning/30",
-    basse: "bg-muted/50 border-border/50",
-  };
-
-  const urgenceBadge = {
-    haute: "destructive",
-    moyenne: "secondary",
-    basse: "outline",
-  };
-
-  return (
-    <div
-      className={cn(
-        "p-3 rounded-lg border flex items-start gap-3",
-        urgenceStyles[recommendation.urgence]
-      )}
-    >
-      <span className="text-lg">{recommendation.icon}</span>
-      <div className="flex-1">
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-2">
-            {sportIcons[recommendation.sport]}
-            <span className="font-medium text-sm capitalize">{recommendation.sport}</span>
-          </div>
-          <Badge variant={urgenceBadge[recommendation.urgence] as any} className="text-xs">
-            {recommendation.urgence}
+    <Card className="overflow-hidden">
+      {/* Level & XP header */}
+      <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-primary/10 border-b">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-primary" />
+            Progression
+          </CardTitle>
+          <Badge variant="outline" className="text-sm gap-1">
+            {levelIcon} Niv. {streaks.level} — {levelName}
           </Badge>
         </div>
-        <p className="text-sm text-foreground">{recommendation.action}</p>
-        <p className="text-xs text-muted-foreground mt-1">
-          Priorité : {recommendation.priorite}
-        </p>
-      </div>
-    </div>
+      </CardHeader>
+
+      <CardContent className="pt-4 space-y-4">
+        {/* XP Bar */}
+        <div>
+          <div className="flex items-center justify-between text-sm mb-1.5">
+            <span className="text-muted-foreground">XP</span>
+            <span className="font-mono font-semibold">{streaks.xp} XP</span>
+          </div>
+          <Progress value={streaks.levelProgress} className="h-2.5" />
+          <p className="text-[11px] text-muted-foreground mt-1">
+            {streaks.xpToNextLevel > 0
+              ? `${streaks.xpToNextLevel} XP pour le niveau suivant`
+              : "Niveau maximum atteint !"}
+          </p>
+        </div>
+
+        {/* Streaks */}
+        <div className="flex gap-3">
+          <div className="flex-1 rounded-lg bg-muted/50 p-3 text-center">
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <Flame className="h-4 w-4 text-orange-500" />
+              <span className="text-2xl font-bold">{streaks.currentStreak}</span>
+            </div>
+            <p className="text-[11px] text-muted-foreground">Série actuelle</p>
+          </div>
+          <div className="flex-1 rounded-lg bg-muted/50 p-3 text-center">
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <Target className="h-4 w-4 text-primary" />
+              <span className="text-2xl font-bold">{streaks.bestStreak}</span>
+            </div>
+            <p className="text-[11px] text-muted-foreground">Meilleure série</p>
+          </div>
+        </div>
+
+        {/* Progression Badges */}
+        <div>
+          <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+            <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+            Objectifs de progression
+          </p>
+          <div className="space-y-2">
+            {streaks.progressionBadges.map((badge) => (
+              <div key={badge.id} className="flex items-center gap-3">
+                <span className={cn("text-base", !badge.earned && "opacity-40")}>
+                  {badge.icon}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className={cn(
+                      "text-xs font-medium truncate",
+                      badge.earned ? "text-foreground" : "text-muted-foreground"
+                    )}>
+                      {badge.label}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground ml-2 shrink-0">
+                      {badge.progress}%
+                    </span>
+                  </div>
+                  <Progress value={badge.progress} className="h-1.5 mt-0.5" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
+
+// ── AI Coaching Card ───────────────────────────────────────────
+
+function AICoachingCard({
+  athlete,
+  snapshot,
+  snapshotCount,
+  ambition,
+}: {
+  athlete: DbAthlete;
+  snapshot: Phase3DashboardProps["effectiveSnapshot"];
+  snapshotCount: number;
+  ambition?: AmbitionLevel;
+}) {
+  const { response, isLoading, generateRecommendations, reset } = useAICoaching();
+  const [hasGenerated, setHasGenerated] = useState(false);
+
+  const handleGenerate = () => {
+    setHasGenerated(true);
+
+    const lastSnapshotAge = snapshotCount > 0 ? undefined : undefined; // Could be computed
+
+    generateRecommendations({
+      nom: athlete.name,
+      objectif: athlete.goal || undefined,
+      ambition,
+      ftp: snapshot?.ftp,
+      weightKg: snapshot?.weight_kg,
+      vlamax: snapshot?.vlamax,
+      vlamaxRun: snapshot?.vlamax_run,
+      vo2max: snapshot?.vo2max,
+      vma: snapshot?.vma,
+      css: snapshot?.css,
+      fcMax: snapshot?.fc_max,
+      tte: snapshot?.tte_observed_min,
+      pmax5s: snapshot?.pmax_5s,
+      snapshotCount,
+    });
+  };
+
+  return (
+    <Card className="overflow-hidden border-primary/20">
+      <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 via-primary/10 to-transparent border-b">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Brain className="h-5 w-5 text-primary" />
+            Coach IA
+          </CardTitle>
+          {hasGenerated && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                reset();
+                setHasGenerated(false);
+              }}
+              className="h-8 text-xs gap-1"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              Réinitialiser
+            </Button>
+          )}
+        </div>
+      </CardHeader>
+
+      <CardContent className="pt-4">
+        <AnimatePresence mode="wait">
+          {!hasGenerated ? (
+            <motion.div
+              key="prompt"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              className="text-center py-6"
+            >
+              <Brain className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground mb-4">
+                Obtenez des recommandations personnalisées basées sur le profil métabolique de{" "}
+                <strong>{athlete.name}</strong>.
+              </p>
+              <Button onClick={handleGenerate} className="gap-2">
+                <Sparkles className="h-4 w-4" />
+                Analyser avec l'IA
+              </Button>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="response"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              {isLoading && !response && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Analyse en cours...
+                </div>
+              )}
+              {response && (
+                <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed">
+                  <ReactMarkdown>{response}</ReactMarkdown>
+                </div>
+              )}
+              {isLoading && response && (
+                <div className="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <span>Génération en cours...</span>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default Phase3Dashboard;
