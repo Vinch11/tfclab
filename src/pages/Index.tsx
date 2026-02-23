@@ -57,6 +57,8 @@ import { ChargeRecenteCard } from "@/components/ChargeRecenteCard";
 import { computeCRR } from "@/lib/chargeRecenteReference";
 import { RaceReadinessV2Module } from "@/components/RaceReadinessV2Module";
 import { RaceReadinessSignatureChart, type RaceReadinessInput } from "@/components/RaceReadinessSignatureChart";
+// ✅ Race Readiness - Carte unifiée (Phase 1c UX)
+import { RaceReadinessUnifiedCard } from "@/components/RaceReadinessUnifiedCard";
 import { computeCompassScores, type CompassScores } from "@/lib/compassScoring";
 import { DecisionReliabilityCard } from "@/components/DecisionReliabilityCard";
 import { computeFullDRE, DecisionReliabilityResult } from "@/lib/v2/decisionReliabilityEngine";
@@ -1316,6 +1318,96 @@ const Index = () => {
                     <VLamaxScenarioDisplay scenarios={vlamaxScenarios} compact={!staffMode} />
                   )}
                 </div>
+              );
+            },
+          },
+          // ✅ Phase 1c: Race Readiness Unifiée
+          {
+            id: "race-readiness-unified",
+            render: () => {
+              if (!currentAthlete) return null;
+              
+              // ── Check-ins pour V2 ──
+              const athleteCheckins = getCheckinsForAthlete(currentAthlete.id);
+              const sortedCheckins = [...athleteCheckins].sort((a, b) => 
+                new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime()
+              );
+              const latestCheckin = sortedCheckins[0] || null;
+              
+              // ── Compass pour V2 ──
+              const crr = computeCRR({
+                tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
+                snapshotDate: effectiveCloudSnapshot?.date ?? null,
+                snapshotUpdatedAt: effectiveCloudSnapshot?.updated_at ?? null,
+              });
+              const compass = computeCompassScores({
+                ftp: effectiveRefs.ftp,
+                poids: effectiveRefs.weightKg,
+                vlamaxEffectif,
+                tteEffectif,
+                crr,
+                objectif: currentAthlete.goal || "IM",
+                ambition: currentAmbition,
+                athleteAge: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
+              });
+              
+              const objectiveData = effectiveCloudSnapshot ? {
+                tss7d: effectiveCloudSnapshot.tss_7d ?? null,
+                tssTarget: 350,
+              } : undefined;
+              
+              // ── Signature chart input ──
+              const checkin = sortedCheckins[0] || null;
+              const vlamaxTarget = currentAmbition === "elite" ? 0.35 : currentAmbition === "competitor" ? 0.45 : 0.55;
+              const vo2maxTarget = currentAmbition === "elite" ? 70 : currentAmbition === "competitor" ? 62 : 55;
+              const tteTarget = currentAmbition === "elite" ? 50 : currentAmbition === "competitor" ? 40 : 35;
+              const disciplineMap: Record<string, 'IM' | '703' | 'marathon' | 'semi' | '10k' | 'cycling' | 'trail'> = {
+                'IM': 'IM', '703': '703', 'Marathon': 'marathon', 'Semi': 'semi',
+              };
+              const discipline = disciplineMap[currentAthlete.goal || '703'] || '703';
+              const tss7d = effectiveCloudSnapshot?.tss_7d ?? null;
+              const tss28d = tss7d ? tss7d * 4 : null;
+              
+              const signatureInput: RaceReadinessInput = {
+                physiology: {
+                  vo2max: effectiveCloudSnapshot?.vo2max ?? null,
+                  vo2maxTarget,
+                  vlamax: vlamaxEffectif.value,
+                  vlamaxTarget,
+                  tte: tteEffectif.tte_min,
+                  tteTarget,
+                  economy: effectiveCloudSnapshot?.run_economy_score ?? null,
+                  trend: undefined,
+                },
+                availability: {
+                  hrvStatus: null,
+                  tss7d,
+                  tss28d,
+                  subjectiveFatigue: checkin?.fatigue ?? null,
+                  sleepQuality: checkin?.sleep ?? null,
+                  motivation: checkin?.motivation ?? null,
+                  soreness: checkin?.soreness ?? null,
+                  stress: checkin?.stress ?? null,
+                  hasRedFlags: false,
+                },
+                discipline,
+                ambition: currentAmbition,
+                daysToRace: null,
+              };
+              
+              return (
+                <RaceReadinessUnifiedCard
+                  compass={compass}
+                  latestCheckin={latestCheckin}
+                  objectiveData={objectiveData}
+                  guardrails={{
+                    fatigueIndex: effectiveCloudSnapshot?.tss_7d ? Math.min(100, (effectiveCloudSnapshot.tss_7d / 7)) : undefined,
+                  }}
+                  signatureInput={signatureInput}
+                  athleteName={currentAthlete.name}
+                  objectif={currentAthlete.goal || "IM"}
+                  staffMode={staffMode}
+                />
               );
             },
           },
