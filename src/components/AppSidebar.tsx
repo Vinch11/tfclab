@@ -1,6 +1,6 @@
 /**
- * AppSidebar – Navigation latérale avec groupes dépliables
- * Remplace la navigation horizontale pour une meilleure organisation
+ * AppSidebar – Navigation latérale ergonomique
+ * Icônes colorées par groupe, espacement optimisé, active state clair
  */
 
 import { useLocation, useNavigate } from "react-router-dom";
@@ -59,15 +59,17 @@ interface NavGroup {
   id: string;
   label: string;
   defaultOpen: boolean;
+  iconColor: string; // couleur sémantique par groupe
   items: NavItem[];
 }
 
-// Définition des groupes de navigation restructurés (3 onglets principaux)
+// Définition des groupes avec couleurs par groupe
 const baseNavigationGroups: NavGroup[] = [
   {
     id: "principal",
     label: "Principal",
     defaultOpen: true,
+    iconColor: "text-primary",
     items: [
       { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, route: "/", tab: "dashboard" },
       { id: "profil", label: "Profil", icon: User, tab: "profil" },
@@ -78,6 +80,7 @@ const baseNavigationGroups: NavGroup[] = [
     id: "outils",
     label: "Outils",
     defaultOpen: true,
+    iconColor: "text-amber-500",
     items: [
       { id: "athletes", label: "Mes Athlètes", icon: Users, route: "/athletes" },
       { id: "tests", label: "Tests & Protocoles", icon: FlaskConical, route: "/tests" },
@@ -89,6 +92,7 @@ const baseNavigationGroups: NavGroup[] = [
     id: "terrain",
     label: "Sur le terrain",
     defaultOpen: false,
+    iconColor: "text-green-500",
     items: [
       { id: "race-day", label: "Race-Day", icon: Smartphone, route: "/race-day" },
       { id: "fatigue", label: "Suivi Fatigue", icon: Activity, route: "/fatigue" },
@@ -98,6 +102,7 @@ const baseNavigationGroups: NavGroup[] = [
     id: "ressources",
     label: "Ressources",
     defaultOpen: false,
+    iconColor: "text-blue-400",
     items: [
       { id: "templates", label: "Templates", icon: BookOpen, route: "/templates" },
       { id: "academy", label: "Academy", icon: GraduationCap, route: "/academy" },
@@ -134,25 +139,18 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
   );
 
   const handleNavClick = (item: NavItem) => {
-    // Cas 1: Item avec route externe (ex: /tests, /athletes, /race-simulation)
     if (item.route && item.route !== "/") {
       navigate(item.route);
       return;
     }
-    
-    // Cas 2: Item avec tab (navigation interne sur la page principale)
     if (item.tab) {
       if (location.pathname === "/") {
-        // Déjà sur la page principale - changer directement le tab
         onTabChange(item.tab);
       } else {
-        // Sur une autre page - naviguer vers "/" avec le state
         navigate("/", { state: { activeTab: item.tab } });
       }
       return;
     }
-    
-    // Cas 3: Route "/" sans tab spécifique
     if (item.route === "/") {
       navigate("/");
     }
@@ -169,29 +167,70 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
     setOpenGroups((prev) => ({ ...prev, [groupId]: !prev[groupId] }));
   };
 
+  const renderNavItems = (items: NavItem[], iconColor: string) => (
+    <SidebarMenu className="gap-0.5">
+      {items.map((item) => {
+        const Icon = item.icon;
+        const active = isActive(item);
+        return (
+          <SidebarMenuItem key={item.id}>
+            <SidebarMenuButton
+              onClick={() => handleNavClick(item)}
+              isActive={active}
+              tooltip={collapsed ? item.label : undefined}
+              className={cn(
+                "relative h-9 sm:h-10 rounded-lg transition-all duration-200",
+                active
+                  ? "bg-primary/12 text-primary font-semibold shadow-sm border border-primary/20"
+                  : "hover:bg-muted/60 text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Icon className={cn(
+                "h-[18px] w-[18px] shrink-0 transition-colors",
+                active ? "text-primary" : iconColor
+              )} />
+              {!collapsed && (
+                <span className="text-sm truncate">{item.label}</span>
+              )}
+              {/* Active indicator bar */}
+              {active && !collapsed && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary" />
+              )}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        );
+      })}
+    </SidebarMenu>
+  );
+
   return (
-    <Sidebar collapsible="icon" className="border-r border-border bg-sidebar">
-      {/* Header avec logo - mobile optimized */}
-      <SidebarHeader className="p-2 sm:p-3 border-b border-border safe-area-inset-top">
-        <div className="flex items-center gap-2">
-          <img src={logo} alt="2FC Lab" className={cn("h-8 sm:h-10 w-auto", collapsed && "h-7 sm:h-8")} />
+    <Sidebar collapsible="icon" className="border-r border-border/60 bg-sidebar">
+      {/* Header avec logo */}
+      <SidebarHeader className="p-3 sm:p-4 border-b border-border/40 safe-area-inset-top">
+        <div className="flex items-center gap-2.5">
+          <img src={logo} alt="2FC Lab" className={cn("h-9 sm:h-10 w-auto transition-all", collapsed && "h-7 sm:h-8")} />
           {!collapsed && (
             <div className="min-w-0">
-              <h1 className="text-xs sm:text-sm font-bold text-foreground truncate">Two 4 Coaching Lab</h1>
-              <p className="text-[9px] sm:text-[10px] text-muted-foreground">Performance Analysis</p>
+              <h1 className="text-sm font-bold text-foreground truncate leading-tight">Two 4 Coaching Lab</h1>
+              <p className="text-[10px] text-muted-foreground/70 leading-tight">Performance Analysis</p>
             </div>
           )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-1 sm:px-2 ios-scroll">
-        {/* Mode Staff Toggle - mobile optimized */}
+      <SidebarContent className="px-2 sm:px-3 py-2 ios-scroll">
+        {/* Mode Staff Toggle */}
         {!collapsed && (
-          <div className="p-2 sm:p-3 my-1 sm:my-2 rounded-lg bg-muted/50 border border-border/50">
+          <div className="px-2 py-2.5 mb-2 rounded-xl bg-muted/40 border border-border/30">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <Shield className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4", staffMode ? "text-primary" : "text-muted-foreground")} />
-                <span className="text-xs sm:text-sm font-medium">Mode Staff</span>
+              <div className="flex items-center gap-2">
+                <div className={cn(
+                  "p-1 rounded-md transition-colors",
+                  staffMode ? "bg-primary/15" : "bg-muted"
+                )}>
+                  <Shield className={cn("h-3.5 w-3.5", staffMode ? "text-primary" : "text-muted-foreground/60")} />
+                </div>
+                <span className="text-xs font-medium">Mode Staff</span>
               </div>
               <Switch
                 checked={staffMode}
@@ -203,20 +242,20 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
         )}
 
         {/* Navigation Groups */}
-        {navigationGroups.map((group) => (
+        {navigationGroups.map((group, groupIndex) => (
           <Collapsible
             key={group.id}
             open={collapsed ? false : openGroups[group.id]}
             onOpenChange={() => !collapsed && toggleGroup(group.id)}
           >
-            <SidebarGroup>
+            <SidebarGroup className={cn(groupIndex > 0 && "mt-1")}>
               {!collapsed && (
                 <CollapsibleTrigger asChild>
-                  <SidebarGroupLabel className="cursor-pointer hover:bg-muted/50 rounded-md flex items-center justify-between pr-2">
+                  <SidebarGroupLabel className="cursor-pointer hover:bg-muted/40 rounded-lg flex items-center justify-between pr-2 h-8 text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/60">
                     <span>{group.label}</span>
                     <ChevronDown
                       className={cn(
-                        "h-3.5 w-3.5 transition-transform duration-200",
+                        "h-3 w-3 transition-transform duration-300 text-muted-foreground/40",
                         openGroups[group.id] && "rotate-180"
                       )}
                     />
@@ -225,61 +264,23 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
               )}
               <CollapsibleContent>
                 <SidebarGroupContent>
-                  <SidebarMenu>
-                    {group.items.map((item) => {
-                      const Icon = item.icon;
-                      const active = isActive(item);
-                      return (
-                        <SidebarMenuItem key={item.id}>
-                          <SidebarMenuButton
-                            onClick={() => handleNavClick(item)}
-                            isActive={active}
-                            tooltip={collapsed ? item.label : undefined}
-                            className={cn(
-                              "transition-all duration-200",
-                              active && "bg-primary/10 text-primary font-medium"
-                            )}
-                          >
-                            <Icon className="h-4 w-4" />
-                            {!collapsed && <span>{item.label}</span>}
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      );
-                    })}
-                  </SidebarMenu>
+                  {renderNavItems(group.items, group.iconColor)}
                 </SidebarGroupContent>
               </CollapsibleContent>
               
               {/* En mode collapsed, afficher les icônes directement */}
               {collapsed && (
                 <SidebarGroupContent>
-                  <SidebarMenu>
-                    {group.items.map((item) => {
-                      const Icon = item.icon;
-                      const active = isActive(item);
-                      return (
-                        <SidebarMenuItem key={item.id}>
-                          <SidebarMenuButton
-                            onClick={() => handleNavClick(item)}
-                            isActive={active}
-                            tooltip={item.label}
-                            className={cn(active && "bg-primary/10 text-primary")}
-                          >
-                            <Icon className="h-4 w-4" />
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      );
-                    })}
-                  </SidebarMenu>
+                  {renderNavItems(group.items, group.iconColor)}
                 </SidebarGroupContent>
               )}
             </SidebarGroup>
           </Collapsible>
         ))}
 
-        <SidebarSeparator className="my-2" />
+        <SidebarSeparator className="my-2 opacity-30" />
 
-        {/* Export PDF - always visible */}
+        {/* Export PDF */}
         {(onExportClick || exportAlwaysVisible) && (
           <SidebarGroup>
             <SidebarGroupContent>
@@ -294,9 +295,10 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
                       }
                     }}
                     tooltip={collapsed ? "Export PDF" : undefined}
+                    className="h-9 sm:h-10 rounded-lg hover:bg-muted/60 text-muted-foreground hover:text-foreground"
                   >
-                    <FileText className="h-4 w-4" />
-                    {!collapsed && <span>Export PDF</span>}
+                    <FileText className="h-[18px] w-[18px] text-muted-foreground/70" />
+                    {!collapsed && <span className="text-sm">Export PDF</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
@@ -316,9 +318,15 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
                   }}
                   isActive={location.pathname === "/" && activeTab === "configuration"}
                   tooltip={collapsed ? "Configuration" : undefined}
+                  className={cn(
+                    "h-9 sm:h-10 rounded-lg transition-all duration-200",
+                    location.pathname === "/" && activeTab === "configuration"
+                      ? "bg-primary/12 text-primary font-semibold border border-primary/20"
+                      : "hover:bg-muted/60 text-muted-foreground hover:text-foreground"
+                  )}
                 >
-                  <Settings className="h-4 w-4" />
-                  {!collapsed && <span>Configuration</span>}
+                  <Settings className="h-[18px] w-[18px] text-muted-foreground/70" />
+                  {!collapsed && <span className="text-sm">Configuration</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -326,27 +334,27 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
         </SidebarGroup>
       </SidebarContent>
 
-      {/* Footer - mobile optimized with safe area */}
-      <SidebarFooter className="p-2 sm:p-3 border-t border-border safe-area-inset-bottom">
+      {/* Footer - clean & aéré */}
+      <SidebarFooter className="p-3 sm:p-4 border-t border-border/40 safe-area-inset-bottom">
         {!collapsed && user && (
-          <div className="flex items-center justify-between text-[10px] sm:text-xs text-muted-foreground mb-1 sm:mb-2">
-            <span className="truncate max-w-[100px] sm:max-w-[120px]">{user.email}</span>
-          </div>
+          <p className="text-[10px] text-muted-foreground/50 truncate mb-2 px-0.5">
+            {user.email}
+          </p>
         )}
-        <div className="flex items-center justify-between gap-1.5 sm:gap-2">
+        <div className="flex items-center justify-between gap-2">
           <ThemeToggle />
           {!collapsed && (
             <button
               onClick={signOut}
-              className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors touch-target-sm"
+              className="flex items-center gap-2 text-xs text-muted-foreground/60 hover:text-destructive transition-colors rounded-lg px-2 py-1.5 hover:bg-destructive/10"
             >
-              <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <LogOut className="h-3.5 w-3.5" />
               <span>Déconnexion</span>
             </button>
           )}
           {collapsed && (
-            <SidebarMenuButton onClick={signOut} tooltip="Déconnexion" className="touch-target-sm">
-              <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <SidebarMenuButton onClick={signOut} tooltip="Déconnexion">
+              <LogOut className="h-3.5 w-3.5" />
             </SidebarMenuButton>
           )}
         </div>
