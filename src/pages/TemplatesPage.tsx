@@ -1667,6 +1667,21 @@ export default function TemplatesPage() {
             </CollapsibleTrigger>
             <CollapsibleContent>
               <CardContent className="space-y-6 pt-0">
+                {/* AI Plan Generator CTA */}
+                <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 flex items-center justify-between gap-4 flex-wrap">
+                  <div className="flex items-center gap-3">
+                    <Zap className="h-5 w-5 text-primary" />
+                    <div>
+                      <p className="text-sm font-semibold">Plan IA TFCL™</p>
+                      <p className="text-xs text-muted-foreground">Génération personnalisée par IA basée sur vos limiteurs</p>
+                    </div>
+                  </div>
+                  <Button size="sm" onClick={() => navigate("/ai-plan")} className="gap-2">
+                    <Zap className="h-4 w-4" />
+                    Générer un Plan IA
+                  </Button>
+                </div>
+
                 {/* Triathlon/Ironman Templates - Grid View like Running */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
