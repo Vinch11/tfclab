@@ -290,8 +290,8 @@ export function SortableSectionsContainer({
               </div>
             </div>
           ) : (
-            <div className="space-y-6">
-              {orderedSections.map(section => (
+            <div className="space-y-3 sm:space-y-4 md:space-y-6">
+              {orderedSections.map((section, index) => (
                 <SortableSectionWrapper
                   key={section.id}
                   id={section.id}
