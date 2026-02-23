@@ -63,12 +63,9 @@ import { computeFullDRE, DecisionReliabilityResult } from "@/lib/v2/decisionReli
 import { useDecisionReliability } from "@/hooks/useDecisionReliability";
 import { SortableSectionsContainer } from "@/components/SortableSectionsContainer";
 
-// ✅ VLamax TFCL V2 - Calibration avec percentiles
-import { VLamaxV2DisplayCard } from "@/components/VLamaxV2DisplayCard";
+// ✅ VLamax TFCL V2 - Carte unifiée (Phase 1 UX)
+import { VLamaxUnifiedCard } from "@/components/VLamaxUnifiedCard";
 import { VLamaxZoneConfidenceChart } from "@/components/charts/VLamaxZoneConfidenceChart";
-import { VLamaxExplainedCard } from "@/components/VLamaxExplainedCard";
-import { VLamaxRunExplainedCard } from "@/components/VLamaxRunExplainedCard";
-import { VLamaxCombinedCard } from "@/components/VLamaxCombinedCard";
 import { FatMaxTFCLCard } from "@/components/FatMaxTFCLCard";
 import { FatMaxRaceIntensityChart } from "@/components/charts/FatMaxRaceIntensityChart";
 import { computeFatMaxTFCL, FatMaxObjectif } from "@/lib/v2/fatmaxTFCL";
@@ -1175,95 +1172,41 @@ const Index = () => {
           },
           {
             id: "vlamax-v2-calibration",
-            render: () => currentAthlete && (
-              <div className="space-y-3">
-                <VLamaxV2DisplayCard
-                  objectif={(
-                    (currentAthlete.goal === "IM" ? "Ironman" : currentAthlete.goal) || "Ironman"
-                  ) as ObjectifPrincipal}
-                  vlamax={vlamaxEffectif.value ?? Number.NaN}
-                  vlamaxSource={vlamaxEffectif.source === "test" ? "test_terrain" : "estimation"}
-                  vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? undefined}
-                  sex={legacyAthlete?.sexe === "F" ? "F" : "H"}
-                  age={calculateAge(currentAthlete.birth_date) ?? undefined}
-                  staffMode={staffMode}
-                  v2Result={vlamaxEffectif.v2 ?? undefined}
-                  ambition={currentAmbition}
-                />
-                {/* Graphique signature: Zone × Confiance */}
-                <VLamaxZoneConfidenceChart
-                  v2Result={vlamaxEffectif.v2 ?? null}
-                  sport={(effectiveCloudSnapshot as unknown as Record<string, unknown>)?.sport_main === "run" ? "cap" : "velo"}
-                />
-                {/* Analyse détaillée Vélo - repliée par défaut */}
-                {effectiveCloudSnapshot && (
-                  <VLamaxExplainedCard
-                    vlamaxEffectif={vlamaxEffectif}
-                    age={calculateAge(currentAthlete.birth_date)}
-                    input={{
-                      ftp: effectiveCloudSnapshot.ftp ?? 0,
-                      p30s_w: (effectiveCloudSnapshot as unknown as Record<string, unknown>).p30s_w as number | null,
-                      p60s_w: (effectiveCloudSnapshot as unknown as Record<string, unknown>).p60s_w as number | null,
-                      map5min_w: (effectiveCloudSnapshot as unknown as Record<string, unknown>).map5min_w as number | null,
-                      tte_min: effectiveCloudSnapshot.tte_observed_min ?? tteEffectif.tte_min,
-                      pmax_5s: effectiveCloudSnapshot.pmax_5s ?? undefined,
-                      weight_kg: effectiveCloudSnapshot.weight_kg ?? undefined,
-                      protocol_quality: ((effectiveCloudSnapshot as unknown as Record<string, unknown>).protocol_quality as 1 | 2 | 3 | 4 | 5) ?? 3,
-                      objectif: currentAthlete.goal || "IM",
-                      vo2max: effectiveCloudSnapshot.vo2max ?? currentAthlete.vo2max ?? undefined,
-                      sex: legacyAthlete?.sexe === "F" ? "F" : "H",
-                    }}
-                    ambitionLevel={currentAmbition as "finisher" | "performance" | "podium" | "elite"}
-                    defaultCollapsed={true}
-                  />
-                )}
-                {/* Analyse détaillée CAP - pour multi-sport (Marathon, Semi) */}
-                {effectiveCloudSnapshot && (currentAthlete.goal === "Marathon" || currentAthlete.goal === "Semi") && (
-                  <VLamaxRunExplainedCard
-                    vlamax={vlamaxEffectif.value}
-                    age={calculateAge(currentAthlete.birth_date)}
-                    objectif={currentAthlete.goal || "Marathon"}
-                    defaultCollapsed={true}
-                  />
-                )}
-              </div>
-            ),
-          },
-          {
-            id: "vlamax-combined",
             render: () => {
               if (!currentAthlete) return null;
-              
               const isTriathlon = currentAthlete.goal === "IM" || currentAthlete.goal === "70.3" || currentAthlete.goal === "703";
               const isRunning = currentAthlete.goal === "Marathon" || currentAthlete.goal === "Semi" || currentAthlete.goal === "10km";
-              
-              // Triathlon: comparaison Vélo vs CAP
-              if (isTriathlon) {
-                return (
-                  <VLamaxCombinedCard
-                    vlamaxBike={vlamaxEffectif.value}
+              return (
+                <div className="space-y-3">
+                  <VLamaxUnifiedCard
+                    vlamaxEffectif={vlamaxEffectif}
+                    objectif={(currentAthlete.goal === "IM" ? "Ironman" : currentAthlete.goal) || "Ironman"}
+                    age={calculateAge(currentAthlete.birth_date)}
+                    sex={legacyAthlete?.sexe === "F" ? "F" : "H"}
+                    staffMode={staffMode}
+                    ambition={currentAmbition}
+                    v2Result={vlamaxEffectif.v2 ?? undefined}
                     vlamaxRun={effectiveCloudSnapshot?.vlamax_run ?? null}
-                    age={calculateAge(currentAthlete.birth_date)}
-                    objectif={currentAthlete.goal === "IM" ? "Ironman" : "70.3"}
-                    defaultCollapsed={false}
+                    athleteId={currentAthlete.id}
+                    vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
+                    economyScore={effectiveCloudSnapshot?.run_economy_score ?? null}
+                    isTriathlon={isTriathlon}
+                    isRunningOnly={isRunning}
+                    ftp={effectiveRefs.ftp}
                   />
-                );
-              }
-              
-              // Course à pied: VLamax CAP détaillée, dépliée par défaut
-              if (isRunning) {
-                return (
-                  <VLamaxRunExplainedCard
-                    vlamax={vlamaxEffectif.value}
-                    age={calculateAge(currentAthlete.birth_date)}
-                    objectif={currentAthlete.goal || "Marathon"}
-                    defaultCollapsed={false}
+                  {/* Graphique signature: Zone × Confiance */}
+                  <VLamaxZoneConfidenceChart
+                    v2Result={vlamaxEffectif.v2 ?? null}
+                    sport={(effectiveCloudSnapshot as unknown as Record<string, unknown>)?.sport_main === "run" ? "cap" : "velo"}
                   />
-                );
-              }
-              
-              return null;
+                </div>
+              );
             },
+          },
+          // vlamax-combined section now merged into vlamax-v2-calibration above
+          {
+            id: "vlamax-combined",
+            render: () => null, // Consolidated into VLamaxUnifiedCard
           },
           // ✅ RUNNING FOCUS MODE SECTIONS — affiché uniquement en mode CAP
           {
@@ -1833,40 +1776,28 @@ const Index = () => {
           },
           {
             id: "vlamax-v2-calibration-profil",
-            render: () => currentAthlete && (
-              <div className="space-y-3">
-                <VLamaxV2DisplayCard
-                  objectif={((currentAthlete.goal === "IM" ? "Ironman" : currentAthlete.goal) || "Ironman") as ObjectifPrincipal}
-                  vlamax={vlamaxEffectif.value ?? Number.NaN}
-                  vlamaxSource={vlamaxEffectif.source === "test" ? "test_terrain" : "estimation"}
-                  vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? undefined}
+            render: () => {
+              if (!currentAthlete) return null;
+              const isTriathlon = currentAthlete.goal === "IM" || currentAthlete.goal === "70.3" || currentAthlete.goal === "703";
+              const isRunning = currentAthlete.goal === "Marathon" || currentAthlete.goal === "Semi" || currentAthlete.goal === "10km";
+              return (
+                <VLamaxUnifiedCard
+                  vlamaxEffectif={vlamaxEffectif}
+                  objectif={(currentAthlete.goal === "IM" ? "Ironman" : currentAthlete.goal) || "Ironman"}
+                  age={calculateAge(currentAthlete.birth_date)}
                   sex={legacyAthlete?.sexe === "F" ? "F" : "H"}
-                  age={calculateAge(currentAthlete.birth_date) ?? undefined}
+                  staffMode={false}
                   ambition={currentAmbition}
+                  vlamaxRun={effectiveCloudSnapshot?.vlamax_run ?? null}
+                  athleteId={currentAthlete.id}
+                  vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
+                  economyScore={effectiveCloudSnapshot?.run_economy_score ?? null}
+                  isTriathlon={isTriathlon}
+                  isRunningOnly={isRunning}
+                  ftp={effectiveRefs.ftp}
                 />
-                {effectiveCloudSnapshot && (
-                  <VLamaxExplainedCard
-                    vlamaxEffectif={vlamaxEffectif}
-                    age={calculateAge(currentAthlete.birth_date)}
-                    input={{
-                      ftp: effectiveCloudSnapshot.ftp ?? 0,
-                      p30s_w: (effectiveCloudSnapshot as unknown as Record<string, unknown>).p30s_w as number | null,
-                      p60s_w: (effectiveCloudSnapshot as unknown as Record<string, unknown>).p60s_w as number | null,
-                      map5min_w: (effectiveCloudSnapshot as unknown as Record<string, unknown>).map5min_w as number | null,
-                      tte_min: effectiveCloudSnapshot.tte_observed_min ?? tteEffectif.tte_min,
-                      pmax_5s: effectiveCloudSnapshot.pmax_5s ?? undefined,
-                      weight_kg: effectiveCloudSnapshot.weight_kg ?? undefined,
-                      protocol_quality: ((effectiveCloudSnapshot as unknown as Record<string, unknown>).protocol_quality as 1 | 2 | 3 | 4 | 5) ?? 3,
-                      objectif: currentAthlete.goal || "IM",
-                      vo2max: effectiveCloudSnapshot.vo2max ?? currentAthlete.vo2max ?? undefined,
-                      sex: legacyAthlete?.sexe === "F" ? "F" : "H",
-                    }}
-                    ambitionLevel={currentAmbition as "finisher" | "performance" | "podium" | "elite"}
-                    defaultCollapsed={true}
-                  />
-                )}
-              </div>
-            ),
+              );
+            },
           },
           {
             id: "ftp-targets-profil",
