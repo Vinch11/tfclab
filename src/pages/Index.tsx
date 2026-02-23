@@ -1758,17 +1758,6 @@ const Index = () => {
             ),
           },
           {
-            id: "ai-coaching-progression",
-            render: () => currentAthlete && (
-              <Phase3Dashboard
-                athlete={currentAthlete}
-                snapshots={snapshots}
-                effectiveSnapshot={effectiveCloudSnapshot}
-                ambition={currentAmbition}
-              />
-            ),
-          },
-          {
             id: "lorang-test-checklist",
             render: () => currentAthlete && (
               <LorangTestChecklist
