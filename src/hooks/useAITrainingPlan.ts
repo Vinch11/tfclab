@@ -133,5 +133,5 @@ export function useAITrainingPlan() {
     setIsLoading(false);
   }, []);
 
-  return { response, isLoading, generatePlan, reset };
+  return { response, isLoading, generatePlan, reset, setResponse };
 }
