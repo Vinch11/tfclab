@@ -56,6 +56,7 @@ const RunningFocusModeContext = createContext<RunningFocusModeContextType | unde
 
 // Labels lisibles
 const RACE_LABELS: Record<RunningRaceType, string> = {
+  "StartToRun": "Start to Run",
   "5K": "5 km",
   "10K": "10 km",
   "Semi": "Semi-Marathon",

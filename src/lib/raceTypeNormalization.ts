@@ -8,10 +8,10 @@
  */
 
 // Format canonique pour l'affichage
-export type CanonicalRaceType = 'IM' | '70.3' | 'Marathon' | 'Semi' | '10km' | 'Trail' | 'TrailLong' | 'Ultra' | 'Sprint' | 'Olympic';
+export type CanonicalRaceType = 'IM' | '70.3' | 'Marathon' | 'Semi' | '10km' | 'StartToRun' | 'Trail' | 'TrailLong' | 'Ultra' | 'Sprint' | 'Olympic';
 
 // Format interne (clés dans physiologicalTargets)
-export type InternalRaceType = 'IM' | '703' | 'Marathon' | 'Semi' | '10km' | 'Trail' | 'TrailLong' | 'Ultra' | 'Sprint' | 'Olympic';
+export type InternalRaceType = 'IM' | '703' | 'Marathon' | 'Semi' | '10km' | 'StartToRun' | 'Trail' | 'TrailLong' | 'Ultra' | 'Sprint' | 'Olympic';
 
 /**
  * Normalise un type de course vers le format canonique pour l'AFFICHAGE
@@ -45,6 +45,11 @@ export function normalizeRaceTypeForDisplay(input: string | null | undefined): C
   // 10km
   if (lower === '10km' || lower === '10k' || lower.includes('10k')) {
     return '10km';
+  }
+
+  // Start to Run
+  if (lower === 'starttorun' || lower === 'start to run' || lower.includes('start to run')) {
+    return 'StartToRun';
   }
   
   // Trail
@@ -84,6 +89,7 @@ export const RACE_TYPE_LABELS: Record<CanonicalRaceType, string> = {
   'Marathon': 'Marathon',
   'Semi': 'Semi-Marathon',
   '10km': '10 km',
+  'StartToRun': 'Start to Run',
   'Trail': 'Trail Court',
   'TrailLong': 'Trail Long',
   'Ultra': 'Ultra-Trail',
@@ -112,7 +118,7 @@ export function isTriathlon(input: string | null | undefined): boolean {
  */
 export function isRunningOnly(input: string | null | undefined): boolean {
   const canonical = normalizeRaceTypeForDisplay(input);
-  return ['Marathon', 'Semi', '10km', 'Trail', 'TrailLong', 'Ultra'].includes(canonical);
+  return ['Marathon', 'Semi', '10km', 'StartToRun', 'Trail', 'TrailLong', 'Ultra'].includes(canonical);
 }
 
 /**

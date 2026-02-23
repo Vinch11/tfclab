@@ -52,6 +52,7 @@ const OBJECTIF_GROUPS = {
       { value: "Semi", label: "Semi-Marathon" },
       { value: "10K", label: "10K" },
       { value: "5K", label: "5K" },
+      { value: "StartToRun", label: "Start to Run" },
     ],
   },
   trail: {
@@ -72,6 +73,7 @@ const OBJECTIF_ICONS: Record<string, string> = {
   Semi: "🏃",
   "10K": "🏃",
   "5K": "🏃",
+  StartToRun: "👟",
   TrailShort: "⛰️",
   TrailMountain: "⛰️",
   TrailUltra: "⛰️",

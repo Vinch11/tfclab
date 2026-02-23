@@ -62,8 +62,32 @@ Séances clés : 2 qualité/sem + 1 sortie longue. Tempo 10-15km. Allure maratho
 | CAP | 85-90% | 5-6 | VMA + seuil. Allure semi = 88-92% VMA |
 | Renfo | 10-15% | 2 | Pliométrie, gainage |
 
-### 10K / 5K
-CAP 85-90%, Renfo 10-15%. Accent VO2max pour 5K, seuil pour 10K.
+### 10K (6-10h/sem, 40-70km/sem)
+| Sport | % Volume | Séances/sem | Clés |
+|-------|----------|-------------|------|
+| CAP | 85-90% | 4-6 | Seuil + tempo prioritaires. Allure 10K = 88-92% VMA. SL max 18-22km |
+| Renfo | 10-15% | 2 | Gainage, pliométrie légère, prévention |
+Séances clés : 1 seuil/tempo + 1 VMA + 1 sortie longue. Fartlek et côtes en variantes.
+
+### 5K (5-8h/sem, 30-60km/sem)
+CAP 85-90%, Renfo 10-15%. Accent VO2max (30/30, VMA longue), seuil secondaire.
+
+### START TO RUN — Programme Débutant (3-5h/sem, 10-30km/sem)
+| Sport | % Volume | Séances/sem | Clés |
+|-------|----------|-------------|------|
+| CAP/Marche | 60-75% | 3-4 | Alternance marche/course progressive. JAMAIS 2 jours consécutifs de CAP |
+| Renfo/Mobilité | 25-40% | 2-3 | Gainage, squats poids de corps, mobilité articulaire, étirements |
+⚠️ Règles spécifiques Start to Run :
+- Semaines 1-4 : marche rapide dominante (70% marche / 30% course)
+- Semaines 5-8 : alternance 50/50 (ex: 3min course / 2min marche ×8-10)
+- Semaines 9-12 : course dominante (ex: 5min course / 1min marche ×6-8)
+- Semaines 13+ : course continue 20-30min sans arrêt, puis augmenter progressivement
+- Progression : +10% volume/sem max. Écouter son corps.
+- Cadence : viser 170-180 spm dès le début
+- Allure : conversationnelle, pouvoir parler en courant
+- JAMAIS de fractionné avant de courir 30min continu sans fatigue
+- Renfo : priorité absolue (prévention blessures débutant)
+- 2 jours repos minimum entre chaque sortie CAP les premières semaines
 
 ### TRAIL COURT (<42km) — Modèle Kilian Jornet
 CAP/Trail 75-80% (spécifique D+), Renfo 20-25% (excentrique, escaliers, proprioception).
@@ -349,6 +373,20 @@ function buildUserPrompt(data: any, config: any): string {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE TRAIL");
     lines.push("- CAP/Trail 70-80% | Renfo spécifique 20-25%");
     lines.push("- Force excentrique, côtes, proprioception obligatoires");
+  } else if (obj === "10K") {
+    lines.push("\n### ⚠️ RAPPEL COHÉRENCE 10K");
+    lines.push("- CAP 85-90% | Renfo 10-15%.");
+    lines.push("- 1 seuil/tempo + 1 VMA + 1 sortie longue/sem");
+    lines.push("- Allure 10K = 88-92% VMA. Fartlek et côtes en variantes.");
+  } else if (obj === "STARTTORUN") {
+    lines.push("\n### ⚠️ RAPPEL COHÉRENCE START TO RUN (DÉBUTANT)");
+    lines.push("- PROGRAMME DÉBUTANT : alternance marche/course progressive.");
+    lines.push("- Sem 1-4 : 70% marche / 30% course. Sem 5-8 : 50/50. Sem 9-12 : 70% course.");
+    lines.push("- JAMAIS 2 jours consécutifs de course les premières semaines.");
+    lines.push("- Renfo/mobilité = 25-40% du volume (prévention blessures prioritaire).");
+    lines.push("- Max 3-4 séances/sem. Repos = progression.");
+    lines.push("- Allure : conversationnelle. Cadence : 170-180 spm.");
+    lines.push("- Pas de fractionné tant que l'athlète ne court pas 30min continu.");
   }
 
   // Double sessions reminder based on ambition
