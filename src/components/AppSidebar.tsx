@@ -21,6 +21,7 @@ import {
   Smartphone,
   Footprints,
   FileText,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -104,6 +105,7 @@ const baseNavigationGroups: NavGroup[] = [
     defaultOpen: false,
     iconColor: "text-sidebar-foreground/70",
     items: [
+      { id: "ai-plan", label: "Plan IA", icon: Sparkles, route: "/ai-plan" },
       { id: "templates", label: "Templates", icon: BookOpen, route: "/templates" },
       { id: "academy", label: "Academy", icon: GraduationCap, route: "/academy" },
     ],

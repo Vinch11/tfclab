@@ -12,6 +12,7 @@ import AuthPage from "./pages/AuthPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import Index from "./pages/Index";
 import TemplatesPage from "./pages/TemplatesPage";
+import AITrainingPlanPage from "./pages/AITrainingPlanPage";
 import AcademyPage from "./pages/AcademyPage";
 import TestsPage from "./pages/TestsPage";
 import AthletesListPage from "./pages/AthletesListPage";
@@ -58,6 +59,18 @@ export default function App() {
                       <OnboardingGate>
                         <AthleteProviders>
                           <Index />
+                        </AthleteProviders>
+                      </OnboardingGate>
+                    </AuthGate>
+                  }
+                />
+                <Route
+                  path="/ai-plan"
+                  element={
+                    <AuthGate>
+                      <OnboardingGate>
+                        <AthleteProviders>
+                          <AITrainingPlanPage />
                         </AthleteProviders>
                       </OnboardingGate>
                     </AuthGate>
