@@ -34,6 +34,7 @@ import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 import { parseAIPlan, mapSessionsToDates, type ParsedPlan } from "@/lib/aiPlanParser";
 import { AIPlanViewer } from "@/components/AIPlanViewer";
+import { SavedPlanCalendar } from "@/components/SavedPlanCalendar";
 import { supabase } from "@/integrations/supabase/client";
 
 const OBJECTIVE_OPTIONS = [
@@ -517,9 +518,12 @@ export default function AITrainingPlanPage() {
                   </p>
                 </div>
               </Card>
-            )}
+           )}
           </div>
         </div>
+
+        {/* Saved Plan Calendar */}
+        <SavedPlanCalendar />
       </div>
     </AppLayout>
   );
