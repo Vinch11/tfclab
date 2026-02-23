@@ -95,6 +95,20 @@ CAP/Trail 70-80%, Renfo 15-20%, Cross-training 5-10% (vélo Z1 pour volume sans 
 - **Heat Training** — 10-14j sauna post-entraînement si course chaude.
 - **HRV Adaptation** — 2j hors-norme → Z2 uniquement. 3j → repos.
 
+### Doubles Séances (Bi-Daily) — Modèle Pro/Élite
+Pour les niveaux d'ambition **Competitor** et **Elite** en triathlon (IM, 70.3) :
+- **Elite (20-30h/sem)** : 8-12 doubles/sem. Matin : séance clé (intensité ou volume long). Après-midi/soir : séance complémentaire (technique, Z1-Z2, renfo).
+- **Competitor (15-22h/sem)** : 4-7 doubles/sem. Matin : séance principale. Soir : natation technique ou renfo ou Z1 courte.
+- **Age Group** : 1-3 doubles/sem max (briques ou natation matin + renfo soir).
+- **Finisher** : Pas de doubles séances. 1 séance/jour max.
+
+Règles doubles séances :
+- JAMAIS 2 séances haute intensité le même jour (sauf brique planifiée).
+- La 2e séance est toujours de moindre intensité (Z1-Z2, technique, renfo, mobilité).
+- Format tableau : indiquer "Matin :" et "Soir :" dans la colonne Détails quand il y a 2 séances le même jour, OU utiliser 2 lignes pour le même jour.
+- Natation technique le matin + vélo/CAP le soir est un combo classique Lorang.
+- Renfo/core en 2e séance 2-3x/sem.
+
 ### Règles de Sécurité
 - **Sprint Ban** si VLamax > cible discipline
 - VLamax vélo > 0.50 longue distance → Z2 uniquement 3-4 sem
@@ -286,6 +300,26 @@ function buildUserPrompt(data: any, config: any): string {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE TRAIL");
     lines.push("- CAP/Trail 70-80% | Renfo spécifique 20-25%");
     lines.push("- Force excentrique, côtes, proprioception obligatoires");
+  }
+
+  // Double sessions reminder based on ambition
+  const ambition = (config.ambition || "").toLowerCase();
+  const isTriathlon = ["IM", "703"].includes(obj);
+  if (isTriathlon && (ambition === "elite" || ambition === "competitor")) {
+    lines.push("\n### 🔥 DOUBLES SÉANCES OBLIGATOIRES");
+    if (ambition === "elite") {
+      lines.push("Ambition ELITE → 8-12 doubles séances/semaine comme un pro.");
+      lines.push("- Matin : séance clé (intensité, volume long, OWS)");
+      lines.push("- Soir : séance complémentaire (technique nat, Z1-Z2, core/renfo)");
+      lines.push("- Volume cible : 20-30h/sem en phase build/spécifique");
+    } else {
+      lines.push("Ambition COMPETITOR → 4-7 doubles séances/semaine.");
+      lines.push("- Matin : séance principale (qualité ou endurance)");
+      lines.push("- Soir : natation technique, renfo, ou Z1 courte (30-45min)");
+      lines.push("- Volume cible : 15-22h/sem en phase build/spécifique");
+    }
+    lines.push("- Utilise 2 lignes pour le même jour OU indique 'Matin:' et 'Soir:' dans Détails.");
+    lines.push("- JAMAIS 2 intensités le même jour sauf brique planifiée.");
   }
 
   const weeks = config.weeksAvailable || 12;
