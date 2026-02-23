@@ -97,18 +97,48 @@ export default function AITrainingPlanPage() {
   const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete } = useCloudDataContext();
   const { response, isLoading, generatePlan, reset, setResponse } = useAITrainingPlan();
   const [copied, setCopied] = useState(false);
-  const [resultView, setResultView] = useState<"interactive" | "markdown" | "compare">("interactive");
+  const [resultView, setResultView] = useState<"interactive" | "markdown" | "compare">(() => {
+    try {
+      const raw = localStorage.getItem("tfcl_ai_multi_plan");
+      const s = raw ? JSON.parse(raw) : null;
+      return s?.resultView ?? "interactive";
+    } catch { return "interactive"; }
+  });
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
 
-  // Multi-athlete mode
-  const [isMultiMode, setIsMultiMode] = useState(false);
-  const [selectedAthleteIds, setSelectedAthleteIds] = useState<string[]>([]);
-  const [multiPlans, setMultiPlans] = useState<MultiPlanEntry[]>([]);
+  // Multi-athlete mode — restore from localStorage
+  const MULTI_PERSIST_KEY = "tfcl_ai_multi_plan";
+  const savedMultiState = useMemo(() => {
+    try {
+      const raw = localStorage.getItem(MULTI_PERSIST_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }, []);
+
+  const [isMultiMode, setIsMultiMode] = useState(() => savedMultiState?.isMultiMode ?? false);
+  const [selectedAthleteIds, setSelectedAthleteIds] = useState<string[]>(() => savedMultiState?.selectedAthleteIds ?? []);
+  const [multiPlans, setMultiPlans] = useState<MultiPlanEntry[]>(() => savedMultiState?.multiPlans ?? []);
   const [isBatchGenerating, setIsBatchGenerating] = useState(false);
   const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0, currentName: "" });
   const batchAbortRef = useRef(false);
+
+  // Persist multi-athlete state when it changes (after generation)
+  useEffect(() => {
+    if (!isMultiMode) {
+      localStorage.removeItem(MULTI_PERSIST_KEY);
+      return;
+    }
+    if (isBatchGenerating) return; // don't persist mid-generation
+    const state = {
+      isMultiMode,
+      selectedAthleteIds,
+      multiPlans,
+      resultView,
+    };
+    localStorage.setItem(MULTI_PERSIST_KEY, JSON.stringify(state));
+  }, [isMultiMode, selectedAthleteIds, multiPlans, resultView, isBatchGenerating]);
 
   // Persistence key per athlete
   const persistKey = currentAthlete ? `tfcl_ai_plan_${currentAthlete.id}` : null;
@@ -578,10 +608,12 @@ export default function AITrainingPlanPage() {
             variant={isMultiMode ? "default" : "outline"}
             size="sm"
             onClick={() => {
-              setIsMultiMode(!isMultiMode);
-              if (!isMultiMode) {
+              const next = !isMultiMode;
+              setIsMultiMode(next);
+              if (!next) {
                 setSelectedAthleteIds([]);
                 setMultiPlans([]);
+                localStorage.removeItem(MULTI_PERSIST_KEY);
               }
             }}
             className="flex items-center gap-1.5"
