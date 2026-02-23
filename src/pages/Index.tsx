@@ -70,6 +70,7 @@ import { VLamaxUnifiedCard } from "@/components/VLamaxUnifiedCard";
 import { VLamaxZoneConfidenceChart } from "@/components/charts/VLamaxZoneConfidenceChart";
 import { VLamaxEstimationWidget } from "@/components/charts/VLamaxEstimationWidget";
 import { Phase3Dashboard } from "@/components/Phase3Dashboard";
+import { LorangTestChecklist } from "@/components/LorangTestChecklist";
 import { FatMaxTFCLCard } from "@/components/FatMaxTFCLCard";
 import { FatMaxRaceIntensityChart } from "@/components/charts/FatMaxRaceIntensityChart";
 import { computeFatMaxTFCL, FatMaxObjectif } from "@/lib/v2/fatmaxTFCL";
@@ -1764,6 +1765,14 @@ const Index = () => {
                 snapshots={snapshots}
                 effectiveSnapshot={effectiveCloudSnapshot}
                 ambition={currentAmbition}
+              />
+            ),
+          },
+          {
+            id: "lorang-test-checklist",
+            render: () => currentAthlete && (
+              <LorangTestChecklist
+                snapshot={effectiveCloudSnapshot}
               />
             ),
           },
