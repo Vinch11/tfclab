@@ -124,6 +124,48 @@ Règles doubles séances :
 **Marathon (12-20 sem) :** Base (4-6s, volume+renfo) → Build (4-6s, seuil+SL progressive) → Spécifique (3-4s, allure marathon+simulation) → Taper (2-3s)
 **Semi (8-12 sem) :** Base+VMA (3-4s) → Seuil+allure (3-4s) → Spécifique (2-3s) → Taper (7-10j)
 
+## BIBLIOTHÈQUE DE SÉANCES — Pioche dans cette variété, NE RÉPÈTE JAMAIS le même contenu
+
+### Natation
+- **Technique** : éducatifs (rattrapé, poings fermés, dog paddle, finger drag, sculling), 50m drill/50m nage, focus catch/EVF
+- **CSS continu** : 10-20×100m @CSS r=10-15s. Ou 5×200m @CSS+2s r=20s
+- **CSS dégressif** : 4×(100-200-300-200-100) @CSS→CSS-3s r=15-20s
+- **Pyramide** : 100-200-300-400-300-200-100 @CSS r=15s
+- **Seuil** : 5×400m @CSS-3s r=30s. Ou 3×600m
+- **Sprint** : 8-12×50m @max r=20s. Ou 6×100m @90% r=30s
+- **OWS** : navigation bouée, drafting, départs beach
+- **Aérobie pull** : pull buoy 2-3km @Z2, focus glisse
+
+### Vélo
+- **Z2** : 2-5h 65-75% FTP, cadence 85-95, terrain vallonné
+- **Sweet Spot** : 3-4×15min @88-93% FTP r=5min. Ou 2×30min @88%
+- **Seuil** : 2×20min @95-100% FTP r=10min. Ou 3×15min
+- **SFR** : 5-8×5min @80% FTP 50-60RPM côte 4-6% r=5min
+- **VO2max** : 5×5min @106-120% FTP r=5min. Ou 8×3min
+- **Over-Under** : 4×(4min @105% / 3min @85%) r=5min
+- **Race-pace** : 1-2h @80-85% FTP + gut training
+- **Train Low** : Z2 à jeun 1h30-2h (JAMAIS d'intensité)
+
+### Course à Pied
+- **EF** : 45-90min Z1-Z2, cadence 175-185 spm
+- **Tempo** : 3-4×10min @allure objectif r=3min trot
+- **Seuil** : 3×12min @85-90% VMA r=3min. Ou 2×20min
+- **Fartlek** : 1/1 ×15-20. Ou pyramide 3-5-7-5-3min
+- **VMA courte** : 30/30 ×15-20 @VMA. Ou 200m @VMA r=200m
+- **VMA longue** : 5-6×3min @95-100% VMA r=2min
+- **Côtes** : 8-12×200m côte 6-8% r=descente trot
+- **SL progressive** : neg split, derniers 30min @allure course
+- **SL spécifique** : 30km avec 3×5km @allure marathon
+- **Brique** : vélo→CAP enchaînement, premiers km @allure course
+
+### Renforcement
+- **Force max** : squat/deadlift/fentes 3-5×5 @80-85% 1RM
+- **Circuit** : 3×(15 squats + 15 fentes + 30s gainage + 10 box jumps)
+- **Pliométrie** : drop jumps, box jumps, unipodaux 3×8-10
+- **Core** : planche 3×45s, pallof press, dead bug, anti-rotation
+- **Mobilité** : foam roller, hanches/chevilles, 30min
+- **Prévention** : élastiques hanches, excentrique mollets Alfredson
+
 ## Format de Sortie OBLIGATOIRE
 
 \`\`\`
@@ -142,26 +184,33 @@ Règles doubles séances :
 ### Semaine 1 — [Thème]
 | Jour | Sport | Séance | Détails |
 |------|-------|--------|---------|
-| Lundi | Repos | Repos complet | Récupération |
-| Mardi | Natation | [Titre] | [Distance, séries, allure CSS] |
+| Lundi | Repos | Repos complet | Récupération, mobilité 20min optionnelle |
+| Mardi | Natation | CSS Pyramide | 400m éch (100NL/100Pull/100Educ/100NL). 100-200-300-400-300-200-100 @1:38/100m r=15s. 200m RC. 3200m ~55min |
+| Mardi soir | Renfo | Core + Prévention | Gainage 3×45s, dead bug 3×10, pallof press 3×12. 30min |
+| Mercredi | Vélo | Endurance Z2 vallonné | 2h30 Z2 (65-75% FTP, 170-195W), cadence 85-95 RPM |
 | ... | ... | ... | ... |
 
-**Volume semaine :** [Xh total — Nat Xh | Vélo Xh | CAP Xh | Renfo Xmin]
-**Consignes coach :** [2-3 points clés]
+**Volume semaine :** 14h — Nat 3h30 (4) | Vélo 6h (3) | CAP 3h (3) | Renfo 1h30 (2)
+**Consignes coach :** [2-3 points clés avec sensation recherchée et focus technique]
 \`\`\`
 
-## Règles de Réponse
+## Règles de Contenu (CRITIQUE)
+- **Chaque séance = contenu COMPLET ACTIONNABLE** — JAMAIS "Endurance Z2" seul sans détails
+- **Natation** : distance totale + échauffement détaillé + série principale (distance/allure/repos) + retour au calme
+- **Vélo** : durée + zone + %FTP + watts si connu + cadence + type de terrain
+- **CAP** : durée/distance + allure min/km OU %VMA + cadence spm
+- **Renfo** : exercices + séries×reps + charge si applicable + durée totale
+- **Titre descriptif** obligatoire ("CSS Dégressif", "Sweet Spot Vallonné", pas juste "Natation")
+- **Varier** d'une semaine à l'autre — NE PAS copier le même contenu
+- **Consignes qualitatives** : sensation recherchée, focus technique, nutrition si applicable
 - Réponds UNIQUEMENT en français
 - GÉNÈRE TOUTES LES SEMAINES sans exception
-- Chaque séance : sport, titre, détails avec zones/durées/intensités précises
-- Zones : Z1 (récup), Z2 (endurance), Z3 (tempo/sweet spot), Z4 (seuil), Z5 (VO2max)
-- Vélo : puissance cible %FTP + watts si connu
-- CAP : allure cible %VMA + min/km si connu
-- Natation : distance + séries + allure CSS
-- Indique le volume total par semaine avec répartition par sport
-- Respecte STRICTEMENT les ratios sport imposés par l'objectif
-- Cite les métriques de l'athlète pour justifier chaque choix
-- Si données manquantes, adapte prudemment et mentionne les hypothèses`;
+- Zones vélo : Z1 (<55% FTP), Z2 (55-75%), Z3 (76-90%), Z4 (91-105%), Z5 (106-120%)
+- Zones CAP : Z1 (<65% VMA), Z2 (65-75%), Z3 (75-85%), Z4 (85-92%), Z5 (92-100%)
+- Volume total/semaine avec répartition par sport
+- Respecte STRICTEMENT les ratios sport par objectif
+- Cite les métriques de l'athlète pour justifier les choix
+- Si données manquantes, hypothèses prudentes mentionnées`;
 
     let userPrompt: string;
     if (regenerateWeek) {
