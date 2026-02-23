@@ -70,6 +70,8 @@ import { FatMaxTFCLCard } from "@/components/FatMaxTFCLCard";
 import { FatMaxRaceIntensityChart } from "@/components/charts/FatMaxRaceIntensityChart";
 import { computeFatMaxTFCL, FatMaxObjectif } from "@/lib/v2/fatmaxTFCL";
 import { ObjectifPrincipal } from "@/lib/reference";
+// ✅ Zones Métaboliques - Carte unifiée (Phase 1b UX)
+import { MetabolicZonesUnifiedCard } from "@/components/MetabolicZonesUnifiedCard";
 
 // ✅ TFCL Decision Matrix — Cœur décisionnel coach-grade
 import { TFCLDecisionMatrixCard } from "@/components/TFCLDecisionMatrixCard";
@@ -1264,49 +1266,18 @@ const Index = () => {
           {
             id: "fatmax-tfcl",
             render: () => currentAthlete && (
-              <FatMaxTFCLCard
-                vlamaxEffectif={vlamaxEffectif.value}
-                vlamaxConfidence={vlamaxEffectif.confidence}
-                tteEffectif={tteEffectif.tte_min}
-                tteConfidence={tteEffectif.confidence}
-                fatigueIndex={null}
+              <MetabolicZonesUnifiedCard
+                vlamaxEffectif={vlamaxEffectif}
+                tteEffectif={tteEffectif}
                 objectif={(currentAthlete.goal === "IM" ? "Ironman" : currentAthlete.goal) || "Ironman"}
-                ftp={effectiveRefs.ftp}
+                ftp={effectiveRefs.ftp ?? null}
+                staffMode={staffMode}
               />
             ),
           },
           {
             id: "fatmax-chart",
-            render: () => {
-              if (!currentAthlete) return null;
-              const normalizedObjectif = ((currentAthlete.goal === "IM" ? "Ironman" : currentAthlete.goal) || "Ironman") as FatMaxObjectif;
-              const fatmaxResult = computeFatMaxTFCL({
-                vlamaxEffectif: vlamaxEffectif.value,
-                vlamaxConfidence: vlamaxEffectif.confidence,
-                vo2maxEffectif: null,
-                tteEffectif: tteEffectif.tte_min,
-                tteConfidence: tteEffectif.confidence,
-                fatigueIndex: null,
-                objectif: normalizedObjectif,
-                ftp: effectiveRefs.ftp ?? null,
-              });
-              if (!fatmaxResult) return null;
-              // Intensité course cible selon objectif
-              const raceIntensityMap: Record<string, number> = {
-                Ironman: 70,
-                "70.3": 78,
-                Marathon: 82,
-                Semi: 86,
-                "10km": 92,
-              };
-              const raceIntensity = raceIntensityMap[normalizedObjectif] ?? 75;
-              return (
-                <FatMaxRaceIntensityChart
-                  fatmax={fatmaxResult}
-                  raceIntensityPct={raceIntensity}
-                />
-              );
-            },
+            render: () => null, // Consolidated into MetabolicZonesUnifiedCard
           },
           {
             id: "scenarios-tte-vlamax",
@@ -1815,14 +1786,13 @@ const Index = () => {
           {
             id: "fatmax-tfcl-profil",
             render: () => currentAthlete && (
-              <FatMaxTFCLCard
-                vlamaxEffectif={vlamaxEffectif.value}
-                vlamaxConfidence={vlamaxEffectif.confidence}
-                tteEffectif={tteEffectif.tte_min}
-                tteConfidence={tteEffectif.confidence}
-                fatigueIndex={null}
+              <MetabolicZonesUnifiedCard
+                vlamaxEffectif={vlamaxEffectif}
+                tteEffectif={tteEffectif}
                 objectif={(currentAthlete.goal === "IM" ? "Ironman" : currentAthlete.goal) || "Ironman"}
-                ftp={effectiveRefs.ftp}
+                ftp={effectiveRefs.ftp ?? null}
+                staffMode={staffMode}
+                compact
               />
             ),
           },
@@ -1885,16 +1855,7 @@ const Index = () => {
           },
           {
             id: "lactate-thresholds-profil",
-            render: () => currentAthlete && (
-              <LactateCorrespondenceCard
-                vlamaxEffectif={vlamaxEffectif}
-                tteEffectif={tteEffectif}
-                ftp={effectiveRefs.ftp ?? null}
-                sport={currentAthlete.goal || "IM"}
-                staffMode={staffMode}
-                compact
-              />
-            ),
+            render: () => null, // Consolidated into MetabolicZonesUnifiedCard (fatmax-tfcl-profil)
           },
         ];
 
@@ -2134,15 +2095,15 @@ const Index = () => {
               />
             ),
           },
-          // Correspondances Lactiques TFCL
+          // Correspondances Lactiques TFCL — consolidated into MetabolicZonesUnifiedCard
           {
             id: "lactate-correspondence",
             render: () => currentAthlete && (
-              <LactateCorrespondenceCard
+              <MetabolicZonesUnifiedCard
                 vlamaxEffectif={vlamaxEffectif}
                 tteEffectif={tteEffectif}
+                objectif={(currentAthlete.goal === "IM" ? "Ironman" : currentAthlete.goal) || "Ironman"}
                 ftp={effectiveRefs.ftp ?? null}
-                sport={currentAthlete.goal || "IM"}
                 staffMode={staffMode}
               />
             ),

@@ -96,8 +96,8 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   { id: "race-readiness-signature", label: "Race Readiness Signature™", icon: "Target", category: "analyse", defaultVisible: true },
   { id: "race-readiness-v2", label: "Race Readiness V2", icon: "Trophy", category: "analyse", defaultVisible: true },
   { id: "running-economy-summary", label: "Économie de course", icon: "Footprints", category: "analyse", defaultVisible: true },
-  { id: "fatmax-tfcl", label: "FatMax TFCL™", icon: "Flame", category: "analyse", defaultVisible: true },
-  { id: "fatmax-chart", label: "FatMax vs Race Intensity", icon: "BarChart", category: "analyse", defaultVisible: true },
+  { id: "fatmax-tfcl", label: "Zones Métaboliques TFCL™ (unifiée)", icon: "Flame", category: "analyse", defaultVisible: true },
+  { id: "fatmax-chart", label: "FatMax vs Race Intensity (legacy)", icon: "BarChart", category: "analyse", defaultVisible: false },
   { id: "dashboard-recommendations", label: "Recommandations", icon: "Sparkles", category: "analyse", defaultVisible: true },
   
   // ⚙️ Outils
