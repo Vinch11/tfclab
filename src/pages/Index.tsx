@@ -74,6 +74,8 @@ import { computeFatMaxTFCL, FatMaxObjectif } from "@/lib/v2/fatmaxTFCL";
 import { ObjectifPrincipal } from "@/lib/reference";
 // ✅ Zones Métaboliques - Carte unifiée (Phase 1b UX)
 import { MetabolicZonesUnifiedCard } from "@/components/MetabolicZonesUnifiedCard";
+// ✅ Fatigue & Disponibilité - Carte unifiée (Phase 1d UX)
+import { FatigueDisponibiliteUnifiedCard } from "@/components/FatigueDisponibiliteUnifiedCard";
 
 // ✅ TFCL Decision Matrix — Cœur décisionnel coach-grade
 import { TFCLDecisionMatrixCard } from "@/components/TFCLDecisionMatrixCard";
@@ -1063,6 +1065,81 @@ const Index = () => {
                 compact
               />
             ),
+          },
+          // ✅ Phase 1d: Fatigue & Disponibilité Unifiée
+          {
+            id: "fatigue-disponibilite-unified",
+            render: () => {
+              if (!currentAthlete) return null;
+              const athleteCheckins = getCheckinsForAthlete(currentAthlete.id);
+              const sortedCheckins = [...athleteCheckins].sort((a, b) => 
+                new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime()
+              );
+              const latestCheckin = sortedCheckins[0] || null;
+              const previousCheckin = sortedCheckins[1] || null;
+              
+              const objectiveData = effectiveCloudSnapshot ? {
+                tss7d: effectiveCloudSnapshot.tss_7d ?? null,
+                tssTarget: 350,
+              } : undefined;
+              
+              const crr = effectiveCloudSnapshot ? computeCRR({
+                tss7d: effectiveCloudSnapshot.tss_7d ?? null,
+                snapshotDate: effectiveCloudSnapshot.date ?? null,
+                snapshotUpdatedAt: effectiveCloudSnapshot.updated_at ?? null,
+              }) : null;
+              
+              const handleReadinessSubmit = async (input: TFCLReadinessInput, result: DisponibiliteTFCLResult) => {
+                const today = new Date();
+                const weekTag = `${today.getFullYear()}-W${String(Math.ceil((today.getDate() + new Date(today.getFullYear(), 0, 1).getDay()) / 7)).padStart(2, "0")}`;
+                const todayISO = today.toISOString().slice(0, 10);
+                const existingToday = athleteCheckins.find(c => c.date_iso === todayISO);
+                
+                const checkinData = {
+                  sleep: input.sleep,
+                  fatigue: input.fatigue,
+                  soreness: input.soreness,
+                  stress: input.stress,
+                  motivation: input.motivation,
+                  pain_flag: input.alerts?.joint_pain || input.alerts?.illness || input.alerts?.asymmetric_pain || false,
+                  readiness: Math.round(result.score / 10),
+                  notes: `Disponibilité TFCL: ${result.levelLabel} (${result.score}/100) - Confiance: ${result.confidenceLabel}`,
+                };
+                
+                if (existingToday) {
+                  await updateCheckin(existingToday.id, checkinData);
+                  toast.success("Check-in mis à jour", { description: `Disponibilité: ${result.levelLabel}` });
+                } else {
+                  await addCheckin({
+                    athlete_id: currentAthlete.id,
+                    coach_id: "",
+                    date_iso: todayISO,
+                    week_tag: weekTag,
+                    ...checkinData,
+                    rpe_key1: null,
+                    rpe_key2: null,
+                  });
+                  toast.success("Check-in enregistré", { description: `Disponibilité: ${result.levelLabel}` });
+                }
+              };
+              
+              return (
+                <FatigueDisponibiliteUnifiedCard
+                  latestCheckin={latestCheckin}
+                  previousCheckin={previousCheckin}
+                  objectiveData={objectiveData}
+                  athleteId={currentAthlete.id}
+                  athleteName={currentAthlete.name}
+                  onCheckinSubmit={handleReadinessSubmit}
+                  crr={crr}
+                  objectif={currentAthlete.goal || "IM"}
+                  onCRRUpdate={effectiveCloudSnapshot ? async (value) => {
+                    await updateSnapshot(effectiveCloudSnapshot.id, { tss_7d: value });
+                  } : undefined}
+                  staffMode={staffMode}
+                />
+              );
+            },
           },
           {
             id: "disponibilite-tfcl",
