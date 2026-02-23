@@ -614,33 +614,35 @@ export function RaceReadinessCard({
           </div>
         </div>
 
-        {/* Titre de section */}
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-medium text-muted-foreground">Contribution par pilier</h3>
-          <span className="text-xs text-primary/70">Cliquez pour voir le calcul</span>
-        </div>
+        <div>
+          {/* Titre de section */}
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-muted-foreground">Contribution par pilier</h3>
+            <span className="text-xs text-primary/70">Cliquez pour voir le calcul</span>
+          </div>
 
-        <div className="space-y-3">
-          {(() => {
-            const calculations = computePillarCalculations(readiness);
-            return pillarsData.map((item, index) => (
-              <ReadinessPillarDetail
-                key={item.key}
-                pillarKey={item.key as "vlamax" | "endurance" | "puissance" | "fraicheur"}
-                label={item.label}
-                icon={<item.icon className="w-4 h-4" />}
-                value={item.value}
-                color={item.color}
-                calculation={calculations[item.key as keyof typeof calculations]}
-                weight={readiness.weights[
-                  item.key === "vlamax" ? "vlamax" :
-                  item.key === "endurance" ? "tte" :
-                  item.key === "puissance" ? "ftpKg" : "freshness"
-                ]}
-                defaultOpen={index === 0} // Ouvrir le premier pilier par défaut
-              />
-            ));
-          })()}
+          <div className="space-y-3">
+            {(() => {
+              const calculations = computePillarCalculations(readiness);
+              return pillarsData.map((item, index) => (
+                <ReadinessPillarDetail
+                  key={item.key}
+                  pillarKey={item.key as "vlamax" | "endurance" | "puissance" | "fraicheur"}
+                  label={item.label}
+                  icon={<item.icon className="w-4 h-4" />}
+                  value={item.value}
+                  color={item.color}
+                  calculation={calculations[item.key as keyof typeof calculations]}
+                  weight={readiness.weights[
+                    item.key === "vlamax" ? "vlamax" :
+                    item.key === "endurance" ? "tte" :
+                    item.key === "puissance" ? "ftpKg" : "freshness"
+                  ]}
+                  defaultOpen={index === 0}
+                />
+              ));
+            })()}
+          </div>
         </div>
       </div>
 
