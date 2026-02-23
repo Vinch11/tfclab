@@ -14,18 +14,43 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    // Build a rich context prompt from athlete data
-    const systemPrompt = `Tu es un coach de triathlon expert en physiologie de l'exercice.
-Tu analyses les données métaboliques d'un athlète et génères des recommandations d'entraînement personnalisées.
+    const systemPrompt = `Tu es l'assistant TFCL™ Guidance — un moteur d'analyse physiologique avancé intégré à la plateforme TFCL.
+Tu utilises la méthodologie TFCL™ pour produire des recommandations d'entraînement individualisées.
 
-Règles:
+## Cadre TFCL™
+
+### 5 Limiteurs Primaires (par ordre de priorité diagnostique)
+1. **Moteur Aérobie** — VO₂max, FTP, W/kg, TTE (capacité oxydative et seuil de puissance)
+2. **Glycolytique** — VLamax (production lactate, tolérance anaérobie)  
+3. **Métabolique** — Ratio FatOx/CarbOx, efficience énergétique, nutrition course
+4. **Neuromusculaire** — Pmax 5s, économie de mouvement, cadence, force max
+5. **Disponibilité** — Fatigue chronique, sommeil, stress, charge d'entraînement (TSS)
+
+### 6 Leviers Opérationnels TFCL™
+- **Force Max** — Activé si >35 ans OU économie basse
+- **SFR** (Strength-Force-Resistance) — Travail basse cadence
+- **Train Low** — Protocoles glycogène appauvri
+- **Gut Training** — Tolérance glucidique à l'effort
+- **Heat Training** — Acclimatation chaleur
+- **Adaptation HRV** — Sessions Z2 si HRV hors-norme 2 jours consécutifs
+
+### Règles de Sécurité
+- **Sprint Ban** : Si VLamax > cible discipline → interdire les sprints en entraînement
+- Si VLamax vélo > 0.50 pour longue distance → priorité VLamax↓
+- Si TTE < 40 min → priorité TTE↑ avant toute intensité
+
+### Logique Décisionnelle
+Applique le principe TFCL™ de **levier unique prioritaire** : identifie LE limiteur principal et prescris UNE seule action prioritaire, puis les actions secondaires.
+Utilise le framework : Limiteur → Levier → Décision
+
+## Règles de Réponse
 - Réponds UNIQUEMENT en français
-- Sois concis et actionnable (max 3-5 recommandations)
-- Utilise les données fournies (VLamax, FTP, VO2max, TTE, objectif)
-- Adapte les conseils à l'objectif de course
-- Mentionne les priorités métaboliques (VLamax↓, TTE↑, VO2max↑)
-- Indique le niveau d'urgence (🔴 haute, 🟡 moyenne, 🟢 basse)
-- Structure ta réponse en sections claires avec des émojis`;
+- Structure : 1 diagnostic prioritaire + 3-5 recommandations ordonnées
+- Chaque recommandation : niveau d'urgence (🔴 critique, 🟡 important, 🟢 optimisation)
+- Cite les métriques exactes de l'athlète pour justifier chaque recommandation
+- Mentionne les interactions entre limiteurs (ex: VLamax↓ améliore aussi TTE)
+- Si des données manquent, indique quels tests TFCL™ réaliser en priorité
+- Termine par une phrase de synthèse "Levier TFCL™ prioritaire : [X]"`;
 
     const userPrompt = buildUserPrompt(athleteData);
 
@@ -79,33 +104,34 @@ Règles:
 });
 
 function buildUserPrompt(data: any): string {
-  const lines: string[] = ["Voici les données de l'athlète à analyser:\n"];
+  const lines: string[] = ["## Profil Athlète — Analyse TFCL™\n"];
 
-  if (data.nom) lines.push(`Athlète: ${data.nom}`);
-  if (data.objectif) lines.push(`Objectif: ${data.objectif}`);
-  if (data.ambition) lines.push(`Niveau d'ambition: ${data.ambition}`);
+  if (data.nom) lines.push(`**Athlète:** ${data.nom}`);
+  if (data.objectif) lines.push(`**Objectif course:** ${data.objectif}`);
+  if (data.ambition) lines.push(`**Niveau d'ambition:** ${data.ambition}`);
 
-  // Bike data
-  if (data.ftp) lines.push(`FTP vélo: ${data.ftp}W`);
-  if (data.weightKg) lines.push(`Poids: ${data.weightKg}kg`);
-  if (data.ftp && data.weightKg) lines.push(`W/kg: ${(data.ftp / data.weightKg).toFixed(2)}`);
-  if (data.vlamax) lines.push(`VLamax vélo: ${data.vlamax} mmol/L/s`);
-  if (data.vo2max) lines.push(`VO2max: ${data.vo2max} mL/kg/min`);
-  if (data.tte) lines.push(`TTE: ${data.tte} min`);
-  if (data.pmax5s) lines.push(`Pmax 5s: ${data.pmax5s}W`);
+  lines.push("\n### Moteur Aérobie");
+  if (data.ftp) lines.push(`- FTP vélo: ${data.ftp}W`);
+  if (data.weightKg) lines.push(`- Poids: ${data.weightKg}kg`);
+  if (data.ftp && data.weightKg) lines.push(`- W/kg: ${(data.ftp / data.weightKg).toFixed(2)}`);
+  if (data.vo2max) lines.push(`- VO₂max: ${data.vo2max} mL/kg/min`);
+  if (data.tte) lines.push(`- TTE: ${data.tte} min`);
 
-  // Run data
-  if (data.vma) lines.push(`VMA: ${data.vma} km/h`);
-  if (data.vlamaxRun) lines.push(`VLamax course: ${data.vlamaxRun} mmol/L/s`);
-  if (data.css) lines.push(`CSS natation: ${data.css} sec/100m`);
+  lines.push("\n### Glycolytique");
+  if (data.vlamax) lines.push(`- VLamax vélo: ${data.vlamax} mmol/L/s`);
+  if (data.vlamaxRun) lines.push(`- VLamax course: ${data.vlamaxRun} mmol/L/s`);
 
-  // FC
-  if (data.fcMax) lines.push(`FC Max: ${data.fcMax} bpm`);
+  lines.push("\n### Neuromusculaire");
+  if (data.pmax5s) lines.push(`- Pmax 5s: ${data.pmax5s}W`);
 
-  // Streaks
-  if (data.snapshotCount) lines.push(`Nombre de snapshots: ${data.snapshotCount}`);
-  if (data.lastSnapshotAge !== undefined) lines.push(`Âge du dernier snapshot: ${data.lastSnapshotAge} jours`);
+  lines.push("\n### Autres Métriques");
+  if (data.vma) lines.push(`- VMA: ${data.vma} km/h`);
+  if (data.css) lines.push(`- CSS natation: ${data.css} sec/100m`);
+  if (data.fcMax) lines.push(`- FC Max: ${data.fcMax} bpm`);
 
-  lines.push("\nGénère 3-5 recommandations d'entraînement personnalisées, classées par priorité.");
+  if (data.snapshotCount) lines.push(`\n**Historique:** ${data.snapshotCount} snapshot(s) enregistré(s)`);
+  if (data.lastSnapshotAge !== undefined) lines.push(`**Fraîcheur données:** dernier snapshot il y a ${data.lastSnapshotAge} jours`);
+
+  lines.push("\n---\nApplique le cadre TFCL™ : identifie le limiteur prioritaire, prescris le levier opérationnel, et génère les recommandations ordonnées.");
   return lines.join("\n");
 }
