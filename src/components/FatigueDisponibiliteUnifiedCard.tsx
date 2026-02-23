@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LazyTabsContent } from "@/components/ui/lazy-tabs-content";
+import { SwipeableTabsContent } from "@/components/ui/swipeable-tabs";
 import {
   type DisponibiliteTFCL,
   type TFCLReadinessInput,
@@ -242,21 +243,27 @@ export function FatigueDisponibiliteUnifiedCard({
             {/* ── TABS ── */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className={cn("grid w-full", showChargeTab ? "grid-cols-3" : "grid-cols-2")}>
-                <TabsTrigger value="statut" className="text-xs gap-1">
+                <TabsTrigger value="statut" className="text-xs sm:text-sm gap-1 min-h-[44px]">
                   <Target className="w-3.5 h-3.5" />
                   Statut
                 </TabsTrigger>
-                <TabsTrigger value="checkin" className="text-xs gap-1">
+                <TabsTrigger value="checkin" className="text-xs sm:text-sm gap-1 min-h-[44px]">
                   <ClipboardCheck className="w-3.5 h-3.5" />
                   Check-in
                 </TabsTrigger>
                 {showChargeTab && (
-                  <TabsTrigger value="charge" className="text-xs gap-1">
+                  <TabsTrigger value="charge" className="text-xs sm:text-sm gap-1 min-h-[44px]">
                     <Activity className="w-3.5 h-3.5" />
                     Charge
                   </TabsTrigger>
                 )}
               </TabsList>
+
+              <SwipeableTabsContent 
+                tabs={showChargeTab ? ["statut", "checkin", "charge"] : ["statut", "checkin"]} 
+                activeTab={activeTab} 
+                onTabChange={setActiveTab}
+              >
 
               {/* ── Tab: Statut (Disponibilité TFCL display) ── */}
               <TabsContent value="statut" className="pt-4">
@@ -292,6 +299,7 @@ export function FatigueDisponibiliteUnifiedCard({
                   />
                 </LazyTabsContent>
               )}
+              </SwipeableTabsContent>
             </Tabs>
           </CardContent>
         </CollapsibleContent>

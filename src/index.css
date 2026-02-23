@@ -1126,4 +1126,53 @@
       transition-duration: 0.01ms !important;
     }
   }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     PHASE 2b — MOBILE-FIRST OPTIMIZATIONS
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* Touch-friendly tab triggers — 44px min height (Apple HIG) */
+  @media (pointer: coarse) {
+    [role="tablist"] button,
+    [role="tab"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+
+  /* Swipeable tabs container — horizontal scroll on mobile */
+  .tabs-scroll-mobile {
+    @apply overflow-x-auto scrollbar-hide;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+  }
+
+  .tabs-scroll-mobile > * {
+    scroll-snap-align: center;
+  }
+
+  /* Hide scrollbar utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Mobile card padding adjustments */
+  @media (max-width: 640px) {
+    .unified-card-content {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+  }
+
+  /* Safe area for full-screen overlays */
+  .safe-area-inset {
+    padding-top: env(safe-area-inset-top, 0);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    padding-left: env(safe-area-inset-left, 0);
+    padding-right: env(safe-area-inset-right, 0);
+  }
 }

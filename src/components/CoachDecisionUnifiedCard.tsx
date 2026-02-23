@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { LazyTabsContent } from "@/components/ui/lazy-tabs-content";
+import { SwipeableTabsContent } from "@/components/ui/swipeable-tabs";
 import {
   Brain,
   Target,
@@ -129,19 +130,21 @@ export function CoachDecisionUnifiedCard({
       <CardContent className="pt-0 px-0">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-4 pt-2">
-            <TabsTrigger value="diagnostic" className="text-xs gap-1.5">
+            <TabsTrigger value="diagnostic" className="text-xs sm:text-sm gap-1.5 min-h-[44px]">
               <Target className="h-3.5 w-3.5" />
               Diagnostic
             </TabsTrigger>
-            <TabsTrigger value="symptoms" className="text-xs gap-1.5">
+            <TabsTrigger value="symptoms" className="text-xs sm:text-sm gap-1.5 min-h-[44px]">
               <AlertTriangle className="h-3.5 w-3.5" />
               Symptômes
             </TabsTrigger>
-            <TabsTrigger value="levers" className="text-xs gap-1.5">
+            <TabsTrigger value="levers" className="text-xs sm:text-sm gap-1.5 min-h-[44px]">
               <Zap className="h-3.5 w-3.5" />
               Leviers
             </TabsTrigger>
           </TabsList>
+
+          <SwipeableTabsContent tabs={["diagnostic", "symptoms", "levers"]} activeTab={activeTab} onTabChange={setActiveTab}>
 
           {/* Diagnostic Tab — Reuse existing TFCLDecisionMatrixCard (embedded, no outer Card) */}
           <TabsContent value="diagnostic" className="px-4 pb-4 mt-0">
@@ -170,6 +173,7 @@ export function CoachDecisionUnifiedCard({
               className="border-0 shadow-none"
             />
           </LazyTabsContent>
+          </SwipeableTabsContent>
         </Tabs>
       </CardContent>
     </Card>

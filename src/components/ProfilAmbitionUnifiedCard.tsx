@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { LazyTabsContent } from "@/components/ui/lazy-tabs-content";
+import { SwipeableTabsContent } from "@/components/ui/swipeable-tabs";
 import { User, Target, TrendingUp, CalendarIcon } from "lucide-react";
 
 import { AthleteRefsPanel } from "./AthleteRefsPanel";
@@ -171,19 +172,21 @@ export function ProfilAmbitionUnifiedCard({
       <CardContent className="pt-0 px-0">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-4 pt-2">
-            <TabsTrigger value="profil" className="text-xs gap-1.5">
+            <TabsTrigger value="profil" className="text-xs sm:text-sm gap-1.5 min-h-[44px]">
               <User className="h-3.5 w-3.5" />
               Profil
             </TabsTrigger>
-            <TabsTrigger value="objectif" className="text-xs gap-1.5">
+            <TabsTrigger value="objectif" className="text-xs sm:text-sm gap-1.5 min-h-[44px]">
               <Target className="h-3.5 w-3.5" />
               Objectif
             </TabsTrigger>
-            <TabsTrigger value="progression" className="text-xs gap-1.5">
+            <TabsTrigger value="progression" className="text-xs sm:text-sm gap-1.5 min-h-[44px]">
               <TrendingUp className="h-3.5 w-3.5" />
               Progression
             </TabsTrigger>
           </TabsList>
+
+          <SwipeableTabsContent tabs={["profil", "objectif", "progression"]} activeTab={activeTab} onTabChange={setActiveTab}>
 
           {/* Profil Tab — default, always mounted */}
           <TabsContent value="profil" className="px-4 pb-4 mt-0">
@@ -227,6 +230,7 @@ export function ProfilAmbitionUnifiedCard({
               className="border-0 shadow-none"
             />
           </LazyTabsContent>
+          </SwipeableTabsContent>
         </Tabs>
       </CardContent>
     </Card>
