@@ -1928,7 +1928,7 @@ const Index = () => {
         ];
 
         return (
-          <div className="space-y-4 sm:space-y-6 md:space-y-8 animate-fade-in">
+          <div className="space-y-3 sm:space-y-4 md:space-y-6 animate-fade-in">
             {renderAthleteSelector()}
             
             <SortableSectionsContainer
@@ -2152,7 +2152,7 @@ const Index = () => {
         ];
 
         return (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-3 sm:space-y-4 md:space-y-6 animate-fade-in">
             {renderAthleteSelector()}
             
             <SortableSectionsContainer
@@ -2438,7 +2438,7 @@ const Index = () => {
         ];
 
         return (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-3 sm:space-y-4 md:space-y-6 animate-fade-in">
             {renderAthleteSelector()}
             <SortableSectionsContainer
               tabId="strategie"

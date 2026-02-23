@@ -43,7 +43,7 @@ export function SortableSectionWrapper({
   };
 
   if (!isEditMode) {
-    return <div id={`section-${id}`}>{children}</div>;
+    return <div id={`section-${id}`} className="animate-in fade-in-0 duration-300">{children}</div>;
   }
 
   return (
@@ -57,15 +57,17 @@ export function SortableSectionWrapper({
       )}
     >
       {/* Controls flottants */}
-      <div className="absolute -left-2 top-4 z-10 flex flex-col gap-1">
-        {/* Handle de drag */}
+      <div className="absolute -left-2 sm:-left-3 top-4 z-10 flex flex-col gap-1">
+        {/* Handle de drag — 44px touch target on mobile */}
         <div
           {...attributes}
           {...listeners}
           className={cn(
-            "bg-muted border border-border rounded-md p-1.5",
+            "bg-muted border border-border rounded-md p-1.5 sm:p-1.5",
+            "min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0",
+            "flex items-center justify-center",
             "cursor-grab active:cursor-grabbing",
-            "opacity-0 group-hover:opacity-100 transition-opacity",
+            "opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity",
             "hover:bg-primary/10 hover:border-primary/30",
             isDragging && "opacity-100"
           )}
@@ -81,8 +83,8 @@ export function SortableSectionWrapper({
             size="sm"
             onClick={onToggleVisibility}
             className={cn(
-              "h-8 w-8 p-0 bg-muted border border-border rounded-md",
-              "opacity-0 group-hover:opacity-100 transition-opacity",
+              "h-10 w-10 sm:h-8 sm:w-8 p-0 bg-muted border border-border rounded-md",
+              "opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity",
               isVisible 
                 ? "text-primary hover:text-primary/80 hover:bg-primary/10" 
                 : "text-muted-foreground hover:text-foreground hover:bg-muted"
