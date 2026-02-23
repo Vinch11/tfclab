@@ -69,6 +69,7 @@ import { SortableSectionsContainer } from "@/components/SortableSectionsContaine
 import { VLamaxUnifiedCard } from "@/components/VLamaxUnifiedCard";
 import { VLamaxZoneConfidenceChart } from "@/components/charts/VLamaxZoneConfidenceChart";
 import { VLamaxEstimationWidget } from "@/components/charts/VLamaxEstimationWidget";
+import { Phase3Dashboard } from "@/components/Phase3Dashboard";
 import { FatMaxTFCLCard } from "@/components/FatMaxTFCLCard";
 import { FatMaxRaceIntensityChart } from "@/components/charts/FatMaxRaceIntensityChart";
 import { computeFatMaxTFCL, FatMaxObjectif } from "@/lib/v2/fatmaxTFCL";
@@ -1752,6 +1753,17 @@ const Index = () => {
               <DashboardRecommendationsCard
                 onNavigateToLibrary={() => setActiveTab("strategie")}
                 maxSuggestions={4}
+              />
+            ),
+          },
+          {
+            id: "ai-coaching-progression",
+            render: () => currentAthlete && (
+              <Phase3Dashboard
+                athlete={currentAthlete}
+                snapshots={snapshots}
+                effectiveSnapshot={effectiveCloudSnapshot}
+                ambition={currentAmbition}
               />
             ),
           },
