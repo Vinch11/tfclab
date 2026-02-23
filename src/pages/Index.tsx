@@ -87,6 +87,9 @@ import { LorangStrategyCard } from "@/components/LorangStrategyCard";
 import { LorangDecisionFlowChart } from "@/components/LorangDecisionFlowChart";
 import { type LorangStrategyInput } from "@/lib/v2/lorangStrategyEngine";
 
+// ✅ Coach Decision Center — Carte unifiée (Phase 1e UX)
+import { CoachDecisionUnifiedCard } from "@/components/CoachDecisionUnifiedCard";
+
 // ✅ Roadmap Stratégique
 import { RoadmapStrategique } from "@/components/RoadmapStrategique";
 import { detectUnifiedLimiter, type UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
@@ -1357,6 +1360,130 @@ const Index = () => {
           {
             id: "fatmax-chart",
             render: () => null, // Consolidated into MetabolicZonesUnifiedCard
+          },
+          // ✅ Phase 1e: Coach Decision Center Unifié
+          {
+            id: "coach-decision-unified",
+            render: () => {
+              if (!currentAthlete) return null;
+              
+              const age = currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null;
+              const athleteCheckins = getCheckinsForAthlete(currentAthlete.id);
+              const sortedCheckins = [...athleteCheckins].sort((a, b) => 
+                new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime()
+              );
+              const latestCheckin = sortedCheckins[0] || null;
+              
+              // FatMax estimate from VLamax
+              const fatmaxPct = vlamaxEffectif.value != null ? Math.max(0, 65 - (vlamaxEffectif.value - 0.3) * 80) : null;
+              
+              // Freshness from latest checkin
+              const freshness = latestCheckin ? (
+                ((latestCheckin.sleep ?? 5) + (10 - (latestCheckin.fatigue ?? 5)) + (latestCheckin.motivation ?? 5) + (10 - (latestCheckin.stress ?? 5))) / 4 * 10
+              ) : null;
+              
+              // Targets based on ambition
+              const vlamaxTarget = currentAmbition === "elite" ? 0.35 : currentAmbition === "competitor" ? 0.45 : 0.55;
+              const vo2maxTarget = currentAmbition === "elite" ? 70 : currentAmbition === "competitor" ? 62 : 55;
+              const tteTarget = currentAmbition === "elite" ? 50 : currentAmbition === "competitor" ? 40 : 35;
+              const fatmaxTarget = currentAmbition === "elite" ? 55 : currentAmbition === "competitor" ? 48 : 42;
+              
+              // Decision Input
+              const decisionInput: TFCLDecisionInput = {
+                vo2max: { value: effectiveCloudSnapshot?.vo2max ?? null, source: "snapshot" },
+                vlamax: { value: vlamaxEffectif.value, source: vlamaxEffectif.source === "test" ? "test" : vlamaxEffectif.source === "snapshot" ? "snapshot" : "estimation" },
+                tte: { value: tteEffectif.tte_min, source: tteEffectif.source === "observed" ? "test" : "estimation" },
+                fatMaxPctVO2: { value: fatmaxPct, source: "calcul" },
+                fatOxidationMax: { value: null, source: "estimation" },
+                crossoverPctVO2: { value: null, source: "estimation" },
+                ftpKg: { value: ftp_kg, source: "snapshot" },
+                freshnessScore: { value: freshness, source: latestCheckin ? "checkin" : "estimation" },
+                tss7d: { value: effectiveCloudSnapshot?.tss_7d ?? null, source: "snapshot" },
+                tss28d: { value: effectiveCloudSnapshot?.tss_7d ? effectiveCloudSnapshot.tss_7d * 4 : null, source: "calcul" },
+                subjectiveFatigue: { value: latestCheckin?.fatigue ?? null, source: latestCheckin ? "checkin" : "estimation" },
+                confidenceScore: Math.round((vlamaxEffectif.confidence + tteEffectif.confidence) / 2 * 100),
+                discipline: isRunningOnly ? "cap" : "velo",
+                objective: (currentAthlete.goal || "IM") as any,
+                ambition: currentAmbition,
+                age,
+              };
+              
+              // Symptom metrics
+              const symptomMetrics = {
+                vo2max: effectiveCloudSnapshot?.vo2max ?? null,
+                vo2maxTarget,
+                vlamax: vlamaxEffectif.value,
+                vlamaxTarget,
+                tte: tteEffectif.tte_min,
+                tteTarget,
+                fatmax: fatmaxPct,
+                fatmaxTarget,
+                freshness,
+              };
+              
+              // Lorang input
+              const disciplineMap: Record<string, 'IM' | '703' | 'marathon' | 'semi' | '10k' | 'cycling' | 'trail'> = {
+                'IM': 'IM', '703': '703', 'Marathon': 'marathon', 'Semi': 'semi',
+              };
+              const lorangInput: LorangStrategyInput = {
+                physiology: {
+                  vo2max: effectiveCloudSnapshot?.vo2max ?? null,
+                  vo2maxTarget,
+                  ftpKg: ftp_kg,
+                  ftpKgTarget: null,
+                  vlamax: vlamaxEffectif.value,
+                  vlamaxTarget,
+                  tte: tteEffectif.tte_min,
+                  tteTarget,
+                  fatmax: fatmaxPct,
+                  fatmaxTarget,
+                  economy: effectiveCloudSnapshot?.run_economy_score ?? null,
+                },
+                athlete: {
+                  age,
+                  discipline: disciplineMap[currentAthlete.goal || '703'] || '703',
+                  ambition: currentAmbition,
+                  hasGIIssues: (effectiveCloudSnapshot as unknown as Record<string, unknown>)?.gi_issues_flag === true,
+                },
+                availability: {
+                  score: freshness ?? 70,
+                  level: freshness != null ? (freshness >= 75 ? 'high' : freshness >= 50 ? 'moderate' : freshness >= 30 ? 'low' : 'critical') : 'moderate',
+                  hasAlerts: latestCheckin?.pain_flag ?? false,
+                  hrvOutOfRange2Days: false,
+                },
+                context: {
+                  daysToRace: null,
+                  isRaceWeek: false,
+                  currentPhase: 'build',
+                },
+                load: {
+                  tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
+                  tss28d: effectiveCloudSnapshot?.tss_7d ? effectiveCloudSnapshot.tss_7d * 4 : null,
+                },
+              };
+              
+              return (
+                <CoachDecisionUnifiedCard
+                  decisionInput={decisionInput}
+                  symptomMetrics={symptomMetrics}
+                  lorangInput={lorangInput}
+                  staffMode={staffMode}
+                  compact={!staffMode}
+                />
+              );
+            },
+          },
+          {
+            id: "tfcl-decision-matrix",
+            render: () => null, // Consolidated into CoachDecisionUnifiedCard
+          },
+          {
+            id: "tfcl-symptom-matrix",
+            render: () => null, // Consolidated into CoachDecisionUnifiedCard
+          },
+          {
+            id: "lorang-strategy",
+            render: () => null, // Consolidated into CoachDecisionUnifiedCard
           },
           {
             id: "scenarios-tte-vlamax",
