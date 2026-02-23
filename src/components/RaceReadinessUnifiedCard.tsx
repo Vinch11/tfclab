@@ -15,6 +15,7 @@ import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AnimatedTabsContent } from "@/components/ui/animated-tabs-content";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
@@ -279,13 +280,13 @@ export function RaceReadinessUnifiedCard({
               >
 
               {/* ── Tab: Vue d'ensemble (TFCL Decision Chart) ── */}
-              <TabsContent value="vue" className="pt-4">
+              <AnimatedTabsContent value="vue" activeValue={activeTab} className="pt-4">
                 <TFCLDecisionChart
                   result={result}
                   athleteName={athleteName}
                   objectif={objectif}
                 />
-              </TabsContent>
+              </AnimatedTabsContent>
 
               {/* ── Tab: Matrice — deferred ── */}
               {signatureInput && (

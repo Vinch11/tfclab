@@ -14,6 +14,7 @@ import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AnimatedTabsContent } from "@/components/ui/animated-tabs-content";
 import { cn } from "@/lib/utils";
 import { LazyTabsContent } from "@/components/ui/lazy-tabs-content";
 import { SwipeableTabsContent } from "@/components/ui/swipeable-tabs";
@@ -147,14 +148,14 @@ export function CoachDecisionUnifiedCard({
           <SwipeableTabsContent tabs={["diagnostic", "symptoms", "levers"]} activeTab={activeTab} onTabChange={setActiveTab}>
 
           {/* Diagnostic Tab — Reuse existing TFCLDecisionMatrixCard (embedded, no outer Card) */}
-          <TabsContent value="diagnostic" className="px-4 pb-4 mt-0">
+          <AnimatedTabsContent value="diagnostic" activeValue={activeTab} className="px-4 pb-4 mt-0">
             <TFCLDecisionMatrixCard
               input={decisionInput}
               compact={compact}
               showDomainDetails={staffMode}
               className="border-0 shadow-none"
             />
-          </TabsContent>
+          </AnimatedTabsContent>
 
           {/* Symptoms Tab — Deferred rendering */}
           <LazyTabsContent value="symptoms" activeValue={activeTab} className="px-4 pb-4 mt-0">

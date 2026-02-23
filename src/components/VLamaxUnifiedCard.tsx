@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AnimatedTabsContent } from "@/components/ui/animated-tabs-content";
 import {
   Collapsible,
   CollapsibleContent,
@@ -297,7 +298,7 @@ export function VLamaxUnifiedCard({
             >
             
             {showBike && (
-              <TabsContent value="bike" className="mt-3 space-y-3">
+              <AnimatedTabsContent value="bike" activeValue={effectiveTab} className="mt-3 space-y-3">
                 <BikeAnalysisSection
                   vlamax={vlamax}
                   age={age}
@@ -305,7 +306,7 @@ export function VLamaxUnifiedCard({
                   bikeInput={bikeInput}
                   ambitionLevel={ambition as "finisher" | "performance" | "podium" | "elite"}
                 />
-              </TabsContent>
+              </AnimatedTabsContent>
             )}
             
             {showRun && (
