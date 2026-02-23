@@ -64,7 +64,7 @@ function calculateAge(birthDate: string): number {
 
 export default function AITrainingPlanPage() {
   const navigate = useNavigate();
-  const { currentAthlete } = useAthletes();
+  const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
   const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete } = useCloudDataContext();
   const { response, isLoading, generatePlan, reset, setResponse } = useAITrainingPlan();
   const [copied, setCopied] = useState(false);
@@ -119,8 +119,9 @@ export default function AITrainingPlanPage() {
   }, [response, isLoading, persistKey, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints]);
 
   useEffect(() => {
-    if (currentAthlete?.goal) setObjective(currentAthlete.goal);
-  }, [currentAthlete?.goal]);
+    if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
+    if (currentAthlete?.ambition) setAmbition(currentAthlete.ambition.toUpperCase());
+  }, [currentAthlete?.id]);
 
   // Reset saved state when regenerating
   useEffect(() => {
@@ -158,7 +159,7 @@ export default function AITrainingPlanPage() {
     });
 
     const data: PlanAthleteData = {
-      nom: currentAthlete.name,
+      nom: currentAthlete.nom,
       ftp: refs.ftp,
       weightKg: refs.weightKg,
       vlamax: vlamaxEff.value,
@@ -182,7 +183,7 @@ export default function AITrainingPlanPage() {
       hasHealthAlerts: false,
       objectif: objective,
       ambition: ambition as AmbitionLevel,
-      age: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
+      age: currentAthlete.dateNaissance ? calculateAge(currentAthlete.dateNaissance) : null,
     });
 
     return { data, limiterResult };
@@ -397,19 +398,62 @@ export default function AITrainingPlanPage() {
               Plan d'entraînement personnalisé par IA
             </p>
           </div>
-          {currentAthlete && (
-            <Badge variant="outline" className="flex items-center gap-1">
-              <User className="h-3 w-3" />
-              {currentAthlete.name}
-            </Badge>
-          )}
         </div>
 
-        {!currentAthlete && (
+        {/* Athlete Selector */}
+        {athletes.length > 0 ? (
+          <Card>
+            <CardContent className="p-4">
+              <Label className="text-xs text-muted-foreground mb-2 block">Athlète</Label>
+              <Select
+                value={currentAthlete?.id || ""}
+                onValueChange={(id) => {
+                  setSelectedAthleteId(id);
+                  reset();
+                  setIsSaved(false);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un athlète" />
+                </SelectTrigger>
+                <SelectContent>
+                  {athletes.map((a) => {
+                    const objLabel = OBJECTIVE_OPTIONS.find(o => o.value === a.objectif)?.label || a.objectif;
+                    const ambLabel = AMBITION_OPTIONS.find(o => o.value?.toUpperCase() === a.ambition?.toUpperCase())?.label || a.ambition;
+                    return (
+                      <SelectItem key={a.id} value={a.id}>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{a.nom}</span>
+                          <span className="text-xs text-muted-foreground">• {objLabel}</span>
+                          {ambLabel && <span className="text-xs text-muted-foreground">• {ambLabel}</span>}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+
+              {/* Quick info about selected athlete */}
+              {currentAthlete && limiter && limiter.primaryLimiter !== "none" && (
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                  <Badge variant="secondary" className="text-[10px]">
+                    {OBJECTIVE_OPTIONS.find(o => o.value === currentAthlete.objectif)?.label || currentAthlete.objectif}
+                  </Badge>
+                  <Badge variant="outline" className="text-[10px]">
+                    {AMBITION_OPTIONS.find(o => o.value?.toUpperCase() === currentAthlete.ambition?.toUpperCase())?.label || currentAthlete.ambition}
+                  </Badge>
+                  <Badge variant="destructive" className="text-[10px]">
+                    {limiter.limiterEmoji} {limiter.limiterLabel}
+                  </Badge>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
           <Card className="border-destructive/50 bg-destructive/5">
             <CardContent className="p-4 flex items-center gap-3">
               <AlertTriangle className="h-5 w-5 text-destructive" />
-              <p className="text-sm">Sélectionnez un athlète depuis le Dashboard pour générer un plan.</p>
+              <p className="text-sm">Aucun athlète disponible. Créez un athlète depuis le Dashboard.</p>
             </CardContent>
           </Card>
         )}
@@ -586,7 +630,7 @@ export default function AITrainingPlanPage() {
                     isSaved={isSaved}
                     onRegenerateWeek={handleRegenerateWeek}
                     isRegenerating={isRegenerating}
-                    athleteName={currentAthlete?.name}
+                    athleteName={currentAthlete?.nom}
                   />
                 ) : resultView === "interactive" && !isLoading ? (
                   <Card>
