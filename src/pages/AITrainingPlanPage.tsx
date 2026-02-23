@@ -1,9 +1,10 @@
 /**
  * AI Training Plan Page — TFCL™ Plan Generator
  * Generates personalized training plans using AI + TFCL methodology
+ * Phase 2: Interactive structured view + save to planning
  */
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,22 +14,27 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ChevronLeft, Sparkles, Calendar, Target, Clock, Loader2,
   AlertTriangle, Zap, User, RotateCcw, Copy, CheckCircle2,
+  FileText, LayoutGrid,
 } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
-import { differenceInWeeks, parseISO } from "date-fns";
+import { differenceInWeeks, parseISO, addDays, startOfWeek, format } from "date-fns";
 
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAITrainingPlan, type PlanAthleteData, type PlanConfig } from "@/hooks/useAITrainingPlan";
 import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { computeTTEEffectif } from "@/lib/tteEffectif";
-import { detectUnifiedLimiter, type UnifiedLimiterResult, LIMITER_INFO } from "@/lib/v2/unifiedLimiterDetection";
+import { detectUnifiedLimiter } from "@/lib/v2/unifiedLimiterDetection";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
+import { parseAIPlan, mapSessionsToDates, type ParsedPlan } from "@/lib/aiPlanParser";
+import { AIPlanViewer } from "@/components/AIPlanViewer";
+import { supabase } from "@/integrations/supabase/client";
 
 const OBJECTIVE_OPTIONS = [
   { value: "IM", label: "Ironman" },
@@ -59,6 +65,9 @@ export default function AITrainingPlanPage() {
   const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete } = useCloudDataContext();
   const { response, isLoading, generatePlan, reset } = useAITrainingPlan();
   const [copied, setCopied] = useState(false);
+  const [resultView, setResultView] = useState<"interactive" | "markdown">("interactive");
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
   // Form state
   const [objective, setObjective] = useState(currentAthlete?.goal || "703");
@@ -73,14 +82,19 @@ export default function AITrainingPlanPage() {
     if (currentAthlete?.goal) setObjective(currentAthlete.goal);
   }, [currentAthlete?.goal]);
 
+  // Reset saved state when regenerating
+  useEffect(() => {
+    if (isLoading) {
+      setIsSaved(false);
+    }
+  }, [isLoading]);
+
   // Compute athlete data
   const athleteContext = useMemo(() => {
     if (!currentAthlete) return null;
 
     const athleteSnapshots = getSnapshotsForAthlete(currentAthlete.id);
     const athleteTests = getTestsForAthlete(currentAthlete.id);
-    
-    // Get effective refs
     const refs = getEffectiveRefs(currentAthlete, athleteSnapshots);
     const activeSnap = refs.snapshotUsed;
     if (!activeSnap) return null;
@@ -142,6 +156,22 @@ export default function AITrainingPlanPage() {
     } catch { return null; }
   }, [raceDate]);
 
+  // Parse AI response into structured plan
+  const parsedPlan = useMemo<ParsedPlan | null>(() => {
+    if (!response || isLoading) return null;
+    try {
+      const plan = parseAIPlan(response);
+      return plan.weeks.length > 0 ? plan : null;
+    } catch { return null; }
+  }, [response, isLoading]);
+
+  // Compute plan start date (next Monday or custom)
+  const planStartDate = useMemo(() => {
+    const now = new Date();
+    const nextMonday = startOfWeek(addDays(now, 7), { weekStartsOn: 1 });
+    return nextMonday;
+  }, []);
+
   const handleGenerate = () => {
     if (!athleteContext) {
       toast.error("Sélectionnez un athlète avec un snapshot actif");
@@ -190,6 +220,49 @@ export default function AITrainingPlanPage() {
     toast.success("Plan copié !");
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const handleSaveToPlan = useCallback(async () => {
+    if (!parsedPlan || !currentAthlete) return;
+
+    setIsSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Non authentifié");
+
+      const mapped = mapSessionsToDates(parsedPlan.weeks, planStartDate);
+
+      // Build rows for training_plan table
+      const rows = mapped
+        .filter(m => !m.session.isRest)
+        .map(({ session, date }) => ({
+          athlete_id: currentAthlete.id,
+          coach_id: user.id,
+          date: format(date, "yyyy-MM-dd"),
+          phase: session.phase || null,
+          custom_workout_title: `${session.sport} — ${session.title}`,
+          custom_workout_description: session.details || null,
+          status: "planned",
+          notes: session.weekTheme ? `Semaine ${session.weekNumber}: ${session.weekTheme}` : null,
+        }));
+
+      if (rows.length === 0) {
+        toast.warning("Aucune séance à sauvegarder");
+        setIsSaving(false);
+        return;
+      }
+
+      const { error } = await supabase.from("training_plan").insert(rows);
+      if (error) throw error;
+
+      setIsSaved(true);
+      toast.success(`${rows.length} séances sauvegardées au planning !`);
+    } catch (err: any) {
+      console.error("Save plan error:", err);
+      toast.error("Erreur lors de la sauvegarde : " + (err.message || "Inconnu"));
+    } finally {
+      setIsSaving(false);
+    }
+  }, [parsedPlan, currentAthlete, planStartDate]);
 
   const hasData = !!athleteContext;
   const limiter = athleteContext?.limiterResult;
@@ -359,28 +432,79 @@ export default function AITrainingPlanPage() {
           {/* Right: Result */}
           <div className="lg:col-span-2">
             {response ? (
-              <Card>
-                <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                    Plan Généré
-                    {isLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-                  </CardTitle>
+              <div className="space-y-4">
+                {/* View Toggle + Actions */}
+                <div className="flex items-center justify-between">
+                  <Tabs value={resultView} onValueChange={(v) => setResultView(v as "interactive" | "markdown")}>
+                    <TabsList>
+                      <TabsTrigger value="interactive" className="flex items-center gap-1">
+                        <LayoutGrid className="h-3.5 w-3.5" /> Interactif
+                      </TabsTrigger>
+                      <TabsTrigger value="markdown" className="flex items-center gap-1">
+                        <FileText className="h-3.5 w-3.5" /> Markdown
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
                   <div className="flex items-center gap-2">
                     <Button variant="ghost" size="sm" onClick={handleCopy}>
                       {copied ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={reset}>
+                    <Button variant="ghost" size="sm" onClick={() => { reset(); setIsSaved(false); }}>
                       <RotateCcw className="h-4 w-4" />
                     </Button>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="prose prose-sm dark:prose-invert max-w-none overflow-x-auto">
-                    <ReactMarkdown>{response}</ReactMarkdown>
+                </div>
+
+                {/* Streaming indicator */}
+                {isLoading && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Génération en cours... Le plan interactif sera disponible à la fin.
                   </div>
-                </CardContent>
-              </Card>
+                )}
+
+                {/* Interactive View */}
+                {resultView === "interactive" && parsedPlan ? (
+                  <AIPlanViewer
+                    plan={parsedPlan}
+                    startDate={planStartDate}
+                    onSaveToPlan={handleSaveToPlan}
+                    isSaving={isSaving}
+                    isSaved={isSaved}
+                  />
+                ) : resultView === "interactive" && !isLoading ? (
+                  <Card>
+                    <CardContent className="p-6 text-center space-y-2">
+                      <AlertTriangle className="h-8 w-8 text-amber-500 mx-auto" />
+                      <p className="text-sm text-muted-foreground">
+                        Le parsing du plan n'a pas pu extraire de semaines structurées.
+                        Consultez la vue Markdown pour le contenu brut.
+                      </p>
+                      <Button variant="outline" size="sm" onClick={() => setResultView("markdown")}>
+                        Voir le Markdown
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : null}
+
+                {/* Markdown View */}
+                {resultView === "markdown" && (
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-primary" />
+                        Plan Généré
+                        {isLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="prose prose-sm dark:prose-invert max-w-none overflow-x-auto">
+                        <ReactMarkdown>{response}</ReactMarkdown>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
             ) : (
               <Card className="h-full min-h-[400px] flex items-center justify-center">
                 <div className="text-center space-y-3 p-8">
