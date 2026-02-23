@@ -15,6 +15,7 @@ import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AnimatedTabsContent } from "@/components/ui/animated-tabs-content";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Battery,
@@ -266,7 +267,7 @@ export function FatigueDisponibiliteUnifiedCard({
               >
 
               {/* ── Tab: Statut (Disponibilité TFCL display) ── */}
-              <TabsContent value="statut" className="pt-4">
+              <AnimatedTabsContent value="statut" activeValue={activeTab} className="pt-4">
                 <DisponibiliteTFCLCard
                   latestCheckin={latestCheckin}
                   previousCheckin={previousCheckin}
@@ -274,7 +275,7 @@ export function FatigueDisponibiliteUnifiedCard({
                   showDetails={staffMode}
                   showTrend={true}
                 />
-              </TabsContent>
+              </AnimatedTabsContent>
 
               {/* ── Tab: Check-in — deferred ── */}
               <LazyTabsContent value="checkin" activeValue={activeTab} className="pt-4">

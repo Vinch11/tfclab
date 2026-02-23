@@ -1175,4 +1175,58 @@
     padding-left: env(safe-area-inset-left, 0);
     padding-right: env(safe-area-inset-right, 0);
   }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     PHASE 2d — MICRO-ANIMATIONS & VISUAL FEEDBACK
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* Badge pulse on status change */
+  .badge-pulse {
+    animation: badge-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes badge-pop {
+    0% { transform: scale(0.8); opacity: 0; }
+    60% { transform: scale(1.05); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* Card hover lift — subtle elevation on desktop */
+  @media (hover: hover) {
+    .card-hover-lift {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card-hover-lift:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-elevated);
+    }
+  }
+
+  /* Tab indicator slide animation */
+  [role="tablist"] [data-state="active"] {
+    transition: color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  /* Smooth collapsible open/close */
+  [data-state="open"] > .collapsible-content {
+    animation: collapsible-slide-down 0.25s ease-out;
+  }
+
+  @keyframes collapsible-slide-down {
+    0% { opacity: 0; transform: translateY(-4px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Press feedback for touch devices */
+  @media (pointer: coarse) {
+    .press-feedback:active {
+      transform: scale(0.97);
+      transition: transform 0.1s ease;
+    }
+  }
+
+  /* Number counter animation */
+  .counter-animate {
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
 }

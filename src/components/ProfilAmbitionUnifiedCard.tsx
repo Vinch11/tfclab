@@ -14,6 +14,7 @@ import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AnimatedTabsContent } from "@/components/ui/animated-tabs-content";
 import { cn } from "@/lib/utils";
 import { LazyTabsContent } from "@/components/ui/lazy-tabs-content";
 import { SwipeableTabsContent } from "@/components/ui/swipeable-tabs";
@@ -189,7 +190,7 @@ export function ProfilAmbitionUnifiedCard({
           <SwipeableTabsContent tabs={["profil", "objectif", "progression"]} activeTab={activeTab} onTabChange={setActiveTab}>
 
           {/* Profil Tab — default, always mounted */}
-          <TabsContent value="profil" className="px-4 pb-4 mt-0">
+          <AnimatedTabsContent value="profil" activeValue={activeTab} className="px-4 pb-4 mt-0">
             <AthleteRefsPanel
               athlete={athlete}
               snapshots={snapshots}
@@ -201,7 +202,7 @@ export function ProfilAmbitionUnifiedCard({
               onUpdate={onUpdate}
               compact
             />
-          </TabsContent>
+          </AnimatedTabsContent>
 
           {/* Objectif Tab — deferred */}
           <LazyTabsContent value="objectif" activeValue={activeTab} className="px-4 pb-4 mt-0">

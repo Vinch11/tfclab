@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AnimatedTabsContent } from "@/components/ui/animated-tabs-content";
 import {
   Collapsible,
   CollapsibleContent,
@@ -237,9 +238,9 @@ export function MetabolicZonesUnifiedCard({
           >
 
           {/* FatMax Tab */}
-          <TabsContent value="fatmax" className="mt-3 space-y-3">
+          <AnimatedTabsContent value="fatmax" activeValue={activeTab} className="mt-3 space-y-3">
             <FatMaxTabContent fatmax={fatmax} ftp={ftp} compact={compact} staffMode={staffMode} />
-          </TabsContent>
+          </AnimatedTabsContent>
 
           {/* Lactate Thresholds Tab — deferred */}
           {hasLactateData && (
