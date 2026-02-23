@@ -61,15 +61,12 @@ export function Phase3Dashboard({
   const streaks = useMemo(() => calculateStreaks(athleteSnapshots), [athleteSnapshots]);
 
   return (
-    <div className="space-y-4">
-      <StreaksCard streaks={streaks} />
-      <AICoachingCard
-        athlete={athlete}
-        snapshot={effectiveSnapshot}
-        snapshotCount={athleteSnapshots.length}
-        ambition={ambition}
-      />
-    </div>
+    <AICoachingCard
+      athlete={athlete}
+      snapshot={effectiveSnapshot}
+      snapshotCount={athleteSnapshots.length}
+      ambition={ambition}
+    />
   );
 }
 
