@@ -13,7 +13,7 @@ export interface ProModules {
 // Objectifs 100% course (+ renfo)
 const RUNNING_ONLY_GOALS = [
   "5K", "5k", "10K", "10k", "10km",
-  "Semi", "Marathon", 
+  "Semi", "Marathon", "StartToRun", "starttorun",
   "Trail", "TrailShort", "TrailMountain", "TrailUltra"
 ];
 
@@ -92,6 +92,13 @@ export function getRatiosSport(objectif: string): Record<AllowedSport, { min: nu
       return {
         course: { min: 70, max: 85 },
         renfo: { min: 15, max: 30 },
+        vélo: { min: 0, max: 0 },
+        natation: { min: 0, max: 0 },
+      };
+    case "StartToRun":
+      return {
+        course: { min: 60, max: 75 },
+        renfo: { min: 25, max: 40 },
         vélo: { min: 0, max: 0 },
         natation: { min: 0, max: 0 },
       };

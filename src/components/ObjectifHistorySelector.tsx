@@ -19,7 +19,7 @@ const OBJECTIF_GROUPS = {
   },
   running: {
     label: "Course à pied",
-    options: ["Marathon", "Semi", "10K", "5K"] as ObjectifType[],
+    options: ["Marathon", "Semi", "10K", "5K", "StartToRun"] as ObjectifType[],
   },
   trail: {
     label: "Trail",

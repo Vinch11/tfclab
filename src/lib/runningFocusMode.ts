@@ -20,7 +20,7 @@ import { isRunningOnlyGoal } from "./allowedSports";
 
 export type DisciplineLock = "RUNNING_ONLY" | "TRIATHLON" | "CYCLING_ONLY";
 
-export type RunningRaceType = "5K" | "10K" | "Semi" | "Marathon" | "Trail" | "TrailShort" | "TrailMountain" | "TrailUltra";
+export type RunningRaceType = "5K" | "10K" | "StartToRun" | "Semi" | "Marathon" | "Trail" | "TrailShort" | "TrailMountain" | "TrailUltra";
 
 export type RunningLimiter = 
   | "vo2max_insufficient"      // VO2max CAP insuffisant
@@ -56,12 +56,15 @@ export interface RunningFocusModeState {
 
 // Race types qui déclenchent le Running Focus Mode
 export const RUNNING_RACE_TYPES: RunningRaceType[] = [
-  "5K", "10K", "Semi", "Marathon", 
+  "StartToRun", "5K", "10K", "Semi", "Marathon", 
   "Trail", "TrailShort", "TrailMountain", "TrailUltra"
 ];
 
 // Mapping des objectifs vers les race types normalisés
 const OBJECTIVE_TO_RUNNING_TYPE: Record<string, RunningRaceType | null> = {
+  "StartToRun": "StartToRun",
+  "starttorun": "StartToRun",
+  "start to run": "StartToRun",
   "5K": "5K",
   "5k": "5K",
   "10K": "10K",
@@ -91,11 +94,12 @@ const OBJECTIVE_TO_RUNNING_TYPE: Record<string, RunningRaceType | null> = {
 
 // Distances par type de course (km)
 export const RUNNING_DISTANCES: Record<RunningRaceType, number> = {
+  "StartToRun": 5,
   "5K": 5,
   "10K": 10,
   "Semi": 21.1,
   "Marathon": 42.195,
-  "Trail": 30,           // Valeur moyenne trail court
+  "Trail": 30,
   "TrailShort": 25,
   "TrailMountain": 60,
   "TrailUltra": 100,
@@ -103,6 +107,7 @@ export const RUNNING_DISTANCES: Record<RunningRaceType, number> = {
 
 // Labels lisibles
 export const RUNNING_RACE_LABELS: Record<RunningRaceType, string> = {
+  "StartToRun": "Start to Run (débutant)",
   "5K": "5 km",
   "10K": "10 km",
   "Semi": "Semi-Marathon",
@@ -280,6 +285,7 @@ export function getRunningFocusModeState(objectif: string | null | undefined): R
  */
 function estimateDuration(raceType: RunningRaceType): number {
   const durations: Record<RunningRaceType, number> = {
+    "StartToRun": 40,
     "5K": 25,
     "10K": 50,
     "Semi": 110,
@@ -482,6 +488,13 @@ export interface RunningTargets {
 }
 
 export const RUNNING_TARGETS_BY_RACE: Record<RunningRaceType, RunningTargets> = {
+  "StartToRun": {
+    vo2max: { min: 30, optimal: 40, elite: 50 },
+    vlamax: { min: 0.30, optimal: 0.50, max: 0.80 },
+    economyScore: { min: 40, optimal: 55 },
+    durabilityMin: 30,
+    pctVO2maxRace: 70,
+  },
   "5K": {
     vo2max: { min: 50, optimal: 58, elite: 72 },
     vlamax: { min: 0.40, optimal: 0.55, max: 0.70 },

@@ -91,6 +91,15 @@ export interface RunningLimiterResult {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const STRATEGIC_WEIGHTS: Record<RunningRaceType, Record<string, number>> = {
+  "StartToRun": {
+    vo2max: 0.50,
+    vlamax: 0.30,
+    economy: 0.60,
+    durability: 0.40,
+    pacing: 0.40,
+    mechanical: 0.70,
+    availability: 0.80,
+  },
   "5K": {
     vo2max: 0.95,
     vlamax: 0.60,
