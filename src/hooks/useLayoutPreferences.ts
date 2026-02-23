@@ -78,12 +78,13 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   { id: "tfcl-symptom-matrix", label: "Matrice Symptômes TFCL™", icon: "Stethoscope", category: "analyse", defaultVisible: true },
   { id: "lorang-strategy", label: "Lorang Strategy Engine™", icon: "Target", category: "analyse", defaultVisible: true },
   
-  // ⚡ Métriques VLamax/TTE
+  // ⚡ Métriques VLamax/TTE (consolidé Phase 1 UX)
   { id: "compass", label: "Metabolic Compass", icon: "Compass", category: "metriques", defaultVisible: true },
-  { id: "vlamax-bike-v2-enhanced", label: "VLamax Vélo — Analyse Détaillée", icon: "Zap", category: "metriques", defaultVisible: true },
-  { id: "vlamax-combined", label: "VLamax Vélo/CAP (Comparaison)", icon: "GitCompare", category: "metriques", defaultVisible: true },
+  { id: "vlamax-v2-calibration", label: "VLamax TFCL™ (unifiée)", icon: "Zap", category: "metriques", defaultVisible: true },
   { id: "ftp-targets", label: "FTP/kg — zones cibles", icon: "Target", category: "metriques", defaultVisible: true },
-  { id: "vlamax-v2-calibration", label: "VLamax TFCL V2 (compact)", icon: "Zap", category: "metriques", defaultVisible: false },
+  // Sections consolidées — masquées par défaut (intégrées dans la carte unifiée)
+  { id: "vlamax-bike-v2-enhanced", label: "VLamax Vélo — Détaillée (legacy)", icon: "Zap", category: "metriques", defaultVisible: false },
+  { id: "vlamax-combined", label: "VLamax Comparaison (legacy)", icon: "GitCompare", category: "metriques", defaultVisible: false },
   
   // 💤 Fatigue + Readiness
   { id: "disponibilite-tfcl", label: "Disponibilité TFCL™", icon: "Target", category: "fatigue", defaultVisible: true },
