@@ -455,6 +455,86 @@ Utilise ces micro-cycles réels comme modèles de qualité. Adapte-les au niveau
 | Dimanche | CAP | Sortie longue douce | 35min marche/course : 3×(3min marche + 5min course Z1 à 6:30/km). Terrain plat. Finir en pouvant parler |
 ⚠️ Start to Run : JAMAIS de fractionné avant 30min de course continue sans pause. Max 3 séances CAP/sem, jamais consécutives. Renfo/mobilité = 30-40% du volume total. Progression = +5min course/sem max.
 
+### Exemple : Ironman Finisher — Semaine Build (10h, Volume Minimal Sécuritaire)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, hydratation, sommeil 8h. Foam roller optionnel |
+| Mardi matin | Natation | Endurance technique | 400m éch drill (rattrapé, 6-kick). 1500m continu @1:50/100m Z2. 200m RC. 2100m ~45min |
+| Mardi soir | Renfo | PPG fonctionnel | Squats 3×10, fentes 2×10, gainage 3×30s, pompes 2×12, band walks 2×15. 30min |
+| Mercredi | Vélo | Endurance Z2 | 1h30 Z2 (60-68% FTP). Terrain plat. Cad 80-85. Conversation possible tout du long |
+| Jeudi | CAP | EF endurance | 45min Z2 (5:45/km). 8km. Cad 172spm. Terrain plat, aisance totale |
+| Vendredi | Repos | Repos complet | Récupération. Marche 20min optionnelle |
+| Samedi | Vélo | Sortie longue douce | 2h30 Z2 plat (62% FTP). Gut training 30g/h (barres + boisson). Dernière 30min @70% FTP |
+| Dimanche | Brique douce | Vélo→CAP enchaînement | Vélo 1h Z2 (65% FTP) + CAP 20min Z2 (5:30/km). Transition 5min. Gut 25g/h. Focus sensation enchaînement |
+⚠️ Finisher IM : 1 séance/jour MAX. Zéro double. 2 repos/sem minimum. Aucune intensité Z4+. SL vélo = séance clé unique. Natation = technique + confiance eau libre.
+
+### Exemple : Sifan Hassan — Semaine Spécifique Semi-Marathon Femme Élite (120km, 12h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | CAP | EF récupération | 50min Z1 (4:40/km). 11km. Relâchement total. Cad 184spm |
+| Mardi matin | CAP | Seuil long continu | 1h40 dont 30min continu @3:15/km (seuil, 88% VMA) + 20min @3:25/km. 24km total |
+| Mardi soir | Renfo | Pliométrie + hip stability | Hurdle hops 3×6, single leg bounds 3×8, hip thrust 3×12, band walks 3×15, core 4×40s. 35min |
+| Mercredi | CAP | EF longue vallonnée | 1h35 Z2 (4:10/km), collines +200m D+. 23km. Cad 186spm. Effort régulier |
+| Jeudi matin | CAP | VMA spécifique semi | 15min éch. 4×2000m @3:00/km (95% VMA) r=2min trot. 15min RC. 20km |
+| Jeudi soir | CAP | Shake-out | 25min Z1 (4:45/km). 6km. Récup active |
+| Vendredi | CAP | EF récupération | 40min Z1 (4:50/km). Ultra-léger. 8km |
+| Samedi | CAP | SL simulation semi | 24km dont km 1-16 @4:00/km, km 16-21 @3:20/km, km 21-24 @3:10/km. Neg split agressif. Gut 30g/h |
+| Dimanche | CAP | EF + strides | 1h Z2 (4:15/km) + 8×150m accélérations progressives. 15km. Mobilité post 10min |
+⚠️ Hassan/semi élite femme : seuil continu long (30min+) comme séance clé #1, SL avec finish rapide = clé #2. Volume total 120-140km mais qualité > quantité.
+
+### Exemple : Jakob Ingebrigtsen — Semaine Spécifique 5K (110km, 10h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, sommeil 9h, visualisation |
+| Mardi matin | CAP | VMA 5K pace | 15min éch. 5×1000m @2:48/km (allure 5K, 97% VMA) r=90s trot. 15min RC. 16km |
+| Mardi soir | Renfo | Explosivité | Drop jumps 4×5, squat sauté 3×8, medball throw 3×10, band sprints 3×30m, core 10min. 30min |
+| Mercredi | CAP | EF endurance | 1h20 Z2 (3:55/km). 21km. Terrain plat. Cad 190spm |
+| Jeudi | CAP | Seuil + lactate tolerance | 1h15 dont 20min @seuil (3:10/km) + 4×400m @2:35/km (110% VMA) r=90s. 18km |
+| Vendredi | CAP | EF récupération | 45min Z1 (4:25/km). 10km. Totalement relâché |
+| Samedi | CAP | SL avec finish 5K | 1h40 (25km). Km 1-18 @4:00/km Z2, km 18-23 @3:20/km tempo, km 23-25 @2:50/km (allure 5K). Simulation fin de course |
+| Dimanche | CAP | EF double + drills | 55min Z2 (4:10/km) 14km + drills techniques 10min (A-skip, high knees, butt kicks) + strides 4×80m |
+⚠️ 5K spécifique : combo seuil + lactate tolerance dans la même séance = modèle norvégien adapté. La SL n'est pas longue en durée mais le finish @allure 5K est la clé.
+
+### Exemple : Marathon Age Group — Semaine Build (65km, 7h30)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, étirements doux, foam roller optionnel |
+| Mardi | CAP | Tempo marathon | 1h dont 2×12min @allure marathon estimée (5:00/km pour sub-3h30) r=4min trot. 12km |
+| Mercredi | Renfo | PPG + core | Squats 3×12, fentes 3×10, hip thrust 3×12, gainage 3×40s, superman 3×12, pompes 3×12. 35min |
+| Jeudi | CAP | EF endurance | 55min Z2 (5:20/km). 10km. Cad 175spm. Plat. Aisance respiratoire |
+| Vendredi | CAP | Seuil court | 50min dont 15min @seuil (4:35/km si VMA 15) + 10min @seuil. r=4min trot entre. 10km |
+| Samedi | CAP | SL progressive | 1h50 (20km). Km 1-14 @5:40/km, km 14-18 @5:10/km, km 18-20 @4:50/km. Ravitaillement 25g/h |
+| Dimanche | CAP | EF + mobilité | 40min Z2 (5:30/km) 7km + mobilité hanches/chevilles 15min + foam roller 10min |
+⚠️ Marathon Age Group : 5 séances max. SL = séance clé #1 (augmenter 1-2km/sem). Tempo = clé #2 (augmenter durée des blocs, pas l'allure). Jamais de SL >30km pour ce niveau.
+
+### Exemple : Anne Haug — Semaine Décharge 70.3 (-35% volume, 10h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, massage, compression |
+| Mardi matin | Natation | Rappel CSS court | 400m éch. 4×200m @1:16/100m r=20s. 200m RC. 1800m ~30min. Sensation de vitesse sans fatigue |
+| Mardi soir | Vélo | Rappel sweet spot | 1h dont 2×8min @88% FTP r=5min Z2. Cad 90. Le reste en Z2 léger |
+| Mercredi | CAP | EF + rappel allure | 50min dont 40min Z2 (4:30/km) + 2×3min @allure 70.3 (3:50/km). 11km. Maintenir la vitesse |
+| Jeudi matin | Natation | Technique + OWS court | 1500m : 500m drill + 2×400m @race-pace OWS. 25min. Confiance |
+| Jeudi soir | Renfo | Activation légère | Gainage 3×30s, élastiques hanches 2×12, mobilité épaules 10min. 20min max. Aucune charge lourde |
+| Vendredi | Repos | Repos complet | Préparation matériel, nutrition, visualisation. Zéro charge |
+| Samedi | Brique courte | Activation pré-course | Vélo 40min Z2 + 15min CAP Z2 (4:20/km). Enchaînement rapide. Gut test final 50g/h. 1h totale |
+| Dimanche | Course | Jour J 70.3 | Exécuter le plan de pacing. Discipline > ambition. Gut training rodé |
+⚠️ Décharge : -35% volume, aucune séance longue, rappels d'intensité courts (2-3×3-8min). Zéro nouvelle charge. Sommeil + nutrition = 80% de la performance du jour J.
+
+### Exemple : François D'Haene — Semaine Spécifique UTMB/Ultra Trail (22h, 130km, +6000m D+)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, auto-massage, compression, sommeil 9h minimum |
+| Mardi matin | CAP/Trail | Seuil montée long | 2h30 dont 3×20min montée @seuil (950m/h D+) pente 12-15% r=8min descente. +1200m D+ |
+| Mardi soir | Renfo | Excentrique lourd | Squat excentrique 6s 4×6, step-downs 3×10, Nordic hamstrings 3×5, core 4×50s. 50min |
+| Mercredi | CAP/Trail | Endurance technique | 3h sentier technique mixte Z2. +800m D+. Descente technique rapide. Pôles optionnels. Ravitaillement 45g/h |
+| Jeudi matin | CAP | EF récupération plat | 45min Z1 (5:15/km). Terrain plat, route. Récup active. 9km |
+| Jeudi soir | Renfo | Proprioception avancée | Bosu yeux fermés 3×30s, pistol progressions 3×5, single leg hop stabilisation 3×8, bande hanches 3×15. 35min |
+| Vendredi | CAP/Trail | VMA côtes + descente technique | 1h45 dont 8×2min30 côte raide @VO2max r=descente trot + 6×3min descente technique @85% vitesse max. +700m D+ |
+| Samedi | CAP/Trail | Ultra-simulation montagne | 7h Z2 montagne alpine +3000m D+. Ravitaillement complet (solide+liquide 60g/h). Simulation nuit si possible (départ 5h). Gestion fatigue mentale |
+| Dimanche | Vélo + Mobilité | Récupération active | Vélo 1h15 Z1 plat (55% FTP max). Aucun impact. Foam roller 20min. Étirements 15min. Compression toute la journée |
+⚠️ Ultra UTMB : SL 7h = simulation non-négociable en phase spécifique. Inclure 1 simulation nuit. Excentrique = prévention #1 pour descente. Cross-training vélo uniquement en récupération.
+
 ## RÈGLES DE PROGRESSION ADAPTATIVES PAR NIVEAU (CRITIQUE)
 
 ### Grille Volume/Intensité par Ambition et Objectif
