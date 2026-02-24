@@ -160,6 +160,7 @@ export default function AITrainingPlanPage() {
   const [weeklyHours, setWeeklyHours] = useState("10");
   const [sessionsPerWeek, setSessionsPerWeek] = useState("7");
   const [ambition, setAmbition] = useState<string>(DEFAULT_AMBITION);
+  const [maxSessionsPerDay, setMaxSessionsPerDay] = useState("3");
   const [constraints, setConstraints] = useState("");
 
   // Restore persisted plan + config on athlete change (single mode only)
@@ -183,9 +184,9 @@ export default function AITrainingPlanPage() {
       localStorage.removeItem(persistKey);
       return;
     }
-    const state = { response, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints };
+    const state = { response, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, maxSessionsPerDay, ambition, constraints };
     localStorage.setItem(persistKey, JSON.stringify(state));
-  }, [response, isLoading, persistKey, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, isMultiMode]);
+  }, [response, isLoading, persistKey, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, maxSessionsPerDay, ambition, constraints, isMultiMode]);
 
   useEffect(() => {
     if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
@@ -306,12 +307,13 @@ export default function AITrainingPlanPage() {
       weeksAvailable: weeksAvailable ?? undefined,
       weeklyHours: parseFloat(weeklyHours) || undefined,
       sessionsPerWeek: parseInt(sessionsPerWeek) || undefined,
+      maxSessionsPerDay: parseInt(maxSessionsPerDay) || undefined,
       ambition: AMBITION_OPTIONS.find(a => a.value === amb)?.label || amb,
       constraints: constraints || undefined,
       identifiedLimiters: limiters.length > 0 ? limiters : undefined,
       activeLevers: levers.length > 0 ? levers : undefined,
     };
-  }, [objective, raceName, raceDate, weeksAvailable, weeklyHours, sessionsPerWeek, ambition, constraints]);
+  }, [objective, raceName, raceDate, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, ambition, constraints]);
 
   // Single athlete generation
   const handleGenerate = () => {
@@ -821,6 +823,21 @@ export default function AITrainingPlanPage() {
                     <Label>Séances/sem</Label>
                     <Input type="number" min={3} max={14} value={sessionsPerWeek} onChange={e => setSessionsPerWeek(e.target.value)} />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Max séances par jour</Label>
+                  <Select value={maxSessionsPerDay} onValueChange={setMaxSessionsPerDay}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 séance/jour max</SelectItem>
+                      <SelectItem value="2">2 séances/jour max (doubles)</SelectItem>
+                      <SelectItem value="3">3 séances/jour max (triples)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[10px] text-muted-foreground">
+                    IM/70.3 Elite : 3 recommandé • Age Group : 2 • Finisher : 1
+                  </p>
                 </div>
 
                 <div className="space-y-2">
