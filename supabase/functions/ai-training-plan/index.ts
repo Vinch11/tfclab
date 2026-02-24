@@ -328,11 +328,94 @@ Règles doubles séances :
 - 1 jour repos complet/sem
 - Jamais 2 séances clés le même jour sauf brique planifiée
 
-### Périodisation par Objectif
-**IM (16-24 sem) :** Base (4-6s, Force+VLamax↓+technique nat) → Build (4-6s, sweet spot+Train Low+Gut) → Spécifique (4-6s, race-pace+briques+OWS) → Taper (2-3s, -40%→-60%)
-**70.3 (12-16 sem) :** Base (3-4s) → Build (3-4s, seuil+SFR+CSS) → Spécifique (3-4s, race-pace+transitions) → Taper (10-14j)
-**Marathon (12-20 sem) :** Base (4-6s, volume+renfo) → Build (4-6s, seuil+SL progressive) → Spécifique (3-4s, allure marathon+simulation) → Taper (2-3s)
-**Semi (8-12 sem) :** Base+VMA (3-4s) → Seuil+allure (3-4s) → Spécifique (2-3s) → Taper (7-10j)
+### Périodisation Détaillée par Objectif — Méthodologies Élite
+
+#### IRONMAN (16-24 sem) — Modèle Dan Lorang / Reverse Periodization
+- **Phase 1 — Base Intensive (4-6 sem)** : Reverse perio = inclure dès maintenant des intervalles VO2max courts vélo (5×4min @115% FTP) + natation technique intensive. Force max 2x/sem (Rønnestad). VLamax↓ via Z2 longue à jeun (Train Low). Volume = 70% du peak.
+  - Séances clés : 🔑 VO2max vélo courte + 🔑 SL vélo Z2 Train Low + 🔑 Force max squat/deadlift
+  - Natation : 4-5x/sem, focus drill + CSS. CAP : 3x/sem EF + tempo léger
+- **Phase 2 — Build Endurance (4-6 sem)** : Sweet spot vélo dominant (2-3×20-30min @88-92% FTP). Briques vélo→CAP introduites (1x/sem). CSS natation progression. Gut Training démarre 30-40g/h.
+  - Séances clés : 🔑 Sweet spot long + 🔑 Brique vélo→CAP + 🔑 CSS seuil natation
+  - Volume = 85% du peak. Premières simulations ravitaillement
+- **Phase 3 — Spécifique Race-Pace (4-6 sem)** : Briques race-pace simulation (vélo @78% FTP + CAP @allure IM). OWS race-pace. SL vélo 5-6h avec Gut 60-80g/h. Volume = peak.
+  - Séances clés : 🔑 Brique race-pace simulation + 🔑 SL vélo 5h+ Gut Training + 🔑 OWS race-pace
+  - Force = maintien 1x/sem. 1-2 simulations complètes (nat+vélo+CAP enchaînés)
+- **Phase 4 — Taper (2-3 sem)** : Mujika exponentiel. Sem -2 : -40% volume, maintien intensité (rappels 3×8min @race-pace). Sem -1 : -60% volume. Activation J-2 (brique courte 45min). Gut test final.
+  - Carb loading J-3 à J-1 : 8-12g/kg/j. Dernière SL J-10. Dernière intensité vraie J-5.
+
+#### 70.3 (12-16 sem) — Modèle Lorang/Iden/Haug
+- **Phase 1 — Base (3-4 sem)** : Volume Z2 + force max + technique natation. Reverse perio légère : blocs courts VO2max vélo 1x/sem. Train Low 2x/sem.
+  - Séances clés : 🔑 VO2max vélo (4×4min @115% FTP) + 🔑 SL vélo Z2 2h30 + 🔑 Force max
+- **Phase 2 — Build (3-4 sem)** : Seuil vélo prolongé (2×20min @90-95% FTP). SFR. CSS blocs natation. Tempo CAP allure 70.3. Gut Training 40-60g/h. Premières briques.
+  - Séances clés : 🔑 Seuil vélo prolongé + 🔑 Tempo CAP allure 70.3 + 🔑 CSS blocs natation
+- **Phase 3 — Spécifique (3-4 sem)** : Race-pace simulation complète. Briques vélo @82-85% FTP + CAP @allure 70.3. OWS race-pace. Gut 60-75g/h.
+  - Séances clés : 🔑 Simulation 70.3 complète + 🔑 Race-pace blocs natation + 🔑 Brique seuil
+- **Phase 4 — Taper (10-14j)** : -35% volume sem 1, -55% sem 2. Rappels courts @race-pace. Activation J-2.
+
+#### MARATHON (12-20 sem) — Modèle Canova/Kipchoge/Daniels Hybride
+- **Phase 1 — Introductive/Base (4-6 sem)** : Volume Z2 progressif (+5-8%/sem). Renfo force max 2x/sem (Rønnestad). Introduction allure marathon courte dès sem 2 (3-5km @AM dans SL). Fartlek naturel. Cadence 175-185spm.
+  - Séances clés : 🔑 SL progressive (20→26km) + 🔑 Force max + 🔑 Introduction tempo AM court
+  - Volume : 60→80km/sem (AG), 80→120km/sem (Competitor), 100→150km/sem (Elite)
+- **Phase 2 — Fundamental/Build (4-6 sem)** : Seuil continu long (Norvégienne : 2×20min @seuil). SL progressive avec finish @AM. Canova : Fast Continuous Run (15km @AM -10s). Augmenter volume @allure spécifique.
+  - Séances clés : 🔑 Seuil long (2×20min→1×40min) + 🔑 SL progressive neg split + 🔑 Fast Continuous Run
+  - Norvégienne si TTE < 50min : 1 double seuil/sem (Competitor), 2 doubles (Elite)
+- **Phase 3 — Spécifique (3-4 sem)** : Canova Special Blocks (journée bloc : matin 15km @AM + soir 10km progressive). SL simulation marathon (30-35km avec finish @AM). Variation of Pace. Volume @allure spécifique = maximum.
+  - Séances clés : 🔑 SL simulation marathon + 🔑 Bloc spécifique Canova + 🔑 Allure marathon continu 40-60min
+  - Gut Training : 30-45g/h en SL. Simulation ravitaillement identique au jour J
+- **Phase 4 — Taper (2-3 sem)** : Mujika. Sem -2 : -40% volume, rappels AM (3×8min). Sem -1 : -60%, activation J-2 (20min dont 10min @AM). Dernière SL J-14 à J-10. Dernière VMA/seuil J-7. Carb loading J-3.
+  - Race Week : L repos, Ma 8km dont 3×3min @AM, Me 6km EF, J repos, V 5km EF + 4×100m strides, S carb loading + visualisation, D = Jour J
+
+#### SEMI-MARATHON (8-14 sem) — Modèle Norvégien/Hassan/Daniels
+- **Phase 1 — Base + VMA (3-4 sem)** : Volume Z2 + introduction VMA courte (30/30 Billat). Renfo force 2x/sem. Cadence 178-186spm. SL 14→18km progressive.
+  - Séances clés : 🔑 VMA courte (30/30 ×15-20) + 🔑 SL progressive + 🔑 Force max
+  - Volume : 35→50km/sem (AG), 50→75km/sem (Competitor), 70→110km/sem (Elite)
+- **Phase 2 — Seuil + Allure (3-4 sem)** : Seuil continu long (2×15→2×20min @seuil). Tempo allure semi (3×3km @allure semi). Norvégienne si Competitor+ : 1 double seuil/sem. SL 18→22km avec finish.
+  - Séances clés : 🔑 Seuil long continu + 🔑 Allure semi blocs + 🔑 SL avec finish tempo
+  - Introduction VMA longue (5×1000m @VMA) pour maintien VO2max
+- **Phase 3 — Spécifique (2-3 sem)** : Allure semi dominante. 2×5km @allure semi. SL simulation semi (22km dont 10km @allure semi). Fartlek mixte seuil/semi.
+  - Séances clés : 🔑 SL simulation semi + 🔑 Allure semi long (2×5km) + 🔑 Seuil + lactate tolerance combo
+- **Phase 4 — Taper (7-10j)** : -35% sem 1, -55% derniers 4j. Rappels courts @allure semi (3×5min). Activation J-2.
+  - Race Week : L repos, Ma 8km dont 2×5min @allure semi, Me 6km EF, J repos, V 5km EF + strides, S repos + carb loading, D = Jour J
+
+#### 10K (8-12 sem) — Modèle Cheptegei/Daniels/Billat
+- **Phase 1 — Base + VO2max (3-4 sem)** : Volume Z2 progressif. VMA courte (30/30 Billat) + VMA longue (5×1000m). Renfo force + pliométrie. SL 14→18km.
+  - Séances clés : 🔑 VMA longue (5×1000m @VMA) + 🔑 SL progressive + 🔑 Force + pliométrie
+  - Volume : 30→45km/sem (AG), 45→70km/sem (Competitor), 80→120km/sem (Elite)
+- **Phase 2 — Seuil + Tempo (2-3 sem)** : Seuil continu (2×15min→1×30min). Tempo allure 10K (5×1km @allure 10K). VMA longue maintien. SL 18→22km.
+  - Séances clés : 🔑 Seuil continu + 🔑 Allure 10K blocs + 🔑 SL avec finish rapide
+- **Phase 3 — Spécifique (2-3 sem)** : Allure 10K dominante (5×2000m @allure 10K). Seuil + lactate tolerance combo (Ingebrigtsen : 20min @seuil + 4×400m @110% VMA). SL avec finish @allure 10K.
+  - Séances clés : 🔑 Allure 10K long + 🔑 Seuil + lactate tolerance + 🔑 SL finish @allure 10K
+- **Phase 4 — Taper (5-7j)** : -40% volume, maintien 2 rappels courts. Activation J-2 (6km dont 4×400m @allure 10K).
+  - Race Week : L repos, Ma 8km dont 4×800m @allure 10K, Me 6km EF, J 5km EF + strides, V repos, S activation 4km + 4×200m, D = Jour J
+
+#### 5K (6-10 sem) — Modèle Ingebrigtsen/Coe/Billat
+- **Phase 1 — Base + VMA (2-3 sem)** : Volume Z2. VMA courte explosive (12×400m @VMA r=60s). Pliométrie + force. SL 12→16km.
+  - Séances clés : 🔑 VMA courte explosive + 🔑 SL progressive + 🔑 Pliométrie explosive
+  - Volume : 25→40km/sem (AG), 40→60km/sem (Competitor), 70→100km/sem (Elite)
+- **Phase 2 — VO2max + Seuil (2-3 sem)** : Billat 3min/3min (5×3min @100-105% VMA). Seuil continu (20min). Côtes VMA. SL avec finish.
+  - Séances clés : 🔑 Billat VO2max + 🔑 Seuil continu + 🔑 SL avec finish @allure 10K
+- **Phase 3 — Spécifique 5K (2-3 sem)** : Allure 5K dominante (5×1000m @allure 5K). Seuil + lactate tolerance (Ingebrigtsen). Fartlek mixte. Répétitions R (6×400m @R-pace Daniels).
+  - Séances clés : 🔑 Allure 5K blocs + 🔑 Seuil + lactate tolerance + 🔑 SL finish @allure 5K
+- **Phase 4 — Taper (5-7j)** : -40% volume. 2 rappels @allure 5K courts (3×600m). Activation J-2.
+  - Race Week : L repos, Ma 6km dont 3×600m @allure 5K, Me 5km EF, J repos, V 4km EF + 3×100m strides, S repos, D = Jour J
+
+#### TRAIL COURT <42km (8-14 sem) — Modèle Jornet/Walmsley
+- **Phase 1 — Base (3-4 sem)** : Volume D+ progressif. Force excentrique 2x/sem. VMA côtes. Proprioception.
+- **Phase 2 — Build (3-4 sem)** : Seuil montée long (3×15-20min). Descente technique rapide. SL D+ progressive.
+- **Phase 3 — Spécifique (2-3 sem)** : Simulation terrain cible. Ultra-longue 4-5h. VMA côtes + descente technique.
+- **Phase 4 — Taper (7-10j)** : -35% volume, maintien rappels seuil montée courts.
+
+#### TRAIL ULTRA >42km / UTMB (16-24 sem) — Modèle D'Haene/Dauwalter/Blanchard
+- **Phase 1 — Base Aérobie (5-6 sem)** : Volume D+ massif en Z2. Force excentrique lourde 2x/sem. Proprioception avancée. Gut Training démarrage.
+- **Phase 2 — Build Montagne (4-6 sem)** : Seuil montée long progressif. SL D+ 4→6h. Back-to-back weekends (SL samedi + SL dimanche). Descente technique intensive.
+- **Phase 3 — Spécifique Ultra (4-6 sem)** : Simulations ultra 6-8h. Simulation nuit obligatoire (1-2x). Ravitaillement complet testé. Back-to-back avec cumul D+.
+- **Phase 4 — Taper (2-3 sem)** : Sem -2 : -40%, rappels seuil montée courts. Sem -1 : -60%, activation J-2 (1h vallonné léger). UTMB taper = 14-21j.
+
+#### START TO RUN (12-16 sem) — Programme Progressif Débutant
+- **Phase 1 — Marche dominante (4 sem)** : 70% marche / 30% course. 3 séances/sem max. Renfo PPG 2x/sem. Jamais 2 CAP consécutifs.
+- **Phase 2 — Alternance (4 sem)** : 50/50 marche/course. 3-4 séances/sem. Progression +5min course/sem. Renfo maintien.
+- **Phase 3 — Course dominante (4 sem)** : 70% course / 30% marche. Objectif 30min continu en fin de phase. SL douce 35-40min.
+- **Phase 4 — Course continue (4 sem)** : 30-45min continu. Introduction tempo léger (2-3min @RPE 6). SL 45-50min.
 
 ## SEMAINES-TYPES ÉLITE — RÉFÉRENCE (Few-Shot)
 Utilise ces micro-cycles réels comme modèles de qualité. Adapte-les au niveau de l'athlète.
@@ -775,6 +858,139 @@ Utilise ces micro-cycles réels comme modèles de qualité. Adapte-les au niveau
 | Samedi | CAP/Trail | Ultra-simulation montagne | 7h Z2 montagne alpine +3000m D+. Ravitaillement complet (solide+liquide 60g/h). Simulation nuit si possible (départ 5h). Gestion fatigue mentale |
 | Dimanche | Vélo + Mobilité | Récupération active | Vélo 1h15 Z1 plat (55% FTP max). Aucun impact. Foam roller 20min. Étirements 15min. Compression toute la journée |
 ⚠️ Ultra UTMB : SL 7h = simulation non-négociable en phase spécifique. Inclure 1 simulation nuit. Excentrique = prévention #1 pour descente. Cross-training vélo uniquement en récupération.
+
+### Exemple : 5K Age Group — Semaine Build (40km, 5h30)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, foam roller optionnel |
+| Mardi | CAP | 🔑 VMA courte Billat | 15min éch. 2 séries de (8×30s @VMA / 30s trot). r=4min entre séries. 10min RC. 9km, 48min |
+| Mercredi | Renfo | PPG + pliométrie légère | Squats 3×12, fentes 3×10, box jumps 3×6, gainage 3×35s, pompes 3×12, corde à sauter 3×30s. 35min |
+| Jeudi | CAP | EF endurance | 45min Z2 (5:20/km). 8.5km. Cad 176spm. Terrain plat. Conversation possible |
+| Vendredi | CAP | 🔑 Seuil tempo | 50min dont 2×10min @seuil (4:30/km si VMA 14) r=3min trot. 9km |
+| Samedi | CAP | SL progressive | 1h10 (12km). Km 1-8 @5:50/km, km 8-11 @5:10/km, km 11-12 @4:45/km |
+| Dimanche | Mobilité | Mobilité + étirements | Foam roller 15min, mobilité hanches/chevilles, étirements actifs. 25min |
+⚠️ 5K Age Group : 4 CAP/sem max. SL modérée (12-14km). VMA = séance clé #1, seuil = clé #2. Pliométrie légère pour économie. Pas de double séance.
+
+### Exemple : 10K Finisher — Semaine Build (30km, 4h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, hydratation |
+| Mardi | CAP | EF endurance | 40min Z2 (6:00/km). 7km. Cadence 172spm. Aisance respiratoire totale |
+| Mercredi | Renfo | PPG débutant+ | Squats 3×12, fentes 2×10, gainage 3×30s, chaise 3×25s, superman 2×10. 30min |
+| Jeudi | CAP | Tempo léger | 35min dont 2×8min @tempo (5:20/km) r=3min marche. 6km |
+| Vendredi | Repos | Repos complet | Repos ou marche 20min |
+| Samedi | CAP | SL douce | 55min Z2 (5:50/km). 9.5km. Terrain plat. Respiration nasale quand possible |
+| Dimanche | Mobilité | Étirements + foam roller | Foam roller 10min, étirements 15min. Détente |
+⚠️ 10K Finisher : 3 CAP/sem max. Aucune VMA. Tempo léger = seule intensité. SL = clé unique. Objectif = terminer confortablement.
+
+### Exemple : Marathon Finisher — Semaine Build (40km, 5h30)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, sommeil 8h+, hydratation |
+| Mardi | CAP | EF endurance | 50min Z2 (5:50/km). 8.5km. Cadence 172spm. Tout à Z2, rien au-dessus |
+| Mercredi | Renfo | PPG + core | Squats 3×12, fentes 3×10, gainage 3×35s, hip thrust 3×12, superman 3×10. 35min |
+| Jeudi | CAP | Tempo léger marathon | 45min dont 15min @allure marathon estimée (5:40/km pour sub-4h) r= 5min marche. 8km |
+| Vendredi | Repos | Repos complet | Repos ou marche 20min |
+| Samedi | CAP | 🔑 SL progressive | 1h40 (16km). Km 1-12 @6:10/km, km 12-16 @5:40/km. Ravitaillement testé 20g/h |
+| Dimanche | CAP | EF récupération | 30min Z1 très léger (6:15/km). 5km. Relâchement total |
+⚠️ Marathon Finisher : SL = seule vraie séance clé. Augmenter +1-2km/sem jusqu'à 28-30km max. Aucune VMA. Tempo marathon léger 1x/sem. Gut Training en SL dès sem 4. Objectif = terminer sans marcher.
+
+### Exemple : Semi-Marathon Élite Homme (Joshua Cheptegei style) — Semaine Spécifique (110km, 11h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | CAP | EF récupération | 50min Z1 (4:35/km). 11km. Relâchement complet |
+| Mardi matin | CAP | 🔑 Double Seuil Norvégien — Seuil Bas | 15min éch. 4×2km @3:20/km (seuil bas, RPE 7/10) r=1min30 trot. 15min RC. 19km |
+| Mardi soir | CAP | 🔑 Double Seuil Norvégien — Seuil Haut | 10min éch. 6×1200m @3:10/km (seuil haut, RPE 8/10) r=1min trot. 10min RC. 15km |
+| Mercredi | CAP | EF longue | 1h25 Z2 (4:05/km). 21km. Terrain plat. Récup double seuil |
+| Jeudi | CAP | 🔑 Allure semi blocs | 1h20 dont 3×3km @allure semi (3:00/km) r=2min trot. 19km. Cad 188spm |
+| Vendredi | CAP | EF récupération | 40min Z1 (4:40/km). 9km. Jambes fraîches |
+| Samedi | CAP | SL simulation semi | 22km dont km 1-14 @4:00/km, km 14-19 @3:15/km tempo, km 19-22 @3:00/km (allure semi). Neg split |
+| Dimanche | CAP + Renfo | EF + force Rønnestad maintien | 55min Z2 (4:10/km) 13km + Squat 2×4 @85%, hip thrust 3×8, core 3×45s. 35min |
+⚠️ Semi élite homme : double seuil norvégien = séance clé #1 (50min+ @seuil effectif). Allure semi = séance signature #2. SL avec finish = clé #3. Volume seuil hebdo = 50-60min pour élite.
+
+### Exemple : 70.3 Age Group Ambitieux — Semaine Build (12h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, foam roller |
+| Mardi matin | Natation | Endurance + technique | 400m éch drill. 1500m continu @1:40/100m Z2. 4×100m sprint r=20s. 200m RC. 2600m ~45min |
+| Mardi soir | Vélo | 🔑 Sweet spot | 1h30 dont 2×15min @88% FTP cad 88 r=5min Z2. Terrain plat |
+| Mercredi | CAP | EF endurance | 55min Z2 (5:10/km). 11km. Cad 176spm. Aisance |
+| Jeudi matin | Natation | CSS blocs | 300m éch. 6×200m @CSS r=15s. 200m RC. 2300m. 38min |
+| Jeudi soir | Renfo | Force + core | Squat 3×8 @70%, fentes 3×10, hip thrust 3×10, gainage 3×40s. 35min |
+| Vendredi | CAP | 🔑 Tempo allure 70.3 | 55min dont 2×12min @allure 70.3 (4:40/km) r=3min trot. 10km |
+| Samedi | Vélo | 🔑 SL endurance + Gut | 2h30 Z2 (65% FTP). Gut training 40g/h. Dernière 30min @72% FTP |
+| Dimanche | Brique douce | Vélo→CAP | Vélo 1h Z2 (65% FTP) + CAP 20min Z2 (5:00/km). Transition 3min. Gut 30g/h |
+⚠️ 70.3 Age Group : doubles limités à 2-3 jours/sem (nat matin + vélo/renfo soir). 1 brique/sem en phase build. SL vélo = séance clé #1. Pas de triples.
+
+### Exemple : IM Competitor — Semaine Spécifique (18h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, massage, foam roller |
+| Mardi matin | Natation | 🔑 CSS Race-Pace | 400m éch. 5×400m @1:25/100m (race-pace) r=15s. 200m RC. 3100m ~50min |
+| Mardi soir | Vélo | Sweet spot | 1h45 dont 2×20min @88-90% FTP cad 90 r=5min Z2 |
+| Mercredi matin | CAP | 🔑 Tempo allure IM | 1h10 dont 3×12min @allure IM (4:20/km, 82% VMA) r=3min trot. 14km |
+| Mercredi soir | Renfo | Force fonctionnelle | Squat 3×6 @75%, deadlift 3×5, hip thrust 3×10, core 4×45s. 40min |
+| Jeudi matin | Natation | Technique + OWS | 2500m : 500m drill + 2×800m OWS simulation. 42min |
+| Jeudi soir | Vélo | Endurance Z2 Train Low | 1h45 à jeun Z2 (65% FTP). Aucune intensité |
+| Vendredi | CAP | EF + strides | 50min Z2 (4:40/km) + 6×100m accélérations. 11km |
+| Samedi | Vélo | 🔑 SL longue + Gut Training | 4h Z2 vallonné (65-72% FTP). Gut 55g/h. Dernière 1h @73% FTP |
+| Samedi soir | Renfo | Core + prévention | Gainage 3×50s, pallof 3×12, étirements 15min. 25min |
+| Dimanche | Brique | 🔑 Vélo→CAP Race-Pace | Vélo 2h @76% FTP + CAP 35min @4:25/km. Gut 45g/h. Transition <3min |
+⚠️ IM Competitor : 12-14 séances/sem, 5-6 doubles. Nat 3-4x, Vélo 3-4x, CAP 3x, Renfo 2x. Pas de triples. Briques 1-2x/sem en spécifique.
+
+### Exemple : Race Week Marathon — Semaine Taper J-7 (35km, 4h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération totale. Début carb loading J-6 progressif (6g/kg/j) |
+| Mardi | CAP | Rappel allure marathon | 35min dont 3×5min @allure marathon (ex: 4:15/km) r=3min trot. 8km. Sensation de vitesse |
+| Mercredi | CAP | EF légère | 30min Z1 (5:15/km). 6km. Ultra-relâché. Cadence 178spm |
+| Jeudi | Repos | Repos complet | Carb loading renforcé 8-10g/kg/j. Réduire fibres/graisses. Hydratation ++. Préparer matériel |
+| Vendredi | CAP | Activation | 25min dont 15min Z1 (5:00/km) + 4×100m strides + 6min Z1 retour. 5km. Jambes vives |
+| Samedi | Repos | Repos complet | Carb loading 10-12g/kg/j. Repas marathon J-1 testé en entraînement. Visualisation course. Sommeil 9h |
+| Dimanche | Course | 🔑 JOUR J — Marathon | Petit-déj J-3h (2-3g/kg glucides). Hydratation 5-7mL/kg J-4h. Caféine 3-5mg/kg J-1h. Exécuter le plan de pacing. Gut 30-60g/h selon entraînement |
+⚠️ Race Week Marathon : volume = 25-40% du peak. ZÉRO séance longue. ZÉRO VMA/seuil (sauf rappels courts ≤5min). Carb loading = 3 jours progressifs. Le samedi = repos mental absolu.
+
+### Exemple : Race Week 70.3 — Semaine Taper J-7 (8h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération. Vérification matériel vélo |
+| Mardi matin | Natation | Rappel CSS court | 300m éch. 3×200m @race-pace r=20s. 200m RC. 1500m. 25min. Sensation de glisse |
+| Mardi soir | Vélo | Rappel race-pace | 50min dont 2×6min @80% FTP r=4min Z2. Cadence 90. Le reste Z2 léger |
+| Mercredi | CAP | Rappel allure 70.3 | 35min dont 2×5min @allure 70.3 r=3min trot. 7km. Fraîcheur |
+| Jeudi matin | Natation | OWS légère | 1200m OWS Z2 : navigation, respiration bilat, départ simulé 200m. 20min. Confiance |
+| Jeudi soir | Renfo | Activation légère | Gainage 2×30s, élastiques 2×12, mobilité épaules + chevilles 10min. 15min max |
+| Vendredi | Repos | Repos complet | Carb loading 8-10g/kg/j. Préparation sacs transition. Zéro effort |
+| Samedi | Brique | Activation pré-course | Vélo 30min Z2 + CAP 10min Z2 (4:30/km). Gut test final 50g/h. 45min totale. Check matériel final |
+| Dimanche | Course | 🔑 JOUR J — 70.3 | Petit-déj J-3h. Gut 50-75g/h (validé en entraînement). Pacing discipliné : natation contrôlée, vélo @80-85% FTP, CAP neg split |
+⚠️ Race Week 70.3 : rappels courts @race-pace dans chaque sport (5-8min max). Volume total = 30-40% du peak. OWS J-3 pour confiance + navigation. Activation J-1.
+
+### Exemple : Jim Walmsley — Semaine Build Trail Ultra US Style (20h, 160km, +4000m D+)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, foam roller, auto-massage mollets/quadriceps |
+| Mardi matin | CAP/Trail | 🔑 Tempo trail progressif | 1h40 dont 4×12min @tempo trail (allure marathon vallonné) pente ondulée r=3min trot. 22km, +600m D+ |
+| Mardi soir | Renfo | Force max + excentrique | Squat 4×5 @80%, deadlift 3×5, step-ups lestés 3×10, Nordic curl 3×5, core 4×45s. 50min |
+| Mercredi | CAP/Trail | EF longue terrain | 2h Z2 sentier technique (5:10/km). +500m D+. Ravitaillement 40g/h. 23km |
+| Jeudi | CAP | EF récupération plat | 50min Z1 (5:00/km). Route plate. 10km. Récup active. Legs easy |
+| Vendredi | CAP/Trail | 🔑 VO2max côtes + descente | 1h30 dont 10×90s côte raide (10-15%) @VO2max r=descente trot + 5×3min descente technique @90% vitesse max. +700m D+ |
+| Samedi | CAP/Trail | 🔑 Back-to-back SL #1 | 4h30 montagne Z2. +2000m D+. Ravitaillement complet 55g/h (solide + liquide). Finir en pouvant relancer |
+| Dimanche | CAP/Trail | Back-to-back SL #2 | 3h montagne Z2. +1200m D+. Jambes fatiguées du samedi = simulation fin d'ultra. Ravitaillement 50g/h. Effort géré |
+⚠️ Walmsley style : le back-to-back weekend est la signature de l'entraînement ultra US. Samedi long + dimanche moyen sur jambes fatiguées = simulation de la 2e moitié d'ultra. Volume D+ = 3500-5000m/sem en phase build.
+
+### Exemple : Geoffrey Kamworor — Semaine Spécifique Semi-Marathon Kenyan (140km, 12h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | CAP | EF récupération | 55min Z1 (4:30/km). 12km. En groupe, allure conversationnelle |
+| Mardi matin | CAP | 🔑 Track day — Allure semi | 20min éch. 6×2000m @2:52/km (allure semi) r=90s trot. 15min RC. 26km total |
+| Mardi soir | CAP | Shake-out | 30min Z1 (4:20/km). 7km. Relâchement |
+| Mercredi matin | CAP | EF longue | 1h40 Z2 (3:55/km). 26km. Altitude 2400m (Iten). Terrain ondulé |
+| Mercredi soir | CAP | Shake-out | 25min Z1 (4:30/km). 6km |
+| Jeudi | CAP | Fartlek kenyan terrain | 1h30 dont accélérations naturelles en côte : 10-12 surges de 2-3min @RPE 8-9 sur terrain vallonné. Récup en descente. 22km |
+| Vendredi | CAP | EF récupération | 45min Z1 (4:40/km). 10km |
+| Samedi | CAP | 🔑 SL tempo kenyan | 2h (30km). Premiers 20km @3:50/km (EF haut), derniers 10km progressif @3:20→3:00/km. Neg split agressif |
+| Dimanche matin | CAP | EF + drills | 1h Z2 (4:00/km). 15km + drills techniques (A-skip, high knees) 8min + 6×80m strides |
+| Dimanche soir | Renfo | Core léger | Gainage 3×40s, squats poids corps 3×15, pompes 3×15. 20min |
+⚠️ Kamworor/kenyan semi : track day = seule séance chronométrée. Le reste = feeling + terrain. Volume 130-150km/sem à 2400m d'altitude. Pas de lactatemètre, pas de cardio, feeling pur. La SL tempo kenyan avec neg split brutal = séance signature.
 
 ## RÈGLES DE PROGRESSION ADAPTATIVES PAR NIVEAU (CRITIQUE)
 
