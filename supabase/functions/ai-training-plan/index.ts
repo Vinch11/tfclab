@@ -148,6 +148,87 @@ Règles doubles séances :
 **Marathon (12-20 sem) :** Base (4-6s, volume+renfo) → Build (4-6s, seuil+SL progressive) → Spécifique (3-4s, allure marathon+simulation) → Taper (2-3s)
 **Semi (8-12 sem) :** Base+VMA (3-4s) → Seuil+allure (3-4s) → Spécifique (2-3s) → Taper (7-10j)
 
+## SEMAINES-TYPES ÉLITE — RÉFÉRENCE (Few-Shot)
+Utilise ces micro-cycles réels comme modèles de qualité. Adapte-les au niveau de l'athlète.
+
+### Exemple : Jan Frodeno — Semaine Build IM (22h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, mobilité 30min, foam roller |
+| Mardi matin | Natation | CSS Dégressif | 400m éch. 4×(200-300-200) @1:22/100m r=15s. 200m RC. 3800m ~58min |
+| Mardi soir | Vélo | Sweet Spot vallonné | 2h30 dont 3×20min @88-92% FTP (280-295W) cad 90. Z2 entre |
+| Mercredi matin | CAP | Tempo allure IM | 1h15 dont 3×12min @4:05/km (82% VMA) r=3min trot. Cad 182spm |
+| Mercredi soir | Renfo | Force fonctionnelle | Squat 4×6 @75%, fentes bulgares 3×8, deadlift 3×5, core 15min. 45min |
+| Jeudi matin | Natation | Seuil + technique | 300m éch drill. 5×400m @1:20/100m r=25s. 8×50m rattrapé. 200m RC. 4000m |
+| Jeudi soir | Vélo | Endurance Z2 Train Low | 2h à jeun Z2 (195-220W, 68% FTP), cad 88. Aucune intensité |
+| Vendredi matin | CAP | EF vallonnée | 1h Z2 (4:45/km), 180spm, terrain vallonné +200m D+. Sensation aisée |
+| Vendredi soir | Natation | Pull aérobie + OWS | Pull buoy 2500m Z2 @1:28/100m. 4×200m OWS simulation. 3200m |
+| Samedi | Vélo | Sortie longue + Gut Training | 5h Z2 vallonné (200-230W). Gut training 60g/h glucides. Dernière heure @75% FTP |
+| Samedi soir | Renfo | Core + prévention | Gainage 4×60s, pallof press 3×12, élastiques hanches, étirements. 30min |
+| Dimanche | Brique | Vélo→CAP Race-Pace | Vélo 2h30 @78% FTP (250W) + enchaînement CAP 45min @4:10/km. Gut 50g/h |
+
+### Exemple : Eliud Kipchoge — Semaine Build Marathon (170km, 13h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | CAP | EF récupération | 50min Z1 (5:15/km), 178spm. Aisance totale, conversation possible |
+| Mardi matin | CAP | Tempo marathon | 1h30 dont 2×25min @allure marathon (2:55/km) r=5min trot. 26km total |
+| Mardi soir | Renfo | Pliométrie + core | Box jumps 4×8, drop jumps 3×6, fentes sautées 3×10, gainage 4×45s. 40min |
+| Mercredi | CAP | EF longue vallonnée | 1h40 Z2 (4:10/km), terrain ondulé. 25km. Cadence 185spm |
+| Jeudi matin | CAP | Fartlek kenyan | 1h20 dont pyramide 2-3-5-7-5-3-2min @90-95% VMA, récup trot égale. 20km |
+| Jeudi soir | Renfo | Force + prévention | Squat 3×5 @80%, deadlift 3×5, single leg 3×8, excentrique mollets 3×15. 35min |
+| Vendredi | CAP | EF récupération | 45min Z1 très léger (5:20/km). Jambes fraîches |
+| Samedi | CAP | SL spécifique | 32km dont derniers 12km progressif : 4:00→3:20/km. Neg split. Gut 40g/h |
+| Dimanche | CAP | EF + strides | 1h Z2 (4:30/km) + 6×100m accélérations. Renfo core 15min post-run |
+
+### Exemple : Jakob Ingebrigtsen — Semaine Build 5K/10K (130km, 11h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération totale, mobilité, sommeil |
+| Mardi matin | CAP | VMA longue | 15min éch. 6×1200m @3:00/km (98% VMA) r=2min30 trot. 15min RC. 18km |
+| Mardi soir | Renfo | Circuit explosif | Plio 4×8, squat sauté 3×10, core 4×60s, élastiques hanches. 35min |
+| Mercredi | CAP | EF endurance | 1h30 Z2 (3:55/km), 190spm. 23km. Terrain plat |
+| Jeudi | CAP | Seuil + tempo | 1h20 dont 2×20min @seuil (3:15/km, 88% VMA) r=4min trot. 20km |
+| Vendredi | CAP | EF récupération | 50min Z1 (4:20/km). Très léger, sensation fraîche |
+| Samedi | CAP | SL progressive | 1h50 (28km). Premiers 20km @4:00/km, derniers 8km @3:30→3:10/km. Neg split |
+| Dimanche | CAP | EF + côtes | 1h10 Z2 (4:00/km) dont 8×150m côte 8% @effort 5K r=descente trot. 17km |
+
+### Exemple : Semaine Base Semi-Marathon Age Group (55km, 7h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, étirements optionnels |
+| Mardi | CAP | VMA courte | 20min éch Z2. 2×(10×30s @VMA / 30s trot). 10min RC. 12km total, 55min |
+| Mercredi | Renfo | Circuit PPG | Squats 3×15, fentes 3×12, gainage 3×45s, pompes 3×12, chaise 3×30s. 40min |
+| Jeudi | CAP | EF vallonnée | 55min Z2 (5:30/km), cadence 175spm, terrain vallonné léger +100m D+. 10km |
+| Vendredi | CAP | Récupération active Z1 | 30min très léger Z1 (6:00/km). Ou vélo Z1 45min si jambes lourdes |
+| Samedi | CAP | SL progressive | 1h30 (16km). Premiers 10km @5:40/km, derniers 6km @5:00→4:40/km |
+| Dimanche | Renfo | Mobilité + core | Foam roller 15min, mobilité hanches/chevilles, gainage 3×40s. 30min |
+
+## RÈGLES DE PROGRESSION PAR PHASE (CRITIQUE)
+
+### Progression Volume
+- **Base → Build** : +5-8% volume/sem max. Jamais +10% d'une semaine à l'autre
+- **Sortie longue CAP** : +2km/sem (ex: 16→18→20→22km). Palier 2 sem si >25km
+- **Sortie longue vélo** : +30min/sem (ex: 3h→3h30→4h→4h30)
+- **Décharge** : toutes les 3-4 sem, -30-40% volume. Maintenir intensité courte
+
+### Progression Intensité
+- **Seuil** : augmenter durée des blocs (+2-3min/bloc par phase), pas l'allure
+- **VMA** : augmenter nombre de répétitions (+2 reps/2 sem), pas l'allure
+- **Sweet spot vélo** : augmenter durée blocs (15→20→25→30min)
+- **Tempo CAP** : augmenter durée (3×10min → 3×12min → 2×20min → 1×40min)
+
+### Spécificité Progressive
+- **Phase Base (sem 1-4)** : 85% Z1-Z2, 15% Z4-Z5. Focus technique + volume
+- **Phase Build (sem 5-10)** : 80% Z1-Z2, 20% Z4-Z5. Blocs seuil/sweet spot plus longs
+- **Phase Spécifique (sem 11-fin)** : 75% Z1-Z2, 25% intensité. Séances race-pace, simulations
+- **Taper** : -40% volume sem 1, -60% sem 2. Garder 2-3 rappels intensité courts
+
+### Différences Clés par Niveau
+- **Elite/Competitor** : doubles séances, volume élevé, progression rapide, blocs d'intensité concentrés
+- **Age Group** : séances simples majoritaires, 1-2 doubles/sem max, progression conservative
+- **Finisher** : jamais de doubles, progression très graduelle, priorité à la régularité et la prévention
+- **StartToRun** : marche/course, jamais de fractionné avant de courir 30min continu
+
 ## BIBLIOTHÈQUE DE SÉANCES — Pioche dans cette variété, NE RÉPÈTE JAMAIS le même contenu
 
 ### Natation
@@ -159,6 +240,8 @@ Règles doubles séances :
 - **Sprint** : 8-12×50m @max r=20s. Ou 6×100m @90% r=30s
 - **OWS** : navigation bouée, drafting, départs beach
 - **Aérobie pull** : pull buoy 2-3km @Z2, focus glisse
+- **Endurance technique** : 3km alternance 200m drill / 200m nage @Z2. Focus position corps
+- **Descente** : 8×100m (départ @CSS+5s, finir @CSS-3s) r=15s. Apprendre le pacing
 
 ### Vélo
 - **Z2** : 2-5h 65-75% FTP, cadence 85-95, terrain vallonné
@@ -169,6 +252,8 @@ Règles doubles séances :
 - **Over-Under** : 4×(4min @105% / 3min @85%) r=5min
 - **Race-pace** : 1-2h @80-85% FTP + gut training
 - **Train Low** : Z2 à jeun 1h30-2h (JAMAIS d'intensité)
+- **Tempo progressif** : 1h @75% FTP → 30min @85% → 15min @90%. Neg split puissance
+- **Endurance vallonnée** : 3-4h Z2 avec côtes naturelles, ne pas forcer en montée, cadence libre
 
 ### Course à Pied
 - **EF** : 45-90min Z1-Z2, cadence 175-185 spm
@@ -181,6 +266,10 @@ Règles doubles séances :
 - **SL progressive** : neg split, derniers 30min @allure course
 - **SL spécifique** : 30km avec 3×5km @allure marathon
 - **Brique** : vélo→CAP enchaînement, premiers km @allure course
+- **Kenyan hills** : 1h15 vallonné avec accélérations naturelles en côte, récup en descente
+- **Tempo continu** : 40-60min @allure semi/marathon sans pause. Simulation mentale
+- **Strides** : 6-10×100m accélérations progressives après EF. Coordination neuromusculaire
+- **Allure spécifique** : ex Semi → 3×3km @allure semi r=2min. Ex 10K → 5×2km @allure 10K r=90s
 
 ### Renforcement
 - **Force max** : squat/deadlift/fentes 3-5×5 @80-85% 1RM
@@ -189,6 +278,8 @@ Règles doubles séances :
 - **Core** : planche 3×45s, pallof press, dead bug, anti-rotation
 - **Mobilité** : foam roller, hanches/chevilles, 30min
 - **Prévention** : élastiques hanches, excentrique mollets Alfredson
+- **Force endurance** : circuit 4×(20 squats + 20 fentes + 45s gainage + 15 step-ups). Repos 90s entre tours
+- **Excentrique trail** : descentes contrôlées, squats excentriques 4s, single leg 3×10
 
 ## Format de Sortie OBLIGATOIRE
 
