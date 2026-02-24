@@ -417,7 +417,7 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
         hasRedFlags: false,
       },
       discipline: athlete.goal as 'IM' | '703' | 'marathon' | 'semi' | '10k' | 'cycling' | 'trail',
-      ambition: 'competitor',
+      ambition: ((athlete.refs as Record<string, any>)?.ambition as 'finisher' | 'age_group' | 'competitor' | 'elite') || 'age_group',
       daysToRace: null,
     };
     
