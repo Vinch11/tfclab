@@ -274,6 +274,47 @@ Utilise ces micro-cycles réels comme modèles de qualité. Adapte-les au niveau
 | Samedi | CAP | SL marathon | 2h10 (30km). Premiers 22km @4:30/km, derniers 8km @3:45→3:30/km. Eau + 30g/h |
 | Dimanche | CAP | EF + core | 1h Z2 (4:30/km) 14km + gainage 4×45s, dead bug 3×10, pallof 3×12 post |
 
+### Exemple : Molly Seidel — Semaine Build Marathon avec Cross-Training (130km CAP + 2h vélo, 12h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, foam roller, sommeil prioritaire |
+| Mardi matin | CAP | Tempo marathon long | 1h40 dont 3×15min @allure marathon (3:35/km) r=3min trot. 24km. Cad 180spm |
+| Mardi soir | Renfo | Force + pliométrie | Hip thrust 3×10, squat 3×6 @75%, box jumps 3×8, core 4×45s. 40min |
+| Mercredi | CAP | EF récupération | 55min Z1 (5:00/km). Très léger. Respiration nasale possible. 11km |
+| Jeudi matin | CAP | Seuil progressif | 1h25 dont 20min @3:35/km + 15min @3:25/km + 10min @3:15/km. Neg split. 20km |
+| Jeudi soir | Vélo | Cross-training Z1-Z2 | 1h vélo Z1-Z2 (65% FTP max). Récupération active sans impact. Cadence libre 80-90 |
+| Vendredi | CAP | EF + strides | 50min Z2 (4:40/km) + 6×100m accélérations. 12km. Sensation de fraîcheur |
+| Samedi | CAP | SL spécifique | 2h15 (32km). Km 1-20 @4:30/km, km 20-28 @3:50/km, km 28-32 @3:35/km. Gut 35g/h |
+| Dimanche | Vélo + Renfo | Cross-training + mobilité | Vélo 1h Z1 (récup active, décharger les jambes) + mobilité 20min hanches/chevilles/chaîne post |
+⚠️ Cross-training vélo = 2 séances Z1-Z2 uniquement, jamais d'intensité, rôle = récupération active + volume aérobie sans impact
+
+### Exemple : Courtney Dauwalter — Semaine Spécifique Trail Ultra avec Cross-Training (18h, +5000m D+)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, auto-massage, hydratation, sommeil 9h |
+| Mardi matin | CAP/Trail | Intervalles montée | 2h dont 6×8min montée @seuil (900m/h D+) r=4min descente facile. +800m D+ |
+| Mardi soir | Renfo | Excentrique + core | Squat excentrique 5s 4×8, fentes descente 3×12, step-downs 3×10, planche 4×50s. 45min |
+| Mercredi | CAP/Trail | Endurance longue D+ | 4h montagne Z2. +1800m D+. Ravitaillement 50g/h. Pôles optionnels descente technique |
+| Jeudi | Vélo | Cross-training récup | 1h15 vélo Z1 (60% FTP). Récupération active. Cadence 80-85. Zéro intensité |
+| Vendredi matin | CAP/Trail | Tempo vallonné | 1h30 dont 4×10min @allure tempo trail (-15s/km vs seuil) terrain ondulé. 18km |
+| Vendredi soir | Renfo | Proprioception + force | Bosu squats 3×12, single leg deadlift 3×10, jump lunges 3×8, bande hanches 3×15. 35min |
+| Samedi | CAP/Trail | Ultra-simulation | 5h Z2 montagne +2000m D+. Ravitaillement complet (solide + liquide 60g/h). Gestion effort descente |
+| Dimanche | Vélo + Mobilité | Cross-training + récup | Vélo 1h Z1 plat (récup jambes) + foam roller 20min + étirements 15min |
+⚠️ Cross-training vélo en trail = 2 séances Z1 pour récupérer entre les grosses journées montagne sans ajouter d'impact
+
+### Exemple : Semi-Marathon Competitor avec Cross-Training Vélo (75km CAP + 1h30 vélo, 9h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, étirements doux optionnels |
+| Mardi | CAP | VMA longue | 15min éch. 5×1000m @VMA (ex: 3:20/km si VMA 18) r=2min trot. 15min RC. 14km, 1h |
+| Mercredi matin | CAP | EF endurance | 1h Z2 (4:50/km). 13km. Cadence 178spm. Terrain plat. Aisance |
+| Mercredi soir | Renfo | PPG + core | Squats 3×12, fentes latérales 3×10, hip thrust 3×12, gainage 4×40s, pompes 3×15. 40min |
+| Jeudi | Vélo | Cross-training Z1-Z2 | 1h vélo Z1-Z2 (max 70% FTP). Récup active sans impact. Alternative si jambes lourdes post-VMA |
+| Vendredi | CAP | Tempo allure semi | 1h10 dont 2×15min @allure semi (4:15/km pour 1h30 semi) r=4min trot. 14km |
+| Samedi | CAP | SL progressive | 1h40 (18km). Premiers 12km @5:10/km, derniers 6km @4:30→4:10/km. Neg split |
+| Dimanche | CAP + Renfo | EF + mobilité | 45min Z2 (5:00/km) 9km + mobilité hanches/chevilles 15min + foam roller 10min |
+⚠️ Cross-training vélo semi = 1 séance/sem Z1-Z2 max, rôle = récupérer entre qualité mardi et tempo vendredi
+
 ## RÈGLES DE PROGRESSION PAR PHASE (CRITIQUE)
 
 ### Progression Volume
