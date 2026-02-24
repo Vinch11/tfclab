@@ -42,6 +42,7 @@ import { computeVLamaxEffectif, VLamaxEffectif, getSourceColor } from "@/lib/vla
 import { getConfidenceLabel } from "@/lib/confidenceDisplay";
 import { computeTTEEffectif, TTEEffectif, getTTETarget, getSourceLabel } from "@/lib/tteEffectif";
 import { computeRaceReadinessEffectif, RaceReadinessEffectif, getSportFromObjectif } from "@/lib/raceReadinessEffectif";
+import { getVlamaxStatusWithLabel } from "@/lib/physiologicalTargets";
 import { computeNutritionEstimate, NutritionEstimate } from "@/lib/nutritionPredictive";
 import { computeFatigueEffectif, FatigueEffectif } from "@/lib/fatigueEffectif";
 
@@ -169,22 +170,8 @@ function getStatusBadge(status: "ok" | "warning" | "critical", label: string) {
   return <Badge variant={variants[status]}>{label}</Badge>;
 }
 
-function getVLamaxStatus(value: number | null, objectif: string): { status: "ok" | "warning" | "critical"; label: string } {
-  if (value === null) return { status: "critical", label: "Non disponible" };
-  
-  // Seuils selon objectif longue distance vs court
-  const isLongDistance = ["IM", "Ironman", "Marathon", "Ultra", "TrailLong", "703", "Half"].includes(objectif);
-  
-  if (isLongDistance) {
-    if (value <= 0.40) return { status: "ok", label: "Optimal" };
-    if (value <= 0.50) return { status: "warning", label: "À surveiller" };
-    return { status: "critical", label: "Limitant" };
-  } else {
-    if (value <= 0.55) return { status: "ok", label: "Cohérent" };
-    if (value <= 0.65) return { status: "warning", label: "À surveiller" };
-    return { status: "critical", label: "Élevé" };
-  }
-}
+// VLamax status now uses centralized targets from physiologicalTargets.ts
+// See getVlamaxStatusWithLabel imported below
 
 function getTTEStatus(value: number, target: number): { status: "ok" | "warning" | "critical"; label: string } {
   const ratio = value / target;
@@ -539,7 +526,8 @@ export default function DashboardPage() {
   } = dashboardData;
 
   const objectif = currentAthlete.objectif || "IM";
-  const vlamaxStatus = getVLamaxStatus(vlamaxEffectif.value, objectif);
+  const ambition = (currentAthlete.ambition as AmbitionLevel) || DEFAULT_AMBITION;
+  const vlamaxStatus = getVlamaxStatusWithLabel(vlamaxEffectif.value, objectif, ambition);
   const tteStatus = getTTEStatus(tteEffectif.tte_min, tteTarget);
   const readinessStatus = getRaceReadinessStatus(raceReadiness.score);
 

@@ -41,6 +41,7 @@ import { EnergyDriftResult } from "@/lib/energyDrift";
 
 import { getAgeAdjustedTargets, computeAgeAdjustmentIndex } from "@/lib/ageAdjustment";
 import { AmbitionLevel, DEFAULT_AMBITION, AMBITION_DEFINITIONS } from "@/types/ambitionLevel";
+import { getVlamaxStatusWithLabel } from "@/lib/physiologicalTargets";
 
 // =============================================
 // TYPES
@@ -139,21 +140,8 @@ function getStatusBadge(status: "ok" | "warning" | "critical", label: string) {
   return <Badge variant={variants[status]}>{label}</Badge>;
 }
 
-function getVLamaxStatus(value: number | null, objectif: string): { status: "ok" | "warning" | "critical"; label: string } {
-  if (value === null) return { status: "critical", label: "Non disponible" };
-  
-  const isLongDistance = ["IM", "Ironman", "Marathon", "Ultra", "TrailLong", "703", "Half"].includes(objectif);
-  
-  if (isLongDistance) {
-    if (value <= 0.40) return { status: "ok", label: "Optimal" };
-    if (value <= 0.50) return { status: "warning", label: "À surveiller" };
-    return { status: "critical", label: "Limitant" };
-  } else {
-    if (value <= 0.55) return { status: "ok", label: "Cohérent" };
-    if (value <= 0.65) return { status: "warning", label: "À surveiller" };
-    return { status: "critical", label: "Élevé" };
-  }
-}
+// VLamax status now uses centralized targets from physiologicalTargets.ts
+// See getVlamaxStatusWithLabel imported below
 
 function getTTEStatus(value: number, target: number): { status: "ok" | "warning" | "critical"; label: string } {
   const ratio = value / target;
@@ -221,7 +209,7 @@ export function StaffDashboard({
   const coachSummary = generateCoachSummary(vlamaxEffectif, tteEffectif, raceReadiness, objectif);
   const phase = getPhaseFromObjectif(objectif);
   
-  const vlamaxStatus = getVLamaxStatus(vlamaxEffectif.value, objectif);
+  const vlamaxStatus = getVlamaxStatusWithLabel(vlamaxEffectif.value, objectif, ambition);
   const tteStatus = getTTEStatus(tteEffectif.tte_min, tteTarget);
   const readinessStatus = getRaceReadinessStatus(raceReadiness.score);
 
