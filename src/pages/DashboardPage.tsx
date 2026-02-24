@@ -58,7 +58,7 @@ import { FatigueComparisonChart } from "@/components/FatigueComparisonChart";
 import { computeRunInjuryRisk, RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
 import { computeCAPInjuryRisk, computeBikeInjuryRisk, type InjuryRiskEnvelope } from "@/lib/v2/injuryRiskUnified";
 import { computeIFSC } from "@/lib/v2/ifsc";
-import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
+import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition } from "@/types/ambitionLevel";
 import { QuickAmbitionSelector } from "@/components/QuickAmbitionSelector";
 import { AmbitionTargetsCard } from "@/components/AmbitionTargetsCard";
 
@@ -526,7 +526,7 @@ export default function DashboardPage() {
   } = dashboardData;
 
   const objectif = currentAthlete.objectif || "IM";
-  const ambition = ((currentAthlete.refs as any)?.ambition ?? currentAthlete.ambition ?? DEFAULT_AMBITION) as AmbitionLevel;
+  const ambition = getAthleteAmbition(currentAthlete);
   const vlamaxStatus = getVlamaxStatusWithLabel(vlamaxEffectif.value, objectif, ambition);
   const tteStatus = getTTEStatus(tteEffectif.tte_min, tteTarget);
   const readinessStatus = getRaceReadinessStatus(raceReadiness.score);
@@ -577,7 +577,7 @@ export default function DashboardPage() {
           <div className="hidden sm:flex flex-col items-end gap-1">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Ambition</span>
             <QuickAmbitionSelector
-              currentAmbition={((currentAthlete.refs as any)?.ambition ?? currentAthlete.ambition ?? DEFAULT_AMBITION) as AmbitionLevel}
+              currentAmbition={getAthleteAmbition(currentAthlete)}
               onAmbitionChange={handleAmbitionChange}
             />
           </div>
@@ -591,7 +591,7 @@ export default function DashboardPage() {
               <span className="text-sm font-medium">Niveau d'ambition</span>
             </div>
             <QuickAmbitionSelector
-              currentAmbition={((currentAthlete.refs as any)?.ambition ?? currentAthlete.ambition ?? DEFAULT_AMBITION) as AmbitionLevel}
+              currentAmbition={getAthleteAmbition(currentAthlete)}
               onAmbitionChange={handleAmbitionChange}
             />
           </div>
@@ -982,7 +982,7 @@ export default function DashboardPage() {
   const renderAmbitionTargets = (): ReactNode => (
     <AmbitionTargetsCard
       objectif={objectif}
-      ambition={((currentAthlete.refs as any)?.ambition ?? currentAthlete.ambition ?? DEFAULT_AMBITION) as AmbitionLevel}
+      ambition={getAthleteAmbition(currentAthlete)}
       currentVlamax={vlamaxEffectif.value}
       currentTTE={tteEffectif.tte_min}
       currentFtpKg={ftpKg}

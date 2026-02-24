@@ -6,6 +6,7 @@
 import React, { createContext, useContext, useMemo, useState, useEffect, ReactNode } from "react";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import type { Json } from "@/integrations/supabase/types";
+import { normalizeAmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 
 // API exposée aux pages (compatible avec ton AthleteEditPage actuel)
 interface AthleteContextType {
@@ -40,7 +41,7 @@ function normalizeRefs(refs: any): any {
     sexe: r.sexe ?? null,
     fatPct, // Clé canonique utilisée par getEffectiveRefs
     masse_grasse: fatPct, // Legacy compat
-    ambition: r.ambition ?? null,
+    ambition: normalizeAmbitionLevel(r.ambition),
   };
 }
 
@@ -100,7 +101,7 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
         vo2max: a.vo2max ?? null,
         active_snapshot_id: a.active_snapshot_id ?? null,
         dateNaissance: a.birth_date ?? null,
-        ambition: refs.ambition ?? "age_group", // Niveau d'ambition
+        ambition: normalizeAmbitionLevel(refs.ambition),
         // legacy compat :
         historique: [],
         masse_grasse: refs.masse_grasse ?? null,
@@ -143,7 +144,7 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
 
   const addAthlete = async (athlete: any) => {
     const refs = normalizeRefs(athlete.refs);
-    refs.ambition = athlete.ambition || "age_group"; // Sauvegarder ambition
+    refs.ambition = normalizeAmbitionLevel(athlete.ambition);
     const created = await dbAddAthlete(
       athlete.nom || "Nouvel athlète",
       athlete.objectif || "IM",
@@ -156,7 +157,7 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
 
   const updateAthlete = async (athlete: any) => {
     const refs = normalizeRefs(athlete.refs);
-    refs.ambition = athlete.ambition || "age_group";
+    refs.ambition = normalizeAmbitionLevel(athlete.ambition);
     return await dbUpdateAthlete(athlete.id, {
       name: athlete.nom,
       goal: athlete.objectif,

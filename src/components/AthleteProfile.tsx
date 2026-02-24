@@ -10,7 +10,7 @@ import { SnapshotNolio, scoreConfiance, estimerTTE } from "@/types/snapshotNolio
 import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { TTEEffectif } from "@/lib/tteEffectif";
 import { toast } from "sonner";
-import { getAmbitionDefinition, DEFAULT_AMBITION } from "@/types/ambitionLevel";
+import { getAmbitionDefinition, DEFAULT_AMBITION, getAthleteAmbition } from "@/types/ambitionLevel";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { AthleteObjectiveManager } from "./AthleteObjectiveManager";
 import { ObjectivesTimeline } from "./ObjectivesTimeline";
@@ -286,7 +286,7 @@ export function AthleteProfile({
                 </span>
                 {/* Badge d'ambition */}
                 {(() => {
-                  const ambDef = getAmbitionDefinition((athlete.refs as any)?.ambition ?? athlete.ambition ?? DEFAULT_AMBITION);
+                  const ambDef = getAmbitionDefinition(getAthleteAmbition(athlete));
                   return (
                     <span className={cn(
                       "text-sm px-2 py-0.5 rounded-full bg-secondary/50 flex items-center gap-1",

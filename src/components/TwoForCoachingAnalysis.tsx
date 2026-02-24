@@ -20,7 +20,7 @@ import { computeNutritionTiming, type DigestiveTolerance, getRiskBadgeIcon } fro
 import { computeEnergyDrift, type EnergyDriftResult } from "@/lib/energyDrift";
 import { getTargetsForAmbition, normalizeObjective } from "@/lib/physiologicalTargets";
 import { normalizeRaceTypeForDisplay } from "@/lib/raceTypeNormalization";
-import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
+import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition } from "@/types/ambitionLevel";
 
 interface TwoForCoachingAnalysisProps {
   athlete: Athlete;
@@ -110,7 +110,7 @@ export function TwoForCoachingAnalysis({
   const seancesRecommandees = getSeancesRecommandees(analysis.priorite);
 
   // ✅ Targets dynamiques depuis physiologicalTargets (source unique)
-  const ambition: AmbitionLevel = ((athlete as any).refs?.ambition ?? (athlete as any).ambition ?? DEFAULT_AMBITION) as AmbitionLevel;
+  const ambition: AmbitionLevel = getAthleteAmbition(athlete);
   const normalizedObj = normalizeObjective(athlete.objectif || "703");
   const targets = useMemo(() => getTargetsForAmbition(normalizedObj, ambition), [normalizedObj, ambition]);
   
