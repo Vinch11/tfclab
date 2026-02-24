@@ -234,7 +234,25 @@ Règles doubles séances :
 - Volume total/semaine avec répartition par sport
 - Respecte STRICTEMENT les ratios sport par objectif
 - Cite les métriques de l'athlète pour justifier les choix
-- Si données manquantes, hypothèses prudentes mentionnées`;
+- Si données manquantes, hypothèses prudentes mentionnées
+
+## ⛔ RÈGLE REPOS — COHÉRENCE ABSOLUE (CRITIQUE)
+Un jour marqué "Repos" est un jour de REPOS COMPLET :
+- Sport = "Repos", Séance = "Repos complet", Détails = "Récupération, mobilité optionnelle"
+- **INTERDIT** de mettre un sport (vélo, CAP, natation, renfo) sur un jour Repos
+- Si tu veux placer une séance récupération active (vélo Z1 30min, footing 20min, mobilité), alors ce n'est PAS un jour Repos : nomme-le avec le sport correspondant (ex: Sport="Vélo", Séance="Récupération active Z1")
+- Un jour Repos ne contient JAMAIS "60min Z2" ou toute séance d'effort
+- Chaque semaine doit avoir exactement 1 jour de repos complet (généralement Lundi ou Dimanche)
+- Ne confonds JAMAIS repos et récupération active : ce sont 2 concepts distincts
+
+## ⚠️ RÈGLE RUNNING-ONLY — PAS DE VÉLO SAUF TRIATHLON
+Pour les objectifs **5K, 10K, Semi, Marathon, Trail, StartToRun** :
+- **ZÉRO séance vélo** sauf si le coach a explicitement activé le module cross-training
+- Les sports autorisés sont UNIQUEMENT : Course à Pied + Renforcement/PPG
+- Si tu mets du vélo pour un Semi-Marathon ou un Marathon, c'est une ERREUR GRAVE
+- Alternative au vélo pour récupération active : footing Z1 très léger (20-30min) ou marche
+- Le ratio est strict : **CAP 85-90% du volume, Renfo 10-15%**
+- Remplis les jours avec des séances CAP variées (EF, tempo, seuil, fartlek, VMA, SL, côtes) et du renfo — PAS du vélo`;
 
     let userPrompt: string;
     if (regenerateWeek) {
@@ -364,20 +382,25 @@ function buildUserPrompt(data: any, config: any): string {
     lines.push("- Plus d'intensité seuil/tempo qu'en IM");
   } else if (obj === "MARATHON") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE MARATHON");
-    lines.push("- CAP 85-90% | Renfo 10-15%. Pas de natation ni vélo.");
+    lines.push("- CAP 85-90% | Renfo 10-15%. ⛔ ZÉRO natation, ZÉRO vélo.");
     lines.push("- 2 séances qualité/sem + 1 sortie longue progressive");
+    lines.push("- Minimum 5 séances CAP/sem : EF, tempo, seuil, SL, fartlek/côtes");
+    lines.push("- Récupération = footing Z1 léger ou repos complet, JAMAIS du vélo");
   } else if (obj === "SEMI") {
-    lines.push("\n### ⚠️ RAPPEL COHÉRENCE SEMI");
-    lines.push("- CAP 85-90% | Renfo 10-15%. Accent VMA + seuil.");
+    lines.push("\n### ⚠️ RAPPEL COHÉRENCE SEMI-MARATHON");
+    lines.push("- CAP 85-90% | Renfo 10-15%. ⛔ ZÉRO natation, ZÉRO vélo.");
+    lines.push("- Accent VMA + seuil. Minimum 4-5 séances CAP/sem.");
+    lines.push("- Séances types : EF Z2, Tempo allure semi, VMA 30/30, Seuil 2×20min, SL 15-20km, Fartlek, Côtes");
+    lines.push("- Récupération = footing Z1 léger 20-30min ou repos complet, JAMAIS du vélo");
   } else if (["TRAIL", "TRAILSHORT", "TRAILMOUNTAIN", "TRAILULTRA"].includes(obj)) {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE TRAIL");
     lines.push("- CAP/Trail 70-80% | Renfo spécifique 20-25%");
     lines.push("- Force excentrique, côtes, proprioception obligatoires");
-  } else if (obj === "10K") {
-    lines.push("\n### ⚠️ RAPPEL COHÉRENCE 10K");
-    lines.push("- CAP 85-90% | Renfo 10-15%.");
-    lines.push("- 1 seuil/tempo + 1 VMA + 1 sortie longue/sem");
-    lines.push("- Allure 10K = 88-92% VMA. Fartlek et côtes en variantes.");
+  } else if (["10K", "10KM", "5K"].includes(obj)) {
+    lines.push(`\n### ⚠️ RAPPEL COHÉRENCE ${obj}`);
+    lines.push("- CAP 85-90% | Renfo 10-15%. ⛔ ZÉRO natation, ZÉRO vélo.");
+    lines.push("- 1 seuil/tempo + 1 VMA + 1 sortie longue/sem + EF Z2");
+    lines.push("- Récupération = footing Z1 léger ou repos complet, JAMAIS du vélo");
   } else if (obj === "STARTTORUN") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE START TO RUN (DÉBUTANT)");
     lines.push("- PROGRAMME DÉBUTANT : alternance marche/course progressive.");
