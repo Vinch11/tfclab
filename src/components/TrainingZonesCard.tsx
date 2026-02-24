@@ -22,6 +22,8 @@ import {
   ZONES_METHODOLOGY_NOTE
 } from "@/lib/trainingZonesDefinition";
 import { useAthletes } from "@/contexts/AthleteContext";
+import { useCloudDataContext } from "@/contexts/CloudDataContext";
+import { getEffectiveRefs } from "@/lib/effectiveRefs";
 
 interface TrainingZonesCardProps {
   staffMode?: boolean;
@@ -272,13 +274,17 @@ export function TrainingZonesCard({
   compact = false
 }: TrainingZonesCardProps) {
   const { currentAthlete } = useAthletes();
+  const { athletes: dbAthletes, snapshots } = useCloudDataContext();
   const [expandedZone, setExpandedZone] = useState<ZoneId | null>(null);
   
-  // Get athlete refs
+  // ✅ FIX: Utiliser effectiveRefs (snapshot > profil > null) au lieu de athlete.refs brut
+  const dbAthlete = dbAthletes.find(a => a.id === currentAthlete?.id) ?? null;
+  const effective = getEffectiveRefs(dbAthlete, snapshots);
+  
   const refs: AthleteZoneRefs = {
-    fcMax: (currentAthlete?.refs as any)?.fcMax ?? null,
-    vma: (currentAthlete?.refs as any)?.vma ?? null,
-    ftp: (currentAthlete?.refs as any)?.ftp ?? null
+    fcMax: effective.fcMax,
+    vma: effective.vma,
+    ftp: effective.ftp
   };
   
   const handleToggle = (zoneId: ZoneId) => {
