@@ -14,6 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useAthletes } from "@/contexts/AthleteContext";
+import { useCloudDataContext } from "@/contexts/CloudDataContext";
+import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { useToast } from "@/hooks/use-toast";
 
 const metricIcons = {
@@ -34,11 +36,16 @@ export function ZonesModule({
   defaultSport = "cyclisme" 
 }: ZonesModuleProps) {
   const { currentAthlete, updateAthlete } = useAthletes();
+  const { athletes: dbAthletes, snapshots } = useCloudDataContext();
   const { toast } = useToast();
   
   const [activeMetric, setActiveMetric] = useState<string>(defaultMetric);
   const [activeSport, setActiveSport] = useState<string>(defaultSport);
   const [expandedZone, setExpandedZone] = useState<string | null>(null);
+  
+  // ✅ FIX: Utiliser effectiveRefs (snapshot > profil > null)
+  const dbAthlete = dbAthletes.find(a => a.id === currentAthlete?.id) ?? null;
+  const effective = getEffectiveRefs(dbAthlete, snapshots);
   
   // Références locales (éditables)
   const [localRefs, setLocalRefs] = useState<AthleteRefsForZones>({
@@ -49,17 +56,15 @@ export function ZonesModule({
   });
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Charger les refs de l'athlète actuel
+  // Charger les refs effectives (snapshot > profil)
   useEffect(() => {
-    if (currentAthlete?.refs) {
-      setLocalRefs({
-        fcMax: currentAthlete.refs.fcMax ?? null,
-        vma: currentAthlete.refs.vma ?? null,
-        ftp: currentAthlete.refs.ftp ?? null,
-        css: currentAthlete.refs.css ?? null
-      });
-    }
-  }, [currentAthlete]);
+    setLocalRefs({
+      fcMax: effective.fcMax ?? null,
+      vma: effective.vma ?? null,
+      ftp: effective.ftp ?? null,
+      css: effective.css ?? null
+    });
+  }, [effective.fcMax, effective.vma, effective.ftp, effective.css]);
 
   const metric = ZonesConfig[activeMetric];
   const availableSports = Object.keys(metric.sports);
