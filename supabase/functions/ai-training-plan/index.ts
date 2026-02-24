@@ -315,31 +315,98 @@ Utilise ces micro-cycles réels comme modèles de qualité. Adapte-les au niveau
 | Dimanche | CAP + Renfo | EF + mobilité | 45min Z2 (5:00/km) 9km + mobilité hanches/chevilles 15min + foam roller 10min |
 ⚠️ Cross-training vélo semi = 1 séance/sem Z1-Z2 max, rôle = récupérer entre qualité mardi et tempo vendredi
 
-## RÈGLES DE PROGRESSION PAR PHASE (CRITIQUE)
+## RÈGLES DE PROGRESSION ADAPTATIVES PAR NIVEAU (CRITIQUE)
 
-### Progression Volume
-- **Base → Build** : +5-8% volume/sem max. Jamais +10% d'une semaine à l'autre
-- **Sortie longue CAP** : +2km/sem (ex: 16→18→20→22km). Palier 2 sem si >25km
-- **Sortie longue vélo** : +30min/sem (ex: 3h→3h30→4h→4h30)
-- **Décharge** : toutes les 3-4 sem, -30-40% volume. Maintenir intensité courte
+### Grille Volume/Intensité par Ambition et Objectif
 
-### Progression Intensité
-- **Seuil** : augmenter durée des blocs (+2-3min/bloc par phase), pas l'allure
-- **VMA** : augmenter nombre de répétitions (+2 reps/2 sem), pas l'allure
+#### ELITE (Pro / Sub-Elite)
+| Paramètre | IM | 70.3 | Marathon | Semi | 10K | 5K | Trail Ultra |
+|-----------|-----|------|----------|------|-----|-----|-------------|
+| Volume/sem | 20-30h | 15-22h | 12-16h | 10-14h | 9-12h | 7-10h | 16-25h |
+| Km CAP/sem | 50-70 | 50-70 | 140-190 | 100-140 | 120-160 | 80-120 | 100-150 |
+| Séances/sem | 12-16 | 10-14 | 10-13 | 8-11 | 8-10 | 7-9 | 10-14 |
+| Doubles/sem | 8-12 | 5-8 | 4-6 | 3-5 | 3-5 | 2-4 | 4-7 |
+| Séances clés | 3-4 | 3 | 3 | 3 | 2-3 | 2-3 | 3 |
+| SL max | 5-6h vélo | 3.5-4h vélo | 35-38km | 22-25km | 20-22km | 16-18km | 5-7h trail |
+| Charge 3:1 ou 2:1 | 3:1 | 3:1 | 3:1 | 3:1 | 3:1 | 3:1 | 2:1 |
+| Progression vol/sem | +5-8% | +5-8% | +5-8% | +5-8% | +5-7% | +5-7% | +5-8% |
+
+#### COMPETITOR (Age Group Ambitieux)
+| Paramètre | IM | 70.3 | Marathon | Semi | 10K | 5K | Trail Ultra |
+|-----------|-----|------|----------|------|-----|-----|-------------|
+| Volume/sem | 14-20h | 10-16h | 8-12h | 7-10h | 6-9h | 5-8h | 12-18h |
+| Km CAP/sem | 35-55 | 40-60 | 80-130 | 60-100 | 60-100 | 50-80 | 70-120 |
+| Séances/sem | 8-12 | 7-10 | 7-10 | 6-8 | 5-7 | 5-7 | 8-12 |
+| Doubles/sem | 4-7 | 3-5 | 1-3 | 1-2 | 1-2 | 0-1 | 2-4 |
+| Séances clés | 2-3 | 2-3 | 2-3 | 2 | 2 | 2 | 2-3 |
+| SL max | 4-5h vélo | 3-3.5h vélo | 30-35km | 18-22km | 16-20km | 14-16km | 4-5h trail |
+| Charge | 3:1 | 3:1 | 3:1 | 3:1 | 3:1 | 3:1 | 2:1 |
+| Progression vol/sem | +5-7% | +5-7% | +5-7% | +5-7% | +5% | +5% | +5-7% |
+
+#### AGE GROUP (Loisir Structuré)
+| Paramètre | IM | 70.3 | Marathon | Semi | 10K | 5K | Trail Long |
+|-----------|-----|------|----------|------|-----|-----|------------|
+| Volume/sem | 10-15h | 8-12h | 6-9h | 5-7h | 4-6h | 3-5h | 8-14h |
+| Km CAP/sem | 25-40 | 30-45 | 50-80 | 40-65 | 35-55 | 25-45 | 50-90 |
+| Séances/sem | 6-9 | 5-8 | 5-7 | 4-6 | 4-5 | 3-5 | 6-9 |
+| Doubles/sem | 1-3 | 0-2 | 0-1 | 0 | 0 | 0 | 0-2 |
+| Séances clés | 2 | 2 | 2 | 2 | 1-2 | 1-2 | 2 |
+| SL max | 3.5-4h vélo | 2.5-3h vélo | 25-30km | 16-18km | 14-16km | 12-14km | 3-4h trail |
+| Charge | 3:1 | 3:1 | 2:1 si >40 ans | 3:1 | 3:1 | 3:1 | 2:1 |
+| Progression vol/sem | +3-5% | +3-5% | +3-5% | +3-5% | +3-5% | +3-5% | +3-5% |
+
+#### FINISHER (Terminer en Sécurité)
+| Paramètre | IM | 70.3 | Marathon | Semi | 10K | 5K | Trail Court |
+|-----------|-----|------|----------|------|-----|-----|-------------|
+| Volume/sem | 8-12h | 6-10h | 4-7h | 3-5h | 3-4h | 2-4h | 5-8h |
+| Km CAP/sem | 20-35 | 25-40 | 35-60 | 25-45 | 20-35 | 15-30 | 30-50 |
+| Séances/sem | 5-7 | 4-6 | 4-5 | 3-4 | 3-4 | 3 | 4-6 |
+| Doubles/sem | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| Séances clés | 1-2 | 1-2 | 1-2 | 1 | 1 | 1 | 1-2 |
+| SL max | 3h vélo | 2h vélo | 22-25km | 14-16km | 12km | 10km | 2.5-3h trail |
+| Charge | 2:1 | 2:1 | 2:1 | 2:1 | 2:1 | 2:1 | 2:1 |
+| Progression vol/sem | +3% max | +3% max | +3% max | +3% max | +3% max | +3% max | +3% max |
+⚠️ Finisher : 1 séance/jour MAX. Aucune double. Repos ≥2j/sem. Renfo léger PPG obligatoire.
+
+#### START TO RUN (Débutant Absolu)
+| Paramètre | Valeur |
+|-----------|--------|
+| Volume/sem | 2-4h |
+| Km CAP/sem | 8-25 (progressive) |
+| Séances/sem | 3 max (jamais consécutives) |
+| Doubles/sem | 0 |
+| Séances clés | 0 (pas de fractionné avant 30min continu) |
+| SL max | 45min→1h progressive |
+| Charge | 2:1 strict |
+| Progression | +10% max, palier 2 sem si douleur |
+⚠️ Marche/course alternée. Renfo/mobilité = 30-40% du volume total.
+
+### Règles de Progression Volume
+- Respecter STRICTEMENT le % de progression du tableau ci-dessus selon le niveau
+- **Base → Build** : progression volume graduelle. SL +2km/sem (CAP) ou +30min/sem (vélo)
+- **Build → Spécifique** : stabiliser le volume, augmenter la spécificité (race-pace, simulations)
+- **Décharge** : ratio du tableau (3:1 ou 2:1). -30-40% volume, maintenir 1-2 rappels intensité courts
+- **Palier SL** : si SL >25km CAP ou >4h vélo, maintenir 2 sem avant de progresser encore
+
+### Règles de Progression Intensité
+- **Seuil** : augmenter durée des blocs (+2-3min/bloc par phase), PAS l'allure
+- **VMA** : augmenter nombre de répétitions (+2 reps/2 sem), PAS l'allure
 - **Sweet spot vélo** : augmenter durée blocs (15→20→25→30min)
 - **Tempo CAP** : augmenter durée (3×10min → 3×12min → 2×20min → 1×40min)
+- **Finisher/StartToRun** : pas de progression d'intensité, seulement de durée de course continue
 
-### Spécificité Progressive
-- **Phase Base (sem 1-4)** : 85% Z1-Z2, 15% Z4-Z5. Focus technique + volume
-- **Phase Build (sem 5-10)** : 80% Z1-Z2, 20% Z4-Z5. Blocs seuil/sweet spot plus longs
-- **Phase Spécifique (sem 11-fin)** : 75% Z1-Z2, 25% intensité. Séances race-pace, simulations
+### Spécificité Progressive par Phase
+- **Phase Base** : 85% Z1-Z2, 15% Z4-Z5. Focus technique + volume + force
+- **Phase Build** : 80% Z1-Z2, 20% Z4-Z5. Blocs seuil/sweet spot plus longs
+- **Phase Spécifique** : 75% Z1-Z2, 25% intensité. Séances race-pace, simulations
 - **Taper** : -40% volume sem 1, -60% sem 2. Garder 2-3 rappels intensité courts
 
-### Différences Clés par Niveau
-- **Elite/Competitor** : doubles séances, volume élevé, progression rapide, blocs d'intensité concentrés
-- **Age Group** : séances simples majoritaires, 1-2 doubles/sem max, progression conservative
-- **Finisher** : jamais de doubles, progression très graduelle, priorité à la régularité et la prévention
-- **StartToRun** : marche/course, jamais de fractionné avant de courir 30min continu
+### Adaptation Athlète >40 ans / Fragile
+- Charge 2:1 systématique (pas 3:1)
+- Max 1 séance haute intensité/sem (au lieu de 2)
+- Renfo prévention prioritaire (+1 séance/sem vs standard)
+- Progression volume plafonnée à +3%/sem
+- Sommeil et récupération = priorité absolue dans les consignes coach
 
 ## BIBLIOTHÈQUE DE SÉANCES — Pioche dans cette variété, NE RÉPÈTE JAMAIS le même contenu
 
