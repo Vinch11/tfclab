@@ -176,13 +176,13 @@ export default function AITrainingPlanPage() {
       if (savedState.weeklyHours) setWeeklyHours(savedState.weeklyHours);
       if (savedState.sessionsPerWeek) setSessionsPerWeek(savedState.sessionsPerWeek);
       if (savedState.ambition) setAmbition(savedState.ambition);
-      else if (currentAthlete?.ambition) setAmbition(currentAthlete.ambition.toUpperCase());
+      else { const a = (currentAthlete?.refs as any)?.ambition ?? currentAthlete?.ambition; if (a) setAmbition(a.toUpperCase()); }
       if (savedState.constraints) setConstraints(savedState.constraints);
       if (savedState.maxSessionsPerDay) setMaxSessionsPerDay(savedState.maxSessionsPerDay);
     } else {
       // No saved state — use athlete defaults
       if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
-      if (currentAthlete?.ambition) setAmbition(currentAthlete.ambition.toUpperCase());
+      { const a = (currentAthlete?.refs as any)?.ambition ?? currentAthlete?.ambition; if (a) setAmbition(a.toUpperCase()); }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [persistKey]);
@@ -663,7 +663,7 @@ export default function AITrainingPlanPage() {
                         {OBJECTIVE_OPTIONS.find(o => o.value === currentAthlete.objectif)?.label || currentAthlete.objectif}
                       </Badge>
                       <Badge variant="outline" className="text-[10px]">
-                        {AMBITION_OPTIONS.find(o => o.value?.toUpperCase() === currentAthlete.ambition?.toUpperCase())?.label || currentAthlete.ambition}
+                        {(() => { const a = (currentAthlete.refs as any)?.ambition ?? currentAthlete.ambition; return AMBITION_OPTIONS.find(o => o.value?.toUpperCase() === a?.toUpperCase())?.label || a; })()}
                       </Badge>
                       <Badge variant="destructive" className="text-[10px]">
                         {limiter.limiterEmoji} {limiter.limiterLabel}

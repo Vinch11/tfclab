@@ -286,7 +286,7 @@ export function AthleteProfile({
                 </span>
                 {/* Badge d'ambition */}
                 {(() => {
-                  const ambDef = getAmbitionDefinition(athlete.ambition || DEFAULT_AMBITION);
+                  const ambDef = getAmbitionDefinition((athlete.refs as any)?.ambition ?? athlete.ambition ?? DEFAULT_AMBITION);
                   return (
                     <span className={cn(
                       "text-sm px-2 py-0.5 rounded-full bg-secondary/50 flex items-center gap-1",
