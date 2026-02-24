@@ -92,18 +92,20 @@ export default function AthleteEditPage() {
       return false;
     }
 
+    const fatPctValue = masseGrasse.trim() === "" ? null : Number(masseGrasse);
     const athleteData: Athlete = {
       id: isNew ? crypto.randomUUID() : editingAthlete?.id || crypto.randomUUID(),
       nom: nom.trim(),
       sexe,
       objectif,
       ambition,
-      masse_grasse: masseGrasse.trim() === "" ? null : Number(masseGrasse),
+      masse_grasse: fatPctValue,
       dateNaissance: dateNaissance || undefined,
       refs: {
         ...(editingAthlete?.refs || {}),
         sexe,
-        masse_grasse: masseGrasse.trim() === "" ? null : Number(masseGrasse),
+        fatPct: fatPctValue, // ✅ FIX: Clé canonique pour effectiveRefs
+        masse_grasse: fatPctValue, // Legacy compat
       },
       historique: editingAthlete?.historique || [],
     };
