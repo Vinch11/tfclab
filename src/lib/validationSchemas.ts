@@ -49,6 +49,7 @@ export const snapshotSchema = z.object({
   css: numericOptional(0.5, 3),
   vo2max: numericOptional(20, 100),
   vlamax: numericOptional(0.1, 1.5),
+  vlamax_run: numericOptional(0.1, 1.5), // ✅ VLamax CAP
   weight_kg: numericOptional(30, 200),
   fat_pct: numericOptional(3, 50),
   pmax_5s: intOptional(200, 3000),
@@ -58,13 +59,36 @@ export const snapshotSchema = z.object({
   tss_7d: intOptional(0, 2000),
   tte_mode: z.string().max(50).nullable().optional(),
   tte_observed_min: intOptional(1, 120),
+  // ✅ VLamax Bike V2 Enhanced - Power indices
+  p30s_w: intOptional(100, 3000),
+  p60s_w: intOptional(100, 2500),
+  map5min_w: intOptional(50, 800),
+  protocol_quality: intOptional(1, 5),
   // Running Economy (CAP) fields
-  run_pace_ref_sec_per_km: intOptional(120, 900), // 2:00 - 15:00/km
+  run_pace_ref_sec_per_km: intOptional(120, 900),
   run_hr_ref_bpm: intOptional(80, 220),
   run_duration_min: intOptional(10, 300),
   run_hr_drift_pct: numericOptional(0, 30),
   run_economy_score: intOptional(0, 100),
   run_economy_label: z.string().max(20).nullable().optional(),
+  // ✅ VLamax CAP estimation fields
+  pace_threshold_sec_per_km: intOptional(120, 900),
+  sprint_15s_distance: numericOptional(30, 200),
+  running_power_max: intOptional(100, 2000),
+  running_power_threshold: intOptional(50, 1000),
+  // ✅ Snapshot metadata fields
+  sport_main: z.string().max(50).nullable().optional(),
+  objectif: z.string().max(50).nullable().optional(),
+  fatigue_state: z.string().max(50).nullable().optional(),
+  carb_tolerance_band: z.string().max(50).nullable().optional(),
+  low_crr_justification: z.string().max(500).nullable().optional(),
+  vlamax_source: z.string().max(50).nullable().optional(),
+  vlamax_protocol: z.string().max(100).nullable().optional(),
+  vlamax_is_reference: z.boolean().nullable().optional(),
+  bike_cadence_rpm: intOptional(30, 200),
+  bike_hr_drift_flag: z.boolean().nullable().optional(),
+  gi_issues_flag: z.boolean().nullable().optional(),
+  force_development_mode: z.boolean().nullable().optional(),
 });
 
 export type ValidatedSnapshot = z.infer<typeof snapshotSchema>;

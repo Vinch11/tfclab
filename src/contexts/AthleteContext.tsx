@@ -32,6 +32,7 @@ function normalizeRefs(refs: any): any {
   // ✅ FIX: Unifier masse_grasse → fatPct pour cohérence avec effectiveRefs
   const fatPct = r.fatPct ?? r.masse_grasse ?? null;
   return {
+    ...r, // ✅ FIX: Préserver TOUTES les clés existantes (weightKg, etc.)
     fcMax: r.fcMax ?? null,
     vma: r.vma ?? null,
     ftp: r.ftp ?? null,
