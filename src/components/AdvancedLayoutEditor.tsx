@@ -1,10 +1,11 @@
 /**
  * Éditeur avancé de layout des sections
  * Permet de :
- * - Réorganiser les sections par drag & drop
+ * - Réorganiser les sections par drag & drop OU boutons ↑↓
  * - Masquer/afficher les sections
  * - Minimiser par défaut les sections
  * - Déplacer les sections entre onglets
+ * - Groupement visuel par catégorie
  */
 
 import { useState, useEffect, useMemo } from "react";
@@ -13,6 +14,7 @@ import {
   closestCenter,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragEndEvent,
@@ -30,7 +32,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
   GripVertical, 
   Layout, 
@@ -46,11 +47,11 @@ import {
   GraduationCap,
   Trophy,
   TrendingUp,
-  ChevronDown,
   ChevronUp,
+  ChevronDown,
   ArrowRightLeft,
   Minimize2,
-  Maximize2
+  Maximize2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -60,7 +61,8 @@ import {
   ALL_SECTIONS, 
   SectionConfig,
   SectionDefinition,
-  SECTION_CATEGORIES
+  SECTION_CATEGORIES,
+  SectionCategory,
 } from "@/hooks/useLayoutPreferences";
 
 interface SortableItemProps {
@@ -68,9 +70,14 @@ interface SortableItemProps {
   label: string;
   visible: boolean;
   collapsedByDefault: boolean;
+  category?: string;
   currentTab: TabId;
+  isFirst: boolean;
+  isLast: boolean;
   onToggleVisibility: () => void;
   onToggleCollapsed: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
   onMoveToTab: (targetTab: TabId) => void;
   availableTabs: { id: TabId; label: string }[];
 }
@@ -93,9 +100,14 @@ function SortableSectionItem({
   label, 
   visible, 
   collapsedByDefault,
+  category,
   currentTab,
+  isFirst,
+  isLast,
   onToggleVisibility, 
   onToggleCollapsed,
+  onMoveUp,
+  onMoveDown,
   onMoveToTab,
   availableTabs
 }: SortableItemProps) {
@@ -115,89 +127,134 @@ function SortableSectionItem({
     transition,
   };
 
+  // Get category config
+  const categoryConfig = category && category in SECTION_CATEGORIES 
+    ? SECTION_CATEGORIES[category as SectionCategory] 
+    : null;
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex flex-col gap-2 p-3 rounded-lg border bg-card transition-all",
+        "flex flex-col gap-1.5 p-2.5 sm:p-3 rounded-lg border bg-card transition-all",
         isDragging && "shadow-lg ring-2 ring-primary/50 z-50",
         !visible && "opacity-50 bg-muted/30"
       )}
     >
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2">
+        {/* Drag handle — 44px touch target */}
         <button
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded"
+          className="cursor-grab active:cursor-grabbing p-1.5 hover:bg-muted rounded min-h-[44px] min-w-[36px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"
         >
           <GripVertical className="w-4 h-4 text-muted-foreground" />
         </button>
 
-        <span className={cn("flex-1 text-sm font-medium", !visible && "line-through text-muted-foreground")}>
-          {label}
-        </span>
+        {/* Up/Down quick-move buttons */}
+        <div className="flex flex-col gap-0.5">
+          <button
+            onClick={onMoveUp}
+            disabled={isFirst}
+            className={cn(
+              "p-0.5 rounded transition-colors",
+              isFirst 
+                ? "text-muted-foreground/30 cursor-not-allowed" 
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+            title="Monter"
+          >
+            <ChevronUp className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={onMoveDown}
+            disabled={isLast}
+            className={cn(
+              "p-0.5 rounded transition-colors",
+              isLast 
+                ? "text-muted-foreground/30 cursor-not-allowed" 
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+            title="Descendre"
+          >
+            <ChevronDown className="w-3.5 h-3.5" />
+          </button>
+        </div>
 
-        {/* Bouton visibilité */}
-        <button
-          onClick={onToggleVisibility}
-          className={cn(
-            "p-1.5 rounded-md transition-colors",
-            visible 
-              ? "bg-primary/10 text-primary hover:bg-primary/20" 
-              : "bg-muted text-muted-foreground hover:bg-muted/80"
+        {/* Label + category badge */}
+        <div className="flex-1 min-w-0">
+          <span className={cn(
+            "text-sm font-medium block truncate",
+            !visible && "line-through text-muted-foreground"
+          )}>
+            {label}
+          </span>
+          {categoryConfig && (
+            <span className={cn(
+              "text-[10px] px-1.5 py-0.5 rounded-full border inline-block mt-0.5",
+              categoryConfig.color
+            )}>
+              {categoryConfig.label}
+            </span>
           )}
-          title={visible ? "Masquer cette section" : "Afficher cette section"}
-        >
-          {visible ? (
-            <Eye className="w-4 h-4" />
-          ) : (
-            <EyeOff className="w-4 h-4" />
-          )}
-        </button>
+        </div>
 
-        {/* Bouton minimiser par défaut */}
-        <button
-          onClick={onToggleCollapsed}
-          className={cn(
-            "p-1.5 rounded-md transition-colors",
-            collapsedByDefault 
-              ? "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20" 
-              : "bg-muted text-muted-foreground hover:bg-muted/80"
-          )}
-          title={collapsedByDefault ? "Afficher dépliée par défaut" : "Minimiser par défaut"}
-        >
-          {collapsedByDefault ? (
-            <Minimize2 className="w-4 h-4" />
-          ) : (
-            <Maximize2 className="w-4 h-4" />
-          )}
-        </button>
+        {/* Action buttons — icon-only with tooltips */}
+        <div className="flex items-center gap-1">
+          {/* Visibilité */}
+          <button
+            onClick={onToggleVisibility}
+            className={cn(
+              "p-2 sm:p-1.5 rounded-md transition-colors min-h-[40px] min-w-[40px] sm:min-h-0 sm:min-w-0 flex items-center justify-center",
+              visible 
+                ? "bg-primary/10 text-primary hover:bg-primary/20" 
+                : "bg-muted text-muted-foreground hover:bg-muted/80"
+            )}
+            title={visible ? "Masquer" : "Afficher"}
+          >
+            {visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+          </button>
 
-        {/* Bouton déplacer */}
-        <button
-          onClick={() => setShowMoveOptions(!showMoveOptions)}
-          className={cn(
-            "p-1.5 rounded-md transition-colors",
-            showMoveOptions 
-              ? "bg-blue-500/10 text-blue-600" 
-              : "bg-muted text-muted-foreground hover:bg-muted/80"
-          )}
-          title="Déplacer vers un autre onglet"
-        >
-          <ArrowRightLeft className="w-4 h-4" />
-        </button>
+          {/* Minimiser par défaut */}
+          <button
+            onClick={onToggleCollapsed}
+            className={cn(
+              "p-2 sm:p-1.5 rounded-md transition-colors min-h-[40px] min-w-[40px] sm:min-h-0 sm:min-w-0 flex items-center justify-center",
+              collapsedByDefault 
+                ? "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20" 
+                : "bg-muted text-muted-foreground hover:bg-muted/80"
+            )}
+            title={collapsedByDefault ? "Afficher dépliée" : "Minimiser par défaut"}
+          >
+            {collapsedByDefault ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+          </button>
+
+          {/* Déplacer */}
+          <button
+            onClick={() => setShowMoveOptions(!showMoveOptions)}
+            className={cn(
+              "p-2 sm:p-1.5 rounded-md transition-colors min-h-[40px] min-w-[40px] sm:min-h-0 sm:min-w-0 flex items-center justify-center",
+              showMoveOptions 
+                ? "bg-blue-500/10 text-blue-600" 
+                : "bg-muted text-muted-foreground hover:bg-muted/80"
+            )}
+            title="Déplacer vers un autre onglet"
+          >
+            <ArrowRightLeft className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Options de déplacement */}
       {showMoveOptions && (
-        <div className="flex items-center gap-2 pl-6 pt-1 border-t border-dashed">
-          <span className="text-xs text-muted-foreground">Déplacer vers :</span>
+        <div className="flex items-center gap-2 pl-8 sm:pl-10 pt-1.5 border-t border-dashed">
+          <span className="text-xs text-muted-foreground whitespace-nowrap">Déplacer vers :</span>
           <Select onValueChange={(value) => {
             onMoveToTab(value as TabId);
             setShowMoveOptions(false);
           }}>
-            <SelectTrigger className="h-7 text-xs w-40">
+            <SelectTrigger className="h-8 text-xs flex-1 max-w-[180px]">
               <SelectValue placeholder="Choisir un onglet" />
             </SelectTrigger>
             <SelectContent>
@@ -210,14 +267,6 @@ function SortableSectionItem({
                 ))}
             </SelectContent>
           </Select>
-        </div>
-      )}
-
-      {/* Indicateur minimisé par défaut */}
-      {collapsedByDefault && visible && (
-        <div className="flex items-center gap-1 pl-6 text-xs text-amber-600">
-          <ChevronDown className="w-3 h-3" />
-          <span>Minimisée par défaut</span>
         </div>
       )}
     </div>
@@ -246,14 +295,14 @@ function TabEditor({
   const [localConfigs, setLocalConfigs] = useState<SectionConfig[]>(configs);
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Synchroniser quand les configs changent de l'extérieur
   useEffect(() => {
     setLocalConfigs(configs);
     setHasChanges(false);
   }, [configs]);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -289,6 +338,24 @@ function TabEditor({
     setHasChanges(true);
   };
 
+  const moveUp = (sectionId: string) => {
+    setLocalConfigs(configs => {
+      const idx = configs.findIndex(c => c.id === sectionId);
+      if (idx <= 0) return configs;
+      return arrayMove(configs, idx, idx - 1);
+    });
+    setHasChanges(true);
+  };
+
+  const moveDown = (sectionId: string) => {
+    setLocalConfigs(configs => {
+      const idx = configs.findIndex(c => c.id === sectionId);
+      if (idx < 0 || idx >= configs.length - 1) return configs;
+      return arrayMove(configs, idx, idx + 1);
+    });
+    setHasChanges(true);
+  };
+
   const handleMoveToTab = async (sectionId: string, targetTab: TabId) => {
     await onMoveSection(sectionId, tabId, targetTab);
     toast.success(`Section déplacée vers ${TAB_LABELS[targetTab]}`);
@@ -312,16 +379,16 @@ function TabEditor({
     toast.success("Disposition réinitialisée");
   };
 
-  const getSectionLabel = (id: string): string => {
-    return sections.find(s => s.id === id)?.label || id;
+  const getSectionDef = (id: string): SectionDefinition | undefined => {
+    return sections.find(s => s.id === id);
   };
 
   const visibleCount = localConfigs.filter(c => c.visible).length;
   const collapsedCount = localConfigs.filter(c => c.collapsedByDefault).length;
 
   return (
-    <div className="space-y-4">
-      {/* Stats */}
+    <div className="space-y-3">
+      {/* Stats + Actions */}
       <div className="flex flex-wrap items-center justify-between text-sm gap-2">
         <div className="flex items-center gap-3">
           <span className="text-muted-foreground flex items-center gap-1">
@@ -346,7 +413,7 @@ function TabEditor({
             Réinitialiser
           </Button>
           {hasChanges && (
-            <Button size="sm" onClick={handleSave}>
+            <Button size="sm" onClick={handleSave} className="animate-in fade-in-0 duration-200">
               <Check className="w-3.5 h-3.5 mr-1.5" />
               Enregistrer
             </Button>
@@ -354,20 +421,13 @@ function TabEditor({
         </div>
       </div>
 
-      {/* Légende */}
+      {/* Légende compacte */}
       <div className="flex flex-wrap gap-3 text-xs text-muted-foreground bg-muted/30 p-2 rounded-lg">
-        <span className="flex items-center gap-1">
-          <Eye className="w-3 h-3 text-primary" /> Visible
-        </span>
-        <span className="flex items-center gap-1">
-          <EyeOff className="w-3 h-3" /> Masquée
-        </span>
-        <span className="flex items-center gap-1">
-          <Minimize2 className="w-3 h-3 text-amber-600" /> Minimisée par défaut
-        </span>
-        <span className="flex items-center gap-1">
-          <ArrowRightLeft className="w-3 h-3 text-blue-600" /> Déplacer
-        </span>
+        <span className="flex items-center gap-1"><GripVertical className="w-3 h-3" /> Glisser</span>
+        <span className="flex items-center gap-1"><ChevronUp className="w-3 h-3" /><ChevronDown className="w-3 h-3" /> Monter/Descendre</span>
+        <span className="flex items-center gap-1"><Eye className="w-3 h-3 text-primary" /> Visible</span>
+        <span className="flex items-center gap-1"><Minimize2 className="w-3 h-3 text-amber-600" /> Minimisée</span>
+        <span className="flex items-center gap-1"><ArrowRightLeft className="w-3 h-3 text-blue-600" /> Déplacer</span>
       </div>
 
       {/* Drag & Drop List */}
@@ -380,28 +440,36 @@ function TabEditor({
           items={localConfigs.map(c => c.id)}
           strategy={verticalListSortingStrategy}
         >
-          <div className="space-y-2">
-            {localConfigs.map(config => (
-              <SortableSectionItem
-                key={config.id}
-                id={config.id}
-                label={getSectionLabel(config.id)}
-                visible={config.visible}
-                collapsedByDefault={config.collapsedByDefault ?? false}
-                currentTab={tabId}
-                onToggleVisibility={() => toggleVisibility(config.id)}
-                onToggleCollapsed={() => toggleCollapsed(config.id)}
-                onMoveToTab={(targetTab) => handleMoveToTab(config.id, targetTab)}
-                availableTabs={availableTabs}
-              />
-            ))}
+          <div className="space-y-1.5">
+            {localConfigs.map((config, index) => {
+              const def = getSectionDef(config.id);
+              return (
+                <SortableSectionItem
+                  key={config.id}
+                  id={config.id}
+                  label={def?.label || config.id}
+                  visible={config.visible}
+                  collapsedByDefault={config.collapsedByDefault ?? false}
+                  category={def?.category}
+                  currentTab={tabId}
+                  isFirst={index === 0}
+                  isLast={index === localConfigs.length - 1}
+                  onToggleVisibility={() => toggleVisibility(config.id)}
+                  onToggleCollapsed={() => toggleCollapsed(config.id)}
+                  onMoveUp={() => moveUp(config.id)}
+                  onMoveDown={() => moveDown(config.id)}
+                  onMoveToTab={(targetTab) => handleMoveToTab(config.id, targetTab)}
+                  availableTabs={availableTabs}
+                />
+              );
+            })}
           </div>
         </SortableContext>
       </DndContext>
 
       {/* Hint */}
-      <p className="text-xs text-muted-foreground text-center pt-2">
-        Glissez pour réorganiser • Utilisez les icônes pour configurer chaque section
+      <p className="text-xs text-muted-foreground text-center pt-1">
+        Glissez ou utilisez les flèches ↑↓ pour réorganiser
       </p>
     </div>
   );
@@ -453,12 +521,11 @@ export function AdvancedLayoutEditor() {
           </Button>
         </div>
         <CardDescription>
-          Personnalisez l'ordre, la visibilité, le comportement par défaut et l'emplacement des sections
+          Réorganisez par glisser-déposer ou flèches ↑↓, masquez ou minimisez les sections
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="dashboard" className="w-full">
-          {/* Scrollable tabs for all menu items */}
           <div className="overflow-x-auto -mx-1 px-1 pb-2">
             <TabsList className="inline-flex w-auto min-w-full gap-1 mb-4">
               {tabs.map(tab => (
