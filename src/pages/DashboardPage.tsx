@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAthletes } from "@/contexts/AthleteContext";
-import { useCloudData } from "@/hooks/useCloudData";
+import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
 import { RunningFocusModeIndicator } from "@/components/RunningFocusModeIndicator";
 import { RunningFocusWrapper } from "@/components/RunningFocusWrapper";
@@ -193,7 +193,7 @@ function getRaceReadinessStatus(score: number): { status: "ok" | "warning" | "cr
 export default function DashboardPage() {
   const navigate = useNavigate();
   const { currentAthlete, updateAthlete } = useAthletes();
-  const { snapshots, tests, checkins } = useCloudData();
+  const { snapshots, tests, checkins } = useCloudDataContext();
   const { isRunningOnly, raceLabel } = useRunningFocusMode();
   const [showScientificDetails, setShowScientificDetails] = useState(false);
 
