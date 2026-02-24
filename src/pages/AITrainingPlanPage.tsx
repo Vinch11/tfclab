@@ -164,34 +164,28 @@ export default function AITrainingPlanPage() {
   const [constraints, setConstraints] = useState("");
 
   // Restore persisted plan + config on athlete change (single mode only)
+  // Priority: localStorage saved state > athlete default > fallback
   useEffect(() => {
-    if (isMultiMode || !savedState) return;
-    if (savedState.response) setResponse(savedState.response);
-    if (savedState.objective) setObjective(savedState.objective);
-    if (savedState.raceName) setRaceName(savedState.raceName);
-    if (savedState.raceDate) setRaceDate(savedState.raceDate);
-    if (savedState.weeklyHours) setWeeklyHours(savedState.weeklyHours);
-    if (savedState.sessionsPerWeek) setSessionsPerWeek(savedState.sessionsPerWeek);
-    if (savedState.ambition) setAmbition(savedState.ambition);
-    if (savedState.constraints) setConstraints(savedState.constraints);
+    if (isMultiMode) return;
+    if (savedState) {
+      if (savedState.response) setResponse(savedState.response);
+      if (savedState.objective) setObjective(savedState.objective);
+      else if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
+      if (savedState.raceName) setRaceName(savedState.raceName);
+      if (savedState.raceDate) setRaceDate(savedState.raceDate);
+      if (savedState.weeklyHours) setWeeklyHours(savedState.weeklyHours);
+      if (savedState.sessionsPerWeek) setSessionsPerWeek(savedState.sessionsPerWeek);
+      if (savedState.ambition) setAmbition(savedState.ambition);
+      else if (currentAthlete?.ambition) setAmbition(currentAthlete.ambition.toUpperCase());
+      if (savedState.constraints) setConstraints(savedState.constraints);
+      if (savedState.maxSessionsPerDay) setMaxSessionsPerDay(savedState.maxSessionsPerDay);
+    } else {
+      // No saved state — use athlete defaults
+      if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
+      if (currentAthlete?.ambition) setAmbition(currentAthlete.ambition.toUpperCase());
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [persistKey]);
-
-  // Persist plan when response changes (after generation completes)
-  useEffect(() => {
-    if (isMultiMode || !persistKey || isLoading) return;
-    if (!response) {
-      localStorage.removeItem(persistKey);
-      return;
-    }
-    const state = { response, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, maxSessionsPerDay, ambition, constraints };
-    localStorage.setItem(persistKey, JSON.stringify(state));
-  }, [response, isLoading, persistKey, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, maxSessionsPerDay, ambition, constraints, isMultiMode]);
-
-  useEffect(() => {
-    if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
-    if (currentAthlete?.ambition) setAmbition(currentAthlete.ambition.toUpperCase());
-  }, [currentAthlete?.id]);
 
   // Reset saved state when regenerating
   useEffect(() => {
