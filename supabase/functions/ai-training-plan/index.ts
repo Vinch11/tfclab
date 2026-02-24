@@ -245,14 +245,16 @@ Un jour marqué "Repos" est un jour de REPOS COMPLET :
 - Chaque semaine doit avoir exactement 1 jour de repos complet (généralement Lundi ou Dimanche)
 - Ne confonds JAMAIS repos et récupération active : ce sont 2 concepts distincts
 
-## ⚠️ RÈGLE RUNNING-ONLY — PAS DE VÉLO SAUF TRIATHLON
+## ⚠️ RÈGLE OBJECTIFS RUNNING — VÉLO LIMITÉ EN CROSS-TRAINING
 Pour les objectifs **5K, 10K, Semi, Marathon, Trail, StartToRun** :
-- **ZÉRO séance vélo** sauf si le coach a explicitement activé le module cross-training
-- Les sports autorisés sont UNIQUEMENT : Course à Pied + Renforcement/PPG
-- Si tu mets du vélo pour un Semi-Marathon ou un Marathon, c'est une ERREUR GRAVE
-- Alternative au vélo pour récupération active : footing Z1 très léger (20-30min) ou marche
-- Le ratio est strict : **CAP 85-90% du volume, Renfo 10-15%**
-- Remplis les jours avec des séances CAP variées (EF, tempo, seuil, fartlek, VMA, SL, côtes) et du renfo — PAS du vélo`;
+- Le sport PRINCIPAL est la course à pied : **CAP 75-85% du volume**
+- Renforcement/PPG : **10-15% du volume** (obligatoire)
+- Vélo en cross-training : **5-10% max** du volume, uniquement Z1-Z2, max 1-2 séances/sem
+  → Le vélo sert UNIQUEMENT de récupération active ou de complément aérobie sans impact
+  → Durée max : 45-60min Z1-Z2. JAMAIS d'intensité vélo pour un objectif running
+  → C'est une option, pas une obligation : privilégie toujours + de CAP si l'athlète peut encaisser la charge
+- Comparaison triathlon : un Semi a 1-2 vélo Z1/sem max vs 3-5 vélo/sem pour un IM
+- Remplis les jours prioritairement avec des séances CAP variées (EF, tempo, seuil, fartlek, VMA, SL, côtes) et du renfo`;
 
     let userPrompt: string;
     if (regenerateWeek) {
@@ -382,25 +384,25 @@ function buildUserPrompt(data: any, config: any): string {
     lines.push("- Plus d'intensité seuil/tempo qu'en IM");
   } else if (obj === "MARATHON") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE MARATHON");
-    lines.push("- CAP 85-90% | Renfo 10-15%. ⛔ ZÉRO natation, ZÉRO vélo.");
+    lines.push("- CAP 75-85% | Renfo 10-15% | Vélo cross-training Z1-Z2 max 5-10%");
     lines.push("- 2 séances qualité/sem + 1 sortie longue progressive");
     lines.push("- Minimum 5 séances CAP/sem : EF, tempo, seuil, SL, fartlek/côtes");
-    lines.push("- Récupération = footing Z1 léger ou repos complet, JAMAIS du vélo");
+    lines.push("- Vélo optionnel : max 1-2x/sem, 45-60min Z1-Z2 uniquement (récupération active)");
   } else if (obj === "SEMI") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE SEMI-MARATHON");
-    lines.push("- CAP 85-90% | Renfo 10-15%. ⛔ ZÉRO natation, ZÉRO vélo.");
+    lines.push("- CAP 75-85% | Renfo 10-15% | Vélo cross-training Z1-Z2 max 5-10%");
     lines.push("- Accent VMA + seuil. Minimum 4-5 séances CAP/sem.");
     lines.push("- Séances types : EF Z2, Tempo allure semi, VMA 30/30, Seuil 2×20min, SL 15-20km, Fartlek, Côtes");
-    lines.push("- Récupération = footing Z1 léger 20-30min ou repos complet, JAMAIS du vélo");
+    lines.push("- Vélo optionnel : max 1-2x/sem, 45-60min Z1-Z2 uniquement");
   } else if (["TRAIL", "TRAILSHORT", "TRAILMOUNTAIN", "TRAILULTRA"].includes(obj)) {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE TRAIL");
-    lines.push("- CAP/Trail 70-80% | Renfo spécifique 20-25%");
+    lines.push("- CAP/Trail 70-80% | Renfo spécifique 20-25% | Vélo Z1 optionnel 5%");
     lines.push("- Force excentrique, côtes, proprioception obligatoires");
   } else if (["10K", "10KM", "5K"].includes(obj)) {
     lines.push(`\n### ⚠️ RAPPEL COHÉRENCE ${obj}`);
-    lines.push("- CAP 85-90% | Renfo 10-15%. ⛔ ZÉRO natation, ZÉRO vélo.");
+    lines.push("- CAP 75-85% | Renfo 10-15% | Vélo cross-training Z1-Z2 max 5-10%");
     lines.push("- 1 seuil/tempo + 1 VMA + 1 sortie longue/sem + EF Z2");
-    lines.push("- Récupération = footing Z1 léger ou repos complet, JAMAIS du vélo");
+    lines.push("- Vélo optionnel : max 1x/sem, 45min Z1-Z2 uniquement");
   } else if (obj === "STARTTORUN") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE START TO RUN (DÉBUTANT)");
     lines.push("- PROGRAMME DÉBUTANT : alternance marche/course progressive.");
