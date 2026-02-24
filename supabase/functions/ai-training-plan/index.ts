@@ -315,6 +315,73 @@ Utilise ces micro-cycles réels comme modèles de qualité. Adapte-les au niveau
 | Dimanche | CAP + Renfo | EF + mobilité | 45min Z2 (5:00/km) 9km + mobilité hanches/chevilles 15min + foam roller 10min |
 ⚠️ Cross-training vélo semi = 1 séance/sem Z1-Z2 max, rôle = récupérer entre qualité mardi et tempo vendredi
 
+### Exemple : Patrick Lange — Semaine Spécifique IM Age Group Ambitieux (16h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, foam roller, hydratation |
+| Mardi matin | Natation | CSS + endurance | 400m éch drill. 8×200m @1:30/100m r=15s. 4×100m bras rattrapé. 200m RC. 3000m ~48min |
+| Mardi soir | Vélo | Sweet spot | 1h45 dont 2×15min @87-90% FTP cad 88 r=5min Z2. Terrain plat |
+| Mercredi | CAP | EF endurance | 1h10 Z2 (5:15/km). 13km. Cadence 176spm. Conversation possible |
+| Jeudi matin | Natation | Technique + vitesse | 300m éch. 8×50m @sprint r=20s. 12×50m catch-up. 200m RC. 2200m |
+| Jeudi soir | Vélo | Endurance Z2 Train Low | 1h30 à jeun Z2 (65% FTP). Aucune intensité. Ravitaillement eau uniquement |
+| Vendredi | Renfo | Force fonctionnelle | Squat 3×8 @70%, hip thrust 3×10, planche 3×45s, élastiques épaules 3×15. 40min |
+| Samedi | Vélo | Sortie longue + Gut Training | 3h30 Z2 vallonné + derniers 45min @75% FTP. Gut training 50g/h glucides. +600m D+ |
+| Dimanche | Brique | Vélo→CAP allure IM | Vélo 1h30 @76% FTP + CAP 35min @5:00/km (allure IM). Gut 40g/h. Transition 3min |
+⚠️ Age Group IM : max 1 brique/sem. Sortie longue vélo = séance clé #1, brique = séance clé #2. Natation = volume sans stress.
+
+### Exemple : Joshua Kerr — Semaine Spécifique 1500m/Mile (85km, 9h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | CAP | EF récupération | 40min Z1 (4:40/km). Complètement détendu. 9km |
+| Mardi matin | CAP | VMA courte | 15min éch. 12×400m @56s (VMA 100%) r=60s trot. 15min RC. 15km total |
+| Mardi soir | Renfo | Pliométrie explosive | Drop jumps 4×5, hurdle rebounds 3×8, medball slam 3×10, band sprints 3×30m. 30min |
+| Mercredi | CAP | EF endurance | 1h20 Z2 (4:00/km). 20km. Terrain plat. Cad 188spm |
+| Jeudi | CAP | Vitesse spécifique | 10min éch. 3×(600m @1:28 + 200m @26s) r=4min. 10min RC. 12km total. Effort maximal |
+| Vendredi | CAP | EF légère + drills | 35min Z1 (4:30/km) + drills techniques (A-skip, B-skip, butt kicks) 10min. 9km |
+| Samedi | CAP | SL tempo | 1h30 (22km). Km 1-15 @4:05/km Z2, derniers 7km @3:30→3:15/km. Finir fort |
+| Dimanche | CAP | EF + strides | 50min Z2 (4:10/km) + 8×150m accélérations progressives 80%→95%. 14km |
+⚠️ Demi-fond 1500 : VLamax naturellement élevée (>0.50). Vitesse pure + puissance anaérobie = clés. Volume modéré, qualité maximale.
+
+### Exemple : Daniela Ryf — Semaine Build 70.3 Competitor (14h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, mobilité 20min, sommeil |
+| Mardi matin | Natation | Seuil CSS | 400m éch. 5×300m @1:25/100m r=15s. 200m RC. 2600m ~40min |
+| Mardi soir | Vélo | Seuil intervalles | 1h30 dont 3×12min @90% FTP r=4min Z2. Terrain plat, cad 90 |
+| Mercredi | CAP | Tempo allure 70.3 | 1h10 dont 2×12min @allure 70.3 (4:20/km) r=3min trot. 14km |
+| Jeudi matin | Natation | Technique + aérobie | 300m éch drill. 2000m pull @1:32/100m Z2. 6×50m sprint r=15s. 200m RC. 2800m |
+| Jeudi soir | Renfo | Core + prévention | Gainage 3×50s, dead bug 3×12, pallof press 3×10, single leg glute bridge 3×12. 35min |
+| Vendredi | CAP | EF récupération | 45min Z1 (5:20/km). Jambes légères. 9km |
+| Samedi | Vélo | Sortie longue vallonnée | 3h Z2 (65-72% FTP) terrain vallonné +500m D+. Ravitaillement 40g/h. Dernier 30min @78% FTP |
+| Dimanche | Brique | Vélo→CAP simulation | Vélo 1h30 @80% FTP + CAP 25min @4:15/km enchaîné. Gut 50g/h. Focus transition |
+⚠️ Competitor 70.3 : 2-3 doubles/sem max. Natation = maintien, vélo = progression, CAP = limiter les sorties longues pour rester frais.
+
+### Exemple : Eliud Kipchoge — Semaine Taper Marathon (-40% volume, 100km)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Sommeil, massage, préparation mentale |
+| Mardi | CAP | Rappel allure marathon | 50min dont 3×8min @allure marathon (2:55/km) r=3min trot. 14km |
+| Mercredi | CAP | EF légère | 45min Z1 (4:30/km). Très facile. Sensation de fraîcheur. 10km |
+| Jeudi | CAP | Rappel VMA court | 30min éch + 4×1min @VMA (2:35/km) r=2min trot + 15min RC. 12km |
+| Vendredi | CAP | EF récupération | 35min Z1 (4:40/km). Minimaliste. 8km |
+| Samedi | CAP | Activation pré-course | 25min Z2 + 4×100m strides @allure 10K + 10min RC. 8km. Tenue de course si possible |
+| Dimanche | Course | Jour J | COURSE OBJECTIF. Exécuter le plan de pacing. Discipline > courage |
+⚠️ Taper : -40% volume semaine 1, -60% semaine 2. Intensité = rappels courts UNIQUEMENT. Aucune séance longue. Aucune nouvelle charge. Sommeil + nutrition = priorité.
+
+### Exemple : Jim Walmsley — Semaine Base Trail Court/Montagne (14h, 90km, +3500m D+)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, auto-massage, planification semaine |
+| Mardi matin | CAP/Trail | Côtes VMA | 1h30 dont 8×3min côte 10% @VO2max r=descente trot. +600m D+. 15km |
+| Mardi soir | Renfo | Force endurance | Squat 3×10 @65%, step-ups lestés 3×12, fentes marchées 3×20, gainage 4×45s. 40min |
+| Mercredi | CAP/Trail | Endurance sentier | 2h Z2 sentier technique mixte. +700m D+. Cad adaptée terrain. Ravitaillement 40g/h. 20km |
+| Jeudi | CAP | EF récupération plat | 50min Z1 (5:00/km) sur route plate. Récup active. 10km |
+| Vendredi matin | CAP/Trail | Tempo descente + montée | 1h40 dont 4×(5min montée @seuil + 5min descente technique rapide). +500m D+. 16km |
+| Vendredi soir | Renfo | Proprioception + mobilité | Bosu 3×30s, single leg squat 3×8, bande hanches 3×15, foam roller 20min, étirements. 35min |
+| Samedi | CAP/Trail | Sortie longue montagne | 3h30 Z2 montagne +1500m D+. Terrain varié. Ravitaillement complet 50g/h. Pôles descente |
+| Dimanche | CAP | EF légère + core | 40min Z1 plat (5:10/km) + core 15min (dead bug, bird dog, planche latérale). 8km |
+⚠️ Trail court : moins de volume qu'ultra mais plus d'intensité spécifique en côte. Descente = compétence technique à travailler. Ratio montée/descente ~50/50 dans les séances clés.
+
 ## RÈGLES DE PROGRESSION ADAPTATIVES PAR NIVEAU (CRITIQUE)
 
 ### Grille Volume/Intensité par Ambition et Objectif
