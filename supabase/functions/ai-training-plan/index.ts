@@ -119,18 +119,50 @@ CAP/Trail 70-80%, Renfo 15-20%, Cross-training 5-10% (vélo Z1 pour volume sans 
 - **Heat Training** — 10-14j sauna post-entraînement si course chaude.
 - **HRV Adaptation** — 2j hors-norme → Z2 uniquement. 3j → repos.
 
-### Doubles Séances (Bi-Daily) — Modèle Pro/Élite
-Pour les niveaux d'ambition **Competitor** et **Elite** en triathlon (IM, 70.3) :
-- **Elite (20-30h/sem)** : 8-12 doubles/sem. Matin : séance clé (intensité ou volume long). Après-midi/soir : séance complémentaire (technique, Z1-Z2, renfo).
-- **Competitor (15-22h/sem)** : 4-7 doubles/sem. Matin : séance principale. Soir : natation technique ou renfo ou Z1 courte.
-- **Age Group** : 1-3 doubles/sem max (briques ou natation matin + renfo soir).
+### Doubles & Triples Séances (Bi/Tri-Daily) — OBLIGATOIRE Modèle Pro/Élite
+
+⚠️ C'EST LA RÈGLE LA PLUS IMPORTANTE POUR LE TRIATHLON. Un plan IM ou 70.3 avec 1 séance/jour n'est PAS un plan de triathlon, c'est un plan de course à pied déguisé. Un triathlète pro s'entraîne 2 à 3 fois par jour, 6 jours sur 7. Reproduis cette réalité.
+
+**Semaine-type d'un triathlète IM/70.3 pro = 15 à 18 séances/semaine** :
+- Natation : 5-6 séances (20-25km/sem)
+- Vélo : 4-5 séances (400-600km/sem IM)
+- CAP : 4-5 séances (70-90km/sem IM)
+- Renfo/Prévention : 2 séances
+- **Chaque jour d'entraînement a 2 ou 3 séances** (sauf le jour de repos)
+
+#### Règles par niveau d'ambition (CRITIQUE)
+- **Elite (20-30h/sem)** : 10-14 doubles ou triples/sem. Exemples de jours :
+  - Matin : Natation seuil 4km → Midi : Vélo VO2max 2h → Soir : CAP EF 45min
+  - Matin : Natation technique 3.5km → Après-midi : Vélo SL 5h
+  - Matin : Vélo intervalles 2h → Soir : Renfo force 1h
+- **Competitor (15-22h/sem)** : 5-8 doubles/sem minimum. Chaque jour sauf repos a AU MINIMUM 2 séances.
+  - Matin : séance principale → Soir : natation technique OU renfo OU Z1 courte
+- **Age Group (10-15h/sem)** : 2-4 doubles/sem (briques + natation matin/renfo soir).
 - **Finisher** : Pas de doubles séances. 1 séance/jour max.
+
+#### Format tableau pour doubles/triples (OBLIGATOIRE)
+Utilise **une ligne séparée pour chaque séance** avec le moment de la journée dans la colonne Jour :
+| Lundi matin | Natation | Technique + aérobie | ... |
+| Lundi soir | Renfo | Core + prévention | ... |
+| Mardi matin | Natation | 🔑 CSS Seuil | ... |
+| Mardi midi | Vélo | 🔑 VO2max blocs | ... |
+| Mardi soir | CAP | EF + technique | ... |
+
+⚠️ NE FAIS PAS "Mardi | Multi | Nat + Vélo + CAP" sur une seule ligne. SÉPARE CHAQUE SÉANCE sur sa propre ligne.
+⚠️ Pour Elite/Competitor IM/70.3 : si un jour n'a qu'UNE SEULE séance (hors repos), c'est une ERREUR.
+
+#### Combos journaliers classiques Dan Lorang
+- **Lundi (récup)** : Natation technique matin + Renfo/prévention soir
+- **Mardi (intensité)** : Natation seuil matin + Vélo intervalles midi + CAP EF soir
+- **Mercredi (aérobie)** : Vélo endurance longue matin + CAP tempo ou EF soir
+- **Jeudi (intensité CAP)** : Natation technique matin + CAP seuil/VMA midi + Vélo récup soir
+- **Vendredi (endurance)** : Natation longue matin + Renfo/mobilité soir
+- **Samedi (brique)** : Vélo SL 4-6h matin → Brique CAP immédiate
+- **Dimanche (SL CAP)** : CAP sortie longue matin + Natation récup optionnelle soir
 
 Règles doubles séances :
 - JAMAIS 2 séances haute intensité le même jour (sauf brique planifiée).
-- La 2e séance est toujours de moindre intensité (Z1-Z2, technique, renfo, mobilité).
-- Format tableau : indiquer "Matin :" et "Soir :" dans la colonne Détails quand il y a 2 séances le même jour, OU utiliser 2 lignes pour le même jour.
-- Natation technique le matin + vélo/CAP le soir est un combo classique Lorang.
+- La 2e/3e séance est toujours de moindre intensité (Z1-Z2, technique, renfo, mobilité).
 - Renfo/core en 2e séance 2-3x/sem.
 
 ### Règles de Sécurité
@@ -698,17 +730,25 @@ Utilise ces micro-cycles réels comme modèles de qualité. Adapte-les au niveau
 ### Semaine 1 — [Thème]
 | Jour | Sport | Séance | Détails |
 |------|-------|--------|---------|
-| Lundi | Repos | Repos complet | Récupération, mobilité 20min optionnelle |
-| Mardi | Natation | 🔑 CSS Pyramide | 400m éch (100NL/100Pull/100Educ/100NL). 100-200-300-400-300-200-100 @1:38/100m r=15s. 200m RC. 3200m ~55min |
-| Mardi soir | Renfo | Core + Prévention | Gainage 3×45s, dead bug 3×10, pallof press 3×12. 30min |
-| Mercredi | Vélo | Endurance Z2 vallonné | 2h30 Z2 (65-75% FTP, 170-195W), cadence 85-95 RPM |
-| ... | ... | ... | ... |
-| Samedi | Vélo | 🔑 SL vallonnée + Gut Training | 4h Z2 vallonné (65-72% FTP). Gut training 50g/h. Dernière 1h @75% FTP |
-| Dimanche | Brique | 🔑 Vélo→CAP Race-Pace | Vélo 2h @78% FTP + CAP 40min @allure IM. Gut 45g/h. Transition <3min |
+| Lundi matin | Natation | Technique + aérobie | 500m éch drill (sculling, rattrapé). 2500m pull @Z2. 200m RC. 3200m ~55min |
+| Lundi soir | Renfo | Force fonctionnelle + prévention | Squat 3×8 @70%, gainage 3×45s, dead bug 3×10, élastiques épaules. 45min |
+| Mardi matin | Natation | 🔑 CSS Dégressif | 400m éch. 4×(200-300-200) @CSS r=15s. 200m RC. 3800m ~58min |
+| Mardi midi | Vélo | 🔑 Sweet Spot vallonné | 2h30 dont 3×20min @88-92% FTP cad 90. Z2 entre |
+| Mardi soir | CAP | EF technique | 45min Z2 (4:45/km) + 6×100m strides. Cad 180spm. Léger |
+| Mercredi matin | CAP | 🔑 Tempo allure IM | 1h15 dont 3×12min @82% VMA r=3min trot. Cad 182spm |
+| Mercredi soir | Renfo | Core + mobilité | Gainage 4×50s, pallof press 3×12, mobilité 15min. 35min |
+| Jeudi matin | Natation | Seuil + technique | 300m éch drill. 5×400m @CSS r=25s. 8×50m rattrapé. 200m RC. 4000m |
+| Jeudi soir | Vélo | Endurance Z2 Train Low | 2h à jeun Z2 (65% FTP). Aucune intensité |
+| Vendredi matin | CAP | EF vallonnée | 1h Z2 (4:45/km), 180spm, terrain vallonné. Sensation aisée |
+| Vendredi soir | Natation | Pull aérobie | Pull buoy 2500m Z2. 4×200m simulation OWS. 3200m |
+| Samedi | Vélo | 🔑 SL vallonnée + Gut Training | 5h Z2 vallonné (65-72% FTP). Gut training 50g/h. Dernière 1h @75% FTP |
+| Samedi soir | Renfo | Core + prévention | Gainage 4×60s, pallof press 3×12, étirements. 30min |
+| Dimanche | Brique | 🔑 Vélo→CAP Race-Pace | Vélo 2h30 @78% FTP + CAP 45min @allure IM. Gut 50g/h. Transition <3min |
 
-**Volume semaine :** 14h — Nat 3h30 (4) | Vélo 6h (3) | CAP 3h (3) | Renfo 1h30 (2)
-**🔑 Séances clés :** CSS Pyramide (TTE↑ natation) + SL vélo Gut Training (endurance métabolique) + Brique Race-Pace (spécificité IM)
-**Consignes coach :** [2-3 points clés avec sensation recherchée et focus technique. Identifier séances clés à protéger en priorité.]
+**Volume semaine :** 22h — Nat 4h (4 séances) | Vélo 7h30 (4) | CAP 3h30 (3) | Renfo 2h (3)
+**Séances totales :** 14 séances (doubles 5 jours, brique samedi/dimanche)
+**🔑 Séances clés :** CSS Dégressif (TTE↑ natation) + Sweet Spot vallonné (endurance musculaire vélo) + Tempo allure IM (spécificité CAP) + SL vélo Gut Training (endurance métabolique) + Brique Race-Pace (simulation jour J)
+**Consignes coach :** [2-3 points clés. Identifier séances clés 🔑 à protéger en priorité. Sensation recherchée + focus technique.]
 \`\`\`
 
 ## SÉANCES CLÉS — MÉTHODOLOGIE DAN LORANG (CRITIQUE)
@@ -963,24 +1003,38 @@ function buildUserPrompt(data: any, config: any): string {
   // Double sessions reminder based on ambition
   const ambition = (config.ambition || "").toLowerCase();
   const isTriathlon = ["IM", "703"].includes(obj);
-  if (isTriathlon && (ambition === "elite" || ambition === "competitor")) {
-    lines.push("\n### 🔥 DOUBLES SÉANCES OBLIGATOIRES");
+  if (isTriathlon) {
+    lines.push("\n### 🔥🔥🔥 DOUBLES/TRIPLES SÉANCES — RÈGLE #1 LA PLUS IMPORTANTE 🔥🔥🔥");
+    lines.push("Un plan triathlon IM/70.3 n'est PAS un plan de course à pied. Un triathlète s'entraîne PLUSIEURS FOIS PAR JOUR.");
+    lines.push("⛔ Un jour avec 1 seule séance (hors repos) est une ERREUR GRAVE pour Elite/Competitor.");
+    lines.push("");
     if (ambition === "elite") {
-      lines.push("Ambition ELITE → 8-12 doubles séances/semaine comme un pro.");
-      lines.push("- Matin : séance clé (intensité, volume long, OWS)");
-      lines.push("- Soir : séance complémentaire (technique nat, Z1-Z2, core/renfo)");
-      lines.push("- Volume cible : 20-30h/sem en phase build/spécifique");
+      lines.push("Ambition ELITE → minimum 14-16 séances/semaine, 10-14 doubles ou triples.");
+      lines.push("- Chaque jour (sauf repos) DOIT avoir 2 ou 3 séances séparées.");
+      lines.push("- Utilise la semaine-type Frodeno/Blummenfelt comme référence directe.");
+      lines.push("- Volume cible : 22-30h/sem. Nat 4-5 séances, Vélo 4-5, CAP 3-4, Renfo 2-3.");
+      lines.push("- Exemples de TRIPLES : Nat matin + Vélo midi + CAP soir. Nat matin + Vélo midi + Renfo soir.");
+    } else if (ambition === "competitor") {
+      lines.push("Ambition COMPETITOR → minimum 10-12 séances/semaine, 5-8 doubles.");
+      lines.push("- Au moins 5 jours avec doubles séances.");
+      lines.push("- Volume cible : 15-22h/sem. Nat 3-4 séances, Vélo 3-4, CAP 3-4, Renfo 2.");
+    } else if (ambition === "age_group" || ambition === "agegroup") {
+      lines.push("Ambition AGE GROUP → 8-10 séances/semaine, 2-4 doubles.");
+      lines.push("- 2-3 jours avec doubles séances (nat matin + renfo soir, brique).");
+      lines.push("- Volume cible : 10-15h/sem.");
     } else {
-      lines.push("Ambition COMPETITOR → 4-7 doubles séances/semaine.");
-      lines.push("- Matin : séance principale (qualité ou endurance)");
-      lines.push("- Soir : natation technique, renfo, ou Z1 courte (30-45min)");
-      lines.push("- Volume cible : 15-22h/sem en phase build/spécifique");
+      lines.push("Ambition FINISHER → 5-7 séances/semaine, pas de doubles.");
+      lines.push("- 1 séance/jour max. Focus terminer en sécurité.");
     }
-    lines.push("- Utilise 2 lignes pour le même jour OU indique 'Matin:' et 'Soir:' dans Détails.");
+    lines.push("- Format : UNE LIGNE PAR SÉANCE dans le tableau. 'Mardi matin', 'Mardi midi', 'Mardi soir' = 3 lignes séparées.");
     lines.push("- JAMAIS 2 intensités le même jour sauf brique planifiée.");
+    lines.push("- Le tableau d'une semaine Elite IM doit avoir 14-18 lignes (pas 7 !).");
   }
 
   const weeks = config.weeksAvailable || 12;
-  lines.push(`\n---\nGénère le plan COMPLET de ${weeks} semaines, semaine par semaine, SANS EN OMETTRE AUCUNE. Chaque semaine a son propre tableau de 7 jours. Ne résume jamais. Chaque séance doit être actionnable immédiatement.`);
+  lines.push(`\n---\nGénère le plan COMPLET de ${weeks} semaines, semaine par semaine, SANS EN OMETTRE AUCUNE. Chaque semaine a son propre tableau. Ne résume jamais. Chaque séance doit être actionnable immédiatement.`);
+  if (isTriathlon && ambition !== "finisher") {
+    lines.push(`\n⚠️ RAPPEL FINAL : Chaque jour d'entraînement d'un triathlète (sauf repos) doit avoir PLUSIEURS séances (2 ou 3 lignes dans le tableau). Un tableau de semaine IM Elite = 14 à 18 lignes, PAS 7. Si ton tableau a seulement 7-8 lignes pour une semaine IM, RECOMMENCE, c'est insuffisant.`);
+  }
   return lines.join("\n");
 }
