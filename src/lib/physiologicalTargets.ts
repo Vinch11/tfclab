@@ -581,19 +581,52 @@ export function isVlamaxInRange(vlamax: number | null, objectif: string, ambitio
 
 /**
  * Get VLamax status for an objective
+ * Returns granular status based on distance from optimal target
  */
-export function getVlamaxStatus(vlamax: number | null, objectif: string, ambition?: AmbitionLevel): "low" | "optimal" | "high" | "unknown" {
+export function getVlamaxStatus(vlamax: number | null, objectif: string, ambition?: AmbitionLevel): "low" | "optimal" | "acceptable" | "high" | "unknown" {
   if (vlamax === null) return "unknown";
   const range = getVLamaxRange(objectif, ambition);
   
   if (vlamax < range.min) return "low";
   if (vlamax > range.max) return "high";
   
-  // Check if close to optimal
+  // Check distance from optimal
   const optimalDelta = Math.abs(vlamax - range.optimal);
-  const rangeMid = (range.max - range.min) / 4;
+  const tolerance = (range.max - range.min) * 0.25; // ±25% of range width
   
-  return optimalDelta <= rangeMid ? "optimal" : "optimal"; // Still in range = optimal
+  return optimalDelta <= tolerance ? "optimal" : "acceptable";
+}
+
+/**
+ * Unified VLamax status with label — single source of truth for UI
+ * Replaces all local getVLamaxStatus functions in Dashboard/Staff pages
+ */
+export function getVlamaxStatusWithLabel(
+  vlamax: number | null, 
+  objectif: string, 
+  ambition?: AmbitionLevel
+): { status: "ok" | "warning" | "critical"; label: string; deviation: number | null } {
+  if (vlamax === null) return { status: "critical", label: "Non disponible", deviation: null };
+  
+  const range = getVLamaxRange(objectif, ambition);
+  const deviation = range.optimal > 0 
+    ? Math.round(((vlamax - range.optimal) / range.optimal) * 100) 
+    : 0;
+  
+  const rawStatus = getVlamaxStatus(vlamax, objectif, ambition);
+  
+  switch (rawStatus) {
+    case "low":
+      return { status: "ok", label: "Très bas", deviation };
+    case "optimal":
+      return { status: "ok", label: "Optimal", deviation };
+    case "acceptable":
+      return { status: "warning", label: "Acceptable", deviation };
+    case "high":
+      return { status: "critical", label: "Limitant", deviation };
+    default:
+      return { status: "critical", label: "Non disponible", deviation: null };
+  }
 }
 
 /**
