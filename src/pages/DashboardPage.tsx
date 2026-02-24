@@ -526,7 +526,7 @@ export default function DashboardPage() {
   } = dashboardData;
 
   const objectif = currentAthlete.objectif || "IM";
-  const ambition = (currentAthlete.ambition as AmbitionLevel) || DEFAULT_AMBITION;
+  const ambition = ((currentAthlete.refs as any)?.ambition ?? currentAthlete.ambition ?? DEFAULT_AMBITION) as AmbitionLevel;
   const vlamaxStatus = getVlamaxStatusWithLabel(vlamaxEffectif.value, objectif, ambition);
   const tteStatus = getTTEStatus(tteEffectif.tte_min, tteTarget);
   const readinessStatus = getRaceReadinessStatus(raceReadiness.score);
@@ -577,7 +577,7 @@ export default function DashboardPage() {
           <div className="hidden sm:flex flex-col items-end gap-1">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Ambition</span>
             <QuickAmbitionSelector
-              currentAmbition={(currentAthlete.ambition as AmbitionLevel) || DEFAULT_AMBITION}
+              currentAmbition={((currentAthlete.refs as any)?.ambition ?? currentAthlete.ambition ?? DEFAULT_AMBITION) as AmbitionLevel}
               onAmbitionChange={handleAmbitionChange}
             />
           </div>
@@ -591,7 +591,7 @@ export default function DashboardPage() {
               <span className="text-sm font-medium">Niveau d'ambition</span>
             </div>
             <QuickAmbitionSelector
-              currentAmbition={(currentAthlete.ambition as AmbitionLevel) || DEFAULT_AMBITION}
+              currentAmbition={((currentAthlete.refs as any)?.ambition ?? currentAthlete.ambition ?? DEFAULT_AMBITION) as AmbitionLevel}
               onAmbitionChange={handleAmbitionChange}
             />
           </div>
@@ -982,7 +982,7 @@ export default function DashboardPage() {
   const renderAmbitionTargets = (): ReactNode => (
     <AmbitionTargetsCard
       objectif={objectif}
-      ambition={(currentAthlete.ambition as AmbitionLevel) || DEFAULT_AMBITION}
+      ambition={((currentAthlete.refs as any)?.ambition ?? currentAthlete.ambition ?? DEFAULT_AMBITION) as AmbitionLevel}
       currentVlamax={vlamaxEffectif.value}
       currentTTE={tteEffectif.tte_min}
       currentFtpKg={ftpKg}
