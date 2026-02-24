@@ -913,6 +913,17 @@ function buildUserPrompt(data: any, config: any): string {
   if (config.weeksAvailable) lines.push(`- **Semaines disponibles :** ${config.weeksAvailable}`);
   if (config.weeklyHours) lines.push(`- **Heures dispo/semaine :** ${config.weeklyHours}h`);
   if (config.sessionsPerWeek) lines.push(`- **Séances/semaine max :** ${config.sessionsPerWeek}`);
+  if (config.maxSessionsPerDay) {
+    const maxLabel = config.maxSessionsPerDay === 1 ? "1 séance/jour max (PAS de doubles)" :
+                     config.maxSessionsPerDay === 2 ? "2 séances/jour max (doubles autorisées, PAS de triples)" :
+                     "3 séances/jour max (doubles et triples autorisées)";
+    lines.push(`- **⚠️ Max séances par jour :** ${maxLabel}`);
+    if (config.maxSessionsPerDay === 1) {
+      lines.push(`  → RÈGLE STRICTE : 1 seule séance par jour. Aucune double séance. Chaque jour n'a qu'UNE SEULE ligne dans le tableau.`);
+    } else if (config.maxSessionsPerDay === 2) {
+      lines.push(`  → RÈGLE STRICTE : Maximum 2 séances par jour. Pas de triples. Chaque jour a 1 ou 2 lignes max dans le tableau.`);
+    }
+  }
   if (config.ambition) lines.push(`- **Niveau d'ambition :** ${config.ambition}`);
   if (config.constraints) lines.push(`- **Contraintes :** ${config.constraints}`);
 

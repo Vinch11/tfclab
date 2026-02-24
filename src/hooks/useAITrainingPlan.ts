@@ -27,6 +27,7 @@ export interface PlanConfig {
   weeksAvailable?: number;
   weeklyHours?: number;
   sessionsPerWeek?: number;
+  maxSessionsPerDay?: number;
   ambition?: string;
   constraints?: string;
   identifiedLimiters?: string[];
