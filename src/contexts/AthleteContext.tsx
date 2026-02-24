@@ -29,14 +29,17 @@ const SS_SELECTED = "vinceslab-selected-athlete-session"; // ✅ Backup pour iOS
 
 function normalizeRefs(refs: any): any {
   const r = refs && typeof refs === "object" ? refs : {};
+  // ✅ FIX: Unifier masse_grasse → fatPct pour cohérence avec effectiveRefs
+  const fatPct = r.fatPct ?? r.masse_grasse ?? null;
   return {
     fcMax: r.fcMax ?? null,
     vma: r.vma ?? null,
     ftp: r.ftp ?? null,
     css: r.css ?? null,
     sexe: r.sexe ?? null,
-    masse_grasse: r.masse_grasse ?? null,
-    ambition: r.ambition ?? null, // Niveau d'ambition
+    fatPct, // Clé canonique utilisée par getEffectiveRefs
+    masse_grasse: fatPct, // Legacy compat
+    ambition: r.ambition ?? null,
   };
 }
 
@@ -152,13 +155,14 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
 
   const updateAthlete = async (athlete: any) => {
     const refs = normalizeRefs(athlete.refs);
-    refs.ambition = athlete.ambition || "age_group"; // Sauvegarder ambition
+    refs.ambition = athlete.ambition || "age_group";
     return await dbUpdateAthlete(athlete.id, {
       name: athlete.nom,
       goal: athlete.objectif,
       refs: refs as Json,
       vo2max: athlete.vo2max ?? null,
       birth_date: athlete.dateNaissance || null,
+      sex: athlete.sexe || refs.sexe || null, // ✅ FIX: Écrire aussi la colonne sex
     });
   };
 
