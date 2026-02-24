@@ -382,6 +382,79 @@ Utilise ces micro-cycles réels comme modèles de qualité. Adapte-les au niveau
 | Dimanche | CAP | EF légère + core | 40min Z1 plat (5:10/km) + core 15min (dead bug, bird dog, planche latérale). 8km |
 ⚠️ Trail court : moins de volume qu'ultra mais plus d'intensité spécifique en côte. Descente = compétence technique à travailler. Ratio montée/descente ~50/50 dans les séances clés.
 
+### Exemple : Laura Philipp — Semaine Base IM Femme Élite (20h, Reverse Periodization Lorang)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, massage, sommeil 9h |
+| Mardi matin | Natation | Seuil CSS | 500m éch drill. 6×300m @1:18/100m r=15s. 200m RC. 3500m ~52min |
+| Mardi midi | Vélo | VO2max courte (Reverse Perio) | 1h30 dont 6×3min @110% FTP r=3min Z1. Cad 95-100. L'intensité en base = principe Lorang |
+| Mardi soir | Renfo | Force max | Squat 4×5 @80%, hip thrust 3×8, deadlift 3×5, core anti-rotation 3×10. 45min |
+| Mercredi matin | CAP | EF endurance vallonnée | 1h15 Z2 (4:40/km), +150m D+. 16km. Cad 180spm |
+| Mercredi soir | Natation | Technique pure | 2000m drill focus (sculling, fingertip, catch-up, 6-kick). Aucune intensité. 35min |
+| Jeudi matin | Vélo | Endurance Z2 Train Low | 2h30 à jeun Z2 (60-68% FTP). Aucun glucide avant 2h. Eau+sel uniquement |
+| Jeudi soir | CAP | EF récupération | 40min Z1 (5:10/km). Ultra-léger. 8km |
+| Vendredi matin | Natation | OWS + navigation | 3000m OWS : échauffement plage 400m + 4×600m @allure course (1:22/100m) + navigation bouée |
+| Vendredi soir | Renfo | Core + prévention | Gainage 4×60s, pallof press 3×12, band walks 3×15, mobilité épaules 10min. 35min |
+| Samedi | Vélo | Sortie longue progressive | 4h Z2 + dernière 1h sweet spot @88% FTP. Train Low premier 2h, Gut Training 50g/h dernières 2h |
+| Dimanche | Brique | Vélo Z2→CAP tempo | Vélo 2h @72% FTP (récup) + CAP 40min dont 20min @allure IM (4:05/km). Gut 45g/h |
+⚠️ Reverse Periodization (Lorang) : en phase Base, inclure de l'intensité courte vélo (VO2max) dès le début. Le volume long vient en Build/Spécifique. Contre-intuitif mais prouvé par Lorang.
+
+### Exemple : Galen Rupp — Semaine Build 10K Age Group Ambitieux (70km, 7h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, étirements optionnels |
+| Mardi | CAP | VMA intermittente | 15min éch Z2. 3×(8×30s @VMA / 30s trot). r=3min entre séries. 12min RC. 13km total, 1h |
+| Mercredi | CAP | EF endurance | 55min Z2 (5:00/km). 11km. Cad 176spm. Plat, aisance respiratoire |
+| Jeudi | CAP | Tempo seuil | 1h dont 20min @allure seuil (4:00/km si VMA 17). r=4min trot. 2e série 15min. 13km |
+| Vendredi | Renfo | PPG + core | Squats 3×12, fentes avant 3×10, hip thrust 3×12, gainage 3×45s, mountain climbers 3×20. 35min |
+| Samedi | CAP | SL progressive | 1h25 (16km). Km 1-10 @5:20/km, km 10-14 @4:40/km, km 14-16 @4:10/km. Neg split |
+| Dimanche | CAP | EF + strides | 45min Z2 (5:10/km) + 6×100m accélérations 80%→95%. 10km. Finir frais |
+⚠️ 10K Age Group : 4-5 séances/sem, 1 VMA + 1 seuil + 1 SL = les 3 piliers. Repos > volume pour ce niveau.
+
+### Exemple : Gustav Iden — Semaine Spécifique 70.3 Élite (20h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, compression, nutrition optimisée |
+| Mardi matin | Natation | Race-pace blocs | 400m éch. 3×800m @1:10/100m (allure course 70.3) r=30s. 200m RC. 3600m ~48min |
+| Mardi midi | Vélo | VO2max→Sweet Spot combo | 2h dont 4×4min @115% FTP r=3min + 2×15min @90% FTP r=5min. Cad 92 |
+| Mardi soir | CAP | EF + technique | 45min Z2 (3:50/km) + 6×100m strides. 12km. Léger |
+| Mercredi matin | Vélo | Endurance longue vallonnée | 3h Z2 (65-72% FTP) terrain vallonné +800m D+. Ravitaillement 50g/h |
+| Mercredi soir | Natation | Pull endurance | Pull buoy 3000m @1:20/100m Z2. Focus rotation + glisse. 40min |
+| Jeudi matin | CAP | Seuil allure 70.3 | 1h20 dont 4×10min @allure 70.3 (3:30/km) r=2min30 trot. 18km. Cad 186spm |
+| Jeudi soir | Renfo | Force + stabilité | Squat 3×6 @78%, Bulgarian split 3×8, deadlift 3×5, anti-rotation core 3×12. 45min |
+| Vendredi matin | Natation | Seuil pyramide | 400m éch. 100-200-300-400-300-200-100 @1:08-1:14/100m r=15s. 200m RC. 2600m |
+| Vendredi soir | Vélo | Z2 récupération | 1h15 Z2 léger (60% FTP). Jambes fraîches pour samedi. Cad libre |
+| Samedi | Brique | Simulation 70.3 complète | Nat 1900m OWS @race-pace + Vélo 2h @85% FTP + CAP 30min @3:35/km. Gut 75g/h. Full simulation |
+| Dimanche | CAP | EF récupération | 1h Z1 (4:20/km). 14km. Digestion de la brique. Mobilité post 15min |
+⚠️ Iden : densité extrême mardi (3 séances). Simulation complète samedi avec OWS = modèle réservé élite. Jamais reproduire tel quel en Age Group.
+
+### Exemple : Kelvin Kiptum — Semaine Peak Marathon (200km, 16h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | CAP | EF récupération | 1h Z1 (4:50/km). Totalement relâché. 12km. Préparation mentale |
+| Mardi matin | CAP | Tempo marathon long | 1h50 dont 40min continu @allure marathon (2:50/km) + 2×10min @2:45/km. 30km total |
+| Mardi soir | Renfo | Pliométrie légère | Box jumps 3×6, bounds 3×8, single leg hops 3×10, core 4×40s. 30min |
+| Mercredi matin | CAP | EF endurance | 1h30 Z2 (3:50/km). 24km. Terrain plat. Cad 188spm |
+| Mercredi soir | CAP | Récup active | 30min Z1 (4:30/km). 7km. Shake-out |
+| Jeudi | CAP | Fartlek progressif | 1h40 dont 8×(3min @90% VMA + 2min trot). Derniers 4km progressif libre. 24km |
+| Vendredi | CAP | EF récupération | 50min Z1 (4:40/km). Sensation fraîche. 11km |
+| Samedi | CAP | SL simulation marathon | 38km dont km 1-25 @3:30/km, km 25-35 @2:55/km, km 35-38 @2:45/km. Neg split extrême. Gut 50g/h |
+| Dimanche matin | CAP | EF + core | 1h10 Z2 (4:00/km) 18km + core post 15min (gainage, crunches, russian twist) |
+| Dimanche soir | CAP | Shake-out | 25min Z1 très léger. 5km. Digestion de la SL. Récupération complète |
+⚠️ 200km/sem = niveau Kiptum/Kipchoge uniquement. Jamais prescrire ce volume sauf profil élite confirmé avec historique CTL > 120.
+
+### Exemple : Start to Run — Semaine Type Débutant Absolu (3h, 12km course + marche)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, hydratation, sommeil 8h minimum |
+| Mardi | CAP | Marche/Course alternée | 30min total : 5×(3min marche rapide + 3min course Z1 à 6:30-7:00/km). Cad 170spm. Respiration aisée |
+| Mercredi | Renfo | PPG débutant | Squats au poids du corps 3×10, fentes avant 2×8, gainage 3×20s, chaise murale 3×20s, étirements 10min. 25min |
+| Jeudi | Repos | Repos complet | Pas de course 2 jours consécutifs. Marche douce 20min optionnelle |
+| Vendredi | CAP | Marche/Course progression | 30min total : 4×(2min marche + 4min course Z1 à 6:15-6:45/km). Légèrement plus de course que mardi |
+| Samedi | Mobilité | Mobilité + étirements | Foam roller 15min, mobilité hanches/chevilles, étirements actifs chaîne postérieure. 25min |
+| Dimanche | CAP | Sortie longue douce | 35min marche/course : 3×(3min marche + 5min course Z1 à 6:30/km). Terrain plat. Finir en pouvant parler |
+⚠️ Start to Run : JAMAIS de fractionné avant 30min de course continue sans pause. Max 3 séances CAP/sem, jamais consécutives. Renfo/mobilité = 30-40% du volume total. Progression = +5min course/sem max.
+
 ## RÈGLES DE PROGRESSION ADAPTATIVES PAR NIVEAU (CRITIQUE)
 
 ### Grille Volume/Intensité par Ambition et Objectif
