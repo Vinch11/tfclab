@@ -38,6 +38,7 @@ import { parseAIPlan, mapSessionsToDates, type ParsedPlan } from "@/lib/aiPlanPa
 import { AIPlanViewer } from "@/components/AIPlanViewer";
 import { AIPlanComparison } from "@/components/AIPlanComparison";
 import { AIPlanBenchmark } from "@/components/AIPlanBenchmark";
+import { RacePaceSimulation } from "@/components/RacePaceSimulation";
 import { SavedPlanCalendar } from "@/components/SavedPlanCalendar";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -1038,6 +1039,16 @@ export default function AITrainingPlanPage() {
                         plan={parsedPlan}
                         objective={objective}
                         ambition={ambition}
+                        athleteName={currentAthlete?.nom}
+                      />
+                      <RacePaceSimulation
+                        objective={objective}
+                        ambition={ambition}
+                        vma={athleteContext?.data?.vma ?? null}
+                        thresholdPace={null}
+                        vlamaxRun={athleteContext?.data?.vlamaxRun ?? null}
+                        vo2max={athleteContext?.data?.vo2max ?? null}
+                        weightKg={athleteContext?.data?.weightKg ?? null}
                         athleteName={currentAthlete?.nom}
                       />
                       <AIPlanViewer
