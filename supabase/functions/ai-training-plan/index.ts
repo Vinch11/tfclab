@@ -203,6 +203,77 @@ Utilise ces micro-cycles réels comme modèles de qualité. Adapte-les au niveau
 | Samedi | CAP | SL progressive | 1h30 (16km). Premiers 10km @5:40/km, derniers 6km @5:00→4:40/km |
 | Dimanche | Renfo | Mobilité + core | Foam roller 15min, mobilité hanches/chevilles, gainage 3×40s. 30min |
 
+### Exemple : Lucy Charles-Barclay — Semaine Spécifique 70.3 (18h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, massage, mobilité 30min |
+| Mardi matin | Natation | Race-Pace 70.3 | 400m éch drill. 6×500m @1:15/100m (allure course) r=20s. 200m RC. 4100m ~60min |
+| Mardi soir | Vélo | Seuil prolongé | 1h45 dont 2×25min @95% FTP (265W) cad 92 r=8min Z2. Terrain plat |
+| Mercredi matin | CAP | Seuil allure 70.3 | 1h15 dont 3×15min @3:50/km (87% VMA) r=3min trot. 18km. Cad 184spm |
+| Mercredi soir | Renfo | Core + prévention | Gainage 4×50s, pallof press 3×12, single leg deadlift 3×10, band walks 3×15. 35min |
+| Jeudi matin | Natation | Vitesse + technique | 300m éch. 12×75m @sprint r=20s. 8×50m finger drag. 300m RC. 2800m |
+| Jeudi soir | Vélo | Z2 récupération | 1h30 Z2 léger (175-200W, 65% FTP). Cadence libre. Jambes fraîches |
+| Vendredi | CAP | EF + strides | 55min Z2 (4:30/km) + 8×100m accélérations progressives. 13km |
+| Samedi | Brique | Simulation 70.3 | Vélo 2h @82% FTP (230W) + CAP 30min @3:55/km immédiat. Gut 70g/h. Transition <2min |
+| Samedi soir | Natation | Aérobie long | Pull buoy 3000m @1:24/100m Z2. Focus position + respiration bilat. 42min |
+| Dimanche | Vélo | Sortie longue vallonnée | 3h30 Z2 (190-220W) terrain vallonné +800m D+. Ravitaillement solide 40g/h |
+
+### Exemple : Kilian Jornet — Semaine Build Trail Ultra (16h, 120km, +4500m D+)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, sommeil 9h, auto-massage |
+| Mardi | CAP/Trail | Montée seuil | 2h dont 4×15min montée @seuil (1000m/h D+) r=5min descente trot. +900m D+ |
+| Mercredi matin | Renfo | Excentrique + force | Squat excentrique 4s 4×8, fentes bulgares 3×10, step-ups lestés 3×12, proprioception 10min. 50min |
+| Mercredi soir | CAP | EF vallonnée | 1h15 Z2 sentier, terrain technique. +400m D+. Cad adaptée au terrain |
+| Jeudi | CAP/Trail | Sortie longue D+ | 3h30 montagne, +1500m D+. Z2 en montée, technique en descente. Ravitaillement 50g/h |
+| Vendredi | CAP | Récupération active | 40min Z1 plat très léger (5:30/km). Mobilité chevilles 15min post |
+| Samedi matin | CAP/Trail | VMA côtes + descente | 1h30 dont 10×2min côte raide @VO2max r=descente trot + 4×5min descente technique rapide. +600m D+ |
+| Samedi soir | Renfo | Core + mobilité | Gainage latéral 3×40s, dead bug 3×12, foam roller 20min, étirements chaîne post. 35min |
+| Dimanche | CAP/Trail | Endurance longue terrain | 2h30 Z2 sentier vallonné. +1100m D+. Allure naturelle, ravitaillement pratiqué |
+
+### Exemple : Kristian Blummenfelt — Semaine Peak IM (28h, Modèle Olav Aleksander Bu)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi matin | Natation | Technique + aérobie | 500m éch drill (sculling, rattrapé, dog paddle). 3000m pull @1:20/100m Z2. 200m RC. 3700m |
+| Lundi soir | Vélo | Z2 Train Low | 2h à jeun Z2 (220-250W, 65% FTP). Cadence 85-90. Aucune intensité |
+| Mardi matin | Vélo | VO2max blocs | 2h dont 5×5min @115% FTP (390W) r=5min Z1. Cad 95-100. 15min éch/RC |
+| Mardi midi | Natation | CSS continu | 20×100m @1:14/100m r=10s. 2500m total avec éch/RC. 38min |
+| Mardi soir | CAP | EF + technique | 50min Z2 (3:55/km). 6×100m accélérations. Cad 190spm. Léger |
+| Mercredi matin | Vélo | Sweet spot long | 3h30 dont 2×40min @88% FTP (300W) cad 90. Z2 entre. Terrain vallonné |
+| Mercredi soir | Renfo | Force max | Squat 4×4 @85%, deadlift 3×5 @82%, fentes 3×8, core explosif 15min. 50min |
+| Jeudi matin | Natation | Seuil pyramide | 400m éch. 200-400-600-800-600-400-200 @1:12-1:16/100m r=20s. 200m RC. 3800m |
+| Jeudi soir | Vélo→CAP | Brique tempo | Vélo 1h30 @80% FTP (270W) + CAP 40min @3:45/km. Transition <90s. Gut 60g/h |
+| Vendredi matin | Natation | OWS simulation | 3500m OWS : départ beach sprint 200m + 2×1500m @race-pace + navigation bouée |
+| Vendredi soir | CAP | Tempo IM progressif | 1h dont 30min Z2 + 30min @allure IM (3:50/km). Neg split. 16km |
+| Samedi | Vélo | Ultra-distance | 6h Z2 (210-240W) + dernière 1h30 @75% FTP. Gut training 80g/h. +1200m D+ |
+| Samedi soir | Renfo | Core + prévention | Gainage 4×60s, band walks, élastiques épaules, étirements 30min |
+| Dimanche | Brique | Race simulation longue | Vélo 3h @78% FTP + CAP 1h @3:55/km. Gut 75g/h complet. Simulation jour J |
+
+### Exemple : Joshua Cheptegei — Semaine Spécifique 10K (150km, 12h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | CAP | EF récupération | 45min Z1 (4:30/km). Très facile, 180spm. Récupération active |
+| Mardi matin | CAP | Intervals 10K pace | 15min éch. 5×2000m @2:40/km (allure 10K) r=90s trot. 15min RC. 20km total |
+| Mardi soir | Renfo | Pliométrie | Hurdle hops 4×6, drop jumps 3×8, single leg bounds 3×10, core 10min. 30min |
+| Mercredi matin | CAP | EF endurance | 1h30 Z2 (3:50/km), terrain plat. 24km. Cad 188spm |
+| Mercredi soir | CAP | EF légère + strides | 30min Z1 (4:20/km) + 6×150m accélérations progressives. 9km |
+| Jeudi | CAP | Tempo seuil | 1h15 dont 1×30min @3:05/km (seuil, 90% VMA) + 15min @3:15/km. 19km |
+| Vendredi | CAP | EF récupération | 50min Z1 (4:15/km). Jambes légères. 12km |
+| Samedi | CAP | SL race-pace finish | 25km dont derniers 5km @2:45/km (allure 10K). Neg split brutal. Simulation mentale |
+| Dimanche | CAP | EF double + renfo | 1h10 Z2 (3:55/km) 18km. Core post 15min (gainage, bicycle, mountain climbers) |
+
+### Exemple : Des Linden — Semaine Base Marathon Femme Élite (140km, 11h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | CAP | EF récupération | 50min Z1 (5:00/km). Récupération psychologique aussi. Terrain plat |
+| Mardi matin | CAP | Seuil long | 1h30 dont 2×20min @3:30/km (seuil) r=5min trot. 22km. Cad 182spm |
+| Mardi soir | Renfo | Force générale | Squat 3×6 @75%, hip thrust 3×10, deadlift 3×5, step-ups 3×10. 40min |
+| Mercredi | CAP | EF vallonnée | 1h40 Z2 (4:20/km), collines naturelles +250m D+. 23km. Effort régulier en côte |
+| Jeudi | CAP | Fartlek structuré | 1h20 dont 6×(4min @allure semi 3:25/km + 3min trot). 19km total |
+| Vendredi | CAP | EF récupération | 40min Z1 (5:10/km). Mobilité hanches + chevilles 15min post |
+| Samedi | CAP | SL marathon | 2h10 (30km). Premiers 22km @4:30/km, derniers 8km @3:45→3:30/km. Eau + 30g/h |
+| Dimanche | CAP | EF + core | 1h Z2 (4:30/km) 14km + gainage 4×45s, dead bug 3×10, pallof 3×12 post |
+
 ## RÈGLES DE PROGRESSION PAR PHASE (CRITIQUE)
 
 ### Progression Volume
