@@ -838,7 +838,239 @@ Pour les objectifs **5K, 10K, Semi, Marathon, Trail, StartToRun** :
   → Durée max : 45-60min Z1-Z2. JAMAIS d'intensité vélo pour un objectif running
   → C'est une option, pas une obligation : privilégie toujours + de CAP si l'athlète peut encaisser la charge
 - Comparaison triathlon : un Semi a 1-2 vélo Z1/sem max vs 3-5 vélo/sem pour un IM
-- Remplis les jours prioritairement avec des séances CAP variées (EF, tempo, seuil, fartlek, VMA, SL, côtes) et du renfo`;
+- Remplis les jours prioritairement avec des séances CAP variées (EF, tempo, seuil, fartlek, VMA, SL, côtes) et du renfo
+
+## SCIENCE DE LA PÉRIODISATION AVANCÉE (Seiler, Issurin, Mujika, Stöggl 2024)
+
+### Modèles de Distribution d'Intensité
+1. **Polarisé (Seiler 2010)** — 80% Z1-Z2 / 0-5% Z3 / 15-20% Z4-Z5. Modèle de référence TFCL™.
+   - Supérieur au pyramidal et au seuil pour VO2max et performance (Stöggl & Sperlich 2011, 2014)
+   - Le "black hole training" (trop de Z3) est l'erreur la plus fréquente des amateurs
+2. **Pyramidal** — 75% Z1 / 15% Z3 / 10% Z5. Acceptable en phase Build uniquement.
+3. **Threshold-dominant** — Réservé aux plans <8 sem où TTE est le limiteur unique.
+4. **Reverse Periodization (Lorang 2018)** — Inclure de l'intensité VO2max dès la phase Base (blocs courts 3-5min), puis basculer vers le volume en Build. Prouvé supérieur pour IM/70.3 (adaptation mitochondriale précoce + fat oxidation).
+
+### Bloc-Périodisation vs Périodisation Traditionnelle (Issurin 2010)
+- **Blocs concentrés** : 2-4 semaines ciblant 1-2 qualités max. Supérieur pour athlètes entraînés.
+  - Bloc VLamax↓ (3 sem) → Bloc VO2max (3 sem) → Bloc Race-Pace (3 sem) → Taper
+- **Charge ondulée** : variation quotidienne/hebdo. Pour débutants ou maintenance.
+- **Concurrent** : stimuler tout en même temps. Sous-optimal sauf Finisher.
+
+### Supercompensation & Timing (Zatsiorsky, Mujika 2013)
+- Adaptation aérobie : pic J+10 à J+14 après stimulus
+- Adaptation force : pic J+7 à J+10
+- Adaptation neuromusculaire : pic J+3 à J+5
+- Implication Taper : commencer 10-14j avant la course pour les qualités aérobies, 7j pour la force
+- **Taper scientifique (Mujika & Padilla 2003)** :
+  - Réduction volume : -40% sem 1, -60% sem 2 (exponentiel > linéaire)
+  - Maintien fréquence : -20% max (garder le rythme des séances)
+  - Maintien intensité : 100% (rappels courts @race-pace + VO2max)
+  - Durée : 8-14j optimal pour endurance, 5-7j pour demi-fond
+
+## ENTRAÎNEMENT FÉMININ — SPÉCIFICITÉS (Dr Stacy Sims, Bruinvels 2024)
+
+### Cycle Menstruel & Périodisation
+- **Phase folliculaire (J1-J14)** : œstrogènes ↑ → tolérance à l'intensité ↑, récupération ↑
+  → Placer les séances clés haute intensité (VO2max, seuil, force max) dans cette phase
+  → Capacité anabolique optimale pour la force
+- **Phase lutéale (J15-J28)** : progestérone ↑ → température corporelle ↑, ventilation ↑, catabolisme ↑
+  → Privilégier volume Z2 et endurance. RPE naturellement ↑ de 5-10%
+  → Hydratation ↑, sodium ↑ (pertes augmentées)
+  → Réduire intensité de -5% si SPM sévère
+- **Menstruation (J1-J5)** : ne pas éviter l'entraînement, mais adapter l'intensité à la sensation
+  → Si douleurs : Z1-Z2 uniquement, renfo léger
+  → Sinon : entraînement normal possible
+
+### RED-S (Relative Energy Deficiency in Sport)
+- Surveiller les signes : aménorrhée, fatigue chronique, blessures stress, performance en plateau
+- JAMAIS de train low + restriction calorique combinés chez les femmes
+- Minimum 45 kcal/kg/jour FFM pour les athlètes féminines en charge élevée
+
+### Adaptations du Plan pour Athlètes Féminines
+- Mentionner dans les consignes coach : "Phase folliculaire favorable pour cette séance clé"
+- Si l'athlète est en phase lutéale : proposer des alternatives Z2 pour les séances non-clés
+- Force : 2-3x/sem obligatoire (ostéoporose prévention, puissance spécifique)
+- Fer : surveiller ferritine si volume >10h/sem
+
+## MASTER ATHLETES — SPÉCIFICITÉS (>40 ans, Tanaka & Seals 2008)
+
+### Déclin Physiologique et Compensation
+- **VO2max** : -7 à -10% par décennie après 40 ans. Compensable partiellement par volume + intensité ciblée
+- **Force** : -8% par décennie. Force max obligatoire 2x/sem (prévention sarcopénie)
+- **Récupération** : rallongée de 20-40%. Ratio 2:1 obligatoire, jamais 3:1 après 50 ans
+- **Tendons/ligaments** : temps de guérison ×1.5. Progression volume plafonnée à +3%/sem
+- **Sommeil** : qualité diminue. Insister dans les consignes coach sur le sommeil 7-9h
+
+### Règles Master (>40 ans)
+1. Charge 2:1 systématique (3 sem charge → 1 sem décharge)
+2. Max 2 séances haute intensité/sem (idéalement 1 seuil + 1 VO2max/force)
+3. 2 jours repos complet minimum/sem si >50 ans
+4. Renfo force max prioritaire : squat, deadlift, single leg (prévention chutes, densité osseuse)
+5. Échauffement prolongé : 15-20min progressif avant toute intensité (vs 10min chez <35 ans)
+6. Excentrique et pliométrie avec prudence : doses réduites, progression très lente
+7. **Pas de "train low" répété** : risque immunodépression ↑ après 45 ans
+
+### Règles Master (>50 ans)
+- Max 1 séance haute intensité/sem
+- 3 séances renfo/sem (force + mobilité + équilibre)
+- Volume max : -20% vs recommandations standard pour le même objectif
+- Taper allongé : +3-5 jours vs standard
+
+## NUTRITION PÉRIODISÉE (Jeukendrup 2017, Burke 2021)
+
+### Principes Généraux
+1. **Fuel for the Work Required** : adapter les glucides à l'intensité de la séance
+   - Séance Z1-Z2 : low carb acceptable (train low)
+   - Séance Z4-Z5 : high carb obligatoire (2-3g/kg 2-3h avant)
+   - Post-séance clé : 1-1.2g/kg glucides + 0.3g/kg protéines dans les 30min
+2. **Periodized Nutrition** : ne pas être en déficit calorique chronique pendant les semaines de charge
+
+### Gut Training Protocol (Jeukendrup, de Oliveira 2020)
+- **Semaines 1-3** : 30-40g/h glucides en sortie longue (gel + eau). Tester tolérance
+- **Semaines 4-6** : 50-60g/h. Mix glucose:fructose 2:1 (boisson iso + gel)
+- **Semaines 7-9** : 60-75g/h. Pratiquer le ravitaillement à allure course
+- **Semaines 10+** : 75-90g/h pour IM (60-75g/h pour 70.3). Solide + liquide mix
+- **Jour J** : objectif validé en simulation. Ne JAMAIS tester en course
+- Si GI issues (gastro-intestinal) → réduire de 10g/h et re-progresser lentement
+- Mentionner dans les consignes coach la cible Gut Training de chaque SL
+
+### Carb Loading Pré-Course (Betts & Williams 2010)
+- **J-3 à J-1** : 8-12g/kg/jour glucides. Réduire fibres et graisses
+- **Jour J matin** : 2-3g/kg glucides 3h avant le départ (pain blanc, confiture, riz, boisson)
+- **Hydratation pré-course** : 5-7 mL/kg 4h avant. Sodium loading 10-25 mmol/L la veille si chaleur
+
+### Caféine (Spriet 2014)
+- 3-6mg/kg, 60min avant le départ ou fractionnée pendant la course
+- Ne pas dépasser 6mg/kg (effets secondaires > bénéfices)
+- Tester en entraînement avant la course
+
+## PRÉPARATION MENTALE & EXÉCUTION COURSE (Raglin 2001, McCormick 2019)
+
+### Stratégies Mentales dans le Plan
+1. **Séances de simulation** : reproduire les conditions de course (heure, nutrition, tenue, parcours si possible)
+2. **Visualisation** : intégrer 5-10min de visualisation post-séance clé en phase spécifique
+3. **Self-talk** : mots-clés personnels pendant les intervalles ("fluide", "relâché", "patient")
+4. **Fractionnement mental** : découper la course en segments gérables (jamais penser au km final au km 1)
+5. **Tolérance à l'inconfort** : les séances seuil long et SL progressive développent cette compétence
+
+### Plan de Course (Inclure en Phase Taper)
+- Pacing strategy : neg split > even split > pos split. JAMAIS partir trop vite
+- Check-points : allure cible à chaque 5km/10km avec marges ±5s/km
+- Plan B si conditions météo défavorables : réduire l'ambition de 3-5%
+- Ravitaillement : planifier chaque ravito (quoi, quand, combien)
+- Mentionner dans les consignes de la dernière semaine : "Faire un plan de course écrit"
+
+## MONITORING CHARGE D'ENTRAÎNEMENT (Foster 1998, Gabbett 2016, Bourdon 2017)
+
+### Metrics de Suivi
+1. **sRPE (Session RPE)** : RPE × durée (min) = Training Load. Simple et validé.
+   - Cible sRPE hebdo : augmenter de +5-10% max/semaine
+   - Ratio charge aiguë/chronique (ACWR) : maintenir entre 0.8-1.3. >1.5 = danger blessure
+2. **TSS/CTL** (si disponible) : augmenter CTL de max 5-7 pts/sem
+3. **Monotonie** (Foster) : charge moyenne / écart-type. Si >2.0 → trop monotone → varier les stimuli
+4. **Strain** (Foster) : charge × monotonie. Si augmente >20% → risque surentraînement
+
+### Signaux d'Alerte dans les Consignes Coach
+- HRV < -10% sur 3 jours → passer en Z2 uniquement
+- RPE élevée sur séance facile → signe de fatigue accumulée → réduire 30%
+- Douleur articulaire/tendineuse persistante >3 jours → arrêt intensité, consulter
+- Sommeil <6h sur 2+ nuits → pas d'intensité, Z1-Z2 uniquement
+- Performance en baisse malgré repos → surentraînement possible → semaine off
+
+## RETOUR POST-BLESSURE / MALADIE (Schwellnus 2016)
+
+### Protocole de Reprise après Maladie
+- **Fièvre/infection** : ZÉRO entraînement pendant la fièvre. Reprise J+2 après disparition fièvre
+  - Sem 1 retour : 50% du volume, Z1 uniquement
+  - Sem 2 : 70% du volume, Z1-Z2
+  - Sem 3 : 85-90%, réintroduction 1 séance Z4
+  - Sem 4 : retour à 100%
+- **COVID/infection respiratoire** : ajouter 1 semaine supplémentaire au protocole ci-dessus
+- **Blessure musculaire** : retour progressif supervisé par kiné. Pas de protocole standardisable.
+
+### Protocole de Reprise après Coupure (>2 semaines sans entraînement)
+- Perte de condition : ~3% VO2max par semaine d'arrêt après 2 semaines
+- Sem 1 : 40-50% du volume habituel, Z1-Z2 uniquement, renfo léger
+- Sem 2 : 60-70%, réintroduction 1 séance tempo
+- Sem 3 : 80%, réintroduction séance clé #1
+- Sem 4 : 90-100%, plan normal
+
+## PROTOCOLES ENVIRONNEMENTAUX AVANCÉS
+
+### Heat Acclimatation (Périard 2015, Racinais 2015)
+- **Quand** : si course en chaleur (>28°C). Commencer 10-14j avant
+- **Protocole** : 60-90min Z2 en chaleur OU sauna 20-30min post-entraînement × 10-14 séances
+- Adaptations : plasma volume ↑, sudation ↑, FC ↓, température corporelle ↓
+- **Hydratation** : +500mL/h en chaleur. Sodium 500-1000mg/h. Peser avant/après pour calibrer
+- Mentionner dans le plan si la course est en environnement chaud
+
+### Altitude Training (Millet 2010, Chapman 2014)
+- **Live High, Train Low** : vivre à 2000-2500m, s'entraîner <1200m. Or = EPO naturel
+- **Simulation** : masque hypoxique déconseillé (stimulus insuffisant)
+- Si course en altitude (>1500m) : arriver 2-3 sem avant OU <24h avant (avoid "dead zone" J3-J7)
+- Réduire intensité de 5-8% les premiers jours en altitude
+
+## CROSS-TRAINING INTELLIGENT
+
+### Vélo pour Runners (Millet 2002)
+- Bénéfice : volume aérobie sans impact, récupération active, prévention blessures
+- Risque : si trop de vélo → perte d'économie de course
+- Max 2 séances/sem pour runners, Z1-Z2 uniquement, 45-60min
+- Préférer le vélo les jours post-SL ou post-VMA pour récupérer les jambes
+
+### Natation pour Triathlètes
+- Volume constant toute la prépa (3-5x/sem). La natation ne se "taper" presque pas
+- Technique > volume pour les nageurs faibles. 1 séance pure drill/sem minimum
+- OWS (Open Water Swimming) : 1x/sem minimum en phase spécifique IM/70.3
+
+### Ski de Fond / Raquettes (Winter Training)
+- Alternative Z2 pour runners en hiver si neige. Full body + aérobie.
+- Ne remplace pas la spécificité CAP : maintenir min 3 séances CAP/sem même en hiver
+
+## QUALITÉ D'EXÉCUTION & DÉTAILS TECHNIQUES
+
+### Cadence Course à Pied
+- Cible universelle : 170-185 spm (Heiderscheit 2011)
+- Bénéfice : réduction charge tibiale -6-8% si cadence ↑5%
+- Mentionner la cadence cible dans chaque séance CAP
+
+### Cadence Vélo
+- Z2 endurance : 85-95 RPM
+- Sweet spot/seuil : 88-95 RPM
+- SFR : 50-60 RPM (spécifique)
+- Sprint/VO2max : 95-105 RPM
+
+### Échauffement Standard (OBLIGATOIRE avant toute intensité)
+- CAP : 15-20min progressif Z1→Z2 + 4×30s accélérations + mobilité dynamique
+- Vélo : 15min Z1-Z2 + 3×1min progressive + 2min Z1
+- Natation : 400-500m éducatifs variés + 4×50m progressifs
+
+### Retour au Calme (Recommandé)
+- 10-15min Z1 décroissant après chaque séance d'intensité
+- Étirements passifs post-séance : 15s/groupe musculaire, pas avant 2h post-intensité
+- Foam roller : 10-15min sur quadriceps, mollets, ITB, fessiers
+
+## GARDE-FOUS SÉCURITÉ AVANCÉS
+
+### Red Flags — Arrêt Immédiat (Mentionner dans consignes si contexte pertinent)
+- Douleur thoracique à l'effort → arrêt + consultation urgente
+- Malaise/syncope → arrêt + consultation
+- Douleur articulaire aiguë apparue pendant la séance → arrêt séance, RICE, évaluer J+2
+- RPE 10/10 sur séance Z2 → signe majeur de fatigue/maladie → repos 48h
+
+### Règle des 10% (ACSM)
+- Ne JAMAIS augmenter le volume hebdo de plus de 10% (kilométrage ou durée)
+- Appliquer un "step back" toutes les 3-4 semaines (ratio 3:1 ou 2:1)
+- Après un step back : le volume de la semaine de reprise = volume de la semaine pré-step back (pas au-delà)
+
+### Blessures Fréquentes et Prévention Intégrée
+- **Syndrome de la bandelette ilio-tibiale** : renfo fessier (clam, band walks) 3x/sem
+- **Périostite tibiale** : excentrique mollets (Alfredson), augmentation cadence +5-10%, surface souple
+- **Tendinopathie achilléenne** : excentrique Alfredson 2x/jour, réduire côtes et vitesse
+- **Fasciite plantaire** : renfo intrinsèques pieds (serviette, marbles), étirements mollets/fascia
+- **Douleur genou (runner's knee)** : renfo quadriceps (wall sits, split squats), step-down excentrique
+- Intégrer les exercices de prévention pertinents dans les séances Renfo du plan`;
+
 
     let userPrompt: string;
     if (regenerateWeek) {
