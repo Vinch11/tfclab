@@ -4,6 +4,7 @@
 // =============================================
 
 import { DbAthlete, DbSnapshot, DbTest, DbCheckin } from "@/hooks/useCloudData";
+import { getAthleteAmbition } from "@/types/ambitionLevel";
 import { computeVLamaxEffectif, VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { computeTTEEffectif, TTEEffectif } from "@/lib/tteEffectif";
 import { computeRaceReadinessEffectif, RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
@@ -417,7 +418,7 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
         hasRedFlags: false,
       },
       discipline: athlete.goal as 'IM' | '703' | 'marathon' | 'semi' | '10k' | 'cycling' | 'trail',
-      ambition: ((athlete.refs as Record<string, any>)?.ambition as 'finisher' | 'age_group' | 'competitor' | 'elite') || 'age_group',
+      ambition: getAthleteAmbition(athlete),
       daysToRace: null,
     };
     

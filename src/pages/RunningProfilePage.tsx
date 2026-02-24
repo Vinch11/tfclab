@@ -57,6 +57,7 @@ import { computeCAPInjuryRisk } from "@/lib/v2/injuryRiskUnified";
 import { computeFatigueEffectif } from "@/lib/fatigueEffectif";
 import { computeRaceReadinessRun, type AvailabilityRun } from "@/lib/v2/raceReadinessRunning";
 import { computePacingEnvelopeRun, type RunningDistance } from "@/lib/v2/pacingEnvelopeRunning";
+import { getAthleteAmbition } from "@/types/ambitionLevel";
 
 export default function RunningProfilePage() {
   const navigate = useNavigate();
@@ -352,7 +353,7 @@ export default function RunningProfilePage() {
               sprint15sDistance: effectiveCloudSnapshot?.sprint_15s_distance ?? null,
               runningPowerMax: effectiveCloudSnapshot?.running_power_max ?? null,
               objectif: raceType || athleteGoal,
-              ambition: (currentAthlete.refs as Record<string, unknown>)?.ambition as any,
+              ambition: getAthleteAmbition(currentAthlete),
               athleteAge: athleteAge,
             }}
             staffMode={staffMode}

@@ -33,7 +33,7 @@ import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { computeTTEEffectif } from "@/lib/tteEffectif";
 import { detectUnifiedLimiter } from "@/lib/v2/unifiedLimiterDetection";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
-import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
+import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition } from "@/types/ambitionLevel";
 import { parseAIPlan, mapSessionsToDates, type ParsedPlan } from "@/lib/aiPlanParser";
 import { AIPlanViewer } from "@/components/AIPlanViewer";
 import { AIPlanComparison } from "@/components/AIPlanComparison";
@@ -176,13 +176,13 @@ export default function AITrainingPlanPage() {
       if (savedState.weeklyHours) setWeeklyHours(savedState.weeklyHours);
       if (savedState.sessionsPerWeek) setSessionsPerWeek(savedState.sessionsPerWeek);
       if (savedState.ambition) setAmbition(savedState.ambition);
-      else { const a = (currentAthlete?.refs as any)?.ambition ?? currentAthlete?.ambition; if (a) setAmbition(a.toUpperCase()); }
+      else { const a = getAthleteAmbition(currentAthlete); setAmbition(a); }
       if (savedState.constraints) setConstraints(savedState.constraints);
       if (savedState.maxSessionsPerDay) setMaxSessionsPerDay(savedState.maxSessionsPerDay);
     } else {
       // No saved state — use athlete defaults
       if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
-      { const a = (currentAthlete?.refs as any)?.ambition ?? currentAthlete?.ambition; if (a) setAmbition(a.toUpperCase()); }
+      { const a = getAthleteAmbition(currentAthlete); setAmbition(a); }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [persistKey]);
@@ -341,7 +341,7 @@ export default function AITrainingPlanPage() {
       const athlete = athletes.find(a => a.id === athleteId);
       if (!athlete) continue;
 
-      const athleteAmb = athlete.ambition?.toUpperCase() || ambition;
+      const athleteAmb = getAthleteAmbition(athlete);
       const athleteObj = athlete.objectif || objective;
       const ctx = computeAthleteContext(athlete, athleteObj, athleteAmb);
       
@@ -555,7 +555,7 @@ export default function AITrainingPlanPage() {
   // Compute limiter for any athlete (for display in selector)
   const getAthleteLimiter = useCallback((athlete: any) => {
     const obj = athlete.objectif || objective;
-    const amb = (athlete.ambition || ambition).toUpperCase();
+    const amb = getAthleteAmbition(athlete);
     const ctx = computeAthleteContext(athlete, obj, amb);
     return ctx?.limiterResult || null;
   }, [computeAthleteContext, objective, ambition]);
@@ -643,7 +643,7 @@ export default function AITrainingPlanPage() {
                     <SelectContent>
                       {athletes.map((a) => {
                         const objLabel = OBJECTIVE_OPTIONS.find(o => o.value === a.objectif)?.label || a.objectif;
-                        const ambLabel = AMBITION_OPTIONS.find(o => o.value?.toUpperCase() === a.ambition?.toUpperCase())?.label || a.ambition;
+                        const ambLabel = AMBITION_OPTIONS.find(o => o.value === getAthleteAmbition(a))?.label || a.ambition;
                         return (
                           <SelectItem key={a.id} value={a.id}>
                             <div className="flex items-center gap-2">
@@ -663,7 +663,7 @@ export default function AITrainingPlanPage() {
                         {OBJECTIVE_OPTIONS.find(o => o.value === currentAthlete.objectif)?.label || currentAthlete.objectif}
                       </Badge>
                       <Badge variant="outline" className="text-[10px]">
-                        {(() => { const a = (currentAthlete.refs as any)?.ambition ?? currentAthlete.ambition; return AMBITION_OPTIONS.find(o => o.value?.toUpperCase() === a?.toUpperCase())?.label || a; })()}
+                        {(() => { const a = getAthleteAmbition(currentAthlete); return AMBITION_OPTIONS.find(o => o.value === a)?.label || a; })()}
                       </Badge>
                       <Badge variant="destructive" className="text-[10px]">
                         {limiter.limiterEmoji} {limiter.limiterLabel}
@@ -697,7 +697,7 @@ export default function AITrainingPlanPage() {
                   <div className="space-y-2 max-h-[300px] overflow-y-auto">
                     {athletes.map((a) => {
                       const objLabel = OBJECTIVE_OPTIONS.find(o => o.value === a.objectif)?.label || a.objectif;
-                      const ambLabel = AMBITION_OPTIONS.find(o => o.value?.toUpperCase() === a.ambition?.toUpperCase())?.label || a.ambition;
+                      const ambLabel = AMBITION_OPTIONS.find(o => o.value === getAthleteAmbition(a))?.label || a.ambition;
                       const athleteLimiter = getAthleteLimiter(a);
                       const isSelected = selectedAthleteIds.includes(a.id);
                       const generatedPlan = multiPlans.find(p => p.athleteId === a.id);

@@ -194,6 +194,8 @@ import {
   AMBITION_LEVELS_ORDERED,
   DEFAULT_AMBITION,
   getAmbitionDefinition,
+  getAthleteAmbition,
+  normalizeAmbitionLevel,
 } from "@/types/ambitionLevel";
 
 const Index = () => {
@@ -315,8 +317,7 @@ const Index = () => {
 
   // Ambition courante (stockée dans athlete.refs.ambition)
   const currentAmbition: AmbitionLevel = useMemo(() => {
-    const refs = (currentAthlete?.refs || {}) as Record<string, any>;
-    return (refs.ambition as AmbitionLevel) || DEFAULT_AMBITION;
+    return getAthleteAmbition(currentAthlete);
   }, [currentAthlete]);
 
   const updateCurrentAthleteAmbition = useCallback(
@@ -354,7 +355,7 @@ const Index = () => {
   const convertToLegacyAthlete = (dbAthlete: DbAthlete) => {
     const refs = (dbAthlete.refs || {}) as Record<string, unknown>;
     const effective = pickEffectiveSnapshot(dbAthlete.id, dbAthlete.active_snapshot_id);
-    const legacyAmbition = (refs.ambition as AmbitionLevel) || DEFAULT_AMBITION;
+    const legacyAmbition = getAthleteAmbition(dbAthlete);
 
     // Snapshot compat (format SnapshotNolio minimal) pour alimenter tes composants existants
     const legacySnapshot = effective
