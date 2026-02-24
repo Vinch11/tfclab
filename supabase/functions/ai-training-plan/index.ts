@@ -95,14 +95,168 @@ CAP/Trail 75-80% (spécifique D+), Renfo 20-25% (excentrique, escaliers, proprio
 ### TRAIL LONG/ULTRA (>42km) — Modèle UTMB
 CAP/Trail 70-80%, Renfo 15-20%, Cross-training 5-10% (vélo Z1 pour volume sans impact).
 
-## Méthodologie TFCL™ (Dan Lorang)
+## Méthodologie TFCL™ (Dan Lorang) + Méthodologies Élite Mondiales
 
-### Principes Fondamentaux
+### Principes Fondamentaux (Dan Lorang)
 1. **Polarisation 80/20** — 80% Z1-Z2, 20% Z4-Z5. Minimiser Z3 sauf en phase spécifique.
 2. **Bloc-Périodisation** — 1 stimulus dominant par bloc 2-4 sem (ex: Bloc VLamax↓ → Bloc VO2max → Bloc Race-Pace).
 3. **Progression non-linéaire** — Charge 3:1 (ou 2:1 si >45 ans ou fragile).
 4. **Reverse Periodization (Lorang)** — Pour IM/70.3 : intensité d'abord en base, puis volume en build.
 5. **Train Low, Compete High** — Z1-Z2 à jeun en base. JAMAIS d'intensité en Train Low.
+
+### 🇳🇴 MÉTHODE NORVÉGIENNE — Double Threshold (Marius Bakken / Gjert Ingebrigtsen / Olav Bu)
+La révolution de l'entraînement en endurance depuis 2020. Utilisée par Jakob Ingebrigtsen (OR 1500m/5000m), Karsten Warholm, Gustav Iden, Kristian Blummenfelt.
+
+**Principe central :** Accumuler un volume élevé d'entraînement au SEUIL LACTIQUE, mais à une intensité contrôlée (juste en-dessous du seuil, pas au-dessus). L'objectif est de maximiser le temps passé à haute intensité tout en minimisant la fatigue résiduelle.
+
+**Protocole Double Threshold (2 séances seuil le même jour) :**
+- **Matin (seuil bas, 2.0-2.5 mmol/L lactate)** : 5×6min @seuil bas (RPE 7/10) r=1min trot. Volume total : 30min @seuil
+  → Allure = seuil -5 à -10s/km. Confortable mais exigeant. Conversation impossible mais pas en détresse
+- **Soir (seuil haut, 3.0-4.0 mmol/L lactate)** : 10×1000m @seuil haut r=1min trot. Volume total : 10km @seuil
+  → Allure = allure seuil classique. Effort contrôlé, jamais maximal
+- **Fréquence** : 2 "double threshold days" par semaine (ex: mardi + jeudi)
+- **Volume seuil hebdo** : 40-60min de travail effectif @seuil (vs 20-30min en méthode traditionnelle)
+
+**Adaptation par niveau :**
+- **Elite** : 2 doubles seuil/sem + 1 SL. 50-60min @seuil/sem
+- **Competitor** : 1 double seuil/sem + 1 seuil simple. 30-40min @seuil/sem
+- **Age Group** : 1 seuil simple/sem (2×15-20min). 25-35min @seuil/sem. Pas de double seuil
+- **Finisher** : pas de seuil formel. Tempo allure course seulement
+
+**Clé scientifique** : Le lactate est mesuré, pas estimé. En l'absence de lactate, utiliser FC seuil (85-88% FCmax) ou RPE 7-8/10. La dérive cardiaque en fin d'intervalles = signe qu'on est trop intense → ralentir.
+
+**Quand utiliser la méthode norvégienne :**
+- TTE < 50min → PRIORITÉ #1 : le double seuil est le meilleur outil pour augmenter TTE
+- Plateau en VO2max après plusieurs blocs VMA → basculer vers seuil longue durée
+- Semi-marathon et marathon : le double seuil est la méthode de choix (élever le seuil = élever l'allure course)
+- Triathlon 70.3/IM : appliquer en vélo (2×20min @90-95% FTP matin + 2×15min @seuil CAP soir)
+
+### 🇰🇪 MÉTHODE CANOVA — Spécificité Inverse (Renato Canova)
+Renato Canova : +50 médaillés olympiques/mondiaux. Coach de Mosop (2:03), Kiplagat, Cairess (2:06). La méthode la plus éprouvée pour le marathon.
+
+**Principe : "Training is a simulation of the race, not a preparation for it"**
+→ Introduire l'allure spécifique de course TRÈS TÔT dans la préparation (dès la phase base), et progresser en VOLUME à cette allure, pas en vitesse.
+
+**Special Block Training (Canova) :**
+- **Journée bloc** : 2 séances spécifiques le même jour, séparées par 6-8h
+  - Matin : Tempo long 10-15km @allure marathon
+  - Soir : Course progressive 10km finissant @allure marathon
+  - Volume jour bloc : 20-30km @allure spécifique ou proche
+- **Progression bloc** : augmenter le volume @allure spécifique, pas la vitesse
+  - Sem 1-4 : 3×5km @allure marathon
+  - Sem 5-8 : 2×8km @allure marathon
+  - Sem 9-12 : 1×15km + 1×10km @allure marathon (journée bloc)
+  - Sem 13-16 : 1×20km @allure marathon (séance de simulation)
+
+**Séances signature Canova :**
+1. **Fast Continuous Run** : 15-20km continu @allure marathon -10s/km. Tempo marathon sans pause
+2. **Progressive Long Run** : SL dont derniers 30-40% @allure marathon. Ex: 30km, derniers 12km @AM
+3. **Specific Block Day** : matin tempo + soir course avec finish rapide (même jour)
+4. **Variation of Pace (Fartlek Canova)** : alternance 2km @AM + 1km @semi + 2km @AM... sur 15-20km
+5. **Medium Long with Fast Finish** : 22km dont derniers 5km @allure semi
+
+**Periodisation Canova (Inversée) :**
+- **Phase 1 — Introductive (4 sem)** : Volume Z2 + force + introduction allure semi/marathon courte (3-5km)
+- **Phase 2 — Fundamental (6-8 sem)** : Augmenter volume @allure spécifique. SL progressive. Blocs spécifiques
+- **Phase 3 — Specific (4-6 sem)** : Journées blocs. Simulations marathon. Volume @allure spécifique maximum
+- **Phase 4 — Pre-race (2-3 sem)** : Réduction volume -40%, maintien rappels allure course
+
+### 🇺🇸 MÉTHODE DANIELS — VDOT & Zones Précises (Jack Daniels, PhD)
+Le système de référence mondial pour calibrer les zones d'entraînement en course à pied.
+
+**5 Zones Daniels (basées sur VDOT, pas FC) :**
+| Zone | Nom | % VDOT | Objectif |
+|------|-----|--------|----------|
+| E | Easy | 59-74% | Endurance fondamentale. 80% du volume |
+| M | Marathon | 75-84% | Allure marathon. Spécificité |
+| T | Threshold | 83-88% | Seuil lactique. TTE↑ |
+| I | Interval | 95-100% | VO2max. 3-5min blocs |
+| R | Repetition | >105% | Économie + vitesse. 200-400m |
+
+**Séances Daniels par zone :**
+- **E runs** : 30-150min. Conversation possible. 65-79% FCmax
+- **T intervals** : cruise intervals 5-6×1000m @Tempo r=1min OU tempo continu 20-40min
+- **I intervals** : 5-6×1000m @I-pace r=jog equal time OU 3-4×1200m. Jamais >5min/rep
+- **R repeats** : 8-12×200m @R-pace r=200m jog OU 6×400m. Focus forme et économie
+- **M runs** : 10-20km @Marathon pace. En SL ou seul
+
+**Règle des 10%** : Pas plus de 10% du volume hebdo en zone I ou R combinées.
+
+### 🇫🇷 MÉTHODE BILLAT — VO2max Optimisé (Véronique Billat, PhD)
+Spécialiste mondiale de l'optimisation VO2max. Ses travaux ont prouvé la durée optimale des intervalles.
+
+**Découvertes clés :**
+1. **Temps de maintien @VO2max (tlim)** : la durée maximale tenable @100% VMA = 4-8min (moyenne 6min). Au-delà = déclin
+2. **Séance optimale 30/30** : 30s @VMA / 30s récup passive. 2-3 séries de 8-12min. Permet d'accumuler 15-20min @VO2max effectif
+3. **Séance longue intervalles** : 3-5×3min @100-105% VMA r=3min. Temps @VO2max : 10-15min
+4. **Fartlek Billat** : alternance 1min rapide / 1min lent ×20-30. Equivalent à 10-15min @VO2max
+5. **Protocole 3min/3min** : le meilleur rapport temps @VO2max / fatigue résiduelle pour la plupart des athlètes
+
+**Application TFCL :**
+- Si limiteur = VO2max bas → 2 séances Billat/sem pendant 3-4 sem (bloc concentré)
+- Si limiteur = VLamax trop haute → éviter les séances R (répétitions courtes) qui développent VLamax
+- Si limiteur = TTE → séances T (seuil) longues, pas Billat
+
+### 🇳🇴 MÉTHODE RØNNESTAD — Force + Endurance (Bent Rønnestad, PhD)
+Référence scientifique mondiale pour l'intégration force-endurance.
+
+**Résultats prouvés :**
+- Force max 2x/sem pendant 12 sem → +4.8% en économie de course, +3.5% en puissance seuil vélo
+- Aucune prise de masse musculaire (pas d'hypertrophie significative) si combiné avec entraînement endurance
+- Pliométrie → +4.2% économie de course en 8 sem (Paavolainen 1999, confirmé Rønnestad)
+
+**Protocole Force Rønnestad :**
+- **Phase Force Max (8-12 sem)** : 2x/sem, 3-4 exercices multi-articulaires
+  - Squat : 4×4 @85-90% 1RM (force max)
+  - Deadlift : 3×5 @80-85% 1RM
+  - Single leg squat/Bulgarian : 3×6 @75% 1RM
+  - Hip thrust : 3×8 @75% 1RM
+  - Tempo excentrique : 3s descente, 1s montée
+- **Phase Maintien (toute la saison)** : 1x/sem, même exercices, même charge, volume réduit (2-3×3-4 reps)
+- **Timing** : force AVANT endurance le même jour (6h+ entre les deux), OU le lendemain d'un jour de repos
+- **JAMAIS force max le lendemain d'une séance clé haute intensité** (interférence concentrique)
+
+**Pliométrie Rønnestad/Paavolainen :**
+- 2-3x/sem en phase base, 1-2x/sem en phase spécifique
+- Drop jumps 3×5, box jumps 3×8, single leg hops 3×10, bounds 3×8
+- Volume total : 60-100 contacts sol/séance (pas plus)
+- Pause 48h entre 2 séances pliométrie
+
+### 🇰🇪 MÉTHODE KÉNYANE — Volume + Fartlek Naturel (Kipchoge, Kiptum, Cheruiyot)
+L'approche "high mileage + natural intensity" des camps d'Iten/Kaptagat.
+
+**Principes :**
+1. **Volume élevé** : 160-200km/sem élite marathon. Tout est couru, jamais de vélo cross-training
+2. **Fartlek naturel** : pas de chrono, pas de montre. Courir au feeling sur terrain vallonné. L'intensité vient naturellement des côtes et des surges du groupe
+3. **Double journée standard** : matin 1h30-2h EF → soir 45min-1h shake-out. 6j/7
+4. **1 "track day" + 1 "long run"/sem** : les 2 seules séances structurées. Le reste = EF feeling
+5. **Progression en volume** : augmenter le kilométrage global, pas l'intensité des séances
+6. **Période d'altitude** : camps à 2400m (Iten). Avantage hématologique naturel
+
+**Fartlek Kényan (séance signature) :**
+- Aucune structure fixe. Courir en groupe 1h20-1h40 sur terrain vallonné
+- Accélérations naturelles en côte (90-95% VMA), récup en descente
+- Intensity distribution : ~70% Z2, ~30% Z3-Z4 (naturellement pyramidal)
+- Adaptation TFCL : 1h15 vallonné, 8-10 surges de 2-3min en côte @RPE 8/10, récup libre en descente
+
+### PHILOSOPHIES COMPARÉES — Quand Utiliser Quoi
+| Situation | Méthode recommandée | Justification |
+|-----------|-------------------|---------------|
+| TTE < 45min, seuil bas | 🇳🇴 Norvégienne (double seuil) | Volume seuil élevé = TTE↑ rapide |
+| VO2max plafonné | 🇫🇷 Billat (30/30, 3min/3min) | Temps @VO2max optimisé |
+| Spécificité marathon | 🇰🇪 Canova (blocs spécifiques) | Volume @allure course progressif |
+| Débutant/Finisher | 🇺🇸 Daniels (VDOT zones) | Zones claires, progression structurée |
+| Force/économie faible | 🇳🇴 Rønnestad (force max) | Gain économie prouvé +4.8% |
+| IM/70.3 triathlon | Lorang (reverse perio) | Intensité précoce + volume tardif |
+| Volume naturel élevé | 🇰🇪 Kényane (fartlek + mileage) | Si athlète tolère >100km/sem |
+| Âge >40 ans | Daniels + Rønnestad | Zones prudentes + force anti-sarcopénie |
+
+**RÈGLE TFCL : Combiner les méthodes, jamais en utiliser une seule**
+Un plan TFCL™ de qualité pioche dans TOUTES ces méthodologies selon le profil de l'athlète, ses limiteurs, et sa phase d'entraînement :
+- Phase Base : Rønnestad (force) + Billat (VO2max courte) + Lorang (reverse perio si IM)
+- Phase Build : Norvégienne (double seuil) + Canova (introduction allure spécifique)
+- Phase Spécifique : Canova (blocs spécifiques) + Kényane (SL progressive)
+- Taper : Daniels (rappels E + T + I courts) + Mujika (réduction exponentielle)
 
 ### 5 Limiteurs Primaires (INSCYD/TFCL)
 1. **Moteur Aérobie** — VO₂max, FTP/kg, TTE. Cibles : IM 4.0+ W/kg, Marathon VMA 18+
@@ -474,6 +628,61 @@ Utilise ces micro-cycles réels comme modèles de qualité. Adapte-les au niveau
 | Dimanche matin | CAP | EF + core | 1h10 Z2 (4:00/km) 18km + core post 15min (gainage, crunches, russian twist) |
 | Dimanche soir | CAP | Shake-out | 25min Z1 très léger. 5km. Digestion de la SL. Récupération complète |
 ⚠️ 200km/sem = niveau Kiptum/Kipchoge uniquement. Jamais prescrire ce volume sauf profil élite confirmé avec historique CTL > 120.
+
+### Exemple : Méthode Norvégienne — Semaine Double Seuil Semi-Marathon Élite (100km, 10h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, sommeil 9h, mobilité passive |
+| Mardi matin | CAP | 🔑 Double Seuil #1 — Seuil Bas | 15min éch. 5×6min @seuil bas (3:25/km, ~2.0-2.5 mmol/L lactate, RPE 7/10) r=1min trot. 15min RC. 18km |
+| Mardi soir | CAP | 🔑 Double Seuil #1 — Seuil Haut | 10min éch. 8×1000m @seuil haut (3:15/km, ~3.5 mmol/L, RPE 8/10) r=1min trot. 10min RC. 16km |
+| Mercredi | CAP | EF endurance | 1h20 Z2 (4:15/km). 19km. Terrain plat. Cad 182spm. Récupération du double seuil |
+| Jeudi matin | CAP | 🔑 Double Seuil #2 — Seuil Bas | 15min éch. 4×2000m @3:25/km (seuil bas) r=1min30 trot. 15min RC. 18km |
+| Jeudi soir | CAP | 🔑 Double Seuil #2 — Seuil Haut | 10min éch. 6×1200m @3:15/km (seuil haut) r=1min trot. 10min RC. 16km |
+| Vendredi | CAP | EF récupération | 45min Z1 (4:45/km). 10km. Ultra-léger. Shake-out |
+| Samedi | CAP | SL progressive | 1h45 (22km). Km 1-15 @4:15/km Z2, km 15-20 @3:35/km tempo, km 20-22 @3:15/km seuil. Neg split |
+| Dimanche | CAP + Renfo | EF + force Rønnestad | 55min Z2 (4:20/km) 13km + Squat 3×4 @85%, hip thrust 3×8, single leg 3×6. 40min total renfo |
+⚠️ Méthode norvégienne : 2 doubles seuil/sem = 50min @seuil effectif. JAMAIS dépasser le lactate cible (utiliser FC 85-88% FCmax si pas de lactate). Si RPE >8.5/10 → ralentir. Toujours 48h entre deux doubles.
+
+### Exemple : Méthode Canova — Semaine Special Block Marathon Élite (150km, 13h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | CAP | EF récupération | 50min Z1 (4:40/km). 11km. Relâchement total. Préparation mentale bloc mardi |
+| Mardi matin | CAP | 🔑 Bloc Spécifique — Fast Continuous Run | 1h30 dont 15km continu @allure marathon -10s/km (2:45/km). Rythme soutenu mais contrôlé. 22km total |
+| Mardi soir | CAP | 🔑 Bloc Spécifique — Progressive Run | 1h10 dont 12km avec derniers 5km progressif 3:15→2:55/km. Finir @allure marathon pile. 16km |
+| Mercredi | CAP | EF longue récupération | 1h30 Z2 (4:10/km). 22km. Digestion du bloc. Hydratation ++. Aucune intensité |
+| Jeudi | CAP | Fartlek Canova | 1h20 alternance : 6×(2km @allure marathon 2:55/km + 1km @allure semi 2:45/km). Total 18km spécifique |
+| Vendredi | CAP | EF récupération | 40min Z1 (4:50/km). 8km. Jambes fraîches |
+| Samedi | CAP | 🔑 SL Canova Progressive | 32km : km 1-20 @3:40/km, km 20-27 @3:05/km, km 27-32 @2:55/km (allure marathon). Neg split brutal. Gut 40g/h |
+| Dimanche matin | CAP | EF + strides | 55min Z2 (4:15/km) + 8×100m accélérations. 14km |
+| Dimanche soir | Renfo | Force Rønnestad maintien | Squat 2×4 @85%, deadlift 2×5 @80%, core 3×45s. 30min. Maintien force acquise |
+⚠️ Canova Special Block : mardi = journée bloc avec 2 séances spécifiques (30km+ @allure proche marathon en 1 jour). Ce stress concentré force l'adaptation. Jamais 2 journées bloc dans la même semaine. 48h récup minimum après.
+
+### Exemple : Méthode Billat — Semaine Bloc VO2max 10K (80km, 8h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, mobilité, foam roller |
+| Mardi | CAP | 🔑 Billat 30/30 | 15min éch. 3 séries de (10×30s @VMA / 30s arrêt complet). r=4min trot entre séries. 15min RC. 14km, 1h |
+| Mercredi | CAP | EF endurance | 1h Z2 (4:40/km). 13km. Récupération. Cad 178spm |
+| Jeudi | CAP | 🔑 Billat 3min/3min | 15min éch. 5×3min @100-105% VMA (3:10/km) r=3min trot. 15min RC. 15km, 1h10 |
+| Vendredi | CAP + Renfo | EF + pliométrie Rønnestad | 40min Z1 (5:00/km) 8km + Drop jumps 3×5, box jumps 3×8, bounds 3×8, core 4×40s. 30min |
+| Samedi | CAP | SL progressive | 1h30 (18km). Km 1-12 @4:50/km, km 12-16 @4:10/km, km 16-18 @3:40/km |
+| Dimanche | CAP | EF + strides | 50min Z2 (4:30/km) + 6×150m accélérations progressives. 12km |
+⚠️ Bloc Billat : 2 séances VO2max/sem pendant 3-4 sem max (bloc concentré). Temps total @VO2max effectif = 20-25min/sem. Au-delà de 4 sem → basculer vers seuil ou spécifique.
+
+### Exemple : Emile Cairess / Canova — Semaine Spécifique Marathon Modern Elite (160km, 14h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | CAP | EF récupération | 55min Z1 (4:50/km). 12km. Récupération mentale et physique |
+| Mardi matin | CAP | 🔑 Variation of Pace (Canova) | 1h50 : alternance 3km @allure marathon (2:58/km) + 1km @allure semi (2:48/km) ×4, puis 5km cool-down. 25km total |
+| Mardi soir | Renfo | Force endurance | Hip thrust 3×10, squat 3×6 @75%, lunges 3×8, core anti-rotation 3×12. 35min |
+| Mercredi matin | CAP | EF longue | 1h35 Z2 (4:05/km). 24km. Terrain légèrement vallonné. Cad 184spm |
+| Mercredi soir | CAP | Shake-out | 30min Z1 (4:35/km). 7km. Relâchement |
+| Jeudi | CAP | 🔑 Medium Long + Fast Finish | 1h40 (24km). Km 1-18 @4:00/km, km 18-22 @3:10/km (allure semi), km 22-24 @2:55/km (allure marathon). Sensation forte mais contrôlée |
+| Vendredi | CAP | EF récupération | 45min Z1 (4:45/km). 10km. Jambes fraîches pour samedi |
+| Samedi | CAP | 🔑 SL marathon simulation Canova | 35km : km 1-22 @3:45/km EF haut, km 22-30 @3:05/km tempo, km 30-35 @2:58/km allure marathon. Gut 45g/h. Simulation mentale. Neg split |
+| Dimanche matin | CAP | EF + core | 1h10 Z2 (4:10/km). 17km + core post 15min |
+| Dimanche soir | CAP | Shake-out | 20min Z1 (4:50/km). 4km. Digestion |
+⚠️ Cairess/Canova moderne : la "Variation of Pace" est la séance signature — alterner allure marathon et allure semi dans la même séance développe la capacité à changer de rythme et à résister à la fatigue spécifique. Volume total @allure spécifique dans cette semaine : ~25km.
 
 ### Exemple : Start to Run — Semaine Type Débutant Absolu (3h, 12km course + marche)
 | Jour | Sport | Séance | Détails |
