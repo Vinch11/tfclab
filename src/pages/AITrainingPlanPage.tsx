@@ -37,6 +37,7 @@ import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 import { parseAIPlan, mapSessionsToDates, type ParsedPlan } from "@/lib/aiPlanParser";
 import { AIPlanViewer } from "@/components/AIPlanViewer";
 import { AIPlanComparison } from "@/components/AIPlanComparison";
+import { AIPlanBenchmark } from "@/components/AIPlanBenchmark";
 import { SavedPlanCalendar } from "@/components/SavedPlanCalendar";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -1032,16 +1033,24 @@ export default function AITrainingPlanPage() {
 
                   {/* Interactive View */}
                   {resultView === "interactive" && parsedPlan ? (
-                    <AIPlanViewer
-                      plan={parsedPlan}
-                      startDate={planStartDate}
-                      onSaveToPlan={handleSaveToPlan}
-                      isSaving={isSaving}
-                      isSaved={isSaved}
-                      onRegenerateWeek={handleRegenerateWeek}
-                      isRegenerating={isRegenerating}
-                      athleteName={currentAthlete?.nom}
-                    />
+                    <>
+                      <AIPlanBenchmark
+                        plan={parsedPlan}
+                        objective={objective}
+                        ambition={ambition}
+                        athleteName={currentAthlete?.nom}
+                      />
+                      <AIPlanViewer
+                        plan={parsedPlan}
+                        startDate={planStartDate}
+                        onSaveToPlan={handleSaveToPlan}
+                        isSaving={isSaving}
+                        isSaved={isSaved}
+                        onRegenerateWeek={handleRegenerateWeek}
+                        isRegenerating={isRegenerating}
+                        athleteName={currentAthlete?.nom}
+                      />
+                    </>
                   ) : resultView === "interactive" && !isLoading ? (
                     <Card>
                       <CardContent className="p-6 text-center space-y-2">
