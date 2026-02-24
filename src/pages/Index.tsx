@@ -354,6 +354,7 @@ const Index = () => {
   const convertToLegacyAthlete = (dbAthlete: DbAthlete) => {
     const refs = (dbAthlete.refs || {}) as Record<string, unknown>;
     const effective = pickEffectiveSnapshot(dbAthlete.id, dbAthlete.active_snapshot_id);
+    const legacyAmbition = (refs.ambition as AmbitionLevel) || DEFAULT_AMBITION;
 
     // Snapshot compat (format SnapshotNolio minimal) pour alimenter tes composants existants
     const legacySnapshot = effective
@@ -386,6 +387,7 @@ const Index = () => {
       nom: dbAthlete.name,
       sexe: (refs.sexe as "M" | "F") || "M",
       objectif: (dbAthlete.goal as any) || "IM",
+      ambition: legacyAmbition,
       // ✅ FIX: Mapper fatPct (format Cloud) vers masse_grasse (format legacy)
       masse_grasse: typeof refs.fatPct === "number" ? refs.fatPct : 
                     typeof refs.masse_grasse === "number" ? refs.masse_grasse : undefined,
@@ -396,6 +398,7 @@ const Index = () => {
         vma: (refs.vma as number) || null,
         ftp: (refs.ftp as number) || null,
         css: (refs.css as number) || null,
+        ambition: legacyAmbition,
       },
       vo2max: dbAthlete.vo2max || undefined,
     };
