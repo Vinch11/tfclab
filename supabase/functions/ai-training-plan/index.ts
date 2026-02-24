@@ -699,22 +699,76 @@ Utilise ces micro-cycles réels comme modèles de qualité. Adapte-les au niveau
 | Jour | Sport | Séance | Détails |
 |------|-------|--------|---------|
 | Lundi | Repos | Repos complet | Récupération, mobilité 20min optionnelle |
-| Mardi | Natation | CSS Pyramide | 400m éch (100NL/100Pull/100Educ/100NL). 100-200-300-400-300-200-100 @1:38/100m r=15s. 200m RC. 3200m ~55min |
+| Mardi | Natation | 🔑 CSS Pyramide | 400m éch (100NL/100Pull/100Educ/100NL). 100-200-300-400-300-200-100 @1:38/100m r=15s. 200m RC. 3200m ~55min |
 | Mardi soir | Renfo | Core + Prévention | Gainage 3×45s, dead bug 3×10, pallof press 3×12. 30min |
 | Mercredi | Vélo | Endurance Z2 vallonné | 2h30 Z2 (65-75% FTP, 170-195W), cadence 85-95 RPM |
 | ... | ... | ... | ... |
+| Samedi | Vélo | 🔑 SL vallonnée + Gut Training | 4h Z2 vallonné (65-72% FTP). Gut training 50g/h. Dernière 1h @75% FTP |
+| Dimanche | Brique | 🔑 Vélo→CAP Race-Pace | Vélo 2h @78% FTP + CAP 40min @allure IM. Gut 45g/h. Transition <3min |
 
 **Volume semaine :** 14h — Nat 3h30 (4) | Vélo 6h (3) | CAP 3h (3) | Renfo 1h30 (2)
-**Consignes coach :** [2-3 points clés avec sensation recherchée et focus technique]
+**🔑 Séances clés :** CSS Pyramide (TTE↑ natation) + SL vélo Gut Training (endurance métabolique) + Brique Race-Pace (spécificité IM)
+**Consignes coach :** [2-3 points clés avec sensation recherchée et focus technique. Identifier séances clés à protéger en priorité.]
 \`\`\`
+
+## SÉANCES CLÉS — MÉTHODOLOGIE DAN LORANG (CRITIQUE)
+
+Dan Lorang structure chaque semaine autour de **séances clés** (Key Sessions) : ce sont les 2-3 séances qui portent le stimulus d'adaptation principal. Toutes les autres séances sont au service de ces séances clés (préparation, récupération, maintien).
+
+### Principes Séances Clés
+1. **Identification** : Chaque semaine a 2-3 séances clés (jamais plus de 3 sauf élite). Elles ciblent directement le(s) limiteur(s) identifié(s) de l'athlète.
+2. **Marquage obligatoire** : Dans le tableau, préfixer le titre de chaque séance clé avec "🔑 " (emoji clé). Ex : "🔑 Seuil Long Continu", "🔑 SL Progressive Race-Pace", "🔑 Brique IM Simulation".
+3. **Placement stratégique** : Les séances clés ne sont JAMAIS consécutives. Toujours 1-2 jours de récupération/EF entre deux séances clés.
+4. **Priorité absolue** : Si l'athlète doit sauter une séance, ce ne sera JAMAIS une séance clé. Les consignes coach doivent le rappeler.
+
+### Sélection des Séances Clés par Limiteur (Dan Lorang)
+| Limiteur identifié | Séance Clé #1 | Séance Clé #2 | Séance Clé #3 (optionnelle) |
+|---|---|---|---|
+| **VO2max bas** | VMA longue (5×1200m @98% VMA) ou VO2max vélo (5×5min @115% FTP) | Seuil long (2×20min @88% VMA ou @95% FTP) | SL progressive avec finish rapide |
+| **VLamax trop haute (LD)** | Z2 longue à jeun (Train Low 2h+) | Sweet spot continu long (2×30min @88% FTP) | SL progressive neg split |
+| **VLamax trop basse (5K/10K)** | VMA courte explosive (12×400m @VMA, r=60s) | Sprint/pliométrie + côtes | Fartlek intensif (pyramide) |
+| **TTE faible (<40min)** | Seuil continu long (1×30-40min @seuil) | Sweet spot prolongé (2×25min @90% FTP) | Tempo marathon/semi continu |
+| **Économie de course basse** | Côtes/SFR (10×200m côte 8% @VO2max) | Strides + drills techniques post-EF | Force max (squat 4×5 @80%) |
+| **FatMax bas** | Z2 longue à jeun Train Low (2h30+) | Sortie longue vélo Z2 sans glucides 2h | Gut Training progressif en SL |
+| **Neuromusculaire** | Force max (squat/deadlift 4×5 @80-85%) | SFR vélo (6×5min @80% FTP, 55 RPM) | Pliométrie explosive |
+| **CTL/Volume insuffisant** | SL progressive (augmenter +2km/sem) | 2e séance EF Z2 longue | Maintien intensité existante |
+
+### Séances Clés par Objectif et Phase (Dan Lorang)
+**IM Base** : 🔑1 VO2max vélo courte (Reverse Perio) + 🔑2 SL vélo Z2 Train Low + 🔑3 Force max
+**IM Build** : 🔑1 Sweet spot long vélo + 🔑2 Brique vélo→CAP + 🔑3 CSS seuil natation
+**IM Spécifique** : 🔑1 Brique race-pace simulation + 🔑2 SL vélo 5h+ Gut Training + 🔑3 OWS race-pace
+**70.3 Build** : 🔑1 Seuil vélo prolongé + 🔑2 Tempo CAP allure 70.3 + 🔑3 CSS blocs natation
+**Marathon Build** : 🔑1 Tempo marathon long (2×25min) + 🔑2 SL progressive neg split + 🔑3 Fartlek/seuil
+**Marathon Spécifique** : 🔑1 SL spécifique avec finish @allure marathon + 🔑2 Allure marathon continu 40-60min + 🔑3 Simulation ravitaillement
+**Semi Build** : 🔑1 Seuil long (2×20min) + 🔑2 VMA longue (6×1000m) + 🔑3 SL progressive
+**5K/10K** : 🔑1 VMA spécifique (5×1200m) + 🔑2 Seuil + lactate tolerance combo + 🔑3 SL avec finish @allure course
+**Trail Ultra** : 🔑1 Montée seuil long (3×20min) + 🔑2 Ultra-simulation montagne (5-7h) + 🔑3 VMA côtes + descente technique
+**Taper** : 🔑1 Rappel allure course court (3×8min) + 🔑2 Activation pré-course. Pas de 🔑3.
+
+### Fréquence Séances Clés par Niveau
+| Niveau | Séances clés/sem | Règle |
+|--------|-----------------|-------|
+| Elite | 3-4 | Double stimulus possible si sports différents (nat clé matin + vélo clé soir) |
+| Competitor | 2-3 | Max 2 dans le même sport |
+| Age Group | 2 | 1 séance qualité + 1 sortie longue |
+| Finisher | 1-2 | SL = seule vraie séance clé. Pas d'intensité Z4+ |
+| Start to Run | 0 | Aucune séance clé avant 30min de course continue |
+
+### Consignes Coach et Séances Clés
+Dans les **Consignes coach** de chaque semaine, TOUJOURS indiquer :
+1. Quelles sont les séances clés de la semaine et pourquoi (lien avec le limiteur)
+2. Quelle adaptation physiologique est visée
+3. La séance à protéger en priorité si fatigue ou manque de temps
+Ex : "🔑 Séances clés : Seuil long mardi (TTE↑) + SL progressive samedi (endurance spécifique). Si fatigue, sacrifier EF jeudi, jamais les séances clés."
 
 ## Règles de Contenu (CRITIQUE)
 - **Chaque séance = contenu COMPLET ACTIONNABLE** — JAMAIS "Endurance Z2" seul sans détails
+- **Séances clés marquées 🔑** dans le titre — OBLIGATOIRE pour chaque semaine
 - **Natation** : distance totale + échauffement détaillé + série principale (distance/allure/repos) + retour au calme
 - **Vélo** : durée + zone + %FTP + watts si connu + cadence + type de terrain
 - **CAP** : durée/distance + allure min/km OU %VMA + cadence spm
 - **Renfo** : exercices + séries×reps + charge si applicable + durée totale
-- **Titre descriptif** obligatoire ("CSS Dégressif", "Sweet Spot Vallonné", pas juste "Natation")
+- **Titre descriptif** obligatoire ("🔑 CSS Dégressif", "🔑 Sweet Spot Vallonné", pas juste "Natation")
 - **Varier** d'une semaine à l'autre — NE PAS copier le même contenu
 - **Consignes qualitatives** : sensation recherchée, focus technique, nutrition si applicable
 - Réponds UNIQUEMENT en français
@@ -849,11 +903,13 @@ function buildUserPrompt(data: any, config: any): string {
   if (config.identifiedLimiters && config.identifiedLimiters.length > 0) {
     lines.push("\n### Limiteurs Identifiés par l'App");
     config.identifiedLimiters.forEach((l: string) => lines.push(`- 🔴 ${l}`));
+    lines.push("\n⚠️ Les séances clés 🔑 de chaque semaine DOIVENT cibler ces limiteurs en priorité (cf. tableau Séances Clés par Limiteur Dan Lorang).");
   }
 
   if (config.activeLevers && config.activeLevers.length > 0) {
     lines.push("\n### Leviers TFCL™ Actifs");
     config.activeLevers.forEach((l: string) => lines.push(`- ⚡ ${l}`));
+    lines.push("Les leviers actifs doivent être intégrés dans les séances clés 🔑 et les consignes coach.");
   }
 
   // Sport coherence reminder based on objective
