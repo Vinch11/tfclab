@@ -293,6 +293,29 @@ export default function AITrainingPlanPage() {
 
     const levers = limiterResult ? [limiterResult.primaryLever].map(l => LEVER_LABELS[l] || l) : [];
 
+    // Build prohibitions list from gap analysis context
+    const prohibitions: string[] = [];
+    if (limiterResult) {
+      const obj = objective.toUpperCase();
+      const amb = (athleteAmbition || ambition).toLowerCase();
+      const isLongDistance = ['IM', '703', 'MARATHON', 'TRAIL', 'TRAILULTRA'].includes(obj);
+      const isFinisher = amb === 'finisher';
+      
+      // Sprint Ban: only for long distance + non-finisher + VLamax too high
+      if (isLongDistance && !isFinisher) {
+        const vlamaxGap = limiterResult.gapAnalysis.find(g => g.metric === "VLamax");
+        if (vlamaxGap && vlamaxGap.status === "limiting") {
+          prohibitions.push("🚫 SPRINT BAN : VLamax trop haute pour cet objectif. Interdire sprints, micro-intervalles explosifs (<20s all-out), et efforts erratiques.");
+        }
+      }
+      
+      // For semi/10K/5K: sprints are BENEFICIAL
+      const isShortDistance = ['SEMI', '10K', '10KM', '5K'].includes(obj);
+      if (isShortDistance) {
+        prohibitions.push("✅ SPRINTS AUTORISÉS : objectif courte/moyenne distance — les sprints et la pliométrie sont bénéfiques pour l'économie de course et la puissance neuromusculaire.");
+      }
+    }
+
     const amb = athleteAmbition || ambition;
     return {
       objective: OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective,
@@ -306,6 +329,7 @@ export default function AITrainingPlanPage() {
       constraints: constraints || undefined,
       identifiedLimiters: limiters.length > 0 ? limiters : undefined,
       activeLevers: levers.length > 0 ? levers : undefined,
+      prohibitions: prohibitions.length > 0 ? prohibitions : undefined,
     };
   }, [objective, raceName, raceDate, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, ambition, constraints]);
 

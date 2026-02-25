@@ -320,8 +320,11 @@ Règles doubles séances :
 - Renfo/core en 2e séance 2-3x/sem.
 
 ### Règles de Sécurité
-- **Sprint Ban** si VLamax > cible discipline
-- VLamax vélo > 0.50 longue distance → Z2 uniquement 3-4 sem
+- **Sprint Ban** : s'applique UNIQUEMENT si l'app le spécifie explicitement dans les prohibitions. Ne PAS l'appliquer par défaut.
+  → Pour semi/10K/5K : les sprints et la pliométrie SONT bénéfiques (économie, recrutement neuromusculaire)
+  → Pour Finisher : pas d'optimisation VLamax, sprints autorisés en modération
+  → Sprint Ban actif = interdire sprints all-out, micro-intervalles <20s, efforts erratiques
+- VLamax vélo > 0.50 longue distance → priorité Z2 volume, limiter intensité courte
 - TTE < 40 min → TTE↑ avant intensité
 - Décharge -30-40% volume toutes les 3-4 sem
 - Max 2 séances haute intensité/sem
@@ -1681,6 +1684,13 @@ function buildUserPrompt(data: any, config: any): string {
     lines.push("\n### Leviers TFCL™ Actifs");
     config.activeLevers.forEach((l: string) => lines.push(`- ⚡ ${l}`));
     lines.push("Les leviers actifs doivent être intégrés dans les séances clés 🔑 et les consignes coach.");
+  }
+
+  // --- Prohibitions (Sprint Ban, etc.) ---
+  if (config.prohibitions && config.prohibitions.length > 0) {
+    lines.push("\n### 🚨 INTERDICTIONS / AUTORISATIONS SPÉCIFIQUES À CET ATHLÈTE");
+    config.prohibitions.forEach((p: string) => lines.push(`- ${p}`));
+    lines.push("Ces règles sont calculées par l'app en fonction de l'objectif, l'ambition et le profil métabolique. Tu DOIS les respecter.");
   }
 
   // Sport coherence reminder based on objective
