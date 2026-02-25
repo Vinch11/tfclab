@@ -10,7 +10,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { athleteData, planConfig, regenerateWeek } = await req.json();
+    const { athleteData, planConfig, regenerateWeek, coachFeedback } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -1494,7 +1494,38 @@ Pour les objectifs **5K, 10K, Semi, Marathon, Trail, StartToRun** :
 - **Tendinopathie achilléenne** : excentrique Alfredson 2x/jour, réduire côtes et vitesse
 - **Fasciite plantaire** : renfo intrinsèques pieds (serviette, marbles), étirements mollets/fascia
 - **Douleur genou (runner's knee)** : renfo quadriceps (wall sits, split squats), step-down excentrique
-- Intégrer les exercices de prévention pertinents dans les séances Renfo du plan`;
+- Intégrer les exercices de prévention pertinents dans les séances Renfo du plan
+
+## GARDE-FOUS DE SÉCURITÉ OBLIGATOIRES (VALIDATION AUTOMATIQUE)
+
+⚠️ AVANT de produire le plan, vérifie SYSTÉMATIQUEMENT ces règles. Si une règle est violée, corrige AVANT d'écrire le plan :
+
+### Règles de Progression Volume
+1. **Règle des 10%** : Le volume hebdomadaire (heures ou km) ne doit JAMAIS augmenter de plus de 10% d'une semaine à l'autre
+2. **Ratio charge 3:1 ou 2:1** : Après 2-3 semaines de charge progressive, 1 semaine de récupération (-30 à -40% volume)
+3. **Step-back obligatoire** : Chaque 4e semaine (ou 3e si athlète >45 ans) = semaine allégée
+4. **Taper pré-course** : Les 2-3 dernières semaines DOIVENT montrer une réduction progressive du volume (-20% puis -40% puis -50%)
+
+### Règles de Repos
+5. **Minimum 1 jour repos complet/semaine** pour tous les niveaux (y compris Elite)
+6. **Jamais 2 séances haute intensité le même jour** (sauf brique planifiée)
+7. **Jamais 3 jours consécutifs d'intensité** : Z4+ max 2 jours consécutifs, puis Z1-Z2 obligatoire
+8. **Post-séance clé** : Le lendemain d'une séance clé 🔑 = Z1-Z2 ou repos uniquement
+
+### Règles de Cohérence
+9. **Respect ratios sport/objectif** : Vérifier que les % par sport correspondent au tableau de référence ci-dessus
+10. **Échauffement obligatoire** avant toute séance Z3+ (mentionner dans la description)
+11. **Pas de fractionné VMA sans base aérobie** : les 2-4 premières semaines = fondamentaux uniquement si CTL bas
+12. **Sprint Ban** : Si VLamax > cible pour l'objectif → ZÉRO sprint, ZÉRO répétitions courtes (<30s) all-out
+
+### Auto-Vérification (OBLIGATOIRE)
+Après avoir rédigé chaque semaine, vérifie mentalement :
+- [ ] Volume ≤ +10% vs semaine précédente ?
+- [ ] Au moins 1 jour repos complet ?
+- [ ] Pas 2 intensités hautes le même jour (hors brique) ?
+- [ ] Séances clés 🔑 ciblent le limiteur identifié ?
+- [ ] Ratios sport cohérents avec l'objectif ?
+Si une case n'est pas cochée → CORRIGER avant de passer à la semaine suivante.`;
 
 
     let userPrompt: string;
@@ -1503,11 +1534,11 @@ Pour les objectifs **5K, 10K, Semi, Marathon, Trail, StartToRun** :
 Contexte : ${regenerateWeek.phase || "Phase inconnue"}, thème "${regenerateWeek.theme || "Standard"}".
 Plan total : ${regenerateWeek.totalWeeks} semaines.
 
-${buildUserPrompt(athleteData, planConfig)}
+${buildUserPrompt(athleteData, planConfig, coachFeedback)}
 
 IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format tableau obligatoire. Pas les autres semaines.`;
     } else {
-      userPrompt = buildUserPrompt(athleteData, planConfig);
+      userPrompt = buildUserPrompt(athleteData, planConfig, coachFeedback);
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -1559,7 +1590,7 @@ IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format ta
   }
 });
 
-function buildUserPrompt(data: any, config: any): string {
+function buildUserPrompt(data: any, config: any, coachFeedback?: any[]): string {
   const lines: string[] = ["## Demande de Plan d'Entraînement TFCL™\n"];
 
   // --- Config ---
@@ -1697,6 +1728,23 @@ function buildUserPrompt(data: any, config: any): string {
     lines.push("- Format : UNE LIGNE PAR SÉANCE dans le tableau. 'Mardi matin', 'Mardi midi', 'Mardi soir' = 3 lignes séparées.");
     lines.push("- JAMAIS 2 intensités le même jour sauf brique planifiée.");
     lines.push("- Le tableau d'une semaine Elite IM doit avoir 14-18 lignes (pas 7 !).");
+  }
+
+  // ---- Coach Feedback Loop ----
+  if (coachFeedback && coachFeedback.length > 0) {
+    lines.push("\n### 📋 Retours Coach sur les Plans Précédents");
+    lines.push("Le coach a fourni les retours suivants sur les plans précédemment générés. ADAPTE le nouveau plan en conséquence :\n");
+    for (const fb of coachFeedback.slice(0, 5)) {
+      lines.push(`- **Bloc ${fb.block_start_date} → ${fb.block_end_date}** :`);
+      if (fb.model_coherence_rating) lines.push(`  - Cohérence modèle : ${fb.model_coherence_rating}/5`);
+      if (fb.actual_response_rating) lines.push(`  - Réponse réelle athlète : ${fb.actual_response_rating}/5`);
+      if (fb.observed_fatigue) lines.push(`  - Fatigue observée : ${fb.observed_fatigue}`);
+      if (fb.notes) lines.push(`  - Notes : ${fb.notes}`);
+      if (fb.suggested_adjustments && Object.keys(fb.suggested_adjustments).length > 0) {
+        lines.push(`  - Ajustements suggérés : ${JSON.stringify(fb.suggested_adjustments)}`);
+      }
+    }
+    lines.push("\n⚠️ Tiens compte de ces retours pour ajuster l'intensité, le volume et les choix de séances.");
   }
 
   const weeks = config.weeksAvailable || 12;
