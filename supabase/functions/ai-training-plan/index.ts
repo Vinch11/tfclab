@@ -1607,24 +1607,67 @@ function buildUserPrompt(data: any, config: any): string {
   if (data.css) lines.push(`- CSS natation : ${data.css} sec/100m`);
   if (data.fcMax) lines.push(`- FC Max : ${data.fcMax} bpm`);
 
-  // --- Computed pace anchors to prevent AI hallucination ---
-  if (data.vma && data.vma > 0) {
-    const vmaKmh = Number(data.vma);
-    const seuilPace = 3600 / (vmaKmh * 0.85); // ~85% VMA = seuil lactique
-    const formatPace = (totalSec: number) => {
-      const m = Math.floor(totalSec / 60);
-      const s = Math.round(totalSec % 60);
-      return `${m}'${s.toString().padStart(2, "0")}"`;
-    };
-    lines.push(`\n#### ⚠️ ZONES D'ALLURE CALCULÉES (RÉFÉRENCE OBLIGATOIRE — NE PAS INVENTER D'ALLURES)`);
-    lines.push(`Ces allures sont calculées à partir de la VMA de l'athlète (${vmaKmh} km/h). Tu DOIS les utiliser comme référence.`);
-    lines.push(`- **Allure VMA (100%)** : ${formatPace(3600 / vmaKmh)}/km`);
-    lines.push(`- **Allure seuil (~85% VMA)** : ${formatPace(seuilPace)}/km`);
-    lines.push(`- **Allure semi-marathon (~82-84% VMA)** : ${formatPace(3600 / (vmaKmh * 0.83))}/km → DOIT être PLUS LENTE que le seuil`);
-    lines.push(`- **Allure marathon (~78-80% VMA)** : ${formatPace(3600 / (vmaKmh * 0.79))}/km → DOIT être PLUS LENTE que l'allure semi`);
-    lines.push(`- **Allure EF/Z2 (~65-75% VMA)** : ${formatPace(3600 / (vmaKmh * 0.70))}/km`);
-    lines.push(`- **Allure 10K (~88-92% VMA)** : ${formatPace(3600 / (vmaKmh * 0.90))}/km`);
-    lines.push(`\n🚨 RÈGLE INVIOLABLE : Allure spécifique semi > allure seuil (plus lente en min/km). Allure marathon > allure semi. Si une allure spécifique est plus rapide que le seuil, c'est une ERREUR.`);
+  // --- Computed training zones & pace anchors (TFCL Z1→Z7 methodology) ---
+  const formatPace = (totalSec: number) => {
+    const m = Math.floor(totalSec / 60);
+    const s = Math.round(totalSec % 60);
+    return `${m}'${s.toString().padStart(2, "0")}"`;
+  };
+
+  // Build TFCL Z1→Z7 zones table with actual values
+  const vmaKmh = data.vma ? Number(data.vma) : null;
+  const ftpW = data.ftp ? Number(data.ftp) : null;
+  const fcMaxBpm = data.fcMax ? Number(data.fcMax) : null;
+
+  lines.push(`\n#### ⚠️ GRILLE ZONES D'ENTRAÎNEMENT TFCL™ Z1→Z7 (RÉFÉRENCE OBLIGATOIRE)`);
+  lines.push(`Ces zones sont les leviers physiologiques utilisés par le coach. Tu DOIS prescrire les séances en utilisant UNIQUEMENT ces zones.`);
+  lines.push(`Les valeurs ci-dessous sont calculées à partir du profil de l'athlète. NE PAS inventer d'autres valeurs.\n`);
+
+  // Zone definitions: [name, description, fcLow, fcHigh, vmaLow, vmaHigh, ftpLow, ftpHigh]
+  const zones: [string, string, number, number, number, number, number, number][] = [
+    ["Z1 Récupération", "Récupération, affûtage, échauffement, lactate de base", 0, 70, 0, 60, 0, 55],
+    ["Z2 Endurance Fondamentale", "Lipolyse, volume mitochondrial, base aérobie", 70, 78, 60, 70, 56, 75],
+    ["Z3 Endurance Active", "Base aérobie solide, force si basse cadence", 78, 83, 70, 78, 76, 90],
+    ["Z4a Allure Marathon / Sweet Spot", "Économie de course, durabilité, spécifique long", 83, 87, 78, 83, 88, 93],
+    ["Z4b Allure Semi", "Tolérance à l'inconfort, mental, spécifique moyen", 87, 91, 83, 88, 94, 98],
+    ["Z5 Seuil (MLSS)", "Repousser le seuil anaérobie, MLSS", 91, 94, 88, 92, 99, 105],
+    ["Z6 VO2max / VMA", "VO2max, cylindrée cardiaque", 95, 100, 95, 105, 106, 120],
+    ["Z7 Neuromusculaire / Anaérobie Alactique", "Explosivité, force max, vitesse pure", 0, 0, 120, 200, 150, 300],
+  ];
+
+  lines.push(`| Zone | Description | FC | VMA | FTP | Allure CAP |`);
+  lines.push(`|------|-------------|----|----|-----|------------|`);
+  for (const [name, desc, fcL, fcH, vmaL, vmaH, ftpL, ftpH] of zones) {
+    const fcStr = fcMaxBpm
+      ? (fcL === 0 && name.includes("Z1") ? `0-${Math.round(fcMaxBpm * fcH / 100)}` :
+         fcL === 0 && name.includes("Z7") ? "N/A" :
+         `${Math.round(fcMaxBpm * fcL / 100)}-${Math.round(fcMaxBpm * fcH / 100)}`)
+      : `${fcL}-${fcH}%`;
+    const vmaStr = `${vmaL}-${vmaH}%`;
+    const ftpStr = ftpW
+      ? `${Math.round(ftpW * ftpL / 100)}-${Math.round(ftpW * ftpH / 100)}W`
+      : `${ftpL}-${ftpH}%`;
+    // Compute pace range for running if VMA available
+    let paceStr = "—";
+    if (vmaKmh && vmaKmh > 0 && vmaL > 0 && vmaH <= 200) {
+      const paceHigh = 3600 / (vmaKmh * vmaL / 100); // slower (low % VMA)
+      const paceLow = 3600 / (vmaKmh * vmaH / 100);  // faster (high % VMA)
+      paceStr = `${formatPace(paceLow)}-${formatPace(paceHigh)}/km`;
+    }
+    lines.push(`| ${name} | ${desc} | ${fcStr} | ${vmaStr} | ${ftpStr} | ${paceStr} |`);
+  }
+
+  // Explicit pace hierarchy rule
+  if (vmaKmh && vmaKmh > 0) {
+    const seuilPace = 3600 / (vmaKmh * 0.90); // Z5 low bound
+    lines.push(`\n**Allures spécifiques calculées :**`);
+    lines.push(`- Allure EF/Z2 : ${formatPace(3600 / (vmaKmh * 0.65))}-${formatPace(3600 / (vmaKmh * 0.70))}/km`);
+    lines.push(`- Allure Marathon (Z4a) : ${formatPace(3600 / (vmaKmh * 0.83))}-${formatPace(3600 / (vmaKmh * 0.78))}/km`);
+    lines.push(`- Allure Semi (Z4b) : ${formatPace(3600 / (vmaKmh * 0.88))}-${formatPace(3600 / (vmaKmh * 0.83))}/km`);
+    lines.push(`- Allure Seuil (Z5) : ${formatPace(3600 / (vmaKmh * 0.92))}-${formatPace(3600 / (vmaKmh * 0.88))}/km`);
+    lines.push(`- Allure VMA (Z6) : ${formatPace(3600 / (vmaKmh * 1.05))}-${formatPace(3600 / (vmaKmh * 0.95))}/km`);
+    lines.push(`\n🚨 HIÉRARCHIE INVIOLABLE (du plus lent au plus rapide) : Z2 > Z4a Marathon > Z4b Semi > Z5 Seuil > Z6 VMA`);
+    lines.push(`Si une allure spécifique course est plus rapide que le seuil (Z5), c'est une ERREUR. Allure semi TOUJOURS plus lente que seuil.`);
   }
 
   // --- Identified weaknesses ---
