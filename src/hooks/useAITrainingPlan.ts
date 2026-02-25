@@ -32,6 +32,7 @@ export interface PlanConfig {
   constraints?: string;
   identifiedLimiters?: string[];
   activeLevers?: string[];
+  guardrailProfile?: "strict" | "standard" | "flexible";
 }
 
 export interface CoachFeedbackEntry {

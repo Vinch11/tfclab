@@ -163,6 +163,7 @@ export default function AITrainingPlanPage() {
   const [sessionsPerWeek, setSessionsPerWeek] = useState("7");
   const [ambition, setAmbition] = useState<string>(DEFAULT_AMBITION);
   const [maxSessionsPerDay, setMaxSessionsPerDay] = useState("3");
+  const [guardrailProfile, setGuardrailProfile] = useState<"strict" | "standard" | "flexible">("standard");
   const [constraints, setConstraints] = useState("");
 
   // Restore persisted plan + config on athlete change (single mode only)
@@ -334,8 +335,9 @@ export default function AITrainingPlanPage() {
       constraints: constraints || undefined,
       identifiedLimiters: limiters.length > 0 ? limiters : undefined,
       activeLevers: levers.length > 0 ? levers : undefined,
+      guardrailProfile,
     };
-  }, [objective, raceName, raceDate, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, ambition, constraints]);
+  }, [objective, raceName, raceDate, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, ambition, constraints, guardrailProfile]);
 
   // Fetch coach feedback for current athlete
   const fetchCoachFeedback = useCallback(async (athleteId: string): Promise<CoachFeedbackEntry[]> => {
@@ -873,6 +875,32 @@ export default function AITrainingPlanPage() {
                   </Select>
                   <p className="text-[10px] text-muted-foreground">
                     IM/70.3 Elite : 3 recommandé • Age Group : 2 • Finisher : 1
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1">
+                    <Shield className="h-3.5 w-3.5" />
+                    Garde-fous sécurité
+                  </Label>
+                  <Select value={guardrailProfile} onValueChange={(v) => setGuardrailProfile(v as any)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="strict">
+                        <span className="flex items-center gap-1.5">🔒 Strict — Débutant / Reprise</span>
+                      </SelectItem>
+                      <SelectItem value="standard">
+                        <span className="flex items-center gap-1.5">🟡 Standard — Age Group</span>
+                      </SelectItem>
+                      <SelectItem value="flexible">
+                        <span className="flex items-center gap-1.5">🟢 Flexible — Competitor / Elite</span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[10px] text-muted-foreground">
+                    {guardrailProfile === "strict" && "Toutes les règles sont obligatoires (repos complet, 10%, ratio 3:1…)"}
+                    {guardrailProfile === "standard" && "Règles de base obligatoires + recommandations flexibles"}
+                    {guardrailProfile === "flexible" && "Recommandations uniquement — le coach assume la charge"}
                   </p>
                 </div>
 

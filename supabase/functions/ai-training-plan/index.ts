@@ -1496,36 +1496,10 @@ Pour les objectifs **5K, 10K, Semi, Marathon, Trail, StartToRun** :
 - **Douleur genou (runner's knee)** : renfo quadriceps (wall sits, split squats), step-down excentrique
 - Intégrer les exercices de prévention pertinents dans les séances Renfo du plan
 
-## GARDE-FOUS DE SÉCURITÉ OBLIGATOIRES (VALIDATION AUTOMATIQUE)
+## GARDE-FOUS DE SÉCURITÉ (ADAPTATIFS SELON PROFIL COACH)
 
-⚠️ AVANT de produire le plan, vérifie SYSTÉMATIQUEMENT ces règles. Si une règle est violée, corrige AVANT d'écrire le plan :
+${buildGuardrailsBlock(planConfig?.guardrailProfile || "standard")}`;
 
-### Règles de Progression Volume
-1. **Règle des 10%** : Le volume hebdomadaire (heures ou km) ne doit JAMAIS augmenter de plus de 10% d'une semaine à l'autre
-2. **Ratio charge 3:1 ou 2:1** : Après 2-3 semaines de charge progressive, 1 semaine de récupération (-30 à -40% volume)
-3. **Step-back obligatoire** : Chaque 4e semaine (ou 3e si athlète >45 ans) = semaine allégée
-4. **Taper pré-course** : Les 2-3 dernières semaines DOIVENT montrer une réduction progressive du volume (-20% puis -40% puis -50%)
-
-### Règles de Repos
-5. **Minimum 1 jour repos complet/semaine** pour tous les niveaux (y compris Elite)
-6. **Jamais 2 séances haute intensité le même jour** (sauf brique planifiée)
-7. **Jamais 3 jours consécutifs d'intensité** : Z4+ max 2 jours consécutifs, puis Z1-Z2 obligatoire
-8. **Post-séance clé** : Le lendemain d'une séance clé 🔑 = Z1-Z2 ou repos uniquement
-
-### Règles de Cohérence
-9. **Respect ratios sport/objectif** : Vérifier que les % par sport correspondent au tableau de référence ci-dessus
-10. **Échauffement obligatoire** avant toute séance Z3+ (mentionner dans la description)
-11. **Pas de fractionné VMA sans base aérobie** : les 2-4 premières semaines = fondamentaux uniquement si CTL bas
-12. **Sprint Ban** : Si VLamax > cible pour l'objectif → ZÉRO sprint, ZÉRO répétitions courtes (<30s) all-out
-
-### Auto-Vérification (OBLIGATOIRE)
-Après avoir rédigé chaque semaine, vérifie mentalement :
-- [ ] Volume ≤ +10% vs semaine précédente ?
-- [ ] Au moins 1 jour repos complet ?
-- [ ] Pas 2 intensités hautes le même jour (hors brique) ?
-- [ ] Séances clés 🔑 ciblent le limiteur identifié ?
-- [ ] Ratios sport cohérents avec l'objectif ?
-Si une case n'est pas cochée → CORRIGER avant de passer à la semaine suivante.`;
 
 
     let userPrompt: string;
@@ -1753,4 +1727,67 @@ function buildUserPrompt(data: any, config: any, coachFeedback?: any[]): string 
     lines.push(`\n⚠️ RAPPEL FINAL : Chaque jour d'entraînement d'un triathlète (sauf repos) doit avoir PLUSIEURS séances (2 ou 3 lignes dans le tableau). Un tableau de semaine IM Elite = 14 à 18 lignes, PAS 7. Si ton tableau a seulement 7-8 lignes pour une semaine IM, RECOMMENCE, c'est insuffisant.`);
   }
   return lines.join("\n");
+}
+
+function buildGuardrailsBlock(profile: string): string {
+  if (profile === "strict") {
+    return `### Profil Garde-fous : 🔒 STRICT (Débutant / Finisher / Reprise)
+Le coach a sélectionné le mode STRICT. TOUTES les règles sont OBLIGATOIRES et NON NÉGOCIABLES :
+
+1. **Règle des 10%** : Volume hebdo ne doit JAMAIS augmenter de plus de 10%
+2. **Ratio charge 3:1** : 3 semaines charge + 1 semaine récup (-40% volume). TOUJOURS.
+3. **Step-back obligatoire** : Chaque 4e semaine = allégée. Chaque 3e si >45 ans.
+4. **Taper pré-course** : Réduction -20% puis -40% puis -50% sur les 3 dernières semaines.
+5. **1 jour repos COMPLET par semaine** : ZÉRO activité. Pas de "récup active". Repos total.
+6. **Jamais 2 intensités le même jour** : Aucune exception, même pas les briques.
+7. **Max 2 jours consécutifs d'intensité** : Après 2 jours Z3+, jour Z1-Z2 ou repos obligatoire.
+8. **Post-séance clé** : Lendemain = Z1-Z2 ou repos uniquement.
+9. **Échauffement obligatoire** avant toute séance Z3+ (mentionner explicitement).
+10. **Sprint Ban absolu** : Si VLamax > cible → ZÉRO sprint, ZÉRO répétitions courtes.
+11. **Pas de fractionné VMA** les 4 premières semaines = fondamentaux uniquement.
+12. **Respect strict ratios sport/objectif** du tableau de référence.
+
+Auto-vérification OBLIGATOIRE après chaque semaine. Si une règle est violée → CORRIGER.`;
+  }
+  
+  if (profile === "flexible") {
+    return `### Profil Garde-fous : 🟢 FLEXIBLE (Competitor / Elite)
+Le coach a sélectionné le mode FLEXIBLE. Les règles sont des RECOMMANDATIONS, pas des contraintes absolues.
+Le coach assume la responsabilité de la charge. L'IA peut proposer des plans plus agressifs si le profil le justifie.
+
+**Recommandations (non obligatoires) :**
+1. **Progression volume** : Viser ≤15% d'augmentation/semaine (tolérance jusqu'à 20% ponctuellement si CTL élevé)
+2. **Ratio charge** : 3:1 recommandé mais 4:1 ou 5:2 acceptables pour les athlètes expérimentés
+3. **Repos** : Au moins 1 jour allégé/semaine (repos actif Z1 accepté, repos complet non obligatoire)
+4. **Doubles intensités** : Autorisées si planifiées (briques, doubles seuil norvégien, blocs Canova)
+5. **3+ jours consécutifs d'intensité** : Possible en bloc concentré (bloc VO2max, bloc seuil) si suivi d'un mini-déload
+6. **Taper** : Recommandé mais le coach peut raccourcir à 1 semaine si l'athlète le tolère
+7. **Sprint Ban** : Recommandé si VLamax haute, mais le coach peut autoriser des rappels neuromusculaires courts
+8. **Cohérence sport** : Les ratios sont des guides, pas des contraintes rigides
+
+**Seules contraintes maintenues :**
+- Échauffement avant Z4+ (toujours mentionner)
+- Red flags santé (douleur thoracique, malaise = arrêt immédiat)
+- Ne pas dépasser le volume horaire configuré par le coach`;
+  }
+
+  // Default: standard
+  return `### Profil Garde-fous : 🟡 STANDARD (Age Group)
+Le coach a sélectionné le mode STANDARD. Les règles de sécurité s'appliquent avec bon sens :
+
+**Règles obligatoires :**
+1. **Règle des 10%** : Volume hebdo ≤ +10% d'augmentation
+2. **Ratio charge 3:1** : 3 semaines charge + 1 semaine récup (-30 à -40% volume)
+3. **Taper pré-course** : Réduction progressive sur 2-3 dernières semaines
+4. **Échauffement obligatoire** avant toute séance Z3+
+5. **Sprint Ban** : Si VLamax > cible pour l'objectif → pas de sprints en entraînement
+6. **Respect ratios sport/objectif** du tableau de référence
+
+**Règles flexibles (recommandations) :**
+7. **Repos** : 1 jour allégé ou repos complet par semaine recommandé (repos actif Z1 accepté)
+8. **Intensités** : Éviter 2 hautes intensités le même jour sauf brique planifiée
+9. **Jours consécutifs** : Limiter à 2 jours Z4+ consécutifs, puis Z1-Z2 recommandé
+10. **Post-séance clé** : Lendemain léger recommandé mais non obligatoire si l'athlète récupère bien
+
+Auto-vérification après chaque semaine : vérifier cohérence volume, repos et ratios.`;
 }
