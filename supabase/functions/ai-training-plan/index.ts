@@ -1607,6 +1607,26 @@ function buildUserPrompt(data: any, config: any): string {
   if (data.css) lines.push(`- CSS natation : ${data.css} sec/100m`);
   if (data.fcMax) lines.push(`- FC Max : ${data.fcMax} bpm`);
 
+  // --- Computed pace anchors to prevent AI hallucination ---
+  if (data.vma && data.vma > 0) {
+    const vmaKmh = Number(data.vma);
+    const seuilPace = 3600 / (vmaKmh * 0.85); // ~85% VMA = seuil lactique
+    const formatPace = (totalSec: number) => {
+      const m = Math.floor(totalSec / 60);
+      const s = Math.round(totalSec % 60);
+      return `${m}'${s.toString().padStart(2, "0")}"`;
+    };
+    lines.push(`\n#### ⚠️ ZONES D'ALLURE CALCULÉES (RÉFÉRENCE OBLIGATOIRE — NE PAS INVENTER D'ALLURES)`);
+    lines.push(`Ces allures sont calculées à partir de la VMA de l'athlète (${vmaKmh} km/h). Tu DOIS les utiliser comme référence.`);
+    lines.push(`- **Allure VMA (100%)** : ${formatPace(3600 / vmaKmh)}/km`);
+    lines.push(`- **Allure seuil (~85% VMA)** : ${formatPace(seuilPace)}/km`);
+    lines.push(`- **Allure semi-marathon (~82-84% VMA)** : ${formatPace(3600 / (vmaKmh * 0.83))}/km → DOIT être PLUS LENTE que le seuil`);
+    lines.push(`- **Allure marathon (~78-80% VMA)** : ${formatPace(3600 / (vmaKmh * 0.79))}/km → DOIT être PLUS LENTE que l'allure semi`);
+    lines.push(`- **Allure EF/Z2 (~65-75% VMA)** : ${formatPace(3600 / (vmaKmh * 0.70))}/km`);
+    lines.push(`- **Allure 10K (~88-92% VMA)** : ${formatPace(3600 / (vmaKmh * 0.90))}/km`);
+    lines.push(`\n🚨 RÈGLE INVIOLABLE : Allure spécifique semi > allure seuil (plus lente en min/km). Allure marathon > allure semi. Si une allure spécifique est plus rapide que le seuil, c'est une ERREUR.`);
+  }
+
   // --- Identified weaknesses ---
   if (config.identifiedLimiters && config.identifiedLimiters.length > 0) {
     lines.push("\n### Limiteurs Identifiés par l'App");
