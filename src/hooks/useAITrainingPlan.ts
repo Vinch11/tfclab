@@ -32,6 +32,7 @@ export interface PlanConfig {
   constraints?: string;
   identifiedLimiters?: string[];
   activeLevers?: string[];
+  prohibitions?: string[];
 }
 
 export function useAITrainingPlan() {

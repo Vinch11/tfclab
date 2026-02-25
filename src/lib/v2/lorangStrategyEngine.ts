@@ -698,12 +698,25 @@ function computeProhibitions(
   const prohibitions: LorangProhibitionRule[] = [];
   const { physiology, athlete, availability } = input;
   
-  const isLongDistance = ['IM', '703', 'marathon', 'trail'].includes(athlete.discipline);
+  const discipline = athlete.discipline;
+  const ambition = (athlete as any).ambition || 'age_group';
+  
+  // Sprint Ban applies ONLY to long-distance disciplines where VLamax reduction is a goal
+  // AND only for athletes with performance ambition (not Finisher)
+  const isLongDistance = ['IM', '703', 'marathon', 'trail'].includes(discipline);
+  const isSemiOrShorter = ['semi', '10K', '5K'].includes(discipline);
+  const isFinisher = ambition === 'finisher';
+  
+  // For semi/shorter distances: sprints are BENEFICIAL (neuromuscular, economy) → NO Sprint Ban
+  // For Finisher ambition: VLamax optimization is irrelevant → NO Sprint Ban
+  const shouldCheckSprintBan = isLongDistance && !isFinisher;
+  
   const vlamaxTooHigh = physiology.vlamax !== null && 
+    physiology.vlamaxTarget > 0 &&
     physiology.vlamax > physiology.vlamaxTarget * 1.1;
   
-  // Sprint Ban Mode
-  if (isLongDistance && (vlamaxTooHigh || primaryLimiter === 'glycolytic')) {
+  // Sprint Ban Mode — only for long distance + non-finisher + VLamax actually too high
+  if (shouldCheckSprintBan && vlamaxTooHigh) {
     prohibitions.push({
       prohibition: 'sprints',
       label: PROHIBITION_DEFINITIONS.sprints.label,
