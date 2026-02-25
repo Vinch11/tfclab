@@ -32,28 +32,13 @@ export interface PlanConfig {
   constraints?: string;
   identifiedLimiters?: string[];
   activeLevers?: string[];
-  guardrailProfile?: "strict" | "standard" | "flexible";
-}
-
-export interface CoachFeedbackEntry {
-  block_start_date: string;
-  block_end_date: string;
-  model_coherence_rating?: number | null;
-  actual_response_rating?: number | null;
-  observed_fatigue?: string | null;
-  notes?: string | null;
-  suggested_adjustments?: any;
 }
 
 export function useAITrainingPlan() {
   const [response, setResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const generatePlan = useCallback(async (
-    athleteData: PlanAthleteData,
-    planConfig: PlanConfig,
-    coachFeedback?: CoachFeedbackEntry[]
-  ) => {
+  const generatePlan = useCallback(async (athleteData: PlanAthleteData, planConfig: PlanConfig) => {
     setResponse("");
     setIsLoading(true);
 
@@ -64,7 +49,7 @@ export function useAITrainingPlan() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ athleteData, planConfig, coachFeedback: coachFeedback || [] }),
+        body: JSON.stringify({ athleteData, planConfig }),
       });
 
       if (resp.status === 429) {

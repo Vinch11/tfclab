@@ -10,7 +10,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { athleteData, planConfig, regenerateWeek, coachFeedback } = await req.json();
+    const { athleteData, planConfig, regenerateWeek } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -1494,12 +1494,7 @@ Pour les objectifs **5K, 10K, Semi, Marathon, Trail, StartToRun** :
 - **Tendinopathie achilléenne** : excentrique Alfredson 2x/jour, réduire côtes et vitesse
 - **Fasciite plantaire** : renfo intrinsèques pieds (serviette, marbles), étirements mollets/fascia
 - **Douleur genou (runner's knee)** : renfo quadriceps (wall sits, split squats), step-down excentrique
-- Intégrer les exercices de prévention pertinents dans les séances Renfo du plan
-
-## GARDE-FOUS DE SÉCURITÉ (ADAPTATIFS SELON PROFIL COACH)
-
-${buildGuardrailsBlock(planConfig?.guardrailProfile || "standard")}`;
-
+- Intégrer les exercices de prévention pertinents dans les séances Renfo du plan`;
 
 
     let userPrompt: string;
@@ -1508,11 +1503,11 @@ ${buildGuardrailsBlock(planConfig?.guardrailProfile || "standard")}`;
 Contexte : ${regenerateWeek.phase || "Phase inconnue"}, thème "${regenerateWeek.theme || "Standard"}".
 Plan total : ${regenerateWeek.totalWeeks} semaines.
 
-${buildUserPrompt(athleteData, planConfig, coachFeedback)}
+${buildUserPrompt(athleteData, planConfig)}
 
 IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format tableau obligatoire. Pas les autres semaines.`;
     } else {
-      userPrompt = buildUserPrompt(athleteData, planConfig, coachFeedback);
+      userPrompt = buildUserPrompt(athleteData, planConfig);
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -1564,7 +1559,7 @@ IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format ta
   }
 });
 
-function buildUserPrompt(data: any, config: any, coachFeedback?: any[]): string {
+function buildUserPrompt(data: any, config: any): string {
   const lines: string[] = ["## Demande de Plan d'Entraînement TFCL™\n"];
 
   // --- Config ---
@@ -1704,90 +1699,10 @@ function buildUserPrompt(data: any, config: any, coachFeedback?: any[]): string 
     lines.push("- Le tableau d'une semaine Elite IM doit avoir 14-18 lignes (pas 7 !).");
   }
 
-  // ---- Coach Feedback Loop ----
-  if (coachFeedback && coachFeedback.length > 0) {
-    lines.push("\n### 📋 Retours Coach sur les Plans Précédents");
-    lines.push("Le coach a fourni les retours suivants sur les plans précédemment générés. ADAPTE le nouveau plan en conséquence :\n");
-    for (const fb of coachFeedback.slice(0, 5)) {
-      lines.push(`- **Bloc ${fb.block_start_date} → ${fb.block_end_date}** :`);
-      if (fb.model_coherence_rating) lines.push(`  - Cohérence modèle : ${fb.model_coherence_rating}/5`);
-      if (fb.actual_response_rating) lines.push(`  - Réponse réelle athlète : ${fb.actual_response_rating}/5`);
-      if (fb.observed_fatigue) lines.push(`  - Fatigue observée : ${fb.observed_fatigue}`);
-      if (fb.notes) lines.push(`  - Notes : ${fb.notes}`);
-      if (fb.suggested_adjustments && Object.keys(fb.suggested_adjustments).length > 0) {
-        lines.push(`  - Ajustements suggérés : ${JSON.stringify(fb.suggested_adjustments)}`);
-      }
-    }
-    lines.push("\n⚠️ Tiens compte de ces retours pour ajuster l'intensité, le volume et les choix de séances.");
-  }
-
   const weeks = config.weeksAvailable || 12;
   lines.push(`\n---\nGénère le plan COMPLET de ${weeks} semaines, semaine par semaine, SANS EN OMETTRE AUCUNE. Chaque semaine a son propre tableau. Ne résume jamais. Chaque séance doit être actionnable immédiatement.`);
   if (isTriathlon && ambition !== "finisher") {
     lines.push(`\n⚠️ RAPPEL FINAL : Chaque jour d'entraînement d'un triathlète (sauf repos) doit avoir PLUSIEURS séances (2 ou 3 lignes dans le tableau). Un tableau de semaine IM Elite = 14 à 18 lignes, PAS 7. Si ton tableau a seulement 7-8 lignes pour une semaine IM, RECOMMENCE, c'est insuffisant.`);
   }
   return lines.join("\n");
-}
-
-function buildGuardrailsBlock(profile: string): string {
-  if (profile === "strict") {
-    return `### Profil Garde-fous : 🔒 STRICT (Débutant / Finisher / Reprise)
-Le coach a sélectionné le mode STRICT. TOUTES les règles sont OBLIGATOIRES et NON NÉGOCIABLES :
-
-1. **Règle des 10%** : Volume hebdo ne doit JAMAIS augmenter de plus de 10%
-2. **Ratio charge 3:1** : 3 semaines charge + 1 semaine récup (-40% volume). TOUJOURS.
-3. **Step-back obligatoire** : Chaque 4e semaine = allégée. Chaque 3e si >45 ans.
-4. **Taper pré-course** : Réduction -20% puis -40% puis -50% sur les 3 dernières semaines.
-5. **1 jour repos COMPLET par semaine** : ZÉRO activité. Pas de "récup active". Repos total.
-6. **Jamais 2 intensités le même jour** : Aucune exception, même pas les briques.
-7. **Max 2 jours consécutifs d'intensité** : Après 2 jours Z3+, jour Z1-Z2 ou repos obligatoire.
-8. **Post-séance clé** : Lendemain = Z1-Z2 ou repos uniquement.
-9. **Échauffement obligatoire** avant toute séance Z3+ (mentionner explicitement).
-10. **Sprint Ban absolu** : Si VLamax > cible → ZÉRO sprint, ZÉRO répétitions courtes.
-11. **Pas de fractionné VMA** les 4 premières semaines = fondamentaux uniquement.
-12. **Respect strict ratios sport/objectif** du tableau de référence.
-
-Auto-vérification OBLIGATOIRE après chaque semaine. Si une règle est violée → CORRIGER.`;
-  }
-  
-  if (profile === "flexible") {
-    return `### Profil Garde-fous : 🟢 FLEXIBLE (Competitor / Elite)
-Le coach a sélectionné le mode FLEXIBLE. Les règles sont des RECOMMANDATIONS, pas des contraintes absolues.
-Le coach assume la responsabilité de la charge. L'IA peut proposer des plans plus agressifs si le profil le justifie.
-
-**Recommandations (non obligatoires) :**
-1. **Progression volume** : Viser ≤15% d'augmentation/semaine (tolérance jusqu'à 20% ponctuellement si CTL élevé)
-2. **Ratio charge** : 3:1 recommandé mais 4:1 ou 5:2 acceptables pour les athlètes expérimentés
-3. **Repos** : Au moins 1 jour allégé/semaine (repos actif Z1 accepté, repos complet non obligatoire)
-4. **Doubles intensités** : Autorisées si planifiées (briques, doubles seuil norvégien, blocs Canova)
-5. **3+ jours consécutifs d'intensité** : Possible en bloc concentré (bloc VO2max, bloc seuil) si suivi d'un mini-déload
-6. **Taper** : Recommandé mais le coach peut raccourcir à 1 semaine si l'athlète le tolère
-7. **Sprint Ban** : Recommandé si VLamax haute, mais le coach peut autoriser des rappels neuromusculaires courts
-8. **Cohérence sport** : Les ratios sont des guides, pas des contraintes rigides
-
-**Seules contraintes maintenues :**
-- Échauffement avant Z4+ (toujours mentionner)
-- Red flags santé (douleur thoracique, malaise = arrêt immédiat)
-- Ne pas dépasser le volume horaire configuré par le coach`;
-  }
-
-  // Default: standard
-  return `### Profil Garde-fous : 🟡 STANDARD (Age Group)
-Le coach a sélectionné le mode STANDARD. Les règles de sécurité s'appliquent avec bon sens :
-
-**Règles obligatoires :**
-1. **Règle des 10%** : Volume hebdo ≤ +10% d'augmentation
-2. **Ratio charge 3:1** : 3 semaines charge + 1 semaine récup (-30 à -40% volume)
-3. **Taper pré-course** : Réduction progressive sur 2-3 dernières semaines
-4. **Échauffement obligatoire** avant toute séance Z3+
-5. **Sprint Ban** : Si VLamax > cible pour l'objectif → pas de sprints en entraînement
-6. **Respect ratios sport/objectif** du tableau de référence
-
-**Règles flexibles (recommandations) :**
-7. **Repos** : 1 jour allégé ou repos complet par semaine recommandé (repos actif Z1 accepté)
-8. **Intensités** : Éviter 2 hautes intensités le même jour sauf brique planifiée
-9. **Jours consécutifs** : Limiter à 2 jours Z4+ consécutifs, puis Z1-Z2 recommandé
-10. **Post-séance clé** : Lendemain léger recommandé mais non obligatoire si l'athlète récupère bien
-
-Auto-vérification après chaque semaine : vérifier cohérence volume, repos et ratios.`;
 }

@@ -20,16 +20,15 @@ import { Progress } from "@/components/ui/progress";
 import {
   ChevronLeft, Sparkles, Calendar, Target, Clock, Loader2,
   AlertTriangle, Zap, User, RotateCcw, Copy, CheckCircle2,
-  FileText, LayoutGrid, Users, GitCompareArrows, ShieldCheck, ShieldAlert, Shield,
+  FileText, LayoutGrid, Users, GitCompareArrows,
 } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { differenceInWeeks, parseISO, addDays, startOfWeek, format } from "date-fns";
 
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
-import { useAITrainingPlan, type PlanAthleteData, type PlanConfig, type CoachFeedbackEntry } from "@/hooks/useAITrainingPlan";
+import { useAITrainingPlan, type PlanAthleteData, type PlanConfig } from "@/hooks/useAITrainingPlan";
 import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { computeTTEEffectif } from "@/lib/tteEffectif";
 import { detectUnifiedLimiter } from "@/lib/v2/unifiedLimiterDetection";
@@ -39,7 +38,6 @@ import { parseAIPlan, mapSessionsToDates, type ParsedPlan } from "@/lib/aiPlanPa
 import { AIPlanViewer } from "@/components/AIPlanViewer";
 import { AIPlanComparison } from "@/components/AIPlanComparison";
 import { AIPlanBenchmark } from "@/components/AIPlanBenchmark";
-import { computePlanReliability, validateGeneratedPlan, type PlanReliabilityResult, type PlanValidationResult } from "@/lib/planReliability";
 import { RacePaceSimulation } from "@/components/RacePaceSimulation";
 import { SavedPlanCalendar } from "@/components/SavedPlanCalendar";
 import { supabase } from "@/integrations/supabase/client";
@@ -163,7 +161,6 @@ export default function AITrainingPlanPage() {
   const [sessionsPerWeek, setSessionsPerWeek] = useState("7");
   const [ambition, setAmbition] = useState<string>(DEFAULT_AMBITION);
   const [maxSessionsPerDay, setMaxSessionsPerDay] = useState("3");
-  const [guardrailProfile, setGuardrailProfile] = useState<"strict" | "standard" | "flexible">("standard");
   const [constraints, setConstraints] = useState("");
 
   // Restore persisted plan + config on athlete change (single mode only)
@@ -268,20 +265,6 @@ export default function AITrainingPlanPage() {
     } catch { return null; }
   }, [raceDate]);
 
-  // Plan reliability score based on input data quality
-  const planReliability = useMemo<PlanReliabilityResult | null>(() => {
-    if (!athleteContext) return null;
-    const config: PlanConfig = {
-      objective,
-      raceDate: raceDate || undefined,
-      weeksAvailable: weeksAvailable ?? undefined,
-      ambition,
-      identifiedLimiters: athleteContext.limiterResult?.primaryLimiter !== "none"
-        ? [athleteContext.limiterResult.limiterLabel] : undefined,
-    };
-    return computePlanReliability(athleteContext.data, config);
-  }, [athleteContext, objective, raceDate, weeksAvailable, ambition]);
-
   // Parse AI response into structured plan
   const parsedPlan = useMemo<ParsedPlan | null>(() => {
     if (!response || isLoading) return null;
@@ -290,18 +273,6 @@ export default function AITrainingPlanPage() {
       return plan.weeks.length > 0 ? plan : null;
     } catch { return null; }
   }, [response, isLoading]);
-
-  // Validation post-génération
-  const planValidation = useMemo<PlanValidationResult | null>(() => {
-    if (!parsedPlan) return null;
-    const config: PlanConfig = {
-      objective,
-      weeksAvailable: weeksAvailable ?? undefined,
-      maxSessionsPerDay: parseInt(maxSessionsPerDay) || undefined,
-      ambition,
-    };
-    return validateGeneratedPlan(parsedPlan, config);
-  }, [parsedPlan, objective, weeksAvailable, maxSessionsPerDay, ambition]);
 
   // Compute plan start date (next Monday or custom)
   const planStartDate = useMemo(() => {
@@ -335,32 +306,17 @@ export default function AITrainingPlanPage() {
       constraints: constraints || undefined,
       identifiedLimiters: limiters.length > 0 ? limiters : undefined,
       activeLevers: levers.length > 0 ? levers : undefined,
-      guardrailProfile,
     };
-  }, [objective, raceName, raceDate, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, ambition, constraints, guardrailProfile]);
+  }, [objective, raceName, raceDate, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, ambition, constraints]);
 
-  // Fetch coach feedback for current athlete
-  const fetchCoachFeedback = useCallback(async (athleteId: string): Promise<CoachFeedbackEntry[]> => {
-    try {
-      const { data } = await supabase
-        .from("coach_feedback_blocks")
-        .select("block_start_date, block_end_date, model_coherence_rating, actual_response_rating, observed_fatigue, notes, suggested_adjustments")
-        .eq("athlete_id", athleteId)
-        .order("created_at", { ascending: false })
-        .limit(5);
-      return (data || []) as CoachFeedbackEntry[];
-    } catch { return []; }
-  }, []);
-
-  // Single athlete generation with feedback loop
-  const handleGenerate = async () => {
-    if (!athleteContext || !currentAthlete) {
+  // Single athlete generation
+  const handleGenerate = () => {
+    if (!athleteContext) {
       toast.error("Sélectionnez un athlète avec un snapshot actif");
       return;
     }
     const config = buildConfig(athleteContext.limiterResult);
-    const feedback = await fetchCoachFeedback(currentAthlete.id);
-    generatePlan(athleteContext.data, config, feedback.length > 0 ? feedback : undefined);
+    generatePlan(athleteContext.data, config);
   };
 
   // Multi-athlete batch generation
@@ -879,32 +835,6 @@ export default function AITrainingPlanPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-1">
-                    <Shield className="h-3.5 w-3.5" />
-                    Garde-fous sécurité
-                  </Label>
-                  <Select value={guardrailProfile} onValueChange={(v) => setGuardrailProfile(v as any)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="strict">
-                        <span className="flex items-center gap-1.5">🔒 Strict — Débutant / Reprise</span>
-                      </SelectItem>
-                      <SelectItem value="standard">
-                        <span className="flex items-center gap-1.5">🟡 Standard — Age Group</span>
-                      </SelectItem>
-                      <SelectItem value="flexible">
-                        <span className="flex items-center gap-1.5">🟢 Flexible — Competitor / Elite</span>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-[10px] text-muted-foreground">
-                    {guardrailProfile === "strict" && "Toutes les règles sont obligatoires (repos complet, 10%, ratio 3:1…)"}
-                    {guardrailProfile === "standard" && "Règles de base obligatoires + recommandations flexibles"}
-                    {guardrailProfile === "flexible" && "Recommandations uniquement — le coach assume la charge"}
-                  </p>
-                </div>
-
-                <div className="space-y-2">
                   <Label>Contraintes (optionnel)</Label>
                   <Textarea
                     placeholder="Ex: Pas de vélo le mardi, blessure genou gauche..."
@@ -940,37 +870,6 @@ export default function AITrainingPlanPage() {
                       {limiter.leverEmoji} {limiter.leverLabel}
                     </Badge>
                   </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Plan Reliability Badge */}
-            {!isMultiMode && planReliability && (
-              <Card className={`border-${planReliability.level === "ROBUST" ? "primary" : planReliability.level === "PARTIAL" ? "amber-500" : "destructive"}/30`}>
-                <CardContent className="p-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {planReliability.level === "ROBUST" ? (
-                        <ShieldCheck className="h-4 w-4 text-primary" />
-                      ) : planReliability.level === "PARTIAL" ? (
-                        <Shield className="h-4 w-4 text-amber-500" />
-                      ) : (
-                        <ShieldAlert className="h-4 w-4 text-destructive" />
-                      )}
-                      <span className="text-sm font-medium">{planReliability.emoji} {planReliability.label}</span>
-                    </div>
-                    <Badge variant="outline" className="text-[10px]">{planReliability.score}%</Badge>
-                  </div>
-                  {planReliability.missingCritical.length > 0 && (
-                    <p className="text-[10px] text-destructive">
-                      ⚠️ Manquant : {planReliability.missingCritical.join(", ")}
-                    </p>
-                  )}
-                  {planReliability.warnings.length > 0 && (
-                    <div className="text-[10px] text-muted-foreground space-y-0.5">
-                      {planReliability.warnings.map((w, i) => <p key={i}>💡 {w}</p>)}
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             )}
@@ -1147,39 +1046,6 @@ export default function AITrainingPlanPage() {
                   {/* Interactive View */}
                   {resultView === "interactive" && parsedPlan ? (
                     <>
-                      {/* Validation Post-Génération */}
-                      {planValidation && (
-                        <Card className={planValidation.valid ? "border-primary/20" : "border-destructive/30 bg-destructive/5"}>
-                          <CardContent className="p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center gap-2">
-                                {planValidation.valid ? (
-                                  <ShieldCheck className="h-4 w-4 text-primary" />
-                                ) : (
-                                  <ShieldAlert className="h-4 w-4 text-destructive" />
-                                )}
-                                <span className="text-sm font-medium">
-                                  Validation du plan — {planValidation.score}%
-                                </span>
-                              </div>
-                              <Badge variant={planValidation.valid ? "secondary" : "destructive"} className="text-[10px]">
-                                {planValidation.checks.filter(c => c.passed).length}/{planValidation.checks.length} checks
-                              </Badge>
-                            </div>
-                            <div className="space-y-1">
-                              {planValidation.checks.map((check, i) => (
-                                <div key={i} className="flex items-center gap-2 text-[11px]">
-                                  <span>{check.passed ? "✅" : check.severity === "error" ? "❌" : "⚠️"}</span>
-                                  <span className={check.passed ? "text-muted-foreground" : "text-foreground font-medium"}>
-                                    {check.message}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
-
                       <AIPlanBenchmark
                         plan={parsedPlan}
                         objective={objective}
