@@ -282,13 +282,38 @@ export default function AITrainingPlanPage() {
   }, []);
 
   // Build config for generation
+  // Map gap metrics to limiter categories for explicit AI key session prescription
+  const METRIC_TO_LIMITER_MAP: Record<string, string> = {
+    "VO2max": "VO2max bas",
+    "FTP/kg": "VO2max bas",
+    "VLamax": "VLamax trop haute (LD)",
+    "TTE": "TTE faible (<40min)",
+    "FatMax": "FatMax bas",
+    "Économie": "Économie de course basse",
+  };
+
   const buildConfig = useCallback((limiterResult: ReturnType<typeof detectUnifiedLimiter> | null, athleteAmbition?: string): PlanConfig => {
     const limiters: string[] = [];
     if (limiterResult && limiterResult.primaryLimiter !== "none") {
-      limiters.push(`${limiterResult.limiterLabel} — ${limiterResult.limiterExplanation}`);
-      limiterResult.gapAnalysis
-        .filter(g => g.status === "limiting")
-        .forEach(g => limiters.push(`${g.metric}: ${g.value?.toFixed(2) ?? "?"} vs cible ${g.target?.toFixed(2)}`));
+      // Primary limiter with full context
+      limiters.push(`🎯 LIMITEUR PRIMAIRE : ${limiterResult.limiterLabel} — ${limiterResult.limiterExplanation}`);
+      
+      // All limiting gaps with named limiter categories for AI key session mapping
+      const limitingGaps = limiterResult.gapAnalysis.filter(g => g.status === "limiting");
+      const acceptableGaps = limiterResult.gapAnalysis.filter(g => g.status === "acceptable");
+      
+      limitingGaps.forEach(g => {
+        const limiterCategory = METRIC_TO_LIMITER_MAP[g.metric] || g.metric;
+        limiters.push(`🔴 ${g.metric}: ${g.value?.toFixed(2) ?? "?"} vs cible ${g.target?.toFixed(2)} → Catégorie limiteur : "${limiterCategory}" (cf. tableau Séances Clés par Limiteur)`);
+      });
+      
+      // Secondary weaknesses (acceptable but not optimal)
+      if (acceptableGaps.length > 0) {
+        limiters.push("--- Faiblesses secondaires (acceptable mais sous-optimal) ---");
+        acceptableGaps.forEach(g => {
+          limiters.push(`🟡 ${g.metric}: ${g.value?.toFixed(2) ?? "?"} vs cible ${g.target?.toFixed(2)}`);
+        });
+      }
     }
 
     const levers = limiterResult ? [limiterResult.primaryLever].map(l => LEVER_LABELS[l] || l) : [];
