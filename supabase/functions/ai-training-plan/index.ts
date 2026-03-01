@@ -1675,9 +1675,15 @@ function buildUserPrompt(data: any, config: any): string {
 
   // --- Identified weaknesses ---
   if (config.identifiedLimiters && config.identifiedLimiters.length > 0) {
-    lines.push("\n### Limiteurs Identifiés par l'App");
-    config.identifiedLimiters.forEach((l: string) => lines.push(`- 🔴 ${l}`));
-    lines.push("\n⚠️ Les séances clés 🔑 de chaque semaine DOIVENT cibler ces limiteurs en priorité (cf. tableau Séances Clés par Limiteur Dan Lorang).");
+    lines.push("\n### 🔴 LIMITEURS IDENTIFIÉS PAR L'APP — SÉANCES CLÉS OBLIGATOIRES");
+    lines.push("Les limiteurs ci-dessous sont calculés par le diagnostic TFCL™. Chaque séance clé 🔑 de chaque semaine DOIT cibler ces limiteurs en priorité.");
+    lines.push("Utilise le tableau 'Sélection des Séances Clés par Limiteur (Dan Lorang)' pour choisir les bonnes séances.\n");
+    config.identifiedLimiters.forEach((l: string) => lines.push(`- ${l}`));
+    lines.push("\n⚠️ RÈGLE : Si le limiteur primaire est 'VO2max bas', les séances clés DOIVENT inclure du travail VMA/VO2max.");
+    lines.push("Si le limiteur est 'VLamax trop haute', les séances clés DOIVENT inclure du Z2 long Train Low + sweet spot long.");
+    lines.push("Si le limiteur est 'TTE faible', les séances clés DOIVENT inclure du seuil continu long (1×30-40min).");
+    lines.push("Si le limiteur est 'Économie basse', les séances clés DOIVENT inclure côtes/SFR + force max.");
+    lines.push("Les faiblesses secondaires 🟡 doivent être adressées en complément (1-2 séances/sem), pas en priorité.");
   }
 
   if (config.activeLevers && config.activeLevers.length > 0) {
