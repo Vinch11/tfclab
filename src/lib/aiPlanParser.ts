@@ -26,9 +26,24 @@ export interface ParsedWeek {
   sessions: ParsedSession[];
 }
 
+export interface StrategicLimiter {
+  rank: number;
+  name: string;
+  status: string;
+  block: string;
+  weeks: string;
+  keySessions: string;
+}
+
+export interface StrategicRecap {
+  limiters: StrategicLimiter[];
+  synergies: string[];
+}
+
 export interface ParsedPlan {
   title: string;
   diagnostic?: string;
+  strategicRecap?: StrategicRecap;
   phases: { name: string; weeks: string; objective?: string; volume?: string }[];
   weeks: ParsedWeek[];
   totalWeeks: number;
@@ -72,6 +87,10 @@ export function parseAIPlan(markdown: string): ParsedPlan {
   const weeks: ParsedWeek[] = [];
   const phases: ParsedPlan["phases"] = [];
   let collectingCoachNotes = false;
+  let inRecapTable = false;
+  let recapLimiters: StrategicLimiter[] = [];
+  let recapSynergies: string[] = [];
+  let collectingSynergies = false;
 
   const flushWeek = () => {
     if (currentWeekNumber > 0 && pendingSessions.length > 0) {
@@ -111,6 +130,64 @@ export function parseAIPlan(markdown: string): ParsedPlan {
       continue;
     }
 
+    // Récapitulatif Stratégique section
+    if (/^##\s*R[ée]capitulatif\s*Strat[ée]gique/i.test(trimmed)) {
+      inRecapTable = false;
+      collectingSynergies = false;
+      continue;
+    }
+
+    // Recap table: ### Limiteurs → Blocs → Séances Clés
+    if (/^###\s*Limiteurs/i.test(trimmed)) {
+      inRecapTable = true;
+      continue;
+    }
+
+    // Synergies section
+    if (/^###\s*Synergies/i.test(trimmed)) {
+      inRecapTable = false;
+      collectingSynergies = true;
+      continue;
+    }
+
+    // Parse recap table rows
+    if (inRecapTable && trimmed.startsWith("|")) {
+      // Skip header and separator rows
+      if (/Limiteur|^[\s\-:|]+$/.test(trimmed.replace(/\|/g, ""))) continue;
+      const cells = trimmed.split("|").map(c => c.trim()).filter(Boolean);
+      if (cells.length >= 6) {
+        const rank = parseInt(cells[0], 10);
+        if (!isNaN(rank)) {
+          recapLimiters.push({
+            rank,
+            name: cells[1],
+            status: cells[2],
+            block: cells[3],
+            weeks: cells[4],
+            keySessions: cells[5],
+          });
+        }
+      }
+      continue;
+    }
+
+    // End recap table on non-table line
+    if (inRecapTable && !trimmed.startsWith("|") && trimmed !== "") {
+      inRecapTable = false;
+    }
+
+    // Collect synergies bullets
+    if (collectingSynergies) {
+      if (trimmed.startsWith("-") || trimmed.startsWith("•")) {
+        recapSynergies.push(trimmed.replace(/^[-•]\s*/, ""));
+        continue;
+      } else if (trimmed && !trimmed.startsWith("#")) {
+        continue;
+      } else {
+        collectingSynergies = false;
+      }
+    }
+
     // Phase header: ## Phase N : Name (Semaines X-Y)
     const phaseMatch = trimmed.match(/^##\s*Phase\s*(\d+)\s*[:\-–—]\s*(.+?)(?:\s*\(.*?(\d+)\s*[-–—à]\s*(\d+).*?\))?$/i);
     if (phaseMatch) {
@@ -118,6 +195,19 @@ export function parseAIPlan(markdown: string): ParsedPlan {
       collectingCoachNotes = false;
       currentPhase = `Phase ${phaseMatch[1]} : ${phaseMatch[2].trim()}`;
       const weeksRange = phaseMatch[3] && phaseMatch[4] ? `${phaseMatch[3]}-${phaseMatch[4]}` : "";
+      phases.push({ name: currentPhase, weeks: weeksRange });
+      currentPhaseObjective = "";
+      currentVolumeTarget = "";
+      continue;
+    }
+
+    // Bloc header: ## Bloc N : Name (Semaines X-Y)
+    const blocMatch = trimmed.match(/^##\s*Bloc\s*(\d+)\s*[:\-–—]\s*(.+?)(?:\s*\(.*?[Ss]emaines?\s*(\d+)\s*[-–—àa]\s*(\d+).*?\))?$/i);
+    if (blocMatch) {
+      flushWeek();
+      collectingCoachNotes = false;
+      currentPhase = `Bloc ${blocMatch[1]} : ${blocMatch[2].trim()}`;
+      const weeksRange = blocMatch[3] && blocMatch[4] ? `${blocMatch[3]}-${blocMatch[4]}` : "";
       phases.push({ name: currentPhase, weeks: weeksRange });
       currentPhaseObjective = "";
       currentVolumeTarget = "";
@@ -210,9 +300,15 @@ export function parseAIPlan(markdown: string): ParsedPlan {
   // Flush last week
   flushWeek();
 
+  const strategicRecap: StrategicRecap | undefined =
+    recapLimiters.length > 0
+      ? { limiters: recapLimiters, synergies: recapSynergies }
+      : undefined;
+
   return {
     title: title || "Plan TFCL™",
     diagnostic: diagnostic || undefined,
+    strategicRecap,
     phases,
     weeks,
     totalWeeks: weeks.length,
