@@ -36,13 +36,26 @@ export interface PlanConfig {
   prohibitions?: string[];
 }
 
+export interface ChunkProgress {
+  currentWeek: number;
+  totalWeeks: number;
+  currentChunk: number;
+  totalChunks: number;
+}
+
 export function useAITrainingPlan() {
   const [response, setResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [chunkProgress, setChunkProgress] = useState<ChunkProgress | null>(null);
 
   const generatePlan = useCallback(async (athleteData: PlanAthleteData, planConfig: PlanConfig) => {
     setResponse("");
     setIsLoading(true);
+
+    const totalWeeks = planConfig.weeksAvailable || 12;
+    const CHUNK_SIZE = 8;
+    const totalChunks = totalWeeks > 12 ? Math.ceil(totalWeeks / CHUNK_SIZE) : 1;
+    setChunkProgress(totalChunks > 1 ? { currentWeek: 0, totalWeeks, currentChunk: 1, totalChunks } : null);
 
     try {
       const resp = await fetch(PLAN_URL, {
@@ -57,11 +70,13 @@ export function useAITrainingPlan() {
       if (resp.status === 429) {
         toast.error("Rate limit dépassé, réessayez dans quelques instants.");
         setIsLoading(false);
+        setChunkProgress(null);
         return;
       }
       if (resp.status === 402) {
         toast.error("Crédits IA épuisés.");
         setIsLoading(false);
+        setChunkProgress(null);
         return;
       }
       if (!resp.ok || !resp.body) {
@@ -72,6 +87,22 @@ export function useAITrainingPlan() {
       const decoder = new TextDecoder();
       let textBuffer = "";
       let fullText = "";
+      let maxWeekSeen = 0;
+
+      const updateWeekProgress = (text: string) => {
+        // Detect ### Semaine N patterns to track progress
+        const matches = text.match(/###\s*Semaine\s*(\d+)/gi);
+        if (matches) {
+          for (const m of matches) {
+            const num = parseInt(m.replace(/\D/g, ""), 10);
+            if (num > maxWeekSeen) maxWeekSeen = num;
+          }
+          if (totalChunks > 1) {
+            const currentChunk = Math.min(Math.ceil(maxWeekSeen / CHUNK_SIZE), totalChunks);
+            setChunkProgress({ currentWeek: maxWeekSeen, totalWeeks, currentChunk, totalChunks });
+          }
+        }
+      };
 
       while (true) {
         const { done, value } = await reader.read();
@@ -96,6 +127,7 @@ export function useAITrainingPlan() {
             if (content) {
               fullText += content;
               setResponse(fullText);
+              updateWeekProgress(fullText);
             }
           } catch {
             textBuffer = line + "\n" + textBuffer;
@@ -128,13 +160,15 @@ export function useAITrainingPlan() {
       toast.error("Impossible de générer le plan d'entraînement");
     } finally {
       setIsLoading(false);
+      setChunkProgress(null);
     }
   }, []);
 
   const reset = useCallback(() => {
     setResponse("");
     setIsLoading(false);
+    setChunkProgress(null);
   }, []);
 
-  return { response, isLoading, generatePlan, reset, setResponse };
+  return { response, isLoading, chunkProgress, generatePlan, reset, setResponse };
 }
