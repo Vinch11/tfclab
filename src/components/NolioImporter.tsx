@@ -859,6 +859,16 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
                 </div>
               )}
 
+              {/* Delta croisé vélo ↔ CAP */}
+              {vlamaxResult && runVlamaxResult && (
+                <CrossSportDelta
+                  bikeVlamax={bikeGlycoRefinement?.vlamaxRefined ?? vlamaxResult.value}
+                  runVlamax={runGlycoRefinement?.vlamaxRefined ?? runVlamaxResult.value}
+                  bikeRange={[vlamaxResult.rangeMin, vlamaxResult.rangeMax]}
+                  runRange={[runVlamaxResult.rangeMin, runVlamaxResult.rangeMax]}
+                />
+              )}
+
               {/* VLamax V2 Enhanced (bike) */}
               {vlamaxResult && (
                 <div className="p-4 rounded-lg border-2 border-primary/30 bg-primary/5 space-y-3">
@@ -936,6 +946,103 @@ function GlycoMetric({ label, value }: { label: string; value: string }) {
     <div className="p-2 rounded bg-background/70 border border-border text-center">
       <p className="text-[10px] text-muted-foreground">{label}</p>
       <p className="text-lg font-mono font-bold text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function CrossSportDelta({
+  bikeVlamax,
+  runVlamax,
+  bikeRange,
+  runRange,
+}: {
+  bikeVlamax: number;
+  runVlamax: number;
+  bikeRange: [number, number];
+  runRange: [number, number];
+}) {
+  const diff = bikeVlamax - runVlamax;
+  const absDiff = Math.abs(diff);
+  const pct = runVlamax > 0 ? (diff / runVlamax) * 100 : 0;
+
+  // Interpretation
+  let interpretation: string;
+  let badgeLabel: string;
+  let badgeClass: string;
+
+  if (absDiff < 0.03) {
+    interpretation = "Profil glycolytique homogène entre vélo et course. Transfert de capacité cohérent, pas de déséquilibre majeur.";
+    badgeLabel = "Équilibré";
+    badgeClass = "bg-primary/15 text-primary border-primary/30";
+  } else if (diff > 0) {
+    if (diff > 0.10) {
+      interpretation = "VLamax vélo nettement supérieure : dominance glycolytique en vélo. Peut indiquer un manque de travail aérobie vélo ou un profil sprint vélo marqué. Le transfert CAP semble mieux canalisé.";
+      badgeLabel = "Vélo > CAP (fort)";
+      badgeClass = "bg-destructive/15 text-destructive border-destructive/30";
+    } else {
+      interpretation = "VLamax vélo légèrement supérieure : profil habituel chez le triathlète, la course favorise naturellement un profil plus oxydatif.";
+      badgeLabel = "Vélo > CAP";
+      badgeClass = "bg-accent/50 text-accent-foreground border-accent";
+    }
+  } else {
+    if (absDiff > 0.10) {
+      interpretation = "VLamax CAP nettement supérieure : profil glycolytique plus marqué en course. Peut signaler un travail d'intervalle intensif en course sans équivalent vélo, ou un FTP vélo sous-estimé.";
+      badgeLabel = "CAP > Vélo (fort)";
+      badgeClass = "bg-destructive/15 text-destructive border-destructive/30";
+    } else {
+      interpretation = "VLamax CAP légèrement supérieure : possible si l'athlète fait plus d'intensité en course qu'en vélo. Vérifier la cohérence FTP/P5s.";
+      badgeLabel = "CAP > Vélo";
+      badgeClass = "bg-accent/50 text-accent-foreground border-accent";
+    }
+  }
+
+  // Range overlap check
+  const rangesOverlap = bikeRange[0] <= runRange[1] && runRange[0] <= bikeRange[1];
+
+  return (
+    <div className="p-4 rounded-lg border-2 border-border bg-muted/30 space-y-3">
+      <div className="flex items-center gap-2">
+        <Bike className="w-4 h-4 text-primary" />
+        <span className="text-xs text-muted-foreground">↔</span>
+        <PersonStanding className="w-4 h-4 text-primary" />
+        <p className="text-sm font-semibold">Delta Croisé VLamax Vélo ↔ CAP</p>
+        <Badge className={`ml-auto text-[10px] border ${badgeClass}`}>{badgeLabel}</Badge>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3 text-center">
+        <div className="p-2 rounded border border-border bg-background/70">
+          <p className="text-[10px] text-muted-foreground flex items-center justify-center gap-1"><Bike className="w-3 h-3" /> Vélo</p>
+          <p className="text-xl font-mono font-bold text-foreground">{bikeVlamax.toFixed(2)}</p>
+          <p className="text-[9px] text-muted-foreground">[{bikeRange[0].toFixed(2)}–{bikeRange[1].toFixed(2)}]</p>
+        </div>
+        <div className="p-2 rounded border border-border bg-background/70 flex flex-col items-center justify-center">
+          <p className="text-[10px] text-muted-foreground">Δ</p>
+          <p className={`text-2xl font-mono font-bold ${absDiff < 0.03 ? "text-primary" : absDiff > 0.10 ? "text-destructive" : "text-foreground"}`}>
+            {diff > 0 ? "+" : ""}{diff.toFixed(2)}
+          </p>
+          <p className="text-[9px] text-muted-foreground">{pct > 0 ? "+" : ""}{pct.toFixed(0)}%</p>
+        </div>
+        <div className="p-2 rounded border border-border bg-background/70">
+          <p className="text-[10px] text-muted-foreground flex items-center justify-center gap-1"><PersonStanding className="w-3 h-3" /> CAP</p>
+          <p className="text-xl font-mono font-bold text-foreground">{runVlamax.toFixed(2)}</p>
+          <p className="text-[9px] text-muted-foreground">[{runRange[0].toFixed(2)}–{runRange[1].toFixed(2)}]</p>
+        </div>
+      </div>
+
+      {!rangesOverlap && (
+        <p className="flex items-center gap-1.5 text-xs text-destructive">
+          <AlertCircle className="w-3 h-3 shrink-0" />
+          Les plages de confiance ne se chevauchent pas — différence significative entre les deux sports.
+        </p>
+      )}
+      {rangesOverlap && absDiff >= 0.03 && (
+        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <CheckCircle className="w-3 h-3 shrink-0 text-primary" />
+          Plages de confiance se chevauchent — différence dans la marge d'erreur.
+        </p>
+      )}
+
+      <p className="text-xs text-muted-foreground italic">{interpretation}</p>
     </div>
   );
 }
