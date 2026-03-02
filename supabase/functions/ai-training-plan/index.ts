@@ -1478,6 +1478,196 @@ Pour les objectifs **5K, 10K, Semi, Marathon, Trail, StartToRun** :
 - Étirements passifs post-séance : 15s/groupe musculaire, pas avant 2h post-intensité
 - Foam roller : 10-15min sur quadriceps, mollets, ITB, fessiers
 
+## DURABILITÉ & DECOUPLING — Le Concept Clé de Dan Lorang (Maunder 2021, van Erp 2021)
+
+### Définition
+La **durabilité** (durability) est la capacité à maintenir un niveau de performance sur une durée prolongée. C'est LE facteur différenciant entre un athlète qui finit fort et un qui "explose". C'est la signature méthodologique de Dan Lorang.
+
+### Decoupling (Dérive Cardiaque)
+- **Mesure** : différence de FC entre la 1ère et la 2ème moitié d'une sortie Z2 à puissance/allure constante
+- **Objectif** : decoupling <5% sur 2h = bonne durabilité. >8% = durabilité insuffisante
+- **Indicateur clé** : Pa:Hr (Power to Heart Rate ratio). Si Pa:Hr chute de >5% en 2ème moitié → entraîner la durabilité
+- **Application TFCL** : mentionner le decoupling cible dans les consignes coach des sorties longues
+
+### Entraîner la Durabilité
+1. **Sorties longues progressives (neg split)** : les derniers 30-40% à intensité légèrement supérieure (Z2 haut → Z3 bas)
+2. **"Fast finish" long runs** (Canova) : SL avec les derniers 8-12km @allure marathon
+3. **Briques vélo→CAP** : la durabilité se mesure sur les km post-vélo en triathlon
+4. **Sorties longues fatigué** : placer la SL le lendemain d'une séance intense (pre-fatigued long run)
+5. **Volume Z2 cohérent** : la durabilité s'améliore avec le volume cumulé, pas avec l'intensité
+
+### Quand cibler la Durabilité
+- Si l'athlète a un bon VO2max et FTP/kg mais "explose" en compétition → durabilité = limiteur caché
+- IM/70.3/Marathon/Ultra : durabilité = facteur de performance #1
+- Semi/10K : durabilité moins critique, mais decoupling sur SL reste un marqueur de forme
+
+### Intégration dans le Plan
+- Phase Base : SL progressives Z2 (développer la base de durabilité)
+- Phase Build : SL avec fast finish + briques (tester la durabilité sous fatigue)
+- Phase Spécifique : simulations race-pace 70-80% de la distance course (prouver la durabilité)
+- Consignes coach : "Objectif decoupling <5% sur cette sortie. Si FC dérive >8bpm sur la 2ème moitié, noter pour ajuster."
+
+## SÉQUENÇAGE DE BLOCS — Règles Avancées (Issurin 2008, Lorang 2020)
+
+### Principe Fondamental
+Le séquençage des blocs détermine l'ordre dans lequel les qualités physiques sont développées. Un mauvais séquençage = effets résiduels perdus + surentraînement.
+
+### Effets Résiduels des Capacités (Issurin)
+| Capacité | Durée de rétention après arrêt du stimulus |
+|----------|---------------------------------------------|
+| Endurance aérobie (Z2) | 25-30 jours |
+| Force max | 25-30 jours |
+| Seuil anaérobie (MLSS) | 15-20 jours |
+| VO2max | 12-18 jours |
+| Vitesse / puissance anaérobie | 3-8 jours |
+| Glycolyse (VLamax) | 15-20 jours |
+
+### Implication pour le Séquençage
+- Entraîner les qualités à **effet résiduel court en dernier** (plus proche de la course)
+- Entraîner les qualités à **effet résiduel long en premier** (début de prépa)
+- Ordre optimal général : Force/Volume → Seuil/TTE → VO2max → Race-Pace → Taper
+
+### Séquençage par Limiteur Principal
+| Limiteur #1 | Bloc 1 (Base) | Bloc 2 (Build) | Bloc 3 (Spécifique) | Bloc 4 (Taper) |
+|-------------|---------------|----------------|---------------------|----------------|
+| VO2max bas | Volume Z2 + Force | VO2max Billat intensive | Race-pace + rappels VO2max | Rappels courts VO2max |
+| VLamax haute | Z2 long Train Low | Z2 + sweet spot long | Race-pace + Z2 maintien | Z2 rappel + race-pace |
+| TTE faible | Volume Z2 + Force | Seuil Norvégienne progressive | Seuil long + race-pace | Rappels seuil courts |
+| FTP/kg bas | Force max + Z2 | Sweet spot + over-unders | Race-power + rappels SS | Rappels SS courts |
+| Économie basse | Force max + plio | SFR + côtes + force maintien | Race-pace + strides | Strides + activation |
+| FatMax bas | Train Low Z2 volume | Train Low + SL progressive | Gut Training + simulation | Z2 rappel + nutrition |
+| Durabilité | Volume Z2 progressif | SL fast finish + briques | Simulations race-pace longues | SL courte Z2 |
+
+### Règle de Non-Interférence
+- **JAMAIS** 2 blocs VO2max consécutifs (>6 sem = surentraînement sympathique)
+- **JAMAIS** bloc force max + bloc VO2max le même micro-cycle (interférence AMPK/mTOR)
+- Force le matin, endurance le soir = OK. Inverse = interférence prouvée (Doma 2015)
+- Après un bloc VLamax↓ (Z2 long) : le seuil/TTE progresse naturellement (synergie)
+
+## FLEXIBILITÉ MÉTABOLIQUE AVANCÉE (San-Millán 2018, Maunder 2023)
+
+### Le Concept
+Un athlète d'endurance élite brûle plus de graisse à plus haute intensité (FatMax élevé) → il épargne le glycogène → il "explose" moins. La flexibilité métabolique = la capacité à basculer efficacement entre oxydation lipidique et glucidique.
+
+### Crossover Point (Brooks 1994)
+- **Crossover** = intensité où l'oxydation des glucides dépasse celle des lipides
+- Athlète entraîné : crossover à ~75-80% VO2max. Non-entraîné : ~50-60%
+- Objectif TFCL™ : repousser le crossover vers la droite → plus de graisse brûlée à plus haute intensité
+
+### Périodisation Métabolique (Burke & Hawley 2018)
+| Phase | Stratégie Métabolique | Objectif |
+|-------|----------------------|----------|
+| Base (4-6 sem) | Train Low 2-3x/sem (Z2 à jeun, SL glycogène appauvri) | ↑ Densité mitochondriale, ↑ enzymes β-oxydation |
+| Build (4-6 sem) | Train Low 1-2x/sem + Gut Training démarrage 30-40g/h | Maintien FatMax + adaptation gastrique |
+| Spécifique (3-4 sem) | Train High pour intensité (full glycogène), Gut Training 60-90g/h | Performance max, validation ravitaillement |
+| Taper (1-2 sem) | Carb loading progressif 8-12g/kg/j J-3 à J-1 | Supercompensation glycogène |
+
+### Sleep Low / Train Low Protocoles (Marquet 2016)
+- **Sleep Low** : séance intense le soir → dîner sans glucides → séance Z2 à jeun le matin
+  - Prouvé : ↑10% performances 10K en 3 semaines (vs contrôle iso-calorique)
+  - UNIQUEMENT sur séances Z1-Z2 le matin. JAMAIS d'intensité en état glyco-appauvri
+- **Train Low** classique : séance Z2 à jeun 1h30-2h max. Eau + sel + caféine OK
+  - Fréquence : 2-3x/sem en Base, 1-2x/sem en Build, 0-1x/sem en Spécifique
+  - JAMAIS chez les femmes en restriction calorique (risque RED-S)
+
+## SCIENCE DE LA RÉCUPÉRATION & FENÊTRES D'ADAPTATION (Kellmann 2018, Dupuy 2018)
+
+### Fenêtres de Récupération
+| Type de séance | Récupération complète | Récupération partielle (prêt pour Z2) |
+|----------------|----------------------|--------------------------------------|
+| Z2 endurance | 12-24h | 6-12h |
+| Seuil/Sweet spot | 24-48h | 12-24h |
+| VO2max intervalles | 48-72h | 24-48h |
+| Force max | 48-72h | 24-48h |
+| SL >2h30 | 48-72h | 24-36h |
+| Brique vélo→CAP | 36-48h | 18-24h |
+| Course/Simulation | 72-96h | 48-72h |
+
+### Implication pour la Planification
+- **JAMAIS** 2 séances VO2max à <48h d'intervalle
+- **JAMAIS** seuil le lendemain de force max (interférence concentric + fatigue SNC)
+- Séquence optimale intra-semaine : Repos → Intensité #1 → Z2 → Z2 → Intensité #2 → Z2 → SL
+- La récupération est une CAPACITÉ ENTRAÎNABLE : les athlètes entraînés récupèrent plus vite
+
+### Stratégies de Récupération Actives (mentionner dans consignes coach)
+1. **Sommeil** : 7-9h/nuit. Impact >30% sur la récupération. Non-négociable.
+   - Sieste 20-30min : bénéfice prouvé si nuit <7h ou double séance
+2. **Nutrition post-effort** : 1-1.2g/kg glucides + 0.3g/kg protéines dans les 30min (Golden Window)
+3. **Compression** : 60-90min post-effort. Effet modéré mais réel sur CK et DOMS (Born 2013)
+4. **Eau froide / bain froid** : 10-15min @10-15°C. Efficace pour réduire DOMS MAIS inhibe l'adaptation si chronique → réserver aux phases de compétition, PAS en phase de développement
+5. **Massage / foam roller** : 15-20min. Réduction DOMS, aucun effet négatif sur l'adaptation
+6. **Récupération active Z1** : 20-30min jogging ou vélo léger. Supérieur au repos passif pour clearance lactate
+
+### Sommeil & Performance (Mah 2011, Simpson 2017)
+- Athlètes dormant <6h : risque blessure ×1.7, temps de réaction ↓, VO2max sous-estimé
+- Mentionner le sommeil dans les consignes coach des semaines de charge élevée :
+  "Semaine de charge élevée : viser 8-9h de sommeil. Sieste 20min post-déjeuner si possible."
+
+## MICRO-CYCLE UNDULATING — Variation Intra-Semaine (Rhea 2002, Plisk & Stone 2003)
+
+### Principe
+La variation quotidienne de la charge (Daily Undulating Periodization) prévient la monotonie et maintient des adaptations multiples simultanément. C'est la clé pour les plans >12 semaines.
+
+### Pattern Recommandé Intra-Semaine
+| Jour | Type de charge | RPE cible | Exemple |
+|------|---------------|-----------|---------|
+| Lundi | Repos / Récupération | 0-2 | Repos complet ou mobilité |
+| Mardi | Haute intensité #1 | 7-9 | Séance clé #1 (VMA/Seuil) |
+| Mercredi | Récupération active / Volume | 4-5 | EF Z2, technique |
+| Jeudi | Intensité modérée | 6-7 | Tempo, sweet spot, force |
+| Vendredi | Récupération / Pré-load | 3-4 | EF légère, renfo léger |
+| Samedi | Volume + qualité #2 | 7-8 | SL progressive, brique |
+| Dimanche | Récupération active | 4-5 | EF + strides, core |
+
+### Variation de la Charge Hebdomadaire (Undulating Weekly)
+- Sem 1 : 85% charge cible (adaptation)
+- Sem 2 : 95% charge cible (stimulus)
+- Sem 3 : 100-105% charge cible (surcharge)
+- Sem 4 : 60-65% charge cible (décharge)
+- Ce pattern = charge ondulée 3:1. Pour >45 ans ou fragile : 2:1 (2 sem charge, 1 sem décharge)
+
+### Règle Anti-Monotonie (Foster 1998)
+- Calculer : Monotonie = Charge moyenne quotidienne / Écart-type quotidien
+- Si Monotonie > 2.0 → trop uniforme → varier les intensités et durées
+- Plan de qualité : chaque semaine doit avoir des jours très différents (RPE 2 à RPE 8-9)
+
+## CRITÈRES DE QUALITÉ D'UN PLAN TFCL™ — CHECKLIST D'EXCELLENCE
+
+### Un Plan de Classe Mondiale DOIT :
+1. ✅ **Adresser chaque limiteur identifié** avec au moins 1 séance clé spécifique/sem
+2. ✅ **Respecter la polarisation 80/20** (80% Z1-Z2, 20% Z4-Z5, minimiser Z3)
+3. ✅ **Progresser le volume de 3-8%/sem** selon le niveau (jamais +10%)
+4. ✅ **Inclure 1 jour de repos complet/sem** (vrai repos, pas récup active)
+5. ✅ **Varier le contenu** d'une semaine à l'autre (jamais 2 semaines identiques)
+6. ✅ **Respecter les fenêtres de récupération** (48h entre 2 intensités similaires)
+7. ✅ **Nommer chaque séance précisément** avec zone/allure/durée/reps
+8. ✅ **Inclure échauffement et retour au calme** dans les séances d'intensité
+9. ✅ **Intégrer la nutrition** (Train Low, Gut Training, post-effort) dans les consignes
+10. ✅ **Mentionner la cadence** (CAP spm, vélo RPM) dans chaque séance
+11. ✅ **Inclure les séances clés 🔑** avec justification du lien limiteur→séance
+12. ✅ **Durabilité** : au moins 1 SL avec fast finish ou neg split/sem en Build/Spécifique
+13. ✅ **Race simulation** : au moins 1 simulation complète en Phase Spécifique
+14. ✅ **Plan de course** : inclus dans la dernière semaine (pacing, ravito, mental)
+15. ✅ **Séquençage de blocs** : respecter les effets résiduels (Issurin) et les règles de non-interférence
+16. ✅ **Micro-cycle undulating** : variation RPE 2→9 dans la semaine, pas de monotonie
+
+### Anti-Patterns — ERREURS FRÉQUENTES À ÉVITER :
+1. ❌ **Monotonie** : même séance Z2 1h copié-collé chaque mercredi pendant 12 sem
+2. ❌ **Z3 excessive** : trop de tempo "confortable" qui n'est ni Z2 ni Z5
+3. ❌ **Pas de progression** : même volume et intensité de sem 1 à sem 12
+4. ❌ **SL sans objectif** : "Sortie longue 2h" sans indication d'allure, de nutrition, de cadence
+5. ❌ **Doubles séances absentes** en triathlon (1 séance/jour pour un IM Competitor = erreur)
+6. ❌ **Ignorer les limiteurs** : prescrire du seuil alors que VLamax trop haute est le limiteur #1
+7. ❌ **Taper trop court** : <7j pour un marathon, <10j pour un IM
+8. ❌ **Pas de décharge** : 12 semaines de charge continue sans semaine de récup
+9. ❌ **Intensité en Train Low** : JAMAIS de Z4-Z5 à jeun ou glycogène appauvri
+10. ❌ **Vélo dominant pour un objectif running** : un semi-marathonien n'a pas besoin de 3 vélos/sem
+11. ❌ **Force abandonnée après la Base** : la force doit être maintenue (1x/sem) toute la prépa
+12. ❌ **Copier un plan élite pour un age group** : adapter le volume ET la fréquence, pas juste réduire
+13. ❌ **Ignorer la durabilité** : pas de SL progressive ou fast finish → athlète qui "explose" en course
+14. ❌ **Séquençage inversé** : VO2max en Base et volume Z2 en Spécifique (sauf Reverse Perio Lorang pour IM)
+15. ❌ **Récup insuffisante entre intensités** : <48h entre 2 séances VO2max ou force max
+
 ## GARDE-FOUS SÉCURITÉ AVANCÉS
 
 ### Red Flags — Arrêt Immédiat (Mentionner dans consignes si contexte pertinent)
