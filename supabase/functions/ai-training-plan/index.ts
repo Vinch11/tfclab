@@ -1684,21 +1684,61 @@ function buildUserPrompt(data: any, config: any): string {
   if (config.identifiedLimiters && config.identifiedLimiters.length > 0) {
     lines.push("\n### 🔴 LIMITEURS IDENTIFIÉS PAR L'APP — CLASSÉS PAR IMPORTANCE — SÉANCES CLÉS OBLIGATOIRES");
     lines.push("Les limiteurs ci-dessous sont calculés et classés par le diagnostic TFCL™ (impact pondéré = importance × gap vs cible).");
-    lines.push("Le plan DOIT adresser CHAQUE limiteur, du plus critique au moins critique, avec une périodisation séquentielle :");
-    lines.push("- **Limiteur #1** → Séance clé #1 de chaque semaine. Focus principal en Phase Base et Build.");
-    lines.push("- **Limiteur #2** → Séance clé #2. Monte en importance en Phase Build.");
-    lines.push("- **Limiteurs #3+** → Intégrés via séances complémentaires ou synergies naturelles.");
-    lines.push("- Les 🔴 CRITIQUES sont traités AVANT les 🟡 SOUS-OPTIMAUX.");
-    lines.push("- Exploite les synergies : VLamax↓ améliore TTE et FatMax. VO2max↑ améliore FTP/kg.");
-    lines.push("Utilise le tableau 'Sélection des Séances Clés par Limiteur (Dan Lorang)' pour choisir les bonnes séances.\n");
+    lines.push("Le plan DOIT adresser CHAQUE limiteur, du plus critique au moins critique, avec une périodisation séquentielle.");
+    lines.push("");
     config.identifiedLimiters.forEach((l: string) => lines.push(l));
-    lines.push("\n⚠️ RÈGLE SÉANCES CLÉS PAR LIMITEUR :");
-    lines.push("- Si Limiteur #1 = 'VO2max bas' → séance clé #1 = VMA/VO2max (Billat 30/30, 5×1200m).");
-    lines.push("- Si Limiteur #1 = 'VLamax trop haute' → séance clé #1 = Z2 long Train Low + sweet spot long.");
-    lines.push("- Si Limiteur #1 = 'TTE faible' → séance clé #1 = seuil continu long (Norvégienne 2×20min→1×40min).");
-    lines.push("- Si Limiteur #1 = 'Économie basse' → séance clé #1 = côtes/SFR + force max (Rønnestad).");
-    lines.push("- Si Limiteur #1 = 'FatMax bas' → séance clé #1 = Z2 longue à jeun Train Low (2h30+).");
-    lines.push("- Le Limiteur #2 est adressé par la séance clé #2 avec la même logique.");
+
+    // ====== ENHANCED: Detailed limiter-to-session matrix per phase ======
+    lines.push("\n### 📋 MATRICE SÉANCE CLÉ × LIMITEUR × PHASE (Dan Lorang / TFCL™)");
+    lines.push("Utilise cette matrice pour sélectionner les séances clés EXACTES selon le limiteur identifié et la phase de préparation.\n");
+
+    lines.push("| Limiteur | Phase Base (4-6 sem) | Phase Build (4-6 sem) | Phase Spécifique (3-4 sem) | Phase Taper (1-2 sem) |");
+    lines.push("|----------|---------------------|----------------------|---------------------------|----------------------|");
+    lines.push("| VO2max bas | Billat 30/30 (2×8min), 3×3min @VMA | 5×1200m @100% VMA r=3min, VMA longue 4×4min | VMA courte (200-400m) + rappels race pace | 2×(4×200m) @VMA rappel, volume -60% |");
+    lines.push("| VLamax trop haute | Z2 long 2h-2h30 Train Low, sweet spot 2×20min @88% FTP | Z2 long 2h30-3h à jeun, tempo long 40-50min @Z4a | Simulation course Z2-Z4a progressive, Train Low maintien | Z2 60-90min, 1 rappel tempo court |");
+    lines.push("| TTE faible (<45min) | Seuil continu 2×15min @Z5, Norvégienne simple | Seuil 2×20min→1×30min, Double seuil Norvégienne 2x/sem | Seuil long 1×35-40min, Race pace intégré | 1×20min seuil rappel, volume -50% |");
+    lines.push("| FTP/kg bas | Sweet spot 3×12min @88-93% FTP, Z3 tempo 45min | Sweet spot 2×20min, over-unders 6×(3min@105%+2min@85%), Norvégienne vélo | FTP test simulation, race power practice | 1×15min sweet spot rappel |");
+    lines.push("| Économie basse | Côtes 8×30s, SFR 3×8min @50rpm, Rønnestad force 2x/sem | Côtes longues 6×2min, pliométrie 80 contacts, force maintien 1x/sem | Rappels côtes courtes, strides post-EF | Strides 6×100m, 1 séance force légère |");
+    lines.push("| FatMax bas | Train Low Z2 2h à jeun, Z1 longue 1h30 | Z2 longue 2h30-3h Train Low 2-3x/sem, Gut Training progressif | Simulation nutrition course, Z2 Train Low maintien | Z2 1h à jeun, rappel nutrition |");
+    lines.push("| Pmax/Sprint faible | Sprints 6×10s all-out r=3min, force max Rønnestad | Sprints 8×15s, pliométrie drop jumps + bounds, SFR | Rappels 4×8s, maintien plio 1x/sem | 3×6s rappel neuromusculaire |");
+    lines.push("| Endurance durabilité | Sorties longues progressives (+10-15min/sem), Z2 2h+ | SL avec finish rapide 25km (derniers 8km @Z4a), briques | Simulation course complète, SL race pace finish | SL courte 60-70min Z2 |");
+
+    lines.push("\n### 🔄 SYNERGIES ENTRE LIMITEURS (Exploiter les interactions positives)");
+    lines.push("| Action principale | Effets secondaires positifs |");
+    lines.push("|-------------------|---------------------------|");
+    lines.push("| VLamax↓ (Z2 long + Train Low) | → TTE↑, FatMax↑, économie glycogène↑ |");
+    lines.push("| VO2max↑ (Billat/VMA) | → FTP/kg↑, vitesse aérobie↑, récupération inter-effort↑ |");
+    lines.push("| TTE↑ (seuil long Norvégienne) | → allure course↑, résistance fatigue↑, endurance durabilité↑ |");
+    lines.push("| Force max (Rønnestad) | → économie↑ (+4.8%), prévention blessures, puissance neuromusculaire↑ |");
+    lines.push("| FatMax↑ (Train Low) | → VLamax↓ (synergie), autonomie glycogène↑, durabilité↑ |");
+    lines.push("Quand 2 limiteurs ont une synergie positive, les combiner dans la même phase pour maximiser l'effet.\n");
+
+    lines.push("### ⚙️ RÈGLES DE PÉRIODISATION SÉQUENTIELLE STRICTES");
+    lines.push("1. **Limiteur #1 (🔴 CRITIQUE)** :");
+    lines.push("   - Reçoit la Séance Clé #1 de CHAQUE semaine de la Phase Base à la fin de la Phase Build.");
+    lines.push("   - Fréquence : 2-3 stimuli/sem en Base, 2 stimuli/sem en Build, 1-2 rappels en Spécifique.");
+    lines.push("   - Le volume/intensité de ce stimulus suit la colonne correspondante dans la matrice ci-dessus.");
+    lines.push("2. **Limiteur #2 (🔴 ou 🟡)** :");
+    lines.push("   - Reçoit la Séance Clé #2 dès la Phase Base (1-2x/sem), montée en importance en Build (2x/sem).");
+    lines.push("   - Si #2 est synergique avec #1, combiner dans certaines séances (ex: Z2 long Train Low travaille VLamax↓ ET FatMax↑).");
+    lines.push("3. **Limiteurs #3+ (🟡 SOUS-OPTIMAUX)** :");
+    lines.push("   - Intégrés comme composantes secondaires : ex. strides post-EF (économie), rappels force 1x/sem (maintien Rønnestad).");
+    lines.push("   - Montée en priorité en Phase Spécifique si les limiteurs #1 et #2 ont suffisamment progressé.");
+    lines.push("4. **Principe de non-régression** :");
+    lines.push("   - Quand on passe au limiteur suivant, maintenir les acquis du limiteur précédent avec 1 rappel/sem minimum.");
+    lines.push("   - Jamais d'abandon complet d'un travail spécifique après une phase.");
+    lines.push("5. **Phase Taper** :");
+    lines.push("   - Rappels courts de CHAQUE limiteur travaillé (volume -50 à -60%, intensité maintenue).");
+    lines.push("   - 1 séance rappel par limiteur adressé dans la dernière semaine pré-course.");
+
+    lines.push("\n⚠️ RÈGLE SÉANCES CLÉS PAR LIMITEUR (RÉSUMÉ RAPIDE) :");
+    lines.push("- Limiteur #1 = 'VO2max bas' → clé #1 = VMA/VO2max (Billat 30/30, 5×1200m).");
+    lines.push("- Limiteur #1 = 'VLamax trop haute' → clé #1 = Z2 long Train Low + sweet spot long.");
+    lines.push("- Limiteur #1 = 'TTE faible' → clé #1 = seuil continu long (Norvégienne 2×20min→1×40min).");
+    lines.push("- Limiteur #1 = 'Économie basse' → clé #1 = côtes/SFR + force max (Rønnestad).");
+    lines.push("- Limiteur #1 = 'FatMax bas' → clé #1 = Z2 longue à jeun Train Low (2h30+).");
+    lines.push("- Limiteur #1 = 'FTP/kg bas' → clé #1 = sweet spot + over-unders + Norvégienne vélo.");
+    lines.push("- Le Limiteur #2 reçoit la séance clé #2 avec la même logique.");
     lines.push("- En Phase Spécifique, les séances clés deviennent race-specific tout en maintenant le travail sur les limiteurs principaux.");
   }
 
