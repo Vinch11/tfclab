@@ -2383,8 +2383,16 @@ function buildUserPrompt(data: any, config: any): string {
   if (config.raceName) lines.push(`- **Nom de la course :** ${config.raceName}`);
   if (config.raceDate) lines.push(`- **Date de course :** ${config.raceDate}`);
   if (config.weeksAvailable) lines.push(`- **Semaines disponibles :** ${config.weeksAvailable}`);
-  if (config.weeklyHours) lines.push(`- **Heures dispo/semaine :** ${config.weeklyHours}h`);
-  if (config.sessionsPerWeek) lines.push(`- **Séances/semaine max :** ${config.sessionsPerWeek}`);
+  if (config.weeklyHours) {
+    lines.push(`- **Heures dispo/semaine :** ${config.weeklyHours}h`);
+  } else {
+    lines.push(`- **Heures/semaine :** Non spécifié — utilise le volume OPTIMAL recommandé dans la littérature scientifique pour cet objectif × niveau d'ambition (cf. tableaux de référence TFCL ci-dessus).`);
+  }
+  if (config.sessionsPerWeek) {
+    lines.push(`- **Séances/semaine max :** ${config.sessionsPerWeek}`);
+  } else {
+    lines.push(`- **Séances/semaine :** Non spécifié — utilise le nombre de séances OPTIMAL recommandé dans la littérature scientifique pour cet objectif × niveau d'ambition (cf. tableaux de référence TFCL ci-dessus).`);
+  }
   if (config.strengthSessionsPerWeek !== undefined && config.strengthSessionsPerWeek !== null) {
     if (config.strengthSessionsPerWeek === 0) {
       lines.push(`- **⚠️ Renforcement musculaire : 0 séance/sem — NE PAS inclure de séance de renforcement/musculation/PPG dans le plan.**`);
