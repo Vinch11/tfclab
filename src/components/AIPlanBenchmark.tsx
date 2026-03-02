@@ -59,12 +59,16 @@ function computePlanMetrics(plan: ParsedPlan) {
   const avgSessionsPerWeek = totalSessions / totalWeeks;
 
   // Detect doubles (days with >1 session)
+  // Also handle dayIndex === -1 by grouping on dayName fallback
   let totalDoubles = 0;
   for (const week of plan.weeks) {
-    const dayCounts: Record<number, number> = {};
+    const dayCounts: Record<string, number> = {};
     for (const s of week.sessions) {
-      if (!s.isRest && s.dayIndex >= 0) {
-        dayCounts[s.dayIndex] = (dayCounts[s.dayIndex] || 0) + 1;
+      if (s.isRest) continue;
+      // Use dayIndex if valid, otherwise fallback to dayName
+      const key = s.dayIndex >= 0 ? String(s.dayIndex) : s.dayName.toLowerCase();
+      if (key) {
+        dayCounts[key] = (dayCounts[key] || 0) + 1;
       }
     }
     for (const count of Object.values(dayCounts)) {
@@ -73,13 +77,19 @@ function computePlanMetrics(plan: ParsedPlan) {
   }
   const avgDoublesPerWeek = totalDoubles / totalWeeks;
 
-  // Detect key sessions (intensity indicators in title/details)
+  // Detect key sessions — match AI markers: 🔑, intensity keywords, zone indicators
   let keySessions = 0;
   for (const week of plan.weeks) {
     for (const s of week.sessions) {
       if (s.isRest) continue;
-      const text = `${s.title} ${s.details}`.toLowerCase();
-      if (/seuil|threshold|interval|fractionn|vma|tempo|race[- ]?pace|sweet[- ]?spot|brick|clé|key/i.test(text)) {
+      const text = `${s.title} ${s.details}`;
+      // 🔑 is the primary AI marker for key sessions
+      if (/🔑/.test(text)) {
+        keySessions++;
+        continue;
+      }
+      // Fallback: intensity keywords
+      if (/seuil|threshold|interval|fractionn[ée]|vma|tempo|race[- ]?pace|sweet[- ]?spot|brick|clé|key|qualit[ée]|sp[ée]cifique|z[34567]|vo2|lactate|30\/30/i.test(text)) {
         keySessions++;
       }
     }
@@ -125,11 +135,11 @@ function computePlanMetrics(plan: ParsedPlan) {
 
 function categorizeSport(sport: string): string {
   const s = sport.toLowerCase();
-  if (s.includes("natation") || s.includes("swim")) return "Natation";
-  if (s.includes("vélo") || s.includes("velo") || s.includes("bike")) return "Vélo";
-  if (s.includes("cap") || s.includes("course") || s.includes("run")) return "Course";
-  if (s.includes("muscu") || s.includes("force") || s.includes("renfo")) return "Renfo";
-  if (s.includes("brick")) return "Brick";
+  if (s.includes("natation") || s.includes("swim") || s.includes("nage") || s.includes("piscine")) return "Natation";
+  if (s.includes("vélo") || s.includes("velo") || s.includes("bike") || s.includes("cyclisme") || s.includes("ht") || s.includes("home trainer")) return "Vélo";
+  if (s.includes("cap") || s.includes("course") || s.includes("run") || s.includes("footing") || s.includes("sortie longue")) return "Course";
+  if (s.includes("muscu") || s.includes("force") || s.includes("renfo") || s.includes("ppl") || s.includes("gym")) return "Renfo";
+  if (s.includes("brick") || s.includes("enchaîn") || s.includes("enchaine")) return "Brick";
   return "Autre";
 }
 
