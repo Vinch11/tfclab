@@ -54,8 +54,100 @@ function getStatusColor(status: string): string {
   return "bg-muted text-muted-foreground border-border";
 }
 
+/** Parse week range string like "S1-S4" or "1-4" into [start, end] */
+function parseWeekRange(weeks: string): [number, number] | null {
+  const m = weeks.match(/(\d+)\s*[-–—àa]\s*(\d+)/);
+  if (m) return [parseInt(m[1], 10), parseInt(m[2], 10)];
+  const single = weeks.match(/(\d+)/);
+  if (single) { const n = parseInt(single[1], 10); return [n, n]; }
+  return null;
+}
+
+const GANTT_COLORS = [
+  "bg-blue-500/80 text-white",
+  "bg-green-500/80 text-white",
+  "bg-purple-500/80 text-white",
+  "bg-amber-500/80 text-white",
+  "bg-cyan-500/80 text-white",
+  "bg-rose-500/80 text-white",
+  "bg-indigo-500/80 text-white",
+];
+
+/** Mini Gantt chart for metabolic blocks */
+function MiniGantt({ phases, totalWeeks }: { phases: { name: string; weeks: string }[]; totalWeeks: number }) {
+  const maxWeek = useMemo(() => {
+    let max = totalWeeks;
+    phases.forEach(p => {
+      const r = parseWeekRange(p.weeks);
+      if (r && r[1] > max) max = r[1];
+    });
+    return max || 12;
+  }, [phases, totalWeeks]);
+
+  // Generate week tick labels
+  const ticks = Array.from({ length: maxWeek }, (_, i) => i + 1);
+
+  return (
+    <div className="space-y-1.5">
+      {/* Week header */}
+      <div className="flex items-end gap-0 ml-[120px]">
+        {ticks.map(w => (
+          <div key={w} className="text-[9px] text-muted-foreground text-center" style={{ width: `${100 / maxWeek}%` }}>
+            {w % 2 === 1 || maxWeek <= 16 ? `S${w}` : ""}
+          </div>
+        ))}
+      </div>
+
+      {/* Bars */}
+      {phases.map((phase, idx) => {
+        const range = parseWeekRange(phase.weeks);
+        if (!range) return null;
+        const [start, end] = range;
+        const leftPct = ((start - 1) / maxWeek) * 100;
+        const widthPct = ((end - start + 1) / maxWeek) * 100;
+        const color = GANTT_COLORS[idx % GANTT_COLORS.length];
+        // Shorten name for display
+        const shortName = phase.name
+          .replace(/^(Phase|Bloc)\s*\d+\s*[:\-–—]\s*/i, "")
+          .slice(0, 20);
+
+        return (
+          <div key={idx} className="flex items-center gap-0 h-6">
+            {/* Label */}
+            <div className="w-[120px] flex-shrink-0 text-[10px] font-medium truncate text-right pr-2 text-muted-foreground" title={phase.name}>
+              {shortName}
+            </div>
+            {/* Track */}
+            <div className="flex-1 relative h-full bg-muted/30 rounded-sm overflow-hidden">
+              <div
+                className={`absolute top-0.5 bottom-0.5 rounded-sm flex items-center justify-center text-[9px] font-semibold ${color}`}
+                style={{ left: `${leftPct}%`, width: `${Math.max(widthPct, 3)}%` }}
+              >
+                {end - start + 1 >= 2 && `S${start}-S${end}`}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Today marker area - bottom scale */}
+      <div className="flex items-start gap-0 ml-[120px]">
+        <div className="flex-1 relative h-2 border-t border-border/50">
+          {ticks.map(w => (
+            <div
+              key={w}
+              className="absolute top-0 w-px h-1.5 bg-border/40"
+              style={{ left: `${((w - 0.5) / maxWeek) * 100}%` }}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** Strategic Recap visual component */
-function StrategicRecapView({ recap }: { recap: StrategicRecap }) {
+function StrategicRecapView({ recap, phases, totalWeeks }: { recap: StrategicRecap; phases: { name: string; weeks: string }[]; totalWeeks: number }) {
   return (
     <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
       <CardHeader className="pb-2">
@@ -65,16 +157,23 @@ function StrategicRecapView({ recap }: { recap: StrategicRecap }) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Mini Gantt */}
+        {phases.length > 0 && (
+          <div className="p-3 rounded-lg bg-background/80 border border-border/50">
+            <p className="text-xs font-semibold mb-2 flex items-center gap-1 text-foreground/80">
+              <Calendar className="h-3 w-3 text-primary" /> Périodisation — Timeline
+            </p>
+            <MiniGantt phases={phases} totalWeeks={totalWeeks} />
+          </div>
+        )}
+
         {/* Limiter → Block → Key Sessions flow */}
         <div className="space-y-2">
           {recap.limiters.map((limiter, idx) => (
             <div key={idx} className="flex items-start gap-2 p-2.5 rounded-lg bg-background/80 border border-border/50">
-              {/* Rank */}
               <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
                 {limiter.rank}
               </div>
-
-              {/* Limiter info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap mb-1">
                   <span className="text-sm font-semibold">{limiter.name}</span>
@@ -82,8 +181,6 @@ function StrategicRecapView({ recap }: { recap: StrategicRecap }) {
                     {limiter.status}
                   </Badge>
                 </div>
-
-                {/* Flow: Block → Weeks → Key Sessions */}
                 <div className="flex items-center gap-1.5 flex-wrap text-xs text-muted-foreground">
                   <span className="font-medium text-foreground/80">{limiter.block}</span>
                   <ArrowRight className="h-3 w-3 text-primary/60 flex-shrink-0" />
@@ -275,7 +372,7 @@ export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved,
 
       {/* Strategic Recap */}
       {plan.strategicRecap && (
-        <StrategicRecapView recap={plan.strategicRecap} />
+        <StrategicRecapView recap={plan.strategicRecap} phases={plan.phases} totalWeeks={plan.totalWeeks} />
       )}
 
       {/* View Controls */}
