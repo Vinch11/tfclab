@@ -62,10 +62,28 @@ export interface DbSnapshot {
   run_hr_drift_pct?: number | null;
   run_economy_score?: number | null;
   run_economy_label?: string | null;
+  // Sport & objectif
+  sport_main?: string | null;
+  objectif?: string | null;
+  // V2 Enhanced power indices
+  p30s_w?: number | null;
+  p60s_w?: number | null;
+  map5min_w?: number | null;
+  protocol_quality?: number | null;
+  // VLamax source fields
+  vlamax_source?: string | null;
+  vlamax_protocol?: string | null;
+  vlamax_is_reference?: boolean | null;
+  fatigue_state?: string | null;
   // Low CRR justification for TSS7j < 250
   low_crr_justification?: string | null;
   // Force development mode toggle
   force_development_mode?: boolean | null;
+  // Bike fields
+  bike_cadence_rpm?: number | null;
+  bike_hr_drift_flag?: boolean | null;
+  carb_tolerance_band?: string | null;
+  gi_issues_flag?: boolean | null;
   // ✅ VLamax CAP estimation fields
   pace_threshold_sec_per_km?: number | null; // Pace seuil CAP (sec/km)
   sprint_15s_distance?: number | null;       // Distance sprint 15s (mètres)
