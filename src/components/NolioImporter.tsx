@@ -1068,11 +1068,11 @@ function ScoreGTraceability({
 }) {
   const isBike = sport === "bike";
   const weights = isBike
-    ? { S30: 0.35, S60: 0.25, E: 0.15, D: 0.25 }
+    ? { S_pmax: 0.30, S30: 0.20, S60: 0.10, E: 0.25, D: 0.15 }
     : { S1: 0.10, S5: 0.25, S30: 0.30, S60: 0.15, E: 0.10, D: 0.10 };
 
-  const formulaCoeff = isBike ? 0.78 : 0.68;
-  const clampRange = isBike ? "[0.20 – 1.10]" : "[0.20 – 0.90]";
+  const formulaCoeff = isBike ? 0.80 : 0.68;
+  const clampRange = isBike ? "[0.20 – 1.05]" : "[0.20 – 0.90]";
 
   // Build step rows
   type Step = { label: string; formula: string; value: string; weight?: string; contribution?: string; active: boolean };
@@ -1087,9 +1087,12 @@ function ScoreGTraceability({
 
   // Scores
   const scoreEntries: { key: string; s: number | null | undefined; w: number }[] = [];
+  if (isBike && 'S_pmax' in components && (components as any).S_pmax != null) {
+    scoreEntries.push({ key: "S_pmax", s: (components as any).S_pmax, w: (weights as any).S_pmax ?? 0.30 });
+  }
   if (!isBike) {
-    scoreEntries.push({ key: "S1", s: components.S1, w: weights.S1 ?? 0 });
-    scoreEntries.push({ key: "S5", s: components.S5, w: weights.S5 ?? 0 });
+    scoreEntries.push({ key: "S1", s: components.S1, w: (weights as any).S1 ?? 0 });
+    scoreEntries.push({ key: "S5", s: components.S5, w: (weights as any).S5 ?? 0 });
   }
   scoreEntries.push({ key: "S30", s: components.S30, w: weights.S30 });
   scoreEntries.push({ key: "S60", s: components.S60, w: weights.S60 });
@@ -1149,8 +1152,10 @@ function ScoreGTraceability({
       <div className="space-y-0.5">
         <p className="text-[10px] text-muted-foreground font-medium">③ Résultat</p>
         <div className="flex flex-wrap gap-x-4 gap-y-1 p-2 rounded border border-primary/30 bg-primary/5 text-xs font-mono">
-          <span><span className="text-muted-foreground">Score G =</span> <span className="font-bold text-foreground">{components.scoreG.toFixed(3)}</span></span>
-          <span><span className="text-muted-foreground">→ 0.22 + {formulaCoeff} × G =</span> <span className="font-bold text-foreground">{components.vlamax_raw.toFixed(3)}</span></span>
+          {components.scoreG != null && (
+            <span><span className="text-muted-foreground">Score G =</span> <span className="font-bold text-foreground">{components.scoreG.toFixed(3)}</span></span>
+          )}
+          <span><span className="text-muted-foreground">→ 0.20 + {formulaCoeff} × G =</span> <span className="font-bold text-foreground">{components.vlamax_raw.toFixed(3)}</span></span>
           <span><span className="text-muted-foreground">clamp {clampRange} →</span> <span className="font-bold text-primary">{components.vlamax_final.toFixed(2)}</span></span>
         </div>
       </div>

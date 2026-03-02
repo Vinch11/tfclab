@@ -1,24 +1,41 @@
 /**
- * VLamax Bike V2 Enhanced — Formule TFCL™ avec faisceau d'indices de puissance
+ * VLamax Bike V2 Enhanced — Formule TFCL™ scientifiquement rigoureuse
  * Two For Coaching Lab Method™
  * 
- * OBJECTIF: Estimation VLamax vélo plus discriminante et moins "centrée"
- * basée sur P30s, P60s, MAP5min, FTP, TTE + calibration par clusters TFCL.
+ * ARCHITECTURE SCIENTIFIQUE (Mader-First):
+ * ─────────────────────────────────────────
+ * M1 (PRIMARY)  : Mader MLSS inverse → calibrateVLamaxFromMLSS(FTP, VO2max, poids)
+ *                 Gold standard physiologique. Résout l'équation métabolique inverse.
+ *                 Réf: Mader (2003), Heck & Schulz (2002)
  * 
- * FORMULE V2 OFFICIELLE:
- * Inputs : FTP, MAP5min, P30s, P60s, TTE
- * Ratios : r30=P30/FTP ; r60=P60/FTP ; rfm=FTP/MAP
- * Normalisation :
- *   S30 = clamp((r30 - 1.45) / 0.85, 0, 1)
- *   S60 = clamp((r60 - 1.25) / 0.75, 0, 1)
- *   E   = clamp((0.88 - rfm) / 0.23, 0, 1)
- *   D   = clamp((55 - TTE) / 25, 0, 1)
- * Score G = 0.35*S30 + 0.25*S60 + 0.15*E + 0.25*D  (Mader-optimized weights)
- * VLamax_raw = 0.22 + 0.78*G
- * VLamax_final = clamp(VLamax_raw, 0.20, 1.10)
+ * M2 (CROSS)    : Mader TTE inverse → calibrateVLamaxFromTTE(TTE, VO2max, poids, FTP)
+ *                 Validation croisée via durabilité glycogénique.
+ *                 Réf: Rapoport (2010)
+ * 
+ * M3 (EMPIRICAL): Score G normalisé → indices de puissance (P30s, P60s, MAP)
+ *                 Faisceau d'indices de la courbe de puissance, pondérations
+ *                 ajustées selon littérature: Spragg 2023, van Erp 2021.
+ * 
+ * FUSION        : Moyenne pondérée multi-index avec détection de divergence.
+ *                 Si écart Mader vs Score G > 0.10 → alerte + marge élargie.
+ * 
+ * FORMULE Score G RECALIBRÉE:
+ * Normalisations :
+ *   S_pmax = clamp((Pmax/FTP - 3.0) / 2.0, 0, 1)     [Spragg 2023]
+ *   S30    = clamp((P30s/FTP - 1.30) / 0.90, 0, 1)    [élargi]
+ *   S60    = clamp((P60s/FTP - 1.10) / 0.60, 0, 1)    [ajusté]
+ *   E      = clamp((0.90 - FTP/MAP) / 0.25, 0, 1)     [fractional utilization]
+ *   D      = clamp((65 - TTE) / 35, 0, 1)             [élargi, moins agressif]
+ * 
+ * Poids Score G (Spragg-optimized) :
+ *   S_pmax: 0.30, S30: 0.20, S60: 0.10, E: 0.25, D: 0.15
+ * 
+ * VLamax_raw = 0.20 + 0.80 * G
+ * VLamax_final = clamp(VLamax_raw, 0.20, 1.05)
  */
 
 import { ClusterSelectionEnvelope, buildClusterSelectionEnvelope } from "../reference/clusterSelector";
+import { calibrateVLamaxFromMLSS, calibrateVLamaxFromTTE } from "./maderMetabolicModel";
 
 // =============================================
 // TYPES
@@ -39,61 +56,52 @@ export interface VLamaxBikeV2EnhancedInput {
   weight_kg?: number | null;
   protocol_quality?: 1 | 2 | 3 | 4 | 5;
   
-  // Pour calibration cluster
+  // Pour Mader et calibration cluster
   objectif?: string;
   vo2max?: number | null;
   sex?: "H" | "F";
 }
 
 export interface VLamaxBikeV2Components {
-  // Ratios bruts
+  // Mader values
+  mader_mlss: number | null;
+  mader_tte: number | null;
+  
+  // Ratios bruts (Score G)
+  r_pmax: number | null;
   r30: number | null;
   r60: number | null;
   rfm: number | null;
   
   // Scores normalisés
+  S_pmax: number | null;
   S30: number | null;
   S60: number | null;
   E: number | null;
   D: number | null;
   
   // Score G final
-  scoreG: number;
+  scoreG: number | null;
   
-  // VLamax
+  // Fusion
   vlamax_raw: number;
   vlamax_final: number;
+  fusion_method: "mader_primary" | "mader_cross" | "scoreG_only" | "pmax_fallback";
+  divergence: number | null;
 }
 
 export interface VLamaxBikeV2EnhancedResult {
-  // Valeur centrale
   value: number;
-  
-  // Plage estimée
   rangeMin: number;
   rangeMax: number;
-  
-  // Confiance (0-1)
   confidence: number;
   confidenceLabel: "Élevée" | "Moyenne" | "Faible" | "Très faible";
-  
-  // Source / Formula
-  formula: "tfcl_v2_enhanced" | "tfcl_v2_partial" | "tfcl_v1_fallback" | "insufficient";
+  formula: "tfcl_v2_mader" | "tfcl_v2_enhanced" | "tfcl_v2_partial" | "tfcl_v1_fallback" | "insufficient";
   formulaLabel: string;
-  
-  // Composants pour explication "Pourquoi"
   components: VLamaxBikeV2Components | null;
-  
-  // Message pédagogique
   pedagogicalMessage: string;
-  
-  // Warnings
   warnings: string[];
-  
-  // Sources utilisées
   sources: string[];
-  
-  // Calibration cluster (optionnel)
   cluster?: ClusterSelectionEnvelope;
   percentile?: number;
   isOutlier?: boolean;
@@ -116,27 +124,18 @@ function getConfidenceLabel(conf: number): "Élevée" | "Moyenne" | "Faible" | "
 // CALIBRATION CLUSTER - PERCENTILE LOOKUP
 // =============================================
 
-// Stats VLamax par cluster (P10, P25, P50, P75, P90)
-// Basé sur les référentiels TFCL
 const CLUSTER_VLAMAX_STATS: Record<string, { p10: number; p25: number; p50: number; p75: number; p90: number }> = {
-  // Triathlon Long Distance
   Pro_Long: { p10: 0.22, p25: 0.28, p50: 0.35, p75: 0.42, p90: 0.50 },
   AG_Perf_Long: { p10: 0.28, p25: 0.35, p50: 0.42, p75: 0.52, p90: 0.62 },
   AG_Finisher: { p10: 0.35, p25: 0.42, p50: 0.52, p75: 0.65, p90: 0.78 },
-  
-  // Triathlon Short Distance
   Pro_Short: { p10: 0.35, p25: 0.42, p50: 0.52, p75: 0.62, p90: 0.72 },
   AG_Sprint: { p10: 0.40, p25: 0.48, p50: 0.58, p75: 0.68, p90: 0.80 },
-  
-  // Running
   Elite_Marathon: { p10: 0.20, p25: 0.25, p50: 0.32, p75: 0.40, p90: 0.48 },
   Sub3_Marathon: { p10: 0.25, p25: 0.32, p50: 0.40, p75: 0.50, p90: 0.60 },
   Sub330_Marathon: { p10: 0.30, p25: 0.38, p50: 0.48, p75: 0.58, p90: 0.70 },
   Finisher_Marathon: { p10: 0.35, p25: 0.45, p50: 0.55, p75: 0.68, p90: 0.82 },
   Elite_5K10K: { p10: 0.35, p25: 0.45, p50: 0.55, p75: 0.65, p90: 0.78 },
   Ultra_Trail: { p10: 0.20, p25: 0.26, p50: 0.34, p75: 0.42, p90: 0.52 },
-  
-  // Cycling
   Elite_Road: { p10: 0.28, p25: 0.35, p50: 0.45, p75: 0.55, p90: 0.68 },
   Amateur_Perf: { p10: 0.35, p25: 0.42, p50: 0.52, p75: 0.62, p90: 0.75 },
   Amateur_Loisir: { p10: 0.40, p25: 0.50, p50: 0.60, p75: 0.72, p90: 0.85 },
@@ -145,11 +144,8 @@ const CLUSTER_VLAMAX_STATS: Record<string, { p10: number; p25: number; p50: numb
 
 function computePercentileFromCluster(vlamax: number, clusterId: string): { percentile: number; isOutlier: boolean } {
   const stats = CLUSTER_VLAMAX_STATS[clusterId];
-  if (!stats) {
-    return { percentile: 50, isOutlier: false };
-  }
+  if (!stats) return { percentile: 50, isOutlier: false };
   
-  // Interpolation linéaire entre percentiles
   if (vlamax <= stats.p10) {
     const pct = 10 * (vlamax / stats.p10);
     return { percentile: Math.round(Math.max(1, pct)), isOutlier: true };
@@ -171,7 +167,6 @@ function computePercentileFromCluster(vlamax: number, clusterId: string): { perc
     return { percentile: Math.round(pct), isOutlier: false };
   }
   
-  // Au-delà de P90
   const pct = 90 + 10 * ((vlamax - stats.p90) / (stats.p90 * 0.2));
   return { percentile: Math.round(Math.min(99, pct)), isOutlier: true };
 }
@@ -181,7 +176,105 @@ function getClusterStats(clusterId: string) {
 }
 
 // =============================================
-// MAIN COMPUTATION FUNCTION
+// SCORE G COMPUTATION (recalibrated)
+// =============================================
+
+interface ScoreGResult {
+  scoreG: number;
+  vlamax: number;
+  components: {
+    S_pmax: number | null;
+    S30: number | null;
+    S60: number | null;
+    E: number | null;
+    D: number | null;
+    r_pmax: number | null;
+    r30: number | null;
+    r60: number | null;
+    rfm: number | null;
+  };
+  sources: string[];
+  dataCount: number;
+}
+
+function computeScoreG(
+  ftp: number,
+  p30s_w: number | null | undefined,
+  p60s_w: number | null | undefined,
+  map5min_w: number | null | undefined,
+  tte_min: number | null | undefined,
+  pmax_5s: number | null | undefined,
+): ScoreGResult | null {
+  const sources: string[] = ["FTP"];
+  
+  const hasPmax = pmax_5s != null && pmax_5s > 0;
+  const hasP30 = p30s_w != null && p30s_w > 0;
+  const hasP60 = p60s_w != null && p60s_w > 0;
+  const hasMAP = map5min_w != null && map5min_w > 0;
+  const hasTTE = tte_min != null && tte_min > 0;
+  
+  const dataCount = [hasPmax, hasP30, hasP60, hasMAP, hasTTE].filter(Boolean).length;
+  if (dataCount < 2) return null;
+  
+  // Compute ratios
+  const r_pmax = hasPmax ? pmax_5s! / ftp : null;
+  const r30 = hasP30 ? p30s_w! / ftp : null;
+  const r60 = hasP60 ? p60s_w! / ftp : null;
+  const rfm = hasMAP ? ftp / map5min_w! : null;
+  
+  // Normalized scores (recalibrated ranges — literature-aligned)
+  // S_pmax: Pmax/FTP ratio — strongest single predictor (Spragg 2023, van Erp 2021)
+  // Typical range: 3.0 (endurance) to 5.0 (sprinter)
+  const S_pmax = r_pmax !== null ? clamp((r_pmax - 3.0) / 2.0, 0, 1) : null;
+  
+  // S30: P30s/FTP — anaerobic capacity index
+  // Typical range: 1.30 (low glycolytic) to 2.20 (high glycolytic)
+  const S30 = r30 !== null ? clamp((r30 - 1.30) / 0.90, 0, 1) : null;
+  
+  // S60: P60s/FTP — transition anaerobic-aerobic  
+  // Typical range: 1.10 (low) to 1.70 (high)
+  const S60 = r60 !== null ? clamp((r60 - 1.10) / 0.60, 0, 1) : null;
+  
+  // E: Fractional utilization (FTP/MAP) — inversely related to VLamax
+  // Typical range: 0.65 (low FU, high VLamax) to 0.90 (high FU, low VLamax)
+  const E = rfm !== null ? clamp((0.90 - rfm) / 0.25, 0, 1) : null;
+  
+  // D: TTE at FTP — durability index
+  // Typical range: 30min (high glycolytic) to 65min+ (low VLamax)
+  // RECALIBRATED: wider range (65-TTE)/35 instead of (55-TTE)/25
+  const D = hasTTE ? clamp((65 - tte_min!) / 35, 0, 1) : null;
+  
+  // Adaptive weights (Spragg-optimized priorities)
+  // Pmax/FTP is the strongest predictor, TTE has the most noise
+  let scoreG = 0;
+  let totalWeight = 0;
+  
+  // Weights: S_pmax=0.30, S30=0.20, S60=0.10, E=0.25, D=0.15
+  if (S_pmax !== null) { scoreG += 0.30 * S_pmax; totalWeight += 0.30; sources.push("Pmax5s"); }
+  if (S30 !== null) { scoreG += 0.20 * S30; totalWeight += 0.20; sources.push("P30s"); }
+  if (S60 !== null) { scoreG += 0.10 * S60; totalWeight += 0.10; sources.push("P60s"); }
+  if (E !== null) { scoreG += 0.25 * E; totalWeight += 0.25; sources.push("MAP5min"); }
+  if (D !== null) { scoreG += 0.15 * D; totalWeight += 0.15; sources.push("TTE"); }
+  
+  // Normalize
+  if (totalWeight > 0 && totalWeight < 1) {
+    scoreG = scoreG / totalWeight;
+  }
+  
+  // VLamax_raw = 0.20 + 0.80 * G (recalibrated: floor at 0.20, range 0.80)
+  const vlamax = clamp(0.20 + 0.80 * scoreG, 0.20, 1.05);
+  
+  return {
+    scoreG: Number(scoreG.toFixed(3)),
+    vlamax: Number(vlamax.toFixed(3)),
+    components: { S_pmax, S30, S60, E, D, r_pmax, r30, r60, rfm },
+    sources,
+    dataCount,
+  };
+}
+
+// =============================================
+// MAIN COMPUTATION FUNCTION (Mader-First Architecture)
 // =============================================
 
 export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): VLamaxBikeV2EnhancedResult {
@@ -193,242 +286,264 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
   // Validation FTP obligatoire
   if (!ftp || ftp <= 0) {
     return {
-      value: 0.42,
-      rangeMin: 0.25,
-      rangeMax: 0.65,
-      confidence: 0.20,
-      confidenceLabel: "Très faible",
-      formula: "insufficient",
-      formulaLabel: "Données insuffisantes",
+      value: 0.42, rangeMin: 0.25, rangeMax: 0.65,
+      confidence: 0.20, confidenceLabel: "Très faible",
+      formula: "insufficient", formulaLabel: "Données insuffisantes",
       components: null,
       pedagogicalMessage: "FTP requis pour estimer VLamax vélo",
-      warnings: ["FTP non renseigné"],
-      sources: [],
+      warnings: ["FTP non renseigné"], sources: [],
     };
   }
   
   sources.push("FTP");
   
   // =============================================
-  // CAS IDÉAL: Formule V2 Enhanced avec P30s, P60s, MAP, TTE
+  // ÉTAPE 1: Calcul Mader MLSS (PRIMARY — gold standard)
   // =============================================
+  let maderMLSS: number | null = null;
+  const hasMaderData = vo2max != null && vo2max > 0 && weight_kg != null && weight_kg > 0;
   
-  const hasP30 = p30s_w != null && p30s_w > 0;
-  const hasP60 = p60s_w != null && p60s_w > 0;
-  const hasMAP = map5min_w != null && map5min_w > 0;
-  const hasTTE = tte_min != null && tte_min > 0;
-  
-  const fullDataCount = [hasP30, hasP60, hasMAP, hasTTE].filter(Boolean).length;
-  
-  if (fullDataCount >= 2) {
-    // Calcul des ratios
-    const r30 = hasP30 ? p30s_w! / ftp : null;
-    const r60 = hasP60 ? p60s_w! / ftp : null;
-    const rfm = hasMAP ? ftp / map5min_w! : null;
-    
-    // Calcul des scores normalisés
-    // S30 = clamp((r30 - 1.45) / 0.85, 0, 1)
-    const S30 = r30 !== null ? clamp((r30 - 1.45) / 0.85, 0, 1) : null;
-    
-    // S60 = clamp((r60 - 1.25) / 0.75, 0, 1)
-    const S60 = r60 !== null ? clamp((r60 - 1.25) / 0.75, 0, 1) : null;
-    
-    // E = clamp((0.88 - rfm) / 0.23, 0, 1)
-    const E = rfm !== null ? clamp((0.88 - rfm) / 0.23, 0, 1) : null;
-    
-    // D = clamp((55 - TTE) / 25, 0, 1)
-    const D = hasTTE ? clamp((55 - tte_min!) / 25, 0, 1) : null;
-    
-    // Calcul du Score G avec pondérations adaptatives
-    let scoreG = 0;
-    let totalWeight = 0;
-    
-    // Pondérations Mader-optimized: S30=0.35, S60=0.25, E=0.15, D=0.25
-    if (S30 !== null) {
-      scoreG += 0.35 * S30;
-      totalWeight += 0.35;
-      sources.push("P30s");
-    }
-    if (S60 !== null) {
-      scoreG += 0.25 * S60;
-      totalWeight += 0.25;
-      sources.push("P60s");
-    }
-    if (E !== null) {
-      scoreG += 0.15 * E;
-      totalWeight += 0.15;
-      sources.push("MAP5min");
-    }
-    if (D !== null) {
-      scoreG += 0.25 * D;
-      totalWeight += 0.25;
-      sources.push("TTE");
-    }
-    
-    // Normaliser si poids < 1
-    if (totalWeight > 0 && totalWeight < 1) {
-      scoreG = scoreG / totalWeight;
-    }
-    
-    // VLamax_raw = 0.22 + 0.78 * G
-    const vlamax_raw = 0.22 + 0.78 * scoreG;
-    
-    // Clamp final [0.20, 1.10]
-    const vlamax_final = clamp(vlamax_raw, 0.20, 1.10);
-    
-    // Calcul de la confiance
-    let confidence: number;
-    const qualityFactor = protocol_quality ? (protocol_quality - 1) / 4 : 0.5; // 0-1
-    
-    if (fullDataCount === 4) {
-      // Toutes les données
-      confidence = 0.75 + 0.15 * qualityFactor;
-    } else if (fullDataCount === 3) {
-      confidence = 0.65 + 0.15 * qualityFactor;
+  if (hasMaderData) {
+    maderMLSS = calibrateVLamaxFromMLSS(ftp, vo2max!, weight_kg!);
+    // Sanity check: Mader should return physiologically plausible values
+    if (maderMLSS < 0.10 || maderMLSS > 1.20) {
+      warnings.push(`Mader MLSS hors bornes (${maderMLSS.toFixed(2)}) — vérifier VO2max/FTP`);
+      maderMLSS = null;
     } else {
-      confidence = 0.55 + 0.15 * qualityFactor;
+      sources.push("Mader MLSS");
     }
-    
-    // Calcul de la plage
-    const rangeWidth = confidence >= 0.75 ? 0.06 : confidence >= 0.60 ? 0.10 : 0.14;
-    const rangeMin = clamp(vlamax_final - rangeWidth, 0.20, 1.10);
-    const rangeMax = clamp(vlamax_final + rangeWidth, 0.20, 1.10);
-    
-    // Warnings
-    if (!hasP30) warnings.push("P30s manquant : compléter semaine testing");
-    if (!hasP60) warnings.push("P60s manquant : compléter semaine testing");
-    if (!hasMAP) warnings.push("MAP 5min manquant : test rampe recommandé");
-    if (!hasTTE) warnings.push("TTE non mesuré : bloc seuil recommandé");
-    
-    // Composants pour "Pourquoi"
-    const components: VLamaxBikeV2Components = {
-      r30,
-      r60,
-      rfm,
-      S30,
-      S60,
-      E,
-      D,
-      scoreG: Number(scoreG.toFixed(3)),
-      vlamax_raw: Number(vlamax_raw.toFixed(3)),
-      vlamax_final: Number(vlamax_final.toFixed(2)),
-    };
-    
-    // Message pédagogique
-    const topContributors: string[] = [];
-    if (S30 !== null && S30 > 0.5) topContributors.push("P30s élevé");
-    if (S60 !== null && S60 > 0.5) topContributors.push("P60s élevé");
-    if (E !== null && E > 0.5) topContributors.push("Ratio FTP/MAP faible");
-    if (D !== null && D > 0.5) topContributors.push("TTE court");
-    
-    const pedagogicalMessage = topContributors.length > 0
-      ? `Facteurs principaux : ${topContributors.join(", ")}`
-      : "Profil équilibré sur les indices de puissance";
-    
-    // Calibration cluster
-    let cluster: ClusterSelectionEnvelope | undefined;
-    let percentile: number | undefined;
-    let isOutlier: boolean | undefined;
-    
-    if (objectif) {
-      cluster = buildClusterSelectionEnvelope({
-        objectif,
-        sex,
-        vo2max: vo2max ?? undefined,
-        vlamax: vlamax_final,
-      });
+  }
+  
+  // =============================================
+  // ÉTAPE 2: Calcul Mader TTE (CROSS-VALIDATION)
+  // =============================================
+  let maderTTE: number | null = null;
+  const hasTTEData = hasMaderData && tte_min != null && tte_min > 0;
+  
+  if (hasTTEData) {
+    maderTTE = calibrateVLamaxFromTTE(tte_min!, vo2max!, weight_kg!, ftp);
+    if (maderTTE < 0.10 || maderTTE > 1.20) {
+      warnings.push(`Mader TTE hors bornes (${maderTTE.toFixed(2)})`);
+      maderTTE = null;
+    } else {
+      sources.push("Mader TTE");
+    }
+  }
+  
+  // =============================================
+  // ÉTAPE 3: Score G empirique (CONFIRMATORY)
+  // =============================================
+  const scoreGResult = computeScoreG(ftp, p30s_w, p60s_w, map5min_w, tte_min, pmax_5s);
+  let scoreGValue: number | null = null;
+  
+  if (scoreGResult) {
+    scoreGValue = scoreGResult.vlamax;
+    sources.push(...scoreGResult.sources.filter(s => !sources.includes(s)));
+  }
+  
+  // =============================================
+  // ÉTAPE 4: FUSION MULTI-INDEX
+  // =============================================
+  let finalValue: number;
+  let confidence: number;
+  let fusionMethod: VLamaxBikeV2Components["fusion_method"];
+  let divergence: number | null = null;
+  let formulaType: VLamaxBikeV2EnhancedResult["formula"];
+  let formulaLabel: string;
+  
+  const qualityFactor = protocol_quality ? (protocol_quality - 1) / 4 : 0.5;
+  
+  if (maderMLSS !== null) {
+    // ── MADER IS PRIMARY ──
+    if (maderTTE !== null && scoreGValue !== null) {
+      // Triple validation: Mader MLSS (50%) + Mader TTE (25%) + Score G (25%)
+      finalValue = maderMLSS * 0.50 + maderTTE * 0.25 + scoreGValue * 0.25;
+      fusionMethod = "mader_primary";
+      confidence = 0.80 + 0.10 * qualityFactor;
+      formulaLabel = "Mader + TTE + Score G (triple validation)";
       
-      const percentileResult = computePercentileFromCluster(vlamax_final, cluster.clusterId);
-      percentile = percentileResult.percentile;
-      isOutlier = percentileResult.isOutlier;
+      // Check divergence
+      const maxDev = Math.max(
+        Math.abs(maderMLSS - maderTTE),
+        Math.abs(maderMLSS - scoreGValue),
+        Math.abs(maderTTE - scoreGValue)
+      );
+      divergence = Number(maxDev.toFixed(3));
       
-      if (isOutlier) {
-        warnings.push(`VLamax hors P10-P90 du cluster ${cluster.clusterLabel}`);
-        confidence = Math.max(0.40, confidence - 0.10);
+      if (maxDev > 0.15) {
+        warnings.push(`Divergence élevée entre méthodes (Δmax=${maxDev.toFixed(2)}) — vérifier données`);
+        confidence = Math.max(0.55, confidence - 0.15);
+      } else if (maxDev > 0.08) {
+        warnings.push(`Divergence modérée entre méthodes (Δmax=${maxDev.toFixed(2)})`);
+        confidence = Math.max(0.60, confidence - 0.08);
       }
+      
+    } else if (maderTTE !== null) {
+      // Mader MLSS (60%) + Mader TTE (40%)
+      finalValue = maderMLSS * 0.60 + maderTTE * 0.40;
+      fusionMethod = "mader_cross";
+      confidence = 0.78 + 0.10 * qualityFactor;
+      formulaLabel = "Mader MLSS + TTE (cross-validation)";
+      divergence = Number(Math.abs(maderMLSS - maderTTE).toFixed(3));
+      
+      if (divergence > 0.12) {
+        warnings.push(`Divergence Mader MLSS vs TTE (Δ=${divergence.toFixed(2)})`);
+        confidence = Math.max(0.55, confidence - 0.12);
+      }
+      
+    } else if (scoreGValue !== null) {
+      // Mader MLSS (65%) + Score G (35%)
+      finalValue = maderMLSS * 0.65 + scoreGValue * 0.35;
+      fusionMethod = "mader_primary";
+      confidence = 0.75 + 0.10 * qualityFactor;
+      formulaLabel = "Mader MLSS + Score G";
+      divergence = Number(Math.abs(maderMLSS - scoreGValue).toFixed(3));
+      
+      if (divergence > 0.12) {
+        warnings.push(`Divergence Mader vs Score G (Δ=${divergence.toFixed(2)}) — Score G utilisé comme pondération secondaire`);
+        confidence = Math.max(0.55, confidence - 0.10);
+      }
+      
+    } else {
+      // Mader MLSS seul
+      finalValue = maderMLSS;
+      fusionMethod = "mader_primary";
+      confidence = 0.72 + 0.10 * qualityFactor;
+      formulaLabel = "Mader MLSS (FTP × VO₂max inverse)";
     }
     
+    formulaType = "tfcl_v2_mader";
+    
+  } else if (scoreGValue !== null) {
+    // ── PAS DE MADER, SCORE G SEUL ──
+    finalValue = scoreGValue;
+    fusionMethod = "scoreG_only";
+    formulaType = scoreGResult!.dataCount >= 3 ? "tfcl_v2_enhanced" : "tfcl_v2_partial";
+    formulaLabel = scoreGResult!.dataCount >= 3 ? "Score G V2 (sans Mader)" : "Score G V2 Partiel";
+    
+    if (scoreGResult!.dataCount >= 4) {
+      confidence = 0.60 + 0.10 * qualityFactor;
+    } else if (scoreGResult!.dataCount >= 3) {
+      confidence = 0.55 + 0.10 * qualityFactor;
+    } else {
+      confidence = 0.45 + 0.10 * qualityFactor;
+    }
+    
+    warnings.push("VO₂max manquant : calibration Mader impossible. Ajouter VO₂max pour améliorer la précision.");
+    
+  } else if (pmax_5s != null && pmax_5s > 0) {
+    // ── FALLBACK V1: Pmax/FTP only ──
+    const pmaxRatio = pmax_5s / ftp;
+    // Spragg 2023: Pmax/FTP is the strongest single predictor
+    finalValue = clamp(0.20 + 0.20 * clamp((pmaxRatio - 3.0) / 2.0, 0, 1) * 0.80, 0.20, 1.05);
+    
+    // If weight available, also use FTP/kg
+    if (weight_kg && weight_kg > 0) {
+      const ftpKg = ftp / weight_kg;
+      const ftpEstimate = 0.55 - (ftpKg - 2.5) * 0.0833;
+      const pmaxKg = pmax_5s / weight_kg;
+      const pmaxAdj = (pmaxKg - 12) * 0.0125;
+      const legacyEstimate = clamp(ftpEstimate * 0.65 + (ftpEstimate + pmaxAdj) * 0.35, 0.20, 1.05);
+      finalValue = (finalValue + legacyEstimate) / 2;
+    }
+    
+    fusionMethod = "pmax_fallback";
+    formulaType = "tfcl_v1_fallback";
+    formulaLabel = "Estimation V1 (Pmax/FTP)";
+    confidence = 0.45;
+    warnings.push("Précision limitée : compléter P30s/P60s/MAP et VO₂max");
+    sources.push("Pmax5s");
+    
+  } else {
+    // ── INSUFFICIENT ──
     return {
-      value: Number(vlamax_final.toFixed(2)),
-      rangeMin: Number(rangeMin.toFixed(2)),
-      rangeMax: Number(rangeMax.toFixed(2)),
-      confidence: Number(confidence.toFixed(2)),
-      confidenceLabel: getConfidenceLabel(confidence),
-      formula: fullDataCount >= 3 ? "tfcl_v2_enhanced" : "tfcl_v2_partial",
-      formulaLabel: fullDataCount >= 3 ? "TFCL V2 Enhanced" : "TFCL V2 Partiel",
-      components,
-      pedagogicalMessage,
-      warnings,
-      sources,
-      cluster,
-      percentile,
-      isOutlier,
-    };
-  }
-  
-  // =============================================
-  // FALLBACK: Formule V1 (FTP + Pmax + TTE)
-  // =============================================
-  
-  const hasPmax = pmax_5s != null && pmax_5s > 0;
-  
-  if (hasPmax || hasTTE) {
-    warnings.push("Précision limitée : compléter P30s/P60s/MAP");
-    
-    // Estimation V1 simplifiée
-    let estimatedVlamax = 0.42; // Base
-    
-    if (hasPmax) {
-      const pmax_ratio = pmax_5s! / ftp;
-      // Mapping: ratio 1.8 → 0.30, ratio 2.4 → 0.50, ratio 3.0 → 0.70
-      estimatedVlamax = 0.30 + 0.40 * clamp((pmax_ratio - 1.8) / 1.2, 0, 1);
-      sources.push("Pmax5s");
-    }
-    
-    if (hasTTE) {
-      // Ajustement TTE
-      const tteFactor = hasTTE && tte_min! > 55 ? -0.08 : tte_min! < 40 ? 0.08 : 0;
-      estimatedVlamax += tteFactor;
-      sources.push("TTE");
-    }
-    
-    estimatedVlamax = clamp(estimatedVlamax, 0.20, 1.10);
-    
-    const confidence = 0.50;
-    const rangeMin = clamp(estimatedVlamax - 0.15, 0.20, 1.10);
-    const rangeMax = clamp(estimatedVlamax + 0.15, 0.20, 1.10);
-    
-    return {
-      value: Number(estimatedVlamax.toFixed(2)),
-      rangeMin: Number(rangeMin.toFixed(2)),
-      rangeMax: Number(rangeMax.toFixed(2)),
-      confidence,
-      confidenceLabel: "Faible",
-      formula: "tfcl_v1_fallback",
-      formulaLabel: "TFCL V1 (données limitées)",
+      value: 0.42, rangeMin: 0.25, rangeMax: 0.65,
+      confidence: 0.25, confidenceLabel: "Très faible",
+      formula: "insufficient", formulaLabel: "Données insuffisantes",
       components: null,
-      pedagogicalMessage: "Estimation approximative – compléter les tests pour améliorer la précision",
-      warnings,
-      sources,
+      pedagogicalMessage: "Compléter FTP + VO₂max + Pmax pour estimer VLamax",
+      warnings: ["Données de puissance insuffisantes"], sources,
     };
   }
   
+  // Clamp final
+  finalValue = Number(clamp(finalValue, 0.20, 1.05).toFixed(2));
+  
   // =============================================
-  // AUCUNE DONNÉE SUFFISANTE
+  // ÉTAPE 5: PLAGE D'INCERTITUDE
   // =============================================
+  const baseRange = confidence >= 0.80 ? 0.04 : confidence >= 0.65 ? 0.07 : confidence >= 0.50 ? 0.10 : 0.14;
+  const divergenceBonus = divergence != null && divergence > 0.08 ? divergence * 0.5 : 0;
+  const rangeWidth = baseRange + divergenceBonus;
+  const rangeMin = Number(clamp(finalValue - rangeWidth, 0.20, 1.05).toFixed(2));
+  const rangeMax = Number(clamp(finalValue + rangeWidth, 0.20, 1.05).toFixed(2));
+  
+  // =============================================
+  // ÉTAPE 6: PEDAGOGICAL MESSAGE
+  // =============================================
+  const topContributors: string[] = [];
+  if (maderMLSS !== null) topContributors.push(`Mader MLSS: ${maderMLSS.toFixed(2)}`);
+  if (maderTTE !== null) topContributors.push(`Mader TTE: ${maderTTE.toFixed(2)}`);
+  if (scoreGValue !== null) topContributors.push(`Score G: ${scoreGValue.toFixed(2)}`);
+  
+  const pedagogicalMessage = topContributors.length > 0
+    ? `Méthodes : ${topContributors.join(" | ")}`
+    : "Estimation limitée — données insuffisantes pour calibration Mader";
+  
+  // =============================================
+  // ÉTAPE 7: CLUSTER CALIBRATION
+  // =============================================
+  let cluster: ClusterSelectionEnvelope | undefined;
+  let percentile: number | undefined;
+  let isOutlier: boolean | undefined;
+  
+  if (objectif) {
+    cluster = buildClusterSelectionEnvelope({ objectif, sex, vo2max: vo2max ?? undefined, vlamax: finalValue });
+    const percentileResult = computePercentileFromCluster(finalValue, cluster.clusterId);
+    percentile = percentileResult.percentile;
+    isOutlier = percentileResult.isOutlier;
+    
+    if (isOutlier) {
+      warnings.push(`VLamax hors P10-P90 du cluster ${cluster.clusterLabel}`);
+      confidence = Math.max(0.40, confidence - 0.08);
+    }
+  }
+  
+  // Build components
+  const components: VLamaxBikeV2Components = {
+    mader_mlss: maderMLSS,
+    mader_tte: maderTTE,
+    r_pmax: scoreGResult?.components.r_pmax ?? null,
+    r30: scoreGResult?.components.r30 ?? null,
+    r60: scoreGResult?.components.r60 ?? null,
+    rfm: scoreGResult?.components.rfm ?? null,
+    S_pmax: scoreGResult?.components.S_pmax ?? null,
+    S30: scoreGResult?.components.S30 ?? null,
+    S60: scoreGResult?.components.S60 ?? null,
+    E: scoreGResult?.components.E ?? null,
+    D: scoreGResult?.components.D ?? null,
+    scoreG: scoreGResult?.scoreG ?? null,
+    vlamax_raw: finalValue,
+    vlamax_final: finalValue,
+    fusion_method: fusionMethod,
+    divergence,
+  };
   
   return {
-    value: 0.42,
-    rangeMin: 0.25,
-    rangeMax: 0.65,
-    confidence: 0.25,
-    confidenceLabel: "Très faible",
-    formula: "insufficient",
-    formulaLabel: "Données insuffisantes",
-    components: null,
-    pedagogicalMessage: "Compléter P30s, P60s, MAP5min et TTE pour une estimation fiable",
-    warnings: ["Données de puissance insuffisantes"],
+    value: finalValue,
+    rangeMin,
+    rangeMax,
+    confidence: Number(Math.min(0.95, confidence).toFixed(2)),
+    confidenceLabel: getConfidenceLabel(confidence),
+    formula: formulaType,
+    formulaLabel,
+    components,
+    pedagogicalMessage,
+    warnings,
     sources,
+    cluster,
+    percentile,
+    isOutlier,
   };
 }
 
