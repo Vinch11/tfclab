@@ -141,6 +141,24 @@ function getGaugeStatus(value: number, min: number, max: number): GaugeStatus {
   return "in_range";
 }
 
+/**
+ * Continuous proximity score [0-1] instead of binary in/out.
+ * Returns 1.0 if value is within [min, max].
+ * Falls off linearly: e.g. value at 50% of min → score 0.5
+ */
+function proximityScore(value: number, min: number, max: number): number {
+  if (value >= min && value <= max) return 1.0;
+  if (value < min) {
+    // How close are we to min? Use min as reference distance
+    if (min === 0) return value === 0 ? 1.0 : 0;
+    return Math.max(0, value / min); // e.g. 8/12 = 0.67
+  }
+  // above max - less penalizing (being above ref is often acceptable)
+  if (max === 0) return 1.0;
+  const overshoot = (value - max) / max;
+  return Math.max(0, 1 - overshoot * 0.5); // gentle penalty for exceeding
+}
+
 function StatusIcon({ status }: { status: GaugeStatus }) {
   if (status === "in_range") return <CheckCircle2 className="h-4 w-4 text-green-500" />;
   if (status === "below") return <TrendingDown className="h-4 w-4 text-amber-500" />;
@@ -253,13 +271,13 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName }: AIPl
       ]
     : null;
 
-  // Overall conformity score
-  const conformityChecks = gauges.map(g => getGaugeStatus(g.value, g.refMin, g.refMax));
+  // Overall conformity score — continuous proximity instead of binary
+  const proximityScores = gauges.map(g => proximityScore(g.value, g.refMin, g.refMax));
   if (sportComparisons) {
-    sportComparisons.forEach(sc => conformityChecks.push(getGaugeStatus(sc.pct, sc.refMin, sc.refMax)));
+    sportComparisons.forEach(sc => proximityScores.push(proximityScore(sc.pct, sc.refMin, sc.refMax)));
   }
-  const inRangeCount = conformityChecks.filter(c => c === "in_range").length;
-  const conformityPct = Math.round((inRangeCount / conformityChecks.length) * 100);
+  const avgProximity = proximityScores.reduce((a, b) => a + b, 0) / proximityScores.length;
+  const conformityPct = Math.round(avgProximity * 100);
 
   return (
     <Card>
