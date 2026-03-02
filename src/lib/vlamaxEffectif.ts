@@ -42,6 +42,8 @@ import {
   type ErrorMarginFactors,
 } from "./v2/vlamaxV2Engine";
 
+import { computeVLamaxBikeV2Enhanced } from "./v2/vlamaxBikeV2Enhanced";
+
 // Re-export V2 types for consumers
 export type { VLamaxV2Result, VLamaxV2Source, CalibrationLogEntry, SportContext, ErrorMarginFactors };
 export {
@@ -113,6 +115,14 @@ interface SnapshotCloud {
   pmax_5s?: number | null;
   weight_kg?: number | null;
   sport_main?: string | null;
+  // V2 Enhanced fields
+  p30s_w?: number | null;
+  p60s_w?: number | null;
+  map5min_w?: number | null;
+  tte_observed_min?: number | null;
+  protocol_quality?: number | null;
+  objectif?: string | null;
+  vo2max?: number | null;
 }
 
 interface ComputeVLamaxEffectifParams {
@@ -240,6 +250,66 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
   // =============================================
   if (effectiveSnapshot) {
     const { ftp, pmax_5s, weight_kg } = effectiveSnapshot;
+    
+    // =============================================
+    // C1) V2 ENHANCED (P30s, P60s, MAP, TTE) — meilleure estimation
+    // =============================================
+    const hasV2Data = ftp != null && ftp > 0 && (
+      (effectiveSnapshot.p30s_w != null && effectiveSnapshot.p30s_w > 0) ||
+      (effectiveSnapshot.p60s_w != null && effectiveSnapshot.p60s_w > 0) ||
+      (effectiveSnapshot.map5min_w != null && effectiveSnapshot.map5min_w > 0) ||
+      (effectiveSnapshot.tte_observed_min != null && effectiveSnapshot.tte_observed_min > 0)
+    );
+    
+    const v2EnhancedDataCount = [
+      effectiveSnapshot.p30s_w != null && effectiveSnapshot.p30s_w > 0,
+      effectiveSnapshot.p60s_w != null && effectiveSnapshot.p60s_w > 0,
+      effectiveSnapshot.map5min_w != null && effectiveSnapshot.map5min_w > 0,
+      effectiveSnapshot.tte_observed_min != null && effectiveSnapshot.tte_observed_min > 0,
+    ].filter(Boolean).length;
+    
+    if (hasV2Data && v2EnhancedDataCount >= 2) {
+      const v2Enhanced = computeVLamaxBikeV2Enhanced({
+        ftp: ftp!,
+        p30s_w: effectiveSnapshot.p30s_w ?? null,
+        p60s_w: effectiveSnapshot.p60s_w ?? null,
+        map5min_w: effectiveSnapshot.map5min_w ?? null,
+        tte_min: effectiveSnapshot.tte_observed_min ?? null,
+        pmax_5s: pmax_5s ?? null,
+        weight_kg: weight_kg ?? null,
+        protocol_quality: (effectiveSnapshot.protocol_quality as 1|2|3|4|5) ?? 3,
+        objectif: effectiveSnapshot.objectif ?? objectif,
+        vo2max: effectiveSnapshot.vo2max ?? null,
+      });
+      
+      if (v2Enhanced.formula !== "insufficient") {
+        const ageDays = computeDataAgeDays(effectiveSnapshot.date);
+        const v2Input: VLamaxV2Input = {
+          rawValue: v2Enhanced.value,
+          source: "estimation",
+          sport,
+          previousEffective,
+          factors: {
+            sourceCount: v2Enhanced.sources.length,
+            temporalStability: 0.3,
+            dataAgeDays: ageDays,
+          },
+          sourceLabels: v2Enhanced.sources.map(s => `V2: ${s}`),
+          reason: `Score G V2 Enhanced (${v2Enhanced.formulaLabel})`,
+        };
+        const v2 = computeVLamaxV2(v2Input);
+        // Override confidence with V2 Enhanced confidence (higher quality)
+        v2.confidence = Math.max(v2.confidence, v2Enhanced.confidence * 0.9);
+        return wrapV2Result(v2, {
+          protocol: v2Enhanced.formulaLabel,
+          date: effectiveSnapshot.date,
+        });
+      }
+    }
+    
+    // =============================================
+    // C2) LEGACY estimation (FTP/kg + Pmax/kg)
+    // =============================================
     const hasMinimumData = ftp != null && weight_kg != null && weight_kg > 0;
     
     if (hasMinimumData) {
