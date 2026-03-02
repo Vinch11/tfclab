@@ -182,19 +182,50 @@ export function parseAIPlan(markdown: string): ParsedPlan {
     // Parse recap table rows
     if (inRecapTable && trimmed.startsWith("|")) {
       // Skip header and separator rows
-      if (/Limiteur|^[\s\-:|]+$/.test(trimmed.replace(/\|/g, ""))) continue;
+      const stripped = trimmed.replace(/\|/g, "").trim();
+      if (/^[\s\-:|]+$/.test(stripped)) continue;
+      if (/Limiteur\s*(D[ée]tect|Priorit|#|Rang)/i.test(stripped)) continue;
+      // Also skip if the row is purely a header like "# | Limiteur | Statut..."
+      if (/^\s*#\s*$/.test(stripped.split(/\s{2,}/)[0]) && /Limiteur/i.test(stripped)) continue;
+      
       const cells = trimmed.split("|").map(c => c.trim()).filter(Boolean);
-      if (cells.length >= 6) {
-        const rank = parseInt(cells[0], 10);
+      if (cells.length >= 4) {
+        // Try to extract rank from first cell (could be "1", "#1", "1️⃣", "**1**", etc.)
+        const rankStr = cells[0].replace(/[#*️⃣\u20E3\uFE0F]/g, "").replace(/\*\*/g, "").trim();
+        const rank = parseInt(rankStr, 10);
+        
         if (!isNaN(rank)) {
-          recapLimiters.push({
-            rank,
-            name: cells[1],
-            status: cells[2],
-            block: cells[3],
-            weeks: cells[4],
-            keySessions: cells[5],
-          });
+          if (cells.length >= 6) {
+            // Full 6-column table: # | Limiteur | Statut | Bloc | Semaines | Séances
+            recapLimiters.push({
+              rank,
+              name: cells[1].replace(/\*\*/g, ""),
+              status: cells[2].replace(/\*\*/g, ""),
+              block: cells[3].replace(/\*\*/g, ""),
+              weeks: cells[4].replace(/\*\*/g, ""),
+              keySessions: cells.slice(5).join(", ").replace(/\*\*/g, ""),
+            });
+          } else if (cells.length === 5) {
+            // 5-column table: # | Limiteur | Statut | Bloc/Semaines | Séances
+            recapLimiters.push({
+              rank,
+              name: cells[1].replace(/\*\*/g, ""),
+              status: cells[2].replace(/\*\*/g, ""),
+              block: cells[3].replace(/\*\*/g, ""),
+              weeks: "",
+              keySessions: cells[4].replace(/\*\*/g, ""),
+            });
+          } else {
+            // 4-column table: # | Limiteur | Statut/Bloc | Séances
+            recapLimiters.push({
+              rank,
+              name: cells[1].replace(/\*\*/g, ""),
+              status: cells[2].replace(/\*\*/g, ""),
+              block: "",
+              weeks: "",
+              keySessions: cells[3].replace(/\*\*/g, ""),
+            });
+          }
         }
       }
       continue;
