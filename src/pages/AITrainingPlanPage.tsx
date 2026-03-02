@@ -296,25 +296,50 @@ export default function AITrainingPlanPage() {
 
   const buildConfig = useCallback((limiterResult: ReturnType<typeof detectUnifiedLimiter> | null, athleteAmbition?: string): PlanConfig => {
     const limiters: string[] = [];
-    if (limiterResult && limiterResult.primaryLimiter !== "none") {
-      // Primary limiter with full context
-      limiters.push(`🎯 LIMITEUR PRIMAIRE : ${limiterResult.limiterLabel} — ${limiterResult.limiterExplanation}`);
-      
-      // All limiting gaps with named limiter categories for AI key session mapping
-      const limitingGaps = limiterResult.gapAnalysis.filter(g => g.status === "limiting");
-      const acceptableGaps = limiterResult.gapAnalysis.filter(g => g.status === "acceptable");
-      
-      limitingGaps.forEach(g => {
-        const limiterCategory = METRIC_TO_LIMITER_MAP[g.metric] || g.metric;
-        limiters.push(`🔴 ${g.metric}: ${g.value?.toFixed(2) ?? "?"} vs cible ${g.target?.toFixed(2)} → Catégorie limiteur : "${limiterCategory}" (cf. tableau Séances Clés par Limiteur)`);
-      });
-      
-      // Secondary weaknesses (acceptable but not optimal)
-      if (acceptableGaps.length > 0) {
-        limiters.push("--- Faiblesses secondaires (acceptable mais sous-optimal) ---");
-        acceptableGaps.forEach(g => {
-          limiters.push(`🟡 ${g.metric}: ${g.value?.toFixed(2) ?? "?"} vs cible ${g.target?.toFixed(2)}`);
+    if (limiterResult) {
+      // Sort ALL gaps by weighted impact (highest = most limiting)
+      const rankedGaps = [...limiterResult.gapAnalysis]
+        .filter(g => g.weightedImpact > 0)
+        .sort((a, b) => b.weightedImpact - a.weightedImpact);
+
+      if (rankedGaps.length > 0) {
+        limiters.push(`## CLASSEMENT DES LIMITEURS PAR IMPORTANCE (du plus critique au moins critique)`);
+        limiters.push(`Total : ${rankedGaps.length} limiteur(s) détecté(s). Le plan DOIT les adresser TOUS, par ordre de priorité.\n`);
+
+        rankedGaps.forEach((g, idx) => {
+          const rank = idx + 1;
+          const limiterCategory = METRIC_TO_LIMITER_MAP[g.metric] || g.metric;
+          const statusEmoji = g.status === "limiting" ? "🔴 CRITIQUE" : "🟡 SOUS-OPTIMAL";
+          const impactScore = g.weightedImpact.toFixed(1);
+
+          limiters.push(`### Limiteur #${rank} — ${g.metric} (Impact: ${impactScore}/100)`);
+          limiters.push(`- Statut : ${statusEmoji}`);
+          limiters.push(`- Valeur actuelle : ${g.value?.toFixed(2) ?? "?"} vs cible : ${g.target?.toFixed(2)}`);
+          limiters.push(`- Catégorie séances clés : "${limiterCategory}" (cf. tableau Séances Clés par Limiteur Dan Lorang)`);
+          
+          if (rank === 1) {
+            limiters.push(`- 🎯 PRIORITÉ ABSOLUE : Ce limiteur doit recevoir la séance clé #1 de chaque semaine pendant les premières phases (Base/Build).`);
+          } else if (rank === 2) {
+            limiters.push(`- ⚡ PRIORITÉ HAUTE : Ce limiteur doit recevoir la séance clé #2 de chaque semaine.`);
+          } else {
+            limiters.push(`- 📋 PRIORITÉ SECONDAIRE : Adresser via 1-2 séances complémentaires/sem ou intégré dans les phases Build/Spécifique.`);
+          }
+          limiters.push("");
         });
+
+        // Add periodization instruction
+        limiters.push(`## RÈGLE DE PÉRIODISATION SÉQUENTIELLE DES LIMITEURS`);
+        limiters.push(`- Phase Base : Focus principal sur le Limiteur #1 (séances clés #1 et #2). Limiteur #2 en maintien.`);
+        limiters.push(`- Phase Build : Limiteur #1 toujours prioritaire mais le Limiteur #2 monte en importance (séance clé #2 dédiée).`);
+        limiters.push(`- Phase Spécifique : Intégration de tous les limiteurs dans un contexte race-specific.`);
+        limiters.push(`- Les limiteurs 🔴 CRITIQUES doivent être traités AVANT les 🟡 SOUS-OPTIMAUX.`);
+        limiters.push(`- Interactions positives : VLamax↓ améliore aussi TTE et FatMax. VO2max↑ améliore aussi FTP/kg. Exploiter ces synergies.`);
+      }
+
+      // Primary limiter context for backward compat
+      if (limiterResult.primaryLimiter !== "none") {
+        limiters.push(`\n## Synthèse TFCL™`);
+        limiters.push(`🎯 LIMITEUR PRIMAIRE : ${limiterResult.limiterLabel} — ${limiterResult.limiterExplanation}`);
       }
     }
 
