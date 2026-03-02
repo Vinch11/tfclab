@@ -1228,6 +1228,19 @@ Utilise ces micro-cycles réels comme modèles de qualité. Adapte-les au niveau
 **Stratégie globale :** [1-2 phrases incluant le séquençage des blocs]
 **Répartition sport :** [ex: Vélo 48% | CAP 25% | Natation 18% | Renfo 9%]
 
+## Récapitulatif Stratégique
+
+### Limiteurs → Blocs → Séances Clés
+| # | Limiteur Détecté | Statut | Bloc Prescrit | Semaines | Séances Clés 🔑 |
+|---|-----------------|--------|---------------|----------|-----------------|
+| 1 | [ex: VLamax trop haute] | 🔴 Critique | Chantier VLamax↓ | S5-S8 | Z2 long Train Low 2h30, Sweet Spot 2×20min |
+| 2 | [ex: TTE faible] | 🟡 Sous-optimal | Consolidation TTE↑ | S9-S12 | Seuil Norvégienne 2×20min→1×35min |
+| 3 | [ex: Économie basse] | 🟡 Sous-optimal | (intégré) | Toute prépa | Force Rønnestad 2x/sem→1x/sem, SFR |
+
+### Synergies Exploitées
+- [ex: VLamax↓ (Z2 Train Low) → FatMax↑ + Durabilité↑ (synergie positive)]
+- [ex: Force Rønnestad → Économie↑ +4.8% (effet secondaire)]
+
 ## Bloc 1 : [Nom Métabolique, ex: "Fondation + Intensité Précoce"] (Semaines 1-X)
 **Objectif physiologique :** [objectif du bloc, ex: "Reverse Perio VO2max + Force max + Volume Z2 progressif"]
 **Volume cible :** [heures/semaine]

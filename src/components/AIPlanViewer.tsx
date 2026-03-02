@@ -9,11 +9,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Calendar, ChevronLeft, ChevronRight, Dumbbell, Waves, Bike,
   Footprints, Moon, FileText, Zap, Save, Loader2, CheckCircle2,
-  RefreshCw, Printer,
+  RefreshCw, Printer, Target, ArrowRight, Sparkles, AlertTriangle,
 } from "lucide-react";
 import { format, addDays, startOfWeek } from "date-fns";
 import { fr } from "date-fns/locale";
-import type { ParsedPlan, ParsedWeek, ParsedSession } from "@/lib/aiPlanParser";
+import type { ParsedPlan, ParsedWeek, ParsedSession, StrategicRecap } from "@/lib/aiPlanParser";
 import { mapSessionsToDates } from "@/lib/aiPlanParser";
 import { exportAIPlanToPDF } from "@/lib/aiPlanPDFExport";
 
@@ -39,11 +39,79 @@ function getSportColor(sport: string): string {
 
 function getPhaseColor(phase: string): string {
   const p = phase.toLowerCase();
-  if (p.includes("base") || p.includes("prépa")) return "bg-blue-500/15 text-blue-700 dark:text-blue-300";
-  if (p.includes("build") || p.includes("développement")) return "bg-green-500/15 text-green-700 dark:text-green-300";
-  if (p.includes("spécifique") || p.includes("specific")) return "bg-purple-500/15 text-purple-700 dark:text-purple-300";
+  if (p.includes("base") || p.includes("prépa") || p.includes("fondation")) return "bg-blue-500/15 text-blue-700 dark:text-blue-300";
+  if (p.includes("build") || p.includes("développement") || p.includes("chantier")) return "bg-green-500/15 text-green-700 dark:text-green-300";
+  if (p.includes("spécifique") || p.includes("specific") || p.includes("race")) return "bg-purple-500/15 text-purple-700 dark:text-purple-300";
   if (p.includes("affûtage") || p.includes("taper")) return "bg-amber-500/15 text-amber-700 dark:text-amber-300";
+  if (p.includes("consolidation")) return "bg-cyan-500/15 text-cyan-700 dark:text-cyan-300";
   return "bg-muted text-muted-foreground";
+}
+
+function getStatusColor(status: string): string {
+  if (status.includes("🔴") || status.toLowerCase().includes("critique")) return "bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/30";
+  if (status.includes("🟡") || status.toLowerCase().includes("sous-optimal")) return "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30";
+  if (status.includes("🟢") || status.toLowerCase().includes("optimal")) return "bg-green-500/15 text-green-700 dark:text-green-300 border-green-500/30";
+  return "bg-muted text-muted-foreground border-border";
+}
+
+/** Strategic Recap visual component */
+function StrategicRecapView({ recap }: { recap: StrategicRecap }) {
+  return (
+    <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Target className="h-4 w-4 text-primary" />
+          Récapitulatif Stratégique
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Limiter → Block → Key Sessions flow */}
+        <div className="space-y-2">
+          {recap.limiters.map((limiter, idx) => (
+            <div key={idx} className="flex items-start gap-2 p-2.5 rounded-lg bg-background/80 border border-border/50">
+              {/* Rank */}
+              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
+                {limiter.rank}
+              </div>
+
+              {/* Limiter info */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <span className="text-sm font-semibold">{limiter.name}</span>
+                  <Badge className={`text-[10px] ${getStatusColor(limiter.status)}`}>
+                    {limiter.status}
+                  </Badge>
+                </div>
+
+                {/* Flow: Block → Weeks → Key Sessions */}
+                <div className="flex items-center gap-1.5 flex-wrap text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground/80">{limiter.block}</span>
+                  <ArrowRight className="h-3 w-3 text-primary/60 flex-shrink-0" />
+                  <Badge variant="outline" className="text-[10px] py-0">{limiter.weeks}</Badge>
+                  <ArrowRight className="h-3 w-3 text-primary/60 flex-shrink-0" />
+                  <span className="text-[11px]">🔑 {limiter.keySessions}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Synergies */}
+        {recap.synergies.length > 0 && (
+          <div className="p-2.5 rounded-lg bg-green-500/5 border border-green-500/20">
+            <p className="text-xs font-semibold text-green-700 dark:text-green-300 flex items-center gap-1 mb-1.5">
+              <Sparkles className="h-3 w-3" /> Synergies Exploitées
+            </p>
+            <div className="space-y-1">
+              {recap.synergies.map((s, i) => (
+                <p key={i} className="text-[11px] text-muted-foreground">→ {s}</p>
+              ))}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
 }
 
 interface SessionCardProps {
@@ -165,7 +233,7 @@ export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved,
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div>
               <h3 className="font-bold text-base">{plan.title}</h3>
-              <p className="text-xs text-muted-foreground">{plan.totalWeeks} semaines • {plan.phases.length} phases</p>
+              <p className="text-xs text-muted-foreground">{plan.totalWeeks} semaines • {plan.phases.length} blocs</p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <Button variant="outline" size="sm" onClick={handleExportPDF}>
@@ -204,6 +272,11 @@ export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved,
           )}
         </CardContent>
       </Card>
+
+      {/* Strategic Recap */}
+      {plan.strategicRecap && (
+        <StrategicRecapView recap={plan.strategicRecap} />
+      )}
 
       {/* View Controls */}
       <div className="flex items-center gap-2">

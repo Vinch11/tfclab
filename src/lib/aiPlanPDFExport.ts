@@ -84,6 +84,15 @@ function buildPlanHTML(plan: ParsedPlan, athleteName?: string): string {
   <p style="color:#888;font-size:12px;margin:0 0 12px 0;">${plan.totalWeeks} semaines • ${plan.phases.length} phases</p>
   <div style="margin-bottom:16px;">${phasesSummary}</div>
   ${plan.diagnostic ? `<div style="background:#f9f9f9;padding:10px 14px;border-radius:6px;font-size:12px;color:#555;margin-bottom:20px;border-left:3px solid #1967d2;"><strong>Diagnostic TFCL™</strong><br/>${plan.diagnostic.replace(/\n/g, "<br/>")}</div>` : ""}
+  ${plan.strategicRecap && plan.strategicRecap.limiters.length > 0 ? `
+  <div style="background:#f0f7ff;padding:12px 14px;border-radius:6px;font-size:12px;color:#333;margin-bottom:20px;border-left:3px solid #e67e22;">
+    <strong>🎯 Récapitulatif Stratégique</strong>
+    <table style="width:100%;border-collapse:collapse;margin-top:8px;font-size:11px;">
+      <tr style="background:#e8e8e8;"><th style="padding:4px 6px;text-align:left;">#</th><th style="padding:4px 6px;text-align:left;">Limiteur</th><th style="padding:4px 6px;text-align:left;">Statut</th><th style="padding:4px 6px;text-align:left;">Bloc</th><th style="padding:4px 6px;text-align:left;">Sem.</th><th style="padding:4px 6px;text-align:left;">Séances Clés 🔑</th></tr>
+      ${plan.strategicRecap.limiters.map(l => `<tr style="border-bottom:1px solid #ddd;"><td style="padding:4px 6px;">${l.rank}</td><td style="padding:4px 6px;font-weight:600;">${l.name}</td><td style="padding:4px 6px;">${l.status}</td><td style="padding:4px 6px;">${l.block}</td><td style="padding:4px 6px;">${l.weeks}</td><td style="padding:4px 6px;">${l.keySessions}</td></tr>`).join("")}
+    </table>
+    ${plan.strategicRecap.synergies.length > 0 ? `<div style="margin-top:8px;font-size:10px;color:#555;"><strong>Synergies :</strong> ${plan.strategicRecap.synergies.map(s => `→ ${s}`).join(" | ")}</div>` : ""}
+  </div>` : ""}
   <h2>Plan Détaillé</h2>
   ${weekRows}
   <footer style="margin-top:32px;padding-top:12px;border-top:1px solid #ddd;font-size:10px;color:#aaa;text-align:center;">
