@@ -2,11 +2,14 @@
  * Nolio Power/Pace Curve CSV Parser
  * Parses exported records from Nolio (power for cycling, pace for running)
  * 
- * CSV Format:
+ * CSV Format (Nolio export):
  * "Date","Durée","Valeur","Séance","Sport"
  * "26/01/26","5""","918 W","Sortie vélo","Vélo - Route"
  * "26/01/26","1'","350 W","FTP Test","Vélo - Home Trainer"
  * "26/01/26","1h","210 W","Sortie vélo","Vélo - Route"
+ * 
+ * IMPORTANT: Nolio uses standard CSV quoting where "" inside quotes = literal "
+ * Duration 1"" inside quotes → parsed as 1" → 1 second
  */
 
 export type NolioSport = "bike" | "run" | "swim" | "unknown";
@@ -14,7 +17,7 @@ export type NolioSport = "bike" | "run" | "swim" | "unknown";
 export interface NolioRecord {
   date: string;           // ISO format YYYY-MM-DD
   durationSec: number;    // Duration in seconds
-  durationLabel: string;  // Original label (e.g. "5""", "1'", "1h")
+  durationLabel: string;  // Original label (e.g. "5"", "1'", "1h")
   value: number;          // Power in W or pace in sec/km
   unit: "W" | "min/km" | "km/h";
   sessionName: string;
@@ -31,21 +34,62 @@ export interface NolioCurveResult {
   latestDate: string;
   /** Power/pace curve for charting */
   curve: { durationSec: number; durationLabel: string; value: number }[];
+  /** Glycolytic profile: power decay from 1s to 30s */
+  glycolyticProfile: GlycolyticProfile | null;
 }
 
 export interface NolioExtractedValues {
-  // Bike
-  pmax_5s?: number;
-  p30s_w?: number;
-  p60s_w?: number;
-  map5min_w?: number;
-  ftp_estimated?: number;   // From 20min * 0.95 or 30min value
-  ftp_source?: string;      // "P20min×0.95" or "P30min"
+  // Bike — short power (glycolytic)
+  pmax_1s?: number;       // Peak power 1s
+  pmax_3s?: number;       // Peak power 3s
+  pmax_5s?: number;       // Peak power 5s
+  pmax_10s?: number;      // Peak power 10s
+  pmax_15s?: number;      // Peak power 15s
+  p30s_w?: number;        // Best 30s power
+  p45s_w?: number;        // Best 45s power
+  p60s_w?: number;        // Best 1min power
+  // Bike — aerobic
+  map5min_w?: number;     // MAP 5min
+  ftp_estimated?: number; // From 20min * 0.95 or 30min value
+  ftp_source?: string;    // "P20min×0.95" or "P30min"
+  p45min_w?: number;      // Best 45min
+  p60min_w?: number;      // Best 1h
   // Run
-  vma?: number;             // From short efforts
-  pace_threshold?: number;  // sec/km from ~20-30min effort
+  vma?: number;           // From short efforts
+  pace_threshold?: number;// sec/km from ~20-30min effort
   // Common
   tss_7d?: number;
+  // Full curve for advanced analysis
+  fullCurve?: { sec: number; watts: number }[];
+}
+
+/**
+ * Glycolytic Profile — derived from short-duration records
+ * Characterizes the athlete's anaerobic capacity
+ */
+export interface GlycolyticProfile {
+  /** Peak 1s power (neuromuscular) */
+  pmax_1s: number | null;
+  /** Peak 5s power */
+  pmax_5s: number | null;
+  /** Peak 10s power */
+  pmax_10s: number | null;
+  /** P30s (glycolytic endurance) */
+  p30s: number | null;
+  /** Power decay rate 5s→30s (higher = more glycolytic) */
+  decayRate5to30: number | null;
+  /** Power decay rate 1s→5s (neuromuscular quality) */
+  decayRate1to5: number | null;
+  /** Glycolytic capacity index: P5s/FTP ratio */
+  glycolyticIndex: number | null;
+  /** Anaerobic Work Capacity estimate (kJ) from P5s→P5min decay */
+  awcEstimate: number | null;
+  /** Profile category */
+  category: "sprinter" | "puncheur" | "rouleur" | "diesel" | "unknown";
+  /** Interpretation text */
+  interpretation: string;
+  /** All short-power data points available */
+  dataPoints: { sec: number; watts: number }[];
 }
 
 /**
@@ -53,15 +97,19 @@ export interface NolioExtractedValues {
  * Examples: 1" → 1s, 5" → 5s, 1' → 60s, 5' → 300s, 1h → 3600s, 1h30 → 5400s
  */
 function parseDuration(raw: string): { seconds: number; label: string } {
-  const cleaned = raw.trim().replace(/"/g, '"').replace(/'/g, "'").replace(/"/g, '"').replace(/'/g, "'");
+  const cleaned = raw.trim();
   const label = cleaned;
   
-  // Seconds: 1", 5", 10" etc (using " or ")
-  const secMatch = cleaned.match(/^(\d+)\s*[""]\s*$/);
+  // Seconds: 1", 5", 10" etc — match digit(s) + any quote-like char
+  const secMatch = cleaned.match(/^(\d+)\s*[""\u201D\u2033]+\s*$/);
   if (secMatch) return { seconds: parseInt(secMatch[1]), label };
   
+  // Also match bare number followed by quote variants
+  const secMatch2 = cleaned.match(/^(\d+)\s*[′'']?\s*$/);
+  // Only if it's clearly seconds (single or double prime)
+  
   // Minutes: 1', 5', 12' etc
-  const minMatch = cleaned.match(/^(\d+)\s*['']\s*$/);
+  const minMatch = cleaned.match(/^(\d+)\s*[''\u2032]+\s*$/);
   if (minMatch) return { seconds: parseInt(minMatch[1]) * 60, label };
   
   // Hours with minutes: 1h30, 2h15
@@ -71,6 +119,16 @@ function parseDuration(raw: string): { seconds: number; label: string } {
   // Hours only: 1h, 2h
   const hourMatch = cleaned.match(/^(\d+)\s*h$/i);
   if (hourMatch) return { seconds: parseInt(hourMatch[1]) * 3600, label };
+  
+  // Last resort: try to detect "number + any suffix that looks like seconds"
+  const fallbackSec = cleaned.match(/^(\d+)\s*(?:s|sec|"|")\s*$/i);
+  if (fallbackSec) return { seconds: parseInt(fallbackSec[1]), label };
+
+  // Bare number — could be seconds if < 60, minutes otherwise (ambiguous)
+  if (secMatch2 && !minMatch) {
+    const n = parseInt(secMatch2[1]);
+    if (n <= 45) return { seconds: n, label }; // Likely seconds for Nolio records
+  }
   
   return { seconds: 0, label };
 }
@@ -83,8 +141,8 @@ function parseValue(raw: string): { value: number; unit: "W" | "min/km" | "km/h"
   const cleaned = raw.trim();
   
   // Watts: "962 W"
-  const wattMatch = cleaned.match(/^(\d+(?:\.\d+)?)\s*W$/i);
-  if (wattMatch) return { value: parseFloat(wattMatch[1]), unit: "W" };
+  const wattMatch = cleaned.match(/^(\d+(?:[.,]\d+)?)\s*W$/i);
+  if (wattMatch) return { value: parseFloat(wattMatch[1].replace(",", ".")), unit: "W" };
   
   // Pace: "4:30 min/km" or "4:30/km"
   const paceMatch = cleaned.match(/^(\d+):(\d+)\s*(?:min\/km|\/km)$/i);
@@ -94,11 +152,11 @@ function parseValue(raw: string): { value: number; unit: "W" | "min/km" | "km/h"
   }
   
   // Speed: "18.5 km/h"
-  const speedMatch = cleaned.match(/^(\d+(?:\.\d+)?)\s*km\/h$/i);
-  if (speedMatch) return { value: parseFloat(speedMatch[1]), unit: "km/h" };
+  const speedMatch = cleaned.match(/^(\d+(?:[.,]\d+)?)\s*km\/h$/i);
+  if (speedMatch) return { value: parseFloat(speedMatch[1].replace(",", ".")), unit: "km/h" };
   
   // Fallback: try to parse as number (assume W for bike)
-  const num = parseFloat(cleaned);
+  const num = parseFloat(cleaned.replace(",", "."));
   if (!isNaN(num)) return { value: num, unit: "W" };
   
   return { value: 0, unit: "W" };
@@ -129,6 +187,61 @@ function parseNolioDate(raw: string): string {
 }
 
 /**
+ * Parse a single CSV line handling RFC 4180 quoted fields
+ * Properly handles escaped quotes: "" → "
+ */
+function parseCSVLine(line: string): string[] {
+  const fields: string[] = [];
+  let i = 0;
+  
+  while (i < line.length) {
+    // Skip leading whitespace
+    while (i < line.length && line[i] === ' ') i++;
+    
+    if (i >= line.length) {
+      fields.push("");
+      break;
+    }
+    
+    if (line[i] === '"') {
+      // Quoted field — collect until closing quote
+      i++; // skip opening quote
+      let field = "";
+      while (i < line.length) {
+        if (line[i] === '"') {
+          if (i + 1 < line.length && line[i + 1] === '"') {
+            // Escaped quote: "" → literal "
+            field += '"';
+            i += 2;
+          } else {
+            // End of quoted field
+            i++; // skip closing quote
+            break;
+          }
+        } else {
+          field += line[i];
+          i++;
+        }
+      }
+      fields.push(field);
+      // Skip delimiter after quoted field
+      if (i < line.length && (line[i] === ',' || line[i] === ';')) i++;
+    } else {
+      // Unquoted field
+      let field = "";
+      while (i < line.length && line[i] !== ',' && line[i] !== ';') {
+        field += line[i];
+        i++;
+      }
+      fields.push(field.trim());
+      if (i < line.length) i++; // skip delimiter
+    }
+  }
+  
+  return fields;
+}
+
+/**
  * Parse CSV content from Nolio export
  */
 export function parseNolioCurveCSV(content: string): NolioCurveResult {
@@ -143,16 +256,16 @@ export function parseNolioCurveCSV(content: string): NolioCurveResult {
     const line = lines[i].trim();
     if (!line) continue;
     
-    // Parse CSV with quoted fields
+    // Parse CSV with quoted fields (RFC 4180 compliant)
     const fields = parseCSVLine(line);
-    if (fields.length < 5) continue;
+    if (fields.length < 3) continue; // At minimum: date, duration, value
     
     const date = parseNolioDate(fields[0]);
     const { seconds, label } = parseDuration(fields[1]);
     const { value, unit } = parseValue(fields[2]);
-    const sessionName = fields[3];
-    const sportRaw = fields[4];
-    const sport = detectSport(sportRaw);
+    const sessionName = fields.length > 3 ? fields[3] : "";
+    const sportRaw = fields.length > 4 ? fields[4] : "";
+    const sport = sportRaw ? detectSport(sportRaw) : "bike"; // Default to bike if no sport column
     
     if (seconds <= 0 || value <= 0) continue;
     
@@ -195,11 +308,14 @@ export function parseNolioCurveCSV(content: string): NolioCurveResult {
   }
   const curve = Array.from(curveMap.values()).sort((a, b) => a.durationSec - b.durationSec);
   
-  return { records, sport: dominantSport, extracted, latestDate, curve };
+  // Build glycolytic profile from short-duration records
+  const glycolyticProfile = dominantSport === "bike" ? buildGlycolyticProfile(extracted, curve) : null;
+  
+  return { records, sport: dominantSport, extracted, latestDate, curve, glycolyticProfile };
 }
 
 /**
- * Extract snapshot-ready values from records
+ * Extract snapshot-ready values from records — ALL durations
  */
 function extractSnapshotValues(records: NolioRecord[], sport: NolioSport): NolioExtractedValues {
   const vals: NolioExtractedValues = {};
@@ -217,71 +333,165 @@ function extractSnapshotValues(records: NolioRecord[], sport: NolioSport): Nolio
     return best;
   };
   
-  // Get exact match
-  const getExact = (targetSec: number): number | undefined => {
-    let best: number | undefined;
+  // Get exact match first, fallback to tolerance
+  const getExactOrBest = (targetSec: number): number | undefined => {
+    let exact: number | undefined;
     for (const r of records) {
       if (r.durationSec === targetSec) {
-        if (best === undefined || r.value > best) best = r.value;
+        if (exact === undefined || r.value > exact) exact = r.value;
       }
     }
-    return best;
+    return exact ?? getBestAt(targetSec);
   };
   
   if (sport === "bike") {
-    // Pmax 5s
-    vals.pmax_5s = getExact(5) || getBestAt(5);
-    // P30s
-    vals.p30s_w = getExact(30) || getBestAt(30);
-    // P60s (1 min)
-    vals.p60s_w = getExact(60) || getBestAt(60);
-    // MAP 5min
-    vals.map5min_w = getExact(300) || getBestAt(300);
+    // === GLYCOLYTIC / SHORT POWER ===
+    vals.pmax_1s = getExactOrBest(1);
+    vals.pmax_3s = getExactOrBest(3);
+    vals.pmax_5s = getExactOrBest(5);
+    vals.pmax_10s = getExactOrBest(10);
+    vals.pmax_15s = getExactOrBest(15);
+    vals.p30s_w = getExactOrBest(30);
+    vals.p45s_w = getExactOrBest(45);
+    vals.p60s_w = getExactOrBest(60);
+    
+    // === AEROBIC / THRESHOLD ===
+    vals.map5min_w = getExactOrBest(300);
+    
     // FTP: prefer 20min * 0.95, fallback to 30min
-    const p20 = getExact(1200) || getBestAt(1200);
-    const p30 = getExact(1800) || getBestAt(1800);
+    const p20 = getExactOrBest(1200);
+    const p30 = getExactOrBest(1800);
+    const p45 = getExactOrBest(2700);
+    const p60 = getExactOrBest(3600);
+    
     if (p20) {
       vals.ftp_estimated = Math.round(p20 * 0.95);
-      vals.ftp_source = `P20min (${p20}W) × 0.95`;
+      vals.ftp_source = `P20' (${p20}W) × 0.95`;
     } else if (p30) {
       vals.ftp_estimated = Math.round(p30);
-      vals.ftp_source = `P30min direct (${p30}W)`;
+      vals.ftp_source = `P30' direct (${p30}W)`;
     }
+    
+    vals.p45min_w = p45;
+    vals.p60min_w = p60;
+    
+    // Build full curve for advanced analysis
+    const fullCurve: { sec: number; watts: number }[] = [];
+    for (const r of records) {
+      if (r.sport === sport && r.unit === "W" && r.value > 0) {
+        fullCurve.push({ sec: r.durationSec, watts: r.value });
+      }
+    }
+    vals.fullCurve = fullCurve.sort((a, b) => a.sec - b.sec);
+    
   } else if (sport === "run") {
-    // VMA from short efforts (typically pace at ~6min effort → speed)
-    // For running, we'd need pace data conversion
-    // Pace threshold from 20-30min
-    const pace20 = getExact(1200) || getBestAt(1200);
-    const pace30 = getExact(1800) || getBestAt(1800);
-    if (pace20) vals.pace_threshold = pace20; // sec/km
+    // Running records
+    const pace20 = getExactOrBest(1200);
+    const pace30 = getExactOrBest(1800);
+    if (pace20) vals.pace_threshold = pace20;
     else if (pace30) vals.pace_threshold = pace30;
+    
+    // VMA estimation from 6-8min effort (if pace data)
+    const pace6 = getExactOrBest(360);
+    if (pace6 && records[0]?.unit === "km/h") {
+      vals.vma = pace6;
+    }
   }
   
   return vals;
 }
 
 /**
- * Parse a single CSV line handling quoted fields with commas
+ * Build glycolytic profile from extracted short-power data
  */
-function parseCSVLine(line: string): string[] {
-  const fields: string[] = [];
-  let current = "";
-  let inQuotes = false;
+function buildGlycolyticProfile(
+  extracted: NolioExtractedValues, 
+  curve: { durationSec: number; value: number }[]
+): GlycolyticProfile {
+  const p1 = extracted.pmax_1s ?? null;
+  const p5 = extracted.pmax_5s ?? null;
+  const p10 = extracted.pmax_10s ?? null;
+  const p30 = extracted.p30s_w ?? null;
+  const ftp = extracted.ftp_estimated ?? null;
   
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i];
-    if (char === '"') {
-      inQuotes = !inQuotes;
-    } else if ((char === ',' || char === ';') && !inQuotes) {
-      fields.push(current.trim());
-      current = "";
+  // Collect all short-power data points (≤ 60s)
+  const dataPoints = curve
+    .filter(p => p.durationSec <= 60 && p.value > 0)
+    .map(p => ({ sec: p.durationSec, watts: p.value }));
+  
+  // Decay rate 5s → 30s: percentage of power lost per second
+  let decayRate5to30: number | null = null;
+  if (p5 && p30 && p5 > 0) {
+    decayRate5to30 = ((p5 - p30) / p5) * 100; // % of P5s lost by 30s
+  }
+  
+  // Decay rate 1s → 5s: neuromuscular quality
+  let decayRate1to5: number | null = null;
+  if (p1 && p5 && p1 > 0) {
+    decayRate1to5 = ((p1 - p5) / p1) * 100;
+  }
+  
+  // Glycolytic index: P5s / FTP
+  let glycolyticIndex: number | null = null;
+  if (p5 && ftp && ftp > 0) {
+    glycolyticIndex = p5 / ftp;
+  }
+  
+  // AWC estimate: integral of (power - FTP) for short durations
+  let awcEstimate: number | null = null;
+  if (ftp && dataPoints.length >= 3) {
+    let awcKj = 0;
+    for (let i = 0; i < dataPoints.length - 1; i++) {
+      const dt = dataPoints[i + 1].sec - dataPoints[i].sec;
+      const avgPower = (dataPoints[i].watts + dataPoints[i + 1].watts) / 2;
+      if (avgPower > ftp) {
+        awcKj += (avgPower - ftp) * dt / 1000; // Convert J to kJ
+      }
+    }
+    if (awcKj > 0) awcEstimate = Math.round(awcKj * 10) / 10;
+  }
+  
+  // Profile category
+  let category: GlycolyticProfile["category"] = "unknown";
+  let interpretation = "";
+  
+  if (glycolyticIndex !== null) {
+    if (glycolyticIndex >= 4.0) {
+      category = "sprinter";
+      interpretation = "Profil très glycolytique (sprinter). Capacité anaérobie dominante. VLamax probablement élevée (> 0.60).";
+    } else if (glycolyticIndex >= 3.2) {
+      category = "puncheur";
+      interpretation = "Profil puncheur. Bon compromis puissance/endurance. VLamax modérée à haute (0.45-0.60).";
+    } else if (glycolyticIndex >= 2.4) {
+      category = "rouleur";
+      interpretation = "Profil rouleur. Bonne efficacité aérobie avec puissance correcte. VLamax modérée (0.35-0.50).";
     } else {
-      current += char;
+      category = "diesel";
+      interpretation = "Profil diesel/aérobie dominant. Faible ratio anaérobie/aérobie. VLamax probablement basse (< 0.40).";
     }
   }
-  fields.push(current.trim());
   
-  return fields;
+  if (decayRate5to30 !== null) {
+    if (decayRate5to30 < 35) {
+      interpretation += " Faible décroissance 5s→30s = bonne capacité glycolytique soutenue.";
+    } else if (decayRate5to30 > 50) {
+      interpretation += " Forte décroissance 5s→30s = capacité glycolytique limitée en endurance.";
+    }
+  }
+  
+  return {
+    pmax_1s: p1,
+    pmax_5s: p5,
+    pmax_10s: p10,
+    p30s: p30,
+    decayRate5to30,
+    decayRate1to5,
+    glycolyticIndex,
+    awcEstimate,
+    category,
+    interpretation: interpretation.trim(),
+    dataPoints,
+  };
 }
 
 /**

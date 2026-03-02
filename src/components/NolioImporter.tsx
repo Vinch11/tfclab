@@ -256,30 +256,121 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
                 </ResponsiveContainer>
               </div>
 
-              {/* Extracted values */}
+              {/* Extracted values — ALL power data points */}
               <div className="p-3 rounded-lg border border-border bg-secondary/20">
                 <p className="text-sm font-medium mb-2">📊 Valeurs extraites pour le snapshot</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
-                  {result.extracted.pmax_5s && (
-                    <ExtractedField label="Pmax 5s" value={`${Math.round(result.extracted.pmax_5s)} W`} />
+                
+                {/* Short power / Glycolytic */}
+                <p className="text-xs text-muted-foreground font-medium mb-1.5 mt-2">⚡ Puissance courte (profil glycolytique)</p>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 text-sm mb-3">
+                  {result.extracted.pmax_1s != null && (
+                    <ExtractedField label="P1s" value={`${Math.round(result.extracted.pmax_1s)} W`} highlight />
                   )}
-                  {result.extracted.p30s_w && (
-                    <ExtractedField label="P30s" value={`${Math.round(result.extracted.p30s_w)} W`} />
+                  {result.extracted.pmax_3s != null && (
+                    <ExtractedField label="P3s" value={`${Math.round(result.extracted.pmax_3s)} W`} />
                   )}
-                  {result.extracted.p60s_w && (
+                  {result.extracted.pmax_5s != null && (
+                    <ExtractedField label="P5s" value={`${Math.round(result.extracted.pmax_5s)} W`} highlight />
+                  )}
+                  {result.extracted.pmax_10s != null && (
+                    <ExtractedField label="P10s" value={`${Math.round(result.extracted.pmax_10s)} W`} />
+                  )}
+                  {result.extracted.pmax_15s != null && (
+                    <ExtractedField label="P15s" value={`${Math.round(result.extracted.pmax_15s)} W`} />
+                  )}
+                  {result.extracted.p30s_w != null && (
+                    <ExtractedField label="P30s" value={`${Math.round(result.extracted.p30s_w)} W`} highlight />
+                  )}
+                  {result.extracted.p45s_w != null && (
+                    <ExtractedField label="P45s" value={`${Math.round(result.extracted.p45s_w)} W`} />
+                  )}
+                  {result.extracted.p60s_w != null && (
                     <ExtractedField label="P60s" value={`${Math.round(result.extracted.p60s_w)} W`} />
                   )}
-                  {result.extracted.map5min_w && (
-                    <ExtractedField label="MAP 5min" value={`${Math.round(result.extracted.map5min_w)} W`} />
+                </div>
+                
+                {/* Aerobic / Threshold */}
+                <p className="text-xs text-muted-foreground font-medium mb-1.5">🫁 Puissance aérobie / seuil</p>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 text-sm">
+                  {result.extracted.map5min_w != null && (
+                    <ExtractedField label="MAP 5'" value={`${Math.round(result.extracted.map5min_w)} W`} />
                   )}
-                  {result.extracted.ftp_estimated && (
-                    <ExtractedField label="FTP estimé" value={`${result.extracted.ftp_estimated} W`} hint={result.extracted.ftp_source} />
+                  {result.extracted.ftp_estimated != null && (
+                    <ExtractedField label="FTP est." value={`${result.extracted.ftp_estimated} W`} hint={result.extracted.ftp_source} />
                   )}
-                  {result.extracted.pace_threshold && (
-                    <ExtractedField label="Allure seuil" value={`${Math.floor(result.extracted.pace_threshold / 60)}:${String(result.extracted.pace_threshold % 60).padStart(2, "0")} /km`} />
+                  {result.extracted.p45min_w != null && (
+                    <ExtractedField label="P45'" value={`${Math.round(result.extracted.p45min_w)} W`} />
+                  )}
+                  {result.extracted.p60min_w != null && (
+                    <ExtractedField label="P60'" value={`${Math.round(result.extracted.p60min_w)} W`} />
+                  )}
+                  {result.extracted.pace_threshold != null && (
+                    <ExtractedField label="Seuil" value={`${Math.floor(result.extracted.pace_threshold / 60)}:${String(Math.round(result.extracted.pace_threshold % 60)).padStart(2, "0")} /km`} />
                   )}
                 </div>
               </div>
+
+              {/* ============================================= */}
+              {/* GLYCOLYTIC PROFILE — Short power analysis      */}
+              {/* ============================================= */}
+              {result.glycolyticProfile && result.glycolyticProfile.dataPoints.length >= 2 && (
+                <div className="p-3 rounded-lg border-2 border-destructive/20 bg-destructive/5 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-destructive" />
+                    <p className="text-sm font-semibold">Profil Glycolytique</p>
+                    <Badge variant="outline" className="ml-auto text-[10px] capitalize">{result.glycolyticProfile.category}</Badge>
+                  </div>
+                  
+                  {/* Key metrics */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {result.glycolyticProfile.glycolyticIndex != null && (
+                      <div className="p-2 rounded bg-background/70 border border-border text-center">
+                        <p className="text-[10px] text-muted-foreground">P5s / FTP</p>
+                        <p className="text-lg font-mono font-bold text-foreground">{result.glycolyticProfile.glycolyticIndex.toFixed(2)}</p>
+                      </div>
+                    )}
+                    {result.glycolyticProfile.decayRate5to30 != null && (
+                      <div className="p-2 rounded bg-background/70 border border-border text-center">
+                        <p className="text-[10px] text-muted-foreground">Decay 5s→30s</p>
+                        <p className="text-lg font-mono font-bold text-foreground">{result.glycolyticProfile.decayRate5to30.toFixed(0)}%</p>
+                      </div>
+                    )}
+                    {result.glycolyticProfile.decayRate1to5 != null && (
+                      <div className="p-2 rounded bg-background/70 border border-border text-center">
+                        <p className="text-[10px] text-muted-foreground">Decay 1s→5s</p>
+                        <p className="text-lg font-mono font-bold text-foreground">{result.glycolyticProfile.decayRate1to5.toFixed(0)}%</p>
+                      </div>
+                    )}
+                    {result.glycolyticProfile.awcEstimate != null && (
+                      <div className="p-2 rounded bg-background/70 border border-border text-center">
+                        <p className="text-[10px] text-muted-foreground">AWC est.</p>
+                        <p className="text-lg font-mono font-bold text-foreground">{result.glycolyticProfile.awcEstimate} kJ</p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Short-power mini chart */}
+                  {result.glycolyticProfile.dataPoints.length >= 3 && (
+                    <div className="h-28 w-full rounded border border-border bg-background/50 p-1">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={result.glycolyticProfile.dataPoints.map(p => ({ duration: formatDuration(p.sec), watts: p.watts }))}>
+                          <CartesianGrid strokeDasharray="2 2" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="duration" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} />
+                          <YAxis tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} width={45} />
+                          <RechartsTooltip
+                            contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "6px", fontSize: 11 }}
+                            formatter={(v: number) => [`${v} W`, "Puissance"]}
+                          />
+                          <Line type="monotone" dataKey="watts" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--destructive))" }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                  
+                  {/* Interpretation */}
+                  <p className="text-xs text-muted-foreground italic">{result.glycolyticProfile.interpretation}</p>
+                </div>
+              )}
 
               {/* ============================================= */}
               {/* VLamax V2 Enhanced — Auto-calculated from curve */}
@@ -417,11 +508,11 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
   );
 }
 
-function ExtractedField({ label, value, hint }: { label: string; value: string; hint?: string }) {
+function ExtractedField({ label, value, hint, highlight }: { label: string; value: string; hint?: string; highlight?: boolean }) {
   return (
-    <div className="p-2 rounded bg-background/70 border border-border">
+    <div className={`p-2 rounded border border-border ${highlight ? "bg-primary/10 border-primary/30" : "bg-background/70"}`}>
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="font-mono font-medium text-foreground">{value}</p>
+      <p className={`font-mono font-medium text-foreground ${highlight ? "text-primary" : ""}`}>{value}</p>
       {hint && <p className="text-[10px] text-muted-foreground mt-0.5">{hint}</p>}
     </div>
   );
