@@ -1680,17 +1680,26 @@ function buildUserPrompt(data: any, config: any): string {
     lines.push(`Si une allure spécifique course est plus rapide que le seuil (Z5), c'est une ERREUR. Allure semi TOUJOURS plus lente que seuil.`);
   }
 
-  // --- Identified weaknesses ---
+  // --- Identified weaknesses (ranked by importance) ---
   if (config.identifiedLimiters && config.identifiedLimiters.length > 0) {
-    lines.push("\n### 🔴 LIMITEURS IDENTIFIÉS PAR L'APP — SÉANCES CLÉS OBLIGATOIRES");
-    lines.push("Les limiteurs ci-dessous sont calculés par le diagnostic TFCL™. Chaque séance clé 🔑 de chaque semaine DOIT cibler ces limiteurs en priorité.");
+    lines.push("\n### 🔴 LIMITEURS IDENTIFIÉS PAR L'APP — CLASSÉS PAR IMPORTANCE — SÉANCES CLÉS OBLIGATOIRES");
+    lines.push("Les limiteurs ci-dessous sont calculés et classés par le diagnostic TFCL™ (impact pondéré = importance × gap vs cible).");
+    lines.push("Le plan DOIT adresser CHAQUE limiteur, du plus critique au moins critique, avec une périodisation séquentielle :");
+    lines.push("- **Limiteur #1** → Séance clé #1 de chaque semaine. Focus principal en Phase Base et Build.");
+    lines.push("- **Limiteur #2** → Séance clé #2. Monte en importance en Phase Build.");
+    lines.push("- **Limiteurs #3+** → Intégrés via séances complémentaires ou synergies naturelles.");
+    lines.push("- Les 🔴 CRITIQUES sont traités AVANT les 🟡 SOUS-OPTIMAUX.");
+    lines.push("- Exploite les synergies : VLamax↓ améliore TTE et FatMax. VO2max↑ améliore FTP/kg.");
     lines.push("Utilise le tableau 'Sélection des Séances Clés par Limiteur (Dan Lorang)' pour choisir les bonnes séances.\n");
-    config.identifiedLimiters.forEach((l: string) => lines.push(`- ${l}`));
-    lines.push("\n⚠️ RÈGLE : Si le limiteur primaire est 'VO2max bas', les séances clés DOIVENT inclure du travail VMA/VO2max.");
-    lines.push("Si le limiteur est 'VLamax trop haute', les séances clés DOIVENT inclure du Z2 long Train Low + sweet spot long.");
-    lines.push("Si le limiteur est 'TTE faible', les séances clés DOIVENT inclure du seuil continu long (1×30-40min).");
-    lines.push("Si le limiteur est 'Économie basse', les séances clés DOIVENT inclure côtes/SFR + force max.");
-    lines.push("Les faiblesses secondaires 🟡 doivent être adressées en complément (1-2 séances/sem), pas en priorité.");
+    config.identifiedLimiters.forEach((l: string) => lines.push(l));
+    lines.push("\n⚠️ RÈGLE SÉANCES CLÉS PAR LIMITEUR :");
+    lines.push("- Si Limiteur #1 = 'VO2max bas' → séance clé #1 = VMA/VO2max (Billat 30/30, 5×1200m).");
+    lines.push("- Si Limiteur #1 = 'VLamax trop haute' → séance clé #1 = Z2 long Train Low + sweet spot long.");
+    lines.push("- Si Limiteur #1 = 'TTE faible' → séance clé #1 = seuil continu long (Norvégienne 2×20min→1×40min).");
+    lines.push("- Si Limiteur #1 = 'Économie basse' → séance clé #1 = côtes/SFR + force max (Rønnestad).");
+    lines.push("- Si Limiteur #1 = 'FatMax bas' → séance clé #1 = Z2 longue à jeun Train Low (2h30+).");
+    lines.push("- Le Limiteur #2 est adressé par la séance clé #2 avec la même logique.");
+    lines.push("- En Phase Spécifique, les séances clés deviennent race-specific tout en maintenant le travail sur les limiteurs principaux.");
   }
 
   if (config.activeLevers && config.activeLevers.length > 0) {
