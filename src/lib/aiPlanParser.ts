@@ -75,6 +75,27 @@ function parseWeekHeader(line: string): { weekNumber: number; theme: string } | 
   return { weekNumber, theme };
 }
 
+function parsePhaseOrBlocHeader(line: string): { name: string; weeksRange: string } | null {
+  const cleaned = line
+    .replace(/^#{2,4}\s*/, "")
+    .replace(/^\*{1,2}|\*{1,2}$/g, "")
+    .replace(/^[\u{1F300}-\u{1FAFF}\u2600-\u27BF]+\s*/u, "")
+    .trim();
+
+  const match = cleaned.match(/^(Phase|Bloc)\s*(\d+)\s*[:\-–—]\s*(.+?)(?:\s*\(.*?(\d+)\s*[-–—àa]\s*(\d+).*?\))?\s*$/i);
+  if (!match) return null;
+
+  const kind = match[1];
+  const number = match[2];
+  const label = match[3].replace(/^\*{1,2}|\*{1,2}$/g, "").trim();
+  const weeksRange = match[4] && match[5] ? `${match[4]}-${match[5]}` : "";
+
+  return {
+    name: `${kind.charAt(0).toUpperCase() + kind.slice(1).toLowerCase()} ${number} : ${label}`,
+    weeksRange,
+  };
+}
+
 /**
  * Parse the full AI Markdown response into structured plan data
  */
@@ -196,27 +217,13 @@ export function parseAIPlan(markdown: string): ParsedPlan {
       }
     }
 
-    // Phase header: ## Phase N : Name (Semaines X-Y)
-    const phaseMatch = trimmed.match(/^##\s*Phase\s*(\d+)\s*[:\-–—]\s*(.+?)(?:\s*\(.*?(\d+)\s*[-–—à]\s*(\d+).*?\))?$/i);
-    if (phaseMatch) {
+    // Phase/Bloc header: supports variants with emoji/bold and multiple dash styles
+    const phaseOrBloc = parsePhaseOrBlocHeader(trimmed);
+    if (phaseOrBloc) {
       flushWeek();
       collectingCoachNotes = false;
-      currentPhase = `Phase ${phaseMatch[1]} : ${phaseMatch[2].trim()}`;
-      const weeksRange = phaseMatch[3] && phaseMatch[4] ? `${phaseMatch[3]}-${phaseMatch[4]}` : "";
-      phases.push({ name: currentPhase, weeks: weeksRange });
-      currentPhaseObjective = "";
-      currentVolumeTarget = "";
-      continue;
-    }
-
-    // Bloc header: ## Bloc N : Name (Semaines X-Y)
-    const blocMatch = trimmed.match(/^##\s*Bloc\s*(\d+)\s*[:\-–—]\s*(.+?)(?:\s*\(.*?[Ss]emaines?\s*(\d+)\s*[-–—àa]\s*(\d+).*?\))?$/i);
-    if (blocMatch) {
-      flushWeek();
-      collectingCoachNotes = false;
-      currentPhase = `Bloc ${blocMatch[1]} : ${blocMatch[2].trim()}`;
-      const weeksRange = blocMatch[3] && blocMatch[4] ? `${blocMatch[3]}-${blocMatch[4]}` : "";
-      phases.push({ name: currentPhase, weeks: weeksRange });
+      currentPhase = phaseOrBloc.name;
+      phases.push({ name: currentPhase, weeks: phaseOrBloc.weeksRange });
       currentPhaseObjective = "";
       currentVolumeTarget = "";
       continue;
