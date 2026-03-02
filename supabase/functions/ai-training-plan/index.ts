@@ -2139,12 +2139,87 @@ IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format ta
     }
 
     const totalWeeks = planConfig?.weeksAvailable || 12;
-    const CHUNK_SIZE = 8;
-    const needsChunking = !regenerateWeek && totalWeeks > 12;
+    // Use smaller chunks for triathlon (very verbose output with multi-session days)
+    const obj = (planConfig?.objective || "").toUpperCase();
+    const isVerbosePlan = ["IM", "703"].includes(obj);
+    const CHUNK_SIZE = isVerbosePlan ? 4 : 6;
+    const needsChunking = !regenerateWeek && totalWeeks > 10;
+
+    // Helper: call AI and stream response, return full text
+    async function generateAndStream(
+      prompt: string,
+      controller: ReadableStreamDefaultController,
+      encoder: TextEncoder,
+    ): Promise<string> {
+      const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: prompt },
+          ],
+          stream: true,
+          max_tokens: 65536,
+        }),
+      });
+
+      if (!resp.ok || !resp.body) {
+        const errText = await resp.text().catch(() => "Unknown error");
+        console.error("AI call error:", resp.status, errText);
+        return "";
+      }
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let text = "";
+      let buf = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+
+        let idx: number;
+        while ((idx = buf.indexOf("\n")) !== -1) {
+          let line = buf.slice(0, idx);
+          buf = buf.slice(idx + 1);
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+
+          if (!line.startsWith("data: ")) continue;
+          const json = line.slice(6).trim();
+          if (json === "[DONE]") continue;
+
+          try {
+            const p = JSON.parse(json);
+            const token = p.choices?.[0]?.delta?.content;
+            if (token) {
+              text += token;
+              controller.enqueue(encoder.encode(line + "\n\n"));
+            }
+          } catch {}
+        }
+      }
+      return text;
+    }
+
+    // Helper: extract which week numbers were generated in a chunk of text
+    function extractGeneratedWeekNumbers(text: string): number[] {
+      const nums: number[] = [];
+      const re = /#{2,4}\s*\*{0,2}\s*Semaine\s*(\d+)/gi;
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(text)) !== null) {
+        nums.push(parseInt(m[1], 10));
+      }
+      return [...new Set(nums)].sort((a, b) => a - b);
+    }
 
     if (needsChunking) {
       // === CHUNKED GENERATION for long plans ===
-      // Generate in sequential chunks, streaming each to the client
       const encoder = new TextEncoder();
       const stream = new ReadableStream({
         async start(controller) {
@@ -2158,22 +2233,26 @@ IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format ta
             for (let ci = 0; ci < chunks.length; ci++) {
               const chunk = chunks[ci];
               const isFirst = ci === 0;
-              
+              const expectedWeeks = Array.from(
+                { length: chunk.end - chunk.start + 1 },
+                (_, i) => chunk.start + i
+              );
+
               let chunkPrompt: string;
               if (isFirst) {
-                // First chunk: include full context + diagnostic + strategic recap
                 chunkPrompt = `${userPrompt}
 
 ⚠️ GÉNÉRATION PAR BLOC : Génère UNIQUEMENT les semaines ${chunk.start} à ${chunk.end} (sur ${totalWeeks} total).
 Pour ce premier bloc, inclus le Diagnostic TFCL™ et le Récapitulatif Stratégique complet.
-Génère ensuite les semaines ${chunk.start} à ${chunk.end} avec leurs tableaux complets.`;
+Génère ensuite les semaines ${chunk.start} à ${chunk.end} avec leurs tableaux complets.
+IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${expectedWeeks.join(", ")}). Ne t'arrête pas avant.`;
               } else {
-                // Subsequent chunks: pass summary of previous weeks for continuity
                 chunkPrompt = `${userPrompt}
 
 ⚠️ GÉNÉRATION PAR BLOC (suite) : Génère UNIQUEMENT les semaines ${chunk.start} à ${chunk.end} (sur ${totalWeeks} total).
-NE PAS répéter le diagnostic ni le récapitulatif stratégique.
-Continue directement avec les tableaux des semaines ${chunk.start} à ${chunk.end}.
+NE PAS répéter le diagnostic ni le récapitulatif stratégique. NE PAS ajouter d'introduction.
+Commence DIRECTEMENT par "### Semaine ${chunk.start}" et continue jusqu'à "### Semaine ${chunk.end}".
+Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines : ${expectedWeeks.map(w => `Semaine ${w}`).join(", ")}.
 
 Résumé des blocs précédents pour assurer la continuité :
 ${previousChunksSummary}
@@ -2181,71 +2260,49 @@ ${previousChunksSummary}
 Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.`;
               }
 
-              const chunkResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                  Authorization: `Bearer ${LOVABLE_API_KEY}`,
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  model: "google/gemini-3-flash-preview",
-                  messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: chunkPrompt },
-                  ],
-                  stream: true,
-                  max_tokens: 65536,
-                }),
-              });
+              // Generate chunk
+              const chunkText = await generateAndStream(chunkPrompt, controller, encoder);
 
-              if (!chunkResponse.ok || !chunkResponse.body) {
-                const errText = await chunkResponse.text().catch(() => "Unknown error");
-                console.error(`Chunk ${ci + 1} error:`, chunkResponse.status, errText);
-                // Send error event and stop
+              if (!chunkText) {
                 controller.enqueue(encoder.encode(`data: {"error":"Erreur génération bloc ${ci + 1}/${chunks.length}"}\n\n`));
                 break;
               }
 
-              // Stream this chunk's response through to client
-              const reader = chunkResponse.body.getReader();
-              const decoder = new TextDecoder();
-              let chunkText = "";
-              let buf = "";
+              // Verify which weeks were generated
+              const generatedWeeks = extractGeneratedWeekNumbers(chunkText);
+              const missingWeeks = expectedWeeks.filter(w => !generatedWeeks.includes(w));
 
-              while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                buf += decoder.decode(value, { stream: true });
-                
-                let idx: number;
-                while ((idx = buf.indexOf("\n")) !== -1) {
-                  let line = buf.slice(0, idx);
-                  buf = buf.slice(idx + 1);
-                  if (line.endsWith("\r")) line = line.slice(0, -1);
-                  
-                  if (!line.startsWith("data: ")) continue;
-                  const json = line.slice(6).trim();
-                  if (json === "[DONE]") continue; // Don't forward intermediate [DONE]
-                  
-                  try {
-                    const p = JSON.parse(json);
-                    const token = p.choices?.[0]?.delta?.content;
-                    if (token) {
-                      chunkText += token;
-                      // Forward the SSE event to client
-                      controller.enqueue(encoder.encode(line + "\n\n"));
-                    }
-                  } catch {}
+              // If weeks are missing, retry just the missing ones
+              if (missingWeeks.length > 0) {
+                console.log(`Chunk ${ci + 1}: missing weeks ${missingWeeks.join(",")}. Retrying...`);
+                const retryPrompt = `${userPrompt}
+
+⚠️ COMPLÉTION DE SEMAINES MANQUANTES : Génère UNIQUEMENT les semaines suivantes : ${missingWeeks.map(w => `Semaine ${w}`).join(", ")}.
+NE PAS répéter le diagnostic ni le récapitulatif. NE PAS ajouter d'introduction.
+Commence DIRECTEMENT par "### Semaine ${missingWeeks[0]}" et génère chaque semaine avec son tableau complet.
+
+Contexte des semaines déjà générées :
+${previousChunksSummary}
+${generatedWeeks.length > 0 ? `Semaines déjà générées dans ce bloc : ${generatedWeeks.join(", ")}` : ""}
+
+Assure la CONTINUITÉ de la progression.`;
+
+                const retryText = await generateAndStream(retryPrompt, controller, encoder);
+                if (retryText) {
+                  const retryWeeks = extractGeneratedWeekNumbers(retryText);
+                  const stillMissing = missingWeeks.filter(w => !retryWeeks.includes(w));
+                  if (stillMissing.length > 0) {
+                    console.warn(`Still missing weeks after retry: ${stillMissing.join(",")}`);
+                  }
                 }
               }
 
-              // Build summary of this chunk for next iteration
-              // Extract week themes/phases for continuity
-              const weekMatches = chunkText.match(/###\s*Semaine\s*\d+[^#]*/gi) || [];
+              // Build summary for next chunks
+              const weekMatches = chunkText.match(/#{2,4}\s*\*{0,2}\s*Semaine\s*\d+[^#]*/gi) || [];
               const summaryLines = weekMatches.map(w => {
                 const numMatch = w.match(/Semaine\s*(\d+)/i);
-                const themeMatch = w.match(/[—–:]\s*(.+?)[\n|]/);
-                return `S${numMatch?.[1] || "?"}: ${themeMatch?.[1]?.trim() || ""}`;
+                const themeMatch = w.match(/[—–:\-]\s*(.+?)[\n|]/);
+                return `S${numMatch?.[1] || "?"}: ${themeMatch?.[1]?.trim() || "entraînement progressif"}`;
               }).join(", ");
               previousChunksSummary += `Semaines ${chunk.start}-${chunk.end}: ${summaryLines || "Plan progressif standard"}\n`;
             }
