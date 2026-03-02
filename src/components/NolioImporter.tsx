@@ -23,7 +23,9 @@ import { parseNolioCurveCSV, mergeNolioCurveResults, NolioCurveResult, formatDur
 import { computeVLamaxBikeV2Enhanced, VLamaxBikeV2EnhancedResult, getVLamaxV2EnhancedCategory } from "@/lib/v2/vlamaxBikeV2Enhanced";
 import { computeVLamaxRunV2Enhanced, VLamaxRunV2EnhancedResult, getRunVLamaxCategory, getRunGlycolyticCategoryColor } from "@/lib/v2/vlamaxRunV2Enhanced";
 import { toast } from "sonner";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid, ReferenceLine } from "recharts";
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid, ReferenceLine, Legend } from "recharts";
+import { generateMaderPowerDurationCurve, buildOverlayData } from "@/lib/v2/maderPowerDurationCurve";
+import type { MaderProfile } from "@/lib/v2/maderMetabolicModel";
 
 export interface NolioImportResult {
   // Bike fields
@@ -48,6 +50,8 @@ interface NolioImporterProps {
   previousVLamax?: number | null;
   currentFtp?: number | null;
   currentWeight?: number | null;
+  currentVo2max?: number | null;
+  currentVlamax?: number | null;
   objectif?: string;
 }
 
@@ -58,7 +62,7 @@ interface ParsedFile {
   dataType: string;
 }
 
-export function NolioImporter({ onImport, variant = "inline", previousVLamax, currentFtp, currentWeight, objectif }: NolioImporterProps) {
+export function NolioImporter({ onImport, variant = "inline", previousVLamax, currentFtp, currentWeight, currentVo2max, currentVlamax, objectif }: NolioImporterProps) {
   const [open, setOpen] = useState(false);
   const [parsedFiles, setParsedFiles] = useState<ParsedFile[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -113,6 +117,41 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
     const pct = (diff / previousVLamax) * 100;
     return { diff, pct, direction: diff > 0.005 ? "up" : diff < -0.005 ? "down" : "stable" as "up" | "down" | "stable" };
   }, [activeVlamax, previousVLamax]);
+
+  // Mader modeled power curve overlay
+  const overlayData = useMemo(() => {
+    if (!merged || merged.sport !== "bike") return null;
+    const vo2 = currentVo2max;
+    const vla = vlamaxResult?.value ?? currentVlamax;
+    const wt = currentWeight ?? 70;
+    if (!vo2 || vo2 <= 0 || !vla || vla <= 0) return null;
+    const nolioWattsCurve = merged.curve.filter(p => 
+      merged.records.some(r => r.durationSec === p.durationSec && r.unit === "W")
+    );
+    if (nolioWattsCurve.length < 3) return null;
+    const profile: MaderProfile = { vo2max: vo2, vlamax: vla, weight: wt };
+    const maderCurve = generateMaderPowerDurationCurve(profile, nolioWattsCurve.map(p => p.durationSec));
+    const data = buildOverlayData(nolioWattsCurve, maderCurve.points);
+    return { data, cp: maderCurve.cp, wPrime: maderCurve.wPrime, pMax: maderCurve.pMax };
+  }, [merged, currentVo2max, currentVlamax, currentWeight, vlamaxResult]);
+
+  const runOverlayData = useMemo(() => {
+    if (!merged || merged.sport !== "run") return null;
+    const vo2 = currentVo2max;
+    const vla = runVlamaxResult?.value ?? currentVlamax;
+    const wt = currentWeight ?? 70;
+    if (!vo2 || vo2 <= 0 || !vla || vla <= 0) return null;
+    const nolioWattsCurve = merged.curve.filter(p => 
+      merged.records.some(r => r.durationSec === p.durationSec && r.unit === "W")
+    );
+    if (nolioWattsCurve.length < 3) return null;
+    const profile: MaderProfile = { vo2max: vo2, vlamax: vla, weight: wt, efficiency: 0.25 };
+    const maderCurve = generateMaderPowerDurationCurve(profile, nolioWattsCurve.map(p => p.durationSec));
+    const data = buildOverlayData(nolioWattsCurve, maderCurve.points);
+    return { data, cp: maderCurve.cp, wPrime: maderCurve.wPrime, pMax: maderCurve.pMax };
+  }, [merged, currentVo2max, currentVlamax, currentWeight, runVlamaxResult]);
+
+  const activeOverlay = overlayData ?? runOverlayData;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -354,6 +393,60 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
+                </div>
+              )}
+
+              {/* === OVERLAY: Nolio vs Mader Model === */}
+              {activeOverlay && activeOverlay.data.length >= 3 && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs font-medium text-muted-foreground">🔬 Terrain vs Modèle Mader</p>
+                    <Badge variant="outline" className="text-[10px]">CP={activeOverlay.cp}W · W'={activeOverlay.wPrime}kJ</Badge>
+                  </div>
+                  <div className="h-48 w-full rounded-lg border-2 border-primary/20 bg-background/50 p-2">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={activeOverlay.data}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis dataKey="label" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} interval="preserveStartEnd" />
+                        <YAxis tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} width={50} />
+                        <RechartsTooltip
+                          contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: 11 }}
+                          formatter={(v: number | null, name: string) => {
+                            if (v == null) return ["—", name];
+                            return [`${v} W`, name === "nolio" ? "Terrain (Nolio)" : "Modèle (Mader)"];
+                          }}
+                          labelFormatter={(label) => `Durée: ${label}`}
+                        />
+                        <Legend wrapperStyle={{ fontSize: 10 }} formatter={(v) => v === "nolio" ? "Terrain (Nolio)" : "Modèle (Mader)"} />
+                        <ReferenceLine y={activeOverlay.cp} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 4" label={{ value: `CP ${activeOverlay.cp}W`, position: "right", fill: "hsl(var(--muted-foreground))", fontSize: 9 }} />
+                        <Line type="monotone" dataKey="nolio" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={{ r: 3, fill: "hsl(var(--primary))" }} connectNulls={false} />
+                        <Line type="monotone" dataKey="mader" stroke="hsl(var(--destructive))" strokeWidth={2} strokeDasharray="6 3" dot={{ r: 2.5, fill: "hsl(var(--destructive))" }} connectNulls={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  {/* Delta table */}
+                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-1">
+                    {activeOverlay.data
+                      .filter(p => p.nolio != null && p.mader != null)
+                      .map((p, i) => (
+                        <div key={i} className="p-1.5 rounded border border-border bg-background/70 text-center">
+                          <p className="text-[9px] text-muted-foreground">{p.label}</p>
+                          <p className={`text-xs font-mono font-bold ${
+                            p.delta != null && p.delta > 0 ? "text-emerald-600 dark:text-emerald-400" : 
+                            p.delta != null && p.delta < -10 ? "text-destructive" : "text-muted-foreground"
+                          }`}>
+                            {p.delta != null ? `${p.delta > 0 ? "+" : ""}${p.delta}W` : "—"}
+                          </p>
+                          <p className="text-[9px] text-muted-foreground">
+                            {p.deltaPct != null ? `${p.deltaPct > 0 ? "+" : ""}${p.deltaPct.toFixed(0)}%` : ""}
+                          </p>
+                        </div>
+                      ))
+                    }
+                  </div>
+                  <p className="text-[10px] text-muted-foreground italic">
+                    Δ positif = terrain au-dessus du modèle (sous-estimation VLamax ou meilleure efficacité). Δ négatif = terrain en-dessous (fatigue, conditions, ou surestimation).
+                  </p>
                 </div>
               )}
 
