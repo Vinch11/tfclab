@@ -388,6 +388,8 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
               previousVLamax={latestSnap?.vlamax ?? null}
               currentFtp={latestSnap?.ftp ?? null}
               currentWeight={latestSnap?.weight_kg ?? null}
+              currentVo2max={latestSnap?.vo2max ?? null}
+              currentVlamax={latestSnap?.vlamax ?? null}
               objectif={athleteGoal}
             />
           </div>
