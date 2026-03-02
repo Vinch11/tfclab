@@ -42,6 +42,7 @@ export interface NolioImportResult {
   vma?: string;
   running_power_max?: string;
   running_power_threshold?: string;
+  vlamax_run?: string; // VLamax CAP calculée
   // Meta
   date?: string;
   coach_notes?: string;
@@ -280,6 +281,9 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
       if (runEx.run_power_max) notes.push(`Pmax run: ${runEx.run_power_max}W`);
       if (runEx.run_power_threshold) notes.push(`Pseuil run: ${runEx.run_power_threshold}W`);
       if (runVlamaxResult) {
+        // Sauvegarder la VLamax CAP calculée (affinée si disponible, sinon Score G)
+        const runVlamaxValue = runGlycoRefinement?.vlamaxRefined ?? runVlamaxResult.value;
+        values.vlamax_run = runVlamaxValue.toFixed(2);
         notes.push(`🏃 VLamax CAP: ${runVlamaxResult.value.toFixed(2)} [${runVlamaxResult.rangeMin.toFixed(2)}–${runVlamaxResult.rangeMax.toFixed(2)}]`);
         if (runVlamaxResult.runGlycolyticProfile) {
           notes.push(`Profil CAP: ${runVlamaxResult.runGlycolyticProfile.category}`);
