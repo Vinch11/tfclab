@@ -20,6 +20,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Calendar, Pin, HelpCircle, Beaker, Wand2, Bike, PersonStanding } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { LabImportDialog } from "@/components/LabImportDialog";
+import { NolioImporter, NolioImportResult } from "@/components/NolioImporter";
 import { DbSnapshot, useCloudData } from "@/hooks/useCloudData";
 import { deriveMetabolicProfile, generateTwoForCoachingInsights, calculateDelta, formatValue } from "@/types/snapshot";
 import { computeTTEEffectif, getSourceLabel, formatTTEDisplay } from "@/lib/tteEffectif";
@@ -358,8 +359,29 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     setIsEditOpen(true);
   };
 
+  const handleNolioImport = (values: NolioImportResult) => {
+    setFormData(prev => ({
+      ...prev,
+      ...(values.date && { date: values.date }),
+      ...(values.pmax_5s && { pmax_5s: values.pmax_5s }),
+      ...(values.p30s_w && { p30s_w: values.p30s_w }),
+      ...(values.p60s_w && { p60s_w: values.p60s_w }),
+      ...(values.map5min_w && { map5min_w: values.map5min_w }),
+      ...(values.ftp && { ftp: values.ftp }),
+      ...(values.pace_threshold && { pace_threshold: values.pace_threshold }),
+      ...(values.coach_notes && { coach_notes: prev.coach_notes ? `${prev.coach_notes}\n${values.coach_notes}` : values.coach_notes }),
+    }));
+  };
+
   const renderForm = () => (
     <div className="grid gap-4 max-h-[60vh] overflow-y-auto pr-2">
+      {/* Nolio Import Button */}
+      <div className="flex items-center gap-2 p-3 rounded-lg border border-dashed border-primary/30 bg-primary/5">
+        <TrendingUp className="w-4 h-4 text-primary" />
+        <span className="text-sm text-muted-foreground flex-1">Importer depuis Nolio</span>
+        <NolioImporter onImport={handleNolioImport} variant="inline" />
+      </div>
+
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="date">Date</Label>
