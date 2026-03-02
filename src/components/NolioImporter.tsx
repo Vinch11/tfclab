@@ -18,7 +18,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Upload, FileText, CheckCircle, AlertCircle, TrendingUp, TrendingDown, Minus, Bike, PersonStanding, Zap, Plus, X } from "lucide-react";
+import { Upload, FileText, CheckCircle, AlertCircle, TrendingUp, TrendingDown, Minus, Bike, PersonStanding, Zap, Plus, X, FlaskConical } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { parseNolioCurveCSV, mergeNolioCurveResultsMultiSport, NolioCurveResult, formatDuration, type MultiSportMergeResult } from "@/lib/nolioCurveParser";
 import { computeVLamaxBikeV2Enhanced, VLamaxBikeV2EnhancedResult, getVLamaxV2EnhancedCategory } from "@/lib/v2/vlamaxBikeV2Enhanced";
 import { computeVLamaxRunV2Enhanced, VLamaxRunV2EnhancedResult, getRunVLamaxCategory, getRunGlycolyticCategoryColor } from "@/lib/v2/vlamaxRunV2Enhanced";
@@ -43,6 +44,8 @@ export interface NolioImportResult {
   // Meta
   date?: string;
   coach_notes?: string;
+  is_semaine_test?: boolean;
+  protocol_quality?: number;
 }
 
 interface NolioImporterProps {
@@ -66,6 +69,7 @@ interface ParsedFile {
 export function NolioImporter({ onImport, variant = "inline", previousVLamax, currentFtp, currentWeight, currentVo2max, currentVlamax, objectif }: NolioImporterProps) {
   const [open, setOpen] = useState(false);
   const [parsedFiles, setParsedFiles] = useState<ParsedFile[]>([]);
+  const [isSemaineTest, setIsSemaineTest] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Multi-sport merge from all files
@@ -239,7 +243,7 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
     const values: NolioImportResult = { date: latestDate };
     const isMulti = multiSport?.isMultiSport ?? false;
     const sportLabel = isMulti ? "vélo + course" : (merged.sport === "bike" ? "vélo" : "course");
-    const notes: string[] = [`Import Nolio (${parsedFiles.length} fichier(s), ${sportLabel})`];
+    const notes: string[] = [`Import Nolio (${parsedFiles.length} fichier(s), ${sportLabel})${isSemaineTest ? " 🧪 SEMAINE TEST" : ""}`];
 
     // === BIKE DATA ===
     const bikeEx = bikeResult?.extracted ?? (merged.sport === "bike" ? merged.extracted : null);
@@ -301,12 +305,15 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
       notes.push("Records: " + keyPoints.map(p => `${formatDuration(p.durationSec)}=${p.value}${merged.records[0]?.unit === "W" ? "W" : ""}`).join(", "));
     }
     values.coach_notes = notes.join(" | ");
+    values.is_semaine_test = isSemaineTest;
+    values.protocol_quality = isSemaineTest ? 0.95 : 0.65;
 
     onImport(values);
-    toast.success(`${merged.records.length} records importés depuis ${parsedFiles.length} fichier(s)${isMulti ? " (multi-sport)" : ""}`);
+    toast.success(`${merged.records.length} records importés depuis ${parsedFiles.length} fichier(s)${isMulti ? " (multi-sport)" : ""}${isSemaineTest ? " (semaine test 🧪)" : ""}`);
 
     setOpen(false);
     setParsedFiles([]);
+    setIsSemaineTest(false);
   };
 
   const isMulti = multiSport?.isMultiSport ?? false;
@@ -399,6 +406,26 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
               )}
             </div>
           </div>
+
+          {/* Semaine test toggle */}
+          {parsedFiles.length > 0 && (
+            <div className="flex items-center gap-3 p-3 rounded-lg border border-primary/30 bg-primary/5">
+              <Checkbox
+                id="semaine-test"
+                checked={isSemaineTest}
+                onCheckedChange={(v) => setIsSemaineTest(!!v)}
+              />
+              <label htmlFor="semaine-test" className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
+                <FlaskConical className="w-4 h-4 text-primary" />
+                Semaine test
+              </label>
+              <span className="text-xs text-muted-foreground ml-auto">
+                {isSemaineTest
+                  ? "✅ Confiance & précision boostées (données contrôlées)"
+                  : "Records issus d'entraînements classiques"}
+              </span>
+            </div>
+          )}
 
           {/* Loaded files list */}
           {parsedFiles.length > 0 && (
