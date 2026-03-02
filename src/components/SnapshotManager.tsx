@@ -369,6 +369,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       ...(values.map5min_w && { map5min_w: values.map5min_w }),
       ...(values.ftp && { ftp: values.ftp }),
       ...(values.pace_threshold && { pace_threshold: values.pace_threshold }),
+      ...(values.vlamax_run && { vlamax_run: values.vlamax_run }),
       ...(values.coach_notes && { coach_notes: prev.coach_notes ? `${prev.coach_notes}\n${values.coach_notes}` : values.coach_notes }),
     }));
   };
