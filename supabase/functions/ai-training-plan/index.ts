@@ -1573,6 +1573,13 @@ function buildUserPrompt(data: any, config: any): string {
   if (config.weeksAvailable) lines.push(`- **Semaines disponibles :** ${config.weeksAvailable}`);
   if (config.weeklyHours) lines.push(`- **Heures dispo/semaine :** ${config.weeklyHours}h`);
   if (config.sessionsPerWeek) lines.push(`- **Séances/semaine max :** ${config.sessionsPerWeek}`);
+  if (config.strengthSessionsPerWeek !== undefined && config.strengthSessionsPerWeek !== null) {
+    if (config.strengthSessionsPerWeek === 0) {
+      lines.push(`- **⚠️ Renforcement musculaire : 0 séance/sem — NE PAS inclure de séance de renforcement/musculation/PPG dans le plan.**`);
+    } else {
+      lines.push(`- **🏋️ Renforcement musculaire : ${config.strengthSessionsPerWeek} séance(s)/sem — Inclure EXACTEMENT ${config.strengthSessionsPerWeek} séance(s) de renforcement/PPG par semaine dans le plan.**`);
+    }
+  }
   if (config.maxSessionsPerDay) {
     const maxLabel = config.maxSessionsPerDay === 1 ? "1 séance/jour max (PAS de doubles)" :
                      config.maxSessionsPerDay === 2 ? "2 séances/jour max (doubles autorisées, PAS de triples)" :
