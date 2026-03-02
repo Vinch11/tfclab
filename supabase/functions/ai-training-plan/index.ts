@@ -1708,6 +1708,336 @@ La variation quotidienne de la charge (Daily Undulating Periodization) prévient
 - Si Monotonie > 2.0 → trop uniforme → varier les intensités et durées
 - Plan de qualité : chaque semaine doit avoir des jours très différents (RPE 2 à RPE 8-9)
 
+## TAPERING — LA SCIENCE DE L'AFFÛTAGE (Mujika & Padilla 2003, Bosquet 2007, Pyne 2009)
+
+### Modèles de Taper Scientifiquement Validés
+Le taper est la phase la PLUS CRITIQUE du plan. Un bon taper = +3 à +6% de performance. Un mauvais taper = performance gâchée.
+
+**4 modèles de taper :**
+| Modèle | Description | Gain estimé | Quand l'utiliser |
+|--------|-------------|-------------|-----------------|
+| Exponentiel rapide (τ=4-5j) | Réduction volume rapide, maintien intensité | +3-6% | IM, 70.3, Marathon — MODÈLE DE RÉFÉRENCE TFCL™ |
+| Exponentiel lent (τ=7-8j) | Réduction plus graduelle | +2-4% | Ultra-trail, athlètes anxieux à la coupure |
+| Linéaire | Réduction uniforme volume | +1-3% | Semi, 10K, 5K (taper court) |
+| Step (palier) | Réduction brutale en 1 step | +0-2% | NON RECOMMANDÉ (risque déconditionnement) |
+
+**Protocole Taper Exponentiel Mujika (RÉFÉRENCE TFCL™) :**
+- **Volume** : réduction de 40-60% sur 8-14j (IM) ou 7-10j (Marathon) ou 5-7j (Semi/10K)
+  - Jour 1 taper : 80% volume habituel
+  - Mi-taper : 50-60%
+  - Derniers 3j : 30-40%
+- **Intensité** : MAINTENUE à 100% — c'est la clé. Réduire le volume, PAS l'intensité
+  - Rappels courts @race-pace : 3-5min blocs, 2-3x dans la semaine
+  - Rappels @VMA/seuil : 1 séance rappel de 10-15min d'effort effectif
+- **Fréquence** : réduction de 20% max (si 6 séances/sem → min 5). Ne PAS couper des jours entiers
+- **Durée optimale du taper** :
+  - 5K/10K : 5-7 jours
+  - Semi : 7-10 jours
+  - Marathon : 10-14 jours (voire 21j si volume précédent >150km/sem)
+  - 70.3 : 10-12 jours
+  - IM : 14-21 jours
+  - Ultra-trail : 14-21 jours
+
+**Erreurs fatales de taper :**
+- ❌ Couper l'intensité (le corps perd la "mémoire" de vitesse)
+- ❌ Taper trop long (>3 sem pour un marathon = déconditionnement)
+- ❌ Taper trop court (<5j pour un IM = fatigue résiduelle)
+- ❌ Ajouter une SL de dernière minute "pour se rassurer" → dernière SL à J-10 minimum pour IM/Marathon
+- ❌ Augmenter le volume de renfo pendant le taper
+- ❌ Tester du nouveau matériel/nutrition pendant le taper
+
+### Supercompensation (Viru & Viru 2000, Zatsiorsky 2006)
+Le taper exploite le phénomène de supercompensation : après une phase de charge élevée, la réduction de charge provoque un rebond de performance SUPÉRIEUR au niveau pré-charge.
+- **Fenêtre optimale** : 8-14j après le début de la réduction pour les systèmes aérobies
+- **Séquence critique** : 3 sem charge élevée → 1 sem step-back → 1-2 sem taper → COURSE = pic de forme
+- Si la dernière phase de charge était insuffisante, le taper ne produit PAS de supercompensation → la phase Build/Spécifique doit être suffisamment chargée
+
+## CRITICAL POWER / W' — MODÈLE DE PACING AVANCÉ (Jones 2019, Skiba 2012, Vanhatalo 2011)
+
+### Le Modèle CP/W'
+Le modèle Critical Power décompose la performance en 2 composantes :
+- **CP (Critical Power)** : puissance soutenable indéfiniment sans accumulation de fatigue (≈ MLSS/FTP). Mesurée en watts (vélo) ou en allure (CP running ≈ allure 60min)
+- **W' (W prime)** : réserve anaérobie finie en kilojoules (kJ). Épuisée quand l'effort dépasse CP. Se reconstitue quand l'effort est sous CP
+
+### Application au Pacing Course
+| Distance | Stratégie CP/W' | Détails |
+|----------|-----------------|---------|
+| 5K | Dépenser ~60-70% W' de manière contrôlée | Départ @103-105% CP, derniers 1.5km : utiliser W' restant |
+| 10K | Rester proche de CP, dépenser ~40-50% W' | Even pace @100-102% CP, kick final 600m |
+| Semi | Effort @96-98% CP, W' quasi intact | Neg split : 1ère moitié @96% CP, 2ème @99-100% CP |
+| Marathon | Effort @85-90% CP, W' intact | Even split strict. JAMAIS au-dessus de CP sauf sprint final 200m |
+| IM vélo | @75-82% CP (≈ 70-78% FTP), W' intact | Discipline totale. W' = réserve pour la CAP |
+| 70.3 vélo | @85-92% CP (≈ 80-88% FTP) | Plus agressif qu'IM mais contrôlé |
+
+### Pacing Negative Split — La Référence Mondiale
+**Pourquoi le negative split est supérieur :**
+1. Départ conservateur → glycogène épargné → finish plus fort
+2. Température corporelle monte progressivement → pas de surchauffe précoce
+3. Psychologiquement puissant : dépasser des concurrents en 2ème moitié
+4. Kipchoge, Kiptum, Bekele : TOUS utilisent le neg split ou even split
+
+**Implémentation dans le plan :**
+- Phase Build : SL avec derniers 30% @allure course (entraîner le neg split)
+- Phase Spécifique : simulations complètes avec neg split (marge -3-5s/km début vs fin)
+- Consignes course : "Premiers 5km = allure cible +5s/km. Km 5-30 = allure cible. Km 30-42 = allure cible -3-5s/km si les sensations le permettent."
+
+## ATHLÈTE FÉMININE — PÉRIODISATION HORMONALE (Sims 2016, McNulty 2020, Bruinvels 2022, Elliott-Sale 2020)
+
+### Le Cycle Menstruel et la Performance
+**Phase folliculaire (J1-J14, règles → ovulation) :**
+- Oestrogènes ↑ progressivement → capacité d'entraînement optimale
+- **Fenêtre de haute tolérance** : J5-J14 = meilleur moment pour charge élevée, intensité, force max
+- Récupération plus rapide, synthèse protéique améliorée
+- Capacité VO2max et seuil anaérobie = peak
+- **Prescription** : planifier les séances clés les plus exigeantes (VO2max, force max, SL longue)
+
+**Phase ovulatoire (J12-J16) :**
+- Pic d'oestrogènes → laxité ligamentaire ↑ → risque blessure LCA ×3-6 (Hewett 2007)
+- **Prescription** : prudence sur la pliométrie et les changements de direction. Renfo stabilisateur
+
+**Phase lutéale (J15-J28) :**
+- Progestérone ↑ → température corporelle ↑ 0.3-0.5°C, FC ↑ 5-10bpm, ventilation ↑
+- Utilisation glycogène ↑ (besoin carbs ↑ +200-300kcal/j)
+- Rétention eau, symptômes PMS possibles, récupération ralentie
+- **Prescription J15-J21 (lutéale moyenne)** : maintenir le volume mais réduire l'intensité de 5-10%. Z2 prioritaire
+- **Prescription J22-J28 (lutéale tardive/PMS)** : décharge naturelle. Réduire volume -20-30%. Yoga, mobilité, Z1 active
+- **JAMAIS de test de performance en phase lutéale** → résultats faussement bas
+
+### Adaptation du Plan pour Athlètes Féminines
+**Si le cycle est connu (app de suivi) :**
+- Séances clés #1 et #2 = phase folliculaire (J5-J14)
+- Phase lutéale = volume Z2 + récupération + renfo léger
+- Décharge = calquer sur la phase pré-menstruelle (J25-J28)
+- **Micro-cycle de 28j** au lieu de 7j linéaire = adaptation optimale
+
+**Si le cycle n'est pas connu :**
+- Appliquer la règle standard mais mentionner dans les consignes coach :
+  "Si vous êtes en phase lutéale (post-ovulation), réduisez l'intensité de 5-10% et augmentez les glucides."
+
+**Si contraception hormonale (pilule, implant) :**
+- Le cycle hormonal est supprimé → périodisation hormonale non applicable
+- Appliquer le plan standard
+
+### RED-S (Relative Energy Deficiency in Sport) — Mountjoy 2023
+- **Red flags** : aménorrhée >3 mois, fractures de stress, fatigue chronique, perte de poids involontaire, bradycardie
+- **Si suspecté** : réduire volume de 30%, ARRÊTER le Train Low, augmenter apport calorique +300-500kcal/j
+- **JAMAIS de Train Low pour une athlète à risque RED-S**
+- Mentionner dans les consignes coach si le profil est féminin et volume élevé
+
+## HRV-GUIDED TRAINING — ENTRAÎNEMENT PILOTÉ PAR LA VARIABILITÉ CARDIAQUE (Plews 2013, 2017, Kiviniemi 2007)
+
+### Principe
+Le HRV (Heart Rate Variability) mesure l'état du système nerveux autonome. Un HRV bas = fatigue accumulée, stress, récupération insuffisante. Un HRV élevé = système parasympathique dominant = prêt pour l'intensité.
+
+### Protocole HRV-Guided (Plews & Laursen)
+- **Mesure quotidienne** : au réveil, couché, 1-2min avec app (HRV4Training, Elite HRV, Oura)
+- **Baseline** : moyenne mobile 7 jours = référence. Variabilité normale = ±0.5 CV (Coefficient of Variation)
+- **Décisions entraînement :**
+  - HRV normal (dans la bande 0.5 CV) → suivre le plan prévu
+  - HRV bas (< baseline - 0.5 CV) pendant 1 jour → plan prévu mais RPE surveillance
+  - HRV bas pendant 2 jours consécutifs → passer en Z2 uniquement
+  - HRV bas pendant 3+ jours → repos complet ou mobilité uniquement
+  - HRV élevé (> baseline + 0.5 CV) → journée idéale pour séance clé haute intensité
+
+### Tendance HRV et Périodisation
+- **HRV en tendance baissière sur 7j** = charge cumulative trop élevée → anticiper la décharge
+- **HRV en tendance haussière** = l'athlète absorbe bien la charge → possible de maintenir ou augmenter
+- **HRV plat avec fatigue subjective** = dissociation → prioriser le ressenti subjectif
+
+### Intégration dans le Plan TFCL™
+- Mentionner dans les consignes coach des semaines de charge élevée :
+  "Si HRV < baseline depuis 2 jours : remplacer la séance clé par du Z2 récupération. Reporter la séance clé de 24h."
+- Phase Taper : HRV doit remonter. Si HRV ne remonte pas pendant le taper → taper insuffisant → prolonger de 2-3j
+
+## INTERFÉRENCE CONCURRENT TRAINING — Force × Endurance (Hickson 1980, Doma 2015, Fyfe 2014, Murach 2016)
+
+### Le Problème
+L'entraînement simultané de force (mTOR pathway) et d'endurance (AMPK pathway) crée une interférence moléculaire. L'AMPK activée par l'endurance INHIBE mTOR → réponse hypertrophique/force réduite.
+
+### Règles Anti-Interférence (Applicables dans le plan)
+1. **Séquençage intra-journée** :
+   - Force MATIN → Endurance SOIR (6-8h entre les deux) = OPTIMAL
+   - Endurance MATIN → Force SOIR = interférence modérée (acceptable si pas d'alternative)
+   - Force + Endurance <3h d'écart = interférence MAXIMALE → ÉVITER
+2. **Séquençage intra-semaine** :
+   - JAMAIS force max le lendemain d'une séance VO2max (fatigue SNC cumulative)
+   - Force max le lendemain d'un jour Z2 = OK
+   - Force max le lendemain d'un jour repos = OPTIMAL
+3. **Nutrition anti-interférence** :
+   - 25-30g protéines + 40g glucides dans les 30min post-force (maximiser mTOR)
+   - Si séance endurance suit dans <6h : ajouter 1g/kg glucides immédiatement post-force
+4. **Type de force selon la phase** :
+   - Phase Base : force max (4-6 reps @80-90% 1RM) → 2x/sem
+   - Phase Build : force explosive (3-5 reps @70-80% 1RM, tempo rapide) → 2x/sem
+   - Phase Spécifique : maintien (2-3 séries, mêmes charges, fréquence réduite 1x/sem)
+   - Phase Taper : arrêt force max, 1 séance activation légère/sem
+
+### Rate of Force Development (RFD) — Aagaard 2010
+- Le RFD (vitesse de développement de la force) est plus important que la force max pour l'économie de course
+- Entraîner le RFD : mouvements explosifs (squat jump, box jump, bounds) + charges modérées accélérées
+- Bénéfice : -5% coût énergétique par stride si RFD amélioré → marathon plus rapide à VO2max égale
+
+## IMMUNITÉ & CHARGE D'ENTRAÎNEMENT — Le Modèle J-Curve (Nieman 1994, Walsh 2011, Simpson 2020)
+
+### Le Concept
+- **Sédentaire** : risque infection = modéré
+- **Exercice modéré régulier** : risque infection = RÉDUIT (-40-50%)
+- **Exercice intense/volume élevé** : risque infection = AUGMENTÉ (+100-300%) = la "J-curve"
+- **Fenêtre ouverte** (open window) : 3-72h post-exercice intense → immunodépression transitoire
+
+### Règles Immunitaires pour le Plan
+1. **Semaines de charge >90% du peak** : risque infectieux élevé
+   - Consigne coach : "Semaine de charge haute. Hygiène rigoureuse, sommeil 8h+, vitamine D 2000UI/j, éviter contact malades"
+2. **Post-compétition/simulation** : fenêtre immunitaire ouverte 24-72h
+   - Consigne : "Récupération immunitaire : pas d'entraînement intense pendant 48-72h post-simulation"
+3. **Semaine pré-course** : éviter tout stress immunitaire
+   - Éviter foules, transports longs, manque de sommeil, nouveau régime alimentaire
+4. **Périodes à risque dans le plan** :
+   - Transition Build → Spécifique (charge maximum) : 1 semaine décharge obligatoire
+   - Semaine -3 (dernière grosse semaine avant taper) : mentionner le risque
+
+### Supplémentation Evidence-Based (Walsh 2019)
+- Vitamine D : 1000-2000 UI/j si déficient (>40% des athlètes en Europe)
+- Vitamine C : 200-1000mg/j pendant les blocs de charge (pas en continu)
+- Probiotiques : souches Lactobacillus pendant les phases de volume élevé
+- **NON recommandé** : antioxydants hautes doses (interfèrent avec adaptations à l'entraînement)
+
+## PACING AVANCÉ & RACE EXECUTION (Abbiss & Laursen 2008, Roelands 2013, Tucker & Noakes 2009)
+
+### Stratégies de Pacing par Distance
+| Distance | Stratégie optimale | Détails |
+|----------|-------------------|---------|
+| 5K | Reverse-J | Départ rapide 200m, stabiliser, kick 600m. Pas d'even pace (trop conservateur) |
+| 10K | Slight negative | 1ère moitié @101% allure cible, 2ème @99%. Tolérance ±3s/km |
+| Semi | Negative split | 1ère moitié @allure cible +3-5s/km, 2ème moitié @allure cible -2-3s/km |
+| Marathon | Even → Negative | Km 1-30 = allure cible stricte. Km 30-42 = si sensations OK, accélérer progressivement |
+| IM | Conservative start | Nat @85-90% effort max. Vélo @75-80% FTP (DISCIPLINE). CAP = neg split |
+| 70.3 | Moderate aggressive | Nat @90% effort. Vélo @82-88% FTP. CAP = neg split |
+| Ultra-trail | Ultra-conservative | Premiers 30% = retenue maximale. Marche en côte dès le début. Accélérer après mi-course SI tout va bien |
+
+### Le "Central Governor" (Noakes 2012)
+Le cerveau régule inconsciemment l'effort pour protéger l'organisme. Implication :
+- L'athlète a TOUJOURS une réserve (le "sprint final" le prouve)
+- Entraîner le cerveau à tolérer l'inconfort → les séances seuil long et SL progressive sont des entraînements MENTAUX
+- Stratégie course : s'auto-évaluer à chaque 5km. Si RPE < cible → accélérer légèrement. Si RPE > cible → maintenir (NE PAS ralentir sauf si RPE 10/10)
+
+### Gestion des Conditions Météo (Ely 2007, Périard 2021)
+| Température | Ajustement allure | Ajustement hydratation |
+|-------------|-------------------|----------------------|
+| <10°C (froid) | +0-2s/km (optimal pour marathon) | 400-600mL/h |
+| 10-18°C | Allure cible standard | 500-700mL/h |
+| 18-25°C | Allure cible -3-5s/km | 700-900mL/h + sodium |
+| 25-30°C | Allure cible -8-12s/km | 800-1000mL/h + glace |
+| >30°C | Allure cible -15-20s/km, objectif survie | 1000-1200mL/h + refroidissement actif |
+
+Intégrer ces tables dans les consignes de la Race Week : "Consultez la météo 48h avant. Si >25°C, réduire l'ambition d'allure de 8-12s/km."
+
+### Plan B Course (OBLIGATOIRE en Phase Taper)
+Tout plan TFCL™ de qualité inclut un **Plan B** dans les consignes de la dernière semaine :
+- Plan A : conditions optimales, allure cible, objectif temps
+- Plan B : chaleur / vent / pluie / mauvaises sensations → -5% allure cible, objectif "bien courir"
+- Plan C : problème médical / GI issues / blessure → objectif "terminer", marche OK, abandon si douleur aiguë
+
+## PSYCHOLOGICAL PERIODIZATION — Périodisation Mentale (Birrer & Morgan 2010, Brick 2016, McCormick 2019)
+
+### Le Coût Cognitif de l'Entraînement
+L'entraînement a un coût MENTAL en plus du coût physique. La fatigue mentale ↓ performance de 2-5% (Marcora 2009).
+
+### Périodisation des Stratégies Mentales
+| Phase | Focus Mental | Outils |
+|-------|-------------|--------|
+| Base | Motivation intrinsèque, plaisir, connexion au "pourquoi" | Journal d'entraînement, objectifs intermédiaires |
+| Build | Résilience, gestion de l'inconfort | Self-talk positif pendant les séances seuil ("fluide", "patient", "relâché") |
+| Spécifique | Visualisation, simulation mentale | Visualisation pré-séance 5min (se voir exécuter la course), dress rehearsal |
+| Taper | Confiance, gestion de l'anxiété pré-compétition | Revue des accomplissements, "trust the training", routines pré-course |
+
+### Intégration dans les Consignes Coach
+- **Chaque séance clé** : ajouter un focus mental ("Focus : rester relâché dans les derniers blocs")
+- **SL simulation** : inclure consigne mentale ("Visualiser le parcours de course pendant les derniers 10km")
+- **Race Week** : consigne mentale quotidienne ("J-3 : lister 3 raisons pour lesquelles vous êtes prêt")
+
+### Gestion du "Mental Dark Spot" en Ultra/Marathon
+- Km 30-35 marathon (le "mur") = crise physique + mentale
+- Km 60-80% ultra = point bas psychologique typique
+- **Stratégie** : association (focus technique, cadence, respiration) en 1ère moitié → dissociation (musique mentale, comptage, visualisation) quand la douleur arrive
+- Entraîner cette transition en séances SL spécifiques : "À mi-parcours, basculez du focus technique au focus dissociatif"
+
+## LACTATE DYNAMICS AVANCÉES — Au-delà du Seuil (Brooks 2018, San-Millán 2023, Mader 2003)
+
+### Le Lactate Shuttle (Brooks)
+Le lactate n'est PAS un déchet. C'est un carburant inter-organes :
+- Les fibres rapides (type II) PRODUISENT du lactate → les fibres lentes (type I) le CONSOMMENT comme carburant
+- Un athlète endurant = meilleur "recycler" de lactate → seuil plus élevé
+- Entraîner le shuttle = entraîner la capacité de clearance : séances Z2 longues + seuil long
+
+### Deux Seuils (San-Millán & Brooks 2018)
+| Seuil | Lactate | Description | Zone TFCL |
+|-------|---------|-------------|-----------|
+| LT1 (seuil aérobie) | ~2.0 mmol/L | Au-dessus = accumulation lente. Base du training aérobie | Z2-Z3 transition |
+| LT2 (MLSS/OBLA) | ~4.0 mmol/L | Steady-state max. Au-dessus = accumulation exponentielle | Z5 Seuil |
+
+### FatMax & LT1 — Le Lien Clé
+- FatMax (intensité d'oxydation maximale des graisses) se situe typiquement juste sous LT1
+- Entraîner à FatMax (Z2 "haut", juste sous LT1) = maximiser la fat oxidation sans accumuler de lactate
+- Application IM : les sorties longues Z2 doivent être à FatMax intensity, PAS à Z1 passive
+- Mesure : FatMax typiquement à 55-65% VO2max (non-entraîné) → 65-80% VO2max (élite endurant)
+
+### Glycogen Threshold (Impey 2018)
+- Il existe un seuil de glycogène musculaire (~300 mmol/kg dry weight) en-dessous duquel la signalisation moléculaire d'adaptation est maximisée
+- **Train Low "ciblé"** : démarrer la séance Z2 avec glycogène partiellement appauvri (post-séance intense la veille sans re-feeding) → maximiser les adaptations mitochondriales
+- C'est le mécanisme du "Sleep Low / Train Low" (Marquet 2016) : l'adaptation vient du NIVEAU de glycogène, pas juste du jeûne
+
+## ADVANCED BRICK PROTOCOLS — Triathlon (Millet & Vleck 2000, Bonacci 2011, Walsh 2017)
+
+### Physiologie de la Transition Vélo→CAP
+- **Run off the bike** : les premières minutes de CAP post-vélo sont caractérisées par :
+  - FC ↑ 10-15 bpm vs CAP isolée à même allure
+  - VO2 ↑ 5-8% (coût énergétique augmenté)
+  - Cadence perturbée (pattern moteur modifié par le vélo)
+  - Perception d'effort ↑ (RPE +1-2 points)
+- Ces effets diminuent avec l'entraînement spécifique brique → la brique EST une compétence
+
+### Types de Briques (du plus facile au plus exigeant)
+| Type | Description | Quand | Niveau |
+|------|-------------|-------|--------|
+| Brique transition | Vélo Z2 1h + CAP 15min Z2 (focus transition fluide) | Phase Base | Tous |
+| Brique allure | Vélo @race-power 1h30 + CAP 20-30min @allure course | Phase Build | AG+ |
+| Brique pre-fatigued | Vélo avec intervalles + CAP @allure course immédiat | Phase Spécifique | Competitor+ |
+| Brique simulation | Vélo 3-5h @race-power + CAP 45-90min @race-pace + Gut | Phase Spécifique | Competitor+ |
+| Brique OWS | Nat OWS + Vélo + CAP enchaînés | Phase Spécifique (1-2x max) | Competitor+ |
+
+### Règles Briques TFCL™
+1. **Progression** : commencer par transition courte (15min CAP Z2 post-vélo) → allonger et intensifier progressivement
+2. **Fréquence** : 1x/sem en Build, 1-2x/sem en Spécifique (remplace une séance CAP solo)
+3. **Transition** : entraîner la transition réelle (changer chaussures, ceinture, casquette) → chronomètre la T2
+4. **CAP post-vélo** : les 5 premières minutes = CONTRAINTE (cadence élevée 185+ spm, pas d'allure cible). Laisser le corps s'adapter
+5. **Gut Training intégré** : toute brique en phase Spécifique = test nutrition en conditions réelles
+
+## DETRAINING & RETRAINING — Gestion des Interruptions (Mujika & Padilla 2000, Neufer 1989)
+
+### Taux de Perte de Condition
+| Durée d'arrêt | Perte VO2max | Perte Force | Perte Seuil | Perte Endurance |
+|---------------|-------------|-------------|-------------|-----------------|
+| 1 semaine | ~1% | ~0% | ~2% | ~3% |
+| 2 semaines | ~3-4% | ~2% | ~5% | ~8% |
+| 4 semaines | ~6-8% | ~5% | ~10% | ~15% |
+| 8 semaines | ~15-20% | ~10% | ~18% | ~25% |
+| 12+ semaines | ~20-25% | ~15% | ~25% | ~35% |
+
+### Principes de Retraining
+1. **Le retraining est plus rapide que le training initial** : "muscle memory" (Staron 1991)
+2. **Règle 1:2** : pour chaque semaine d'arrêt, 2 semaines pour retrouver le niveau antérieur
+3. **Protocole de reprise** :
+   - Sem 1 : 40-50% volume habituel, Z1-Z2 uniquement
+   - Sem 2 : 60-70%, 1 séance tempo légère
+   - Sem 3 : 75-85%, réintroduction séance clé #1
+   - Sem 4+ : 90-100%, retour progressif au plan
+4. **Force : priorité #1 en reprise** : la force se perd plus lentement mais se regagne lentement → maintenir absolument
+
+### Impact sur le Plan
+- Si l'athlète mentionne une interruption récente → adapter les premières semaines du plan (réduction volume)
+- Mentionner dans les consignes de la première semaine : "Si vous reprenez après une coupure >10j, réduisez le volume de cette semaine de 30%"
+
 ## CRITÈRES DE QUALITÉ D'UN PLAN TFCL™ — CHECKLIST D'EXCELLENCE
 
 ### Un Plan de Classe Mondiale DOIT :
@@ -1727,6 +2057,15 @@ La variation quotidienne de la charge (Daily Undulating Periodization) prévient
 14. ✅ **Plan de course** : inclus dans la dernière semaine (pacing, ravito, mental)
 15. ✅ **Séquençage de blocs** : respecter les effets résiduels (Issurin) et les règles de non-interférence
 16. ✅ **Micro-cycle undulating** : variation RPE 2→9 dans la semaine, pas de monotonie
+17. ✅ **Taper scientifique** : modèle exponentiel Mujika (réduire volume, MAINTENIR intensité, rappels @race-pace)
+18. ✅ **Plan B course** : stratégie alternative si conditions défavorables mentionnée en Race Week
+19. ✅ **Athlète féminine** : si profil féminin, adapter les consignes au cycle menstruel (charge en folliculaire, décharge en lutéale)
+20. ✅ **Pacing strategy** : neg split ou even split, JAMAIS positive split. Points de contrôle d'allure inclus
+21. ✅ **Fenêtres immunitaires** : consignes hygiène/sommeil pendant les semaines de charge haute
+22. ✅ **HRV contingency** : consigne "si HRV bas 2j → Z2 uniquement" dans les semaines de charge
+23. ✅ **Anti-interférence force/endurance** : force le matin, endurance le soir. JAMAIS force post-VO2max
+24. ✅ **Briques progressives** (triathlon) : de transition courte Z2 → simulation race-pace complète
+25. ✅ **Préparation mentale** : focus mental dans chaque séance clé, visualisation en phase spécifique
 
 ### Anti-Patterns — ERREURS FRÉQUENTES À ÉVITER :
 1. ❌ **Monotonie** : même séance Z2 1h copié-collé chaque mercredi pendant 12 sem
@@ -1744,6 +2083,12 @@ La variation quotidienne de la charge (Daily Undulating Periodization) prévient
 13. ❌ **Ignorer la durabilité** : pas de SL progressive ou fast finish → athlète qui "explose" en course
 14. ❌ **Séquençage inversé** : VO2max en Base et volume Z2 en Spécifique (sauf Reverse Perio Lorang pour IM)
 15. ❌ **Récup insuffisante entre intensités** : <48h entre 2 séances VO2max ou force max
+16. ❌ **Taper sans rappels intensité** : couper l'intensité pendant le taper (seul le volume baisse, l'intensité reste)
+17. ❌ **Force post-VO2max** : séance force max le lendemain d'une séance VO2max (interférence SNC)
+18. ❌ **Plan sans Plan B course** : ne pas mentionner de stratégie alternative si conditions défavorables
+19. ❌ **Ignorer le cycle menstruel** : prescrire une semaine de surcharge en phase lutéale tardive pour une athlète féminine
+20. ❌ **Pacing positive split** : plan de course qui part trop vite → catastrophe métabolique garantie
+21. ❌ **Train Low pour athlète à risque RED-S** : restriction glycogène chez une femme en déficit énergétique
 
 ## GARDE-FOUS SÉCURITÉ AVANCÉS
 
