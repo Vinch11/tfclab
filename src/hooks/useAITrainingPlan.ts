@@ -88,6 +88,7 @@ export function useAITrainingPlan() {
       let textBuffer = "";
       let fullText = "";
       let maxWeekSeen = 0;
+      
 
       const updateWeekProgress = (text: string) => {
         // Detect ### Semaine N patterns to track progress
@@ -123,13 +124,24 @@ export function useAITrainingPlan() {
 
           try {
             const parsed = JSON.parse(jsonStr);
+            const streamError = parsed.error as string | undefined;
+            const streamCode = parsed.code as number | undefined;
+
+            if (streamError) {
+              if (streamCode === 402) toast.error("Crédits IA épuisés.");
+              else if (streamCode === 429) toast.error("Rate limit dépassé, réessayez dans quelques instants.");
+              else toast.error(streamError);
+              throw new Error("__STREAM_ABORT__");
+            }
+
             const content = parsed.choices?.[0]?.delta?.content as string | undefined;
             if (content) {
               fullText += content;
               setResponse(fullText);
               updateWeekProgress(fullText);
             }
-          } catch {
+          } catch (err) {
+            if (err instanceof Error && err.message === "__STREAM_ABORT__") throw err;
             textBuffer = line + "\n" + textBuffer;
             break;
           }
@@ -147,17 +159,32 @@ export function useAITrainingPlan() {
           if (jsonStr === "[DONE]") continue;
           try {
             const parsed = JSON.parse(jsonStr);
+            const streamError = parsed.error as string | undefined;
+            const streamCode = parsed.code as number | undefined;
+
+            if (streamError) {
+              if (streamCode === 402) toast.error("Crédits IA épuisés.");
+              else if (streamCode === 429) toast.error("Rate limit dépassé, réessayez dans quelques instants.");
+              else toast.error(streamError);
+              throw new Error("__STREAM_ABORT__");
+            }
+
             const content = parsed.choices?.[0]?.delta?.content as string | undefined;
             if (content) {
               fullText += content;
               setResponse(fullText);
             }
-          } catch { /* ignore */ }
+          } catch (err) {
+            if (err instanceof Error && err.message === "__STREAM_ABORT__") throw err;
+            /* ignore */
+          }
         }
       }
     } catch (e) {
       console.error("AI training plan error:", e);
-      toast.error("Impossible de générer le plan d'entraînement");
+      if (!(e instanceof Error && e.message === "__STREAM_ABORT__")) {
+        toast.error("Impossible de générer le plan d'entraînement");
+      }
     } finally {
       setIsLoading(false);
       setChunkProgress(null);

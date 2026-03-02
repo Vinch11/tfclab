@@ -2146,6 +2146,7 @@ IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format ta
     const needsChunking = !regenerateWeek && totalWeeks > 10;
 
     // Helper: call AI and stream response, return full text
+    let streamError: { code: number; message: string } | null = null;
     async function generateAndStream(
       prompt: string,
       controller: ReadableStreamDefaultController,
@@ -2171,6 +2172,16 @@ IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format ta
       if (!resp.ok || !resp.body) {
         const errText = await resp.text().catch(() => "Unknown error");
         console.error("AI call error:", resp.status, errText);
+
+        const status = resp.status || 500;
+        if (status === 402) {
+          streamError = { code: 402, message: "Crédits IA épuisés. Ajoutez des crédits dans les paramètres." };
+        } else if (status === 429) {
+          streamError = { code: 429, message: "Rate limit dépassé, réessayez dans quelques instants." };
+        } else {
+          streamError = { code: 500, message: "Erreur du service IA" };
+        }
+
         return "";
       }
 
@@ -2284,7 +2295,10 @@ Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semai
               let combinedChunkText = chunkText;
 
               if (!chunkText) {
-                controller.enqueue(encoder.encode(`data: {"error":"Erreur génération bloc ${ci + 1}/${chunks.length}"}\n\n`));
+                const errorPayload = streamError
+                  ? `{"error":"${streamError.message}","code":${streamError.code}}`
+                  : `{"error":"Erreur génération bloc ${ci + 1}/${chunks.length}","code":500}`;
+                controller.enqueue(encoder.encode(`data: ${errorPayload}\n\n`));
                 break;
               }
 
