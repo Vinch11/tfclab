@@ -2138,6 +2138,134 @@ IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format ta
       userPrompt = buildUserPrompt(athleteData, planConfig);
     }
 
+    const totalWeeks = planConfig?.weeksAvailable || 12;
+    const CHUNK_SIZE = 8;
+    const needsChunking = !regenerateWeek && totalWeeks > 12;
+
+    if (needsChunking) {
+      // === CHUNKED GENERATION for long plans ===
+      // Generate in sequential chunks, streaming each to the client
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        async start(controller) {
+          try {
+            let previousChunksSummary = "";
+            const chunks: { start: number; end: number }[] = [];
+            for (let s = 1; s <= totalWeeks; s += CHUNK_SIZE) {
+              chunks.push({ start: s, end: Math.min(s + CHUNK_SIZE - 1, totalWeeks) });
+            }
+
+            for (let ci = 0; ci < chunks.length; ci++) {
+              const chunk = chunks[ci];
+              const isFirst = ci === 0;
+              
+              let chunkPrompt: string;
+              if (isFirst) {
+                // First chunk: include full context + diagnostic + strategic recap
+                chunkPrompt = `${userPrompt}
+
+⚠️ GÉNÉRATION PAR BLOC : Génère UNIQUEMENT les semaines ${chunk.start} à ${chunk.end} (sur ${totalWeeks} total).
+Pour ce premier bloc, inclus le Diagnostic TFCL™ et le Récapitulatif Stratégique complet.
+Génère ensuite les semaines ${chunk.start} à ${chunk.end} avec leurs tableaux complets.`;
+              } else {
+                // Subsequent chunks: pass summary of previous weeks for continuity
+                chunkPrompt = `${userPrompt}
+
+⚠️ GÉNÉRATION PAR BLOC (suite) : Génère UNIQUEMENT les semaines ${chunk.start} à ${chunk.end} (sur ${totalWeeks} total).
+NE PAS répéter le diagnostic ni le récapitulatif stratégique.
+Continue directement avec les tableaux des semaines ${chunk.start} à ${chunk.end}.
+
+Résumé des blocs précédents pour assurer la continuité :
+${previousChunksSummary}
+
+Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.`;
+              }
+
+              const chunkResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${LOVABLE_API_KEY}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  model: "google/gemini-3-flash-preview",
+                  messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: chunkPrompt },
+                  ],
+                  stream: true,
+                  max_tokens: 65536,
+                }),
+              });
+
+              if (!chunkResponse.ok || !chunkResponse.body) {
+                const errText = await chunkResponse.text().catch(() => "Unknown error");
+                console.error(`Chunk ${ci + 1} error:`, chunkResponse.status, errText);
+                // Send error event and stop
+                controller.enqueue(encoder.encode(`data: {"error":"Erreur génération bloc ${ci + 1}/${chunks.length}"}\n\n`));
+                break;
+              }
+
+              // Stream this chunk's response through to client
+              const reader = chunkResponse.body.getReader();
+              const decoder = new TextDecoder();
+              let chunkText = "";
+              let buf = "";
+
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buf += decoder.decode(value, { stream: true });
+                
+                let idx: number;
+                while ((idx = buf.indexOf("\n")) !== -1) {
+                  let line = buf.slice(0, idx);
+                  buf = buf.slice(idx + 1);
+                  if (line.endsWith("\r")) line = line.slice(0, -1);
+                  
+                  if (!line.startsWith("data: ")) continue;
+                  const json = line.slice(6).trim();
+                  if (json === "[DONE]") continue; // Don't forward intermediate [DONE]
+                  
+                  try {
+                    const p = JSON.parse(json);
+                    const token = p.choices?.[0]?.delta?.content;
+                    if (token) {
+                      chunkText += token;
+                      // Forward the SSE event to client
+                      controller.enqueue(encoder.encode(line + "\n\n"));
+                    }
+                  } catch {}
+                }
+              }
+
+              // Build summary of this chunk for next iteration
+              // Extract week themes/phases for continuity
+              const weekMatches = chunkText.match(/###\s*Semaine\s*\d+[^#]*/gi) || [];
+              const summaryLines = weekMatches.map(w => {
+                const numMatch = w.match(/Semaine\s*(\d+)/i);
+                const themeMatch = w.match(/[—–:]\s*(.+?)[\n|]/);
+                return `S${numMatch?.[1] || "?"}: ${themeMatch?.[1]?.trim() || ""}`;
+              }).join(", ");
+              previousChunksSummary += `Semaines ${chunk.start}-${chunk.end}: ${summaryLines || "Plan progressif standard"}\n`;
+            }
+
+            // Send final [DONE]
+            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+            controller.close();
+          } catch (e) {
+            console.error("Chunked generation error:", e);
+            controller.error(e);
+          }
+        },
+      });
+
+      return new Response(stream, {
+        headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+      });
+    }
+
+    // === SINGLE GENERATION for short plans / regenerateWeek ===
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -2151,6 +2279,7 @@ IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format ta
           { role: "user", content: userPrompt },
         ],
         stream: true,
+        max_tokens: 65536,
       }),
     });
 
