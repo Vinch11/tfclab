@@ -2231,6 +2231,12 @@ IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format ta
               chunks.push({ start: s, end: Math.min(s + CHUNK_SIZE - 1, totalWeeks) });
             }
 
+            const emitChunkBoundary = () => {
+              controller.enqueue(
+                encoder.encode('data: {"choices":[{"delta":{"content":"\\n\\n"}}]}\n\n')
+              );
+            };
+
             for (let ci = 0; ci < chunks.length; ci++) {
               const chunk = chunks[ci];
               const isFirst = ci === 0;
@@ -2261,8 +2267,12 @@ ${previousChunksSummary}
 Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.`;
               }
 
+              // Ensure week headers from a new block start on a fresh line
+              if (!isFirst) emitChunkBoundary();
+
               // Generate chunk
               const chunkText = await generateAndStream(chunkPrompt, controller, encoder);
+              let combinedChunkText = chunkText;
 
               if (!chunkText) {
                 controller.enqueue(encoder.encode(`data: {"error":"Erreur génération bloc ${ci + 1}/${chunks.length}"}\n\n`));
@@ -2288,8 +2298,10 @@ ${generatedWeeks.length > 0 ? `Semaines déjà générées dans ce bloc : ${gene
 
 Assure la CONTINUITÉ de la progression.`;
 
+                emitChunkBoundary();
                 const retryText = await generateAndStream(retryPrompt, controller, encoder);
                 if (retryText) {
+                  combinedChunkText += `\n${retryText}`;
                   const retryWeeks = extractGeneratedWeekNumbers(retryText);
                   const stillMissing = missingWeeks.filter(w => !retryWeeks.includes(w));
                   if (stillMissing.length > 0) {
@@ -2299,7 +2311,7 @@ Assure la CONTINUITÉ de la progression.`;
               }
 
               // Build summary for next chunks
-              const weekMatches = chunkText.match(/^(?:#{2,4}\s*)?\*{0,2}\s*Semaine\s*\d+[^#\n]*(?:\n(?!#{1,4}\s*\*{0,2}\s*Semaine\s*\d+).*)*/gim) || [];
+              const weekMatches = combinedChunkText.match(/^(?:#{2,4}\s*)?\*{0,2}\s*Semaine\s*\d+[^#\n]*(?:\n(?!#{1,4}\s*\*{0,2}\s*Semaine\s*\d+).*)*/gim) || [];
               const summaryLines = weekMatches.map(w => {
                 const numMatch = w.match(/Semaine\s*(\d+)/i);
                 const themeMatch = w.match(/[—–:\-]\s*(.+?)[\n|]/);
