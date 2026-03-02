@@ -21,6 +21,7 @@ import {
 import { Upload, FileText, CheckCircle, AlertCircle, TrendingUp, TrendingDown, Minus, Bike, PersonStanding, Zap, Plus, X } from "lucide-react";
 import { parseNolioCurveCSV, mergeNolioCurveResults, NolioCurveResult, formatDuration } from "@/lib/nolioCurveParser";
 import { computeVLamaxBikeV2Enhanced, VLamaxBikeV2EnhancedResult, getVLamaxV2EnhancedCategory } from "@/lib/v2/vlamaxBikeV2Enhanced";
+import { computeVLamaxRunV2Enhanced, VLamaxRunV2EnhancedResult, getRunVLamaxCategory, getRunGlycolyticCategoryColor } from "@/lib/v2/vlamaxRunV2Enhanced";
 import { toast } from "sonner";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid, ReferenceLine } from "recharts";
 
@@ -68,7 +69,7 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
     return mergeNolioCurveResults(parsedFiles.map(f => f.result));
   }, [parsedFiles]);
 
-  // VLamax V2 Enhanced (bike only)
+  // VLamax V2 Enhanced (bike)
   const vlamaxResult = useMemo<VLamaxBikeV2EnhancedResult | null>(() => {
     if (!merged || merged.sport !== "bike") return null;
     const { extracted } = merged;
@@ -85,12 +86,33 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
     });
   }, [merged, currentFtp, currentWeight, objectif]);
 
+  // VLamax Run V2 Enhanced (running power curve)
+  const runVlamaxResult = useMemo<VLamaxRunV2EnhancedResult | null>(() => {
+    if (!merged || merged.sport !== "run") return null;
+    const { extracted } = merged;
+    const rpt = extracted.run_power_threshold;
+    if (!rpt || rpt <= 0) return null;
+    return computeVLamaxRunV2Enhanced({
+      runPowerThreshold: rpt,
+      runPower1s: extracted.run_power_max ?? null,
+      runPower5s: extracted.run_power_5s ?? null,
+      runPower30s: extracted.run_power_30s ?? null,
+      runPower60s: extracted.run_power_1min ?? null,
+      runPower5min: extracted.run_power_5min ?? null,
+      weightKg: currentWeight ?? null,
+      vma: extracted.vma ?? null,
+      paceThresholdSecPerKm: extracted.pace_threshold ?? null,
+    });
+  }, [merged, currentWeight]);
+
+  const activeVlamax = vlamaxResult?.value ?? runVlamaxResult?.value ?? null;
+
   const delta = useMemo(() => {
-    if (!vlamaxResult || !previousVLamax || previousVLamax <= 0) return null;
-    const diff = vlamaxResult.value - previousVLamax;
+    if (!activeVlamax || !previousVLamax || previousVLamax <= 0) return null;
+    const diff = activeVlamax - previousVLamax;
     const pct = (diff / previousVLamax) * 100;
     return { diff, pct, direction: diff > 0.005 ? "up" : diff < -0.005 ? "down" : "stable" as "up" | "down" | "stable" };
-  }, [vlamaxResult, previousVLamax]);
+  }, [activeVlamax, previousVLamax]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -156,6 +178,12 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
       if (extracted.vma) notes.push(`VMA: ${extracted.vma.toFixed(1)} km/h`);
       if (extracted.run_power_max) notes.push(`Pmax run: ${extracted.run_power_max}W`);
       if (extracted.run_power_threshold) notes.push(`Pseuil run: ${extracted.run_power_threshold}W`);
+      if (runVlamaxResult) {
+        notes.push(`VLamax Run V2: ${runVlamaxResult.value.toFixed(2)} [${runVlamaxResult.rangeMin.toFixed(2)}–${runVlamaxResult.rangeMax.toFixed(2)}]`);
+        if (runVlamaxResult.runGlycolyticProfile) {
+          notes.push(`Profil: ${runVlamaxResult.runGlycolyticProfile.category}`);
+        }
+      }
       if (extracted.pace_5k) {
         const m5 = Math.floor(extracted.pace_5k / 60);
         const s5 = Math.round(extracted.pace_5k % 60);
@@ -482,6 +510,104 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
                     </div>
                   )}
                   <p className="text-xs text-muted-foreground italic">{merged.glycolyticProfile.interpretation}</p>
+                </div>
+              )}
+
+              {/* VLamax Run V2 Enhanced (running power curve) */}
+              {runVlamaxResult && (
+                <div className="p-4 rounded-lg border-2 border-primary/30 bg-primary/5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <PersonStanding className="w-5 h-5 text-primary" />
+                    <p className="text-sm font-semibold">VLamax CAP V2 Enhanced</p>
+                    <Badge variant="outline" className="ml-auto text-[10px]">{runVlamaxResult.formulaLabel}</Badge>
+                  </div>
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <div className="text-center">
+                      <p className="text-3xl font-mono font-bold text-primary">{runVlamaxResult.value.toFixed(2)}</p>
+                      <p className="text-xs text-muted-foreground">[{runVlamaxResult.rangeMin.toFixed(2)} – {runVlamaxResult.rangeMax.toFixed(2)}] mmol/L/s</p>
+                    </div>
+                    {delta && (
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background/80">
+                        {delta.direction === "up" ? <TrendingUp className="w-5 h-5 text-destructive" /> : delta.direction === "down" ? <TrendingDown className="w-5 h-5 text-emerald-500" /> : <Minus className="w-5 h-5 text-muted-foreground" />}
+                        <div>
+                          <p className={`text-lg font-mono font-bold ${delta.direction === "up" ? "text-destructive" : delta.direction === "down" ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>
+                            {delta.diff > 0 ? "+" : ""}{delta.diff.toFixed(2)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">{delta.pct > 0 ? "+" : ""}{delta.pct.toFixed(1)}% vs précédent ({previousVLamax?.toFixed(2)})</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 flex-wrap text-sm">
+                    <Badge variant="secondary">{getRunVLamaxCategory(runVlamaxResult.value)}</Badge>
+                    <span className="text-muted-foreground">Confiance: <span className="font-medium text-foreground">{(runVlamaxResult.confidence * 100).toFixed(0)}%</span></span>
+                    {runVlamaxResult.sources.length > 0 && (
+                      <span className="text-xs text-muted-foreground">Sources: {runVlamaxResult.sources.join(", ")}</span>
+                    )}
+                  </div>
+
+                  {/* Running Glycolytic Profile */}
+                  {runVlamaxResult.runGlycolyticProfile && (
+                    <div className="p-3 rounded border border-border bg-background/50 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Zap className="w-3.5 h-3.5 text-destructive" />
+                        <p className="text-xs font-semibold">Profil Glycolytique CAP</p>
+                        <Badge variant="outline" className={`ml-auto text-[10px] capitalize ${getRunGlycolyticCategoryColor(runVlamaxResult.runGlycolyticProfile.category)}`}>
+                          {runVlamaxResult.runGlycolyticProfile.category}
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                        {runVlamaxResult.runGlycolyticProfile.glycolyticIndex != null && (
+                          <GlycoMetric label="P5s / RPT" value={runVlamaxResult.runGlycolyticProfile.glycolyticIndex.toFixed(2)} />
+                        )}
+                        {runVlamaxResult.runGlycolyticProfile.decayRate1to5 != null && (
+                          <GlycoMetric label="Decay 1s→5s" value={`${runVlamaxResult.runGlycolyticProfile.decayRate1to5.toFixed(0)}%`} />
+                        )}
+                        {runVlamaxResult.runGlycolyticProfile.decayRate5to30 != null && (
+                          <GlycoMetric label="Decay 5s→30s" value={`${runVlamaxResult.runGlycolyticProfile.decayRate5to30.toFixed(0)}%`} />
+                        )}
+                        {runVlamaxResult.runGlycolyticProfile.decayRate30to60 != null && (
+                          <GlycoMetric label="Decay 30s→60s" value={`${runVlamaxResult.runGlycolyticProfile.decayRate30to60.toFixed(0)}%`} />
+                        )}
+                        {runVlamaxResult.runGlycolyticProfile.thresholdWkg != null && (
+                          <GlycoMetric label="RPT W/kg" value={`${runVlamaxResult.runGlycolyticProfile.thresholdWkg.toFixed(1)}`} />
+                        )}
+                        {runVlamaxResult.runGlycolyticProfile.p5sWkg != null && (
+                          <GlycoMetric label="P5s W/kg" value={`${runVlamaxResult.runGlycolyticProfile.p5sWkg.toFixed(1)}`} />
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground italic">{runVlamaxResult.runGlycolyticProfile.interpretation}</p>
+                    </div>
+                  )}
+
+                  {/* Components breakdown */}
+                  {runVlamaxResult.components && (
+                    <div className="p-2 rounded border border-border bg-background/50">
+                      <p className="text-[10px] text-muted-foreground font-medium mb-1">Composants Score G = {runVlamaxResult.components.scoreG}</p>
+                      <div className="flex gap-2 flex-wrap text-[10px] font-mono">
+                        {runVlamaxResult.components.S1 != null && <span>S1={runVlamaxResult.components.S1.toFixed(2)}</span>}
+                        {runVlamaxResult.components.S5 != null && <span className="font-bold">S5={runVlamaxResult.components.S5.toFixed(2)}</span>}
+                        {runVlamaxResult.components.S30 != null && <span className="font-bold">S30={runVlamaxResult.components.S30.toFixed(2)}</span>}
+                        {runVlamaxResult.components.S60 != null && <span>S60={runVlamaxResult.components.S60.toFixed(2)}</span>}
+                        {runVlamaxResult.components.E != null && <span>E={runVlamaxResult.components.E.toFixed(2)}</span>}
+                        {runVlamaxResult.components.D != null && <span>D={runVlamaxResult.components.D.toFixed(2)}</span>}
+                      </div>
+                      {runVlamaxResult.components.paceRatioVlamax != null && (
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          Cross-validation allure: {runVlamaxResult.components.paceRatioVlamax.toFixed(2)} (Δ{runVlamaxResult.components.paceRatioDelta! > 0 ? "+" : ""}{runVlamaxResult.components.paceRatioDelta?.toFixed(2)})
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  <p className="text-xs text-muted-foreground italic">{runVlamaxResult.pedagogicalMessage}</p>
+                  {runVlamaxResult.warnings.length > 0 && (
+                    <div className="space-y-1">
+                      {runVlamaxResult.warnings.map((w, i) => (
+                        <p key={i} className="flex items-center gap-1.5 text-xs text-muted-foreground"><AlertCircle className="w-3 h-3 shrink-0" />{w}</p>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
