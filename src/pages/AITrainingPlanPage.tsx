@@ -161,6 +161,7 @@ export default function AITrainingPlanPage() {
   const [sessionsPerWeek, setSessionsPerWeek] = useState("7");
   const [ambition, setAmbition] = useState<string>(DEFAULT_AMBITION);
   const [maxSessionsPerDay, setMaxSessionsPerDay] = useState("3");
+  const [strengthSessionsPerWeek, setStrengthSessionsPerWeek] = useState("2");
   const [constraints, setConstraints] = useState("");
 
   // Restore persisted plan + config on athlete change (single mode only)
@@ -179,6 +180,7 @@ export default function AITrainingPlanPage() {
       else { const a = getAthleteAmbition(currentAthlete); setAmbition(a); }
       if (savedState.constraints) setConstraints(savedState.constraints);
       if (savedState.maxSessionsPerDay) setMaxSessionsPerDay(savedState.maxSessionsPerDay);
+      if (savedState.strengthSessionsPerWeek) setStrengthSessionsPerWeek(savedState.strengthSessionsPerWeek);
     } else {
       // No saved state — use athlete defaults
       if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
@@ -350,13 +352,14 @@ export default function AITrainingPlanPage() {
       weeklyHours: parseFloat(weeklyHours) || undefined,
       sessionsPerWeek: parseInt(sessionsPerWeek) || undefined,
       maxSessionsPerDay: parseInt(maxSessionsPerDay) || undefined,
+      strengthSessionsPerWeek: parseInt(strengthSessionsPerWeek) || undefined,
       ambition: AMBITION_OPTIONS.find(a => a.value === amb)?.label || amb,
       constraints: constraints || undefined,
       identifiedLimiters: limiters.length > 0 ? limiters : undefined,
       activeLevers: levers.length > 0 ? levers : undefined,
       prohibitions: prohibitions.length > 0 ? prohibitions : undefined,
     };
-  }, [objective, raceName, raceDate, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, ambition, constraints]);
+  }, [objective, raceName, raceDate, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints]);
 
   // Single athlete generation
   const handleGenerate = () => {
@@ -868,19 +871,36 @@ export default function AITrainingPlanPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Max séances par jour</Label>
-                  <Select value={maxSessionsPerDay} onValueChange={setMaxSessionsPerDay}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 séance/jour max</SelectItem>
-                      <SelectItem value="2">2 séances/jour max (doubles)</SelectItem>
-                      <SelectItem value="3">3 séances/jour max (triples)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-[10px] text-muted-foreground">
-                    IM/70.3 Elite : 3 recommandé • Age Group : 2 • Finisher : 1
-                  </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Max séances par jour</Label>
+                    <Select value={maxSessionsPerDay} onValueChange={setMaxSessionsPerDay}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 séance/jour max</SelectItem>
+                        <SelectItem value="2">2 doubles max</SelectItem>
+                        <SelectItem value="3">3 triples max</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[10px] text-muted-foreground">
+                      Elite : 3 • Age Group : 2 • Finisher : 1
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Renforcement/sem</Label>
+                    <Select value={strengthSessionsPerWeek} onValueChange={setStrengthSessionsPerWeek}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">0 — Aucun</SelectItem>
+                        <SelectItem value="1">1 séance</SelectItem>
+                        <SelectItem value="2">2 séances</SelectItem>
+                        <SelectItem value="3">3 séances</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[10px] text-muted-foreground">
+                      2 recommandé • 0 si blessure
+                    </p>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
