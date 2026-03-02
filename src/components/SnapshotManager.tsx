@@ -376,11 +376,23 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   const renderForm = () => (
     <div className="grid gap-4 max-h-[60vh] overflow-y-auto pr-2">
       {/* Nolio Import Button */}
-      <div className="flex items-center gap-2 p-3 rounded-lg border border-dashed border-primary/30 bg-primary/5">
-        <TrendingUp className="w-4 h-4 text-primary" />
-        <span className="text-sm text-muted-foreground flex-1">Importer depuis Nolio</span>
-        <NolioImporter onImport={handleNolioImport} variant="inline" />
-      </div>
+      {(() => {
+        const latestSnap = snapshots.length > 0 ? [...snapshots].sort((a, b) => b.date.localeCompare(a.date))[0] : null;
+        return (
+          <div className="flex items-center gap-2 p-3 rounded-lg border border-dashed border-primary/30 bg-primary/5">
+            <TrendingUp className="w-4 h-4 text-primary" />
+            <span className="text-sm text-muted-foreground flex-1">Importer depuis Nolio</span>
+            <NolioImporter 
+              onImport={handleNolioImport} 
+              variant="inline"
+              previousVLamax={latestSnap?.vlamax ?? null}
+              currentFtp={latestSnap?.ftp ?? null}
+              currentWeight={latestSnap?.weight_kg ?? null}
+              objectif={athleteGoal}
+            />
+          </div>
+        );
+      })()}
 
       <div className="grid grid-cols-2 gap-4">
         <div>
