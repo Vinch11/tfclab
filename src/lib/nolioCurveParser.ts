@@ -427,6 +427,84 @@ export function parseNolioCurveCSV(content: string): NolioCurveResult {
 }
 
 /**
+ * Multi-sport merge: returns separate results per sport + combined
+ */
+export interface MultiSportMergeResult {
+  /** Combined result (dominant sport, backward-compatible) */
+  combined: NolioCurveResult;
+  /** Bike-only result (null if no bike records) */
+  bike: NolioCurveResult | null;
+  /** Run-only result (null if no run records) */
+  run: NolioCurveResult | null;
+  /** Whether both sports have data */
+  isMultiSport: boolean;
+  /** Sport counts */
+  sportCounts: Record<string, number>;
+}
+
+function buildSportResult(records: NolioRecord[], sport: NolioSport): NolioCurveResult {
+  const durationRecords = records.filter(r => r.axisType === "duration");
+  const distanceRecords = records.filter(r => r.axisType === "distance");
+  
+  const extracted = extractSnapshotValues(records, sport);
+  const latestDate = records.reduce((latest, r) => r.date > latest ? r.date : latest, records[0]?.date || new Date().toISOString().slice(0, 10));
+  
+  const curveMap = new Map<number, { durationSec: number; durationLabel: string; value: number }>();
+  for (const r of durationRecords) {
+    const existing = curveMap.get(r.durationSec);
+    if (!existing || r.value > existing.value) {
+      curveMap.set(r.durationSec, { durationSec: r.durationSec, durationLabel: r.durationLabel, value: r.value });
+    }
+  }
+  const curve = Array.from(curveMap.values()).sort((a, b) => a.durationSec - b.durationSec);
+  
+  const distCurveMap = new Map<number, { distanceM: number; distanceLabel: string; value: number; unit: string }>();
+  for (const r of distanceRecords) {
+    const existing = distCurveMap.get(r.distanceM);
+    if (!existing || r.value > existing.value) {
+      distCurveMap.set(r.distanceM, { distanceM: r.distanceM, distanceLabel: r.distanceLabel, value: r.value, unit: r.unit });
+    }
+  }
+  const distanceCurve = Array.from(distCurveMap.values()).sort((a, b) => a.distanceM - b.distanceM);
+  
+  const glycolyticProfile = (sport === "bike" || (sport === "run" && durationRecords.some(r => r.unit === "W")))
+    ? buildGlycolyticProfile(extracted, curve)
+    : null;
+  
+  const axisTypes = [...new Set(records.map(r => r.axisType))] as NolioAxisType[];
+  const dataTypes: string[] = [];
+  if (records.some(r => r.unit === "W")) dataTypes.push("power");
+  if (records.some(r => r.unit === "min/km")) dataTypes.push("pace");
+  if (records.some(r => r.unit === "km/h" || r.valueSpeed != null)) dataTypes.push("speed");
+  
+  return { records, sport, extracted, latestDate, curve, distanceCurve, glycolyticProfile, axisTypes, dataTypes };
+}
+
+export function mergeNolioCurveResultsMultiSport(results: NolioCurveResult[]): MultiSportMergeResult {
+  const combined = mergeNolioCurveResults(results);
+  
+  const allRecords = results.flatMap(r => r.records);
+  const bikeRecords = allRecords.filter(r => r.sport === "bike");
+  const runRecords = allRecords.filter(r => r.sport === "run");
+  
+  const sportCounts: Record<string, number> = {};
+  for (const r of allRecords) {
+    sportCounts[r.sport] = (sportCounts[r.sport] || 0) + 1;
+  }
+  
+  const bike = bikeRecords.length >= 2 ? buildSportResult(bikeRecords, "bike") : null;
+  const run = runRecords.length >= 2 ? buildSportResult(runRecords, "run") : null;
+  
+  return {
+    combined,
+    bike,
+    run,
+    isMultiSport: bike !== null && run !== null,
+    sportCounts,
+  };
+}
+
+/**
  * Merge multiple NolioCurveResult into one combined result
  */
 export function mergeNolioCurveResults(results: NolioCurveResult[]): NolioCurveResult {
@@ -434,7 +512,6 @@ export function mergeNolioCurveResults(results: NolioCurveResult[]): NolioCurveR
   if (results.length === 1) return results[0];
   
   const allRecords = results.flatMap(r => r.records);
-  // Re-parse as combined content is complex — rebuild from all records
   const sportCounts = allRecords.reduce((acc, r) => {
     acc[r.sport] = (acc[r.sport] || 0) + 1;
     return acc;
@@ -447,7 +524,6 @@ export function mergeNolioCurveResults(results: NolioCurveResult[]): NolioCurveR
   const extracted = extractSnapshotValues(allRecords, dominantSport);
   const latestDate = allRecords.reduce((latest, r) => r.date > latest ? r.date : latest, allRecords[0]?.date || new Date().toISOString().slice(0, 10));
   
-  // Build time-based curve (best per duration, prefer power for run if available)
   const curveMap = new Map<number, { durationSec: number; durationLabel: string; value: number }>();
   for (const r of durationRecords) {
     if (r.sport !== dominantSport) continue;

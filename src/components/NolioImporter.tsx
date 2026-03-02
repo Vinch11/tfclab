@@ -19,7 +19,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Upload, FileText, CheckCircle, AlertCircle, TrendingUp, TrendingDown, Minus, Bike, PersonStanding, Zap, Plus, X } from "lucide-react";
-import { parseNolioCurveCSV, mergeNolioCurveResults, NolioCurveResult, formatDuration } from "@/lib/nolioCurveParser";
+import { parseNolioCurveCSV, mergeNolioCurveResultsMultiSport, NolioCurveResult, formatDuration, type MultiSportMergeResult } from "@/lib/nolioCurveParser";
 import { computeVLamaxBikeV2Enhanced, VLamaxBikeV2EnhancedResult, getVLamaxV2EnhancedCategory } from "@/lib/v2/vlamaxBikeV2Enhanced";
 import { computeVLamaxRunV2Enhanced, VLamaxRunV2EnhancedResult, getRunVLamaxCategory, getRunGlycolyticCategoryColor } from "@/lib/v2/vlamaxRunV2Enhanced";
 import { refineVlamaxWithGlycolyticProfile, GlycolyticRefinementResult, getConvergenceColor, getConvergenceBadgeVariant, getConvergenceLabel } from "@/lib/v2/glycolyticProfileRefinement";
@@ -68,16 +68,23 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
   const [parsedFiles, setParsedFiles] = useState<ParsedFile[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Merged result from all files
-  const merged = useMemo<NolioCurveResult | null>(() => {
+  // Multi-sport merge from all files
+  const multiSport = useMemo<MultiSportMergeResult | null>(() => {
     if (parsedFiles.length === 0) return null;
-    return mergeNolioCurveResults(parsedFiles.map(f => f.result));
+    return mergeNolioCurveResultsMultiSport(parsedFiles.map(f => f.result));
   }, [parsedFiles]);
 
-  // VLamax V2 Enhanced (bike)
+  // Backward-compatible combined result
+  const merged = multiSport?.combined ?? null;
+  // Per-sport results
+  const bikeResult = multiSport?.bike ?? null;
+  const runResult = multiSport?.run ?? null;
+
+  // VLamax V2 Enhanced (bike) — uses bike-specific result if available
   const vlamaxResult = useMemo<VLamaxBikeV2EnhancedResult | null>(() => {
-    if (!merged || merged.sport !== "bike") return null;
-    const { extracted } = merged;
+    const bikeData = bikeResult ?? (merged?.sport === "bike" ? merged : null);
+    if (!bikeData) return null;
+    const { extracted } = bikeData;
     const ftp = extracted.ftp_estimated || (currentFtp ?? 0);
     if (!ftp || ftp <= 0) return null;
     return computeVLamaxBikeV2Enhanced({
@@ -89,12 +96,13 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
       weight_kg: currentWeight ?? null,
       objectif,
     });
-  }, [merged, currentFtp, currentWeight, objectif]);
+  }, [bikeResult, merged, currentFtp, currentWeight, objectif]);
 
-  // VLamax Run V2 Enhanced (running power curve)
+  // VLamax Run V2 Enhanced — uses run-specific result if available
   const runVlamaxResult = useMemo<VLamaxRunV2EnhancedResult | null>(() => {
-    if (!merged || merged.sport !== "run") return null;
-    const { extracted } = merged;
+    const runData = runResult ?? (merged?.sport === "run" ? merged : null);
+    if (!runData) return null;
+    const { extracted } = runData;
     const rpt = extracted.run_power_threshold;
     if (!rpt || rpt <= 0) return null;
     return computeVLamaxRunV2Enhanced({
@@ -108,12 +116,13 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
       vma: extracted.vma ?? null,
       paceThresholdSecPerKm: extracted.pace_threshold ?? null,
     });
-  }, [merged, currentWeight]);
+  }, [runResult, merged, currentWeight]);
 
   // Glycolytic profile refinement (bike)
   const bikeGlycoRefinement = useMemo<GlycolyticRefinementResult | null>(() => {
-    if (!vlamaxResult || !merged?.glycolyticProfile) return null;
-    const gp = merged.glycolyticProfile;
+    if (!vlamaxResult) return null;
+    const gp = (bikeResult ?? merged)?.glycolyticProfile;
+    if (!gp) return null;
     return refineVlamaxWithGlycolyticProfile({
       vlamaxScoreG: vlamaxResult.value,
       confidenceScoreG: vlamaxResult.confidence,
@@ -124,7 +133,7 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
       decayRate30to60: null,
       sport: "bike",
     });
-  }, [vlamaxResult, merged?.glycolyticProfile]);
+  }, [vlamaxResult, bikeResult, merged]);
 
   // Glycolytic profile refinement (run)
   const runGlycoRefinement = useMemo<GlycolyticRefinementResult | null>(() => {
@@ -154,38 +163,41 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
     return { diff, pct, direction: diff > 0.005 ? "up" : diff < -0.005 ? "down" : "stable" as "up" | "down" | "stable" };
   }, [activeVlamax, previousVLamax]);
 
-  // Mader modeled power curve overlay
+  // Mader modeled power curve overlay (bike)
   const overlayData = useMemo(() => {
-    if (!merged || merged.sport !== "bike") return null;
+    const bikeData = bikeResult ?? (merged?.sport === "bike" ? merged : null);
+    if (!bikeData) return null;
     const vo2 = currentVo2max;
     const vla = vlamaxResult?.value ?? currentVlamax;
     const wt = currentWeight ?? 70;
     if (!vo2 || vo2 <= 0 || !vla || vla <= 0) return null;
-    const nolioWattsCurve = merged.curve.filter(p => 
-      merged.records.some(r => r.durationSec === p.durationSec && r.unit === "W")
+    const nolioWattsCurve = bikeData.curve.filter(p => 
+      bikeData.records.some(r => r.durationSec === p.durationSec && r.unit === "W")
     );
     if (nolioWattsCurve.length < 3) return null;
     const profile: MaderProfile = { vo2max: vo2, vlamax: vla, weight: wt };
     const maderCurve = generateMaderPowerDurationCurve(profile, nolioWattsCurve.map(p => p.durationSec));
     const data = buildOverlayData(nolioWattsCurve, maderCurve.points);
     return { data, cp: maderCurve.cp, wPrime: maderCurve.wPrime, pMax: maderCurve.pMax };
-  }, [merged, currentVo2max, currentVlamax, currentWeight, vlamaxResult]);
+  }, [bikeResult, merged, currentVo2max, currentVlamax, currentWeight, vlamaxResult]);
 
+  // Mader overlay (run)
   const runOverlayData = useMemo(() => {
-    if (!merged || merged.sport !== "run") return null;
+    const runData = runResult ?? (merged?.sport === "run" ? merged : null);
+    if (!runData) return null;
     const vo2 = currentVo2max;
     const vla = runVlamaxResult?.value ?? currentVlamax;
     const wt = currentWeight ?? 70;
     if (!vo2 || vo2 <= 0 || !vla || vla <= 0) return null;
-    const nolioWattsCurve = merged.curve.filter(p => 
-      merged.records.some(r => r.durationSec === p.durationSec && r.unit === "W")
+    const nolioWattsCurve = runData.curve.filter(p => 
+      runData.records.some(r => r.durationSec === p.durationSec && r.unit === "W")
     );
     if (nolioWattsCurve.length < 3) return null;
     const profile: MaderProfile = { vo2max: vo2, vlamax: vla, weight: wt, efficiency: 0.25 };
     const maderCurve = generateMaderPowerDurationCurve(profile, nolioWattsCurve.map(p => p.durationSec));
     const data = buildOverlayData(nolioWattsCurve, maderCurve.points);
     return { data, cp: maderCurve.cp, wPrime: maderCurve.wPrime, pMax: maderCurve.pMax };
-  }, [merged, currentVo2max, currentVlamax, currentWeight, runVlamaxResult]);
+  }, [runResult, merged, currentVo2max, currentVlamax, currentWeight, runVlamaxResult]);
 
   const activeOverlay = overlayData ?? runOverlayData;
 
@@ -223,56 +235,62 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
 
   const handleImport = () => {
     if (!merged) return;
-    const { extracted, latestDate, sport } = merged;
+    const { latestDate } = merged;
     const values: NolioImportResult = { date: latestDate };
-    const notes: string[] = [`Import Nolio multi-fichier (${parsedFiles.length} fichiers, ${sport === "bike" ? "vélo" : "course"})`];
+    const isMulti = multiSport?.isMultiSport ?? false;
+    const sportLabel = isMulti ? "vélo + course" : (merged.sport === "bike" ? "vélo" : "course");
+    const notes: string[] = [`Import Nolio (${parsedFiles.length} fichier(s), ${sportLabel})`];
 
-    if (sport === "bike") {
-      if (extracted.pmax_5s) values.pmax_5s = String(Math.round(extracted.pmax_5s));
-      if (extracted.p30s_w) values.p30s_w = String(Math.round(extracted.p30s_w));
-      if (extracted.p60s_w) values.p60s_w = String(Math.round(extracted.p60s_w));
-      if (extracted.map5min_w) values.map5min_w = String(Math.round(extracted.map5min_w));
-      if (extracted.ftp_estimated) {
-        values.ftp = String(extracted.ftp_estimated);
-        notes.push(`FTP estimé: ${extracted.ftp_source}`);
+    // === BIKE DATA ===
+    const bikeEx = bikeResult?.extracted ?? (merged.sport === "bike" ? merged.extracted : null);
+    if (bikeEx) {
+      if (bikeEx.pmax_5s) values.pmax_5s = String(Math.round(bikeEx.pmax_5s));
+      if (bikeEx.p30s_w) values.p30s_w = String(Math.round(bikeEx.p30s_w));
+      if (bikeEx.p60s_w) values.p60s_w = String(Math.round(bikeEx.p60s_w));
+      if (bikeEx.map5min_w) values.map5min_w = String(Math.round(bikeEx.map5min_w));
+      if (bikeEx.ftp_estimated) {
+        values.ftp = String(bikeEx.ftp_estimated);
+        notes.push(`FTP estimé: ${bikeEx.ftp_source}`);
       }
       if (vlamaxResult) {
-        notes.push(`VLamax V2: ${vlamaxResult.value.toFixed(2)} [${vlamaxResult.rangeMin.toFixed(2)}–${vlamaxResult.rangeMax.toFixed(2)}]`);
+        notes.push(`🚴 VLamax Vélo: ${vlamaxResult.value.toFixed(2)} [${vlamaxResult.rangeMin.toFixed(2)}–${vlamaxResult.rangeMax.toFixed(2)}]`);
         if (bikeGlycoRefinement && bikeGlycoRefinement.convergence !== "insufficient") {
-          notes.push(`VLamax affinée: ${bikeGlycoRefinement.vlamaxRefined.toFixed(2)} (${getConvergenceLabel(bikeGlycoRefinement.convergence)}, conf: ${(bikeGlycoRefinement.confidenceRefined * 100).toFixed(0)}%)`);
+          notes.push(`VLamax vélo affinée: ${bikeGlycoRefinement.vlamaxRefined.toFixed(2)} (${getConvergenceLabel(bikeGlycoRefinement.convergence)})`);
         }
       }
-    } else if (sport === "run") {
-      if (extracted.vma) values.vma = String(extracted.vma.toFixed(1));
-      if (extracted.pace_threshold) {
-        const min = Math.floor(extracted.pace_threshold / 60);
-        const sec = extracted.pace_threshold % 60;
+    }
+
+    // === RUN DATA ===
+    const runEx = runResult?.extracted ?? (merged.sport === "run" ? merged.extracted : null);
+    if (runEx) {
+      if (runEx.vma) values.vma = String(runEx.vma.toFixed(1));
+      if (runEx.pace_threshold) {
+        const min = Math.floor(runEx.pace_threshold / 60);
+        const sec = runEx.pace_threshold % 60;
         values.pace_threshold = `${min}:${String(sec).padStart(2, "0")}`;
       }
-      if (extracted.run_power_max) values.running_power_max = String(Math.round(extracted.run_power_max));
-      if (extracted.run_power_threshold) values.running_power_threshold = String(Math.round(extracted.run_power_threshold));
-      
-      // Detailed notes
-      if (extracted.vma) notes.push(`VMA: ${extracted.vma.toFixed(1)} km/h`);
-      if (extracted.run_power_max) notes.push(`Pmax run: ${extracted.run_power_max}W`);
-      if (extracted.run_power_threshold) notes.push(`Pseuil run: ${extracted.run_power_threshold}W`);
+      if (runEx.run_power_max) values.running_power_max = String(Math.round(runEx.run_power_max));
+      if (runEx.run_power_threshold) values.running_power_threshold = String(Math.round(runEx.run_power_threshold));
+      if (runEx.vma) notes.push(`VMA: ${runEx.vma.toFixed(1)} km/h`);
+      if (runEx.run_power_max) notes.push(`Pmax run: ${runEx.run_power_max}W`);
+      if (runEx.run_power_threshold) notes.push(`Pseuil run: ${runEx.run_power_threshold}W`);
       if (runVlamaxResult) {
-        notes.push(`VLamax Run V2: ${runVlamaxResult.value.toFixed(2)} [${runVlamaxResult.rangeMin.toFixed(2)}–${runVlamaxResult.rangeMax.toFixed(2)}]`);
+        notes.push(`🏃 VLamax CAP: ${runVlamaxResult.value.toFixed(2)} [${runVlamaxResult.rangeMin.toFixed(2)}–${runVlamaxResult.rangeMax.toFixed(2)}]`);
         if (runVlamaxResult.runGlycolyticProfile) {
-          notes.push(`Profil: ${runVlamaxResult.runGlycolyticProfile.category}`);
+          notes.push(`Profil CAP: ${runVlamaxResult.runGlycolyticProfile.category}`);
         }
         if (runGlycoRefinement && runGlycoRefinement.convergence !== "insufficient") {
-          notes.push(`VLamax CAP affinée: ${runGlycoRefinement.vlamaxRefined.toFixed(2)} (${getConvergenceLabel(runGlycoRefinement.convergence)}, conf: ${(runGlycoRefinement.confidenceRefined * 100).toFixed(0)}%)`);
+          notes.push(`VLamax CAP affinée: ${runGlycoRefinement.vlamaxRefined.toFixed(2)} (${getConvergenceLabel(runGlycoRefinement.convergence)})`);
         }
       }
-      if (extracted.pace_5k) {
-        const m5 = Math.floor(extracted.pace_5k / 60);
-        const s5 = Math.round(extracted.pace_5k % 60);
+      if (runEx.pace_5k) {
+        const m5 = Math.floor(runEx.pace_5k / 60);
+        const s5 = Math.round(runEx.pace_5k % 60);
         notes.push(`Allure 5K: ${m5}:${String(s5).padStart(2, "0")}/km`);
       }
-      if (extracted.pace_10k) {
-        const m10 = Math.floor(extracted.pace_10k / 60);
-        const s10 = Math.round(extracted.pace_10k % 60);
+      if (runEx.pace_10k) {
+        const m10 = Math.floor(runEx.pace_10k / 60);
+        const s10 = Math.round(runEx.pace_10k % 60);
         notes.push(`Allure 10K: ${m10}:${String(s10).padStart(2, "0")}/km`);
       }
     }
@@ -285,13 +303,15 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
     values.coach_notes = notes.join(" | ");
 
     onImport(values);
-    toast.success(`${merged.records.length} records importés depuis ${parsedFiles.length} fichier(s)`);
+    toast.success(`${merged.records.length} records importés depuis ${parsedFiles.length} fichier(s)${isMulti ? " (multi-sport)" : ""}`);
+
     setOpen(false);
     setParsedFiles([]);
   };
 
-  const sportIcon = merged?.sport === "bike" ? <Bike className="w-4 h-4" /> : <PersonStanding className="w-4 h-4" />;
-  const sportLabel = merged?.sport === "bike" ? "Vélo" : merged?.sport === "run" ? "Course à pied" : merged?.sport || "";
+  const isMulti = multiSport?.isMultiSport ?? false;
+  const sportIcon = isMulti ? <><Bike className="w-4 h-4" /><PersonStanding className="w-4 h-4" /></> : merged?.sport === "bike" ? <Bike className="w-4 h-4" /> : <PersonStanding className="w-4 h-4" />;
+  const sportLabel = isMulti ? "Vélo + Course à pied" : merged?.sport === "bike" ? "Vélo" : merged?.sport === "run" ? "Course à pied" : merged?.sport || "";
 
   // Chart data — power curve by duration
   const powerChartData = merged?.curve
@@ -404,10 +424,17 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
               {/* Sport & totals */}
               <div className="flex items-center gap-3 flex-wrap">
                 <Badge variant="outline" className="gap-1.5">{sportIcon} {sportLabel}</Badge>
+                {isMulti && <Badge variant="default" className="text-[10px]">Multi-sport</Badge>}
                 <span className="flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400">
                   <CheckCircle className="w-4 h-4" />
                   {merged.records.length} records total
                 </span>
+                {isMulti && multiSport && (
+                  <>
+                    <Badge variant="secondary" className="text-[10px]">🚴 {multiSport.sportCounts["bike"] ?? 0}</Badge>
+                    <Badge variant="secondary" className="text-[10px]">🏃 {multiSport.sportCounts["run"] ?? 0}</Badge>
+                  </>
+                )}
                 {merged.axisTypes.length > 1 && (
                   <Badge variant="secondary" className="text-[10px]">durée + distance</Badge>
                 )}
@@ -553,60 +580,69 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
               <div className="p-3 rounded-lg border border-border bg-secondary/20">
                 <p className="text-sm font-medium mb-2">📊 Valeurs extraites</p>
                 
-                {/* Running power */}
-                {merged.sport === "run" && merged.extracted.run_power_max != null && (
-                  <>
-                    <p className="text-xs text-muted-foreground font-medium mb-1.5">⚡ Puissance course (durée)</p>
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 text-sm mb-3">
-                      {merged.extracted.run_power_max != null && <ExtractedField label="Pmax 1s" value={`${Math.round(merged.extracted.run_power_max)} W`} highlight />}
-                      {merged.extracted.run_power_5s != null && <ExtractedField label="P5s" value={`${Math.round(merged.extracted.run_power_5s)} W`} />}
-                      {merged.extracted.run_power_30s != null && <ExtractedField label="P30s" value={`${Math.round(merged.extracted.run_power_30s)} W`} highlight />}
-                      {merged.extracted.run_power_1min != null && <ExtractedField label="P1'" value={`${Math.round(merged.extracted.run_power_1min)} W`} />}
-                      {merged.extracted.run_power_5min != null && <ExtractedField label="P5'" value={`${Math.round(merged.extracted.run_power_5min)} W`} />}
-                      {merged.extracted.run_power_threshold != null && <ExtractedField label="Pseuil" value={`${Math.round(merged.extracted.run_power_threshold)} W`} highlight />}
-                      {merged.extracted.run_power_60min != null && <ExtractedField label="P60'" value={`${Math.round(merged.extracted.run_power_60min)} W`} />}
-                    </div>
-                  </>
-                )}
+                {/* Running power — show if run data exists */}
+                {(runResult ?? (merged.sport === "run" ? merged : null)) != null && (() => {
+                  const rd = runResult ?? merged;
+                  return rd.extracted.run_power_max != null ? (
+                    <>
+                      <p className="text-xs text-muted-foreground font-medium mb-1.5">⚡ Puissance course (durée)</p>
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 text-sm mb-3">
+                        {rd.extracted.run_power_max != null && <ExtractedField label="Pmax 1s" value={`${Math.round(rd.extracted.run_power_max)} W`} highlight />}
+                        {rd.extracted.run_power_5s != null && <ExtractedField label="P5s" value={`${Math.round(rd.extracted.run_power_5s)} W`} />}
+                        {rd.extracted.run_power_30s != null && <ExtractedField label="P30s" value={`${Math.round(rd.extracted.run_power_30s)} W`} highlight />}
+                        {rd.extracted.run_power_1min != null && <ExtractedField label="P1'" value={`${Math.round(rd.extracted.run_power_1min)} W`} />}
+                        {rd.extracted.run_power_5min != null && <ExtractedField label="P5'" value={`${Math.round(rd.extracted.run_power_5min)} W`} />}
+                        {rd.extracted.run_power_threshold != null && <ExtractedField label="Pseuil" value={`${Math.round(rd.extracted.run_power_threshold)} W`} highlight />}
+                        {rd.extracted.run_power_60min != null && <ExtractedField label="P60'" value={`${Math.round(rd.extracted.run_power_60min)} W`} />}
+                      </div>
+                    </>
+                  ) : null;
+                })()}
 
                 {/* Running pace/speed */}
-                {merged.sport === "run" && (merged.extracted.vma != null || merged.extracted.pace_threshold != null) && (
-                  <>
-                    <p className="text-xs text-muted-foreground font-medium mb-1.5">🏃 Allure & Vitesse</p>
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 text-sm mb-3">
-                      {merged.extracted.vma != null && <ExtractedField label="VMA" value={`${merged.extracted.vma.toFixed(1)} km/h`} highlight />}
-                      {merged.extracted.speed_max_30s != null && <ExtractedField label="Vmax 30s" value={`${merged.extracted.speed_max_30s.toFixed(1)} km/h`} />}
-                      {merged.extracted.speed_max_1min != null && <ExtractedField label="Vmax 1'" value={`${merged.extracted.speed_max_1min.toFixed(1)} km/h`} />}
-                      {merged.extracted.pace_threshold != null && <ExtractedField label="Allure seuil" value={`${formatPace(merged.extracted.pace_threshold)}/km`} highlight />}
-                      {merged.extracted.pace_5k != null && <ExtractedField label="Allure 5K" value={`${formatPace(merged.extracted.pace_5k)}/km`} />}
-                      {merged.extracted.pace_10k != null && <ExtractedField label="Allure 10K" value={`${formatPace(merged.extracted.pace_10k)}/km`} />}
-                    </div>
-                  </>
-                )}
+                {(runResult ?? (merged.sport === "run" ? merged : null)) != null && (() => {
+                  const rd = runResult ?? merged;
+                  return (rd.extracted.vma != null || rd.extracted.pace_threshold != null) ? (
+                    <>
+                      <p className="text-xs text-muted-foreground font-medium mb-1.5">🏃 Allure & Vitesse</p>
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 text-sm mb-3">
+                        {rd.extracted.vma != null && <ExtractedField label="VMA" value={`${rd.extracted.vma.toFixed(1)} km/h`} highlight />}
+                        {rd.extracted.speed_max_30s != null && <ExtractedField label="Vmax 30s" value={`${rd.extracted.speed_max_30s.toFixed(1)} km/h`} />}
+                        {rd.extracted.speed_max_1min != null && <ExtractedField label="Vmax 1'" value={`${rd.extracted.speed_max_1min.toFixed(1)} km/h`} />}
+                        {rd.extracted.pace_threshold != null && <ExtractedField label="Allure seuil" value={`${formatPace(rd.extracted.pace_threshold)}/km`} highlight />}
+                        {rd.extracted.pace_5k != null && <ExtractedField label="Allure 5K" value={`${formatPace(rd.extracted.pace_5k)}/km`} />}
+                        {rd.extracted.pace_10k != null && <ExtractedField label="Allure 10K" value={`${formatPace(rd.extracted.pace_10k)}/km`} />}
+                      </div>
+                    </>
+                  ) : null;
+                })()}
 
-                {/* Bike short power */}
-                {merged.sport === "bike" && (
-                  <>
-                    <p className="text-xs text-muted-foreground font-medium mb-1.5">⚡ Puissance courte</p>
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 text-sm mb-3">
-                      {merged.extracted.pmax_1s != null && <ExtractedField label="P1s" value={`${Math.round(merged.extracted.pmax_1s)} W`} highlight />}
-                      {merged.extracted.pmax_3s != null && <ExtractedField label="P3s" value={`${Math.round(merged.extracted.pmax_3s)} W`} />}
-                      {merged.extracted.pmax_5s != null && <ExtractedField label="P5s" value={`${Math.round(merged.extracted.pmax_5s)} W`} highlight />}
-                      {merged.extracted.pmax_10s != null && <ExtractedField label="P10s" value={`${Math.round(merged.extracted.pmax_10s)} W`} />}
-                      {merged.extracted.pmax_15s != null && <ExtractedField label="P15s" value={`${Math.round(merged.extracted.pmax_15s)} W`} />}
-                      {merged.extracted.p30s_w != null && <ExtractedField label="P30s" value={`${Math.round(merged.extracted.p30s_w)} W`} highlight />}
-                      {merged.extracted.p45s_w != null && <ExtractedField label="P45s" value={`${Math.round(merged.extracted.p45s_w)} W`} />}
-                      {merged.extracted.p60s_w != null && <ExtractedField label="P60s" value={`${Math.round(merged.extracted.p60s_w)} W`} />}
-                    </div>
-                    <p className="text-xs text-muted-foreground font-medium mb-1.5">🫁 Puissance aérobie</p>
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 text-sm">
-                      {merged.extracted.map5min_w != null && <ExtractedField label="MAP 5'" value={`${Math.round(merged.extracted.map5min_w)} W`} />}
-                      {merged.extracted.ftp_estimated != null && <ExtractedField label="FTP est." value={`${merged.extracted.ftp_estimated} W`} hint={merged.extracted.ftp_source} />}
-                      {merged.extracted.p45min_w != null && <ExtractedField label="P45'" value={`${Math.round(merged.extracted.p45min_w)} W`} />}
-                      {merged.extracted.p60min_w != null && <ExtractedField label="P60'" value={`${Math.round(merged.extracted.p60min_w)} W`} />}
-                    </div>
-                  </>
-                )}
+                {/* Bike short power — show if bike data exists */}
+                {(bikeResult ?? (merged.sport === "bike" ? merged : null)) != null && (() => {
+                  const bd = bikeResult ?? merged;
+                  return (
+                    <>
+                      <p className="text-xs text-muted-foreground font-medium mb-1.5">⚡ Puissance courte vélo</p>
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 text-sm mb-3">
+                        {bd.extracted.pmax_1s != null && <ExtractedField label="P1s" value={`${Math.round(bd.extracted.pmax_1s)} W`} highlight />}
+                        {bd.extracted.pmax_3s != null && <ExtractedField label="P3s" value={`${Math.round(bd.extracted.pmax_3s)} W`} />}
+                        {bd.extracted.pmax_5s != null && <ExtractedField label="P5s" value={`${Math.round(bd.extracted.pmax_5s)} W`} highlight />}
+                        {bd.extracted.pmax_10s != null && <ExtractedField label="P10s" value={`${Math.round(bd.extracted.pmax_10s)} W`} />}
+                        {bd.extracted.pmax_15s != null && <ExtractedField label="P15s" value={`${Math.round(bd.extracted.pmax_15s)} W`} />}
+                        {bd.extracted.p30s_w != null && <ExtractedField label="P30s" value={`${Math.round(bd.extracted.p30s_w)} W`} highlight />}
+                        {bd.extracted.p45s_w != null && <ExtractedField label="P45s" value={`${Math.round(bd.extracted.p45s_w)} W`} />}
+                        {bd.extracted.p60s_w != null && <ExtractedField label="P60s" value={`${Math.round(bd.extracted.p60s_w)} W`} />}
+                      </div>
+                      <p className="text-xs text-muted-foreground font-medium mb-1.5">🫁 Puissance aérobie vélo</p>
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 text-sm">
+                        {bd.extracted.map5min_w != null && <ExtractedField label="MAP 5'" value={`${Math.round(bd.extracted.map5min_w)} W`} />}
+                        {bd.extracted.ftp_estimated != null && <ExtractedField label="FTP est." value={`${bd.extracted.ftp_estimated} W`} hint={bd.extracted.ftp_source} />}
+                        {bd.extracted.p45min_w != null && <ExtractedField label="P45'" value={`${Math.round(bd.extracted.p45min_w)} W`} />}
+                        {bd.extracted.p60min_w != null && <ExtractedField label="P60'" value={`${Math.round(bd.extracted.p60min_w)} W`} />}
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
 
               {/* Glycolytic Profile */}
@@ -800,8 +836,8 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
               {vlamaxResult && (
                 <div className="p-4 rounded-lg border-2 border-primary/30 bg-primary/5 space-y-3">
                   <div className="flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-primary" />
-                    <p className="text-sm font-semibold">VLamax V2 Enhanced</p>
+                    <Bike className="w-5 h-5 text-primary" />
+                    <p className="text-sm font-semibold">VLamax Vélo V2 Enhanced</p>
                     <Badge variant="outline" className="ml-auto text-[10px]">{vlamaxResult.formulaLabel}</Badge>
                   </div>
                   <div className="flex items-center gap-4 flex-wrap">
