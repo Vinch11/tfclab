@@ -68,6 +68,22 @@ const LEVER_LABELS: Record<string, string> = {
   increase_ftp_kg: "Développer FTP/kg",
 };
 
+/** Literature-based recommended volume/sessions per objective × ambition */
+const RECOMMENDED_RANGES: Record<string, Record<string, { hours: string; sessions: string }>> = {
+  IM:        { ELITE: { hours: "18-25", sessions: "10-14" }, COMPETITOR: { hours: "15-20", sessions: "9-12" }, AGE_GROUP: { hours: "10-15", sessions: "6-9" }, FINISHER: { hours: "8-12", sessions: "5-7" } },
+  "703":     { ELITE: { hours: "14-18", sessions: "8-12" }, COMPETITOR: { hours: "12-16", sessions: "7-10" }, AGE_GROUP: { hours: "8-12", sessions: "5-8" }, FINISHER: { hours: "6-10", sessions: "4-6" } },
+  Marathon:  { ELITE: { hours: "10-14", sessions: "7-10" }, COMPETITOR: { hours: "8-12", sessions: "6-8" }, AGE_GROUP: { hours: "6-9", sessions: "5-7" }, FINISHER: { hours: "4-7", sessions: "4-5" } },
+  Semi:      { ELITE: { hours: "8-12", sessions: "6-9" }, COMPETITOR: { hours: "7-10", sessions: "5-7" }, AGE_GROUP: { hours: "5-7", sessions: "4-6" }, FINISHER: { hours: "3-5", sessions: "3-4" } },
+  "10K":     { ELITE: { hours: "8-10", sessions: "6-8" }, COMPETITOR: { hours: "6-8", sessions: "5-7" }, AGE_GROUP: { hours: "4-6", sessions: "4-5" }, FINISHER: { hours: "3-4", sessions: "3-4" } },
+  StartToRun:{ ELITE: { hours: "3-5", sessions: "3" }, COMPETITOR: { hours: "3-5", sessions: "3" }, AGE_GROUP: { hours: "2-4", sessions: "3" }, FINISHER: { hours: "2-4", sessions: "3" } },
+};
+
+function getRecommendedRange(objective: string, ambition: string): { hours: string; sessions: string } | null {
+  const objRanges = RECOMMENDED_RANGES[objective];
+  if (!objRanges) return null;
+  return objRanges[ambition] || objRanges["AGE_GROUP"] || null;
+}
+
 function calculateAge(birthDate: string): number {
   const birth = new Date(birthDate);
   const today = new Date();
@@ -157,8 +173,8 @@ export default function AITrainingPlanPage() {
   const [objective, setObjective] = useState(currentAthlete?.objectif || "703");
   const [raceName, setRaceName] = useState("");
   const [raceDate, setRaceDate] = useState("");
-  const [weeklyHours, setWeeklyHours] = useState("10");
-  const [sessionsPerWeek, setSessionsPerWeek] = useState("7");
+  const [weeklyHours, setWeeklyHours] = useState("");
+  const [sessionsPerWeek, setSessionsPerWeek] = useState("");
   const [ambition, setAmbition] = useState<string>(DEFAULT_AMBITION);
   const [maxSessionsPerDay, setMaxSessionsPerDay] = useState("3");
   const [strengthSessionsPerWeek, setStrengthSessionsPerWeek] = useState("2");
@@ -888,11 +904,37 @@ export default function AITrainingPlanPage() {
                       <Clock className="h-3.5 w-3.5" />
                       Heures/sem
                     </Label>
-                    <Input type="number" min={3} max={30} value={weeklyHours} onChange={e => setWeeklyHours(e.target.value)} />
+                    <Input
+                      type="number" min={3} max={30}
+                      value={weeklyHours}
+                      onChange={e => setWeeklyHours(e.target.value)}
+                      placeholder={(() => {
+                        const rec = getRecommendedRange(objective, ambition);
+                        return rec ? rec.hours : "Auto";
+                      })()}
+                    />
+                    {!weeklyHours && (
+                      <p className="text-[10px] text-muted-foreground">
+                        📚 Auto : basé sur la littérature ({getRecommendedRange(objective, ambition)?.hours || "—"}h)
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label>Séances/sem</Label>
-                    <Input type="number" min={3} max={14} value={sessionsPerWeek} onChange={e => setSessionsPerWeek(e.target.value)} />
+                    <Input
+                      type="number" min={3} max={14}
+                      value={sessionsPerWeek}
+                      onChange={e => setSessionsPerWeek(e.target.value)}
+                      placeholder={(() => {
+                        const rec = getRecommendedRange(objective, ambition);
+                        return rec ? rec.sessions : "Auto";
+                      })()}
+                    />
+                    {!sessionsPerWeek && (
+                      <p className="text-[10px] text-muted-foreground">
+                        📚 Auto : basé sur la littérature ({getRecommendedRange(objective, ambition)?.sessions || "—"})
+                      </p>
+                    )}
                   </div>
                 </div>
 
