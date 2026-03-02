@@ -2247,10 +2247,19 @@ IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format ta
 
               let chunkPrompt: string;
               if (isFirst) {
+                // Build a summary of ALL planned phases/blocs for the full plan
+                const allChunksSummary = chunks.map(c => `Semaines ${c.start}-${c.end}`).join(", ");
                 chunkPrompt = `${userPrompt}
 
 ⚠️ GÉNÉRATION PAR BLOC : Génère UNIQUEMENT les semaines ${chunk.start} à ${chunk.end} (sur ${totalWeeks} total).
-Pour ce premier bloc, inclus le Diagnostic TFCL™ et le Récapitulatif Stratégique complet.
+
+Pour ce premier bloc, inclus :
+1. Le **Diagnostic TFCL™** complet
+2. Le **Récapitulatif Stratégique** couvrant **L'INTÉGRALITÉ du plan de ${totalWeeks} semaines** (${allChunksSummary}), PAS seulement le bloc actuel.
+   - Le tableau "Limiteurs → Blocs → Séances Clés" DOIT lister TOUS les blocs/phases du plan entier (ex: Fondation S1-S6, Build S7-S12, Spécifique S13-S26, Affûtage S27-S32).
+   - La colonne "Semaines" DOIT couvrir la totalité des ${totalWeeks} semaines.
+   - Les synergies doivent concerner le plan global.
+
 Génère ensuite les semaines ${chunk.start} à ${chunk.end} avec leurs tableaux complets.
 IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${expectedWeeks.join(", ")}). Ne t'arrête pas avant.`;
               } else {
