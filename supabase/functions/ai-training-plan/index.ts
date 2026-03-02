@@ -95,14 +95,87 @@ CAP/Trail 75-80% (spécifique D+), Renfo 20-25% (excentrique, escaliers, proprio
 ### TRAIL LONG/ULTRA (>42km) — Modèle UTMB
 CAP/Trail 70-80%, Renfo 15-20%, Cross-training 5-10% (vélo Z1 pour volume sans impact).
 
-## Méthodologie TFCL™ (Dan Lorang) + Méthodologies Élite Mondiales
+## Méthodologie TFCL™ — Hybride Lorang Complet
 
-### Principes Fondamentaux (Dan Lorang)
-1. **Polarisation 80/20** — 80% Z1-Z2, 20% Z4-Z5. Minimiser Z3 sauf en phase spécifique.
-2. **Bloc-Périodisation** — 1 stimulus dominant par bloc 2-4 sem (ex: Bloc VLamax↓ → Bloc VO2max → Bloc Race-Pace).
-3. **Progression non-linéaire** — Charge 3:1 (ou 2:1 si >45 ans ou fragile).
-4. **Reverse Periodization (Lorang)** — Pour IM/70.3 : intensité d'abord en base, puis volume en build.
-5. **Train Low, Compete High** — Z1-Z2 à jeun en base. JAMAIS d'intensité en Train Low.
+### ⚠️ MODÈLE DE PÉRIODISATION TFCL™ : HYBRIDE LORANG (PAS linéaire classique)
+
+La périodisation TFCL™ N'EST PAS la périodisation linéaire classique "Base→Build→Spécifique→Taper" de Lydiard/Bompa.
+Elle est un **HYBRIDE de 3 modèles**, combinés selon le profil de l'athlète :
+
+### 1. 🔄 REVERSE PERIODIZATION (Lorang 2018) — Contrainte Structurelle
+**Principe** : Inverser l'ordre classique. Commencer par de l'INTENSITÉ courte (VO2max, force max) en Bloc 1, puis basculer vers le VOLUME en Blocs 2-3.
+- **Justification scientifique** : L'intensité précoce stimule les adaptations mitochondriales (biogenèse, PGC-1α) AVANT que le volume ne les consolide. Résultat : meilleure fat oxidation, meilleure économie.
+- **Application obligatoire** : IM, 70.3, Marathon (Competitor+), Trail Ultra
+- **Ne PAS appliquer** : Débutants/Finishers (ils ont besoin de volume d'abord), 5K/10K (déjà intensité-dominant)
+- **Concrètement** : Bloc Fondation inclut des blocs VO2max courts (3-5min) dès la semaine 1, même si le volume est encore bas
+
+### 2. 📦 BLOCK PERIODIZATION (Issurin 2008) — Architecture des Blocs
+**Principe** : Organiser l'entraînement en BLOCS CONCENTRÉS de 2-4 semaines, chacun ciblant 1-2 qualités maximum.
+- **Supérieur à la périodisation traditionnelle** pour les athlètes entraînés (>2 ans d'historique)
+- **Chaque bloc a un NOM MÉTABOLIQUE** (pas "Base/Build") : "Bloc VLamax↓", "Bloc VO2max", "Bloc Seuil/TTE", "Bloc Race-Pace", "Affûtage"
+- **Le séquençage des blocs dépend du limiteur principal** (voir matrice ci-dessous)
+- **Effet résiduel** : les qualités développées dans un bloc se maintiennent pendant le bloc suivant grâce à des rappels minimaux
+
+### 3. ⚖️ POLARIZED TRAINING (Seiler 2010) — Contrainte Transversale PERMANENTE
+**Principe** : Dans CHAQUE bloc, CHAQUE semaine, la distribution d'intensité doit rester polarisée :
+- 80% Z1-Z2 (volume aérobie)
+- 0-5% Z3 (minimiser le "black hole training")
+- 15-20% Z4-Z5+ (intensité ciblée)
+- Cette contrainte est **INVIOLABLE** quel que soit le bloc ou la phase
+- Exception : semaine de décharge (100% Z1-Z2)
+
+### Synthèse Hybride Lorang : Comment Combiner les 3
+| Aspect | Règle |
+|--------|-------|
+| Architecture globale | Blocs concentrés 2-4 sem (Issurin) nommés par objectif métabolique |
+| Ordre des blocs | Reverse Perio (Lorang) : intensité courte → volume long → spécificité |
+| Distribution intra-bloc | Polarisé 80/20 (Seiler) dans chaque semaine |
+| Séquence de blocs | Déterminée par le limiteur #1 (voir matrice de séquençage) |
+| Charge intra-bloc | Ondulée 3:1 ou 2:1 (Rhea) — jamais linéaire |
+| Maintien des acquis | 1 rappel/sem de chaque qualité développée dans les blocs précédents |
+
+### 📦 SÉQUENÇAGE DES BLOCS PAR OBJECTIF × LIMITEUR (Architecture Lorang)
+
+#### Nommage des Blocs (OBLIGATOIRE — ne PAS utiliser "Base/Build/Spécifique")
+Les blocs doivent porter des noms métaboliques/physiologiques, pas des noms de phase classiques :
+- **Bloc Fondation** (≈ anciennement "Base") : Force max + VO2max courte (Reverse Perio) + Volume Z2 progressif
+- **Bloc Chantier [Limiteur]** : Bloc concentré ciblant le limiteur #1 (2-4 sem)
+- **Bloc Consolidation** : Limiteur #2 monte en priorité + maintien limiteur #1
+- **Bloc Race-Specific** : Allure course dominante, simulations, Gut Training
+- **Bloc Affûtage** : Taper Mujika, rappels, supercompensation
+
+#### Séquençage Standard (Reverse Perio Lorang)
+Pour IM/70.3/Marathon Competitor+ :
+1. **Bloc Fondation + Intensité** (3-4 sem) — Reverse Perio : VO2max courts + Force max + Z2 volume croissant + Train Low
+2. **Bloc Chantier [Limiteur #1]** (3-4 sem) — Concentration sur LE limiteur prioritaire avec 2-3 stimuli/sem
+3. **Bloc Consolidation + [Limiteur #2]** (3-4 sem) — Limiteur #2 prioritaire + rappels limiteur #1 + volume vers peak
+4. **Bloc Race-Specific** (2-4 sem) — Allure course, simulations, Gut Training, briques
+5. **Bloc Affûtage** (1-3 sem) — Mujika exponentiel, rappels courts toutes qualités
+
+#### Séquençage par Limiteur Principal (matrice décisionnelle)
+| Limiteur #1 | Bloc 1 (Fondation) | Bloc 2 (Chantier) | Bloc 3 (Consolidation) | Bloc 4 (Race-Specific) |
+|-------------|-------------------|-------------------|----------------------|----------------------|
+| VO2max bas | Force + Z2 | **Chantier VO2max** : Billat 2-3x/sem + SL progressives | Seuil + allure course progressive | Simulations race-pace |
+| VLamax haute | Force + VO2max courte | **Chantier VLamax↓** : Z2 long Train Low 2-3x/sem + sweet spot | Seuil + durabilité | Simulations race-pace + Z2 maintien |
+| TTE faible | Force + VO2max courte | **Chantier TTE↑** : Norvégienne progressive (2×15→1×40min) | Allure course + durabilité | Simulations + seuil long rappels |
+| FTP/kg bas | Force max + VO2max | **Chantier FTP** : Sweet spot + over-unders 2-3x/sem | Seuil + race-power | Simulations race-power |
+| Économie | Force max + plio intensive | **Chantier Économie** : SFR + côtes + force maintien | Seuil + allure course | Simulations + strides rappels |
+| FatMax | Z2 Train Low + Force | **Chantier FatMax** : Z2 longue à jeun + SL progressive | Gut Training + seuil | Simulations nutrition course |
+| Durabilité | Volume Z2 progressif | **Chantier Durabilité** : SL fast finish + briques pre-fatigued | Seuil + allure course | Simulations longues race-pace |
+
+#### Exception : Périodisation pour Débutants/Finishers
+Les débutants et Finishers utilisent une **périodisation linéaire progressive** (pas de Reverse Perio, pas de blocs concentrés) :
+- Progression graduelle du volume uniquement
+- Pas de blocs d'intensité concentrée
+- Nommage classique acceptable : Phase 1 (Adaptation), Phase 2 (Développement), Phase 3 (Consolidation), Phase 4 (Affûtage)
+
+### Principes Fondamentaux Lorang (invariants)
+1. **Polarisation 80/20 PERMANENTE** — Dans CHAQUE bloc, 80% Z1-Z2, 20% Z4-Z5. Minimiser Z3.
+2. **Bloc-Périodisation** — 1-2 stimuli dominants par bloc 2-4 sem. Noms métaboliques, pas linéaires.
+3. **Reverse Perio** — Intensité courte (VO2max) DÈS le Bloc Fondation. Volume long vient APRÈS.
+4. **Progression ondulée** — Charge 3:1 (ou 2:1 si >45 ans). Jamais linéaire croissante.
+5. **Train Low, Compete High** — Z1-Z2 à jeun en Bloc Fondation. JAMAIS d'intensité en Train Low.
+6. **Maintien des acquis** — Quand on passe au bloc suivant, 1 rappel/sem minimum de la qualité précédente.
 
 ### 🇳🇴 MÉTHODE NORVÉGIENNE — Double Threshold (Marius Bakken / Gjert Ingebrigtsen / Olav Bu)
 La révolution de l'entraînement en endurance depuis 2020. Utilisée par Jakob Ingebrigtsen (OR 1500m/5000m), Karsten Warholm, Gustav Iden, Kristian Blummenfelt.
@@ -251,12 +324,14 @@ L'approche "high mileage + natural intensity" des camps d'Iten/Kaptagat.
 | Volume naturel élevé | 🇰🇪 Kényane (fartlek + mileage) | Si athlète tolère >100km/sem |
 | Âge >40 ans | Daniels + Rønnestad | Zones prudentes + force anti-sarcopénie |
 
-**RÈGLE TFCL : Combiner les méthodes, jamais en utiliser une seule**
-Un plan TFCL™ de qualité pioche dans TOUTES ces méthodologies selon le profil de l'athlète, ses limiteurs, et sa phase d'entraînement :
-- Phase Base : Rønnestad (force) + Billat (VO2max courte) + Lorang (reverse perio si IM)
-- Phase Build : Norvégienne (double seuil) + Canova (introduction allure spécifique)
-- Phase Spécifique : Canova (blocs spécifiques) + Kényane (SL progressive)
-- Taper : Daniels (rappels E + T + I courts) + Mujika (réduction exponentielle)
+**RÈGLE TFCL : Combiner les méthodes par bloc, jamais une seule méthode sur tout le plan**
+Un plan TFCL™ de qualité pioche dans TOUTES ces méthodologies selon le bloc actuel, le limiteur, et le profil :
+- Bloc Fondation : Rønnestad (force) + Billat (VO2max courte, Reverse Perio) + Lorang (Train Low)
+- Bloc Chantier [Limiteur] : Norvégienne si TTE, Billat si VO2max, Z2 long si VLamax, SFR si économie
+- Bloc Consolidation : Canova (introduction allure spécifique) + Norvégienne (seuil long)
+- Bloc Race-Specific : Canova (blocs spécifiques) + Kényane (SL progressive) + simulations
+- Bloc Affûtage : Mujika (réduction exponentielle) + rappels courts toutes qualités
+
 
 ### 5 Limiteurs Primaires (INSCYD/TFCL)
 1. **Moteur Aérobie** — VO₂max, FTP/kg, TTE. Cibles : IM 4.0+ W/kg, Marathon VMA 18+
@@ -331,94 +406,95 @@ Règles doubles séances :
 - 1 jour repos complet/sem
 - Jamais 2 séances clés le même jour sauf brique planifiée
 
-### Périodisation Détaillée par Objectif — Méthodologies Élite
+### Périodisation par Blocs Détaillée par Objectif — Hybride Lorang
 
-#### IRONMAN (16-24 sem) — Modèle Dan Lorang / Reverse Periodization
-- **Phase 1 — Base Intensive (4-6 sem)** : Reverse perio = inclure dès maintenant des intervalles VO2max courts vélo (5×4min @115% FTP) + natation technique intensive. Force max 2x/sem (Rønnestad). VLamax↓ via Z2 longue à jeun (Train Low). Volume = 70% du peak.
+#### IRONMAN (16-24 sem) — Reverse Perio Lorang + Block Periodization
+- **Bloc 1 — Fondation + Intensité Précoce (4-6 sem)** : Reverse perio = inclure dès maintenant des intervalles VO2max courts vélo (5×4min @115% FTP) + natation technique intensive. Force max 2x/sem (Rønnestad). VLamax↓ via Z2 longue à jeun (Train Low). Volume = 70% du peak.
   - Séances clés : 🔑 VO2max vélo courte + 🔑 SL vélo Z2 Train Low + 🔑 Force max squat/deadlift
   - Natation : 4-5x/sem, focus drill + CSS. CAP : 3x/sem EF + tempo léger
-- **Phase 2 — Build Endurance (4-6 sem)** : Sweet spot vélo dominant (2-3×20-30min @88-92% FTP). Briques vélo→CAP introduites (1x/sem). CSS natation progression. Gut Training démarre 30-40g/h.
-  - Séances clés : 🔑 Sweet spot long + 🔑 Brique vélo→CAP + 🔑 CSS seuil natation
+- **Bloc 2 — Chantier [Limiteur #1] (4-6 sem)** : Si VLamax haute → Z2 long Train Low + sweet spot. Si TTE faible → seuil Norvégien. Si VO2max → Billat. Briques vélo→CAP introduites (1x/sem). CSS natation progression. Gut Training démarre 30-40g/h.
+  - Séances clés : 🔑 Séance limiteur #1 (2-3x/sem) + 🔑 Brique vélo→CAP + 🔑 CSS seuil natation
   - Volume = 85% du peak. Premières simulations ravitaillement
-- **Phase 3 — Spécifique Race-Pace (4-6 sem)** : Briques race-pace simulation (vélo @78% FTP + CAP @allure IM). OWS race-pace. SL vélo 5-6h avec Gut 60-80g/h. Volume = peak.
+- **Bloc 3 — Race-Specific + Durabilité (4-6 sem)** : Briques race-pace simulation (vélo @78% FTP + CAP @allure IM). OWS race-pace. SL vélo 5-6h avec Gut 60-80g/h. Volume = peak. Rappels limiteur #1 (1x/sem).
   - Séances clés : 🔑 Brique race-pace simulation + 🔑 SL vélo 5h+ Gut Training + 🔑 OWS race-pace
   - Force = maintien 1x/sem. 1-2 simulations complètes (nat+vélo+CAP enchaînés)
-- **Phase 4 — Taper (2-3 sem)** : Mujika exponentiel. Sem -2 : -40% volume, maintien intensité (rappels 3×8min @race-pace). Sem -1 : -60% volume. Activation J-2 (brique courte 45min). Gut test final.
+- **Bloc 4 — Affûtage (2-3 sem)** : Mujika exponentiel. Sem -2 : -40% volume, maintien intensité (rappels 3×8min @race-pace). Sem -1 : -60% volume. Activation J-2 (brique courte 45min). Gut test final.
   - Carb loading J-3 à J-1 : 8-12g/kg/j. Dernière SL J-10. Dernière intensité vraie J-5.
 
-#### 70.3 (12-16 sem) — Modèle Lorang/Iden/Haug
-- **Phase 1 — Base (3-4 sem)** : Volume Z2 + force max + technique natation. Reverse perio légère : blocs courts VO2max vélo 1x/sem. Train Low 2x/sem.
+#### 70.3 (12-16 sem) — Reverse Perio Lorang / Block Iden-Haug
+- **Bloc 1 — Fondation + Intensité (3-4 sem)** : Volume Z2 + force max + technique natation. Reverse perio : blocs courts VO2max vélo 1x/sem. Train Low 2x/sem.
   - Séances clés : 🔑 VO2max vélo (4×4min @115% FTP) + 🔑 SL vélo Z2 2h30 + 🔑 Force max
-- **Phase 2 — Build (3-4 sem)** : Seuil vélo prolongé (2×20min @90-95% FTP). SFR. CSS blocs natation. Tempo CAP allure 70.3. Gut Training 40-60g/h. Premières briques.
-  - Séances clés : 🔑 Seuil vélo prolongé + 🔑 Tempo CAP allure 70.3 + 🔑 CSS blocs natation
-- **Phase 3 — Spécifique (3-4 sem)** : Race-pace simulation complète. Briques vélo @82-85% FTP + CAP @allure 70.3. OWS race-pace. Gut 60-75g/h.
+- **Bloc 2 — Chantier [Limiteur #1] (3-4 sem)** : Seuil vélo prolongé (2×20min @90-95% FTP) si TTE limiteur. SFR si économie. CSS blocs natation. Tempo CAP allure 70.3. Gut Training 40-60g/h. Premières briques.
+  - Séances clés : 🔑 Séance limiteur #1 + 🔑 Tempo CAP allure 70.3 + 🔑 CSS blocs natation
+- **Bloc 3 — Race-Specific (3-4 sem)** : Race-pace simulation complète. Briques vélo @82-85% FTP + CAP @allure 70.3. OWS race-pace. Gut 60-75g/h. Rappels limiteur #1.
   - Séances clés : 🔑 Simulation 70.3 complète + 🔑 Race-pace blocs natation + 🔑 Brique seuil
-- **Phase 4 — Taper (10-14j)** : -35% volume sem 1, -55% sem 2. Rappels courts @race-pace. Activation J-2.
+- **Bloc 4 — Affûtage (10-14j)** : -35% volume sem 1, -55% sem 2. Rappels courts @race-pace. Activation J-2.
 
-#### MARATHON (12-20 sem) — Modèle Canova/Kipchoge/Daniels Hybride
-- **Phase 1 — Introductive/Base (4-6 sem)** : Volume Z2 progressif (+5-8%/sem). Renfo force max 2x/sem (Rønnestad). Introduction allure marathon courte dès sem 2 (3-5km @AM dans SL). Fartlek naturel. Cadence 175-185spm.
+#### MARATHON (12-20 sem) — Canova/Norvégienne/Block Hybride
+- **Bloc 1 — Fondation + Force + Allure Courte (4-6 sem)** : Reverse Perio Canova = introduction allure marathon courte dès sem 2 (3-5km @AM dans SL). Volume Z2 progressif (+5-8%/sem). Renfo force max 2x/sem (Rønnestad). Fartlek naturel. Cadence 175-185spm.
   - Séances clés : 🔑 SL progressive (20→26km) + 🔑 Force max + 🔑 Introduction tempo AM court
   - Volume : 60→80km/sem (AG), 80→120km/sem (Competitor), 100→150km/sem (Elite)
-- **Phase 2 — Fundamental/Build (4-6 sem)** : Seuil continu long (Norvégienne : 2×20min @seuil). SL progressive avec finish @AM. Canova : Fast Continuous Run (15km @AM -10s). Augmenter volume @allure spécifique.
-  - Séances clés : 🔑 Seuil long (2×20min→1×40min) + 🔑 SL progressive neg split + 🔑 Fast Continuous Run
+- **Bloc 2 — Chantier [Limiteur #1] + Allure Progressive (4-6 sem)** : Si TTE → seuil continu long Norvégienne (2×20min→1×40min). Si VLamax → Z2 long Train Low + tempo AM. Canova : Fast Continuous Run (15km @AM -10s). Augmenter volume @allure spécifique.
+  - Séances clés : 🔑 Séance limiteur #1 + 🔑 SL progressive neg split + 🔑 Fast Continuous Run
   - Norvégienne si TTE < 50min : 1 double seuil/sem (Competitor), 2 doubles (Elite)
-- **Phase 3 — Spécifique (3-4 sem)** : Canova Special Blocks (journée bloc : matin 15km @AM + soir 10km progressive). SL simulation marathon (30-35km avec finish @AM). Variation of Pace. Volume @allure spécifique = maximum.
+- **Bloc 3 — Blocs Spécifiques Canova (3-4 sem)** : Canova Special Blocks (journée bloc : matin 15km @AM + soir 10km progressive). SL simulation marathon (30-35km avec finish @AM). Variation of Pace. Volume @allure spécifique = maximum. Rappels limiteur #1 (1x/sem).
   - Séances clés : 🔑 SL simulation marathon + 🔑 Bloc spécifique Canova + 🔑 Allure marathon continu 40-60min
   - Gut Training : 30-45g/h en SL. Simulation ravitaillement identique au jour J
-- **Phase 4 — Taper (2-3 sem)** : Mujika. Sem -2 : -40% volume, rappels AM (3×8min). Sem -1 : -60%, activation J-2 (20min dont 10min @AM). Dernière SL J-14 à J-10. Dernière VMA/seuil J-7. Carb loading J-3.
+- **Bloc 4 — Affûtage Mujika (2-3 sem)** : Sem -2 : -40% volume, rappels AM (3×8min). Sem -1 : -60%, activation J-2 (20min dont 10min @AM). Dernière SL J-14 à J-10. Dernière VMA/seuil J-7. Carb loading J-3.
   - Race Week : L repos, Ma 8km dont 3×3min @AM, Me 6km EF, J repos, V 5km EF + 4×100m strides, S carb loading + visualisation, D = Jour J
 
-#### SEMI-MARATHON (8-14 sem) — Modèle Norvégien/Hassan/Daniels
-- **Phase 1 — Base + VMA (3-4 sem)** : Volume Z2 + introduction VMA courte (30/30 Billat). Renfo force 2x/sem. Cadence 178-186spm. SL 14→18km progressive.
+#### SEMI-MARATHON (8-14 sem) — Block Norvégien/Billat Hybride
+- **Bloc 1 — Fondation + VO2max (3-4 sem)** : Volume Z2 + introduction VMA courte (30/30 Billat, Reverse Perio). Renfo force 2x/sem. Cadence 178-186spm. SL 14→18km progressive.
   - Séances clés : 🔑 VMA courte (30/30 ×15-20) + 🔑 SL progressive + 🔑 Force max
   - Volume : 35→50km/sem (AG), 50→75km/sem (Competitor), 70→110km/sem (Elite)
-- **Phase 2 — Seuil + Allure (3-4 sem)** : Seuil continu long (2×15→2×20min @seuil). Tempo allure semi (3×3km @allure semi). Norvégienne si Competitor+ : 1 double seuil/sem. SL 18→22km avec finish.
+- **Bloc 2 — Chantier Seuil/TTE + Allure Semi (3-4 sem)** : Seuil continu long (2×15→2×20min @seuil). Tempo allure semi (3×3km @allure semi). Norvégienne si Competitor+ : 1 double seuil/sem. SL 18→22km avec finish. Rappels VO2max (1x/sem, 5×1000m @VMA).
   - Séances clés : 🔑 Seuil long continu + 🔑 Allure semi blocs + 🔑 SL avec finish tempo
-  - Introduction VMA longue (5×1000m @VMA) pour maintien VO2max
-- **Phase 3 — Spécifique (2-3 sem)** : Allure semi dominante. 2×5km @allure semi. SL simulation semi (22km dont 10km @allure semi). Fartlek mixte seuil/semi.
+- **Bloc 3 — Race-Specific Semi (2-3 sem)** : Allure semi dominante. 2×5km @allure semi. SL simulation semi (22km dont 10km @allure semi). Fartlek mixte seuil/semi. Rappels VO2max + seuil.
   - Séances clés : 🔑 SL simulation semi + 🔑 Allure semi long (2×5km) + 🔑 Seuil + lactate tolerance combo
-- **Phase 4 — Taper (7-10j)** : -35% sem 1, -55% derniers 4j. Rappels courts @allure semi (3×5min). Activation J-2.
+- **Bloc 4 — Affûtage (7-10j)** : -35% sem 1, -55% derniers 4j. Rappels courts @allure semi (3×5min). Activation J-2.
   - Race Week : L repos, Ma 8km dont 2×5min @allure semi, Me 6km EF, J repos, V 5km EF + strides, S repos + carb loading, D = Jour J
 
-#### 10K (8-12 sem) — Modèle Cheptegei/Daniels/Billat
-- **Phase 1 — Base + VO2max (3-4 sem)** : Volume Z2 progressif. VMA courte (30/30 Billat) + VMA longue (5×1000m). Renfo force + pliométrie. SL 14→18km.
+#### 10K (8-12 sem) — Block Billat/Daniels Hybride
+- **Bloc 1 — Fondation + VO2max Intensive (3-4 sem)** : Volume Z2 progressif. VMA courte (30/30 Billat) + VMA longue (5×1000m). Renfo force + pliométrie. SL 14→18km. Reverse Perio : VO2max d'emblée.
   - Séances clés : 🔑 VMA longue (5×1000m @VMA) + 🔑 SL progressive + 🔑 Force + pliométrie
   - Volume : 30→45km/sem (AG), 45→70km/sem (Competitor), 80→120km/sem (Elite)
-- **Phase 2 — Seuil + Tempo (2-3 sem)** : Seuil continu (2×15min→1×30min). Tempo allure 10K (5×1km @allure 10K). VMA longue maintien. SL 18→22km.
+- **Bloc 2 — Chantier Seuil + Tempo 10K (2-3 sem)** : Seuil continu (2×15min→1×30min). Tempo allure 10K (5×1km @allure 10K). VMA longue maintien. SL 18→22km.
   - Séances clés : 🔑 Seuil continu + 🔑 Allure 10K blocs + 🔑 SL avec finish rapide
-- **Phase 3 — Spécifique (2-3 sem)** : Allure 10K dominante (5×2000m @allure 10K). Seuil + lactate tolerance combo (Ingebrigtsen : 20min @seuil + 4×400m @110% VMA). SL avec finish @allure 10K.
+- **Bloc 3 — Race-Specific 10K (2-3 sem)** : Allure 10K dominante (5×2000m @allure 10K). Seuil + lactate tolerance combo (Ingebrigtsen : 20min @seuil + 4×400m @110% VMA). SL avec finish @allure 10K.
   - Séances clés : 🔑 Allure 10K long + 🔑 Seuil + lactate tolerance + 🔑 SL finish @allure 10K
-- **Phase 4 — Taper (5-7j)** : -40% volume, maintien 2 rappels courts. Activation J-2 (6km dont 4×400m @allure 10K).
+- **Bloc 4 — Affûtage (5-7j)** : -40% volume, maintien 2 rappels courts. Activation J-2 (6km dont 4×400m @allure 10K).
   - Race Week : L repos, Ma 8km dont 4×800m @allure 10K, Me 6km EF, J 5km EF + strides, V repos, S activation 4km + 4×200m, D = Jour J
 
-#### 5K (6-10 sem) — Modèle Ingebrigtsen/Coe/Billat
-- **Phase 1 — Base + VMA (2-3 sem)** : Volume Z2. VMA courte explosive (12×400m @VMA r=60s). Pliométrie + force. SL 12→16km.
+#### 5K (6-10 sem) — Block Ingebrigtsen/Billat
+- **Bloc 1 — Fondation + VMA Explosive (2-3 sem)** : Volume Z2. VMA courte explosive (12×400m @VMA r=60s). Pliométrie + force. SL 12→16km.
   - Séances clés : 🔑 VMA courte explosive + 🔑 SL progressive + 🔑 Pliométrie explosive
   - Volume : 25→40km/sem (AG), 40→60km/sem (Competitor), 70→100km/sem (Elite)
-- **Phase 2 — VO2max + Seuil (2-3 sem)** : Billat 3min/3min (5×3min @100-105% VMA). Seuil continu (20min). Côtes VMA. SL avec finish.
+- **Bloc 2 — Chantier VO2max + Seuil (2-3 sem)** : Billat 3min/3min (5×3min @100-105% VMA). Seuil continu (20min). Côtes VMA. SL avec finish.
   - Séances clés : 🔑 Billat VO2max + 🔑 Seuil continu + 🔑 SL avec finish @allure 10K
-- **Phase 3 — Spécifique 5K (2-3 sem)** : Allure 5K dominante (5×1000m @allure 5K). Seuil + lactate tolerance (Ingebrigtsen). Fartlek mixte. Répétitions R (6×400m @R-pace Daniels).
+- **Bloc 3 — Race-Specific 5K (2-3 sem)** : Allure 5K dominante (5×1000m @allure 5K). Seuil + lactate tolerance (Ingebrigtsen). Fartlek mixte. Répétitions R (6×400m @R-pace Daniels).
   - Séances clés : 🔑 Allure 5K blocs + 🔑 Seuil + lactate tolerance + 🔑 SL finish @allure 5K
-- **Phase 4 — Taper (5-7j)** : -40% volume. 2 rappels @allure 5K courts (3×600m). Activation J-2.
+- **Bloc 4 — Affûtage (5-7j)** : -40% volume. 2 rappels @allure 5K courts (3×600m). Activation J-2.
   - Race Week : L repos, Ma 6km dont 3×600m @allure 5K, Me 5km EF, J repos, V 4km EF + 3×100m strides, S repos, D = Jour J
 
-#### TRAIL COURT <42km (8-14 sem) — Modèle Jornet/Walmsley
-- **Phase 1 — Base (3-4 sem)** : Volume D+ progressif. Force excentrique 2x/sem. VMA côtes. Proprioception.
-- **Phase 2 — Build (3-4 sem)** : Seuil montée long (3×15-20min). Descente technique rapide. SL D+ progressive.
-- **Phase 3 — Spécifique (2-3 sem)** : Simulation terrain cible. Ultra-longue 4-5h. VMA côtes + descente technique.
-- **Phase 4 — Taper (7-10j)** : -35% volume, maintien rappels seuil montée courts.
+#### TRAIL COURT <42km (8-14 sem) — Block Jornet/Walmsley
+- **Bloc 1 — Fondation + Force (3-4 sem)** : Volume D+ progressif. Force excentrique 2x/sem. VMA côtes. Proprioception.
+- **Bloc 2 — Chantier Seuil Montée + Technique (3-4 sem)** : Seuil montée long (3×15-20min). Descente technique rapide. SL D+ progressive.
+- **Bloc 3 — Race-Specific Trail (2-3 sem)** : Simulation terrain cible. Ultra-longue 4-5h. VMA côtes + descente technique.
+- **Bloc 4 — Affûtage (7-10j)** : -35% volume, maintien rappels seuil montée courts.
 
-#### TRAIL ULTRA >42km / UTMB (16-24 sem) — Modèle D'Haene/Dauwalter/Blanchard
-- **Phase 1 — Base Aérobie (5-6 sem)** : Volume D+ massif en Z2. Force excentrique lourde 2x/sem. Proprioception avancée. Gut Training démarrage.
-- **Phase 2 — Build Montagne (4-6 sem)** : Seuil montée long progressif. SL D+ 4→6h. Back-to-back weekends (SL samedi + SL dimanche). Descente technique intensive.
-- **Phase 3 — Spécifique Ultra (4-6 sem)** : Simulations ultra 6-8h. Simulation nuit obligatoire (1-2x). Ravitaillement complet testé. Back-to-back avec cumul D+.
-- **Phase 4 — Taper (2-3 sem)** : Sem -2 : -40%, rappels seuil montée courts. Sem -1 : -60%, activation J-2 (1h vallonné léger). UTMB taper = 14-21j.
+#### TRAIL ULTRA >42km / UTMB (16-24 sem) — Block D'Haene/Dauwalter/Blanchard
+- **Bloc 1 — Fondation Aérobie + Force (5-6 sem)** : Volume D+ massif en Z2. Force excentrique lourde 2x/sem. Proprioception avancée. Gut Training démarrage.
+- **Bloc 2 — Chantier Montagne + Back-to-Back (4-6 sem)** : Seuil montée long progressif. SL D+ 4→6h. Back-to-back weekends (SL samedi + SL dimanche). Descente technique intensive.
+- **Bloc 3 — Race-Specific Ultra + Simulations (4-6 sem)** : Simulations ultra 6-8h. Simulation nuit obligatoire (1-2x). Ravitaillement complet testé. Back-to-back avec cumul D+.
+- **Bloc 4 — Affûtage (2-3 sem)** : Sem -2 : -40%, rappels seuil montée courts. Sem -1 : -60%, activation J-2 (1h vallonné léger). UTMB taper = 14-21j.
 
-#### START TO RUN (12-16 sem) — Programme Progressif Débutant
+#### START TO RUN (12-16 sem) — Périodisation Linéaire Progressive (exception)
+⚠️ Pour les débutants, la périodisation par blocs N'EST PAS appropriée. Utiliser une progression linéaire :
 - **Phase 1 — Marche dominante (4 sem)** : 70% marche / 30% course. 3 séances/sem max. Renfo PPG 2x/sem. Jamais 2 CAP consécutifs.
 - **Phase 2 — Alternance (4 sem)** : 50/50 marche/course. 3-4 séances/sem. Progression +5min course/sem. Renfo maintien.
 - **Phase 3 — Course dominante (4 sem)** : 70% course / 30% marche. Objectif 30min continu en fin de phase. SL douce 35-40min.
 - **Phase 4 — Course continue (4 sem)** : 30-45min continu. Introduction tempo léger (2-3min @RPE 6). SL 45-50min.
+
 
 ## SEMAINES-TYPES ÉLITE — RÉFÉRENCE (Few-Shot)
 Utilise ces micro-cycles réels comme modèles de qualité. Adapte-les au niveau de l'athlète.
@@ -1148,11 +1224,12 @@ Utilise ces micro-cycles réels comme modèles de qualité. Adapte-les au niveau
 ## Diagnostic TFCL™
 **Limiteur prioritaire :** [limiteur]
 **Levier activé :** [levier]
-**Stratégie globale :** [1-2 phrases]
+**Modèle de périodisation :** [Hybride Lorang (Reverse Perio + Block) / Linéaire Progressive (débutant)]
+**Stratégie globale :** [1-2 phrases incluant le séquençage des blocs]
 **Répartition sport :** [ex: Vélo 48% | CAP 25% | Natation 18% | Renfo 9%]
 
-## Phase 1 : [Nom] (Semaines 1-X)
-**Objectif physiologique :** [objectif]
+## Bloc 1 : [Nom Métabolique, ex: "Fondation + Intensité Précoce"] (Semaines 1-X)
+**Objectif physiologique :** [objectif du bloc, ex: "Reverse Perio VO2max + Force max + Volume Z2 progressif"]
 **Volume cible :** [heures/semaine]
 
 ### Semaine 1 — [Thème]
