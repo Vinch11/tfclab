@@ -21,6 +21,7 @@ import {
 import { Upload, FileText, CheckCircle, AlertCircle, TrendingUp, TrendingDown, Minus, Bike, PersonStanding, Zap, Plus, X, FlaskConical } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { parseNolioCurveCSV, mergeNolioCurveResultsMultiSport, NolioCurveResult, formatDuration, type MultiSportMergeResult } from "@/lib/nolioCurveParser";
+import { calibrateVLamaxFromMLSS } from "@/lib/v2/maderMetabolicModel";
 import { computeVLamaxBikeV2Enhanced, VLamaxBikeV2EnhancedResult, getVLamaxV2EnhancedCategory } from "@/lib/v2/vlamaxBikeV2Enhanced";
 import { computeVLamaxRunV2Enhanced, VLamaxRunV2EnhancedResult, getRunVLamaxCategory, getRunGlycolyticCategoryColor } from "@/lib/v2/vlamaxRunV2Enhanced";
 import { refineVlamaxWithGlycolyticProfile, GlycolyticRefinementResult, getConvergenceColor, getConvergenceBadgeVariant, getConvergenceLabel } from "@/lib/v2/glycolyticProfileRefinement";
@@ -892,6 +893,9 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
                     <ScoreGTraceability
                       sport="bike"
                       components={vlamaxResult.components}
+                      ftp={(bikeResult ?? merged)?.extracted.ftp_estimated || currentFtp || undefined}
+                      vo2max={currentVo2max || undefined}
+                      weightKg={currentWeight || undefined}
                     />
                   )}
 
@@ -1048,13 +1052,19 @@ function CrossSportDelta({
 function ScoreGTraceability({
   sport,
   components,
+  ftp,
+  vo2max,
+  weightKg,
 }: {
   sport: "bike" | "run";
   components: { r30?: number | null; r60?: number | null; rfm?: number | null; S30?: number | null; S60?: number | null; E?: number | null; D?: number | null; scoreG: number; vlamax_raw: number; vlamax_final: number; r1?: number | null; r5?: number | null; S1?: number | null; S5?: number | null; paceRatioVlamax?: number | null; paceRatioDelta?: number | null };
+  ftp?: number;
+  vo2max?: number;
+  weightKg?: number;
 }) {
   const isBike = sport === "bike";
   const weights = isBike
-    ? { S30: 0.40, S60: 0.30, E: 0.20, D: 0.10 }
+    ? { S30: 0.35, S60: 0.25, E: 0.15, D: 0.25 }
     : { S1: 0.10, S5: 0.25, S30: 0.30, S60: 0.15, E: 0.10, D: 0.10 };
 
   const formulaCoeff = isBike ? 0.78 : 0.68;
@@ -1141,7 +1151,53 @@ function ScoreGTraceability({
         </div>
       </div>
 
-      {/* Cross-validation (run only) */}
+      {/* Mader cross-validation (bike only, needs FTP + VO2max + weight) */}
+      {isBike && ftp && vo2max && weightKg && (() => {
+        const maderVlamax = calibrateVLamaxFromMLSS(ftp, vo2max, weightKg);
+        const delta = components.vlamax_final - maderVlamax;
+        const absDelta = Math.abs(delta);
+        const convergent = absDelta < 0.05;
+        const moderate = absDelta < 0.10;
+        return (
+          <div className="space-y-0.5">
+            <p className="text-[10px] text-muted-foreground font-medium">④ Cross-validation Mader-Heck</p>
+            <div className={`p-2 rounded border text-[10px] ${convergent ? "border-primary/30 bg-primary/5" : moderate ? "border-accent bg-accent/10" : "border-destructive/30 bg-destructive/5"}`}>
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="text-center">
+                  <p className="text-muted-foreground">Score G</p>
+                  <p className="font-mono font-bold text-foreground text-sm">{components.vlamax_final.toFixed(2)}</p>
+                </div>
+                <span className="text-muted-foreground">vs</span>
+                <div className="text-center">
+                  <p className="text-muted-foreground">Mader (FTP→VLamax)</p>
+                  <p className="font-mono font-bold text-foreground text-sm">{maderVlamax.toFixed(2)}</p>
+                </div>
+                <div className="text-center ml-auto">
+                  <p className="text-muted-foreground">Δ</p>
+                  <p className={`font-mono font-bold text-sm ${convergent ? "text-primary" : moderate ? "text-foreground" : "text-destructive"}`}>
+                    {delta > 0 ? "+" : ""}{delta.toFixed(2)}
+                  </p>
+                </div>
+                <Badge className={`text-[9px] border ${convergent ? "bg-primary/15 text-primary border-primary/30" : moderate ? "bg-accent/50 text-accent-foreground border-accent" : "bg-destructive/15 text-destructive border-destructive/30"}`}>
+                  {convergent ? "Convergent ✓" : moderate ? "Modéré" : "Divergent ⚠"}
+                </Badge>
+              </div>
+              <p className="text-muted-foreground mt-1 italic">
+                {convergent
+                  ? "Score G et modèle Mader convergent : estimation fiable."
+                  : moderate
+                    ? "Écart modéré : possibles différences de protocole ou d'efficience mécanique."
+                    : "Divergence notable : vérifier VO₂max, FTP ou qualité des records courts (P30s/P60s)."}
+              </p>
+              <p className="text-muted-foreground mt-0.5">
+                Mader: calibrateVLamaxFromMLSS(FTP={ftp}W, VO₂max={vo2max}, {weightKg}kg)
+              </p>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Cross-validation allure (run only) */}
       {components.paceRatioVlamax != null && (
         <p className="text-[10px] text-muted-foreground">
           Cross-validation allure: {components.paceRatioVlamax.toFixed(2)} (Δ{(components.paceRatioDelta ?? 0) > 0 ? "+" : ""}{components.paceRatioDelta?.toFixed(2)})
