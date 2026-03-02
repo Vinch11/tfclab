@@ -97,7 +97,7 @@ export default function AITrainingPlanPage() {
   const navigate = useNavigate();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
   const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete } = useCloudDataContext();
-  const { response, isLoading, generatePlan, reset, setResponse } = useAITrainingPlan();
+  const { response, isLoading, chunkProgress, generatePlan, reset, setResponse } = useAITrainingPlan();
   const [copied, setCopied] = useState(false);
   const [resultView, setResultView] = useState<"interactive" | "markdown" | "compare">(() => {
     try {
@@ -1020,7 +1020,9 @@ export default function AITrainingPlanPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Génération en cours...
+                    {chunkProgress && chunkProgress.totalChunks > 1
+                      ? `Bloc ${chunkProgress.currentChunk}/${chunkProgress.totalChunks} — S${chunkProgress.currentWeek}/${chunkProgress.totalWeeks}`
+                      : "Génération en cours..."}
                   </>
                 ) : (
                   <>
@@ -1172,9 +1174,21 @@ export default function AITrainingPlanPage() {
 
                   {/* Streaming indicator */}
                   {isLoading && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Génération en cours... Le plan interactif sera disponible à la fin.
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        {chunkProgress && chunkProgress.totalChunks > 1 ? (
+                          <span>
+                            Génération bloc <strong>{chunkProgress.currentChunk}/{chunkProgress.totalChunks}</strong>
+                            {" — "}Semaine <strong>{chunkProgress.currentWeek}</strong>/{chunkProgress.totalWeeks}
+                          </span>
+                        ) : (
+                          <span>Génération en cours... Le plan interactif sera disponible à la fin.</span>
+                        )}
+                      </div>
+                      {chunkProgress && chunkProgress.totalChunks > 1 && (
+                        <Progress value={(chunkProgress.currentWeek / chunkProgress.totalWeeks) * 100} className="h-1.5" />
+                      )}
                     </div>
                   )}
 
