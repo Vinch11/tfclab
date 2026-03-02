@@ -16,6 +16,7 @@ import { fr } from "date-fns/locale";
 import type { ParsedPlan, ParsedWeek, ParsedSession, StrategicRecap } from "@/lib/aiPlanParser";
 import { mapSessionsToDates } from "@/lib/aiPlanParser";
 import { exportAIPlanToPDF } from "@/lib/aiPlanPDFExport";
+import { AIPlanVolumeChart } from "@/components/AIPlanVolumeChart";
 
 function getSportIcon(sport: string) {
   const s = sport.toLowerCase();
@@ -148,8 +149,46 @@ function MiniGantt({ phases, totalWeeks }: { phases: { name: string; weeks: stri
   );
 }
 
+/** Build a complete list of all blocks from phases + limiter blocks for the Gantt */
+function buildAllGanttPhases(phases: { name: string; weeks: string }[], recap?: StrategicRecap): { name: string; weeks: string }[] {
+  const seen = new Set<string>();
+  const result: { name: string; weeks: string }[] = [];
+
+  // Add top-level phases first
+  for (const p of phases) {
+    const key = `${p.name}::${p.weeks}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      result.push(p);
+    }
+  }
+
+  // Add limiter blocks that aren't already represented
+  if (recap) {
+    for (const limiter of recap.limiters) {
+      const key = `${limiter.block}::${limiter.weeks}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push({ name: limiter.block, weeks: limiter.weeks });
+      }
+    }
+  }
+
+  // Sort by start week
+  result.sort((a, b) => {
+    const ra = parseWeekRange(a.weeks);
+    const rb = parseWeekRange(b.weeks);
+    if (!ra) return 1;
+    if (!rb) return -1;
+    return ra[0] - rb[0];
+  });
+
+  return result;
+}
+
 /** Strategic Recap visual component */
 function StrategicRecapView({ recap, phases, totalWeeks }: { recap: StrategicRecap; phases: { name: string; weeks: string }[]; totalWeeks: number }) {
+  const allGanttPhases = useMemo(() => buildAllGanttPhases(phases, recap), [phases, recap]);
   return (
     <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
       <CardHeader className="pb-2">
@@ -165,7 +204,7 @@ function StrategicRecapView({ recap, phases, totalWeeks }: { recap: StrategicRec
             <p className="text-xs font-semibold mb-2 flex items-center gap-1 text-foreground/80">
               <Calendar className="h-3 w-3 text-primary" /> Périodisation — Timeline
             </p>
-            <MiniGantt phases={phases} totalWeeks={totalWeeks} />
+            <MiniGantt phases={allGanttPhases} totalWeeks={totalWeeks} />
           </div>
         )}
 
@@ -376,6 +415,9 @@ export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved,
       {plan.strategicRecap && (
         <StrategicRecapView recap={plan.strategicRecap} phases={plan.phases} totalWeeks={plan.totalWeeks} />
       )}
+
+      {/* Volume Evolution Chart */}
+      <AIPlanVolumeChart plan={plan} />
 
       {/* View Controls */}
       <div className="flex items-center gap-2">
