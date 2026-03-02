@@ -828,24 +828,12 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
                     </div>
                   )}
 
-                  {/* Components breakdown */}
+                  {/* Full calculation traceability — RUN */}
                   {runVlamaxResult.components && (
-                    <div className="p-2 rounded border border-border bg-background/50">
-                      <p className="text-[10px] text-muted-foreground font-medium mb-1">Composants Score G = {runVlamaxResult.components.scoreG}</p>
-                      <div className="flex gap-2 flex-wrap text-[10px] font-mono">
-                        {runVlamaxResult.components.S1 != null && <span>S1={runVlamaxResult.components.S1.toFixed(2)}</span>}
-                        {runVlamaxResult.components.S5 != null && <span className="font-bold">S5={runVlamaxResult.components.S5.toFixed(2)}</span>}
-                        {runVlamaxResult.components.S30 != null && <span className="font-bold">S30={runVlamaxResult.components.S30.toFixed(2)}</span>}
-                        {runVlamaxResult.components.S60 != null && <span>S60={runVlamaxResult.components.S60.toFixed(2)}</span>}
-                        {runVlamaxResult.components.E != null && <span>E={runVlamaxResult.components.E.toFixed(2)}</span>}
-                        {runVlamaxResult.components.D != null && <span>D={runVlamaxResult.components.D.toFixed(2)}</span>}
-                      </div>
-                      {runVlamaxResult.components.paceRatioVlamax != null && (
-                        <p className="text-[10px] text-muted-foreground mt-1">
-                          Cross-validation allure: {runVlamaxResult.components.paceRatioVlamax.toFixed(2)} (Δ{runVlamaxResult.components.paceRatioDelta! > 0 ? "+" : ""}{runVlamaxResult.components.paceRatioDelta?.toFixed(2)})
-                        </p>
-                      )}
-                    </div>
+                    <ScoreGTraceability
+                      sport="run"
+                      components={runVlamaxResult.components}
+                    />
                   )}
 
                   <p className="text-xs text-muted-foreground italic">{runVlamaxResult.pedagogicalMessage}</p>
@@ -898,6 +886,15 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
                     <Badge variant="secondary">{getVLamaxV2EnhancedCategory(vlamaxResult.value)}</Badge>
                     <span className="text-muted-foreground">Confiance: <span className="font-medium text-foreground">{(vlamaxResult.confidence * 100).toFixed(0)}%</span></span>
                   </div>
+
+                  {/* Full calculation traceability — BIKE */}
+                  {vlamaxResult.components && (
+                    <ScoreGTraceability
+                      sport="bike"
+                      components={vlamaxResult.components}
+                    />
+                  )}
+
                   <p className="text-xs text-muted-foreground italic">{vlamaxResult.pedagogicalMessage}</p>
                   {vlamaxResult.warnings.length > 0 && (
                     <div className="space-y-1">
@@ -1043,6 +1040,113 @@ function CrossSportDelta({
       )}
 
       <p className="text-xs text-muted-foreground italic">{interpretation}</p>
+    </div>
+  );
+}
+
+/** Full Score G calculation traceability panel */
+function ScoreGTraceability({
+  sport,
+  components,
+}: {
+  sport: "bike" | "run";
+  components: { r30?: number | null; r60?: number | null; rfm?: number | null; S30?: number | null; S60?: number | null; E?: number | null; D?: number | null; scoreG: number; vlamax_raw: number; vlamax_final: number; r1?: number | null; r5?: number | null; S1?: number | null; S5?: number | null; paceRatioVlamax?: number | null; paceRatioDelta?: number | null };
+}) {
+  const isBike = sport === "bike";
+  const weights = isBike
+    ? { S30: 0.40, S60: 0.30, E: 0.20, D: 0.10 }
+    : { S1: 0.10, S5: 0.25, S30: 0.30, S60: 0.15, E: 0.10, D: 0.10 };
+
+  const formulaCoeff = isBike ? 0.78 : 0.68;
+  const clampRange = isBike ? "[0.20 – 1.10]" : "[0.20 – 0.90]";
+
+  // Build step rows
+  type Step = { label: string; formula: string; value: string; weight?: string; contribution?: string; active: boolean };
+  const steps: Step[] = [];
+
+  // Ratios
+  if (!isBike && components.r1 != null) steps.push({ label: "r1", formula: "P1s / Seuil", value: components.r1.toFixed(2), active: true });
+  if (!isBike && components.r5 != null) steps.push({ label: "r5", formula: "P5s / Seuil", value: components.r5.toFixed(2), active: true });
+  if (components.r30 != null) steps.push({ label: "r30", formula: isBike ? "P30s / FTP" : "P30s / Seuil", value: components.r30.toFixed(2), active: true });
+  if (components.r60 != null) steps.push({ label: "r60", formula: isBike ? "P60s / FTP" : "P60s / Seuil", value: components.r60.toFixed(2), active: true });
+  if (components.rfm != null) steps.push({ label: "rfm", formula: isBike ? "FTP / MAP5'" : "Seuil / P5'", value: components.rfm.toFixed(2), active: true });
+
+  // Scores
+  const scoreEntries: { key: string; s: number | null | undefined; w: number }[] = [];
+  if (!isBike) {
+    scoreEntries.push({ key: "S1", s: components.S1, w: weights.S1 ?? 0 });
+    scoreEntries.push({ key: "S5", s: components.S5, w: weights.S5 ?? 0 });
+  }
+  scoreEntries.push({ key: "S30", s: components.S30, w: weights.S30 });
+  scoreEntries.push({ key: "S60", s: components.S60, w: weights.S60 });
+  scoreEntries.push({ key: "E", s: components.E, w: weights.E });
+  scoreEntries.push({ key: "D", s: components.D, w: weights.D });
+
+  return (
+    <div className="p-3 rounded-lg border border-border bg-background/50 space-y-2">
+      <div className="flex items-center gap-2">
+        <FlaskConical className="w-3.5 h-3.5 text-muted-foreground" />
+        <p className="text-xs font-semibold text-muted-foreground">Traçabilité Score G — {isBike ? "Vélo" : "CAP"}</p>
+      </div>
+
+      {/* Ratios */}
+      {steps.length > 0 && (
+        <div className="space-y-0.5">
+          <p className="text-[10px] text-muted-foreground font-medium">① Ratios bruts</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-1">
+            {steps.map(s => (
+              <div key={s.label} className="flex items-center gap-1.5 p-1.5 rounded border border-border bg-muted/30 text-[10px]">
+                <span className="font-mono font-bold text-foreground">{s.label}</span>
+                <span className="text-muted-foreground">=</span>
+                <span className="font-mono text-primary font-semibold">{s.value}</span>
+                <span className="text-muted-foreground ml-auto truncate">({s.formula})</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Normalized scores with weights */}
+      <div className="space-y-0.5">
+        <p className="text-[10px] text-muted-foreground font-medium">② Scores normalisés × poids</p>
+        <div className="space-y-0.5">
+          {scoreEntries.map(({ key, s, w }) => {
+            const active = s != null;
+            const contrib = active ? (s! * w).toFixed(3) : "—";
+            const barWidth = active ? Math.min(100, s! * 100) : 0;
+            return (
+              <div key={key} className={`flex items-center gap-2 p-1.5 rounded border text-[10px] ${active ? "border-border bg-muted/20" : "border-border/50 bg-muted/10 opacity-50"}`}>
+                <span className="font-mono font-bold w-6 text-foreground">{key}</span>
+                <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                  <div className="h-full rounded-full bg-primary/60 transition-all" style={{ width: `${barWidth}%` }} />
+                </div>
+                <span className="font-mono text-foreground w-8 text-right">{active ? s!.toFixed(2) : "—"}</span>
+                <span className="text-muted-foreground">×</span>
+                <span className="font-mono text-muted-foreground w-8">{w.toFixed(2)}</span>
+                <span className="text-muted-foreground">=</span>
+                <span className="font-mono font-semibold text-primary w-10 text-right">{contrib}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Final calculation */}
+      <div className="space-y-0.5">
+        <p className="text-[10px] text-muted-foreground font-medium">③ Résultat</p>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 p-2 rounded border border-primary/30 bg-primary/5 text-xs font-mono">
+          <span><span className="text-muted-foreground">Score G =</span> <span className="font-bold text-foreground">{components.scoreG.toFixed(3)}</span></span>
+          <span><span className="text-muted-foreground">→ 0.22 + {formulaCoeff} × G =</span> <span className="font-bold text-foreground">{components.vlamax_raw.toFixed(3)}</span></span>
+          <span><span className="text-muted-foreground">clamp {clampRange} →</span> <span className="font-bold text-primary">{components.vlamax_final.toFixed(2)}</span></span>
+        </div>
+      </div>
+
+      {/* Cross-validation (run only) */}
+      {components.paceRatioVlamax != null && (
+        <p className="text-[10px] text-muted-foreground">
+          Cross-validation allure: {components.paceRatioVlamax.toFixed(2)} (Δ{(components.paceRatioDelta ?? 0) > 0 ? "+" : ""}{components.paceRatioDelta?.toFixed(2)})
+        </p>
+      )}
     </div>
   );
 }
