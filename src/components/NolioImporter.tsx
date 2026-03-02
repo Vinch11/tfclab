@@ -22,6 +22,7 @@ import { Upload, FileText, CheckCircle, AlertCircle, TrendingUp, TrendingDown, M
 import { parseNolioCurveCSV, mergeNolioCurveResults, NolioCurveResult, formatDuration } from "@/lib/nolioCurveParser";
 import { computeVLamaxBikeV2Enhanced, VLamaxBikeV2EnhancedResult, getVLamaxV2EnhancedCategory } from "@/lib/v2/vlamaxBikeV2Enhanced";
 import { computeVLamaxRunV2Enhanced, VLamaxRunV2EnhancedResult, getRunVLamaxCategory, getRunGlycolyticCategoryColor } from "@/lib/v2/vlamaxRunV2Enhanced";
+import { refineVlamaxWithGlycolyticProfile, GlycolyticRefinementResult, getConvergenceColor, getConvergenceBadgeVariant, getConvergenceLabel } from "@/lib/v2/glycolyticProfileRefinement";
 import { toast } from "sonner";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid, ReferenceLine, Legend } from "recharts";
 import { generateMaderPowerDurationCurve, buildOverlayData } from "@/lib/v2/maderPowerDurationCurve";
@@ -109,7 +110,42 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
     });
   }, [merged, currentWeight]);
 
-  const activeVlamax = vlamaxResult?.value ?? runVlamaxResult?.value ?? null;
+  // Glycolytic profile refinement (bike)
+  const bikeGlycoRefinement = useMemo<GlycolyticRefinementResult | null>(() => {
+    if (!vlamaxResult || !merged?.glycolyticProfile) return null;
+    const gp = merged.glycolyticProfile;
+    return refineVlamaxWithGlycolyticProfile({
+      vlamaxScoreG: vlamaxResult.value,
+      confidenceScoreG: vlamaxResult.confidence,
+      rangeWidth: (vlamaxResult.rangeMax - vlamaxResult.rangeMin) / 2,
+      glycolyticIndex: gp.glycolyticIndex,
+      decayRate1to5: gp.decayRate1to5,
+      decayRate5to30: gp.decayRate5to30,
+      decayRate30to60: null,
+      sport: "bike",
+    });
+  }, [vlamaxResult, merged?.glycolyticProfile]);
+
+  // Glycolytic profile refinement (run)
+  const runGlycoRefinement = useMemo<GlycolyticRefinementResult | null>(() => {
+    if (!runVlamaxResult || !runVlamaxResult.runGlycolyticProfile) return null;
+    const gp = runVlamaxResult.runGlycolyticProfile;
+    return refineVlamaxWithGlycolyticProfile({
+      vlamaxScoreG: runVlamaxResult.value,
+      confidenceScoreG: runVlamaxResult.confidence,
+      rangeWidth: (runVlamaxResult.rangeMax - runVlamaxResult.rangeMin) / 2,
+      glycolyticIndex: gp.glycolyticIndex,
+      decayRate1to5: gp.decayRate1to5,
+      decayRate5to30: gp.decayRate5to30,
+      decayRate30to60: gp.decayRate30to60,
+      sport: "run",
+    });
+  }, [runVlamaxResult]);
+
+  const activeGlycoRefinement = bikeGlycoRefinement ?? runGlycoRefinement;
+
+  // Use refined value if available, otherwise raw
+  const activeVlamax = bikeGlycoRefinement?.vlamaxRefined ?? runGlycoRefinement?.vlamaxRefined ?? vlamaxResult?.value ?? runVlamaxResult?.value ?? null;
 
   const delta = useMemo(() => {
     if (!activeVlamax || !previousVLamax || previousVLamax <= 0) return null;
@@ -202,6 +238,9 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
       }
       if (vlamaxResult) {
         notes.push(`VLamax V2: ${vlamaxResult.value.toFixed(2)} [${vlamaxResult.rangeMin.toFixed(2)}–${vlamaxResult.rangeMax.toFixed(2)}]`);
+        if (bikeGlycoRefinement && bikeGlycoRefinement.convergence !== "insufficient") {
+          notes.push(`VLamax affinée: ${bikeGlycoRefinement.vlamaxRefined.toFixed(2)} (${getConvergenceLabel(bikeGlycoRefinement.convergence)}, conf: ${(bikeGlycoRefinement.confidenceRefined * 100).toFixed(0)}%)`);
+        }
       }
     } else if (sport === "run") {
       if (extracted.vma) values.vma = String(extracted.vma.toFixed(1));
@@ -221,6 +260,9 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
         notes.push(`VLamax Run V2: ${runVlamaxResult.value.toFixed(2)} [${runVlamaxResult.rangeMin.toFixed(2)}–${runVlamaxResult.rangeMax.toFixed(2)}]`);
         if (runVlamaxResult.runGlycolyticProfile) {
           notes.push(`Profil: ${runVlamaxResult.runGlycolyticProfile.category}`);
+        }
+        if (runGlycoRefinement && runGlycoRefinement.convergence !== "insufficient") {
+          notes.push(`VLamax CAP affinée: ${runGlycoRefinement.vlamaxRefined.toFixed(2)} (${getConvergenceLabel(runGlycoRefinement.convergence)}, conf: ${(runGlycoRefinement.confidenceRefined * 100).toFixed(0)}%)`);
         }
       }
       if (extracted.pace_5k) {
@@ -606,7 +648,57 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
                 </div>
               )}
 
-              {/* VLamax Run V2 Enhanced (running power curve) */}
+              {/* === GLYCOLYTIC REFINEMENT CONVERGENCE === */}
+              {activeGlycoRefinement && activeGlycoRefinement.convergence !== "insufficient" && (
+                <div className="p-3 rounded-lg border-2 border-primary/20 bg-primary/5 space-y-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Zap className="w-4 h-4 text-primary" />
+                    <p className="text-sm font-semibold">Affinage Profil Glycolytique</p>
+                    <Badge variant={getConvergenceBadgeVariant(activeGlycoRefinement.convergence)} className="ml-auto text-[10px]">
+                      {getConvergenceLabel(activeGlycoRefinement.convergence)}
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div className="p-2 rounded border border-border bg-background/70 text-center">
+                      <p className="text-[9px] text-muted-foreground">Score G</p>
+                      <p className="text-sm font-mono font-bold text-foreground">
+                        {(vlamaxResult?.value ?? runVlamaxResult?.value ?? 0).toFixed(2)}
+                      </p>
+                    </div>
+                    {activeGlycoRefinement.vlamaxGlyco != null && (
+                      <div className="p-2 rounded border border-border bg-background/70 text-center">
+                        <p className="text-[9px] text-muted-foreground">Profil Glyco</p>
+                        <p className="text-sm font-mono font-bold text-foreground">
+                          {activeGlycoRefinement.vlamaxGlyco.toFixed(2)}
+                        </p>
+                      </div>
+                    )}
+                    <div className="p-2 rounded border border-primary/30 bg-primary/10 text-center">
+                      <p className="text-[9px] text-muted-foreground">VLamax Affinée</p>
+                      <p className="text-lg font-mono font-bold text-primary">
+                        {activeGlycoRefinement.vlamaxRefined.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="p-2 rounded border border-border bg-background/70 text-center">
+                      <p className="text-[9px] text-muted-foreground">Confiance</p>
+                      <p className="text-sm font-mono font-bold text-foreground">
+                        {(activeGlycoRefinement.confidenceRefined * 100).toFixed(0)}%
+                      </p>
+                      {activeGlycoRefinement.adjustment !== 0 && (
+                        <p className="text-[9px] text-muted-foreground">
+                          Δ {activeGlycoRefinement.adjustment > 0 ? "+" : ""}{(activeGlycoRefinement.adjustment * 1000).toFixed(0)}‰
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground italic">{activeGlycoRefinement.explanation}</p>
+                  {activeGlycoRefinement.additionalSources.length > 0 && (
+                    <p className="text-[9px] text-muted-foreground">Sources: {activeGlycoRefinement.additionalSources.join(", ")}</p>
+                  )}
+                </div>
+              )}
+
+
               {runVlamaxResult && (
                 <div className="p-4 rounded-lg border-2 border-primary/30 bg-primary/5 space-y-3">
                   <div className="flex items-center gap-2">
