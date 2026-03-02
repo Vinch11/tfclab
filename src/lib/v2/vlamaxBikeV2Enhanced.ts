@@ -13,7 +13,7 @@
  *   S60 = clamp((r60 - 1.25) / 0.75, 0, 1)
  *   E   = clamp((0.88 - rfm) / 0.23, 0, 1)
  *   D   = clamp((55 - TTE) / 25, 0, 1)
- * Score G = 0.40*S30 + 0.30*S60 + 0.20*E + 0.10*D
+ * Score G = 0.35*S30 + 0.25*S60 + 0.15*E + 0.25*D  (Mader-optimized weights)
  * VLamax_raw = 0.22 + 0.78*G
  * VLamax_final = clamp(VLamax_raw, 0.20, 1.10)
  */
@@ -243,25 +243,25 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
     let scoreG = 0;
     let totalWeight = 0;
     
-    // Pondérations: S30=0.40, S60=0.30, E=0.20, D=0.10
+    // Pondérations Mader-optimized: S30=0.35, S60=0.25, E=0.15, D=0.25
     if (S30 !== null) {
-      scoreG += 0.40 * S30;
-      totalWeight += 0.40;
+      scoreG += 0.35 * S30;
+      totalWeight += 0.35;
       sources.push("P30s");
     }
     if (S60 !== null) {
-      scoreG += 0.30 * S60;
-      totalWeight += 0.30;
+      scoreG += 0.25 * S60;
+      totalWeight += 0.25;
       sources.push("P60s");
     }
     if (E !== null) {
-      scoreG += 0.20 * E;
-      totalWeight += 0.20;
+      scoreG += 0.15 * E;
+      totalWeight += 0.15;
       sources.push("MAP5min");
     }
     if (D !== null) {
-      scoreG += 0.10 * D;
-      totalWeight += 0.10;
+      scoreG += 0.25 * D;
+      totalWeight += 0.25;
       sources.push("TTE");
     }
     
