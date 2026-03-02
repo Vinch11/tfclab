@@ -67,6 +67,14 @@ function isRestSession(sport: string, title: string): boolean {
   return /repos|rest|off|récup|recovery/.test(combined);
 }
 
+function parseWeekHeader(line: string): { weekNumber: number; theme: string } | null {
+  const match = line.match(/^#{2,4}\s*\*{0,2}\s*Semaine\s*(\d+)\*{0,2}(?:\s*[—\-–:]\s*(.+))?$/i);
+  if (!match) return null;
+  const weekNumber = parseInt(match[1], 10);
+  const theme = (match[2] || `Semaine ${weekNumber}`).trim();
+  return { weekNumber, theme };
+}
+
 /**
  * Parse the full AI Markdown response into structured plan data
  */
@@ -93,10 +101,10 @@ export function parseAIPlan(markdown: string): ParsedPlan {
   let collectingSynergies = false;
 
   const flushWeek = () => {
-    if (currentWeekNumber > 0 && pendingSessions.length > 0) {
+    if (currentWeekNumber > 0) {
       weeks.push({
         weekNumber: currentWeekNumber,
-        theme: currentWeekTheme,
+        theme: currentWeekTheme || `Semaine ${currentWeekNumber}`,
         phase: currentPhase,
         phaseObjective: currentPhaseObjective,
         volumeTarget: currentVolumeTarget,
@@ -226,13 +234,13 @@ export function parseAIPlan(markdown: string): ParsedPlan {
       continue;
     }
 
-    // Week header: ### Semaine N — Theme
-    const weekMatch = trimmed.match(/^###\s*Semaine\s*(\d+)\s*[—\-–:]\s*(.+)/i);
-    if (weekMatch) {
+    // Week header: ### Semaine N — Theme (theme optional for chunked responses)
+    const weekHeader = parseWeekHeader(trimmed);
+    if (weekHeader) {
       flushWeek();
       collectingCoachNotes = false;
-      currentWeekNumber = parseInt(weekMatch[1], 10);
-      currentWeekTheme = weekMatch[2].trim();
+      currentWeekNumber = weekHeader.weekNumber;
+      currentWeekTheme = weekHeader.theme;
       inTable = false;
       tableHeaders = [];
       continue;
@@ -254,8 +262,8 @@ export function parseAIPlan(markdown: string): ParsedPlan {
       }
     }
 
-    // Table header row
-    if (trimmed.startsWith("|") && trimmed.includes("Jour")) {
+    // Table header row (French or English)
+    if (trimmed.startsWith("|") && /\b(jour|day)\b/i.test(trimmed)) {
       tableHeaders = trimmed.split("|").map(c => c.trim()).filter(Boolean);
       inTable = true;
       continue;
