@@ -2210,7 +2210,8 @@ IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format ta
     // Helper: extract which week numbers were generated in a chunk of text
     function extractGeneratedWeekNumbers(text: string): number[] {
       const nums: number[] = [];
-      const re = /#{2,4}\s*\*{0,2}\s*Semaine\s*(\d+)/gi;
+      // Accept both markdown headings and plain week lines
+      const re = /^(?:#{2,4}\s*)?\*{0,2}\s*Semaine\s*(\d+)\b/gim;
       let m: RegExpExecArray | null;
       while ((m = re.exec(text)) !== null) {
         nums.push(parseInt(m[1], 10));
@@ -2298,7 +2299,7 @@ Assure la CONTINUITÉ de la progression.`;
               }
 
               // Build summary for next chunks
-              const weekMatches = chunkText.match(/#{2,4}\s*\*{0,2}\s*Semaine\s*\d+[^#]*/gi) || [];
+              const weekMatches = chunkText.match(/^(?:#{2,4}\s*)?\*{0,2}\s*Semaine\s*\d+[^#\n]*(?:\n(?!#{1,4}\s*\*{0,2}\s*Semaine\s*\d+).*)*/gim) || [];
               const summaryLines = weekMatches.map(w => {
                 const numMatch = w.match(/Semaine\s*(\d+)/i);
                 const themeMatch = w.match(/[—–:\-]\s*(.+?)[\n|]/);
