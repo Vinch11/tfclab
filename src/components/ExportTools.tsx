@@ -98,6 +98,7 @@ export interface ReportSections {
   profilMetabolique: boolean; // Profil Métabolique Complet (Radar Chart)
   vlamaxZoneConfidence: boolean; // ⚡ VLamax = Zone × Confiance (graphique signature)
   indicateurs: boolean;     // Indicateurs Clés
+  formeGenerale: boolean;   // 🎯 Forme générale actuelle
   raceReadiness: boolean;   // Race Readiness
   disponibiliteTFCL: boolean; // ✅ Disponibilité TFCL™
   raceSimulation: boolean;  // ✅ Simulation de Course TFCL™
@@ -2539,6 +2540,134 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
         <b>💡 Pourquoi ce graphique ?</b> La VLamax est une estimation continue influencée par la qualité des données, la fatigue et le type de test. 
         TFCL affiche volontairement une valeur avec marge d'erreur et niveau de fiabilité, car la décision d'entraînement dépend davantage de la <b>zone physiologique</b> que d'un chiffre isolé. 
         Une variation de ±0.02 est physiologiquement normale et ne justifie pas un changement de stratégie.
+      </div>
+    </section>
+  `;
+}
+
+// =============================================
+// BUILD FORME GÉNÉRALE ACTUELLE HTML
+// Carte synthèse forme générale — identique UI
+// =============================================
+
+function buildFormeGeneraleHTML(payload: ExportPayload): string {
+  const { vlamax, tte, raceReadiness, effectiveSnapshot, athlete, ageAdjustment } = payload;
+  
+  const scoreColor = raceReadiness.score >= 80 ? '#16a34a' : raceReadiness.score >= 60 ? '#ca8a04' : raceReadiness.score >= 40 ? '#ea580c' : '#dc2626';
+  const scoreLabel = raceReadiness.label;
+  
+  const vlamaxValue = vlamax.value;
+  const vlamaxSource = vlamax.source;
+  const vlamaxConf = Math.round(vlamax.confidence * 100);
+  
+  const tteMin = tte.tte_min;
+  const tteSource = tte.source === 'observed' ? 'Mesuré' : tte.source === 'estimated' ? 'Estimé' : String(tte.source);
+  const tteConf = Math.round(tte.confidence * 100);
+  
+  const confLevel = raceReadiness.confidence >= 0.7 ? 'robust' : raceReadiness.confidence >= 0.4 ? 'prudent' : 'fragile';
+  const confColor = confLevel === 'robust' ? '#16a34a' : confLevel === 'prudent' ? '#ca8a04' : '#ea580c';
+  const confLabel = confLevel === 'robust' ? 'Données robustes' : confLevel === 'prudent' ? 'Données prudentes' : 'Données fragiles';
+  
+  const ftpKg = effectiveSnapshot?.ftp && effectiveSnapshot?.weight_kg 
+    ? (effectiveSnapshot.ftp / effectiveSnapshot.weight_kg).toFixed(2) 
+    : null;
+
+  const athleteAge = ageAdjustment?.age;
+  const objectifLabel = athlete.goal === 'IM' ? 'Ironman' : athlete.goal === '703' ? '70.3' : athlete.goal === 'Marathon' ? 'Marathon' : athlete.goal === 'Semi' ? 'Semi-Marathon' : athlete.goal || '—';
+
+  return `
+    <section id="forme-generale" class="section pagebreakAvoid">
+      <h2>🎯 Forme générale actuelle</h2>
+      
+      <div class="card" style="border-left:4px solid ${scoreColor};">
+        <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+          <!-- Score circle -->
+          <div style="width:100px;height:100px;border-radius:50%;border:6px solid ${scoreColor};display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">
+            <div style="font-size:32px;font-weight:800;color:${scoreColor};line-height:1;">${raceReadiness.score}</div>
+            <div style="font-size:10px;color:#666;">/100</div>
+          </div>
+          
+          <div style="flex:1;">
+            <div style="font-size:20px;font-weight:700;color:${scoreColor};">${scoreLabel}</div>
+            <div class="muted">Objectif : ${objectifLabel}${athleteAge ? ` • ${athleteAge} ans` : ''}</div>
+            <div style="margin-top:8px;">
+              <div class="progressBar"><div class="progressFill" style="width:${raceReadiness.score}%;background:${scoreColor};"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sources et confiance -->
+      <div class="grid2 mt">
+        ${vlamaxValue !== null ? `
+        <div class="card">
+          <div class="muted" style="font-size:10px;text-transform:uppercase;">VLamax effectif</div>
+          <div style="font-size:24px;font-weight:700;">${vlamaxValue.toFixed(2)} <span style="font-size:12px;font-weight:400;color:#666;">mmol/L/s</span></div>
+          <div style="display:flex;gap:8px;margin-top:4px;align-items:center;">
+            <span style="font-size:11px;padding:2px 8px;border-radius:4px;background:#e0e7ff;color:#4338ca;">${vlamaxSource}</span>
+            <span style="font-size:11px;color:#666;">conf. ${vlamaxConf}%</span>
+          </div>
+        </div>` : ''}
+        
+        ${tteMin !== null ? `
+        <div class="card">
+          <div class="muted" style="font-size:10px;text-transform:uppercase;">TTE (Time to Exhaustion)</div>
+          <div style="font-size:24px;font-weight:700;">${tteMin} <span style="font-size:12px;font-weight:400;color:#666;">min</span></div>
+          <div style="display:flex;gap:8px;margin-top:4px;align-items:center;">
+            <span style="font-size:11px;padding:2px 8px;border-radius:4px;background:#dcfce7;color:#166534;">${tteSource}</span>
+            <span style="font-size:11px;color:#666;">conf. ${tteConf}%</span>
+          </div>
+        </div>` : ''}
+      </div>
+
+      ${ftpKg ? `
+      <div class="grid2 mt">
+        <div class="card">
+          <div class="muted" style="font-size:10px;text-transform:uppercase;">FTP/kg</div>
+          <div style="font-size:24px;font-weight:700;">${ftpKg} <span style="font-size:12px;font-weight:400;color:#666;">W/kg</span></div>
+        </div>
+        <div class="card">
+          <div class="muted" style="font-size:10px;text-transform:uppercase;">Indice de confiance global</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+            <span style="font-size:16px;font-weight:700;color:${confColor};">${confLabel}</span>
+            <span style="font-size:12px;color:#666;">(${Math.round(raceReadiness.confidence * 100)}%)</span>
+          </div>
+          <div style="font-size:11px;color:#666;margin-top:4px;">
+            ${confLevel === 'robust' ? 'Les données sont fiables et croisées.' : confLevel === 'prudent' ? 'Quelques données manquantes, estimation prudente.' : 'Données largement estimées, prudence recommandée.'}
+          </div>
+        </div>
+      </div>` : ''}
+
+      <!-- Piliers -->
+      <div class="grid4 mt">
+        <div class="card" style="text-align:center;">
+          <div class="muted" style="font-size:10px;">⚡ VLamax</div>
+          <div style="font-size:20px;font-weight:700;">${raceReadiness.details.vlamax}/25</div>
+          <div class="progressBar mt"><div class="progressFill" style="width:${(raceReadiness.details.vlamax / 25) * 100}%;background:${raceReadiness.details.vlamax >= 20 ? '#16a34a' : raceReadiness.details.vlamax >= 15 ? '#ca8a04' : '#dc2626'};"></div></div>
+        </div>
+        <div class="card" style="text-align:center;">
+          <div class="muted" style="font-size:10px;">🏋️ Endurance</div>
+          <div style="font-size:20px;font-weight:700;">${raceReadiness.details.endurance}/25</div>
+          <div class="progressBar mt"><div class="progressFill" style="width:${(raceReadiness.details.endurance / 25) * 100}%;background:${raceReadiness.details.endurance >= 20 ? '#16a34a' : raceReadiness.details.endurance >= 15 ? '#ca8a04' : '#dc2626'};"></div></div>
+        </div>
+        <div class="card" style="text-align:center;">
+          <div class="muted" style="font-size:10px;">💪 Puissance</div>
+          <div style="font-size:20px;font-weight:700;">${raceReadiness.details.puissance}/25</div>
+          <div class="progressBar mt"><div class="progressFill" style="width:${(raceReadiness.details.puissance / 25) * 100}%;background:${raceReadiness.details.puissance >= 20 ? '#16a34a' : raceReadiness.details.puissance >= 15 ? '#ca8a04' : '#dc2626'};"></div></div>
+        </div>
+        <div class="card" style="text-align:center;">
+          <div class="muted" style="font-size:10px;">🔋 Disponibilité</div>
+          <div style="font-size:20px;font-weight:700;">${raceReadiness.details.fraicheur}/25</div>
+          <div class="progressBar mt"><div class="progressFill" style="width:${(raceReadiness.details.fraicheur / 25) * 100}%;background:${raceReadiness.details.fraicheur >= 18 ? '#16a34a' : raceReadiness.details.fraicheur >= 12 ? '#ca8a04' : '#dc2626'};"></div></div>
+        </div>
+      </div>
+
+      <div class="card mt">
+        <div style="font-size:12px;color:#666;">
+          <b>Profil de référence :</b> ${effectiveSnapshot?.date || '—'} • 
+          <b>Sport :</b> ${effectiveSnapshot?.sport_main || 'bike'} • 
+          <b>Snapshot :</b> ${athlete.goal ? objectifLabel : '—'}
+        </div>
       </div>
     </section>
   `;
@@ -6592,6 +6721,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     profilMetabolique: profilMetaboliqueHTML,
     vlamaxZoneConfidence: buildVLamaxZoneConfidenceHTML(payload),
     indicateurs: indicateursHTML,
+    formeGenerale: buildFormeGeneraleHTML(payload),
     raceReadiness: raceReadinessHTML,
     disponibiliteTFCL: disponibiliteTFCLHTML,
     raceSimulation: buildRaceSimulationHTML(payload, 'pro'),
@@ -7108,6 +7238,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       profilMetabolique: false,
       vlamaxZoneConfidence: false,
       indicateurs: false,
+      formeGenerale: false,
       raceReadiness: false,
       disponibiliteTFCL: false,
       raceSimulation: false,
