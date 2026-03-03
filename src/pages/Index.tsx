@@ -2455,6 +2455,7 @@ const Index = () => {
           athlete={currentAthlete}
           snapshots={snapshots}
           tests={tests}
+          checkins={checkins}
           staffMode={staffMode}
           ambition={currentAmbition}
           open={exportOpen}
