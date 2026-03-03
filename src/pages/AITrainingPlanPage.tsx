@@ -205,6 +205,31 @@ export default function AITrainingPlanPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [persistKey]);
 
+  // Persist single-athlete plan state (response + config) when generation completes
+  useEffect(() => {
+    if (isMultiMode || isLoading || !persistKey) return;
+    // Only persist if there's a response
+    if (!response) return;
+    try {
+      const state = {
+        response,
+        objective,
+        raceName,
+        raceDate,
+        weeklyHours,
+        sessionsPerWeek,
+        ambition,
+        constraints,
+        maxSessionsPerDay,
+        strengthSessionsPerWeek,
+        resultView,
+      };
+      localStorage.setItem(persistKey, JSON.stringify(state));
+    } catch {
+      // localStorage quota exceeded — silently ignore
+    }
+  }, [response, isLoading, isMultiMode, persistKey, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, resultView]);
+
   // Reset saved state when regenerating
   useEffect(() => {
     if (isLoading) {
