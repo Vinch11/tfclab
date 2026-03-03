@@ -1322,6 +1322,7 @@ function buildExportPayload(
     poids: effectiveRefs.weightKg,
     fatigue_ok: true,
     seance_specifique_validee: false,
+    tss7d: effectiveSnapshot?.tss_7d ?? null,
     fcMax: effectiveRefs.fcMax,
     // ✅ FIX: Ajout âge ET ambition pour synchronisation parfaite avec l'UI
     athleteAge,

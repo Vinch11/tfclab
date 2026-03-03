@@ -152,6 +152,7 @@ export function WeekSelectorTFCL({ onInsertWeek, defaultRaceType }: WeekSelector
       tteEffectif: tteResult,
       ftp: activeSnapshot.ftp ?? null,
       poids: activeSnapshot.weight_kg ?? null,
+      tss7d: activeSnapshot.tss_7d ?? null,
     });
 
     // Fatigue
