@@ -2711,6 +2711,7 @@ function buildUserPrompt(data: any, config: any): string {
 
   const weeks = config.weeksAvailable || 12;
   lines.push(`\n---\nGénère le plan COMPLET de ${weeks} semaines, semaine par semaine, SANS EN OMETTRE AUCUNE. Chaque semaine a son propre tableau. Ne résume jamais. Chaque séance doit être actionnable immédiatement.`);
+  lines.push(`\n⚠️ RÈGLE ABSOLUE SUR LES TABLEAUX : Chaque tableau de semaine DOIT COMMENCER par LUNDI et se terminer par DIMANCHE. Les 7 jours doivent apparaître (Lundi, Mardi, Mercredi, Jeudi, Vendredi, Samedi, Dimanche). Ne JAMAIS omettre les premiers jours de la semaine. Si un jour est un jour de repos, il doit quand même apparaître avec "Repos" dans la colonne Sport.`);
   if (isTriathlon && ambition !== "finisher") {
     lines.push(`\n⚠️ RAPPEL FINAL : Chaque jour d'entraînement d'un triathlète (sauf repos) doit avoir PLUSIEURS séances (2 ou 3 lignes dans le tableau). Un tableau de semaine IM Elite = 14 à 18 lignes, PAS 7. Si ton tableau a seulement 7-8 lignes pour une semaine IM, RECOMMENCE, c'est insuffisant.`);
   }
