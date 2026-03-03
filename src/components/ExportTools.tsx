@@ -38,6 +38,9 @@ import { SEANCES } from "@/types/seances";
 import { computeNutritionEstimate, type NutritionEstimate } from "@/lib/nutritionPredictive";
 import { computeCAPInjuryRisk, getCAPRiskIcon } from "@/lib/capInjuryRisk";
 import { calculateAge, computeAgeAdjustmentIndex, type AgeAdjustmentIndex, interpretVLamaxByAge, getAgeNutritionAdjustment, getAgeAdjustedVLamaxProfil, getVLamaxAgeStatus, type VLamaxProfil } from "@/lib/ageAdjustment";
+import { getFtpKgLevelTargets } from "@/lib/scoreEnvelope";
+import { computeRunningEconomy, type RunningEconomyInput, type RunningEconomyResult } from "@/lib/runningEconomy";
+import { getVo2maxTarget, getVo2maxAgeFactor, getVo2maxAgeAdjustmentLabel } from "@/lib/v2/unifiedLimiterDetection";
 import { AmbitionLevel, DEFAULT_AMBITION, getAmbitionDefinition, AMBITION_LEVELS_ORDERED, AMBITION_DEFINITIONS } from "@/types/ambitionLevel";
 import { getTargetsForAmbition, AMBITION_TARGETS } from "@/lib/physiologicalTargets";
 import logoUrl from "@/assets/logo-2fc.png";
@@ -130,6 +133,12 @@ export interface ReportSections {
   comprendre: boolean;      // Comprendre mes scores
   qualite: boolean;         // Qualité des données
   roadmap: boolean;         // Roadmap Stratégique
+  ftpKgTargets: boolean;    // FTP/kg Cibles ajustées
+  vo2maxAgeComparison: boolean; // VO₂max Comparaison par Âge
+  coachDecision: boolean;   // Coach Decision Center TFCL™
+  runningEconomy: boolean;  // Économie de Course CAP
+  vlamaxCAP: boolean;       // VLamax CAP
+  decisionReliability: boolean; // Decision Reliability Engine™
 }
 
 interface ExportOptions {
@@ -2668,6 +2677,330 @@ function buildFormeGeneraleHTML(payload: ExportPayload): string {
           <b>Sport :</b> ${effectiveSnapshot?.sport_main || 'bike'} • 
           <b>Snapshot :</b> ${athlete.goal ? objectifLabel : '—'}
         </div>
+      </div>
+    </section>
+  `;
+}
+
+// =============================================
+// BUILD FTP/KG TARGETS HTML
+// =============================================
+
+function buildFtpKgTargetsHTML(payload: ExportPayload): string {
+  const { athlete, effectiveSnapshot, ageAdjustment } = payload;
+  const objectif = athlete.goal || "IM";
+  const age = ageAdjustment?.age ?? null;
+  const ftpKg = effectiveSnapshot?.ftp && effectiveSnapshot?.weight_kg
+    ? effectiveSnapshot.ftp / effectiveSnapshot.weight_kg : null;
+  const targets = getFtpKgLevelTargets(objectif, age, ftpKg);
+
+  const zoneRow = (label: string, emoji: string, zone: { min: number; max: number; label: string }, color: string) => {
+    const isCurrent = ftpKg !== null && ftpKg >= zone.min && ftpKg <= zone.max;
+    return `<tr style="${isCurrent ? `background:${color}15;font-weight:700;` : ''}">
+      <td>${emoji} ${htmlEscape(label)}${isCurrent ? ' <span style="font-size:10px;background:#e0e7ff;padding:2px 6px;border-radius:4px;">Vous</span>' : ''}</td>
+      <td style="font-family:monospace;">${zone.min.toFixed(1)} – ${zone.max.toFixed(1)} W/kg</td>
+    </tr>`;
+  };
+
+  return `
+    <section id="ftp-kg-targets" class="section pagebreakAvoid">
+      <h2>🎯 FTP/kg — Cibles ajustées (12–24 mois)</h2>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <span class="muted">Objectif : <b>${htmlEscape(getObjectifLabel(objectif))}</b>${age ? ` • ${age} ans` : ''}</span>
+          ${ftpKg ? `<span style="font-size:18px;font-weight:700;color:#2563eb;">${ftpKg.toFixed(2)} W/kg</span>` : ''}
+        </div>
+        <table>
+          <thead><tr><th>Zone</th><th>Plage cible</th></tr></thead>
+          <tbody>
+            ${zoneRow('Réaliste', '🔹', targets.plausible, '#16a34a')}
+            ${zoneRow('Ambitieux', '🔸', targets.ambitieux, '#ca8a04')}
+            ${zoneRow('Élite', '🔺', targets.eliteImprobable, '#dc2626')}
+          </tbody>
+        </table>
+        <p class="muted mt" style="font-size:11px;font-style:italic;">${htmlEscape(targets.warning)}</p>
+      </div>
+    </section>
+  `;
+}
+
+// =============================================
+// BUILD VO2MAX AGE COMPARISON HTML
+// =============================================
+
+function buildVO2maxAgeComparisonHTML(payload: ExportPayload): string {
+  const { ageAdjustment, effectiveSnapshot, athlete } = payload;
+  const age = ageAdjustment?.age;
+  const vo2max = effectiveSnapshot?.vo2max ?? null;
+  const objectif = athlete.goal || "IM";
+  
+  if (!age) {
+    return `<section id="vo2max-age" class="section pagebreakAvoid">
+      <h2>📊 VO₂max — Comparaison par Âge</h2>
+      <div class="alert alertWarning"><b>⚠️</b> Âge non renseigné, comparaison impossible.</div>
+    </section>`;
+  }
+
+  const baseTarget = getVo2maxTarget(objectif, 'competitive');
+  const ageFactor = getVo2maxAgeFactor(age);
+  const adjustedTarget = Math.round(baseTarget * ageFactor * 10) / 10;
+  const adjustmentLabel = getVo2maxAgeAdjustmentLabel(age) || '';
+  const diff = Math.round((adjustedTarget - baseTarget) * 10) / 10;
+
+  return `
+    <section id="vo2max-age" class="section pagebreakAvoid">
+      <h2>📊 VO₂max — Comparaison par Âge</h2>
+      <div class="card">
+        <div class="grid2">
+          <div>
+            <div class="muted" style="font-size:10px;text-transform:uppercase;">Cible standard</div>
+            <div style="font-size:24px;font-weight:700;">${baseTarget} <span class="muted" style="font-size:12px;">ml/kg/min</span></div>
+          </div>
+          <div>
+            <div class="muted" style="font-size:10px;text-transform:uppercase;">Cible ajustée (${age} ans)</div>
+            <div style="font-size:24px;font-weight:700;color:#2563eb;">${adjustedTarget} <span class="muted" style="font-size:12px;">ml/kg/min</span></div>
+            <div style="font-size:11px;color:#ca8a04;">${diff >= 0 ? '+' : ''}${diff} ml/kg/min (${adjustmentLabel})</div>
+          </div>
+        </div>
+        ${vo2max !== null ? `
+        <div class="mt" style="padding:12px;background:#f0f9ff;border-radius:8px;border:1px solid #bae6fd;">
+          <b>Valeur actuelle :</b> ${Math.round(vo2max)} ml/kg/min — 
+          ${vo2max >= adjustedTarget ? '<span style="color:#16a34a;">✅ Au-dessus de la cible ajustée</span>' : '<span style="color:#ca8a04;">⚠️ En dessous de la cible ajustée</span>'}
+        </div>` : ''}
+      </div>
+    </section>
+  `;
+}
+
+// =============================================
+// BUILD COACH DECISION CENTER HTML
+// =============================================
+
+function buildCoachDecisionHTML(payload: ExportPayload): string {
+  const { vlamax, tte, raceReadiness, lorang } = payload;
+  
+  const prioriteColor = lorang.priorite === 'VLAMAX_DOWN' ? '#16a34a' 
+    : lorang.priorite === 'TTE_UP' ? '#2563eb' 
+    : lorang.priorite === 'FTP_UTIL' ? '#7c3aed' 
+    : '#ca8a04';
+
+  const alertesHTML = lorang.alertes.length > 0 
+    ? lorang.alertes.map(a => `<li style="color:#dc2626;">${htmlEscape(a)}</li>`).join('') : '';
+  
+  const recommHTML = lorang.recommandations.map(r => `<li>${htmlEscape(r)}</li>`).join('');
+
+  return `
+    <section id="coach-decision" class="section pagebreakAvoid">
+      <h2>🧠 Coach Decision Center TFCL™</h2>
+      
+      <div class="card" style="border-left:4px solid ${prioriteColor};">
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+          <div>
+            <div class="muted" style="font-size:10px;text-transform:uppercase;">Priorité d'entraînement</div>
+            <div style="font-size:20px;font-weight:700;color:${prioriteColor};">${htmlEscape(lorang.prioriteLabel)}</div>
+          </div>
+          <div>
+            <div class="muted" style="font-size:10px;">Score Readiness</div>
+            <div style="font-size:18px;font-weight:700;">${raceReadiness.score}/100</div>
+          </div>
+        </div>
+      </div>
+
+      ${alertesHTML ? `
+      <div class="alert alertWarning mt">
+        <b>⚠️ Alertes</b>
+        <ul>${alertesHTML}</ul>
+      </div>` : ''}
+
+      <div class="card mt">
+        <h3>✅ Recommandations</h3>
+        <ul>${recommHTML}</ul>
+      </div>
+
+      ${lorang.seancesDetails.length > 0 ? `
+      <div class="card mt">
+        <h3>📋 Séances recommandées</h3>
+        <table>
+          <thead><tr><th>Code</th><th>Nom</th><th>Objectif</th></tr></thead>
+          <tbody>${lorang.seancesDetails.map(s => `<tr><td><b>${htmlEscape(s.code)}</b></td><td>${htmlEscape(s.nom)}</td><td class="muted">${htmlEscape(s.objectif)}</td></tr>`).join('')}</tbody>
+        </table>
+      </div>` : ''}
+    </section>
+  `;
+}
+
+// =============================================
+// BUILD RUNNING ECONOMY HTML
+// =============================================
+
+function buildRunningEconomyHTML(payload: ExportPayload): string {
+  const { effectiveSnapshot, tte, athlete } = payload;
+  
+  const input: RunningEconomyInput = {
+    fcMax: effectiveSnapshot?.fc_max ?? null,
+    fcMoyenneEndurance: effectiveSnapshot?.run_hr_ref_bpm ?? null,
+    allureEndurance: effectiveSnapshot?.run_pace_ref_sec_per_km ? effectiveSnapshot.run_pace_ref_sec_per_km / 60 : null,
+    deriveCardiaque: effectiveSnapshot?.run_hr_drift_pct ?? null,
+    tteMin: tte.tte_min,
+    objectif: athlete.goal || "IM",
+    sport: effectiveSnapshot?.sport_main || "velo",
+  };
+  
+  const economy = computeRunningEconomy(input);
+  
+  if (!economy.isApplicable) {
+    return `<section id="running-economy" class="section pagebreakAvoid">
+      <h2>🏃 Économie de Course</h2>
+      <div class="alert alertWarning"><b>⚠️</b> Données insuffisantes pour évaluer l'économie de course.</div>
+    </section>`;
+  }
+
+  const levelColor = economy.level === 'excellent' ? '#16a34a' : economy.level === 'correct' ? '#ca8a04' : '#dc2626';
+
+  return `
+    <section id="running-economy" class="section pagebreakAvoid">
+      <h2>🏃 Économie de Course</h2>
+      <div class="card" style="border-left:4px solid ${levelColor};">
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+          <div>
+            <div class="muted" style="font-size:10px;text-transform:uppercase;">Niveau d'économie</div>
+            <div style="font-size:20px;font-weight:700;color:${levelColor};">${economy.levelIcon} ${htmlEscape(economy.levelLabel)}</div>
+          </div>
+          ${economy.paceEconomiqueRef ? `<div>
+            <div class="muted" style="font-size:10px;">Allure éco. ref</div>
+            <div style="font-size:18px;font-weight:700;">${economy.paceEconomiqueRef.toFixed(1)} min/km</div>
+          </div>` : ''}
+          ${economy.deriveEstimee !== null ? `<div>
+            <div class="muted" style="font-size:10px;">Dérive cardiaque</div>
+            <div style="font-size:18px;font-weight:700;">${economy.deriveEstimee.toFixed(1)}%</div>
+            <div class="muted" style="font-size:10px;">${htmlEscape(economy.deriveLabel)}</div>
+          </div>` : ''}
+        </div>
+      </div>
+      <div class="card mt">
+        <h3>📋 Analyse</h3>
+        <p style="line-height:1.6;">${htmlEscape(economy.analysisMessage)}</p>
+        ${economy.metabolicImpact ? `<p class="muted mt" style="font-size:11px;"><b>Impact métabolique :</b> ${htmlEscape(economy.metabolicImpact)}</p>` : ''}
+        ${economy.nutritionImpact ? `<p class="muted" style="font-size:11px;"><b>Impact nutrition :</b> ${htmlEscape(economy.nutritionImpact)}</p>` : ''}
+      </div>
+      ${economy.optimisationLevier.length > 0 ? `
+      <div class="card mt">
+        <h3>🔧 Leviers d'optimisation</h3>
+        <ul>${economy.optimisationLevier.map(l => `<li>${htmlEscape(l)}</li>`).join('')}</ul>
+      </div>` : ''}
+    </section>
+  `;
+}
+
+// =============================================
+// BUILD VLAMAX CAP HTML
+// =============================================
+
+function buildVlamaxCAPHTML(payload: ExportPayload): string {
+  const { vlamax, effectiveSnapshot } = payload;
+  
+  const vlamaxRun = effectiveSnapshot?.vlamax_run ?? vlamax.value;
+  if (vlamaxRun === null) {
+    return `<section id="vlamax-cap" class="section pagebreakAvoid">
+      <h2>⚡ VLamax CAP</h2>
+      <div class="alert alertWarning"><b>⚠️</b> VLamax course non disponible.</div>
+    </section>`;
+  }
+
+  const vlamaxSource = effectiveSnapshot?.vlamax_source || vlamax.source;
+  const conf = Math.round(vlamax.confidence * 100);
+  const profileLabel = vlamaxRun <= 0.30 ? 'Endurant pur' : vlamaxRun <= 0.40 ? 'Équilibré' : vlamaxRun <= 0.50 ? 'Polyvalent' : 'Explosif';
+  const profileColor = vlamaxRun <= 0.30 ? '#16a34a' : vlamaxRun <= 0.40 ? '#2563eb' : vlamaxRun <= 0.50 ? '#ca8a04' : '#dc2626';
+
+  return `
+    <section id="vlamax-cap" class="section pagebreakAvoid">
+      <h2>⚡ VLamax CAP — Running Focus</h2>
+      <div class="card" style="border-left:4px solid ${profileColor};">
+        <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+          <div>
+            <div class="muted" style="font-size:10px;text-transform:uppercase;">VLamax Course</div>
+            <div style="font-size:28px;font-weight:700;">${vlamaxRun.toFixed(2)} <span class="muted" style="font-size:12px;">mmol/L/s</span></div>
+          </div>
+          <div>
+            <div class="muted" style="font-size:10px;">Profil</div>
+            <div style="font-size:16px;font-weight:600;color:${profileColor};">${profileLabel}</div>
+          </div>
+          <div>
+            <div class="muted" style="font-size:10px;">Source</div>
+            <div style="font-size:11px;padding:2px 8px;border-radius:4px;background:#e0e7ff;color:#4338ca;">${htmlEscape(String(vlamaxSource))}</div>
+            <div class="muted" style="font-size:10px;margin-top:2px;">Conf. ${conf}%</div>
+          </div>
+        </div>
+      </div>
+      ${vlamax.value !== null && effectiveSnapshot?.vlamax_run !== null && effectiveSnapshot?.vlamax_run !== undefined ? `
+      <div class="card mt">
+        <h3>📊 Vélo vs Course</h3>
+        <table>
+          <thead><tr><th>Métrique</th><th>Valeur</th></tr></thead>
+          <tbody>
+            <tr><td>VLamax Vélo</td><td><b>${vlamax.value.toFixed(2)}</b> mmol/L/s</td></tr>
+            <tr><td>VLamax Course</td><td><b>${effectiveSnapshot.vlamax_run.toFixed(2)}</b> mmol/L/s</td></tr>
+            <tr><td>Écart</td><td>${(effectiveSnapshot.vlamax_run - vlamax.value).toFixed(2)} mmol/L/s</td></tr>
+          </tbody>
+        </table>
+      </div>` : ''}
+    </section>
+  `;
+}
+
+// =============================================
+// BUILD DECISION RELIABILITY HTML
+// =============================================
+
+function buildDecisionReliabilityHTML(payload: ExportPayload): string {
+  const { vlamax, tte, raceReadiness } = payload;
+  
+  const confScore = Math.round(raceReadiness.confidence * 100);
+  const level = confScore >= 70 ? 'robust' : confScore >= 40 ? 'prudent' : 'fragile';
+  const levelColor = level === 'robust' ? '#16a34a' : level === 'prudent' ? '#ca8a04' : '#dc2626';
+  const levelLabel = level === 'robust' ? '🛡️ Robuste' : level === 'prudent' ? '⚠️ Prudent' : '🔴 Fragile';
+
+  const vlamaxConf = Math.round(vlamax.confidence * 100);
+  const tteConf = Math.round(tte.confidence * 100);
+
+  return `
+    <section id="decision-reliability" class="section pagebreakAvoid">
+      <h2>🛡️ Decision Reliability Engine™</h2>
+      <div class="card" style="border-left:4px solid ${levelColor};">
+        <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+          <div style="width:80px;height:80px;border-radius:50%;border:5px solid ${levelColor};display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">
+            <div style="font-size:24px;font-weight:800;color:${levelColor};">${confScore}</div>
+            <div style="font-size:9px;color:#666;">/100</div>
+          </div>
+          <div>
+            <div style="font-size:18px;font-weight:700;color:${levelColor};">${levelLabel}</div>
+            <p class="muted" style="font-size:11px;margin-top:4px;">"La meilleure décision possible, avec transparence sur l'incertitude"</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="grid2 mt">
+        <div class="card">
+          <div class="muted" style="font-size:10px;text-transform:uppercase;">Confiance VLamax</div>
+          <div style="font-size:20px;font-weight:700;">${vlamaxConf}%</div>
+          <div class="progressBar mt"><div class="progressFill" style="width:${vlamaxConf}%;background:${vlamaxConf >= 70 ? '#16a34a' : vlamaxConf >= 40 ? '#ca8a04' : '#dc2626'};"></div></div>
+          <div class="muted" style="font-size:10px;margin-top:4px;">Source: ${htmlEscape(vlamax.source)}</div>
+        </div>
+        <div class="card">
+          <div class="muted" style="font-size:10px;text-transform:uppercase;">Confiance TTE</div>
+          <div style="font-size:20px;font-weight:700;">${tteConf}%</div>
+          <div class="progressBar mt"><div class="progressFill" style="width:${tteConf}%;background:${tteConf >= 70 ? '#16a34a' : tteConf >= 40 ? '#ca8a04' : '#dc2626'};"></div></div>
+          <div class="muted" style="font-size:10px;margin-top:4px;">Source: ${tte.source === 'observed' ? 'Mesuré' : 'Estimé'}</div>
+        </div>
+      </div>
+
+      <div class="card mt">
+        <h3>📋 Recommandations de fiabilité</h3>
+        <ul>
+          ${vlamaxConf < 70 ? '<li>Planifier un test VLamax pour confirmer la valeur estimée</li>' : '<li>VLamax fiable — pas de test nécessaire à court terme</li>'}
+          ${tteConf < 70 ? '<li>Réaliser un test TTE (20-40min au seuil) pour valider</li>' : '<li>TTE validé — données exploitables en confiance</li>'}
+          ${confScore < 50 ? '<li style="color:#dc2626;"><b>⚠️ Confiance globale faible — interpréter les recommandations avec précaution</b></li>' : ''}
+        </ul>
       </div>
     </section>
   `;
@@ -6753,6 +7086,12 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     comprendre: comprendreHTML,
     qualite: qualiteHTML,
     roadmap: buildRoadmapHTML(payload),
+    ftpKgTargets: buildFtpKgTargetsHTML(payload),
+    vo2maxAgeComparison: buildVO2maxAgeComparisonHTML(payload),
+    coachDecision: buildCoachDecisionHTML(payload),
+    runningEconomy: buildRunningEconomyHTML(payload),
+    vlamaxCAP: buildVlamaxCAPHTML(payload),
+    decisionReliability: buildDecisionReliabilityHTML(payload),
   };
   
   // Récupérer l'ordre personnalisé des sections
@@ -7270,6 +7609,12 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       comprendre: false,
       qualite: false,
       roadmap: false,
+      ftpKgTargets: false,
+      vo2maxAgeComparison: false,
+      coachDecision: false,
+      runningEconomy: false,
+      vlamaxCAP: false,
+      decisionReliability: false,
     };
     setSections(allFalse);
   };
