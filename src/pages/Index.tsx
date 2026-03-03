@@ -58,6 +58,7 @@ import { RaceReadinessUnifiedCard } from "@/components/RaceReadinessUnifiedCard"
 import { computeCompassScores, type CompassScores } from "@/lib/compassScoring";
 import { DecisionReliabilityCard } from "@/components/DecisionReliabilityCard";
 import { computeFullDRE, DecisionReliabilityResult } from "@/lib/v2/decisionReliabilityEngine";
+import { normalizeFatigueState, fatigueStateToDRE } from "@/lib/fatigueStateMapper";
 import { useDecisionReliability } from "@/hooks/useDecisionReliability";
 import { SortableSectionsContainer } from "@/components/SortableSectionsContainer";
 
@@ -566,9 +567,7 @@ const Index = () => {
       pmax5s: effectiveCloudSnapshot?.pmax_5s ?? null,
       
       isReferenceWeek: (effectiveCloudSnapshot as unknown as Record<string, unknown>)?.vlamax_is_reference === true,
-      fatigueState: ((effectiveCloudSnapshot as unknown as Record<string, unknown>)?.fatigue_state as string) === "fatigued" ? "fatigued" 
-        : ((effectiveCloudSnapshot as unknown as Record<string, unknown>)?.fatigue_state as string) === "fresh" ? "fresh" 
-        : "normal",
+      fatigueState: fatigueStateToDRE(normalizeFatigueState((effectiveCloudSnapshot as unknown as Record<string, unknown>)?.fatigue_state as string)),
     });
   }, [currentAthlete, user, effectiveCloudSnapshot, vlamaxEffectif, tteEffectif]);
 

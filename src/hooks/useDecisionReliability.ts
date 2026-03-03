@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { DbSnapshot } from "@/hooks/useCloudData";
 import type { Json } from "@/integrations/supabase/types";
+import { normalizeFatigueState, fatigueStateToDRE } from "@/lib/fatigueStateMapper";
 import {
   computeFullDRE,
   type DecisionReliabilityResult,
@@ -151,7 +152,7 @@ export function useDecisionReliability(
         map5min: extSnapshot.map5min_w ?? null,
         pmax5s: snapshot.pmax_5s ?? null,
         isReferenceWeek: isReferenceWeek ?? extSnapshot.vlamax_is_reference === true,
-        fatigueState: (extSnapshot.fatigue_state as 'fresh' | 'normal' | 'fatigued') ?? 'normal',
+        fatigueState: fatigueStateToDRE(normalizeFatigueState(extSnapshot.fatigue_state)),
         protocolQuality: protocolQuality ?? undefined
       };
       

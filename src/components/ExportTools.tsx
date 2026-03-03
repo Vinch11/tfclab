@@ -4,6 +4,7 @@
 // =============================================
 
 import { useState, useEffect, useMemo } from "react";
+import { normalizeFatigueState, fatigueStateToScore } from "@/lib/fatigueStateMapper";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -1429,12 +1430,8 @@ function buildExportPayload(
     };
   }
 
-  // ✅ Calculer fatigueScore depuis les checkins (comme dans le dashboard)
-  const recentAthleteCheckins = checkins
-    .filter((c) => c.athlete_id === athlete.id)
-    .sort((a, b) => b.date_iso.localeCompare(a.date_iso));
-  const recentCheckin = recentAthleteCheckins[0];
-  const fatigueScore = recentCheckin?.fatigue ?? undefined;
+  // ✅ Calculer fatigueScore depuis le snapshot fatigue_state
+  const fatigueScore = fatigueStateToScore(normalizeFatigueState((effectiveSnapshot as any)?.fatigue_state));
 
   // ✅ NEW: Calculer les suggestions Wahoo SYSTM
   // Context identique à DashboardRecommendationsCard pour cohérence
