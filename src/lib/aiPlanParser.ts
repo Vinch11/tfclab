@@ -55,9 +55,22 @@ const DAY_MAP: Record<string, number> = {
 };
 
 function normDay(raw: string): { name: string; index: number } {
-  const lower = raw.trim().toLowerCase();
+  // Strip bold markers, emojis, and extra whitespace
+  const lower = raw.trim()
+    .replace(/\*{1,2}/g, "")
+    .replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF]+/gu, "")
+    .trim()
+    .toLowerCase();
   for (const [key, idx] of Object.entries(DAY_MAP)) {
     if (lower.startsWith(key)) return { name: key.charAt(0).toUpperCase() + key.slice(1), index: idx };
+  }
+  // Also handle abbreviated forms: "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"
+  const abbrevMap: Record<string, string> = { lun: "lundi", mar: "mardi", mer: "mercredi", jeu: "jeudi", ven: "vendredi", sam: "samedi", dim: "dimanche" };
+  for (const [abbrev, full] of Object.entries(abbrevMap)) {
+    if (lower.startsWith(abbrev)) {
+      const idx = DAY_MAP[full];
+      return { name: full.charAt(0).toUpperCase() + full.slice(1), index: idx };
+    }
   }
   return { name: raw.trim(), index: -1 };
 }
@@ -68,33 +81,60 @@ function isRestSession(sport: string, title: string): boolean {
 }
 
 function parseWeekHeader(line: string): { weekNumber: number; theme: string } | null {
-  // Accept both markdown headers (### Semaine 7) and plain lines (Semaine 7)
-  const match = line.match(/^(?:#{2,4}\s*)?\*{0,2}\s*Semaine\s*(\d+)\s*\*{0,2}(?:\s*[—\-–:]\s*(.+))?$/i);
+  // Accept various formats:
+  // ### Semaine 7 — Theme
+  // **Semaine 7** — Theme
+  // Semaine 7 : Theme
+  // #### 🗓️ Semaine 7 — Theme
+  // ### **Semaine 7 — Theme**
+  // ## Semaine 7
+  const cleaned = line
+    .replace(/^#{1,5}\s*/, "")
+    .replace(/^[\u{1F300}-\u{1FAFF}\u2600-\u27BF\u{1F4C5}\u{1F5D3}]+\s*/u, "")
+    .replace(/^\*{1,2}/, "")
+    .replace(/\*{1,2}$/, "")
+    .trim();
+  
+  const match = cleaned.match(/^Semaine\s*(\d+)\s*(?:[—\-–:]\s*(.+))?$/i);
   if (!match) return null;
   const weekNumber = parseInt(match[1], 10);
-  const theme = (match[2] || `Semaine ${weekNumber}`).trim();
+  const theme = (match[2] || `Semaine ${weekNumber}`).replace(/\*{1,2}/g, "").trim();
   return { weekNumber, theme };
 }
 
 function parsePhaseOrBlocHeader(line: string): { name: string; weeksRange: string } | null {
   const cleaned = line
-    .replace(/^#{2,4}\s*/, "")
+    .replace(/^#{1,5}\s*/, "")
     .replace(/^\*{1,2}|\*{1,2}$/g, "")
-    .replace(/^[\u{1F300}-\u{1FAFF}\u2600-\u27BF]+\s*/u, "")
+    .replace(/^[\u{1F300}-\u{1FAFF}\u2600-\u27BF\u{1F4E6}\u{2699}]+\s*/u, "")
     .trim();
 
+  // Pattern 1: "Phase 2 : Label" or "Bloc 3 — Label (Semaines 5 à 8)"
   const match = cleaned.match(/^(Phase|Bloc)\s*(\d+)\s*[:\-–—]\s*(.+?)(?:\s*\(.*?(\d+)\s*[-–—àa]\s*(\d+).*?\))?\s*$/i);
-  if (!match) return null;
+  if (match) {
+    const kind = match[1];
+    const number = match[2];
+    const label = match[3].replace(/^\*{1,2}|\*{1,2}$/g, "").trim();
+    const weeksRange = match[4] && match[5] ? `${match[4]}-${match[5]}` : "";
+    return {
+      name: `${kind.charAt(0).toUpperCase() + kind.slice(1).toLowerCase()} ${number} : ${label}`,
+      weeksRange,
+    };
+  }
 
-  const kind = match[1];
-  const number = match[2];
-  const label = match[3].replace(/^\*{1,2}|\*{1,2}$/g, "").trim();
-  const weeksRange = match[4] && match[5] ? `${match[4]}-${match[5]}` : "";
+  // Pattern 2: "Bloc Fondation" or "Bloc Chantier VLamax↓" without a number
+  const match2 = cleaned.match(/^(Phase|Bloc)\s+([A-ZÀ-Ÿa-zà-ÿ].+?)(?:\s*\(.*?[Ss](?:emaines?)?\s*(\d+)\s*[-–—àa]\s*(\d+).*?\))?\s*$/i);
+  if (match2) {
+    const kind = match2[1];
+    const label = match2[2].replace(/^\*{1,2}|\*{1,2}$/g, "").trim();
+    const weeksRange = match2[3] && match2[4] ? `${match2[3]}-${match2[4]}` : "";
+    return {
+      name: `${kind.charAt(0).toUpperCase() + kind.slice(1).toLowerCase()} : ${label}`,
+      weeksRange,
+    };
+  }
 
-  return {
-    name: `${kind.charAt(0).toUpperCase() + kind.slice(1).toLowerCase()} ${number} : ${label}`,
-    weeksRange,
-  };
+  return null;
 }
 
 /**
@@ -301,15 +341,33 @@ export function parseAIPlan(markdown: string): ParsedPlan {
       }
     }
 
-    // Table header row (French or English)
-    if (trimmed.startsWith("|") && /\b(jour|day)\b/i.test(trimmed)) {
+    // Table header row (French or English, various formats)
+    // Strip bold markers for detection: **Jour** → Jour
+    const trimmedNoBold = trimmed.replace(/\*{1,2}/g, "");
+    if (trimmed.startsWith("|") && /\b(jour|day|lundi|mardi|mercredi|sport|séance|session)\b/i.test(trimmedNoBold)) {
       tableHeaders = trimmed.split("|").map(c => c.trim()).filter(Boolean);
       inTable = true;
       continue;
     }
 
-    // Table separator
-    if (inTable && /^\|[\s\-:]+\|/.test(trimmed)) continue;
+    // Also detect table start from separator row if preceded by header-like content
+    if (!inTable && trimmed.startsWith("|") && currentWeekNumber > 0) {
+      // Check if this looks like a data row with a day name
+      const cells = trimmed.split("|").map(c => c.trim()).filter(Boolean);
+      if (cells.length >= 3) {
+        const dayCheck = normDay(cells[0]);
+        if (dayCheck.index >= 0) {
+          // This is a table data row without a detected header - start table
+          inTable = true;
+          // Process this row as data (fall through to table data handler below)
+        }
+      }
+    }
+
+    // Table separator (skip both when in table and when just starting)
+    if (/^\|[\s\-:]+\|/.test(trimmed)) {
+      if (inTable || currentWeekNumber > 0) continue;
+    }
 
     // Table data row
     if (inTable && trimmed.startsWith("|") && currentWeekNumber > 0) {

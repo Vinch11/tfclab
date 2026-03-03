@@ -288,8 +288,20 @@ export default function AITrainingPlanPage() {
     if (!response || isLoading) return null;
     try {
       const plan = parseAIPlan(response);
+      console.log("[AI Plan Parser] Parsed weeks:", plan.weeks.length, "phases:", plan.phases.length, "title:", plan.title);
+      if (plan.weeks.length === 0) {
+        // Log first 500 chars of response for debugging
+        console.warn("[AI Plan Parser] No weeks extracted. Response preview:", response.substring(0, 500));
+        // Check if response contains week patterns the parser might miss
+        const weekPatterns = response.match(/semaine\s*\d+/gi);
+        const tablePatterns = response.match(/\|.*\|/g);
+        console.warn("[AI Plan Parser] Week patterns found:", weekPatterns?.length || 0, "Table rows found:", tablePatterns?.length || 0);
+      }
       return plan.weeks.length > 0 ? plan : null;
-    } catch { return null; }
+    } catch (err) {
+      console.error("[AI Plan Parser] Parse error:", err);
+      return null;
+    }
   }, [response, isLoading]);
 
   // Compute plan start date (next Monday or custom)
