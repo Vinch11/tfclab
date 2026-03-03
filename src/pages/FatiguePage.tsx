@@ -3,7 +3,7 @@
  * Tableau de bord complet avec tous les indicateurs TFCL
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudData } from "@/hooks/useCloudData";
@@ -44,7 +44,7 @@ import {
 
 export default function FatiguePage() {
   const { athletes, selectedAthleteId, setSelectedAthleteId, currentAthlete } = useAthletes();
-  const { checkins, snapshots, addCheckin, updateCheckin, updateSnapshot } = useCloudData();
+  const { checkins, snapshots, addCheckin, updateCheckin, deleteCheckin, updateSnapshot } = useCloudData();
   const [staffMode, setStaffMode] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -397,7 +397,12 @@ export default function FatiguePage() {
                     ) : (
                       <div className="space-y-2">
                         {sortedCheckins.slice(0, 14).map((checkin) => (
-                          <CheckinRow key={checkin.id} checkin={checkin} />
+                          <CheckinRow 
+                            key={checkin.id} 
+                            checkin={checkin} 
+                            onUpdate={updateCheckin}
+                            onDelete={deleteCheckin}
+                          />
                         ))}
                       </div>
                     )}
@@ -456,8 +461,26 @@ export default function FatiguePage() {
   );
 }
 
-// Composant pour une ligne de check-in
-function CheckinRow({ checkin }: { checkin: DbCheckin }) {
+// Composant pour une ligne de check-in avec édition/suppression
+function CheckinRow({ 
+  checkin, 
+  onUpdate, 
+  onDelete 
+}: { 
+  checkin: DbCheckin; 
+  onUpdate: (id: string, updates: Partial<DbCheckin>) => Promise<boolean>;
+  onDelete: (id: string) => Promise<boolean>;
+}) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [editValues, setEditValues] = useState({
+    sleep: checkin.sleep,
+    fatigue: checkin.fatigue,
+    soreness: checkin.soreness,
+    stress: checkin.stress,
+    motivation: checkin.motivation,
+  });
+
   const date = new Date(checkin.date_iso);
   const formattedDate = date.toLocaleDateString('fr-FR', { 
     weekday: 'short', 
@@ -471,8 +494,59 @@ function CheckinRow({ checkin }: { checkin: DbCheckin }) {
     (checkin.readiness ?? 0) >= 25 ? 'text-orange-600 bg-orange-500/10' :
     'text-red-600 bg-red-500/10';
 
+  const handleSave = async () => {
+    await onUpdate(checkin.id, editValues);
+    setIsEditing(false);
+  };
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    await onDelete(checkin.id);
+  };
+
+  if (isEditing) {
+    const fields = [
+      { key: 'sleep' as const, label: '🌙 Sommeil', max: 10 },
+      { key: 'fatigue' as const, label: '⚡ Fatigue', max: 10 },
+      { key: 'soreness' as const, label: '💪 Douleurs', max: 10 },
+      { key: 'stress' as const, label: '🧠 Stress', max: 10 },
+      { key: 'motivation' as const, label: '🔥 Motivation', max: 10 },
+    ];
+
+    return (
+      <div className="p-3 rounded-lg bg-muted/50 border border-border space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium">{formattedDate}</span>
+          <div className="flex gap-1">
+            <button onClick={handleSave} className="text-xs px-2 py-1 rounded bg-primary text-primary-foreground hover:bg-primary/90">
+              Sauver
+            </button>
+            <button onClick={() => setIsEditing(false)} className="text-xs px-2 py-1 rounded bg-muted hover:bg-muted/80 text-muted-foreground">
+              Annuler
+            </button>
+          </div>
+        </div>
+        <div className="grid grid-cols-5 gap-2">
+          {fields.map(f => (
+            <div key={f.key} className="text-center">
+              <label className="text-[10px] text-muted-foreground block">{f.label}</label>
+              <input
+                type="number"
+                min={0}
+                max={f.max}
+                value={editValues[f.key] ?? ''}
+                onChange={e => setEditValues(prev => ({ ...prev, [f.key]: e.target.value ? Number(e.target.value) : null }))}
+                className="w-full text-center text-sm border border-input rounded bg-background px-1 py-0.5"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors group">
       <div className="flex items-center gap-4">
         <span className="text-sm font-medium w-24">{formattedDate}</span>
         
@@ -495,6 +569,25 @@ function CheckinRow({ checkin }: { checkin: DbCheckin }) {
         <Badge className={cn("text-xs font-semibold", readinessColor)}>
           {checkin.readiness ?? '—'}/100
         </Badge>
+
+        {/* Edit/Delete buttons - visible on hover */}
+        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={() => setIsEditing(true)}
+            className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+            title="Modifier"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+            title="Supprimer"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+          </button>
+        </div>
       </div>
     </div>
   );
