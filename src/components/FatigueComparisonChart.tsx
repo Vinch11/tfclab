@@ -103,6 +103,7 @@ export function FatigueComparisonChart({
       poids: activeSnapshot.weight_kg ?? null,
       fatigue_ok: true,
       seance_specifique_validee: false,
+      tss7d: activeSnapshot.tss_7d ?? null,
     });
 
     return { vlamaxEffectif: vlmx, tteEffectif: tte, raceReadiness: rr };

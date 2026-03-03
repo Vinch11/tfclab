@@ -507,6 +507,7 @@ const Index = () => {
       poids: poids ?? undefined,
       fatigue_ok: true,
       seance_specifique_validee: false,
+      tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
       fcMax: effectiveRefs.fcMax ?? null,
       deriveCardiaque: effectiveCloudSnapshot?.run_hr_drift_pct ?? null,
       // ✅ FIX: Passer âge et ambition pour synchroniser avec Compass

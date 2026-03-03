@@ -1328,6 +1328,7 @@ export default function TemplatesPage() {
       tteEffectif,
       ftp: selectedSnapshot.ftp,
       poids: selectedSnapshot.weight_kg,
+      tss7d: selectedSnapshot.tss_7d ?? null,
     });
 
     const ftpKg = selectedSnapshot.ftp && selectedSnapshot.weight_kg 

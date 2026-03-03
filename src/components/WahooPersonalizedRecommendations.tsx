@@ -376,6 +376,7 @@ export function WahooPersonalizedRecommendations() {
       poids: activeSnapshot.weight_kg ?? null,
       fatigue_ok: true,
       seance_specifique_validee: false,
+      tss7d: activeSnapshot.tss_7d ?? null,
       // ✅ Ajout âge pour uniformisation avec Compass
       athleteAge,
     });
