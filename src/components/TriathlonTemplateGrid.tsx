@@ -5,6 +5,7 @@
 // =============================================
 
 import { useState, useMemo, useCallback } from "react";
+import { normalizeFatigueState, fatigueStateToIndex } from "@/lib/fatigueStateMapper";
 import { useCustomTemplates } from "@/hooks/useCustomTemplates";
 import { format, differenceInWeeks } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -931,11 +932,9 @@ function GoalDateSuggester() {
     const tteConfidence = tte !== null ? 0.75 : 0;
     
     // Map fatigue state
-    const fatigueState = (activeSnapshot as any)?.fatigue_state || "ok";
-    let fatigueIndex = 40;
-    if (fatigueState === "high" || fatigueState === "élevé") fatigueIndex = 70;
-    else if (fatigueState === "low" || fatigueState === "faible") fatigueIndex = 20;
-    else if (fatigueState === "ok" || fatigueState === "moderate") fatigueIndex = 45;
+    const normalizedFatigue = normalizeFatigueState((activeSnapshot as any)?.fatigue_state);
+    const fatigueState = normalizedFatigue;
+    const fatigueIndex = fatigueStateToIndex(normalizedFatigue);
     
     // Compute CAP injury risk
     const injuryRisk = computeCAPInjuryRisk({

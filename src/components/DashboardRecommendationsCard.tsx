@@ -37,6 +37,7 @@ import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
 import { DbSnapshot } from "@/hooks/useCloudData";
+import { normalizeFatigueState, fatigueStateToScore } from "@/lib/fatigueStateMapper";
 
 import {
   suggestWahooWorkouts,
@@ -186,8 +187,8 @@ export function DashboardRecommendationsCard({
       };
     }
 
-    // Fatigue score from snapshot fatigue_state (checkins removed)
-    const fatigueScore = undefined;
+    // Fatigue score from snapshot fatigue_state
+    const fatigueScore = fatigueStateToScore(normalizeFatigueState((activeSnapshot as any)?.fatigue_state));
 
     // Compute FTP/kg
     const ftpKg = (activeSnapshot.ftp && activeSnapshot.weight_kg)

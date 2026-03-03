@@ -3,6 +3,7 @@
  * Synthèse d'une page, lisible en < 2 minutes
  */
 
+import { normalizeFatigueState, fatigueStateToDRE } from "@/lib/fatigueStateMapper";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -167,9 +168,7 @@ export function StaffReport({
     pmax5s: snapshot?.pmax_5s ?? null,
     
     isReferenceWeek: (snapshot as unknown as Record<string, unknown>)?.vlamax_is_reference === true,
-    fatigueState: ((snapshot as unknown as Record<string, unknown>)?.fatigue_state as string) === "fatigued" ? "fatigued" 
-      : ((snapshot as unknown as Record<string, unknown>)?.fatigue_state as string) === "fresh" ? "fresh" 
-      : "normal",
+    fatigueState: fatigueStateToDRE(normalizeFatigueState((snapshot as unknown as Record<string, unknown>)?.fatigue_state as string)),
   });
 
   // ✅ PACING ENVELOPE™ TFCL - Calcul pour le rapport
