@@ -83,6 +83,12 @@ export const SECTION_LABELS: Record<keyof ReportSections, string> = {
   comprendre: "Comprendre mes scores",
   qualite: "Qualité des données",
   roadmap: "📋 Roadmap Stratégique",
+  ftpKgTargets: "🎯 FTP/kg Cibles ajustées",
+  vo2maxAgeComparison: "📊 VO₂max Comparaison Âge",
+  coachDecision: "🧠 Coach Decision Center",
+  runningEconomy: "🏃 Économie de Course",
+  vlamaxCAP: "⚡ VLamax CAP",
+  decisionReliability: "🛡️ Decision Reliability",
 };
 
 // Catégories pour regroupement visuel
@@ -124,6 +130,12 @@ const SECTION_CATEGORIES: Record<keyof ReportSections, string> = {
   comprendre: "Aide",
   qualite: "Aide",
   roadmap: "Entraînement",
+  ftpKgTargets: "Objectifs",
+  vo2maxAgeComparison: "Profil",
+  coachDecision: "Analyse",
+  runningEconomy: "Running",
+  vlamaxCAP: "Running",
+  decisionReliability: "Analyse",
 };
 
 // Couleurs par catégorie
@@ -178,7 +190,13 @@ export const DEFAULT_SECTION_ORDER: (keyof ReportSections)[] = [
   "checkins",
   "comprendre",
   "qualite",
-  "roadmap",
+    "roadmap",
+    "ftpKgTargets",
+    "vo2maxAgeComparison",
+    "coachDecision",
+    "runningEconomy",
+    "vlamaxCAP",
+    "decisionReliability",
 ];
 
 // Visibilité par défaut (toutes visibles) - Also exported as DEFAULT_REPORT_SECTIONS
@@ -220,6 +238,12 @@ export const DEFAULT_VISIBILITY: Record<keyof ReportSections, boolean> = {
   comprendre: true,
   qualite: true,
   roadmap: true,
+  ftpKgTargets: true,
+  vo2maxAgeComparison: true,
+  coachDecision: true,
+  runningEconomy: true,
+  vlamaxCAP: true,
+  decisionReliability: true,
 };
 
 // Export alias for backward compatibility

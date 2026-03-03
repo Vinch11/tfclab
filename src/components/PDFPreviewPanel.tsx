@@ -82,6 +82,12 @@ const SECTION_ICONS: Record<keyof ReportSections, React.ComponentType<{ classNam
   comprendre: BookOpen,
   qualite: CheckSquare,
   roadmap: BarChart3,
+  ftpKgTargets: Target,
+  vo2maxAgeComparison: Activity,
+  coachDecision: Shield,
+  runningEconomy: Heart,
+  vlamaxCAP: Zap,
+  decisionReliability: Shield,
 };
 
 // Catégories avec couleurs
@@ -123,6 +129,12 @@ const SECTION_CATEGORIES: Record<keyof ReportSections, { label: string; color: s
   comprendre: { label: "Aide", color: "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400" },
   qualite: { label: "Qualité", color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
   roadmap: { label: "Entraînement", color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
+  ftpKgTargets: { label: "Objectifs", color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400" },
+  vo2maxAgeComparison: { label: "Profil", color: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400" },
+  coachDecision: { label: "Analyse", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
+  runningEconomy: { label: "Running", color: "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400" },
+  vlamaxCAP: { label: "Running", color: "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400" },
+  decisionReliability: { label: "Analyse", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
 };
 
 // Descriptions courtes pour l'aperçu
@@ -143,6 +155,12 @@ const SECTION_DESCRIPTIONS: Partial<Record<keyof ReportSections, string>> = {
   zones: "Zones d'entraînement personnalisées",
   tests: "Historique des tests effectués",
   qualite: "Complétude et traçabilité des données",
+  ftpKgTargets: "Zones FTP/kg ajustées par âge et objectif",
+  vo2maxAgeComparison: "Comparatif VO₂max avec/sans ajustement d'âge",
+  coachDecision: "Diagnostic, symptômes et leviers d'action",
+  runningEconomy: "Économie de course et coût énergétique",
+  vlamaxCAP: "VLamax spécifique course à pied",
+  decisionReliability: "Fiabilité et confiance décisionnelle",
 };
 
 export function PDFPreviewPanel({ 
