@@ -97,12 +97,12 @@ export default function AthletesListPage() {
 
         const athleteSnapshots = snapshots.filter(s => s.athlete_id === athleteId);
         const athleteTests = tests.filter(t => t.athlete_id === athleteId);
-        const athleteCheckins = checkins.filter(c => c.athlete_id === athleteId);
+        const athleteCheckins: unknown[] = [];
 
         const { coach_id: _c1, ...athleteWithoutCoach } = athlete;
         const snapshotsWithoutCoach = athleteSnapshots.map(({ coach_id: _c, ...s }) => s);
         const testsWithoutCoach = athleteTests.map(({ coach_id: _c, ...t }) => t);
-        const checkinsWithoutCoach = athleteCheckins.map(({ coach_id: _c, ...ch }) => ch);
+        const checkinsWithoutCoach = athleteCheckins;
 
         return {
           athlete: athleteWithoutCoach,

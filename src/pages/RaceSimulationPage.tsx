@@ -32,7 +32,7 @@ import type { RaceObjective } from '@/lib/v2/pacingEnvelopeEngine';
 export default function RaceSimulationPage() {
   const navigate = useNavigate();
   const { currentAthlete: selectedAthlete } = useAthletes();
-  const { snapshots, tests, checkins } = useCloudData();
+  const { snapshots, tests } = useCloudData();
   const [showRaceDayMode, setShowRaceDayMode] = React.useState(false);
   
   
@@ -86,12 +86,8 @@ export default function RaceSimulationPage() {
     });
   }, [vlamaxEffectif, tteEffectif, activeSnapshot, objectif]);
   
-  // Disponibilité depuis checkins
-  const latestCheckin = React.useMemo(() => {
-    if (!checkins || !athleteId) return null;
-    const athleteCheckins = checkins.filter(c => c.athlete_id === athleteId);
-    return athleteCheckins.sort((a, b) => b.date_iso.localeCompare(a.date_iso))[0] ?? null;
-  }, [checkins, athleteId]);
+  // Checkins removed
+  const latestCheckin = null;
   
   const disponibilite = React.useMemo(() => {
     if (!latestCheckin) return null;

@@ -40,6 +40,7 @@ interface CloudDataContextType {
   updateSnapshot: (id: string, updates: Partial<DbSnapshot>) => Promise<boolean>;
   deleteSnapshot: (id: string) => Promise<boolean>;
   setActiveSnapshot: (athleteId: string, snapshotId: string | null) => Promise<boolean>;
+  // Checkin methods (deprecated stubs)
   getCheckinsForAthlete: (athleteId: string) => DbCheckin[];
   addCheckin: (checkin: Omit<DbCheckin, "id" | "created_at" | "updated_at">) => Promise<DbCheckin | null>;
   updateCheckin: (id: string, updates: Partial<DbCheckin>) => Promise<boolean>;

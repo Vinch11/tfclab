@@ -93,7 +93,7 @@ export interface DbSnapshot {
   updated_at?: string;
 }
 
-// Checkin type (table created via migration)
+// DbCheckin type kept for backward compatibility (deprecated - checkins removed)
 export interface DbCheckin {
   id: string;
   athlete_id: string;
@@ -120,7 +120,7 @@ export function useCloudData() {
   const [tests, setTests] = useState<DbTest[]>([]);
   const [plans, setPlans] = useState<DbPlan[]>([]);
   const [snapshots, setSnapshots] = useState<DbSnapshot[]>([]);
-  const [checkins, setCheckins] = useState<DbCheckin[]>([]);
+  const [checkins] = useState<DbCheckin[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Load all data
@@ -128,25 +128,22 @@ export function useCloudData() {
     if (!user) return;
     setLoading(true);
     try {
-      const [athletesRes, testsRes, plansRes, snapshotsRes, checkinsRes] = await Promise.all([
+      const [athletesRes, testsRes, plansRes, snapshotsRes] = await Promise.all([
         supabase.from("athletes").select("*").eq("coach_id", user.id).order("created_at", { ascending: false }),
         supabase.from("tests").select("*").eq("coach_id", user.id).order("date", { ascending: false }),
         supabase.from("plans").select("*").eq("coach_id", user.id),
         supabase.from("snapshots").select("*").eq("coach_id", user.id).order("date", { ascending: false }),
-        supabase.from("checkins").select("*").eq("coach_id", user.id).order("date_iso", { ascending: false }),
       ]);
 
       if (athletesRes.error) throw athletesRes.error;
       if (testsRes.error) throw testsRes.error;
       if (plansRes.error) throw plansRes.error;
       if (snapshotsRes.error) throw snapshotsRes.error;
-      if (checkinsRes.error) throw checkinsRes.error;
 
       setAthletes(athletesRes.data || []);
       setTests(testsRes.data || []);
       setPlans(plansRes.data || []);
       setSnapshots((snapshotsRes.data as DbSnapshot[]) || []);
-      setCheckins((checkinsRes.data as DbCheckin[]) || []);
     } catch (error: unknown) {
       // Log sanitized error in development only
       if (import.meta.env.DEV) {
@@ -436,58 +433,11 @@ export function useCloudData() {
     return true;
   };
 
-  // ========== CHECKINS ==========
-  const getCheckinsForAthlete = (athleteId: string) => {
-    return checkins.filter((c) => c.athlete_id === athleteId);
-  };
-
-  const addCheckin = async (checkin: Omit<DbCheckin, "id" | "created_at" | "updated_at">) => {
-    if (!user) return null;
-    
-    // Validate input data
-    const { error: validationError } = validateOrNull(checkinSchema, checkin);
-    if (validationError) {
-      toast.error(`Données invalides: ${validationError}`);
-      return null;
-    }
-    
-    const { data, error } = await supabase
-      .from("checkins")
-      .insert({ ...checkin, coach_id: user.id })
-      .select()
-      .single();
-    if (error) {
-      toast.error("Erreur lors de l'ajout du check-in");
-      return null;
-    }
-    setCheckins((prev) => [data as DbCheckin, ...prev]);
-    toast.success("Check-in ajouté");
-    return data as DbCheckin;
-  };
-
-  const updateCheckin = async (id: string, updates: Partial<DbCheckin>) => {
-    const { error } = await supabase.from("checkins").update(updates).eq("id", id);
-    if (error) {
-      toast.error("Erreur lors de la mise à jour du check-in");
-      if (import.meta.env.DEV) console.error("Update checkin error");
-      return false;
-    }
-    setCheckins((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c)));
-    toast.success("Check-in mis à jour");
-    return true;
-  };
-
-  const deleteCheckin = async (id: string) => {
-    const { error } = await supabase.from("checkins").delete().eq("id", id);
-    if (error) {
-      toast.error("Erreur lors de la suppression");
-      if (import.meta.env.DEV) console.error("Delete checkin error");
-      return false;
-    }
-    setCheckins((prev) => prev.filter((c) => c.id !== id));
-    toast.success("Check-in supprimé");
-    return true;
-  };
+  // ========== CHECKINS (deprecated - kept as stubs for compatibility) ==========
+  const getCheckinsForAthlete = (_athleteId: string): DbCheckin[] => [];
+  const addCheckin = async (_checkin: Omit<DbCheckin, "id" | "created_at" | "updated_at">): Promise<DbCheckin | null> => null;
+  const updateCheckin = async (_id: string, _updates: Partial<DbCheckin>): Promise<boolean> => false;
+  const deleteCheckin = async (_id: string): Promise<boolean> => false;
 
   return {
     athletes,

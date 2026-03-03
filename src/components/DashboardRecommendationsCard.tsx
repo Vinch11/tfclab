@@ -72,7 +72,7 @@ export function DashboardRecommendationsCard({
 }: DashboardRecommendationsCardProps) {
   const navigate = useNavigate();
   const { currentAthlete } = useAthletes();
-  const { snapshots, tests, checkins, updateSnapshot } = useCloudDataContext();
+  const { snapshots, tests, updateSnapshot } = useCloudDataContext();
   const { isRunningOnly, raceLabel } = useRunningFocusMode();
 
   // Get active snapshot
@@ -186,12 +186,8 @@ export function DashboardRecommendationsCard({
       };
     }
 
-    // Get recent fatigue from checkins
-    const athleteCheckins = checkins
-      .filter((c) => c.athlete_id === athleteId)
-      .sort((a, b) => b.date_iso.localeCompare(a.date_iso));
-    const recentCheckin = athleteCheckins[0];
-    const fatigueScore = recentCheckin?.fatigue ?? undefined;
+    // Fatigue score from snapshot fatigue_state (checkins removed)
+    const fatigueScore = undefined;
 
     // Compute FTP/kg
     const ftpKg = (activeSnapshot.ftp && activeSnapshot.weight_kg)
@@ -231,7 +227,7 @@ export function DashboardRecommendationsCard({
     };
 
     return suggestWahooWorkouts(context);
-  }, [currentAthlete, activeSnapshot, snapshots, tests, checkins, forceDevelopmentMode]);
+  }, [currentAthlete, activeSnapshot, snapshots, tests, forceDevelopmentMode]);
 
   if (!currentAthlete || !recommendations) {
     return null;
