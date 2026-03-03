@@ -1242,6 +1242,7 @@ Utilise ces micro-cycles réels comme modèles de qualité. Adapte-les au niveau
 - [ex: Force Rønnestad → Économie↑ +4.8% (effet secondaire)]
 
 ## Bloc 1 : [Nom Métabolique, ex: "Fondation + Intensité Précoce"] (Semaines 1-X)
+**Influences méthodologiques :** [Liste des méthodologies qui inspirent ce bloc, ex: "🔬 Reverse Periodization (Lorang 2018) — Intensité précoce pour biogenèse mitochondriale | 💪 Force-Endurance (Rønnestad 2015) — Prévention + économie | ⚖️ Polarized 80/20 (Seiler 2010)"]
 **Objectif physiologique :** [objectif du bloc, ex: "Reverse Perio VO2max + Force max + Volume Z2 progressif"]
 **Volume cible :** [heures/semaine]
 
@@ -1268,6 +1269,25 @@ Utilise ces micro-cycles réels comme modèles de qualité. Adapte-les au niveau
 **🔑 Séances clés :** CSS Dégressif (TTE↑ natation) + Sweet Spot vallonné (endurance musculaire vélo) + Tempo allure IM (spécificité CAP) + SL vélo Gut Training (endurance métabolique) + Brique Race-Pace (simulation jour J)
 **Consignes coach :** [2-3 points clés. Identifier séances clés 🔑 à protéger en priorité. Sensation recherchée + focus technique.]
 \`\`\`
+
+### INFLUENCES MÉTHODOLOGIQUES PAR BLOC (OBLIGATOIRE)
+Pour CHAQUE bloc du plan, tu DOIS indiquer la ligne **Influences méthodologiques** listant les méthodologies scientifiques qui inspirent ce bloc spécifique. Choisis parmi :
+- 🔄 Reverse Periodization (Lorang 2018) — si intensité précoce en Bloc Fondation
+- 📦 Block Periodization (Issurin 2008) — si bloc concentré sur 1-2 qualités
+- ⚖️ Polarized 80/20 (Seiler 2010) — toujours présent (contrainte transversale)
+- 🇳🇴 Double Threshold Norvégienne (Ingebrigtsen/Bu) — si séances seuil longues/doubles
+- 🇰🇪 Spécificité Inverse (Canova) — si volume @allure spécifique progressif
+- 🇫🇷 VO2max Optimisé (Billat) — si séances 30/30, VMA, 3min/3min
+- 💪 Force-Endurance (Rønnestad 2015) — si blocs force max / SFR
+- 🏃 VDOT Zones (Daniels) — si calibration zones E/M/T/I/R
+- ⚡ Puissance Critique / W' (Jones/Skiba) — si gestion race-pacing
+- 🏔️ Tapering (Mujika & Padilla 2003) — si bloc affûtage
+- 🔥 Train Low, Compete High (Burke/Impey) — si séances à jeun / restriction glycogène
+- 🧬 Modèle Mader-Heck VLamax — si ciblage Sprint Ban / VLamax↓
+- 📊 Micro-cycle Undulating (Rhea) — si charge ondulée 3:1 ou 2:1
+- 🫀 HRV-guided (Plews) — si modulation par variabilité cardiaque
+Format : une ligne "**Influences méthodologiques :** emoji Nom (Auteur) — raison | emoji Nom (Auteur) — raison"
+Minimum 2 influences par bloc, maximum 5.
 
 ## SÉANCES CLÉS — MÉTHODOLOGIE DAN LORANG (CRITIQUE)
 
