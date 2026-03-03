@@ -20,7 +20,7 @@ import type { RaceObjective } from '@/lib/v2/pacingEnvelopeEngine';
 export default function RaceDayModePage() {
   const navigate = useNavigate();
   const { currentAthlete: selectedAthlete } = useAthletes();
-  const { snapshots, tests, checkins } = useCloudData();
+  const { snapshots, tests } = useCloudData();
   
   const athleteId = selectedAthlete?.id ?? '';
   const objectif = selectedAthlete?.goal ?? 'IM';
@@ -73,27 +73,11 @@ export default function RaceDayModePage() {
     });
   }, [vlamaxEffectif, tteEffectif, activeSnapshot, objectif]);
 
-  const latestCheckin = React.useMemo(() => {
-    if (!checkins || !athleteId) return null;
-    const athleteCheckins = checkins.filter(c => c.athlete_id === athleteId);
-    return athleteCheckins.sort((a, b) => b.date_iso.localeCompare(a.date_iso))[0] ?? null;
-  }, [checkins, athleteId]);
+  const latestCheckin = null;
 
-  const disponibilite = React.useMemo(() => {
-    if (!latestCheckin) return null;
-    return computeDisponibiliteTFCL({
-      fatigue: latestCheckin.fatigue ?? null,
-      soreness: latestCheckin.soreness ?? null,
-      sleep: latestCheckin.sleep ?? null,
-      motivation: latestCheckin.motivation ?? null,
-      stress: latestCheckin.stress ?? null,
-      objective: {
-        tss7d: activeSnapshot?.tss_7d ?? null,
-      },
-    });
-  }, [latestCheckin, activeSnapshot]);
+  const disponibilite = null;
 
-  const raceReadinessScore = disponibilite?.score ?? null;
+  const raceReadinessScore = null;
 
   const envelope = React.useMemo(() => {
     return computePacingEnvelope({

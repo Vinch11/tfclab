@@ -20,7 +20,7 @@ import NotFound from "./pages/NotFound";
 import RaceSimulationPage from "./pages/RaceSimulationPage";
 import RaceDayModePage from "./pages/RaceDayModePage";
 
-import FatiguePage from "./pages/FatiguePage";
+
 import { TFCLTestingWeekPage } from "./components/TFCLTestingWeek";
 import { CAPTestingWeekPage } from "./components/CAPTestingWeek";
 import { RunningGuidancePage } from "./components/RunningWeeklyGuidance";
@@ -180,18 +180,6 @@ export default function App() {
                       <OnboardingGate>
                         <AthleteProviders>
                           <RaceSimulationPage />
-                        </AthleteProviders>
-                      </OnboardingGate>
-                    </AuthGate>
-                  }
-                />
-                <Route
-                  path="/fatigue"
-                  element={
-                    <AuthGate>
-                      <OnboardingGate>
-                        <AthleteProviders>
-                          <FatiguePage />
                         </AthleteProviders>
                       </OnboardingGate>
                     </AuthGate>
