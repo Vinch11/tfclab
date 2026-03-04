@@ -2444,26 +2444,33 @@ function buildUserPrompt(data: any, config: any): string {
     lines.push(`- **Heures/semaine :** Non spécifié — utilise le volume OPTIMAL recommandé dans la littérature scientifique pour cet objectif × niveau d'ambition (cf. tableaux de référence TFCL ci-dessus).`);
   }
   if (config.sessionsPerWeek) {
-    lines.push(`- **Séances/semaine max :** ${config.sessionsPerWeek}`);
+    lines.push(`- **⚠️ CONTRAINTE DURE — Séances/semaine : EXACTEMENT ${config.sessionsPerWeek} séances par semaine (repos inclus comme "séance repos").**`);
+    lines.push(`  → Le tableau de chaque semaine DOIT contenir EXACTEMENT ${config.sessionsPerWeek} séances d'entraînement (hors jour de repos). Les jours restants sont des jours de repos.`);
+    lines.push(`  → Si ${config.sessionsPerWeek} séances demandées sur 7 jours, alors ${7 - config.sessionsPerWeek} jour(s) de repos dans la semaine.`);
+    lines.push(`  → NE JAMAIS dépasser ${config.sessionsPerWeek} séances/semaine. NE JAMAIS en faire moins.`);
   } else {
     lines.push(`- **Séances/semaine :** Non spécifié — utilise le nombre de séances OPTIMAL recommandé dans la littérature scientifique pour cet objectif × niveau d'ambition (cf. tableaux de référence TFCL ci-dessus).`);
   }
   if (config.strengthSessionsPerWeek !== undefined && config.strengthSessionsPerWeek !== null) {
     if (config.strengthSessionsPerWeek === 0) {
-      lines.push(`- **⚠️ Renforcement musculaire : 0 séance/sem — NE PAS inclure de séance de renforcement/musculation/PPG dans le plan.**`);
+      lines.push(`- **⛔ CONTRAINTE DURE — Renforcement musculaire : 0 séance/sem — NE PAS inclure de séance de renforcement/musculation/PPG/gainage/force dans le plan. AUCUNE.**`);
+      lines.push(`  → Chaque séance du tableau doit être Natation, Vélo, CAP, ou Repos. JAMAIS "Renfo", "PPG", "Musculation", "Core", "Force".`);
     } else {
-      lines.push(`- **🏋️ Renforcement musculaire : ${config.strengthSessionsPerWeek} séance(s)/sem — Inclure EXACTEMENT ${config.strengthSessionsPerWeek} séance(s) de renforcement/PPG par semaine dans le plan.**`);
+      lines.push(`- **🏋️ CONTRAINTE DURE — Renforcement musculaire : EXACTEMENT ${config.strengthSessionsPerWeek} séance(s)/sem.**`);
+      lines.push(`  → Inclure EXACTEMENT ${config.strengthSessionsPerWeek} séance(s) de renforcement/PPG par semaine dans le plan. Pas plus, pas moins.`);
+      lines.push(`  → Ces séances comptent dans le total des séances/semaine.`);
     }
   }
   if (config.maxSessionsPerDay) {
     const maxLabel = config.maxSessionsPerDay === 1 ? "1 séance/jour max (PAS de doubles)" :
                      config.maxSessionsPerDay === 2 ? "2 séances/jour max (doubles autorisées, PAS de triples)" :
                      "3 séances/jour max (doubles et triples autorisées)";
-    lines.push(`- **⚠️ Max séances par jour :** ${maxLabel}`);
+    lines.push(`- **⛔ CONTRAINTE DURE — Max séances par jour : ${maxLabel}**`);
     if (config.maxSessionsPerDay === 1) {
-      lines.push(`  → RÈGLE STRICTE : 1 seule séance par jour. Aucune double séance. Chaque jour n'a qu'UNE SEULE ligne dans le tableau.`);
+      lines.push(`  → RÈGLE ABSOLUE : 1 seule séance par jour. Aucune double séance. Chaque jour n'a qu'UNE SEULE ligne dans le tableau.`);
+      lines.push(`  → INTERDIT d'écrire "Lundi matin" + "Lundi soir". Un seul "Lundi" avec UNE séance.`);
     } else if (config.maxSessionsPerDay === 2) {
-      lines.push(`  → RÈGLE STRICTE : Maximum 2 séances par jour. Pas de triples. Chaque jour a 1 ou 2 lignes max dans le tableau.`);
+      lines.push(`  → RÈGLE ABSOLUE : Maximum 2 séances par jour. Pas de triples. Chaque jour a 1 ou 2 lignes max dans le tableau.`);
     }
   }
   if (config.ambition) lines.push(`- **Niveau d'ambition :** ${config.ambition}`);
@@ -2712,6 +2719,29 @@ function buildUserPrompt(data: any, config: any): string {
   const weeks = config.weeksAvailable || 12;
   lines.push(`\n---\nGénère le plan COMPLET de ${weeks} semaines, semaine par semaine, SANS EN OMETTRE AUCUNE. Chaque semaine a son propre tableau. Ne résume jamais. Chaque séance doit être actionnable immédiatement.`);
   lines.push(`\n⚠️ RÈGLE ABSOLUE SUR LES TABLEAUX : Chaque tableau de semaine DOIT COMMENCER par LUNDI et se terminer par DIMANCHE. Les 7 jours doivent apparaître (Lundi, Mardi, Mercredi, Jeudi, Vendredi, Samedi, Dimanche). Ne JAMAIS omettre les premiers jours de la semaine. Si un jour est un jour de repos, il doit quand même apparaître avec "Repos" dans la colonne Sport.`);
+  lines.push(`\n⛔ ERREUR FRÉQUENTE À ÉVITER : NE JAMAIS commencer un tableau par Jeudi ou Vendredi. Le PREMIER jour du tableau est TOUJOURS Lundi. Les 7 jours (Lundi→Dimanche) sont TOUS présents, même si certains sont des jours de repos.`);
+
+  // Hard constraints recap
+  const hardConstraints: string[] = [];
+  if (config.sessionsPerWeek) {
+    hardConstraints.push(`EXACTEMENT ${config.sessionsPerWeek} séances d'entraînement par semaine`);
+  }
+  if (config.maxSessionsPerDay) {
+    hardConstraints.push(`MAXIMUM ${config.maxSessionsPerDay} séance(s) par jour`);
+  }
+  if (config.strengthSessionsPerWeek !== undefined && config.strengthSessionsPerWeek !== null) {
+    hardConstraints.push(config.strengthSessionsPerWeek === 0 
+      ? `ZÉRO séance de renforcement (aucune)` 
+      : `EXACTEMENT ${config.strengthSessionsPerWeek} séance(s) de renforcement par semaine`);
+  }
+  if (hardConstraints.length > 0) {
+    lines.push(`\n### 🔒 RÉCAPITULATIF DES CONTRAINTES DURES (VÉRIFICATION FINALE)`);
+    lines.push(`Avant de soumettre chaque semaine, VÉRIFIE que :`);
+    hardConstraints.forEach(c => lines.push(`- ✅ ${c}`));
+    lines.push(`- ✅ Le tableau commence par LUNDI et se termine par DIMANCHE (7 jours présents)`);
+    lines.push(`Si une seule de ces contraintes n'est pas respectée, CORRIGE avant de continuer.`);
+  }
+
   if (isTriathlon && ambition !== "finisher") {
     lines.push(`\n⚠️ RAPPEL FINAL : Chaque jour d'entraînement d'un triathlète (sauf repos) doit avoir PLUSIEURS séances (2 ou 3 lignes dans le tableau). Un tableau de semaine IM Elite = 14 à 18 lignes, PAS 7. Si ton tableau a seulement 7-8 lignes pour une semaine IM, RECOMMENCE, c'est insuffisant.`);
   }
