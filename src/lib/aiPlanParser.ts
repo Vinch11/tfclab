@@ -40,6 +40,18 @@ export interface StrategicRecap {
   synergies: string[];
 }
 
+export interface WeekQualityScore {
+  weekNumber: number;
+  activeDays: number;          // days with non-rest sessions (0-7)
+  totalSessions: number;       // non-rest sessions count
+  earlyWeekSessions: number;   // sessions Mon-Wed (dayIndex 0-2)
+  lateWeekSessions: number;    // sessions Thu-Sun (dayIndex 3-6)
+  maxConsecutiveRest: number;  // longest consecutive rest streak
+  hasKeySession: boolean;      // has at least one 🔑 session
+  distributionScore: number;   // 0-100, penalized if lopsided
+  qualityFlags: string[];      // warnings
+}
+
 export interface ParsedPlan {
   title: string;
   diagnostic?: string;
@@ -47,6 +59,7 @@ export interface ParsedPlan {
   phases: { name: string; weeks: string; objective?: string; volume?: string }[];
   weeks: ParsedWeek[];
   totalWeeks: number;
+  qualityScores?: WeekQualityScore[];
 }
 
 const DAY_MAP: Record<string, number> = {
@@ -467,6 +480,9 @@ export function parseAIPlan(markdown: string): ParsedPlan {
       ? { limiters: recapLimiters, synergies: recapSynergies }
       : undefined;
 
+  // Compute quality scores per week
+  const qualityScores = weeks.map(w => computeWeekQualityScore(w));
+
   return {
     title: title || "Plan TFCL™",
     diagnostic: diagnostic || undefined,
@@ -474,6 +490,90 @@ export function parseAIPlan(markdown: string): ParsedPlan {
     phases,
     weeks,
     totalWeeks: weeks.length,
+    qualityScores,
+  };
+}
+
+/**
+ * Compute a quality score for a single week
+ */
+function computeWeekQualityScore(week: ParsedWeek): WeekQualityScore {
+  const nonRest = week.sessions.filter(s => !s.isRest && s.dayIndex >= 0);
+  const activeDaysSet = new Set(nonRest.map(s => s.dayIndex));
+  const activeDays = activeDaysSet.size;
+  const totalSessions = nonRest.length;
+
+  // Early vs late week split
+  const earlyWeekSessions = nonRest.filter(s => s.dayIndex >= 0 && s.dayIndex <= 2).length;
+  const lateWeekSessions = nonRest.filter(s => s.dayIndex >= 3 && s.dayIndex <= 6).length;
+
+  // Max consecutive rest days
+  const dayHasSession = Array.from({ length: 7 }, (_, i) => activeDaysSet.has(i));
+  let maxConsecutiveRest = 0;
+  let currentStreak = 0;
+  for (let d = 0; d < 7; d++) {
+    if (!dayHasSession[d]) {
+      currentStreak++;
+      maxConsecutiveRest = Math.max(maxConsecutiveRest, currentStreak);
+    } else {
+      currentStreak = 0;
+    }
+  }
+
+  // Key session check
+  const hasKeySession = week.sessions.some(s => 
+    s.title.includes("🔑") || s.details?.includes("🔑")
+  );
+
+  // Distribution score (0-100)
+  const flags: string[] = [];
+  let distributionScore = 100;
+
+  // Penalty: no sessions Mon-Wed
+  if (earlyWeekSessions === 0 && totalSessions > 0) {
+    distributionScore -= 40;
+    flags.push("Aucune séance Lundi-Mercredi");
+  } else if (earlyWeekSessions === 1 && totalSessions >= 4) {
+    distributionScore -= 20;
+    flags.push("Seule 1 séance Lundi-Mercredi");
+  }
+
+  // Penalty: heavy concentration in late week
+  if (totalSessions > 0 && lateWeekSessions / totalSessions > 0.8) {
+    distributionScore -= 25;
+    flags.push("80%+ des séances en fin de semaine");
+  }
+
+  // Penalty: too many consecutive rest days
+  if (maxConsecutiveRest >= 3) {
+    distributionScore -= 20;
+    flags.push(`${maxConsecutiveRest} jours de repos consécutifs`);
+  }
+
+  // Penalty: too few active days relative to sessions
+  if (totalSessions >= 5 && activeDays < 4) {
+    distributionScore -= 15;
+    flags.push("Trop de séances concentrées sur peu de jours");
+  }
+
+  // Penalty: no key session
+  if (!hasKeySession && totalSessions >= 3) {
+    distributionScore -= 10;
+    flags.push("Aucune séance clé 🔑 identifiée");
+  }
+
+  distributionScore = Math.max(0, distributionScore);
+
+  return {
+    weekNumber: week.weekNumber,
+    activeDays,
+    totalSessions,
+    earlyWeekSessions,
+    lateWeekSessions,
+    maxConsecutiveRest,
+    hasKeySession,
+    distributionScore,
+    qualityFlags: flags,
   };
 }
 
