@@ -2719,7 +2719,7 @@ function buildUserPrompt(data: any, config: any): string {
   const weeks = config.weeksAvailable || 12;
   lines.push(`\n---\nGénère le plan COMPLET de ${weeks} semaines, semaine par semaine, SANS EN OMETTRE AUCUNE. Chaque semaine a son propre tableau. Ne résume jamais. Chaque séance doit être actionnable immédiatement.`);
   lines.push(`\n⚠️ RÈGLE ABSOLUE SUR LES TABLEAUX : Chaque tableau de semaine DOIT COMMENCER par LUNDI et se terminer par DIMANCHE. Les 7 jours doivent apparaître (Lundi, Mardi, Mercredi, Jeudi, Vendredi, Samedi, Dimanche). Ne JAMAIS omettre les premiers jours de la semaine. Si un jour est un jour de repos, il doit quand même apparaître avec "Repos" dans la colonne Sport.`);
-  lines.push(`\n⛔ ERREUR FRÉQUENTE À ÉVITER : NE JAMAIS commencer un tableau par Jeudi ou Vendredi. Le PREMIER jour du tableau est TOUJOURS Lundi. Les 7 jours (Lundi→Dimanche) sont TOUS présents, même si certains sont des jours de repos.`);
+  lines.push(`\n⛔ ERREUR FRÉQUENTE À ÉVITER : NE JAMAIS omettre les premiers jours de la semaine. Le tableau de CHAQUE semaine DOIT avoir 7 lignes (ou plus si doubles séances) couvrant Lundi, Mardi, Mercredi, Jeudi, Vendredi, Samedi, Dimanche. Si certains jours sont des jours de repos, ils apparaissent quand même avec "Repos" dans la colonne Sport. Un tableau qui ne montre que 4 jours (ex: Jeudi→Dimanche) est une ERREUR.`);
 
   // Hard constraints recap
   const hardConstraints: string[] = [];
