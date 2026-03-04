@@ -2299,6 +2299,17 @@ IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format ta
               );
 
               let chunkPrompt: string;
+              const weekDistributionReminder = `
+⚠️ QUALITÉ OBLIGATOIRE — DISTRIBUTION HEBDOMADAIRE (rappel pour CHAQUE semaine) :
+- Le tableau de chaque semaine COMMENCE par Lundi et SE TERMINE par Dimanche.
+- Les séances d'entraînement DOIVENT être réparties sur toute la semaine.
+- INTERDICTION de concentrer les séances du Jeudi au Dimanche uniquement.
+- Au minimum 2 séances non-repos entre Lundi et Mercredi.
+- Maximum 2 jours de repos consécutifs.
+- Maximum 1 jour de repos complet par semaine (sauf semaine de décharge : 2 max).
+- Chaque séance DOIT être précise : zone, allure, durée, nombre de répétitions, récupération.
+- Les séances clés 🔑 DOIVENT cibler les limiteurs identifiés.`;
+
               if (isFirst) {
                 // Build a summary of ALL planned phases/blocs for the full plan
                 const allChunksSummary = chunks.map(c => `Semaines ${c.start}-${c.end}`).join(", ");
@@ -2314,7 +2325,8 @@ Pour ce premier bloc, inclus :
    - Les synergies doivent concerner le plan global.
 
 Génère ensuite les semaines ${chunk.start} à ${chunk.end} avec leurs tableaux complets.
-IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${expectedWeeks.join(", ")}). Ne t'arrête pas avant.`;
+IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${expectedWeeks.join(", ")}). Ne t'arrête pas avant.
+${weekDistributionReminder}`;
               } else {
                 chunkPrompt = `${userPrompt}
 
@@ -2326,7 +2338,8 @@ Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines : ${expectedWeeks.
 Résumé des blocs précédents pour assurer la continuité :
 ${previousChunksSummary}
 
-Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.`;
+Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.
+${weekDistributionReminder}`;
               }
 
               // Ensure week headers from a new block start on a fresh line
