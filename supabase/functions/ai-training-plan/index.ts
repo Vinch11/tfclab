@@ -2464,15 +2464,48 @@ function buildUserPrompt(data: any, config: any): string {
   } else {
     lines.push(`- **Heures/semaine :** Non spécifié — utilise le volume OPTIMAL recommandé dans la littérature scientifique pour cet objectif × niveau d'ambition (cf. tableaux de référence TFCL ci-dessus).`);
   }
+
+  const objectiveNorm = String(config.objective || "").toUpperCase();
+  const ambitionNorm = String(config.ambition || "").toLowerCase();
+  const sessionBandsByObjective: Record<string, [number, number]> = {
+    IM: [10, 16],
+    "70.3": [8, 12],
+    "703": [8, 12],
+    MARATHON: [5, 7],
+    SEMI: [5, 7],
+    "10K": [4, 6],
+    "10KM": [4, 6],
+    "5K": [4, 6],
+    TRAIL: [5, 8],
+    TRAILSHORT: [5, 8],
+    TRAILMOUNTAIN: [5, 8],
+    TRAILULTRA: [6, 10],
+    STARTTORUN: [3, 4],
+  };
+
+  const ambitionBoost = ambitionNorm.includes("elite") ? 1 : ambitionNorm.includes("competitor") ? 1 : 0;
+  const baseBand = sessionBandsByObjective[objectiveNorm] || [5, 7];
+  const minAutoSessions = baseBand[0] + ambitionBoost;
+  const maxAutoSessions = baseBand[1] + ambitionBoost;
+  const targetAutoSessions = Math.min(maxAutoSessions, Math.max(minAutoSessions, Math.round((minAutoSessions + maxAutoSessions) / 2)));
+  const effectiveSessionsPerWeek = config.sessionsPerWeek ? Number(config.sessionsPerWeek) : targetAutoSessions;
+
   if (config.sessionsPerWeek) {
-    lines.push(`- **⚠️ CONTRAINTE DURE — Séances/semaine : EXACTEMENT ${config.sessionsPerWeek} séances par semaine (repos inclus comme "séance repos").**`);
-    lines.push(`  → Le tableau de chaque semaine DOIT contenir EXACTEMENT ${config.sessionsPerWeek} séances d'entraînement (hors jour de repos). Les jours restants sont des jours de repos.`);
-    lines.push(`  → Si ${config.sessionsPerWeek} séances demandées sur 7 jours, alors ${7 - config.sessionsPerWeek} jour(s) de repos dans la semaine.`);
+    lines.push(`- **⚠️ CONTRAINTE DURE — Séances/semaine : EXACTEMENT ${config.sessionsPerWeek} séances d'entraînement/semaine (repos non compté).**`);
+    lines.push(`  → Génère EXACTEMENT ${config.sessionsPerWeek} séances d'entraînement non-repos sur 7 jours, puis complète le reste en Repos.`);
     lines.push(`  → NE JAMAIS dépasser ${config.sessionsPerWeek} séances/semaine. NE JAMAIS en faire moins.`);
   } else {
-    lines.push(`- **Séances/semaine :** Non spécifié — utilise le nombre de séances OPTIMAL recommandé dans la littérature scientifique pour cet objectif × niveau d'ambition (cf. tableaux TFCL ci-dessus). En général : IM/703 = 10-16 séances/sem, Marathon = 5-7, Semi = 4-6, 10K/5K = 4-5, StartToRun = 3-4.`);
-    lines.push(`  → IMPORTANT : même sans contrainte explicite, chaque semaine doit avoir des séances RÉPARTIES sur au moins 6 jours (Lundi→Samedi ou Mardi→Dimanche), avec maximum 1 jour de repos complet.`);
+    lines.push(`- **Séances/semaine :** Non spécifié — applique automatiquement **${minAutoSessions}-${maxAutoSessions} séances/semaine** pour cet objectif/niveau (cible ${targetAutoSessions}).`);
+    lines.push(`  → IMPORTANT : la semaine doit être RÉELLEMENT répartie sur toute la semaine, pas concentrée en fin de semaine.`);
   }
+
+  lines.push(`- **⚠️ RÉPARTITION HEBDOMADAIRE OBLIGATOIRE (QUALITÉ)**`);
+  lines.push(`  → Interdiction absolue de regrouper les séances uniquement du jeudi au dimanche.`);
+  lines.push(`  → Interdiction absolue d'avoir Lundi+Mardi+Mercredi = repos complet.`);
+  lines.push(`  → Pour ${effectiveSessionsPerWeek} séance(s)/sem : minimum ${effectiveSessionsPerWeek >= 7 ? 6 : effectiveSessionsPerWeek >= 5 ? 5 : 4} jours actifs distincts.`);
+  lines.push(`  → Minimum 2 séances non-repos entre Lundi et Mercredi, et minimum 2 séances non-repos entre Jeudi et Dimanche.`);
+  lines.push(`  → Maximum 2 jours de repos consécutifs.`);
+
   if (config.strengthSessionsPerWeek !== undefined && config.strengthSessionsPerWeek !== null) {
     if (config.strengthSessionsPerWeek === 0) {
       lines.push(`- **⛔ CONTRAINTE DURE — Renforcement musculaire : 0 séance/sem — NE PAS inclure de séance de renforcement/musculation/PPG/gainage/force dans le plan. AUCUNE.**`);
@@ -2493,6 +2526,8 @@ function buildUserPrompt(data: any, config: any): string {
       lines.push(`  → INTERDIT d'écrire "Lundi matin" + "Lundi soir". Un seul "Lundi" avec UNE séance.`);
     } else if (config.maxSessionsPerDay === 2) {
       lines.push(`  → RÈGLE ABSOLUE : Maximum 2 séances par jour. Pas de triples. Chaque jour a 1 ou 2 lignes max dans le tableau.`);
+    } else {
+      lines.push(`  → Les triples sont autorisées SI nécessaire, mais la charge doit rester répartie du lundi au dimanche (pas d'empilement en fin de semaine).`);
     }
   }
   if (config.ambition) lines.push(`- **Niveau d'ambition :** ${config.ambition}`);
@@ -2761,7 +2796,9 @@ function buildUserPrompt(data: any, config: any): string {
     lines.push(`Avant de soumettre chaque semaine, VÉRIFIE que :`);
     hardConstraints.forEach(c => lines.push(`- ✅ ${c}`));
     lines.push(`- ✅ Le tableau commence par LUNDI et se termine par DIMANCHE (7 jours présents)`);
-    lines.push(`Si une seule de ces contraintes n'est pas respectée, CORRIGE avant de continuer.`);
+    lines.push(`- ✅ Les séances ne sont PAS concentrées en fin de semaine (pas de schéma Jeudi→Dimanche uniquement)`);
+    lines.push(`- ✅ Au moins 2 séances non-repos entre Lundi-Mercredi et au moins 2 entre Jeudi-Dimanche`);
+    lines.push(`- ✅ Maximum 2 jours de repos consécutifs`);
   }
 
   if (isTriathlon && ambition !== "finisher") {
