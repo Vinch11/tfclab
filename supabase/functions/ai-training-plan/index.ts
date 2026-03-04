@@ -2180,11 +2180,12 @@ IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format ta
     }
 
     const totalWeeks = planConfig?.weeksAvailable || 12;
-    // Use smaller chunks for triathlon (very verbose output with multi-session days)
+    // Reliability-first chunking: smaller blocks reduce drift and end-of-week concentration artifacts
     const obj = (planConfig?.objective || "").toUpperCase();
     const isVerbosePlan = ["IM", "703"].includes(obj);
-    const CHUNK_SIZE = isVerbosePlan ? 4 : 6;
-    const needsChunking = !regenerateWeek && totalWeeks > 10;
+    // More (smaller) blocks for quality: triathlon 2-week chunks, others 3-week chunks
+    const CHUNK_SIZE = isVerbosePlan ? 2 : 3;
+    const needsChunking = !regenerateWeek && totalWeeks > CHUNK_SIZE;
 
     // Helper: call AI and stream response, return full text
     let streamError: { code: number; message: string } | null = null;
