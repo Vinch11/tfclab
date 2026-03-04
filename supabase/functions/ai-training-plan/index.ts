@@ -1367,6 +1367,27 @@ Un jour marqué "Repos" est un jour de REPOS COMPLET :
 - Chaque semaine doit avoir exactement 1 jour de repos complet (généralement Lundi ou Dimanche)
 - Ne confonds JAMAIS repos et récupération active : ce sont 2 concepts distincts
 
+## 🔥🔥🔥 RÈGLE DISTRIBUTION DES SÉANCES SUR LA SEMAINE — LA PLUS IMPORTANTE 🔥🔥🔥
+⛔ ERREUR CRITIQUE INTERDITE : Mettre 3-4 jours de repos consécutifs en début de semaine (Lundi-Mercredi repos) et concentrer toutes les séances Jeudi-Dimanche. C'est physiologiquement ABSURDE et c'est l'erreur #1 à éviter.
+
+**RÈGLE ABSOLUE : Les séances doivent être RÉPARTIES UNIFORMÉMENT sur les 7 jours de la semaine (Lundi→Dimanche).**
+- Maximum 1 jour de repos complet par semaine (sauf semaine de décharge : max 2)
+- Les 6 autres jours DOIVENT contenir au moins 1 séance d'entraînement
+- La répartition optimale = alterner jours intensité / jours volume / jours récupération active sur TOUTE la semaine
+- Exemples de distribution CORRECTE pour 5 séances/sem : Lundi(séance), Mardi(séance), Mercredi(repos), Jeudi(séance), Vendredi(séance), Samedi(séance), Dimanche(repos)
+- Exemples de distribution INCORRECTE : Lundi(repos), Mardi(repos), Mercredi(repos), Jeudi(séance), Vendredi(séance), Samedi(séance), Dimanche(séance) ← INTERDIT
+
+**Schéma type semaine (référence obligatoire) :**
+- Lundi : Repos OU récupération active (footing léger, natation technique)
+- Mardi : Séance qualité #1 (🔑 intensité : VMA, seuil, intervalles)
+- Mercredi : Endurance / volume (Z2 longue, tempo léger)
+- Jeudi : Séance qualité #2 (🔑 intensité ou renfo)
+- Vendredi : Récupération active ou endurance facile
+- Samedi : Séance longue (🔑 sortie longue, brique)
+- Dimanche : Endurance modérée OU repos
+
+Si le nombre de séances est inférieur à 6, répartir les jours de repos de manière NON consécutive (sauf cas exceptionnel de décharge).
+
 ## ⚠️ RÈGLE OBJECTIFS RUNNING — VÉLO LIMITÉ EN CROSS-TRAINING
 Pour les objectifs **5K, 10K, Semi, Marathon, Trail, StartToRun** :
 - Le sport PRINCIPAL est la course à pied : **CAP 75-85% du volume**
@@ -2449,7 +2470,8 @@ function buildUserPrompt(data: any, config: any): string {
     lines.push(`  → Si ${config.sessionsPerWeek} séances demandées sur 7 jours, alors ${7 - config.sessionsPerWeek} jour(s) de repos dans la semaine.`);
     lines.push(`  → NE JAMAIS dépasser ${config.sessionsPerWeek} séances/semaine. NE JAMAIS en faire moins.`);
   } else {
-    lines.push(`- **Séances/semaine :** Non spécifié — utilise le nombre de séances OPTIMAL recommandé dans la littérature scientifique pour cet objectif × niveau d'ambition (cf. tableaux de référence TFCL ci-dessus).`);
+    lines.push(`- **Séances/semaine :** Non spécifié — utilise le nombre de séances OPTIMAL recommandé dans la littérature scientifique pour cet objectif × niveau d'ambition (cf. tableaux TFCL ci-dessus). En général : IM/703 = 10-16 séances/sem, Marathon = 5-7, Semi = 4-6, 10K/5K = 4-5, StartToRun = 3-4.`);
+    lines.push(`  → IMPORTANT : même sans contrainte explicite, chaque semaine doit avoir des séances RÉPARTIES sur au moins 6 jours (Lundi→Samedi ou Mardi→Dimanche), avec maximum 1 jour de repos complet.`);
   }
   if (config.strengthSessionsPerWeek !== undefined && config.strengthSessionsPerWeek !== null) {
     if (config.strengthSessionsPerWeek === 0) {
