@@ -305,6 +305,42 @@ function WeekView({ week, startDate }: WeekViewProps) {
     return Array.from({ length: 7 }, (_, i) => addDays(base, i));
   }, [startDate, week.weekNumber]);
 
+  const displaySessions = useMemo(() => {
+    const known = week.sessions.filter(s => s.dayIndex >= 0);
+    const unknown = week.sessions.filter(s => s.dayIndex < 0);
+    const byDay = new Map<number, ParsedSession[]>();
+
+    known.forEach((s) => {
+      const arr = byDay.get(s.dayIndex) || [];
+      arr.push(s);
+      byDay.set(s.dayIndex, arr);
+    });
+
+    const dayNames = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+    const normalized: ParsedSession[] = [];
+
+    for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+      const daySessions = byDay.get(dayIndex);
+      if (daySessions && daySessions.length > 0) {
+        normalized.push(...daySessions);
+      } else {
+        normalized.push({
+          weekNumber: week.weekNumber,
+          weekTheme: week.theme,
+          phase: week.phase,
+          dayName: dayNames[dayIndex],
+          dayIndex,
+          sport: "Repos",
+          title: "Repos complet",
+          details: "Récupération, mobilité optionnelle",
+          isRest: true,
+        });
+      }
+    }
+
+    return [...normalized, ...unknown];
+  }, [week]);
+
   const activeSessions = week.sessions.filter(s => !s.isRest).length;
 
   return (
@@ -325,7 +361,7 @@ function WeekView({ week, startDate }: WeekViewProps) {
         )}
       </CardHeader>
       <CardContent className="space-y-2">
-        {week.sessions.map((session, idx) => {
+        {displaySessions.map((session, idx) => {
           const date = weekDates && session.dayIndex >= 0 ? weekDates[session.dayIndex] : undefined;
           return <SessionCard key={idx} session={session} date={date} />;
         })}
