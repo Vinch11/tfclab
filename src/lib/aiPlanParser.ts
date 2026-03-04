@@ -138,6 +138,56 @@ function parsePhaseOrBlocHeader(line: string): { name: string; weeksRange: strin
 }
 
 /**
+ * Normalize a week so it always contains Monday → Sunday.
+ * If AI omitted a day, we inject an explicit rest row for that day.
+ */
+function normalizeWeekSessions(
+  sessions: ParsedSession[],
+  weekNumber: number,
+  weekTheme: string,
+  phase: string
+): ParsedSession[] {
+  const known = sessions
+    .map((s, order) => ({ ...s, __order: order }))
+    .filter(s => s.dayIndex >= 0);
+
+  const unknown = sessions.filter(s => s.dayIndex < 0);
+
+  const byDay = new Map<number, Array<ParsedSession & { __order: number }>>();
+  for (const s of known) {
+    const arr = byDay.get(s.dayIndex) || [];
+    arr.push(s);
+    byDay.set(s.dayIndex, arr);
+  }
+
+  const dayNames = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+  const normalized: ParsedSession[] = [];
+
+  for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+    const daySessions = byDay.get(dayIndex);
+    if (daySessions && daySessions.length > 0) {
+      daySessions
+        .sort((a, b) => a.__order - b.__order)
+        .forEach(({ __order, ...session }) => normalized.push(session));
+    } else {
+      normalized.push({
+        weekNumber,
+        weekTheme,
+        phase,
+        dayName: dayNames[dayIndex],
+        dayIndex,
+        sport: "Repos",
+        title: "Repos complet",
+        details: "Récupération, mobilité optionnelle",
+        isRest: true,
+      });
+    }
+  }
+
+  return [...normalized, ...unknown];
+}
+
+/**
  * Parse the full AI Markdown response into structured plan data
  */
 export function parseAIPlan(markdown: string): ParsedPlan {
@@ -164,6 +214,13 @@ export function parseAIPlan(markdown: string): ParsedPlan {
 
   const flushWeek = () => {
     if (currentWeekNumber > 0) {
+      const normalizedSessions = normalizeWeekSessions(
+        pendingSessions,
+        currentWeekNumber,
+        currentWeekTheme || `Semaine ${currentWeekNumber}`,
+        currentPhase
+      );
+
       weeks.push({
         weekNumber: currentWeekNumber,
         theme: currentWeekTheme || `Semaine ${currentWeekNumber}`,
@@ -171,7 +228,7 @@ export function parseAIPlan(markdown: string): ParsedPlan {
         phaseObjective: currentPhaseObjective,
         volumeTarget: currentVolumeTarget,
         coachNotes: currentCoachNotes.trim() || undefined,
-        sessions: [...pendingSessions],
+        sessions: normalizedSessions,
       });
       pendingSessions = [];
       currentCoachNotes = "";
