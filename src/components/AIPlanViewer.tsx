@@ -409,10 +409,13 @@ interface AIPlanViewerProps {
   isSaved?: boolean;
   onRegenerateWeek?: (weekNumber: number) => void;
   isRegenerating?: boolean;
+  onRegenerateLowQualityWeeks?: () => void;
+  isRegeneratingBatch?: boolean;
+  regeneratingWeekNumbers?: number[];
   athleteName?: string;
 }
 
-export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, isRegenerating, athleteName }: AIPlanViewerProps) {
+export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, isRegenerating, onRegenerateLowQualityWeeks, isRegeneratingBatch, regeneratingWeekNumbers, athleteName }: AIPlanViewerProps) {
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [viewMode, setViewMode] = useState<"week" | "all">("week");
 
@@ -456,6 +459,27 @@ export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved,
               <Button variant="outline" size="sm" onClick={handleExportPDF}>
                 <Printer className="h-4 w-4 mr-1" /> PDF
               </Button>
+              {onRegenerateLowQualityWeeks && globalQuality && globalQuality.lowQualityWeeks > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onRegenerateLowQualityWeeks}
+                  disabled={isRegeneratingBatch}
+                  className="text-xs border-amber-500/50 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10"
+                >
+                  {isRegeneratingBatch ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                      Régénération ({regeneratingWeekNumbers?.length ? `S${regeneratingWeekNumbers[0]}` : "..."})
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-3.5 w-3.5 mr-1" />
+                      Régénérer {globalQuality.lowQualityWeeks} sem. faibles
+                    </>
+                  )}
+                </Button>
+              )}
               {onSaveToPlan && (
                 <Button size="sm" onClick={onSaveToPlan} disabled={isSaving || isSaved}>
                   {isSaved ? (

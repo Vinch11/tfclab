@@ -125,6 +125,8 @@ export default function AITrainingPlanPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [isRegeneratingBatch, setIsRegeneratingBatch] = useState(false);
+  const [regeneratingWeekNumbers, setRegeneratingWeekNumbers] = useState<number[]>([]);
 
   // Multi-athlete mode — restore from localStorage
   const MULTI_PERSIST_KEY = "tfcl_ai_multi_plan";
@@ -675,7 +677,127 @@ export default function AITrainingPlanPage() {
     }
   }, [athleteContext, parsedPlan, objective, weeklyHours, sessionsPerWeek, ambition, constraints]);
 
-  // Toggle athlete selection (multi mode)
+  // Batch regeneration of low-quality weeks (score < 60)
+  const handleRegenerateLowQualityWeeks = useCallback(async () => {
+    if (!athleteContext || !parsedPlan || !parsedPlan.qualityScores) return;
+
+    const lowQualityWeeks = parsedPlan.qualityScores
+      .filter(q => q.distributionScore < 60)
+      .map(q => q.weekNumber);
+
+    if (lowQualityWeeks.length === 0) {
+      toast.info("Aucune semaine avec un score qualité < 60");
+      return;
+    }
+
+    setIsRegeneratingBatch(true);
+    setRegeneratingWeekNumbers(lowQualityWeeks);
+
+    const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
+    let updatedResponse = response;
+    let successCount = 0;
+
+    for (const weekNumber of lowQualityWeeks) {
+      const week = parsedPlan.weeks.find(w => w.weekNumber === weekNumber);
+      if (!week) continue;
+
+      setRegeneratingWeekNumbers(prev => [...prev.filter(n => n !== weekNumber), weekNumber]);
+
+      try {
+        const resp = await fetch(PLAN_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({
+            athleteData: athleteContext.data,
+            planConfig: {
+              objective: OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective,
+              weeklyHours: parseFloat(weeklyHours) || undefined,
+              sessionsPerWeek: parseInt(sessionsPerWeek) || undefined,
+              maxSessionsPerDay: parseInt(maxSessionsPerDay) || undefined,
+              strengthSessionsPerWeek: parseInt(strengthSessionsPerWeek) || undefined,
+              ambition: AMBITION_OPTIONS.find(a => a.value === ambition)?.label || ambition,
+              constraints: constraints || undefined,
+            },
+            regenerateWeek: {
+              weekNumber,
+              phase: week.phase,
+              theme: week.theme,
+              totalWeeks: parsedPlan.totalWeeks,
+            },
+          }),
+        });
+
+        if (!resp.ok || !resp.body) {
+          toast.error(`Erreur régénération semaine ${weekNumber}`);
+          continue;
+        }
+
+        // Stream the regenerated week
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buf = "";
+        let fullText = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buf += decoder.decode(value, { stream: true });
+          let idx: number;
+          while ((idx = buf.indexOf("\n")) !== -1) {
+            let line = buf.slice(0, idx);
+            buf = buf.slice(idx + 1);
+            if (line.endsWith("\r")) line = line.slice(0, -1);
+            if (!line.startsWith("data: ")) continue;
+            const json = line.slice(6).trim();
+            if (json === "[DONE]") break;
+            try {
+              const p = JSON.parse(json);
+              const c = p.choices?.[0]?.delta?.content;
+              if (c) fullText += c;
+            } catch {}
+          }
+        }
+
+        if (fullText) {
+          // Replace the week in the markdown response
+          // Find the week section: ### Semaine N ... until next ### Semaine or ## or end
+          const weekPattern = new RegExp(
+            `(###\\s*(?:\\*\\*)?Semaine\\s*${weekNumber}\\b[^\\n]*\\n)([\\s\\S]*?)(?=###\\s*(?:\\*\\*)?Semaine\\s*\\d|##\\s*[A-ZÀ-Ÿ]|$)`,
+            "i"
+          );
+          
+          // Extract just the week content from the regenerated text
+          const regenWeekMatch = fullText.match(
+            /###\s*(?:\*\*)?Semaine\s*\d+\b[^\n]*\n([\s\S]*?)(?=###\s*(?:\*\*)?Semaine\s*\d|##\s*[A-ZÀ-Ÿ]|$)/i
+          );
+
+          if (weekPattern.test(updatedResponse) && regenWeekMatch) {
+            updatedResponse = updatedResponse.replace(weekPattern, `$1${regenWeekMatch[1]}`);
+            successCount++;
+          } else if (weekPattern.test(updatedResponse)) {
+            // Fallback: replace entire section with regenerated text
+            const regenContent = fullText.replace(/^[\s\S]*?(###\s*(?:\*\*)?Semaine)/i, "$1");
+            updatedResponse = updatedResponse.replace(weekPattern, regenContent + "\n\n");
+            successCount++;
+          }
+        }
+      } catch (err: any) {
+        toast.error(`Erreur semaine ${weekNumber}: ${err.message || "Inconnu"}`);
+      }
+    }
+
+    if (successCount > 0) {
+      setResponse(updatedResponse);
+      toast.success(`${successCount}/${lowQualityWeeks.length} semaine(s) régénérée(s) avec succès !`);
+    }
+
+    setIsRegeneratingBatch(false);
+    setRegeneratingWeekNumbers([]);
+  }, [athleteContext, parsedPlan, response, objective, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, setResponse]);
+
   const toggleAthleteSelection = (id: string) => {
     setSelectedAthleteIds(prev =>
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
@@ -1298,6 +1420,9 @@ export default function AITrainingPlanPage() {
                         isSaved={isSaved}
                         onRegenerateWeek={handleRegenerateWeek}
                         isRegenerating={isRegenerating}
+                        onRegenerateLowQualityWeeks={handleRegenerateLowQualityWeeks}
+                        isRegeneratingBatch={isRegeneratingBatch}
+                        regeneratingWeekNumbers={regeneratingWeekNumbers}
                         athleteName={currentAthlete?.nom}
                       />
                     </>
