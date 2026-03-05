@@ -25,7 +25,6 @@ import { computeNutritionEstimate, applyNutritionalCap, type NutritionalRiskInde
 import { computeRunningEconomy, applyEconomyCap, type RunningEconomyResult, type EconomyLevel } from "@/lib/runningEconomy";
 import { getAgeAdjustedTargets } from "@/lib/ageAdjustment";
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
-import { getCRRTargets } from "@/lib/chargeRecenteReference";
 
 // =============================================
 // DÉFINITION OFFICIELLE (pour affichage UI)
@@ -184,7 +183,6 @@ export interface RaceReadinessEffectif {
     ftpKg: number | null;
     fatigue_ok: boolean;
     seance_specifique: boolean;
-    tss7d: number | null;
   };
   messageStaff: string;          // Message explicatif staff-ready
   // Explication pédagogique "Pourquoi ce score ?"
@@ -241,8 +239,6 @@ export interface ComputeRaceReadinessParams {
   fatigue_ok?: boolean;
   seance_specifique_validee?: boolean;
   confidence?: number; // optionnel, sinon moyenne des inputs
-  // ✅ Charge récente (TSS 7j) pour impact direct sur Fraîcheur
-  tss7d?: number | null;
   // Paramètres pour l'économie de course (CAP)
   fcMax?: number | null;
   fcMoyenneEndurance?: number | null;
@@ -561,51 +557,23 @@ function scoreFtpKg(ftpKg: number | null, targets: RaceTargets): number {
 }
 
 /**
- * Score Fraîcheur: basé sur fatigue_ok + séance spécifique + confiance + charge réelle (TSS 7j)
- * La charge encodée impacte directement la fraîcheur :
- * - Charge dans la zone optimale → bonus
- * - Surcharge → pénalité proportionnelle
- * - Sous-charge → légère pénalité (désentraînement)
+ * Score Fraîcheur: basé sur fatigue_ok + séance spécifique + confiance
  */
 function scoreFreshness(
   fatigueOk: boolean,
   seanceSpecifiqueValidee: boolean,
-  avgConfidence: number,
-  tss7d?: number | null,
-  objectif?: string
+  avgConfidence: number
 ): number {
   let score = 70; // base
   
   if (fatigueOk) {
-    score += 15;
+    score += 20;
   } else {
     score -= 30;
   }
   
   if (seanceSpecifiqueValidee) {
     score += 10;
-  }
-  
-  // ✅ Impact direct de la charge récente (TSS 7j)
-  if (tss7d != null && tss7d > 0 && objectif) {
-    const crrTargets = getCRRTargets(objectif);
-    
-    if (tss7d >= crrTargets.chargeMinimale && tss7d <= crrTargets.chargeOptimale) {
-      // Zone optimale → bonus fraîcheur (charge bien dosée)
-      score += 15;
-    } else if (tss7d > crrTargets.chargeOptimale && tss7d <= crrTargets.chargeMaximale) {
-      // Charge élevée mais acceptable → légère pénalité
-      const excess = (tss7d - crrTargets.chargeOptimale) / (crrTargets.chargeMaximale - crrTargets.chargeOptimale);
-      score -= Math.round(excess * 15); // -0 à -15
-    } else if (tss7d > crrTargets.chargeMaximale) {
-      // Surcharge → pénalité forte
-      const overloadRatio = tss7d / crrTargets.chargeMaximale;
-      score -= Math.round(Math.min((overloadRatio - 1) * 40, 35)); // -0 à -35
-    } else if (tss7d < crrTargets.chargeMinimale) {
-      // Sous-charge → pénalité modérée (désentraînement)
-      const ratio = tss7d / crrTargets.chargeMinimale;
-      score -= Math.round((1 - ratio) * 10); // -0 à -10
-    }
   }
   
   // Pénalité si confiance faible
@@ -787,7 +755,6 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
     fatigue_ok = true,
     seance_specifique_validee = false,
     confidence: overrideConfidence,
-    tss7d = null,
     // Params pour économie de course
     fcMax = null,
     fcMoyenneEndurance = null,
@@ -833,7 +800,7 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
   const ftpKgScore = scoreFtpKg(ftpKg, targets);
   
   const avgConfidence = overrideConfidence ?? (vlamaxEffectif.confidence + tteEffectif.confidence) / 2;
-  const freshnessScore = scoreFreshness(fatigue_ok, seance_specifique_validee, avgConfidence, tss7d, objectif);
+  const freshnessScore = scoreFreshness(fatigue_ok, seance_specifique_validee, avgConfidence);
 
   // =====================
   // WEIGHTED SCORE
@@ -1048,7 +1015,6 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
       ftpKg,
       fatigue_ok,
       seance_specifique: seance_specifique_validee,
-      tss7d: tss7d ?? null,
     },
     messageStaff,
     whyThisScore,

@@ -37,7 +37,6 @@ import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
 import { DbSnapshot } from "@/hooks/useCloudData";
-import { normalizeFatigueState, fatigueStateToScore } from "@/lib/fatigueStateMapper";
 
 import {
   suggestWahooWorkouts,
@@ -73,7 +72,7 @@ export function DashboardRecommendationsCard({
 }: DashboardRecommendationsCardProps) {
   const navigate = useNavigate();
   const { currentAthlete } = useAthletes();
-  const { snapshots, tests, updateSnapshot } = useCloudDataContext();
+  const { snapshots, tests, checkins, updateSnapshot } = useCloudDataContext();
   const { isRunningOnly, raceLabel } = useRunningFocusMode();
 
   // Get active snapshot
@@ -156,7 +155,6 @@ export function DashboardRecommendationsCard({
       poids: activeSnapshot.weight_kg ?? null,
       fatigue_ok: true,
       seance_specifique_validee: false,
-      tss7d: activeSnapshot.tss_7d ?? null,
     });
 
     // Determine sport focus
@@ -187,8 +185,12 @@ export function DashboardRecommendationsCard({
       };
     }
 
-    // Fatigue score from snapshot fatigue_state
-    const fatigueScore = fatigueStateToScore(normalizeFatigueState((activeSnapshot as any)?.fatigue_state));
+    // Get recent fatigue from checkins
+    const athleteCheckins = checkins
+      .filter((c) => c.athlete_id === athleteId)
+      .sort((a, b) => b.date_iso.localeCompare(a.date_iso));
+    const recentCheckin = athleteCheckins[0];
+    const fatigueScore = recentCheckin?.fatigue ?? undefined;
 
     // Compute FTP/kg
     const ftpKg = (activeSnapshot.ftp && activeSnapshot.weight_kg)
@@ -228,7 +230,7 @@ export function DashboardRecommendationsCard({
     };
 
     return suggestWahooWorkouts(context);
-  }, [currentAthlete, activeSnapshot, snapshots, tests, forceDevelopmentMode]);
+  }, [currentAthlete, activeSnapshot, snapshots, tests, checkins, forceDevelopmentMode]);
 
   if (!currentAthlete || !recommendations) {
     return null;

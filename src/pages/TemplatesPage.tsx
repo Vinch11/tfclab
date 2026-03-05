@@ -4,7 +4,6 @@
  * Supports multi-section documents (e.g., Finisher vs Elite plans)
  */
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { normalizeFatigueState, fatigueStateToIndex, fatigueStateToLevel, fatigueStateToStatus } from "@/lib/fatigueStateMapper";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -1329,7 +1328,6 @@ export default function TemplatesPage() {
       tteEffectif,
       ftp: selectedSnapshot.ftp,
       poids: selectedSnapshot.weight_kg,
-      tss7d: selectedSnapshot.tss_7d ?? null,
     });
 
     const ftpKg = selectedSnapshot.ftp && selectedSnapshot.weight_kg 
@@ -1399,9 +1397,19 @@ export default function TemplatesPage() {
     }
 
     // Map fatigue state to index and level
-    const normalizedFatigue = normalizeFatigueState((selectedSnapshot as any)?.fatigue_state);
-    const fatigueIndex = fatigueStateToIndex(normalizedFatigue);
-    const fatigueLevel = fatigueStateToLevel(normalizedFatigue);
+    const fatigueState = (selectedSnapshot as any)?.fatigue_state;
+    let fatigueIndex = 40;
+    let fatigueLevel = "MODERE";
+    if (fatigueState === "high" || fatigueState === "élevé") {
+      fatigueIndex = 70;
+      fatigueLevel = "ELEVE";
+    } else if (fatigueState === "low" || fatigueState === "faible") {
+      fatigueIndex = 20;
+      fatigueLevel = "FAIBLE";
+    } else if (fatigueState === "ok" || fatigueState === "moderate") {
+      fatigueIndex = 45;
+      fatigueLevel = "MODERE";
+    }
 
     // Compute CAP injury risk locally (to avoid circular dependency)
     const localInjuryRisk = computeCAPInjuryRisk({
@@ -1475,7 +1483,11 @@ export default function TemplatesPage() {
   const wahooSuggestions = useMemo<SuggestionEngineOutput | null>(() => {
     if (!selectedAthlete || !staffMode) return null;
     
-    const fatigueStatus = fatigueStateToStatus(normalizeFatigueState((selectedSnapshot as any)?.fatigue_state));
+    const fatigueState = (selectedSnapshot as any)?.fatigue_state;
+    let fatigueStatus: "low" | "moderate" | "high" | "unknown" = "unknown";
+    if (fatigueState === "high" || fatigueState === "élevé") fatigueStatus = "high";
+    else if (fatigueState === "moderate" || fatigueState === "modéré") fatigueStatus = "moderate";
+    else if (fatigueState === "low" || fatigueState === "faible") fatigueStatus = "low";
 
     // Compute CAP injury risk locally to avoid TDZ issues
     const localCapRisk = computeCAPInjuryRisk({

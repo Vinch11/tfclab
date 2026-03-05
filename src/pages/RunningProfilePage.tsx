@@ -62,7 +62,7 @@ import { getAthleteAmbition } from "@/types/ambitionLevel";
 export default function RunningProfilePage() {
   const navigate = useNavigate();
   const { currentAthlete } = useAthletes();
-  const { snapshots, tests } = useCloudDataContext();
+  const { snapshots, tests, checkins, addCheckin, updateCheckin } = useCloudDataContext();
   const { isRunningOnly, raceType, raceLabel, targets, distanceKm } = useRunningFocusMode();
 
   // État local pour SidebarLayout
@@ -155,17 +155,22 @@ export default function RunningProfilePage() {
 
   // Fatigue Effectif
   const fatigueResult = useMemo(() => {
+    const athleteCheckins = checkins.filter(c => c.athlete_id === currentAthlete?.id);
+    const latestCheckin = athleteCheckins.length > 0 
+      ? [...athleteCheckins].sort((a, b) => b.date_iso.localeCompare(a.date_iso))[0]
+      : null;
+    
     return computeFatigueEffectif({
       tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
       tss7dHabituel: null,
-      fatiguePercue: null,
+      fatiguePercue: latestCheckin?.fatigue ?? null,
       tteEffectif: tteEffectif,
       raceReadiness: null,
       vlamaxEffectif: vlamaxEffectif,
       age: athleteAge,
       objectif: athleteGoal,
     });
-  }, [effectiveCloudSnapshot, tteEffectif, vlamaxEffectif, athleteAge, athleteGoal]);
+  }, [checkins, currentAthlete?.id, effectiveCloudSnapshot, tteEffectif, vlamaxEffectif, athleteAge, athleteGoal]);
 
   // CAP Injury Risk
   const capInjuryRisk = useMemo(() => {
@@ -185,14 +190,18 @@ export default function RunningProfilePage() {
   const raceReadiness = useMemo(() => {
     if (!currentAthlete) return null;
     
-    // No longer using checkins for availability
+    const athleteCheckins = checkins.filter(c => c.athlete_id === currentAthlete.id);
+    const latestCheckin = athleteCheckins.length > 0 
+      ? [...athleteCheckins].sort((a, b) => b.date_iso.localeCompare(a.date_iso))[0]
+      : null;
+    
     const availability: AvailabilityRun = {
-      sleep_quality: 3,
-      fatigue_level: 3,
-      muscle_soreness: 1,
-      pain_flag: false,
-      mental_stress: 3,
-      motivation: 3,
+      sleep_quality: latestCheckin?.sleep ?? 3,
+      fatigue_level: latestCheckin?.fatigue ?? 3,
+      muscle_soreness: latestCheckin?.soreness ?? 1,
+      pain_flag: latestCheckin?.pain_flag ?? false,
+      mental_stress: latestCheckin?.stress ?? 3,
+      motivation: latestCheckin?.motivation ?? 3,
       hr_drift_flag: effectiveCloudSnapshot?.run_hr_drift_pct 
         ? effectiveCloudSnapshot.run_hr_drift_pct > 8 
         : undefined,
@@ -243,7 +252,7 @@ export default function RunningProfilePage() {
     };
     
     return computeRaceReadinessRun(profile, availability);
-  }, [currentAthlete, effectiveCloudSnapshot, vlamaxEffectif, tteEffectif, calibrationSnapshot, raceType]);
+  }, [currentAthlete, checkins, effectiveCloudSnapshot, vlamaxEffectif, tteEffectif, calibrationSnapshot, raceType]);
 
   // Pacing Envelope Running
   const pacingEnvelope = useMemo(() => {
@@ -277,13 +286,45 @@ export default function RunningProfilePage() {
     });
   }, [raceReadiness, raceType, effectiveCloudSnapshot, vlamaxEffectif, tteEffectif, currentAthlete]);
 
-  // Today's checkin removed
-  const todayCheckin = null;
+  // Today's checkin for form
+  const todayCheckin = useMemo(() => {
+    if (!currentAthlete) return null;
+    const today = new Date().toISOString().split("T")[0];
+    return checkins.find(c => 
+      c.athlete_id === currentAthlete.id && c.date_iso === today
+    ) ?? null;
+  }, [checkins, currentAthlete]);
 
   // Handler for availability form submission
   const handleAvailabilitySubmit = useCallback((availability: AvailabilityRun) => {
-    // Checkins removed - availability data now handled via snapshots only
-  }, [currentAthlete]);
+    if (!currentAthlete) return;
+    
+    const today = new Date().toISOString().split("T")[0];
+    const existingCheckin = checkins.find(
+      c => c.athlete_id === currentAthlete.id && c.date_iso === today
+    );
+    
+    const checkinData = {
+      sleep: availability.sleep_quality,
+      fatigue: availability.fatigue_level,
+      soreness: availability.muscle_soreness,
+      pain_flag: availability.pain_flag,
+      stress: availability.mental_stress,
+      motivation: availability.motivation,
+      notes: availability.pain_location || null,
+    };
+    
+    if (existingCheckin) {
+      updateCheckin(existingCheckin.id, checkinData);
+    } else {
+      addCheckin({
+        athlete_id: currentAthlete.id,
+        coach_id: currentAthlete.coach_id || "",
+        date_iso: today,
+        ...checkinData,
+      });
+    }
+  }, [currentAthlete, checkins, addCheckin, updateCheckin]);
 
   // ═══════════════════════════════════════════════════════════════════════════════
   // SECTIONS RENDERERS — Pour SortableSectionsContainer

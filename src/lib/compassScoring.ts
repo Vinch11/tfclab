@@ -440,27 +440,6 @@ export function computeProfilMetaboliqueWithAge(
 // Sinon: Robustesse = 0.4×TTE + 0.3×VLamax + 0.3×Charge
 //
 
-/**
- * Calcule un ajustement de score basé sur le chargeScore
- * Surcharge → pénalité, Optimal → bonus léger, Faible → pénalité légère, Inconnu → neutre
- */
-function computeChargeModulation(chargeScore: ChargeScore): { adjustment: number; note: string } {
-  switch (chargeScore.status) {
-    case "optimal":
-      return { adjustment: 5, note: "Charge optimale (+5)" };
-    case "high":
-      return { adjustment: -3, note: "Charge élevée (-3)" };
-    case "overload":
-      return { adjustment: -15, note: "⚠️ Surcharge (-15)" };
-    case "low":
-      return { adjustment: -5, note: "Charge insuffisante (-5)" };
-    case "unknown":
-      return { adjustment: 0, note: "" };
-    default:
-      return { adjustment: 0, note: "" };
-  }
-}
-
 export function computeRobustesse(
   tteScore: CompassAxisScore,
   vlamaxScore: CompassAxisScore,
@@ -469,14 +448,10 @@ export function computeRobustesse(
   runInjuryRisk?: RunInjuryRiskEnvelope | null,
   sportFocus?: "bike" | "run" | "triathlon" | null
 ): CompassAxisScore {
-  // Modulation charge : pénalité/bonus basé sur chargeScore
-  const chargeModulation = computeChargeModulation(chargeScore);
-  
-  // Si on a le risque CAP et focus course → robustesse CAP + modulation charge
+  // Si on a le risque CAP et focus course → utiliser robustesse CAP
   if (runInjuryRisk && (sportFocus === "run" || sportFocus === "triathlon")) {
     const riskScore = runInjuryRisk.score;
-    const baseScore = clamp(100 - riskScore, 0, 100);
-    const score = clamp(Math.round(baseScore + chargeModulation.adjustment), 0, 100);
+    const score = clamp(100 - riskScore, 0, 100);
     
     let explanation: string;
     if (score >= 75) {
@@ -489,23 +464,16 @@ export function computeRobustesse(
       explanation = `Robustesse CAP critique – ${runInjuryRisk.guardrails[0] || "Priorité récupération"}`;
     }
     
-    if (chargeModulation.note) {
-      explanation += ` | ${chargeModulation.note}`;
-    }
-    
     return {
       score,
-      rawScore: baseScore,
+      rawScore: 100 - riskScore,
       effectiveScore: score,
       label: "Robustesse CAP",
       explanation,
-      formula: `Robustesse_CAP = (100 - RisqueCAP(${riskScore})) + ChargeAdj(${chargeModulation.adjustment}) = ${score}`,
+      formula: `Robustesse_CAP = 100 - RisqueCAP(${riskScore}) = ${score}`,
       inputs: {
         runInjuryRiskScore: riskScore,
         runInjuryRiskLevel: runInjuryRisk.level as string,
-        chargeScore: chargeScore.score,
-        chargeStatus: chargeScore.status,
-        chargeAdjustment: chargeModulation.adjustment,
         confidence: runInjuryRisk.confidence
       },
       confidence: runInjuryRisk.confidence,
@@ -514,10 +482,9 @@ export function computeRobustesse(
     };
   }
   
-  // Si on a la fatigue et focus vélo → robustesse vélo + modulation charge
+  // Si on a la fatigue et focus vélo → robustesse basée sur fatigue
   if (fatigueEffectif && sportFocus === "bike") {
-    const baseScore = clamp(100 - fatigueEffectif.score, 0, 100);
-    const score = clamp(Math.round(baseScore + chargeModulation.adjustment), 0, 100);
+    const score = clamp(100 - fatigueEffectif.score, 0, 100);
     
     let explanation: string;
     if (score >= 75) {
@@ -528,25 +495,18 @@ export function computeRobustesse(
       explanation = "Robustesse vélo limitée – privilégier récupération";
     }
     
-    if (chargeModulation.note) {
-      explanation += ` | ${chargeModulation.note}`;
-    }
-    
     return {
       score,
-      rawScore: baseScore,
+      rawScore: 100 - fatigueEffectif.score,
       effectiveScore: score,
       label: "Robustesse Vélo",
       explanation,
-      formula: `Robustesse_Vélo = (100 - Fatigue(${fatigueEffectif.score}%)) + ChargeAdj(${chargeModulation.adjustment}) = ${score}`,
+      formula: `Robustesse_Vélo = 100 - Fatigue(${fatigueEffectif.score}%) = ${score}`,
       inputs: {
-        fatigueScore: fatigueEffectif.score,
-        fatigueLevel: String(fatigueEffectif.level),
-        chargeScore: chargeScore.score,
-        chargeStatus: chargeScore.status,
-        chargeAdjustment: chargeModulation.adjustment,
-        confidence: fatigueEffectif.confidence
-      },
+      fatigueScore: fatigueEffectif.score,
+      fatigueLevel: String(fatigueEffectif.level),
+      confidence: fatigueEffectif.confidence
+    },
       confidence: fatigueEffectif.confidence,
       source: "fatigue_effectif",
       isModulatedByFatigue: true

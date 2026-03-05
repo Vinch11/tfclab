@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { format, addDays, startOfWeek } from "date-fns";
 import { fr } from "date-fns/locale";
-import type { ParsedPlan, ParsedWeek, ParsedSession, StrategicRecap, WeekQualityScore } from "@/lib/aiPlanParser";
+import type { ParsedPlan, ParsedWeek, ParsedSession, StrategicRecap } from "@/lib/aiPlanParser";
 import { mapSessionsToDates } from "@/lib/aiPlanParser";
 import { exportAIPlanToPDF } from "@/lib/aiPlanPDFExport";
 import { AIPlanVolumeChart } from "@/components/AIPlanVolumeChart";
@@ -295,52 +295,15 @@ function SessionCard({ session, date }: SessionCardProps) {
 interface WeekViewProps {
   week: ParsedWeek;
   startDate?: Date;
-  qualityScore?: WeekQualityScore;
 }
 
-function WeekView({ week, startDate, qualityScore }: WeekViewProps) {
+function WeekView({ week, startDate }: WeekViewProps) {
   const weekDates = useMemo(() => {
     if (!startDate) return null;
     const start = startOfWeek(startDate, { weekStartsOn: 1 });
     const base = addDays(start, (week.weekNumber - 1) * 7);
     return Array.from({ length: 7 }, (_, i) => addDays(base, i));
   }, [startDate, week.weekNumber]);
-
-  const displaySessions = useMemo(() => {
-    const known = week.sessions.filter(s => s.dayIndex >= 0);
-    const unknown = week.sessions.filter(s => s.dayIndex < 0);
-    const byDay = new Map<number, ParsedSession[]>();
-
-    known.forEach((s) => {
-      const arr = byDay.get(s.dayIndex) || [];
-      arr.push(s);
-      byDay.set(s.dayIndex, arr);
-    });
-
-    const dayNames = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
-    const normalized: ParsedSession[] = [];
-
-    for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
-      const daySessions = byDay.get(dayIndex);
-      if (daySessions && daySessions.length > 0) {
-        normalized.push(...daySessions);
-      } else {
-        normalized.push({
-          weekNumber: week.weekNumber,
-          weekTheme: week.theme,
-          phase: week.phase,
-          dayName: dayNames[dayIndex],
-          dayIndex,
-          sport: "Repos",
-          title: "Repos complet",
-          details: "Récupération, mobilité optionnelle",
-          isRest: true,
-        });
-      }
-    }
-
-    return [...normalized, ...unknown];
-  }, [week]);
 
   const activeSessions = week.sessions.filter(s => !s.isRest).length;
 
@@ -355,18 +318,6 @@ function WeekView({ week, startDate, qualityScore }: WeekViewProps) {
           <div className="flex items-center gap-2">
             <Badge className={`text-[10px] ${getPhaseColor(week.phase)}`}>{week.phase}</Badge>
             <Badge variant="secondary" className="text-[10px]">{activeSessions} séances</Badge>
-            {qualityScore && (
-              <Badge 
-                variant="outline" 
-                className={`text-[10px] ${
-                  qualityScore.distributionScore >= 80 ? "border-green-500/50 text-green-700 dark:text-green-300" :
-                  qualityScore.distributionScore >= 50 ? "border-amber-500/50 text-amber-700 dark:text-amber-300" :
-                  "border-red-500/50 text-red-700 dark:text-red-300"
-                }`}
-              >
-                {qualityScore.distributionScore >= 80 ? "✅" : qualityScore.distributionScore >= 50 ? "⚠️" : "❌"} Q:{qualityScore.distributionScore}
-              </Badge>
-            )}
           </div>
         </div>
         {week.volumeTarget && (
@@ -374,20 +325,10 @@ function WeekView({ week, startDate, qualityScore }: WeekViewProps) {
         )}
       </CardHeader>
       <CardContent className="space-y-2">
-        {displaySessions.map((session, idx) => {
+        {week.sessions.map((session, idx) => {
           const date = weekDates && session.dayIndex >= 0 ? weekDates[session.dayIndex] : undefined;
           return <SessionCard key={idx} session={session} date={date} />;
         })}
-        {qualityScore && qualityScore.qualityFlags.length > 0 && qualityScore.distributionScore < 80 && (
-          <div className="mt-2 p-2.5 rounded-lg bg-amber-500/5 border border-amber-500/20">
-            <p className="text-[11px] font-semibold text-amber-700 dark:text-amber-300 flex items-center gap-1 mb-1">
-              <AlertTriangle className="h-3 w-3" /> Alertes Qualité
-            </p>
-            {qualityScore.qualityFlags.map((flag, i) => (
-              <p key={i} className="text-[10px] text-muted-foreground">⚠️ {flag}</p>
-            ))}
-          </div>
-        )}
         {week.coachNotes && (
           <div className="mt-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
             <p className="text-xs font-semibold text-primary flex items-center gap-1 mb-1">
@@ -409,25 +350,14 @@ interface AIPlanViewerProps {
   isSaved?: boolean;
   onRegenerateWeek?: (weekNumber: number) => void;
   isRegenerating?: boolean;
-  onRegenerateLowQualityWeeks?: () => void;
-  isRegeneratingBatch?: boolean;
-  regeneratingWeekNumbers?: number[];
   athleteName?: string;
 }
 
-export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, isRegenerating, onRegenerateLowQualityWeeks, isRegeneratingBatch, regeneratingWeekNumbers, athleteName }: AIPlanViewerProps) {
+export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, isRegenerating, athleteName }: AIPlanViewerProps) {
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [viewMode, setViewMode] = useState<"week" | "all">("week");
 
   const currentWeek = plan.weeks[selectedWeek];
-
-  // Global quality score
-  const globalQuality = useMemo(() => {
-    if (!plan.qualityScores || plan.qualityScores.length === 0) return null;
-    const avg = plan.qualityScores.reduce((s, q) => s + q.distributionScore, 0) / plan.qualityScores.length;
-    const lowQualityWeeks = plan.qualityScores.filter(q => q.distributionScore < 60).length;
-    return { avg: Math.round(avg), lowQualityWeeks };
-  }, [plan.qualityScores]);
 
   const handleExportPDF = () => {
     exportAIPlanToPDF(plan, athleteName);
@@ -441,45 +371,12 @@ export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved,
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div>
               <h3 className="font-bold text-base">{plan.title}</h3>
-              <p className="text-xs text-muted-foreground">
-                {plan.totalWeeks} semaines • {plan.phases.length} blocs
-                {globalQuality && (
-                  <span className={`ml-2 font-medium ${
-                    globalQuality.avg >= 80 ? "text-green-600 dark:text-green-400" :
-                    globalQuality.avg >= 50 ? "text-amber-600 dark:text-amber-400" :
-                    "text-red-600 dark:text-red-400"
-                  }`}>
-                    • Qualité : {globalQuality.avg >= 80 ? "✅ Excellent" : globalQuality.avg >= 50 ? "⚠️ Correct" : "❌ Insuffisant"} ({globalQuality.avg}/100)
-                    {globalQuality.lowQualityWeeks > 0 && ` • ${globalQuality.lowQualityWeeks} sem. à revoir`}
-                  </span>
-                )}
-              </p>
+              <p className="text-xs text-muted-foreground">{plan.totalWeeks} semaines • {plan.phases.length} blocs</p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <Button variant="outline" size="sm" onClick={handleExportPDF}>
                 <Printer className="h-4 w-4 mr-1" /> PDF
               </Button>
-              {onRegenerateLowQualityWeeks && globalQuality && globalQuality.lowQualityWeeks > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onRegenerateLowQualityWeeks}
-                  disabled={isRegeneratingBatch}
-                  className="text-xs border-amber-500/50 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10"
-                >
-                  {isRegeneratingBatch ? (
-                    <>
-                      <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
-                      Régénération ({regeneratingWeekNumbers?.length ? `S${regeneratingWeekNumbers[0]}` : "..."})
-                    </>
-                  ) : (
-                    <>
-                      <RefreshCw className="h-3.5 w-3.5 mr-1" />
-                      Régénérer {globalQuality.lowQualityWeeks} sem. faibles
-                    </>
-                  )}
-                </Button>
-              )}
               {onSaveToPlan && (
                 <Button size="sm" onClick={onSaveToPlan} disabled={isSaving || isSaved}>
                   {isSaved ? (
@@ -567,12 +464,12 @@ export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved,
               Suivante <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
-          <WeekView week={currentWeek} startDate={startDate} qualityScore={plan.qualityScores?.[selectedWeek]} />
+          <WeekView week={currentWeek} startDate={startDate} />
         </>
       ) : (
         <div className="space-y-4">
           {plan.weeks.map((week, i) => (
-            <WeekView key={i} week={week} startDate={startDate} qualityScore={plan.qualityScores?.[i]} />
+            <WeekView key={i} week={week} startDate={startDate} />
           ))}
         </div>
       )}

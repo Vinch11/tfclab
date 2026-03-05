@@ -53,7 +53,8 @@ import { FatigueCard } from "@/components/FatigueCard";
 import { RunInjuryRiskCard } from "@/components/RunInjuryRiskCard";
 import { InjuryRiskCAPCard } from "@/components/InjuryRiskCAPCard";
 import { InjuryRiskBikeCard } from "@/components/InjuryRiskBikeCard";
-// QuickFatigueInput and FatigueComparisonChart removed (checkins supprimés)
+import { QuickFatigueInput } from "@/components/QuickFatigueInput";
+import { FatigueComparisonChart } from "@/components/FatigueComparisonChart";
 import { computeRunInjuryRisk, RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
 import { computeCAPInjuryRisk, computeBikeInjuryRisk, type InjuryRiskEnvelope } from "@/lib/v2/injuryRiskUnified";
 import { computeIFSC } from "@/lib/v2/ifsc";
@@ -192,7 +193,7 @@ function getRaceReadinessStatus(score: number): { status: "ok" | "warning" | "cr
 export default function DashboardPage() {
   const navigate = useNavigate();
   const { currentAthlete, updateAthlete } = useAthletes();
-  const { snapshots, tests } = useCloudDataContext();
+  const { snapshots, tests, checkins } = useCloudDataContext();
   const { isRunningOnly, raceLabel } = useRunningFocusMode();
   const [showScientificDetails, setShowScientificDetails] = useState(false);
 
@@ -269,7 +270,6 @@ export default function DashboardPage() {
       poids: activeSnapshot.weight_kg ?? null,
       fatigue_ok: true,
       seance_specifique_validee: false,
-      tss7d: activeSnapshot.tss_7d ?? null,
       // ✅ Ajout âge pour uniformisation avec Compass
       athleteAge,
     });
@@ -290,8 +290,12 @@ export default function DashboardPage() {
     
     // athleteAge déjà calculé plus haut pour Race Readiness
     
-    // Fatigue perçue: plus disponible (checkins supprimés)
-    const latestFatiguePercue = null;
+    // Récupérer la fatigue perçue depuis les check-ins récents
+    const athleteCheckins = checkins.filter(c => c.athlete_id === athleteId);
+    const sortedCheckins = [...athleteCheckins].sort((a, b) => b.date_iso.localeCompare(a.date_iso));
+    const latestFatiguePercue = sortedCheckins.length > 0 && sortedCheckins[0].fatigue != null
+      ? sortedCheckins[0].fatigue
+      : null;
     
     // Fatigue Effectif (source unique - combine objectif + subjectif)
     const fatigueEffectif = computeFatigueEffectif({
@@ -451,7 +455,7 @@ export default function DashboardPage() {
       tteRange,
       vlamaxRange,
     };
-  }, [currentAthlete, snapshots, tests]);
+  }, [currentAthlete, snapshots, tests, checkins]);
 
   // =============================================
   // RENDER: NO ATHLETE SELECTED
@@ -1047,9 +1051,36 @@ export default function DashboardPage() {
     );
   };
 
-  // QuickFatigueInput and FatigueComparisonChart removed (checkins supprimés)
-  const renderQuickFatigueInput = (): ReactNode => null;
-  const renderFatigueComparisonChart = (): ReactNode => null;
+  // =============================================
+  // RENDER: QUICK FATIGUE INPUT
+  // =============================================
+  
+  const renderQuickFatigueInput = (): ReactNode => (
+    <QuickFatigueInput
+      athleteId={currentAthlete.id}
+      athleteName={currentAthlete.nom}
+    />
+  );
+
+  // =============================================
+  // RENDER: FATIGUE COMPARISON CHART
+  // =============================================
+  
+  const renderFatigueComparisonChart = (): ReactNode => {
+    const athleteCheckins = checkins.filter(c => c.athlete_id === currentAthlete.id);
+    
+    return (
+      <FatigueComparisonChart
+        checkins={athleteCheckins}
+        activeSnapshot={snapshot}
+        athleteSnapshots={athleteSnapshots}
+        athleteTests={athleteTests}
+        athleteId={currentAthlete.id}
+        athleteAge={athleteAge}
+        objectif={objectif}
+      />
+    );
+  };
 
   // =============================================
   // RENDER: DATA QUALITY BLOCK

@@ -1242,7 +1242,6 @@ Utilise ces micro-cycles réels comme modèles de qualité. Adapte-les au niveau
 - [ex: Force Rønnestad → Économie↑ +4.8% (effet secondaire)]
 
 ## Bloc 1 : [Nom Métabolique, ex: "Fondation + Intensité Précoce"] (Semaines 1-X)
-**Influences méthodologiques :** [Liste des méthodologies qui inspirent ce bloc, ex: "🔬 Reverse Periodization (Lorang 2018) — Intensité précoce pour biogenèse mitochondriale | 💪 Force-Endurance (Rønnestad 2015) — Prévention + économie | ⚖️ Polarized 80/20 (Seiler 2010)"]
 **Objectif physiologique :** [objectif du bloc, ex: "Reverse Perio VO2max + Force max + Volume Z2 progressif"]
 **Volume cible :** [heures/semaine]
 
@@ -1269,25 +1268,6 @@ Utilise ces micro-cycles réels comme modèles de qualité. Adapte-les au niveau
 **🔑 Séances clés :** CSS Dégressif (TTE↑ natation) + Sweet Spot vallonné (endurance musculaire vélo) + Tempo allure IM (spécificité CAP) + SL vélo Gut Training (endurance métabolique) + Brique Race-Pace (simulation jour J)
 **Consignes coach :** [2-3 points clés. Identifier séances clés 🔑 à protéger en priorité. Sensation recherchée + focus technique.]
 \`\`\`
-
-### INFLUENCES MÉTHODOLOGIQUES PAR BLOC (OBLIGATOIRE)
-Pour CHAQUE bloc du plan, tu DOIS indiquer la ligne **Influences méthodologiques** listant les méthodologies scientifiques qui inspirent ce bloc spécifique. Choisis parmi :
-- 🔄 Reverse Periodization (Lorang 2018) — si intensité précoce en Bloc Fondation
-- 📦 Block Periodization (Issurin 2008) — si bloc concentré sur 1-2 qualités
-- ⚖️ Polarized 80/20 (Seiler 2010) — toujours présent (contrainte transversale)
-- 🇳🇴 Double Threshold Norvégienne (Ingebrigtsen/Bu) — si séances seuil longues/doubles
-- 🇰🇪 Spécificité Inverse (Canova) — si volume @allure spécifique progressif
-- 🇫🇷 VO2max Optimisé (Billat) — si séances 30/30, VMA, 3min/3min
-- 💪 Force-Endurance (Rønnestad 2015) — si blocs force max / SFR
-- 🏃 VDOT Zones (Daniels) — si calibration zones E/M/T/I/R
-- ⚡ Puissance Critique / W' (Jones/Skiba) — si gestion race-pacing
-- 🏔️ Tapering (Mujika & Padilla 2003) — si bloc affûtage
-- 🔥 Train Low, Compete High (Burke/Impey) — si séances à jeun / restriction glycogène
-- 🧬 Modèle Mader-Heck VLamax — si ciblage Sprint Ban / VLamax↓
-- 📊 Micro-cycle Undulating (Rhea) — si charge ondulée 3:1 ou 2:1
-- 🫀 HRV-guided (Plews) — si modulation par variabilité cardiaque
-Format : une ligne "**Influences méthodologiques :** emoji Nom (Auteur) — raison | emoji Nom (Auteur) — raison"
-Minimum 2 influences par bloc, maximum 5.
 
 ## SÉANCES CLÉS — MÉTHODOLOGIE DAN LORANG (CRITIQUE)
 
@@ -1366,27 +1346,6 @@ Un jour marqué "Repos" est un jour de REPOS COMPLET :
 - Un jour Repos ne contient JAMAIS "60min Z2" ou toute séance d'effort
 - Chaque semaine doit avoir exactement 1 jour de repos complet (généralement Lundi ou Dimanche)
 - Ne confonds JAMAIS repos et récupération active : ce sont 2 concepts distincts
-
-## 🔥🔥🔥 RÈGLE DISTRIBUTION DES SÉANCES SUR LA SEMAINE — LA PLUS IMPORTANTE 🔥🔥🔥
-⛔ ERREUR CRITIQUE INTERDITE : Mettre 3-4 jours de repos consécutifs en début de semaine (Lundi-Mercredi repos) et concentrer toutes les séances Jeudi-Dimanche. C'est physiologiquement ABSURDE et c'est l'erreur #1 à éviter.
-
-**RÈGLE ABSOLUE : Les séances doivent être RÉPARTIES UNIFORMÉMENT sur les 7 jours de la semaine (Lundi→Dimanche).**
-- Maximum 1 jour de repos complet par semaine (sauf semaine de décharge : max 2)
-- Les 6 autres jours DOIVENT contenir au moins 1 séance d'entraînement
-- La répartition optimale = alterner jours intensité / jours volume / jours récupération active sur TOUTE la semaine
-- Exemples de distribution CORRECTE pour 5 séances/sem : Lundi(séance), Mardi(séance), Mercredi(repos), Jeudi(séance), Vendredi(séance), Samedi(séance), Dimanche(repos)
-- Exemples de distribution INCORRECTE : Lundi(repos), Mardi(repos), Mercredi(repos), Jeudi(séance), Vendredi(séance), Samedi(séance), Dimanche(séance) ← INTERDIT
-
-**Schéma type semaine (référence obligatoire) :**
-- Lundi : Repos OU récupération active (footing léger, natation technique)
-- Mardi : Séance qualité #1 (🔑 intensité : VMA, seuil, intervalles)
-- Mercredi : Endurance / volume (Z2 longue, tempo léger)
-- Jeudi : Séance qualité #2 (🔑 intensité ou renfo)
-- Vendredi : Récupération active ou endurance facile
-- Samedi : Séance longue (🔑 sortie longue, brique)
-- Dimanche : Endurance modérée OU repos
-
-Si le nombre de séances est inférieur à 6, répartir les jours de repos de manière NON consécutive (sauf cas exceptionnel de décharge).
 
 ## ⚠️ RÈGLE OBJECTIFS RUNNING — VÉLO LIMITÉ EN CROSS-TRAINING
 Pour les objectifs **5K, 10K, Semi, Marathon, Trail, StartToRun** :
@@ -2174,25 +2133,17 @@ Plan total : ${regenerateWeek.totalWeeks} semaines.
 
 ${buildUserPrompt(athleteData, planConfig)}
 
-IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format tableau obligatoire. Pas les autres semaines.
-
-⚠️ CONTRÔLE QUALITÉ OBLIGATOIRE POUR CETTE SEMAINE :
-- Interdiction absolue de concentrer les séances du Jeudi au Dimanche.
-- Minimum 2 séances non-repos entre Lundi et Mercredi.
-- Minimum 4 jours actifs distincts si la semaine contient au moins 4 séances.
-- Maximum 2 jours de repos consécutifs.
-- Si ces règles ne sont pas respectées, corrige la répartition AVANT de répondre.`;
+IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format tableau obligatoire. Pas les autres semaines.`;
     } else {
       userPrompt = buildUserPrompt(athleteData, planConfig);
     }
 
     const totalWeeks = planConfig?.weeksAvailable || 12;
-    // Reliability-first chunking: smaller blocks reduce drift and end-of-week concentration artifacts
+    // Use smaller chunks for triathlon (very verbose output with multi-session days)
     const obj = (planConfig?.objective || "").toUpperCase();
     const isVerbosePlan = ["IM", "703"].includes(obj);
-    // More (smaller) blocks for quality: triathlon 2-week chunks, others 3-week chunks
-    const CHUNK_SIZE = isVerbosePlan ? 2 : 3;
-    const needsChunking = !regenerateWeek && totalWeeks > CHUNK_SIZE;
+    const CHUNK_SIZE = isVerbosePlan ? 4 : 6;
+    const needsChunking = !regenerateWeek && totalWeeks > 10;
 
     // Helper: call AI and stream response, return full text
     let streamError: { code: number; message: string } | null = null;
@@ -2306,17 +2257,6 @@ IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format ta
               );
 
               let chunkPrompt: string;
-              const weekDistributionReminder = `
-⚠️ QUALITÉ OBLIGATOIRE — DISTRIBUTION HEBDOMADAIRE (rappel pour CHAQUE semaine) :
-- Le tableau de chaque semaine COMMENCE par Lundi et SE TERMINE par Dimanche.
-- Les séances d'entraînement DOIVENT être réparties sur toute la semaine.
-- INTERDICTION de concentrer les séances du Jeudi au Dimanche uniquement.
-- Au minimum 2 séances non-repos entre Lundi et Mercredi.
-- Maximum 2 jours de repos consécutifs.
-- Maximum 1 jour de repos complet par semaine (sauf semaine de décharge : 2 max).
-- Chaque séance DOIT être précise : zone, allure, durée, nombre de répétitions, récupération.
-- Les séances clés 🔑 DOIVENT cibler les limiteurs identifiés.`;
-
               if (isFirst) {
                 // Build a summary of ALL planned phases/blocs for the full plan
                 const allChunksSummary = chunks.map(c => `Semaines ${c.start}-${c.end}`).join(", ");
@@ -2332,8 +2272,7 @@ Pour ce premier bloc, inclus :
    - Les synergies doivent concerner le plan global.
 
 Génère ensuite les semaines ${chunk.start} à ${chunk.end} avec leurs tableaux complets.
-IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${expectedWeeks.join(", ")}). Ne t'arrête pas avant.
-${weekDistributionReminder}`;
+IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${expectedWeeks.join(", ")}). Ne t'arrête pas avant.`;
               } else {
                 chunkPrompt = `${userPrompt}
 
@@ -2345,8 +2284,7 @@ Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines : ${expectedWeeks.
 Résumé des blocs précédents pour assurer la continuité :
 ${previousChunksSummary}
 
-Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.
-${weekDistributionReminder}`;
+Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.`;
               }
 
               // Ensure week headers from a new block start on a fresh line
@@ -2381,8 +2319,7 @@ Contexte des semaines déjà générées :
 ${previousChunksSummary}
 ${generatedWeeks.length > 0 ? `Semaines déjà générées dans ce bloc : ${generatedWeeks.join(", ")}` : ""}
 
-Assure la CONTINUITÉ de la progression.
-⚠️ QUALITÉ OBLIGATOIRE : minimum 2 séances non-repos entre Lundi et Mercredi, pas de concentration Jeudi→Dimanche, et max 2 jours repos consécutifs.`;
+Assure la CONTINUITÉ de la progression.`;
 
                 emitChunkBoundary();
                 const retryText = await generateAndStream(retryPrompt, controller, encoder);
@@ -2486,94 +2423,27 @@ function buildUserPrompt(data: any, config: any): string {
   } else {
     lines.push(`- **Heures/semaine :** Non spécifié — utilise le volume OPTIMAL recommandé dans la littérature scientifique pour cet objectif × niveau d'ambition (cf. tableaux de référence TFCL ci-dessus).`);
   }
-
-  const objectiveNorm = String(config.objective || "").toUpperCase();
-  const ambitionNorm = String(config.ambition || "").toLowerCase();
-  const sessionBandsByObjective: Record<string, [number, number]> = {
-    IM: [10, 16],
-    "70.3": [8, 12],
-    "703": [8, 12],
-    MARATHON: [5, 7],
-    SEMI: [5, 7],
-    "10K": [4, 6],
-    "10KM": [4, 6],
-    "5K": [4, 6],
-    TRAIL: [5, 8],
-    TRAILSHORT: [5, 8],
-    TRAILMOUNTAIN: [5, 8],
-    TRAILULTRA: [6, 10],
-    STARTTORUN: [3, 4],
-  };
-
-  const ambitionBoost = ambitionNorm.includes("elite") ? 1 : ambitionNorm.includes("competitor") ? 1 : 0;
-  const baseBand = sessionBandsByObjective[objectiveNorm] || [5, 7];
-  const minAutoSessions = baseBand[0] + ambitionBoost;
-  const maxAutoSessions = baseBand[1] + ambitionBoost;
-  const targetAutoSessions = Math.min(maxAutoSessions, Math.max(minAutoSessions, Math.round((minAutoSessions + maxAutoSessions) / 2)));
-
-  const weeklyHoursNum = config.weeklyHours ? Number(config.weeklyHours) : null;
-  const minSessionsByHours = weeklyHoursNum == null
-    ? null
-    : weeklyHoursNum >= 14 ? 7
-    : weeklyHoursNum >= 10 ? 6
-    : weeklyHoursNum >= 7 ? 5
-    : weeklyHoursNum >= 5 ? 4
-    : 3;
-
-  const requestedSessionsPerWeek = config.sessionsPerWeek ? Number(config.sessionsPerWeek) : null;
-  const effectiveSessionsPerWeek = requestedSessionsPerWeek ?? targetAutoSessions;
-  const coherentSessionsPerWeek = minSessionsByHours != null
-    ? Math.max(effectiveSessionsPerWeek, minSessionsByHours)
-    : effectiveSessionsPerWeek;
-
-  if (requestedSessionsPerWeek != null) {
-    if (minSessionsByHours != null && requestedSessionsPerWeek < minSessionsByHours) {
-      lines.push(`- **⚠️ CONFLIT DE CONFIGURATION DÉTECTÉ : ${requestedSessionsPerWeek} séance(s)/sem est incohérent avec ${config.weeklyHours}h/sem.**`);
-      lines.push(`  → Pour rester physiologiquement cohérent, applique **AU MOINS ${coherentSessionsPerWeek} séances/semaine**.`);
-      lines.push(`  → Ignore la contrainte ${requestedSessionsPerWeek}/sem si elle contredit la charge hebdo.`);
-    } else {
-      lines.push(`- **⚠️ CONTRAINTE DURE — Séances/semaine : EXACTEMENT ${requestedSessionsPerWeek} séances d'entraînement/semaine (repos non compté).**`);
-      lines.push(`  → Génère EXACTEMENT ${requestedSessionsPerWeek} séances d'entraînement non-repos sur 7 jours, puis complète le reste en Repos.`);
-      lines.push(`  → NE JAMAIS dépasser ${requestedSessionsPerWeek} séances/semaine. NE JAMAIS en faire moins.`);
-    }
+  if (config.sessionsPerWeek) {
+    lines.push(`- **Séances/semaine max :** ${config.sessionsPerWeek}`);
   } else {
-    lines.push(`- **Séances/semaine :** Non spécifié — applique automatiquement **${minAutoSessions}-${maxAutoSessions} séances/semaine** pour cet objectif/niveau (cible ${targetAutoSessions}).`);
-    lines.push(`  → IMPORTANT : la semaine doit être RÉELLEMENT répartie sur toute la semaine, pas concentrée en fin de semaine.`);
-    if (minSessionsByHours != null) {
-      lines.push(`  → Cohérence charge : avec ${config.weeklyHours}h/sem, produire au minimum ${minSessionsByHours} séances/semaine.`);
-    }
+    lines.push(`- **Séances/semaine :** Non spécifié — utilise le nombre de séances OPTIMAL recommandé dans la littérature scientifique pour cet objectif × niveau d'ambition (cf. tableaux de référence TFCL ci-dessus).`);
   }
-
-  lines.push(`- **⚠️ RÉPARTITION HEBDOMADAIRE OBLIGATOIRE (QUALITÉ)**`);
-  lines.push(`  → Interdiction absolue de regrouper les séances uniquement du jeudi au dimanche.`);
-  lines.push(`  → Interdiction absolue d'avoir Lundi+Mardi+Mercredi = repos complet.`);
-  lines.push(`  → Pour ${coherentSessionsPerWeek} séance(s)/sem : minimum ${coherentSessionsPerWeek >= 7 ? 6 : coherentSessionsPerWeek >= 5 ? 5 : 4} jours actifs distincts.`);
-  lines.push(`  → Minimum 2 séances non-repos entre Lundi et Mercredi, et minimum 2 séances non-repos entre Jeudi et Dimanche.`);
-  lines.push(`  → Maximum 2 jours de repos consécutifs.`);
-  lines.push(`  → Si la semaine est marquée "Surcharge", "Peak" ou "Build", elle doit contenir une charge élevée cohérente (pas de micro-semaine à 1-2 séances).`);
-
   if (config.strengthSessionsPerWeek !== undefined && config.strengthSessionsPerWeek !== null) {
     if (config.strengthSessionsPerWeek === 0) {
-      lines.push(`- **⛔ CONTRAINTE DURE — Renforcement musculaire : 0 séance/sem — NE PAS inclure de séance de renforcement/musculation/PPG/gainage/force dans le plan. AUCUNE.**`);
-      lines.push(`  → Chaque séance du tableau doit être Natation, Vélo, CAP, ou Repos. JAMAIS "Renfo", "PPG", "Musculation", "Core", "Force".`);
+      lines.push(`- **⚠️ Renforcement musculaire : 0 séance/sem — NE PAS inclure de séance de renforcement/musculation/PPG dans le plan.**`);
     } else {
-      lines.push(`- **🏋️ CONTRAINTE DURE — Renforcement musculaire : EXACTEMENT ${config.strengthSessionsPerWeek} séance(s)/sem.**`);
-      lines.push(`  → Inclure EXACTEMENT ${config.strengthSessionsPerWeek} séance(s) de renforcement/PPG par semaine dans le plan. Pas plus, pas moins.`);
-      lines.push(`  → Ces séances comptent dans le total des séances/semaine.`);
+      lines.push(`- **🏋️ Renforcement musculaire : ${config.strengthSessionsPerWeek} séance(s)/sem — Inclure EXACTEMENT ${config.strengthSessionsPerWeek} séance(s) de renforcement/PPG par semaine dans le plan.**`);
     }
   }
   if (config.maxSessionsPerDay) {
     const maxLabel = config.maxSessionsPerDay === 1 ? "1 séance/jour max (PAS de doubles)" :
                      config.maxSessionsPerDay === 2 ? "2 séances/jour max (doubles autorisées, PAS de triples)" :
                      "3 séances/jour max (doubles et triples autorisées)";
-    lines.push(`- **⛔ CONTRAINTE DURE — Max séances par jour : ${maxLabel}**`);
+    lines.push(`- **⚠️ Max séances par jour :** ${maxLabel}`);
     if (config.maxSessionsPerDay === 1) {
-      lines.push(`  → RÈGLE ABSOLUE : 1 seule séance par jour. Aucune double séance. Chaque jour n'a qu'UNE SEULE ligne dans le tableau.`);
-      lines.push(`  → INTERDIT d'écrire "Lundi matin" + "Lundi soir". Un seul "Lundi" avec UNE séance.`);
+      lines.push(`  → RÈGLE STRICTE : 1 seule séance par jour. Aucune double séance. Chaque jour n'a qu'UNE SEULE ligne dans le tableau.`);
     } else if (config.maxSessionsPerDay === 2) {
-      lines.push(`  → RÈGLE ABSOLUE : Maximum 2 séances par jour. Pas de triples. Chaque jour a 1 ou 2 lignes max dans le tableau.`);
-    } else {
-      lines.push(`  → Les triples sont autorisées SI nécessaire, mais la charge doit rester répartie du lundi au dimanche (pas d'empilement en fin de semaine).`);
+      lines.push(`  → RÈGLE STRICTE : Maximum 2 séances par jour. Pas de triples. Chaque jour a 1 ou 2 lignes max dans le tableau.`);
     }
   }
   if (config.ambition) lines.push(`- **Niveau d'ambition :** ${config.ambition}`);
@@ -2821,32 +2691,6 @@ function buildUserPrompt(data: any, config: any): string {
 
   const weeks = config.weeksAvailable || 12;
   lines.push(`\n---\nGénère le plan COMPLET de ${weeks} semaines, semaine par semaine, SANS EN OMETTRE AUCUNE. Chaque semaine a son propre tableau. Ne résume jamais. Chaque séance doit être actionnable immédiatement.`);
-  lines.push(`\n⚠️ RÈGLE ABSOLUE SUR LES TABLEAUX : Chaque tableau de semaine DOIT COMMENCER par LUNDI et se terminer par DIMANCHE. Les 7 jours doivent apparaître (Lundi, Mardi, Mercredi, Jeudi, Vendredi, Samedi, Dimanche). Ne JAMAIS omettre les premiers jours de la semaine. Si un jour est un jour de repos, il doit quand même apparaître avec "Repos" dans la colonne Sport.`);
-  lines.push(`\n⛔ ERREUR FRÉQUENTE À ÉVITER : NE JAMAIS omettre les premiers jours de la semaine. Le tableau de CHAQUE semaine DOIT avoir 7 lignes (ou plus si doubles séances) couvrant Lundi, Mardi, Mercredi, Jeudi, Vendredi, Samedi, Dimanche. Si certains jours sont des jours de repos, ils apparaissent quand même avec "Repos" dans la colonne Sport. Un tableau qui ne montre que 4 jours (ex: Jeudi→Dimanche) est une ERREUR.`);
-
-  // Hard constraints recap
-  const hardConstraints: string[] = [];
-  if (config.sessionsPerWeek) {
-    hardConstraints.push(`EXACTEMENT ${config.sessionsPerWeek} séances d'entraînement par semaine`);
-  }
-  if (config.maxSessionsPerDay) {
-    hardConstraints.push(`MAXIMUM ${config.maxSessionsPerDay} séance(s) par jour`);
-  }
-  if (config.strengthSessionsPerWeek !== undefined && config.strengthSessionsPerWeek !== null) {
-    hardConstraints.push(config.strengthSessionsPerWeek === 0 
-      ? `ZÉRO séance de renforcement (aucune)` 
-      : `EXACTEMENT ${config.strengthSessionsPerWeek} séance(s) de renforcement par semaine`);
-  }
-  if (hardConstraints.length > 0) {
-    lines.push(`\n### 🔒 RÉCAPITULATIF DES CONTRAINTES DURES (VÉRIFICATION FINALE)`);
-    lines.push(`Avant de soumettre chaque semaine, VÉRIFIE que :`);
-    hardConstraints.forEach(c => lines.push(`- ✅ ${c}`));
-    lines.push(`- ✅ Le tableau commence par LUNDI et se termine par DIMANCHE (7 jours présents)`);
-    lines.push(`- ✅ Les séances ne sont PAS concentrées en fin de semaine (pas de schéma Jeudi→Dimanche uniquement)`);
-    lines.push(`- ✅ Au moins 2 séances non-repos entre Lundi-Mercredi et au moins 2 entre Jeudi-Dimanche`);
-    lines.push(`- ✅ Maximum 2 jours de repos consécutifs`);
-  }
-
   if (isTriathlon && ambition !== "finisher") {
     lines.push(`\n⚠️ RAPPEL FINAL : Chaque jour d'entraînement d'un triathlète (sauf repos) doit avoir PLUSIEURS séances (2 ou 3 lignes dans le tableau). Un tableau de semaine IM Elite = 14 à 18 lignes, PAS 7. Si ton tableau a seulement 7-8 lignes pour une semaine IM, RECOMMENCE, c'est insuffisant.`);
   }

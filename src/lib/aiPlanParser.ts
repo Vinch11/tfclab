@@ -40,18 +40,6 @@ export interface StrategicRecap {
   synergies: string[];
 }
 
-export interface WeekQualityScore {
-  weekNumber: number;
-  activeDays: number;          // days with non-rest sessions (0-7)
-  totalSessions: number;       // non-rest sessions count
-  earlyWeekSessions: number;   // sessions Mon-Wed (dayIndex 0-2)
-  lateWeekSessions: number;    // sessions Thu-Sun (dayIndex 3-6)
-  maxConsecutiveRest: number;  // longest consecutive rest streak
-  hasKeySession: boolean;      // has at least one 🔑 session
-  distributionScore: number;   // 0-100, penalized if lopsided
-  qualityFlags: string[];      // warnings
-}
-
 export interface ParsedPlan {
   title: string;
   diagnostic?: string;
@@ -59,7 +47,6 @@ export interface ParsedPlan {
   phases: { name: string; weeks: string; objective?: string; volume?: string }[];
   weeks: ParsedWeek[];
   totalWeeks: number;
-  qualityScores?: WeekQualityScore[];
 }
 
 const DAY_MAP: Record<string, number> = {
@@ -68,22 +55,9 @@ const DAY_MAP: Record<string, number> = {
 };
 
 function normDay(raw: string): { name: string; index: number } {
-  // Strip bold markers, emojis, and extra whitespace
-  const lower = raw.trim()
-    .replace(/\*{1,2}/g, "")
-    .replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF]+/gu, "")
-    .trim()
-    .toLowerCase();
+  const lower = raw.trim().toLowerCase();
   for (const [key, idx] of Object.entries(DAY_MAP)) {
     if (lower.startsWith(key)) return { name: key.charAt(0).toUpperCase() + key.slice(1), index: idx };
-  }
-  // Also handle abbreviated forms: "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"
-  const abbrevMap: Record<string, string> = { lun: "lundi", mar: "mardi", mer: "mercredi", jeu: "jeudi", ven: "vendredi", sam: "samedi", dim: "dimanche" };
-  for (const [abbrev, full] of Object.entries(abbrevMap)) {
-    if (lower.startsWith(abbrev)) {
-      const idx = DAY_MAP[full];
-      return { name: full.charAt(0).toUpperCase() + full.slice(1), index: idx };
-    }
   }
   return { name: raw.trim(), index: -1 };
 }
@@ -94,156 +68,33 @@ function isRestSession(sport: string, title: string): boolean {
 }
 
 function parseWeekHeader(line: string): { weekNumber: number; theme: string } | null {
-  // Accept various formats:
-  // ### Semaine 7 — Theme
-  // **Semaine 7** — Theme
-  // Semaine 7 : Theme
-  // #### 🗓️ Semaine 7 — Theme
-  // ### **Semaine 7 — Theme**
-  // ## Semaine 7
-  const cleaned = line
-    .replace(/^#{1,5}\s*/, "")
-    .replace(/^[\u{1F300}-\u{1FAFF}\u2600-\u27BF\u{1F4C5}\u{1F5D3}]+\s*/u, "")
-    .replace(/^\*{1,2}/, "")
-    .replace(/\*{1,2}$/, "")
-    .trim();
-  
-  const match = cleaned.match(/^Semaine\s*(\d+)\s*(?:[—\-–:]\s*(.+))?$/i);
+  // Accept both markdown headers (### Semaine 7) and plain lines (Semaine 7)
+  const match = line.match(/^(?:#{2,4}\s*)?\*{0,2}\s*Semaine\s*(\d+)\s*\*{0,2}(?:\s*[—\-–:]\s*(.+))?$/i);
   if (!match) return null;
   const weekNumber = parseInt(match[1], 10);
-  const theme = (match[2] || `Semaine ${weekNumber}`).replace(/\*{1,2}/g, "").trim();
+  const theme = (match[2] || `Semaine ${weekNumber}`).trim();
   return { weekNumber, theme };
 }
 
 function parsePhaseOrBlocHeader(line: string): { name: string; weeksRange: string } | null {
   const cleaned = line
-    .replace(/^#{1,5}\s*/, "")
+    .replace(/^#{2,4}\s*/, "")
     .replace(/^\*{1,2}|\*{1,2}$/g, "")
-    .replace(/^[\u{1F300}-\u{1FAFF}\u2600-\u27BF\u{1F4E6}\u{2699}]+\s*/u, "")
+    .replace(/^[\u{1F300}-\u{1FAFF}\u2600-\u27BF]+\s*/u, "")
     .trim();
 
-  // Pattern 1: "Phase 2 : Label" or "Bloc 3 — Label (Semaines 5 à 8)"
   const match = cleaned.match(/^(Phase|Bloc)\s*(\d+)\s*[:\-–—]\s*(.+?)(?:\s*\(.*?(\d+)\s*[-–—àa]\s*(\d+).*?\))?\s*$/i);
-  if (match) {
-    const kind = match[1];
-    const number = match[2];
-    const label = match[3].replace(/^\*{1,2}|\*{1,2}$/g, "").trim();
-    const weeksRange = match[4] && match[5] ? `${match[4]}-${match[5]}` : "";
-    return {
-      name: `${kind.charAt(0).toUpperCase() + kind.slice(1).toLowerCase()} ${number} : ${label}`,
-      weeksRange,
-    };
-  }
+  if (!match) return null;
 
-  // Pattern 2: "Bloc Fondation" or "Bloc Chantier VLamax↓" without a number
-  const match2 = cleaned.match(/^(Phase|Bloc)\s+([A-ZÀ-Ÿa-zà-ÿ].+?)(?:\s*\(.*?[Ss](?:emaines?)?\s*(\d+)\s*[-–—àa]\s*(\d+).*?\))?\s*$/i);
-  if (match2) {
-    const kind = match2[1];
-    const label = match2[2].replace(/^\*{1,2}|\*{1,2}$/g, "").trim();
-    const weeksRange = match2[3] && match2[4] ? `${match2[3]}-${match2[4]}` : "";
-    return {
-      name: `${kind.charAt(0).toUpperCase() + kind.slice(1).toLowerCase()} : ${label}`,
-      weeksRange,
-    };
-  }
+  const kind = match[1];
+  const number = match[2];
+  const label = match[3].replace(/^\*{1,2}|\*{1,2}$/g, "").trim();
+  const weeksRange = match[4] && match[5] ? `${match[4]}-${match[5]}` : "";
 
-  return null;
-}
-
-/**
- * Rebalance sessions when AI clusters most training days Thu→Sun.
- * Moves non-rest sessions to early-week slots (Mon→Wed) while preserving session content.
- */
-function rebalanceClusteredWeekSessions(sessions: ParsedSession[]): ParsedSession[] {
-  const rebalanced = sessions.map(s => ({ ...s }));
-  const nonRest = rebalanced.filter(s => !s.isRest && s.dayIndex >= 0);
-  if (nonRest.length < 4) return rebalanced;
-
-  const dayNames = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
-  const countNonRestByDay = (dayIndex: number) => nonRest.filter(s => s.dayIndex === dayIndex).length;
-
-  let earlyCount = nonRest.filter(s => s.dayIndex >= 0 && s.dayIndex <= 2).length;
-  const lateCount = nonRest.filter(s => s.dayIndex >= 3 && s.dayIndex <= 6).length;
-
-  // Trigger only on real clustering patterns
-  if (earlyCount >= 2 || lateCount / nonRest.length < 0.75) return rebalanced;
-
-  let movesNeeded = Math.min(2 - earlyCount, lateCount);
-  if (movesNeeded <= 0) return rebalanced;
-
-  const movable = rebalanced
-    .filter(s => !s.isRest && s.dayIndex >= 3 && s.dayIndex <= 6)
-    .sort((a, b) => b.dayIndex - a.dayIndex); // move latest days first
-
-  const pickTargetDay = (): number => {
-    for (const day of [0, 1, 2]) {
-      if (countNonRestByDay(day) === 0) return day;
-    }
-    return [0, 1, 2].sort((a, b) => countNonRestByDay(a) - countNonRestByDay(b))[0];
+  return {
+    name: `${kind.charAt(0).toUpperCase() + kind.slice(1).toLowerCase()} ${number} : ${label}`,
+    weeksRange,
   };
-
-  for (const session of movable) {
-    if (movesNeeded <= 0) break;
-    const targetDay = pickTargetDay();
-    session.dayIndex = targetDay;
-    session.dayName = dayNames[targetDay];
-    earlyCount += 1;
-    movesNeeded -= 1;
-  }
-
-  return rebalanced;
-}
-
-/**
- * Normalize a week so it always contains Monday → Sunday.
- * If AI omitted a day, we inject an explicit rest row for that day.
- * Also rebalances pathological Thu→Sun clustering.
- */
-function normalizeWeekSessions(
-  sessions: ParsedSession[],
-  weekNumber: number,
-  weekTheme: string,
-  phase: string
-): ParsedSession[] {
-  const rebalancedSource = rebalanceClusteredWeekSessions(sessions);
-  const known = rebalancedSource
-    .map((s, order) => ({ ...s, __order: order }))
-    .filter(s => s.dayIndex >= 0);
-
-  const unknown = rebalancedSource.filter(s => s.dayIndex < 0);
-
-  const byDay = new Map<number, Array<ParsedSession & { __order: number }>>();
-  for (const s of known) {
-    const arr = byDay.get(s.dayIndex) || [];
-    arr.push(s);
-    byDay.set(s.dayIndex, arr);
-  }
-
-  const dayNames = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
-  const normalized: ParsedSession[] = [];
-
-  for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
-    const daySessions = byDay.get(dayIndex);
-    if (daySessions && daySessions.length > 0) {
-      daySessions
-        .sort((a, b) => a.__order - b.__order)
-        .forEach(({ __order, ...session }) => normalized.push(session));
-    } else {
-      normalized.push({
-        weekNumber,
-        weekTheme,
-        phase,
-        dayName: dayNames[dayIndex],
-        dayIndex,
-        sport: "Repos",
-        title: "Repos complet",
-        details: "Récupération, mobilité optionnelle",
-        isRest: true,
-      });
-    }
-  }
-
-  return [...normalized, ...unknown];
 }
 
 /**
@@ -273,13 +124,6 @@ export function parseAIPlan(markdown: string): ParsedPlan {
 
   const flushWeek = () => {
     if (currentWeekNumber > 0) {
-      const normalizedSessions = normalizeWeekSessions(
-        pendingSessions,
-        currentWeekNumber,
-        currentWeekTheme || `Semaine ${currentWeekNumber}`,
-        currentPhase
-      );
-
       weeks.push({
         weekNumber: currentWeekNumber,
         theme: currentWeekTheme || `Semaine ${currentWeekNumber}`,
@@ -287,7 +131,7 @@ export function parseAIPlan(markdown: string): ParsedPlan {
         phaseObjective: currentPhaseObjective,
         volumeTarget: currentVolumeTarget,
         coachNotes: currentCoachNotes.trim() || undefined,
-        sessions: normalizedSessions,
+        sessions: [...pendingSessions],
       });
       pendingSessions = [];
       currentCoachNotes = "";
@@ -457,33 +301,15 @@ export function parseAIPlan(markdown: string): ParsedPlan {
       }
     }
 
-    // Table header row (French or English, various formats)
-    // Strip bold markers for detection: **Jour** → Jour
-    const trimmedNoBold = trimmed.replace(/\*{1,2}/g, "");
-    if (trimmed.startsWith("|") && /\b(jour|day|lundi|mardi|mercredi|sport|séance|session)\b/i.test(trimmedNoBold)) {
+    // Table header row (French or English)
+    if (trimmed.startsWith("|") && /\b(jour|day)\b/i.test(trimmed)) {
       tableHeaders = trimmed.split("|").map(c => c.trim()).filter(Boolean);
       inTable = true;
       continue;
     }
 
-    // Also detect table start from separator row if preceded by header-like content
-    if (!inTable && trimmed.startsWith("|") && currentWeekNumber > 0) {
-      // Check if this looks like a data row with a day name
-      const cells = trimmed.split("|").map(c => c.trim()).filter(Boolean);
-      if (cells.length >= 3) {
-        const dayCheck = normDay(cells[0]);
-        if (dayCheck.index >= 0) {
-          // This is a table data row without a detected header - start table
-          inTable = true;
-          // Process this row as data (fall through to table data handler below)
-        }
-      }
-    }
-
-    // Table separator (skip both when in table and when just starting)
-    if (/^\|[\s\-:]+\|/.test(trimmed)) {
-      if (inTable || currentWeekNumber > 0) continue;
-    }
+    // Table separator
+    if (inTable && /^\|[\s\-:]+\|/.test(trimmed)) continue;
 
     // Table data row
     if (inTable && trimmed.startsWith("|") && currentWeekNumber > 0) {
@@ -526,9 +352,6 @@ export function parseAIPlan(markdown: string): ParsedPlan {
       ? { limiters: recapLimiters, synergies: recapSynergies }
       : undefined;
 
-  // Compute quality scores per week
-  const qualityScores = weeks.map(w => computeWeekQualityScore(w));
-
   return {
     title: title || "Plan TFCL™",
     diagnostic: diagnostic || undefined,
@@ -536,90 +359,6 @@ export function parseAIPlan(markdown: string): ParsedPlan {
     phases,
     weeks,
     totalWeeks: weeks.length,
-    qualityScores,
-  };
-}
-
-/**
- * Compute a quality score for a single week
- */
-function computeWeekQualityScore(week: ParsedWeek): WeekQualityScore {
-  const nonRest = week.sessions.filter(s => !s.isRest && s.dayIndex >= 0);
-  const activeDaysSet = new Set(nonRest.map(s => s.dayIndex));
-  const activeDays = activeDaysSet.size;
-  const totalSessions = nonRest.length;
-
-  // Early vs late week split
-  const earlyWeekSessions = nonRest.filter(s => s.dayIndex >= 0 && s.dayIndex <= 2).length;
-  const lateWeekSessions = nonRest.filter(s => s.dayIndex >= 3 && s.dayIndex <= 6).length;
-
-  // Max consecutive rest days
-  const dayHasSession = Array.from({ length: 7 }, (_, i) => activeDaysSet.has(i));
-  let maxConsecutiveRest = 0;
-  let currentStreak = 0;
-  for (let d = 0; d < 7; d++) {
-    if (!dayHasSession[d]) {
-      currentStreak++;
-      maxConsecutiveRest = Math.max(maxConsecutiveRest, currentStreak);
-    } else {
-      currentStreak = 0;
-    }
-  }
-
-  // Key session check
-  const hasKeySession = week.sessions.some(s => 
-    s.title.includes("🔑") || s.details?.includes("🔑")
-  );
-
-  // Distribution score (0-100)
-  const flags: string[] = [];
-  let distributionScore = 100;
-
-  // Penalty: no sessions Mon-Wed
-  if (earlyWeekSessions === 0 && totalSessions > 0) {
-    distributionScore -= 40;
-    flags.push("Aucune séance Lundi-Mercredi");
-  } else if (earlyWeekSessions === 1 && totalSessions >= 4) {
-    distributionScore -= 20;
-    flags.push("Seule 1 séance Lundi-Mercredi");
-  }
-
-  // Penalty: heavy concentration in late week
-  if (totalSessions > 0 && lateWeekSessions / totalSessions > 0.8) {
-    distributionScore -= 25;
-    flags.push("80%+ des séances en fin de semaine");
-  }
-
-  // Penalty: too many consecutive rest days
-  if (maxConsecutiveRest >= 3) {
-    distributionScore -= 20;
-    flags.push(`${maxConsecutiveRest} jours de repos consécutifs`);
-  }
-
-  // Penalty: too few active days relative to sessions
-  if (totalSessions >= 5 && activeDays < 4) {
-    distributionScore -= 15;
-    flags.push("Trop de séances concentrées sur peu de jours");
-  }
-
-  // Penalty: no key session
-  if (!hasKeySession && totalSessions >= 3) {
-    distributionScore -= 10;
-    flags.push("Aucune séance clé 🔑 identifiée");
-  }
-
-  distributionScore = Math.max(0, distributionScore);
-
-  return {
-    weekNumber: week.weekNumber,
-    activeDays,
-    totalSessions,
-    earlyWeekSessions,
-    lateWeekSessions,
-    maxConsecutiveRest,
-    hasKeySession,
-    distributionScore,
-    qualityFlags: flags,
   };
 }
 

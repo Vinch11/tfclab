@@ -88,7 +88,6 @@ const INITIAL_FORM_STATE = {
   protocol_quality: "3",
   tte_mode: "LOAD",
   tss_7d: "",
-  fatigue_state: "ok",
   tte_observed_min: "",
   // 🏃 Économie CAP
   run_pace_ref: "",
@@ -166,7 +165,6 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       // ✅ PRO TTE
       tte_mode: (s.tte_mode as string) || "LOAD",
       tss_7d: s.tss_7d != null ? String(s.tss_7d) : "",
-      fatigue_state: (snapshotAny.fatigue_state as string) || "ok",
       tte_observed_min: s.tte_observed_min != null ? String(s.tte_observed_min) : "",
 
       // 🏃 ÉCONOMIE CAP
@@ -246,7 +244,6 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       // ✅ PRO TTE
       tte_mode: (formData.tte_mode as string) || "LOAD",
       tss_7d: parseNum(formData.tss_7d) ? Math.round(parseNum(formData.tss_7d)!) : null,
-      fatigue_state: formData.fatigue_state || "ok",
       tte_observed_min: parseNum(formData.tte_observed_min) ? Math.round(parseNum(formData.tte_observed_min)!) : null,
 
       // 🏃 ÉCONOMIE CAP
@@ -325,7 +322,6 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       // ✅ PRO TTE
       tte_mode: (formData.tte_mode as string) || "LOAD",
       tss_7d: parseNum(formData.tss_7d) ? Math.round(parseNum(formData.tss_7d)!) : null,
-      fatigue_state: formData.fatigue_state || "ok",
       tte_observed_min: parseNum(formData.tte_observed_min) ? Math.round(parseNum(formData.tte_observed_min)!) : null,
 
       // 🏃 ÉCONOMIE CAP
@@ -711,45 +707,24 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
           </div>
         </div>
 
-        <div className="mt-3 grid grid-cols-1 gap-3">
-          <div>
-            <Label>État de fatigue</Label>
-            <Select
-              value={formData.fatigue_state}
-              onValueChange={(v) => setFormData({ ...formData, fatigue_state: v })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner l'état" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="fresh">🟢 Frais — Disponible pour intensité</SelectItem>
-                <SelectItem value="ok">🟡 OK — Forme correcte</SelectItem>
-                <SelectItem value="fatigued">🟠 Fatigué — Prudence sur l'intensité</SelectItem>
-                <SelectItem value="high">🔴 Très fatigué — Réduire la charge</SelectItem>
-                <SelectItem value="injured">⚫ Blessé / douleur — Adapter ou stopper</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="tte_observed_min" className={formData.tte_mode === "OBSERVED" && !formData.tte_observed_min ? "text-warning" : ""}>
-              TTE observé (min) {formData.tte_mode === "OBSERVED" && <span className="text-xs">(requis pour Module B)</span>}
-            </Label>
-            <Input
-              id="tte_observed_min"
-              type="number"
-              placeholder="ex: 55"
-              value={formData.tte_observed_min}
-              onChange={(e) => setFormData({ ...formData, tte_observed_min: e.target.value })}
-              className={formData.tte_mode === "OBSERVED" && !formData.tte_observed_min ? "border-warning" : ""}
-            />
-            {formData.tte_mode === "OBSERVED" && !formData.tte_observed_min && (
-              <p className="text-xs text-warning mt-1">⚠️ Renseignez le TTE mesuré pour utiliser le Module B</p>
-            )}
-            <p className="text-xs text-muted-foreground mt-1">
-              Module B recommandé : effort au seuil continu / CP-like. Plus fiable que l'estimation par charge.
-            </p>
-          </div>
+        <div className="mt-3">
+          <Label htmlFor="tte_observed_min" className={formData.tte_mode === "OBSERVED" && !formData.tte_observed_min ? "text-warning" : ""}>
+            TTE observé (min) {formData.tte_mode === "OBSERVED" && <span className="text-xs">(requis pour Module B)</span>}
+          </Label>
+          <Input
+            id="tte_observed_min"
+            type="number"
+            placeholder="ex: 55"
+            value={formData.tte_observed_min}
+            onChange={(e) => setFormData({ ...formData, tte_observed_min: e.target.value })}
+            className={formData.tte_mode === "OBSERVED" && !formData.tte_observed_min ? "border-warning" : ""}
+          />
+          {formData.tte_mode === "OBSERVED" && !formData.tte_observed_min && (
+            <p className="text-xs text-warning mt-1">⚠️ Renseignez le TTE mesuré pour utiliser le Module B</p>
+          )}
+          <p className="text-xs text-muted-foreground mt-1">
+            Module B recommandé : effort au seuil continu / CP-like. Plus fiable que l'estimation par charge.
+          </p>
         </div>
 
         {/* Preview */}

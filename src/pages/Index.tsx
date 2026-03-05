@@ -18,7 +18,11 @@ import { IndexSeancesView } from "@/components/IndexSeances";
 
 import { ExportTools } from "@/components/ExportTools";
 import { SnapshotManager } from "@/components/SnapshotManager";
-// Checkin imports removed (checkins supprimés - snapshot = source unique)
+import { CheckinManager } from "@/components/CheckinManager";
+import { QuickFatigueInput } from "@/components/QuickFatigueInput";
+import { DisponibiliteTFCLCard } from "@/components/DisponibiliteTFCLCard";
+import { TFCLDailyReadinessCheck } from "@/components/TFCLDailyReadinessCheck";
+import { computeDisponibiliteTFCL, type TFCLReadinessInput, type DisponibiliteTFCL as DisponibiliteTFCLResult } from "@/lib/v2/disponibiliteTFCL";
 import { LowCRRJustificationCard } from "@/components/LowCRRJustificationCard";
 import { DashboardRecommendationsCard } from "@/components/DashboardRecommendationsCard";
 import { SnapshotEvolutionChart } from "@/components/SnapshotEvolutionChart";
@@ -58,7 +62,6 @@ import { RaceReadinessUnifiedCard } from "@/components/RaceReadinessUnifiedCard"
 import { computeCompassScores, type CompassScores } from "@/lib/compassScoring";
 import { DecisionReliabilityCard } from "@/components/DecisionReliabilityCard";
 import { computeFullDRE, DecisionReliabilityResult } from "@/lib/v2/decisionReliabilityEngine";
-import { normalizeFatigueState, fatigueStateToDRE } from "@/lib/fatigueStateMapper";
 import { useDecisionReliability } from "@/hooks/useDecisionReliability";
 import { SortableSectionsContainer } from "@/components/SortableSectionsContainer";
 
@@ -74,7 +77,8 @@ import { computeFatMaxTFCL, FatMaxObjectif } from "@/lib/v2/fatmaxTFCL";
 import { ObjectifPrincipal } from "@/lib/reference";
 // ✅ Zones Métaboliques - Carte unifiée (Phase 1b UX)
 import { MetabolicZonesUnifiedCard } from "@/components/MetabolicZonesUnifiedCard";
-// FatigueDisponibiliteUnifiedCard removed (checkins supprimés)
+// ✅ Fatigue & Disponibilité - Carte unifiée (Phase 1d UX)
+import { FatigueDisponibiliteUnifiedCard } from "@/components/FatigueDisponibiliteUnifiedCard";
 
 // ✅ TFCL Decision Matrix — Cœur décisionnel coach-grade
 import { TFCLDecisionMatrixCard } from "@/components/TFCLDecisionMatrixCard";
@@ -199,8 +203,8 @@ const Index = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ✅ Cloud data pour les données brutes (snapshots, tests)
-  const { snapshots, tests, loading, loadData, addAthlete, updateAthlete, deleteAthlete, addTest, deleteTest, updateSnapshot } = useCloudDataContext();
+  // ✅ Cloud data pour les données brutes (snapshots, tests, checkins)
+  const { snapshots, tests, checkins, loading, loadData, addAthlete, updateAthlete, deleteAthlete, addTest, deleteTest, updateSnapshot, addCheckin, updateCheckin, getCheckinsForAthlete } = useCloudDataContext();
   
   // ✅ Utiliser AthleteContext pour la synchronisation avec les composants de recommandation
   const { 
@@ -503,7 +507,6 @@ const Index = () => {
       poids: poids ?? undefined,
       fatigue_ok: true,
       seance_specifique_validee: false,
-      tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
       fcMax: effectiveRefs.fcMax ?? null,
       deriveCardiaque: effectiveCloudSnapshot?.run_hr_drift_pct ?? null,
       // ✅ FIX: Passer âge et ambition pour synchroniser avec Compass
@@ -567,7 +570,9 @@ const Index = () => {
       pmax5s: effectiveCloudSnapshot?.pmax_5s ?? null,
       
       isReferenceWeek: (effectiveCloudSnapshot as unknown as Record<string, unknown>)?.vlamax_is_reference === true,
-      fatigueState: fatigueStateToDRE(normalizeFatigueState((effectiveCloudSnapshot as unknown as Record<string, unknown>)?.fatigue_state as string)),
+      fatigueState: ((effectiveCloudSnapshot as unknown as Record<string, unknown>)?.fatigue_state as string) === "fatigued" ? "fatigued" 
+        : ((effectiveCloudSnapshot as unknown as Record<string, unknown>)?.fatigue_state as string) === "fresh" ? "fresh" 
+        : "normal",
     });
   }, [currentAthlete, user, effectiveCloudSnapshot, vlamaxEffectif, tteEffectif]);
 
@@ -1082,18 +1087,168 @@ const Index = () => {
             id: "objective-manager",
             render: () => null,
           },
-          // Checkin sections removed (fatigue-disponibilite-unified, disponibilite-tfcl, daily-readiness-check)
+          // ✅ Phase 1d: Fatigue & Disponibilité Unifiée
           {
             id: "fatigue-disponibilite-unified",
-            render: () => null,
+            render: () => {
+              if (!currentAthlete) return null;
+              const athleteCheckins = getCheckinsForAthlete(currentAthlete.id);
+              const sortedCheckins = [...athleteCheckins].sort((a, b) => 
+                new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime()
+              );
+              const latestCheckin = sortedCheckins[0] || null;
+              const previousCheckin = sortedCheckins[1] || null;
+              
+              const objectiveData = effectiveCloudSnapshot ? {
+                tss7d: effectiveCloudSnapshot.tss_7d ?? null,
+                tssTarget: 350,
+              } : undefined;
+              
+              const crr = effectiveCloudSnapshot ? computeCRR({
+                tss7d: effectiveCloudSnapshot.tss_7d ?? null,
+                snapshotDate: effectiveCloudSnapshot.date ?? null,
+                snapshotUpdatedAt: effectiveCloudSnapshot.updated_at ?? null,
+              }) : null;
+              
+              const handleReadinessSubmit = async (input: TFCLReadinessInput, result: DisponibiliteTFCLResult) => {
+                const today = new Date();
+                const weekTag = `${today.getFullYear()}-W${String(Math.ceil((today.getDate() + new Date(today.getFullYear(), 0, 1).getDay()) / 7)).padStart(2, "0")}`;
+                const todayISO = today.toISOString().slice(0, 10);
+                const existingToday = athleteCheckins.find(c => c.date_iso === todayISO);
+                
+                const checkinData = {
+                  sleep: input.sleep,
+                  fatigue: input.fatigue,
+                  soreness: input.soreness,
+                  stress: input.stress,
+                  motivation: input.motivation,
+                  pain_flag: input.alerts?.joint_pain || input.alerts?.illness || input.alerts?.asymmetric_pain || false,
+                  readiness: Math.round(result.score / 10),
+                  notes: `Disponibilité TFCL: ${result.levelLabel} (${result.score}/100) - Confiance: ${result.confidenceLabel}`,
+                };
+                
+                if (existingToday) {
+                  await updateCheckin(existingToday.id, checkinData);
+                  toast.success("Check-in mis à jour", { description: `Disponibilité: ${result.levelLabel}` });
+                } else {
+                  await addCheckin({
+                    athlete_id: currentAthlete.id,
+                    coach_id: "",
+                    date_iso: todayISO,
+                    week_tag: weekTag,
+                    ...checkinData,
+                    rpe_key1: null,
+                    rpe_key2: null,
+                  });
+                  toast.success("Check-in enregistré", { description: `Disponibilité: ${result.levelLabel}` });
+                }
+              };
+              
+              return (
+                <FatigueDisponibiliteUnifiedCard
+                  latestCheckin={latestCheckin}
+                  previousCheckin={previousCheckin}
+                  objectiveData={objectiveData}
+                  athleteId={currentAthlete.id}
+                  athleteName={currentAthlete.name}
+                  onCheckinSubmit={handleReadinessSubmit}
+                  crr={crr}
+                  objectif={currentAthlete.goal || "IM"}
+                  onCRRUpdate={effectiveCloudSnapshot ? async (value) => {
+                    await updateSnapshot(effectiveCloudSnapshot.id, { tss_7d: value });
+                  } : undefined}
+                  staffMode={staffMode}
+                />
+              );
+            },
           },
           {
             id: "disponibilite-tfcl",
-            render: () => null,
+            render: () => {
+              if (!currentAthlete) return null;
+              const athleteCheckins = getCheckinsForAthlete(currentAthlete.id);
+              const sortedCheckins = [...athleteCheckins].sort((a, b) => 
+                new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime()
+              );
+              const latestCheckin = sortedCheckins[0] || null;
+              const previousCheckin = sortedCheckins[1] || null;
+              
+              // Données objectives depuis le snapshot
+              const objectiveData = effectiveCloudSnapshot ? {
+                tss7d: effectiveCloudSnapshot.tss_7d ?? null,
+                tssTarget: 350, // Cible par défaut, à ajuster selon profil
+              } : undefined;
+              
+              return (
+                <DisponibiliteTFCLCard
+                  latestCheckin={latestCheckin}
+                  previousCheckin={previousCheckin}
+                  objectiveData={objectiveData}
+                  showDetails={staffMode}
+                  showTrend={true}
+                />
+              );
+            },
           },
           {
             id: "daily-readiness-check",
-            render: () => null,
+            render: () => {
+              if (!currentAthlete) return null;
+              
+              const handleReadinessSubmit = async (input: TFCLReadinessInput, result: DisponibiliteTFCLResult) => {
+                const today = new Date();
+                const weekTag = `${today.getFullYear()}-W${String(Math.ceil((today.getDate() + new Date(today.getFullYear(), 0, 1).getDay()) / 7)).padStart(2, "0")}`;
+                const todayISO = today.toISOString().slice(0, 10);
+                
+                // Vérifier si un check-in existe déjà aujourd'hui
+                const athleteCheckins = getCheckinsForAthlete(currentAthlete.id);
+                const existingToday = athleteCheckins.find(c => c.date_iso === todayISO);
+                
+                const checkinData = {
+                  sleep: input.sleep,
+                  fatigue: input.fatigue,
+                  soreness: input.soreness,
+                  stress: input.stress,
+                  motivation: input.motivation,
+                  pain_flag: input.alerts?.joint_pain || input.alerts?.illness || input.alerts?.asymmetric_pain || false,
+                  readiness: Math.round(result.score / 10), // Convertir score 0-100 en 0-10
+                  notes: `Disponibilité TFCL: ${result.levelLabel} (${result.score}/100) - Confiance: ${result.confidenceLabel}`,
+                };
+                
+                if (existingToday) {
+                  await updateCheckin(existingToday.id, checkinData);
+                  toast.success("Check-in mis à jour", { description: `Disponibilité: ${result.levelLabel}` });
+                } else {
+                  await addCheckin({
+                    athlete_id: currentAthlete.id,
+                    coach_id: "",
+                    date_iso: todayISO,
+                    week_tag: weekTag,
+                    ...checkinData,
+                    rpe_key1: null,
+                    rpe_key2: null,
+                  });
+                  toast.success("Check-in enregistré", { description: `Disponibilité: ${result.levelLabel}` });
+                }
+              };
+              
+              // Données objectives depuis le snapshot
+              const objectiveData = effectiveCloudSnapshot ? {
+                tss7d: effectiveCloudSnapshot.tss_7d ?? null,
+                tssTarget: 350,
+              } : undefined;
+              
+              return (
+                <TFCLDailyReadinessCheck
+                  athleteId={currentAthlete.id}
+                  athleteName={currentAthlete.name}
+                  objectiveData={objectiveData}
+                  onSubmit={handleReadinessSubmit}
+                  showStaffAlerts={staffMode}
+                  compact={false}
+                />
+              );
+            },
           },
           {
             id: "low-crr-justification",
@@ -1241,10 +1396,19 @@ const Index = () => {
               if (!currentAthlete) return null;
               
               const age = currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null;
+              const athleteCheckins = getCheckinsForAthlete(currentAthlete.id);
+              const sortedCheckins = [...athleteCheckins].sort((a, b) => 
+                new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime()
+              );
+              const latestCheckin = sortedCheckins[0] || null;
               
               // FatMax estimate from VLamax
               const fatmaxPct = vlamaxEffectif.value != null ? Math.max(0, 65 - (vlamaxEffectif.value - 0.3) * 80) : null;
-              const freshness: number | null = null;
+              
+              // Freshness from latest checkin
+              const freshness = latestCheckin ? (
+                ((latestCheckin.sleep ?? 5) + (10 - (latestCheckin.fatigue ?? 5)) + (latestCheckin.motivation ?? 5) + (10 - (latestCheckin.stress ?? 5))) / 4 * 10
+              ) : null;
               
               // Targets based on ambition
               const vlamaxTarget = currentAmbition === "elite" ? 0.35 : currentAmbition === "competitor" ? 0.45 : 0.55;
@@ -1261,10 +1425,10 @@ const Index = () => {
                 fatOxidationMax: { value: null, source: "estimation" },
                 crossoverPctVO2: { value: null, source: "estimation" },
                 ftpKg: { value: ftp_kg, source: "snapshot" },
-                freshnessScore: { value: freshness, source: "estimation" },
+                freshnessScore: { value: freshness, source: latestCheckin ? "checkin" : "estimation" },
                 tss7d: { value: effectiveCloudSnapshot?.tss_7d ?? null, source: "snapshot" },
                 tss28d: { value: effectiveCloudSnapshot?.tss_7d ? effectiveCloudSnapshot.tss_7d * 4 : null, source: "calcul" },
-                subjectiveFatigue: { value: null, source: "estimation" },
+                subjectiveFatigue: { value: latestCheckin?.fatigue ?? null, source: latestCheckin ? "checkin" : "estimation" },
                 confidenceScore: Math.round((vlamaxEffectif.confidence + tteEffectif.confidence) / 2 * 100),
                 discipline: isRunningOnly ? "cap" : "velo",
                 objective: (currentAthlete.goal || "IM") as any,
@@ -1312,7 +1476,7 @@ const Index = () => {
                 availability: {
                   score: freshness ?? 70,
                   level: freshness != null ? (freshness >= 75 ? 'high' : freshness >= 50 ? 'moderate' : freshness >= 30 ? 'low' : 'critical') : 'moderate',
-                  hasAlerts: false,
+                  hasAlerts: latestCheckin?.pain_flag ?? false,
                   hrvOutOfRange2Days: false,
                 },
                 context: {
@@ -1395,8 +1559,12 @@ const Index = () => {
             render: () => {
               if (!currentAthlete) return null;
               
-              // No longer using checkins for Race Readiness
-              const latestCheckin = null;
+              // ── Check-ins pour V2 ──
+              const athleteCheckins = getCheckinsForAthlete(currentAthlete.id);
+              const sortedCheckins = [...athleteCheckins].sort((a, b) => 
+                new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime()
+              );
+              const latestCheckin = sortedCheckins[0] || null;
               
               // ── Compass pour V2 ──
               const crr = computeCRR({
@@ -1421,7 +1589,7 @@ const Index = () => {
               } : undefined;
               
               // ── Signature chart input ──
-              const checkin = null;
+              const checkin = sortedCheckins[0] || null;
               const vlamaxTarget = currentAmbition === "elite" ? 0.35 : currentAmbition === "competitor" ? 0.45 : 0.55;
               const vo2maxTarget = currentAmbition === "elite" ? 70 : currentAmbition === "competitor" ? 62 : 55;
               const tteTarget = currentAmbition === "elite" ? 50 : currentAmbition === "competitor" ? 40 : 35;
@@ -1447,11 +1615,11 @@ const Index = () => {
                   hrvStatus: null,
                   tss7d,
                   tss28d,
-                  subjectiveFatigue: null,
-                  sleepQuality: null,
-                  motivation: null,
-                  soreness: null,
-                  stress: null,
+                  subjectiveFatigue: checkin?.fatigue ?? null,
+                  sleepQuality: checkin?.sleep ?? null,
+                  motivation: checkin?.motivation ?? null,
+                  soreness: checkin?.soreness ?? null,
+                  stress: checkin?.stress ?? null,
                   hasRedFlags: false,
                 },
                 discipline,
@@ -1480,8 +1648,12 @@ const Index = () => {
             render: () => {
               if (!currentAthlete) return null;
               
-              // Checkins removed
-              const checkin = null;
+              // Récupérer le dernier checkin
+              const athleteCheckins = (checkins || []).filter(c => c.athlete_id === currentAthlete.id);
+              const sortedCheckins = [...athleteCheckins].sort((a, b) => 
+                new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime()
+              );
+              const checkin = sortedCheckins[0] || null;
               
               // Cibles selon ambition
               const vlamaxTarget = currentAmbition === "elite" ? 0.35 : currentAmbition === "competitor" ? 0.45 : 0.55;
@@ -1542,8 +1714,12 @@ const Index = () => {
             render: () => {
               if (!currentAthlete) return null;
               
-              // No longer using checkins
-              const latestCheckin = null;
+              // Récupérer les check-ins et calculer les données
+              const athleteCheckins = getCheckinsForAthlete(currentAthlete.id);
+              const sortedCheckins = [...athleteCheckins].sort((a, b) => 
+                new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime()
+              );
+              const latestCheckin = sortedCheckins[0] || null;
               
               // Données objectives depuis le snapshot
               const objectiveData = effectiveCloudSnapshot ? {
@@ -2279,7 +2455,6 @@ const Index = () => {
           athlete={currentAthlete}
           snapshots={snapshots}
           tests={tests}
-          checkins={[]}
           staffMode={staffMode}
           ambition={currentAmbition}
           open={exportOpen}

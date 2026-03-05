@@ -369,7 +369,6 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
     poids: effectiveRefs?.weightKg ?? null,
     fatigue_ok: true,
     seance_specifique_validee: false,
-    tss7d: effectiveSnapshot?.tss_7d ?? null,
     fcMax: effectiveRefs?.fcMax ?? null,
     deriveCardiaque: effectiveSnapshot?.run_hr_drift_pct ?? null,
     // ✅ Ajout âge pour uniformisation avec Compass

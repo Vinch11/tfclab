@@ -565,7 +565,7 @@ function generateContextualAlerts(
   }
 
   // Fatigue-based alerts
-  if (context.fatigueState === "high" || context.fatigueState === "élevé" || context.fatigueState === "fatigued" || context.fatigueState === "injured") {
+  if (context.fatigueState === "high" || context.fatigueState === "élevé") {
     if (effect.stressNeuromusculaire === "élevé" || effect.risqueCAP === "élevé") {
       alerts.push({
         type: "warning",

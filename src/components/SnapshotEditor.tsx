@@ -230,7 +230,6 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
   const [sprint15s, setSprint15s] = useState(snapshot.sprint_15s_distance != null ? String(snapshot.sprint_15s_distance) : "");
   const [runPowerMax, setRunPowerMax] = useState(snapshot.running_power_max != null ? String(snapshot.running_power_max) : "");
   const [runPowerThreshold, setRunPowerThreshold] = useState(snapshot.running_power_threshold != null ? String(snapshot.running_power_threshold) : "");
-  const [fatigueState, setFatigueState] = useState((snapshot as any).fatigue_state || "ok");
 
   const handleSave = async () => {
     await updateSnapshot(snapshot.id, {
@@ -255,7 +254,6 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
       sprint_15s_distance: numOrNull(sprint15s),
       running_power_max: numOrNull(runPowerMax),
       running_power_threshold: numOrNull(runPowerThreshold),
-      fatigue_state: fatigueState || "ok",
     });
     setOpen(false);
   };
@@ -282,7 +280,6 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
       setSprint15s(snapshot.sprint_15s_distance != null ? String(snapshot.sprint_15s_distance) : "");
       setRunPowerMax(snapshot.running_power_max != null ? String(snapshot.running_power_max) : "");
       setRunPowerThreshold(snapshot.running_power_threshold != null ? String(snapshot.running_power_threshold) : "");
-      setFatigueState((snapshot as any).fatigue_state || "ok");
     }
     setOpen(isOpen);
   };
@@ -368,21 +365,6 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
                 value={tss7d} 
                 onChange={(e) => setTss7d(e.target.value)} 
               />
-            </div>
-
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">État de fatigue</Label>
-              <select
-                className="col-span-3 h-10 px-3 py-2 rounded-md border border-input bg-background text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                value={fatigueState}
-                onChange={(e) => setFatigueState(e.target.value)}
-              >
-                <option value="fresh">🟢 Frais — Disponible pour intensité</option>
-                <option value="ok">🟡 OK — Forme correcte, pas de signal négatif</option>
-                <option value="fatigued">🟠 Fatigué — Surcharge récente, prudence sur B/C</option>
-                <option value="high">🔴 Très fatigué — Réduire charge, priorité récupération</option>
-                <option value="injured">⚫ Blessé / douleur — Adapter ou stopper</option>
-              </select>
             </div>
 
             <div className="grid grid-cols-4 items-center gap-4">
