@@ -43,7 +43,7 @@ export function SidebarLayout({
         <SidebarInset className="flex flex-col flex-1">
           {/* Header with trigger - mobile optimized */}
           <header className="sticky top-0 z-40 flex h-12 sm:h-14 items-center gap-2 sm:gap-3 border-b border-border bg-background/95 backdrop-blur px-3 sm:px-4 safe-area-inset-top">
-            <SidebarTrigger className="-ml-1 touch-target-sm" />
+            <SidebarTrigger className="-ml-1 touch-target" />
             
             {/* Staff mode indicator badge - compact on mobile */}
             {staffMode && (
@@ -60,7 +60,7 @@ export function SidebarLayout({
 
           {/* Main content - mobile optimized padding */}
           <main className="flex-1 overflow-auto ios-scroll">
-            <div className="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 pb-20 sm:pb-6">
+            <div className="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 pb-6">
               {children}
             </div>
           </main>
