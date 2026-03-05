@@ -2510,23 +2510,47 @@ function buildUserPrompt(data: any, config: any): string {
   const minAutoSessions = baseBand[0] + ambitionBoost;
   const maxAutoSessions = baseBand[1] + ambitionBoost;
   const targetAutoSessions = Math.min(maxAutoSessions, Math.max(minAutoSessions, Math.round((minAutoSessions + maxAutoSessions) / 2)));
-  const effectiveSessionsPerWeek = config.sessionsPerWeek ? Number(config.sessionsPerWeek) : targetAutoSessions;
 
-  if (config.sessionsPerWeek) {
-    lines.push(`- **⚠️ CONTRAINTE DURE — Séances/semaine : EXACTEMENT ${config.sessionsPerWeek} séances d'entraînement/semaine (repos non compté).**`);
-    lines.push(`  → Génère EXACTEMENT ${config.sessionsPerWeek} séances d'entraînement non-repos sur 7 jours, puis complète le reste en Repos.`);
-    lines.push(`  → NE JAMAIS dépasser ${config.sessionsPerWeek} séances/semaine. NE JAMAIS en faire moins.`);
+  const weeklyHoursNum = config.weeklyHours ? Number(config.weeklyHours) : null;
+  const minSessionsByHours = weeklyHoursNum == null
+    ? null
+    : weeklyHoursNum >= 14 ? 7
+    : weeklyHoursNum >= 10 ? 6
+    : weeklyHoursNum >= 7 ? 5
+    : weeklyHoursNum >= 5 ? 4
+    : 3;
+
+  const requestedSessionsPerWeek = config.sessionsPerWeek ? Number(config.sessionsPerWeek) : null;
+  const effectiveSessionsPerWeek = requestedSessionsPerWeek ?? targetAutoSessions;
+  const coherentSessionsPerWeek = minSessionsByHours != null
+    ? Math.max(effectiveSessionsPerWeek, minSessionsByHours)
+    : effectiveSessionsPerWeek;
+
+  if (requestedSessionsPerWeek != null) {
+    if (minSessionsByHours != null && requestedSessionsPerWeek < minSessionsByHours) {
+      lines.push(`- **⚠️ CONFLIT DE CONFIGURATION DÉTECTÉ : ${requestedSessionsPerWeek} séance(s)/sem est incohérent avec ${config.weeklyHours}h/sem.**`);
+      lines.push(`  → Pour rester physiologiquement cohérent, applique **AU MOINS ${coherentSessionsPerWeek} séances/semaine**.`);
+      lines.push(`  → Ignore la contrainte ${requestedSessionsPerWeek}/sem si elle contredit la charge hebdo.`);
+    } else {
+      lines.push(`- **⚠️ CONTRAINTE DURE — Séances/semaine : EXACTEMENT ${requestedSessionsPerWeek} séances d'entraînement/semaine (repos non compté).**`);
+      lines.push(`  → Génère EXACTEMENT ${requestedSessionsPerWeek} séances d'entraînement non-repos sur 7 jours, puis complète le reste en Repos.`);
+      lines.push(`  → NE JAMAIS dépasser ${requestedSessionsPerWeek} séances/semaine. NE JAMAIS en faire moins.`);
+    }
   } else {
     lines.push(`- **Séances/semaine :** Non spécifié — applique automatiquement **${minAutoSessions}-${maxAutoSessions} séances/semaine** pour cet objectif/niveau (cible ${targetAutoSessions}).`);
     lines.push(`  → IMPORTANT : la semaine doit être RÉELLEMENT répartie sur toute la semaine, pas concentrée en fin de semaine.`);
+    if (minSessionsByHours != null) {
+      lines.push(`  → Cohérence charge : avec ${config.weeklyHours}h/sem, produire au minimum ${minSessionsByHours} séances/semaine.`);
+    }
   }
 
   lines.push(`- **⚠️ RÉPARTITION HEBDOMADAIRE OBLIGATOIRE (QUALITÉ)**`);
   lines.push(`  → Interdiction absolue de regrouper les séances uniquement du jeudi au dimanche.`);
   lines.push(`  → Interdiction absolue d'avoir Lundi+Mardi+Mercredi = repos complet.`);
-  lines.push(`  → Pour ${effectiveSessionsPerWeek} séance(s)/sem : minimum ${effectiveSessionsPerWeek >= 7 ? 6 : effectiveSessionsPerWeek >= 5 ? 5 : 4} jours actifs distincts.`);
+  lines.push(`  → Pour ${coherentSessionsPerWeek} séance(s)/sem : minimum ${coherentSessionsPerWeek >= 7 ? 6 : coherentSessionsPerWeek >= 5 ? 5 : 4} jours actifs distincts.`);
   lines.push(`  → Minimum 2 séances non-repos entre Lundi et Mercredi, et minimum 2 séances non-repos entre Jeudi et Dimanche.`);
   lines.push(`  → Maximum 2 jours de repos consécutifs.`);
+  lines.push(`  → Si la semaine est marquée "Surcharge", "Peak" ou "Build", elle doit contenir une charge élevée cohérente (pas de micro-semaine à 1-2 séances).`);
 
   if (config.strengthSessionsPerWeek !== undefined && config.strengthSessionsPerWeek !== null) {
     if (config.strengthSessionsPerWeek === 0) {
