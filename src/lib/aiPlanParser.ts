@@ -151,8 +151,53 @@ function parsePhaseOrBlocHeader(line: string): { name: string; weeksRange: strin
 }
 
 /**
+ * Rebalance sessions when AI clusters most training days Thu→Sun.
+ * Moves non-rest sessions to early-week slots (Mon→Wed) while preserving session content.
+ */
+function rebalanceClusteredWeekSessions(sessions: ParsedSession[]): ParsedSession[] {
+  const rebalanced = sessions.map(s => ({ ...s }));
+  const nonRest = rebalanced.filter(s => !s.isRest && s.dayIndex >= 0);
+  if (nonRest.length < 4) return rebalanced;
+
+  const dayNames = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+  const countNonRestByDay = (dayIndex: number) => nonRest.filter(s => s.dayIndex === dayIndex).length;
+
+  let earlyCount = nonRest.filter(s => s.dayIndex >= 0 && s.dayIndex <= 2).length;
+  const lateCount = nonRest.filter(s => s.dayIndex >= 3 && s.dayIndex <= 6).length;
+
+  // Trigger only on real clustering patterns
+  if (earlyCount >= 2 || lateCount / nonRest.length < 0.75) return rebalanced;
+
+  let movesNeeded = Math.min(2 - earlyCount, lateCount);
+  if (movesNeeded <= 0) return rebalanced;
+
+  const movable = rebalanced
+    .filter(s => !s.isRest && s.dayIndex >= 3 && s.dayIndex <= 6)
+    .sort((a, b) => b.dayIndex - a.dayIndex); // move latest days first
+
+  const pickTargetDay = (): number => {
+    for (const day of [0, 1, 2]) {
+      if (countNonRestByDay(day) === 0) return day;
+    }
+    return [0, 1, 2].sort((a, b) => countNonRestByDay(a) - countNonRestByDay(b))[0];
+  };
+
+  for (const session of movable) {
+    if (movesNeeded <= 0) break;
+    const targetDay = pickTargetDay();
+    session.dayIndex = targetDay;
+    session.dayName = dayNames[targetDay];
+    earlyCount += 1;
+    movesNeeded -= 1;
+  }
+
+  return rebalanced;
+}
+
+/**
  * Normalize a week so it always contains Monday → Sunday.
  * If AI omitted a day, we inject an explicit rest row for that day.
+ * Also rebalances pathological Thu→Sun clustering.
  */
 function normalizeWeekSessions(
   sessions: ParsedSession[],
@@ -160,11 +205,12 @@ function normalizeWeekSessions(
   weekTheme: string,
   phase: string
 ): ParsedSession[] {
-  const known = sessions
+  const rebalancedSource = rebalanceClusteredWeekSessions(sessions);
+  const known = rebalancedSource
     .map((s, order) => ({ ...s, __order: order }))
     .filter(s => s.dayIndex >= 0);
 
-  const unknown = sessions.filter(s => s.dayIndex < 0);
+  const unknown = rebalancedSource.filter(s => s.dayIndex < 0);
 
   const byDay = new Map<number, Array<ParsedSession & { __order: number }>>();
   for (const s of known) {
