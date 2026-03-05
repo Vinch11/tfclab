@@ -292,6 +292,68 @@ function SessionCard({ session, date }: SessionCardProps) {
   );
 }
 
+/** Compute a quality score (0-100) for a week based on session distribution and key sessions */
+function computeWeekQuality(week: ParsedWeek): { score: number; label: string; icon: string; details: string[] } {
+  const active = week.sessions.filter(s => !s.isRest);
+  const details: string[] = [];
+  let score = 100;
+
+  // 1. Penalize if sessions are grouped Thu-Sun (dayIndex 3-6)
+  if (active.length >= 3) {
+    const lateCount = active.filter(s => s.dayIndex >= 3).length;
+    const ratio = lateCount / active.length;
+    if (ratio > 0.75) {
+      const penalty = Math.round((ratio - 0.5) * 60);
+      score -= penalty;
+      details.push(`Regroupement fin de semaine (${lateCount}/${active.length})`);
+    }
+  }
+
+  // 2. Check for key sessions (🔑)
+  const hasKeySessions = active.some(s => s.title.includes("🔑") || s.details?.includes("🔑"));
+  if (!hasKeySessions && active.length > 0) {
+    score -= 15;
+    details.push("Aucune séance clé 🔑 identifiée");
+  }
+
+  // 3. Check rest days
+  const restDays = week.sessions.filter(s => s.isRest).length;
+  if (restDays === 0 && active.length >= 6) {
+    score -= 20;
+    details.push("Pas de jour de repos");
+  }
+
+  // 4. Sport variety (for multi-sport plans)
+  const sports = new Set(active.map(s => s.sport.toLowerCase()));
+  if (active.length >= 4 && sports.size < 2) {
+    score -= 10;
+    details.push("Faible diversité sportive");
+  }
+
+  score = Math.max(0, Math.min(100, score));
+  if (score >= 75) return { score, label: "✅", icon: "good", details };
+  if (score >= 50) return { score, label: "⚠️", icon: "warn", details };
+  return { score, label: "❌", icon: "bad", details };
+}
+
+function WeekQualityBadge({ week }: { week: ParsedWeek }) {
+  const quality = useMemo(() => computeWeekQuality(week), [week]);
+  const colorClass = quality.icon === "good"
+    ? "bg-green-500/15 text-green-700 dark:text-green-300 border-green-500/30"
+    : quality.icon === "warn"
+    ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
+    : "bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/30";
+
+  return (
+    <Badge
+      className={`text-[10px] gap-1 cursor-help ${colorClass}`}
+      title={quality.details.length > 0 ? quality.details.join(" • ") : "Qualité OK"}
+    >
+      {quality.label} {quality.score}/100
+    </Badge>
+  );
+}
+
 interface WeekViewProps {
   week: ParsedWeek;
   startDate?: Date;
@@ -316,6 +378,7 @@ function WeekView({ week, startDate }: WeekViewProps) {
             Semaine {week.weekNumber} — {week.theme}
           </CardTitle>
           <div className="flex items-center gap-2">
+            <WeekQualityBadge week={week} />
             <Badge className={`text-[10px] ${getPhaseColor(week.phase)}`}>{week.phase}</Badge>
             <Badge variant="secondary" className="text-[10px]">{activeSessions} séances</Badge>
           </div>
