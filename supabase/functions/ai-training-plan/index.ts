@@ -2174,7 +2174,14 @@ Plan total : ${regenerateWeek.totalWeeks} semaines.
 
 ${buildUserPrompt(athleteData, planConfig)}
 
-IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format tableau obligatoire. Pas les autres semaines.`;
+IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format tableau obligatoire. Pas les autres semaines.
+
+⚠️ CONTRÔLE QUALITÉ OBLIGATOIRE POUR CETTE SEMAINE :
+- Interdiction absolue de concentrer les séances du Jeudi au Dimanche.
+- Minimum 2 séances non-repos entre Lundi et Mercredi.
+- Minimum 4 jours actifs distincts si la semaine contient au moins 4 séances.
+- Maximum 2 jours de repos consécutifs.
+- Si ces règles ne sont pas respectées, corrige la répartition AVANT de répondre.`;
     } else {
       userPrompt = buildUserPrompt(athleteData, planConfig);
     }
@@ -2374,7 +2381,8 @@ Contexte des semaines déjà générées :
 ${previousChunksSummary}
 ${generatedWeeks.length > 0 ? `Semaines déjà générées dans ce bloc : ${generatedWeeks.join(", ")}` : ""}
 
-Assure la CONTINUITÉ de la progression.`;
+Assure la CONTINUITÉ de la progression.
+⚠️ QUALITÉ OBLIGATOIRE : minimum 2 séances non-repos entre Lundi et Mercredi, pas de concentration Jeudi→Dimanche, et max 2 jours repos consécutifs.`;
 
                 emitChunkBoundary();
                 const retryText = await generateAndStream(retryPrompt, controller, encoder);
