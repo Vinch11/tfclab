@@ -1,5 +1,7 @@
 // =============================================
-// FATIGUE COMPARISON CHART - Perçue vs Calculée (4 semaines)
+// FATIGUE COMPARISON CHART - Snapshot fatigue_state vs Calculée
+// Modèle centré snapshot: compare l'état déclaré dans chaque snapshot
+// avec la fatigue calculée objectivement (TSS, TTE, fraîcheur)
 // =============================================
 
 import { useMemo } from "react";
@@ -16,17 +18,37 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
-import { TrendingUp, TrendingDown, Minus, Activity, Brain } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Activity, Battery } from "lucide-react";
 import { format, subDays, parseISO, isAfter } from "date-fns";
 import { fr } from "date-fns/locale";
-import { DbCheckin, DbSnapshot, DbTest } from "@/hooks/useCloudData";
+import { DbSnapshot, DbTest } from "@/hooks/useCloudData";
 import { computeFatigueEffectif } from "@/lib/fatigueEffectif";
-import { computeTTEEffectif, TTEEffectif } from "@/lib/tteEffectif";
-import { computeRaceReadinessEffectif, RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
-import { computeVLamaxEffectif, VLamaxEffectif } from "@/lib/vlamaxEffectif";
+import { computeTTEEffectif } from "@/lib/tteEffectif";
+import { computeRaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
+import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
+
+// Mapping fatigue_state → score 0-100
+const FATIGUE_STATE_TO_SCORE: Record<string, number> = {
+  fresh: 10,
+  ok: 35,
+  fatigued: 60,
+  high: 80,
+  injured: 95,
+};
+
+function fatigueStateToScore(state: string | null): number {
+  return FATIGUE_STATE_TO_SCORE[state || "ok"] ?? 35;
+}
+
+const FATIGUE_STATE_LABELS: Record<string, string> = {
+  fresh: "Frais",
+  ok: "Normal",
+  fatigued: "Fatigué",
+  high: "Très fatigué",
+  injured: "Blessé",
+};
 
 interface FatigueComparisonChartProps {
-  checkins: DbCheckin[];
   activeSnapshot: DbSnapshot | null;
   athleteSnapshots: DbSnapshot[];
   athleteTests: DbTest[];
@@ -38,20 +60,13 @@ interface FatigueComparisonChartProps {
 interface ChartDataPoint {
   date: string;
   dateLabel: string;
-  fatiguePercue: number | null;      // 0-100 (scaled from 1-10)
+  fatigueDeclaree: number | null;    // 0-100 (from fatigue_state)
   fatigueCalculee: number | null;    // 0-100
-  ecart: number | null;              // Différence
-}
-
-// Convertit la fatigue perçue (1-10) en score 0-100
-function scaleFatiguePercue(value: number | null): number | null {
-  if (value == null) return null;
-  // 1 = frais (0%), 10 = épuisé (100%)
-  return Math.round(((value - 1) / 9) * 100);
+  ecart: number | null;
+  stateLabel: string;
 }
 
 export function FatigueComparisonChart({
-  checkins,
   activeSnapshot,
   athleteSnapshots,
   athleteTests,
@@ -59,132 +74,106 @@ export function FatigueComparisonChart({
   athleteAge,
   objectif,
 }: FatigueComparisonChartProps) {
-  // Pré-calculer VLamax et TTE effectif une seule fois
-  const { vlamaxEffectif, tteEffectif, raceReadiness } = useMemo(() => {
-    if (!activeSnapshot) {
-      return { vlamaxEffectif: null, tteEffectif: null, raceReadiness: null };
-    }
-
-    const vlmx = computeVLamaxEffectif({
-      athleteId,
-      objectif,
-      activeSnapshotId: activeSnapshot.id,
-      tests: athleteTests.map(t => ({
-        athlete_id: t.athlete_id,
-        vlamax: t.vlamax,
-        date: t.date,
-        type: t.type,
-        name: t.name,
-      })),
-      snapshots: athleteSnapshots.map(s => ({
-        id: s.id,
-        athlete_id: s.athlete_id,
-        date: s.date,
-        vlamax: s.vlamax,
-        ftp: s.ftp,
-        pmax_5s: s.pmax_5s,
-        weight_kg: s.weight_kg,
-      })),
-    });
-
-    const tte = computeTTEEffectif({
-      ftp: activeSnapshot.ftp,
-      tss_7d: activeSnapshot.tss_7d,
-      tte_mode: activeSnapshot.tte_mode,
-      tte_observed_min: activeSnapshot.tte_observed_min,
-      objectif,
-    });
-
-    const rr = computeRaceReadinessEffectif({
-      objectif,
-      vlamaxEffectif: vlmx,
-      tteEffectif: tte,
-      ftp: activeSnapshot.ftp ?? null,
-      poids: activeSnapshot.weight_kg ?? null,
-      fatigue_ok: true,
-      seance_specifique_validee: false,
-    });
-
-    return { vlamaxEffectif: vlmx, tteEffectif: tte, raceReadiness: rr };
-  }, [activeSnapshot, athleteSnapshots, athleteTests, athleteId, objectif]);
-
   const chartData = useMemo<ChartDataPoint[]>(() => {
-    const fourWeeksAgo = subDays(new Date(), 28);
+    if (!athleteSnapshots || athleteSnapshots.length === 0) return [];
 
-    // Filtrer les check-ins des 4 dernières semaines
-    const recentCheckins = checkins
-      .filter((c) => {
-        const checkinDate = parseISO(c.date_iso);
-        return isAfter(checkinDate, fourWeeksAgo);
-      })
-      .sort((a, b) => a.date_iso.localeCompare(b.date_iso));
+    // Trier par date croissante, limiter aux 12 derniers
+    const sorted = [...athleteSnapshots]
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(-12);
 
-    if (recentCheckins.length === 0 || !tteEffectif || !raceReadiness) return [];
+    return sorted.map((snap) => {
+      const fatigueDeclaree = fatigueStateToScore(snap.fatigue_state);
 
-    // Pour chaque check-in, calculer fatigue perçue et calculée
-    return recentCheckins.map((checkin) => {
-      const fatiguePercueRaw = checkin.fatigue;
-      const fatiguePercueScaled = scaleFatiguePercue(fatiguePercueRaw);
-
-      // Calcul de la fatigue effectif avec les données du snapshot actif
+      // Calculer la fatigue objective pour ce snapshot
       let fatigueCalculee: number | null = null;
 
-      if (activeSnapshot && tteEffectif && raceReadiness) {
-        // Pour le graphique, on veut la fatigue "objective" sans la fatigue perçue
-        const fatigueResultObjective = computeFatigueEffectif({
-          tss7d: activeSnapshot.tss_7d,
-          tss7dHabituel: null,
-          fatiguePercue: null, // Sans fatigue perçue pour avoir la valeur calculée pure
-          tteEffectif,
-          raceReadiness,
-          vlamaxEffectif,
-          age: athleteAge,
-          objectif,
-        });
+      const vlmx = computeVLamaxEffectif({
+        athleteId,
+        objectif,
+        activeSnapshotId: snap.id,
+        tests: athleteTests.map(t => ({
+          athlete_id: t.athlete_id,
+          vlamax: t.vlamax,
+          date: t.date,
+          type: t.type,
+          name: t.name,
+        })),
+        snapshots: athleteSnapshots.map(s => ({
+          id: s.id,
+          athlete_id: s.athlete_id,
+          date: s.date,
+          vlamax: s.vlamax,
+          ftp: s.ftp,
+          pmax_5s: s.pmax_5s,
+          weight_kg: s.weight_kg,
+        })),
+      });
 
-        fatigueCalculee = fatigueResultObjective.score;
-      }
+      const tte = computeTTEEffectif({
+        ftp: snap.ftp,
+        tss_7d: snap.tss_7d,
+        tte_mode: snap.tte_mode,
+        tte_observed_min: snap.tte_observed_min,
+        objectif,
+      });
+
+      const rr = computeRaceReadinessEffectif({
+        objectif,
+        vlamaxEffectif: vlmx,
+        tteEffectif: tte,
+        ftp: snap.ftp ?? null,
+        poids: snap.weight_kg ?? null,
+        fatigue_ok: true,
+        seance_specifique_validee: false,
+      });
+
+      const fatigueResult = computeFatigueEffectif({
+        tss7d: snap.tss_7d,
+        tss7dHabituel: null,
+        fatiguePercue: null, // Sans subjectif pour la valeur calculée pure
+        tteEffectif: tte,
+        raceReadiness: rr,
+        vlamaxEffectif: vlmx,
+        age: athleteAge,
+        objectif,
+      });
+
+      fatigueCalculee = fatigueResult.score;
 
       const ecart =
-        fatiguePercueScaled != null && fatigueCalculee != null
-          ? fatiguePercueScaled - fatigueCalculee
+        fatigueDeclaree != null && fatigueCalculee != null
+          ? fatigueDeclaree - fatigueCalculee
           : null;
 
       return {
-        date: checkin.date_iso,
-        dateLabel: format(parseISO(checkin.date_iso), "d MMM", { locale: fr }),
-        fatiguePercue: fatiguePercueScaled,
+        date: snap.date,
+        dateLabel: format(parseISO(snap.date), "d MMM", { locale: fr }),
+        fatigueDeclaree,
         fatigueCalculee,
         ecart,
+        stateLabel: FATIGUE_STATE_LABELS[snap.fatigue_state || "ok"] || "Normal",
       };
     });
-  }, [checkins, activeSnapshot, tteEffectif, raceReadiness, vlamaxEffectif, athleteAge, objectif]);
+  }, [athleteSnapshots, athleteTests, athleteId, athleteAge, objectif]);
 
-  // Calcul des statistiques
+  // Stats
   const stats = useMemo(() => {
     const validPoints = chartData.filter(
-      (p) => p.fatiguePercue != null && p.fatigueCalculee != null
+      (p) => p.fatigueDeclaree != null && p.fatigueCalculee != null
     );
-
     if (validPoints.length < 2) return null;
 
     const ecarts = validPoints.map((p) => p.ecart!);
     const avgEcart = Math.round(ecarts.reduce((a, b) => a + b, 0) / ecarts.length);
     const maxEcart = Math.max(...ecarts.map(Math.abs));
 
-    // Tendance: compare première et dernière valeur
     const first = validPoints[0];
     const last = validPoints[validPoints.length - 1];
-    const tendancePercue = (last.fatiguePercue ?? 0) - (first.fatiguePercue ?? 0);
+    const tendanceDeclaree = (last.fatigueDeclaree ?? 0) - (first.fatigueDeclaree ?? 0);
     const tendanceCalculee = (last.fatigueCalculee ?? 0) - (first.fatigueCalculee ?? 0);
 
-    return {
-      avgEcart,
-      maxEcart,
-      tendancePercue,
-      tendanceCalculee,
-      nbPoints: validPoints.length,
-    };
+    return { avgEcart, maxEcart, tendanceDeclaree, tendanceCalculee, nbPoints: validPoints.length };
   }, [chartData]);
 
   if (chartData.length === 0) {
@@ -193,15 +182,15 @@ export function FatigueComparisonChart({
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Activity className="h-5 w-5" />
-            Fatigue perçue vs calculée
+            Fatigue déclarée vs calculée
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
-            <Brain className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Aucun check-in sur les 4 dernières semaines.</p>
+            <Battery className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p>Aucun snapshot avec état de forme enregistré.</p>
             <p className="text-sm">
-              Ajoute des check-ins avec la fatigue perçue pour voir l'évolution.
+              L'état de forme (frais/normal/fatigué/...) est capturé lors de chaque profil physiologique.
             </p>
           </div>
         </CardContent>
@@ -221,38 +210,25 @@ export function FatigueComparisonChart({
         <div className="flex items-center justify-between flex-wrap gap-2">
           <CardTitle className="flex items-center gap-2 text-base">
             <Activity className="h-5 w-5" />
-            Fatigue perçue vs calculée (4 sem.)
+            Fatigue déclarée vs calculée
           </CardTitle>
           {stats && (
-            <div className="flex items-center gap-2">
-              <Badge variant={Math.abs(stats.avgEcart) > 15 ? "destructive" : "secondary"}>
-                Écart moyen: {stats.avgEcart > 0 ? "+" : ""}
-                {stats.avgEcart}%
-              </Badge>
-            </div>
+            <Badge variant={Math.abs(stats.avgEcart) > 15 ? "destructive" : "secondary"}>
+              Écart moyen: {stats.avgEcart > 0 ? "+" : ""}{stats.avgEcart}%
+            </Badge>
           )}
         </div>
         <p className="text-sm text-muted-foreground">
-          Compare le ressenti subjectif (1-10 → %) avec la fatigue calculée (TSS, TTE, fraîcheur).
+          Compare l'état de forme déclaré (snapshot) avec la fatigue calculée (TSS, TTE, fraîcheur).
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Graphique */}
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-border/50" />
-              <XAxis
-                dataKey="dateLabel"
-                tick={{ fontSize: 12 }}
-                className="text-muted-foreground"
-              />
-              <YAxis
-                domain={[0, 100]}
-                tick={{ fontSize: 12 }}
-                tickFormatter={(v) => `${v}%`}
-                className="text-muted-foreground"
-              />
+              <XAxis dataKey="dateLabel" tick={{ fontSize: 12 }} className="text-muted-foreground" />
+              <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} tickFormatter={(v) => `${v}%`} className="text-muted-foreground" />
               <Tooltip
                 content={({ active, payload, label }) => {
                   if (!active || !payload || payload.length === 0) return null;
@@ -261,12 +237,10 @@ export function FatigueComparisonChart({
                     <div className="bg-popover border border-border p-3 rounded-lg shadow-lg">
                       <p className="font-medium mb-2">{label}</p>
                       <div className="space-y-1 text-sm">
-                        {data.fatiguePercue != null && (
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-orange-500" />
-                            <span>Perçue: {data.fatiguePercue}%</span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-orange-500" />
+                          <span>Déclarée: {data.stateLabel} ({data.fatigueDeclaree}%)</span>
+                        </div>
                         {data.fatigueCalculee != null && (
                           <div className="flex items-center gap-2">
                             <div className="w-3 h-3 rounded-full bg-blue-500" />
@@ -275,8 +249,7 @@ export function FatigueComparisonChart({
                         )}
                         {data.ecart != null && (
                           <div className="text-muted-foreground pt-1 border-t border-border mt-1">
-                            Écart: {data.ecart > 0 ? "+" : ""}
-                            {data.ecart}%
+                            Écart: {data.ecart > 0 ? "+" : ""}{data.ecart}%
                           </div>
                         )}
                       </div>
@@ -284,57 +257,28 @@ export function FatigueComparisonChart({
                   );
                 }}
               />
-              <Legend
-                formatter={(value) =>
-                  value === "fatiguePercue" ? "Perçue (subjectif)" : "Calculée (objectif)"
-                }
-              />
+              <Legend formatter={(value) => value === "fatigueDeclaree" ? "Déclarée (snapshot)" : "Calculée (objectif)"} />
               <ReferenceLine y={50} stroke="hsl(var(--muted-foreground))" strokeDasharray="5 5" />
-              <Line
-                type="monotone"
-                dataKey="fatiguePercue"
-                stroke="#f97316"
-                strokeWidth={2}
-                dot={{ fill: "#f97316", strokeWidth: 0, r: 4 }}
-                activeDot={{ r: 6 }}
-                connectNulls
-                name="fatiguePercue"
-              />
-              <Line
-                type="monotone"
-                dataKey="fatigueCalculee"
-                stroke="#3b82f6"
-                strokeWidth={2}
-                dot={{ fill: "#3b82f6", strokeWidth: 0, r: 4 }}
-                activeDot={{ r: 6 }}
-                connectNulls
-                name="fatigueCalculee"
-              />
+              <Line type="monotone" dataKey="fatigueDeclaree" stroke="#f97316" strokeWidth={2} dot={{ fill: "#f97316", strokeWidth: 0, r: 4 }} activeDot={{ r: 6 }} connectNulls name="fatigueDeclaree" />
+              <Line type="monotone" dataKey="fatigueCalculee" stroke="#3b82f6" strokeWidth={2} dot={{ fill: "#3b82f6", strokeWidth: 0, r: 4 }} activeDot={{ r: 6 }} connectNulls name="fatigueCalculee" />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Statistiques & Interprétation */}
         {stats && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="bg-muted/30 rounded-lg p-3 text-center">
-              <div className="text-xs text-muted-foreground mb-1">Tendance perçue</div>
+              <div className="text-xs text-muted-foreground mb-1">Tendance déclarée</div>
               <div className="flex items-center justify-center gap-1">
-                {getTrendIcon(stats.tendancePercue)}
-                <span className="font-medium">
-                  {stats.tendancePercue > 0 ? "+" : ""}
-                  {stats.tendancePercue}%
-                </span>
+                {getTrendIcon(stats.tendanceDeclaree)}
+                <span className="font-medium">{stats.tendanceDeclaree > 0 ? "+" : ""}{stats.tendanceDeclaree}%</span>
               </div>
             </div>
             <div className="bg-muted/30 rounded-lg p-3 text-center">
               <div className="text-xs text-muted-foreground mb-1">Tendance calculée</div>
               <div className="flex items-center justify-center gap-1">
                 {getTrendIcon(stats.tendanceCalculee)}
-                <span className="font-medium">
-                  {stats.tendanceCalculee > 0 ? "+" : ""}
-                  {stats.tendanceCalculee}%
-                </span>
+                <span className="font-medium">{stats.tendanceCalculee > 0 ? "+" : ""}{stats.tendanceCalculee}%</span>
               </div>
             </div>
             <div className="bg-muted/30 rounded-lg p-3 text-center">
@@ -342,20 +286,19 @@ export function FatigueComparisonChart({
               <span className="font-medium">{stats.maxEcart}%</span>
             </div>
             <div className="bg-muted/30 rounded-lg p-3 text-center">
-              <div className="text-xs text-muted-foreground mb-1">Points</div>
+              <div className="text-xs text-muted-foreground mb-1">Snapshots</div>
               <span className="font-medium">{stats.nbPoints}</span>
             </div>
           </div>
         )}
 
-        {/* Interprétation */}
         {stats && Math.abs(stats.avgEcart) > 15 && (
           <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
             <p className="text-sm">
               <strong>⚠️ Désaccord ressenti/charge:</strong>{" "}
               {stats.avgEcart > 0
-                ? "L'athlète se sent plus fatigué que ce que les données objectives suggèrent. Vérifier stress externe, sommeil, ou surentraînement latent."
-                : "L'athlète se sent moins fatigué que prévu. Potentiel de charge supplémentaire ou métriques de charge sous-estimées."}
+                ? "L'athlète se déclare plus fatigué que les données objectives. Vérifier stress externe, sommeil, ou surentraînement latent."
+                : "L'athlète se déclare moins fatigué que prévu. Potentiel de charge supplémentaire ou métriques sous-estimées."}
             </p>
           </div>
         )}

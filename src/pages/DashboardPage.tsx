@@ -290,18 +290,18 @@ export default function DashboardPage() {
     
     // athleteAge déjà calculé plus haut pour Race Readiness
     
-    // Récupérer la fatigue perçue depuis les check-ins récents
-    const athleteCheckins = checkins.filter(c => c.athlete_id === athleteId);
-    const sortedCheckins = [...athleteCheckins].sort((a, b) => b.date_iso.localeCompare(a.date_iso));
-    const latestFatiguePercue = sortedCheckins.length > 0 && sortedCheckins[0].fatigue != null
-      ? sortedCheckins[0].fatigue
-      : null;
+    // Convertir fatigue_state du snapshot en score numérique (1-10)
+    // fresh=2, ok=4, fatigued=6, high=8, injured=10
+    const fatigueStateToPercue: Record<string, number> = {
+      fresh: 2, ok: 4, fatigued: 6, high: 8, injured: 10
+    };
+    const fatiguePercueFromSnapshot = fatigueStateToPercue[activeSnapshot.fatigue_state || "ok"] ?? 4;
     
     // Fatigue Effectif (source unique - combine objectif + subjectif)
     const fatigueEffectif = computeFatigueEffectif({
       tss7d: activeSnapshot.tss_7d,
-      tss7dHabituel: null, // Non disponible pour l'instant
-      fatiguePercue: latestFatiguePercue, // NEW: fatigue perçue depuis check-ins
+      tss7dHabituel: null,
+      fatiguePercue: fatiguePercueFromSnapshot,
       tteEffectif,
       raceReadiness,
       vlamaxEffectif,
@@ -1067,11 +1067,8 @@ export default function DashboardPage() {
   // =============================================
   
   const renderFatigueComparisonChart = (): ReactNode => {
-    const athleteCheckins = checkins.filter(c => c.athlete_id === currentAthlete.id);
-    
     return (
       <FatigueComparisonChart
-        checkins={athleteCheckins}
         activeSnapshot={snapshot}
         athleteSnapshots={athleteSnapshots}
         athleteTests={athleteTests}

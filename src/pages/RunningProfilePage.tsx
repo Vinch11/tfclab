@@ -153,24 +153,24 @@ export default function RunningProfilePage() {
     });
   }, [effectiveCloudSnapshot, effectiveRefs, athleteGoal]);
 
-  // Fatigue Effectif
+  // Fatigue Effectif — snapshot-centric (fatigue_state → score numérique)
   const fatigueResult = useMemo(() => {
-    const athleteCheckins = checkins.filter(c => c.athlete_id === currentAthlete?.id);
-    const latestCheckin = athleteCheckins.length > 0 
-      ? [...athleteCheckins].sort((a, b) => b.date_iso.localeCompare(a.date_iso))[0]
-      : null;
+    const fatigueStateToPercue: Record<string, number> = {
+      fresh: 2, ok: 4, fatigued: 6, high: 8, injured: 10
+    };
+    const fatiguePercue = fatigueStateToPercue[effectiveCloudSnapshot?.fatigue_state || "ok"] ?? 4;
     
     return computeFatigueEffectif({
       tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
       tss7dHabituel: null,
-      fatiguePercue: latestCheckin?.fatigue ?? null,
+      fatiguePercue,
       tteEffectif: tteEffectif,
       raceReadiness: null,
       vlamaxEffectif: vlamaxEffectif,
       age: athleteAge,
       objectif: athleteGoal,
     });
-  }, [checkins, currentAthlete?.id, effectiveCloudSnapshot, tteEffectif, vlamaxEffectif, athleteAge, athleteGoal]);
+  }, [effectiveCloudSnapshot, tteEffectif, vlamaxEffectif, athleteAge, athleteGoal]);
 
   // CAP Injury Risk
   const capInjuryRisk = useMemo(() => {
@@ -186,22 +186,27 @@ export default function RunningProfilePage() {
     });
   }, [vlamaxEffectif, effectiveCloudSnapshot, tteEffectif, fatigueResult, athleteAge, athleteGoal]);
 
-  // Race Readiness Running
+  // Race Readiness Running — snapshot-centric
   const raceReadiness = useMemo(() => {
     if (!currentAthlete) return null;
     
-    const athleteCheckins = checkins.filter(c => c.athlete_id === currentAthlete.id);
-    const latestCheckin = athleteCheckins.length > 0 
-      ? [...athleteCheckins].sort((a, b) => b.date_iso.localeCompare(a.date_iso))[0]
-      : null;
+    // Mapper fatigue_state du snapshot vers les valeurs de disponibilité
+    const fatigueStateMap: Record<string, { fatigue: number; soreness: number; sleep: number; stress: number; motivation: number }> = {
+      fresh:    { fatigue: 1, soreness: 1, sleep: 4, stress: 2, motivation: 5 },
+      ok:       { fatigue: 3, soreness: 2, sleep: 3, stress: 3, motivation: 3 },
+      fatigued: { fatigue: 5, soreness: 3, sleep: 2, stress: 4, motivation: 2 },
+      high:     { fatigue: 7, soreness: 5, sleep: 2, stress: 5, motivation: 2 },
+      injured:  { fatigue: 8, soreness: 8, sleep: 2, stress: 6, motivation: 1 },
+    };
+    const stateValues = fatigueStateMap[effectiveCloudSnapshot?.fatigue_state || "ok"] ?? fatigueStateMap.ok;
     
     const availability: AvailabilityRun = {
-      sleep_quality: latestCheckin?.sleep ?? 3,
-      fatigue_level: latestCheckin?.fatigue ?? 3,
-      muscle_soreness: latestCheckin?.soreness ?? 1,
-      pain_flag: latestCheckin?.pain_flag ?? false,
-      mental_stress: latestCheckin?.stress ?? 3,
-      motivation: latestCheckin?.motivation ?? 3,
+      sleep_quality: stateValues.sleep,
+      fatigue_level: stateValues.fatigue,
+      muscle_soreness: stateValues.soreness,
+      pain_flag: effectiveCloudSnapshot?.fatigue_state === "injured",
+      mental_stress: stateValues.stress,
+      motivation: stateValues.motivation,
       hr_drift_flag: effectiveCloudSnapshot?.run_hr_drift_pct 
         ? effectiveCloudSnapshot.run_hr_drift_pct > 8 
         : undefined,
@@ -252,7 +257,7 @@ export default function RunningProfilePage() {
     };
     
     return computeRaceReadinessRun(profile, availability);
-  }, [currentAthlete, checkins, effectiveCloudSnapshot, vlamaxEffectif, tteEffectif, calibrationSnapshot, raceType]);
+  }, [currentAthlete, effectiveCloudSnapshot, vlamaxEffectif, tteEffectif, calibrationSnapshot, raceType]);
 
   // Pacing Envelope Running
   const pacingEnvelope = useMemo(() => {
