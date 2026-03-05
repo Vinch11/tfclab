@@ -90,16 +90,6 @@ const baseNavigationGroups: NavGroup[] = [
     ],
   },
   {
-    id: "terrain",
-    label: "Sur le terrain",
-    defaultOpen: false,
-    iconColor: "text-sidebar-foreground/70",
-    items: [
-      { id: "race-day", label: "Race-Day", icon: Smartphone, route: "/race-day" },
-      { id: "fatigue", label: "Suivi Fatigue", icon: Activity, route: "/fatigue" },
-    ],
-  },
-  {
     id: "ressources",
     label: "Ressources",
     defaultOpen: false,
