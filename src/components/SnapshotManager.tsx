@@ -17,7 +17,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Calendar, Pin, HelpCircle, Beaker, Wand2, Bike, PersonStanding } from "lucide-react";
+import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Calendar, Pin, HelpCircle, Beaker, Wand2, Bike, PersonStanding, Battery } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { LabImportDialog } from "@/components/LabImportDialog";
 import { NolioImporter, NolioImportResult } from "@/components/NolioImporter";
@@ -89,6 +90,8 @@ const INITIAL_FORM_STATE = {
   tte_mode: "LOAD",
   tss_7d: "",
   tte_observed_min: "",
+  // ⚡ État de fatigue au moment du snapshot
+  fatigue_state: "ok",
   // 🏃 Économie CAP
   run_pace_ref: "",
   run_hr_ref: "",
@@ -101,6 +104,15 @@ const INITIAL_FORM_STATE = {
   run_power_threshold: "",
   coach_notes: "",
 };
+
+// Fatigue state options
+const FATIGUE_STATES = [
+  { value: "fresh", label: "Frais", description: "Bien récupéré, prêt pour intensité", color: "text-green-500" },
+  { value: "ok", label: "Normal", description: "État standard, entraînement normal", color: "text-blue-500" },
+  { value: "fatigued", label: "Fatigué", description: "Fatigue perceptible, adapter la charge", color: "text-amber-500" },
+  { value: "high", label: "Très fatigué", description: "Fatigue élevée, repos conseillé", color: "text-orange-500" },
+  { value: "injured", label: "Blessé", description: "Blessure active, pas d'entraînement", color: "text-red-500" },
+];
 
 export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSnapshotId, staffMode = false }: SnapshotManagerProps) {
   const navigate = useNavigate();
@@ -151,29 +163,32 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       css: s.css != null ? String(s.css) : "",
       vo2max: s.vo2max != null ? String(s.vo2max) : "",
       vlamax: s.vlamax != null ? String(s.vlamax) : "",
-      vlamax_run: s.vlamax_run != null ? String(s.vlamax_run) : "", // ✅ VLamax CAP
+      vlamax_run: s.vlamax_run != null ? String(s.vlamax_run) : "",
       weight_kg: s.weight_kg != null ? String(s.weight_kg) : "",
       fat_pct: s.fat_pct != null ? String(s.fat_pct) : "",
       pmax_5s: s.pmax_5s != null ? String(s.pmax_5s) : "",
 
-      // ✅ VLamax Bike V2 Enhanced - Power indices
+      // VLamax Bike V2 Enhanced
       p30s_w: snapshotAny.p30s_w != null ? String(snapshotAny.p30s_w) : "",
       p60s_w: snapshotAny.p60s_w != null ? String(snapshotAny.p60s_w) : "",
       map5min_w: snapshotAny.map5min_w != null ? String(snapshotAny.map5min_w) : "",
       protocol_quality: snapshotAny.protocol_quality != null ? String(snapshotAny.protocol_quality) : "3",
 
-      // ✅ PRO TTE
+      // PRO TTE
       tte_mode: (s.tte_mode as string) || "LOAD",
       tss_7d: s.tss_7d != null ? String(s.tss_7d) : "",
       tte_observed_min: s.tte_observed_min != null ? String(s.tte_observed_min) : "",
 
-      // 🏃 ÉCONOMIE CAP
+      // ⚡ État de fatigue
+      fatigue_state: s.fatigue_state || "ok",
+
+      // ÉCONOMIE CAP
       run_pace_ref: s.run_pace_ref_sec_per_km != null ? formatSecToPace(s.run_pace_ref_sec_per_km) : "",
       run_hr_ref: s.run_hr_ref_bpm != null ? String(s.run_hr_ref_bpm) : "",
       run_duration_min: s.run_duration_min != null ? String(s.run_duration_min) : "",
       run_hr_drift_pct: s.run_hr_drift_pct != null ? String(s.run_hr_drift_pct) : "",
 
-      // 🏃 VLamax CAP (données pour estimation)
+      // VLamax CAP
       pace_threshold: s.pace_threshold_sec_per_km != null ? formatSecToPace(s.pace_threshold_sec_per_km) : "",
       sprint_15s: s.sprint_15s_distance != null ? String(s.sprint_15s_distance) : "",
       run_power_max: s.running_power_max != null ? String(s.running_power_max) : "",
@@ -262,6 +277,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
       metabolic_profile: profile,
       metabolic_score: score,
+      fatigue_state: formData.fatigue_state || "ok",
       coach_notes: formData.coach_notes || null,
     });
 
@@ -340,6 +356,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
       metabolic_profile: profile,
       metabolic_score: score,
+      fatigue_state: formData.fatigue_state || "ok",
       coach_notes: formData.coach_notes || null,
     });
 
@@ -418,7 +435,30 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         </div>
       </div>
 
-      {/* VO2max + VLamax section */}
+      {/* ⚡ État de fatigue au moment du snapshot */}
+      <div>
+        <Label className="flex items-center gap-1.5 mb-2">
+          <Battery className="h-4 w-4" />
+          État de forme au moment du snapshot
+        </Label>
+        <div className="grid grid-cols-5 gap-2">
+          {FATIGUE_STATES.map((state) => (
+            <button
+              key={state.value}
+              type="button"
+              onClick={() => setFormData({ ...formData, fatigue_state: state.value })}
+              className={cn(
+                "flex flex-col items-center gap-1 p-2 rounded-lg border text-xs transition-all",
+                formData.fatigue_state === state.value
+                  ? "border-primary bg-primary/10 ring-1 ring-primary"
+                  : "border-border hover:border-primary/50"
+              )}
+            >
+              <span className={cn("font-semibold", state.color)}>{state.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
       <div className="grid grid-cols-3 gap-4">
         <div>
           <Label htmlFor="vo2max">VO₂max</Label>
