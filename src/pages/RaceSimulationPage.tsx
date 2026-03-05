@@ -15,7 +15,7 @@ import { RaceSimulationModule } from '@/components/RaceSimulationModule';
 import { PacingEnvelopeCard } from '@/components/PacingEnvelopeCard';
 import { RaceDayBriefingMode } from '@/components/RaceDayBriefingMode';
 import { StaffPacingReportV2 } from '@/components/StaffPacingReportV2';
-import { RaceDayMode } from '@/components/RaceDayMode';
+
 
 import { useAthletes } from '@/contexts/AthleteContext';
 import { useCloudData } from '@/hooks/useCloudData';
@@ -33,7 +33,7 @@ export default function RaceSimulationPage() {
   const navigate = useNavigate();
   const { currentAthlete: selectedAthlete } = useAthletes();
   const { snapshots, tests, checkins } = useCloudData();
-  const [showRaceDayMode, setShowRaceDayMode] = React.useState(false);
+  
   
   
   // Compute effectifs
@@ -212,16 +212,6 @@ export default function RaceSimulationPage() {
           {envelope && rules && scenarios && (
             <>
               
-              {/* Race-Day Mode - Athlete */}
-              <Button 
-                variant="default" 
-                size="sm" 
-                className="gap-1"
-                onClick={() => setShowRaceDayMode(true)}
-              >
-                <Smartphone className="h-4 w-4" />
-                <span className="hidden sm:inline">Race-Day</span>
-              </Button>
               
               {/* Briefing Dialog */}
               <Dialog>
@@ -357,19 +347,6 @@ export default function RaceSimulationPage() {
           </div>
         </details>
       </main>
-
-      {/* Race-Day Mode Fullscreen */}
-      {showRaceDayMode && envelope && rules && scenarios && (
-        <RaceDayMode
-          athleteName={selectedAthlete?.name ?? 'Athlète'}
-          envelope={envelope}
-          rules={rules}
-          scenarios={scenarios}
-          raceObjective={raceObjective}
-          raceReadinessScore={raceReadinessScore}
-          onClose={() => setShowRaceDayMode(false)}
-        />
-      )}
 
     </div>
   );
