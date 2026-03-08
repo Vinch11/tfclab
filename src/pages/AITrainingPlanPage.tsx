@@ -416,11 +416,31 @@ export default function AITrainingPlanPage() {
       }
     }
 
+    // Build raceGoals array for multi-objective
+    const allRaceGoals: RaceGoal[] = [];
+    // Primary objective = A
+    allRaceGoals.push({
+      objective: OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective,
+      raceName: raceName || undefined,
+      raceDate: raceDate || undefined,
+      priority: "A",
+    });
+    // Additional goals
+    for (const g of raceGoals) {
+      allRaceGoals.push({
+        objective: OBJECTIVE_OPTIONS.find(o => o.value === g.objective)?.label || g.objective,
+        raceName: g.raceName || undefined,
+        raceDate: g.raceDate || undefined,
+        priority: g.priority,
+      });
+    }
+
     const amb = athleteAmbition || ambition;
     return {
       objective: OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective,
       raceName: raceName || undefined,
       raceDate: raceDate || undefined,
+      raceGoals: allRaceGoals.length > 1 ? allRaceGoals : undefined,
       weeksAvailable: weeksAvailable ?? undefined,
       weeklyHours: parseFloat(weeklyHours) || undefined,
       sessionsPerWeek: parseInt(sessionsPerWeek) || undefined,
@@ -432,7 +452,7 @@ export default function AITrainingPlanPage() {
       activeLevers: levers.length > 0 ? levers : undefined,
       prohibitions: prohibitions.length > 0 ? prohibitions : undefined,
     };
-  }, [objective, raceName, raceDate, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints]);
+  }, [objective, raceName, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints]);
 
   // Single athlete generation
   const handleGenerate = () => {
