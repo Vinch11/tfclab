@@ -308,15 +308,17 @@ export default function AITrainingPlanPage() {
   }, [currentAthlete, snapshots, tests, objective, ambition, computeAthleteContext]);
 
   const weeksAvailable = useMemo(() => {
-    // Use the latest race date across all goals (primary A + additional B/C)
+    // Use the latest race date across all goals (primary A + additional B/C), relative to plan start week
     const allDates = [raceDate, ...raceGoals.map(g => g.raceDate)].filter(Boolean) as string[];
     if (allDates.length === 0) return null;
     try {
       const latestDate = allDates.sort().pop()!;
-      const weeks = differenceInWeeks(parseISO(latestDate), new Date());
-      return weeks > 0 ? weeks : null;
+      const race = startOfDay(parseISO(latestDate));
+      const start = startOfDay(planStartDate);
+      const days = differenceInCalendarDays(race, start);
+      return days >= 0 ? Math.floor(days / 7) + 1 : null;
     } catch { return null; }
-  }, [raceDate, raceGoals]);
+  }, [raceDate, raceGoals, planStartDate]);
 
   // Parse AI response into structured plan
   const parsedPlan = useMemo<ParsedPlan | null>(() => {
