@@ -425,8 +425,10 @@ export default function AITrainingPlanPage() {
     const computeWeeksUntilRace = (date?: string) => {
       if (!date) return undefined;
       try {
-        const weeks = differenceInWeeks(parseISO(date), new Date());
-        return weeks > 0 ? weeks : undefined;
+        const race = startOfDay(parseISO(date));
+        const start = startOfDay(planStartDate);
+        const days = differenceInCalendarDays(race, start);
+        return days >= 0 ? Math.floor(days / 7) + 1 : undefined;
       } catch {
         return undefined;
       }
@@ -458,6 +460,7 @@ export default function AITrainingPlanPage() {
       raceName: raceName || undefined,
       raceDate: raceDate || undefined,
       raceGoals: allRaceGoals.length > 1 ? allRaceGoals : undefined,
+      planStartDate: format(planStartDate, "yyyy-MM-dd"),
       weeksAvailable: weeksAvailable ?? undefined,
       weeklyHours: parseFloat(weeklyHours) || undefined,
       sessionsPerWeek: parseInt(sessionsPerWeek) || undefined,
@@ -469,7 +472,7 @@ export default function AITrainingPlanPage() {
       activeLevers: levers.length > 0 ? levers : undefined,
       prohibitions: prohibitions.length > 0 ? prohibitions : undefined,
     };
-  }, [objective, raceName, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints]);
+  }, [objective, raceName, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate]);
 
   // Single athlete generation
   const handleGenerate = () => {
