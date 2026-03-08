@@ -2421,9 +2421,47 @@ function buildUserPrompt(data: any, config: any): string {
 
   // --- Config ---
   lines.push("### Configuration du Plan");
-  if (config.objective) lines.push(`- **Objectif course :** ${config.objective}`);
-  if (config.raceName) lines.push(`- **Nom de la course :** ${config.raceName}`);
-  if (config.raceDate) lines.push(`- **Date de course :** ${config.raceDate}`);
+
+  // Multi-objective support
+  if (config.raceGoals && config.raceGoals.length > 1) {
+    lines.push("\n#### 🎯 PLANIFICATION MULTI-OBJECTIFS");
+    lines.push("Ce plan couvre PLUSIEURS courses/objectifs. Tu DOIS structurer la périodisation pour TOUS les atteindre :\n");
+    
+    const sortedGoals = [...config.raceGoals].sort((a: any, b: any) => {
+      if (a.raceDate && b.raceDate) return a.raceDate.localeCompare(b.raceDate);
+      const prio: Record<string, number> = { A: 1, B: 2, C: 3 };
+      return (prio[a.priority] || 3) - (prio[b.priority] || 3);
+    });
+
+    sortedGoals.forEach((goal: any, idx: number) => {
+      const prioEmoji = goal.priority === "A" ? "🅰️ PRINCIPAL" : goal.priority === "B" ? "🅱️ INTERMÉDIAIRE" : "🆎 SECONDAIRE";
+      lines.push(`**Objectif ${idx + 1} — ${prioEmoji}** : ${goal.objective}${goal.raceName ? ` (${goal.raceName})` : ""}${goal.raceDate ? ` — Date : ${goal.raceDate}` : ""}`);
+    });
+
+    // Calculate inter-race gaps
+    const datesGoals = sortedGoals.filter((g: any) => g.raceDate);
+    if (datesGoals.length >= 2) {
+      lines.push("\n**Intervalles entre courses :**");
+      for (let i = 1; i < datesGoals.length; i++) {
+        const d1 = new Date(datesGoals[i - 1].raceDate);
+        const d2 = new Date(datesGoals[i].raceDate);
+        const gapWeeks = Math.round((d2.getTime() - d1.getTime()) / (7 * 24 * 3600 * 1000));
+        lines.push(`- ${datesGoals[i - 1].objective} → ${datesGoals[i].objective} : **${gapWeeks} semaines**`);
+      }
+    }
+
+    lines.push("\n**⚠️ RÈGLES MULTI-OBJECTIFS :**");
+    lines.push("1. **Objectif A (PRINCIPAL)** : le plan est optimisé GLOBALEMENT pour cet objectif. C'est le pic de forme principal.");
+    lines.push("2. **Objectif B (INTERMÉDIAIRE)** : reçoit un mini-taper de 7-10 jours avant la course + adaptation des 1-2 semaines post-course (récupération + relance).");
+    lines.push("3. L'objectif B sert de JALON et de course de préparation. Ne pas sacrifier la progression vers l'objectif A pour un pic total sur B.");
+    lines.push("4. Inclure une semaine de récupération post-course B avant de relancer le bloc suivant vers l'objectif A.");
+    lines.push("5. **Ne PAS créer 2 blocs indépendants.** La préparation est CONTINUE avec des ajustements autour des courses intermédiaires.");
+    lines.push("");
+  } else {
+    if (config.objective) lines.push(`- **Objectif course :** ${config.objective}`);
+    if (config.raceName) lines.push(`- **Nom de la course :** ${config.raceName}`);
+    if (config.raceDate) lines.push(`- **Date de course :** ${config.raceDate}`);
+  }
   if (config.weeksAvailable) lines.push(`- **Semaines disponibles :** ${config.weeksAvailable}`);
   if (config.weeklyHours) {
     lines.push(`- **Heures dispo/semaine :** ${config.weeklyHours}h`);

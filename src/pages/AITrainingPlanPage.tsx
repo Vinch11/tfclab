@@ -20,7 +20,7 @@ import { Progress } from "@/components/ui/progress";
 import {
   ChevronLeft, Sparkles, Calendar, Target, Clock, Loader2,
   AlertTriangle, Zap, User, RotateCcw, Copy, CheckCircle2,
-  FileText, LayoutGrid, Users, GitCompareArrows,
+  FileText, LayoutGrid, Users, GitCompareArrows, Plus, X,
 } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
@@ -28,7 +28,7 @@ import { differenceInWeeks, parseISO, addDays, startOfWeek, format } from "date-
 
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
-import { useAITrainingPlan, type PlanAthleteData, type PlanConfig } from "@/hooks/useAITrainingPlan";
+import { useAITrainingPlan, type PlanAthleteData, type PlanConfig, type RaceGoal } from "@/hooks/useAITrainingPlan";
 import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { computeTTEEffectif } from "@/lib/tteEffectif";
 import { detectUnifiedLimiter } from "@/lib/v2/unifiedLimiterDetection";
@@ -180,6 +180,20 @@ export default function AITrainingPlanPage() {
   const [strengthSessionsPerWeek, setStrengthSessionsPerWeek] = useState("2");
   const [constraints, setConstraints] = useState("");
 
+  // Multi-objective state
+  const [raceGoals, setRaceGoals] = useState<RaceGoal[]>([]);
+  const isMultiObjective = raceGoals.length > 0;
+
+  const addRaceGoal = () => {
+    setRaceGoals(prev => [...prev, { objective: "Marathon", raceName: "", raceDate: "", priority: prev.length === 0 ? "B" : "C" }]);
+  };
+  const removeRaceGoal = (idx: number) => {
+    setRaceGoals(prev => prev.filter((_, i) => i !== idx));
+  };
+  const updateRaceGoal = (idx: number, field: keyof RaceGoal, value: string) => {
+    setRaceGoals(prev => prev.map((g, i) => i === idx ? { ...g, [field]: value } : g));
+  };
+
   // Restore persisted plan + config on athlete change (single mode only)
   // Priority: localStorage saved state > athlete default > fallback
   useEffect(() => {
@@ -294,12 +308,15 @@ export default function AITrainingPlanPage() {
   }, [currentAthlete, snapshots, tests, objective, ambition, computeAthleteContext]);
 
   const weeksAvailable = useMemo(() => {
-    if (!raceDate) return null;
+    // Use the latest race date across all goals (primary A + additional B/C)
+    const allDates = [raceDate, ...raceGoals.map(g => g.raceDate)].filter(Boolean) as string[];
+    if (allDates.length === 0) return null;
     try {
-      const weeks = differenceInWeeks(parseISO(raceDate), new Date());
+      const latestDate = allDates.sort().pop()!;
+      const weeks = differenceInWeeks(parseISO(latestDate), new Date());
       return weeks > 0 ? weeks : null;
     } catch { return null; }
-  }, [raceDate]);
+  }, [raceDate, raceGoals]);
 
   // Parse AI response into structured plan
   const parsedPlan = useMemo<ParsedPlan | null>(() => {
@@ -402,11 +419,31 @@ export default function AITrainingPlanPage() {
       }
     }
 
+    // Build raceGoals array for multi-objective
+    const allRaceGoals: RaceGoal[] = [];
+    // Primary objective = A
+    allRaceGoals.push({
+      objective: OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective,
+      raceName: raceName || undefined,
+      raceDate: raceDate || undefined,
+      priority: "A",
+    });
+    // Additional goals
+    for (const g of raceGoals) {
+      allRaceGoals.push({
+        objective: OBJECTIVE_OPTIONS.find(o => o.value === g.objective)?.label || g.objective,
+        raceName: g.raceName || undefined,
+        raceDate: g.raceDate || undefined,
+        priority: g.priority,
+      });
+    }
+
     const amb = athleteAmbition || ambition;
     return {
       objective: OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective,
       raceName: raceName || undefined,
       raceDate: raceDate || undefined,
+      raceGoals: allRaceGoals.length > 1 ? allRaceGoals : undefined,
       weeksAvailable: weeksAvailable ?? undefined,
       weeklyHours: parseFloat(weeklyHours) || undefined,
       sessionsPerWeek: parseInt(sessionsPerWeek) || undefined,
@@ -418,7 +455,7 @@ export default function AITrainingPlanPage() {
       activeLevers: levers.length > 0 ? levers : undefined,
       prohibitions: prohibitions.length > 0 ? prohibitions : undefined,
     };
-  }, [objective, raceName, raceDate, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints]);
+  }, [objective, raceName, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints]);
 
   // Single athlete generation
   const handleGenerate = () => {
@@ -868,7 +905,10 @@ export default function AITrainingPlanPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Objectif course</Label>
+                  <Label className="flex items-center gap-2">
+                    <Target className="h-3.5 w-3.5" />
+                    Objectif principal (A)
+                  </Label>
                   <Select value={objective} onValueChange={setObjective}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -892,7 +932,7 @@ export default function AITrainingPlanPage() {
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
                     <Calendar className="h-3.5 w-3.5" />
-                    Date de course
+                    Date de course (objectif A)
                   </Label>
                   <Input type="date" value={raceDate} onChange={e => setRaceDate(e.target.value)} />
                   {weeksAvailable && (
@@ -901,6 +941,62 @@ export default function AITrainingPlanPage() {
                     </p>
                   )}
                 </div>
+
+                {/* Multi-objective section */}
+                {raceGoals.map((goal, idx) => (
+                  <div key={idx} className="space-y-2 rounded-lg border border-border/60 bg-muted/30 p-3 relative">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-semibold flex items-center gap-1.5">
+                        <Badge variant="outline" className="text-[10px] px-1.5">
+                          {goal.priority === "B" ? "🅱️ B" : "🆎 C"}
+                        </Badge>
+                        Objectif {idx + 2}
+                      </Label>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeRaceGoal(idx)}>
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                    <Select value={goal.objective} onValueChange={v => updateRaceGoal(idx, "objective", v)}>
+                      <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {OBJECTIVE_OPTIONS.map(o => (
+                          <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input
+                        placeholder="Nom de course"
+                        value={goal.raceName || ""}
+                        onChange={e => updateRaceGoal(idx, "raceName", e.target.value)}
+                        className="h-9 text-xs"
+                      />
+                      <Input
+                        type="date"
+                        value={goal.raceDate || ""}
+                        onChange={e => updateRaceGoal(idx, "raceDate", e.target.value)}
+                        className="h-9 text-xs"
+                      />
+                    </div>
+                    <Select value={goal.priority} onValueChange={v => updateRaceGoal(idx, "priority", v)}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="B">🅱️ Intermédiaire (mini-taper)</SelectItem>
+                        <SelectItem value="C">🆎 Secondaire (pas de taper)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ))}
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-xs gap-1.5"
+                  onClick={addRaceGoal}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Ajouter un objectif intermédiaire
+                </Button>
 
                 {!isMultiMode && (
                   <div className="space-y-2">
