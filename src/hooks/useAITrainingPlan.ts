@@ -20,10 +20,18 @@ export interface PlanAthleteData {
   pmax5s?: number | null;
 }
 
+export interface RaceGoal {
+  objective: string;
+  raceName?: string;
+  raceDate?: string;
+  priority: "A" | "B" | "C";
+}
+
 export interface PlanConfig {
   objective: string;
   raceName?: string;
   raceDate?: string;
+  raceGoals?: RaceGoal[];
   weeksAvailable?: number;
   weeklyHours?: number;
   sessionsPerWeek?: number;
