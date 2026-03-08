@@ -212,6 +212,24 @@ export default function AITrainingPlanPage() {
     }
   }, [isLoading]);
 
+  // Persist single-athlete plan + config to localStorage after generation completes
+  useEffect(() => {
+    if (isMultiMode || !persistKey || isLoading || !response) return;
+    const state = {
+      response,
+      objective,
+      raceName,
+      raceDate,
+      weeklyHours,
+      sessionsPerWeek,
+      ambition,
+      constraints,
+      maxSessionsPerDay,
+      strengthSessionsPerWeek,
+    };
+    localStorage.setItem(persistKey, JSON.stringify(state));
+  }, [isMultiMode, persistKey, isLoading, response, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek]);
+
   // Compute athlete context for a given athlete
   const computeAthleteContext = useCallback((athlete: any, obj: string, amb: string): AthleteComputedContext | null => {
     const athleteSnapshots = getSnapshotsForAthlete(athlete.id);
