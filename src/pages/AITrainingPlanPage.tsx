@@ -180,6 +180,20 @@ export default function AITrainingPlanPage() {
   const [strengthSessionsPerWeek, setStrengthSessionsPerWeek] = useState("2");
   const [constraints, setConstraints] = useState("");
 
+  // Multi-objective state
+  const [raceGoals, setRaceGoals] = useState<RaceGoal[]>([]);
+  const isMultiObjective = raceGoals.length > 0;
+
+  const addRaceGoal = () => {
+    setRaceGoals(prev => [...prev, { objective: "Marathon", raceName: "", raceDate: "", priority: prev.length === 0 ? "B" : "C" }]);
+  };
+  const removeRaceGoal = (idx: number) => {
+    setRaceGoals(prev => prev.filter((_, i) => i !== idx));
+  };
+  const updateRaceGoal = (idx: number, field: keyof RaceGoal, value: string) => {
+    setRaceGoals(prev => prev.map((g, i) => i === idx ? { ...g, [field]: value } : g));
+  };
+
   // Restore persisted plan + config on athlete change (single mode only)
   // Priority: localStorage saved state > athlete default > fallback
   useEffect(() => {
