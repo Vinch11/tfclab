@@ -2419,6 +2419,19 @@ Assure la CONTINUITÉ de la progression.`;
 function buildUserPrompt(data: any, config: any): string {
   const lines: string[] = ["## Demande de Plan d'Entraînement TFCL™\n"];
 
+  const computeGoalWeek = (goal: any): number | undefined => {
+    if (typeof goal?.weeksUntilRace === "number" && Number.isFinite(goal.weeksUntilRace)) {
+      return Math.max(1, Math.floor(goal.weeksUntilRace));
+    }
+    if (!goal?.raceDate || !config?.planStartDate) return undefined;
+    const race = new Date(`${goal.raceDate}T00:00:00Z`);
+    const start = new Date(`${config.planStartDate}T00:00:00Z`);
+    if (Number.isNaN(race.getTime()) || Number.isNaN(start.getTime())) return undefined;
+    const days = Math.floor((race.getTime() - start.getTime()) / (24 * 3600 * 1000));
+    if (days < 0) return undefined;
+    return Math.floor(days / 7) + 1;
+  };
+
   // --- Config ---
   lines.push("### Configuration du Plan");
 
@@ -2426,7 +2439,7 @@ function buildUserPrompt(data: any, config: any): string {
   if (config.raceGoals && config.raceGoals.length > 1) {
     lines.push("\n#### 🎯 PLANIFICATION MULTI-OBJECTIFS");
     lines.push("Ce plan couvre PLUSIEURS courses/objectifs. Tu DOIS structurer la périodisation pour TOUS les atteindre :\n");
-    
+
     const sortedGoals = [...config.raceGoals].sort((a: any, b: any) => {
       if (a.raceDate && b.raceDate) return a.raceDate.localeCompare(b.raceDate);
       const prio: Record<string, number> = { A: 1, B: 2, C: 3 };
@@ -2435,13 +2448,17 @@ function buildUserPrompt(data: any, config: any): string {
 
     sortedGoals.forEach((goal: any, idx: number) => {
       const prioEmoji = goal.priority === "A" ? "🅰️ PRINCIPAL" : goal.priority === "B" ? "🅱️ INTERMÉDIAIRE" : "🆎 SECONDAIRE";
-      const weekAnchor = goal.weeksUntilRace ? ` — Échéance: Semaine ${goal.weeksUntilRace}` : "";
+      const goalWeek = computeGoalWeek(goal);
+      const weekAnchor = goalWeek ? ` — Échéance: Semaine ${goalWeek}` : "";
       lines.push(`**Objectif ${idx + 1} — ${prioEmoji}** : ${goal.objective}${goal.raceName ? ` (${goal.raceName})` : ""}${goal.raceDate ? ` — Date : ${goal.raceDate}` : ""}${weekAnchor}`);
+      if (goalWeek && goal.raceDate) {
+        lines.push(`→ Ancrage obligatoire : la course ${goal.objective} DOIT apparaître en S${goalWeek} (semaine contenant le ${goal.raceDate}).`);
+      }
     });
 
     lines.push("\n### FORMAT OBLIGATOIRE EN SORTIE (MULTI-OBJECTIFS)");
     lines.push("Au début de la réponse, ajoute OBLIGATOIREMENT une section `## Jalons multi-objectifs` avec:");
-    lines.push("- Une ligne par objectif (A, B, C) avec la semaine cible (ex: `Objectif B Marathon → S5`).");
+    lines.push("- Une ligne par objectif (A, B, C) avec la semaine cible exacte (ex: `Objectif B Marathon → S5`).");
     lines.push("- Les semaines de mini-taper et récupération pour chaque objectif B/C (ex: `Mini-taper B: S4`, `Récup post-B: S6`).");
     lines.push("Si cette section est absente, la réponse est INVALIDE.");
 
