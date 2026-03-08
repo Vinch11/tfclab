@@ -347,6 +347,18 @@ export function parseAIPlan(markdown: string): ParsedPlan {
   // Flush last week
   flushWeek();
 
+  // === POST-PROCESSING: Remove contradictory rest entries ===
+  // If a day has both real sessions and a "Repos" entry, remove the rest entry
+  for (const week of weeks) {
+    const dayHasRealSession = new Set<number>();
+    for (const s of week.sessions) {
+      if (!s.isRest && s.dayIndex >= 0) dayHasRealSession.add(s.dayIndex);
+    }
+    week.sessions = week.sessions.filter(
+      s => !(s.isRest && s.dayIndex >= 0 && dayHasRealSession.has(s.dayIndex))
+    );
+  }
+
   // === POST-PROCESSING: Fill empty weeks with rest placeholders ===
   // Detect weeks with 0 sessions (AI skipped the table) and fill them
   // by cloning the nearest non-empty week's structure as rest days,
