@@ -2799,11 +2799,19 @@ function buildUserPrompt(data: any, config: any): string {
     
     sortedGoals.forEach((goal: any) => {
       const prioLabel = goal.priority === "A" ? "🅰️ OBJECTIF PRINCIPAL (pic de forme)" : goal.priority === "B" ? "🅱️ OBJECTIF INTERMÉDIAIRE (mini-taper)" : "🆎 SECONDAIRE";
-      lines.push(`- **${goal.objective}**${goal.raceName ? ` — ${goal.raceName}` : ""}${goal.raceDate ? ` — ${goal.raceDate}` : ""} → ${prioLabel}`);
+      const goalWeek = computeGoalWeek(goal);
+      const weekInfo = goalWeek ? ` — Semaine cible: S${goalWeek}` : "";
+      lines.push(`- **${goal.objective}**${goal.raceName ? ` — ${goal.raceName}` : ""}${goal.raceDate ? ` — ${goal.raceDate}` : ""}${weekInfo} → ${prioLabel}`);
     });
 
     if (goalsB.length > 0) {
       lines.push(`\n### Structure obligatoire pour chaque objectif B/C :`);
+      goalsB.forEach((g: any) => {
+        const w = computeGoalWeek(g);
+        if (w) {
+          lines.push(`- **${g.objective}${g.raceName ? ` (${g.raceName})` : ""}** : mini-taper en S${Math.max(1, w - 1)}, course en S${w}, récupération en S${w + 1}.`);
+        }
+      });
       lines.push(`1. **Semaines pré-course B** : les 1-2 semaines avant la course B doivent montrer une RÉDUCTION de volume (-20 à -30%) avec maintien d'intensité courte (mini-taper). Marque-les explicitement "Mini-Taper pour [nom course B]".`);
       lines.push(`2. **Semaine de course B** : la semaine contenant la course B doit inclure la course comme séance principale (ex: "🏁 COURSE : Marathon de Paris"). Volume très réduit le reste de la semaine.`);
       lines.push(`3. **Semaine post-course B** : semaine de récupération (-40% volume, pas d'intensité, régénération). Marque-la "Récupération post-${goalsB[0]?.objective || 'course B'}".`);
