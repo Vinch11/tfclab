@@ -2435,8 +2435,15 @@ function buildUserPrompt(data: any, config: any): string {
 
     sortedGoals.forEach((goal: any, idx: number) => {
       const prioEmoji = goal.priority === "A" ? "🅰️ PRINCIPAL" : goal.priority === "B" ? "🅱️ INTERMÉDIAIRE" : "🆎 SECONDAIRE";
-      lines.push(`**Objectif ${idx + 1} — ${prioEmoji}** : ${goal.objective}${goal.raceName ? ` (${goal.raceName})` : ""}${goal.raceDate ? ` — Date : ${goal.raceDate}` : ""}`);
+      const weekAnchor = goal.weeksUntilRace ? ` — Échéance: Semaine ${goal.weeksUntilRace}` : "";
+      lines.push(`**Objectif ${idx + 1} — ${prioEmoji}** : ${goal.objective}${goal.raceName ? ` (${goal.raceName})` : ""}${goal.raceDate ? ` — Date : ${goal.raceDate}` : ""}${weekAnchor}`);
     });
+
+    lines.push("\n### FORMAT OBLIGATOIRE EN SORTIE (MULTI-OBJECTIFS)");
+    lines.push("Au début de la réponse, ajoute OBLIGATOIREMENT une section `## Jalons multi-objectifs` avec:");
+    lines.push("- Une ligne par objectif (A, B, C) avec la semaine cible (ex: `Objectif B Marathon → S5`).");
+    lines.push("- Les semaines de mini-taper et récupération pour chaque objectif B/C (ex: `Mini-taper B: S4`, `Récup post-B: S6`).");
+    lines.push("Si cette section est absente, la réponse est INVALIDE.");
 
     // Calculate inter-race gaps
     const datesGoals = sortedGoals.filter((g: any) => g.raceDate);
