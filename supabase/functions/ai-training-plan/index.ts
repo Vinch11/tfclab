@@ -2513,7 +2513,14 @@ function buildUserPrompt(data: any, config: any): string {
       lines.push(`  → RÈGLE STRICTE : 1 seule séance par jour. Aucune double séance. Chaque jour n'a qu'UNE SEULE ligne dans le tableau.`);
     } else if (config.maxSessionsPerDay === 2) {
       lines.push(`  → RÈGLE STRICTE : Maximum 2 séances par jour. Pas de triples. Chaque jour a 1 ou 2 lignes max dans le tableau.`);
+    } else if (config.maxSessionsPerDay === 3) {
+      lines.push(`  → RÈGLE STRICTE : Doubles et triples séances OBLIGATOIRES pour un athlète élite.`);
+      lines.push(`  → Chaque jour d'entraînement (hors repos) DOIT avoir 2 ou 3 lignes dans le tableau.`);
+      lines.push(`  → Utilise "Lundi matin", "Lundi midi", "Lundi soir" pour séparer les séances.`);
+      lines.push(`  → Un jour avec UNE SEULE séance (hors jour repos) est une ERREUR. Ajoute au minimum natation technique, renfo/core ou Z1 récup en 2e séance.`);
     }
+    // Anti-contradiction: never mix rest + real session on same day
+    lines.push(`- **⚠️ Anti-contradiction :** Si un jour a une séance d'entraînement, NE PAS ajouter de ligne "Repos" pour ce même jour. Le Repos est UNIQUEMENT pour les jours sans aucune séance.`);
   }
   if (config.ambition) lines.push(`- **Niveau d'ambition :** ${config.ambition}`);
   if (config.constraints) lines.push(`- **Contraintes :** ${config.constraints}`);
