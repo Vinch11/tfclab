@@ -24,6 +24,7 @@ export interface RaceGoal {
   objective: string;
   raceName?: string;
   raceDate?: string;
+  weeksUntilRace?: number;
   priority: "A" | "B" | "C";
 }
 

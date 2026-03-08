@@ -420,12 +420,23 @@ export default function AITrainingPlanPage() {
     }
 
     // Build raceGoals array for multi-objective
+    const computeWeeksUntilRace = (date?: string) => {
+      if (!date) return undefined;
+      try {
+        const weeks = differenceInWeeks(parseISO(date), new Date());
+        return weeks > 0 ? weeks : undefined;
+      } catch {
+        return undefined;
+      }
+    };
+
     const allRaceGoals: RaceGoal[] = [];
     // Primary objective = A
     allRaceGoals.push({
       objective: OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective,
       raceName: raceName || undefined,
       raceDate: raceDate || undefined,
+      weeksUntilRace: computeWeeksUntilRace(raceDate),
       priority: "A",
     });
     // Additional goals
@@ -434,6 +445,7 @@ export default function AITrainingPlanPage() {
         objective: OBJECTIVE_OPTIONS.find(o => o.value === g.objective)?.label || g.objective,
         raceName: g.raceName || undefined,
         raceDate: g.raceDate || undefined,
+        weeksUntilRace: computeWeeksUntilRace(g.raceDate),
         priority: g.priority,
       });
     }
