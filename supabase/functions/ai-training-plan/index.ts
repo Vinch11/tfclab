@@ -28,6 +28,13 @@ Générer un plan d'entraînement COMPLET ET INTÉGRAL couvrant TOUTES les semai
 - NE JAMAIS écrire "les semaines suivantes suivent le même schéma".
 - Chaque semaine DOIT avoir son propre tableau complet avec 7 jours.
 
+## RÈGLE ANTI-SEMAINE VIDE (CRITIQUE)
+⚠️ CHAQUE "### Semaine N" DOIT être IMMÉDIATEMENT suivie d'un tableau Markdown complet (| Jour | Sport | Séance | Détails |).
+- Il est INTERDIT d'écrire un header "### Semaine N" sans le tableau correspondant juste en-dessous.
+- Si tu écris "### Semaine 5", les lignes suivantes DOIVENT être le header du tableau puis les 7+ lignes de données.
+- JAMAIS de texte libre, de saut de ligne vide, ou d'autre header entre "### Semaine N" et son tableau.
+- VÉRIFIE : chaque semaine générée a au minimum 4 lignes de données dans son tableau (hors header et séparateur).
+
 ## RATIOS SPORT/VOLUME PAR OBJECTIF (Méthodologie Dan Lorang / Élite Mondial)
 
 ### IRONMAN (IM) — Modèle Lorang/Frodeno (15-25h/sem)
