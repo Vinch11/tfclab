@@ -347,6 +347,73 @@ export function parseAIPlan(markdown: string): ParsedPlan {
   // Flush last week
   flushWeek();
 
+  // === POST-PROCESSING: Fill empty weeks with rest placeholders ===
+  // Detect weeks with 0 sessions (AI skipped the table) and fill them
+  // by cloning the nearest non-empty week's structure as rest days,
+  // or inserting 7 rest days as fallback.
+  const DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+
+  for (const week of weeks) {
+    if (week.sessions.length === 0) {
+      // Try to find the nearest non-empty week to detect expected session count
+      const nearestWeek = weeks.find(w => w.sessions.length > 0);
+      
+      // Fill with 7 rest days so the week is visible in the viewer
+      week.sessions = DAYS.map((day, idx) => ({
+        weekNumber: week.weekNumber,
+        weekTheme: week.theme,
+        phase: week.phase,
+        dayName: day,
+        dayIndex: idx,
+        sport: "Repos",
+        title: "⚠️ Semaine non générée — Régénérer",
+        details: "L'IA n'a pas produit de séances pour cette semaine. Utilisez la régénération pour la compléter.",
+        isRest: true,
+      }));
+
+      // Flag the week for the coach
+      if (!week.coachNotes) {
+        week.coachNotes = "⚠️ Cette semaine a été détectée comme vide lors de la génération. Veuillez la régénérer.";
+      }
+    }
+  }
+
+  // === POST-PROCESSING: Detect and fill gaps in week numbering ===
+  // If we have weeks 1, 3, 5 but not 2, 4 — insert placeholder weeks
+  if (weeks.length > 0) {
+    const maxWeekNum = Math.max(...weeks.map(w => w.weekNumber));
+    const existingNums = new Set(weeks.map(w => w.weekNumber));
+    
+    for (let n = 1; n <= maxWeekNum; n++) {
+      if (!existingNums.has(n)) {
+        // Find the phase this week should belong to
+        const prevWeek = weeks.filter(w => w.weekNumber < n).sort((a, b) => b.weekNumber - a.weekNumber)[0];
+        const phase = prevWeek?.phase || "";
+        
+        weeks.push({
+          weekNumber: n,
+          theme: `Semaine ${n} — ⚠️ Non générée`,
+          phase,
+          sessions: DAYS.map((day, idx) => ({
+            weekNumber: n,
+            weekTheme: `Semaine ${n} — Non générée`,
+            phase,
+            dayName: day,
+            dayIndex: idx,
+            sport: "Repos",
+            title: "⚠️ Semaine manquante — Régénérer",
+            details: "Cette semaine n'a pas été générée par l'IA. Utilisez la régénération pour la compléter.",
+            isRest: true,
+          })),
+          coachNotes: "⚠️ Cette semaine est manquante dans la génération originale. Veuillez la régénérer.",
+        });
+      }
+    }
+    
+    // Re-sort weeks by number
+    weeks.sort((a, b) => a.weekNumber - b.weekNumber);
+  }
+
   const strategicRecap: StrategicRecap | undefined =
     recapLimiters.length > 0
       ? { limiters: recapLimiters, synergies: recapSynergies }
