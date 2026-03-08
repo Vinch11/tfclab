@@ -307,6 +307,13 @@ export default function AITrainingPlanPage() {
     return computeAthleteContext(currentAthlete, objective, ambition);
   }, [currentAthlete, snapshots, tests, objective, ambition, computeAthleteContext]);
 
+  // Compute plan start date (next Monday or custom)
+  const planStartDate = useMemo(() => {
+    const now = new Date();
+    const nextMonday = startOfWeek(addDays(now, 7), { weekStartsOn: 1 });
+    return nextMonday;
+  }, []);
+
   const weeksAvailable = useMemo(() => {
     // Use the latest race date across all goals (primary A + additional B/C), relative to plan start week
     const allDates = [raceDate, ...raceGoals.map(g => g.raceDate)].filter(Boolean) as string[];
@@ -328,13 +335,6 @@ export default function AITrainingPlanPage() {
       return plan.weeks.length > 0 ? plan : null;
     } catch { return null; }
   }, [response, isLoading]);
-
-  // Compute plan start date (next Monday or custom)
-  const planStartDate = useMemo(() => {
-    const now = new Date();
-    const nextMonday = startOfWeek(addDays(now, 7), { weekStartsOn: 1 });
-    return nextMonday;
-  }, []);
 
   // Build config for generation
   // Map gap metrics to limiter categories for explicit AI key session prescription
