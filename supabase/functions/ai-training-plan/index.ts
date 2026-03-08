@@ -2703,6 +2703,30 @@ function buildUserPrompt(data: any, config: any): string {
     lines.push("- Pas de fractionné tant que l'athlète ne court pas 30min continu.");
   }
 
+  // Multi-objective: also emit sport coherence for B/C goals
+  if (config.raceGoals && config.raceGoals.length > 1) {
+    const otherGoals = config.raceGoals.filter((g: any) => g.priority !== "A");
+    for (const goal of otherGoals) {
+      const goalObj = (goal.objective || "").toUpperCase();
+      const goalName = goal.raceName ? ` (${goal.raceName})` : "";
+      if (goalObj.includes("MARATHON") || goalObj === "SEMI") {
+        lines.push(`\n### ⚠️ RAPPEL : Objectif B${goalName} — ${goal.objective}`);
+        lines.push(`- Les semaines précédant cette course B doivent inclure des séances spécifiques à l'allure ${goal.objective}.`);
+        lines.push(`- Mini-taper 7-10j avant : réduction volume, rappels allure course.`);
+        lines.push(`- Post-course : 1 semaine récupération avant relance vers objectif A.`);
+      } else if (["IRONMAN", "IM", "70.3", "703"].some(t => goalObj.includes(t))) {
+        lines.push(`\n### ⚠️ RAPPEL : Objectif B${goalName} — ${goal.objective}`);
+        lines.push(`- Intégrer natation + vélo + briques dans la préparation vers cette course B.`);
+        lines.push(`- Mini-taper 10-14j avant. Simulation race-pace 2 semaines avant la course B.`);
+        lines.push(`- Post-course B : 1-2 semaines récupération avant relance.`);
+      } else {
+        lines.push(`\n### ⚠️ RAPPEL : Objectif B${goalName} — ${goal.objective}`);
+        lines.push(`- Inclure des séances spécifiques à cet objectif dans les semaines précédant la date de course.`);
+        lines.push(`- Mini-taper 7j avant + récupération post-course.`);
+      }
+    }
+  }
+
   // Double sessions reminder based on ambition
   const ambition = (config.ambition || "").toLowerCase();
   const isTriathlon = ["IM", "703"].includes(obj);
