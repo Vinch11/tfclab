@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
-import { differenceInWeeks, parseISO, addDays, startOfWeek, format } from "date-fns";
+import { differenceInCalendarDays, parseISO, addDays, startOfWeek, format, startOfDay } from "date-fns";
 
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
@@ -307,16 +307,25 @@ export default function AITrainingPlanPage() {
     return computeAthleteContext(currentAthlete, objective, ambition);
   }, [currentAthlete, snapshots, tests, objective, ambition, computeAthleteContext]);
 
+  // Compute plan start date (next Monday or custom)
+  const planStartDate = useMemo(() => {
+    const now = new Date();
+    const nextMonday = startOfWeek(addDays(now, 7), { weekStartsOn: 1 });
+    return nextMonday;
+  }, []);
+
   const weeksAvailable = useMemo(() => {
-    // Use the latest race date across all goals (primary A + additional B/C)
+    // Use the latest race date across all goals (primary A + additional B/C), relative to plan start week
     const allDates = [raceDate, ...raceGoals.map(g => g.raceDate)].filter(Boolean) as string[];
     if (allDates.length === 0) return null;
     try {
       const latestDate = allDates.sort().pop()!;
-      const weeks = differenceInWeeks(parseISO(latestDate), new Date());
-      return weeks > 0 ? weeks : null;
+      const race = startOfDay(parseISO(latestDate));
+      const start = startOfDay(planStartDate);
+      const days = differenceInCalendarDays(race, start);
+      return days >= 0 ? Math.floor(days / 7) + 1 : null;
     } catch { return null; }
-  }, [raceDate, raceGoals]);
+  }, [raceDate, raceGoals, planStartDate]);
 
   // Parse AI response into structured plan
   const parsedPlan = useMemo<ParsedPlan | null>(() => {
@@ -326,13 +335,6 @@ export default function AITrainingPlanPage() {
       return plan.weeks.length > 0 ? plan : null;
     } catch { return null; }
   }, [response, isLoading]);
-
-  // Compute plan start date (next Monday or custom)
-  const planStartDate = useMemo(() => {
-    const now = new Date();
-    const nextMonday = startOfWeek(addDays(now, 7), { weekStartsOn: 1 });
-    return nextMonday;
-  }, []);
 
   // Build config for generation
   // Map gap metrics to limiter categories for explicit AI key session prescription
@@ -423,8 +425,10 @@ export default function AITrainingPlanPage() {
     const computeWeeksUntilRace = (date?: string) => {
       if (!date) return undefined;
       try {
-        const weeks = differenceInWeeks(parseISO(date), new Date());
-        return weeks > 0 ? weeks : undefined;
+        const race = startOfDay(parseISO(date));
+        const start = startOfDay(planStartDate);
+        const days = differenceInCalendarDays(race, start);
+        return days >= 0 ? Math.floor(days / 7) + 1 : undefined;
       } catch {
         return undefined;
       }
@@ -456,6 +460,7 @@ export default function AITrainingPlanPage() {
       raceName: raceName || undefined,
       raceDate: raceDate || undefined,
       raceGoals: allRaceGoals.length > 1 ? allRaceGoals : undefined,
+      planStartDate: format(planStartDate, "yyyy-MM-dd"),
       weeksAvailable: weeksAvailable ?? undefined,
       weeklyHours: parseFloat(weeklyHours) || undefined,
       sessionsPerWeek: parseInt(sessionsPerWeek) || undefined,
@@ -467,7 +472,7 @@ export default function AITrainingPlanPage() {
       activeLevers: levers.length > 0 ? levers : undefined,
       prohibitions: prohibitions.length > 0 ? prohibitions : undefined,
     };
-  }, [objective, raceName, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints]);
+  }, [objective, raceName, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate]);
 
   // Single athlete generation
   const handleGenerate = () => {
