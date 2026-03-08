@@ -33,6 +33,7 @@ export interface PlanConfig {
   raceName?: string;
   raceDate?: string;
   raceGoals?: RaceGoal[];
+  planStartDate?: string;
   weeksAvailable?: number;
   weeklyHours?: number;
   sessionsPerWeek?: number;
