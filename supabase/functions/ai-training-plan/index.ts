@@ -2703,6 +2703,30 @@ function buildUserPrompt(data: any, config: any): string {
     lines.push("- Pas de fractionné tant que l'athlète ne court pas 30min continu.");
   }
 
+  // Multi-objective: also emit sport coherence for B/C goals
+  if (config.raceGoals && config.raceGoals.length > 1) {
+    const otherGoals = config.raceGoals.filter((g: any) => g.priority !== "A");
+    for (const goal of otherGoals) {
+      const goalObj = (goal.objective || "").toUpperCase();
+      const goalName = goal.raceName ? ` (${goal.raceName})` : "";
+      if (goalObj.includes("MARATHON") || goalObj === "SEMI") {
+        lines.push(`\n### ⚠️ RAPPEL : Objectif B${goalName} — ${goal.objective}`);
+        lines.push(`- Les semaines précédant cette course B doivent inclure des séances spécifiques à l'allure ${goal.objective}.`);
+        lines.push(`- Mini-taper 7-10j avant : réduction volume, rappels allure course.`);
+        lines.push(`- Post-course : 1 semaine récupération avant relance vers objectif A.`);
+      } else if (["IRONMAN", "IM", "70.3", "703"].some(t => goalObj.includes(t))) {
+        lines.push(`\n### ⚠️ RAPPEL : Objectif B${goalName} — ${goal.objective}`);
+        lines.push(`- Intégrer natation + vélo + briques dans la préparation vers cette course B.`);
+        lines.push(`- Mini-taper 10-14j avant. Simulation race-pace 2 semaines avant la course B.`);
+        lines.push(`- Post-course B : 1-2 semaines récupération avant relance.`);
+      } else {
+        lines.push(`\n### ⚠️ RAPPEL : Objectif B${goalName} — ${goal.objective}`);
+        lines.push(`- Inclure des séances spécifiques à cet objectif dans les semaines précédant la date de course.`);
+        lines.push(`- Mini-taper 7j avant + récupération post-course.`);
+      }
+    }
+  }
+
   // Double sessions reminder based on ambition
   const ambition = (config.ambition || "").toLowerCase();
   const isTriathlon = ["IM", "703"].includes(obj);
@@ -2735,6 +2759,39 @@ function buildUserPrompt(data: any, config: any): string {
   }
 
   const weeks = config.weeksAvailable || 12;
+
+  // Multi-objective final reminder
+  if (config.raceGoals && config.raceGoals.length > 1) {
+    const sortedGoals = [...config.raceGoals].sort((a: any, b: any) => {
+      if (a.raceDate && b.raceDate) return a.raceDate.localeCompare(b.raceDate);
+      return 0;
+    });
+    const goalA = sortedGoals.find((g: any) => g.priority === "A");
+    const goalsB = sortedGoals.filter((g: any) => g.priority === "B" || g.priority === "C");
+
+    lines.push(`\n---`);
+    lines.push(`## 🔥🔥🔥 RAPPEL FINAL MULTI-OBJECTIFS — RÈGLE ABSOLUE 🔥🔥🔥`);
+    lines.push(`Ce plan a ${config.raceGoals.length} objectifs de course. Tu DOIS TOUS les intégrer dans la planification :\n`);
+    
+    sortedGoals.forEach((goal: any) => {
+      const prioLabel = goal.priority === "A" ? "🅰️ OBJECTIF PRINCIPAL (pic de forme)" : goal.priority === "B" ? "🅱️ OBJECTIF INTERMÉDIAIRE (mini-taper)" : "🆎 SECONDAIRE";
+      lines.push(`- **${goal.objective}**${goal.raceName ? ` — ${goal.raceName}` : ""}${goal.raceDate ? ` — ${goal.raceDate}` : ""} → ${prioLabel}`);
+    });
+
+    if (goalsB.length > 0) {
+      lines.push(`\n### Structure obligatoire pour chaque objectif B/C :`);
+      lines.push(`1. **Semaines pré-course B** : les 1-2 semaines avant la course B doivent montrer une RÉDUCTION de volume (-20 à -30%) avec maintien d'intensité courte (mini-taper). Marque-les explicitement "Mini-Taper pour [nom course B]".`);
+      lines.push(`2. **Semaine de course B** : la semaine contenant la course B doit inclure la course comme séance principale (ex: "🏁 COURSE : Marathon de Paris"). Volume très réduit le reste de la semaine.`);
+      lines.push(`3. **Semaine post-course B** : semaine de récupération (-40% volume, pas d'intensité, régénération). Marque-la "Récupération post-${goalsB[0]?.objective || 'course B'}".`);
+      lines.push(`4. **Relance vers objectif A** : après la récupération, reprendre la progression vers l'objectif A avec une montée en charge progressive.`);
+      lines.push(`\n⚠️ Si tu génères le plan sans mentionner l'objectif B ni inclure de mini-taper/récupération autour de sa date, le plan est INVALIDE. RECOMMENCE.`);
+    }
+
+    if (goalA) {
+      lines.push(`\nObjectif principal (A) : ${goalA.objective}${goalA.raceDate ? ` le ${goalA.raceDate}` : ""}. Le pic de forme PRINCIPAL vise cette course.`);
+    }
+  }
+
   lines.push(`\n---\nGénère le plan COMPLET de ${weeks} semaines, semaine par semaine, SANS EN OMETTRE AUCUNE. Chaque semaine a son propre tableau. Ne résume jamais. Chaque séance doit être actionnable immédiatement.`);
   if (isTriathlon && ambition !== "finisher") {
     lines.push(`\n⚠️ RAPPEL FINAL : Chaque jour d'entraînement d'un triathlète (sauf repos) doit avoir PLUSIEURS séances (2 ou 3 lignes dans le tableau). Un tableau de semaine IM Elite = 14 à 18 lignes, PAS 7. Si ton tableau a seulement 7-8 lignes pour une semaine IM, RECOMMENCE, c'est insuffisant.`);
