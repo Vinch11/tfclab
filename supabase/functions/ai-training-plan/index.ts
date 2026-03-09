@@ -2285,8 +2285,15 @@ IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${exp
 
 ⚠️ GÉNÉRATION PAR BLOC (suite) : Génère UNIQUEMENT les semaines ${chunk.start} à ${chunk.end} (sur ${totalWeeks} total).
 NE PAS répéter le diagnostic ni le récapitulatif stratégique. NE PAS ajouter d'introduction.
-Commence DIRECTEMENT par "### Semaine ${chunk.start}" et continue jusqu'à "### Semaine ${chunk.end}".
 Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines : ${expectedWeeks.map(w => `Semaine ${w}`).join(", ")}.
+
+🔴 RÈGLE CRITIQUE — EN-TÊTES DE BLOC :
+Si une nouvelle phase/bloc commence dans cette plage de semaines (d'après le Récapitulatif Stratégique du premier bloc), tu DOIS insérer l'en-tête de bloc AVANT la première semaine de ce bloc :
+## Bloc N : [Nom Métabolique] (Semaines X-Y)
+**Objectif physiologique :** [...]
+**Volume cible :** [...]
+
+Puis continue avec les semaines. Chaque bloc doit avoir son en-tête. C'est OBLIGATOIRE pour le parsing.
 
 Résumé des blocs précédents pour assurer la continuité :
 ${previousChunksSummary}
