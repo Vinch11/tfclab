@@ -2327,7 +2327,14 @@ Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semai
 
 ⚠️ COMPLÉTION DE SEMAINES MANQUANTES : Génère UNIQUEMENT les semaines suivantes : ${missingWeeks.map(w => `Semaine ${w}`).join(", ")}.
 NE PAS répéter le diagnostic ni le récapitulatif. NE PAS ajouter d'introduction.
-Commence DIRECTEMENT par "### Semaine ${missingWeeks[0]}" et génère chaque semaine avec son tableau complet.
+
+🔴 RÈGLE CRITIQUE — EN-TÊTES DE BLOC :
+Si une des semaines manquantes est la PREMIÈRE semaine d'un nouveau bloc/phase (d'après le Récapitulatif Stratégique), tu DOIS insérer l'en-tête de bloc AVANT cette semaine :
+## Bloc N : [Nom Métabolique] (Semaines X-Y)
+**Objectif physiologique :** [...]
+**Volume cible :** [...]
+
+Puis génère chaque semaine avec son tableau complet.
 
 Contexte des semaines déjà générées :
 ${previousChunksSummary}
