@@ -19,10 +19,10 @@ interface SportRatioRef {
 
 const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
   IM: {
-    elite:      { weeklyHours: [20,30], sessionsPerWeek: [12,16], keySessions: [3,4], progressionPct: [5,8], swimPct: [15,20], bikePct: [45,55], runPct: [25,35] },
-    competitor: { weeklyHours: [14,20], sessionsPerWeek: [8,12],  keySessions: [2,3], progressionPct: [5,7], swimPct: [15,20], bikePct: [45,55], runPct: [25,35] },
-    age_group:  { weeklyHours: [10,15], sessionsPerWeek: [6,9],   keySessions: [2,2], progressionPct: [3,5], swimPct: [15,20], bikePct: [45,55], runPct: [25,35] },
-    finisher:   { weeklyHours: [8,12],  sessionsPerWeek: [5,7],   keySessions: [1,2], progressionPct: [3,3], swimPct: [15,20], bikePct: [45,55], runPct: [25,35] },
+    elite:      { weeklyHours: [20,30], sessionsPerWeek: [12,16], keySessions: [3,4], progressionPct: [5,8], swimPct: [15,20], bikePct: [45,55], runPct: [25,30] },
+    competitor: { weeklyHours: [14,20], sessionsPerWeek: [8,12],  keySessions: [2,3], progressionPct: [5,7], swimPct: [15,20], bikePct: [45,55], runPct: [25,30] },
+    age_group:  { weeklyHours: [10,15], sessionsPerWeek: [6,9],   keySessions: [2,2], progressionPct: [3,5], swimPct: [15,20], bikePct: [45,55], runPct: [25,30] },
+    finisher:   { weeklyHours: [8,12],  sessionsPerWeek: [5,7],   keySessions: [1,2], progressionPct: [3,3], swimPct: [15,20], bikePct: [45,55], runPct: [25,30] },
   },
   "703": {
     elite:      { weeklyHours: [15,22], sessionsPerWeek: [10,14], keySessions: [3,3], progressionPct: [5,8], swimPct: [15,20], bikePct: [40,50], runPct: [30,40] },
@@ -139,7 +139,7 @@ Générer un plan d'entraînement COMPLET ET INTÉGRAL couvrant TOUTES les semai
 | Sport | % Volume | Séances/sem | Clés |
 |-------|----------|-------------|------|
 | Vélo | 45-55% | 4-5 | Sorties longues 4-6h Z2, SFR, sweet spot 88-93% FTP |
-| CAP | 20-25% | 3-4 | Briques prioritaires. Allure IM = 80-85% VMA. Max 2h30 |
+| CAP | 25-30% | 3-4 | Briques prioritaires. Allure IM = 80-85% VMA. Max 2h30 |
 | Natation | 15-20% | 4-5 | 3-4km/séance. CSS + technique + OWS. Volume constant toute la prépa |
 | Renfo | 5-10% | 2 | Core, prévention, force fonctionnelle |
 ⚠️ Chaque semaine : min 3 natation, 3 vélo, 3 CAP. 1-2 briques/sem en phase spécifique.
