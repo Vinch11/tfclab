@@ -2247,8 +2247,10 @@ IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format ta
     const totalWeeks = planConfig?.weeksAvailable || 12;
     // Use smaller chunks for triathlon (very verbose output with multi-session days)
     const obj = (planConfig?.objective || "").toUpperCase();
-    const isVerbosePlan = ["IM", "703"].includes(obj);
-    const CHUNK_SIZE = isVerbosePlan ? 4 : 6;
+    // Detect verbose plans: triathlon multi-sport plans generate much more text per week
+    const isVerbosePlan = /IRON|IM\b|703|70\.3|TRIATHLON|TRI\b/i.test(obj);
+    // For very long plans (>20 weeks), use even smaller chunks to avoid stream timeout
+    const CHUNK_SIZE = isVerbosePlan ? (totalWeeks > 20 ? 3 : 4) : (totalWeeks > 20 ? 4 : 6);
     const needsChunking = !regenerateWeek && totalWeeks > 10;
 
     // Helper: call AI and stream response, return full text
