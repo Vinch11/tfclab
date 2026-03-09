@@ -102,11 +102,13 @@ function computePlanMetrics(plan: ParsedPlan) {
   }
   const avgKeyPerWeek = keySessions / totalWeeks;
 
-  // Sport distribution percentages
-  const totalActive = Object.values(sportCounts).reduce((a, b) => a + b, 0);
+  // Sport distribution percentages — computed only on tri-relevant sports (Natation/Vélo/Course)
+  // so that Renfo/Autre don't dilute the comparison against elite references
+  const triSports = ["Natation", "Vélo", "Course"];
+  const totalTriSessions = triSports.reduce((sum, sp) => sum + (sportCounts[sp] || 0), 0);
   const sportPcts: Record<string, number> = {};
   for (const [k, v] of Object.entries(sportCounts)) {
-    sportPcts[k] = totalActive > 0 ? Math.round((v / totalActive) * 100) : 0;
+    sportPcts[k] = totalTriSessions > 0 ? Math.round((v / totalTriSessions) * 100) : 0;
   }
 
   // Volume progression rate (avg week-over-week)
