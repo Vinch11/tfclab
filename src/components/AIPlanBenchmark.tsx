@@ -287,6 +287,16 @@ const LIMITER_TO_METRIC: Record<string, string> = {
   neuromuscular: "Économie",
 };
 
+/** Reverse map: metric name → limiter type */
+const METRIC_TO_LIMITER: Record<string, string> = {
+  "FTP/kg": "aerobic_engine",
+  "VO2max": "aerobic_engine",
+  "VLamax": "glycolytic",
+  "TTE": "specific_endurance",
+  "FatMax": "metabolic_efficiency",
+  "Économie": "neuromuscular",
+};
+
 function getLimiterImpact(limiterResult: UnifiedLimiterResult): number {
   const metricName = LIMITER_TO_METRIC[limiterResult.primaryLimiter];
   if (!metricName) return 0;
@@ -295,9 +305,57 @@ function getLimiterImpact(limiterResult: UnifiedLimiterResult): number {
 }
 
 function getAllowedTolerance(impact: number): number {
-  if (impact >= 20) return 5;  // Strong limiter → full ±5%
-  if (impact >= 10) return 3;  // Moderate → ±3%
-  return 0;                    // Weak → no tolerance
+  if (impact >= 20) return 5;
+  if (impact >= 10) return 3;
+  return 0;
+}
+
+/** Derive the secondary limiter type from gapAnalysis (2nd highest weightedImpact) */
+function getSecondaryLimiter(limiterResult: UnifiedLimiterResult): { limiter: string; impact: number; label: string } | null {
+  const sorted = [...limiterResult.gapAnalysis].sort((a, b) => b.weightedImpact - a.weightedImpact);
+  // Skip the first (primary), find the next one with significant impact
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i].weightedImpact > 5) {
+      const limiterType = METRIC_TO_LIMITER[sorted[i].metric];
+      if (limiterType && limiterType !== limiterResult.primaryLimiter) {
+        return { limiter: limiterType, impact: sorted[i].weightedImpact, label: sorted[i].metric };
+      }
+    }
+  }
+  return null;
+}
+
+function tryJustify(
+  sport: string,
+  status: GaugeStatus,
+  deviationSize: number,
+  limiterType: string,
+  impact: number,
+  label: string,
+  isPrimary: boolean,
+): { justified: boolean; reason: string; impact: number; tolerance: number } | null {
+  const tolerance = isPrimary ? getAllowedTolerance(impact) : Math.max(getAllowedTolerance(impact) - 1, 0);
+  const rules = LIMITER_SPORT_JUSTIFICATIONS[limiterType];
+  if (!rules) return null;
+
+  const match = rules.find(r => r.sport === sport && r.direction === status);
+  if (!match) return null;
+
+  const tag = isPrimary ? "" : " [L2]";
+  if (deviationSize <= tolerance) {
+    return {
+      justified: true,
+      reason: `${match.reason} (±${tolerance}%, impact ${Math.round(impact)})${tag}`,
+      impact,
+      tolerance,
+    };
+  }
+  return {
+    justified: false,
+    reason: `${match.reason} mais écart ${Math.round(deviationSize)}% > ±${tolerance}%${tag}`,
+    impact,
+    tolerance,
+  };
 }
 
 function getDeviationJustification(
@@ -311,53 +369,34 @@ function getDeviationJustification(
   const limiter = limiterResult.primaryLimiter;
   if (limiter === "none" || limiter === "availability") return null;
 
-  const impact = getLimiterImpact(limiterResult);
-  const tolerance = getAllowedTolerance(impact);
-  const rules = LIMITER_SPORT_JUSTIFICATIONS[limiter];
+  const deviationSize = status === "below" ? refMin - actualPct : actualPct - refMax;
+  const primaryImpact = getLimiterImpact(limiterResult);
 
-  // Check if deviation is within tolerance even if outside ref range
-  const deviationSize = status === "below"
-    ? refMin - actualPct
-    : actualPct - refMax;
+  // Try primary limiter first
+  const primaryResult = tryJustify(sport, status, deviationSize, limiter, primaryImpact, limiterResult.limiterLabel, true);
+  if (primaryResult?.justified) return primaryResult;
 
-  if (!rules) {
-    return {
-      justified: deviationSize <= tolerance,
-      reason: deviationSize <= tolerance
-        ? `±${tolerance}% toléré (impact ${Math.round(impact)})`
-        : `Écart ${Math.round(deviationSize)}% non justifié`,
-      impact,
-      tolerance,
-    };
+  // Try secondary limiter
+  const secondary = getSecondaryLimiter(limiterResult);
+  if (secondary) {
+    const secondaryResult = tryJustify(sport, status, deviationSize, secondary.limiter, secondary.impact, secondary.label, false);
+    if (secondaryResult?.justified) return secondaryResult;
+    // If secondary matched direction but exceeded tolerance, return that info
+    if (secondaryResult) return secondaryResult;
   }
 
-  const match = rules.find(r => r.sport === sport && r.direction === status);
-  if (match && deviationSize <= tolerance) {
-    return {
-      justified: true,
-      reason: `${match.reason} (±${tolerance}%, impact ${Math.round(impact)})`,
-      impact,
-      tolerance,
-    };
-  }
+  // If primary matched direction but exceeded tolerance, return that
+  if (primaryResult) return primaryResult;
 
-  if (match && deviationSize > tolerance) {
-    return {
-      justified: false,
-      reason: `${match.reason} mais écart ${Math.round(deviationSize)}% > tolérance ±${tolerance}%`,
-      impact,
-      tolerance,
-    };
-  }
-
-  // Deviation direction not justified by this limiter
+  // Neither limiter justifies this deviation
   const deviation = status === "above" ? "Excès" : "Déficit";
   return {
     justified: false,
-    reason: `${deviation} ${Math.round(deviationSize)}% non justifié par ${limiterResult.limiterLabel}`,
-    impact,
-    tolerance,
+    reason: `${deviation} ${Math.round(deviationSize)}% non justifié`,
+    impact: primaryImpact,
+    tolerance: getAllowedTolerance(primaryImpact),
   };
+}
 }
 
 export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limiterResult }: AIPlanBenchmarkProps) {
