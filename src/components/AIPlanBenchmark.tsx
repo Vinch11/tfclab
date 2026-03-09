@@ -241,160 +241,58 @@ function GaugeRow({ label, value, refMin, refMax, eliteMin, eliteMax, unit, icon
 }
 
 /**
- * Maps limiter → justified sport ratio deviations based on physiological logic.
- * The tolerance allowed depends on the limiter's weightedImpact from gapAnalysis:
- *   - Impact ≥ 20 → ±5% tolerance (strong justification)
- *   - Impact ≥ 10 → ±3% tolerance (moderate justification)
- *   - Impact < 10  → no tolerance (weak justification)
- *
- * Scientific rationale per limiter:
- * - aerobic_engine → +Bike (FTP/SFR), +Run (VO2max intervals) — Billat, Rønnestad
- * - glycolytic → +Bike (long Z2 to suppress VLamax) — Mader-Heck model
- * - metabolic_efficiency → +Bike (Z2 fat oxidation) — Brooks Lactate Shuttle
- * - specific_endurance → +Bike (sweet spot), +Run (tempo) — Skiba W' model
- * - neuromuscular → +Run (economy drills), +Swim (technique) — Paavolainen
+ * Maps limiter → justified sport ratio deviations based on physiological logic:
+ * - aerobic_engine → +Bike (FTP), +Run (VO2max intervals)
+ * - glycolytic → +Bike (long Z2 to suppress VLamax)
+ * - metabolic_efficiency → +Bike (Z2 fat oxidation)
+ * - specific_endurance → +Bike (sweet spot volume)
+ * - neuromuscular → +Run (economy drills, cadence work)
  */
 const LIMITER_SPORT_JUSTIFICATIONS: Record<string, { sport: string; direction: GaugeStatus; reason: string }[]> = {
   aerobic_engine: [
-    { sport: "Vélo", direction: "above", reason: "FTP/VO2max: +vélo justifié" },
-    { sport: "Course", direction: "above", reason: "VO2max: +CAP justifié" },
-    { sport: "Natation", direction: "below", reason: "Priorité moteur aérobie" },
+    { sport: "Vélo", direction: "above", reason: "FTP/VO2max: +volume vélo justifié" },
+    { sport: "Course", direction: "above", reason: "VO2max: +intervalles CAP justifié" },
+    { sport: "Natation", direction: "below", reason: "Priorité moteur aérobie vélo/CAP" },
   ],
   glycolytic: [
     { sport: "Vélo", direction: "above", reason: "VLamax↓: +Z2 vélo justifié" },
-    { sport: "Course", direction: "below", reason: "VLamax↓: priorité vélo Z2" },
+    { sport: "Course", direction: "below", reason: "VLamax↓: priorité volume Z2 vélo" },
   ],
   metabolic_efficiency: [
-    { sport: "Vélo", direction: "above", reason: "FatMax↑: +Z2 vélo justifié" },
+    { sport: "Vélo", direction: "above", reason: "FatMax↑: +Z2 vélo long justifié" },
     { sport: "Course", direction: "below", reason: "FatMax↑: priorité vélo Z2" },
   ],
   specific_endurance: [
-    { sport: "Vélo", direction: "above", reason: "TTE↑: +sweet spot vélo" },
-    { sport: "Course", direction: "above", reason: "TTE↑: +tempo CAP" },
+    { sport: "Vélo", direction: "above", reason: "TTE↑: +sweet spot vélo justifié" },
+    { sport: "Course", direction: "above", reason: "TTE↑: +tempo CAP justifié" },
   ],
   neuromuscular: [
-    { sport: "Course", direction: "above", reason: "Économie: +drills CAP" },
+    { sport: "Course", direction: "above", reason: "Économie: +drills/cadence CAP" },
     { sport: "Natation", direction: "above", reason: "Économie: +technique nage" },
   ],
 };
 
-/** Map limiter types to gapAnalysis metric names for impact lookup */
-const LIMITER_TO_METRIC: Record<string, string> = {
-  aerobic_engine: "VO2max",
-  glycolytic: "VLamax",
-  specific_endurance: "TTE",
-  metabolic_efficiency: "FatMax",
-  neuromuscular: "Économie",
-};
-
-/** Reverse map: metric name → limiter type */
-const METRIC_TO_LIMITER: Record<string, string> = {
-  "FTP/kg": "aerobic_engine",
-  "VO2max": "aerobic_engine",
-  "VLamax": "glycolytic",
-  "TTE": "specific_endurance",
-  "FatMax": "metabolic_efficiency",
-  "Économie": "neuromuscular",
-};
-
-function getLimiterImpact(limiterResult: UnifiedLimiterResult): number {
-  const metricName = LIMITER_TO_METRIC[limiterResult.primaryLimiter];
-  if (!metricName) return 0;
-  const gap = limiterResult.gapAnalysis.find(g => g.metric.includes(metricName));
-  return gap ? Math.abs(gap.weightedImpact) : 0;
-}
-
-function getAllowedTolerance(impact: number): number {
-  if (impact >= 20) return 5;
-  if (impact >= 10) return 3;
-  return 0;
-}
-
-/** Derive the secondary limiter type from gapAnalysis (2nd highest weightedImpact) */
-function getSecondaryLimiter(limiterResult: UnifiedLimiterResult): { limiter: string; impact: number; label: string } | null {
-  const sorted = [...limiterResult.gapAnalysis].sort((a, b) => b.weightedImpact - a.weightedImpact);
-  // Skip the first (primary), find the next one with significant impact
-  for (let i = 1; i < sorted.length; i++) {
-    if (sorted[i].weightedImpact > 5) {
-      const limiterType = METRIC_TO_LIMITER[sorted[i].metric];
-      if (limiterType && limiterType !== limiterResult.primaryLimiter) {
-        return { limiter: limiterType, impact: sorted[i].weightedImpact, label: sorted[i].metric };
-      }
-    }
-  }
-  return null;
-}
-
-function tryJustify(
-  sport: string,
-  status: GaugeStatus,
-  deviationSize: number,
-  limiterType: string,
-  impact: number,
-  label: string,
-  isPrimary: boolean,
-): { justified: boolean; reason: string; impact: number; tolerance: number } | null {
-  const tolerance = isPrimary ? getAllowedTolerance(impact) : Math.max(getAllowedTolerance(impact) - 1, 0);
-  const rules = LIMITER_SPORT_JUSTIFICATIONS[limiterType];
-  if (!rules) return null;
-
-  const match = rules.find(r => r.sport === sport && r.direction === status);
-  if (!match) return null;
-
-  const tag = isPrimary ? "" : " [L2]";
-  if (deviationSize <= tolerance) {
-    return {
-      justified: true,
-      reason: `${match.reason} (±${tolerance}%, impact ${Math.round(impact)})${tag}`,
-      impact,
-      tolerance,
-    };
-  }
-  return {
-    justified: false,
-    reason: `${match.reason} mais écart ${Math.round(deviationSize)}% > ±${tolerance}%${tag}`,
-    impact,
-    tolerance,
-  };
-}
-
 function getDeviationJustification(
   sport: string,
   status: GaugeStatus,
-  actualPct: number,
-  refMin: number,
-  refMax: number,
   limiterResult: UnifiedLimiterResult
-): { justified: boolean; reason: string; impact: number; tolerance: number } | null {
+): { justified: boolean; reason: string } | null {
   const limiter = limiterResult.primaryLimiter;
   if (limiter === "none" || limiter === "availability") return null;
 
-  const deviationSize = status === "below" ? refMin - actualPct : actualPct - refMax;
-  const primaryImpact = getLimiterImpact(limiterResult);
+  const rules = LIMITER_SPORT_JUSTIFICATIONS[limiter];
+  if (!rules) return null;
 
-  // Try primary limiter first
-  const primaryResult = tryJustify(sport, status, deviationSize, limiter, primaryImpact, limiterResult.limiterLabel, true);
-  if (primaryResult?.justified) return primaryResult;
-
-  // Try secondary limiter
-  const secondary = getSecondaryLimiter(limiterResult);
-  if (secondary) {
-    const secondaryResult = tryJustify(sport, status, deviationSize, secondary.limiter, secondary.impact, secondary.label, false);
-    if (secondaryResult?.justified) return secondaryResult;
-    // If secondary matched direction but exceeded tolerance, return that info
-    if (secondaryResult) return secondaryResult;
+  const match = rules.find(r => r.sport === sport && r.direction === status);
+  if (match) {
+    return { justified: true, reason: match.reason };
   }
 
-  // If primary matched direction but exceeded tolerance, return that
-  if (primaryResult) return primaryResult;
-
-  // Neither limiter justifies this deviation
+  // Deviation exists but NOT justified by limiter
   const deviation = status === "above" ? "Excès" : "Déficit";
   return {
     justified: false,
-    reason: `${deviation} ${Math.round(deviationSize)}% non justifié`,
-    impact: primaryImpact,
-    tolerance: getAllowedTolerance(primaryImpact),
+    reason: `${deviation} non justifié par ${limiterResult.limiterLabel}`,
   };
 }
 
@@ -494,7 +392,7 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
               {sportComparisons.map(sc => {
                 const status = getGaugeStatus(sc.pct, sc.refMin, sc.refMax);
                 const justification = status !== "in_range" && limiterResult
-                  ? getDeviationJustification(sc.sport, status, sc.pct, sc.refMin, sc.refMax, limiterResult)
+                  ? getDeviationJustification(sc.sport, status, limiterResult)
                   : null;
                 return (
                   <div key={sc.sport} className="text-center space-y-1">
@@ -515,43 +413,13 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
                 );
               })}
             </div>
-            {limiterResult && limiterResult.primaryLimiter !== "none" && (() => {
-              const impact = getLimiterImpact(limiterResult);
-              const tolerance = getAllowedTolerance(impact);
-              const secondary = getSecondaryLimiter(limiterResult);
-              const secTolerance = secondary ? Math.max(getAllowedTolerance(secondary.impact) - 1, 0) : 0;
-              return (
-                <div className="text-[10px] text-muted-foreground bg-muted/50 rounded p-2 mt-1 space-y-1.5">
-                  <div>
-                    <span className="font-semibold">{limiterResult.limiterEmoji} L1 :</span>{" "}
-                    {limiterResult.limiterLabel}
-                    {" — "}{limiterResult.leverEmoji} {limiterResult.leverLabel}
-                    <span className="ml-2">Impact: <strong>{Math.round(impact)}</strong> → ±{tolerance}%</span>
-                  </div>
-                  {secondary && (
-                    <div>
-                      <span className="font-semibold">🔹 L2 :</span>{" "}
-                      {secondary.label}
-                      <span className="ml-2">Impact: <strong>{Math.round(secondary.impact)}</strong> → ±{secTolerance}%</span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className={`px-1.5 py-0.5 rounded ${
-                      impact >= 20 ? "bg-green-500/15 text-green-700 dark:text-green-300" :
-                      impact >= 10 ? "bg-amber-500/15 text-amber-700 dark:text-amber-300" :
-                      "bg-destructive/15 text-destructive"
-                    }`}>
-                      {impact >= 20 ? "Justification forte" : impact >= 10 ? "Justification modérée" : "Justification faible"}
-                    </span>
-                    {secondary && !limiterResult.isRobust && (
-                      <span className="px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300">
-                        Décision non-robuste (L1 ≈ L2)
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })()}
+            {limiterResult && limiterResult.primaryLimiter !== "none" && (
+              <div className="text-[10px] text-muted-foreground bg-muted/50 rounded p-2 mt-1">
+                <span className="font-semibold">{limiterResult.limiterEmoji} Limiteur principal :</span>{" "}
+                {limiterResult.limiterLabel} (impact: {Math.round(limiterResult.robustnessScore)}%)
+                {" — "}Levier: {limiterResult.leverEmoji} {limiterResult.leverLabel}
+              </div>
+            )}
           </div>
         )}
 
