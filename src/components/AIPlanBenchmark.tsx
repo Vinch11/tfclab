@@ -11,12 +11,14 @@ import {
 } from "lucide-react";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { getEliteReference, getEliteCeilingReference, type EliteReference } from "@/lib/eliteReferences";
+import type { UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
 
 interface AIPlanBenchmarkProps {
   plan: ParsedPlan;
   objective: string;
   ambition: string;
   athleteName?: string;
+  limiterResult?: UnifiedLimiterResult | null;
 }
 
 interface MetricGauge {
