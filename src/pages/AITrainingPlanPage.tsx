@@ -211,6 +211,7 @@ export default function AITrainingPlanPage() {
       if (savedState.constraints) setConstraints(savedState.constraints);
       if (savedState.maxSessionsPerDay) setMaxSessionsPerDay(savedState.maxSessionsPerDay);
       if (savedState.strengthSessionsPerWeek) setStrengthSessionsPerWeek(savedState.strengthSessionsPerWeek);
+      if (savedState.raceGoals && Array.isArray(savedState.raceGoals)) setRaceGoals(savedState.raceGoals);
     } else {
       // No saved state — use athlete defaults
       if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
@@ -240,9 +241,10 @@ export default function AITrainingPlanPage() {
       constraints,
       maxSessionsPerDay,
       strengthSessionsPerWeek,
+      raceGoals,
     };
     localStorage.setItem(persistKey, JSON.stringify(state));
-  }, [isMultiMode, persistKey, isLoading, response, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek]);
+  }, [isMultiMode, persistKey, isLoading, response, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, raceGoals]);
 
   // Compute athlete context for a given athlete
   const computeAthleteContext = useCallback((athlete: any, obj: string, amb: string): AthleteComputedContext | null => {
