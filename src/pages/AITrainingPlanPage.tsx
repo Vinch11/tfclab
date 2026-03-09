@@ -1375,6 +1375,7 @@ export default function AITrainingPlanPage() {
                         objective={objective}
                         ambition={ambition}
                         athleteName={currentAthlete?.nom}
+                        limiterResult={athleteContext?.limiterResult ?? null}
                       />
                       <RacePaceSimulation
                         objective={objective}

@@ -11,12 +11,14 @@ import {
 } from "lucide-react";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { getEliteReference, getEliteCeilingReference, type EliteReference } from "@/lib/eliteReferences";
+import type { UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
 
 interface AIPlanBenchmarkProps {
   plan: ParsedPlan;
   objective: string;
   ambition: string;
   athleteName?: string;
+  limiterResult?: UnifiedLimiterResult | null;
 }
 
 interface MetricGauge {
@@ -238,7 +240,63 @@ function GaugeRow({ label, value, refMin, refMax, eliteMin, eliteMax, unit, icon
   );
 }
 
-export function AIPlanBenchmark({ plan, objective, ambition, athleteName }: AIPlanBenchmarkProps) {
+/**
+ * Maps limiter → justified sport ratio deviations based on physiological logic:
+ * - aerobic_engine → +Bike (FTP), +Run (VO2max intervals)
+ * - glycolytic → +Bike (long Z2 to suppress VLamax)
+ * - metabolic_efficiency → +Bike (Z2 fat oxidation)
+ * - specific_endurance → +Bike (sweet spot volume)
+ * - neuromuscular → +Run (economy drills, cadence work)
+ */
+const LIMITER_SPORT_JUSTIFICATIONS: Record<string, { sport: string; direction: GaugeStatus; reason: string }[]> = {
+  aerobic_engine: [
+    { sport: "Vélo", direction: "above", reason: "FTP/VO2max: +volume vélo justifié" },
+    { sport: "Course", direction: "above", reason: "VO2max: +intervalles CAP justifié" },
+    { sport: "Natation", direction: "below", reason: "Priorité moteur aérobie vélo/CAP" },
+  ],
+  glycolytic: [
+    { sport: "Vélo", direction: "above", reason: "VLamax↓: +Z2 vélo justifié" },
+    { sport: "Course", direction: "below", reason: "VLamax↓: priorité volume Z2 vélo" },
+  ],
+  metabolic_efficiency: [
+    { sport: "Vélo", direction: "above", reason: "FatMax↑: +Z2 vélo long justifié" },
+    { sport: "Course", direction: "below", reason: "FatMax↑: priorité vélo Z2" },
+  ],
+  specific_endurance: [
+    { sport: "Vélo", direction: "above", reason: "TTE↑: +sweet spot vélo justifié" },
+    { sport: "Course", direction: "above", reason: "TTE↑: +tempo CAP justifié" },
+  ],
+  neuromuscular: [
+    { sport: "Course", direction: "above", reason: "Économie: +drills/cadence CAP" },
+    { sport: "Natation", direction: "above", reason: "Économie: +technique nage" },
+  ],
+};
+
+function getDeviationJustification(
+  sport: string,
+  status: GaugeStatus,
+  limiterResult: UnifiedLimiterResult
+): { justified: boolean; reason: string } | null {
+  const limiter = limiterResult.primaryLimiter;
+  if (limiter === "none" || limiter === "availability") return null;
+
+  const rules = LIMITER_SPORT_JUSTIFICATIONS[limiter];
+  if (!rules) return null;
+
+  const match = rules.find(r => r.sport === sport && r.direction === status);
+  if (match) {
+    return { justified: true, reason: match.reason };
+  }
+
+  // Deviation exists but NOT justified by limiter
+  const deviation = status === "above" ? "Excès" : "Déficit";
+  return {
+    justified: false,
+    reason: `${deviation} non justifié par ${limiterResult.limiterLabel}`,
+  };
+}
+
+export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limiterResult }: AIPlanBenchmarkProps) {
   const metrics = useMemo(() => computePlanMetrics(plan), [plan]);
   const ref = useMemo(() => getEliteReference(objective, ambition), [objective, ambition]);
   const eliteRef = useMemo(() => getEliteCeilingReference(objective), [objective]);
@@ -333,6 +391,9 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName }: AIPl
             <div className="grid grid-cols-3 gap-3">
               {sportComparisons.map(sc => {
                 const status = getGaugeStatus(sc.pct, sc.refMin, sc.refMax);
+                const justification = status !== "in_range" && limiterResult
+                  ? getDeviationJustification(sc.sport, status, limiterResult)
+                  : null;
                 return (
                   <div key={sc.sport} className="text-center space-y-1">
                     <div className="text-xs text-muted-foreground">{sc.sport}</div>
@@ -341,10 +402,24 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName }: AIPl
                     <Badge className={`text-[9px] ${statusColor(status)}`}>
                       <StatusIcon status={status} />
                     </Badge>
+                    {justification && (
+                      <div className={`text-[9px] mt-0.5 px-1 py-0.5 rounded ${justification.justified
+                        ? "bg-green-500/10 text-green-700 dark:text-green-300"
+                        : "bg-amber-500/10 text-amber-700 dark:text-amber-300"}`}>
+                        {justification.justified ? "✅" : "⚠️"} {justification.reason}
+                      </div>
+                    )}
                   </div>
                 );
               })}
             </div>
+            {limiterResult && limiterResult.primaryLimiter !== "none" && (
+              <div className="text-[10px] text-muted-foreground bg-muted/50 rounded p-2 mt-1">
+                <span className="font-semibold">{limiterResult.limiterEmoji} Limiteur principal :</span>{" "}
+                {limiterResult.limiterLabel} (impact: {Math.round(limiterResult.robustnessScore)}%)
+                {" — "}Levier: {limiterResult.leverEmoji} {limiterResult.leverLabel}
+              </div>
+            )}
           </div>
         )}
 
