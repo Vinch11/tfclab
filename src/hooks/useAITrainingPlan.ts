@@ -63,8 +63,12 @@ export function useAITrainingPlan() {
     setIsLoading(true);
 
     const totalWeeks = planConfig.weeksAvailable || 12;
-    const CHUNK_SIZE = 8;
-    const totalChunks = totalWeeks > 12 ? Math.ceil(totalWeeks / CHUNK_SIZE) : 1;
+    // Match edge function's dynamic chunk sizing
+    const obj = (planConfig.objective || "").toUpperCase();
+    const isVerbose = /IRON|IM\b|703|70\.3|TRIATHLON|TRI\b/i.test(obj);
+    const CHUNK_SIZE = isVerbose ? (totalWeeks > 20 ? 3 : 4) : (totalWeeks > 20 ? 4 : 6);
+    const needsChunking = totalWeeks > 10;
+    const totalChunks = needsChunking ? Math.ceil(totalWeeks / CHUNK_SIZE) : 1;
     setChunkProgress(totalChunks > 1 ? { currentWeek: 0, totalWeeks, currentChunk: 1, totalChunks } : null);
 
     try {
