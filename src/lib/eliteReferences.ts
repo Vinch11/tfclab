@@ -22,7 +22,7 @@ export interface EliteReference {
 
 const ELITE_REFS: EliteReference[] = [
   // ELITE
-  { objective: "IM", ambition: "ELITE", label: "Ironman Élite", weeklyHours: [20, 30], weeklyKmRun: [50, 70], sessionsPerWeek: [12, 16], doublesPerWeek: [8, 12], keySessions: [3, 4], progressionPct: [5, 8], loadPattern: "3:1", swimPct: [15, 20], bikePct: [45, 55], runPct: [25, 35], longRunMax: "5-6h vélo" },
+  { objective: "IM", ambition: "ELITE", label: "Ironman Élite", weeklyHours: [20, 30], weeklyKmRun: [50, 70], sessionsPerWeek: [12, 16], doublesPerWeek: [8, 12], keySessions: [3, 4], progressionPct: [5, 8], loadPattern: "3:1", swimPct: [15, 20], bikePct: [45, 55], runPct: [25, 30], longRunMax: "5-6h vélo" },
   { objective: "703", ambition: "ELITE", label: "70.3 Élite", weeklyHours: [15, 22], weeklyKmRun: [50, 70], sessionsPerWeek: [10, 14], doublesPerWeek: [5, 8], keySessions: [3, 3], progressionPct: [5, 8], loadPattern: "3:1", swimPct: [15, 20], bikePct: [40, 50], runPct: [30, 40], longRunMax: "3.5-4h vélo" },
   { objective: "Marathon", ambition: "ELITE", label: "Marathon Élite", weeklyHours: [12, 16], weeklyKmRun: [140, 190], sessionsPerWeek: [10, 13], doublesPerWeek: [4, 6], keySessions: [3, 3], progressionPct: [5, 8], loadPattern: "3:1", longRunMax: "35-38km" },
   { objective: "Semi", ambition: "ELITE", label: "Semi Élite", weeklyHours: [10, 14], weeklyKmRun: [100, 140], sessionsPerWeek: [8, 11], doublesPerWeek: [3, 5], keySessions: [3, 3], progressionPct: [5, 8], loadPattern: "3:1", longRunMax: "22-25km" },
