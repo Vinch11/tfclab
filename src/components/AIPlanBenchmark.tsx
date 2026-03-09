@@ -51,7 +51,13 @@ function computePlanMetrics(plan: ParsedPlan) {
       totalSessions++;
       weekActive++;
       const sport = categorizeSport(s.sport);
-      sportCounts[sport] = (sportCounts[sport] || 0) + 1;
+      // Split Brick sessions 50/50 between Vélo and Course for accurate tri distribution
+      if (sport === "Brick") {
+        sportCounts["Vélo"] = (sportCounts["Vélo"] || 0) + 0.5;
+        sportCounts["Course"] = (sportCounts["Course"] || 0) + 0.5;
+      } else {
+        sportCounts[sport] = (sportCounts[sport] || 0) + 1;
+      }
     }
     weeklySessionCounts.push(weekActive);
   }
