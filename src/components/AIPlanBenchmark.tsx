@@ -240,6 +240,62 @@ function GaugeRow({ label, value, refMin, refMax, eliteMin, eliteMax, unit, icon
   );
 }
 
+/**
+ * Maps limiter → justified sport ratio deviations based on physiological logic:
+ * - aerobic_engine → +Bike (FTP), +Run (VO2max intervals)
+ * - glycolytic → +Bike (long Z2 to suppress VLamax)
+ * - metabolic_efficiency → +Bike (Z2 fat oxidation)
+ * - specific_endurance → +Bike (sweet spot volume)
+ * - neuromuscular → +Run (economy drills, cadence work)
+ */
+const LIMITER_SPORT_JUSTIFICATIONS: Record<string, { sport: string; direction: GaugeStatus; reason: string }[]> = {
+  aerobic_engine: [
+    { sport: "Vélo", direction: "above", reason: "FTP/VO2max: +volume vélo justifié" },
+    { sport: "Course", direction: "above", reason: "VO2max: +intervalles CAP justifié" },
+    { sport: "Natation", direction: "below", reason: "Priorité moteur aérobie vélo/CAP" },
+  ],
+  glycolytic: [
+    { sport: "Vélo", direction: "above", reason: "VLamax↓: +Z2 vélo justifié" },
+    { sport: "Course", direction: "below", reason: "VLamax↓: priorité volume Z2 vélo" },
+  ],
+  metabolic_efficiency: [
+    { sport: "Vélo", direction: "above", reason: "FatMax↑: +Z2 vélo long justifié" },
+    { sport: "Course", direction: "below", reason: "FatMax↑: priorité vélo Z2" },
+  ],
+  specific_endurance: [
+    { sport: "Vélo", direction: "above", reason: "TTE↑: +sweet spot vélo justifié" },
+    { sport: "Course", direction: "above", reason: "TTE↑: +tempo CAP justifié" },
+  ],
+  neuromuscular: [
+    { sport: "Course", direction: "above", reason: "Économie: +drills/cadence CAP" },
+    { sport: "Natation", direction: "above", reason: "Économie: +technique nage" },
+  ],
+};
+
+function getDeviationJustification(
+  sport: string,
+  status: GaugeStatus,
+  limiterResult: UnifiedLimiterResult
+): { justified: boolean; reason: string } | null {
+  const limiter = limiterResult.primaryLimiter;
+  if (limiter === "none" || limiter === "availability") return null;
+
+  const rules = LIMITER_SPORT_JUSTIFICATIONS[limiter];
+  if (!rules) return null;
+
+  const match = rules.find(r => r.sport === sport && r.direction === status);
+  if (match) {
+    return { justified: true, reason: match.reason };
+  }
+
+  // Deviation exists but NOT justified by limiter
+  const deviation = status === "above" ? "Excès" : "Déficit";
+  return {
+    justified: false,
+    reason: `${deviation} non justifié par ${limiterResult.limiterLabel}`,
+  };
+}
+
 export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limiterResult }: AIPlanBenchmarkProps) {
   const metrics = useMemo(() => computePlanMetrics(plan), [plan]);
   const ref = useMemo(() => getEliteReference(objective, ambition), [objective, ambition]);
