@@ -240,7 +240,7 @@ function GaugeRow({ label, value, refMin, refMax, eliteMin, eliteMax, unit, icon
   );
 }
 
-export function AIPlanBenchmark({ plan, objective, ambition, athleteName }: AIPlanBenchmarkProps) {
+export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limiterResult }: AIPlanBenchmarkProps) {
   const metrics = useMemo(() => computePlanMetrics(plan), [plan]);
   const ref = useMemo(() => getEliteReference(objective, ambition), [objective, ambition]);
   const eliteRef = useMemo(() => getEliteCeilingReference(objective), [objective]);
