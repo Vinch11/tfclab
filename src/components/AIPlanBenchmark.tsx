@@ -335,6 +335,9 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
             <div className="grid grid-cols-3 gap-3">
               {sportComparisons.map(sc => {
                 const status = getGaugeStatus(sc.pct, sc.refMin, sc.refMax);
+                const justification = status !== "in_range" && limiterResult
+                  ? getDeviationJustification(sc.sport, status, limiterResult)
+                  : null;
                 return (
                   <div key={sc.sport} className="text-center space-y-1">
                     <div className="text-xs text-muted-foreground">{sc.sport}</div>
@@ -343,10 +346,24 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
                     <Badge className={`text-[9px] ${statusColor(status)}`}>
                       <StatusIcon status={status} />
                     </Badge>
+                    {justification && (
+                      <div className={`text-[9px] mt-0.5 px-1 py-0.5 rounded ${justification.justified
+                        ? "bg-green-500/10 text-green-700 dark:text-green-300"
+                        : "bg-amber-500/10 text-amber-700 dark:text-amber-300"}`}>
+                        {justification.justified ? "✅" : "⚠️"} {justification.reason}
+                      </div>
+                    )}
                   </div>
                 );
               })}
             </div>
+            {limiterResult && limiterResult.primaryLimiter !== "none" && (
+              <div className="text-[10px] text-muted-foreground bg-muted/50 rounded p-2 mt-1">
+                <span className="font-semibold">{limiterResult.limiterEmoji} Limiteur principal :</span>{" "}
+                {limiterResult.limiterLabel} (impact: {Math.round(limiterResult.robustnessScore)}%)
+                {" — "}Levier: {limiterResult.leverEmoji} {limiterResult.leverLabel}
+              </div>
+            )}
           </div>
         )}
 
