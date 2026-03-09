@@ -1196,7 +1196,7 @@ export default function AITrainingPlanPage() {
                   <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                     {chunkProgress && chunkProgress.totalChunks > 1
-                      ? `Bloc ${chunkProgress.currentChunk}/${chunkProgress.totalChunks} — S${chunkProgress.currentWeek}/${chunkProgress.totalWeeks}`
+                      ? `Bloc ${chunkProgress.currentChunk}/${chunkProgress.totalChunks} en cours... (S${chunkProgress.currentWeek}/${chunkProgress.totalWeeks})`
                       : "Génération en cours..."}
                   </>
                 ) : (
