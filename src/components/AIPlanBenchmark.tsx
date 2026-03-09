@@ -456,7 +456,7 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
               {sportComparisons.map(sc => {
                 const status = getGaugeStatus(sc.pct, sc.refMin, sc.refMax);
                 const justification = status !== "in_range" && limiterResult
-                  ? getDeviationJustification(sc.sport, status, limiterResult)
+                  ? getDeviationJustification(sc.sport, status, sc.pct, sc.refMin, sc.refMax, limiterResult)
                   : null;
                 return (
                   <div key={sc.sport} className="text-center space-y-1">
