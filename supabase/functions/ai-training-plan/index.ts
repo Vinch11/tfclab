@@ -139,7 +139,7 @@ Générer un plan d'entraînement COMPLET ET INTÉGRAL couvrant TOUTES les semai
 | Sport | % Volume | Séances/sem | Clés |
 |-------|----------|-------------|------|
 | Vélo | 45-55% | 4-5 | Sorties longues 4-6h Z2, SFR, sweet spot 88-93% FTP |
-| CAP | 20-25% | 3-4 | Briques prioritaires. Allure IM = 80-85% VMA. Max 2h30 |
+| CAP | 25-30% | 3-4 | Briques prioritaires. Allure IM = 80-85% VMA. Max 2h30 |
 | Natation | 15-20% | 4-5 | 3-4km/séance. CSS + technique + OWS. Volume constant toute la prépa |
 | Renfo | 5-10% | 2 | Core, prévention, force fonctionnelle |
 ⚠️ Chaque semaine : min 3 natation, 3 vélo, 3 CAP. 1-2 briques/sem en phase spécifique.
