@@ -518,16 +518,24 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
             {limiterResult && limiterResult.primaryLimiter !== "none" && (() => {
               const impact = getLimiterImpact(limiterResult);
               const tolerance = getAllowedTolerance(impact);
+              const secondary = getSecondaryLimiter(limiterResult);
+              const secTolerance = secondary ? Math.max(getAllowedTolerance(secondary.impact) - 1, 0) : 0;
               return (
-                <div className="text-[10px] text-muted-foreground bg-muted/50 rounded p-2 mt-1 space-y-1">
+                <div className="text-[10px] text-muted-foreground bg-muted/50 rounded p-2 mt-1 space-y-1.5">
                   <div>
-                    <span className="font-semibold">{limiterResult.limiterEmoji} Limiteur principal :</span>{" "}
+                    <span className="font-semibold">{limiterResult.limiterEmoji} L1 :</span>{" "}
                     {limiterResult.limiterLabel}
-                    {" — "}Levier: {limiterResult.leverEmoji} {limiterResult.leverLabel}
+                    {" — "}{limiterResult.leverEmoji} {limiterResult.leverLabel}
+                    <span className="ml-2">Impact: <strong>{Math.round(impact)}</strong> → ±{tolerance}%</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span>Impact pondéré: <strong>{Math.round(impact)}/100</strong></span>
-                    <span>→ Tolérance: <strong>±{tolerance}%</strong></span>
+                  {secondary && (
+                    <div>
+                      <span className="font-semibold">🔹 L2 :</span>{" "}
+                      {secondary.label}
+                      <span className="ml-2">Impact: <strong>{Math.round(secondary.impact)}</strong> → ±{secTolerance}%</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 mt-1">
                     <span className={`px-1.5 py-0.5 rounded ${
                       impact >= 20 ? "bg-green-500/15 text-green-700 dark:text-green-300" :
                       impact >= 10 ? "bg-amber-500/15 text-amber-700 dark:text-amber-300" :
@@ -535,6 +543,11 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
                     }`}>
                       {impact >= 20 ? "Justification forte" : impact >= 10 ? "Justification modérée" : "Justification faible"}
                     </span>
+                    {secondary && !limiterResult.isRobust && (
+                      <span className="px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300">
+                        Décision non-robuste (L1 ≈ L2)
+                      </span>
+                    )}
                   </div>
                 </div>
               );
