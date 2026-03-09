@@ -68,8 +68,13 @@ function isRestSession(sport: string, title: string): boolean {
 }
 
 function parseWeekHeader(line: string): { weekNumber: number; theme: string } | null {
-  // Accept both markdown headers (### Semaine 7) and plain lines (Semaine 7)
-  const match = line.match(/^(?:#{2,4}\s*)?\*{0,2}\s*Semaine\s*(\d+)\s*\*{0,2}(?:\s*[—\-–:]\s*(.+))?$/i);
+  // Accept headers like:
+  //   ### Semaine 7 — Theme
+  //   ### Semaine 7 (du 09/03 au 15/03) — Theme
+  //   Semaine 7
+  const match = line.match(
+    /^(?:#{2,4}\s*)?\*{0,2}\s*Semaine\s*(\d+)\s*\*{0,2}(?:\s*\([^)]*\))?(?:\s*[—\-–:]\s*(.+))?$/i
+  );
   if (!match) return null;
   const weekNumber = parseInt(match[1], 10);
   const theme = (match[2] || `Semaine ${weekNumber}`).trim();
