@@ -2497,10 +2497,12 @@ function buildUserPrompt(data: any, config: any): string {
     sortedGoals.forEach((goal: any, idx: number) => {
       const prioEmoji = goal.priority === "A" ? "🅰️ PRINCIPAL" : goal.priority === "B" ? "🅱️ INTERMÉDIAIRE" : "🆎 SECONDAIRE";
       const goalWeek = computeGoalWeek(goal);
-      const weekAnchor = goalWeek ? ` — Échéance: Semaine ${goalWeek}` : "";
+      const bounds = getWeekBounds(goalWeek);
+      const weekAnchor = goalWeek ? ` — Échéance: Semaine ${goalWeek}${bounds ? ` (${bounds.start} → ${bounds.end})` : ""}` : "";
       lines.push(`**Objectif ${idx + 1} — ${prioEmoji}** : ${goal.objective}${goal.raceName ? ` (${goal.raceName})` : ""}${goal.raceDate ? ` — Date : ${goal.raceDate}` : ""}${weekAnchor}`);
       if (goalWeek && goal.raceDate) {
-        lines.push(`→ Ancrage obligatoire : la course ${goal.objective} DOIT apparaître en S${goalWeek} (semaine contenant le ${goal.raceDate}).`);
+        lines.push(`→ Ancrage absolu : la course ${goal.objective} DOIT être planifiée le ${goal.raceDate} (${formatIsoDateFr(goal.raceDate)}), dans S${goalWeek}${bounds ? ` [${bounds.start} → ${bounds.end}]` : ""}.`);
+        lines.push(`→ INTERDIT de la placer une semaine avant/après (ex: ${goal.raceDate} ≠ ${goalWeek > 1 ? `S${goalWeek - 1}` : "S1"}).`);
       }
     });
 
