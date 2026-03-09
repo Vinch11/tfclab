@@ -2867,16 +2867,21 @@ function buildUserPrompt(data: any, config: any): string {
     sortedGoals.forEach((goal: any) => {
       const prioLabel = goal.priority === "A" ? "🅰️ OBJECTIF PRINCIPAL (pic de forme)" : goal.priority === "B" ? "🅱️ OBJECTIF INTERMÉDIAIRE (mini-taper)" : "🆎 SECONDAIRE";
       const goalWeek = computeGoalWeek(goal);
-      const weekInfo = goalWeek ? ` — Semaine cible: S${goalWeek}` : "";
+      const bounds = getWeekBounds(goalWeek);
+      const weekInfo = goalWeek ? ` — Semaine cible: S${goalWeek}${bounds ? ` (${bounds.start} → ${bounds.end})` : ""}` : "";
       lines.push(`- **${goal.objective}**${goal.raceName ? ` — ${goal.raceName}` : ""}${goal.raceDate ? ` — ${goal.raceDate}` : ""}${weekInfo} → ${prioLabel}`);
+      if (goal.raceDate) {
+        lines.push(`  ↳ Date absolue obligatoire: ${goal.raceDate} (${formatIsoDateFr(goal.raceDate)}).`);
+      }
     });
 
     if (goalsB.length > 0) {
       lines.push(`\n### Structure obligatoire pour chaque objectif B/C :`);
       goalsB.forEach((g: any) => {
         const w = computeGoalWeek(g);
+        const bounds = getWeekBounds(w);
         if (w) {
-          lines.push(`- **${g.objective}${g.raceName ? ` (${g.raceName})` : ""}** : mini-taper en S${Math.max(1, w - 1)}, course en S${w}, récupération en S${w + 1}.`);
+          lines.push(`- **${g.objective}${g.raceName ? ` (${g.raceName})` : ""}** : mini-taper en S${Math.max(1, w - 1)}, course en S${w}${bounds ? ` (${bounds.start} → ${bounds.end})` : ""}, récupération en S${w + 1}. Date course IMPÉRATIVE: ${g.raceDate || "n/a"}.`);
         }
       });
       lines.push(`1. **Semaines pré-course B** : les 1-2 semaines avant la course B doivent montrer une RÉDUCTION de volume (-20 à -30%) avec maintien d'intensité courte (mini-taper). Marque-les explicitement "Mini-Taper pour [nom course B]".`);
