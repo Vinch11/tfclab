@@ -1252,7 +1252,7 @@ Utilise ces micro-cycles réels comme modèles de qualité. Adapte-les au niveau
 **Objectif physiologique :** [objectif du bloc, ex: "Reverse Perio VO2max + Force max + Volume Z2 progressif"]
 **Volume cible :** [heures/semaine]
 
-### Semaine 1 — [Thème]
+### Semaine 1 (du JJ/MM au JJ/MM) — [Thème]
 | Jour | Sport | Séance | Détails |
 |------|-------|--------|---------|
 | Lundi matin | Natation | Technique + aérobie | 500m éch drill (sculling, rattrapé). 2500m pull @Z2. 200m RC. 3200m ~55min |
