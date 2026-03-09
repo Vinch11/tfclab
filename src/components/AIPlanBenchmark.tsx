@@ -477,13 +477,30 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
                 );
               })}
             </div>
-            {limiterResult && limiterResult.primaryLimiter !== "none" && (
-              <div className="text-[10px] text-muted-foreground bg-muted/50 rounded p-2 mt-1">
-                <span className="font-semibold">{limiterResult.limiterEmoji} Limiteur principal :</span>{" "}
-                {limiterResult.limiterLabel} (impact: {Math.round(limiterResult.robustnessScore)}%)
-                {" — "}Levier: {limiterResult.leverEmoji} {limiterResult.leverLabel}
-              </div>
-            )}
+            {limiterResult && limiterResult.primaryLimiter !== "none" && (() => {
+              const impact = getLimiterImpact(limiterResult);
+              const tolerance = getAllowedTolerance(impact);
+              return (
+                <div className="text-[10px] text-muted-foreground bg-muted/50 rounded p-2 mt-1 space-y-1">
+                  <div>
+                    <span className="font-semibold">{limiterResult.limiterEmoji} Limiteur principal :</span>{" "}
+                    {limiterResult.limiterLabel}
+                    {" — "}Levier: {limiterResult.leverEmoji} {limiterResult.leverLabel}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span>Impact pondéré: <strong>{Math.round(impact)}/100</strong></span>
+                    <span>→ Tolérance: <strong>±{tolerance}%</strong></span>
+                    <span className={`px-1.5 py-0.5 rounded ${
+                      impact >= 20 ? "bg-green-500/15 text-green-700 dark:text-green-300" :
+                      impact >= 10 ? "bg-amber-500/15 text-amber-700 dark:text-amber-300" :
+                      "bg-destructive/15 text-destructive"
+                    }`}>
+                      {impact >= 20 ? "Justification forte" : impact >= 10 ? "Justification modérée" : "Justification faible"}
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
 
