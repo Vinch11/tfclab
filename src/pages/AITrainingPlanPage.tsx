@@ -211,6 +211,7 @@ export default function AITrainingPlanPage() {
       if (savedState.constraints) setConstraints(savedState.constraints);
       if (savedState.maxSessionsPerDay) setMaxSessionsPerDay(savedState.maxSessionsPerDay);
       if (savedState.strengthSessionsPerWeek) setStrengthSessionsPerWeek(savedState.strengthSessionsPerWeek);
+      if (savedState.raceGoals && Array.isArray(savedState.raceGoals)) setRaceGoals(savedState.raceGoals);
     } else {
       // No saved state — use athlete defaults
       if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
