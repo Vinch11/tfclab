@@ -2585,6 +2585,39 @@ function buildUserPrompt(data: any, config: any): string {
   if (config.ambition) lines.push(`- **Niveau d'ambition :** ${config.ambition}`);
   if (config.constraints) lines.push(`- **Contraintes :** ${config.constraints}`);
 
+  // === CALENDAR MAPPING: inject exact dates for each week so the AI can anchor races precisely ===
+  if (config.planStartDate && config.weeksAvailable) {
+    const startMs = parseIsoDateUtc(config.planStartDate);
+    if (startMs !== undefined) {
+      const totalW = config.weeksAvailable as number;
+      lines.push(`\n### 📅 CALENDRIER ABSOLU (source de vérité pour les dates)`);
+      lines.push(`Le plan commence le ${formatIsoDateFr(config.planStartDate)} (lundi). Voici le calendrier exact :\n`);
+      
+      // Build a lookup of race dates per week for annotation
+      const racesByWeek: Record<number, string[]> = {};
+      if (config.raceGoals) {
+        config.raceGoals.forEach((g: any) => {
+          const w = computeGoalWeek(g);
+          if (w) {
+            if (!racesByWeek[w]) racesByWeek[w] = [];
+            racesByWeek[w].push(`${g.priority}: ${g.objective}${g.raceName ? ` (${g.raceName})` : ""} le ${g.raceDate}`);
+          }
+        });
+      }
+
+      for (let w = 1; w <= Math.min(totalW, 30); w++) {
+        const wStartMs = startMs + (w - 1) * 7 * 86400000;
+        const wEndMs = wStartMs + 6 * 86400000;
+        const fmtShort = (ms: number) => new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "2-digit", timeZone: "UTC" }).format(new Date(ms));
+        const annotation = racesByWeek[w] ? ` ← 🏁 ${racesByWeek[w].join(", ")}` : "";
+        lines.push(`- **S${w}** : du ${fmtShort(wStartMs)} au ${fmtShort(wEndMs)}${annotation}`);
+      }
+      
+      lines.push(`\n⚠️ UTILISE CE CALENDRIER pour nommer tes semaines : "### Semaine N (du JJ/MM au JJ/MM) — [Thème]".`);
+      lines.push(`⚠️ Quand une course est marquée dans ce calendrier, elle DOIT apparaître dans la semaine correspondante, PAS la semaine d'avant ni d'après.`);
+    }
+  }
+
   // --- Athlete Profile ---
   lines.push("\n### Profil Athlète");
   if (data.nom) lines.push(`- **Nom :** ${data.nom}`);
