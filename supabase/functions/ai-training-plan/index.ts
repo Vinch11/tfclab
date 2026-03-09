@@ -2419,17 +2419,65 @@ Assure la CONTINUITÉ de la progression.`;
 function buildUserPrompt(data: any, config: any): string {
   const lines: string[] = ["## Demande de Plan d'Entraînement TFCL™\n"];
 
+  const parseIsoDateUtc = (iso?: string): number | undefined => {
+    if (!iso) return undefined;
+    const match = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return undefined;
+    const y = Number(match[1]);
+    const m = Number(match[2]);
+    const d = Number(match[3]);
+    return Date.UTC(y, m - 1, d);
+  };
+
+  const formatIsoDateFr = (iso?: string): string => {
+    if (!iso) return "";
+    const utc = parseIsoDateUtc(iso);
+    if (utc === undefined) return iso;
+    return new Intl.DateTimeFormat("fr-FR", {
+      weekday: "long",
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    }).format(new Date(utc));
+  };
+
   const computeGoalWeek = (goal: any): number | undefined => {
+    // PRIORITÉ ABSOLUE: calculer depuis les dates (source de vérité)
+    if (goal?.raceDate && config?.planStartDate) {
+      const raceUtc = parseIsoDateUtc(goal.raceDate);
+      const startUtc = parseIsoDateUtc(config.planStartDate);
+      if (raceUtc !== undefined && startUtc !== undefined) {
+        const days = Math.round((raceUtc - startUtc) / (24 * 3600 * 1000));
+        if (days >= 0) return Math.floor(days / 7) + 1;
+      }
+    }
+
+    // Fallback uniquement si aucune date exploitable
     if (typeof goal?.weeksUntilRace === "number" && Number.isFinite(goal.weeksUntilRace)) {
       return Math.max(1, Math.floor(goal.weeksUntilRace));
     }
-    if (!goal?.raceDate || !config?.planStartDate) return undefined;
-    const race = new Date(`${goal.raceDate}T00:00:00Z`);
-    const start = new Date(`${config.planStartDate}T00:00:00Z`);
-    if (Number.isNaN(race.getTime()) || Number.isNaN(start.getTime())) return undefined;
-    const days = Math.floor((race.getTime() - start.getTime()) / (24 * 3600 * 1000));
-    if (days < 0) return undefined;
-    return Math.floor(days / 7) + 1;
+
+    return undefined;
+  };
+
+  const getWeekBounds = (weekNumber?: number): { start: string; end: string } | undefined => {
+    if (!weekNumber || !config?.planStartDate) return undefined;
+    const startUtc = parseIsoDateUtc(config.planStartDate);
+    if (startUtc === undefined) return undefined;
+
+    const weekStartUtc = startUtc + (weekNumber - 1) * 7 * 24 * 3600 * 1000;
+    const weekEndUtc = weekStartUtc + 6 * 24 * 3600 * 1000;
+
+    const fmt = (ms: number) =>
+      new Intl.DateTimeFormat("fr-FR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        timeZone: "UTC",
+      }).format(new Date(ms));
+
+    return { start: fmt(weekStartUtc), end: fmt(weekEndUtc) };
   };
 
   // --- Config ---
@@ -2449,10 +2497,12 @@ function buildUserPrompt(data: any, config: any): string {
     sortedGoals.forEach((goal: any, idx: number) => {
       const prioEmoji = goal.priority === "A" ? "🅰️ PRINCIPAL" : goal.priority === "B" ? "🅱️ INTERMÉDIAIRE" : "🆎 SECONDAIRE";
       const goalWeek = computeGoalWeek(goal);
-      const weekAnchor = goalWeek ? ` — Échéance: Semaine ${goalWeek}` : "";
+      const bounds = getWeekBounds(goalWeek);
+      const weekAnchor = goalWeek ? ` — Échéance: Semaine ${goalWeek}${bounds ? ` (${bounds.start} → ${bounds.end})` : ""}` : "";
       lines.push(`**Objectif ${idx + 1} — ${prioEmoji}** : ${goal.objective}${goal.raceName ? ` (${goal.raceName})` : ""}${goal.raceDate ? ` — Date : ${goal.raceDate}` : ""}${weekAnchor}`);
       if (goalWeek && goal.raceDate) {
-        lines.push(`→ Ancrage obligatoire : la course ${goal.objective} DOIT apparaître en S${goalWeek} (semaine contenant le ${goal.raceDate}).`);
+        lines.push(`→ Ancrage absolu : la course ${goal.objective} DOIT être planifiée le ${goal.raceDate} (${formatIsoDateFr(goal.raceDate)}), dans S${goalWeek}${bounds ? ` [${bounds.start} → ${bounds.end}]` : ""}.`);
+        lines.push(`→ INTERDIT de la placer une semaine avant/après (ex: ${goal.raceDate} ≠ ${goalWeek > 1 ? `S${goalWeek - 1}` : "S1"}).`);
       }
     });
 
@@ -2817,16 +2867,21 @@ function buildUserPrompt(data: any, config: any): string {
     sortedGoals.forEach((goal: any) => {
       const prioLabel = goal.priority === "A" ? "🅰️ OBJECTIF PRINCIPAL (pic de forme)" : goal.priority === "B" ? "🅱️ OBJECTIF INTERMÉDIAIRE (mini-taper)" : "🆎 SECONDAIRE";
       const goalWeek = computeGoalWeek(goal);
-      const weekInfo = goalWeek ? ` — Semaine cible: S${goalWeek}` : "";
+      const bounds = getWeekBounds(goalWeek);
+      const weekInfo = goalWeek ? ` — Semaine cible: S${goalWeek}${bounds ? ` (${bounds.start} → ${bounds.end})` : ""}` : "";
       lines.push(`- **${goal.objective}**${goal.raceName ? ` — ${goal.raceName}` : ""}${goal.raceDate ? ` — ${goal.raceDate}` : ""}${weekInfo} → ${prioLabel}`);
+      if (goal.raceDate) {
+        lines.push(`  ↳ Date absolue obligatoire: ${goal.raceDate} (${formatIsoDateFr(goal.raceDate)}).`);
+      }
     });
 
     if (goalsB.length > 0) {
       lines.push(`\n### Structure obligatoire pour chaque objectif B/C :`);
       goalsB.forEach((g: any) => {
         const w = computeGoalWeek(g);
+        const bounds = getWeekBounds(w);
         if (w) {
-          lines.push(`- **${g.objective}${g.raceName ? ` (${g.raceName})` : ""}** : mini-taper en S${Math.max(1, w - 1)}, course en S${w}, récupération en S${w + 1}.`);
+          lines.push(`- **${g.objective}${g.raceName ? ` (${g.raceName})` : ""}** : mini-taper en S${Math.max(1, w - 1)}, course en S${w}${bounds ? ` (${bounds.start} → ${bounds.end})` : ""}, récupération en S${w + 1}. Date course IMPÉRATIVE: ${g.raceDate || "n/a"}.`);
         }
       });
       lines.push(`1. **Semaines pré-course B** : les 1-2 semaines avant la course B doivent montrer une RÉDUCTION de volume (-20 à -30%) avec maintien d'intensité courte (mini-taper). Marque-les explicitement "Mini-Taper pour [nom course B]".`);
