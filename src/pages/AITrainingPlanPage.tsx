@@ -307,11 +307,11 @@ export default function AITrainingPlanPage() {
     return computeAthleteContext(currentAthlete, objective, ambition);
   }, [currentAthlete, snapshots, tests, objective, ambition, computeAthleteContext]);
 
-  // Compute plan start date (next Monday or custom)
+  // Compute plan start date: Monday of the CURRENT week (not next week)
   const planStartDate = useMemo(() => {
     const now = new Date();
-    const nextMonday = startOfWeek(addDays(now, 7), { weekStartsOn: 1 });
-    return nextMonday;
+    const currentMonday = startOfWeek(now, { weekStartsOn: 1 });
+    return currentMonday;
   }, []);
 
   const weeksAvailable = useMemo(() => {
