@@ -2597,6 +2597,13 @@ function buildUserPrompt(data: any, config: any): string {
     lines.push(`- **⚠️ Anti-contradiction :** Si un jour a une séance d'entraînement, NE PAS ajouter de ligne "Repos" pour ce même jour. Le Repos est UNIQUEMENT pour les jours sans aucune séance.`);
   }
   if (config.ambition) lines.push(`- **Niveau d'ambition :** ${config.ambition}`);
+
+  // === CONTRAINTE EXPLICITE : RATIOS DE RÉPARTITION SPORTIVE PAR NIVEAU D'AMBITION ===
+  const sportRatios = getSportDistributionConstraint(obj, (config.ambition || "").toLowerCase(), config.identifiedLimiters);
+  if (sportRatios) {
+    lines.push(sportRatios);
+  }
+
   if (config.constraints) lines.push(`- **Contraintes :** ${config.constraints}`);
 
   // === CALENDAR MAPPING: inject exact dates for each week so the AI can anchor races precisely ===
