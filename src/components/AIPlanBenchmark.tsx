@@ -397,7 +397,6 @@ function getDeviationJustification(
     tolerance: getAllowedTolerance(primaryImpact),
   };
 }
-}
 
 export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limiterResult }: AIPlanBenchmarkProps) {
   const metrics = useMemo(() => computePlanMetrics(plan), [plan]);
