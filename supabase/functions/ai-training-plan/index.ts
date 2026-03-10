@@ -2536,11 +2536,23 @@ Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semai
               let combinedChunkText = chunkText;
 
               if (!chunkText) {
-                const errorPayload = streamError
-                  ? `{"error":"${streamError.message}","code":${streamError.code}}`
-                  : `{"error":"Erreur génération bloc ${ci + 1}/${chunks.length}","code":500}`;
-                controller.enqueue(encoder.encode(`data: ${errorPayload}\n\n`));
-                break;
+                // If this chunk failed, try to continue with remaining chunks instead of breaking
+                console.error(`Chunk ${ci + 1}/${chunks.length} failed (empty response). StreamError: ${streamError?.message || "none"}`);
+                if (streamError && (streamError.code === 402 || streamError.code === 429)) {
+                  // Credit/rate limit errors — stop entirely
+                  const errorPayload = `{"error":"${streamError.message}","code":${streamError.code}}`;
+                  controller.enqueue(encoder.encode(`data: ${errorPayload}\n\n`));
+                  break;
+                }
+                // For timeouts or transient errors, try one more time with a smaller scope
+                console.log(`Retrying full chunk ${ci + 1} after failure...`);
+                streamError = null;
+                const retryChunkText = await generateAndStream(chunkPrompt, controller, encoder);
+                if (!retryChunkText) {
+                  console.error(`Chunk ${ci + 1} retry also failed. Skipping to next chunk.`);
+                  continue; // Skip this chunk, let the gap-filling in parser handle it
+                }
+                combinedChunkText = retryChunkText;
               }
 
               // === FIRST CHUNK EXTRACTIONS ===
