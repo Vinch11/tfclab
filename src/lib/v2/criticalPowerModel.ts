@@ -350,13 +350,21 @@ export function prescribeIntervalRecovery(
   const wbalAfterRecovery = wprimeJ - depleted * Math.exp(-optimalRecoverySec / tau);
   const wbalPctAfterRecovery = Math.round((wbalAfterRecovery / wprimeJ) * 100);
 
-  // Max reps before total depletion (simplified: assume same recovery each time)
+  // Max reps via iterative W'bal simulation (accounts for progressive depletion)
   const wCostPerRep = (intervalPowerW - cp) * intervalDurationSec;
-  const wRecoveredPerRep = wbalAfterRecovery - wbalAfterWork;
-  const netCostPerRep = wCostPerRep - wRecoveredPerRep;
-  const maxReps = netCostPerRep > 0
-    ? Math.max(1, Math.floor(wprimeJ / netCostPerRep))
-    : 20;
+  let maxReps = 0;
+  let simWbal = wprimeJ;
+  for (let rep = 0; rep < 30; rep++) {
+    // Work phase: deplete
+    simWbal = Math.max(0, simWbal - wCostPerRep);
+    if (simWbal <= 0) break;
+    maxReps++;
+    // Recovery phase: reconstitute from current (diminished) W'bal
+    const depletedNow = wprimeJ - simWbal;
+    simWbal = wprimeJ - depletedNow * Math.exp(-optimalRecoverySec / tau);
+    // Stop if next rep would deplete entirely
+    if (simWbal - wCostPerRep <= 0) break;
+  }
 
   return {
     intervalPowerW,
