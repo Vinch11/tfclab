@@ -2396,8 +2396,9 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
             let extractedDiagnostic = "";
             // FIX #1 (audit recap): Capture Récapitulatif Stratégique from chunk 1
             let extractedRecap = "";
-            // FIX #4 (audit recap): Track active phase across chunks (broader detection)
-            let activePhase = "Fondation";
+            // FIX C1 (audit): Initialize activePhase from ambition — finisher starts in "Adaptation", not "Fondation"
+            const ambKeyForPhase = normalizeAmbKey(planConfig?.ambition || "");
+            let activePhase = (ambKeyForPhase === "finisher") ? "Adaptation" : "Fondation";
             const chunks: { start: number; end: number }[] = [];
             for (let s = 1; s <= totalWeeks; s += CHUNK_SIZE) {
               chunks.push({ start: s, end: Math.min(s + CHUNK_SIZE - 1, totalWeeks) });
