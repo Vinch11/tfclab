@@ -2259,31 +2259,13 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     const CHUNK_SIZE = isVerbosePlan ? (totalWeeks > 20 ? 3 : 4) : (totalWeeks > 20 ? 4 : 6);
     const needsChunking = !regenerateWeek && totalWeeks > 10;
 
-    // Compute CP/W' for W'bal reminders in chunk prompts
-    let cpRound: number | null = null;
-    let wprimeKJ: number | null = null;
-    {
-      const pts: { dur: number; pow: number }[] = [];
-      if (athleteData?.pmax5s > 0) pts.push({ dur: 5, pow: athleteData.pmax5s });
-      if (athleteData?.p30s > 0) pts.push({ dur: 30, pow: athleteData.p30s });
-      if (athleteData?.p60s > 0) pts.push({ dur: 60, pow: athleteData.p60s });
-      if (athleteData?.map5min > 0) pts.push({ dur: 300, pow: athleteData.map5min });
-      if (athleteData?.ftp > 0) pts.push({ dur: 3600, pow: athleteData.ftp });
-      if (pts.length >= 2) {
-        const n = pts.length;
-        let sX = 0, sY = 0, sXY = 0, sX2 = 0;
-        for (const p of pts) { const x = p.dur, y = p.pow * p.dur; sX += x; sY += y; sXY += x * y; sX2 += x * x; }
-        const d = n * sX2 - sX * sX;
-        if (Math.abs(d) > 1e-10) {
-          const cp = (n * sXY - sX * sY) / d;
-          const wp = (sY - cp * sX) / n;
-          if (cp >= 50 && cp <= 600 && wp >= 1000 && wp <= 50000) {
-            cpRound = Math.round(cp);
-            wprimeKJ = Math.round(wp / 100) / 10;
-          }
-        }
-      }
-    }
+    // FIX #1: Deduplicate CP/W' — reuse buildCPWprimeSection's logic via shared helper
+    const cpwResult = computeCPWprime(athleteData);
+    const cpRound = cpwResult?.cpRound ?? null;
+    const wprimeKJ = cpwResult?.wprimeKJ ?? null;
+
+    // FIX #6: Per-chunk timeout (4 min per chunk call)
+    const CHUNK_TIMEOUT_MS = 4 * 60 * 1000;
 
     // Helper: call AI and stream response, return full text
     let streamError: { code: number; message: string } | null = null;
@@ -2292,76 +2274,89 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
       controller: ReadableStreamDefaultController,
       encoder: TextEncoder,
     ): Promise<string> {
-      const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: prompt },
-          ],
-          stream: true,
-          max_tokens: 65536,
-        }),
-      });
+      const abortCtrl = new AbortController();
+      const timeout = setTimeout(() => abortCtrl.abort(), CHUNK_TIMEOUT_MS);
 
-      if (!resp.ok || !resp.body) {
-        const errText = await resp.text().catch(() => "Unknown error");
-        console.error("AI call error:", resp.status, errText);
+      try {
+        const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-3-flash-preview",
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: prompt },
+            ],
+            stream: true,
+            max_tokens: 65536,
+          }),
+          signal: abortCtrl.signal,
+        });
 
-        const status = resp.status || 500;
-        if (status === 402) {
-          streamError = { code: 402, message: "Crédits IA épuisés. Ajoutez des crédits dans les paramètres." };
-        } else if (status === 429) {
-          streamError = { code: 429, message: "Rate limit dépassé, réessayez dans quelques instants." };
-        } else {
-          streamError = { code: 500, message: "Erreur du service IA" };
+        if (!resp.ok || !resp.body) {
+          const errText = await resp.text().catch(() => "Unknown error");
+          console.error("AI call error:", resp.status, errText);
+
+          const status = resp.status || 500;
+          if (status === 402) {
+            streamError = { code: 402, message: "Crédits IA épuisés. Ajoutez des crédits dans les paramètres." };
+          } else if (status === 429) {
+            streamError = { code: 429, message: "Rate limit dépassé, réessayez dans quelques instants." };
+          } else {
+            streamError = { code: 500, message: "Erreur du service IA" };
+          }
+
+          return "";
         }
 
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let text = "";
+        let buf = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buf += decoder.decode(value, { stream: true });
+
+          let idx: number;
+          while ((idx = buf.indexOf("\n")) !== -1) {
+            let line = buf.slice(0, idx);
+            buf = buf.slice(idx + 1);
+            if (line.endsWith("\r")) line = line.slice(0, -1);
+
+            if (!line.startsWith("data: ")) continue;
+            const json = line.slice(6).trim();
+            if (json === "[DONE]") continue;
+
+            try {
+              const p = JSON.parse(json);
+              const token = p.choices?.[0]?.delta?.content;
+              if (token) {
+                text += token;
+                controller.enqueue(encoder.encode(line + "\n\n"));
+              }
+            } catch {}
+          }
+        }
+        return text;
+      } catch (e) {
+        if (e instanceof DOMException && e.name === "AbortError") {
+          console.error("Chunk generation timed out after", CHUNK_TIMEOUT_MS, "ms");
+          streamError = { code: 504, message: "Timeout: le bloc a pris trop de temps à générer." };
+        }
         return "";
+      } finally {
+        clearTimeout(timeout);
       }
-
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let text = "";
-      let buf = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buf += decoder.decode(value, { stream: true });
-
-        let idx: number;
-        while ((idx = buf.indexOf("\n")) !== -1) {
-          let line = buf.slice(0, idx);
-          buf = buf.slice(idx + 1);
-          if (line.endsWith("\r")) line = line.slice(0, -1);
-
-          if (!line.startsWith("data: ")) continue;
-          const json = line.slice(6).trim();
-          if (json === "[DONE]") continue;
-
-          try {
-            const p = JSON.parse(json);
-            const token = p.choices?.[0]?.delta?.content;
-            if (token) {
-              text += token;
-              controller.enqueue(encoder.encode(line + "\n\n"));
-            }
-          } catch {}
-        }
-      }
-      return text;
     }
 
     // Helper: extract which week numbers were generated in a chunk of text
     function extractGeneratedWeekNumbers(text: string): number[] {
       const nums: number[] = [];
-      // Accept both markdown headings and plain week lines
       const re = /^(?:#{2,4}\s*)?\*{0,2}\s*Semaine\s*(\d+)\b/gim;
       let m: RegExpExecArray | null;
       while ((m = re.exec(text)) !== null) {
@@ -2370,13 +2365,25 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
       return [...new Set(nums)].sort((a, b) => a - b);
     }
 
+    // FIX #2: Build W'bal reminder only if CP/W' are available (no "N/A" injection)
+    const wbalReminder = (cpRound !== null && wprimeKJ !== null)
+      ? `\n🔋 RAPPEL W'bal OBLIGATOIRE : Pour CHAQUE séance d'intervalles supra-CP, tu DOIS :
+1. Justifier la durée de repos avec le W' individuel (ex: "Repos 2min30 — calibré W'bal ${wprimeKJ} kJ")
+2. Indiquer le volume max de répétitions avant épuisement du W'
+3. Étiqueter les efforts au-dessus de CP (${cpRound}W) comme "supra-CP"`
+      : "";
+
     if (needsChunking) {
       // === CHUNKED GENERATION for long plans ===
       const encoder = new TextEncoder();
+      // FIX #3: Sliding window — keep only last N chunk summaries to avoid context bloat
+      const MAX_SUMMARY_CHUNKS = 3;
       const stream = new ReadableStream({
         async start(controller) {
           try {
-            let previousChunksSummary = "";
+            let chunkSummaries: string[] = [];
+            // FIX #5: Capture diagnostic from first chunk for re-injection
+            let diagnosticContext = "";
             const chunks: { start: number; end: number }[] = [];
             for (let s = 1; s <= totalWeeks; s += CHUNK_SIZE) {
               chunks.push({ start: s, end: Math.min(s + CHUNK_SIZE - 1, totalWeeks) });
@@ -2396,9 +2403,11 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
                 (_, i) => chunk.start + i
               );
 
+              // FIX #3: Sliding window summary — only last N chunks
+              const slidingSummary = chunkSummaries.slice(-MAX_SUMMARY_CHUNKS).join("\n");
+
               let chunkPrompt: string;
               if (isFirst) {
-                // Build a summary of ALL planned phases/blocs for the full plan
                 const allChunksSummary = chunks.map(c => `Semaines ${c.start}-${c.end}`).join(", ");
                 chunkPrompt = `${userPrompt}
 
@@ -2412,14 +2421,10 @@ Pour ce premier bloc, inclus :
    - Les synergies doivent concerner le plan global.
 
 Génère ensuite les semaines ${chunk.start} à ${chunk.end} avec leurs tableaux complets.
-IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${expectedWeeks.join(", ")}). Ne t'arrête pas avant.
-
-🔋 RAPPEL W'bal OBLIGATOIRE : Pour CHAQUE séance d'intervalles supra-CP, tu DOIS :
-1. Justifier la durée de repos avec le W' individuel (ex: "Repos 2min30 — calibré W'bal ${wprimeKJ || "N/A"} kJ")
-2. Indiquer le volume max de répétitions avant épuisement du W'
-3. Étiqueter les efforts au-dessus de CP (${cpRound || "N/A"}W) comme "supra-CP"`;
+IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${expectedWeeks.join(", ")}). Ne t'arrête pas avant.${wbalReminder}`;
 
               } else {
+                // FIX #5: Re-inject diagnostic context in subsequent chunks
                 chunkPrompt = `${userPrompt}
 
 ⚠️ GÉNÉRATION PAR BLOC (suite) : Génère UNIQUEMENT les semaines ${chunk.start} à ${chunk.end} (sur ${totalWeeks} total).
@@ -2434,18 +2439,15 @@ Si une nouvelle phase/bloc commence dans cette plage de semaines (d'après le R�
 
 Puis continue avec les semaines. Chaque bloc doit avoir son en-tête. C'est OBLIGATOIRE pour le parsing.
 
-Résumé des blocs précédents pour assurer la continuité :
-${previousChunksSummary}
+📋 RAPPEL DU DIAGNOSTIC STRATÉGIQUE (pour cohérence) :
+${diagnosticContext || "Non disponible — assure la continuité logique avec les blocs précédents."}
 
-Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.
+Résumé des blocs précédents (progression récente) :
+${slidingSummary || "Premier bloc de continuation."}
 
-🔋 RAPPEL W'bal OBLIGATOIRE : Pour CHAQUE séance d'intervalles supra-CP, tu DOIS :
-1. Justifier la durée de repos avec le W' individuel (ex: "Repos 2min30 — calibré W'bal ${wprimeKJ || "N/A"} kJ")
-2. Indiquer le volume max de répétitions avant épuisement du W'
-3. Étiqueter les efforts au-dessus de CP (${cpRound || "N/A"}W) comme "supra-CP"`;
+Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.${wbalReminder}`;
               }
 
-              // Ensure week headers from a new block start on a fresh line
               if (!isFirst) emitChunkBoundary();
 
               // Generate chunk
@@ -2460,57 +2462,82 @@ Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semai
                 break;
               }
 
+              // FIX #5: Extract diagnostic from first chunk for re-injection
+              if (isFirst) {
+                const diagMatch = chunkText.match(/(?:##\s*(?:1\.\s*)?Diagnostic[^\n]*\n)([\s\S]*?)(?=##\s*(?:2\.\s*)?(?:Récapitulatif|Semaine\s*\d))/i);
+                if (diagMatch) {
+                  // Compact: keep first 800 chars to avoid bloat
+                  diagnosticContext = diagMatch[1].trim().slice(0, 800);
+                } else {
+                  // Fallback: extract limiters and key strategy lines
+                  const limiterLines = chunkText.match(/(?:Limiteur|L1|L2|stratégi|priorit)[^\n]*/gi) || [];
+                  diagnosticContext = limiterLines.slice(0, 10).join("\n");
+                }
+              }
+
               // Verify which weeks were generated
               const generatedWeeks = extractGeneratedWeekNumbers(chunkText);
               const missingWeeks = expectedWeeks.filter(w => !generatedWeeks.includes(w));
 
-              // If weeks are missing, retry just the missing ones
+              // FIX #4: Double retry for missing weeks (with deduplication)
               if (missingWeeks.length > 0) {
-                console.log(`Chunk ${ci + 1}: missing weeks ${missingWeeks.join(",")}. Retrying...`);
+                console.log(`Chunk ${ci + 1}: missing weeks ${missingWeeks.join(",")}. Retry 1...`);
                 const retryPrompt = `${userPrompt}
 
 ⚠️ COMPLÉTION DE SEMAINES MANQUANTES : Génère UNIQUEMENT les semaines suivantes : ${missingWeeks.map(w => `Semaine ${w}`).join(", ")}.
 NE PAS répéter le diagnostic ni le récapitulatif. NE PAS ajouter d'introduction.
 
 🔴 RÈGLE CRITIQUE — EN-TÊTES DE BLOC :
-Si une des semaines manquantes est la PREMIÈRE semaine d'un nouveau bloc/phase (d'après le Récapitulatif Stratégique), tu DOIS insérer l'en-tête de bloc AVANT cette semaine :
-## Bloc N : [Nom Métabolique] (Semaines X-Y)
-**Objectif physiologique :** [...]
-**Volume cible :** [...]
-
-Puis génère chaque semaine avec son tableau complet.
+Si une des semaines manquantes est la PREMIÈRE semaine d'un nouveau bloc/phase, tu DOIS insérer l'en-tête de bloc.
 
 Contexte des semaines déjà générées :
-${previousChunksSummary}
+${slidingSummary}
 ${generatedWeeks.length > 0 ? `Semaines déjà générées dans ce bloc : ${generatedWeeks.join(", ")}` : ""}
 
-Assure la CONTINUITÉ de la progression.
-
-🔋 RAPPEL W'bal OBLIGATOIRE : Pour CHAQUE séance d'intervalles supra-CP, tu DOIS :
-1. Justifier la durée de repos avec le W' individuel (ex: "Repos 2min30 — calibré W'bal ${wprimeKJ || "N/A"} kJ")
-2. Indiquer le volume max de répétitions avant épuisement du W'
-3. Étiqueter les efforts au-dessus de CP (${cpRound || "N/A"}W) comme "supra-CP"`;
+Assure la CONTINUITÉ de la progression.${wbalReminder}`;
 
                 emitChunkBoundary();
                 const retryText = await generateAndStream(retryPrompt, controller, encoder);
+                let allRetryWeeks: number[] = [];
                 if (retryText) {
                   combinedChunkText += `\n${retryText}`;
-                  const retryWeeks = extractGeneratedWeekNumbers(retryText);
-                  const stillMissing = missingWeeks.filter(w => !retryWeeks.includes(w));
-                  if (stillMissing.length > 0) {
-                    console.warn(`Still missing weeks after retry: ${stillMissing.join(",")}`);
+                  allRetryWeeks = extractGeneratedWeekNumbers(retryText);
+                }
+
+                const stillMissing = missingWeeks.filter(w => !allRetryWeeks.includes(w));
+
+                // Second retry for remaining missing weeks
+                if (stillMissing.length > 0) {
+                  console.log(`Chunk ${ci + 1}: still missing ${stillMissing.join(",")}. Retry 2...`);
+                  const retry2Prompt = `${userPrompt}
+
+⚠️ DERNIÈRE TENTATIVE — Génère UNIQUEMENT : ${stillMissing.map(w => `Semaine ${w}`).join(", ")}.
+NE PAS répéter le diagnostic. Génère directement les tableaux.
+
+Contexte : ${slidingSummary}
+Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b) => a - b).join(", ")}${wbalReminder}`;
+
+                  emitChunkBoundary();
+                  const retry2Text = await generateAndStream(retry2Prompt, controller, encoder);
+                  if (retry2Text) {
+                    combinedChunkText += `\n${retry2Text}`;
+                    const retry2Weeks = extractGeneratedWeekNumbers(retry2Text);
+                    const finalMissing = stillMissing.filter(w => !retry2Weeks.includes(w));
+                    if (finalMissing.length > 0) {
+                      console.warn(`Final missing weeks after 2 retries: ${finalMissing.join(",")}`);
+                    }
                   }
                 }
               }
 
-              // Build summary for next chunks
+              // FIX #3: Build compact summary for sliding window
               const weekMatches = combinedChunkText.match(/^(?:#{2,4}\s*)?\*{0,2}\s*Semaine\s*\d+[^#\n]*(?:\n(?!#{1,4}\s*\*{0,2}\s*Semaine\s*\d+).*)*/gim) || [];
               const summaryLines = weekMatches.map(w => {
                 const numMatch = w.match(/Semaine\s*(\d+)/i);
                 const themeMatch = w.match(/[—–:\-]\s*(.+?)[\n|]/);
                 return `S${numMatch?.[1] || "?"}: ${themeMatch?.[1]?.trim() || "entraînement progressif"}`;
               }).join(", ");
-              previousChunksSummary += `Semaines ${chunk.start}-${chunk.end}: ${summaryLines || "Plan progressif standard"}\n`;
+              chunkSummaries.push(`Semaines ${chunk.start}-${chunk.end}: ${summaryLines || "Plan progressif standard"}`);
             }
 
             // Send final [DONE]
@@ -2579,25 +2606,21 @@ Assure la CONTINUITÉ de la progression.
   }
 });
 
-// === CRITICAL POWER / W' INLINE MODEL (Skiba 2012) ===
-function buildCPWprimeSection(data: any): string | null {
-  // Build power-duration points from athlete data
-  const points: { dur: number; pow: number; label: string }[] = [];
-  if (data.pmax5s && data.pmax5s > 0) points.push({ dur: 5, pow: data.pmax5s, label: "P5s" });
-  if (data.p30s && data.p30s > 0) points.push({ dur: 30, pow: data.p30s, label: "P30s" });
-  if (data.p60s && data.p60s > 0) points.push({ dur: 60, pow: data.p60s, label: "P60s" });
-  if (data.map5min && data.map5min > 0) points.push({ dur: 300, pow: data.map5min, label: "MAP5min" });
-  if (data.ftp && data.ftp > 0) points.push({ dur: 3600, pow: data.ftp, label: "FTP~60min" });
-
+// === SHARED CP/W' COMPUTATION (used by both buildCPWprimeSection and chunk prompts) ===
+function computeCPWprime(data: any): { cpRound: number; wprimeKJ: number; wprimeJ: number } | null {
+  const points: { dur: number; pow: number }[] = [];
+  if (data?.pmax5s && data.pmax5s > 0) points.push({ dur: 5, pow: data.pmax5s });
+  if (data?.p30s && data.p30s > 0) points.push({ dur: 30, pow: data.p30s });
+  if (data?.p60s && data.p60s > 0) points.push({ dur: 60, pow: data.p60s });
+  if (data?.map5min && data.map5min > 0) points.push({ dur: 300, pow: data.map5min });
+  if (data?.ftp && data.ftp > 0) points.push({ dur: 3600, pow: data.ftp });
   if (points.length < 2) return null;
 
-  // Linear regression: Work(t) = CP × t + W'
   const n = points.length;
-  let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
+  let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
   for (const p of points) {
-    const x = p.dur;
-    const y = p.pow * p.dur;
-    sumX += x; sumY += y; sumXY += x * y; sumX2 += x * x; sumY2 += y * y;
+    const x = p.dur, y = p.pow * p.dur;
+    sumX += x; sumY += y; sumXY += x * y; sumX2 += x * x;
   }
   const denom = n * sumX2 - sumX * sumX;
   if (Math.abs(denom) < 1e-10) return null;
@@ -2606,19 +2629,38 @@ function buildCPWprimeSection(data: any): string | null {
   const wprime = (sumY - cp * sumX) / n;
   if (cp < 50 || cp > 600 || wprime < 1000 || wprime > 50000) return null;
 
+  return { cpRound: Math.round(cp), wprimeKJ: Math.round(wprime / 100) / 10, wprimeJ: wprime };
+}
+
+// === CRITICAL POWER / W' INLINE MODEL (Skiba 2012) ===
+function buildCPWprimeSection(data: any): string | null {
+  // Reuse shared computation
+  const result = computeCPWprime(data);
+  if (!result) return null;
+
+  const { cpRound, wprimeKJ, wprimeJ: wprime } = result;
+
+  // Build power-duration points for R² and display
+  const points: { dur: number; pow: number; label: string }[] = [];
+  if (data.pmax5s && data.pmax5s > 0) points.push({ dur: 5, pow: data.pmax5s, label: "P5s" });
+  if (data.p30s && data.p30s > 0) points.push({ dur: 30, pow: data.p30s, label: "P30s" });
+  if (data.p60s && data.p60s > 0) points.push({ dur: 60, pow: data.p60s, label: "P60s" });
+  if (data.map5min && data.map5min > 0) points.push({ dur: 300, pow: data.map5min, label: "MAP5min" });
+  if (data.ftp && data.ftp > 0) points.push({ dur: 3600, pow: data.ftp, label: "FTP~60min" });
+  const n = points.length;
+
   // R²
+  let sumX = 0, sumY = 0;
+  for (const p of points) { sumX += p.dur; sumY += p.pow * p.dur; }
   const yMean = sumY / n;
   let ssTot = 0, ssRes = 0;
   for (const p of points) {
     const yA = p.pow * p.dur;
-    const yP = cp * p.dur + wprime;
+    const yP = cpRound * p.dur + wprime;
     ssTot += (yA - yMean) ** 2;
     ssRes += (yA - yP) ** 2;
   }
   const r2 = ssTot > 0 ? Math.round((1 - ssRes / ssTot) * 1000) / 1000 : 0;
-
-  const cpRound = Math.round(cp);
-  const wprimeKJ = Math.round(wprime / 100) / 10;
   const weight = data.weightKg ? Number(data.weightKg) : null;
   const ftp = data.ftp ? Number(data.ftp) : null;
 
