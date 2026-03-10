@@ -146,7 +146,7 @@ export function CPWPrimeCurveCard({
   };
 
   return (
-    <Card>
+    <Card className={hasCritical ? "border-destructive/50" : undefined}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div>
@@ -158,12 +158,35 @@ export function CPWPrimeCurveCard({
               Courbe puissance-durée hyperbolique — Monod & Scherrer (1965), Skiba (2012)
             </CardDescription>
           </div>
-          <Badge
-            variant={cpResult.r2 > 0.95 ? "default" : cpResult.r2 > 0.9 ? "secondary" : "destructive"}
-            className="font-mono text-xs"
-          >
-            R²={cpResult.r2.toFixed(3)}
-          </Badge>
+          <div className="flex items-center gap-1.5">
+            {cpResult.dataQuality !== "good" && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge
+                      variant="destructive"
+                      className="text-[10px] cursor-help"
+                    >
+                      {cpResult.dataQuality === "implausible" ? (
+                        <><ShieldAlert className="h-3 w-3 mr-1" />Données suspectes</>
+                      ) : (
+                        <><ShieldQuestion className="h-3 w-3 mr-1" />À vérifier</>
+                      )}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="text-xs">{cpResult.diagnostics.length} anomalie(s) détectée(s). Le modèle mathématique est correct (R² élevé) mais les données d'entrée semblent incohérentes physiologiquement.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            <Badge
+              variant={cpResult.r2 > 0.95 ? "default" : cpResult.r2 > 0.9 ? "secondary" : "destructive"}
+              className="font-mono text-xs"
+            >
+              R²={cpResult.r2.toFixed(3)}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
