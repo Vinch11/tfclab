@@ -224,7 +224,9 @@ export function WbalRecoveryCard({
                 <strong>⏳ Repos trop long</strong> → stimulus insuffisant → pas de surcompensation optimale
               </p>
               <p className="text-muted-foreground">
-                Ces durées sont <strong>individualisées</strong> à partir du W' de l'athlète ({cpResult.wprimeKJ} kJ).
+                Durées calibrées sur le W' individuel (<strong className="font-mono">{cpResult.wprimeKJ} kJ</strong>) 
+                et CP effectif (<strong className="font-mono">{cpResult.effectiveCP}W</strong>)
+                {cpResult.cpBounded && <span className="text-amber-600"> — borné par FTP</span>}
               </p>
             </div>
           </TabsContent>
