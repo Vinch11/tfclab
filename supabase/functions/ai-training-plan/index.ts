@@ -2396,8 +2396,9 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
             let extractedDiagnostic = "";
             // FIX #1 (audit recap): Capture Récapitulatif Stratégique from chunk 1
             let extractedRecap = "";
-            // FIX #4 (audit recap): Track active phase across chunks (broader detection)
-            let activePhase = "Fondation";
+            // FIX C1 (audit): Initialize activePhase from ambition — finisher starts in "Adaptation", not "Fondation"
+            const ambKeyForPhase = normalizeAmbKey(planConfig?.ambition || "");
+            let activePhase = (ambKeyForPhase === "finisher") ? "Adaptation" : "Fondation";
             const chunks: { start: number; end: number }[] = [];
             for (let s = 1; s <= totalWeeks; s += CHUNK_SIZE) {
               chunks.push({ start: s, end: Math.min(s + CHUNK_SIZE - 1, totalWeeks) });
@@ -2423,9 +2424,13 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
               let chunkPrompt: string;
               if (isFirst) {
                 const allChunksSummary = chunks.map(c => `Semaines ${c.start}-${c.end}`).join(", ");
+                // FIX C2 (audit): Inject structuredDiagnostic in chunk 1 to anchor phase bounds from the start
                 chunkPrompt = `${userPrompt}
 
 ⚠️ GÉNÉRATION PAR BLOC : Génère UNIQUEMENT les semaines ${chunk.start} à ${chunk.end} (sur ${totalWeeks} total).
+
+📋 DIAGNOSTIC STRUCTURÉ (RÉFÉRENCE pour la cohérence du plan entier) :
+${structuredDiagnostic}
 
 Pour ce premier bloc, inclus :
 1. Le **Diagnostic TFCL™** complet
@@ -2434,6 +2439,7 @@ Pour ce premier bloc, inclus :
    - La colonne "Semaines" DOIT couvrir la totalité des ${totalWeeks} semaines.
    - Les synergies doivent concerner le plan global.
    - ⚠️ CHAQUE phase/bloc DOIT avoir des bornes de semaines explicites (ex: "S1-S6", "S7-S12").
+   - ⚠️ Les bornes de phase estimées ci-dessus servent de GUIDE. Tu peux ajuster ±1 semaine si les limiteurs le justifient.
 
 Génère ensuite les semaines ${chunk.start} à ${chunk.end} avec leurs tableaux complets.
 IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${expectedWeeks.join(", ")}). Ne t'arrête pas avant.${wbalReminder}`;
@@ -2446,6 +2452,32 @@ IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${exp
                 const recapSection = extractedRecap
                   ? `\n📋 RÉCAPITULATIF STRATÉGIQUE (généré au bloc 1 — RÉFÉRENCE pour le séquençage) :\n${extractedRecap}\n\n⚠️ Tu DOIS respecter les bornes de phase et les séances clés définies ci-dessus. Si la semaine ${chunk.start} tombe dans un nouveau bloc/phase selon ce récapitulatif, insère l'en-tête de bloc.`
                   : "";
+
+                // FIX C3 (audit): Build multi-objective reminder specific to this chunk's week range
+                let multiObjChunkReminder = "";
+                if (planConfig?.raceGoals && planConfig.raceGoals.length > 1) {
+                  const relevantGoals = planConfig.raceGoals.filter((g: any) => {
+                    if (!g.raceDate || !planConfig.planStartDate) return false;
+                    const startMs = new Date(planConfig.planStartDate).getTime();
+                    const raceMs = new Date(g.raceDate).getTime();
+                    const goalWeek = Math.ceil((raceMs - startMs) / (7 * 86400000));
+                    // Include goals within ±3 weeks of this chunk's range (taper/recovery window)
+                    return goalWeek >= chunk.start - 3 && goalWeek <= chunk.end + 3;
+                  });
+                  if (relevantGoals.length > 0) {
+                    multiObjChunkReminder = `\n\n🎯 RAPPEL MULTI-OBJECTIFS pour ce bloc :`;
+                    relevantGoals.forEach((g: any) => {
+                      const startMs = new Date(planConfig.planStartDate).getTime();
+                      const raceMs = new Date(g.raceDate).getTime();
+                      const goalWeek = Math.ceil((raceMs - startMs) / (7 * 86400000));
+                      const prio = g.priority === "A" ? "🅰️" : g.priority === "B" ? "🅱️" : "🆎";
+                      multiObjChunkReminder += `\n  ${prio} ${g.objective || g.raceName || "Course"} — Semaine ${goalWeek} (${g.raceDate})`;
+                      if (g.priority !== "A" && goalWeek >= chunk.start && goalWeek <= chunk.end) {
+                        multiObjChunkReminder += ` ⚠️ DANS CE BLOC → Mini-taper S${goalWeek - 1}, Course S${goalWeek}, Récup S${goalWeek + 1}`;
+                      }
+                    });
+                  }
+                }
 
                 chunkPrompt = `${userPrompt}
 
@@ -2463,7 +2495,7 @@ Puis continue avec les semaines. Chaque bloc doit avoir son en-tête. C'est OBLI
 
 📋 DIAGNOSTIC STRUCTURÉ (cohérence obligatoire pour ce bloc) :
 ${diagnosticBlock}
-${recapSection}
+${recapSection}${multiObjChunkReminder}
 
 🔄 PHASE ACTIVE ESTIMÉE : ${activePhase}
 → Les séances clés de ce bloc doivent correspondre à cette phase ET aux limiteurs ci-dessus.
@@ -2772,7 +2804,8 @@ function extractStrategicRecap(chunkText: string): string {
   for (const pattern of patterns) {
     const match = chunkText.match(pattern);
     if (match && match[1].trim().length > 50) {
-      return match[1].trim().slice(0, 2500);
+      // FIX C4 (audit): Increase truncation from 2500 to 4000 chars to preserve later phases in long plans
+      return match[1].trim().slice(0, 4000);
     }
   }
 
@@ -2781,7 +2814,7 @@ function extractStrategicRecap(chunkText: string): string {
     /(\|[^\n]*(?:Bloc|Phase|Limiteur)[^\n]*\|\s*\n\|[\s\-:|]+\|\s*\n(?:\|[^\n]+\|\s*\n)+)/i
   );
   if (blocTableMatch) {
-    return blocTableMatch[1].trim().slice(0, 2000);
+    return blocTableMatch[1].trim().slice(0, 3500);
   }
 
   // Fallback: capture Synergies + Limiteurs sections (bullet lists + tables combined)
@@ -2795,7 +2828,7 @@ function extractStrategicRecap(chunkText: string): string {
     limiterTableMatch ? limiterTableMatch[1].trim() : "",
     synergyMatch ? `Synergies:\n${synergyMatch[1].trim()}` : "",
   ].filter(Boolean).join("\n\n");
-  if (combined.length > 80) return combined.slice(0, 2500);
+  if (combined.length > 80) return combined.slice(0, 4000);
 
   // Last resort: capture lines mentioning phase boundaries (S1-SN patterns)
   const phaseLines = chunkText.match(/(?:Fondation|Chantier|Build|Consolidation|Race.Specific|Aff[ûu]tage|Taper|Sp[ée]cifique|D[ée]veloppement|Pr[ée]paration)[^\n]*S\d+[^\n]*/gi) || [];
