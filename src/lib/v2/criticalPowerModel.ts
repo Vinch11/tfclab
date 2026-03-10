@@ -71,24 +71,28 @@ export interface RecoveryPrescription {
  * - Hill D.W. (1993) – The critical power concept
  * - Jones A.M. et al. (2019) – Critical Power: Applications to sports medicine
  */
-export function fitCriticalPower(points: PowerDurationPoint[]): CriticalPowerResult | null {
-  // Need at least 2 data points
-  const valid = points.filter(p => p.durationSec > 0 && p.powerWatts > 0);
-  if (valid.length < 2) return null;
+export function fitCriticalPower(points: (PowerDurationPoint | PowerDurationPointEx)[]): CriticalPowerResult | null {
+  // Separate regression points from overlay points
+  const allValid = points.filter(p => p.durationSec > 0 && p.powerWatts > 0);
+  const regressionPoints = allValid.filter(p =>
+    'regressionPoint' in p ? (p as PowerDurationPointEx).regressionPoint : true
+  );
+
+  // Need at least 2 regression data points
+  if (regressionPoints.length < 2) return null;
 
   // Linear regression: Work(t) = CP × t + W'
   // y = work (J), x = duration (s)
-  const n = valid.length;
-  let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
+  const n = regressionPoints.length;
+  let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
 
-  for (const p of valid) {
+  for (const p of regressionPoints) {
     const x = p.durationSec;
     const y = p.powerWatts * p.durationSec; // Work in Joules
     sumX += x;
     sumY += y;
     sumXY += x * y;
     sumX2 += x * x;
-    sumY2 += y * y;
   }
 
   const denom = n * sumX2 - sumX * sumX;
@@ -97,10 +101,10 @@ export function fitCriticalPower(points: PowerDurationPoint[]): CriticalPowerRes
   const cp = (n * sumXY - sumX * sumY) / denom;
   const wprime = (sumY - cp * sumX) / n;
 
-  // R² calculation
+  // R² calculation (on regression points only)
   const yMean = sumY / n;
   let ssTot = 0, ssRes = 0;
-  for (const p of valid) {
+  for (const p of regressionPoints) {
     const x = p.durationSec;
     const yActual = p.powerWatts * p.durationSec;
     const yPred = cp * x + wprime;
@@ -109,8 +113,8 @@ export function fitCriticalPower(points: PowerDurationPoint[]): CriticalPowerRes
   }
   const r2 = ssTot > 0 ? 1 - ssRes / ssTot : 0;
 
-  // Sanity checks
-  if (cp < 50 || cp > 600 || wprime < 1000 || wprime > 50000) {
+  // Sanity checks — widened for elite athletes
+  if (cp < 30 || cp > 800 || wprime < 500 || wprime > 80000) {
     return null; // Physiologically implausible
   }
 
@@ -119,39 +123,58 @@ export function fitCriticalPower(points: PowerDurationPoint[]): CriticalPowerRes
     wprime: Math.round(wprime),
     wprimeKJ: Math.round(wprime / 100) / 10, // 1 decimal kJ
     r2: Math.round(r2 * 1000) / 1000,
-    points: valid,
+    points: allValid, // Return ALL points (regression + overlay) for display
   };
 }
 
 /**
  * Build power-duration points from snapshot data.
  * Maps snapshot fields to standardized durations.
+ *
+ * IMPORTANT — Scientific rationale for point selection:
+ * - P5s is EXCLUDED from regression: 5s power is neuromuscular (PCr-driven),
+ *   not well-modeled by the 2-parameter hyperbolic model (Jones 2019).
+ * - FTP is EXCLUDED from regression: FTP ≠ 60-min power. Its duration varies
+ *   40-70min per athlete, making it unsuitable as a fixed-duration anchor.
+ *   Including it biases CP upward and compresses W'.
+ *
+ * Both P5s and FTP are returned as overlay points (regressionPoint: false)
+ * for display on the power-duration curve.
+ *
+ * Valid regression range: ~30s to 5-7min (Jones et al., 2019)
  */
+export interface PowerDurationPointEx extends PowerDurationPoint {
+  regressionPoint: boolean; // true = used in CP/W' fit, false = overlay only
+}
+
 export function buildPointsFromSnapshot(snapshot: {
   pmax_5s?: number | null;
   p30s_w?: number | null;
   p60s_w?: number | null;
   map5min_w?: number | null;
   ftp?: number | null;
-}): PowerDurationPoint[] {
-  const points: PowerDurationPoint[] = [];
+}): PowerDurationPointEx[] {
+  const points: PowerDurationPointEx[] = [];
 
+  // P5s — overlay only (neuromuscular, outside model validity)
   if (snapshot.pmax_5s && snapshot.pmax_5s > 0) {
-    points.push({ durationSec: 5, powerWatts: snapshot.pmax_5s, label: "P5s" });
+    points.push({ durationSec: 5, powerWatts: snapshot.pmax_5s, label: "P5s", regressionPoint: false });
   }
+  // P30s — valid regression point
   if (snapshot.p30s_w && snapshot.p30s_w > 0) {
-    points.push({ durationSec: 30, powerWatts: snapshot.p30s_w, label: "P30s" });
+    points.push({ durationSec: 30, powerWatts: snapshot.p30s_w, label: "P30s", regressionPoint: true });
   }
+  // P60s — valid regression point
   if (snapshot.p60s_w && snapshot.p60s_w > 0) {
-    points.push({ durationSec: 60, powerWatts: snapshot.p60s_w, label: "P60s" });
+    points.push({ durationSec: 60, powerWatts: snapshot.p60s_w, label: "P60s", regressionPoint: true });
   }
+  // MAP 5min — valid regression point (upper boundary of validity)
   if (snapshot.map5min_w && snapshot.map5min_w > 0) {
-    points.push({ durationSec: 300, powerWatts: snapshot.map5min_w, label: "MAP5min" });
+    points.push({ durationSec: 300, powerWatts: snapshot.map5min_w, label: "MAP5min", regressionPoint: true });
   }
+  // FTP — overlay only (duration unknown, biases regression)
   if (snapshot.ftp && snapshot.ftp > 0) {
-    // FTP ≈ power at ~3600s (60min) — use as approximate anchor
-    // Note: FTP ≠ CP, but useful as a data point at ~60min
-    points.push({ durationSec: 3600, powerWatts: snapshot.ftp, label: "FTP~60min" });
+    points.push({ durationSec: 3600, powerWatts: snapshot.ftp, label: "FTP", regressionPoint: false });
   }
 
   return points;
@@ -202,25 +225,28 @@ export function analyzeCriticalPower(snapshot: {
 
 /**
  * Calculate τ (time constant for W' reconstitution)
- * τ = W' / (DCP × CP)
- * 
- * DCP = difference between CP and recovery power.
- * Lower recovery power = faster reconstitution.
+ *
+ * Uses the empirical formula from Skiba et al. (2015):
+ *   τ = 546 × e^(−0.01 × DCP) + 316
+ *
+ * Where DCP = CP − recovery_power (W).
+ * Lower recovery power → larger DCP → shorter τ → faster reconstitution.
  *
  * Source: Skiba P.F. et al. (2015) – Modelling the expenditure and reconstitution
- * of work capacity above critical power
+ * of work capacity above critical power. Int J Sports Physiol Perform.
  */
 export function calculateTau(
-  wprimeJ: number,
+  _wprimeJ: number,
   cp: number,
   recoveryPower: number
 ): number {
   const dcp = cp - recoveryPower;
   if (dcp <= 0) return Infinity; // Recovery at or above CP = no reconstitution
-  
-  const tau = wprimeJ / (dcp * cp) * 1000; // Convert to practical units
-  // Typical τ range: 300-900 seconds
-  return Math.max(120, Math.min(1200, tau));
+
+  // Skiba 2015 empirical model — validated across trained cyclists
+  const tau = 546 * Math.exp(-0.01 * dcp) + 316;
+  // Typical τ range: ~350-850s depending on DCP
+  return Math.max(200, Math.min(1500, tau));
 }
 
 /**
@@ -324,13 +350,21 @@ export function prescribeIntervalRecovery(
   const wbalAfterRecovery = wprimeJ - depleted * Math.exp(-optimalRecoverySec / tau);
   const wbalPctAfterRecovery = Math.round((wbalAfterRecovery / wprimeJ) * 100);
 
-  // Max reps before total depletion (simplified: assume same recovery each time)
+  // Max reps via iterative W'bal simulation (accounts for progressive depletion)
   const wCostPerRep = (intervalPowerW - cp) * intervalDurationSec;
-  const wRecoveredPerRep = wbalAfterRecovery - wbalAfterWork;
-  const netCostPerRep = wCostPerRep - wRecoveredPerRep;
-  const maxReps = netCostPerRep > 0
-    ? Math.max(1, Math.floor(wprimeJ / netCostPerRep))
-    : 20;
+  let maxReps = 0;
+  let simWbal = wprimeJ;
+  for (let rep = 0; rep < 30; rep++) {
+    // Work phase: deplete
+    simWbal = Math.max(0, simWbal - wCostPerRep);
+    if (simWbal <= 0) break;
+    maxReps++;
+    // Recovery phase: reconstitute from current (diminished) W'bal
+    const depletedNow = wprimeJ - simWbal;
+    simWbal = wprimeJ - depletedNow * Math.exp(-optimalRecoverySec / tau);
+    // Stop if next rep would deplete entirely
+    if (simWbal - wCostPerRep <= 0) break;
+  }
 
   return {
     intervalPowerW,

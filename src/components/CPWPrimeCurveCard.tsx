@@ -251,11 +251,15 @@ export function CPWPrimeCurveCard({
 
             {/* Data points badges */}
             <div className="flex flex-wrap gap-1.5">
-              {cpResult.points.map((pt, i) => (
-                <Badge key={i} variant="outline" className="text-[10px] font-mono">
-                  {pt.label || `${pt.durationSec}s`}: {pt.powerWatts}W
-                </Badge>
-              ))}
+              {cpResult.points.map((pt, i) => {
+                const isRegression = 'regressionPoint' in pt ? (pt as any).regressionPoint : true;
+                return (
+                  <Badge key={i} variant={isRegression ? "outline" : "secondary"} className="text-[10px] font-mono">
+                    {pt.label || `${pt.durationSec}s`}: {pt.powerWatts}W
+                    {!isRegression && <span className="ml-1 opacity-60">(overlay)</span>}
+                  </Badge>
+                );
+              })}
             </div>
           </TabsContent>
 
@@ -326,10 +330,10 @@ export function CPWPrimeCurveCard({
                 </div>
               </div>
               <div className="rounded-lg border p-2 text-center">
-                <div className="text-[10px] text-muted-foreground">Points</div>
-                <div className="text-sm font-bold font-mono">{cpResult.points.length}</div>
+                <div className="text-[10px] text-muted-foreground">Pts régression</div>
+                <div className="text-sm font-bold font-mono">{cpResult.points.filter((p: any) => p.regressionPoint !== false).length}</div>
                 <div className="text-[9px] text-muted-foreground">
-                  {cpResult.points.length >= 4 ? "Robuste" : cpResult.points.length >= 3 ? "Suffisant" : "Minimum"}
+                  {cpResult.points.filter((p: any) => p.regressionPoint !== false).length >= 3 ? "Robuste" : "Minimum"}
                 </div>
               </div>
               <div className="rounded-lg border p-2 text-center">
