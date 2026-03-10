@@ -133,6 +133,8 @@ export function fitCriticalPower(points: (PowerDurationPoint | PowerDurationPoin
     wprimeKJ: Math.round(wprime / 100) / 10, // 1 decimal kJ
     r2: Math.round(r2 * 1000) / 1000,
     points: allValid, // Return ALL points (regression + overlay) for display
+    diagnostics: [], // Will be populated by analyzeCriticalPower
+    dataQuality: "good",
   };
 }
 
