@@ -2627,9 +2627,14 @@ function buildCPWprimeSection(data: any): string | null {
     const powLabel = weight ? `${pow}W (${(pow / weight).toFixed(1)}W/kg)` : `${pow}W`;
     lines.push(`| ${f.label} | ${powLabel} | ${fmtRest(rec.rest)} | ${rec.maxReps} |`);
   }
-  lines.push(`\n⚠️ UTILISE CES DURÉES DE REPOS quand tu prescris des intervalles. Elles sont calculées à partir du W' individuel de l'athlète.`);
+  lines.push(`\n⚠️ UTILISE CES DURÉES DE REPOS quand tu prescris des intervalles. Elles sont calculées à partir du W' individuel de l'athlète (${wprimeKJ} kJ).`);
   lines.push(`- Repos trop court = W' non reconstitué → qualité dégradée dès rep 3`);
   lines.push(`- Repos trop long = stimulus insuffisant`);
+  lines.push(`\n📝 OBLIGATION D'AFFICHAGE W'bal : Dans CHAQUE séance d'intervalles, mentionne explicitement dans la description :`);
+  lines.push(`  1. La durée de repos prescrite ET sa justification W'bal (ex: "Repos 2min30 — calibré W'bal ${wprimeKJ}kJ")`);
+  lines.push(`  2. Le nombre de répétitions max soutenable (ex: "×6 reps max avant dégradation W'")`);
+  lines.push(`  3. Si le format est supra-CP, précise "effort supra-CP (${cpRound}W)" dans le titre ou la description`);
+  lines.push(`  Cela garantit au coach la traçabilité physiologique de chaque prescription d'intervalles.`);
 
   return lines.join("\n");
 }
