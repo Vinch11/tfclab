@@ -2656,6 +2656,7 @@ Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b
               const maxZ2 = z2Durations.length > 0 ? ` | MaxZ2: ${z2Durations[z2Durations.length - 1]?.trim().slice(0, 20)}` : "";
 
               // FIX M3 (audit): Post-chunk validation — check key sessions target L1/L2
+              const keySessionMatches_all = combinedChunkText.match(/🔑[^\n|]*/g) || [];
               const L1Name = (planConfig?.identifiedLimiters?.[0] || "").toLowerCase();
               const L2Name = (planConfig?.identifiedLimiters?.[1] || "").toLowerCase();
               if (L1Name && keySessionMatches_all.length > 0) {
@@ -2671,8 +2672,6 @@ Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b
                   console.warn(`⚠️ M3 Validation: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — NO key sessions target L2="${L2Name}" in ${activePhase} phase.`);
                 }
               }
-              // Collect all key sessions for M3 validation
-              const keySessionMatches_all = combinedChunkText.match(/🔑[^\n|]*/g) || [];
               
               chunkSummaries.push(`Semaines ${chunk.start}-${chunk.end} [Phase: ${activePhase}${blocInfo}${maxZ2}]: ${summaryLines || "Plan progressif standard"}`);
             }
