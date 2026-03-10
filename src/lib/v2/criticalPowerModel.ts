@@ -130,14 +130,17 @@ export function fitCriticalPower(points: (PowerDurationPoint | PowerDurationPoin
     return null; // Physiologically implausible
   }
 
+  const cpRounded = Math.round(cp);
   return {
-    cp: Math.round(cp),
+    cp: cpRounded,
+    effectiveCP: cpRounded, // Will be adjusted by analyzeCriticalPower if FTP available
     wprime: Math.round(wprime),
     wprimeKJ: Math.round(wprime / 100) / 10, // 1 decimal kJ
     r2: Math.round(r2 * 1000) / 1000,
     points: allValid, // Return ALL points (regression + overlay) for display
     diagnostics: [], // Will be populated by analyzeCriticalPower
     dataQuality: "good",
+    cpBounded: false,
   };
 }
 
