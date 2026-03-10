@@ -2259,6 +2259,32 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     const CHUNK_SIZE = isVerbosePlan ? (totalWeeks > 20 ? 3 : 4) : (totalWeeks > 20 ? 4 : 6);
     const needsChunking = !regenerateWeek && totalWeeks > 10;
 
+    // Compute CP/W' for W'bal reminders in chunk prompts
+    let cpRound: number | null = null;
+    let wprimeKJ: number | null = null;
+    {
+      const pts: { dur: number; pow: number }[] = [];
+      if (athleteData?.pmax5s > 0) pts.push({ dur: 5, pow: athleteData.pmax5s });
+      if (athleteData?.p30s > 0) pts.push({ dur: 30, pow: athleteData.p30s });
+      if (athleteData?.p60s > 0) pts.push({ dur: 60, pow: athleteData.p60s });
+      if (athleteData?.map5min > 0) pts.push({ dur: 300, pow: athleteData.map5min });
+      if (athleteData?.ftp > 0) pts.push({ dur: 3600, pow: athleteData.ftp });
+      if (pts.length >= 2) {
+        const n = pts.length;
+        let sX = 0, sY = 0, sXY = 0, sX2 = 0;
+        for (const p of pts) { const x = p.dur, y = p.pow * p.dur; sX += x; sY += y; sXY += x * y; sX2 += x * x; }
+        const d = n * sX2 - sX * sX;
+        if (Math.abs(d) > 1e-10) {
+          const cp = (n * sXY - sX * sY) / d;
+          const wp = (sY - cp * sX) / n;
+          if (cp >= 50 && cp <= 600 && wp >= 1000 && wp <= 50000) {
+            cpRound = Math.round(cp);
+            wprimeKJ = Math.round(wp / 100) / 10;
+          }
+        }
+      }
+    }
+
     // Helper: call AI and stream response, return full text
     let streamError: { code: number; message: string } | null = null;
     async function generateAndStream(
@@ -2386,7 +2412,13 @@ Pour ce premier bloc, inclus :
    - Les synergies doivent concerner le plan global.
 
 Génère ensuite les semaines ${chunk.start} à ${chunk.end} avec leurs tableaux complets.
-IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${expectedWeeks.join(", ")}). Ne t'arrête pas avant.`;
+IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${expectedWeeks.join(", ")}). Ne t'arrête pas avant.
+
+🔋 RAPPEL W'bal OBLIGATOIRE : Pour CHAQUE séance d'intervalles supra-CP, tu DOIS :
+1. Justifier la durée de repos avec le W' individuel (ex: "Repos 2min30 — calibré W'bal ${wprimeKJ || "N/A"} kJ")
+2. Indiquer le volume max de répétitions avant épuisement du W'
+3. Étiqueter les efforts au-dessus de CP (${cpRound || "N/A"}W) comme "supra-CP"`;
+
               } else {
                 chunkPrompt = `${userPrompt}
 
@@ -2405,7 +2437,12 @@ Puis continue avec les semaines. Chaque bloc doit avoir son en-tête. C'est OBLI
 Résumé des blocs précédents pour assurer la continuité :
 ${previousChunksSummary}
 
-Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.`;
+Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.
+
+🔋 RAPPEL W'bal OBLIGATOIRE : Pour CHAQUE séance d'intervalles supra-CP, tu DOIS :
+1. Justifier la durée de repos avec le W' individuel (ex: "Repos 2min30 — calibré W'bal ${wprimeKJ || "N/A"} kJ")
+2. Indiquer le volume max de répétitions avant épuisement du W'
+3. Étiqueter les efforts au-dessus de CP (${cpRound || "N/A"}W) comme "supra-CP"`;
               }
 
               // Ensure week headers from a new block start on a fresh line
@@ -2447,7 +2484,12 @@ Contexte des semaines déjà générées :
 ${previousChunksSummary}
 ${generatedWeeks.length > 0 ? `Semaines déjà générées dans ce bloc : ${generatedWeeks.join(", ")}` : ""}
 
-Assure la CONTINUITÉ de la progression.`;
+Assure la CONTINUITÉ de la progression.
+
+🔋 RAPPEL W'bal OBLIGATOIRE : Pour CHAQUE séance d'intervalles supra-CP, tu DOIS :
+1. Justifier la durée de repos avec le W' individuel (ex: "Repos 2min30 — calibré W'bal ${wprimeKJ || "N/A"} kJ")
+2. Indiquer le volume max de répétitions avant épuisement du W'
+3. Étiqueter les efforts au-dessus de CP (${cpRound || "N/A"}W) comme "supra-CP"`;
 
                 emitChunkBoundary();
                 const retryText = await generateAndStream(retryPrompt, controller, encoder);
