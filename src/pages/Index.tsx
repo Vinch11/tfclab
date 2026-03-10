@@ -96,6 +96,9 @@ import { CoachDecisionUnifiedCard } from "@/components/CoachDecisionUnifiedCard"
 // ✅ Profil & Ambition — Carte unifiée (Phase 1f UX)
 import { ProfilAmbitionUnifiedCard } from "@/components/ProfilAmbitionUnifiedCard";
 
+// ✅ W'bal Recovery Card — Repos optimaux individualisés
+import { WbalRecoveryCard } from "@/components/WbalRecoveryCard";
+
 // ✅ Roadmap Stratégique
 import { RoadmapStrategique } from "@/components/RoadmapStrategique";
 import { detectUnifiedLimiter, type UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
@@ -1382,6 +1385,20 @@ const Index = () => {
                 objectif={(currentAthlete.goal === "IM" ? "Ironman" : currentAthlete.goal) || "Ironman"}
                 ftp={effectiveRefs.ftp ?? null}
                 staffMode={staffMode}
+              />
+            ),
+          },
+          // ✅ W'bal Recovery — Repos optimaux individualisés (Skiba 2012)
+          {
+            id: "wbal-recovery",
+            render: () => currentAthlete && (
+              <WbalRecoveryCard
+                ftp={effectiveCloudSnapshot?.ftp}
+                pmax5s={effectiveCloudSnapshot?.pmax_5s}
+                p30s={effectiveCloudSnapshot?.p30s_w}
+                p60s={effectiveCloudSnapshot?.p60s_w}
+                map5min={effectiveCloudSnapshot?.map5min_w}
+                weightKg={effectiveCloudSnapshot?.weight_kg}
               />
             ),
           },
