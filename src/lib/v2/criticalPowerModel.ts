@@ -126,32 +126,51 @@ export function fitCriticalPower(points: PowerDurationPoint[]): CriticalPowerRes
 /**
  * Build power-duration points from snapshot data.
  * Maps snapshot fields to standardized durations.
+ *
+ * IMPORTANT — Scientific rationale for point selection:
+ * - P5s is EXCLUDED from regression: 5s power is neuromuscular (PCr-driven),
+ *   not well-modeled by the 2-parameter hyperbolic model (Jones 2019).
+ * - FTP is EXCLUDED from regression: FTP ≠ 60-min power. Its duration varies
+ *   40-70min per athlete, making it unsuitable as a fixed-duration anchor.
+ *   Including it biases CP upward and compresses W'.
+ *
+ * Both P5s and FTP are returned as overlay points (regressionPoint: false)
+ * for display on the power-duration curve.
+ *
+ * Valid regression range: ~30s to 5-7min (Jones et al., 2019)
  */
+export interface PowerDurationPointEx extends PowerDurationPoint {
+  regressionPoint: boolean; // true = used in CP/W' fit, false = overlay only
+}
+
 export function buildPointsFromSnapshot(snapshot: {
   pmax_5s?: number | null;
   p30s_w?: number | null;
   p60s_w?: number | null;
   map5min_w?: number | null;
   ftp?: number | null;
-}): PowerDurationPoint[] {
-  const points: PowerDurationPoint[] = [];
+}): PowerDurationPointEx[] {
+  const points: PowerDurationPointEx[] = [];
 
+  // P5s — overlay only (neuromuscular, outside model validity)
   if (snapshot.pmax_5s && snapshot.pmax_5s > 0) {
-    points.push({ durationSec: 5, powerWatts: snapshot.pmax_5s, label: "P5s" });
+    points.push({ durationSec: 5, powerWatts: snapshot.pmax_5s, label: "P5s", regressionPoint: false });
   }
+  // P30s — valid regression point
   if (snapshot.p30s_w && snapshot.p30s_w > 0) {
-    points.push({ durationSec: 30, powerWatts: snapshot.p30s_w, label: "P30s" });
+    points.push({ durationSec: 30, powerWatts: snapshot.p30s_w, label: "P30s", regressionPoint: true });
   }
+  // P60s — valid regression point
   if (snapshot.p60s_w && snapshot.p60s_w > 0) {
-    points.push({ durationSec: 60, powerWatts: snapshot.p60s_w, label: "P60s" });
+    points.push({ durationSec: 60, powerWatts: snapshot.p60s_w, label: "P60s", regressionPoint: true });
   }
+  // MAP 5min — valid regression point (upper boundary of validity)
   if (snapshot.map5min_w && snapshot.map5min_w > 0) {
-    points.push({ durationSec: 300, powerWatts: snapshot.map5min_w, label: "MAP5min" });
+    points.push({ durationSec: 300, powerWatts: snapshot.map5min_w, label: "MAP5min", regressionPoint: true });
   }
+  // FTP — overlay only (duration unknown, biases regression)
   if (snapshot.ftp && snapshot.ftp > 0) {
-    // FTP ≈ power at ~3600s (60min) — use as approximate anchor
-    // Note: FTP ≠ CP, but useful as a data point at ~60min
-    points.push({ durationSec: 3600, powerWatts: snapshot.ftp, label: "FTP~60min" });
+    points.push({ durationSec: 3600, powerWatts: snapshot.ftp, label: "FTP", regressionPoint: false });
   }
 
   return points;
