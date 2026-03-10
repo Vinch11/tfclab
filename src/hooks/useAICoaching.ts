@@ -21,6 +21,9 @@ interface AthleteContext {
   fcMax?: number | null;
   tte?: number | null;
   pmax5s?: number | null;
+  p30s?: number | null;
+  p60s?: number | null;
+  map5min?: number | null;
   snapshotCount?: number;
   lastSnapshotAge?: number;
 }
