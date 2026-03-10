@@ -107,14 +107,24 @@ export function WbalRecoveryCard({
           <TabsContent value="summary" className="mt-3 space-y-3">
             {/* Main metrics */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-lg border bg-primary/5 p-3 text-center space-y-1">
+              <div className={`rounded-lg border p-3 text-center space-y-1 ${cpResult.cpBounded ? "bg-amber-500/5 border-amber-500/30" : "bg-primary/5"}`}>
                 <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
                   <Zap className="h-3 w-3" />
                   Critical Power
                 </div>
-                <div className="text-2xl font-bold font-mono text-primary">{cpResult.cp}W</div>
-                {cpResult.cpWkg && (
-                  <div className="text-xs text-muted-foreground font-mono">{cpResult.cpWkg} W/kg</div>
+                {cpResult.cpBounded ? (
+                  <>
+                    <div className="text-lg font-bold font-mono line-through text-muted-foreground">{cpResult.cp}W</div>
+                    <div className="text-2xl font-bold font-mono text-amber-600">{cpResult.effectiveCP}W</div>
+                    <div className="text-[10px] text-amber-600 font-medium">Effectif (borné FTP+10)</div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-2xl font-bold font-mono text-primary">{cpResult.cp}W</div>
+                    {cpResult.cpWkg && (
+                      <div className="text-xs text-muted-foreground font-mono">{cpResult.cpWkg} W/kg</div>
+                    )}
+                  </>
                 )}
               </div>
               <div className="rounded-lg border bg-destructive/5 p-3 text-center space-y-1">
