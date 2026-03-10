@@ -190,6 +190,42 @@ export function CPWPrimeCurveCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Diagnostic warnings */}
+        {hasDiagnostics && (
+          <div className={`rounded-lg border p-3 space-y-2 ${hasCritical ? "border-destructive/50 bg-destructive/5" : "border-amber-500/30 bg-amber-500/5"}`}>
+            <div className="flex items-center gap-2 text-xs font-semibold">
+              {hasCritical ? (
+                <ShieldAlert className="h-4 w-4 text-destructive" />
+              ) : (
+                <AlertTriangle className="h-4 w-4 text-amber-500" />
+              )}
+              <span>{hasCritical ? "Incohérence physiologique détectée" : "Points d'attention"}</span>
+            </div>
+            <div className="space-y-1.5">
+              {cpResult.diagnostics.map((d, i) => (
+                <TooltipProvider key={i}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className={`flex items-start gap-2 text-xs cursor-help rounded px-2 py-1 ${
+                        d.severity === "critical" ? "bg-destructive/10 text-destructive" : "bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                      }`}>
+                        <span className="shrink-0 mt-0.5">{d.severity === "critical" ? "🔴" : "🟡"}</span>
+                        <span>{d.message}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-sm">
+                      <p className="text-xs leading-relaxed">{d.detail}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ))}
+            </div>
+            <p className="text-[10px] text-muted-foreground">
+              ℹ️ R² élevé ≠ modèle fiable. R² mesure l'ajustement mathématique, pas la validité physiologique des données d'entrée. Réalisez des tests all-out sur 30s, 1min et 5min.
+            </p>
+          </div>
+        )}
+
         <Tabs defaultValue="curve" className="w-full">
           <TabsList className="w-full grid grid-cols-3">
             <TabsTrigger value="curve" className="text-xs">Courbe P-D</TabsTrigger>
