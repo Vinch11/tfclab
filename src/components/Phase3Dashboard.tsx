@@ -37,6 +37,9 @@ export interface Phase3DashboardProps {
     tte_observed_min?: number | null;
     vo2max?: number | null;
     pmax_5s?: number | null;
+    p30s_w?: number | null;
+    p60s_w?: number | null;
+    map5min_w?: number | null;
     vma?: number | null;
     css?: number | null;
     fc_max?: number | null;
