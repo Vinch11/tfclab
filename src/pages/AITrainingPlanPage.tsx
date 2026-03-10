@@ -284,6 +284,9 @@ export default function AITrainingPlanPage() {
       fcMax: refs.fcMax,
       tte: tteEff.tte_min,
       pmax5s: activeSnap.pmax_5s,
+      p30s: activeSnap.p30s_w,
+      p60s: activeSnap.p60s_w,
+      map5min: activeSnap.map5min_w,
     };
 
     const limiterResult = detectUnifiedLimiter({
