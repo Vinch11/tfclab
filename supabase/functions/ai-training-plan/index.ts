@@ -2453,6 +2453,32 @@ IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${exp
                   ? `\n📋 RÉCAPITULATIF STRATÉGIQUE (généré au bloc 1 — RÉFÉRENCE pour le séquençage) :\n${extractedRecap}\n\n⚠️ Tu DOIS respecter les bornes de phase et les séances clés définies ci-dessus. Si la semaine ${chunk.start} tombe dans un nouveau bloc/phase selon ce récapitulatif, insère l'en-tête de bloc.`
                   : "";
 
+                // FIX C3 (audit): Build multi-objective reminder specific to this chunk's week range
+                let multiObjChunkReminder = "";
+                if (planConfig?.raceGoals && planConfig.raceGoals.length > 1) {
+                  const relevantGoals = planConfig.raceGoals.filter((g: any) => {
+                    if (!g.raceDate || !planConfig.planStartDate) return false;
+                    const startMs = new Date(planConfig.planStartDate).getTime();
+                    const raceMs = new Date(g.raceDate).getTime();
+                    const goalWeek = Math.ceil((raceMs - startMs) / (7 * 86400000));
+                    // Include goals within ±3 weeks of this chunk's range (taper/recovery window)
+                    return goalWeek >= chunk.start - 3 && goalWeek <= chunk.end + 3;
+                  });
+                  if (relevantGoals.length > 0) {
+                    multiObjChunkReminder = `\n\n🎯 RAPPEL MULTI-OBJECTIFS pour ce bloc :`;
+                    relevantGoals.forEach((g: any) => {
+                      const startMs = new Date(planConfig.planStartDate).getTime();
+                      const raceMs = new Date(g.raceDate).getTime();
+                      const goalWeek = Math.ceil((raceMs - startMs) / (7 * 86400000));
+                      const prio = g.priority === "A" ? "🅰️" : g.priority === "B" ? "🅱️" : "🆎";
+                      multiObjChunkReminder += `\n  ${prio} ${g.objective || g.raceName || "Course"} — Semaine ${goalWeek} (${g.raceDate})`;
+                      if (g.priority !== "A" && goalWeek >= chunk.start && goalWeek <= chunk.end) {
+                        multiObjChunkReminder += ` ⚠️ DANS CE BLOC → Mini-taper S${goalWeek - 1}, Course S${goalWeek}, Récup S${goalWeek + 1}`;
+                      }
+                    });
+                  }
+                }
+
                 chunkPrompt = `${userPrompt}
 
 ⚠️ GÉNÉRATION PAR BLOC (suite) : Génère UNIQUEMENT les semaines ${chunk.start} à ${chunk.end} (sur ${totalWeeks} total).
@@ -2469,7 +2495,7 @@ Puis continue avec les semaines. Chaque bloc doit avoir son en-tête. C'est OBLI
 
 📋 DIAGNOSTIC STRUCTURÉ (cohérence obligatoire pour ce bloc) :
 ${diagnosticBlock}
-${recapSection}
+${recapSection}${multiObjChunkReminder}
 
 🔄 PHASE ACTIVE ESTIMÉE : ${activePhase}
 → Les séances clés de ce bloc doivent correspondre à cette phase ET aux limiteurs ci-dessus.
