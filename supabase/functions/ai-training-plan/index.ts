@@ -110,6 +110,26 @@ function getSportDistributionConstraint(objective: string, ambition: string, lim
   return lines.join("\n");
 }
 
+// === FIX M3: Extract keywords from a limiter name for session matching ===
+function extractLimiterKeywords(limiterName: string): string[] {
+  const kw: string[] = [];
+  const l = limiterName.toLowerCase();
+  if (/vlamax/i.test(l)) kw.push("vlamax", "sprint", "glycoly", "anaérobie", "force", "sfr", "neuromuscul");
+  if (/tte|time.to.exhaust/i.test(l)) kw.push("tte", "seuil", "tempo", "sweet spot", "threshold", "ss");
+  if (/durabilit/i.test(l)) kw.push("durabilit", "endurance", "z2", "fatmax", "long", "aérobie");
+  if (/fatmax|lipid|fat.ox/i.test(l)) kw.push("fatmax", "z2", "endurance", "lipid", "oxydation", "fasted");
+  if (/econom|running.econ/i.test(l)) kw.push("économie", "cadence", "technique", "gammes", "foulée", "strides");
+  if (/ftp|puissance.seuil/i.test(l)) kw.push("ftp", "seuil", "sweet spot", "ss", "tempo", "threshold");
+  if (/vo2|vo2max|pma/i.test(l)) kw.push("vo2", "pma", "interval", "30/30", "3min", "5min", "hiit");
+  if (/vma/i.test(l)) kw.push("vma", "interval", "fractionné", "30/30", "piste");
+  if (/force|renfo/i.test(l)) kw.push("force", "renfo", "muscul", "côte", "sfr");
+  if (/natation|swim|css/i.test(l)) kw.push("natation", "swim", "css", "crawl", "pull");
+  if (kw.length === 0) {
+    kw.push(...l.split(/[\s/,()]+/).filter(w => w.length > 3));
+  }
+  return kw;
+}
+
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -2633,7 +2653,7 @@ Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b
                 }
               }
 
-              // FIX #5 (audit recap): Build ENRICHED summary for sliding window — includes phase + key sessions
+              // FIX M1 (audit): Build ENRICHED summary with limiter progression tracking
               const weekMatches = combinedChunkText.match(/^(?:#{2,4}\s*)?\*{0,2}\s*Semaine\s*\d+[^#\n]*(?:\n(?!#{1,4}\s*\*{0,2}\s*Semaine\s*\d+).*)*/gim) || [];
               const summaryLines = weekMatches.map(w => {
                 const numMatch = w.match(/Semaine\s*(\d+)/i);
@@ -2641,14 +2661,39 @@ Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b
                 // Extract key sessions (🔑) for richer context
                 const keySessionMatches = w.match(/🔑[^\n|]*/g) || [];
                 const keySummary = keySessionMatches.length > 0 ? ` [Clés: ${keySessionMatches.map(k => k.replace("🔑", "").trim().slice(0, 30)).join(", ")}]` : "";
-                return `S${numMatch?.[1] || "?"}: ${themeMatch?.[1]?.trim() || "progression"}${keySummary}`;
+                // M1: Track limiter-relevant metrics (durations, intensities, volumes)
+                const durationMatches = w.match(/(\d+h?\d*['′min]*\s*(?:Z2|endurance|FatMax|seuil|tempo|SFR|force))/gi) || [];
+                const durSummary = durationMatches.length > 0 ? ` [Prog: ${durationMatches.slice(0, 2).map(d => d.trim().slice(0, 25)).join(", ")}]` : "";
+                return `S${numMatch?.[1] || "?"}: ${themeMatch?.[1]?.trim() || "progression"}${keySummary}${durSummary}`;
               }).join(", ");
               
               // Detect bloc headers in this chunk for phase tracking in summary
               const blocHeaders = combinedChunkText.match(/##\s*Bloc\s*\d*\s*[:—–\-]?\s*[^\n]+/gi) || [];
               const blocInfo = blocHeaders.length > 0 ? ` | Blocs: ${blocHeaders.map(h => h.replace(/^##\s*/i, "").trim().slice(0, 40)).join("; ")}` : "";
               
-              chunkSummaries.push(`Semaines ${chunk.start}-${chunk.end} [Phase: ${activePhase}${blocInfo}]: ${summaryLines || "Plan progressif standard"}`);
+              // M1: Track longest Z2/endurance session for durability progression
+              const z2Durations = combinedChunkText.match(/(\d+)\s*(?:h|min|'|′)\s*(?:\d+\s*(?:min|'|′))?\s*(?:Z2|endurance|FatMax|aérobie)/gi) || [];
+              const maxZ2 = z2Durations.length > 0 ? ` | MaxZ2: ${z2Durations[z2Durations.length - 1]?.trim().slice(0, 20)}` : "";
+
+              // FIX M3 (audit): Post-chunk validation — check key sessions target L1/L2
+              const keySessionMatches_all = combinedChunkText.match(/🔑[^\n|]*/g) || [];
+              const L1Name = (planConfig?.identifiedLimiters?.[0] || "").toLowerCase();
+              const L2Name = (planConfig?.identifiedLimiters?.[1] || "").toLowerCase();
+              if (L1Name && keySessionMatches_all.length > 0) {
+                const L1Keywords = extractLimiterKeywords(L1Name);
+                const L2Keywords = L2Name ? extractLimiterKeywords(L2Name) : [];
+                const keyTexts = keySessionMatches_all.map(k => k.toLowerCase());
+                const L1Hits = keyTexts.filter(t => L1Keywords.some(kw => t.includes(kw))).length;
+                const L2Hits = L2Keywords.length > 0 ? keyTexts.filter(t => L2Keywords.some(kw => t.includes(kw))).length : -1;
+                if (L1Hits === 0) {
+                  console.warn(`⚠️ M3 Validation: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — NO key sessions (🔑) target L1="${L1Name}". Phase: ${activePhase}`);
+                }
+                if (L2Hits === 0 && activePhase !== "Fondation" && activePhase !== "Adaptation") {
+                  console.warn(`⚠️ M3 Validation: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — NO key sessions target L2="${L2Name}" in ${activePhase} phase.`);
+                }
+              }
+              
+              chunkSummaries.push(`Semaines ${chunk.start}-${chunk.end} [Phase: ${activePhase}${blocInfo}${maxZ2}]: ${summaryLines || "Plan progressif standard"}`);
             }
 
             // Send final [DONE]
@@ -2660,7 +2705,6 @@ Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b
           }
         },
       });
-
 
 
       return new Response(stream, {
@@ -2757,33 +2801,53 @@ function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number): strin
   if (config?.sessionsPerWeek) lines.push(`📊 Séances: ${config.sessionsPerWeek}/sem`);
   if (config?.maxSessionsPerDay) lines.push(`📊 Max/jour: ${config.maxSessionsPerDay}`);
 
-  // FIX #3: Estimated phase bounds (heuristic based on total weeks and ambition)
+  // FIX C5 (audit): Limiter-aware phase heuristics — adapt durations based on L1 type
   if (totalWeeks && totalWeeks > 10) {
     const tw = totalWeeks;
     const isFinisher = ambKey === "finisher";
+    const L1 = (config?.identifiedLimiters?.[0] || "").toLowerCase();
+    const L2 = (config?.identifiedLimiters?.[1] || "").toLowerCase();
+
     // Taper duration depends on objective
     const taperWeeks = ["IM", "TrailUltra"].includes(objKey) ? 3 : ["703", "Marathon"].includes(objKey) ? 2 : ["Semi", "Trail", "TrailMountain"].includes(objKey) ? 2 : 1;
     const raceSpecificWeeks = isFinisher ? 0 : Math.min(4, Math.max(2, Math.floor(tw * 0.15)));
     const remainingWeeks = tw - taperWeeks - raceSpecificWeeks;
-    const fondationWeeks = Math.max(3, Math.floor(remainingWeeks * 0.35));
+
+    // C5: Adjust fondation/build split based on limiter type
+    // High VLamax or durability issues → longer Chantier block (more volume work needed)
+    // Economy/technique limiters → longer Fondation (motor pattern adaptation is slow)
+    const isVlamaxLimiter = /vlamax|glycoly|sprint|anaerob/i.test(L1);
+    const isDurabilityLimiter = /durabilit|tte|endurance|fatmax|lipid/i.test(L1);
+    const isEconomyLimiter = /econom|technique|cadence|biom[ée]can/i.test(L1);
+
+    let fondationPct = 0.35; // default
+    if (isEconomyLimiter) fondationPct = 0.42; // economy needs longer motor pattern adaptation
+    else if (isVlamaxLimiter) fondationPct = 0.30; // VLamax work benefits from earlier Chantier
+    else if (isDurabilityLimiter) fondationPct = 0.30; // durability needs more Build volume
+
+    const fondationWeeks = Math.max(3, Math.floor(remainingWeeks * fondationPct));
     const buildWeeks = remainingWeeks - fondationWeeks;
 
-    lines.push(`\n📅 BORNES DE PHASE ESTIMÉES (${tw} semaines) :`);
+    // C5: Name phases with actual limiter targets
+    const L1Short = L1 ? L1.split(/[\s(,]/)[0] : "Limiteur #1";
+    const L2Short = L2 ? L2.split(/[\s(,]/)[0] : "Limiteur #2";
+
+    lines.push(`\n📅 BORNES DE PHASE ESTIMÉES (${tw} semaines, ajustées selon L1="${L1Short}") :`);
     if (isFinisher) {
       lines.push(`  Phase 1 — Adaptation : S1-S${fondationWeeks}`);
       lines.push(`  Phase 2 — Développement : S${fondationWeeks + 1}-S${fondationWeeks + buildWeeks}`);
       lines.push(`  Phase 3 — Consolidation : S${fondationWeeks + buildWeeks + 1}-S${tw - taperWeeks}`);
       lines.push(`  Phase 4 — Affûtage : S${tw - taperWeeks + 1}-S${tw}`);
     } else {
-      const chantierEnd = fondationWeeks + Math.ceil(buildWeeks * 0.5);
+      const chantierEnd = fondationWeeks + Math.ceil(buildWeeks * (isVlamaxLimiter || isDurabilityLimiter ? 0.55 : 0.5));
       const consolEnd = fondationWeeks + buildWeeks;
-      lines.push(`  Bloc Fondation + Intensité : S1-S${fondationWeeks}`);
-      lines.push(`  Bloc Chantier [Limiteur #1] : S${fondationWeeks + 1}-S${chantierEnd}`);
-      lines.push(`  Bloc Consolidation [Limiteur #2] : S${chantierEnd + 1}-S${consolEnd}`);
+      lines.push(`  Bloc Fondation + Intensité : S1-S${fondationWeeks}${isEconomyLimiter ? " (étendu: adaptation motrice L1)" : ""}`);
+      lines.push(`  Bloc Chantier [${L1Short}↓] : S${fondationWeeks + 1}-S${chantierEnd}${isVlamaxLimiter ? " (étendu: chantier métabolique prioritaire)" : ""}`);
+      lines.push(`  Bloc Consolidation [${L2Short}] : S${chantierEnd + 1}-S${consolEnd}`);
       lines.push(`  Bloc Race-Specific : S${consolEnd + 1}-S${tw - taperWeeks}`);
       lines.push(`  Bloc Affûtage : S${tw - taperWeeks + 1}-S${tw}`);
     }
-    lines.push(`  ⚠️ Ces bornes sont INDICATIVES. Le Récapitulatif Stratégique du chunk 1 fait foi.`);
+    lines.push(`  ⚠️ Ces bornes sont INDICATIVES mais adaptées aux limiteurs détectés. Le Récapitulatif Stratégique du chunk 1 fait foi.`);
   }
   
   return lines.join("\n");
