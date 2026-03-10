@@ -9,8 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RotateCcw, Zap, Battery, Info, AlertTriangle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
-  fitCriticalPower,
-  buildPointsFromSnapshot,
+  analyzeCriticalPower,
   generateRecoveryTable,
   prescribeIntervalRecovery,
   type CriticalPowerResult,
@@ -34,19 +33,20 @@ export function WbalRecoveryCard({
   weightKg,
 }: WbalRecoveryCardProps) {
   const cpResult = useMemo(() => {
-    const points = buildPointsFromSnapshot({
+    return analyzeCriticalPower({
       pmax_5s: pmax5s,
       p30s_w: p30s,
       p60s_w: p60s,
       map5min_w: map5min,
       ftp,
+      weight_kg: weightKg,
     });
-    return fitCriticalPower(points);
-  }, [pmax5s, p30s, p60s, map5min, ftp]);
+  }, [pmax5s, p30s, p60s, map5min, ftp, weightKg]);
 
   const recoveryTable = useMemo(() => {
     if (!cpResult) return null;
-    return generateRecoveryTable(cpResult.cp, cpResult.wprime, weightKg ?? undefined);
+    // Use effectiveCP (bounded by FTP when suspect) for recovery calculations
+    return generateRecoveryTable(cpResult.effectiveCP, cpResult.wprime, weightKg ?? undefined);
   }, [cpResult, weightKg]);
 
   // If not enough data, show placeholder
@@ -107,14 +107,24 @@ export function WbalRecoveryCard({
           <TabsContent value="summary" className="mt-3 space-y-3">
             {/* Main metrics */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-lg border bg-primary/5 p-3 text-center space-y-1">
+              <div className={`rounded-lg border p-3 text-center space-y-1 ${cpResult.cpBounded ? "bg-amber-500/5 border-amber-500/30" : "bg-primary/5"}`}>
                 <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
                   <Zap className="h-3 w-3" />
                   Critical Power
                 </div>
-                <div className="text-2xl font-bold font-mono text-primary">{cpResult.cp}W</div>
-                {cpResult.cpWkg && (
-                  <div className="text-xs text-muted-foreground font-mono">{cpResult.cpWkg} W/kg</div>
+                {cpResult.cpBounded ? (
+                  <>
+                    <div className="text-lg font-bold font-mono line-through text-muted-foreground">{cpResult.cp}W</div>
+                    <div className="text-2xl font-bold font-mono text-amber-600">{cpResult.effectiveCP}W</div>
+                    <div className="text-[10px] text-amber-600 font-medium">Effectif (borné FTP+10)</div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-2xl font-bold font-mono text-primary">{cpResult.cp}W</div>
+                    {cpResult.cpWkg && (
+                      <div className="text-xs text-muted-foreground font-mono">{cpResult.cpWkg} W/kg</div>
+                    )}
+                  </>
                 )}
               </div>
               <div className="rounded-lg border bg-destructive/5 p-3 text-center space-y-1">
@@ -214,7 +224,9 @@ export function WbalRecoveryCard({
                 <strong>⏳ Repos trop long</strong> → stimulus insuffisant → pas de surcompensation optimale
               </p>
               <p className="text-muted-foreground">
-                Ces durées sont <strong>individualisées</strong> à partir du W' de l'athlète ({cpResult.wprimeKJ} kJ).
+                Durées calibrées sur le W' individuel (<strong className="font-mono">{cpResult.wprimeKJ} kJ</strong>) 
+                et CP effectif (<strong className="font-mono">{cpResult.effectiveCP}W</strong>)
+                {cpResult.cpBounded && <span className="text-amber-600"> — borné par FTP</span>}
               </p>
             </div>
           </TabsContent>
