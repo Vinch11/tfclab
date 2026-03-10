@@ -71,7 +71,8 @@ export function CPWPrimeCurveCard({
 
   const recoveryTable = useMemo(() => {
     if (!cpResult) return null;
-    return generateRecoveryTable(cpResult.cp, cpResult.wprime, weightKg ?? undefined);
+    // Use effectiveCP (bounded by FTP) for recovery calculations
+    return generateRecoveryTable(cpResult.effectiveCP, cpResult.wprime, weightKg ?? undefined);
   }, [cpResult, weightKg]);
 
   // Build curve data: P(t) = CP + W'/t
