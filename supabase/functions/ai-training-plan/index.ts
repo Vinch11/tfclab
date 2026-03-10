@@ -2282,8 +2282,11 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     const obj = (planConfig?.objective || "").toUpperCase();
     // Detect verbose plans: triathlon multi-sport plans generate much more text per week
     const isVerbosePlan = /IRON|IM\b|703|70\.3|TRIATHLON|TRI\b/i.test(obj);
-    // For very long plans (>20 weeks), use even smaller chunks to avoid stream timeout
-    const CHUNK_SIZE = isVerbosePlan ? (totalWeeks > 20 ? 3 : 4) : (totalWeeks > 20 ? 4 : 6);
+    // Dynamic chunk sizing: balance between context quality and total API calls
+    // For very long plans, use larger chunks to reduce total calls and avoid edge function timeouts
+    const CHUNK_SIZE = isVerbosePlan 
+      ? (totalWeeks > 28 ? 4 : totalWeeks > 20 ? 4 : 4) 
+      : (totalWeeks > 28 ? 5 : totalWeeks > 20 ? 5 : 6);
     const needsChunking = !regenerateWeek && totalWeeks > 10;
 
     // FIX #1: Deduplicate CP/W' — reuse buildCPWprimeSection's logic via shared helper
@@ -2533,11 +2536,23 @@ Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semai
               let combinedChunkText = chunkText;
 
               if (!chunkText) {
-                const errorPayload = streamError
-                  ? `{"error":"${streamError.message}","code":${streamError.code}}`
-                  : `{"error":"Erreur génération bloc ${ci + 1}/${chunks.length}","code":500}`;
-                controller.enqueue(encoder.encode(`data: ${errorPayload}\n\n`));
-                break;
+                // If this chunk failed, try to continue with remaining chunks instead of breaking
+                console.error(`Chunk ${ci + 1}/${chunks.length} failed (empty response). StreamError: ${streamError?.message || "none"}`);
+                if (streamError && (streamError.code === 402 || streamError.code === 429)) {
+                  // Credit/rate limit errors — stop entirely
+                  const errorPayload = `{"error":"${streamError.message}","code":${streamError.code}}`;
+                  controller.enqueue(encoder.encode(`data: ${errorPayload}\n\n`));
+                  break;
+                }
+                // For timeouts or transient errors, try one more time with a smaller scope
+                console.log(`Retrying full chunk ${ci + 1} after failure...`);
+                streamError = null;
+                const retryChunkText = await generateAndStream(chunkPrompt, controller, encoder);
+                if (!retryChunkText) {
+                  console.error(`Chunk ${ci + 1} retry also failed. Skipping to next chunk.`);
+                  continue; // Skip this chunk, let the gap-filling in parser handle it
+                }
+                combinedChunkText = retryChunkText;
               }
 
               // === FIRST CHUNK EXTRACTIONS ===

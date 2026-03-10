@@ -129,7 +129,7 @@ export function parseAIPlan(markdown: string): ParsedPlan {
 
   const flushWeek = () => {
     if (currentWeekNumber > 0) {
-      weeks.push({
+      const newWeek: ParsedWeek = {
         weekNumber: currentWeekNumber,
         theme: currentWeekTheme || `Semaine ${currentWeekNumber}`,
         phase: currentPhase,
@@ -137,7 +137,23 @@ export function parseAIPlan(markdown: string): ParsedPlan {
         volumeTarget: currentVolumeTarget,
         coachNotes: currentCoachNotes.trim() || undefined,
         sessions: [...pendingSessions],
-      });
+      };
+
+      // === DEDUPLICATION: If this week number already exists, keep the one with more real sessions ===
+      const existingIdx = weeks.findIndex(w => w.weekNumber === currentWeekNumber);
+      if (existingIdx !== -1) {
+        const existing = weeks[existingIdx];
+        const existingRealSessions = existing.sessions.filter(s => !s.isRest).length;
+        const newRealSessions = newWeek.sessions.filter(s => !s.isRest).length;
+        if (newRealSessions > existingRealSessions) {
+          // New version is better — replace
+          weeks[existingIdx] = newWeek;
+        }
+        // Otherwise keep existing (it has more or equal real sessions)
+      } else {
+        weeks.push(newWeek);
+      }
+
       pendingSessions = [];
       currentCoachNotes = "";
     }
