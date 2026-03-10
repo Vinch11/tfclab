@@ -50,13 +50,18 @@ const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
   },
 };
 
+// FIX #2-obj: Order matters — check "70.3" BEFORE "ironman" to avoid "Ironman 70.3" → "IM"
 function normalizeObjKey(obj: string): string {
   const lower = obj.toLowerCase();
-  if (lower.includes("ironman") && !lower.includes("70")) return "IM";
   if (lower.includes("70.3") || lower === "703") return "703";
-  if (lower.includes("marathon") && !lower.includes("semi")) return "Marathon";
+  if (lower.includes("ironman") || lower === "im") return "IM";
   if (lower.includes("semi")) return "Semi";
+  if (lower.includes("marathon")) return "Marathon";
+  if (lower.includes("trail") && lower.includes("ultra")) return "TrailUltra";
+  if (lower.includes("trail")) return "Trail";
   if (lower.includes("10")) return "10K";
+  if (lower.includes("5k") || lower === "5km") return "5K";
+  if (lower.includes("start")) return "StartToRun";
   return obj;
 }
 
