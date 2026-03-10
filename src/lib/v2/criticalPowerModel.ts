@@ -202,25 +202,28 @@ export function analyzeCriticalPower(snapshot: {
 
 /**
  * Calculate τ (time constant for W' reconstitution)
- * τ = W' / (DCP × CP)
- * 
- * DCP = difference between CP and recovery power.
- * Lower recovery power = faster reconstitution.
+ *
+ * Uses the empirical formula from Skiba et al. (2015):
+ *   τ = 546 × e^(−0.01 × DCP) + 316
+ *
+ * Where DCP = CP − recovery_power (W).
+ * Lower recovery power → larger DCP → shorter τ → faster reconstitution.
  *
  * Source: Skiba P.F. et al. (2015) – Modelling the expenditure and reconstitution
- * of work capacity above critical power
+ * of work capacity above critical power. Int J Sports Physiol Perform.
  */
 export function calculateTau(
-  wprimeJ: number,
+  _wprimeJ: number,
   cp: number,
   recoveryPower: number
 ): number {
   const dcp = cp - recoveryPower;
   if (dcp <= 0) return Infinity; // Recovery at or above CP = no reconstitution
-  
-  const tau = wprimeJ / (dcp * cp) * 1000; // Convert to practical units
-  // Typical τ range: 300-900 seconds
-  return Math.max(120, Math.min(1200, tau));
+
+  // Skiba 2015 empirical model — validated across trained cyclists
+  const tau = 546 * Math.exp(-0.01 * dcp) + 316;
+  // Typical τ range: ~350-850s depending on DCP
+  return Math.max(200, Math.min(1500, tau));
 }
 
 /**
