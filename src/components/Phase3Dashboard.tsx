@@ -37,6 +37,9 @@ export interface Phase3DashboardProps {
     tte_observed_min?: number | null;
     vo2max?: number | null;
     pmax_5s?: number | null;
+    p30s_w?: number | null;
+    p60s_w?: number | null;
+    map5min_w?: number | null;
     vma?: number | null;
     css?: number | null;
     fc_max?: number | null;
@@ -194,6 +197,9 @@ function AICoachingCard({
       fcMax: snapshot?.fc_max,
       tte: snapshot?.tte_observed_min,
       pmax5s: snapshot?.pmax_5s,
+      p30s: snapshot?.p30s_w,
+      p60s: snapshot?.p60s_w,
+      map5min: snapshot?.map5min_w,
       snapshotCount,
     });
   };
