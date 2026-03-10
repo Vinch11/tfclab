@@ -66,6 +66,7 @@ import { AmbitionTargetsCard } from "@/components/AmbitionTargetsCard";
 import { VLamaxV2DisplayCard } from "@/components/VLamaxV2DisplayCard";
 import { VLamaxBikeV2EnhancedCard } from "@/components/VLamaxBikeV2EnhancedCard";
 import { FatMaxTFCLCard } from "@/components/FatMaxTFCLCard";
+import { CPWPrimeCurveCard } from "@/components/CPWPrimeCurveCard";
 import { FatMaxRaceIntensityChart } from "@/components/charts/FatMaxRaceIntensityChart";
 import { computeFatMaxTFCL, FatMaxObjectif } from "@/lib/v2/fatmaxTFCL";
 import { ObjectifPrincipal } from "@/lib/reference";
@@ -1204,6 +1205,16 @@ export default function DashboardPage() {
     { id: "fatmax-tfcl", render: renderFatMaxTFCL },
     { id: "fatmax-chart", render: renderFatMaxChart },
     { id: "vlamax-targets", render: renderVLamaxTargets },
+    { id: "cpw-prime-curve", render: () => (
+      <CPWPrimeCurveCard
+        ftp={snapshot.ftp}
+        pmax5s={snapshot.pmax_5s}
+        p30s={(snapshot as unknown as Record<string, unknown>).p30s_w as number | null}
+        p60s={(snapshot as unknown as Record<string, unknown>).p60s_w as number | null}
+        map5min={(snapshot as unknown as Record<string, unknown>).map5min_w as number | null}
+        weightKg={snapshot.weight_kg}
+      />
+    )},
     { id: "nutrition", render: renderNutrition },
     { id: "priorities", render: renderPriorities },
     { id: "scientific", render: renderScientific },

@@ -98,6 +98,8 @@ import { ProfilAmbitionUnifiedCard } from "@/components/ProfilAmbitionUnifiedCar
 
 // ✅ W'bal Recovery Card — Repos optimaux individualisés
 import { WbalRecoveryCard } from "@/components/WbalRecoveryCard";
+// ✅ CP/W' Courbe Puissance-Durée
+import { CPWPrimeCurveCard } from "@/components/CPWPrimeCurveCard";
 
 // ✅ Roadmap Stratégique
 import { RoadmapStrategique } from "@/components/RoadmapStrategique";
@@ -1385,6 +1387,20 @@ const Index = () => {
                 objectif={(currentAthlete.goal === "IM" ? "Ironman" : currentAthlete.goal) || "Ironman"}
                 ftp={effectiveRefs.ftp ?? null}
                 staffMode={staffMode}
+              />
+            ),
+          },
+          // ✅ CP/W' Courbe Puissance-Durée (Skiba 2012)
+          {
+            id: "cpw-prime-curve",
+            render: () => currentAthlete && (
+              <CPWPrimeCurveCard
+                ftp={effectiveCloudSnapshot?.ftp}
+                pmax5s={effectiveCloudSnapshot?.pmax_5s}
+                p30s={effectiveCloudSnapshot?.p30s_w}
+                p60s={effectiveCloudSnapshot?.p60s_w}
+                map5min={effectiveCloudSnapshot?.map5min_w}
+                weightKg={effectiveCloudSnapshot?.weight_kg}
               />
             ),
           },
