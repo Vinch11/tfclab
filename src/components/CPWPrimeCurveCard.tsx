@@ -330,10 +330,10 @@ export function CPWPrimeCurveCard({
                 </div>
               </div>
               <div className="rounded-lg border p-2 text-center">
-                <div className="text-[10px] text-muted-foreground">Points</div>
-                <div className="text-sm font-bold font-mono">{cpResult.points.length}</div>
+                <div className="text-[10px] text-muted-foreground">Pts régression</div>
+                <div className="text-sm font-bold font-mono">{cpResult.points.filter((p: any) => p.regressionPoint !== false).length}</div>
                 <div className="text-[9px] text-muted-foreground">
-                  {cpResult.points.length >= 4 ? "Robuste" : cpResult.points.length >= 3 ? "Suffisant" : "Minimum"}
+                  {cpResult.points.filter((p: any) => p.regressionPoint !== false).length >= 3 ? "Robuste" : "Minimum"}
                 </div>
               </div>
               <div className="rounded-lg border p-2 text-center">
