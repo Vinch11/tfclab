@@ -546,6 +546,7 @@ export function generateRecoveryTable(
 
 /**
  * Format CP/W' analysis as text block for AI prompt injection.
+ * IMPORTANT: Uses effectiveCP (bounded by FTP) for recovery prescriptions.
  */
 export function formatCPWprimeForPrompt(
   cpResult: CriticalPowerResult,
@@ -553,13 +554,17 @@ export function formatCPWprimeForPrompt(
   ftp?: number
 ): string {
   const lines: string[] = [];
+  const useCP = cpResult.effectiveCP; // Always use effective CP for prescriptions
 
   lines.push(`\n#### ⚡ Modèle Critical Power / W' (Skiba — individualisé)`);
-  lines.push(`- **CP (Critical Power)** : ${cpResult.cp}W${cpResult.cpWkg ? ` (${cpResult.cpWkg} W/kg)` : ""}`);
+  lines.push(`- **CP (régression brute)** : ${cpResult.cp}W${cpResult.cpWkg ? ` (${cpResult.cpWkg} W/kg)` : ""}`);
+  if (cpResult.cpBounded) {
+    lines.push(`- **⚠️ CP effectif (borné par FTP)** : ${cpResult.effectiveCP}W${cpResult.effectiveCPWkg ? ` (${cpResult.effectiveCPWkg} W/kg)` : ""}`);
+    lines.push(`  → Le CP brut (${cpResult.cp}W) est artificiellement gonflé (écart >${cpResult.cp - (ftp || 0)}W avec FTP). Le CP effectif = FTP+10W est utilisé pour les prescriptions de repos.`);
+  }
   if (ftp) {
-    const diff = ftp - cpResult.cp;
-    lines.push(`- **FTP vs CP** : FTP=${ftp}W, CP=${cpResult.cp}W → écart ${diff > 0 ? "+" : ""}${diff}W (ratio ${cpResult.ftpCpRatio?.toFixed(2) || "n/a"})`);
-    lines.push(`  → CP < FTP signifie que l'athlète ne peut pas tenir son FTP indéfiniment. FTP est sustainable ~40-70min, CP est le vrai seuil de "steady state".`);
+    lines.push(`- **FTP (terrain)** : ${ftp}W — référence principale pour l'intensité des séances`);
+    lines.push(`  → Le FTP reste la métrique de référence pour calibrer les zones d'entraînement. CP n'est utilisé que pour le modèle W'bal de repos inter-séries.`);
   }
   lines.push(`- **W' (capacité anaérobie)** : ${cpResult.wprimeKJ} kJ${cpResult.wprimeJkg ? ` (${cpResult.wprimeJkg} J/kg)` : ""}`);
   lines.push(`- **Qualité du modèle** : R²=${cpResult.r2} (${cpResult.r2 > 0.95 ? "excellent" : cpResult.r2 > 0.90 ? "bon" : "acceptable"}, ${cpResult.points.length} points)`);
@@ -574,9 +579,15 @@ export function formatCPWprimeForPrompt(
     lines.push(`→ **CONSÉQUENCE POUR LE PLAN** : Si W' est anormalement bas (<8 kJ), les repos calculés sont sous-estimés. Utilise des repos standards de la littérature (ex: 3-5min pour 3min @VO2max) plutôt que les valeurs W'bal ci-dessous.`);
   }
 
-  // Recovery table
-  const recoveryTable = generateRecoveryTable(cpResult.cp, cpResult.wprime, weightKg);
-  lines.push(`\n#### 🔄 Durées de Repos Optimales (W'bal Skiba 2012)`);
+  // CRITICAL: Always prioritize FTP over CP for training intensities
+  lines.push(`\n#### 🎯 HIÉRARCHIE D'INTENSITÉ`);
+  lines.push(`- **Zones d'entraînement** → TOUJOURS basées sur le FTP (${ftp || "n/a"}W), PAS sur le CP`);
+  lines.push(`- **Repos inter-séries** → calculés via W'bal avec CP effectif (${useCP}W)`);
+  lines.push(`- **CP brut (${cpResult.cp}W)** → affiché uniquement pour information, JAMAIS utilisé comme cible d'intensité`);
+
+  // Recovery table — uses effectiveCP
+  const recoveryTable = generateRecoveryTable(useCP, cpResult.wprime, weightKg);
+  lines.push(`\n#### 🔄 Durées de Repos Optimales (W'bal Skiba 2012 — CP effectif ${useCP}W)`);
   lines.push(`| Format | Puissance | Repos optimal | Reps max |`);
   lines.push(`|--------|-----------|---------------|----------|`);
   for (const row of recoveryTable) {
