@@ -97,6 +97,8 @@ export function CPWPrimeCurveCard({
   // Enrich with W/kg
   const cpWkg = cpResult && weightKg ? (cpResult.cp / weightKg).toFixed(2) : null;
   const wprimeJkg = cpResult && weightKg ? Math.round(cpResult.wprime / weightKg) : null;
+  const hasDiagnostics = cpResult && cpResult.diagnostics.length > 0;
+  const hasCritical = cpResult && cpResult.diagnostics.some(d => d.severity === "critical");
 
   if (!cpResult) {
     return (
