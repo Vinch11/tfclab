@@ -7,17 +7,17 @@ import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Zap, Battery, RotateCcw, Info, AlertTriangle, TrendingDown } from "lucide-react";
+import { Zap, Battery, RotateCcw, Info, AlertTriangle, TrendingDown, ShieldAlert, ShieldCheck, ShieldQuestion } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer,
   ReferenceLine, CartesianGrid, Area, AreaChart, Dot, ScatterChart, Scatter, ComposedChart,
 } from "recharts";
 import {
-  fitCriticalPower,
-  buildPointsFromSnapshot,
+  analyzeCriticalPower,
   generateRecoveryTable,
   type CriticalPowerResult,
+  type CPDiagnostic,
 } from "@/lib/v2/criticalPowerModel";
 
 interface CPWPrimeCurveCardProps {
