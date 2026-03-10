@@ -2650,6 +2650,46 @@ Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b
   }
 });
 
+// === FIX #6: STRUCTURED DIAGNOSTIC BLOCK (config-based, always available) ===
+// Builds a compact structured block from planConfig for re-injection in chunks
+function buildStructuredDiagnosticBlock(config: any): string {
+  const lines: string[] = [];
+  
+  // Objective & Ambition
+  const objKey = normalizeObjKey(config?.objective || "");
+  const ambKey = normalizeAmbKey(config?.ambition || "");
+  lines.push(`🎯 Objectif: ${config?.objective || "N/A"} (normalisé: ${objKey})`);
+  lines.push(`🏅 Ambition: ${config?.ambition || "N/A"} (normalisé: ${ambKey})`);
+  
+  // Limiters (structured, ranked)
+  if (config?.identifiedLimiters && config.identifiedLimiters.length > 0) {
+    lines.push(`\n🔴 LIMITEURS CLASSÉS (${config.identifiedLimiters.length} identifiés) :`);
+    config.identifiedLimiters.forEach((l: string, i: number) => {
+      const tag = i === 0 ? "L1 (PRIORITAIRE)" : i === 1 ? "L2 (SECONDAIRE)" : `L${i + 1}`;
+      lines.push(`  ${tag}: ${l}`);
+    });
+  } else {
+    lines.push(`\n⚠️ Aucun limiteur identifié — plan généraliste.`);
+  }
+  
+  // Active levers
+  if (config?.activeLevers && config.activeLevers.length > 0) {
+    lines.push(`\n⚡ Leviers actifs: ${config.activeLevers.join(", ")}`);
+  }
+  
+  // Prohibitions
+  if (config?.prohibitions && config.prohibitions.length > 0) {
+    lines.push(`\n🚫 Interdictions: ${config.prohibitions.join(" | ")}`);
+  }
+  
+  // Volume constraints
+  if (config?.weeklyHours) lines.push(`\n📊 Volume: ${config.weeklyHours}h/sem`);
+  if (config?.sessionsPerWeek) lines.push(`📊 Séances: ${config.sessionsPerWeek}/sem`);
+  if (config?.maxSessionsPerDay) lines.push(`📊 Max/jour: ${config.maxSessionsPerDay}`);
+  
+  return lines.join("\n");
+}
+
 // === SHARED CP/W' COMPUTATION (used by both buildCPWprimeSection and chunk prompts) ===
 function computeCPWprime(data: any): { cpRound: number; wprimeKJ: number; wprimeJ: number } | null {
   const points: { dur: number; pow: number }[] = [];
