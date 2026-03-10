@@ -2386,7 +2386,13 @@ Pour ce premier bloc, inclus :
    - Les synergies doivent concerner le plan global.
 
 Génère ensuite les semaines ${chunk.start} à ${chunk.end} avec leurs tableaux complets.
-IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${expectedWeeks.join(", ")}). Ne t'arrête pas avant.`;
+IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${expectedWeeks.join(", ")}). Ne t'arrête pas avant.
+
+🔋 RAPPEL W'bal OBLIGATOIRE : Pour CHAQUE séance d'intervalles supra-CP, tu DOIS :
+1. Justifier la durée de repos avec le W' individuel (ex: "Repos 2min30 — calibré W'bal ${wprimeKJ || "N/A"} kJ")
+2. Indiquer le volume max de répétitions avant épuisement du W'
+3. Étiqueter les efforts au-dessus de CP (${cpRound || "N/A"}W) comme "supra-CP"`;
+
               } else {
                 chunkPrompt = `${userPrompt}
 
