@@ -2633,7 +2633,7 @@ Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b
                 }
               }
 
-              // FIX #5 (audit recap): Build ENRICHED summary for sliding window — includes phase + key sessions
+              // FIX M1 (audit): Build ENRICHED summary with limiter progression tracking
               const weekMatches = combinedChunkText.match(/^(?:#{2,4}\s*)?\*{0,2}\s*Semaine\s*\d+[^#\n]*(?:\n(?!#{1,4}\s*\*{0,2}\s*Semaine\s*\d+).*)*/gim) || [];
               const summaryLines = weekMatches.map(w => {
                 const numMatch = w.match(/Semaine\s*(\d+)/i);
@@ -2641,14 +2641,40 @@ Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b
                 // Extract key sessions (🔑) for richer context
                 const keySessionMatches = w.match(/🔑[^\n|]*/g) || [];
                 const keySummary = keySessionMatches.length > 0 ? ` [Clés: ${keySessionMatches.map(k => k.replace("🔑", "").trim().slice(0, 30)).join(", ")}]` : "";
-                return `S${numMatch?.[1] || "?"}: ${themeMatch?.[1]?.trim() || "progression"}${keySummary}`;
+                // M1: Track limiter-relevant metrics (durations, intensities, volumes)
+                const durationMatches = w.match(/(\d+h?\d*['′min]*\s*(?:Z2|endurance|FatMax|seuil|tempo|SFR|force))/gi) || [];
+                const durSummary = durationMatches.length > 0 ? ` [Prog: ${durationMatches.slice(0, 2).map(d => d.trim().slice(0, 25)).join(", ")}]` : "";
+                return `S${numMatch?.[1] || "?"}: ${themeMatch?.[1]?.trim() || "progression"}${keySummary}${durSummary}`;
               }).join(", ");
               
               // Detect bloc headers in this chunk for phase tracking in summary
               const blocHeaders = combinedChunkText.match(/##\s*Bloc\s*\d*\s*[:—–\-]?\s*[^\n]+/gi) || [];
               const blocInfo = blocHeaders.length > 0 ? ` | Blocs: ${blocHeaders.map(h => h.replace(/^##\s*/i, "").trim().slice(0, 40)).join("; ")}` : "";
               
-              chunkSummaries.push(`Semaines ${chunk.start}-${chunk.end} [Phase: ${activePhase}${blocInfo}]: ${summaryLines || "Plan progressif standard"}`);
+              // M1: Track longest Z2/endurance session for durability progression
+              const z2Durations = combinedChunkText.match(/(\d+)\s*(?:h|min|'|′)\s*(?:\d+\s*(?:min|'|′))?\s*(?:Z2|endurance|FatMax|aérobie)/gi) || [];
+              const maxZ2 = z2Durations.length > 0 ? ` | MaxZ2: ${z2Durations[z2Durations.length - 1]?.trim().slice(0, 20)}` : "";
+
+              // FIX M3 (audit): Post-chunk validation — check key sessions target L1/L2
+              const L1Name = (planConfig?.identifiedLimiters?.[0] || "").toLowerCase();
+              const L2Name = (planConfig?.identifiedLimiters?.[1] || "").toLowerCase();
+              if (L1Name && keySessionMatches_all.length > 0) {
+                const L1Keywords = extractLimiterKeywords(L1Name);
+                const L2Keywords = L2Name ? extractLimiterKeywords(L2Name) : [];
+                const keyTexts = keySessionMatches_all.map(k => k.toLowerCase());
+                const L1Hits = keyTexts.filter(t => L1Keywords.some(kw => t.includes(kw))).length;
+                const L2Hits = L2Keywords.length > 0 ? keyTexts.filter(t => L2Keywords.some(kw => t.includes(kw))).length : -1;
+                if (L1Hits === 0) {
+                  console.warn(`⚠️ M3 Validation: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — NO key sessions (🔑) target L1="${L1Name}". Phase: ${activePhase}`);
+                }
+                if (L2Hits === 0 && activePhase !== "Fondation" && activePhase !== "Adaptation") {
+                  console.warn(`⚠️ M3 Validation: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — NO key sessions target L2="${L2Name}" in ${activePhase} phase.`);
+                }
+              }
+              // Collect all key sessions for M3 validation
+              const keySessionMatches_all = combinedChunkText.match(/🔑[^\n|]*/g) || [];
+              
+              chunkSummaries.push(`Semaines ${chunk.start}-${chunk.end} [Phase: ${activePhase}${blocInfo}${maxZ2}]: ${summaryLines || "Plan progressif standard"}`);
             }
 
             // Send final [DONE]
