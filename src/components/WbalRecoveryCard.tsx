@@ -45,7 +45,8 @@ export function WbalRecoveryCard({
 
   const recoveryTable = useMemo(() => {
     if (!cpResult) return null;
-    return generateRecoveryTable(cpResult.cp, cpResult.wprime, weightKg ?? undefined);
+    // Use effectiveCP (bounded by FTP when suspect) for recovery calculations
+    return generateRecoveryTable(cpResult.effectiveCP, cpResult.wprime, weightKg ?? undefined);
   }, [cpResult, weightKg]);
 
   // If not enough data, show placeholder
