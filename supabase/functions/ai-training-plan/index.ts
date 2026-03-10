@@ -2568,6 +2568,11 @@ Assure la CONTINUITÉ de la progression.${wbalReminder}`;
                 // Second retry for remaining missing weeks
                 if (stillMissing.length > 0) {
                   console.log(`Chunk ${ci + 1}: still missing ${stillMissing.join(",")}. Retry 2...`);
+                  // FIX #2 (audit recap): Include recap in retry 2 as well
+                  const retry2RecapSection = extractedRecap
+                    ? `\n📋 RÉCAPITULATIF STRATÉGIQUE (référence) :\n${extractedRecap.slice(0, 1200)}`
+                    : "";
+
                   const retry2Prompt = `${userPrompt}
 
 ⚠️ DERNIÈRE TENTATIVE — Génère UNIQUEMENT : ${stillMissing.map(w => `Semaine ${w}`).join(", ")}.
@@ -2575,6 +2580,7 @@ NE PAS répéter le diagnostic. Génère directement les tableaux.
 
 📋 DIAGNOSTIC STRUCTURÉ :
 ${structuredDiagnostic}
+${retry2RecapSection}
 
 🔄 PHASE ACTIVE : ${activePhase}
 
@@ -2752,26 +2758,47 @@ function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number): strin
 }
 
 // === EXTRACT STRATEGIC RECAP from chunk 1 text ===
-// FIX #1 (audit recap): Dedicated extraction for the Récapitulatif Stratégique
+// FIX #1 (audit recap): Robust multi-pattern extraction for the Récapitulatif Stratégique
 function extractStrategicRecap(chunkText: string): string {
-  // Try to match "## Récapitulatif Stratégique" or "## 2. Récapitulatif" until next "## " or "### Semaine"
-  const recapMatch = chunkText.match(
-    /(?:##\s*(?:2\.\s*)?R[ée]capitulatif[^\n]*\n)([\s\S]*?)(?=(?:##\s*(?:3\.\s*)?(?:Semaine|Bloc)\s|\n###\s*Semaine\s*\d))/i
-  );
-  if (recapMatch) {
-    return recapMatch[1].trim().slice(0, 2500);
+  // Pattern 1: Standard "## Récapitulatif Stratégique" with optional numbering/emoji
+  // Captures everything until the next ## heading or ### Semaine
+  const patterns = [
+    // ## Récapitulatif Stratégique / ## 2. Récapitulatif / ## 📊 Récapitulatif
+    /(?:#{2,3}\s*(?:\d+\.\s*)?(?:[\u{1F300}-\u{1FAFF}\u2600-\u27BF]+\s*)?R[ée]capitulatif[^\n]*\n)([\s\S]*?)(?=\n#{2,3}\s*(?:\d+\.\s*)?(?:[\u{1F300}-\u{1FAFF}\u2600-\u27BF]+\s*)?(?:Semaine|Bloc|Phase|Programme|Plan\s))/iu,
+    // Broader: match until any ## header that's NOT part of the recap
+    /(?:#{2,3}\s*(?:\d+\.\s*)?(?:[\u{1F300}-\u{1FAFF}\u2600-\u27BF]+\s*)?R[ée]capitulatif[^\n]*\n)([\s\S]*?)(?=\n#{2,3}\s)/iu,
+  ];
+
+  for (const pattern of patterns) {
+    const match = chunkText.match(pattern);
+    if (match && match[1].trim().length > 50) {
+      return match[1].trim().slice(0, 2500);
+    }
   }
 
-  // Fallback: try to capture any block that mentions phases/blocs timeline
+  // Fallback: capture any table that references Blocs/Phases with week ranges
   const blocTableMatch = chunkText.match(
-    /(?:\|[^\n]*Bloc[^\n]*Phase[^\n]*\|[\s\S]*?\n(?:\|[^\n]+\n)+)/i
+    /(\|[^\n]*(?:Bloc|Phase|Limiteur)[^\n]*\|\s*\n\|[\s\-:|]+\|\s*\n(?:\|[^\n]+\|\s*\n)+)/i
   );
   if (blocTableMatch) {
-    return blocTableMatch[0].trim().slice(0, 2000);
+    return blocTableMatch[1].trim().slice(0, 2000);
   }
 
+  // Fallback: capture Synergies + Limiteurs sections (bullet lists + tables combined)
+  const limiterTableMatch = chunkText.match(
+    /(\|[^\n]*(?:#|Rang|Priorit)[^\n]*Limiteur[^\n]*\|\s*\n\|[\s\-:|]+\|\s*\n(?:\|[^\n]+\|\s*\n)+)/i
+  );
+  const synergyMatch = chunkText.match(
+    /(?:#{2,4}\s*Synergies[^\n]*\n)((?:\s*[-•]\s*[^\n]+\n?)+)/i
+  );
+  const combined = [
+    limiterTableMatch ? limiterTableMatch[1].trim() : "",
+    synergyMatch ? `Synergies:\n${synergyMatch[1].trim()}` : "",
+  ].filter(Boolean).join("\n\n");
+  if (combined.length > 80) return combined.slice(0, 2500);
+
   // Last resort: capture lines mentioning phase boundaries (S1-SN patterns)
-  const phaseLines = chunkText.match(/(?:Fondation|Chantier|Build|Consolidation|Race.Specific|Affûtage|Taper)[^\n]*S\d+[^\n]*/gi) || [];
+  const phaseLines = chunkText.match(/(?:Fondation|Chantier|Build|Consolidation|Race.Specific|Aff[ûu]tage|Taper|Sp[ée]cifique|D[ée]veloppement|Pr[ée]paration)[^\n]*S\d+[^\n]*/gi) || [];
   if (phaseLines.length > 0) {
     return phaseLines.slice(0, 20).join("\n");
   }
