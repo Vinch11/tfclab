@@ -65,12 +65,14 @@ function normalizeObjKey(obj: string): string {
   return obj;
 }
 
+// FIX #2-amb: Normalize accented chars (é→e, è→e) before matching
 function normalizeAmbKey(amb: string): string {
-  const lower = amb.toLowerCase().replace(/[^a-z_]/g, "");
-  if (lower.includes("elite")) return "elite";
-  if (lower.includes("compet")) return "competitor";
-  if (lower.includes("age") || lower.includes("group")) return "age_group";
-  return "finisher";
+  const lower = amb.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z_]/g, "");
+  if (lower.includes("elite") || lower.includes("pro") || lower.includes("qualif")) return "elite";
+  if (lower.includes("compet") || lower.includes("comp")) return "competitor";
+  if (lower.includes("age") || lower.includes("group") || lower.includes("intermediaire")) return "age_group";
+  if (lower.includes("finisher") || lower.includes("fin")) return "finisher";
+  return "age_group"; // safer default than "finisher"
 }
 
 function getSportDistributionConstraint(objective: string, ambition: string, limiters?: string[]): string | null {
