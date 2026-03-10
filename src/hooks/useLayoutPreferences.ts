@@ -114,6 +114,10 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   // 🔬 INSCYD-style Simulator
   { id: "metabolic-power-curve", label: "Metabolic Power Curve", icon: "Zap", category: "analyse", defaultVisible: true },
   
+  // ⚡ CP/W' & W'bal Recovery (Skiba 2012)
+  { id: "cpw-prime-curve", label: "Courbe CP/W' (Puissance-Durée)", icon: "TrendingDown", category: "analyse", defaultVisible: true },
+  { id: "wbal-recovery", label: "Repos W'bal Individualisés", icon: "RotateCcw", category: "analyse", defaultVisible: true },
+
   // 👤 Comparaison Âge
   { id: "vo2max-age-comparison", label: "Cibles VO₂max — Comparatif âge", icon: "Calendar", category: "profil", defaultVisible: true },
 
