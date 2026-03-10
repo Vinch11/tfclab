@@ -2282,8 +2282,11 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     const obj = (planConfig?.objective || "").toUpperCase();
     // Detect verbose plans: triathlon multi-sport plans generate much more text per week
     const isVerbosePlan = /IRON|IM\b|703|70\.3|TRIATHLON|TRI\b/i.test(obj);
-    // For very long plans (>20 weeks), use even smaller chunks to avoid stream timeout
-    const CHUNK_SIZE = isVerbosePlan ? (totalWeeks > 20 ? 3 : 4) : (totalWeeks > 20 ? 4 : 6);
+    // Dynamic chunk sizing: balance between context quality and total API calls
+    // For very long plans, use larger chunks to reduce total calls and avoid edge function timeouts
+    const CHUNK_SIZE = isVerbosePlan 
+      ? (totalWeeks > 28 ? 4 : totalWeeks > 20 ? 4 : 4) 
+      : (totalWeeks > 28 ? 5 : totalWeeks > 20 ? 5 : 6);
     const needsChunking = !regenerateWeek && totalWeeks > 10;
 
     // FIX #1: Deduplicate CP/W' — reuse buildCPWprimeSection's logic via shared helper
