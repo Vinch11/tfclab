@@ -2404,7 +2404,7 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     if (needsChunking) {
       // === CHUNKED GENERATION for long plans ===
       const encoder = new TextEncoder();
-      const MAX_SUMMARY_CHUNKS = 3;
+      const MAX_SUMMARY_CHUNKS = 5;
 
       // Build structured diagnostic from config (always available, includes phase bounds)
       const structuredDiagnostic = buildStructuredDiagnosticBlock(planConfig, totalWeeks);
