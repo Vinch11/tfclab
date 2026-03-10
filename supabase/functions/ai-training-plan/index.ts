@@ -2531,6 +2531,109 @@ Assure la CONTINUITÉ de la progression.`;
   }
 });
 
+// === CRITICAL POWER / W' INLINE MODEL (Skiba 2012) ===
+function buildCPWprimeSection(data: any): string | null {
+  // Build power-duration points from athlete data
+  const points: { dur: number; pow: number; label: string }[] = [];
+  if (data.pmax5s && data.pmax5s > 0) points.push({ dur: 5, pow: data.pmax5s, label: "P5s" });
+  if (data.p30s && data.p30s > 0) points.push({ dur: 30, pow: data.p30s, label: "P30s" });
+  if (data.p60s && data.p60s > 0) points.push({ dur: 60, pow: data.p60s, label: "P60s" });
+  if (data.map5min && data.map5min > 0) points.push({ dur: 300, pow: data.map5min, label: "MAP5min" });
+  if (data.ftp && data.ftp > 0) points.push({ dur: 3600, pow: data.ftp, label: "FTP~60min" });
+
+  if (points.length < 2) return null;
+
+  // Linear regression: Work(t) = CP × t + W'
+  const n = points.length;
+  let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
+  for (const p of points) {
+    const x = p.dur;
+    const y = p.pow * p.dur;
+    sumX += x; sumY += y; sumXY += x * y; sumX2 += x * x; sumY2 += y * y;
+  }
+  const denom = n * sumX2 - sumX * sumX;
+  if (Math.abs(denom) < 1e-10) return null;
+
+  const cp = (n * sumXY - sumX * sumY) / denom;
+  const wprime = (sumY - cp * sumX) / n;
+  if (cp < 50 || cp > 600 || wprime < 1000 || wprime > 50000) return null;
+
+  // R²
+  const yMean = sumY / n;
+  let ssTot = 0, ssRes = 0;
+  for (const p of points) {
+    const yA = p.pow * p.dur;
+    const yP = cp * p.dur + wprime;
+    ssTot += (yA - yMean) ** 2;
+    ssRes += (yA - yP) ** 2;
+  }
+  const r2 = ssTot > 0 ? Math.round((1 - ssRes / ssTot) * 1000) / 1000 : 0;
+
+  const cpRound = Math.round(cp);
+  const wprimeKJ = Math.round(wprime / 100) / 10;
+  const weight = data.weightKg ? Number(data.weightKg) : null;
+  const ftp = data.ftp ? Number(data.ftp) : null;
+
+  const lines: string[] = [];
+  lines.push(`\n#### ⚡ Modèle Critical Power / W' (Skiba — individualisé)`);
+  lines.push(`- **CP (Critical Power)** : ${cpRound}W${weight ? ` (${(cpRound / weight).toFixed(2)} W/kg)` : ""}`);
+  if (ftp) {
+    const diff = ftp - cpRound;
+    lines.push(`- **FTP vs CP** : FTP=${ftp}W, CP=${cpRound}W → écart ${diff > 0 ? "+" : ""}${diff}W (ratio ${(ftp / cpRound).toFixed(2)})`);
+    lines.push(`  → CP < FTP signifie que l'athlète ne peut pas tenir son FTP indéfiniment. CP est le vrai seuil steady-state.`);
+  }
+  lines.push(`- **W' (capacité anaérobie)** : ${wprimeKJ} kJ${weight ? ` (${Math.round(wprime / weight)} J/kg)` : ""}`);
+  lines.push(`- **Qualité du modèle** : R²=${r2} (${r2 > 0.95 ? "excellent" : r2 > 0.90 ? "bon" : "acceptable"}, ${n} points)`);
+
+  // W'bal recovery prescriptions for common interval formats
+  const calcTau = (recPow: number) => {
+    const dcp = cpRound - recPow;
+    if (dcp <= 0) return 1200;
+    return Math.max(120, Math.min(1200, wprime / (dcp * cpRound) * 1000));
+  };
+  const calcRecovery = (intPow: number, intDur: number, recPow: number) => {
+    if (intPow <= cpRound) return { rest: 60, maxReps: 20 };
+    const wbalAfter = Math.max(0, wprime - (intPow - cpRound) * intDur);
+    const depleted = wprime - wbalAfter;
+    const tau = calcTau(recPow);
+    // Time to 75% reconstitution
+    const target75 = wprime * 0.75;
+    const remaining = wprime - target75;
+    const optRest = depleted > 0 && remaining < depleted ? Math.round(-tau * Math.log(remaining / depleted)) : 60;
+    // Max reps
+    const wbalAfterRec = wprime - depleted * Math.exp(-optRest / tau);
+    const netCost = (intPow - cpRound) * intDur - (wbalAfterRec - wbalAfter);
+    const maxReps = netCost > 0 ? Math.min(20, Math.max(1, Math.floor(wprime / netCost))) : 20;
+    return { rest: optRest, maxReps };
+  };
+
+  const fmtRest = (sec: number) => sec >= 120 ? `${Math.round(sec / 60)}min` : `${sec}s`;
+
+  const formats = [
+    { label: "30/30 VO2max", pct: 1.20, dur: 30, recPct: 0.4 },
+    { label: "3min @VO2max", pct: 1.15, dur: 180, recPct: 0.4 },
+    { label: "5min @VO2max", pct: 1.10, dur: 300, recPct: 0.4 },
+    { label: "Over-under 3min", pct: 1.05, dur: 180, recPct: 0.85 },
+    { label: "Seuil 10min", pct: 0.98, dur: 600, recPct: 0.5 },
+    { label: "Sprint 10s", pct: 2.00, dur: 10, recPct: 0.3 },
+  ];
+
+  lines.push(`\n#### 🔄 Durées de Repos Optimales W'bal (Skiba 2012 — individualisé)`);
+  lines.push(`| Format | Puissance | Repos optimal | Reps max |`);
+  lines.push(`|--------|-----------|---------------|----------|`);
+  for (const f of formats) {
+    const pow = Math.round(cpRound * f.pct);
+    const rec = calcRecovery(pow, f.dur, cpRound * f.recPct);
+    const powLabel = weight ? `${pow}W (${(pow / weight).toFixed(1)}W/kg)` : `${pow}W`;
+    lines.push(`| ${f.label} | ${powLabel} | ${fmtRest(rec.rest)} | ${rec.maxReps} |`);
+  }
+  lines.push(`\n⚠️ UTILISE CES DURÉES DE REPOS quand tu prescris des intervalles. Elles sont calculées à partir du W' individuel de l'athlète.`);
+  lines.push(`- Repos trop court = W' non reconstitué → qualité dégradée dès rep 3`);
+  lines.push(`- Repos trop long = stimulus insuffisant`);
+
+  return lines.join("\n");
+}
+
 function buildUserPrompt(data: any, config: any): string {
   const lines: string[] = ["## Demande de Plan d'Entraînement TFCL™\n"];
 
