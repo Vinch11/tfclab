@@ -2568,6 +2568,11 @@ Assure la CONTINUITÉ de la progression.${wbalReminder}`;
                 // Second retry for remaining missing weeks
                 if (stillMissing.length > 0) {
                   console.log(`Chunk ${ci + 1}: still missing ${stillMissing.join(",")}. Retry 2...`);
+                  // FIX #2 (audit recap): Include recap in retry 2 as well
+                  const retry2RecapSection = extractedRecap
+                    ? `\n📋 RÉCAPITULATIF STRATÉGIQUE (référence) :\n${extractedRecap.slice(0, 1200)}`
+                    : "";
+
                   const retry2Prompt = `${userPrompt}
 
 ⚠️ DERNIÈRE TENTATIVE — Génère UNIQUEMENT : ${stillMissing.map(w => `Semaine ${w}`).join(", ")}.
@@ -2575,6 +2580,7 @@ NE PAS répéter le diagnostic. Génère directement les tableaux.
 
 📋 DIAGNOSTIC STRUCTURÉ :
 ${structuredDiagnostic}
+${retry2RecapSection}
 
 🔄 PHASE ACTIVE : ${activePhase}
 
