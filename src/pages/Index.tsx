@@ -98,6 +98,8 @@ import { ProfilAmbitionUnifiedCard } from "@/components/ProfilAmbitionUnifiedCar
 
 // ✅ W'bal Recovery Card — Repos optimaux individualisés
 import { WbalRecoveryCard } from "@/components/WbalRecoveryCard";
+// ✅ CP/W' Courbe Puissance-Durée
+import { CPWPrimeCurveCard } from "@/components/CPWPrimeCurveCard";
 
 // ✅ Roadmap Stratégique
 import { RoadmapStrategique } from "@/components/RoadmapStrategique";
