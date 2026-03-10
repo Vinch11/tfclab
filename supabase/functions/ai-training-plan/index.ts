@@ -3022,10 +3022,11 @@ function buildCPWprimeSection(data: any): string | null {
   lines.push(`- **Qualité du modèle** : R²=${r2} (${r2 > 0.95 ? "excellent" : r2 > 0.90 ? "bon" : "acceptable"}, ${n} points)`);
 
   // W'bal recovery prescriptions for common interval formats
+  // FIXED: τ uses Skiba 2015 empirical formula: τ = 546 × e^(-0.01 × DCP) + 316
   const calcTau = (recPow: number) => {
     const dcp = cpRound - recPow;
-    if (dcp <= 0) return 1200;
-    return Math.max(120, Math.min(1200, wprime / (dcp * cpRound) * 1000));
+    if (dcp <= 0) return 1500;
+    return Math.max(200, Math.min(1500, 546 * Math.exp(-0.01 * dcp) + 316));
   };
   const calcRecovery = (intPow: number, intDur: number, recPow: number) => {
     if (intPow <= cpRound) return { rest: 60, maxReps: 20 };
@@ -3036,11 +3037,19 @@ function buildCPWprimeSection(data: any): string | null {
     const target75 = wprime * 0.75;
     const remaining = wprime - target75;
     const optRest = depleted > 0 && remaining < depleted ? Math.round(-tau * Math.log(remaining / depleted)) : 60;
-    // Max reps
-    const wbalAfterRec = wprime - depleted * Math.exp(-optRest / tau);
-    const netCost = (intPow - cpRound) * intDur - (wbalAfterRec - wbalAfter);
-    const maxReps = netCost > 0 ? Math.min(20, Math.max(1, Math.floor(wprime / netCost))) : 20;
-    return { rest: optRest, maxReps };
+    // FIXED: Max reps via iterative W'bal simulation (not linear)
+    const wCost = (intPow - cpRound) * intDur;
+    let maxReps = 0;
+    let simWbal = wprime;
+    for (let rep = 0; rep < 30; rep++) {
+      simWbal = Math.max(0, simWbal - wCost);
+      if (simWbal <= 0) break;
+      maxReps++;
+      const depNow = wprime - simWbal;
+      simWbal = wprime - depNow * Math.exp(-optRest / tau);
+      if (simWbal - wCost <= 0) break;
+    }
+    return { rest: optRest, maxReps: Math.max(1, maxReps) };
   };
 
   const fmtRest = (sec: number) => sec >= 120 ? `${Math.round(sec / 60)}min` : `${sec}s`;
