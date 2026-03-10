@@ -7,17 +7,17 @@ import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Zap, Battery, RotateCcw, Info, AlertTriangle, TrendingDown } from "lucide-react";
+import { Zap, Battery, RotateCcw, Info, AlertTriangle, TrendingDown, ShieldAlert, ShieldCheck, ShieldQuestion } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer,
   ReferenceLine, CartesianGrid, Area, AreaChart, Dot, ScatterChart, Scatter, ComposedChart,
 } from "recharts";
 import {
-  fitCriticalPower,
-  buildPointsFromSnapshot,
+  analyzeCriticalPower,
   generateRecoveryTable,
   type CriticalPowerResult,
+  type CPDiagnostic,
 } from "@/lib/v2/criticalPowerModel";
 
 interface CPWPrimeCurveCardProps {
@@ -59,15 +59,15 @@ export function CPWPrimeCurveCard({
   weightKg,
 }: CPWPrimeCurveCardProps) {
   const cpResult = useMemo(() => {
-    const points = buildPointsFromSnapshot({
+    return analyzeCriticalPower({
       pmax_5s: pmax5s,
       p30s_w: p30s,
       p60s_w: p60s,
       map5min_w: map5min,
       ftp,
+      weight_kg: weightKg,
     });
-    return fitCriticalPower(points);
-  }, [pmax5s, p30s, p60s, map5min, ftp]);
+  }, [pmax5s, p30s, p60s, map5min, ftp, weightKg]);
 
   const recoveryTable = useMemo(() => {
     if (!cpResult) return null;
@@ -97,6 +97,8 @@ export function CPWPrimeCurveCard({
   // Enrich with W/kg
   const cpWkg = cpResult && weightKg ? (cpResult.cp / weightKg).toFixed(2) : null;
   const wprimeJkg = cpResult && weightKg ? Math.round(cpResult.wprime / weightKg) : null;
+  const hasDiagnostics = cpResult && cpResult.diagnostics.length > 0;
+  const hasCritical = cpResult && cpResult.diagnostics.some(d => d.severity === "critical");
 
   if (!cpResult) {
     return (
@@ -144,7 +146,7 @@ export function CPWPrimeCurveCard({
   };
 
   return (
-    <Card>
+    <Card className={hasCritical ? "border-destructive/50" : undefined}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div>
@@ -156,15 +158,74 @@ export function CPWPrimeCurveCard({
               Courbe puissance-durée hyperbolique — Monod & Scherrer (1965), Skiba (2012)
             </CardDescription>
           </div>
-          <Badge
-            variant={cpResult.r2 > 0.95 ? "default" : cpResult.r2 > 0.9 ? "secondary" : "destructive"}
-            className="font-mono text-xs"
-          >
-            R²={cpResult.r2.toFixed(3)}
-          </Badge>
+          <div className="flex items-center gap-1.5">
+            {cpResult.dataQuality !== "good" && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge
+                      variant="destructive"
+                      className="text-[10px] cursor-help"
+                    >
+                      {cpResult.dataQuality === "implausible" ? (
+                        <><ShieldAlert className="h-3 w-3 mr-1" />Données suspectes</>
+                      ) : (
+                        <><ShieldQuestion className="h-3 w-3 mr-1" />À vérifier</>
+                      )}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="text-xs">{cpResult.diagnostics.length} anomalie(s) détectée(s). Le modèle mathématique est correct (R² élevé) mais les données d'entrée semblent incohérentes physiologiquement.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            <Badge
+              variant={cpResult.r2 > 0.95 ? "default" : cpResult.r2 > 0.9 ? "secondary" : "destructive"}
+              className="font-mono text-xs"
+            >
+              R²={cpResult.r2.toFixed(3)}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Diagnostic warnings */}
+        {hasDiagnostics && (
+          <div className={`rounded-lg border p-3 space-y-2 ${hasCritical ? "border-destructive/50 bg-destructive/5" : "border-amber-500/30 bg-amber-500/5"}`}>
+            <div className="flex items-center gap-2 text-xs font-semibold">
+              {hasCritical ? (
+                <ShieldAlert className="h-4 w-4 text-destructive" />
+              ) : (
+                <AlertTriangle className="h-4 w-4 text-amber-500" />
+              )}
+              <span>{hasCritical ? "Incohérence physiologique détectée" : "Points d'attention"}</span>
+            </div>
+            <div className="space-y-1.5">
+              {cpResult.diagnostics.map((d, i) => (
+                <TooltipProvider key={i}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className={`flex items-start gap-2 text-xs cursor-help rounded px-2 py-1 ${
+                        d.severity === "critical" ? "bg-destructive/10 text-destructive" : "bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                      }`}>
+                        <span className="shrink-0 mt-0.5">{d.severity === "critical" ? "🔴" : "🟡"}</span>
+                        <span>{d.message}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-sm">
+                      <p className="text-xs leading-relaxed">{d.detail}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ))}
+            </div>
+            <p className="text-[10px] text-muted-foreground">
+              ℹ️ R² élevé ≠ modèle fiable. R² mesure l'ajustement mathématique, pas la validité physiologique des données d'entrée. Réalisez des tests all-out sur 30s, 1min et 5min.
+            </p>
+          </div>
+        )}
+
         <Tabs defaultValue="curve" className="w-full">
           <TabsList className="w-full grid grid-cols-3">
             <TabsTrigger value="curve" className="text-xs">Courbe P-D</TabsTrigger>

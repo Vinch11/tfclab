@@ -19,6 +19,13 @@ export interface PowerDurationPoint {
   label?: string;
 }
 
+export interface CPDiagnostic {
+  code: string;
+  severity: "warning" | "critical";
+  message: string;
+  detail: string;
+}
+
 export interface CriticalPowerResult {
   cp: number;            // Critical Power (W) — distinct from FTP
   wprime: number;        // W' (J) — anaerobic work capacity
@@ -28,6 +35,8 @@ export interface CriticalPowerResult {
   wprimeJkg?: number;    // W' in J/kg
   points: PowerDurationPoint[];  // Points used for regression
   ftpCpRatio?: number;   // FTP / CP ratio (typically 0.93-1.0)
+  diagnostics: CPDiagnostic[];  // Physiological plausibility warnings
+  dataQuality: "good" | "suspect" | "implausible"; // Overall data quality
 }
 
 export interface WbalState {
@@ -124,6 +133,8 @@ export function fitCriticalPower(points: (PowerDurationPoint | PowerDurationPoin
     wprimeKJ: Math.round(wprime / 100) / 10, // 1 decimal kJ
     r2: Math.round(r2 * 1000) / 1000,
     points: allValid, // Return ALL points (regression + overlay) for display
+    diagnostics: [], // Will be populated by analyzeCriticalPower
+    dataQuality: "good",
   };
 }
 
@@ -205,6 +216,95 @@ export function analyzeCriticalPower(snapshot: {
   if (snapshot.ftp && snapshot.ftp > 0) {
     result.ftpCpRatio = Math.round((snapshot.ftp / result.cp) * 1000) / 1000;
   }
+
+  // =============================================
+  // PHYSIOLOGICAL PLAUSIBILITY DIAGNOSTICS
+  // =============================================
+  const diag: CPDiagnostic[] = [];
+
+  // 1. CP vs FTP coherence — CP should be within ~5-15W of FTP (not 40W+)
+  if (snapshot.ftp && snapshot.ftp > 0) {
+    const cpFtpDiff = result.cp - snapshot.ftp;
+    if (cpFtpDiff > 25) {
+      diag.push({
+        code: "CP_FTP_GAP",
+        severity: "critical",
+        message: `CP (${result.cp}W) surpasse FTP (${snapshot.ftp}W) de ${cpFtpDiff}W`,
+        detail: `CP et FTP mesurent des seuils similaires. CP est généralement supérieur de 5-15W au FTP. Un écart de ${cpFtpDiff}W indique que les données de puissance courte (P30s, P60s, MAP5') ne sont probablement pas issues d'efforts maximaux, ou que le FTP est sous-estimé. Cela gonfle artificiellement CP et écrase W'.`,
+      });
+    } else if (cpFtpDiff > 15) {
+      diag.push({
+        code: "CP_FTP_GAP",
+        severity: "warning",
+        message: `Écart CP-FTP élevé (${cpFtpDiff}W)`,
+        detail: `L'écart CP-FTP est à la limite haute. Vérifiez que les efforts courts sont bien des all-out et que le FTP est à jour.`,
+      });
+    }
+  }
+
+  // 2. W' plausibility — normal range 10-25 kJ, extreme sprinters up to 35 kJ
+  if (result.wprimeKJ < 8) {
+    diag.push({
+      code: "WPRIME_LOW",
+      severity: result.wprimeKJ < 5 ? "critical" : "warning",
+      message: `W' anormalement bas (${result.wprimeKJ} kJ)`,
+      detail: `La plage physiologique normale de W' est 10-25 kJ. Une valeur de ${result.wprimeKJ} kJ signifie que le modèle "voit" très peu de capacité anaérobie. Cause probable : la courbe de puissance est trop plate — les efforts courts (P30s, P60s) ne sont pas assez supérieurs à MAP5'. Cela arrive quand les tests ne sont pas des efforts maximaux all-out.`,
+    });
+  }
+
+  // 3. Power curve flatness — P60s should be significantly above MAP5min
+  if (snapshot.p60s_w && snapshot.map5min_w && snapshot.p60s_w > 0 && snapshot.map5min_w > 0) {
+    const ratio60to300 = snapshot.p60s_w / snapshot.map5min_w;
+    if (ratio60to300 < 1.08) {
+      diag.push({
+        code: "FLAT_CURVE",
+        severity: "warning",
+        message: `Courbe trop plate : P60s/MAP5' = ${ratio60to300.toFixed(2)}`,
+        detail: `Un cycliste produit typiquement 15-25% de plus sur 1 min que sur 5 min (ratio ~1.15-1.25). Un ratio de ${ratio60to300.toFixed(2)} est anormalement bas, ce qui force le modèle à surestimer CP et sous-estimer W'. Probable : effort non-maximal sur P60s ou P30s.`,
+      });
+    }
+  }
+
+  // 4. P30s vs P60s — P30s should be meaningfully higher
+  if (snapshot.p30s_w && snapshot.p60s_w && snapshot.p30s_w > 0 && snapshot.p60s_w > 0) {
+    const ratio30to60 = snapshot.p30s_w / snapshot.p60s_w;
+    if (ratio30to60 < 1.15) {
+      diag.push({
+        code: "P30_P60_FLAT",
+        severity: "warning",
+        message: `P30s/P60s trop proche (ratio ${ratio30to60.toFixed(2)})`,
+        detail: `On attend un ratio P30s/P60s de 1.25-1.50 (30s est un effort nettement plus intense que 60s). Un ratio de ${ratio30to60.toFixed(2)} suggère que le P30s n'est pas un vrai sprint maximal 30s.`,
+      });
+    }
+  }
+
+  // 5. MAP5min vs FTP — MAP5min should be 10-20% above FTP
+  if (snapshot.map5min_w && snapshot.ftp && snapshot.map5min_w > 0 && snapshot.ftp > 0) {
+    const mapFtpRatio = snapshot.map5min_w / snapshot.ftp;
+    if (mapFtpRatio < 1.10) {
+      diag.push({
+        code: "MAP_FTP_CLOSE",
+        severity: "warning",
+        message: `MAP5'/FTP trop proche (ratio ${mapFtpRatio.toFixed(2)})`,
+        detail: `MAP5' est typiquement 15-25% au-dessus du FTP. Un ratio de ${mapFtpRatio.toFixed(2)} suggère soit un MAP5' sous-estimé (test non-maximal sur 5 min), soit un FTP surestimé.`,
+      });
+    }
+  }
+
+  // 6. Regression with only 2 points — mathematically perfect but underdetermined
+  const regPts = points.filter(p => p.regressionPoint).length;
+  if (regPts === 2) {
+    diag.push({
+      code: "FEW_POINTS",
+      severity: "warning",
+      message: `Seulement 2 points de régression`,
+      detail: `Avec 2 points, la régression est mathématiquement parfaite (R²=1.000) mais pas fiable. Le modèle n'a aucun degré de liberté pour détecter des erreurs. Ajoutez un 3ème point (idéalement un effort maximal 2-3 min) pour valider la cohérence.`,
+    });
+  }
+
+  result.diagnostics = diag;
+  result.dataQuality = diag.some(d => d.severity === "critical") ? "implausible"
+    : diag.length > 0 ? "suspect" : "good";
 
   return result;
 }
@@ -439,6 +539,16 @@ export function formatCPWprimeForPrompt(
   }
   lines.push(`- **W' (capacité anaérobie)** : ${cpResult.wprimeKJ} kJ${cpResult.wprimeJkg ? ` (${cpResult.wprimeJkg} J/kg)` : ""}`);
   lines.push(`- **Qualité du modèle** : R²=${cpResult.r2} (${cpResult.r2 > 0.95 ? "excellent" : cpResult.r2 > 0.90 ? "bon" : "acceptable"}, ${cpResult.points.length} points)`);
+  lines.push(`- **Qualité des données** : ${cpResult.dataQuality === "good" ? "✅ Cohérent" : cpResult.dataQuality === "suspect" ? "⚠️ À vérifier" : "🔴 Incohérence détectée"}`);
+
+  // Include diagnostics in prompt so AI can adjust
+  if (cpResult.diagnostics.length > 0) {
+    lines.push(`\n⚠️ **ALERTES PHYSIOLOGIQUES** (le modèle CP/W' est potentiellement biaisé) :`);
+    for (const d of cpResult.diagnostics) {
+      lines.push(`- [${d.severity === "critical" ? "CRITIQUE" : "ATTENTION"}] ${d.message}`);
+    }
+    lines.push(`→ **CONSÉQUENCE POUR LE PLAN** : Si W' est anormalement bas (<8 kJ), les repos calculés sont sous-estimés. Utilise des repos standards de la littérature (ex: 3-5min pour 3min @VO2max) plutôt que les valeurs W'bal ci-dessous.`);
+  }
 
   // Recovery table
   const recoveryTable = generateRecoveryTable(cpResult.cp, cpResult.wprime, weightKg);
