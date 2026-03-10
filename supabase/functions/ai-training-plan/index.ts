@@ -2642,9 +2642,10 @@ Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b
   }
 });
 
-// === FIX #6: STRUCTURED DIAGNOSTIC BLOCK (config-based, always available) ===
+// === STRUCTURED DIAGNOSTIC BLOCK (config-based, always available) ===
 // Builds a compact structured block from planConfig for re-injection in chunks
-function buildStructuredDiagnosticBlock(config: any): string {
+// FIX #3 (audit recap): Now includes estimated phase bounds for the full plan
+function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number): string {
   const lines: string[] = [];
   
   // Objective & Ambition
@@ -2678,8 +2679,99 @@ function buildStructuredDiagnosticBlock(config: any): string {
   if (config?.weeklyHours) lines.push(`\n📊 Volume: ${config.weeklyHours}h/sem`);
   if (config?.sessionsPerWeek) lines.push(`📊 Séances: ${config.sessionsPerWeek}/sem`);
   if (config?.maxSessionsPerDay) lines.push(`📊 Max/jour: ${config.maxSessionsPerDay}`);
+
+  // FIX #3: Estimated phase bounds (heuristic based on total weeks and ambition)
+  if (totalWeeks && totalWeeks > 10) {
+    const tw = totalWeeks;
+    const isFinisher = ambKey === "finisher";
+    // Taper duration depends on objective
+    const taperWeeks = ["IM", "TrailUltra"].includes(objKey) ? 3 : ["703", "Marathon"].includes(objKey) ? 2 : ["Semi", "Trail", "TrailMountain"].includes(objKey) ? 2 : 1;
+    const raceSpecificWeeks = isFinisher ? 0 : Math.min(4, Math.max(2, Math.floor(tw * 0.15)));
+    const remainingWeeks = tw - taperWeeks - raceSpecificWeeks;
+    const fondationWeeks = Math.max(3, Math.floor(remainingWeeks * 0.35));
+    const buildWeeks = remainingWeeks - fondationWeeks;
+
+    lines.push(`\n📅 BORNES DE PHASE ESTIMÉES (${tw} semaines) :`);
+    if (isFinisher) {
+      lines.push(`  Phase 1 — Adaptation : S1-S${fondationWeeks}`);
+      lines.push(`  Phase 2 — Développement : S${fondationWeeks + 1}-S${fondationWeeks + buildWeeks}`);
+      lines.push(`  Phase 3 — Consolidation : S${fondationWeeks + buildWeeks + 1}-S${tw - taperWeeks}`);
+      lines.push(`  Phase 4 — Affûtage : S${tw - taperWeeks + 1}-S${tw}`);
+    } else {
+      const chantierEnd = fondationWeeks + Math.ceil(buildWeeks * 0.5);
+      const consolEnd = fondationWeeks + buildWeeks;
+      lines.push(`  Bloc Fondation + Intensité : S1-S${fondationWeeks}`);
+      lines.push(`  Bloc Chantier [Limiteur #1] : S${fondationWeeks + 1}-S${chantierEnd}`);
+      lines.push(`  Bloc Consolidation [Limiteur #2] : S${chantierEnd + 1}-S${consolEnd}`);
+      lines.push(`  Bloc Race-Specific : S${consolEnd + 1}-S${tw - taperWeeks}`);
+      lines.push(`  Bloc Affûtage : S${tw - taperWeeks + 1}-S${tw}`);
+    }
+    lines.push(`  ⚠️ Ces bornes sont INDICATIVES. Le Récapitulatif Stratégique du chunk 1 fait foi.`);
+  }
   
   return lines.join("\n");
+}
+
+// === EXTRACT STRATEGIC RECAP from chunk 1 text ===
+// FIX #1 (audit recap): Dedicated extraction for the Récapitulatif Stratégique
+function extractStrategicRecap(chunkText: string): string {
+  // Try to match "## Récapitulatif Stratégique" or "## 2. Récapitulatif" until next "## " or "### Semaine"
+  const recapMatch = chunkText.match(
+    /(?:##\s*(?:2\.\s*)?R[ée]capitulatif[^\n]*\n)([\s\S]*?)(?=(?:##\s*(?:3\.\s*)?(?:Semaine|Bloc)\s|\n###\s*Semaine\s*\d))/i
+  );
+  if (recapMatch) {
+    return recapMatch[1].trim().slice(0, 2500);
+  }
+
+  // Fallback: try to capture any block that mentions phases/blocs timeline
+  const blocTableMatch = chunkText.match(
+    /(?:\|[^\n]*Bloc[^\n]*Phase[^\n]*\|[\s\S]*?\n(?:\|[^\n]+\n)+)/i
+  );
+  if (blocTableMatch) {
+    return blocTableMatch[0].trim().slice(0, 2000);
+  }
+
+  // Last resort: capture lines mentioning phase boundaries (S1-SN patterns)
+  const phaseLines = chunkText.match(/(?:Fondation|Chantier|Build|Consolidation|Race.Specific|Affûtage|Taper)[^\n]*S\d+[^\n]*/gi) || [];
+  if (phaseLines.length > 0) {
+    return phaseLines.slice(0, 20).join("\n");
+  }
+
+  return "";
+}
+
+// === DETECT ACTIVE PHASE from generated text ===
+// FIX #4 (audit recap): Broader detection — matches multiple header formats
+function detectActivePhase(text: string, currentPhase: string): string {
+  // Match various header formats for phase/bloc names
+  const patterns = [
+    /##\s*Bloc\s*\d+\s*[:—–\-]\s*([^\n(]+)/gi,        // ## Bloc 3 : Race-Specific
+    /##\s*Bloc\s+([^\n(]+)\s*\(S/gi,                     // ## Bloc Chantier VLamax↓ (S7-S12)
+    /##\s*(Fondation|Chantier|Consolidation|Build|Race.Specific|Affûtage|Taper|Adaptation|Développement)[^\n]*/gi,
+    /###\s*Phase\s*\d*\s*[:—–\-]?\s*([^\n]+)/gi,        // ### Phase 2 : Build
+    /\*\*Phase\s*(?:active)?\s*[:—–]?\s*\*\*\s*([^\n]+)/gi, // **Phase active :** Build
+  ];
+
+  let lastPhase = "";
+  for (const pattern of patterns) {
+    let m: RegExpExecArray | null;
+    while ((m = pattern.exec(text)) !== null) {
+      const candidate = (m[1] || m[0]).replace(/^##\s*Bloc\s*\d+\s*[:—–\-]?\s*/i, "").replace(/\*\*/g, "").trim();
+      if (candidate && candidate.length > 2 && candidate.length < 80) {
+        lastPhase = candidate;
+      }
+    }
+  }
+
+  return lastPhase || currentPhase;
+}
+
+// === VALIDATE CHUNK 1 OUTPUT ===
+// FIX #6 (audit recap): Check that chunk 1 contains a Récapitulatif with phase boundaries
+function validateChunk1HasRecap(chunkText: string): { hasRecap: boolean; hasPhases: boolean } {
+  const hasRecap = /##\s*(?:2\.\s*)?R[ée]capitulatif/i.test(chunkText);
+  const hasPhases = /S\d+\s*[-–—]\s*S\d+/i.test(chunkText) || /Semaines?\s*\d+\s*[-–àto]\s*\d+/i.test(chunkText);
+  return { hasRecap, hasPhases };
 }
 
 // === SHARED CP/W' COMPUTATION (used by both buildCPWprimeSection and chunk prompts) ===
