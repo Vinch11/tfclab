@@ -1388,6 +1388,20 @@ const Index = () => {
               />
             ),
           },
+          // ✅ CP/W' Courbe Puissance-Durée (Skiba 2012)
+          {
+            id: "cpw-prime-curve",
+            render: () => currentAthlete && (
+              <CPWPrimeCurveCard
+                ftp={effectiveCloudSnapshot?.ftp}
+                pmax5s={effectiveCloudSnapshot?.pmax_5s}
+                p30s={effectiveCloudSnapshot?.p30s_w}
+                p60s={effectiveCloudSnapshot?.p60s_w}
+                map5min={effectiveCloudSnapshot?.map5min_w}
+                weightKg={effectiveCloudSnapshot?.weight_kg}
+              />
+            ),
+          },
           // ✅ W'bal Recovery — Repos optimaux individualisés (Skiba 2012)
           {
             id: "wbal-recovery",
