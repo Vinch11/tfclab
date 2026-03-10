@@ -2259,6 +2259,32 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     const CHUNK_SIZE = isVerbosePlan ? (totalWeeks > 20 ? 3 : 4) : (totalWeeks > 20 ? 4 : 6);
     const needsChunking = !regenerateWeek && totalWeeks > 10;
 
+    // Compute CP/W' for W'bal reminders in chunk prompts
+    let cpRound: number | null = null;
+    let wprimeKJ: number | null = null;
+    {
+      const pts: { dur: number; pow: number }[] = [];
+      if (athleteData?.pmax5s > 0) pts.push({ dur: 5, pow: athleteData.pmax5s });
+      if (athleteData?.p30s > 0) pts.push({ dur: 30, pow: athleteData.p30s });
+      if (athleteData?.p60s > 0) pts.push({ dur: 60, pow: athleteData.p60s });
+      if (athleteData?.map5min > 0) pts.push({ dur: 300, pow: athleteData.map5min });
+      if (athleteData?.ftp > 0) pts.push({ dur: 3600, pow: athleteData.ftp });
+      if (pts.length >= 2) {
+        const n = pts.length;
+        let sX = 0, sY = 0, sXY = 0, sX2 = 0;
+        for (const p of pts) { const x = p.dur, y = p.pow * p.dur; sX += x; sY += y; sXY += x * y; sX2 += x * x; }
+        const d = n * sX2 - sX * sX;
+        if (Math.abs(d) > 1e-10) {
+          const cp = (n * sXY - sX * sY) / d;
+          const wp = (sY - cp * sX) / n;
+          if (cp >= 50 && cp <= 600 && wp >= 1000 && wp <= 50000) {
+            cpRound = Math.round(cp);
+            wprimeKJ = Math.round(wp / 100) / 10;
+          }
+        }
+      }
+    }
+
     // Helper: call AI and stream response, return full text
     let streamError: { code: number; message: string } | null = null;
     async function generateAndStream(
