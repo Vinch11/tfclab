@@ -539,6 +539,16 @@ export function formatCPWprimeForPrompt(
   }
   lines.push(`- **W' (capacité anaérobie)** : ${cpResult.wprimeKJ} kJ${cpResult.wprimeJkg ? ` (${cpResult.wprimeJkg} J/kg)` : ""}`);
   lines.push(`- **Qualité du modèle** : R²=${cpResult.r2} (${cpResult.r2 > 0.95 ? "excellent" : cpResult.r2 > 0.90 ? "bon" : "acceptable"}, ${cpResult.points.length} points)`);
+  lines.push(`- **Qualité des données** : ${cpResult.dataQuality === "good" ? "✅ Cohérent" : cpResult.dataQuality === "suspect" ? "⚠️ À vérifier" : "🔴 Incohérence détectée"}`);
+
+  // Include diagnostics in prompt so AI can adjust
+  if (cpResult.diagnostics.length > 0) {
+    lines.push(`\n⚠️ **ALERTES PHYSIOLOGIQUES** (le modèle CP/W' est potentiellement biaisé) :`);
+    for (const d of cpResult.diagnostics) {
+      lines.push(`- [${d.severity === "critical" ? "CRITIQUE" : "ATTENTION"}] ${d.message}`);
+    }
+    lines.push(`→ **CONSÉQUENCE POUR LE PLAN** : Si W' est anormalement bas (<8 kJ), les repos calculés sont sous-estimés. Utilise des repos standards de la littérature (ex: 3-5min pour 3min @VO2max) plutôt que les valeurs W'bal ci-dessous.`);
+  }
 
   // Recovery table
   const recoveryTable = generateRecoveryTable(cpResult.cp, cpResult.wprime, weightKg);
