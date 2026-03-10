@@ -2757,6 +2757,13 @@ function buildUserPrompt(data: any, config: any): string {
 
   lines.push("\n#### Neuromusculaire");
   if (data.pmax5s) lines.push(`- Pmax 5s : ${data.pmax5s}W`);
+  if (data.p30s) lines.push(`- P30s : ${data.p30s}W`);
+  if (data.p60s) lines.push(`- P60s : ${data.p60s}W`);
+  if (data.map5min) lines.push(`- MAP 5min : ${data.map5min}W`);
+
+  // === CRITICAL POWER / W' MODEL (Skiba 2012 — individualisé) ===
+  const cpwSection = buildCPWprimeSection(data);
+  if (cpwSection) lines.push(cpwSection);
 
   lines.push("\n#### Autres Métriques");
   if (data.vma) lines.push(`- VMA : ${data.vma} km/h`);
