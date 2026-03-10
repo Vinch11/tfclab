@@ -2951,18 +2951,18 @@ function validateChunk1HasRecap(chunkText: string): { hasRecap: boolean; hasPhas
 }
 
 // === SHARED CP/W' COMPUTATION (used by both buildCPWprimeSection and chunk prompts) ===
+// FIXED: P5s and FTP excluded from regression (Jones 2019) — only P30s, P60s, MAP5min used
 function computeCPWprime(data: any): { cpRound: number; wprimeKJ: number; wprimeJ: number } | null {
-  const points: { dur: number; pow: number }[] = [];
-  if (data?.pmax5s && data.pmax5s > 0) points.push({ dur: 5, pow: data.pmax5s });
-  if (data?.p30s && data.p30s > 0) points.push({ dur: 30, pow: data.p30s });
-  if (data?.p60s && data.p60s > 0) points.push({ dur: 60, pow: data.p60s });
-  if (data?.map5min && data.map5min > 0) points.push({ dur: 300, pow: data.map5min });
-  if (data?.ftp && data.ftp > 0) points.push({ dur: 3600, pow: data.ftp });
-  if (points.length < 2) return null;
+  // Only use points within the valid 2-parameter model range (~30s–5min)
+  const regressionPoints: { dur: number; pow: number }[] = [];
+  if (data?.p30s && data.p30s > 0) regressionPoints.push({ dur: 30, pow: data.p30s });
+  if (data?.p60s && data.p60s > 0) regressionPoints.push({ dur: 60, pow: data.p60s });
+  if (data?.map5min && data.map5min > 0) regressionPoints.push({ dur: 300, pow: data.map5min });
+  if (regressionPoints.length < 2) return null;
 
-  const n = points.length;
+  const n = regressionPoints.length;
   let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
-  for (const p of points) {
+  for (const p of regressionPoints) {
     const x = p.dur, y = p.pow * p.dur;
     sumX += x; sumY += y; sumXY += x * y; sumX2 += x * x;
   }
@@ -2971,7 +2971,7 @@ function computeCPWprime(data: any): { cpRound: number; wprimeKJ: number; wprime
 
   const cp = (n * sumXY - sumX * sumY) / denom;
   const wprime = (sumY - cp * sumX) / n;
-  if (cp < 50 || cp > 600 || wprime < 1000 || wprime > 50000) return null;
+  if (cp < 30 || cp > 800 || wprime < 500 || wprime > 80000) return null;
 
   return { cpRound: Math.round(cp), wprimeKJ: Math.round(wprime / 100) / 10, wprimeJ: wprime };
 }
@@ -2984,21 +2984,23 @@ function buildCPWprimeSection(data: any): string | null {
 
   const { cpRound, wprimeKJ, wprimeJ: wprime } = result;
 
-  // Build power-duration points for R² and display
-  const points: { dur: number; pow: number; label: string }[] = [];
-  if (data.pmax5s && data.pmax5s > 0) points.push({ dur: 5, pow: data.pmax5s, label: "P5s" });
-  if (data.p30s && data.p30s > 0) points.push({ dur: 30, pow: data.p30s, label: "P30s" });
-  if (data.p60s && data.p60s > 0) points.push({ dur: 60, pow: data.p60s, label: "P60s" });
-  if (data.map5min && data.map5min > 0) points.push({ dur: 300, pow: data.map5min, label: "MAP5min" });
-  if (data.ftp && data.ftp > 0) points.push({ dur: 3600, pow: data.ftp, label: "FTP~60min" });
-  const n = points.length;
+  // All points for display (including overlay-only P5s and FTP)
+  const points: { dur: number; pow: number; label: string; regression: boolean }[] = [];
+  if (data.pmax5s && data.pmax5s > 0) points.push({ dur: 5, pow: data.pmax5s, label: "P5s", regression: false });
+  if (data.p30s && data.p30s > 0) points.push({ dur: 30, pow: data.p30s, label: "P30s", regression: true });
+  if (data.p60s && data.p60s > 0) points.push({ dur: 60, pow: data.p60s, label: "P60s", regression: true });
+  if (data.map5min && data.map5min > 0) points.push({ dur: 300, pow: data.map5min, label: "MAP5min", regression: true });
+  if (data.ftp && data.ftp > 0) points.push({ dur: 3600, pow: data.ftp, label: "FTP", regression: false });
+  const regressionPts = points.filter(p => p.regression);
+  const n = regressionPts.length;
 
   // R²
+  // R² — computed on regression points only
   let sumX = 0, sumY = 0;
-  for (const p of points) { sumX += p.dur; sumY += p.pow * p.dur; }
+  for (const p of regressionPts) { sumX += p.dur; sumY += p.pow * p.dur; }
   const yMean = sumY / n;
   let ssTot = 0, ssRes = 0;
-  for (const p of points) {
+  for (const p of regressionPts) {
     const yA = p.pow * p.dur;
     const yP = cpRound * p.dur + wprime;
     ssTot += (yA - yMean) ** 2;
@@ -3020,10 +3022,11 @@ function buildCPWprimeSection(data: any): string | null {
   lines.push(`- **Qualité du modèle** : R²=${r2} (${r2 > 0.95 ? "excellent" : r2 > 0.90 ? "bon" : "acceptable"}, ${n} points)`);
 
   // W'bal recovery prescriptions for common interval formats
+  // FIXED: τ uses Skiba 2015 empirical formula: τ = 546 × e^(-0.01 × DCP) + 316
   const calcTau = (recPow: number) => {
     const dcp = cpRound - recPow;
-    if (dcp <= 0) return 1200;
-    return Math.max(120, Math.min(1200, wprime / (dcp * cpRound) * 1000));
+    if (dcp <= 0) return 1500;
+    return Math.max(200, Math.min(1500, 546 * Math.exp(-0.01 * dcp) + 316));
   };
   const calcRecovery = (intPow: number, intDur: number, recPow: number) => {
     if (intPow <= cpRound) return { rest: 60, maxReps: 20 };
@@ -3034,11 +3037,19 @@ function buildCPWprimeSection(data: any): string | null {
     const target75 = wprime * 0.75;
     const remaining = wprime - target75;
     const optRest = depleted > 0 && remaining < depleted ? Math.round(-tau * Math.log(remaining / depleted)) : 60;
-    // Max reps
-    const wbalAfterRec = wprime - depleted * Math.exp(-optRest / tau);
-    const netCost = (intPow - cpRound) * intDur - (wbalAfterRec - wbalAfter);
-    const maxReps = netCost > 0 ? Math.min(20, Math.max(1, Math.floor(wprime / netCost))) : 20;
-    return { rest: optRest, maxReps };
+    // FIXED: Max reps via iterative W'bal simulation (not linear)
+    const wCost = (intPow - cpRound) * intDur;
+    let maxReps = 0;
+    let simWbal = wprime;
+    for (let rep = 0; rep < 30; rep++) {
+      simWbal = Math.max(0, simWbal - wCost);
+      if (simWbal <= 0) break;
+      maxReps++;
+      const depNow = wprime - simWbal;
+      simWbal = wprime - depNow * Math.exp(-optRest / tau);
+      if (simWbal - wCost <= 0) break;
+    }
+    return { rest: optRest, maxReps: Math.max(1, maxReps) };
   };
 
   const fmtRest = (sec: number) => sec >= 120 ? `${Math.round(sec / 60)}min` : `${sec}s`;
