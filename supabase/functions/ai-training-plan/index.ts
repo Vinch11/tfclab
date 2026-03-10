@@ -2984,14 +2984,15 @@ function buildCPWprimeSection(data: any): string | null {
 
   const { cpRound, wprimeKJ, wprimeJ: wprime } = result;
 
-  // Build power-duration points for R² and display
-  const points: { dur: number; pow: number; label: string }[] = [];
-  if (data.pmax5s && data.pmax5s > 0) points.push({ dur: 5, pow: data.pmax5s, label: "P5s" });
-  if (data.p30s && data.p30s > 0) points.push({ dur: 30, pow: data.p30s, label: "P30s" });
-  if (data.p60s && data.p60s > 0) points.push({ dur: 60, pow: data.p60s, label: "P60s" });
-  if (data.map5min && data.map5min > 0) points.push({ dur: 300, pow: data.map5min, label: "MAP5min" });
-  if (data.ftp && data.ftp > 0) points.push({ dur: 3600, pow: data.ftp, label: "FTP~60min" });
-  const n = points.length;
+  // All points for display (including overlay-only P5s and FTP)
+  const points: { dur: number; pow: number; label: string; regression: boolean }[] = [];
+  if (data.pmax5s && data.pmax5s > 0) points.push({ dur: 5, pow: data.pmax5s, label: "P5s", regression: false });
+  if (data.p30s && data.p30s > 0) points.push({ dur: 30, pow: data.p30s, label: "P30s", regression: true });
+  if (data.p60s && data.p60s > 0) points.push({ dur: 60, pow: data.p60s, label: "P60s", regression: true });
+  if (data.map5min && data.map5min > 0) points.push({ dur: 300, pow: data.map5min, label: "MAP5min", regression: true });
+  if (data.ftp && data.ftp > 0) points.push({ dur: 3600, pow: data.ftp, label: "FTP", regression: false });
+  const regressionPts = points.filter(p => p.regression);
+  const n = regressionPts.length;
 
   // R²
   let sumX = 0, sumY = 0;
