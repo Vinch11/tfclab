@@ -71,24 +71,28 @@ export interface RecoveryPrescription {
  * - Hill D.W. (1993) – The critical power concept
  * - Jones A.M. et al. (2019) – Critical Power: Applications to sports medicine
  */
-export function fitCriticalPower(points: PowerDurationPoint[]): CriticalPowerResult | null {
-  // Need at least 2 data points
-  const valid = points.filter(p => p.durationSec > 0 && p.powerWatts > 0);
-  if (valid.length < 2) return null;
+export function fitCriticalPower(points: (PowerDurationPoint | PowerDurationPointEx)[]): CriticalPowerResult | null {
+  // Separate regression points from overlay points
+  const allValid = points.filter(p => p.durationSec > 0 && p.powerWatts > 0);
+  const regressionPoints = allValid.filter(p =>
+    'regressionPoint' in p ? (p as PowerDurationPointEx).regressionPoint : true
+  );
+
+  // Need at least 2 regression data points
+  if (regressionPoints.length < 2) return null;
 
   // Linear regression: Work(t) = CP × t + W'
   // y = work (J), x = duration (s)
-  const n = valid.length;
-  let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
+  const n = regressionPoints.length;
+  let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
 
-  for (const p of valid) {
+  for (const p of regressionPoints) {
     const x = p.durationSec;
     const y = p.powerWatts * p.durationSec; // Work in Joules
     sumX += x;
     sumY += y;
     sumXY += x * y;
     sumX2 += x * x;
-    sumY2 += y * y;
   }
 
   const denom = n * sumX2 - sumX * sumX;
@@ -97,10 +101,10 @@ export function fitCriticalPower(points: PowerDurationPoint[]): CriticalPowerRes
   const cp = (n * sumXY - sumX * sumY) / denom;
   const wprime = (sumY - cp * sumX) / n;
 
-  // R² calculation
+  // R² calculation (on regression points only)
   const yMean = sumY / n;
   let ssTot = 0, ssRes = 0;
-  for (const p of valid) {
+  for (const p of regressionPoints) {
     const x = p.durationSec;
     const yActual = p.powerWatts * p.durationSec;
     const yPred = cp * x + wprime;
@@ -109,8 +113,8 @@ export function fitCriticalPower(points: PowerDurationPoint[]): CriticalPowerRes
   }
   const r2 = ssTot > 0 ? 1 - ssRes / ssTot : 0;
 
-  // Sanity checks
-  if (cp < 50 || cp > 600 || wprime < 1000 || wprime > 50000) {
+  // Sanity checks — widened for elite athletes
+  if (cp < 30 || cp > 800 || wprime < 500 || wprime > 80000) {
     return null; // Physiologically implausible
   }
 
@@ -119,7 +123,7 @@ export function fitCriticalPower(points: PowerDurationPoint[]): CriticalPowerRes
     wprime: Math.round(wprime),
     wprimeKJ: Math.round(wprime / 100) / 10, // 1 decimal kJ
     r2: Math.round(r2 * 1000) / 1000,
-    points: valid,
+    points: allValid, // Return ALL points (regression + overlay) for display
   };
 }
 
