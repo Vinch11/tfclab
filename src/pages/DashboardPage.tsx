@@ -66,6 +66,7 @@ import { AmbitionTargetsCard } from "@/components/AmbitionTargetsCard";
 import { VLamaxV2DisplayCard } from "@/components/VLamaxV2DisplayCard";
 import { VLamaxBikeV2EnhancedCard } from "@/components/VLamaxBikeV2EnhancedCard";
 import { FatMaxTFCLCard } from "@/components/FatMaxTFCLCard";
+import { CPWPrimeCurveCard } from "@/components/CPWPrimeCurveCard";
 import { FatMaxRaceIntensityChart } from "@/components/charts/FatMaxRaceIntensityChart";
 import { computeFatMaxTFCL, FatMaxObjectif } from "@/lib/v2/fatmaxTFCL";
 import { ObjectifPrincipal } from "@/lib/reference";
