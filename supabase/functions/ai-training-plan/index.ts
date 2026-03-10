@@ -2995,11 +2995,12 @@ function buildCPWprimeSection(data: any): string | null {
   const n = regressionPts.length;
 
   // R²
+  // R² — computed on regression points only
   let sumX = 0, sumY = 0;
-  for (const p of points) { sumX += p.dur; sumY += p.pow * p.dur; }
+  for (const p of regressionPts) { sumX += p.dur; sumY += p.pow * p.dur; }
   const yMean = sumY / n;
   let ssTot = 0, ssRes = 0;
-  for (const p of points) {
+  for (const p of regressionPts) {
     const yA = p.pow * p.dur;
     const yP = cpRound * p.dur + wprime;
     ssTot += (yA - yMean) ** 2;
