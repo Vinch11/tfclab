@@ -9,8 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RotateCcw, Zap, Battery, Info, AlertTriangle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
-  fitCriticalPower,
-  buildPointsFromSnapshot,
+  analyzeCriticalPower,
   generateRecoveryTable,
   prescribeIntervalRecovery,
   type CriticalPowerResult,
