@@ -2584,15 +2584,7 @@ Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b
         },
       });
 
-            // Send final [DONE]
-            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-            controller.close();
-          } catch (e) {
-            console.error("Chunked generation error:", e);
-            controller.error(e);
-          }
-        },
-      });
+
 
       return new Response(stream, {
         headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
