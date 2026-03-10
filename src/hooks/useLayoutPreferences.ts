@@ -458,19 +458,31 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
         defaultSections.some(s => s.id === c.id)
       );
 
-      // ✅ Important: insérer "objective-manager" à un endroit attendu (sinon il finit tout en bas)
-      // Cas typique: l'utilisateur a déjà une disposition sauvegardée avant l'ajout de la section.
-      const objectiveDef = defaultSections.find(s => s.id === "objective-manager");
-      const objectiveMissing = objectiveDef && missingConfigs.some(c => c.id === "objective-manager");
-
       const merged = [...validConfigs];
-      if (objectiveMissing && objectiveDef) {
-        const objectiveConfig: SectionConfig = { id: "objective-manager", visible: objectiveDef.defaultVisible };
-        const afterAthleteRefsIdx = merged.findIndex(c => c.id === "athlete-refs");
-        if (afterAthleteRefsIdx >= 0) merged.splice(afterAthleteRefsIdx + 1, 0, objectiveConfig);
-        else merged.unshift(objectiveConfig);
-        missingConfigs = missingConfigs.filter(c => c.id !== "objective-manager");
-      }
+
+      // Helper: insert a missing section after a given anchor, or at fallback position
+      const insertMissing = (sectionId: string, anchorIds: string[]) => {
+        const def = defaultSections.find(s => s.id === sectionId);
+        const isMissing = def && missingConfigs.some(c => c.id === sectionId);
+        if (!isMissing || !def) return;
+        const config: SectionConfig = { id: sectionId, visible: def.defaultVisible };
+        let inserted = false;
+        for (const anchor of anchorIds) {
+          const idx = merged.findIndex(c => c.id === anchor);
+          if (idx >= 0) {
+            merged.splice(idx + 1, 0, config);
+            inserted = true;
+            break;
+          }
+        }
+        if (!inserted) merged.push(config);
+        missingConfigs = missingConfigs.filter(c => c.id !== sectionId);
+      };
+
+      // ✅ Insérer les sections manquantes à des positions stratégiques
+      insertMissing("objective-manager", ["athlete-refs"]);
+      insertMissing("cpw-prime-curve", ["metabolic-power-curve", "fatmax-tfcl", "coach-decision-unified"]);
+      insertMissing("wbal-recovery", ["cpw-prime-curve", "metabolic-power-curve", "fatmax-tfcl"]);
 
       return [...merged, ...missingConfigs];
     }
