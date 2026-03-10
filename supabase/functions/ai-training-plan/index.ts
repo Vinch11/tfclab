@@ -2411,7 +2411,12 @@ Puis continue avec les semaines. Chaque bloc doit avoir son en-tête. C'est OBLI
 Résumé des blocs précédents pour assurer la continuité :
 ${previousChunksSummary}
 
-Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.`;
+Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.
+
+🔋 RAPPEL W'bal OBLIGATOIRE : Pour CHAQUE séance d'intervalles supra-CP, tu DOIS :
+1. Justifier la durée de repos avec le W' individuel (ex: "Repos 2min30 — calibré W'bal ${wprimeKJ || "N/A"} kJ")
+2. Indiquer le volume max de répétitions avant épuisement du W'
+3. Étiqueter les efforts au-dessus de CP (${cpRound || "N/A"}W) comme "supra-CP"`;
               }
 
               // Ensure week headers from a new block start on a fresh line
