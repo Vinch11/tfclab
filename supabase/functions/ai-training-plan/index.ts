@@ -2804,7 +2804,8 @@ function extractStrategicRecap(chunkText: string): string {
   for (const pattern of patterns) {
     const match = chunkText.match(pattern);
     if (match && match[1].trim().length > 50) {
-      return match[1].trim().slice(0, 2500);
+      // FIX C4 (audit): Increase truncation from 2500 to 4000 chars to preserve later phases in long plans
+      return match[1].trim().slice(0, 4000);
     }
   }
 
@@ -2813,7 +2814,7 @@ function extractStrategicRecap(chunkText: string): string {
     /(\|[^\n]*(?:Bloc|Phase|Limiteur)[^\n]*\|\s*\n\|[\s\-:|]+\|\s*\n(?:\|[^\n]+\|\s*\n)+)/i
   );
   if (blocTableMatch) {
-    return blocTableMatch[1].trim().slice(0, 2000);
+    return blocTableMatch[1].trim().slice(0, 3500);
   }
 
   // Fallback: capture Synergies + Limiteurs sections (bullet lists + tables combined)
@@ -2827,7 +2828,7 @@ function extractStrategicRecap(chunkText: string): string {
     limiterTableMatch ? limiterTableMatch[1].trim() : "",
     synergyMatch ? `Synergies:\n${synergyMatch[1].trim()}` : "",
   ].filter(Boolean).join("\n\n");
-  if (combined.length > 80) return combined.slice(0, 2500);
+  if (combined.length > 80) return combined.slice(0, 4000);
 
   // Last resort: capture lines mentioning phase boundaries (S1-SN patterns)
   const phaseLines = chunkText.match(/(?:Fondation|Chantier|Build|Consolidation|Race.Specific|Aff[ûu]tage|Taper|Sp[ée]cifique|D[ée]veloppement|Pr[ée]paration)[^\n]*S\d+[^\n]*/gi) || [];
