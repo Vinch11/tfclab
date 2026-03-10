@@ -2634,44 +2634,33 @@ function computeCPWprime(data: any): { cpRound: number; wprimeKJ: number; wprime
 
 // === CRITICAL POWER / W' INLINE MODEL (Skiba 2012) ===
 function buildCPWprimeSection(data: any): string | null {
-  // Build power-duration points from athlete data
+  // Reuse shared computation
+  const result = computeCPWprime(data);
+  if (!result) return null;
+
+  const { cpRound, wprimeKJ, wprimeJ: wprime } = result;
+
+  // Build power-duration points for R² and display
   const points: { dur: number; pow: number; label: string }[] = [];
   if (data.pmax5s && data.pmax5s > 0) points.push({ dur: 5, pow: data.pmax5s, label: "P5s" });
   if (data.p30s && data.p30s > 0) points.push({ dur: 30, pow: data.p30s, label: "P30s" });
   if (data.p60s && data.p60s > 0) points.push({ dur: 60, pow: data.p60s, label: "P60s" });
   if (data.map5min && data.map5min > 0) points.push({ dur: 300, pow: data.map5min, label: "MAP5min" });
   if (data.ftp && data.ftp > 0) points.push({ dur: 3600, pow: data.ftp, label: "FTP~60min" });
-
-  if (points.length < 2) return null;
-
-  // Linear regression: Work(t) = CP × t + W'
   const n = points.length;
-  let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
-  for (const p of points) {
-    const x = p.dur;
-    const y = p.pow * p.dur;
-    sumX += x; sumY += y; sumXY += x * y; sumX2 += x * x; sumY2 += y * y;
-  }
-  const denom = n * sumX2 - sumX * sumX;
-  if (Math.abs(denom) < 1e-10) return null;
-
-  const cp = (n * sumXY - sumX * sumY) / denom;
-  const wprime = (sumY - cp * sumX) / n;
-  if (cp < 50 || cp > 600 || wprime < 1000 || wprime > 50000) return null;
 
   // R²
+  let sumX = 0, sumY = 0;
+  for (const p of points) { sumX += p.dur; sumY += p.pow * p.dur; }
   const yMean = sumY / n;
   let ssTot = 0, ssRes = 0;
   for (const p of points) {
     const yA = p.pow * p.dur;
-    const yP = cp * p.dur + wprime;
+    const yP = cpRound * p.dur + wprime;
     ssTot += (yA - yMean) ** 2;
     ssRes += (yA - yP) ** 2;
   }
   const r2 = ssTot > 0 ? Math.round((1 - ssRes / ssTot) * 1000) / 1000 : 0;
-
-  const cpRound = Math.round(cp);
-  const wprimeKJ = Math.round(wprime / 100) / 10;
   const weight = data.weightKg ? Number(data.weightKg) : null;
   const ftp = data.ftp ? Number(data.ftp) : null;
 
