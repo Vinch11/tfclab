@@ -19,6 +19,13 @@ export interface PowerDurationPoint {
   label?: string;
 }
 
+export interface CPDiagnostic {
+  code: string;
+  severity: "warning" | "critical";
+  message: string;
+  detail: string;
+}
+
 export interface CriticalPowerResult {
   cp: number;            // Critical Power (W) — distinct from FTP
   wprime: number;        // W' (J) — anaerobic work capacity
@@ -28,6 +35,8 @@ export interface CriticalPowerResult {
   wprimeJkg?: number;    // W' in J/kg
   points: PowerDurationPoint[];  // Points used for regression
   ftpCpRatio?: number;   // FTP / CP ratio (typically 0.93-1.0)
+  diagnostics: CPDiagnostic[];  // Physiological plausibility warnings
+  dataQuality: "good" | "suspect" | "implausible"; // Overall data quality
 }
 
 export interface WbalState {
