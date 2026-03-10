@@ -251,11 +251,15 @@ export function CPWPrimeCurveCard({
 
             {/* Data points badges */}
             <div className="flex flex-wrap gap-1.5">
-              {cpResult.points.map((pt, i) => (
-                <Badge key={i} variant="outline" className="text-[10px] font-mono">
-                  {pt.label || `${pt.durationSec}s`}: {pt.powerWatts}W
-                </Badge>
-              ))}
+              {cpResult.points.map((pt, i) => {
+                const isRegression = 'regressionPoint' in pt ? (pt as any).regressionPoint : true;
+                return (
+                  <Badge key={i} variant={isRegression ? "outline" : "secondary"} className="text-[10px] font-mono">
+                    {pt.label || `${pt.durationSec}s`}: {pt.powerWatts}W
+                    {!isRegression && <span className="ml-1 opacity-60">(overlay)</span>}
+                  </Badge>
+                );
+              })}
             </div>
           </TabsContent>
 
