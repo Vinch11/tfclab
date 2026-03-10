@@ -2687,6 +2687,28 @@ Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b
       });
 
 
+// === FIX M3: Extract keywords from a limiter name for session matching ===
+function extractLimiterKeywords(limiterName: string): string[] {
+  const kw: string[] = [];
+  const l = limiterName.toLowerCase();
+  // Map common limiter types to session keywords
+  if (/vlamax/i.test(l)) kw.push("vlamax", "sprint", "glycoly", "anaérobie", "force", "sfr", "neuromuscul");
+  if (/tte|time.to.exhaust/i.test(l)) kw.push("tte", "seuil", "tempo", "sweet spot", "threshold", "ss");
+  if (/durabilit/i.test(l)) kw.push("durabilit", "endurance", "z2", "fatmax", "long", "aérobie");
+  if (/fatmax|lipid|fat.ox/i.test(l)) kw.push("fatmax", "z2", "endurance", "lipid", "oxydation", "fasted");
+  if (/econom|running.econ/i.test(l)) kw.push("économie", "cadence", "technique", "gammes", "foulée", "strides");
+  if (/ftp|puissance.seuil/i.test(l)) kw.push("ftp", "seuil", "sweet spot", "ss", "tempo", "threshold");
+  if (/vo2|vo2max|pma/i.test(l)) kw.push("vo2", "pma", "interval", "30/30", "3min", "5min", "hiit");
+  if (/vma/i.test(l)) kw.push("vma", "interval", "fractionné", "30/30", "piste");
+  if (/force|renfo/i.test(l)) kw.push("force", "renfo", "muscul", "côte", "sfr");
+  if (/natation|swim|css/i.test(l)) kw.push("natation", "swim", "css", "crawl", "pull");
+  // If no specific match, use the limiter name itself
+  if (kw.length === 0) {
+    kw.push(...l.split(/[\s/,()]+/).filter(w => w.length > 3));
+  }
+  return kw;
+}
+
 
       return new Response(stream, {
         headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
