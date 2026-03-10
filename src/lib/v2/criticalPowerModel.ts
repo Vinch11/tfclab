@@ -27,16 +27,19 @@ export interface CPDiagnostic {
 }
 
 export interface CriticalPowerResult {
-  cp: number;            // Critical Power (W) — distinct from FTP
+  cp: number;            // Critical Power (W) — raw regression output
+  effectiveCP: number;   // Effective CP (W) — bounded by FTP when CP is suspect
   wprime: number;        // W' (J) — anaerobic work capacity
   wprimeKJ: number;      // W' in kJ for display
   r2: number;            // Goodness of fit (0-1)
   cpWkg?: number;        // CP in W/kg
+  effectiveCPWkg?: number; // Effective CP in W/kg
   wprimeJkg?: number;    // W' in J/kg
   points: PowerDurationPoint[];  // Points used for regression
   ftpCpRatio?: number;   // FTP / CP ratio (typically 0.93-1.0)
   diagnostics: CPDiagnostic[];  // Physiological plausibility warnings
   dataQuality: "good" | "suspect" | "implausible"; // Overall data quality
+  cpBounded: boolean;    // true if effectiveCP was capped by FTP
 }
 
 export interface WbalState {
