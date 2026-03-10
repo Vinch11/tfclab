@@ -2757,33 +2757,53 @@ function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number): strin
   if (config?.sessionsPerWeek) lines.push(`📊 Séances: ${config.sessionsPerWeek}/sem`);
   if (config?.maxSessionsPerDay) lines.push(`📊 Max/jour: ${config.maxSessionsPerDay}`);
 
-  // FIX #3: Estimated phase bounds (heuristic based on total weeks and ambition)
+  // FIX C5 (audit): Limiter-aware phase heuristics — adapt durations based on L1 type
   if (totalWeeks && totalWeeks > 10) {
     const tw = totalWeeks;
     const isFinisher = ambKey === "finisher";
+    const L1 = (config?.identifiedLimiters?.[0] || "").toLowerCase();
+    const L2 = (config?.identifiedLimiters?.[1] || "").toLowerCase();
+
     // Taper duration depends on objective
     const taperWeeks = ["IM", "TrailUltra"].includes(objKey) ? 3 : ["703", "Marathon"].includes(objKey) ? 2 : ["Semi", "Trail", "TrailMountain"].includes(objKey) ? 2 : 1;
     const raceSpecificWeeks = isFinisher ? 0 : Math.min(4, Math.max(2, Math.floor(tw * 0.15)));
     const remainingWeeks = tw - taperWeeks - raceSpecificWeeks;
-    const fondationWeeks = Math.max(3, Math.floor(remainingWeeks * 0.35));
+
+    // C5: Adjust fondation/build split based on limiter type
+    // High VLamax or durability issues → longer Chantier block (more volume work needed)
+    // Economy/technique limiters → longer Fondation (motor pattern adaptation is slow)
+    const isVlamaxLimiter = /vlamax|glycoly|sprint|anaerob/i.test(L1);
+    const isDurabilityLimiter = /durabilit|tte|endurance|fatmax|lipid/i.test(L1);
+    const isEconomyLimiter = /econom|technique|cadence|biom[ée]can/i.test(L1);
+
+    let fondationPct = 0.35; // default
+    if (isEconomyLimiter) fondationPct = 0.42; // economy needs longer motor pattern adaptation
+    else if (isVlamaxLimiter) fondationPct = 0.30; // VLamax work benefits from earlier Chantier
+    else if (isDurabilityLimiter) fondationPct = 0.30; // durability needs more Build volume
+
+    const fondationWeeks = Math.max(3, Math.floor(remainingWeeks * fondationPct));
     const buildWeeks = remainingWeeks - fondationWeeks;
 
-    lines.push(`\n📅 BORNES DE PHASE ESTIMÉES (${tw} semaines) :`);
+    // C5: Name phases with actual limiter targets
+    const L1Short = L1 ? L1.split(/[\s(,]/)[0] : "Limiteur #1";
+    const L2Short = L2 ? L2.split(/[\s(,]/)[0] : "Limiteur #2";
+
+    lines.push(`\n📅 BORNES DE PHASE ESTIMÉES (${tw} semaines, ajustées selon L1="${L1Short}") :`);
     if (isFinisher) {
       lines.push(`  Phase 1 — Adaptation : S1-S${fondationWeeks}`);
       lines.push(`  Phase 2 — Développement : S${fondationWeeks + 1}-S${fondationWeeks + buildWeeks}`);
       lines.push(`  Phase 3 — Consolidation : S${fondationWeeks + buildWeeks + 1}-S${tw - taperWeeks}`);
       lines.push(`  Phase 4 — Affûtage : S${tw - taperWeeks + 1}-S${tw}`);
     } else {
-      const chantierEnd = fondationWeeks + Math.ceil(buildWeeks * 0.5);
+      const chantierEnd = fondationWeeks + Math.ceil(buildWeeks * (isVlamaxLimiter || isDurabilityLimiter ? 0.55 : 0.5));
       const consolEnd = fondationWeeks + buildWeeks;
-      lines.push(`  Bloc Fondation + Intensité : S1-S${fondationWeeks}`);
-      lines.push(`  Bloc Chantier [Limiteur #1] : S${fondationWeeks + 1}-S${chantierEnd}`);
-      lines.push(`  Bloc Consolidation [Limiteur #2] : S${chantierEnd + 1}-S${consolEnd}`);
+      lines.push(`  Bloc Fondation + Intensité : S1-S${fondationWeeks}${isEconomyLimiter ? " (étendu: adaptation motrice L1)" : ""}`);
+      lines.push(`  Bloc Chantier [${L1Short}↓] : S${fondationWeeks + 1}-S${chantierEnd}${isVlamaxLimiter ? " (étendu: chantier métabolique prioritaire)" : ""}`);
+      lines.push(`  Bloc Consolidation [${L2Short}] : S${chantierEnd + 1}-S${consolEnd}`);
       lines.push(`  Bloc Race-Specific : S${consolEnd + 1}-S${tw - taperWeeks}`);
       lines.push(`  Bloc Affûtage : S${tw - taperWeeks + 1}-S${tw}`);
     }
-    lines.push(`  ⚠️ Ces bornes sont INDICATIVES. Le Récapitulatif Stratégique du chunk 1 fait foi.`);
+    lines.push(`  ⚠️ Ces bornes sont INDICATIVES mais adaptées aux limiteurs détectés. Le Récapitulatif Stratégique du chunk 1 fait foi.`);
   }
   
   return lines.join("\n");
