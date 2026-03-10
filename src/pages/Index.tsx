@@ -96,6 +96,9 @@ import { CoachDecisionUnifiedCard } from "@/components/CoachDecisionUnifiedCard"
 // ✅ Profil & Ambition — Carte unifiée (Phase 1f UX)
 import { ProfilAmbitionUnifiedCard } from "@/components/ProfilAmbitionUnifiedCard";
 
+// ✅ W'bal Recovery Card — Repos optimaux individualisés
+import { WbalRecoveryCard } from "@/components/WbalRecoveryCard";
+
 // ✅ Roadmap Stratégique
 import { RoadmapStrategique } from "@/components/RoadmapStrategique";
 import { detectUnifiedLimiter, type UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
