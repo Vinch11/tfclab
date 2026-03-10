@@ -194,6 +194,9 @@ function AICoachingCard({
       fcMax: snapshot?.fc_max,
       tte: snapshot?.tte_observed_min,
       pmax5s: snapshot?.pmax_5s,
+      p30s: snapshot?.p30s_w,
+      p60s: snapshot?.p60s_w,
+      map5min: snapshot?.map5min_w,
       snapshotCount,
     });
   };
