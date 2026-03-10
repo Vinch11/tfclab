@@ -2239,7 +2239,13 @@ Plan total : ${regenerateWeek.totalWeeks} semaines.
 
 ${buildUserPrompt(athleteData, planConfig)}
 
-IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format tableau obligatoire. Pas les autres semaines.`;
+IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format tableau obligatoire. Pas les autres semaines.
+
+RAPPEL W'bal OBLIGATOIRE : Pour CHAQUE séance d'intervalles de cette semaine, tu DOIS :
+1. Mentionner la durée de repos avec justification W'bal (ex: "Repos 2min30 — calibré W'bal 22kJ")
+2. Indiquer le nombre max de répétitions avant dégradation W'
+3. Étiqueter les efforts supra-CP quand la puissance prescrite dépasse CP
+Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le profil athlète ci-dessus.`;
     } else {
       userPrompt = buildUserPrompt(athleteData, planConfig);
     }
