@@ -224,8 +224,26 @@ export function analyzeCriticalPower(snapshot: {
   }
 
   // =============================================
-  // PHYSIOLOGICAL PLAUSIBILITY DIAGNOSTICS
+  // EFFECTIVE CP — bounded by FTP when suspect
   // =============================================
+  // Physiologically, CP is ~5-15W above FTP. When regression gives CP >> FTP,
+  // it means short-duration data isn't truly maximal. Rather than using an
+  // inflated CP for recovery calculations (which would underestimate rest),
+  // we cap effectiveCP at FTP + 10W.
+  const CP_FTP_MAX_GAP = 20; // W — above this, CP is considered suspect
+  const CP_FTP_EFFECTIVE_OFFSET = 10; // W — effectiveCP = FTP + this offset
+  
+  if (snapshot.ftp && snapshot.ftp > 0 && result.cp > snapshot.ftp + CP_FTP_MAX_GAP) {
+    result.effectiveCP = snapshot.ftp + CP_FTP_EFFECTIVE_OFFSET;
+    result.cpBounded = true;
+  } else {
+    result.effectiveCP = result.cp;
+    result.cpBounded = false;
+  }
+
+  if (snapshot.weight_kg && snapshot.weight_kg > 0) {
+    result.effectiveCPWkg = Math.round((result.effectiveCP / snapshot.weight_kg) * 100) / 100;
+  }
   const diag: CPDiagnostic[] = [];
 
   // 1. CP vs FTP coherence — CP should be within ~5-15W of FTP (not 40W+)
