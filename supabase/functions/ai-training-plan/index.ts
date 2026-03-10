@@ -2383,14 +2383,19 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     if (needsChunking) {
       // === CHUNKED GENERATION for long plans ===
       const encoder = new TextEncoder();
-      // FIX #3: Sliding window — keep only last N chunk summaries to avoid context bloat
       const MAX_SUMMARY_CHUNKS = 3;
+
+      // FIX #6: Build structured diagnostic from config (always available, no regex needed)
+      const structuredDiagnostic = buildStructuredDiagnosticBlock(planConfig);
+
       const stream = new ReadableStream({
         async start(controller) {
           try {
             let chunkSummaries: string[] = [];
-            // FIX #5: Capture diagnostic from first chunk for re-injection
-            let diagnosticContext = "";
+            // FIX #5: Capture diagnostic from first chunk for re-injection (enriched)
+            let extractedDiagnostic = "";
+            // FIX #5b: Track active phase across chunks
+            let activePhase = "Fondation";
             const chunks: { start: number; end: number }[] = [];
             for (let s = 1; s <= totalWeeks; s += CHUNK_SIZE) {
               chunks.push({ start: s, end: Math.min(s + CHUNK_SIZE - 1, totalWeeks) });
@@ -2431,7 +2436,9 @@ Génère ensuite les semaines ${chunk.start} à ${chunk.end} avec leurs tableaux
 IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${expectedWeeks.join(", ")}). Ne t'arrête pas avant.${wbalReminder}`;
 
               } else {
-                // FIX #5: Re-inject diagnostic context in subsequent chunks
+                // FIX #5+#6: Re-inject STRUCTURED diagnostic + active phase in subsequent chunks
+                const diagnosticBlock = structuredDiagnostic + (extractedDiagnostic ? `\n\n📝 Diagnostic généré (résumé) :\n${extractedDiagnostic}` : "");
+
                 chunkPrompt = `${userPrompt}
 
 ⚠️ GÉNÉRATION PAR BLOC (suite) : Génère UNIQUEMENT les semaines ${chunk.start} à ${chunk.end} (sur ${totalWeeks} total).
@@ -2446,8 +2453,11 @@ Si une nouvelle phase/bloc commence dans cette plage de semaines (d'après le R�
 
 Puis continue avec les semaines. Chaque bloc doit avoir son en-tête. C'est OBLIGATOIRE pour le parsing.
 
-📋 RAPPEL DU DIAGNOSTIC STRATÉGIQUE (pour cohérence) :
-${diagnosticContext || "Non disponible — assure la continuité logique avec les blocs précédents."}
+📋 DIAGNOSTIC STRUCTURÉ (cohérence obligatoire pour ce bloc) :
+${diagnosticBlock}
+
+🔄 PHASE ACTIVE ESTIMÉE : ${activePhase}
+→ Les séances clés de ce bloc doivent correspondre à cette phase ET aux limiteurs ci-dessus.
 
 Résumé des blocs précédents (progression récente) :
 ${slidingSummary || "Premier bloc de continuation."}
@@ -2469,24 +2479,30 @@ Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semai
                 break;
               }
 
-              // FIX #5: Extract diagnostic from first chunk for re-injection
+              // FIX #5: Extract diagnostic from first chunk (enriched extraction)
               if (isFirst) {
                 const diagMatch = chunkText.match(/(?:##\s*(?:1\.\s*)?Diagnostic[^\n]*\n)([\s\S]*?)(?=##\s*(?:2\.\s*)?(?:Récapitulatif|Semaine\s*\d))/i);
                 if (diagMatch) {
-                  // Compact: keep first 800 chars to avoid bloat
-                  diagnosticContext = diagMatch[1].trim().slice(0, 800);
+                  extractedDiagnostic = diagMatch[1].trim().slice(0, 1200);
                 } else {
                   // Fallback: extract limiters and key strategy lines
-                  const limiterLines = chunkText.match(/(?:Limiteur|L1|L2|stratégi|priorit)[^\n]*/gi) || [];
-                  diagnosticContext = limiterLines.slice(0, 10).join("\n");
+                  const limiterLines = chunkText.match(/(?:Limiteur|L1|L2|stratégi|priorit|VLamax|VO2max|TTE|FTP|FatMax|économie|durabilité)[^\n]*/gi) || [];
+                  extractedDiagnostic = limiterLines.slice(0, 15).join("\n");
                 }
+              }
+
+              // FIX #5b: Detect active phase from generated text
+              const phaseMatch = combinedChunkText.match(/(?:##\s*Bloc\s*\d+\s*:?\s*)([^\n(]+)/gi);
+              if (phaseMatch && phaseMatch.length > 0) {
+                const lastPhase = phaseMatch[phaseMatch.length - 1].replace(/^##\s*Bloc\s*\d+\s*:?\s*/i, "").trim();
+                if (lastPhase) activePhase = lastPhase;
               }
 
               // Verify which weeks were generated
               const generatedWeeks = extractGeneratedWeekNumbers(chunkText);
               const missingWeeks = expectedWeeks.filter(w => !generatedWeeks.includes(w));
 
-              // FIX #4: Double retry for missing weeks (with deduplication)
+              // FIX #4: Double retry for missing weeks (with deduplication + diagnostic injection)
               if (missingWeeks.length > 0) {
                 console.log(`Chunk ${ci + 1}: missing weeks ${missingWeeks.join(",")}. Retry 1...`);
                 const retryPrompt = `${userPrompt}
@@ -2496,6 +2512,11 @@ NE PAS répéter le diagnostic ni le récapitulatif. NE PAS ajouter d'introducti
 
 🔴 RÈGLE CRITIQUE — EN-TÊTES DE BLOC :
 Si une des semaines manquantes est la PREMIÈRE semaine d'un nouveau bloc/phase, tu DOIS insérer l'en-tête de bloc.
+
+📋 DIAGNOSTIC STRUCTURÉ :
+${structuredDiagnostic}
+
+🔄 PHASE ACTIVE : ${activePhase}
 
 Contexte des semaines déjà générées :
 ${slidingSummary}
@@ -2521,6 +2542,11 @@ Assure la CONTINUITÉ de la progression.${wbalReminder}`;
 ⚠️ DERNIÈRE TENTATIVE — Génère UNIQUEMENT : ${stillMissing.map(w => `Semaine ${w}`).join(", ")}.
 NE PAS répéter le diagnostic. Génère directement les tableaux.
 
+📋 DIAGNOSTIC STRUCTURÉ :
+${structuredDiagnostic}
+
+🔄 PHASE ACTIVE : ${activePhase}
+
 Contexte : ${slidingSummary}
 Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b) => a - b).join(", ")}${wbalReminder}`;
 
@@ -2537,15 +2563,26 @@ Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b
                 }
               }
 
-              // FIX #3: Build compact summary for sliding window
+              // FIX #3: Build ENRICHED summary for sliding window (phase + limiter focus)
               const weekMatches = combinedChunkText.match(/^(?:#{2,4}\s*)?\*{0,2}\s*Semaine\s*\d+[^#\n]*(?:\n(?!#{1,4}\s*\*{0,2}\s*Semaine\s*\d+).*)*/gim) || [];
               const summaryLines = weekMatches.map(w => {
                 const numMatch = w.match(/Semaine\s*(\d+)/i);
                 const themeMatch = w.match(/[—–:\-]\s*(.+?)[\n|]/);
                 return `S${numMatch?.[1] || "?"}: ${themeMatch?.[1]?.trim() || "entraînement progressif"}`;
               }).join(", ");
-              chunkSummaries.push(`Semaines ${chunk.start}-${chunk.end}: ${summaryLines || "Plan progressif standard"}`);
+              // Enriched: include phase and limiter context
+              chunkSummaries.push(`Semaines ${chunk.start}-${chunk.end} [Phase: ${activePhase}]: ${summaryLines || "Plan progressif standard"}`);
             }
+
+            // Send final [DONE]
+            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+            controller.close();
+          } catch (e) {
+            console.error("Chunked generation error:", e);
+            controller.error(e);
+          }
+        },
+      });
 
             // Send final [DONE]
             controller.enqueue(encoder.encode("data: [DONE]\n\n"));
