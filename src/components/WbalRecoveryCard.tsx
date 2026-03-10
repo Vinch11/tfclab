@@ -33,15 +33,15 @@ export function WbalRecoveryCard({
   weightKg,
 }: WbalRecoveryCardProps) {
   const cpResult = useMemo(() => {
-    const points = buildPointsFromSnapshot({
+    return analyzeCriticalPower({
       pmax_5s: pmax5s,
       p30s_w: p30s,
       p60s_w: p60s,
       map5min_w: map5min,
       ftp,
+      weight_kg: weightKg,
     });
-    return fitCriticalPower(points);
-  }, [pmax5s, p30s, p60s, map5min, ftp]);
+  }, [pmax5s, p30s, p60s, map5min, ftp, weightKg]);
 
   const recoveryTable = useMemo(() => {
     if (!cpResult) return null;
