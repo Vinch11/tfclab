@@ -328,13 +328,23 @@ export function CPWPrimeCurveCard({
           {/* Tab 2: CP vs FTP Model Details */}
           <TabsContent value="model" className="mt-3 space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-lg border bg-primary/5 p-3 text-center space-y-1">
+              <div className={`rounded-lg border p-3 text-center space-y-1 ${cpResult.cpBounded ? "bg-amber-500/5 border-amber-500/30" : "bg-primary/5"}`}>
                 <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
                   <Zap className="h-3 w-3" /> Critical Power
                 </div>
-                <div className="text-2xl font-bold font-mono text-primary">{cpResult.cp}W</div>
-                {cpWkg && <div className="text-xs text-muted-foreground font-mono">{cpWkg} W/kg</div>}
-                <div className="text-[10px] text-muted-foreground">Seuil de steady-state</div>
+                {cpResult.cpBounded ? (
+                  <>
+                    <div className="text-lg font-bold font-mono line-through text-muted-foreground">{cpResult.cp}W</div>
+                    <div className="text-2xl font-bold font-mono text-amber-600">{cpResult.effectiveCP}W</div>
+                    <div className="text-[10px] text-amber-600 font-medium">CP effectif (borné FTP+10)</div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-2xl font-bold font-mono text-primary">{cpResult.cp}W</div>
+                    {cpWkg && <div className="text-xs text-muted-foreground font-mono">{cpWkg} W/kg</div>}
+                    <div className="text-[10px] text-muted-foreground">Seuil de steady-state</div>
+                  </>
+                )}
               </div>
               <div className="rounded-lg border bg-destructive/5 p-3 text-center space-y-1">
                 <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
@@ -345,6 +355,25 @@ export function CPWPrimeCurveCard({
                 <div className="text-[10px] text-muted-foreground">Réservoir anaérobie</div>
               </div>
             </div>
+
+            {/* CP bounded explanation */}
+            {cpResult.cpBounded && (
+              <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs space-y-1">
+                <div className="flex items-center gap-2 font-semibold text-amber-700 dark:text-amber-400">
+                  <ShieldAlert className="h-3.5 w-3.5" />
+                  CP borné par le FTP
+                </div>
+                <p className="text-muted-foreground">
+                  Le CP brut ({cpResult.cp}W) dépasse le FTP ({ftp}W) de <strong>{cpResult.cp - (ftp || 0)}W</strong>. 
+                  Physiologiquement, CP ≈ FTP + 5-15W. Un écart &gt;20W indique que les efforts courts 
+                  (P30s, P60s, MAP5') ne sont pas des all-out maximaux.
+                </p>
+                <p className="text-muted-foreground">
+                  → <strong>CP effectif = {cpResult.effectiveCP}W</strong> (FTP + 10W) est utilisé pour 
+                  calculer les repos W'bal. Le FTP ({ftp}W) reste la référence pour les zones d'intensité.
+                </p>
+              </div>
+            )}
 
             {/* FTP vs CP comparison */}
             {ftp && (
