@@ -73,6 +73,11 @@ export interface VLamaxBikeV2Components {
   mader_mlss: number | null;
   mader_tte: number | null;
   
+  // CP/W' cross-validation
+  cpResult: CriticalPowerResult | null;
+  wprimeKJ: number | null;
+  vlamax_from_wprime: number | null;
+  
   // Ratios bruts (Score G)
   r_pmax: number | null;
   r30: number | null;
@@ -85,6 +90,7 @@ export interface VLamaxBikeV2Components {
   S60: number | null;
   E: number | null;
   D: number | null;
+  W: number | null;
   
   // Score G final
   scoreG: number | null;
