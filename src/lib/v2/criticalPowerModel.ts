@@ -460,10 +460,13 @@ export function prescribeIntervalRecovery(
   wprimeJ: number,
   intervalPowerW: number,
   intervalDurationSec: number,
-  recoveryPowerW: number = 0, // Default: passive rest
+  recoveryPowerW: number = 0, // Default: passive rest (most conservative)
 ): IntervalRecovery & RecoveryPrescription {
+  // Apply W' floor for prescription reliability
+  const wEff = effectiveWprime(wprimeJ);
+  
   // W'bal after interval work bout
-  const wbalAfterWork = Math.max(0, wprimeJ - (intervalPowerW - cp) * intervalDurationSec);
+  const wbalAfterWork = Math.max(0, wEff - (intervalPowerW - cp) * intervalDurationSec);
 
   // If interval power ≤ CP, no W' depletion
   if (intervalPowerW <= cp) {
@@ -472,8 +475,8 @@ export function prescribeIntervalRecovery(
       intervalDurationSec,
       recoveryPowerW,
       recoveryDurationSec: 60,
-      wbalAfterInterval: wprimeJ,
-      wbalAfterRecovery: wprimeJ,
+      wbalAfterInterval: wEff,
+      wbalAfterRecovery: wEff,
       wbalPctAfterRecovery: 100,
       canRepeat: true,
       maxReps: 20,
@@ -483,16 +486,16 @@ export function prescribeIntervalRecovery(
     };
   }
 
-  const tau = calculateTau(wprimeJ, cp, recoveryPowerW);
-  const depleted = wprimeJ - wbalAfterWork;
+  const tau = calculateTau(wEff, cp, recoveryPowerW);
+  const depleted = wEff - wbalAfterWork;
 
   // Time to reconstitute to X% of W'
   // W'bal(t) = W' - depleted × exp(-t/τ)
   // Solve for t: t = -τ × ln((W' - target) / depleted)
   const solveTime = (targetPct: number): number => {
-    const targetWbal = wprimeJ * targetPct;
-    if (targetWbal >= wprimeJ) return Infinity;
-    const remaining = wprimeJ - targetWbal;
+    const targetWbal = wEff * targetPct;
+    if (targetWbal >= wEff) return Infinity;
+    const remaining = wEff - targetWbal;
     if (remaining >= depleted || depleted <= 0) return 0;
     return Math.max(0, -tau * Math.log(remaining / depleted));
   };
@@ -502,21 +505,21 @@ export function prescribeIntervalRecovery(
   const fullRecoverySec = Math.round(solveTime(0.95));
 
   // Calculate W'bal after optimal recovery
-  const wbalAfterRecovery = wprimeJ - depleted * Math.exp(-optimalRecoverySec / tau);
-  const wbalPctAfterRecovery = Math.round((wbalAfterRecovery / wprimeJ) * 100);
+  const wbalAfterRecovery = wEff - depleted * Math.exp(-optimalRecoverySec / tau);
+  const wbalPctAfterRecovery = Math.round((wbalAfterRecovery / wEff) * 100);
 
   // Max reps via iterative W'bal simulation (accounts for progressive depletion)
   const wCostPerRep = (intervalPowerW - cp) * intervalDurationSec;
   let maxReps = 0;
-  let simWbal = wprimeJ;
+  let simWbal = wEff;
   for (let rep = 0; rep < 30; rep++) {
     // Work phase: deplete
     simWbal = Math.max(0, simWbal - wCostPerRep);
     if (simWbal <= 0) break;
     maxReps++;
     // Recovery phase: reconstitute from current (diminished) W'bal
-    const depletedNow = wprimeJ - simWbal;
-    simWbal = wprimeJ - depletedNow * Math.exp(-optimalRecoverySec / tau);
+    const depletedNow = wEff - simWbal;
+    simWbal = wEff - depletedNow * Math.exp(-optimalRecoverySec / tau);
     // Stop if next rep would deplete entirely
     if (simWbal - wCostPerRep <= 0) break;
   }
