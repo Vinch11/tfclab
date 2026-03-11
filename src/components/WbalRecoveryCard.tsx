@@ -137,6 +137,11 @@ export function WbalRecoveryCard({
                 {cpResult.wprimeJkg && (
                   <div className="text-xs text-muted-foreground font-mono">{cpResult.wprimeJkg} J/kg</div>
                 )}
+                {effectiveWprime(cpResult.wprime) > cpResult.wprime && (
+                  <div className="text-[10px] text-amber-600 font-medium">
+                    Plancher 10kJ appliqué pour les repos
+                  </div>
+                )}
               </div>
             </div>
 
