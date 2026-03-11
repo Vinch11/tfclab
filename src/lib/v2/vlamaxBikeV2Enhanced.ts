@@ -12,9 +12,13 @@
  *                 Validation croisée via durabilité glycogénique.
  *                 Réf: Rapoport (2010)
  * 
- * M3 (EMPIRICAL): Score G normalisé → indices de puissance (P30s, P60s, MAP)
+ * M3 (EMPIRICAL): Score G normalisé → indices de puissance (P30s, P60s, MAP, W')
  *                 Faisceau d'indices de la courbe de puissance, pondérations
  *                 ajustées selon littérature: Spragg 2023, van Erp 2021.
+ * 
+ * M4 (CROSS-VAL): W' → VLamax cross-validation via CP/W' model
+ *                 W' = VLamax × poids × k (Mader), donc VLamax_implied = W'/(poids×320)
+ *                 Divergence détectée → warning + ajustement confiance.
  * 
  * FUSION        : Moyenne pondérée multi-index avec détection de divergence.
  *                 Si écart Mader vs Score G > 0.10 → alerte + marge élargie.
@@ -26,9 +30,10 @@
  *   S60    = clamp((P60s/FTP - 1.10) / 0.60, 0, 1)    [ajusté]
  *   E      = clamp((0.90 - FTP/MAP) / 0.25, 0, 1)     [fractional utilization]
  *   D      = clamp((65 - TTE) / 35, 0, 1)             [élargi, moins agressif]
+ *   W      = clamp((W'kJ - 10) / 20, 0, 1)            [W' anaerobic capacity]
  * 
- * Poids Score G (Spragg-optimized) :
- *   S_pmax: 0.30, S30: 0.20, S60: 0.10, E: 0.25, D: 0.15
+ * Poids Score G (Spragg-optimized + W') :
+ *   S_pmax: 0.25, S30: 0.18, S60: 0.09, E: 0.22, D: 0.14, W: 0.12
  * 
  * VLamax_raw = 0.20 + 0.80 * G
  * VLamax_final = clamp(VLamax_raw, 0.20, 1.05)
@@ -36,6 +41,7 @@
 
 import { ClusterSelectionEnvelope, buildClusterSelectionEnvelope } from "../reference/clusterSelector";
 import { calibrateVLamaxFromMLSS, calibrateVLamaxFromTTE } from "./maderMetabolicModel";
+import { analyzeCriticalPower, type CriticalPowerResult } from "./criticalPowerModel";
 
 // =============================================
 // TYPES
@@ -67,6 +73,11 @@ export interface VLamaxBikeV2Components {
   mader_mlss: number | null;
   mader_tte: number | null;
   
+  // CP/W' cross-validation
+  cpResult: CriticalPowerResult | null;
+  wprimeKJ: number | null;
+  vlamax_from_wprime: number | null;
+  
   // Ratios bruts (Score G)
   r_pmax: number | null;
   r30: number | null;
@@ -79,6 +90,7 @@ export interface VLamaxBikeV2Components {
   S60: number | null;
   E: number | null;
   D: number | null;
+  W: number | null;
   
   // Score G final
   scoreG: number | null;
@@ -188,6 +200,7 @@ interface ScoreGResult {
     S60: number | null;
     E: number | null;
     D: number | null;
+    W: number | null;
     r_pmax: number | null;
     r30: number | null;
     r60: number | null;
@@ -204,6 +217,7 @@ function computeScoreG(
   map5min_w: number | null | undefined,
   tte_min: number | null | undefined,
   pmax_5s: number | null | undefined,
+  wprimeKJ: number | null | undefined,
 ): ScoreGResult | null {
   const sources: string[] = ["FTP"];
   
@@ -212,8 +226,9 @@ function computeScoreG(
   const hasP60 = p60s_w != null && p60s_w > 0;
   const hasMAP = map5min_w != null && map5min_w > 0;
   const hasTTE = tte_min != null && tte_min > 0;
+  const hasWprime = wprimeKJ != null && wprimeKJ > 0;
   
-  const dataCount = [hasPmax, hasP30, hasP60, hasMAP, hasTTE].filter(Boolean).length;
+  const dataCount = [hasPmax, hasP30, hasP60, hasMAP, hasTTE, hasWprime].filter(Boolean).length;
   if (dataCount < 2) return null;
   
   // Compute ratios
@@ -223,38 +238,31 @@ function computeScoreG(
   const rfm = hasMAP ? ftp / map5min_w! : null;
   
   // Normalized scores (recalibrated ranges — literature-aligned)
-  // S_pmax: Pmax/FTP ratio — strongest single predictor (Spragg 2023, van Erp 2021)
-  // Typical range: 3.0 (endurance) to 5.0 (sprinter)
   const S_pmax = r_pmax !== null ? clamp((r_pmax - 3.0) / 2.0, 0, 1) : null;
-  
-  // S30: P30s/FTP — anaerobic capacity index
-  // Typical range: 1.30 (low glycolytic) to 2.20 (high glycolytic)
   const S30 = r30 !== null ? clamp((r30 - 1.30) / 0.90, 0, 1) : null;
-  
-  // S60: P60s/FTP — transition anaerobic-aerobic  
-  // Typical range: 1.10 (low) to 1.70 (high)
   const S60 = r60 !== null ? clamp((r60 - 1.10) / 0.60, 0, 1) : null;
-  
-  // E: Fractional utilization (FTP/MAP) — inversely related to VLamax
-  // Typical range: 0.65 (low FU, high VLamax) to 0.90 (high FU, low VLamax)
   const E = rfm !== null ? clamp((0.90 - rfm) / 0.25, 0, 1) : null;
-  
-  // D: TTE at FTP — durability index
-  // Typical range: 30min (high glycolytic) to 65min+ (low VLamax)
-  // RECALIBRATED: wider range (65-TTE)/35 instead of (55-TTE)/25
   const D = hasTTE ? clamp((65 - tte_min!) / 35, 0, 1) : null;
   
-  // Adaptive weights (Spragg-optimized priorities)
-  // Pmax/FTP is the strongest predictor, TTE has the most noise
+  // W: W' anaerobic capacity index
+  // Typical range: 10 kJ (low glycolytic/endurance) to 30 kJ (sprinter)
+  // Higher W' → higher glycolytic capacity → higher VLamax
+  // Ref: W' ≈ VLamax × weight × 320 (Mader), Burnley & Jones 2018
+  const W_score = hasWprime ? clamp((wprimeKJ! - 10) / 20, 0, 1) : null;
+  
+  // Adaptive weights (recalibrated with W' index)
+  // Original: S_pmax=0.30, S30=0.20, S60=0.10, E=0.25, D=0.15
+  // With W': redistribute to accommodate 0.12 for W'
   let scoreG = 0;
   let totalWeight = 0;
   
-  // Weights: S_pmax=0.30, S30=0.20, S60=0.10, E=0.25, D=0.15
-  if (S_pmax !== null) { scoreG += 0.30 * S_pmax; totalWeight += 0.30; sources.push("Pmax5s"); }
-  if (S30 !== null) { scoreG += 0.20 * S30; totalWeight += 0.20; sources.push("P30s"); }
-  if (S60 !== null) { scoreG += 0.10 * S60; totalWeight += 0.10; sources.push("P60s"); }
-  if (E !== null) { scoreG += 0.25 * E; totalWeight += 0.25; sources.push("MAP5min"); }
-  if (D !== null) { scoreG += 0.15 * D; totalWeight += 0.15; sources.push("TTE"); }
+  // Weights: S_pmax=0.25, S30=0.18, S60=0.09, E=0.22, D=0.14, W=0.12
+  if (S_pmax !== null) { scoreG += 0.25 * S_pmax; totalWeight += 0.25; sources.push("Pmax5s"); }
+  if (S30 !== null) { scoreG += 0.18 * S30; totalWeight += 0.18; sources.push("P30s"); }
+  if (S60 !== null) { scoreG += 0.09 * S60; totalWeight += 0.09; sources.push("P60s"); }
+  if (E !== null) { scoreG += 0.22 * E; totalWeight += 0.22; sources.push("MAP5min"); }
+  if (D !== null) { scoreG += 0.14 * D; totalWeight += 0.14; sources.push("TTE"); }
+  if (W_score !== null) { scoreG += 0.12 * W_score; totalWeight += 0.12; sources.push("W'"); }
   
   // Normalize
   if (totalWeight > 0 && totalWeight < 1) {
@@ -267,7 +275,7 @@ function computeScoreG(
   return {
     scoreG: Number(scoreG.toFixed(3)),
     vlamax: Number(vlamax.toFixed(3)),
-    components: { S_pmax, S30, S60, E, D, r_pmax, r30, r60, rfm },
+    components: { S_pmax, S30, S60, E, D, W: W_score, r_pmax, r30, r60, rfm },
     sources,
     dataCount,
   };
@@ -331,9 +339,37 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
   }
   
   // =============================================
-  // ÉTAPE 3: Score G empirique (CONFIRMATORY)
+  // ÉTAPE 2b: CP/W' ANALYSIS (for Score G index + cross-validation)
   // =============================================
-  const scoreGResult = computeScoreG(ftp, p30s_w, p60s_w, map5min_w, tte_min, pmax_5s);
+  let cpResult: CriticalPowerResult | null = null;
+  let wprimeKJ: number | null = null;
+  let vlamaxFromWprime: number | null = null;
+  
+  // Run CP analysis if we have enough short-duration power data
+  cpResult = analyzeCriticalPower({
+    pmax_5s: pmax_5s,
+    p30s_w: p30s_w,
+    p60s_w: p60s_w,
+    map5min_w: map5min_w,
+    ftp: ftp,
+    weight_kg: weight_kg,
+  });
+  
+  if (cpResult) {
+    wprimeKJ = cpResult.wprimeKJ;
+    sources.push("W'bal");
+    
+    // Derive VLamax from W' using Mader relationship: W' ≈ VLamax × weight × 320
+    // → VLamax_implied = W' / (weight × 320)
+    if (weight_kg && weight_kg > 0) {
+      vlamaxFromWprime = Number(clamp(cpResult.wprime / (weight_kg * 320), 0.15, 1.10).toFixed(3));
+    }
+  }
+  
+  // =============================================
+  // ÉTAPE 3: Score G empirique (CONFIRMATORY — now includes W')
+  // =============================================
+  const scoreGResult = computeScoreG(ftp, p30s_w, p60s_w, map5min_w, tte_min, pmax_5s, wprimeKJ);
   let scoreGValue: number | null = null;
   
   if (scoreGResult) {
@@ -485,6 +521,7 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
   if (maderMLSS !== null) topContributors.push(`Mader MLSS: ${maderMLSS.toFixed(2)}`);
   if (maderTTE !== null) topContributors.push(`Mader TTE: ${maderTTE.toFixed(2)}`);
   if (scoreGValue !== null) topContributors.push(`Score G: ${scoreGValue.toFixed(2)}`);
+  if (vlamaxFromWprime !== null) topContributors.push(`W'→VLamax: ${vlamaxFromWprime.toFixed(2)}`);
   
   const pedagogicalMessage = topContributors.length > 0
     ? `Méthodes : ${topContributors.join(" | ")}`
@@ -509,10 +546,32 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
     }
   }
   
+  // =============================================
+  // ÉTAPE 6b: CP↔VLamax CROSS-VALIDATION
+  // =============================================
+  if (vlamaxFromWprime !== null) {
+    const wprimeDelta = Math.abs(finalValue - vlamaxFromWprime);
+    if (wprimeDelta > 0.20) {
+      warnings.push(
+        `Divergence CP↔VLamax : W' implique VLamax ~${vlamaxFromWprime.toFixed(2)} vs estimée ${finalValue.toFixed(2)} (Δ=${wprimeDelta.toFixed(2)}). ` +
+        `Vérifier cohérence des données courtes (P30s, P60s) avec le profil métabolique.`
+      );
+      confidence = Math.max(0.40, confidence - 0.10);
+    } else if (wprimeDelta > 0.12) {
+      warnings.push(
+        `Écart modéré CP↔VLamax : W' implique VLamax ~${vlamaxFromWprime.toFixed(2)} (Δ=${wprimeDelta.toFixed(2)})`
+      );
+      confidence = Math.max(0.50, confidence - 0.05);
+    }
+  }
+  
   // Build components
   const components: VLamaxBikeV2Components = {
     mader_mlss: maderMLSS,
     mader_tte: maderTTE,
+    cpResult,
+    wprimeKJ,
+    vlamax_from_wprime: vlamaxFromWprime,
     r_pmax: scoreGResult?.components.r_pmax ?? null,
     r30: scoreGResult?.components.r30 ?? null,
     r60: scoreGResult?.components.r60 ?? null,
@@ -522,6 +581,7 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
     S60: scoreGResult?.components.S60 ?? null,
     E: scoreGResult?.components.E ?? null,
     D: scoreGResult?.components.D ?? null,
+    W: scoreGResult?.components.W ?? null,
     scoreG: scoreGResult?.scoreG ?? null,
     vlamax_raw: finalValue,
     vlamax_final: finalValue,
