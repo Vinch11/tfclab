@@ -38,10 +38,10 @@
  * VLamax_raw = 0.20 + 0.80 * G
  * VLamax_final = clamp(VLamax_raw, 0.20, 1.05)
  */
- */
 
 import { ClusterSelectionEnvelope, buildClusterSelectionEnvelope } from "../reference/clusterSelector";
 import { calibrateVLamaxFromMLSS, calibrateVLamaxFromTTE } from "./maderMetabolicModel";
+import { analyzeCriticalPower, type CriticalPowerResult } from "./criticalPowerModel";
 
 // =============================================
 // TYPES
