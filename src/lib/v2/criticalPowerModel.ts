@@ -606,7 +606,14 @@ export function formatCPWprimeForPrompt(
     lines.push(`- **FTP (terrain)** : ${ftp}W — référence principale pour l'intensité des séances`);
     lines.push(`  → Le FTP reste la métrique de référence pour calibrer les zones d'entraînement. CP n'est utilisé que pour le modèle W'bal de repos inter-séries.`);
   }
+  const wEffJ = effectiveWprime(cpResult.wprime);
+  const wEffKJ = Math.round(wEffJ / 100) / 10;
+  const wprimeFloored = wEffJ > cpResult.wprime;
+  
   lines.push(`- **W' (capacité anaérobie)** : ${cpResult.wprimeKJ} kJ${cpResult.wprimeJkg ? ` (${cpResult.wprimeJkg} J/kg)` : ""}`);
+  if (wprimeFloored) {
+    lines.push(`- **⚠️ W' effectif (plancher physiologique)** : ${wEffKJ} kJ — Le W' mesuré (${cpResult.wprimeKJ} kJ) est sous le seuil physiologique. Un plancher de 10 kJ est appliqué pour les prescriptions de repos afin d'éviter des repos irréalistes.`);
+  }
   lines.push(`- **Qualité du modèle** : R²=${cpResult.r2} (${cpResult.r2 > 0.95 ? "excellent" : cpResult.r2 > 0.90 ? "bon" : "acceptable"}, ${cpResult.points.length} points)`);
   lines.push(`- **Qualité des données** : ${cpResult.dataQuality === "good" ? "✅ Cohérent" : cpResult.dataQuality === "suspect" ? "⚠️ À vérifier" : "🔴 Incohérence détectée"}`);
 
@@ -616,7 +623,7 @@ export function formatCPWprimeForPrompt(
     for (const d of cpResult.diagnostics) {
       lines.push(`- [${d.severity === "critical" ? "CRITIQUE" : "ATTENTION"}] ${d.message}`);
     }
-    lines.push(`→ **CONSÉQUENCE POUR LE PLAN** : Si W' est anormalement bas (<8 kJ), les repos calculés sont sous-estimés. Utilise des repos standards de la littérature (ex: 3-5min pour 3min @VO2max) plutôt que les valeurs W'bal ci-dessous.`);
+    lines.push(`→ **CONSÉQUENCE POUR LE PLAN** : W' effectif de ${wEffKJ} kJ utilisé pour les prescriptions (plancher appliqué si W' mesuré < 10 kJ).`);
   }
 
   // CRITICAL: Always prioritize FTP over CP for training intensities
