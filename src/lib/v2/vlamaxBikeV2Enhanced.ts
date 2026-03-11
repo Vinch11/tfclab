@@ -521,6 +521,7 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
   if (maderMLSS !== null) topContributors.push(`Mader MLSS: ${maderMLSS.toFixed(2)}`);
   if (maderTTE !== null) topContributors.push(`Mader TTE: ${maderTTE.toFixed(2)}`);
   if (scoreGValue !== null) topContributors.push(`Score G: ${scoreGValue.toFixed(2)}`);
+  if (vlamaxFromWprime !== null) topContributors.push(`W'→VLamax: ${vlamaxFromWprime.toFixed(2)}`);
   
   const pedagogicalMessage = topContributors.length > 0
     ? `Méthodes : ${topContributors.join(" | ")}`
