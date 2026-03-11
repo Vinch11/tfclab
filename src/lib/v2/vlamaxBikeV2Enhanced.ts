@@ -12,9 +12,13 @@
  *                 Validation croisée via durabilité glycogénique.
  *                 Réf: Rapoport (2010)
  * 
- * M3 (EMPIRICAL): Score G normalisé → indices de puissance (P30s, P60s, MAP)
+ * M3 (EMPIRICAL): Score G normalisé → indices de puissance (P30s, P60s, MAP, W')
  *                 Faisceau d'indices de la courbe de puissance, pondérations
  *                 ajustées selon littérature: Spragg 2023, van Erp 2021.
+ * 
+ * M4 (CROSS-VAL): W' → VLamax cross-validation via CP/W' model
+ *                 W' = VLamax × poids × k (Mader), donc VLamax_implied = W'/(poids×320)
+ *                 Divergence détectée → warning + ajustement confiance.
  * 
  * FUSION        : Moyenne pondérée multi-index avec détection de divergence.
  *                 Si écart Mader vs Score G > 0.10 → alerte + marge élargie.
@@ -26,12 +30,14 @@
  *   S60    = clamp((P60s/FTP - 1.10) / 0.60, 0, 1)    [ajusté]
  *   E      = clamp((0.90 - FTP/MAP) / 0.25, 0, 1)     [fractional utilization]
  *   D      = clamp((65 - TTE) / 35, 0, 1)             [élargi, moins agressif]
+ *   W      = clamp((W'kJ - 10) / 20, 0, 1)            [W' anaerobic capacity]
  * 
- * Poids Score G (Spragg-optimized) :
- *   S_pmax: 0.30, S30: 0.20, S60: 0.10, E: 0.25, D: 0.15
+ * Poids Score G (Spragg-optimized + W') :
+ *   S_pmax: 0.25, S30: 0.18, S60: 0.09, E: 0.22, D: 0.14, W: 0.12
  * 
  * VLamax_raw = 0.20 + 0.80 * G
  * VLamax_final = clamp(VLamax_raw, 0.20, 1.05)
+ */
  */
 
 import { ClusterSelectionEnvelope, buildClusterSelectionEnvelope } from "../reference/clusterSelector";
