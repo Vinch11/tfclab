@@ -339,9 +339,37 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
   }
   
   // =============================================
-  // ÉTAPE 3: Score G empirique (CONFIRMATORY)
+  // ÉTAPE 2b: CP/W' ANALYSIS (for Score G index + cross-validation)
   // =============================================
-  const scoreGResult = computeScoreG(ftp, p30s_w, p60s_w, map5min_w, tte_min, pmax_5s);
+  let cpResult: CriticalPowerResult | null = null;
+  let wprimeKJ: number | null = null;
+  let vlamaxFromWprime: number | null = null;
+  
+  // Run CP analysis if we have enough short-duration power data
+  cpResult = analyzeCriticalPower({
+    pmax_5s: pmax_5s,
+    p30s_w: p30s_w,
+    p60s_w: p60s_w,
+    map5min_w: map5min_w,
+    ftp: ftp,
+    weight_kg: weight_kg,
+  });
+  
+  if (cpResult) {
+    wprimeKJ = cpResult.wprimeKJ;
+    sources.push("W'bal");
+    
+    // Derive VLamax from W' using Mader relationship: W' ≈ VLamax × weight × 320
+    // → VLamax_implied = W' / (weight × 320)
+    if (weight_kg && weight_kg > 0) {
+      vlamaxFromWprime = Number(clamp(cpResult.wprime / (weight_kg * 320), 0.15, 1.10).toFixed(3));
+    }
+  }
+  
+  // =============================================
+  // ÉTAPE 3: Score G empirique (CONFIRMATORY — now includes W')
+  // =============================================
+  const scoreGResult = computeScoreG(ftp, p30s_w, p60s_w, map5min_w, tte_min, pmax_5s, wprimeKJ);
   let scoreGValue: number | null = null;
   
   if (scoreGResult) {
