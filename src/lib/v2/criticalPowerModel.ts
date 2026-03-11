@@ -334,18 +334,45 @@ export function analyzeCriticalPower(snapshot: {
 }
 
 // =============================================
-// 2. W'bal RECONSTITUTION MODEL — Skiba (2012)
+// 2. W'bal RECONSTITUTION MODEL — Skiba (2015)
 // =============================================
-// Differential equation:
+// Differential equation (Skiba 2012):
 //   dW'bal/dt = -(P - CP) × u(P - CP) + (W' - W'bal) / τ × u(CP - P)
 //
 // Where:
 //   u(x) = 1 if x > 0, else 0 (Heaviside step)
-//   τ = W' / (DCP × CP)   with DCP = CP - recovery_power
 //
 // Simplified discrete integration (Skiba et al., 2015):
 //   If P > CP:  W'bal[t] = W'bal[t-1] - (P - CP) × dt
 //   If P ≤ CP:  W'bal[t] = W' - (W' - W'bal[t-1]) × exp(-dt/τ)
+//
+// τ from Skiba 2015 empirical model (NOT the 2012 τ=W'/(DCP×CP)):
+//   τ = 546 × e^(−0.01 × DCP) + 316
+//   DCP = CP − recovery_power
+
+// =============================================
+// W' PHYSIOLOGICAL FLOOR
+// =============================================
+// When regression gives an implausibly low W' (< 10 kJ), recovery
+// calculations cascade-fail: maxReps=0 for standard VO2max formats,
+// rest durations shrink to near-zero, etc.
+//
+// Root cause: non-maximal short-duration data → flat curve → W' compressed.
+//
+// Fix: for PRESCRIPTION purposes (not display), enforce a physiological floor.
+// Literature: trained cyclists typically 12-25 kJ, untrained ~8-15 kJ.
+// Using 10 kJ as absolute floor prevents absurd prescriptions.
+//
+// The UI still displays the RAW W' so the coach sees the data quality issue.
+const WPRIME_FLOOR_J = 10000; // 10 kJ — physiological minimum for prescriptions
+
+/**
+ * Apply W' floor for prescription purposes.
+ * Returns the higher of measured W' and the physiological floor.
+ */
+export function effectiveWprime(wprimeJ: number): number {
+  return Math.max(wprimeJ, WPRIME_FLOOR_J);
+}
 
 /**
  * Calculate τ (time constant for W' reconstitution)
@@ -355,6 +382,10 @@ export function analyzeCriticalPower(snapshot: {
  *
  * Where DCP = CP − recovery_power (W).
  * Lower recovery power → larger DCP → shorter τ → faster reconstitution.
+ *
+ * IMPORTANT: For passive rest (0W), DCP = CP → τ is at its minimum (~350-400s).
+ * For active rest at 40% CP, DCP is smaller → τ larger → slower reconstitution.
+ * The recovery power assumption significantly affects prescribed rest durations.
  *
  * Source: Skiba P.F. et al. (2015) – Modelling the expenditure and reconstitution
  * of work capacity above critical power. Int J Sports Physiol Perform.
@@ -429,10 +460,13 @@ export function prescribeIntervalRecovery(
   wprimeJ: number,
   intervalPowerW: number,
   intervalDurationSec: number,
-  recoveryPowerW: number = 0, // Default: passive rest
+  recoveryPowerW: number = 0, // Default: passive rest (most conservative)
 ): IntervalRecovery & RecoveryPrescription {
+  // Apply W' floor for prescription reliability
+  const wEff = effectiveWprime(wprimeJ);
+  
   // W'bal after interval work bout
-  const wbalAfterWork = Math.max(0, wprimeJ - (intervalPowerW - cp) * intervalDurationSec);
+  const wbalAfterWork = Math.max(0, wEff - (intervalPowerW - cp) * intervalDurationSec);
 
   // If interval power ≤ CP, no W' depletion
   if (intervalPowerW <= cp) {
@@ -441,8 +475,8 @@ export function prescribeIntervalRecovery(
       intervalDurationSec,
       recoveryPowerW,
       recoveryDurationSec: 60,
-      wbalAfterInterval: wprimeJ,
-      wbalAfterRecovery: wprimeJ,
+      wbalAfterInterval: wEff,
+      wbalAfterRecovery: wEff,
       wbalPctAfterRecovery: 100,
       canRepeat: true,
       maxReps: 20,
@@ -452,16 +486,16 @@ export function prescribeIntervalRecovery(
     };
   }
 
-  const tau = calculateTau(wprimeJ, cp, recoveryPowerW);
-  const depleted = wprimeJ - wbalAfterWork;
+  const tau = calculateTau(wEff, cp, recoveryPowerW);
+  const depleted = wEff - wbalAfterWork;
 
   // Time to reconstitute to X% of W'
   // W'bal(t) = W' - depleted × exp(-t/τ)
   // Solve for t: t = -τ × ln((W' - target) / depleted)
   const solveTime = (targetPct: number): number => {
-    const targetWbal = wprimeJ * targetPct;
-    if (targetWbal >= wprimeJ) return Infinity;
-    const remaining = wprimeJ - targetWbal;
+    const targetWbal = wEff * targetPct;
+    if (targetWbal >= wEff) return Infinity;
+    const remaining = wEff - targetWbal;
     if (remaining >= depleted || depleted <= 0) return 0;
     return Math.max(0, -tau * Math.log(remaining / depleted));
   };
@@ -471,21 +505,21 @@ export function prescribeIntervalRecovery(
   const fullRecoverySec = Math.round(solveTime(0.95));
 
   // Calculate W'bal after optimal recovery
-  const wbalAfterRecovery = wprimeJ - depleted * Math.exp(-optimalRecoverySec / tau);
-  const wbalPctAfterRecovery = Math.round((wbalAfterRecovery / wprimeJ) * 100);
+  const wbalAfterRecovery = wEff - depleted * Math.exp(-optimalRecoverySec / tau);
+  const wbalPctAfterRecovery = Math.round((wbalAfterRecovery / wEff) * 100);
 
   // Max reps via iterative W'bal simulation (accounts for progressive depletion)
   const wCostPerRep = (intervalPowerW - cp) * intervalDurationSec;
   let maxReps = 0;
-  let simWbal = wprimeJ;
+  let simWbal = wEff;
   for (let rep = 0; rep < 30; rep++) {
     // Work phase: deplete
     simWbal = Math.max(0, simWbal - wCostPerRep);
     if (simWbal <= 0) break;
     maxReps++;
     // Recovery phase: reconstitute from current (diminished) W'bal
-    const depletedNow = wprimeJ - simWbal;
-    simWbal = wprimeJ - depletedNow * Math.exp(-optimalRecoverySec / tau);
+    const depletedNow = wEff - simWbal;
+    simWbal = wEff - depletedNow * Math.exp(-optimalRecoverySec / tau);
     // Stop if next rep would deplete entirely
     if (simWbal - wCostPerRep <= 0) break;
   }
@@ -519,14 +553,19 @@ export function generateRecoveryTable(
   intervalPower: string;
   optimalRest: string;
   maxReps: number;
+  wprimeUsed: number; // Expose which W' was used (raw or floored)
 }[] {
+  const wEff = effectiveWprime(wprimeJ);
+  
+  // Recovery power: passive rest (0W) for sprint/VO2max, light spin for threshold
+  // Passive rest gives shortest τ → most conservative (realistic) rest prescription
   const formats = [
-    { label: "30/30 VO2max", pctCP: 1.20, durSec: 30, recPower: cp * 0.4 },
-    { label: "3min @VO2max", pctCP: 1.15, durSec: 180, recPower: cp * 0.4 },
-    { label: "5min @VO2max", pctCP: 1.10, durSec: 300, recPower: cp * 0.4 },
+    { label: "30/30 VO2max", pctCP: 1.20, durSec: 30, recPower: 0 },
+    { label: "1min @120%", pctCP: 1.20, durSec: 60, recPower: 0 },
+    { label: "3min @VO2max", pctCP: 1.15, durSec: 180, recPower: 0 },
+    { label: "5min @105%", pctCP: 1.05, durSec: 300, recPower: cp * 0.5 },
     { label: "Over-under 3min", pctCP: 1.05, durSec: 180, recPower: cp * 0.85 },
-    { label: "Sweet spot 10min", pctCP: 0.93, durSec: 600, recPower: cp * 0.5 },
-    { label: "Sprint 10s", pctCP: 2.00, durSec: 10, recPower: cp * 0.3 },
+    { label: "Sprint 10s", pctCP: 2.00, durSec: 10, recPower: 0 },
   ];
 
   return formats.map(f => {
@@ -540,6 +579,7 @@ export function generateRecoveryTable(
       intervalPower: powerLabel,
       optimalRest: `${formatRest(rx.minRecoverySec)}-${formatRest(rx.optimalRecoverySec)}`,
       maxReps: rx.maxReps,
+      wprimeUsed: wEff,
     };
   });
 }
@@ -566,7 +606,14 @@ export function formatCPWprimeForPrompt(
     lines.push(`- **FTP (terrain)** : ${ftp}W — référence principale pour l'intensité des séances`);
     lines.push(`  → Le FTP reste la métrique de référence pour calibrer les zones d'entraînement. CP n'est utilisé que pour le modèle W'bal de repos inter-séries.`);
   }
+  const wEffJ = effectiveWprime(cpResult.wprime);
+  const wEffKJ = Math.round(wEffJ / 100) / 10;
+  const wprimeFloored = wEffJ > cpResult.wprime;
+  
   lines.push(`- **W' (capacité anaérobie)** : ${cpResult.wprimeKJ} kJ${cpResult.wprimeJkg ? ` (${cpResult.wprimeJkg} J/kg)` : ""}`);
+  if (wprimeFloored) {
+    lines.push(`- **⚠️ W' effectif (plancher physiologique)** : ${wEffKJ} kJ — Le W' mesuré (${cpResult.wprimeKJ} kJ) est sous le seuil physiologique. Un plancher de 10 kJ est appliqué pour les prescriptions de repos afin d'éviter des repos irréalistes.`);
+  }
   lines.push(`- **Qualité du modèle** : R²=${cpResult.r2} (${cpResult.r2 > 0.95 ? "excellent" : cpResult.r2 > 0.90 ? "bon" : "acceptable"}, ${cpResult.points.length} points)`);
   lines.push(`- **Qualité des données** : ${cpResult.dataQuality === "good" ? "✅ Cohérent" : cpResult.dataQuality === "suspect" ? "⚠️ À vérifier" : "🔴 Incohérence détectée"}`);
 
@@ -576,7 +623,7 @@ export function formatCPWprimeForPrompt(
     for (const d of cpResult.diagnostics) {
       lines.push(`- [${d.severity === "critical" ? "CRITIQUE" : "ATTENTION"}] ${d.message}`);
     }
-    lines.push(`→ **CONSÉQUENCE POUR LE PLAN** : Si W' est anormalement bas (<8 kJ), les repos calculés sont sous-estimés. Utilise des repos standards de la littérature (ex: 3-5min pour 3min @VO2max) plutôt que les valeurs W'bal ci-dessous.`);
+    lines.push(`→ **CONSÉQUENCE POUR LE PLAN** : W' effectif de ${wEffKJ} kJ utilisé pour les prescriptions (plancher appliqué si W' mesuré < 10 kJ).`);
   }
 
   // CRITICAL: Always prioritize FTP over CP for training intensities
