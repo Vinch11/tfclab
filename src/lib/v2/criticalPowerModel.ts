@@ -553,14 +553,19 @@ export function generateRecoveryTable(
   intervalPower: string;
   optimalRest: string;
   maxReps: number;
+  wprimeUsed: number; // Expose which W' was used (raw or floored)
 }[] {
+  const wEff = effectiveWprime(wprimeJ);
+  
+  // Recovery power: passive rest (0W) for sprint/VO2max, light spin for threshold
+  // Passive rest gives shortest τ → most conservative (realistic) rest prescription
   const formats = [
-    { label: "30/30 VO2max", pctCP: 1.20, durSec: 30, recPower: cp * 0.4 },
-    { label: "3min @VO2max", pctCP: 1.15, durSec: 180, recPower: cp * 0.4 },
-    { label: "5min @VO2max", pctCP: 1.10, durSec: 300, recPower: cp * 0.4 },
+    { label: "30/30 VO2max", pctCP: 1.20, durSec: 30, recPower: 0 },
+    { label: "1min @120%", pctCP: 1.20, durSec: 60, recPower: 0 },
+    { label: "3min @VO2max", pctCP: 1.15, durSec: 180, recPower: 0 },
+    { label: "5min @105%", pctCP: 1.05, durSec: 300, recPower: cp * 0.5 },
     { label: "Over-under 3min", pctCP: 1.05, durSec: 180, recPower: cp * 0.85 },
-    { label: "Sweet spot 10min", pctCP: 0.93, durSec: 600, recPower: cp * 0.5 },
-    { label: "Sprint 10s", pctCP: 2.00, durSec: 10, recPower: cp * 0.3 },
+    { label: "Sprint 10s", pctCP: 2.00, durSec: 10, recPower: 0 },
   ];
 
   return formats.map(f => {
@@ -574,6 +579,7 @@ export function generateRecoveryTable(
       intervalPower: powerLabel,
       optimalRest: `${formatRest(rx.minRecoverySec)}-${formatRest(rx.optimalRecoverySec)}`,
       maxReps: rx.maxReps,
+      wprimeUsed: wEff,
     };
   });
 }
