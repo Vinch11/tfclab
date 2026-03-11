@@ -545,10 +545,32 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
     }
   }
   
+  // =============================================
+  // ÉTAPE 6b: CP↔VLamax CROSS-VALIDATION
+  // =============================================
+  if (vlamaxFromWprime !== null) {
+    const wprimeDelta = Math.abs(finalValue - vlamaxFromWprime);
+    if (wprimeDelta > 0.20) {
+      warnings.push(
+        `Divergence CP↔VLamax : W' implique VLamax ~${vlamaxFromWprime.toFixed(2)} vs estimée ${finalValue.toFixed(2)} (Δ=${wprimeDelta.toFixed(2)}). ` +
+        `Vérifier cohérence des données courtes (P30s, P60s) avec le profil métabolique.`
+      );
+      confidence = Math.max(0.40, confidence - 0.10);
+    } else if (wprimeDelta > 0.12) {
+      warnings.push(
+        `Écart modéré CP↔VLamax : W' implique VLamax ~${vlamaxFromWprime.toFixed(2)} (Δ=${wprimeDelta.toFixed(2)})`
+      );
+      confidence = Math.max(0.50, confidence - 0.05);
+    }
+  }
+  
   // Build components
   const components: VLamaxBikeV2Components = {
     mader_mlss: maderMLSS,
     mader_tte: maderTTE,
+    cpResult,
+    wprimeKJ,
+    vlamax_from_wprime: vlamaxFromWprime,
     r_pmax: scoreGResult?.components.r_pmax ?? null,
     r30: scoreGResult?.components.r30 ?? null,
     r60: scoreGResult?.components.r60 ?? null,
@@ -558,6 +580,7 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
     S60: scoreGResult?.components.S60 ?? null,
     E: scoreGResult?.components.E ?? null,
     D: scoreGResult?.components.D ?? null,
+    W: scoreGResult?.components.W ?? null,
     scoreG: scoreGResult?.scoreG ?? null,
     vlamax_raw: finalValue,
     vlamax_final: finalValue,
