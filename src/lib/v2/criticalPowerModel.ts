@@ -334,18 +334,45 @@ export function analyzeCriticalPower(snapshot: {
 }
 
 // =============================================
-// 2. W'bal RECONSTITUTION MODEL — Skiba (2012)
+// 2. W'bal RECONSTITUTION MODEL — Skiba (2015)
 // =============================================
-// Differential equation:
+// Differential equation (Skiba 2012):
 //   dW'bal/dt = -(P - CP) × u(P - CP) + (W' - W'bal) / τ × u(CP - P)
 //
 // Where:
 //   u(x) = 1 if x > 0, else 0 (Heaviside step)
-//   τ = W' / (DCP × CP)   with DCP = CP - recovery_power
 //
 // Simplified discrete integration (Skiba et al., 2015):
 //   If P > CP:  W'bal[t] = W'bal[t-1] - (P - CP) × dt
 //   If P ≤ CP:  W'bal[t] = W' - (W' - W'bal[t-1]) × exp(-dt/τ)
+//
+// τ from Skiba 2015 empirical model (NOT the 2012 τ=W'/(DCP×CP)):
+//   τ = 546 × e^(−0.01 × DCP) + 316
+//   DCP = CP − recovery_power
+
+// =============================================
+// W' PHYSIOLOGICAL FLOOR
+// =============================================
+// When regression gives an implausibly low W' (< 10 kJ), recovery
+// calculations cascade-fail: maxReps=0 for standard VO2max formats,
+// rest durations shrink to near-zero, etc.
+//
+// Root cause: non-maximal short-duration data → flat curve → W' compressed.
+//
+// Fix: for PRESCRIPTION purposes (not display), enforce a physiological floor.
+// Literature: trained cyclists typically 12-25 kJ, untrained ~8-15 kJ.
+// Using 10 kJ as absolute floor prevents absurd prescriptions.
+//
+// The UI still displays the RAW W' so the coach sees the data quality issue.
+const WPRIME_FLOOR_J = 10000; // 10 kJ — physiological minimum for prescriptions
+
+/**
+ * Apply W' floor for prescription purposes.
+ * Returns the higher of measured W' and the physiological floor.
+ */
+export function effectiveWprime(wprimeJ: number): number {
+  return Math.max(wprimeJ, WPRIME_FLOOR_J);
+}
 
 /**
  * Calculate τ (time constant for W' reconstitution)
@@ -355,6 +382,10 @@ export function analyzeCriticalPower(snapshot: {
  *
  * Where DCP = CP − recovery_power (W).
  * Lower recovery power → larger DCP → shorter τ → faster reconstitution.
+ *
+ * IMPORTANT: For passive rest (0W), DCP = CP → τ is at its minimum (~350-400s).
+ * For active rest at 40% CP, DCP is smaller → τ larger → slower reconstitution.
+ * The recovery power assumption significantly affects prescribed rest durations.
  *
  * Source: Skiba P.F. et al. (2015) – Modelling the expenditure and reconstitution
  * of work capacity above critical power. Int J Sports Physiol Perform.
