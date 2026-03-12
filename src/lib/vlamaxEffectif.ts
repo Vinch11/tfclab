@@ -278,7 +278,6 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
           runPower30s: effectiveSnapshot.running_power_30s ?? null,
           runPower60s: effectiveSnapshot.running_power_60s ?? null,
           runPower5min: effectiveSnapshot.running_power_5min ?? null,
-          runPower5min: (snapshotAny.running_power_5min as number) ?? null,
           tteMin: effectiveSnapshot.tte_observed_min ?? null,
           weightKg: weight_kg ?? null,
           protocolQuality: (effectiveSnapshot.protocol_quality as 1|2|3|4|5) ?? 3,
