@@ -43,6 +43,7 @@ import {
 } from "./v2/vlamaxV2Engine";
 
 import { computeVLamaxBikeV2Enhanced } from "./v2/vlamaxBikeV2Enhanced";
+import { computeVLamaxRunV2Enhanced } from "./v2/vlamaxRunV2Enhanced";
 
 // Re-export V2 types for consumers
 export type { VLamaxV2Result, VLamaxV2Source, CalibrationLogEntry, SportContext, ErrorMarginFactors };
