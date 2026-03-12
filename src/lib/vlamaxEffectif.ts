@@ -124,6 +124,16 @@ interface SnapshotCloud {
   protocol_quality?: number | null;
   objectif?: string | null;
   vo2max?: number | null;
+  // CAP V2 Enhanced fields
+  vma?: number | null;
+  pace_threshold_sec_per_km?: number | null;
+  running_power_threshold?: number | null;
+  running_power_max?: number | null;
+  running_power_1s?: number | null;
+  running_power_5s?: number | null;
+  running_power_30s?: number | null;
+  running_power_60s?: number | null;
+  running_power_5min?: number | null;
 }
 
 interface ComputeVLamaxEffectifParams {
