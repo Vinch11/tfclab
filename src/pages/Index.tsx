@@ -100,6 +100,8 @@ import { ProfilAmbitionUnifiedCard } from "@/components/ProfilAmbitionUnifiedCar
 import { WbalRecoveryCard } from "@/components/WbalRecoveryCard";
 // ✅ CP/W' Courbe Puissance-Durée
 import { CPWPrimeCurveCard } from "@/components/CPWPrimeCurveCard";
+// ✅ CP/W' computation for limiter detection
+import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 
 // ✅ Roadmap Stratégique
 import { RoadmapStrategique } from "@/components/RoadmapStrategique";
