@@ -293,6 +293,7 @@ export default function AITrainingPlanPage() {
       vo2max: refs.vo2max,
       ftpKg,
       vlamax: vlamaxEff.value,
+      wprimeKj: null, // TODO: compute from snapshot power data
       tte: tteEff.tte_min,
       fatmax: null,
       economyScore: activeSnap.run_economy_score ?? null,

@@ -588,6 +588,7 @@ const Index = () => {
       vo2max: effectiveCloudSnapshot?.vo2max ?? null,
       ftpKg: ftp_kg,
       vlamax: vlamaxEffectif.value,
+      wprimeKj: vlamaxEffectif.v2?.calibrationLog ? null : null, // W' from VLamax enhanced result
       tte: tteEffectif.tte_min,
       fatmax: null,
       economyScore: effectiveCloudSnapshot?.run_economy_score ?? null,

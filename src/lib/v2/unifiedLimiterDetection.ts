@@ -621,6 +621,7 @@ export function mapLimiterToReportType(limiter: UnifiedLimiter): string {
   switch (limiter) {
     case "aerobic_engine": return "power";
     case "glycolytic": return "metabolic";
+    case "anaerobic_capacity": return "metabolic";
     case "specific_endurance": return "endurance";
     case "metabolic_efficiency": return "nutrition";
     case "neuromuscular": return "economy";
