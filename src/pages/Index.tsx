@@ -593,7 +593,7 @@ const Index = () => {
       map5min_w: effectiveCloudSnapshot.map5min_w,
       ftp: effectiveCloudSnapshot.ftp,
     });
-    return cpResult?.result?.wprimeKJ ?? null;
+    return cpResult?.wprimeKJ ?? null;
   }, [effectiveCloudSnapshot]);
 
   // ✅ UNIFIED LIMITER - Pour Roadmap Stratégique
