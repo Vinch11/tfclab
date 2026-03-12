@@ -873,21 +873,29 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
   const ftpKgScore = scoreFtpKg(ftpKg, targets);
   
   const avgConfidence = overrideConfidence ?? (vlamaxEffectif.confidence + tteEffectif.confidence) / 2;
-  const freshnessScore = scoreFreshness(fatigue_ok, seance_specifique_validee, avgConfidence);
 
-  // =====================
-  // WEIGHTED SCORE
-  // =====================
-  const rawScoreValue = (
-    (vlamaxScore * weights.vlamax) +
-    (tteScore * weights.tte) +
-    (ftpKgScore * weights.ftpKg) +
-    (freshnessScore * weights.freshness)
-  ) / 100;
+  // =============================================
+  // ARCHITECTURE: MIN(Potentiel, Disponibilité) - Pénalités
+  // =============================================
+
+  // 1. POTENTIEL = moyenne pondérée des piliers physiologiques (VLamax, TTE, FTP/kg)
+  //    On normalise les poids pour exclure freshness (qui est dans Disponibilité)
+  const potentielWeightTotal = weights.vlamax + weights.tte + weights.ftpKg;
+  const potentielRaw = potentielWeightTotal > 0
+    ? (vlamaxScore * weights.vlamax + tteScore * weights.tte + ftpKgScore * weights.ftpKg) / potentielWeightTotal
+    : 0;
   
-  // Apply confidence factor: score * (0.85 + 0.15 * confidence)
+  // Apply confidence factor au potentiel
   const confidenceFactor = 0.85 + 0.15 * avgConfidence;
-  const baseScore = Math.round(clamp(rawScoreValue * confidenceFactor, 0, 100));
+  const potentiel = Math.round(clamp(potentielRaw * confidenceFactor, 0, 100));
+
+  // 2. DISPONIBILITÉ = score fraîcheur étendu (fatigue + séance spécifique + CRR + confiance)
+  const dispoResult = scoreDisponibilite(fatigue_ok, seance_specifique_validee, avgConfidence, tss7d, objectif);
+  const disponibilite = dispoResult.score;
+
+  // 3. SCORE = MIN(Potentiel, Disponibilité)
+  const governingFactor: "potentiel" | "disponibilite" = potentiel <= disponibilite ? "potentiel" : "disponibilite";
+  const baseScore = Math.min(potentiel, disponibilite);
 
   // =====================
   // CALCUL RISQUE NUTRITIONNEL + PLAFONNEMENT
@@ -922,13 +930,34 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
   const finalScore = currentScore;
 
   // =====================
-  // DETAILS (0-25 each)
+  // BREAKDOWN MIN(Potentiel, Disponibilité)
+  // =====================
+  const breakdown: PotentielDisponibiliteBreakdown = {
+    potentiel,
+    disponibilite,
+    governingFactor,
+    potentielDetails: {
+      vlamaxScore,
+      tteScore,
+      ftpKgScore,
+      weightedAvg: Math.round(potentielRaw),
+    },
+    disponibiliteDetails: dispoResult.details,
+    penalties: {
+      nutritionCap: nutritionalCap.wasCapped ? baseScore - nutritionalCap.cappedScore : 0,
+      economyCap: economyCap.wasCapped ? nutritionalCap.cappedScore - economyCap.cappedScore : 0,
+      total: baseScore - finalScore,
+    },
+  };
+
+  // =====================
+  // DETAILS (0-25 each) - conserve la rétro-compatibilité UI
   // =====================
   const details: RaceReadinessDetails = {
     vlamax: Math.round(vlamaxScore / 4),
     endurance: Math.round(tteScore / 4),
     puissance: Math.round(ftpKgScore / 4),
-    fraicheur: Math.round(freshnessScore / 4),
+    fraicheur: Math.round(disponibilite / 4),
   };
 
   // =====================
