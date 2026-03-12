@@ -295,6 +295,16 @@ export interface ComputeRaceReadinessParams {
 // =============================================
 // PONDÉRATIONS PAR OBJECTIF
 // =============================================
+//
+// ⚠️ DIVERGENCE DOCUMENTÉE avec Unified Limiter (unifiedLimiterDetection.ts)
+//
+// Race Readiness utilise des % de contribution (somme = 100%) pour composer
+// un score composite via MIN(Potentiel, Disponibilité).
+// Unified Limiter utilise des multiplicateurs 0-1 pour classer les limiteurs
+// par weightedImpact (gap × weight). Les deux systèmes sont cohérents dans
+// l'intention (ex: VLamax crucial pour IM) mais l'expriment différemment.
+// Voir la documentation complète dans unifiedLimiterDetection.ts.
+//
 
 const WEIGHTS_BY_OBJECTIF: Record<string, RaceWeights> = {
   // =============================================
