@@ -26,6 +26,7 @@ import { computeRunningEconomy, applyEconomyCap, type RunningEconomyResult, type
 import { getAgeAdjustedTargets } from "@/lib/ageAdjustment";
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 import { CRR_TARGETS_BY_OBJECTIF, DEFAULT_CRR_TARGETS, type CRRTargets } from "@/lib/chargeRecenteReference";
+import { getVLamaxRange } from "@/lib/physiologicalTargets";
 
 // =============================================
 // DÉFINITION OFFICIELLE (pour affichage UI)
@@ -288,96 +289,9 @@ export interface ComputeRaceReadinessParams {
 }
 
 // =============================================
-// TARGETS PAR OBJECTIF (valeurs raisonnables)
+// TARGETS: Source unique = physiologicalTargets.ts + ageAdjustment.ts
+// Plus de TARGETS_BY_OBJECTIF statiques ici
 // =============================================
-
-const TARGETS_BY_OBJECTIF: Record<string, RaceTargets> = {
-  // Ironman / Ultra-distance
-  IM: {
-    vlamaxMin: 0.25,
-    vlamaxMax: 0.40,
-    vlamaxIdeal: 0.35,
-    tteTarget: 55,
-    ftpKgTarget: 4.6,
-  },
-  Ironman: {
-    vlamaxMin: 0.25,
-    vlamaxMax: 0.40,
-    vlamaxIdeal: 0.35,
-    tteTarget: 55,
-    ftpKgTarget: 4.6,
-  },
-  Ultra: {
-    vlamaxMin: 0.25,
-    vlamaxMax: 0.40,
-    vlamaxIdeal: 0.32,
-    tteTarget: 60,
-    ftpKgTarget: 4.4,
-  },
-  // 70.3 / Half
-  "703": {
-    vlamaxMin: 0.25,
-    vlamaxMax: 0.45,
-    vlamaxIdeal: 0.38,
-    tteTarget: 50,
-    ftpKgTarget: 4.8,
-  },
-  Half: {
-    vlamaxMin: 0.25,
-    vlamaxMax: 0.45,
-    vlamaxIdeal: 0.38,
-    tteTarget: 50,
-    ftpKgTarget: 4.8,
-  },
-  // Marathon / Semi / Course
-  Marathon: {
-    vlamaxMin: 0.30,
-    vlamaxMax: 0.50,
-    vlamaxIdeal: 0.40,
-    tteTarget: 50,
-    ftpKgTarget: 4.5, // proxy vélo endurance
-  },
-  Semi: {
-    vlamaxMin: 0.30,
-    vlamaxMax: 0.50,
-    vlamaxIdeal: 0.42,
-    tteTarget: 50,
-    ftpKgTarget: 4.5,
-  },
-  Course: {
-    vlamaxMin: 0.30,
-    vlamaxMax: 0.50,
-    vlamaxIdeal: 0.42,
-    tteTarget: 45,
-    ftpKgTarget: 4.5,
-  },
-  // Trail
-  Trail: {
-    vlamaxMin: 0.25,
-    vlamaxMax: 0.45,
-    vlamaxIdeal: 0.35,
-    tteTarget: 55,
-    ftpKgTarget: 4.4,
-  },
-  TrailCourt: {
-    vlamaxMin: 0.30,
-    vlamaxMax: 0.50,
-    vlamaxIdeal: 0.40,
-    tteTarget: 45,
-    ftpKgTarget: 4.5,
-  },
-  TrailLong: {
-    vlamaxMin: 0.25,
-    vlamaxMax: 0.40,
-    vlamaxIdeal: 0.32,
-    tteTarget: 60,
-    ftpKgTarget: 4.3,
-  },
-};
-
-// Default fallback
-const DEFAULT_TARGETS: RaceTargets = TARGETS_BY_OBJECTIF["IM"];
-
 // =============================================
 // PONDÉRATIONS PAR OBJECTIF
 // =============================================
@@ -511,15 +425,14 @@ const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(ma
  * ✅ SOURCE UNIQUE DE VÉRITÉ: utilise getAgeAdjustedTargets pour synchronisation avec Compass
  */
 export function getTargets(objectif: string, athleteAge?: number | null, ambition?: AmbitionLevel): RaceTargets {
-  const baseTargets = TARGETS_BY_OBJECTIF[objectif] || DEFAULT_TARGETS;
-  
-  // ✅ FIX: Toujours utiliser les cibles ajustées par ambition (pas de fallback sur cibles statiques)
-  // Utiliser DEFAULT_AMBITION si ambition non fournie
   const effectiveAmbition = ambition || DEFAULT_AMBITION;
+  
+  // ✅ SOURCE UNIQUE: vlamaxMin depuis physiologicalTargets.ts
+  const vlamaxRange = getVLamaxRange(objectif, effectiveAmbition);
   const adjusted = getAgeAdjustedTargets(objectif, athleteAge ?? null, effectiveAmbition);
   
   return {
-    vlamaxMin: baseTargets.vlamaxMin,
+    vlamaxMin: vlamaxRange.min,
     vlamaxMax: adjusted.vlamaxMax,
     vlamaxIdeal: adjusted.vlamaxOptimal,
     tteTarget: adjusted.tteTarget,
