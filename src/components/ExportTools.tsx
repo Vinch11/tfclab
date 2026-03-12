@@ -1498,7 +1498,7 @@ function buildExportPayload(
       vo2maxEffectif: effectiveRefs.vo2max,
       tteEffectif: tte.tte_min,
       tteConfidence: tte.confidence,
-      fatigueIndex: null, // TODO: add from checkins if available
+      fatigueIndex: fatigueScore ?? null,
       objectif: (athlete.goal || "IM") as "IM" | "70.3" | "Marathon" | "Semi" | "10km" | "Ironman",
       ftp: effectiveRefs.ftp,
     }),
