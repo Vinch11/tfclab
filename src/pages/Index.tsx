@@ -1476,10 +1476,10 @@ const Index = () => {
                 fatOxidationMax: { value: null, source: "estimation" },
                 crossoverPctVO2: { value: null, source: "estimation" },
                 ftpKg: { value: ftp_kg, source: "snapshot" },
-                freshnessScore: { value: freshness, source: latestCheckin ? "checkin" : "estimation" },
+                freshnessScore: { value: freshness, source: "snapshot" },
                 tss7d: { value: effectiveCloudSnapshot?.tss_7d ?? null, source: "snapshot" },
                 tss28d: { value: effectiveCloudSnapshot?.tss_7d ? effectiveCloudSnapshot.tss_7d * 4 : null, source: "calcul" },
-                subjectiveFatigue: { value: latestCheckin?.fatigue ?? null, source: latestCheckin ? "checkin" : "estimation" },
+                subjectiveFatigue: { value: null, source: "snapshot" }, // Source: fatigue_state du snapshot
                 confidenceScore: Math.round((vlamaxEffectif.confidence + tteEffectif.confidence) / 2 * 100),
                 discipline: isRunningOnly ? "cap" : "velo",
                 objective: (currentAthlete.goal || "IM") as any,
