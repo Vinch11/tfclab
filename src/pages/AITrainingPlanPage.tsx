@@ -32,6 +32,7 @@ import { useAITrainingPlan, type PlanAthleteData, type PlanConfig, type RaceGoal
 import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { computeTTEEffectif } from "@/lib/tteEffectif";
 import { detectUnifiedLimiter } from "@/lib/v2/unifiedLimiterDetection";
+import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition } from "@/types/ambitionLevel";
 import { parseAIPlan, mapSessionsToDates, type ParsedPlan } from "@/lib/aiPlanParser";
@@ -289,10 +290,20 @@ export default function AITrainingPlanPage() {
       map5min: activeSnap.map5min_w,
     };
 
+    // Compute W' from snapshot power data
+    const cpResult = analyzeCriticalPower({
+      pmax_5s: activeSnap.pmax_5s,
+      p30s_w: activeSnap.p30s_w,
+      p60s_w: activeSnap.p60s_w,
+      map5min_w: activeSnap.map5min_w,
+      ftp: refs.ftp,
+    });
+
     const limiterResult = detectUnifiedLimiter({
       vo2max: refs.vo2max,
       ftpKg,
       vlamax: vlamaxEff.value,
+      wprimeKj: cpResult?.wprimeKJ ?? null,
       tte: tteEff.tte_min,
       fatmax: null,
       economyScore: activeSnap.run_economy_score ?? null,

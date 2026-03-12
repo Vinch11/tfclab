@@ -28,6 +28,7 @@ import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 export type UnifiedLimiter = 
   | "aerobic_engine"      // VO2max / FTP/kg insuffisant
   | "glycolytic"          // VLamax trop haute (consommation glycogène excessive)
+  | "anaerobic_capacity"  // W' trop bas ou trop haut vs cible objectif
   | "specific_endurance"  // TTE insuffisant
   | "metabolic_efficiency" // FatMax trop bas
   | "availability"        // Fatigue / stress / récupération
@@ -44,6 +45,7 @@ export type AerobicWeaknessDetail =
 export type UnifiedLever = 
   | "increase_vo2max"
   | "decrease_vlamax"
+  | "adjust_anaerobic"
   | "increase_tte"
   | "increase_fat_oxidation"
   | "recovery"
@@ -55,6 +57,7 @@ export interface UnifiedLimiterInput {
   vo2max: number | null;
   ftpKg: number | null;
   vlamax: number | null;
+  wprimeKj: number | null;         // W' en kJ (capacité anaérobie absolue)
   tte: number | null;
   fatmax: number | null;           // % FTP où FatMax atteint
   economyScore: number | null;     // 0-100
@@ -132,6 +135,11 @@ export const LIMITER_INFO: Record<UnifiedLimiter, {
     emoji: "⚡",
     description: "VLamax trop haute : consommation glycogène excessive.",
   },
+  anaerobic_capacity: {
+    label: "Capacité anaérobie (W')",
+    emoji: "💥",
+    description: "W' hors cible : capacité anaérobie inadaptée à l'objectif.",
+  },
   specific_endurance: {
     label: "Endurance spécifique",
     emoji: "⏱️",
@@ -165,6 +173,7 @@ export const LEVER_INFO: Record<UnifiedLever, {
 }> = {
   increase_vo2max: { label: "↑ VO2max", emoji: "📈" },
   decrease_vlamax: { label: "↓ VLamax", emoji: "📉" },
+  adjust_anaerobic: { label: "Ajuster W'", emoji: "💥" },
   increase_tte: { label: "↑ TTE", emoji: "⏳" },
   increase_fat_oxidation: { label: "↑ FatMax", emoji: "🔥" },
   recovery: { label: "Récupération", emoji: "🛌" },
@@ -174,14 +183,14 @@ export const LEVER_INFO: Record<UnifiedLever, {
 
 // Poids stratégiques par objectif (importance de chaque domaine)
 const STRATEGIC_WEIGHTS: Record<string, Record<string, number>> = {
-  IM: { aerobic: 0.85, glycolytic: 0.95, tte: 0.90, fatmax: 0.95, economy: 0.75, availability: 0.70 },
-  "703": { aerobic: 0.90, glycolytic: 0.85, tte: 0.85, fatmax: 0.80, economy: 0.70, availability: 0.65 },
-  Marathon: { aerobic: 0.80, glycolytic: 0.90, tte: 0.95, fatmax: 0.85, economy: 0.85, availability: 0.70 },
-  Semi: { aerobic: 0.85, glycolytic: 0.80, tte: 0.85, fatmax: 0.70, economy: 0.80, availability: 0.65 },
-  Trail: { aerobic: 0.85, glycolytic: 0.85, tte: 0.90, fatmax: 0.90, economy: 0.80, availability: 0.75 },
-  Ultra: { aerobic: 0.80, glycolytic: 0.95, tte: 0.95, fatmax: 0.95, economy: 0.85, availability: 0.80 },
-  Sprint: { aerobic: 0.95, glycolytic: 0.50, tte: 0.60, fatmax: 0.40, economy: 0.70, availability: 0.55 },
-  Olympic: { aerobic: 0.95, glycolytic: 0.65, tte: 0.70, fatmax: 0.55, economy: 0.75, availability: 0.60 },
+  IM: { aerobic: 0.85, glycolytic: 0.95, anaerobic: 0.40, tte: 0.90, fatmax: 0.95, economy: 0.75, availability: 0.70 },
+  "703": { aerobic: 0.90, glycolytic: 0.85, anaerobic: 0.55, tte: 0.85, fatmax: 0.80, economy: 0.70, availability: 0.65 },
+  Marathon: { aerobic: 0.80, glycolytic: 0.90, anaerobic: 0.35, tte: 0.95, fatmax: 0.85, economy: 0.85, availability: 0.70 },
+  Semi: { aerobic: 0.85, glycolytic: 0.80, anaerobic: 0.50, tte: 0.85, fatmax: 0.70, economy: 0.80, availability: 0.65 },
+  Trail: { aerobic: 0.85, glycolytic: 0.85, anaerobic: 0.45, tte: 0.90, fatmax: 0.90, economy: 0.80, availability: 0.75 },
+  Ultra: { aerobic: 0.80, glycolytic: 0.95, anaerobic: 0.30, tte: 0.95, fatmax: 0.95, economy: 0.85, availability: 0.80 },
+  Sprint: { aerobic: 0.95, glycolytic: 0.50, anaerobic: 0.90, tte: 0.60, fatmax: 0.40, economy: 0.70, availability: 0.55 },
+  Olympic: { aerobic: 0.95, glycolytic: 0.65, anaerobic: 0.75, tte: 0.70, fatmax: 0.55, economy: 0.75, availability: 0.60 },
 };
 
 // FatMax targets (% FTP) par objectif
@@ -194,6 +203,20 @@ const FATMAX_TARGETS: Record<string, { min: number; optimal: number }> = {
   Ultra: { min: 60, optimal: 70 },
   Sprint: { min: 35, optimal: 42 },
   Olympic: { min: 42, optimal: 50 },
+};
+
+// W' targets (kJ) par objectif et ambition
+// Sprint/Olympic: W' élevé nécessaire (efforts courts supra-CP)
+// IM/Ultra/Marathon: W' bas acceptable (efforts principalement sous-CP)
+const WPRIME_TARGETS: Record<string, Record<string, { min: number; optimal: number; max: number }>> = {
+  IM:       { finisher: { min: 10, optimal: 15, max: 25 }, age_group: { min: 12, optimal: 17, max: 25 }, competitor: { min: 14, optimal: 18, max: 26 }, elite: { min: 15, optimal: 20, max: 28 } },
+  "703":    { finisher: { min: 12, optimal: 17, max: 27 }, age_group: { min: 14, optimal: 19, max: 28 }, competitor: { min: 15, optimal: 20, max: 28 }, elite: { min: 16, optimal: 22, max: 30 } },
+  Marathon: { finisher: { min: 10, optimal: 14, max: 24 }, age_group: { min: 12, optimal: 16, max: 25 }, competitor: { min: 13, optimal: 17, max: 26 }, elite: { min: 14, optimal: 18, max: 27 } },
+  Semi:     { finisher: { min: 12, optimal: 16, max: 26 }, age_group: { min: 14, optimal: 18, max: 27 }, competitor: { min: 15, optimal: 19, max: 28 }, elite: { min: 16, optimal: 20, max: 29 } },
+  Trail:    { finisher: { min: 12, optimal: 16, max: 26 }, age_group: { min: 13, optimal: 17, max: 27 }, competitor: { min: 14, optimal: 18, max: 28 }, elite: { min: 15, optimal: 20, max: 28 } },
+  Ultra:    { finisher: { min: 10, optimal: 14, max: 24 }, age_group: { min: 11, optimal: 15, max: 25 }, competitor: { min: 12, optimal: 16, max: 26 }, elite: { min: 13, optimal: 17, max: 27 } },
+  Sprint:   { finisher: { min: 16, optimal: 20, max: 30 }, age_group: { min: 18, optimal: 22, max: 32 }, competitor: { min: 20, optimal: 25, max: 35 }, elite: { min: 22, optimal: 27, max: 38 } },
+  Olympic:  { finisher: { min: 14, optimal: 18, max: 28 }, age_group: { min: 16, optimal: 20, max: 30 }, competitor: { min: 18, optimal: 22, max: 32 }, elite: { min: 20, optimal: 24, max: 34 } },
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -210,6 +233,12 @@ function getWeights(objectif: string): Record<string, number> {
 function getFatmaxTargets(objectif: string): { min: number; optimal: number } {
   const normalized = normalizeObjective(objectif);
   return FATMAX_TARGETS[normalized] || FATMAX_TARGETS["703"];
+}
+
+function getWprimeTargets(objectif: string, ambition: AmbitionLevel): { min: number; optimal: number; max: number } {
+  const normalized = normalizeObjective(objectif);
+  const targets = WPRIME_TARGETS[normalized] || WPRIME_TARGETS["703"];
+  return targets[ambition] || targets.age_group;
 }
 
 // Cibles VO2max par objectif et ambition (ml/kg/min) — VALEURS DE RÉFÉRENCE < 30 ANS
@@ -342,6 +371,34 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     weightedImpact: vlamaxExcess ? (input.vlamax! - targets.vlamax.max) * 100 * weights.glycolytic : 0,
   });
   
+  // 2b. Analyse W' (Capacité Anaérobie absolue)
+  // W' a une cible bidirectionnelle: trop bas = pas assez de punch, trop haut = profil trop glycolytique
+  const wprimeTargets = getWprimeTargets(normalized, input.ambition);
+  const wprimeTooLow = input.wprimeKj !== null && input.wprimeKj < wprimeTargets.min;
+  const wprimeTooHigh = input.wprimeKj !== null && input.wprimeKj > wprimeTargets.max;
+  const wprimeGapValue = input.wprimeKj !== null
+    ? wprimeTooLow 
+      ? (input.wprimeKj - wprimeTargets.min) / wprimeTargets.min
+      : wprimeTooHigh
+        ? (input.wprimeKj - wprimeTargets.max) / wprimeTargets.max
+        : 0
+    : 0;
+  gapAnalysis.push({
+    metric: "W' (kJ)",
+    value: input.wprimeKj,
+    target: wprimeTargets.optimal,
+    gap: input.wprimeKj !== null ? input.wprimeKj - wprimeTargets.optimal : 0,
+    gapPercent: wprimeGapValue * 100,
+    status: input.wprimeKj === null ? "acceptable"
+      : input.wprimeKj >= wprimeTargets.min && input.wprimeKj <= wprimeTargets.max ? "optimal"
+      : (input.wprimeKj >= wprimeTargets.min * 0.85 && input.wprimeKj <= wprimeTargets.max * 1.15) ? "acceptable"
+      : "limiting",
+    weight: weights.anaerobic,
+    weightedImpact: (wprimeTooLow || wprimeTooHigh) 
+      ? Math.abs(wprimeGapValue) * weights.anaerobic * 100 
+      : 0,
+  });
+
   // 3. Analyse TTE (Specific Endurance)
   const tteGap = input.tte !== null 
     ? (input.tte - targets.tte_min) / targets.tte_min 
@@ -438,6 +495,10 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
         primaryLimiter = "glycolytic";
         primaryLever = "decrease_vlamax";
         break;
+      case "W' (kJ)":
+        primaryLimiter = "anaerobic_capacity";
+        primaryLever = "adjust_anaerobic";
+        break;
       case "TTE":
         primaryLimiter = "specific_endurance";
         primaryLever = "increase_tte";
@@ -487,13 +548,14 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   // Calcul de la confiance globale
   const dataCount = [
     input.ftpKg, 
-    input.vlamax, 
+    input.vlamax,
+    input.wprimeKj,
     input.tte, 
     input.fatmax, 
     input.economyScore, 
     input.availabilityScore
   ].filter(v => v !== null).length;
-  const confidence = dataCount / 6;
+  const confidence = dataCount / 7;
   
   const limiterInfo = LIMITER_INFO[primaryLimiter];
   const leverInfo = LEVER_INFO[primaryLever];
@@ -543,6 +605,7 @@ export function mapLimiterToCompassAxis(limiter: UnifiedLimiter): string {
   switch (limiter) {
     case "aerobic_engine": return "Capacité Aérobie";
     case "glycolytic": return "Profil Métabolique";
+    case "anaerobic_capacity": return "Profil Métabolique";
     case "specific_endurance": return "Tolérance à l'Effort";
     case "metabolic_efficiency": return "Profil Métabolique";
     case "neuromuscular": return "Robustesse";
@@ -558,6 +621,7 @@ export function mapLimiterToReportType(limiter: UnifiedLimiter): string {
   switch (limiter) {
     case "aerobic_engine": return "power";
     case "glycolytic": return "metabolic";
+    case "anaerobic_capacity": return "metabolic";
     case "specific_endurance": return "endurance";
     case "metabolic_efficiency": return "nutrition";
     case "neuromuscular": return "economy";

@@ -100,6 +100,8 @@ import { ProfilAmbitionUnifiedCard } from "@/components/ProfilAmbitionUnifiedCar
 import { WbalRecoveryCard } from "@/components/WbalRecoveryCard";
 // ✅ CP/W' Courbe Puissance-Durée
 import { CPWPrimeCurveCard } from "@/components/CPWPrimeCurveCard";
+// ✅ CP/W' computation for limiter detection
+import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 
 // ✅ Roadmap Stratégique
 import { RoadmapStrategique } from "@/components/RoadmapStrategique";
@@ -581,6 +583,19 @@ const Index = () => {
     });
   }, [currentAthlete, user, effectiveCloudSnapshot, vlamaxEffectif, tteEffectif]);
 
+  // ✅ W' computation for limiter detection
+  const wprimeKjForLimiter = useMemo<number | null>(() => {
+    if (!effectiveCloudSnapshot) return null;
+    const cpResult = analyzeCriticalPower({
+      pmax_5s: effectiveCloudSnapshot.pmax_5s,
+      p30s_w: effectiveCloudSnapshot.p30s_w,
+      p60s_w: effectiveCloudSnapshot.p60s_w,
+      map5min_w: effectiveCloudSnapshot.map5min_w,
+      ftp: effectiveCloudSnapshot.ftp,
+    });
+    return cpResult?.wprimeKJ ?? null;
+  }, [effectiveCloudSnapshot]);
+
   // ✅ UNIFIED LIMITER - Pour Roadmap Stratégique
   const unifiedLimiterResult = useMemo<UnifiedLimiterResult | null>(() => {
     if (!currentAthlete) return null;
@@ -588,6 +603,7 @@ const Index = () => {
       vo2max: effectiveCloudSnapshot?.vo2max ?? null,
       ftpKg: ftp_kg,
       vlamax: vlamaxEffectif.value,
+      wprimeKj: wprimeKjForLimiter,
       tte: tteEffectif.tte_min,
       fatmax: null,
       economyScore: effectiveCloudSnapshot?.run_economy_score ?? null,
@@ -597,7 +613,7 @@ const Index = () => {
       ambition: currentAmbition,
       age: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
     });
-  }, [currentAthlete, effectiveCloudSnapshot, ftp_kg, vlamaxEffectif, tteEffectif, currentAmbition]);
+  }, [currentAthlete, effectiveCloudSnapshot, ftp_kg, vlamaxEffectif, tteEffectif, currentAmbition, wprimeKjForLimiter]);
 
   // ✅ PERSISTANCE AUTOMATIQUE DRE - Hook pour sauvegarder en base
   const { 

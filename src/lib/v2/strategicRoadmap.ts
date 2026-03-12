@@ -204,6 +204,14 @@ function getDurationShifts(limiter: UnifiedLimiter, totalWeeks: number): { start
         { startDelta: 2, endDelta: 0 },      // Phase 3: shift
         { startDelta: 0, endDelta: 0 },      // Phase 4: unchanged
       ];
+    case "anaerobic_capacity":
+      // Similar to glycolytic but with more Phase 1 sprint/power focus
+      return [
+        { startDelta: 0, endDelta: 1 },      // Phase 1: +1 (anaerobic development)
+        { startDelta: 1, endDelta: 0 },       // Phase 2: shift
+        { startDelta: 1, endDelta: 0 },       // Phase 3: shift
+        { startDelta: 0, endDelta: 0 },       // Phase 4: unchanged
+      ];
     case "specific_endurance":
       // Extend Phase 3 (TTE development)
       return [
@@ -234,6 +242,7 @@ function getPhaseNameOverride(phaseIdx: number, limiter: UnifiedLimiter, baseNam
   if (phaseIdx === 0) {
     if (limiter === "aerobic_engine") return "Chantier VO2max";
     if (limiter === "neuromuscular") return "Force & Économie";
+    if (limiter === "anaerobic_capacity") return "Développement W'";
   }
   if (phaseIdx === 1) {
     if (limiter === "glycolytic") return "Chantier VLamax ↓";
@@ -283,6 +292,11 @@ function addPhase1Adaptations(
     case "neuromuscular":
       levers.push("Force Max", "Plyométrie");
       targets.push("Économie +10%");
+      break;
+    case "anaerobic_capacity":
+      levers.push("Sprints courts", "Développement puissance max");
+      const wGap = gaps.find(g => g.metric.includes("W'"));
+      if (wGap) targets.push(`W' → ${wGap.target.toFixed(0)} kJ`);
       break;
     default:
       break;

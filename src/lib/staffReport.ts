@@ -400,6 +400,7 @@ function determineMainLimitation(params: {
     vo2max: null, // TODO: ajouter si disponible dans le snapshot
     ftpKg,
     vlamax: vlamaxEffectif.value,
+    wprimeKj: null, // TODO: compute from snapshot power data
     tte: tteEffectif.tte_min,
     fatmax: null, // Estimation possible via VLamax
     economyScore: runningEconomy?.isApplicable ? (runningEconomy.capScore ?? null) : null,
