@@ -127,7 +127,7 @@ pas un diagnostic médical.`,
   formula: `Fatigue = 100 - moyenne pondérée :
 • 0.40 × Score_Charge
 • 0.35 × Score_Réponse  
-• 0.25 × Score_Ressenti`
+• 0.25 × Score_Ressenti (fatigue_state du snapshot)`
 };
 
 export const FATIGUE_SCALE = {
