@@ -14,8 +14,7 @@ import {
 import { Zap, Timer, Target, Info, Battery, RotateCcw } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
-  fitCriticalPower, 
-  buildPointsFromSnapshot, 
+  analyzeCriticalPower, 
   generateRecoveryTable,
   type CriticalPowerResult 
 } from "@/lib/v2/criticalPowerModel";
@@ -127,22 +126,22 @@ export function MetabolicPowerCurve({
   p60s,
   map5min
 }: MetabolicPowerCurveProps) {
-  // Compute real CP/W' from snapshot data
+  // Compute real CP/W' from snapshot data — uses analyzeCriticalPower for effectiveCP bounding
   const cpResult = useMemo(() => {
-    const points = buildPointsFromSnapshot({
+    return analyzeCriticalPower({
       pmax_5s: pMax5s,
       p30s_w: p30s,
       p60s_w: p60s,
       map5min_w: map5min,
-      ftp
+      ftp,
+      weight_kg: weight,
     });
-    return fitCriticalPower(points);
-  }, [pMax5s, p30s, p60s, map5min, ftp]);
+  }, [pMax5s, p30s, p60s, map5min, ftp, weight]);
 
-  // Recovery table from real model
+  // Recovery table — uses effectiveCP (bounded by FTP when suspect)
   const recoveryTable = useMemo(() => {
     if (!cpResult) return null;
-    return generateRecoveryTable(cpResult.cp, cpResult.wprime, weight);
+    return generateRecoveryTable(cpResult.effectiveCP, cpResult.wprime, weight);
   }, [cpResult, weight]);
 
   const data = useMemo(() => {

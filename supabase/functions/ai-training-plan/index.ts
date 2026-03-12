@@ -2290,7 +2290,9 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     // FIX #1: Deduplicate CP/W' — reuse buildCPWprimeSection's logic via shared helper
     const cpwResult = computeCPWprime(athleteData);
     const cpRound = cpwResult?.cpRound ?? null;
+    const effectiveCPVal = cpwResult?.effectiveCP ?? null;
     const wprimeKJ = cpwResult?.wprimeKJ ?? null;
+    const wEffKJ = cpwResult ? Math.round(cpwResult.wprimeEffJ / 100) / 10 : null;
 
     // FIX #6: Per-chunk timeout (4 min per chunk call)
     const CHUNK_TIMEOUT_MS = 4 * 60 * 1000;
@@ -2393,12 +2395,12 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
       return [...new Set(nums)].sort((a, b) => a - b);
     }
 
-    // FIX #2: Build W'bal reminder only if CP/W' are available (no "N/A" injection)
-    const wbalReminder = (cpRound !== null && wprimeKJ !== null)
+    // FIX #2: Build W'bal reminder using effectiveCP and W' effectif (aligned with client-side)
+    const wbalReminder = (effectiveCPVal !== null && wEffKJ !== null)
       ? `\n🔋 RAPPEL W'bal OBLIGATOIRE : Pour CHAQUE séance d'intervalles supra-CP, tu DOIS :
-1. Justifier la durée de repos avec le W' individuel (ex: "Repos 2min30 — calibré W'bal ${wprimeKJ} kJ")
+1. Justifier la durée de repos avec le W' individuel (ex: "Repos 2min30 — calibré W'bal ${wEffKJ} kJ")
 2. Indiquer le volume max de répétitions avant épuisement du W'
-3. Étiqueter les efforts au-dessus de CP (${cpRound}W) comme "supra-CP"`
+3. Étiqueter les efforts au-dessus de CP effectif (${effectiveCPVal}W) comme "supra-CP"${cpwResult?.cpBounded ? `\n⚠️ CP brut (${cpRound}W) borné à ${effectiveCPVal}W (FTP+10) pour les prescriptions.` : ""}`
       : "";
 
     if (needsChunking) {
@@ -2952,7 +2954,8 @@ function validateChunk1HasRecap(chunkText: string): { hasRecap: boolean; hasPhas
 
 // === SHARED CP/W' COMPUTATION (used by both buildCPWprimeSection and chunk prompts) ===
 // FIXED: P5s and FTP excluded from regression (Jones 2019) — only P30s, P60s, MAP5min used
-function computeCPWprime(data: any): { cpRound: number; wprimeKJ: number; wprimeJ: number } | null {
+// FIXED: effectiveCP bounding by FTP, W' floor 10kJ (aligned with client-side criticalPowerModel.ts)
+function computeCPWprime(data: any): { cpRound: number; effectiveCP: number; wprimeKJ: number; wprimeJ: number; wprimeEffJ: number; cpBounded: boolean } | null {
   // Only use points within the valid 2-parameter model range (~30s–5min)
   const regressionPoints: { dur: number; pow: number }[] = [];
   if (data?.p30s && data.p30s > 0) regressionPoints.push({ dur: 30, pow: data.p30s });
@@ -2973,7 +2976,24 @@ function computeCPWprime(data: any): { cpRound: number; wprimeKJ: number; wprime
   const wprime = (sumY - cp * sumX) / n;
   if (cp < 30 || cp > 800 || wprime < 500 || wprime > 80000) return null;
 
-  return { cpRound: Math.round(cp), wprimeKJ: Math.round(wprime / 100) / 10, wprimeJ: wprime };
+  const cpRound = Math.round(cp);
+  const ftp = data?.ftp ? Number(data.ftp) : null;
+
+  // Effective CP — bounded by FTP when CP is suspect (aligned with client-side)
+  const CP_FTP_MAX_GAP = 20;
+  const CP_FTP_EFFECTIVE_OFFSET = 10;
+  let effectiveCP = cpRound;
+  let cpBounded = false;
+  if (ftp && ftp > 0 && cpRound > ftp + CP_FTP_MAX_GAP) {
+    effectiveCP = ftp + CP_FTP_EFFECTIVE_OFFSET;
+    cpBounded = true;
+  }
+
+  // W' floor — minimum 10kJ for prescription reliability (aligned with client-side)
+  const W_PRIME_FLOOR = 10000; // 10 kJ in Joules
+  const wprimeEffJ = Math.max(wprime, W_PRIME_FLOOR);
+
+  return { cpRound, effectiveCP, wprimeKJ: Math.round(wprime / 100) / 10, wprimeJ: wprime, wprimeEffJ, cpBounded };
 }
 
 // === CRITICAL POWER / W' INLINE MODEL (Skiba 2012) ===
@@ -2982,7 +3002,7 @@ function buildCPWprimeSection(data: any): string | null {
   const result = computeCPWprime(data);
   if (!result) return null;
 
-  const { cpRound, wprimeKJ, wprimeJ: wprime } = result;
+  const { cpRound, effectiveCP, wprimeKJ, wprimeJ: wprime, wprimeEffJ, cpBounded } = result;
 
   // All points for display (including overlay-only P5s and FTP)
   const points: { dur: number; pow: number; label: string; regression: boolean }[] = [];
@@ -2994,7 +3014,6 @@ function buildCPWprimeSection(data: any): string | null {
   const regressionPts = points.filter(p => p.regression);
   const n = regressionPts.length;
 
-  // R²
   // R² — computed on regression points only
   let sumX = 0, sumY = 0;
   for (const p of regressionPts) { sumX += p.dur; sumY += p.pow * p.dur; }
@@ -3012,41 +3031,56 @@ function buildCPWprimeSection(data: any): string | null {
 
   const lines: string[] = [];
   lines.push(`\n#### ⚡ Modèle Critical Power / W' (Skiba — individualisé)`);
-  lines.push(`- **CP (Critical Power)** : ${cpRound}W${weight ? ` (${(cpRound / weight).toFixed(2)} W/kg)` : ""}`);
-  if (ftp) {
-    const diff = ftp - cpRound;
-    lines.push(`- **FTP vs CP** : FTP=${ftp}W, CP=${cpRound}W → écart ${diff > 0 ? "+" : ""}${diff}W (ratio ${(ftp / cpRound).toFixed(2)})`);
-    lines.push(`  → CP < FTP signifie que l'athlète ne peut pas tenir son FTP indéfiniment. CP est le vrai seuil steady-state.`);
+  lines.push(`- **CP (régression brute)** : ${cpRound}W${weight ? ` (${(cpRound / weight).toFixed(2)} W/kg)` : ""}`);
+  if (cpBounded) {
+    lines.push(`- **⚠️ CP effectif (borné par FTP)** : ${effectiveCP}W${weight ? ` (${(effectiveCP / weight).toFixed(2)} W/kg)` : ""}`);
+    lines.push(`  → Le CP brut (${cpRound}W) est artificiellement gonflé (écart >${cpRound - (ftp || 0)}W avec FTP). Le CP effectif = FTP+10W est utilisé pour les prescriptions de repos.`);
   }
+  if (ftp) {
+    lines.push(`- **FTP (terrain)** : ${ftp}W — référence principale pour l'intensité des séances`);
+    lines.push(`  → Le FTP reste la métrique de référence pour calibrer les zones d'entraînement. CP n'est utilisé que pour le modèle W'bal de repos inter-séries.`);
+  }
+  const wEffKJ = Math.round(wprimeEffJ / 100) / 10;
+  const wprimeFloored = wprimeEffJ > wprime;
   lines.push(`- **W' (capacité anaérobie)** : ${wprimeKJ} kJ${weight ? ` (${Math.round(wprime / weight)} J/kg)` : ""}`);
+  if (wprimeFloored) {
+    lines.push(`- **⚠️ W' effectif (plancher physiologique)** : ${wEffKJ} kJ — Le W' mesuré (${wprimeKJ} kJ) est sous le seuil physiologique. Un plancher de 10 kJ est appliqué pour les prescriptions de repos.`);
+  }
   lines.push(`- **Qualité du modèle** : R²=${r2} (${r2 > 0.95 ? "excellent" : r2 > 0.90 ? "bon" : "acceptable"}, ${n} points)`);
+  lines.push(`- **Qualité des données** : ${!cpBounded && !wprimeFloored ? "✅ Cohérent" : "⚠️ Bornes appliquées"}`);
 
-  // W'bal recovery prescriptions for common interval formats
-  // FIXED: τ uses Skiba 2015 empirical formula: τ = 546 × e^(-0.01 × DCP) + 316
+  // CRITICAL: Always prioritize FTP over CP for training intensities
+  lines.push(`\n#### 🎯 HIÉRARCHIE D'INTENSITÉ`);
+  lines.push(`- **Zones d'entraînement** → TOUJOURS basées sur le FTP (${ftp || "n/a"}W), PAS sur le CP`);
+  lines.push(`- **Repos inter-séries** → calculés via W'bal avec CP effectif (${effectiveCP}W) et W' effectif (${wEffKJ} kJ)`);
+  lines.push(`- **CP brut (${cpRound}W)** → affiché uniquement pour information, JAMAIS utilisé comme cible d'intensité`);
+
+  // W'bal recovery prescriptions — uses effectiveCP and W' floor (aligned with client-side)
+  // FIXED: Recovery power = 0W (passive rest) for VO2max/Sprint formats (aligned with client-side criticalPowerModel.ts)
   const calcTau = (recPow: number) => {
-    const dcp = cpRound - recPow;
+    const dcp = effectiveCP - recPow;
     if (dcp <= 0) return 1500;
     return Math.max(200, Math.min(1500, 546 * Math.exp(-0.01 * dcp) + 316));
   };
   const calcRecovery = (intPow: number, intDur: number, recPow: number) => {
-    if (intPow <= cpRound) return { rest: 60, maxReps: 20 };
-    const wbalAfter = Math.max(0, wprime - (intPow - cpRound) * intDur);
-    const depleted = wprime - wbalAfter;
+    if (intPow <= effectiveCP) return { rest: 60, maxReps: 20 };
+    const wbalAfter = Math.max(0, wprimeEffJ - (intPow - effectiveCP) * intDur);
+    const depleted = wprimeEffJ - wbalAfter;
     const tau = calcTau(recPow);
     // Time to 75% reconstitution
-    const target75 = wprime * 0.75;
-    const remaining = wprime - target75;
+    const target75 = wprimeEffJ * 0.75;
+    const remaining = wprimeEffJ - target75;
     const optRest = depleted > 0 && remaining < depleted ? Math.round(-tau * Math.log(remaining / depleted)) : 60;
-    // FIXED: Max reps via iterative W'bal simulation (not linear)
-    const wCost = (intPow - cpRound) * intDur;
+    // Max reps via iterative W'bal simulation
+    const wCost = (intPow - effectiveCP) * intDur;
     let maxReps = 0;
-    let simWbal = wprime;
+    let simWbal = wprimeEffJ;
     for (let rep = 0; rep < 30; rep++) {
       simWbal = Math.max(0, simWbal - wCost);
       if (simWbal <= 0) break;
       maxReps++;
-      const depNow = wprime - simWbal;
-      simWbal = wprime - depNow * Math.exp(-optRest / tau);
+      const depNow = wprimeEffJ - simWbal;
+      simWbal = wprimeEffJ - depNow * Math.exp(-optRest / tau);
       if (simWbal - wCost <= 0) break;
     }
     return { rest: optRest, maxReps: Math.max(1, maxReps) };
@@ -3054,31 +3088,32 @@ function buildCPWprimeSection(data: any): string | null {
 
   const fmtRest = (sec: number) => sec >= 120 ? `${Math.round(sec / 60)}min` : `${sec}s`;
 
+  // FIXED: Recovery power aligned with client-side — passive rest (0W) for VO2max/Sprint
   const formats = [
-    { label: "30/30 VO2max", pct: 1.20, dur: 30, recPct: 0.4 },
-    { label: "3min @VO2max", pct: 1.15, dur: 180, recPct: 0.4 },
-    { label: "5min @VO2max", pct: 1.10, dur: 300, recPct: 0.4 },
-    { label: "Over-under 3min", pct: 1.05, dur: 180, recPct: 0.85 },
-    { label: "Seuil 10min", pct: 0.98, dur: 600, recPct: 0.5 },
-    { label: "Sprint 10s", pct: 2.00, dur: 10, recPct: 0.3 },
+    { label: "30/30 VO2max", pct: 1.20, dur: 30, recPow: 0 },
+    { label: "1min @120%", pct: 1.20, dur: 60, recPow: 0 },
+    { label: "3min @VO2max", pct: 1.15, dur: 180, recPow: 0 },
+    { label: "5min @105%", pct: 1.05, dur: 300, recPow: Math.round(effectiveCP * 0.5) },
+    { label: "Over-under 3min", pct: 1.05, dur: 180, recPow: Math.round(effectiveCP * 0.85) },
+    { label: "Sprint 10s", pct: 2.00, dur: 10, recPow: 0 },
   ];
 
-  lines.push(`\n#### 🔄 Durées de Repos Optimales W'bal (Skiba 2012 — individualisé)`);
+  lines.push(`\n#### 🔄 Durées de Repos Optimales W'bal (Skiba 2012 — CP effectif ${effectiveCP}W, W' effectif ${wEffKJ}kJ)`);
   lines.push(`| Format | Puissance | Repos optimal | Reps max |`);
   lines.push(`|--------|-----------|---------------|----------|`);
   for (const f of formats) {
-    const pow = Math.round(cpRound * f.pct);
-    const rec = calcRecovery(pow, f.dur, cpRound * f.recPct);
+    const pow = Math.round(effectiveCP * f.pct);
+    const rec = calcRecovery(pow, f.dur, f.recPow);
     const powLabel = weight ? `${pow}W (${(pow / weight).toFixed(1)}W/kg)` : `${pow}W`;
     lines.push(`| ${f.label} | ${powLabel} | ${fmtRest(rec.rest)} | ${rec.maxReps} |`);
   }
-  lines.push(`\n⚠️ UTILISE CES DURÉES DE REPOS quand tu prescris des intervalles. Elles sont calculées à partir du W' individuel de l'athlète (${wprimeKJ} kJ).`);
+  lines.push(`\n⚠️ UTILISE CES DURÉES DE REPOS quand tu prescris des intervalles. Elles sont calculées à partir du W' individuel de l'athlète (${wEffKJ} kJ) et du CP effectif (${effectiveCP}W).`);
   lines.push(`- Repos trop court = W' non reconstitué → qualité dégradée dès rep 3`);
   lines.push(`- Repos trop long = stimulus insuffisant`);
   lines.push(`\n📝 OBLIGATION D'AFFICHAGE W'bal : Dans CHAQUE séance d'intervalles, mentionne explicitement dans la description :`);
-  lines.push(`  1. La durée de repos prescrite ET sa justification W'bal (ex: "Repos 2min30 — calibré W'bal ${wprimeKJ}kJ")`);
+  lines.push(`  1. La durée de repos prescrite ET sa justification W'bal (ex: "Repos 2min30 — calibré W'bal ${wEffKJ}kJ")`);
   lines.push(`  2. Le nombre de répétitions max soutenable (ex: "×6 reps max avant dégradation W'")`);
-  lines.push(`  3. Si le format est supra-CP, précise "effort supra-CP (${cpRound}W)" dans le titre ou la description`);
+  lines.push(`  3. Si le format est supra-CP, précise "effort supra-CP (${effectiveCP}W)" dans le titre ou la description`);
   lines.push(`  Cela garantit au coach la traçabilité physiologique de chaque prescription d'intervalles.`);
 
   return lines.join("\n");
