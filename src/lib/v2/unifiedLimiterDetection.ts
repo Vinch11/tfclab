@@ -548,13 +548,14 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   // Calcul de la confiance globale
   const dataCount = [
     input.ftpKg, 
-    input.vlamax, 
+    input.vlamax,
+    input.wprimeKj,
     input.tte, 
     input.fatmax, 
     input.economyScore, 
     input.availabilityScore
   ].filter(v => v !== null).length;
-  const confidence = dataCount / 6;
+  const confidence = dataCount / 7;
   
   const limiterInfo = LIMITER_INFO[primaryLimiter];
   const leverInfo = LEVER_INFO[primaryLever];
