@@ -235,6 +235,12 @@ function getFatmaxTargets(objectif: string): { min: number; optimal: number } {
   return FATMAX_TARGETS[normalized] || FATMAX_TARGETS["703"];
 }
 
+function getWprimeTargets(objectif: string, ambition: AmbitionLevel): { min: number; optimal: number; max: number } {
+  const normalized = normalizeObjective(objectif);
+  const targets = WPRIME_TARGETS[normalized] || WPRIME_TARGETS["703"];
+  return targets[ambition] || targets.age_group;
+}
+
 // Cibles VO2max par objectif et ambition (ml/kg/min) — VALEURS DE RÉFÉRENCE < 30 ANS
 const VO2MAX_TARGETS: Record<string, Record<string, number>> = {
   IM: { finisher: 45, age_group: 52, competitor: 58, elite: 65 },
