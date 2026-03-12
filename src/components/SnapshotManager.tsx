@@ -1094,7 +1094,50 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
             </div>
           </div>
 
-          {/* VLamax CAP en mode Staff */}
+          {/* Courbe de puissance running (Score G CAP) */}
+          <Collapsible>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="w-full justify-between text-xs mt-2">
+                <span>⚡ Courbe de puissance running (Score G)</span>
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-2">
+              <p className="text-xs text-muted-foreground mb-3">
+                Données Stryd/Garmin/COROS pour activer la fusion duale Score G + VMA/Seuil.
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="run_power_1s" className="text-xs">P1s (W)</Label>
+                  <Input id="run_power_1s" type="number" placeholder="800" value={formData.run_power_1s}
+                    onChange={(e) => setFormData({ ...formData, run_power_1s: e.target.value })} />
+                </div>
+                <div>
+                  <Label htmlFor="run_power_5s" className="text-xs">P5s (W)</Label>
+                  <Input id="run_power_5s" type="number" placeholder="650" value={formData.run_power_5s}
+                    onChange={(e) => setFormData({ ...formData, run_power_5s: e.target.value })} />
+                </div>
+                <div>
+                  <Label htmlFor="run_power_30s" className="text-xs">P30s (W)</Label>
+                  <Input id="run_power_30s" type="number" placeholder="500" value={formData.run_power_30s}
+                    onChange={(e) => setFormData({ ...formData, run_power_30s: e.target.value })} />
+                </div>
+                <div>
+                  <Label htmlFor="run_power_60s" className="text-xs">P60s (W)</Label>
+                  <Input id="run_power_60s" type="number" placeholder="420" value={formData.run_power_60s}
+                    onChange={(e) => setFormData({ ...formData, run_power_60s: e.target.value })} />
+                </div>
+                <div className="col-span-2">
+                  <Label htmlFor="run_power_5min" className="text-xs">P5min (W)</Label>
+                  <Input id="run_power_5min" type="number" placeholder="340" value={formData.run_power_5min}
+                    onChange={(e) => setFormData({ ...formData, run_power_5min: e.target.value })} />
+                  <p className="text-xs text-muted-foreground mt-1">Référence aérobie running</p>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
+
           {staffMode && (
             <div className="mt-4 pt-4 border-t border-border">
               <Label htmlFor="vlamax_run" className="flex items-center gap-1.5">
