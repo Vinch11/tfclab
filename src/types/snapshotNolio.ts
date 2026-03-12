@@ -18,6 +18,10 @@ export interface SnapshotNolio {
   // Vélo
   ftp?: number;               // FTP actuel (W)
   pmax_5s?: number;           // Puissance max 5 secondes (W)
+  p30s_w?: number;            // Best 30s power (W)
+  p60s_w?: number;            // Best 60s power (W)
+  map5min_w?: number;         // MAP 5min power (W)
+  protocol_quality?: number;  // Qualité du protocole (1-5)
   tss_7j?: number;            // TSS cumulé 7 derniers jours
   tss_28j?: number;           // TSS cumulé 28 jours (CTL)
   // Course
