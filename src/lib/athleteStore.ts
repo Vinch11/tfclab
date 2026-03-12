@@ -165,12 +165,20 @@ export function calculVLamaxSnapshot(snapshot: SnapshotNolio, objectif: Objectif
     return Number(result.value.toFixed(2));
   }
   
-  // Course — formule avec VMA et correction TTE (pas de cap par objectif)
+  // Course — Pipeline V2 Enhanced (VMA/Seuil + Score G puissance)
   if (snapshot.sport === "course") {
-    const vma = snapshot.vma || 15;
-    const tte = estimerTTESport(snapshot);
-    const vlamax = 0.25 + 0.4 * ((vma / 20) - 0.7) - 0.1 * (tte / 60);
-    return Math.max(0.20, Math.min(0.90, Number(vlamax.toFixed(2))));
+    const paceThresholdSec = snapshot.allure_seuil
+      ? snapshot.allure_seuil * 60  // min/km → sec/km
+      : null;
+    
+    const input: VLamaxRunV2EnhancedInput = {
+      runPowerThreshold: 0, // pas de puissance running dans SnapshotNolio legacy
+      vma: snapshot.vma ?? null,
+      paceThresholdSecPerKm: paceThresholdSec,
+    };
+    
+    const result = computeVLamaxRunV2Enhanced(input);
+    return Number(result.value.toFixed(2));
   }
   
   // Natation — formule avec pace 100m (pas de cap par objectif)
