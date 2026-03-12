@@ -158,7 +158,7 @@ export default function RaceSimulationPage() {
       tteEffectif,
       fatmax,
       raceReadinessScore,
-      fatigueIndex: latestCheckin?.fatigue ? latestCheckin.fatigue * 10 : null,
+      fatigueIndex: null, // Source: snapshot fatigue_state via disponibilité
       raceObjective,
       sport: discipline,
       ftp: activeSnapshot?.ftp,
