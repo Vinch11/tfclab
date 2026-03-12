@@ -1455,10 +1455,11 @@ const Index = () => {
               // FatMax estimate from VLamax
               const fatmaxPct = vlamaxEffectif.value != null ? Math.max(0, 65 - (vlamaxEffectif.value - 0.3) * 80) : null;
               
-              // Freshness from latest checkin
-              const freshness = latestCheckin ? (
-                ((latestCheckin.sleep ?? 5) + (10 - (latestCheckin.fatigue ?? 5)) + (latestCheckin.motivation ?? 5) + (10 - (latestCheckin.stress ?? 5))) / 4 * 10
-              ) : null;
+              // Freshness from snapshot fatigue_state (not check-in)
+              const fatigueStateToFreshness: Record<string, number> = {
+                fresh: 85, ok: 60, fatigued: 35, high: 15, injured: 5
+              };
+              const freshness = fatigueStateToFreshness[effectiveCloudSnapshot?.fatigue_state || "ok"] ?? 60;
               
               // Targets based on ambition
               const vlamaxTarget = currentAmbition === "elite" ? 0.35 : currentAmbition === "competitor" ? 0.45 : 0.55;
