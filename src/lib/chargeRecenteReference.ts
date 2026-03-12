@@ -74,7 +74,7 @@ export const CRR_TARGETS_BY_OBJECTIF: Record<string, CRRTargets> = {
   Olympic: { objectif: "Olympic", chargeMinimale: 200, chargeOptimale: 350, chargeMaximale: 550 },
 };
 
-const DEFAULT_CRR_TARGETS: CRRTargets = {
+export const DEFAULT_CRR_TARGETS: CRRTargets = {
   objectif: "Général",
   chargeMinimale: 250,
   chargeOptimale: 400,
