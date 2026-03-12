@@ -629,7 +629,7 @@ export function computeCompassScores(params: ComputeCompassParams): CompassScore
   } = params;
   
   // Calculer les 4 axes avec ambition ET ajustement par âge
-  const capaciteAerobieRaw = computeCapaciteAerobie(ftp, poids, objectif, ambition);
+  const capaciteAerobieRaw = computeCapaciteAerobie(ftp, poids, objectif, ambition, athleteAge);
   
   // Moduler la capacité aérobie par la fatigue si disponible
   const capaciteAerobie = fatigueEffectif 
