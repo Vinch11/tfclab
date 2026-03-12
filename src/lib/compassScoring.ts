@@ -432,13 +432,18 @@ export function computeProfilMetaboliqueWithAge(
 }
 
 // =============================================
-// AXE 4 : ROBUSTESSE (Composite avec intégration fatigue/CAP)
+// AXE 4 : ROBUSTESSE (Solidité structurelle du profil)
 // =============================================
 // 
-// FORMULE OFFICIELLE :
+// PHILOSOPHIE V2 :
+// Le TSS 7j du snapshot est un indicateur STRUCTUREL (volume habituel
+// de l'athlète), PAS un indicateur de fatigue actuelle. Il reflète
+// la capacité d'absorption de charge, pas l'état du moment.
+//
+// FORMULE :
 // Pour CAP: Robustesse = clamp(100 - RunInjuryRisk.score, 0, 100)
 // Pour Vélo: Robustesse = clamp(100 - Fatigue%, 0, 100)
-// Sinon: Robustesse = 0.4×TTE + 0.3×VLamax + 0.3×Charge
+// Fallback: Robustesse = 0.45×TTE + 0.35×VLamax + 0.20×VolumeStructurel
 //
 
 export function computeRobustesse(
@@ -514,22 +519,23 @@ export function computeRobustesse(
     };
   }
   
-  // Fallback : formule composite classique
-  const WEIGHT_TTE = 0.4;
-  const WEIGHT_VLAMAX = 0.3;
-  const WEIGHT_CHARGE = 0.3;
+  // Fallback : formule composite structurelle
+  // TSS 7j = volume structurel (capacité d'absorption), pas fatigue actuelle
+  const WEIGHT_TTE = 0.45;
+  const WEIGHT_VLAMAX = 0.35;
+  const WEIGHT_VOLUME = 0.20;
   
   const rawScore = 
     WEIGHT_TTE * tteScore.score +
     WEIGHT_VLAMAX * vlamaxScore.score +
-    WEIGHT_CHARGE * chargeScore.score;
+    WEIGHT_VOLUME * chargeScore.score;
   
   const score = clamp(Math.round(rawScore), 0, 100);
   
   // Confiance composite
   const avgConfidence = (tteScore.confidence + vlamaxScore.confidence) / 2;
-  const chargeConfidence = chargeScore.status === "unknown" ? 0.2 : 0.8;
-  const confidence = (avgConfidence * 0.7 + chargeConfidence * 0.3);
+  const volumeConfidence = chargeScore.status === "unknown" ? 0.3 : 0.7;
+  const confidence = (avgConfidence * 0.8 + volumeConfidence * 0.2);
   
   // Explication
   let explanation: string;
@@ -538,14 +544,14 @@ export function computeRobustesse(
   } else if (score >= 70) {
     explanation = "Bonne robustesse – capacité à absorber la charge";
   } else if (score >= 50) {
-    explanation = "Robustesse modérée – surveiller fatigue et récupération";
+    explanation = "Robustesse modérée – profil à consolider";
   } else {
     explanation = "Robustesse insuffisante – risque de fragilité physiologique";
   }
   
-  // Avertissement si charge inconnue
+  // Avertissement si volume inconnu
   if (chargeScore.status === "unknown") {
-    explanation += " ⚠️ Charge récente inconnue – fiabilité réduite";
+    explanation += " ⚠️ Volume structurel inconnu – fiabilité réduite";
   }
   
   return {
@@ -553,12 +559,12 @@ export function computeRobustesse(
     rawScore: Math.round(rawScore),
     label: "Robustesse",
     explanation,
-    formula: `Robustesse = ${WEIGHT_TTE}×TTE(${tteScore.score}) + ${WEIGHT_VLAMAX}×VLamax(${vlamaxScore.score}) + ${WEIGHT_CHARGE}×Charge(${chargeScore.score}) = ${rawScore.toFixed(0)}`,
+    formula: `Robustesse = ${WEIGHT_TTE}×TTE(${tteScore.score}) + ${WEIGHT_VLAMAX}×VLamax(${vlamaxScore.score}) + ${WEIGHT_VOLUME}×Volume(${chargeScore.score}) = ${rawScore.toFixed(0)}`,
     inputs: {
       tteScore: tteScore.score,
       vlamaxScore: vlamaxScore.score,
-      chargeScore: chargeScore.score,
-      chargeStatus: chargeScore.status
+      volumeScore: chargeScore.score,
+      volumeStatus: chargeScore.status
     },
     confidence,
     source: "composite"
