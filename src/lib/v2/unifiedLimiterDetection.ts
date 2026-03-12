@@ -57,6 +57,7 @@ export interface UnifiedLimiterInput {
   vo2max: number | null;
   ftpKg: number | null;
   vlamax: number | null;
+  wprimeKj: number | null;         // W' en kJ (capacité anaérobie absolue)
   tte: number | null;
   fatmax: number | null;           // % FTP où FatMax atteint
   economyScore: number | null;     // 0-100
