@@ -89,6 +89,11 @@ export interface DbSnapshot {
   sprint_15s_distance?: number | null;       // Distance sprint 15s (mètres)
   running_power_max?: number | null;         // Puissance max course (W)
   running_power_threshold?: number | null;   // Puissance seuil course (W)
+  running_power_1s?: number | null;          // Peak 1s running power (W)
+  running_power_5s?: number | null;          // Peak 5s running power (W)
+  running_power_30s?: number | null;         // Best 30s running power (W)
+  running_power_60s?: number | null;         // Best 60s running power (W)
+  running_power_5min?: number | null;        // Best 5min running power (W)
   created_at?: string;
   updated_at?: string;
 }

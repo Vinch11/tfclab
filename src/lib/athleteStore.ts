@@ -172,7 +172,14 @@ export function calculVLamaxSnapshot(snapshot: SnapshotNolio, objectif: Objectif
       : null;
     
     const input: VLamaxRunV2EnhancedInput = {
-      runPowerThreshold: 0, // pas de puissance running dans SnapshotNolio legacy
+      runPowerThreshold: snapshot.running_power_threshold ?? 0,
+      runPower1s: snapshot.running_power_1s ?? null,
+      runPower5s: snapshot.running_power_5s ?? null,
+      runPower30s: snapshot.running_power_30s ?? null,
+      runPower60s: snapshot.running_power_60s ?? null,
+      runPower5min: snapshot.running_power_5min ?? null,
+      tteMin: estimerTTESport(snapshot),
+      weightKg: snapshot.poids ?? null,
       vma: snapshot.vma ?? null,
       paceThresholdSecPerKm: paceThresholdSec,
     };
