@@ -14,8 +14,7 @@ import {
 import { Zap, Timer, Target, Info, Battery, RotateCcw } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
-  fitCriticalPower, 
-  buildPointsFromSnapshot, 
+  analyzeCriticalPower, 
   generateRecoveryTable,
   type CriticalPowerResult 
 } from "@/lib/v2/criticalPowerModel";
