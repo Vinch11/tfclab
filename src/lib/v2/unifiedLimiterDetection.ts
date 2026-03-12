@@ -605,6 +605,7 @@ export function mapLimiterToCompassAxis(limiter: UnifiedLimiter): string {
   switch (limiter) {
     case "aerobic_engine": return "Capacité Aérobie";
     case "glycolytic": return "Profil Métabolique";
+    case "anaerobic_capacity": return "Profil Métabolique";
     case "specific_endurance": return "Tolérance à l'Effort";
     case "metabolic_efficiency": return "Profil Métabolique";
     case "neuromuscular": return "Robustesse";
