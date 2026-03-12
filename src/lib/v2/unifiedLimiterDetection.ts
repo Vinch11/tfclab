@@ -181,7 +181,40 @@ export const LEVER_INFO: Record<UnifiedLever, {
   maintain: { label: "Maintenir", emoji: "✅" },
 };
 
-// Poids stratégiques par objectif (importance de chaque domaine)
+// ═══════════════════════════════════════════════════════════════════════════════
+// POIDS STRATÉGIQUES PAR OBJECTIF
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// ⚠️ DIVERGENCE DOCUMENTÉE avec Race Readiness (raceReadinessEffectif.ts)
+//
+// CES POIDS NE DOIVENT PAS ÊTRE ALIGNÉS avec Race Readiness.
+// Les deux systèmes ont des rôles et des architectures fondamentalement différents :
+//
+// ┌──────────────────────┬─────────────────────────────┬───────────────────────────────┐
+// │                      │ RACE READINESS              │ UNIFIED LIMITER               │
+// ├──────────────────────┼─────────────────────────────┼───────────────────────────────┤
+// │ Question             │ "Est-il prêt pour sa        │ "Quel est son limiteur        │
+// │                      │  course ?"                  │  principal ?"                 │
+// ├──────────────────────┼─────────────────────────────┼───────────────────────────────┤
+// │ Architecture         │ MIN(Potentiel, Dispo)       │ Classement par weightedImpact │
+// │                      │ - Pénalités                 │ = gap × weight                │
+// ├──────────────────────┼─────────────────────────────┼───────────────────────────────┤
+// │ Métriques            │ 4 piliers (VLamax, TTE,     │ 7 domaines (aerobic,          │
+// │                      │ FTP/kg, Fraîcheur)          │ glycolytic, anaerobic, tte,   │
+// │                      │                             │ fatmax, economy, availability) │
+// ├──────────────────────┼─────────────────────────────┼───────────────────────────────┤
+// │ Poids = ...          │ % de contribution au score  │ Multiplicateur de priorité    │
+// │                      │ (somme = 100%)              │ d'intervention (0-1)          │
+// ├──────────────────────┼─────────────────────────────┼───────────────────────────────┤
+// │ Sortie               │ Score 0-100 + label         │ L1/L2 limiteurs + roadmap     │
+// └──────────────────────┴─────────────────────────────┴───────────────────────────────┘
+//
+// Exemple concret : Pour un Ironman, glycolytic (VLamax) a un poids de 0.95 ici
+// car c'est un levier d'intervention CRITIQUE. Dans Race Readiness, VLamax pèse
+// 40% car il représente 40% de la "readiness" globale. Les deux sont cohérents
+// dans l'intention : VLamax est crucial pour l'IM — mais exprimé différemment.
+//
+// ═══════════════════════════════════════════════════════════════════════════════
 const STRATEGIC_WEIGHTS: Record<string, Record<string, number>> = {
   IM: { aerobic: 0.85, glycolytic: 0.95, anaerobic: 0.40, tte: 0.90, fatmax: 0.95, economy: 0.75, availability: 0.70 },
   "703": { aerobic: 0.90, glycolytic: 0.85, anaerobic: 0.55, tte: 0.85, fatmax: 0.80, economy: 0.70, availability: 0.65 },
