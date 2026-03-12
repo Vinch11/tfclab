@@ -125,15 +125,19 @@ export function RunningGuidancePage() {
     const latestCheckin = athleteCheckins[0];
     
     // Calculer disponibilité
+    // Source: fatigue_state du snapshot uniquement (pas de check-in quotidien)
+    const fatigueStateToScore: Record<string, number> = {
+      fresh: 8, ok: 6, fatigued: 4, high: 2, injured: 1
+    };
+    const fatigueScore = fatigueStateToScore[activeSnapshot?.fatigue_state || "ok"] ?? 6;
+    
     const dispo = computeDisponibiliteTFCL({
-      sleep: latestCheckin?.sleep ?? null,
-      fatigue: latestCheckin?.fatigue ?? null,
-      soreness: latestCheckin?.soreness ?? null,
-      stress: latestCheckin?.stress ?? null,
-      motivation: latestCheckin?.motivation ?? null,
-      alerts: {
-        joint_pain: latestCheckin?.pain_flag ?? false,
-      },
+      sleep: null,
+      fatigue: fatigueScore,
+      soreness: null,
+      stress: null,
+      motivation: null,
+      alerts: {},
       objective: {
         tss7d: activeSnapshot?.tss_7d ?? null,
       },
@@ -141,11 +145,11 @@ export function RunningGuidancePage() {
     
     return {
       availability_score: dispo.score,
-      sleep_quality: latestCheckin?.sleep ?? undefined,
-      fatigue_level: latestCheckin?.fatigue ?? undefined,
-      stress_level: latestCheckin?.stress ?? undefined,
-      motivation: latestCheckin?.motivation ?? undefined,
-      pain_flag: latestCheckin?.pain_flag ?? false,
+      sleep_quality: undefined,
+      fatigue_level: fatigueScore,
+      stress_level: undefined,
+      motivation: undefined,
+      pain_flag: false,
       tss_7d: activeSnapshot?.tss_7d ?? undefined,
       hr_drift_pct: activeSnapshot?.run_hr_drift_pct ?? undefined,
     };

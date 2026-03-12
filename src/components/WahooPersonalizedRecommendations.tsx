@@ -408,12 +408,11 @@ export function WahooPersonalizedRecommendations() {
       };
     }
 
-    // Get recent fatigue from checkins
-    const athleteCheckins = checkins
-      .filter((c) => c.athlete_id === athleteId)
-      .sort((a, b) => b.date_iso.localeCompare(a.date_iso));
-    const recentCheckin = athleteCheckins[0];
-    const fatigueScore = recentCheckin?.fatigue ?? undefined;
+    // Source: fatigue_state du snapshot uniquement (pas de check-in quotidien)
+    const fatigueStateToScore: Record<string, number> = {
+      fresh: 2, ok: 4, fatigued: 6, high: 8, injured: 10
+    };
+    const fatigueScore = fatigueStateToScore[(activeSnapshot as any)?.fatigue_state || "ok"] ?? 4;
 
     // Compute FTP/kg
     const ftpKg = (activeSnapshot.ftp && activeSnapshot.weight_kg) 

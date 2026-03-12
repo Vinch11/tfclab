@@ -1455,10 +1455,11 @@ const Index = () => {
               // FatMax estimate from VLamax
               const fatmaxPct = vlamaxEffectif.value != null ? Math.max(0, 65 - (vlamaxEffectif.value - 0.3) * 80) : null;
               
-              // Freshness from latest checkin
-              const freshness = latestCheckin ? (
-                ((latestCheckin.sleep ?? 5) + (10 - (latestCheckin.fatigue ?? 5)) + (latestCheckin.motivation ?? 5) + (10 - (latestCheckin.stress ?? 5))) / 4 * 10
-              ) : null;
+              // Freshness from snapshot fatigue_state (not check-in)
+              const fatigueStateToFreshness: Record<string, number> = {
+                fresh: 85, ok: 60, fatigued: 35, high: 15, injured: 5
+              };
+              const freshness = fatigueStateToFreshness[effectiveCloudSnapshot?.fatigue_state || "ok"] ?? 60;
               
               // Targets based on ambition
               const vlamaxTarget = currentAmbition === "elite" ? 0.35 : currentAmbition === "competitor" ? 0.45 : 0.55;
@@ -1475,10 +1476,10 @@ const Index = () => {
                 fatOxidationMax: { value: null, source: "estimation" },
                 crossoverPctVO2: { value: null, source: "estimation" },
                 ftpKg: { value: ftp_kg, source: "snapshot" },
-                freshnessScore: { value: freshness, source: latestCheckin ? "checkin" : "estimation" },
+                freshnessScore: { value: freshness, source: "snapshot" },
                 tss7d: { value: effectiveCloudSnapshot?.tss_7d ?? null, source: "snapshot" },
                 tss28d: { value: effectiveCloudSnapshot?.tss_7d ? effectiveCloudSnapshot.tss_7d * 4 : null, source: "calcul" },
-                subjectiveFatigue: { value: latestCheckin?.fatigue ?? null, source: latestCheckin ? "checkin" : "estimation" },
+                subjectiveFatigue: { value: null, source: "snapshot" }, // Source: fatigue_state du snapshot
                 confidenceScore: Math.round((vlamaxEffectif.confidence + tteEffectif.confidence) / 2 * 100),
                 discipline: isRunningOnly ? "cap" : "velo",
                 objective: (currentAthlete.goal || "IM") as any,
@@ -1665,11 +1666,11 @@ const Index = () => {
                   hrvStatus: null,
                   tss7d,
                   tss28d,
-                  subjectiveFatigue: checkin?.fatigue ?? null,
-                  sleepQuality: checkin?.sleep ?? null,
-                  motivation: checkin?.motivation ?? null,
-                  soreness: checkin?.soreness ?? null,
-                  stress: checkin?.stress ?? null,
+                  subjectiveFatigue: null, // Source: snapshot fatigue_state only
+                  sleepQuality: null,
+                  motivation: null,
+                  soreness: null,
+                  stress: null,
                   hasRedFlags: false,
                 },
                 discipline,
@@ -1739,11 +1740,11 @@ const Index = () => {
                   hrvStatus: null,
                   tss7d,
                   tss28d,
-                  subjectiveFatigue: checkin?.fatigue ?? null,
-                  sleepQuality: checkin?.sleep ?? null,
-                  motivation: checkin?.motivation ?? null,
-                  soreness: checkin?.soreness ?? null,
-                  stress: checkin?.stress ?? null,
+                  subjectiveFatigue: null, // Source: snapshot fatigue_state only
+                  sleepQuality: null,
+                  motivation: null,
+                  soreness: null,
+                  stress: null,
                   hasRedFlags: false,
                 },
                 discipline,
