@@ -371,6 +371,34 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     weightedImpact: vlamaxExcess ? (input.vlamax! - targets.vlamax.max) * 100 * weights.glycolytic : 0,
   });
   
+  // 2b. Analyse W' (Capacité Anaérobie absolue)
+  // W' a une cible bidirectionnelle: trop bas = pas assez de punch, trop haut = profil trop glycolytique
+  const wprimeTargets = getWprimeTargets(normalized, input.ambition);
+  const wprimeTooLow = input.wprimeKj !== null && input.wprimeKj < wprimeTargets.min;
+  const wprimeTooHigh = input.wprimeKj !== null && input.wprimeKj > wprimeTargets.max;
+  const wprimeGapValue = input.wprimeKj !== null
+    ? wprimeTooLow 
+      ? (input.wprimeKj - wprimeTargets.min) / wprimeTargets.min
+      : wprimeTooHigh
+        ? (input.wprimeKj - wprimeTargets.max) / wprimeTargets.max
+        : 0
+    : 0;
+  gapAnalysis.push({
+    metric: "W' (kJ)",
+    value: input.wprimeKj,
+    target: wprimeTargets.optimal,
+    gap: input.wprimeKj !== null ? input.wprimeKj - wprimeTargets.optimal : 0,
+    gapPercent: wprimeGapValue * 100,
+    status: input.wprimeKj === null ? "acceptable"
+      : input.wprimeKj >= wprimeTargets.min && input.wprimeKj <= wprimeTargets.max ? "optimal"
+      : (input.wprimeKj >= wprimeTargets.min * 0.85 && input.wprimeKj <= wprimeTargets.max * 1.15) ? "acceptable"
+      : "limiting",
+    weight: weights.anaerobic,
+    weightedImpact: (wprimeTooLow || wprimeTooHigh) 
+      ? Math.abs(wprimeGapValue) * weights.anaerobic * 100 
+      : 0,
+  });
+
   // 3. Analyse TTE (Specific Endurance)
   const tteGap = input.tte !== null 
     ? (input.tte - targets.tte_min) / targets.tte_min 
