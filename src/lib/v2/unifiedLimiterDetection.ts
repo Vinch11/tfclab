@@ -495,6 +495,10 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
         primaryLimiter = "glycolytic";
         primaryLever = "decrease_vlamax";
         break;
+      case "W' (kJ)":
+        primaryLimiter = "anaerobic_capacity";
+        primaryLever = "adjust_anaerobic";
+        break;
       case "TTE":
         primaryLimiter = "specific_endurance";
         primaryLever = "increase_tte";
