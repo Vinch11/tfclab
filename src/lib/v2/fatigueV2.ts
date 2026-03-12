@@ -384,41 +384,29 @@ function computeResponsePillar(input: FatigueV2Input): FatiguePillarResult {
 // =============================================
 
 function computeFeelingPillar(input: FatigueV2Input): FatiguePillarResult {
-  const { checkinFatigue, checkinStress, sleepQuality } = input;
+  const { fatigueState } = input;
   
+  // Conversion fatigue_state du snapshot → score 0-100
+  // 0 = très fatigué, 100 = très frais
+  const FATIGUE_STATE_SCORES: Record<string, { score: number; label: string }> = {
+    fresh:    { score: 15, label: "Frais — bien récupéré" },
+    ok:       { score: 40, label: "Normal — état standard" },
+    fatigued: { score: 65, label: "Fatigué — récupération conseillée" },
+    high:     { score: 80, label: "Fatigue élevée — repos recommandé" },
+    injured:  { score: 95, label: "Blessé — arrêt nécessaire" },
+  };
+  
+  const details: string[] = [];
   let score = 50;
   let confidence = 0.4;
-  const details: string[] = [];
-  let factors = 0;
   
-  // Ressenti_score = (10 - stress) × 10
-  if (checkinStress !== null && checkinStress !== undefined) {
-    const stressScore = clamp((checkinStress - 1) / 9 * 100, 0, 100);
-    score = stressScore;
-    details.push(`Stress perçu: ${checkinStress}/10`);
-    confidence = 0.75;
-    factors++;
-  }
-  
-  if (checkinFatigue !== null && checkinFatigue !== undefined) {
-    const fatigueScore = clamp((checkinFatigue - 1) / 9 * 100, 0, 100);
-    score = factors > 0 ? (score + fatigueScore) / 2 : fatigueScore;
-    details.push(`Fatigue perçue: ${checkinFatigue}/10`);
-    confidence = Math.max(confidence, 0.75);
-    factors++;
-  }
-  
-  if (sleepQuality !== null && sleepQuality !== undefined) {
-    // Inverser : qualité élevée = moins fatigué
-    const sleepScore = clamp(100 - ((sleepQuality - 1) / 9 * 100), 0, 100);
-    score = factors > 0 ? (score * 0.7 + sleepScore * 0.3) : sleepScore;
-    details.push(`Qualité sommeil: ${sleepQuality}/10`);
-    confidence = Math.max(confidence, 0.70);
-    factors++;
-  }
-  
-  if (factors === 0) {
-    details.push("Aucun check-in disponible — estimation par défaut");
+  if (fatigueState && FATIGUE_STATE_SCORES[fatigueState]) {
+    const mapped = FATIGUE_STATE_SCORES[fatigueState];
+    score = mapped.score;
+    confidence = 0.70;
+    details.push(`État snapshot: ${mapped.label}`);
+  } else {
+    details.push("Aucun état de fatigue renseigné dans le snapshot — estimation par défaut");
   }
   
   score = clamp(score, 0, 100);
