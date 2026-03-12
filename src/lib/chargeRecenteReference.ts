@@ -158,8 +158,10 @@ export function computeCRR(params: ComputeCRRParams): ChargeRecenteReference {
 }
 
 // =============================================
-// SCORE DE CHARGE (pour Compass)
+// SCORE DE VOLUME STRUCTUREL (pour Compass)
 // =============================================
+// NOTE: Le TSS 7j du snapshot reflète le volume habituel de l'athlète
+// (capacité d'absorption de charge), PAS la fatigue actuelle.
 
 export interface ChargeScore {
   score: number;        // 0-100
@@ -169,8 +171,8 @@ export interface ChargeScore {
 }
 
 /**
- * Calcule le score de charge pour l'axe Robustesse du Compass
- * Formule: Charge_score = clamp((CRR / Charge_cible) * 100, 0, 120)
+ * Calcule le score de volume structurel pour l'axe Robustesse du Compass
+ * Formule: Score = clamp((CRR / Volume_cible) * 100, 0, 120)
  */
 export function computeChargeScore(
   crr: ChargeRecenteReference,
