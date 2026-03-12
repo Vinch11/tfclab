@@ -38,6 +38,8 @@ export interface SnapshotNolio {
   // Natation
   pace100?: number;           // Pace 100m (secondes)
   css?: number;               // Critical Swim Speed (min/100m)
+  // TTE
+  tte_observed_min?: number;     // TTE observée terrain (min)
   // Métadonnées
   source?: "nolio" | "manual";
   notes?: string;

@@ -159,7 +159,7 @@ export function calculVLamaxSnapshot(snapshot: SnapshotNolio, objectif: Objectif
       p60s_w: snapshot.p60s_w ?? null,
       map5min_w: snapshot.map5min_w ?? null,
       weight_kg: snapshot.poids,
-      tte_min: estimerTTESport(snapshot),
+      tte_min: snapshot.tte_observed_min ?? estimerTTESport(snapshot),
       vo2max: snapshot.vo2max ?? null,
       protocol_quality: (snapshot.protocol_quality as 1|2|3|4|5) ?? undefined,
       objectif,
