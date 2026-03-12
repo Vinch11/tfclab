@@ -1127,6 +1127,8 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
     runningEconomy: runningEconomy.isApplicable ? runningEconomy : null,
     wasCappedByEconomy: economyCap.wasCapped,
     economyCapReason: economyCap.capReason,
+    // ✅ Architecture MIN(Potentiel, Disponibilité)
+    breakdown,
     // Spécificité sport
     sport,
     sportSpecificity: {
