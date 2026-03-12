@@ -290,11 +290,20 @@ export default function AITrainingPlanPage() {
       map5min: activeSnap.map5min_w,
     };
 
+    // Compute W' from snapshot power data
+    const cpResult = analyzeCriticalPower({
+      pmax_5s: activeSnap.pmax_5s,
+      p30s_w: activeSnap.p30s_w,
+      p60s_w: activeSnap.p60s_w,
+      map5min_w: activeSnap.map5min_w,
+      ftp: refs.ftp,
+    });
+
     const limiterResult = detectUnifiedLimiter({
       vo2max: refs.vo2max,
       ftpKg,
       vlamax: vlamaxEff.value,
-      wprimeKj: null, // TODO: compute from snapshot power data
+      wprimeKj: cpResult?.wprimeKJ ?? null,
       tte: tteEff.tte_min,
       fatmax: null,
       economyScore: activeSnap.run_economy_score ?? null,
