@@ -425,15 +425,14 @@ const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(ma
  * ✅ SOURCE UNIQUE DE VÉRITÉ: utilise getAgeAdjustedTargets pour synchronisation avec Compass
  */
 export function getTargets(objectif: string, athleteAge?: number | null, ambition?: AmbitionLevel): RaceTargets {
-  const baseTargets = TARGETS_BY_OBJECTIF[objectif] || DEFAULT_TARGETS;
-  
-  // ✅ FIX: Toujours utiliser les cibles ajustées par ambition (pas de fallback sur cibles statiques)
-  // Utiliser DEFAULT_AMBITION si ambition non fournie
   const effectiveAmbition = ambition || DEFAULT_AMBITION;
+  
+  // ✅ SOURCE UNIQUE: vlamaxMin depuis physiologicalTargets.ts
+  const vlamaxRange = getVLamaxRange(objectif, effectiveAmbition);
   const adjusted = getAgeAdjustedTargets(objectif, athleteAge ?? null, effectiveAmbition);
   
   return {
-    vlamaxMin: baseTargets.vlamaxMin,
+    vlamaxMin: vlamaxRange.min,
     vlamaxMax: adjusted.vlamaxMax,
     vlamaxIdeal: adjusted.vlamaxOptimal,
     tteTarget: adjusted.tteTarget,
