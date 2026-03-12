@@ -253,16 +253,32 @@ function computeScoreG(
   // Adaptive weights (recalibrated with W' index)
   // Original: S_pmax=0.30, S30=0.20, S60=0.10, E=0.25, D=0.15
   // With W': redistribute to accommodate 0.12 for W'
+  //
+  // HIGH FRACTIONAL UTILIZATION DAMPENING:
+  // When FTP/MAP > 0.80, the athlete has a strong aerobic engine.
+  // A high P30s/FTP ratio in such profiles is often neuromuscular
+  // (fast-twitch recruitment) rather than purely glycolytic.
+  // We reduce S30 weight from 0.18 → 0.08 and redistribute +0.05
+  // to E (fractional util) and +0.05 to D (durability) which are
+  // more reliable indicators for these hybrid profiles.
+  const isHighFractionalUtil = rfm !== null && rfm > 0.80;
+  
+  const w_pmax = 0.25;
+  const w_s30  = isHighFractionalUtil ? 0.08 : 0.18;
+  const w_s60  = 0.09;
+  const w_E    = isHighFractionalUtil ? 0.27 : 0.22;
+  const w_D    = isHighFractionalUtil ? 0.19 : 0.14;
+  const w_W    = 0.12;
+  
   let scoreG = 0;
   let totalWeight = 0;
   
-  // Weights: S_pmax=0.25, S30=0.18, S60=0.09, E=0.22, D=0.14, W=0.12
-  if (S_pmax !== null) { scoreG += 0.25 * S_pmax; totalWeight += 0.25; sources.push("Pmax5s"); }
-  if (S30 !== null) { scoreG += 0.18 * S30; totalWeight += 0.18; sources.push("P30s"); }
-  if (S60 !== null) { scoreG += 0.09 * S60; totalWeight += 0.09; sources.push("P60s"); }
-  if (E !== null) { scoreG += 0.22 * E; totalWeight += 0.22; sources.push("MAP5min"); }
-  if (D !== null) { scoreG += 0.14 * D; totalWeight += 0.14; sources.push("TTE"); }
-  if (W_score !== null) { scoreG += 0.12 * W_score; totalWeight += 0.12; sources.push("W'"); }
+  if (S_pmax !== null) { scoreG += w_pmax * S_pmax; totalWeight += w_pmax; sources.push("Pmax5s"); }
+  if (S30 !== null) { scoreG += w_s30 * S30; totalWeight += w_s30; sources.push(isHighFractionalUtil ? "P30s↓" : "P30s"); }
+  if (S60 !== null) { scoreG += w_s60 * S60; totalWeight += w_s60; sources.push("P60s"); }
+  if (E !== null) { scoreG += w_E * E; totalWeight += w_E; sources.push("MAP5min"); }
+  if (D !== null) { scoreG += w_D * D; totalWeight += w_D; sources.push("TTE"); }
+  if (W_score !== null) { scoreG += w_W * W_score; totalWeight += w_W; sources.push("W'"); }
   
   // Normalize
   if (totalWeight > 0 && totalWeight < 1) {
