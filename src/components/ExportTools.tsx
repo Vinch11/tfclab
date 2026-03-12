@@ -1410,12 +1410,11 @@ function buildExportPayload(
     };
   }
 
-  // ✅ Calculer fatigueScore depuis les checkins (comme dans le dashboard)
-  const recentAthleteCheckins = checkins
-    .filter((c) => c.athlete_id === athlete.id)
-    .sort((a, b) => b.date_iso.localeCompare(a.date_iso));
-  const recentCheckin = recentAthleteCheckins[0];
-  const fatigueScore = recentCheckin?.fatigue ?? undefined;
+  // ✅ fatigueScore depuis le snapshot (fatigue_state) — snapshot-centric
+  const fatigueStateToScore: Record<string, number> = {
+    fresh: 2, ok: 4, fatigued: 6, high: 8, injured: 10,
+  };
+  const fatigueScore = fatigueStateToScore[effectiveSnapshot?.fatigue_state || "ok"] ?? 4;
 
   // ✅ NEW: Calculer les suggestions Wahoo SYSTM
   // Context identique à DashboardRecommendationsCard pour cohérence
@@ -1499,7 +1498,7 @@ function buildExportPayload(
       vo2maxEffectif: effectiveRefs.vo2max,
       tteEffectif: tte.tte_min,
       tteConfidence: tte.confidence,
-      fatigueIndex: null, // TODO: add from checkins if available
+      fatigueIndex: fatigueScore ?? null,
       objectif: (athlete.goal || "IM") as "IM" | "70.3" | "Marathon" | "Semi" | "10km" | "Ironman",
       ftp: effectiveRefs.ftp,
     }),
@@ -3784,21 +3783,28 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   `;
 
   // =============================================
-  // D. DISPONIBILITÉ TFCL™ (NEW)
+  // D. DISPONIBILITÉ TFCL™ — Snapshot-centric
   // =============================================
-  // Calculer la disponibilité depuis les check-ins
-  const sortedCheckinsForDispo = [...checkins].sort((a, b) => new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime());
-  const latestCheckinForDispo = sortedCheckinsForDispo[0];
+  // Mapper fatigue_state du snapshot vers les valeurs de disponibilité
+  const fatigueStateMapDispo: Record<string, { fatigue: number; soreness: number; sleep: number; stress: number; motivation: number }> = {
+    fresh:    { fatigue: 1, soreness: 1, sleep: 4, stress: 2, motivation: 5 },
+    ok:       { fatigue: 3, soreness: 2, sleep: 3, stress: 3, motivation: 3 },
+    fatigued: { fatigue: 6, soreness: 4, sleep: 2, stress: 5, motivation: 2 },
+    high:     { fatigue: 8, soreness: 6, sleep: 1, stress: 7, motivation: 1 },
+    injured:  { fatigue: 8, soreness: 8, sleep: 2, stress: 6, motivation: 1 },
+  };
+  const snapshotFatigueState = effectiveSnapshot?.fatigue_state || "ok";
+  const stateValuesDispo = fatigueStateMapDispo[snapshotFatigueState] ?? fatigueStateMapDispo.ok;
   
   let disponibiliteResult: DisponibiliteTFCL | null = null;
-  if (latestCheckinForDispo) {
+  {
     const dispoInput: TFCLReadinessInput = {
-      sleep: latestCheckinForDispo.sleep ?? null,
-      fatigue: latestCheckinForDispo.fatigue ?? null,
-      soreness: latestCheckinForDispo.soreness ?? null,
-      stress: latestCheckinForDispo.stress ?? null,
-      motivation: latestCheckinForDispo.motivation ?? null,
-      alerts: latestCheckinForDispo.pain_flag ? { asymmetric_pain: true } : undefined,
+      sleep: stateValuesDispo.sleep,
+      fatigue: stateValuesDispo.fatigue,
+      soreness: stateValuesDispo.soreness,
+      stress: stateValuesDispo.stress,
+      motivation: stateValuesDispo.motivation,
+      alerts: snapshotFatigueState === "injured" ? { asymmetric_pain: true } : undefined,
       objective: {
         tss7d: effectiveSnapshot?.tss_7d ?? null,
         tssTarget: 350,
@@ -3823,6 +3829,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               ${disponibiliteResult.levelEmoji} ${disponibiliteResult.score}/100
             </div>
             <div style="font-size:14px;font-weight:600;">${htmlEscape(disponibiliteResult.levelLabel)}</div>
+            <div class="muted" style="font-size:10px;margin-top:4px;">Basé sur l'état de fatigue du snapshot : <b>${snapshotFatigueState}</b></div>
           </div>
           <div style="text-align:center;">
             <div class="muted" style="font-size:11px;">Recommandation</div>
@@ -3839,7 +3846,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       
       <div class="grid2">
         <div class="card">
-          <h3>📋 Scores subjectifs</h3>
+          <h3>📋 Scores dérivés du snapshot</h3>
           <div style="display:grid;gap:8px;">
             ${Object.entries(disponibiliteResult.breakdown.subjective.details).map(([key, value]) => `
               <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -3874,15 +3881,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         `).join('')}
       </div>
     </section>
-  ` : `
-    <section id="disponibilite-tfcl" class="section pagebreakAvoid">
-      <h2>📊 Disponibilité TFCL™</h2>
-      <div class="alert alertWarning">
-        <b>⚠️ Données insuffisantes</b><br>
-        Aucun check-in récent n'a été enregistré. Complétez le questionnaire TFCL Daily Readiness Check pour obtenir votre score de disponibilité.
-      </div>
-    </section>
-  `;
+  ` : '';
 
   // =============================================
   // D-bis. CIBLES PAR NIVEAU D'AMBITION
@@ -6095,38 +6094,32 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   `;
 
   // =============================================
-  // I. CHECK-INS (si dispo)
+  // I. ÉTAT DE FATIGUE (Snapshot-centric)
   // =============================================
-  const sortedCheckins = [...checkins].sort((a, b) => new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime());
-  const lastCheckin = sortedCheckins[0];
+  const fatigueStateLabelMap: Record<string, { label: string; emoji: string; color: string }> = {
+    fresh:    { label: "Frais — bien récupéré", emoji: "🟢", color: "var(--success)" },
+    ok:       { label: "Normal — état standard", emoji: "🟡", color: "var(--warning)" },
+    fatigued: { label: "Fatigué — récupération partielle", emoji: "🟠", color: "#d97706" },
+    high:     { label: "Très fatigué — surcharge", emoji: "🔴", color: "var(--error)" },
+    injured:  { label: "Blessé / indisponible", emoji: "🚑", color: "var(--error)" },
+  };
+  const currentFatigueState = effectiveSnapshot?.fatigue_state || "ok";
+  const fatigueDisplay = fatigueStateLabelMap[currentFatigueState] ?? fatigueStateLabelMap.ok;
   
-  const checkinsHTML = checkins.length > 0 ? `
+  const checkinsHTML = effectiveSnapshot ? `
     <section id="checkins" class="section pagebreakAvoid">
-      <h2>H. Check-ins & Monitoring</h2>
-      ${lastCheckin ? `
-        <div class="card">
-          <h3>Dernier check-in: ${dtStr(lastCheckin.date_iso)}</h3>
-          <div class="grid4 mt">
-            <div>
-              <div class="muted">Fatigue</div>
-              <div class="medium">${lastCheckin.fatigue ?? "—"}/10</div>
-            </div>
-            <div>
-              <div class="muted">Sommeil</div>
-              <div class="medium">${lastCheckin.sleep ?? "—"}/10</div>
-            </div>
-            <div>
-              <div class="muted">Stress</div>
-              <div class="medium">${lastCheckin.stress ?? "—"}/10</div>
-            </div>
-            <div>
-              <div class="muted">Readiness</div>
-              <div class="medium">${lastCheckin.readiness ?? "—"}/10</div>
-            </div>
+      <h2>H. État de Fatigue — Snapshot</h2>
+      <div class="card">
+        <h3>Snapshot actif : ${dtStr(effectiveSnapshot.date)}</h3>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:12px;">
+          <span style="font-size:28px;">${fatigueDisplay.emoji}</span>
+          <div>
+            <div style="font-size:16px;font-weight:700;color:${fatigueDisplay.color}">${htmlEscape(fatigueDisplay.label)}</div>
+            <div class="muted" style="font-size:11px;margin-top:4px;">État déclaré : <code>${currentFatigueState}</code></div>
           </div>
-          ${lastCheckin.notes ? `<div class="mt muted">Notes: ${htmlEscape(lastCheckin.notes)}</div>` : ''}
         </div>
-      ` : ''}
+        ${effectiveSnapshot.coach_notes ? `<div class="mt muted">Notes coach : ${htmlEscape(effectiveSnapshot.coach_notes)}</div>` : ''}
+      </div>
     </section>
   ` : '';
 

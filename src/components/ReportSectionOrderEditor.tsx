@@ -78,7 +78,7 @@ export const SECTION_LABELS: Record<keyof ReportSections, string> = {
   testsCalibration: "Tests & Calibration TFCL",
   calibrationEvidence: "🔬 Calibration Evidence Summary",
   fitImports: "📁 Tests Observés (import FIT)",
-  checkins: "Check-ins",
+  checkins: "État de Fatigue (Snapshot)",
   comprendre: "Comprendre mes scores",
   qualite: "Qualité des données",
   roadmap: "📋 Roadmap Stratégique",
