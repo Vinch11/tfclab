@@ -2952,7 +2952,8 @@ function validateChunk1HasRecap(chunkText: string): { hasRecap: boolean; hasPhas
 
 // === SHARED CP/W' COMPUTATION (used by both buildCPWprimeSection and chunk prompts) ===
 // FIXED: P5s and FTP excluded from regression (Jones 2019) — only P30s, P60s, MAP5min used
-function computeCPWprime(data: any): { cpRound: number; wprimeKJ: number; wprimeJ: number } | null {
+// FIXED: effectiveCP bounding by FTP, W' floor 10kJ (aligned with client-side criticalPowerModel.ts)
+function computeCPWprime(data: any): { cpRound: number; effectiveCP: number; wprimeKJ: number; wprimeJ: number; wprimeEffJ: number; cpBounded: boolean } | null {
   // Only use points within the valid 2-parameter model range (~30s–5min)
   const regressionPoints: { dur: number; pow: number }[] = [];
   if (data?.p30s && data.p30s > 0) regressionPoints.push({ dur: 30, pow: data.p30s });
@@ -2973,7 +2974,24 @@ function computeCPWprime(data: any): { cpRound: number; wprimeKJ: number; wprime
   const wprime = (sumY - cp * sumX) / n;
   if (cp < 30 || cp > 800 || wprime < 500 || wprime > 80000) return null;
 
-  return { cpRound: Math.round(cp), wprimeKJ: Math.round(wprime / 100) / 10, wprimeJ: wprime };
+  const cpRound = Math.round(cp);
+  const ftp = data?.ftp ? Number(data.ftp) : null;
+
+  // Effective CP — bounded by FTP when CP is suspect (aligned with client-side)
+  const CP_FTP_MAX_GAP = 20;
+  const CP_FTP_EFFECTIVE_OFFSET = 10;
+  let effectiveCP = cpRound;
+  let cpBounded = false;
+  if (ftp && ftp > 0 && cpRound > ftp + CP_FTP_MAX_GAP) {
+    effectiveCP = ftp + CP_FTP_EFFECTIVE_OFFSET;
+    cpBounded = true;
+  }
+
+  // W' floor — minimum 10kJ for prescription reliability (aligned with client-side)
+  const W_PRIME_FLOOR = 10000; // 10 kJ in Joules
+  const wprimeEffJ = Math.max(wprime, W_PRIME_FLOOR);
+
+  return { cpRound, effectiveCP, wprimeKJ: Math.round(wprime / 100) / 10, wprimeJ: wprime, wprimeEffJ, cpBounded };
 }
 
 // === CRITICAL POWER / W' INLINE MODEL (Skiba 2012) ===
