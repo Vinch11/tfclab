@@ -45,6 +45,7 @@ export type AerobicWeaknessDetail =
 export type UnifiedLever = 
   | "increase_vo2max"
   | "decrease_vlamax"
+  | "adjust_anaerobic"
   | "increase_tte"
   | "increase_fat_oxidation"
   | "recovery"
