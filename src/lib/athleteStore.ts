@@ -155,9 +155,13 @@ export function calculVLamaxSnapshot(snapshot: SnapshotNolio, objectif: Objectif
     const input: VLamaxBikeV2EnhancedInput = {
       ftp: snapshot.ftp,
       pmax_5s: snapshot.pmax_5s,
+      p30s_w: snapshot.p30s_w ?? null,
+      p60s_w: snapshot.p60s_w ?? null,
+      map5min_w: snapshot.map5min_w ?? null,
       weight_kg: snapshot.poids,
       tte_min: estimerTTESport(snapshot),
       vo2max: snapshot.vo2max ?? null,
+      protocol_quality: (snapshot.protocol_quality as 1|2|3|4|5) ?? undefined,
       objectif,
     };
     
