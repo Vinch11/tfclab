@@ -34,6 +34,8 @@
  * 
  * Poids Score G (Spragg-optimized + W') :
  *   S_pmax: 0.25, S30: 0.18, S60: 0.09, E: 0.22, D: 0.14, W: 0.12
+ *   Si FTP/MAP > 0.80 (profil hybride) :
+ *   S_pmax: 0.25, S30: 0.08↓, S60: 0.09, E: 0.27↑, D: 0.19↑, W: 0.12
  * 
  * VLamax_raw = 0.20 + 0.80 * G
  * VLamax_final = clamp(VLamax_raw, 0.20, 1.05)
