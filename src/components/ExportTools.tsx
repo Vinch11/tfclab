@@ -30,7 +30,7 @@ import { generateTestCalibrationSection, type TestCalibrationSection } from "@/l
 import { getEffectiveSnapshot, getEffectiveRefs, type EffectiveRefs } from "@/lib/effectiveRefs";
 import { computeVLamaxEffectif, type VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { computeTTEEffectif, type TTEEffectif } from "@/lib/tteEffectif";
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getTargets, getRaceWeights } from "@/lib/raceReadinessEffectif";
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getTargets, getWeightsBySport } from "@/lib/raceReadinessEffectif";
 import { ZonesConfig, computeAbsoluteRange, AthleteRefsForZones } from "@/lib/zonesConfig";
 import { TRAINING_ZONES, computeZoneAbsoluteValues, ZONES_METHODOLOGY_NOTE, type AthleteZoneRefs } from "@/lib/trainingZonesDefinition";
 import { reglesTwoForCoaching, getPrioriteLabel, getSeancesRecommandees, PrioriteType } from "@/types/reglesTwoForCoaching";
@@ -2554,7 +2554,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   const refs = getAthleteRefsForZones(effectiveRefs);
   // ✅ FIX: Passer âge et ambition pour utiliser les cibles dynamiques (cohérence avec l'app)
   const targets = getTargets(athlete.goal || "IM", ageAdjustment.age, ambition.current);
-  const weights = getRaceWeights(athlete.goal || "IM");
+  const weights = getWeightsBySport(athlete.goal || "IM");
 
   // =============================================
   // CONSTANTES BRANDING REPOSITIONNÉ (NON DOGMATIQUE)

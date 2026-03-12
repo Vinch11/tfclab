@@ -755,7 +755,7 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
   
   // ✅ FIX: Récupérer les targets AVEC ajustement par âge et ambition
   const targets = getTargets(objectif, athleteAge, ambition);
-  const weights = getRaceWeights(objectif);
+  const weights = getWeightsBySport(objectif);
 
   // =====================
   // INPUTS
