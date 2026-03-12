@@ -53,9 +53,9 @@ function calculatePowerAtDuration(
 ): { totalPower: number; aerobicPower: number; anaerobicPower: number } {
   const estimatedFTP = ftp || (vo2max * 0.075 - vlamax * 0.45) * weight;
   
-  // Use real CP/W' if available
-  const cp = cpResult ? cpResult.cp : estimatedFTP * 0.95;
-  const wPrime = cpResult ? cpResult.wprime : (15000 + vlamax * 8000) * (weight / 70);
+  // Use real CP/W' if available — effectiveCP for physiological bounding
+  const cp = cpResult ? cpResult.effectiveCP : estimatedFTP * 0.95;
+  const wPrime = cpResult ? Math.max(cpResult.wprime, 10000) : (15000 + vlamax * 8000) * (weight / 70);
   
   const alacticCapacity = 5000 * (weight / 70);
   const alacticTimeConstant = 12;
