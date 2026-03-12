@@ -102,6 +102,11 @@ const INITIAL_FORM_STATE = {
   sprint_15s: "",
   run_power_max: "",
   run_power_threshold: "",
+  run_power_1s: "",
+  run_power_5s: "",
+  run_power_30s: "",
+  run_power_60s: "",
+  run_power_5min: "",
   coach_notes: "",
 };
 
