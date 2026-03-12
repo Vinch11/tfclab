@@ -94,20 +94,25 @@ export default function RaceSimulationPage() {
   }, [checkins, athleteId]);
   
   const disponibilite = React.useMemo(() => {
-    if (!latestCheckin) return null;
+    // Source: fatigue_state du snapshot uniquement (pas de check-in quotidien)
+    const fatigueStateToScore: Record<string, number> = {
+      fresh: 8, ok: 6, fatigued: 4, high: 2, injured: 1
+    };
+    const fatigueScore = fatigueStateToScore[activeSnapshot?.fatigue_state || "ok"] ?? 6;
+    
     const input: TFCLReadinessInput = {
-      sleep: latestCheckin.sleep,
-      fatigue: latestCheckin.fatigue,
-      soreness: latestCheckin.soreness,
-      stress: latestCheckin.stress,
-      motivation: latestCheckin.motivation,
+      sleep: null,
+      fatigue: fatigueScore,
+      soreness: null,
+      stress: null,
+      motivation: null,
       objective: {
         tss7d: activeSnapshot?.tss_7d ?? null,
         tssTarget: 400,
       },
     };
     return computeDisponibiliteTFCL(input);
-  }, [latestCheckin, activeSnapshot]);
+  }, [activeSnapshot]);
   
   // Determine discipline and race objective
   const discipline: 'bike' | 'run' = React.useMemo(() => {
