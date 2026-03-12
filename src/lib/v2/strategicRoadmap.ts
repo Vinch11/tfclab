@@ -293,6 +293,11 @@ function addPhase1Adaptations(
       levers.push("Force Max", "Plyométrie");
       targets.push("Économie +10%");
       break;
+    case "anaerobic_capacity":
+      levers.push("Sprints courts", "Développement puissance max");
+      const wGap = gaps.find(g => g.metric.includes("W'"));
+      if (wGap) targets.push(`W' → ${wGap.target.toFixed(0)} kJ`);
+      break;
     default:
       break;
   }
