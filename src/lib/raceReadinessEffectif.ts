@@ -1025,7 +1025,7 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
     { name: "VLamax", score: vlamaxScore },
     { name: "TTE (endurance)", score: tteScore },
     { name: "FTP/kg (puissance)", score: ftpKgScore },
-    { name: "Fraîcheur", score: freshnessScore },
+    { name: "Fraîcheur", score: disponibilite },
   ].sort((a, b) => a.score - b.score);
   
   const strongestScores = [...weakestScores].reverse();
