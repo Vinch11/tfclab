@@ -3783,21 +3783,28 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   `;
 
   // =============================================
-  // D. DISPONIBILITÉ TFCL™ (NEW)
+  // D. DISPONIBILITÉ TFCL™ — Snapshot-centric
   // =============================================
-  // Calculer la disponibilité depuis les check-ins
-  const sortedCheckinsForDispo = [...checkins].sort((a, b) => new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime());
-  const latestCheckinForDispo = sortedCheckinsForDispo[0];
+  // Mapper fatigue_state du snapshot vers les valeurs de disponibilité
+  const fatigueStateMapDispo: Record<string, { fatigue: number; soreness: number; sleep: number; stress: number; motivation: number }> = {
+    fresh:    { fatigue: 1, soreness: 1, sleep: 4, stress: 2, motivation: 5 },
+    ok:       { fatigue: 3, soreness: 2, sleep: 3, stress: 3, motivation: 3 },
+    fatigued: { fatigue: 6, soreness: 4, sleep: 2, stress: 5, motivation: 2 },
+    high:     { fatigue: 8, soreness: 6, sleep: 1, stress: 7, motivation: 1 },
+    injured:  { fatigue: 8, soreness: 8, sleep: 2, stress: 6, motivation: 1 },
+  };
+  const snapshotFatigueState = effectiveSnapshot?.fatigue_state || "ok";
+  const stateValuesDispo = fatigueStateMapDispo[snapshotFatigueState] ?? fatigueStateMapDispo.ok;
   
   let disponibiliteResult: DisponibiliteTFCL | null = null;
-  if (latestCheckinForDispo) {
+  {
     const dispoInput: TFCLReadinessInput = {
-      sleep: latestCheckinForDispo.sleep ?? null,
-      fatigue: latestCheckinForDispo.fatigue ?? null,
-      soreness: latestCheckinForDispo.soreness ?? null,
-      stress: latestCheckinForDispo.stress ?? null,
-      motivation: latestCheckinForDispo.motivation ?? null,
-      alerts: latestCheckinForDispo.pain_flag ? { asymmetric_pain: true } : undefined,
+      sleep: stateValuesDispo.sleep,
+      fatigue: stateValuesDispo.fatigue,
+      soreness: stateValuesDispo.soreness,
+      stress: stateValuesDispo.stress,
+      motivation: stateValuesDispo.motivation,
+      alerts: snapshotFatigueState === "injured" ? { asymmetric_pain: true } : undefined,
       objective: {
         tss7d: effectiveSnapshot?.tss_7d ?? null,
         tssTarget: 350,
@@ -3822,6 +3829,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               ${disponibiliteResult.levelEmoji} ${disponibiliteResult.score}/100
             </div>
             <div style="font-size:14px;font-weight:600;">${htmlEscape(disponibiliteResult.levelLabel)}</div>
+            <div class="muted" style="font-size:10px;margin-top:4px;">Basé sur l'état de fatigue du snapshot : <b>${snapshotFatigueState}</b></div>
           </div>
           <div style="text-align:center;">
             <div class="muted" style="font-size:11px;">Recommandation</div>
@@ -3838,7 +3846,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       
       <div class="grid2">
         <div class="card">
-          <h3>📋 Scores subjectifs</h3>
+          <h3>📋 Scores dérivés du snapshot</h3>
           <div style="display:grid;gap:8px;">
             ${Object.entries(disponibiliteResult.breakdown.subjective.details).map(([key, value]) => `
               <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -3873,15 +3881,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         `).join('')}
       </div>
     </section>
-  ` : `
-    <section id="disponibilite-tfcl" class="section pagebreakAvoid">
-      <h2>📊 Disponibilité TFCL™</h2>
-      <div class="alert alertWarning">
-        <b>⚠️ Données insuffisantes</b><br>
-        Aucun check-in récent n'a été enregistré. Complétez le questionnaire TFCL Daily Readiness Check pour obtenir votre score de disponibilité.
-      </div>
-    </section>
-  `;
+  ` : '';
 
   // =============================================
   // D-bis. CIBLES PAR NIVEAU D'AMBITION
