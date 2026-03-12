@@ -253,7 +253,56 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
     const { ftp, pmax_5s, weight_kg } = effectiveSnapshot;
     
     // =============================================
-    // C1) V2 ENHANCED (P30s, P60s, MAP, TTE) — meilleure estimation
+    // C0) V2 ENHANCED CAP (running power + VMA/Seuil fusion)
+    // =============================================
+    if (sport === "cap") {
+      const hasRunPower = effectiveSnapshot.running_power_threshold != null && effectiveSnapshot.running_power_threshold > 0;
+      const hasVmaSeuil = effectiveSnapshot.vma != null && effectiveSnapshot.vma > 0 
+        && effectiveSnapshot.pace_threshold_sec_per_km != null && effectiveSnapshot.pace_threshold_sec_per_km > 0;
+      
+      if (hasRunPower || hasVmaSeuil) {
+        const snapshotAny = effectiveSnapshot as Record<string, unknown>;
+        const runV2 = computeVLamaxRunV2Enhanced({
+          runPowerThreshold: (effectiveSnapshot.running_power_threshold as number) ?? 0,
+          runPower1s: (snapshotAny.running_power_1s as number) ?? null,
+          runPower5s: (snapshotAny.running_power_5s as number) ?? null,
+          runPower30s: (snapshotAny.running_power_30s as number) ?? null,
+          runPower60s: (snapshotAny.running_power_60s as number) ?? null,
+          runPower5min: (snapshotAny.running_power_5min as number) ?? null,
+          tteMin: effectiveSnapshot.tte_observed_min ?? null,
+          weightKg: weight_kg ?? null,
+          protocolQuality: (effectiveSnapshot.protocol_quality as 1|2|3|4|5) ?? 3,
+          vma: effectiveSnapshot.vma ?? null,
+          paceThresholdSecPerKm: effectiveSnapshot.pace_threshold_sec_per_km ?? null,
+        });
+        
+        if (runV2.formula !== "insufficient") {
+          const ageDays = computeDataAgeDays(effectiveSnapshot.date);
+          const v2Input: VLamaxV2Input = {
+            rawValue: runV2.value,
+            source: "estimation",
+            sport,
+            previousEffective,
+            factors: {
+              sourceCount: runV2.sources.length,
+              temporalStability: 0.3,
+              dataAgeDays: ageDays,
+            },
+            sourceLabels: runV2.sources.map(s => `CAP: ${s}`),
+            reason: `VLamax CAP V2 (${runV2.formulaLabel})`,
+          };
+          const v2 = computeVLamaxV2(v2Input);
+          v2.confidence = Math.max(v2.confidence, runV2.confidence * 0.9);
+          return wrapV2Result(v2, {
+            protocol: runV2.formulaLabel,
+            date: effectiveSnapshot.date,
+          });
+        }
+      }
+    }
+    
+    // =============================================
+    // C1) V2 ENHANCED BIKE (P30s, P60s, MAP, TTE) — meilleure estimation
     // =============================================
     const hasV2Data = ftp != null && ftp > 0 && (
       (effectiveSnapshot.p30s_w != null && effectiveSnapshot.p30s_w > 0) ||
