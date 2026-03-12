@@ -26,6 +26,7 @@ import { computeRunningEconomy, applyEconomyCap, type RunningEconomyResult, type
 import { getAgeAdjustedTargets } from "@/lib/ageAdjustment";
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 import { CRR_TARGETS_BY_OBJECTIF, DEFAULT_CRR_TARGETS, type CRRTargets } from "@/lib/chargeRecenteReference";
+import { getVLamaxRange } from "@/lib/physiologicalTargets";
 
 // =============================================
 // DÉFINITION OFFICIELLE (pour affichage UI)
