@@ -2290,7 +2290,9 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     // FIX #1: Deduplicate CP/W' — reuse buildCPWprimeSection's logic via shared helper
     const cpwResult = computeCPWprime(athleteData);
     const cpRound = cpwResult?.cpRound ?? null;
+    const effectiveCPVal = cpwResult?.effectiveCP ?? null;
     const wprimeKJ = cpwResult?.wprimeKJ ?? null;
+    const wEffKJ = cpwResult ? Math.round(cpwResult.wprimeEffJ / 100) / 10 : null;
 
     // FIX #6: Per-chunk timeout (4 min per chunk call)
     const CHUNK_TIMEOUT_MS = 4 * 60 * 1000;
