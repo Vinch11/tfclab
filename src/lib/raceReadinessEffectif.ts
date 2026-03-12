@@ -1036,8 +1036,8 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
   if (reasonsMissing.length >= 2) {
     messageStaff = `Race Readiness partiel. Ajoutez un snapshot avec FTP, poids${!tte ? ", TSS_7d ou TTE mesuré" : ""} pour un calcul complet.`;
   } else {
-    messageStaff = `Race Readiness = combinaison VLamax (moteur), TTE (endurance au seuil), FTP/kg (puissance relative) et fraîcheur. ` +
-      `Pondération ajustée à l'objectif: ${objectif}. ` +
+    messageStaff = `Race Readiness = MIN(Potentiel ${potentiel}, Disponibilité ${disponibilite}) = ${baseScore}. ` +
+      `Facteur gouvernant: ${governingFactor === "disponibilite" ? "Disponibilité (fraîcheur)" : "Potentiel (physiologie)"}. ` +
       `Points limitants: ${limitants.join(", ")}.`;
   }
   
