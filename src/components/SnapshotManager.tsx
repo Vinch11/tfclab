@@ -198,6 +198,11 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       sprint_15s: s.sprint_15s_distance != null ? String(s.sprint_15s_distance) : "",
       run_power_max: s.running_power_max != null ? String(s.running_power_max) : "",
       run_power_threshold: s.running_power_threshold != null ? String(s.running_power_threshold) : "",
+      run_power_1s: (s as any).running_power_1s != null ? String((s as any).running_power_1s) : "",
+      run_power_5s: (s as any).running_power_5s != null ? String((s as any).running_power_5s) : "",
+      run_power_30s: (s as any).running_power_30s != null ? String((s as any).running_power_30s) : "",
+      run_power_60s: (s as any).running_power_60s != null ? String((s as any).running_power_60s) : "",
+      run_power_5min: (s as any).running_power_5min != null ? String((s as any).running_power_5min) : "",
 
       coach_notes: s.coach_notes || "",
     });
