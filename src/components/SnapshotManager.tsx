@@ -370,6 +370,13 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       sprint_15s_distance: parseNum(formData.sprint_15s),
       running_power_max: parseNum(formData.run_power_max) ? Math.round(parseNum(formData.run_power_max)!) : null,
       running_power_threshold: parseNum(formData.run_power_threshold) ? Math.round(parseNum(formData.run_power_threshold)!) : null,
+      ...({
+        running_power_1s: parseNum(formData.run_power_1s) ? Math.round(parseNum(formData.run_power_1s)!) : null,
+        running_power_5s: parseNum(formData.run_power_5s) ? Math.round(parseNum(formData.run_power_5s)!) : null,
+        running_power_30s: parseNum(formData.run_power_30s) ? Math.round(parseNum(formData.run_power_30s)!) : null,
+        running_power_60s: parseNum(formData.run_power_60s) ? Math.round(parseNum(formData.run_power_60s)!) : null,
+        running_power_5min: parseNum(formData.run_power_5min) ? Math.round(parseNum(formData.run_power_5min)!) : null,
+      } as Record<string, unknown>),
 
       metabolic_profile: profile,
       metabolic_score: score,
