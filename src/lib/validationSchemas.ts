@@ -76,6 +76,11 @@ export const snapshotSchema = z.object({
   sprint_15s_distance: numericOptional(30, 200),
   running_power_max: intOptional(100, 2000),
   running_power_threshold: intOptional(50, 1000),
+  running_power_1s: intOptional(100, 3000),
+  running_power_5s: intOptional(100, 2500),
+  running_power_30s: intOptional(50, 2000),
+  running_power_60s: intOptional(50, 1500),
+  running_power_5min: intOptional(50, 1200),
   // ✅ Snapshot metadata fields
   sport_main: z.string().max(50).nullable().optional(),
   objectif: z.string().max(50).nullable().optional(),

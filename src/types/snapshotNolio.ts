@@ -23,6 +23,14 @@ export interface SnapshotNolio {
   // Course
   vma?: number;               // VMA (km/h)
   allure_seuil?: number;      // Allure seuil (min/km)
+  // Puissance Running (Stryd/Garmin/COROS)
+  running_power_threshold?: number; // Puissance seuil course (W)
+  running_power_max?: number;       // Puissance max course (W)
+  running_power_1s?: number;        // Peak 1s running power (W)
+  running_power_5s?: number;        // Peak 5s running power (W)
+  running_power_30s?: number;       // Best 30s running power (W)
+  running_power_60s?: number;       // Best 60s running power (W)
+  running_power_5min?: number;      // Best 5min running power (W)
   // Natation
   pace100?: number;           // Pace 100m (secondes)
   css?: number;               // Critical Swim Speed (min/100m)

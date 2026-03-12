@@ -712,6 +712,11 @@ export type Database = {
           run_hr_drift_pct: number | null
           run_hr_ref_bpm: number | null
           run_pace_ref_sec_per_km: number | null
+          running_power_1s: number | null
+          running_power_30s: number | null
+          running_power_5min: number | null
+          running_power_5s: number | null
+          running_power_60s: number | null
           running_power_max: number | null
           running_power_threshold: number | null
           source: string
@@ -765,6 +770,11 @@ export type Database = {
           run_hr_drift_pct?: number | null
           run_hr_ref_bpm?: number | null
           run_pace_ref_sec_per_km?: number | null
+          running_power_1s?: number | null
+          running_power_30s?: number | null
+          running_power_5min?: number | null
+          running_power_5s?: number | null
+          running_power_60s?: number | null
           running_power_max?: number | null
           running_power_threshold?: number | null
           source?: string
@@ -818,6 +828,11 @@ export type Database = {
           run_hr_drift_pct?: number | null
           run_hr_ref_bpm?: number | null
           run_pace_ref_sec_per_km?: number | null
+          running_power_1s?: number | null
+          running_power_30s?: number | null
+          running_power_5min?: number | null
+          running_power_5s?: number | null
+          running_power_60s?: number | null
           running_power_max?: number | null
           running_power_threshold?: number | null
           source?: string

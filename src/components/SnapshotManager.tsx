@@ -15,9 +15,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Calendar, Pin, HelpCircle, Beaker, Wand2, Bike, PersonStanding, Battery } from "lucide-react";
+import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Calendar, Pin, HelpCircle, Beaker, Wand2, Bike, PersonStanding, Battery, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { LabImportDialog } from "@/components/LabImportDialog";
@@ -102,6 +103,11 @@ const INITIAL_FORM_STATE = {
   sprint_15s: "",
   run_power_max: "",
   run_power_threshold: "",
+  run_power_1s: "",
+  run_power_5s: "",
+  run_power_30s: "",
+  run_power_60s: "",
+  run_power_5min: "",
   coach_notes: "",
 };
 
@@ -193,6 +199,11 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       sprint_15s: s.sprint_15s_distance != null ? String(s.sprint_15s_distance) : "",
       run_power_max: s.running_power_max != null ? String(s.running_power_max) : "",
       run_power_threshold: s.running_power_threshold != null ? String(s.running_power_threshold) : "",
+      run_power_1s: (s as any).running_power_1s != null ? String((s as any).running_power_1s) : "",
+      run_power_5s: (s as any).running_power_5s != null ? String((s as any).running_power_5s) : "",
+      run_power_30s: (s as any).running_power_30s != null ? String((s as any).running_power_30s) : "",
+      run_power_60s: (s as any).running_power_60s != null ? String((s as any).running_power_60s) : "",
+      run_power_5min: (s as any).running_power_5min != null ? String((s as any).running_power_5min) : "",
 
       coach_notes: s.coach_notes || "",
     });
@@ -274,6 +285,13 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       sprint_15s_distance: parseNum(formData.sprint_15s),
       running_power_max: parseNum(formData.run_power_max) ? Math.round(parseNum(formData.run_power_max)!) : null,
       running_power_threshold: parseNum(formData.run_power_threshold) ? Math.round(parseNum(formData.run_power_threshold)!) : null,
+      ...({
+        running_power_1s: parseNum(formData.run_power_1s) ? Math.round(parseNum(formData.run_power_1s)!) : null,
+        running_power_5s: parseNum(formData.run_power_5s) ? Math.round(parseNum(formData.run_power_5s)!) : null,
+        running_power_30s: parseNum(formData.run_power_30s) ? Math.round(parseNum(formData.run_power_30s)!) : null,
+        running_power_60s: parseNum(formData.run_power_60s) ? Math.round(parseNum(formData.run_power_60s)!) : null,
+        running_power_5min: parseNum(formData.run_power_5min) ? Math.round(parseNum(formData.run_power_5min)!) : null,
+      } as Record<string, unknown>),
 
       metabolic_profile: profile,
       metabolic_score: score,
@@ -353,6 +371,13 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       sprint_15s_distance: parseNum(formData.sprint_15s),
       running_power_max: parseNum(formData.run_power_max) ? Math.round(parseNum(formData.run_power_max)!) : null,
       running_power_threshold: parseNum(formData.run_power_threshold) ? Math.round(parseNum(formData.run_power_threshold)!) : null,
+      ...({
+        running_power_1s: parseNum(formData.run_power_1s) ? Math.round(parseNum(formData.run_power_1s)!) : null,
+        running_power_5s: parseNum(formData.run_power_5s) ? Math.round(parseNum(formData.run_power_5s)!) : null,
+        running_power_30s: parseNum(formData.run_power_30s) ? Math.round(parseNum(formData.run_power_30s)!) : null,
+        running_power_60s: parseNum(formData.run_power_60s) ? Math.round(parseNum(formData.run_power_60s)!) : null,
+        running_power_5min: parseNum(formData.run_power_5min) ? Math.round(parseNum(formData.run_power_5min)!) : null,
+      } as Record<string, unknown>),
 
       metabolic_profile: profile,
       metabolic_score: score,
@@ -1070,7 +1095,50 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
             </div>
           </div>
 
-          {/* VLamax CAP en mode Staff */}
+          {/* Courbe de puissance running (Score G CAP) */}
+          <Collapsible>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="w-full justify-between text-xs mt-2">
+                <span>⚡ Courbe de puissance running (Score G)</span>
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-2">
+              <p className="text-xs text-muted-foreground mb-3">
+                Données Stryd/Garmin/COROS pour activer la fusion duale Score G + VMA/Seuil.
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="run_power_1s" className="text-xs">P1s (W)</Label>
+                  <Input id="run_power_1s" type="number" placeholder="800" value={formData.run_power_1s}
+                    onChange={(e) => setFormData({ ...formData, run_power_1s: e.target.value })} />
+                </div>
+                <div>
+                  <Label htmlFor="run_power_5s" className="text-xs">P5s (W)</Label>
+                  <Input id="run_power_5s" type="number" placeholder="650" value={formData.run_power_5s}
+                    onChange={(e) => setFormData({ ...formData, run_power_5s: e.target.value })} />
+                </div>
+                <div>
+                  <Label htmlFor="run_power_30s" className="text-xs">P30s (W)</Label>
+                  <Input id="run_power_30s" type="number" placeholder="500" value={formData.run_power_30s}
+                    onChange={(e) => setFormData({ ...formData, run_power_30s: e.target.value })} />
+                </div>
+                <div>
+                  <Label htmlFor="run_power_60s" className="text-xs">P60s (W)</Label>
+                  <Input id="run_power_60s" type="number" placeholder="420" value={formData.run_power_60s}
+                    onChange={(e) => setFormData({ ...formData, run_power_60s: e.target.value })} />
+                </div>
+                <div className="col-span-2">
+                  <Label htmlFor="run_power_5min" className="text-xs">P5min (W)</Label>
+                  <Input id="run_power_5min" type="number" placeholder="340" value={formData.run_power_5min}
+                    onChange={(e) => setFormData({ ...formData, run_power_5min: e.target.value })} />
+                  <p className="text-xs text-muted-foreground mt-1">Référence aérobie running</p>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
+
           {staffMode && (
             <div className="mt-4 pt-4 border-t border-border">
               <Label htmlFor="vlamax_run" className="flex items-center gap-1.5">
