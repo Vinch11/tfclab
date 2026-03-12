@@ -72,8 +72,6 @@ import { computeFatMaxTFCL, FatMaxObjectif } from "@/lib/v2/fatmaxTFCL";
 import { ObjectifPrincipal } from "@/lib/reference";
 // ✅ Zones Métaboliques - Carte unifiée (Phase 1b UX)
 import { MetabolicZonesUnifiedCard } from "@/components/MetabolicZonesUnifiedCard";
-// ✅ Fatigue & Disponibilité - Carte unifiée (Phase 1d UX)
-import { FatigueDisponibiliteUnifiedCard } from "@/components/FatigueDisponibiliteUnifiedCard";
 
 // ✅ TFCL Decision Matrix — Cœur décisionnel coach-grade
 import { TFCLDecisionMatrixCard } from "@/components/TFCLDecisionMatrixCard";
