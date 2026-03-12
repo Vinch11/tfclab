@@ -273,7 +273,7 @@ export interface ComputeRaceReadinessParams {
   poids: number | null;
   fatigue_ok?: boolean;
   seance_specifique_validee?: boolean;
-  confidence?: number; // optionnel, sinon moyenne des inputs
+  confidence?: number;
   // Paramètres pour l'économie de course (CAP)
   fcMax?: number | null;
   fcMoyenneEndurance?: number | null;
@@ -282,6 +282,8 @@ export interface ComputeRaceReadinessParams {
   // ✅ AJOUT: Paramètres pour cibles ajustées (unification avec Compass)
   athleteAge?: number | null;
   ambition?: AmbitionLevel;
+  // ✅ AJOUT: TSS 7j pour calcul Disponibilité CRR
+  tss7d?: number | null;
 }
 
 // =============================================
