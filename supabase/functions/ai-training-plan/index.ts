@@ -2395,12 +2395,12 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
       return [...new Set(nums)].sort((a, b) => a - b);
     }
 
-    // FIX #2: Build W'bal reminder only if CP/W' are available (no "N/A" injection)
-    const wbalReminder = (cpRound !== null && wprimeKJ !== null)
+    // FIX #2: Build W'bal reminder using effectiveCP and W' effectif (aligned with client-side)
+    const wbalReminder = (effectiveCPVal !== null && wEffKJ !== null)
       ? `\n🔋 RAPPEL W'bal OBLIGATOIRE : Pour CHAQUE séance d'intervalles supra-CP, tu DOIS :
-1. Justifier la durée de repos avec le W' individuel (ex: "Repos 2min30 — calibré W'bal ${wprimeKJ} kJ")
+1. Justifier la durée de repos avec le W' individuel (ex: "Repos 2min30 — calibré W'bal ${wEffKJ} kJ")
 2. Indiquer le volume max de répétitions avant épuisement du W'
-3. Étiqueter les efforts au-dessus de CP (${cpRound}W) comme "supra-CP"`
+3. Étiqueter les efforts au-dessus de CP effectif (${effectiveCPVal}W) comme "supra-CP"${cpwResult?.cpBounded ? `\n⚠️ CP brut (${cpRound}W) borné à ${effectiveCPVal}W (FTP+10) pour les prescriptions.` : ""}`
       : "";
 
     if (needsChunking) {
