@@ -271,13 +271,13 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
         && effectiveSnapshot.pace_threshold_sec_per_km != null && effectiveSnapshot.pace_threshold_sec_per_km > 0;
       
       if (hasRunPower || hasVmaSeuil) {
-        const snapshotAny = effectiveSnapshot as Record<string, unknown>;
         const runV2 = computeVLamaxRunV2Enhanced({
-          runPowerThreshold: (effectiveSnapshot.running_power_threshold as number) ?? 0,
-          runPower1s: (snapshotAny.running_power_1s as number) ?? null,
-          runPower5s: (snapshotAny.running_power_5s as number) ?? null,
-          runPower30s: (snapshotAny.running_power_30s as number) ?? null,
-          runPower60s: (snapshotAny.running_power_60s as number) ?? null,
+          runPowerThreshold: effectiveSnapshot.running_power_threshold ?? 0,
+          runPower1s: effectiveSnapshot.running_power_1s ?? null,
+          runPower5s: effectiveSnapshot.running_power_5s ?? null,
+          runPower30s: effectiveSnapshot.running_power_30s ?? null,
+          runPower60s: effectiveSnapshot.running_power_60s ?? null,
+          runPower5min: effectiveSnapshot.running_power_5min ?? null,
           runPower5min: (snapshotAny.running_power_5min as number) ?? null,
           tteMin: effectiveSnapshot.tte_observed_min ?? null,
           weightKg: weight_kg ?? null,
