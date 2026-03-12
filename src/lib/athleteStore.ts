@@ -5,6 +5,7 @@
 import { Athlete, defaultAthlete, getDernierSnapshot } from "@/types/athlete";
 import { SnapshotNolio, creerSnapshotExemple, estimerTTE, estimerTTESport, scoreConfiance, calculerAgeSnapshot, calculerPrecision, VLamaxAvecConfiance, SportType } from "@/types/snapshotNolio";
 import { ObjectifType, SexeType } from "@/types/athlete";
+import { computeVLamaxBikeV2Enhanced, type VLamaxBikeV2EnhancedInput } from "@/lib/v2/vlamaxBikeV2Enhanced";
 
 // Storage key
 const STORAGE_KEY = "vinceslab-athletes-data";
