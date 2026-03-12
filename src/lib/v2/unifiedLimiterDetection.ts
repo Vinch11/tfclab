@@ -28,6 +28,7 @@ import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 export type UnifiedLimiter = 
   | "aerobic_engine"      // VO2max / FTP/kg insuffisant
   | "glycolytic"          // VLamax trop haute (consommation glycogène excessive)
+  | "anaerobic_capacity"  // W' trop bas ou trop haut vs cible objectif
   | "specific_endurance"  // TTE insuffisant
   | "metabolic_efficiency" // FatMax trop bas
   | "availability"        // Fatigue / stress / récupération
