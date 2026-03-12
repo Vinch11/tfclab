@@ -25,6 +25,7 @@ import { computeNutritionEstimate, applyNutritionalCap, type NutritionalRiskInde
 import { computeRunningEconomy, applyEconomyCap, type RunningEconomyResult, type EconomyLevel } from "@/lib/runningEconomy";
 import { getAgeAdjustedTargets } from "@/lib/ageAdjustment";
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
+import { CRR_TARGETS_BY_OBJECTIF_EXPORT, type CRRTargets } from "@/lib/chargeRecenteReference";
 
 // =============================================
 // DÉFINITION OFFICIELLE (pour affichage UI)
