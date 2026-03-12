@@ -242,6 +242,7 @@ function getPhaseNameOverride(phaseIdx: number, limiter: UnifiedLimiter, baseNam
   if (phaseIdx === 0) {
     if (limiter === "aerobic_engine") return "Chantier VO2max";
     if (limiter === "neuromuscular") return "Force & Économie";
+    if (limiter === "anaerobic_capacity") return "Développement W'";
   }
   if (phaseIdx === 1) {
     if (limiter === "glycolytic") return "Chantier VLamax ↓";
