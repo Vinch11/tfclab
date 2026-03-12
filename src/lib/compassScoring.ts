@@ -135,9 +135,10 @@ export function computeCapaciteAerobie(
   ftp: number | null,
   poids: number | null,
   objectif: string,
-  ambition?: AmbitionLevel
+  ambition?: AmbitionLevel,
+  athleteAge?: number | null
 ): CompassAxisScore {
-  const targets = getTargets(objectif, ambition);
+  const targets = getTargets(objectif, ambition, athleteAge);
   
   // Données manquantes
   if (ftp === null || poids === null || poids <= 0) {
