@@ -834,6 +834,8 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
     // ✅ AJOUT: Paramètres pour cibles ajustées
     athleteAge = null,
     ambition,
+    // ✅ AJOUT: TSS 7j pour Disponibilité CRR
+    tss7d = null,
   } = params;
 
   const reasonsMissing: string[] = [];
