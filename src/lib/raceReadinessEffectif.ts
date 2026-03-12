@@ -289,96 +289,9 @@ export interface ComputeRaceReadinessParams {
 }
 
 // =============================================
-// TARGETS PAR OBJECTIF (valeurs raisonnables)
+// TARGETS: Source unique = physiologicalTargets.ts + ageAdjustment.ts
+// Plus de TARGETS_BY_OBJECTIF statiques ici
 // =============================================
-
-const TARGETS_BY_OBJECTIF: Record<string, RaceTargets> = {
-  // Ironman / Ultra-distance
-  IM: {
-    vlamaxMin: 0.25,
-    vlamaxMax: 0.40,
-    vlamaxIdeal: 0.35,
-    tteTarget: 55,
-    ftpKgTarget: 4.6,
-  },
-  Ironman: {
-    vlamaxMin: 0.25,
-    vlamaxMax: 0.40,
-    vlamaxIdeal: 0.35,
-    tteTarget: 55,
-    ftpKgTarget: 4.6,
-  },
-  Ultra: {
-    vlamaxMin: 0.25,
-    vlamaxMax: 0.40,
-    vlamaxIdeal: 0.32,
-    tteTarget: 60,
-    ftpKgTarget: 4.4,
-  },
-  // 70.3 / Half
-  "703": {
-    vlamaxMin: 0.25,
-    vlamaxMax: 0.45,
-    vlamaxIdeal: 0.38,
-    tteTarget: 50,
-    ftpKgTarget: 4.8,
-  },
-  Half: {
-    vlamaxMin: 0.25,
-    vlamaxMax: 0.45,
-    vlamaxIdeal: 0.38,
-    tteTarget: 50,
-    ftpKgTarget: 4.8,
-  },
-  // Marathon / Semi / Course
-  Marathon: {
-    vlamaxMin: 0.30,
-    vlamaxMax: 0.50,
-    vlamaxIdeal: 0.40,
-    tteTarget: 50,
-    ftpKgTarget: 4.5, // proxy vélo endurance
-  },
-  Semi: {
-    vlamaxMin: 0.30,
-    vlamaxMax: 0.50,
-    vlamaxIdeal: 0.42,
-    tteTarget: 50,
-    ftpKgTarget: 4.5,
-  },
-  Course: {
-    vlamaxMin: 0.30,
-    vlamaxMax: 0.50,
-    vlamaxIdeal: 0.42,
-    tteTarget: 45,
-    ftpKgTarget: 4.5,
-  },
-  // Trail
-  Trail: {
-    vlamaxMin: 0.25,
-    vlamaxMax: 0.45,
-    vlamaxIdeal: 0.35,
-    tteTarget: 55,
-    ftpKgTarget: 4.4,
-  },
-  TrailCourt: {
-    vlamaxMin: 0.30,
-    vlamaxMax: 0.50,
-    vlamaxIdeal: 0.40,
-    tteTarget: 45,
-    ftpKgTarget: 4.5,
-  },
-  TrailLong: {
-    vlamaxMin: 0.25,
-    vlamaxMax: 0.40,
-    vlamaxIdeal: 0.32,
-    tteTarget: 60,
-    ftpKgTarget: 4.3,
-  },
-};
-
-// Default fallback
-const DEFAULT_TARGETS: RaceTargets = TARGETS_BY_OBJECTIF["IM"];
-
 // =============================================
 // PONDÉRATIONS PAR OBJECTIF
 // =============================================
