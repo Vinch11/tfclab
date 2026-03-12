@@ -135,6 +135,11 @@ export const LIMITER_INFO: Record<UnifiedLimiter, {
     emoji: "⚡",
     description: "VLamax trop haute : consommation glycogène excessive.",
   },
+  anaerobic_capacity: {
+    label: "Capacité anaérobie (W')",
+    emoji: "💥",
+    description: "W' hors cible : capacité anaérobie inadaptée à l'objectif.",
+  },
   specific_endurance: {
     label: "Endurance spécifique",
     emoji: "⏱️",
