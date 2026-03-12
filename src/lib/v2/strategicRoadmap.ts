@@ -204,6 +204,14 @@ function getDurationShifts(limiter: UnifiedLimiter, totalWeeks: number): { start
         { startDelta: 2, endDelta: 0 },      // Phase 3: shift
         { startDelta: 0, endDelta: 0 },      // Phase 4: unchanged
       ];
+    case "anaerobic_capacity":
+      // Similar to glycolytic but with more Phase 1 sprint/power focus
+      return [
+        { startDelta: 0, endDelta: 1 },      // Phase 1: +1 (anaerobic development)
+        { startDelta: 1, endDelta: 0 },       // Phase 2: shift
+        { startDelta: 1, endDelta: 0 },       // Phase 3: shift
+        { startDelta: 0, endDelta: 0 },       // Phase 4: unchanged
+      ];
     case "specific_endurance":
       // Extend Phase 3 (TTE development)
       return [
