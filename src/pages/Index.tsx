@@ -18,11 +18,6 @@ import { IndexSeancesView } from "@/components/IndexSeances";
 
 import { ExportTools } from "@/components/ExportTools";
 import { SnapshotManager } from "@/components/SnapshotManager";
-import { CheckinManager } from "@/components/CheckinManager";
-import { QuickFatigueInput } from "@/components/QuickFatigueInput";
-import { DisponibiliteTFCLCard } from "@/components/DisponibiliteTFCLCard";
-import { TFCLDailyReadinessCheck } from "@/components/TFCLDailyReadinessCheck";
-import { computeDisponibiliteTFCL, type TFCLReadinessInput, type DisponibiliteTFCL as DisponibiliteTFCLResult } from "@/lib/v2/disponibiliteTFCL";
 import { LowCRRJustificationCard } from "@/components/LowCRRJustificationCard";
 import { DashboardRecommendationsCard } from "@/components/DashboardRecommendationsCard";
 import { SnapshotEvolutionChart } from "@/components/SnapshotEvolutionChart";
