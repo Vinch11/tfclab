@@ -102,10 +102,10 @@ export interface FatigueV2Input {
   tteStability?: 'stable' | 'slight_drop' | 'significant_drop' | null;
   raceReadinessFreshness?: number | null;  // 0-100
   
-  // ===== PILIER 3: RESSENTI =====
-  checkinFatigue?: number | null;     // 1-10 (fatigue perçue)
-  checkinStress?: number | null;      // 1-10 (stress perçu)
-  sleepQuality?: number | null;       // 1-10
+  // ===== PILIER 3: RESSENTI (source: fatigue_state du snapshot) =====
+  // Remplace les anciens champs check-in (checkinFatigue/checkinStress/sleepQuality)
+  // L'app fonctionne par snapshots, pas par check-ins quotidiens
+  fatigueState?: 'fresh' | 'ok' | 'fatigued' | 'high' | 'injured' | string | null;
   
   // ===== CONTEXTE =====
   age?: number | null;
