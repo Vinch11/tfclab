@@ -1410,12 +1410,11 @@ function buildExportPayload(
     };
   }
 
-  // ✅ Calculer fatigueScore depuis les checkins (comme dans le dashboard)
-  const recentAthleteCheckins = checkins
-    .filter((c) => c.athlete_id === athlete.id)
-    .sort((a, b) => b.date_iso.localeCompare(a.date_iso));
-  const recentCheckin = recentAthleteCheckins[0];
-  const fatigueScore = recentCheckin?.fatigue ?? undefined;
+  // ✅ fatigueScore depuis le snapshot (fatigue_state) — snapshot-centric
+  const fatigueStateToScore: Record<string, number> = {
+    fresh: 2, ok: 4, fatigued: 6, high: 8, injured: 10,
+  };
+  const fatigueScore = fatigueStateToScore[effectiveSnapshot?.fatigue_state || "ok"] ?? 4;
 
   // ✅ NEW: Calculer les suggestions Wahoo SYSTM
   // Context identique à DashboardRecommendationsCard pour cohérence
