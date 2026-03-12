@@ -49,7 +49,7 @@ export interface CRRTargets {
 // CIBLES PAR OBJECTIF
 // =============================================
 
-const CRR_TARGETS_BY_OBJECTIF: Record<string, CRRTargets> = {
+export const CRR_TARGETS_BY_OBJECTIF: Record<string, CRRTargets> = {
   // Ironman / Ultra
   IM: { objectif: "Ironman", chargeMinimale: 400, chargeOptimale: 550, chargeMaximale: 800 },
   Ironman: { objectif: "Ironman", chargeMinimale: 400, chargeOptimale: 550, chargeMaximale: 800 },
@@ -74,7 +74,7 @@ const CRR_TARGETS_BY_OBJECTIF: Record<string, CRRTargets> = {
   Olympic: { objectif: "Olympic", chargeMinimale: 200, chargeOptimale: 350, chargeMaximale: 550 },
 };
 
-const DEFAULT_CRR_TARGETS: CRRTargets = {
+export const DEFAULT_CRR_TARGETS: CRRTargets = {
   objectif: "Général",
   chargeMinimale: 250,
   chargeOptimale: 400,

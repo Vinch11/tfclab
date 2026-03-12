@@ -187,8 +187,8 @@ export function useAssistantContext(
       seance_specifique_validee: false,
       fcMax: effectiveRefs.fcMax ?? null,
       deriveCardiaque: effectiveSnapshot?.run_hr_drift_pct ?? null,
-      // ✅ Ajout âge pour uniformisation avec Compass
       athleteAge,
+      tss7d: effectiveSnapshot?.tss_7d ?? null,
     }) : null;
     
     // CRR status

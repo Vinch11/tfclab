@@ -25,6 +25,7 @@ import { computeNutritionEstimate, applyNutritionalCap, type NutritionalRiskInde
 import { computeRunningEconomy, applyEconomyCap, type RunningEconomyResult, type EconomyLevel } from "@/lib/runningEconomy";
 import { getAgeAdjustedTargets } from "@/lib/ageAdjustment";
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
+import { CRR_TARGETS_BY_OBJECTIF, DEFAULT_CRR_TARGETS, type CRRTargets } from "@/lib/chargeRecenteReference";
 
 // =============================================
 // DÉFINITION OFFICIELLE (pour affichage UI)
@@ -165,18 +166,50 @@ export interface ConfidenceInterpretation {
   message: string;
 }
 
+// =============================================
+// ARCHITECTURE MIN(Potentiel, Disponibilité)
+// =============================================
+// Potentiel = moyenne pondérée VLamax + TTE + FTP/kg
+// Disponibilité = score fraîcheur étendu (CRR + fatigue + séance spécifique)
+// Score final = MIN(Potentiel, Disponibilité) - Pénalités
+// =============================================
+
+export interface PotentielDisponibiliteBreakdown {
+  potentiel: number;           // 0-100 : capacité physiologique intrinsèque
+  disponibilite: number;       // 0-100 : fraîcheur / capacité d'exploitation
+  governingFactor: "potentiel" | "disponibilite"; // lequel plafonne
+  potentielDetails: {
+    vlamaxScore: number;       // 0-100
+    tteScore: number;          // 0-100
+    ftpKgScore: number;        // 0-100
+    weightedAvg: number;       // Moyenne pondérée brute
+  };
+  disponibiliteDetails: {
+    fatigueOkBonus: number;    // +20 si fatigue_ok, -30 sinon
+    seanceSpecBonus: number;   // +10 si séance spécifique validée
+    crrBonus: number;          // -35 à +15 selon CRR vs cibles
+    confidencePenalty: number; // -10 si confiance < 0.5
+    baseScore: number;         // 70 (base)
+  };
+  penalties: {
+    nutritionCap: number;      // Réduction par risque nutritionnel
+    economyCap: number;        // Réduction par économie CAP
+    total: number;             // Total des pénalités appliquées
+  };
+}
+
 export interface RaceReadinessEffectif {
-  score: number;                 // 0-100 (après plafonnement nutritionnel + économie)
-  rawScore: number;              // Score avant plafonnement
-  isInsufficient: boolean;       // true si données critiques manquantes (VLamax, FTP, TTE)
-  label: string;                 // "Race Ready!", "En progression", etc.
+  score: number;                 // 0-100 = MIN(Potentiel, Disponibilité) - Pénalités
+  rawScore: number;              // Score avant plafonnement nutrition/économie
+  isInsufficient: boolean;       // true si données critiques manquantes
+  label: string;
   color: "success" | "warning" | "destructive";
   details: RaceReadinessDetails;
   targets: RaceTargets;
   weights: RaceWeights;
-  confidence: number;            // 0-1 (moyenne des confidences)
-  confidenceInterpretation: ConfidenceInterpretation; // Interprétation de la confiance
-  reasonsMissing: string[];      // Liste des données manquantes
+  confidence: number;            // 0-1
+  confidenceInterpretation: ConfidenceInterpretation;
+  reasonsMissing: string[];
   inputsUsed: {
     vlamax: { value: number | null; source: string };
     tte: { value: number | null; source: string };
@@ -184,10 +217,9 @@ export interface RaceReadinessEffectif {
     fatigue_ok: boolean;
     seance_specifique: boolean;
   };
-  messageStaff: string;          // Message explicatif staff-ready
-  // Explication pédagogique "Pourquoi ce score ?"
-  whyThisScore: string;          // Texte pédagogique pour l'athlète
-  interpretation: {              // Interprétation staff détaillée
+  messageStaff: string;
+  whyThisScore: string;
+  interpretation: {
     status: "race_ready" | "almost_ready" | "in_progress" | "not_ready";
     statusLabel: string;
     mainStrengths: string[];
@@ -203,19 +235,23 @@ export interface RaceReadinessEffectif {
   wasCappedByEconomy: boolean;
   economyCapReason: string | null;
   // =============================================
-  // NOUVEAUTÉ : Spécificité VÉLO vs CAP
+  // ARCHITECTURE MIN(Potentiel, Disponibilité)
   // =============================================
-  sport: RaceReadinessSport;     // Sport principal détecté
+  breakdown: PotentielDisponibiliteBreakdown;
+  // =============================================
+  // Spécificité VÉLO vs CAP
+  // =============================================
+  sport: RaceReadinessSport;
   sportSpecificity: {
-    title: string;               // "Race Readiness – Vélo" ou "– Course à Pied"
-    dominante: string;           // "Métabolisme" ou "Biomécanique"
-    pilierPrincipal: string;     // "TTE" ou "Économie de course"
-    vlamaxModulabilite: string;  // "Élevée" ou "Limitée"
-    contraintesClés: string[];   // Liste des contraintes
-    roleVLamax: string;          // Explication du rôle VLamax pour ce sport
-    roleTTE: string;             // Explication du rôle TTE pour ce sport
-    leviers: string[];           // Leviers d'optimisation
-    logique: string;             // Logique d'analyse
+    title: string;
+    dominante: string;
+    pilierPrincipal: string;
+    vlamaxModulabilite: string;
+    contraintesClés: string[];
+    roleVLamax: string;
+    roleTTE: string;
+    leviers: string[];
+    logique: string;
   };
 }
 
@@ -238,7 +274,7 @@ export interface ComputeRaceReadinessParams {
   poids: number | null;
   fatigue_ok?: boolean;
   seance_specifique_validee?: boolean;
-  confidence?: number; // optionnel, sinon moyenne des inputs
+  confidence?: number;
   // Paramètres pour l'économie de course (CAP)
   fcMax?: number | null;
   fcMoyenneEndurance?: number | null;
@@ -247,6 +283,8 @@ export interface ComputeRaceReadinessParams {
   // ✅ AJOUT: Paramètres pour cibles ajustées (unification avec Compass)
   athleteAge?: number | null;
   ambition?: AmbitionLevel;
+  // ✅ AJOUT: TSS 7j pour calcul Disponibilité CRR
+  tss7d?: number | null;
 }
 
 // =============================================
@@ -557,31 +595,64 @@ function scoreFtpKg(ftpKg: number | null, targets: RaceTargets): number {
 }
 
 /**
- * Score Fraîcheur: basé sur fatigue_ok + séance spécifique + confiance
+ * Score Disponibilité (Fraîcheur étendue avec CRR)
+ * Base 70 + fatigue_ok bonus + séance spécifique + CRR zone bonus/malus
+ * Retourne le score ET le détail des contributions
  */
-function scoreFreshness(
+function scoreDisponibilite(
   fatigueOk: boolean,
   seanceSpecifiqueValidee: boolean,
-  avgConfidence: number
-): number {
-  let score = 70; // base
+  avgConfidence: number,
+  tss7d: number | null,
+  objectif: string,
+): { score: number; details: PotentielDisponibiliteBreakdown["disponibiliteDetails"] } {
+  const baseScore = 70;
   
-  if (fatigueOk) {
-    score += 20;
-  } else {
-    score -= 30;
+  // Fatigue
+  const fatigueOkBonus = fatigueOk ? 20 : -30;
+  
+  // Séance spécifique
+  const seanceSpecBonus = seanceSpecifiqueValidee ? 10 : 0;
+  
+  // CRR zone bonus/malus: compare tss7d aux cibles par objectif
+  let crrBonus = 0;
+  if (tss7d != null) {
+    const crrTargets = CRR_TARGETS_BY_OBJECTIF[objectif] || DEFAULT_CRR_TARGETS;
+    if (tss7d >= crrTargets.chargeMinimale && tss7d <= crrTargets.chargeMaximale) {
+      // Zone acceptable
+      if (tss7d >= crrTargets.chargeOptimale * 0.9 && tss7d <= crrTargets.chargeOptimale * 1.1) {
+        // Zone optimale: bonus max +15
+        crrBonus = 15;
+      } else {
+        // Zone acceptable mais pas optimale: bonus +5
+        crrBonus = 5;
+      }
+    } else if (tss7d > crrTargets.chargeMaximale) {
+      // Surcharge: pénalité progressive jusqu'à -35
+      const excessRatio = (tss7d - crrTargets.chargeMaximale) / crrTargets.chargeOptimale;
+      crrBonus = -clamp(Math.round(excessRatio * 50), 10, 35);
+    } else if (tss7d < crrTargets.chargeMinimale) {
+      // Sous-charge: pénalité modérée -10 à -20
+      const deficitRatio = (crrTargets.chargeMinimale - tss7d) / crrTargets.chargeMinimale;
+      crrBonus = -clamp(Math.round(deficitRatio * 30), 5, 20);
+    }
   }
   
-  if (seanceSpecifiqueValidee) {
-    score += 10;
-  }
+  // Confiance
+  const confidencePenalty = avgConfidence < 0.5 ? -10 : 0;
   
-  // Pénalité si confiance faible
-  if (avgConfidence < 0.5) {
-    score -= 10;
-  }
+  const score = clamp(baseScore + fatigueOkBonus + seanceSpecBonus + crrBonus + confidencePenalty, 0, 100);
   
-  return clamp(score, 0, 100);
+  return {
+    score,
+    details: {
+      fatigueOkBonus,
+      seanceSpecBonus,
+      crrBonus,
+      confidencePenalty,
+      baseScore,
+    }
+  };
 }
 
 // =============================================
@@ -763,6 +834,8 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
     // ✅ AJOUT: Paramètres pour cibles ajustées
     athleteAge = null,
     ambition,
+    // ✅ AJOUT: TSS 7j pour Disponibilité CRR
+    tss7d = null,
   } = params;
 
   const reasonsMissing: string[] = [];
@@ -800,21 +873,29 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
   const ftpKgScore = scoreFtpKg(ftpKg, targets);
   
   const avgConfidence = overrideConfidence ?? (vlamaxEffectif.confidence + tteEffectif.confidence) / 2;
-  const freshnessScore = scoreFreshness(fatigue_ok, seance_specifique_validee, avgConfidence);
 
-  // =====================
-  // WEIGHTED SCORE
-  // =====================
-  const rawScoreValue = (
-    (vlamaxScore * weights.vlamax) +
-    (tteScore * weights.tte) +
-    (ftpKgScore * weights.ftpKg) +
-    (freshnessScore * weights.freshness)
-  ) / 100;
+  // =============================================
+  // ARCHITECTURE: MIN(Potentiel, Disponibilité) - Pénalités
+  // =============================================
+
+  // 1. POTENTIEL = moyenne pondérée des piliers physiologiques (VLamax, TTE, FTP/kg)
+  //    On normalise les poids pour exclure freshness (qui est dans Disponibilité)
+  const potentielWeightTotal = weights.vlamax + weights.tte + weights.ftpKg;
+  const potentielRaw = potentielWeightTotal > 0
+    ? (vlamaxScore * weights.vlamax + tteScore * weights.tte + ftpKgScore * weights.ftpKg) / potentielWeightTotal
+    : 0;
   
-  // Apply confidence factor: score * (0.85 + 0.15 * confidence)
+  // Apply confidence factor au potentiel
   const confidenceFactor = 0.85 + 0.15 * avgConfidence;
-  const baseScore = Math.round(clamp(rawScoreValue * confidenceFactor, 0, 100));
+  const potentiel = Math.round(clamp(potentielRaw * confidenceFactor, 0, 100));
+
+  // 2. DISPONIBILITÉ = score fraîcheur étendu (fatigue + séance spécifique + CRR + confiance)
+  const dispoResult = scoreDisponibilite(fatigue_ok, seance_specifique_validee, avgConfidence, tss7d, objectif);
+  const disponibilite = dispoResult.score;
+
+  // 3. SCORE = MIN(Potentiel, Disponibilité)
+  const governingFactor: "potentiel" | "disponibilite" = potentiel <= disponibilite ? "potentiel" : "disponibilite";
+  const baseScore = Math.min(potentiel, disponibilite);
 
   // =====================
   // CALCUL RISQUE NUTRITIONNEL + PLAFONNEMENT
@@ -849,13 +930,34 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
   const finalScore = currentScore;
 
   // =====================
-  // DETAILS (0-25 each)
+  // BREAKDOWN MIN(Potentiel, Disponibilité)
+  // =====================
+  const breakdown: PotentielDisponibiliteBreakdown = {
+    potentiel,
+    disponibilite,
+    governingFactor,
+    potentielDetails: {
+      vlamaxScore,
+      tteScore,
+      ftpKgScore,
+      weightedAvg: Math.round(potentielRaw),
+    },
+    disponibiliteDetails: dispoResult.details,
+    penalties: {
+      nutritionCap: nutritionalCap.wasCapped ? baseScore - nutritionalCap.cappedScore : 0,
+      economyCap: economyCap.wasCapped ? nutritionalCap.cappedScore - economyCap.cappedScore : 0,
+      total: baseScore - finalScore,
+    },
+  };
+
+  // =====================
+  // DETAILS (0-25 each) - conserve la rétro-compatibilité UI
   // =====================
   const details: RaceReadinessDetails = {
     vlamax: Math.round(vlamaxScore / 4),
     endurance: Math.round(tteScore / 4),
     puissance: Math.round(ftpKgScore / 4),
-    fraicheur: Math.round(freshnessScore / 4),
+    fraicheur: Math.round(disponibilite / 4),
   };
 
   // =====================
@@ -923,7 +1025,7 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
     { name: "VLamax", score: vlamaxScore },
     { name: "TTE (endurance)", score: tteScore },
     { name: "FTP/kg (puissance)", score: ftpKgScore },
-    { name: "Fraîcheur", score: freshnessScore },
+    { name: "Fraîcheur", score: disponibilite },
   ].sort((a, b) => a.score - b.score);
   
   const strongestScores = [...weakestScores].reverse();
@@ -934,8 +1036,8 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
   if (reasonsMissing.length >= 2) {
     messageStaff = `Race Readiness partiel. Ajoutez un snapshot avec FTP, poids${!tte ? ", TSS_7d ou TTE mesuré" : ""} pour un calcul complet.`;
   } else {
-    messageStaff = `Race Readiness = combinaison VLamax (moteur), TTE (endurance au seuil), FTP/kg (puissance relative) et fraîcheur. ` +
-      `Pondération ajustée à l'objectif: ${objectif}. ` +
+    messageStaff = `Race Readiness = MIN(Potentiel ${potentiel}, Disponibilité ${disponibilite}) = ${baseScore}. ` +
+      `Facteur gouvernant: ${governingFactor === "disponibilite" ? "Disponibilité (fraîcheur)" : "Potentiel (physiologie)"}. ` +
       `Points limitants: ${limitants.join(", ")}.`;
   }
   
@@ -1025,6 +1127,8 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessParams)
     runningEconomy: runningEconomy.isApplicable ? runningEconomy : null,
     wasCappedByEconomy: economyCap.wasCapped,
     economyCapReason: economyCap.capReason,
+    // ✅ Architecture MIN(Potentiel, Disponibilité)
+    breakdown,
     // Spécificité sport
     sport,
     sportSpecificity: {

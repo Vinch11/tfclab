@@ -516,9 +516,10 @@ const Index = () => {
       seance_specifique_validee: false,
       fcMax: effectiveRefs.fcMax ?? null,
       deriveCardiaque: effectiveCloudSnapshot?.run_hr_drift_pct ?? null,
-      // ✅ FIX: Passer âge et ambition pour synchroniser avec Compass
       athleteAge: currentAthlete?.birth_date ? calculateAge(currentAthlete.birth_date) : null,
       ambition: currentAmbition,
+      // ✅ AJOUT: TSS 7j pour calcul Disponibilité (MIN architecture)
+      tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
     });
   }, [currentAthlete, vlamaxEffectif, tteEffectif, ftp, poids, effectiveRefs, effectiveCloudSnapshot, currentAmbition]);
 

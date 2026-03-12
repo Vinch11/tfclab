@@ -271,8 +271,8 @@ export default function DashboardPage() {
       poids: activeSnapshot.weight_kg ?? null,
       fatigue_ok: true,
       seance_specifique_validee: false,
-      // ✅ Ajout âge pour uniformisation avec Compass
       athleteAge,
+      tss7d: activeSnapshot.tss_7d ?? null,
     });
     
     // Nutrition Prédictive
