@@ -595,31 +595,64 @@ function scoreFtpKg(ftpKg: number | null, targets: RaceTargets): number {
 }
 
 /**
- * Score Fraîcheur: basé sur fatigue_ok + séance spécifique + confiance
+ * Score Disponibilité (Fraîcheur étendue avec CRR)
+ * Base 70 + fatigue_ok bonus + séance spécifique + CRR zone bonus/malus
+ * Retourne le score ET le détail des contributions
  */
-function scoreFreshness(
+function scoreDisponibilite(
   fatigueOk: boolean,
   seanceSpecifiqueValidee: boolean,
-  avgConfidence: number
-): number {
-  let score = 70; // base
+  avgConfidence: number,
+  tss7d: number | null,
+  objectif: string,
+): { score: number; details: PotentielDisponibiliteBreakdown["disponibiliteDetails"] } {
+  const baseScore = 70;
   
-  if (fatigueOk) {
-    score += 20;
-  } else {
-    score -= 30;
+  // Fatigue
+  const fatigueOkBonus = fatigueOk ? 20 : -30;
+  
+  // Séance spécifique
+  const seanceSpecBonus = seanceSpecifiqueValidee ? 10 : 0;
+  
+  // CRR zone bonus/malus: compare tss7d aux cibles par objectif
+  let crrBonus = 0;
+  if (tss7d != null) {
+    const crrTargets = CRR_TARGETS_BY_OBJECTIF[objectif] || DEFAULT_CRR_TARGETS;
+    if (tss7d >= crrTargets.chargeMinimale && tss7d <= crrTargets.chargeMaximale) {
+      // Zone acceptable
+      if (tss7d >= crrTargets.chargeOptimale * 0.9 && tss7d <= crrTargets.chargeOptimale * 1.1) {
+        // Zone optimale: bonus max +15
+        crrBonus = 15;
+      } else {
+        // Zone acceptable mais pas optimale: bonus +5
+        crrBonus = 5;
+      }
+    } else if (tss7d > crrTargets.chargeMaximale) {
+      // Surcharge: pénalité progressive jusqu'à -35
+      const excessRatio = (tss7d - crrTargets.chargeMaximale) / crrTargets.chargeOptimale;
+      crrBonus = -clamp(Math.round(excessRatio * 50), 10, 35);
+    } else if (tss7d < crrTargets.chargeMinimale) {
+      // Sous-charge: pénalité modérée -10 à -20
+      const deficitRatio = (crrTargets.chargeMinimale - tss7d) / crrTargets.chargeMinimale;
+      crrBonus = -clamp(Math.round(deficitRatio * 30), 5, 20);
+    }
   }
   
-  if (seanceSpecifiqueValidee) {
-    score += 10;
-  }
+  // Confiance
+  const confidencePenalty = avgConfidence < 0.5 ? -10 : 0;
   
-  // Pénalité si confiance faible
-  if (avgConfidence < 0.5) {
-    score -= 10;
-  }
+  const score = clamp(baseScore + fatigueOkBonus + seanceSpecBonus + crrBonus + confidencePenalty, 0, 100);
   
-  return clamp(score, 0, 100);
+  return {
+    score,
+    details: {
+      fatigueOkBonus,
+      seanceSpecBonus,
+      crrBonus,
+      confidencePenalty,
+      baseScore,
+    }
+  };
 }
 
 // =============================================
