@@ -173,6 +173,7 @@ export const LEVER_INFO: Record<UnifiedLever, {
 }> = {
   increase_vo2max: { label: "↑ VO2max", emoji: "📈" },
   decrease_vlamax: { label: "↓ VLamax", emoji: "📉" },
+  adjust_anaerobic: { label: "Ajuster W'", emoji: "💥" },
   increase_tte: { label: "↑ TTE", emoji: "⏳" },
   increase_fat_oxidation: { label: "↑ FatMax", emoji: "🔥" },
   recovery: { label: "Récupération", emoji: "🛌" },
