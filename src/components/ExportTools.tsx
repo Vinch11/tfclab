@@ -6094,38 +6094,32 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   `;
 
   // =============================================
-  // I. CHECK-INS (si dispo)
+  // I. ÉTAT DE FATIGUE (Snapshot-centric)
   // =============================================
-  const sortedCheckins = [...checkins].sort((a, b) => new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime());
-  const lastCheckin = sortedCheckins[0];
+  const fatigueStateLabelMap: Record<string, { label: string; emoji: string; color: string }> = {
+    fresh:    { label: "Frais — bien récupéré", emoji: "🟢", color: "var(--success)" },
+    ok:       { label: "Normal — état standard", emoji: "🟡", color: "var(--warning)" },
+    fatigued: { label: "Fatigué — récupération partielle", emoji: "🟠", color: "#d97706" },
+    high:     { label: "Très fatigué — surcharge", emoji: "🔴", color: "var(--error)" },
+    injured:  { label: "Blessé / indisponible", emoji: "🚑", color: "var(--error)" },
+  };
+  const currentFatigueState = effectiveSnapshot?.fatigue_state || "ok";
+  const fatigueDisplay = fatigueStateLabelMap[currentFatigueState] ?? fatigueStateLabelMap.ok;
   
-  const checkinsHTML = checkins.length > 0 ? `
+  const checkinsHTML = effectiveSnapshot ? `
     <section id="checkins" class="section pagebreakAvoid">
-      <h2>H. Check-ins & Monitoring</h2>
-      ${lastCheckin ? `
-        <div class="card">
-          <h3>Dernier check-in: ${dtStr(lastCheckin.date_iso)}</h3>
-          <div class="grid4 mt">
-            <div>
-              <div class="muted">Fatigue</div>
-              <div class="medium">${lastCheckin.fatigue ?? "—"}/10</div>
-            </div>
-            <div>
-              <div class="muted">Sommeil</div>
-              <div class="medium">${lastCheckin.sleep ?? "—"}/10</div>
-            </div>
-            <div>
-              <div class="muted">Stress</div>
-              <div class="medium">${lastCheckin.stress ?? "—"}/10</div>
-            </div>
-            <div>
-              <div class="muted">Readiness</div>
-              <div class="medium">${lastCheckin.readiness ?? "—"}/10</div>
-            </div>
+      <h2>H. État de Fatigue — Snapshot</h2>
+      <div class="card">
+        <h3>Snapshot actif : ${dtStr(effectiveSnapshot.date)}</h3>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:12px;">
+          <span style="font-size:28px;">${fatigueDisplay.emoji}</span>
+          <div>
+            <div style="font-size:16px;font-weight:700;color:${fatigueDisplay.color}">${htmlEscape(fatigueDisplay.label)}</div>
+            <div class="muted" style="font-size:11px;margin-top:4px;">État déclaré : <code>${currentFatigueState}</code></div>
           </div>
-          ${lastCheckin.notes ? `<div class="mt muted">Notes: ${htmlEscape(lastCheckin.notes)}</div>` : ''}
         </div>
-      ` : ''}
+        ${effectiveSnapshot.coach_notes ? `<div class="mt muted">Notes coach : ${htmlEscape(effectiveSnapshot.coach_notes)}</div>` : ''}
+      </div>
     </section>
   ` : '';
 
