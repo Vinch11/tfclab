@@ -165,18 +165,50 @@ export interface ConfidenceInterpretation {
   message: string;
 }
 
+// =============================================
+// ARCHITECTURE MIN(Potentiel, Disponibilité)
+// =============================================
+// Potentiel = moyenne pondérée VLamax + TTE + FTP/kg
+// Disponibilité = score fraîcheur étendu (CRR + fatigue + séance spécifique)
+// Score final = MIN(Potentiel, Disponibilité) - Pénalités
+// =============================================
+
+export interface PotentielDisponibiliteBreakdown {
+  potentiel: number;           // 0-100 : capacité physiologique intrinsèque
+  disponibilite: number;       // 0-100 : fraîcheur / capacité d'exploitation
+  governingFactor: "potentiel" | "disponibilite"; // lequel plafonne
+  potentielDetails: {
+    vlamaxScore: number;       // 0-100
+    tteScore: number;          // 0-100
+    ftpKgScore: number;        // 0-100
+    weightedAvg: number;       // Moyenne pondérée brute
+  };
+  disponibiliteDetails: {
+    fatigueOkBonus: number;    // +20 si fatigue_ok, -30 sinon
+    seanceSpecBonus: number;   // +10 si séance spécifique validée
+    crrBonus: number;          // -35 à +15 selon CRR vs cibles
+    confidencePenalty: number; // -10 si confiance < 0.5
+    baseScore: number;         // 70 (base)
+  };
+  penalties: {
+    nutritionCap: number;      // Réduction par risque nutritionnel
+    economyCap: number;        // Réduction par économie CAP
+    total: number;             // Total des pénalités appliquées
+  };
+}
+
 export interface RaceReadinessEffectif {
-  score: number;                 // 0-100 (après plafonnement nutritionnel + économie)
-  rawScore: number;              // Score avant plafonnement
-  isInsufficient: boolean;       // true si données critiques manquantes (VLamax, FTP, TTE)
-  label: string;                 // "Race Ready!", "En progression", etc.
+  score: number;                 // 0-100 = MIN(Potentiel, Disponibilité) - Pénalités
+  rawScore: number;              // Score avant plafonnement nutrition/économie
+  isInsufficient: boolean;       // true si données critiques manquantes
+  label: string;
   color: "success" | "warning" | "destructive";
   details: RaceReadinessDetails;
   targets: RaceTargets;
   weights: RaceWeights;
-  confidence: number;            // 0-1 (moyenne des confidences)
-  confidenceInterpretation: ConfidenceInterpretation; // Interprétation de la confiance
-  reasonsMissing: string[];      // Liste des données manquantes
+  confidence: number;            // 0-1
+  confidenceInterpretation: ConfidenceInterpretation;
+  reasonsMissing: string[];
   inputsUsed: {
     vlamax: { value: number | null; source: string };
     tte: { value: number | null; source: string };
@@ -184,10 +216,9 @@ export interface RaceReadinessEffectif {
     fatigue_ok: boolean;
     seance_specifique: boolean;
   };
-  messageStaff: string;          // Message explicatif staff-ready
-  // Explication pédagogique "Pourquoi ce score ?"
-  whyThisScore: string;          // Texte pédagogique pour l'athlète
-  interpretation: {              // Interprétation staff détaillée
+  messageStaff: string;
+  whyThisScore: string;
+  interpretation: {
     status: "race_ready" | "almost_ready" | "in_progress" | "not_ready";
     statusLabel: string;
     mainStrengths: string[];
@@ -203,19 +234,23 @@ export interface RaceReadinessEffectif {
   wasCappedByEconomy: boolean;
   economyCapReason: string | null;
   // =============================================
-  // NOUVEAUTÉ : Spécificité VÉLO vs CAP
+  // ARCHITECTURE MIN(Potentiel, Disponibilité)
   // =============================================
-  sport: RaceReadinessSport;     // Sport principal détecté
+  breakdown: PotentielDisponibiliteBreakdown;
+  // =============================================
+  // Spécificité VÉLO vs CAP
+  // =============================================
+  sport: RaceReadinessSport;
   sportSpecificity: {
-    title: string;               // "Race Readiness – Vélo" ou "– Course à Pied"
-    dominante: string;           // "Métabolisme" ou "Biomécanique"
-    pilierPrincipal: string;     // "TTE" ou "Économie de course"
-    vlamaxModulabilite: string;  // "Élevée" ou "Limitée"
-    contraintesClés: string[];   // Liste des contraintes
-    roleVLamax: string;          // Explication du rôle VLamax pour ce sport
-    roleTTE: string;             // Explication du rôle TTE pour ce sport
-    leviers: string[];           // Leviers d'optimisation
-    logique: string;             // Logique d'analyse
+    title: string;
+    dominante: string;
+    pilierPrincipal: string;
+    vlamaxModulabilite: string;
+    contraintesClés: string[];
+    roleVLamax: string;
+    roleTTE: string;
+    leviers: string[];
+    logique: string;
   };
 }
 
