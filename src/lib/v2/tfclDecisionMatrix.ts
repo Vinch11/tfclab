@@ -512,14 +512,20 @@ function identifyDecisionCase(
     return "D";
   }
   
-  // Fallback: le plus impactant
-  const impacts = [
-    { case: "B" as DecisionCase, impact: vo2maxMetric.weightedImpact },
-    { case: "A" as DecisionCase, impact: vlamaxMetric.weightedImpact },
-    { case: "C" as DecisionCase, impact: tteMetric.weightedImpact },
-    { case: "D" as DecisionCase, impact: fatmaxMetric.weightedImpact },
-    { case: "E" as DecisionCase, impact: freshnessMetric.weightedImpact },
+  // Fallback: le plus impactant parmi les domaines physiologiques
+  // Exclure Cas E (Disponibilité) si la fraîcheur est au-dessus du seuil warning
+  // pour éviter de diagnostiquer "Récupération" quand l'athlète est en forme normale
+  const impacts: { case: DecisionCase; impact: number }[] = [
+    { case: "B", impact: vo2maxMetric.weightedImpact },
+    { case: "A", impact: vlamaxMetric.weightedImpact },
+    { case: "C", impact: tteMetric.weightedImpact },
+    { case: "D", impact: fatmaxMetric.weightedImpact },
   ];
+  
+  // N'inclure la disponibilité dans le fallback que si la fraîcheur est réellement basse
+  if (freshnessMetric.raw !== null && freshnessMetric.raw < FRESHNESS_WARNING_THRESHOLD) {
+    impacts.push({ case: "E", impact: freshnessMetric.weightedImpact });
+  }
   
   impacts.sort((a, b) => b.impact - a.impact);
   return impacts[0].case;
