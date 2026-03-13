@@ -558,18 +558,18 @@ export default function DashboardPage() {
 
   const renderAthleteContext = (): ReactNode => (
     <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-      <CardContent className="p-4 space-y-4">
+      <CardContent className="p-3 sm:p-4 space-y-3 sm:space-y-4">
         {/* Ligne 1: Nom et objectif */}
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-xl font-bold mb-2">{currentAthlete.nom}</h1>
-            <div className="flex flex-wrap items-center gap-2 text-sm">
-              <Badge variant="outline" className="gap-1">
-                <Target className="h-3 w-3" />
+        <div className="flex items-start justify-between gap-2 sm:gap-3">
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl font-bold mb-1.5 sm:mb-2 truncate">{currentAthlete.nom}</h1>
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-sm">
+              <Badge variant="outline" className="gap-1 text-[11px] sm:text-xs">
+                <Target className="h-3 w-3 shrink-0" />
                 {OBJECTIF_LABELS[objectif] || objectif}
               </Badge>
-              <Badge variant="secondary" className="gap-1">
-                <Activity className="h-3 w-3" />
+              <Badge variant="secondary" className="gap-1 text-[11px] sm:text-xs">
+                <Activity className="h-3 w-3 shrink-0" />
                 {PHASE_LABELS[phase] || phase}
               </Badge>
             </div>
@@ -603,7 +603,7 @@ export default function DashboardPage() {
 
   const renderCoachSummary = (): ReactNode => (
     <Card className="border-l-4 border-l-primary">
-      <CardContent className="p-4">
+      <CardContent className="p-3 sm:p-4">
         <div className="flex items-start gap-3">
           <div className="p-2 rounded-lg bg-primary/10">
             <Info className="h-5 w-5 text-primary" />
@@ -629,7 +629,7 @@ export default function DashboardPage() {
 
       {/* PILIER 1: VLamax Effectif */}
       <Card>
-        <CardContent className="p-4 space-y-3">
+        <CardContent className="p-3 sm:p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Zap className="h-5 w-5 text-amber-500" />
@@ -638,14 +638,14 @@ export default function DashboardPage() {
             {getStatusBadge(vlamaxStatus.status, vlamaxStatus.label)}
           </div>
           
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold font-mono">
+          <div className="flex items-baseline gap-1.5 sm:gap-2">
+            <span className="text-2xl sm:text-3xl font-bold font-mono">
               {vlamaxEffectif.value !== null ? vlamaxEffectif.value.toFixed(2) : "—"}
             </span>
-            <span className="text-sm text-muted-foreground">mmol/L/s</span>
+            <span className="text-xs sm:text-sm text-muted-foreground">mmol/L/s</span>
           </div>
           
-          <div className="flex items-center gap-4 text-xs">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] sm:text-xs">
             <div className="flex items-center gap-1">
               <span className="text-muted-foreground">Source:</span>
               <span className={getSourceColor(vlamaxEffectif.source)}>
@@ -703,7 +703,7 @@ export default function DashboardPage() {
 
       {/* PILIER 2: TTE Effectif */}
       <Card>
-        <CardContent className="p-4 space-y-3">
+        <CardContent className="p-3 sm:p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-blue-500" />
@@ -712,10 +712,10 @@ export default function DashboardPage() {
             {getStatusBadge(tteStatus.status, tteStatus.label)}
           </div>
           
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold font-mono">{tteEffectif.tte_min}</span>
-            <span className="text-sm text-muted-foreground">min</span>
-            <span className="text-sm text-muted-foreground ml-2">
+          <div className="flex items-baseline gap-1.5 sm:gap-2 flex-wrap">
+            <span className="text-2xl sm:text-3xl font-bold font-mono">{tteEffectif.tte_min}</span>
+            <span className="text-xs sm:text-sm text-muted-foreground">min</span>
+            <span className="text-xs sm:text-sm text-muted-foreground ml-1 sm:ml-2">
               (cible: {tteTarget} min)
             </span>
           </div>
@@ -725,7 +725,7 @@ export default function DashboardPage() {
             className="h-2" 
           />
           
-          <div className="flex items-center gap-4 text-xs">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] sm:text-xs">
             <div className="flex items-center gap-1">
               <span className="text-muted-foreground">Source:</span>
               <span className={tteEffectif.source === "observed" ? "text-green-600" : "text-amber-600"}>
@@ -759,7 +759,7 @@ export default function DashboardPage() {
 
       {/* PILIER 3: Race Readiness */}
       <Card>
-        <CardContent className="p-4 space-y-3">
+        <CardContent className="p-3 sm:p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Target className="h-5 w-5 text-green-500" />
@@ -776,9 +776,9 @@ export default function DashboardPage() {
             </div>
           ) : (
             <>
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold font-mono">{raceReadiness.score}</span>
-                <span className="text-sm text-muted-foreground">%</span>
+              <div className="flex items-baseline gap-1.5 sm:gap-2">
+                <span className="text-2xl sm:text-3xl font-bold font-mono">{raceReadiness.score}</span>
+                <span className="text-xs sm:text-sm text-muted-foreground">%</span>
               </div>
               
               <Progress 
@@ -791,17 +791,17 @@ export default function DashboardPage() {
               </p>
               
               {/* Détail par composante */}
-              <div className="grid grid-cols-3 gap-2 text-xs">
-                <div className="p-2 bg-muted/50 rounded text-center">
-                  <p className="text-muted-foreground">Métabolisme</p>
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-[11px] sm:text-xs">
+                <div className="p-1.5 sm:p-2 bg-muted/50 rounded text-center">
+                  <p className="text-muted-foreground truncate">Métabolisme</p>
                   <p className="font-bold">{raceReadiness.details.vlamax}/25</p>
                 </div>
-                <div className="p-2 bg-muted/50 rounded text-center">
-                  <p className="text-muted-foreground">Endurance</p>
+                <div className="p-1.5 sm:p-2 bg-muted/50 rounded text-center">
+                  <p className="text-muted-foreground truncate">Endurance</p>
                   <p className="font-bold">{raceReadiness.details.endurance}/25</p>
                 </div>
-                <div className="p-2 bg-muted/50 rounded text-center">
-                  <p className="text-muted-foreground">Puissance</p>
+                <div className="p-1.5 sm:p-2 bg-muted/50 rounded text-center">
+                  <p className="text-muted-foreground truncate">Puissance</p>
                   <p className="font-bold">{raceReadiness.details.puissance}/25</p>
                 </div>
               </div>
@@ -824,7 +824,7 @@ export default function DashboardPage() {
     
     return (
       <Card>
-        <CardContent className="p-4 space-y-3">
+        <CardContent className="p-3 sm:p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Utensils className="h-5 w-5 text-orange-500" />
@@ -838,14 +838,14 @@ export default function DashboardPage() {
             </Badge>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-2 sm:gap-4">
             <div>
-              <p className="text-xs text-muted-foreground mb-1">Besoin glucidique estimé</p>
-              <p className="text-xl font-bold">{nutritionEstimate.carbsMin}–{nutritionEstimate.carbsMax} g/h</p>
+              <p className="text-[11px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">Besoin glucidique estimé</p>
+              <p className="text-lg sm:text-xl font-bold">{nutritionEstimate.carbsMin}–{nutritionEstimate.carbsMax} g/h</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground mb-1">Facteur principal</p>
-              <p className="text-sm font-medium">{nutritionEstimate.nutritionalRiskIndex.mainRiskFactor}</p>
+              <p className="text-[11px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">Facteur principal</p>
+              <p className="text-xs sm:text-sm font-medium">{nutritionEstimate.nutritionalRiskIndex.mainRiskFactor}</p>
             </div>
           </div>
           
@@ -1247,7 +1247,7 @@ export default function DashboardPage() {
   
   return (
     <AppLayout title="Dashboard">
-      <div className="animate-fade-in max-w-2xl mx-auto space-y-4">
+      <div className="animate-fade-in max-w-2xl mx-auto space-y-3 sm:space-y-4">
         {/* Running Focus Mode Indicator */}
         {isRunningOnly && (
           <div className="flex items-center justify-between p-3 bg-primary/5 rounded-lg border border-primary/20">

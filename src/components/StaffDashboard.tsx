@@ -496,17 +496,17 @@ export function StaffDashboard({
               </p>
               
               {/* Détail par composante */}
-              <div className="grid grid-cols-3 gap-2 text-xs">
-                <div className="p-2 bg-muted/50 rounded text-center">
-                  <p className="text-muted-foreground">Métabolisme</p>
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-[11px] sm:text-xs">
+                <div className="p-1.5 sm:p-2 bg-muted/50 rounded text-center">
+                  <p className="text-muted-foreground truncate">Métabolisme</p>
                   <p className="font-bold">{raceReadiness.details.vlamax}/25</p>
                 </div>
-                <div className="p-2 bg-muted/50 rounded text-center">
-                  <p className="text-muted-foreground">Endurance</p>
+                <div className="p-1.5 sm:p-2 bg-muted/50 rounded text-center">
+                  <p className="text-muted-foreground truncate">Endurance</p>
                   <p className="font-bold">{raceReadiness.details.endurance}/25</p>
                 </div>
-                <div className="p-2 bg-muted/50 rounded text-center">
-                  <p className="text-muted-foreground">Puissance</p>
+                <div className="p-1.5 sm:p-2 bg-muted/50 rounded text-center">
+                  <p className="text-muted-foreground truncate">Puissance</p>
                   <p className="font-bold">{raceReadiness.details.puissance}/25</p>
                 </div>
               </div>
@@ -545,25 +545,25 @@ export function StaffDashboard({
             />
             
             {/* Valeurs brutes pour contexte */}
-            <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
-              <div className="p-2 bg-cyan-500/10 rounded-lg text-center">
+            <div className="mt-3 grid grid-cols-3 gap-1.5 sm:gap-2 text-[11px] sm:text-xs">
+              <div className="p-1.5 sm:p-2 bg-cyan-500/10 rounded-lg text-center">
                 <p className="text-cyan-600 dark:text-cyan-400 font-medium">VLamax</p>
                 <p className="font-bold text-foreground">
                   {vlamaxEffectif.value !== null ? vlamaxEffectif.value.toFixed(2) : "—"}
                 </p>
-                <p className="text-muted-foreground">cible: {radarTargets.vlamaxIdeal}</p>
+                <p className="text-muted-foreground truncate">cible: {radarTargets.vlamaxIdeal}</p>
               </div>
-              <div className="p-2 bg-orange-500/10 rounded-lg text-center">
+              <div className="p-1.5 sm:p-2 bg-orange-500/10 rounded-lg text-center">
                 <p className="text-orange-600 dark:text-orange-400 font-medium">TTE</p>
                 <p className="font-bold text-foreground">{tteEffectif.tte_min} min</p>
-                <p className="text-muted-foreground">cible: {radarTargets.tteTarget} min</p>
+                <p className="text-muted-foreground truncate">cible: {radarTargets.tteTarget} min</p>
               </div>
-              <div className="p-2 bg-green-500/10 rounded-lg text-center">
+              <div className="p-1.5 sm:p-2 bg-green-500/10 rounded-lg text-center">
                 <p className="text-green-600 dark:text-green-400 font-medium">FTP/kg</p>
                 <p className="font-bold text-foreground">
                   {ftpKg !== null ? ftpKg.toFixed(2) : "—"}
                 </p>
-                <p className="text-muted-foreground">cible: {radarTargets.ftpKgTarget}</p>
+                <p className="text-muted-foreground truncate">cible: {radarTargets.ftpKgTarget}</p>
               </div>
             </div>
             
@@ -582,7 +582,7 @@ export function StaffDashboard({
                     {ambitionLabel}
                   </Badge>
                 </div>
-                <div className="grid grid-cols-3 gap-3 text-sm">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3 text-xs sm:text-sm">
                   <div>
                     <p className="text-muted-foreground mb-1">VLamax cible</p>
                     <p className="font-medium text-foreground font-mono">{radarTargets.vlamaxIdeal.toFixed(2)}</p>
@@ -625,14 +625,14 @@ export function StaffDashboard({
               </Badge>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-2 sm:gap-4">
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Besoin glucidique estimé</p>
-                <p className="text-xl font-bold">{nutritionEstimate.carbsMin}–{nutritionEstimate.carbsMax} g/h</p>
+                <p className="text-[11px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">Besoin glucidique estimé</p>
+                <p className="text-lg sm:text-xl font-bold">{nutritionEstimate.carbsMin}–{nutritionEstimate.carbsMax} g/h</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Facteur principal</p>
-                <p className="text-sm font-medium">{nutritionEstimate.nutritionalRiskIndex.mainRiskFactor}</p>
+                <p className="text-[11px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">Facteur principal</p>
+                <p className="text-xs sm:text-sm font-medium">{nutritionEstimate.nutritionalRiskIndex.mainRiskFactor}</p>
               </div>
             </div>
             
