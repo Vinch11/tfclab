@@ -1,6 +1,7 @@
 // =============================================
 // ASSISTANT DRAWER - Chatbot Staff-Grade
 // Sources internes uniquement + contexte runtime
+// Markdown rendering + mobile-optimized UX
 // =============================================
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
@@ -10,19 +11,20 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
+import ReactMarkdown from "react-markdown";
 import { 
   MessageCircle, 
   Send, 
   Loader2, 
   Sparkles, 
   HelpCircle, 
-  Settings2,
   AlertTriangle,
   CheckCircle2,
   XCircle,
   Info,
   BookOpen,
-  Database
+  Database,
+  Trash2
 } from "lucide-react";
 import { useCloudData } from "@/hooks/useCloudData";
 import { 
@@ -72,13 +74,9 @@ const QUICK_SUGGESTIONS = [
   { label: "Race Readiness ?", query: "C'est quoi le Race Readiness ?" },
   { label: "Importer PDF", query: "Comment importer un PDF de test ?" },
   { label: "Zone grise ?", query: "C'est quoi la zone grise ?" },
-  // Race Readiness Signature suggestions
   { label: "Décision Go/Adjust ?", query: "Pourquoi la décision Race Readiness est Go/Adjust/No-Go pour cet athlète ?" },
   { label: "Potentiel × Dispo ?", query: "Comment le Potentiel et la Disponibilité sont calculés dans Race Readiness Signature ?" },
-  // Wahoo suggestions
   { label: "Wahoo suggestions", query: "Quelles séances Wahoo sont recommandées pour mon profil ?" },
-  { label: "Pourquoi Endurance 1.5 ?", query: "Pourquoi Endurance 1.5 est proposée ?" },
-  { label: "Nine Hammers risqué ?", query: "Pourquoi Nine Hammers est déconseillé pour Ironman ?" },
   { label: "Séance fatigue", query: "Je suis fatigué, quelle séance Wahoo aujourd'hui ?" },
 ];
 
@@ -108,7 +106,6 @@ async function streamChat({
   onError: (error: string) => void;
 }) {
   try {
-    // Get the current session token for authentication
     const { data: sessionData } = await supabase.auth.getSession();
     const accessToken = sessionData?.session?.access_token;
     
@@ -134,7 +131,13 @@ async function streamChat({
 
     if (!resp.ok) {
       const errorData = await resp.json().catch(() => ({ error: "Erreur réseau" }));
-      onError(errorData.error || `Erreur ${resp.status}`);
+      if (resp.status === 429) {
+        onError("Limite de requêtes atteinte. Réessaie dans quelques secondes.");
+      } else if (resp.status === 402) {
+        onError("Crédits IA insuffisants. Contacte l'administrateur.");
+      } else {
+        onError(errorData.error || `Erreur ${resp.status}`);
+      }
       return;
     }
 
@@ -201,6 +204,45 @@ async function streamChat({
     console.error("Stream error:", e);
     onError("Erreur de connexion");
   }
+}
+
+// =============================================
+// MESSAGE BUBBLE COMPONENT
+// =============================================
+
+function MessageBubble({ msg }: { msg: Message }) {
+  const isUser = msg.role === "user";
+  
+  return (
+    <div className={cn("flex flex-col gap-1", isUser ? "items-end" : "items-start")}>
+      <div
+        className={cn(
+          "max-w-[92%] rounded-2xl px-3.5 py-2.5 text-sm",
+          isUser
+            ? "bg-primary text-primary-foreground rounded-br-md"
+            : "bg-muted rounded-bl-md"
+        )}
+      >
+        {isUser ? (
+          <p>{msg.content}</p>
+        ) : (
+          <div className="prose prose-sm dark:prose-invert prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-strong:text-foreground max-w-none [&_p:last-child]:mb-0">
+            <ReactMarkdown>{msg.content}</ReactMarkdown>
+          </div>
+        )}
+      </div>
+      {/* Source citations */}
+      {!isUser && msg.sources && msg.sources.length > 0 && (
+        <div className="flex flex-wrap gap-1 px-1 max-w-[92%]">
+          {msg.sources.slice(0, 3).map((source, i) => (
+            <Badge key={i} variant="outline" className="text-[9px] py-0 h-4 text-muted-foreground">
+              📚 {source}
+            </Badge>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 // =============================================
@@ -271,7 +313,6 @@ export function AssistantDrawer({
     const trimmed = text.trim();
     if (!trimmed || isLoading) return;
     
-    // Marquer le disclaimer comme vu
     if (!hasSeenDisclaimer) {
       localStorage.setItem("assistant-disclaimer-seen", "true");
       setHasSeenDisclaimer(true);
@@ -283,16 +324,13 @@ export function AssistantDrawer({
     setIsLoading(true);
     setActiveTab("chat");
     
-    // Rechercher dans la KB
     const searchResults = searchKnowledgeBase(trimmed, 4);
     const knowledgeContext = formatKnowledgeForPrompt(searchResults);
     const sources = getSourceCitations(searchResults);
     setLastSources(sources);
     
-    // Contexte athlète formaté
     const athleteContext = formatContextForPrompt(contextPacket);
     
-    // Champs manquants
     const missingFields = contextPacket.missingFields.length > 0
       ? contextPacket.missingFields.map(m => `- ${m.label}: ${m.whereToFix}`).join('\n')
       : "";
@@ -331,6 +369,11 @@ export function AssistantDrawer({
     handleSend(query);
   };
   
+  const handleClearChat = () => {
+    setMessages([]);
+    setLastSources([]);
+  };
+  
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -349,47 +392,65 @@ export function AssistantDrawer({
 
   return (
     <>
-      {/* Bouton flottant */}
+      {/* Bouton flottant — safe area aware */}
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild>
           <Button
             size="lg"
-            className="fixed bottom-20 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:bottom-6"
+            className="fixed bottom-20 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:bottom-6 touch-target"
             aria-label="Ouvrir l'assistant"
           >
             <MessageCircle className="h-6 w-6" />
           </Button>
         </SheetTrigger>
         
-        <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col">
-          <SheetHeader className="p-4 pb-2 border-b">
-            <SheetTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              Assistant Staff
-              <Badge variant="outline" className="text-[10px] ml-auto">
-                KB v{KNOWLEDGE_BASE_VERSION}
-              </Badge>
+        <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col safe-area-inset-top">
+          <SheetHeader className="p-3 sm:p-4 pb-2 border-b shrink-0">
+            <SheetTitle className="flex items-center gap-2 text-base">
+              <Sparkles className="h-5 w-5 text-primary shrink-0" />
+              <span className="truncate">Assistant Staff</span>
+              <div className="ml-auto flex items-center gap-1.5 shrink-0">
+                {messages.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={handleClearChat}
+                    title="Effacer la conversation"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                  </Button>
+                )}
+                <Badge variant="outline" className="text-[10px]">
+                  KB v{KNOWLEDGE_BASE_VERSION}
+                </Badge>
+              </div>
             </SheetTitle>
           </SheetHeader>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-            <TabsList className="mx-4 mt-2 grid w-auto grid-cols-3">
-              <TabsTrigger value="help" className="text-xs">
+            <TabsList className="mx-3 sm:mx-4 mt-2 grid w-auto grid-cols-3 shrink-0">
+              <TabsTrigger value="help" className="text-xs min-h-[40px] touch-manipulation">
                 <HelpCircle className="h-3.5 w-3.5 mr-1" />
                 Aide
               </TabsTrigger>
-              <TabsTrigger value="chat" className="text-xs">
+              <TabsTrigger value="chat" className="text-xs min-h-[40px] touch-manipulation">
                 <MessageCircle className="h-3.5 w-3.5 mr-1" />
                 Chat
+                {messages.length > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-4 w-4 p-0 text-[9px] flex items-center justify-center rounded-full">
+                    {messages.filter(m => m.role === "user").length}
+                  </Badge>
+                )}
               </TabsTrigger>
-              <TabsTrigger value="context" className="text-xs">
+              <TabsTrigger value="context" className="text-xs min-h-[40px] touch-manipulation">
                 <Database className="h-3.5 w-3.5 mr-1" />
                 Contexte
               </TabsTrigger>
             </TabsList>
             
             {/* TAB: Aide rapide */}
-            <TabsContent value="help" className="flex-1 overflow-auto p-4 m-0">
+            <TabsContent value="help" className="flex-1 overflow-auto p-3 sm:p-4 m-0">
               {!hasSeenDisclaimer && (
                 <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
                   <p className="text-xs text-amber-800 dark:text-amber-200">
@@ -404,12 +465,12 @@ export function AssistantDrawer({
                 <p className="text-sm font-medium">Questions fréquentes</p>
               </div>
               
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {QUICK_SUGGESTIONS.map((s, i) => (
                   <Badge
                     key={i}
                     variant="outline"
-                    className="cursor-pointer hover:bg-primary/10 transition-colors py-1.5 px-3"
+                    className="cursor-pointer hover:bg-primary/10 active:bg-primary/20 transition-colors py-1.5 px-2.5 sm:px-3 text-[11px] sm:text-xs touch-manipulation"
                     onClick={() => handleQuickSuggestion(s.query)}
                   >
                     {s.label}
@@ -443,7 +504,7 @@ export function AssistantDrawer({
             
             {/* TAB: Chat */}
             <TabsContent value="chat" className="flex-1 flex flex-col overflow-hidden m-0">
-              <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+              <ScrollArea className="flex-1 p-3 sm:p-4" ref={scrollRef}>
                 {messages.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <MessageCircle className="h-12 w-12 mx-auto mb-3 opacity-20" />
@@ -451,33 +512,32 @@ export function AssistantDrawer({
                     <p className="text-xs mt-2 opacity-70">
                       Sources : Academy uniquement
                     </p>
+                    {/* Inline quick suggestions in empty chat */}
+                    <div className="flex flex-wrap gap-1.5 justify-center mt-4">
+                      {QUICK_SUGGESTIONS.slice(0, 4).map((s, i) => (
+                        <Badge
+                          key={i}
+                          variant="outline"
+                          className="cursor-pointer hover:bg-primary/10 active:bg-primary/20 text-[11px] py-1 px-2 touch-manipulation"
+                          onClick={() => handleQuickSuggestion(s.query)}
+                        >
+                          {s.label}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {messages.map((msg, i) => (
-                      <div
-                        key={i}
-                        className={cn(
-                          "flex flex-col",
-                          msg.role === "user" ? "items-end" : "items-start"
-                        )}
-                      >
-                        <div
-                          className={cn(
-                            "max-w-[90%] rounded-lg px-3 py-2 text-sm",
-                            msg.role === "user"
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-muted"
-                          )}
-                        >
-                          <div className="whitespace-pre-wrap">{msg.content}</div>
-                        </div>
-                      </div>
+                      <MessageBubble key={i} msg={msg} />
                     ))}
                     {isLoading && messages[messages.length - 1]?.role === "user" && (
                       <div className="flex justify-start">
-                        <div className="bg-muted rounded-lg px-3 py-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                        <div className="bg-muted rounded-2xl rounded-bl-md px-3.5 py-2.5">
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            <span>Réflexion...</span>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -485,7 +545,8 @@ export function AssistantDrawer({
                 )}
               </ScrollArea>
               
-              <div className="p-4 border-t">
+              {/* Input bar — safe area bottom */}
+              <div className="p-3 sm:p-4 border-t safe-area-inset-bottom shrink-0">
                 <div className="flex gap-2">
                   <Input
                     ref={inputRef}
@@ -494,12 +555,13 @@ export function AssistantDrawer({
                     onKeyDown={handleKeyDown}
                     placeholder="Pose ta question..."
                     disabled={isLoading}
-                    className="flex-1"
+                    className="flex-1 h-11 text-sm"
                   />
                   <Button
                     size="icon"
                     onClick={() => handleSend(input)}
                     disabled={!input.trim() || isLoading}
+                    className="h-11 w-11 shrink-0 touch-target-sm"
                   >
                     {isLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -512,7 +574,7 @@ export function AssistantDrawer({
             </TabsContent>
             
             {/* TAB: Contexte (Staff mode) */}
-            <TabsContent value="context" className="flex-1 overflow-auto p-4 m-0">
+            <TabsContent value="context" className="flex-1 overflow-auto p-3 sm:p-4 m-0">
               <div className="flex items-center gap-2 mb-3">
                 <Database className="h-4 w-4 text-primary" />
                 <p className="text-xs font-medium">Contexte runtime (transparence)</p>
@@ -520,13 +582,13 @@ export function AssistantDrawer({
               
               <div className="space-y-2">
                 {contextItems.map((item, i) => (
-                  <div key={i} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0">
-                    <span className="text-xs text-muted-foreground">{item.label}</span>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-medium truncate max-w-[160px]">{item.value}</span>
+                  <div key={i} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0 gap-2">
+                    <span className="text-xs text-muted-foreground shrink-0">{item.label}</span>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="text-xs font-medium truncate">{item.value}</span>
                       {item.status && getStatusIcon(item.status)}
                       {item.confidence !== undefined && (
-                        <span className="text-[10px] text-muted-foreground">
+                        <span className="text-[10px] text-muted-foreground shrink-0">
                           {item.confidence >= 0.7 ? "Fiable" : item.confidence >= 0.5 ? "Modéré" : "Limité"}
                         </span>
                       )}
