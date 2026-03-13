@@ -582,7 +582,7 @@ export function StaffDashboard({
                     {ambitionLabel}
                   </Badge>
                 </div>
-                <div className="grid grid-cols-3 gap-3 text-sm">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3 text-xs sm:text-sm">
                   <div>
                     <p className="text-muted-foreground mb-1">VLamax cible</p>
                     <p className="font-medium text-foreground font-mono">{radarTargets.vlamaxIdeal.toFixed(2)}</p>
