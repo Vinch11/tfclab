@@ -220,6 +220,7 @@ function computeScoreG(
   tte_min: number | null | undefined,
   pmax_5s: number | null | undefined,
   wprimeKJ: number | null | undefined,
+  cpDataQuality: "good" | "suspect" | "implausible" = "good",
 ): ScoreGResult | null {
   const sources: string[] = ["FTP"];
   
