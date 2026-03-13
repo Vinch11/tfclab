@@ -638,11 +638,11 @@ export default function DashboardPage() {
             {getStatusBadge(vlamaxStatus.status, vlamaxStatus.label)}
           </div>
           
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold font-mono">
+          <div className="flex items-baseline gap-1.5 sm:gap-2">
+            <span className="text-2xl sm:text-3xl font-bold font-mono">
               {vlamaxEffectif.value !== null ? vlamaxEffectif.value.toFixed(2) : "—"}
             </span>
-            <span className="text-sm text-muted-foreground">mmol/L/s</span>
+            <span className="text-xs sm:text-sm text-muted-foreground">mmol/L/s</span>
           </div>
           
           <div className="flex items-center gap-4 text-xs">
