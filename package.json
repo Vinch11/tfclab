@@ -52,6 +52,7 @@
     "embla-carousel-react": "^8.6.0",
     "fit-file-parser": "^2.2.4",
     "framer-motion": "^12.29.2",
+    "happy-dom": "^17.4.4",
     "html2canvas": "^1.4.1",
     "input-otp": "^1.4.2",
     "jsdom": "^20.0.3",
