@@ -545,25 +545,25 @@ export function StaffDashboard({
             />
             
             {/* Valeurs brutes pour contexte */}
-            <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
-              <div className="p-2 bg-cyan-500/10 rounded-lg text-center">
+            <div className="mt-3 grid grid-cols-3 gap-1.5 sm:gap-2 text-[11px] sm:text-xs">
+              <div className="p-1.5 sm:p-2 bg-cyan-500/10 rounded-lg text-center">
                 <p className="text-cyan-600 dark:text-cyan-400 font-medium">VLamax</p>
                 <p className="font-bold text-foreground">
                   {vlamaxEffectif.value !== null ? vlamaxEffectif.value.toFixed(2) : "—"}
                 </p>
-                <p className="text-muted-foreground">cible: {radarTargets.vlamaxIdeal}</p>
+                <p className="text-muted-foreground truncate">cible: {radarTargets.vlamaxIdeal}</p>
               </div>
-              <div className="p-2 bg-orange-500/10 rounded-lg text-center">
+              <div className="p-1.5 sm:p-2 bg-orange-500/10 rounded-lg text-center">
                 <p className="text-orange-600 dark:text-orange-400 font-medium">TTE</p>
                 <p className="font-bold text-foreground">{tteEffectif.tte_min} min</p>
-                <p className="text-muted-foreground">cible: {radarTargets.tteTarget} min</p>
+                <p className="text-muted-foreground truncate">cible: {radarTargets.tteTarget} min</p>
               </div>
-              <div className="p-2 bg-green-500/10 rounded-lg text-center">
+              <div className="p-1.5 sm:p-2 bg-green-500/10 rounded-lg text-center">
                 <p className="text-green-600 dark:text-green-400 font-medium">FTP/kg</p>
                 <p className="font-bold text-foreground">
                   {ftpKg !== null ? ftpKg.toFixed(2) : "—"}
                 </p>
-                <p className="text-muted-foreground">cible: {radarTargets.ftpKgTarget}</p>
+                <p className="text-muted-foreground truncate">cible: {radarTargets.ftpKgTarget}</p>
               </div>
             </div>
             
