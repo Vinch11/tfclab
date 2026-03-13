@@ -382,9 +382,17 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
     wprimeKJ = cpResult.wprimeKJ;
     sources.push("W'bal");
     
+    // Log CP data quality warnings
+    if (cpResult.dataQuality === "implausible") {
+      warnings.push("Données CP implausibles — W' et indices P30s/P60s exclus du Score G");
+    } else if (cpResult.dataQuality === "suspect") {
+      warnings.push("Données CP suspectes — poids de W'/P30s/P60s réduit dans le Score G");
+    }
+    
     // Derive VLamax from W' using Mader relationship: W' ≈ VLamax × weight × 320
     // → VLamax_implied = W' / (weight × 320)
-    if (weight_kg && weight_kg > 0) {
+    // GUARD: Skip cross-validation entirely if CP data is implausible
+    if (weight_kg && weight_kg > 0 && cpResult.dataQuality !== "implausible") {
       vlamaxFromWprime = Number(clamp(cpResult.wprime / (weight_kg * 320), 0.15, 1.10).toFixed(3));
     }
   }
