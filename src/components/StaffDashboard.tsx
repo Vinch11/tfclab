@@ -625,14 +625,14 @@ export function StaffDashboard({
               </Badge>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-2 sm:gap-4">
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Besoin glucidique estimé</p>
-                <p className="text-xl font-bold">{nutritionEstimate.carbsMin}–{nutritionEstimate.carbsMax} g/h</p>
+                <p className="text-[11px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">Besoin glucidique estimé</p>
+                <p className="text-lg sm:text-xl font-bold">{nutritionEstimate.carbsMin}–{nutritionEstimate.carbsMax} g/h</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Facteur principal</p>
-                <p className="text-sm font-medium">{nutritionEstimate.nutritionalRiskIndex.mainRiskFactor}</p>
+                <p className="text-[11px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">Facteur principal</p>
+                <p className="text-xs sm:text-sm font-medium">{nutritionEstimate.nutritionalRiskIndex.mainRiskFactor}</p>
               </div>
             </div>
             
