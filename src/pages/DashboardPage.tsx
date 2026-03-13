@@ -1247,7 +1247,7 @@ export default function DashboardPage() {
   
   return (
     <AppLayout title="Dashboard">
-      <div className="animate-fade-in max-w-2xl mx-auto space-y-4">
+      <div className="animate-fade-in max-w-2xl mx-auto space-y-3 sm:space-y-4">
         {/* Running Focus Mode Indicator */}
         {isRunningOnly && (
           <div className="flex items-center justify-between p-3 bg-primary/5 rounded-lg border border-primary/20">
