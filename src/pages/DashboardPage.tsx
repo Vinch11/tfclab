@@ -725,7 +725,7 @@ export default function DashboardPage() {
             className="h-2" 
           />
           
-          <div className="flex items-center gap-4 text-xs">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] sm:text-xs">
             <div className="flex items-center gap-1">
               <span className="text-muted-foreground">Source:</span>
               <span className={tteEffectif.source === "observed" ? "text-green-600" : "text-amber-600"}>
