@@ -603,7 +603,7 @@ export default function DashboardPage() {
 
   const renderCoachSummary = (): ReactNode => (
     <Card className="border-l-4 border-l-primary">
-      <CardContent className="p-4">
+      <CardContent className="p-3 sm:p-4">
         <div className="flex items-start gap-3">
           <div className="p-2 rounded-lg bg-primary/10">
             <Info className="h-5 w-5 text-primary" />
