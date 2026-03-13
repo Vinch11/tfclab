@@ -791,17 +791,17 @@ export default function DashboardPage() {
               </p>
               
               {/* Détail par composante */}
-              <div className="grid grid-cols-3 gap-2 text-xs">
-                <div className="p-2 bg-muted/50 rounded text-center">
-                  <p className="text-muted-foreground">Métabolisme</p>
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-[11px] sm:text-xs">
+                <div className="p-1.5 sm:p-2 bg-muted/50 rounded text-center">
+                  <p className="text-muted-foreground truncate">Métabolisme</p>
                   <p className="font-bold">{raceReadiness.details.vlamax}/25</p>
                 </div>
-                <div className="p-2 bg-muted/50 rounded text-center">
-                  <p className="text-muted-foreground">Endurance</p>
+                <div className="p-1.5 sm:p-2 bg-muted/50 rounded text-center">
+                  <p className="text-muted-foreground truncate">Endurance</p>
                   <p className="font-bold">{raceReadiness.details.endurance}/25</p>
                 </div>
-                <div className="p-2 bg-muted/50 rounded text-center">
-                  <p className="text-muted-foreground">Puissance</p>
+                <div className="p-1.5 sm:p-2 bg-muted/50 rounded text-center">
+                  <p className="text-muted-foreground truncate">Puissance</p>
                   <p className="font-bold">{raceReadiness.details.puissance}/25</p>
                 </div>
               </div>
