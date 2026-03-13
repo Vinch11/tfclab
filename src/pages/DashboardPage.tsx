@@ -558,7 +558,7 @@ export default function DashboardPage() {
 
   const renderAthleteContext = (): ReactNode => (
     <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-      <CardContent className="p-4 space-y-4">
+      <CardContent className="p-3 sm:p-4 space-y-3 sm:space-y-4">
         {/* Ligne 1: Nom et objectif */}
         <div className="flex items-start justify-between gap-2 sm:gap-3">
           <div className="min-w-0">
