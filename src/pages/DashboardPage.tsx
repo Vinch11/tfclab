@@ -759,7 +759,7 @@ export default function DashboardPage() {
 
       {/* PILIER 3: Race Readiness */}
       <Card>
-        <CardContent className="p-4 space-y-3">
+        <CardContent className="p-3 sm:p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Target className="h-5 w-5 text-green-500" />
