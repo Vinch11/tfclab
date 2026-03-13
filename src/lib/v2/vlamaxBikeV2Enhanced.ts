@@ -267,9 +267,12 @@ function computeScoreG(
   // more reliable indicators for these hybrid profiles.
   const isHighFractionalUtil = rfm !== null && rfm > 0.80;
   
+  // CP data quality guard: reduce weight of CP-derived indices when suspect
+  const cpSuspectPenalty = cpDataQuality === "suspect" ? 0.5 : 1.0;
+  
   const w_pmax = 0.25;
-  const w_s30  = isHighFractionalUtil ? 0.08 : 0.18;
-  const w_s60  = 0.09;
+  const w_s30  = (isHighFractionalUtil ? 0.08 : 0.18) * (cpDataQuality === "implausible" ? 0 : cpSuspectPenalty);
+  const w_s60  = 0.09 * (cpDataQuality === "implausible" ? 0 : cpSuspectPenalty);
   const w_E    = isHighFractionalUtil ? 0.27 : 0.22;
   const w_D    = isHighFractionalUtil ? 0.19 : 0.14;
   const w_W    = 0.12;
