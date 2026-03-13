@@ -251,7 +251,8 @@ function computeScoreG(
   // Typical range: 10 kJ (low glycolytic/endurance) to 30 kJ (sprinter)
   // Higher W' → higher glycolytic capacity → higher VLamax
   // Ref: W' ≈ VLamax × weight × 320 (Mader), Burnley & Jones 2018
-  const W_score = hasWprime ? clamp((wprimeKJ! - 10) / 20, 0, 1) : null;
+  // GUARD: Exclude W' entirely if CP data is implausible, keep with reduced weight if suspect
+  const W_score = (hasWprime && cpDataQuality !== "implausible") ? clamp((wprimeKJ! - 10) / 20, 0, 1) : null;
   
   // Adaptive weights (recalibrated with W' index)
   // Original: S_pmax=0.30, S30=0.20, S60=0.10, E=0.25, D=0.15
