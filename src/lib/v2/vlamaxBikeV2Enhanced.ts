@@ -220,6 +220,7 @@ function computeScoreG(
   tte_min: number | null | undefined,
   pmax_5s: number | null | undefined,
   wprimeKJ: number | null | undefined,
+  cpDataQuality: "good" | "suspect" | "implausible" = "good",
 ): ScoreGResult | null {
   const sources: string[] = ["FTP"];
   
@@ -250,7 +251,8 @@ function computeScoreG(
   // Typical range: 10 kJ (low glycolytic/endurance) to 30 kJ (sprinter)
   // Higher W' → higher glycolytic capacity → higher VLamax
   // Ref: W' ≈ VLamax × weight × 320 (Mader), Burnley & Jones 2018
-  const W_score = hasWprime ? clamp((wprimeKJ! - 10) / 20, 0, 1) : null;
+  // GUARD: Exclude W' entirely if CP data is implausible, keep with reduced weight if suspect
+  const W_score = (hasWprime && cpDataQuality !== "implausible") ? clamp((wprimeKJ! - 10) / 20, 0, 1) : null;
   
   // Adaptive weights (recalibrated with W' index)
   // Original: S_pmax=0.30, S30=0.20, S60=0.10, E=0.25, D=0.15
@@ -265,9 +267,12 @@ function computeScoreG(
   // more reliable indicators for these hybrid profiles.
   const isHighFractionalUtil = rfm !== null && rfm > 0.80;
   
+  // CP data quality guard: reduce weight of CP-derived indices when suspect
+  const cpSuspectPenalty = cpDataQuality === "suspect" ? 0.5 : 1.0;
+  
   const w_pmax = 0.25;
-  const w_s30  = isHighFractionalUtil ? 0.08 : 0.18;
-  const w_s60  = 0.09;
+  const w_s30  = (isHighFractionalUtil ? 0.08 : 0.18) * (cpDataQuality === "implausible" ? 0 : cpSuspectPenalty);
+  const w_s60  = 0.09 * (cpDataQuality === "implausible" ? 0 : cpSuspectPenalty);
   const w_E    = isHighFractionalUtil ? 0.27 : 0.22;
   const w_D    = isHighFractionalUtil ? 0.19 : 0.14;
   const w_W    = 0.12;
@@ -377,9 +382,17 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
     wprimeKJ = cpResult.wprimeKJ;
     sources.push("W'bal");
     
+    // Log CP data quality warnings
+    if (cpResult.dataQuality === "implausible") {
+      warnings.push("Données CP implausibles — W' et indices P30s/P60s exclus du Score G");
+    } else if (cpResult.dataQuality === "suspect") {
+      warnings.push("Données CP suspectes — poids de W'/P30s/P60s réduit dans le Score G");
+    }
+    
     // Derive VLamax from W' using Mader relationship: W' ≈ VLamax × weight × 320
     // → VLamax_implied = W' / (weight × 320)
-    if (weight_kg && weight_kg > 0) {
+    // GUARD: Skip cross-validation entirely if CP data is implausible
+    if (weight_kg && weight_kg > 0 && cpResult.dataQuality !== "implausible") {
       vlamaxFromWprime = Number(clamp(cpResult.wprime / (weight_kg * 320), 0.15, 1.10).toFixed(3));
     }
   }
@@ -387,7 +400,8 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
   // =============================================
   // ÉTAPE 3: Score G empirique (CONFIRMATORY — now includes W')
   // =============================================
-  const scoreGResult = computeScoreG(ftp, p30s_w, p60s_w, map5min_w, tte_min, pmax_5s, wprimeKJ);
+  const cpDataQuality = cpResult?.dataQuality ?? "good";
+  const scoreGResult = computeScoreG(ftp, p30s_w, p60s_w, map5min_w, tte_min, pmax_5s, wprimeKJ, cpDataQuality);
   let scoreGValue: number | null = null;
   
   if (scoreGResult) {
