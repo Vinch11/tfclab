@@ -712,10 +712,10 @@ export default function DashboardPage() {
             {getStatusBadge(tteStatus.status, tteStatus.label)}
           </div>
           
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold font-mono">{tteEffectif.tte_min}</span>
-            <span className="text-sm text-muted-foreground">min</span>
-            <span className="text-sm text-muted-foreground ml-2">
+          <div className="flex items-baseline gap-1.5 sm:gap-2 flex-wrap">
+            <span className="text-2xl sm:text-3xl font-bold font-mono">{tteEffectif.tte_min}</span>
+            <span className="text-xs sm:text-sm text-muted-foreground">min</span>
+            <span className="text-xs sm:text-sm text-muted-foreground ml-1 sm:ml-2">
               (cible: {tteTarget} min)
             </span>
           </div>
