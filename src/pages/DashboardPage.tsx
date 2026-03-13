@@ -560,16 +560,16 @@ export default function DashboardPage() {
     <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
       <CardContent className="p-4 space-y-4">
         {/* Ligne 1: Nom et objectif */}
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-xl font-bold mb-2">{currentAthlete.nom}</h1>
-            <div className="flex flex-wrap items-center gap-2 text-sm">
-              <Badge variant="outline" className="gap-1">
-                <Target className="h-3 w-3" />
+        <div className="flex items-start justify-between gap-2 sm:gap-3">
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl font-bold mb-1.5 sm:mb-2 truncate">{currentAthlete.nom}</h1>
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-sm">
+              <Badge variant="outline" className="gap-1 text-[11px] sm:text-xs">
+                <Target className="h-3 w-3 shrink-0" />
                 {OBJECTIF_LABELS[objectif] || objectif}
               </Badge>
-              <Badge variant="secondary" className="gap-1">
-                <Activity className="h-3 w-3" />
+              <Badge variant="secondary" className="gap-1 text-[11px] sm:text-xs">
+                <Activity className="h-3 w-3 shrink-0" />
                 {PHASE_LABELS[phase] || phase}
               </Badge>
             </div>
