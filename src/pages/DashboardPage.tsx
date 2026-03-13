@@ -776,9 +776,9 @@ export default function DashboardPage() {
             </div>
           ) : (
             <>
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold font-mono">{raceReadiness.score}</span>
-                <span className="text-sm text-muted-foreground">%</span>
+              <div className="flex items-baseline gap-1.5 sm:gap-2">
+                <span className="text-2xl sm:text-3xl font-bold font-mono">{raceReadiness.score}</span>
+                <span className="text-xs sm:text-sm text-muted-foreground">%</span>
               </div>
               
               <Progress 
