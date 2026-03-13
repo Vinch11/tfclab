@@ -400,7 +400,8 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
   // =============================================
   // ÉTAPE 3: Score G empirique (CONFIRMATORY — now includes W')
   // =============================================
-  const scoreGResult = computeScoreG(ftp, p30s_w, p60s_w, map5min_w, tte_min, pmax_5s, wprimeKJ);
+  const cpDataQuality = cpResult?.dataQuality ?? "good";
+  const scoreGResult = computeScoreG(ftp, p30s_w, p60s_w, map5min_w, tte_min, pmax_5s, wprimeKJ, cpDataQuality);
   let scoreGValue: number | null = null;
   
   if (scoreGResult) {
