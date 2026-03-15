@@ -2471,6 +2471,731 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       { part: "Main", text: "600–800m : 200m facile + 4x50m prog (Z1→Z3) r=15s + 200m Z2 + 4x25m vif r=15s + 100m cool", zones: ["Z1", "Z2", "Z3"] }
     ],
     variants: { ironman: "Idéal veille", half: "Idéal veille", marathon: "—", semi: "—", "10k": "—" }
+  },
+
+  // =========================================================
+  // 🚴 VÉLO AVANCÉ (SST, Force, Sprints, Race Sim, Train Low)
+  // =========================================================
+
+  {
+    id: "B_BIKE_SST_1x30",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "Sweet Spot long bloc (1x30' continu, durabilité seuil)",
+    necessite: "Recommandé",
+    when: "Build / Peak IM",
+    avoid: "Fatigue accumulée",
+    durationMin: [65, 90],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Warm-up", text: "15' Z1→Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "1x30' Z3–Z4a (SST continu). Cadence régulière 85–95 rpm.", zones: ["Z3", "Z4a"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { ironman: "Clé", half: "Excellent", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "B_BIKE_SST_3x20",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "Sweet Spot 3x20' (volume seuil élevé)",
+    necessite: "Recommandé",
+    when: "Build IM / 70.3",
+    avoid: "Fatigue chronique",
+    durationMin: [90, 120],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Warm-up", text: "15' Z1→Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "3x20' Z3–Z4a r=5' Z1–Z2", zones: ["Z3", "Z4a", "Z1", "Z2"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { ironman: "Volume clé", half: "Excellent", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "C_BIKE_FORCE_LOW_CAD",
+    cat: "C",
+    sport: "cyclisme",
+    objectif: "Force basse cadence (50–60 rpm, recrutement neuromusculaire)",
+    necessite: "Recommandé",
+    when: "Base / Build",
+    avoid: "Problèmes genoux",
+    durationMin: [60, 90],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Warm-up", text: "15' Z1–Z2 cadence libre", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "6x5' Z3 cadence 50–60 rpm (assis) r=5' Z1 cadence libre", zones: ["Z3", "Z1"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { ironman: "Très utile", half: "utile", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "B_BIKE_SPRINT_NEUROMUSCULAR",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "Sprints neuromusculaires (recrutement, W' recharge rapide)",
+    necessite: "Optionnel",
+    when: "Build (1x/10–14j)",
+    avoid: "Si VLamax déjà élevée",
+    durationMin: [50, 75],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Warm-up", text: "20' Z1→Z2 + 3 accélérations progressives", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "8–10x10s sprint maximal (départ arrêté ou lancé) r=4' Z1 complet", zones: ["Z5"] },
+      { part: "Cool-down", text: "15' Z1", zones: ["Z1"] }
+    ],
+    variants: { ironman: "rare", half: "1x/10j", "10k": "—", marathon: "—", semi: "—" }
+  },
+  {
+    id: "A_BIKE_ENDURANCE_PROGRESSIVE",
+    cat: "A",
+    sport: "cyclisme",
+    objectif: "Endurance progressive (negative split vélo)",
+    necessite: "Recommandé",
+    when: "Build / Peak",
+    avoid: "Fatigue importante",
+    durationMin: [90, 180],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Main", text: "60–120' Z2 bas + 30–45' Z2 haut + 15–20' Z3 (si frais). Cadence stable.", zones: ["Z2", "Z3"] }
+    ],
+    variants: { ironman: "Excellent pacing", half: "Très utile", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "B_BIKE_RACE_SIM_IM",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "Simulation course IM (4–5h Z2, pacing CP/W', nutrition)",
+    necessite: "Obligatoire",
+    when: "Peak IM (J-21 à J-14)",
+    avoid: "Trop proche course",
+    durationMin: [240, 300],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Warm-up", text: "20' Z1→Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "3h30–4h30 Z2 (IM power). Nutrition identique jour J (60–90g CHO/h). Cadence cible.", zones: ["Z2"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { ironman: "Séance clé absolue", half: "—", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "B_BIKE_RACE_SIM_703",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "Simulation course 70.3 (2h–2h30 Z2–Z3, pacing, nutrition)",
+    necessite: "Obligatoire",
+    when: "Peak 70.3 (J-21 à J-14)",
+    avoid: "Trop proche course",
+    durationMin: [140, 180],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Warm-up", text: "15' Z1→Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "2h–2h30 Z2–Z3 (70.3 race power). Nutrition 60–80g CHO/h.", zones: ["Z2", "Z3"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { half: "Séance clé absolue", ironman: "—", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "A_BIKE_TRAIN_LOW",
+    cat: "A",
+    sport: "cyclisme",
+    objectif: "Train Low (Z2 glycogène bas – Impey protocol, oxydation lipidique)",
+    necessite: "Optionnel",
+    when: "Base / Build (1x/sem max)",
+    avoid: "Si fatigue élevée ou séance B le même jour",
+    durationMin: [60, 120],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Main", text: "60–120' Z2 strict (matin, sans petit-déjeuner ou après séance veille soir). Eau + électrolytes uniquement. Cadence 85–95 rpm.", zones: ["Z2"] }
+    ],
+    variants: { ironman: "Excellent fat adaptation", half: "utile", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "B_BIKE_OVERUNDER_EXTENDED",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "Over-Under étendu (tolérance lactate, clearance – Lactate Shuttle)",
+    necessite: "Recommandé",
+    when: "Build",
+    avoid: "VLamax déjà élevée",
+    durationMin: [75, 105],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Warm-up", text: "15' Z1→Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "4x10' (2' Z4a / 3' Z3 / 2' Z4a / 3' Z3) r=5' Z1", zones: ["Z3", "Z4a", "Z1"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { ironman: "Excellent clearance", half: "Clé", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "C_BIKE_AERO_POSITION_DRILLS",
+    cat: "C",
+    sport: "cyclisme",
+    objectif: "Position aéro prolongée (confort + puissance en position)",
+    necessite: "Recommandé",
+    when: "Toute l'année IM / 70.3",
+    avoid: "Douleur cervicale/lombaire",
+    durationMin: [60, 120],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Main", text: "Z2 avec 6x10' en position aéro (sans surpuissance) r=5' position relâchée Z1.", zones: ["Z2", "Z1"] }
+    ],
+    variants: { ironman: "Prioritaire", half: "Très utile", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "B_BIKE_VO2_5x5",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "VO2max 5x5' (puissance aérobie maximale vélo)",
+    necessite: "Recommandé",
+    when: "Build / Peak 70.3",
+    avoid: "VLamax très haute",
+    durationMin: [60, 85],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Warm-up", text: "15' Z1→Z2 + 2 accélérations", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "5x5' Z5 (105–115% FTP) r=5' Z1–Z2", zones: ["Z5", "Z1", "Z2"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { half: "Excellent", ironman: "utile (1x/10j)", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "B_BIKE_THRESHOLD_2x20",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "Seuil 2x20' (FTP, durabilité au seuil)",
+    necessite: "Recommandé",
+    when: "Build / Peak",
+    avoid: "Fatigue accumulée",
+    durationMin: [70, 95],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Warm-up", text: "15' Z1→Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "2x20' Z4a (95–100% FTP) r=8' Z1–Z2", zones: ["Z4a", "Z1", "Z2"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { half: "Clé", ironman: "utile", marathon: "—", semi: "—", "10k": "—" }
+  },
+
+  // =========================================================
+  // 🏃 COURSE AVANCÉ (Allure spécifique, VMA longue, Train Low, Race Sim)
+  // =========================================================
+
+  {
+    id: "B_RUN_VMA_2000",
+    cat: "B",
+    sport: "course",
+    objectif: "VMA longue 2000m (puissance aérobie, capacité VO2max)",
+    necessite: "Recommandé",
+    when: "Build (10K, semi)",
+    avoid: "Fatigue nerveuse, douleur",
+    durationMin: [55, 75],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Warm-up", text: "15' Z1–Z2 + gammes", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "4–5x2000m Z4b–Z5 r=3' trot", zones: ["Z4b", "Z5"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { "10k": "Séance clé", semi: "Très utile", marathon: "utile", ironman: "—", half: "—" }
+  },
+  {
+    id: "B_RUN_MARATHON_PACE_3x5K",
+    cat: "B",
+    sport: "course",
+    objectif: "Allure marathon blocs longs (3x5km race pace)",
+    necessite: "Obligatoire",
+    when: "Peak marathon",
+    avoid: "Veille compétition",
+    durationMin: [75, 100],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Warm-up", text: "15' Z1–Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "3x5km allure marathon (Z3) r=4' trot Z1", zones: ["Z3", "Z1"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { marathon: "Séance clé absolue", semi: "—", "10k": "—", ironman: "—", half: "—" }
+  },
+  {
+    id: "B_RUN_MARATHON_PACE_LONG",
+    cat: "B",
+    sport: "course",
+    objectif: "Tempo marathon continu (30–40' allure course)",
+    necessite: "Obligatoire",
+    when: "Peak marathon",
+    avoid: "Fatigue élevée",
+    durationMin: [65, 90],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Warm-up", text: "15' Z1–Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "30–40' continu allure marathon (Z3). Pacing constant.", zones: ["Z3"] },
+      { part: "Cool-down", text: "15' Z1", zones: ["Z1"] }
+    ],
+    variants: { marathon: "Clé", semi: "utile (Z3 haut)", "10k": "—", ironman: "—", half: "—" }
+  },
+  {
+    id: "A_RUN_TRAIN_LOW",
+    cat: "A",
+    sport: "course",
+    objectif: "Train Low course (Z2 glycogène bas – optimisation oxydation lipidique)",
+    necessite: "Optionnel",
+    when: "Base / Build (1x/sem max)",
+    avoid: "Fatigue élevée, séance B le même jour",
+    durationMin: [45, 75],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Main", text: "45–75' Z2 strict (matin à jeun ou post-séance veille). Eau + électrolytes uniquement.", zones: ["Z2"] }
+    ],
+    variants: { ironman: "Excellent", half: "utile", marathon: "utile", semi: "—", "10k": "—" }
+  },
+  {
+    id: "B_RUN_IM_RACE_SIM",
+    cat: "B",
+    sport: "course",
+    objectif: "Simulation course IM (allure marathon IM, post effort vélo virtuel)",
+    necessite: "Recommandé",
+    when: "Peak IM (J-21)",
+    avoid: "Trop proche course",
+    durationMin: [75, 110],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Main", text: "15' Z2 + 45–75' allure IM marathon Z2 haut (régularité absolue) + 10' Z1. Nutrition 30–60g CHO/h.", zones: ["Z2", "Z1"] }
+    ],
+    variants: { ironman: "Clé", half: "—", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "B_RUN_703_RACE_SIM",
+    cat: "B",
+    sport: "course",
+    objectif: "Simulation course 70.3 (allure semi sous fatigue)",
+    necessite: "Recommandé",
+    when: "Peak 70.3 (J-21)",
+    avoid: "Trop proche course",
+    durationMin: [55, 80],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Main", text: "10' Z2 + 35–55' Z3–Z4a (allure 70.3 run) + 10' Z1. Comme le jour J.", zones: ["Z2", "Z3", "Z4a", "Z1"] }
+    ],
+    variants: { half: "Clé", ironman: "—", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "B_RUN_TEMPO_PROGRESSIVE",
+    cat: "B",
+    sport: "course",
+    objectif: "Tempo progressif (Z2→Z3→Z4a, pacing training)",
+    necessite: "Recommandé",
+    when: "Build / Peak",
+    avoid: "Fatigue importante",
+    durationMin: [50, 75],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Main", text: "15' Z2 + 10' Z2 haut + 10' Z3 + 5' Z4a + 10' Z1 cool", zones: ["Z2", "Z3", "Z4a", "Z1"] }
+    ],
+    variants: { marathon: "Excellent", semi: "Excellent", "10k": "Très utile", ironman: "utile", half: "utile" }
+  },
+  {
+    id: "B_RUN_CRUISE_INTERVALS",
+    cat: "B",
+    sport: "course",
+    objectif: "Cruise intervals (seuil fractionné court repos, Daniels)",
+    necessite: "Recommandé",
+    when: "Build / Peak",
+    avoid: "Fatigue accumulée",
+    durationMin: [50, 70],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Warm-up", text: "15' Z1–Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "5x6' Z4a (seuil) r=1' trot (repos très court)", zones: ["Z4a"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { marathon: "Excellent", semi: "Excellent", "10k": "Très utile", ironman: "utile", half: "utile" }
+  },
+  {
+    id: "B_RUN_VO2_LONG_4x5",
+    cat: "B",
+    sport: "course",
+    objectif: "VO2max long (4x5', temps en zone maximal)",
+    necessite: "Recommandé",
+    when: "Build",
+    avoid: "Fatigue nerveuse",
+    durationMin: [55, 75],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Warm-up", text: "15' Z1–Z2 + gammes", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "4x5' Z4b–Z5 r=4' trot", zones: ["Z4b", "Z5"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { "10k": "Excellent", semi: "Très utile", marathon: "utile", ironman: "—", half: "utile" }
+  },
+
+  // =========================================================
+  // 🔄 BRICK AVANCÉ (5-stage progression, semi, activation)
+  // =========================================================
+
+  {
+    id: "BRICK_STAGE1_INTRO",
+    cat: "A",
+    sport: "brick",
+    objectif: "Brick Stage 1 – Introduction (Z2 bike + Z1 run, adaptation)",
+    necessite: "Obligatoire",
+    when: "Base (début bloc brick)",
+    avoid: "—",
+    durationMin: [60, 90],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Bike", text: "45–60' Z2 facile", zones: ["Z2"] },
+      { part: "Run", text: "15–20' Z1 très facile (focus sensation transition)", zones: ["Z1"] }
+    ],
+    variants: { ironman: "Base", half: "Base", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "BRICK_STAGE2_BUILD",
+    cat: "A",
+    sport: "brick",
+    objectif: "Brick Stage 2 – Build (Z2 bike prolongé + Z2 run)",
+    necessite: "Obligatoire",
+    when: "Build",
+    avoid: "Fatigue importante",
+    durationMin: [90, 135],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Bike", text: "75–105' Z2 stable", zones: ["Z2"] },
+      { part: "Run", text: "20–30' Z2 (adaptation neuromusculaire)", zones: ["Z2"] }
+    ],
+    variants: { ironman: "Progression", half: "Progression", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "BRICK_STAGE3_QUALITY",
+    cat: "B",
+    sport: "brick",
+    objectif: "Brick Stage 3 – Quality (bike SST + run tempo)",
+    necessite: "Recommandé",
+    when: "Build / Peak",
+    avoid: "Fatigue accumulée",
+    durationMin: [100, 150],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Bike", text: "75–105' avec 3x10' Z3 (SST)", zones: ["Z2", "Z3"] },
+      { part: "Run", text: "25–35' Z2 avec 10' Z3 (dernières minutes)", zones: ["Z2", "Z3"] }
+    ],
+    variants: { ironman: "Excellent", half: "Clé", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "BRICK_STAGE4_SPECIFIC",
+    cat: "B",
+    sport: "brick",
+    objectif: "Brick Stage 4 – Specific (race intensity bike + race pace run)",
+    necessite: "Recommandé",
+    when: "Peak",
+    avoid: "Veille compétition",
+    durationMin: [120, 180],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Bike", text: "90–140' race intensity Z2–Z3", zones: ["Z2", "Z3"] },
+      { part: "Run", text: "30–40' race pace Z3 (70.3) ou Z2 haut (IM)", zones: ["Z2", "Z3"] }
+    ],
+    variants: { ironman: "Clé", half: "Séance clé", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "BRICK_STAGE5_RACE_SIM",
+    cat: "B",
+    sport: "brick",
+    objectif: "Brick Stage 5 – Race Simulation (effort complet + nutrition)",
+    necessite: "Recommandé",
+    when: "Peak (J-21 à J-14)",
+    avoid: "Trop proche course",
+    durationMin: [150, 240],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Bike", text: "Race effort complet (2h IM ou 1h30 70.3). Nutrition jour J.", zones: ["Z2", "Z3"] },
+      { part: "Run", text: "30–45' race pace. Nutrition jour J.", zones: ["Z2", "Z3"] }
+    ],
+    variants: { ironman: "Absolument clé", half: "Absolument clé", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "BRICK_SEMI_SPECIFIQUE",
+    cat: "B",
+    sport: "brick",
+    objectif: "Brick semi-marathon (vélo pré-fatigue + run semi pace)",
+    necessite: "Recommandé",
+    when: "Peak 70.3",
+    avoid: "Fatigue accumulée",
+    durationMin: [90, 130],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Bike", text: "60–80' Z2–Z3 (pré-fatigue)", zones: ["Z2", "Z3"] },
+      { part: "Run", text: "30–40' Z3–Z4a (allure semi sous fatigue)", zones: ["Z3", "Z4a"] }
+    ],
+    variants: { half: "Spécifique", ironman: "—", semi: "utile", marathon: "—", "10k": "—" }
+  },
+  {
+    id: "BRICK_ACTIVATION_PRE_RACE",
+    cat: "D",
+    sport: "brick",
+    objectif: "Brick activation pré-course (J-1, ouverture)",
+    necessite: "Recommandé",
+    when: "Veille compétition",
+    avoid: "—",
+    durationMin: [30, 50],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Bike", text: "20–30' Z1–Z2 + 3x30s Z4a (ouverture)", zones: ["Z1", "Z2", "Z4a"] },
+      { part: "Run", text: "10–15' Z1 + 4x20s accélération (Z4a) r=1'", zones: ["Z1", "Z4a"] }
+    ],
+    variants: { ironman: "Idéal veille", half: "Idéal veille", marathon: "—", semi: "—", "10k": "—" }
+  },
+
+  // =========================================================
+  // ⚡ TAPER / AFFÛTAGE (Mujika, réduction exponentielle)
+  // =========================================================
+
+  {
+    id: "D_TAPER_BIKE_OPENER",
+    cat: "D",
+    sport: "cyclisme",
+    objectif: "Ouverture vélo taper (intensité maintenue, volume réduit)",
+    necessite: "Obligatoire",
+    when: "Taper S-1 (J-5 à J-3)",
+    avoid: "—",
+    durationMin: [40, 60],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Main", text: "30' Z1–Z2 + 4x1' Z4a (ouverture) r=3' Z1 + 10' Z1 cool", zones: ["Z1", "Z2", "Z4a"] }
+    ],
+    variants: { ironman: "Essentiel", half: "Essentiel", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "D_TAPER_RUN_OPENER",
+    cat: "D",
+    sport: "course",
+    objectif: "Ouverture course taper (rappel allure, sans fatigue)",
+    necessite: "Obligatoire",
+    when: "Taper S-1 (J-4 à J-2)",
+    avoid: "—",
+    durationMin: [25, 40],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Main", text: "20' Z1–Z2 + 4x30s allure course (Z4a) r=2' Z1 + 5' Z1 cool", zones: ["Z1", "Z2", "Z4a"] }
+    ],
+    variants: { ironman: "Essentiel", half: "Essentiel", marathon: "Essentiel", semi: "Essentiel", "10k": "Essentiel" }
+  },
+  {
+    id: "D_TAPER_SWIM_OPENER",
+    cat: "D",
+    sport: "natation",
+    objectif: "Ouverture natation taper (technique + rappel allure)",
+    necessite: "Recommandé",
+    when: "Taper S-1 (J-3 à J-2)",
+    avoid: "—",
+    durationMin: [20, 35],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: [
+      { part: "Main", text: "300m facile + 4x100m Z2 + 4x50m allure course (Z3) r=15s + 200m cool", zones: ["Z1", "Z2", "Z3"] }
+    ],
+    variants: { ironman: "Essentiel", half: "Essentiel", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "D_TAPER_SHAKEOUT",
+    cat: "D",
+    sport: "course",
+    objectif: "Shakeout veille course (activation légère)",
+    necessite: "Recommandé",
+    when: "J-1",
+    avoid: "—",
+    durationMin: [15, 25],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "15–20' Z1 + 3x15s accélérations (relâché) r=1' + 5' marche", zones: ["Z1"] }
+    ],
+    variants: { ironman: "OK", half: "OK", marathon: "Idéal", semi: "Idéal", "10k": "Idéal" }
+  },
+
+  // =========================================================
+  // 💪 MUSCULATION AVANCÉE (Plio, Upper, Explosive, Concurrent)
+  // =========================================================
+
+  {
+    id: "C_STR_PLYOMETRIC",
+    cat: "C",
+    sport: "muscu",
+    objectif: "Pliométrie (puissance réactive, économie de course)",
+    necessite: "Recommandé",
+    when: "Base / Build (2x/sem)",
+    avoid: "Phase taper, douleur articulaire",
+    durationMin: [25, 40],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "25–40': drop jump, box jump, skipping, fentes sautées. 3–5 séries x 6–8 reps. Repos complet entre séries.", zones: ["Z1"] }
+    ],
+    variants: { "10k": "Excellent", semi: "Très utile", marathon: "utile", ironman: "optionnel", half: "optionnel" }
+  },
+  {
+    id: "C_STR_UPPER_BODY_TRI",
+    cat: "C",
+    sport: "muscu",
+    objectif: "Haut du corps triathlon (épaules, dos, stabilité nage)",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    avoid: "Douleur épaule",
+    durationMin: [25, 40],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "25–40': tirages (rowing, pull), rotation externe épaule, pompes, face pull, Y-raise. 3x10–12. RPE 6.", zones: ["Z1"] }
+    ],
+    variants: { ironman: "Prioritaire", half: "Prioritaire", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "C_STR_EXPLOSIVE_LOWER",
+    cat: "C",
+    sport: "muscu",
+    objectif: "Force explosive bas du corps (recrutement neuromusculaire)",
+    necessite: "Recommandé",
+    when: "Base / Build",
+    avoid: "Phase taper",
+    durationMin: [30, 45],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "30–45': squat jump, box jump, kettlebell swing, split squat explosif. 4x5–6 reps. Repos long (2–3').", zones: ["Z1"] }
+    ],
+    variants: { "10k": "Très utile", semi: "utile", marathon: "utile", ironman: "optionnel", half: "utile" }
+  },
+  {
+    id: "C_STR_CONCURRENT_AM_PM",
+    cat: "C",
+    sport: "muscu",
+    objectif: "Force AM/PM (anti-interférence AMPK/mTOR – avant séance endurance PM)",
+    necessite: "Optionnel",
+    when: "Base / Build (espacement ≥6h avec endurance)",
+    avoid: "Séance B intense le même jour",
+    durationMin: [30, 45],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "30–45' matin : squats lourds (3–5 RM), hip hinge, gainage. Priorité charge > volume. Séance endurance ≥6h après.", zones: ["Z1"] }
+    ],
+    variants: { ironman: "utile", half: "utile", marathon: "utile", semi: "utile", "10k": "utile" }
+  },
+
+  // =========================================================
+  // 🎯 SÉANCES SPÉCIALES (Activation, Test, Pacing)
+  // =========================================================
+
+  {
+    id: "D_PRE_RACE_ACTIVATION_RUN",
+    cat: "D",
+    sport: "course",
+    objectif: "Activation pré-course (matin jour J)",
+    necessite: "Recommandé",
+    when: "Matin compétition (J)",
+    avoid: "—",
+    durationMin: [10, 20],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "10–15' Z1 + 3x20s prog (Z2→Z4a) r=1' + 5' marche. Terminer 20' avant départ.", zones: ["Z1", "Z4a"] }
+    ],
+    variants: { marathon: "Idéal", semi: "Idéal", "10k": "Idéal", ironman: "utile", half: "utile" }
+  },
+  {
+    id: "B_BIKE_CP_W_PRIME_TEST",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "Test CP/W' (3' + 12' all-out, étalonnage modèle puissance critique)",
+    necessite: "Optionnel",
+    when: "Début cycle / toutes les 8–12 sem",
+    avoid: "Fatigue, sans échauffement",
+    durationMin: [45, 65],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Warm-up", text: "20' Z1→Z2 + 3 accélérations", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "3' all-out + 15' Z1 récup + 12' all-out. Maximal.", zones: ["Z5"] },
+      { part: "Cool-down", text: "15' Z1", zones: ["Z1"] }
+    ],
+    variants: { ironman: "Recommandé", half: "Recommandé", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "B_RUN_PACING_PRACTICE",
+    cat: "B",
+    sport: "course",
+    objectif: "Entraînement pacing (discipline allure cible, negative split)",
+    necessite: "Recommandé",
+    when: "Peak (J-14 à J-7)",
+    avoid: "—",
+    durationMin: [45, 65],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Warm-up", text: "15' Z1–Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "4x2km : 1km allure cible -3s/km + 1km allure cible exacte. r=2' trot. Focus montre/sensation.", zones: ["Z3", "Z4a"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { marathon: "Essentiel", semi: "Essentiel", "10k": "Très utile", ironman: "utile", half: "utile" }
+  },
+  {
+    id: "A_RUN_DURABILITY_LONG",
+    cat: "A",
+    sport: "course",
+    objectif: "Durabilité aérobie (long run avec monitoring drift HR/puissance)",
+    necessite: "Recommandé",
+    when: "Build IM / Marathon",
+    avoid: "Fatigue chronique",
+    durationMin: [100, 150],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Main", text: "100–150' Z2 strict. Monitorer drift FC (objectif <5% sur dernière heure). Si drift >8%, réduire allure.", zones: ["Z2"] }
+    ],
+    variants: { ironman: "Fondamental", marathon: "Fondamental", half: "utile", semi: "—", "10k": "—" }
+  },
+  {
+    id: "B_BIKE_DURABILITY_TEST",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "Test durabilité (Z2 long + check décalage puissance/FC)",
+    necessite: "Recommandé",
+    when: "Fin de Build / Peak",
+    avoid: "Fatigue",
+    durationMin: [120, 180],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    structure: [
+      { part: "Main", text: "2–3h Z2 stable. Comparer ratio puissance/FC 1ère vs 2ème moitié. Objectif drift <5%.", zones: ["Z2"] }
+    ],
+    variants: { ironman: "Test clé", half: "Très utile", marathon: "—", semi: "—", "10k": "—" }
   }
 ];
 // =============================================
