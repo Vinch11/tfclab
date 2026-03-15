@@ -1614,6 +1614,533 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     structure: [{ part: "Main", text: "30–45' facile + 6–10 descentes 45–60s 'propre' r=remontée easy", zones: ["Z1", "Z2"] }],
     variants: { trail_short: "utile", trail_mountain: "utile", trail_ultra: "utile", ironman: "—", half: "—", marathon: "—", semi: "—" },
     dPlusTargetM: { min: 150, max: 400 }
+  },
+
+  // =========================================================
+  // 🟠 10 KM SPÉCIFIQUE
+  // =========================================================
+
+  // A – 10K ENDURANCE
+  {
+    id: "A_10K_EASY_60",
+    cat: "A",
+    sport: "course",
+    objectif: "Endurance fondamentale 10K (base aérobie)",
+    necessite: "Obligatoire",
+    when: "Toute l'année",
+    avoid: "Aucun",
+    durationMin: [45, 70],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Main", text: "45–70' Z2 facile, focus relâchement", zones: ["Z2"] }
+    ],
+    variants: { "10k": "Fondamental", semi: "utile", marathon: "utile", ironman: "—", half: "—" }
+  },
+  {
+    id: "A_10K_LONG_RUN_75",
+    cat: "A",
+    sport: "course",
+    objectif: "Sortie longue 10K (endurance + résistance mécanique)",
+    necessite: "Obligatoire",
+    when: "Build / Peak 10K",
+    avoid: "Fatigue accumulée",
+    durationMin: [70, 95],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Main", text: "70–95' Z2 avec 10' finish Z3 si frais", zones: ["Z2", "Z3"] }
+    ],
+    variants: { "10k": "Clé", semi: "utile", marathon: "—", ironman: "—", half: "—" }
+  },
+  {
+    id: "A_10K_PROGRESSIVE_60",
+    cat: "A",
+    sport: "course",
+    objectif: "Sortie progressive 10K (negative split)",
+    necessite: "Recommandé",
+    when: "Build / Peak",
+    avoid: "Fatigue nerveuse",
+    durationMin: [50, 70],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Main", text: "30' Z2 + 15' Z2 haut + 10' Z3 + 5' Z1 cool", zones: ["Z2", "Z3", "Z1"] }
+    ],
+    variants: { "10k": "Très utile", semi: "utile", marathon: "—", ironman: "—", half: "—" }
+  },
+
+  // B – 10K QUALITÉ
+  {
+    id: "B_10K_VO2_1000",
+    cat: "B",
+    sport: "course",
+    objectif: "VO2max 1000m (puissance aérobie spécifique 10K)",
+    necessite: "Obligatoire",
+    when: "Build / Peak 10K",
+    avoid: "Fatigue importante, douleur",
+    durationMin: [50, 70],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Warm-up", text: "15' Z1–Z2 + 4 accélérations", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "5–7x1000m Z5 (3'40–4'10/km) r=2'30 trot", zones: ["Z5"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { "10k": "Séance clé", semi: "utile", marathon: "—", ironman: "—", half: "—" }
+  },
+  {
+    id: "B_10K_VO2_600",
+    cat: "B",
+    sport: "course",
+    objectif: "VO2max 600m (VMA courte spécifique 10K)",
+    necessite: "Recommandé",
+    when: "Build 10K",
+    avoid: "Fatigue nerveuse",
+    durationMin: [45, 65],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Warm-up", text: "15' Z1–Z2 + gammes", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "8–12x600m Z5 r=1'30–2' trot", zones: ["Z5"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { "10k": "Excellent", semi: "utile", marathon: "—", ironman: "—", half: "—" }
+  },
+  {
+    id: "B_10K_RACE_PACE_BLOCKS",
+    cat: "B",
+    sport: "course",
+    objectif: "Allure spécifique 10K (blocs race pace)",
+    necessite: "Obligatoire",
+    when: "Peak 10K",
+    avoid: "Veille compétition",
+    durationMin: [50, 70],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Warm-up", text: "15' Z1–Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "3x10' allure 10K (Z4b) r=3' trot Z1", zones: ["Z4b", "Z1"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { "10k": "Clé", semi: "—", marathon: "—", ironman: "—", half: "—" }
+  },
+  {
+    id: "B_10K_TEMPO_20",
+    cat: "B",
+    sport: "course",
+    objectif: "Tempo soutenu (seuil 10K)",
+    necessite: "Recommandé",
+    when: "Build / Peak",
+    avoid: "Fatigue accumulée",
+    durationMin: [45, 65],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Warm-up", text: "15' Z1–Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "2x12' Z4a–Z4b r=4' trot", zones: ["Z4a", "Z4b"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { "10k": "Très utile", semi: "utile", marathon: "—", ironman: "—", half: "—" }
+  },
+  {
+    id: "B_10K_FARTLEK_PYRAMIDE",
+    cat: "B",
+    sport: "course",
+    objectif: "Fartlek pyramidal (versatilité VO2/seuil)",
+    necessite: "Recommandé",
+    when: "Build 10K",
+    avoid: "—",
+    durationMin: [50, 70],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Warm-up", text: "15' Z1–Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "1'–2'–3'–4'–3'–2'–1' Z4b–Z5 r=1'–2' trot", zones: ["Z4b", "Z5"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { "10k": "Excellent", semi: "utile", marathon: "—", ironman: "—", half: "—" }
+  },
+
+  // C – 10K TECHNIQUE
+  {
+    id: "C_10K_STRIDES_SPEED",
+    cat: "C",
+    sport: "course",
+    objectif: "Lignes droites / économie de course",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    avoid: "—",
+    durationMin: [40, 55],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Main", text: "35' Z2 + 10x15s accélérations (95%) r=1' trot", zones: ["Z2", "Z5"] }
+    ],
+    variants: { "10k": "Fondamental", semi: "utile", marathon: "utile", ironman: "—", half: "—" }
+  },
+
+  // D – 10K RÉCUP
+  {
+    id: "D_10K_RECOVERY_30",
+    cat: "D",
+    sport: "course",
+    objectif: "Récupération active 10K",
+    necessite: "Obligatoire",
+    when: "Après séance B",
+    avoid: "Douleur",
+    durationMin: [20, 35],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "20–35' Z1 très relâché + étirements", zones: ["Z1"] }
+    ],
+    variants: { "10k": "Indispensable", semi: "ok", marathon: "ok", ironman: "ok", half: "ok" }
+  },
+
+  // =========================================================
+  // 🟨 SEMI-MARATHON ENRICHI
+  // =========================================================
+
+  {
+    id: "A_SEMI_LONG_RUN_90",
+    cat: "A",
+    sport: "course",
+    objectif: "Sortie longue semi-marathon (résistance mécanique)",
+    necessite: "Obligatoire",
+    when: "Build / Peak semi",
+    avoid: "Fatigue accumulée",
+    durationMin: [80, 110],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Main", text: "80–110' Z2 (endurance fondamentale semi)", zones: ["Z2"] }
+    ],
+    variants: { semi: "Fondamental", marathon: "utile", "10k": "utile", ironman: "—", half: "—" }
+  },
+  {
+    id: "A_SEMI_PROGRESSIVE_FINISH",
+    cat: "A",
+    sport: "course",
+    objectif: "Long run progressif (negative split semi)",
+    necessite: "Recommandé",
+    when: "Peak semi",
+    avoid: "Fatigue nerveuse",
+    durationMin: [75, 100],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Main", text: "50–70' Z2 + 20–30' Z3 (allure semi) + 5' Z1 cool", zones: ["Z2", "Z3", "Z1"] }
+    ],
+    variants: { semi: "Clé", marathon: "utile", "10k": "—", ironman: "—", half: "—" }
+  },
+  {
+    id: "B_SEMI_VO2_1200",
+    cat: "B",
+    sport: "course",
+    objectif: "VO2max 1200m (support puissance aérobie semi)",
+    necessite: "Recommandé",
+    when: "Build semi",
+    avoid: "Fatigue nerveuse",
+    durationMin: [50, 70],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Warm-up", text: "15' Z1–Z2 + gammes", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "5–6x1200m Z5 r=3' trot", zones: ["Z5"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { semi: "Utile", "10k": "utile", marathon: "—", ironman: "—", half: "—" }
+  },
+  {
+    id: "B_SEMI_TEMPO_LONG_30",
+    cat: "B",
+    sport: "course",
+    objectif: "Tempo long (allure semi, seuil aérobie)",
+    necessite: "Obligatoire",
+    when: "Build / Peak semi",
+    avoid: "Fatigue élevée",
+    durationMin: [55, 75],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Warm-up", text: "15' Z1–Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "25–35' continu Z3–Z4a (allure semi)", zones: ["Z3", "Z4a"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { semi: "Clé", marathon: "utile", "10k": "—", ironman: "—", half: "—" }
+  },
+  {
+    id: "B_SEMI_RACE_PACE_2x15",
+    cat: "B",
+    sport: "course",
+    objectif: "Allure course semi-marathon (blocs spécifiques)",
+    necessite: "Obligatoire",
+    when: "Peak semi",
+    avoid: "Veille compétition",
+    durationMin: [55, 75],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Warm-up", text: "15' Z1–Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "2x15' allure semi (Z4a) r=4' trot Z1", zones: ["Z4a", "Z1"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { semi: "Séance clé", marathon: "—", "10k": "—", ironman: "—", half: "—" }
+  },
+  {
+    id: "B_SEMI_FARTLEK_CONTROLLED",
+    cat: "B",
+    sport: "course",
+    objectif: "Fartlek contrôlé semi (changements de rythme)",
+    necessite: "Recommandé",
+    when: "Build semi",
+    avoid: "—",
+    durationMin: [50, 70],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: [
+      { part: "Warm-up", text: "15' Z1–Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "8x(2' Z4a / 2' Z2) + 5' Z1", zones: ["Z4a", "Z2", "Z1"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { semi: "Très utile", marathon: "utile", "10k": "utile", ironman: "—", half: "—" }
+  },
+  {
+    id: "C_SEMI_HILL_STRENGTH",
+    cat: "C",
+    sport: "course",
+    objectif: "Force côtes semi-marathon (économie + puissance)",
+    necessite: "Recommandé",
+    when: "Base / Build",
+    avoid: "Achilles sensible",
+    durationMin: [40, 60],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "30' Z2 + 10x30s côtes Z4b r=descente lente + 10' Z1", zones: ["Z2", "Z4b", "Z1"] }
+    ],
+    variants: { semi: "Très utile", "10k": "utile", marathon: "utile", ironman: "—", half: "—" }
+  },
+  {
+    id: "D_SEMI_RECOVERY_30",
+    cat: "D",
+    sport: "course",
+    objectif: "Récupération active semi-marathon",
+    necessite: "Obligatoire",
+    when: "Après séance B / long run",
+    avoid: "Douleur",
+    durationMin: [20, 35],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "20–35' Z1 très facile + mobilité", zones: ["Z1"] }
+    ],
+    variants: { semi: "Indispensable", "10k": "ok", marathon: "ok", ironman: "ok", half: "ok" }
+  },
+
+  // =========================================================
+  // 🟫 TRAIL 20-50 KM (TRAIL SHORT ENRICHI)
+  // =========================================================
+
+  // A – ENDURANCE SPÉCIFIQUE TRAIL 20-50KM
+  {
+    id: "A_TR50_LONG_RUN_2H30",
+    cat: "A",
+    sport: "course",
+    objectif: "Sortie longue trail 20–50km (endurance + D+ modéré)",
+    necessite: "Obligatoire",
+    when: "Build / Peak trail_short",
+    avoid: "Fatigue chronique",
+    durationMin: [130, 180],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "2h10–3h Z1–Z2. Marcher les côtes raides. Nutrition/hydratation race.", zones: ["Z1", "Z2"] }
+    ],
+    variants: { trail_short: "Fondamental", trail_mountain: "utile", trail_ultra: "—", ironman: "—", half: "—", marathon: "—", semi: "—" },
+    dPlusTargetM: { min: 600, max: 1200 }
+  },
+  {
+    id: "A_TR50_PROGRESSIVE_FINISH",
+    cat: "A",
+    sport: "course",
+    objectif: "Long trail progressif (finish soutenu)",
+    necessite: "Recommandé",
+    when: "Peak trail_short",
+    avoid: "Fatigue élevée",
+    durationMin: [110, 160],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "80–120' Z2 + 20–30' Z3 (dernières montées plus soutenues). Nutrition.", zones: ["Z2", "Z3"] }
+    ],
+    variants: { trail_short: "Clé", trail_mountain: "utile", trail_ultra: "—", ironman: "—", half: "—", marathon: "—", semi: "—" },
+    dPlusTargetM: { min: 500, max: 1100 }
+  },
+  {
+    id: "A_TR50_RACE_SIMU_2H",
+    cat: "A",
+    sport: "course",
+    objectif: "Simulation course trail 20–50km (effort + nutrition jour J)",
+    necessite: "Recommandé",
+    when: "Peak (J-21 à J-10)",
+    avoid: "Trop proche course",
+    durationMin: [100, 150],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "100–150' Z2 avec 4–6 montées 'race effort' Z3. Nutrition identique course.", zones: ["Z2", "Z3"] }
+    ],
+    variants: { trail_short: "Clé", trail_mountain: "—", trail_ultra: "—", ironman: "—", half: "—", marathon: "—", semi: "—" },
+    dPlusTargetM: { min: 500, max: 1000 }
+  },
+  {
+    id: "A_TR50_EASY_DPLUS_60",
+    cat: "A",
+    sport: "course",
+    objectif: "Endurance facile + D+ léger (économie montée)",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    avoid: "—",
+    durationMin: [50, 75],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "50–75' Z1–Z2 terrain vallonné. Relâchement descente, régularité montée.", zones: ["Z1", "Z2"] }
+    ],
+    variants: { trail_short: "top", trail_mountain: "top", trail_ultra: "top", ironman: "—", half: "—", marathon: "—", semi: "—" },
+    dPlusTargetM: { min: 200, max: 450 }
+  },
+
+  // B – QUALITÉ SPÉCIFIQUE TRAIL 20-50KM
+  {
+    id: "B_TR50_HILL_TEMPO_3x8",
+    cat: "B",
+    sport: "course",
+    objectif: "Tempo montée (seuil spécifique trail 20–50km)",
+    necessite: "Obligatoire",
+    when: "Build trail_short",
+    avoid: "Fatigue élevée",
+    durationMin: [55, 80],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Warm-up", text: "15' Z1–Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "3x8–10' montée Z3–Z4a r=descente Z1", zones: ["Z3", "Z4a", "Z1"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { trail_short: "Clé", trail_mountain: "utile", trail_ultra: "—", ironman: "—", half: "—", marathon: "—", semi: "—" },
+    dPlusTargetM: { min: 350, max: 700 }
+  },
+  {
+    id: "B_TR50_RACE_EFFORT_5x5",
+    cat: "B",
+    sport: "course",
+    objectif: "Blocs 'race effort' trail 20–50km",
+    necessite: "Obligatoire",
+    when: "Peak trail_short",
+    avoid: "Fatigue nerveuse",
+    durationMin: [55, 80],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Warm-up", text: "15' Z1–Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "5x5' Z3–Z4a terrain varié (côte + plat) r=3' Z1–Z2", zones: ["Z3", "Z4a", "Z1", "Z2"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { trail_short: "Séance clé", trail_mountain: "utile", trail_ultra: "—", ironman: "—", half: "—", marathon: "—", semi: "—" },
+    dPlusTargetM: { min: 300, max: 600 }
+  },
+  {
+    id: "B_TR50_FARTLEK_SENTIER",
+    cat: "B",
+    sport: "course",
+    objectif: "Fartlek sentier (relances terrain, spécifique trail court)",
+    necessite: "Recommandé",
+    when: "Build / Peak",
+    avoid: "—",
+    durationMin: [50, 70],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "15' Z2 + 8–10x(1'30 Z4a / 2'30 Z2) sur sentier + 10' Z1", zones: ["Z2", "Z4a", "Z1"] }
+    ],
+    variants: { trail_short: "Très utile", trail_mountain: "utile", trail_ultra: "—", ironman: "—", half: "—", marathon: "—", semi: "—" },
+    dPlusTargetM: { min: 200, max: 500 }
+  },
+  {
+    id: "B_TR50_DESCENT_SPEED",
+    cat: "B",
+    sport: "course",
+    objectif: "Vitesse descente (tolérance excentrique + technique)",
+    necessite: "Recommandé",
+    when: "Build / Peak",
+    avoid: "Douleur genou/quad",
+    durationMin: [45, 65],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Warm-up", text: "15' Z1–Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "8–10x1'30 descente 'vite propre' + remontée Z1. Focus appuis.", zones: ["Z3", "Z1"] },
+      { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
+    ],
+    variants: { trail_short: "Excellent", trail_mountain: "excellent", trail_ultra: "—", ironman: "—", half: "—", marathon: "—", semi: "—" },
+    dPlusTargetM: { min: 250, max: 550 }
+  },
+
+  // C – FORCE / TECHNIQUE TRAIL 20-50KM
+  {
+    id: "C_TR50_STRENGTH_EXPLOSIVE",
+    cat: "C",
+    sport: "muscu",
+    objectif: "Force explosive (spécifique trail court/moyen)",
+    necessite: "Recommandé",
+    when: "Base / Build",
+    avoid: "Courbatures en Peak",
+    durationMin: [35, 50],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "35–50': jump squat, box jump, fentes sautées, mollets, gainage dynamique. RPE 7.", zones: ["Z1"] }
+    ],
+    variants: { trail_short: "Très utile", trail_mountain: "utile", trail_ultra: "—", ironman: "—", half: "—", marathon: "—", semi: "—" }
+  },
+  {
+    id: "C_TR50_TECH_APPUIS",
+    cat: "C",
+    sport: "course",
+    objectif: "Technique appuis sentier (coordination, lecture terrain)",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    avoid: "—",
+    durationMin: [35, 55],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "35–55' Z1–Z2 sentier technique + 10x20s exercices appuis (virages, pierrier, racines)", zones: ["Z1", "Z2"] }
+    ],
+    variants: { trail_short: "top", trail_mountain: "top", trail_ultra: "top", ironman: "—", half: "—", marathon: "—", semi: "—" },
+    dPlusTargetM: { min: 100, max: 300 }
+  },
+
+  // D – RÉCUP TRAIL 20-50KM
+  {
+    id: "D_TR50_RECOVERY_WALK_RUN",
+    cat: "D",
+    sport: "course",
+    objectif: "Récupération marche/course (lendemain longue sortie)",
+    necessite: "Obligatoire",
+    when: "Après long run / séance B",
+    avoid: "Douleur",
+    durationMin: [25, 40],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: [
+      { part: "Main", text: "25–40' alternance marche 2'/trot Z1 3'. Très relâché + mobilité 10'", zones: ["Z1"] }
+    ],
+    variants: { trail_short: "Indispensable", trail_mountain: "ok", trail_ultra: "ok", ironman: "—", half: "—", marathon: "—", semi: "—" },
+    dPlusTargetM: { min: 0, max: 100 }
   }
 ];
 // =============================================
@@ -1651,6 +2178,8 @@ function goalToVariantKey(goal: ObjectifType): keyof WorkoutVariants {
     case "703": return "half";
     case "Marathon": return "marathon";
     case "Semi": return "semi";
+    case "5K":
+    case "10K": return "10k";
     case "Trail":
     case "TrailMountain": return "trail_mountain";
     case "TrailShort": return "trail_short";

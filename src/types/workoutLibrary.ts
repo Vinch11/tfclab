@@ -17,7 +17,7 @@ export interface WorkoutStructurePart {
 }
 
 // Variantes par objectif
-export type WorkoutVariants = Partial<Record<"ironman" | "half" | "marathon" | "semi" | "trail_short" | "trail_mountain" | "trail_ultra" | "trail_long", string>>;
+export type WorkoutVariants = Partial<Record<"ironman" | "half" | "marathon" | "semi" | "10k" | "trail_short" | "trail_mountain" | "trail_ultra" | "trail_long", string>>;
 
 // Niveau de nécessité
 export type NecessityLevel = "Obligatoire" | "Recommandé" | "Optionnel";
