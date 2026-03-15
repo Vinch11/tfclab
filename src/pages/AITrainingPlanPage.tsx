@@ -304,6 +304,7 @@ export default function AITrainingPlanPage() {
       ftpKg,
       vlamax: vlamaxEff.value,
       wprimeKj: cpResult?.wprimeKJ ?? null,
+      cpDataQuality: cpResult?.dataQuality ?? null,
       tte: tteEff.tte_min,
       fatmax: null,
       economyScore: activeSnap.run_economy_score ?? null,

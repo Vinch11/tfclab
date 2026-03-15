@@ -578,17 +578,18 @@ const Index = () => {
   }, [currentAthlete, user, effectiveCloudSnapshot, vlamaxEffectif, tteEffectif]);
 
   // ✅ W' computation for limiter detection
-  const wprimeKjForLimiter = useMemo<number | null>(() => {
+  const cpResultForLimiter = useMemo(() => {
     if (!effectiveCloudSnapshot) return null;
-    const cpResult = analyzeCriticalPower({
+    return analyzeCriticalPower({
       pmax_5s: effectiveCloudSnapshot.pmax_5s,
       p30s_w: effectiveCloudSnapshot.p30s_w,
       p60s_w: effectiveCloudSnapshot.p60s_w,
       map5min_w: effectiveCloudSnapshot.map5min_w,
       ftp: effectiveCloudSnapshot.ftp,
     });
-    return cpResult?.wprimeKJ ?? null;
   }, [effectiveCloudSnapshot]);
+
+  const wprimeKjForLimiter = cpResultForLimiter?.wprimeKJ ?? null;
 
   // ✅ UNIFIED LIMITER - Pour Roadmap Stratégique
   const unifiedLimiterResult = useMemo<UnifiedLimiterResult | null>(() => {
@@ -598,6 +599,7 @@ const Index = () => {
       ftpKg: ftp_kg,
       vlamax: vlamaxEffectif.value,
       wprimeKj: wprimeKjForLimiter,
+      cpDataQuality: cpResultForLimiter?.dataQuality ?? null,
       tte: tteEffectif.tte_min,
       fatmax: null,
       economyScore: effectiveCloudSnapshot?.run_economy_score ?? null,
@@ -607,7 +609,7 @@ const Index = () => {
       ambition: currentAmbition,
       age: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
     });
-  }, [currentAthlete, effectiveCloudSnapshot, ftp_kg, vlamaxEffectif, tteEffectif, currentAmbition, wprimeKjForLimiter]);
+  }, [currentAthlete, effectiveCloudSnapshot, ftp_kg, vlamaxEffectif, tteEffectif, currentAmbition, wprimeKjForLimiter, cpResultForLimiter]);
 
   // ✅ PERSISTANCE AUTOMATIQUE DRE - Hook pour sauvegarder en base
   const { 
