@@ -2141,6 +2141,336 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     ],
     variants: { trail_short: "Indispensable", trail_mountain: "ok", trail_ultra: "ok", ironman: "—", half: "—", marathon: "—", semi: "—" },
     dPlusTargetM: { min: 0, max: 100 }
+  },
+
+  // =========================================================
+  // 🏊 NATATION TRIATHLON SPÉCIFIQUE
+  // =========================================================
+
+  // A – ENDURANCE NATATION TRIATHLON
+  {
+    id: "A_SWIM_TRI_END_2500",
+    cat: "A",
+    sport: "natation",
+    objectif: "Endurance natation triathlon (volume aérobie)",
+    necessite: "Obligatoire",
+    when: "Build / Peak IM & 70.3",
+    avoid: "Douleur épaule",
+    durationMin: [50, 75],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: [
+      { part: "Warm-up", text: "400m facile + 4x50m éducatifs (r=10s)", zones: ["Z1"] },
+      { part: "Main", text: "2000–2500m continu Z2 (CSS+8–10s/100). Respiration bilat tous les 3 ou 5.", zones: ["Z2"] },
+      { part: "Cool-down", text: "200m souple", zones: ["Z1"] }
+    ],
+    variants: { ironman: "Fondamental", half: "Fondamental", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "A_SWIM_TRI_LONG_3500",
+    cat: "A",
+    sport: "natation",
+    objectif: "Sortie longue natation IM (3500m+, résistance distance)",
+    necessite: "Obligatoire",
+    when: "Build / Peak IM",
+    avoid: "Fatigue épaule chronique",
+    durationMin: [65, 90],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: [
+      { part: "Warm-up", text: "400m facile + 200m éducatifs", zones: ["Z1"] },
+      { part: "Main", text: "3000–3500m continu Z2 (CSS+8–12s). Varier respiration. Hydratation au bord si possible.", zones: ["Z2"] },
+      { part: "Cool-down", text: "200m souple", zones: ["Z1"] }
+    ],
+    variants: { ironman: "Séance clé", half: "utile", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "A_SWIM_TRI_OPEN_WATER_SIMU",
+    cat: "A",
+    sport: "natation",
+    objectif: "Simulation eau libre (navigation, respiration, drafting)",
+    necessite: "Recommandé",
+    when: "Peak IM / 70.3 (si accès eau libre)",
+    avoid: "Eau froide sans combi",
+    durationMin: [40, 70],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: [
+      { part: "Main", text: "1500–2500m Z2 en eau libre. Pratiquer : visées tous les 8–10 coups, départs groupés, contournement bouées, drafting.", zones: ["Z2"] }
+    ],
+    variants: { ironman: "Essentiel", half: "Essentiel", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "A_SWIM_TRI_EASY_TECH_1500",
+    cat: "A",
+    sport: "natation",
+    objectif: "Endurance facile + technique (base triathlon)",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    avoid: "—",
+    durationMin: [35, 50],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: [
+      { part: "Warm-up", text: "300m facile", zones: ["Z1"] },
+      { part: "Main", text: "6x(100m éducatifs + 150m Z2 propre) r=15s", zones: ["Z1", "Z2"] },
+      { part: "Cool-down", text: "200m souple", zones: ["Z1"] }
+    ],
+    variants: { ironman: "utile", half: "utile", marathon: "—", semi: "—", "10k": "—" }
+  },
+
+  // B – QUALITÉ NATATION TRIATHLON
+  {
+    id: "B_SWIM_TRI_CSS_10x200",
+    cat: "B",
+    sport: "natation",
+    objectif: "CSS longue distance (seuil aérobie natation triathlon)",
+    necessite: "Obligatoire",
+    when: "Build / Peak IM & 70.3",
+    avoid: "Épaule fragile",
+    durationMin: [55, 80],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: [
+      { part: "Warm-up", text: "400m facile + 4x50m prog", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "8–10x200m à CSS r=20–25s. Régularité absolue.", zones: ["Z3"] },
+      { part: "Cool-down", text: "200m souple", zones: ["Z1"] }
+    ],
+    variants: { ironman: "Séance clé", half: "Séance clé", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "B_SWIM_TRI_CSS_5x400",
+    cat: "B",
+    sport: "natation",
+    objectif: "CSS blocs longs (endurance seuil natation IM)",
+    necessite: "Recommandé",
+    when: "Build IM",
+    avoid: "Fatigue technique",
+    durationMin: [60, 85],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: [
+      { part: "Warm-up", text: "400m facile + 200m éducatifs", zones: ["Z1"] },
+      { part: "Main", text: "4–5x400m à CSS r=30–40s. Garder allure constante.", zones: ["Z3"] },
+      { part: "Cool-down", text: "200m souple", zones: ["Z1"] }
+    ],
+    variants: { ironman: "Excellent", half: "utile", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "B_SWIM_TRI_RACE_PACE_IM",
+    cat: "B",
+    sport: "natation",
+    objectif: "Allure course IM (3.8km pace, régularité)",
+    necessite: "Obligatoire",
+    when: "Peak IM",
+    avoid: "Veille compétition",
+    durationMin: [60, 85],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: [
+      { part: "Warm-up", text: "400m facile + 4x50m prog", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "3x(800m allure course IM Z2 haut) r=1' facile. Viser régularité.", zones: ["Z2"] },
+      { part: "Cool-down", text: "200m souple", zones: ["Z1"] }
+    ],
+    variants: { ironman: "Séance clé", half: "—", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "B_SWIM_TRI_RACE_PACE_703",
+    cat: "B",
+    sport: "natation",
+    objectif: "Allure course 70.3 (1.9km pace, légèrement plus soutenu)",
+    necessite: "Obligatoire",
+    when: "Peak 70.3",
+    avoid: "Veille compétition",
+    durationMin: [50, 70],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: [
+      { part: "Warm-up", text: "400m facile + 4x50m prog", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "3x(600m allure course 70.3 Z3 bas) r=1' facile. Rester propre.", zones: ["Z3"] },
+      { part: "Cool-down", text: "200m souple", zones: ["Z1"] }
+    ],
+    variants: { half: "Séance clé", ironman: "—", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "B_SWIM_TRI_VO2_8x100",
+    cat: "B",
+    sport: "natation",
+    objectif: "VO2max natation (puissance aérobie, support triathlon)",
+    necessite: "Recommandé",
+    when: "Build",
+    avoid: "Fatigue / épaule douloureuse",
+    durationMin: [45, 65],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: [
+      { part: "Warm-up", text: "400m facile + 4x50m prog", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "8–10x100m Z4–Z5 (CSS-5 à -8s/100) r=20–30s", zones: ["Z4a", "Z5"] },
+      { part: "Cool-down", text: "200m souple", zones: ["Z1"] }
+    ],
+    variants: { ironman: "utile", half: "utile", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "B_SWIM_TRI_NEGATIVE_SPLIT",
+    cat: "B",
+    sport: "natation",
+    objectif: "Negative split (pacing triathlon – partir contrôlé, finir fort)",
+    necessite: "Recommandé",
+    when: "Peak IM / 70.3",
+    avoid: "—",
+    durationMin: [50, 70],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: [
+      { part: "Warm-up", text: "400m facile + 200m éducatifs", zones: ["Z1"] },
+      { part: "Main", text: "3x(600m : 200m Z2 + 200m Z2 haut + 200m Z3) r=45s", zones: ["Z2", "Z3"] },
+      { part: "Cool-down", text: "200m souple", zones: ["Z1"] }
+    ],
+    variants: { ironman: "Excellent pacing", half: "Excellent pacing", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "B_SWIM_TRI_THRESHOLD_PYRAMID",
+    cat: "B",
+    sport: "natation",
+    objectif: "Pyramide seuil (versatilité CSS / intensité variée)",
+    necessite: "Recommandé",
+    when: "Build / Peak",
+    avoid: "—",
+    durationMin: [50, 75],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: [
+      { part: "Warm-up", text: "400m facile + 4x50m éducatifs", zones: ["Z1"] },
+      { part: "Main", text: "100-200-300-400-500-400-300-200-100 à CSS (r=15–30s progressif)", zones: ["Z3"] },
+      { part: "Cool-down", text: "200m souple", zones: ["Z1"] }
+    ],
+    variants: { ironman: "Excellent", half: "Excellent", marathon: "—", semi: "—", "10k": "—" }
+  },
+
+  // C – TECHNIQUE NATATION TRIATHLON
+  {
+    id: "C_SWIM_TRI_SIGHTING_DRILLS",
+    cat: "C",
+    sport: "natation",
+    objectif: "Technique visée (sighting) + navigation eau libre",
+    necessite: "Obligatoire",
+    when: "Build / Peak (pré-compétition)",
+    avoid: "—",
+    durationMin: [35, 55],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: [
+      { part: "Warm-up", text: "300m facile", zones: ["Z1"] },
+      { part: "Main", text: "10x150m Z2 avec sighting toutes les 8 brasses (lever tête, viser cible) r=15s. + 4x50m nage en 'paquet' (simulation drafting).", zones: ["Z2"] },
+      { part: "Cool-down", text: "200m souple", zones: ["Z1"] }
+    ],
+    variants: { ironman: "Essentiel", half: "Essentiel", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "C_SWIM_TRI_CATCH_PULL",
+    cat: "C",
+    sport: "natation",
+    objectif: "Technique catch & pull (efficacité propulsion triathlon)",
+    necessite: "Obligatoire",
+    when: "Toute l'année",
+    avoid: "—",
+    durationMin: [35, 55],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: [
+      { part: "Warm-up", text: "300m facile", zones: ["Z1"] },
+      { part: "Main", text: "8x(50m rattrapé + 50m poing fermé + 100m nage complète propre) r=15s", zones: ["Z1", "Z2"] },
+      { part: "Cool-down", text: "200m souple", zones: ["Z1"] }
+    ],
+    variants: { ironman: "Prioritaire", half: "Prioritaire", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "C_SWIM_TRI_DRAFTING_PACK",
+    cat: "C",
+    sport: "natation",
+    objectif: "Drafting & nage en peloton (spécifique départ triathlon)",
+    necessite: "Recommandé",
+    when: "Peak (pré-compétition)",
+    avoid: "Si seul en bassin (adapter avec éducatifs)",
+    durationMin: [35, 55],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: [
+      { part: "Warm-up", text: "300m facile", zones: ["Z1"] },
+      { part: "Main", text: "6x300m : 2 longueurs dans les pieds du partenaire + 2 longueurs côté (aspiration latérale) + 2 longueurs solo Z2. r=20s", zones: ["Z2"] },
+      { part: "Cool-down", text: "200m souple", zones: ["Z1"] }
+    ],
+    variants: { ironman: "Très utile", half: "Très utile", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "C_SWIM_TRI_BILATERAL_BREATHING",
+    cat: "C",
+    sport: "natation",
+    objectif: "Respiration bilatérale (adaptation eau libre / vagues)",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    avoid: "—",
+    durationMin: [30, 50],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: [
+      { part: "Warm-up", text: "300m facile", zones: ["Z1"] },
+      { part: "Main", text: "8x200m Z2 : 100m respiration tous les 3 coups + 100m respiration tous les 5 coups. r=15s", zones: ["Z2"] },
+      { part: "Cool-down", text: "200m souple", zones: ["Z1"] }
+    ],
+    variants: { ironman: "Fondamental", half: "Fondamental", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "C_SWIM_TRI_KICK_EFFICIENCY",
+    cat: "C",
+    sport: "natation",
+    objectif: "Battements économiques (réduire coût jambes pour vélo/course)",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    avoid: "—",
+    durationMin: [30, 50],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: [
+      { part: "Warm-up", text: "300m facile", zones: ["Z1"] },
+      { part: "Main", text: "6x(100m plaquette sans plaquette de battements + 100m nage complète '2 battements/cycle') r=15s. Focus : battements minimaux, propulsion bras.", zones: ["Z1", "Z2"] },
+      { part: "Cool-down", text: "200m souple", zones: ["Z1"] }
+    ],
+    variants: { ironman: "Prioritaire (épargner jambes)", half: "Très utile", marathon: "—", semi: "—", "10k": "—" }
+  },
+
+  // D – RÉCUP NATATION TRIATHLON
+  {
+    id: "D_SWIM_TRI_REGEN_1000",
+    cat: "D",
+    sport: "natation",
+    objectif: "Récupération active natation triathlon (post-séance dure)",
+    necessite: "Recommandé",
+    when: "Lendemain séance B / brick / long vélo",
+    avoid: "—",
+    durationMin: [20, 35],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: [
+      { part: "Main", text: "800–1200m très facile Z1 : 200m crawl + 100m dos + 100m éducatifs. Répéter. Souplesse épaule.", zones: ["Z1"] }
+    ],
+    variants: { ironman: "Excellent récup", half: "Excellent récup", marathon: "—", semi: "—", "10k": "—" }
+  },
+  {
+    id: "D_SWIM_TRI_PRE_RACE_ACTIVATION",
+    cat: "D",
+    sport: "natation",
+    objectif: "Activation pré-course triathlon (J-1 ou matin course)",
+    necessite: "Recommandé",
+    when: "Veille ou matin compétition",
+    avoid: "—",
+    durationMin: [15, 25],
+    metricKey: "allure",
+    sportKey: "natation",
+    structure: [
+      { part: "Main", text: "600–800m : 200m facile + 4x50m prog (Z1→Z3) r=15s + 200m Z2 + 4x25m vif r=15s + 100m cool", zones: ["Z1", "Z2", "Z3"] }
+    ],
+    variants: { ironman: "Idéal veille", half: "Idéal veille", marathon: "—", semi: "—", "10k": "—" }
   }
 ];
 // =============================================
