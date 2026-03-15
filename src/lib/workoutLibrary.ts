@@ -1651,6 +1651,8 @@ function goalToVariantKey(goal: ObjectifType): keyof WorkoutVariants {
     case "703": return "half";
     case "Marathon": return "marathon";
     case "Semi": return "semi";
+    case "5K":
+    case "10K": return "10k";
     case "Trail":
     case "TrailMountain": return "trail_mountain";
     case "TrailShort": return "trail_short";
