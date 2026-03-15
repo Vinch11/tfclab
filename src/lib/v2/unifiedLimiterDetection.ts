@@ -58,6 +58,7 @@ export interface UnifiedLimiterInput {
   ftpKg: number | null;
   vlamax: number | null;
   wprimeKj: number | null;         // W' en kJ (capacité anaérobie absolue)
+  cpDataQuality?: "good" | "suspect" | "implausible" | null; // Qualité des données CP — si "implausible", W' est exclu du classement
   tte: number | null;
   fatmax: number | null;           // % FTP où FatMax atteint
   economyScore: number | null;     // 0-100
