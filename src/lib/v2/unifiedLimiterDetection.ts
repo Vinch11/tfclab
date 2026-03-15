@@ -407,25 +407,30 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   
   // 2b. Analyse W' (Capacité Anaérobie absolue)
   // W' a une cible bidirectionnelle: trop bas = pas assez de punch, trop haut = profil trop glycolytique
+  // ⚠️ GUARD: Si les données CP sont "implausible", W' est exclu du classement des limiteurs
+  //    pour éviter qu'un effort non-maximal fausse toute la périodisation
+  const cpReliable = input.cpDataQuality !== "implausible";
+  const effectiveWprime = cpReliable ? input.wprimeKj : null; // Neutralise W' si CP implausible
+  
   const wprimeTargets = getWprimeTargets(normalized, input.ambition);
-  const wprimeTooLow = input.wprimeKj !== null && input.wprimeKj < wprimeTargets.min;
-  const wprimeTooHigh = input.wprimeKj !== null && input.wprimeKj > wprimeTargets.max;
-  const wprimeGapValue = input.wprimeKj !== null
+  const wprimeTooLow = effectiveWprime !== null && effectiveWprime < wprimeTargets.min;
+  const wprimeTooHigh = effectiveWprime !== null && effectiveWprime > wprimeTargets.max;
+  const wprimeGapValue = effectiveWprime !== null
     ? wprimeTooLow 
-      ? (input.wprimeKj - wprimeTargets.min) / wprimeTargets.min
+      ? (effectiveWprime - wprimeTargets.min) / wprimeTargets.min
       : wprimeTooHigh
-        ? (input.wprimeKj - wprimeTargets.max) / wprimeTargets.max
+        ? (effectiveWprime - wprimeTargets.max) / wprimeTargets.max
         : 0
     : 0;
   gapAnalysis.push({
     metric: "W' (kJ)",
-    value: input.wprimeKj,
+    value: effectiveWprime,
     target: wprimeTargets.optimal,
-    gap: input.wprimeKj !== null ? input.wprimeKj - wprimeTargets.optimal : 0,
+    gap: effectiveWprime !== null ? effectiveWprime - wprimeTargets.optimal : 0,
     gapPercent: wprimeGapValue * 100,
-    status: input.wprimeKj === null ? "acceptable"
-      : input.wprimeKj >= wprimeTargets.min && input.wprimeKj <= wprimeTargets.max ? "optimal"
-      : (input.wprimeKj >= wprimeTargets.min * 0.85 && input.wprimeKj <= wprimeTargets.max * 1.15) ? "acceptable"
+    status: effectiveWprime === null ? "acceptable"
+      : effectiveWprime >= wprimeTargets.min && effectiveWprime <= wprimeTargets.max ? "optimal"
+      : (effectiveWprime >= wprimeTargets.min * 0.85 && effectiveWprime <= wprimeTargets.max * 1.15) ? "acceptable"
       : "limiting",
     weight: weights.anaerobic,
     weightedImpact: (wprimeTooLow || wprimeTooHigh) 
