@@ -407,10 +407,16 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   
   // 2b. Analyse W' (Capacité Anaérobie absolue)
   // W' a une cible bidirectionnelle: trop bas = pas assez de punch, trop haut = profil trop glycolytique
-  // ⚠️ GUARD: Si les données CP sont "implausible", W' est exclu du classement des limiteurs
-  //    pour éviter qu'un effort non-maximal fausse toute la périodisation
-  const cpReliable = input.cpDataQuality !== "implausible";
-  const effectiveWprime = cpReliable ? input.wprimeKj : null; // Neutralise W' si CP implausible
+  // ⚠️ GUARD RENFORCÉ: W' est exclu du classement des limiteurs si :
+  //    1. CP dataQuality === "implausible" (effort non-maximal détecté)
+  //    2. CP dataQuality === "suspect" ET W' < 5 kJ (valeur physiologiquement implausible)
+  //    3. W' brut < 3 kJ (toujours suspect, même sans diagnostic CP)
+  //    Cela empêche qu'un effort non-maximal fausse toute la périodisation
+  const cpIsImplausible = input.cpDataQuality === "implausible";
+  const cpIsSuspectWithLowWprime = input.cpDataQuality === "suspect" && input.wprimeKj !== null && input.wprimeKj < 5;
+  const wprimePhysiologicallyImplausible = input.wprimeKj !== null && input.wprimeKj < 3;
+  const shouldExcludeWprime = cpIsImplausible || cpIsSuspectWithLowWprime || wprimePhysiologicallyImplausible;
+  const effectiveWprime = shouldExcludeWprime ? null : input.wprimeKj;
   
   const wprimeTargets = getWprimeTargets(normalized, input.ambition);
   const wprimeTooLow = effectiveWprime !== null && effectiveWprime < wprimeTargets.min;
