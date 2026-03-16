@@ -29,6 +29,7 @@ export { PacingEnvelopeRunChart } from "./PacingEnvelopeRunChart";
 export { VLamaxEstimationWidget } from "./VLamaxEstimationWidget";
 export { SimulatedLactateCurveChart } from "./SimulatedLactateCurveChart";
 export { FatCarbOxidationChart } from "./FatCarbOxidationChart";
+export { PerformancePredictionChart } from "./PerformancePredictionChart";
 
 // Utilitaires pour graphiques responsives (mobile/touch)
 export {
