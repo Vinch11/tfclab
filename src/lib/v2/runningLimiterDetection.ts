@@ -56,12 +56,21 @@ export interface RunningGapAnalysis {
   weightedImpact: number;
 }
 
+export interface RunningFatigueWarning {
+  active: boolean;
+  level: "moderate" | "high" | "critical" | null;
+  message: string | null;
+}
+
 export interface RunningLimiterResult {
-  // Limiteur principal
+  // Limiteur principal (JAMAIS "availability_low" — voir fatigueWarning)
   primaryLimiter: RunningLimiter;
   limiterLabel: string;
   limiterEmoji: string;
   limiterExplanation: string;
+  
+  // ⚠️ Avertissement fatigue (remplace l'ancien limiteur "availability_low")
+  fatigueWarning: RunningFatigueWarning;
   
   // Levier prioritaire
   primaryLever: RunningLever;
