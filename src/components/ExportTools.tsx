@@ -6550,108 +6550,171 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   `;
 
   // =============================================
-  // INSCYD-STYLE: LACTATE CURVE HTML (SVG)
+  // INSCYD-STYLE: LACTATE CURVE HTML (SVG) — Mader-Heck Model
   // =============================================
   function buildLactateCurveHTML(p: ExportPayload): string {
     const v2max = p.effectiveRefs.vo2max ?? effectiveSnapshot?.vo2max ?? null;
     const vla = p.vlamax.value;
     const ftpVal = p.effectiveRefs.ftp ?? effectiveSnapshot?.ftp ?? null;
+    const weightKg = p.effectiveRefs.weightKg ?? effectiveSnapshot?.weight_kg ?? 70;
     if (!v2max || !vla || !ftpVal) return '';
     
-    // Import model functions inline
-    const { predictLactate, findLactateThresholds, predictFatMax } = require("@/lib/v2/metabolicSimulator");
-    const thresholds = findLactateThresholds(v2max, vla);
-    const fatMaxPct = predictFatMax(vla);
-    const pMax = ftpVal * 1.18;
+    // Use Mader model for scientific accuracy (parity with dashboard)
+    const { findSteadyStateLactate, findLactateThresholds, findFatMax, findMLSSPower, predictMaderPerformance } = require("@/lib/v2/maderMetabolicModel");
+    const maderProfile = { vo2max: v2max, vlamax: vla, weight: weightKg };
+    const thresholds = findLactateThresholds(maderProfile);
+    const fatMaxResult = findFatMax(maderProfile);
+    const predictions = predictMaderPerformance(maderProfile);
+    const pMax = predictions.pMax;
     
-    // Generate SVG curve points
-    const svgW = 520, svgH = 200, padL = 50, padR = 20, padT = 20, padB = 30;
+    // Generate SVG curve points using Mader steady-state solver
+    const svgW = 520, svgH = 220, padL = 50, padR = 20, padT = 20, padB = 30;
     const plotW = svgW - padL - padR;
     const plotH = svgH - padT - padB;
     
-    const points: { x: number; y: number; lactate: number; intensity: number }[] = [];
-    for (let i = 30; i <= 110; i += 2) {
-      const lac = predictLactate(i, v2max, vla);
-      const x = padL + ((i - 30) / 80) * plotW;
-      const y = padT + plotH - Math.min(lac / 14, 1) * plotH;
-      points.push({ x, y, lactate: lac, intensity: i });
+    // Generate discrete step points (lab-style paliers)
+    const stepPoints: { x: number; y: number; lactate: number; intensity: number; watts: number }[] = [];
+    for (let i = 30; i <= 100; i += 5) {
+      const lac = findSteadyStateLactate(i, v2max, vla);
+      const watts = Math.round((i / 100) * pMax);
+      const x = padL + ((i - 30) / 70) * plotW;
+      const y = padT + plotH - Math.min(lac / 16, 1) * plotH;
+      stepPoints.push({ x, y, lactate: lac, intensity: i, watts });
     }
     
-    const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
-    const areaD = pathD + ` L ${points[points.length - 1].x.toFixed(1)} ${padT + plotH} L ${points[0].x.toFixed(1)} ${padT + plotH} Z`;
+    // Smooth curve (2% steps)
+    const curvePoints: { x: number; y: number }[] = [];
+    for (let i = 30; i <= 100; i += 2) {
+      const lac = findSteadyStateLactate(i, v2max, vla);
+      const x = padL + ((i - 30) / 70) * plotW;
+      const y = padT + plotH - Math.min(lac / 16, 1) * plotH;
+      curvePoints.push({ x, y });
+    }
     
-    // LT1/LT2 Y positions
-    const lt1Y = padT + plotH - (2 / 14) * plotH;
-    const lt2Y = padT + plotH - (4 / 14) * plotH;
-    const lt1W = Math.round((thresholds.lt1Pct / 100) * pMax);
-    const lt2W = Math.round((thresholds.lt2Pct / 100) * pMax);
-    const fatMaxW = Math.round((fatMaxPct / 100) * pMax);
+    const pathD = curvePoints.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+    const areaD = pathD + ` L ${curvePoints[curvePoints.length - 1].x.toFixed(1)} ${padT + plotH} L ${curvePoints[0].x.toFixed(1)} ${padT + plotH} Z`;
+    
+    // Threshold positions
+    const lt1Y = padT + plotH - (2 / 16) * plotH;
+    const lt2Y = padT + plotH - (4 / 16) * plotH;
+    const mlssY = padT + plotH - (findSteadyStateLactate(thresholds.lt2Intensity, v2max, vla) / 16) * plotH;
+    
+    // VO2 overlay curve
+    const vo2Points: { x: number; y: number }[] = [];
+    for (let i = 30; i <= 100; i += 5) {
+      const vo2 = (v2max * weightKg * (i / 100)) / 1000; // L/min
+      const maxVO2 = (v2max * weightKg) / 1000;
+      const x = padL + ((i - 30) / 70) * plotW;
+      const y = padT + plotH - (vo2 / (maxVO2 * 1.1)) * plotH;
+      vo2Points.push({ x, y });
+    }
+    const vo2PathD = vo2Points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+    
+    // Step markers SVG
+    const stepMarkersSVG = stepPoints.map(sp => 
+      `<circle cx="${sp.x.toFixed(1)}" cy="${sp.y.toFixed(1)}" r="3.5" fill="#ea580c" stroke="#fff" stroke-width="1.5"/>`
+    ).join('');
+    
+    // Step table rows
+    const stepTableRows = stepPoints.filter((_, i) => i % 2 === 0).map(sp => {
+      const zone = sp.lactate < 2 ? 'Z1-Z2' : sp.lactate < 4 ? 'Z3' : sp.lactate < 6 ? 'Z4' : sp.lactate < 10 ? 'Z5' : 'Z6';
+      const zColor = sp.lactate < 2 ? '#16a34a' : sp.lactate < 4 ? '#d97706' : sp.lactate < 6 ? '#ea580c' : '#dc2626';
+      return `<tr>
+        <td style="text-align:center;">${sp.intensity}%</td>
+        <td style="text-align:center;">${sp.watts}W</td>
+        <td style="text-align:center;font-weight:700;color:${zColor};">${sp.lactate.toFixed(1)}</td>
+        <td style="text-align:center;"><span style="color:${zColor};font-size:10px;">${zone}</span></td>
+      </tr>`;
+    }).join('');
     
     return `
       <section id="lactate-curve">
-        <h2>🧪 Courbe de Lactate Simulée (Mader-Heck)</h2>
+        <h2>🧪 Courbe de Lactate — Modèle Mader-Heck</h2>
         <div class="grid3 mb">
           <div class="card" style="text-align:center;border-color:#22c55e;">
             <div style="font-size:10px;color:#16a34a;font-weight:600;">FatMax</div>
-            <div class="big" style="color:#16a34a;">${fatMaxPct}%</div>
-            <div class="muted">${fatMaxW}W</div>
+            <div class="big" style="color:#16a34a;">${fatMaxResult.fatMaxIntensity}%</div>
+            <div class="muted">${fatMaxResult.fatMaxPower}W · ${fatMaxResult.fatMaxGrams} g/min lip</div>
           </div>
           <div class="card" style="text-align:center;border-color:#22c55e;">
             <div style="font-size:10px;color:#16a34a;font-weight:600;">LT1 (2 mmol/L)</div>
-            <div class="big" style="color:#16a34a;">${thresholds.lt1Pct}%</div>
-            <div class="muted">${lt1W}W</div>
+            <div class="big" style="color:#16a34a;">${thresholds.lt1Intensity}%</div>
+            <div class="muted">${thresholds.lt1Power}W</div>
           </div>
           <div class="card" style="text-align:center;border-color:#ea580c;">
-            <div style="font-size:10px;color:#ea580c;font-weight:600;">LT2 (4 mmol/L)</div>
-            <div class="big" style="color:#ea580c;">${thresholds.lt2Pct}%</div>
-            <div class="muted">${lt2W}W</div>
+            <div style="font-size:10px;color:#ea580c;font-weight:600;">LT2 / MLSS</div>
+            <div class="big" style="color:#ea580c;">${thresholds.lt2Intensity}%</div>
+            <div class="muted">${thresholds.lt2Power}W · ${predictions.mlssPower}W MLSS</div>
           </div>
         </div>
         <div class="card">
           <svg width="100%" viewBox="0 0 ${svgW} ${svgH}" preserveAspectRatio="xMidYMid meet">
             <rect x="${padL}" y="${padT}" width="${plotW}" height="${plotH}" fill="#ffffff" stroke="#e5e7eb" rx="4"/>
-            <!-- Zone fills -->
-            <rect x="${padL}" y="${lt2Y}" width="${plotW}" height="${padT + plotH - lt2Y}" fill="#fff7ed" opacity="0.5"/>
-            <rect x="${padL}" y="${lt1Y}" width="${plotW}" height="${lt2Y - lt1Y}" fill="#fefce8" opacity="0.5"/>
-            <rect x="${padL}" y="${padT}" width="${plotW}" height="${lt1Y - padT}" fill="#f0fdf4" opacity="0.5"/>
+            <!-- Zone background fills -->
+            <rect x="${padL}" y="${lt2Y}" width="${plotW}" height="${padT + plotH - lt2Y}" fill="#fff7ed" opacity="0.4"/>
+            <rect x="${padL}" y="${lt1Y}" width="${plotW}" height="${lt2Y - lt1Y}" fill="#fefce8" opacity="0.4"/>
+            <rect x="${padL}" y="${padT}" width="${plotW}" height="${lt1Y - padT}" fill="#f0fdf4" opacity="0.4"/>
             <!-- Grid lines -->
-            ${[0, 2, 4, 6, 8, 10, 12, 14].map(v => {
-              const gy = padT + plotH - (v / 14) * plotH;
+            ${[0, 2, 4, 6, 8, 10, 12, 14, 16].map(v => {
+              const gy = padT + plotH - (v / 16) * plotH;
               return `<line x1="${padL}" y1="${gy}" x2="${padL + plotW}" y2="${gy}" stroke="#e5e7eb" stroke-dasharray="3 3"/>
                       <text x="${padL - 5}" y="${gy + 4}" text-anchor="end" font-size="9" fill="#64748b">${v}</text>`;
             }).join('')}
             <!-- X axis labels -->
-            ${[30, 40, 50, 60, 70, 80, 90, 100, 110].map(v => {
-              const gx = padL + ((v - 30) / 80) * plotW;
+            ${[30, 40, 50, 60, 70, 80, 90, 100].map(v => {
+              const gx = padL + ((v - 30) / 70) * plotW;
               return `<text x="${gx}" y="${padT + plotH + 15}" text-anchor="middle" font-size="9" fill="#64748b">${v}%</text>`;
             }).join('')}
+            <!-- VO2 overlay (right axis) -->
+            <path d="${vo2PathD}" fill="none" stroke="#3b82f6" stroke-width="1.2" stroke-dasharray="5 3" opacity="0.6"/>
+            <text x="${padL + plotW + 2}" y="${vo2Points[vo2Points.length - 1].y + 4}" font-size="8" fill="#3b82f6">VO₂</text>
             <!-- LT1 line -->
             <line x1="${padL}" y1="${lt1Y}" x2="${padL + plotW}" y2="${lt1Y}" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="6 3"/>
             <text x="${padL + plotW + 2}" y="${lt1Y + 4}" font-size="9" fill="#16a34a" font-weight="600">LT1</text>
             <!-- LT2 line -->
             <line x1="${padL}" y1="${lt2Y}" x2="${padL + plotW}" y2="${lt2Y}" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="6 3"/>
             <text x="${padL + plotW + 2}" y="${lt2Y + 4}" font-size="9" fill="#ea580c" font-weight="600">LT2</text>
-            <!-- Curve area -->
-            <defs><linearGradient id="pdfLacGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stop-color="#ea580c" stop-opacity="0.3"/><stop offset="95%" stop-color="#ea580c" stop-opacity="0.03"/></linearGradient></defs>
-            <path d="${areaD}" fill="url(#pdfLacGrad)"/>
+            <!-- Curve area gradient -->
+            <defs><linearGradient id="pdfLacGradMader" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stop-color="#ea580c" stop-opacity="0.25"/><stop offset="95%" stop-color="#ea580c" stop-opacity="0.02"/></linearGradient></defs>
+            <path d="${areaD}" fill="url(#pdfLacGradMader)"/>
             <path d="${pathD}" fill="none" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- Step markers (lab paliers) -->
+            ${stepMarkersSVG}
             <!-- Labels -->
             <text x="${svgW / 2}" y="${svgH - 2}" text-anchor="middle" font-size="10" fill="#64748b">% VO₂max</text>
-            <text x="12" y="${svgH / 2}" text-anchor="middle" font-size="10" fill="#64748b" transform="rotate(-90, 12, ${svgH / 2})">mmol/L</text>
+            <text x="12" y="${svgH / 2}" text-anchor="middle" font-size="10" fill="#64748b" transform="rotate(-90, 12, ${svgH / 2})">[La] mmol/L</text>
+            <!-- Legend -->
+            <line x1="${padL + 10}" y1="${padT + 8}" x2="${padL + 30}" y2="${padT + 8}" stroke="#ea580c" stroke-width="2"/>
+            <text x="${padL + 35}" y="${padT + 12}" font-size="8" fill="#ea580c">Lactate (Mader)</text>
+            <line x1="${padL + 140}" y1="${padT + 8}" x2="${padL + 160}" y2="${padT + 8}" stroke="#3b82f6" stroke-width="1.2" stroke-dasharray="5 3"/>
+            <text x="${padL + 165}" y="${padT + 12}" font-size="8" fill="#3b82f6">VO₂ (L/min)</text>
           </svg>
-          <div class="muted" style="text-align:center;margin-top:8px;font-size:10px;">
-            Courbe reconstruite par modèle Mader-Heck (VO₂max × VLamax). Non-invasif. Valider par test lactate step.
-          </div>
         </div>
-        <div class="card" style="background:#f0fdf4;border-color:#22c55e;">
+        <!-- Step table (paliers) -->
+        <div class="card" style="margin-top:8px;">
+          <div style="font-size:11px;font-weight:600;margin-bottom:6px;">📊 Paliers discrets (type labo)</div>
+          <table style="font-size:10px;">
+            <thead><tr>
+              <th style="text-align:center;">Intensité</th>
+              <th style="text-align:center;">Puissance</th>
+              <th style="text-align:center;">[La] mmol/L</th>
+              <th style="text-align:center;">Zone</th>
+            </tr></thead>
+            <tbody>${stepTableRows}</tbody>
+          </table>
+        </div>
+        <div class="card" style="background:#f0fdf4;border-color:#22c55e;margin-top:8px;">
           <div style="font-size:12px;font-weight:600;color:#16a34a;">💡 Interprétation métabolique</div>
           <div class="muted" style="margin-top:4px;">
             ${vla < 0.35
-              ? `Profil Endurance — VLamax basse (${vla.toFixed(2)}) → seuils élevés (LT1 ${thresholds.lt1Pct}%, LT2 ${thresholds.lt2Pct}%). Excellente efficacité lipidique.`
+              ? `Profil Endurance — VLamax basse (${vla.toFixed(2)}) → seuils élevés (LT1 ${thresholds.lt1Intensity}%, LT2 ${thresholds.lt2Intensity}%). Excellente efficacité lipidique. FatMax à ${fatMaxResult.fatMaxIntensity}% (${fatMaxResult.fatMaxGrams} g/min).`
               : vla > 0.55
-                ? `Profil Glycolytique — VLamax élevée (${vla.toFixed(2)}) → seuils bas (écart ${thresholds.lt2Pct - thresholds.lt1Pct}%). Priorité : volume Z2 pour abaisser VLamax.`
-                : `Profil Équilibré — Écart LT1-LT2 de ${thresholds.lt2Pct - thresholds.lt1Pct}% indique une marge de progression au tempo et sweet-spot.`
+                ? `Profil Glycolytique — VLamax élevée (${vla.toFixed(2)}) → seuils bas (écart ${thresholds.lt2Intensity - thresholds.lt1Intensity}%). Priorité : volume Z2 pour abaisser VLamax et remonter les seuils.`
+                : `Profil Équilibré — Écart LT1-LT2 de ${thresholds.lt2Intensity - thresholds.lt1Intensity}% indique une marge de progression au tempo et sweet-spot. MLSS à ${predictions.mlssPower}W (${predictions.mlssWkg} W/kg).`
             }
+          </div>
+          <div class="muted" style="margin-top:4px;font-size:9px;">
+            Modèle Mader-Heck (2003) — Cinétique lactate Michaelis-Menten + clearance MCT. Parité Dashboard/Export.
           </div>
         </div>
       </section>
@@ -6659,7 +6722,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   }
 
   // =============================================
-  // INSCYD-STYLE: SUBSTRATE OXIDATION HTML (SVG)
+  // INSCYD-STYLE: SUBSTRATE OXIDATION HTML (SVG) — Mader Model
   // =============================================
   function buildSubstrateCurveHTML(p: ExportPayload): string {
     const v2max = p.effectiveRefs.vo2max ?? effectiveSnapshot?.vo2max ?? null;
@@ -6668,90 +6731,130 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     const weightKg = p.effectiveRefs.weightKg ?? effectiveSnapshot?.weight_kg ?? 70;
     if (!v2max || !vla || !ftpVal) return '';
     
-    const { generateSubstrateCurve, predictFatMax } = require("@/lib/v2/metabolicSimulator");
-    const data = generateSubstrateCurve(v2max, vla, weightKg, ftpVal);
-    const fatMaxPct = predictFatMax(vla);
-    const peakFat = data.reduce((b: any, p: any) => p.fatGmin > b.fatGmin ? p : b, data[0]);
-    const crossover = data.find((p: any) => p.fatPct < 50);
-    const crossoverPct = crossover?.intensity ?? fatMaxPct + 10;
-    const pMax = ftpVal * 1.18;
-    const atFtp = data.find((p: any) => p.intensity >= 85) ?? data[data.length - 1];
+    const { calculateFatOxidation, calculateCarbOxidation, findFatMax, predictMaderPerformance } = require("@/lib/v2/maderMetabolicModel");
+    const maderProfile = { vo2max: v2max, vlamax: vla, weight: weightKg };
+    const fatMaxResult = findFatMax(maderProfile);
+    const predictions = predictMaderPerformance(maderProfile);
+    const pMax = predictions.pMax;
+    
+    // Generate substrate data using Mader model
+    const data: { intensity: number; watts: number; fatGmin: number; carbGmin: number; fatKcalH: number; carbKcalH: number; fatPct: number }[] = [];
+    for (let intensity = 25; intensity <= 100; intensity += 2) {
+      const fatGmin = calculateFatOxidation(intensity, v2max, vla, weightKg);
+      const carbGmin = calculateCarbOxidation(intensity, v2max, vla, weightKg);
+      const watts = Math.round((intensity / 100) * pMax);
+      const fatKcalH = fatGmin * 9 * 60;
+      const carbKcalH = carbGmin * 4 * 60;
+      const totalKcal = fatKcalH + carbKcalH;
+      const fatPct = totalKcal > 0 ? (fatKcalH / totalKcal) * 100 : 0;
+      data.push({ intensity, watts, fatGmin, carbGmin, fatKcalH, carbKcalH, fatPct });
+    }
+    
+    const crossover = data.find(d => d.fatPct < 50);
+    const crossoverPct = crossover?.intensity ?? fatMaxResult.fatMaxIntensity + 10;
+    const crossoverW = crossover ? crossover.watts : Math.round((crossoverPct / 100) * pMax);
+    
+    // FTP intensity data point
+    const ftpIntensity = Math.round((ftpVal / pMax) * 100);
+    const atFtp = data.find(d => d.intensity >= Math.min(ftpIntensity, 95)) ?? data[data.length - 1];
     
     // SVG dimensions
-    const svgW = 520, svgH = 180, padL = 50, padR = 20, padT = 15, padB = 25;
+    const svgW = 520, svgH = 200, padL = 50, padR = 50, padT = 15, padB = 25;
     const plotW = svgW - padL - padR;
     const plotH = svgH - padT - padB;
-    const maxY = Math.max(...data.map((d: any) => Math.max(d.fatGmin, d.carbGmin))) * 1.15;
+    const maxGmin = Math.max(...data.map(d => Math.max(d.fatGmin, d.carbGmin))) * 1.15;
+    const maxKcalH = Math.max(...data.map(d => Math.max(d.fatKcalH, d.carbKcalH))) * 1.15;
     
-    const fatPath = data.map((d: any, i: number) => {
-      const x = padL + ((d.intensity - 20) / 80) * plotW;
-      const y = padT + plotH - (d.fatGmin / maxY) * plotH;
+    const fatPath = data.map((d, i) => {
+      const x = padL + ((d.intensity - 25) / 75) * plotW;
+      const y = padT + plotH - (d.fatGmin / maxGmin) * plotH;
       return `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
     }).join(' ');
     
-    const carbPath = data.map((d: any, i: number) => {
-      const x = padL + ((d.intensity - 20) / 80) * plotW;
-      const y = padT + plotH - (d.carbGmin / maxY) * plotH;
+    const carbPath = data.map((d, i) => {
+      const x = padL + ((d.intensity - 25) / 75) * plotW;
+      const y = padT + plotH - (d.carbGmin / maxGmin) * plotH;
       return `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
     }).join(' ');
     
     const fatAreaD = fatPath + ` L ${padL + plotW} ${padT + plotH} L ${padL} ${padT + plotH} Z`;
     
+    // Right axis labels (kcal/h)
+    const rightAxisLabels = [0, 1, 2, 3].map(i => {
+      const val = Math.round((maxKcalH / 3) * i);
+      const gy = padT + plotH - (i / 3) * plotH;
+      return `<text x="${padL + plotW + 5}" y="${gy + 4}" text-anchor="start" font-size="8" fill="#9ca3af">${val}</text>`;
+    }).join('');
+    
     return `
       <section id="substrate-curve">
-        <h2>🔥 Oxydation Lipides / Glucides</h2>
+        <h2>🔥 Oxydation Lipides / Glucides — Modèle Mader</h2>
         <div class="grid3 mb">
           <div class="card" style="text-align:center;border-color:#22c55e;">
             <div style="font-size:10px;color:#16a34a;font-weight:600;">FatMax</div>
-            <div class="medium" style="color:#16a34a;">${peakFat.fatGmin.toFixed(2)} g/min</div>
-            <div class="muted">${fatMaxPct}% VO₂max · ${Math.round((fatMaxPct / 100) * pMax)}W</div>
+            <div class="medium" style="color:#16a34a;">${fatMaxResult.fatMaxGrams} g/min</div>
+            <div class="muted">${fatMaxResult.fatMaxIntensity}% VO₂max · ${fatMaxResult.fatMaxPower}W</div>
           </div>
           <div class="card" style="text-align:center;border-color:#3b82f6;">
             <div style="font-size:10px;color:#3b82f6;font-weight:600;">Crossover</div>
             <div class="medium" style="color:#3b82f6;">${crossoverPct}% VO₂max</div>
-            <div class="muted">${Math.round((crossoverPct / 100) * pMax)}W · 50/50 lip/glu</div>
+            <div class="muted">${crossoverW}W · 50/50 lip/glu</div>
           </div>
           <div class="card" style="text-align:center;border-color:#ea580c;">
             <div style="font-size:10px;color:#ea580c;font-weight:600;">CHO @ FTP</div>
             <div class="medium" style="color:#ea580c;">${(atFtp.carbGmin * 60).toFixed(0)} g/h</div>
-            <div class="muted">${atFtp.carbGmin.toFixed(2)} g/min · ${Math.round(atFtp.watts)}W</div>
+            <div class="muted">${atFtp.carbGmin.toFixed(2)} g/min · ${atFtp.watts}W</div>
           </div>
         </div>
         <div class="card">
           <svg width="100%" viewBox="0 0 ${svgW} ${svgH}" preserveAspectRatio="xMidYMid meet">
             <rect x="${padL}" y="${padT}" width="${plotW}" height="${plotH}" fill="#ffffff" stroke="#e5e7eb" rx="4"/>
-            <!-- Crossover zone -->
+            <!-- Crossover transition zone -->
             ${(() => {
-              const x1 = padL + ((fatMaxPct - 20) / 80) * plotW;
-              const x2 = padL + ((crossoverPct - 20) / 80) * plotW;
-              return `<rect x="${x1}" y="${padT}" width="${x2 - x1}" height="${plotH}" fill="#dbeafe" opacity="0.3"/>`;
+              const x1 = padL + ((fatMaxResult.fatMaxIntensity - 25) / 75) * plotW;
+              const x2 = padL + ((crossoverPct - 25) / 75) * plotW;
+              return `<rect x="${Math.max(padL, x1)}" y="${padT}" width="${Math.max(0, x2 - x1)}" height="${plotH}" fill="#dbeafe" opacity="0.25"/>
+                      <text x="${(x1 + x2) / 2}" y="${padT + plotH - 5}" text-anchor="middle" font-size="7" fill="#3b82f6" opacity="0.7">Transition</text>`;
             })()}
-            <!-- Fat area -->
-            <defs><linearGradient id="pdfFatGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stop-color="#16a34a" stop-opacity="0.3"/><stop offset="95%" stop-color="#16a34a" stop-opacity="0.02"/></linearGradient></defs>
-            <path d="${fatAreaD}" fill="url(#pdfFatGrad)"/>
-            <path d="${fatPath}" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round"/>
+            <!-- Left axis labels (g/min) -->
+            ${[0, 1, 2, 3, 4].map(i => {
+              const val = (maxGmin / 4 * i).toFixed(1);
+              const gy = padT + plotH - (i / 4) * plotH;
+              return `<line x1="${padL}" y1="${gy}" x2="${padL + plotW}" y2="${gy}" stroke="#e5e7eb" stroke-dasharray="3 3"/>
+                      <text x="${padL - 5}" y="${gy + 4}" text-anchor="end" font-size="8" fill="#64748b">${val}</text>`;
+            }).join('')}
+            <!-- Right axis labels (kcal/h) -->
+            ${rightAxisLabels}
+            <!-- Fat area gradient -->
+            <defs><linearGradient id="pdfFatGradMader" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stop-color="#16a34a" stop-opacity="0.3"/><stop offset="95%" stop-color="#16a34a" stop-opacity="0.02"/></linearGradient></defs>
+            <path d="${fatAreaD}" fill="url(#pdfFatGradMader)"/>
+            <path d="${fatPath}" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round"/>
             <!-- Carb line -->
-            <path d="${carbPath}" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="4 2" stroke-linecap="round"/>
+            <path d="${carbPath}" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="5 2" stroke-linecap="round"/>
             <!-- FatMax vertical -->
             ${(() => {
-              const x = padL + ((fatMaxPct - 20) / 80) * plotW;
+              const x = padL + ((fatMaxResult.fatMaxIntensity - 25) / 75) * plotW;
               return `<line x1="${x}" y1="${padT}" x2="${x}" y2="${padT + plotH}" stroke="#16a34a" stroke-width="1" stroke-dasharray="4 3"/>
                       <text x="${x}" y="${padT - 3}" text-anchor="middle" font-size="8" fill="#16a34a" font-weight="600">FatMax</text>`;
             })()}
             <!-- Crossover vertical -->
             ${(() => {
-              const x = padL + ((crossoverPct - 20) / 80) * plotW;
+              const x = padL + ((crossoverPct - 25) / 75) * plotW;
               return `<line x1="${x}" y1="${padT}" x2="${x}" y2="${padT + plotH}" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4 3"/>
                       <text x="${x}" y="${padT - 3}" text-anchor="middle" font-size="8" fill="#3b82f6" font-weight="600">Crossover</text>`;
             })()}
             <!-- Legend -->
-            <line x1="${padL + 10}" y1="${padT + 8}" x2="${padL + 30}" y2="${padT + 8}" stroke="#16a34a" stroke-width="2"/>
-            <text x="${padL + 35}" y="${padT + 12}" font-size="9" fill="#16a34a">Lipides (g/min)</text>
-            <line x1="${padL + 140}" y1="${padT + 8}" x2="${padL + 160}" y2="${padT + 8}" stroke="#ea580c" stroke-width="2" stroke-dasharray="4 2"/>
-            <text x="${padL + 165}" y="${padT + 12}" font-size="9" fill="#ea580c">Glucides (g/min)</text>
+            <line x1="${padL + 10}" y1="${padT + 8}" x2="${padL + 30}" y2="${padT + 8}" stroke="#16a34a" stroke-width="2.5"/>
+            <text x="${padL + 35}" y="${padT + 12}" font-size="8" fill="#16a34a">Lipides (g/min)</text>
+            <line x1="${padL + 140}" y1="${padT + 8}" x2="${padL + 160}" y2="${padT + 8}" stroke="#ea580c" stroke-width="2" stroke-dasharray="5 2"/>
+            <text x="${padL + 165}" y="${padT + 12}" font-size="8" fill="#ea580c">Glucides (g/min)</text>
+            <!-- Axes labels -->
+            <text x="${svgW / 2}" y="${svgH - 2}" text-anchor="middle" font-size="10" fill="#64748b">% VO₂max</text>
+            <text x="12" y="${svgH / 2}" text-anchor="middle" font-size="9" fill="#64748b" transform="rotate(-90, 12, ${svgH / 2})">g/min</text>
+            <text x="${svgW - 8}" y="${svgH / 2}" text-anchor="middle" font-size="8" fill="#9ca3af" transform="rotate(90, ${svgW - 8}, ${svgH / 2})">kcal/h</text>
           </svg>
-          <div class="muted" style="text-align:center;margin-top:8px;font-size:10px;">
-            Modèle crossover (Brooks 1994). Oxydation lipidique bell-curve centrée FatMax. Valider par calorimétrie indirecte.
+          <div class="muted" style="text-align:center;margin-top:8px;font-size:9px;">
+            Modèle Mader — Oxydation lipidique (Randle cycle) + partitionnement énergétique. Parité Dashboard/Export.
           </div>
         </div>
       </section>
@@ -6771,6 +6874,13 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     if (!v2max || !vla) return '';
     
     const { computePerformancePredictions } = require("@/lib/v2/performancePrediction");
+    const { predictMaderPerformance, findFatMax, calculateTTEatMLSS } = require("@/lib/v2/maderMetabolicModel");
+    
+    // Mader-derived metabolic context
+    const maderProfile = { vo2max: v2max, vlamax: vla, weight: weightKg };
+    const maderPred = predictMaderPerformance(maderProfile);
+    const fatMaxResult = findFatMax(maderProfile);
+    
     const output = computePerformancePredictions({
       vo2max: v2max,
       vlamax: vla,
@@ -6787,7 +6897,6 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       aggressive: { bg: '#fff7ed', text: '#ea580c', label: 'Agressif (60%)' },
     };
     
-    // Build table
     const races = output.scenarios[0]?.predictions ?? [];
     
     const tableRows = races.map((race: any, i: number) => {
@@ -6822,23 +6931,38 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     
     return `
       <section id="performance-prediction">
-        <h2>⏱️ Prédiction de Performance</h2>
+        <h2>⏱️ Prédiction de Performance — Modèle Mader</h2>
         <div class="card mb">
-          <div class="grid3 mb">
-            <div style="text-align:center;">
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;text-align:center;">
+            <div>
               <div style="font-size:10px;color:#64748b;">VO₂max</div>
               <div class="medium" style="color:#2563eb;">${v2max}</div>
               <div class="muted">ml/kg/min</div>
             </div>
-            <div style="text-align:center;">
+            <div>
               <div style="font-size:10px;color:#64748b;">VLamax</div>
               <div class="medium" style="color:#ea580c;">${vla.toFixed(2)}</div>
               <div class="muted">mmol/L/s</div>
             </div>
-            <div style="text-align:center;">
+            <div>
               <div style="font-size:10px;color:#64748b;">Poids</div>
               <div class="medium">${weightKg}</div>
               <div class="muted">kg</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:#64748b;">MLSS (Mader)</div>
+              <div class="medium" style="color:#7c3aed;">${maderPred.mlssPower}W</div>
+              <div class="muted">${maderPred.mlssWkg} W/kg</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:#64748b;">FatMax</div>
+              <div class="medium" style="color:#16a34a;">${fatMaxResult.fatMaxPower}W</div>
+              <div class="muted">${fatMaxResult.fatMaxGrams} g/min</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:#64748b;">TTE @ MLSS</div>
+              <div class="medium" style="color:#d97706;">${maderPred.tteAtMLSS} min</div>
+              <div class="muted">CHO: ${fatMaxResult.carbAtFatMax} g/h</div>
             </div>
           </div>
         </div>
@@ -6859,8 +6983,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         <div class="card" style="background:#f8fafc;">
           <div class="muted" style="font-size:10px;">
             <b>Méthodologie :</b> ${output.modelNote}
-            Les scénarios reflètent la probabilité de succès physiologique. Confiance du modèle : ${Math.round(output.confidence * 100)}%.
-            Variables terrain (dénivelé, vent, température) non incluses.
+            Métriques métaboliques (MLSS, FatMax, TTE) calculées par modèle Mader-Heck (2003). Parité Dashboard/Export.
+            Confiance du modèle : ${Math.round(output.confidence * 100)}%.
           </div>
         </div>
       </section>
