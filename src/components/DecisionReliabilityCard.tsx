@@ -28,11 +28,11 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
+import type {
   DecisionReliabilityResult,
   Scenario,
   ConsistencyFlag
-} from "@/lib/v2/decisionReliabilityEngine";
+} from "@/engines/diagnostic";
 import { DecisionReliabilityBadge, DecisionReliabilityProgress } from "./DecisionReliabilityBadge";
 import { cn } from "@/lib/utils";
 

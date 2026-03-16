@@ -6,7 +6,7 @@
 import { Shield, ShieldCheck, ShieldAlert, ShieldX, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { DecisionLevel } from "@/lib/v2/decisionReliabilityEngine";
+import type { DecisionLevel } from "@/engines/diagnostic";
 import { cn } from "@/lib/utils";
 
 interface DecisionReliabilityBadgeProps {

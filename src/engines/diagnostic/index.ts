@@ -138,5 +138,16 @@ export type { RaceReadinessV2Result } from "@/lib/v2/raceReadinessV2";
 export type { ObjectiveTargets } from "@/lib/physiologicalTargets";
 export type { RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
 export type { InjuryRiskEnvelope } from "@/lib/v2/injuryRiskUnified";
-export { computeFullDRE } from "@/lib/v2/decisionReliabilityEngine";
-export type { DecisionReliabilityResult, Scenario } from "@/lib/v2/decisionReliabilityEngine";
+export { computeFullDRE, computeProtocolQuality } from "@/lib/v2/decisionReliabilityEngine";
+export type {
+  DecisionReliabilityResult,
+  Scenario,
+  DecisionLevel,
+  ConsistencyFlag,
+  CoachValidationStatus,
+  ProtocolQualityInput,
+  SleepQuality,
+  NutritionPreTest,
+  EnvironmentalConditions,
+  FullDREInput,
+} from "@/lib/v2/decisionReliabilityEngine";
