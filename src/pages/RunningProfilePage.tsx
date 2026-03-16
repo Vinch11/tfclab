@@ -53,7 +53,7 @@ import { computeVLamaxEffectif, computeTTEEffectif } from "@/engines/diagnostic"
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { calculateAge } from "@/lib/ageAdjustment";
 import { computeCAPInjuryRisk } from "@/lib/v2/injuryRiskUnified";
-import { computeFatigueEffectif } from "@/lib/fatigueEffectif";
+import { computeFatigueEffectif } from "@/engines/diagnostic";
 import { computeRaceReadinessRun, type AvailabilityRun } from "@/lib/v2/raceReadinessRunning";
 import { computePacingEnvelopeRun, type RunningDistance } from "@/lib/v2/pacingEnvelopeRunning";
 import { getAthleteAmbition } from "@/types/ambitionLevel";
