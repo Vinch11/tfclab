@@ -1968,6 +1968,10 @@ const Index = () => {
                 weight={effectiveCloudSnapshot?.weight_kg ?? 70}
                 vma={effectiveCloudSnapshot?.vma}
                 css={effectiveCloudSnapshot?.css}
+                pmax5s={effectiveCloudSnapshot?.pmax_5s}
+                p30s={effectiveCloudSnapshot?.p30s_w}
+                p60s={effectiveCloudSnapshot?.p60s_w}
+                map5min={effectiveCloudSnapshot?.map5min_w}
               />
             ),
           },
