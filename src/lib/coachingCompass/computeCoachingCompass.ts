@@ -87,12 +87,63 @@ export function computeCoachingCompass(input: CoachingCompassInput): TFCLCoachin
 // PROFIL PHYSIOLOGIQUE — Lecture des données existantes
 // ═══════════════════════════════════════════════════════════════════════════════
 
+/**
+ * Estime FatMax (W) à partir de VLamax + FTP.
+ * Heuristique Mader simplifiée : VLamax basse → FatMax% élevé.
+ */
+function estimateFatMaxFromProfile(ftp: number | null, vlamax: number | null): number | null {
+  if (!ftp || !vlamax) return null;
+  // VLamax 0.20 → ~68% FTP, VLamax 0.80 → ~42% FTP (linéaire)
+  const fatMaxPct = Math.max(0.35, Math.min(0.72, 0.72 - (vlamax - 0.20) * 0.50));
+  return Math.round(ftp * fatMaxPct);
+}
+
+/**
+ * Dérive un score de durabilité à partir de TTE si hrDrift absent.
+ * TTE 60min → 90/100, TTE 30min → 50/100, TTE 20min → 30/100.
+ */
+function deriveDurabilityFromTTE(tteMin: number | null): number | null {
+  if (!tteMin || tteMin <= 0) return null;
+  return Math.max(0, Math.min(100, Math.round((tteMin / 65) * 100)));
+}
+
+/**
+ * Dérive un score d'économie à partir des données vélo si running absent.
+ * Utilise le ratio MAP/FTP comme proxy d'efficience métabolique.
+ */
+function deriveEconomyFromBike(ftp: number | null, map5min: number | null, poids: number | null): number | null {
+  if (!ftp || !poids || poids <= 0) return null;
+  const ftpKg = ftp / poids;
+  // FTP/kg comme proxy : 2.0 → 30, 3.0 → 50, 4.0 → 70, 5.0 → 90
+  const baseScore = Math.max(0, Math.min(100, Math.round((ftpKg - 1.0) * 20)));
+  // Bonus efficience si MAP disponible : ratio FTP/MAP > 0.78 = bon
+  if (map5min && map5min > 0) {
+    const ratio = ftp / map5min;
+    const efficiencyBonus = ratio > 0.80 ? 10 : ratio > 0.75 ? 5 : 0;
+    return Math.min(100, baseScore + efficiencyBonus);
+  }
+  return baseScore;
+}
+
 function buildPhysiologicalProfile(input: CoachingCompassInput): TFCLPhysiologicalProfile {
   const date = input.snapshotDate;
   
   const ftpKg = (input.ftp && input.poids && input.poids > 0) 
     ? Math.round((input.ftp / input.poids) * 100) / 100 
     : null;
+
+  // FatMax : donnée directe > estimation VLamax+FTP
+  const fatmaxValue = input.fatmax ?? estimateFatMaxFromProfile(input.ftp, input.vlamaxEffectif.value);
+  const fatmaxSource = input.fatmax ? "snapshot" : (fatmaxValue ? "estimation" : "unknown");
+
+  // Durabilité : hrDrift > TTE dérivé
+  const durabilityFromDrift = input.hrDriftPct != null ? Math.max(0, 100 - input.hrDriftPct * 5) : null;
+  const durabilityValue = durabilityFromDrift ?? deriveDurabilityFromTTE(input.tteEffectif.tte_min);
+  const durabilitySource = durabilityFromDrift != null ? "snapshot" : (durabilityValue ? "estimation" : "unknown");
+
+  // Économie : running score > dérivé vélo
+  const economyValue = input.runEconomyScore ?? deriveEconomyFromBike(input.ftp, input.map5minW, input.poids);
+  const economySource = input.runEconomyScore ? "estimation" : (economyValue ? "estimation" : "unknown");
 
   const metrics: TFCLPhysiologicalProfile = {
     vo2max: makeMetric(input.vo2max, 0.85, "snapshot", date, "ml/kg/min"),
@@ -102,7 +153,7 @@ function buildPhysiologicalProfile(input: CoachingCompassInput): TFCLPhysiologic
       input.vlamaxEffectif.source, 
       date, "mmol/L/s"
     ),
-    fatmax: makeMetric(input.fatmax, input.fatmax ? 0.7 : 0, input.fatmax ? "estimation" : "unknown", date, "W"),
+    fatmax: makeMetric(fatmaxValue, fatmaxValue ? 0.7 : 0, fatmaxSource, date, "W"),
     lt1: makeMetric(
       input.lactateThresholds?.lt1?.watts ?? null,
       input.lactateThresholds?.lt1?.confidence ?? 0,
@@ -124,15 +175,15 @@ function buildPhysiologicalProfile(input: CoachingCompassInput): TFCLPhysiologic
       date, "min"
     ),
     runningEconomy: makeMetric(
-      input.runEconomyScore, 
-      input.runEconomyScore ? 0.7 : 0, 
-      input.runEconomyScore ? "estimation" : "unknown", 
+      economyValue, 
+      economyValue ? 0.7 : 0, 
+      economySource, 
       date, "index"
     ),
     durability: makeMetric(
-      input.hrDriftPct != null ? Math.max(0, 100 - input.hrDriftPct * 5) : null,
-      input.hrDriftPct != null ? 0.65 : 0,
-      input.hrDriftPct != null ? "snapshot" : "unknown",
+      durabilityValue,
+      durabilityValue != null ? 0.65 : 0,
+      durabilitySource,
       date, "score"
     ),
     wPrime: makeMetric(
@@ -407,13 +458,20 @@ function buildReadinessState(input: CoachingCompassInput): TFCLReadinessState {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalProfile): RadarAxis[] {
-  // Normaliser chaque métrique en score 0-100 pour le radar
+  // VO2max : valeur directe ou estimation depuis FTP/kg (Storer)
+  let vo2Score = normalizeScore(profile.vo2max.value, 30, 70);
+  if (vo2Score === 0 && profile.ftpKg.value) {
+    // Estimation grossière : VO2max ≈ FTP/kg × 12 + 5 (Storer approx)
+    const estimatedVo2 = profile.ftpKg.value * 12 + 5;
+    vo2Score = normalizeScore(estimatedVo2, 30, 70);
+  }
+
   return [
     {
       key: "vo2max",
       label: "VO₂max",
       shortLabel: "VO₂",
-      score: normalizeScore(profile.vo2max.value, 30, 70),
+      score: vo2Score,
       icon: "🫁",
       color: "hsl(var(--primary))",
     },
@@ -432,7 +490,10 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       key: "fatmax",
       label: "FatMax",
       shortLabel: "FatMax",
-      score: normalizeScore(profile.fatmax.value, 100, 350),
+      // FatMax en W : normaliser entre 100W et 350W, ou utiliser le % FTP si disponible
+      score: profile.fatmax.value !== null 
+        ? normalizeScore(profile.fatmax.value, 80, 300)
+        : 0,
       icon: "🔥",
       color: "hsl(25, 85%, 50%)",
     },
