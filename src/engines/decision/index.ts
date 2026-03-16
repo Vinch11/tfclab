@@ -37,9 +37,73 @@ export {
   DECISION_ENGINE_DISCLAIMER,
 } from "./types";
 
-// Re-export sub-module types for consumers that need granularity
-export type { LorangStrategyResult } from "@/lib/v2/lorangStrategyEngine";
-export type { TFCLDecisionResult } from "@/lib/v2/tfclDecisionMatrix";
-export type { WorkoutRecommendation } from "@/lib/workoutRecommendationEngine";
-export type { WorkoutAdvisory } from "@/lib/workoutAdvisoryEngine";
-export type { StrategicRoadmap } from "@/lib/v2/strategicRoadmap";
+// ═══════════════════════════════════════════════════════════════════════════════
+// Re-exports — Sub-module types, functions & constants for UI consumers
+// All UI components should import from @/engines/decision, NOT from @/lib/*
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Lorang Strategy Engine
+export {
+  computeLorangStrategy,
+  LORANG_PHILOSOPHY,
+  LIMITER_DEFINITIONS,
+  LEVER_DEFINITIONS,
+} from "@/lib/v2/lorangStrategyEngine";
+export type {
+  LorangStrategyResult,
+  LorangStrategyInput,
+  LorangLeverActivation,
+  LorangProhibitionRule,
+  LorangLimiter,
+} from "@/lib/v2/lorangStrategyEngine";
+
+// TFCL Decision Matrix
+export {
+  computeTFCLDecisionMatrix,
+  getDecisionCaseColor,
+  getMetricStatusColor,
+  getMetricStatusBadgeClass,
+} from "@/lib/v2/tfclDecisionMatrix";
+export type {
+  TFCLDecisionResult,
+  TFCLDecisionInput,
+  TFCLDomainAnalysis,
+  TFCLTrainingFocus,
+  TFCLObjective,
+  DecisionCase,
+  DataSource,
+  TrainingLever,
+} from "@/lib/v2/tfclDecisionMatrix";
+
+// Workout Recommendation Engine
+export {
+  computeWorkoutRecommendations,
+  FATIGUE_VELO_GUIDELINE,
+} from "@/lib/workoutRecommendationEngine";
+export type {
+  WorkoutRecommendation,
+  RecommendationEngineOutput,
+  RecommendationContext,
+  RecommendationType,
+} from "@/lib/workoutRecommendationEngine";
+
+// Workout Advisory Engine
+export {
+  generateWorkoutAdvisories,
+  WORKOUT_ADVISORY_DISCLAIMER,
+} from "@/lib/workoutAdvisoryEngine";
+export type {
+  WorkoutAdvisory,
+  AdvisoryStatus,
+  AdvisoryContext,
+  AdvisoryEngineOutput,
+  WorkoutPhysioTags,
+  Platform,
+  IntensityType,
+  LoadLevel,
+  DurationClass,
+} from "@/lib/workoutAdvisoryEngine";
+
+// Strategic Roadmap
+export { computeStrategicRoadmap } from "@/lib/v2/strategicRoadmap";
+export type { StrategicRoadmap, RoadmapPhase } from "@/lib/v2/strategicRoadmap";
