@@ -76,12 +76,11 @@ import { MetabolicZonesUnifiedCard } from "@/components/MetabolicZonesUnifiedCar
 // ✅ TFCL Decision Matrix — Cœur décisionnel coach-grade
 import { TFCLDecisionMatrixCard } from "@/components/TFCLDecisionMatrixCard";
 import { TFCLDecisionMatrixTable } from "@/components/TFCLDecisionMatrixTable";
-import { type TFCLDecisionInput, type TFCLObjective } from "@/lib/v2/tfclDecisionMatrix";
+import { type TFCLDecisionInput, type TFCLObjective, type LorangStrategyInput } from "@/engines/decision";
 
 // ✅ Lorang Strategy Engine — Leviers opérationnels TFCL
 import { LorangStrategyCard } from "@/components/LorangStrategyCard";
 import { LorangDecisionFlowChart } from "@/components/LorangDecisionFlowChart";
-import { type LorangStrategyInput } from "@/lib/v2/lorangStrategyEngine";
 
 // ✅ Coach Decision Center — Carte unifiée (Phase 2 Architecture)
 import { CoachDecisionUnifiedCard } from "@/components/CoachDecisionUnifiedCard";
