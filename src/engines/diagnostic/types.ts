@@ -1,0 +1,211 @@
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * TFCL DIAGNOSTIC ENGINE™ — Types
+ * Single unified diagnostic output for the entire platform
+ * 
+ * PRINCIPE : "Voici l'état de l'athlète"
+ * Fusionne Compas, Race Readiness, Ambition, DRE, Effectifs, Risque Blessure
+ * 
+ * CONSOMMATEURS :
+ * - Decision Engine (stratégie, workout advisory, simulation)
+ * - Plan Engine (générateur IA, périodisation)
+ * - UI (Dashboard, Staff Report, PDF Export)
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
+
+import type { VLamaxEffectif } from "@/lib/vlamaxEffectif";
+import type { TTEEffectif } from "@/lib/tteEffectif";
+import type { FatigueEffectif } from "@/lib/fatigueEffectif";
+import type { UnifiedLimiterResult, UnifiedLimiter, UnifiedLever } from "@/lib/v2/unifiedLimiterDetection";
+import type { RaceReadinessV2Result } from "@/lib/v2/raceReadinessV2";
+import type { InjuryRiskEnvelope } from "@/lib/v2/injuryRiskUnified";
+import type { RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
+import type { ObjectiveTargets, VLamaxTargets } from "@/lib/physiologicalTargets";
+import type { AmbitionLevel } from "@/types/ambitionLevel";
+import type { DecisionReliabilityResult } from "@/lib/v2/decisionReliabilityEngine";
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// INPUT — Ce que le Diagnostic Engine reçoit
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface DiagnosticInput {
+  // Identité athlète
+  athleteId: string;
+  athleteName?: string;
+  age: number | null;
+  sex: "M" | "F" | null;
+  weightKg: number | null;
+  
+  // Objectif & Ambition
+  objectif: string;
+  ambition: AmbitionLevel;
+  sportFocus: "bike" | "run" | "tri";
+  
+  // Données physiologiques brutes (snapshot actif)
+  vo2max: number | null;
+  ftp: number | null;
+  ftpKg: number | null;
+  pmax5s: number | null;
+  p30sW: number | null;
+  p60sW: number | null;
+  map5minW: number | null;
+  vma: number | null;
+  css: number | null;
+  
+  // VLamax
+  vlamax: number | null;
+  vlamaxRun: number | null;
+  vlamaxSource: string | null;
+  vlamaxProtocol: string | null;
+  vlamaxIsReference: boolean;
+  
+  // TTE
+  tteObservedMin: number | null;
+  tteMode: string | null;
+  tss7d: number | null;
+  
+  // Fatigue / Disponibilité
+  fatigueState: string | null;
+  
+  // Course à pied
+  runEconomyScore: number | null;
+  runHrDriftPct: number | null;
+  paceThresholdSecPerKm: number | null;
+  runningPower1s: number | null;
+  runningPower5s: number | null;
+  runningPower30s: number | null;
+  runningPower60s: number | null;
+  runningPower5min: number | null;
+  runningPowerThreshold: number | null;
+  sprint15sDistance: number | null;
+  
+  // Vélo complémentaire
+  bikeCadenceRpm: number | null;
+  bikeHrDriftFlag: boolean;
+  protocolQuality: number | null;
+  
+  // W' / CP
+  wprimeKj: number | null;
+  cpDataQuality: "good" | "suspect" | "implausible" | null;
+  
+  // FatMax
+  fatmax: number | null;
+  
+  // Flags
+  forceDevMode: boolean;
+  giIssuesFlag: boolean;
+  
+  // DRE (optionnel — enrichi si disponible)
+  dreInput?: DecisionReliabilityInput;
+  
+  // Check-in data (optionnel)
+  checkinData?: CheckinData;
+}
+
+export interface DecisionReliabilityInput {
+  protocolQualityScore: number;
+  perceivedFatigue: number;
+  sensorsCalibrated: boolean;
+  sleepQuality: string;
+  nutritionPreTest: string;
+  environmentalConditions: string;
+  isReferenceWeek: boolean;
+}
+
+export interface CheckinData {
+  sleep: number | null;
+  fatigue: number | null;
+  soreness: number | null;
+  stress: number | null;
+  motivation: number | null;
+  painFlag: boolean;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// OUTPUT — Le diagnostic unifié
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface AthleteDiagnostic {
+  // ─── Identité ─────────────────────────────────────
+  athleteId: string;
+  objectif: string;
+  ambition: AmbitionLevel;
+  sportFocus: "bike" | "run" | "tri";
+  
+  // ─── 1. Indices Effectifs ─────────────────────────
+  effectifs: {
+    vlamax: VLamaxEffectif;
+    tte: TTEEffectif;
+    fatigue: FatigueEffectif;
+  };
+  
+  // ─── 2. Limiteur Unifié (ex-Compas) ───────────────
+  limiter: UnifiedLimiterResult;
+  
+  // ─── 3. Readiness (ex-Race Readiness) ─────────────
+  readiness: RaceReadinessV2Result;
+  
+  // ─── 4. Cibles Physiologiques ─────────────────────
+  targets: {
+    current: ObjectiveTargets;
+    vlamaxRange: VLamaxTargets;
+    adjustedForAge: boolean;
+  };
+  
+  // ─── 5. Risque Blessure ───────────────────────────
+  injuryRisk: {
+    run: RunInjuryRiskEnvelope | null;
+    bike: InjuryRiskEnvelope | null;
+  };
+  
+  // ─── 6. Fiabilité (DRE) ──────────────────────────
+  reliability: DecisionReliabilityResult | null;
+  
+  // ─── 7. Synthèse Décisionnelle ────────────────────
+  synthesis: DiagnosticSynthesis;
+  
+  // ─── Métadonnées ──────────────────────────────────
+  meta: {
+    timestamp: string;
+    version: string;
+    confidenceGlobal: number;  // min de toutes les confiances
+    dataCompleteness: number;  // 0-1, ratio données présentes
+    disclaimer: string;
+  };
+}
+
+export interface DiagnosticSynthesis {
+  // Résumé en une phrase
+  headline: string;
+  
+  // Priorités (L1/L2) — dérivées du limiteur
+  priorities: {
+    L1: { limiter: UnifiedLimiter; lever: UnifiedLever; label: string };
+    L2: { limiter: UnifiedLimiter; lever: UnifiedLever; label: string } | null;
+  };
+  
+  // Score global simplifié (0-100)
+  globalScore: number;
+  globalCategory: "critical" | "developing" | "solid" | "ready";
+  
+  // Alertes prioritaires (max 3)
+  alerts: DiagnosticAlert[];
+  
+  // Points forts identifiés
+  strengths: string[];
+}
+
+export interface DiagnosticAlert {
+  severity: "info" | "warning" | "critical";
+  message: string;
+  source: string;  // Quel sous-module a généré l'alerte
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ENGINE VERSION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export const DIAGNOSTIC_ENGINE_VERSION = "1.0.0";
+export const DIAGNOSTIC_ENGINE_DISCLAIMER = 
+  "Two For Coaching Lab éclaire la décision, il ne remplace pas le coach. " +
+  "Ce diagnostic est une aide à la décision, non une prescription.";
