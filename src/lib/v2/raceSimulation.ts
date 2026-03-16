@@ -633,7 +633,7 @@ function computeGlycogenRemaining(
   const carbBurnPerSegment = carbBurnGPerMin * segmentDurationMin * scenarioFactor * glycogenDepletionMultiplier * progressionFactor;
   
   // Absorption nette par segment (g) – modèle intestinal réel
-  const absorbedGH = computeAbsorbedCarbsGH(plannedCarbsGH ?? 0);
+  const absorbedGH = computeAbsorbedCarbsGH(plannedCarbsGH ?? 0, gutTraining);
   const absorbedPerSegment = (absorbedGH / 60) * segmentDurationMin; // g absorbés ce segment
   
   // Déplétion nette cumulée
