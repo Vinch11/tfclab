@@ -84,12 +84,23 @@ export interface UnifiedGapAnalysis {
   weightedImpact: number; // Gap × weight (pour classement)
 }
 
+export interface FatigueWarning {
+  active: boolean;
+  level: "moderate" | "high" | "critical" | null;
+  message: string | null;
+}
+
 export interface UnifiedLimiterResult {
-  // Limiteur principal
+  // Limiteur principal (JAMAIS "availability" — voir fatigueWarning)
   primaryLimiter: UnifiedLimiter;
   limiterLabel: string;
   limiterEmoji: string;
   limiterExplanation: string;
+  
+  // ⚠️ Avertissement fatigue (remplace l'ancien limiteur "availability")
+  // La disponibilité n'est PAS un limiteur physiologique : elle ne conditionne
+  // pas la périodisation. Elle génère un avertissement contextuel.
+  fatigueWarning: FatigueWarning;
   
   // Détail faiblesse aérobie (si applicable)
   aerobicWeaknessDetail: AerobicWeaknessDetail;
@@ -525,12 +536,34 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   const topGap = sortedGaps[0];
   const secondGap = sortedGaps[1];
   
-  // Si le top gap est significatif
+  // ── Fatigue Warning (remplace l'ancien limiteur "availability") ──────────
+  // La disponibilité n'est JAMAIS un limiteur primaire. Elle génère un
+  // avertissement contextuel qui n'influence PAS la périodisation IA.
+  const availabilityAnalysis = gapAnalysis.find(g => g.metric === "Disponibilité");
+  const fatigueWarning: FatigueWarning = (() => {
+    if (input.hasHealthAlerts) {
+      return { active: true, level: "critical" as const, message: "⚠️ Alerte santé détectée — adapter la charge immédiatement." };
+    }
+    if (availabilityAnalysis && availabilityAnalysis.status === "limiting") {
+      return { active: true, level: "high" as const, message: "⚠️ Fatigue élevée — surveiller la récupération avant les séances clés." };
+    }
+    if (input.availabilityScore !== null && input.availabilityScore < 60) {
+      return { active: true, level: "moderate" as const, message: "Fatigue modérée — rester vigilant sur le volume." };
+    }
+    return { active: false, level: null, message: null };
+  })();
+
+  // ── Sélection du limiteur primaire (exclut "Disponibilité") ───────────
+  // On filtre les gaps physiologiques uniquement pour le classement
+  const physiologicalGaps = sortedGaps.filter(g => g.metric !== "Disponibilité");
+  const topPhysioGap = physiologicalGaps[0];
+  const secondPhysioGap = physiologicalGaps[1];
+  
   let primaryLimiter: UnifiedLimiter = "none";
   let primaryLever: UnifiedLever = "maintain";
   
-  if (topGap.weightedImpact > 5) {
-    switch (topGap.metric) {
+  if (topPhysioGap && topPhysioGap.weightedImpact > 5) {
+    switch (topPhysioGap.metric) {
       case "FTP/kg":
       case "VO2max":
         primaryLimiter = "aerobic_engine";
@@ -555,10 +588,6 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
       case "Économie":
         primaryLimiter = "neuromuscular";
         primaryLever = "force_endurance";
-        break;
-      case "Disponibilité":
-        primaryLimiter = "availability";
-        primaryLever = "recovery";
         break;
     }
   }
@@ -585,9 +614,9 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     }
   }
   
-  // Calcul de la robustesse (gap clair entre 1er et 2ème limiteur)
-  const gapDifference = topGap.weightedImpact - secondGap.weightedImpact;
-  const isRobust = gapDifference > 10 || topGap.weightedImpact > 20;
+  // Calcul de la robustesse (gap clair entre 1er et 2ème limiteur physio)
+  const gapDifference = (topPhysioGap?.weightedImpact ?? 0) - (secondPhysioGap?.weightedImpact ?? 0);
+  const isRobust = gapDifference > 10 || (topPhysioGap?.weightedImpact ?? 0) > 20;
   const robustnessScore = clamp(gapDifference * 5 + 50, 0, 100);
   
   // Calcul de la confiance globale
@@ -612,6 +641,8 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     limiterExplanation: primaryLimiter === "aerobic_engine" && aerobicWeaknessLabel
       ? `${limiterInfo.description} → ${aerobicWeaknessLabel}`
       : limiterInfo.description,
+    
+    fatigueWarning,
     
     aerobicWeaknessDetail,
     aerobicWeaknessLabel,

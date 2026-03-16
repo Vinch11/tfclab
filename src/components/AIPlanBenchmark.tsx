@@ -278,7 +278,7 @@ function getDeviationJustification(
   limiterResult: UnifiedLimiterResult
 ): { justified: boolean; reason: string } | null {
   const limiter = limiterResult.primaryLimiter;
-  if (limiter === "none" || limiter === "availability") return null;
+  if (limiter === "none") return null;
 
   const rules = LIMITER_SPORT_JUSTIFICATIONS[limiter];
   if (!rules) return null;
