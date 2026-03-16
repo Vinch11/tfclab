@@ -1963,6 +1963,9 @@ const Index = () => {
                 tss7d={effectiveCloudSnapshot?.tss_7d}
                 sport="velo"
                 initialStaffMode={staffMode}
+                vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max}
+                ftp={effectiveCloudSnapshot?.ftp}
+                weight={effectiveCloudSnapshot?.weight_kg ?? 70}
               />
             ),
           },
