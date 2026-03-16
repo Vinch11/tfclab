@@ -233,7 +233,7 @@ function computeWorkoutGuidanceFromDiagnostic(diag: AthleteDiagnostic): WorkoutG
 
 function generateRoadmapFromDiagnostic(diag: AthleteDiagnostic): StrategicRoadmap | null {
   try {
-    return generateRoadmap({
+    return computeStrategicRoadmap({
       objectif: diag.objectif,
       limiterResult: diag.limiter,
     });
