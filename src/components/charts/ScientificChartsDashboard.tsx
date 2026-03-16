@@ -50,6 +50,9 @@ export function ScientificChartsDashboard({
   tss7d,
   sport = "velo",
   initialStaffMode = false,
+  vo2max,
+  ftp,
+  weight,
 }: ScientificChartsDashboardProps) {
   const [staffMode, setStaffMode] = useState(initialStaffMode);
 
