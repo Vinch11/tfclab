@@ -44,8 +44,7 @@ import { PacingDisciplineChart } from "@/components/charts/PacingDisciplineChart
 import type { PacingEnvelopeResult, RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
 import type { DisciplineRulesResult } from "@/lib/v2/pacingDisciplineRules";
 import type { ScenarioSimulationResult } from "@/lib/v2/pacingScenarioSimulator";
-import type { VLamaxEffectif } from "@/lib/vlamaxEffectif";
-import type { TTEEffectif } from "@/lib/tteEffectif";
+import type { VLamaxEffectif, TTEEffectif } from "@/engines/diagnostic";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES

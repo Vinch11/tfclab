@@ -25,7 +25,7 @@ import { LabImportDialog } from "@/components/LabImportDialog";
 import { NolioImporter, NolioImportResult } from "@/components/NolioImporter";
 import { DbSnapshot, useCloudData } from "@/hooks/useCloudData";
 import { deriveMetabolicProfile, generateTwoForCoachingInsights, calculateDelta, formatValue } from "@/types/snapshot";
-import { computeTTEEffectif, getSourceLabel, formatTTEDisplay } from "@/lib/tteEffectif";
+import { computeTTEEffectif, getSourceLabel, formatTTEDisplay } from "@/engines/diagnostic";
 import { 
   parsePaceToSec, 
   formatSecToPace, 
