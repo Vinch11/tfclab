@@ -48,6 +48,7 @@ export interface RaceSimulationInput {
   
   // Nutrition
   plannedCarbsGH?: number | null;
+  gutTraining?: boolean;
   nutritionType?: 'liquid' | 'solid' | 'mixed' | null;
   
   // Ambition
