@@ -151,3 +151,9 @@ export type {
   EnvironmentalConditions,
   FullDREInput,
 } from "@/lib/v2/decisionReliabilityEngine";
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Legacy snapshot VLamax — Re-export pour migration progressive
+// Les consumers utilisant l'ancien format SnapshotNolio doivent passer par ici
+// ═══════════════════════════════════════════════════════════════════════════════
+export { calculVLamaxSnapshot, calculVLamaxAvecConfiance } from "@/lib/athleteStore";
