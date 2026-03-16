@@ -163,6 +163,8 @@ function computeStrategyFromDiagnostic(
     isRobust: matrixResult?.isRobust ?? false,
     _lorangResult: lorangResult,
     _matrixResult: matrixResult,
+    _lorangInput: lorangInput,
+    _matrixInput: matrixInput,
   };
 }
 
