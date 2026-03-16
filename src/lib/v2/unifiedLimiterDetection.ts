@@ -536,12 +536,34 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   const topGap = sortedGaps[0];
   const secondGap = sortedGaps[1];
   
-  // Si le top gap est significatif
+  // ── Fatigue Warning (remplace l'ancien limiteur "availability") ──────────
+  // La disponibilité n'est JAMAIS un limiteur primaire. Elle génère un
+  // avertissement contextuel qui n'influence PAS la périodisation IA.
+  const availabilityAnalysis = gapAnalysis.find(g => g.metric === "Disponibilité");
+  const fatigueWarning: FatigueWarning = (() => {
+    if (input.hasHealthAlerts) {
+      return { active: true, level: "critical" as const, message: "⚠️ Alerte santé détectée — adapter la charge immédiatement." };
+    }
+    if (availabilityAnalysis && availabilityAnalysis.status === "limiting") {
+      return { active: true, level: "high" as const, message: "⚠️ Fatigue élevée — surveiller la récupération avant les séances clés." };
+    }
+    if (input.availabilityScore !== null && input.availabilityScore < 60) {
+      return { active: true, level: "moderate" as const, message: "Fatigue modérée — rester vigilant sur le volume." };
+    }
+    return { active: false, level: null, message: null };
+  })();
+
+  // ── Sélection du limiteur primaire (exclut "Disponibilité") ───────────
+  // On filtre les gaps physiologiques uniquement pour le classement
+  const physiologicalGaps = sortedGaps.filter(g => g.metric !== "Disponibilité");
+  const topPhysioGap = physiologicalGaps[0];
+  const secondPhysioGap = physiologicalGaps[1];
+  
   let primaryLimiter: UnifiedLimiter = "none";
   let primaryLever: UnifiedLever = "maintain";
   
-  if (topGap.weightedImpact > 5) {
-    switch (topGap.metric) {
+  if (topPhysioGap && topPhysioGap.weightedImpact > 5) {
+    switch (topPhysioGap.metric) {
       case "FTP/kg":
       case "VO2max":
         primaryLimiter = "aerobic_engine";
@@ -566,10 +588,6 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
       case "Économie":
         primaryLimiter = "neuromuscular";
         primaryLever = "force_endurance";
-        break;
-      case "Disponibilité":
-        primaryLimiter = "availability";
-        primaryLever = "recovery";
         break;
     }
   }
