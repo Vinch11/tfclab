@@ -27,6 +27,7 @@ export { LongDistanceEnvelopeChart, LongDistanceEnvelopeInline } from "./LongDis
 export { PotentialAvailabilityDecisionChart } from "./PotentialAvailabilityDecisionChart";
 export { PacingEnvelopeRunChart } from "./PacingEnvelopeRunChart";
 export { VLamaxEstimationWidget } from "./VLamaxEstimationWidget";
+export { SimulatedLactateCurveChart } from "./SimulatedLactateCurveChart";
 
 // Utilitaires pour graphiques responsives (mobile/touch)
 export {
