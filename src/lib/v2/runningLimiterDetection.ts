@@ -415,9 +415,10 @@ export function detectRunningLimiter(input: RunningLimiterInput): RunningLimiter
   const isRobust = robustnessDelta > 10;
   const robustnessScore = Math.min(100, robustnessDelta * 5);
   
-  // Confiance basée sur la complétude des données
-  const dataCount = gapAnalysis.filter(g => g.value !== null).length;
-  const confidence = dataCount / gapAnalysis.length;
+  // Confiance basée sur la complétude des données (exclut Disponibilité)
+  const physioGaps = gapAnalysis.filter(g => g.metric !== "Disponibilité");
+  const dataCount = physioGaps.filter(g => g.value !== null).length;
+  const confidence = dataCount / physioGaps.length;
   
   const limiterInfo = RUNNING_LIMITER_INFO[primaryLimiter];
   const leverInfo = RUNNING_LEVER_INFO[primaryLever];
