@@ -1201,8 +1201,23 @@ const Index = () => {
 
     switch (activeTab) {
       case "dashboard":
-        // Sections réorganisables pour le Dashboard
+        // ═══════════════════════════════════════════════════════════
+        // DASHBOARD SIMPLIFIÉ — 5 sections + Quick Actions
+        // Flux: Compass → Profil → Decision → Race Readiness → Objectifs
+        // ═══════════════════════════════════════════════════════════
         const dashboardSections = [
+          // ✅ Quick Actions Panel
+          {
+            id: "quick-actions",
+            render: () => (
+              <QuickActionsPanel
+                onCreateSnapshot={() => {
+                  setShowSnapshots(true);
+                }}
+              />
+            ),
+          },
+          // ✅ Getting Started (conditionally shown)
           {
             id: "getting-started",
             render: () => currentAthlete && !gettingStartedVisibility.isHidden && (
@@ -1213,17 +1228,14 @@ const Index = () => {
                   goal: currentAthlete.goal,
                 }}
                 snapshot={effectiveCloudSnapshot}
-                onNavigateToProfile={() => {
-                  setActiveTab("profil");
-                  setShowSnapshots(true);
-                }}
-                onNavigateToTests={() => setActiveTab("tests")}
+                onNavigateToProfile={() => navigate(`/athlete/${currentAthlete.id}`)}
+                onNavigateToTests={() => navigate("/diagnostic/tests")}
                 onNavigateToAcademy={() => navigate("/academy")}
                 onDismiss={gettingStartedVisibility.hide}
               />
             ),
           },
-          // ✅ TFCL Coaching Compass™ — Centre décisionnel
+          // ✅ 1. TFCL Coaching Compass™ — Centre décisionnel
           {
             id: "coaching-compass",
             render: () => compassInputMemo ? (
@@ -1233,7 +1245,7 @@ const Index = () => {
               />
             ) : null,
           },
-          // ✅ Phase 1f: Profil & Ambition Unifiée
+          // ✅ 2. Profil Physiologique + Objectifs (combiné)
           {
             id: "profil-ambition-unified",
             render: () => currentAthlete && (
@@ -1255,193 +1267,14 @@ const Index = () => {
                 raceGoalsLoading={raceGoalsLoading}
                 ambition={currentAmbition}
                 weightKg={effectiveRefs.weightKg}
-                onNavigateToProfile={() => {
-                  setActiveTab("profil");
-                  setShowSnapshots(true);
-                }}
-                onNavigateToCAPTest={() => navigate("/cap-testing-week")}
-                onNavigateToTFCLTest={() => navigate("/tfcl-testing-week")}
+                onNavigateToProfile={() => navigate(`/athlete/${currentAthlete.id}`)}
+                onNavigateToCAPTest={() => navigate("/diagnostic/testing-week-cap")}
+                onNavigateToTFCLTest={() => navigate("/diagnostic/testing-week-tfcl")}
                 onUpdate={() => loadData()}
               />
             ),
           },
-          {
-            id: "athlete-refs",
-            render: () => null,
-          },
-          {
-            id: "objective-manager",
-            render: () => null,
-          },
-          // Fatigue & Disponibilité cards removed — snapshot fatigue_state is single source of truth
-          {
-            id: "low-crr-justification",
-            render: () => currentAthlete && effectiveCloudSnapshot && (
-              <LowCRRJustificationCard
-                snapshot={effectiveCloudSnapshot}
-                threshold={250}
-              />
-            ),
-          },
-          {
-            id: "ftp-targets",
-            render: () => currentAthlete && (
-              <FtpKgTargetsCard
-                objectif={currentAthlete.goal || "IM"}
-                age={calculateAge(currentAthlete.birth_date)}
-                currentFtpKg={ftp_kg ?? null}
-                vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
-                vlamax={vlamaxEffectif.value}
-                weeklyVolume={null}
-              />
-            ),
-          },
-          {
-            id: "vlamax-v2-calibration",
-            render: () => {
-              if (!currentAthlete) return null;
-              const isTriathlon = currentAthlete.goal === "IM" || currentAthlete.goal === "70.3" || currentAthlete.goal === "703";
-              const isRunning = currentAthlete.goal === "Marathon" || currentAthlete.goal === "Semi" || currentAthlete.goal === "10km";
-              return (
-                <div className="space-y-3">
-                  <VLamaxUnifiedCard
-                    vlamaxEffectif={vlamaxEffectif}
-                    objectif={(currentAthlete.goal === "IM" ? "Ironman" : currentAthlete.goal) || "Ironman"}
-                    age={calculateAge(currentAthlete.birth_date)}
-                    sex={legacyAthlete?.sexe === "F" ? "F" : "H"}
-                    staffMode={staffMode}
-                    ambition={currentAmbition}
-                    v2Result={vlamaxEffectif.v2 ?? undefined}
-                    vlamaxRun={effectiveCloudSnapshot?.vlamax_run ?? null}
-                    athleteId={currentAthlete.id}
-                    vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
-                    economyScore={effectiveCloudSnapshot?.run_economy_score ?? null}
-                    isTriathlon={isTriathlon}
-                    isRunningOnly={isRunning}
-                    ftp={effectiveRefs.ftp}
-                  />
-                  {/* Graphique signature: Zone × Confiance */}
-                  <VLamaxZoneConfidenceChart
-                    v2Result={vlamaxEffectif.v2 ?? null}
-                    sport={(effectiveCloudSnapshot as unknown as Record<string, unknown>)?.sport_main === "run" ? "cap" : "velo"}
-                  />
-                  {/* Estimation VLamax avec évolution temps réel */}
-                  <VLamaxEstimationWidget
-                    vlamaxEffectif={vlamaxEffectif}
-                    snapshots={snapshots}
-                    athleteId={currentAthlete.id}
-                    objectif={currentAthlete.goal || "IM"}
-                    ambition={currentAmbition}
-                    age={calculateAge(currentAthlete.birth_date)}
-                    sport={(effectiveCloudSnapshot as unknown as Record<string, unknown>)?.sport_main === "run" ? "cap" : "velo"}
-                  />
-                </div>
-              );
-            },
-          },
-          // vlamax-combined section now merged into vlamax-v2-calibration above
-          {
-            id: "vlamax-combined",
-            render: () => null, // Consolidated into VLamaxUnifiedCard
-          },
-          // ✅ RUNNING FOCUS MODE SECTIONS — affiché uniquement en mode CAP
-          {
-            id: "vlamax-cap-card",
-            render: () => {
-              // Afficher uniquement en Running Focus Mode
-              if (!isRunningOnly || !currentAthlete) return null;
-              
-              return (
-                <VLamaxCAPCard
-                  athleteId={currentAthlete.id}
-                  vlamaxValue={vlamaxEffectif.value}
-                  vlamaxSource={vlamaxEffectif.source === "test" ? "test" : vlamaxEffectif.source === "snapshot" ? "snapshot" : "estimation"}
-                  vlamaxConfidence={vlamaxEffectif.confidence}
-                  vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
-                  economyScore={effectiveCloudSnapshot?.run_economy_score ?? null}
-                />
-              );
-            },
-          },
-          {
-            id: "running-economy-module",
-            render: () => {
-              // Afficher uniquement en Running Focus Mode
-              if (!isRunningOnly || !currentAthlete) return null;
-              
-              return (
-                <RunningEconomyModule
-                  athleteId={currentAthlete.id}
-                  fcMax={effectiveRefs.fcMax ?? null}
-                  fcMoyenneEndurance={effectiveCloudSnapshot?.run_hr_ref_bpm ?? null}
-                  allureEndurance={effectiveCloudSnapshot?.run_pace_ref_sec_per_km ?? null}
-                  deriveCardiaque={effectiveCloudSnapshot?.run_hr_drift_pct ?? null}
-                  tteMin={tteEffectif.tte_min}
-                  objectif={currentAthlete.goal || "Marathon"}
-                  vlamax={vlamaxEffectif.value}
-                  sport="run"
-                  staffMode={staffMode}
-                />
-              );
-            },
-          },
-          {
-            id: "vo2max-age-comparison",
-            render: () => currentAthlete && (
-              <VO2maxAgeComparisonCard
-                objectif={currentAthlete.goal || "IM"}
-                age={calculateAge(currentAthlete.birth_date)}
-                currentVo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
-                currentTTE={effectiveCloudSnapshot?.tte_observed_min ?? null}
-                ambition={currentAmbition}
-              />
-            ),
-          },
-          {
-            id: "fatmax-tfcl",
-            render: () => currentAthlete && (
-              <MetabolicZonesUnifiedCard
-                vlamaxEffectif={vlamaxEffectif}
-                tteEffectif={tteEffectif}
-                objectif={(currentAthlete.goal === "IM" ? "Ironman" : currentAthlete.goal) || "Ironman"}
-                ftp={effectiveRefs.ftp ?? null}
-                staffMode={staffMode}
-              />
-            ),
-          },
-          // ✅ CP/W' Courbe Puissance-Durée (Skiba 2012)
-          {
-            id: "cpw-prime-curve",
-            render: () => currentAthlete && (
-              <CPWPrimeCurveCard
-                ftp={effectiveCloudSnapshot?.ftp}
-                pmax5s={effectiveCloudSnapshot?.pmax_5s}
-                p30s={effectiveCloudSnapshot?.p30s_w}
-                p60s={effectiveCloudSnapshot?.p60s_w}
-                map5min={effectiveCloudSnapshot?.map5min_w}
-                weightKg={effectiveCloudSnapshot?.weight_kg}
-              />
-            ),
-          },
-          // ✅ W'bal Recovery — Repos optimaux individualisés (Skiba 2012)
-          {
-            id: "wbal-recovery",
-            render: () => currentAthlete && (
-              <WbalRecoveryCard
-                ftp={effectiveCloudSnapshot?.ftp}
-                pmax5s={effectiveCloudSnapshot?.pmax_5s}
-                p30s={effectiveCloudSnapshot?.p30s_w}
-                p60s={effectiveCloudSnapshot?.p60s_w}
-                map5min={effectiveCloudSnapshot?.map5min_w}
-                weightKg={effectiveCloudSnapshot?.weight_kg}
-              />
-            ),
-          },
-          {
-            id: "fatmax-chart",
-            render: () => null, // Consolidated into MetabolicZonesUnifiedCard
-          },
-          // ✅ Phase 1e: Coach Decision Center Unifié
+          // ✅ 3. Coach Decision Center
           {
             id: "coach-decision-unified",
             render: () => {
@@ -1454,7 +1287,6 @@ const Index = () => {
               );
               const latestCheckin = sortedCheckins[0] || null;
               
-              // Build DiagnosticInput for the engine
               const diagnosticInput: DiagnosticInput = {
                 athleteId: currentAthlete.id,
                 athleteName: currentAthlete.name,
@@ -1510,10 +1342,8 @@ const Index = () => {
                 } : undefined,
               };
               
-              // Compute diagnostic via engine
               const diagnostic = computeDiagnostic(diagnosticInput);
               
-              // Build DecisionInput for the engine
               const decisionInput: DecisionInput = {
                 diagnostic,
                 context: {
@@ -1527,7 +1357,6 @@ const Index = () => {
                 },
               };
               
-              // Compute prescription via engine
               const prescription = computeDecision(decisionInput);
               
               return (
@@ -1540,72 +1369,18 @@ const Index = () => {
               );
             },
           },
-          {
-            id: "tfcl-decision-matrix",
-            render: () => null, // Consolidated into CoachDecisionUnifiedCard
-          },
-          {
-            id: "tfcl-symptom-matrix",
-            render: () => null, // Consolidated into CoachDecisionUnifiedCard
-          },
-          {
-            id: "lorang-strategy",
-            render: () => null, // Consolidated into CoachDecisionUnifiedCard
-          },
-          {
-            id: "scenarios-tte-vlamax",
-            render: () => {
-              if (!currentAthlete) return null;
-              
-              // Générer les scénarios TTE
-              const tteSource = tteEffectif.source === 'observed' ? 'observed' : 'estimated';
-              const tteScenarios = generateTTEScenarios({
-                centralValue: tteEffectif.tte_min,
-                confidence: tteEffectif.confidence,
-                source: tteSource,
-              });
-              
-              // Générer les scénarios VLamax
-              // Source 'test' = test terrain, 'snapshot' = labo potentiellement
-              const vlamaxSource = vlamaxEffectif.source === 'test' ? 'test_terrain' : 
-                                   vlamaxEffectif.source === 'snapshot' ? 'test_labo' : 'estimation';
-              const vlamaxScenarios = generateVLamaxScenarios({
-                centralValue: vlamaxEffectif.value ?? 0.5,
-                confidence: vlamaxEffectif.confidence,
-                source: vlamaxSource,
-              });
-              
-              // Si les deux sont observés, pas besoin d'afficher les scénarios
-              if (tteScenarios.isObserved && vlamaxScenarios.isObserved) {
-                return null;
-              }
-              
-              return (
-                <div className="space-y-4">
-                  {!tteScenarios.isObserved && (
-                    <TTEScenarioDisplay scenarios={tteScenarios} compact={!staffMode} />
-                  )}
-                  {!vlamaxScenarios.isObserved && (
-                    <VLamaxScenarioDisplay scenarios={vlamaxScenarios} compact={!staffMode} />
-                  )}
-                </div>
-              );
-            },
-          },
-          // ✅ Phase 1c: Race Readiness Unifiée
+          // ✅ 4. Race Readiness
           {
             id: "race-readiness-unified",
             render: () => {
               if (!currentAthlete) return null;
               
-              // ── Check-ins pour V2 ──
               const athleteCheckins = getCheckinsForAthlete(currentAthlete.id);
               const sortedCheckins = [...athleteCheckins].sort((a, b) => 
                 new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime()
               );
               const latestCheckin = sortedCheckins[0] || null;
               
-              // ── Compass pour V2 ──
               const crr = computeCRR({
                 tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
                 snapshotDate: effectiveCloudSnapshot?.date ?? null,
@@ -1627,8 +1402,11 @@ const Index = () => {
                 tssTarget: 350,
               } : undefined;
               
-              // ── Signature chart input ──
-              const checkin = sortedCheckins[0] || null;
+              // Fatigue warning from snapshot
+              const fatigueState = effectiveCloudSnapshot?.fatigue_state;
+              const hasFatigueWarning = fatigueState === "fatigued" || fatigueState === "very_fatigued";
+              
+              // Signature chart input
               const vlamaxTarget = currentAmbition === "elite" ? 0.35 : currentAmbition === "competitor" ? 0.45 : 0.55;
               const vo2maxTarget = currentAmbition === "elite" ? 70 : currentAmbition === "competitor" ? 62 : 55;
               const tteTarget = currentAmbition === "elite" ? 50 : currentAmbition === "competitor" ? 40 : 35;
@@ -1654,7 +1432,7 @@ const Index = () => {
                   hrvStatus: null,
                   tss7d,
                   tss28d,
-                  subjectiveFatigue: null, // Source: snapshot fatigue_state only
+                  subjectiveFatigue: null,
                   sleepQuality: null,
                   motivation: null,
                   soreness: null,
@@ -1667,240 +1445,33 @@ const Index = () => {
               };
               
               return (
-                <RaceReadinessUnifiedCard
-                  compass={compass}
-                  latestCheckin={latestCheckin}
-                  objectiveData={objectiveData}
-                  guardrails={{
-                    fatigueIndex: effectiveCloudSnapshot?.tss_7d ? Math.min(100, (effectiveCloudSnapshot.tss_7d / 7)) : undefined,
-                  }}
-                  signatureInput={signatureInput}
-                  athleteName={currentAthlete.name}
-                  objectif={currentAthlete.goal || "IM"}
-                  staffMode={staffMode}
-                />
+                <div className="space-y-3">
+                  {/* Fatigue warning */}
+                  {hasFatigueWarning && (
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-warning/10 border border-warning/30 text-sm">
+                      <span className="text-warning">⚠️</span>
+                      <span className="text-warning-foreground font-medium">
+                        Attention : ce snapshot a été réalisé sous fatigue.
+                      </span>
+                    </div>
+                  )}
+                  <RaceReadinessUnifiedCard
+                    compass={compass}
+                    latestCheckin={latestCheckin}
+                    objectiveData={objectiveData}
+                    guardrails={{
+                      fatigueIndex: effectiveCloudSnapshot?.tss_7d ? Math.min(100, (effectiveCloudSnapshot.tss_7d / 7)) : undefined,
+                    }}
+                    signatureInput={signatureInput}
+                    athleteName={currentAthlete.name}
+                    objectif={currentAthlete.goal || "IM"}
+                    staffMode={staffMode}
+                  />
+                </div>
               );
             },
           },
-          {
-            id: "race-readiness-signature",
-            render: () => {
-              if (!currentAthlete) return null;
-              
-              // Récupérer le dernier checkin
-              const athleteCheckins = (checkins || []).filter(c => c.athlete_id === currentAthlete.id);
-              const sortedCheckins = [...athleteCheckins].sort((a, b) => 
-                new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime()
-              );
-              const checkin = sortedCheckins[0] || null;
-              
-              // Cibles selon ambition
-              const vlamaxTarget = currentAmbition === "elite" ? 0.35 : currentAmbition === "competitor" ? 0.45 : 0.55;
-              const vo2maxTarget = currentAmbition === "elite" ? 70 : currentAmbition === "competitor" ? 62 : 55;
-              const tteTarget = currentAmbition === "elite" ? 50 : currentAmbition === "competitor" ? 40 : 35;
-              
-              // Mapper discipline
-              const disciplineMap: Record<string, 'IM' | '703' | 'marathon' | 'semi' | '10k' | 'cycling' | 'trail'> = {
-                'IM': 'IM',
-                '703': '703',
-                'Marathon': 'marathon',
-                'Semi': 'semi',
-              };
-              const discipline = disciplineMap[currentAthlete.goal || '703'] || '703';
-              
-              // Calcul du ratio charge aiguë/chronique
-              const tss7d = effectiveCloudSnapshot?.tss_7d ?? null;
-              const tss28d = tss7d ? tss7d * 4 : null; // Estimation basée sur la charge 7j
-              
-              // Construire l'input
-              const raceReadinessInput: RaceReadinessInput = {
-                physiology: {
-                  vo2max: effectiveCloudSnapshot?.vo2max ?? null,
-                  vo2maxTarget,
-                  vlamax: vlamaxEffectif.value,
-                  vlamaxTarget,
-                  tte: tteEffectif.tte_min,
-                  tteTarget,
-                  economy: effectiveCloudSnapshot?.run_economy_score ?? null,
-                  trend: undefined,
-                },
-                availability: {
-                  hrvStatus: null,
-                  tss7d,
-                  tss28d,
-                  subjectiveFatigue: null, // Source: snapshot fatigue_state only
-                  sleepQuality: null,
-                  motivation: null,
-                  soreness: null,
-                  stress: null,
-                  hasRedFlags: false,
-                },
-                discipline,
-                ambition: currentAmbition,
-                daysToRace: null,
-              };
-              
-              return (
-                <RaceReadinessSignatureChart
-                  input={raceReadinessInput}
-                  compact={!staffMode}
-                />
-              );
-            },
-          },
-          {
-            id: "race-readiness-v2",
-            render: () => {
-              if (!currentAthlete) return null;
-              
-              // Récupérer les check-ins et calculer les données
-              const athleteCheckins = getCheckinsForAthlete(currentAthlete.id);
-              const sortedCheckins = [...athleteCheckins].sort((a, b) => 
-                new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime()
-              );
-              const latestCheckin = sortedCheckins[0] || null;
-              
-              // Données objectives depuis le snapshot
-              const objectiveData = effectiveCloudSnapshot ? {
-                tss7d: effectiveCloudSnapshot.tss_7d ?? null,
-                tssTarget: 350,
-              } : undefined;
-              
-              // Calculer le Compass si les données sont disponibles
-              const crr = computeCRR({
-                tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
-                snapshotDate: effectiveCloudSnapshot?.date ?? null,
-                snapshotUpdatedAt: effectiveCloudSnapshot?.updated_at ?? null,
-              });
-              
-              const compass = computeCompassScores({
-                ftp: effectiveRefs.ftp,
-                poids: effectiveRefs.weightKg,
-                vlamaxEffectif,
-                tteEffectif,
-                crr,
-                objectif: currentAthlete.goal || "IM",
-                ambition: currentAmbition,
-                athleteAge: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
-              });
-              
-              return (
-                <RaceReadinessV2Module
-                  compass={compass}
-                  latestCheckin={latestCheckin}
-                  objectiveData={objectiveData}
-                  guardrails={{
-                    fatigueIndex: effectiveCloudSnapshot?.tss_7d ? Math.min(100, (effectiveCloudSnapshot.tss_7d / 7)) : undefined,
-                  }}
-                  athleteName={currentAthlete.name}
-                  objectif={currentAthlete.goal || "IM"}
-                  defaultTab="overview"
-                />
-              );
-            },
-          },
-          {
-            id: "dashboard-recommendations",
-            render: () => currentAthlete && (
-              <DashboardRecommendationsCard
-                onNavigateToLibrary={() => setActiveTab("strategie")}
-                maxSuggestions={4}
-              />
-            ),
-          },
-          {
-            id: "ai-coaching-progression",
-            render: () => currentAthlete && (
-              <Phase3Dashboard
-                athlete={currentAthlete}
-                snapshots={snapshots}
-                effectiveSnapshot={effectiveCloudSnapshot}
-                ambition={currentAmbition}
-              />
-            ),
-          },
-          {
-            id: "lorang-test-checklist",
-            render: () => currentAthlete && (
-              <LorangTestChecklist
-                snapshot={effectiveCloudSnapshot}
-              />
-            ),
-          },
-          {
-            id: "roadmap-strategique",
-            render: () => currentAthlete && staffMode && (
-              <RoadmapStrategique
-                objectif={currentAthlete.goal}
-                limiterResult={unifiedLimiterResult}
-              />
-            ),
-          },
-          {
-            id: "charge-recente",
-            render: () => currentAthlete && staffMode && effectiveCloudSnapshot && (
-              <ChargeRecenteCard
-                crr={computeCRR({
-                  tss7d: effectiveCloudSnapshot.tss_7d ?? null,
-                  snapshotDate: effectiveCloudSnapshot.date ?? null,
-                  snapshotUpdatedAt: effectiveCloudSnapshot.updated_at ?? null,
-                })}
-                objectif={currentAthlete.goal || "IM"}
-                staffMode={staffMode}
-                onUpdate={async (value) => {
-                  await updateSnapshot(effectiveCloudSnapshot.id, { tss_7d: value });
-                }}
-              />
-            ),
-          },
-          {
-            id: "compass",
-            render: () => currentAthlete && (
-              isRunningOnly ? (
-                <MetabolicCompassCAP
-                  data={{
-                    vo2max: effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null,
-                    vma: effectiveCloudSnapshot?.vma ?? null,
-                    vlamaxCap: vlamaxEffectif.value,
-                    paceThresholdSecPerKm: effectiveCloudSnapshot?.pace_threshold_sec_per_km ?? null,
-                    paceEnduranceSecPerKm: effectiveCloudSnapshot?.run_pace_ref_sec_per_km ?? null,
-                    tteMin: tteEffectif.tte_min,
-                    hrDriftPct: effectiveCloudSnapshot?.run_hr_drift_pct ?? null,
-                    economyIndex: effectiveCloudSnapshot?.run_economy_score ?? null,
-                    economyLevel: effectiveCloudSnapshot?.run_economy_label ?? null,
-                    fcMax: effectiveRefs.fcMax ?? null,
-                    fcEndurance: effectiveCloudSnapshot?.run_hr_ref_bpm ?? null,
-                    sprint15sDistance: effectiveCloudSnapshot?.sprint_15s_distance ?? null,
-                    runningPowerMax: effectiveCloudSnapshot?.running_power_max ?? null,
-                    objectif: raceType || currentAthlete.goal || "Marathon",
-                    ambition: currentAmbition,
-                    athleteAge: currentAthlete?.birth_date ? calculateAge(currentAthlete.birth_date) : null,
-                  }}
-                  staffMode={staffMode}
-                />
-              ) : (
-                <MetabolicPerformanceCompass
-                  data={{
-                    vlamaxEffectif: vlamaxEffectif,
-                    tteEffectif: tteEffectif,
-                    ftp: effectiveRefs.ftp,
-                    poids: effectiveRefs.weightKg,
-                    tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
-                    snapshotDate: effectiveCloudSnapshot?.date ?? null,
-                    snapshotUpdatedAt: effectiveCloudSnapshot?.updated_at ?? null,
-                    objectif: currentAthlete.goal || "IM",
-                    ambition: currentAmbition,
-                    athleteAge: currentAthlete?.birth_date ? calculateAge(currentAthlete.birth_date) : null,
-                  }}
-                  staffMode={staffMode}
-                />
-              )
-            ),
-          },
-          {
-            id: "ambition-progress",
-            render: () => null,
-          },
+          // ✅ 5. Staff Dashboard (visible en mode staff)
           {
             id: "staff-dashboard",
             render: () => currentAthlete && legacyAthlete && staffMode && (
