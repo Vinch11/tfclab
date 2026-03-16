@@ -368,90 +368,15 @@ export default function AITrainingPlanPage() {
     } catch { return null; }
   }, [response, isLoading]);
 
-  // Build config for generation
-  // Map gap metrics to limiter categories for explicit AI key session prescription
-  const METRIC_TO_LIMITER_MAP: Record<string, string> = {
-    "VO2max": "VO2max bas",
-    "FTP/kg": "VO2max bas",
-    "VLamax": "VLamax trop haute (LD)",
-    "TTE": "TTE faible (<40min)",
-    "FatMax": "FatMax bas",
-    "Économie": "Économie de course basse",
-  };
+  // ═══════════════════════════════════════════════════════════════════════════
+  // BUILD PLAN CONFIG — Delegates to Plan Engine
+  // ═══════════════════════════════════════════════════════════════════════════
 
-  const buildConfig = useCallback((limiterResult: ReturnType<typeof detectUnifiedLimiter> | null, athleteAmbition?: string): PlanConfig => {
-    const limiters: string[] = [];
-    if (limiterResult) {
-      // Sort ALL gaps by weighted impact (highest = most limiting)
-      const rankedGaps = [...limiterResult.gapAnalysis]
-        .filter(g => g.weightedImpact > 0)
-        .sort((a, b) => b.weightedImpact - a.weightedImpact);
+  // Compute plan start date: Monday of the CURRENT week (not next week)
+  // (weeksAvailable already computed above)
 
-      if (rankedGaps.length > 0) {
-        limiters.push(`## CLASSEMENT DES LIMITEURS PAR IMPORTANCE (du plus critique au moins critique)`);
-        limiters.push(`Total : ${rankedGaps.length} limiteur(s) détecté(s). Le plan DOIT les adresser TOUS, par ordre de priorité.\n`);
-
-        rankedGaps.forEach((g, idx) => {
-          const rank = idx + 1;
-          const limiterCategory = METRIC_TO_LIMITER_MAP[g.metric] || g.metric;
-          const statusEmoji = g.status === "limiting" ? "🔴 CRITIQUE" : "🟡 SOUS-OPTIMAL";
-          const impactScore = g.weightedImpact.toFixed(1);
-
-          limiters.push(`### Limiteur #${rank} — ${g.metric} (Impact: ${impactScore}/100)`);
-          limiters.push(`- Statut : ${statusEmoji}`);
-          limiters.push(`- Valeur actuelle : ${g.value?.toFixed(2) ?? "?"} vs cible : ${g.target?.toFixed(2)}`);
-          limiters.push(`- Catégorie séances clés : "${limiterCategory}" (cf. tableau Séances Clés par Limiteur Dan Lorang)`);
-          
-          if (rank === 1) {
-            limiters.push(`- 🎯 PRIORITÉ ABSOLUE : Ce limiteur doit recevoir la séance clé #1 de chaque semaine pendant les premières phases (Base/Build).`);
-          } else if (rank === 2) {
-            limiters.push(`- ⚡ PRIORITÉ HAUTE : Ce limiteur doit recevoir la séance clé #2 de chaque semaine.`);
-          } else {
-            limiters.push(`- 📋 PRIORITÉ SECONDAIRE : Adresser via 1-2 séances complémentaires/sem ou intégré dans les phases Build/Spécifique.`);
-          }
-          limiters.push("");
-        });
-
-        // Add periodization instruction
-        limiters.push(`## RÈGLE DE PÉRIODISATION SÉQUENTIELLE DES LIMITEURS`);
-        limiters.push(`- Phase Base : Focus principal sur le Limiteur #1 (séances clés #1 et #2). Limiteur #2 en maintien.`);
-        limiters.push(`- Phase Build : Limiteur #1 toujours prioritaire mais le Limiteur #2 monte en importance (séance clé #2 dédiée).`);
-        limiters.push(`- Phase Spécifique : Intégration de tous les limiteurs dans un contexte race-specific.`);
-        limiters.push(`- Les limiteurs 🔴 CRITIQUES doivent être traités AVANT les 🟡 SOUS-OPTIMAUX.`);
-        limiters.push(`- Interactions positives : VLamax↓ améliore aussi TTE et FatMax. VO2max↑ améliore aussi FTP/kg. Exploiter ces synergies.`);
-      }
-
-      // Primary limiter context for backward compat
-      if (limiterResult.primaryLimiter !== "none") {
-        limiters.push(`\n## Synthèse TFCL™`);
-        limiters.push(`🎯 LIMITEUR PRIMAIRE : ${limiterResult.limiterLabel} — ${limiterResult.limiterExplanation}`);
-      }
-    }
-
-    const levers = limiterResult ? [limiterResult.primaryLever].map(l => LEVER_LABELS[l] || l) : [];
-
-    // Build prohibitions list from gap analysis context
-    const prohibitions: string[] = [];
-    if (limiterResult) {
-      const obj = objective.toUpperCase();
-      const amb = (athleteAmbition || ambition).toLowerCase();
-      const isLongDistance = ['IM', '703', 'MARATHON', 'TRAIL', 'TRAILULTRA'].includes(obj);
-      const isFinisher = amb === 'finisher';
-      
-      // Sprint Ban: only for long distance + non-finisher + VLamax too high
-      if (isLongDistance && !isFinisher) {
-        const vlamaxGap = limiterResult.gapAnalysis.find(g => g.metric === "VLamax");
-        if (vlamaxGap && vlamaxGap.status === "limiting") {
-          prohibitions.push("🚫 SPRINT BAN : VLamax trop haute pour cet objectif. Interdire sprints, micro-intervalles explosifs (<20s all-out), et efforts erratiques.");
-        }
-      }
-      
-      // For semi/10K/5K: sprints are BENEFICIAL
-      const isShortDistance = ['SEMI', '10K', '10KM', '5K'].includes(obj);
-      if (isShortDistance) {
-        prohibitions.push("✅ SPRINTS AUTORISÉS : objectif courte/moyenne distance — les sprints et la pliométrie sont bénéfiques pour l'économie de course et la puissance neuromusculaire.");
-      }
-    }
+  const buildConfigFromDiag = useCallback((diagnostic: AthleteDiagnostic, athleteAmbition?: string): PlanConfig => {
+    const amb = athleteAmbition || ambition;
 
     // Build raceGoals array for multi-objective
     const computeWeeksUntilRace = (date?: string) => {
@@ -486,8 +411,7 @@ export default function AITrainingPlanPage() {
       });
     }
 
-    const amb = athleteAmbition || ambition;
-    return {
+    const formConfig: PlanFormConfig = {
       objective: OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective,
       raceName: raceName || undefined,
       raceDate: raceDate || undefined,
@@ -500,10 +424,9 @@ export default function AITrainingPlanPage() {
       strengthSessionsPerWeek: parseInt(strengthSessionsPerWeek) || undefined,
       ambition: AMBITION_OPTIONS.find(a => a.value === amb)?.label || amb,
       constraints: constraints || undefined,
-      identifiedLimiters: limiters.length > 0 ? limiters : undefined,
-      activeLevers: levers.length > 0 ? levers : undefined,
-      prohibitions: prohibitions.length > 0 ? prohibitions : undefined,
     };
+
+    return buildPlanConfigFromDiagnostic(diagnostic, formConfig);
   }, [objective, raceName, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate]);
 
   // Single athlete generation
