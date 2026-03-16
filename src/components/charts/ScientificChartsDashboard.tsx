@@ -11,6 +11,7 @@ import {
   NutritionPredictiveChart,
   EnergyContributionChart,
   StaffModeToggle,
+  SimulatedLactateCurveChart,
 } from "./index";
 
 interface ScientificChartsDashboardProps {
@@ -31,6 +32,9 @@ interface ScientificChartsDashboardProps {
   tss7d?: number | null;
   sport?: "velo" | "cap" | "triathlon";
   initialStaffMode?: boolean;
+  vo2max?: number | null;
+  ftp?: number | null;
+  weight?: number;
 }
 
 export function ScientificChartsDashboard({
@@ -46,6 +50,9 @@ export function ScientificChartsDashboard({
   tss7d,
   sport = "velo",
   initialStaffMode = false,
+  vo2max,
+  ftp,
+  weight,
 }: ScientificChartsDashboardProps) {
   const [staffMode, setStaffMode] = useState(initialStaffMode);
 
@@ -116,6 +123,16 @@ export function ScientificChartsDashboard({
         <EnergyContributionChart
           vlamaxValue={vlamaxValue}
           staffMode={staffMode}
+        />
+
+        {/* Simulated Lactate Curve (Mader-Heck) */}
+        <SimulatedLactateCurveChart
+          vo2max={vo2max ?? null}
+          vlamax={vlamaxValue}
+          ftp={ftp ?? null}
+          weight={weight}
+          staffMode={staffMode}
+          className="md:col-span-2 xl:col-span-2"
         />
       </div>
     </div>
