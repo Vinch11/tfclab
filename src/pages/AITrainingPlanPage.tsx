@@ -29,9 +29,8 @@ import { differenceInCalendarDays, parseISO, addDays, startOfWeek, format, start
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAITrainingPlan, type PlanAthleteData, type PlanConfig, type RaceGoal } from "@/hooks/useAITrainingPlan";
-import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
-import { computeTTEEffectif } from "@/lib/tteEffectif";
-import { detectUnifiedLimiter } from "@/lib/v2/unifiedLimiterDetection";
+import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
+import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, type PlanFormConfig } from "@/engines/plan";
 import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition } from "@/types/ambitionLevel";
@@ -97,7 +96,7 @@ function calculateAge(birthDate: string): number {
 // ---- Types for multi-athlete plans ----
 interface AthleteComputedContext {
   data: PlanAthleteData;
-  limiterResult: ReturnType<typeof detectUnifiedLimiter>;
+  diagnostic: AthleteDiagnostic;
 }
 
 interface MultiPlanEntry {
@@ -107,7 +106,7 @@ interface MultiPlanEntry {
   ambition: string;
   response: string;
   parsedPlan: ParsedPlan | null;
-  limiterResult: ReturnType<typeof detectUnifiedLimiter> | null;
+  diagnostic: AthleteDiagnostic | null;
 }
 
 export default function AITrainingPlanPage() {
@@ -196,7 +195,6 @@ export default function AITrainingPlanPage() {
   };
 
   // Restore persisted plan + config on athlete change (single mode only)
-  // Priority: localStorage saved state > athlete default > fallback
   useEffect(() => {
     if (isMultiMode) return;
     if (savedState) {
@@ -214,7 +212,6 @@ export default function AITrainingPlanPage() {
       if (savedState.strengthSessionsPerWeek) setStrengthSessionsPerWeek(savedState.strengthSessionsPerWeek);
       if (savedState.raceGoals && Array.isArray(savedState.raceGoals)) setRaceGoals(savedState.raceGoals);
     } else {
-      // No saved state — use athlete defaults
       if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
       { const a = getAthleteAmbition(currentAthlete); setAmbition(a); }
     }
@@ -247,8 +244,11 @@ export default function AITrainingPlanPage() {
     localStorage.setItem(persistKey, JSON.stringify(state));
   }, [isMultiMode, persistKey, isLoading, response, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, raceGoals]);
 
-  // Compute athlete context for a given athlete
-  const computeAthleteContext = useCallback((athlete: any, obj: string, amb: string): AthleteComputedContext | null => {
+  // ═══════════════════════════════════════════════════════════════════════════
+  // BUILD DIAGNOSTIC — Replaces manual sub-engine calls
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  const buildDiagnosticForAthlete = useCallback((athlete: any, obj: string, amb: string): AthleteDiagnostic | null => {
     const athleteSnapshots = getSnapshotsForAthlete(athlete.id);
     const athleteTests = getTestsForAthlete(athlete.id);
     const refs = getEffectiveRefs(athlete, athleteSnapshots);
@@ -257,40 +257,7 @@ export default function AITrainingPlanPage() {
 
     const ftpKg = computeFtpKg(refs);
 
-    const vlamaxEff = computeVLamaxEffectif({
-      athleteId: athlete.id,
-      objectif: obj,
-      activeSnapshotId: athlete.active_snapshot_id,
-      tests: athleteTests,
-      snapshots: athleteSnapshots,
-    });
-
-    const tteEff = computeTTEEffectif({
-      ftp: refs.ftp,
-      tss_7d: activeSnap.tss_7d,
-      tte_mode: activeSnap.tte_mode,
-      tte_observed_min: activeSnap.tte_observed_min,
-      objectif: obj,
-    });
-
-    const data: PlanAthleteData = {
-      nom: athlete.nom,
-      ftp: refs.ftp,
-      weightKg: refs.weightKg,
-      vlamax: vlamaxEff.value,
-      vlamaxRun: activeSnap.vlamax_run,
-      vo2max: refs.vo2max,
-      vma: refs.vma,
-      css: refs.css,
-      fcMax: refs.fcMax,
-      tte: tteEff.tte_min,
-      pmax5s: activeSnap.pmax_5s,
-      p30s: activeSnap.p30s_w,
-      p60s: activeSnap.p60s_w,
-      map5min: activeSnap.map5min_w,
-    };
-
-    // Compute W' from snapshot power data
+    // Compute W' for diagnostic input
     const cpResult = analyzeCriticalPower({
       pmax_5s: activeSnap.pmax_5s,
       p30s_w: activeSnap.p30s_w,
@@ -299,24 +266,72 @@ export default function AITrainingPlanPage() {
       ftp: refs.ftp,
     });
 
-    const limiterResult = detectUnifiedLimiter({
-      vo2max: refs.vo2max,
-      ftpKg,
-      vlamax: vlamaxEff.value,
-      wprimeKj: cpResult?.wprimeKJ ?? null,
-      cpDataQuality: cpResult?.dataQuality ?? null,
-      tte: tteEff.tte_min,
-      fatmax: null,
-      economyScore: activeSnap.run_economy_score ?? null,
-      availabilityScore: null,
-      hasHealthAlerts: false,
+    const age = athlete.birth_date ? calculateAge(athlete.birth_date) : null;
+
+    // Build DiagnosticInput and delegate to the Diagnostic Engine
+    const diagnosticInput: DiagnosticInput = {
+      athleteId: athlete.id,
+      athleteName: athlete.name,
+      age,
+      sex: (athlete.sex === "M" || athlete.sex === "F") ? athlete.sex : null,
+      weightKg: refs.weightKg,
       objectif: obj,
       ambition: amb as AmbitionLevel,
-      age: athlete.dateNaissance ? calculateAge(athlete.dateNaissance) : null,
-    });
+      sportFocus: activeSnap.sport_main === "run" ? "run" : "bike",
+      vo2max: refs.vo2max,
+      ftp: refs.ftp,
+      ftpKg,
+      pmax5s: activeSnap.pmax_5s,
+      p30sW: activeSnap.p30s_w,
+      p60sW: activeSnap.p60s_w,
+      map5minW: activeSnap.map5min_w,
+      vma: refs.vma,
+      css: refs.css,
+      vlamax: activeSnap.vlamax,
+      vlamaxRun: activeSnap.vlamax_run,
+      vlamaxSource: activeSnap.vlamax_source,
+      vlamaxProtocol: activeSnap.vlamax_protocol,
+      vlamaxIsReference: activeSnap.vlamax_is_reference ?? false,
+      tteObservedMin: activeSnap.tte_observed_min,
+      tteMode: activeSnap.tte_mode,
+      tss7d: activeSnap.tss_7d,
+      fatigueState: activeSnap.fatigue_state,
+      runEconomyScore: activeSnap.run_economy_score,
+      runHrDriftPct: activeSnap.run_hr_drift_pct,
+      paceThresholdSecPerKm: activeSnap.pace_threshold_sec_per_km,
+      runningPower1s: activeSnap.running_power_1s,
+      runningPower5s: activeSnap.running_power_5s,
+      runningPower30s: activeSnap.running_power_30s,
+      runningPower60s: activeSnap.running_power_60s,
+      runningPower5min: activeSnap.running_power_5min,
+      runningPowerThreshold: activeSnap.running_power_threshold,
+      sprint15sDistance: activeSnap.sprint_15s_distance,
+      bikeCadenceRpm: activeSnap.bike_cadence_rpm,
+      bikeHrDriftFlag: activeSnap.bike_hr_drift_flag ?? false,
+      protocolQuality: activeSnap.protocol_quality,
+      wprimeKj: cpResult?.wprimeKJ ?? null,
+      cpDataQuality: cpResult?.dataQuality ?? null,
+      fatmax: null,
+      forceDevMode: activeSnap.force_development_mode ?? false,
+      giIssuesFlag: activeSnap.gi_issues_flag ?? false,
+    };
 
-    return { data, limiterResult };
+    return computeDiagnostic(diagnosticInput);
   }, [getSnapshotsForAthlete, getTestsForAthlete]);
+
+  // Compute athlete context for a given athlete (diagnostic + athlete data)
+  const computeAthleteContext = useCallback((athlete: any, obj: string, amb: string): AthleteComputedContext | null => {
+    const diagnostic = buildDiagnosticForAthlete(athlete, obj, amb);
+    if (!diagnostic) return null;
+
+    // Extract PlanAthleteData from diagnostic, add fcMax from refs
+    const data = buildPlanAthleteDataFromDiagnostic(diagnostic);
+    const athleteSnapshots = getSnapshotsForAthlete(athlete.id);
+    const refs = getEffectiveRefs(athlete, athleteSnapshots);
+    data.fcMax = refs.fcMax;
+
+    return { data, diagnostic };
+  }, [buildDiagnosticForAthlete, getSnapshotsForAthlete]);
 
   // Current athlete context (single mode)
   const athleteContext = useMemo(() => {
@@ -353,90 +368,15 @@ export default function AITrainingPlanPage() {
     } catch { return null; }
   }, [response, isLoading]);
 
-  // Build config for generation
-  // Map gap metrics to limiter categories for explicit AI key session prescription
-  const METRIC_TO_LIMITER_MAP: Record<string, string> = {
-    "VO2max": "VO2max bas",
-    "FTP/kg": "VO2max bas",
-    "VLamax": "VLamax trop haute (LD)",
-    "TTE": "TTE faible (<40min)",
-    "FatMax": "FatMax bas",
-    "Économie": "Économie de course basse",
-  };
+  // ═══════════════════════════════════════════════════════════════════════════
+  // BUILD PLAN CONFIG — Delegates to Plan Engine
+  // ═══════════════════════════════════════════════════════════════════════════
 
-  const buildConfig = useCallback((limiterResult: ReturnType<typeof detectUnifiedLimiter> | null, athleteAmbition?: string): PlanConfig => {
-    const limiters: string[] = [];
-    if (limiterResult) {
-      // Sort ALL gaps by weighted impact (highest = most limiting)
-      const rankedGaps = [...limiterResult.gapAnalysis]
-        .filter(g => g.weightedImpact > 0)
-        .sort((a, b) => b.weightedImpact - a.weightedImpact);
+  // Compute plan start date: Monday of the CURRENT week (not next week)
+  // (weeksAvailable already computed above)
 
-      if (rankedGaps.length > 0) {
-        limiters.push(`## CLASSEMENT DES LIMITEURS PAR IMPORTANCE (du plus critique au moins critique)`);
-        limiters.push(`Total : ${rankedGaps.length} limiteur(s) détecté(s). Le plan DOIT les adresser TOUS, par ordre de priorité.\n`);
-
-        rankedGaps.forEach((g, idx) => {
-          const rank = idx + 1;
-          const limiterCategory = METRIC_TO_LIMITER_MAP[g.metric] || g.metric;
-          const statusEmoji = g.status === "limiting" ? "🔴 CRITIQUE" : "🟡 SOUS-OPTIMAL";
-          const impactScore = g.weightedImpact.toFixed(1);
-
-          limiters.push(`### Limiteur #${rank} — ${g.metric} (Impact: ${impactScore}/100)`);
-          limiters.push(`- Statut : ${statusEmoji}`);
-          limiters.push(`- Valeur actuelle : ${g.value?.toFixed(2) ?? "?"} vs cible : ${g.target?.toFixed(2)}`);
-          limiters.push(`- Catégorie séances clés : "${limiterCategory}" (cf. tableau Séances Clés par Limiteur Dan Lorang)`);
-          
-          if (rank === 1) {
-            limiters.push(`- 🎯 PRIORITÉ ABSOLUE : Ce limiteur doit recevoir la séance clé #1 de chaque semaine pendant les premières phases (Base/Build).`);
-          } else if (rank === 2) {
-            limiters.push(`- ⚡ PRIORITÉ HAUTE : Ce limiteur doit recevoir la séance clé #2 de chaque semaine.`);
-          } else {
-            limiters.push(`- 📋 PRIORITÉ SECONDAIRE : Adresser via 1-2 séances complémentaires/sem ou intégré dans les phases Build/Spécifique.`);
-          }
-          limiters.push("");
-        });
-
-        // Add periodization instruction
-        limiters.push(`## RÈGLE DE PÉRIODISATION SÉQUENTIELLE DES LIMITEURS`);
-        limiters.push(`- Phase Base : Focus principal sur le Limiteur #1 (séances clés #1 et #2). Limiteur #2 en maintien.`);
-        limiters.push(`- Phase Build : Limiteur #1 toujours prioritaire mais le Limiteur #2 monte en importance (séance clé #2 dédiée).`);
-        limiters.push(`- Phase Spécifique : Intégration de tous les limiteurs dans un contexte race-specific.`);
-        limiters.push(`- Les limiteurs 🔴 CRITIQUES doivent être traités AVANT les 🟡 SOUS-OPTIMAUX.`);
-        limiters.push(`- Interactions positives : VLamax↓ améliore aussi TTE et FatMax. VO2max↑ améliore aussi FTP/kg. Exploiter ces synergies.`);
-      }
-
-      // Primary limiter context for backward compat
-      if (limiterResult.primaryLimiter !== "none") {
-        limiters.push(`\n## Synthèse TFCL™`);
-        limiters.push(`🎯 LIMITEUR PRIMAIRE : ${limiterResult.limiterLabel} — ${limiterResult.limiterExplanation}`);
-      }
-    }
-
-    const levers = limiterResult ? [limiterResult.primaryLever].map(l => LEVER_LABELS[l] || l) : [];
-
-    // Build prohibitions list from gap analysis context
-    const prohibitions: string[] = [];
-    if (limiterResult) {
-      const obj = objective.toUpperCase();
-      const amb = (athleteAmbition || ambition).toLowerCase();
-      const isLongDistance = ['IM', '703', 'MARATHON', 'TRAIL', 'TRAILULTRA'].includes(obj);
-      const isFinisher = amb === 'finisher';
-      
-      // Sprint Ban: only for long distance + non-finisher + VLamax too high
-      if (isLongDistance && !isFinisher) {
-        const vlamaxGap = limiterResult.gapAnalysis.find(g => g.metric === "VLamax");
-        if (vlamaxGap && vlamaxGap.status === "limiting") {
-          prohibitions.push("🚫 SPRINT BAN : VLamax trop haute pour cet objectif. Interdire sprints, micro-intervalles explosifs (<20s all-out), et efforts erratiques.");
-        }
-      }
-      
-      // For semi/10K/5K: sprints are BENEFICIAL
-      const isShortDistance = ['SEMI', '10K', '10KM', '5K'].includes(obj);
-      if (isShortDistance) {
-        prohibitions.push("✅ SPRINTS AUTORISÉS : objectif courte/moyenne distance — les sprints et la pliométrie sont bénéfiques pour l'économie de course et la puissance neuromusculaire.");
-      }
-    }
+  const buildConfigFromDiag = useCallback((diagnostic: AthleteDiagnostic, athleteAmbition?: string): PlanConfig => {
+    const amb = athleteAmbition || ambition;
 
     // Build raceGoals array for multi-objective
     const computeWeeksUntilRace = (date?: string) => {
@@ -471,8 +411,7 @@ export default function AITrainingPlanPage() {
       });
     }
 
-    const amb = athleteAmbition || ambition;
-    return {
+    const formConfig: PlanFormConfig = {
       objective: OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective,
       raceName: raceName || undefined,
       raceDate: raceDate || undefined,
@@ -485,10 +424,9 @@ export default function AITrainingPlanPage() {
       strengthSessionsPerWeek: parseInt(strengthSessionsPerWeek) || undefined,
       ambition: AMBITION_OPTIONS.find(a => a.value === amb)?.label || amb,
       constraints: constraints || undefined,
-      identifiedLimiters: limiters.length > 0 ? limiters : undefined,
-      activeLevers: levers.length > 0 ? levers : undefined,
-      prohibitions: prohibitions.length > 0 ? prohibitions : undefined,
     };
+
+    return buildPlanConfigFromDiagnostic(diagnostic, formConfig);
   }, [objective, raceName, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate]);
 
   // Single athlete generation
@@ -497,7 +435,7 @@ export default function AITrainingPlanPage() {
       toast.error("Sélectionnez un athlète avec un snapshot actif");
       return;
     }
-    const config = buildConfig(athleteContext.limiterResult);
+    const config = buildConfigFromDiag(athleteContext.diagnostic);
     generatePlan(athleteContext.data, config);
   };
 
@@ -534,7 +472,7 @@ export default function AITrainingPlanPage() {
         continue;
       }
 
-      const config = buildConfig(ctx.limiterResult, athleteAmb);
+      const config = buildConfigFromDiag(ctx.diagnostic, athleteAmb);
       // Override objective with athlete's own
       config.objective = OBJECTIVE_OPTIONS.find(o => o.value === athleteObj)?.label || athleteObj;
 
@@ -592,7 +530,7 @@ export default function AITrainingPlanPage() {
           ambition: AMBITION_OPTIONS.find(a => a.value === athleteAmb)?.label || athleteAmb,
           response: fullText,
           parsedPlan: parsed,
-          limiterResult: ctx.limiterResult,
+          diagnostic: ctx.diagnostic,
         };
         results.push(entry);
         setMultiPlans([...results]);
@@ -606,7 +544,7 @@ export default function AITrainingPlanPage() {
       toast.success(`${results.length} plan(s) généré(s) !`);
       if (results.length > 1) setResultView("compare");
     }
-  }, [selectedAthleteIds, athletes, objective, ambition, computeAthleteContext, buildConfig]);
+  }, [selectedAthleteIds, athletes, objective, ambition, computeAthleteContext, buildConfigFromDiag]);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(response);
@@ -738,12 +676,12 @@ export default function AITrainingPlanPage() {
   const getAthleteLimiter = useCallback((athlete: any) => {
     const obj = athlete.objectif || objective;
     const amb = getAthleteAmbition(athlete);
-    const ctx = computeAthleteContext(athlete, obj, amb);
-    return ctx?.limiterResult || null;
-  }, [computeAthleteContext, objective, ambition]);
+    const diag = buildDiagnosticForAthlete(athlete, obj, amb);
+    return diag?.limiter || null;
+  }, [buildDiagnosticForAthlete, objective, ambition]);
 
   const hasData = !!athleteContext;
-  const limiter = athleteContext?.limiterResult;
+  const limiter = athleteContext?.diagnostic.limiter ?? null;
 
   // Comparison data for multi-plans
   const comparisonData = useMemo(() => {
@@ -754,10 +692,10 @@ export default function AITrainingPlanPage() {
         athleteName: p.athleteName,
         objective: p.objective,
         ambition: p.ambition,
-        limiterLabel: p.limiterResult?.limiterLabel,
-        limiterEmoji: p.limiterResult?.limiterEmoji,
-        leverLabel: p.limiterResult ? (LEVER_LABELS[p.limiterResult.primaryLever] || p.limiterResult.leverLabel) : undefined,
-        leverEmoji: p.limiterResult?.leverEmoji,
+        limiterLabel: p.diagnostic?.limiter.limiterLabel,
+        limiterEmoji: p.diagnostic?.limiter.limiterEmoji,
+        leverLabel: p.diagnostic ? (LEVER_LABELS[p.diagnostic.limiter.primaryLever] || p.diagnostic.limiter.leverLabel) : undefined,
+        leverEmoji: p.diagnostic?.limiter.leverEmoji,
         parsedPlan: p.parsedPlan!,
       }));
   }, [multiPlans]);
@@ -1390,7 +1328,7 @@ export default function AITrainingPlanPage() {
                         objective={objective}
                         ambition={ambition}
                         athleteName={currentAthlete?.nom}
-                        limiterResult={athleteContext?.limiterResult ?? null}
+                        limiterResult={athleteContext?.diagnostic.limiter ?? null}
                       />
                       <RacePaceSimulation
                         objective={objective}
