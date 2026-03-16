@@ -38,6 +38,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { CalibrationResult } from "@/lib/calibration/vlamaxContinuous";
 import type { Tables } from "@/integrations/supabase/types";
+import type { TrainingPrescription } from "@/engines/decision";
 
 type DbCoachOverride = Tables<"coach_overrides">;
 
@@ -61,6 +62,8 @@ interface WeeklyDecisionPanelProps {
     beforeValue: any,
     afterValue: any
   ) => Promise<boolean>;
+  /** Optional engine prescription for enriched strategy context */
+  prescription?: TrainingPrescription | null;
 }
 
 export function WeeklyDecisionPanel({
@@ -68,6 +71,7 @@ export function WeeklyDecisionPanel({
   liveCalibration,
   overrides,
   onAddOverride,
+  prescription,
 }: WeeklyDecisionPanelProps) {
   const [overrideDialogOpen, setOverrideDialogOpen] = useState(false);
   const [overrideReason, setOverrideReason] = useState("");
@@ -162,7 +166,7 @@ export function WeeklyDecisionPanel({
     setPendingOverride(null);
   };
 
-  // Watchouts
+  // Watchouts — enriched with engine data
   const watchouts = useMemo(() => {
     const items: string[] = [];
     
@@ -176,8 +180,20 @@ export function WeeklyDecisionPanel({
       items.push("📊 Delta calibration significatif — adapter progressivement");
     }
     
+    // Engine-driven watchouts
+    if (prescription?.strategy.hasSprintBan) {
+      items.push("🚫 Sprint Ban actif — éviter sprints et micro-intervalles explosifs");
+    }
+    if (prescription?.strategy.prohibitions && prescription.strategy.prohibitions.length > 0) {
+      prescription.strategy.prohibitions.forEach(p => {
+        if (!items.some(i => i.includes("Sprint Ban"))) {
+          items.push(`⛔ ${p.label}`);
+        }
+      });
+    }
+    
     return items;
-  }, [liveCalibration]);
+  }, [liveCalibration, prescription]);
 
   // Recent overrides
   const recentOverrides = overrides
@@ -241,6 +257,32 @@ export function WeeklyDecisionPanel({
             </div>
           </div>
         </div>
+
+        {/* Engine Strategy Context */}
+        {prescription && (
+          <>
+            <Separator />
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium flex items-center gap-1.5">
+                <Zap className="h-4 w-4 text-primary" />
+                Contexte Stratégique (Engine)
+              </h4>
+              <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 space-y-1.5">
+                <p className="text-sm font-medium">{prescription.strategy.weekLabel}</p>
+                <p className="text-xs text-muted-foreground">{prescription.strategy.primaryAction}</p>
+                {prescription.strategy.levers.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {prescription.strategy.levers.slice(0, 3).map((lever, i) => (
+                      <Badge key={i} variant="secondary" className="text-xs">
+                        {lever.label}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
 
         <Separator />
 

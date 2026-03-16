@@ -6,9 +6,15 @@
  * - Voir preuves et calibration
  * - Prendre des décisions hebdomadaires / jour J
  * - Justifier les overrides
+ * 
+ * MIGRÉ vers architecture 3 moteurs :
+ * - computeDiagnostic() pour le diagnostic unifié
+ * - computeDecision() pour la prescription
+ * - Les panels reçoivent diagnostic + prescription en enrichissement
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
+import { useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PhysiologicalProfilePanel } from "./panels/PhysiologicalProfilePanel";
 import { EvidenceQualityPanel } from "./panels/EvidenceQualityPanel";
@@ -21,9 +27,18 @@ import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { cn } from "@/lib/utils";
 
+// Engine imports
+import { computeDiagnostic, type DiagnosticInput, type AthleteDiagnostic } from "@/engines/diagnostic";
+import { computeDecision, type DecisionInput, type TrainingPrescription } from "@/engines/decision";
+import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
+import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
+import { calculateAge } from "@/lib/ageAdjustment";
+import { getAthleteAmbition } from "@/types/ambitionLevel";
+import type { AmbitionLevel } from "@/types/ambitionLevel";
+
 export function DecisionAdvancedMode() {
   const { currentAthlete } = useAthletes();
-  const { snapshots: cloudSnapshots } = useCloudDataContext();
+  const { snapshots: cloudSnapshots, getSnapshotsForAthlete } = useCloudDataContext();
   const athleteId = currentAthlete?.id ?? null;
   
   // Get active snapshot from cloud data
@@ -46,6 +61,100 @@ export function DecisionAdvancedMode() {
     createCalibrationSnapshot,
     addCoachOverride,
   } = useCalibrationEvidence(athleteId);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ENGINE INTEGRATION — Compute diagnostic + prescription
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  const engineResults = useMemo((): { diagnostic: AthleteDiagnostic; prescription: TrainingPrescription } | null => {
+    if (!currentAthlete || !activeSnapshot) return null;
+
+    try {
+      const athleteSnapshots = getSnapshotsForAthlete(currentAthlete.id);
+      const refs = getEffectiveRefs(currentAthlete, athleteSnapshots);
+      const ftpKg = computeFtpKg(refs);
+      const age = currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null;
+      const ambition = getAthleteAmbition(currentAthlete) as AmbitionLevel;
+
+      // Compute W' for diagnostic
+      const cpResult = analyzeCriticalPower({
+        pmax_5s: activeSnapshot.pmax_5s ?? null,
+        p30s_w: activeSnapshot.p30s_w ?? null,
+        p60s_w: activeSnapshot.p60s_w ?? null,
+        map5min_w: activeSnapshot.map5min_w ?? null,
+        ftp: refs.ftp,
+      });
+
+      const diagnosticInput: DiagnosticInput = {
+        athleteId: currentAthlete.id,
+        athleteName: currentAthlete.name,
+        age,
+        sex: (currentAthlete.sex === "M" || currentAthlete.sex === "F") ? currentAthlete.sex : null,
+        weightKg: refs.weightKg,
+        objectif: currentAthlete.goal || "IM",
+        ambition,
+        sportFocus: activeSnapshot.sport_main === "run" ? "run" : "bike",
+        vo2max: refs.vo2max,
+        ftp: refs.ftp,
+        ftpKg,
+        pmax5s: activeSnapshot.pmax_5s ?? null,
+        p30sW: activeSnapshot.p30s_w ?? null,
+        p60sW: activeSnapshot.p60s_w ?? null,
+        map5minW: activeSnapshot.map5min_w ?? null,
+        vma: refs.vma,
+        css: refs.css,
+        vlamax: activeSnapshot.vlamax ?? null,
+        vlamaxRun: activeSnapshot.vlamax_run ?? null,
+        vlamaxSource: activeSnapshot.vlamax_source ?? null,
+        vlamaxProtocol: activeSnapshot.vlamax_protocol ?? null,
+        vlamaxIsReference: activeSnapshot.vlamax_is_reference ?? false,
+        tteObservedMin: activeSnapshot.tte_observed_min ?? null,
+        tteMode: activeSnapshot.tte_mode ?? null,
+        tss7d: activeSnapshot.tss_7d ?? null,
+        fatigueState: activeSnapshot.fatigue_state ?? null,
+        runEconomyScore: activeSnapshot.run_economy_score ?? null,
+        runHrDriftPct: activeSnapshot.run_hr_drift_pct ?? null,
+        paceThresholdSecPerKm: activeSnapshot.pace_threshold_sec_per_km ?? null,
+        runningPower1s: activeSnapshot.running_power_1s ?? null,
+        runningPower5s: activeSnapshot.running_power_5s ?? null,
+        runningPower30s: activeSnapshot.running_power_30s ?? null,
+        runningPower60s: activeSnapshot.running_power_60s ?? null,
+        runningPower5min: activeSnapshot.running_power_5min ?? null,
+        runningPowerThreshold: activeSnapshot.running_power_threshold ?? null,
+        sprint15sDistance: activeSnapshot.sprint_15s_distance ?? null,
+        bikeCadenceRpm: activeSnapshot.bike_cadence_rpm ?? null,
+        bikeHrDriftFlag: activeSnapshot.bike_hr_drift_flag ?? false,
+        protocolQuality: activeSnapshot.protocol_quality ?? null,
+        wprimeKj: cpResult?.wprimeKJ ?? null,
+        cpDataQuality: cpResult?.dataQuality ?? null,
+        fatmax: null,
+        forceDevMode: activeSnapshot.force_development_mode ?? false,
+        giIssuesFlag: activeSnapshot.gi_issues_flag ?? false,
+      };
+
+      const diagnostic = computeDiagnostic(diagnosticInput);
+
+      const decisionInput: DecisionInput = {
+        diagnostic,
+        context: {
+          daysToRace: null,
+          isRaceWeek: false,
+          currentPhase: "build",
+        },
+        load: {
+          tss7d: activeSnapshot.tss_7d ?? null,
+          tss28d: activeSnapshot.tss_7d ? (activeSnapshot.tss_7d) * 4 : null,
+        },
+      };
+
+      const prescription = computeDecision(decisionInput);
+
+      return { diagnostic, prescription };
+    } catch (e) {
+      console.error("[DecisionAdvancedMode] Engine computation failed:", e);
+      return null;
+    }
+  }, [currentAthlete, activeSnapshot, getSnapshotsForAthlete]);
 
   if (!currentAthlete) {
     return (
@@ -136,6 +245,7 @@ export function DecisionAdvancedMode() {
             activeSnapshot={activeSnapshot}
             isLocked={isLocked}
             onCreateSnapshot={createCalibrationSnapshot}
+            diagnostic={engineResults?.diagnostic ?? null}
           />
         </TabsContent>
 
@@ -172,6 +282,7 @@ export function DecisionAdvancedMode() {
             liveCalibration={liveCalibration}
             overrides={overrides}
             onAddOverride={addCoachOverride}
+            prescription={engineResults?.prescription ?? null}
           />
         </TabsContent>
 
@@ -180,6 +291,7 @@ export function DecisionAdvancedMode() {
             athleteId={athleteId!}
             liveCalibration={liveCalibration}
             activeSnapshot={activeSnapshot}
+            diagnostic={engineResults?.diagnostic ?? null}
           />
         </TabsContent>
       </Tabs>
