@@ -6722,7 +6722,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   }
 
   // =============================================
-  // INSCYD-STYLE: SUBSTRATE OXIDATION HTML (SVG)
+  // INSCYD-STYLE: SUBSTRATE OXIDATION HTML (SVG) — Mader Model
   // =============================================
   function buildSubstrateCurveHTML(p: ExportPayload): string {
     const v2max = p.effectiveRefs.vo2max ?? effectiveSnapshot?.vo2max ?? null;
@@ -6731,90 +6731,130 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     const weightKg = p.effectiveRefs.weightKg ?? effectiveSnapshot?.weight_kg ?? 70;
     if (!v2max || !vla || !ftpVal) return '';
     
-    const { generateSubstrateCurve, predictFatMax } = require("@/lib/v2/metabolicSimulator");
-    const data = generateSubstrateCurve(v2max, vla, weightKg, ftpVal);
-    const fatMaxPct = predictFatMax(vla);
-    const peakFat = data.reduce((b: any, p: any) => p.fatGmin > b.fatGmin ? p : b, data[0]);
-    const crossover = data.find((p: any) => p.fatPct < 50);
-    const crossoverPct = crossover?.intensity ?? fatMaxPct + 10;
-    const pMax = ftpVal * 1.18;
-    const atFtp = data.find((p: any) => p.intensity >= 85) ?? data[data.length - 1];
+    const { calculateFatOxidation, calculateCarbOxidation, findFatMax, predictMaderPerformance } = require("@/lib/v2/maderMetabolicModel");
+    const maderProfile = { vo2max: v2max, vlamax: vla, weight: weightKg };
+    const fatMaxResult = findFatMax(maderProfile);
+    const predictions = predictMaderPerformance(maderProfile);
+    const pMax = predictions.pMax;
+    
+    // Generate substrate data using Mader model
+    const data: { intensity: number; watts: number; fatGmin: number; carbGmin: number; fatKcalH: number; carbKcalH: number; fatPct: number }[] = [];
+    for (let intensity = 25; intensity <= 100; intensity += 2) {
+      const fatGmin = calculateFatOxidation(intensity, v2max, vla, weightKg);
+      const carbGmin = calculateCarbOxidation(intensity, v2max, vla, weightKg);
+      const watts = Math.round((intensity / 100) * pMax);
+      const fatKcalH = fatGmin * 9 * 60;
+      const carbKcalH = carbGmin * 4 * 60;
+      const totalKcal = fatKcalH + carbKcalH;
+      const fatPct = totalKcal > 0 ? (fatKcalH / totalKcal) * 100 : 0;
+      data.push({ intensity, watts, fatGmin, carbGmin, fatKcalH, carbKcalH, fatPct });
+    }
+    
+    const crossover = data.find(d => d.fatPct < 50);
+    const crossoverPct = crossover?.intensity ?? fatMaxResult.fatMaxIntensity + 10;
+    const crossoverW = crossover ? crossover.watts : Math.round((crossoverPct / 100) * pMax);
+    
+    // FTP intensity data point
+    const ftpIntensity = Math.round((ftpVal / pMax) * 100);
+    const atFtp = data.find(d => d.intensity >= Math.min(ftpIntensity, 95)) ?? data[data.length - 1];
     
     // SVG dimensions
-    const svgW = 520, svgH = 180, padL = 50, padR = 20, padT = 15, padB = 25;
+    const svgW = 520, svgH = 200, padL = 50, padR = 50, padT = 15, padB = 25;
     const plotW = svgW - padL - padR;
     const plotH = svgH - padT - padB;
-    const maxY = Math.max(...data.map((d: any) => Math.max(d.fatGmin, d.carbGmin))) * 1.15;
+    const maxGmin = Math.max(...data.map(d => Math.max(d.fatGmin, d.carbGmin))) * 1.15;
+    const maxKcalH = Math.max(...data.map(d => Math.max(d.fatKcalH, d.carbKcalH))) * 1.15;
     
-    const fatPath = data.map((d: any, i: number) => {
-      const x = padL + ((d.intensity - 20) / 80) * plotW;
-      const y = padT + plotH - (d.fatGmin / maxY) * plotH;
+    const fatPath = data.map((d, i) => {
+      const x = padL + ((d.intensity - 25) / 75) * plotW;
+      const y = padT + plotH - (d.fatGmin / maxGmin) * plotH;
       return `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
     }).join(' ');
     
-    const carbPath = data.map((d: any, i: number) => {
-      const x = padL + ((d.intensity - 20) / 80) * plotW;
-      const y = padT + plotH - (d.carbGmin / maxY) * plotH;
+    const carbPath = data.map((d, i) => {
+      const x = padL + ((d.intensity - 25) / 75) * plotW;
+      const y = padT + plotH - (d.carbGmin / maxGmin) * plotH;
       return `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
     }).join(' ');
     
     const fatAreaD = fatPath + ` L ${padL + plotW} ${padT + plotH} L ${padL} ${padT + plotH} Z`;
     
+    // Right axis labels (kcal/h)
+    const rightAxisLabels = [0, 1, 2, 3].map(i => {
+      const val = Math.round((maxKcalH / 3) * i);
+      const gy = padT + plotH - (i / 3) * plotH;
+      return `<text x="${padL + plotW + 5}" y="${gy + 4}" text-anchor="start" font-size="8" fill="#9ca3af">${val}</text>`;
+    }).join('');
+    
     return `
       <section id="substrate-curve">
-        <h2>🔥 Oxydation Lipides / Glucides</h2>
+        <h2>🔥 Oxydation Lipides / Glucides — Modèle Mader</h2>
         <div class="grid3 mb">
           <div class="card" style="text-align:center;border-color:#22c55e;">
             <div style="font-size:10px;color:#16a34a;font-weight:600;">FatMax</div>
-            <div class="medium" style="color:#16a34a;">${peakFat.fatGmin.toFixed(2)} g/min</div>
-            <div class="muted">${fatMaxPct}% VO₂max · ${Math.round((fatMaxPct / 100) * pMax)}W</div>
+            <div class="medium" style="color:#16a34a;">${fatMaxResult.fatMaxGrams} g/min</div>
+            <div class="muted">${fatMaxResult.fatMaxIntensity}% VO₂max · ${fatMaxResult.fatMaxPower}W</div>
           </div>
           <div class="card" style="text-align:center;border-color:#3b82f6;">
             <div style="font-size:10px;color:#3b82f6;font-weight:600;">Crossover</div>
             <div class="medium" style="color:#3b82f6;">${crossoverPct}% VO₂max</div>
-            <div class="muted">${Math.round((crossoverPct / 100) * pMax)}W · 50/50 lip/glu</div>
+            <div class="muted">${crossoverW}W · 50/50 lip/glu</div>
           </div>
           <div class="card" style="text-align:center;border-color:#ea580c;">
             <div style="font-size:10px;color:#ea580c;font-weight:600;">CHO @ FTP</div>
             <div class="medium" style="color:#ea580c;">${(atFtp.carbGmin * 60).toFixed(0)} g/h</div>
-            <div class="muted">${atFtp.carbGmin.toFixed(2)} g/min · ${Math.round(atFtp.watts)}W</div>
+            <div class="muted">${atFtp.carbGmin.toFixed(2)} g/min · ${atFtp.watts}W</div>
           </div>
         </div>
         <div class="card">
           <svg width="100%" viewBox="0 0 ${svgW} ${svgH}" preserveAspectRatio="xMidYMid meet">
             <rect x="${padL}" y="${padT}" width="${plotW}" height="${plotH}" fill="#ffffff" stroke="#e5e7eb" rx="4"/>
-            <!-- Crossover zone -->
+            <!-- Crossover transition zone -->
             ${(() => {
-              const x1 = padL + ((fatMaxPct - 20) / 80) * plotW;
-              const x2 = padL + ((crossoverPct - 20) / 80) * plotW;
-              return `<rect x="${x1}" y="${padT}" width="${x2 - x1}" height="${plotH}" fill="#dbeafe" opacity="0.3"/>`;
+              const x1 = padL + ((fatMaxResult.fatMaxIntensity - 25) / 75) * plotW;
+              const x2 = padL + ((crossoverPct - 25) / 75) * plotW;
+              return `<rect x="${Math.max(padL, x1)}" y="${padT}" width="${Math.max(0, x2 - x1)}" height="${plotH}" fill="#dbeafe" opacity="0.25"/>
+                      <text x="${(x1 + x2) / 2}" y="${padT + plotH - 5}" text-anchor="middle" font-size="7" fill="#3b82f6" opacity="0.7">Transition</text>`;
             })()}
-            <!-- Fat area -->
-            <defs><linearGradient id="pdfFatGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stop-color="#16a34a" stop-opacity="0.3"/><stop offset="95%" stop-color="#16a34a" stop-opacity="0.02"/></linearGradient></defs>
-            <path d="${fatAreaD}" fill="url(#pdfFatGrad)"/>
-            <path d="${fatPath}" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round"/>
+            <!-- Left axis labels (g/min) -->
+            ${[0, 1, 2, 3, 4].map(i => {
+              const val = (maxGmin / 4 * i).toFixed(1);
+              const gy = padT + plotH - (i / 4) * plotH;
+              return `<line x1="${padL}" y1="${gy}" x2="${padL + plotW}" y2="${gy}" stroke="#e5e7eb" stroke-dasharray="3 3"/>
+                      <text x="${padL - 5}" y="${gy + 4}" text-anchor="end" font-size="8" fill="#64748b">${val}</text>`;
+            }).join('')}
+            <!-- Right axis labels (kcal/h) -->
+            ${rightAxisLabels}
+            <!-- Fat area gradient -->
+            <defs><linearGradient id="pdfFatGradMader" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stop-color="#16a34a" stop-opacity="0.3"/><stop offset="95%" stop-color="#16a34a" stop-opacity="0.02"/></linearGradient></defs>
+            <path d="${fatAreaD}" fill="url(#pdfFatGradMader)"/>
+            <path d="${fatPath}" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round"/>
             <!-- Carb line -->
-            <path d="${carbPath}" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="4 2" stroke-linecap="round"/>
+            <path d="${carbPath}" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="5 2" stroke-linecap="round"/>
             <!-- FatMax vertical -->
             ${(() => {
-              const x = padL + ((fatMaxPct - 20) / 80) * plotW;
+              const x = padL + ((fatMaxResult.fatMaxIntensity - 25) / 75) * plotW;
               return `<line x1="${x}" y1="${padT}" x2="${x}" y2="${padT + plotH}" stroke="#16a34a" stroke-width="1" stroke-dasharray="4 3"/>
                       <text x="${x}" y="${padT - 3}" text-anchor="middle" font-size="8" fill="#16a34a" font-weight="600">FatMax</text>`;
             })()}
             <!-- Crossover vertical -->
             ${(() => {
-              const x = padL + ((crossoverPct - 20) / 80) * plotW;
+              const x = padL + ((crossoverPct - 25) / 75) * plotW;
               return `<line x1="${x}" y1="${padT}" x2="${x}" y2="${padT + plotH}" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4 3"/>
                       <text x="${x}" y="${padT - 3}" text-anchor="middle" font-size="8" fill="#3b82f6" font-weight="600">Crossover</text>`;
             })()}
             <!-- Legend -->
-            <line x1="${padL + 10}" y1="${padT + 8}" x2="${padL + 30}" y2="${padT + 8}" stroke="#16a34a" stroke-width="2"/>
-            <text x="${padL + 35}" y="${padT + 12}" font-size="9" fill="#16a34a">Lipides (g/min)</text>
-            <line x1="${padL + 140}" y1="${padT + 8}" x2="${padL + 160}" y2="${padT + 8}" stroke="#ea580c" stroke-width="2" stroke-dasharray="4 2"/>
-            <text x="${padL + 165}" y="${padT + 12}" font-size="9" fill="#ea580c">Glucides (g/min)</text>
+            <line x1="${padL + 10}" y1="${padT + 8}" x2="${padL + 30}" y2="${padT + 8}" stroke="#16a34a" stroke-width="2.5"/>
+            <text x="${padL + 35}" y="${padT + 12}" font-size="8" fill="#16a34a">Lipides (g/min)</text>
+            <line x1="${padL + 140}" y1="${padT + 8}" x2="${padL + 160}" y2="${padT + 8}" stroke="#ea580c" stroke-width="2" stroke-dasharray="5 2"/>
+            <text x="${padL + 165}" y="${padT + 12}" font-size="8" fill="#ea580c">Glucides (g/min)</text>
+            <!-- Axes labels -->
+            <text x="${svgW / 2}" y="${svgH - 2}" text-anchor="middle" font-size="10" fill="#64748b">% VO₂max</text>
+            <text x="12" y="${svgH / 2}" text-anchor="middle" font-size="9" fill="#64748b" transform="rotate(-90, 12, ${svgH / 2})">g/min</text>
+            <text x="${svgW - 8}" y="${svgH / 2}" text-anchor="middle" font-size="8" fill="#9ca3af" transform="rotate(90, ${svgW - 8}, ${svgH / 2})">kcal/h</text>
           </svg>
-          <div class="muted" style="text-align:center;margin-top:8px;font-size:10px;">
-            Modèle crossover (Brooks 1994). Oxydation lipidique bell-curve centrée FatMax. Valider par calorimétrie indirecte.
+          <div class="muted" style="text-align:center;margin-top:8px;font-size:9px;">
+            Modèle Mader — Oxydation lipidique (Randle cycle) + partitionnement énergétique. Parité Dashboard/Export.
           </div>
         </div>
       </section>
