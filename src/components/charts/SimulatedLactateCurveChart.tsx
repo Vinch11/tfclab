@@ -26,15 +26,13 @@ import {
   findLactateThresholds,
   predictFatMax,
   generateSubstrateCurve,
-  type LactatePoint,
-  type SubstratePoint,
 } from "@/lib/v2/metabolicSimulator";
 import {
-  ResponsiveChartTooltip,
   mobileTooltipProps,
   responsiveAxisProps,
   responsiveGridProps,
   getResponsiveMargins,
+  useIsTouchDevice,
 } from "./ResponsiveChartTooltip";
 
 // =============================================
@@ -67,9 +65,9 @@ function LactateTooltip({ active, payload }: any) {
       />
       <p className="font-semibold text-[11px] mb-1.5">{d.zone}</p>
       <div className="space-y-0.5 text-[10px]">
-        <Row label="Intensité" value={`${d.intensity}% VO₂max`} />
-        <Row label="Puissance" value={`${Math.round(d.watts)}W`} />
-        <Row
+        <TooltipRow label="Intensité" value={`${d.intensity}% VO₂max`} />
+        <TooltipRow label="Puissance" value={`${Math.round(d.watts)}W`} />
+        <TooltipRow
           label="[La] ss"
           value={`${d.lactate.toFixed(1)} mmol/L`}
           bold
@@ -78,9 +76,9 @@ function LactateTooltip({ active, payload }: any) {
         {d.fatGmin != null && (
           <>
             <div className="border-t border-border/50 my-1" />
-            <Row label="Lipides" value={`${d.fatGmin.toFixed(2)} g/min`} />
-            <Row label="Glucides" value={`${d.carbGmin.toFixed(2)} g/min`} />
-            <Row label="% Lipides" value={`${Math.round(d.fatPct)}%`} />
+            <TooltipRow label="Lipides" value={`${d.fatGmin.toFixed(2)} g/min`} />
+            <TooltipRow label="Glucides" value={`${d.carbGmin.toFixed(2)} g/min`} />
+            <TooltipRow label="% Lipides" value={`${Math.round(d.fatPct)}%`} />
           </>
         )}
       </div>
@@ -88,7 +86,7 @@ function LactateTooltip({ active, payload }: any) {
   );
 }
 
-function Row({
+function TooltipRow({
   label,
   value,
   bold,
@@ -134,21 +132,21 @@ function ThresholdBadges({
       pct: fatMaxPct,
       watts: Math.round((fatMaxPct / 100) * pMax),
       css: "bg-sky-500/10 border-sky-500/30 text-sky-600",
-      icon: Droplets,
+      Icon: Droplets,
     },
     {
       label: "LT1 (2 mmol)",
       pct: lt1Pct,
       watts: Math.round((lt1Pct / 100) * pMax),
       css: "bg-emerald-500/10 border-emerald-500/30 text-emerald-600",
-      icon: Activity,
+      Icon: Activity,
     },
     {
       label: "LT2 (4 mmol)",
       pct: lt2Pct,
       watts: Math.round((lt2Pct / 100) * pMax),
       css: "bg-orange-500/10 border-orange-500/30 text-orange-600",
-      icon: Zap,
+      Icon: Zap,
     },
   ];
 
@@ -159,7 +157,7 @@ function ThresholdBadges({
           key={it.label}
           className={cn("p-2 rounded-lg border text-center", it.css)}
         >
-          <it.icon className="h-3 w-3 mx-auto mb-0.5 opacity-60" />
+          <it.Icon className="h-3 w-3 mx-auto mb-0.5 opacity-60" />
           <div className="text-[9px] font-medium opacity-80">{it.label}</div>
           <div className="text-sm font-mono font-bold">{it.pct}%</div>
           <div className="text-[10px] text-muted-foreground">{it.watts}W</div>
@@ -272,6 +270,8 @@ export function SimulatedLactateCurveChart({
   staffMode = false,
   className,
 }: SimulatedLactateCurveChartProps) {
+  const isMobile = useIsTouchDevice();
+
   // Validate inputs
   const valid = vo2max && vlamax && ftp && vo2max > 0 && vlamax > 0 && ftp > 0;
 
@@ -325,7 +325,7 @@ export function SimulatedLactateCurveChart({
     );
   }
 
-  const margins = getResponsiveMargins();
+  const margins = getResponsiveMargins(isMobile);
 
   return (
     <Card className={cn("overflow-hidden", className)}>
@@ -376,7 +376,7 @@ export function SimulatedLactateCurveChart({
                 </linearGradient>
               </defs>
 
-              <CartesianGrid {...responsiveGridProps()} />
+              <CartesianGrid {...responsiveGridProps} />
 
               {/* Zone backgrounds */}
               <ReferenceArea y1={0} y2={2} fill="hsl(142,71%,45%)" fillOpacity={0.06} />
@@ -386,43 +386,27 @@ export function SimulatedLactateCurveChart({
 
               <XAxis
                 dataKey="intensity"
-                {...responsiveAxisProps()}
+                {...responsiveAxisProps.xAxis}
                 tickFormatter={(v: number) => `${v}%`}
               />
               <YAxis
                 yAxisId="lactate"
-                {...responsiveAxisProps()}
+                {...responsiveAxisProps.yAxis}
                 domain={[0, 14]}
                 tickFormatter={(v: number) => `${v}`}
-                label={{
-                  value: "mmol/L",
-                  angle: -90,
-                  position: "insideLeft",
-                  fontSize: 9,
-                  fill: "hsl(var(--muted-foreground))",
-                  offset: 15,
-                }}
               />
 
               {staffMode && (
                 <YAxis
                   yAxisId="substrate"
                   orientation="right"
-                  {...responsiveAxisProps()}
+                  {...responsiveAxisProps.yAxis}
                   domain={[0, 4]}
                   tickFormatter={(v: number) => `${v}`}
-                  label={{
-                    value: "g/min",
-                    angle: 90,
-                    position: "insideRight",
-                    fontSize: 9,
-                    fill: "hsl(var(--muted-foreground))",
-                    offset: 10,
-                  }}
                 />
               )}
 
-              <Tooltip content={<LactateTooltip />} {...mobileTooltipProps()} />
+              <Tooltip content={<LactateTooltip />} {...mobileTooltipProps} />
 
               {/* LT1 / LT2 reference lines */}
               <ReferenceLine
@@ -525,11 +509,11 @@ export function SimulatedLactateCurveChart({
           {staffMode && (
             <>
               <div className="flex items-center gap-1">
-                <div className="w-3 h-0.5 rounded bg-emerald-500" />
+                <div className="w-3 h-0.5 rounded" style={{ backgroundColor: "hsl(142,71%,45%)" }} />
                 <span className="text-[9px] text-muted-foreground">Lipides (g/min)</span>
               </div>
               <div className="flex items-center gap-1">
-                <div className="w-3 h-0.5 rounded bg-yellow-500 border-dashed" />
+                <div className="w-3 h-0.5 rounded" style={{ backgroundColor: "hsl(45,93%,47%)" }} />
                 <span className="text-[9px] text-muted-foreground">Glucides (g/min)</span>
               </div>
             </>
