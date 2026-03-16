@@ -766,6 +766,18 @@ function generateScenario(
       readinessModifiers
     );
     
+    // Courbe sans nutrition pour comparaison
+    const glycogenWithoutNutrition = computeGlycogenRemaining(
+      i,
+      numSegments,
+      targetIntensity,
+      input.fatmaxCenterPct,
+      input.vlamaxEffectif,
+      0, // pas d'apport
+      type,
+      readinessModifiers
+    );
+    
     // Détecter point de bascule
     if (!breakpointKm && fuelRisk >= 60) {
       breakpointKm = segmentDistance * i;
