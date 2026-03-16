@@ -81,6 +81,7 @@ export interface SegmentResult {
   fuelRiskIndex: number;          // 0-100
   depletionRisk: DepletionRisk;
   glycogenRemaining: number;      // 0-100%
+  glycogenWithoutNutrition: number; // 0-100% (courbe sans apport)
   carbsNeeded: number;            // g/h pour ce segment
   fatigueRisk: number;            // 0-100
   rpeEstimate: number;            // 1-10
@@ -765,6 +766,18 @@ function generateScenario(
       readinessModifiers
     );
     
+    // Courbe sans nutrition pour comparaison
+    const glycogenWithoutNutrition = computeGlycogenRemaining(
+      i,
+      numSegments,
+      targetIntensity,
+      input.fatmaxCenterPct,
+      input.vlamaxEffectif,
+      0, // pas d'apport
+      type,
+      readinessModifiers
+    );
+    
     // Détecter point de bascule
     if (!breakpointKm && fuelRisk >= 60) {
       breakpointKm = segmentDistance * i;
@@ -784,6 +797,7 @@ function generateScenario(
       fuelRiskIndex: fuelRisk,
       depletionRisk: getDepletionRisk(fuelRisk),
       glycogenRemaining,
+      glycogenWithoutNutrition,
       carbsNeeded: input.plannedCarbsGH ?? 60,
       fatigueRisk: 20 + (i / numSegments) * 50,
       rpeEstimate: Math.min(10, 4 + (i / numSegments) * 5),

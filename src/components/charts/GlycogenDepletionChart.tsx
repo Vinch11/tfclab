@@ -31,6 +31,7 @@ interface GlycogenDepletionChartProps {
 interface ChartDataPoint {
   km: number;
   glycogen: number;
+  glycogenNoNutrition: number;
   fuelRisk: number;
   rpe: number;
   segment: SegmentResult;
@@ -47,8 +48,15 @@ function CustomTooltip({ active, payload }: any) {
       <div className="font-medium mb-2">Km {Math.round(data.km)}</div>
       <div className="space-y-1 text-sm">
         <div className="flex items-center gap-2">
-          <Battery className="w-4 h-4 text-green-500" />
-          <span>Glycogène: {Math.round(data.glycogen)}%</span>
+          <Battery className="w-4 h-4 text-primary" />
+          <span>Avec nutrition: {Math.round(data.glycogen)}%</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Battery className="w-4 h-4 text-muted-foreground" />
+          <span>Sans nutrition: {Math.round(data.glycogenNoNutrition)}%</span>
+        </div>
+        <div className="text-xs font-medium text-primary">
+          Gain nutrition: +{Math.round(data.glycogen - data.glycogenNoNutrition)}%
         </div>
         <div className="flex items-center gap-2">
           <Fuel className="w-4 h-4 text-amber-500" />
@@ -88,6 +96,7 @@ export function GlycogenDepletionChart({
   const data: ChartDataPoint[] = segments.map((segment) => ({
     km: segment.distanceKm,
     glycogen: segment.glycogenRemaining,
+    glycogenNoNutrition: segment.glycogenWithoutNutrition ?? segment.glycogenRemaining,
     fuelRisk: segment.fuelRiskIndex,
     rpe: segment.rpeEstimate,
     segment,
@@ -97,6 +106,7 @@ export function GlycogenDepletionChart({
   data.unshift({
     km: 0,
     glycogen: 100,
+    glycogenNoNutrition: 100,
     fuelRisk: 0,
     rpe: 4,
     segment: segments[0],
@@ -198,24 +208,39 @@ export function GlycogenDepletionChart({
                 name="Risque fuel"
               />
               
-              {/* Courbe glycogène principale */}
+              {/* Courbe SANS nutrition (pointillés) */}
+              <Area
+                type="monotone"
+                dataKey="glycogenNoNutrition"
+                stroke="hsl(var(--muted-foreground))"
+                strokeWidth={1.5}
+                strokeDasharray="6 4"
+                fill="none"
+                name="Sans nutrition"
+              />
+              
+              {/* Courbe glycogène principale (avec nutrition) */}
               <Area
                 type="monotone"
                 dataKey="glycogen"
                 stroke="hsl(var(--primary))"
                 strokeWidth={2}
                 fill="url(#glycogenGradient)"
-                name="Glycogène"
+                name="Avec nutrition"
               />
             </AreaChart>
           </ResponsiveContainer>
         </div>
         
         {/* Légende */}
-        <div className="flex items-center justify-center gap-6 mt-4 text-xs text-muted-foreground">
+        <div className="flex items-center justify-center gap-4 mt-4 text-xs text-muted-foreground flex-wrap">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-primary" />
-            <span>Glycogène restant</span>
+            <span>Avec nutrition</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-0 border-t-2 border-dashed border-muted-foreground" />
+            <span>Sans nutrition</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-destructive/50" />
