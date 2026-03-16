@@ -74,6 +74,18 @@ import {
   DISPONIBILITE_PHILOSOPHY,
   DISPONIBILITE_SCALE
 } from "@/lib/v2/disponibiliteTFCL";
+// ✅ Import Mader Metabolic Model & Performance Prediction (ESM)
+import {
+  findSteadyStateLactate,
+  findLactateThresholds,
+  findFatMax,
+  findMLSSPower,
+  predictMaderPerformance,
+  calculateFatOxidation,
+  calculateCarbOxidation,
+  calculateTTEatMLSS,
+} from "@/lib/v2/maderMetabolicModel";
+import { computePerformancePredictions } from "@/lib/v2/performancePrediction";
 
 // =============================================
 // TYPES
@@ -6560,7 +6572,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     if (!v2max || !vla || !ftpVal) return '';
     
     // Use Mader model for scientific accuracy (parity with dashboard)
-    const { findSteadyStateLactate, findLactateThresholds, findFatMax, findMLSSPower, predictMaderPerformance } = require("@/lib/v2/maderMetabolicModel");
+    // Mader model imported at top level (ESM)
     const maderProfile = { vo2max: v2max, vlamax: vla, weight: weightKg };
     const thresholds = findLactateThresholds(maderProfile);
     const fatMaxResult = findFatMax(maderProfile);
@@ -6731,7 +6743,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     const weightKg = p.effectiveRefs.weightKg ?? effectiveSnapshot?.weight_kg ?? 70;
     if (!v2max || !vla || !ftpVal) return '';
     
-    const { calculateFatOxidation, calculateCarbOxidation, findFatMax, predictMaderPerformance } = require("@/lib/v2/maderMetabolicModel");
+    // Mader model imported at top level (ESM)
     const maderProfile = { vo2max: v2max, vlamax: vla, weight: weightKg };
     const fatMaxResult = findFatMax(maderProfile);
     const predictions = predictMaderPerformance(maderProfile);
@@ -6873,8 +6885,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     const cssVal = effectiveSnapshot?.css ?? null;
     if (!v2max || !vla) return '';
     
-    const { computePerformancePredictions } = require("@/lib/v2/performancePrediction");
-    const { predictMaderPerformance, findFatMax, calculateTTEatMLSS } = require("@/lib/v2/maderMetabolicModel");
+    // Mader model & performance prediction imported at top level (ESM)
     
     // Mader-derived metabolic context
     const maderProfile = { vo2max: v2max, vlamax: vla, weight: weightKg };
