@@ -89,6 +89,7 @@ export function GlycogenDepletionChart({
   const data: ChartDataPoint[] = segments.map((segment) => ({
     km: segment.distanceKm,
     glycogen: segment.glycogenRemaining,
+    glycogenNoNutrition: segment.glycogenWithoutNutrition ?? segment.glycogenRemaining,
     fuelRisk: segment.fuelRiskIndex,
     rpe: segment.rpeEstimate,
     segment,
@@ -98,6 +99,7 @@ export function GlycogenDepletionChart({
   data.unshift({
     km: 0,
     glycogen: 100,
+    glycogenNoNutrition: 100,
     fuelRisk: 0,
     rpe: 4,
     segment: segments[0],
