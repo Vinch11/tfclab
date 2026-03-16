@@ -477,7 +477,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
           <div className="flex-1 min-w-0">
             
             {/* NIVEAU 1 — PROFIL PHYSIOLOGIQUE (Radar) */}
-            <div className="mb-1">
+            <div className="mb-1 print:break-inside-avoid">
               <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
                 Niveau 1 — Profil physiologique
               </span>
