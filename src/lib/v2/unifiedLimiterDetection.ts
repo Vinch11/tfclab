@@ -614,9 +614,9 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     }
   }
   
-  // Calcul de la robustesse (gap clair entre 1er et 2ème limiteur)
-  const gapDifference = topGap.weightedImpact - secondGap.weightedImpact;
-  const isRobust = gapDifference > 10 || topGap.weightedImpact > 20;
+  // Calcul de la robustesse (gap clair entre 1er et 2ème limiteur physio)
+  const gapDifference = (topPhysioGap?.weightedImpact ?? 0) - (secondPhysioGap?.weightedImpact ?? 0);
+  const isRobust = gapDifference > 10 || (topPhysioGap?.weightedImpact ?? 0) > 20;
   const robustnessScore = clamp(gapDifference * 5 + 50, 0, 100);
   
   // Calcul de la confiance globale
