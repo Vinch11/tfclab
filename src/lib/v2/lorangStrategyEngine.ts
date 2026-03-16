@@ -32,12 +32,14 @@ export type LorangLimiter =
   | 'availability';   // Limiteur disponibilité (fatigue / stress)
 
 export type LorangLever = 
-  | 'force_max'           // Force Max (gym lourde)
-  | 'sfr_force_endurance' // SFR / Force Endurance
-  | 'train_low'           // Train Low / Sleep Low
-  | 'gut_training'        // Gut Training
-  | 'heat_training'       // Heat Training
-  | 'hrv_adaptation';     // HRV Rule-Based Adaptation
+  | 'vo2_intervals'         // Intervalles VO2max (développement moteur)
+  | 'z2_volume'             // Volume Z2 / Endurance longue
+  | 'force_max'             // Force Max (gym lourde)
+  | 'sfr_force_endurance'   // SFR / Force Endurance
+  | 'train_low'             // Train Low / Sleep Low
+  | 'gut_training'          // Gut Training
+  | 'heat_training'         // Heat Training
+  | 'hrv_adaptation';       // HRV Rule-Based Adaptation
 
 export type LorangProhibition = 
   | 'sprints'
