@@ -1905,7 +1905,7 @@ const Index = () => {
                 vo2max={effectiveCloudSnapshot?.vo2max ?? null}
                 tss7d={effectiveCloudSnapshot?.tss_7d ?? null}
                 completude={(() => {
-                  const missing = getMissingFields(currentAthlete, snapshots);
+                  const missing = getMissingFields(effectiveRefs, ["weightKg", "ftp", "vo2max", "vma", "fcMax"]);
                   return { score: Math.max(0, 100 - missing.length * 10), manquants: missing };
                 })()}
                 ambition={currentAmbition}
