@@ -13,6 +13,7 @@ import {
   StaffModeToggle,
   SimulatedLactateCurveChart,
   FatCarbOxidationChart,
+  PerformancePredictionChart,
 } from "./index";
 
 interface ScientificChartsDashboardProps {
@@ -36,6 +37,8 @@ interface ScientificChartsDashboardProps {
   vo2max?: number | null;
   ftp?: number | null;
   weight?: number;
+  vma?: number | null;
+  css?: number | null;
 }
 
 export function ScientificChartsDashboard({
@@ -54,6 +57,8 @@ export function ScientificChartsDashboard({
   vo2max,
   ftp,
   weight,
+  vma,
+  css,
 }: ScientificChartsDashboardProps) {
   const [staffMode, setStaffMode] = useState(initialStaffMode);
 
@@ -144,6 +149,19 @@ export function ScientificChartsDashboard({
           weight={weight}
           staffMode={staffMode}
           className="md:col-span-2 xl:col-span-2"
+        />
+
+        {/* Performance Prediction */}
+        <PerformancePredictionChart
+          vo2max={vo2max ?? null}
+          vlamax={vlamaxValue}
+          ftp={ftp ?? null}
+          weight={weight}
+          vma={vma}
+          css={css}
+          confidence={(vlamaxConfidence + tteConfidence) / 200}
+          staffMode={staffMode}
+          className="md:col-span-2 xl:col-span-3"
         />
       </div>
     </div>
