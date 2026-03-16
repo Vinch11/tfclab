@@ -21,12 +21,12 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import {
-  ProtocolQualityInput,
-  SleepQuality,
-  NutritionPreTest,
-  EnvironmentalConditions,
+  type ProtocolQualityInput,
+  type SleepQuality,
+  type NutritionPreTest,
+  type EnvironmentalConditions,
   computeProtocolQuality
-} from "@/lib/v2/decisionReliabilityEngine";
+} from "@/engines/diagnostic";
 import { cn } from "@/lib/utils";
 
 interface ProtocolQualityFormProps {

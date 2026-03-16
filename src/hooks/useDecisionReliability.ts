@@ -16,7 +16,7 @@ import {
   type DecisionReliabilityResult,
   type ProtocolQualityInput,
   type FullDREInput
-} from "@/lib/v2/decisionReliabilityEngine";
+} from "@/engines/diagnostic";
 
 export interface ReliabilityScore {
   id: string;

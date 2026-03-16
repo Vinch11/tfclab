@@ -20,7 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { CoachValidationStatus } from "@/lib/v2/decisionReliabilityEngine";
+import type { CoachValidationStatus } from "@/engines/diagnostic";
 import { cn } from "@/lib/utils";
 
 interface CoachFeedbackFormProps {
