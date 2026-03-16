@@ -31,6 +31,7 @@ import {
   Flame
 } from "lucide-react";
 import { type VLamaxEffectif, toVLamaxEnvelope, type TTEEffectif, getTTESourceColor, getSourceLabel, toTTEEnvelope } from "@/engines/diagnostic";
+import { VLamaxMetricRow } from "@/components/VLamaxStatusBadge";
 import { RaceReadinessEffectif, toRaceReadinessEnvelope } from "@/lib/raceReadinessEffectif";
 import { cn } from "@/lib/utils";
 import { getConfidenceLabelFromPercent, getConfidenceColorClassFromPercent } from "@/lib/confidenceDisplay";

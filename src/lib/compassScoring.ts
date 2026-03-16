@@ -19,7 +19,7 @@
 // =============================================
 
 import type { VLamaxEffectif, TTEEffectif, FatigueEffectif, RunInjuryRiskEnvelope } from "@/engines/diagnostic";
-import { RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
+import { ChargeRecenteReference, computeChargeScore, ChargeScore } from "@/lib/chargeRecenteReference";
 import { getAgeAdjustedTargets } from "@/lib/ageAdjustment";
 import {
   getVLamaxRange,
