@@ -455,7 +455,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
             variant="ghost"
             size="sm"
             onClick={() => setStaffMode(!staffMode)}
-            className="h-7 px-2 text-[10px] gap-1 text-muted-foreground hover:text-foreground"
+            className="h-7 px-2 text-[10px] gap-1 text-muted-foreground hover:text-foreground print:hidden"
           >
             {staffMode ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
             {staffMode ? "Athlète" : "Staff"}
