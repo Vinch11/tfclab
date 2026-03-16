@@ -24,7 +24,7 @@ import {
   mapLimiterToReportType,
   type UnifiedLimiterInput,
   type UnifiedLimiter 
-} from "@/lib/v2/unifiedLimiterDetection";
+} from "@/engines/diagnostic";
 // =============================================
 // TYPES
 // =============================================
