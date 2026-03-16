@@ -6885,8 +6885,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     const cssVal = effectiveSnapshot?.css ?? null;
     if (!v2max || !vla) return '';
     
-    const { computePerformancePredictions } = require("@/lib/v2/performancePrediction");
-    const { predictMaderPerformance, findFatMax, calculateTTEatMLSS } = require("@/lib/v2/maderMetabolicModel");
+    // Mader model & performance prediction imported at top level (ESM)
     
     // Mader-derived metabolic context
     const maderProfile = { vo2max: v2max, vlamax: vla, weight: weightKg };
