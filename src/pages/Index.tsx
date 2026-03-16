@@ -83,10 +83,12 @@ import { LorangStrategyCard } from "@/components/LorangStrategyCard";
 import { LorangDecisionFlowChart } from "@/components/LorangDecisionFlowChart";
 import { type LorangStrategyInput } from "@/lib/v2/lorangStrategyEngine";
 
-// ✅ Coach Decision Center — Carte unifiée (Phase 1e UX)
+// ✅ Coach Decision Center — Carte unifiée (Phase 2 Architecture)
 import { CoachDecisionUnifiedCard } from "@/components/CoachDecisionUnifiedCard";
 
-// ✅ Profil & Ambition — Carte unifiée (Phase 1f UX)
+// ✅ Engines unifiés
+import { computeDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
+import { computeDecision, type DecisionInput } from "@/engines/decision";
 import { ProfilAmbitionUnifiedCard } from "@/components/ProfilAmbitionUnifiedCard";
 
 // ✅ W'bal Recovery Card — Repos optimaux individualisés
