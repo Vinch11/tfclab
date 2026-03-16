@@ -76,7 +76,9 @@ import { MetabolicZonesUnifiedCard } from "@/components/MetabolicZonesUnifiedCar
 // ✅ TFCL Decision Matrix — Cœur décisionnel coach-grade
 import { TFCLDecisionMatrixCard } from "@/components/TFCLDecisionMatrixCard";
 import { TFCLDecisionMatrixTable } from "@/components/TFCLDecisionMatrixTable";
-import { type TFCLDecisionInput, type TFCLObjective, type LorangStrategyInput } from "@/engines/decision";
+import { type TFCLDecisionInput, type TFCLObjective, type LorangStrategyInput, computeLorangStrategy, type LorangStrategyResult } from "@/engines/decision";
+import { computeFatigueEffectif, type FatigueEffectif } from "@/engines/diagnostic";
+import { computeLactateThresholdsTFCL } from "@/lib/thresholds/computeLactateThresholdsTFCL";
 
 // ✅ Lorang Strategy Engine — Leviers opérationnels TFCL
 import { LorangStrategyCard } from "@/components/LorangStrategyCard";
