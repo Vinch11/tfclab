@@ -530,7 +530,7 @@ export default function AITrainingPlanPage() {
           ambition: AMBITION_OPTIONS.find(a => a.value === athleteAmb)?.label || athleteAmb,
           response: fullText,
           parsedPlan: parsed,
-          limiterResult: ctx.limiterResult,
+          diagnostic: ctx.diagnostic,
         };
         results.push(entry);
         setMultiPlans([...results]);
