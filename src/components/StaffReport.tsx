@@ -76,6 +76,10 @@ import type { DbSnapshot } from "@/hooks/useCloudData";
 import { DoubleBoucleCAPSection } from "@/components/StaffReportDoubleBoucleCAP";
 import type { RunningPhysioProfile, RunningWeeklyDecision } from "@/lib/v2/runningDoubleLoop";
 import { LactateCorrespondenceCard } from "@/components/LactateCorrespondenceCard";
+import { CoachingCompassCard } from "@/components/CoachingCompassCard";
+import { computeCoachingCompass, type CoachingCompassInput } from "@/lib/coachingCompass";
+import { computeFatigueEffectif } from "@/engines/diagnostic";
+import { computeLactateThresholdsTFCL } from "@/lib/thresholds/computeLactateThresholdsTFCL";
 
 interface StaffReportProps {
   athleteName: string;
