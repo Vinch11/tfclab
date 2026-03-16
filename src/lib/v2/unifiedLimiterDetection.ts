@@ -642,6 +642,8 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
       ? `${limiterInfo.description} → ${aerobicWeaknessLabel}`
       : limiterInfo.description,
     
+    fatigueWarning,
+    
     aerobicWeaknessDetail,
     aerobicWeaknessLabel,
     
