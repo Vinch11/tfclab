@@ -80,26 +80,28 @@ function computeStrategyFromDiagnostic(
   diag: AthleteDiagnostic,
   input: DecisionInput
 ): StrategyPrescription {
-  // Bridge diagnostic → LorangStrategyInput
+  const raw = diag._rawInput;
+  
+  // Bridge diagnostic → LorangStrategyInput (uses raw data for full fidelity)
   const lorangInput: LorangStrategyInput = {
     physiology: {
-      vo2max: null, // TODO: extraire du diagnostic si disponible
-      vo2maxTarget: diag.targets.current.ftp_kg_min * 15, // Rough approximation
-      ftpKg: null,
+      vo2max: raw.vo2max,
+      vo2maxTarget: diag.targets.current.ftp_kg_min * 15, // Approximation from FTP/kg target
+      ftpKg: raw.ftpKg,
       ftpKgTarget: diag.targets.current.ftp_kg_min,
       vlamax: diag.effectifs.vlamax.value,
       vlamaxTarget: diag.targets.vlamaxRange.optimal,
       tte: diag.effectifs.tte.tte_min,
       tteTarget: diag.targets.current.tte_min,
-      fatmax: null,
+      fatmax: raw.fatmax,
       fatmaxTarget: 65,
-      economy: null,
+      economy: raw.runEconomyScore,
     },
     athlete: {
-      age: null, // TODO: passer depuis diagnostic
+      age: raw.age,
       discipline: mapObjectifToLorangDiscipline(diag.objectif),
       ambition: diag.ambition as "finisher" | "age_group" | "competitor" | "elite",
-      hasGIIssues: false,
+      hasGIIssues: raw.giIssuesFlag,
     },
     availability: {
       score: diag.readiness.availability.score,
@@ -123,13 +125,14 @@ function computeStrategyFromDiagnostic(
     // Fallback si le moteur Lorang échoue
   }
 
-  // Bridge diagnostic → TFCLDecisionMatrix
+  // Bridge diagnostic → TFCLDecisionMatrix (uses raw data for full fidelity)
   let matrixResult: TFCLDecisionResult | null = null;
   const matrixInput: TFCLDecisionInput = {
-    vo2max: wrapDataSource(null),
+    vo2max: wrapDataSource(raw.vo2max),
     vlamax: wrapDataSource(diag.effectifs.vlamax.value),
     tte: wrapDataSource(diag.effectifs.tte.tte_min),
-    fatMaxPctVO2: wrapDataSource(null),
+    ftpKg: wrapDataSource(raw.ftpKg),
+    fatMaxPctVO2: wrapDataSource(raw.fatmax),
     fatOxidationMax: wrapDataSource(null),
     crossoverPctVO2: wrapDataSource(null),
     freshnessScore: wrapDataSource(100 - diag.effectifs.fatigue.score),
@@ -140,7 +143,7 @@ function computeStrategyFromDiagnostic(
     discipline: diag.sportFocus === "run" ? "cap" : diag.sportFocus === "tri" ? "tri" : "velo",
     objective: diag.objectif as any,
     ambition: diag.ambition,
-    age: null,
+    age: raw.age,
   };
   try {
     matrixResult = computeTFCLDecisionMatrix(matrixInput);

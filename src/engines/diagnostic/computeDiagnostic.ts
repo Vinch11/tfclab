@@ -106,6 +106,7 @@ export function computeDiagnostic(input: DiagnosticInput): AthleteDiagnostic {
     },
     reliability,
     synthesis,
+    _rawInput: input,
     meta: {
       timestamp: new Date().toISOString(),
       version: DIAGNOSTIC_ENGINE_VERSION,

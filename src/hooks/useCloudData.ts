@@ -22,6 +22,7 @@ export interface DbAthlete {
   goal: string | null;
   refs: Json | null;
   vo2max: number | null;
+  sex: string | null;
   active_snapshot_id: string | null;
   birth_date: string | null; // Date de naissance pour calcul AAI
   created_at: string;
