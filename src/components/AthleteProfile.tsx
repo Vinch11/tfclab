@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import type { CoachingCompassInput } from "@/lib/coachingCompass";
+import { CoachingCompassCard } from "@/components/CoachingCompassCard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User, Save, Target, Scale, Activity, Percent, Camera, Info, Loader2, ChevronDown, ChevronUp } from "lucide-react";
@@ -33,6 +35,9 @@ interface AthleteProfileProps {
   tteEffectif?: TTEEffectif;
   // ✅ Option d'afficher le gestionnaire d'objectifs complet
   showObjectiveManager?: boolean;
+  // ✅ Input Compass optionnel (si fourni, affiche le Compass)
+  compassInput?: CoachingCompassInput;
+  staffMode?: boolean;
 }
 
 export function AthleteProfile({ 
@@ -46,6 +51,8 @@ export function AthleteProfile({
   vlamaxEffectif, 
   tteEffectif,
   showObjectiveManager = false,
+  compassInput,
+  staffMode = false,
 }: AthleteProfileProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Athlete>(athlete);
@@ -404,6 +411,13 @@ export function AthleteProfile({
                   Créer un snapshot
                 </Button>
               )}
+            </div>
+          )}
+          
+          {/* ✅ TFCL Coaching Compass™ — Centre décisionnel */}
+          {compassInput && (
+            <div className="mt-4">
+              <CoachingCompassCard input={compassInput} staffMode={staffMode} />
             </div>
           )}
           

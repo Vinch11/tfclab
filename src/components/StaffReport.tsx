@@ -76,6 +76,10 @@ import type { DbSnapshot } from "@/hooks/useCloudData";
 import { DoubleBoucleCAPSection } from "@/components/StaffReportDoubleBoucleCAP";
 import type { RunningPhysioProfile, RunningWeeklyDecision } from "@/lib/v2/runningDoubleLoop";
 import { LactateCorrespondenceCard } from "@/components/LactateCorrespondenceCard";
+import { CoachingCompassCard } from "@/components/CoachingCompassCard";
+import { computeCoachingCompass, type CoachingCompassInput } from "@/lib/coachingCompass";
+import { computeFatigueEffectif } from "@/engines/diagnostic";
+import { computeLactateThresholdsTFCL } from "@/lib/thresholds/computeLactateThresholdsTFCL";
 
 interface StaffReportProps {
   athleteName: string;
@@ -343,6 +347,24 @@ export function StaffReport({
 
         {/* 1.5️⃣ DÉTAILS DE CALCUL RACE READINESS */}
         <RaceReadinessCalculationDetails readiness={readiness} />
+
+        {/* 1.6️⃣ TFCL COACHING COMPASS™ — Centre décisionnel stratégique */}
+        <StaffCompassSection
+          vlamaxEffectif={vlamaxEffectif}
+          tteEffectif={tteEffectif}
+          readiness={readiness}
+          ftp={ftp}
+          poids={poids}
+          vo2max={vo2max ?? null}
+          tss7d={tss7d ?? null}
+          snapshotDate={snapshotDate}
+          snapshotUpdatedAt={snapshotUpdatedAt ?? null}
+          snapshot={snapshot}
+          lorangInput={lorangInput ?? null}
+          ambition={ambition ?? DEFAULT_AMBITION}
+          objectif={objectif}
+          athleteAge={athleteAge ?? null}
+        />
 
         {/* 2️⃣ INDICATEURS CLÉS */}
         <div>
@@ -1986,5 +2008,131 @@ function RaceReadinessSignatureSection({ input }: { input: RaceReadinessInput })
         </p>
       </div>
     </>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// STAFF COMPASS SECTION — Intégration Compass dans le rapport PDF
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function StaffCompassSection({
+  vlamaxEffectif,
+  tteEffectif,
+  readiness,
+  ftp,
+  poids,
+  vo2max,
+  tss7d,
+  snapshotDate,
+  snapshotUpdatedAt,
+  snapshot,
+  lorangInput,
+  ambition,
+  objectif,
+  athleteAge,
+}: {
+  vlamaxEffectif: VLamaxEffectif;
+  tteEffectif: TTEEffectif;
+  readiness: RaceReadinessEffectif;
+  ftp: number | null;
+  poids: number | null;
+  vo2max: number | null;
+  tss7d: number | null;
+  snapshotDate: string;
+  snapshotUpdatedAt: string | null;
+  snapshot?: DbSnapshot | null;
+  lorangInput: LorangStrategyInput | null;
+  ambition: AmbitionLevel;
+  objectif: string;
+  athleteAge: number | null;
+}) {
+  // Compute Lorang Strategy if input available
+  let lorangResult: LorangStrategyResult | null = null;
+  if (lorangInput) {
+    try { lorangResult = computeLorangStrategy(lorangInput); } catch { /* fallback */ }
+  }
+
+  // Compute fatigue
+  const fatigueStateToPercue: Record<string, number> = { fresh: 2, ok: 4, fatigued: 7, very_fatigued: 9 };
+  const fatiguePercue = fatigueStateToPercue[(snapshot as any)?.fatigue_state || "ok"] ?? 4;
+  const fatigueEff = computeFatigueEffectif({
+    tss7d,
+    tss7dHabituel: null,
+    fatiguePercue,
+    tteEffectif,
+    raceReadiness: readiness,
+    vlamaxEffectif,
+    age: athleteAge,
+    objectif,
+  });
+
+  // Compute lactate thresholds
+  const lt = computeLactateThresholdsTFCL({
+    ftp,
+    sport: snapshot?.sport_main,
+    tteValue: tteEffectif.tte_min,
+    tteSource: tteEffectif.source === 'observed' ? 'observed' : 'estimated',
+    vlamaxValue: vlamaxEffectif.value,
+    vlamaxSource: vlamaxEffectif.source === 'test' ? 'test' : 'estimated',
+  });
+
+  const compassInput: CoachingCompassInput = {
+    ftp,
+    poids,
+    vo2max,
+    tss7d,
+    snapshotDate,
+    snapshotUpdatedAt,
+    pmax5s: snapshot?.pmax_5s ?? null,
+    p30sW: snapshot?.p30s_w ?? null,
+    p60sW: snapshot?.p60s_w ?? null,
+    map5minW: snapshot?.map5min_w ?? null,
+    runEconomyScore: snapshot?.run_economy_score ?? null,
+    hrDriftPct: snapshot?.run_hr_drift_pct ?? null,
+    vma: snapshot?.vma ?? null,
+    paceThresholdSecPerKm: snapshot?.pace_threshold_sec_per_km ?? null,
+    fatmax: null,
+    vlamaxEffectif: { value: vlamaxEffectif.value, confidence: vlamaxEffectif.confidence, source: vlamaxEffectif.source },
+    tteEffectif: { tte_min: tteEffectif.tte_min, confidence: tteEffectif.confidence, source: tteEffectif.source },
+    fatigueEffectif: { score: fatigueEff.score, level: String(fatigueEff.level), confidence: fatigueEff.confidence },
+    limiterResult: null,
+    raceReadiness: {
+      score: readiness.score,
+      potential: (readiness as any).potential ?? readiness.score,
+      availability: (readiness as any).availability ?? 80,
+      governingFactor: (readiness as any).governingFactor ?? "potential",
+      label: readiness.label || "",
+      color: readiness.color || "warning",
+    },
+    strategyResult: lorangResult ? {
+      primaryLimiter: lorangResult.primaryLimiter,
+      limiterLabel: lorangResult.limiterLabel,
+      limiterExplanation: lorangResult.limiterExplanation,
+      activatedLevers: lorangResult.activatedLevers.map(l => ({
+        lever: l.lever, label: l.label, priority: l.priority, reason: l.reason, prescription: l.prescription,
+      })),
+      prohibitions: lorangResult.prohibitions.map(p => ({ label: p.label, reason: p.reason })),
+      hasSprintBan: lorangResult.hasSprintBan,
+      summary: lorangResult.summary,
+      templateSuggestion: lorangResult.templateSuggestion,
+      athleteMessage: lorangResult.athleteMessage,
+      confidence: lorangResult.confidence,
+    } : null,
+    lactateThresholds: {
+      lt1: lt.lt1.watts != null ? { watts: lt.lt1.watts, pct_of_ftp: lt.lt1.pct_of_ftp, confidence: lt.lt1.confidence } : null,
+      lt2: lt.lt2.watts != null ? { watts: lt.lt2.watts, pct_of_ftp: lt.lt2.pct_of_ftp, confidence: lt.lt2.confidence } : null,
+    },
+    wprimeKj: null,
+    objectif,
+    ambition,
+    sportFocus: snapshot?.sport_main === "run" ? "run" : snapshot?.sport_main === "bike" ? "bike" : "triathlon",
+    athleteAge,
+  };
+
+  return (
+    <div className="print:break-inside-avoid">
+      <Separator className="my-4" />
+      <CoachingCompassCard input={compassInput} staffMode={true} className="border-0 shadow-none" />
+    </div>
   );
 }
