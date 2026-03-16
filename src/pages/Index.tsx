@@ -2003,11 +2003,8 @@ const Index = () => {
           // Séances & Bibliothèque
           {
             id: "seances-library",
-            render: () => currentAthlete && legacyAthlete && (
-              <IndexSeancesView
-                athlete={legacyAthlete}
-                snapshot={snapshotLegacy}
-              />
+            render: () => currentAthlete && (
+              <IndexSeancesView />
             ),
           },
         ];
