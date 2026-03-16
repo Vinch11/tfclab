@@ -128,7 +128,7 @@ import { QuickObjectiveSelector } from "@/components/QuickObjectiveSelector";
 
 // ✅ Sections rapport intégrées dans les onglets
 import { SyntheseExecutiveCard } from "@/components/SyntheseExecutiveCard";
-import { NutritionV2Card } from "@/components/NutritionV2Card";
+import { NutritionUnifiedCard } from "@/components/NutritionUnifiedCard";
 import { PacingEnvelopeCard } from "@/components/PacingEnvelopeCard";
 import { DoubleBoucleCAPCard } from "@/components/DoubleBoucleCAPCard";
 import { WahooSuggestionsCard } from "@/components/WahooSuggestionsCard";
