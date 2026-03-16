@@ -692,10 +692,10 @@ export default function AITrainingPlanPage() {
         athleteName: p.athleteName,
         objective: p.objective,
         ambition: p.ambition,
-        limiterLabel: p.limiterResult?.limiterLabel,
-        limiterEmoji: p.limiterResult?.limiterEmoji,
-        leverLabel: p.limiterResult ? (LEVER_LABELS[p.limiterResult.primaryLever] || p.limiterResult.leverLabel) : undefined,
-        leverEmoji: p.limiterResult?.leverEmoji,
+        limiterLabel: p.diagnostic?.limiter.limiterLabel,
+        limiterEmoji: p.diagnostic?.limiter.limiterEmoji,
+        leverLabel: p.diagnostic ? (LEVER_LABELS[p.diagnostic.limiter.primaryLever] || p.diagnostic.limiter.leverLabel) : undefined,
+        leverEmoji: p.diagnostic?.limiter.leverEmoji,
         parsedPlan: p.parsedPlan!,
       }));
   }, [multiPlans]);
