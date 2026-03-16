@@ -248,8 +248,8 @@ const Index = () => {
     loading: raceGoalsLoading,
   } = useAthleteRaceGoals(currentAthlete?.id ?? null);
 
-  // Tabs valides gérés par cette page
-  const validTabs = ["dashboard", "profil", "strategie", "configuration"];
+  // Tabs valides gérés par cette page (profil et stratégie déplacés vers /athletes et /race)
+  const validTabs = ["dashboard", "configuration"];
   
   const [activeTab, setActiveTab] = useState(() => {
     // D'abord, vérifier si on a un state de navigation
