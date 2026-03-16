@@ -164,6 +164,9 @@ export interface AthleteDiagnostic {
   // ─── 7. Synthèse Décisionnelle ────────────────────
   synthesis: DiagnosticSynthesis;
   
+  // ─── Données brutes (pour les bridges Decision Engine) ──
+  _rawInput: DiagnosticInput;
+  
   // ─── Métadonnées ──────────────────────────────────
   meta: {
     timestamp: string;
