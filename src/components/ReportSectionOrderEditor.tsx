@@ -125,6 +125,9 @@ const SECTION_CATEGORIES: Record<keyof ReportSections, string> = {
   comprendre: "Aide",
   qualite: "Aide",
   roadmap: "Entraînement",
+  lactateCurve: "Analyse",
+  substrateCurve: "Analyse",
+  performancePrediction: "Performance",
 };
 
 // Couleurs par catégorie
