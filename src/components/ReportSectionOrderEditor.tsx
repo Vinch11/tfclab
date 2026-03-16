@@ -225,6 +225,9 @@ export const DEFAULT_VISIBILITY: Record<keyof ReportSections, boolean> = {
   comprendre: true,
   qualite: true,
   roadmap: true,
+  lactateCurve: true,
+  substrateCurve: true,
+  performancePrediction: true,
 };
 
 // Export alias for backward compatibility

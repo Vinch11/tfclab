@@ -129,6 +129,9 @@ export interface ReportSections {
   comprendre: boolean;      // Comprendre mes scores
   qualite: boolean;         // Qualité des données
   roadmap: boolean;         // Roadmap Stratégique
+  lactateCurve: boolean;     // Courbe de Lactate Simulée (Mader-Heck)
+  substrateCurve: boolean;   // Oxydation Lipides / Glucides
+  performancePrediction: boolean; // Prédiction de Performance
 }
 
 interface ExportOptions {
