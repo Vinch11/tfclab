@@ -1539,6 +1539,19 @@ const Index = () => {
         {renderContent()}
       </div>
 
+      {/* Snapshot Manager (triggered by Quick Actions) */}
+      {showSnapshots && currentAthlete && (
+        <div className="max-w-7xl mx-auto mt-4">
+          <SnapshotManager
+            athleteId={currentAthlete.id}
+            athleteName={currentAthlete.name}
+            athleteGoal={currentAthlete.goal || "IM"}
+            activeSnapshotId={currentAthlete.active_snapshot_id}
+            staffMode={staffMode}
+          />
+        </div>
+      )}
+
       <footer className="border-t border-border mt-8 sm:mt-12 py-4 sm:py-6 safe-area-inset-bottom">
         <div className="container mx-auto px-4 text-center text-xs sm:text-sm text-muted-foreground">
           <p>Two For Coaching Lab • Analyse physiologique & décision coaching</p>
