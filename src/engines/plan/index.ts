@@ -29,6 +29,13 @@ export {
   buildPlanOutput,
 } from "./computePlan";
 
+// Plan Config Builder (from Diagnostic)
+export {
+  buildPlanConfigFromDiagnostic,
+  buildPlanAthleteDataFromDiagnostic,
+} from "./planConfigBuilder";
+export type { PlanFormConfig } from "./planConfigBuilder";
+
 // Types
 export type {
   PlanInput,
