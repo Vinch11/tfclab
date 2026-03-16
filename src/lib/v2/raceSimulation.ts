@@ -479,6 +479,7 @@ function computeSegmentFuelRisk(
   segmentIndex: number,
   totalSegments: number,
   plannedCarbsGH: number | null,
+  gutTraining: boolean,
   scenarioType?: ScenarioType,
   readinessModifiers?: SimulationModifiers | null
 ): number {
