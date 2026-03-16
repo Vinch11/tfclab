@@ -650,7 +650,7 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     leverLabel: leverInfo.label,
     leverEmoji: leverInfo.emoji,
     
-    gapAnalysis,
+    gapAnalysis: gapAnalysis.filter(g => g.metric !== "Disponibilité"),
     
     isRobust,
     robustnessScore,

@@ -436,7 +436,7 @@ export function detectRunningLimiter(input: RunningLimiterInput): RunningLimiter
     leverEmoji: leverInfo.emoji,
     leverDescription: leverInfo.description,
     
-    gapAnalysis,
+    gapAnalysis: physioGaps,
     
     isRobust,
     robustnessScore,
