@@ -1083,7 +1083,7 @@ export default function AITrainingPlanPage() {
                 <CardContent className="space-y-3">
                   {(() => {
                     const rankedGaps = [...limiter.gapAnalysis]
-                      .filter(g => g.weightedImpact > 0)
+                      .filter(g => g.weightedImpact > 0 && g.metric !== "Disponibilité")
                       .sort((a, b) => b.weightedImpact - a.weightedImpact);
                     const maxImpact = rankedGaps[0]?.weightedImpact || 1;
 
