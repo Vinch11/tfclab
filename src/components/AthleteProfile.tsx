@@ -51,6 +51,8 @@ export function AthleteProfile({
   vlamaxEffectif, 
   tteEffectif,
   showObjectiveManager = false,
+  compassInput,
+  staffMode = false,
 }: AthleteProfileProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Athlete>(athlete);
