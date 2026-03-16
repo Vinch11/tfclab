@@ -28,6 +28,7 @@ export { PotentialAvailabilityDecisionChart } from "./PotentialAvailabilityDecis
 export { PacingEnvelopeRunChart } from "./PacingEnvelopeRunChart";
 export { VLamaxEstimationWidget } from "./VLamaxEstimationWidget";
 export { SimulatedLactateCurveChart } from "./SimulatedLactateCurveChart";
+export { FatCarbOxidationChart } from "./FatCarbOxidationChart";
 
 // Utilitaires pour graphiques responsives (mobile/touch)
 export {
