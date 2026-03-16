@@ -258,6 +258,32 @@ export function WeeklyDecisionPanel({
           </div>
         </div>
 
+        {/* Engine Strategy Context */}
+        {prescription && (
+          <>
+            <Separator />
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium flex items-center gap-1.5">
+                <Zap className="h-4 w-4 text-primary" />
+                Contexte Stratégique (Engine)
+              </h4>
+              <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 space-y-1.5">
+                <p className="text-sm font-medium">{prescription.strategy.weekLabel}</p>
+                <p className="text-xs text-muted-foreground">{prescription.strategy.primaryAction}</p>
+                {prescription.strategy.levers.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {prescription.strategy.levers.slice(0, 3).map((lever, i) => (
+                      <Badge key={i} variant="secondary" className="text-xs">
+                        {lever.label}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
         <Separator />
 
         {/* Constraints */}
