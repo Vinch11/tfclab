@@ -411,7 +411,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
   // ─── Données insuffisantes ───
   if (compass.meta.dataCompleteness < 10) {
     return (
-      <Card className={cn("border-border/50", className)}>
+      <Card className={cn("border-border/50 print:break-inside-avoid print:shadow-none", className)}>
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
             <Compass className="w-5 h-5 text-muted-foreground" />
