@@ -160,7 +160,7 @@ function computeStrategyFromDiagnostic(
     weekType: lorangResult?.templateSuggestion.weekType ?? "mixed",
     weekLabel: lorangResult?.templateSuggestion.weekLabel ?? "Semaine standard",
     confidence: lorangResult?.confidence ?? "moderate",
-    isRobust: lorangResult?.isRobust ?? matrixResult?.isRobust ?? false,
+    isRobust: matrixResult?.isRobust ?? false,
     _lorangResult: lorangResult,
     _matrixResult: matrixResult,
   };
