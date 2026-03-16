@@ -29,7 +29,7 @@ import { computeLorangStrategy, type LorangStrategyResult, type LorangStrategyIn
 import { computeTFCLDecisionMatrix, type TFCLDecisionResult, type TFCLDecisionInput, type DataWithSource } from "@/lib/v2/tfclDecisionMatrix";
 import { computeWorkoutRecommendations, type RecommendationContext } from "@/lib/workoutRecommendationEngine";
 import { generateWorkoutAdvisories, type AdvisoryContext } from "@/lib/workoutAdvisoryEngine";
-import { generateRoadmap, type StrategicRoadmap } from "@/lib/v2/strategicRoadmap";
+import { computeStrategicRoadmap, type StrategicRoadmap } from "@/lib/v2/strategicRoadmap";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ORCHESTRATEUR PRINCIPAL
