@@ -676,12 +676,12 @@ export default function AITrainingPlanPage() {
   const getAthleteLimiter = useCallback((athlete: any) => {
     const obj = athlete.objectif || objective;
     const amb = getAthleteAmbition(athlete);
-    const ctx = computeAthleteContext(athlete, obj, amb);
-    return ctx?.limiterResult || null;
-  }, [computeAthleteContext, objective, ambition]);
+    const diag = buildDiagnosticForAthlete(athlete, obj, amb);
+    return diag?.limiter || null;
+  }, [buildDiagnosticForAthlete, objective, ambition]);
 
   const hasData = !!athleteContext;
-  const limiter = athleteContext?.limiterResult;
+  const limiter = athleteContext?.diagnostic.limiter ?? null;
 
   // Comparison data for multi-plans
   const comparisonData = useMemo(() => {
