@@ -5,8 +5,7 @@
 
 import { useMemo } from "react";
 import { useCloudData, DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
-import { computeVLamaxEffectif, VLamaxEffectif } from "@/lib/vlamaxEffectif";
-import { computeTTEEffectif, TTEEffectif } from "@/lib/tteEffectif";
+import { computeVLamaxEffectif, type VLamaxEffectif, computeTTEEffectif, type TTEEffectif } from "@/engines/diagnostic";
 import { computeRaceReadinessEffectif, RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { getEffectiveRefs, computeFtpKg, EffectiveRefs } from "@/lib/effectiveRefs";
 import { computeCRR } from "@/lib/chargeRecenteReference";

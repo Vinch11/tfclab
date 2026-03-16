@@ -5,8 +5,7 @@
 
 import { DbAthlete, DbSnapshot, DbTest, DbCheckin } from "@/hooks/useCloudData";
 import { getAthleteAmbition } from "@/types/ambitionLevel";
-import { computeVLamaxEffectif, VLamaxEffectif } from "@/lib/vlamaxEffectif";
-import { computeTTEEffectif, TTEEffectif } from "@/lib/tteEffectif";
+import { computeVLamaxEffectif, type VLamaxEffectif, computeTTEEffectif, type TTEEffectif } from "@/engines/diagnostic";
 import { computeRaceReadinessEffectif, RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { computeNutritionEstimate, NutritionEstimate } from "@/lib/nutritionPredictive";

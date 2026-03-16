@@ -7,7 +7,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { TTEEffectif } from "@/lib/tteEffectif";
+import type { TTEEffectif } from "@/engines/diagnostic";
 
 interface TTEGuardProps {
   tteEffectif: TTEEffectif | null | undefined;

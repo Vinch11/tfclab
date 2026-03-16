@@ -18,8 +18,7 @@ import {
   Activity,
   Heart
 } from "lucide-react";
-import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
-import { TTEEffectif } from "@/lib/tteEffectif";
+import type { VLamaxEffectif, TTEEffectif } from "@/engines/diagnostic";
 import { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 
 // Types

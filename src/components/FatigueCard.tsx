@@ -31,14 +31,14 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { 
-  FatigueEffectif, 
+  type FatigueEffectif, 
   FATIGUE_METHODOLOGY,
   FATIGUE_INDEX_DEFINITION,
   FATIGUE_INDEX_DISCLAIMER,
   FATIGUE_POSITIVE_NOTE,
   getFatigueIcon,
   getFatigueBadgeClass
-} from "@/lib/fatigueEffectif";
+} from "@/engines/diagnostic";
 import { 
   Tooltip,
   TooltipContent,

@@ -38,13 +38,11 @@ import { RunningFocusModeIndicator } from "@/components/RunningFocusModeIndicato
 import { RunningFocusWrapper } from "@/components/RunningFocusWrapper";
 
 // Sources uniques de données
-import { computeVLamaxEffectif, VLamaxEffectif, getSourceColor } from "@/lib/vlamaxEffectif";
+import { computeVLamaxEffectif, type VLamaxEffectif, getSourceColor, computeTTEEffectif, type TTEEffectif, getTTETarget, getSourceLabel, computeFatigueEffectif, type FatigueEffectif } from "@/engines/diagnostic";
 import { getConfidenceLabel } from "@/lib/confidenceDisplay";
-import { computeTTEEffectif, TTEEffectif, getTTETarget, getSourceLabel } from "@/lib/tteEffectif";
-import { computeRaceReadinessEffectif, RaceReadinessEffectif, getSportFromObjectif } from "@/lib/raceReadinessEffectif";
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getSportFromObjectif } from "@/lib/raceReadinessEffectif";
 import { getVlamaxStatusWithLabel } from "@/lib/physiologicalTargets";
-import { computeNutritionEstimate, NutritionEstimate } from "@/lib/nutritionPredictive";
-import { computeFatigueEffectif, FatigueEffectif } from "@/lib/fatigueEffectif";
+import { computeNutritionEstimate, type NutritionEstimate } from "@/lib/nutritionPredictive";
 
 // Composants cibles et fatigue
 import { FtpKgTargetsCard } from "@/components/FtpKgTargetsCard";

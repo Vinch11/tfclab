@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { FlaskConical, Camera, Calculator, HelpCircle, TrendingUp, AlertTriangle, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { VLamaxEffectif, VLamaxSource } from "@/lib/vlamaxEffectif";
+import type { VLamaxEffectif, VLamaxSource } from "@/engines/diagnostic";
 
 // =============================================
 // HELPERS UI

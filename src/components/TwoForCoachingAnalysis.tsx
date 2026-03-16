@@ -11,8 +11,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { VLamaxEffectif, getSourceColor as getVLamaxSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
-import { TTEEffectif, getSourceColor as getTTESourceColor, getSourceLabel } from "@/lib/tteEffectif";
+import { type VLamaxEffectif, getSourceColor as getVLamaxSourceColor, getConfidenceLabel, type TTEEffectif, getTTESourceColor, getSourceLabel } from "@/engines/diagnostic";
 import { RaceReadinessEffectif, getScoreColor } from "@/lib/raceReadinessEffectif";
 import { TTEGuard, isTTEUnavailable } from "@/components/TTEGuard";
 import { computeNutritionEstimate } from "@/lib/nutritionPredictive";

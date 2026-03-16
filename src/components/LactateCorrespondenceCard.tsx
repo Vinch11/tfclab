@@ -15,8 +15,7 @@ import {
   TFCL_LACTATE_TABLE,
   type LactateThresholdsTFCL,
 } from "@/lib/thresholds/computeLactateThresholdsTFCL";
-import type { VLamaxEffectif } from "@/lib/vlamaxEffectif";
-import type { TTEEffectif } from "@/lib/tteEffectif";
+import type { VLamaxEffectif, TTEEffectif } from "@/engines/diagnostic";
 
 interface LactateCorrespondenceCardProps {
   vlamaxEffectif: VLamaxEffectif;

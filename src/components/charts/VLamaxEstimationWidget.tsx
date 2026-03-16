@@ -55,7 +55,7 @@ import { fr } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 
 import type { DbSnapshot } from "@/hooks/useCloudData";
-import type { VLamaxEffectif } from "@/lib/vlamaxEffectif";
+import type { VLamaxEffectif } from "@/engines/diagnostic";
 import { PHYSIOLOGICAL_BOUNDS, type SportContext } from "@/lib/v2/vlamaxV2Engine";
 import { getVLamaxRange, normalizeObjective } from "@/lib/physiologicalTargets";
 import { AmbitionLevel, DEFAULT_AMBITION, getAmbitionDefinition } from "@/types/ambitionLevel";

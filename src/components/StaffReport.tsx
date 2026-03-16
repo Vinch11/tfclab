@@ -44,8 +44,7 @@ import {
   GenerateStaffReportParams,
   VO2maxAgeComparisonSection as VO2maxAgeComparisonSectionType 
 } from "@/lib/staffReport";
-import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
-import { TTEEffectif } from "@/lib/tteEffectif";
+import type { VLamaxEffectif, TTEEffectif } from "@/engines/diagnostic";
 import { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { NutritionEstimate } from "@/lib/nutritionPredictive";
 import { RunningEconomyResult } from "@/lib/runningEconomy";

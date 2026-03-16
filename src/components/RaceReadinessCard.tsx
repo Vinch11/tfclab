@@ -11,8 +11,7 @@ import {
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { VLamaxEffectif, getSourceColor as getVLamaxSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
-import { TTEEffectif, getSourceColor as getTTESourceColor, getSourceLabel } from "@/lib/tteEffectif";
+import { type VLamaxEffectif, getSourceColor as getVLamaxSourceColor, getConfidenceLabel, type TTEEffectif, getTTESourceColor, getSourceLabel } from "@/engines/diagnostic";
 import { RaceReadinessEffectif, getScoreColor, getScoreBgColor, getObjectifLabel, RACE_READINESS_METHODOLOGY, SPORT_SPECIFICITY, SPORT_COMPARISON_TEXT, type RaceReadinessSport } from "@/lib/raceReadinessEffectif";
 import { TTEGuard, isTTEUnavailable } from "@/components/TTEGuard";
 import { getEconomyRaceReadinessBonus } from "@/lib/runningEconomySnapshot";

@@ -56,7 +56,7 @@ import { RaceReadinessSignatureChart, type RaceReadinessInput } from "@/componen
 import { RaceReadinessUnifiedCard } from "@/components/RaceReadinessUnifiedCard";
 import { computeCompassScores, type CompassScores } from "@/lib/compassScoring";
 import { DecisionReliabilityCard } from "@/components/DecisionReliabilityCard";
-import { computeFullDRE, DecisionReliabilityResult } from "@/lib/v2/decisionReliabilityEngine";
+import { computeFullDRE, type DecisionReliabilityResult } from "@/engines/diagnostic";
 import { useDecisionReliability } from "@/hooks/useDecisionReliability";
 import { SortableSectionsContainer } from "@/components/SortableSectionsContainer";
 
@@ -183,10 +183,7 @@ import { toast } from "sonner";
 
 // ✅ Legacy types/helpers (utilisés par tes composants actuels)
 import { getDernierSnapshot } from "@/types/athlete";
-import { computeVLamaxEffectif, VLamaxEffectif } from "@/lib/vlamaxEffectif";
-
-// ✅ TTE EFFECTIF - Source unique de vérité
-import { computeTTEEffectif, TTEEffectif, getSourceLabel } from "@/lib/tteEffectif";
+import { computeVLamaxEffectif, type VLamaxEffectif, computeTTEEffectif, type TTEEffectif, getSourceLabel } from "@/engines/diagnostic";
 
 // ✅ RACE READINESS EFFECTIF - Source unique de vérité
 import { computeRaceReadinessEffectif, RaceReadinessEffectif, getScoreColor } from "@/lib/raceReadinessEffectif";

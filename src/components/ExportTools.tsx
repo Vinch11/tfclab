@@ -28,8 +28,7 @@ import {
 } from "@/lib/calibration";
 import { generateTestCalibrationSection, type TestCalibrationSection } from "@/lib/calibration/testCalibrationSection";
 import { getEffectiveSnapshot, getEffectiveRefs, type EffectiveRefs } from "@/lib/effectiveRefs";
-import { computeVLamaxEffectif, type VLamaxEffectif } from "@/lib/vlamaxEffectif";
-import { computeTTEEffectif, type TTEEffectif } from "@/lib/tteEffectif";
+import { computeVLamaxEffectif, type VLamaxEffectif, computeTTEEffectif, type TTEEffectif } from "@/engines/diagnostic";
 import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getTargets, getWeightsBySport } from "@/lib/raceReadinessEffectif";
 import { ZonesConfig, computeAbsoluteRange, AthleteRefsForZones } from "@/lib/zonesConfig";
 import { TRAINING_ZONES, computeZoneAbsoluteValues, ZONES_METHODOLOGY_NOTE, type AthleteZoneRefs } from "@/lib/trainingZonesDefinition";

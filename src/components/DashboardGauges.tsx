@@ -11,8 +11,7 @@ import {
   buildTTEEnvelope, 
   buildRaceReadinessEnvelope 
 } from "@/lib/scoreEnvelope";
-import { VLamaxEffectif, toVLamaxEnvelope } from "@/lib/vlamaxEffectif";
-import { TTEEffectif, toTTEEnvelope } from "@/lib/tteEffectif";
+import { type VLamaxEffectif, toVLamaxEnvelope, type TTEEffectif, toTTEEnvelope } from "@/engines/diagnostic";
 import { RaceReadinessEffectif, toRaceReadinessEnvelope } from "@/lib/raceReadinessEffectif";
 
 interface GaugeProps {

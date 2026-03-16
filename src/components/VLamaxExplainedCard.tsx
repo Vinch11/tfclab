@@ -27,7 +27,7 @@ import {
   computeVLamaxBikeV2Enhanced,
   VLamaxBikeV2EnhancedInput,
 } from "@/lib/v2/vlamaxBikeV2Enhanced";
-import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
+import type { VLamaxEffectif } from "@/engines/diagnostic";
 
 // ✅ Utilisation du composant unifié pour l'interprétation
 import { VLamaxInterpretationPanel } from "@/components/VLamaxInterpretationPanel";

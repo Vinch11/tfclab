@@ -9,8 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { FileText, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { VLamaxEffectif } from "@/lib/vlamaxEffectif";
-import type { TTEEffectif } from "@/lib/tteEffectif";
+import type { VLamaxEffectif, TTEEffectif } from "@/engines/diagnostic";
 import type { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { AmbitionLevel, DEFAULT_AMBITION, getAmbitionDefinition } from "@/types/ambitionLevel";
 import {

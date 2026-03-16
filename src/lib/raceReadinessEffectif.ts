@@ -19,8 +19,7 @@
 //
 // =============================================
 
-import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
-import { TTEEffectif } from "@/lib/tteEffectif";
+import type { VLamaxEffectif, TTEEffectif } from "@/engines/diagnostic";
 import { computeNutritionEstimate, applyNutritionalCap, type NutritionalRiskIndex } from "@/lib/nutritionPredictive";
 import { computeRunningEconomy, applyEconomyCap, type RunningEconomyResult, type EconomyLevel } from "@/lib/runningEconomy";
 import { getAgeAdjustedTargets } from "@/lib/ageAdjustment";

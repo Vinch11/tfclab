@@ -10,8 +10,7 @@ import {
   TestData,
 } from "./calibrationLayer";
 import type { DbTest, DbSnapshot } from "@/hooks/useCloudData";
-import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
-import { computeTTEEffectif } from "@/lib/tteEffectif";
+import { computeVLamaxEffectif, computeTTEEffectif } from "@/engines/diagnostic";
 
 interface UseCalibrationParams {
   athleteId: string;

@@ -52,8 +52,7 @@ import {
   LOW_CRR_JUSTIFICATION_LABELS,
   LOW_CRR_JUSTIFICATION_EFFECTS,
 } from "@/lib/wahoo/wahooSuggestionEngine";
-import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
-import { computeTTEEffectif, getTTETarget } from "@/lib/tteEffectif";
+import { computeVLamaxEffectif, computeTTEEffectif, getTTETarget } from "@/engines/diagnostic";
 import { computeRaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { computeCAPInjuryRisk } from "@/lib/capInjuryRisk";
 import { getRiskColor, getRiskLabel, findWahooWorkoutById } from "@/data/wahooMapping";

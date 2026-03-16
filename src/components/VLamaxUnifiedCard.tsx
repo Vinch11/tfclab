@@ -75,7 +75,7 @@ import {
   getAgeAdjustedVLamaxProfil,
   type VLamaxProfil,
 } from "@/lib/ageAdjustment";
-import type { VLamaxEffectif } from "@/lib/vlamaxEffectif";
+import type { VLamaxEffectif } from "@/engines/diagnostic";
 import { getConfidenceLabel, getConfidenceColorClass } from "@/lib/confidenceDisplay";
 import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
 import { useCalibrationEvidence } from "@/hooks/useCalibrationEvidence";

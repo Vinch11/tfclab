@@ -24,8 +24,7 @@ import { Compass, AlertTriangle, Shield, User, Info, GitCompare, Sparkles } from
 import { cn } from "@/lib/utils";
 import { computeCRR } from "@/lib/chargeRecenteReference";
 import { computeCompassScores } from "@/lib/compassScoring";
-import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
-import { TTEEffectif } from "@/lib/tteEffectif";
+import type { VLamaxEffectif, TTEEffectif } from "@/engines/diagnostic";
 import { AmbitionLevel, AMBITION_LEVELS_ORDERED, getAmbitionDefinition, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 
 // =============================================
