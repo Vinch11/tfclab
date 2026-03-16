@@ -797,6 +797,7 @@ function generateScenario(
       fuelRiskIndex: fuelRisk,
       depletionRisk: getDepletionRisk(fuelRisk),
       glycogenRemaining,
+      glycogenWithoutNutrition,
       carbsNeeded: input.plannedCarbsGH ?? 60,
       fatigueRisk: 20 + (i / numSegments) * 50,
       rpeEstimate: Math.min(10, 4 + (i / numSegments) * 5),

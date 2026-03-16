@@ -226,10 +226,14 @@ export function GlycogenDepletionChart({
         </div>
         
         {/* Légende */}
-        <div className="flex items-center justify-center gap-6 mt-4 text-xs text-muted-foreground">
+        <div className="flex items-center justify-center gap-4 mt-4 text-xs text-muted-foreground flex-wrap">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-primary" />
-            <span>Glycogène restant</span>
+            <span>Avec nutrition</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-0 border-t-2 border-dashed border-muted-foreground" />
+            <span>Sans nutrition</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-destructive/50" />
