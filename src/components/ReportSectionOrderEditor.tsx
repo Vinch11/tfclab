@@ -82,6 +82,9 @@ export const SECTION_LABELS: Record<keyof ReportSections, string> = {
   comprendre: "Comprendre mes scores",
   qualite: "Qualité des données",
   roadmap: "📋 Roadmap Stratégique",
+  lactateCurve: "🧪 Courbe Lactate Simulée (Mader-Heck)",
+  substrateCurve: "🔥 Oxydation Lipides / Glucides",
+  performancePrediction: "⏱️ Prédiction de Performance",
 };
 
 // Catégories pour regroupement visuel
@@ -122,6 +125,9 @@ const SECTION_CATEGORIES: Record<keyof ReportSections, string> = {
   comprendre: "Aide",
   qualite: "Aide",
   roadmap: "Entraînement",
+  lactateCurve: "Analyse",
+  substrateCurve: "Analyse",
+  performancePrediction: "Performance",
 };
 
 // Couleurs par catégorie
@@ -176,6 +182,9 @@ export const DEFAULT_SECTION_ORDER: (keyof ReportSections)[] = [
   "comprendre",
   "qualite",
   "roadmap",
+  "lactateCurve",
+  "substrateCurve",
+  "performancePrediction",
 ];
 
 // Visibilité par défaut (toutes visibles) - Also exported as DEFAULT_REPORT_SECTIONS
@@ -216,6 +225,9 @@ export const DEFAULT_VISIBILITY: Record<keyof ReportSections, boolean> = {
   comprendre: true,
   qualite: true,
   roadmap: true,
+  lactateCurve: true,
+  substrateCurve: true,
+  performancePrediction: true,
 };
 
 // Export alias for backward compatibility
