@@ -244,6 +244,18 @@ export const LEVER_DEFINITIONS: Record<LorangLever, {
   description: string;
   isStaffOnly: boolean;
 }> = {
+  vo2_intervals: {
+    label: "Intervalles VO₂max",
+    icon: "🫁",
+    description: "Développement du plafond aérobie via intervalles haute intensité (3-5min Z5, r3min)",
+    isStaffOnly: false,
+  },
+  z2_volume: {
+    label: "Volume Z2 / Endurance",
+    icon: "🚴",
+    description: "Développement de la base aérobie et de la durabilité via du volume en zone 2",
+    isStaffOnly: false,
+  },
   force_max: {
     label: "Force Max",
     icon: "🏋️",
