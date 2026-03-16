@@ -157,3 +157,15 @@ export type {
 // Les consumers utilisant l'ancien format SnapshotNolio doivent passer par ici
 // ═══════════════════════════════════════════════════════════════════════════════
 export { calculVLamaxSnapshot, calculVLamaxAvecConfiance } from "@/lib/athleteStore";
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Legacy Physiological Model — Re-exports pour migration progressive
+// ═══════════════════════════════════════════════════════════════════════════════
+export {
+  analysePhysiologiqueComplete,
+  calculVLamaxPonderee,
+  calculIndiceConfiance,
+  getStatusColor as getLegacyStatusColor,
+  getStatusBgColor as getLegacyStatusBgColor,
+} from "@/lib/physiologicalModel";
+export type { TestVLamaxResult } from "@/lib/physiologicalModel";
