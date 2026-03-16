@@ -348,6 +348,24 @@ export function StaffReport({
         {/* 1.5️⃣ DÉTAILS DE CALCUL RACE READINESS */}
         <RaceReadinessCalculationDetails readiness={readiness} />
 
+        {/* 1.6️⃣ TFCL COACHING COMPASS™ — Centre décisionnel stratégique */}
+        <StaffCompassSection
+          vlamaxEffectif={vlamaxEffectif}
+          tteEffectif={tteEffectif}
+          readiness={readiness}
+          ftp={ftp}
+          poids={poids}
+          vo2max={vo2max ?? null}
+          tss7d={tss7d ?? null}
+          snapshotDate={snapshotDate}
+          snapshotUpdatedAt={snapshotUpdatedAt ?? null}
+          snapshot={snapshot}
+          lorangInput={lorangInput ?? null}
+          ambition={ambition ?? DEFAULT_AMBITION}
+          objectif={objectif}
+          athleteAge={athleteAge ?? null}
+        />
+
         {/* 2️⃣ INDICATEURS CLÉS */}
         <div>
           <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
