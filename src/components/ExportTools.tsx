@@ -74,6 +74,18 @@ import {
   DISPONIBILITE_PHILOSOPHY,
   DISPONIBILITE_SCALE
 } from "@/lib/v2/disponibiliteTFCL";
+// ✅ Import Mader Metabolic Model & Performance Prediction (ESM)
+import {
+  findSteadyStateLactate,
+  findLactateThresholds,
+  findFatMax,
+  findMLSSPower,
+  predictMaderPerformance,
+  calculateFatOxidation,
+  calculateCarbOxidation,
+  calculateTTEatMLSS,
+} from "@/lib/v2/maderMetabolicModel";
+import { computePerformancePredictions } from "@/lib/v2/performancePrediction";
 
 // =============================================
 // TYPES
