@@ -1088,7 +1088,7 @@ const Index = () => {
                   fatmax: null,
                   vlamaxEffectif: { value: vlamaxEffectif.value, confidence: vlamaxEffectif.confidence, source: vlamaxEffectif.source },
                   tteEffectif: { tte_min: tteEffectif.tte_min, confidence: tteEffectif.confidence, source: tteEffectif.source },
-                  fatigueEffectif: fatigueEffectif ? { score: fatigueEffectif.score, level: fatigueEffectif.level, confidence: fatigueEffectif.confidence } : null,
+                  fatigueEffectif: null,
                   limiterResult: unifiedLimiterResult ? {
                     primaryLimiter: unifiedLimiterResult.primaryLimiter,
                     gapAnalysis: unifiedLimiterResult.gapAnalysis,
