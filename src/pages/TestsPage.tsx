@@ -187,7 +187,7 @@ export default function TestsPage() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/diagnostic")}
                 className="shrink-0"
               >
                 <ChevronLeft className="w-5 h-5" />
