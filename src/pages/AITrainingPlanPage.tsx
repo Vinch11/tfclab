@@ -472,7 +472,7 @@ export default function AITrainingPlanPage() {
         continue;
       }
 
-      const config = buildConfig(ctx.limiterResult, athleteAmb);
+      const config = buildConfigFromDiag(ctx.diagnostic, athleteAmb);
       // Override objective with athlete's own
       config.objective = OBJECTIVE_OPTIONS.find(o => o.value === athleteObj)?.label || athleteObj;
 
