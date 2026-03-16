@@ -43,7 +43,7 @@ import {
   addTestResultToAthlete, 
   StoredTestResult 
 } from "@/types/testLibrary";
-import { calculVLamaxPonderee, calculIndiceConfiance } from "@/lib/physiologicalModel";
+import { calculVLamaxPonderee, calculIndiceConfiance } from "@/engines/diagnostic";
 import { VLamaxRunFieldTest } from "./VLamaxRunFieldTest";
 import { VLamaxRunPowerTest } from "./VLamaxRunPowerTest";
 

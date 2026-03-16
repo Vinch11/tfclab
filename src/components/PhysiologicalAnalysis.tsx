@@ -12,10 +12,10 @@ import { Athlete, getDernierSnapshot } from "@/types/athlete";
 import { AmbitionLevel } from "@/types/ambitionLevel";
 import {
   analysePhysiologiqueComplete,
-  TestVLamaxResult,
-  getStatusColor,
-  getStatusBgColor
-} from "@/lib/physiologicalModel";
+  getLegacyStatusColor as getStatusColor,
+  getLegacyStatusBgColor as getStatusBgColor,
+} from "@/engines/diagnostic";
+import type { TestVLamaxResult } from "@/engines/diagnostic";
 import { 
   Activity, 
   Target, 
