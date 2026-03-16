@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import type { CoachingCompassInput } from "@/lib/coachingCompass";
+import { CoachingCompassCard } from "@/components/CoachingCompassCard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User, Save, Target, Scale, Activity, Percent, Camera, Info, Loader2, ChevronDown, ChevronUp } from "lucide-react";
