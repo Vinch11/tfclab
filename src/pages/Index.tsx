@@ -1183,7 +1183,7 @@ const Index = () => {
                   tteEffectif: { tte_min: tteEffectif.tte_min, confidence: tteEffectif.confidence, source: tteEffectif.source },
                   fatigueEffectif: fatigueEffectifForCompass ? {
                     score: fatigueEffectifForCompass.score,
-                    level: fatigueEffectifForCompass.level,
+                    level: fatigueEffectifForCompass.level as string,
                     confidence: fatigueEffectifForCompass.confidence,
                   } : null,
                   limiterResult: unifiedLimiterResult ? {
