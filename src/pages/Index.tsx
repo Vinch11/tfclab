@@ -95,6 +95,9 @@ import { computeDecision, type DecisionInput } from "@/engines/decision";
 // ✅ Profil & Ambition — Carte unifiée (Phase 1f UX)
 import { ProfilAmbitionUnifiedCard } from "@/components/ProfilAmbitionUnifiedCard";
 
+// ✅ Quick Actions Panel
+import { QuickActionsPanel } from "@/components/QuickActionsPanel";
+
 // ✅ W'bal Recovery Card — Repos optimaux individualisés
 import { WbalRecoveryCard } from "@/components/WbalRecoveryCard";
 // ✅ CP/W' Courbe Puissance-Durée
