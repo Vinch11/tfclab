@@ -82,6 +82,9 @@ export const SECTION_LABELS: Record<keyof ReportSections, string> = {
   comprendre: "Comprendre mes scores",
   qualite: "Qualité des données",
   roadmap: "📋 Roadmap Stratégique",
+  lactateCurve: "🧪 Courbe Lactate Simulée (Mader-Heck)",
+  substrateCurve: "🔥 Oxydation Lipides / Glucides",
+  performancePrediction: "⏱️ Prédiction de Performance",
 };
 
 // Catégories pour regroupement visuel
