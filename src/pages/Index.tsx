@@ -1223,14 +1223,12 @@ const Index = () => {
           // ✅ TFCL Coaching Compass™ — Centre décisionnel
           {
             id: "coaching-compass",
-            render: () => currentAthlete && effectiveCloudSnapshot && (
-              {compassInputMemo && (
-                <CoachingCompassCard
-                  input={compassInputMemo}
-                  staffMode={staffMode}
-                />
-              )}
-            ),
+            render: () => compassInputMemo ? (
+              <CoachingCompassCard
+                input={compassInputMemo}
+                staffMode={staffMode}
+              />
+            ) : null,
           },
           // ✅ Phase 1f: Profil & Ambition Unifiée
           {
