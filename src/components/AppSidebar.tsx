@@ -1,27 +1,21 @@
 /**
- * AppSidebar – Navigation latérale ergonomique
- * Icônes colorées par groupe, espacement optimisé, active state clair
+ * AppSidebar – Navigation TFCL restructurée
+ * 6 sections principales : Dashboard, Athlètes, Diagnostic, Planification, Simulation, Academy
  */
 
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
-  User,
   Users,
-  FlaskConical,
-  BookOpen,
+  Stethoscope,
+  CalendarDays,
+  Play,
   GraduationCap,
-  Trophy,
   Settings,
-  Activity,
   ChevronDown,
   LogOut,
   Shield,
-  Play,
-  Smartphone,
-  Footprints,
   FileText,
-  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -30,7 +24,6 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -39,67 +32,24 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import logo from "@/assets/logo-2fc.png";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
-import { useState } from "react";
 
-// Type explicite pour les items de navigation
 interface NavItem {
   id: string;
   label: string;
   icon: typeof LayoutDashboard;
-  route?: string;
-  tab?: string;
-  runningOnly?: boolean;
+  route: string;
 }
 
-interface NavGroup {
-  id: string;
-  label: string;
-  defaultOpen: boolean;
-  iconColor: string; // couleur sémantique par groupe
-  items: NavItem[];
-}
-
-// Définition des groupes avec couleurs par groupe
-const baseNavigationGroups: NavGroup[] = [
-  {
-    id: "principal",
-    label: "Principal",
-    defaultOpen: true,
-    iconColor: "text-sidebar-primary",
-    items: [
-      { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, route: "/", tab: "dashboard" },
-      { id: "profil", label: "Profil", icon: User, tab: "profil" },
-      { id: "strategie", label: "Stratégie", icon: Trophy, tab: "strategie" },
-    ],
-  },
-  {
-    id: "outils",
-    label: "Outils",
-    defaultOpen: true,
-    iconColor: "text-sidebar-foreground/70",
-    items: [
-      { id: "athletes", label: "Mes Athlètes", icon: Users, route: "/athletes" },
-      { id: "tests", label: "Tests & Protocoles", icon: FlaskConical, route: "/tests" },
-      { id: "race-simulation", label: "Simulation", icon: Play, route: "/race-simulation" },
-      { id: "running-profile", label: "Profil Running", icon: Footprints, route: "/running-profile", runningOnly: true },
-    ],
-  },
-  {
-    id: "ressources",
-    label: "Ressources",
-    defaultOpen: false,
-    iconColor: "text-sidebar-foreground/70",
-    items: [
-      { id: "ai-plan", label: "Plan IA", icon: Sparkles, route: "/ai-plan" },
-      { id: "templates", label: "Templates", icon: BookOpen, route: "/templates" },
-      { id: "academy", label: "Academy", icon: GraduationCap, route: "/academy" },
-    ],
-  },
+const navigationItems: NavItem[] = [
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, route: "/" },
+  { id: "athletes", label: "Athlètes", icon: Users, route: "/athletes" },
+  { id: "diagnostic", label: "Diagnostic", icon: Stethoscope, route: "/diagnostic" },
+  { id: "planning", label: "Planification", icon: CalendarDays, route: "/planning" },
+  { id: "simulation", label: "Simulation", icon: Play, route: "/race" },
+  { id: "academy", label: "Academy", icon: GraduationCap, route: "/academy" },
 ];
 
 interface AppSidebarProps {
@@ -114,91 +64,28 @@ interface AppSidebarProps {
 export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChange, onExportClick, exportAlwaysVisible }: AppSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { state, isMobile, openMobile } = useSidebar();
+  const { state, isMobile } = useSidebar();
   const { user, signOut } = useAuth();
-  const { isRunningOnly } = useRunningFocusMode();
-  // On mobile, the sidebar opens as a Sheet — always show labels when open
   const collapsed = isMobile ? false : state === "collapsed";
 
-  // Filter navigation items based on Running Focus Mode
-  const navigationGroups = baseNavigationGroups.map(group => ({
-    ...group,
-    items: group.items.filter(item => !('runningOnly' in item) || !item.runningOnly || isRunningOnly)
-  }));
-
-  // Track which groups are open
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
-    baseNavigationGroups.reduce((acc, g) => ({ ...acc, [g.id]: g.defaultOpen }), {})
-  );
-
   const handleNavClick = (item: NavItem) => {
-    if (item.route && item.route !== "/") {
-      navigate(item.route);
+    if (item.route === "/" && location.pathname === "/") {
+      onTabChange("dashboard");
       return;
     }
-    if (item.tab) {
-      if (location.pathname === "/") {
-        onTabChange(item.tab);
-      } else {
-        navigate("/", { state: { activeTab: item.tab } });
-      }
-      return;
-    }
-    if (item.route === "/") {
-      navigate("/");
-    }
+    navigate(item.route);
   };
 
   const isActive = (item: NavItem) => {
-    if (item.route) {
-      return location.pathname === item.route;
+    if (item.route === "/") {
+      return location.pathname === "/";
     }
-    return location.pathname === "/" && activeTab === item.tab;
+    return location.pathname.startsWith(item.route);
   };
-
-  const toggleGroup = (groupId: string) => {
-    setOpenGroups((prev) => ({ ...prev, [groupId]: !prev[groupId] }));
-  };
-
-  const renderNavItems = (items: NavItem[], iconColor: string) => (
-    <SidebarMenu className="gap-0.5">
-      {items.map((item) => {
-        const Icon = item.icon;
-        const active = isActive(item);
-        return (
-          <SidebarMenuItem key={item.id}>
-            <SidebarMenuButton
-              onClick={() => handleNavClick(item)}
-              isActive={active}
-              tooltip={collapsed ? item.label : undefined}
-              className={cn(
-                "relative h-9 sm:h-10 rounded-lg transition-all duration-200",
-                active
-                  ? "bg-sidebar-accent text-sidebar-primary font-semibold shadow-sm border border-sidebar-border"
-                  : "hover:bg-sidebar-accent/60 text-sidebar-foreground/80 hover:text-sidebar-foreground"
-              )}
-            >
-              <Icon className={cn(
-                "h-[18px] w-[18px] shrink-0 transition-colors",
-                active ? "text-sidebar-primary" : iconColor
-              )} />
-              {!collapsed && (
-                <span className="text-sm truncate">{item.label}</span>
-              )}
-              {/* Active indicator bar */}
-              {active && !collapsed && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-sidebar-primary" />
-              )}
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        );
-      })}
-    </SidebarMenu>
-  );
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border/60 bg-sidebar">
-      {/* Header avec logo */}
+      {/* Header */}
       <SidebarHeader className="p-3 sm:p-4 border-b border-sidebar-border/40 safe-area-inset-top">
         <div className="flex items-center gap-2.5">
           <img src={logo} alt="2FC Lab" className={cn("h-9 sm:h-10 w-auto transition-all", collapsed && "h-7 sm:h-8")} />
@@ -212,9 +99,9 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
       </SidebarHeader>
 
       <SidebarContent className="px-2 sm:px-3 py-2 ios-scroll">
-        {/* Mode Staff Toggle */}
+        {/* Staff Mode Toggle */}
         {!collapsed && (
-          <div className="px-2 py-2.5 mb-2 rounded-xl bg-sidebar-accent/40 border border-sidebar-border/30">
+          <div className="px-2 py-2.5 mb-3 rounded-xl bg-sidebar-accent/40 border border-sidebar-border/30">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className={cn(
@@ -234,58 +121,57 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
           </div>
         )}
 
-        {/* Navigation Groups */}
-        {navigationGroups.map((group, groupIndex) => (
-          <Collapsible
-            key={group.id}
-            open={collapsed ? false : openGroups[group.id]}
-            onOpenChange={() => !collapsed && toggleGroup(group.id)}
-          >
-            <SidebarGroup className={cn(groupIndex > 0 && "mt-1")}>
-              {!collapsed && (
-                <CollapsibleTrigger asChild>
-                  <SidebarGroupLabel className="cursor-pointer hover:bg-sidebar-accent/40 rounded-lg flex items-center justify-between pr-2 h-8 text-[11px] uppercase tracking-wider font-semibold text-sidebar-foreground/50">
-                    <span>{group.label}</span>
-                    <ChevronDown
+        {/* Main Navigation - Flat 6 items */}
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-1">
+              {navigationItems.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item);
+                return (
+                  <SidebarMenuItem key={item.id}>
+                    <SidebarMenuButton
+                      onClick={() => handleNavClick(item)}
+                      isActive={active}
+                      tooltip={collapsed ? item.label : undefined}
                       className={cn(
-                        "h-3 w-3 transition-transform duration-300 text-sidebar-foreground/40",
-                        openGroups[group.id] && "rotate-180"
+                        "relative h-10 sm:h-11 rounded-lg transition-all duration-200",
+                        active
+                          ? "bg-sidebar-accent text-sidebar-primary font-semibold shadow-sm border border-sidebar-border"
+                          : "hover:bg-sidebar-accent/60 text-sidebar-foreground/80 hover:text-sidebar-foreground"
                       )}
-                    />
-                  </SidebarGroupLabel>
-                </CollapsibleTrigger>
-              )}
-              <CollapsibleContent>
-                <SidebarGroupContent>
-                  {renderNavItems(group.items, group.iconColor)}
-                </SidebarGroupContent>
-              </CollapsibleContent>
-              
-              {/* En mode collapsed, afficher les icônes directement */}
-              {collapsed && (
-                <SidebarGroupContent>
-                  {renderNavItems(group.items, group.iconColor)}
-                </SidebarGroupContent>
-              )}
-            </SidebarGroup>
-          </Collapsible>
-        ))}
+                    >
+                      <Icon className={cn(
+                        "h-[18px] w-[18px] shrink-0 transition-colors",
+                        active ? "text-sidebar-primary" : "text-sidebar-foreground/60"
+                      )} />
+                      {!collapsed && (
+                        <span className="text-sm truncate">{item.label}</span>
+                      )}
+                      {active && !collapsed && (
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-sidebar-primary" />
+                      )}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
-        <SidebarSeparator className="my-2 opacity-30" />
+        <SidebarSeparator className="my-3 opacity-30" />
 
-        {/* Export PDF */}
-        {(onExportClick || exportAlwaysVisible) && (
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu>
+        {/* Utilities */}
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-0.5">
+              {/* Export PDF */}
+              {(onExportClick || exportAlwaysVisible) && (
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     onClick={() => {
-                      if (onExportClick) {
-                        onExportClick();
-                      } else {
-                        navigate("/", { state: { openExport: true } });
-                      }
+                      if (onExportClick) onExportClick();
+                      else navigate("/", { state: { openExport: true } });
                     }}
                     tooltip={collapsed ? "Export PDF" : undefined}
                     className="h-9 sm:h-10 rounded-lg hover:bg-sidebar-accent/60 text-sidebar-foreground/70 hover:text-sidebar-foreground"
@@ -294,15 +180,9 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
                     {!collapsed && <span className="text-sm">Export PDF</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+              )}
 
-        {/* Configuration */}
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
+              {/* Configuration */}
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={() => {
@@ -327,7 +207,7 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
         </SidebarGroup>
       </SidebarContent>
 
-      {/* Footer - clean & aéré */}
+      {/* Footer */}
       <SidebarFooter className="p-3 sm:p-4 border-t border-sidebar-border/40 safe-area-inset-bottom">
         {!collapsed && user && (
           <p className="text-[10px] text-sidebar-foreground/50 truncate mb-2 px-0.5">
