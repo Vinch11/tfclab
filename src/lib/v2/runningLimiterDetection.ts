@@ -356,14 +356,32 @@ export function detectRunningLimiter(input: RunningLimiterInput): RunningLimiter
   
   // Tri par impact pondéré
   const sortedGaps = [...gapAnalysis].sort((a, b) => b.weightedImpact - a.weightedImpact);
-  const topGap = sortedGaps[0];
-  const secondGap = sortedGaps[1];
+  
+  // ── Fatigue Warning (la disponibilité n'est PAS un limiteur) ──────────
+  const availabilityAnalysis = sortedGaps.find(g => g.metric === "Disponibilité");
+  const fatigueWarning: RunningFatigueWarning = (() => {
+    if (input.hasHealthAlerts) {
+      return { active: true, level: "critical" as const, message: "⚠️ Alerte santé détectée — adapter la charge immédiatement." };
+    }
+    if (availabilityAnalysis && availabilityAnalysis.status === "limiting") {
+      return { active: true, level: "high" as const, message: "⚠️ Fatigue élevée — surveiller la récupération avant les séances clés." };
+    }
+    if (input.availabilityScore !== null && input.availabilityScore < 60) {
+      return { active: true, level: "moderate" as const, message: "Fatigue modérée — rester vigilant sur le volume." };
+    }
+    return { active: false, level: null, message: null };
+  })();
+
+  // ── Sélection du limiteur (exclut "Disponibilité") ────────────────────
+  const physiologicalGaps = sortedGaps.filter(g => g.metric !== "Disponibilité");
+  const topGap = physiologicalGaps[0];
+  const secondGap = physiologicalGaps[1];
   
   // Identification du limiteur
   let primaryLimiter: RunningLimiter = "none";
   let primaryLever: RunningLever = "recovery";
   
-  if (topGap.weightedImpact > 5) {
+  if (topGap && topGap.weightedImpact > 5) {
     switch (topGap.metric) {
       case "VO2max CAP":
         primaryLimiter = "vo2max_insufficient";
@@ -389,15 +407,11 @@ export function detectRunningLimiter(input: RunningLimiterInput): RunningLimiter
         primaryLimiter = "mechanical_fatigue";
         primaryLever = "strength_conditioning";
         break;
-      case "Disponibilité":
-        primaryLimiter = "availability_low";
-        primaryLever = "recovery";
-        break;
     }
   }
   
-  // Robustesse (écart entre 1er et 2ème limiteur)
-  const robustnessDelta = topGap.weightedImpact - (secondGap?.weightedImpact || 0);
+  // Robustesse (écart entre 1er et 2ème limiteur physio)
+  const robustnessDelta = (topGap?.weightedImpact ?? 0) - (secondGap?.weightedImpact ?? 0);
   const isRobust = robustnessDelta > 10;
   const robustnessScore = Math.min(100, robustnessDelta * 5);
   
@@ -413,6 +427,8 @@ export function detectRunningLimiter(input: RunningLimiterInput): RunningLimiter
     limiterLabel: limiterInfo.label,
     limiterEmoji: limiterInfo.emoji,
     limiterExplanation: limiterInfo.description,
+    
+    fatigueWarning,
     
     primaryLever,
     leverLabel: leverInfo.label,
@@ -433,6 +449,6 @@ export function detectRunningLimiter(input: RunningLimiterInput): RunningLimiter
       : "Faible (données incomplètes)",
     
     targetsUsed: targets,
-    version: "running-v1.0",
+    version: "running-v1.1",
   };
 }
