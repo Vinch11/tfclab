@@ -27,11 +27,10 @@ import { DIAGNOSTIC_ENGINE_VERSION, DIAGNOSTIC_ENGINE_DISCLAIMER } from "./types
 import { computeVLamaxEffectif, type VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { computeTTEEffectif, type TTEEffectif } from "@/lib/tteEffectif";
 import { computeFatigueEffectif, type FatigueEffectif } from "@/lib/fatigueEffectif";
-import { detectUnifiedLimiter, type UnifiedLimiterResult, LIMITER_INFO } from "@/lib/v2/unifiedLimiterDetection";
-import { computeRaceReadinessV2, type RaceReadinessV2Result } from "@/lib/v2/raceReadinessV2";
+import { detectUnifiedLimiter, type UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
+import { computeDecisionTFCL, type RaceReadinessV2Result } from "@/lib/v2/raceReadinessV2";
 import { getTargetsForAmbition, normalizeObjective, getVLamaxRange } from "@/lib/physiologicalTargets";
 import { computeRunInjuryRisk, type RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
-import type { InjuryRiskEnvelope } from "@/lib/v2/injuryRiskUnified";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ORCHESTRATEUR PRINCIPAL
@@ -72,7 +71,6 @@ export function computeDiagnostic(input: DiagnosticInput): AthleteDiagnostic {
   const runInjuryRisk = computeRunInjuryRiskFromInput(input, fatigue, tte, vlamax);
 
   // ── 6. DRE (placeholder — enrichi quand données disponibles) ──────────
-  // TODO: Intégrer computeFullDRE quand dreInput est fourni
   const reliability = null;
 
   // ── 7. Synthèse ───────────────────────────────────────────────────────────
@@ -122,40 +120,43 @@ export function computeDiagnostic(input: DiagnosticInput): AthleteDiagnostic {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function computeVLamaxFromInput(input: DiagnosticInput): VLamaxEffectif {
+  const snapshotObj = {
+    id: "diagnostic-snapshot",
+    athlete_id: input.athleteId,
+    date: new Date().toISOString().split("T")[0],
+    vlamax: input.vlamax,
+    ftp: input.ftp,
+    pmax_5s: input.pmax5s,
+    weight_kg: input.weightKg,
+    sport_main: input.sportFocus === "run" ? "run" : "bike",
+    p30s_w: input.p30sW,
+    p60s_w: input.p60sW,
+    map5min_w: input.map5minW,
+    tte_observed_min: input.tteObservedMin,
+    protocol_quality: input.protocolQuality,
+    objectif: input.objectif,
+    vo2max: input.vo2max,
+    vma: input.vma,
+    pace_threshold_sec_per_km: input.paceThresholdSecPerKm,
+    running_power_threshold: input.runningPowerThreshold,
+    running_power_1s: input.runningPower1s,
+    running_power_5s: input.runningPower5s,
+    running_power_30s: input.runningPower30s,
+    running_power_60s: input.runningPower60s,
+    running_power_5min: input.runningPower5min,
+    sprint_15s_distance: input.sprint15sDistance,
+    css: input.css,
+    vlamax_source: input.vlamaxSource,
+    vlamax_protocol: input.vlamaxProtocol,
+    vlamax_is_reference: input.vlamaxIsReference,
+  };
+
   return computeVLamaxEffectif({
     athleteId: input.athleteId,
-    snapshot: {
-      id: "diagnostic-snapshot",
-      athlete_id: input.athleteId,
-      date: new Date().toISOString().split("T")[0],
-      vlamax: input.vlamax,
-      ftp: input.ftp,
-      pmax_5s: input.pmax5s,
-      weight_kg: input.weightKg,
-      sport_main: input.sportFocus === "run" ? "run" : "bike",
-      p30s_w: input.p30sW,
-      p60s_w: input.p60sW,
-      map5min_w: input.map5minW,
-      tte_observed_min: input.tteObservedMin,
-      protocol_quality: input.protocolQuality,
-      objectif: input.objectif,
-      vo2max: input.vo2max,
-      vma: input.vma,
-      pace_threshold_sec_per_km: input.paceThresholdSecPerKm,
-      running_power_threshold: input.runningPowerThreshold,
-      running_power_1s: input.runningPower1s,
-      running_power_5s: input.runningPower5s,
-      running_power_30s: input.runningPower30s,
-      running_power_60s: input.runningPower60s,
-      running_power_5min: input.runningPower5min,
-      sprint_15s_distance: input.sprint15sDistance,
-      css: input.css,
-      vlamax_source: input.vlamaxSource,
-      vlamax_protocol: input.vlamaxProtocol,
-      vlamax_is_reference: input.vlamaxIsReference,
-    },
+    objectif: input.objectif,
+    activeSnapshotId: "diagnostic-snapshot",
     tests: [],
-    sport: input.sportFocus === "run" ? "run" : "bike",
+    snapshots: [snapshotObj],
   });
 }
 
@@ -175,10 +176,10 @@ function computeFatigueFromInput(
   vlamax: VLamaxEffectif
 ): FatigueEffectif {
   return computeFatigueEffectif({
-    tss_7d: input.tss7d,
-    fatigue_state: input.fatigueState,
-    tte_effectif: tte,
-    vlamax_effectif: vlamax,
+    tss7d: input.tss7d,
+    tteEffectif: tte,
+    vlamaxEffectif: vlamax,
+    age: input.age,
     objectif: input.objectif,
   });
 }
@@ -209,13 +210,12 @@ function computeReadinessFromInput(
     }
   }
 
-  return computeRaceReadinessV2({
-    compassScores,
-    fatigueState: input.fatigueState || "ok",
-    tss7d: input.tss7d || null,
-    objectif: input.objectif,
-    sportFocus: input.sportFocus,
-    hasHealthAlerts: input.checkinData?.painFlag ?? false,
+  return computeDecisionTFCL({
+    compass: compassScores,
+    guardrails: {
+      healthAlert: input.checkinData?.painFlag,
+      dataCompleteness: computeDataCompleteness(input),
+    },
   });
 }
 
@@ -231,8 +231,9 @@ function computeRunInjuryRiskFromInput(
     fatigueEffectif: fatigue,
     vlamaxEffectif: vlamax,
     tteEffectif: tte,
-    objectif: input.objectif,
+    tss7d: input.tss7d,
     age: input.age,
+    objectif: input.objectif,
   });
 }
 
@@ -282,7 +283,7 @@ function computeSynthesis(
     });
   }
 
-  // Identifier les points forts
+  // Points forts
   const strengths: string[] = [];
   for (const gap of limiter.gapAnalysis) {
     if (gap.status === "optimal") {
@@ -316,7 +317,6 @@ function computeSynthesis(
     : globalScore < 80 ? "solid" as const
     : "ready" as const;
 
-  // Headline
   const headline = generateHeadline(limiter, readiness, fatigue);
 
   return {
@@ -344,7 +344,7 @@ function generateHeadline(
 }
 
 function mapMetricToLimiter(metric: string): "aerobic_engine" | "glycolytic" | "specific_endurance" | "neuromuscular" | "anaerobic_capacity" | "metabolic_efficiency" | "availability" | "none" {
-  const map: Record<string, any> = {
+  const map: Record<string, "aerobic_engine" | "glycolytic" | "specific_endurance" | "neuromuscular" | "anaerobic_capacity" | "metabolic_efficiency" | "availability" | "none"> = {
     "VO2max": "aerobic_engine",
     "FTP/kg": "aerobic_engine",
     "VLamax": "glycolytic",
@@ -357,7 +357,7 @@ function mapMetricToLimiter(metric: string): "aerobic_engine" | "glycolytic" | "
 }
 
 function mapMetricToLever(metric: string): "increase_vo2max" | "decrease_vlamax" | "increase_tte" | "force_endurance" | "adjust_anaerobic" | "increase_fat_oxidation" | "recovery" | "maintain" {
-  const map: Record<string, any> = {
+  const map: Record<string, "increase_vo2max" | "decrease_vlamax" | "increase_tte" | "force_endurance" | "adjust_anaerobic" | "increase_fat_oxidation" | "recovery" | "maintain"> = {
     "VO2max": "increase_vo2max",
     "FTP/kg": "increase_vo2max",
     "VLamax": "decrease_vlamax",
@@ -374,7 +374,7 @@ function mapMetricToLever(metric: string): "increase_vo2max" | "decrease_vlamax"
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function computeDataCompleteness(input: DiagnosticInput): number {
-  const fields = [
+  const fields: (number | null | undefined)[] = [
     input.vo2max,
     input.ftp,
     input.ftpKg,
