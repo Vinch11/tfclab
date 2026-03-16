@@ -124,6 +124,16 @@ export function ScientificChartsDashboard({
           vlamaxValue={vlamaxValue}
           staffMode={staffMode}
         />
+
+        {/* Simulated Lactate Curve (Mader-Heck) */}
+        <SimulatedLactateCurveChart
+          vo2max={vo2max ?? null}
+          vlamax={vlamaxValue}
+          ftp={ftp ?? null}
+          weight={weight}
+          staffMode={staffMode}
+          className="md:col-span-2 xl:col-span-2"
+        />
       </div>
     </div>
   );
