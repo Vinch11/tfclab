@@ -83,8 +83,12 @@ import { LorangStrategyCard } from "@/components/LorangStrategyCard";
 import { LorangDecisionFlowChart } from "@/components/LorangDecisionFlowChart";
 import { type LorangStrategyInput } from "@/lib/v2/lorangStrategyEngine";
 
-// ✅ Coach Decision Center — Carte unifiée (Phase 1e UX)
+// ✅ Coach Decision Center — Carte unifiée (Phase 2 Architecture)
 import { CoachDecisionUnifiedCard } from "@/components/CoachDecisionUnifiedCard";
+
+// ✅ Engines unifiés
+import { computeDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
+import { computeDecision, type DecisionInput } from "@/engines/decision";
 
 // ✅ Profil & Ambition — Carte unifiée (Phase 1f UX)
 import { ProfilAmbitionUnifiedCard } from "@/components/ProfilAmbitionUnifiedCard";
@@ -1285,88 +1289,72 @@ const Index = () => {
               );
               const latestCheckin = sortedCheckins[0] || null;
               
-              // FatMax estimate from VLamax
-              const fatmaxPct = vlamaxEffectif.value != null ? Math.max(0, 65 - (vlamaxEffectif.value - 0.3) * 80) : null;
-              
-              // Freshness from snapshot fatigue_state (not check-in)
-              const fatigueStateToFreshness: Record<string, number> = {
-                fresh: 85, ok: 60, fatigued: 35, high: 15, injured: 5
-              };
-              const freshness = fatigueStateToFreshness[effectiveCloudSnapshot?.fatigue_state || "ok"] ?? 60;
-              
-              // Targets based on ambition
-              const vlamaxTarget = currentAmbition === "elite" ? 0.35 : currentAmbition === "competitor" ? 0.45 : 0.55;
-              const vo2maxTarget = currentAmbition === "elite" ? 70 : currentAmbition === "competitor" ? 62 : 55;
-              const tteTarget = currentAmbition === "elite" ? 50 : currentAmbition === "competitor" ? 40 : 35;
-              const fatmaxTarget = currentAmbition === "elite" ? 55 : currentAmbition === "competitor" ? 48 : 42;
-              
-              // Decision Input
-              const decisionInput: TFCLDecisionInput = {
-                vo2max: { value: effectiveCloudSnapshot?.vo2max ?? null, source: "snapshot" },
-                vlamax: { value: vlamaxEffectif.value, source: vlamaxEffectif.source === "test" ? "test" : vlamaxEffectif.source === "snapshot" ? "snapshot" : "estimation" },
-                tte: { value: tteEffectif.tte_min, source: tteEffectif.source === "observed" ? "test" : "estimation" },
-                fatMaxPctVO2: { value: fatmaxPct, source: "calcul" },
-                fatOxidationMax: { value: null, source: "estimation" },
-                crossoverPctVO2: { value: null, source: "estimation" },
-                ftpKg: { value: ftp_kg, source: "snapshot" },
-                freshnessScore: { value: freshness, source: "snapshot" },
-                tss7d: { value: effectiveCloudSnapshot?.tss_7d ?? null, source: "snapshot" },
-                tss28d: { value: effectiveCloudSnapshot?.tss_7d ? effectiveCloudSnapshot.tss_7d * 4 : null, source: "calcul" },
-                subjectiveFatigue: { value: null, source: "snapshot" }, // Source: fatigue_state du snapshot
-                confidenceScore: Math.round((vlamaxEffectif.confidence + tteEffectif.confidence) / 2 * 100),
-                discipline: isRunningOnly ? "cap" : "velo",
-                objective: (currentAthlete.goal || "IM") as any,
-                ambition: currentAmbition,
+              // Build DiagnosticInput for the engine
+              const diagnosticInput: DiagnosticInput = {
+                athleteId: currentAthlete.id,
+                athleteName: currentAthlete.name,
                 age,
-              };
-              
-              // Symptom metrics
-              const symptomMetrics = {
+                sex: (effectiveCloudSnapshot?.sport_main === "run" ? null : null) as "M" | "F" | null,
+                weightKg: effectiveCloudSnapshot?.weight_kg ?? null,
+                objectif: currentAthlete.goal || "IM",
+                ambition: currentAmbition,
+                sportFocus: isRunningOnly ? "run" : "bike",
                 vo2max: effectiveCloudSnapshot?.vo2max ?? null,
-                vo2maxTarget,
-                vlamax: vlamaxEffectif.value,
-                vlamaxTarget,
-                tte: tteEffectif.tte_min,
-                tteTarget,
-                fatmax: fatmaxPct,
-                fatmaxTarget,
-                freshness,
+                ftp: effectiveCloudSnapshot?.ftp ?? null,
+                ftpKg: ftp_kg,
+                pmax5s: effectiveCloudSnapshot?.pmax_5s ?? null,
+                p30sW: effectiveCloudSnapshot?.p30s_w ?? null,
+                p60sW: effectiveCloudSnapshot?.p60s_w ?? null,
+                map5minW: effectiveCloudSnapshot?.map5min_w ?? null,
+                vma: effectiveCloudSnapshot?.vma ?? null,
+                css: effectiveCloudSnapshot?.css ?? null,
+                vlamax: effectiveCloudSnapshot?.vlamax ?? null,
+                vlamaxRun: effectiveCloudSnapshot?.vlamax_run ?? null,
+                vlamaxSource: effectiveCloudSnapshot?.vlamax_source ?? null,
+                vlamaxProtocol: effectiveCloudSnapshot?.vlamax_protocol ?? null,
+                vlamaxIsReference: effectiveCloudSnapshot?.vlamax_is_reference ?? false,
+                tteObservedMin: effectiveCloudSnapshot?.tte_observed_min ?? null,
+                tteMode: effectiveCloudSnapshot?.tte_mode ?? null,
+                tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
+                fatigueState: effectiveCloudSnapshot?.fatigue_state ?? null,
+                runEconomyScore: effectiveCloudSnapshot?.run_economy_score ?? null,
+                runHrDriftPct: effectiveCloudSnapshot?.run_hr_drift_pct ?? null,
+                paceThresholdSecPerKm: effectiveCloudSnapshot?.pace_threshold_sec_per_km ?? null,
+                runningPower1s: effectiveCloudSnapshot?.running_power_1s ?? null,
+                runningPower5s: effectiveCloudSnapshot?.running_power_5s ?? null,
+                runningPower30s: effectiveCloudSnapshot?.running_power_30s ?? null,
+                runningPower60s: effectiveCloudSnapshot?.running_power_60s ?? null,
+                runningPower5min: effectiveCloudSnapshot?.running_power_5min ?? null,
+                runningPowerThreshold: effectiveCloudSnapshot?.running_power_threshold ?? null,
+                sprint15sDistance: effectiveCloudSnapshot?.sprint_15s_distance ?? null,
+                bikeCadenceRpm: effectiveCloudSnapshot?.bike_cadence_rpm ?? null,
+                bikeHrDriftFlag: effectiveCloudSnapshot?.bike_hr_drift_flag ?? false,
+                protocolQuality: effectiveCloudSnapshot?.protocol_quality ?? null,
+                wprimeKj: null,
+                cpDataQuality: null,
+                fatmax: null,
+                forceDevMode: effectiveCloudSnapshot?.force_development_mode ?? false,
+                giIssuesFlag: effectiveCloudSnapshot?.gi_issues_flag ?? false,
+                checkinData: latestCheckin ? {
+                  sleep: latestCheckin.sleep,
+                  fatigue: latestCheckin.fatigue,
+                  soreness: latestCheckin.soreness,
+                  stress: latestCheckin.stress,
+                  motivation: latestCheckin.motivation,
+                  painFlag: latestCheckin.pain_flag ?? false,
+                } : undefined,
               };
               
-              // Lorang input
-              const disciplineMap: Record<string, 'IM' | '703' | 'marathon' | 'semi' | '10k' | 'cycling' | 'trail'> = {
-                'IM': 'IM', '703': '703', 'Marathon': 'marathon', 'Semi': 'semi',
-              };
-              const lorangInput: LorangStrategyInput = {
-                physiology: {
-                  vo2max: effectiveCloudSnapshot?.vo2max ?? null,
-                  vo2maxTarget,
-                  ftpKg: ftp_kg,
-                  ftpKgTarget: null,
-                  vlamax: vlamaxEffectif.value,
-                  vlamaxTarget,
-                  tte: tteEffectif.tte_min,
-                  tteTarget,
-                  fatmax: fatmaxPct,
-                  fatmaxTarget,
-                  economy: effectiveCloudSnapshot?.run_economy_score ?? null,
-                },
-                athlete: {
-                  age,
-                  discipline: disciplineMap[currentAthlete.goal || '703'] || '703',
-                  ambition: currentAmbition,
-                  hasGIIssues: (effectiveCloudSnapshot as unknown as Record<string, unknown>)?.gi_issues_flag === true,
-                },
-                availability: {
-                  score: freshness ?? 70,
-                  level: freshness != null ? (freshness >= 75 ? 'high' : freshness >= 50 ? 'moderate' : freshness >= 30 ? 'low' : 'critical') : 'moderate',
-                  hasAlerts: latestCheckin?.pain_flag ?? false,
-                  hrvOutOfRange2Days: false,
-                },
+              // Compute diagnostic via engine
+              const diagnostic = computeDiagnostic(diagnosticInput);
+              
+              // Build DecisionInput for the engine
+              const decisionInput: DecisionInput = {
+                diagnostic,
                 context: {
                   daysToRace: null,
                   isRaceWeek: false,
-                  currentPhase: 'build',
+                  currentPhase: "build",
                 },
                 load: {
                   tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
@@ -1374,11 +1362,13 @@ const Index = () => {
                 },
               };
               
+              // Compute prescription via engine
+              const prescription = computeDecision(decisionInput);
+              
               return (
                 <CoachDecisionUnifiedCard
-                  decisionInput={decisionInput}
-                  symptomMetrics={symptomMetrics}
-                  lorangInput={lorangInput}
+                  diagnostic={diagnostic}
+                  prescription={prescription}
                   staffMode={staffMode}
                   compact={!staffMode}
                 />

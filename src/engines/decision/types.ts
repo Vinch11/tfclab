@@ -16,8 +16,8 @@
  */
 
 import type { AthleteDiagnostic } from "@/engines/diagnostic";
-import type { LorangStrategyResult, LorangLeverActivation, LorangProhibitionRule } from "@/lib/v2/lorangStrategyEngine";
-import type { TFCLDecisionResult, TFCLTrainingFocus } from "@/lib/v2/tfclDecisionMatrix";
+import type { LorangStrategyResult, LorangLeverActivation, LorangProhibitionRule, LorangStrategyInput } from "@/lib/v2/lorangStrategyEngine";
+import type { TFCLDecisionResult, TFCLDecisionInput, TFCLTrainingFocus } from "@/lib/v2/tfclDecisionMatrix";
 import type { WorkoutAdvisory, AdvisoryEngineOutput, AdvisoryStatus } from "@/lib/workoutAdvisoryEngine";
 import type { WorkoutRecommendation, RecommendationEngineOutput } from "@/lib/workoutRecommendationEngine";
 import type { StrategicRoadmap, RoadmapPhase } from "@/lib/v2/strategicRoadmap";
@@ -129,6 +129,10 @@ export interface StrategyPrescription {
   /** Détails complets (résultats sous-moteurs, pour le mode Staff) */
   _lorangResult: LorangStrategyResult | null;
   _matrixResult: TFCLDecisionResult | null;
+  
+  /** Inputs originaux (pour les sous-composants legacy) */
+  _lorangInput: LorangStrategyInput | null;
+  _matrixInput: TFCLDecisionInput | null;
 }
 
 export interface WorkoutGuidance {

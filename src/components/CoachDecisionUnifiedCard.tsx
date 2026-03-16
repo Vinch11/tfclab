@@ -1,19 +1,19 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
- * COACH DECISION CENTER TFCL™ — Carte Unifiée (Phase 1e UX)
- * Consolidation de:
- * - TFCLDecisionMatrixCard (Diagnostic + Facteur limitant)
- * - TFCLDecisionMatrixTable (Matrice Symptômes)
- * - LorangStrategyCard (Leviers + Interdictions)
+ * COACH DECISION CENTER TFCL™ — Carte Unifiée (Phase 2 Architecture)
+ * 
+ * Consomme désormais les engines unifiés :
+ * - AthleteDiagnostic (Diagnostic Engine)
+ * - TrainingPrescription (Decision Engine)
  * 
  * 3 onglets: Diagnostic | Symptômes | Leviers
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatedTabsContent } from "@/components/ui/animated-tabs-content";
 import { cn } from "@/lib/utils";
 import { LazyTabsContent } from "@/components/ui/lazy-tabs-content";
@@ -23,38 +23,22 @@ import {
   Target,
   Zap,
   AlertTriangle,
-  CheckCircle2,
 } from "lucide-react";
 
 import { TFCLDecisionMatrixCard } from "./TFCLDecisionMatrixCard";
 import { TFCLDecisionMatrixTable } from "./TFCLDecisionMatrixTable";
 import { LorangStrategyCard } from "./LorangStrategyCard";
 
-import type { TFCLDecisionInput } from "@/lib/v2/tfclDecisionMatrix";
-import { computeTFCLDecisionMatrix } from "@/lib/v2/tfclDecisionMatrix";
-import type { LorangStrategyInput } from "@/lib/v2/lorangStrategyEngine";
-import { computeLorangStrategy } from "@/lib/v2/lorangStrategyEngine";
+import type { AthleteDiagnostic } from "@/engines/diagnostic";
+import type { TrainingPrescription } from "@/engines/decision";
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// PROPS
+// PROPS — Nouvelle interface basée sur les engines
 // ═══════════════════════════════════════════════════════════════════════════════
-
-interface MetricsContext {
-  vo2max: number | null;
-  vo2maxTarget: number;
-  vlamax: number | null;
-  vlamaxTarget: number;
-  tte: number | null;
-  tteTarget: number;
-  fatmax: number | null;
-  fatmaxTarget: number;
-  freshness: number | null;
-}
 
 export interface CoachDecisionUnifiedCardProps {
-  decisionInput: TFCLDecisionInput;
-  symptomMetrics: MetricsContext;
-  lorangInput: LorangStrategyInput;
+  diagnostic: AthleteDiagnostic;
+  prescription: TrainingPrescription;
   staffMode?: boolean;
   compact?: boolean;
   className?: string;
@@ -65,18 +49,17 @@ export interface CoachDecisionUnifiedCardProps {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export function CoachDecisionUnifiedCard({
-  decisionInput,
-  symptomMetrics,
-  lorangInput,
+  diagnostic,
+  prescription,
   staffMode = false,
   compact = false,
   className,
 }: CoachDecisionUnifiedCardProps) {
   const [activeTab, setActiveTab] = useState("diagnostic");
 
-  // Compute results for header summary
-  const decisionResult = useMemo(() => computeTFCLDecisionMatrix(decisionInput), [decisionInput]);
-  const lorangResult = useMemo(() => computeLorangStrategy(lorangInput), [lorangInput]);
+  const { strategy } = prescription;
+  const matrixResult = strategy._matrixResult;
+  const lorangResult = strategy._lorangResult;
 
   return (
     <Card className={cn("overflow-hidden", className)}>
@@ -99,12 +82,12 @@ export function CoachDecisionUnifiedCard({
               variant="outline"
               className={cn(
                 "text-[10px]",
-                decisionResult.isRobust
+                strategy.isRobust
                   ? "border-green-500 text-green-700 dark:text-green-400"
                   : "border-amber-500 text-amber-700 dark:text-amber-400"
               )}
             >
-              {decisionResult.isRobust ? "Robuste" : "Marginal"}
+              {strategy.isRobust ? "Robuste" : "Marginal"}
             </Badge>
           </div>
         </div>
@@ -112,15 +95,15 @@ export function CoachDecisionUnifiedCard({
         {/* Summary row: Limiteur + Levier + Sprint Ban */}
         <div className="flex flex-wrap items-center gap-3 mt-3 text-sm">
           <div className="flex items-center gap-1.5">
-            <span className="text-base">{decisionResult.limitingFactorEmoji}</span>
-            <span className="font-medium">{decisionResult.limitingFactorLabel}</span>
+            <span className="text-base">{matrixResult?.limitingFactorEmoji ?? "🔍"}</span>
+            <span className="font-medium">{matrixResult?.limitingFactorLabel ?? diagnostic.limiter.limiterLabel}</span>
           </div>
           <span className="text-muted-foreground">→</span>
           <div className="flex items-center gap-1.5">
-            <span className="text-base">{decisionResult.leverIcon}</span>
-            <span className="font-medium text-primary">{decisionResult.leverLabel}</span>
+            <span className="text-base">{matrixResult?.leverIcon ?? "🎯"}</span>
+            <span className="font-medium text-primary">{matrixResult?.leverLabel ?? strategy.primaryAction}</span>
           </div>
-          {lorangResult.hasSprintBan && (
+          {strategy.hasSprintBan && (
             <Badge variant="destructive" className="text-[10px]">
               Sprint Ban
             </Badge>
@@ -147,32 +130,56 @@ export function CoachDecisionUnifiedCard({
 
           <SwipeableTabsContent tabs={["diagnostic", "symptoms", "levers"]} activeTab={activeTab} onTabChange={setActiveTab}>
 
-          {/* Diagnostic Tab — Reuse existing TFCLDecisionMatrixCard (embedded, no outer Card) */}
+          {/* Diagnostic Tab — Pass the matrix input from prescription internals */}
           <AnimatedTabsContent value="diagnostic" activeValue={activeTab} className="px-4 pb-4 mt-0">
-            <TFCLDecisionMatrixCard
-              input={decisionInput}
-              compact={compact}
-              showDomainDetails={staffMode}
-              className="border-0 shadow-none"
-            />
+            {strategy._matrixInput ? (
+              <TFCLDecisionMatrixCard
+                input={strategy._matrixInput}
+                compact={compact}
+                showDomainDetails={staffMode}
+                className="border-0 shadow-none"
+              />
+            ) : (
+              <div className="py-6 text-center text-muted-foreground text-sm">
+                <p className="font-medium">{diagnostic.synthesis.headline}</p>
+                <p className="mt-1 text-xs">Confiance : {Math.round(diagnostic.meta.confidenceGlobal * 100)}%</p>
+              </div>
+            )}
           </AnimatedTabsContent>
 
-          {/* Symptoms Tab — Deferred rendering */}
+          {/* Symptoms Tab */}
           <LazyTabsContent value="symptoms" activeValue={activeTab} className="px-4 pb-4 mt-0">
             <TFCLDecisionMatrixTable
-              metrics={symptomMetrics}
+              metrics={{
+                vo2max: diagnostic.limiter.gapAnalysis.find(g => g.metric === "VO2max")?.value ?? null,
+                vo2maxTarget: diagnostic.targets.current.ftp_kg_min * 15,
+                vlamax: diagnostic.effectifs.vlamax.value,
+                vlamaxTarget: diagnostic.targets.vlamaxRange.optimal,
+                tte: diagnostic.effectifs.tte.tte_min,
+                tteTarget: diagnostic.targets.current.tte_min,
+                fatmax: null,
+                fatmaxTarget: 50,
+                freshness: 100 - diagnostic.effectifs.fatigue.score,
+              }}
               className="border-0 shadow-none"
             />
           </LazyTabsContent>
 
-          {/* Levers Tab — Deferred rendering */}
+          {/* Levers Tab */}
           <LazyTabsContent value="levers" activeValue={activeTab} className="px-4 pb-4 mt-0">
-            <LorangStrategyCard
-              input={lorangInput}
-              showStaffLevers={staffMode}
-              compact={compact}
-              className="border-0 shadow-none"
-            />
+            {strategy._lorangInput ? (
+              <LorangStrategyCard
+                input={strategy._lorangInput}
+                showStaffLevers={staffMode}
+                compact={compact}
+                className="border-0 shadow-none"
+              />
+            ) : (
+              <div className="py-6 text-center text-muted-foreground text-sm">
+                <p className="font-medium">{strategy.primaryAction}</p>
+                <p className="mt-1 text-xs">{strategy.whyThis}</p>
+              </div>
+            )}
           </LazyTabsContent>
           </SwipeableTabsContent>
         </Tabs>

@@ -125,24 +125,24 @@ function computeStrategyFromDiagnostic(
 
   // Bridge diagnostic → TFCLDecisionMatrix
   let matrixResult: TFCLDecisionResult | null = null;
+  const matrixInput: TFCLDecisionInput = {
+    vo2max: wrapDataSource(null),
+    vlamax: wrapDataSource(diag.effectifs.vlamax.value),
+    tte: wrapDataSource(diag.effectifs.tte.tte_min),
+    fatMaxPctVO2: wrapDataSource(null),
+    fatOxidationMax: wrapDataSource(null),
+    crossoverPctVO2: wrapDataSource(null),
+    freshnessScore: wrapDataSource(100 - diag.effectifs.fatigue.score),
+    tss7d: wrapDataSource(input.load?.tss7d ?? null),
+    tss28d: wrapDataSource(input.load?.tss28d ?? null),
+    subjectiveFatigue: wrapDataSource(null),
+    confidenceScore: diag.meta.confidenceGlobal * 100,
+    discipline: diag.sportFocus === "run" ? "cap" : diag.sportFocus === "tri" ? "tri" : "velo",
+    objective: diag.objectif as any,
+    ambition: diag.ambition,
+    age: null,
+  };
   try {
-    const matrixInput: TFCLDecisionInput = {
-      vo2max: wrapDataSource(null),
-      vlamax: wrapDataSource(diag.effectifs.vlamax.value),
-      tte: wrapDataSource(diag.effectifs.tte.tte_min),
-      fatMaxPctVO2: wrapDataSource(null),
-      fatOxidationMax: wrapDataSource(null),
-      crossoverPctVO2: wrapDataSource(null),
-      freshnessScore: wrapDataSource(100 - diag.effectifs.fatigue.score),
-      tss7d: wrapDataSource(input.load?.tss7d ?? null),
-      tss28d: wrapDataSource(input.load?.tss28d ?? null),
-      subjectiveFatigue: wrapDataSource(null),
-      confidenceScore: diag.meta.confidenceGlobal * 100,
-      discipline: diag.sportFocus === "run" ? "cap" : diag.sportFocus === "tri" ? "tri" : "velo",
-      objective: diag.objectif as any,
-      ambition: diag.ambition,
-      age: null,
-    };
     matrixResult = computeTFCLDecisionMatrix(matrixInput);
   } catch {
     // Fallback
@@ -163,6 +163,8 @@ function computeStrategyFromDiagnostic(
     isRobust: matrixResult?.isRobust ?? false,
     _lorangResult: lorangResult,
     _matrixResult: matrixResult,
+    _lorangInput: lorangInput,
+    _matrixInput: matrixInput,
   };
 }
 
