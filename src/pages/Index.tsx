@@ -183,10 +183,7 @@ import { toast } from "sonner";
 
 // ✅ Legacy types/helpers (utilisés par tes composants actuels)
 import { getDernierSnapshot } from "@/types/athlete";
-import { computeVLamaxEffectif, VLamaxEffectif } from "@/lib/vlamaxEffectif";
-
-// ✅ TTE EFFECTIF - Source unique de vérité
-import { computeTTEEffectif, TTEEffectif, getSourceLabel } from "@/lib/tteEffectif";
+import { computeVLamaxEffectif, type VLamaxEffectif, computeTTEEffectif, type TTEEffectif, getSourceLabel } from "@/engines/diagnostic";
 
 // ✅ RACE READINESS EFFECTIF - Source unique de vérité
 import { computeRaceReadinessEffectif, RaceReadinessEffectif, getScoreColor } from "@/lib/raceReadinessEffectif";

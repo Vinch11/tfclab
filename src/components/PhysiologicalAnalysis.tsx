@@ -30,9 +30,7 @@ import {
   Apple,
   Flame
 } from "lucide-react";
-import { VLamaxEffectif, toVLamaxEnvelope } from "@/lib/vlamaxEffectif";
-import { VLamaxMetricRow } from "@/components/VLamaxStatusBadge";
-import { TTEEffectif, getSourceColor as getTTESourceColor, getSourceLabel, toTTEEnvelope } from "@/lib/tteEffectif";
+import { type VLamaxEffectif, toVLamaxEnvelope, type TTEEffectif, getTTESourceColor, getSourceLabel, toTTEEnvelope } from "@/engines/diagnostic";
 import { RaceReadinessEffectif, toRaceReadinessEnvelope } from "@/lib/raceReadinessEffectif";
 import { cn } from "@/lib/utils";
 import { getConfidenceLabelFromPercent, getConfidenceColorClassFromPercent } from "@/lib/confidenceDisplay";
