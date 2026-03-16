@@ -56,7 +56,7 @@ import { RaceReadinessSignatureChart, type RaceReadinessInput } from "@/componen
 import { RaceReadinessUnifiedCard } from "@/components/RaceReadinessUnifiedCard";
 import { computeCompassScores, type CompassScores } from "@/lib/compassScoring";
 import { DecisionReliabilityCard } from "@/components/DecisionReliabilityCard";
-import { computeFullDRE, DecisionReliabilityResult } from "@/lib/v2/decisionReliabilityEngine";
+import { computeFullDRE, type DecisionReliabilityResult } from "@/engines/diagnostic";
 import { useDecisionReliability } from "@/hooks/useDecisionReliability";
 import { SortableSectionsContainer } from "@/components/SortableSectionsContainer";
 
