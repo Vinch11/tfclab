@@ -544,7 +544,7 @@ export default function AITrainingPlanPage() {
       toast.success(`${results.length} plan(s) généré(s) !`);
       if (results.length > 1) setResultView("compare");
     }
-  }, [selectedAthleteIds, athletes, objective, ambition, computeAthleteContext, buildConfig]);
+  }, [selectedAthleteIds, athletes, objective, ambition, computeAthleteContext, buildConfigFromDiag]);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(response);
