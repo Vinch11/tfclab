@@ -6572,7 +6572,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     if (!v2max || !vla || !ftpVal) return '';
     
     // Use Mader model for scientific accuracy (parity with dashboard)
-    const { findSteadyStateLactate, findLactateThresholds, findFatMax, findMLSSPower, predictMaderPerformance } = require("@/lib/v2/maderMetabolicModel");
+    // Mader model imported at top level (ESM)
     const maderProfile = { vo2max: v2max, vlamax: vla, weight: weightKg };
     const thresholds = findLactateThresholds(maderProfile);
     const fatMaxResult = findFatMax(maderProfile);
