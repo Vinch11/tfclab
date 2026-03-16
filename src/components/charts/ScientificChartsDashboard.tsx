@@ -32,6 +32,9 @@ interface ScientificChartsDashboardProps {
   tss7d?: number | null;
   sport?: "velo" | "cap" | "triathlon";
   initialStaffMode?: boolean;
+  vo2max?: number | null;
+  ftp?: number | null;
+  weight?: number;
 }
 
 export function ScientificChartsDashboard({
