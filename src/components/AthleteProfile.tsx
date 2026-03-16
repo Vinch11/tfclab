@@ -414,6 +414,13 @@ export function AthleteProfile({
             </div>
           )}
           
+          {/* ✅ TFCL Coaching Compass™ — Centre décisionnel */}
+          {compassInput && (
+            <div className="mt-4">
+              <CoachingCompassCard input={compassInput} staffMode={staffMode} />
+            </div>
+          )}
+          
           {/* ✅ Timeline des objectifs (si showObjectiveManager activé) */}
           {showObjectiveManager && athleteId && (
             <Collapsible open={isObjectivesExpanded} onOpenChange={setIsObjectivesExpanded}>
