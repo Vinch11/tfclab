@@ -81,6 +81,9 @@ const SECTION_ICONS: Record<keyof ReportSections, React.ComponentType<{ classNam
   comprendre: BookOpen,
   qualite: CheckSquare,
   roadmap: BarChart3,
+  lactateCurve: TrendingUp,
+  substrateCurve: Flame,
+  performancePrediction: Target,
 };
 
 // Catégories avec couleurs
