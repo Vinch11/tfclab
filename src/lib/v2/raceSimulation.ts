@@ -744,6 +744,8 @@ function generateScenario(
       segmentIntensity = targetIntensity - (i * 0.5);
     }
     
+    const gutTraining = input.gutTraining ?? false;
+    
     const fuelRisk = computeSegmentFuelRisk(
       targetIntensity,
       input.fatmaxCenterPct,
@@ -753,6 +755,7 @@ function generateScenario(
       i,
       numSegments,
       input.plannedCarbsGH,
+      gutTraining,
       type,
       readinessModifiers
     );
@@ -764,6 +767,7 @@ function generateScenario(
       input.fatmaxCenterPct,
       input.vlamaxEffectif,
       input.plannedCarbsGH,
+      gutTraining,
       type,
       readinessModifiers
     );
@@ -776,6 +780,7 @@ function generateScenario(
       input.fatmaxCenterPct,
       input.vlamaxEffectif,
       0, // pas d'apport
+      false,
       type,
       readinessModifiers
     );
