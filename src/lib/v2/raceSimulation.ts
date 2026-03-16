@@ -529,8 +529,7 @@ function computeSegmentFuelRisk(
   
   // Mitigation nutrition – basée sur l'absorption intestinale réelle
   if (plannedCarbsGH && plannedCarbsGH > 0) {
-    const absorbedGH = computeAbsorbedCarbsGH(plannedCarbsGH);
-    // 60g/h absorbé = ~25 pts de mitigation max, proportionnel
+    const absorbedGH = computeAbsorbedCarbsGH(plannedCarbsGH, gutTraining);
     const nutritionMitigation = Math.min(30, (absorbedGH / 60) * 25);
     risk -= nutritionMitigation;
   }
