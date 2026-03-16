@@ -1330,9 +1330,9 @@ const Index = () => {
                 bikeCadenceRpm: effectiveCloudSnapshot?.bike_cadence_rpm ?? null,
                 bikeHrDriftFlag: effectiveCloudSnapshot?.bike_hr_drift_flag ?? false,
                 protocolQuality: effectiveCloudSnapshot?.protocol_quality ?? null,
-                wprimeKj: null,
-                cpDataQuality: null,
-                fatmax: null,
+                wprimeKj: wprimeKjForLimiter,
+                cpDataQuality: cpResultForLimiter?.dataQuality ?? null,
+                fatmax: vlamaxEffectif.value != null ? Math.max(0, 65 - (vlamaxEffectif.value - 0.3) * 80) : null,
                 forceDevMode: effectiveCloudSnapshot?.force_development_mode ?? false,
                 giIssuesFlag: effectiveCloudSnapshot?.gi_issues_flag ?? false,
                 checkinData: latestCheckin ? {
