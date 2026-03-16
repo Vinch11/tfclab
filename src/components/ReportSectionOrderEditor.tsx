@@ -182,6 +182,9 @@ export const DEFAULT_SECTION_ORDER: (keyof ReportSections)[] = [
   "comprendre",
   "qualite",
   "roadmap",
+  "lactateCurve",
+  "substrateCurve",
+  "performancePrediction",
 ];
 
 // Visibilité par défaut (toutes visibles) - Also exported as DEFAULT_REPORT_SECTIONS
