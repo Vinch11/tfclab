@@ -54,36 +54,105 @@ export interface LactatePoint {
 // =============================================
 
 /**
- * Calculate steady-state lactate at a given intensity
- * Using simplified Mader model: La = VLamax × (1 - (VO2/VO2max)^k)
+ * Mader-Heck steady-state lactate model
+ * 
+ * Core principle: At any intensity, lactate accumulates when glycolytic
+ * production exceeds oxidative clearance.
+ * 
+ *   Production ∝ VLamax × (1 − fraction)  (glycolytic demand)
+ *   Clearance  ∝ VO2max × fraction         (oxidative capacity)
+ *   [La]ss = baseline + production / clearance
+ * 
+ * The model is tuned so that:
+ * - VLamax 0.30, VO2max 65 → LT1 ~72%, LT2 ~87%  (endurance profile)
+ * - VLamax 0.60, VO2max 55 → LT1 ~55%, LT2 ~72%  (glycolytic profile)
  */
 export function predictLactate(
   intensityPct: number,   // 0-100 % of VO2max
   vo2max: number,         // ml/kg/min
   vlamax: number          // mmol/L/s
 ): number {
-  if (intensityPct <= 0) return 1.0; // Baseline lactate
-  if (intensityPct >= 100) return 20; // Max lactate
+  if (intensityPct <= 0) return 0.8;
+  if (intensityPct >= 100) return 18 + vlamax * 10;
   
-  // Simplified lactate kinetics based on VLamax
-  // Higher VLamax = faster lactate production at submaximal intensities
-  const fraction = intensityPct / 100;
+  const f = intensityPct / 100; // fraction of VO2max
   
-  // Lactate production rate (simplified exponential model)
-  const productionRate = vlamax * Math.pow(fraction, 3) * 60; // mmol/L/min
+  // --- Glycolytic production rate (mmol/L/s equivalent) ---
+  // At rest (f=0) production is near 0; it rises exponentially
+  // VLamax scales the entire production curve
+  const productionRate = vlamax * Math.pow(f, 2.8);
   
-  // Lactate clearance capacity (inversely related to VLamax)
-  // Lower VLamax = better clearance at same intensity
-  const clearanceCapacity = (1 - (vlamax - 0.2) / 0.8) * 0.08; // mmol/L/min
+  // --- Oxidative clearance capacity ---
+  // VO2max determines the "ceiling" of oxidative lactate removal
+  // Clearance improves with aerobic fitness and is best at moderate intensities
+  // At very high intensities, clearance saturates (VO2 approaches VO2max)
+  const clearanceRate = (vo2max / 1000) * f * (1 - 0.3 * Math.pow(f, 4));
   
-  // Steady-state lactate = production / clearance at that intensity
-  const baseLactate = 1.0;
+  // --- Steady-state lactate ---
+  const baseLactate = 0.8; // resting [La]
   
-  // Exponential rise with intensity, modulated by VLamax
-  const k = 3.5 - (vlamax * 2); // Curvature factor
-  const lactate = baseLactate + vlamax * 8 * Math.pow(fraction, k);
+  // Net accumulation: when production > clearance, lactate rises exponentially
+  const netFlux = Math.max(0, productionRate - clearanceRate * 0.6);
   
-  return Math.min(20, Math.max(1, lactate));
+  // The exponential gain models the non-linear "hockey stick" shape
+  const gain = 12 + vlamax * 15; // Higher VLamax → steeper curve
+  const lactate = baseLactate + gain * Math.pow(netFlux, 1.6);
+  
+  return Math.min(25, Math.max(0.6, lactate));
+}
+
+/**
+ * Compute fat & carb oxidation rates (g/min) across the intensity spectrum
+ * Based on crossover concept: fat oxidation peaks at FatMax then declines
+ * as carbohydrate oxidation takes over
+ */
+export interface SubstratePoint {
+  intensity: number;     // % VO2max
+  watts: number;
+  fatGmin: number;       // fat oxidation g/min
+  carbGmin: number;      // carb oxidation g/min
+  totalKcalMin: number;  // total energy expenditure
+  fatPct: number;        // % energy from fat
+}
+
+export function generateSubstrateCurve(
+  vo2max: number,
+  vlamax: number,
+  weight: number,
+  ftp: number
+): SubstratePoint[] {
+  const points: SubstratePoint[] = [];
+  const pMax = ftp * 1.18;
+  const fatMaxPct = predictFatMax(vlamax);
+  
+  for (let intensity = 20; intensity <= 100; intensity += 2) {
+    const f = intensity / 100;
+    const watts = (intensity / 100) * pMax;
+    
+    // Total energy expenditure (kcal/min) ≈ VO2 (L/min) × 5 kcal/L
+    const vo2Lmin = (vo2max * weight * f) / 1000;
+    const totalKcalMin = vo2Lmin * 5;
+    
+    // Fat oxidation peaks at FatMax, then declines
+    // Bell curve centered on FatMax intensity
+    const fatMaxF = fatMaxPct / 100;
+    const fatOxFraction = Math.exp(-Math.pow((f - fatMaxF) / (0.18 + (1 - vlamax) * 0.12), 2));
+    
+    // Peak fat oxidation rate scales with VO2max and inversely with VLamax
+    const peakFatGmin = (0.4 + (vo2max - 40) * 0.01) * (1 - vlamax * 0.5);
+    const fatGmin = Math.max(0.05, peakFatGmin * fatOxFraction);
+    
+    // Carb oxidation = total minus fat (energy balance)
+    const fatKcal = fatGmin * 9;
+    const carbKcal = Math.max(0, totalKcalMin - fatKcal);
+    const carbGmin = carbKcal / 4;
+    
+    const fatPct = totalKcalMin > 0 ? (fatKcal / totalKcalMin) * 100 : 0;
+    
+    points.push({ intensity, watts, fatGmin, carbGmin, totalKcalMin, fatPct });
+  }
+  
+  return points;
 }
 
 /**
