@@ -81,6 +81,7 @@ export interface SegmentResult {
   fuelRiskIndex: number;          // 0-100
   depletionRisk: DepletionRisk;
   glycogenRemaining: number;      // 0-100%
+  glycogenWithoutNutrition: number; // 0-100% (courbe sans apport)
   carbsNeeded: number;            // g/h pour ce segment
   fatigueRisk: number;            // 0-100
   rpeEstimate: number;            // 1-10
