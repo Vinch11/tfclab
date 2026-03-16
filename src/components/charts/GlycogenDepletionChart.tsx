@@ -48,8 +48,15 @@ function CustomTooltip({ active, payload }: any) {
       <div className="font-medium mb-2">Km {Math.round(data.km)}</div>
       <div className="space-y-1 text-sm">
         <div className="flex items-center gap-2">
-          <Battery className="w-4 h-4 text-green-500" />
-          <span>Glycogène: {Math.round(data.glycogen)}%</span>
+          <Battery className="w-4 h-4 text-primary" />
+          <span>Avec nutrition: {Math.round(data.glycogen)}%</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Battery className="w-4 h-4 text-muted-foreground" />
+          <span>Sans nutrition: {Math.round(data.glycogenNoNutrition)}%</span>
+        </div>
+        <div className="text-xs font-medium text-primary">
+          Gain nutrition: +{Math.round(data.glycogen - data.glycogenNoNutrition)}%
         </div>
         <div className="flex items-center gap-2">
           <Fuel className="w-4 h-4 text-amber-500" />
