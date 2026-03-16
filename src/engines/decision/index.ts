@@ -90,7 +90,13 @@ export type {
 // Workout Advisory Engine
 export {
   generateWorkoutAdvisories,
+  getWorkoutAdvisory,
   WORKOUT_ADVISORY_DISCLAIMER,
+  WORKOUT_PHYSIO_TAGS,
+  FATIGUE_THRESHOLDS,
+  ADVISORY_MESSAGES,
+  ACADEMY_WORKOUT_CHAPTER,
+  ASSISTANT_WORKOUT_RESPONSE,
 } from "@/lib/workoutAdvisoryEngine";
 export type {
   WorkoutAdvisory,
