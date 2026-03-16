@@ -616,18 +616,20 @@ const Index = () => {
 
   // ✅ FATIGUE EFFECTIF — Pour Coaching Compass
   const fatigueEffectifForCompass = useMemo<FatigueEffectif | null>(() => {
-    if (!effectiveCloudSnapshot) return null;
+    if (!effectiveCloudSnapshot || !currentAthlete) return null;
     const fatigueStateToPercue: Record<string, number> = { fresh: 2, ok: 4, fatigued: 7, very_fatigued: 9 };
     const fatiguePercue = fatigueStateToPercue[effectiveCloudSnapshot.fatigue_state || "ok"] ?? 4;
     return computeFatigueEffectif({
       tss7d: effectiveCloudSnapshot.tss_7d ?? null,
       tss7dHabituel: null,
-      fatigueSubjective: fatiguePercue,
-      sleepScore: null,
-      stressScore: null,
-      perceivedFatigue: fatiguePercue,
+      fatiguePercue,
+      tteEffectif,
+      raceReadiness: raceReadinessEffectif,
+      vlamaxEffectif,
+      age: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
+      objectif: currentAthlete.goal || "IM",
     });
-  }, [effectiveCloudSnapshot]);
+  }, [effectiveCloudSnapshot, currentAthlete, tteEffectif, raceReadinessEffectif, vlamaxEffectif]);
 
   // ✅ LORANG STRATEGY — Pour Coaching Compass
   const lorangStrategyForCompass = useMemo<LorangStrategyResult | null>(() => {
