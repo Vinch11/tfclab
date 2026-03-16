@@ -1294,7 +1294,7 @@ const Index = () => {
                 athleteId: currentAthlete.id,
                 athleteName: currentAthlete.name,
                 age,
-                sex: (effectiveCloudSnapshot?.sport_main === "run" ? null : null) as "M" | "F" | null,
+                sex: (currentAthlete.sex === "M" || currentAthlete.sex === "F") ? currentAthlete.sex : null,
                 weightKg: effectiveCloudSnapshot?.weight_kg ?? null,
                 objectif: currentAthlete.goal || "IM",
                 ambition: currentAmbition,
