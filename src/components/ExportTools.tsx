@@ -6550,8 +6550,323 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   `;
 
   // =============================================
-  // FOOTER
+  // INSCYD-STYLE: LACTATE CURVE HTML (SVG)
   // =============================================
+  function buildLactateCurveHTML(p: ExportPayload): string {
+    const v2max = p.effectiveRefs.vo2max ?? effectiveSnapshot?.vo2max ?? null;
+    const vla = p.vlamax.value;
+    const ftpVal = p.effectiveRefs.ftp ?? effectiveSnapshot?.ftp ?? null;
+    if (!v2max || !vla || !ftpVal) return '';
+    
+    // Import model functions inline
+    const { predictLactate, findLactateThresholds, predictFatMax } = require("@/lib/v2/metabolicSimulator");
+    const thresholds = findLactateThresholds(v2max, vla);
+    const fatMaxPct = predictFatMax(vla);
+    const pMax = ftpVal * 1.18;
+    
+    // Generate SVG curve points
+    const svgW = 520, svgH = 200, padL = 50, padR = 20, padT = 20, padB = 30;
+    const plotW = svgW - padL - padR;
+    const plotH = svgH - padT - padB;
+    
+    const points: { x: number; y: number; lactate: number; intensity: number }[] = [];
+    for (let i = 30; i <= 110; i += 2) {
+      const lac = predictLactate(i, v2max, vla);
+      const x = padL + ((i - 30) / 80) * plotW;
+      const y = padT + plotH - Math.min(lac / 14, 1) * plotH;
+      points.push({ x, y, lactate: lac, intensity: i });
+    }
+    
+    const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+    const areaD = pathD + ` L ${points[points.length - 1].x.toFixed(1)} ${padT + plotH} L ${points[0].x.toFixed(1)} ${padT + plotH} Z`;
+    
+    // LT1/LT2 Y positions
+    const lt1Y = padT + plotH - (2 / 14) * plotH;
+    const lt2Y = padT + plotH - (4 / 14) * plotH;
+    const lt1W = Math.round((thresholds.lt1Pct / 100) * pMax);
+    const lt2W = Math.round((thresholds.lt2Pct / 100) * pMax);
+    const fatMaxW = Math.round((fatMaxPct / 100) * pMax);
+    
+    return `
+      <section id="lactate-curve">
+        <h2>🧪 Courbe de Lactate Simulée (Mader-Heck)</h2>
+        <div class="grid3 mb">
+          <div class="card" style="text-align:center;border-color:#22c55e;">
+            <div style="font-size:10px;color:#16a34a;font-weight:600;">FatMax</div>
+            <div class="big" style="color:#16a34a;">${fatMaxPct}%</div>
+            <div class="muted">${fatMaxW}W</div>
+          </div>
+          <div class="card" style="text-align:center;border-color:#22c55e;">
+            <div style="font-size:10px;color:#16a34a;font-weight:600;">LT1 (2 mmol/L)</div>
+            <div class="big" style="color:#16a34a;">${thresholds.lt1Pct}%</div>
+            <div class="muted">${lt1W}W</div>
+          </div>
+          <div class="card" style="text-align:center;border-color:#ea580c;">
+            <div style="font-size:10px;color:#ea580c;font-weight:600;">LT2 (4 mmol/L)</div>
+            <div class="big" style="color:#ea580c;">${thresholds.lt2Pct}%</div>
+            <div class="muted">${lt2W}W</div>
+          </div>
+        </div>
+        <div class="card">
+          <svg width="100%" viewBox="0 0 ${svgW} ${svgH}" preserveAspectRatio="xMidYMid meet">
+            <rect x="${padL}" y="${padT}" width="${plotW}" height="${plotH}" fill="#ffffff" stroke="#e5e7eb" rx="4"/>
+            <!-- Zone fills -->
+            <rect x="${padL}" y="${lt2Y}" width="${plotW}" height="${padT + plotH - lt2Y}" fill="#fff7ed" opacity="0.5"/>
+            <rect x="${padL}" y="${lt1Y}" width="${plotW}" height="${lt2Y - lt1Y}" fill="#fefce8" opacity="0.5"/>
+            <rect x="${padL}" y="${padT}" width="${plotW}" height="${lt1Y - padT}" fill="#f0fdf4" opacity="0.5"/>
+            <!-- Grid lines -->
+            ${[0, 2, 4, 6, 8, 10, 12, 14].map(v => {
+              const gy = padT + plotH - (v / 14) * plotH;
+              return `<line x1="${padL}" y1="${gy}" x2="${padL + plotW}" y2="${gy}" stroke="#e5e7eb" stroke-dasharray="3 3"/>
+                      <text x="${padL - 5}" y="${gy + 4}" text-anchor="end" font-size="9" fill="#64748b">${v}</text>`;
+            }).join('')}
+            <!-- X axis labels -->
+            ${[30, 40, 50, 60, 70, 80, 90, 100, 110].map(v => {
+              const gx = padL + ((v - 30) / 80) * plotW;
+              return `<text x="${gx}" y="${padT + plotH + 15}" text-anchor="middle" font-size="9" fill="#64748b">${v}%</text>`;
+            }).join('')}
+            <!-- LT1 line -->
+            <line x1="${padL}" y1="${lt1Y}" x2="${padL + plotW}" y2="${lt1Y}" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="6 3"/>
+            <text x="${padL + plotW + 2}" y="${lt1Y + 4}" font-size="9" fill="#16a34a" font-weight="600">LT1</text>
+            <!-- LT2 line -->
+            <line x1="${padL}" y1="${lt2Y}" x2="${padL + plotW}" y2="${lt2Y}" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="6 3"/>
+            <text x="${padL + plotW + 2}" y="${lt2Y + 4}" font-size="9" fill="#ea580c" font-weight="600">LT2</text>
+            <!-- Curve area -->
+            <defs><linearGradient id="pdfLacGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stop-color="#ea580c" stop-opacity="0.3"/><stop offset="95%" stop-color="#ea580c" stop-opacity="0.03"/></linearGradient></defs>
+            <path d="${areaD}" fill="url(#pdfLacGrad)"/>
+            <path d="${pathD}" fill="none" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- Labels -->
+            <text x="${svgW / 2}" y="${svgH - 2}" text-anchor="middle" font-size="10" fill="#64748b">% VO₂max</text>
+            <text x="12" y="${svgH / 2}" text-anchor="middle" font-size="10" fill="#64748b" transform="rotate(-90, 12, ${svgH / 2})">mmol/L</text>
+          </svg>
+          <div class="muted" style="text-align:center;margin-top:8px;font-size:10px;">
+            Courbe reconstruite par modèle Mader-Heck (VO₂max × VLamax). Non-invasif. Valider par test lactate step.
+          </div>
+        </div>
+        <div class="card" style="background:#f0fdf4;border-color:#22c55e;">
+          <div style="font-size:12px;font-weight:600;color:#16a34a;">💡 Interprétation métabolique</div>
+          <div class="muted" style="margin-top:4px;">
+            ${vla < 0.35
+              ? `Profil Endurance — VLamax basse (${vla.toFixed(2)}) → seuils élevés (LT1 ${thresholds.lt1Pct}%, LT2 ${thresholds.lt2Pct}%). Excellente efficacité lipidique.`
+              : vla > 0.55
+                ? `Profil Glycolytique — VLamax élevée (${vla.toFixed(2)}) → seuils bas (écart ${thresholds.lt2Pct - thresholds.lt1Pct}%). Priorité : volume Z2 pour abaisser VLamax.`
+                : `Profil Équilibré — Écart LT1-LT2 de ${thresholds.lt2Pct - thresholds.lt1Pct}% indique une marge de progression au tempo et sweet-spot.`
+            }
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
+  // =============================================
+  // INSCYD-STYLE: SUBSTRATE OXIDATION HTML (SVG)
+  // =============================================
+  function buildSubstrateCurveHTML(p: ExportPayload): string {
+    const v2max = p.effectiveRefs.vo2max ?? effectiveSnapshot?.vo2max ?? null;
+    const vla = p.vlamax.value;
+    const ftpVal = p.effectiveRefs.ftp ?? effectiveSnapshot?.ftp ?? null;
+    const weightKg = p.effectiveRefs.weightKg ?? effectiveSnapshot?.weight_kg ?? 70;
+    if (!v2max || !vla || !ftpVal) return '';
+    
+    const { generateSubstrateCurve, predictFatMax } = require("@/lib/v2/metabolicSimulator");
+    const data = generateSubstrateCurve(v2max, vla, weightKg, ftpVal);
+    const fatMaxPct = predictFatMax(vla);
+    const peakFat = data.reduce((b: any, p: any) => p.fatGmin > b.fatGmin ? p : b, data[0]);
+    const crossover = data.find((p: any) => p.fatPct < 50);
+    const crossoverPct = crossover?.intensity ?? fatMaxPct + 10;
+    const pMax = ftpVal * 1.18;
+    const atFtp = data.find((p: any) => p.intensity >= 85) ?? data[data.length - 1];
+    
+    // SVG dimensions
+    const svgW = 520, svgH = 180, padL = 50, padR = 20, padT = 15, padB = 25;
+    const plotW = svgW - padL - padR;
+    const plotH = svgH - padT - padB;
+    const maxY = Math.max(...data.map((d: any) => Math.max(d.fatGmin, d.carbGmin))) * 1.15;
+    
+    const fatPath = data.map((d: any, i: number) => {
+      const x = padL + ((d.intensity - 20) / 80) * plotW;
+      const y = padT + plotH - (d.fatGmin / maxY) * plotH;
+      return `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
+    }).join(' ');
+    
+    const carbPath = data.map((d: any, i: number) => {
+      const x = padL + ((d.intensity - 20) / 80) * plotW;
+      const y = padT + plotH - (d.carbGmin / maxY) * plotH;
+      return `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
+    }).join(' ');
+    
+    const fatAreaD = fatPath + ` L ${padL + plotW} ${padT + plotH} L ${padL} ${padT + plotH} Z`;
+    
+    return `
+      <section id="substrate-curve">
+        <h2>🔥 Oxydation Lipides / Glucides</h2>
+        <div class="grid3 mb">
+          <div class="card" style="text-align:center;border-color:#22c55e;">
+            <div style="font-size:10px;color:#16a34a;font-weight:600;">FatMax</div>
+            <div class="medium" style="color:#16a34a;">${peakFat.fatGmin.toFixed(2)} g/min</div>
+            <div class="muted">${fatMaxPct}% VO₂max · ${Math.round((fatMaxPct / 100) * pMax)}W</div>
+          </div>
+          <div class="card" style="text-align:center;border-color:#3b82f6;">
+            <div style="font-size:10px;color:#3b82f6;font-weight:600;">Crossover</div>
+            <div class="medium" style="color:#3b82f6;">${crossoverPct}% VO₂max</div>
+            <div class="muted">${Math.round((crossoverPct / 100) * pMax)}W · 50/50 lip/glu</div>
+          </div>
+          <div class="card" style="text-align:center;border-color:#ea580c;">
+            <div style="font-size:10px;color:#ea580c;font-weight:600;">CHO @ FTP</div>
+            <div class="medium" style="color:#ea580c;">${(atFtp.carbGmin * 60).toFixed(0)} g/h</div>
+            <div class="muted">${atFtp.carbGmin.toFixed(2)} g/min · ${Math.round(atFtp.watts)}W</div>
+          </div>
+        </div>
+        <div class="card">
+          <svg width="100%" viewBox="0 0 ${svgW} ${svgH}" preserveAspectRatio="xMidYMid meet">
+            <rect x="${padL}" y="${padT}" width="${plotW}" height="${plotH}" fill="#ffffff" stroke="#e5e7eb" rx="4"/>
+            <!-- Crossover zone -->
+            ${(() => {
+              const x1 = padL + ((fatMaxPct - 20) / 80) * plotW;
+              const x2 = padL + ((crossoverPct - 20) / 80) * plotW;
+              return `<rect x="${x1}" y="${padT}" width="${x2 - x1}" height="${plotH}" fill="#dbeafe" opacity="0.3"/>`;
+            })()}
+            <!-- Fat area -->
+            <defs><linearGradient id="pdfFatGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stop-color="#16a34a" stop-opacity="0.3"/><stop offset="95%" stop-color="#16a34a" stop-opacity="0.02"/></linearGradient></defs>
+            <path d="${fatAreaD}" fill="url(#pdfFatGrad)"/>
+            <path d="${fatPath}" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round"/>
+            <!-- Carb line -->
+            <path d="${carbPath}" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="4 2" stroke-linecap="round"/>
+            <!-- FatMax vertical -->
+            ${(() => {
+              const x = padL + ((fatMaxPct - 20) / 80) * plotW;
+              return `<line x1="${x}" y1="${padT}" x2="${x}" y2="${padT + plotH}" stroke="#16a34a" stroke-width="1" stroke-dasharray="4 3"/>
+                      <text x="${x}" y="${padT - 3}" text-anchor="middle" font-size="8" fill="#16a34a" font-weight="600">FatMax</text>`;
+            })()}
+            <!-- Crossover vertical -->
+            ${(() => {
+              const x = padL + ((crossoverPct - 20) / 80) * plotW;
+              return `<line x1="${x}" y1="${padT}" x2="${x}" y2="${padT + plotH}" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4 3"/>
+                      <text x="${x}" y="${padT - 3}" text-anchor="middle" font-size="8" fill="#3b82f6" font-weight="600">Crossover</text>`;
+            })()}
+            <!-- Legend -->
+            <line x1="${padL + 10}" y1="${padT + 8}" x2="${padL + 30}" y2="${padT + 8}" stroke="#16a34a" stroke-width="2"/>
+            <text x="${padL + 35}" y="${padT + 12}" font-size="9" fill="#16a34a">Lipides (g/min)</text>
+            <line x1="${padL + 140}" y1="${padT + 8}" x2="${padL + 160}" y2="${padT + 8}" stroke="#ea580c" stroke-width="2" stroke-dasharray="4 2"/>
+            <text x="${padL + 165}" y="${padT + 12}" font-size="9" fill="#ea580c">Glucides (g/min)</text>
+          </svg>
+          <div class="muted" style="text-align:center;margin-top:8px;font-size:10px;">
+            Modèle crossover (Brooks 1994). Oxydation lipidique bell-curve centrée FatMax. Valider par calorimétrie indirecte.
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
+  // =============================================
+  // INSCYD-STYLE: PERFORMANCE PREDICTION HTML
+  // =============================================
+  function buildPerformancePredictionHTML(p: ExportPayload): string {
+    const v2max = p.effectiveRefs.vo2max ?? effectiveSnapshot?.vo2max ?? null;
+    const vla = p.vlamax.value;
+    const ftpVal = p.effectiveRefs.ftp ?? effectiveSnapshot?.ftp ?? null;
+    const weightKg = p.effectiveRefs.weightKg ?? effectiveSnapshot?.weight_kg ?? 70;
+    const vmaVal = effectiveSnapshot?.vma ?? null;
+    const cssVal = effectiveSnapshot?.css ?? null;
+    if (!v2max || !vla) return '';
+    
+    const { computePerformancePredictions } = require("@/lib/v2/performancePrediction");
+    const output = computePerformancePredictions({
+      vo2max: v2max,
+      vlamax: vla,
+      weight: weightKg,
+      ftp: ftpVal,
+      vma: vmaVal,
+      css: cssVal,
+      confidence: p.vlamax.confidence / 100,
+    });
+    
+    const scenarioColors: Record<string, { bg: string; text: string; label: string }> = {
+      conservative: { bg: '#f0fdf4', text: '#16a34a', label: 'Conservateur (95%)' },
+      optimal: { bg: '#eff6ff', text: '#2563eb', label: 'Optimal (80%)' },
+      aggressive: { bg: '#fff7ed', text: '#ea580c', label: 'Agressif (60%)' },
+    };
+    
+    // Build table
+    const races = output.scenarios[0]?.predictions ?? [];
+    
+    const tableRows = races.map((race: any, i: number) => {
+      const cells = output.scenarios.map((s: any) => {
+        const pred = s.predictions[i];
+        const sc = scenarioColors[s.scenario];
+        return `<td style="text-align:center;background:${sc.bg};">
+          <div style="font-weight:700;font-size:13px;color:${sc.text};">${pred.timeFormatted}</div>
+          ${pred.powerWatts ? `<div class="muted" style="font-size:10px;">${pred.powerWatts}W</div>` : ''}
+          ${pred.paceFormatted ? `<div class="muted" style="font-size:10px;">${pred.paceFormatted}</div>` : ''}
+        </td>`;
+      }).join('');
+      
+      const riskColor = race.glycogenRisk === 'low' ? '#16a34a' : race.glycogenRisk === 'moderate' ? '#d97706' : '#dc2626';
+      
+      return `<tr>
+        <td>
+          <div style="font-weight:600;">${race.raceName}</div>
+          <div class="muted" style="font-size:10px;">${race.distance}</div>
+        </td>
+        ${cells}
+        <td style="text-align:center;">
+          <span class="badge" style="background:${riskColor}20;color:${riskColor};">${race.glycogenRisk === 'low' ? 'Faible' : race.glycogenRisk === 'moderate' ? 'Modéré' : 'Élevé'}</span>
+        </td>
+      </tr>`;
+    }).join('');
+    
+    const headerCells = output.scenarios.map((s: any) => {
+      const sc = scenarioColors[s.scenario];
+      return `<th style="text-align:center;background:${sc.bg};color:${sc.text};font-size:11px;">${sc.label}</th>`;
+    }).join('');
+    
+    return `
+      <section id="performance-prediction">
+        <h2>⏱️ Prédiction de Performance</h2>
+        <div class="card mb">
+          <div class="grid3 mb">
+            <div style="text-align:center;">
+              <div style="font-size:10px;color:#64748b;">VO₂max</div>
+              <div class="medium" style="color:#2563eb;">${v2max}</div>
+              <div class="muted">ml/kg/min</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-size:10px;color:#64748b;">VLamax</div>
+              <div class="medium" style="color:#ea580c;">${vla.toFixed(2)}</div>
+              <div class="muted">mmol/L/s</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-size:10px;color:#64748b;">Poids</div>
+              <div class="medium">${weightKg}</div>
+              <div class="muted">kg</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <table>
+            <thead>
+              <tr>
+                <th>Course</th>
+                ${headerCells}
+                <th style="text-align:center;font-size:10px;">Risque<br>Glycogène</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+        </div>
+        <div class="card" style="background:#f8fafc;">
+          <div class="muted" style="font-size:10px;">
+            <b>Méthodologie :</b> ${output.modelNote}
+            Les scénarios reflètent la probabilité de succès physiologique. Confiance du modèle : ${Math.round(output.confidence * 100)}%.
+            Variables terrain (dénivelé, vent, température) non incluses.
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
   const footerHTML = `
     <div class="footer">
       <div style="display:flex; align-items:center; justify-content:space-between; gap:16px;">
