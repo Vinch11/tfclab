@@ -52,7 +52,7 @@ import {
   SYMPTOM_CATEGORY_LABELS,
 } from "@/lib/v2/tfclSymptoms";
 import { TFCLSymptomSignatureChart } from "./TFCLSymptomSignatureChart";
-import type { TrainingLever } from "@/lib/v2/tfclDecisionMatrix";
+import type { TrainingLever } from "@/engines/decision";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES

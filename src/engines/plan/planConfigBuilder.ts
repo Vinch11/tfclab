@@ -12,7 +12,7 @@
 
 import type { AthleteDiagnostic } from "@/engines/diagnostic";
 import type { PlanConfig, PlanAthleteData, RaceGoal } from "@/hooks/useAITrainingPlan";
-import type { UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
+import type { UnifiedLimiterResult } from "@/engines/diagnostic";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ATHLETE DATA EXTRACTION

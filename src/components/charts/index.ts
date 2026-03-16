@@ -115,4 +115,4 @@ export {
   type IntensityType,
   type LoadLevel,
   type DurationClass,
-} from "@/lib/workoutAdvisoryEngine";
+} from "@/engines/decision";

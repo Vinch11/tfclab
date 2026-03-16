@@ -20,7 +20,7 @@ import {
   getVo2maxTarget, 
   getVo2maxAgeFactor, 
   getVo2maxAgeAdjustmentLabel 
-} from "@/lib/v2/unifiedLimiterDetection";
+} from "@/engines/diagnostic";
 import { 
   getTTETargetForAge,
   getAgeNutritionAdjustment,

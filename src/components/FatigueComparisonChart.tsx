@@ -22,10 +22,8 @@ import { TrendingUp, TrendingDown, Minus, Activity, Battery } from "lucide-react
 import { format, subDays, parseISO, isAfter } from "date-fns";
 import { fr } from "date-fns/locale";
 import { DbSnapshot, DbTest } from "@/hooks/useCloudData";
-import { computeFatigueEffectif } from "@/lib/fatigueEffectif";
-import { computeTTEEffectif } from "@/lib/tteEffectif";
+import { computeFatigueEffectif, computeTTEEffectif, computeVLamaxEffectif } from "@/engines/diagnostic";
 import { computeRaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
-import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
 
 // Mapping fatigue_state → score 0-100
 const FATIGUE_STATE_TO_SCORE: Record<string, number> = {

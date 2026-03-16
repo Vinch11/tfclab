@@ -101,7 +101,7 @@ import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 
 // ✅ Roadmap Stratégique
 import { RoadmapStrategique } from "@/components/RoadmapStrategique";
-import { detectUnifiedLimiter, type UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
+import { detectUnifiedLimiter, type UnifiedLimiterResult } from "@/engines/diagnostic";
 // ✅ FIX 11 - Effective Refs (source unique de vérité)
 import { getEffectiveRefs, computeFtpKg, getMissingFields } from "@/lib/effectiveRefs";
 

@@ -49,8 +49,7 @@ import { SortableSectionsContainer } from "@/components/SortableSectionsContaine
 import { MetabolicCompassCAP } from "@/components/charts";
 
 // Logique et calculs
-import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
-import { computeTTEEffectif } from "@/lib/tteEffectif";
+import { computeVLamaxEffectif, computeTTEEffectif } from "@/engines/diagnostic";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { calculateAge } from "@/lib/ageAdjustment";
 import { computeCAPInjuryRisk } from "@/lib/v2/injuryRiskUnified";

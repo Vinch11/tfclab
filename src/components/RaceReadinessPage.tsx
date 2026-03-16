@@ -24,11 +24,11 @@ import {
   TTEAgeTarget 
 } from "@/components/AgeAdjustmentInfo";
 import { TargetSyncVerifier } from "@/components/TargetSyncVerifier";
-import { type LorangStrategyInput } from "@/lib/v2/lorangStrategyEngine";
+import { type LorangStrategyInput } from "@/engines/decision";
 import { type RaceReadinessInput } from "@/components/RaceReadinessSignatureChart";
 
-import type { VLamaxEffectif } from "@/lib/vlamaxEffectif";
-import type { TTEEffectif } from "@/lib/tteEffectif";
+import type { VLamaxEffectif } from "@/engines/diagnostic";
+import type { TTEEffectif } from "@/engines/diagnostic";
 import type { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import type { NutritionEstimate } from "@/lib/nutritionPredictive";
 import type { RunningEconomyResult } from "@/lib/runningEconomy";

@@ -39,7 +39,7 @@ import {
   type LorangLeverActivation,
   type LorangProhibitionRule,
   LORANG_PHILOSOPHY,
-} from "@/lib/v2/lorangStrategyEngine";
+} from "@/engines/decision";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // PROPS

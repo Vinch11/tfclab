@@ -11,8 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp, Target, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { computeStrategicRoadmap, type StrategicRoadmap, type RoadmapPhase } from "@/lib/v2/strategicRoadmap";
-import type { UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
+import { computeStrategicRoadmap, type StrategicRoadmap, type RoadmapPhase } from "@/engines/decision";
+import type { UnifiedLimiterResult } from "@/engines/diagnostic";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // ═══════════════════════════════════════════════════════════════════════════════

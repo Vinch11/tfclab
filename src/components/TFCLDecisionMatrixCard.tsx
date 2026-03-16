@@ -48,7 +48,7 @@ import {
   type TFCLDomainAnalysis,
   type DecisionCase,
   type DataSource,
-} from "@/lib/v2/tfclDecisionMatrix";
+} from "@/engines/decision";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // PROPS

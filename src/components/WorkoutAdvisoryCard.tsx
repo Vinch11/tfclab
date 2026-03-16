@@ -25,10 +25,10 @@ import {
   Timer
 } from "lucide-react";
 import { 
-  WorkoutAdvisory, 
-  AdvisoryStatus,
+  type WorkoutAdvisory, 
+  type AdvisoryStatus,
   WORKOUT_ADVISORY_DISCLAIMER 
-} from "@/lib/workoutAdvisoryEngine";
+} from "@/engines/decision";
 
 interface WorkoutAdvisoryCardProps {
   advisory: WorkoutAdvisory;
