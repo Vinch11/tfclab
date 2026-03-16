@@ -604,6 +604,13 @@ export function RaceSimulationModule({
                 <span>30 g/h</span>
                 <span>120 g/h</span>
               </div>
+              <div className="flex items-center justify-between mt-2 p-2 bg-muted/30 rounded-lg">
+                <Label htmlFor="gut-training-sim" className="text-xs cursor-pointer flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5 text-warning" />
+                  Gut Training
+                </Label>
+                <Switch id="gut-training-sim" checked={gutTraining} onCheckedChange={setGutTraining} />
+              </div>
             </div>
           )}
         </div>
