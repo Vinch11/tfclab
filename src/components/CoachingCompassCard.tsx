@@ -200,7 +200,7 @@ interface FlowStepProps {
 
 function FlowStep({ level, icon, title, subtitle, accentClass, badge, children }: FlowStepProps) {
   return (
-    <div className="relative">
+    <div className="relative print:break-inside-avoid">
       {/* Level indicator */}
       <div className="flex items-center gap-2 mb-1.5">
         <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
