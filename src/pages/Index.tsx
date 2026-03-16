@@ -76,7 +76,9 @@ import { MetabolicZonesUnifiedCard } from "@/components/MetabolicZonesUnifiedCar
 // ✅ TFCL Decision Matrix — Cœur décisionnel coach-grade
 import { TFCLDecisionMatrixCard } from "@/components/TFCLDecisionMatrixCard";
 import { TFCLDecisionMatrixTable } from "@/components/TFCLDecisionMatrixTable";
-import { type TFCLDecisionInput, type TFCLObjective, type LorangStrategyInput } from "@/engines/decision";
+import { type TFCLDecisionInput, type TFCLObjective, type LorangStrategyInput, computeLorangStrategy, type LorangStrategyResult } from "@/engines/decision";
+import { computeFatigueEffectif, type FatigueEffectif } from "@/engines/diagnostic";
+import { computeLactateThresholdsTFCL } from "@/lib/thresholds/computeLactateThresholdsTFCL";
 
 // ✅ Lorang Strategy Engine — Leviers opérationnels TFCL
 import { LorangStrategyCard } from "@/components/LorangStrategyCard";
@@ -612,7 +614,98 @@ const Index = () => {
     });
   }, [currentAthlete, effectiveCloudSnapshot, ftp_kg, vlamaxEffectif, tteEffectif, currentAmbition, wprimeKjForLimiter, cpResultForLimiter]);
 
-  // ✅ PERSISTANCE AUTOMATIQUE DRE - Hook pour sauvegarder en base
+  // ✅ FATIGUE EFFECTIF — Pour Coaching Compass
+  const fatigueEffectifForCompass = useMemo<FatigueEffectif | null>(() => {
+    if (!effectiveCloudSnapshot || !currentAthlete) return null;
+    const fatigueStateToPercue: Record<string, number> = { fresh: 2, ok: 4, fatigued: 7, very_fatigued: 9 };
+    const fatiguePercue = fatigueStateToPercue[effectiveCloudSnapshot.fatigue_state || "ok"] ?? 4;
+    return computeFatigueEffectif({
+      tss7d: effectiveCloudSnapshot.tss_7d ?? null,
+      tss7dHabituel: null,
+      fatiguePercue,
+      tteEffectif,
+      raceReadiness: raceReadinessEffectif,
+      vlamaxEffectif,
+      age: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
+      objectif: currentAthlete.goal || "IM",
+    });
+  }, [effectiveCloudSnapshot, currentAthlete, tteEffectif, raceReadinessEffectif, vlamaxEffectif]);
+
+  // ✅ LORANG STRATEGY — Pour Coaching Compass
+  const lorangStrategyForCompass = useMemo<LorangStrategyResult | null>(() => {
+    if (!currentAthlete || !effectiveCloudSnapshot) return null;
+    const vlamaxTarget = currentAmbition === "elite" ? 0.35 : currentAmbition === "competitor" ? 0.45 : 0.55;
+    const vo2maxTarget = currentAmbition === "elite" ? 70 : currentAmbition === "competitor" ? 62 : 55;
+    const tteTarget = currentAmbition === "elite" ? 50 : currentAmbition === "competitor" ? 40 : 35;
+    const disciplineMap: Record<string, 'IM' | '703' | 'marathon' | 'semi' | '10k' | 'cycling' | 'trail'> = {
+      'IM': 'IM', 'Ironman': 'IM', '70.3': '703', 'Ironman70.3': '703',
+      'Marathon': 'marathon', 'Semi': 'semi', '10K': '10k', '5K': '10k',
+      'Trail': 'trail', 'TrailLong': 'trail',
+    };
+    const discipline = disciplineMap[currentAthlete.goal || 'IM'] || 'IM';
+    const ambitionMap: Record<string, 'finisher' | 'age_group' | 'competitor' | 'elite'> = {
+      finisher: 'finisher', age_group: 'age_group', competitor: 'competitor', elite: 'elite',
+    };
+    const ambition = ambitionMap[currentAmbition] || 'age_group';
+    const availabilityScore = fatigueEffectifForCompass ? Math.max(0, 100 - fatigueEffectifForCompass.score) : 80;
+    try {
+      return computeLorangStrategy({
+        physiology: {
+          vo2max: effectiveCloudSnapshot.vo2max ?? null,
+          vo2maxTarget,
+          ftpKg: ftp_kg,
+          ftpKgTarget: null,
+          vlamax: vlamaxEffectif.value,
+          vlamaxTarget,
+          tte: tteEffectif.tte_min,
+          tteTarget,
+          fatmax: null,
+          fatmaxTarget: 0,
+          economy: effectiveCloudSnapshot.run_economy_score ?? null,
+        },
+        athlete: {
+          age: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
+          discipline,
+          ambition,
+          hasGIIssues: effectiveCloudSnapshot.gi_issues_flag ?? false,
+        },
+        availability: {
+          score: availabilityScore,
+          level: availabilityScore >= 80 ? 'high' : availabilityScore >= 60 ? 'moderate' : availabilityScore >= 40 ? 'low' : 'critical',
+          hasAlerts: false,
+          hrvOutOfRange2Days: false,
+        },
+        context: {
+          daysToRace: null,
+          isRaceWeek: false,
+          currentPhase: 'build',
+        },
+        load: {
+          tss7d: effectiveCloudSnapshot.tss_7d ?? null,
+          tss28d: effectiveCloudSnapshot.tss_7d ? effectiveCloudSnapshot.tss_7d * 4 : null,
+        },
+      });
+    } catch { return null; }
+  }, [currentAthlete, effectiveCloudSnapshot, currentAmbition, ftp_kg, vlamaxEffectif, tteEffectif, fatigueEffectifForCompass]);
+
+  // ✅ LACTATE THRESHOLDS — Pour Coaching Compass
+  const lactateThresholdsForCompass = useMemo(() => {
+    if (!effectiveCloudSnapshot) return null;
+    const thresholds = computeLactateThresholdsTFCL({
+      ftp: effectiveCloudSnapshot.ftp,
+      sport: effectiveCloudSnapshot.sport_main,
+      tteValue: tteEffectif.tte_min,
+      tteSource: tteEffectif.source === 'observed' ? 'observed' : 'estimated',
+      vlamaxValue: vlamaxEffectif.value,
+      vlamaxSource: vlamaxEffectif.source === 'test' ? 'test' : vlamaxEffectif.source === 'snapshot' ? 'snapshot' : 'estimated',
+    });
+    return {
+      lt1: thresholds.lt1.watts != null ? { watts: thresholds.lt1.watts, pct_of_ftp: thresholds.lt1.pct_of_ftp, confidence: thresholds.lt1.confidence } : null,
+      lt2: thresholds.lt2.watts != null ? { watts: thresholds.lt2.watts, pct_of_ftp: thresholds.lt2.pct_of_ftp, confidence: thresholds.lt2.confidence } : null,
+    };
+  }, [effectiveCloudSnapshot, tteEffectif, vlamaxEffectif]);
+
+
   const { 
     calculateAndPersist: persistDRE, 
     markAsReferenceWeek 
@@ -1088,7 +1181,11 @@ const Index = () => {
                   fatmax: null,
                   vlamaxEffectif: { value: vlamaxEffectif.value, confidence: vlamaxEffectif.confidence, source: vlamaxEffectif.source },
                   tteEffectif: { tte_min: tteEffectif.tte_min, confidence: tteEffectif.confidence, source: tteEffectif.source },
-                  fatigueEffectif: null,
+                  fatigueEffectif: fatigueEffectifForCompass ? {
+                    score: fatigueEffectifForCompass.score,
+                    level: String(fatigueEffectifForCompass.level),
+                    confidence: fatigueEffectifForCompass.confidence,
+                  } : null,
                   limiterResult: unifiedLimiterResult ? {
                     primaryLimiter: unifiedLimiterResult.primaryLimiter,
                     gapAnalysis: unifiedLimiterResult.gapAnalysis,
@@ -1103,8 +1200,25 @@ const Index = () => {
                     label: raceReadinessEffectif.label || "",
                     color: raceReadinessEffectif.color || "warning",
                   } : null,
-                  strategyResult: null,
-                  lactateThresholds: null,
+                  strategyResult: lorangStrategyForCompass ? {
+                    primaryLimiter: lorangStrategyForCompass.primaryLimiter,
+                    limiterLabel: lorangStrategyForCompass.limiterLabel,
+                    limiterExplanation: lorangStrategyForCompass.limiterExplanation,
+                    activatedLevers: lorangStrategyForCompass.activatedLevers.map(l => ({
+                      lever: l.lever,
+                      label: l.label,
+                      priority: l.priority,
+                      reason: l.reason,
+                      prescription: l.prescription,
+                    })),
+                    prohibitions: lorangStrategyForCompass.prohibitions.map(p => ({ label: p.label, reason: p.reason })),
+                    hasSprintBan: lorangStrategyForCompass.hasSprintBan,
+                    summary: lorangStrategyForCompass.summary,
+                    templateSuggestion: lorangStrategyForCompass.templateSuggestion,
+                    athleteMessage: lorangStrategyForCompass.athleteMessage,
+                    confidence: lorangStrategyForCompass.confidence,
+                  } : null,
+                  lactateThresholds: lactateThresholdsForCompass,
                   wprimeKj: wprimeKjForLimiter ?? null,
                   objectif: currentAthlete.goal || "IM",
                   ambition: currentAmbition,
