@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrendingUp, AlertCircle, Calendar, Zap, Flame, Activity, Bike, PersonStanding, Waves, Target, BookOpen } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
-import { calculVLamaxSnapshot, calculVLamaxAvecConfiance } from "@/lib/athleteStore";
+import { calculVLamaxSnapshot, calculVLamaxAvecConfiance } from "@/engines/diagnostic";
 import { estimerTTESport, scoreConfiance, SportType } from "@/types/snapshotNolio";
 import { HistoricalChart } from "@/components/HistoricalChart";
 import { ScientificDashboard } from "@/components/ScientificDashboard";
