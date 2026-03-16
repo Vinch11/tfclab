@@ -1508,6 +1508,8 @@ const Index = () => {
         );
 
       // Profil and Stratégie tabs removed — now at /athletes and /race
+
+      case "configuration":
         return <ConfigurationPage />;
 
       default:
