@@ -57,33 +57,25 @@ export function RaceDecisionPanel({
 }: RaceDecisionPanelProps) {
   const { raceType, targets, raceLabel } = useRunningFocusMode();
 
-  // Race Readiness Score
+  // Race Readiness Score — prefer engine score when available
   const raceReadiness = useMemo(() => {
+    // Use engine readiness if available (computed from full diagnostic)
+    if (diagnostic?.readiness?.readiness?.score != null) {
+      return diagnostic.readiness.readiness.score;
+    }
+    
+    // Fallback: calibration-based estimation
     if (!liveCalibration) return 50;
     
     let score = 50;
-    
-    // Confiance calibration (max +30)
     score += liveCalibration.confidence * 30;
-    
-    // Pénalité si recalibration recommandée (-15)
-    if (liveCalibration.recalibration_recommended) {
-      score -= 15;
-    }
-    
-    // Bonus preuves convergentes (+10)
-    if (liveCalibration.evidence_count >= 3) {
-      score += 10;
-    }
-    
-    // Bonus faible dispersion (+10)
+    if (liveCalibration.recalibration_recommended) score -= 15;
+    if (liveCalibration.evidence_count >= 3) score += 10;
     const range = liveCalibration.vlamax_range.p75 - liveCalibration.vlamax_range.p25;
-    if (range < 0.05) {
-      score += 10;
-    }
+    if (range < 0.05) score += 10;
     
     return Math.max(0, Math.min(100, score));
-  }, [liveCalibration]);
+  }, [liveCalibration, diagnostic]);
 
   // Pacing conservatism
   const pacingConfig = useMemo(() => {
