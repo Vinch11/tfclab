@@ -1761,8 +1761,8 @@ const Index = () => {
           // Zones d'entraînement
           {
             id: "training-zones",
-            render: () => legacyAthlete && (
-              <TrainingZonesCard athlete={legacyAthlete} />
+            render: () => (
+              <TrainingZonesCard staffMode={staffMode} />
             ),
           },
           // Seuils Lactiques TFCL
