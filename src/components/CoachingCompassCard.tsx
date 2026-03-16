@@ -1,10 +1,11 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
- * TFCL COACHING COMPASS™ — Carte Stratégique Unifiée
+ * TFCL COACHING COMPASS™ — Graphique Signature
  * 
- * Centre décisionnel du coaching : 
+ * Visualisation unifiée du processus décisionnel :
  * PROFIL → LIMITEUR → LEVIER → DÉCISION
  * 
+ * Lisible en < 10 secondes par un coach.
  * Deux modes : Athlète (simplifié) / Coach (détaillé)
  * ═══════════════════════════════════════════════════════════════════════════════
  */
@@ -13,10 +14,10 @@ import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  Compass, Target, ArrowDown, ChevronRight, AlertTriangle, 
-  Shield, Eye, EyeOff, Activity, Zap, TrendingUp, Info
+  Compass, Target, AlertTriangle, 
+  Shield, Eye, EyeOff, Zap, Info, Clock, Dumbbell,
+  ChevronDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { computeCoachingCompass, type CoachingCompassInput, type TFCLCoachingCompassResult, type RadarAxis } from "@/lib/coachingCompass";
@@ -32,13 +33,13 @@ interface CoachingCompassCardProps {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// RADAR CHART — SVG
+// RADAR CHART — SVG avec zone optimale
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function RadarChart({ axes, size = 200 }: { axes: RadarAxis[]; size?: number }) {
+function SignatureRadar({ axes, size = 240 }: { axes: RadarAxis[]; size?: number }) {
   const cx = size / 2;
   const cy = size / 2;
-  const r = size * 0.38;
+  const r = size * 0.36;
   const levels = [25, 50, 75, 100];
   const n = axes.length;
 
@@ -50,18 +51,30 @@ function RadarChart({ axes, size = 200 }: { axes: RadarAxis[]; size?: number }) 
   const getPoint = (index: number, value: number) => {
     const angle = startAngle + index * angleStep;
     const dist = (value / 100) * r;
-    return {
-      x: cx + dist * Math.cos(angle),
-      y: cy + dist * Math.sin(angle),
-    };
+    return { x: cx + dist * Math.cos(angle), y: cy + dist * Math.sin(angle) };
   };
 
-  // Polygon points
+  // Optimal zone (75-100)
+  const optimalOuter = Array.from({ length: n }, (_, i) => getPoint(i, 100));
+  const optimalInner = Array.from({ length: n }, (_, i) => getPoint(i, 75));
+  const optimalPath = `M ${optimalOuter.map(p => `${p.x},${p.y}`).join(" L ")} Z M ${optimalInner.map(p => `${p.x},${p.y}`).join(" L ")} Z`;
+
+  // Data polygon
   const dataPoints = axes.map((a, i) => getPoint(i, a.score));
   const polygonStr = dataPoints.map(p => `${p.x},${p.y}`).join(" ");
 
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-[220px] mx-auto">
+    <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-[240px] mx-auto select-none">
+      <defs>
+        <radialGradient id="radar-glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.08" />
+          <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+
+      {/* Background glow */}
+      <circle cx={cx} cy={cy} r={r * 1.1} fill="url(#radar-glow)" />
+
       {/* Grid levels */}
       {levels.map(level => {
         const points = Array.from({ length: n }, (_, i) => {
@@ -74,11 +87,20 @@ function RadarChart({ axes, size = 200 }: { axes: RadarAxis[]; size?: number }) 
             points={points}
             fill="none"
             stroke="hsl(var(--border))"
-            strokeWidth={level === 100 ? 1 : 0.5}
-            opacity={0.4}
+            strokeWidth={level === 100 ? 0.8 : 0.4}
+            opacity={0.35}
           />
         );
       })}
+
+      {/* Optimal zone (green) */}
+      <path
+        d={optimalPath}
+        fill="hsl(var(--success) / 0.06)"
+        fillRule="evenodd"
+        stroke="hsl(var(--success) / 0.15)"
+        strokeWidth={0.5}
+      />
 
       {/* Axis lines */}
       {axes.map((_, i) => {
@@ -88,47 +110,61 @@ function RadarChart({ axes, size = 200 }: { axes: RadarAxis[]; size?: number }) 
             key={`axis-${i}`}
             x1={cx} y1={cy} x2={p.x} y2={p.y}
             stroke="hsl(var(--border))"
-            strokeWidth={0.5}
-            opacity={0.3}
+            strokeWidth={0.4}
+            opacity={0.25}
           />
         );
       })}
 
-      {/* Data polygon */}
+      {/* Data polygon — filled */}
       <polygon
         points={polygonStr}
-        fill="hsl(var(--primary) / 0.15)"
+        fill="hsl(var(--primary) / 0.12)"
         stroke="hsl(var(--primary))"
         strokeWidth={2}
+        strokeLinejoin="round"
       />
 
       {/* Data points */}
       {dataPoints.map((p, i) => (
-        <circle
-          key={`dot-${i}`}
-          cx={p.x} cy={p.y} r={3.5}
-          fill="hsl(var(--primary))"
-          stroke="hsl(var(--background))"
-          strokeWidth={1.5}
-        />
+        <g key={`dot-${i}`}>
+          <circle cx={p.x} cy={p.y} r={5} fill="hsl(var(--primary) / 0.2)" />
+          <circle cx={p.x} cy={p.y} r={3} fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth={1.5} />
+        </g>
       ))}
 
-      {/* Labels */}
+      {/* Labels with scores */}
       {axes.map((axis, i) => {
-        const labelP = getPoint(i, 125);
+        const labelP = getPoint(i, 130);
         return (
-          <text
-            key={`label-${i}`}
-            x={labelP.x}
-            y={labelP.y}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            className="fill-muted-foreground"
-            fontSize={10}
-            fontWeight={500}
-          >
-            {axis.shortLabel}
-          </text>
+          <g key={`label-${i}`}>
+            <text
+              x={labelP.x}
+              y={labelP.y - 6}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              className="fill-foreground"
+              fontSize={10}
+              fontWeight={600}
+            >
+              {axis.shortLabel}
+            </text>
+            <text
+              x={labelP.x}
+              y={labelP.y + 7}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              className={cn(
+                axis.score >= 75 ? "fill-[hsl(var(--success))]" : 
+                axis.score >= 50 ? "fill-[hsl(var(--warning))]" : 
+                "fill-[hsl(var(--destructive))]"
+              )}
+              fontSize={10}
+              fontWeight={700}
+            >
+              {axis.score}
+            </text>
+          </g>
         );
       })}
     </svg>
@@ -136,132 +172,190 @@ function RadarChart({ axes, size = 200 }: { axes: RadarAxis[]; size?: number }) 
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// DECISION FLOW — Vertical
+// FLOW CONNECTOR — Flèche verticale animée
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function DecisionFlow({ compass }: { compass: TFCLCoachingCompassResult }) {
-  const { limiter, leverage, decision } = compass;
-
-  const steps = [
-    {
-      label: "Limiteur",
-      icon: <AlertTriangle className="w-4 h-4" />,
-      value: limiter.label,
-      detail: limiter.description,
-      badge: limiter.confidence,
-      color: "text-destructive",
-    },
-    {
-      label: "Levier",
-      icon: <Zap className="w-4 h-4" />,
-      value: leverage.label,
-      detail: leverage.description,
-      badge: null,
-      color: "text-primary",
-    },
-    {
-      label: "Décision",
-      icon: <Target className="w-4 h-4" />,
-      value: decision.recommendedBlock,
-      detail: `${decision.durationWeeks} semaines — ${decision.physiologicalTargets.join(", ")}`,
-      badge: null,
-      color: "text-accent-foreground",
-    },
-  ];
-
+function FlowConnector() {
   return (
-    <div className="space-y-1">
-      {steps.map((step, i) => (
-        <div key={step.label}>
-          <div className="flex items-start gap-3 p-2.5 rounded-lg bg-muted/30 border border-border/50">
-            <div className={cn("mt-0.5 p-1.5 rounded-md bg-background border border-border/50", step.color)}>
-              {step.icon}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  {step.label}
-                </span>
-                {step.badge && (
-                  <Badge variant="outline" className="text-[9px] h-4 px-1.5">
-                    {step.badge}
-                  </Badge>
-                )}
-              </div>
-              <p className="text-sm font-semibold mt-0.5 truncate">{step.value}</p>
-              <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">{step.detail}</p>
-            </div>
+    <div className="flex flex-col items-center py-1">
+      <div className="w-0.5 h-3 bg-gradient-to-b from-primary/40 to-primary/15 rounded-full" />
+      <ChevronDown className="w-3.5 h-3.5 text-primary/40 -mt-0.5" />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FLOW STEP — Bloc du flux décisionnel
+// ═══════════════════════════════════════════════════════════════════════════════
+
+interface FlowStepProps {
+  level: string;
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  accentClass: string;
+  badge?: string | null;
+  children?: React.ReactNode;
+}
+
+function FlowStep({ level, icon, title, subtitle, accentClass, badge, children }: FlowStepProps) {
+  return (
+    <div className="relative">
+      {/* Level indicator */}
+      <div className="flex items-center gap-2 mb-1.5">
+        <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+          {level}
+        </span>
+        {badge && (
+          <Badge variant="outline" className="text-[8px] h-3.5 px-1.5 border-border/50">
+            {badge}
+          </Badge>
+        )}
+      </div>
+      
+      {/* Content */}
+      <div className={cn(
+        "relative p-3 rounded-xl border",
+        "bg-gradient-to-r from-muted/40 to-muted/20",
+        "border-border/40"
+      )}>
+        {/* Left accent bar */}
+        <div className={cn("absolute left-0 top-2.5 bottom-2.5 w-[3px] rounded-full", accentClass)} />
+        
+        <div className="pl-3 flex items-start gap-3">
+          <div className={cn(
+            "shrink-0 p-2 rounded-lg border",
+            "bg-background/80 border-border/50",
+            accentClass.replace("bg-", "text-").replace("/80", "")
+          )}>
+            {icon}
           </div>
-          {i < steps.length - 1 && (
-            <div className="flex justify-center py-0.5">
-              <ArrowDown className="w-3.5 h-3.5 text-muted-foreground/50" />
-            </div>
-          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold tracking-tight">{title}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{subtitle}</p>
+            {children}
+          </div>
         </div>
-      ))}
+      </div>
     </div>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// READINESS MINI
+// RACE READINESS PANEL — Sidebar
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function ReadinessMini({ readiness }: { readiness: TFCLCoachingCompassResult["readiness"] }) {
-  const colorMap = {
-    success: "text-green-500 bg-green-500/10 border-green-500/20",
-    warning: "text-amber-500 bg-amber-500/10 border-amber-500/20",
-    destructive: "text-red-500 bg-red-500/10 border-red-500/20",
-  };
-  const c = colorMap[readiness.readinessColor] || colorMap.destructive;
+function ReadinessPanel({ readiness }: { readiness: TFCLCoachingCompassResult["readiness"] }) {
+  if (readiness.readinessScore <= 0) return null;
+
+  const colorClass = {
+    success: "text-[hsl(var(--success))]",
+    warning: "text-[hsl(var(--warning))]",
+    destructive: "text-[hsl(var(--destructive))]",
+  }[readiness.readinessColor] || "text-[hsl(var(--warning))]";
+
+  const bgClass = {
+    success: "bg-[hsl(var(--success)/0.08)] border-[hsl(var(--success)/0.15)]",
+    warning: "bg-[hsl(var(--warning)/0.08)] border-[hsl(var(--warning)/0.15)]",
+    destructive: "bg-[hsl(var(--destructive)/0.08)] border-[hsl(var(--destructive)/0.15)]",
+  }[readiness.readinessColor] || "bg-[hsl(var(--warning)/0.08)] border-[hsl(var(--warning)/0.15)]";
+
+  const governing = readiness.governingFactor === "availability" ? "Disponibilité" : "Potentiel";
 
   return (
-    <div className={cn("flex items-center justify-between p-3 rounded-lg border", c)}>
+    <div className={cn("rounded-xl border p-3 space-y-3", bgClass)}>
       <div className="flex items-center gap-2">
-        <Shield className="w-4 h-4" />
-        <span className="text-xs font-semibold">Race Readiness</span>
+        <Shield className={cn("w-4 h-4", colorClass)} />
+        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          Race Readiness
+        </span>
       </div>
-      <div className="flex items-center gap-3">
-        <div className="text-right">
-          <div className="text-lg font-bold">{readiness.readinessScore}</div>
-          <div className="text-[10px] text-muted-foreground">{readiness.readinessLabel}</div>
+
+      {/* Score circle */}
+      <div className="flex flex-col items-center">
+        <div className={cn("text-3xl font-black tabular-nums", colorClass)}>
+          {readiness.readinessScore}
         </div>
-        <div className="text-[10px] space-y-0.5 text-muted-foreground">
-          <div>Potentiel: {readiness.potential}</div>
-          <div>Dispo: {readiness.availability}</div>
-        </div>
+        <span className="text-[10px] text-muted-foreground font-medium mt-0.5">
+          {readiness.readinessLabel}
+        </span>
+      </div>
+
+      {/* Bars */}
+      <div className="space-y-2">
+        <ReadinessBar 
+          label="Potentiel" 
+          value={readiness.potential} 
+          isGoverning={readiness.governingFactor === "potential"} 
+        />
+        <ReadinessBar 
+          label="Disponibilité" 
+          value={readiness.availability} 
+          isGoverning={readiness.governingFactor === "availability"} 
+        />
+      </div>
+
+      {/* Governing factor */}
+      <div className="text-center">
+        <span className="text-[9px] text-muted-foreground/70">
+          Facteur limitant : <span className="font-semibold text-muted-foreground">{governing}</span>
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function ReadinessBar({ label, value, isGoverning }: { label: string; value: number; isGoverning: boolean }) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-0.5">
+        <span className={cn("text-[10px]", isGoverning ? "font-semibold text-foreground" : "text-muted-foreground")}>
+          {label}
+          {isGoverning && <span className="ml-1 text-[8px] text-[hsl(var(--warning))]">●</span>}
+        </span>
+        <span className="text-[10px] font-bold tabular-nums">{value}</span>
+      </div>
+      <div className="h-1.5 bg-background/50 rounded-full overflow-hidden">
+        <div 
+          className={cn(
+            "h-full rounded-full transition-all duration-500",
+            isGoverning ? "bg-[hsl(var(--warning))]" : "bg-primary/60"
+          )}
+          style={{ width: `${value}%` }}
+        />
       </div>
     </div>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// FATIGUE WARNING BANNER
+// FATIGUE WARNING
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function FatigueWarningBanner({ warning }: { warning: NonNullable<TFCLCoachingCompassResult["fatigueWarning"]> }) {
+function FatigueWarning({ warning }: { warning: NonNullable<TFCLCoachingCompassResult["fatigueWarning"]> }) {
+  if (warning.level === "none") return null;
+  
   const colors = {
-    moderate: "bg-amber-500/10 text-amber-600 border-amber-500/20",
-    high: "bg-orange-500/10 text-orange-600 border-orange-500/20",
-    critical: "bg-red-500/10 text-red-600 border-red-500/20",
+    moderate: "bg-[hsl(var(--warning)/0.1)] text-[hsl(var(--warning))] border-[hsl(var(--warning)/0.2)]",
+    high: "bg-[hsl(var(--accent)/0.1)] text-[hsl(var(--accent))] border-[hsl(var(--accent)/0.2)]",
+    critical: "bg-[hsl(var(--destructive)/0.1)] text-[hsl(var(--destructive))] border-[hsl(var(--destructive)/0.2)]",
     none: "",
   };
 
-  if (warning.level === "none") return null;
-
   return (
-    <div className={cn("flex items-center gap-2 p-2.5 rounded-lg border text-xs", colors[warning.level])}>
+    <div className={cn("flex items-center gap-2 p-2.5 rounded-lg border text-xs font-medium", colors[warning.level])}>
       <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-      <span className="font-medium">{warning.message}</span>
+      {warning.message}
     </div>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// PROFIL METRICS TABLE (Staff Mode)
+// METRICS GRID — Staff mode
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function ProfileMetricsTable({ profile }: { profile: TFCLCoachingCompassResult["profile"] }) {
+function StaffMetricsGrid({ compass }: { compass: TFCLCoachingCompassResult }) {
+  const profile = compass.profile;
   const metrics = [
     { key: "VO₂max", m: profile.vo2max },
     { key: "VLamax", m: profile.vlamax },
@@ -272,40 +366,41 @@ function ProfileMetricsTable({ profile }: { profile: TFCLCoachingCompassResult["
     { key: "LT1", m: profile.lt1 },
     { key: "LT2", m: profile.lt2 },
     { key: "W'", m: profile.wPrime },
-    { key: "Économie", m: profile.runningEconomy },
+    { key: "Éco.", m: profile.runningEconomy },
     { key: "Durabilité", m: profile.durability },
   ].filter(r => r.m.value !== null);
 
-  if (metrics.length === 0) {
-    return <p className="text-xs text-muted-foreground italic">Aucune donnée physiologique disponible.</p>;
-  }
+  if (metrics.length === 0) return null;
 
   return (
-    <div className="grid grid-cols-2 gap-1.5">
-      {metrics.map(({ key, m }) => (
-        <div key={key} className="flex items-center justify-between p-1.5 rounded bg-muted/30 text-xs">
-          <span className="text-muted-foreground font-medium">{key}</span>
-          <div className="flex items-center gap-1.5">
-            <span className="font-semibold">
-              {typeof m.value === "number" ? (m.value < 10 ? m.value.toFixed(2) : Math.round(m.value)) : "—"}
-            </span>
-            <span className="text-[9px] text-muted-foreground">{m.unit}</span>
-            <div 
-              className={cn(
+    <div className="mt-3 p-2.5 rounded-lg bg-muted/20 border border-border/30">
+      <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60 mb-2">
+        Profil physiologique complet
+      </p>
+      <div className="grid grid-cols-3 gap-1">
+        {metrics.map(({ key, m }) => (
+          <div key={key} className="flex items-center justify-between p-1.5 rounded-md bg-background/40 text-[10px]">
+            <span className="text-muted-foreground">{key}</span>
+            <div className="flex items-center gap-1">
+              <span className="font-semibold">
+                {typeof m.value === "number" ? (m.value < 10 ? m.value.toFixed(2) : Math.round(m.value)) : "—"}
+              </span>
+              <div className={cn(
                 "w-1.5 h-1.5 rounded-full",
-                m.confidence >= 0.8 ? "bg-green-500" : m.confidence >= 0.5 ? "bg-amber-500" : "bg-red-500"
-              )} 
-              title={`Confiance: ${Math.round(m.confidence * 100)}%`}
-            />
+                m.confidence >= 0.8 ? "bg-[hsl(var(--success))]" : 
+                m.confidence >= 0.5 ? "bg-[hsl(var(--warning))]" : 
+                "bg-[hsl(var(--destructive))]"
+              )} />
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// COMPOSANT PRINCIPAL
+// COMPOSANT PRINCIPAL — GRAPHIQUE SIGNATURE TFCL
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export function CoachingCompassCard({ input, staffMode: initialStaffMode = false, className }: CoachingCompassCardProps) {
@@ -313,7 +408,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
 
   const compass = useMemo(() => computeCoachingCompass(input), [input]);
 
-  // Données insuffisantes
+  // ─── Données insuffisantes ───
   if (compass.meta.dataCompleteness < 10) {
     return (
       <Card className={cn("border-border/50", className)}>
@@ -336,19 +431,23 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
     );
   }
 
+  const { limiter, leverage, decision, readiness } = compass;
+
   return (
     <Card className={cn("border-border/50 overflow-hidden", className)}>
-      {/* Header */}
+      {/* ─── Header ─── */}
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/10">
               <Compass className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-base font-bold">TFCL Coaching Compass™</CardTitle>
-              <p className="text-[10px] text-muted-foreground">
-                Profil → Limiteur → Levier → Décision
+              <CardTitle className="text-base font-black tracking-tight">
+                TFCL Coaching Compass™
+              </CardTitle>
+              <p className="text-[10px] text-muted-foreground font-medium tracking-wide">
+                PROFIL → LIMITEUR → LEVIER → DÉCISION
               </p>
             </div>
           </div>
@@ -356,7 +455,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
             variant="ghost"
             size="sm"
             onClick={() => setStaffMode(!staffMode)}
-            className="h-7 px-2 text-[10px] gap-1"
+            className="h-7 px-2 text-[10px] gap-1 text-muted-foreground hover:text-foreground"
           >
             {staffMode ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
             {staffMode ? "Athlète" : "Staff"}
@@ -364,146 +463,162 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
         </div>
       </CardHeader>
 
-      <CardContent className="pt-0 space-y-3">
-        {/* Fatigue Warning */}
+      <CardContent className="pt-0">
+        {/* ─── Fatigue Warning ─── */}
         {compass.fatigueWarning && compass.fatigueWarning.level !== "none" && (
-          <FatigueWarningBanner warning={compass.fatigueWarning} />
+          <div className="mb-3">
+            <FatigueWarning warning={compass.fatigueWarning} />
+          </div>
         )}
 
-        <Tabs defaultValue="decision" className="w-full">
-          <TabsList className="w-full h-8 grid grid-cols-3">
-            <TabsTrigger value="decision" className="text-[11px] h-7">
-              <Target className="w-3 h-3 mr-1" />
-              Décision
-            </TabsTrigger>
-            <TabsTrigger value="radar" className="text-[11px] h-7">
-              <Activity className="w-3 h-3 mr-1" />
-              Radar
-            </TabsTrigger>
-            <TabsTrigger value="profile" className="text-[11px] h-7">
-              <Info className="w-3 h-3 mr-1" />
-              Profil
-            </TabsTrigger>
-          </TabsList>
-
-          {/* TAB 1 : Flux décisionnel */}
-          <TabsContent value="decision" className="mt-3 space-y-3">
-            <DecisionFlow compass={compass} />
+        {/* ═══ LAYOUT PRINCIPAL : Flux + Readiness ═══ */}
+        <div className="flex gap-4">
+          {/* ─── COLONNE GAUCHE : Flux décisionnel complet ─── */}
+          <div className="flex-1 min-w-0">
             
-            {/* Race Readiness mini */}
-            {compass.readiness.readinessScore > 0 && (
-              <ReadinessMini readiness={compass.readiness} />
-            )}
-
-            {/* Prohibitions */}
-            {compass.decision.prohibitions.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {compass.decision.prohibitions.map(p => (
-                  <Badge key={p} variant="destructive" className="text-[10px]">
-                    🚫 {p}
-                  </Badge>
-                ))}
+            {/* NIVEAU 1 — PROFIL PHYSIOLOGIQUE (Radar) */}
+            <div className="mb-1">
+              <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+                Niveau 1 — Profil physiologique
+              </span>
+              <div className="mt-1">
+                <SignatureRadar axes={compass.radarAxes} size={240} />
               </div>
-            )}
-
-            {/* Message athlète (mode non-staff) */}
-            {!staffMode && compass.decision.athleteMessage && (
-              <div className="p-2.5 rounded-lg bg-primary/5 border border-primary/10">
-                <p className="text-xs text-foreground">{compass.decision.athleteMessage}</p>
-              </div>
-            )}
-
-            {/* Coach rationale (mode staff) */}
-            {staffMode && compass.decision.coachRationale && (
-              <div className="p-2.5 rounded-lg bg-muted/50 border border-border/50">
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-                  Justification Coach
-                </p>
-                <p className="text-xs text-foreground">{compass.decision.coachRationale}</p>
-              </div>
-            )}
-          </TabsContent>
-
-          {/* TAB 2 : Radar */}
-          <TabsContent value="radar" className="mt-3">
-            <div className="flex flex-col items-center">
-              <RadarChart axes={compass.radarAxes} size={220} />
               
-              {/* Légende */}
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-3 w-full">
-                {compass.radarAxes.map(axis => (
-                  <div key={axis.key} className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground flex items-center gap-1">
-                      <span>{axis.icon}</span>
-                      <span>{axis.shortLabel}</span>
-                    </span>
-                    <span className={cn(
-                      "font-semibold",
-                      axis.score >= 75 ? "text-green-500" : axis.score >= 50 ? "text-amber-500" : "text-red-500"
-                    )}>
-                      {axis.score}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Data completeness */}
-              <div className="mt-3 text-center">
-                <div className="text-[10px] text-muted-foreground">
-                  Complétude des données : {compass.meta.dataCompleteness}%
-                </div>
-                <div className="w-full h-1.5 bg-muted rounded-full mt-1 overflow-hidden">
+              {/* Completeness bar */}
+              <div className="flex items-center gap-2 mt-1 px-2">
+                <span className="text-[9px] text-muted-foreground/50 shrink-0">
+                  Données : {compass.meta.dataCompleteness}%
+                </span>
+                <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-primary rounded-full transition-all"
+                    className="h-full bg-primary/40 rounded-full transition-all duration-500"
                     style={{ width: `${compass.meta.dataCompleteness}%` }}
                   />
                 </div>
               </div>
             </div>
-          </TabsContent>
 
-          {/* TAB 3 : Profil détaillé */}
-          <TabsContent value="profile" className="mt-3 space-y-3">
-            {staffMode ? (
-              <ProfileMetricsTable profile={compass.profile} />
-            ) : (
-              // Mode athlète : vue simplifiée
-              <div className="space-y-2">
-                {[
-                  { label: "Moteur Aérobie", value: compass.profile.ftpKg.value ? `${compass.profile.ftpKg.value} W/kg` : "—", icon: "🫁" },
-                  { label: "Profil Métabolique", value: compass.profile.vlamax.value ? `${compass.profile.vlamax.value.toFixed(2)} mmol/L/s` : "—", icon: "⚡" },
-                  { label: "Endurance", value: compass.profile.tte.value ? `TTE ${compass.profile.tte.value} min` : "—", icon: "💪" },
-                ].map(item => (
-                  <div key={item.label} className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
-                    <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                      <span>{item.icon}</span>
-                      {item.label}
-                    </span>
-                    <span className="text-sm font-semibold">{item.value}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+            <FlowConnector />
 
-            {/* Limiter metrics used (staff) */}
-            {staffMode && compass.limiter.metricsUsed.length > 0 && (
-              <div className="p-2 rounded-lg bg-muted/30 border border-border/50">
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-                  Métriques utilisées pour le diagnostic
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  {compass.limiter.metricsUsed.map(m => (
-                    <Badge key={m} variant="outline" className="text-[9px]">{m}</Badge>
+            {/* NIVEAU 2 — LIMITEUR PRINCIPAL */}
+            <FlowStep
+              level="Niveau 2 — Limiteur principal"
+              icon={<AlertTriangle className="w-4 h-4" />}
+              title={`${limiter.icon} ${limiter.label}`}
+              subtitle={limiter.description}
+              accentClass="bg-[hsl(var(--destructive)/0.8)]"
+              badge={staffMode ? limiter.confidence : null}
+            >
+              {staffMode && (
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <span className="text-[9px] text-muted-foreground">Impact :</span>
+                  <Badge variant="outline" className="text-[9px] h-4 px-1.5 font-bold border-[hsl(var(--destructive)/0.3)]">
+                    {Math.round(limiter.impactScore * 100)}%
+                  </Badge>
+                  {limiter.metricsUsed.slice(0, 4).map(m => (
+                    <Badge key={m} variant="outline" className="text-[8px] h-3.5 px-1 border-border/40 text-muted-foreground">
+                      {m}
+                    </Badge>
                   ))}
                 </div>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+              )}
+            </FlowStep>
 
-        {/* Disclaimer */}
+            <FlowConnector />
+
+            {/* NIVEAU 3 — LEVIER PRIORITAIRE */}
+            <FlowStep
+              level="Niveau 3 — Levier prioritaire"
+              icon={<Zap className="w-4 h-4" />}
+              title={`${leverage.icon} ${leverage.label}`}
+              subtitle={leverage.description}
+              accentClass="bg-primary/80"
+            >
+              {/* Adaptations attendues */}
+              <div className="mt-2 flex flex-wrap gap-1">
+                {leverage.expectedAdaptations.map(a => (
+                  <span key={a} className="inline-flex items-center text-[9px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/15">
+                    {a}
+                  </span>
+                ))}
+              </div>
+            </FlowStep>
+
+            <FlowConnector />
+
+            {/* NIVEAU 4 — DÉCISION COACHING */}
+            <FlowStep
+              level="Niveau 4 — Décision coaching"
+              icon={<Target className="w-4 h-4" />}
+              title={decision.recommendedBlock}
+              subtitle={staffMode ? decision.coachRationale : decision.athleteMessage}
+              accentClass="bg-[hsl(var(--success)/0.8)]"
+            >
+              <div className="mt-2 space-y-1.5">
+                {/* Duration & workouts */}
+                <div className="flex items-center gap-3 text-[10px]">
+                  <span className="flex items-center gap-1 text-muted-foreground">
+                    <Clock className="w-3 h-3" />
+                    {decision.durationWeeks} semaines
+                  </span>
+                  <span className="flex items-center gap-1 text-muted-foreground">
+                    <Dumbbell className="w-3 h-3" />
+                    {decision.primaryWorkouts.length} séances clés
+                  </span>
+                </div>
+
+                {/* Workout examples */}
+                {staffMode && decision.primaryWorkouts.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {decision.primaryWorkouts.map(w => (
+                      <span key={w} className="text-[9px] px-1.5 py-0.5 rounded bg-[hsl(var(--success)/0.08)] text-[hsl(var(--success))] border border-[hsl(var(--success)/0.12)]">
+                        {w}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Targets */}
+                <div className="flex flex-wrap gap-1">
+                  {decision.physiologicalTargets.map(t => (
+                    <Badge key={t} variant="secondary" className="text-[9px] h-4 px-1.5">
+                      🎯 {t}
+                    </Badge>
+                  ))}
+                </div>
+
+                {/* Prohibitions */}
+                {decision.prohibitions.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {decision.prohibitions.map(p => (
+                      <Badge key={p} variant="destructive" className="text-[9px] h-4 px-1.5">
+                        🚫 {p}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </FlowStep>
+
+            {/* ─── Staff: Profil complet ─── */}
+            {staffMode && <StaffMetricsGrid compass={compass} />}
+          </div>
+
+          {/* ─── COLONNE DROITE : Race Readiness (desktop) ─── */}
+          <div className="hidden md:block w-[160px] shrink-0 pt-6">
+            <ReadinessPanel readiness={readiness} />
+          </div>
+        </div>
+
+        {/* ─── Race Readiness mobile ─── */}
+        <div className="md:hidden mt-3">
+          <ReadinessPanel readiness={readiness} />
+        </div>
+
+        {/* ─── Disclaimer ─── */}
         {staffMode && (
-          <p className="text-[9px] text-muted-foreground/60 text-center pt-1">
+          <p className="text-[8px] text-muted-foreground/40 text-center mt-3">
             {compass.meta.disclaimer} — v{compass.meta.version}
           </p>
         )}
