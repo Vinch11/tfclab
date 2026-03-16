@@ -129,6 +129,10 @@ export interface StrategyPrescription {
   /** Détails complets (résultats sous-moteurs, pour le mode Staff) */
   _lorangResult: LorangStrategyResult | null;
   _matrixResult: TFCLDecisionResult | null;
+  
+  /** Inputs originaux (pour les sous-composants legacy) */
+  _lorangInput: LorangStrategyInput | null;
+  _matrixInput: TFCLDecisionInput | null;
 }
 
 export interface WorkoutGuidance {
