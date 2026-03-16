@@ -627,9 +627,8 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     input.tte, 
     input.fatmax, 
     input.economyScore, 
-    input.availabilityScore
   ].filter(v => v !== null).length;
-  const confidence = dataCount / 7;
+  const confidence = dataCount / 6;
   
   const limiterInfo = LIMITER_INFO[primaryLimiter];
   const leverInfo = LEVER_INFO[primaryLever];
