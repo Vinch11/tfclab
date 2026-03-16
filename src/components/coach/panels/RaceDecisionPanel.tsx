@@ -28,11 +28,14 @@ import type { CalibrationResult } from "@/lib/calibration/vlamaxContinuous";
 import { computePacingConservatism } from "@/lib/calibration/vlamaxContinuous";
 import type { DbSnapshot } from "@/hooks/useCloudData";
 import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
+import type { AthleteDiagnostic } from "@/engines/diagnostic";
 
 interface RaceDecisionPanelProps {
   athleteId: string;
   liveCalibration: CalibrationResult | null;
   activeSnapshot: DbSnapshot | null;
+  /** Optional engine diagnostic for enriched race readiness */
+  diagnostic?: AthleteDiagnostic | null;
 }
 
 type ScenarioType = "conservative" | "standard" | "aggressive";
@@ -50,6 +53,7 @@ export function RaceDecisionPanel({
   athleteId,
   liveCalibration,
   activeSnapshot,
+  diagnostic,
 }: RaceDecisionPanelProps) {
   const { raceType, targets, raceLabel } = useRunningFocusMode();
 

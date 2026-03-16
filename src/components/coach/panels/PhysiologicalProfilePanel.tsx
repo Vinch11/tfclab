@@ -16,6 +16,7 @@ import { Lock, Unlock, RefreshCw, TrendingUp, TrendingDown, Minus } from "lucide
 import { cn } from "@/lib/utils";
 import type { CalibrationSnapshot, CalibrationResult } from "@/lib/calibration/vlamaxContinuous";
 import type { DbSnapshot } from "@/hooks/useCloudData";
+import type { AthleteDiagnostic } from "@/engines/diagnostic";
 
 interface PhysiologicalProfilePanelProps {
   athleteId: string;
@@ -24,6 +25,8 @@ interface PhysiologicalProfilePanelProps {
   activeSnapshot: DbSnapshot | null;
   isLocked: boolean;
   onCreateSnapshot: (modelledVlamax: number, confidence: number, lock: boolean) => Promise<CalibrationSnapshot | null>;
+  /** Optional engine diagnostic for enriched context */
+  diagnostic?: AthleteDiagnostic | null;
 }
 
 export function PhysiologicalProfilePanel({
@@ -33,6 +36,7 @@ export function PhysiologicalProfilePanel({
   activeSnapshot,
   isLocked,
   onCreateSnapshot,
+  diagnostic,
 }: PhysiologicalProfilePanelProps) {
   const modelledVlamax = activeSnapshot?.vlamax ?? latestSnapshot?.vlamax_modelled ?? null;
   const calibratedVlamax = liveCalibration?.vlamax_calibrated ?? latestSnapshot?.vlamax_calibrated ?? modelledVlamax;

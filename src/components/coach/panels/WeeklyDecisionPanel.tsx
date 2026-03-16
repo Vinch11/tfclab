@@ -38,6 +38,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { CalibrationResult } from "@/lib/calibration/vlamaxContinuous";
 import type { Tables } from "@/integrations/supabase/types";
+import type { TrainingPrescription } from "@/engines/decision";
 
 type DbCoachOverride = Tables<"coach_overrides">;
 
@@ -61,6 +62,8 @@ interface WeeklyDecisionPanelProps {
     beforeValue: any,
     afterValue: any
   ) => Promise<boolean>;
+  /** Optional engine prescription for enriched strategy context */
+  prescription?: TrainingPrescription | null;
 }
 
 export function WeeklyDecisionPanel({
@@ -68,6 +71,7 @@ export function WeeklyDecisionPanel({
   liveCalibration,
   overrides,
   onAddOverride,
+  prescription,
 }: WeeklyDecisionPanelProps) {
   const [overrideDialogOpen, setOverrideDialogOpen] = useState(false);
   const [overrideReason, setOverrideReason] = useState("");
