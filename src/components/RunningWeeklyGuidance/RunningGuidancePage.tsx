@@ -46,7 +46,7 @@ import {
   type RaceReadinessRun,
   type RiskContextRun,
 } from "@/lib/v2/raceReadinessRunning";
-import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
+import { computeVLamaxEffectif } from "@/engines/diagnostic";
 import { computeDisponibiliteTFCL } from "@/lib/v2/disponibiliteTFCL";
 
 export function RunningGuidancePage() {

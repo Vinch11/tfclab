@@ -31,8 +31,7 @@ import {
 import { cn } from "@/lib/utils";
 
 // Sources uniques de données
-import { VLamaxEffectif, getSourceColor, getConfidenceLabel } from "@/lib/vlamaxEffectif";
-import { TTEEffectif, getTTETarget, getSourceLabel } from "@/lib/tteEffectif";
+import { type VLamaxEffectif, getSourceColor, getConfidenceLabel, type TTEEffectif, getTTETarget, getSourceLabel } from "@/engines/diagnostic";
 import { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { NutritionEstimate } from "@/lib/nutritionPredictive";
 import { ProfileRadarChart } from "@/components/ProfileRadarChart";

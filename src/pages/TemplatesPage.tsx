@@ -42,8 +42,7 @@ import { getTemplateProfiles, getClosestProfile, type TemplateProfilePair } from
 
 import { useCloudData, DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
 import { useAthletes } from "@/contexts/AthleteContext";
-import { computeVLamaxEffectif, getSourceColor, getSourceBgColor, type VLamaxSource } from "@/lib/vlamaxEffectif";
-import { computeTTEEffectif } from "@/lib/tteEffectif";
+import { computeVLamaxEffectif, getSourceColor, getSourceBgColor, type VLamaxSource, computeTTEEffectif } from "@/engines/diagnostic";
 import { computeRaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { PlanComparisonView } from "@/components/PlanComparisonView";
 import { SessionOptionsDisplay } from "@/components/SessionOptionsDisplay";
