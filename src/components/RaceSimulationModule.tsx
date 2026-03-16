@@ -213,6 +213,7 @@ export function RaceSimulationModule({
     heat,
     terrain,
     plannedCarbsGH: useNutrition ? plannedCarbsGH : null,
+    gutTraining,
     nutritionType: 'mixed',
     ambition,
     vlamaxEffectif,
