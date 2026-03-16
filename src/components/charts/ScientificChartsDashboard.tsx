@@ -15,6 +15,8 @@ import {
   FatCarbOxidationChart,
   PerformancePredictionChart,
 } from "./index";
+import { PowerDurationUnifiedChart } from "./PowerDurationUnifiedChart";
+import { MetabolicZonesINSCYDChart } from "./MetabolicZonesINSCYDChart";
 
 interface ScientificChartsDashboardProps {
   vlamaxValue: number | null;
@@ -39,6 +41,11 @@ interface ScientificChartsDashboardProps {
   weight?: number;
   vma?: number | null;
   css?: number | null;
+  // Power data for PD chart
+  pmax5s?: number | null;
+  p30s?: number | null;
+  p60s?: number | null;
+  map5min?: number | null;
 }
 
 export function ScientificChartsDashboard({
@@ -59,6 +66,10 @@ export function ScientificChartsDashboard({
   weight,
   vma,
   css,
+  pmax5s,
+  p30s,
+  p60s,
+  map5min,
 }: ScientificChartsDashboardProps) {
   const [staffMode, setStaffMode] = useState(initialStaffMode);
 
@@ -149,6 +160,30 @@ export function ScientificChartsDashboard({
           weight={weight}
           staffMode={staffMode}
           className="md:col-span-2 xl:col-span-2"
+        />
+
+        {/* Power-Duration Unified (Mader + Empirique) */}
+        <PowerDurationUnifiedChart
+          vo2max={vo2max}
+          vlamax={vlamaxValue}
+          ftp={ftp}
+          weight={weight}
+          pmax5s={pmax5s}
+          p30s={p30s}
+          p60s={p60s}
+          map5min={map5min}
+          staffMode={staffMode}
+          className="md:col-span-2 xl:col-span-2"
+        />
+
+        {/* Metabolic Zones INSCYD-derived */}
+        <MetabolicZonesINSCYDChart
+          vo2max={vo2max ?? null}
+          vlamax={vlamaxValue}
+          ftp={ftp ?? null}
+          weight={weight}
+          staffMode={staffMode}
+          className="md:col-span-2 xl:col-span-3"
         />
 
         {/* Performance Prediction */}
