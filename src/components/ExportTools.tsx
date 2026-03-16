@@ -6874,6 +6874,13 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     if (!v2max || !vla) return '';
     
     const { computePerformancePredictions } = require("@/lib/v2/performancePrediction");
+    const { predictMaderPerformance, findFatMax, calculateTTEatMLSS } = require("@/lib/v2/maderMetabolicModel");
+    
+    // Mader-derived metabolic context
+    const maderProfile = { vo2max: v2max, vlamax: vla, weight: weightKg };
+    const maderPred = predictMaderPerformance(maderProfile);
+    const fatMaxResult = findFatMax(maderProfile);
+    
     const output = computePerformancePredictions({
       vo2max: v2max,
       vlamax: vla,
@@ -6890,7 +6897,6 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       aggressive: { bg: '#fff7ed', text: '#ea580c', label: 'Agressif (60%)' },
     };
     
-    // Build table
     const races = output.scenarios[0]?.predictions ?? [];
     
     const tableRows = races.map((race: any, i: number) => {
@@ -6925,23 +6931,38 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     
     return `
       <section id="performance-prediction">
-        <h2>⏱️ Prédiction de Performance</h2>
+        <h2>⏱️ Prédiction de Performance — Modèle Mader</h2>
         <div class="card mb">
-          <div class="grid3 mb">
-            <div style="text-align:center;">
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;text-align:center;">
+            <div>
               <div style="font-size:10px;color:#64748b;">VO₂max</div>
               <div class="medium" style="color:#2563eb;">${v2max}</div>
               <div class="muted">ml/kg/min</div>
             </div>
-            <div style="text-align:center;">
+            <div>
               <div style="font-size:10px;color:#64748b;">VLamax</div>
               <div class="medium" style="color:#ea580c;">${vla.toFixed(2)}</div>
               <div class="muted">mmol/L/s</div>
             </div>
-            <div style="text-align:center;">
+            <div>
               <div style="font-size:10px;color:#64748b;">Poids</div>
               <div class="medium">${weightKg}</div>
               <div class="muted">kg</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:#64748b;">MLSS (Mader)</div>
+              <div class="medium" style="color:#7c3aed;">${maderPred.mlssPower}W</div>
+              <div class="muted">${maderPred.mlssWkg} W/kg</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:#64748b;">FatMax</div>
+              <div class="medium" style="color:#16a34a;">${fatMaxResult.fatMaxPower}W</div>
+              <div class="muted">${fatMaxResult.fatMaxGrams} g/min</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:#64748b;">TTE @ MLSS</div>
+              <div class="medium" style="color:#d97706;">${maderPred.tteAtMLSS} min</div>
+              <div class="muted">CHO: ${fatMaxResult.carbAtFatMax} g/h</div>
             </div>
           </div>
         </div>
@@ -6962,8 +6983,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         <div class="card" style="background:#f8fafc;">
           <div class="muted" style="font-size:10px;">
             <b>Méthodologie :</b> ${output.modelNote}
-            Les scénarios reflètent la probabilité de succès physiologique. Confiance du modèle : ${Math.round(output.confidence * 100)}%.
-            Variables terrain (dénivelé, vent, température) non incluses.
+            Métriques métaboliques (MLSS, FatMax, TTE) calculées par modèle Mader-Heck (2003). Parité Dashboard/Export.
+            Confiance du modèle : ${Math.round(output.confidence * 100)}%.
           </div>
         </div>
       </section>
