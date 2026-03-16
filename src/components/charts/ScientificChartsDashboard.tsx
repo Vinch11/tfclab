@@ -37,6 +37,8 @@ interface ScientificChartsDashboardProps {
   vo2max?: number | null;
   ftp?: number | null;
   weight?: number;
+  vma?: number | null;
+  css?: number | null;
 }
 
 export function ScientificChartsDashboard({
