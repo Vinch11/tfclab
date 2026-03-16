@@ -30,6 +30,7 @@ import { computeFatigueEffectif, type FatigueEffectif } from "@/lib/fatigueEffec
 import { detectUnifiedLimiter, type UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
 import { computeDecisionTFCL, type RaceReadinessV2Result } from "@/lib/v2/raceReadinessV2";
 import { getTargetsForAmbition, normalizeObjective, getVLamaxRange } from "@/lib/physiologicalTargets";
+import type { CompassScores, CompassAxisScore } from "@/lib/compassScoring";
 import { computeRunInjuryRisk, type RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
 
 // ═══════════════════════════════════════════════════════════════════════════════
