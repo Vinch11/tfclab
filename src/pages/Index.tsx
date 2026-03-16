@@ -148,6 +148,7 @@ import { suggestWahooWorkouts, type SuggestionEngineContext } from "@/lib/wahoo/
 import { computeNutritionV2 } from "@/lib/v2/nutritionV2";
 import { type PacingEnvelopeInput } from "@/lib/v2/pacingEnvelopeEngine";
 
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -251,8 +252,8 @@ const Index = () => {
     loading: raceGoalsLoading,
   } = useAthleteRaceGoals(currentAthlete?.id ?? null);
 
-  // Tabs valides gérés par cette page (profil et stratégie déplacés vers /athletes et /race)
-  const validTabs = ["dashboard", "configuration"];
+  // Tabs valides gérés par cette page
+  const validTabs = ["dashboard", "profil", "strategie", "configuration"];
   
   const [activeTab, setActiveTab] = useState(() => {
     // D'abord, vérifier si on a un state de navigation
@@ -1704,7 +1705,322 @@ const Index = () => {
           </div>
         );
 
-      // Profil and Stratégie tabs removed — now at /athletes and /race
+      case "profil": {
+        const profilSections = [
+          // Références Athlète (édition rapide)
+          {
+            id: "athlete-refs",
+            render: () => currentAthlete && (
+              <AthleteRefsPanel
+                athlete={currentAthlete}
+                snapshots={snapshots}
+                snapshot={effectiveCloudSnapshot}
+                athleteGoal={currentAthlete.goal || "IM"}
+                onUpdate={() => loadData()}
+                onNavigateToProfile={() => navigate(`/athlete/${currentAthlete.id}`)}
+                onNavigateToCAPTest={() => navigate("/diagnostic/testing-week-cap")}
+                onNavigateToTFCLTest={() => navigate("/diagnostic/testing-week-tfcl")}
+              />
+            ),
+          },
+          // Profil Athlète (legacy analysis card)
+          {
+            id: "athlete-profile",
+            render: () => legacyAthlete && (
+              <AthleteProfile
+                athlete={legacyAthlete}
+                onUpdate={() => {}}
+                vlamaxEffectif={vlamaxEffectif}
+                tteEffectif={tteEffectif}
+                onOpenSnapshots={() => setShowSnapshots(true)}
+              />
+            ),
+          },
+          // Two For Coaching Analysis
+          {
+            id: "two-for-coaching",
+            render: () => legacyAthlete && (
+              <TwoForCoachingAnalysis
+                athlete={legacyAthlete}
+                vlamaxEffectif={vlamaxEffectif}
+                tteEffectif={tteEffectif}
+                readiness={raceReadinessEffectif}
+                onGoToSnapshots={() => setShowSnapshots(true)}
+              />
+            ),
+          },
+          // Évolution des snapshots
+          {
+            id: "evolution-chart",
+            render: () => currentAthlete && (
+              <SnapshotEvolutionChart
+                snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id)}
+                athleteName={currentAthlete.name}
+              />
+            ),
+          },
+          // Zones d'entraînement
+          {
+            id: "training-zones",
+            render: () => (
+              <TrainingZonesCard staffMode={staffMode} />
+            ),
+          },
+          // Seuils Lactiques TFCL
+          {
+            id: "lactate-thresholds-profil",
+            render: () => currentAthlete && (
+              <LactateCorrespondenceCard
+                vlamaxEffectif={vlamaxEffectif}
+                tteEffectif={tteEffectif}
+                ftp={ftp}
+                sport={effectiveCloudSnapshot?.sport_main || "velo"}
+                staffMode={staffMode}
+              />
+            ),
+          },
+          // VLamax V2 Calibration (profil)
+          {
+            id: "vlamax-v2-calibration-profil",
+            render: () => currentAthlete && (
+              <VLamaxUnifiedCard
+                vlamaxEffectif={vlamaxEffectif}
+                objectif={currentAthlete.goal || "IM"}
+                staffMode={staffMode}
+                ambition={currentAmbition}
+                athleteId={currentAthlete.id}
+                vo2max={effectiveCloudSnapshot?.vo2max ?? null}
+                age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
+              />
+            ),
+          },
+          // FTP/kg Targets (profil)
+          {
+            id: "ftp-targets-profil",
+            render: () => currentAthlete && (
+              <FtpKgTargetsCard
+                objectif={currentAthlete.goal || "IM"}
+                currentFtpKg={ftp_kg}
+                age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
+              />
+            ),
+          },
+          // FatMax TFCL (profil)
+          {
+            id: "fatmax-tfcl-profil",
+            render: () => currentAthlete && (
+              <MetabolicZonesUnifiedCard
+                vlamaxEffectif={vlamaxEffectif}
+                tteEffectif={tteEffectif}
+                objectif={currentAthlete.goal || "IM"}
+                ftp={ftp}
+                staffMode={staffMode}
+              />
+            ),
+          },
+          // VO2max Age Comparison (profil)
+          {
+            id: "vo2max-age-profil",
+            render: () => currentAthlete && (
+              <VO2maxAgeComparisonCard
+                age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
+                currentVo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
+                objectif={currentAthlete.goal || "IM"}
+                ambition={currentAmbition}
+              />
+            ),
+          },
+          // Scientific Charts (profil, staff)
+          {
+            id: "scientific-charts-profil",
+            render: () => currentAthlete && effectiveCloudSnapshot && staffMode && (
+              <ScientificChartsDashboard
+                vlamaxValue={vlamaxEffectif.value}
+                vlamaxSource={vlamaxEffectif.source}
+                vlamaxConfidence={vlamaxEffectif.confidence}
+                tteValue={tteEffectif.tte_min}
+                tteSource={tteEffectif.source}
+                tteConfidence={tteEffectif.confidence}
+                readinessScore={raceReadinessEffectif.score}
+                objectif={currentAthlete.goal || "IM"}
+                vo2max={effectiveCloudSnapshot.vo2max ?? null}
+                ftp={ftp}
+                weight={poids ?? undefined}
+                initialStaffMode={staffMode}
+              />
+            ),
+          },
+          // Decision Reliability (profil, staff)
+          {
+            id: "decision-reliability-profil",
+            render: () => currentAthlete && staffMode && (
+              <DecisionReliabilityCard
+                result={decisionReliability}
+                onMarkAsReference={async () => {
+                  if (effectiveCloudSnapshot?.id) {
+                    await markAsReferenceWeek(effectiveCloudSnapshot.id);
+                    toast.success("Semaine marquée comme référence");
+                  }
+                }}
+                onOpenTests={() => navigate("/diagnostic/tests")}
+              />
+            ),
+          },
+          // Calibration Evidence Summary (profil, staff)
+          {
+            id: "calibration-evidence-profil",
+            render: () => currentAthlete && staffMode && (
+              <CalibrationEvidenceSummaryCard
+                athleteId={currentAthlete.id}
+              />
+            ),
+          },
+        ];
+
+        return (
+          <div className="space-y-3 sm:space-y-4 md:space-y-6 animate-fade-in">
+            {renderAthleteSelector()}
+            <SortableSectionsContainer
+              tabId="profil"
+              tabLabel="Profil"
+              sections={profilSections}
+            />
+          </div>
+        );
+      }
+
+      case "strategie": {
+        const strategieSections = [
+          // Synthèse Executive
+          {
+            id: "synthese-executive",
+            render: () => currentAthlete && (
+              <SyntheseExecutiveCard
+                athleteName={currentAthlete.name}
+                objectif={currentAthlete.goal || "IM"}
+                vlamaxEffectif={vlamaxEffectif}
+                tteEffectif={tteEffectif}
+                raceReadiness={raceReadinessEffectif}
+                ftp={ftp}
+                poids={poids ?? null}
+                vo2max={effectiveCloudSnapshot?.vo2max ?? null}
+                tss7d={effectiveCloudSnapshot?.tss_7d ?? null}
+                completude={(() => {
+                  const missing = getMissingFields(effectiveRefs, ["weightKg", "ftp", "vo2max", "vma", "fcMax"]);
+                  return { score: Math.max(0, 100 - missing.length * 10), manquants: missing };
+                })()}
+                ambition={currentAmbition}
+              />
+            ),
+          },
+          // Nutrition V2
+          {
+            id: "nutrition-v2",
+            render: () => currentAthlete && (
+              <NutritionUnifiedCard
+                vlamaxValue={vlamaxEffectif.value}
+                vlamaxConfidence={vlamaxEffectif.confidence}
+                tteMin={tteEffectif.tte_min}
+                sport={isRunningOnly ? "cap" : "velo"}
+                objectif={currentAthlete.goal || "IM"}
+                weightKg={poids ?? null}
+                staffMode={staffMode}
+              />
+            ),
+          },
+          // Pacing Envelope
+          {
+            id: "pacing-envelope",
+            render: () => currentAthlete && effectiveCloudSnapshot && (
+              <PacingEnvelopeCard
+                input={{
+                  vlamaxEffectif,
+                  tteEffectif,
+                  fatmax: null,
+                  raceReadinessScore: raceReadinessEffectif.score,
+                  fatigueIndex: null,
+                  raceObjective: (currentAthlete.goal === "703" ? "70.3" : currentAthlete.goal === "IM" ? "IM" : currentAthlete.goal === "Marathon" ? "Marathon" : currentAthlete.goal === "Semi" ? "Semi" : "IM") as any,
+                  sport: isRunningOnly ? "run" : "bike",
+                  ftp: effectiveCloudSnapshot.ftp,
+                  vma: effectiveCloudSnapshot.vma,
+                  paceThreshold: effectiveCloudSnapshot.pace_threshold_sec_per_km,
+                  weight: effectiveCloudSnapshot.weight_kg,
+                }}
+                raceDurationMin={(() => {
+                  const g = currentAthlete.goal || "IM";
+                  if (g === "IM") return 300;
+                  if (g === "703") return 150;
+                  if (g === "Marathon") return 210;
+                  if (g === "Semi") return 100;
+                  return 180;
+                })()}
+                staffMode={staffMode}
+              />
+            ),
+          },
+          // Double Boucle CAP
+          {
+            id: "double-boucle-cap",
+            render: () => currentAthlete && (
+              <DoubleBoucleCAPCard
+                vlamaxRun={effectiveCloudSnapshot?.vlamax_run ?? vlamaxEffectif.value}
+                vo2max={effectiveCloudSnapshot?.vo2max ?? null}
+                durability={tteEffectif.tte_min}
+                objectif={currentAthlete.goal || "IM"}
+                readinessScore={raceReadinessEffectif.score}
+                confidence={vlamaxEffectif.confidence}
+                ambition={currentAmbition}
+              />
+            ),
+          },
+          // Correspondances Lactiques TFCL
+          {
+            id: "lactate-correspondence",
+            render: () => currentAthlete && (
+              <LactateCorrespondenceCard
+                vlamaxEffectif={vlamaxEffectif}
+                tteEffectif={tteEffectif}
+                ftp={ftp}
+                sport={effectiveCloudSnapshot?.sport_main || "velo"}
+                staffMode={staffMode}
+              />
+            ),
+          },
+          // Comprendre mes Scores
+          {
+            id: "comprendre-scores",
+            render: () => currentAthlete && (
+              <ComprendreScoresCard
+                vlamaxValue={vlamaxEffectif.value}
+                tteMin={tteEffectif.tte_min}
+                ftpKg={ftp_kg}
+                vo2max={effectiveCloudSnapshot?.vo2max ?? null}
+                readinessScore={raceReadinessEffectif.score}
+                objectif={currentAthlete.goal || "IM"}
+                ambition={currentAmbition}
+              />
+            ),
+          },
+          // Séances & Bibliothèque
+          {
+            id: "seances-library",
+            render: () => currentAthlete && (
+              <IndexSeancesView />
+            ),
+          },
+        ];
+
+        return (
+          <div className="space-y-3 sm:space-y-4 md:space-y-6 animate-fade-in">
+            {renderAthleteSelector()}
+            <SortableSectionsContainer
+              tabId="strategie"
+              tabLabel="Stratégie"
+              sections={strategieSections}
+            />
+          </div>
+        );
+      }
 
       case "configuration":
         return <ConfigurationPage />;
@@ -1733,6 +2049,30 @@ const Index = () => {
 
       {/* Main content */}
       <div className="max-w-7xl mx-auto">
+        {/* Tab navigation bar */}
+        {activeTab !== "configuration" && legacyAthlete && athletes.length > 0 && (
+          <div className="flex gap-1 p-1 rounded-lg bg-muted/50 mb-3">
+            {[
+              { id: "dashboard", label: "Dashboard", icon: "📊" },
+              { id: "profil", label: "Profil", icon: "👤" },
+              { id: "strategie", label: "Stratégie", icon: "🎯" },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "flex-1 px-3 py-2 text-sm font-medium rounded-md transition-all",
+                  activeTab === tab.id
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <span className="mr-1.5">{tab.icon}</span>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        )}
         {renderContent()}
       </div>
 
