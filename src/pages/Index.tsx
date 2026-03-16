@@ -148,6 +148,7 @@ import { suggestWahooWorkouts, type SuggestionEngineContext } from "@/lib/wahoo/
 import { computeNutritionV2 } from "@/lib/v2/nutritionV2";
 import { type PacingEnvelopeInput } from "@/lib/v2/pacingEnvelopeEngine";
 
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
