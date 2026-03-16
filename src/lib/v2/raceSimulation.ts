@@ -536,7 +536,48 @@ function computeSegmentFuelRisk(
 }
 
 /**
+ * Modèle d'absorption intestinale des glucides (Jeukendrup 2014, 2017)
+ * - Glucose seul: max ~60 g/h (transporteur SGLT1 saturé)
+ * - Glucose + Fructose (2:1): max ~90 g/h
+ * - Gut training avancé: jusqu'à ~120 g/h (Pfeiffer 2012, Ironman data)
+ * Retourne les g/h réellement absorbés (plafond intestinal appliqué)
+ */
+function computeAbsorbedCarbsGH(plannedCarbsGH: number, gutTraining: boolean = false): number {
+  if (plannedCarbsGH <= 0) return 0;
+  
+  // Absorption glucose seul: saturation SGLT1 à ~60g/h
+  const glucoseMax = 60; // g/h
+  // Avec fructose (GLUT5): +30g/h via transporteur distinct
+  const fructoseMax = 30; // g/h
+  // Gut training: étend le plafond de ~10-20%
+  const gutTrainingBonus = gutTraining ? 1.15 : 1.0;
+  
+  // On suppose un ratio glucose:fructose 2:1 si apport > 60g/h
+  let absorbed: number;
+  if (plannedCarbsGH <= glucoseMax) {
+    // Tout passe par SGLT1, absorption quasi-linéaire
+    absorbed = plannedCarbsGH * 0.92; // ~8% de pertes GI
+  } else {
+    // Au-delà de 60g/h, le surplus passe par fructose (GLUT5)
+    const glucoseAbsorbed = glucoseMax * 0.95;
+    const fructoseIntake = plannedCarbsGH - glucoseMax;
+    const fructoseAbsorbed = Math.min(fructoseMax, fructoseIntake) * 0.90;
+    absorbed = glucoseAbsorbed + fructoseAbsorbed;
+  }
+  
+  // Appliquer bonus gut training
+  absorbed *= gutTrainingBonus;
+  
+  // Plafond absolu physiologique: 120g/h
+  return Math.min(120, absorbed);
+}
+
+/**
  * Calcule le glycogène restant (simulation)
+ * Modèle basé sur la dépense glucidique brute vs absorption nette
+ * 
+ * Réserves musculaires typiques: ~400-500g glycogène (= 100%)
+ * La courbe reflète: dépense brute - absorption réelle = déplétion nette
  */
 function computeGlycogenRemaining(
   segmentIndex: number,
@@ -548,51 +589,61 @@ function computeGlycogenRemaining(
   scenarioType?: ScenarioType,
   readinessModifiers?: SimulationModifiers | null
 ): number {
-  // Modèle amélioré: variation significative selon le scénario
-  const baseDepletion = 100 / totalSegments;
+  const totalGlycogenG = 450; // grammes de glycogène musculaire + hépatique
   
   // Appliquer le décalage FatMax si modificateurs présents
   const fatmaxShift = readinessModifiers?.fatmaxShiftPct ?? 0;
   const fatmax = (fatmaxCenter ?? 70) + fatmaxShift;
   const intensityDelta = intensityPct - fatmax;
-  let intensityFactor: number;
   
+  // Dépense glucidique brute en g/min selon intensité vs FatMax
+  // Au-dessus de FatMax: dépendance glycolytique croissante
+  let carbBurnGPerMin: number;
   if (intensityDelta > 15) {
-    // Très au-dessus de FatMax = déplétion rapide
-    intensityFactor = 1.8 + (intensityDelta - 15) * 0.04;
+    carbBurnGPerMin = 2.5 + (intensityDelta - 15) * 0.08; // ~2.5-3.5 g/min
   } else if (intensityDelta > 0) {
-    // Au-dessus de FatMax = déplétion modérée
-    intensityFactor = 1.2 + (intensityDelta * 0.04);
+    carbBurnGPerMin = 1.5 + intensityDelta * 0.067;        // ~1.5-2.5 g/min
   } else {
-    // En dessous de FatMax = déplétion lente
-    intensityFactor = 0.6 + (intensityDelta + 10) * 0.02;
+    carbBurnGPerMin = Math.max(0.5, 1.0 + intensityDelta * 0.03); // ~0.5-1.0 g/min
   }
   
-  // Facteur VLamax - impact plus prononcé
+  // Facteur VLamax: haute VLamax = plus glycolytique
   const vlamax = vlamaxEffectif ?? 0.45;
-  const vlamaxFactor = 1 + (vlamax - 0.35) * 2;
+  const vlamaxMultiplier = 1 + (vlamax - 0.35) * 1.5; // 0.35 → ×1.0, 0.55 → ×1.3
+  carbBurnGPerMin *= vlamaxMultiplier;
   
-  // Facteur scénario - différencie visuellement les courbes
+  // Facteur scénario
   let scenarioFactor = 1.0;
-  if (scenarioType === 'conservative') {
-    scenarioFactor = 0.7; // Déplétion beaucoup plus lente
-  } else if (scenarioType === 'aggressive') {
-    scenarioFactor = 1.4; // Déplétion beaucoup plus rapide
-  }
+  if (scenarioType === 'conservative') scenarioFactor = 0.75;
+  else if (scenarioType === 'aggressive') scenarioFactor = 1.35;
   
-  // Appliquer multiplicateur de déplétion glycogène du connecteur
+  // Multiplicateur readiness
   const glycogenDepletionMultiplier = readinessModifiers?.glycogenDepletionRateMultiplier ?? 1.0;
   
-  // Réapprovisionnement nutrition - effet plus réaliste
-  const carbsRefuel = plannedCarbsGH ? Math.min(0.4, plannedCarbsGH / 250) : 0;
+  // Fatigue progressive: +20% de burn rate sur la 2ème moitié
+  const progressionFactor = 1 + (segmentIndex / totalSegments) * 0.2;
   
-  // Progression non-linéaire (fatigue qui s'accumule)
-  const progressionMultiplier = 1 + (segmentIndex / totalSegments) * 0.3;
+  // Dépense brute par segment (g)
+  const segmentDurationMin = 60 / totalSegments; // approximation sur 1h de course; s'ajuste
+  // Pour des courses plus longues, on estime la durée totale
+  // Le totalSegments représente la course complète
+  const carbBurnPerSegment = carbBurnGPerMin * segmentDurationMin * scenarioFactor * glycogenDepletionMultiplier * progressionFactor;
   
-  const depletionPerSegment = (baseDepletion * intensityFactor * vlamaxFactor * scenarioFactor * progressionMultiplier * glycogenDepletionMultiplier) - (carbsRefuel * baseDepletion);
-  const totalDepletion = depletionPerSegment * (segmentIndex + 1);
+  // Absorption nette par segment (g) – modèle intestinal réel
+  const absorbedGH = computeAbsorbedCarbsGH(plannedCarbsGH ?? 0);
+  const absorbedPerSegment = (absorbedGH / 60) * segmentDurationMin; // g absorbés ce segment
   
-  return clamp(100 - totalDepletion, 0, 100);
+  // Déplétion nette cumulée
+  let cumulativeDepletion = 0;
+  for (let s = 0; s <= segmentIndex; s++) {
+    const segProgression = 1 + (s / totalSegments) * 0.2;
+    const segBurn = carbBurnGPerMin * segmentDurationMin * scenarioFactor * glycogenDepletionMultiplier * segProgression;
+    const netBurn = Math.max(0, segBurn - absorbedPerSegment);
+    cumulativeDepletion += netBurn;
+  }
+  
+  const remaining = ((totalGlycogenG - cumulativeDepletion) / totalGlycogenG) * 100;
+  return clamp(remaining, 0, 100);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
