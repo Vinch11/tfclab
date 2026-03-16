@@ -588,6 +588,7 @@ function computeGlycogenRemaining(
   fatmaxCenter: number | null,
   vlamaxEffectif: number | null,
   plannedCarbsGH: number | null,
+  gutTraining: boolean,
   scenarioType?: ScenarioType,
   readinessModifiers?: SimulationModifiers | null
 ): number {
