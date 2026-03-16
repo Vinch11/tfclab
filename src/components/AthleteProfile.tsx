@@ -35,6 +35,9 @@ interface AthleteProfileProps {
   tteEffectif?: TTEEffectif;
   // ✅ Option d'afficher le gestionnaire d'objectifs complet
   showObjectiveManager?: boolean;
+  // ✅ Input Compass optionnel (si fourni, affiche le Compass)
+  compassInput?: CoachingCompassInput;
+  staffMode?: boolean;
 }
 
 export function AthleteProfile({ 
