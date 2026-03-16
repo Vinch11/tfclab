@@ -132,9 +132,9 @@ export function CoachDecisionUnifiedCard({
 
           {/* Diagnostic Tab — Pass the matrix input from prescription internals */}
           <AnimatedTabsContent value="diagnostic" activeValue={activeTab} className="px-4 pb-4 mt-0">
-            {matrixResult ? (
+            {strategy._matrixInput ? (
               <TFCLDecisionMatrixCard
-                input={matrixResult._input ?? ({} as any)}
+                input={strategy._matrixInput}
                 compact={compact}
                 showDomainDetails={staffMode}
                 className="border-0 shadow-none"
@@ -151,7 +151,7 @@ export function CoachDecisionUnifiedCard({
           <LazyTabsContent value="symptoms" activeValue={activeTab} className="px-4 pb-4 mt-0">
             <TFCLDecisionMatrixTable
               metrics={{
-                vo2max: diagnostic.limiter.gapAnalysis.find(g => g.metric === "VO2max")?.current ?? null,
+                vo2max: diagnostic.limiter.gapAnalysis.find(g => g.metric === "VO2max")?.value ?? null,
                 vo2maxTarget: diagnostic.targets.current.ftp_kg_min * 15,
                 vlamax: diagnostic.effectifs.vlamax.value,
                 vlamaxTarget: diagnostic.targets.vlamaxRange.optimal,
@@ -167,9 +167,9 @@ export function CoachDecisionUnifiedCard({
 
           {/* Levers Tab */}
           <LazyTabsContent value="levers" activeValue={activeTab} className="px-4 pb-4 mt-0">
-            {lorangResult ? (
+            {strategy._lorangInput ? (
               <LorangStrategyCard
-                input={lorangResult._input ?? ({} as any)}
+                input={strategy._lorangInput}
                 showStaffLevers={staffMode}
                 compact={compact}
                 className="border-0 shadow-none"
