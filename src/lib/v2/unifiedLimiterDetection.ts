@@ -84,12 +84,23 @@ export interface UnifiedGapAnalysis {
   weightedImpact: number; // Gap × weight (pour classement)
 }
 
+export interface FatigueWarning {
+  active: boolean;
+  level: "moderate" | "high" | "critical" | null;
+  message: string | null;
+}
+
 export interface UnifiedLimiterResult {
-  // Limiteur principal
+  // Limiteur principal (JAMAIS "availability" — voir fatigueWarning)
   primaryLimiter: UnifiedLimiter;
   limiterLabel: string;
   limiterEmoji: string;
   limiterExplanation: string;
+  
+  // ⚠️ Avertissement fatigue (remplace l'ancien limiteur "availability")
+  // La disponibilité n'est PAS un limiteur physiologique : elle ne conditionne
+  // pas la périodisation. Elle génère un avertissement contextuel.
+  fatigueWarning: FatigueWarning;
   
   // Détail faiblesse aérobie (si applicable)
   aerobicWeaknessDetail: AerobicWeaknessDetail;
