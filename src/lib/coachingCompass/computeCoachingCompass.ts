@@ -458,13 +458,20 @@ function buildReadinessState(input: CoachingCompassInput): TFCLReadinessState {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalProfile): RadarAxis[] {
-  // Normaliser chaque métrique en score 0-100 pour le radar
+  // VO2max : valeur directe ou estimation depuis FTP/kg (Storer)
+  let vo2Score = normalizeScore(profile.vo2max.value, 30, 70);
+  if (vo2Score === 0 && profile.ftpKg.value) {
+    // Estimation grossière : VO2max ≈ FTP/kg × 12 + 5 (Storer approx)
+    const estimatedVo2 = profile.ftpKg.value * 12 + 5;
+    vo2Score = normalizeScore(estimatedVo2, 30, 70);
+  }
+
   return [
     {
       key: "vo2max",
       label: "VO₂max",
       shortLabel: "VO₂",
-      score: normalizeScore(profile.vo2max.value, 30, 70),
+      score: vo2Score,
       icon: "🫁",
       color: "hsl(var(--primary))",
     },
@@ -483,7 +490,10 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       key: "fatmax",
       label: "FatMax",
       shortLabel: "FatMax",
-      score: normalizeScore(profile.fatmax.value, 100, 350),
+      // FatMax en W : normaliser entre 100W et 350W, ou utiliser le % FTP si disponible
+      score: profile.fatmax.value !== null 
+        ? normalizeScore(profile.fatmax.value, 80, 300)
+        : 0,
       icon: "🔥",
       color: "hsl(25, 85%, 50%)",
     },
