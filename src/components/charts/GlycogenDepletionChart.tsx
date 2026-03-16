@@ -201,14 +201,25 @@ export function GlycogenDepletionChart({
                 name="Risque fuel"
               />
               
-              {/* Courbe glycogène principale */}
+              {/* Courbe SANS nutrition (pointillés) */}
+              <Area
+                type="monotone"
+                dataKey="glycogenNoNutrition"
+                stroke="hsl(var(--muted-foreground))"
+                strokeWidth={1.5}
+                strokeDasharray="6 4"
+                fill="none"
+                name="Sans nutrition"
+              />
+              
+              {/* Courbe glycogène principale (avec nutrition) */}
               <Area
                 type="monotone"
                 dataKey="glycogen"
                 stroke="hsl(var(--primary))"
                 strokeWidth={2}
                 fill="url(#glycogenGradient)"
-                name="Glycogène"
+                name="Avec nutrition"
               />
             </AreaChart>
           </ResponsiveContainer>
