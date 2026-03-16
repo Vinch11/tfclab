@@ -84,6 +84,7 @@ import { LorangDecisionFlowChart } from "@/components/LorangDecisionFlowChart";
 
 // ✅ Coach Decision Center — Carte unifiée (Phase 2 Architecture)
 import { CoachDecisionUnifiedCard } from "@/components/CoachDecisionUnifiedCard";
+import { CoachingCompassCard } from "@/components/CoachingCompassCard";
 
 // ✅ Engines unifiés
 import { computeDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
@@ -1061,6 +1062,56 @@ const Index = () => {
                 onNavigateToTests={() => setActiveTab("tests")}
                 onNavigateToAcademy={() => navigate("/academy")}
                 onDismiss={gettingStartedVisibility.hide}
+              />
+            ),
+          },
+          // ✅ TFCL Coaching Compass™ — Centre décisionnel
+          {
+            id: "coaching-compass",
+            render: () => currentAthlete && effectiveCloudSnapshot && (
+              <CoachingCompassCard
+                input={{
+                  ftp: effectiveRefs.ftp,
+                  poids: effectiveRefs.weightKg,
+                  vo2max: effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null,
+                  tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
+                  snapshotDate: effectiveCloudSnapshot?.date ?? null,
+                  snapshotUpdatedAt: effectiveCloudSnapshot?.updated_at ?? null,
+                  pmax5s: effectiveCloudSnapshot?.pmax_5s ?? null,
+                  p30sW: effectiveCloudSnapshot?.p30s_w ?? null,
+                  p60sW: effectiveCloudSnapshot?.p60s_w ?? null,
+                  map5minW: effectiveCloudSnapshot?.map5min_w ?? null,
+                  runEconomyScore: effectiveCloudSnapshot?.run_economy_score ?? null,
+                  hrDriftPct: effectiveCloudSnapshot?.run_hr_drift_pct ?? null,
+                  vma: effectiveCloudSnapshot?.vma ?? null,
+                  paceThresholdSecPerKm: effectiveCloudSnapshot?.pace_threshold_sec_per_km ?? null,
+                  fatmax: null,
+                  vlamaxEffectif: { value: vlamaxEffectif.value, confidence: vlamaxEffectif.confidence, source: vlamaxEffectif.source },
+                  tteEffectif: { tte_min: tteEffectif.tte_min, confidence: tteEffectif.confidence, source: tteEffectif.source },
+                  fatigueEffectif: null,
+                  limiterResult: unifiedLimiterResult ? {
+                    primaryLimiter: unifiedLimiterResult.primaryLimiter,
+                    gapAnalysis: unifiedLimiterResult.gapAnalysis,
+                    confidence: unifiedLimiterResult.confidence,
+                    fatigueWarning: (unifiedLimiterResult as any).fatigueWarning ?? null,
+                  } : null,
+                  raceReadiness: raceReadinessEffectif ? {
+                    score: raceReadinessEffectif.score,
+                    potential: (raceReadinessEffectif as any).potential ?? raceReadinessEffectif.score,
+                    availability: (raceReadinessEffectif as any).availability ?? 80,
+                    governingFactor: (raceReadinessEffectif as any).governingFactor ?? "potential",
+                    label: raceReadinessEffectif.label || "",
+                    color: raceReadinessEffectif.color || "warning",
+                  } : null,
+                  strategyResult: null,
+                  lactateThresholds: null,
+                  wprimeKj: wprimeKjForLimiter ?? null,
+                  objectif: currentAthlete.goal || "IM",
+                  ambition: currentAmbition,
+                  sportFocus: effectiveCloudSnapshot?.sport_main === "run" ? "run" : effectiveCloudSnapshot?.sport_main === "bike" ? "bike" : "triathlon",
+                  athleteAge: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
+                }}
+                staffMode={staffMode}
               />
             ),
           },
