@@ -24,7 +24,7 @@ import {
   mapLimiterToReportType,
   type UnifiedLimiterInput,
   type UnifiedLimiter 
-} from "@/lib/v2/unifiedLimiterDetection";
+} from "@/engines/diagnostic";
 // =============================================
 // TYPES
 // =============================================
@@ -2035,7 +2035,7 @@ function generateMethodologyRecommendationSection(params: {
 import { 
   getVo2maxTarget, 
   getVo2maxAgeFactor 
-} from "@/lib/v2/unifiedLimiterDetection";
+} from "@/engines/diagnostic";
 
 const AMBITION_LABELS_REPORT: Record<string, { label: string; emoji: string }> = {
   finisher: { label: "Finisher", emoji: "🎯" },

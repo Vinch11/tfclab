@@ -44,7 +44,7 @@ import type { DbSnapshot } from "@/hooks/useCloudData";
 import {
   type LorangLimiter,
   LIMITER_DEFINITIONS,
-} from "@/lib/v2/lorangStrategyEngine";
+} from "@/engines/decision";
 
 // ── Types ──────────────────────────────────────────────────────
 

@@ -61,8 +61,8 @@ import { computeFatMaxTFCL, type FatMaxTFCLResult, FATMAX_DEFINITIONS, FATMAX_AC
 import { computeNutritionV2, type NutritionPredictiveV2, NUTRITION_PHILOSOPHY } from "@/lib/v2/nutritionV2";
 import { generateAthleteReadiness, type AthleteReadinessReport } from "@/lib/athleteReadiness";
 // ✅ NEW: Strategic Roadmap Engine
-import { computeStrategicRoadmap, type StrategicRoadmap, type RoadmapPhase as SmartRoadmapPhase } from "@/lib/v2/strategicRoadmap";
-import { detectUnifiedLimiter, type UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
+import { computeStrategicRoadmap, type StrategicRoadmap, type RoadmapPhase as SmartRoadmapPhase } from "@/engines/decision";
+import { detectUnifiedLimiter, type UnifiedLimiterResult } from "@/engines/diagnostic";
 import { User, Shield } from "lucide-react";
 import { SECTION_LABELS, getSectionOrder, getSectionVisibility, DEFAULT_SECTION_ORDER, DEFAULT_REPORT_SECTIONS } from "./ReportSectionOrderEditor";
 // ✅ NEW: Import Disponibilité TFCL™

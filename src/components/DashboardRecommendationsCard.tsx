@@ -45,8 +45,7 @@ import {
   needToTargetAxis,
   LowCRRJustification,
 } from "@/lib/wahoo/wahooSuggestionEngine";
-import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
-import { computeTTEEffectif } from "@/lib/tteEffectif";
+import { computeVLamaxEffectif, computeTTEEffectif } from "@/engines/diagnostic";
 import { computeRaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { computeCAPInjuryRisk } from "@/lib/capInjuryRisk";
 

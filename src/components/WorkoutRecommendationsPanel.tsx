@@ -38,17 +38,14 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
-  WorkoutRecommendation,
-  RecommendationEngineOutput,
+  type WorkoutRecommendation,
+  type RecommendationEngineOutput,
   computeWorkoutRecommendations,
-  RecommendationContext,
-  RecommendationType,
+  type RecommendationContext,
+  type RecommendationType,
   FATIGUE_VELO_GUIDELINE,
-} from "@/lib/workoutRecommendationEngine";
-import { VLamaxEffectif } from "@/lib/vlamaxEffectif";
-import { TTEEffectif } from "@/lib/tteEffectif";
-import { FatigueEffectif } from "@/lib/fatigueEffectif";
-import { RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
+} from "@/engines/decision";
+import type { VLamaxEffectif, TTEEffectif, FatigueEffectif, RunInjuryRiskEnvelope } from "@/engines/diagnostic";
 import {
   Tooltip,
   TooltipContent,

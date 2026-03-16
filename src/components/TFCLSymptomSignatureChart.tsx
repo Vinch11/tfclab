@@ -33,7 +33,7 @@ import {
   ALL_SYMPTOMS,
   TFCL_SYMPTOM_PHILOSOPHY,
 } from "@/lib/v2/tfclSymptoms";
-import type { TrainingLever } from "@/lib/v2/tfclDecisionMatrix";
+import type { TrainingLever } from "@/engines/decision";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES

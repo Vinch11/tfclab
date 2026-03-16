@@ -41,7 +41,7 @@ import {
   type LorangLimiter,
   LIMITER_DEFINITIONS,
   LEVER_DEFINITIONS,
-} from "@/lib/v2/lorangStrategyEngine";
+} from "@/engines/decision";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
