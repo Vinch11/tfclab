@@ -135,6 +135,16 @@ export function ScientificChartsDashboard({
           staffMode={staffMode}
           className="md:col-span-2 xl:col-span-2"
         />
+
+        {/* Fat/Carb Oxidation */}
+        <FatCarbOxidationChart
+          vo2max={vo2max ?? null}
+          vlamax={vlamaxValue}
+          ftp={ftp ?? null}
+          weight={weight}
+          staffMode={staffMode}
+          className="md:col-span-2 xl:col-span-2"
+        />
       </div>
     </div>
   );
