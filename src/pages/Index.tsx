@@ -128,7 +128,7 @@ import { QuickObjectiveSelector } from "@/components/QuickObjectiveSelector";
 
 // ✅ Sections rapport intégrées dans les onglets
 import { SyntheseExecutiveCard } from "@/components/SyntheseExecutiveCard";
-import { NutritionV2Card } from "@/components/NutritionV2Card";
+import { NutritionUnifiedCard } from "@/components/NutritionUnifiedCard";
 import { PacingEnvelopeCard } from "@/components/PacingEnvelopeCard";
 import { DoubleBoucleCAPCard } from "@/components/DoubleBoucleCAPCard";
 import { WahooSuggestionsCard } from "@/components/WahooSuggestionsCard";
@@ -2151,18 +2151,19 @@ const Index = () => {
               );
             },
           },
-          // Nutrition V2
+          // Nutrition Unifiée
           {
             id: "nutrition-v2",
             render: () => {
               if (!currentAthlete) return null;
               const sport = ["Marathon", "Semi", "Trail", "TrailLong", "10K", "5K"].includes(currentAthlete.goal || "") ? "cap" as const : "velo" as const;
               return (
-                <NutritionV2Card
+                <NutritionUnifiedCard
                   vlamaxValue={vlamaxEffectif.value}
                   vlamaxConfidence={vlamaxEffectif.confidence}
                   tteMin={tteEffectif.tte_min}
                   sport={sport}
+                  objectif={currentAthlete.goal || "IM"}
                   weightKg={effectiveRefs.weightKg ?? null}
                   staffMode={staffMode}
                 />
