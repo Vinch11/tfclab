@@ -1966,6 +1966,8 @@ const Index = () => {
                 vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max}
                 ftp={effectiveCloudSnapshot?.ftp}
                 weight={effectiveCloudSnapshot?.weight_kg ?? 70}
+                vma={effectiveCloudSnapshot?.vma}
+                css={effectiveCloudSnapshot?.css}
               />
             ),
           },
