@@ -524,9 +524,11 @@ function computeSegmentFuelRisk(
   const progressionFactor = Math.pow(segmentIndex / totalSegments, 1.5);
   risk += progressionFactor * 25 * scenarioRiskFactor * riskZoneWidening;
   
-  // Mitigation nutrition - effet augmenté
+  // Mitigation nutrition – basée sur l'absorption intestinale réelle
   if (plannedCarbsGH && plannedCarbsGH > 0) {
-    const nutritionMitigation = Math.min(25, plannedCarbsGH / 4);
+    const absorbedGH = computeAbsorbedCarbsGH(plannedCarbsGH);
+    // 60g/h absorbé = ~25 pts de mitigation max, proportionnel
+    const nutritionMitigation = Math.min(30, (absorbedGH / 60) * 25);
     risk -= nutritionMitigation;
   }
   
