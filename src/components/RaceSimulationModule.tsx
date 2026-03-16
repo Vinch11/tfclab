@@ -183,6 +183,7 @@ export function RaceSimulationModule({
   const [terrain, setTerrain] = useState<TerrainType>('flat');
   const [plannedCarbsGH, setPlannedCarbsGH] = useState<number>(60);
   const [useNutrition, setUseNutrition] = useState(true);
+  const [gutTraining, setGutTraining] = useState(false);
   const [selectedScenario, setSelectedScenario] = useState<ScenarioType>('optimal');
   const [showSimulation, setShowSimulation] = useState(false);
   
