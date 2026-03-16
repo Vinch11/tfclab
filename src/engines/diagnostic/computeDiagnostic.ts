@@ -185,31 +185,59 @@ function computeFatigueFromInput(
   });
 }
 
+function buildAxisScore(score: number, label: string, explanation: string): CompassAxisScore {
+  return {
+    score,
+    rawScore: score,
+    label,
+    explanation,
+    formula: "derived from gap analysis",
+    inputs: {},
+    confidence: 0.7,
+    source: "diagnostic_engine",
+  };
+}
+
 function computeReadinessFromInput(
   input: DiagnosticInput,
   limiter: UnifiedLimiterResult
 ): RaceReadinessV2Result {
   // Build compass scores from limiter gap analysis
-  const compassScores = {
-    aerobic: 50,
-    tolerance: 50,
-    metabolic: 50,
-    robustness: 50,
-  };
+  let aerobicScore = 50;
+  let toleranceScore = 50;
+  let metabolicScore = 50;
+  let robustnessScore = 50;
 
-  // Map gap analysis to compass scores
   for (const gap of limiter.gapAnalysis) {
     const score = Math.max(0, Math.min(100, 100 + gap.gapPercent));
     if (gap.metric === "VO2max" || gap.metric === "FTP/kg") {
-      compassScores.aerobic = Math.min(compassScores.aerobic === 50 ? score : compassScores.aerobic, score);
+      aerobicScore = Math.min(aerobicScore === 50 ? score : aerobicScore, score);
     } else if (gap.metric === "VLamax") {
-      compassScores.metabolic = score;
+      metabolicScore = score;
     } else if (gap.metric === "TTE") {
-      compassScores.tolerance = score;
+      toleranceScore = score;
     } else if (gap.metric === "Économie" || gap.metric === "W'") {
-      compassScores.robustness = Math.min(compassScores.robustness === 50 ? score : compassScores.robustness, score);
+      robustnessScore = Math.min(robustnessScore === 50 ? score : robustnessScore, score);
     }
   }
+
+  const globalScore = Math.round(
+    aerobicScore * 0.20 + toleranceScore * 0.30 + metabolicScore * 0.25 + robustnessScore * 0.25
+  );
+
+  const compassScores: CompassScores = {
+    capaciteAerobie: buildAxisScore(aerobicScore, "Capacité Aérobie", "Score dérivé du gap analysis"),
+    toleranceEffort: buildAxisScore(toleranceScore, "Tolérance à l'Effort", "Score dérivé du gap analysis"),
+    profilMetabolique: buildAxisScore(metabolicScore, "Profil Métabolique", "Score dérivé du gap analysis"),
+    robustesse: buildAxisScore(robustnessScore, "Robustesse", "Score dérivé du gap analysis"),
+    globalScore,
+    globalLabel: globalScore >= 80 ? "Profil Optimal" : globalScore >= 65 ? "Bon Équilibre" : globalScore >= 50 ? "En Progression" : "À Développer",
+    globalColor: globalScore >= 65 ? "success" : globalScore >= 50 ? "warning" : "destructive",
+    dataCompleteness: Math.round(computeDataCompleteness(input) * 100),
+    mainLimitation: limiter.limiterLabel !== "Profil équilibré" ? limiter.limiterLabel : null,
+    mainStrength: null,
+    isFatigueModulated: false,
+  };
 
   return computeDecisionTFCL({
     compass: compassScores,
