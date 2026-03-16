@@ -31,6 +31,7 @@ interface GlycogenDepletionChartProps {
 interface ChartDataPoint {
   km: number;
   glycogen: number;
+  glycogenNoNutrition: number;
   fuelRisk: number;
   rpe: number;
   segment: SegmentResult;
