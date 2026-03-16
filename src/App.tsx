@@ -11,20 +11,35 @@ import { OnboardingGate } from "@/components/OnboardingGate";
 import AuthPage from "./pages/AuthPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import Index from "./pages/Index";
-import TemplatesPage from "./pages/TemplatesPage";
-import AITrainingPlanPage from "./pages/AITrainingPlanPage";
-import AcademyPage from "./pages/AcademyPage";
+import DiagnosticPage from "./pages/DiagnosticPage";
+import PlanningPage from "./pages/PlanningPage";
 import TestsPage from "./pages/TestsPage";
+import AcademyPage from "./pages/AcademyPage";
 import AthletesListPage from "./pages/AthletesListPage";
-import NotFound from "./pages/NotFound";
+import AITrainingPlanPage from "./pages/AITrainingPlanPage";
+import TemplatesPage from "./pages/TemplatesPage";
 import RaceSimulationPage from "./pages/RaceSimulationPage";
+import RunningProfilePage from "./pages/RunningProfilePage";
+import AthleteEditPage from "./pages/AthleteEditPage";
+import NotFound from "./pages/NotFound";
 import { TFCLTestingWeekPage } from "./components/TFCLTestingWeek";
 import { CAPTestingWeekPage } from "./components/CAPTestingWeek";
 import { RunningGuidancePage } from "./components/RunningWeeklyGuidance";
-import RunningProfilePage from "./pages/RunningProfilePage";
-import AthleteEditPage from "./pages/AthleteEditPage";
 
 const queryClient = new QueryClient();
+
+/** Wraps a page in auth + onboarding + athlete providers */
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  return (
+    <AuthGate>
+      <OnboardingGate>
+        <AthleteProviders>
+          {children}
+        </AthleteProviders>
+      </OnboardingGate>
+    </AuthGate>
+  );
+}
 
 export default function App() {
   return (
@@ -36,188 +51,68 @@ export default function App() {
           <BrowserRouter>
             <AuthProvider>
               <Routes>
+                {/* Auth */}
                 <Route path="/auth" element={<AuthPage />} />
+                <Route path="/onboarding" element={<AuthGate><OnboardingPage /></AuthGate>} />
 
-                {/* Legacy/alias routes */}
+                {/* ═══════════════════════════════════════════ */}
+                {/* SECTION 1 — DASHBOARD                      */}
+                {/* ═══════════════════════════════════════════ */}
+                <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+
+                {/* ═══════════════════════════════════════════ */}
+                {/* SECTION 2 — ATHLÈTES                       */}
+                {/* ═══════════════════════════════════════════ */}
+                <Route path="/athletes" element={<ProtectedRoute><AthletesListPage /></ProtectedRoute>} />
+                <Route path="/athlete/:id" element={<ProtectedRoute><AthleteEditPage /></ProtectedRoute>} />
+                <Route path="/athleteEditPage" element={<ProtectedRoute><AthleteEditPage /></ProtectedRoute>} />
+
+                {/* ═══════════════════════════════════════════ */}
+                {/* SECTION 3 — DIAGNOSTIC                     */}
+                {/* ═══════════════════════════════════════════ */}
+                <Route path="/diagnostic" element={<ProtectedRoute><DiagnosticPage /></ProtectedRoute>} />
+                <Route path="/diagnostic/tests" element={<ProtectedRoute><TestsPage /></ProtectedRoute>} />
+                <Route path="/diagnostic/testing-week-tfcl" element={<ProtectedRoute><TFCLTestingWeekPage /></ProtectedRoute>} />
+                <Route path="/diagnostic/testing-week-cap" element={<ProtectedRoute><CAPTestingWeekPage /></ProtectedRoute>} />
+
+                {/* ═══════════════════════════════════════════ */}
+                {/* SECTION 4 — PLANIFICATION                  */}
+                {/* ═══════════════════════════════════════════ */}
+                <Route path="/planning" element={<ProtectedRoute><PlanningPage /></ProtectedRoute>} />
+                <Route path="/planning/ai-plan" element={<ProtectedRoute><AITrainingPlanPage /></ProtectedRoute>} />
+                <Route path="/planning/templates" element={<ProtectedRoute><TemplatesPage /></ProtectedRoute>} />
+                <Route path="/planning/running-guidance" element={<ProtectedRoute><RunningGuidancePage /></ProtectedRoute>} />
+
+                {/* ═══════════════════════════════════════════ */}
+                {/* SECTION 5 — SIMULATION                     */}
+                {/* ═══════════════════════════════════════════ */}
+                <Route path="/race" element={<ProtectedRoute><RaceSimulationPage /></ProtectedRoute>} />
+
+                {/* ═══════════════════════════════════════════ */}
+                {/* SECTION 6 — ACADEMY                        */}
+                {/* ═══════════════════════════════════════════ */}
+                <Route path="/academy" element={<ProtectedRoute><AcademyPage /></ProtectedRoute>} />
+
+                {/* ═══════════════════════════════════════════ */}
+                {/* RUNNING PROFILE (accessible via dashboard)  */}
+                {/* ═══════════════════════════════════════════ */}
+                <Route path="/running-profile" element={<ProtectedRoute><RunningProfilePage /></ProtectedRoute>} />
+
+                {/* ═══════════════════════════════════════════ */}
+                {/* LEGACY REDIRECTS                            */}
+                {/* ═══════════════════════════════════════════ */}
                 <Route path="/dashboard" element={<Navigate to="/" replace />} />
                 <Route path="/AthleteEditPage" element={<Navigate to="/athleteEditPage" replace />} />
-                <Route
-                  path="/onboarding"
-                  element={
-                    <AuthGate>
-                      <OnboardingPage />
-                    </AuthGate>
-                  }
-                />
-                <Route
-                  path="/"
-                  element={
-                    <AuthGate>
-                      <OnboardingGate>
-                        <AthleteProviders>
-                          <Index />
-                        </AthleteProviders>
-                      </OnboardingGate>
-                    </AuthGate>
-                  }
-                />
-                <Route
-                  path="/ai-plan"
-                  element={
-                    <AuthGate>
-                      <OnboardingGate>
-                        <AthleteProviders>
-                          <AITrainingPlanPage />
-                        </AthleteProviders>
-                      </OnboardingGate>
-                    </AuthGate>
-                  }
-                />
-                <Route
-                  path="/templates"
-                  element={
-                    <AuthGate>
-                      <OnboardingGate>
-                        <AthleteProviders>
-                          <TemplatesPage />
-                        </AthleteProviders>
-                      </OnboardingGate>
-                    </AuthGate>
-                  }
-                />
-                <Route
-                  path="/academy"
-                  element={
-                    <AuthGate>
-                      <OnboardingGate>
-                        <AcademyPage />
-                      </OnboardingGate>
-                    </AuthGate>
-                  }
-                />
-                <Route
-                  path="/tests"
-                  element={
-                    <AuthGate>
-                      <OnboardingGate>
-                        <AthleteProviders>
-                          <TestsPage />
-                        </AthleteProviders>
-                      </OnboardingGate>
-                    </AuthGate>
-                  }
-                />
-                <Route
-                  path="/athletes"
-                  element={
-                    <AuthGate>
-                      <OnboardingGate>
-                        <AthleteProviders>
-                          <AthletesListPage />
-                        </AthleteProviders>
-                      </OnboardingGate>
-                    </AuthGate>
-                  }
-                />
+                <Route path="/tests" element={<Navigate to="/diagnostic/tests" replace />} />
+                <Route path="/tfcl-testing-week" element={<Navigate to="/diagnostic/testing-week-tfcl" replace />} />
+                <Route path="/cap-testing-week" element={<Navigate to="/diagnostic/testing-week-cap" replace />} />
+                <Route path="/ai-plan" element={<Navigate to="/planning/ai-plan" replace />} />
+                <Route path="/templates" element={<Navigate to="/planning/templates" replace />} />
+                <Route path="/running-guidance" element={<Navigate to="/planning/running-guidance" replace />} />
+                <Route path="/race-simulation" element={<Navigate to="/race" replace />} />
 
-                {/* Athlete profile (create/edit) */}
-                <Route
-                  path="/athlete/:id"
-                  element={
-                    <AuthGate>
-                      <OnboardingGate>
-                        <AthleteProviders>
-                          <AthleteEditPage />
-                        </AthleteProviders>
-                      </OnboardingGate>
-                    </AuthGate>
-                  }
-                />
-                {/* Compat route (no id -> uses current athlete) */}
-                <Route
-                  path="/athleteEditPage"
-                  element={
-                    <AuthGate>
-                      <OnboardingGate>
-                        <AthleteProviders>
-                          <AthleteEditPage />
-                        </AthleteProviders>
-                      </OnboardingGate>
-                    </AuthGate>
-                  }
-                />
-                <Route
-                  path="/tfcl-testing-week"
-                  element={
-                    <AuthGate>
-                      <OnboardingGate>
-                        <AthleteProviders>
-                          <TFCLTestingWeekPage />
-                        </AthleteProviders>
-                      </OnboardingGate>
-                    </AuthGate>
-                  }
-                />
-                <Route
-                  path="/cap-testing-week"
-                  element={
-                    <AuthGate>
-                      <OnboardingGate>
-                        <AthleteProviders>
-                          <CAPTestingWeekPage />
-                        </AthleteProviders>
-                      </OnboardingGate>
-                    </AuthGate>
-                  }
-                />
-                <Route
-                  path="/race-simulation"
-                  element={
-                    <AuthGate>
-                      <OnboardingGate>
-                        <AthleteProviders>
-                          <RaceSimulationPage />
-                        </AthleteProviders>
-                      </OnboardingGate>
-                    </AuthGate>
-                  }
-                />
-                <Route
-                  path="/running-guidance"
-                  element={
-                    <AuthGate>
-                      <OnboardingGate>
-                        <AthleteProviders>
-                          <RunningGuidancePage />
-                        </AthleteProviders>
-                      </OnboardingGate>
-                    </AuthGate>
-                  }
-                />
-                <Route
-                  path="/running-profile"
-                  element={
-                    <AuthGate>
-                      <OnboardingGate>
-                        <AthleteProviders>
-                          <RunningProfilePage />
-                        </AthleteProviders>
-                      </OnboardingGate>
-                    </AuthGate>
-                  }
-                />
-                <Route
-                  path="*"
-                  element={
-                    <AuthGate>
-                      <OnboardingGate>
-                        <AthleteProviders>
-                          <NotFound />
-                        </AthleteProviders>
-                      </OnboardingGate>
-                    </AuthGate>
-                  }
-                />
+                {/* 404 */}
+                <Route path="*" element={<ProtectedRoute><NotFound /></ProtectedRoute>} />
               </Routes>
             </AuthProvider>
           </BrowserRouter>
