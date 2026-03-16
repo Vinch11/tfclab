@@ -89,6 +89,8 @@ import { CoachDecisionUnifiedCard } from "@/components/CoachDecisionUnifiedCard"
 // ✅ Engines unifiés
 import { computeDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
 import { computeDecision, type DecisionInput } from "@/engines/decision";
+
+// ✅ Profil & Ambition — Carte unifiée (Phase 1f UX)
 import { ProfilAmbitionUnifiedCard } from "@/components/ProfilAmbitionUnifiedCard";
 
 // ✅ W'bal Recovery Card — Repos optimaux individualisés
