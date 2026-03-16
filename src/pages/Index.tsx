@@ -1477,13 +1477,12 @@ const Index = () => {
             render: () => currentAthlete && effectiveCloudSnapshot && (
               <CompactMetricsGrid
                 ftp={ftp}
-                weightKg={poids ?? null}
+                weight={poids ?? undefined}
                 vo2max={effectiveCloudSnapshot.vo2max ?? null}
                 vlamax={vlamaxEffectif.value}
-                tte={tteEffectif.tte_min}
+                tteMin={tteEffectif.tte_min}
                 vma={effectiveCloudSnapshot.vma ?? null}
                 objectif={currentAthlete.goal || "IM"}
-                ambition={currentAmbition}
               />
             ),
           },
@@ -1492,34 +1491,26 @@ const Index = () => {
             id: "vlamax-v2-calibration",
             render: () => currentAthlete && (
               <VLamaxUnifiedCard
-                athleteId={currentAthlete.id}
-                athleteName={currentAthlete.name}
-                objectif={currentAthlete.goal || "IM"}
                 vlamaxEffectif={vlamaxEffectif}
-                tteEffectif={tteEffectif}
-                decisionReliability={decisionReliability}
-                snapshot={effectiveCloudSnapshot}
+                objectif={currentAthlete.goal || "IM"}
                 staffMode={staffMode}
                 ambition={currentAmbition}
+                athleteId={currentAthlete.id}
+                vo2max={effectiveCloudSnapshot?.vo2max ?? null}
+                age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
               />
             ),
           },
           // ✅ 7. Metabolic Zones TFCL™
           {
             id: "fatmax-tfcl",
-            render: () => currentAthlete && effectiveCloudSnapshot && (
+            render: () => currentAthlete && (
               <MetabolicZonesUnifiedCard
-                athleteId={currentAthlete.id}
-                athleteName={currentAthlete.name}
+                vlamaxEffectif={vlamaxEffectif}
+                tteEffectif={tteEffectif}
                 objectif={currentAthlete.goal || "IM"}
                 ftp={ftp}
-                weightKg={poids ?? null}
-                vo2max={effectiveCloudSnapshot.vo2max ?? null}
-                vlamax={vlamaxEffectif.value}
-                vlamaxConfidence={vlamaxEffectif.confidence}
-                tteMin={tteEffectif.tte_min}
                 staffMode={staffMode}
-                ambition={currentAmbition}
               />
             ),
           },
@@ -1529,8 +1520,9 @@ const Index = () => {
             render: () => currentAthlete && (
               <FtpKgTargetsCard
                 objectif={currentAthlete.goal || "IM"}
-                ftpKg={ftp_kg}
+                currentFtpKg={ftp_kg}
                 ambition={currentAmbition}
+                age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
               />
             ),
           },
@@ -1539,20 +1531,16 @@ const Index = () => {
             id: "running-economy-summary",
             render: () => currentAthlete && (
               <RunningEconomySummaryCard
-                economyResult={runningEconomyResult}
-                objectif={currentAthlete.goal || "IM"}
+                snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id)}
+                staffMode={staffMode}
               />
             ),
           },
           // ✅ 10. Dashboard Recommendations
           {
             id: "dashboard-recommendations",
-            render: () => currentAthlete && legacyAthlete && (
-              <DashboardRecommendationsCard
-                athlete={legacyAthlete}
-                snapshot={snapshotLegacy}
-                objectif={currentAthlete.goal || "IM"}
-              />
+            render: () => currentAthlete && (
+              <DashboardRecommendationsCard />
             ),
           },
           // ✅ 11. CP/W' Curve
@@ -1561,24 +1549,25 @@ const Index = () => {
             render: () => currentAthlete && effectiveCloudSnapshot && (
               <CPWPrimeCurveCard
                 pmax5s={effectiveCloudSnapshot.pmax_5s}
-                p30sW={effectiveCloudSnapshot.p30s_w}
-                p60sW={effectiveCloudSnapshot.p60s_w}
-                map5minW={effectiveCloudSnapshot.map5min_w}
+                p30s={effectiveCloudSnapshot.p30s_w}
+                p60s={effectiveCloudSnapshot.p60s_w}
+                map5min={effectiveCloudSnapshot.map5min_w}
                 ftp={effectiveCloudSnapshot.ftp}
                 weightKg={effectiveCloudSnapshot.weight_kg}
-                objectif={currentAthlete.goal || "IM"}
               />
             ),
           },
           // ✅ 12. W'bal Recovery
           {
             id: "wbal-recovery",
-            render: () => currentAthlete && effectiveCloudSnapshot && cpResultForLimiter && (
+            render: () => currentAthlete && effectiveCloudSnapshot && (
               <WbalRecoveryCard
-                cpWatts={cpResultForLimiter.cpWatts}
-                wprimeKJ={cpResultForLimiter.wprimeKJ}
-                ftp={effectiveCloudSnapshot.ftp ?? 0}
-                weightKg={effectiveCloudSnapshot.weight_kg ?? null}
+                ftp={effectiveCloudSnapshot.ftp}
+                pmax5s={effectiveCloudSnapshot.pmax_5s}
+                p30s={effectiveCloudSnapshot.p30s_w}
+                p60s={effectiveCloudSnapshot.p60s_w}
+                map5min={effectiveCloudSnapshot.map5min_w}
+                weightKg={effectiveCloudSnapshot.weight_kg}
               />
             ),
           },
@@ -1588,24 +1577,23 @@ const Index = () => {
             render: () => currentAthlete && effectiveCloudSnapshot && (
               <MetabolicPowerCurve
                 ftp={ftp}
-                pmax5s={effectiveCloudSnapshot.pmax_5s ?? null}
-                p30sW={effectiveCloudSnapshot.p30s_w ?? null}
-                p60sW={effectiveCloudSnapshot.p60s_w ?? null}
-                map5minW={effectiveCloudSnapshot.map5min_w ?? null}
-                weightKg={poids ?? null}
-                vlamax={vlamaxEffectif.value}
-                vo2max={effectiveCloudSnapshot.vo2max ?? null}
+                pMax5s={effectiveCloudSnapshot.pmax_5s ?? undefined}
+                p30s={effectiveCloudSnapshot.p30s_w ?? undefined}
+                p60s={effectiveCloudSnapshot.p60s_w ?? undefined}
+                map5min={effectiveCloudSnapshot.map5min_w ?? undefined}
+                weight={poids ?? 70}
+                vlamax={vlamaxEffectif.value ?? 0}
+                vo2max={effectiveCloudSnapshot.vo2max ?? 50}
               />
             ),
           },
           // ✅ 14. VO2max Age Comparison
           {
             id: "vo2max-age-comparison",
-            render: () => currentAthlete && currentAthlete.birth_date && (
+            render: () => currentAthlete && (
               <VO2maxAgeComparisonCard
-                birthDate={currentAthlete.birth_date}
-                vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
-                sex={currentAthlete.sex as "M" | "F" | null}
+                age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
+                currentVo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
                 objectif={currentAthlete.goal || "IM"}
                 ambition={currentAmbition}
               />
@@ -1618,8 +1606,6 @@ const Index = () => {
               <RoadmapStrategique
                 limiterResult={unifiedLimiterResult}
                 objectif={currentAthlete.goal || "IM"}
-                ambition={currentAmbition}
-                athleteName={currentAthlete.name}
               />
             ),
           },
@@ -1629,7 +1615,6 @@ const Index = () => {
             render: () => currentAthlete && effectiveCloudSnapshot && (
               <LorangTestChecklist
                 snapshot={effectiveCloudSnapshot}
-                objectif={currentAthlete.goal || "IM"}
               />
             ),
           },
@@ -1639,8 +1624,10 @@ const Index = () => {
             render: () => currentAthlete && effectiveCloudSnapshot && (
               <DataCompletionGuide
                 snapshot={effectiveCloudSnapshot}
-                athleteId={currentAthlete.id}
-                objectif={currentAthlete.goal || "IM"}
+                athleteGoal={currentAthlete.goal || "IM"}
+                onNavigateToProfile={() => navigate(`/athlete/${currentAthlete.id}`)}
+                onNavigateToCAPTest={() => navigate("/diagnostic/testing-week-cap")}
+                onNavigateToTFCLTest={() => navigate("/diagnostic/testing-week-tfcl")}
               />
             ),
           },
@@ -1650,7 +1637,6 @@ const Index = () => {
             render: () => currentAthlete && staffMode && (
               <DecisionReliabilityCard
                 result={decisionReliability}
-                staffMode={staffMode}
               />
             ),
           },
@@ -1679,33 +1665,29 @@ const Index = () => {
           // ✅ 20. Low CRR Justification
           {
             id: "low-crr-justification",
-            render: () => {
-              if (!currentAthlete || !effectiveCloudSnapshot) return null;
-              const crr = computeCRR({
-                tss7d: effectiveCloudSnapshot.tss_7d ?? null,
-                snapshotDate: effectiveCloudSnapshot.date ?? null,
-                snapshotUpdatedAt: effectiveCloudSnapshot.updated_at ?? null,
-              });
-              if (!crr.isLow) return null;
-              return (
-                <LowCRRJustificationCard
-                  crr={crr}
-                  objectif={currentAthlete.goal || "IM"}
-                />
-              );
-            },
+            render: () => currentAthlete && effectiveCloudSnapshot && (
+              <LowCRRJustificationCard
+                snapshot={effectiveCloudSnapshot}
+              />
+            ),
           },
           // ✅ 21. Scientific Charts (Staff)
           {
             id: "scientific-charts",
             render: () => currentAthlete && effectiveCloudSnapshot && staffMode && (
               <ScientificChartsDashboard
-                ftp={ftp}
-                weightKg={poids ?? null}
-                vo2max={effectiveCloudSnapshot.vo2max ?? null}
-                vlamax={vlamaxEffectif.value}
+                vlamaxValue={vlamaxEffectif.value}
+                vlamaxSource={vlamaxEffectif.source}
                 vlamaxConfidence={vlamaxEffectif.confidence}
+                tteValue={tteEffectif.tte_min}
+                tteSource={tteEffectif.source}
+                tteConfidence={tteEffectif.confidence}
+                readinessScore={raceReadinessEffectif.score}
                 objectif={currentAthlete.goal || "IM"}
+                vo2max={effectiveCloudSnapshot.vo2max ?? null}
+                ftp={ftp}
+                weight={poids ?? undefined}
+                initialStaffMode={staffMode}
               />
             ),
           },
