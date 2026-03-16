@@ -29,9 +29,8 @@ import { differenceInCalendarDays, parseISO, addDays, startOfWeek, format, start
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAITrainingPlan, type PlanAthleteData, type PlanConfig, type RaceGoal } from "@/hooks/useAITrainingPlan";
-import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
-import { computeTTEEffectif } from "@/lib/tteEffectif";
-import { detectUnifiedLimiter } from "@/lib/v2/unifiedLimiterDetection";
+import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
+import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, type PlanFormConfig } from "@/engines/plan";
 import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition } from "@/types/ambitionLevel";
