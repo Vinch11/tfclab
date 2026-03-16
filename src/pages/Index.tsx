@@ -1199,6 +1199,35 @@ const Index = () => {
       );
     }
 
+    // Tab navigation bar (visible when not on configuration)
+    const renderTabBar = () => {
+      if (activeTab === "configuration") return null;
+      const tabs = [
+        { id: "dashboard", label: "Dashboard", icon: "📊" },
+        { id: "profil", label: "Profil", icon: "👤" },
+        { id: "strategie", label: "Stratégie", icon: "🎯" },
+      ];
+      return (
+        <div className="flex gap-1 p-1 rounded-lg bg-muted/50 mb-3">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                "flex-1 px-3 py-2 text-sm font-medium rounded-md transition-all",
+                activeTab === tab.id
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <span className="mr-1.5">{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      );
+    };
+
     switch (activeTab) {
       case "dashboard":
         // ═══════════════════════════════════════════════════════════
