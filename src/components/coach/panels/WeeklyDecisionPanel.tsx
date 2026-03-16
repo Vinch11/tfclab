@@ -166,7 +166,7 @@ export function WeeklyDecisionPanel({
     setPendingOverride(null);
   };
 
-  // Watchouts
+  // Watchouts — enriched with engine data
   const watchouts = useMemo(() => {
     const items: string[] = [];
     
@@ -180,8 +180,20 @@ export function WeeklyDecisionPanel({
       items.push("📊 Delta calibration significatif — adapter progressivement");
     }
     
+    // Engine-driven watchouts
+    if (prescription?.strategy.hasSprintBan) {
+      items.push("🚫 Sprint Ban actif — éviter sprints et micro-intervalles explosifs");
+    }
+    if (prescription?.strategy.prohibitions && prescription.strategy.prohibitions.length > 0) {
+      prescription.strategy.prohibitions.forEach(p => {
+        if (!items.some(i => i.includes("Sprint Ban"))) {
+          items.push(`⛔ ${p.label}`);
+        }
+      });
+    }
+    
     return items;
-  }, [liveCalibration]);
+  }, [liveCalibration, prescription]);
 
   // Recent overrides
   const recentOverrides = overrides
