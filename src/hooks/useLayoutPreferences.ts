@@ -56,6 +56,13 @@ export const PROFIL_SECTIONS: SectionDefinition[] = [
   { id: "evolution-chart", label: "Évolution Profils", icon: "TrendingUp", defaultVisible: true },
   { id: "training-zones", label: "Zones d'entraînement", icon: "Target", defaultVisible: true },
   { id: "lactate-thresholds-profil", label: "Seuils Lactiques TFCL", icon: "Droplets", category: "metriques", defaultVisible: true },
+  { id: "vlamax-v2-calibration-profil", label: "Calibration VLamax V2", icon: "Zap", category: "analyse", defaultVisible: true },
+  { id: "ftp-targets-profil", label: "Cibles FTP/kg", icon: "Target", category: "analyse", defaultVisible: true },
+  { id: "fatmax-tfcl-profil", label: "Zones Métaboliques TFCL™", icon: "Flame", category: "analyse", defaultVisible: true },
+  { id: "vo2max-age-profil", label: "VO₂max — Comparatif âge", icon: "Calendar", category: "analyse", defaultVisible: true },
+  { id: "scientific-charts-profil", label: "Graphiques INSCYD (Staff)", icon: "BarChart", category: "analyse", defaultVisible: true },
+  { id: "decision-reliability-profil", label: "Fiabilité Décisionnelle (Staff)", icon: "Shield", category: "analyse", defaultVisible: true },
+  { id: "calibration-evidence-profil", label: "Évidences Calibration (Staff)", icon: "FlaskConical", category: "analyse", defaultVisible: true },
 ];
 
 export const DASHBOARD_SECTIONS: SectionDefinition[] = [
