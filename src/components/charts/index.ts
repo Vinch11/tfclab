@@ -30,6 +30,8 @@ export { VLamaxEstimationWidget } from "./VLamaxEstimationWidget";
 export { SimulatedLactateCurveChart } from "./SimulatedLactateCurveChart";
 export { FatCarbOxidationChart } from "./FatCarbOxidationChart";
 export { PerformancePredictionChart } from "./PerformancePredictionChart";
+export { PowerDurationUnifiedChart } from "./PowerDurationUnifiedChart";
+export { MetabolicZonesINSCYDChart } from "./MetabolicZonesINSCYDChart";
 
 // Utilitaires pour graphiques responsives (mobile/touch)
 export {
