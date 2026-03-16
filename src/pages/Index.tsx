@@ -2078,6 +2078,7 @@ const Index = () => {
 
       {/* Main content */}
       <div className="max-w-7xl mx-auto">
+        {renderTabBar()}
         {renderContent()}
       </div>
 
