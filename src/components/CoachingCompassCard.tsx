@@ -200,7 +200,7 @@ interface FlowStepProps {
 
 function FlowStep({ level, icon, title, subtitle, accentClass, badge, children }: FlowStepProps) {
   return (
-    <div className="relative">
+    <div className="relative print:break-inside-avoid">
       {/* Level indicator */}
       <div className="flex items-center gap-2 mb-1.5">
         <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
@@ -411,7 +411,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
   // ─── Données insuffisantes ───
   if (compass.meta.dataCompleteness < 10) {
     return (
-      <Card className={cn("border-border/50", className)}>
+      <Card className={cn("border-border/50 print:break-inside-avoid print:shadow-none", className)}>
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
             <Compass className="w-5 h-5 text-muted-foreground" />
@@ -434,7 +434,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
   const { limiter, leverage, decision, readiness } = compass;
 
   return (
-    <Card className={cn("border-border/50 overflow-hidden", className)}>
+    <Card className={cn("border-border/50 overflow-hidden print:break-inside-avoid print:shadow-none print:border-0", className)}>
       {/* ─── Header ─── */}
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
@@ -455,7 +455,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
             variant="ghost"
             size="sm"
             onClick={() => setStaffMode(!staffMode)}
-            className="h-7 px-2 text-[10px] gap-1 text-muted-foreground hover:text-foreground"
+            className="h-7 px-2 text-[10px] gap-1 text-muted-foreground hover:text-foreground print:hidden"
           >
             {staffMode ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
             {staffMode ? "Athlète" : "Staff"}
@@ -477,7 +477,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
           <div className="flex-1 min-w-0">
             
             {/* NIVEAU 1 — PROFIL PHYSIOLOGIQUE (Radar) */}
-            <div className="mb-1">
+            <div className="mb-1 print:break-inside-avoid">
               <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
                 Niveau 1 — Profil physiologique
               </span>
