@@ -1521,7 +1521,6 @@ const Index = () => {
               <FtpKgTargetsCard
                 objectif={currentAthlete.goal || "IM"}
                 currentFtpKg={ftp_kg}
-                ambition={currentAmbition}
                 age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
               />
             ),
