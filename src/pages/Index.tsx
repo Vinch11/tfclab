@@ -1726,7 +1726,13 @@ const Index = () => {
           {
             id: "athlete-profile",
             render: () => legacyAthlete && (
-              <AthleteProfile athlete={legacyAthlete} />
+              <AthleteProfile
+                athlete={legacyAthlete}
+                onUpdate={() => {}}
+                vlamaxEffectif={vlamaxEffectif}
+                tteEffectif={tteEffectif}
+                onOpenSnapshots={() => setShowSnapshots(true)}
+              />
             ),
           },
           // Two For Coaching Analysis
