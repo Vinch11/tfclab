@@ -1994,6 +1994,8 @@ const Index = () => {
                   onOpenSnapshots={() => setShowSnapshots(true)}
                   vlamaxEffectif={vlamaxEffectif}
                   tteEffectif={tteEffectif}
+                  compassInput={compassInputMemo ?? undefined}
+                  staffMode={staffMode}
                 />
                 {showSnapshots && currentAthlete && (
                   <SnapshotManager
