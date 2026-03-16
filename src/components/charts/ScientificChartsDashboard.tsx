@@ -12,6 +12,7 @@ import {
   EnergyContributionChart,
   StaffModeToggle,
   SimulatedLactateCurveChart,
+  FatCarbOxidationChart,
 } from "./index";
 
 interface ScientificChartsDashboardProps {
