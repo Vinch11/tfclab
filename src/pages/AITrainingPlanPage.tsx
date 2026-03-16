@@ -435,7 +435,7 @@ export default function AITrainingPlanPage() {
       toast.error("Sélectionnez un athlète avec un snapshot actif");
       return;
     }
-    const config = buildConfig(athleteContext.limiterResult);
+    const config = buildConfigFromDiag(athleteContext.diagnostic);
     generatePlan(athleteContext.data, config);
   };
 
