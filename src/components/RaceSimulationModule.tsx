@@ -183,6 +183,7 @@ export function RaceSimulationModule({
   const [terrain, setTerrain] = useState<TerrainType>('flat');
   const [plannedCarbsGH, setPlannedCarbsGH] = useState<number>(60);
   const [useNutrition, setUseNutrition] = useState(true);
+  const [gutTraining, setGutTraining] = useState(false);
   const [selectedScenario, setSelectedScenario] = useState<ScenarioType>('optimal');
   const [showSimulation, setShowSimulation] = useState(false);
   
@@ -212,6 +213,7 @@ export function RaceSimulationModule({
     heat,
     terrain,
     plannedCarbsGH: useNutrition ? plannedCarbsGH : null,
+    gutTraining,
     nutritionType: 'mixed',
     ambition,
     vlamaxEffectif,
@@ -231,7 +233,7 @@ export function RaceSimulationModule({
     // ✅ Passer les modificateurs Race Readiness au moteur de simulation
     readinessModifiers: simulationAccess.enabled ? simulationAccess.modifiers : null,
   }), [
-    raceType, ambition, heat, terrain, plannedCarbsGH, useNutrition,
+    raceType, ambition, heat, terrain, plannedCarbsGH, useNutrition, gutTraining,
     vlamaxEffectif, vlamaxConfidence, vlamaxDiscipline, tteMin, tteConfidence,
     fatmax, disponibiliteScore, disponibiliteLevel, injuryRiskLevel, ftp, vma, paceThreshold, weight,
     simulationAccess // Ajout de la dépendance
@@ -601,6 +603,13 @@ export function RaceSimulationModule({
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>30 g/h</span>
                 <span>120 g/h</span>
+              </div>
+              <div className="flex items-center justify-between mt-2 p-2 bg-muted/30 rounded-lg">
+                <Label htmlFor="gut-training-sim" className="text-xs cursor-pointer flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5 text-warning" />
+                  Gut Training
+                </Label>
+                <Switch id="gut-training-sim" checked={gutTraining} onCheckedChange={setGutTraining} />
               </div>
             </div>
           )}

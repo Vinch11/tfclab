@@ -48,6 +48,7 @@ export interface RaceSimulationInput {
   
   // Nutrition
   plannedCarbsGH?: number | null;
+  gutTraining?: boolean;
   nutritionType?: 'liquid' | 'solid' | 'mixed' | null;
   
   // Ambition
@@ -478,6 +479,7 @@ function computeSegmentFuelRisk(
   segmentIndex: number,
   totalSegments: number,
   plannedCarbsGH: number | null,
+  gutTraining: boolean,
   scenarioType?: ScenarioType,
   readinessModifiers?: SimulationModifiers | null
 ): number {
@@ -527,8 +529,7 @@ function computeSegmentFuelRisk(
   
   // Mitigation nutrition – basée sur l'absorption intestinale réelle
   if (plannedCarbsGH && plannedCarbsGH > 0) {
-    const absorbedGH = computeAbsorbedCarbsGH(plannedCarbsGH);
-    // 60g/h absorbé = ~25 pts de mitigation max, proportionnel
+    const absorbedGH = computeAbsorbedCarbsGH(plannedCarbsGH, gutTraining);
     const nutritionMitigation = Math.min(30, (absorbedGH / 60) * 25);
     risk -= nutritionMitigation;
   }
@@ -587,6 +588,7 @@ function computeGlycogenRemaining(
   fatmaxCenter: number | null,
   vlamaxEffectif: number | null,
   plannedCarbsGH: number | null,
+  gutTraining: boolean,
   scenarioType?: ScenarioType,
   readinessModifiers?: SimulationModifiers | null
 ): number {
@@ -631,7 +633,7 @@ function computeGlycogenRemaining(
   const carbBurnPerSegment = carbBurnGPerMin * segmentDurationMin * scenarioFactor * glycogenDepletionMultiplier * progressionFactor;
   
   // Absorption nette par segment (g) – modèle intestinal réel
-  const absorbedGH = computeAbsorbedCarbsGH(plannedCarbsGH ?? 0);
+  const absorbedGH = computeAbsorbedCarbsGH(plannedCarbsGH ?? 0, gutTraining);
   const absorbedPerSegment = (absorbedGH / 60) * segmentDurationMin; // g absorbés ce segment
   
   // Déplétion nette cumulée
@@ -742,6 +744,8 @@ function generateScenario(
       segmentIntensity = targetIntensity - (i * 0.5);
     }
     
+    const gutTraining = input.gutTraining ?? false;
+    
     const fuelRisk = computeSegmentFuelRisk(
       targetIntensity,
       input.fatmaxCenterPct,
@@ -751,6 +755,7 @@ function generateScenario(
       i,
       numSegments,
       input.plannedCarbsGH,
+      gutTraining,
       type,
       readinessModifiers
     );
@@ -762,6 +767,7 @@ function generateScenario(
       input.fatmaxCenterPct,
       input.vlamaxEffectif,
       input.plannedCarbsGH,
+      gutTraining,
       type,
       readinessModifiers
     );
@@ -774,6 +780,7 @@ function generateScenario(
       input.fatmaxCenterPct,
       input.vlamaxEffectif,
       0, // pas d'apport
+      false,
       type,
       readinessModifiers
     );
