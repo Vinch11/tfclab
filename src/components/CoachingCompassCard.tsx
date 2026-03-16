@@ -434,7 +434,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
   const { limiter, leverage, decision, readiness } = compass;
 
   return (
-    <Card className={cn("border-border/50 overflow-hidden", className)}>
+    <Card className={cn("border-border/50 overflow-hidden print:break-inside-avoid print:shadow-none print:border-0", className)}>
       {/* ─── Header ─── */}
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
