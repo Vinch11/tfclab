@@ -6743,7 +6743,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     const weightKg = p.effectiveRefs.weightKg ?? effectiveSnapshot?.weight_kg ?? 70;
     if (!v2max || !vla || !ftpVal) return '';
     
-    const { calculateFatOxidation, calculateCarbOxidation, findFatMax, predictMaderPerformance } = require("@/lib/v2/maderMetabolicModel");
+    // Mader model imported at top level (ESM)
     const maderProfile = { vo2max: v2max, vlamax: vla, weight: weightKg };
     const fatMaxResult = findFatMax(maderProfile);
     const predictions = predictMaderPerformance(maderProfile);
