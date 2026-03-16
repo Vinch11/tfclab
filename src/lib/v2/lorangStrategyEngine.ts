@@ -548,6 +548,64 @@ function activateLevers(
   const levers: LorangLeverActivation[] = [];
   const { physiology, athlete, availability, context } = input;
   
+  // LEVIER 0a: Intervalles VO₂max — Activé si limiteur = motor (aérobie)
+  const shouldActivateVO2 = (
+    primaryLimiter === 'motor' ||
+    (physiology.vo2max !== null && physiology.vo2maxTarget > 0 && physiology.vo2max < physiology.vo2maxTarget * 0.90) ||
+    (physiology.ftpKg !== null && physiology.ftpKgTarget !== null && physiology.ftpKg < physiology.ftpKgTarget * 0.90)
+  ) && availability.level !== 'critical' && !context.isRaceWeek;
+
+  if (shouldActivateVO2) {
+    levers.push({
+      lever: 'vo2_intervals',
+      label: LEVER_DEFINITIONS.vo2_intervals.label,
+      icon: LEVER_DEFINITIONS.vo2_intervals.icon,
+      priority: primaryLimiter === 'motor' ? 1 : 2,
+      reason: primaryLimiter === 'motor'
+        ? "Plafond aérobie limitant — développer VO₂max via intervalles haute intensité"
+        : "VO₂max ou FTP/kg sous la cible — stimulus aérobie nécessaire",
+      prescription: [
+        "5×4min Z5 r3min (classique Billat)",
+        "3×8min Z4-Z5 r4min",
+        "6×3min Z5 r3min",
+        "2x/semaine max en phase Build",
+      ],
+      warnings: [
+        "Ne pas combiner avec Force Max la même journée",
+        "Récupération 48h entre séances clés",
+      ],
+      isStaffOnly: false,
+    });
+  }
+
+  // LEVIER 0b: Volume Z2 / Endurance — Activé si limiteur = metabolic ou durability faible
+  const shouldActivateZ2 = (
+    primaryLimiter === 'metabolic' ||
+    (physiology.tte !== null && physiology.tteTarget > 0 && physiology.tte < physiology.tteTarget * 0.85)
+  ) && availability.level !== 'critical' && !context.isRaceWeek;
+
+  if (shouldActivateZ2) {
+    levers.push({
+      lever: 'z2_volume',
+      label: LEVER_DEFINITIONS.z2_volume.label,
+      icon: LEVER_DEFINITIONS.z2_volume.icon,
+      priority: primaryLimiter === 'metabolic' ? 1 : 2,
+      reason: primaryLimiter === 'metabolic'
+        ? "Efficacité énergétique limitante — augmenter le volume aérobie de base"
+        : "Durabilité sous la cible — développer l'endurance longue",
+      prescription: [
+        "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+        "Z2 + bloc tempo final 20-30min",
+        "3-4 sorties Z2/semaine en phase Base",
+      ],
+      warnings: [
+        "Progression volume max +10%/semaine",
+        "Maintenir au moins 1 jour OFF ou récup active",
+      ],
+      isStaffOnly: false,
+    });
+  }
+
   // LEVIER 1: Force Max
   const shouldActivateForceMax = (
     (athlete.age !== null && athlete.age > 35) ||
