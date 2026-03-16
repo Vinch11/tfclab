@@ -86,7 +86,7 @@ function computeStrategyFromDiagnostic(
   const lorangInput: LorangStrategyInput = {
     physiology: {
       vo2max: raw.vo2max,
-      vo2maxTarget: diag.targets.current.vo2max_min ?? diag.targets.current.ftp_kg_min * 15,
+      vo2maxTarget: diag.targets.current.ftp_kg_min * 15, // Approximation from FTP/kg target
       ftpKg: raw.ftpKg,
       ftpKgTarget: diag.targets.current.ftp_kg_min,
       vlamax: diag.effectifs.vlamax.value,
