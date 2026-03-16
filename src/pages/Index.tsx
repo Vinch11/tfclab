@@ -84,6 +84,7 @@ import { LorangDecisionFlowChart } from "@/components/LorangDecisionFlowChart";
 
 // ✅ Coach Decision Center — Carte unifiée (Phase 2 Architecture)
 import { CoachDecisionUnifiedCard } from "@/components/CoachDecisionUnifiedCard";
+import { CoachingCompassCard } from "@/components/CoachingCompassCard";
 
 // ✅ Engines unifiés
 import { computeDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
