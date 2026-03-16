@@ -57,6 +57,8 @@ export function ScientificChartsDashboard({
   vo2max,
   ftp,
   weight,
+  vma,
+  css,
 }: ScientificChartsDashboardProps) {
   const [staffMode, setStaffMode] = useState(initialStaffMode);
 
