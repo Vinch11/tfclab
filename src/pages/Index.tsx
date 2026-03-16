@@ -2049,7 +2049,30 @@ const Index = () => {
 
       {/* Main content */}
       <div className="max-w-7xl mx-auto">
-        {renderTabBar()}
+        {/* Tab navigation bar */}
+        {activeTab !== "configuration" && legacyAthlete && athletes.length > 0 && (
+          <div className="flex gap-1 p-1 rounded-lg bg-muted/50 mb-3">
+            {[
+              { id: "dashboard", label: "Dashboard", icon: "📊" },
+              { id: "profil", label: "Profil", icon: "👤" },
+              { id: "strategie", label: "Stratégie", icon: "🎯" },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "flex-1 px-3 py-2 text-sm font-medium rounded-md transition-all",
+                  activeTab === tab.id
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <span className="mr-1.5">{tab.icon}</span>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        )}
         {renderContent()}
       </div>
 
