@@ -1,10 +1,11 @@
 /**
- * TWO FOR COACHING LAB METHOD™ — Race Readiness V2 Officiel
+ * TWO FOR COACHING LAB METHOD™ — Race Readiness V2.1 Officiel
  * 
- * SÉPARATION CLAIRE :
- * - POTENTIEL (Metabolic Performance Compass™) = profil physiologique structurel
- * - DISPONIBILITÉ (Disponibilité TFCL™) = état du jour
- * - DÉCISION (Race Readiness TFCL™) = capacité à performer/absorber
+ * MODÈLE SIMPLIFIÉ (V2.1) :
+ * - POTENTIEL (Metabolic Performance Compass™) = seule source de vérité
+ * - La Disponibilité a été retirée du modèle car la fatigue n'est
+ *   renseignée qu'une fois toutes les 3-4 semaines et manque de précision.
+ * - DÉCISION (Race Readiness TFCL™) = Potentiel − Pénalités
  * 
  * RÈGLE TFCL :
  * "Ce score ne prédit pas un résultat. Il guide la décision."
