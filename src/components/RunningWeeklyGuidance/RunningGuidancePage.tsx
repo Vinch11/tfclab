@@ -162,13 +162,11 @@ export function RunningGuidancePage() {
     if (!lockedProfile) return null;
     
     const riskContext: RiskContextRun = {
-      age_factor: 1.0,
-      injury_history_cap: false,
-      plan_phase: "SPECIFIC",
-      race_importance: "A",
+      readiness_state: "GREEN",
+      limiting_factor: "NONE",
     };
     
-    return computeRaceReadinessRun(lockedProfile, availability, riskContext);
+    return computeRaceReadinessRun(lockedProfile, availability);
   }, [lockedProfile, availability]);
   
   // Calculer la décision hebdomadaire (modifiée par le readiness)
