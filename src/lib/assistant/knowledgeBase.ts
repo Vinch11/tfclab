@@ -144,12 +144,12 @@ Une VLamax trop haute pour un objectif longue distance = consommation glycogène
   },
   {
     id: "def_race_readiness",
-    title: "Définition Race Readiness",
+    title: "Définition Potentiel Physiologique",
     category: "definition",
-    tags: ["Race Readiness", "score", "préparation", "objectif", "définition"],
+    tags: ["Potentiel Physiologique", "score", "préparation", "objectif", "définition"],
     level: "athlete",
     lastUpdated: "2026-01-10",
-    contentMarkdown: `## Race Readiness
+    contentMarkdown: `## Potentiel Physiologique
 
 **Définition :** Indicateur composite (0-100) d'adéquation physiologique entre le profil de l'athlète et son objectif.
 

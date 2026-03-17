@@ -756,11 +756,11 @@ export function formatContextForDisplay(context: AssistantContextPacket): Contex
     });
   }
   
-  // Race Readiness
+  // Potentiel Physiologique
   if (context.raceReadiness) {
     const r = context.raceReadiness;
     items.push({
-      label: "Race Readiness",
+      label: "Potentiel Physiologique",
       value: `${r.score}/100 (${r.label})`,
       status: r.score >= 80 ? "ok" : r.score >= 60 ? "warning" : "error",
       confidence: r.confidence

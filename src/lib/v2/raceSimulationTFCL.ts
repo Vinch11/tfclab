@@ -220,7 +220,7 @@ export function computeRaceSimulation(inputs: SimulationInputs): SimulationResul
   else missingData.push("Durabilité CAP");
   
   sourcesUsed.push("Pacing Envelope™");
-  sourcesUsed.push("Race Readiness");
+  sourcesUsed.push("Potentiel Physiologique");
 
   // ─────────────────────────────────────────────────────────────────────────────
   // EXTRAIRE LES BORNES DE L'ENVELOPPE

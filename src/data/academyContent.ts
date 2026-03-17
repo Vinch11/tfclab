@@ -1802,19 +1802,19 @@ export const academySections: AcademySection[] = [
   },
   {
     id: "race-readiness-cap",
-    title: "Pourquoi être en forme ne suffit pas — Race Readiness CAP",
+    title: "Pourquoi être en forme ne suffit pas — Potentiel Physiologique CAP",
     level: "basic",
-    tags: ["race readiness", "disponibilité", "potentiel", "CAP", "running", "Dan Lorang", "decision"],
+    tags: ["potentiel physiologique", "disponibilité", "potentiel", "CAP", "running", "Dan Lorang", "decision"],
     blocks: [
       {
         type: "text",
-        title: "La question centrale du Race Readiness",
-        content: "Le Race Readiness TFCL répond à UNE question : 'L'athlète peut-il exprimer son potentiel physiologique CAP aujourd'hui ?' Ce score ne mesure pas la forme absolue, mais la capacité à mobiliser le potentiel existant sans dégradation excessive ni risque disproportionné."
+        title: "La question centrale du Potentiel Physiologique",
+        content: "Le Potentiel Physiologique TFCL répond à UNE question : 'L'athlète peut-il exprimer son potentiel physiologique CAP aujourd'hui ?' Ce score ne mesure pas la forme absolue, mais la capacité à mobiliser le potentiel existant sans dégradation excessive ni risque disproportionné."
       },
       {
         type: "callout",
-        title: "Race Readiness ≠ Potentiel",
-        content: "Un athlète avec un excellent VO2max et une VLamax optimale peut échouer le jour J si sa disponibilité est compromise. Le Race Readiness capture cette interaction entre physiologie (stable) et disponibilité (variable)."
+        title: "Potentiel Physiologique ≠ Forme",
+        content: "Un athlète avec un excellent VO2max et une VLamax optimale peut échouer le jour J si sa disponibilité est compromise. Le Potentiel Physiologique capture cette interaction entre physiologie (stable) et disponibilité (variable)."
       },
       {
         type: "table",

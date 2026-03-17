@@ -157,7 +157,7 @@ export function RunningGuidancePage() {
     motivation: weeklyInputs.motivation ?? 3,
   });
   
-  // Calculer le Race Readiness
+  // Calculer le Potentiel Physiologique
   const raceReadiness = useMemo((): RaceReadinessRun | null => {
     if (!lockedProfile) return null;
     

@@ -204,7 +204,7 @@ export const RUNNING_PROFILE_SECTIONS: SectionDefinition[] = [
   // 🛡️ Risque & Readiness
   { id: "injury-risk-cap", label: "Risque Blessure CAP", icon: "Shield", category: "fatigue", defaultVisible: true },
   { id: "availability-form", label: "Disponibilité du Jour", icon: "ClipboardCheck", category: "fatigue", defaultVisible: true },
-  { id: "race-readiness-run", label: "Race Readiness CAP", icon: "Trophy", category: "fatigue", defaultVisible: true },
+  { id: "race-readiness-run", label: "Potentiel CAP", icon: "Trophy", category: "fatigue", defaultVisible: true },
   
   // 📊 Pacing & Métriques
   { id: "pacing-envelope-run", label: "Enveloppe Pacing", icon: "Target", category: "analyse", defaultVisible: true },

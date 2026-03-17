@@ -321,7 +321,7 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
   let readinessMessage: string | null = null;
   
   if (raceReadinessScore != null) {
-    sourcesUsed.push("Race Readiness");
+    sourcesUsed.push("Potentiel Physiologique");
     
     if (raceReadinessScore < 60) {
       // Readiness faible → réduire le haut de l'enveloppe

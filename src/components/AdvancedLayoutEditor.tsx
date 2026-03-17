@@ -494,7 +494,7 @@ export function AdvancedLayoutEditor() {
     { id: "seances", label: "Bibliothèque", icon: <Dumbbell className="w-4 h-4" /> },
     { id: "templates", label: "Templates", icon: <BookOpen className="w-4 h-4" /> },
     { id: "academy", label: "Academy", icon: <GraduationCap className="w-4 h-4" /> },
-    { id: "race-readiness", label: "Race Readiness", icon: <Trophy className="w-4 h-4" /> },
+    { id: "race-readiness", label: "Potentiel Physiologique", icon: <Trophy className="w-4 h-4" /> },
   ];
 
   const availableTabs = tabs.map(t => ({ id: t.id, label: t.label }));

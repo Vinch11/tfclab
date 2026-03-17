@@ -199,7 +199,7 @@ export const FATIGUE_RISK_USAGE = {
 
 export const RACE_READINESS_USAGE = {
   id: 'race_readiness',
-  title: "Race Readiness",
+  title: "Potentiel Physiologique",
   icon: "🏁",
   servesTo: [
     "Vérifier la cohérence globale",

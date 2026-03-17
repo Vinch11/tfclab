@@ -1438,7 +1438,7 @@ export function formatKnowledgeForAI(articles: KnowledgeArticle[]): string {
 export const QUICK_SUGGESTIONS = [
   { label: "C'est quoi VLamax ?", query: "C'est quoi VLamax ?" },
   { label: "Différence Z4a / Z4b", query: "C'est quoi la différence entre Z4a et Z4b ?" },
-  { label: "Race Readiness", query: "Comment fonctionne le Race Readiness ?" },
+  { label: "Potentiel Physiologique", query: "Comment fonctionne le Potentiel Physiologique ?" },
   { label: "TTE insuffisant", query: "Mon TTE est insuffisant, que faire ?" },
   { label: "Affûtage", query: "Comment faire un bon affûtage avant une course ?" },
   { label: "Polarisé", query: "C'est quoi l'entraînement polarisé ?" },

@@ -8,7 +8,7 @@
  * 
  * Where:
  * - Potential = physiological ceiling (VO2max, VLamax, Economy, TTE)
- * - Availability = freshness, recovery, stress state (Race Readiness)
+ * - Availability = freshness, recovery, stress state (Potentiel Physiologique)
  * - Discipline = respect of the Pacing Envelope™
  * 
  * TFCL never evaluates one without the others.
