@@ -4,6 +4,7 @@
  */
 
 export interface RunningEconomyData {
+  [key: string]: any;
   label: string;
   score: number;
   efficiency: number;
@@ -13,6 +14,7 @@ export interface RunningEconomyData {
 }
 
 export interface RaceReadinessEffectif {
+  [key: string]: any;
   score: number;
   rawScore?: number;
   label: string;
@@ -72,11 +74,11 @@ export function computeRaceReadinessEffectif(params: ComputeRaceReadinessEffecti
 }
 
 // ═══ Utility stubs ═══
-export function getTargets(_objectif: string) {
+export function getTargets(_objectif: string, ..._args: any[]): any {
   return { vlamax: { min: 0.15, max: 0.50, optimal: 0.30 }, tte: { min: 30, target: 50 }, durabilityMin: 40 };
 }
 
-export function getWeightsBySport(_sport: string) {
+export function getWeightsBySport(_sport: string): any {
   return { vlamax: 0.30, endurance: 0.30, puissance: 0.20, fraicheur: 0.20 };
 }
 
@@ -90,16 +92,17 @@ export function getScoreColor(score: number): string {
   return "hsl(var(--destructive))";
 }
 
-export function generateAthleteReadiness(..._args: unknown[]): string {
+export function generateAthleteReadiness(..._args: unknown[]): any {
   return "Race Readiness module removed.";
 }
 
-export function computePillarCalculations(..._args: unknown[]) {
+export function computePillarCalculations(..._args: unknown[]): any {
   return { pillars: [], totalScore: 0 };
 }
 
 // ═══ Race Readiness Signature ═══
 export interface RaceReadinessInput {
+  [key: string]: any;
   objectif: string;
   vlamaxValue: number;
   vlamaxConfidence: number;
@@ -115,6 +118,7 @@ export interface RaceReadinessInput {
 }
 
 export interface RaceReadinessResult {
+  [key: string]: any;
   score: number;
   label: string;
   pillars: { name: string; score: number; weight: number }[];
