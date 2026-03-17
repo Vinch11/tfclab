@@ -182,6 +182,60 @@ const LEVER_EFFECTS: Record<TrainingLeverId, LeverEffect[]> = {
     { metric: "economy", minPct: 0, maxPct: 2 },
     { metric: "lt2", minPct: 1, maxPct: 4 },
   ],
+  vo2max_intervals: [
+    { metric: "vo2max", minPct: 3, maxPct: 6 },
+    { metric: "lt2", minPct: 2, maxPct: 4 },
+    { metric: "tte", minPct: 2, maxPct: 5 },
+    { metric: "vlamax", minPct: 0, maxPct: 3 },       // Légère hausse possible
+    { metric: "fatmax", minPct: -2, maxPct: 0 },
+    { metric: "durability", minPct: 0, maxPct: 2 },
+    { metric: "economy", minPct: 1, maxPct: 3 },
+  ],
+  train_low: [
+    { metric: "fatmax", minPct: 8, maxPct: 15 },
+    { metric: "vlamax", minPct: -6, maxPct: -2 },
+    { metric: "durability", minPct: 5, maxPct: 10 },
+    { metric: "vo2max", minPct: 0, maxPct: 2 },
+    { metric: "tte", minPct: 2, maxPct: 6 },
+    { metric: "economy", minPct: 0, maxPct: 2 },
+    { metric: "lt2", minPct: 0, maxPct: 2 },
+  ],
+  norwegian_method: [
+    { metric: "lt2", minPct: 4, maxPct: 8 },
+    { metric: "tte", minPct: 12, maxPct: 25 },
+    { metric: "vo2max", minPct: 1, maxPct: 3 },
+    { metric: "vlamax", minPct: -3, maxPct: -1 },
+    { metric: "fatmax", minPct: 1, maxPct: 3 },
+    { metric: "durability", minPct: 3, maxPct: 7 },
+    { metric: "economy", minPct: 1, maxPct: 3 },
+  ],
+  plyometrics: [
+    { metric: "economy", minPct: 4, maxPct: 8 },      // Hewett 2007, Beattie 2017
+    { metric: "vo2max", minPct: 0, maxPct: 1 },
+    { metric: "vlamax", minPct: 0, maxPct: 3 },
+    { metric: "fatmax", minPct: 0, maxPct: 1 },
+    { metric: "durability", minPct: 1, maxPct: 3 },
+    { metric: "tte", minPct: 0, maxPct: 2 },
+    { metric: "lt2", minPct: 1, maxPct: 3 },
+  ],
+  polarized_hi: [
+    { metric: "vo2max", minPct: 2, maxPct: 5 },
+    { metric: "fatmax", minPct: 3, maxPct: 7 },
+    { metric: "vlamax", minPct: -4, maxPct: -1 },
+    { metric: "durability", minPct: 4, maxPct: 8 },
+    { metric: "tte", minPct: 3, maxPct: 8 },
+    { metric: "economy", minPct: 1, maxPct: 3 },
+    { metric: "lt2", minPct: 2, maxPct: 4 },
+  ],
+  increase_ftp_kg: [
+    { metric: "lt2", minPct: 3, maxPct: 6 },
+    { metric: "tte", minPct: 5, maxPct: 12 },
+    { metric: "vo2max", minPct: 1, maxPct: 3 },
+    { metric: "vlamax", minPct: -2, maxPct: 0 },
+    { metric: "fatmax", minPct: 1, maxPct: 4 },
+    { metric: "durability", minPct: 2, maxPct: 5 },
+    { metric: "economy", minPct: 0, maxPct: 2 },
+  ],
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
