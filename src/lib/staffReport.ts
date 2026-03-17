@@ -365,6 +365,11 @@ export interface GenerateStaffReportParams {
     protocol_quality?: number | null;
     testDates?: string | null;
   };
+  // ✅ Cycle Intelligence — snapshots pour analyse d'évolution
+  allSnapshots?: Array<Record<string, unknown>>;
+  currentSnapshotId?: string | null;
+  previousLimiterId?: string | null;
+  previousLimiterLabel?: string | null;
 }
 
 // =============================================
