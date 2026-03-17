@@ -477,12 +477,12 @@ function buildScenario(
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const LIMITER_TO_LEVERS: Record<string, TrainingLeverId[]> = {
-  aerobic_engine: ["volume_z2", "threshold_work"],
-  glycolytic: ["reduce_anaerobic", "volume_z2"],
-  specific_endurance: ["threshold_work", "volume_z2"],
-  metabolic_efficiency: ["reduce_anaerobic", "volume_z2"],
-  neuromuscular: ["max_force", "running_economy"],
-  anaerobic_capacity: ["glycolytic_block", "max_force"],
+  aerobic_engine: ["vo2max_intervals", "volume_z2", "polarized_hi", "threshold_work"],
+  glycolytic: ["reduce_anaerobic", "train_low", "volume_z2"],
+  specific_endurance: ["norwegian_method", "threshold_work", "volume_z2"],
+  metabolic_efficiency: ["train_low", "reduce_anaerobic", "volume_z2"],
+  neuromuscular: ["max_force", "plyometrics", "running_economy"],
+  anaerobic_capacity: ["glycolytic_block", "max_force", "plyometrics"],
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
