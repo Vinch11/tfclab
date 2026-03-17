@@ -190,6 +190,7 @@ import { toast } from "sonner";
 import { getDernierSnapshot } from "@/types/athlete";
 import { computeVLamaxEffectif, type VLamaxEffectif, computeTTEEffectif, type TTEEffectif, getSourceLabel } from "@/engines/diagnostic";
 
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 // ✅ RACE READINESS EFFECTIF - Source unique de vérité
 
 // ✅ Ambition (modulateur des cibles)
@@ -501,8 +502,9 @@ const Index = () => {
     return tteEffectif?.tte_min ?? 0;
   }, [tteEffectif]);
 
-  // ✅ RACE READINESS EFFECTIF - Source unique de vérité
-  const raceReadinessEffectif = useMemo<RaceReadinessEffectif>(() => {
+  // Race Readiness stub (module removed)
+  const raceReadinessEffectif = useMemo(() => {
+    return computeRaceReadinessEffectif({
       objectif: currentAthlete?.goal || "IM",
       vlamaxEffectif,
       tteEffectif,
@@ -510,13 +512,10 @@ const Index = () => {
       poids: poids ?? undefined,
       fatigue_ok: true,
       seance_specifique_validee: false,
-      fcMax: effectiveRefs.fcMax ?? null,
-      deriveCardiaque: effectiveCloudSnapshot?.run_hr_drift_pct ?? null,
-      athleteAge: currentAthlete?.birth_date ? calculateAge(currentAthlete.birth_date) : null,
       ambition: currentAmbition,
-      // ✅ AJOUT: TSS 7j pour calcul Disponibilité (MIN architecture)
       tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
     });
+  }, [currentAthlete, vlamaxEffectif, tteEffectif, ftp, poids, effectiveCloudSnapshot, currentAmbition]);
   }, [currentAthlete, vlamaxEffectif, tteEffectif, ftp, poids, effectiveRefs, effectiveCloudSnapshot, currentAmbition]);
 
   // ✅ NUTRITION ESTIMATE - Pour rapport staff

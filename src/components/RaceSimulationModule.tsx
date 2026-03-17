@@ -1277,10 +1277,10 @@ export function RaceSimulationModule({
       {/* Principle reminder */}
       <div className="p-4 bg-muted/30 rounded-lg border text-center space-y-2">
         <p className="text-sm font-medium">
-          {SIMULATION_ACCESS_DEFINITIONS.title}
+          {SIMULATION_ACCESS_DEFINITIONS['title']}
         </p>
         <p className="text-xs text-muted-foreground italic">
-          {SIMULATION_ACCESS_DEFINITIONS.principle}
+          {SIMULATION_ACCESS_DEFINITIONS['principle']}
         </p>
       </div>
     </div>

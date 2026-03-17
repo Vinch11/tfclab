@@ -13,7 +13,7 @@
  */
 
 import type { SimulationScenarioType, PacingCurvePoint } from "./raceSimulationTFCL";
-import type { ReadinessState } from "./raceReadinessRunning";
+import type { ReadinessState } from "./readinessTypes";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES — POST-RACE DATA

@@ -19,7 +19,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import type { RaceReadinessRun, ReadinessState } from "./raceReadinessRunning";
+import type { RaceReadinessRun, ReadinessState } from "./readinessTypes";
 import type { RunningPhysioProfile } from "./runningDoubleLoop";
 
 // ═══════════════════════════════════════════════════════════════════════════════
