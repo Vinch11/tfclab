@@ -53,17 +53,21 @@ export interface RaceReadinessRun {
 export type SimulationAccessStatus = 'RED' | 'ORANGE' | 'GREEN' | 'BLUE';
 
 export interface SimulationModifiers {
-  ftpMultiplier: number;
-  vmaMultiplier: number;
-  fatmaxShift: number;
-  glycogenDepletionRate: number;
-  driftAcceleration: number;
+  effectiveFtpMultiplier: [number, number];
+  effectiveThresholdMultiplier: [number, number];
+  fatmaxShiftPct: number;
+  glycogenDepletionRateMultiplier: number;
+  tteUsableMultiplier: number;
+  riskZoneWidening: number;
+  allowedScenarios: ('conservative' | 'optimal' | 'aggressive')[];
+  negativeSplitAllowed: boolean;
+  lateRaceIntensityBoostAllowed: boolean;
 }
 
 export function getDefaultSimulationModifiers(): SimulationModifiers {
   return {
-    ftpMultiplier: 1.0,
-    vmaMultiplier: 1.0,
+    effectiveFtpMultiplier: [0.95, 1.0],
+    effectiveThresholdMultiplier: [0.95, 1.0],
     fatmaxShift: 0,
     glycogenDepletionRate: 1.0,
     driftAcceleration: 1.0,
