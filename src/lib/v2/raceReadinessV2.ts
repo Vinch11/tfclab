@@ -12,8 +12,8 @@
  */
 
 import type { CompassScores } from "@/lib/compassScoring";
+// Disponibilité imports kept for backward compatibility but no longer used in scoring
 import type { DisponibiliteTFCL, TFCLReadinessInput } from "./disponibiliteTFCL";
-import { computeDisponibiliteTFCL } from "./disponibiliteTFCL";
 
 // =============================================
 // TYPES
