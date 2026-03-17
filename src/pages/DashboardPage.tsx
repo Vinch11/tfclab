@@ -40,7 +40,6 @@ import { RunningFocusWrapper } from "@/components/RunningFocusWrapper";
 // Sources uniques de données
 import { computeVLamaxEffectif, type VLamaxEffectif, getSourceColor, computeTTEEffectif, type TTEEffectif, getTTETarget, getSourceLabel, computeFatigueEffectif, type FatigueEffectif } from "@/engines/diagnostic";
 import { getConfidenceLabel } from "@/lib/confidenceDisplay";
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getSportFromObjectif } from "@/lib/raceReadinessEffectif";
 import { getVlamaxStatusWithLabel } from "@/lib/physiologicalTargets";
 import { computeNutritionEstimate, type NutritionEstimate } from "@/lib/nutritionPredictive";
 
@@ -261,7 +260,6 @@ export default function DashboardPage() {
       return age;
     })() : null;
     
-    const raceReadiness = computeRaceReadinessEffectif({
       objectif,
       vlamaxEffectif,
       tteEffectif,

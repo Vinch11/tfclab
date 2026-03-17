@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, AlertTriangle, Target, Compass } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getAgeAdjustedTargets } from "@/lib/ageAdjustment";
-import { getTargets as getRaceReadinessTargets } from "@/lib/raceReadinessEffectif";
 import { AmbitionLevel, DEFAULT_AMBITION, getAmbitionDefinition } from "@/types/ambitionLevel";
 
 interface TargetSyncVerifierProps {
@@ -29,7 +28,6 @@ export function TargetSyncVerifier({
     // Cibles du Compass (source: ageAdjustment.ts)
     const compassTargets = getAgeAdjustedTargets(objectif, athleteAge, ambition);
     
-    // Cibles du Race Readiness (source: raceReadinessEffectif.ts)
     const rrTargets = getRaceReadinessTargets(objectif, athleteAge, ambition);
     
     // Vérifier la synchronisation

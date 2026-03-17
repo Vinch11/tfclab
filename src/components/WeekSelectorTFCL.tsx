@@ -22,7 +22,6 @@ import { normalizeRaceTypeForDisplay } from "@/lib/raceTypeNormalization";
 
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { computeVLamaxEffectif, computeTTEEffectif, computeFatigueEffectif } from "@/engines/diagnostic";
-import { computeRaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { computeRunInjuryRisk } from "@/lib/runInjuryRisk";
 import { suggestTopWeeks, computePhaseFromDate } from "@/lib/templates/weekSelectorTFCL";
 import { RUNNING_TEMPLATES, getWeeksByGoal, getWeekContext } from "@/lib/templates/runningTemplatesStore";

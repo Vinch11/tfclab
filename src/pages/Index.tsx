@@ -11,7 +11,6 @@ import { AthleteProfile } from "@/components/AthleteProfile";
 import { FeedbackNolioManager } from "@/components/FeedbackNolioManager";
 import { TwoForCoachingAnalysis } from "@/components/TwoForCoachingAnalysis";
 import { TestComparison } from "@/components/TestComparison";
-import { RaceReadinessCard } from "@/components/RaceReadinessCard";
 import { PhysiologicalAnalysis } from "@/components/PhysiologicalAnalysis";
 
 import { IndexSeancesView } from "@/components/IndexSeances";
@@ -36,24 +35,17 @@ import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
 import { SaisonPhasesView } from "@/components/SaisonPhasesView";
 import { StaffReport } from "@/components/StaffReport";
 import { StaffBriefingCard } from "@/components/StaffBriefingCard";
-import { AthleteReadinessReport } from "@/components/AthleteReadinessReport";
 import { AssistantDrawer } from "@/components/AssistantDrawer";
 import { computeNutritionTiming } from "@/lib/nutritionTiming";
-import { RaceReadinessPage } from "@/components/RaceReadinessPage";
 import { computeNutritionEstimate } from "@/lib/nutritionPredictive";
 import { computeRunningEconomy } from "@/lib/runningEconomy";
-import { generateAthleteReadiness } from "@/lib/athleteReadiness";
 import { computeEnergyDrift, EnergyDriftResult } from "@/lib/energyDrift";
-// EnergyDriftBadge removed - kept energyDrift computation for StaffDashboard/RaceReadinessPage
 import { DashboardGauges } from "@/components/DashboardGauges";
 import { StaffDashboard } from "@/components/StaffDashboard";
 import { ScientificChartsDashboard, MetabolicPerformanceCompass, MetabolicCompassCAP, AmbitionProgressChart, AmbitionProgressMini, CompactMetricsGrid, CarbBurnRateChart, MetabolicPowerCurve } from "@/components/charts";
 import { ChargeRecenteCard } from "@/components/ChargeRecenteCard";
 import { computeCRR } from "@/lib/chargeRecenteReference";
-import { RaceReadinessV2Module } from "@/components/RaceReadinessV2Module";
-import { RaceReadinessSignatureChart, type RaceReadinessInput } from "@/components/RaceReadinessSignatureChart";
 // ✅ Race Readiness - Carte unifiée (Phase 1c UX)
-import { RaceReadinessUnifiedCard } from "@/components/RaceReadinessUnifiedCard";
 import { computeCompassScores, type CompassScores } from "@/lib/compassScoring";
 import { DecisionReliabilityCard } from "@/components/DecisionReliabilityCard";
 import { computeFullDRE, type DecisionReliabilityResult } from "@/engines/diagnostic";
@@ -199,7 +191,6 @@ import { getDernierSnapshot } from "@/types/athlete";
 import { computeVLamaxEffectif, type VLamaxEffectif, computeTTEEffectif, type TTEEffectif, getSourceLabel } from "@/engines/diagnostic";
 
 // ✅ RACE READINESS EFFECTIF - Source unique de vérité
-import { computeRaceReadinessEffectif, RaceReadinessEffectif, getScoreColor } from "@/lib/raceReadinessEffectif";
 
 // ✅ Ambition (modulateur des cibles)
 import {
@@ -512,7 +503,6 @@ const Index = () => {
 
   // ✅ RACE READINESS EFFECTIF - Source unique de vérité
   const raceReadinessEffectif = useMemo<RaceReadinessEffectif>(() => {
-    return computeRaceReadinessEffectif({
       objectif: currentAthlete?.goal || "IM",
       vlamaxEffectif,
       tteEffectif,
@@ -1462,7 +1452,6 @@ const Index = () => {
                       </span>
                     </div>
                   )}
-                  <RaceReadinessUnifiedCard
                     compass={compass}
                     latestCheckin={latestCheckin}
                     objectiveData={objectiveData}

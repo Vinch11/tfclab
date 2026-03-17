@@ -23,7 +23,6 @@ import { format, subDays, parseISO, isAfter } from "date-fns";
 import { fr } from "date-fns/locale";
 import { DbSnapshot, DbTest } from "@/hooks/useCloudData";
 import { computeFatigueEffectif, computeTTEEffectif, computeVLamaxEffectif } from "@/engines/diagnostic";
-import { computeRaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 
 // Mapping fatigue_state → score 0-100
 const FATIGUE_STATE_TO_SCORE: Record<string, number> = {

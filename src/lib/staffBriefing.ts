@@ -11,7 +11,6 @@
 
 import type { VLamaxEffectif } from "./vlamaxEffectif";
 import type { TTEEffectif } from "./tteEffectif";
-import type { RaceReadinessEffectif } from "./raceReadinessEffectif";
 import type { EnergyDriftResult } from "./energyDrift";
 import type { NutritionTimingResult } from "./nutritionTiming";
 import type { RunEconomyLabel } from "./runningEconomySnapshot";
