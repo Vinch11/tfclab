@@ -19,7 +19,13 @@ export type TrainingLeverId =
   | "glycolytic_block"
   | "max_force"
   | "running_economy"
-  | "reduce_anaerobic";
+  | "reduce_anaerobic"
+  | "vo2max_intervals"
+  | "train_low"
+  | "norwegian_method"
+  | "plyometrics"
+  | "polarized_hi"
+  | "increase_ftp_kg";
 
 export interface TrainingLever {
   id: TrainingLeverId;
