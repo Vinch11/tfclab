@@ -165,7 +165,7 @@ export const ACADEMY_SECTIONS: SectionDefinition[] = [
 ];
 
 export const RACE_READINESS_SECTIONS: SectionDefinition[] = [
-  { id: "readiness-card", label: "Score Race Readiness", icon: "Trophy", defaultVisible: true },
+  { id: "readiness-card", label: "Score Potentiel Physiologique", icon: "Trophy", defaultVisible: true },
   { id: "nutrition-timing", label: "Nutrition & Timing", icon: "Utensils", defaultVisible: true },
   { id: "running-economy", label: "Économie de Course", icon: "Footprints", defaultVisible: true },
   { id: "staff-report", label: "Rapport Staff", icon: "FileText", defaultVisible: true },
