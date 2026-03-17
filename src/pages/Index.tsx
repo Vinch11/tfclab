@@ -1711,6 +1711,19 @@ const Index = () => {
               />
             ),
           },
+          // 🔮 Adaptation Predictor™
+          {
+            id: "adaptation-predictor",
+            render: () => currentAthlete && effectiveCloudSnapshot && (
+              <AdaptationPredictorCard
+                snapshot={effectiveCloudSnapshot as unknown as Record<string, unknown>}
+                limiterId={unifiedLimiterResult?.primaryLimiter ?? null}
+                limiterLabel={unifiedLimiterResult?.limiterLabel ?? null}
+                objectif={currentAthlete.goal || "IM"}
+                staffMode={staffMode}
+              />
+            ),
+          },
         ];
 
         return (
