@@ -436,9 +436,9 @@ export function computeDecisionTFCL(input: ComputeDecisionInput): RaceReadinessV
 // GÉNÉRATION D'EXPLICATION
 // =============================================
 
-function generateExplanation(
+/** V2.1: Explication basée uniquement sur le Potentiel */
+function generateExplanationV21(
   potential: PotentialScore,
-  availability: AvailabilityScore,
   category: RaceReadinessV2Category,
   penalties: { total: number; reasons: string[] },
   flags: DecisionFlags
@@ -446,31 +446,22 @@ function generateExplanation(
   const watchouts: string[] = [];
   const suggestedFocus: string[] = [];
   
-  // Pourquoi
   let why: string;
   
   if (category === 'ready') {
-    why = `Potentiel élevé (${potential.score}/100) et disponibilité favorable (${availability.score}/100). Les conditions sont réunies pour exiger le meilleur.`;
+    why = `Potentiel élevé (${potential.score}/100). Le profil physiologique est prêt pour l'objectif.`;
   } else if (category === 'solid') {
-    why = `Profil solide (potentiel ${potential.score}/100) avec disponibilité correcte (${availability.score}/100). Capable d'absorber une charge de qualité.`;
+    why = `Profil solide (${potential.score}/100). Capable d'absorber une charge de qualité.`;
   } else if (category === 'in_progress') {
-    if (potential.score < 60 && availability.score >= 60) {
-      why = `Disponibilité correcte mais potentiel en construction (${potential.score}/100). Privilégier le développement du moteur.`;
-    } else if (potential.score >= 60 && availability.score < 60) {
-      why = `Potentiel correct mais disponibilité réduite (${availability.score}/100). Optimiser la récupération avant exigence maximale.`;
-    } else {
-      why = `Progression en cours sur les deux axes. Patience et régularité nécessaires.`;
-    }
+    why = `Potentiel en construction (${potential.score}/100). Privilégier le développement du moteur.`;
   } else {
-    why = `Préparation insuffisante (potentiel ${potential.score}/100, disponibilité ${availability.score}/100). Focus sur les fondamentaux.`;
+    why = `Préparation insuffisante (${potential.score}/100). Focus sur les fondamentaux.`;
   }
   
-  // Pénalités
   if (penalties.total > 0) {
     why += ` Attention : ${penalties.reasons.join(', ')}.`;
   }
   
-  // Watchouts
   if (flags.healthAlert) {
     watchouts.push("Alerte santé active — consulter avant effort intense");
   }
@@ -486,11 +477,7 @@ function generateExplanation(
   if (potential.mainLimitation) {
     watchouts.push(`Axe limitant : ${potential.mainLimitation}`);
   }
-  if (availability.alerts.length > 0) {
-    watchouts.push(...availability.alerts);
-  }
   
-  // Focus suggéré
   if (potential.score < 60) {
     suggestedFocus.push("Développer le moteur (charge progressive)");
     if (potential.mainLimitation?.toLowerCase().includes('tte')) {
@@ -498,15 +485,6 @@ function generateExplanation(
     }
     if (potential.mainLimitation?.toLowerCase().includes('vlamax')) {
       suggestedFocus.push("Ajuster le profil métabolique");
-    }
-  }
-  if (availability.score < 60) {
-    suggestedFocus.push("Optimiser récupération (sommeil, stress)");
-    if (availability.factors.some(f => f.toLowerCase().includes('sommeil'))) {
-      suggestedFocus.push("Priorité qualité de sommeil");
-    }
-    if (availability.factors.some(f => f.toLowerCase().includes('stress'))) {
-      suggestedFocus.push("Gestion du stress");
     }
   }
   if (category === 'ready' && suggestedFocus.length === 0) {
