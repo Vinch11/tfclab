@@ -171,9 +171,7 @@ export function RaceReadinessUnifiedCard({
                 {/* Mini flow when collapsed */}
                 {!isOpen && (
                   <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <span>{result.potential.score}</span>
-                    <ArrowRight className="h-3 w-3" />
-                    <span>{result.availability.score}</span>
+                    <span>Potentiel {result.potential.score}</span>
                     <ArrowRight className="h-3 w-3" />
                   </div>
                 )}
