@@ -67,6 +67,8 @@ const LEVER_LABELS: Record<string, string> = {
   recovery: "Récupération prioritaire",
   force_endurance: "Force Max / SFR",
   increase_ftp_kg: "Développer FTP/kg",
+  adjust_anaerobic: "Ajuster W'",
+  maintain: "Maintenir le profil",
 };
 
 /** Literature-based recommended volume/sessions per objective × ambition */

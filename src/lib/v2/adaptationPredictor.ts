@@ -19,7 +19,13 @@ export type TrainingLeverId =
   | "glycolytic_block"
   | "max_force"
   | "running_economy"
-  | "reduce_anaerobic";
+  | "reduce_anaerobic"
+  | "vo2max_intervals"
+  | "train_low"
+  | "norwegian_method"
+  | "plyometrics"
+  | "polarized_hi"
+  | "increase_ftp_kg";
 
 export interface TrainingLever {
   id: TrainingLeverId;
@@ -102,6 +108,12 @@ export const TRAINING_LEVERS: TrainingLever[] = [
   { id: "max_force", label: "Force Maximale", description: "Musculation et travail de force", emoji: "💪" },
   { id: "running_economy", label: "Travail Économie", description: "Drills, cadence, technique de course", emoji: "🦶" },
   { id: "reduce_anaerobic", label: "Réduction Anaérobie", description: "Suppression des intensités glycolytiques", emoji: "🧘" },
+  { id: "vo2max_intervals", label: "VO₂max Intervalles", description: "Billat 30/30, 5×4min Z5 — développement du plafond aérobie", emoji: "🫁" },
+  { id: "train_low", label: "Train Low", description: "Entraînement glycogène-restricted pour améliorer l'oxydation lipidique", emoji: "🍃" },
+  { id: "norwegian_method", label: "Méthode Norvégienne", description: "Double seuil (2×20-25min @LT2) — protocole Ingebrigtsen/Blummenfelt", emoji: "🇳🇴" },
+  { id: "plyometrics", label: "Pliométrie", description: "Drop jumps, bounds, réactivité — amélioration économie neuromusculaire", emoji: "🦘" },
+  { id: "polarized_hi", label: "Polarisé 80/20 Intensifié", description: "80% Z1-Z2 + 20% Z5-Z6 — maximiser les adaptations aérobies", emoji: "⚖️" },
+  { id: "increase_ftp_kg", label: "Développer FTP/kg", description: "Sweet spot, over-unders, tempo — améliorer la puissance relative", emoji: "📊" },
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -169,6 +181,60 @@ const LEVER_EFFECTS: Record<TrainingLeverId, LeverEffect[]> = {
     { metric: "tte", minPct: 2, maxPct: 8 },
     { metric: "economy", minPct: 0, maxPct: 2 },
     { metric: "lt2", minPct: 1, maxPct: 4 },
+  ],
+  vo2max_intervals: [
+    { metric: "vo2max", minPct: 3, maxPct: 6 },
+    { metric: "lt2", minPct: 2, maxPct: 4 },
+    { metric: "tte", minPct: 2, maxPct: 5 },
+    { metric: "vlamax", minPct: 0, maxPct: 3 },       // Légère hausse possible
+    { metric: "fatmax", minPct: -2, maxPct: 0 },
+    { metric: "durability", minPct: 0, maxPct: 2 },
+    { metric: "economy", minPct: 1, maxPct: 3 },
+  ],
+  train_low: [
+    { metric: "fatmax", minPct: 8, maxPct: 15 },
+    { metric: "vlamax", minPct: -6, maxPct: -2 },
+    { metric: "durability", minPct: 5, maxPct: 10 },
+    { metric: "vo2max", minPct: 0, maxPct: 2 },
+    { metric: "tte", minPct: 2, maxPct: 6 },
+    { metric: "economy", minPct: 0, maxPct: 2 },
+    { metric: "lt2", minPct: 0, maxPct: 2 },
+  ],
+  norwegian_method: [
+    { metric: "lt2", minPct: 4, maxPct: 8 },
+    { metric: "tte", minPct: 12, maxPct: 25 },
+    { metric: "vo2max", minPct: 1, maxPct: 3 },
+    { metric: "vlamax", minPct: -3, maxPct: -1 },
+    { metric: "fatmax", minPct: 1, maxPct: 3 },
+    { metric: "durability", minPct: 3, maxPct: 7 },
+    { metric: "economy", minPct: 1, maxPct: 3 },
+  ],
+  plyometrics: [
+    { metric: "economy", minPct: 4, maxPct: 8 },      // Hewett 2007, Beattie 2017
+    { metric: "vo2max", minPct: 0, maxPct: 1 },
+    { metric: "vlamax", minPct: 0, maxPct: 3 },
+    { metric: "fatmax", minPct: 0, maxPct: 1 },
+    { metric: "durability", minPct: 1, maxPct: 3 },
+    { metric: "tte", minPct: 0, maxPct: 2 },
+    { metric: "lt2", minPct: 1, maxPct: 3 },
+  ],
+  polarized_hi: [
+    { metric: "vo2max", minPct: 2, maxPct: 5 },
+    { metric: "fatmax", minPct: 3, maxPct: 7 },
+    { metric: "vlamax", minPct: -4, maxPct: -1 },
+    { metric: "durability", minPct: 4, maxPct: 8 },
+    { metric: "tte", minPct: 3, maxPct: 8 },
+    { metric: "economy", minPct: 1, maxPct: 3 },
+    { metric: "lt2", minPct: 2, maxPct: 4 },
+  ],
+  increase_ftp_kg: [
+    { metric: "lt2", minPct: 3, maxPct: 6 },
+    { metric: "tte", minPct: 5, maxPct: 12 },
+    { metric: "vo2max", minPct: 1, maxPct: 3 },
+    { metric: "vlamax", minPct: -2, maxPct: 0 },
+    { metric: "fatmax", minPct: 1, maxPct: 4 },
+    { metric: "durability", minPct: 2, maxPct: 5 },
+    { metric: "economy", minPct: 0, maxPct: 2 },
   ],
 };
 
@@ -411,12 +477,12 @@ function buildScenario(
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const LIMITER_TO_LEVERS: Record<string, TrainingLeverId[]> = {
-  aerobic_engine: ["volume_z2", "threshold_work"],
-  glycolytic: ["reduce_anaerobic", "volume_z2"],
-  specific_endurance: ["threshold_work", "volume_z2"],
-  metabolic_efficiency: ["reduce_anaerobic", "volume_z2"],
-  neuromuscular: ["max_force", "running_economy"],
-  anaerobic_capacity: ["glycolytic_block", "max_force"],
+  aerobic_engine: ["vo2max_intervals", "volume_z2", "polarized_hi", "threshold_work"],
+  glycolytic: ["reduce_anaerobic", "train_low", "volume_z2"],
+  specific_endurance: ["norwegian_method", "threshold_work", "volume_z2"],
+  metabolic_efficiency: ["train_low", "reduce_anaerobic", "volume_z2"],
+  neuromuscular: ["max_force", "plyometrics", "running_economy"],
+  anaerobic_capacity: ["glycolytic_block", "max_force", "plyometrics"],
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
