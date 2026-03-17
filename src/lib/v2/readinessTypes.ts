@@ -217,11 +217,11 @@ export const RACE_READINESS_V2_CATEGORIES: Record<RaceReadinessV2Category, { lab
   ready: { label: "Prêt", emoji: "🟢" },
 };
 
-export const ACCESS_STATUS_LABELS: Record<SimulationAccessStatus, string> = {
-  RED: "Simulation non recommandée",
-  ORANGE: "Simulation avec réserves",
-  GREEN: "Simulation fiable",
-  BLUE: "Conditions optimales",
+export const ACCESS_STATUS_LABELS: Record<SimulationAccessStatus, { emoji: string; label: string }> = {
+  RED: { emoji: "🔴", label: "Simulation non recommandée" },
+  ORANGE: { emoji: "🟠", label: "Simulation avec réserves" },
+  GREEN: { emoji: "🟢", label: "Simulation fiable" },
+  BLUE: { emoji: "🔵", label: "Conditions optimales" },
 };
 
 export const SIMULATION_ACCESS_DEFINITIONS = {
@@ -236,9 +236,13 @@ export const SIMULATION_ACCESS_DEFINITIONS = {
 export interface SimulationAccessResult {
   status: SimulationAccessStatus;
   label: string;
+  enabled: boolean;
   allowed: boolean;
   modifiers: SimulationModifiers;
   warnings: string[];
+  message?: string;
+  explanation?: string;
+  recommendations?: { type: string; icon: string; title: string; content: string }[];
 }
 
 // ═══ Decision Quadrants (from raceReadinessV2) ═══
