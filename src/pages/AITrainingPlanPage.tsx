@@ -1140,9 +1140,9 @@ export default function AITrainingPlanPage() {
 
             {/* Adaptation Projections Summary */}
             {!isMultiMode && athleteContext && (() => {
-              const previewConfig = buildConfigFromDiag(athleteContext.diagnostic);
-              return previewConfig.adaptationProjections && previewConfig.adaptationProjections.length > 0 ? (
-                <AdaptationProjectionSummary projections={previewConfig.adaptationProjections} />
+              const projections = buildConfigFromDiag(athleteContext.diagnostic).adaptationProjections;
+              return projections && projections.length > 0 ? (
+                <AdaptationProjectionSummary projections={projections} />
               ) : null;
             })()}
 
