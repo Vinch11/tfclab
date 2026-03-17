@@ -1414,30 +1414,13 @@ const Index = () => {
               const tss28d = tss7d ? tss7d * 4 : null;
               
               const signatureInput: RaceReadinessInput = {
-                physiology: {
-                  vo2max: effectiveCloudSnapshot?.vo2max ?? null,
-                  vo2maxTarget,
-                  vlamax: vlamaxEffectif.value,
-                  vlamaxTarget,
-                  tte: tteEffectif.tte_min,
-                  tteTarget,
-                  economy: effectiveCloudSnapshot?.run_economy_score ?? null,
-                  trend: undefined,
-                },
-                availability: {
-                  hrvStatus: null,
-                  tss7d,
-                  tss28d,
-                  subjectiveFatigue: null,
-                  sleepQuality: null,
-                  motivation: null,
-                  soreness: null,
-                  stress: null,
-                  hasRedFlags: false,
-                },
-                discipline,
-                ambition: currentAmbition,
-                daysToRace: null,
+                objectif: currentAthlete.goal || "IM",
+                vlamaxValue: vlamaxEffectif.value,
+                vlamaxConfidence: vlamaxEffectif.confidence,
+                tteMin: tteEffectif.tte_min,
+                tteConfidence: tteEffectif.confidence,
+                ftpKg: poids ? (ftp ?? 0) / poids : null,
+                vo2max: effectiveCloudSnapshot?.vo2max ?? null,
               };
               
               return (

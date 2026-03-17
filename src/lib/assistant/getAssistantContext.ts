@@ -21,9 +21,7 @@ import {
   matchWahooSession,
   type WahooWorkoutMapping 
 } from "@/data/wahooMapping";
-// Race Readiness Signature removed
 import { computeRaceReadinessEffectif, type RaceReadinessEffectif, type RaceReadinessInput, type RaceReadinessResult, computeRaceReadinessSignature } from "@/lib/raceReadinessEffectif";
-import { computeRaceReadinessSignature, type RaceReadinessInput, type RaceReadinessResult } from "@/lib/raceReadinessEffectif";
 
 // Re-export types for external use
 export type { RaceReadinessResult as RaceReadinessSignatureResult };
@@ -391,31 +389,14 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
   let raceReadinessSignature: RaceReadinessResult | null = null;
   if (athlete?.goal) {
     // Construire l'input pour le calcul
-    const signatureInput: RaceReadinessInput = ({
-      physiology: {
-        vo2max: effectiveSnapshot?.vo2max ?? null,
-        vo2maxTarget: athlete.goal === "IM" ? 55 : athlete.goal === "703" ? 52 : 48,
-        vlamax: vlamaxEffectif?.value ?? null,
-        vlamaxTarget: athlete.goal === "IM" ? 0.35 : athlete.goal === "703" ? 0.40 : 0.45,
-        tte: tteEffectif?.tte_min ?? null,
-        tteTarget: athlete.goal === "IM" ? 55 : athlete.goal === "703" ? 45 : 35,
-        economy: null, // TODO: ajouter si disponible
-        trend: undefined,
-      },
-      availability: {
-        hrvStatus: undefined,
-        tss7d,
-        tss28d: null, // TODO: ajouter si disponible
-        subjectiveFatigue: null,
-        sleepQuality: null,
-        motivation: null,
-        soreness: null,
-        stress: null,
-        hasRedFlags: false,
-      },
-      discipline: athlete.goal as 'IM' | '703' | 'marathon' | 'semi' | '10k' | 'cycling' | 'trail',
-      ambition: getAthleteAmbition(athlete),
-      daysToRace: null,
+    const signatureInput: RaceReadinessInput = {
+      objectif: athlete.goal || "IM",
+      vlamaxValue: vlamaxEffectif?.value ?? 0.40,
+      vlamaxConfidence: vlamaxEffectif?.confidence ?? 0.5,
+      tteMin: tteEffectif?.tte_min ?? 30,
+      tteConfidence: tteEffectif?.confidence ?? 0.5,
+      ftpKg: effectiveRefs?.ftp && effectiveRefs?.weightKg ? effectiveRefs.ftp / effectiveRefs.weightKg : null,
+      vo2max: effectiveSnapshot?.vo2max ?? null,
     };
     
     raceReadinessSignature = computeRaceReadinessSignature(signatureInput);

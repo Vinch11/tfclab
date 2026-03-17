@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getScoreColor, getRaceReadinessTargets, getTargets, getWeightsBySport, generateAthleteReadiness, computePillarCalculations, type RaceReadinessInput, type RaceReadinessResult, computeRaceReadinessSignature } from "@/lib/raceReadinessEffectif";
+import { computeRaceReadinessEffectif, getScoreColor, getRaceReadinessTargets, getTargets, getWeightsBySport, generateAthleteReadiness, computePillarCalculations, type RaceReadinessInput, type RaceReadinessResult, computeRaceReadinessSignature } from "@/lib/raceReadinessEffectif";
 // =============================================
 // FATIGUE INDEX™ — Two For Coaching Lab
 // Système officiel de quantification de la fatigue
@@ -21,8 +21,8 @@ import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getScoreColor
 // =============================================
 
 import { TTEEffectif, getTTETarget } from "./tteEffectif";
-// RaceReadinessEffectif removed — using inline type
-interface RaceReadinessEffectifCompat { score: number; confidence: number; }
+import { type RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
+type RaceReadinessEffectifCompat = RaceReadinessEffectif;
 import { VLamaxEffectif } from "./vlamaxEffectif";
 
 // =============================================

@@ -82,8 +82,8 @@ export function getWeightsBySport(_sport: string): any {
   return { vlamax: 0.30, endurance: 0.30, puissance: 0.20, fraicheur: 0.20 };
 }
 
-export function getRaceReadinessTargets(_objectif: string) {
-  return { score: 70, vlamax: 0.30, tte: 45 };
+export function getRaceReadinessTargets(_objectif: string, _age?: number | null, _ambition?: string) {
+  return { score: 70, vlamax: 0.30, vlamaxIdeal: 0.30, tte: 45, tteTarget: 45, ftpKgTarget: 3.5 };
 }
 
 export function getScoreColor(score: number): string {

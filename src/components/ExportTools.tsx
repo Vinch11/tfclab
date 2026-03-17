@@ -6308,10 +6308,13 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <!-- Indicateur si disponible -->
             ${raceReadiness.nutritionalRiskIndex ? (() => {
               const levelToPosition: Record<string, number> = { low: 12.5, moderate: 37.5, high: 62.5, critical: 87.5 };
-              const pos = 10 + ((levelToPosition[raceReadiness?.nutritionalRiskIndex as any)?.level ?? ""] || 50) / 100) * 380;
+              const nri = raceReadiness?.nutritionalRiskIndex as any;
+              const lvl = typeof nri === 'object' ? nri?.level ?? "" : "";
+              const lbl = typeof nri === 'object' ? nri?.label ?? "" : "";
+              const pos = 10 + ((levelToPosition[lvl] || 50) / 100) * 380;
               return `
                 <polygon points="${pos},17 ${pos - 5},7 ${pos + 5},7" fill="#111"/>
-                <text x="${pos}" y="65" font-size="10" fill="#111" text-anchor="middle" font-weight="700">▲ ${raceReadiness?.nutritionalRiskIndex as any)?.label ?? ""}</text>
+                <text x="${pos}" y="65" font-size="10" fill="#111" text-anchor="middle" font-weight="700">▲ ${lbl}</text>
               `;
             })() : ''}
           </svg>
