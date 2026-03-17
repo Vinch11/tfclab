@@ -157,16 +157,16 @@ relativement stable à court terme. Il est basé sur VLamax, TTE, VO2max,
 économie, FatMax et leur confiance.`,
   },
   availability: {
-    title: "Disponibilité (Disponibilité TFCL™)",
-    definition: `La disponibilité représente l'état du jour : fatigue, stress, 
-récupération et signaux objectifs/subjectifs. Elle varie rapidement 
-et module la capacité à exprimer le potentiel.`,
+    title: "Disponibilité (retirée V2.1)",
+    definition: `La disponibilité a été retirée du modèle Race Readiness car la fatigue 
+n'est renseignée qu'une fois toutes les 3-4 semaines et manque de précision 
+pour influencer un score décisionnel.`,
   },
   decision: {
     title: "Décision (Race Readiness TFCL™)",
-    definition: `Race Readiness est un indicateur décisionnel composite qui répond :
-Que peut-on raisonnablement exiger maintenant (séance clé / course) 
-compte tenu du potentiel ET de la disponibilité ?`,
+    definition: `Race Readiness est un indicateur décisionnel basé exclusivement sur 
+le potentiel physiologique. Il répond : quel est le niveau de préparation 
+structurelle de l'athlète pour son objectif ?`,
   },
 };
 
@@ -175,14 +175,13 @@ export const RACE_READINESS_V2_DISCLAIMER =
 
 export const RACE_READINESS_V2_FORMULA = `
 RaceReadiness = clamp(
-  0.65 × Potentiel_score + 0.35 × Disponibilité_score - Pénalités,
+  Potentiel_score - Pénalités,
   0, 100
 )
 
-Justification :
-- Le potentiel pèse plus (profil de fond)
-- La disponibilité module l'expression (court terme)
-- Les garde-fous appliquent des pénalités non négociables
+V2.1 : La disponibilité a été retirée du calcul.
+Seul le profil physiologique structurel conditionne le score.
+Les garde-fous appliquent des pénalités non négociables.
 `;
 
 // =============================================
