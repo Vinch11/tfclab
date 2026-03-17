@@ -2011,21 +2011,6 @@ const Index = () => {
               />
             ),
           },
-          // Double Boucle CAP
-          {
-            id: "double-boucle-cap",
-            render: () => currentAthlete && (
-              <DoubleBoucleCAPCard
-                vlamaxRun={effectiveCloudSnapshot?.vlamax_run ?? vlamaxEffectif.value}
-                vo2max={effectiveCloudSnapshot?.vo2max ?? null}
-                durability={tteEffectif.tte_min}
-                objectif={currentAthlete.goal || "IM"}
-                readinessScore={raceReadinessEffectif.score}
-                confidence={vlamaxEffectif.confidence}
-                ambition={currentAmbition}
-              />
-            ),
-          },
           // Correspondances Lactiques TFCL
           {
             id: "lactate-correspondence",
