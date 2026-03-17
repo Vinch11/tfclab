@@ -126,6 +126,7 @@ export default function AITrainingPlanPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [selectedProjectionLever, setSelectedProjectionLever] = useState<string | undefined>();
 
   // Multi-athlete mode — restore from localStorage
   const MULTI_PERSIST_KEY = "tfcl_ai_multi_plan";
@@ -1142,7 +1143,11 @@ export default function AITrainingPlanPage() {
             {!isMultiMode && athleteContext && (() => {
               const projections = buildConfigFromDiag(athleteContext.diagnostic).adaptationProjections;
               return projections && projections.length > 0 ? (
-                <AdaptationProjectionSummary projections={projections} />
+                <AdaptationProjectionSummary
+                  projections={projections}
+                  selectedLeverId={selectedProjectionLever}
+                  onSelectLever={setSelectedProjectionLever}
+                />
               ) : null;
             })()}
 
