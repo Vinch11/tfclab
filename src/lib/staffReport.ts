@@ -206,6 +206,35 @@ export interface StaffReport {
   
   // ✅ SECTION COMPARATIF VO2MAX AVEC/SANS ÂGE
   vo2maxAgeComparison: VO2maxAgeComparisonSection;
+  
+  // ✅ CYCLE INTELLIGENCE ENGINE™
+  cycleIntelligence: CycleIntelligenceReportSection | null;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CYCLE INTELLIGENCE REPORT SECTION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface CycleIntelligenceReportSection {
+  available: boolean;
+  adaptationScore: number;
+  verdictLabel: string;
+  verdictEmoji: string;
+  summary: string;
+  recommendationLabel: string;
+  recommendationDetail: string;
+  limiterVerdict: string;
+  limiterExplanation: string;
+  metrics: {
+    label: string;
+    previousValue: string;
+    currentValue: string;
+    evolution: string;
+  }[];
+  daysBetween: number;
+  previousDate: string;
+  currentDate: string;
+  staffNote: string;
 }
 
 // =============================================
