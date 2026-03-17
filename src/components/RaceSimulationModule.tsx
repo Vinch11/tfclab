@@ -76,9 +76,12 @@ import { FatMaxTFCLResult } from '@/lib/v2/fatmaxTFCL';
 import {
   ACCESS_STATUS_LABELS,
   SIMULATION_ACCESS_DEFINITIONS,
+  computeSimulationAccess,
+  getSimulationContextMessages,
+  ACCESS_LEVEL_COLORS,
   type SimulationAccessResult,
+  type RaceReadinessV2Result,
 } from '@/lib/v2/readinessTypes';
-import type { RaceReadinessV2Result } from '@/lib/v2/readinessTypes';
 
 interface RaceSimulationModuleProps {
   // Profil TFCL (automatique)
