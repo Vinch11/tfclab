@@ -224,19 +224,13 @@ export function RaceReadinessUnifiedCard({
                 </div>
               </div>
 
-              {/* Flow Potentiel → Disponibilité → Score */}
+              {/* Flow Potentiel → Score */}
               <div className="flex-1 space-y-3">
                 <div className="flex items-center gap-2 flex-wrap">
                   <FlowStep
                     icon={<Zap className="w-3.5 h-3.5" />}
                     label="Potentiel"
                     value={result.potential.score}
-                  />
-                  <ArrowRight className="w-3.5 h-3.5 text-muted-foreground" />
-                  <FlowStep
-                    icon={<Battery className="w-3.5 h-3.5" />}
-                    label="Dispo"
-                    value={result.availability.score}
                   />
                   <ArrowRight className="w-3.5 h-3.5 text-muted-foreground" />
                   <FlowStep
