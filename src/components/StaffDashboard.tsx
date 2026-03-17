@@ -55,9 +55,11 @@ interface StaffDashboardProps {
   ftpKg: number | null;
   snapshotDate: string | null;
   athleteAge?: number | null;
-  ambition?: AmbitionLevel; // Niveau d'ambition pour ajustement des cibles
-  snapshot?: unknown; // Pour DecisionRobustnessCard
+  ambition?: AmbitionLevel;
+  snapshot?: unknown;
   vo2max?: number | null;
+  athlete?: any;
+  energyDrift?: any;
 }
 
 // =============================================
