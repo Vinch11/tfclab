@@ -1542,13 +1542,6 @@ const Index = () => {
               />
             ),
           },
-          // ✅ 10. Dashboard Recommendations
-          {
-            id: "dashboard-recommendations",
-            render: () => currentAthlete && (
-              <DashboardRecommendationsCard />
-            ),
-          },
           // ✅ 11. CP/W' Curve
           {
             id: "cpw-prime-curve",
