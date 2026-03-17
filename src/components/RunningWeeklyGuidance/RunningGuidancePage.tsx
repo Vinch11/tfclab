@@ -2,7 +2,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  * RUNNING GUIDANCE PAGE — Écran "Guidance Coach — semaine en cours"
  * 
- * Double carte : Profil verrouillé + Décision hebdomadaire + Race Readiness
+ * Double carte : Profil verrouillé + Décision hebdomadaire + Potentiel Physiologique
  * Objectif : Décision en 30 secondes.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
