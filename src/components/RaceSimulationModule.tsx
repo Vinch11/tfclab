@@ -1246,19 +1246,17 @@ export function RaceSimulationModule({
       </Card>
       
       {/* Context messages */}
-      {accessMessages.map((msg, i) => (
+      {accessMessages.map((msg: any, i: number) => (
         <Alert 
           key={i} 
-          variant={msg.type === 'critical' ? 'destructive' : 'default'}
+          variant="default"
         >
-          <span className="mr-2">{msg.icon}</span>
-          <AlertTitle>{msg.title}</AlertTitle>
-          <AlertDescription>{msg.content}</AlertDescription>
+          <AlertDescription>{typeof msg === 'string' ? msg : msg?.content ?? ''}</AlertDescription>
         </Alert>
       ))}
       
       {/* Recommendations */}
-      {simulationAccess.recommendations.length > 0 && (
+      {(simulationAccess.recommendations ?? []).length > 0 && (
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
@@ -1268,10 +1266,10 @@ export function RaceSimulationModule({
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {simulationAccess.recommendations.map((rec, i) => (
+              {(simulationAccess.recommendations ?? []).map((rec: any, i: number) => (
                 <li key={i} className="flex items-center gap-2 text-sm">
                   <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                  {rec}
+                  {typeof rec === 'string' ? rec : rec?.content ?? ''}
                 </li>
               ))}
             </ul>
