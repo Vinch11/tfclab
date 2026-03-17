@@ -228,14 +228,14 @@ export const LEVER_INFO: Record<UnifiedLever, {
 //
 // ═══════════════════════════════════════════════════════════════════════════════
 const STRATEGIC_WEIGHTS: Record<string, Record<string, number>> = {
-  IM: { aerobic: 0.85, glycolytic: 0.95, anaerobic: 0.40, tte: 0.90, fatmax: 0.95, economy: 0.75, availability: 0.70 },
-  "703": { aerobic: 0.90, glycolytic: 0.85, anaerobic: 0.55, tte: 0.85, fatmax: 0.80, economy: 0.70, availability: 0.65 },
-  Marathon: { aerobic: 0.80, glycolytic: 0.90, anaerobic: 0.35, tte: 0.95, fatmax: 0.85, economy: 0.85, availability: 0.70 },
-  Semi: { aerobic: 0.85, glycolytic: 0.80, anaerobic: 0.50, tte: 0.85, fatmax: 0.70, economy: 0.80, availability: 0.65 },
-  Trail: { aerobic: 0.85, glycolytic: 0.85, anaerobic: 0.45, tte: 0.90, fatmax: 0.90, economy: 0.80, availability: 0.75 },
-  Ultra: { aerobic: 0.80, glycolytic: 0.95, anaerobic: 0.30, tte: 0.95, fatmax: 0.95, economy: 0.85, availability: 0.80 },
-  Sprint: { aerobic: 0.95, glycolytic: 0.50, anaerobic: 0.90, tte: 0.60, fatmax: 0.40, economy: 0.70, availability: 0.55 },
-  Olympic: { aerobic: 0.95, glycolytic: 0.65, anaerobic: 0.75, tte: 0.70, fatmax: 0.55, economy: 0.75, availability: 0.60 },
+  IM: { aerobic: 0.85, glycolytic: 0.95, anaerobic: 0.40, tte: 0.90, fatmax: 0.95, economy: 0.75 },
+  "703": { aerobic: 0.90, glycolytic: 0.85, anaerobic: 0.55, tte: 0.85, fatmax: 0.80, economy: 0.70 },
+  Marathon: { aerobic: 0.80, glycolytic: 0.90, anaerobic: 0.35, tte: 0.95, fatmax: 0.85, economy: 0.85 },
+  Semi: { aerobic: 0.85, glycolytic: 0.80, anaerobic: 0.50, tte: 0.85, fatmax: 0.70, economy: 0.80 },
+  Trail: { aerobic: 0.85, glycolytic: 0.85, anaerobic: 0.45, tte: 0.90, fatmax: 0.90, economy: 0.80 },
+  Ultra: { aerobic: 0.80, glycolytic: 0.95, anaerobic: 0.30, tte: 0.95, fatmax: 0.95, economy: 0.85 },
+  Sprint: { aerobic: 0.95, glycolytic: 0.50, anaerobic: 0.90, tte: 0.60, fatmax: 0.40, economy: 0.70 },
+  Olympic: { aerobic: 0.95, glycolytic: 0.65, anaerobic: 0.75, tte: 0.70, fatmax: 0.55, economy: 0.75 },
 };
 
 // FatMax targets (% FTP) par objectif
@@ -509,25 +509,9 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     weightedImpact: economyGap < 0 ? Math.abs(economyGap) * weights.economy * 100 : 0,
   });
   
-  // 6. Analyse Disponibilité
-  const availabilityGap = input.availabilityScore !== null 
-    ? (input.availabilityScore - 70) / 70 
-    : 0;
-  gapAnalysis.push({
-    metric: "Disponibilité",
-    value: input.availabilityScore,
-    target: 70,
-    gap: input.availabilityScore !== null ? input.availabilityScore - 70 : 0,
-    gapPercent: availabilityGap * 100,
-    status: input.hasHealthAlerts ? "limiting"
-      : input.availabilityScore === null ? "acceptable"
-      : input.availabilityScore >= 70 ? "optimal"
-      : input.availabilityScore >= 50 ? "acceptable"
-      : "limiting",
-    weight: weights.availability,
-    weightedImpact: (input.hasHealthAlerts ? 50 : 0) + 
-      (availabilityGap < 0 ? Math.abs(availabilityGap) * weights.availability * 100 : 0),
-  });
+  // 6. Analyse Disponibilité — RETIRÉE V2.1
+  // La disponibilité n'est plus incluse dans le gap analysis car
+  // la fatigue n'est renseignée qu'une fois toutes les 3-4 semaines.
   
   // Tri par impact pondéré (plus grand = plus limitant)
   const sortedGaps = [...gapAnalysis].sort((a, b) => b.weightedImpact - a.weightedImpact);

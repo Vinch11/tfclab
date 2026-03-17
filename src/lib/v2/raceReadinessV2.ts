@@ -1,18 +1,19 @@
 /**
- * TWO FOR COACHING LAB METHOD™ — Race Readiness V2 Officiel
+ * TWO FOR COACHING LAB METHOD™ — Race Readiness V2.1 Officiel
  * 
- * SÉPARATION CLAIRE :
- * - POTENTIEL (Metabolic Performance Compass™) = profil physiologique structurel
- * - DISPONIBILITÉ (Disponibilité TFCL™) = état du jour
- * - DÉCISION (Race Readiness TFCL™) = capacité à performer/absorber
+ * MODÈLE SIMPLIFIÉ (V2.1) :
+ * - POTENTIEL (Metabolic Performance Compass™) = seule source de vérité
+ * - La Disponibilité a été retirée du modèle car la fatigue n'est
+ *   renseignée qu'une fois toutes les 3-4 semaines et manque de précision.
+ * - DÉCISION (Race Readiness TFCL™) = Potentiel − Pénalités
  * 
  * RÈGLE TFCL :
  * "Ce score ne prédit pas un résultat. Il guide la décision."
  */
 
 import type { CompassScores } from "@/lib/compassScoring";
+// Disponibilité imports kept for backward compatibility but no longer used in scoring
 import type { DisponibiliteTFCL, TFCLReadinessInput } from "./disponibiliteTFCL";
-import { computeDisponibiliteTFCL } from "./disponibiliteTFCL";
 
 // =============================================
 // TYPES
@@ -42,6 +43,7 @@ export interface PotentialScore {
   explanation: string;
 }
 
+/** @deprecated Disponibilité retirée du modèle V2.1 — conservé pour compatibilité */
 export interface AvailabilityScore {
   score: number;                   // 0-100
   confidence: number;              // 0-1
@@ -58,8 +60,9 @@ export interface DecisionFlags {
 }
 
 export interface RaceReadinessV2Result {
-  // Les 3 piliers
+  // Pilier unique
   potential: PotentialScore;
+  /** @deprecated Toujours présent pour compatibilité mais neutre (score=0) */
   availability: AvailabilityScore;
   
   // Décision finale
@@ -69,7 +72,7 @@ export interface RaceReadinessV2Result {
     category: RaceReadinessV2Category;
     categoryLabel: string;
     categoryEmoji: string;
-    confidenceGlobal: number;      // min(conf_potential, conf_availability)
+    confidenceGlobal: number;      // = conf_potential
     confidenceLabel: string;
   };
   
@@ -89,8 +92,8 @@ export interface RaceReadinessV2Result {
   
   // Pondérations utilisées
   weights: {
-    potential: number;             // 0.65
-    availability: number;          // 0.35
+    potential: number;             // 1.0
+    availability: number;          // 0.0 (deprecated)
   };
   
   // Métadonnées
@@ -104,8 +107,8 @@ export interface RaceReadinessV2Result {
 // =============================================
 
 export const RACE_READINESS_V2_WEIGHTS = {
-  potential: 0.65,
-  availability: 0.35,
+  potential: 1.0,
+  availability: 0.0, // V2.1: disponibilité retirée du modèle
 };
 
 export const RACE_READINESS_V2_CATEGORIES = {
@@ -154,16 +157,16 @@ relativement stable à court terme. Il est basé sur VLamax, TTE, VO2max,
 économie, FatMax et leur confiance.`,
   },
   availability: {
-    title: "Disponibilité (Disponibilité TFCL™)",
-    definition: `La disponibilité représente l'état du jour : fatigue, stress, 
-récupération et signaux objectifs/subjectifs. Elle varie rapidement 
-et module la capacité à exprimer le potentiel.`,
+    title: "Disponibilité (retirée V2.1)",
+    definition: `La disponibilité a été retirée du modèle Race Readiness car la fatigue 
+n'est renseignée qu'une fois toutes les 3-4 semaines et manque de précision 
+pour influencer un score décisionnel.`,
   },
   decision: {
     title: "Décision (Race Readiness TFCL™)",
-    definition: `Race Readiness est un indicateur décisionnel composite qui répond :
-Que peut-on raisonnablement exiger maintenant (séance clé / course) 
-compte tenu du potentiel ET de la disponibilité ?`,
+    definition: `Race Readiness est un indicateur décisionnel basé exclusivement sur 
+le potentiel physiologique. Il répond : quel est le niveau de préparation 
+structurelle de l'athlète pour son objectif ?`,
   },
 };
 
@@ -172,14 +175,13 @@ export const RACE_READINESS_V2_DISCLAIMER =
 
 export const RACE_READINESS_V2_FORMULA = `
 RaceReadiness = clamp(
-  0.65 × Potentiel_score + 0.35 × Disponibilité_score - Pénalités,
+  Potentiel_score - Pénalités,
   0, 100
 )
 
-Justification :
-- Le potentiel pèse plus (profil de fond)
-- La disponibilité module l'expression (court terme)
-- Les garde-fous appliquent des pénalités non négociables
+V2.1 : La disponibilité a été retirée du calcul.
+Seul le profil physiologique structurel conditionne le score.
+Les garde-fous appliquent des pénalités non négociables.
 `;
 
 // =============================================
@@ -366,60 +368,47 @@ export interface ComputeDecisionInput {
 export function computeDecisionTFCL(input: ComputeDecisionInput): RaceReadinessV2Result {
   const { compass, guardrails } = input;
   
-  // 1. Extraire le Potentiel
+  // 1. Extraire le Potentiel (seule source de vérité V2.1)
   const potential = extractPotentialFromCompass(compass);
   
-  // 2. Calculer ou extraire la Disponibilité
-  let disponibilite: DisponibiliteTFCL;
-  if (input.disponibilite) {
-    disponibilite = input.disponibilite;
-  } else if (input.readinessInput) {
-    disponibilite = computeDisponibiliteTFCL(input.readinessInput);
-  } else {
-    // Fallback: disponibilité neutre
-    disponibilite = computeDisponibiliteTFCL({
-      sleep: 7,
-      fatigue: 7,
-      soreness: 7,
-      stress: 7,
-      motivation: 7,
-    });
-  }
+  // 2. Disponibilité neutralisée (stub pour compatibilité)
+  const availability: AvailabilityScore = {
+    score: 0,
+    confidence: 0,
+    factors: [],
+    alerts: [],
+    recommendation: "Disponibilité retirée du modèle V2.1",
+  };
   
-  const availability = extractAvailabilityScore(disponibilite);
-  
-  // 3. Calculer les pénalités
+  // 3. Calculer les pénalités (garde-fous toujours actifs)
   const penalties = computePenalties({
-    healthAlert: disponibilite.hasAlerts || guardrails?.healthAlert || false,
+    healthAlert: guardrails?.healthAlert || false,
     injuryRiskLevel: guardrails?.injuryRiskLevel,
     fatigueIndex: guardrails?.fatigueIndex,
     dataCompleteness: compass.dataCompleteness,
   });
   
-  // 4. Calcul du score Race Readiness V2
-  const rawScore = 
-    (RACE_READINESS_V2_WEIGHTS.potential * potential.score) + 
-    (RACE_READINESS_V2_WEIGHTS.availability * availability.score);
-  
+  // 4. Calcul du score Race Readiness V2.1 = Potentiel − Pénalités
+  const rawScore = potential.score;
   const finalScore = clamp(Math.round(rawScore - penalties.total), 0, 100);
   
   // 5. Catégorisation
   const category = getCategory(finalScore);
   const categoryInfo = getCategoryInfo(category);
   
-  // 6. Confiance globale
-  const confidenceGlobal = Math.min(potential.confidence, availability.confidence);
+  // 6. Confiance globale = confiance du potentiel uniquement
+  const confidenceGlobal = potential.confidence;
   
   // 7. Flags
   const flags: DecisionFlags = {
-    healthAlert: disponibilite.hasAlerts || guardrails?.healthAlert || false,
+    healthAlert: guardrails?.healthAlert || false,
     injuryRiskHigh: guardrails?.injuryRiskLevel === 'high' || guardrails?.injuryRiskLevel === 'critical',
     fatigueCritical: (guardrails?.fatigueIndex ?? 0) > 80,
     dataIncomplete: compass.dataCompleteness < 0.5,
   };
   
   // 8. Génération de l'explication
-  const explanation = generateExplanation(potential, availability, category, penalties, flags);
+  const explanation = generateExplanationV21(potential, category, penalties, flags);
   
   return {
     potential,
@@ -438,7 +427,7 @@ export function computeDecisionTFCL(input: ComputeDecisionInput): RaceReadinessV
     explanation,
     weights: RACE_READINESS_V2_WEIGHTS,
     timestamp: new Date().toISOString(),
-    version: 'v2.0',
+    version: 'v2.1',
     disclaimer: RACE_READINESS_V2_DISCLAIMER,
   };
 }
@@ -447,9 +436,9 @@ export function computeDecisionTFCL(input: ComputeDecisionInput): RaceReadinessV
 // GÉNÉRATION D'EXPLICATION
 // =============================================
 
-function generateExplanation(
+/** V2.1: Explication basée uniquement sur le Potentiel */
+function generateExplanationV21(
   potential: PotentialScore,
-  availability: AvailabilityScore,
   category: RaceReadinessV2Category,
   penalties: { total: number; reasons: string[] },
   flags: DecisionFlags
@@ -457,31 +446,22 @@ function generateExplanation(
   const watchouts: string[] = [];
   const suggestedFocus: string[] = [];
   
-  // Pourquoi
   let why: string;
   
   if (category === 'ready') {
-    why = `Potentiel élevé (${potential.score}/100) et disponibilité favorable (${availability.score}/100). Les conditions sont réunies pour exiger le meilleur.`;
+    why = `Potentiel élevé (${potential.score}/100). Le profil physiologique est prêt pour l'objectif.`;
   } else if (category === 'solid') {
-    why = `Profil solide (potentiel ${potential.score}/100) avec disponibilité correcte (${availability.score}/100). Capable d'absorber une charge de qualité.`;
+    why = `Profil solide (${potential.score}/100). Capable d'absorber une charge de qualité.`;
   } else if (category === 'in_progress') {
-    if (potential.score < 60 && availability.score >= 60) {
-      why = `Disponibilité correcte mais potentiel en construction (${potential.score}/100). Privilégier le développement du moteur.`;
-    } else if (potential.score >= 60 && availability.score < 60) {
-      why = `Potentiel correct mais disponibilité réduite (${availability.score}/100). Optimiser la récupération avant exigence maximale.`;
-    } else {
-      why = `Progression en cours sur les deux axes. Patience et régularité nécessaires.`;
-    }
+    why = `Potentiel en construction (${potential.score}/100). Privilégier le développement du moteur.`;
   } else {
-    why = `Préparation insuffisante (potentiel ${potential.score}/100, disponibilité ${availability.score}/100). Focus sur les fondamentaux.`;
+    why = `Préparation insuffisante (${potential.score}/100). Focus sur les fondamentaux.`;
   }
   
-  // Pénalités
   if (penalties.total > 0) {
     why += ` Attention : ${penalties.reasons.join(', ')}.`;
   }
   
-  // Watchouts
   if (flags.healthAlert) {
     watchouts.push("Alerte santé active — consulter avant effort intense");
   }
@@ -497,11 +477,7 @@ function generateExplanation(
   if (potential.mainLimitation) {
     watchouts.push(`Axe limitant : ${potential.mainLimitation}`);
   }
-  if (availability.alerts.length > 0) {
-    watchouts.push(...availability.alerts);
-  }
   
-  // Focus suggéré
   if (potential.score < 60) {
     suggestedFocus.push("Développer le moteur (charge progressive)");
     if (potential.mainLimitation?.toLowerCase().includes('tte')) {
@@ -509,15 +485,6 @@ function generateExplanation(
     }
     if (potential.mainLimitation?.toLowerCase().includes('vlamax')) {
       suggestedFocus.push("Ajuster le profil métabolique");
-    }
-  }
-  if (availability.score < 60) {
-    suggestedFocus.push("Optimiser récupération (sommeil, stress)");
-    if (availability.factors.some(f => f.toLowerCase().includes('sommeil'))) {
-      suggestedFocus.push("Priorité qualité de sommeil");
-    }
-    if (availability.factors.some(f => f.toLowerCase().includes('stress'))) {
-      suggestedFocus.push("Gestion du stress");
     }
   }
   if (category === 'ready' && suggestedFocus.length === 0) {
@@ -564,14 +531,11 @@ export function getRaceReadinessV2BadgeClass(category: RaceReadinessV2Category):
 
 export type DecisionQuadrant = 'go' | 'optimize_recovery' | 'build_engine' | 'caution';
 
-export function getQuadrant(potentialScore: number, availabilityScore: number): DecisionQuadrant {
-  const highPotential = potentialScore >= 60;
-  const highAvailability = availabilityScore >= 60;
-  
-  if (highPotential && highAvailability) return 'go';
-  if (highPotential && !highAvailability) return 'optimize_recovery';
-  if (!highPotential && highAvailability) return 'build_engine';
-  return 'caution';
+/** @deprecated Quadrants basés sur Potentiel × Disponibilité — V2.1 n'utilise plus la disponibilité */
+export function getQuadrant(potentialScore: number, _availabilityScore: number): DecisionQuadrant {
+  // V2.1: on ne regarde que le potentiel
+  if (potentialScore >= 60) return 'go';
+  return 'build_engine';
 }
 
 export const QUADRANT_INFO = {
@@ -580,7 +544,7 @@ export const QUADRANT_INFO = {
     emoji: "🟢",
     color: 'success' as const,
     bgColor: 'bg-green-500/20',
-    description: "Potentiel élevé + Disponibilité élevée. Conditions optimales."
+    description: "Potentiel élevé. Conditions optimales."
   },
   optimize_recovery: {
     label: "Optimiser récupération",
@@ -594,14 +558,14 @@ export const QUADRANT_INFO = {
     emoji: "🟠",
     color: 'info' as const,
     bgColor: 'bg-orange-500/20',
-    description: "Disponibilité correcte mais moteur insuffisant. Développer le profil."
+    description: "Moteur insuffisant. Développer le profil."
   },
   caution: {
     label: "Prudence requise",
     emoji: "🔴",
     color: 'destructive' as const,
     bgColor: 'bg-red-500/20',
-    description: "Potentiel et disponibilité limités. Priorité sécurité."
+    description: "Potentiel limité. Priorité sécurité."
   },
 };
 
@@ -611,81 +575,30 @@ export const QUADRANT_INFO = {
 
 export const ACADEMY_RACE_READINESS_V2_MODULE = {
   id: 'race-readiness-v2',
-  title: 'Potentiel vs Disponibilité : pourquoi TFCL sépare les deux',
-  description: 'Comprendre la logique Race Readiness V2 et les 4 quadrants décisionnels.',
+  title: 'Race Readiness V2.1 — Score basé sur le Potentiel',
+  description: 'Comprendre la logique Race Readiness V2.1 : seul le profil physiologique compte.',
   icon: '🎯',
   chapters: [
     {
-      id: 'separation',
-      title: 'Pourquoi séparer Potentiel et Disponibilité ?',
-      content: `## Deux réalités différentes
+      id: 'model-v21',
+      title: 'Pourquoi V2.1 retire la Disponibilité ?',
+      content: `## Modèle simplifié
 
-**Le Potentiel** = ce que ton moteur peut faire
-- Basé sur VLamax, TTE, FTP, économie
-- Évolue lentement (semaines/mois)
-- Représente ta capacité maximale théorique
+**Constat** : la fatigue n'est renseignée qu'une fois toutes les 3-4 semaines 
+et manque de précision. L'inclure dans un score décisionnel introduisait 
+du bruit plutôt que du signal.
 
-**La Disponibilité** = ce que tu peux exprimer aujourd'hui
-- Basé sur fatigue, stress, sommeil, signaux
-- Varie rapidement (heures/jours)
-- Module la capacité à mobiliser le potentiel
+**V2.1** : Le Race Readiness est maintenant basé **exclusivement sur le Potentiel** 
+(Metabolic Performance Compass™).
 
-**Un athlète très en forme peut être non prêt aujourd'hui.**
-Inversement, un athlète frais peut manquer de moteur.`,
+**Formule** : \`RR = Potentiel − Pénalités\`
+
+Les garde-fous (alertes santé, données incomplètes) restent actifs 
+et appliquent des pénalités automatiques.`,
       keyPoints: [
-        'Potentiel = capacité structurelle (long terme)',
-        'Disponibilité = état du jour (court terme)',
-        'La décision combine les deux'
-      ]
-    },
-    {
-      id: 'quadrants',
-      title: 'Les 4 quadrants de décision',
-      content: `## Comment lire le graphique
-
-| Quadrant | Potentiel | Disponibilité | Action |
-|----------|-----------|---------------|--------|
-| 🟢 GO | Élevé | Élevée | Séance clé possible |
-| 🟡 Récup | Élevé | Faible | Optimiser récupération |
-| 🟠 Moteur | Faible | Élevée | Construire le profil |
-| 🔴 Prudence | Faible | Faible | Priorité sécurité |
-
-**Le quadrant ne dicte pas.** Il éclaire la décision du coach.`,
-      keyPoints: [
-        'GO = conditions optimales',
-        'Récupération = potentiel bridé par la fatigue',
-        'Moteur = disponibilité bridée par le profil',
-        'Prudence = double limitation'
-      ]
-    },
-    {
-      id: 'examples',
-      title: 'Exemples pratiques',
-      content: `## Cas concrets
-
-**Cas 1 : Athlète en affûtage (Ironman J-7)**
-- Potentiel : 78 (profil construit)
-- Disponibilité : 85 (fraîcheur optimale)
-→ Quadrant GO. Confiance pour la course.
-
-**Cas 2 : Athlète en bloc de charge**
-- Potentiel : 72 (en progression)
-- Disponibilité : 45 (fatigue accumulée)
-→ Quadrant Récupération. Alléger avant séance clé.
-
-**Cas 3 : Athlète débutant motivé**
-- Potentiel : 48 (moteur en construction)
-- Disponibilité : 82 (très frais)
-→ Quadrant Moteur. Développer le profil progressivement.
-
-**Cas 4 : Surmenage**
-- Potentiel : 55 (stagnation)
-- Disponibilité : 38 (épuisement)
-→ Quadrant Prudence. Pause et reset.`,
-      keyPoints: [
-        'Le contexte guide l\'interprétation',
-        'Le coach intègre des facteurs non mesurés',
-        'Le graphique est un outil, pas un juge'
+        'Potentiel = seule source de vérité',
+        'Disponibilité retirée (données trop espacées/imprécises)',
+        'Garde-fous toujours actifs'
       ]
     },
     {
@@ -702,8 +615,7 @@ TFCL applique des **pénalités automatiques** dans certains cas :
 | Fatigue critique (>80) | -15 pts | Récupération obligatoire |
 | Données incomplètes | -5 pts | Incertitude accrue |
 
-**Ces garde-fous ne sont pas contournables.**
-Un score élevé avec alerte santé reste un score pénalisé.`,
+**Ces garde-fous ne sont pas contournables.**`,
       keyPoints: [
         'La sécurité prime sur le score',
         'Les alertes sont indépendantes du calcul',
@@ -718,8 +630,8 @@ Un score élevé avec alerte santé reste un score pénalisé.`,
 // =============================================
 
 export const PDF_RACE_READINESS_V2_SECTION = {
-  title: 'Potentiel × Disponibilité → Décision',
-  subtitle: 'Race Readiness TFCL™ V2',
+  title: 'Potentiel → Décision',
+  subtitle: 'Race Readiness TFCL™ V2.1',
   disclaimer: RACE_READINESS_V2_DISCLAIMER,
   definitions: RACE_READINESS_V2_DEFINITIONS,
   formula: RACE_READINESS_V2_FORMULA,
