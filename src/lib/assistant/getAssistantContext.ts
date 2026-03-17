@@ -21,9 +21,7 @@ import {
   matchWahooSession,
   type WahooWorkoutMapping 
 } from "@/data/wahooMapping";
-// Race Readiness Signature removed
 import { computeRaceReadinessEffectif, type RaceReadinessEffectif, type RaceReadinessInput, type RaceReadinessResult, computeRaceReadinessSignature } from "@/lib/raceReadinessEffectif";
-import { computeRaceReadinessSignature, type RaceReadinessInput, type RaceReadinessResult } from "@/lib/raceReadinessEffectif";
 
 // Re-export types for external use
 export type { RaceReadinessResult as RaceReadinessSignatureResult };
