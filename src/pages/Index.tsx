@@ -1701,8 +1701,8 @@ const Index = () => {
               <CycleIntelligenceCard
                 snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id) as unknown as Array<Record<string, unknown>>}
                 currentSnapshotId={effectiveCloudSnapshot?.id}
-                previousLimiterId={unifiedLimiterResult?.primary ?? null}
-                previousLimiterLabel={unifiedLimiterResult?.primaryLabel ?? null}
+                previousLimiterId={unifiedLimiterResult?.primaryLimiter ?? null}
+                previousLimiterLabel={unifiedLimiterResult?.limiterLabel ?? null}
                 objectif={currentAthlete.goal || "IM"}
                 staffMode={staffMode}
               />
