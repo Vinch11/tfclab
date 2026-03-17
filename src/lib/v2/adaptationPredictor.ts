@@ -108,6 +108,12 @@ export const TRAINING_LEVERS: TrainingLever[] = [
   { id: "max_force", label: "Force Maximale", description: "Musculation et travail de force", emoji: "💪" },
   { id: "running_economy", label: "Travail Économie", description: "Drills, cadence, technique de course", emoji: "🦶" },
   { id: "reduce_anaerobic", label: "Réduction Anaérobie", description: "Suppression des intensités glycolytiques", emoji: "🧘" },
+  { id: "vo2max_intervals", label: "VO₂max Intervalles", description: "Billat 30/30, 5×4min Z5 — développement du plafond aérobie", emoji: "🫁" },
+  { id: "train_low", label: "Train Low", description: "Entraînement glycogène-restricted pour améliorer l'oxydation lipidique", emoji: "🍃" },
+  { id: "norwegian_method", label: "Méthode Norvégienne", description: "Double seuil (2×20-25min @LT2) — protocole Ingebrigtsen/Blummenfelt", emoji: "🇳🇴" },
+  { id: "plyometrics", label: "Pliométrie", description: "Drop jumps, bounds, réactivité — amélioration économie neuromusculaire", emoji: "🦘" },
+  { id: "polarized_hi", label: "Polarisé 80/20 Intensifié", description: "80% Z1-Z2 + 20% Z5-Z6 — maximiser les adaptations aérobies", emoji: "⚖️" },
+  { id: "increase_ftp_kg", label: "Développer FTP/kg", description: "Sweet spot, over-unders, tempo — améliorer la puissance relative", emoji: "📊" },
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════════
