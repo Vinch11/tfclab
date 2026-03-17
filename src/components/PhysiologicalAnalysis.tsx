@@ -1,3 +1,4 @@
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 // =============================================
 // COMPOSANT ANALYSE PHYSIOLOGIQUE ÉLITE
 // + Section Économie de Course (CAP)

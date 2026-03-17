@@ -1,3 +1,4 @@
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 // =============================================
 // WEEK SELECTOR TFCL™ - UI Component (Enhanced)
 // Two For Coaching Lab

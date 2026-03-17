@@ -1,3 +1,4 @@
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 // =============================================
 // OUTILS EXPORT PDF – RAPPORT STAFF-GRADE COMPLET
 // Two For Coaching Lab – Performance & Metabolic Report

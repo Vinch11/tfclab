@@ -1,3 +1,4 @@
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 /**
  * Synthèse Exécutive Card — V2.1
  * Résumé rapide du profil athlète basé exclusivement sur le Potentiel physiologique

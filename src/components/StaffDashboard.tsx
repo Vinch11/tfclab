@@ -1,3 +1,4 @@
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 // =============================================
 // STAFF DASHBOARD - Two For Coaching Lab
 // Tour de contrôle décisionnelle - Lisible en < 10 secondes
