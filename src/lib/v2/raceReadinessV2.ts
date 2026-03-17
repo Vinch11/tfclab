@@ -43,6 +43,7 @@ export interface PotentialScore {
   explanation: string;
 }
 
+/** @deprecated Disponibilité retirée du modèle V2.1 — conservé pour compatibilité */
 export interface AvailabilityScore {
   score: number;                   // 0-100
   confidence: number;              // 0-1
