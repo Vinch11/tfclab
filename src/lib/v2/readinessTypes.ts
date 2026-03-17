@@ -68,9 +68,13 @@ export function getDefaultSimulationModifiers(): SimulationModifiers {
   return {
     effectiveFtpMultiplier: [0.95, 1.0],
     effectiveThresholdMultiplier: [0.95, 1.0],
-    fatmaxShift: 0,
-    glycogenDepletionRate: 1.0,
-    driftAcceleration: 1.0,
+    fatmaxShiftPct: 0,
+    glycogenDepletionRateMultiplier: 1.0,
+    tteUsableMultiplier: 1.0,
+    riskZoneWidening: 1.0,
+    allowedScenarios: ['conservative', 'optimal', 'aggressive'],
+    negativeSplitAllowed: true,
+    lateRaceIntensityBoostAllowed: true,
   };
 }
 
