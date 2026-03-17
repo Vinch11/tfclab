@@ -90,6 +90,9 @@ import { CoachingCompassCard } from "@/components/CoachingCompassCard";
 
 // ✅ Engines unifiés
 import { computeDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
+
+// ✅ Cycle Intelligence Engine™
+import { CycleIntelligenceCard } from "@/components/CycleIntelligenceCard";
 import { computeDecision, type DecisionInput } from "@/engines/decision";
 
 // ✅ Profil & Ambition — Carte unifiée (Phase 1f UX)
@@ -1691,6 +1694,20 @@ const Index = () => {
               />
             ),
           },
+          // ✅ Cycle Intelligence Engine™
+          {
+            id: "cycle-intelligence",
+            render: () => currentAthlete && (
+              <CycleIntelligenceCard
+                snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id) as unknown as Array<Record<string, unknown>>}
+                currentSnapshotId={effectiveCloudSnapshot?.id}
+                previousLimiterId={unifiedLimiterResult?.primaryLimiter ?? null}
+                previousLimiterLabel={unifiedLimiterResult?.limiterLabel ?? null}
+                objectif={currentAthlete.goal || "IM"}
+                staffMode={staffMode}
+              />
+            ),
+          },
         ];
 
         return (
@@ -1872,6 +1889,20 @@ const Index = () => {
             render: () => currentAthlete && staffMode && (
               <CalibrationEvidenceSummaryCard
                 athleteId={currentAthlete.id}
+              />
+            ),
+          },
+          // ✅ Cycle Intelligence Engine™ (profil)
+          {
+            id: "cycle-intelligence-profil",
+            render: () => currentAthlete && (
+              <CycleIntelligenceCard
+                snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id) as unknown as Array<Record<string, unknown>>}
+                currentSnapshotId={effectiveCloudSnapshot?.id}
+                previousLimiterId={unifiedLimiterResult?.primaryLimiter ?? null}
+                previousLimiterLabel={unifiedLimiterResult?.limiterLabel ?? null}
+                objectif={currentAthlete.goal || "IM"}
+                staffMode={staffMode}
               />
             ),
           },
