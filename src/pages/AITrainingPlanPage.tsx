@@ -126,6 +126,7 @@ export default function AITrainingPlanPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [selectedProjectionLever, setSelectedProjectionLever] = useState<string | undefined>();
 
   // Multi-athlete mode — restore from localStorage
   const MULTI_PERSIST_KEY = "tfcl_ai_multi_plan";
