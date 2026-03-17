@@ -437,6 +437,56 @@ export function StaffReport({
         {/* 2.4️⃣ CIBLES VO2MAX — COMPARATIF AVEC/SANS ÂGE */}
         <VO2maxAgeComparisonSection section={report.vo2maxAgeComparison} />
 
+        {/* 2.4b CYCLE INTELLIGENCE ENGINE™ */}
+        {report.cycleIntelligence && (
+          <>
+            <Separator />
+            <div className="print:break-inside-avoid">
+              <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+                🧠 CYCLE INTELLIGENCE™ — Analyse du bloc d'entraînement
+              </h3>
+              <div className="p-4 rounded-lg bg-muted/30 border mb-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-2xl font-bold font-mono">{report.cycleIntelligence.adaptationScore}/100</span>
+                  <span className="text-sm font-medium">{report.cycleIntelligence.verdictEmoji} {report.cycleIntelligence.verdictLabel}</span>
+                </div>
+                <p className="text-sm mb-2">{report.cycleIntelligence.summary}</p>
+                <p className="text-xs text-muted-foreground">
+                  Bloc de {report.cycleIntelligence.daysBetween} jours • {report.cycleIntelligence.previousDate} → {report.cycleIntelligence.currentDate}
+                </p>
+              </div>
+              
+              {/* Metrics table */}
+              <table className="w-full text-xs mb-3">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-1 font-medium">Métrique</th>
+                    <th className="text-center py-1 font-medium">Avant</th>
+                    <th className="text-center py-1 font-medium">Après</th>
+                    <th className="text-center py-1 font-medium">Évolution</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {report.cycleIntelligence.metrics.map((m, i) => (
+                    <tr key={i} className="border-b border-muted/50">
+                      <td className="py-1">{m.label}</td>
+                      <td className="text-center font-mono">{m.previousValue}</td>
+                      <td className="text-center font-mono">{m.currentValue}</td>
+                      <td className="text-center">{m.evolution}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* Limiter & Recommendation */}
+              <div className="space-y-2 text-sm">
+                <p><strong>Limiteur:</strong> {report.cycleIntelligence.limiterExplanation}</p>
+                <p><strong>Recommandation:</strong> {report.cycleIntelligence.recommendationLabel} — {report.cycleIntelligence.recommendationDetail}</p>
+              </div>
+            </div>
+          </>
+        )}
+
         <Separator />
 
         {/* 2.5️⃣ DECISION RELIABILITY ENGINE™ — SCÉNARIOS DE COURSE */}
