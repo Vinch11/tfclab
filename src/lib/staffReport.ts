@@ -5,6 +5,7 @@
  */
 
 import type { VLamaxEffectif, TTEEffectif } from "@/engines/diagnostic";
+import { computeCycleIntelligence, snapshotToEngineData, type CycleIntelligenceResult, type SnapshotData } from "@/lib/v2/cycleIntelligence";
 import { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { computeCompassScores, CompassScores, ComputeCompassParams } from "@/lib/compassScoring";
 import { computeCRR } from "@/lib/chargeRecenteReference";
