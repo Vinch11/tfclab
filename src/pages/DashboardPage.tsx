@@ -260,17 +260,6 @@ export default function DashboardPage() {
       return age;
     })() : null;
     
-      objectif,
-      vlamaxEffectif,
-      tteEffectif,
-      ftp: activeSnapshot.ftp ?? null,
-      poids: activeSnapshot.weight_kg ?? null,
-      fatigue_ok: true,
-      seance_specifique_validee: false,
-      athleteAge,
-      tss7d: activeSnapshot.tss_7d ?? null,
-    });
-    
     // Nutrition Prédictive
     const nutritionEstimate = computeNutritionEstimate({
       vlamax: vlamaxEffectif.value,
