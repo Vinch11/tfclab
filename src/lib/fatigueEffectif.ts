@@ -21,8 +21,8 @@ import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getScoreColor
 // =============================================
 
 import { TTEEffectif, getTTETarget } from "./tteEffectif";
-// RaceReadinessEffectif removed — using inline type
-interface RaceReadinessEffectifCompat { score: number; confidence: number; }
+import { type RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
+type RaceReadinessEffectifCompat = RaceReadinessEffectif;
 import { VLamaxEffectif } from "./vlamaxEffectif";
 
 // =============================================
