@@ -31,6 +31,25 @@ export interface RaceGoal {
   priority: "A" | "B" | "C";
 }
 
+export interface AdaptationProjection {
+  leverId: string;
+  leverLabel: string;
+  impactScore: number;
+  impactLabel: string;
+  metrics: Array<{
+    label: string;
+    current: number | null;
+    projected: number | null;
+    deltaPct: number;
+    direction: "up" | "down" | "stable";
+  }>;
+  performanceImpacts: Array<{
+    distance: string;
+    improvementPct: number;
+  }>;
+  recommendation: string;
+}
+
 export interface PlanConfig {
   objective: string;
   raceName?: string;
@@ -47,6 +66,7 @@ export interface PlanConfig {
   identifiedLimiters?: string[];
   activeLevers?: string[];
   prohibitions?: string[];
+  adaptationProjections?: AdaptationProjection[];
 }
 
 export interface ChunkProgress {

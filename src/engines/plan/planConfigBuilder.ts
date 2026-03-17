@@ -11,8 +11,9 @@
  */
 
 import type { AthleteDiagnostic } from "@/engines/diagnostic";
-import type { PlanConfig, PlanAthleteData, RaceGoal } from "@/hooks/useAITrainingPlan";
+import type { PlanConfig, PlanAthleteData, RaceGoal, AdaptationProjection } from "@/hooks/useAITrainingPlan";
 import type { UnifiedLimiterResult } from "@/engines/diagnostic";
+import { computeAdaptationPrediction, type AdaptationPredictorInput } from "@/lib/v2/adaptationPredictor";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ATHLETE DATA EXTRACTION
@@ -111,6 +112,9 @@ export function buildPlanConfigFromDiagnostic(
   // ── Prohibitions ──────────────────────────────────────────────────────────
   const prohibitions = buildProhibitions(limiterResult, diagnostic.objectif, diagnostic.ambition);
 
+  // ── Adaptation Projections ────────────────────────────────────────────────
+  const projections = buildAdaptationProjections(diagnostic);
+
   return {
     objective: formConfig.objective,
     raceName: formConfig.raceName,
@@ -127,6 +131,7 @@ export function buildPlanConfigFromDiagnostic(
     identifiedLimiters: limiters.length > 0 ? limiters : undefined,
     activeLevers: levers.length > 0 ? levers : undefined,
     prohibitions: prohibitions.length > 0 ? prohibitions : undefined,
+    adaptationProjections: projections.length > 0 ? projections : undefined,
   };
 }
 
@@ -218,4 +223,61 @@ function buildProhibitions(
   }
 
   return prohibitions;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADAPTATION PROJECTIONS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function buildAdaptationProjections(diagnostic: AthleteDiagnostic): AdaptationProjection[] {
+  const raw = diagnostic._rawInput;
+  const snapshot: Record<string, unknown> = {
+    vo2max: raw.vo2max,
+    vlamax: diagnostic.effectifs.vlamax.value,
+    ftp: raw.ftp,
+    weight_kg: raw.weightKg,
+    tte_observed_min: diagnostic.effectifs.tte.tte_min,
+    run_hr_drift_pct: raw.runHrDriftPct,
+    run_economy_score: raw.runEconomyScore,
+  };
+
+  const input: AdaptationPredictorInput = {
+    snapshot,
+    limiterId: diagnostic.limiter.primaryLimiter !== "none" ? diagnostic.limiter.primaryLimiter : null,
+    limiterLabel: diagnostic.limiter.primaryLimiter !== "none" ? diagnostic.limiter.limiterLabel : null,
+    objectif: diagnostic.objectif,
+  };
+
+  try {
+    const result = computeAdaptationPrediction(input);
+    // Keep only the best scenario + top 2 alternatives
+    const sorted = [...result.scenarios].sort((a, b) => {
+      if (a.lever.id === result.bestScenarioId) return -1;
+      if (b.lever.id === result.bestScenarioId) return 1;
+      return b.overallImpactScore - a.overallImpactScore;
+    });
+
+    return sorted.slice(0, 3).map(s => ({
+      leverId: s.lever.id,
+      leverLabel: s.lever.label,
+      impactScore: s.overallImpactScore,
+      impactLabel: s.impactLabel,
+      metrics: s.metrics
+        .filter(m => m.available && m.significance !== "none")
+        .map(m => ({
+          label: m.label,
+          current: m.current,
+          projected: m.projected,
+          deltaPct: m.deltaMidPct,
+          direction: m.direction,
+        })),
+      performanceImpacts: s.performancePredictions.map(p => ({
+        distance: p.distance,
+        improvementPct: p.improvementPct,
+      })),
+      recommendation: s.recommendation,
+    }));
+  } catch {
+    return [];
+  }
 }

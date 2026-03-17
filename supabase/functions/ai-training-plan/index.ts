@@ -3496,6 +3496,44 @@ function buildUserPrompt(data: any, config: any): string {
     lines.push("Ces règles sont calculées par l'app en fonction de l'objectif, l'ambition et le profil métabolique. Tu DOIS les respecter.");
   }
 
+  // --- Adaptation Predictor Projections ---
+  if (config.adaptationProjections && config.adaptationProjections.length > 0) {
+    lines.push("\n### 🔮 PROJECTIONS ADAPTATION PREDICTOR™ (Impact attendu du bloc d'entraînement)");
+    lines.push("Le module Adaptation Predictor™ a simulé l'impact physiologique attendu. Le plan DOIT s'aligner sur ces projections.");
+    lines.push("");
+
+    for (const proj of config.adaptationProjections) {
+      const isBest = config.adaptationProjections.indexOf(proj) === 0;
+      const tag = isBest ? "⭐ STRATÉGIE RECOMMANDÉE" : "Alternative";
+      lines.push(`#### ${tag} : ${proj.leverLabel} (Score impact: ${proj.impactScore}/100 — ${proj.impactLabel})`);
+      
+      if (proj.metrics && proj.metrics.length > 0) {
+        lines.push("Adaptations physiologiques attendues (bloc 4-6 semaines) :");
+        for (const m of proj.metrics) {
+          const arrow = m.direction === "up" ? "↑" : m.direction === "down" ? "↓" : "→";
+          const sign = m.deltaPct > 0 ? "+" : "";
+          lines.push(`  - ${m.label}: ${m.current?.toFixed(2) ?? "?"} → ${m.projected?.toFixed(2) ?? "?"} (${sign}${m.deltaPct.toFixed(1)}% ${arrow})`);
+        }
+      }
+
+      if (proj.performanceImpacts && proj.performanceImpacts.length > 0) {
+        const impacts = proj.performanceImpacts
+          .filter((p: any) => Math.abs(p.improvementPct) > 0.1)
+          .map((p: any) => `${p.distance}: ${p.improvementPct > 0 ? "+" : ""}${p.improvementPct.toFixed(1)}%`)
+          .join(", ");
+        if (impacts) {
+          lines.push(`  Impact performance estimé : ${impacts}`);
+        }
+      }
+
+      lines.push(`  💡 ${proj.recommendation}`);
+      lines.push("");
+    }
+
+    lines.push("CONSIGNE : Le plan doit PRIORITAIREMENT appliquer la stratégie recommandée (⭐). Les séances clés doivent refléter les adaptations projetées.");
+    lines.push("Mentionne dans le récapitulatif stratégique les projections attendues du Predictor™.");
+  }
+
   // Sport coherence reminder based on objective
   const obj = (config.objective || "").toUpperCase();
   if (obj === "IM") {
