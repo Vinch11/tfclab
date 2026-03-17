@@ -1,3 +1,4 @@
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif, computePillarCalculations } from "@/lib/raceReadinessEffectif";
 /**
  * RAPPORT STAFF PRÉ-COURSE - Composant UI
  * Synthèse d'une page, lisible en < 2 minutes

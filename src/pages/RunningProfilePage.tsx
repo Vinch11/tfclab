@@ -1,3 +1,4 @@
+import { type AvailabilityRun, computeRaceReadinessRun } from "@/lib/v2/readinessTypes";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * RUNNING PROFILE PAGE — Two For Coaching Lab™
