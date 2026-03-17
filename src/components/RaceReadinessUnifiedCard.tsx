@@ -338,7 +338,7 @@ export function RaceReadinessUnifiedCard({
                 </div>
               </LazyTabsContent>
 
-              {/* ── Tab: Détails Potentiel + Disponibilité ── */}
+              {/* ── Tab: Détails Potentiel ── */}
               <LazyTabsContent value="details" activeValue={activeTab} className="pt-4 space-y-4">
                 {/* Potentiel */}
                 <div className="p-4 rounded-lg bg-muted/30 border">
@@ -363,35 +363,6 @@ export function RaceReadinessUnifiedCard({
                       {result.potential.mainLimitation && (
                         <p className="text-warning">⚠ {result.potential.mainLimitation}</p>
                       )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Disponibilité */}
-                <div className="p-4 rounded-lg bg-muted/30 border">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Battery className="h-5 w-5 text-primary" />
-                    <h3 className="font-semibold">Disponibilité</h3>
-                    <Badge variant="outline" className="text-xs ml-auto font-mono">{result.availability.score}</Badge>
-                  </div>
-
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {result.availability.recommendation}
-                  </p>
-
-                  {result.availability.factors.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-3">
-                      {result.availability.factors.map((f, i) => (
-                        <Badge key={i} variant="secondary" className="text-xs">{f}</Badge>
-                      ))}
-                    </div>
-                  )}
-
-                  {result.availability.alerts.length > 0 && (
-                    <div className="p-2 rounded bg-destructive/10 border border-destructive/30">
-                      <p className="text-xs text-destructive">
-                        {result.availability.alerts.join(' | ')}
-                      </p>
                     </div>
                   )}
                 </div>
