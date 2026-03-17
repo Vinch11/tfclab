@@ -90,7 +90,7 @@ const TAB_LABELS: Record<TabId, string> = {
   seances: "Bibliothèque",
   templates: "Templates",
   academy: "Academy",
-  "race-readiness": "Race Readiness",
+  "race-readiness": "Potentiel Physiologique",
   "running-profile": "Profil Running",
   strategie: "Stratégie",
 };
