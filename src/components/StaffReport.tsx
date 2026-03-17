@@ -2005,11 +2005,11 @@ function RaceReadinessSignatureSection({ input }: { input: RaceReadinessInput })
               <div>
                 <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Décision TFCL</p>
                 <p className={cn("text-sm font-bold", zoneStyle.text)}>
-                  {result.recommendation.title}
+                  {typeof result.recommendation === 'object' ? (result.recommendation as any)?.title : result.recommendation}
                 </p>
               </div>
             </div>
-            <p className="text-[10px] text-muted-foreground">{result.recommendation.message}</p>
+            <p className="text-[10px] text-muted-foreground">{typeof result.recommendation === 'object' ? (result.recommendation as any)?.message : ''}</p>
           </div>
         </div>
         
