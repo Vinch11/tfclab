@@ -162,13 +162,11 @@ export function RunningGuidancePage() {
     if (!lockedProfile) return null;
     
     const riskContext: RiskContextRun = {
-      age_factor: 1.0,
-      injury_history_cap: false,
-      plan_phase: "SPECIFIC",
-      race_importance: "A",
+      readiness_state: "GREEN",
+      limiting_factor: "NONE",
     };
     
-    return computeRaceReadinessRun(lockedProfile, availability, riskContext);
+    return computeRaceReadinessRun(lockedProfile, availability);
   }, [lockedProfile, availability]);
   
   // Calculer la décision hebdomadaire (modifiée par le readiness)
@@ -178,7 +176,7 @@ export function RunningGuidancePage() {
     
     // Appliquer le readiness à la décision
     if (raceReadiness) {
-      return applyReadinessToDecision(baseDecision, raceReadiness);
+      return applyReadinessToDecision(baseDecision, raceReadiness) as RunningWeeklyDecision;
     }
     
     return baseDecision;
@@ -282,18 +280,8 @@ export function RunningGuidancePage() {
           </div>
         )}
         
-        {/* Section Race Readiness CAP */}
+        {/* Section Disponibilité CAP */}
         <div className="grid gap-4 md:grid-cols-2">
-          {/* Formulaire disponibilité */}
-            onSubmit={handleAvailabilityUpdate}
-            initialValues={availability}
-          />
-          
-          {/* Carte Race Readiness */}
-            readiness={raceReadiness}
-            objective={raceLabel || "CAP"}
-            isStaffMode={true}
-          />
         </div>
         
         <Separator />

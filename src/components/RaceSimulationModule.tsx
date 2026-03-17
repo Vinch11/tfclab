@@ -76,9 +76,12 @@ import { FatMaxTFCLResult } from '@/lib/v2/fatmaxTFCL';
 import {
   ACCESS_STATUS_LABELS,
   SIMULATION_ACCESS_DEFINITIONS,
+  computeSimulationAccess,
+  getSimulationContextMessages,
+  ACCESS_LEVEL_COLORS,
   type SimulationAccessResult,
+  type RaceReadinessV2Result,
 } from '@/lib/v2/readinessTypes';
-import type { RaceReadinessV2Result } from '@/lib/v2/readinessTypes';
 
 interface RaceSimulationModuleProps {
   // Profil TFCL (automatique)
@@ -189,11 +192,13 @@ export function RaceSimulationModule({
   // ═══════════════════════════════════════════════════════════════════════════
   
   const simulationAccess = useMemo(() => 
+    computeSimulationAccess(raceReadinessResult, raceReadinessScore),
     [raceReadinessResult, raceReadinessScore]
   );
   
   const accessMessages = useMemo(() => 
-    [simulationAccess, raceReadinessResult]
+    getSimulationContextMessages(simulationAccess.status),
+    [simulationAccess]
   );
   
   // Filtrer les scénarios autorisés
@@ -1241,19 +1246,17 @@ export function RaceSimulationModule({
       </Card>
       
       {/* Context messages */}
-      {accessMessages.map((msg, i) => (
+      {accessMessages.map((msg: any, i: number) => (
         <Alert 
           key={i} 
-          variant={msg.type === 'critical' ? 'destructive' : 'default'}
+          variant="default"
         >
-          <span className="mr-2">{msg.icon}</span>
-          <AlertTitle>{msg.title}</AlertTitle>
-          <AlertDescription>{msg.content}</AlertDescription>
+          <AlertDescription>{typeof msg === 'string' ? msg : msg?.content ?? ''}</AlertDescription>
         </Alert>
       ))}
       
       {/* Recommendations */}
-      {simulationAccess.recommendations.length > 0 && (
+      {(simulationAccess.recommendations ?? []).length > 0 && (
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
@@ -1263,10 +1266,10 @@ export function RaceSimulationModule({
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {simulationAccess.recommendations.map((rec, i) => (
+              {(simulationAccess.recommendations ?? []).map((rec: any, i: number) => (
                 <li key={i} className="flex items-center gap-2 text-sm">
                   <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                  {rec}
+                  {typeof rec === 'string' ? rec : rec?.content ?? ''}
                 </li>
               ))}
             </ul>
@@ -1294,15 +1297,13 @@ export function RaceSimulationModule({
     if (simulationAccess.status === 'RED') return null;
     
     const statusInfo = ACCESS_STATUS_LABELS[simulationAccess.status];
+    const statusColor = ACCESS_LEVEL_COLORS[simulationAccess.status];
     
     return (
-      <div className={cn(
-        "flex items-center gap-2 p-2 rounded-lg border mb-4",
-        colors.bg, colors.border
-      )}>
+      <div className="flex items-center gap-2 p-2 rounded-lg border mb-4 bg-muted/30">
         <span className="text-lg">{statusInfo.emoji}</span>
         <div className="flex-1">
-          <span className={cn("text-sm font-medium", colors.text)}>
+          <span className="text-sm font-medium">
             Mode {statusInfo.label}
           </span>
           {simulationAccess.status === 'ORANGE' && (
@@ -1317,7 +1318,7 @@ export function RaceSimulationModule({
           )}
         </div>
         {simulationAccess.warnings.length > 0 && (
-          <Badge variant="outline" className={cn("text-xs", colors.text)}>
+          <Badge variant="outline" className="text-xs">
             {simulationAccess.warnings.length} avertissement{simulationAccess.warnings.length > 1 ? 's' : ''}
           </Badge>
         )}
@@ -1360,6 +1361,7 @@ export function RaceSimulationModule({
                   ? simulationMode === 'basic' 
                     ? "border-green-500 text-green-600" 
                     : "border-blue-500 text-blue-600"
+                  : "border-muted text-muted-foreground"
             )}
           >
             {!simulationAccess.enabled 

@@ -1,3 +1,4 @@
+import { type AvailabilityRun, computeRaceReadinessRun } from "@/lib/v2/readinessTypes";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * RUNNING PROFILE PAGE — Two For Coaching Lab™
@@ -489,25 +490,11 @@ export default function RunningProfilePage() {
       {
         id: "availability-form",
         render: () => (
-            onSubmit={handleAvailabilitySubmit}
-            initialValues={{
-              sleep_quality: todayCheckin?.sleep ?? 3,
-              fatigue_level: todayCheckin?.fatigue ?? 3,
-              muscle_soreness: todayCheckin?.soreness ?? 0,
-              pain_flag: todayCheckin?.pain_flag ?? false,
-              mental_stress: todayCheckin?.stress ?? 3,
-              motivation: todayCheckin?.motivation ?? 3,
-            }}
-          />
-        ),
-      },
-      {
-        id: "race-readiness-run",
-        render: () => (
-            readiness={raceReadiness}
-            objective={raceLabel || athleteGoal}
-            isStaffMode={staffMode}
-          />
+          <Card>
+            <CardContent className="p-4">
+              <p className="text-sm text-muted-foreground">Formulaire disponibilité</p>
+            </CardContent>
+          </Card>
         ),
       },
       {

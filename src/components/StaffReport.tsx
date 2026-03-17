@@ -1,3 +1,4 @@
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif, computePillarCalculations } from "@/lib/raceReadinessEffectif";
 /**
  * RAPPORT STAFF PRÉ-COURSE - Composant UI
  * Synthèse d'une page, lisible en < 2 minutes
@@ -56,7 +57,6 @@ import { computeFullDRE, type DecisionReliabilityResult, type Scenario } from "@
 import { DecisionReliabilityBadge, DecisionReliabilityProgress } from "@/components/DecisionReliabilityBadge";
 import { computeLorangStrategy, type LorangStrategyInput, type LorangStrategyResult, LIMITER_DEFINITIONS, LEVER_DEFINITIONS } from "@/engines/decision";
 import { computeRaceReadinessSignature, type RaceReadinessInput, type RaceReadinessResult } from "@/lib/raceReadinessEffectif";
-import { PacingEnvelopeBar, PacingEnvelopeBarInline } from "@/components/charts/PacingEnvelopeBar";
 import { PacingEnvelopeBar, PacingEnvelopeBarInline } from "@/components/charts/PacingEnvelopeBar";
 import { LongDistanceEnvelopeChart, LongDistanceEnvelopeInline } from "@/components/charts/LongDistanceEnvelopeChart";
 import { computePacingEnvelope, type PacingEnvelopeInput, type RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
@@ -2005,11 +2005,11 @@ function RaceReadinessSignatureSection({ input }: { input: RaceReadinessInput })
               <div>
                 <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Décision TFCL</p>
                 <p className={cn("text-sm font-bold", zoneStyle.text)}>
-                  {result.recommendation.title}
+                  {typeof result.recommendation === 'object' ? (result.recommendation as any)?.title : result.recommendation}
                 </p>
               </div>
             </div>
-            <p className="text-[10px] text-muted-foreground">{result.recommendation.message}</p>
+            <p className="text-[10px] text-muted-foreground">{typeof result.recommendation === 'object' ? (result.recommendation as any)?.message : ''}</p>
           </div>
         </div>
         
@@ -2020,7 +2020,7 @@ function RaceReadinessSignatureSection({ input }: { input: RaceReadinessInput })
               <Lightbulb className="h-3 w-3" /> Actions recommandées
             </p>
             <ul className="space-y-0.5">
-              {result.recommendation.actions.map((action, i) => (
+              {(typeof result.recommendation === 'object' ? ((result.recommendation as any)?.actions ?? []) : []).map((action: string, i: number) => (
                 <li key={i} className="text-xs text-muted-foreground">• {action}</li>
               ))}
             </ul>

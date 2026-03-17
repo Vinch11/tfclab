@@ -1,3 +1,4 @@
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 // =============================================
 // FATIGUE COMPARISON CHART - Snapshot fatigue_state vs Calculée
 // Modèle centré snapshot: compare l'état déclaré dans chaque snapshot

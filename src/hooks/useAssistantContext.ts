@@ -172,19 +172,6 @@ export function useAssistantContext(
       return age;
     })() : null;
     
-      objectif: athlete.goal || "IM",
-      vlamaxEffectif,
-      tteEffectif,
-      ftp: effectiveRefs.ftp ?? null,
-      poids: effectiveRefs.weightKg ?? null,
-      fatigue_ok: true,
-      seance_specifique_validee: false,
-      fcMax: effectiveRefs.fcMax ?? null,
-      deriveCardiaque: effectiveSnapshot?.run_hr_drift_pct ?? null,
-      athleteAge,
-      tss7d: effectiveSnapshot?.tss_7d ?? null,
-    }) : null;
-    
     // CRR status
     const tss7d = effectiveSnapshot?.tss_7d ?? null;
     let crrStatus: string | null = null;
@@ -258,9 +245,7 @@ export function useAssistantContext(
       parts.push(`TTE: ${t.tte_min} min (source: ${t.source}, confiance: ${(t.confidence * 100).toFixed(0)}%, cible: ${t.target} min, statut: ${t.status})`);
     }
     
-    // Race Readiness
-      parts.push(`Race Readiness: ${r.score}/100 (${r.label}, confiance: ${(r.confidence * 100).toFixed(0)}%)`);
-    }
+    // (Race Readiness removed)
     
     // Autres métriques
     if (context.ftp !== null) parts.push(`FTP: ${context.ftp}W`);
@@ -325,14 +310,7 @@ export function formatContextForDisplay(context: AssistantAthleteContext): { lab
     });
   }
   
-  // Race Readiness
-    const status = r.score >= 80 ? "ok" : r.score >= 60 ? "warning" : "error";
-    items.push({ 
-      label: "Race Readiness", 
-      value: `${r.score}/100 (${r.label})`,
-      status 
-    });
-  }
+  // (Race Readiness removed)
   
   // Autres
   if (context.ftp !== null) items.push({ label: "FTP", value: `${context.ftp}W` });

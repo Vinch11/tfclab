@@ -190,7 +190,7 @@ import { toast } from "sonner";
 import { getDernierSnapshot } from "@/types/athlete";
 import { computeVLamaxEffectif, type VLamaxEffectif, computeTTEEffectif, type TTEEffectif, getSourceLabel } from "@/engines/diagnostic";
 
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif, type RaceReadinessInput } from "@/lib/raceReadinessEffectif";
 // ✅ RACE READINESS EFFECTIF - Source unique de vérité
 
 // ✅ Ambition (modulateur des cibles)
@@ -516,7 +516,7 @@ const Index = () => {
       tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
     });
   }, [currentAthlete, vlamaxEffectif, tteEffectif, ftp, poids, effectiveCloudSnapshot, currentAmbition]);
-  }, [currentAthlete, vlamaxEffectif, tteEffectif, ftp, poids, effectiveRefs, effectiveCloudSnapshot, currentAmbition]);
+  
 
   // ✅ NUTRITION ESTIMATE - Pour rapport staff
   const nutritionEstimate = useMemo(() => {
@@ -1451,17 +1451,7 @@ const Index = () => {
                       </span>
                     </div>
                   )}
-                    compass={compass}
-                    latestCheckin={latestCheckin}
-                    objectiveData={objectiveData}
-                    guardrails={{
-                      fatigueIndex: effectiveCloudSnapshot?.tss_7d ? Math.min(100, (effectiveCloudSnapshot.tss_7d / 7)) : undefined,
-                    }}
-                    signatureInput={signatureInput}
-                    athleteName={currentAthlete.name}
-                    objectif={currentAthlete.goal || "IM"}
-                    staffMode={staffMode}
-                  />
+                  {/* Race readiness compass removed */}
                 </div>
               );
             },

@@ -1,3 +1,4 @@
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 // =============================================
 // STAFF DASHBOARD - Two For Coaching Lab
 // Tour de contrôle décisionnelle - Lisible en < 10 secondes
@@ -54,9 +55,11 @@ interface StaffDashboardProps {
   ftpKg: number | null;
   snapshotDate: string | null;
   athleteAge?: number | null;
-  ambition?: AmbitionLevel; // Niveau d'ambition pour ajustement des cibles
-  snapshot?: unknown; // Pour DecisionRobustnessCard
+  ambition?: AmbitionLevel;
+  snapshot?: unknown;
   vo2max?: number | null;
+  athlete?: any;
+  energyDrift?: any;
 }
 
 // =============================================
@@ -144,22 +147,6 @@ function getTTEStatus(value: number, target: number): { status: "ok" | "warning"
   return { status: "critical", label: "Critique" };
 }
 
-function getRaceReadinessStatus(score: number): { status: "ok" | "warning" | "critical"; label: string } {
-  if (score >= 80) return { status: "ok", label: "Race Ready!" };
-  if (score >= 60) return { status: "warning", label: "En progression" };
-  return { status: "critical", label: "Non prêt" };
-}
-
-  const { preferences } = useUserPreferences();
-  const isCompact = preferences.raceReadinessCompactMode ?? true;
-  
-  return (
-      {...props}
-      compact={isCompact}
-      defaultExpanded={!isCompact}
-    />
-  );
-}
 
 // =============================================
 // MAIN COMPONENT
@@ -202,7 +189,7 @@ export function StaffDashboard({
   
   const vlamaxStatus = getVlamaxStatusWithLabel(vlamaxEffectif.value, objectif, ambition);
   const tteStatus = getTTEStatus(tteEffectif.tte_min, tteTarget);
-  const readinessStatus = getRaceReadinessStatus(raceReadiness.score);
+  const readinessStatus = { status: raceReadiness.score >= 80 ? "ok" as const : raceReadiness.score >= 60 ? "warning" as const : "critical" as const, label: raceReadiness.label };
 
   // Priorités d'entraînement
   const priorities = useMemo(() => {
@@ -449,67 +436,6 @@ export function StaffDashboard({
             </div>
           </CardContent>
         </Card>
-
-        {/* PILIER 3: Race Readiness - Utilise le composant complet */}
-        {athlete ? (
-            athlete={athlete}
-            vlamaxEffectif={vlamaxEffectif}
-            tteEffectif={tteEffectif}
-            readiness={raceReadiness}
-            energyDrift={energyDrift as EnergyDriftResult}
-            athleteAge={athleteAge}
-          />
-        ) : (
-          // Fallback si athlete n'est pas passé
-          <Card>
-            <CardContent className="p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-primary" />
-                  <span className="font-semibold">Race Readiness</span>
-                </div>
-                {getStatusBadge(readinessStatus.status, readinessStatus.label)}
-              </div>
-              
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold font-mono">{raceReadiness.score}</span>
-                <span className="text-sm text-muted-foreground">%</span>
-              </div>
-              
-              <Progress 
-                value={raceReadiness.score} 
-                className="h-2" 
-              />
-              
-              <p className="text-xs text-muted-foreground italic">
-                Score pondéré selon l'objectif ({OBJECTIF_LABELS[objectif] || objectif})
-              </p>
-              
-              {/* Détail par composante */}
-              <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-[11px] sm:text-xs">
-                <div className="p-1.5 sm:p-2 bg-muted/50 rounded text-center">
-                  <p className="text-muted-foreground truncate">Métabolisme</p>
-                  <p className="font-bold">{raceReadiness.details.vlamax}/25</p>
-                </div>
-                <div className="p-1.5 sm:p-2 bg-muted/50 rounded text-center">
-                  <p className="text-muted-foreground truncate">Endurance</p>
-                  <p className="font-bold">{raceReadiness.details.endurance}/25</p>
-                </div>
-                <div className="p-1.5 sm:p-2 bg-muted/50 rounded text-center">
-                  <p className="text-muted-foreground truncate">Puissance</p>
-                  <p className="font-bold">{raceReadiness.details.puissance}/25</p>
-                </div>
-              </div>
-              
-              <Separator />
-              
-              <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">Message : </span>
-                {raceReadiness.messageStaff}
-              </p>
-            </CardContent>
-          </Card>
-        )}
 
         {/* RADAR CHART: Profil Métabolique Complet */}
         <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-accent/5">

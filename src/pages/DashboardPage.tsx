@@ -1,3 +1,4 @@
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getScoreColor, getRaceReadinessTargets, getTargets, getWeightsBySport, generateAthleteReadiness, computePillarCalculations, type RaceReadinessInput, type RaceReadinessResult, computeRaceReadinessSignature } from "@/lib/raceReadinessEffectif";
 // =============================================
 // DASHBOARD STAFF - Two For Coaching Lab
 // Tour de contrôle décisionnelle - Lisible en < 10 secondes
@@ -260,24 +261,13 @@ export default function DashboardPage() {
       return age;
     })() : null;
     
-      objectif,
-      vlamaxEffectif,
-      tteEffectif,
-      ftp: activeSnapshot.ftp ?? null,
-      poids: activeSnapshot.weight_kg ?? null,
-      fatigue_ok: true,
-      seance_specifique_validee: false,
-      athleteAge,
-      tss7d: activeSnapshot.tss_7d ?? null,
-    });
-    
     // Nutrition Prédictive
     const nutritionEstimate = computeNutritionEstimate({
       vlamax: vlamaxEffectif.value,
       objectif,
       tteMin: tteEffectif.tte_min,
       tteTarget: getTTETarget(objectif),
-      raceReadiness: raceReadiness.score,
+      
     });
     
     // FTP/kg

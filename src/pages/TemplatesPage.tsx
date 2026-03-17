@@ -1,3 +1,4 @@
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 /**
  * Templates de Programmation Page
  * Displays training templates with optional staff annotations

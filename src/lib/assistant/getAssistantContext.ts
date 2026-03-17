@@ -22,6 +22,7 @@ import {
   type WahooWorkoutMapping 
 } from "@/data/wahooMapping";
 // Race Readiness Signature removed
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif, type RaceReadinessInput, type RaceReadinessResult, computeRaceReadinessSignature } from "@/lib/raceReadinessEffectif";
 import { computeRaceReadinessSignature, type RaceReadinessInput, type RaceReadinessResult } from "@/lib/raceReadinessEffectif";
 
 // Re-export types for external use
@@ -390,7 +391,7 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
   let raceReadinessSignature: RaceReadinessResult | null = null;
   if (athlete?.goal) {
     // Construire l'input pour le calcul
-    const signatureInput: RaceReadinessInput = {
+    const signatureInput: RaceReadinessInput = ({
       physiology: {
         vo2max: effectiveSnapshot?.vo2max ?? null,
         vo2maxTarget: athlete.goal === "IM" ? 55 : athlete.goal === "703" ? 52 : 48,
@@ -599,11 +600,11 @@ export function formatContextForPrompt(context: AssistantContextPacket): string 
     }
     parts.push(`### DÉCISION: ${rr.decisionIcon} ${rr.decisionLabel}`);
     parts.push(`- Zone: ${rr.decisionZone.toUpperCase()}`);
-    parts.push(`- Statut: ${rr.recommendation.status.toUpperCase()}`);
-    parts.push(`- Titre: ${rr.recommendation.title}`);
-    parts.push(`- Message: ${rr.recommendation.message}`);
+    parts.push(`- Statut: ${((rr.recommendation as any)?.status ?? '').toUpperCase()}`);
+    parts.push(`- Titre: ${((rr.recommendation as any)?.title ?? rr.recommendation)}`);
+    parts.push(`- Message: ${((rr.recommendation as any)?.message ?? '')}`);
     parts.push(`- Actions recommandées:`);
-    for (const action of rr.recommendation.actions) {
+    for (const action of ((rr.recommendation as any)?.actions ?? [])) {
       parts.push(`  • ${action}`);
     }
     parts.push(`- Confiance données: ${rr.confidenceLabel}`);

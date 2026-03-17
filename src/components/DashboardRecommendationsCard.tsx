@@ -1,3 +1,4 @@
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 /**
  * Version compacte des recommandations Wahoo pour le Dashboard
  * Affiche les suggestions prioritaires avec un lien vers la bibliothèque complète
