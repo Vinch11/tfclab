@@ -46,7 +46,6 @@ import {
   LowCRRJustification,
 } from "@/lib/wahoo/wahooSuggestionEngine";
 import { computeVLamaxEffectif, computeTTEEffectif } from "@/engines/diagnostic";
-import { computeRaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { computeCAPInjuryRisk } from "@/lib/capInjuryRisk";
 
 const AXIS_CONFIG: Record<string, { icon: typeof Zap; color: string; label: string }> = {

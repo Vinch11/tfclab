@@ -74,14 +74,11 @@ import { GlycogenDepletionChart } from '@/components/charts/GlycogenDepletionCha
 import { FatMaxRaceIntensityChart } from '@/components/charts/FatMaxRaceIntensityChart';
 import { FatMaxTFCLResult } from '@/lib/v2/fatmaxTFCL';
 import {
-  computeSimulationAccess,
-  getSimulationContextMessages,
-  ACCESS_LEVEL_COLORS,
   ACCESS_STATUS_LABELS,
   SIMULATION_ACCESS_DEFINITIONS,
   type SimulationAccessResult,
-} from '@/lib/v2/raceReadinessSimulationConnector';
-import type { RaceReadinessV2Result } from '@/lib/v2/raceReadinessV2';
+} from '@/lib/v2/readinessTypes';
+import type { RaceReadinessV2Result } from '@/lib/v2/readinessTypes';
 
 interface RaceSimulationModuleProps {
   // Profil TFCL (automatique)
@@ -192,12 +189,10 @@ export function RaceSimulationModule({
   // ═══════════════════════════════════════════════════════════════════════════
   
   const simulationAccess = useMemo(() => 
-    computeSimulationAccess(raceReadinessResult, raceReadinessScore ?? undefined),
     [raceReadinessResult, raceReadinessScore]
   );
   
   const accessMessages = useMemo(() => 
-    getSimulationContextMessages(simulationAccess, raceReadinessResult),
     [simulationAccess, raceReadinessResult]
   );
   
@@ -1298,7 +1293,6 @@ export function RaceSimulationModule({
   const AccessStatusHeader = () => {
     if (simulationAccess.status === 'RED') return null;
     
-    const colors = ACCESS_LEVEL_COLORS[simulationAccess.accessLevel];
     const statusInfo = ACCESS_STATUS_LABELS[simulationAccess.status];
     
     return (
@@ -1366,7 +1360,6 @@ export function RaceSimulationModule({
                   ? simulationMode === 'basic' 
                     ? "border-green-500 text-green-600" 
                     : "border-blue-500 text-blue-600"
-                  : ACCESS_LEVEL_COLORS[simulationAccess.accessLevel].border + " " + ACCESS_LEVEL_COLORS[simulationAccess.accessLevel].text
             )}
           >
             {!simulationAccess.enabled 

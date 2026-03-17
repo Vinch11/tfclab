@@ -11,7 +11,6 @@ import { Progress } from "@/components/ui/progress";
 import { FileText, CheckCircle2, AlertTriangle, XCircle, Zap, Target, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { VLamaxEffectif, TTEEffectif } from "@/engines/diagnostic";
-import type { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { AmbitionLevel, DEFAULT_AMBITION, getAmbitionDefinition } from "@/types/ambitionLevel";
 import {
   evaluateVLamax,

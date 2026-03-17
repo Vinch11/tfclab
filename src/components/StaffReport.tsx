@@ -45,7 +45,6 @@ import {
   VO2maxAgeComparisonSection as VO2maxAgeComparisonSectionType 
 } from "@/lib/staffReport";
 import type { VLamaxEffectif, TTEEffectif } from "@/engines/diagnostic";
-import { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { NutritionEstimate } from "@/lib/nutritionPredictive";
 import { RunningEconomyResult } from "@/lib/runningEconomy";
 import { computeCAPInjuryRisk } from "@/lib/capInjuryRisk";
@@ -53,7 +52,6 @@ import { PerformanceRiskMatrixCompact } from "@/components/PerformanceRiskMatrix
 import { getAxisLabel, getAxisColor } from "@/lib/wahoo/wahooSuggestionEngine";
 import { MetabolicPerformanceCompassV2 as MetabolicPerformanceCompass } from "@/components/charts/MetabolicPerformanceCompassV2";
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
-import { computePillarCalculations } from "@/components/ReadinessPillarDetail";
 import { computeFullDRE, type DecisionReliabilityResult, type Scenario } from "@/engines/diagnostic";
 import { DecisionReliabilityBadge, DecisionReliabilityProgress } from "@/components/DecisionReliabilityBadge";
 import { computeLorangStrategy, type LorangStrategyInput, type LorangStrategyResult, LIMITER_DEFINITIONS, LEVER_DEFINITIONS } from "@/engines/decision";
@@ -61,7 +59,6 @@ import {
   computeRaceReadinessSignature, 
   type RaceReadinessInput, 
   type RaceReadinessResult 
-} from "@/components/RaceReadinessSignatureChart";
 import { PacingEnvelopeBar, PacingEnvelopeBarInline } from "@/components/charts/PacingEnvelopeBar";
 import { LongDistanceEnvelopeChart, LongDistanceEnvelopeInline } from "@/components/charts/LongDistanceEnvelopeChart";
 import { computePacingEnvelope, type PacingEnvelopeInput, type RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";

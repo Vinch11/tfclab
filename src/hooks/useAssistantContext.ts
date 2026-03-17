@@ -6,7 +6,6 @@
 import { useMemo } from "react";
 import { useCloudData, DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
 import { computeVLamaxEffectif, type VLamaxEffectif, computeTTEEffectif, type TTEEffectif } from "@/engines/diagnostic";
-import { computeRaceReadinessEffectif, RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { getEffectiveRefs, computeFtpKg, EffectiveRefs } from "@/lib/effectiveRefs";
 import { computeCRR } from "@/lib/chargeRecenteReference";
 import { computeNutritionEstimate, NutritionEstimate } from "@/lib/nutritionPredictive";
@@ -29,7 +28,6 @@ export interface AssistantAthleteContext {
   // Métriques effectifs
   vlamaxEffectif: VLamaxEffectif | null;
   tteEffectif: TTEEffectif | null;
-  raceReadinessEffectif: RaceReadinessEffectif | null;
   
   // Données dérivées
   ftp: number | null;
@@ -76,7 +74,6 @@ export function useAssistantContext(
         snapshotSource: null,
         vlamaxEffectif: null,
         tteEffectif: null,
-        raceReadinessEffectif: null,
         ftp: null,
         ftpKg: null,
         poids: null,
@@ -101,7 +98,6 @@ export function useAssistantContext(
         snapshotSource: null,
         vlamaxEffectif: null,
         tteEffectif: null,
-        raceReadinessEffectif: null,
         ftp: null,
         ftpKg: null,
         poids: null,
@@ -176,7 +172,6 @@ export function useAssistantContext(
       return age;
     })() : null;
     
-    const raceReadinessEffectif = tteEffectif ? computeRaceReadinessEffectif({
       objectif: athlete.goal || "IM",
       vlamaxEffectif,
       tteEffectif,
@@ -217,7 +212,6 @@ export function useAssistantContext(
       snapshotSource: effectiveSnapshot?.source ?? null,
       vlamaxEffectif,
       tteEffectif,
-      raceReadinessEffectif,
       ftp: effectiveRefs.ftp ?? null,
       ftpKg,
       poids: effectiveRefs.weightKg ?? null,
@@ -265,8 +259,6 @@ export function useAssistantContext(
     }
     
     // Race Readiness
-    if (context.raceReadinessEffectif) {
-      const r = context.raceReadinessEffectif;
       parts.push(`Race Readiness: ${r.score}/100 (${r.label}, confiance: ${(r.confidence * 100).toFixed(0)}%)`);
     }
     
@@ -334,8 +326,6 @@ export function formatContextForDisplay(context: AssistantAthleteContext): { lab
   }
   
   // Race Readiness
-  if (context.raceReadinessEffectif) {
-    const r = context.raceReadinessEffectif;
     const status = r.score >= 80 ? "ok" : r.score >= 60 ? "warning" : "error";
     items.push({ 
       label: "Race Readiness", 

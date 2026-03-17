@@ -28,8 +28,6 @@ import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
 import { RunningFocusModeIndicator } from "@/components/RunningFocusModeIndicator";
 import { LockedProfileCard } from "./LockedProfileCard";
 import { WeeklyDecisionCard } from "./WeeklyDecisionCard";
-import { RaceReadinessRunCard } from "@/components/RaceReadinessRunCard";
-import { RaceReadinessRunForm } from "@/components/RaceReadinessRunForm";
 import {
   createRunningPhysioProfile,
   computeWeeklyDecision,
@@ -45,7 +43,6 @@ import {
   type AvailabilityRun,
   type RaceReadinessRun,
   type RiskContextRun,
-} from "@/lib/v2/raceReadinessRunning";
 import { computeVLamaxEffectif } from "@/engines/diagnostic";
 import { computeDisponibiliteTFCL } from "@/lib/v2/disponibiliteTFCL";
 
@@ -293,13 +290,11 @@ export function RunningGuidancePage() {
         {/* Section Race Readiness CAP */}
         <div className="grid gap-4 md:grid-cols-2">
           {/* Formulaire disponibilité */}
-          <RaceReadinessRunForm
             onSubmit={handleAvailabilityUpdate}
             initialValues={availability}
           />
           
           {/* Carte Race Readiness */}
-          <RaceReadinessRunCard
             readiness={raceReadiness}
             objective={raceLabel || "CAP"}
             isStaffMode={true}

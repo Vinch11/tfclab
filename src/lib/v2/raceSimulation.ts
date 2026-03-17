@@ -21,7 +21,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import type { SimulationModifiers } from './raceReadinessSimulationConnector';
+import type { SimulationModifiers } from './readinessTypes';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES

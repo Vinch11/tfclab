@@ -20,7 +20,8 @@
 // =============================================
 
 import { TTEEffectif, getTTETarget } from "./tteEffectif";
-import { RaceReadinessEffectif } from "./raceReadinessEffectif";
+// RaceReadinessEffectif removed — using inline type
+interface RaceReadinessEffectifCompat { score: number; confidence: number; }
 import { VLamaxEffectif } from "./vlamaxEffectif";
 
 // =============================================
@@ -193,7 +194,7 @@ export interface ComputeFatigueParams {
   tss7dHabituel?: number | null;     // Charge habituelle de référence (si disponible)
   fatiguePercue?: number | null;     // NEW: Fatigue perçue (1-10, 1=frais, 10=épuisé)
   tteEffectif: TTEEffectif;
-  raceReadiness?: RaceReadinessEffectif | null;  // NULLABLE: peut être null si pas encore calculé
+  raceReadiness?: RaceReadinessEffectifCompat | null;  // NULLABLE: peut être null si pas encore calculé
   vlamaxEffectif?: VLamaxEffectif | null;
   age?: number | null;
   objectif: string;

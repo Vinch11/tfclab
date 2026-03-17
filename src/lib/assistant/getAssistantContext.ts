@@ -6,7 +6,6 @@
 import { DbAthlete, DbSnapshot, DbTest, DbCheckin } from "@/hooks/useCloudData";
 import { getAthleteAmbition } from "@/types/ambitionLevel";
 import { computeVLamaxEffectif, type VLamaxEffectif, computeTTEEffectif, type TTEEffectif } from "@/engines/diagnostic";
-import { computeRaceReadinessEffectif, RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { computeNutritionEstimate, NutritionEstimate } from "@/lib/nutritionPredictive";
 import { 
@@ -26,7 +25,6 @@ import {
   computeRaceReadinessSignature,
   type RaceReadinessInput,
   type RaceReadinessResult,
-} from "@/components/RaceReadinessSignatureChart";
 
 // Re-export types for external use
 export type { RaceReadinessResult as RaceReadinessSignatureResult };

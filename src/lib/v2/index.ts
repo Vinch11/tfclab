@@ -14,7 +14,6 @@ export * from './vlamaxBikeV2Enhanced';
 export * from './disponibiliteTFCL';
 
 // Race Readiness V2 (Potentiel × Disponibilité → Décision)
-export * from './raceReadinessV2';
 
 // Système de symptômes terrain et matrice décisionnelle
 export * from "./tfclSymptoms";
@@ -784,28 +783,14 @@ export {
   checkRecalibrationAlerts,
 } from './runningDoubleLoop';
 
-// Race Readiness Running — Module 100% CAP
+// Readiness Types — Legacy stubs for backward compat
 export {
-  // Types
-  type RaceReadinessRun,
   type ReadinessState,
-  type LimitingFactor,
-  type PacingDiscipline,
-  type ReadinessImplications,
+  type RaceReadinessRun,
   type AvailabilityRun,
-  type RiskContextRun,
-  type PlanPhase,
-  type RaceImportance,
-  
-  // Constantes
-  READINESS_STATE_INFO,
-  LIMITING_FACTOR_INFO,
-  
-  // Fonctions
-  computeRaceReadinessRun,
-  applyReadinessToDecision,
-  weeklyInputsToAvailability,
-} from './raceReadinessRunning';
+  type SimulationModifiers,
+  type RaceReadinessV2Result,
+} from './readinessTypes';
 
 // Running Limiter Detection — Limiteurs 100% CAP
 export {

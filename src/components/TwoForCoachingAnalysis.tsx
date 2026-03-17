@@ -12,7 +12,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { type VLamaxEffectif, getSourceColor as getVLamaxSourceColor, getConfidenceLabel, type TTEEffectif, getTTESourceColor, getSourceLabel } from "@/engines/diagnostic";
-import { RaceReadinessEffectif, getScoreColor } from "@/lib/raceReadinessEffectif";
 import { TTEGuard, isTTEUnavailable } from "@/components/TTEGuard";
 import { computeNutritionEstimate } from "@/lib/nutritionPredictive";
 import { computeNutritionTiming, type DigestiveTolerance, getRiskBadgeIcon } from "@/lib/nutritionTiming";

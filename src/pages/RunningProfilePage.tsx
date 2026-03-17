@@ -42,8 +42,6 @@ import { RunningEconomySummaryCard } from "@/components/RunningEconomySummaryCar
 import { RunningFocusModeIndicator } from "@/components/RunningFocusModeIndicator";
 import { InjuryRiskCAPCard } from "@/components/InjuryRiskCAPCard";
 import { VLamaxRunExplainedCard } from "@/components/VLamaxRunExplainedCard";
-import { RaceReadinessRunCard } from "@/components/RaceReadinessRunCard";
-import { RaceReadinessRunForm } from "@/components/RaceReadinessRunForm";
 import { PacingEnvelopeRunCard } from "@/components/PacingEnvelopeRunCard";
 import { SortableSectionsContainer } from "@/components/SortableSectionsContainer";
 import { MetabolicCompassCAP } from "@/components/charts";
@@ -54,7 +52,6 @@ import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { calculateAge } from "@/lib/ageAdjustment";
 import { computeCAPInjuryRisk } from "@/lib/v2/injuryRiskUnified";
 import { computeFatigueEffectif } from "@/engines/diagnostic";
-import { computeRaceReadinessRun, type AvailabilityRun } from "@/lib/v2/raceReadinessRunning";
 import { computePacingEnvelopeRun, type RunningDistance } from "@/lib/v2/pacingEnvelopeRunning";
 import { getAthleteAmbition } from "@/types/ambitionLevel";
 
@@ -492,7 +489,6 @@ export default function RunningProfilePage() {
       {
         id: "availability-form",
         render: () => (
-          <RaceReadinessRunForm
             onSubmit={handleAvailabilitySubmit}
             initialValues={{
               sleep_quality: todayCheckin?.sleep ?? 3,
@@ -508,7 +504,6 @@ export default function RunningProfilePage() {
       {
         id: "race-readiness-run",
         render: () => (
-          <RaceReadinessRunCard
             readiness={raceReadiness}
             objective={raceLabel || athleteGoal}
             isStaffMode={staffMode}

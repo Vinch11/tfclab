@@ -19,7 +19,6 @@ import {
   Heart
 } from "lucide-react";
 import type { VLamaxEffectif, TTEEffectif } from "@/engines/diagnostic";
-import { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 
 // Types
 interface PhaseInfo {

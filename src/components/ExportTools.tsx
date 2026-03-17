@@ -29,7 +29,6 @@ import {
 import { generateTestCalibrationSection, type TestCalibrationSection } from "@/lib/calibration/testCalibrationSection";
 import { getEffectiveSnapshot, getEffectiveRefs, type EffectiveRefs } from "@/lib/effectiveRefs";
 import { computeVLamaxEffectif, type VLamaxEffectif, computeTTEEffectif, type TTEEffectif } from "@/engines/diagnostic";
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getTargets, getWeightsBySport } from "@/lib/raceReadinessEffectif";
 import { ZonesConfig, computeAbsoluteRange, AthleteRefsForZones } from "@/lib/zonesConfig";
 import { TRAINING_ZONES, computeZoneAbsoluteValues, ZONES_METHODOLOGY_NOTE, type AthleteZoneRefs } from "@/lib/trainingZonesDefinition";
 import { reglesTwoForCoaching, getPrioriteLabel, getSeancesRecommandees, PrioriteType } from "@/types/reglesTwoForCoaching";
@@ -58,7 +57,6 @@ import type { TemplateWeek, TemplateSession } from "@/lib/templates/docxTemplate
 // ✅ NEW: Import FatMax TFCL et Nutrition V2
 import { computeFatMaxTFCL, type FatMaxTFCLResult, FATMAX_DEFINITIONS, FATMAX_ACADEMY_CONTENT } from "@/lib/v2/fatmaxTFCL";
 import { computeNutritionV2, type NutritionPredictiveV2, NUTRITION_PHILOSOPHY } from "@/lib/v2/nutritionV2";
-import { generateAthleteReadiness, type AthleteReadinessReport } from "@/lib/athleteReadiness";
 // ✅ NEW: Strategic Roadmap Engine
 import { computeStrategicRoadmap, type StrategicRoadmap, type RoadmapPhase as SmartRoadmapPhase } from "@/engines/decision";
 import { detectUnifiedLimiter, type UnifiedLimiterResult } from "@/engines/diagnostic";

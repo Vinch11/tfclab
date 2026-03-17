@@ -32,10 +32,8 @@ import { cn } from "@/lib/utils";
 
 // Sources uniques de données
 import { type VLamaxEffectif, getSourceColor, getConfidenceLabel, type TTEEffectif, getTTETarget, getSourceLabel } from "@/engines/diagnostic";
-import { RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 import { NutritionEstimate } from "@/lib/nutritionPredictive";
 import { ProfileRadarChart } from "@/components/ProfileRadarChart";
-import { RaceReadinessCard } from "@/components/RaceReadinessCard";
 import { EnergyDriftResult } from "@/lib/energyDrift";
 
 import { getAgeAdjustedTargets, computeAgeAdjustmentIndex } from "@/lib/ageAdjustment";
@@ -59,9 +57,6 @@ interface StaffDashboardProps {
   ambition?: AmbitionLevel; // Niveau d'ambition pour ajustement des cibles
   snapshot?: unknown; // Pour DecisionRobustnessCard
   vo2max?: number | null;
-  // ✅ AJOUT: Props pour RaceReadinessCard complet
-  athlete?: unknown; // Objet athlete complet pour RaceReadinessCard
-  energyDrift?: unknown; // EnergyDriftResult pour RaceReadinessCard
 }
 
 // =============================================
@@ -155,13 +150,10 @@ function getRaceReadinessStatus(score: number): { status: "ok" | "warning" | "cr
   return { status: "critical", label: "Non prêt" };
 }
 
-// Wrapper pour RaceReadinessCard avec préférences utilisateur
-function RaceReadinessCardWithPreferences(props: Omit<React.ComponentProps<typeof RaceReadinessCard>, 'compact' | 'defaultExpanded'>) {
   const { preferences } = useUserPreferences();
   const isCompact = preferences.raceReadinessCompactMode ?? true;
   
   return (
-    <RaceReadinessCard
       {...props}
       compact={isCompact}
       defaultExpanded={!isCompact}
@@ -460,7 +452,6 @@ export function StaffDashboard({
 
         {/* PILIER 3: Race Readiness - Utilise le composant complet */}
         {athlete ? (
-          <RaceReadinessCardWithPreferences
             athlete={athlete}
             vlamaxEffectif={vlamaxEffectif}
             tteEffectif={tteEffectif}
