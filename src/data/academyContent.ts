@@ -1213,9 +1213,9 @@ export const academySections: AcademySection[] = [
       },
       {
         type: "table",
-        title: "Ajustement enveloppe selon Readiness",
+        title: "Ajustement enveloppe selon Potentiel",
         content: {
-          headers: ["Race Readiness", "Ajustement", "Message"],
+          headers: ["Potentiel Physiologique", "Ajustement", "Message"],
           rows: [
             ["> 80%", "Aucun", "État optimal — enveloppe normale"],
             ["70-80%", "-1% plafond", "État modéré — rester dans la zone optimale"],
