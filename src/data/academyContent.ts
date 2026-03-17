@@ -1659,12 +1659,12 @@ export const academySections: AcademySection[] = [
     id: "race-readiness-v2-engine",
     title: "Pourquoi la Forme Seule ne Gagne pas les Courses",
     level: "staff",
-    tags: ["race readiness", "disponibilité", "pacing", "simulation", "décision", "V2"],
+    tags: ["potentiel physiologique", "disponibilité", "pacing", "simulation", "décision", "V2"],
     blocks: [
       {
         type: "text",
         title: "Principe fondamental TFCL",
-        content: "Performance jour J = Potentiel × Disponibilité × Discipline. TFCL n'évalue jamais l'un sans les autres. La forme (potentiel) définit le plafond possible. La disponibilité (Race Readiness) définit ce qui est accessible aujourd'hui. La discipline (Pacing Envelope) garantit l'exécution."
+        content: "Performance jour J = Potentiel × Disponibilité × Discipline. TFCL n'évalue jamais l'un sans les autres. La forme (potentiel) définit le plafond possible. La disponibilité définit ce qui est accessible aujourd'hui. La discipline (Pacing Envelope) garantit l'exécution."
       },
       {
         type: "callout",
