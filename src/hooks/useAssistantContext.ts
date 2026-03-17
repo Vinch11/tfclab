@@ -172,19 +172,6 @@ export function useAssistantContext(
       return age;
     })() : null;
     
-      objectif: athlete.goal || "IM",
-      vlamaxEffectif,
-      tteEffectif,
-      ftp: effectiveRefs.ftp ?? null,
-      poids: effectiveRefs.weightKg ?? null,
-      fatigue_ok: true,
-      seance_specifique_validee: false,
-      fcMax: effectiveRefs.fcMax ?? null,
-      deriveCardiaque: effectiveSnapshot?.run_hr_drift_pct ?? null,
-      athleteAge,
-      tss7d: effectiveSnapshot?.tss_7d ?? null,
-    }) : null;
-    
     // CRR status
     const tss7d = effectiveSnapshot?.tss_7d ?? null;
     let crrStatus: string | null = null;
