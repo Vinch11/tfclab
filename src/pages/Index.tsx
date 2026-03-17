@@ -93,6 +93,9 @@ import { computeDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
 
 // ✅ Cycle Intelligence Engine™
 import { CycleIntelligenceCard } from "@/components/CycleIntelligenceCard";
+
+// ✅ Adaptation Predictor™
+import { AdaptationPredictorCard } from "@/components/AdaptationPredictorCard";
 import { computeDecision, type DecisionInput } from "@/engines/decision";
 
 // ✅ Profil & Ambition — Carte unifiée (Phase 1f UX)
