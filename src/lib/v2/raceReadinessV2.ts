@@ -60,8 +60,9 @@ export interface DecisionFlags {
 }
 
 export interface RaceReadinessV2Result {
-  // Les 3 piliers
+  // Pilier unique
   potential: PotentialScore;
+  /** @deprecated Toujours présent pour compatibilité mais neutre (score=0) */
   availability: AvailabilityScore;
   
   // Décision finale
@@ -71,7 +72,7 @@ export interface RaceReadinessV2Result {
     category: RaceReadinessV2Category;
     categoryLabel: string;
     categoryEmoji: string;
-    confidenceGlobal: number;      // min(conf_potential, conf_availability)
+    confidenceGlobal: number;      // = conf_potential
     confidenceLabel: string;
   };
   
@@ -91,8 +92,8 @@ export interface RaceReadinessV2Result {
   
   // Pondérations utilisées
   weights: {
-    potential: number;             // 0.65
-    availability: number;          // 0.35
+    potential: number;             // 1.0
+    availability: number;          // 0.0 (deprecated)
   };
   
   // Métadonnées
