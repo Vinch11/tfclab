@@ -1138,6 +1138,14 @@ export default function AITrainingPlanPage() {
               </Card>
             )}
 
+            {/* Adaptation Projections Summary */}
+            {!isMultiMode && athleteContext && (() => {
+              const previewConfig = buildConfigFromDiag(athleteContext.diagnostic);
+              return previewConfig.adaptationProjections && previewConfig.adaptationProjections.length > 0 ? (
+                <AdaptationProjectionSummary projections={previewConfig.adaptationProjections} />
+              ) : null;
+            })()}
+
             {/* Generate Button */}
             {!isMultiMode ? (
               <Button
