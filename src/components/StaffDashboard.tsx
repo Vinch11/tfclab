@@ -144,22 +144,6 @@ function getTTEStatus(value: number, target: number): { status: "ok" | "warning"
   return { status: "critical", label: "Critique" };
 }
 
-function getRaceReadinessStatus(score: number): { status: "ok" | "warning" | "critical"; label: string } {
-  if (score >= 80) return { status: "ok", label: "Race Ready!" };
-  if (score >= 60) return { status: "warning", label: "En progression" };
-  return { status: "critical", label: "Non prêt" };
-}
-
-  const { preferences } = useUserPreferences();
-  const isCompact = preferences.raceReadinessCompactMode ?? true;
-  
-  return (
-      {...props}
-      compact={isCompact}
-      defaultExpanded={!isCompact}
-    />
-  );
-}
 
 // =============================================
 // MAIN COMPONENT
