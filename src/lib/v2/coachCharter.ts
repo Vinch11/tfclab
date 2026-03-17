@@ -84,7 +84,7 @@ export const SCORES_USAGE = {
     "Ne sont pas comparables entre athlètes",
     "Servent à suivre une évolution intra-athlète"
   ],
-  examples: ["Race Readiness", "Performance", "Risque"],
+  examples: ["Potentiel Physiologique", "Performance", "Risque"],
   forbidden: [
     {
       action: "Comparer deux athlètes uniquement via un score",
