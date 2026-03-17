@@ -90,6 +90,9 @@ import { CoachingCompassCard } from "@/components/CoachingCompassCard";
 
 // ✅ Engines unifiés
 import { computeDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
+
+// ✅ Cycle Intelligence Engine™
+import { CycleIntelligenceCard } from "@/components/CycleIntelligenceCard";
 import { computeDecision, type DecisionInput } from "@/engines/decision";
 
 // ✅ Profil & Ambition — Carte unifiée (Phase 1f UX)
