@@ -80,8 +80,8 @@ import {
   ACCESS_STATUS_LABELS,
   SIMULATION_ACCESS_DEFINITIONS,
   type SimulationAccessResult,
-} from '@/lib/v2/raceReadinessSimulationConnector';
-import type { RaceReadinessV2Result } from '@/lib/v2/raceReadinessV2';
+} from '@/lib/v2/readinessTypes';
+import type { RaceReadinessV2Result } from '@/lib/v2/readinessTypes';
 
 interface RaceSimulationModuleProps {
   // Profil TFCL (automatique)
