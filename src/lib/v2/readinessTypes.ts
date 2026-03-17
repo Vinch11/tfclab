@@ -49,6 +49,33 @@ export interface RaceReadinessRun {
   availability_inputs: AvailabilityRun;
 }
 
+export type RiskContextRun = {
+  readiness_state: ReadinessState;
+  limiting_factor: LimitingFactor;
+};
+
+export function computeRaceReadinessRun(..._args: unknown[]): RaceReadinessRun {
+  return {
+    athlete_id: "",
+    date: new Date().toISOString(),
+    readiness_score: 70,
+    readiness_state: "GREEN",
+    limiting_factor: "NONE",
+    confidence: 0.5,
+    explanation: "Stub — Race Readiness module removed",
+    coach_message: "",
+    athlete_message: "",
+    implications: { race_allowed: true, intensity_cap: 1.0, pacing_discipline: "NORMAL", recommended_start_pace: "" },
+    potential_locked: false,
+    potential_reference: "",
+    availability_inputs: { sleep_quality: 7, fatigue_level: 3, muscle_soreness: 2, pain_flag: false, mental_stress: 3, motivation: 8 },
+  };
+}
+
+export function applyReadinessToDecision(..._args: unknown[]): unknown {
+  return {};
+}
+
 // ═══ From raceReadinessSimulationConnector ═══
 export type SimulationAccessStatus = 'RED' | 'ORANGE' | 'GREEN' | 'BLUE';
 
@@ -183,6 +210,13 @@ export function getRaceReadinessV2BadgeClass(category: RaceReadinessV2Category):
   return classes[category];
 }
 
+export const RACE_READINESS_V2_CATEGORIES: Record<RaceReadinessV2Category, { label: string; emoji: string }> = {
+  preparation_required: { label: "Préparation requise", emoji: "🔴" },
+  in_progress: { label: "En progression", emoji: "🟠" },
+  solid: { label: "Solide", emoji: "🔵" },
+  ready: { label: "Prêt", emoji: "🟢" },
+};
+
 export const ACCESS_STATUS_LABELS: Record<SimulationAccessStatus, string> = {
   RED: "Simulation non recommandée",
   ORANGE: "Simulation avec réserves",
@@ -195,6 +229,8 @@ export const SIMULATION_ACCESS_DEFINITIONS = {
   ORANGE: "Données partielles — interpréter avec prudence",
   GREEN: "Données complètes — simulation fiable",
   BLUE: "Toutes conditions réunies pour une simulation précise",
+  title: "Simulation TFCL™",
+  principle: "La simulation n'est pas une prédiction. C'est un outil d'exploration de scénarios basé sur votre profil physiologique.",
 };
 
 export interface SimulationAccessResult {
@@ -204,3 +240,119 @@ export interface SimulationAccessResult {
   modifiers: SimulationModifiers;
   warnings: string[];
 }
+
+// ═══ Decision Quadrants (from raceReadinessV2) ═══
+export type DecisionQuadrant = 'HIGH_HIGH' | 'HIGH_LOW' | 'LOW_HIGH' | 'LOW_LOW';
+
+export function getQuadrant(potential: number, availability: number): DecisionQuadrant {
+  const pHigh = potential >= 65;
+  const aHigh = availability >= 65;
+  if (pHigh && aHigh) return 'HIGH_HIGH';
+  if (pHigh && !aHigh) return 'HIGH_LOW';
+  if (!pHigh && aHigh) return 'LOW_HIGH';
+  return 'LOW_LOW';
+}
+
+export const QUADRANT_INFO: Record<DecisionQuadrant, { label: string; emoji: string; description: string; color: string }> = {
+  HIGH_HIGH: { label: "Go!", emoji: "🟢", description: "Potentiel élevé + Disponibilité élevée", color: "hsl(var(--success))" },
+  HIGH_LOW: { label: "Prudence", emoji: "🟠", description: "Potentiel élevé mais disponibilité limitée", color: "hsl(var(--warning))" },
+  LOW_HIGH: { label: "Développement", emoji: "🔵", description: "Bonne disponibilité, potentiel à développer", color: "hsl(var(--info, 210 40% 50%))" },
+  LOW_LOW: { label: "Repos", emoji: "🔴", description: "Potentiel et disponibilité limités", color: "hsl(var(--destructive))" },
+};
+
+// ═══ computeDecisionTFCL stub ═══
+export interface ComputeDecisionTFCLInput {
+  compass: {
+    capaciteAerobie: { score: number };
+    toleranceEffort: { score: number };
+    profilMetabolique: { score: number };
+    robustesse: { score: number };
+    globalScore: number;
+    globalLabel: string;
+    globalColor: string;
+    dataCompleteness: number;
+    mainLimitation: string | null;
+    mainStrength: string | null;
+    isFatigueModulated: boolean;
+  };
+  guardrails?: {
+    healthAlert?: boolean;
+    dataCompleteness?: number;
+  };
+}
+
+export function computeDecisionTFCL(input: ComputeDecisionTFCLInput): RaceReadinessV2Result {
+  const gs = input.compass.globalScore;
+  const category: RaceReadinessV2Category = gs >= 80 ? 'ready' : gs >= 65 ? 'solid' : gs >= 50 ? 'in_progress' : 'preparation_required';
+  const catInfo = RACE_READINESS_V2_CATEGORIES[category];
+  
+  return {
+    potential: {
+      score: gs,
+      confidence: (input.compass.dataCompleteness ?? 50) / 100,
+      sources: {
+        aerobic: { value: input.compass.capaciteAerobie.score, type: 'modeled' },
+        tolerance: { value: input.compass.toleranceEffort.score, type: 'modeled' },
+        metabolic: { value: input.compass.profilMetabolique.score, type: 'modeled' },
+        robustness: { value: input.compass.robustesse.score, type: 'modeled' },
+      },
+      mainStrength: input.compass.mainStrength,
+      mainLimitation: input.compass.mainLimitation,
+      explanation: input.compass.globalLabel,
+    },
+    availability: {
+      score: 80,
+      confidence: 0.5,
+      factors: [],
+      alerts: [],
+      recommendation: "Module disponibilité retiré",
+    },
+    readiness: {
+      score: gs,
+      rawScore: gs,
+      category,
+      categoryLabel: catInfo.label,
+      categoryEmoji: catInfo.emoji,
+      confidenceGlobal: (input.compass.dataCompleteness ?? 50) / 100,
+      confidenceLabel: gs >= 65 ? "Fiable" : "Indicatif",
+    },
+    flags: {
+      healthAlert: input.guardrails?.healthAlert ?? false,
+      injuryRiskHigh: false,
+      fatigueCritical: false,
+      dataIncomplete: (input.guardrails?.dataCompleteness ?? 1) < 0.5,
+    },
+    penalties: { total: 0, reasons: [] },
+    explanation: {
+      why: input.compass.globalLabel,
+      watchouts: input.compass.mainLimitation ? [input.compass.mainLimitation] : [],
+      suggestedFocus: [],
+    },
+    weights: { potential: 1.0, availability: 0.0 },
+    timestamp: new Date().toISOString(),
+    version: "stub-2.1",
+    disclaimer: "Race Readiness module removed — scores based on physiological potential only.",
+  };
+}
+
+// ═══ Simulation Access stubs ═══
+export function computeSimulationAccess(..._args: unknown[]): SimulationAccessResult {
+  return {
+    status: 'GREEN',
+    label: ACCESS_STATUS_LABELS.GREEN,
+    allowed: true,
+    modifiers: getDefaultSimulationModifiers(),
+    warnings: [],
+  };
+}
+
+export function getSimulationContextMessages(_status: SimulationAccessStatus): string[] {
+  return [];
+}
+
+export const ACCESS_LEVEL_COLORS: Record<SimulationAccessStatus, string> = {
+  RED: "hsl(var(--destructive))",
+  ORANGE: "hsl(var(--warning))",
+  GREEN: "hsl(var(--success))",
+  BLUE: "hsl(210 80% 55%)",
+};
