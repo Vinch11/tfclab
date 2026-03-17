@@ -147,7 +147,7 @@ export function RunningGuidancePage() {
     };
   }, [currentAthlete, checkins, activeSnapshot]);
   
-  // État pour le Race Readiness (formulaire)
+  // État pour le Potentiel Physiologique (formulaire)
   const [availability, setAvailability] = useState<AvailabilityRun>({
     sleep_quality: weeklyInputs.sleep_quality ?? 3,
     fatigue_level: weeklyInputs.fatigue_level ?? 3,
