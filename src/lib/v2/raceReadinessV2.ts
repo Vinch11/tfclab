@@ -531,14 +531,11 @@ export function getRaceReadinessV2BadgeClass(category: RaceReadinessV2Category):
 
 export type DecisionQuadrant = 'go' | 'optimize_recovery' | 'build_engine' | 'caution';
 
-export function getQuadrant(potentialScore: number, availabilityScore: number): DecisionQuadrant {
-  const highPotential = potentialScore >= 60;
-  const highAvailability = availabilityScore >= 60;
-  
-  if (highPotential && highAvailability) return 'go';
-  if (highPotential && !highAvailability) return 'optimize_recovery';
-  if (!highPotential && highAvailability) return 'build_engine';
-  return 'caution';
+/** @deprecated Quadrants basés sur Potentiel × Disponibilité — V2.1 n'utilise plus la disponibilité */
+export function getQuadrant(potentialScore: number, _availabilityScore: number): DecisionQuadrant {
+  // V2.1: on ne regarde que le potentiel
+  if (potentialScore >= 60) return 'go';
+  return 'build_engine';
 }
 
 export const QUADRANT_INFO = {
@@ -547,7 +544,7 @@ export const QUADRANT_INFO = {
     emoji: "🟢",
     color: 'success' as const,
     bgColor: 'bg-green-500/20',
-    description: "Potentiel élevé + Disponibilité élevée. Conditions optimales."
+    description: "Potentiel élevé. Conditions optimales."
   },
   optimize_recovery: {
     label: "Optimiser récupération",
@@ -561,14 +558,14 @@ export const QUADRANT_INFO = {
     emoji: "🟠",
     color: 'info' as const,
     bgColor: 'bg-orange-500/20',
-    description: "Disponibilité correcte mais moteur insuffisant. Développer le profil."
+    description: "Moteur insuffisant. Développer le profil."
   },
   caution: {
     label: "Prudence requise",
     emoji: "🔴",
     color: 'destructive' as const,
     bgColor: 'bg-red-500/20',
-    description: "Potentiel et disponibilité limités. Priorité sécurité."
+    description: "Potentiel limité. Priorité sécurité."
   },
 };
 
