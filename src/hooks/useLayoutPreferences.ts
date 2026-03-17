@@ -172,7 +172,7 @@ export const RACE_READINESS_SECTIONS: SectionDefinition[] = [
 ];
 
 export const STRATEGIE_SECTIONS: SectionDefinition[] = [
-  { id: "race-readiness-page", label: "Race Readiness", icon: "Trophy", category: "analyse", defaultVisible: true },
+  { id: "race-readiness-page", label: "Potentiel Physiologique", icon: "Trophy", category: "analyse", defaultVisible: true },
   { id: "nutrition-v2", label: "Nutrition V2", icon: "Utensils", category: "analyse", defaultVisible: true },
   { id: "pacing-envelope", label: "Pacing Envelope", icon: "Target", category: "analyse", defaultVisible: true },
   { id: "synthese-executive", label: "Synthèse Executive", icon: "FileText", category: "analyse", defaultVisible: true },
