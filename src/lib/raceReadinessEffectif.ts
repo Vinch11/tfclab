@@ -3,12 +3,30 @@
  * Module supprimé. Ce fichier fournit des stubs pour la rétrocompatibilité.
  */
 
+export interface RunningEconomyData {
+  label: string;
+  score: number;
+  efficiency: number;
+  cadence_ok: boolean;
+  hr_drift_ok: boolean;
+  pace_efficiency: number;
+}
+
 export interface RaceReadinessEffectif {
   score: number;
+  rawScore?: number;
   label: string;
   color: string;
   confidence: number;
   isInsufficient: boolean;
+  messageStaff?: string;
+  wasCappedByNutrition?: boolean;
+  nutritionalCapReason?: string;
+  wasCappedByEconomy?: boolean;
+  economyCapReason?: string;
+  reasonsMissing?: string[];
+  nutritionalRiskIndex?: number;
+  runningEconomy?: RunningEconomyData;
   details?: {
     vlamax: number;
     endurance: number;
@@ -32,39 +50,55 @@ export interface ComputeRaceReadinessEffectifParams {
   tss7d?: number | null;
 }
 
-/**
- * Stub: returns a neutral readiness score based on physiological potential only.
- */
 export function computeRaceReadinessEffectif(params: ComputeRaceReadinessEffectifParams): RaceReadinessEffectif {
   const { vlamaxEffectif, tteEffectif } = params;
-  
-  // Simple score based on vlamax + TTE (no more fatigue/availability)
   const vlamaxScore = vlamaxEffectif.value <= 0.35 ? 90 : vlamaxEffectif.value <= 0.50 ? 70 : 50;
   const tteScore = tteEffectif.tte_min >= 45 ? 90 : tteEffectif.tte_min >= 30 ? 70 : 50;
   const score = Math.round((vlamaxScore + tteScore) / 2);
-  
   const label = score >= 80 ? "Prêt" : score >= 60 ? "En progression" : "À développer";
   const color = score >= 80 ? "success" : score >= 60 ? "warning" : "destructive";
   const confidence = Math.min(vlamaxEffectif.confidence, tteEffectif.confidence);
   
   return {
-    score,
-    label,
-    color,
-    confidence,
+    score, rawScore: score, label, color, confidence,
     isInsufficient: confidence < 0.3,
-    details: {
-      vlamax: vlamaxScore,
-      endurance: tteScore,
-      puissance: score,
-      fraicheur: 80, // neutral
-    },
+    messageStaff: `Score physiologique: ${score}/100 (${label})`,
+    wasCappedByNutrition: false, nutritionalCapReason: undefined,
+    wasCappedByEconomy: false, economyCapReason: undefined,
+    reasonsMissing: [], nutritionalRiskIndex: 0,
+    runningEconomy: undefined,
+    details: { vlamax: vlamaxScore, endurance: tteScore, puissance: score, fraicheur: 80 },
   };
 }
 
-/**
- * Stub for Race Readiness Signature
- */
+// ═══ Utility stubs ═══
+export function getTargets(_objectif: string) {
+  return { vlamax: { min: 0.15, max: 0.50, optimal: 0.30 }, tte: { min: 30, target: 50 }, durabilityMin: 40 };
+}
+
+export function getWeightsBySport(_sport: string) {
+  return { vlamax: 0.30, endurance: 0.30, puissance: 0.20, fraicheur: 0.20 };
+}
+
+export function getRaceReadinessTargets(_objectif: string) {
+  return { score: 70, vlamax: 0.30, tte: 45 };
+}
+
+export function getScoreColor(score: number): string {
+  if (score >= 80) return "hsl(var(--success))";
+  if (score >= 60) return "hsl(var(--warning))";
+  return "hsl(var(--destructive))";
+}
+
+export function generateAthleteReadiness(..._args: unknown[]): string {
+  return "Race Readiness module removed.";
+}
+
+export function computePillarCalculations(..._args: unknown[]) {
+  return { pillars: [], totalScore: 0 };
+}
+
+// ═══ Race Readiness Signature ═══
 export interface RaceReadinessInput {
   objectif: string;
   vlamaxValue: number;
@@ -77,6 +111,7 @@ export interface RaceReadinessInput {
   economyScore?: number | null;
   fatigueScore?: number | null;
   ambition?: string;
+  physiology?: unknown;
 }
 
 export interface RaceReadinessResult {
@@ -86,6 +121,17 @@ export interface RaceReadinessResult {
   mainStrength: string | null;
   mainWeakness: string | null;
   confidence: number;
+  confidenceLabel?: string;
+  confidenceReasons?: string[];
+  decisionZone?: string;
+  decisionIcon?: string;
+  potentialLabel?: string;
+  potentialScore?: number;
+  potentialReasons?: string[];
+  availabilityLabel?: string;
+  availabilityScore?: number;
+  availabilityReasons?: string[];
+  recommendation?: string;
 }
 
 export function computeRaceReadinessSignature(input: RaceReadinessInput): RaceReadinessResult {
@@ -93,10 +139,10 @@ export function computeRaceReadinessSignature(input: RaceReadinessInput): RaceRe
   const tScore = input.tteMin >= 45 ? 90 : input.tteMin >= 30 ? 70 : 50;
   const pScore = input.ftpKg ? (input.ftpKg >= 4.0 ? 90 : input.ftpKg >= 3.0 ? 70 : 50) : 60;
   const score = Math.round(vScore * 0.35 + tScore * 0.35 + pScore * 0.30);
+  const label = score >= 80 ? "Prêt" : score >= 60 ? "En progression" : "À développer";
   
   return {
-    score,
-    label: score >= 80 ? "Prêt" : score >= 60 ? "En progression" : "À développer",
+    score, label,
     pillars: [
       { name: "Métabolique", score: vScore, weight: 0.35 },
       { name: "Endurance", score: tScore, weight: 0.35 },
@@ -105,5 +151,16 @@ export function computeRaceReadinessSignature(input: RaceReadinessInput): RaceRe
     mainStrength: vScore >= tScore && vScore >= pScore ? "Métabolique" : tScore >= pScore ? "Endurance" : "Puissance",
     mainWeakness: vScore <= tScore && vScore <= pScore ? "Métabolique" : tScore <= pScore ? "Endurance" : "Puissance",
     confidence: Math.min(input.vlamaxConfidence, input.tteConfidence),
+    confidenceLabel: "Indicatif",
+    confidenceReasons: ["Stub — Race Readiness module removed"],
+    decisionZone: label,
+    decisionIcon: score >= 80 ? "🟢" : score >= 60 ? "🟠" : "🔴",
+    potentialLabel: label,
+    potentialScore: score,
+    potentialReasons: [],
+    availabilityLabel: "N/A",
+    availabilityScore: 0,
+    availabilityReasons: ["Module retiré"],
+    recommendation: label,
   };
 }
