@@ -11,8 +11,9 @@
  */
 
 import type { AthleteDiagnostic } from "@/engines/diagnostic";
-import type { PlanConfig, PlanAthleteData, RaceGoal } from "@/hooks/useAITrainingPlan";
+import type { PlanConfig, PlanAthleteData, RaceGoal, AdaptationProjection } from "@/hooks/useAITrainingPlan";
 import type { UnifiedLimiterResult } from "@/engines/diagnostic";
+import { computeAdaptationPrediction, type AdaptationPredictorInput } from "@/lib/v2/adaptationPredictor";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ATHLETE DATA EXTRACTION
