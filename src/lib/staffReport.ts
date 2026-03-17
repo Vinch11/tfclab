@@ -1065,6 +1065,64 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
   };
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// CYCLE INTELLIGENCE SECTION GENERATOR
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function generateCycleIntelligenceSection(params: GenerateStaffReportParams): CycleIntelligenceReportSection | null {
+  const { allSnapshots, currentSnapshotId, previousLimiterId, previousLimiterLabel, objectif } = params;
+  
+  if (!allSnapshots || allSnapshots.length < 2) return null;
+
+  const engineSnapshots = allSnapshots
+    .filter(s => s.date && s.id)
+    .sort((a, b) => new Date(b.date as string).getTime() - new Date(a.date as string).getTime())
+    .map(s => snapshotToEngineData(s));
+  
+  if (engineSnapshots.length < 2) return null;
+
+  let currentIdx = 0;
+  if (currentSnapshotId) {
+    const idx = engineSnapshots.findIndex(s => s.id === currentSnapshotId);
+    if (idx >= 0) currentIdx = idx;
+  }
+  
+  const previousIdx = currentIdx + 1;
+  if (previousIdx >= engineSnapshots.length) return null;
+
+  const result = computeCycleIntelligence({
+    previousSnapshot: engineSnapshots[previousIdx],
+    currentSnapshot: engineSnapshots[currentIdx],
+    previousLimiterId,
+    previousLimiterLabel,
+    objectif,
+  });
+
+  const availableMetrics = result.metrics.filter(m => m.available);
+
+  return {
+    available: true,
+    adaptationScore: result.adaptationScore,
+    verdictLabel: result.verdictLabel,
+    verdictEmoji: result.verdictEmoji,
+    summary: result.summary,
+    recommendationLabel: result.recommendationLabel,
+    recommendationDetail: result.recommendationDetail,
+    limiterVerdict: result.limiterAnalysis.limiterVerdict,
+    limiterExplanation: result.limiterAnalysis.explanation,
+    metrics: availableMetrics.map(m => ({
+      label: m.label,
+      previousValue: m.previousValue?.toFixed(m.id === "vlamax" ? 2 : 1) ?? "—",
+      currentValue: m.currentValue?.toFixed(m.id === "vlamax" ? 2 : 1) ?? "—",
+      evolution: m.evolution === "positive" ? "↑" : m.evolution === "negative" ? "↓" : "→",
+    })),
+    daysBetween: result.daysBetween,
+    previousDate: result.previousSnapshotDate,
+    currentDate: result.currentSnapshotDate,
+    staffNote: result.staffNote,
+  };
+}
+
 // =============================================
 // HELPERS CAP INJURY RISK
 // =============================================
