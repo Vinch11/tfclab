@@ -368,60 +368,47 @@ export interface ComputeDecisionInput {
 export function computeDecisionTFCL(input: ComputeDecisionInput): RaceReadinessV2Result {
   const { compass, guardrails } = input;
   
-  // 1. Extraire le Potentiel
+  // 1. Extraire le Potentiel (seule source de vérité V2.1)
   const potential = extractPotentialFromCompass(compass);
   
-  // 2. Calculer ou extraire la Disponibilité
-  let disponibilite: DisponibiliteTFCL;
-  if (input.disponibilite) {
-    disponibilite = input.disponibilite;
-  } else if (input.readinessInput) {
-    disponibilite = computeDisponibiliteTFCL(input.readinessInput);
-  } else {
-    // Fallback: disponibilité neutre
-    disponibilite = computeDisponibiliteTFCL({
-      sleep: 7,
-      fatigue: 7,
-      soreness: 7,
-      stress: 7,
-      motivation: 7,
-    });
-  }
+  // 2. Disponibilité neutralisée (stub pour compatibilité)
+  const availability: AvailabilityScore = {
+    score: 0,
+    confidence: 0,
+    factors: [],
+    alerts: [],
+    recommendation: "Disponibilité retirée du modèle V2.1",
+  };
   
-  const availability = extractAvailabilityScore(disponibilite);
-  
-  // 3. Calculer les pénalités
+  // 3. Calculer les pénalités (garde-fous toujours actifs)
   const penalties = computePenalties({
-    healthAlert: disponibilite.hasAlerts || guardrails?.healthAlert || false,
+    healthAlert: guardrails?.healthAlert || false,
     injuryRiskLevel: guardrails?.injuryRiskLevel,
     fatigueIndex: guardrails?.fatigueIndex,
     dataCompleteness: compass.dataCompleteness,
   });
   
-  // 4. Calcul du score Race Readiness V2
-  const rawScore = 
-    (RACE_READINESS_V2_WEIGHTS.potential * potential.score) + 
-    (RACE_READINESS_V2_WEIGHTS.availability * availability.score);
-  
+  // 4. Calcul du score Race Readiness V2.1 = Potentiel − Pénalités
+  const rawScore = potential.score;
   const finalScore = clamp(Math.round(rawScore - penalties.total), 0, 100);
   
   // 5. Catégorisation
   const category = getCategory(finalScore);
   const categoryInfo = getCategoryInfo(category);
   
-  // 6. Confiance globale
-  const confidenceGlobal = Math.min(potential.confidence, availability.confidence);
+  // 6. Confiance globale = confiance du potentiel uniquement
+  const confidenceGlobal = potential.confidence;
   
   // 7. Flags
   const flags: DecisionFlags = {
-    healthAlert: disponibilite.hasAlerts || guardrails?.healthAlert || false,
+    healthAlert: guardrails?.healthAlert || false,
     injuryRiskHigh: guardrails?.injuryRiskLevel === 'high' || guardrails?.injuryRiskLevel === 'critical',
     fatigueCritical: (guardrails?.fatigueIndex ?? 0) > 80,
     dataIncomplete: compass.dataCompleteness < 0.5,
   };
   
   // 8. Génération de l'explication
-  const explanation = generateExplanation(potential, availability, category, penalties, flags);
+  const explanation = generateExplanationV21(potential, category, penalties, flags);
   
   return {
     potential,
@@ -440,7 +427,7 @@ export function computeDecisionTFCL(input: ComputeDecisionInput): RaceReadinessV
     explanation,
     weights: RACE_READINESS_V2_WEIGHTS,
     timestamp: new Date().toISOString(),
-    version: 'v2.0',
+    version: 'v2.1',
     disclaimer: RACE_READINESS_V2_DISCLAIMER,
   };
 }
