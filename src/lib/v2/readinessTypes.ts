@@ -343,10 +343,14 @@ export function computeDecisionTFCL(input: ComputeDecisionTFCLInput): RaceReadin
 export function computeSimulationAccess(..._args: unknown[]): SimulationAccessResult {
   return {
     status: 'GREEN',
-    label: ACCESS_STATUS_LABELS.GREEN,
+    label: ACCESS_STATUS_LABELS.GREEN.label,
+    enabled: true,
     allowed: true,
     modifiers: getDefaultSimulationModifiers(),
     warnings: [],
+    message: "Simulation disponible",
+    explanation: "Toutes les données sont disponibles pour la simulation.",
+    recommendations: [],
   };
 }
 
