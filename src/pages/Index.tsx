@@ -2039,13 +2039,6 @@ const Index = () => {
               />
             ),
           },
-          // Séances & Bibliothèque
-          {
-            id: "seances-library",
-            render: () => currentAthlete && (
-              <IndexSeancesView />
-            ),
-          },
         ];
 
         return (
