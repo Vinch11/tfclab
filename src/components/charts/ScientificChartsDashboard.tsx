@@ -98,13 +98,7 @@ export function ScientificChartsDashboard({
           className="md:col-span-2 xl:col-span-1"
         />
 
-        {/* Race Readiness Gauge */}
-          score={readinessScore}
-          details={readinessDetails}
-          confidence={avgConfidence}
-          objectif={objectif}
-          staffMode={staffMode}
-        />
+        {/* Race Readiness removed */}
 
         {/* TTE vs Target */}
         <TTETargetChart

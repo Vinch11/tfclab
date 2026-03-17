@@ -1451,17 +1451,7 @@ const Index = () => {
                       </span>
                     </div>
                   )}
-                    compass={compass}
-                    latestCheckin={latestCheckin}
-                    objectiveData={objectiveData}
-                    guardrails={{
-                      fatigueIndex: effectiveCloudSnapshot?.tss_7d ? Math.min(100, (effectiveCloudSnapshot.tss_7d / 7)) : undefined,
-                    }}
-                    signatureInput={signatureInput}
-                    athleteName={currentAthlete.name}
-                    objectif={currentAthlete.goal || "IM"}
-                    staffMode={staffMode}
-                  />
+                  {/* Race readiness compass removed */}
                 </div>
               );
             },

@@ -310,14 +310,7 @@ export function formatContextForDisplay(context: AssistantAthleteContext): { lab
     });
   }
   
-  // Race Readiness
-    const status = r.score >= 80 ? "ok" : r.score >= 60 ? "warning" : "error";
-    items.push({ 
-      label: "Race Readiness", 
-      value: `${r.score}/100 (${r.label})`,
-      status 
-    });
-  }
+  // (Race Readiness removed)
   
   // Autres
   if (context.ftp !== null) items.push({ label: "FTP", value: `${context.ftp}W` });
