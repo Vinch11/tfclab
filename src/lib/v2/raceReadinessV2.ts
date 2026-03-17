@@ -575,81 +575,30 @@ export const QUADRANT_INFO = {
 
 export const ACADEMY_RACE_READINESS_V2_MODULE = {
   id: 'race-readiness-v2',
-  title: 'Potentiel vs Disponibilité : pourquoi TFCL sépare les deux',
-  description: 'Comprendre la logique Race Readiness V2 et les 4 quadrants décisionnels.',
+  title: 'Race Readiness V2.1 — Score basé sur le Potentiel',
+  description: 'Comprendre la logique Race Readiness V2.1 : seul le profil physiologique compte.',
   icon: '🎯',
   chapters: [
     {
-      id: 'separation',
-      title: 'Pourquoi séparer Potentiel et Disponibilité ?',
-      content: `## Deux réalités différentes
+      id: 'model-v21',
+      title: 'Pourquoi V2.1 retire la Disponibilité ?',
+      content: `## Modèle simplifié
 
-**Le Potentiel** = ce que ton moteur peut faire
-- Basé sur VLamax, TTE, FTP, économie
-- Évolue lentement (semaines/mois)
-- Représente ta capacité maximale théorique
+**Constat** : la fatigue n'est renseignée qu'une fois toutes les 3-4 semaines 
+et manque de précision. L'inclure dans un score décisionnel introduisait 
+du bruit plutôt que du signal.
 
-**La Disponibilité** = ce que tu peux exprimer aujourd'hui
-- Basé sur fatigue, stress, sommeil, signaux
-- Varie rapidement (heures/jours)
-- Module la capacité à mobiliser le potentiel
+**V2.1** : Le Race Readiness est maintenant basé **exclusivement sur le Potentiel** 
+(Metabolic Performance Compass™).
 
-**Un athlète très en forme peut être non prêt aujourd'hui.**
-Inversement, un athlète frais peut manquer de moteur.`,
+**Formule** : \`RR = Potentiel − Pénalités\`
+
+Les garde-fous (alertes santé, données incomplètes) restent actifs 
+et appliquent des pénalités automatiques.`,
       keyPoints: [
-        'Potentiel = capacité structurelle (long terme)',
-        'Disponibilité = état du jour (court terme)',
-        'La décision combine les deux'
-      ]
-    },
-    {
-      id: 'quadrants',
-      title: 'Les 4 quadrants de décision',
-      content: `## Comment lire le graphique
-
-| Quadrant | Potentiel | Disponibilité | Action |
-|----------|-----------|---------------|--------|
-| 🟢 GO | Élevé | Élevée | Séance clé possible |
-| 🟡 Récup | Élevé | Faible | Optimiser récupération |
-| 🟠 Moteur | Faible | Élevée | Construire le profil |
-| 🔴 Prudence | Faible | Faible | Priorité sécurité |
-
-**Le quadrant ne dicte pas.** Il éclaire la décision du coach.`,
-      keyPoints: [
-        'GO = conditions optimales',
-        'Récupération = potentiel bridé par la fatigue',
-        'Moteur = disponibilité bridée par le profil',
-        'Prudence = double limitation'
-      ]
-    },
-    {
-      id: 'examples',
-      title: 'Exemples pratiques',
-      content: `## Cas concrets
-
-**Cas 1 : Athlète en affûtage (Ironman J-7)**
-- Potentiel : 78 (profil construit)
-- Disponibilité : 85 (fraîcheur optimale)
-→ Quadrant GO. Confiance pour la course.
-
-**Cas 2 : Athlète en bloc de charge**
-- Potentiel : 72 (en progression)
-- Disponibilité : 45 (fatigue accumulée)
-→ Quadrant Récupération. Alléger avant séance clé.
-
-**Cas 3 : Athlète débutant motivé**
-- Potentiel : 48 (moteur en construction)
-- Disponibilité : 82 (très frais)
-→ Quadrant Moteur. Développer le profil progressivement.
-
-**Cas 4 : Surmenage**
-- Potentiel : 55 (stagnation)
-- Disponibilité : 38 (épuisement)
-→ Quadrant Prudence. Pause et reset.`,
-      keyPoints: [
-        'Le contexte guide l\'interprétation',
-        'Le coach intègre des facteurs non mesurés',
-        'Le graphique est un outil, pas un juge'
+        'Potentiel = seule source de vérité',
+        'Disponibilité retirée (données trop espacées/imprécises)',
+        'Garde-fous toujours actifs'
       ]
     },
     {
@@ -666,8 +615,7 @@ TFCL applique des **pénalités automatiques** dans certains cas :
 | Fatigue critique (>80) | -15 pts | Récupération obligatoire |
 | Données incomplètes | -5 pts | Incertitude accrue |
 
-**Ces garde-fous ne sont pas contournables.**
-Un score élevé avec alerte santé reste un score pénalisé.`,
+**Ces garde-fous ne sont pas contournables.**`,
       keyPoints: [
         'La sécurité prime sur le score',
         'Les alertes sont indépendantes du calcul',
@@ -682,8 +630,8 @@ Un score élevé avec alerte santé reste un score pénalisé.`,
 // =============================================
 
 export const PDF_RACE_READINESS_V2_SECTION = {
-  title: 'Potentiel × Disponibilité → Décision',
-  subtitle: 'Race Readiness TFCL™ V2',
+  title: 'Potentiel → Décision',
+  subtitle: 'Race Readiness TFCL™ V2.1',
   disclaimer: RACE_READINESS_V2_DISCLAIMER,
   definitions: RACE_READINESS_V2_DEFINITIONS,
   formula: RACE_READINESS_V2_FORMULA,
