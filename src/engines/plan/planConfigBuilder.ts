@@ -112,6 +112,9 @@ export function buildPlanConfigFromDiagnostic(
   // ── Prohibitions ──────────────────────────────────────────────────────────
   const prohibitions = buildProhibitions(limiterResult, diagnostic.objectif, diagnostic.ambition);
 
+  // ── Adaptation Projections ────────────────────────────────────────────────
+  const projections = buildAdaptationProjections(diagnostic);
+
   return {
     objective: formConfig.objective,
     raceName: formConfig.raceName,
@@ -128,6 +131,7 @@ export function buildPlanConfigFromDiagnostic(
     identifiedLimiters: limiters.length > 0 ? limiters : undefined,
     activeLevers: levers.length > 0 ? levers : undefined,
     prohibitions: prohibitions.length > 0 ? prohibitions : undefined,
+    adaptationProjections: projections.length > 0 ? projections : undefined,
   };
 }
 
