@@ -1297,15 +1297,13 @@ export function RaceSimulationModule({
     if (simulationAccess.status === 'RED') return null;
     
     const statusInfo = ACCESS_STATUS_LABELS[simulationAccess.status];
+    const statusColor = ACCESS_LEVEL_COLORS[simulationAccess.status];
     
     return (
-      <div className={cn(
-        "flex items-center gap-2 p-2 rounded-lg border mb-4",
-        colors.bg, colors.border
-      )}>
+      <div className="flex items-center gap-2 p-2 rounded-lg border mb-4 bg-muted/30">
         <span className="text-lg">{statusInfo.emoji}</span>
         <div className="flex-1">
-          <span className={cn("text-sm font-medium", colors.text)}>
+          <span className="text-sm font-medium">
             Mode {statusInfo.label}
           </span>
           {simulationAccess.status === 'ORANGE' && (
@@ -1320,7 +1318,7 @@ export function RaceSimulationModule({
           )}
         </div>
         {simulationAccess.warnings.length > 0 && (
-          <Badge variant="outline" className={cn("text-xs", colors.text)}>
+          <Badge variant="outline" className="text-xs">
             {simulationAccess.warnings.length} avertissement{simulationAccess.warnings.length > 1 ? 's' : ''}
           </Badge>
         )}
