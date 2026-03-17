@@ -107,8 +107,8 @@ export interface RaceReadinessV2Result {
 // =============================================
 
 export const RACE_READINESS_V2_WEIGHTS = {
-  potential: 0.65,
-  availability: 0.35,
+  potential: 1.0,
+  availability: 0.0, // V2.1: disponibilité retirée du modèle
 };
 
 export const RACE_READINESS_V2_CATEGORIES = {
