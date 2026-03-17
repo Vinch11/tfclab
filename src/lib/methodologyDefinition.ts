@@ -259,7 +259,7 @@ export const METHOD_PARAMETERS: MethodParameter[] = [
     pillar: "estimated"
   },
   { 
-    name: "Race Readiness", 
+    name: "Potentiel Physiologique", 
     status: "COMPOSITE", 
     source: "Profil métabolique + objectif", 
     uncertainty: "moyenne",

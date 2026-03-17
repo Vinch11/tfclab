@@ -117,7 +117,7 @@ export function ComprendreScoresCard({
     {
       id: "readiness",
       icon: <Target className="h-4 w-4" />,
-      label: "Race Readiness",
+      label: "Potentiel Physiologique",
       value: readinessScore !== null ? `${readinessScore}/100` : null,
       status: readinessEval.status,
       whatItMeans: "Score composite évaluant votre préparation globale pour votre objectif. Il combine profil métabolique, endurance, puissance et fraîcheur.",

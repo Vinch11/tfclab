@@ -2,7 +2,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  * RUNNING GUIDANCE PAGE — Écran "Guidance Coach — semaine en cours"
  * 
- * Double carte : Profil verrouillé + Décision hebdomadaire + Race Readiness
+ * Double carte : Profil verrouillé + Décision hebdomadaire + Potentiel Physiologique
  * Objectif : Décision en 30 secondes.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
@@ -147,7 +147,7 @@ export function RunningGuidancePage() {
     };
   }, [currentAthlete, checkins, activeSnapshot]);
   
-  // État pour le Race Readiness (formulaire)
+  // État pour le Potentiel Physiologique (formulaire)
   const [availability, setAvailability] = useState<AvailabilityRun>({
     sleep_quality: weeklyInputs.sleep_quality ?? 3,
     fatigue_level: weeklyInputs.fatigue_level ?? 3,
@@ -157,7 +157,7 @@ export function RunningGuidancePage() {
     motivation: weeklyInputs.motivation ?? 3,
   });
   
-  // Calculer le Race Readiness
+  // Calculer le Potentiel Physiologique
   const raceReadiness = useMemo((): RaceReadinessRun | null => {
     if (!lockedProfile) return null;
     

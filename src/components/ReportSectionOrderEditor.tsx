@@ -51,7 +51,7 @@ export const SECTION_LABELS: Record<keyof ReportSections, string> = {
   profilMetabolique: "Profil Métabolique Complet",
   vlamaxZoneConfidence: "⚡ VLamax Zone × Confiance",
   indicateurs: "Indicateurs Clés",
-  raceReadiness: "Race Readiness",
+  raceReadiness: "Potentiel Physiologique",
   disponibiliteTFCL: "Disponibilité TFCL™",
   raceSimulation: "Simulation de Course TFCL™",
   pacingEnvelope: "📊 Pacing Envelope™",

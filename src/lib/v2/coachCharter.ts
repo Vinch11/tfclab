@@ -84,7 +84,7 @@ export const SCORES_USAGE = {
     "Ne sont pas comparables entre athlètes",
     "Servent à suivre une évolution intra-athlète"
   ],
-  examples: ["Race Readiness", "Performance", "Risque"],
+  examples: ["Potentiel Physiologique", "Performance", "Risque"],
   forbidden: [
     {
       action: "Comparer deux athlètes uniquement via un score",
@@ -199,7 +199,7 @@ export const FATIGUE_RISK_USAGE = {
 
 export const RACE_READINESS_USAGE = {
   id: 'race_readiness',
-  title: "Race Readiness",
+  title: "Potentiel Physiologique",
   icon: "🏁",
   servesTo: [
     "Vérifier la cohérence globale",

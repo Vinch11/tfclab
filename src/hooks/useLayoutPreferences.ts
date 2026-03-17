@@ -106,9 +106,9 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   { id: "charge-recente", label: "Charge Récente (legacy)", icon: "Activity", category: "fatigue", defaultVisible: false },
   
   // 📊 Analyse & Course
-  { id: "race-readiness-unified", label: "Race Readiness TFCL™ (unifiée)", icon: "Target", category: "analyse", defaultVisible: true },
-  { id: "race-readiness-signature", label: "Race Readiness Signature™ (legacy)", icon: "Target", category: "analyse", defaultVisible: false },
-  { id: "race-readiness-v2", label: "Race Readiness V2 (legacy)", icon: "Trophy", category: "analyse", defaultVisible: false },
+  { id: "race-readiness-unified", label: "Potentiel Physiologique TFCL™", icon: "Target", category: "analyse", defaultVisible: true },
+  { id: "race-readiness-signature", label: "Signature Potentiel™ (legacy)", icon: "Target", category: "analyse", defaultVisible: false },
+  { id: "race-readiness-v2", label: "Potentiel V2 (legacy)", icon: "Trophy", category: "analyse", defaultVisible: false },
   { id: "running-economy-summary", label: "Économie de course", icon: "Footprints", category: "analyse", defaultVisible: true },
   { id: "fatmax-tfcl", label: "Zones Métaboliques TFCL™ (unifiée)", icon: "Flame", category: "analyse", defaultVisible: true },
   { id: "fatmax-chart", label: "FatMax vs Race Intensity (legacy)", icon: "BarChart", category: "analyse", defaultVisible: false },
@@ -165,14 +165,14 @@ export const ACADEMY_SECTIONS: SectionDefinition[] = [
 ];
 
 export const RACE_READINESS_SECTIONS: SectionDefinition[] = [
-  { id: "readiness-card", label: "Score Race Readiness", icon: "Trophy", defaultVisible: true },
+  { id: "readiness-card", label: "Score Potentiel Physiologique", icon: "Trophy", defaultVisible: true },
   { id: "nutrition-timing", label: "Nutrition & Timing", icon: "Utensils", defaultVisible: true },
   { id: "running-economy", label: "Économie de Course", icon: "Footprints", defaultVisible: true },
   { id: "staff-report", label: "Rapport Staff", icon: "FileText", defaultVisible: true },
 ];
 
 export const STRATEGIE_SECTIONS: SectionDefinition[] = [
-  { id: "race-readiness-page", label: "Race Readiness", icon: "Trophy", category: "analyse", defaultVisible: true },
+  { id: "race-readiness-page", label: "Potentiel Physiologique", icon: "Trophy", category: "analyse", defaultVisible: true },
   { id: "nutrition-v2", label: "Nutrition V2", icon: "Utensils", category: "analyse", defaultVisible: true },
   { id: "pacing-envelope", label: "Pacing Envelope", icon: "Target", category: "analyse", defaultVisible: true },
   { id: "synthese-executive", label: "Synthèse Executive", icon: "FileText", category: "analyse", defaultVisible: true },
@@ -204,7 +204,7 @@ export const RUNNING_PROFILE_SECTIONS: SectionDefinition[] = [
   // 🛡️ Risque & Readiness
   { id: "injury-risk-cap", label: "Risque Blessure CAP", icon: "Shield", category: "fatigue", defaultVisible: true },
   { id: "availability-form", label: "Disponibilité du Jour", icon: "ClipboardCheck", category: "fatigue", defaultVisible: true },
-  { id: "race-readiness-run", label: "Race Readiness CAP", icon: "Trophy", category: "fatigue", defaultVisible: true },
+  { id: "race-readiness-run", label: "Potentiel CAP", icon: "Trophy", category: "fatigue", defaultVisible: true },
   
   // 📊 Pacing & Métriques
   { id: "pacing-envelope-run", label: "Enveloppe Pacing", icon: "Target", category: "analyse", defaultVisible: true },

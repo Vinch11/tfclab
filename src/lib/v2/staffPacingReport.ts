@@ -263,7 +263,7 @@ function generateToleranceProfile(
     const readinessStatus = raceReadinessScore >= 80 ? "good" 
       : raceReadinessScore >= 65 ? "warning" : "critical";
     metrics.push({
-      label: "Race Readiness",
+      label: "Potentiel Physiologique",
       value: `${raceReadinessScore}%`,
       confidence: "—",
       status: readinessStatus as "good" | "warning" | "critical",

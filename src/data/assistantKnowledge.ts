@@ -217,10 +217,10 @@ TTE insuffisant = l'athlète ne pourra pas tenir son allure cible.`
   },
   {
     id: "what_is_race_readiness",
-    title: "C'est quoi Race Readiness ?",
+    title: "C'est quoi le Potentiel Physiologique ?",
     category: "metrics",
-    tags: ["Race Readiness", "score", "préparation", "objectif"],
-    content: `Race Readiness est un indicateur composite (0-100) d'adéquation physiologique entre le profil de l'athlète et son objectif.
+    tags: ["Potentiel Physiologique", "score", "préparation", "objectif"],
+    content: `Le Potentiel Physiologique est un indicateur composite (0-100) d'adéquation entre le profil de l'athlète et son objectif.
 
 Ce que c'est :
 - Un outil d'aide à la décision pour le coach
@@ -1438,7 +1438,7 @@ export function formatKnowledgeForAI(articles: KnowledgeArticle[]): string {
 export const QUICK_SUGGESTIONS = [
   { label: "C'est quoi VLamax ?", query: "C'est quoi VLamax ?" },
   { label: "Différence Z4a / Z4b", query: "C'est quoi la différence entre Z4a et Z4b ?" },
-  { label: "Race Readiness", query: "Comment fonctionne le Race Readiness ?" },
+  { label: "Potentiel Physiologique", query: "Comment fonctionne le Potentiel Physiologique ?" },
   { label: "TTE insuffisant", query: "Mon TTE est insuffisant, que faire ?" },
   { label: "Affûtage", query: "Comment faire un bon affûtage avant une course ?" },
   { label: "Polarisé", query: "C'est quoi l'entraînement polarisé ?" },

@@ -1209,13 +1209,13 @@ export const academySections: AcademySection[] = [
       {
         type: "text",
         title: "L'enveloppe s'adapte à l'état du jour",
-        content: "Le Pacing Envelope™ n'est pas figé. Il se réduit automatiquement si le Race Readiness est faible. Aujourd'hui, la robustesse prime sur l'ambition."
+        content: "Le Pacing Envelope™ n'est pas figé. Il se réduit automatiquement si le Potentiel Physiologique est faible. Aujourd'hui, la robustesse prime sur l'ambition."
       },
       {
         type: "table",
-        title: "Ajustement enveloppe selon Readiness",
+        title: "Ajustement enveloppe selon Potentiel",
         content: {
-          headers: ["Race Readiness", "Ajustement", "Message"],
+          headers: ["Potentiel Physiologique", "Ajustement", "Message"],
           rows: [
             ["> 80%", "Aucun", "État optimal — enveloppe normale"],
             ["70-80%", "-1% plafond", "État modéré — rester dans la zone optimale"],
@@ -1659,12 +1659,12 @@ export const academySections: AcademySection[] = [
     id: "race-readiness-v2-engine",
     title: "Pourquoi la Forme Seule ne Gagne pas les Courses",
     level: "staff",
-    tags: ["race readiness", "disponibilité", "pacing", "simulation", "décision", "V2"],
+    tags: ["potentiel physiologique", "disponibilité", "pacing", "simulation", "décision", "V2"],
     blocks: [
       {
         type: "text",
         title: "Principe fondamental TFCL",
-        content: "Performance jour J = Potentiel × Disponibilité × Discipline. TFCL n'évalue jamais l'un sans les autres. La forme (potentiel) définit le plafond possible. La disponibilité (Race Readiness) définit ce qui est accessible aujourd'hui. La discipline (Pacing Envelope) garantit l'exécution."
+        content: "Performance jour J = Potentiel × Disponibilité × Discipline. TFCL n'évalue jamais l'un sans les autres. La forme (potentiel) définit le plafond possible. La disponibilité définit ce qui est accessible aujourd'hui. La discipline (Pacing Envelope) garantit l'exécution."
       },
       {
         type: "callout",
@@ -1802,19 +1802,19 @@ export const academySections: AcademySection[] = [
   },
   {
     id: "race-readiness-cap",
-    title: "Pourquoi être en forme ne suffit pas — Race Readiness CAP",
+    title: "Pourquoi être en forme ne suffit pas — Potentiel Physiologique CAP",
     level: "basic",
-    tags: ["race readiness", "disponibilité", "potentiel", "CAP", "running", "Dan Lorang", "decision"],
+    tags: ["potentiel physiologique", "disponibilité", "potentiel", "CAP", "running", "Dan Lorang", "decision"],
     blocks: [
       {
         type: "text",
-        title: "La question centrale du Race Readiness",
-        content: "Le Race Readiness TFCL répond à UNE question : 'L'athlète peut-il exprimer son potentiel physiologique CAP aujourd'hui ?' Ce score ne mesure pas la forme absolue, mais la capacité à mobiliser le potentiel existant sans dégradation excessive ni risque disproportionné."
+        title: "La question centrale du Potentiel Physiologique",
+        content: "Le Potentiel Physiologique TFCL répond à UNE question : 'L'athlète peut-il exprimer son potentiel physiologique CAP aujourd'hui ?' Ce score ne mesure pas la forme absolue, mais la capacité à mobiliser le potentiel existant sans dégradation excessive ni risque disproportionné."
       },
       {
         type: "callout",
-        title: "Race Readiness ≠ Potentiel",
-        content: "Un athlète avec un excellent VO2max et une VLamax optimale peut échouer le jour J si sa disponibilité est compromise. Le Race Readiness capture cette interaction entre physiologie (stable) et disponibilité (variable)."
+        title: "Potentiel Physiologique ≠ Forme",
+        content: "Un athlète avec un excellent VO2max et une VLamax optimale peut échouer le jour J si sa disponibilité est compromise. Le Potentiel Physiologique capture cette interaction entre physiologie (stable) et disponibilité (variable)."
       },
       {
         type: "table",

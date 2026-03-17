@@ -8,7 +8,7 @@
  * 
  * Where:
  * - Potential = physiological ceiling (VO2max, VLamax, Economy, TTE)
- * - Availability = freshness, recovery, stress state (Race Readiness)
+ * - Availability = freshness, recovery, stress state (Potentiel Physiologique)
  * - Discipline = respect of the Pacing Envelope™
  * 
  * TFCL never evaluates one without the others.
@@ -136,7 +136,7 @@ TFCL never evaluates one without the others.`,
 even if the athlete is fitter on paper.
 
 It is calculated as:
-USABLE_PACING_CEILING = Pacing Envelope™ upper bound × Race Readiness %`,
+USABLE_PACING_CEILING = Pacing Envelope™ upper bound × Potentiel Physiologique %`,
 
   disciplineBuffer: `Elite athletes don't race at the edge.
 They race BELOW it.
