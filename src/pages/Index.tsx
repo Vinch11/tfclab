@@ -190,6 +190,7 @@ import { toast } from "sonner";
 import { getDernierSnapshot } from "@/types/athlete";
 import { computeVLamaxEffectif, type VLamaxEffectif, computeTTEEffectif, type TTEEffectif, getSourceLabel } from "@/engines/diagnostic";
 
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
 // ✅ RACE READINESS EFFECTIF - Source unique de vérité
 
 // ✅ Ambition (modulateur des cibles)

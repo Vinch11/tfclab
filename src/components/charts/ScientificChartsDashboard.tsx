@@ -5,7 +5,6 @@
 import { useState } from "react";
 import {
   EnergyProfileChart,
-  RaceReadinessGauge,
   TTETargetChart,
   PerformanceRiskMatrixChart,
   NutritionPredictiveChart,
@@ -100,7 +99,6 @@ export function ScientificChartsDashboard({
         />
 
         {/* Race Readiness Gauge */}
-        <RaceReadinessGauge
           score={readinessScore}
           details={readinessDetails}
           confidence={avgConfidence}

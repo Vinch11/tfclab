@@ -15,7 +15,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import type { RaceReadinessV2Result } from "./raceReadinessV2";
+import type { RaceReadinessV2Result } from "./readinessTypes";
 import type { PacingEnvelopeResult } from "./pacingEnvelopeEngine";
 
 // ═══════════════════════════════════════════════════════════════════════════════
