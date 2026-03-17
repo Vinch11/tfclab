@@ -282,18 +282,8 @@ export function RunningGuidancePage() {
           </div>
         )}
         
-        {/* Section Race Readiness CAP */}
+        {/* Section Disponibilité CAP */}
         <div className="grid gap-4 md:grid-cols-2">
-          {/* Formulaire disponibilité */}
-            onSubmit={handleAvailabilityUpdate}
-            initialValues={availability}
-          />
-          
-          {/* Carte Race Readiness */}
-            readiness={raceReadiness}
-            objective={raceLabel || "CAP"}
-            isStaffMode={true}
-          />
         </div>
         
         <Separator />

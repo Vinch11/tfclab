@@ -1360,6 +1360,7 @@ export function RaceSimulationModule({
                   ? simulationMode === 'basic' 
                     ? "border-green-500 text-green-600" 
                     : "border-blue-500 text-blue-600"
+                  : "border-muted text-muted-foreground"
             )}
           >
             {!simulationAccess.enabled 

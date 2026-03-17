@@ -245,9 +245,7 @@ export function useAssistantContext(
       parts.push(`TTE: ${t.tte_min} min (source: ${t.source}, confiance: ${(t.confidence * 100).toFixed(0)}%, cible: ${t.target} min, statut: ${t.status})`);
     }
     
-    // Race Readiness
-      parts.push(`Race Readiness: ${r.score}/100 (${r.label}, confiance: ${(r.confidence * 100).toFixed(0)}%)`);
-    }
+    // (Race Readiness removed)
     
     // Autres métriques
     if (context.ftp !== null) parts.push(`FTP: ${context.ftp}W`);

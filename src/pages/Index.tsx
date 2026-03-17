@@ -516,7 +516,7 @@ const Index = () => {
       tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
     });
   }, [currentAthlete, vlamaxEffectif, tteEffectif, ftp, poids, effectiveCloudSnapshot, currentAmbition]);
-  }, [currentAthlete, vlamaxEffectif, tteEffectif, ftp, poids, effectiveRefs, effectiveCloudSnapshot, currentAmbition]);
+  
 
   // ✅ NUTRITION ESTIMATE - Pour rapport staff
   const nutritionEstimate = useMemo(() => {

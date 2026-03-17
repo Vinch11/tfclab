@@ -266,7 +266,7 @@ export default function DashboardPage() {
       objectif,
       tteMin: tteEffectif.tte_min,
       tteTarget: getTTETarget(objectif),
-      raceReadiness: raceReadiness.score,
+      
     });
     
     // FTP/kg
