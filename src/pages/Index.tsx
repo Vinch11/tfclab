@@ -93,6 +93,9 @@ import { computeDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
 
 // ✅ Cycle Intelligence Engine™
 import { CycleIntelligenceCard } from "@/components/CycleIntelligenceCard";
+
+// ✅ Adaptation Predictor™
+import { AdaptationPredictorCard } from "@/components/AdaptationPredictorCard";
 import { computeDecision, type DecisionInput } from "@/engines/decision";
 
 // ✅ Profil & Ambition — Carte unifiée (Phase 1f UX)
@@ -1708,6 +1711,19 @@ const Index = () => {
               />
             ),
           },
+          // 🔮 Adaptation Predictor™
+          {
+            id: "adaptation-predictor",
+            render: () => currentAthlete && effectiveCloudSnapshot && (
+              <AdaptationPredictorCard
+                snapshot={effectiveCloudSnapshot as unknown as Record<string, unknown>}
+                limiterId={unifiedLimiterResult?.primaryLimiter ?? null}
+                limiterLabel={unifiedLimiterResult?.limiterLabel ?? null}
+                objectif={currentAthlete.goal || "IM"}
+                staffMode={staffMode}
+              />
+            ),
+          },
         ];
 
         return (
@@ -1901,6 +1917,19 @@ const Index = () => {
                 currentSnapshotId={effectiveCloudSnapshot?.id}
                 previousLimiterId={unifiedLimiterResult?.primaryLimiter ?? null}
                 previousLimiterLabel={unifiedLimiterResult?.limiterLabel ?? null}
+                objectif={currentAthlete.goal || "IM"}
+                staffMode={staffMode}
+              />
+            ),
+          },
+          // 🔮 Adaptation Predictor™ (profil)
+          {
+            id: "adaptation-predictor-profil",
+            render: () => currentAthlete && effectiveCloudSnapshot && (
+              <AdaptationPredictorCard
+                snapshot={effectiveCloudSnapshot as unknown as Record<string, unknown>}
+                limiterId={unifiedLimiterResult?.primaryLimiter ?? null}
+                limiterLabel={unifiedLimiterResult?.limiterLabel ?? null}
                 objectif={currentAthlete.goal || "IM"}
                 staffMode={staffMode}
               />

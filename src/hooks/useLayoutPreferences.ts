@@ -64,6 +64,7 @@ export const PROFIL_SECTIONS: SectionDefinition[] = [
   { id: "decision-reliability-profil", label: "Fiabilité Décisionnelle (Staff)", icon: "Shield", category: "analyse", defaultVisible: true },
   { id: "calibration-evidence-profil", label: "Évidences Calibration (Staff)", icon: "FlaskConical", category: "analyse", defaultVisible: true },
   { id: "cycle-intelligence-profil", label: "Cycle Intelligence™", icon: "Brain", category: "analyse", defaultVisible: true },
+  { id: "adaptation-predictor-profil", label: "Adaptation Predictor™", icon: "Sparkles", category: "analyse", defaultVisible: true },
 ];
 
 export const DASHBOARD_SECTIONS: SectionDefinition[] = [
@@ -137,6 +138,9 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
 
   // 🧠 Cycle Intelligence Engine™
   { id: "cycle-intelligence", label: "Cycle Intelligence™", icon: "Brain", category: "analyse", defaultVisible: true },
+
+  // 🔮 Adaptation Predictor™
+  { id: "adaptation-predictor", label: "Adaptation Predictor™", icon: "Sparkles", category: "analyse", defaultVisible: true },
 ];
 
 export const TESTS_SECTIONS: SectionDefinition[] = [
