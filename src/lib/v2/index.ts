@@ -14,7 +14,6 @@ export * from './vlamaxBikeV2Enhanced';
 export * from './disponibiliteTFCL';
 
 // Race Readiness V2 (Potentiel × Disponibilité → Décision)
-export * from './raceReadinessV2';
 
 // Système de symptômes terrain et matrice décisionnelle
 export * from "./tfclSymptoms";
@@ -805,7 +804,6 @@ export {
   computeRaceReadinessRun,
   applyReadinessToDecision,
   weeklyInputsToAvailability,
-} from './raceReadinessRunning';
 
 // Running Limiter Detection — Limiteurs 100% CAP
 export {
