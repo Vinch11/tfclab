@@ -1209,7 +1209,7 @@ export const academySections: AcademySection[] = [
       {
         type: "text",
         title: "L'enveloppe s'adapte à l'état du jour",
-        content: "Le Pacing Envelope™ n'est pas figé. Il se réduit automatiquement si le Race Readiness est faible. Aujourd'hui, la robustesse prime sur l'ambition."
+        content: "Le Pacing Envelope™ n'est pas figé. Il se réduit automatiquement si le Potentiel Physiologique est faible. Aujourd'hui, la robustesse prime sur l'ambition."
       },
       {
         type: "table",
