@@ -39,6 +39,7 @@ import { AIPlanViewer } from "@/components/AIPlanViewer";
 import { AIPlanComparison } from "@/components/AIPlanComparison";
 import { AIPlanBenchmark } from "@/components/AIPlanBenchmark";
 import { RacePaceSimulation } from "@/components/RacePaceSimulation";
+import { AdaptationProjectionSummary } from "@/components/AdaptationProjectionSummary";
 import { SavedPlanCalendar } from "@/components/SavedPlanCalendar";
 import { supabase } from "@/integrations/supabase/client";
 
