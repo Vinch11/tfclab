@@ -192,11 +192,13 @@ export function RaceSimulationModule({
   // ═══════════════════════════════════════════════════════════════════════════
   
   const simulationAccess = useMemo(() => 
+    computeSimulationAccess(raceReadinessResult, raceReadinessScore),
     [raceReadinessResult, raceReadinessScore]
   );
   
   const accessMessages = useMemo(() => 
-    [simulationAccess, raceReadinessResult]
+    getSimulationContextMessages(simulationAccess.status),
+    [simulationAccess]
   );
   
   // Filtrer les scénarios autorisés
