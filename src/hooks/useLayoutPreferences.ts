@@ -137,6 +137,9 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
 
   // 🧠 Cycle Intelligence Engine™
   { id: "cycle-intelligence", label: "Cycle Intelligence™", icon: "Brain", category: "analyse", defaultVisible: true },
+
+  // 🔮 Adaptation Predictor™
+  { id: "adaptation-predictor", label: "Adaptation Predictor™", icon: "Sparkles", category: "analyse", defaultVisible: true },
 ];
 
 export const TESTS_SECTIONS: SectionDefinition[] = [
