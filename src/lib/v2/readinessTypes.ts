@@ -257,11 +257,11 @@ export function getQuadrant(potential: number, availability: number): DecisionQu
   return 'LOW_LOW';
 }
 
-export const QUADRANT_INFO: Record<DecisionQuadrant, { label: string; emoji: string; description: string; color: string }> = {
-  HIGH_HIGH: { label: "Go!", emoji: "🟢", description: "Potentiel élevé + Disponibilité élevée", color: "hsl(var(--success))" },
-  HIGH_LOW: { label: "Prudence", emoji: "🟠", description: "Potentiel élevé mais disponibilité limitée", color: "hsl(var(--warning))" },
-  LOW_HIGH: { label: "Développement", emoji: "🔵", description: "Bonne disponibilité, potentiel à développer", color: "hsl(var(--info, 210 40% 50%))" },
-  LOW_LOW: { label: "Repos", emoji: "🔴", description: "Potentiel et disponibilité limités", color: "hsl(var(--destructive))" },
+export const QUADRANT_INFO: Record<DecisionQuadrant, { label: string; emoji: string; description: string; color: string; bgColor: string }> = {
+  HIGH_HIGH: { label: "Go!", emoji: "🟢", description: "Potentiel élevé + Disponibilité élevée", color: "hsl(var(--success))", bgColor: "hsl(var(--success) / 0.1)" },
+  HIGH_LOW: { label: "Prudence", emoji: "🟠", description: "Potentiel élevé mais disponibilité limitée", color: "hsl(var(--warning))", bgColor: "hsl(var(--warning) / 0.1)" },
+  LOW_HIGH: { label: "Développement", emoji: "🔵", description: "Bonne disponibilité, potentiel à développer", color: "hsl(var(--info, 210 40% 50%))", bgColor: "hsl(var(--info, 210 40% 50%) / 0.1)" },
+  LOW_LOW: { label: "Repos", emoji: "🔴", description: "Potentiel et disponibilité limités", color: "hsl(var(--destructive))", bgColor: "hsl(var(--destructive) / 0.1)" },
 };
 
 // ═══ computeDecisionTFCL stub ═══
