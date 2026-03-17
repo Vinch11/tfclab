@@ -2020,7 +2020,7 @@ function RaceReadinessSignatureSection({ input }: { input: RaceReadinessInput })
               <Lightbulb className="h-3 w-3" /> Actions recommandées
             </p>
             <ul className="space-y-0.5">
-              {result.recommendation.actions.map((action, i) => (
+              {(typeof result.recommendation === 'object' ? ((result.recommendation as any)?.actions ?? []) : []).map((action: string, i: number) => (
                 <li key={i} className="text-xs text-muted-foreground">• {action}</li>
               ))}
             </ul>

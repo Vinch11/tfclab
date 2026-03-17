@@ -176,7 +176,7 @@ export function RunningGuidancePage() {
     
     // Appliquer le readiness à la décision
     if (raceReadiness) {
-      return applyReadinessToDecision(baseDecision, raceReadiness);
+      return applyReadinessToDecision(baseDecision, raceReadiness) as RunningWeeklyDecision;
     }
     
     return baseDecision;

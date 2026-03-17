@@ -189,7 +189,7 @@ export function StaffDashboard({
   
   const vlamaxStatus = getVlamaxStatusWithLabel(vlamaxEffectif.value, objectif, ambition);
   const tteStatus = getTTEStatus(tteEffectif.tte_min, tteTarget);
-  const readinessStatus = getRaceReadinessStatus(raceReadiness.score);
+  const readinessStatus = { status: raceReadiness.score >= 80 ? "ok" as const : raceReadiness.score >= 60 ? "warning" as const : "critical" as const, label: raceReadiness.label };
 
   // Priorités d'entraînement
   const priorities = useMemo(() => {
