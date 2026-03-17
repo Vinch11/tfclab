@@ -4166,4 +4166,11 @@ export const ProPackWorkouts: LibraryWorkout[] = [
 // Add Pro Pack to main library
 WorkoutLibrary.push(...ProPackWorkouts);
 
-console.log(`✅ Pro Pack: ${ProPackWorkouts.length} séances ajoutées. Total: ${WorkoutLibrary.length}`);
+// =============================================
+// TEMPLATE-DERIVED WORKOUTS
+// Séances extraites des plans Semi, Marathon, IM Kona, 70.3
+// =============================================
+import { TemplateDerivedWorkouts } from "./templateDerivedWorkouts";
+WorkoutLibrary.push(...TemplateDerivedWorkouts);
+
+console.log(`✅ Pro Pack: ${ProPackWorkouts.length} séances. Templates: ${TemplateDerivedWorkouts.length} séances. Total: ${WorkoutLibrary.length}`);
