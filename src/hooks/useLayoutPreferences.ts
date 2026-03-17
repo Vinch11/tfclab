@@ -133,6 +133,9 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
 
   // ✅ Lorang Test Checklist
   { id: "lorang-test-checklist", label: "Checklist Tests Lorang", icon: "ClipboardCheck", category: "analyse", defaultVisible: true },
+
+  // 🧠 Cycle Intelligence Engine™
+  { id: "cycle-intelligence", label: "Cycle Intelligence™", icon: "Brain", category: "analyse", defaultVisible: true },
 ];
 
 export const TESTS_SECTIONS: SectionDefinition[] = [
