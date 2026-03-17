@@ -783,27 +783,14 @@ export {
   checkRecalibrationAlerts,
 } from './runningDoubleLoop';
 
-// Race Readiness Running — Module 100% CAP
+// Readiness Types — Legacy stubs for backward compat
 export {
-  // Types
-  type RaceReadinessRun,
   type ReadinessState,
-  type LimitingFactor,
-  type PacingDiscipline,
-  type ReadinessImplications,
+  type RaceReadinessRun,
   type AvailabilityRun,
-  type RiskContextRun,
-  type PlanPhase,
-  type RaceImportance,
-  
-  // Constantes
-  READINESS_STATE_INFO,
-  LIMITING_FACTOR_INFO,
-  
-  // Fonctions
-  computeRaceReadinessRun,
-  applyReadinessToDecision,
-  weeklyInputsToAvailability,
+  type SimulationModifiers,
+  type RaceReadinessV2Result,
+} from './readinessTypes';
 
 // Running Limiter Detection — Limiteurs 100% CAP
 export {
