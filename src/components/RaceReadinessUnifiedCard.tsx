@@ -318,12 +318,9 @@ export function RaceReadinessUnifiedCard({
                   {/* Formule */}
                   {staffMode && (
                     <div className="p-3 rounded bg-muted/50 text-xs font-mono mb-4">
-                      <p>RR = 0.65 × P + 0.35 × D − Pénalités</p>
+                      <p>RR = Potentiel − Pénalités</p>
                       <p className="text-muted-foreground">
-                        = 0.65×{result.potential.score} + 0.35×{result.availability.score} − {result.penalties.total}
-                      </p>
-                      <p className="text-muted-foreground">
-                        = {result.readiness.rawScore} − {result.penalties.total} = {result.readiness.score}
+                        = {result.potential.score} − {result.penalties.total} = {result.readiness.score}
                       </p>
                     </div>
                   )}
