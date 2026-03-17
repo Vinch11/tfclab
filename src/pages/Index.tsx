@@ -1892,6 +1892,20 @@ const Index = () => {
               />
             ),
           },
+          // ✅ Cycle Intelligence Engine™ (profil)
+          {
+            id: "cycle-intelligence-profil",
+            render: () => currentAthlete && (
+              <CycleIntelligenceCard
+                snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id) as unknown as Array<Record<string, unknown>>}
+                currentSnapshotId={effectiveCloudSnapshot?.id}
+                previousLimiterId={unifiedLimiterResult?.primary ?? null}
+                previousLimiterLabel={unifiedLimiterResult?.primaryLabel ?? null}
+                objectif={currentAthlete.goal || "IM"}
+                staffMode={staffMode}
+              />
+            ),
+          },
         ];
 
         return (
