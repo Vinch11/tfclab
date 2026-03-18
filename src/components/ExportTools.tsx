@@ -1356,7 +1356,7 @@ function buildExportPayload(
     objectif: athlete.goal || "IM",
     tteMin: tte.tte_min,
     tteTarget: tte.target ?? 50,
-    raceReadiness: potentielPhysiologique.score
+    potentielPhysiologique: potentielPhysiologique.score
   });
   
   // Calculer CAP Injury Risk
