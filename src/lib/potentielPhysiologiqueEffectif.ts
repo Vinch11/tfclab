@@ -1,5 +1,5 @@
 /**
- * Race Readiness Effectif — Legacy stub
+ * Potentiel Physiologique Effectif — Legacy stub
  * Module supprimé. Ce fichier fournit des stubs pour la rétrocompatibilité.
  */
 
@@ -93,14 +93,14 @@ export function getScoreColor(score: number): string {
 }
 
 export function generateAthleteReadiness(..._args: unknown[]): any {
-  return "Race Readiness module removed.";
+  return "Potentiel Physiologique module removed.";
 }
 
 export function computePillarCalculations(..._args: unknown[]): any {
   return { pillars: [], totalScore: 0 };
 }
 
-// ═══ Race Readiness Signature ═══
+// ═══ Potentiel Physiologique Signature ═══
 export interface PotentielInput {
   [key: string]: any;
   objectif: string;
@@ -156,7 +156,7 @@ export function computePotentielSignature(input: PotentielInput): PotentielResul
     mainWeakness: vScore <= tScore && vScore <= pScore ? "Métabolique" : tScore <= pScore ? "Endurance" : "Puissance",
     confidence: Math.min(input.vlamaxConfidence, input.tteConfidence),
     confidenceLabel: "Indicatif",
-    confidenceReasons: ["Stub — Race Readiness module removed"],
+    confidenceReasons: ["Stub — Potentiel Physiologique module removed"],
     decisionZone: label,
     decisionIcon: score >= 80 ? "🟢" : score >= 60 ? "🟠" : "🔴",
     potentialLabel: label,

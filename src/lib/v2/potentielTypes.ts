@@ -1,5 +1,5 @@
 /**
- * Readiness Types — Legacy stubs (Race Readiness module removed)
+ * Readiness Types — Legacy stubs (Potentiel Physiologique module removed)
  * Types preserved for backward compatibility with pacing/simulation modules.
  */
 
@@ -62,7 +62,7 @@ export function computePotentielRun(..._args: unknown[]): PotentielRun {
     readiness_state: "GREEN",
     limiting_factor: "NONE",
     confidence: 0.5,
-    explanation: "Stub — Race Readiness module removed",
+    explanation: "Stub — Potentiel Physiologique module removed",
     coach_message: "",
     athlete_message: "",
     implications: { race_allowed: true, intensity_cap: 1.0, pacing_discipline: "NORMAL", recommended_start_pace: "" },
@@ -335,7 +335,7 @@ export function computeDecisionTFCL(input: ComputeDecisionTFCLInput): PotentielV
     weights: { potential: 1.0, availability: 0.0 },
     timestamp: new Date().toISOString(),
     version: "stub-2.1",
-    disclaimer: "Race Readiness module removed — scores based on physiological potential only.",
+    disclaimer: "Potentiel Physiologique module removed — scores based on physiological potential only.",
   };
 }
 
