@@ -6348,12 +6348,12 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         </div>
       </div>
       
-      <!-- Race Readiness -->
+      <!-- Potentiel Physiologique -->
       <div class="card pagebreakAvoid mt">
-        <h3>🎯 Race Readiness</h3>
-        <p class="muted">Race Readiness est un outil d'aide à la décision destiné aux coachs et staffs. Il évalue la cohérence entre le profil physiologique actuel de l'athlète et les exigences de son objectif.</p>
+        <h3>🎯 Potentiel Physiologique</h3>
+        <p class="muted">Le Potentiel Physiologique évalue l'adéquation entre le profil métabolique de l'athlète et les exigences de son objectif. Il guide la prise de décision stratégique du coach.</p>
         
-        <!-- Graphique Race Readiness avec jauge circulaire -->
+        <!-- Graphique Potentiel Physiologique avec jauge circulaire -->
         <div class="mt" style="display:flex;align-items:center;gap:24px;margin-bottom:16px">
           <svg width="120" height="120" viewBox="0 0 120 120">
             <!-- Arc de fond -->
