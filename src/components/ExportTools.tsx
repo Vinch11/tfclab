@@ -3148,7 +3148,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               <td class="muted">${tte.tte_min >= (tte.target ?? 50) ? "Indicateur de durabilité satisfaisant pour l'objectif." : `Indicateur de durabilité insuffisant (cible: ${tte.target ?? 50} min) — axe de travail potentiel.`}</td>
             </tr>
             <tr>
-              <td><b>Race Readiness</b></td>
+              <td><b>Potentiel Physiologique</b></td>
               <td>${raceReadiness.score}%</td>
               <td><span class="badge badgeWarning">🔁 Calculé</span></td>
               <td><span class="badge ${raceReadiness.confidence >= 0.7 ? 'badgeSuccess' : raceReadiness.confidence >= 0.4 ? 'badgeWarning' : 'badgeError'}">${raceReadiness.confidence >= 0.7 ? 'Élevée' : raceReadiness.confidence >= 0.4 ? 'Modérée' : 'Faible'}</span></td>
