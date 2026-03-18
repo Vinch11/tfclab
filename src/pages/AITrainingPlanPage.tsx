@@ -40,6 +40,7 @@ import { AIPlanComparison } from "@/components/AIPlanComparison";
 import { AIPlanBenchmark } from "@/components/AIPlanBenchmark";
 import { RacePaceSimulation } from "@/components/RacePaceSimulation";
 import { AdaptationProjectionSummary } from "@/components/AdaptationProjectionSummary";
+import { LimiterHierarchyEditor } from "@/components/LimiterHierarchyEditor";
 import { SavedPlanCalendar } from "@/components/SavedPlanCalendar";
 import { supabase } from "@/integrations/supabase/client";
 
