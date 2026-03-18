@@ -41,10 +41,10 @@ export function WeeklyDecisionCard({
   onViewSuggestions,
   className,
 }: WeeklyDecisionCardProps) {
-  const strategyConfig = STRATEGY_CONFIG[decision.strategy_status];
-  const readinessConfig = READINESS_CONFIG[decision.readiness_week];
-  const riskConfig = RISK_CONFIG[decision.risk_level];
-  const focusConfig = FOCUS_CONFIG[decision.weekly_focus];
+  const strategyConfig = STRATEGY_CONFIG[decision.strategy_status] ?? STRATEGY_CONFIG.CONTINUE;
+  const readinessConfig = READINESS_CONFIG[decision.readiness_week] ?? READINESS_CONFIG.MODERATE;
+  const riskConfig = RISK_CONFIG[decision.risk_level] ?? RISK_CONFIG.LOW;
+  const focusConfig = FOCUS_CONFIG[decision.weekly_focus] ?? FOCUS_CONFIG.ENDURANCE;
   
   return (
     <Card className={cn(
