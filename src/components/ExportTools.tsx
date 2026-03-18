@@ -1296,7 +1296,7 @@ function buildExportPayload(
     objectif: athlete.goal || "IM"
   });
   
-  // Calculer Race Readiness
+  // Calculer Potentiel Physiologique
   // Calculer l'âge
   const athleteAge = athlete.birth_date ? (() => {
     const birthDate = new Date(athlete.birth_date);
