@@ -29,7 +29,7 @@ export interface TTESignal {
   confidence: number;
 }
 
-export interface RaceReadinessSignal {
+export interface PotentielSignal {
   score: number;
   details?: {
     fraicheur?: number;
@@ -43,7 +43,7 @@ export interface AnnotationParams {
   athleteGoal: "IM" | "703" | "Marathon" | "Semi" | string;
   vlamaxEffectif: VLamaxSignal | null;
   tteEffectif: TTESignal | null;
-  potentielPhysiologique: RaceReadinessSignal | null;
+  potentielPhysiologique: PotentielSignal | null;
   poids?: number | null;
   ftpKg?: number | null;
   tss7d?: number | null;

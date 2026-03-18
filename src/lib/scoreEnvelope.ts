@@ -377,7 +377,7 @@ export function buildTTEEnvelope(
 /**
  * Crée un ScoreEnvelope pour Race Readiness
  */
-export function buildRaceReadinessEnvelope(
+export function buildPotentielEnvelope(
   score: number,
   confidence: number,
   objectif: string,

@@ -24,7 +24,7 @@ import {
 import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, type PotentielInput, type PotentielResult, computePotentielSignature } from "@/lib/potentielPhysiologiqueEffectif";
 
 // Re-export types for external use
-export type { PotentielResult as RaceReadinessSignatureResult };
+export type { PotentielResult as PotentielSignatureResult };
 
 // =============================================
 // TYPES

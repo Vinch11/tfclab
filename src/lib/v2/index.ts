@@ -283,7 +283,7 @@ export {
   getOfficialIntroduction,
   getCentralPrinciple,
   getConfidenceRule,
-  getRaceReadinessStatement,
+  getPotentielStatement,
   getEthicsStatement,
   generatePdfSummary
 } from './officialReference';

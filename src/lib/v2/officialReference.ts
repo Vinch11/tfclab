@@ -415,7 +415,7 @@ export function getConfidenceRule(): string {
 /**
  * Retourne le statement sur Race Readiness
  */
-export function getRaceReadinessStatement(): string {
+export function getPotentielStatement(): string {
   return RACE_READINESS_DEFINITION.mainStatement;
 }
 

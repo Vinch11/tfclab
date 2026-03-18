@@ -122,7 +122,7 @@ interface SaisonPhasesViewProps {
   vlamaxEffectif: VLamaxEffectif;
   tteEffectif: TTEEffectif;
   readiness: PotentielPhysiologiqueEffectif;
-  onGoToRaceReadiness: () => void;
+  onGoToPotentiel: () => void;
   onGoToPhysioAnalysis: () => void;
   onGoToNutrition?: () => void;
 }
@@ -134,7 +134,7 @@ export function SaisonPhasesView({
   vlamaxEffectif,
   tteEffectif,
   readiness,
-  onGoToRaceReadiness,
+  onGoToPotentiel,
   onGoToPhysioAnalysis,
   onGoToNutrition,
 }: SaisonPhasesViewProps) {
@@ -449,7 +449,7 @@ export function SaisonPhasesView({
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
-            <Button variant="outline" onClick={onGoToRaceReadiness}>
+            <Button variant="outline" onClick={onGoToPotentiel}>
               <Heart className="h-4 w-4 mr-2" />
               Race Readiness
             </Button>

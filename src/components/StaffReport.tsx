@@ -359,7 +359,7 @@ export function StaffReport({
         </div>
 
         {/* 1.5️⃣ DÉTAILS DE CALCUL RACE READINESS */}
-        <RaceReadinessCalculationDetails readiness={readiness} />
+        <PotentielCalculationDetails readiness={readiness} />
 
         {/* 2️⃣ INDICATEURS CLÉS */}
         <div>
@@ -550,7 +550,7 @@ export function StaffReport({
         {lorangInput && <LorangStrategySection input={lorangInput} />}
 
         {/* 2.7️⃣ RACE READINESS SIGNATURE — POTENTIEL × DISPONIBILITÉ → DÉCISION */}
-        {potentielPhysiologiqueSignatureInput && <RaceReadinessSignatureSection input={potentielPhysiologiqueSignatureInput} />}
+        {potentielPhysiologiqueSignatureInput && <PotentielSignatureSection input={potentielPhysiologiqueSignatureInput} />}
 
         {/* 2.8️⃣ DOUBLE BOUCLE CAP — PROFIL VERROUILLÉ + DÉCISION HEBDOMADAIRE */}
         {runningProfile && (
@@ -1479,7 +1479,7 @@ export function StaffReport({
 /**
  * Composant pour afficher les détails de calcul Race Readiness dans le rapport exporté
  */
-function RaceReadinessCalculationDetails({ readiness }: { readiness: PotentielPhysiologiqueEffectif }) {
+function PotentielCalculationDetails({ readiness }: { readiness: PotentielPhysiologiqueEffectif }) {
   const calculations = computePillarCalculations(readiness);
   
   const pillars = [
@@ -1922,7 +1922,7 @@ function LorangStrategySection({ input }: { input: LorangStrategyInput }) {
 // RACE READINESS SIGNATURE SECTION — Potentiel × Disponibilité → Décision
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function RaceReadinessSignatureSection({ input }: { input: PotentielInput }) {
+function PotentielSignatureSection({ input }: { input: PotentielInput }) {
   const result = computePotentielSignature(input);
   
   // Couleurs des zones de décision

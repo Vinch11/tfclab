@@ -85,7 +85,7 @@ export interface EffectiveValue {
   source?: string;
 }
 
-export interface RaceReadinessDetails {
+export interface PotentielDetails {
   endurance?: number;
   tte?: number;
   vlamax?: number;
@@ -116,7 +116,7 @@ export interface SuggestionEngineContext {
   // Race readiness
   potentielPhysiologique: {
     score: number | null;
-    details: RaceReadinessDetails;
+    details: PotentielDetails;
   };
   
   // Training load

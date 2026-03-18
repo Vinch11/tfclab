@@ -35,7 +35,7 @@ import { type VLamaxEffectif, toVLamaxEnvelope, type TTEEffectif, getTTESourceCo
 import { VLamaxMetricRow } from "@/components/VLamaxStatusBadge";
 import { cn } from "@/lib/utils";
 import { getConfidenceLabelFromPercent, getConfidenceColorClassFromPercent } from "@/lib/confidenceDisplay";
-import { getEconomyLabelStyle, getEconomyRaceReadinessBonus } from "@/lib/runningEconomySnapshot";
+import { getEconomyLabelStyle, getEconomyPotentielBonus } from "@/lib/runningEconomySnapshot";
 import { computeNutritionEstimate, type NutritionEstimate, type Sport } from "@/lib/nutritionPredictive";
 import { ScientificChartsDashboard, MetabolicPerformanceCompass, ScoreEnvelopeInlineCard } from "@/components/charts";
 

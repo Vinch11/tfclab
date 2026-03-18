@@ -31,7 +31,7 @@ import {
   formatSecToPace, 
   computeRunEconomyScore, 
   getEconomyLabelStyle,
-  getEconomyRaceReadinessBonus
+  getEconomyPotentielBonus
 } from "@/lib/runningEconomySnapshot";
 import { 
   estimateVLamaxCap, 
@@ -951,7 +951,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
               }
               
               // Bonus/Malus pour Race Readiness
-              const bonusInfo = getEconomyRaceReadinessBonus(result.score, result.label);
+              const bonusInfo = getEconomyPotentielBonus(result.score, result.label);
               
               return (
                 <div className="space-y-3">

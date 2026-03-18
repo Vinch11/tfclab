@@ -179,7 +179,7 @@ function getTTEStatus(value: number, target: number): { status: "ok" | "warning"
   return { status: "critical", label: "Critique" };
 }
 
-function getRaceReadinessStatus(score: number): { status: "ok" | "warning" | "critical"; label: string } {
+function getPotentielStatus(score: number): { status: "ok" | "warning" | "critical"; label: string } {
   if (score >= 80) return { status: "ok", label: "Race Ready!" };
   if (score >= 60) return { status: "warning", label: "En progression" };
   return { status: "critical", label: "Non prêt" };
@@ -516,7 +516,7 @@ export default function DashboardPage() {
   const ambition = getAthleteAmbition(currentAthlete);
   const vlamaxStatus = getVlamaxStatusWithLabel(vlamaxEffectif.value, objectif, ambition);
   const tteStatus = getTTEStatus(tteEffectif.tte_min, tteTarget);
-  const readinessStatus = getRaceReadinessStatus(potentielPhysiologique.score);
+  const readinessStatus = getPotentielStatus(potentielPhysiologique.score);
 
   // =============================================
   // RENDER: MAIN DASHBOARD
