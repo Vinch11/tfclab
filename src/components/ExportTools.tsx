@@ -6551,9 +6551,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               <td><span class="badge ${tte.confidence >= 0.7 ? 'badgeSuccess' : tte.confidence >= 0.4 ? 'badgeWarning' : 'badgeError'}">${fmtPct(tte.confidence)}</span></td>
             </tr>
             <tr>
-              <td><b>Race Readiness</b></td>
+              <td><b>Potentiel Physiologique</b></td>
               <td>${raceReadiness.score}%</td>
-              <td>Calculé (VLamax + TTE + FTP/kg + Fraîcheur)</td>
+              <td>Calculé (VLamax + TTE + FTP/kg)</td>
               <td><span class="badge ${raceReadiness.confidence >= 0.7 ? 'badgeSuccess' : raceReadiness.confidence >= 0.4 ? 'badgeWarning' : 'badgeError'}">${fmtPct(raceReadiness.confidence)}</span></td>
             </tr>
           </tbody>
