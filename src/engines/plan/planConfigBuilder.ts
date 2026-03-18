@@ -144,14 +144,28 @@ export function buildPlanConfigFromDiagnostic(
 
 function formatLimitersForPrompt(
   limiterResult: UnifiedLimiterResult,
-  _objectif: string
+  _objectif: string,
+  coachLimiterOrder?: string[]
 ): string[] {
   const limiters: string[] = [];
 
   // Sort ALL gaps by weighted impact (highest = most limiting)
-  const rankedGaps = [...limiterResult.gapAnalysis]
+  let rankedGaps = [...limiterResult.gapAnalysis]
     .filter(g => g.weightedImpact > 0)
     .sort((a, b) => b.weightedImpact - a.weightedImpact);
+
+  // If coach provided a custom order, re-sort to match it
+  const hasCoachOverride = coachLimiterOrder && coachLimiterOrder.length > 0;
+  if (hasCoachOverride) {
+    rankedGaps = rankedGaps.sort((a, b) => {
+      const idxA = coachLimiterOrder.indexOf(a.metric);
+      const idxB = coachLimiterOrder.indexOf(b.metric);
+      // Items not in the coach order go to the end
+      const posA = idxA >= 0 ? idxA : 999;
+      const posB = idxB >= 0 ? idxB : 999;
+      return posA - posB;
+    });
+  }
 
   if (rankedGaps.length > 0) {
     limiters.push(`## CLASSEMENT DES LIMITEURS PAR IMPORTANCE (du plus critique au moins critique)`);
