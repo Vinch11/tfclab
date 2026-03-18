@@ -1740,8 +1740,8 @@ function buildRaceReadinessRunningHTML(payload: ExportPayload): string {
       ` : ''}
       
       <div class="alert alertWarning mt" style="font-size:11px;">
-        <b>⚠️ TFCL Method™ :</b> Race Readiness ≠ Potentiel absolu. Un athlète à 100% de potentiel peut avoir un Race Readiness de 60% s'il est fatigué. 
-        Le score guide les ajustements opérationnels, pas la valeur intrinsèque de l'athlète.
+        <b>⚠️ TFCL Method™ :</b> Le Potentiel Physiologique évalue l'adéquation structurelle du profil avec l'objectif. 
+        Ce score reflète le niveau de développement des qualités métaboliques requises, pas la forme du jour.
       </div>
     </section>
   `;
