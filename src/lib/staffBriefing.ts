@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getScoreColor, getRaceReadinessTargets, getTargets, getWeightsBySport, generateAthleteReadiness, computePillarCalculations, type RaceReadinessInput, type RaceReadinessResult, computeRaceReadinessSignature } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, getScoreColor, getPotentielTargets, getTargets, getWeightsBySport, generateAthleteReadiness, computePillarCalculations, type PotentielInput, type PotentielResult, computePotentielSignature } from "@/lib/potentielPhysiologiqueEffectif";
 /**
  * Staff Briefing - Two For Coaching Lab
  * Module C: Briefing Staff automatique clé en main
@@ -7,7 +7,7 @@ import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getScoreColor
  * - VLamax effectif, TTE effectif, FTP/kg
  * - Objectif, Sport
  * - Nutrition prédictive + timing (module B)
- * - Race Readiness, Running Economy
+ * - Potentiel Physiologique, Running Economy
  */
 
 import type { VLamaxEffectif } from "./vlamaxEffectif";
@@ -104,7 +104,7 @@ export interface ComputeStaffBriefingParams {
   ftpKg: number | null;
   ftp: number | null;
   poids: number | null;
-  potentielPhysiologique: RaceReadinessEffectif;
+  potentielPhysiologique: PotentielPhysiologiqueEffectif;
   energyDrift: EnergyDriftResult;
   nutritionTiming: NutritionTimingResult;
   economyScore: number | null;
@@ -208,7 +208,7 @@ function computePacingVelo(params: {
   if (potentielPhysiologiqueScore < 60) {
     ifMin -= 0.03;
     ifMax -= 0.03;
-    consignes.push("Race Readiness < 60 → pacing conservateur");
+    consignes.push("Potentiel Physiologique < 60 → pacing conservateur");
   }
   
   // Consignes standards
@@ -310,7 +310,7 @@ function generateAlerts(params: {
     alerts.push({
       severity: "warning",
       icon: "🟠",
-      message: "Race Readiness insuffisant",
+      message: "Potentiel Physiologique insuffisant",
       action: "Revoir les paramètres clés avant la course",
     });
   }

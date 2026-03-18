@@ -13,7 +13,7 @@
  */
 
 import type { SimulationScenarioType, PacingCurvePoint } from "./raceSimulationTFCL";
-import type { ReadinessState } from "./readinessTypes";
+import type { ReadinessState } from "./potentielTypes";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES — POST-RACE DATA
@@ -397,10 +397,10 @@ export function analyzePostRace(
   
   if (disciplineScore.score >= 85 && limiter === "NONE_DETECTED") {
     readinessAdjustment = 10;
-    rationale.push("Exécution conforme → Race Readiness futur +10");
+    rationale.push("Exécution conforme → Potentiel Physiologique futur +10");
   } else if (limiter === "PACING_ERROR") {
     readinessAdjustment = -10;
-    rationale.push("Erreur de pacing détectée → Race Readiness futur -10 (discipline à travailler)");
+    rationale.push("Erreur de pacing détectée → Potentiel Physiologique futur -10 (discipline à travailler)");
   }
   
   if (limiter === "GLYCOLYTIC_OVERLOAD") {

@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getTargets, getWeightsBySport, generateAthleteReadiness } from "@/lib/raceReadinessEffectif";
+import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, getTargets, getWeightsBySport, generateAthleteReadiness } from "@/lib/potentielPhysiologiqueEffectif";
 // =============================================
 // OUTILS EXPORT PDF – RAPPORT STAFF-GRADE COMPLET
 // Two For Coaching Lab – Performance & Metabolic Report
@@ -173,7 +173,7 @@ interface ExportPayload {
   effectiveRefs: EffectiveRefs;
   vlamax: VLamaxEffectif;
   tte: TTEEffectif;
-  potentielPhysiologique: RaceReadinessEffectif;
+  potentielPhysiologique: PotentielPhysiologiqueEffectif;
   lorang: {
     priorite: PrioriteType;
     prioriteLabel: string;
@@ -805,7 +805,7 @@ function buildBasicSimulationHTML(
     terrain: 'flat',
     disponibiliteScore: 75,
     disponibiliteLevel: 'good',
-    raceReadinessScore: potentielPhysiologique.score,
+    potentielPhysiologiqueScore: potentielPhysiologique.score,
   });
   
   const riskColorClass = basicResult.globalRiskLevel === 'LOW' ? 'badgeSuccess' 
@@ -1309,7 +1309,7 @@ function buildExportPayload(
     return age;
   })() : null;
   
-  const potentielPhysiologique = computeRaceReadinessEffectif({
+  const potentielPhysiologique = computePotentielEffectif({
     objectif: athlete.goal || "IM",
     vlamaxEffectif: vlamax,
     tteEffectif: tte,
@@ -1356,7 +1356,7 @@ function buildExportPayload(
     objectif: athlete.goal || "IM",
     tteMin: tte.tte_min,
     tteTarget: tte.target ?? 50,
-    raceReadiness: potentielPhysiologique.score
+    potentielPhysiologique: potentielPhysiologique.score
   });
   
   // Calculer CAP Injury Risk
@@ -1445,7 +1445,7 @@ function buildExportPayload(
       source: tte.source,
     },
     ftpKg, // ✅ Ajouté - manquait dans l'export
-    raceReadiness: {
+    potentielPhysiologique: {
       score: potentielPhysiologique.score,
       details: potentielPhysiologique.details, // ✅ Simplifié comme dans le dashboard
     },

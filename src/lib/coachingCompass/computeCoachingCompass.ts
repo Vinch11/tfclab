@@ -14,7 +14,7 @@
  * - Fatigue Effectif (Diagnostic Engine)
  * - Unified Limiter Detection (Diagnostic Engine)
  * - Lorang Strategy Engine (Decision Engine)
- * - Race Readiness V2 (Decision Engine)
+ * - Potentiel Physiologique V2 (Decision Engine)
  * - Lactate Thresholds TFCL
  * - Compass Scoring (4 axes)
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -57,7 +57,7 @@ export function computeCoachingCompass(input: CoachingCompassInput): TFCLCoachin
   // 4. Produire la décision (depuis le Strategy Engine)
   const decision = buildDecision(input, limiter, leverage);
 
-  // 5. Assembler Race Readiness
+  // 5. Assembler Potentiel Physiologique
   const readiness = buildReadinessState(input);
 
   // 6. Construire les axes radar
@@ -427,7 +427,7 @@ function buildDecision(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// READINESS STATE — Depuis Race Readiness V2
+// READINESS STATE — Depuis Potentiel Physiologique V2
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function buildReadinessState(input: CoachingCompassInput): TFCLReadinessState {

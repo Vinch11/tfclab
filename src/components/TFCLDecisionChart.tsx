@@ -27,17 +27,17 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
-  type RaceReadinessV2Result,
+  type PotentielV2Result,
   type DecisionQuadrant,
   getQuadrant,
   QUADRANT_INFO,
-  RACE_READINESS_V2_CATEGORIES,
-  RACE_READINESS_V2_DEFINITIONS,
-  getRaceReadinessV2BadgeClass,
-} from "@/lib/v2/readinessTypes";
+  POTENTIEL_V2_CATEGORIES,
+  POTENTIEL_V2_DEFINITIONS,
+  getPotentielV2BadgeClass,
+} from "@/lib/v2/potentielTypes";
 
 interface TFCLDecisionChartProps {
-  result: RaceReadinessV2Result;
+  result: PotentielV2Result;
   athleteName?: string;
   objectif?: string;
   compact?: boolean;
@@ -89,7 +89,7 @@ export function TFCLDecisionChart({
               </p>
             </div>
           </div>
-          <Badge variant="outline" className={getRaceReadinessV2BadgeClass(readiness.category)}>
+          <Badge variant="outline" className={getPotentielV2BadgeClass(readiness.category)}>
             {readiness.score}/100
           </Badge>
         </div>
@@ -104,7 +104,7 @@ export function TFCLDecisionChart({
           <div>
             <CardTitle className="text-lg flex items-center gap-2">
               <Target className="h-5 w-5 text-primary" />
-              Race Readiness TFCL™ V2
+              Potentiel Physiologique TFCL™ V2
             </CardTitle>
             <CardDescription>
               Potentiel × Disponibilité → Décision
@@ -121,7 +121,7 @@ export function TFCLDecisionChart({
             </div>
             <Badge 
               variant="outline" 
-              className={cn("text-lg px-3 py-1", getRaceReadinessV2BadgeClass(readiness.category))}
+              className={cn("text-lg px-3 py-1", getPotentielV2BadgeClass(readiness.category))}
             >
               {readiness.categoryEmoji} {readiness.score}
             </Badge>

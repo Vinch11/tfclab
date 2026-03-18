@@ -33,7 +33,7 @@ import {
   MODELED_DATA,
   CONFIDENCE_INDICES,
   APPLICATION_OUTPUTS,
-  RACE_READINESS_DEFINITION,
+  POTENTIEL_DEFINITION,
   APP_CAPABILITIES,
   RESPONSIBILITY_ETHICS,
   VERSIONING_STATEMENT,
@@ -275,19 +275,19 @@ const FullVariant: React.FC<{ showHeader: boolean; className: string }> = ({ sho
         </div>
       </SectionCard>
 
-      {/* 7. Race Readiness */}
+      {/* 7. Potentiel Physiologique */}
       <SectionCard
         icon={sectionIcons.race_readiness}
-        title={RACE_READINESS_DEFINITION.title}
-        emoji={RACE_READINESS_DEFINITION.icon}
+        title={POTENTIEL_DEFINITION.title}
+        emoji={POTENTIEL_DEFINITION.icon}
       >
         <blockquote className="border-l-4 border-primary pl-4 italic text-foreground mb-4">
-          "{RACE_READINESS_DEFINITION.mainStatement}"
+          "{POTENTIEL_DEFINITION.mainStatement}"
         </blockquote>
         
         <h4 className="font-semibold mb-2">Il synthétise :</h4>
         <ul className="space-y-1 mb-4">
-          {RACE_READINESS_DEFINITION.synthesizes.map((item, i) => (
+          {POTENTIEL_DEFINITION.synthesizes.map((item, i) => (
             <li key={i} className="flex items-center gap-2 text-muted-foreground">
               <CheckCircle2 className="h-4 w-4 text-primary" />
               {item}
@@ -297,7 +297,7 @@ const FullVariant: React.FC<{ showHeader: boolean; className: string }> = ({ sho
 
         <h4 className="font-semibold mb-2 text-destructive">Il ne remplace jamais :</h4>
         <ul className="space-y-1">
-          {RACE_READINESS_DEFINITION.neverReplaces.map((item, i) => (
+          {POTENTIEL_DEFINITION.neverReplaces.map((item, i) => (
             <li key={i} className="flex items-center gap-2 text-muted-foreground">
               <XCircle className="h-4 w-4 text-destructive" />
               {item}

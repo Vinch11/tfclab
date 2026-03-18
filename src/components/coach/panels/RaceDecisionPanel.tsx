@@ -2,7 +2,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  * PANEL 4 — Race Decision & Pacing (Jour J)
  * 
- * Race Readiness, Pacing Envelope™, simulation scénarios,
+ * Potentiel Physiologique, Pacing Envelope™, simulation scénarios,
  * règles non négociables.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
@@ -57,7 +57,7 @@ export function RaceDecisionPanel({
 }: RaceDecisionPanelProps) {
   const { raceType, targets, raceLabel } = useRunningFocusMode();
 
-  // Race Readiness Score — prefer engine score when available
+  // Potentiel Physiologique Score — prefer engine score when available
   const potentielPhysiologique = useMemo(() => {
     // Use engine readiness if available (computed from full diagnostic)
     if (diagnostic?.readiness?.readiness?.score != null) {
@@ -177,10 +177,10 @@ export function RaceDecisionPanel({
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Race Readiness */}
+        {/* Potentiel Physiologique */}
         <div className="p-4 rounded-lg bg-muted/50 border">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium">Race Readiness</span>
+            <span className="text-sm font-medium">Potentiel Physiologique</span>
             <span className={cn("text-2xl font-bold font-mono", getReadinessColor())}>
               {potentielPhysiologique.toFixed(0)}%
             </span>

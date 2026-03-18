@@ -33,7 +33,7 @@ import {
   VLAMAX_USAGE,
   TTE_USAGE,
   FATIGUE_RISK_USAGE,
-  RACE_READINESS_USAGE,
+  POTENTIEL_USAGE,
   ATHLETE_COMMUNICATION,
   LAB_TESTS_LIMITS,
   PROFESSIONAL_RESPONSIBILITY,
@@ -301,17 +301,17 @@ const FullVariant: React.FC<{ showHeader: boolean; className: string }> = ({ sho
         </Alert>
       </SectionCard>
 
-      {/* 7. Race Readiness */}
+      {/* 7. Potentiel Physiologique */}
       <SectionCard
         icon={sectionIcons.race_readiness}
-        title={RACE_READINESS_USAGE.title}
-        emoji={RACE_READINESS_USAGE.icon}
+        title={POTENTIEL_USAGE.title}
+        emoji={POTENTIEL_USAGE.icon}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-4 bg-green-500/5 rounded-lg border border-green-500/20">
             <h5 className="font-semibold text-green-600 mb-2">✅ Sert à :</h5>
             <ul className="space-y-1">
-              {RACE_READINESS_USAGE.servesTo.map((item, i) => (
+              {POTENTIEL_USAGE.servesTo.map((item, i) => (
                 <li key={i} className="text-sm text-muted-foreground flex items-center gap-2">
                   <CheckCircle2 className="h-3 w-3 text-green-500" />
                   {item}
@@ -322,7 +322,7 @@ const FullVariant: React.FC<{ showHeader: boolean; className: string }> = ({ sho
           <div className="p-4 bg-red-500/5 rounded-lg border border-red-500/20">
             <h5 className="font-semibold text-red-600 mb-2">❌ Ne sert pas à :</h5>
             <ul className="space-y-1">
-              {RACE_READINESS_USAGE.doesNotServeTo.map((item, i) => (
+              {POTENTIEL_USAGE.doesNotServeTo.map((item, i) => (
                 <li key={i} className="text-sm text-muted-foreground flex items-center gap-2">
                   <XCircle className="h-3 w-3 text-red-500" />
                   {item}

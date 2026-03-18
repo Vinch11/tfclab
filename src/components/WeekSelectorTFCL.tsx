@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectif, type PotentielPhysiologiqueEffectif } from "@/lib/potentielPhysiologiqueEffectif";
 // =============================================
 // WEEK SELECTOR TFCL™ - UI Component (Enhanced)
 // Two For Coaching Lab
@@ -143,8 +143,8 @@ export function WeekSelectorTFCL({ onInsertWeek, defaultRaceType }: WeekSelector
       objectif,
     });
 
-    // Race Readiness (for fatigue calc)
-    const readinessResult = computeRaceReadinessEffectif({
+    // Potentiel Physiologique (for fatigue calc)
+    const readinessResult = computePotentielEffectif({
       objectif,
       vlamaxEffectif: vlamaxResult,
       tteEffectif: tteResult,

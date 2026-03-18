@@ -1,5 +1,5 @@
 /**
- * Race Readiness Effectif — Legacy stub
+ * Potentiel Physiologique Effectif — Legacy stub
  * Module supprimé. Ce fichier fournit des stubs pour la rétrocompatibilité.
  */
 
@@ -13,7 +13,7 @@ export interface RunningEconomyData {
   pace_efficiency: number;
 }
 
-export interface RaceReadinessEffectif {
+export interface PotentielPhysiologiqueEffectif {
   [key: string]: any;
   score: number;
   rawScore?: number;
@@ -37,7 +37,7 @@ export interface RaceReadinessEffectif {
   };
 }
 
-export interface ComputeRaceReadinessEffectifParams {
+export interface ComputePotentielPhysiologiqueEffectifParams {
   objectif: string;
   vlamaxEffectif: { value: number; confidence: number };
   tteEffectif: { tte_min: number; confidence: number };
@@ -52,7 +52,7 @@ export interface ComputeRaceReadinessEffectifParams {
   tss7d?: number | null;
 }
 
-export function computeRaceReadinessEffectif(params: ComputeRaceReadinessEffectifParams): RaceReadinessEffectif {
+export function computePotentielEffectif(params: ComputePotentielPhysiologiqueEffectifParams): PotentielPhysiologiqueEffectif {
   const { vlamaxEffectif, tteEffectif } = params;
   const vlamaxScore = vlamaxEffectif.value <= 0.35 ? 90 : vlamaxEffectif.value <= 0.50 ? 70 : 50;
   const tteScore = tteEffectif.tte_min >= 45 ? 90 : tteEffectif.tte_min >= 30 ? 70 : 50;
@@ -82,7 +82,7 @@ export function getWeightsBySport(_sport: string): any {
   return { vlamax: 0.30, endurance: 0.30, puissance: 0.20, fraicheur: 0.20 };
 }
 
-export function getRaceReadinessTargets(_objectif: string, _age?: number | null, _ambition?: string) {
+export function getPotentielTargets(_objectif: string, _age?: number | null, _ambition?: string) {
   return { score: 70, vlamax: 0.30, vlamaxIdeal: 0.30, tte: 45, tteTarget: 45, ftpKgTarget: 3.5 };
 }
 
@@ -93,15 +93,15 @@ export function getScoreColor(score: number): string {
 }
 
 export function generateAthleteReadiness(..._args: unknown[]): any {
-  return "Race Readiness module removed.";
+  return "Potentiel Physiologique module removed.";
 }
 
 export function computePillarCalculations(..._args: unknown[]): any {
   return { pillars: [], totalScore: 0 };
 }
 
-// ═══ Race Readiness Signature ═══
-export interface RaceReadinessInput {
+// ═══ Potentiel Physiologique Signature ═══
+export interface PotentielInput {
   [key: string]: any;
   objectif: string;
   vlamaxValue: number;
@@ -117,7 +117,7 @@ export interface RaceReadinessInput {
   physiology?: unknown;
 }
 
-export interface RaceReadinessResult {
+export interface PotentielResult {
   [key: string]: any;
   score: number;
   label: string;
@@ -138,7 +138,7 @@ export interface RaceReadinessResult {
   recommendation?: string;
 }
 
-export function computeRaceReadinessSignature(input: RaceReadinessInput): RaceReadinessResult {
+export function computePotentielSignature(input: PotentielInput): PotentielResult {
   const vScore = input.vlamaxValue <= 0.35 ? 90 : input.vlamaxValue <= 0.50 ? 70 : 50;
   const tScore = input.tteMin >= 45 ? 90 : input.tteMin >= 30 ? 70 : 50;
   const pScore = input.ftpKg ? (input.ftpKg >= 4.0 ? 90 : input.ftpKg >= 3.0 ? 70 : 50) : 60;
@@ -156,7 +156,7 @@ export function computeRaceReadinessSignature(input: RaceReadinessInput): RaceRe
     mainWeakness: vScore <= tScore && vScore <= pScore ? "Métabolique" : tScore <= pScore ? "Endurance" : "Puissance",
     confidence: Math.min(input.vlamaxConfidence, input.tteConfidence),
     confidenceLabel: "Indicatif",
-    confidenceReasons: ["Stub — Race Readiness module removed"],
+    confidenceReasons: ["Stub — Potentiel Physiologique module removed"],
     decisionZone: label,
     decisionIcon: score >= 80 ? "🟢" : score >= 60 ? "🟠" : "🔴",
     potentialLabel: label,

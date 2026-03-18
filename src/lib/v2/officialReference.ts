@@ -256,11 +256,11 @@ export const APPLICATION_OUTPUTS = {
 // 7️⃣ RACE READINESS & DÉCISION
 // ============================================
 
-export const RACE_READINESS_DEFINITION = {
-  title: "Race Readiness & Décision",
+export const POTENTIEL_DEFINITION = {
+  title: "Potentiel Physiologique & Décision",
   icon: "🏁",
   subtitle: "Indicateur décisionnel, pas verdict",
-  mainStatement: "Race Readiness est un indicateur décisionnel, pas un verdict.",
+  mainStatement: "Potentiel Physiologique est un indicateur décisionnel, pas un verdict.",
   synthesizes: [
     "État physiologique actuel",
     "Niveau de fatigue accumulée",
@@ -373,7 +373,7 @@ export const OFFICIAL_REFERENCE_DOCUMENT = {
     { id: "modeled", title: MODELED_DATA.title, icon: MODELED_DATA.icon, content: MODELED_DATA },
     { id: "confidence", title: CONFIDENCE_INDICES.title, icon: CONFIDENCE_INDICES.icon, content: CONFIDENCE_INDICES },
     { id: "outputs", title: APPLICATION_OUTPUTS.title, icon: APPLICATION_OUTPUTS.icon, content: APPLICATION_OUTPUTS },
-    { id: "race_readiness", title: RACE_READINESS_DEFINITION.title, icon: RACE_READINESS_DEFINITION.icon, content: RACE_READINESS_DEFINITION },
+    { id: "race_readiness", title: POTENTIEL_DEFINITION.title, icon: POTENTIEL_DEFINITION.icon, content: POTENTIEL_DEFINITION },
     { id: "capabilities", title: APP_CAPABILITIES.title, icon: APP_CAPABILITIES.icon, content: APP_CAPABILITIES },
     { id: "ethics", title: RESPONSIBILITY_ETHICS.title, icon: RESPONSIBILITY_ETHICS.icon, content: RESPONSIBILITY_ETHICS },
     { id: "versioning", title: VERSIONING_STATEMENT.title, icon: VERSIONING_STATEMENT.icon, content: VERSIONING_STATEMENT }
@@ -413,10 +413,10 @@ export function getConfidenceRule(): string {
 }
 
 /**
- * Retourne le statement sur Race Readiness
+ * Retourne le statement sur Potentiel Physiologique
  */
-export function getRaceReadinessStatement(): string {
-  return RACE_READINESS_DEFINITION.mainStatement;
+export function getPotentielStatement(): string {
+  return POTENTIEL_DEFINITION.mainStatement;
 }
 
 /**

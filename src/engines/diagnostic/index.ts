@@ -131,10 +131,10 @@ export type {
 } from "@/lib/v2/unifiedLimiterDetection";
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// Race Readiness, Targets, Injury Risk, DRE
+// Potentiel Physiologique, Targets, Injury Risk, DRE
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export type { RaceReadinessV2Result } from "@/lib/v2/readinessTypes";
+export type { PotentielV2Result } from "@/lib/v2/potentielTypes";
 export type { ObjectiveTargets } from "@/lib/physiologicalTargets";
 export type { RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
 export type { InjuryRiskEnvelope } from "@/lib/v2/injuryRiskUnified";

@@ -243,7 +243,7 @@ et les tests de durabilité structurés.`,
     descriptionShort: 'Fatigue quantifiée multi-factorielle (Charge, Réponse, Ressenti)',
     descriptionLong: `La Fatigue V2 utilise 3 piliers pondérés :
 - Charge (40%) : TSS 7j et tendance
-- Réponse (35%) : TTE effectif et Race Readiness
+- Réponse (35%) : TTE effectif et Potentiel Physiologique
 - Ressenti (25%) : check-in stress/fatigue
 
 Score global = 100 - moyenne pondérée des piliers.`,
@@ -325,7 +325,7 @@ Il prédit les risques hypoglycémiques et les fenêtres d'apport.`,
     confidenceRange: [0.55, 0.80],
     
     descriptionShort: 'Score de préparation course multi-dimensionnel',
-    descriptionLong: `Race Readiness combine :
+    descriptionLong: `Potentiel Physiologique combine :
 - Fitness (FTP/VMA vs cible)
 - Fraîcheur (inverse fatigue)
 - Profil (VLamax vs optimal objectif)
@@ -512,7 +512,7 @@ export const PHYSIO_ENGINE_CHANGELOG: ChangelogEntry[] = [
     descriptionShort: 'Approche 3 piliers (Charge, Réponse, Ressenti)',
     descriptionLong: `Refonte de la fatigue avec pondérations officielles :
 - Charge (40%) : TSS 7j normalisé
-- Réponse (35%) : TTE et Race Readiness
+- Réponse (35%) : TTE et Potentiel Physiologique
 - Ressenti (25%) : Check-in stress/fatigue
 Score inversé : fatigue = 100 - moyenne pondérée`,
     impactLevel: 'HIGH',

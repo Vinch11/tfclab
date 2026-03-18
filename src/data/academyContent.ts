@@ -319,7 +319,7 @@ export const academySections: AcademySection[] = [
           rows: [
             ["Charge récente", "35%", "TSS 7 jours comparé à la charge habituelle"],
             ["Durabilité (TTE)", "25%", "TTE effectif vs cible selon objectif"],
-            ["Fraîcheur métabolique", "25%", "Score Race Readiness"],
+            ["Fraîcheur métabolique", "25%", "Score Potentiel Physiologique"],
             ["Facteurs modérateurs", "15%", "Âge + profil VLamax"]
           ]
         }
@@ -760,7 +760,7 @@ export const academySections: AcademySection[] = [
             ["Type de course (IM/Marathon/etc.)", "✅ Oui", "Définit la durée et l'intensité de référence"],
             ["Allure cible ou FTP/VMA", "Optionnel", "Ajuste les estimations d'intensité"],
             ["Disponibilité TFCL™", "Recommandé", "Module le risque global selon l'état du jour"],
-            ["Race Readiness V2", "Recommandé", "Détermine la zone d'intensité conseillée"]
+            ["Potentiel Physiologique V2", "Recommandé", "Détermine la zone d'intensité conseillée"]
           ]
         }
       },
@@ -1202,7 +1202,7 @@ export const academySections: AcademySection[] = [
   },
   {
     id: "pacing-envelope-readiness",
-    title: "Pacing et Race Readiness : ajustement du jour J",
+    title: "Pacing et Potentiel Physiologique : ajustement du jour J",
     level: "staff",
     tags: ["pacing", "readiness", "disponibilité", "ajustement", "jour J"],
     blocks: [
@@ -1541,7 +1541,7 @@ export const academySections: AcademySection[] = [
         type: "bullets",
         title: "Intégration dans TFCL",
         content: [
-          "Le Pacing Envelope™ alimente Race Readiness, Simulation et Race-Day Briefing",
+          "Le Pacing Envelope™ alimente Potentiel Physiologique, Simulation et Race-Day Briefing",
           "Une intensité sans référence = interdite pour le pacing jour J",
           "Le coach peut override mais doit justifier (responsabilité explicite)",
           "L'athlète ne peut PAS modifier les zones lui-même"
@@ -1678,7 +1678,7 @@ export const academySections: AcademySection[] = [
           headers: ["Concept", "Définition", "Formule"],
           rows: [
             ["Plafond Absolu", "Limite haute de l'enveloppe de pacing (potentiel)", "Envelope upper bound"],
-            ["Plafond Utilisable", "Intensité MAX autorisée aujourd'hui", "Envelope × Race Readiness %"],
+            ["Plafond Utilisable", "Intensité MAX autorisée aujourd'hui", "Envelope × Potentiel Physiologique %"],
             ["Cible Discipline", "Intensité recommandée (3-5% sous le plafond)", "Usable ceiling - Buffer"]
           ]
         }
@@ -1712,7 +1712,7 @@ export const academySections: AcademySection[] = [
       {
         type: "callout",
         title: "Message clé",
-        content: "\"La meilleure décision est celle que ton corps peut exécuter aujourd'hui.\" — TFCL ne promeut jamais le risque pour l'ego ou le classement. La simulation est éducative, pas prédictive. Race Readiness gate toujours le Pacing.",
+        content: "\"La meilleure décision est celle que ton corps peut exécuter aujourd'hui.\" — TFCL ne promeut jamais le risque pour l'ego ou le classement. La simulation est éducative, pas prédictive. Potentiel Physiologique gate toujours le Pacing.",
         staffOnly: true
       }
     ]
@@ -1818,7 +1818,7 @@ export const academySections: AcademySection[] = [
       },
       {
         type: "table",
-        title: "Les 3 piliers du Race Readiness CAP",
+        title: "Les 3 piliers du Potentiel Physiologique CAP",
         content: {
           headers: ["Pilier", "Description", "Impact"],
           rows: [
@@ -1830,7 +1830,7 @@ export const academySections: AcademySection[] = [
       },
       {
         type: "table",
-        title: "Interprétation des états Race Readiness",
+        title: "Interprétation des états Potentiel Physiologique",
         content: {
           headers: ["État", "Score", "Signification", "Implication pacing"],
           rows: [
@@ -1854,7 +1854,7 @@ export const academySections: AcademySection[] = [
       {
         type: "callout",
         title: "Lien avec la méthode Dan Lorang",
-        content: "Dan Lorang insiste : 'La physiologie évolue lentement, les décisions doivent être prises souvent.' Le Race Readiness est l'outil de la boucle rapide : il évalue chaque jour si l'athlète peut performer sans modifier le profil physiologique verrouillé.",
+        content: "Dan Lorang insiste : 'La physiologie évolue lentement, les décisions doivent être prises souvent.' Le Potentiel Physiologique est l'outil de la boucle rapide : il évalue chaque jour si l'athlète peut performer sans modifier le profil physiologique verrouillé.",
         staffOnly: true
       },
       {
@@ -1870,7 +1870,7 @@ export const academySections: AcademySection[] = [
       {
         type: "text",
         title: "Garde-fou scientifique",
-        content: "Le Race Readiness ne promet jamais de performance. Il indique une plage d'expression (80-100% du potentiel) et un facteur limitant principal. Le pacing reste une conséquence directe du score : plus le readiness est bas, plus la discipline de pacing doit être stricte."
+        content: "Le Potentiel Physiologique ne promet jamais de performance. Il indique une plage d'expression (80-100% du potentiel) et un facteur limitant principal. Le pacing reste une conséquence directe du score : plus le readiness est bas, plus la discipline de pacing doit être stricte."
       },
       {
         type: "callout",

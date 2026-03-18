@@ -7,7 +7,7 @@
  * Appelle les sous-modules existants dans l'ordre :
  * 1. Effectifs (VLamax, TTE, Fatigue)
  * 2. Limiteur Unifié (ex-Compas)
- * 3. Race Readiness
+ * 3. Potentiel Physiologique
  * 4. Cibles Physiologiques
  * 5. Risque Blessure
  * 6. DRE (si données disponibles)
@@ -28,7 +28,7 @@ import { computeVLamaxEffectif, type VLamaxEffectif } from "@/lib/vlamaxEffectif
 import { computeTTEEffectif, type TTEEffectif } from "@/lib/tteEffectif";
 import { computeFatigueEffectif, type FatigueEffectif } from "@/lib/fatigueEffectif";
 import { detectUnifiedLimiter, type UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
-import { computeDecisionTFCL, type RaceReadinessV2Result } from "@/lib/v2/readinessTypes";
+import { computeDecisionTFCL, type PotentielV2Result } from "@/lib/v2/potentielTypes";
 import { getTargetsForAmbition, normalizeObjective, getVLamaxRange } from "@/lib/physiologicalTargets";
 import type { CompassScores, CompassAxisScore } from "@/lib/compassScoring";
 import { computeRunInjuryRisk, type RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
@@ -60,7 +60,7 @@ export function computeDiagnostic(input: DiagnosticInput): AthleteDiagnostic {
     age: input.age,
   });
 
-  // ── 3. Race Readiness ─────────────────────────────────────────────────────
+  // ── 3. Potentiel Physiologique ─────────────────────────────────────────────────────
   const readiness = computeReadinessFromInput(input, limiter);
 
   // ── 4. Cibles Physiologiques ──────────────────────────────────────────────
@@ -202,7 +202,7 @@ function buildAxisScore(score: number, label: string, explanation: string): Comp
 function computeReadinessFromInput(
   input: DiagnosticInput,
   limiter: UnifiedLimiterResult
-): RaceReadinessV2Result {
+): PotentielV2Result {
   // Build compass scores from limiter gap analysis
   let aerobicScore = 50;
   let toleranceScore = 50;
@@ -273,7 +273,7 @@ function computeRunInjuryRiskFromInput(
 
 function computeSynthesis(
   limiter: UnifiedLimiterResult,
-  readiness: RaceReadinessV2Result,
+  readiness: PotentielV2Result,
   fatigue: FatigueEffectif,
   runInjuryRisk: RunInjuryRiskEnvelope | null,
   input: DiagnosticInput
@@ -361,7 +361,7 @@ function computeSynthesis(
 
 function generateHeadline(
   limiter: UnifiedLimiterResult,
-  readiness: RaceReadinessV2Result,
+  readiness: PotentielV2Result,
   fatigue: FatigueEffectif
 ): string {
   if (fatigue.score > 75) {

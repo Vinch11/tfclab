@@ -46,7 +46,7 @@ export function MethodologyStaff({ onGoToTab }: MethodologyStaffProps) {
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                 <p className="text-sm text-muted-foreground">
-                  <strong className="text-foreground">Race Readiness est un outil staff</strong>, pondéré par l'objectif de course
+                  <strong className="text-foreground">Le Potentiel Physiologique est un outil staff</strong>, pondéré par l'objectif de course
                 </p>
               </div>
             </div>
@@ -78,21 +78,21 @@ export function MethodologyStaff({ onGoToTab }: MethodologyStaffProps) {
         </CardContent>
       </Card>
 
-      {/* SECTION 1 : Race Readiness */}
+      {/* SECTION 1 : Potentiel Physiologique */}
       <Card className="border-primary/20">
         <CardHeader>
           <CardTitle className="flex items-center gap-3 text-foreground">
             <div className="p-2 rounded-lg bg-primary/10 text-primary">
               <Target className="w-5 h-5" />
             </div>
-            🎯 Race Readiness — Score de préparation pondéré
+            🎯 Potentiel Physiologique — Score de préparation pondéré
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
             <h4 className="font-semibold text-foreground mb-3">Définition</h4>
             <p className="text-muted-foreground text-sm">
-              Le score Race Readiness combine quatre dimensions physiologiques pour estimer la capacité de l'athlète 
+              Le score Potentiel Physiologique combine quatre dimensions physiologiques pour estimer la capacité de l'athlète 
               à performer sur son objectif de course. <strong className="text-foreground">Ce n'est pas un prédicteur de performance</strong>, 
               mais un indicateur de cohérence entre le profil physiologique actuel et les exigences de l'objectif.
             </p>
@@ -361,7 +361,7 @@ export function MethodologyStaff({ onGoToTab }: MethodologyStaffProps) {
               <span className="text-primary">1️⃣</span> Le vélo et la course à pied ne sollicitent pas le métabolisme de la même façon
             </h4>
             <p className="text-muted-foreground text-sm">
-              Dans Vince's Lab, les indicateurs VLamax, TTE et Race Readiness doivent toujours être interprétés 
+              Dans Vince's Lab, les indicateurs VLamax, TTE et Potentiel Physiologique doivent toujours être interprétés 
               en tenant compte du sport pratiqué.
             </p>
             <div className="p-3 rounded-lg bg-warning/10 border border-warning/20 mt-3">
@@ -519,7 +519,7 @@ export function MethodologyStaff({ onGoToTab }: MethodologyStaffProps) {
               <div className="flex items-start gap-3 p-3 rounded-lg bg-success/10 border border-success/20">
                 <CheckCircle2 className="w-5 h-5 text-success mt-0.5 shrink-0" />
                 <p className="text-sm text-muted-foreground">
-                  Le <strong className="text-foreground">Race Readiness est pondéré</strong> par l'objectif ET par le sport
+                  Le <strong className="text-foreground">Le Potentiel Physiologique est pondéré</strong> par l'objectif ET par le sport
                 </p>
               </div>
               <div className="flex items-start gap-3 p-3 rounded-lg bg-success/10 border border-success/20">
@@ -592,7 +592,7 @@ export function MethodologyStaff({ onGoToTab }: MethodologyStaffProps) {
         </CardHeader>
         <CardContent className="space-y-4 text-muted-foreground">
           <p className="text-sm">
-            L'indice de confiance indique le <strong className="text-foreground">niveau de fiabilité scientifique</strong> des valeurs affichées dans Vince's Lab (VLamax, TTE, Race Readiness).
+            L'indice de confiance indique le <strong className="text-foreground">niveau de fiabilité scientifique</strong> des valeurs affichées dans Vince's Lab (VLamax, TTE, Potentiel Physiologique).
             Il ne mesure pas la performance de l'athlète, mais la <strong className="text-foreground">qualité des données</strong> utilisées pour produire l'analyse.
           </p>
           
@@ -798,7 +798,7 @@ export function MethodologyStaff({ onGoToTab }: MethodologyStaffProps) {
             >
               <div className="flex items-center gap-2 mb-2">
                 <Target className="w-5 h-5 text-primary" />
-                <span className="font-medium text-foreground">Race Readiness</span>
+                <span className="font-medium text-foreground">Potentiel Physiologique</span>
               </div>
               <p className="text-xs text-muted-foreground">Score de préparation global pondéré selon l'objectif</p>
             </button>

@@ -3,7 +3,7 @@
  * Résumé stratégique unifié basé sur detectUnifiedLimiter (source unique de vérité)
  * ✅ Cohérence garantie avec Compass et Plan IA
  * ✅ Seuils contextualisés par ambition
- * ✅ "Race Readiness" → "Potentiel Physiologique"
+ * ✅ "Potentiel Physiologique" → "Potentiel Physiologique"
  */
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

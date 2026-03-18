@@ -4,7 +4,7 @@
  * Single unified diagnostic output for the entire platform
  * 
  * PRINCIPE : "Voici l'état de l'athlète"
- * Fusionne Compas, Race Readiness, Ambition, DRE, Effectifs, Risque Blessure
+ * Fusionne Compas, Potentiel Physiologique, Ambition, DRE, Effectifs, Risque Blessure
  * 
  * CONSOMMATEURS :
  * - Decision Engine (stratégie, workout advisory, simulation)
@@ -17,7 +17,7 @@ import type { VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import type { TTEEffectif } from "@/lib/tteEffectif";
 import type { FatigueEffectif } from "@/lib/fatigueEffectif";
 import type { UnifiedLimiterResult, UnifiedLimiter, UnifiedLever } from "@/lib/v2/unifiedLimiterDetection";
-import type { RaceReadinessV2Result } from "@/lib/v2/readinessTypes";
+import type { PotentielV2Result } from "@/lib/v2/potentielTypes";
 import type { InjuryRiskEnvelope } from "@/lib/v2/injuryRiskUnified";
 import type { RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
 import type { ObjectiveTargets, VLamaxTargets } from "@/lib/physiologicalTargets";
@@ -142,8 +142,8 @@ export interface AthleteDiagnostic {
   // ─── 2. Limiteur Unifié (ex-Compas) ───────────────
   limiter: UnifiedLimiterResult;
   
-  // ─── 3. Readiness (ex-Race Readiness) ─────────────
-  readiness: RaceReadinessV2Result;
+  // ─── 3. Readiness (ex-Potentiel Physiologique) ─────────────
+  readiness: PotentielV2Result;
   
   // ─── 4. Cibles Physiologiques ─────────────────────
   targets: {

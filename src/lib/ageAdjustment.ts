@@ -632,10 +632,10 @@ export function adjustCarbsByAge(
 // =============================================
 
 /**
- * Ajuste le risque Race Readiness en fonction de l'âge
+ * Ajuste le risque Potentiel Physiologique en fonction de l'âge
  * À niveau de préparation égal, l'âge modifie la tolérance au stress métabolique
  */
-export function adjustRaceReadinessRiskByAge(
+export function adjustPotentielRiskByAge(
   baseScore: number,
   age: number | null
 ): {

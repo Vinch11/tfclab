@@ -1,11 +1,11 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getScoreColor } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, getScoreColor } from "@/lib/potentielPhysiologiqueEffectif";
 import { useState, useEffect, useMemo } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Target, AlertTriangle, CheckCircle2, TrendingDown, TrendingUp, Timer, Zap, Trophy, Info, HelpCircle, Apple, Flame, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Athlete, getDernierSnapshot } from "@/types/athlete";
-import { reglesTwoForCoaching, ReglesTwoForCoachingResult, RaceReadinessInputs, getPrioriteLabel, getPrioriteColor, getSeancesRecommandees, getSeancesSpecifiques, PrioriteType } from "@/types/reglesTwoForCoaching";
+import { reglesTwoForCoaching, ReglesTwoForCoachingResult, PotentielInputs, getPrioriteLabel, getPrioriteColor, getSeancesRecommandees, getSeancesSpecifiques, PrioriteType } from "@/types/reglesTwoForCoaching";
 import { SEANCES } from "@/types/seances";
 import {
   Popover,
@@ -25,7 +25,7 @@ interface TwoForCoachingAnalysisProps {
   athlete: Athlete;
   vlamaxEffectif?: VLamaxEffectif;
   tteEffectif?: TTEEffectif;
-  readiness?: RaceReadinessEffectif;
+  readiness?: PotentielPhysiologiqueEffectif;
   onGoToSnapshots?: () => void;
 }
 const prioriteIcons: Record<PrioriteType, typeof TrendingDown> = {
@@ -61,7 +61,7 @@ export function TwoForCoachingAnalysis({
   onGoToSnapshots
 }: TwoForCoachingAnalysisProps) {
   const snapshot = getDernierSnapshot(athlete) as any;
-  const [inputs, setInputs] = useState<RaceReadinessInputs>({
+  const [inputs, setInputs] = useState<PotentielInputs>({
     seance_specifique_validee: false,
     fatigue_ok: false
   });
@@ -249,7 +249,7 @@ export function TwoForCoachingAnalysis({
                     </p>
                     <div className="p-3 rounded-lg bg-secondary/50 border border-border">
                       <p className="text-xs text-muted-foreground leading-relaxed">
-                        Les valeurs présentées (VLamax, TTE, Race Readiness) sont des <strong className="text-foreground">estimations modélisées</strong>. Elle ne remplace ni l'expertise du coach, ni un test physiologique de laboratoire.
+                        Les valeurs présentées (VLamax, TTE, Potentiel Physiologique) sont des <strong className="text-foreground">estimations modélisées</strong>. Elle ne remplace ni l'expertise du coach, ni un test physiologique de laboratoire.
                       </p>
                     </div>
                     <p className="text-xs text-muted-foreground italic mt-2">
@@ -280,10 +280,10 @@ export function TwoForCoachingAnalysis({
         </div>
       </div>
 
-      {/* Race Readiness Score */}
+      {/* Potentiel Physiologique Score */}
       <div className="mb-6 p-4 rounded-xl bg-secondary/30 border border-border">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm text-muted-foreground">Score Race Readiness Objectif</span>
+          <span className="text-sm text-muted-foreground">Score Potentiel Physiologique Objectif</span>
           <span className={cn("text-2xl font-bold font-mono", getScoreColor(raceScore))}>{raceScore}%</span>
         </div>
         <div className="h-3 bg-secondary rounded-full overflow-hidden mb-2">
@@ -508,7 +508,7 @@ export function TwoForCoachingAnalysis({
           {nutritionEstimate.nutritionalRiskIndex.potentielPhysiologiqueCap && (
             <div className="mt-2 p-2 rounded-lg bg-destructive/10 border border-destructive/20">
               <p className="text-xs text-destructive">
-                ⚠️ Race Readiness plafonné à {nutritionEstimate.nutritionalRiskIndex.potentielPhysiologiqueCap}% – {nutritionEstimate.nutritionalRiskIndex.mainRiskFactor}
+                ⚠️ Potentiel Physiologique plafonné à {nutritionEstimate.nutritionalRiskIndex.potentielPhysiologiqueCap}% – {nutritionEstimate.nutritionalRiskIndex.mainRiskFactor}
               </p>
             </div>
           )}

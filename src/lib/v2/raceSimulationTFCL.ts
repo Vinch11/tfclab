@@ -12,7 +12,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import type { ReadinessState } from "./readinessTypes";
+import type { ReadinessState } from "./potentielTypes";
 import type { PacingEnvelopeRunResult, PacingZoneDefinitionRun, RunningDistance } from "./pacingEnvelopeRunning";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -280,7 +280,7 @@ export function computeRaceSimulation(inputs: SimulationInputs): SimulationResul
     recommendedRationale = "Profil physiologique favorable (VLamax basse + durabilité élevée) — scénario ambitieux envisageable.";
   } else if (race_readiness_state === "RED") {
     recommendedScenario = "ROBUST";
-    recommendedRationale = "Race Readiness faible — discipline maximale requise pour éviter l'effondrement.";
+    recommendedRationale = "Potentiel Physiologique faible — discipline maximale requise pour éviter l'effondrement.";
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -524,7 +524,7 @@ function generateScenario(type: SimulationScenarioType, params: ScenarioParams):
   if (type === "ROBUST") {
     recommendation = "Scénario de référence TFCL — privilégier cette stratégie pour maximiser la robustesse de la performance.";
   } else if (type === "AMBITIOUS") {
-    recommendation = "Envisageable uniquement si Race Readiness GREEN et profil VLamax favorable (< 0.38).";
+    recommendation = "Envisageable uniquement si Potentiel Physiologique GREEN et profil VLamax favorable (< 0.38).";
   } else {
     recommendation = "Non recommandé — ce scénario maximise le risque d'effondrement et compromet la performance finale.";
   }

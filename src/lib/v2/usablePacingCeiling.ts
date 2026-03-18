@@ -15,7 +15,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import type { RaceReadinessV2Result } from "./readinessTypes";
+import type { PotentielV2Result } from "./potentielTypes";
 import type { PacingEnvelopeResult } from "./pacingEnvelopeEngine";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -27,7 +27,7 @@ export type ConsequenceType = 'stability' | 'warning' | 'collapse';
 
 export interface UsablePacingCeilingInput {
   envelope: PacingEnvelopeResult;
-  potentielPhysiologique: RaceReadinessV2Result;
+  potentielPhysiologique: PotentielV2Result;
   targetRaceDurationMin?: number | null;
 }
 
@@ -145,11 +145,11 @@ The Discipline Buffer is the gap between what's possible and what's smart.`,
 
   disclaimer: `TFCL never promotes risk for ego or rankings.
 Simulation is educational, not predictive.
-Race Readiness always gates Pacing.`,
+Potentiel Physiologique always gates Pacing.`,
 
   methodology: `
 1. Potential (Pacing Envelope upper bound) defines the physiological maximum
-2. Availability (Race Readiness %) reduces this to today's usable ceiling
+2. Availability (Potentiel Physiologique %) reduces this to today's usable ceiling
 3. Discipline (target below usable) ensures execution margin
 4. Consequences simulate what happens at each intensity level`,
 };
@@ -209,17 +209,17 @@ function getRandomSentence(sentences: string[]): string {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /**
- * Computes the Usable Pacing Ceiling based on Pacing Envelope and Race Readiness
+ * Computes the Usable Pacing Ceiling based on Pacing Envelope and Potentiel Physiologique
  * 
  * The Usable Ceiling is ALWAYS <= Envelope Upper Bound
- * Race Readiness acts as a gate that reduces available intensity
+ * Potentiel Physiologique acts as a gate that reduces available intensity
  */
 export function computeUsablePacingCeiling(
   input: UsablePacingCeilingInput
 ): UsablePacingCeiling {
   const { envelope, potentielPhysiologique } = input;
   
-  const sources: string[] = ['Pacing Envelope™', 'Race Readiness V2'];
+  const sources: string[] = ['Pacing Envelope™', 'Potentiel Physiologique V2'];
   
   // ─────────────────────────────────────────────────────────────────────────────
   // STEP 1: Extract base values
@@ -293,7 +293,7 @@ export function computeUsablePacingCeiling(
   // STEP 7: Generate explanation
   // ─────────────────────────────────────────────────────────────────────────────
   const explanation = {
-    why: `Race Readiness de ${potentielScore}/100 applique un multiplicateur de ${(potentielMultiplier * 100).toFixed(0)}% sur le plafond de l'enveloppe.`,
+    why: `Potentiel Physiologique de ${potentielScore}/100 applique un multiplicateur de ${(potentielMultiplier * 100).toFixed(0)}% sur le plafond de l'enveloppe.`,
     consequence: status === 'CRITICAL' || status === 'RESTRICTED'
       ? "Dépasser ce plafond aujourd'hui coûtera plus qu'il ne rapportera."
       : "L'intensité cible est accessible avec marge de sécurité.",

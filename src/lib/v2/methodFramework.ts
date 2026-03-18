@@ -182,7 +182,7 @@ export const PILLAR_ADVISED: PillarDefinition = {
 La décision finale appartient toujours au coach et à l'athlète.`,
   
   items: [
-    { id: 'race_readiness', label: 'Race Readiness', description: 'Indice de préparation course' },
+    { id: 'race_readiness', label: 'Potentiel Physiologique', description: 'Indice de préparation course' },
     { id: 'annotations', label: 'Annotations templates', description: 'Notes sur les séances type' },
     { id: 'wahoo_reco', label: 'Recommandations Wahoo/Zwift', description: 'Suggestions séances' },
     { id: 'alerts', label: 'Alertes fatigue/blessure', description: 'Avertissements contextuels' },

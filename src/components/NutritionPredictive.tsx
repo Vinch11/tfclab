@@ -167,13 +167,13 @@ export function NutritionPredictive({
             </div>
           </div>
 
-          {/* Plafonnement Race Readiness */}
+          {/* Plafonnement Potentiel Physiologique */}
           {riskIndex.potentielPhysiologiqueCap && (
             <div className="mt-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30">
               <div className="flex items-center gap-2">
                 <Target className="w-4 h-4 text-destructive" />
                 <p className="text-sm font-medium text-destructive">
-                  Race Readiness plafonné à {riskIndex.potentielPhysiologiqueCap}%
+                  Potentiel Physiologique plafonné à {riskIndex.potentielPhysiologiqueCap}%
                 </p>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
@@ -196,7 +196,7 @@ export function NutritionPredictive({
                 "w-5 h-5",
                 estimate.potentielPhysiologiqueImpact.adjustedCarbs ? "text-destructive" : "text-warning"
               )} />
-              <h4 className="font-semibold text-foreground">Lien Race Readiness → Nutrition</h4>
+              <h4 className="font-semibold text-foreground">Lien Potentiel Physiologique → Nutrition</h4>
             </div>
             <p className="text-sm text-foreground">{estimate.potentielPhysiologiqueImpact.message}</p>
             <p className="text-xs text-muted-foreground mt-2 italic">

@@ -13,7 +13,7 @@ export * from './vlamaxBikeV2Enhanced';
 // Disponibilité TFCL™ (remplace Fraîcheur)
 export * from './disponibiliteTFCL';
 
-// Race Readiness V2 (Potentiel × Disponibilité → Décision)
+// Potentiel Physiologique V2 (Potentiel × Disponibilité → Décision)
 
 // Système de symptômes terrain et matrice décisionnelle
 export * from "./tfclSymptoms";
@@ -21,7 +21,7 @@ export * from "./tfclSymptoms";
 // Lorang Strategy Engine — Leviers opérationnels TFCL
 export * from "./lorangStrategyEngine";
 
-// Usable Pacing Ceiling (Race Readiness + Simulation Engine V2)
+// Usable Pacing Ceiling (Potentiel Physiologique + Simulation Engine V2)
 export * from "./usablePacingCeiling";
 
 // Scenario Engine (3-scenarios unified system)
@@ -274,7 +274,7 @@ export {
   MODELED_DATA,
   CONFIDENCE_INDICES,
   APPLICATION_OUTPUTS,
-  RACE_READINESS_DEFINITION,
+  POTENTIEL_DEFINITION,
   APP_CAPABILITIES,
   RESPONSIBILITY_ETHICS,
   VERSIONING_STATEMENT,
@@ -283,7 +283,7 @@ export {
   getOfficialIntroduction,
   getCentralPrinciple,
   getConfidenceRule,
-  getRaceReadinessStatement,
+  getPotentielStatement,
   getEthicsStatement,
   generatePdfSummary
 } from './officialReference';
@@ -296,7 +296,7 @@ export {
   VLAMAX_USAGE,
   TTE_USAGE,
   FATIGUE_RISK_USAGE,
-  RACE_READINESS_USAGE,
+  POTENTIEL_USAGE,
   ATHLETE_COMMUNICATION,
   LAB_TESTS_LIMITS,
   PROFESSIONAL_RESPONSIBILITY,
@@ -786,11 +786,11 @@ export {
 // Readiness Types — Legacy stubs for backward compat
 export {
   type ReadinessState,
-  type RaceReadinessRun,
+  type PotentielRun,
   type AvailabilityRun,
   type SimulationModifiers,
-  type RaceReadinessV2Result,
-} from './readinessTypes';
+  type PotentielV2Result,
+} from './potentielTypes';
 
 // Running Limiter Detection — Limiteurs 100% CAP
 export {

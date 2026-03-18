@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectif, type PotentielPhysiologiqueEffectif } from "@/lib/potentielPhysiologiqueEffectif";
 // =============================================
 // FATIGUE COMPARISON CHART - Snapshot fatigue_state vs Calculée
 // Modèle centré snapshot: compare l'état déclaré dans chaque snapshot
@@ -116,7 +116,7 @@ export function FatigueComparisonChart({
         objectif,
       });
 
-      const rr = computeRaceReadinessEffectif({
+      const rr = computePotentielEffectif({
         objectif,
         vlamaxEffectif: vlmx,
         tteEffectif: tte,

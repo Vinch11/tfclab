@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectif, type PotentielPhysiologiqueEffectif } from "@/lib/potentielPhysiologiqueEffectif";
 /**
  * Templates de Programmation Page
  * Displays training templates with optional staff annotations
@@ -1320,8 +1320,8 @@ export default function TemplatesPage() {
       objectif: selectedAthlete.goal || "IM",
     });
 
-    // Race Readiness effectif
-    const potentielEffectif = computeRaceReadinessEffectif({
+    // Potentiel Physiologique effectif
+    const potentielEffectif = computePotentielEffectif({
       objectif: selectedAthlete.goal || "IM",
       vlamaxEffectif,
       tteEffectif,

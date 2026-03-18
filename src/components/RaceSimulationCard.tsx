@@ -77,7 +77,7 @@ export function RaceSimulationCard({
           </Badge>
         </div>
         <p className="text-xs text-muted-foreground mt-1">
-          Race Readiness: <span className={cn(
+          Potentiel Physiologique: <span className={cn(
             simulation.readiness_state === "GREEN" ? "text-emerald-600" :
             simulation.readiness_state === "ORANGE" ? "text-amber-600" : "text-red-600"
           )}>{simulation.readiness_state}</span>

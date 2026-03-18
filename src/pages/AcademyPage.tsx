@@ -241,7 +241,7 @@ const PHYSIOLOGICAL_CONSTANTS = [
     value: "35–70 minutes",
     source: "Billat, INSCYD",
     robustness: "Concept robuste",
-    usage: "Durabilité, Race Readiness"
+    usage: "Durabilité, Potentiel Physiologique"
   },
   {
     domain: "Substrats énergétiques",
@@ -681,7 +681,7 @@ export default function AcademyPage() {
                   <Separator />
                   
                   <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
-                    Les valeurs de VLamax, TTE, Race Readiness, nutrition prédictive et indices de risque sont des 
+                    Les valeurs de VLamax, TTE, Potentiel Physiologique, nutrition prédictive et indices de risque sont des 
                     <strong className="text-foreground"> estimations probabilistes</strong> basées sur des modèles reconnus, 
                     mais dépendantes du contexte individuel (fatigue, stress, âge, discipline, historique).
                   </p>
@@ -857,7 +857,7 @@ export default function AcademyPage() {
                               <TableCell>Module le risque global</TableCell>
                             </TableRow>
                             <TableRow>
-                              <TableCell>Race Readiness V2</TableCell>
+                              <TableCell>Potentiel Physiologique V2</TableCell>
                               <TableCell><Badge variant="outline">Recommandé</Badge></TableCell>
                               <TableCell>Zone d'intensité conseillée</TableCell>
                             </TableRow>

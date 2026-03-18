@@ -159,7 +159,7 @@ export function useAssistantContext(
       objectif: athlete.goal || "IM",
     }) : null;
     
-    // Race Readiness effectif
+    // Potentiel Physiologique effectif
     // Calculer l'âge de l'athlète
     const athleteAge = athlete.birth_date ? (() => {
       const birthDate = new Date(athlete.birth_date);
@@ -245,7 +245,7 @@ export function useAssistantContext(
       parts.push(`TTE: ${t.tte_min} min (source: ${t.source}, confiance: ${(t.confidence * 100).toFixed(0)}%, cible: ${t.target} min, statut: ${t.status})`);
     }
     
-    // (Race Readiness removed)
+    // (Potentiel Physiologique removed)
     
     // Autres métriques
     if (context.ftp !== null) parts.push(`FTP: ${context.ftp}W`);
@@ -310,7 +310,7 @@ export function formatContextForDisplay(context: AssistantAthleteContext): { lab
     });
   }
   
-  // (Race Readiness removed)
+  // (Potentiel Physiologique removed)
   
   // Autres
   if (context.ftp !== null) items.push({ label: "FTP", value: `${context.ftp}W` });

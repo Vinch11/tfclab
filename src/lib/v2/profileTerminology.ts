@@ -120,7 +120,7 @@ export const PROFILE_FIELDS: ProfileDataField[] = [
   // Données modélisées
   { id: 'vlamax', label: 'VLamax', category: 'modeled' },
   { id: 'tte', label: 'TTE (Time To Exhaustion)', category: 'modeled' },
-  { id: 'race_readiness', label: 'Race Readiness', category: 'modeled' },
+  { id: 'race_readiness', label: 'Potentiel Physiologique', category: 'modeled' },
   { id: 'nutrition_indices', label: 'Indices nutritionnels', category: 'modeled' },
   { id: 'glycolytic_risk', label: 'Risque glycolytique', category: 'modeled' },
   { id: 'injury_risk', label: 'Risque blessure', category: 'modeled' },
@@ -236,7 +236,7 @@ Ce nouveau terme reflète mieux la réalité scientifique : c'est un point de r�
       content: "Le profil est organisé en trois catégories claires.",
       keyPoints: [
         "Données MESURÉES : poids, FC max, FTP, VMA, tests labo",
-        "Données MODÉLISÉES : VLamax, TTE, Race Readiness, risques",
+        "Données MODÉLISÉES : VLamax, TTE, Potentiel Physiologique, risques",
         "CONTEXTE : date, source, indice de confiance"
       ]
     },
@@ -284,7 +284,7 @@ export const PROFILE_CHATBOT_QA: ProfileChatbotQA[] = [
 • Poids, FC max, FTP, VMA, tests labo...
 
 **Données MODÉLISÉES** (calculées par l'app) :
-• VLamax, TTE, Race Readiness, indices de risque...
+• VLamax, TTE, Potentiel Physiologique, indices de risque...
 
 Les données modélisées sont estimées à partir de vos données mesurées via des modèles physiologiques validés. Elles apparaissent automatiquement pour enrichir votre analyse.
 
@@ -301,7 +301,7 @@ Exemples : poids, FC max, FTP, VMA, tests labo...
 
 **Données MODÉLISÉES** (badge orange) :
 Ce sont des estimations issues de modèles physiologiques. Elles comportent une incertitude.
-Exemples : VLamax (sauf mesure lactate), TTE, Race Readiness...
+Exemples : VLamax (sauf mesure lactate), TTE, Potentiel Physiologique...
 
 Regardez le badge à côté de chaque valeur pour savoir si c'est mesuré ou estimé.`
   },

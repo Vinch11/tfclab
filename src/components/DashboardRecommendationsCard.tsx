@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectif, type PotentielPhysiologiqueEffectif } from "@/lib/potentielPhysiologiqueEffectif";
 /**
  * Version compacte des recommandations Wahoo pour le Dashboard
  * Affiche les suggestions prioritaires avec un lien vers la bibliothèque complète
@@ -145,8 +145,8 @@ export function DashboardRecommendationsCard({
       objectif,
     });
 
-    // Compute Race Readiness
-    const potentielPhysiologique = computeRaceReadinessEffectif({
+    // Compute Potentiel Physiologique
+    const potentielPhysiologique = computePotentielEffectif({
       objectif,
       vlamaxEffectif,
       tteEffectif,

@@ -164,7 +164,7 @@ export const ACADEMY_SECTIONS: SectionDefinition[] = [
   { id: "protocols", label: "Protocoles", icon: "FlaskConical", defaultVisible: true },
 ];
 
-export const RACE_READINESS_SECTIONS: SectionDefinition[] = [
+export const POTENTIEL_SECTIONS: SectionDefinition[] = [
   { id: "readiness-card", label: "Score Potentiel Physiologique", icon: "Trophy", defaultVisible: true },
   { id: "nutrition-timing", label: "Nutrition & Timing", icon: "Utensils", defaultVisible: true },
   { id: "running-economy", label: "Économie de Course", icon: "Footprints", defaultVisible: true },
@@ -329,7 +329,7 @@ export const ALL_SECTIONS: Record<TabId, SectionDefinition[]> = {
   seances: SEANCES_SECTIONS,
   templates: TEMPLATES_SECTIONS,
   academy: ACADEMY_SECTIONS,
-  "race-readiness": RACE_READINESS_SECTIONS,
+  "race-readiness": POTENTIEL_SECTIONS,
   "running-profile": RUNNING_PROFILE_SECTIONS,
   strategie: STRATEGIE_SECTIONS,
 };

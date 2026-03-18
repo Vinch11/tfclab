@@ -14,14 +14,14 @@
  * - Nutrition planifiée → réduit le risque mais ne l'annule pas
  * 
  * INTÉGRATION RACE READINESS:
- * - Les modificateurs du connecteur Race Readiness → Simulation sont appliqués
+ * - Les modificateurs du connecteur Potentiel Physiologique → Simulation sont appliqués
  * - FTP/VMA effectifs ajustés selon la disponibilité
  * - FatMax décalé si disponibilité réduite
  * - Taux de déplétion glycogène modifié
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import type { SimulationModifiers } from './readinessTypes';
+import type { SimulationModifiers } from './potentielTypes';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -70,7 +70,7 @@ export interface RaceSimulationInput {
   paceThreshold?: number | null; // sec/km
   weight?: number | null;        // kg
   
-  // Modificateurs Race Readiness (optionnel)
+  // Modificateurs Potentiel Physiologique (optionnel)
   readinessModifiers?: SimulationModifiers | null;
 }
 
@@ -381,7 +381,7 @@ Idéale quand les données sont incomplètes ou pour une première approche.`,
       title: "Ce qui est utilisé",
       content: `• Type de course et allure cible
 • Disponibilité TFCL™ (état du jour)
-• Race Readiness V2 (potentiel global)
+• Potentiel Physiologique V2 (potentiel global)
 Pas de chiffres VLamax ou TTE explicites.`,
     },
     {
@@ -886,7 +886,7 @@ export function computeRaceSimulation(input: RaceSimulationInput): RaceSimulatio
   const baseIntensity = AMBITION_INTENSITY[raceType]?.[input.ambition] ?? 70;
   const baseDuration = input.targetDurationMin ?? REFERENCE_DURATIONS[raceType]?.[input.ambition] ?? 180;
   
-  // Récupérer les modificateurs Race Readiness
+  // Récupérer les modificateurs Potentiel Physiologique
   const readinessModifiers = input.readinessModifiers;
   
   // Sources utilisées
@@ -909,7 +909,7 @@ export function computeRaceSimulation(input: RaceSimulationInput): RaceSimulatio
   
   // Ajouter source si modificateurs appliqués
   if (readinessModifiers) {
-    sourcesUsed.push("Race Readiness Modifiers");
+    sourcesUsed.push("Potentiel Physiologique Modifiers");
   }
   
   // Déterminer les scénarios autorisés
@@ -922,7 +922,7 @@ export function computeRaceSimulation(input: RaceSimulationInput): RaceSimulatio
     generateScenario('aggressive', input, baseIntensity, baseDuration, readinessModifiers),
   ];
   
-  // Recommandation — prendre en compte les scénarios autorisés par Race Readiness
+  // Recommandation — prendre en compte les scénarios autorisés par Potentiel Physiologique
   let recommendedScenario: ScenarioType = 'optimal';
   
   // Si scénario agressif non autorisé par les modificateurs, ne jamais le recommander
@@ -1012,7 +1012,7 @@ export function computeRaceSimulation(input: RaceSimulationInput): RaceSimulatio
     });
   }
   
-  // Garde-fou pour les modificateurs Race Readiness
+  // Garde-fou pour les modificateurs Potentiel Physiologique
   if (readinessModifiers) {
     // Ajouter un avertissement si FTP/seuil effectif est réduit
     const ftpMultiplier = (readinessModifiers.effectiveFtpMultiplier[0] + readinessModifiers.effectiveFtpMultiplier[1]) / 2;

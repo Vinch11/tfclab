@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectif, type PotentielPhysiologiqueEffectif } from "@/lib/potentielPhysiologiqueEffectif";
 // =============================================
 // COMPOSANT ANALYSE PHYSIOLOGIQUE ÉLITE
 // + Section Économie de Course (CAP)
@@ -35,7 +35,7 @@ import { type VLamaxEffectif, toVLamaxEnvelope, type TTEEffectif, getTTESourceCo
 import { VLamaxMetricRow } from "@/components/VLamaxStatusBadge";
 import { cn } from "@/lib/utils";
 import { getConfidenceLabelFromPercent, getConfidenceColorClassFromPercent } from "@/lib/confidenceDisplay";
-import { getEconomyLabelStyle, getEconomyRaceReadinessBonus } from "@/lib/runningEconomySnapshot";
+import { getEconomyLabelStyle, getEconomyPotentielBonus } from "@/lib/runningEconomySnapshot";
 import { computeNutritionEstimate, type NutritionEstimate, type Sport } from "@/lib/nutritionPredictive";
 import { ScientificChartsDashboard, MetabolicPerformanceCompass, ScoreEnvelopeInlineCard } from "@/components/charts";
 
@@ -43,7 +43,7 @@ interface PhysiologicalAnalysisProps {
   athlete: Athlete;
   vlamaxEffectif?: VLamaxEffectif;
   tteEffectif?: TTEEffectif;
-  readiness?: RaceReadinessEffectif;
+  readiness?: PotentielPhysiologiqueEffectif;
   onGoToSnapshots?: () => void;
   ambition?: AmbitionLevel;
   athleteAge?: number | null;
@@ -379,11 +379,11 @@ export function PhysiologicalAnalysis({ athlete, vlamaxEffectif, tteEffectif: tt
               </div>
             )}
             
-            {/* Impact Race Readiness */}
+            {/* Impact Potentiel Physiologique */}
             {readinessProp.wasCappedByEconomy && (
               <div className="p-2 rounded-lg bg-orange-500/10 border border-orange-500/20">
                 <p className="text-xs text-orange-600">
-                  🏃 Race Readiness plafonné: {readinessProp.economyCapReason}
+                  🏃 Potentiel Physiologique plafonné: {readinessProp.economyCapReason}
                 </p>
               </div>
             )}

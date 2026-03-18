@@ -45,7 +45,7 @@ import { StaffDashboard } from "@/components/StaffDashboard";
 import { ScientificChartsDashboard, MetabolicPerformanceCompass, MetabolicCompassCAP, AmbitionProgressChart, AmbitionProgressMini, CompactMetricsGrid, CarbBurnRateChart, MetabolicPowerCurve } from "@/components/charts";
 import { ChargeRecenteCard } from "@/components/ChargeRecenteCard";
 import { computeCRR } from "@/lib/chargeRecenteReference";
-// ✅ Race Readiness - Carte unifiée (Phase 1c UX)
+// ✅ Potentiel Physiologique - Carte unifiée (Phase 1c UX)
 import { computeCompassScores, type CompassScores } from "@/lib/compassScoring";
 import { DecisionReliabilityCard } from "@/components/DecisionReliabilityCard";
 import { computeFullDRE, type DecisionReliabilityResult } from "@/engines/diagnostic";
@@ -190,7 +190,7 @@ import { toast } from "sonner";
 import { getDernierSnapshot } from "@/types/athlete";
 import { computeVLamaxEffectif, type VLamaxEffectif, computeTTEEffectif, type TTEEffectif, getSourceLabel } from "@/engines/diagnostic";
 
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, type RaceReadinessInput } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, type PotentielInput } from "@/lib/potentielPhysiologiqueEffectif";
 // ✅ RACE READINESS EFFECTIF - Source unique de vérité
 
 // ✅ Ambition (modulateur des cibles)
@@ -502,9 +502,9 @@ const Index = () => {
     return tteEffectif?.tte_min ?? 0;
   }, [tteEffectif]);
 
-  // Race Readiness stub (module removed)
+  // Potentiel Physiologique stub (module removed)
   const potentielPhysiologiqueEffectif = useMemo(() => {
-    return computeRaceReadinessEffectif({
+    return computePotentielEffectif({
       objectif: currentAthlete?.goal || "IM",
       vlamaxEffectif,
       tteEffectif,
@@ -1199,7 +1199,7 @@ const Index = () => {
       case "dashboard":
         // ═══════════════════════════════════════════════════════════
         // DASHBOARD SIMPLIFIÉ — 5 sections + Quick Actions
-        // Flux: Compass → Profil → Decision → Race Readiness → Objectifs
+        // Flux: Compass → Profil → Decision → Potentiel Physiologique → Objectifs
         // ═══════════════════════════════════════════════════════════
         const dashboardSections = [
           // ✅ Quick Actions Panel
@@ -1365,7 +1365,7 @@ const Index = () => {
               );
             },
           },
-          // ✅ 4. Race Readiness
+          // ✅ 4. Potentiel Physiologique
           {
             id: "race-readiness-unified",
             render: () => {
@@ -1413,7 +1413,7 @@ const Index = () => {
               const tss7d = effectiveCloudSnapshot?.tss_7d ?? null;
               const tss28d = tss7d ? tss7d * 4 : null;
               
-              const signatureInput: RaceReadinessInput = {
+              const signatureInput: PotentielInput = {
                 objectif: currentAthlete.goal || "IM",
                 vlamaxValue: vlamaxEffectif.value,
                 vlamaxConfidence: vlamaxEffectif.confidence,

@@ -21,10 +21,10 @@ import {
   matchWahooSession,
   type WahooWorkoutMapping 
 } from "@/data/wahooMapping";
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, type RaceReadinessInput, type RaceReadinessResult, computeRaceReadinessSignature } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, type PotentielInput, type PotentielResult, computePotentielSignature } from "@/lib/potentielPhysiologiqueEffectif";
 
 // Re-export types for external use
-export type { RaceReadinessResult as RaceReadinessSignatureResult };
+export type { PotentielResult as PotentielSignatureResult };
 
 // =============================================
 // TYPES
@@ -59,10 +59,10 @@ export interface AssistantContextPacket {
   // Métriques effectifs (avec source et confiance)
   vlamaxEffectif: VLamaxEffectif | null;
   tteEffectif: TTEEffectif | null;
-  potentielPhysiologique: RaceReadinessEffectif | null;
+  potentielPhysiologique: PotentielPhysiologiqueEffectif | null;
   
-  // Race Readiness Signature (nouveau système Potentiel × Disponibilité)
-  potentielPhysiologiqueSignature: RaceReadinessResult | null;
+  // Potentiel Physiologique Signature (nouveau système Potentiel × Disponibilité)
+  potentielPhysiologiqueSignature: PotentielResult | null;
   
   // Charge récente
   chargeRecente: {
@@ -342,7 +342,7 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
     objectif: athlete?.goal || "IM",
   }) : null;
   
-  // Race Readiness
+  // Potentiel Physiologique
   // Calculer l'âge de l'athlète
   const athleteAge = athlete?.birth_date ? (() => {
     const birthDate = new Date(athlete.birth_date);
@@ -355,7 +355,7 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
     return age;
   })() : null;
   
-  const potentielPhysiologique = tteEffectif && vlamaxEffectif ? computeRaceReadinessEffectif({
+  const potentielPhysiologique = tteEffectif && vlamaxEffectif ? computePotentielEffectif({
     objectif: athlete?.goal || "IM",
     vlamaxEffectif,
     tteEffectif,
@@ -385,11 +385,11 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
     tteTarget: tteEffectif?.target ?? null,
   }) : null;
   
-  // Race Readiness Signature (nouveau système Potentiel × Disponibilité)
-  let potentielPhysiologiqueSignature: RaceReadinessResult | null = null;
+  // Potentiel Physiologique Signature (nouveau système Potentiel × Disponibilité)
+  let potentielPhysiologiqueSignature: PotentielResult | null = null;
   if (athlete?.goal) {
     // Construire l'input pour le calcul
-    const signatureInput: RaceReadinessInput = {
+    const signatureInput: PotentielInput = {
       objectif: athlete.goal || "IM",
       vlamaxValue: vlamaxEffectif?.value ?? 0.40,
       vlamaxConfidence: vlamaxEffectif?.confidence ?? 0.5,
@@ -399,7 +399,7 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
       vo2max: effectiveSnapshot?.vo2max ?? null,
     };
     
-    potentielPhysiologiqueSignature = computeRaceReadinessSignature(signatureInput);
+    potentielPhysiologiqueSignature = computePotentielSignature(signatureInput);
   }
   // Champs manquants
   const missingFields = identifyMissingFields(athlete, effectiveSnapshot);
@@ -560,14 +560,14 @@ export function formatContextForPrompt(context: AssistantContextPacket): string 
     parts.push(`- Statut: ${t.status}`);
   }
   
-  // Race Readiness (ancien système)
+  // Potentiel Physiologique (ancien système)
   if (context.potentielPhysiologique) {
     const r = context.potentielPhysiologique;
-    parts.push(`## Race Readiness Legacy: ${r.score}/100 (${r.label})`);
+    parts.push(`## Potentiel Physiologique Legacy: ${r.score}/100 (${r.label})`);
     parts.push(`- Confiance: ${(r.confidence * 100).toFixed(0)}%`);
   }
   
-  // Race Readiness Signature (nouveau système Potentiel × Disponibilité)
+  // Potentiel Physiologique Signature (nouveau système Potentiel × Disponibilité)
   if (context.potentielPhysiologiqueSignature) {
     const rr = context.potentielPhysiologiqueSignature;
     parts.push(`\n## RACE READINESS SIGNATURE (Potentiel × Disponibilité → Décision)`);

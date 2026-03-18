@@ -37,7 +37,7 @@ import {
   type RunningObjectiveDistance,
   type WeeklyInputs,
 } from "@/lib/v2/runningDoubleLoop";
-import { type AvailabilityRun, type RaceReadinessRun, type ReadinessState, type RiskContextRun, computeRaceReadinessRun, applyReadinessToDecision } from "@/lib/v2/readinessTypes";
+import { type AvailabilityRun, type PotentielRun, type ReadinessState, type RiskContextRun, computePotentielRun, applyReadinessToDecision } from "@/lib/v2/potentielTypes";
 import { computeVLamaxEffectif } from "@/engines/diagnostic";
 import { computeDisponibiliteTFCL } from "@/lib/v2/disponibiliteTFCL";
 
@@ -158,7 +158,7 @@ export function RunningGuidancePage() {
   });
   
   // Calculer le Potentiel Physiologique
-  const potentielPhysiologique = useMemo((): RaceReadinessRun | null => {
+  const potentielPhysiologique = useMemo((): PotentielRun | null => {
     if (!lockedProfile) return null;
     
     const riskContext: RiskContextRun = {
@@ -166,7 +166,7 @@ export function RunningGuidancePage() {
       limiting_factor: "NONE",
     };
     
-    return computeRaceReadinessRun(lockedProfile, availability);
+    return computePotentielRun(lockedProfile, availability);
   }, [lockedProfile, availability]);
   
   // Calculer la décision hebdomadaire (modifiée par le readiness)

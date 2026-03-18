@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, computePillarCalculations } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, computePillarCalculations } from "@/lib/potentielPhysiologiqueEffectif";
 /**
  * RAPPORT STAFF PRÉ-COURSE - Composant UI
  * Synthèse d'une page, lisible en < 2 minutes
@@ -56,7 +56,7 @@ import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 import { computeFullDRE, type DecisionReliabilityResult, type Scenario } from "@/engines/diagnostic";
 import { DecisionReliabilityBadge, DecisionReliabilityProgress } from "@/components/DecisionReliabilityBadge";
 import { computeLorangStrategy, type LorangStrategyInput, type LorangStrategyResult, LIMITER_DEFINITIONS, LEVER_DEFINITIONS } from "@/engines/decision";
-import { computeRaceReadinessSignature, type RaceReadinessInput, type RaceReadinessResult } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielSignature, type PotentielInput, type PotentielResult } from "@/lib/potentielPhysiologiqueEffectif";
 import { PacingEnvelopeBar, PacingEnvelopeBarInline } from "@/components/charts/PacingEnvelopeBar";
 import { LongDistanceEnvelopeChart, LongDistanceEnvelopeInline } from "@/components/charts/LongDistanceEnvelopeChart";
 import { computePacingEnvelope, type PacingEnvelopeInput, type RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
@@ -82,7 +82,7 @@ interface StaffReportProps {
   snapshotDate: string;
   vlamaxEffectif: VLamaxEffectif;
   tteEffectif: TTEEffectif;
-  readiness: RaceReadinessEffectif;
+  readiness: PotentielPhysiologiqueEffectif;
   nutritionEstimate: NutritionEstimate | null;
   runningEconomy: RunningEconomyResult | null;
   ftp: number | null;
@@ -95,7 +95,7 @@ interface StaffReportProps {
   snapshot?: DbSnapshot | null;
   vo2max?: number | null;
   lorangInput?: LorangStrategyInput | null;
-  potentielPhysiologiqueSignatureInput?: RaceReadinessInput | null;
+  potentielPhysiologiqueSignatureInput?: PotentielInput | null;
   runningProfile?: RunningPhysioProfile | null;
   runningWeeklyDecision?: RunningWeeklyDecision | null;
   onExportPDF?: () => void;
@@ -336,7 +336,7 @@ export function StaffReport({
                 <span className="text-3xl">{report.executiveSummary.trafficLightIcon}</span>
                 <div>
                   <p className="text-2xl font-bold">
-                    Race Readiness : {report.executiveSummary.potentielPhysiologiqueScore}%
+                    Potentiel Physiologique : {report.executiveSummary.potentielPhysiologiqueScore}%
                   </p>
                   <p className="text-sm font-medium">
                     Statut : {report.executiveSummary.trafficLightLabel}
@@ -359,7 +359,7 @@ export function StaffReport({
         </div>
 
         {/* 1.5️⃣ DÉTAILS DE CALCUL RACE READINESS */}
-        <RaceReadinessCalculationDetails readiness={readiness} />
+        <PotentielCalculationDetails readiness={readiness} />
 
         {/* 2️⃣ INDICATEURS CLÉS */}
         <div>
@@ -550,7 +550,7 @@ export function StaffReport({
         {lorangInput && <LorangStrategySection input={lorangInput} />}
 
         {/* 2.7️⃣ RACE READINESS SIGNATURE — POTENTIEL × DISPONIBILITÉ → DÉCISION */}
-        {potentielPhysiologiqueSignatureInput && <RaceReadinessSignatureSection input={potentielPhysiologiqueSignatureInput} />}
+        {potentielPhysiologiqueSignatureInput && <PotentielSignatureSection input={potentielPhysiologiqueSignatureInput} />}
 
         {/* 2.8️⃣ DOUBLE BOUCLE CAP — PROFIL VERROUILLÉ + DÉCISION HEBDOMADAIRE */}
         {runningProfile && (
@@ -975,7 +975,7 @@ export function StaffReport({
               {pacingEnvelope.readinessMessage && (
                 <div className="mt-2 p-2 rounded bg-muted/50">
                   <p className="text-[10px] text-muted-foreground">
-                    📉 Race Readiness: {pacingEnvelope.readinessMessage}
+                    📉 Potentiel Physiologique: {pacingEnvelope.readinessMessage}
                   </p>
                 </div>
               )}
@@ -1477,9 +1477,9 @@ export function StaffReport({
 }
 
 /**
- * Composant pour afficher les détails de calcul Race Readiness dans le rapport exporté
+ * Composant pour afficher les détails de calcul Potentiel Physiologique dans le rapport exporté
  */
-function RaceReadinessCalculationDetails({ readiness }: { readiness: RaceReadinessEffectif }) {
+function PotentielCalculationDetails({ readiness }: { readiness: PotentielPhysiologiqueEffectif }) {
   const calculations = computePillarCalculations(readiness);
   
   const pillars = [
@@ -1922,8 +1922,8 @@ function LorangStrategySection({ input }: { input: LorangStrategyInput }) {
 // RACE READINESS SIGNATURE SECTION — Potentiel × Disponibilité → Décision
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function RaceReadinessSignatureSection({ input }: { input: RaceReadinessInput }) {
-  const result = computeRaceReadinessSignature(input);
+function PotentielSignatureSection({ input }: { input: PotentielInput }) {
+  const result = computePotentielSignature(input);
   
   // Couleurs des zones de décision
   const zoneColors: Record<string, { bg: string; border: string; text: string }> = {
@@ -2049,7 +2049,7 @@ function RaceReadinessSignatureSection({ input }: { input: RaceReadinessInput })
         
         {/* Philosophie */}
         <p className="text-[10px] text-muted-foreground italic">
-          💡 "Race Readiness ≠ Fitness. Capacité à exprimer son potentiel le jour J, pas la valeur maximale de ce potentiel."
+          💡 "Potentiel Physiologique ≠ Fitness. Capacité à exprimer son potentiel le jour J, pas la valeur maximale de ce potentiel."
         </p>
       </div>
     </>
@@ -2078,7 +2078,7 @@ function StaffCompassSection({
 }: {
   vlamaxEffectif: VLamaxEffectif;
   tteEffectif: TTEEffectif;
-  readiness: RaceReadinessEffectif;
+  readiness: PotentielPhysiologiqueEffectif;
   ftp: number | null;
   poids: number | null;
   vo2max: number | null;

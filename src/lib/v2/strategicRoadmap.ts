@@ -355,7 +355,7 @@ function addPhase3Adaptations(
       targets.push("FatMax stabilisé aux intensités de course");
       break;
     default:
-      targets.push("Race Readiness > 70%");
+      targets.push("Potentiel Physiologique > 70%");
       break;
   }
 }
