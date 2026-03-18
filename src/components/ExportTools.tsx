@@ -114,7 +114,7 @@ export interface ReportSections {
   pacingEnvelope: boolean;  // ✅ Pacing Envelope™ - Discipline Métabolique
   longDistancePacing: boolean; // ✅ Long Distance Pacing Discipline
   doubleBoucleCAP: boolean; // ✅ Double Boucle CAP (Running)
-  raceReadinessRunning: boolean; // ✅ Race Readiness CAP V2 (Running)
+  raceReadinessRunning: boolean; // ✅ Potentiel Physiologique CAP (Running)
   pacingEnvelopeRunning: boolean; // ✅ Pacing Envelope™ CAP (Running)
   injuryRisk: boolean;      // Risque de Blessure CAP
   nutritionV2: boolean;     // Nutrition Prédictive V2
