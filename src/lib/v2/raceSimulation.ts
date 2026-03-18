@@ -21,7 +21,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import type { SimulationModifiers } from './readinessTypes';
+import type { SimulationModifiers } from './potentielTypes';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES

@@ -37,7 +37,7 @@ import {
   type RunningObjectiveDistance,
   type WeeklyInputs,
 } from "@/lib/v2/runningDoubleLoop";
-import { type AvailabilityRun, type RaceReadinessRun, type ReadinessState, type RiskContextRun, computeRaceReadinessRun, applyReadinessToDecision } from "@/lib/v2/readinessTypes";
+import { type AvailabilityRun, type RaceReadinessRun, type ReadinessState, type RiskContextRun, computeRaceReadinessRun, applyReadinessToDecision } from "@/lib/v2/potentielTypes";
 import { computeVLamaxEffectif } from "@/engines/diagnostic";
 import { computeDisponibiliteTFCL } from "@/lib/v2/disponibiliteTFCL";
 

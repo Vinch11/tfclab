@@ -34,7 +34,7 @@ import {
   RACE_READINESS_V2_CATEGORIES,
   RACE_READINESS_V2_DEFINITIONS,
   getRaceReadinessV2BadgeClass,
-} from "@/lib/v2/readinessTypes";
+} from "@/lib/v2/potentielTypes";
 
 interface TFCLDecisionChartProps {
   result: RaceReadinessV2Result;

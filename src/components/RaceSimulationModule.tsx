@@ -81,7 +81,7 @@ import {
   ACCESS_LEVEL_COLORS,
   type SimulationAccessResult,
   type RaceReadinessV2Result,
-} from '@/lib/v2/readinessTypes';
+} from '@/lib/v2/potentielTypes';
 
 interface RaceSimulationModuleProps {
   // Profil TFCL (automatique)

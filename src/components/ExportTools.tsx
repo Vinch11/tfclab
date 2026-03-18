@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getTargets, getWeightsBySport, generateAthleteReadiness } from "@/lib/raceReadinessEffectif";
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getTargets, getWeightsBySport, generateAthleteReadiness } from "@/lib/potentielPhysiologiqueEffectif";
 // =============================================
 // OUTILS EXPORT PDF – RAPPORT STAFF-GRADE COMPLET
 // Two For Coaching Lab – Performance & Metabolic Report

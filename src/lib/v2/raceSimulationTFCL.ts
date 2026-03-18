@@ -12,7 +12,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import type { ReadinessState } from "./readinessTypes";
+import type { ReadinessState } from "./potentielTypes";
 import type { PacingEnvelopeRunResult, PacingZoneDefinitionRun, RunningDistance } from "./pacingEnvelopeRunning";
 
 // ═══════════════════════════════════════════════════════════════════════════════

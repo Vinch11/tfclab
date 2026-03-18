@@ -790,7 +790,7 @@ export {
   type AvailabilityRun,
   type SimulationModifiers,
   type RaceReadinessV2Result,
-} from './readinessTypes';
+} from './potentielTypes';
 
 // Running Limiter Detection — Limiteurs 100% CAP
 export {
