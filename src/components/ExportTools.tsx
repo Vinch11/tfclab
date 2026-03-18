@@ -1661,7 +1661,7 @@ async function imageToBase64(url: string): Promise<string> {
 }
 
 // =============================================
-// BUILD RACE READINESS RUNNING HTML (CAP V2)
+// BUILD POTENTIEL PHYSIOLOGIQUE RUNNING HTML (CAP)
 // =============================================
 
 function buildRaceReadinessRunningHTML(payload: ExportPayload): string {
@@ -1685,17 +1685,17 @@ function buildRaceReadinessRunningHTML(payload: ExportPayload): string {
   
   return `
     <section id="race-readiness-running" class="section pagebreakAvoid">
-      <h2>🏃 Race Readiness CAP V2 — TFCL Method™</h2>
+      <h2>🏃 Potentiel Physiologique CAP — TFCL Method™</h2>
       
       <div class="alert alertInfo mb">
-        <b>📋 Concept :</b> Le Race Readiness mesure la capacité à exprimer le potentiel physiologique CAP <em>aujourd'hui</em>. 
-        Il sépare le <b>Potentiel (profil verrouillé)</b> de la <b>Disponibilité (boucle rapide)</b>.
+        <b>📋 Concept :</b> Le Potentiel Physiologique mesure l'adéquation du profil métabolique CAP avec les exigences de l'objectif. 
+        Il évalue le <b>Potentiel structurel</b> indépendamment de la fatigue conjoncturelle.
       </div>
       
       <div class="card" style="border-color: ${state.color}; background: ${state.bg};">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
           <div>
-            <div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Race Readiness CAP</div>
+            <div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Potentiel Physiologique CAP</div>
             <div style="font-size:42px;font-weight:800;color:${state.color};">${readinessScore}%</div>
             <div style="font-size:14px;font-weight:600;color:${state.color};">${state.message}</div>
           </div>
