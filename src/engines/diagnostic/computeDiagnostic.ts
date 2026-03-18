@@ -7,7 +7,7 @@
  * Appelle les sous-modules existants dans l'ordre :
  * 1. Effectifs (VLamax, TTE, Fatigue)
  * 2. Limiteur Unifié (ex-Compas)
- * 3. Race Readiness
+ * 3. Potentiel Physiologique
  * 4. Cibles Physiologiques
  * 5. Risque Blessure
  * 6. DRE (si données disponibles)
@@ -60,7 +60,7 @@ export function computeDiagnostic(input: DiagnosticInput): AthleteDiagnostic {
     age: input.age,
   });
 
-  // ── 3. Race Readiness ─────────────────────────────────────────────────────
+  // ── 3. Potentiel Physiologique ─────────────────────────────────────────────────────
   const readiness = computeReadinessFromInput(input, limiter);
 
   // ── 4. Cibles Physiologiques ──────────────────────────────────────────────

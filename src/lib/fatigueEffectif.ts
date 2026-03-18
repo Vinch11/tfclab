@@ -338,7 +338,7 @@ function computeFatiguePercueIndex(
  * C) Indice Profil Métabolique (20%)
  * VLamax élevé = fatigue glycolytique plus rapide
  * VLamax bas = fatigue plus progressive
- * Combiné avec la fraîcheur métabolique du Race Readiness
+ * Combiné avec la fraîcheur métabolique du Potentiel Physiologique
  */
 function computeFraicheurIndex(
   potentielPhysiologique: PotentielPhysiologiqueEffectif | null | undefined

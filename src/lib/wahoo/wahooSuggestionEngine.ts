@@ -2,7 +2,7 @@
  * Wahoo SYSTM Suggestion Engine v2
  * Staff-grade workout suggestions based on unified effective values
  * 
- * Uses: VLamaxEffectif, TTEEffectif, RaceReadiness, CRR, Injury Risk, Fatigue
+ * Uses: VLamaxEffectif, TTEEffectif, PotentielPhysiologique, CRR, Injury Risk, Fatigue
  * 
  * This engine NEVER imposes or modifies plans.
  * It provides pedagogical, optional, and justified suggestions.

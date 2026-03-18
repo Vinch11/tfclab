@@ -71,7 +71,7 @@ C'est pourquoi Two For Coaching Lab ne présente jamais une valeur brute isolée
     examples: [
       "VLamax = 0.37 (≈ 0.27–0.47), estimée, confiance modérée",
       "TTE = 48 min (≈ 41–55 min), estimé, confiance élevée",
-      "Race Readiness = 72 (≈ 57–87), confiance modérée"
+      "Potentiel Physiologique = 72 (≈ 57–87), confiance modérée"
     ]
   },
   {
@@ -106,7 +106,7 @@ Calcul issu de plusieurs indicateurs. Sert à orienter la réflexion, pas à tra
     id: "scores",
     title: "Pourquoi les scores ne sont PAS des notes",
     icon: "⚖️",
-    content: `Un score (Race Readiness, Robustesse, Risque) n'est pas une note de valeur. C'est un indicateur synthétique permettant de comparer des états, pas des personnes.
+    content: `Un score (Potentiel Physiologique, Robustesse, Risque) n'est pas une note de valeur. C'est un indicateur synthétique permettant de comparer des états, pas des personnes.
 
 Pourquoi les scores sont donnés avec une plage :
 • La physiologie n'est pas une science exacte
@@ -228,11 +228,11 @@ La valeur affichée inclut une plage (± 3 à ± 12 min selon la source).`,
   {
     id: "module_race_readiness",
     metricId: "race_readiness",
-    title: "Race Readiness : état global, pas performance",
-    conceptPhysio: `Race Readiness est un indicateur composite (0–100) qui évalue la cohérence entre le profil physiologique de l'athlète et son objectif de course.
+    title: "Potentiel Physiologique : état global, pas performance",
+    conceptPhysio: `Potentiel Physiologique est un indicateur composite (0–100) qui évalue la cohérence entre le profil physiologique de l'athlète et son objectif de course.
 
 Ce n'est pas un prédicteur de performance, mais un indicateur de préparation.`,
-    howT4CUses: `Two For Coaching Lab calcule Race Readiness en combinant :
+    howT4CUses: `Two For Coaching Lab calcule Potentiel Physiologique en combinant :
 • VLamax (dans la zone cible ?)
 • TTE (suffisant pour la durée ?)
 • FTP/kg (puissance relative adaptée ?)
@@ -240,7 +240,7 @@ Ce n'est pas un prédicteur de performance, mais un indicateur de préparation.`
 
 La confiance globale dépend de la confiance des entrées.`,
     whatItMeans: `Un score élevé (> 80) indique une bonne cohérence actuelle. Un score bas (< 60) signale des axes de travail prioritaires.`,
-    whatItDoesNotMean: `Race Readiness n'est PAS :
+    whatItDoesNotMean: `Potentiel Physiologique n'est PAS :
 • Une prédiction de chrono
 • Une garantie de performance
 • Un remplacement du jugement coach`,
@@ -250,12 +250,12 @@ La confiance globale dépend de la confiance des entrées.`,
       "Ignorer la plage d'incertitude du score",
       "Croire qu'un score de 90 garantit le succès"
     ],
-    coachUsage: `Le coach utilise Race Readiness pour :
+    coachUsage: `Le coach utilise Potentiel Physiologique pour :
 • Identifier les axes prioritaires (voir détail par composante)
 • Ajuster l'affûtage pré-compétition
 • Communiquer un état global à l'athlète`,
     scientificLimits: `Le score est une agrégation pondérée de métriques elles-mêmes estimées. La marge d'incertitude peut atteindre ±25 points.`,
-    charteReference: "Selon la charte Two For Coaching Lab, Race Readiness est un indicateur de cohérence, pas une garantie de résultat."
+    charteReference: "Selon la charte Two For Coaching Lab, Potentiel Physiologique est un indicateur de cohérence, pas une garantie de résultat."
   },
   {
     id: "module_compass",

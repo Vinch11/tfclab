@@ -7,7 +7,7 @@ import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, getScore
  * - VLamax effectif, TTE effectif, FTP/kg
  * - Objectif, Sport
  * - Nutrition prédictive + timing (module B)
- * - Race Readiness, Running Economy
+ * - Potentiel Physiologique, Running Economy
  */
 
 import type { VLamaxEffectif } from "./vlamaxEffectif";
@@ -208,7 +208,7 @@ function computePacingVelo(params: {
   if (potentielPhysiologiqueScore < 60) {
     ifMin -= 0.03;
     ifMax -= 0.03;
-    consignes.push("Race Readiness < 60 → pacing conservateur");
+    consignes.push("Potentiel Physiologique < 60 → pacing conservateur");
   }
   
   // Consignes standards
@@ -310,7 +310,7 @@ function generateAlerts(params: {
     alerts.push({
       severity: "warning",
       icon: "🟠",
-      message: "Race Readiness insuffisant",
+      message: "Potentiel Physiologique insuffisant",
       action: "Revoir les paramètres clés avant la course",
     });
   }

@@ -10,7 +10,7 @@
 // - consomme le moins de glucides
 //
 // LIEN AVEC RACE READINESS :
-// Race Readiness CAP est dégradé automatiquement si :
+// Potentiel Physiologique CAP est dégradé automatiquement si :
 // - l'économie est faible
 // - la dérive cardiaque est élevée
 // - le TTE est correct mais non soutenable mécaniquement
@@ -29,7 +29,7 @@ export const RUNNING_ECONOMY_METHODOLOGY = {
 
 Une mauvaise économie augmente la consommation énergétique et les besoins nutritionnels, même à intensité modérée.
 
-Race Readiness intègre ces paramètres afin d'anticiper les limites physiologiques et nutritionnelles de l'athlète.`,
+Potentiel Physiologique intègre ces paramètres afin d'anticiper les limites physiologiques et nutritionnelles de l'athlète.`,
   disclaimer: "Les résultats sont des ordres de grandeur. L'objectif est l'aide à la décision, pas la prescription médicale.",
   dataUsed: [
     "Allure à une intensité donnée (ex : allure marathon)",
@@ -72,7 +72,7 @@ export interface RunningEconomyResult {
   deriveEstimee: number | null;          // % dérive estimée ou fournie
   deriveLabel: string;
   
-  // Impact sur Race Readiness
+  // Impact sur Potentiel Physiologique
   capScore: number | null;               // null = pas de cap, sinon max score
   capMessage: string | null;
   
@@ -303,7 +303,7 @@ export function computeRunningEconomy(input: RunningEconomyInput): RunningEconom
     }
   }
   
-  // Impact sur Race Readiness
+  // Impact sur Potentiel Physiologique
   let capScore: number | null = null;
   let capMessage: string | null = null;
   
@@ -387,7 +387,7 @@ export function computeRunningEconomy(input: RunningEconomyInput): RunningEconom
 // =============================================
 
 /**
- * Applique le plafonnement économie de course au score Race Readiness
+ * Applique le plafonnement économie de course au score Potentiel Physiologique
  */
 export function applyEconomyCap(
   score: number,

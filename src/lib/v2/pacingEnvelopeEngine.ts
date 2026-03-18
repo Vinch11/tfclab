@@ -107,7 +107,7 @@ export interface PacingEnvelopeResult {
   confidenceLevel: EnvelopeConfidenceLevel;
   confidenceLabel: string;
   
-  // Ajustements Race Readiness
+  // Ajustements Potentiel Physiologique
   readinessAdjustment: number; // % points de réduction si faible readiness
   readinessMessage: string | null;
   
@@ -161,7 +161,7 @@ Le coach garde toujours la main sur la décision finale.`,
 • VLamax effectif (détermine la largeur — basse = étroit)
 • TTE effectif (stabilise l'enveloppe — élevé = plus robuste)
 • FatMax TFCL™ (indicateur métabolique, ajuste les limites)
-• Race Readiness (réduit le plafond si faible)`,
+• Potentiel Physiologique (réduit le plafond si faible)`,
 
   sensitive_profile: `Ce profil métabolique offre un rendement élevé mais une faible tolérance aux erreurs.
 La discipline prime sur la puissance instantanée.`,
@@ -231,7 +231,7 @@ function getConfidenceLabel(confidence: number): string {
  *    - VLamax basse → enveloppe étroite (±4-6%) car moins de marge glycolytique
  *    - VLamax élevée → enveloppe plus large (±8-12%)
  *    - TTE élevé → stabilité accrue
- *    - Race Readiness faible → réduction du plafond
+ *    - Potentiel Physiologique faible → réduction du plafond
  * 
  * C) FatMax sert à:
  *    - Définir le plancher métabolique (en dessous = sous-exploitation)
@@ -315,7 +315,7 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 3: Ajustement Race Readiness
+  // STEP 3: Ajustement Potentiel Physiologique
   // ─────────────────────────────────────────────────────────────────────────────
   let readinessAdjustment = 0;
   let readinessMessage: string | null = null;

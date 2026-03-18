@@ -117,14 +117,14 @@ export function ConfigurationPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Race Readiness compact mode */}
+          {/* Potentiel Physiologique compact mode */}
           <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border hover:border-primary/30 transition-colors">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                 <Trophy className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <Label className="font-medium text-base">Race Readiness — Mode compact</Label>
+                <Label className="font-medium text-base">Potentiel Physiologique — Mode compact</Label>
                 <p className="text-sm text-muted-foreground mt-0.5">
                   Affiche une version résumée sur le Dashboard avec possibilité d'étendre les détails
                 </p>

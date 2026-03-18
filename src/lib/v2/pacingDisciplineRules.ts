@@ -323,7 +323,7 @@ export function generateDisciplineRules(input: DisciplineRulesInput): Discipline
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 4. Règles Race Readiness
+  // 4. Règles Potentiel Physiologique
   // ─────────────────────────────────────────────────────────────────────────────
   if (potentielPhysiologiqueScore != null && potentielPhysiologiqueScore < 70) {
     rules.push({

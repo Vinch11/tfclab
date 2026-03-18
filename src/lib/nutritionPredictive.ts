@@ -4,7 +4,7 @@
  * Module scientifique d'estimation des besoins glucidiques basé sur :
  * - VLamax (combustion glucidique)
  * - TTE (endurance métabolique)
- * - Race Readiness (adéquation physiologique)
+ * - Potentiel Physiologique (adéquation physiologique)
  * - Sport (vélo vs course à pied)
  * 
  * La nutrition est une CONSÉQUENCE, pas une variable isolée.
@@ -38,7 +38,7 @@ Une préparation insuffisante ou une mauvaise économie de course peut limiter l
       "Contrainte mécanique plus faible",
     ],
     ranges: {
-      low: "VLamax bas + Race Readiness élevée → 60–80 g/h",
+      low: "VLamax bas + Potentiel Physiologique élevée → 60–80 g/h",
       moderate: "VLamax moyen → 80–100 g/h", 
       high: "VLamax élevé → 90–120 g/h (prudence digestive)",
     },
@@ -54,7 +54,7 @@ Une préparation insuffisante ou une mauvaise économie de course peut limiter l
     adjustments: [
       "Réduction de 10 à 25% vs vélo",
       "Dépendance forte à l'économie de course",
-      "Pénalité si Race Readiness CAP est faible",
+      "Pénalité si Potentiel Physiologique CAP est faible",
     ],
     ranges: {
       good_economy: "Bonne économie + VLamax bas → 50–70 g/h",
@@ -63,8 +63,8 @@ Une préparation insuffisante ou une mauvaise économie de course peut limiter l
     },
   },
   
-  potentielPhysiologiqueLink: `Race Readiness influence directement les recommandations nutritionnelles.
-Une Race Readiness faible réduit les apports conseillés et invalide toute stratégie nutritionnelle agressive.`,
+  potentielPhysiologiqueLink: `Potentiel Physiologique influence directement les recommandations nutritionnelles.
+Une Potentiel Physiologique faible réduit les apports conseillés et invalide toute stratégie nutritionnelle agressive.`,
   
   disclaimer: `⚠️ Aucun chiffre unique imposé. Toujours une plage. 
 Mention explicite des limites physiologiques. 
@@ -361,7 +361,7 @@ function computeNutritionalRiskIndex(params: {
   } else if (carbsRequired > toleranceZone) {
     mainRiskFactor = `Besoins > tolérance ${sportLabel}`;
   } else if (potentielPhysiologique !== null && potentielPhysiologique !== undefined && potentielPhysiologique < 70) {
-    mainRiskFactor = 'Race Readiness faible → stratégie agressive déconseillée';
+    mainRiskFactor = 'Potentiel Physiologique faible → stratégie agressive déconseillée';
   }
   
   // Calcul du niveau de risque selon les seuils
@@ -394,13 +394,13 @@ function computeNutritionalRiskIndex(params: {
     messageStaff = `Stratégie nutritionnelle nécessaire mais réaliste en ${sportLabel.toLowerCase()}. Plan à tester à l'entraînement.`;
     messagePedagogique = `Ton métabolisme consomme une quantité modérée de glucides. Stratégie nutritionnelle rigoureuse nécessaire mais réaliste. Teste ton plan en entraînement.`;
   } else if (carbsRequired <= criticalThreshold) {
-    // 🟠 RISQUE ÉLEVÉ - Race Readiness plafonné à 85%
+    // 🟠 RISQUE ÉLEVÉ - Potentiel Physiologique plafonné à 85%
     level = 'high';
     label = 'Élevé';
     color = 'destructive';
     icon = '🟠';
     potentielPhysiologiqueCap = 85;
-    messageStaff = `Dépendance glucidique importante (${carbsRequired}g/h en ${sportLabel.toLowerCase()}). Sensible aux erreurs. Race Readiness max: 85%.`;
+    messageStaff = `Dépendance glucidique importante (${carbsRequired}g/h en ${sportLabel.toLowerCase()}). Sensible aux erreurs. Potentiel Physiologique max: 85%.`;
     messagePedagogique = `Ton métabolisme consomme beaucoup de glucides. Stratégie très rigoureuse obligatoire. Risque d'épuisement si apports insuffisants. Priorité: devenir plus économe.`;
   } else {
     // 🔴 RISQUE CRITIQUE - La nutrition devient le facteur limitant
@@ -409,7 +409,7 @@ function computeNutritionalRiskIndex(params: {
     color = 'destructive';
     icon = '🔴';
     potentielPhysiologiqueCap = 75;
-    messageStaff = `Très forte dépendance glucidique (>${criticalThreshold}g/h). LA NUTRITION DEVIENT LE FACTEUR LIMITANT. Race Readiness max: 75%.`;
+    messageStaff = `Très forte dépendance glucidique (>${criticalThreshold}g/h). LA NUTRITION DEVIENT LE FACTEUR LIMITANT. Potentiel Physiologique max: 75%.`;
     messagePedagogique = `Tes besoins glucidiques dépassent ta capacité d'absorption digestive. Risque majeur de défaillance. Avant de penser nutrition, réduis ta dépendance glucidique (travail VLamax).`;
   }
 
@@ -431,13 +431,13 @@ function computeNutritionalRiskIndex(params: {
     messageStaff += ' ⚠️ TTE faible = dérive métabolique en course.';
   }
 
-  // Ajustement si Race Readiness faible (invalide stratégie agressive)
+  // Ajustement si Potentiel Physiologique faible (invalide stratégie agressive)
   if (potentielPhysiologique !== null && potentielPhysiologique !== undefined && potentielPhysiologique < 60 && level === 'low') {
     level = 'moderate';
     label = 'Modéré';
     color = 'warning';
     icon = '🟡';
-    messageStaff += ' Race Readiness faible → prudence sur la stratégie nutritionnelle.';
+    messageStaff += ' Potentiel Physiologique faible → prudence sur la stratégie nutritionnelle.';
   }
 
   return {
@@ -553,18 +553,18 @@ export function computeNutritionEstimate(params: {
   
   if (potentielPhysiologique !== null && potentielPhysiologique !== undefined) {
     if (potentielPhysiologique < 50) {
-      // Race Readiness très faible → réduction apports conseillés
+      // Potentiel Physiologique très faible → réduction apports conseillés
       const reduction = Math.round((carbsMax - carbsMin) * 0.3);
       carbsMax = Math.max(carbsMin, carbsMax - reduction);
       potentielPhysiologiqueImpact = {
-        message: `Race Readiness < 50% : stratégie nutritionnelle agressive DÉCONSEILLÉE. Apports réduits de ${reduction}g/h.`,
+        message: `Potentiel Physiologique < 50% : stratégie nutritionnelle agressive DÉCONSEILLÉE. Apports réduits de ${reduction}g/h.`,
         adjustedCarbs: true,
       };
-      warnings.push('Race Readiness faible → prudence nutritionnelle');
+      warnings.push('Potentiel Physiologique faible → prudence nutritionnelle');
       if (riskLevel === 'low') riskLevel = 'moderate';
     } else if (potentielPhysiologique < 70) {
       potentielPhysiologiqueImpact = {
-        message: `Race Readiness modérée (${Math.round(potentielPhysiologique)}%) : valider la tolérance digestive à l'entraînement avant d'appliquer cette stratégie.`,
+        message: `Potentiel Physiologique modérée (${Math.round(potentielPhysiologique)}%) : valider la tolérance digestive à l'entraînement avant d'appliquer cette stratégie.`,
         adjustedCarbs: false,
       };
     }
@@ -604,7 +604,7 @@ export function computeNutritionEstimate(params: {
 }
 
 /**
- * Applique le plafonnement du Race Readiness basé sur le risque nutritionnel
+ * Applique le plafonnement du Potentiel Physiologique basé sur le risque nutritionnel
  */
 export function applyNutritionalCap(score: number, nutritionalRiskIndex: NutritionalRiskIndex | null): {
   cappedScore: number;

@@ -116,7 +116,7 @@ export interface TFCLCoachingCompassResult {
   leverage: TFCLLeverage;
   decision: TFCLCoachingDecision;
   
-  // Intégration Race Readiness
+  // Intégration Potentiel Physiologique
   readiness: TFCLReadinessState;
   
   // Axes radar (pour visualisation)
@@ -187,7 +187,7 @@ export interface CoachingCompassInput {
     fatigueWarning?: { level: string; message: string } | null;
   } | null;
   
-  // Race Readiness pré-calculé
+  // Potentiel Physiologique pré-calculé
   potentielPhysiologique: {
     score: number;
     potential: number;

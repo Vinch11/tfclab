@@ -13,7 +13,7 @@
  * Utilisée comme entrée principale pour :
  * - TTE effectif (estimation mode LOAD)
  * - Axe Robustesse du Metabolic Performance Compass
- * - Race Readiness (facteur fraîcheur)
+ * - Potentiel Physiologique (facteur fraîcheur)
  * 
  * Hiérarchie des sources :
  * 1. NOLIO   → Import automatique (confiance max)

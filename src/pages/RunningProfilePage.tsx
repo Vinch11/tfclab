@@ -183,7 +183,7 @@ export default function RunningProfilePage() {
     });
   }, [vlamaxEffectif, effectiveCloudSnapshot, tteEffectif, fatigueResult, athleteAge, athleteGoal]);
 
-  // Race Readiness Running — snapshot-centric
+  // Potentiel Physiologique Running — snapshot-centric
   const potentielPhysiologique = useMemo(() => {
     if (!currentAthlete) return null;
     

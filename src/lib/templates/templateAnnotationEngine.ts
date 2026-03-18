@@ -122,7 +122,7 @@ export function generateTemplateAnnotations(params: AnnotationParams): TemplateA
         severity: 2,
         title: "Risque surcharge / fraîcheur insuffisante",
         message: "Prévoir 24-48h de consolidation autour des séances clés. Envisager de réduire l'intensité cette semaine.",
-        why: `RaceReadiness score = ${score.toFixed(0)} + fraîcheur = ${fraicheur.toFixed(0)}%.`,
+        why: `PotentielPhysiologique score = ${score.toFixed(0)} + fraîcheur = ${fraicheur.toFixed(0)}%.`,
       });
     }
   }

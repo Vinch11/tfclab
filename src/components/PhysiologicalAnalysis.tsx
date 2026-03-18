@@ -379,11 +379,11 @@ export function PhysiologicalAnalysis({ athlete, vlamaxEffectif, tteEffectif: tt
               </div>
             )}
             
-            {/* Impact Race Readiness */}
+            {/* Impact Potentiel Physiologique */}
             {readinessProp.wasCappedByEconomy && (
               <div className="p-2 rounded-lg bg-orange-500/10 border border-orange-500/20">
                 <p className="text-xs text-orange-600">
-                  🏃 Race Readiness plafonné: {readinessProp.economyCapReason}
+                  🏃 Potentiel Physiologique plafonné: {readinessProp.economyCapReason}
                 </p>
               </div>
             )}

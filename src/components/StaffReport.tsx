@@ -336,7 +336,7 @@ export function StaffReport({
                 <span className="text-3xl">{report.executiveSummary.trafficLightIcon}</span>
                 <div>
                   <p className="text-2xl font-bold">
-                    Race Readiness : {report.executiveSummary.potentielPhysiologiqueScore}%
+                    Potentiel Physiologique : {report.executiveSummary.potentielPhysiologiqueScore}%
                   </p>
                   <p className="text-sm font-medium">
                     Statut : {report.executiveSummary.trafficLightLabel}
@@ -975,7 +975,7 @@ export function StaffReport({
               {pacingEnvelope.readinessMessage && (
                 <div className="mt-2 p-2 rounded bg-muted/50">
                   <p className="text-[10px] text-muted-foreground">
-                    📉 Race Readiness: {pacingEnvelope.readinessMessage}
+                    📉 Potentiel Physiologique: {pacingEnvelope.readinessMessage}
                   </p>
                 </div>
               )}
@@ -1477,7 +1477,7 @@ export function StaffReport({
 }
 
 /**
- * Composant pour afficher les détails de calcul Race Readiness dans le rapport exporté
+ * Composant pour afficher les détails de calcul Potentiel Physiologique dans le rapport exporté
  */
 function PotentielCalculationDetails({ readiness }: { readiness: PotentielPhysiologiqueEffectif }) {
   const calculations = computePillarCalculations(readiness);
@@ -2049,7 +2049,7 @@ function PotentielSignatureSection({ input }: { input: PotentielInput }) {
         
         {/* Philosophie */}
         <p className="text-[10px] text-muted-foreground italic">
-          💡 "Race Readiness ≠ Fitness. Capacité à exprimer son potentiel le jour J, pas la valeur maximale de ce potentiel."
+          💡 "Potentiel Physiologique ≠ Fitness. Capacité à exprimer son potentiel le jour J, pas la valeur maximale de ce potentiel."
         </p>
       </div>
     </>

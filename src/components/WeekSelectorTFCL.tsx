@@ -143,7 +143,7 @@ export function WeekSelectorTFCL({ onInsertWeek, defaultRaceType }: WeekSelector
       objectif,
     });
 
-    // Race Readiness (for fatigue calc)
+    // Potentiel Physiologique (for fatigue calc)
     const readinessResult = computePotentielEffectif({
       objectif,
       vlamaxEffectif: vlamaxResult,

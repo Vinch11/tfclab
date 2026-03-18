@@ -131,7 +131,7 @@ export type {
 } from "@/lib/v2/unifiedLimiterDetection";
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// Race Readiness, Targets, Injury Risk, DRE
+// Potentiel Physiologique, Targets, Injury Risk, DRE
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export type { PotentielV2Result } from "@/lib/v2/potentielTypes";

@@ -145,7 +145,7 @@ export default function RaceSimulationPage() {
     }
   }, [raceObjective]);
   
-  // Compute Race Readiness Score for Pacing Envelope
+  // Compute Potentiel Physiologique Score for Pacing Envelope
   const potentielPhysiologiqueScore = React.useMemo(() => {
     if (!disponibilite) return null;
     return disponibilite.score;

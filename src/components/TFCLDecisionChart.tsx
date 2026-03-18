@@ -104,7 +104,7 @@ export function TFCLDecisionChart({
           <div>
             <CardTitle className="text-lg flex items-center gap-2">
               <Target className="h-5 w-5 text-primary" />
-              Race Readiness TFCL™ V2
+              Potentiel Physiologique TFCL™ V2
             </CardTitle>
             <CardDescription>
               Potentiel × Disponibilité → Décision

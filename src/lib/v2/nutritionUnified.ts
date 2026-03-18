@@ -472,7 +472,7 @@ function generateSummary(carbsCentral: number, risk: NutritionRisk, sport: 'velo
     low: `Oxydation CHO estimée ${carbsCentral}g/h. Profil métabolique favorable. Ratio lipides/glucides bien équilibré. Stratégie nutritionnelle standard.`,
     moderate: `Besoin CHO ${carbsCentral}g/h. Risque de déplétion glycogène modéré. Protocole gut training 3-4 semaines recommandé. G:F 2:1 au-delà de 60g/h.`,
     high: `Besoin CHO ${carbsCentral}g/h. Dépendance glycolytique significative. Entraînement digestif systématique requis. Surveiller VLamax pour réduction à moyen terme.`,
-    critical: `Besoin CHO >${carbsCentral}g/h. Capacité d'absorption limite. Nutrition = facteur limitant de la performance. Travail métabolique (réduction VLamax) prioritaire. Race Readiness plafonné.`,
+    critical: `Besoin CHO >${carbsCentral}g/h. Capacité d'absorption limite. Nutrition = facteur limitant de la performance. Travail métabolique (réduction VLamax) prioritaire. Potentiel Physiologique plafonné.`,
   };
 
   return { athlete: athleteMessages[risk], staff: staffMessages[risk] };
@@ -521,7 +521,7 @@ function generateWarnings(input: NutritionUnifiedInput, carbsCentral: number, ri
     athleteW.push('Tu brûles beaucoup de sucre — pense à travailler tes longues sorties en endurance.');
   }
   if (risk === 'critical') {
-    staffW.push('Score risque 4/4 — nutrition = facteur limitant. Race Readiness plafonné à 75%.');
+    staffW.push('Score risque 4/4 — nutrition = facteur limitant. Potentiel Physiologique plafonné à 75%.');
     athleteW.push('⚠️ La nutrition est ton point faible principal. Consulte un spécialiste.');
   }
   if (input.heatCondition) {

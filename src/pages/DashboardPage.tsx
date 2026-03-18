@@ -248,7 +248,7 @@ export default function DashboardPage() {
       objectif,
     });
     
-    // Race Readiness Effectif (source unique)
+    // Potentiel Physiologique Effectif (source unique)
     // Calculer l'âge
     const athleteAge = currentAthlete.birth_date ? (() => {
       const birthDate = new Date(currentAthlete.birth_date);
@@ -275,7 +275,7 @@ export default function DashboardPage() {
       ? activeSnapshot.ftp / activeSnapshot.weight_kg
       : null;
     
-    // athleteAge déjà calculé plus haut pour Race Readiness
+    // athleteAge déjà calculé plus haut pour Potentiel Physiologique
     
     // Convertir fatigue_state du snapshot en score numérique (1-10)
     // fresh=2, ok=4, fatigued=6, high=8, injured=10
@@ -743,13 +743,13 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      {/* PILIER 3: Race Readiness */}
+      {/* PILIER 3: Potentiel Physiologique */}
       <Card>
         <CardContent className="p-3 sm:p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Target className="h-5 w-5 text-green-500" />
-              <span className="font-semibold">Race Readiness</span>
+              <span className="font-semibold">Potentiel Physiologique</span>
             </div>
             {!potentielPhysiologique.isInsufficient && getStatusBadge(readinessStatus.status, readinessStatus.label)}
           </div>

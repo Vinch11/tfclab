@@ -191,7 +191,7 @@ Le modèle V2 peut recommander un test laboratoire quand :
 ### 2. Incohérence modèle ↔ terrain
 - VLamax estimée basse mais performances sprint élevées
 - TTE élevé mais dérive cardiaque importante
-- Race Readiness haute mais sensations médiocres
+- Potentiel Physiologique haute mais sensations médiocres
 
 ### 3. Plateau inexpliqué
 - Stagnation > 6 semaines sans explication

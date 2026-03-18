@@ -61,7 +61,7 @@ export interface AssistantContextPacket {
   tteEffectif: TTEEffectif | null;
   potentielPhysiologique: PotentielPhysiologiqueEffectif | null;
   
-  // Race Readiness Signature (nouveau système Potentiel × Disponibilité)
+  // Potentiel Physiologique Signature (nouveau système Potentiel × Disponibilité)
   potentielPhysiologiqueSignature: PotentielResult | null;
   
   // Charge récente
@@ -342,7 +342,7 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
     objectif: athlete?.goal || "IM",
   }) : null;
   
-  // Race Readiness
+  // Potentiel Physiologique
   // Calculer l'âge de l'athlète
   const athleteAge = athlete?.birth_date ? (() => {
     const birthDate = new Date(athlete.birth_date);
@@ -385,7 +385,7 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
     tteTarget: tteEffectif?.target ?? null,
   }) : null;
   
-  // Race Readiness Signature (nouveau système Potentiel × Disponibilité)
+  // Potentiel Physiologique Signature (nouveau système Potentiel × Disponibilité)
   let potentielPhysiologiqueSignature: PotentielResult | null = null;
   if (athlete?.goal) {
     // Construire l'input pour le calcul
@@ -560,14 +560,14 @@ export function formatContextForPrompt(context: AssistantContextPacket): string 
     parts.push(`- Statut: ${t.status}`);
   }
   
-  // Race Readiness (ancien système)
+  // Potentiel Physiologique (ancien système)
   if (context.potentielPhysiologique) {
     const r = context.potentielPhysiologique;
-    parts.push(`## Race Readiness Legacy: ${r.score}/100 (${r.label})`);
+    parts.push(`## Potentiel Physiologique Legacy: ${r.score}/100 (${r.label})`);
     parts.push(`- Confiance: ${(r.confidence * 100).toFixed(0)}%`);
   }
   
-  // Race Readiness Signature (nouveau système Potentiel × Disponibilité)
+  // Potentiel Physiologique Signature (nouveau système Potentiel × Disponibilité)
   if (context.potentielPhysiologiqueSignature) {
     const rr = context.potentielPhysiologiqueSignature;
     parts.push(`\n## RACE READINESS SIGNATURE (Potentiel × Disponibilité → Décision)`);

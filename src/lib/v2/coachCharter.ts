@@ -197,7 +197,7 @@ export const FATIGUE_RISK_USAGE = {
 // 7️⃣ RACE READINESS
 // ============================================
 
-export const RACE_READINESS_USAGE = {
+export const POTENTIEL_USAGE = {
   id: 'race_readiness',
   title: "Potentiel Physiologique",
   icon: "🏁",
@@ -344,7 +344,7 @@ export const COACH_CHARTER = {
     { id: 'vlamax', title: VLAMAX_USAGE.title, icon: VLAMAX_USAGE.icon, content: VLAMAX_USAGE },
     { id: 'tte', title: TTE_USAGE.title, icon: TTE_USAGE.icon, content: TTE_USAGE },
     { id: 'fatigue', title: FATIGUE_RISK_USAGE.title, icon: FATIGUE_RISK_USAGE.icon, content: FATIGUE_RISK_USAGE },
-    { id: 'race_readiness', title: RACE_READINESS_USAGE.title, icon: RACE_READINESS_USAGE.icon, content: RACE_READINESS_USAGE },
+    { id: 'race_readiness', title: POTENTIEL_USAGE.title, icon: POTENTIEL_USAGE.icon, content: POTENTIEL_USAGE },
     { id: 'communication', title: ATHLETE_COMMUNICATION.title, icon: ATHLETE_COMMUNICATION.icon, content: ATHLETE_COMMUNICATION },
     { id: 'lab_tests', title: LAB_TESTS_LIMITS.title, icon: LAB_TESTS_LIMITS.icon, content: LAB_TESTS_LIMITS },
     { id: 'responsibility', title: PROFESSIONAL_RESPONSIBILITY.title, icon: PROFESSIONAL_RESPONSIBILITY.icon, content: PROFESSIONAL_RESPONSIBILITY }

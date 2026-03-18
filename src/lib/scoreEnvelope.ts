@@ -375,7 +375,7 @@ export function buildTTEEnvelope(
 }
 
 /**
- * Crée un ScoreEnvelope pour Race Readiness
+ * Crée un ScoreEnvelope pour Potentiel Physiologique
  */
 export function buildPotentielEnvelope(
   score: number,
@@ -425,7 +425,7 @@ export function buildPotentielEnvelope(
 
   return {
     metricId: "potentielPhysiologique",
-    label: "Race Readiness",
+    label: "Potentiel Physiologique",
     value: score,
     range,
     unit: "%",

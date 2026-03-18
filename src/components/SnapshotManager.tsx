@@ -950,7 +950,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                 );
               }
               
-              // Bonus/Malus pour Race Readiness
+              // Bonus/Malus pour Potentiel Physiologique
               const bonusInfo = getEconomyPotentielBonus(result.score, result.label);
               
               return (
@@ -971,25 +971,25 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                     {result.score >= 75 && (
                       <p className="text-xs text-green-600">
                         ✅ Économie excellente — Allure durable, faible dérive cardiaque
-                        <br/><strong>→ BONUS important sur Race Readiness CAP</strong>
+                        <br/><strong>→ BONUS important sur Potentiel Physiologique CAP</strong>
                       </p>
                     )}
                     {result.score >= 55 && result.score < 75 && (
                       <p className="text-xs text-blue-600">
                         ✔️ Bonne économie — Base solide mais perfectible
-                        <br/><strong>→ BONUS modéré sur Race Readiness CAP</strong>
+                        <br/><strong>→ BONUS modéré sur Potentiel Physiologique CAP</strong>
                       </p>
                     )}
                     {result.score < 55 && (
                       <p className="text-xs text-orange-600">
                         ⚠️ Économie fragile — Coût cardiaque élevé, dérive importante
-                        <br/><strong>→ MALUS sur Race Readiness CAP</strong>
+                        <br/><strong>→ MALUS sur Potentiel Physiologique CAP</strong>
                       </p>
                     )}
                   </div>
                   
                   <div className="text-center text-xs text-muted-foreground border-t border-border pt-2">
-                    Impact Race Readiness: <span className={bonusInfo.bonus >= 0 ? "text-green-600" : "text-orange-600"}>
+                    Impact Potentiel Physiologique: <span className={bonusInfo.bonus >= 0 ? "text-green-600" : "text-orange-600"}>
                       {bonusInfo.description}
                     </span>
                   </div>

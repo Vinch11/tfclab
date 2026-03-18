@@ -202,7 +202,7 @@ export function getEconomyLabelStyle(label: RunEconomyLabel): {
 }
 
 /**
- * Calcule le bonus/malus pour Race Readiness selon l'économie CAP
+ * Calcule le bonus/malus pour Potentiel Physiologique selon l'économie CAP
  * Uniquement pour objectifs CAP (Semi/Marathon/Trail)
  */
 export function getEconomyPotentielBonus(

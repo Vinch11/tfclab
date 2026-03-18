@@ -567,10 +567,10 @@ function generateStaffInterpretation(params: {
   
   // Ajouter des messages secondaires contextuels
   if (readiness.wasCappedByNutrition) {
-    messages.push("⚠️ Race Readiness plafonné par le risque nutritionnel");
+    messages.push("⚠️ Potentiel Physiologique plafonné par le risque nutritionnel");
   }
   if (readiness.wasCappedByEconomy) {
-    messages.push("⚠️ Race Readiness plafonné par l'économie de course");
+    messages.push("⚠️ Potentiel Physiologique plafonné par l'économie de course");
   }
   
   return {

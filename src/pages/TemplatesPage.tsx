@@ -1320,7 +1320,7 @@ export default function TemplatesPage() {
       objectif: selectedAthlete.goal || "IM",
     });
 
-    // Race Readiness effectif
+    // Potentiel Physiologique effectif
     const potentielEffectif = computePotentielEffectif({
       objectif: selectedAthlete.goal || "IM",
       vlamaxEffectif,

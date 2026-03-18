@@ -4,7 +4,7 @@
  * Single unified diagnostic output for the entire platform
  * 
  * PRINCIPE : "Voici l'état de l'athlète"
- * Fusionne Compas, Race Readiness, Ambition, DRE, Effectifs, Risque Blessure
+ * Fusionne Compas, Potentiel Physiologique, Ambition, DRE, Effectifs, Risque Blessure
  * 
  * CONSOMMATEURS :
  * - Decision Engine (stratégie, workout advisory, simulation)
@@ -142,7 +142,7 @@ export interface AthleteDiagnostic {
   // ─── 2. Limiteur Unifié (ex-Compas) ───────────────
   limiter: UnifiedLimiterResult;
   
-  // ─── 3. Readiness (ex-Race Readiness) ─────────────
+  // ─── 3. Readiness (ex-Potentiel Physiologique) ─────────────
   readiness: PotentielV2Result;
   
   // ─── 4. Cibles Physiologiques ─────────────────────

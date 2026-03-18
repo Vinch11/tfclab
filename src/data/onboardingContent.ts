@@ -37,8 +37,8 @@ const contentByRole: Record<UserRole, OnboardingContent> = {
         text: "La performance ne dépend pas d'un seul chiffre. L'app analyse ton profil glycolytique (VLamax) et ta capacité à soutenir l'effort (TTE) pour aligner physiologie et performance.",
       },
       {
-        title: "Évaluer ta Race Readiness réelle",
-        text: "Être fort à l'entraînement ne garantit rien le jour J. La Race Readiness évalue si ton profil physiologique est réellement adapté à ta distance et à ta charge actuelle.",
+        title: "Évaluer ta Potentiel Physiologique réelle",
+        text: "Être fort à l'entraînement ne garantit rien le jour J. La Potentiel Physiologique évalue si ton profil physiologique est réellement adapté à ta distance et à ta charge actuelle.",
       },
       {
         title: "Une aide à la décision",
@@ -53,8 +53,8 @@ const contentByRole: Record<UserRole, OnboardingContent> = {
         text: "Two For Coaching Lab centralise VLamax effectif, TTE effectif et leur cohérence avec l'objectif sportif pour une analyse fiable et traçable.",
       },
       {
-        title: "Race Readiness comme outil décisionnel",
-        text: "La Race Readiness met en évidence incohérences, risques et marges de progression pour éclairer — jamais remplacer — la décision du coach.",
+        title: "Potentiel Physiologique comme outil décisionnel",
+        text: "La Potentiel Physiologique met en évidence incohérences, risques et marges de progression pour éclairer — jamais remplacer — la décision du coach.",
       },
       {
         title: "Transparence et responsabilité",

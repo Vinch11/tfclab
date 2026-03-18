@@ -98,7 +98,7 @@ export function ScientificChartsDashboard({
           className="md:col-span-2 xl:col-span-1"
         />
 
-        {/* Race Readiness removed */}
+        {/* Potentiel Physiologique removed */}
 
         {/* TTE vs Target */}
         <TTETargetChart

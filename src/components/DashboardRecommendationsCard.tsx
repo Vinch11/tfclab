@@ -145,7 +145,7 @@ export function DashboardRecommendationsCard({
       objectif,
     });
 
-    // Compute Race Readiness
+    // Compute Potentiel Physiologique
     const potentielPhysiologique = computePotentielEffectif({
       objectif,
       vlamaxEffectif,

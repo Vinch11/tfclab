@@ -267,7 +267,7 @@ function ReadinessPanel({ readiness }: { readiness: TFCLCoachingCompassResult["r
       <div className="flex items-center gap-2">
         <Shield className={cn("w-4 h-4", colorClass)} />
         <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-          Race Readiness
+          Potentiel Physiologique
         </span>
       </div>
 
@@ -605,13 +605,13 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
             {staffMode && <StaffMetricsGrid compass={compass} />}
           </div>
 
-          {/* ─── COLONNE DROITE : Race Readiness (desktop) ─── */}
+          {/* ─── COLONNE DROITE : Potentiel Physiologique (desktop) ─── */}
           <div className="hidden md:block w-[160px] shrink-0 pt-6">
             <ReadinessPanel readiness={readiness} />
           </div>
         </div>
 
-        {/* ─── Race Readiness mobile ─── */}
+        {/* ─── Potentiel Physiologique mobile ─── */}
         <div className="md:hidden mt-3">
           <ReadinessPanel readiness={readiness} />
         </div>

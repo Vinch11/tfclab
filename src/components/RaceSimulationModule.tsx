@@ -2,8 +2,8 @@
  * Race Simulation Module TFCL™
  * Simulateur de scénarios de course avec modes BASIC et PRO
  * 
- * CONNEXION Race Readiness → Simulation:
- * - Race Readiness a TOUJOURS priorité sur la Simulation
+ * CONNEXION Potentiel Physiologique → Simulation:
+ * - Potentiel Physiologique a TOUJOURS priorité sur la Simulation
  * - Accès conditionnel: RED=disabled, ORANGE=limited, GREEN=standard, BLUE=advanced
  */
 
@@ -230,7 +230,7 @@ export function RaceSimulationModule({
     vma,
     paceThreshold,
     weight,
-    // ✅ Passer les modificateurs Race Readiness au moteur de simulation
+    // ✅ Passer les modificateurs Potentiel Physiologique au moteur de simulation
     readinessModifiers: simulationAccess.enabled ? simulationAccess.modifiers : null,
   }), [
     raceType, ambition, heat, terrain, plannedCarbsGH, useNutrition, gutTraining,
@@ -375,7 +375,7 @@ export function RaceSimulationModule({
       {/* Sélecteur de mode */}
       <ModeSelector />
       
-      {/* Affichage des modificateurs Race Readiness si présents */}
+      {/* Affichage des modificateurs Potentiel Physiologique si présents */}
       {simulationAccess.enabled && simulationAccess.status !== 'GREEN' && (
         <Card className={cn(
           "border-2",
@@ -656,7 +656,7 @@ export function RaceSimulationModule({
           </div>
           {potentielPhysiologiqueScore && (
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Race Readiness</span>
+              <span className="text-muted-foreground">Potentiel Physiologique</span>
               <span className="font-medium">{Math.round(potentielPhysiologiqueScore)}/100</span>
             </div>
           )}
@@ -1341,7 +1341,7 @@ export function RaceSimulationModule({
             </CardTitle>
             <CardDescription className="text-xs sm:text-sm mt-0.5 line-clamp-1 sm:line-clamp-none">
               {!simulationAccess.enabled
-                ? "Race Readiness insuffisant"
+                ? "Potentiel Physiologique insuffisant"
                 : showSimulation 
                   ? simulationMode === 'basic'
                     ? `${basicSimulation?.raceLabel} - ${basicSimulation?.ambitionLabel}`

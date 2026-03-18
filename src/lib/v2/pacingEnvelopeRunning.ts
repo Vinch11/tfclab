@@ -14,7 +14,7 @@
  * - Distance
  * - VLamax_run
  * - Durabilité
- * - Race Readiness
+ * - Potentiel Physiologique
  * - Profil de risque
  * ═══════════════════════════════════════════════════════════════════════════════
  */
@@ -154,7 +154,7 @@ const VLAMAX_MODIFIERS = {
   LOW: { threshold: 0.30, green_expand: 2, allow_aggressive_finish: true },
 } as const;
 
-// Modulation Race Readiness
+// Modulation Potentiel Physiologique
 const READINESS_MODIFIERS: Record<ReadinessState, {
   green_reduction: number;
   orange_label: string;
@@ -176,7 +176,7 @@ const PACING_TEXTS = {
 • Distance cible et durée estimée
 • VLamax CAP (détermine la tolérance aux erreurs)
 • Durabilité d'allure (stabilité sur la distance)
-• Race Readiness (capacité du jour à exprimer le potentiel)`,
+• Potentiel Physiologique (capacité du jour à exprimer le potentiel)`,
   
   lorang_quote: `"Si tu te sens facile au km 5, TU NE CHANGES RIEN. La course commence après le km 30."`,
   
@@ -252,10 +252,10 @@ export function computePacingEnvelopeRun(inputs: PacingInputsRun): PacingEnvelop
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 3: Modulation Race Readiness
+  // STEP 3: Modulation Potentiel Physiologique
   // ─────────────────────────────────────────────────────────────────────────────
   const readinessMod = READINESS_MODIFIERS[race_readiness_state];
-  sourcesUsed.push("Race Readiness");
+  sourcesUsed.push("Potentiel Physiologique");
   
   // Réduire le haut de la zone verte
   green = [green[0], green[1] - readinessMod.green_reduction];
@@ -341,7 +341,7 @@ export function computePacingEnvelopeRun(inputs: PacingInputsRun): PacingEnvelop
       conditional_push_allowed: allowAggressiveFinish && race_readiness_state !== "RED",
       conditions: [
         "VLamax basse confirmée",
-        "Race Readiness GREEN ou ORANGE haut",
+        "Potentiel Physiologique GREEN ou ORANGE haut",
         "Aucune dérive cardiaque détectée",
       ],
       rule: allowAggressiveFinish && race_readiness_state !== "RED"

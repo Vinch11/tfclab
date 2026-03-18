@@ -200,7 +200,7 @@ export function SaisonPhasesView({
       incohérences.push("Phase spécifique mais TTE insuffisant : durabilité non acquise");
     }
     if (phaseProposed === 4 && score < 70) {
-      incohérences.push("Affûtage envisagé mais score Race Readiness < 70%");
+      incohérences.push("Affûtage envisagé mais score Potentiel Physiologique < 70%");
     }
 
     // Calcul cohérence globale
@@ -451,7 +451,7 @@ export function SaisonPhasesView({
           <div className="flex flex-wrap gap-3">
             <Button variant="outline" onClick={onGoToPotentiel}>
               <Heart className="h-4 w-4 mr-2" />
-              Race Readiness
+              Potentiel Physiologique
             </Button>
             <Button variant="outline" onClick={onGoToPhysioAnalysis}>
               <Activity className="h-4 w-4 mr-2" />

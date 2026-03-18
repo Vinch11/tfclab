@@ -78,7 +78,7 @@ export const FAQ_ARTICLES: KnowledgeArticle[] = [
 
 L'application permet de :
 - Centraliser les données physiologiques des athlètes (VLamax, TTE, FTP, VO2max, etc.)
-- Calculer des indicateurs composites comme le Race Readiness
+- Calculer des indicateurs composites comme le Potentiel Physiologique
 - Visualiser les zones d'entraînement avec leur logique physiologique
 - Générer des rapports staff-grade avec annotations contextuelles
 
@@ -143,7 +143,7 @@ Il contient :
 
 Snapshot Actif vs Historique :
 - Un seul snapshot peut être "actif" à la fois
-- L'actif alimente tous les calculs (zones, Race Readiness, etc.)
+- L'actif alimente tous les calculs (zones, Potentiel Physiologique, etc.)
 - Les anciens snapshots restent consultables pour suivre l'évolution`
   },
   {
@@ -300,7 +300,7 @@ Interprétation :
 - TSS_7j 500-700 : Charge élevée (développement)
 - TSS_7j > 700 : Charge très élevée (surcharge)
 
-Impact sur Race Readiness :
+Impact sur Potentiel Physiologique :
 Une charge trop élevée peut indiquer une fatigue qui limite les performances le jour J.
 L'affûtage (réduction progressive) améliore la fraîcheur.`
   }
@@ -389,7 +389,7 @@ export const APP_USAGE_ARTICLES: KnowledgeArticle[] = [
 Il affiche :
 - L'athlète sélectionné et son objectif
 - Les métriques clés (VLamax, TTE, FTP/kg)
-- Le score Race Readiness
+- Le score Potentiel Physiologique
 - Les alertes et annotations contextuelles
 
 Actions rapides :

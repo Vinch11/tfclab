@@ -1,5 +1,5 @@
 /**
- * TargetSyncVerifier - Vérifie la synchronisation des cibles entre Compass et Race Readiness
+ * TargetSyncVerifier - Vérifie la synchronisation des cibles entre Compass et Potentiel Physiologique
  * Composant de test visuel pour valider l'uniformisation des cibles
  */
 
@@ -90,7 +90,7 @@ export function TargetSyncVerifier({
             <Compass className="h-3 w-3" /> Compass
           </div>
           <div className="font-medium text-muted-foreground flex items-center gap-1">
-            <Target className="h-3 w-3" /> Race Readiness
+            <Target className="h-3 w-3" /> Potentiel Physiologique
           </div>
           <div className="font-medium text-muted-foreground text-center">Sync</div>
           
@@ -133,7 +133,7 @@ export function TargetSyncVerifier({
         
         {/* Note explicative */}
         <p className="text-[10px] text-muted-foreground pt-2 border-t">
-          Les cibles doivent être identiques entre le Metabolic Performance Compass™ et Race Readiness
+          Les cibles doivent être identiques entre le Metabolic Performance Compass™ et Potentiel Physiologique
           pour garantir la cohérence des évaluations physiologiques.
         </p>
       </CardContent>

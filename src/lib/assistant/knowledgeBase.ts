@@ -56,7 +56,7 @@ Ils ne garantissent aucune performance et ne constituent pas un avis médical.`
     contentMarkdown: `## Ce que l'app FAIT
 
 ✅ Centralise les données physiologiques (VLamax, TTE, FTP, VO2max)
-✅ Calcule des indicateurs composites (Race Readiness)
+✅ Calcule des indicateurs composites (Potentiel Physiologique)
 ✅ Affiche les zones d'entraînement personnalisées
 ✅ Génère des rapports staff-grade avec annotations
 ✅ Aide à la prise de décision coaching
@@ -195,7 +195,7 @@ Une VLamax trop haute pour un objectif longue distance = consommation glycogène
 | 500-700 | Élevée | Développement |
 | > 700 | Très élevée | Surcharge (attention) |
 
-**Impact sur Race Readiness :**
+**Impact sur Potentiel Physiologique :**
 Une charge trop élevée avant une course = fatigue non dissipée = performance limitée.
 
 **Pourquoi c'est surveillé ?**
@@ -530,7 +530,7 @@ Le Snapshot est une "photo" des données physiologiques d'un athlète à un inst
 
 **Snapshot Actif vs Historique :**
 - Un seul snapshot peut être **"actif"** à la fois
-- Le snapshot actif alimente tous les calculs (zones, Race Readiness, etc.)
+- Le snapshot actif alimente tous les calculs (zones, Potentiel Physiologique, etc.)
 - Les anciens snapshots restent consultables pour suivre l'évolution
 
 **Comment ajouter un Snapshot ?**
@@ -638,7 +638,7 @@ L'app utilise donc des **modèles mathématiques validés** pour estimer ces val
 ### Ce que l'app FAIT
 
 ✅ Centraliser et structurer les données physiologiques
-✅ Calculer des indicateurs composites (Race Readiness, risques)
+✅ Calculer des indicateurs composites (Potentiel Physiologique, risques)
 ✅ Afficher les zones d'entraînement personnalisées
 ✅ Générer des alertes contextuelles
 ✅ Aider à la prise de décision coaching

@@ -88,7 +88,7 @@ export interface ComputeMatrixParams {
   tteValue: number | null;
   tteConfidence?: number;
   
-  // Race Readiness
+  // Potentiel Physiologique
   potentielPhysiologiqueScore: number | null;
   
   // Fatigue inputs (FatigueIndex™)
@@ -328,7 +328,7 @@ export function computePerformanceIndex(params: ComputeMatrixParams): Performanc
     factors++;
   }
 
-  // Race Readiness contribution
+  // Potentiel Physiologique contribution
   if (params.potentielPhysiologiqueScore !== null) {
     const rrScore = (params.potentielPhysiologiqueScore / 100) * 15;
     score += rrScore - 7.5;

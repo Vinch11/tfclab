@@ -197,9 +197,9 @@ export const LEVER_INFO: Record<UnifiedLever, {
 // POIDS STRATÉGIQUES PAR OBJECTIF
 // ═══════════════════════════════════════════════════════════════════════════════
 //
-// ⚠️ DIVERGENCE DOCUMENTÉE avec Race Readiness (potentielPhysiologiqueEffectif.ts)
+// ⚠️ DIVERGENCE DOCUMENTÉE avec Potentiel Physiologique (potentielPhysiologiqueEffectif.ts)
 //
-// CES POIDS NE DOIVENT PAS ÊTRE ALIGNÉS avec Race Readiness.
+// CES POIDS NE DOIVENT PAS ÊTRE ALIGNÉS avec Potentiel Physiologique.
 // Les deux systèmes ont des rôles et des architectures fondamentalement différents :
 //
 // ┌──────────────────────┬─────────────────────────────┬───────────────────────────────┐
@@ -222,7 +222,7 @@ export const LEVER_INFO: Record<UnifiedLever, {
 // └──────────────────────┴─────────────────────────────┴───────────────────────────────┘
 //
 // Exemple concret : Pour un Ironman, glycolytic (VLamax) a un poids de 0.95 ici
-// car c'est un levier d'intervention CRITIQUE. Dans Race Readiness, VLamax pèse
+// car c'est un levier d'intervention CRITIQUE. Dans Potentiel Physiologique, VLamax pèse
 // 40% car il représente 40% de la "readiness" globale. Les deux sont cohérents
 // dans l'intention : VLamax est crucial pour l'IM — mais exprimé différemment.
 //

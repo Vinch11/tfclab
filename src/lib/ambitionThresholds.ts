@@ -107,7 +107,7 @@ export function evaluateVO2max(
 }
 
 /**
- * Évalue le statut Race Readiness (toujours sur échelle 0-100)
+ * Évalue le statut Potentiel Physiologique (toujours sur échelle 0-100)
  * Mais les seuils OK/Warning varient selon l'ambition
  */
 export function evaluateReadiness(

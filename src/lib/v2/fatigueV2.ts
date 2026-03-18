@@ -5,7 +5,7 @@
  * 
  * TFCL utilise 3 PILIERS :
  * 1. CHARGE — TSS_7d, évolution TSS
- * 2. RÉPONSE — TTE effectif, Race Readiness fraîcheur
+ * 2. RÉPONSE — TTE effectif, Potentiel Physiologique fraîcheur
  * 3. RESSENTI — Check-in fatigue / stress (1-10)
  * 
  * FORMULE V2 :
@@ -349,12 +349,12 @@ function computeResponsePillar(input: FatigueV2Input): FatiguePillarResult {
     details.push("TTE non disponible");
   }
   
-  // Intégration Race Readiness fraîcheur
+  // Intégration Potentiel Physiologique fraîcheur
   if (potentielPhysiologiqueFreshness !== null && potentielPhysiologiqueFreshness !== undefined) {
     // Fraîcheur élevée = moins fatigué
     const freshnessScore = clamp(100 - potentielPhysiologiqueFreshness, 0, 100);
     score = (score + freshnessScore) / 2;
-    details.push(`Fraîcheur Race Readiness: ${potentielPhysiologiqueFreshness}%`);
+    details.push(`Fraîcheur Potentiel Physiologique: ${potentielPhysiologiqueFreshness}%`);
     confidence = Math.max(confidence, 0.70);
   }
   

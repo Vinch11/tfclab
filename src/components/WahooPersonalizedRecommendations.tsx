@@ -354,7 +354,7 @@ export function WahooPersonalizedRecommendations() {
       objectif,
     });
 
-    // Compute Race Readiness
+    // Compute Potentiel Physiologique
     // Calculer l'âge
     const athleteAge = currentAthlete?.birth_date ? (() => {
       const birthDate = new Date(currentAthlete.birth_date);

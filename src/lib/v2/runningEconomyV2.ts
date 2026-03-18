@@ -43,7 +43,7 @@ export interface RunningEconomyV2 {
   performanceImpact: {
     label: string;
     description: string;
-    modifier: number; // -20 à +10 sur Race Readiness
+    modifier: number; // -20 à +10 sur Potentiel Physiologique
   };
   
   // Impact risque blessure

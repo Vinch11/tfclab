@@ -45,7 +45,7 @@ import { StaffDashboard } from "@/components/StaffDashboard";
 import { ScientificChartsDashboard, MetabolicPerformanceCompass, MetabolicCompassCAP, AmbitionProgressChart, AmbitionProgressMini, CompactMetricsGrid, CarbBurnRateChart, MetabolicPowerCurve } from "@/components/charts";
 import { ChargeRecenteCard } from "@/components/ChargeRecenteCard";
 import { computeCRR } from "@/lib/chargeRecenteReference";
-// ✅ Race Readiness - Carte unifiée (Phase 1c UX)
+// ✅ Potentiel Physiologique - Carte unifiée (Phase 1c UX)
 import { computeCompassScores, type CompassScores } from "@/lib/compassScoring";
 import { DecisionReliabilityCard } from "@/components/DecisionReliabilityCard";
 import { computeFullDRE, type DecisionReliabilityResult } from "@/engines/diagnostic";
@@ -502,7 +502,7 @@ const Index = () => {
     return tteEffectif?.tte_min ?? 0;
   }, [tteEffectif]);
 
-  // Race Readiness stub (module removed)
+  // Potentiel Physiologique stub (module removed)
   const potentielPhysiologiqueEffectif = useMemo(() => {
     return computePotentielEffectif({
       objectif: currentAthlete?.goal || "IM",
@@ -1199,7 +1199,7 @@ const Index = () => {
       case "dashboard":
         // ═══════════════════════════════════════════════════════════
         // DASHBOARD SIMPLIFIÉ — 5 sections + Quick Actions
-        // Flux: Compass → Profil → Decision → Race Readiness → Objectifs
+        // Flux: Compass → Profil → Decision → Potentiel Physiologique → Objectifs
         // ═══════════════════════════════════════════════════════════
         const dashboardSections = [
           // ✅ Quick Actions Panel
@@ -1365,7 +1365,7 @@ const Index = () => {
               );
             },
           },
-          // ✅ 4. Race Readiness
+          // ✅ 4. Potentiel Physiologique
           {
             id: "race-readiness-unified",
             render: () => {
