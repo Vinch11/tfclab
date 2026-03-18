@@ -1074,71 +1074,26 @@ export default function AITrainingPlanPage() {
               </CardContent>
             </Card>
 
-            {/* Detected Limiters — ranked by importance (single mode only) */}
+            {/* Detected Limiters — editable hierarchy (single mode only) */}
             {!isMultiMode && limiter && limiter.gapAnalysis.some(g => g.weightedImpact > 0) && (
               <Card className="border-primary/30 bg-primary/5">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Zap className="h-4 w-4 text-primary" />
-                    Limiteurs Détectés
-                    <span className="text-[10px] font-normal text-muted-foreground ml-auto">
-                      Confiance: {(limiter.confidence * 100).toFixed(0)}%
-                    </span>
+                    Hiérarchie des Limiteurs
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  {(() => {
-                    const rankedGaps = [...limiter.gapAnalysis]
-                      .filter(g => g.weightedImpact > 0 && g.metric !== "Disponibilité")
-                      .sort((a, b) => b.weightedImpact - a.weightedImpact);
-                    const maxImpact = rankedGaps[0]?.weightedImpact || 1;
-
-                    return rankedGaps.map((gap, idx) => {
-                      const isPrimary = idx === 0;
-                      const relativeImpact = (gap.weightedImpact / maxImpact) * 100;
-
-                      return (
-                        <div key={gap.metric} className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-mono text-muted-foreground w-4 text-right">
-                              {idx + 1}.
-                            </span>
-                            <Badge
-                              variant={isPrimary ? "destructive" : gap.status === "limiting" ? "destructive" : "secondary"}
-                              className={`text-[10px] ${isPrimary ? "" : "opacity-80"}`}
-                            >
-                              {isPrimary ? "🎯" : gap.status === "limiting" ? "🔴" : "🟡"} {gap.metric}
-                            </Badge>
-                            <span className="text-[10px] text-muted-foreground">
-                              {gap.value?.toFixed(gap.metric === "VLamax" ? 2 : 1) ?? "?"} vs {gap.target.toFixed(gap.metric === "VLamax" ? 2 : 1)}
-                            </span>
-                          </div>
-                          <div className="ml-6 flex items-center gap-2">
-                            <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-                              <div
-                                className={`h-full rounded-full transition-all ${
-                                  isPrimary ? "bg-destructive" : gap.status === "limiting" ? "bg-destructive/70" : "bg-amber-500/60"
-                                }`}
-                                style={{ width: `${relativeImpact}%` }}
-                              />
-                            </div>
-                            <span className="text-[9px] text-muted-foreground w-8 text-right">
-                              {gap.weightedImpact.toFixed(0)}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    });
-                  })()}
-
-                  {limiter.primaryLimiter !== "none" && (
-                    <div className="pt-2 border-t border-border/50">
-                      <p className="text-xs text-muted-foreground mb-1.5">{limiter.limiterExplanation}</p>
-                      <Badge variant="secondary" className="text-[10px]">
-                        {limiter.leverEmoji} Levier : {limiter.leverLabel}
-                      </Badge>
-                    </div>
-                  )}
+                <CardContent>
+                  <LimiterHierarchyEditor
+                    gaps={limiter.gapAnalysis}
+                    confidence={limiter.confidence}
+                    limiterLabel={limiter.limiterLabel}
+                    limiterExplanation={limiter.limiterExplanation}
+                    leverEmoji={limiter.leverEmoji}
+                    leverLabel={limiter.leverLabel}
+                    primaryLimiter={limiter.primaryLimiter}
+                    onOrderChange={setCoachLimiterOrder}
+                  />
                 </CardContent>
               </Card>
             )}
