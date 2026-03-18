@@ -201,7 +201,7 @@ export function RunningEconomyModule({
                       <span>🟢</span> Très bonne économie
                     </div>
                     <p className="text-muted-foreground mt-1">
-                      FC stable, faible dérive (&lt;5%), allure soutenue confortable → <strong>Bonus Race Readiness CAP</strong>
+                      FC stable, faible dérive (&lt;5%), allure soutenue confortable → <strong>Bonus Potentiel Physiologique CAP</strong>
                     </p>
                   </div>
                   <div className="p-2 rounded bg-yellow-500/10 border border-yellow-500/20">
@@ -209,7 +209,7 @@ export function RunningEconomyModule({
                       <span>🟡</span> Économie correcte
                     </div>
                     <p className="text-muted-foreground mt-1">
-                      Légère dérive (5-8%), stabilité acceptable → Race Readiness neutre
+                      Légère dérive (5-8%), stabilité acceptable → Potentiel Physiologique neutre
                     </p>
                   </div>
                   <div className="p-2 rounded bg-orange-500/10 border border-orange-500/20">
@@ -217,7 +217,7 @@ export function RunningEconomyModule({
                       <span>🟠</span> Économie faible
                     </div>
                     <p className="text-muted-foreground mt-1">
-                      Dérive rapide (8-12%), hausse FC à allure constante → <strong>Pénalité Race Readiness CAP</strong>
+                      Dérive rapide (8-12%), hausse FC à allure constante → <strong>Pénalité Potentiel Physiologique CAP</strong>
                     </p>
                   </div>
                   <div className="p-2 rounded bg-red-500/10 border border-red-500/20">
@@ -246,13 +246,13 @@ export function RunningEconomyModule({
           </div>
         </div>
         
-        {/* Impact sur Race Readiness */}
+        {/* Impact sur Potentiel Physiologique */}
         {economy.capScore !== null && (
           <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30">
             <div className="flex items-center gap-2 mb-1">
               <TrendingDown className="h-4 w-4 text-destructive" />
               <span className="text-sm font-medium text-destructive">
-                Impact sur Race Readiness
+                Impact sur Potentiel Physiologique
               </span>
             </div>
             <p className="text-sm text-destructive/80">

@@ -119,7 +119,7 @@ export const PEDAGOGICAL_TEXTS: Record<string, {
     academySection: "fatigue"
   },
   race_readiness: {
-    short: "Race Readiness évalue la cohérence entre le profil physiologique et l'objectif de course. C'est un indicateur de préparation, pas une garantie de performance.",
+    short: "Le Potentiel Physiologique évalue la cohérence entre le profil physiologique et l'objectif de course. C'est un indicateur de préparation, pas une garantie de performance.",
     academySection: "race_readiness"
   },
   ftp: {
