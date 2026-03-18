@@ -1445,7 +1445,7 @@ function buildExportPayload(
       source: tte.source,
     },
     ftpKg, // ✅ Ajouté - manquait dans l'export
-    raceReadiness: {
+    potentielPhysiologique: {
       score: potentielPhysiologique.score,
       details: potentielPhysiologique.details, // ✅ Simplifié comme dans le dashboard
     },
