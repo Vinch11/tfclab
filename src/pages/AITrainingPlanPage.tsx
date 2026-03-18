@@ -432,8 +432,8 @@ export default function AITrainingPlanPage() {
       constraints: constraints || undefined,
     };
 
-    return buildPlanConfigFromDiagnostic(diagnostic, formConfig);
-  }, [objective, raceName, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate]);
+    return buildPlanConfigFromDiagnostic(diagnostic, formConfig, coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined);
+  }, [objective, raceName, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate, coachLimiterOrder]);
 
   // Single athlete generation
   const handleGenerate = () => {
