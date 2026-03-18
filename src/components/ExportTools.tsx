@@ -2940,7 +2940,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       <div class="tocRow"><a href="#executif">2. Synthèse Exécutive</a></div>
       <div class="tocRow"><a href="#compass">3. Metabolic Performance Compass™</a></div>
       <div class="tocRow"><a href="#indicateurs">4. Indicateurs Clés</a></div>
-      <div class="tocRow"><a href="#readiness">5. Race Readiness</a></div>
+      <div class="tocRow"><a href="#readiness">5. Potentiel Physiologique</a></div>
       <div class="tocRow"><a href="#injury-risk">6. Risque de Blessure CAP</a></div>
       <div class="tocRow"><a href="#nutrition-v2">7. Nutrition Prédictive V2</a></div>
       <div class="tocRow"><a href="#fatmax-tfcl">8. FatMax TFCL™</a></div>
