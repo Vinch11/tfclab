@@ -168,7 +168,12 @@ function formatLimitersForPrompt(
   }
 
   if (rankedGaps.length > 0) {
-    limiters.push(`## CLASSEMENT DES LIMITEURS PAR IMPORTANCE (du plus critique au moins critique)`);
+    if (hasCoachOverride) {
+      limiters.push(`## ⚙️ CLASSEMENT DES LIMITEURS — ORDRE PERSONNALISÉ PAR LE COACH`);
+      limiters.push(`⚠️ Le coach a modifié l'ordre de priorité des limiteurs. Cet ordre PRIME sur le classement automatique par impact.\n`);
+    } else {
+      limiters.push(`## CLASSEMENT DES LIMITEURS PAR IMPORTANCE (du plus critique au moins critique)`);
+    }
     limiters.push(`Total : ${rankedGaps.length} limiteur(s) détecté(s). Le plan DOIT les adresser TOUS, par ordre de priorité.\n`);
 
     rankedGaps.forEach((g, idx) => {
