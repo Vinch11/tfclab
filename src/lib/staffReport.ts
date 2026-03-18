@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getScoreColor, getRaceReadinessTargets, getTargets, getWeightsBySport, generateAthleteReadiness, computePillarCalculations, type RaceReadinessInput, type RaceReadinessResult, computeRaceReadinessSignature } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, getScoreColor, getPotentielTargets, getTargets, getWeightsBySport, generateAthleteReadiness, computePillarCalculations, type PotentielInput, type PotentielResult, computePotentielSignature } from "@/lib/potentielPhysiologiqueEffectif";
 /**
  * RAPPORT STAFF PRÉ-COURSE - Vince's Lab
  * Synthèse d'une page, lisible en < 2 minutes
@@ -340,7 +340,7 @@ export interface GenerateStaffReportParams {
   snapshotDate: string;
   vlamaxEffectif: VLamaxEffectif;
   tteEffectif: TTEEffectif;
-  readiness: RaceReadinessEffectif;
+  readiness: PotentielPhysiologiqueEffectif;
   nutritionEstimate: NutritionEstimate | null;
   runningEconomy: RunningEconomyResult | null;
   ftp: number | null;
@@ -398,7 +398,7 @@ function getObjectifLabel(objectif: string): string {
  * pour garantir la cohérence avec TFCLDecisionMatrix et le Compass
  */
 function determineMainLimitation(params: {
-  readiness: RaceReadinessEffectif;
+  readiness: PotentielPhysiologiqueEffectif;
   vlamaxEffectif: VLamaxEffectif;
   tteEffectif: TTEEffectif;
   nutritionEstimate: NutritionEstimate | null;
@@ -471,7 +471,7 @@ function determineMainLimitation(params: {
   };
 }
 
-function determineTrafficLight(readiness: RaceReadinessEffectif): TrafficLight {
+function determineTrafficLight(readiness: PotentielPhysiologiqueEffectif): TrafficLight {
   const { score, wasCappedByNutrition, wasCappedByEconomy } = readiness;
   
   if (score >= 80 && !wasCappedByNutrition && !wasCappedByEconomy) {
@@ -484,7 +484,7 @@ function determineTrafficLight(readiness: RaceReadinessEffectif): TrafficLight {
 }
 
 function generateExecutiveMessage(
-  readiness: RaceReadinessEffectif,
+  readiness: PotentielPhysiologiqueEffectif,
   limitation: { type: LimitationType; label: string }
 ): string {
   const { score } = readiness;
@@ -505,7 +505,7 @@ function generateExecutiveMessage(
 }
 
 function generateStaffInterpretation(params: {
-  readiness: RaceReadinessEffectif;
+  readiness: PotentielPhysiologiqueEffectif;
   limitation: { type: LimitationType; label: string };
   vlamaxEffectif: VLamaxEffectif;
   tteEffectif: TTEEffectif;
@@ -582,7 +582,7 @@ function generateStaffInterpretation(params: {
 
 function generateRaceStrategy(params: {
   objectif: string;
-  readiness: RaceReadinessEffectif;
+  readiness: PotentielPhysiologiqueEffectif;
   limitation: { type: LimitationType; label: string };
   nutritionEstimate: NutritionEstimate | null;
   ftp: number | null;
@@ -697,7 +697,7 @@ function generateNutritionSummary(
 }
 
 function generateFinalVerdict(
-  readiness: RaceReadinessEffectif,
+  readiness: PotentielPhysiologiqueEffectif,
   limitation: { type: LimitationType; label: string }
 ): FinalVerdict {
   const trafficLight = determineTrafficLight(readiness);

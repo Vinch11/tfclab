@@ -32,7 +32,7 @@ export interface AvailabilityRun {
 export type PlanPhase = "BUILD" | "SPECIFIC" | "TAPER" | "RACE_WEEK";
 export type RaceImportance = "A" | "B" | "C" | "TRAINING";
 
-export interface RaceReadinessRun {
+export interface PotentielRun {
   athlete_id: string;
   date: string;
   readiness_score: number;
@@ -54,7 +54,7 @@ export type RiskContextRun = {
   limiting_factor: LimitingFactor;
 };
 
-export function computeRaceReadinessRun(..._args: unknown[]): RaceReadinessRun {
+export function computePotentielRun(..._args: unknown[]): PotentielRun {
   return {
     athlete_id: "",
     date: new Date().toISOString(),
@@ -106,7 +106,7 @@ export function getDefaultSimulationModifiers(): SimulationModifiers {
 }
 
 // ═══ From potentielPhysiologiqueV2 ═══
-export type RaceReadinessV2Category = 
+export type PotentielV2Category = 
   | 'preparation_required'
   | 'in_progress'
   | 'solid'
@@ -144,13 +144,13 @@ export interface DecisionFlags {
   dataIncomplete: boolean;
 }
 
-export interface RaceReadinessV2Result {
+export interface PotentielV2Result {
   potential: PotentialScore;
   availability: AvailabilityScore;
   readiness: {
     score: number;
     rawScore: number;
-    category: RaceReadinessV2Category;
+    category: PotentielV2Category;
     categoryLabel: string;
     categoryEmoji: string;
     confidenceGlobal: number;
@@ -165,7 +165,7 @@ export interface RaceReadinessV2Result {
   disclaimer: string;
 }
 
-export const RACE_READINESS_V2_DEFINITIONS = {
+export const POTENTIEL_V2_DEFINITIONS = {
   potential: {
     title: "Potentiel (Metabolic Performance Compass™)",
     definition: "Le potentiel représente le profil physiologique structurel.",
@@ -180,8 +180,8 @@ export const RACE_READINESS_V2_DEFINITIONS = {
   },
 };
 
-export function getRaceReadinessV2Color(category: RaceReadinessV2Category): string {
-  const colors: Record<RaceReadinessV2Category, string> = {
+export function getPotentielV2Color(category: PotentielV2Category): string {
+  const colors: Record<PotentielV2Category, string> = {
     preparation_required: "hsl(var(--destructive))",
     in_progress: "hsl(var(--warning))",
     solid: "hsl(var(--info, 210 40% 50%))",
@@ -190,8 +190,8 @@ export function getRaceReadinessV2Color(category: RaceReadinessV2Category): stri
   return colors[category];
 }
 
-export function getRaceReadinessV2BgColor(category: RaceReadinessV2Category): string {
-  const colors: Record<RaceReadinessV2Category, string> = {
+export function getPotentielV2BgColor(category: PotentielV2Category): string {
+  const colors: Record<PotentielV2Category, string> = {
     preparation_required: "hsl(var(--destructive) / 0.1)",
     in_progress: "hsl(var(--warning) / 0.1)",
     solid: "hsl(var(--info, 210 40% 50%) / 0.1)",
@@ -200,8 +200,8 @@ export function getRaceReadinessV2BgColor(category: RaceReadinessV2Category): st
   return colors[category];
 }
 
-export function getRaceReadinessV2BadgeClass(category: RaceReadinessV2Category): string {
-  const classes: Record<RaceReadinessV2Category, string> = {
+export function getPotentielV2BadgeClass(category: PotentielV2Category): string {
+  const classes: Record<PotentielV2Category, string> = {
     preparation_required: "bg-destructive/20 text-destructive border-destructive/50",
     in_progress: "bg-warning/20 text-warning border-warning/50",
     solid: "bg-blue-500/20 text-blue-700 border-blue-500/50",
@@ -210,7 +210,7 @@ export function getRaceReadinessV2BadgeClass(category: RaceReadinessV2Category):
   return classes[category];
 }
 
-export const RACE_READINESS_V2_CATEGORIES: Record<RaceReadinessV2Category, { label: string; emoji: string }> = {
+export const POTENTIEL_V2_CATEGORIES: Record<PotentielV2Category, { label: string; emoji: string }> = {
   preparation_required: { label: "Préparation requise", emoji: "🔴" },
   in_progress: { label: "En progression", emoji: "🟠" },
   solid: { label: "Solide", emoji: "🔵" },
@@ -285,10 +285,10 @@ export interface ComputeDecisionTFCLInput {
   };
 }
 
-export function computeDecisionTFCL(input: ComputeDecisionTFCLInput): RaceReadinessV2Result {
+export function computeDecisionTFCL(input: ComputeDecisionTFCLInput): PotentielV2Result {
   const gs = input.compass.globalScore;
-  const category: RaceReadinessV2Category = gs >= 80 ? 'ready' : gs >= 65 ? 'solid' : gs >= 50 ? 'in_progress' : 'preparation_required';
-  const catInfo = RACE_READINESS_V2_CATEGORIES[category];
+  const category: PotentielV2Category = gs >= 80 ? 'ready' : gs >= 65 ? 'solid' : gs >= 50 ? 'in_progress' : 'preparation_required';
+  const catInfo = POTENTIEL_V2_CATEGORIES[category];
   
   return {
     potential: {

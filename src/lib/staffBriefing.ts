@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getScoreColor, getRaceReadinessTargets, getTargets, getWeightsBySport, generateAthleteReadiness, computePillarCalculations, type RaceReadinessInput, type RaceReadinessResult, computeRaceReadinessSignature } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, getScoreColor, getPotentielTargets, getTargets, getWeightsBySport, generateAthleteReadiness, computePillarCalculations, type PotentielInput, type PotentielResult, computePotentielSignature } from "@/lib/potentielPhysiologiqueEffectif";
 /**
  * Staff Briefing - Two For Coaching Lab
  * Module C: Briefing Staff automatique clé en main
@@ -104,7 +104,7 @@ export interface ComputeStaffBriefingParams {
   ftpKg: number | null;
   ftp: number | null;
   poids: number | null;
-  potentielPhysiologique: RaceReadinessEffectif;
+  potentielPhysiologique: PotentielPhysiologiqueEffectif;
   energyDrift: EnergyDriftResult;
   nutritionTiming: NutritionTimingResult;
   economyScore: number | null;

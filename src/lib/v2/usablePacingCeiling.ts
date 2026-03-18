@@ -15,7 +15,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import type { RaceReadinessV2Result } from "./potentielTypes";
+import type { PotentielV2Result } from "./potentielTypes";
 import type { PacingEnvelopeResult } from "./pacingEnvelopeEngine";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -27,7 +27,7 @@ export type ConsequenceType = 'stability' | 'warning' | 'collapse';
 
 export interface UsablePacingCeilingInput {
   envelope: PacingEnvelopeResult;
-  potentielPhysiologique: RaceReadinessV2Result;
+  potentielPhysiologique: PotentielV2Result;
   targetRaceDurationMin?: number | null;
 }
 

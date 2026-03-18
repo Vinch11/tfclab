@@ -28,7 +28,7 @@ import { computeVLamaxEffectif, type VLamaxEffectif } from "@/lib/vlamaxEffectif
 import { computeTTEEffectif, type TTEEffectif } from "@/lib/tteEffectif";
 import { computeFatigueEffectif, type FatigueEffectif } from "@/lib/fatigueEffectif";
 import { detectUnifiedLimiter, type UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
-import { computeDecisionTFCL, type RaceReadinessV2Result } from "@/lib/v2/potentielTypes";
+import { computeDecisionTFCL, type PotentielV2Result } from "@/lib/v2/potentielTypes";
 import { getTargetsForAmbition, normalizeObjective, getVLamaxRange } from "@/lib/physiologicalTargets";
 import type { CompassScores, CompassAxisScore } from "@/lib/compassScoring";
 import { computeRunInjuryRisk, type RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
@@ -202,7 +202,7 @@ function buildAxisScore(score: number, label: string, explanation: string): Comp
 function computeReadinessFromInput(
   input: DiagnosticInput,
   limiter: UnifiedLimiterResult
-): RaceReadinessV2Result {
+): PotentielV2Result {
   // Build compass scores from limiter gap analysis
   let aerobicScore = 50;
   let toleranceScore = 50;
@@ -273,7 +273,7 @@ function computeRunInjuryRiskFromInput(
 
 function computeSynthesis(
   limiter: UnifiedLimiterResult,
-  readiness: RaceReadinessV2Result,
+  readiness: PotentielV2Result,
   fatigue: FatigueEffectif,
   runInjuryRisk: RunInjuryRiskEnvelope | null,
   input: DiagnosticInput
@@ -361,7 +361,7 @@ function computeSynthesis(
 
 function generateHeadline(
   limiter: UnifiedLimiterResult,
-  readiness: RaceReadinessV2Result,
+  readiness: PotentielV2Result,
   fatigue: FatigueEffectif
 ): string {
   if (fatigue.score > 75) {

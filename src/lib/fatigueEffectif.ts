@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, getScoreColor, getRaceReadinessTargets, getTargets, getWeightsBySport, generateAthleteReadiness, computePillarCalculations, type RaceReadinessInput, type RaceReadinessResult, computeRaceReadinessSignature } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectif, getScoreColor, getPotentielTargets, getTargets, getWeightsBySport, generateAthleteReadiness, computePillarCalculations, type PotentielInput, type PotentielResult, computePotentielSignature } from "@/lib/potentielPhysiologiqueEffectif";
 // =============================================
 // FATIGUE INDEX™ — Two For Coaching Lab
 // Système officiel de quantification de la fatigue
@@ -21,8 +21,8 @@ import { computeRaceReadinessEffectif, getScoreColor, getRaceReadinessTargets, g
 // =============================================
 
 import { TTEEffectif, getTTETarget } from "./tteEffectif";
-import { type RaceReadinessEffectif } from "@/lib/potentielPhysiologiqueEffectif";
-type RaceReadinessEffectifCompat = RaceReadinessEffectif;
+import { type PotentielPhysiologiqueEffectif } from "@/lib/potentielPhysiologiqueEffectif";
+type PotentielPhysiologiqueEffectifCompat = PotentielPhysiologiqueEffectif;
 import { VLamaxEffectif } from "./vlamaxEffectif";
 
 // =============================================
@@ -195,7 +195,7 @@ export interface ComputeFatigueParams {
   tss7dHabituel?: number | null;     // Charge habituelle de référence (si disponible)
   fatiguePercue?: number | null;     // NEW: Fatigue perçue (1-10, 1=frais, 10=épuisé)
   tteEffectif: TTEEffectif;
-  potentielPhysiologique?: RaceReadinessEffectifCompat | null;  // NULLABLE: peut être null si pas encore calculé
+  potentielPhysiologique?: PotentielPhysiologiqueEffectifCompat | null;  // NULLABLE: peut être null si pas encore calculé
   vlamaxEffectif?: VLamaxEffectif | null;
   age?: number | null;
   objectif: string;
@@ -341,7 +341,7 @@ function computeFatiguePercueIndex(
  * Combiné avec la fraîcheur métabolique du Race Readiness
  */
 function computeFraicheurIndex(
-  potentielPhysiologique: RaceReadinessEffectif | null | undefined
+  potentielPhysiologique: PotentielPhysiologiqueEffectif | null | undefined
 ): { index: number; confidence: number } {
   // Gestion robuste si potentielPhysiologique est null/undefined
   if (!potentielPhysiologique || potentielPhysiologique.score == null) {

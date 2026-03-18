@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getTargets, getWeightsBySport, generateAthleteReadiness } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, getTargets, getWeightsBySport, generateAthleteReadiness } from "@/lib/potentielPhysiologiqueEffectif";
 // =============================================
 // OUTILS EXPORT PDF – RAPPORT STAFF-GRADE COMPLET
 // Two For Coaching Lab – Performance & Metabolic Report
@@ -173,7 +173,7 @@ interface ExportPayload {
   effectiveRefs: EffectiveRefs;
   vlamax: VLamaxEffectif;
   tte: TTEEffectif;
-  potentielPhysiologique: RaceReadinessEffectif;
+  potentielPhysiologique: PotentielPhysiologiqueEffectif;
   lorang: {
     priorite: PrioriteType;
     prioriteLabel: string;
@@ -1309,7 +1309,7 @@ function buildExportPayload(
     return age;
   })() : null;
   
-  const potentielPhysiologique = computeRaceReadinessEffectif({
+  const potentielPhysiologique = computePotentielEffectif({
     objectif: athlete.goal || "IM",
     vlamaxEffectif: vlamax,
     tteEffectif: tte,

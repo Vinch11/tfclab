@@ -10,7 +10,7 @@ import { CheckCircle2, AlertTriangle, Target, Compass } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getAgeAdjustedTargets } from "@/lib/ageAdjustment";
 import { AmbitionLevel, DEFAULT_AMBITION, getAmbitionDefinition } from "@/types/ambitionLevel";
-import { getRaceReadinessTargets } from "@/lib/potentielPhysiologiqueEffectif";
+import { getPotentielTargets } from "@/lib/potentielPhysiologiqueEffectif";
 
 interface TargetSyncVerifierProps {
   objectif: string;
@@ -29,7 +29,7 @@ export function TargetSyncVerifier({
     // Cibles du Compass (source: ageAdjustment.ts)
     const compassTargets = getAgeAdjustedTargets(objectif, athleteAge, ambition);
     
-    const rrTargets = getRaceReadinessTargets(objectif, athleteAge, ambition);
+    const rrTargets = getPotentielTargets(objectif, athleteAge, ambition);
     
     // Vérifier la synchronisation
     const tteSynced = compassTargets.tteTarget === rrTargets.tteTarget;

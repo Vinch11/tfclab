@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getScoreColor, getRaceReadinessTargets, getTargets, getWeightsBySport, generateAthleteReadiness, computePillarCalculations, type RaceReadinessInput, type RaceReadinessResult, computeRaceReadinessSignature } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, getScoreColor, getPotentielTargets, getTargets, getWeightsBySport, generateAthleteReadiness, computePillarCalculations, type PotentielInput, type PotentielResult, computePotentielSignature } from "@/lib/potentielPhysiologiqueEffectif";
 // =============================================
 // DASHBOARD STAFF - Two For Coaching Lab
 // Tour de contrôle décisionnelle - Lisible en < 10 secondes
@@ -118,7 +118,7 @@ function getPhaseFromObjectif(objectif: string): string {
 function generateCoachSummary(
   vlamax: VLamaxEffectif,
   tte: TTEEffectif,
-  readiness: RaceReadinessEffectif,
+  readiness: PotentielPhysiologiqueEffectif,
   objectif: string
 ): string {
   const parts: string[] = [];

@@ -786,10 +786,10 @@ export {
 // Readiness Types — Legacy stubs for backward compat
 export {
   type ReadinessState,
-  type RaceReadinessRun,
+  type PotentielRun,
   type AvailabilityRun,
   type SimulationModifiers,
-  type RaceReadinessV2Result,
+  type PotentielV2Result,
 } from './potentielTypes';
 
 // Running Limiter Detection — Limiteurs 100% CAP

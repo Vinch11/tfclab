@@ -13,7 +13,7 @@ export interface ReglesTwoForCoachingResult {
 // Alias for backwards compatibility
 export type ReglesDanLorangResult = ReglesTwoForCoachingResult;
 
-export interface RaceReadinessInputs {
+export interface PotentielInputs {
   seance_specifique_validee: boolean;
   fatigue_ok: boolean;
 }

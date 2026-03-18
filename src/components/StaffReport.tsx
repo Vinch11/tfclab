@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, computePillarCalculations } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, computePillarCalculations } from "@/lib/potentielPhysiologiqueEffectif";
 /**
  * RAPPORT STAFF PRÉ-COURSE - Composant UI
  * Synthèse d'une page, lisible en < 2 minutes
@@ -56,7 +56,7 @@ import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 import { computeFullDRE, type DecisionReliabilityResult, type Scenario } from "@/engines/diagnostic";
 import { DecisionReliabilityBadge, DecisionReliabilityProgress } from "@/components/DecisionReliabilityBadge";
 import { computeLorangStrategy, type LorangStrategyInput, type LorangStrategyResult, LIMITER_DEFINITIONS, LEVER_DEFINITIONS } from "@/engines/decision";
-import { computeRaceReadinessSignature, type RaceReadinessInput, type RaceReadinessResult } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielSignature, type PotentielInput, type PotentielResult } from "@/lib/potentielPhysiologiqueEffectif";
 import { PacingEnvelopeBar, PacingEnvelopeBarInline } from "@/components/charts/PacingEnvelopeBar";
 import { LongDistanceEnvelopeChart, LongDistanceEnvelopeInline } from "@/components/charts/LongDistanceEnvelopeChart";
 import { computePacingEnvelope, type PacingEnvelopeInput, type RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
@@ -82,7 +82,7 @@ interface StaffReportProps {
   snapshotDate: string;
   vlamaxEffectif: VLamaxEffectif;
   tteEffectif: TTEEffectif;
-  readiness: RaceReadinessEffectif;
+  readiness: PotentielPhysiologiqueEffectif;
   nutritionEstimate: NutritionEstimate | null;
   runningEconomy: RunningEconomyResult | null;
   ftp: number | null;
@@ -95,7 +95,7 @@ interface StaffReportProps {
   snapshot?: DbSnapshot | null;
   vo2max?: number | null;
   lorangInput?: LorangStrategyInput | null;
-  potentielPhysiologiqueSignatureInput?: RaceReadinessInput | null;
+  potentielPhysiologiqueSignatureInput?: PotentielInput | null;
   runningProfile?: RunningPhysioProfile | null;
   runningWeeklyDecision?: RunningWeeklyDecision | null;
   onExportPDF?: () => void;
@@ -1479,7 +1479,7 @@ export function StaffReport({
 /**
  * Composant pour afficher les détails de calcul Race Readiness dans le rapport exporté
  */
-function RaceReadinessCalculationDetails({ readiness }: { readiness: RaceReadinessEffectif }) {
+function RaceReadinessCalculationDetails({ readiness }: { readiness: PotentielPhysiologiqueEffectif }) {
   const calculations = computePillarCalculations(readiness);
   
   const pillars = [
@@ -1922,8 +1922,8 @@ function LorangStrategySection({ input }: { input: LorangStrategyInput }) {
 // RACE READINESS SIGNATURE SECTION — Potentiel × Disponibilité → Décision
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function RaceReadinessSignatureSection({ input }: { input: RaceReadinessInput }) {
-  const result = computeRaceReadinessSignature(input);
+function RaceReadinessSignatureSection({ input }: { input: PotentielInput }) {
+  const result = computePotentielSignature(input);
   
   // Couleurs des zones de décision
   const zoneColors: Record<string, { bg: string; border: string; text: string }> = {
@@ -2078,7 +2078,7 @@ function StaffCompassSection({
 }: {
   vlamaxEffectif: VLamaxEffectif;
   tteEffectif: TTEEffectif;
-  readiness: RaceReadinessEffectif;
+  readiness: PotentielPhysiologiqueEffectif;
   ftp: number | null;
   poids: number | null;
   vo2max: number | null;

@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectif, type PotentielPhysiologiqueEffectif } from "@/lib/potentielPhysiologiqueEffectif";
 // =============================================
 // STAFF DASHBOARD - Two For Coaching Lab
 // Tour de contrôle décisionnelle - Lisible en < 10 secondes
@@ -50,7 +50,7 @@ interface StaffDashboardProps {
   objectif: string;
   vlamaxEffectif: VLamaxEffectif;
   tteEffectif: TTEEffectif;
-  potentielPhysiologique: RaceReadinessEffectif;
+  potentielPhysiologique: PotentielPhysiologiqueEffectif;
   nutritionEstimate: NutritionEstimate | null;
   ftpKg: number | null;
   snapshotDate: string | null;
@@ -97,7 +97,7 @@ function getPhaseFromObjectif(objectif: string): string {
 function generateCoachSummary(
   vlamax: VLamaxEffectif,
   tte: TTEEffectif,
-  readiness: RaceReadinessEffectif,
+  readiness: PotentielPhysiologiqueEffectif,
   objectif: string
 ): string {
   const parts: string[] = [];

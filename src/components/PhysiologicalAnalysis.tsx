@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectif, type PotentielPhysiologiqueEffectif } from "@/lib/potentielPhysiologiqueEffectif";
 // =============================================
 // COMPOSANT ANALYSE PHYSIOLOGIQUE ÉLITE
 // + Section Économie de Course (CAP)
@@ -43,7 +43,7 @@ interface PhysiologicalAnalysisProps {
   athlete: Athlete;
   vlamaxEffectif?: VLamaxEffectif;
   tteEffectif?: TTEEffectif;
-  readiness?: RaceReadinessEffectif;
+  readiness?: PotentielPhysiologiqueEffectif;
   onGoToSnapshots?: () => void;
   ambition?: AmbitionLevel;
   athleteAge?: number | null;

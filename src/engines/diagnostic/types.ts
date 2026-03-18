@@ -17,7 +17,7 @@ import type { VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import type { TTEEffectif } from "@/lib/tteEffectif";
 import type { FatigueEffectif } from "@/lib/fatigueEffectif";
 import type { UnifiedLimiterResult, UnifiedLimiter, UnifiedLever } from "@/lib/v2/unifiedLimiterDetection";
-import type { RaceReadinessV2Result } from "@/lib/v2/potentielTypes";
+import type { PotentielV2Result } from "@/lib/v2/potentielTypes";
 import type { InjuryRiskEnvelope } from "@/lib/v2/injuryRiskUnified";
 import type { RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
 import type { ObjectiveTargets, VLamaxTargets } from "@/lib/physiologicalTargets";
@@ -143,7 +143,7 @@ export interface AthleteDiagnostic {
   limiter: UnifiedLimiterResult;
   
   // ─── 3. Readiness (ex-Race Readiness) ─────────────
-  readiness: RaceReadinessV2Result;
+  readiness: PotentielV2Result;
   
   // ─── 4. Cibles Physiologiques ─────────────────────
   targets: {

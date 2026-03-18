@@ -80,7 +80,7 @@ import {
   getSimulationContextMessages,
   ACCESS_LEVEL_COLORS,
   type SimulationAccessResult,
-  type RaceReadinessV2Result,
+  type PotentielV2Result,
 } from '@/lib/v2/potentielTypes';
 
 interface RaceSimulationModuleProps {
@@ -94,7 +94,7 @@ interface RaceSimulationModuleProps {
   disponibiliteScore?: number | null;
   disponibiliteLevel?: string | null;
   potentielPhysiologiqueScore?: number | null;
-  potentielPhysiologiqueResult?: RaceReadinessV2Result | null;
+  potentielPhysiologiqueResult?: PotentielV2Result | null;
   injuryRiskLevel?: string | null;
   ftp?: number | null;
   vma?: number | null;

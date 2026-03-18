@@ -1,11 +1,11 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getScoreColor } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, getScoreColor } from "@/lib/potentielPhysiologiqueEffectif";
 import { useState, useEffect, useMemo } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Target, AlertTriangle, CheckCircle2, TrendingDown, TrendingUp, Timer, Zap, Trophy, Info, HelpCircle, Apple, Flame, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Athlete, getDernierSnapshot } from "@/types/athlete";
-import { reglesTwoForCoaching, ReglesTwoForCoachingResult, RaceReadinessInputs, getPrioriteLabel, getPrioriteColor, getSeancesRecommandees, getSeancesSpecifiques, PrioriteType } from "@/types/reglesTwoForCoaching";
+import { reglesTwoForCoaching, ReglesTwoForCoachingResult, PotentielInputs, getPrioriteLabel, getPrioriteColor, getSeancesRecommandees, getSeancesSpecifiques, PrioriteType } from "@/types/reglesTwoForCoaching";
 import { SEANCES } from "@/types/seances";
 import {
   Popover,
@@ -25,7 +25,7 @@ interface TwoForCoachingAnalysisProps {
   athlete: Athlete;
   vlamaxEffectif?: VLamaxEffectif;
   tteEffectif?: TTEEffectif;
-  readiness?: RaceReadinessEffectif;
+  readiness?: PotentielPhysiologiqueEffectif;
   onGoToSnapshots?: () => void;
 }
 const prioriteIcons: Record<PrioriteType, typeof TrendingDown> = {
@@ -61,7 +61,7 @@ export function TwoForCoachingAnalysis({
   onGoToSnapshots
 }: TwoForCoachingAnalysisProps) {
   const snapshot = getDernierSnapshot(athlete) as any;
-  const [inputs, setInputs] = useState<RaceReadinessInputs>({
+  const [inputs, setInputs] = useState<PotentielInputs>({
     seance_specifique_validee: false,
     fatigue_ok: false
   });

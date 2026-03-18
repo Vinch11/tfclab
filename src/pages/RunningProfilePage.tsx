@@ -1,4 +1,4 @@
-import { type AvailabilityRun, computeRaceReadinessRun } from "@/lib/v2/potentielTypes";
+import { type AvailabilityRun, computePotentielRun } from "@/lib/v2/potentielTypes";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * RUNNING PROFILE PAGE — Two For Coaching Lab™
@@ -253,7 +253,7 @@ export default function RunningProfilePage() {
       calibration_source: "auto" as const,
     };
     
-    return computeRaceReadinessRun(profile, availability);
+    return computePotentielRun(profile, availability);
   }, [currentAthlete, effectiveCloudSnapshot, vlamaxEffectif, tteEffectif, calibrationSnapshot, raceType]);
 
   // Pacing Envelope Running

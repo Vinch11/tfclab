@@ -190,7 +190,7 @@ import { toast } from "sonner";
 import { getDernierSnapshot } from "@/types/athlete";
 import { computeVLamaxEffectif, type VLamaxEffectif, computeTTEEffectif, type TTEEffectif, getSourceLabel } from "@/engines/diagnostic";
 
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, type RaceReadinessInput } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, type PotentielInput } from "@/lib/potentielPhysiologiqueEffectif";
 // ✅ RACE READINESS EFFECTIF - Source unique de vérité
 
 // ✅ Ambition (modulateur des cibles)
@@ -504,7 +504,7 @@ const Index = () => {
 
   // Race Readiness stub (module removed)
   const potentielPhysiologiqueEffectif = useMemo(() => {
-    return computeRaceReadinessEffectif({
+    return computePotentielEffectif({
       objectif: currentAthlete?.goal || "IM",
       vlamaxEffectif,
       tteEffectif,
@@ -1413,7 +1413,7 @@ const Index = () => {
               const tss7d = effectiveCloudSnapshot?.tss_7d ?? null;
               const tss28d = tss7d ? tss7d * 4 : null;
               
-              const signatureInput: RaceReadinessInput = {
+              const signatureInput: PotentielInput = {
                 objectif: currentAthlete.goal || "IM",
                 vlamaxValue: vlamaxEffectif.value,
                 vlamaxConfidence: vlamaxEffectif.confidence,
