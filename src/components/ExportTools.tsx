@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getTargets, getWeightsBySport, generateAthleteReadiness } from "@/lib/raceReadinessEffectif";
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getTargets, getWeightsBySport, generateAthleteReadiness } from "@/lib/potentielPhysiologiqueEffectif";
 // =============================================
 // OUTILS EXPORT PDF – RAPPORT STAFF-GRADE COMPLET
 // Two For Coaching Lab – Performance & Metabolic Report
@@ -108,13 +108,13 @@ export interface ReportSections {
   profilMetabolique: boolean; // Profil Métabolique Complet (Radar Chart)
   vlamaxZoneConfidence: boolean; // ⚡ VLamax = Zone × Confiance (graphique signature)
   indicateurs: boolean;     // Indicateurs Clés
-  raceReadiness: boolean;   // Potentiel Physiologique
+  potentielPhysiologique: boolean;   // Potentiel Physiologique
   disponibiliteTFCL: boolean; // ✅ Disponibilité TFCL™
   raceSimulation: boolean;  // ✅ Simulation de Course TFCL™
   pacingEnvelope: boolean;  // ✅ Pacing Envelope™ - Discipline Métabolique
   longDistancePacing: boolean; // ✅ Long Distance Pacing Discipline
   doubleBoucleCAP: boolean; // ✅ Double Boucle CAP (Running)
-  raceReadinessRunning: boolean; // ✅ Potentiel Physiologique CAP (Running)
+  potentielPhysiologiqueRunning: boolean; // ✅ Potentiel Physiologique CAP (Running)
   pacingEnvelopeRunning: boolean; // ✅ Pacing Envelope™ CAP (Running)
   injuryRisk: boolean;      // Risque de Blessure CAP
   nutritionV2: boolean;     // Nutrition Prédictive V2
@@ -173,7 +173,7 @@ interface ExportPayload {
   effectiveRefs: EffectiveRefs;
   vlamax: VLamaxEffectif;
   tte: TTEEffectif;
-  raceReadiness: RaceReadinessEffectif;
+  potentielPhysiologique: RaceReadinessEffectif;
   lorang: {
     priorite: PrioriteType;
     prioriteLabel: string;
@@ -757,7 +757,7 @@ function buildRaceSimulationHTML(
   payload: ExportPayload,
   mode: SimulationMode = 'pro'
 ): string {
-  const { effectiveSnapshot, effectiveRefs, vlamax, tte, raceReadiness } = payload;
+  const { effectiveSnapshot, effectiveRefs, vlamax, tte, potentielPhysiologique } = payload;
   // Normaliser le type de course pour éviter les erreurs
   const goal = normalizeRaceType(payload.athlete.goal || "IM");
   
@@ -795,7 +795,7 @@ function buildBasicSimulationHTML(
   goal: RaceType,
   eligibility: ReturnType<typeof checkProModeEligibility>
 ): string {
-  const { raceReadiness } = payload;
+  const { potentielPhysiologique } = payload;
   
   // Compute basic simulation
   const basicResult = computeBasicSimulation({
@@ -805,7 +805,7 @@ function buildBasicSimulationHTML(
     terrain: 'flat',
     disponibiliteScore: 75,
     disponibiliteLevel: 'good',
-    raceReadinessScore: raceReadiness.score,
+    potentielPhysiologiqueScore: potentielPhysiologique.score,
   });
   
   const riskColorClass = basicResult.globalRiskLevel === 'LOW' ? 'badgeSuccess' 
@@ -1309,7 +1309,7 @@ function buildExportPayload(
     return age;
   })() : null;
   
-  const raceReadiness = computeRaceReadinessEffectif({
+  const potentielPhysiologique = computeRaceReadinessEffectif({
     objectif: athlete.goal || "IM",
     vlamaxEffectif: vlamax,
     tteEffectif: tte,
@@ -1356,7 +1356,7 @@ function buildExportPayload(
     objectif: athlete.goal || "IM",
     tteMin: tte.tte_min,
     tteTarget: tte.target ?? 50,
-    raceReadiness: raceReadiness.score
+    potentielPhysiologique: potentielPhysiologique.score
   });
   
   // Calculer CAP Injury Risk
@@ -1445,9 +1445,9 @@ function buildExportPayload(
       source: tte.source,
     },
     ftpKg, // ✅ Ajouté - manquait dans l'export
-    raceReadiness: {
-      score: raceReadiness.score,
-      details: raceReadiness.details, // ✅ Simplifié comme dans le dashboard
+    potentielPhysiologique: {
+      score: potentielPhysiologique.score,
+      details: potentielPhysiologique.details, // ✅ Simplifié comme dans le dashboard
     },
     CRR: { 
       value: effectiveSnapshot?.tss_7d ?? null, // ✅ Cohérent avec le dashboard
@@ -1472,7 +1472,7 @@ function buildExportPayload(
     effectiveRefs,
     vlamax,
     tte,
-    raceReadiness,
+    potentielPhysiologique,
     lorang: {
       priorite: analysisResult.priorite,
       prioriteLabel: getPrioriteLabel(analysisResult.priorite),
@@ -1664,13 +1664,13 @@ async function imageToBase64(url: string): Promise<string> {
 // BUILD POTENTIEL PHYSIOLOGIQUE RUNNING HTML (CAP)
 // =============================================
 
-function buildRaceReadinessRunningHTML(payload: ExportPayload): string {
-  const { effectiveSnapshot, raceReadiness, athlete } = payload;
+function buildPotentielPhysiologiqueRunningHTML(payload: ExportPayload): string {
+  const { effectiveSnapshot, potentielPhysiologique, athlete } = payload;
   
   const vlamax_run = effectiveSnapshot?.vlamax_run ?? effectiveSnapshot?.vlamax ?? null;
   const durability = effectiveSnapshot?.tte_observed_min ?? 45;
   const vo2max = effectiveSnapshot?.vo2max ?? null;
-  const readinessScore = raceReadiness.score;
+  const potentielScore = potentielPhysiologique.score;
   
   const getStateColor = (score: number) => {
     if (score >= 80) return { color: "#16a34a", bg: "rgba(22,163,74,0.1)", label: "GREEN", message: "Conditions optimales" };
@@ -1678,10 +1678,10 @@ function buildRaceReadinessRunningHTML(payload: ExportPayload): string {
     return { color: "#dc2626", bg: "rgba(220,38,38,0.1)", label: "RED", message: "Risque élevé" };
   };
   
-  const state = getStateColor(readinessScore);
+  const state = getStateColor(potentielScore);
   const isRunningFocus = athlete.goal?.includes("Marathon") || athlete.goal?.includes("Semi") || athlete.goal?.includes("10K") || athlete.goal?.includes("Trail");
-  const intensityCap = readinessScore >= 80 ? 100 : readinessScore >= 60 ? 90 : 80;
-  const pacingDiscipline = readinessScore >= 80 ? "NORMAL" : readinessScore >= 60 ? "STRICT" : "VERY_STRICT";
+  const intensityCap = potentielScore >= 80 ? 100 : potentielScore >= 60 ? 90 : 80;
+  const pacingDiscipline = potentielScore >= 80 ? "NORMAL" : potentielScore >= 60 ? "STRICT" : "VERY_STRICT";
   
   return `
     <section id="race-readiness-running" class="section pagebreakAvoid">
@@ -1696,7 +1696,7 @@ function buildRaceReadinessRunningHTML(payload: ExportPayload): string {
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
           <div>
             <div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Potentiel Physiologique CAP</div>
-            <div style="font-size:42px;font-weight:800;color:${state.color};">${readinessScore}%</div>
+            <div style="font-size:42px;font-weight:800;color:${state.color};">${potentielScore}%</div>
             <div style="font-size:14px;font-weight:600;color:${state.color};">${state.message}</div>
           </div>
           <div style="text-align:center;">
@@ -1726,8 +1726,8 @@ function buildRaceReadinessRunningHTML(payload: ExportPayload): string {
           <div class="kv mt">
             <div class="k">Intensité max autorisée</div><div class="v" style="font-weight:700;color:${state.color};">${intensityCap}% du potentiel</div>
             <div class="k">Discipline pacing</div><div class="v"><span class="badge ${pacingDiscipline === 'NORMAL' ? 'badgeSuccess' : pacingDiscipline === 'STRICT' ? 'badgeWarning' : 'badgeError'}">${pacingDiscipline}</span></div>
-            <div class="k">Course autorisée</div><div class="v">${readinessScore >= 50 ? '✅ Oui' : '⛔ Non recommandé'}</div>
-            <div class="k">Allure départ</div><div class="v">${readinessScore >= 80 ? 'Nominale' : readinessScore >= 60 ? 'Prudente (-3%)' : 'Conservative (-5%)'}</div>
+            <div class="k">Course autorisée</div><div class="v">${potentielScore >= 50 ? '✅ Oui' : '⛔ Non recommandé'}</div>
+            <div class="k">Allure départ</div><div class="v">${potentielScore >= 80 ? 'Nominale' : potentielScore >= 60 ? 'Prudente (-3%)' : 'Conservative (-5%)'}</div>
           </div>
         </div>
       </div>
@@ -1752,11 +1752,11 @@ function buildRaceReadinessRunningHTML(payload: ExportPayload): string {
 // =============================================
 
 function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
-  const { effectiveSnapshot, raceReadiness, athlete } = payload;
+  const { effectiveSnapshot, potentielPhysiologique, athlete } = payload;
   
   const threshold_pace = effectiveSnapshot?.pace_threshold_sec_per_km ?? null;
   const vlamax_run = effectiveSnapshot?.vlamax_run ?? effectiveSnapshot?.vlamax ?? null;
-  const readinessScore = raceReadiness.score;
+  const potentielScore = potentielPhysiologique.score;
   
   const goal = athlete.goal || "Marathon";
   let distance: "10K" | "HM" | "MARATHON" = "MARATHON";
@@ -2006,7 +2006,7 @@ function buildPacingEnvelopeHTML(payload: ExportPayload): string {
 // =============================================
 
 function buildLongDistancePacingHTML(payload: ExportPayload): string {
-  const { effectiveRefs, vlamax, athlete, raceReadiness } = payload;
+  const { effectiveRefs, vlamax, athlete, potentielPhysiologique } = payload;
   
   const ftp = effectiveRefs.ftp ?? null;
   const vlamaxValue = vlamax.value;
@@ -2040,7 +2040,7 @@ function buildLongDistancePacingHTML(payload: ExportPayload): string {
   
   // Calcul LDRI (Long Distance Risk Index)
   const ldri = Math.max(0, Math.min(100, 
-    100 - (vlamaxValue * 100) - (raceReadiness.score < 70 ? 15 : 0)
+    100 - (vlamaxValue * 100) - (potentielPhysiologique.score < 70 ? 15 : 0)
   ));
   const ldriColor = ldri > 70 ? "#dc2626" : ldri > 50 ? "#d97706" : "#16a34a";
   const ldriLabel = ldri > 70 ? "ÉLEVÉ" : ldri > 50 ? "MODÉRÉ" : "FAIBLE";
@@ -2130,7 +2130,7 @@ function buildLongDistancePacingHTML(payload: ExportPayload): string {
 // =============================================
 
 function buildDoubleBoucleCAPHTML(payload: ExportPayload): string {
-  const { effectiveSnapshot, raceReadiness, athlete, vlamax } = payload;
+  const { effectiveSnapshot, potentielPhysiologique, athlete, vlamax } = payload;
   
   const vlamax_run = effectiveSnapshot?.vlamax_run ?? effectiveSnapshot?.vlamax ?? null;
   const vo2max = effectiveSnapshot?.vo2max ?? null;
@@ -2164,9 +2164,9 @@ function buildDoubleBoucleCAPHTML(payload: ExportPayload): string {
   };
   
   const lever = getPriorityLever();
-  const readinessScore = raceReadiness.score;
-  const readinessColor = readinessScore >= 80 ? "#16a34a" : readinessScore >= 60 ? "#d97706" : "#dc2626";
-  const readinessLabel = readinessScore >= 80 ? "Bonne" : readinessScore >= 60 ? "Modérée" : "Faible";
+  const potentielScore = potentielPhysiologique.score;
+  const potentielColor = potentielScore >= 80 ? "#16a34a" : potentielScore >= 60 ? "#d97706" : "#dc2626";
+  const potentielLabel = potentielScore >= 80 ? "Bonne" : potentielScore >= 60 ? "Modérée" : "Faible";
   
   // Confiance simulée
   const confidence = vlamax.confidence;
@@ -2218,27 +2218,27 @@ function buildDoubleBoucleCAPHTML(payload: ExportPayload): string {
         </div>
         
         <!-- BOUCLE RAPIDE -->
-        <div class="card" style="border:2px solid ${readinessColor};">
+        <div class="card" style="border:2px solid ${potentielColor};">
           <h3 style="display:flex;align-items:center;gap:8px;">
             <span style="font-size:18px;">⚡</span>
             Boucle Rapide (hebdo)
           </h3>
           
-          <div style="padding:16px;background:${readinessColor}15;border-radius:8px;text-align:center;margin-top:12px;">
+          <div style="padding:16px;background:${potentielColor}15;border-radius:8px;text-align:center;margin-top:12px;">
             <div style="font-size:11px;color:#64748b;text-transform:uppercase;">Disponibilité</div>
-            <div style="font-size:28px;font-weight:700;color:${readinessColor};">${readinessLabel}</div>
-            <div style="font-size:12px;color:${readinessColor};">Score: ${readinessScore}%</div>
+            <div style="font-size:28px;font-weight:700;color:${potentielColor};">${potentielLabel}</div>
+            <div style="font-size:12px;color:${potentielColor};">Score: ${potentielScore}%</div>
           </div>
           
           <div class="kv mt">
             <div class="k">Intensité autorisée</div>
-            <div class="v">${readinessScore >= 80 ? 'Haute ✓' : readinessScore >= 60 ? 'Modérée' : 'Faible ✗'}</div>
+            <div class="v">${potentielScore >= 80 ? 'Haute ✓' : potentielScore >= 60 ? 'Modérée' : 'Faible ✗'}</div>
             
             <div class="k">Long run</div>
-            <div class="v">${readinessScore >= 50 ? '✓ Autorisé' : '✗ Non recommandé'}</div>
+            <div class="v">${potentielScore >= 50 ? '✓ Autorisé' : '✗ Non recommandé'}</div>
             
             <div class="k">Séances clés max</div>
-            <div class="v">${readinessScore >= 80 ? '3' : readinessScore >= 60 ? '2' : '1'}</div>
+            <div class="v">${potentielScore >= 80 ? '3' : potentielScore >= 60 ? '2' : '1'}</div>
             
             <div class="k">Fiabilité</div>
             <div class="v">${confidence >= 0.8 ? 'Élevée' : confidence >= 0.6 ? 'Modérée' : 'Limitée'}</div>
@@ -2558,7 +2558,7 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
 function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, options: ExportOptions = { includeWahooSuggestions: true, sections: DEFAULT_REPORT_SECTIONS }, calibrationEvidences: CalibrationEvidence[] = []): string {
   const { 
     athlete, effectiveSnapshot, effectiveRefs, 
-    vlamax, tte, raceReadiness, lorang,
+    vlamax, tte, potentielPhysiologique, lorang,
     tests, snapshotHistory, checkins, completude, reportDate,
     nutritionEstimate, capInjuryRisk, ageAdjustment, ambition
   } = payload;
@@ -2891,7 +2891,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               </div>
               <div>
                 <span class="muted">Potentiel Physiologique</span><br>
-                <span class="medium ${raceReadiness.score >= 80 ? 'success' : raceReadiness.score >= 60 ? 'warning' : 'error'}">${raceReadiness.score}%</span>
+                <span class="medium ${potentielPhysiologique.score >= 80 ? 'success' : potentielPhysiologique.score >= 60 ? 'warning' : 'error'}">${potentielPhysiologique.score}%</span>
                 <br><span class="badge badgeWarning" style="font-size:9px;">🔁 Indicateur calculé</span>
                 <br><span class="muted" style="font-size:10px;">Cohérence globale</span>
               </div>
@@ -3054,16 +3054,16 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   const pointsForts: string[] = [];
   const pointsLimitants: string[] = [];
 
-  if (raceReadiness.details.vlamax >= 20) pointsForts.push("VLamax dans la cible");
+  if (potentielPhysiologique.details.vlamax >= 20) pointsForts.push("VLamax dans la cible");
   else pointsLimitants.push("VLamax hors cible");
 
-  if (raceReadiness.details.endurance >= 20) pointsForts.push("Endurance (TTE) solide");
+  if (potentielPhysiologique.details.endurance >= 20) pointsForts.push("Endurance (TTE) solide");
   else pointsLimitants.push("Endurance à développer");
 
-  if (raceReadiness.details.puissance >= 20) pointsForts.push("Puissance relative correcte");
+  if (potentielPhysiologique.details.puissance >= 20) pointsForts.push("Puissance relative correcte");
   else pointsLimitants.push("FTP/kg insuffisant");
 
-  if (raceReadiness.details.fraicheur >= 18) pointsForts.push("Fraîcheur optimale");
+  if (potentielPhysiologique.details.fraicheur >= 18) pointsForts.push("Fraîcheur optimale");
   else pointsLimitants.push("Fatigue accumulée");
 
   // Déterminer le profil métabolique AVEC NUANCES
@@ -3072,10 +3072,10 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     
     const confidenceNote = vlamax.confidence < 0.5 ? " (confiance faible — à confirmer)" : vlamax.confidence < 0.7 ? " (confiance modérée)" : "";
     
-    if (raceReadiness.score >= 80 && pointsLimitants.length === 0) {
+    if (potentielPhysiologique.score >= 80 && pointsLimitants.length === 0) {
       return `Le profil métabolique actuel SEMBLE cohérent avec l'objectif visé${confidenceNote}. Aucune limitation majeure identifiée sur la base des données disponibles.`;
     }
-    if (raceReadiness.score >= 60) {
+    if (potentielPhysiologique.score >= 60) {
       return `Le profil métabolique est globalement adapté à l'objectif MAIS potentiellement limité par : ${pointsLimitants.slice(0, 2).join(", ")}${confidenceNote}.`;
     }
     return `Le profil métabolique présente un DÉSALIGNEMENT potentiel avec l'objectif. Axes d'amélioration suggérés : ${pointsLimitants.slice(0, 2).join(", ")}${confidenceNote}.`;
@@ -3149,10 +3149,10 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             </tr>
             <tr>
               <td><b>Potentiel Physiologique</b></td>
-              <td>${raceReadiness.score}%</td>
+              <td>${potentielPhysiologique.score}%</td>
               <td><span class="badge badgeWarning">🔁 Calculé</span></td>
-              <td><span class="badge ${raceReadiness.confidence >= 0.7 ? 'badgeSuccess' : raceReadiness.confidence >= 0.4 ? 'badgeWarning' : 'badgeError'}">${raceReadiness.confidence >= 0.7 ? 'Élevée' : raceReadiness.confidence >= 0.4 ? 'Modérée' : 'Faible'}</span></td>
-              <td class="muted">${raceReadiness.score >= 80 ? "Bonne cohérence actuelle entre capacités et charge." : raceReadiness.score >= 60 ? "Cohérence acceptable avec des axes d'amélioration identifiés." : "Désalignement significatif — analyse détaillée recommandée."}</td>
+              <td><span class="badge ${potentielPhysiologique.confidence >= 0.7 ? 'badgeSuccess' : potentielPhysiologique.confidence >= 0.4 ? 'badgeWarning' : 'badgeError'}">${potentielPhysiologique.confidence >= 0.7 ? 'Élevée' : potentielPhysiologique.confidence >= 0.4 ? 'Modérée' : 'Faible'}</span></td>
+              <td class="muted">${potentielPhysiologique.score >= 80 ? "Bonne cohérence actuelle entre capacités et charge." : potentielPhysiologique.score >= 60 ? "Cohérence acceptable avec des axes d'amélioration identifiés." : "Désalignement significatif — analyse détaillée recommandée."}</td>
             </tr>
           </tbody>
         </table>
@@ -3717,25 +3717,25 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   // =============================================
   // D. POTENTIEL PHYSIOLOGIQUE (STAFF)
   // =============================================
-  const raceReadinessHTML = `
+  const potentielPhysiologiqueHTML = `
     <section id="race" class="section pagebreak">
       <h2>C. Potentiel Physiologique (Staff)</h2>
       
-      <div class="card ${raceReadiness.score >= 80 ? 'cardSuccess' : raceReadiness.score >= 60 ? 'cardWarning' : 'cardError'}">
+      <div class="card ${potentielPhysiologique.score >= 80 ? 'cardSuccess' : potentielPhysiologique.score >= 60 ? 'cardWarning' : 'cardError'}">
         <div class="grid2">
           <div>
             <div style="display:flex;align-items:center;gap:16px;">
-              <div class="scoreCircle" style="border-color:${raceReadiness.score >= 80 ? 'var(--success)' : raceReadiness.score >= 60 ? 'var(--warning)' : 'var(--error)'}; color:${raceReadiness.score >= 80 ? 'var(--success)' : raceReadiness.score >= 60 ? 'var(--warning)' : 'var(--error)'}">
-                ${raceReadiness.score}
+              <div class="scoreCircle" style="border-color:${potentielPhysiologique.score >= 80 ? 'var(--success)' : potentielPhysiologique.score >= 60 ? 'var(--warning)' : 'var(--error)'}; color:${potentielPhysiologique.score >= 80 ? 'var(--success)' : potentielPhysiologique.score >= 60 ? 'var(--warning)' : 'var(--error)'}">
+                ${potentielPhysiologique.score}
               </div>
               <div>
-                <div style="font-size:20px;font-weight:700;">${raceReadiness.label}</div>
+                <div style="font-size:20px;font-weight:700;">${potentielPhysiologique.label}</div>
                 <div class="muted">Potentiel Physiologique pour ${getObjectifLabel(athlete.goal)}</div>
               </div>
             </div>
             <div class="mt">
               <div class="progressBar">
-                <div class="progressFill" style="width:${raceReadiness.score}%; background:${raceReadiness.score >= 80 ? 'var(--success)' : raceReadiness.score >= 60 ? 'var(--warning)' : 'var(--error)'}"></div>
+                <div class="progressFill" style="width:${potentielPhysiologique.score}%; background:${potentielPhysiologique.score >= 80 ? 'var(--success)' : potentielPhysiologique.score >= 60 ? 'var(--warning)' : 'var(--error)'}"></div>
               </div>
             </div>
           </div>
@@ -3754,38 +3754,38 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       <div class="grid4 mt">
         <div class="card">
           <div class="muted">VLamax</div>
-          <div class="medium">${raceReadiness.details.vlamax}/25</div>
-          <div class="progressBar mt"><div class="progressFill" style="width:${(raceReadiness.details.vlamax / 25) * 100}%; background:${raceReadiness.details.vlamax >= 20 ? 'var(--success)' : 'var(--warning)'}"></div></div>
+          <div class="medium">${potentielPhysiologique.details.vlamax}/25</div>
+          <div class="progressBar mt"><div class="progressFill" style="width:${(potentielPhysiologique.details.vlamax / 25) * 100}%; background:${potentielPhysiologique.details.vlamax >= 20 ? 'var(--success)' : 'var(--warning)'}"></div></div>
         </div>
         <div class="card">
           <div class="muted">Endurance</div>
-          <div class="medium">${raceReadiness.details.endurance}/25</div>
-          <div class="progressBar mt"><div class="progressFill" style="width:${(raceReadiness.details.endurance / 25) * 100}%; background:${raceReadiness.details.endurance >= 20 ? 'var(--success)' : 'var(--warning)'}"></div></div>
+          <div class="medium">${potentielPhysiologique.details.endurance}/25</div>
+          <div class="progressBar mt"><div class="progressFill" style="width:${(potentielPhysiologique.details.endurance / 25) * 100}%; background:${potentielPhysiologique.details.endurance >= 20 ? 'var(--success)' : 'var(--warning)'}"></div></div>
         </div>
         <div class="card">
           <div class="muted">Puissance</div>
-          <div class="medium">${raceReadiness.details.puissance}/25</div>
-          <div class="progressBar mt"><div class="progressFill" style="width:${(raceReadiness.details.puissance / 25) * 100}%; background:${raceReadiness.details.puissance >= 20 ? 'var(--success)' : 'var(--warning)'}"></div></div>
+          <div class="medium">${potentielPhysiologique.details.puissance}/25</div>
+          <div class="progressBar mt"><div class="progressFill" style="width:${(potentielPhysiologique.details.puissance / 25) * 100}%; background:${potentielPhysiologique.details.puissance >= 20 ? 'var(--success)' : 'var(--warning)'}"></div></div>
         </div>
         <div class="card">
           <div class="muted">Disponibilité TFCL™</div>
-          <div class="medium">${raceReadiness.details.fraicheur}/25</div>
-          <div class="progressBar mt"><div class="progressFill" style="width:${(raceReadiness.details.fraicheur / 25) * 100}%; background:${raceReadiness.details.fraicheur >= 18 ? 'var(--success)' : 'var(--warning)'}"></div></div>
+          <div class="medium">${potentielPhysiologique.details.fraicheur}/25</div>
+          <div class="progressBar mt"><div class="progressFill" style="width:${(potentielPhysiologique.details.fraicheur / 25) * 100}%; background:${potentielPhysiologique.details.fraicheur >= 18 ? 'var(--success)' : 'var(--warning)'}"></div></div>
         </div>
       </div>
 
       <div class="card mt">
         <h3>💡 Explication du score</h3>
-        <p>${htmlEscape(raceReadiness.messageStaff)}</p>
-        ${raceReadiness.wasCappedByNutrition ? `<div class="alert alertWarning">⚠️ Score plafonné par risque nutritionnel: ${raceReadiness.nutritionalCapReason || "Risque élevé"}</div>` : ''}
-        ${raceReadiness.wasCappedByEconomy ? `<div class="alert alertWarning">🏃 Score plafonné par économie de course: ${raceReadiness.economyCapReason || "Économie insuffisante"}</div>` : ''}
+        <p>${htmlEscape(potentielPhysiologique.messageStaff)}</p>
+        ${potentielPhysiologique.wasCappedByNutrition ? `<div class="alert alertWarning">⚠️ Score plafonné par risque nutritionnel: ${potentielPhysiologique.nutritionalCapReason || "Risque élevé"}</div>` : ''}
+        ${potentielPhysiologique.wasCappedByEconomy ? `<div class="alert alertWarning">🏃 Score plafonné par économie de course: ${potentielPhysiologique.economyCapReason || "Économie insuffisante"}</div>` : ''}
       </div>
 
-      ${raceReadiness.reasonsMissing.length > 0 ? `
+      ${potentielPhysiologique.reasonsMissing.length > 0 ? `
         <div class="card mt">
           <h3>🎯 Ce qui manque pour gagner des points</h3>
           <ul>
-            ${raceReadiness.reasonsMissing.map(r => `<li>${htmlEscape(r)}</li>`).join("")}
+            ${potentielPhysiologique.reasonsMissing.map(r => `<li>${htmlEscape(r)}</li>`).join("")}
           </ul>
           <div class="alert alertInfo mt">
             <b>Actions recommandées:</b> Ajoutez les données manquantes dans le snapshot (TSS 7d, TTE mesuré) ou via les tests VLamax pour améliorer la précision du score.
@@ -6306,9 +6306,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <text x="295" y="55" font-size="9" fill="#666" text-anchor="middle">75</text>
             <text x="390" y="55" font-size="9" fill="#666" text-anchor="end">100</text>
             <!-- Indicateur si disponible -->
-            ${raceReadiness.nutritionalRiskIndex ? (() => {
+            ${potentielPhysiologique.nutritionalRiskIndex ? (() => {
               const levelToPosition: Record<string, number> = { low: 12.5, moderate: 37.5, high: 62.5, critical: 87.5 };
-              const nri = raceReadiness?.nutritionalRiskIndex as any;
+              const nri = potentielPhysiologique?.nutritionalRiskIndex as any;
               const lvl = typeof nri === 'object' ? nri?.level ?? "" : "";
               const lbl = typeof nri === 'object' ? nri?.label ?? "" : "";
               const pos = 10 + ((levelToPosition[lvl] || 50) / 100) * 380;
@@ -6360,13 +6360,13 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <circle cx="60" cy="60" r="50" fill="none" stroke="#eee" stroke-width="12"/>
             <!-- Arc coloré selon score -->
             <circle cx="60" cy="60" r="50" fill="none" 
-              stroke="${raceReadiness.score >= 80 ? '#16a34a' : raceReadiness.score >= 60 ? '#d97706' : '#dc2626'}" 
+              stroke="${potentielPhysiologique.score >= 80 ? '#16a34a' : potentielPhysiologique.score >= 60 ? '#d97706' : '#dc2626'}" 
               stroke-width="12"
-              stroke-dasharray="${(raceReadiness.score / 100) * 314} 314"
+              stroke-dasharray="${(potentielPhysiologique.score / 100) * 314} 314"
               stroke-linecap="round"
               transform="rotate(-90 60 60)"/>
             <!-- Valeur centrale -->
-            <text x="60" y="55" font-size="28" font-weight="700" fill="${raceReadiness.score >= 80 ? '#16a34a' : raceReadiness.score >= 60 ? '#d97706' : '#dc2626'}" text-anchor="middle">${raceReadiness.score}</text>
+            <text x="60" y="55" font-size="28" font-weight="700" fill="${potentielPhysiologique.score >= 80 ? '#16a34a' : potentielPhysiologique.score >= 60 ? '#d97706' : '#dc2626'}" text-anchor="middle">${potentielPhysiologique.score}</text>
             <text x="60" y="72" font-size="10" fill="#666" text-anchor="middle">%</text>
           </svg>
           <div style="flex:1">
@@ -6375,37 +6375,37 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               <div style="text-align:center">
                 <div style="font-size:10px;color:#666;margin-bottom:4px">VLamax</div>
                 <div style="height:40px;width:20px;background:#eee;border-radius:4px;margin:0 auto;position:relative;overflow:hidden">
-                  <div style="position:absolute;bottom:0;width:100%;height:${raceReadiness.details.vlamax * 4}%;background:${raceReadiness.details.vlamax >= 20 ? '#16a34a' : raceReadiness.details.vlamax >= 15 ? '#d97706' : '#dc2626'};border-radius:0 0 4px 4px"></div>
+                  <div style="position:absolute;bottom:0;width:100%;height:${potentielPhysiologique.details.vlamax * 4}%;background:${potentielPhysiologique.details.vlamax >= 20 ? '#16a34a' : potentielPhysiologique.details.vlamax >= 15 ? '#d97706' : '#dc2626'};border-radius:0 0 4px 4px"></div>
                 </div>
-                <div style="font-size:9px;font-weight:600;margin-top:2px">${raceReadiness.details.vlamax}/25</div>
+                <div style="font-size:9px;font-weight:600;margin-top:2px">${potentielPhysiologique.details.vlamax}/25</div>
               </div>
               <div style="text-align:center">
                 <div style="font-size:10px;color:#666;margin-bottom:4px">TTE</div>
                 <div style="height:40px;width:20px;background:#eee;border-radius:4px;margin:0 auto;position:relative;overflow:hidden">
-                  <div style="position:absolute;bottom:0;width:100%;height:${raceReadiness.details.endurance * 4}%;background:${raceReadiness.details.endurance >= 20 ? '#16a34a' : raceReadiness.details.endurance >= 15 ? '#d97706' : '#dc2626'};border-radius:0 0 4px 4px"></div>
+                  <div style="position:absolute;bottom:0;width:100%;height:${potentielPhysiologique.details.endurance * 4}%;background:${potentielPhysiologique.details.endurance >= 20 ? '#16a34a' : potentielPhysiologique.details.endurance >= 15 ? '#d97706' : '#dc2626'};border-radius:0 0 4px 4px"></div>
                 </div>
-                <div style="font-size:9px;font-weight:600;margin-top:2px">${raceReadiness.details.endurance}/25</div>
+                <div style="font-size:9px;font-weight:600;margin-top:2px">${potentielPhysiologique.details.endurance}/25</div>
               </div>
               <div style="text-align:center">
                 <div style="font-size:10px;color:#666;margin-bottom:4px">FTP/kg</div>
                 <div style="height:40px;width:20px;background:#eee;border-radius:4px;margin:0 auto;position:relative;overflow:hidden">
-                  <div style="position:absolute;bottom:0;width:100%;height:${raceReadiness.details.puissance * 4}%;background:${raceReadiness.details.puissance >= 20 ? '#16a34a' : raceReadiness.details.puissance >= 15 ? '#d97706' : '#dc2626'};border-radius:0 0 4px 4px"></div>
+                  <div style="position:absolute;bottom:0;width:100%;height:${potentielPhysiologique.details.puissance * 4}%;background:${potentielPhysiologique.details.puissance >= 20 ? '#16a34a' : potentielPhysiologique.details.puissance >= 15 ? '#d97706' : '#dc2626'};border-radius:0 0 4px 4px"></div>
                 </div>
-                <div style="font-size:9px;font-weight:600;margin-top:2px">${raceReadiness.details.puissance}/25</div>
+                <div style="font-size:9px;font-weight:600;margin-top:2px">${potentielPhysiologique.details.puissance}/25</div>
               </div>
               <div style="text-align:center">
                 <div style="font-size:10px;color:#666;margin-bottom:4px">Fraîcheur</div>
                 <div style="height:40px;width:20px;background:#eee;border-radius:4px;margin:0 auto;position:relative;overflow:hidden">
-                  <div style="position:absolute;bottom:0;width:100%;height:${raceReadiness.details.fraicheur * 4}%;background:${raceReadiness.details.fraicheur >= 18 ? '#16a34a' : raceReadiness.details.fraicheur >= 12 ? '#d97706' : '#dc2626'};border-radius:0 0 4px 4px"></div>
+                  <div style="position:absolute;bottom:0;width:100%;height:${potentielPhysiologique.details.fraicheur * 4}%;background:${potentielPhysiologique.details.fraicheur >= 18 ? '#16a34a' : potentielPhysiologique.details.fraicheur >= 12 ? '#d97706' : '#dc2626'};border-radius:0 0 4px 4px"></div>
                 </div>
-                <div style="font-size:9px;font-weight:600;margin-top:2px">${raceReadiness.details.fraicheur}/25</div>
+                <div style="font-size:9px;font-weight:600;margin-top:2px">${potentielPhysiologique.details.fraicheur}/25</div>
               </div>
             </div>
           </div>
         </div>
         
-        <div class="alert ${raceReadiness.score >= 80 ? 'alertSuccess' : raceReadiness.score >= 60 ? 'alertWarning' : 'alertError'}">
-          <b>${raceReadiness.label}</b> pour ${getObjectifLabel(athlete.goal)}
+        <div class="alert ${potentielPhysiologique.score >= 80 ? 'alertSuccess' : potentielPhysiologique.score >= 60 ? 'alertWarning' : 'alertError'}">
+          <b>${potentielPhysiologique.label}</b> pour ${getObjectifLabel(athlete.goal)}
         </div>
         
         <div class="alert alertInfo mt">
@@ -6552,9 +6552,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             </tr>
             <tr>
               <td><b>Potentiel Physiologique</b></td>
-              <td>${raceReadiness.score}%</td>
+              <td>${potentielPhysiologique.score}%</td>
               <td>Calculé (VLamax + TTE + FTP/kg)</td>
-              <td><span class="badge ${raceReadiness.confidence >= 0.7 ? 'badgeSuccess' : raceReadiness.confidence >= 0.4 ? 'badgeWarning' : 'badgeError'}">${fmtPct(raceReadiness.confidence)}</span></td>
+              <td><span class="badge ${potentielPhysiologique.confidence >= 0.7 ? 'badgeSuccess' : potentielPhysiologique.confidence >= 0.4 ? 'badgeWarning' : 'badgeError'}">${fmtPct(potentielPhysiologique.confidence)}</span></td>
             </tr>
           </tbody>
         </table>
@@ -7032,13 +7032,13 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     profilMetabolique: profilMetaboliqueHTML,
     vlamaxZoneConfidence: buildVLamaxZoneConfidenceHTML(payload),
     indicateurs: indicateursHTML,
-    raceReadiness: raceReadinessHTML,
+    potentielPhysiologique: potentielPhysiologiqueHTML,
     disponibiliteTFCL: disponibiliteTFCLHTML,
     raceSimulation: buildRaceSimulationHTML(payload, 'pro'),
     pacingEnvelope: buildPacingEnvelopeHTML(payload),
     longDistancePacing: buildLongDistancePacingHTML(payload),
     doubleBoucleCAP: buildDoubleBoucleCAPHTML(payload),
-    raceReadinessRunning: buildRaceReadinessRunningHTML(payload),
+    potentielPhysiologiqueRunning: buildPotentielPhysiologiqueRunningHTML(payload),
     pacingEnvelopeRunning: buildPacingEnvelopeRunningHTML(payload),
     injuryRisk: injuryRiskHTML,
     nutritionV2: buildNutritionV2HTML(payload),
@@ -7112,9 +7112,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
 // =============================================
 
 function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): string {
-  const { athlete, raceReadiness } = payload;
+  const { athlete, potentielPhysiologique } = payload;
   const athleteReport = generateAthleteReadiness(
-    raceReadiness,
+    potentielPhysiologique,
     athlete.goal || "IM",
     null
   );
@@ -7551,13 +7551,13 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       profilMetabolique: false,
       vlamaxZoneConfidence: false,
       indicateurs: false,
-      raceReadiness: false,
+      potentielPhysiologique: false,
       disponibiliteTFCL: false,
       raceSimulation: false,
       pacingEnvelope: false,
       longDistancePacing: false,
       doubleBoucleCAP: false,
-      raceReadinessRunning: false,
+      potentielPhysiologiqueRunning: false,
       pacingEnvelopeRunning: false,
       injuryRisk: false,
       nutritionV2: false,
