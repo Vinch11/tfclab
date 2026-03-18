@@ -99,7 +99,8 @@ export interface PlanFormConfig {
  */
 export function buildPlanConfigFromDiagnostic(
   diagnostic: AthleteDiagnostic,
-  formConfig: PlanFormConfig
+  formConfig: PlanFormConfig,
+  coachLimiterOrder?: string[]  // Coach-overridden limiter order (metric names)
 ): PlanConfig {
   const limiterResult = diagnostic.limiter;
   
