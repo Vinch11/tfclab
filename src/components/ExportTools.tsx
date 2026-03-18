@@ -4812,7 +4812,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         <span style="font-size:12px;">
           <b>Méthodologie d'analyse physiologique</b> appliquée à l'entraînement d'endurance, conçue pour aider les coachs à interpréter des données complexes, estimer des profils énergétiques, et guider la prise de décision stratégique.<br><br>
           Elle ne remplace ni l'expertise humaine du coach, ni un test physiologique de laboratoire.<br>
-          Les valeurs présentées (VLamax, TTE, Race Readiness) sont des <b>estimations modélisées</b> destinées à guider la décision du coach.<br><br>
+          Les valeurs présentées (VLamax, TTE, Potentiel Physiologique) sont des <b>estimations modélisées</b> destinées à guider la décision du coach.<br><br>
           <i>S'inspire des travaux de Mader, Heck, Jones, Burnley, Seiler — implémentation indépendante et propriétaire.</i>
         </span>
       </div>
