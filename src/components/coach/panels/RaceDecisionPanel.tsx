@@ -58,7 +58,7 @@ export function RaceDecisionPanel({
   const { raceType, targets, raceLabel } = useRunningFocusMode();
 
   // Race Readiness Score — prefer engine score when available
-  const raceReadiness = useMemo(() => {
+  const potentielPhysiologique = useMemo(() => {
     // Use engine readiness if available (computed from full diagnostic)
     if (diagnostic?.readiness?.readiness?.score != null) {
       return diagnostic.readiness.readiness.score;
@@ -150,8 +150,8 @@ export function RaceDecisionPanel({
   }, [liveCalibration]);
 
   const getReadinessColor = () => {
-    if (raceReadiness >= 80) return "text-emerald-600";
-    if (raceReadiness >= 60) return "text-amber-600";
+    if (potentielPhysiologique >= 80) return "text-emerald-600";
+    if (potentielPhysiologique >= 60) return "text-amber-600";
     return "text-red-600";
   };
 
@@ -182,14 +182,14 @@ export function RaceDecisionPanel({
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-medium">Race Readiness</span>
             <span className={cn("text-2xl font-bold font-mono", getReadinessColor())}>
-              {raceReadiness.toFixed(0)}%
+              {potentielPhysiologique.toFixed(0)}%
             </span>
           </div>
-          <Progress value={raceReadiness} className="h-3" />
+          <Progress value={potentielPhysiologique} className="h-3" />
           <p className="text-xs text-muted-foreground mt-2">
-            {raceReadiness >= 80 
+            {potentielPhysiologique >= 80 
               ? "Excellent — conditions optimales pour performer"
-              : raceReadiness >= 60
+              : potentielPhysiologique >= 60
                 ? "Correct — performance attendue avec prudence"
                 : "Faible — risque élevé, approche conservative recommandée"
             }

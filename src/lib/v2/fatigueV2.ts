@@ -100,7 +100,7 @@ export interface FatigueV2Input {
   tteEffectif: number | null;         // TTE effectif (min)
   tteTarget?: number | null;          // TTE cible
   tteStability?: 'stable' | 'slight_drop' | 'significant_drop' | null;
-  raceReadinessFreshness?: number | null;  // 0-100
+  potentielPhysiologiqueFreshness?: number | null;  // 0-100
   
   // ===== PILIER 3: RESSENTI (source: fatigue_state du snapshot) =====
   // Remplace les anciens champs check-in (checkinFatigue/checkinStress/sleepQuality)
@@ -296,7 +296,7 @@ function computeChargePillar(input: FatigueV2Input): FatiguePillarResult {
 // =============================================
 
 function computeResponsePillar(input: FatigueV2Input): FatiguePillarResult {
-  const { tteEffectif, tteTarget, tteStability, raceReadinessFreshness } = input;
+  const { tteEffectif, tteTarget, tteStability, potentielPhysiologiqueFreshness } = input;
   
   let score = 50;
   let confidence = 0.5;
@@ -350,11 +350,11 @@ function computeResponsePillar(input: FatigueV2Input): FatiguePillarResult {
   }
   
   // Intégration Race Readiness fraîcheur
-  if (raceReadinessFreshness !== null && raceReadinessFreshness !== undefined) {
+  if (potentielPhysiologiqueFreshness !== null && potentielPhysiologiqueFreshness !== undefined) {
     // Fraîcheur élevée = moins fatigué
-    const freshnessScore = clamp(100 - raceReadinessFreshness, 0, 100);
+    const freshnessScore = clamp(100 - potentielPhysiologiqueFreshness, 0, 100);
     score = (score + freshnessScore) / 2;
-    details.push(`Fraîcheur Race Readiness: ${raceReadinessFreshness}%`);
+    details.push(`Fraîcheur Race Readiness: ${potentielPhysiologiqueFreshness}%`);
     confidence = Math.max(confidence, 0.70);
   }
   

@@ -317,7 +317,7 @@ export function CheckinManager({ athleteId, athleteName }: CheckinManagerProps) 
   const renderCheckinCard = (c: DbCheckin) => {
     const readiness = c.readiness ?? computeReadiness(c);
     const warnings = getWarnings(c);
-    const readinessColor = readiness >= 70 ? "text-green-500" : readiness >= 50 ? "text-yellow-500" : "text-red-500";
+    const potentielColor = readiness >= 70 ? "text-green-500" : readiness >= 50 ? "text-yellow-500" : "text-red-500";
 
     return (
       <Card key={c.id} className="border-border/50">
@@ -329,7 +329,7 @@ export function CheckinManager({ athleteId, athleteName }: CheckinManagerProps) 
                 {c.week_tag || "Semaine"} — {c.date_iso}
               </CardTitle>
               <div className="flex items-center gap-2 mt-1">
-                <span className={`font-bold ${readinessColor}`}>Readiness: {readiness}/100</span>
+                <span className={`font-bold ${potentielColor}`}>Readiness: {readiness}/100</span>
                 {warnings.length > 0 && (
                   <Badge variant="destructive" className="text-xs">
                     <AlertTriangle className="h-3 w-3 mr-1" />

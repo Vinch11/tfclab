@@ -16,12 +16,12 @@ interface DoubleBoucleCAPCardProps {
   vo2max: number | null;
   durability: number;
   objectif: string;
-  readinessScore: number | null;
+  potentielScore: number | null;
   confidence: number;
   ambition?: AmbitionLevel;
 }
 
-export function DoubleBoucleCAPCard({ vlamaxRun, vo2max, durability, objectif, readinessScore, confidence, ambition = DEFAULT_AMBITION }: DoubleBoucleCAPCardProps) {
+export function DoubleBoucleCAPCard({ vlamaxRun, vo2max, durability, objectif, potentielScore, confidence, ambition = DEFAULT_AMBITION }: DoubleBoucleCAPCardProps) {
   const isRunning = ["Marathon", "Semi-Marathon", "Semi", "10K", "5K", "Trail", "TrailShort", "TrailMountain", "TrailUltra"].some(g => objectif.includes(g));
   const ambDef = getAmbitionDefinition(ambition);
 
@@ -66,7 +66,7 @@ export function DoubleBoucleCAPCard({ vlamaxRun, vo2max, durability, objectif, r
 
   // Évaluations dynamiques par ambition
   const vlamaxEval = evaluateVLamax(vlamaxRun, objectif, ambition);
-  const readinessEval = evaluateReadiness(readinessScore, ambition);
+  const potentielEval = evaluateReadiness(potentielScore, ambition);
 
   const getLever = () => {
     if (!vlamaxRun) return { emoji: "🫀", label: "Endurance Aérobie" };
@@ -77,10 +77,10 @@ export function DoubleBoucleCAPCard({ vlamaxRun, vo2max, durability, objectif, r
   };
 
   const lever = getLever();
-  const readinessColor = readinessEval.status === "ok" ? "text-green-600" : readinessEval.status === "warning" ? "text-amber-600" : "text-red-600";
-  const readinessLabel = readinessEval.status === "ok" ? "Bonne" : readinessEval.status === "warning" ? "Modérée" : "Faible";
-  const readinessBg = readinessEval.status === "ok" ? "bg-green-500/10 border-green-500/20" : readinessEval.status === "warning" ? "bg-amber-500/10 border-amber-500/20" : "bg-red-500/10 border-red-500/20";
-  const rs = readinessScore ?? 0;
+  const potentielColor = potentielEval.status === "ok" ? "text-green-600" : potentielEval.status === "warning" ? "text-amber-600" : "text-red-600";
+  const potentielLabel = potentielEval.status === "ok" ? "Bonne" : potentielEval.status === "warning" ? "Modérée" : "Faible";
+  const readinessBg = potentielEval.status === "ok" ? "bg-green-500/10 border-green-500/20" : potentielEval.status === "warning" ? "bg-amber-500/10 border-amber-500/20" : "bg-red-500/10 border-red-500/20";
+  const rs = potentielScore ?? 0;
 
   return (
     <Card>
@@ -133,13 +133,13 @@ export function DoubleBoucleCAPCard({ vlamaxRun, vo2max, durability, objectif, r
             </div>
             <div className={cn("rounded-lg p-4 text-center", readinessBg)}>
               <p className="text-[10px] text-muted-foreground uppercase">Disponibilité</p>
-              <p className={cn("text-2xl font-bold", readinessColor)}>{readinessLabel}</p>
-              <p className={cn("text-xs", readinessColor)}>Score: {rs}% • Cible: {readinessEval.target}</p>
+              <p className={cn("text-2xl font-bold", potentielColor)}>{potentielLabel}</p>
+              <p className={cn("text-xs", potentielColor)}>Score: {rs}% • Cible: {potentielEval.target}</p>
             </div>
             <div className="space-y-2 text-xs">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Intensité autorisée</span>
-                <span className="font-medium">{readinessEval.status === "ok" ? 'Haute ✓' : readinessEval.status === "warning" ? 'Modérée' : 'Faible ✗'}</span>
+                <span className="font-medium">{potentielEval.status === "ok" ? 'Haute ✓' : potentielEval.status === "warning" ? 'Modérée' : 'Faible ✗'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Long run</span>
@@ -147,7 +147,7 @@ export function DoubleBoucleCAPCard({ vlamaxRun, vo2max, durability, objectif, r
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Séances clés max</span>
-                <span className="font-medium">{readinessEval.status === "ok" ? '3' : readinessEval.status === "warning" ? '2' : '1'}</span>
+                <span className="font-medium">{potentielEval.status === "ok" ? '3' : potentielEval.status === "warning" ? '2' : '1'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Confiance</span>

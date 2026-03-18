@@ -162,7 +162,7 @@ export default function RunningProfilePage() {
       tss7dHabituel: null,
       fatiguePercue,
       tteEffectif: tteEffectif,
-      raceReadiness: null,
+      potentielPhysiologique: null,
       vlamaxEffectif: vlamaxEffectif,
       age: athleteAge,
       objectif: athleteGoal,
@@ -184,7 +184,7 @@ export default function RunningProfilePage() {
   }, [vlamaxEffectif, effectiveCloudSnapshot, tteEffectif, fatigueResult, athleteAge, athleteGoal]);
 
   // Race Readiness Running — snapshot-centric
-  const raceReadiness = useMemo(() => {
+  const potentielPhysiologique = useMemo(() => {
     if (!currentAthlete) return null;
     
     // Mapper fatigue_state du snapshot vers les valeurs de disponibilité
@@ -258,7 +258,7 @@ export default function RunningProfilePage() {
 
   // Pacing Envelope Running
   const pacingEnvelope = useMemo(() => {
-    if (!raceReadiness) return null;
+    if (!potentielPhysiologique) return null;
     
     const distanceMap: Record<string, RunningDistance> = {
       "10K": "10K",
@@ -282,11 +282,11 @@ export default function RunningProfilePage() {
       vo2max_run: effectiveCloudSnapshot?.vo2max ?? currentAthlete?.vo2max ?? null,
       threshold_pace: thresholdPace,
       durability_index: tteEffectif.tte_min,
-      race_readiness_state: raceReadiness.readiness_state,
-      race_readiness_score: raceReadiness.readiness_score,
+      race_readiness_state: potentielPhysiologique.readiness_state,
+      race_readiness_score: potentielPhysiologique.readiness_score,
       athlete_experience: "MEDIUM",
     });
-  }, [raceReadiness, raceType, effectiveCloudSnapshot, vlamaxEffectif, tteEffectif, currentAthlete]);
+  }, [potentielPhysiologique, raceType, effectiveCloudSnapshot, vlamaxEffectif, tteEffectif, currentAthlete]);
 
   // Today's checkin for form
   const todayCheckin = useMemo(() => {
@@ -596,7 +596,7 @@ export default function RunningProfilePage() {
     currentAthlete, vlamaxEffectif, effectiveCloudSnapshot, athleteAge, athleteGoal,
     windowEvidences, calibrationSnapshot, navigate, effectiveRefs, tteEffectif,
     staffMode, snapshots, capInjuryRisk, handleAvailabilitySubmit, todayCheckin,
-    raceReadiness, raceLabel, pacingEnvelope, targets
+    potentielPhysiologique, raceLabel, pacingEnvelope, targets
   ]);
 
   // Redirect si pas en Running Focus Mode

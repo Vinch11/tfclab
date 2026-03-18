@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getScoreColor, getRaceReadinessTargets, getTargets, getWeightsBySport, generateAthleteReadiness, computePillarCalculations, type RaceReadinessInput, type RaceReadinessResult, computeRaceReadinessSignature } from "@/lib/raceReadinessEffectif";
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getScoreColor, getRaceReadinessTargets, getTargets, getWeightsBySport, generateAthleteReadiness, computePillarCalculations, type RaceReadinessInput, type RaceReadinessResult, computeRaceReadinessSignature } from "@/lib/potentielPhysiologiqueEffectif";
 // =============================================
 // DASHBOARD STAFF - Two For Coaching Lab
 // Tour de contrôle décisionnelle - Lisible en < 10 secondes
@@ -290,7 +290,7 @@ export default function DashboardPage() {
       tss7dHabituel: null,
       fatiguePercue: fatiguePercueFromSnapshot,
       tteEffectif,
-      raceReadiness,
+      potentielPhysiologique,
       vlamaxEffectif,
       age: athleteAge,
       objectif,
@@ -345,7 +345,7 @@ export default function DashboardPage() {
     });
     
     // Générer le résumé coach
-    const coachSummary = generateCoachSummary(vlamaxEffectif, tteEffectif, raceReadiness, objectif);
+    const coachSummary = generateCoachSummary(vlamaxEffectif, tteEffectif, potentielPhysiologique, objectif);
     
     // Phase actuelle
     const phase = getPhaseFromObjectif(objectif);
@@ -420,7 +420,7 @@ export default function DashboardPage() {
     return {
       vlamaxEffectif,
       tteEffectif,
-      raceReadiness,
+      potentielPhysiologique,
       nutritionEstimate,
       fatigueEffectif,
       runInjuryRisk,
@@ -490,7 +490,7 @@ export default function DashboardPage() {
   const { 
     vlamaxEffectif, 
     tteEffectif, 
-    raceReadiness, 
+    potentielPhysiologique, 
     nutritionEstimate,
     fatigueEffectif,
     runInjuryRisk,
@@ -516,7 +516,7 @@ export default function DashboardPage() {
   const ambition = getAthleteAmbition(currentAthlete);
   const vlamaxStatus = getVlamaxStatusWithLabel(vlamaxEffectif.value, objectif, ambition);
   const tteStatus = getTTEStatus(tteEffectif.tte_min, tteTarget);
-  const readinessStatus = getRaceReadinessStatus(raceReadiness.score);
+  const readinessStatus = getRaceReadinessStatus(potentielPhysiologique.score);
 
   // =============================================
   // RENDER: MAIN DASHBOARD
@@ -751,10 +751,10 @@ export default function DashboardPage() {
               <Target className="h-5 w-5 text-green-500" />
               <span className="font-semibold">Race Readiness</span>
             </div>
-            {!raceReadiness.isInsufficient && getStatusBadge(readinessStatus.status, readinessStatus.label)}
+            {!potentielPhysiologique.isInsufficient && getStatusBadge(readinessStatus.status, readinessStatus.label)}
           </div>
           
-          {raceReadiness.isInsufficient ? (
+          {potentielPhysiologique.isInsufficient ? (
             <div className="flex flex-col items-center justify-center py-4 text-muted-foreground">
               <AlertTriangle className="w-8 h-8 mb-2 opacity-50" />
               <p className="text-sm text-center">Données insuffisantes</p>
@@ -763,12 +763,12 @@ export default function DashboardPage() {
           ) : (
             <>
               <div className="flex items-baseline gap-1.5 sm:gap-2">
-                <span className="text-2xl sm:text-3xl font-bold font-mono">{raceReadiness.score}</span>
+                <span className="text-2xl sm:text-3xl font-bold font-mono">{potentielPhysiologique.score}</span>
                 <span className="text-xs sm:text-sm text-muted-foreground">%</span>
               </div>
               
               <Progress 
-                value={raceReadiness.score} 
+                value={potentielPhysiologique.score} 
                 className="h-2" 
               />
               
@@ -780,15 +780,15 @@ export default function DashboardPage() {
               <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-[11px] sm:text-xs">
                 <div className="p-1.5 sm:p-2 bg-muted/50 rounded text-center">
                   <p className="text-muted-foreground truncate">Métabolisme</p>
-                  <p className="font-bold">{raceReadiness.details.vlamax}/25</p>
+                  <p className="font-bold">{potentielPhysiologique.details.vlamax}/25</p>
                 </div>
                 <div className="p-1.5 sm:p-2 bg-muted/50 rounded text-center">
                   <p className="text-muted-foreground truncate">Endurance</p>
-                  <p className="font-bold">{raceReadiness.details.endurance}/25</p>
+                  <p className="font-bold">{potentielPhysiologique.details.endurance}/25</p>
                 </div>
                 <div className="p-1.5 sm:p-2 bg-muted/50 rounded text-center">
                   <p className="text-muted-foreground truncate">Puissance</p>
-                  <p className="font-bold">{raceReadiness.details.puissance}/25</p>
+                  <p className="font-bold">{potentielPhysiologique.details.puissance}/25</p>
                 </div>
               </div>
               
@@ -796,7 +796,7 @@ export default function DashboardPage() {
               
               <p className="text-sm text-muted-foreground">
                 <span className="font-medium text-foreground">Message : </span>
-                {raceReadiness.messageStaff}
+                {potentielPhysiologique.messageStaff}
               </p>
             </>
           )}

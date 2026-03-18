@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getScoreColor } from "@/lib/raceReadinessEffectif";
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getScoreColor } from "@/lib/potentielPhysiologiqueEffectif";
 import { useState, useEffect, useMemo } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -505,10 +505,10 @@ export function TwoForCoachingAnalysis({
             {nutritionEstimate.nutritionalRiskIndex.messagePedagogique}
           </p>
 
-          {nutritionEstimate.nutritionalRiskIndex.raceReadinessCap && (
+          {nutritionEstimate.nutritionalRiskIndex.potentielPhysiologiqueCap && (
             <div className="mt-2 p-2 rounded-lg bg-destructive/10 border border-destructive/20">
               <p className="text-xs text-destructive">
-                ⚠️ Race Readiness plafonné à {nutritionEstimate.nutritionalRiskIndex.raceReadinessCap}% – {nutritionEstimate.nutritionalRiskIndex.mainRiskFactor}
+                ⚠️ Race Readiness plafonné à {nutritionEstimate.nutritionalRiskIndex.potentielPhysiologiqueCap}% – {nutritionEstimate.nutritionalRiskIndex.mainRiskFactor}
               </p>
             </div>
           )}

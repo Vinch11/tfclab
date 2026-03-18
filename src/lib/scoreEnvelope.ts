@@ -85,7 +85,7 @@ export function getUncertaintyRange(
   const margins: Record<string, { base: number; perConfidence: number }> = {
     vlamax: { base: 0.03, perConfidence: 0.12 },
     tte: { base: 3, perConfidence: 15 },
-    raceReadiness: { base: 10, perConfidence: 25 },
+    potentielPhysiologique: { base: 10, perConfidence: 25 },
     robustesse: { base: 8, perConfidence: 20 },
     glycolyticRisk: { base: 10, perConfidence: 30 },
     capInjuryRisk: { base: 10, perConfidence: 25 },
@@ -424,7 +424,7 @@ export function buildRaceReadinessEnvelope(
       : ["Maintenir l'équilibre actuel.", "Affiner le détail sur les dernières semaines."];
 
   return {
-    metricId: "raceReadiness",
+    metricId: "potentielPhysiologique",
     label: "Race Readiness",
     value: score,
     range,

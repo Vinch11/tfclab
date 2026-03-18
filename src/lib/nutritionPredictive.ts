@@ -63,7 +63,7 @@ Une préparation insuffisante ou une mauvaise économie de course peut limiter l
     },
   },
   
-  raceReadinessLink: `Race Readiness influence directement les recommandations nutritionnelles.
+  potentielPhysiologiqueLink: `Race Readiness influence directement les recommandations nutritionnelles.
 Une Race Readiness faible réduit les apports conseillés et invalide toute stratégie nutritionnelle agressive.`,
   
   disclaimer: `⚠️ Aucun chiffre unique imposé. Toujours une plage. 
@@ -117,7 +117,7 @@ export interface NutritionalRiskIndex {
   icon: '🟢' | '🟡' | '🟠' | '🔴';
   carbsRequired: number;
   toleranceZone: number;
-  raceReadinessCap: number | null;
+  potentielPhysiologiqueCap: number | null;
   mainRiskFactor: string;
   messageStaff: string;
   messagePedagogique: string;
@@ -143,7 +143,7 @@ export interface NutritionEstimate {
   nutritionalRiskIndex: NutritionalRiskIndex;
   sport: Sport;
   sportLabel: string;
-  raceReadinessImpact: {
+  potentielPhysiologiqueImpact: {
     message: string;
     adjustedCarbs: boolean;
   } | null;
@@ -336,9 +336,9 @@ function computeNutritionalRiskIndex(params: {
   tteMin: number | null;
   tteTarget: number;
   vlamaxCategory: VLamaxCategory;
-  raceReadiness?: number | null;
+  potentielPhysiologique?: number | null;
 }): NutritionalRiskIndex {
-  const { carbsRequired, sport, vlamax, tteMin, tteTarget, vlamaxCategory, raceReadiness } = params;
+  const { carbsRequired, sport, vlamax, tteMin, tteTarget, vlamaxCategory, potentielPhysiologique } = params;
   
   const toleranceZone = TOLERANCE_BY_SPORT[sport];
   const criticalThreshold = CRITICAL_THRESHOLD_BY_SPORT[sport];
@@ -360,7 +360,7 @@ function computeNutritionalRiskIndex(params: {
     mainRiskFactor = 'TTE insuffisant → dérive métabolique probable';
   } else if (carbsRequired > toleranceZone) {
     mainRiskFactor = `Besoins > tolérance ${sportLabel}`;
-  } else if (raceReadiness !== null && raceReadiness !== undefined && raceReadiness < 70) {
+  } else if (potentielPhysiologique !== null && potentielPhysiologique !== undefined && potentielPhysiologique < 70) {
     mainRiskFactor = 'Race Readiness faible → stratégie agressive déconseillée';
   }
   
@@ -369,7 +369,7 @@ function computeNutritionalRiskIndex(params: {
   let label: string;
   let color: 'success' | 'warning' | 'destructive';
   let icon: '🟢' | '🟡' | '🟠' | '🔴';
-  let raceReadinessCap: number | null = null;
+  let potentielPhysiologiqueCap: number | null = null;
   let messageStaff: string;
   let messagePedagogique: string;
 
@@ -399,7 +399,7 @@ function computeNutritionalRiskIndex(params: {
     label = 'Élevé';
     color = 'destructive';
     icon = '🟠';
-    raceReadinessCap = 85;
+    potentielPhysiologiqueCap = 85;
     messageStaff = `Dépendance glucidique importante (${carbsRequired}g/h en ${sportLabel.toLowerCase()}). Sensible aux erreurs. Race Readiness max: 85%.`;
     messagePedagogique = `Ton métabolisme consomme beaucoup de glucides. Stratégie très rigoureuse obligatoire. Risque d'épuisement si apports insuffisants. Priorité: devenir plus économe.`;
   } else {
@@ -408,7 +408,7 @@ function computeNutritionalRiskIndex(params: {
     label = 'Critique';
     color = 'destructive';
     icon = '🔴';
-    raceReadinessCap = 75;
+    potentielPhysiologiqueCap = 75;
     messageStaff = `Très forte dépendance glucidique (>${criticalThreshold}g/h). LA NUTRITION DEVIENT LE FACTEUR LIMITANT. Race Readiness max: 75%.`;
     messagePedagogique = `Tes besoins glucidiques dépassent ta capacité d'absorption digestive. Risque majeur de défaillance. Avant de penser nutrition, réduis ta dépendance glucidique (travail VLamax).`;
   }
@@ -425,14 +425,14 @@ function computeNutritionalRiskIndex(params: {
       label = 'Élevé';
       color = 'destructive';
       icon = '🟠';
-      raceReadinessCap = 85;
+      potentielPhysiologiqueCap = 85;
     }
     mainRiskFactor = 'TTE insuffisant → dérive métabolique probable';
     messageStaff += ' ⚠️ TTE faible = dérive métabolique en course.';
   }
 
   // Ajustement si Race Readiness faible (invalide stratégie agressive)
-  if (raceReadiness !== null && raceReadiness !== undefined && raceReadiness < 60 && level === 'low') {
+  if (potentielPhysiologique !== null && potentielPhysiologique !== undefined && potentielPhysiologique < 60 && level === 'low') {
     level = 'moderate';
     label = 'Modéré';
     color = 'warning';
@@ -447,7 +447,7 @@ function computeNutritionalRiskIndex(params: {
     icon,
     carbsRequired,
     toleranceZone,
-    raceReadinessCap,
+    potentielPhysiologiqueCap,
     mainRiskFactor,
     messageStaff,
     messagePedagogique,
@@ -466,9 +466,9 @@ export function computeNutritionEstimate(params: {
   sport?: Sport;
   tteMin?: number | null;
   tteTarget?: number;
-  raceReadiness?: number | null;
+  potentielPhysiologique?: number | null;
 }): NutritionEstimate | null {
-  const { vlamax, objectif, sport: forcedSport, tteMin, tteTarget = 50, raceReadiness } = params;
+  const { vlamax, objectif, sport: forcedSport, tteMin, tteTarget = 50, potentielPhysiologique } = params;
 
   if (vlamax === null || vlamax === undefined) {
     return null;
@@ -549,22 +549,22 @@ export function computeNutritionEstimate(params: {
   }
 
   // ========== LIEN RACE READINESS → NUTRITION ==========
-  let raceReadinessImpact: { message: string; adjustedCarbs: boolean } | null = null;
+  let potentielPhysiologiqueImpact: { message: string; adjustedCarbs: boolean } | null = null;
   
-  if (raceReadiness !== null && raceReadiness !== undefined) {
-    if (raceReadiness < 50) {
+  if (potentielPhysiologique !== null && potentielPhysiologique !== undefined) {
+    if (potentielPhysiologique < 50) {
       // Race Readiness très faible → réduction apports conseillés
       const reduction = Math.round((carbsMax - carbsMin) * 0.3);
       carbsMax = Math.max(carbsMin, carbsMax - reduction);
-      raceReadinessImpact = {
+      potentielPhysiologiqueImpact = {
         message: `Race Readiness < 50% : stratégie nutritionnelle agressive DÉCONSEILLÉE. Apports réduits de ${reduction}g/h.`,
         adjustedCarbs: true,
       };
       warnings.push('Race Readiness faible → prudence nutritionnelle');
       if (riskLevel === 'low') riskLevel = 'moderate';
-    } else if (raceReadiness < 70) {
-      raceReadinessImpact = {
-        message: `Race Readiness modérée (${Math.round(raceReadiness)}%) : valider la tolérance digestive à l'entraînement avant d'appliquer cette stratégie.`,
+    } else if (potentielPhysiologique < 70) {
+      potentielPhysiologiqueImpact = {
+        message: `Race Readiness modérée (${Math.round(potentielPhysiologique)}%) : valider la tolérance digestive à l'entraînement avant d'appliquer cette stratégie.`,
         adjustedCarbs: false,
       };
     }
@@ -579,7 +579,7 @@ export function computeNutritionEstimate(params: {
     tteMin: tteMin ?? null,
     tteTarget,
     vlamaxCategory,
-    raceReadiness,
+    potentielPhysiologique,
   });
 
   const riskLabel = riskLevel === 'low' ? 'Faible' : riskLevel === 'moderate' ? 'Modéré' : riskLevel === 'critical' ? 'Critique' : 'Élevé';
@@ -599,7 +599,7 @@ export function computeNutritionEstimate(params: {
     nutritionalRiskIndex,
     sport,
     sportLabel,
-    raceReadinessImpact,
+    potentielPhysiologiqueImpact,
   };
 }
 
@@ -611,11 +611,11 @@ export function applyNutritionalCap(score: number, nutritionalRiskIndex: Nutriti
   wasCapped: boolean;
   capReason: string | null;
 } {
-  if (!nutritionalRiskIndex || nutritionalRiskIndex.raceReadinessCap === null) {
+  if (!nutritionalRiskIndex || nutritionalRiskIndex.potentielPhysiologiqueCap === null) {
     return { cappedScore: score, wasCapped: false, capReason: null };
   }
 
-  const cap = nutritionalRiskIndex.raceReadinessCap;
+  const cap = nutritionalRiskIndex.potentielPhysiologiqueCap;
   if (score > cap) {
     return {
       cappedScore: cap,

@@ -197,7 +197,7 @@ export const LEVER_INFO: Record<UnifiedLever, {
 // POIDS STRATÉGIQUES PAR OBJECTIF
 // ═══════════════════════════════════════════════════════════════════════════════
 //
-// ⚠️ DIVERGENCE DOCUMENTÉE avec Race Readiness (raceReadinessEffectif.ts)
+// ⚠️ DIVERGENCE DOCUMENTÉE avec Race Readiness (potentielPhysiologiqueEffectif.ts)
 //
 // CES POIDS NE DOIVENT PAS ÊTRE ALIGNÉS avec Race Readiness.
 // Les deux systèmes ont des rôles et des architectures fondamentalement différents :

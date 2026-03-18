@@ -186,7 +186,7 @@ function HorizontalGauge({
 interface DashboardGaugesLegacyProps {
   vlamax: { value: number | null; label: string; confidence: number };
   tte: { tte_min: number | null; confidence: number };
-  raceReadiness: { score: number; label: string; confidence: number };
+  potentielPhysiologique: { score: number; label: string; confidence: number };
   ftp?: number | null;
   ftpKg?: number | null;
   vo2max?: number | null;
@@ -197,7 +197,7 @@ interface DashboardGaugesLegacyProps {
 interface DashboardGaugesEnvelopeProps {
   vlamaxEnvelope: ScoreEnvelope;
   tteEnvelope: ScoreEnvelope;
-  raceReadinessEnvelope: ScoreEnvelope;
+  potentielPhysiologiqueEnvelope: ScoreEnvelope;
   ftp?: number | null;
   ftpKg?: number | null;
   vo2max?: number | null;
@@ -219,7 +219,7 @@ function isEnvelopeMode(props: DashboardGaugesProps): props is DashboardGaugesEn
 export function DashboardGauges(props: DashboardGaugesProps) {
   // Mode avec ScoreEnvelope (nouveau)
   if (isEnvelopeMode(props)) {
-    const { vlamaxEnvelope, tteEnvelope, raceReadinessEnvelope, ftp, ftpKg, vo2max, mode = "athlete" } = props;
+    const { vlamaxEnvelope, tteEnvelope, potentielPhysiologiqueEnvelope, ftp, ftpKg, vo2max, mode = "athlete" } = props;
     
     return (
       <div className="glass-card p-4 sm:p-5 md:p-6">
@@ -245,7 +245,7 @@ export function DashboardGauges(props: DashboardGaugesProps) {
             compact={false}
           />
           <ScoreEnvelopeCard 
-            envelope={raceReadinessEnvelope} 
+            envelope={potentielPhysiologiqueEnvelope} 
             mode={mode} 
             showHelp={true}
             compact={false}
@@ -290,7 +290,7 @@ export function DashboardGauges(props: DashboardGaugesProps) {
             </div>
             <div className="text-center min-w-0">
               <span className="text-[8px] sm:text-[9px] text-muted-foreground truncate block">
-                Readiness: {raceReadinessEnvelope.source === "MEASURED" ? "📋" : "📐"} {raceReadinessEnvelope.source === "MEASURED" ? "Observé" : "Modèle"}
+                Readiness: {potentielPhysiologiqueEnvelope.source === "MEASURED" ? "📋" : "📐"} {potentielPhysiologiqueEnvelope.source === "MEASURED" ? "Observé" : "Modèle"}
               </span>
             </div>
           </div>
@@ -300,11 +300,11 @@ export function DashboardGauges(props: DashboardGaugesProps) {
   }
 
   // Mode legacy (rétrocompatibilité)
-  const { vlamax, tte, raceReadiness, ftp, ftpKg, vo2max, objectif = "IM" } = props;
+  const { vlamax, tte, potentielPhysiologique, ftp, ftpKg, vo2max, objectif = "IM" } = props;
   
   const vlamaxVal = vlamax.value ?? 0;
   const tteVal = tte.tte_min ?? 0;
-  const rrScore = raceReadiness.score;
+  const rrScore = potentielPhysiologique.score;
 
   // Determine colors based on values
   const getVlamaxColor = (): "success" | "warning" | "destructive" => {
@@ -367,7 +367,7 @@ export function DashboardGauges(props: DashboardGaugesProps) {
           unit="%"
           icon={<Target className={cn("w-3 h-3 sm:w-4 sm:h-4", rrScore > 0 ? "text-current" : "text-muted-foreground")} />}
           color={getRrColor()}
-          sublabel={raceReadiness.label}
+          sublabel={potentielPhysiologique.label}
         />
       </div>
 

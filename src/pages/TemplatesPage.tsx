@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/potentielPhysiologiqueEffectif";
 /**
  * Templates de Programmation Page
  * Displays training templates with optional staff annotations
@@ -802,14 +802,14 @@ function AthleteProfilePanel({
   snapshot,
   vlamaxEffectif,
   tteEffectif,
-  readinessScore,
+  potentielScore,
   tss7d,
 }: {
   athlete: DbAthlete;
   snapshot: DbSnapshot | null;
   vlamaxEffectif: { value: number | null; source: string; confidence: number };
   tteEffectif: { value: number | null; source: string; confidence: number };
-  readinessScore: number | null;
+  potentielScore: number | null;
   tss7d: number | null;
 }) {
   const ftpKg = snapshot?.ftp && snapshot?.weight_kg 
@@ -852,7 +852,7 @@ function AthleteProfilePanel({
           />
           <MetricBox 
             label="Readiness" 
-            value={readinessScore?.toFixed(0) || "—"} 
+            value={potentielScore?.toFixed(0) || "—"} 
             unit="%"
           />
         </div>
@@ -1278,7 +1278,7 @@ export default function TemplatesPage() {
       return { 
         vlamaxEffectif: { value: null, source: "unknown", confidence: 0 }, 
         tteEffectif: { value: null, source: "unknown", confidence: 0 }, 
-        readinessScore: null, 
+        potentielScore: null, 
         tss7d: null,
         ftpKg: null,
         signals: null,
@@ -1321,7 +1321,7 @@ export default function TemplatesPage() {
     });
 
     // Race Readiness effectif
-    const readinessEffectif = computeRaceReadinessEffectif({
+    const potentielEffectif = computeRaceReadinessEffectif({
       objectif: selectedAthlete.goal || "IM",
       vlamaxEffectif,
       tteEffectif,
@@ -1359,7 +1359,7 @@ export default function TemplatesPage() {
         source: tteEffectif.source, 
         confidence: tteEffectif.confidence 
       },
-      readinessScore: readinessEffectif.score,
+      potentielScore: potentielEffectif.score,
       tss7d: selectedSnapshot.tss_7d,
       ftpKg,
       signals,
@@ -1500,7 +1500,7 @@ export default function TemplatesPage() {
       vlamaxConfidence: athleteMetrics.vlamaxEffectif.confidence,
       tteEffectif: athleteMetrics.tteEffectif.value,
       tteConfidence: athleteMetrics.tteEffectif.confidence,
-      raceReadinessScore: athleteMetrics.readinessScore,
+      potentielPhysiologiqueScore: athleteMetrics.potentielScore,
       fatigueStatus,
       capInjuryRisk: localCapRisk?.level as any,
       sport: "TRI",
@@ -1817,7 +1817,7 @@ export default function TemplatesPage() {
                         snapshot={selectedSnapshot}
                         vlamaxEffectif={athleteMetrics.vlamaxEffectif}
                         tteEffectif={athleteMetrics.tteEffectif}
-                        readinessScore={athleteMetrics.readinessScore}
+                        potentielScore={athleteMetrics.potentielScore}
                         tss7d={athleteMetrics.tss7d}
                       />
                       

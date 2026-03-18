@@ -3,7 +3,7 @@
  * Types preserved for backward compatibility with pacing/simulation modules.
  */
 
-// ═══ From raceReadinessRunning ═══
+// ═══ From potentielPhysiologiqueRunning ═══
 export type ReadinessState = "RED" | "ORANGE" | "GREEN";
 export type LimitingFactor = "FATIGUE" | "PAIN" | "ENERGY" | "STRESS" | "LOAD" | "NONE";
 export type PacingDiscipline = "STRICT" | "VERY_STRICT" | "NORMAL";
@@ -76,7 +76,7 @@ export function applyReadinessToDecision(..._args: unknown[]): unknown {
   return {};
 }
 
-// ═══ From raceReadinessSimulationConnector ═══
+// ═══ From potentielPhysiologiqueSimulationConnector ═══
 export type SimulationAccessStatus = 'RED' | 'ORANGE' | 'GREEN' | 'BLUE';
 
 export interface SimulationModifiers {
@@ -105,7 +105,7 @@ export function getDefaultSimulationModifiers(): SimulationModifiers {
   };
 }
 
-// ═══ From raceReadinessV2 ═══
+// ═══ From potentielPhysiologiqueV2 ═══
 export type RaceReadinessV2Category = 
   | 'preparation_required'
   | 'in_progress'
@@ -245,7 +245,7 @@ export interface SimulationAccessResult {
   recommendations?: { type: string; icon: string; title: string; content: string }[];
 }
 
-// ═══ Decision Quadrants (from raceReadinessV2) ═══
+// ═══ Decision Quadrants (from potentielPhysiologiqueV2) ═══
 export type DecisionQuadrant = 'HIGH_HIGH' | 'HIGH_LOW' | 'LOW_HIGH' | 'LOW_LOW';
 
 export function getQuadrant(potential: number, availability: number): DecisionQuadrant {

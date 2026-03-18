@@ -242,8 +242,8 @@ export function computeRaceSimulation(inputs: SimulationInputs): SimulationResul
       greenMin, greenMax, orangeMax, greenCenter,
       vlamax: vlamax_run_v2,
       durability: durability_index,
-      readinessState: race_readiness_state,
-      readinessScore: race_readiness_score,
+      potentielState: race_readiness_state,
+      potentielScore: race_readiness_score,
       thresholdPace: threshold_pace_sec_km,
       envelope: pacing_envelope,
     }),
@@ -252,8 +252,8 @@ export function computeRaceSimulation(inputs: SimulationInputs): SimulationResul
       greenMin, greenMax, orangeMax, greenCenter,
       vlamax: vlamax_run_v2,
       durability: durability_index,
-      readinessState: race_readiness_state,
-      readinessScore: race_readiness_score,
+      potentielState: race_readiness_state,
+      potentielScore: race_readiness_score,
       thresholdPace: threshold_pace_sec_km,
       envelope: pacing_envelope,
     }),
@@ -262,8 +262,8 @@ export function computeRaceSimulation(inputs: SimulationInputs): SimulationResul
       greenMin, greenMax, orangeMax, greenCenter,
       vlamax: vlamax_run_v2,
       durability: durability_index,
-      readinessState: race_readiness_state,
-      readinessScore: race_readiness_score,
+      potentielState: race_readiness_state,
+      potentielScore: race_readiness_score,
       thresholdPace: threshold_pace_sec_km,
       envelope: pacing_envelope,
     }),
@@ -324,8 +324,8 @@ interface ScenarioParams {
   greenCenter: number;
   vlamax: number | null;
   durability: number | null;
-  readinessState: ReadinessState;
-  readinessScore: number;
+  potentielState: ReadinessState;
+  potentielScore: number;
   thresholdPace: number | null;
   envelope: PacingEnvelopeRunResult;
 }
@@ -333,7 +333,7 @@ interface ScenarioParams {
 function generateScenario(type: SimulationScenarioType, params: ScenarioParams): SimulationScenario {
   const {
     distance, greenMin, greenMax, orangeMax, greenCenter,
-    vlamax, durability, readinessState, readinessScore, thresholdPace, envelope
+    vlamax, durability, potentielState, potentielScore, thresholdPace, envelope
   } = params;
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -490,9 +490,9 @@ function generateScenario(type: SimulationScenarioType, params: ScenarioParams):
   }
   
   // Amplifier si readiness faible
-  if (readinessState === "ORANGE") {
+  if (potentielState === "ORANGE") {
     failureProbability += 10;
-  } else if (readinessState === "RED") {
+  } else if (potentielState === "RED") {
     failureProbability += 25;
   }
   

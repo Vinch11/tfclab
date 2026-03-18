@@ -24,7 +24,7 @@ interface ScientificChartsDashboardProps {
   tteValue: number | null;
   tteSource: string;
   tteConfidence: number;
-  readinessScore: number | null;
+  potentielScore: number | null;
   readinessDetails?: {
     vlamax: number;
     endurance: number;
@@ -54,7 +54,7 @@ export function ScientificChartsDashboard({
   tteValue,
   tteSource,
   tteConfidence,
-  readinessScore,
+  potentielScore,
   readinessDetails,
   objectif,
   tss7d,

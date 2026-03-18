@@ -21,7 +21,7 @@ import {
   matchWahooSession,
   type WahooWorkoutMapping 
 } from "@/data/wahooMapping";
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, type RaceReadinessInput, type RaceReadinessResult, computeRaceReadinessSignature } from "@/lib/raceReadinessEffectif";
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif, type RaceReadinessInput, type RaceReadinessResult, computeRaceReadinessSignature } from "@/lib/potentielPhysiologiqueEffectif";
 
 // Re-export types for external use
 export type { RaceReadinessResult as RaceReadinessSignatureResult };
@@ -59,10 +59,10 @@ export interface AssistantContextPacket {
   // Métriques effectifs (avec source et confiance)
   vlamaxEffectif: VLamaxEffectif | null;
   tteEffectif: TTEEffectif | null;
-  raceReadiness: RaceReadinessEffectif | null;
+  potentielPhysiologique: RaceReadinessEffectif | null;
   
   // Race Readiness Signature (nouveau système Potentiel × Disponibilité)
-  raceReadinessSignature: RaceReadinessResult | null;
+  potentielPhysiologiqueSignature: RaceReadinessResult | null;
   
   // Charge récente
   chargeRecente: {
@@ -355,7 +355,7 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
     return age;
   })() : null;
   
-  const raceReadiness = tteEffectif && vlamaxEffectif ? computeRaceReadinessEffectif({
+  const potentielPhysiologique = tteEffectif && vlamaxEffectif ? computeRaceReadinessEffectif({
     objectif: athlete?.goal || "IM",
     vlamaxEffectif,
     tteEffectif,
@@ -386,7 +386,7 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
   }) : null;
   
   // Race Readiness Signature (nouveau système Potentiel × Disponibilité)
-  let raceReadinessSignature: RaceReadinessResult | null = null;
+  let potentielPhysiologiqueSignature: RaceReadinessResult | null = null;
   if (athlete?.goal) {
     // Construire l'input pour le calcul
     const signatureInput: RaceReadinessInput = {
@@ -399,7 +399,7 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
       vo2max: effectiveSnapshot?.vo2max ?? null,
     };
     
-    raceReadinessSignature = computeRaceReadinessSignature(signatureInput);
+    potentielPhysiologiqueSignature = computeRaceReadinessSignature(signatureInput);
   }
   // Champs manquants
   const missingFields = identifyMissingFields(athlete, effectiveSnapshot);
@@ -408,7 +408,7 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
   const confidences: number[] = [];
   if (vlamaxEffectif) confidences.push(vlamaxEffectif.confidence);
   if (tteEffectif) confidences.push(tteEffectif.confidence);
-  if (raceReadiness) confidences.push(raceReadiness.confidence);
+  if (potentielPhysiologique) confidences.push(potentielPhysiologique.confidence);
   const robustness = computeRobustness(confidences);
   
   // Wahoo SYSTM context
@@ -430,13 +430,13 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
         confidence: tteEffectif.confidence,
         source: tteEffectif.source,
       },
-      raceReadiness: {
-        score: raceReadiness?.score ?? null,
+      potentielPhysiologique: {
+        score: potentielPhysiologique?.score ?? null,
         details: {
-          endurance: raceReadiness?.details.endurance,
-          vlamax: raceReadiness?.details.vlamax,
-          fraicheur: raceReadiness?.details.fraicheur,
-          puissance: raceReadiness?.details.puissance,
+          endurance: potentielPhysiologique?.details.endurance,
+          vlamax: potentielPhysiologique?.details.vlamax,
+          fraicheur: potentielPhysiologique?.details.fraicheur,
+          puissance: potentielPhysiologique?.details.puissance,
         },
       },
       CRR: { value: tss7d, confidence: tss7d !== null ? 0.8 : 0.3 },
@@ -478,8 +478,8 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
     },
     vlamaxEffectif,
     tteEffectif,
-    raceReadiness,
-    raceReadinessSignature,
+    potentielPhysiologique,
+    potentielPhysiologiqueSignature,
     chargeRecente: {
       tss7d,
       status: chargeStatus,
@@ -561,15 +561,15 @@ export function formatContextForPrompt(context: AssistantContextPacket): string 
   }
   
   // Race Readiness (ancien système)
-  if (context.raceReadiness) {
-    const r = context.raceReadiness;
+  if (context.potentielPhysiologique) {
+    const r = context.potentielPhysiologique;
     parts.push(`## Race Readiness Legacy: ${r.score}/100 (${r.label})`);
     parts.push(`- Confiance: ${(r.confidence * 100).toFixed(0)}%`);
   }
   
   // Race Readiness Signature (nouveau système Potentiel × Disponibilité)
-  if (context.raceReadinessSignature) {
-    const rr = context.raceReadinessSignature;
+  if (context.potentielPhysiologiqueSignature) {
+    const rr = context.potentielPhysiologiqueSignature;
     parts.push(`\n## RACE READINESS SIGNATURE (Potentiel × Disponibilité → Décision)`);
     parts.push(`### Potentiel Physiologique: ${rr.potentialLabel} (score: ${rr.potentialScore}/100)`);
     if (rr.potentialReasons.length > 0) {
@@ -757,8 +757,8 @@ export function formatContextForDisplay(context: AssistantContextPacket): Contex
   }
   
   // Potentiel Physiologique
-  if (context.raceReadiness) {
-    const r = context.raceReadiness;
+  if (context.potentielPhysiologique) {
+    const r = context.potentielPhysiologique;
     items.push({
       label: "Potentiel Physiologique",
       value: `${r.score}/100 (${r.label})`,

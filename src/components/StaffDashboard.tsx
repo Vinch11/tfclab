@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/potentielPhysiologiqueEffectif";
 // =============================================
 // STAFF DASHBOARD - Two For Coaching Lab
 // Tour de contrôle décisionnelle - Lisible en < 10 secondes
@@ -50,7 +50,7 @@ interface StaffDashboardProps {
   objectif: string;
   vlamaxEffectif: VLamaxEffectif;
   tteEffectif: TTEEffectif;
-  raceReadiness: RaceReadinessEffectif;
+  potentielPhysiologique: RaceReadinessEffectif;
   nutritionEstimate: NutritionEstimate | null;
   ftpKg: number | null;
   snapshotDate: string | null;
@@ -157,7 +157,7 @@ export function StaffDashboard({
   objectif,
   vlamaxEffectif,
   tteEffectif,
-  raceReadiness,
+  potentielPhysiologique,
   nutritionEstimate,
   ftpKg,
   snapshotDate,
@@ -184,12 +184,12 @@ export function StaffDashboard({
   );
   
   const tteTarget = ageAdjustedTargets.tteTarget;
-  const coachSummary = generateCoachSummary(vlamaxEffectif, tteEffectif, raceReadiness, objectif);
+  const coachSummary = generateCoachSummary(vlamaxEffectif, tteEffectif, potentielPhysiologique, objectif);
   const phase = getPhaseFromObjectif(objectif);
   
   const vlamaxStatus = getVlamaxStatusWithLabel(vlamaxEffectif.value, objectif, ambition);
   const tteStatus = getTTEStatus(tteEffectif.tte_min, tteTarget);
-  const readinessStatus = { status: raceReadiness.score >= 80 ? "ok" as const : raceReadiness.score >= 60 ? "warning" as const : "critical" as const, label: raceReadiness.label };
+  const readinessStatus = { status: potentielPhysiologique.score >= 80 ? "ok" as const : potentielPhysiologique.score >= 60 ? "warning" as const : "critical" as const, label: potentielPhysiologique.label };
 
   // Priorités d'entraînement
   const priorities = useMemo(() => {

@@ -1140,7 +1140,7 @@ export interface BasicSimulationInput {
   // Données simplifiées
   disponibiliteScore: number | null;
   disponibiliteLevel: string | null;
-  raceReadinessScore?: number | null; // 0-100
+  potentielPhysiologiqueScore?: number | null; // 0-100
   ftp?: number | null;
   vma?: number | null;
   paceThreshold?: number | null;
@@ -1153,10 +1153,10 @@ export interface BasicSimulationInput {
 function computeBasicIntensityZone(
   ambition: AmbitionLevel,
   disponibiliteScore: number | null,
-  raceReadinessScore: number | null
+  potentielPhysiologiqueScore: number | null
 ): { zone: BasicIntensityZone; label: string; description: string } {
   const dispo = disponibiliteScore ?? 70;
-  const readiness = raceReadinessScore ?? 70;
+  const readiness = potentielPhysiologiqueScore ?? 70;
   const globalScore = (dispo + readiness) / 2;
   
   // Ajustement selon ambition
@@ -1242,7 +1242,7 @@ export function computeBasicSimulation(input: BasicSimulationInput): BasicSimula
   const intensityResult = computeBasicIntensityZone(
     input.ambition,
     input.disponibiliteScore,
-    input.raceReadinessScore ?? null
+    input.potentielPhysiologiqueScore ?? null
   );
   
   // Risque global

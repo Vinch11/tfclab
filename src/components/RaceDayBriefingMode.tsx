@@ -47,7 +47,7 @@ interface RaceDayBriefingModeProps {
   rules: DisciplineRulesResult;
   scenarios: ScenarioSimulationResult;
   raceObjective: RaceObjective;
-  raceReadinessScore: number | null;
+  potentielPhysiologiqueScore: number | null;
   onClose?: () => void;
   className?: string;
 }
@@ -62,7 +62,7 @@ export function RaceDayBriefingMode({
   rules,
   scenarios,
   raceObjective,
-  raceReadinessScore,
+  potentielPhysiologiqueScore,
   onClose,
   className,
 }: RaceDayBriefingModeProps) {
@@ -76,9 +76,9 @@ export function RaceDayBriefingMode({
       rules,
       scenarios,
       raceObjective,
-      raceReadinessScore,
+      potentielPhysiologiqueScore,
     });
-  }, [athleteName, envelope, rules, scenarios, raceObjective, raceReadinessScore]);
+  }, [athleteName, envelope, rules, scenarios, raceObjective, potentielPhysiologiqueScore]);
 
   // Print function
   const handlePrint = () => {

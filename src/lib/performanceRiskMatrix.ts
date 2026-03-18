@@ -89,7 +89,7 @@ export interface ComputeMatrixParams {
   tteConfidence?: number;
   
   // Race Readiness
-  raceReadinessScore: number | null;
+  potentielPhysiologiqueScore: number | null;
   
   // Fatigue inputs (FatigueIndex™)
   fatigueIndex?: number | null;
@@ -329,8 +329,8 @@ export function computePerformanceIndex(params: ComputeMatrixParams): Performanc
   }
 
   // Race Readiness contribution
-  if (params.raceReadinessScore !== null) {
-    const rrScore = (params.raceReadinessScore / 100) * 15;
+  if (params.potentielPhysiologiqueScore !== null) {
+    const rrScore = (params.potentielPhysiologiqueScore / 100) * 15;
     score += rrScore - 7.5;
     confidence += 0.1;
     factors++;
