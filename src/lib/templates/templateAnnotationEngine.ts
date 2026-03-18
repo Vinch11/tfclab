@@ -43,7 +43,7 @@ export interface AnnotationParams {
   athleteGoal: "IM" | "703" | "Marathon" | "Semi" | string;
   vlamaxEffectif: VLamaxSignal | null;
   tteEffectif: TTESignal | null;
-  raceReadiness: RaceReadinessSignal | null;
+  potentielPhysiologique: RaceReadinessSignal | null;
   poids?: number | null;
   ftpKg?: number | null;
   tss7d?: number | null;
@@ -76,7 +76,7 @@ function getVLamaxMax(goal: string): number {
  */
 export function generateTemplateAnnotations(params: AnnotationParams): TemplateAnnotation[] {
   const annotations: TemplateAnnotation[] = [];
-  const { athleteGoal, vlamaxEffectif, tteEffectif, raceReadiness, tss7d, stressCheckin } = params;
+  const { athleteGoal, vlamaxEffectif, tteEffectif, potentielPhysiologique, tss7d, stressCheckin } = params;
 
   // Rule A: VLamax too high for IM
   if (
@@ -111,9 +111,9 @@ export function generateTemplateAnnotations(params: AnnotationParams): TemplateA
   }
 
   // Rule C: Race readiness low
-  if (raceReadiness != null) {
-    const score = raceReadiness.score;
-    const fraicheur = raceReadiness.details?.fraicheur ?? 100;
+  if (potentielPhysiologique != null) {
+    const score = potentielPhysiologique.score;
+    const fraicheur = potentielPhysiologique.details?.fraicheur ?? 100;
     
     if (score < 60 || fraicheur < 50) {
       annotations.push({

@@ -146,7 +146,7 @@ export default function RaceSimulationPage() {
   }, [raceObjective]);
   
   // Compute Race Readiness Score for Pacing Envelope
-  const raceReadinessScore = React.useMemo(() => {
+  const potentielPhysiologiqueScore = React.useMemo(() => {
     if (!disponibilite) return null;
     return disponibilite.score;
   }, [disponibilite]);
@@ -157,7 +157,7 @@ export default function RaceSimulationPage() {
       vlamaxEffectif,
       tteEffectif,
       fatmax,
-      raceReadinessScore,
+      potentielPhysiologiqueScore,
       fatigueIndex: null, // Source: snapshot fatigue_state via disponibilité
       raceObjective,
       sport: discipline,
@@ -166,7 +166,7 @@ export default function RaceSimulationPage() {
       paceThreshold: activeSnapshot?.pace_threshold_sec_per_km,
       weight: activeSnapshot?.weight_kg,
     });
-  }, [vlamaxEffectif, tteEffectif, fatmax, raceReadinessScore, latestCheckin, raceObjective, discipline, activeSnapshot]);
+  }, [vlamaxEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, latestCheckin, raceObjective, discipline, activeSnapshot]);
   
   const rules = React.useMemo(() => {
     if (!envelope) return null;
@@ -175,9 +175,9 @@ export default function RaceSimulationPage() {
       vlamaxEffectif,
       raceObjective,
       sport: discipline,
-      raceReadinessScore,
+      potentielPhysiologiqueScore,
     });
-  }, [envelope, vlamaxEffectif, raceObjective, discipline, raceReadinessScore]);
+  }, [envelope, vlamaxEffectif, raceObjective, discipline, potentielPhysiologiqueScore]);
   
   const scenarios = React.useMemo(() => {
     if (!envelope) return null;
@@ -233,7 +233,7 @@ export default function RaceSimulationPage() {
                     rules={rules}
                     scenarios={scenarios}
                     raceObjective={raceObjective}
-                    raceReadinessScore={raceReadinessScore}
+                    potentielPhysiologiqueScore={potentielPhysiologiqueScore}
                   />
                 </DialogContent>
               </Dialog>
@@ -267,7 +267,7 @@ export default function RaceSimulationPage() {
                   vlamaxEffectif,
                   tteEffectif,
                   fatmax,
-                  raceReadinessScore,
+                  potentielPhysiologiqueScore,
                   fatigueIndex: null, // Source: snapshot fatigue_state
                   raceObjective,
                   sport: discipline,
@@ -313,7 +313,7 @@ export default function RaceSimulationPage() {
                 scenarios={scenarios}
                 vlamaxEffectif={vlamaxEffectif}
                 tteEffectif={tteEffectif}
-                raceReadinessScore={raceReadinessScore}
+                potentielPhysiologiqueScore={potentielPhysiologiqueScore}
                 raceObjective={raceObjective}
                 raceDurationMin={raceDurationMin}
               />

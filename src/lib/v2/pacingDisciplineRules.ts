@@ -59,7 +59,7 @@ export interface DisciplineRulesInput {
   vlamaxEffectif: VLamaxEffectif | null;
   raceObjective: RaceObjective;
   sport: "bike" | "run";
-  raceReadinessScore?: number | null;
+  potentielPhysiologiqueScore?: number | null;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -228,7 +228,7 @@ const RACE_SPECIFIC_RULES: Record<RaceObjective, DisciplineRule[]> = {
  * Génère les règles de discipline de pacing basées sur le profil
  */
 export function generateDisciplineRules(input: DisciplineRulesInput): DisciplineRulesResult {
-  const { envelope, vlamaxEffectif, raceObjective, sport, raceReadinessScore } = input;
+  const { envelope, vlamaxEffectif, raceObjective, sport, potentielPhysiologiqueScore } = input;
   
   const rules: DisciplineRule[] = [...UNIVERSAL_RULES];
   
@@ -325,7 +325,7 @@ export function generateDisciplineRules(input: DisciplineRulesInput): Discipline
   // ─────────────────────────────────────────────────────────────────────────────
   // 4. Règles Race Readiness
   // ─────────────────────────────────────────────────────────────────────────────
-  if (raceReadinessScore != null && raceReadinessScore < 70) {
+  if (potentielPhysiologiqueScore != null && potentielPhysiologiqueScore < 70) {
     rules.push({
       id: "low_readiness",
       category: "tactical",
@@ -333,7 +333,7 @@ export function generateDisciplineRules(input: DisciplineRulesInput): Discipline
       title: "Readiness réduit",
       message: "Aujourd'hui, la robustesse prime sur l'ambition. Scénario conservateur conseillé.",
       icon: "🛡️",
-      source: `Readiness ${raceReadinessScore}%`,
+      source: `Readiness ${potentielPhysiologiqueScore}%`,
     });
   }
 
@@ -367,7 +367,7 @@ export function generateDisciplineRules(input: DisciplineRulesInput): Discipline
   let primaryMessage: string;
   if (showSensitiveBadge) {
     primaryMessage = "Profil sensible au pacing — discipline maximale requise.";
-  } else if (raceReadinessScore != null && raceReadinessScore < 70) {
+  } else if (potentielPhysiologiqueScore != null && potentielPhysiologiqueScore < 70) {
     primaryMessage = "Readiness modéré — approche conservatrice recommandée.";
   } else {
     primaryMessage = `Couloir de pacing défini : ${boundary.lowPct}–${boundary.highPct}%`;

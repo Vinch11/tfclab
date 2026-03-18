@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getScoreColor, getRaceReadinessTargets, getTargets, getWeightsBySport, generateAthleteReadiness, computePillarCalculations, type RaceReadinessInput, type RaceReadinessResult, computeRaceReadinessSignature } from "@/lib/raceReadinessEffectif";
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getScoreColor, getRaceReadinessTargets, getTargets, getWeightsBySport, generateAthleteReadiness, computePillarCalculations, type RaceReadinessInput, type RaceReadinessResult, computeRaceReadinessSignature } from "@/lib/potentielPhysiologiqueEffectif";
 /**
  * RAPPORT STAFF PRÉ-COURSE - Vince's Lab
  * Synthèse d'une page, lisible en < 2 minutes
@@ -33,8 +33,8 @@ export type TrafficLight = "green" | "orange" | "red";
 export type LimitationType = "metabolic" | "endurance" | "economy" | "nutrition" | "power" | "none";
 
 export interface ExecutiveSummary {
-  raceReadinessScore: number;
-  raceReadinessLabel: string;
+  potentielPhysiologiqueScore: number;
+  potentielPhysiologiqueLabel: string;
   trafficLight: TrafficLight;
   trafficLightLabel: string;
   trafficLightIcon: "🟢" | "🟡" | "🔴";
@@ -780,8 +780,8 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
   
   // Générer le résumé exécutif
   const executiveSummary: ExecutiveSummary = {
-    raceReadinessScore: readiness.score,
-    raceReadinessLabel: readiness.label,
+    potentielPhysiologiqueScore: readiness.score,
+    potentielPhysiologiqueLabel: readiness.label,
     trafficLight,
     trafficLightLabel: trafficLight === "green" ? "Prêt" : trafficLight === "orange" ? "À sécuriser" : "À risque",
     trafficLightIcon: trafficLight === "green" ? "🟢" : trafficLight === "orange" ? "🟡" : "🔴",
@@ -914,7 +914,7 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
       confidence: tteEffectif.confidence,
       source: tteEffectif.source,
     },
-    raceReadiness: {
+    potentielPhysiologique: {
       score: readiness.score,
       details: {
         endurance: readiness.details.endurance,

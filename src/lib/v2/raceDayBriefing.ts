@@ -29,7 +29,7 @@ export interface AthleteBriefingInput {
   rules: DisciplineRulesResult;
   scenarios: ScenarioSimulationResult;
   raceObjective: RaceObjective;
-  raceReadinessScore: number | null;
+  potentielPhysiologiqueScore: number | null;
 }
 
 export interface KeyMessage {
@@ -187,7 +187,7 @@ const ERROR_TEMPLATES = [
  * Génère le briefing Jour J pour l'athlète
  */
 export function generateRaceDayBriefing(input: AthleteBriefingInput): RaceDayBriefingResult {
-  const { athleteName, envelope, rules, scenarios, raceObjective, raceReadinessScore } = input;
+  const { athleteName, envelope, rules, scenarios, raceObjective, potentielPhysiologiqueScore } = input;
   
   // ─────────────────────────────────────────────────────────────────────────────
   // BLOC 1: Message clé
@@ -203,9 +203,9 @@ export function generateRaceDayBriefing(input: AthleteBriefingInput): RaceDayBri
   
   if (envelope.pacingProfile.type === "sensitive") {
     messageConfig = KEY_MESSAGES.sensitive_profile;
-  } else if (raceReadinessScore != null && raceReadinessScore < 70) {
+  } else if (potentielPhysiologiqueScore != null && potentielPhysiologiqueScore < 70) {
     messageConfig = KEY_MESSAGES.low_readiness;
-  } else if (raceReadinessScore != null && raceReadinessScore >= 85) {
+  } else if (potentielPhysiologiqueScore != null && potentielPhysiologiqueScore >= 85) {
     messageConfig = KEY_MESSAGES.high_readiness;
   }
   
@@ -248,7 +248,7 @@ export function generateRaceDayBriefing(input: AthleteBriefingInput): RaceDayBri
   // ─────────────────────────────────────────────────────────────────────────────
   // BLOC 3: Règles d'or (max 5)
   // ─────────────────────────────────────────────────────────────────────────────
-  const goldenRulesSelection = selectGoldenRules(envelope, raceObjective, raceReadinessScore);
+  const goldenRulesSelection = selectGoldenRules(envelope, raceObjective, potentielPhysiologiqueScore);
   
   const goldenRules: GoldenRule[] = goldenRulesSelection.slice(0, 5).map(r => ({
     id: r.id,
@@ -285,7 +285,7 @@ export function generateRaceDayBriefing(input: AthleteBriefingInput): RaceDayBri
 function selectGoldenRules(
   envelope: PacingEnvelopeResult,
   raceObjective: RaceObjective,
-  raceReadinessScore: number | null
+  potentielPhysiologiqueScore: number | null
 ): Array<{ id: string; text: string; memorizable: boolean }> {
   const selected: Array<{ id: string; text: string; memorizable: boolean }> = [];
   
@@ -301,7 +301,7 @@ function selectGoldenRules(
   selected.push(GOLDEN_RULE_TEMPLATES.find(r => r.id === "let_go")!);
   
   // Si readiness faible, ajouter finir fort
-  if (raceReadinessScore != null && raceReadinessScore < 75) {
+  if (potentielPhysiologiqueScore != null && potentielPhysiologiqueScore < 75) {
     selected.push(GOLDEN_RULE_TEMPLATES.find(r => r.id === "finish_strong")!);
   } else {
     selected.push(GOLDEN_RULE_TEMPLATES.find(r => r.id === "race_starts_mid")!);

@@ -57,7 +57,7 @@ interface StaffPacingReportV2Props {
   scenarios: ScenarioSimulationResult;
   vlamaxEffectif: VLamaxEffectif | null;
   tteEffectif: TTEEffectif | null;
-  raceReadinessScore: number | null;
+  potentielPhysiologiqueScore: number | null;
   raceObjective: RaceObjective;
   raceDurationMin?: number;
   className?: string;
@@ -74,7 +74,7 @@ export function StaffPacingReportV2({
   scenarios,
   vlamaxEffectif,
   tteEffectif,
-  raceReadinessScore,
+  potentielPhysiologiqueScore,
   raceObjective,
   raceDurationMin = 180,
   className,
@@ -88,10 +88,10 @@ export function StaffPacingReportV2({
       scenarios,
       vlamaxEffectif,
       tteEffectif,
-      raceReadinessScore,
+      potentielPhysiologiqueScore,
       raceObjective,
     });
-  }, [athleteName, envelope, rules, scenarios, vlamaxEffectif, tteEffectif, raceReadinessScore, raceObjective]);
+  }, [athleteName, envelope, rules, scenarios, vlamaxEffectif, tteEffectif, potentielPhysiologiqueScore, raceObjective]);
 
   return (
     <div className={cn("space-y-6", className)}>

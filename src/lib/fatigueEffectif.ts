@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, getScoreColor, getRaceReadinessTargets, getTargets, getWeightsBySport, generateAthleteReadiness, computePillarCalculations, type RaceReadinessInput, type RaceReadinessResult, computeRaceReadinessSignature } from "@/lib/raceReadinessEffectif";
+import { computeRaceReadinessEffectif, getScoreColor, getRaceReadinessTargets, getTargets, getWeightsBySport, generateAthleteReadiness, computePillarCalculations, type RaceReadinessInput, type RaceReadinessResult, computeRaceReadinessSignature } from "@/lib/potentielPhysiologiqueEffectif";
 // =============================================
 // FATIGUE INDEX™ — Two For Coaching Lab
 // Système officiel de quantification de la fatigue
@@ -21,7 +21,7 @@ import { computeRaceReadinessEffectif, getScoreColor, getRaceReadinessTargets, g
 // =============================================
 
 import { TTEEffectif, getTTETarget } from "./tteEffectif";
-import { type RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
+import { type RaceReadinessEffectif } from "@/lib/potentielPhysiologiqueEffectif";
 type RaceReadinessEffectifCompat = RaceReadinessEffectif;
 import { VLamaxEffectif } from "./vlamaxEffectif";
 
@@ -184,7 +184,7 @@ export interface FatigueEffectif {
     fatiguePercue: number | null;
     tteEffectif: number | null;
     tteTarget: number | null;
-    raceReadiness: number | null;
+    potentielPhysiologique: number | null;
     age: number | null;
     vlamax: number | null;
   };
@@ -195,7 +195,7 @@ export interface ComputeFatigueParams {
   tss7dHabituel?: number | null;     // Charge habituelle de référence (si disponible)
   fatiguePercue?: number | null;     // NEW: Fatigue perçue (1-10, 1=frais, 10=épuisé)
   tteEffectif: TTEEffectif;
-  raceReadiness?: RaceReadinessEffectifCompat | null;  // NULLABLE: peut être null si pas encore calculé
+  potentielPhysiologique?: RaceReadinessEffectifCompat | null;  // NULLABLE: peut être null si pas encore calculé
   vlamaxEffectif?: VLamaxEffectif | null;
   age?: number | null;
   objectif: string;
@@ -341,14 +341,14 @@ function computeFatiguePercueIndex(
  * Combiné avec la fraîcheur métabolique du Race Readiness
  */
 function computeFraicheurIndex(
-  raceReadiness: RaceReadinessEffectif | null | undefined
+  potentielPhysiologique: RaceReadinessEffectif | null | undefined
 ): { index: number; confidence: number } {
-  // Gestion robuste si raceReadiness est null/undefined
-  if (!raceReadiness || raceReadiness.score == null) {
+  // Gestion robuste si potentielPhysiologique est null/undefined
+  if (!potentielPhysiologique || potentielPhysiologique.score == null) {
     return { index: 50, confidence: 0.3 }; // Valeur neutre
   }
 
-  const rr = raceReadiness.score;
+  const rr = potentielPhysiologique.score;
 
   // Inverse : RR élevé = fatigue basse
   // RR 85+ = fatigue 10%, RR 50 = fatigue 50%, RR 30 = fatigue 75%
@@ -356,7 +356,7 @@ function computeFraicheurIndex(
 
   return { 
     index, 
-    confidence: raceReadiness.confidence 
+    confidence: potentielPhysiologique.confidence 
   };
 }
 
@@ -429,7 +429,7 @@ export function computeFatigueEffectif(params: ComputeFatigueParams): FatigueEff
     tss7dHabituel,
     fatiguePercue,
     tteEffectif, 
-    raceReadiness, 
+    potentielPhysiologique, 
     vlamaxEffectif,
     age,
     objectif 
@@ -441,7 +441,7 @@ export function computeFatigueEffectif(params: ComputeFatigueParams): FatigueEff
   const chargeResult = computeChargeRecenteIndex(tss7d ?? null, tss7dHabituel ?? null);
   const fatiguePercueResult = computeFatiguePercueIndex(fatiguePercue ?? null);
   const tteResult = computeTTEIndex(tteEffectif, objectif);
-  const fraicheurResult = computeFraicheurIndex(raceReadiness);
+  const fraicheurResult = computeFraicheurIndex(potentielPhysiologique);
   const modulateursResult = computeModulateursIndex(age ?? null, vlamaxEffectif ?? null);
 
   // Tracker les données manquantes
@@ -533,7 +533,7 @@ export function computeFatigueEffectif(params: ComputeFatigueParams): FatigueEff
       fatiguePercue: fatiguePercue ?? null,
       tteEffectif: tteEffectif.tte_min,
       tteTarget: getTTETarget(objectif),
-      raceReadiness: raceReadiness?.score ?? null,
+      potentielPhysiologique: potentielPhysiologique?.score ?? null,
       age: age ?? null,
       vlamax: vlamaxEffectif?.value ?? null
     }

@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface UserPreferences {
-  raceReadinessCompactMode?: boolean;
+  potentielPhysiologiqueCompactMode?: boolean;
   // Autres préférences futures peuvent être ajoutées ici
 }
 
@@ -21,7 +21,7 @@ interface UseUserPreferencesReturn {
 const STORAGE_KEY = "vlab-user-preferences";
 
 const DEFAULT_PREFERENCES: UserPreferences = {
-  raceReadinessCompactMode: true, // Compact par défaut
+  potentielPhysiologiqueCompactMode: true, // Compact par défaut
 };
 
 export function useUserPreferences(): UseUserPreferencesReturn {

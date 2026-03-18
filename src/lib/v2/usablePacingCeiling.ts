@@ -27,7 +27,7 @@ export type ConsequenceType = 'stability' | 'warning' | 'collapse';
 
 export interface UsablePacingCeilingInput {
   envelope: PacingEnvelopeResult;
-  raceReadiness: RaceReadinessV2Result;
+  potentielPhysiologique: RaceReadinessV2Result;
   targetRaceDurationMin?: number | null;
 }
 
@@ -35,7 +35,7 @@ export interface UsablePacingCeiling {
   // Core values
   absoluteCeilingPct: number;      // Envelope upper bound (potential)
   usableCeilingPct: number;        // Adjusted by readiness
-  readinessMultiplier: number;     // 0.0 - 1.0
+  potentielMultiplier: number;     // 0.0 - 1.0
   
   // Usable intensity range
   targetIntensityPct: number;      // Recommended target (center)
@@ -103,27 +103,27 @@ export interface ConsequenceDescriptor {
 const STATUS_CONFIG: Record<PacingDecisionStatus, {
   label: string;
   emoji: string;
-  readinessThreshold: number;
+  potentielThreshold: number;
 }> = {
   CRITICAL: {
     label: 'Critique',
     emoji: '🔴',
-    readinessThreshold: 50,
+    potentielThreshold: 50,
   },
   RESTRICTED: {
     label: 'Restreint',
     emoji: '🟠',
-    readinessThreshold: 65,
+    potentielThreshold: 65,
   },
   NORMAL: {
     label: 'Normal',
     emoji: '🟢',
-    readinessThreshold: 80,
+    potentielThreshold: 80,
   },
   OPTIMAL: {
     label: 'Optimal',
     emoji: '🔵',
-    readinessThreshold: 100,
+    potentielThreshold: 100,
   },
 };
 
@@ -193,10 +193,10 @@ export const CONSEQUENCE_SENTENCES = {
 
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 
-function getStatus(readinessScore: number): PacingDecisionStatus {
-  if (readinessScore >= STATUS_CONFIG.OPTIMAL.readinessThreshold) return 'OPTIMAL';
-  if (readinessScore >= STATUS_CONFIG.NORMAL.readinessThreshold) return 'NORMAL';
-  if (readinessScore >= STATUS_CONFIG.RESTRICTED.readinessThreshold) return 'RESTRICTED';
+function getStatus(potentielScore: number): PacingDecisionStatus {
+  if (potentielScore >= STATUS_CONFIG.OPTIMAL.potentielThreshold) return 'OPTIMAL';
+  if (potentielScore >= STATUS_CONFIG.NORMAL.potentielThreshold) return 'NORMAL';
+  if (potentielScore >= STATUS_CONFIG.RESTRICTED.potentielThreshold) return 'RESTRICTED';
   return 'CRITICAL';
 }
 
@@ -217,7 +217,7 @@ function getRandomSentence(sentences: string[]): string {
 export function computeUsablePacingCeiling(
   input: UsablePacingCeilingInput
 ): UsablePacingCeiling {
-  const { envelope, raceReadiness } = input;
+  const { envelope, potentielPhysiologique } = input;
   
   const sources: string[] = ['Pacing Envelope™', 'Race Readiness V2'];
   
@@ -225,7 +225,7 @@ export function computeUsablePacingCeiling(
   // STEP 1: Extract base values
   // ─────────────────────────────────────────────────────────────────────────────
   const absoluteCeilingPct = envelope.boundary.highPct;
-  const readinessScore = raceReadiness.readiness.score;
+  const potentielScore = potentielPhysiologique.readiness.score;
   
   // ─────────────────────────────────────────────────────────────────────────────
   // STEP 2: Calculate readiness multiplier
@@ -234,25 +234,25 @@ export function computeUsablePacingCeiling(
   // Score of 100 = 1.0 (full access)
   // Score of 50 = 0.75 (25% reduction)
   // Score of 0 = 0.5 (50% reduction - emergency only)
-  const readinessMultiplier = clamp(0.5 + (readinessScore / 200), 0.5, 1.0);
+  const potentielMultiplier = clamp(0.5 + (potentielScore / 200), 0.5, 1.0);
   
   // ─────────────────────────────────────────────────────────────────────────────
   // STEP 3: Calculate usable ceiling
   // ─────────────────────────────────────────────────────────────────────────────
   // USABLE_PACING_CEILING = Envelope upper bound × Readiness %
   // But we apply it as a reduction from the ceiling, not a direct percentage
-  const reductionPct = absoluteCeilingPct * (1 - readinessMultiplier);
+  const reductionPct = absoluteCeilingPct * (1 - potentielMultiplier);
   const usableCeilingPct = Math.round(absoluteCeilingPct - reductionPct);
   
   // ─────────────────────────────────────────────────────────────────────────────
   // STEP 4: Calculate target intensity range
   // ─────────────────────────────────────────────────────────────────────────────
   // Target is 3-5% BELOW usable ceiling (discipline buffer)
-  const disciplineBuffer = readinessScore >= 80 ? 3 : readinessScore >= 65 ? 4 : 5;
+  const disciplineBuffer = potentielScore >= 80 ? 3 : potentielScore >= 65 ? 4 : 5;
   const targetIntensityPct = Math.round(usableCeilingPct - disciplineBuffer);
   
   // Range is narrower when readiness is lower
-  const rangeWidth = readinessScore >= 80 ? 6 : readinessScore >= 65 ? 5 : 4;
+  const rangeWidth = potentielScore >= 80 ? 6 : potentielScore >= 65 ? 5 : 4;
   const targetRangePct: [number, number] = [
     Math.max(envelope.boundary.lowPct, targetIntensityPct - Math.floor(rangeWidth / 2)),
     Math.min(usableCeilingPct, targetIntensityPct + Math.floor(rangeWidth / 2)),
@@ -261,7 +261,7 @@ export function computeUsablePacingCeiling(
   // ─────────────────────────────────────────────────────────────────────────────
   // STEP 5: Determine status
   // ─────────────────────────────────────────────────────────────────────────────
-  const status = getStatus(readinessScore);
+  const status = getStatus(potentielScore);
   const statusConfig = STATUS_CONFIG[status];
   
   // ─────────────────────────────────────────────────────────────────────────────
@@ -293,7 +293,7 @@ export function computeUsablePacingCeiling(
   // STEP 7: Generate explanation
   // ─────────────────────────────────────────────────────────────────────────────
   const explanation = {
-    why: `Race Readiness de ${readinessScore}/100 applique un multiplicateur de ${(readinessMultiplier * 100).toFixed(0)}% sur le plafond de l'enveloppe.`,
+    why: `Race Readiness de ${potentielScore}/100 applique un multiplicateur de ${(potentielMultiplier * 100).toFixed(0)}% sur le plafond de l'enveloppe.`,
     consequence: status === 'CRITICAL' || status === 'RESTRICTED'
       ? "Dépasser ce plafond aujourd'hui coûtera plus qu'il ne rapportera."
       : "L'intensité cible est accessible avec marge de sécurité.",
@@ -307,7 +307,7 @@ export function computeUsablePacingCeiling(
   return {
     absoluteCeilingPct,
     usableCeilingPct,
-    readinessMultiplier,
+    potentielMultiplier,
     targetIntensityPct,
     targetRangePct,
     status,

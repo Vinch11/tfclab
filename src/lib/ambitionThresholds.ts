@@ -115,14 +115,14 @@ export function evaluateReadiness(
   ambition: AmbitionLevel = DEFAULT_AMBITION
 ): MetricEvaluation {
   // Plus l'ambition est haute, plus le seuil "ok" est exigeant
-  const readinessThresholds: Record<AmbitionLevel, { ok: number; warning: number }> = {
+  const potentielThresholds: Record<AmbitionLevel, { ok: number; warning: number }> = {
     finisher: { ok: 65, warning: 45 },
     age_group: { ok: 75, warning: 55 },
     competitor: { ok: 82, warning: 65 },
     elite: { ok: 88, warning: 72 },
   };
   
-  const thresholds = readinessThresholds[ambition];
+  const thresholds = potentielThresholds[ambition];
 
   if (score === null || score === 0) return { status: "neutral", target: `≥ ${thresholds.ok}%`, targetValue: thresholds.ok };
 

@@ -190,7 +190,7 @@ import { toast } from "sonner";
 import { getDernierSnapshot } from "@/types/athlete";
 import { computeVLamaxEffectif, type VLamaxEffectif, computeTTEEffectif, type TTEEffectif, getSourceLabel } from "@/engines/diagnostic";
 
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, type RaceReadinessInput } from "@/lib/raceReadinessEffectif";
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif, type RaceReadinessInput } from "@/lib/potentielPhysiologiqueEffectif";
 // ✅ RACE READINESS EFFECTIF - Source unique de vérité
 
 // ✅ Ambition (modulateur des cibles)
@@ -503,7 +503,7 @@ const Index = () => {
   }, [tteEffectif]);
 
   // Race Readiness stub (module removed)
-  const raceReadinessEffectif = useMemo(() => {
+  const potentielPhysiologiqueEffectif = useMemo(() => {
     return computeRaceReadinessEffectif({
       objectif: currentAthlete?.goal || "IM",
       vlamaxEffectif,
@@ -623,12 +623,12 @@ const Index = () => {
       tss7dHabituel: null,
       fatiguePercue,
       tteEffectif,
-      raceReadiness: raceReadinessEffectif,
+      potentielPhysiologique: potentielPhysiologiqueEffectif,
       vlamaxEffectif,
       age: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
       objectif: currentAthlete.goal || "IM",
     });
-  }, [effectiveCloudSnapshot, currentAthlete, tteEffectif, raceReadinessEffectif, vlamaxEffectif]);
+  }, [effectiveCloudSnapshot, currentAthlete, tteEffectif, potentielPhysiologiqueEffectif, vlamaxEffectif]);
 
   // ✅ LORANG STRATEGY — Pour Coaching Compass
   const lorangStrategyForCompass = useMemo<LorangStrategyResult | null>(() => {
@@ -736,13 +736,13 @@ const Index = () => {
         confidence: unifiedLimiterResult.confidence,
         fatigueWarning: (unifiedLimiterResult as any).fatigueWarning ?? null,
       } : null,
-      raceReadiness: raceReadinessEffectif ? {
-        score: raceReadinessEffectif.score,
-        potential: (raceReadinessEffectif as any).potential ?? raceReadinessEffectif.score,
-        availability: (raceReadinessEffectif as any).availability ?? 80,
-        governingFactor: (raceReadinessEffectif as any).governingFactor ?? "potential",
-        label: raceReadinessEffectif.label || "",
-        color: raceReadinessEffectif.color || "warning",
+      potentielPhysiologique: potentielPhysiologiqueEffectif ? {
+        score: potentielPhysiologiqueEffectif.score,
+        potential: (potentielPhysiologiqueEffectif as any).potential ?? potentielPhysiologiqueEffectif.score,
+        availability: (potentielPhysiologiqueEffectif as any).availability ?? 80,
+        governingFactor: (potentielPhysiologiqueEffectif as any).governingFactor ?? "potential",
+        label: potentielPhysiologiqueEffectif.label || "",
+        color: potentielPhysiologiqueEffectif.color || "warning",
       } : null,
       strategyResult: lorangStrategyForCompass ? {
         primaryLimiter: lorangStrategyForCompass.primaryLimiter,
@@ -765,7 +765,7 @@ const Index = () => {
       sportFocus: (effectiveCloudSnapshot.sport_main === "run" ? "run" : effectiveCloudSnapshot.sport_main === "bike" ? "bike" : "triathlon") as "bike" | "run" | "triathlon",
       athleteAge: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
     };
-  }, [currentAthlete, effectiveCloudSnapshot, effectiveRefs, vlamaxEffectif, tteEffectif, fatigueEffectifForCompass, unifiedLimiterResult, raceReadinessEffectif, lorangStrategyForCompass, lactateThresholdsForCompass, wprimeKjForLimiter, currentAmbition]);
+  }, [currentAthlete, effectiveCloudSnapshot, effectiveRefs, vlamaxEffectif, tteEffectif, fatigueEffectifForCompass, unifiedLimiterResult, potentielPhysiologiqueEffectif, lorangStrategyForCompass, lactateThresholdsForCompass, wprimeKjForLimiter, currentAmbition]);
 
   const { 
     calculateAndPersist: persistDRE, 
@@ -1609,7 +1609,7 @@ const Index = () => {
                 objectif={currentAthlete.goal || "IM"}
                 vlamaxEffectif={vlamaxEffectif}
                 tteEffectif={tteEffectif}
-                raceReadiness={raceReadinessEffectif}
+                potentielPhysiologique={potentielPhysiologiqueEffectif}
                 nutritionEstimate={nutritionEstimate}
                 ftpKg={ftp_kg}
                 snapshotDate={effectiveCloudSnapshot?.date ?? null}
@@ -1642,7 +1642,7 @@ const Index = () => {
                 tteValue={tteEffectif.tte_min}
                 tteSource={tteEffectif.source}
                 tteConfidence={tteEffectif.confidence}
-                readinessScore={raceReadinessEffectif.score}
+                potentielScore={potentielPhysiologiqueEffectif.score}
                 objectif={currentAthlete.goal || "IM"}
                 vo2max={effectiveCloudSnapshot.vo2max ?? null}
                 ftp={ftp}
@@ -1731,7 +1731,7 @@ const Index = () => {
                 athlete={legacyAthlete}
                 vlamaxEffectif={vlamaxEffectif}
                 tteEffectif={tteEffectif}
-                readiness={raceReadinessEffectif}
+                readiness={potentielPhysiologiqueEffectif}
                 onGoToSnapshots={() => setShowSnapshots(true)}
               />
             ),
@@ -1828,7 +1828,7 @@ const Index = () => {
                 tteValue={tteEffectif.tte_min}
                 tteSource={tteEffectif.source}
                 tteConfidence={tteEffectif.confidence}
-                readinessScore={raceReadinessEffectif.score}
+                potentielScore={potentielPhysiologiqueEffectif.score}
                 objectif={currentAthlete.goal || "IM"}
                 vo2max={effectiveCloudSnapshot.vo2max ?? null}
                 ftp={ftp}
@@ -1950,7 +1950,7 @@ const Index = () => {
                   vlamaxEffectif,
                   tteEffectif,
                   fatmax: null,
-                  raceReadinessScore: raceReadinessEffectif.score,
+                  potentielPhysiologiqueScore: potentielPhysiologiqueEffectif.score,
                   fatigueIndex: null,
                   raceObjective: (currentAthlete.goal === "703" ? "70.3" : currentAthlete.goal === "IM" ? "IM" : currentAthlete.goal === "Marathon" ? "Marathon" : currentAthlete.goal === "Semi" ? "Semi" : "IM") as any,
                   sport: isRunningOnly ? "run" : "bike",
@@ -1993,7 +1993,7 @@ const Index = () => {
                 tteMin={tteEffectif.tte_min}
                 ftpKg={ftp_kg}
                 vo2max={effectiveCloudSnapshot?.vo2max ?? null}
-                readinessScore={raceReadinessEffectif.score}
+                potentielScore={potentielPhysiologiqueEffectif.score}
                 objectif={currentAthlete.goal || "IM"}
                 ambition={currentAmbition}
               />

@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, computePillarCalculations } from "@/lib/raceReadinessEffectif";
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif, computePillarCalculations } from "@/lib/potentielPhysiologiqueEffectif";
 /**
  * RAPPORT STAFF PRÉ-COURSE - Composant UI
  * Synthèse d'une page, lisible en < 2 minutes
@@ -56,7 +56,7 @@ import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 import { computeFullDRE, type DecisionReliabilityResult, type Scenario } from "@/engines/diagnostic";
 import { DecisionReliabilityBadge, DecisionReliabilityProgress } from "@/components/DecisionReliabilityBadge";
 import { computeLorangStrategy, type LorangStrategyInput, type LorangStrategyResult, LIMITER_DEFINITIONS, LEVER_DEFINITIONS } from "@/engines/decision";
-import { computeRaceReadinessSignature, type RaceReadinessInput, type RaceReadinessResult } from "@/lib/raceReadinessEffectif";
+import { computeRaceReadinessSignature, type RaceReadinessInput, type RaceReadinessResult } from "@/lib/potentielPhysiologiqueEffectif";
 import { PacingEnvelopeBar, PacingEnvelopeBarInline } from "@/components/charts/PacingEnvelopeBar";
 import { LongDistanceEnvelopeChart, LongDistanceEnvelopeInline } from "@/components/charts/LongDistanceEnvelopeChart";
 import { computePacingEnvelope, type PacingEnvelopeInput, type RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
@@ -95,7 +95,7 @@ interface StaffReportProps {
   snapshot?: DbSnapshot | null;
   vo2max?: number | null;
   lorangInput?: LorangStrategyInput | null;
-  raceReadinessSignatureInput?: RaceReadinessInput | null;
+  potentielPhysiologiqueSignatureInput?: RaceReadinessInput | null;
   runningProfile?: RunningPhysioProfile | null;
   runningWeeklyDecision?: RunningWeeklyDecision | null;
   onExportPDF?: () => void;
@@ -120,7 +120,7 @@ export function StaffReport({
   snapshot,
   vo2max,
   lorangInput,
-  raceReadinessSignatureInput,
+  potentielPhysiologiqueSignatureInput,
   runningProfile,
   runningWeeklyDecision,
   onExportPDF,
@@ -199,7 +199,7 @@ export function StaffReport({
     vlamaxEffectif,
     tteEffectif,
     fatmax,
-    raceReadinessScore: readiness.score,
+    potentielPhysiologiqueScore: readiness.score,
     fatigueIndex: null,
     raceObjective: pacingRaceObjective,
     sport: pacingSport,
@@ -336,7 +336,7 @@ export function StaffReport({
                 <span className="text-3xl">{report.executiveSummary.trafficLightIcon}</span>
                 <div>
                   <p className="text-2xl font-bold">
-                    Race Readiness : {report.executiveSummary.raceReadinessScore}%
+                    Race Readiness : {report.executiveSummary.potentielPhysiologiqueScore}%
                   </p>
                   <p className="text-sm font-medium">
                     Statut : {report.executiveSummary.trafficLightLabel}
@@ -400,7 +400,7 @@ export function StaffReport({
                 vlamaxConfidence: vlamaxEffectif.confidence,
                 tteValue: tteEffectif.tte_min,
                 tteConfidence: tteEffectif.confidence,
-                raceReadinessScore: readiness.score,
+                potentielPhysiologiqueScore: readiness.score,
                 objectif,
               }}
             />
@@ -550,7 +550,7 @@ export function StaffReport({
         {lorangInput && <LorangStrategySection input={lorangInput} />}
 
         {/* 2.7️⃣ RACE READINESS SIGNATURE — POTENTIEL × DISPONIBILITÉ → DÉCISION */}
-        {raceReadinessSignatureInput && <RaceReadinessSignatureSection input={raceReadinessSignatureInput} />}
+        {potentielPhysiologiqueSignatureInput && <RaceReadinessSignatureSection input={potentielPhysiologiqueSignatureInput} />}
 
         {/* 2.8️⃣ DOUBLE BOUCLE CAP — PROFIL VERROUILLÉ + DÉCISION HEBDOMADAIRE */}
         {runningProfile && (
@@ -2105,7 +2105,7 @@ function StaffCompassSection({
     tss7dHabituel: null,
     fatiguePercue,
     tteEffectif,
-    raceReadiness: readiness,
+    potentielPhysiologique: readiness,
     vlamaxEffectif,
     age: athleteAge,
     objectif,
@@ -2141,7 +2141,7 @@ function StaffCompassSection({
     tteEffectif: { tte_min: tteEffectif.tte_min, confidence: tteEffectif.confidence, source: tteEffectif.source },
     fatigueEffectif: { score: fatigueEff.score, level: String(fatigueEff.level), confidence: fatigueEff.confidence },
     limiterResult: null,
-    raceReadiness: {
+    potentielPhysiologique: {
       score: readiness.score,
       potential: (readiness as any).potential ?? readiness.score,
       availability: (readiness as any).availability ?? 80,

@@ -37,7 +37,7 @@ export interface PacingEnvelopeInput {
   fatmax: FatMaxTFCLResult | null;
   
   // État athlète
-  raceReadinessScore: number | null;    // 0-100
+  potentielPhysiologiqueScore: number | null;    // 0-100
   fatigueIndex: number | null;          // 0-100
   
   // Course
@@ -194,7 +194,7 @@ function computeGlobalConfidence(input: PacingEnvelopeInput): number {
   if (input.fatmax != null) {
     confidence += 0.1 * input.fatmax.confidence;
   }
-  if (input.raceReadinessScore != null) {
+  if (input.potentielPhysiologiqueScore != null) {
     confidence += 0.1;
   }
   
@@ -242,7 +242,7 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
     vlamaxEffectif,
     tteEffectif,
     fatmax,
-    raceReadinessScore,
+    potentielPhysiologiqueScore,
     fatigueIndex,
     raceObjective,
     sport,
@@ -320,14 +320,14 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
   let readinessAdjustment = 0;
   let readinessMessage: string | null = null;
   
-  if (raceReadinessScore != null) {
+  if (potentielPhysiologiqueScore != null) {
     sourcesUsed.push("Potentiel Physiologique");
     
-    if (raceReadinessScore < 60) {
+    if (potentielPhysiologiqueScore < 60) {
       // Readiness faible → réduire le haut de l'enveloppe
-      readinessAdjustment = Math.round((60 - raceReadinessScore) * 0.1);
+      readinessAdjustment = Math.round((60 - potentielPhysiologiqueScore) * 0.1);
       readinessMessage = "Aujourd'hui, la robustesse prime sur l'ambition.";
-    } else if (raceReadinessScore < 75) {
+    } else if (potentielPhysiologiqueScore < 75) {
       readinessAdjustment = 1;
       readinessMessage = "État modéré — rester dans la zone optimale.";
     }

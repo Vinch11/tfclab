@@ -114,7 +114,7 @@ export interface SuggestionEngineContext {
   ftpKg?: number | null; // FTP in W/kg
   
   // Race readiness
-  raceReadiness: {
+  potentielPhysiologique: {
     score: number | null;
     details: RaceReadinessDetails;
   };
@@ -214,7 +214,7 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
     NEED_VO2_UP: [],
   };
   
-  const { objectif, sportFocus, vlamaxEffectif, tteEffectif, raceReadiness, CRR, injuryRiskRun, fatigueScore, ftpKg, forceDevelopmentMode, ambition } = context;
+  const { objectif, sportFocus, vlamaxEffectif, tteEffectif, potentielPhysiologique, CRR, injuryRiskRun, fatigueScore, ftpKg, forceDevelopmentMode, ambition } = context;
   
   // ✅ RUNNING FOCUS MODE CHECK
   const isRunningFocus = sportFocus === "run";
@@ -231,7 +231,7 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
   // fatigueScore <= threshold means low perceived form = high fatigue
   const hasLowPerceivedForm = fatigueScore !== undefined && fatigueScore <= perceivedFormThreshold;
   const hasSevereInjuryRisk = injuryRiskRun?.level === "élevé";
-  const hasSevereFreshnessIssue = raceReadiness.details.fraicheur !== undefined && raceReadiness.details.fraicheur < freshnessThreshold;
+  const hasSevereFreshnessIssue = potentielPhysiologique.details.fraicheur !== undefined && potentielPhysiologique.details.fraicheur < freshnessThreshold;
   
   const needsSevereRecovery = hasLowPerceivedForm || hasSevereInjuryRisk || hasSevereFreshnessIssue;
     
@@ -358,7 +358,7 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
   const ignoreEnduranceForDevelopment = forceDevelopmentMode && (hasFtpNeed || needs.includes("NEED_VLAMAX_DOWN"));
   
   const hasEnduranceIssue = 
-    (raceReadiness.details.endurance !== undefined && raceReadiness.details.endurance < 60) ||
+    (potentielPhysiologique.details.endurance !== undefined && potentielPhysiologique.details.endurance < 60) ||
     (hasLowCRR && !ignoreCRRForEndurance && !lowCRRJustification);
     
   // Ne pas ajouter NEED_ENDURANCE_BASE si:
@@ -367,8 +367,8 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
   // - forceDevelopmentMode est activé et on a des besoins de développement
   if (hasEnduranceIssue && !needs.includes("NEED_RECOVERY") && !hasFtpNeed && !ignoreEnduranceForDevelopment) {
     needs.push("NEED_ENDURANCE_BASE");
-    if (raceReadiness.details.endurance !== undefined && raceReadiness.details.endurance < 60) {
-      const msg = `Composante endurance faible (${raceReadiness.details.endurance}%) → base aérobie à consolider.`;
+    if (potentielPhysiologique.details.endurance !== undefined && potentielPhysiologique.details.endurance < 60) {
+      const msg = `Composante endurance faible (${potentielPhysiologique.details.endurance}%) → base aérobie à consolider.`;
       rationale.push(msg);
       rationaleByNeed.NEED_ENDURANCE_BASE.push(msg);
     }
@@ -379,7 +379,7 @@ export function computeWahooNeeds(context: SuggestionEngineContext): NeedAnalysi
     }
   } else if (hasFtpNeed && hasEnduranceIssue) {
     // Ajouter une note explicative
-    const note = `Composante endurance faible (${raceReadiness.details.endurance ?? "?"}%) mais causée par FTP insuffisant → priorité au développement FTP.`;
+    const note = `Composante endurance faible (${potentielPhysiologique.details.endurance ?? "?"}%) mais causée par FTP insuffisant → priorité au développement FTP.`;
     rationale.push(note);
     rationaleByNeed.NEED_FTP_UP.push(note);
   }
@@ -1023,8 +1023,8 @@ export interface SuggestionEngineInput {
   vlamaxConfidence: number;
   tteEffectif: number | null;
   tteConfidence: number;
-  raceReadinessScore: number | null;
-  raceReadinessFactors?: {
+  potentielPhysiologiqueScore: number | null;
+  potentielPhysiologiqueFactors?: {
     endurance?: number;
     tte?: number;
     vlamax?: number;
@@ -1048,12 +1048,12 @@ export function generateWahooSuggestions(input: SuggestionEngineInput): Suggesti
       value: input.tteEffectif,
       confidence: input.tteConfidence,
     },
-    raceReadiness: {
-      score: input.raceReadinessScore,
+    potentielPhysiologique: {
+      score: input.potentielPhysiologiqueScore,
       details: {
-        endurance: input.raceReadinessFactors?.endurance,
-        tte: input.raceReadinessFactors?.tte,
-        vlamax: input.raceReadinessFactors?.vlamax,
+        endurance: input.potentielPhysiologiqueFactors?.endurance,
+        tte: input.potentielPhysiologiqueFactors?.tte,
+        vlamax: input.potentielPhysiologiqueFactors?.vlamax,
       },
     },
     CRR: {

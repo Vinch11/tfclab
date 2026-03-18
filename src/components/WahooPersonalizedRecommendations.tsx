@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/raceReadinessEffectif";
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif } from "@/lib/potentielPhysiologiqueEffectif";
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -367,7 +367,7 @@ export function WahooPersonalizedRecommendations() {
       return age;
     })() : null;
     
-    const raceReadiness = computeRaceReadinessEffectif({
+    const potentielPhysiologique = computeRaceReadinessEffectif({
       objectif,
       vlamaxEffectif,
       tteEffectif,
@@ -433,9 +433,9 @@ export function WahooPersonalizedRecommendations() {
         source: tteEffectif.source,
       },
       ftpKg,
-      raceReadiness: {
-        score: raceReadiness.score,
-        details: raceReadiness.details,
+      potentielPhysiologique: {
+        score: potentielPhysiologique.score,
+        details: potentielPhysiologique.details,
       },
       CRR: {
         value: activeSnapshot.tss_7d ?? null,

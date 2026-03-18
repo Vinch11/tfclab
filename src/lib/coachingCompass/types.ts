@@ -100,9 +100,9 @@ export interface TFCLReadinessState {
   potential: number;           // 0-100
   availability: number;        // 0-100
   governingFactor: "potential" | "availability";
-  readinessScore: number;      // 0-100
-  readinessLabel: string;
-  readinessColor: "success" | "warning" | "destructive";
+  potentielScore: number;      // 0-100
+  potentielLabel: string;
+  potentielColor: "success" | "warning" | "destructive";
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -188,7 +188,7 @@ export interface CoachingCompassInput {
   } | null;
   
   // Race Readiness pré-calculé
-  raceReadiness: {
+  potentielPhysiologique: {
     score: number;
     potential: number;
     availability: number;

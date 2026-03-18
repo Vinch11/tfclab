@@ -21,7 +21,7 @@ interface CompactMetricsGridProps {
   vlamax?: number | null;
   tteMin?: number | null;
   fcMax?: number | null;
-  readinessScore?: number | null;
+  potentielScore?: number | null;
   objectif?: string;
   
   // Données vélo/triathlon (masquées en Running Focus Mode)
@@ -49,7 +49,7 @@ export function CompactMetricsGrid({
   fcMax,
   vma,
   tss7d,
-  readinessScore,
+  potentielScore,
   objectif,
   paceThreshold,
   runEconomyScore,
@@ -295,10 +295,10 @@ export function CompactMetricsGrid({
               )}
               
               {/* Readiness - Toujours visible */}
-              {readinessScore !== undefined && readinessScore !== null && (
+              {potentielScore !== undefined && potentielScore !== null && (
                 <MiniGauge
                   label="Ready"
-                  value={readinessScore}
+                  value={potentielScore}
                   unit="%"
                   min={0}
                   max={100}

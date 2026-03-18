@@ -158,7 +158,7 @@ export function RunningGuidancePage() {
   });
   
   // Calculer le Potentiel Physiologique
-  const raceReadiness = useMemo((): RaceReadinessRun | null => {
+  const potentielPhysiologique = useMemo((): RaceReadinessRun | null => {
     if (!lockedProfile) return null;
     
     const riskContext: RiskContextRun = {
@@ -175,12 +175,12 @@ export function RunningGuidancePage() {
     const baseDecision = computeWeeklyDecision(lockedProfile, weeklyInputs);
     
     // Appliquer le readiness à la décision
-    if (raceReadiness) {
-      return applyReadinessToDecision(baseDecision, raceReadiness) as RunningWeeklyDecision;
+    if (potentielPhysiologique) {
+      return applyReadinessToDecision(baseDecision, potentielPhysiologique) as RunningWeeklyDecision;
     }
     
     return baseDecision;
-  }, [lockedProfile, weeklyInputs, raceReadiness]);
+  }, [lockedProfile, weeklyInputs, potentielPhysiologique]);
   
   // Handler pour mise à jour de la disponibilité
   const handleAvailabilityUpdate = useCallback((newAvailability: AvailabilityRun) => {

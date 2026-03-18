@@ -93,8 +93,8 @@ interface RaceSimulationModuleProps {
   fatmax?: FatMaxTFCLResult | null;
   disponibiliteScore?: number | null;
   disponibiliteLevel?: string | null;
-  raceReadinessScore?: number | null;
-  raceReadinessResult?: RaceReadinessV2Result | null;
+  potentielPhysiologiqueScore?: number | null;
+  potentielPhysiologiqueResult?: RaceReadinessV2Result | null;
   injuryRiskLevel?: string | null;
   ftp?: number | null;
   vma?: number | null;
@@ -162,8 +162,8 @@ export function RaceSimulationModule({
   fatmax = null,
   disponibiliteScore = null,
   disponibiliteLevel = null,
-  raceReadinessScore = null,
-  raceReadinessResult = null,
+  potentielPhysiologiqueScore = null,
+  potentielPhysiologiqueResult = null,
   injuryRiskLevel = null,
   ftp = null,
   vma = null,
@@ -192,8 +192,8 @@ export function RaceSimulationModule({
   // ═══════════════════════════════════════════════════════════════════════════
   
   const simulationAccess = useMemo(() => 
-    computeSimulationAccess(raceReadinessResult, raceReadinessScore),
-    [raceReadinessResult, raceReadinessScore]
+    computeSimulationAccess(potentielPhysiologiqueResult, potentielPhysiologiqueScore),
+    [potentielPhysiologiqueResult, potentielPhysiologiqueScore]
   );
   
   const accessMessages = useMemo(() => 
@@ -249,12 +249,12 @@ export function RaceSimulationModule({
     terrain,
     disponibiliteScore,
     disponibiliteLevel,
-    raceReadinessScore,
+    potentielPhysiologiqueScore,
     ftp,
     vma,
     paceThreshold,
     injuryRiskLevel,
-  }), [raceType, ambition, heat, terrain, disponibiliteScore, disponibiliteLevel, raceReadinessScore, ftp, vma, paceThreshold, injuryRiskLevel]);
+  }), [raceType, ambition, heat, terrain, disponibiliteScore, disponibiliteLevel, potentielPhysiologiqueScore, ftp, vma, paceThreshold, injuryRiskLevel]);
   
   // Résultats simulation
   const basicSimulation = useMemo(() => {
@@ -654,10 +654,10 @@ export function RaceSimulationModule({
               {disponibiliteScore ? `${Math.round(disponibiliteScore)}/100` : "—"}
             </span>
           </div>
-          {raceReadinessScore && (
+          {potentielPhysiologiqueScore && (
             <div className="flex justify-between">
               <span className="text-muted-foreground">Race Readiness</span>
-              <span className="font-medium">{Math.round(raceReadinessScore)}/100</span>
+              <span className="font-medium">{Math.round(potentielPhysiologiqueScore)}/100</span>
             </div>
           )}
           {/* Afficher VMA pour course / FTP pour vélo */}

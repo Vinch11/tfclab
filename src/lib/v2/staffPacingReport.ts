@@ -32,7 +32,7 @@ export interface StaffPacingReportInput {
   scenarios: ScenarioSimulationResult;
   vlamaxEffectif: VLamaxEffectif | null;
   tteEffectif: TTEEffectif | null;
-  raceReadinessScore: number | null;
+  potentielPhysiologiqueScore: number | null;
   raceObjective: RaceObjective;
 }
 
@@ -150,7 +150,7 @@ export function generateStaffPacingReport(input: StaffPacingReportInput): StaffP
     scenarios,
     vlamaxEffectif,
     tteEffectif,
-    raceReadinessScore,
+    potentielPhysiologiqueScore,
     raceObjective,
   } = input;
 
@@ -161,7 +161,7 @@ export function generateStaffPacingReport(input: StaffPacingReportInput): StaffP
     envelope,
     vlamaxEffectif,
     tteEffectif,
-    raceReadinessScore
+    potentielPhysiologiqueScore
   );
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -215,7 +215,7 @@ function generateToleranceProfile(
   envelope: PacingEnvelopeResult,
   vlamaxEffectif: VLamaxEffectif | null,
   tteEffectif: TTEEffectif | null,
-  raceReadinessScore: number | null
+  potentielPhysiologiqueScore: number | null
 ): ToleranceProfile {
   // Déterminer le résumé
   let summary = PROFILE_SUMMARIES.balanced;
@@ -226,7 +226,7 @@ function generateToleranceProfile(
     summary = PROFILE_SUMMARIES.sensitive;
     badge = "🟣 Profil pacing-sensible";
     badgeColor = "purple";
-  } else if (raceReadinessScore != null && raceReadinessScore < 65) {
+  } else if (potentielPhysiologiqueScore != null && potentielPhysiologiqueScore < 65) {
     summary = PROFILE_SUMMARIES.low_readiness;
     badge = "⚠️ Readiness réduit";
     badgeColor = "orange";
@@ -259,12 +259,12 @@ function generateToleranceProfile(
     });
   }
   
-  if (raceReadinessScore != null) {
-    const readinessStatus = raceReadinessScore >= 80 ? "good" 
-      : raceReadinessScore >= 65 ? "warning" : "critical";
+  if (potentielPhysiologiqueScore != null) {
+    const readinessStatus = potentielPhysiologiqueScore >= 80 ? "good" 
+      : potentielPhysiologiqueScore >= 65 ? "warning" : "critical";
     metrics.push({
       label: "Potentiel Physiologique",
-      value: `${raceReadinessScore}%`,
+      value: `${potentielPhysiologiqueScore}%`,
       confidence: "—",
       status: readinessStatus as "good" | "warning" | "critical",
     });

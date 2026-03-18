@@ -1,4 +1,4 @@
-import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getScoreColor, getRaceReadinessTargets, getTargets, getWeightsBySport, generateAthleteReadiness, computePillarCalculations, type RaceReadinessInput, type RaceReadinessResult, computeRaceReadinessSignature } from "@/lib/raceReadinessEffectif";
+import { computeRaceReadinessEffectif, type RaceReadinessEffectif, getScoreColor, getRaceReadinessTargets, getTargets, getWeightsBySport, generateAthleteReadiness, computePillarCalculations, type RaceReadinessInput, type RaceReadinessResult, computeRaceReadinessSignature } from "@/lib/potentielPhysiologiqueEffectif";
 /**
  * Staff Briefing - Two For Coaching Lab
  * Module C: Briefing Staff automatique clé en main
@@ -104,7 +104,7 @@ export interface ComputeStaffBriefingParams {
   ftpKg: number | null;
   ftp: number | null;
   poids: number | null;
-  raceReadiness: RaceReadinessEffectif;
+  potentielPhysiologique: RaceReadinessEffectif;
   energyDrift: EnergyDriftResult;
   nutritionTiming: NutritionTimingResult;
   economyScore: number | null;
@@ -182,9 +182,9 @@ function computePacingVelo(params: {
   vlamax: number | null;
   tteMin: number | null;
   tteTarget: number;
-  raceReadinessScore: number;
+  potentielPhysiologiqueScore: number;
 }): PacingVelo | null {
-  const { objectif, vlamax, tteMin, tteTarget, raceReadinessScore } = params;
+  const { objectif, vlamax, tteMin, tteTarget, potentielPhysiologiqueScore } = params;
   
   const baseRange = IF_RANGES[objectif] || IF_RANGES["703"];
   let ifMin = baseRange.min;
@@ -205,7 +205,7 @@ function computePacingVelo(params: {
     consignes.push("TTE faible → éviter longues sections au seuil");
   }
   
-  if (raceReadinessScore < 60) {
+  if (potentielPhysiologiqueScore < 60) {
     ifMin -= 0.03;
     ifMax -= 0.03;
     consignes.push("Race Readiness < 60 → pacing conservateur");
@@ -258,12 +258,12 @@ function generateAlerts(params: {
   tteTarget: number;
   vlamax: number | null;
   economyScore: number | null;
-  raceReadinessScore: number;
+  potentielPhysiologiqueScore: number;
   vlamaxConfidence: number;
   tteConfidence: number;
   objectif: string;
 }): BriefingAlert[] {
-  const { nutritionRiskBadge, tteMin, tteTarget, vlamax, economyScore, raceReadinessScore, vlamaxConfidence, tteConfidence, objectif } = params;
+  const { nutritionRiskBadge, tteMin, tteTarget, vlamax, economyScore, potentielPhysiologiqueScore, vlamaxConfidence, tteConfidence, objectif } = params;
   
   const alerts: BriefingAlert[] = [];
   const isLongDistance = LONG_OBJECTIVES.some(o => objectif.toUpperCase().includes(o.toUpperCase()));
@@ -306,7 +306,7 @@ function generateAlerts(params: {
     });
   }
   
-  if (raceReadinessScore < 60) {
+  if (potentielPhysiologiqueScore < 60) {
     alerts.push({
       severity: "warning",
       icon: "🟠",
@@ -398,7 +398,7 @@ export function computeStaffBriefing(params: ComputeStaffBriefingParams): StaffB
     ftpKg,
     ftp,
     poids,
-    raceReadiness,
+    potentielPhysiologique,
     energyDrift,
     nutritionTiming,
     economyScore,
@@ -475,7 +475,7 @@ Priorité: ${priority}. Risque nutrition: ${nutritionTiming.riskBadgeLabel}. Éc
   
   // Pacing
   const pacingVelo = (sport === "velo" || sport === "triathlon") 
-    ? computePacingVelo({ objectif, vlamax, tteMin, tteTarget, raceReadinessScore: raceReadiness.score })
+    ? computePacingVelo({ objectif, vlamax, tteMin, tteTarget, potentielPhysiologiqueScore: potentielPhysiologique.score })
     : null;
   
   const pacingCAP = (sport === "cap" || sport === "triathlon")
@@ -499,7 +499,7 @@ Priorité: ${priority}. Risque nutrition: ${nutritionTiming.riskBadgeLabel}. Éc
     tteTarget,
     vlamax,
     economyScore,
-    raceReadinessScore: raceReadiness.score,
+    potentielPhysiologiqueScore: potentielPhysiologique.score,
     vlamaxConfidence: vlamaxConf,
     tteConfidence: tteConf,
     objectif,

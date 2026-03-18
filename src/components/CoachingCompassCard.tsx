@@ -246,19 +246,19 @@ function FlowStep({ level, icon, title, subtitle, accentClass, badge, children }
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function ReadinessPanel({ readiness }: { readiness: TFCLCoachingCompassResult["readiness"] }) {
-  if (readiness.readinessScore <= 0) return null;
+  if (readiness.potentielScore <= 0) return null;
 
   const colorClass = {
     success: "text-[hsl(var(--success))]",
     warning: "text-[hsl(var(--warning))]",
     destructive: "text-[hsl(var(--destructive))]",
-  }[readiness.readinessColor] || "text-[hsl(var(--warning))]";
+  }[readiness.potentielColor] || "text-[hsl(var(--warning))]";
 
   const bgClass = {
     success: "bg-[hsl(var(--success)/0.08)] border-[hsl(var(--success)/0.15)]",
     warning: "bg-[hsl(var(--warning)/0.08)] border-[hsl(var(--warning)/0.15)]",
     destructive: "bg-[hsl(var(--destructive)/0.08)] border-[hsl(var(--destructive)/0.15)]",
-  }[readiness.readinessColor] || "bg-[hsl(var(--warning)/0.08)] border-[hsl(var(--warning)/0.15)]";
+  }[readiness.potentielColor] || "bg-[hsl(var(--warning)/0.08)] border-[hsl(var(--warning)/0.15)]";
 
   const governing = readiness.governingFactor === "availability" ? "Disponibilité" : "Potentiel";
 
@@ -274,10 +274,10 @@ function ReadinessPanel({ readiness }: { readiness: TFCLCoachingCompassResult["r
       {/* Score circle */}
       <div className="flex flex-col items-center">
         <div className={cn("text-3xl font-black tabular-nums", colorClass)}>
-          {readiness.readinessScore}
+          {readiness.potentielScore}
         </div>
         <span className="text-[10px] text-muted-foreground font-medium mt-0.5">
-          {readiness.readinessLabel}
+          {readiness.potentielLabel}
         </span>
       </div>
 

@@ -318,7 +318,7 @@ export function PacingEnvelopeCard({
       vlamaxEffectif: input.vlamaxEffectif,
       raceObjective: input.raceObjective,
       sport: input.sport,
-      raceReadinessScore: input.raceReadinessScore,
+      potentielPhysiologiqueScore: input.potentielPhysiologiqueScore,
     });
   }, [envelope, input]);
   

@@ -18,7 +18,7 @@ interface NutritionPredictiveProps {
   confidence?: number;
   staffMode?: boolean;
   energyDrift?: EnergyDriftResult;
-  raceReadiness?: number | null;
+  potentielPhysiologique?: number | null;
 }
 
 export function NutritionPredictive({
@@ -30,12 +30,12 @@ export function NutritionPredictive({
   confidence,
   staffMode = true,
   energyDrift,
-  raceReadiness,
+  potentielPhysiologique,
 }: NutritionPredictiveProps) {
   const [showMethodology, setShowMethodology] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
   
-  const estimate = computeNutritionEstimate({ vlamax, objectif, sport, tteMin, tteTarget, raceReadiness });
+  const estimate = computeNutritionEstimate({ vlamax, objectif, sport, tteMin, tteTarget, potentielPhysiologique });
 
   if (!estimate) {
     return (
@@ -168,12 +168,12 @@ export function NutritionPredictive({
           </div>
 
           {/* Plafonnement Race Readiness */}
-          {riskIndex.raceReadinessCap && (
+          {riskIndex.potentielPhysiologiqueCap && (
             <div className="mt-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30">
               <div className="flex items-center gap-2">
                 <Target className="w-4 h-4 text-destructive" />
                 <p className="text-sm font-medium text-destructive">
-                  Race Readiness plafonné à {riskIndex.raceReadinessCap}%
+                  Race Readiness plafonné à {riskIndex.potentielPhysiologiqueCap}%
                 </p>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
@@ -184,23 +184,23 @@ export function NutritionPredictive({
         </div>
 
         {/* ========== LIEN RACE READINESS → NUTRITION ========== */}
-        {estimate.raceReadinessImpact && (
+        {estimate.potentielPhysiologiqueImpact && (
           <div className={cn(
             "p-4 rounded-xl border-2",
-            estimate.raceReadinessImpact.adjustedCarbs 
+            estimate.potentielPhysiologiqueImpact.adjustedCarbs 
               ? "bg-destructive/10 border-destructive/30" 
               : "bg-warning/10 border-warning/30"
           )}>
             <div className="flex items-center gap-3 mb-2">
               <Target className={cn(
                 "w-5 h-5",
-                estimate.raceReadinessImpact.adjustedCarbs ? "text-destructive" : "text-warning"
+                estimate.potentielPhysiologiqueImpact.adjustedCarbs ? "text-destructive" : "text-warning"
               )} />
               <h4 className="font-semibold text-foreground">Lien Race Readiness → Nutrition</h4>
             </div>
-            <p className="text-sm text-foreground">{estimate.raceReadinessImpact.message}</p>
+            <p className="text-sm text-foreground">{estimate.potentielPhysiologiqueImpact.message}</p>
             <p className="text-xs text-muted-foreground mt-2 italic">
-              {NUTRITION_METHODOLOGY.raceReadinessLink}
+              {NUTRITION_METHODOLOGY.potentielPhysiologiqueLink}
             </p>
           </div>
         )}

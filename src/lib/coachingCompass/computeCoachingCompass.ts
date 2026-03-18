@@ -431,15 +431,15 @@ function buildDecision(
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function buildReadinessState(input: CoachingCompassInput): TFCLReadinessState {
-  if (input.raceReadiness) {
-    const rr = input.raceReadiness;
+  if (input.potentielPhysiologique) {
+    const rr = input.potentielPhysiologique;
     return {
       potential: rr.potential,
       availability: rr.availability,
       governingFactor: rr.governingFactor === "availability" ? "availability" : "potential",
-      readinessScore: rr.score,
-      readinessLabel: rr.label,
-      readinessColor: rr.color as "success" | "warning" | "destructive",
+      potentielScore: rr.score,
+      potentielLabel: rr.label,
+      potentielColor: rr.color as "success" | "warning" | "destructive",
     };
   }
 
@@ -447,9 +447,9 @@ function buildReadinessState(input: CoachingCompassInput): TFCLReadinessState {
     potential: 0,
     availability: 0,
     governingFactor: "potential",
-    readinessScore: 0,
-    readinessLabel: "Données insuffisantes",
-    readinessColor: "destructive",
+    potentielScore: 0,
+    potentielLabel: "Données insuffisantes",
+    potentielColor: "destructive",
   };
 }
 

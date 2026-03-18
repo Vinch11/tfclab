@@ -10,7 +10,7 @@ import { CheckCircle2, AlertTriangle, Target, Compass } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getAgeAdjustedTargets } from "@/lib/ageAdjustment";
 import { AmbitionLevel, DEFAULT_AMBITION, getAmbitionDefinition } from "@/types/ambitionLevel";
-import { getRaceReadinessTargets } from "@/lib/raceReadinessEffectif";
+import { getRaceReadinessTargets } from "@/lib/potentielPhysiologiqueEffectif";
 
 interface TargetSyncVerifierProps {
   objectif: string;

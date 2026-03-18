@@ -143,10 +143,10 @@ export function AgeAdjustmentInfo({ birthDate, variant = "badge", showDetails = 
 
 interface AgeRiskAlertProps {
   birthDate: string | null | undefined;
-  raceReadinessScore: number;
+  potentielPhysiologiqueScore: number;
 }
 
-export function AgeRiskAlert({ birthDate, raceReadinessScore }: AgeRiskAlertProps) {
+export function AgeRiskAlert({ birthDate, potentielPhysiologiqueScore }: AgeRiskAlertProps) {
   const age = calculateAge(birthDate);
   const ageIndex = computeAgeAdjustmentIndex(age);
 
@@ -156,8 +156,8 @@ export function AgeRiskAlert({ birthDate, raceReadinessScore }: AgeRiskAlertProp
   }
 
   // Alerte si master avec score moyen/faible
-  if ((ageIndex.category === "master1" || ageIndex.category === "master2") && raceReadinessScore < 80) {
-    const isHighRisk = raceReadinessScore < 60 || ageIndex.category === "master2";
+  if ((ageIndex.category === "master1" || ageIndex.category === "master2") && potentielPhysiologiqueScore < 80) {
+    const isHighRisk = potentielPhysiologiqueScore < 60 || ageIndex.category === "master2";
     
     return (
       <Alert variant={isHighRisk ? "destructive" : "default"} className="mt-3">

@@ -38,19 +38,19 @@ interface ComprendreScoresCardProps {
   tteMin: number;
   ftpKg: number | null;
   vo2max: number | null;
-  readinessScore: number | null;
+  potentielScore: number | null;
   objectif: string;
   ambition?: AmbitionLevel;
   className?: string;
 }
 
 export function ComprendreScoresCard({
-  vlamaxValue, tteMin, ftpKg, vo2max, readinessScore, objectif, ambition = DEFAULT_AMBITION, className
+  vlamaxValue, tteMin, ftpKg, vo2max, potentielScore, objectif, ambition = DEFAULT_AMBITION, className
 }: ComprendreScoresCardProps) {
   const [openId, setOpenId] = useState<string | null>(null);
 
   // Guard: données insuffisantes
-  const isInsufficient = vlamaxValue === null && ftpKg === null && vo2max === null && (readinessScore === null || readinessScore === 0);
+  const isInsufficient = vlamaxValue === null && ftpKg === null && vo2max === null && (potentielScore === null || potentielScore === 0);
 
   if (isInsufficient) {
     return (
@@ -81,7 +81,7 @@ export function ComprendreScoresCard({
   const vlamaxEval = evaluateVLamax(vlamaxValue, objectif, ambition);
   const tteEval = evaluateTTE(tteMin || null, objectif, ambition);
   const ftpKgEval = evaluateFtpKg(ftpKg, objectif, ambition);
-  const readinessEval = evaluateReadiness(readinessScore, ambition);
+  const potentielEval = evaluateReadiness(potentielScore, ambition);
 
   const scores: ScoreExplanation[] = [
     {
@@ -118,11 +118,11 @@ export function ComprendreScoresCard({
       id: "readiness",
       icon: <Target className="h-4 w-4" />,
       label: "Potentiel Physiologique",
-      value: readinessScore !== null ? `${readinessScore}/100` : null,
-      status: readinessEval.status,
+      value: potentielScore !== null ? `${potentielScore}/100` : null,
+      status: potentielEval.status,
       whatItMeans: "Score composite évaluant votre préparation globale pour votre objectif. Il combine profil métabolique, endurance, puissance et fraîcheur.",
       howToImprove: "Améliorer les indicateurs individuels (VLamax, TTE, FTP/kg) et assurer une bonne récupération.",
-      targetRange: readinessEval.target,
+      targetRange: potentielEval.target,
     },
   ];
 

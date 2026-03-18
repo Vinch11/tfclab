@@ -131,8 +131,8 @@ export function ConfigurationPage() {
               </div>
             </div>
             <Switch
-              checked={preferences.raceReadinessCompactMode ?? true}
-              onCheckedChange={(checked) => setPreference('raceReadinessCompactMode', checked)}
+              checked={preferences.potentielPhysiologiqueCompactMode ?? true}
+              onCheckedChange={(checked) => setPreference('potentielPhysiologiqueCompactMode', checked)}
               className="ml-4"
             />
           </div>
