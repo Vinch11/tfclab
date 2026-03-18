@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface UserPreferences {
-  potentielPhysiologiqueCompactMode?: boolean;
+  raceReadinessCompactMode?: boolean;
   // Autres préférences futures peuvent être ajoutées ici
 }
 
