@@ -105,7 +105,7 @@ export function buildPlanConfigFromDiagnostic(
   const limiterResult = diagnostic.limiter;
   
   // ── Limiteurs enrichis ────────────────────────────────────────────────────
-  const limiters = formatLimitersForPrompt(limiterResult, diagnostic.objectif);
+  const limiters = formatLimitersForPrompt(limiterResult, diagnostic.objectif, coachLimiterOrder);
 
   // ── Leviers ───────────────────────────────────────────────────────────────
   const levers = [limiterResult.primaryLever]
