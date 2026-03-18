@@ -21,7 +21,7 @@ interface UseUserPreferencesReturn {
 const STORAGE_KEY = "vlab-user-preferences";
 
 const DEFAULT_PREFERENCES: UserPreferences = {
-  potentielPhysiologiqueCompactMode: true, // Compact par défaut
+  raceReadinessCompactMode: true, // Compact par défaut
 };
 
 export function useUserPreferences(): UseUserPreferencesReturn {
