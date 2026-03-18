@@ -3730,7 +3730,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               </div>
               <div>
                 <div style="font-size:20px;font-weight:700;">${raceReadiness.label}</div>
-                <div class="muted">Race Readiness pour ${getObjectifLabel(athlete.goal)}</div>
+                <div class="muted">Potentiel Physiologique pour ${getObjectifLabel(athlete.goal)}</div>
               </div>
             </div>
             <div class="mt">
