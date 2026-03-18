@@ -3715,11 +3715,11 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   `;
 
   // =============================================
-  // D. RACE READINESS (STAFF)
+  // D. POTENTIEL PHYSIOLOGIQUE (STAFF)
   // =============================================
   const raceReadinessHTML = `
     <section id="race" class="section pagebreak">
-      <h2>C. Race Readiness (Staff)</h2>
+      <h2>C. Potentiel Physiologique (Staff)</h2>
       
       <div class="card ${raceReadiness.score >= 80 ? 'cardSuccess' : raceReadiness.score >= 60 ? 'cardWarning' : 'cardError'}">
         <div class="grid2">
