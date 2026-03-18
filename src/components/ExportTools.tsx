@@ -108,7 +108,7 @@ export interface ReportSections {
   profilMetabolique: boolean; // Profil Métabolique Complet (Radar Chart)
   vlamaxZoneConfidence: boolean; // ⚡ VLamax = Zone × Confiance (graphique signature)
   indicateurs: boolean;     // Indicateurs Clés
-  raceReadiness: boolean;   // Race Readiness
+  raceReadiness: boolean;   // Potentiel Physiologique
   disponibiliteTFCL: boolean; // ✅ Disponibilité TFCL™
   raceSimulation: boolean;  // ✅ Simulation de Course TFCL™
   pacingEnvelope: boolean;  // ✅ Pacing Envelope™ - Discipline Métabolique
