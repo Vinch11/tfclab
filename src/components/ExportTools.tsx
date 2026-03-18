@@ -108,13 +108,13 @@ export interface ReportSections {
   profilMetabolique: boolean; // Profil Métabolique Complet (Radar Chart)
   vlamaxZoneConfidence: boolean; // ⚡ VLamax = Zone × Confiance (graphique signature)
   indicateurs: boolean;     // Indicateurs Clés
-  raceReadiness: boolean;   // Race Readiness
+  raceReadiness: boolean;   // Potentiel Physiologique
   disponibiliteTFCL: boolean; // ✅ Disponibilité TFCL™
   raceSimulation: boolean;  // ✅ Simulation de Course TFCL™
   pacingEnvelope: boolean;  // ✅ Pacing Envelope™ - Discipline Métabolique
   longDistancePacing: boolean; // ✅ Long Distance Pacing Discipline
   doubleBoucleCAP: boolean; // ✅ Double Boucle CAP (Running)
-  raceReadinessRunning: boolean; // ✅ Race Readiness CAP V2 (Running)
+  raceReadinessRunning: boolean; // ✅ Potentiel Physiologique CAP (Running)
   pacingEnvelopeRunning: boolean; // ✅ Pacing Envelope™ CAP (Running)
   injuryRisk: boolean;      // Risque de Blessure CAP
   nutritionV2: boolean;     // Nutrition Prédictive V2
@@ -1296,7 +1296,7 @@ function buildExportPayload(
     objectif: athlete.goal || "IM"
   });
   
-  // Calculer Race Readiness
+  // Calculer Potentiel Physiologique
   // Calculer l'âge
   const athleteAge = athlete.birth_date ? (() => {
     const birthDate = new Date(athlete.birth_date);
@@ -1661,7 +1661,7 @@ async function imageToBase64(url: string): Promise<string> {
 }
 
 // =============================================
-// BUILD RACE READINESS RUNNING HTML (CAP V2)
+// BUILD POTENTIEL PHYSIOLOGIQUE RUNNING HTML (CAP)
 // =============================================
 
 function buildRaceReadinessRunningHTML(payload: ExportPayload): string {
@@ -1685,17 +1685,17 @@ function buildRaceReadinessRunningHTML(payload: ExportPayload): string {
   
   return `
     <section id="race-readiness-running" class="section pagebreakAvoid">
-      <h2>🏃 Race Readiness CAP V2 — TFCL Method™</h2>
+      <h2>🏃 Potentiel Physiologique CAP — TFCL Method™</h2>
       
       <div class="alert alertInfo mb">
-        <b>📋 Concept :</b> Le Race Readiness mesure la capacité à exprimer le potentiel physiologique CAP <em>aujourd'hui</em>. 
-        Il sépare le <b>Potentiel (profil verrouillé)</b> de la <b>Disponibilité (boucle rapide)</b>.
+        <b>📋 Concept :</b> Le Potentiel Physiologique mesure l'adéquation du profil métabolique CAP avec les exigences de l'objectif. 
+        Il évalue le <b>Potentiel structurel</b> indépendamment de la fatigue conjoncturelle.
       </div>
       
       <div class="card" style="border-color: ${state.color}; background: ${state.bg};">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
           <div>
-            <div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Race Readiness CAP</div>
+            <div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Potentiel Physiologique CAP</div>
             <div style="font-size:42px;font-weight:800;color:${state.color};">${readinessScore}%</div>
             <div style="font-size:14px;font-weight:600;color:${state.color};">${state.message}</div>
           </div>
@@ -1740,8 +1740,8 @@ function buildRaceReadinessRunningHTML(payload: ExportPayload): string {
       ` : ''}
       
       <div class="alert alertWarning mt" style="font-size:11px;">
-        <b>⚠️ TFCL Method™ :</b> Race Readiness ≠ Potentiel absolu. Un athlète à 100% de potentiel peut avoir un Race Readiness de 60% s'il est fatigué. 
-        Le score guide les ajustements opérationnels, pas la valeur intrinsèque de l'athlète.
+        <b>⚠️ TFCL Method™ :</b> Le Potentiel Physiologique évalue l'adéquation structurelle du profil avec l'objectif. 
+        Ce score reflète le niveau de développement des qualités métaboliques requises, pas la forme du jour.
       </div>
     </section>
   `;
@@ -2890,7 +2890,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
                 <br><span class="muted" style="font-size:10px;">Cible: ${tte.target ?? 50} min</span>
               </div>
               <div>
-                <span class="muted">Race Readiness</span><br>
+                <span class="muted">Potentiel Physiologique</span><br>
                 <span class="medium ${raceReadiness.score >= 80 ? 'success' : raceReadiness.score >= 60 ? 'warning' : 'error'}">${raceReadiness.score}%</span>
                 <br><span class="badge badgeWarning" style="font-size:9px;">🔁 Indicateur calculé</span>
                 <br><span class="muted" style="font-size:10px;">Cohérence globale</span>
@@ -2940,7 +2940,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       <div class="tocRow"><a href="#executif">2. Synthèse Exécutive</a></div>
       <div class="tocRow"><a href="#compass">3. Metabolic Performance Compass™</a></div>
       <div class="tocRow"><a href="#indicateurs">4. Indicateurs Clés</a></div>
-      <div class="tocRow"><a href="#readiness">5. Race Readiness</a></div>
+      <div class="tocRow"><a href="#readiness">5. Potentiel Physiologique</a></div>
       <div class="tocRow"><a href="#injury-risk">6. Risque de Blessure CAP</a></div>
       <div class="tocRow"><a href="#nutrition-v2">7. Nutrition Prédictive V2</a></div>
       <div class="tocRow"><a href="#fatmax-tfcl">8. FatMax TFCL™</a></div>
@@ -3148,7 +3148,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               <td class="muted">${tte.tte_min >= (tte.target ?? 50) ? "Indicateur de durabilité satisfaisant pour l'objectif." : `Indicateur de durabilité insuffisant (cible: ${tte.target ?? 50} min) — axe de travail potentiel.`}</td>
             </tr>
             <tr>
-              <td><b>Race Readiness</b></td>
+              <td><b>Potentiel Physiologique</b></td>
               <td>${raceReadiness.score}%</td>
               <td><span class="badge badgeWarning">🔁 Calculé</span></td>
               <td><span class="badge ${raceReadiness.confidence >= 0.7 ? 'badgeSuccess' : raceReadiness.confidence >= 0.4 ? 'badgeWarning' : 'badgeError'}">${raceReadiness.confidence >= 0.7 ? 'Élevée' : raceReadiness.confidence >= 0.4 ? 'Modérée' : 'Faible'}</span></td>
@@ -3715,11 +3715,11 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   `;
 
   // =============================================
-  // D. RACE READINESS (STAFF)
+  // D. POTENTIEL PHYSIOLOGIQUE (STAFF)
   // =============================================
   const raceReadinessHTML = `
     <section id="race" class="section pagebreak">
-      <h2>C. Race Readiness (Staff)</h2>
+      <h2>C. Potentiel Physiologique (Staff)</h2>
       
       <div class="card ${raceReadiness.score >= 80 ? 'cardSuccess' : raceReadiness.score >= 60 ? 'cardWarning' : 'cardError'}">
         <div class="grid2">
@@ -3730,7 +3730,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               </div>
               <div>
                 <div style="font-size:20px;font-weight:700;">${raceReadiness.label}</div>
-                <div class="muted">Race Readiness pour ${getObjectifLabel(athlete.goal)}</div>
+                <div class="muted">Potentiel Physiologique pour ${getObjectifLabel(athlete.goal)}</div>
               </div>
             </div>
             <div class="mt">
@@ -4812,7 +4812,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         <span style="font-size:12px;">
           <b>Méthodologie d'analyse physiologique</b> appliquée à l'entraînement d'endurance, conçue pour aider les coachs à interpréter des données complexes, estimer des profils énergétiques, et guider la prise de décision stratégique.<br><br>
           Elle ne remplace ni l'expertise humaine du coach, ni un test physiologique de laboratoire.<br>
-          Les valeurs présentées (VLamax, TTE, Race Readiness) sont des <b>estimations modélisées</b> destinées à guider la décision du coach.<br><br>
+          Les valeurs présentées (VLamax, TTE, Potentiel Physiologique) sont des <b>estimations modélisées</b> destinées à guider la décision du coach.<br><br>
           <i>S'inspire des travaux de Mader, Heck, Jones, Burnley, Seiler — implémentation indépendante et propriétaire.</i>
         </span>
       </div>
@@ -6348,12 +6348,12 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         </div>
       </div>
       
-      <!-- Race Readiness -->
+      <!-- Potentiel Physiologique -->
       <div class="card pagebreakAvoid mt">
-        <h3>🎯 Race Readiness</h3>
-        <p class="muted">Race Readiness est un outil d'aide à la décision destiné aux coachs et staffs. Il évalue la cohérence entre le profil physiologique actuel de l'athlète et les exigences de son objectif.</p>
+        <h3>🎯 Potentiel Physiologique</h3>
+        <p class="muted">Le Potentiel Physiologique évalue l'adéquation entre le profil métabolique de l'athlète et les exigences de son objectif. Il guide la prise de décision stratégique du coach.</p>
         
-        <!-- Graphique Race Readiness avec jauge circulaire -->
+        <!-- Graphique Potentiel Physiologique avec jauge circulaire -->
         <div class="mt" style="display:flex;align-items:center;gap:24px;margin-bottom:16px">
           <svg width="120" height="120" viewBox="0 0 120 120">
             <!-- Arc de fond -->
@@ -6551,9 +6551,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               <td><span class="badge ${tte.confidence >= 0.7 ? 'badgeSuccess' : tte.confidence >= 0.4 ? 'badgeWarning' : 'badgeError'}">${fmtPct(tte.confidence)}</span></td>
             </tr>
             <tr>
-              <td><b>Race Readiness</b></td>
+              <td><b>Potentiel Physiologique</b></td>
               <td>${raceReadiness.score}%</td>
-              <td>Calculé (VLamax + TTE + FTP/kg + Fraîcheur)</td>
+              <td>Calculé (VLamax + TTE + FTP/kg)</td>
               <td><span class="badge ${raceReadiness.confidence >= 0.7 ? 'badgeSuccess' : raceReadiness.confidence >= 0.4 ? 'badgeWarning' : 'badgeError'}">${fmtPct(raceReadiness.confidence)}</span></td>
             </tr>
           </tbody>
