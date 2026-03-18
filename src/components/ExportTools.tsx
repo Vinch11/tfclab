@@ -805,7 +805,7 @@ function buildBasicSimulationHTML(
     terrain: 'flat',
     disponibiliteScore: 75,
     disponibiliteLevel: 'good',
-    raceReadinessScore: potentielPhysiologique.score,
+    potentielPhysiologiqueScore: potentielPhysiologique.score,
   });
   
   const riskColorClass = basicResult.globalRiskLevel === 'LOW' ? 'badgeSuccess' 
