@@ -500,9 +500,27 @@ export function prescribeIntervalRecovery(
     return Math.max(0, -tau * Math.log(remaining / depleted));
   };
 
-  const minRecoverySec = Math.round(solveTime(0.50));
-  const optimalRecoverySec = Math.round(solveTime(0.75));
-  const fullRecoverySec = Math.round(solveTime(0.95));
+  // Physiological minimum rest floors (even if W'bal math says 0):
+  // - Neuromuscular recovery, lactate clearance, and O2 replenishment
+  //   require time regardless of W' balance
+  // - Floors based on work:rest ratio norms from exercise physiology literature
+  const physioMinRest = intervalDurationSec <= 15
+    ? intervalDurationSec * 6   // Sprint: 1:6 work:rest (e.g., 10s → 60s)
+    : intervalDurationSec <= 30
+    ? intervalDurationSec * 1   // 30/30 style: 1:1
+    : intervalDurationSec <= 60
+    ? intervalDurationSec * 1.5 // 1min reps: 1:1.5
+    : intervalDurationSec <= 180
+    ? intervalDurationSec * 0.75 // 3min reps: 1:0.75
+    : intervalDurationSec * 0.5; // 5min+ reps: 1:0.5
+
+  const rawMin = Math.round(solveTime(0.50));
+  const rawOptimal = Math.round(solveTime(0.75));
+  const rawFull = Math.round(solveTime(0.95));
+
+  const minRecoverySec = Math.max(Math.round(physioMinRest * 0.7), rawMin);
+  const optimalRecoverySec = Math.max(Math.round(physioMinRest), rawOptimal);
+  const fullRecoverySec = Math.max(Math.round(physioMinRest * 1.5), rawFull);
 
   // Calculate W'bal after optimal recovery
   const wbalAfterRecovery = wEff - depleted * Math.exp(-optimalRecoverySec / tau);
