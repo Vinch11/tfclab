@@ -57,7 +57,7 @@ export const SECTION_LABELS: Record<keyof ReportSections, string> = {
   pacingEnvelope: "📊 Pacing Envelope™",
   longDistancePacing: "🏃 Long Distance Pacing Discipline",
   doubleBoucleCAP: "🔄 Double Boucle CAP",
-  potentielPhysiologiqueRunning: "🏃 Race Readiness CAP V2",
+  potentielPhysiologiqueRunning: "🏃 Potentiel Physiologique CAP",
   pacingEnvelopeRunning: "🏃 Pacing Envelope™ CAP",
   injuryRisk: "Risque de Blessure CAP",
   nutritionV2: "Nutrition Prédictive V2",
