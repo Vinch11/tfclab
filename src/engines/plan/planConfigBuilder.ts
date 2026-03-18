@@ -99,12 +99,13 @@ export interface PlanFormConfig {
  */
 export function buildPlanConfigFromDiagnostic(
   diagnostic: AthleteDiagnostic,
-  formConfig: PlanFormConfig
+  formConfig: PlanFormConfig,
+  coachLimiterOrder?: string[]  // Coach-overridden limiter order (metric names)
 ): PlanConfig {
   const limiterResult = diagnostic.limiter;
   
   // ── Limiteurs enrichis ────────────────────────────────────────────────────
-  const limiters = formatLimitersForPrompt(limiterResult, diagnostic.objectif);
+  const limiters = formatLimitersForPrompt(limiterResult, diagnostic.objectif, coachLimiterOrder);
 
   // ── Leviers ───────────────────────────────────────────────────────────────
   const levers = [limiterResult.primaryLever]
@@ -143,17 +144,36 @@ export function buildPlanConfigFromDiagnostic(
 
 function formatLimitersForPrompt(
   limiterResult: UnifiedLimiterResult,
-  _objectif: string
+  _objectif: string,
+  coachLimiterOrder?: string[]
 ): string[] {
   const limiters: string[] = [];
 
   // Sort ALL gaps by weighted impact (highest = most limiting)
-  const rankedGaps = [...limiterResult.gapAnalysis]
+  let rankedGaps = [...limiterResult.gapAnalysis]
     .filter(g => g.weightedImpact > 0)
     .sort((a, b) => b.weightedImpact - a.weightedImpact);
 
+  // If coach provided a custom order, re-sort to match it
+  const hasCoachOverride = coachLimiterOrder && coachLimiterOrder.length > 0;
+  if (hasCoachOverride) {
+    rankedGaps = rankedGaps.sort((a, b) => {
+      const idxA = coachLimiterOrder.indexOf(a.metric);
+      const idxB = coachLimiterOrder.indexOf(b.metric);
+      // Items not in the coach order go to the end
+      const posA = idxA >= 0 ? idxA : 999;
+      const posB = idxB >= 0 ? idxB : 999;
+      return posA - posB;
+    });
+  }
+
   if (rankedGaps.length > 0) {
-    limiters.push(`## CLASSEMENT DES LIMITEURS PAR IMPORTANCE (du plus critique au moins critique)`);
+    if (hasCoachOverride) {
+      limiters.push(`## ⚙️ CLASSEMENT DES LIMITEURS — ORDRE PERSONNALISÉ PAR LE COACH`);
+      limiters.push(`⚠️ Le coach a modifié l'ordre de priorité des limiteurs. Cet ordre PRIME sur le classement automatique par impact.\n`);
+    } else {
+      limiters.push(`## CLASSEMENT DES LIMITEURS PAR IMPORTANCE (du plus critique au moins critique)`);
+    }
     limiters.push(`Total : ${rankedGaps.length} limiteur(s) détecté(s). Le plan DOIT les adresser TOUS, par ordre de priorité.\n`);
 
     rankedGaps.forEach((g, idx) => {
