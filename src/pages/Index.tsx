@@ -1914,11 +1914,10 @@ const Index = () => {
                 objectif={currentAthlete.goal || "IM"}
                 vlamaxEffectif={vlamaxEffectif}
                 tteEffectif={tteEffectif}
-                raceReadiness={raceReadinessEffectif}
+                limiterResult={unifiedLimiterResult}
                 ftp={ftp}
                 poids={poids ?? null}
                 vo2max={effectiveCloudSnapshot?.vo2max ?? null}
-                tss7d={effectiveCloudSnapshot?.tss_7d ?? null}
                 completude={(() => {
                   const missing = getMissingFields(effectiveRefs, ["weightKg", "ftp", "vo2max", "vma", "fcMax"]);
                   return { score: Math.max(0, 100 - missing.length * 10), manquants: missing };
