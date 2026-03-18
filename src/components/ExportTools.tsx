@@ -2890,7 +2890,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
                 <br><span class="muted" style="font-size:10px;">Cible: ${tte.target ?? 50} min</span>
               </div>
               <div>
-                <span class="muted">Race Readiness</span><br>
+                <span class="muted">Potentiel Physiologique</span><br>
                 <span class="medium ${raceReadiness.score >= 80 ? 'success' : raceReadiness.score >= 60 ? 'warning' : 'error'}">${raceReadiness.score}%</span>
                 <br><span class="badge badgeWarning" style="font-size:9px;">🔁 Indicateur calculé</span>
                 <br><span class="muted" style="font-size:10px;">Cohérence globale</span>
