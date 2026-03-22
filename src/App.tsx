@@ -25,6 +25,7 @@ import NotFound from "./pages/NotFound";
 import { TFCLTestingWeekPage } from "./components/TFCLTestingWeek";
 import { CAPTestingWeekPage } from "./components/CAPTestingWeek";
 import { RunningGuidancePage } from "./components/RunningWeeklyGuidance";
+import WorkoutLibraryBrowserPage from "./pages/WorkoutLibraryBrowserPage";
 
 const queryClient = new QueryClient();
 
