@@ -135,7 +135,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { athleteData, planConfig, regenerateWeek } = await req.json();
+    const { athleteData, planConfig, regenerateWeek, workoutCatalog } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -2342,6 +2342,11 @@ RAPPEL W'bal OBLIGATOIRE : Pour CHAQUE séance d'intervalles de cette semaine, t
 Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le profil athlète ci-dessus.`;
     } else {
       userPrompt = buildUserPrompt(athleteData, planConfig);
+    }
+
+    // Inject workout catalog if provided by the frontend
+    if (workoutCatalog && typeof workoutCatalog === "string" && workoutCatalog.length > 0) {
+      userPrompt += "\n\n" + workoutCatalog;
     }
 
     const totalWeeks = planConfig?.weeksAvailable || 12;

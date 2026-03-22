@@ -3,6 +3,7 @@
  */
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
+import { buildWorkoutCatalog, serializeCatalogForPrompt } from "@/lib/workoutCatalogBuilder";
 
 const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
 
@@ -95,13 +96,23 @@ export function useAITrainingPlan() {
     setChunkProgress(totalChunks > 1 ? { currentWeek: 0, totalWeeks, currentChunk: 1, totalChunks } : null);
 
     try {
+      // Build filtered workout catalog for AI injection
+      const catalog = buildWorkoutCatalog(
+        planConfig.objective || "",
+        1,
+        totalWeeks,
+        totalWeeks,
+        { maxItems: 30 }
+      );
+      const workoutCatalogMarkdown = serializeCatalogForPrompt(catalog);
+
       const resp = await fetch(PLAN_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ athleteData, planConfig }),
+        body: JSON.stringify({ athleteData, planConfig, workoutCatalog: workoutCatalogMarkdown }),
       });
 
       if (resp.status === 429) {
