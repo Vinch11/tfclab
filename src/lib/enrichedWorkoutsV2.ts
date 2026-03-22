@@ -408,7 +408,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [180, 300],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["Main", "3-5h alternance: 10' course Z2 / 5' marche rapide (côtes). Jamais arrêt complet. Bâtons. Nutrition 50-70g/h. Simuler stratégie course ultra", ["Z1", "Z2"]]
+      ["Warm-up", "10' marche progressive", ["Z1"]],
+      ["Main", "2h50-4h50 alternance: 10' course Z2 / 5' marche rapide (côtes). Jamais arrêt complet. Bâtons. Nutrition 50-70g/h. Simuler stratégie course ultra", ["Z1", "Z2"]],
+      ["Cool-down", "10' marche retour + étirements", ["Z1"]]
     ]),
     variants: {},
     goals: GOALS_TRAIL,
