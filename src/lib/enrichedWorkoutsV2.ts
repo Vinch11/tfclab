@@ -687,7 +687,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [20, 30],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mk([
-      ["Main", "Circuit 3x: Mountain climber 20\" + Bear crawl 10m A/R + Pallof press rotation 8/côté + Deadbug bras/jambes alterné 10/côté + Planche latérale hip dip 8/côté. R:1'", []]
+      ["Warm-up", "5' mobilité dynamique: cat-cow, rotations thoraciques, activations core léger", []],
+      ["Main", "Circuit 3x (R:1'): Mountain climber 20\" + Bear crawl 10m A/R + Pallof press rotation 8/côté + Dead bug bras/jambes alterné 10/côté + Planche latérale hip dip 8/côté + Renegade row 8/côté + Inchworm 6 reps", []],
+      ["Cool-down", "5' étirements dorsaux, psoas, respiration diaphragmatique", []]
     ]),
     variants: {},
     goals: GOALS_ALL,
