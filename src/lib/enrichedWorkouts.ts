@@ -803,7 +803,7 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     when: "Build (2x/semaine max)",
     phase: ["build"],
     avoid: "Douleur genou/cheville, veille sortie longue",
-    durationMin: [30, 40],
+    durationMin: [35, 45],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mk([
       ["Warm-up", "10' mobilité dynamique", []],

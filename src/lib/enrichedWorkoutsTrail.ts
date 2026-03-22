@@ -419,7 +419,7 @@ const TRAIL_C: LibraryWorkout[] = [
     when: "Base/Build",
     phase: ["base", "build"],
     avoid: "Veille de SL",
-    durationMin: [40, 55],
+    durationMin: [45, 60],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mkStructure([
       ["Warm-up", "10' mobilité + activation", []],

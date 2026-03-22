@@ -1113,7 +1113,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     objectif: "Auto-massage foam roller — flush et mobilité",
     necessite: "Recommandé",
     when: "Post-entraînement ou jour de repos",
-    phase: ["taper"],
+    phase: ["base", "build", "peak", "taper"],
     avoid: "Blessure aiguë",
     durationMin: [15, 30],
     metricKey: "cardiaque", sportKey: "running",
