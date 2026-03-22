@@ -126,7 +126,7 @@ export default function WorkoutLibraryBrowserPage() {
           <div>
             <h1 className="text-2xl font-bold text-foreground">Bibliothèque des Séances TFCL™</h1>
             <p className="text-sm text-muted-foreground">
-              {WorkoutLibrary.length} séances disponibles pour les plans IA
+              {WorkoutLibrary.length} séances disponibles pour les plans IA (dont variantes programmatiques)
             </p>
           </div>
         </div>
