@@ -768,7 +768,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     when: "Spécifique IM (2-4x dans le plan)",
     phase: ["build"],
     avoid: "Épaule fatiguée",
-    durationMin: [55, 75],
+    durationMin: [75, 100],
     metricKey: "allure", sportKey: "natation",
     structure: mk([
       ["Warm-up", "200m facile", ["Z1"]],
