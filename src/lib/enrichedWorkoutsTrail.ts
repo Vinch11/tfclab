@@ -475,11 +475,13 @@ const TRAIL_C: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Base/Build",
     phase: ["base", "build"],
-    avoid: "Douleur articulaire",
+    avoid: "Douleur articulaire, veille de sortie longue",
     durationMin: [25, 40],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mkStructure([
-      ["Main", "Box jumps 4×8, drop jumps 3×6, sauts latéraux 3×10, fentes sautées 3×8, jump squats 3×10", []]
+      ["Warm-up", "10' mobilité dynamique + 3×10 montées genoux", []],
+      ["Main", "Box jumps 4×8, drop jumps 3×6, sauts latéraux 3×10, fentes sautées 3×8, jump squats 3×10. R:90\" entre séries", []],
+      ["Cool-down", "5' étirements mollets/quadriceps", []]
     ]),
     variants: {},
     goals: TRAIL_GOALS_ALL,
