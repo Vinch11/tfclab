@@ -4187,4 +4187,11 @@ WorkoutLibrary.push(...EnrichedWorkouts);
 import { EnrichedWorkoutsV2 } from "./enrichedWorkoutsV2";
 WorkoutLibrary.push(...EnrichedWorkoutsV2);
 
-console.log(`✅ Pro Pack: ${ProPackWorkouts.length} | Templates: ${TemplateDerivedWorkouts.length} | Enriched: ${EnrichedWorkouts.length} | Enriched V2: ${EnrichedWorkoutsV2.length} | Total: ${WorkoutLibrary.length}`);
+// =============================================
+// ENRICHED WORKOUTS V3 — Cyclisme (+20), Race-Sim (+15),
+// Tests (+10), Bricks (+10), Récup (+8), Trail goals, 10K
+// =============================================
+import { EnrichedWorkoutsV3 } from "./enrichedWorkoutsV3";
+WorkoutLibrary.push(...EnrichedWorkoutsV3);
+
+console.log(`✅ Pro Pack: ${ProPackWorkouts.length} | Templates: ${TemplateDerivedWorkouts.length} | Enriched: ${EnrichedWorkouts.length} | V2: ${EnrichedWorkoutsV2.length} | V3: ${EnrichedWorkoutsV3.length} | Total: ${WorkoutLibrary.length}`);
