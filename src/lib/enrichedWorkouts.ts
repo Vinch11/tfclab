@@ -110,7 +110,7 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Build/Peak",
     phase: ["build", "peak"],
-    avoid: "Fatigue musculaire importante_V144",
+    avoid: "Fatigue musculaire importante",
     durationMin: [50, 65],
     metricKey: "allure", sportKey: "course",
     structure: mk([
@@ -152,7 +152,7 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     necessite: "Obligatoire",
     when: "Phase spécifique",
     phase: ["build"],
-    avoid: "Fatigue importante, début de cycle_V145",
+    avoid: "Fatigue importante, début de cycle",
     durationMin: [55, 75],
     metricKey: "allure", sportKey: "course",
     structure: mk([
@@ -171,7 +171,7 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Build/Spécifique",
     phase: ["build"],
-    avoid: "Phase base_V148",
+    avoid: "Phase base",
     durationMin: [55, 75],
     metricKey: "allure", sportKey: "course",
     structure: mk([
@@ -386,7 +386,7 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Build",
     phase: ["build"],
-    avoid: "Fatigue chronique_V146",
+    avoid: "Fatigue chronique",
     durationMin: [55, 70],
     metricKey: "allure", sportKey: "course",
     structure: mk([
@@ -485,7 +485,7 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Build/Force",
     phase: ["build"],
-    avoid: "Douleur genou_V147",
+    avoid: "Douleur genou",
     durationMin: [80, 105],
     metricKey: "puissance", sportKey: "cyclisme",
     structure: mk([
@@ -504,7 +504,7 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     necessite: "Obligatoire",
     when: "Spécifique IM",
     phase: ["build"],
-    avoid: "Phase base_V150",
+    avoid: "Phase base",
     durationMin: [150, 210],
     metricKey: "puissance", sportKey: "cyclisme",
     structure: mk([
@@ -521,7 +521,7 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Build/Peak",
     phase: ["build", "peak"],
-    avoid: "Fatigue élevée_V149",
+    avoid: "Fatigue élevée",
     durationMin: [65, 85],
     metricKey: "puissance", sportKey: "cyclisme",
     structure: mk([
@@ -582,7 +582,7 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     necessite: "Obligatoire",
     when: "Spécifique/Affûtage",
     phase: ["build", "peak"],
-    avoid: "Phase base_V151",
+    avoid: "Phase base",
     durationMin: [50, 65],
     metricKey: "allure", sportKey: "natation",
     structure: mk([
@@ -620,7 +620,7 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Peak/Affûtage",
     phase: ["peak"],
-    avoid: "Phase base_V152",
+    avoid: "Phase base",
     durationMin: [40, 55],
     metricKey: "allure", sportKey: "natation",
     structure: mk([
@@ -761,7 +761,7 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Spécifique tri",
     phase: ["build"],
-    avoid: "Phase base_V154",
+    avoid: "Phase base",
     durationMin: [150, 200],
     metricKey: "allure", sportKey: "natation",
     structure: mk([
@@ -956,7 +956,7 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     necessite: "Obligatoire",
     when: "J-2 avant course",
     phase: ["build", "peak"],
-    avoid: "Jamais >J-2_V153",
+    avoid: "Jamais >J-2",
     durationMin: [25, 35],
     metricKey: "allure", sportKey: "course",
     structure: mk([
@@ -1049,7 +1049,7 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     necessite: "Obligatoire",
     when: "Spécifique 10km",
     phase: ["build"],
-    avoid: "Phase base_V155",
+    avoid: "Phase base",
     durationMin: [45, 60],
     metricKey: "allure", sportKey: "course",
     structure: mk([

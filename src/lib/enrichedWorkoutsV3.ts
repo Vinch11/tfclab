@@ -79,7 +79,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     necessite: "Obligatoire",
     when: "Build phase, mardi ou jeudi",
     phase: ["build"],
-    avoid: "Veille de compétition_V177",
+    avoid: "Veille de compétition",
     durationMin: [75, 100],
     metricKey: "puissance", sportKey: "cycling",
     structure: [
@@ -98,7 +98,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Build mi-semaine",
     phase: ["build"],
-    avoid: "Semaine de récup_V174",
+    avoid: "Semaine de récup",
     durationMin: [90, 120],
     metricKey: "puissance", sportKey: "cycling",
     structure: [
@@ -136,7 +136,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Build, terrain vallonné disponible",
     phase: ["build"],
-    avoid: "Plat uniquement_V178",
+    avoid: "Plat uniquement",
     durationMin: [90, 150],
     metricKey: "puissance", sportKey: "cycling",
     structure: [
@@ -155,7 +155,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Base/Build, 1x/semaine max",
     phase: ["base", "build"],
-    avoid: "Problèmes de genoux_V172",
+    avoid: "Problèmes de genoux",
     durationMin: [70, 90],
     metricKey: "puissance", sportKey: "cycling",
     structure: [
@@ -254,7 +254,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Build/Peak, 1x/10 jours",
     phase: ["build", "peak"],
-    avoid: "Fatigue élevée_V173",
+    avoid: "Fatigue élevée",
     durationMin: [70, 90],
     metricKey: "puissance", sportKey: "cycling",
     structure: [
@@ -292,7 +292,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Début de bloc ou toutes les 6-8 semaines",
     phase: ["base"],
-    avoid: "Semaine chargée_V187",
+    avoid: "Semaine chargée",
     durationMin: [30, 45],
     metricKey: "puissance", sportKey: "cycling",
     structure: [
@@ -391,7 +391,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Build/Peak",
     phase: ["build", "peak"],
-    avoid: "Semaine de récup_V176",
+    avoid: "Semaine de récup",
     durationMin: [70, 90],
     metricKey: "puissance", sportKey: "cycling",
     structure: [
@@ -437,7 +437,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     necessite: "Obligatoire",
     when: "Build/Peak, jour clé",
     phase: ["build", "peak"],
-    avoid: "Fatigue élevée_V175",
+    avoid: "Fatigue élevée",
     durationMin: [50, 65],
     metricKey: "allure", sportKey: "running",
     structure: [
@@ -456,7 +456,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Build phase",
     phase: ["build"],
-    avoid: "Semaine de récup_V179",
+    avoid: "Semaine de récup",
     durationMin: [50, 65],
     metricKey: "allure", sportKey: "running",
     structure: [
@@ -536,7 +536,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     necessite: "Obligatoire",
     when: "Build, terrain montagneux",
     phase: ["build"],
-    avoid: "Plat uniquement_V189",
+    avoid: "Plat uniquement",
     durationMin: [60, 80],
     metricKey: "cardiaque", sportKey: "running",
     structure: [
@@ -576,7 +576,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     necessite: "Obligatoire",
     when: "Build, week-end",
     phase: ["build"],
-    avoid: "Semaine de récup_V180",
+    avoid: "Semaine de récup",
     durationMin: [150, 270],
     metricKey: "cardiaque", sportKey: "running",
     structure: [
@@ -596,7 +596,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     necessite: "Obligatoire",
     when: "S-3 avant course cible",
     phase: ["build", "peak"],
-    avoid: "Plus de 2x dans le plan_V181",
+    avoid: "Plus de 2x dans le plan",
     durationMin: [120, 240],
     metricKey: "cardiaque", sportKey: "running",
     structure: [
@@ -640,7 +640,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     necessite: "Obligatoire",
     when: "Build/Peak, sortie longue",
     phase: ["build", "peak"],
-    avoid: "Semaine de récup_V186",
+    avoid: "Semaine de récup",
     durationMin: [180, 420],
     metricKey: "cardiaque", sportKey: "running",
     structure: [
@@ -703,7 +703,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     necessite: "Obligatoire",
     when: "S-3 à S-4 avant marathon",
     phase: ["build", "peak"],
-    avoid: "Plus de 2x dans le plan_V182",
+    avoid: "Plus de 2x dans le plan",
     durationMin: [140, 180],
     metricKey: "allure", sportKey: "running",
     structure: [
@@ -722,7 +722,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     necessite: "Obligatoire",
     when: "S-2 à S-3 avant semi",
     phase: ["build", "peak"],
-    avoid: "Plus de 2x dans le plan_V183",
+    avoid: "Plus de 2x dans le plan",
     durationMin: [75, 100],
     metricKey: "allure", sportKey: "running",
     structure: [
@@ -741,7 +741,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     necessite: "Obligatoire",
     when: "S-4 à S-6 avant Ironman",
     phase: ["build", "peak"],
-    avoid: "Plus de 2x dans le plan_V184",
+    avoid: "Plus de 2x dans le plan",
     durationMin: [270, 360],
     metricKey: "puissance", sportKey: "cycling",
     structure: [
@@ -760,7 +760,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     necessite: "Obligatoire",
     when: "S-3 à S-4 avant 70.3",
     phase: ["build", "peak"],
-    avoid: "Plus de 2x dans le plan_V188",
+    avoid: "Plus de 2x dans le plan",
     durationMin: [130, 170],
     metricKey: "puissance", sportKey: "cycling",
     structure: [
@@ -897,7 +897,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Début de bloc ou post-récup",
     phase: ["taper", "base"],
-    avoid: "Fatigue musculaire_V185",
+    avoid: "Fatigue musculaire",
     durationMin: [25, 35],
     metricKey: "puissance", sportKey: "cycling",
     structure: [
@@ -977,7 +977,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     necessite: "Obligatoire",
     when: "Build, 1x/2 semaines",
     phase: ["build"],
-    avoid: "Semaine de récup_V191",
+    avoid: "Semaine de récup",
     durationMin: [210, 330],
     metricKey: "puissance", sportKey: "cycling",
     structure: [
@@ -1072,7 +1072,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "S-6 à S-4 avant Ironman/70.3",
     phase: ["build"],
-    avoid: "Plus de 2x dans le plan_V190",
+    avoid: "Plus de 2x dans le plan",
     durationMin: [180, 300],
     metricKey: "puissance", sportKey: "cycling",
     structure: [
@@ -1257,7 +1257,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Base/Build, mi-semaine",
     phase: ["base", "build"],
-    avoid: "Semaine de récup_V192",
+    avoid: "Semaine de récup",
     durationMin: [90, 150],
     metricKey: "puissance", sportKey: "cycling",
     structure: [
@@ -1337,7 +1337,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Build/Peak",
     phase: ["build", "peak"],
-    avoid: "Douleur épaule_V193",
+    avoid: "Douleur épaule",
     durationMin: [45, 60],
     metricKey: "css", sportKey: "swimming",
     structure: [

@@ -173,7 +173,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Build (toute phase)",
     phase: ["build"],
-    avoid: "Fatigue musculaire importante_V156",
+    avoid: "Fatigue musculaire importante",
     durationMin: [45, 60],
     metricKey: "puissance", sportKey: "cyclisme",
     structure: mk([
@@ -234,7 +234,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     necessite: "Obligatoire",
     when: "Spécifique 5K (3-6 semaines avant)",
     phase: ["build"],
-    avoid: "Si fatigue élevée_V157",
+    avoid: "Si fatigue élevée",
     durationMin: [40, 55],
     metricKey: "allure", sportKey: "course",
     structure: mk([
@@ -388,7 +388,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     necessite: "Obligatoire",
     when: "Spécifique ultra (S10-S18)",
     phase: ["build"],
-    avoid: "Si pas de terrain approprié_V158",
+    avoid: "Si pas de terrain approprié",
     durationMin: [180, 300],
     metricKey: "allure", sportKey: "course",
     structure: mk([
@@ -465,7 +465,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Toute l'année",
     phase: ["base", "build"],
-    avoid: "Épaule instable_V159",
+    avoid: "Épaule instable",
     durationMin: [40, 55],
     metricKey: "allure", sportKey: "natation",
     structure: mk([
@@ -520,7 +520,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     necessite: "Obligatoire",
     when: "Spécifique IM",
     phase: ["build"],
-    avoid: "Épaule fatiguée_V163",
+    avoid: "Épaule fatiguée",
     durationMin: [55, 70],
     metricKey: "allure", sportKey: "natation",
     structure: mk([
@@ -543,7 +543,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Spécifique tri",
     phase: ["build"],
-    avoid: "Phase base_V160",
+    avoid: "Phase base",
     durationMin: [70, 90],
     metricKey: "allure", sportKey: "natation",
     structure: mk([
@@ -657,7 +657,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Toute l'année",
     phase: ["base", "build"],
-    avoid: "Lombalgie aiguë_V161",
+    avoid: "Lombalgie aiguë",
     durationMin: [20, 30],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mk([
@@ -712,7 +712,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Lendemain séance clé CAP/vélo",
     phase: ["base", "build", "peak", "taper"],
-    avoid: "Si épaule douloureuse_V162",
+    avoid: "Si épaule douloureuse",
     durationMin: [30, 40],
     metricKey: "allure", sportKey: "natation",
     structure: mk([
@@ -790,7 +790,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     necessite: "Obligatoire",
     when: "Spécifique 70.3",
     phase: ["build"],
-    avoid: "Phase base_V164",
+    avoid: "Phase base",
     durationMin: [120, 145],
     metricKey: "puissance", sportKey: "cyclisme",
     structure: mk([
@@ -913,7 +913,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     necessite: "Obligatoire",
     when: "Toute l'année (1-2x/semaine)",
     phase: ["base", "build"],
-    avoid: "Fatigue musculaire importante_V165",
+    avoid: "Fatigue musculaire importante",
     durationMin: [45, 65],
     metricKey: "allure", sportKey: "course",
     structure: mk([
@@ -930,7 +930,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     necessite: "Obligatoire",
     when: "Toute l'année (2x/semaine, avant séance qualité)",
     phase: ["base", "build"],
-    avoid: "Si douleur articulaire aiguë_V166",
+    avoid: "Si douleur articulaire aiguë",
     durationMin: [25, 35],
     metricKey: "allure", sportKey: "course",
     structure: mk([
@@ -953,7 +953,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Build/Spécifique marathon",
     phase: ["build"],
-    avoid: "Si incapable de maintenir l_V167'allure 30'+",
+    avoid: "Si incapable de maintenir l'allure 30'+",
     durationMin: [60, 80],
     metricKey: "allure", sportKey: "course",
     structure: mk([
@@ -972,7 +972,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Build",
     phase: ["build"],
-    avoid: "Phase affûtage_V168",
+    avoid: "Phase affûtage",
     durationMin: [50, 65],
     metricKey: "allure", sportKey: "course",
     structure: mk([
@@ -995,7 +995,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Build/Spécifique",
     phase: ["build"],
-    avoid: "Phase base_V169",
+    avoid: "Phase base",
     durationMin: [55, 70],
     metricKey: "allure", sportKey: "course",
     structure: mk([
@@ -1018,7 +1018,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     necessite: "Obligatoire",
     when: "Spécifique IM",
     phase: ["build"],
-    avoid: "Si épaule fatiguée_V170",
+    avoid: "Si épaule fatiguée",
     durationMin: [55, 70],
     metricKey: "allure", sportKey: "natation",
     structure: mk([
@@ -1037,7 +1037,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Build/Spécifique",
     phase: ["build"],
-    avoid: "Si épaule fatiguée_V171",
+    avoid: "Si épaule fatiguée",
     durationMin: [50, 65],
     metricKey: "allure", sportKey: "natation",
     structure: mk([
