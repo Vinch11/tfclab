@@ -4331,7 +4331,7 @@ const STRENGTH_PRO: LibraryWorkout[] = [
     objectif: `Force/Préhab — variante #${i + 1}`,
     necessite: "Recommandé" as const,
     when: "Toute l'année",
-    phase: ["base", "build"],
+    phase: ["base", "build"] as const,
     avoid: "—_V143",
     durationMin: [25 + (i % 3) * 5, 45 + (i % 4) * 5] as [number, number],
     metricKey: "cardiaque" as const,
