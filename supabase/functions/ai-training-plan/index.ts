@@ -2344,9 +2344,35 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
       userPrompt = buildUserPrompt(athleteData, planConfig);
     }
 
-    // Inject workout catalog if provided by the frontend
-    if (workoutCatalog && typeof workoutCatalog === "string" && workoutCatalog.length > 0) {
-      userPrompt += "\n\n" + workoutCatalog;
+    // Resolve workout catalog for injection — phase-specific catalogs take priority
+    function getWorkoutCatalogForPhase(phase: string): string {
+      if (phaseCatalogs && typeof phaseCatalogs === "object") {
+        // Map active phase names to catalog keys
+        const phaseMap: Record<string, string> = {
+          "fondation": "base", "base": "base", "adaptation": "base",
+          "build": "build", "chantier": "build", "consolidation": "build", "développement": "build",
+          "spécifique": "peak", "peak": "peak", "race-specific": "peak", "compétition": "peak",
+          "affûtage": "taper", "taper": "taper", "pre-race": "taper",
+        };
+        const key = phaseMap[phase.toLowerCase()] || "build";
+        const catalog = phaseCatalogs[key];
+        if (catalog && typeof catalog === "string" && catalog.length > 0) return catalog;
+        // Fallback to any available catalog
+        for (const k of ["build", "base", "peak", "taper"]) {
+          if (phaseCatalogs[k]) return phaseCatalogs[k];
+        }
+      }
+      // Legacy: single workoutCatalog string
+      if (workoutCatalog && typeof workoutCatalog === "string" && workoutCatalog.length > 0) {
+        return workoutCatalog;
+      }
+      return "";
+    }
+
+    // For non-chunked plans, inject a general catalog (build phase as default)
+    const generalCatalog = getWorkoutCatalogForPhase("build");
+    if (generalCatalog) {
+      userPrompt += "\n\n" + generalCatalog;
     }
 
     const totalWeeks = planConfig?.weeksAvailable || 12;
