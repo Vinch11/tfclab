@@ -84,7 +84,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     metricKey: "puissance", sportKey: "cycling",
     structure: [
       { part: "Warm-up", text: "15' Z1→Z2 avec 3x30'' accélérations", zones: ["Z1", "Z2"] },
-      { part: "Main", text: "3x12' → 3x15' → 3x18' SST (88-94% FTP) / 5' Z1", zones: ["Z3", "Z4"] },
+      { part: "Main", text: "3x12' → 3x15' → 3x18' SST (88-94% FTP) / 5' Z1", zones: ["Z4"] },
       { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
     ],
     variants: { ironman: "3x20' SST", half: "3x15' SST" },

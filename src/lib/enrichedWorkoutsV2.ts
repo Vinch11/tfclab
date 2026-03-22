@@ -521,7 +521,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     when: "Spécifique IM",
     phase: ["build"],
     avoid: "Épaule fatiguée",
-    durationMin: [55, 70],
+    durationMin: [65, 85],
     metricKey: "allure", sportKey: "natation",
     structure: mk([
       ["Warm-up", "400m facile + éducatifs", ["Z1", "Z2"]],
@@ -768,7 +768,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     when: "Spécifique IM (2-4x dans le plan)",
     phase: ["build"],
     avoid: "Épaule fatiguée",
-    durationMin: [55, 75],
+    durationMin: [75, 100],
     metricKey: "allure", sportKey: "natation",
     structure: mk([
       ["Warm-up", "200m facile", ["Z1"]],
@@ -1019,7 +1019,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     when: "Spécifique IM",
     phase: ["build"],
     avoid: "Si épaule fatiguée",
-    durationMin: [55, 70],
+    durationMin: [65, 85],
     metricKey: "allure", sportKey: "natation",
     structure: mk([
       ["Warm-up", "400m facile + 4x50m progressif", ["Z1", "Z2"]],
@@ -1038,7 +1038,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     when: "Build/Spécifique",
     phase: ["build"],
     avoid: "Si épaule fatiguée",
-    durationMin: [50, 65],
+    durationMin: [55, 75],
     metricKey: "allure", sportKey: "natation",
     structure: mk([
       ["Warm-up", "400m facile + éducatifs", ["Z1", "Z2"]],
