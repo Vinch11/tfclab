@@ -1459,7 +1459,7 @@ Ex : "🔑 Séances clés : Seuil long mardi (TTE↑) + SL progressive samedi (e
 - **CAP** : durée/distance + allure min/km OU %VMA + cadence spm
 - **Renfo** : exercices + séries×reps + charge si applicable + durée totale
 - **Titre descriptif** obligatoire ("🔑 CSS Dégressif", "🔑 Sweet Spot Vallonné", pas juste "Natation")
-- **Varier** d'une semaine à l'autre — NE PAS copier le même contenu
+- **Varier** d'une semaine à l'autre — NE PAS copier le même contenu (voir section DIVERSITÉ ci-dessous)
 - **Consignes qualitatives** : sensation recherchée, focus technique, nutrition si applicable
 - Réponds UNIQUEMENT en français
 - GÉNÈRE TOUTES LES SEMAINES sans exception
@@ -2254,10 +2254,77 @@ Le lactate n'est PAS un déchet. C'est un carburant inter-organes :
 - **Tendinopathie achilléenne** : excentrique Alfredson 2x/jour, réduire côtes et vitesse
 - **Fasciite plantaire** : renfo intrinsèques pieds (serviette, marbles), étirements mollets/fascia
 - **Douleur genou (runner's knee)** : renfo quadriceps (wall sits, split squats), step-down excentrique
-- Intégrer les exercices de prévention pertinents dans les séances Renfo du plan`;
+- Intégrer les exercices de prévention pertinents dans les séances Renfo du plan
 
+## 🔄 DIVERSITÉ ET PROGRESSION DES SÉANCES (CRITIQUE — Anti-Répétition)
 
+⚠️ C'est la règle la plus fréquemment violée. Un plan où les séances se répètent à l'identique semaine après semaine est un plan MÉDIOCRE. L'adaptation physiologique nécessite une surcharge PROGRESSIVE et une stimulation VARIÉE.
 
+### Règle #1 : JAMAIS la même séance 2 semaines consécutives
+- Si Semaine 3 = "5×1000m @VMA r=2min", Semaine 4 DOIT être différente : "6×800m @VMA r=90s" ou "3×2000m @95% VMA r=3min" ou "Pyramide 400-800-1200-800-400 @VMA"
+- Si Semaine 5 = "2×20min @88% FTP", Semaine 6 → "3×15min @90% FTP" ou "1×35min @86% FTP" ou "Over-Under 4×(4min @95% + 3min @82%)"
+- Si Semaine 2 natation = "8×200m @CSS r=15s", Semaine 3 → "5×300m @CSS r=20s" ou "Pyramide 100-200-400-200-100 @CSS" ou "6×250m @CSS-2s r=15s"
+- Les séances d'EF AUSSI doivent varier : terrain plat → vallonné → EF + strides → EF progressive → fartlek naturel → sentier technique
+
+### Règle #2 : PROGRESSION OBLIGATOIRE des séances clés 🔑
+Chaque séance clé doit évoluer au fil des semaines selon au moins UN de ces paramètres :
+| Paramètre | Exemple de progression sur 4 semaines |
+|-----------|--------------------------------------|
+| **Volume** | 3×15min → 2×25min → 1×40min → 2×30min (la plus courante) |
+| **Intensité** | 88% FTP → 90% → 92% → 88% (décharge) |
+| **Format** | Intervalles courts → moyens → longs → continus |
+| **Densité** | r=5min → r=4min → r=3min → r=5min (décharge) |
+| **Complexité** | Simple → over-under → variabilité allure → simulation course |
+| **Durée totale** | 1h30 → 1h45 → 2h → 1h20 (décharge) |
+
+Exemples concrets de progression 🔑 Seuil sur 8 semaines :
+- S1: 3×10min @seuil r=3min — S2: 2×15min @seuil r=4min — S3: 3×12min @seuil r=2min30
+- S4 (décharge): 2×10min @seuil r=3min — S5: 2×18min @seuil r=3min — S6: 1×30min @seuil continu
+- S7: 3×15min @seuil r=2min (densité↑) — S8: 1×35min @seuil continu (objectif TTE)
+
+Exemples concrets de progression 🔑 VMA sur 6 semaines :
+- S1: 2×(8×30/30) @VMA — S2: 6×800m @VMA r=2min — S3: 5×1000m @VMA r=2min30
+- S4 (décharge): 3×600m @VMA r=2min — S5: 4×1200m @98% VMA r=3min — S6: 3×2000m @95% VMA r=3min30
+
+Exemples concrets de progression 🔑 SL Marathon sur 8 semaines :
+- S1: 22km EF — S2: 24km dont 4km @AM finish — S3: 26km dont 6km @AM finish
+- S4 (décharge): 18km EF — S5: 28km dont 8km @AM — S6: 30km dont 10km @AM neg split
+- S7: 32km Canova Progressive (15km EF → 10km tempo → 7km @AM) — S8 (décharge): 20km avec 3×3km @AM
+
+### Règle #3 : ROTATION des formats secondaires
+Les séances non-clés (EF, renfo, technique) doivent aussi varier cycliquement :
+
+**CAP secondaire — rotation sur 4 semaines :**
+- Sem A : EF plat 50min → Sem B : EF vallonnée 55min → Sem C : EF + 6×100m strides → Sem D : Fartlek libre 45min
+
+**Natation secondaire — rotation :**
+- Sem A : Technique (drill focus) → Sem B : Pull endurance → Sem C : OWS simulation → Sem D : Descente pacing
+
+**Vélo secondaire — rotation :**
+- Sem A : Z2 plat → Sem B : Z2 vallonné → Sem C : Z2 Train Low à jeun → Sem D : Z2 progressif (finish @75%)
+
+**Renfo — rotation :**
+- Sem A : Force max (squat 4×5) → Sem B : Circuit (3 tours) → Sem C : Pliométrie + core → Sem D : Force endurance + prévention
+
+### Règle #4 : VARIATION INTRA-BLOC obligatoire
+Même au sein d'un même bloc métabolique (ex: "Chantier TTE↑"), les séances clés doivent utiliser des MÉTHODES DIFFÉRENTES pour cibler le même objectif :
+- TTE↑ : alterner Norvégienne (5×6min seuil bas), seuil continu long (1×30min), tempo marathon (2×20min @AM), sweet spot vélo (2×25min @88%), cruise intervals Daniels (6×1000m @T-pace)
+- VO2max : alterner Billat 30/30, VMA longue (5×1200m), pyramide (400-800-1200-800-400), Billat 3min/3min, VO2max vélo (5×5min @115% FTP), côtes 8×3min
+- VLamax↓ : alterner Z2 long plat, Z2 vallonné, Z2 Train Low, sweet spot continu, tempo progressif, SL neg split
+
+### Règle #5 : MARQUEURS DE DIVERSITÉ
+Dans les consignes coach de chaque semaine, explique EN QUOI cette semaine diffère de la précédente :
+- "🔄 Évolution S3→S4 : passage de intervalles seuil (3×10min) à seuil continu long (1×25min) pour augmenter la tolérance à la monotonie de l'effort."
+- "🔄 Évolution S6→S7 : introduction de l'over-under au lieu du sweet spot pur pour diversifier le stimulus métabolique."
+
+### Indicateur de diversité — Auto-vérification
+Avant de soumettre chaque semaine, VÉRIFIE :
+- [ ] Aucune séance clé n'est identique à la semaine précédente (format ET durée)
+- [ ] Les séances EF utilisent un terrain/format différent d'au moins 1 sem sur 2
+- [ ] Au moins 1 séance de renfo a un format différent de la semaine précédente
+- [ ] La progression en volume/intensité est visible par rapport à la semaine précédente
+- [ ] En semaine de décharge, le volume baisse mais les formats restent variés (pas de copier-coller raccourci)
+`;
     let userPrompt: string;
     if (regenerateWeek) {
       userPrompt = `Régénère UNIQUEMENT la Semaine ${regenerateWeek.weekNumber} du plan.
