@@ -1,0 +1,479 @@
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * TFCL PLAN VALIDATOR™ — Post-Generation Quality Control
+ * 
+ * Validates AI-generated training plans against elite coaching principles:
+ * 1. Polarization 80/20 (Seiler)
+ * 2. Load/Deload pattern 3:1 or 2:1 (Rhea)
+ * 3. Key sessions presence per week
+ * 4. Volume progression across weeks
+ * 5. Sport ratio coherence
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
+
+import type { ParsedPlan, ParsedWeek, ParsedSession } from "@/lib/aiPlanParser";
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TYPES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export type ValidationSeverity = "error" | "warning" | "info";
+
+export interface ValidationIssue {
+  rule: string;
+  severity: ValidationSeverity;
+  week?: number;
+  message: string;
+  detail?: string;
+}
+
+export interface WeekMetrics {
+  weekNumber: number;
+  theme: string;
+  totalSessions: number;
+  activeSessions: number;
+  restDays: number;
+  sports: Record<string, number>;
+  /** Estimated intensity distribution from session titles/details */
+  intensityProfile: {
+    lowPct: number;   // Z1-Z2 (easy, endurance, récupération)
+    midPct: number;   // Z3 (tempo, allure marathon)
+    highPct: number;  // Z4-Z7 (seuil, VO2, VMA, sprint, intervalles)
+  };
+  /** Whether this looks like a deload/recovery week */
+  isDeload: boolean;
+  /** Whether this looks like a race week */
+  isRaceWeek: boolean;
+  /** Key sessions count (🔑 or intensity sessions) */
+  keySessions: number;
+}
+
+export interface PlanValidationResult {
+  score: number; // 0-100
+  grade: "A" | "B" | "C" | "D" | "F";
+  issues: ValidationIssue[];
+  weekMetrics: WeekMetrics[];
+  summary: {
+    polarizationScore: number;
+    loadPatternScore: number;
+    keySessionsScore: number;
+    progressionScore: number;
+    overallComment: string;
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// INTENSITY CLASSIFICATION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const LOW_INTENSITY_PATTERNS = /z[12]|endurance|ef\b|footing|récup|recovery|easy|facile|aérobie|z2|zone\s*[12]|fondament|repos actif|régénér|souplesse|mobilité|technique|drill|gammes|éducatif/i;
+const MID_INTENSITY_PATTERNS = /z3|tempo\b|allure\s*marathon|sweet\s*spot|zone\s*3|endurance\s*active|fartlek\s*léger/i;
+const HIGH_INTENSITY_PATTERNS = /z[4-7]|seuil|threshold|vo2|vma|interval|fractionné|sprint|hiit|30\/30|pma|over.under|norvégienne|billat|canova|race.pace|race.sim|compétition|course\b.*\brace|🏁|force\s*max|plio|rønnestad|sfr|côtes?\s*\d/i;
+const KEY_SESSION_PATTERNS = /🔑|clé|key|séance\s*clé|interval|seuil|vo2|vma|sortie\s*longue|sl\b|long\s*run|brick|race.sim|test|compétition|🏁/i;
+const DELOAD_PATTERNS = /décharge|deload|récup|recovery|repos|allégé|réduit|taper|affûtage|régénér/i;
+const RACE_PATTERNS = /🏁|course\b|race|compétition|épreuve|objectif|marathon|ironman|triathlon|semi|trail|10k/i;
+
+function classifySessionIntensity(session: ParsedSession): "low" | "mid" | "high" {
+  const text = `${session.sport} ${session.title} ${session.details}`.toLowerCase();
+  
+  if (session.isRest) return "low";
+  
+  // Check high first (most specific patterns)
+  if (HIGH_INTENSITY_PATTERNS.test(text)) return "high";
+  if (MID_INTENSITY_PATTERNS.test(text)) return "mid";
+  
+  // Default: strength/renfo sessions count as mid, everything else as low
+  if (/renfo|muscul|strength|ppg|gainage|core|poids/i.test(text)) return "mid";
+  
+  return "low";
+}
+
+function isKeySession(session: ParsedSession): boolean {
+  if (session.isRest) return false;
+  const text = `${session.title} ${session.details}`;
+  return KEY_SESSION_PATTERNS.test(text);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// WEEK METRICS EXTRACTION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function extractWeekMetrics(week: ParsedWeek): WeekMetrics {
+  const activeSessions = week.sessions.filter(s => !s.isRest);
+  const restDays = new Set(
+    week.sessions.filter(s => s.isRest).map(s => s.dayIndex)
+  ).size;
+
+  // Sport distribution
+  const sports: Record<string, number> = {};
+  for (const s of activeSessions) {
+    const sport = normalizeSport(s.sport);
+    sports[sport] = (sports[sport] || 0) + 1;
+  }
+
+  // Intensity distribution
+  let low = 0, mid = 0, high = 0;
+  for (const s of activeSessions) {
+    const intensity = classifySessionIntensity(s);
+    if (intensity === "low") low++;
+    else if (intensity === "mid") mid++;
+    else high++;
+  }
+  const total = low + mid + high || 1;
+
+  // Deload detection
+  const themeText = `${week.theme} ${week.phase}`.toLowerCase();
+  const isDeload = DELOAD_PATTERNS.test(themeText) || activeSessions.length <= 3;
+
+  // Race week detection
+  const isRaceWeek = week.sessions.some(s => RACE_PATTERNS.test(`${s.title} ${s.details}`));
+
+  // Key sessions
+  const keySessions = activeSessions.filter(isKeySession).length;
+
+  return {
+    weekNumber: week.weekNumber,
+    theme: week.theme,
+    totalSessions: week.sessions.length,
+    activeSessions: activeSessions.length,
+    restDays,
+    sports,
+    intensityProfile: {
+      lowPct: Math.round((low / total) * 100),
+      midPct: Math.round((mid / total) * 100),
+      highPct: Math.round((high / total) * 100),
+    },
+    isDeload,
+    isRaceWeek,
+    keySessions,
+  };
+}
+
+function normalizeSport(sport: string): string {
+  const s = sport.toLowerCase().trim();
+  if (/nat|swim|crawl|piscine/i.test(s)) return "Natation";
+  if (/vélo|bike|cycl|vtt/i.test(s)) return "Vélo";
+  if (/cap|course|run|trail|footing/i.test(s)) return "Course";
+  if (/renfo|muscul|strength|ppg|force|gainage|core/i.test(s)) return "Renfo";
+  if (/brick|transition/i.test(s)) return "Brick";
+  if (/repos|rest|off/i.test(s)) return "Repos";
+  return sport;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// VALIDATION RULES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** Rule 1: Polarization 80/20 (Seiler) */
+function validatePolarization(metrics: WeekMetrics[]): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  let compliant = 0;
+
+  for (const wm of metrics) {
+    if (wm.isDeload || wm.isRaceWeek || wm.activeSessions < 3) {
+      compliant++;
+      continue;
+    }
+
+    const { lowPct, midPct, highPct } = wm.intensityProfile;
+
+    // Low should be 70-85%, high 15-25%, mid < 10% ideally
+    if (lowPct < 60) {
+      issues.push({
+        rule: "polarization",
+        severity: "error",
+        week: wm.weekNumber,
+        message: `S${wm.weekNumber}: Distribution non polarisée — seulement ${lowPct}% en Z1-Z2 (cible ≥ 75%)`,
+        detail: `Low: ${lowPct}%, Mid: ${midPct}%, High: ${highPct}%`,
+      });
+    } else if (lowPct < 70) {
+      issues.push({
+        rule: "polarization",
+        severity: "warning",
+        week: wm.weekNumber,
+        message: `S${wm.weekNumber}: Polarisation marginale — ${lowPct}% en Z1-Z2 (recommandé ≥ 75%)`,
+      });
+      compliant += 0.5;
+    } else {
+      compliant++;
+    }
+
+    if (midPct > 25) {
+      issues.push({
+        rule: "polarization",
+        severity: "warning",
+        week: wm.weekNumber,
+        message: `S${wm.weekNumber}: Trop de Z3 "black hole" — ${midPct}% (cible < 10%)`,
+      });
+    }
+  }
+
+  const total = metrics.filter(m => !m.isDeload && !m.isRaceWeek && m.activeSessions >= 3).length || 1;
+  return { issues, score: Math.round((compliant / total) * 100) };
+}
+
+/** Rule 2: Load/Deload pattern 3:1 or 2:1 */
+function validateLoadPattern(metrics: WeekMetrics[]): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+
+  if (metrics.length < 4) {
+    return { issues: [], score: 100 }; // Too short to validate
+  }
+
+  // Check that deload weeks appear at regular intervals
+  let maxConsecutiveLoad = 0;
+  let currentStreak = 0;
+  let deloadCount = 0;
+
+  for (const wm of metrics) {
+    if (wm.isDeload || wm.isRaceWeek) {
+      if (currentStreak > maxConsecutiveLoad) maxConsecutiveLoad = currentStreak;
+      currentStreak = 0;
+      deloadCount++;
+    } else {
+      currentStreak++;
+    }
+  }
+  if (currentStreak > maxConsecutiveLoad) maxConsecutiveLoad = currentStreak;
+
+  // Expected: deload every 2-4 weeks
+  const expectedDeloads = Math.floor((metrics.length - 1) / 3); // 3:1 pattern
+  const minDeloads = Math.max(1, Math.floor(metrics.length / 5)); // 4:1 at worst
+
+  if (deloadCount < minDeloads) {
+    issues.push({
+      rule: "load_pattern",
+      severity: "error",
+      message: `Seulement ${deloadCount} semaine(s) de décharge sur ${metrics.length} semaines (minimum attendu: ${minDeloads})`,
+      detail: `Pattern recommandé: 3:1 (3 semaines charge + 1 décharge) ou 2:1`,
+    });
+  }
+
+  if (maxConsecutiveLoad > 4) {
+    issues.push({
+      rule: "load_pattern",
+      severity: "error",
+      message: `${maxConsecutiveLoad} semaines consécutives sans décharge (max recommandé: 3-4)`,
+      detail: `Risque de surcharge chronique. Insérer une semaine de décharge (-30 à -40% volume).`,
+    });
+  } else if (maxConsecutiveLoad === 4) {
+    issues.push({
+      rule: "load_pattern",
+      severity: "warning",
+      message: `4 semaines consécutives de charge — acceptable en 4:1 mais surveiller la fatigue`,
+    });
+  }
+
+  // Score: penalize missing deloads
+  const ratio = deloadCount / Math.max(1, expectedDeloads);
+  const streakPenalty = maxConsecutiveLoad > 4 ? 20 : maxConsecutiveLoad === 4 ? 5 : 0;
+  return { issues, score: Math.max(0, Math.min(100, Math.round(ratio * 100) - streakPenalty)) };
+}
+
+/** Rule 3: Key sessions presence */
+function validateKeySessions(metrics: WeekMetrics[]): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  let compliant = 0;
+
+  for (const wm of metrics) {
+    if (wm.isDeload || wm.isRaceWeek) {
+      compliant++;
+      continue;
+    }
+
+    if (wm.keySessions === 0) {
+      issues.push({
+        rule: "key_sessions",
+        severity: "error",
+        week: wm.weekNumber,
+        message: `S${wm.weekNumber}: Aucune séance clé détectée (attendu: 1-3 séances d'intensité/semaine)`,
+      });
+    } else if (wm.keySessions === 1 && wm.activeSessions >= 5) {
+      issues.push({
+        rule: "key_sessions",
+        severity: "warning",
+        week: wm.weekNumber,
+        message: `S${wm.weekNumber}: Seulement 1 séance clé pour ${wm.activeSessions} séances actives (recommandé: 2-3)`,
+      });
+      compliant += 0.5;
+    } else if (wm.keySessions > 4) {
+      issues.push({
+        rule: "key_sessions",
+        severity: "warning",
+        week: wm.weekNumber,
+        message: `S${wm.weekNumber}: ${wm.keySessions} séances clés — risque de surcharge d'intensité`,
+      });
+      compliant += 0.5;
+    } else {
+      compliant++;
+    }
+  }
+
+  const total = metrics.filter(m => !m.isDeload && !m.isRaceWeek).length || 1;
+  return { issues, score: Math.round((compliant / total) * 100) };
+}
+
+/** Rule 4: Volume progression */
+function validateProgression(metrics: WeekMetrics[]): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+
+  if (metrics.length < 3) return { issues: [], score: 100 };
+
+  // Track active sessions as volume proxy (we don't have duration data from parsed plan)
+  const loadWeeks = metrics.filter(m => !m.isDeload && !m.isRaceWeek);
+  
+  if (loadWeeks.length < 3) return { issues: [], score: 100 };
+
+  // Check overall progression trend: first third vs last third
+  const thirdLen = Math.max(1, Math.floor(loadWeeks.length / 3));
+  const firstThird = loadWeeks.slice(0, thirdLen);
+  const lastThird = loadWeeks.slice(-thirdLen);
+
+  const avgFirst = firstThird.reduce((s, w) => s + w.activeSessions, 0) / firstThird.length;
+  const avgLast = lastThird.reduce((s, w) => s + w.activeSessions, 0) / lastThird.length;
+
+  // Volume should generally increase or stay stable (not decrease)
+  if (avgLast < avgFirst * 0.85) {
+    issues.push({
+      rule: "progression",
+      severity: "warning",
+      message: `Volume en baisse: moyenne ${avgFirst.toFixed(1)} séances/sem (début) → ${avgLast.toFixed(1)} (fin)`,
+      detail: `Une progression positive est attendue hors semaines de décharge et taper.`,
+    });
+  }
+
+  // Check for sudden jumps (> +30% week to week)
+  for (let i = 1; i < metrics.length; i++) {
+    const prev = metrics[i - 1];
+    const curr = metrics[i];
+    if (prev.isDeload || curr.isDeload || curr.isRaceWeek || prev.activeSessions < 3) continue;
+
+    const jump = (curr.activeSessions - prev.activeSessions) / Math.max(1, prev.activeSessions);
+    if (jump > 0.35) {
+      issues.push({
+        rule: "progression",
+        severity: "warning",
+        week: curr.weekNumber,
+        message: `S${curr.weekNumber}: Saut de volume +${Math.round(jump * 100)}% vs S${prev.weekNumber} (${prev.activeSessions} → ${curr.activeSessions} séances)`,
+        detail: `Progression recommandée: +5-10%/semaine maximum.`,
+      });
+    }
+  }
+
+  // Check that intensity increases over the plan (key sessions should increase mid-plan)
+  const firstHalfKeys = metrics.slice(0, Math.floor(metrics.length / 2))
+    .filter(m => !m.isDeload)
+    .reduce((s, m) => s + m.keySessions, 0);
+  const secondHalfKeys = metrics.slice(Math.floor(metrics.length / 2))
+    .filter(m => !m.isDeload && !m.isRaceWeek)
+    .reduce((s, m) => s + m.keySessions, 0);
+
+  // It's OK if second half has same or fewer key sessions (taper effect)
+  // But first half having 0 is a problem
+  if (firstHalfKeys === 0 && loadWeeks.length > 4) {
+    issues.push({
+      rule: "progression",
+      severity: "error",
+      message: `Aucune séance clé dans la première moitié du plan`,
+    });
+  }
+
+  const progressionOk = avgLast >= avgFirst * 0.85 && issues.filter(i => i.severity === "error").length === 0;
+  return { issues, score: progressionOk ? 90 : 60 };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MAIN VALIDATOR
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export function validatePlan(plan: ParsedPlan): PlanValidationResult {
+  // Extract metrics for each week
+  const weekMetrics = plan.weeks.map(extractWeekMetrics);
+
+  // Run all validation rules
+  const polarization = validatePolarization(weekMetrics);
+  const loadPattern = validateLoadPattern(weekMetrics);
+  const keySessions = validateKeySessions(weekMetrics);
+  const progression = validateProgression(weekMetrics);
+
+  // Combine all issues
+  const allIssues = [
+    ...polarization.issues,
+    ...loadPattern.issues,
+    ...keySessions.issues,
+    ...progression.issues,
+  ];
+
+  // Weighted score
+  const weights = { polarization: 0.30, loadPattern: 0.25, keySessions: 0.25, progression: 0.20 };
+  const weightedScore = Math.round(
+    polarization.score * weights.polarization +
+    loadPattern.score * weights.loadPattern +
+    keySessions.score * weights.keySessions +
+    progression.score * weights.progression
+  );
+
+  // Grade
+  const grade = weightedScore >= 85 ? "A" : weightedScore >= 70 ? "B" : weightedScore >= 55 ? "C" : weightedScore >= 40 ? "D" : "F";
+
+  // Summary comment
+  const errorCount = allIssues.filter(i => i.severity === "error").length;
+  const warningCount = allIssues.filter(i => i.severity === "warning").length;
+  const overallComment = errorCount === 0 && warningCount === 0
+    ? "✅ Plan conforme aux standards élite TFCL™"
+    : errorCount === 0
+    ? `⚠️ ${warningCount} avertissement(s) mineur(s) — plan globalement conforme`
+    : `❌ ${errorCount} problème(s) critique(s) et ${warningCount} avertissement(s) détectés`;
+
+  return {
+    score: weightedScore,
+    grade,
+    issues: allIssues,
+    weekMetrics,
+    summary: {
+      polarizationScore: polarization.score,
+      loadPatternScore: loadPattern.score,
+      keySessionsScore: keySessions.score,
+      progressionScore: progression.score,
+      overallComment,
+    },
+  };
+}
+
+/**
+ * Format validation result as a human-readable markdown string
+ */
+export function formatValidationReport(result: PlanValidationResult): string {
+  const lines: string[] = [];
+  
+  lines.push(`## 📊 Rapport Qualité TFCL™ — Score: ${result.score}/100 (${result.grade})`);
+  lines.push("");
+  lines.push(`| Critère | Score | Statut |`);
+  lines.push(`|---------|-------|--------|`);
+  lines.push(`| Polarisation 80/20 | ${result.summary.polarizationScore}/100 | ${result.summary.polarizationScore >= 75 ? "✅" : result.summary.polarizationScore >= 50 ? "⚠️" : "❌"} |`);
+  lines.push(`| Décharge 3:1/2:1 | ${result.summary.loadPatternScore}/100 | ${result.summary.loadPatternScore >= 75 ? "✅" : result.summary.loadPatternScore >= 50 ? "⚠️" : "❌"} |`);
+  lines.push(`| Séances clés | ${result.summary.keySessionsScore}/100 | ${result.summary.keySessionsScore >= 75 ? "✅" : result.summary.keySessionsScore >= 50 ? "⚠️" : "❌"} |`);
+  lines.push(`| Progression volume | ${result.summary.progressionScore}/100 | ${result.summary.progressionScore >= 75 ? "✅" : result.summary.progressionScore >= 50 ? "⚠️" : "❌"} |`);
+  lines.push("");
+  lines.push(`**${result.summary.overallComment}**`);
+
+  if (result.issues.length > 0) {
+    lines.push("");
+    lines.push("### Détails");
+    
+    const errors = result.issues.filter(i => i.severity === "error");
+    const warnings = result.issues.filter(i => i.severity === "warning");
+
+    if (errors.length > 0) {
+      lines.push("\n**❌ Erreurs critiques :**");
+      errors.forEach(e => lines.push(`- ${e.message}`));
+    }
+    if (warnings.length > 0) {
+      lines.push("\n**⚠️ Avertissements :**");
+      warnings.slice(0, 10).forEach(w => lines.push(`- ${w.message}`));
+      if (warnings.length > 10) lines.push(`- ... et ${warnings.length - 10} autres`);
+    }
+  }
+
+  return lines.join("\n");
+}
