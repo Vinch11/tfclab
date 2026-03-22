@@ -816,7 +816,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [120, 145],
     metricKey: "puissance", sportKey: "cyclisme",
     structure: mk([
-      ["Main", "2h position aéro: 1ère heure Z2 haut (78% FTP) + 2ème heure Z3 (85% FTP). Nutrition 70-80g/h. Pacing: ne JAMAIS partir au-dessus de 78% 1ère heure", ["Z2", "Z3"]]
+      ["Warm-up", "15' progressif Z1→Z2", ["Z1", "Z2"]],
+      ["Main", "1h45 position aéro: 1ère heure Z2 haut (78% FTP) + 2ème partie Z3 (85% FTP). Nutrition 70-80g/h. Pacing: ne JAMAIS partir au-dessus de 78% 1ère heure", ["Z2", "Z3"]],
+      ["Cool-down", "10' Z1 souple", ["Z1"]]
     ]),
     variants: { half: "2h split négatif 78%→85% FTP" },
     goals: GOALS_703,
