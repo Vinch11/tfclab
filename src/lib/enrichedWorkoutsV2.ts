@@ -470,9 +470,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [45, 60],
     metricKey: "allure", sportKey: "natation",
     structure: mk([
-      ["Warm-up", "300m facile varié", ["Z1", "Z2"]],
-      ["Main", "6 x (100m catch-up Z1 + 100m nage complète Z2). Focus: entrée main devant épaule, coude haut, prise d'eau loin devant. Compter coups/25m", ["Z1", "Z2"]],
-      ["Cool-down", "200m dos", ["Z1"]]
+      ["Warm-up", "300m facile varié (100 NL + 100 dos + 100 pull)", ["Z1", "Z2"]],
+      ["Main", "6 x (100m catch-up Z1 + 100m nage complète Z2). Focus: entrée main devant épaule, coude haut, prise d'eau loin devant. Compter coups/25m. + 4x50m point fermé Z2 + 4x50m doggy paddle Z1", ["Z1", "Z2"]],
+      ["Cool-down", "200m dos souple", ["Z1"]]
     ]),
     variants: {},
     goals: GOALS_ALL,
