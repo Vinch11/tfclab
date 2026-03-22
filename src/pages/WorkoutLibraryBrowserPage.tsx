@@ -59,6 +59,8 @@ function normalizeSport(s: string): string {
 }
 
 export default function WorkoutLibraryBrowserPage() {
+  const [activeTab, setActiveTab] = useState("planning");
+  const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
   const [search, setSearch] = useState("");
   const [sportFilter, setSportFilter] = useState("all");
   const [phaseFilter, setPhaseFilter] = useState("all");
