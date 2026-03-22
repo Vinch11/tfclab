@@ -37,6 +37,7 @@ export interface LibraryWorkout {
   objectif: string;
   necessite: NecessityLevel;
   when: string;
+  phase?: PhaseTag[];
   avoid: string;
   durationMin: [number, number];
   metricKey: TrainingMetric;
