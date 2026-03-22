@@ -3765,10 +3765,34 @@ function buildUserPrompt(data: any, config: any): string {
     lines.push("- Accent VMA + seuil. Minimum 4-5 séances CAP/sem.");
     lines.push("- Séances types : EF Z2, Tempo allure semi, VMA 30/30, Seuil 2×20min, SL 15-20km, Fartlek, Côtes");
     lines.push("- Vélo optionnel : max 1-2x/sem, 45-60min Z1-Z2 uniquement");
-  } else if (["TRAIL", "TRAILSHORT", "TRAILMOUNTAIN", "TRAILULTRA"].includes(obj)) {
-    lines.push("\n### ⚠️ RAPPEL COHÉRENCE TRAIL");
-    lines.push("- CAP/Trail 70-80% | Renfo spécifique 20-25% | Vélo Z1 optionnel 5%");
-    lines.push("- Force excentrique, côtes, proprioception obligatoires");
+  } else if (obj === "TRAILULTRA") {
+    lines.push("\n### ⚠️ RAPPEL COHÉRENCE TRAIL ULTRA (>80km)");
+    lines.push("- CAP/Trail 65-75% | Renfo 15-20% | Vélo cross-training Z1 5-10%");
+    lines.push("- D+ progressif : base 1500m/sem → build 4000m/sem → peak 5000-6000m/sem");
+    lines.push("- Back-to-back weekends OBLIGATOIRES en Build/Peak");
+    lines.push("- Simulation ultra 6-8h : 1x/mois en Build, 1x en Peak");
+    lines.push("- Simulation nuit OBLIGATOIRE : 2-3 sorties nocturnes");
+    lines.push("- Force excentrique lourde 2x/sem + proprioception avancée");
+    lines.push("- Gut Training progressif 40→90g/h testé en simulation");
+    lines.push("- Bâtons : entraînement spécifique si utilisés en course");
+    lines.push("- Taper ultra = 14-21j (plus long que route)");
+  } else if (obj === "TRAILMOUNTAIN") {
+    lines.push("\n### ⚠️ RAPPEL COHÉRENCE TRAIL MONTAGNE (42-80km)");
+    lines.push("- CAP/Trail 70-80% | Renfo 15-20% | Vélo cross-training Z1 5-10%");
+    lines.push("- D+ progressif : base 1000m/sem → build 3000m/sem → peak 4000m/sem");
+    lines.push("- Back-to-back weekends en Build/Peak (SL samedi + SL dimanche)");
+    lines.push("- Seuil montée long 2x/sem. Descente technique 1x/sem");
+    lines.push("- Force excentrique lourd 2x/sem + proprioception");
+    lines.push("- Simulation nuit : 1-2 sorties en Peak");
+    lines.push("- Gut Training progressif 40→70g/h");
+  } else if (["TRAIL", "TRAILSHORT"].includes(obj)) {
+    lines.push("\n### ⚠️ RAPPEL COHÉRENCE TRAIL COURT (<42km)");
+    lines.push("- CAP/Trail 70-80% | Renfo 20-25% | Vélo Z1 optionnel 0-5%");
+    lines.push("- D+ progressif : base 500m/sem → build 1500m/sem → peak 2000m/sem");
+    lines.push("- VMA côtes 2x/sem + seuil montée 1x/sem + descente technique 1x/sem");
+    lines.push("- Force excentrique prioritaire (prévention quadriceps)");
+    lines.push("- Proprioception obligatoire (Bosu, single leg, terrain instable)");
+    lines.push("- Séances TOUJOURS en terrain trail/sentier, jamais route");
   } else if (["10K", "10KM", "5K"].includes(obj)) {
     lines.push(`\n### ⚠️ RAPPEL COHÉRENCE ${obj}`);
     lines.push("- CAP 75-85% | Renfo 10-15% | Vélo cross-training Z1-Z2 max 5-10%");
