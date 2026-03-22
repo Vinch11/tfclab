@@ -706,7 +706,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [35, 45],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mk([
-      ["Main", "4 séries: Tractions (ou assistées) 6-8 + Développé haltères 8-10 + Rowing 1 bras 8/côté + Face pull élastique 15 + Dips (ou assistés) 8. R:2' inter-séries", []]
+      ["Warm-up", "5' mobilité épaules (bande élastique dislocations, cercles bras, rotations externes) + 2×10 pompes légères", []],
+      ["Main", "4 séries (R:2'): Tractions (ou assistées) 6-8 + Développé haltères 8-10 + Rowing 1 bras 8/côté + Face pull élastique 15 + Dips (ou assistés) 8 + Curl biceps haltères 10 + Y-raise prone 12", []],
+      ["Cool-down", "5' étirements pectoraux, dorsaux, biceps, épaules", []]
     ]),
     variants: { ironman: "2x/sem Build", half: "1-2x/sem" },
     goals: GOALS_TRI,
