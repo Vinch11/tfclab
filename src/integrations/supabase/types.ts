@@ -986,7 +986,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           duration_min?: number
-          id?: string
+          id: string
           intensity_tag?: string | null
           phase_tag: string
           sport: string

@@ -1,0 +1,127 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  try {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "No auth" }), { status: 401, headers: corsHeaders });
+    }
+
+    // Verify user is authenticated
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const anonClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user }, error: authError } = await anonClient.auth.getUser();
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
+    }
+
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
+
+    const { workouts } = await req.json();
+
+    if (!Array.isArray(workouts) || workouts.length === 0) {
+      return new Response(JSON.stringify({ error: "No workouts provided" }), { status: 400, headers: corsHeaders });
+    }
+
+    // Map to DB schema
+    const rows = workouts.map((w: any) => ({
+      id: w.id,
+      title: w.title || w.objectif?.slice(0, 80) || w.id,
+      type: w.cat || "A",
+      sport: w.sport || w.sportKey || "mixed",
+      phase_tag: Array.isArray(w.phase) ? w.phase.join(",") : w.phase || "base",
+      intensity_tag: extractIntensity(w),
+      duration_min: Array.isArray(w.durationMin) 
+        ? Math.round((w.durationMin[0] + w.durationMin[1]) / 2) 
+        : w.durationMin || 60,
+      description: buildDescription(w),
+    }));
+
+    // Deduplicate by ID (keep first occurrence)
+    const seen = new Set<string>();
+    const uniqueRows = rows.filter((r: any) => {
+      if (seen.has(r.id)) return false;
+      seen.add(r.id);
+      return true;
+    });
+
+    // Delete all existing
+    const { error: deleteError } = await supabase
+      .from("workouts_library")
+      .delete()
+      .neq("id", "__impossible__");
+    
+    if (deleteError) {
+      console.error("Delete error:", deleteError);
+    }
+
+    // Insert in batches of 50
+    let inserted = 0;
+    const errors: string[] = [];
+    for (let i = 0; i < uniqueRows.length; i += 50) {
+      const batch = uniqueRows.slice(i, i + 50);
+      const { error } = await supabase.from("workouts_library").insert(batch);
+      if (error) {
+        errors.push(`Batch ${i}: ${error.message}`);
+        console.error(`Batch ${i} error:`, error);
+      } else {
+        inserted += batch.length;
+      }
+    }
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        inserted, 
+        deduplicated: rows.length - uniqueRows.length,
+        total: uniqueRows.length, 
+        errors 
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  } catch (err) {
+    console.error("Sync error:", err);
+    return new Response(
+      JSON.stringify({ error: err.message }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+});
+
+function extractIntensity(w: any): string | null {
+  if (!w.structure || !Array.isArray(w.structure)) return w.metricKey || null;
+  const mainPart = w.structure.find((s: any) => s.part === "Main");
+  if (mainPart?.zones?.length) return mainPart.zones[0];
+  return w.metricKey || null;
+}
+
+function buildDescription(w: any): string {
+  const parts: string[] = [];
+  if (w.objectif) parts.push(w.objectif);
+  if (w.when) parts.push(`Quand: ${w.when}`);
+  if (w.necessite) parts.push(`Priorité: ${w.necessite}`);
+  if (Array.isArray(w.structure)) {
+    for (const s of w.structure) {
+      parts.push(`${s.part}: ${s.text}`);
+    }
+  }
+  if (w.variants) {
+    const v = Object.entries(w.variants).map(([k, val]) => `${k}: ${val}`).join(" | ");
+    if (v) parts.push(`Variantes: ${v}`);
+  }
+  if (w.notes) parts.push(w.notes);
+  return parts.join(". ").slice(0, 2000);
+}
