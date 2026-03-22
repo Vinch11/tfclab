@@ -297,7 +297,9 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [55, 90],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["Main", "60-90' Z2 strict à jeun. Eau + sel OK. Café noir OK. Attention: si vertige → arrêter + manger", ["Z2"]]
+      ["Warm-up", "5' marche rapide puis trot très léger Z1", ["Z1"]],
+      ["Main", "55-85' Z2 strict à jeun. Eau + sel OK. Café noir OK. Attention: si vertige → arrêter + manger", ["Z2"]],
+      ["Cool-down", "5' marche + étirements légers. Manger dans les 30min post-séance", ["Z1"]]
     ]),
     variants: { ironman: "90' Z2 fasted + petit déj après", marathon: "75' Z2 fasted", half: "60' Z2 fasted" },
     goals: [...GOALS_ALL],
