@@ -602,7 +602,7 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     when: "Build/Spécifique",
     phase: ["build"],
     avoid: "Épaule instable",
-    durationMin: [50, 65],
+    durationMin: [60, 80],
     metricKey: "allure", sportKey: "natation",
     structure: mk([
       ["Warm-up", "300m facile + 4x50m éducatifs", ["Z1", "Z2"]],
