@@ -388,7 +388,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [120, 180],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["Main", "2h-3h terrain vallonné sur jambes fatiguées. Z2 stricte (pas de Z3). Focus: gestion effort, nutrition, mental. Apprendre à avancer fatigué", ["Z1", "Z2"]]
+      ["Warm-up", "10' marche→trot Z1", ["Z1"]],
+      ["Main", "1h50-2h50 terrain vallonné sur jambes fatiguées. Z2 stricte (pas de Z3). Focus: gestion effort, nutrition, mental. Apprendre à avancer fatigué", ["Z1", "Z2"]],
+      ["Cool-down", "10' marche + étirements", ["Z1"]]
     ]),
     variants: {},
     goals: GOALS_TRAIL,
