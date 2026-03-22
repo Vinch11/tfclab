@@ -630,7 +630,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [20, 30],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mk([
-      ["Main", "Circuit 2-3x: Clamshell 15/côté + Monster walk élastique 20 pas + Fire hydrant 12/côté + 90/90 stretch 30\"/côté + Pigeon pose 45\"/côté. R:1'", []]
+      ["Warm-up", "5' marche + mobilité hanche (cercles, balancier jambes, rotations internes/externes)", []],
+      ["Main", "Circuit 2-3x (R:1'): Clamshell élastique 15/côté + Monster walk élastique 20 pas + Fire hydrant 12/côté + 90/90 stretch 30\"/côté + Pigeon pose 45\"/côté + Couch stretch 30\"/côté + Adducteur slider 10/côté", []],
+      ["Cool-down", "3' étirements statiques psoas + respiration profonde", []]
     ]),
     variants: {},
     goals: GOALS_ALL,
