@@ -2470,10 +2470,21 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
       return "";
     }
 
-    // For non-chunked plans, inject a general catalog (build phase as default)
-    const generalCatalog = getWorkoutCatalogForPhase("build");
-    if (generalCatalog) {
-      userPrompt += "\n\n" + generalCatalog;
+    // For non-chunked plans, inject ALL phase catalogs (plan covers all phases)
+    const monoblocCatalogParts: string[] = [];
+    for (const phaseKey of ["base", "build", "peak", "taper"]) {
+      const cat = getWorkoutCatalogForPhase(phaseKey);
+      if (cat && !monoblocCatalogParts.includes(cat)) {
+        monoblocCatalogParts.push(cat);
+      }
+    }
+    if (monoblocCatalogParts.length > 0) {
+      // Deduplicate: if all phases return the same catalog, inject once
+      const uniqueCatalogs = [...new Set(monoblocCatalogParts)];
+      userPrompt += "\n\n" + uniqueCatalogs.join("\n\n");
+      userPrompt += `\n\n→ Utilise PRIORITAIREMENT les séances du catalogue ci-dessus.
+→ Si AUCUNE séance ne correspond, tu peux CRÉER une séance [Custom] en respectant le format et la méthodologie.
+→ Ratio cible : ≥80% séances catalogue, ≤20% séances custom.`;
     }
 
     const totalWeeks = planConfig?.weeksAvailable || 12;
