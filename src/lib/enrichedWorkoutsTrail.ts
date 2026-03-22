@@ -437,11 +437,13 @@ const TRAIL_C: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Build",
     phase: ["build"],
-    avoid: "—",
+    avoid: "Veille de sortie longue ou back-to-back",
     durationMin: [40, 55],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mkStructure([
-      ["Main", "Step-ups lestés 4×12, fentes bulgares 3×10, hip thrust 3×12, mollets 3×15, gainage anti-rotation 3×40s", []]
+      ["Warm-up", "10' mobilité dynamique hanches + activation fessiers", []],
+      ["Main", "Step-ups lestés 4×12, fentes bulgares 3×10, hip thrust 3×12, mollets 3×15, gainage anti-rotation 3×40s", []],
+      ["Cool-down", "5' étirements quadriceps/psoas", []]
     ]),
     variants: {},
     goals: TRAIL_GOALS_ALL,
@@ -454,11 +456,13 @@ const TRAIL_C: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Build/Peak",
     phase: ["build", "peak"],
-    avoid: "—",
+    avoid: "Lombalgie aiguë ou hernie discale symptomatique",
     durationMin: [30, 45],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mkStructure([
-      ["Main", "Dead bug 4×12, pallof press 3×12, planche latérale 3×40s, bird dog 3×10, farmer walk 3×30m", []]
+      ["Warm-up", "5' mobilité colonne + activation core (cat-cow, bird dog léger)", []],
+      ["Main", "Dead bug 4×12, pallof press 3×12, planche latérale 3×40s, bird dog 3×10, farmer walk 3×30m", []],
+      ["Cool-down", "5' étirements psoas/dorsaux", []]
     ]),
     variants: { trail_ultra: "Volume double, enchaîné peu de repos" },
     goals: TRAIL_GOALS_MTN_ULTRA,
@@ -471,11 +475,13 @@ const TRAIL_C: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Base/Build",
     phase: ["base", "build"],
-    avoid: "Douleur articulaire",
+    avoid: "Douleur articulaire, veille de sortie longue",
     durationMin: [25, 40],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mkStructure([
-      ["Main", "Box jumps 4×8, drop jumps 3×6, sauts latéraux 3×10, fentes sautées 3×8, jump squats 3×10", []]
+      ["Warm-up", "10' mobilité dynamique + 3×10 montées genoux", []],
+      ["Main", "Box jumps 4×8, drop jumps 3×6, sauts latéraux 3×10, fentes sautées 3×8, jump squats 3×10. R:90\" entre séries", []],
+      ["Cool-down", "5' étirements mollets/quadriceps", []]
     ]),
     variants: {},
     goals: TRAIL_GOALS_ALL,
@@ -488,11 +494,13 @@ const TRAIL_C: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Build/Peak",
     phase: ["build", "peak"],
-    avoid: "Veille de B2B",
+    avoid: "Veille de back-to-back ou séance longue",
     durationMin: [40, 55],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mkStructure([
-      ["Main", "Circuit enchaîné (peu de repos) : squat excentrique 3×10, burpees 3×8, step-ups 3×15, gainage 4×50s, fentes marchées 3×12", []]
+      ["Warm-up", "10' mobilité dynamique + activation (jumping jacks, montées genoux)", []],
+      ["Main", "Circuit enchaîné (30\" repos inter-exo) : squat excentrique 3×10, burpees 3×8, step-ups 3×15, gainage 4×50s, fentes marchées 3×12. R:2' entre tours", []],
+      ["Cool-down", "5' étirements + foam roller rapide", []]
     ]),
     variants: {},
     goals: TRAIL_GOALS_ULTRA,

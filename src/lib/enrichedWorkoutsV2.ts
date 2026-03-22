@@ -139,7 +139,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [150, 210],
     metricKey: "puissance", sportKey: "cyclisme",
     structure: mk([
-      ["Main", "2h30-3h30 Z2 bas (65-72% FTP). Ravitaillement modéré (40-50g/h). Cadence confortable 80-90rpm. Respiration nasale possible = bon signe", ["Z2"]]
+      ["Warm-up", "15' progressif Z1→Z2, cadence 80rpm", ["Z1", "Z2"]],
+      ["Main", "2h15-3h15 Z2 bas (65-72% FTP). Ravitaillement modéré (40-50g/h). Cadence confortable 80-90rpm. Respiration nasale possible = bon signe", ["Z2"]],
+      ["Cool-down", "10' Z1 souple", ["Z1"]]
     ]),
     variants: { ironman: "3h30 Z2 bas FatMax", half: "2h30 Z2 bas" },
     goals: GOALS_TRI,
@@ -156,7 +158,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [80, 120],
     metricKey: "puissance", sportKey: "cyclisme",
     structure: mk([
-      ["Main", "90-120' Z2 bas (65-72% FTP) à jeun. Eau + sel uniquement. Café noir OK. Emporter gel de secours. Si vertige → manger immédiatement", ["Z2"]]
+      ["Warm-up", "10' Z1 très souple, cadence libre", ["Z1"]],
+      ["Main", "70-110' Z2 bas (65-72% FTP) à jeun. Eau + sel uniquement. Café noir OK. Emporter gel de secours. Si vertige → manger immédiatement", ["Z2"]],
+      ["Cool-down", "10' Z1 souple. Petit-déjeuner riche dans les 30min post", ["Z1"]]
     ]),
     variants: { ironman: "120' Z2 fasted", half: "90' Z2 fasted" },
     goals: GOALS_TRI,
@@ -280,7 +284,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [100, 140],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["Main", "1h40-2h20 Z2 avec 4-6 inserts de 5' Z3 (allure marathon +10\"/km) toutes les 25-30'. Volume aérobie + rappel tempo. Nutrition 40-60g/h", ["Z2", "Z3"]]
+      ["Warm-up", "10' trot Z1 progressif", ["Z1"]],
+      ["Main", "1h30-2h10 Z2 avec 4-6 inserts de 5' Z3 (allure marathon +10\"/km) toutes les 25-30'. Volume aérobie + rappel tempo. Nutrition 40-60g/h", ["Z2", "Z3"]],
+      ["Cool-down", "10' trot Z1 décrescendo", ["Z1"]]
     ]),
     variants: { marathon: "6 inserts de 5' Z3 dans 2h20", semi: "4 inserts de 5' Z3 dans 1h40" },
     goals: GOALS_RUN,
@@ -297,7 +303,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [100, 130],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["Main", "2h Z2 stable sans glucides (eau + sel uniquement). Emporter gel de secours. Manger dans les 30min post. Adaptation fat ox", ["Z2"]]
+      ["Warm-up", "10' trot Z1", ["Z1"]],
+      ["Main", "1h50 Z2 stable sans glucides (eau + sel uniquement). Emporter gel de secours.", ["Z2"]],
+      ["Cool-down", "10' marche. Manger dans les 30min post. Adaptation fat ox", ["Z1"]]
     ]),
     variants: { marathon: "2h sans glucides", ironman: "2h → 2h15 (progression)" },
     goals: [...GOALS_MAR, ...GOALS_IM],
@@ -318,7 +326,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [75, 100],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["Main", "75-100' Z2/Z3 (allure marathon/IM). Ingérer gel/boisson toutes les 15-20'. Progresser de 60→90g/h sur 4-6 séances. Noter tout inconfort GI", ["Z2", "Z3"]]
+      ["Warm-up", "10' trot Z1→Z2 progressif", ["Z1", "Z2"]],
+      ["Main", "60-85' Z2/Z3 (allure marathon/IM). Ingérer gel/boisson toutes les 15-20'. Progresser de 60→90g/h sur 4-6 séances. Noter tout inconfort GI", ["Z2", "Z3"]],
+      ["Cool-down", "5' marche. Bilan tolérance digestive", ["Z1"]]
     ]),
     variants: { ironman: "90' Z2/Z3 — target 80-90g/h", marathon: "75' Z3 — target 60-80g/h" },
     goals: [...GOALS_IM, ...GOALS_MAR],
@@ -335,7 +345,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [120, 180],
     metricKey: "puissance", sportKey: "cyclisme",
     structure: mk([
-      ["Main", "2-3h Z2/Z3 (allure IM). Ingérer boisson + gel/barre toutes les 15-20'. Target: 80→100g/h glucides. Varier sources: maltodextrine, fructose, gel, solide. Noter tolérance", ["Z2", "Z3"]]
+      ["Warm-up", "15' progressif Z1→Z2", ["Z1", "Z2"]],
+      ["Main", "1h45-2h45 Z2/Z3 (allure IM). Ingérer boisson + gel/barre toutes les 15-20'. Target: 80→100g/h glucides. Varier sources: maltodextrine, fructose, gel, solide. Noter tolérance", ["Z2", "Z3"]],
+      ["Cool-down", "10' Z1 souple", ["Z1"]]
     ]),
     variants: { ironman: "3h Z2 — target 90-100g/h", half: "2h Z3 — target 80g/h" },
     goals: GOALS_TRI,
@@ -356,7 +368,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [180, 240],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["Main", "3h-4h terrain montagneux. Z2 montée, technique descente. D+ ciblé. Nutrition réelle (60-80g/h). Bâtons obligatoires >3h", ["Z1", "Z2", "Z3"]]
+      ["Warm-up", "15' marche→trot progressif Z1", ["Z1"]],
+      ["Main", "2h45-3h45 terrain montagneux. Z2 montée, technique descente. D+ ciblé. Nutrition réelle (60-80g/h). Bâtons obligatoires >3h", ["Z1", "Z2", "Z3"]],
+      ["Cool-down", "15' marche retour + étirements debout", ["Z1"]]
     ]),
     variants: {},
     goals: GOALS_TRAIL,
@@ -374,7 +388,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [120, 180],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["Main", "2h-3h terrain vallonné sur jambes fatiguées. Z2 stricte (pas de Z3). Focus: gestion effort, nutrition, mental. Apprendre à avancer fatigué", ["Z1", "Z2"]]
+      ["Warm-up", "10' marche→trot Z1", ["Z1"]],
+      ["Main", "1h50-2h50 terrain vallonné sur jambes fatiguées. Z2 stricte (pas de Z3). Focus: gestion effort, nutrition, mental. Apprendre à avancer fatigué", ["Z1", "Z2"]],
+      ["Cool-down", "10' marche + étirements", ["Z1"]]
     ]),
     variants: {},
     goals: GOALS_TRAIL,
@@ -392,7 +408,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [180, 300],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["Main", "3-5h alternance: 10' course Z2 / 5' marche rapide (côtes). Jamais arrêt complet. Bâtons. Nutrition 50-70g/h. Simuler stratégie course ultra", ["Z1", "Z2"]]
+      ["Warm-up", "10' marche progressive", ["Z1"]],
+      ["Main", "2h50-4h50 alternance: 10' course Z2 / 5' marche rapide (côtes). Jamais arrêt complet. Bâtons. Nutrition 50-70g/h. Simuler stratégie course ultra", ["Z1", "Z2"]],
+      ["Cool-down", "10' marche retour + étirements", ["Z1"]]
     ]),
     variants: {},
     goals: GOALS_TRAIL,
@@ -429,7 +447,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [35, 50],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["Main", "35-50' sur sentier technique (racines, pierres, single track). Z2 cardio. Focus: placement pied, anticipation obstacles, cadence adaptée au terrain", ["Z2"]]
+      ["Warm-up", "10' marche→trot Z1 + 5' mobilité chevilles", ["Z1"]],
+      ["Main", "25-40' sur sentier technique (racines, pierres, single track). Z2 cardio. Focus: placement pied, anticipation obstacles, cadence adaptée au terrain", ["Z2"]],
+      ["Cool-down", "5' marche + étirements chevilles/mollets", ["Z1"]]
     ]),
     variants: {},
     goals: GOALS_TRAIL,
@@ -754,7 +774,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [270, 310],
     metricKey: "puissance", sportKey: "cyclisme",
     structure: mk([
-      ["Main", "4h30-5h Z2 (68-75% FTP) position aéro. 3-4 blocs de 30' Z3. Nutrition 80-100g/h identique race. Hydratation 750ml/h. C'est la répétition générale vélo", ["Z2", "Z3"]]
+      ["Warm-up", "15' progressif Z1→Z2", ["Z1", "Z2"]],
+      ["Main", "4h15-4h45 Z2 (68-75% FTP) position aéro. 3-4 blocs de 30' Z3. Nutrition 80-100g/h identique race. Hydratation 750ml/h. C'est la répétition générale vélo", ["Z2", "Z3"]],
+      ["Cool-down", "10' Z1 souple", ["Z1"]]
     ]),
     variants: { ironman: "5h complètes + nutrition race" },
     goals: GOALS_IM,
@@ -794,7 +816,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [120, 145],
     metricKey: "puissance", sportKey: "cyclisme",
     structure: mk([
-      ["Main", "2h position aéro: 1ère heure Z2 haut (78% FTP) + 2ème heure Z3 (85% FTP). Nutrition 70-80g/h. Pacing: ne JAMAIS partir au-dessus de 78% 1ère heure", ["Z2", "Z3"]]
+      ["Warm-up", "15' progressif Z1→Z2", ["Z1", "Z2"]],
+      ["Main", "1h45 position aéro: 1ère heure Z2 haut (78% FTP) + 2ème partie Z3 (85% FTP). Nutrition 70-80g/h. Pacing: ne JAMAIS partir au-dessus de 78% 1ère heure", ["Z2", "Z3"]],
+      ["Cool-down", "10' Z1 souple", ["Z1"]]
     ]),
     variants: { half: "2h split négatif 78%→85% FTP" },
     goals: GOALS_703,

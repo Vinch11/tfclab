@@ -297,7 +297,9 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [55, 90],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["Main", "60-90' Z2 strict à jeun. Eau + sel OK. Café noir OK. Attention: si vertige → arrêter + manger", ["Z2"]]
+      ["Warm-up", "5' marche rapide puis trot très léger Z1", ["Z1"]],
+      ["Main", "55-85' Z2 strict à jeun. Eau + sel OK. Café noir OK. Attention: si vertige → arrêter + manger", ["Z2"]],
+      ["Cool-down", "5' marche + étirements légers. Manger dans les 30min post-séance", ["Z1"]]
     ]),
     variants: { ironman: "90' Z2 fasted + petit déj après", marathon: "75' Z2 fasted", half: "60' Z2 fasted" },
     goals: [...GOALS_ALL],
@@ -314,7 +316,9 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [50, 70],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["Main", "50-70' Z2 matin à jeun. APRÈS séance HIT veille soir sans recharge glucidique. Adaptation mitochondriale ++", ["Z2"]]
+      ["Warm-up", "5' marche puis trot très léger Z1", ["Z1"]],
+      ["Main", "45-60' Z2 strict matin à jeun. APRÈS séance HIT veille soir sans recharge glucidique. Adaptation mitochondriale ++", ["Z2"]],
+      ["Cool-down", "5' marche. Petit-déjeuner riche en protéines + glucides dans les 30min", ["Z1"]]
     ]),
     variants: { ironman: "70' Z2", marathon: "60' Z2" },
     goals: [...GOALS_TRI, ...GOALS_MAR],
@@ -331,7 +335,9 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [90, 130],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["Main", "Z2 stable 70-100'. Derniers 20-30' progressif Z3→Z4. Objectif: negative split malgré fatigue accumulée", ["Z2", "Z3", "Z4"]]
+      ["Warm-up", "10' trot progressif Z1→Z2", ["Z1", "Z2"]],
+      ["Main", "60-90' Z2 stable. Derniers 20-30' progressif Z3→Z4. Objectif: negative split malgré fatigue accumulée", ["Z2", "Z3", "Z4"]],
+      ["Cool-down", "10' trot Z1 décrescendo + étirements", ["Z1"]]
     ]),
     variants: { marathon: "2h total, 30' finish Z3/Z4", semi: "1h30, 20' finish Z4", ironman: "1h45, 25' finish Z3" },
     goals: GOALS_ALL,
@@ -508,7 +514,9 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [150, 210],
     metricKey: "puissance", sportKey: "cyclisme",
     structure: mk([
-      ["Main", "2h Z2 stable + 45-60' Z3 progressif (fin à 85% FTP). Nutrition 80-90g/h glucides. Negative split watts", ["Z2", "Z3"]]
+      ["Warm-up", "15' progressif Z1→Z2", ["Z1", "Z2"]],
+      ["Main", "1h45 Z2 stable + 45-60' Z3 progressif (fin à 85% FTP). Nutrition 80-90g/h glucides. Negative split watts", ["Z2", "Z3"]],
+      ["Cool-down", "10' Z1 souple", ["Z1"]]
     ]),
     variants: { ironman: "3h total", half: "2h30 total" },
     goals: GOALS_TRI,
@@ -725,7 +733,9 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [150, 240],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["Main", "2h30-4h en terrain montagneux. Z2 montée / technique descente. Bâtons si course >3h. Nutrition 60g/h glucides", ["Z1", "Z2", "Z3"]]
+      ["Warm-up", "15' marche→trot progressif sur terrain plat", ["Z1"]],
+      ["Main", "2h15-3h45 terrain montagneux. Z2 montée / technique descente. Bâtons si course >3h. Nutrition 60g/h glucides", ["Z1", "Z2", "Z3"]],
+      ["Cool-down", "15' marche retour + étirements debout", ["Z1"]]
     ]),
     variants: {},
     goals: GOALS_TRAIL,
@@ -743,7 +753,9 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [60, 90],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["Main", "60-90' marche rapide en côte raide (>15%). Z2/Z3 cardio avec bâtons. Focus: cadence pas 45-55/min, posture droite", ["Z2", "Z3"]]
+      ["Warm-up", "10' marche progressive plat→pente douce", ["Z1"]],
+      ["Main", "45-70' marche rapide en côte raide (>15%). Z2/Z3 cardio avec bâtons. Focus: cadence pas 45-55/min, posture droite", ["Z2", "Z3"]],
+      ["Cool-down", "10' marche retour Z1 + étirements mollets/quadriceps", ["Z1"]]
     ]),
     variants: {},
     goals: GOALS_TRAIL,
