@@ -733,7 +733,9 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [150, 240],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["Main", "2h30-4h en terrain montagneux. Z2 montée / technique descente. Bâtons si course >3h. Nutrition 60g/h glucides", ["Z1", "Z2", "Z3"]]
+      ["Warm-up", "15' marche→trot progressif sur terrain plat", ["Z1"]],
+      ["Main", "2h15-3h45 terrain montagneux. Z2 montée / technique descente. Bâtons si course >3h. Nutrition 60g/h glucides", ["Z1", "Z2", "Z3"]],
+      ["Cool-down", "15' marche retour + étirements debout", ["Z1"]]
     ]),
     variants: {},
     goals: GOALS_TRAIL,
