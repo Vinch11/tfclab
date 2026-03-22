@@ -915,7 +915,9 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [25, 40],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mk([
-      ["Main", "30-40' yoga flow: sun salutations + pigeon pose + frog stretch + hip circles + thread the needle. Respiration nasale 4-7-8", []]
+      ["Warm-up", "5' respiration consciente (4-7-8) + mouvements articulaires doux (cercles poignets, épaules, cou)", []],
+      ["Main", "20-30' yoga flow: 3×Sun salutations A + Warrior I/II 30\"/côté + Pigeon pose 60\"/côté + Frog stretch 2' + Hip circles 10/côté + Thread the needle 45\"/côté + Lizard pose 45\"/côté + Forward fold 60\" + Butterfly 60\"", []],
+      ["Cool-down", "5' savasana, respiration nasale profonde", []]
     ]),
     variants: {},
     goals: GOALS_ALL,
