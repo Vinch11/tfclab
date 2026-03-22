@@ -774,7 +774,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [270, 310],
     metricKey: "puissance", sportKey: "cyclisme",
     structure: mk([
-      ["Main", "4h30-5h Z2 (68-75% FTP) position aéro. 3-4 blocs de 30' Z3. Nutrition 80-100g/h identique race. Hydratation 750ml/h. C'est la répétition générale vélo", ["Z2", "Z3"]]
+      ["Warm-up", "15' progressif Z1→Z2", ["Z1", "Z2"]],
+      ["Main", "4h15-4h45 Z2 (68-75% FTP) position aéro. 3-4 blocs de 30' Z3. Nutrition 80-100g/h identique race. Hydratation 750ml/h. C'est la répétition générale vélo", ["Z2", "Z3"]],
+      ["Cool-down", "10' Z1 souple", ["Z1"]]
     ]),
     variants: { ironman: "5h complètes + nutrition race" },
     goals: GOALS_IM,
