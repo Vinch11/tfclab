@@ -856,7 +856,9 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [20, 30],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mk([
-      ["Main", "3x: Nordic curl 5 reps + RDL unilat 8/côté + Bridge unilat 12/côté + Glute-ham raise 8. R:90\"", []]
+      ["Warm-up", "5' activation: marche talons, good mornings poids de corps 10, glute bridge 2×10", []],
+      ["Main", "3x (R:90\"): Nordic curl 5 reps (excentrique 4-5s) + RDL unilat haltère 8/côté + Bridge unilat 12/côté + Glute-ham raise 8 + Leg curl excentrique 8 + Sliding hamstring curl 8", []],
+      ["Cool-down", "5' étirements ischio-jambiers, psoas, foam roller ischios", []]
     ]),
     variants: {},
     goals: GOALS_ALL,
