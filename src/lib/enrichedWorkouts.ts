@@ -837,7 +837,9 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [20, 30],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mk([
-      ["Main", "Circuit 3x: Pallof press 12/côté + Planche latérale 30\"/côté + Dead bug 10/côté + Bird dog 8/côté. R:1'", []]
+      ["Warm-up", "5' activation core: cat-cow 10 reps, glute bridge 10, bird dog léger 6/côté", []],
+      ["Main", "Circuit 3x (R:1'): Pallof press 12/côté + Planche latérale 30\"/côté + Dead bug 10/côté + Bird dog 8/côté + Chop anti-rotation câble/élastique 10/côté + Stir the pot swiss ball 8/côté", []],
+      ["Cool-down", "5' étirements psoas, dorsaux, respiration diaphragmatique", []]
     ]),
     variants: {},
     goals: GOALS_ALL,
