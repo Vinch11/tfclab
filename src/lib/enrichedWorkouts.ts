@@ -753,7 +753,9 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [60, 90],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["Main", "60-90' marche rapide en côte raide (>15%). Z2/Z3 cardio avec bâtons. Focus: cadence pas 45-55/min, posture droite", ["Z2", "Z3"]]
+      ["Warm-up", "10' marche progressive plat→pente douce", ["Z1"]],
+      ["Main", "45-70' marche rapide en côte raide (>15%). Z2/Z3 cardio avec bâtons. Focus: cadence pas 45-55/min, posture droite", ["Z2", "Z3"]],
+      ["Cool-down", "10' marche retour Z1 + étirements mollets/quadriceps", ["Z1"]]
     ]),
     variants: {},
     goals: GOALS_TRAIL,
