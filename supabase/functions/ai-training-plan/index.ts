@@ -135,7 +135,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { athleteData, planConfig, regenerateWeek, workoutCatalog } = await req.json();
+    const { athleteData, planConfig, regenerateWeek, workoutCatalog, phaseCatalogs } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -2344,9 +2344,35 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
       userPrompt = buildUserPrompt(athleteData, planConfig);
     }
 
-    // Inject workout catalog if provided by the frontend
-    if (workoutCatalog && typeof workoutCatalog === "string" && workoutCatalog.length > 0) {
-      userPrompt += "\n\n" + workoutCatalog;
+    // Resolve workout catalog for injection — phase-specific catalogs take priority
+    function getWorkoutCatalogForPhase(phase: string): string {
+      if (phaseCatalogs && typeof phaseCatalogs === "object") {
+        // Map active phase names to catalog keys
+        const phaseMap: Record<string, string> = {
+          "fondation": "base", "base": "base", "adaptation": "base",
+          "build": "build", "chantier": "build", "consolidation": "build", "développement": "build",
+          "spécifique": "peak", "peak": "peak", "race-specific": "peak", "compétition": "peak",
+          "affûtage": "taper", "taper": "taper", "pre-race": "taper",
+        };
+        const key = phaseMap[phase.toLowerCase()] || "build";
+        const catalog = phaseCatalogs[key];
+        if (catalog && typeof catalog === "string" && catalog.length > 0) return catalog;
+        // Fallback to any available catalog
+        for (const k of ["build", "base", "peak", "taper"]) {
+          if (phaseCatalogs[k]) return phaseCatalogs[k];
+        }
+      }
+      // Legacy: single workoutCatalog string
+      if (workoutCatalog && typeof workoutCatalog === "string" && workoutCatalog.length > 0) {
+        return workoutCatalog;
+      }
+      return "";
+    }
+
+    // For non-chunked plans, inject a general catalog (build phase as default)
+    const generalCatalog = getWorkoutCatalogForPhase("build");
+    if (generalCatalog) {
+      userPrompt += "\n\n" + generalCatalog;
     }
 
     const totalWeeks = planConfig?.weeksAvailable || 12;
@@ -2516,12 +2542,15 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
               // Sliding window summary — only last N chunks
               const slidingSummary = chunkSummaries.slice(-MAX_SUMMARY_CHUNKS).join("\n");
 
+              // Phase-specific workout catalog for this chunk
+              const chunkPhaseCatalog = getWorkoutCatalogForPhase(activePhase);
+
               let chunkPrompt: string;
               if (isFirst) {
                 const allChunksSummary = chunks.map(c => `Semaines ${c.start}-${c.end}`).join(", ");
                 // FIX C2 (audit): Inject structuredDiagnostic in chunk 1 to anchor phase bounds from the start
                 chunkPrompt = `${userPrompt}
-
+${chunkPhaseCatalog ? `\n${chunkPhaseCatalog}\n` : ""}
 ⚠️ GÉNÉRATION PAR BLOC : Génère UNIQUEMENT les semaines ${chunk.start} à ${chunk.end} (sur ${totalWeeks} total).
 
 📋 DIAGNOSTIC STRUCTURÉ (RÉFÉRENCE pour la cohérence du plan entier) :
@@ -2575,7 +2604,7 @@ IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${exp
                 }
 
                 chunkPrompt = `${userPrompt}
-
+${chunkPhaseCatalog ? `\n📚 CATALOGUE SÉANCES FILTRÉES POUR CETTE PHASE (${activePhase}) :\n${chunkPhaseCatalog}\n` : ""}
 ⚠️ GÉNÉRATION PAR BLOC (suite) : Génère UNIQUEMENT les semaines ${chunk.start} à ${chunk.end} (sur ${totalWeeks} total).
 NE PAS répéter le diagnostic ni le récapitulatif stratégique. NE PAS ajouter d'introduction.
 Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines : ${expectedWeeks.map(w => `Semaine ${w}`).join(", ")}.
@@ -2594,6 +2623,7 @@ ${recapSection}${multiObjChunkReminder}
 
 🔄 PHASE ACTIVE ESTIMÉE : ${activePhase}
 → Les séances clés de ce bloc doivent correspondre à cette phase ET aux limiteurs ci-dessus.
+→ Utilise PRIORITAIREMENT les séances du catalogue ci-dessus qui correspondent à cette phase.
 
 Résumé des blocs précédents (progression récente) :
 ${slidingSummary || "Premier bloc de continuation."}

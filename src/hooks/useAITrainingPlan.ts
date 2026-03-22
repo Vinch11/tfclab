@@ -96,15 +96,25 @@ export function useAITrainingPlan() {
     setChunkProgress(totalChunks > 1 ? { currentWeek: 0, totalWeeks, currentChunk: 1, totalChunks } : null);
 
     try {
-      // Build filtered workout catalog for AI injection
-      const catalog = buildWorkoutCatalog(
-        planConfig.objective || "",
-        1,
-        totalWeeks,
-        totalWeeks,
-        { maxItems: 30 }
-      );
-      const workoutCatalogMarkdown = serializeCatalogForPrompt(catalog);
+      // Build phase-specific workout catalogs for AI injection
+      const phaseCatalogs: Record<string, string> = {};
+      const phaseRanges: Array<{ phase: string; start: number; end: number }> = [
+        { phase: "base", start: 1, end: Math.ceil(totalWeeks * 0.35) },
+        { phase: "build", start: Math.ceil(totalWeeks * 0.25), end: Math.ceil(totalWeeks * 0.65) },
+        { phase: "peak", start: Math.ceil(totalWeeks * 0.55), end: Math.ceil(totalWeeks * 0.85) },
+        { phase: "taper", start: Math.ceil(totalWeeks * 0.80), end: totalWeeks },
+      ];
+
+      for (const pr of phaseRanges) {
+        const catalog = buildWorkoutCatalog(
+          planConfig.objective || "",
+          pr.start,
+          pr.end,
+          totalWeeks,
+          { maxItems: 25 }
+        );
+        phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
+      }
 
       const resp = await fetch(PLAN_URL, {
         method: "POST",
@@ -112,7 +122,7 @@ export function useAITrainingPlan() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ athleteData, planConfig, workoutCatalog: workoutCatalogMarkdown }),
+        body: JSON.stringify({ athleteData, planConfig, phaseCatalogs }),
       });
 
       if (resp.status === 429) {
