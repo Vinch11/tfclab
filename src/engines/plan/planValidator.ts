@@ -521,7 +521,7 @@ function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; sc
     }
   }
 
-  if (totalKeySessions === 0) {
+  if (totalKeySessions === 0 || plan.weeks.length < 4) {
     return { issues: [], score: 70, catalogPct: 0 };
   }
 
