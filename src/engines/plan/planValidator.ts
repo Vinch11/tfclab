@@ -58,6 +58,8 @@ export interface PlanValidationResult {
     loadPatternScore: number;
     keySessionsScore: number;
     progressionScore: number;
+    sportRatioScore: number;
+    catalogRatioScore: number;
     overallComment: string;
   };
 }
