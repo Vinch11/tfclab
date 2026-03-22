@@ -39,15 +39,6 @@ const sections = [
     color: "text-blue-500",
     bgColor: "bg-blue-500/10",
   },
-  {
-    id: "running-guidance",
-    title: "Running Guidance",
-    description: "Guide hebdomadaire d'entraînement course à pied avec recommandations de séances personnalisées",
-    icon: Footprints,
-    route: "/planning/running-guidance",
-    color: "text-green-500",
-    bgColor: "bg-green-500/10",
-  },
 ];
 
 export default function PlanningPage() {
