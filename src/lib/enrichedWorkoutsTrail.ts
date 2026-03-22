@@ -705,7 +705,9 @@ const TRAIL_D: LibraryWorkout[] = [
     durationMin: [20, 35],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mkStructure([
-      ["Main", "Foam roller 10', mobilité chevilles 5', mobilité hanches 5', étirements chaîne postérieure 5'", []]
+      ["Warm-up", "3' marche sur place + cercles chevilles et hanches", []],
+      ["Main", "Foam roller 8' (mollets, quadriceps, IT band, fessiers) + mobilité chevilles CARs 2×8/côté + 90/90 hanche 60\"/côté + pigeon pose 45\"/côté + étirements chaîne postérieure 3×30\" + rotation thoracique 8/côté", []],
+      ["Cool-down", "3' respiration diaphragmatique allongé", []]
     ]),
     variants: {},
     goals: TRAIL_GOALS_ALL,
