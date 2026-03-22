@@ -139,7 +139,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [150, 210],
     metricKey: "puissance", sportKey: "cyclisme",
     structure: mk([
-      ["Main", "2h30-3h30 Z2 bas (65-72% FTP). Ravitaillement modéré (40-50g/h). Cadence confortable 80-90rpm. Respiration nasale possible = bon signe", ["Z2"]]
+      ["Warm-up", "15' progressif Z1→Z2, cadence 80rpm", ["Z1", "Z2"]],
+      ["Main", "2h15-3h15 Z2 bas (65-72% FTP). Ravitaillement modéré (40-50g/h). Cadence confortable 80-90rpm. Respiration nasale possible = bon signe", ["Z2"]],
+      ["Cool-down", "10' Z1 souple", ["Z1"]]
     ]),
     variants: { ironman: "3h30 Z2 bas FatMax", half: "2h30 Z2 bas" },
     goals: GOALS_TRI,
