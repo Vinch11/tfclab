@@ -326,7 +326,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [75, 100],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["Main", "75-100' Z2/Z3 (allure marathon/IM). Ingérer gel/boisson toutes les 15-20'. Progresser de 60→90g/h sur 4-6 séances. Noter tout inconfort GI", ["Z2", "Z3"]]
+      ["Warm-up", "10' trot Z1→Z2 progressif", ["Z1", "Z2"]],
+      ["Main", "60-85' Z2/Z3 (allure marathon/IM). Ingérer gel/boisson toutes les 15-20'. Progresser de 60→90g/h sur 4-6 séances. Noter tout inconfort GI", ["Z2", "Z3"]],
+      ["Cool-down", "5' marche. Bilan tolérance digestive", ["Z1"]]
     ]),
     variants: { ironman: "90' Z2/Z3 — target 80-90g/h", marathon: "75' Z3 — target 60-80g/h" },
     goals: [...GOALS_IM, ...GOALS_MAR],
