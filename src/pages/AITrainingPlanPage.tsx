@@ -571,16 +571,24 @@ export default function AITrainingPlanPage() {
       if (!user) throw new Error("Non authentifié");
 
       const mapped = mapSessionsToDates(parsedPlan.weeks, planStartDate);
+      const phaseMap: Record<string, string> = {
+        base: "BASE",
+        build: "PHASE2",
+        peak: "PHASE3",
+        taper: "PHASE4",
+        race: "RACE",
+        off: "OFF",
+      };
       const rows = mapped
         .filter(m => !m.session.isRest)
         .map(({ session, date }) => ({
           athlete_id: currentAthlete.id,
           coach_id: user.id,
           date: format(date, "yyyy-MM-dd"),
-          phase: session.phase || null,
+          phase: session.phase ? (phaseMap[session.phase.toLowerCase()] || "BASE") : null,
           custom_workout_title: `${session.sport} — ${session.title}`,
           custom_workout_description: session.details || null,
-          status: "planned",
+          status: "PLANNED",
           notes: session.weekTheme ? `Semaine ${session.weekNumber}: ${session.weekTheme}` : null,
         }));
 
