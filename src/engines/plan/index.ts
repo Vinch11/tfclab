@@ -55,3 +55,14 @@ export {
   PLAN_ENGINE_VERSION,
   PLAN_ENGINE_DISCLAIMER,
 } from "./types";
+
+// Plan Validator
+export {
+  validatePlan,
+  formatValidationReport,
+} from "./planValidator";
+export type {
+  PlanValidationResult,
+  ValidationIssue,
+  WeekMetrics,
+} from "./planValidator";
