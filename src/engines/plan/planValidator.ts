@@ -383,10 +383,183 @@ function validateProgression(metrics: WeekMetrics[]): { issues: ValidationIssue[
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// SPORT RATIO VALIDATION (Rule 5)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const SPORT_RATIO_TARGETS: Record<string, { swim?: [number, number]; bike?: [number, number]; run?: [number, number] }> = {
+  IM:       { swim: [15, 20], bike: [45, 55], run: [25, 35] },
+  "703":    { swim: [15, 20], bike: [40, 50], run: [30, 40] },
+  Marathon: { run: [85, 100] },
+  Semi:     { run: [85, 100] },
+  "10K":    { run: [85, 100] },
+  Trail:    { run: [70, 85] },
+  TrailUltra: { run: [65, 80] },
+};
+
+function validateSportRatio(
+  metrics: WeekMetrics[],
+  objective?: string
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+
+  // Aggregate sport counts across all non-deload weeks
+  const totals: Record<string, number> = {};
+  for (const wm of metrics) {
+    if (wm.isDeload || wm.isRaceWeek) continue;
+    for (const [sport, count] of Object.entries(wm.sports)) {
+      totals[sport] = (totals[sport] || 0) + count;
+    }
+  }
+
+  // Only count primary sports (exclude Renfo, Repos)
+  const swim = (totals["Natation"] || 0);
+  const bike = (totals["Vélo"] || 0);
+  const run = (totals["Course"] || 0) + Math.round((totals["Brick"] || 0) * 0.5);
+  const bikeAdj = bike + Math.round((totals["Brick"] || 0) * 0.5);
+  const primaryTotal = swim + bikeAdj + run;
+
+  if (primaryTotal < 10) {
+    return { issues: [], score: 80 }; // Not enough data
+  }
+
+  const swimPct = Math.round((swim / primaryTotal) * 100);
+  const bikePct = Math.round((bikeAdj / primaryTotal) * 100);
+  const runPct = Math.round((run / primaryTotal) * 100);
+
+  // Find target ratios
+  const obj = (objective || "").replace(/\s/g, "");
+  const target = SPORT_RATIO_TARGETS[obj] || SPORT_RATIO_TARGETS[obj.toUpperCase()];
+
+  if (!target) {
+    // No specific target — just check basic diversity for triathlon-like plans
+    if (swim > 0 && bike > 0 && run > 0) {
+      return { issues: [], score: 90 };
+    }
+    return { issues: [], score: 80 };
+  }
+
+  let deviations = 0;
+  let checks = 0;
+
+  if (target.swim) {
+    checks++;
+    if (swimPct < target.swim[0] - 5 || swimPct > target.swim[1] + 5) {
+      issues.push({
+        rule: "sport_ratio",
+        severity: swimPct < target.swim[0] - 10 || swimPct > target.swim[1] + 10 ? "error" : "warning",
+        message: `Natation ${swimPct}% (cible ${target.swim[0]}-${target.swim[1]}%)`,
+        detail: `Total: Nat ${swimPct}%, Vélo ${bikePct}%, Course ${runPct}%`,
+      });
+      deviations++;
+    }
+  }
+
+  if (target.bike) {
+    checks++;
+    if (bikePct < target.bike[0] - 5 || bikePct > target.bike[1] + 5) {
+      issues.push({
+        rule: "sport_ratio",
+        severity: bikePct < target.bike[0] - 10 || bikePct > target.bike[1] + 10 ? "error" : "warning",
+        message: `Vélo ${bikePct}% (cible ${target.bike[0]}-${target.bike[1]}%)`,
+        detail: `Total: Nat ${swimPct}%, Vélo ${bikePct}%, Course ${runPct}%`,
+      });
+      deviations++;
+    }
+  }
+
+  if (target.run) {
+    checks++;
+    if (runPct < target.run[0] - 5 || runPct > target.run[1] + 5) {
+      issues.push({
+        rule: "sport_ratio",
+        severity: runPct < target.run[0] - 10 || runPct > target.run[1] + 10 ? "error" : "warning",
+        message: `Course ${runPct}% (cible ${target.run[0]}-${target.run[1]}%)`,
+        detail: `Total: Nat ${swimPct}%, Vélo ${bikePct}%, Course ${runPct}%`,
+      });
+      deviations++;
+    }
+  }
+
+  const score = checks > 0 ? Math.round(((checks - deviations) / checks) * 100) : 80;
+  return { issues, score };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CATALOGUE/CUSTOM RATIO VALIDATION (Rule 6)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const CATALOG_ID_PATTERN = /\b[A-Z]{1,3}_(?:BIKE|RUN|SWIM|TR|STR|BR|RECOVERY)[A-Z0-9_]+/g;
+const CUSTOM_PATTERN = /\[Custom\]/gi;
+
+function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; score: number; catalogPct: number } {
+  const issues: ValidationIssue[] = [];
+  let catalogSessions = 0;
+  let customSessions = 0;
+  let totalKeySessions = 0;
+
+  for (const week of plan.weeks) {
+    for (const session of week.sessions) {
+      if (session.isRest) continue;
+      const text = `${session.title} ${session.details}`;
+      const isKey = KEY_SESSION_PATTERNS.test(text);
+      if (!isKey) continue;
+
+      totalKeySessions++;
+      const hasCatalogId = CATALOG_ID_PATTERN.test(text);
+      const isCustom = CUSTOM_PATTERN.test(text);
+
+      if (hasCatalogId) {
+        catalogSessions++;
+      } else if (isCustom) {
+        customSessions++;
+      }
+      // Reset regex lastIndex
+      CATALOG_ID_PATTERN.lastIndex = 0;
+      CUSTOM_PATTERN.lastIndex = 0;
+    }
+  }
+
+  if (totalKeySessions === 0) {
+    return { issues: [], score: 70, catalogPct: 0 };
+  }
+
+  const catalogPct = Math.round((catalogSessions / totalKeySessions) * 100);
+  const customPct = Math.round((customSessions / totalKeySessions) * 100);
+  const untaggedPct = 100 - catalogPct - customPct;
+
+  if (catalogPct < 50) {
+    issues.push({
+      rule: "catalog_ratio",
+      severity: "error",
+      message: `Seulement ${catalogPct}% de séances clés utilisent le catalogue TFCL™ (cible ≥80%)`,
+      detail: `Catalogue: ${catalogSessions}/${totalKeySessions}, Custom: ${customSessions}, Non-tagué: ${totalKeySessions - catalogSessions - customSessions}`,
+    });
+  } else if (catalogPct < 80) {
+    issues.push({
+      rule: "catalog_ratio",
+      severity: "warning",
+      message: `${catalogPct}% de séances clés utilisent le catalogue (cible ≥80%)`,
+      detail: `Catalogue: ${catalogSessions}/${totalKeySessions}, Custom: ${customSessions}`,
+    });
+  }
+
+  if (untaggedPct > 30) {
+    issues.push({
+      rule: "catalog_ratio",
+      severity: "info",
+      message: `${untaggedPct}% de séances clés sans ID catalogue ni tag [Custom] — traçabilité réduite`,
+    });
+  }
+
+  const score = catalogPct >= 80 ? 100 : catalogPct >= 60 ? 75 : catalogPct >= 40 ? 50 : 30;
+  return { issues, score, catalogPct };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // MAIN VALIDATOR
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export function validatePlan(plan: ParsedPlan): PlanValidationResult {
+export function validatePlan(plan: ParsedPlan, objective?: string): PlanValidationResult {
   // Extract metrics for each week
   const weekMetrics = plan.weeks.map(extractWeekMetrics);
 
@@ -395,6 +568,8 @@ export function validatePlan(plan: ParsedPlan): PlanValidationResult {
   const loadPattern = validateLoadPattern(weekMetrics);
   const keySessions = validateKeySessions(weekMetrics);
   const progression = validateProgression(weekMetrics);
+  const sportRatio = validateSportRatio(weekMetrics, objective);
+  const catalogRatio = validateCatalogRatio(plan);
 
   // Combine all issues
   const allIssues = [
@@ -402,15 +577,26 @@ export function validatePlan(plan: ParsedPlan): PlanValidationResult {
     ...loadPattern.issues,
     ...keySessions.issues,
     ...progression.issues,
+    ...sportRatio.issues,
+    ...catalogRatio.issues,
   ];
 
-  // Weighted score
-  const weights = { polarization: 0.30, loadPattern: 0.25, keySessions: 0.25, progression: 0.20 };
+  // Weighted score (6 rules now)
+  const weights = {
+    polarization: 0.25,
+    loadPattern: 0.20,
+    keySessions: 0.20,
+    progression: 0.15,
+    sportRatio: 0.10,
+    catalogRatio: 0.10,
+  };
   const weightedScore = Math.round(
     polarization.score * weights.polarization +
     loadPattern.score * weights.loadPattern +
     keySessions.score * weights.keySessions +
-    progression.score * weights.progression
+    progression.score * weights.progression +
+    sportRatio.score * weights.sportRatio +
+    catalogRatio.score * weights.catalogRatio
   );
 
   // Grade
@@ -435,6 +621,8 @@ export function validatePlan(plan: ParsedPlan): PlanValidationResult {
       loadPatternScore: loadPattern.score,
       keySessionsScore: keySessions.score,
       progressionScore: progression.score,
+      sportRatioScore: sportRatio.score,
+      catalogRatioScore: catalogRatio.score,
       overallComment,
     },
   };
