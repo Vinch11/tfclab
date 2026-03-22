@@ -514,7 +514,9 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [150, 210],
     metricKey: "puissance", sportKey: "cyclisme",
     structure: mk([
-      ["Main", "2h Z2 stable + 45-60' Z3 progressif (fin à 85% FTP). Nutrition 80-90g/h glucides. Negative split watts", ["Z2", "Z3"]]
+      ["Warm-up", "15' progressif Z1→Z2", ["Z1", "Z2"]],
+      ["Main", "1h45 Z2 stable + 45-60' Z3 progressif (fin à 85% FTP). Nutrition 80-90g/h glucides. Negative split watts", ["Z2", "Z3"]],
+      ["Cool-down", "10' Z1 souple", ["Z1"]]
     ]),
     variants: { ironman: "3h total", half: "2h30 total" },
     goals: GOALS_TRI,
