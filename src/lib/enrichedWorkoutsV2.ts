@@ -303,7 +303,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [100, 130],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["Main", "2h Z2 stable sans glucides (eau + sel uniquement). Emporter gel de secours. Manger dans les 30min post. Adaptation fat ox", ["Z2"]]
+      ["Warm-up", "10' trot Z1", ["Z1"]],
+      ["Main", "1h50 Z2 stable sans glucides (eau + sel uniquement). Emporter gel de secours.", ["Z2"]],
+      ["Cool-down", "10' marche. Manger dans les 30min post. Adaptation fat ox", ["Z1"]]
     ]),
     variants: { marathon: "2h sans glucides", ironman: "2h → 2h15 (progression)" },
     goals: [...GOALS_MAR, ...GOALS_IM],
