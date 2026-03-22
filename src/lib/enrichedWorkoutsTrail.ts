@@ -404,8 +404,9 @@ const TRAIL_C: LibraryWorkout[] = [
     durationMin: [25, 40],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mkStructure([
-      ["Warm-up", "5' activation articulaire chevilles + mobilité", []],
-      ["Main", "Bosu single leg 3×30s, planche instable 3×40s, yeux fermés 3×20s, sauts latéraux 3×10, bande chevilles 3×15", []]
+      ["Warm-up", "5' activation articulaire chevilles + mobilité (cercles, flexions, rotations)", []],
+      ["Main", "Circuit 3-4x (R:1'): Bosu single leg 30s/côté + Planche instable 40s + Yeux fermés unipodal 20s/côté + Sauts latéraux mini-haies 10 + Bande chevilles marche latérale 15 pas + Fente avant sur coussin 8/côté + Réception single leg box 6/côté", []],
+      ["Cool-down", "5' étirements chevilles, mollets, proprioception douce", []]
     ]),
     variants: {},
     goals: TRAIL_GOALS_ALL,
@@ -704,7 +705,9 @@ const TRAIL_D: LibraryWorkout[] = [
     durationMin: [20, 35],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mkStructure([
-      ["Main", "Foam roller 10', mobilité chevilles 5', mobilité hanches 5', étirements chaîne postérieure 5'", []]
+      ["Warm-up", "3' marche sur place + cercles chevilles et hanches", []],
+      ["Main", "Foam roller 8' (mollets, quadriceps, IT band, fessiers) + mobilité chevilles CARs 2×8/côté + 90/90 hanche 60\"/côté + pigeon pose 45\"/côté + étirements chaîne postérieure 3×30\" + rotation thoracique 8/côté", []],
+      ["Cool-down", "3' respiration diaphragmatique allongé", []]
     ]),
     variants: {},
     goals: TRAIL_GOALS_ALL,

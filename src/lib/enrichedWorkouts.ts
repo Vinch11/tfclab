@@ -818,8 +818,9 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [35, 45],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mk([
-      ["Warm-up", "10' mobilité dynamique", []],
-      ["Main", "3 séries: 8 box jumps + 8 bounds + 6 drop jumps. R:2' inter-séries. Focus: contact sol minimal", []]
+      ["Warm-up", "10' mobilité dynamique: rotations chevilles, montées genoux, skipping léger, squats au poids de corps 2×10", []],
+      ["Main", "Circuit 3 séries (R:2' inter-séries): Box jumps 8 reps (hauteur progressive) + Bounds alternés 8 reps + Drop jumps 6 reps (40-60cm) + Sauts latéraux haies 3×6 + Jump squats 3×8 + Single leg hops 3×5/côté. Focus: temps de contact sol minimal, qualité > quantité", []],
+      ["Cool-down", "5' étirements mollets, quadriceps, ischio-jambiers + foam roller rapide", []]
     ]),
     variants: { marathon: "3 séries", semi: "2-3 séries", half: "2 séries" },
     goals: GOALS_ALL,
@@ -836,7 +837,9 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [20, 30],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mk([
-      ["Main", "Circuit 3x: Pallof press 12/côté + Planche latérale 30\"/côté + Dead bug 10/côté + Bird dog 8/côté. R:1'", []]
+      ["Warm-up", "5' activation core: cat-cow 10 reps, glute bridge 10, bird dog léger 6/côté", []],
+      ["Main", "Circuit 3x (R:1'): Pallof press 12/côté + Planche latérale 30\"/côté + Dead bug 10/côté + Bird dog 8/côté + Chop anti-rotation câble/élastique 10/côté + Stir the pot swiss ball 8/côté", []],
+      ["Cool-down", "5' étirements psoas, dorsaux, respiration diaphragmatique", []]
     ]),
     variants: {},
     goals: GOALS_ALL,
@@ -853,7 +856,9 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [20, 30],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mk([
-      ["Main", "3x: Nordic curl 5 reps + RDL unilat 8/côté + Bridge unilat 12/côté + Glute-ham raise 8. R:90\"", []]
+      ["Warm-up", "5' activation: marche talons, good mornings poids de corps 10, glute bridge 2×10", []],
+      ["Main", "3x (R:90\"): Nordic curl 5 reps (excentrique 4-5s) + RDL unilat haltère 8/côté + Bridge unilat 12/côté + Glute-ham raise 8 + Leg curl excentrique 8 + Sliding hamstring curl 8", []],
+      ["Cool-down", "5' étirements ischio-jambiers, psoas, foam roller ischios", []]
     ]),
     variants: {},
     goals: GOALS_ALL,
@@ -870,8 +875,9 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [40, 50],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mk([
-      ["AM", "Force: Squat 4x5, Deadlift 4x5, Fentes 3x8. Charges lourdes (>80% 1RM)", []],
-      ["Note", "PM: Séance endurance Z2 après ≥6h de récup. Protéines post-AM obligatoire", []]
+      ["Warm-up", "10' mobilité dynamique: mobilité hanches, activation fessiers bande élastique, squats progressifs légers", []],
+      ["AM", "Force (30-35'): Back Squat 4×5 @80-85% 1RM + Deadlift 4×5 @80-85% 1RM + Fentes marchées 3×8/côté + Hip thrust 3×10 + Mollets debout 3×12. R:2-3' entre séries lourdes", []],
+      ["Note", "PM: Séance endurance Z2 après ≥6h de récup. 30g protéines + 50g glucides dans les 30' post-AM obligatoire", []]
     ]),
     variants: { ironman: "2x/semaine en Build", marathon: "1-2x/semaine en Build" },
     goals: GOALS_ALL,
@@ -909,7 +915,9 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [25, 40],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mk([
-      ["Main", "30-40' yoga flow: sun salutations + pigeon pose + frog stretch + hip circles + thread the needle. Respiration nasale 4-7-8", []]
+      ["Warm-up", "5' respiration consciente (4-7-8) + mouvements articulaires doux (cercles poignets, épaules, cou)", []],
+      ["Main", "20-30' yoga flow: 3×Sun salutations A + Warrior I/II 30\"/côté + Pigeon pose 60\"/côté + Frog stretch 2' + Hip circles 10/côté + Thread the needle 45\"/côté + Lizard pose 45\"/côté + Forward fold 60\" + Butterfly 60\"", []],
+      ["Cool-down", "5' savasana, respiration nasale profonde", []]
     ]),
     variants: {},
     goals: GOALS_ALL,

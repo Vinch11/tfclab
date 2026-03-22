@@ -630,7 +630,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [20, 30],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mk([
-      ["Main", "Circuit 2-3x: Clamshell 15/côté + Monster walk élastique 20 pas + Fire hydrant 12/côté + 90/90 stretch 30\"/côté + Pigeon pose 45\"/côté. R:1'", []]
+      ["Warm-up", "5' marche + mobilité hanche (cercles, balancier jambes, rotations internes/externes)", []],
+      ["Main", "Circuit 2-3x (R:1'): Clamshell élastique 15/côté + Monster walk élastique 20 pas + Fire hydrant 12/côté + 90/90 stretch 30\"/côté + Pigeon pose 45\"/côté + Couch stretch 30\"/côté + Adducteur slider 10/côté", []],
+      ["Cool-down", "3' étirements statiques psoas + respiration profonde", []]
     ]),
     variants: {},
     goals: GOALS_ALL,
@@ -647,7 +649,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [20, 30],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mk([
-      ["Main", "3x: Wall sit 60\" + Single leg wall sit 30\"/côté + Pont glute 45\" + Calf raise isométrique 30\"/côté + Planche frontale 60\". R:90\"", []]
+      ["Warm-up", "5' activation articulaire: squats légers, montées sur pointes, glute bridge", []],
+      ["Main", "3x (R:90\"): Wall sit 60\" + Single leg wall sit 30\"/côté + Pont glute 45\" + Calf raise isométrique 30\"/côté + Planche frontale 60\" + Split squat isométrique 30\"/côté + Copenhague adducteur 20\"/côté", []],
+      ["Cool-down", "5' étirements quadriceps, mollets, psoas", []]
     ]),
     variants: {},
     goals: GOALS_ALL,
@@ -664,7 +668,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [25, 35],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mk([
-      ["Main", "20-30' montées escaliers (2 marches à la fois, poussée glute). Descente contrôlée 1 marche. 6-8 séries de 3-5 étages. R:1' entre séries", []]
+      ["Warm-up", "5' mobilité chevilles + squats progressifs + montées genoux", []],
+      ["Main", "20-30' montées escaliers (2 marches à la fois, poussée glute). Descente contrôlée 1 marche. 6-8 séries de 3-5 étages. Variante: single leg step-up 2×8/côté entre les séries. R:1' entre séries", []],
+      ["Cool-down", "5' étirements quadriceps, mollets, psoas + foam roller rapide", []]
     ]),
     variants: {},
     goals: GOALS_TRAIL,
@@ -681,7 +687,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [20, 30],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mk([
-      ["Main", "Circuit 3x: Mountain climber 20\" + Bear crawl 10m A/R + Pallof press rotation 8/côté + Deadbug bras/jambes alterné 10/côté + Planche latérale hip dip 8/côté. R:1'", []]
+      ["Warm-up", "5' mobilité dynamique: cat-cow, rotations thoraciques, activations core léger", []],
+      ["Main", "Circuit 3x (R:1'): Mountain climber 20\" + Bear crawl 10m A/R + Pallof press rotation 8/côté + Dead bug bras/jambes alterné 10/côté + Planche latérale hip dip 8/côté + Renegade row 8/côté + Inchworm 6 reps", []],
+      ["Cool-down", "5' étirements dorsaux, psoas, respiration diaphragmatique", []]
     ]),
     variants: {},
     goals: GOALS_ALL,
@@ -698,7 +706,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [35, 45],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mk([
-      ["Main", "4 séries: Tractions (ou assistées) 6-8 + Développé haltères 8-10 + Rowing 1 bras 8/côté + Face pull élastique 15 + Dips (ou assistés) 8. R:2' inter-séries", []]
+      ["Warm-up", "5' mobilité épaules (bande élastique dislocations, cercles bras, rotations externes) + 2×10 pompes légères", []],
+      ["Main", "4 séries (R:2'): Tractions (ou assistées) 6-8 + Développé haltères 8-10 + Rowing 1 bras 8/côté + Face pull élastique 15 + Dips (ou assistés) 8 + Curl biceps haltères 10 + Y-raise prone 12", []],
+      ["Cool-down", "5' étirements pectoraux, dorsaux, biceps, épaules", []]
     ]),
     variants: { ironman: "2x/sem Build", half: "1-2x/sem" },
     goals: GOALS_TRI,
