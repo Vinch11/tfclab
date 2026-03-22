@@ -2344,6 +2344,11 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
       userPrompt = buildUserPrompt(athleteData, planConfig);
     }
 
+    // Inject workout catalog if provided by the frontend
+    if (workoutCatalog && typeof workoutCatalog === "string" && workoutCatalog.length > 0) {
+      userPrompt += "\n\n" + workoutCatalog;
+    }
+
     const totalWeeks = planConfig?.weeksAvailable || 12;
     // Use smaller chunks for triathlon (very verbose output with multi-session days)
     const obj = (planConfig?.objective || "").toUpperCase();
