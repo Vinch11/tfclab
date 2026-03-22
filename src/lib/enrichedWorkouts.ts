@@ -335,7 +335,9 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [90, 130],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["Main", "Z2 stable 70-100'. Derniers 20-30' progressif Z3→Z4. Objectif: negative split malgré fatigue accumulée", ["Z2", "Z3", "Z4"]]
+      ["Warm-up", "10' trot progressif Z1→Z2", ["Z1", "Z2"]],
+      ["Main", "60-90' Z2 stable. Derniers 20-30' progressif Z3→Z4. Objectif: negative split malgré fatigue accumulée", ["Z2", "Z3", "Z4"]],
+      ["Cool-down", "10' trot Z1 décrescendo + étirements", ["Z1"]]
     ]),
     variants: { marathon: "2h total, 30' finish Z3/Z4", semi: "1h30, 20' finish Z4", ironman: "1h45, 25' finish Z3" },
     goals: GOALS_ALL,
