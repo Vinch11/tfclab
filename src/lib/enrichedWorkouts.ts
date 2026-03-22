@@ -594,11 +594,11 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [55, 75],
     metricKey: "allure", sportKey: "natation",
     structure: mk([
-      ["Warm-up", "300m varié", ["Z1", "Z2"]],
-      ["Main", "Broken swim: distance course découpée en segments égaux à allure course (Z3/Z4) avec 10\" repos entre chaque. Simuler la distance sans les défauts techniques", ["Z3", "Z4"]],
-      ["Cool-down", "200m facile", ["Z1"]]
+      ["Warm-up", "300m varié (100 NL + 100 dos + 100 pull)", ["Z1", "Z2"]],
+      ["Main", "Broken swim: 1500m découpé en 5×300m à allure course Z3/Z4 avec 10\" repos entre chaque segment. Maintenir régularité (<2\" d'écart entre segments). Respiration bilatérale", ["Z3", "Z4"]],
+      ["Cool-down", "200m facile dos", ["Z1"]]
     ]),
-    variants: { ironman: "8x475m (3800m total)", half: "6x300m (1800m total)" },
+    variants: { ironman: "3800m en 8×475m R:10\"", half: "1900m en 6×300m+100m R:10\"" },
     goals: GOALS_TRI,
     tags: ["broken-swim", "simulation", "race-pace", "natation"]
   },

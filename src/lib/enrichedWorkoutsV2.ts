@@ -470,9 +470,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [45, 60],
     metricKey: "allure", sportKey: "natation",
     structure: mk([
-      ["Warm-up", "300m facile varié", ["Z1", "Z2"]],
-      ["Main", "6 x (100m catch-up Z1 + 100m nage complète Z2). Focus: entrée main devant épaule, coude haut, prise d'eau loin devant. Compter coups/25m", ["Z1", "Z2"]],
-      ["Cool-down", "200m dos", ["Z1"]]
+      ["Warm-up", "300m facile varié (100 NL + 100 dos + 100 pull)", ["Z1", "Z2"]],
+      ["Main", "6 x (100m catch-up Z1 + 100m nage complète Z2). Focus: entrée main devant épaule, coude haut, prise d'eau loin devant. Compter coups/25m. + 4x50m point fermé Z2 + 4x50m doggy paddle Z1", ["Z1", "Z2"]],
+      ["Cool-down", "200m dos souple", ["Z1"]]
     ]),
     variants: {},
     goals: GOALS_ALL,
@@ -508,7 +508,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [45, 65],
     metricKey: "allure", sportKey: "natation",
     structure: mk([
-      ["Main", "2000-3000m en eau libre avec partenaire(s). Alternance 200m en tête / 200m en draft (pieds). Visée toutes les 8-10 brasses. Accélérations départ + bouées", ["Z2", "Z3"]]
+      ["Warm-up", "300m facile varié (100 NL + 100 dos + 100 pull) + 4x50m progressif", ["Z1", "Z2"]],
+      ["Main", "2000-3000m en eau libre avec partenaire(s). Alternance 200m en tête / 200m en draft (pieds). Visée toutes les 8-10 brasses. 3 accélérations départ simulé + 3 virages bouées", ["Z2", "Z3"]],
+      ["Cool-down", "200m souple dos ou brasse", ["Z1"]]
     ]),
     variants: { ironman: "3000m simulation complète", half: "2000m" },
     goals: GOALS_TRI,
@@ -746,7 +748,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [30, 40],
     metricKey: "allure", sportKey: "natation",
     structure: mk([
-      ["Main", "1500m: 400m crawl Z1 + 200m dos + 200m brasse + 400m crawl Z1 + 200m pull buoy + 100m éducatifs. Aucun effort. Zéro chrono. Décompresser", ["Z1"]]
+      ["Warm-up", "200m souple au choix (dos ou brasse)", ["Z1"]],
+      ["Main", "1500m: 400m crawl Z1 + 200m dos + 200m brasse + 400m crawl Z1 + 200m pull buoy + 100m éducatifs. Aucun effort. Zéro chrono. Décompresser", ["Z1"]],
+      ["Cool-down", "100m dos souple + étirements bord de bassin 3'", ["Z1"]]
     ]),
     variants: {},
     goals: GOALS_ALL,
@@ -800,12 +804,12 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     when: "Spécifique IM (2-4x dans le plan)",
     phase: ["build"],
     avoid: "Épaule fatiguée",
-    durationMin: [75, 100],
+    durationMin: [80, 105],
     metricKey: "allure", sportKey: "natation",
     structure: mk([
-      ["Warm-up", "200m facile", ["Z1"]],
+      ["Warm-up", "400m varié (200 NL + 100 bat + 100 pull) + 4x50m progressif", ["Z1", "Z2"]],
       ["Main", "3800m: 1900m Z2 (confort) + 1900m Z3 (allure course puis -2-3\"/100m pour finish). Negative split obligatoire. Visée toutes les 200m", ["Z2", "Z3"]],
-      ["Cool-down", "200m facile", ["Z1"]]
+      ["Cool-down", "200m facile dos", ["Z1"]]
     ]),
     variants: { ironman: "3800m progressive" },
     goals: GOALS_IM,

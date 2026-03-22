@@ -780,12 +780,12 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     when: "S-4 avant Ironman, eau libre si possible",
     phase: ["build", "peak"],
     avoid: "Piscine courte seulement",
-    durationMin: [65, 85],
+    durationMin: [75, 95],
     metricKey: "css", sportKey: "swimming",
     structure: [
-      { part: "Warm-up", text: "400m varié (100 NL + 100 bat + 100 pull + 100 NL)", zones: ["Z1", "Z2"] },
-      { part: "Main", text: "3800m continu à allure cible IM (CSS +5-8''). Respiration bilatérale. Navigation si eau libre", zones: ["Z2", "Z3"] },
-      { part: "Cool-down", text: "200m souple", zones: ["Z1"] }
+      { part: "Warm-up", text: "400m varié (100 NL + 100 bat + 100 pull + 100 NL) + 4x50m progressif", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "3800m continu à allure cible IM (CSS +5-8''). Respiration bilatérale tous les 3 ou 5 temps. Navigation si eau libre. Ravitaillement liquide toutes les 1000m", zones: ["Z2", "Z3"] },
+      { part: "Cool-down", text: "200m souple dos", zones: ["Z1"] }
     ],
     variants: {},
     goals: ["ironman"],
