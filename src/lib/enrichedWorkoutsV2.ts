@@ -447,7 +447,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [35, 50],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["Main", "35-50' sur sentier technique (racines, pierres, single track). Z2 cardio. Focus: placement pied, anticipation obstacles, cadence adaptée au terrain", ["Z2"]]
+      ["Warm-up", "10' marche→trot Z1 + 5' mobilité chevilles", ["Z1"]],
+      ["Main", "25-40' sur sentier technique (racines, pierres, single track). Z2 cardio. Focus: placement pied, anticipation obstacles, cadence adaptée au terrain", ["Z2"]],
+      ["Cool-down", "5' marche + étirements chevilles/mollets", ["Z1"]]
     ]),
     variants: {},
     goals: GOALS_TRAIL,
