@@ -4416,4 +4416,12 @@ WorkoutLibrary.push(...EnrichedWorkoutsV2);
 import { EnrichedWorkoutsV3 } from "./enrichedWorkoutsV3";
 WorkoutLibrary.push(...EnrichedWorkoutsV3);
 
-console.log(`✅ Pro Pack: ${ProPackWorkouts.length} | Templates: ${TemplateDerivedWorkouts.length} | Enriched: ${EnrichedWorkouts.length} | V2: ${EnrichedWorkoutsV2.length} | V3: ${EnrichedWorkoutsV3.length} | Total: ${WorkoutLibrary.length}`);
+// =============================================
+// ENRICHED WORKOUTS TRAIL — 40+ séances trail spécialisées
+// Trail Court, Trail Montagne, Trail Ultra
+// D+, descente, back-to-back, marche/course, nocturne, nutrition
+// =============================================
+import { EnrichedWorkoutsTrail } from "./enrichedWorkoutsTrail";
+WorkoutLibrary.push(...EnrichedWorkoutsTrail);
+
+console.log(`✅ Pro Pack: ${ProPackWorkouts.length} | Templates: ${TemplateDerivedWorkouts.length} | Enriched: ${EnrichedWorkouts.length} | V2: ${EnrichedWorkoutsV2.length} | V3: ${EnrichedWorkoutsV3.length} | Trail: ${EnrichedWorkoutsTrail.length} | Total: ${WorkoutLibrary.length}`);
