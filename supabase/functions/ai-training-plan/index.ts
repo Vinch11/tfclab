@@ -1459,7 +1459,7 @@ Ex : "🔑 Séances clés : Seuil long mardi (TTE↑) + SL progressive samedi (e
 - **CAP** : durée/distance + allure min/km OU %VMA + cadence spm
 - **Renfo** : exercices + séries×reps + charge si applicable + durée totale
 - **Titre descriptif** obligatoire ("🔑 CSS Dégressif", "🔑 Sweet Spot Vallonné", pas juste "Natation")
-- **Varier** d'une semaine à l'autre — NE PAS copier le même contenu
+- **Varier** d'une semaine à l'autre — NE PAS copier le même contenu (voir section DIVERSITÉ ci-dessous)
 - **Consignes qualitatives** : sensation recherchée, focus technique, nutrition si applicable
 - Réponds UNIQUEMENT en français
 - GÉNÈRE TOUTES LES SEMAINES sans exception
