@@ -818,8 +818,9 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [35, 45],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mk([
-      ["Warm-up", "10' mobilité dynamique", []],
-      ["Main", "3 séries: 8 box jumps + 8 bounds + 6 drop jumps. R:2' inter-séries. Focus: contact sol minimal", []]
+      ["Warm-up", "10' mobilité dynamique: rotations chevilles, montées genoux, skipping léger, squats au poids de corps 2×10", []],
+      ["Main", "Circuit 3 séries (R:2' inter-séries): Box jumps 8 reps (hauteur progressive) + Bounds alternés 8 reps + Drop jumps 6 reps (40-60cm) + Sauts latéraux haies 3×6 + Jump squats 3×8 + Single leg hops 3×5/côté. Focus: temps de contact sol minimal, qualité > quantité", []],
+      ["Cool-down", "5' étirements mollets, quadriceps, ischio-jambiers + foam roller rapide", []]
     ]),
     variants: { marathon: "3 séries", semi: "2-3 séries", half: "2 séries" },
     goals: GOALS_ALL,
