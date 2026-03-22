@@ -456,11 +456,13 @@ const TRAIL_C: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Build/Peak",
     phase: ["build", "peak"],
-    avoid: "—",
+    avoid: "Lombalgie aiguë ou hernie discale symptomatique",
     durationMin: [30, 45],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mkStructure([
-      ["Main", "Dead bug 4×12, pallof press 3×12, planche latérale 3×40s, bird dog 3×10, farmer walk 3×30m", []]
+      ["Warm-up", "5' mobilité colonne + activation core (cat-cow, bird dog léger)", []],
+      ["Main", "Dead bug 4×12, pallof press 3×12, planche latérale 3×40s, bird dog 3×10, farmer walk 3×30m", []],
+      ["Cool-down", "5' étirements psoas/dorsaux", []]
     ]),
     variants: { trail_ultra: "Volume double, enchaîné peu de repos" },
     goals: TRAIL_GOALS_MTN_ULTRA,
