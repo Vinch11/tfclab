@@ -242,10 +242,12 @@ CAP 85-90%, Renfo 10-15%. Accent VO2max (30/30, VMA longue), seuil secondaire.
 ⚠️ Spécificités Trail Court :
 - Séances clés TOUJOURS en terrain trail/sentier, jamais route
 - D+ cible progressif : base 500m/sem → build 1500m/sem → peak 2000m/sem
-- Travail technique descente OBLIGATOIRE 1x/sem (descente rapide contrôlée)
+- Travail technique descente OBLIGATOIRE 1x/sem (descente rapide contrôlée, fréquence foulée courte)
 - Force excentrique prioritaire (prévention quadriceps, DOMS)
-- Bâtons : à entraîner si utilisés en course
+- Bâtons : à entraîner 2x/sem si utilisés en course (technique synchronisation bras/jambes)
 - Ravitaillement : tester en SL même si course < 4h (estomac + logistique)
+- Negative split sur SL : 1ère moitié Z1-Z2 très facile, 2ème moitié Z2-Z3 progressif
+- Pliométrie base/build : box jumps, drop jumps, sauts latéraux pour réactivité appuis
 
 ### TRAIL MONTAGNE (42-80km, D+ 2500-5000m) — Modèle François D'Haene / Zach Miller
 | Sport | % Volume | Séances/sem | Clés |
@@ -255,12 +257,14 @@ CAP 85-90%, Renfo 10-15%. Accent VO2max (30/30, VMA longue), seuil secondaire.
 | Vélo | 5-10% | 1-2 | Z1 récup entre grosses journées montagne. Volume sans impact |
 ⚠️ Spécificités Trail Montagne :
 - D+ cible progressif : base 1000m/sem → build 3000m/sem → peak 4000m/sem
-- Back-to-back weekends OBLIGATOIRES en Build/Peak (SL samedi + SL dimanche avec cumul D+)
+- Back-to-back weekends OBLIGATOIRES en Build/Peak (SL samedi D+ fort + SL dimanche endurance pré-fatigue)
 - Simulation nuit : 1-2 sorties nocturnes obligatoires en phase Peak
 - Travail spécifique montée > 15% pente : allure "marche athlétique" avec bâtons, seuil en montée
-- Descente technique intensive : 1x/sem, terrain cassant, single track
-- Nutrition course : Gut Training progressif 40→70g/h sur les SL
+- Descente technique intensive : 1x/sem, terrain cassant, single track, focus fréquence foulée
+- Nutrition course : Gut Training progressif 40→70g/h sur les SL (solide + gel + boisson)
 - Altitude : si course en altitude (>2000m), intégrer 2-3 semaines camp altitude ou simulation hypoxie
+- Core anti-fatigue : dead bug, pallof press, planche latérale — résistance posturale longue durée
+- Vélo Z1 cross-training : récupération sans impact entre grosses journées montagne
 
 ### TRAIL ULTRA (>80km, D+ 5000m+) — Modèle UTMB / Courtney Dauwalter / Pau Capell
 | Sport | % Volume | Séances/sem | Clés |
@@ -270,14 +274,30 @@ CAP 85-90%, Renfo 10-15%. Accent VO2max (30/30, VMA longue), seuil secondaire.
 | Vélo | 5-10% | 1-2 | Z1 récup active. Volume aérobie sans impact. Cross-training intelligent |
 ⚠️ Spécificités Trail Ultra :
 - D+ cible progressif : base 1500m/sem → build 4000m/sem → peak 5000-6000m/sem
-- Back-to-back weekends OBLIGATOIRES en Build/Peak : SL samedi 4-5h + SL dimanche 3-4h
-- Simulation ultra complète (6-8h) : 1x/mois en Build, 1x en Peak
-- Simulation nuit OBLIGATOIRE : 2-3 sorties nocturnes (dont 1 > 4h)
-- Gestion sommeil : entraîner la privation (sortie longue départ 4h du matin)
-- Nutrition : Gut Training progressif 40→90g/h. Tester toute la stratégie nutritive en simulation
+- Back-to-back weekends OBLIGATOIRES en Build/Peak : SL samedi 4-5h D+ fort + SL dimanche 2-3h sur pré-fatigue
+- Simulation ultra complète (6-8h) : 1x/mois en Build, 1x en Peak avec protocole nutrition complet
+- Simulation nuit OBLIGATOIRE : 2-3 sorties nocturnes (dont 1 > 4h, départ 3-4h du matin)
+- Gestion sommeil : entraîner la privation avec sorties très tôt
+- Marche/course alternée : ratio progressif 2:1→3:1 course/marche. Marche sur montée >10%, course plat+descente
+- Nutrition : Gut Training progressif 40→90g/h. Tester TOUTE la stratégie nutritive en simulation (solide, gel, boisson, estomac)
 - Mental : inclure 1 sortie "à l'effort" (conditions difficiles, fatigue volontaire) par bloc Build
 - Bâtons : entraînement spécifique montée/descente avec bâtons 2x/sem si utilisés en course
-- Taper ultra = 14-21j (plus long que route). Volume -50% sem -2, -65% sem -1
+- Circuit force sous fatigue (Build/Peak) : enchaîné peu de repos pour résistance musculaire ultra
+- Taper ultra = 14-21j (plus long que route). Volume -50% sem -2, -65% sem -1. Rappels seuil montée courts
+
+### 🔑 SÉANCES CLÉS OBLIGATOIRES PAR OBJECTIF TRAIL
+| Objectif | Séances clés hebdomadaires |
+|----------|---------------------------|
+| Trail Court | 1× VMA côtes + 1× seuil montée + 1× technique descente + 1× SL D+ |
+| Trail Montagne | 1× seuil montée long + 1× descente technique + 1× SL D+ (ou B2B week-end) + 1× renfo excentrique |
+| Trail Ultra | 1× seuil montée + 1× SL D+ massive (ou B2B) + 1× marche/course + 1× renfo circuit fatigue + 1× gut training (intégré SL) |
+
+### ⚠️ RÈGLES D+ (DÉNIVELÉ POSITIF) — OBLIGATOIRE POUR TRAIL
+- CHAQUE séance trail doit mentionner le D+ cible approximatif (ex: "+800m D+")
+- Le D+ hebdomadaire doit être PROGRESSIF semaine par semaine (pas de plateau >3 semaines)
+- Semaines de décharge : réduire D+ de 40-50% (pas seulement la durée)
+- Les SL doivent TOUJOURS préciser le D+ cible et le ravitaillement
+- Back-to-back : le D+ cumulé samedi+dimanche est la métrique clé
 
 ## Méthodologie TFCL™ — Hybride Lorang Complet
 
