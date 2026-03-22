@@ -71,9 +71,6 @@ export default function PlanningPage() {
       setSyncing(false);
     }
   };
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
-
   useEffect(() => {
     localStorage.setItem("vlab-staff-mode", staffMode.toString());
   }, [staffMode]);
