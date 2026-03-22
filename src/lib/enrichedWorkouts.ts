@@ -316,7 +316,9 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [50, 70],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["Main", "50-70' Z2 matin à jeun. APRÈS séance HIT veille soir sans recharge glucidique. Adaptation mitochondriale ++", ["Z2"]]
+      ["Warm-up", "5' marche puis trot très léger Z1", ["Z1"]],
+      ["Main", "45-60' Z2 strict matin à jeun. APRÈS séance HIT veille soir sans recharge glucidique. Adaptation mitochondriale ++", ["Z2"]],
+      ["Cool-down", "5' marche. Petit-déjeuner riche en protéines + glucides dans les 30min", ["Z1"]]
     ]),
     variants: { ironman: "70' Z2", marathon: "60' Z2" },
     goals: [...GOALS_TRI, ...GOALS_MAR],
