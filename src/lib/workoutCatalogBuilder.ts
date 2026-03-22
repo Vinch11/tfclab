@@ -28,10 +28,10 @@ function normalizeGoal(objective: string): WorkoutGoal[] {
   const lower = objective.toLowerCase();
   if (lower.includes("70.3") || lower === "703") return ["half"];
   if (lower.includes("ironman") || lower === "im") return ["ironman"];
-  if (lower.includes("trail") && lower.includes("ultra")) return ["trail_ultra"];
-  if (lower.includes("trail") && lower.includes("mont")) return ["trail_mountain"];
-  if (lower.includes("trail") && lower.includes("court")) return ["trail_short"];
-  if (lower.includes("trail")) return ["trail_short", "trail_mountain"];
+  if (lower.includes("trail") && (lower.includes("ultra") || lower.includes(">80") || lower.includes("utmb"))) return ["trail_ultra", "trail_long", "trail_mountain"];
+  if (lower.includes("trail") && (lower.includes("mont") || lower.includes("60") || lower.includes("80"))) return ["trail_mountain", "trail_long", "trail_short"];
+  if (lower.includes("trail") && (lower.includes("court") || lower.includes("<42") || lower.includes("30k"))) return ["trail_short", "trail_mountain"];
+  if (lower.includes("trail")) return ["trail_short", "trail_mountain", "trail_long"];
   if (lower.includes("semi")) return ["semi"];
   if (lower.includes("marathon")) return ["marathon"];
   if (lower.includes("10k") || lower.includes("10km")) return ["10k"];
