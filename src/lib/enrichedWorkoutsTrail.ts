@@ -404,6 +404,7 @@ const TRAIL_C: LibraryWorkout[] = [
     durationMin: [25, 40],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mkStructure([
+      ["Warm-up", "5' activation articulaire chevilles + mobilité", []],
       ["Main", "Bosu single leg 3×30s, planche instable 3×40s, yeux fermés 3×20s, sauts latéraux 3×10, bande chevilles 3×15", []]
     ]),
     variants: {},
@@ -418,7 +419,7 @@ const TRAIL_C: LibraryWorkout[] = [
     when: "Base/Build",
     phase: ["base", "build"],
     avoid: "Veille de SL",
-    durationMin: [40, 55],
+    durationMin: [45, 60],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mkStructure([
       ["Warm-up", "10' mobilité + activation", []],
