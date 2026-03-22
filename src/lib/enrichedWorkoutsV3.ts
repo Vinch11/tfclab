@@ -1094,7 +1094,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     objectif: "Yoga athlète — mobilité et relâchement",
     necessite: "Recommandé",
     when: "Jour de repos ou après séance clé",
-    phase: ["taper"],
+    phase: ["base", "build", "peak", "taper"],
     avoid: "En remplacement de repos si fatigue > 8/10",
     durationMin: [30, 50],
     metricKey: "cardiaque", sportKey: "running",
