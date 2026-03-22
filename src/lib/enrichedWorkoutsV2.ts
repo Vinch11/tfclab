@@ -668,7 +668,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [25, 35],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mk([
-      ["Main", "20-30' montées escaliers (2 marches à la fois, poussée glute). Descente contrôlée 1 marche. 6-8 séries de 3-5 étages. R:1' entre séries", []]
+      ["Warm-up", "5' mobilité chevilles + squats progressifs + montées genoux", []],
+      ["Main", "20-30' montées escaliers (2 marches à la fois, poussée glute). Descente contrôlée 1 marche. 6-8 séries de 3-5 étages. Variante: single leg step-up 2×8/côté entre les séries. R:1' entre séries", []],
+      ["Cool-down", "5' étirements quadriceps, mollets, psoas + foam roller rapide", []]
     ]),
     variants: {},
     goals: GOALS_TRAIL,
