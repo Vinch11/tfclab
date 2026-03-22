@@ -875,8 +875,9 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [40, 50],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mk([
-      ["AM", "Force: Squat 4x5, Deadlift 4x5, Fentes 3x8. Charges lourdes (>80% 1RM)", []],
-      ["Note", "PM: Séance endurance Z2 après ≥6h de récup. Protéines post-AM obligatoire", []]
+      ["Warm-up", "10' mobilité dynamique: mobilité hanches, activation fessiers bande élastique, squats progressifs légers", []],
+      ["AM", "Force (30-35'): Back Squat 4×5 @80-85% 1RM + Deadlift 4×5 @80-85% 1RM + Fentes marchées 3×8/côté + Hip thrust 3×10 + Mollets debout 3×12. R:2-3' entre séries lourdes", []],
+      ["Note", "PM: Séance endurance Z2 après ≥6h de récup. 30g protéines + 50g glucides dans les 30' post-AM obligatoire", []]
     ]),
     variants: { ironman: "2x/semaine en Build", marathon: "1-2x/semaine en Build" },
     goals: GOALS_ALL,
