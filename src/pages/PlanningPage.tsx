@@ -6,6 +6,7 @@
 import { useNavigate } from "react-router-dom";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Sparkles,
   BookOpen,
@@ -13,8 +14,11 @@ import {
   ArrowRight,
   CalendarDays,
   Dumbbell,
+  RefreshCw,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { syncWorkoutsToCloud } from "@/lib/syncWorkoutsToCloud";
+import { toast } from "sonner";
 
 const sections = [
   {
@@ -50,7 +54,23 @@ export default function PlanningPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
+  const [syncing, setSyncing] = useState(false);
 
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const result = await syncWorkoutsToCloud();
+      if (result.success) {
+        toast.success(`✅ ${result.inserted} séances synchronisées (${result.deduplicated} doublons supprimés)`);
+      } else {
+        toast.error(`Erreur sync: ${result.errors.join(", ")}`);
+      }
+    } catch (err: any) {
+      toast.error(`Erreur: ${err.message}`);
+    } finally {
+      setSyncing(false);
+    }
+  };
   useEffect(() => {
     localStorage.setItem("vlab-staff-mode", staffMode.toString());
   }, [staffMode]);
@@ -64,7 +84,7 @@ export default function PlanningPage() {
     >
       <div className="max-w-5xl mx-auto space-y-6 animate-fade-in">
         {/* Header */}
-        <div className="space-y-2">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-primary/10">
               <CalendarDays className="h-6 w-6 text-primary" />
@@ -74,6 +94,16 @@ export default function PlanningPage() {
               <p className="text-sm text-muted-foreground">Entraînement futur, plans IA & templates</p>
             </div>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSync}
+            disabled={syncing}
+            className="gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
+            {syncing ? "Sync..." : "Sync DB"}
+          </Button>
         </div>
 
         {/* Section Cards */}
