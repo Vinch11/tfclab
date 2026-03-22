@@ -748,7 +748,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [30, 40],
     metricKey: "allure", sportKey: "natation",
     structure: mk([
-      ["Main", "1500m: 400m crawl Z1 + 200m dos + 200m brasse + 400m crawl Z1 + 200m pull buoy + 100m éducatifs. Aucun effort. Zéro chrono. Décompresser", ["Z1"]]
+      ["Warm-up", "200m souple au choix (dos ou brasse)", ["Z1"]],
+      ["Main", "1500m: 400m crawl Z1 + 200m dos + 200m brasse + 400m crawl Z1 + 200m pull buoy + 100m éducatifs. Aucun effort. Zéro chrono. Décompresser", ["Z1"]],
+      ["Cool-down", "100m dos souple + étirements bord de bassin 3'", ["Z1"]]
     ]),
     variants: {},
     goals: GOALS_ALL,
