@@ -39,6 +39,15 @@ const sections = [
     color: "text-blue-500",
     bgColor: "bg-blue-500/10",
   },
+  {
+    id: "library",
+    title: "Bibliothèque Séances",
+    description: "Catalogue complet des ~800 séances TFCL™ utilisées par le moteur IA avec filtrage par sport, phase et objectif",
+    icon: Library,
+    route: "/planning/library",
+    color: "text-emerald-500",
+    bgColor: "bg-emerald-500/10",
+  },
 ];
 
 export default function PlanningPage() {
