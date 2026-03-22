@@ -42,7 +42,7 @@ const sections = [
   {
     id: "library",
     title: "Bibliothèque Séances",
-    description: "Catalogue complet des ~800 séances TFCL™ utilisées par le moteur IA avec filtrage par sport, phase et objectif",
+    description: "Catalogue complet des séances TFCL™ utilisées par le moteur IA avec filtrage par sport, phase et objectif",
     icon: Library,
     route: "/planning/library",
     color: "text-emerald-500",
