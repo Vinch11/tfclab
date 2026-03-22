@@ -437,11 +437,13 @@ const TRAIL_C: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Build",
     phase: ["build"],
-    avoid: "—",
+    avoid: "Veille de sortie longue ou back-to-back",
     durationMin: [40, 55],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mkStructure([
-      ["Main", "Step-ups lestés 4×12, fentes bulgares 3×10, hip thrust 3×12, mollets 3×15, gainage anti-rotation 3×40s", []]
+      ["Warm-up", "10' mobilité dynamique hanches + activation fessiers", []],
+      ["Main", "Step-ups lestés 4×12, fentes bulgares 3×10, hip thrust 3×12, mollets 3×15, gainage anti-rotation 3×40s", []],
+      ["Cool-down", "5' étirements quadriceps/psoas", []]
     ]),
     variants: {},
     goals: TRAIL_GOALS_ALL,
