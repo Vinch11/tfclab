@@ -189,15 +189,28 @@ export function serializeCatalogForPrompt(catalog: CatalogEntry[]): string {
   lines.push("Chaque séance clé 🔑 doit correspondre à une entrée de ce catalogue (utilise l'ID).");
   lines.push("Tu peux adapter les durées et zones selon la progression, mais le protocole de base doit correspondre.\n");
 
-  lines.push("| ID | Cat | Sport | Objectif | Phases | Durée (min) | Structure |");
-  lines.push("|-----|-----|-------|----------|--------|-------------|-----------|");
+  const hasTrailDPlus = catalog.some(e => e.dPlusTargetM);
+
+  if (hasTrailDPlus) {
+    lines.push("| ID | Cat | Sport | Objectif | Phases | Durée (min) | D+ cible (m) | Structure |");
+    lines.push("|-----|-----|-------|----------|--------|-------------|--------------|-----------|");
+  } else {
+    lines.push("| ID | Cat | Sport | Objectif | Phases | Durée (min) | Structure |");
+    lines.push("|-----|-----|-------|----------|--------|-------------|-----------|");
+  }
 
   for (const e of catalog) {
     const phases = e.phase.join(",") || "all";
     const dur = `${e.durationMin[0]}-${e.durationMin[1]}`;
-    // Truncate structure to keep tokens manageable
     const struct = e.structure.length > 120 ? e.structure.slice(0, 117) + "..." : e.structure;
-    lines.push(`| ${e.id} | ${e.cat} | ${e.sport} | ${e.objectif.slice(0, 50)} | ${phases} | ${dur} | ${struct} |`);
+    const dPlus = e.dPlusTargetM
+      ? (typeof e.dPlusTargetM === "number" ? `${e.dPlusTargetM}` : `${e.dPlusTargetM.min}-${e.dPlusTargetM.max}`)
+      : "—";
+    if (hasTrailDPlus) {
+      lines.push(`| ${e.id} | ${e.cat} | ${e.sport} | ${e.objectif.slice(0, 50)} | ${phases} | ${dur} | ${dPlus} | ${struct} |`);
+    } else {
+      lines.push(`| ${e.id} | ${e.cat} | ${e.sport} | ${e.objectif.slice(0, 50)} | ${phases} | ${dur} | ${struct} |`);
+    }
   }
 
   if (catalog.some(e => e.variants)) {
