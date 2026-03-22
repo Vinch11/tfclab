@@ -284,7 +284,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [100, 140],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["Main", "1h40-2h20 Z2 avec 4-6 inserts de 5' Z3 (allure marathon +10\"/km) toutes les 25-30'. Volume aérobie + rappel tempo. Nutrition 40-60g/h", ["Z2", "Z3"]]
+      ["Warm-up", "10' trot Z1 progressif", ["Z1"]],
+      ["Main", "1h30-2h10 Z2 avec 4-6 inserts de 5' Z3 (allure marathon +10\"/km) toutes les 25-30'. Volume aérobie + rappel tempo. Nutrition 40-60g/h", ["Z2", "Z3"]],
+      ["Cool-down", "10' trot Z1 décrescendo", ["Z1"]]
     ]),
     variants: { marathon: "6 inserts de 5' Z3 dans 2h20", semi: "4 inserts de 5' Z3 dans 1h40" },
     goals: GOALS_RUN,
