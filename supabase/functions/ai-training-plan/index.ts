@@ -48,6 +48,18 @@ const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
     age_group:  { weeklyHours: [4,6],   sessionsPerWeek: [4,5],   keySessions: [1,2], progressionPct: [3,5] },
     finisher:   { weeklyHours: [3,4],   sessionsPerWeek: [3,4],   keySessions: [1,1], progressionPct: [3,3] },
   },
+  Trail: {
+    elite:      { weeklyHours: [12,18], sessionsPerWeek: [8,11],  keySessions: [2,3], progressionPct: [5,7] },
+    competitor: { weeklyHours: [8,14],  sessionsPerWeek: [6,9],   keySessions: [2,3], progressionPct: [5,7] },
+    age_group:  { weeklyHours: [6,10],  sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [3,5] },
+    finisher:   { weeklyHours: [4,7],   sessionsPerWeek: [4,5],   keySessions: [1,2], progressionPct: [3,3] },
+  },
+  TrailUltra: {
+    elite:      { weeklyHours: [15,22], sessionsPerWeek: [8,12],  keySessions: [2,3], progressionPct: [5,8] },
+    competitor: { weeklyHours: [10,16], sessionsPerWeek: [6,10],  keySessions: [2,3], progressionPct: [5,7] },
+    age_group:  { weeklyHours: [8,13],  sessionsPerWeek: [5,8],   keySessions: [2,2], progressionPct: [3,5] },
+    finisher:   { weeklyHours: [5,9],   sessionsPerWeek: [4,6],   keySessions: [1,2], progressionPct: [3,3] },
+  },
 };
 
 // FIX #2-obj: Order matters — check "70.3" BEFORE "ironman" to avoid "Ironman 70.3" → "IM"
@@ -221,11 +233,51 @@ CAP 85-90%, Renfo 10-15%. Accent VO2max (30/30, VMA longue), seuil secondaire.
 - Renfo : priorité absolue (prévention blessures débutant)
 - 2 jours repos minimum entre chaque sortie CAP les premières semaines
 
-### TRAIL COURT (<42km) — Modèle Kilian Jornet
-CAP/Trail 75-80% (spécifique D+), Renfo 20-25% (excentrique, escaliers, proprioception).
+### TRAIL COURT (<42km, D+ 1000-2500m) — Modèle Kilian Jornet / Jim Walmsley
+| Sport | % Volume | Séances/sem | Clés |
+|-------|----------|-------------|------|
+| CAP/Trail | 70-80% | 5-6 | D+ progressif. SL 2h30-3h30. VMA côtes 2x/sem. Seuil montée 1x/sem |
+| Renfo | 20-25% | 2-3 | Force excentrique (squat 4s excentrique), proprioception (Bosu, single leg), prévention chevilles |
+| Vélo | 0-5% | 0-1 | Optionnel Z1 récup si volume élevé. Jamais d'intensité vélo |
+⚠️ Spécificités Trail Court :
+- Séances clés TOUJOURS en terrain trail/sentier, jamais route
+- D+ cible progressif : base 500m/sem → build 1500m/sem → peak 2000m/sem
+- Travail technique descente OBLIGATOIRE 1x/sem (descente rapide contrôlée)
+- Force excentrique prioritaire (prévention quadriceps, DOMS)
+- Bâtons : à entraîner si utilisés en course
+- Ravitaillement : tester en SL même si course < 4h (estomac + logistique)
 
-### TRAIL LONG/ULTRA (>42km) — Modèle UTMB
-CAP/Trail 70-80%, Renfo 15-20%, Cross-training 5-10% (vélo Z1 pour volume sans impact).
+### TRAIL MONTAGNE (42-80km, D+ 2500-5000m) — Modèle François D'Haene / Zach Miller
+| Sport | % Volume | Séances/sem | Clés |
+|-------|----------|-------------|------|
+| CAP/Trail | 70-80% | 5-7 | D+ massif progressif. SL 3h-5h. Back-to-back weekends. Seuil montée long 2x/sem |
+| Renfo | 15-20% | 2-3 | Excentrique lourd + proprioception avancée + gainage anti-rotation pour pôles |
+| Vélo | 5-10% | 1-2 | Z1 récup entre grosses journées montagne. Volume sans impact |
+⚠️ Spécificités Trail Montagne :
+- D+ cible progressif : base 1000m/sem → build 3000m/sem → peak 4000m/sem
+- Back-to-back weekends OBLIGATOIRES en Build/Peak (SL samedi + SL dimanche avec cumul D+)
+- Simulation nuit : 1-2 sorties nocturnes obligatoires en phase Peak
+- Travail spécifique montée > 15% pente : allure "marche athlétique" avec bâtons, seuil en montée
+- Descente technique intensive : 1x/sem, terrain cassant, single track
+- Nutrition course : Gut Training progressif 40→70g/h sur les SL
+- Altitude : si course en altitude (>2000m), intégrer 2-3 semaines camp altitude ou simulation hypoxie
+
+### TRAIL ULTRA (>80km, D+ 5000m+) — Modèle UTMB / Courtney Dauwalter / Pau Capell
+| Sport | % Volume | Séances/sem | Clés |
+|-------|----------|-------------|------|
+| CAP/Trail | 65-75% | 5-7 | Volume D+ massif. SL 4h-7h. Back-to-back 2-3 weekends/mois. Simulation ultra 1x/mois |
+| Renfo | 15-20% | 2-3 | Excentrique lourd prioritaire + proprioception + résistance fatigue posturale |
+| Vélo | 5-10% | 1-2 | Z1 récup active. Volume aérobie sans impact. Cross-training intelligent |
+⚠️ Spécificités Trail Ultra :
+- D+ cible progressif : base 1500m/sem → build 4000m/sem → peak 5000-6000m/sem
+- Back-to-back weekends OBLIGATOIRES en Build/Peak : SL samedi 4-5h + SL dimanche 3-4h
+- Simulation ultra complète (6-8h) : 1x/mois en Build, 1x en Peak
+- Simulation nuit OBLIGATOIRE : 2-3 sorties nocturnes (dont 1 > 4h)
+- Gestion sommeil : entraîner la privation (sortie longue départ 4h du matin)
+- Nutrition : Gut Training progressif 40→90g/h. Tester toute la stratégie nutritive en simulation
+- Mental : inclure 1 sortie "à l'effort" (conditions difficiles, fatigue volontaire) par bloc Build
+- Bâtons : entraînement spécifique montée/descente avec bâtons 2x/sem si utilisés en course
+- Taper ultra = 14-21j (plus long que route). Volume -50% sem -2, -65% sem -1
 
 ## Méthodologie TFCL™ — Hybride Lorang Complet
 
@@ -710,6 +762,55 @@ Utilise ces micro-cycles réels comme modèles de qualité. Adapte-les au niveau
 | Samedi matin | CAP/Trail | VMA côtes + descente | 1h30 dont 10×2min côte raide @VO2max r=descente trot + 4×5min descente technique rapide. +600m D+ |
 | Samedi soir | Renfo | Core + mobilité | Gainage latéral 3×40s, dead bug 3×12, foam roller 20min, étirements chaîne post. 35min |
 | Dimanche | CAP/Trail | Endurance longue terrain | 2h30 Z2 sentier vallonné. +1100m D+. Allure naturelle, ravitaillement pratiqué |
+
+### Exemple : Jim Walmsley — Semaine Base Trail Court 30km (10h, 80km, +2000m D+)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, foam roller, hydratation |
+| Mardi | CAP/Trail | VMA côtes | 1h20 dont 8×90s côte 10% @VO2max r=descente trot + 6×30s côte raide sprint. +400m D+. 14km |
+| Mercredi matin | Renfo | Excentrique + proprioception | Squat excentrique 5s 4×8, single leg deadlift 3×10, Bosu squats 3×12, proprioception chevilles 10min. 50min |
+| Mercredi soir | CAP | EF sentier | 50min Z2 sentier technique. +200m D+. Cadence adaptée au terrain |
+| Jeudi | CAP/Trail | Seuil montée | 1h30 dont 3×12min montée @seuil (800m/h D+) r=4min descente facile. +500m D+. 15km |
+| Vendredi | CAP | Récupération active | 35min Z1 plat (5:45/km). Mobilité chevilles + hanches 15min |
+| Samedi | CAP/Trail | Sortie longue D+ | 2h30 sentier montagneux Z2. +900m D+. Ravitaillement testé 40g/h. Technique descente |
+| Dimanche | Renfo + Mobilité | Core + étirements | Gainage 4×45s, hip thrust 3×12, step-ups 3×10, foam roller 20min. 40min |
+
+### Exemple : François D'Haene — Semaine Build Trail Montagne 60km (14h, 100km, +3500m D+)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, auto-massage, sommeil 9h |
+| Mardi matin | CAP/Trail | Seuil montée long | 2h dont 5×12min montée @seuil (950m/h D+) r=descente 5min facile. +700m D+ |
+| Mardi soir | Renfo | Excentrique lourd + core | Squat excentrique 6s 4×6, step-downs lestés 3×10, fentes descente 3×12, gainage anti-rotation 3×40s. 50min |
+| Mercredi | CAP/Trail | Endurance longue vallonnée | 3h Z2 sentier montagne. +1200m D+. Allure naturelle, bâtons si terrain > 20%. Ravitaillement 45g/h |
+| Jeudi | Vélo | Cross-training récup | 1h15 vélo Z1 (60% FTP). Récupération active. Zéro intensité. Cadence 80-85 |
+| Vendredi matin | CAP/Trail | Tempo vallonné + descente tech | 1h30 dont 4×8min @tempo trail terrain ondulé + 4×3min descente technique rapide. +500m D+ |
+| Vendredi soir | Renfo | Proprioception avancée | Bosu single leg 3×30s, planche instable 3×40s, jump lunges 3×8, bande hanches 3×15. 35min |
+| Samedi | CAP/Trail | SL montagne (back-to-back J1) | 4h montagne Z2. +1500m D+. Ravitaillement complet 50g/h. Simulation terrain course |
+| Dimanche | CAP/Trail | SL récup (back-to-back J2) | 2h30 sentier vallonné Z2 facile sur jambes fatiguées. +600m D+. Objectif : endurance sur pré-fatigue |
+
+### Exemple : Pau Capell — Semaine Peak Trail Ultra UTMB (16h, 110km, +5500m D+)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération, compression, sommeil 9h+ |
+| Mardi matin | CAP/Trail | Intervalles montée | 2h30 dont 6×10min montée raide @seuil (1000m/h D+) r=5min descente trot. +1000m D+ |
+| Mardi soir | Renfo | Résistance fatigue | Circuit : squat excentrique 3×10, burpees 3×8, step-ups 3×15, gainage 4×50s. Enchaîné, peu de repos. 45min |
+| Mercredi | CAP/Trail | Endurance longue D+ | 4h30 montagne Z2. +2000m D+. Ravitaillement 60g/h solide + liquide. Gestion effort montée longue |
+| Jeudi | Vélo | Cross-training Z1 | 1h vélo Z1 plat. Récupération active pure. Cadence libre |
+| Vendredi matin | CAP/Trail | Tempo trail + simulation nutrition | 2h dont 3×15min @tempo trail terrain ondulé + test nutrition course complète 70g/h. +600m D+ |
+| Vendredi soir | Renfo | Core anti-fatigue | Dead bug 4×12, pallof press 3×12, planche latérale 3×40s, mobilité colonne 15min. 35min |
+| Samedi | CAP/Trail | Ultra-simulation nocturne (back-to-back J1) | 6h départ 5h du matin, montagne, +2000m D+. Simulation nuit + aube. Ravitaillement complet 70g/h. Bâtons |
+| Dimanche | CAP/Trail | Récup terrain (back-to-back J2) | 2h sentier facile Z2 sur jambes fatiguées. +400m D+. Objectif : gérer la fatigue, pas la vitesse |
+
+### Exemple : Semaine Affûtage Trail Ultra (Sem -1, 6h, 50km, +1500m D+)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | CAP/Trail | EF vallonnée | 50min Z2 sentier facile. +200m D+. Sensation légère |
+| Mardi | CAP/Trail | Rappels seuil montée | 1h dont 3×5min montée @seuil r=3min descente facile. +300m D+. Court et intense |
+| Mercredi | Renfo | Activation légère | Circuit léger : squats PDC 2×15, gainage 3×30s, mobilité 15min. 25min |
+| Jeudi | CAP | EF récup | 35min Z1 plat très facile. Aucune fatigue résiduelle |
+| Vendredi | Repos | Repos complet | Préparation matériel, hydratation, nutrition pré-course |
+| Samedi | CAP | Activation pré-course | 20min Z1 + 4×30s accélération progressive. Strides. Fin de l'échauffement pré-course |
+| Dimanche | 🏁 | JOUR DE COURSE | Objectif UTMB / Trail Ultra. Stratégie nutrition validée. Bâtons prêts |
 
 ### Exemple : Kristian Blummenfelt — Semaine Peak IM (28h, Modèle Olav Aleksander Bu)
 | Jour | Sport | Séance | Détails |
@@ -3664,10 +3765,34 @@ function buildUserPrompt(data: any, config: any): string {
     lines.push("- Accent VMA + seuil. Minimum 4-5 séances CAP/sem.");
     lines.push("- Séances types : EF Z2, Tempo allure semi, VMA 30/30, Seuil 2×20min, SL 15-20km, Fartlek, Côtes");
     lines.push("- Vélo optionnel : max 1-2x/sem, 45-60min Z1-Z2 uniquement");
-  } else if (["TRAIL", "TRAILSHORT", "TRAILMOUNTAIN", "TRAILULTRA"].includes(obj)) {
-    lines.push("\n### ⚠️ RAPPEL COHÉRENCE TRAIL");
-    lines.push("- CAP/Trail 70-80% | Renfo spécifique 20-25% | Vélo Z1 optionnel 5%");
-    lines.push("- Force excentrique, côtes, proprioception obligatoires");
+  } else if (obj === "TRAILULTRA") {
+    lines.push("\n### ⚠️ RAPPEL COHÉRENCE TRAIL ULTRA (>80km)");
+    lines.push("- CAP/Trail 65-75% | Renfo 15-20% | Vélo cross-training Z1 5-10%");
+    lines.push("- D+ progressif : base 1500m/sem → build 4000m/sem → peak 5000-6000m/sem");
+    lines.push("- Back-to-back weekends OBLIGATOIRES en Build/Peak");
+    lines.push("- Simulation ultra 6-8h : 1x/mois en Build, 1x en Peak");
+    lines.push("- Simulation nuit OBLIGATOIRE : 2-3 sorties nocturnes");
+    lines.push("- Force excentrique lourde 2x/sem + proprioception avancée");
+    lines.push("- Gut Training progressif 40→90g/h testé en simulation");
+    lines.push("- Bâtons : entraînement spécifique si utilisés en course");
+    lines.push("- Taper ultra = 14-21j (plus long que route)");
+  } else if (obj === "TRAILMOUNTAIN") {
+    lines.push("\n### ⚠️ RAPPEL COHÉRENCE TRAIL MONTAGNE (42-80km)");
+    lines.push("- CAP/Trail 70-80% | Renfo 15-20% | Vélo cross-training Z1 5-10%");
+    lines.push("- D+ progressif : base 1000m/sem → build 3000m/sem → peak 4000m/sem");
+    lines.push("- Back-to-back weekends en Build/Peak (SL samedi + SL dimanche)");
+    lines.push("- Seuil montée long 2x/sem. Descente technique 1x/sem");
+    lines.push("- Force excentrique lourd 2x/sem + proprioception");
+    lines.push("- Simulation nuit : 1-2 sorties en Peak");
+    lines.push("- Gut Training progressif 40→70g/h");
+  } else if (["TRAIL", "TRAILSHORT"].includes(obj)) {
+    lines.push("\n### ⚠️ RAPPEL COHÉRENCE TRAIL COURT (<42km)");
+    lines.push("- CAP/Trail 70-80% | Renfo 20-25% | Vélo Z1 optionnel 0-5%");
+    lines.push("- D+ progressif : base 500m/sem → build 1500m/sem → peak 2000m/sem");
+    lines.push("- VMA côtes 2x/sem + seuil montée 1x/sem + descente technique 1x/sem");
+    lines.push("- Force excentrique prioritaire (prévention quadriceps)");
+    lines.push("- Proprioception obligatoire (Bosu, single leg, terrain instable)");
+    lines.push("- Séances TOUJOURS en terrain trail/sentier, jamais route");
   } else if (["10K", "10KM", "5K"].includes(obj)) {
     lines.push(`\n### ⚠️ RAPPEL COHÉRENCE ${obj}`);
     lines.push("- CAP 75-85% | Renfo 10-15% | Vélo cross-training Z1-Z2 max 5-10%");
