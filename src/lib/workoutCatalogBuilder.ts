@@ -81,6 +81,11 @@ function scoreWorkout(w: LibraryWorkout, goals: WorkoutGoal[], phases: PhaseTag[
   if (w.necessite === "Obligatoire") score += 3;
   if (w.necessite === "Recommandé") score += 1;
 
+  // Bonus for trail-specific sessions when goal is trail
+  const isTrailGoal = goals.some(g => g.startsWith("trail_"));
+  if (isTrailGoal && w.tags?.some(t => t === "trail")) score += 5;
+  if (isTrailGoal && w.dPlusTargetM) score += 3;
+
   return score;
 }
 
