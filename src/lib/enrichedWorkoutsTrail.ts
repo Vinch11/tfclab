@@ -494,11 +494,13 @@ const TRAIL_C: LibraryWorkout[] = [
     necessite: "Recommandé",
     when: "Build/Peak",
     phase: ["build", "peak"],
-    avoid: "Veille de B2B",
+    avoid: "Veille de back-to-back ou séance longue",
     durationMin: [40, 55],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mkStructure([
-      ["Main", "Circuit enchaîné (peu de repos) : squat excentrique 3×10, burpees 3×8, step-ups 3×15, gainage 4×50s, fentes marchées 3×12", []]
+      ["Warm-up", "10' mobilité dynamique + activation (jumping jacks, montées genoux)", []],
+      ["Main", "Circuit enchaîné (30\" repos inter-exo) : squat excentrique 3×10, burpees 3×8, step-ups 3×15, gainage 4×50s, fentes marchées 3×12. R:2' entre tours", []],
+      ["Cool-down", "5' étirements + foam roller rapide", []]
     ]),
     variants: {},
     goals: TRAIL_GOALS_ULTRA,
