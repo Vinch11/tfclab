@@ -6,6 +6,7 @@
 import { useNavigate } from "react-router-dom";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Sparkles,
   BookOpen,
@@ -13,8 +14,11 @@ import {
   ArrowRight,
   CalendarDays,
   Dumbbell,
+  RefreshCw,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { syncWorkoutsToCloud } from "@/lib/syncWorkoutsToCloud";
+import { toast } from "sonner";
 
 const sections = [
   {
