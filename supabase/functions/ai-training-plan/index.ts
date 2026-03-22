@@ -2542,12 +2542,15 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
               // Sliding window summary — only last N chunks
               const slidingSummary = chunkSummaries.slice(-MAX_SUMMARY_CHUNKS).join("\n");
 
+              // Phase-specific workout catalog for this chunk
+              const chunkPhaseCatalog = getWorkoutCatalogForPhase(activePhase);
+
               let chunkPrompt: string;
               if (isFirst) {
                 const allChunksSummary = chunks.map(c => `Semaines ${c.start}-${c.end}`).join(", ");
                 // FIX C2 (audit): Inject structuredDiagnostic in chunk 1 to anchor phase bounds from the start
                 chunkPrompt = `${userPrompt}
-
+${chunkPhaseCatalog ? `\n${chunkPhaseCatalog}\n` : ""}
 ⚠️ GÉNÉRATION PAR BLOC : Génère UNIQUEMENT les semaines ${chunk.start} à ${chunk.end} (sur ${totalWeeks} total).
 
 📋 DIAGNOSTIC STRUCTURÉ (RÉFÉRENCE pour la cohérence du plan entier) :
