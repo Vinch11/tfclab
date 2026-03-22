@@ -649,7 +649,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [20, 30],
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mk([
-      ["Main", "3x: Wall sit 60\" + Single leg wall sit 30\"/côté + Pont glute 45\" + Calf raise isométrique 30\"/côté + Planche frontale 60\". R:90\"", []]
+      ["Warm-up", "5' activation articulaire: squats légers, montées sur pointes, glute bridge", []],
+      ["Main", "3x (R:90\"): Wall sit 60\" + Single leg wall sit 30\"/côté + Pont glute 45\" + Calf raise isométrique 30\"/côté + Planche frontale 60\" + Split squat isométrique 30\"/côté + Copenhague adducteur 20\"/côté", []],
+      ["Cool-down", "5' étirements quadriceps, mollets, psoas", []]
     ]),
     variants: {},
     goals: GOALS_ALL,
