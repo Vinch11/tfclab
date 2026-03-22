@@ -54,6 +54,25 @@ export default function PlanningPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
+  const [syncing, setSyncing] = useState(false);
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const result = await syncWorkoutsToCloud();
+      if (result.success) {
+        toast.success(`✅ ${result.inserted} séances synchronisées (${result.deduplicated} doublons supprimés)`);
+      } else {
+        toast.error(`Erreur sync: ${result.errors.join(", ")}`);
+      }
+    } catch (err: any) {
+      toast.error(`Erreur: ${err.message}`);
+    } finally {
+      setSyncing(false);
+    }
+  };
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
 
   useEffect(() => {
     localStorage.setItem("vlab-staff-mode", staffMode.toString());
