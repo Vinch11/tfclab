@@ -508,7 +508,9 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     durationMin: [45, 65],
     metricKey: "allure", sportKey: "natation",
     structure: mk([
-      ["Main", "2000-3000m en eau libre avec partenaire(s). Alternance 200m en tête / 200m en draft (pieds). Visée toutes les 8-10 brasses. Accélérations départ + bouées", ["Z2", "Z3"]]
+      ["Warm-up", "300m facile varié (100 NL + 100 dos + 100 pull) + 4x50m progressif", ["Z1", "Z2"]],
+      ["Main", "2000-3000m en eau libre avec partenaire(s). Alternance 200m en tête / 200m en draft (pieds). Visée toutes les 8-10 brasses. 3 accélérations départ simulé + 3 virages bouées", ["Z2", "Z3"]],
+      ["Cool-down", "200m souple dos ou brasse", ["Z1"]]
     ]),
     variants: { ironman: "3000m simulation complète", half: "2000m" },
     goals: GOALS_TRI,
