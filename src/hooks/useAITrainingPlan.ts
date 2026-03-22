@@ -3,6 +3,7 @@
  */
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
+import { buildWorkoutCatalog, serializeCatalogForPrompt } from "@/lib/workoutCatalogBuilder";
 
 const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
 
