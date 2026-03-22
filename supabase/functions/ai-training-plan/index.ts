@@ -2725,6 +2725,11 @@ ${recapSection}${multiObjChunkReminder}
 🔄 PHASE ACTIVE ESTIMÉE : ${activePhase}
 → Les séances clés de ce bloc doivent correspondre à cette phase ET aux limiteurs ci-dessus.
 → Utilise PRIORITAIREMENT les séances du catalogue ci-dessus qui correspondent à cette phase.
+→ Si AUCUNE séance du catalogue ne correspond précisément à l'objectif/phase/sport requis, tu peux CRÉER une séance sur mesure en respectant :
+  1. Le format identique (titre explicite, zones, durée, structure Warm-up/Main/Cool-down)
+  2. Les principes méthodologiques du plan (polarisation 80/20, progression, cohérence de phase)
+  3. Marque-la avec [Custom] dans le titre pour la distinguer des protocoles validés
+→ Ratio cible : ≥80% séances catalogue, ≤20% séances custom. Si tu dépasses 20% custom, justifie pourquoi.
 
 Résumé des blocs précédents (progression récente) :
 ${slidingSummary || "Premier bloc de continuation."}
