@@ -4173,4 +4173,11 @@ WorkoutLibrary.push(...ProPackWorkouts);
 import { TemplateDerivedWorkouts } from "./templateDerivedWorkouts";
 WorkoutLibrary.push(...TemplateDerivedWorkouts);
 
-console.log(`✅ Pro Pack: ${ProPackWorkouts.length} séances. Templates: ${TemplateDerivedWorkouts.length} séances. Total: ${WorkoutLibrary.length}`);
+// =============================================
+// ENRICHED WORKOUTS — Protocoles modernes & variantes avancées
+// Norwegian, Fartlek, Train Low, Durabilité, Race-Sim, etc.
+// =============================================
+import { EnrichedWorkouts } from "./enrichedWorkouts";
+WorkoutLibrary.push(...EnrichedWorkouts);
+
+console.log(`✅ Pro Pack: ${ProPackWorkouts.length} séances. Templates: ${TemplateDerivedWorkouts.length} séances. Enriched: ${EnrichedWorkouts.length} séances. Total: ${WorkoutLibrary.length}`);
