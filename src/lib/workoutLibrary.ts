@@ -4180,4 +4180,11 @@ WorkoutLibrary.push(...TemplateDerivedWorkouts);
 import { EnrichedWorkouts } from "./enrichedWorkouts";
 WorkoutLibrary.push(...EnrichedWorkouts);
 
-console.log(`✅ Pro Pack: ${ProPackWorkouts.length} séances. Templates: ${TemplateDerivedWorkouts.length} séances. Enriched: ${EnrichedWorkouts.length} séances. Total: ${WorkoutLibrary.length}`);
+// =============================================
+// ENRICHED WORKOUTS V2 — SFR, TT, 5K, Trail avancé, FatMax,
+// Gut Training, Technique natation, Sprint, Aquathlon, etc.
+// =============================================
+import { EnrichedWorkoutsV2 } from "./enrichedWorkoutsV2";
+WorkoutLibrary.push(...EnrichedWorkoutsV2);
+
+console.log(`✅ Pro Pack: ${ProPackWorkouts.length} | Templates: ${TemplateDerivedWorkouts.length} | Enriched: ${EnrichedWorkouts.length} | Enriched V2: ${EnrichedWorkoutsV2.length} | Total: ${WorkoutLibrary.length}`);
