@@ -804,12 +804,12 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     when: "Spécifique IM (2-4x dans le plan)",
     phase: ["build"],
     avoid: "Épaule fatiguée",
-    durationMin: [75, 100],
+    durationMin: [80, 105],
     metricKey: "allure", sportKey: "natation",
     structure: mk([
-      ["Warm-up", "200m facile", ["Z1"]],
+      ["Warm-up", "400m varié (200 NL + 100 bat + 100 pull) + 4x50m progressif", ["Z1", "Z2"]],
       ["Main", "3800m: 1900m Z2 (confort) + 1900m Z3 (allure course puis -2-3\"/100m pour finish). Negative split obligatoire. Visée toutes les 200m", ["Z2", "Z3"]],
-      ["Cool-down", "200m facile", ["Z1"]]
+      ["Cool-down", "200m facile dos", ["Z1"]]
     ]),
     variants: { ironman: "3800m progressive" },
     goals: GOALS_IM,
