@@ -2254,7 +2254,7 @@ Le lactate n'est PAS un déchet. C'est un carburant inter-organes :
 - **Tendinopathie achilléenne** : excentrique Alfredson 2x/jour, réduire côtes et vitesse
 - **Fasciite plantaire** : renfo intrinsèques pieds (serviette, marbles), étirements mollets/fascia
 - **Douleur genou (runner's knee)** : renfo quadriceps (wall sits, split squats), step-down excentrique
-- Intégrer les exercices de prévention pertinents dans les séances Renfo du plan`;
+- Intégrer les exercices de prévention pertinents dans les séances Renfo du plan
 
 ## 🔄 DIVERSITÉ ET PROGRESSION DES SÉANCES (CRITIQUE — Anti-Répétition)
 
@@ -2324,9 +2324,7 @@ Avant de soumettre chaque semaine, VÉRIFIE :
 - [ ] Au moins 1 séance de renfo a un format différent de la semaine précédente
 - [ ] La progression en volume/intensité est visible par rapport à la semaine précédente
 - [ ] En semaine de décharge, le volume baisse mais les formats restent variés (pas de copier-coller raccourci)
-
-
-
+`;
     let userPrompt: string;
     if (regenerateWeek) {
       userPrompt = `Régénère UNIQUEMENT la Semaine ${regenerateWeek.weekNumber} du plan.
