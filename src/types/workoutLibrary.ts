@@ -6,8 +6,9 @@ import { ObjectifType } from "./athlete";
 
 // Types de session (anciennement dans planificateur.ts)
 export type SessionType = "A" | "B" | "C" | "D" | "REST" | "Récup" | "SV1" | "LT1" | "TT" | "VO2" | "Sprint" | "Brique" | "Race-Sim";
-export type TrainingSport = "swim" | "bike" | "run" | "strength" | "mixed" | "cyclisme" | "course" | "natation" | "brick" | "muscu";
+export type TrainingSport = "swim" | "bike" | "run" | "strength" | "mixed" | "cyclisme" | "course" | "natation" | "brick";
 export type TrainingMetric = "power" | "HR" | "pace" | "css" | "puissance" | "allure" | "cardiaque";
+export type PhaseTag = "base" | "build" | "peak" | "taper";
 
 // Partie de structure d'une séance
 export interface WorkoutStructurePart {
@@ -36,6 +37,7 @@ export interface LibraryWorkout {
   objectif: string;
   necessite: NecessityLevel;
   when: string;
+  phase?: PhaseTag[];
   avoid: string;
   durationMin: [number, number];
   metricKey: TrainingMetric;
