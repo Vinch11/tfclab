@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import {
   Sparkles,
   BookOpen,
-  Footprints,
+  
   ArrowRight,
   CalendarDays,
   Dumbbell,
