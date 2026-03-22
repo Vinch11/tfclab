@@ -532,7 +532,7 @@ function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; sc
   if (catalogPct < 50) {
     issues.push({
       rule: "catalog_ratio",
-      severity: "error",
+      severity: "warning",
       message: `Seulement ${catalogPct}% de séances clés utilisent le catalogue TFCL™ (cible ≥80%)`,
       detail: `Catalogue: ${catalogSessions}/${totalKeySessions}, Custom: ${customSessions}, Non-tagué: ${totalKeySessions - catalogSessions - customSessions}`,
     });
