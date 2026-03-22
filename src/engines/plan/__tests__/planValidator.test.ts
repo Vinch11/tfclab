@@ -94,9 +94,10 @@ describe("planValidator", () => {
     const badWeek = makeWeek(1, [
       { sport: "Course", title: "Intervalles VO2max 5x3min", details: "Z6" },
       { sport: "Course", title: "Seuil 2x20min", details: "Z5" },
-      { sport: "Course", title: "Tempo marathon", details: "Z4a" },
+      { sport: "Course", title: "Over-under 4x8min", details: "Z5 intervalles" },
       { sport: "Course", title: "VMA 30/30", details: "Z6" },
       { sport: "Course", title: "Fartlek seuil", details: "Z5 intervalles" },
+      { sport: "Course", title: "Sprint côtes 10x30s", details: "Z7 force" },
     ]);
     const result = validatePlan(makePlan([badWeek]));
 
