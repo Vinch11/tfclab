@@ -51,6 +51,9 @@ const OBJECTIVE_OPTIONS = [
   { value: "Semi", label: "Semi-Marathon" },
   { value: "10K", label: "10 km" },
   { value: "StartToRun", label: "Start to Run (5-10 km)" },
+  { value: "TrailShort", label: "Trail court (20-40 km)" },
+  { value: "TrailMountain", label: "Trail montagne (40-80 km)" },
+  { value: "TrailUltra", label: "Ultra trail (80 km+)" },
 ];
 
 const AMBITION_OPTIONS = [
