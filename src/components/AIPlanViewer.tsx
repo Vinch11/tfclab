@@ -443,6 +443,75 @@ function WeekView({ week, startDate }: WeekViewProps) {
 }
 
 interface AIPlanViewerProps {
+
+/** Dedicated panel showing race-day consignes grouped by objective */
+function RaceDayConsignesPanel({ plan }: { plan: ParsedPlan }) {
+  const raceSessionsByObjective = useMemo(() => {
+    const groups: { label: string; priority: string; weekNumber: number; blocks: NonNullable<ParsedSession["raceBlocks"]> }[] = [];
+    for (const week of plan.weeks) {
+      for (const session of week.sessions) {
+        if (!session.raceBlocks) continue;
+        const titleMatch = session.title.match(/JOUR DE COURSE(?:\s*\[([ABC])\])?\s*[—-]\s*(.+)/i);
+        const priority = titleMatch?.[1] || "A";
+        const label = titleMatch?.[2]?.trim() || session.title;
+        groups.push({ label, priority, weekNumber: week.weekNumber, blocks: session.raceBlocks });
+      }
+    }
+    return groups;
+  }, [plan]);
+
+  if (raceSessionsByObjective.length === 0) return null;
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Flag className="h-4 w-4 text-primary" />
+          Consignes de course
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {raceSessionsByObjective.map((entry, idx) => (
+          <div key={idx} className="p-3 rounded-lg border border-border space-y-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge className="text-[10px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30">
+                {entry.priority === "A" ? "🅰️" : entry.priority === "B" ? "🅱️" : "🆎"} {entry.label}
+              </Badge>
+              <span className="text-[10px] text-muted-foreground">Semaine {entry.weekNumber}</span>
+            </div>
+
+            {entry.blocks.preCourse && (
+              <div className="p-2 rounded bg-amber-500/10 border border-amber-500/20">
+                <p className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1 mb-1">
+                  <ClipboardList className="h-3 w-3" /> Pré-course (J-2 / J-1)
+                </p>
+                <p className="text-xs text-muted-foreground whitespace-pre-wrap">{entry.blocks.preCourse}</p>
+              </div>
+            )}
+
+            <div className="p-2 rounded bg-emerald-500/10 border border-emerald-500/20">
+              <p className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mb-1">
+                <Flag className="h-3 w-3" /> Stratégie jour de course
+              </p>
+              <p className="text-xs text-muted-foreground whitespace-pre-wrap">{entry.blocks.jourDeCourse}</p>
+            </div>
+
+            {entry.blocks.consignesCoach && (
+              <div className="p-2 rounded bg-primary/5 border border-primary/20">
+                <p className="text-[10px] font-semibold text-primary flex items-center gap-1 mb-1">
+                  <MessageSquare className="h-3 w-3" /> Consignes coach de semaine
+                </p>
+                <p className="text-xs text-muted-foreground whitespace-pre-wrap">{entry.blocks.consignesCoach}</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+interface AIPlanViewerProps {
   plan: ParsedPlan;
   startDate?: Date;
   onSaveToPlan?: () => void;
