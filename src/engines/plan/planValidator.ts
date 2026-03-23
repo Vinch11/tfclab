@@ -71,6 +71,7 @@ export interface PlanValidationResult {
     sportRatioScore: number;
     catalogRatioScore: number;
     structureScore: number;
+    limiterAlignmentScore: number;
     overallComment: string;
   };
 }
@@ -675,10 +676,149 @@ function validateRestDays(metrics: WeekMetrics[]): { issues: ValidationIssue[]; 
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// LIMITER ALIGNMENT VALIDATION (Rule 10)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Maps limiter keywords (from formatLimitersForPrompt) to expected session patterns.
+ * If the plan's key sessions don't contain sessions targeting a limiter, it's flagged.
+ */
+const LIMITER_SESSION_PATTERNS: Record<string, { label: string; patterns: RegExp }> = {
+  "VO2max": {
+    label: "VO2max / Moteur aérobie",
+    patterns: /vo2|vma|interval.*(?:3|4|5)\s*min|pma|30\/30|billat|norvégi|z5|zone\s*5|VO2max/i,
+  },
+  "FTP/kg": {
+    label: "FTP/kg / Seuil",
+    patterns: /ftp|seuil|threshold|sweet\s*spot|z4|zone\s*4|over.under|tempo\s*long|cruise/i,
+  },
+  "VLamax": {
+    label: "VLamax (réduction glycolytique)",
+    patterns: /z2|endurance\s*fond|ef\b|train\s*low|aérobie|zone\s*2|long\s*ride|sortie\s*longue|sl\b|sprint\s*ban|endurance|fondament/i,
+  },
+  "TTE": {
+    label: "TTE / Durabilité au seuil",
+    patterns: /tte|seuil\s*long|threshold\s*ext|sweet\s*spot|tempo|z3.*long|z4.*long|over.under|cruise\s*interval|endurance\s*active/i,
+  },
+  "Économie": {
+    label: "Économie de course",
+    patterns: /économie|economy|cadence|drill|éducatif|gammes|technique|foulée|strides|plio|force\s*pied|renfo.*pied|côtes?\s*court/i,
+  },
+  "FatMax": {
+    label: "FatMax / Oxydation lipidique",
+    patterns: /fatmax|fat\s*ox|train\s*low|z2\s*long|endurance\s*fond|jeûn|glycog|zone\s*2.*long|sortie\s*longue|sl\b|aérobie\s*long/i,
+  },
+  "Robustesse": {
+    label: "Robustesse / Durabilité",
+    patterns: /durabilit|robustesse|sortie\s*longue|sl\b|long\s*run|long\s*ride|brick|z2\s*long|endurance\s*long|fatigue\s*resist/i,
+  },
+};
+
+function detectLimiterFromPromptText(limiterText: string): string | null {
+  // Extract the metric name from formatted limiter strings
+  // e.g. "### Limiteur #1 — VO2max (Impact: 85.0/100)" → "VO2max"
+  // e.g. "🎯 LIMITEUR PRIMAIRE : VLamax trop haute" → "VLamax"
+  for (const metric of Object.keys(LIMITER_SESSION_PATTERNS)) {
+    if (limiterText.includes(metric)) return metric;
+  }
+  // Also match common French labels
+  if (/moteur\s*aérobie/i.test(limiterText)) return "VO2max";
+  if (/glycolytique|vlamax/i.test(limiterText)) return "VLamax";
+  if (/durabilité|robustesse/i.test(limiterText)) return "Robustesse";
+  if (/économie/i.test(limiterText)) return "Économie";
+  if (/fatmax|lipid/i.test(limiterText)) return "FatMax";
+  if (/tte|seuil/i.test(limiterText)) return "TTE";
+  if (/ftp/i.test(limiterText)) return "FTP/kg";
+  return null;
+}
+
+function validateLimiterAlignment(
+  metrics: WeekMetrics[],
+  plan: ParsedPlan,
+  identifiedLimiters?: string[]
+): { issues: ValidationIssue[]; score: number; details: Record<string, { found: number; total: number }> } {
+  const issues: ValidationIssue[] = [];
+  const details: Record<string, { found: number; total: number }> = {};
+
+  if (!identifiedLimiters || identifiedLimiters.length === 0) {
+    return { issues: [], score: 100, details };
+  }
+
+  // Extract unique limiter metrics from the prompt text
+  const detectedMetrics: string[] = [];
+  for (const text of identifiedLimiters) {
+    const metric = detectLimiterFromPromptText(text);
+    if (metric && !detectedMetrics.includes(metric)) {
+      detectedMetrics.push(metric);
+    }
+  }
+
+  if (detectedMetrics.length === 0) {
+    return { issues: [], score: 100, details };
+  }
+
+  // For each limiter, count how many load weeks have at least one matching key session
+  const loadWeeks = metrics.filter(m => !m.isDeload && !m.isRaceWeek);
+  const totalLoadWeeks = loadWeeks.length || 1;
+
+  let totalCoverage = 0;
+
+  for (let i = 0; i < detectedMetrics.length; i++) {
+    const metric = detectedMetrics[i];
+    const config = LIMITER_SESSION_PATTERNS[metric];
+    if (!config) continue;
+
+    const isPrimary = i === 0;
+    let weeksWithMatch = 0;
+
+    for (const wm of loadWeeks) {
+      // Find sessions in this week that match the limiter pattern
+      const week = plan.weeks.find(w => w.weekNumber === wm.weekNumber);
+      if (!week) continue;
+
+      const hasMatch = week.sessions.some(s => {
+        if (s.isRest) return false;
+        const text = `${s.sport} ${s.title} ${s.details}`;
+        return config.patterns.test(text);
+      });
+
+      if (hasMatch) weeksWithMatch++;
+    }
+
+    const coveragePct = Math.round((weeksWithMatch / totalLoadWeeks) * 100);
+    details[metric] = { found: weeksWithMatch, total: totalLoadWeeks };
+
+    // Primary limiter: expect coverage in ≥60% of load weeks
+    // Secondary: expect ≥40%
+    const threshold = isPrimary ? 60 : 40;
+    const label = config.label;
+
+    if (coveragePct < threshold) {
+      const severity = isPrimary && coveragePct < 30 ? "error" as const : "warning" as const;
+      issues.push({
+        rule: "limiter_alignment",
+        severity,
+        message: `Limiteur ${isPrimary ? "#1" : `#${i + 1}`} "${label}" : séances ciblées dans ${weeksWithMatch}/${totalLoadWeeks} semaines (${coveragePct}%, cible ≥${threshold}%)`,
+        detail: `Le plan devrait contenir des séances spécifiques pour adresser ce limiteur dans la majorité des semaines de charge.`,
+      });
+    }
+
+    // Weight: primary limiter counts more
+    const weight = isPrimary ? 2 : 1;
+    totalCoverage += Math.min(100, coveragePct * (100 / threshold)) * weight;
+  }
+
+  const maxCoverage = detectedMetrics.reduce((s, _, i) => s + (i === 0 ? 200 : 100), 0);
+  const score = Math.round(totalCoverage / (maxCoverage || 1) * 100);
+
+  return { issues, score: Math.min(100, score), details };
+}
+
+
 // MAIN VALIDATOR
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export function validatePlan(plan: ParsedPlan, objective?: string): PlanValidationResult {
+export function validatePlan(plan: ParsedPlan, objective?: string, identifiedLimiters?: string[]): PlanValidationResult {
   // Extract metrics for each week
   const weekMetrics = plan.weeks.map(extractWeekMetrics);
 
@@ -692,6 +832,7 @@ export function validatePlan(plan: ParsedPlan, objective?: string): PlanValidati
   const raceDay = validateRaceDay(weekMetrics);
   const weeklyStructure = validateWeeklyStructure(weekMetrics);
   const restDays = validateRestDays(weekMetrics);
+  const limiterAlignment = validateLimiterAlignment(weekMetrics, plan, identifiedLimiters);
 
   // Combine structure scores (Rules 7+8+9)
   const structureScore = Math.round(
@@ -711,10 +852,23 @@ export function validatePlan(plan: ParsedPlan, objective?: string): PlanValidati
     ...raceDay.issues,
     ...weeklyStructure.issues,
     ...restDays.issues,
+    ...limiterAlignment.issues,
   ];
 
-  // Weighted score (7 rule groups now)
-  const weights = {
+  // Has limiters? Include limiter alignment in scoring
+  const hasLimiters = identifiedLimiters && identifiedLimiters.length > 0;
+
+  // Weighted score (8 rule groups when limiters are present)
+  const weights = hasLimiters ? {
+    polarization: 0.16,
+    loadPattern: 0.15,
+    keySessions: 0.15,
+    progression: 0.10,
+    sportRatio: 0.08,
+    catalogRatio: 0.06,
+    structure: 0.12,
+    limiterAlignment: 0.18,
+  } : {
     polarization: 0.20,
     loadPattern: 0.18,
     keySessions: 0.18,
@@ -722,7 +876,9 @@ export function validatePlan(plan: ParsedPlan, objective?: string): PlanValidati
     sportRatio: 0.10,
     catalogRatio: 0.07,
     structure: 0.15,
+    limiterAlignment: 0,
   };
+
   const weightedScore = Math.round(
     polarization.score * weights.polarization +
     loadPattern.score * weights.loadPattern +
@@ -730,7 +886,8 @@ export function validatePlan(plan: ParsedPlan, objective?: string): PlanValidati
     progression.score * weights.progression +
     sportRatio.score * weights.sportRatio +
     catalogRatio.score * weights.catalogRatio +
-    structureScore * weights.structure
+    structureScore * weights.structure +
+    limiterAlignment.score * weights.limiterAlignment
   );
 
   // Grade
@@ -758,10 +915,12 @@ export function validatePlan(plan: ParsedPlan, objective?: string): PlanValidati
       sportRatioScore: sportRatio.score,
       catalogRatioScore: catalogRatio.score,
       structureScore,
+      limiterAlignmentScore: limiterAlignment.score,
       overallComment,
     },
   };
 }
+
 
 /**
  * Format validation result as a human-readable markdown string
@@ -780,6 +939,9 @@ export function formatValidationReport(result: PlanValidationResult): string {
   lines.push(`| Ratio sportif | ${result.summary.sportRatioScore}/100 | ${result.summary.sportRatioScore >= 75 ? "✅" : result.summary.sportRatioScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push(`| Catalogue TFCL™ | ${result.summary.catalogRatioScore}/100 | ${result.summary.catalogRatioScore >= 75 ? "✅" : result.summary.catalogRatioScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push(`| Structure (Race/Jours/Repos) | ${result.summary.structureScore}/100 | ${result.summary.structureScore >= 75 ? "✅" : result.summary.structureScore >= 50 ? "⚠️" : "❌"} |`);
+  if (result.summary.limiterAlignmentScore > 0) {
+    lines.push(`| Cohérence Limiteurs | ${result.summary.limiterAlignmentScore}/100 | ${result.summary.limiterAlignmentScore >= 75 ? "✅" : result.summary.limiterAlignmentScore >= 50 ? "⚠️" : "❌"} |`);
+  }
   lines.push("");
   lines.push(`**${result.summary.overallComment}**`);
 
