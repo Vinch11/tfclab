@@ -630,8 +630,28 @@ export default function AITrainingPlanPage() {
           athleteData: athleteContext.data,
           planConfig: {
             objective: OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective,
+            raceName: raceName || undefined,
+            raceDate: raceDate || undefined,
+            raceGoals: raceGoals.length > 0 ? [
+              {
+                objective: OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective,
+                raceName: raceName || undefined,
+                raceDate: raceDate || undefined,
+                priority: "A",
+              },
+              ...raceGoals.map((g) => ({
+                objective: OBJECTIVE_OPTIONS.find(o => o.value === g.objective)?.label || g.objective,
+                raceName: g.raceName || undefined,
+                raceDate: g.raceDate || undefined,
+                priority: g.priority,
+              })),
+            ] : undefined,
+            planStartDate: format(planStartDate, "yyyy-MM-dd"),
+            weeksAvailable: weeksAvailable ?? undefined,
             weeklyHours: parseFloat(weeklyHours) || undefined,
             sessionsPerWeek: parseInt(sessionsPerWeek) || undefined,
+            maxSessionsPerDay: parseInt(maxSessionsPerDay) || undefined,
+            strengthSessionsPerWeek: parseInt(strengthSessionsPerWeek) || undefined,
             ambition: AMBITION_OPTIONS.find(a => a.value === ambition)?.label || ambition,
             constraints: constraints || undefined,
           },
