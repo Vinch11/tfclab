@@ -49,6 +49,7 @@ const TYPE_COLORS: Record<string, string> = {
   VO2: "bg-red-100 text-red-700",
   Sprint: "bg-pink-100 text-pink-700",
   Brique: "bg-purple-100 text-purple-700",
+  "Race-Sim": "bg-indigo-100 text-indigo-700",
 };
 
 const TYPE_TOOLTIPS: Record<string, string> = {
@@ -56,8 +57,6 @@ const TYPE_TOOLTIPS: Record<string, string> = {
   B: "Seuil — FTP, tempo élevé",
   C: "Endurance fondamentale — Z2, aérobie",
   D: "Récupération / régénération",
-};
-  "Race-Sim": "bg-indigo-100 text-indigo-700",
 };
 
 function normalizeSport(s: string): string {
