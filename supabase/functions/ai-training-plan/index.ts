@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -142,6 +143,157 @@ function extractLimiterKeywords(limiterName: string): string[] {
   return kw;
 }
 
+type CloudWorkoutCatalogRow = {
+  id: string;
+  type: string;
+  sport: string;
+  phase_tag: string;
+  intensity_tag: string | null;
+  title: string;
+  description: string | null;
+  duration_min: number;
+};
+
+function normalizeCatalogPhaseKey(phase: string): "base" | "build" | "peak" | "taper" {
+  const normalized = phase.toLowerCase();
+  if (["fondation", "base", "adaptation"].includes(normalized)) return "base";
+  if (["build", "chantier", "consolidation", "développement"].includes(normalized)) return "build";
+  if (["spécifique", "peak", "race-specific", "compétition"].includes(normalized)) return "peak";
+  return "taper";
+}
+
+function getCatalogObjectivePatterns(objectiveKey: string): RegExp[] {
+  switch (objectiveKey) {
+    case "IM":
+      return [/(^|[^a-z])(ironman|im)([^a-z]|$)/i, /_IM_/i, /triathlon longue distance/i];
+    case "703":
+      return [/70\.3|703/i, /half/i, /middle distance/i];
+    case "Semi":
+      return [/semi/i, /half marathon/i, /_SEMI_/i];
+    case "Marathon":
+      return [/marathon/i, /_MAR_/i];
+    case "10K":
+      return [/10k|10km/i, /_10K_/i];
+    case "5K":
+      return [/5k|5km/i, /_5K_/i];
+    case "TrailUltra":
+      return [/trail/i, /ultra/i, /utmb/i, /montagne/i, /d\+/i];
+    case "Trail":
+      return [/trail/i, /montagne/i, /d\+/i];
+    case "StartToRun":
+      return [/start\s*to\s*run/i, /débutant/i, /marche\/course/i];
+    default:
+      return [];
+  }
+}
+
+function getPreferredSportsForObjective(objectiveKey: string): string[] {
+  switch (objectiveKey) {
+    case "IM":
+    case "703":
+      return ["natation", "cyclisme", "course", "brick", "mixed", "strength"];
+    case "Trail":
+    case "TrailUltra":
+    case "Marathon":
+    case "Semi":
+    case "10K":
+    case "5K":
+    case "StartToRun":
+      return ["course", "strength", "cyclisme", "natation"];
+    default:
+      return ["course", "cyclisme", "natation", "strength", "brick", "mixed"];
+  }
+}
+
+function getSportCapForObjective(objectiveKey: string, sport: string, maxItems: number): number {
+  const normalized = sport.toLowerCase();
+
+  if (["IM", "703"].includes(objectiveKey)) {
+    if (normalized === "cyclisme") return Math.ceil(maxItems * 0.32);
+    if (normalized === "course") return Math.ceil(maxItems * 0.26);
+    if (normalized === "natation") return Math.ceil(maxItems * 0.22);
+    if (normalized === "brick" || normalized === "mixed") return Math.ceil(maxItems * 0.18);
+    if (normalized === "strength") return Math.ceil(maxItems * 0.18);
+    return Math.ceil(maxItems * 0.12);
+  }
+
+  if (["Trail", "TrailUltra", "Marathon", "Semi", "10K", "5K", "StartToRun"].includes(objectiveKey)) {
+    if (normalized === "course") return Math.ceil(maxItems * 0.72);
+    if (normalized === "strength") return Math.ceil(maxItems * 0.24);
+    return Math.ceil(maxItems * 0.12);
+  }
+
+  return Math.ceil(maxItems * 0.25);
+}
+
+function scoreCloudWorkoutCatalogRow(
+  row: CloudWorkoutCatalogRow,
+  objectiveKey: string,
+  phases: string[],
+): number {
+  const text = `${row.id} ${row.title} ${row.description ?? ""}`.toLowerCase();
+  const phaseTag = (row.phase_tag ?? "").toLowerCase();
+  const intensityTag = (row.intensity_tag ?? "").toLowerCase();
+  const sport = row.sport.toLowerCase();
+  const preferredSports = getPreferredSportsForObjective(objectiveKey);
+
+  let score = 0;
+
+  if (phases.some((phase) => phaseTag.includes(phase))) score += 18;
+  else if (phases.includes("build") && /base|peak/.test(phaseTag)) score += 5;
+  else score -= 8;
+
+  const objectivePatterns = getCatalogObjectivePatterns(objectiveKey);
+  if (objectivePatterns.some((pattern) => pattern.test(text))) score += 20;
+
+  if (preferredSports.includes(sport)) {
+    score += Math.max(2, 8 - preferredSports.indexOf(sport));
+  } else {
+    score -= 6;
+  }
+
+  if (phases.includes("base") && /(z1|z2|easy|endurance|aérobie|drill|technique|strength)/i.test(`${text} ${intensityTag}`)) {
+    score += 5;
+  }
+  if (phases.includes("build") && /(tempo|threshold|seuil|sweet|vo2|vma|z3|z4|z5)/i.test(`${text} ${intensityTag}`)) {
+    score += 5;
+  }
+  if (phases.includes("peak") && /(race|sim|allure|pace|brick|specific|spécifique)/i.test(text)) {
+    score += 6;
+  }
+  if (phases.includes("taper") && /(activation|easy|z1|z2|race|sim|openers|pré-course)/i.test(`${text} ${intensityTag}`)) {
+    score += 7;
+  }
+
+  if (row.type === "Race-Sim" || /race|sim/i.test(row.id)) score += 3;
+  if (row.type === "Brique" || sport === "brick") score += objectiveKey === "IM" || objectiveKey === "703" ? 4 : -2;
+  if (sport === "strength") score += ["Trail", "TrailUltra", "Marathon", "Semi", "10K", "5K"].includes(objectiveKey) ? 3 : 1;
+
+  return score;
+}
+
+function serializeCloudCatalogForPrompt(catalog: CloudWorkoutCatalogRow[], label: string): string {
+  if (catalog.length === 0) return "";
+
+  const lines: string[] = [];
+  lines.push(`\n### 📚 CATALOGUE TFCL™ BACKEND — ${label}`);
+  lines.push("⚠️ Utilise PRIORITAIREMENT les IDs de ce catalogue réel pour nommer les séances du plan.");
+  lines.push("| ID | Cat | Sport | Phases | Durée | Focus |\n|----|-----|-------|--------|-------|-------|");
+
+  for (const row of catalog) {
+    const focusSource = row.title || row.description || row.id;
+    const focus = focusSource.replace(/\|/g, "/").slice(0, 90);
+    lines.push(`| ${row.id} | ${row.type} | ${row.sport} | ${(row.phase_tag || "all").slice(0, 24)} | ${row.duration_min} min | ${focus} |`);
+  }
+
+  lines.push("\n⚠️ RÈGLES D'USAGE :");
+  lines.push("1. Chaque séance non-repos doit commencer par un ID du catalogue quand un protocole existe.");
+  lines.push("2. Les séances [Custom] ne sont autorisées qu'en dernier recours.");
+  lines.push("3. Les séances clés 🔑 doivent prioritairement provenir du catalogue.");
+
+  return lines.join("\n");
+}
+
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -150,6 +302,13 @@ serve(async (req) => {
     const { athleteData, planConfig, regenerateWeek, workoutCatalog, phaseCatalogs } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const supabaseAdmin = supabaseUrl && serviceRoleKey
+      ? createClient(supabaseUrl, serviceRoleKey, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        })
+      : null;
 
     const systemPrompt = `Tu es le moteur de planification TFCL™ Plan Generator — un système expert de périodisation d'entraînement de niveau mondial, intégré à la plateforme Two For Coaching Lab. Ta méthodologie est directement inspirée de Dan Lorang (coach de Jan Frodeno, Anne Haug, Laura Philipp) et des meilleures pratiques du coaching d'endurance élite (INSCYD, TrainingPeaks methodology, Joel Filliol, Brett Sutton, Mikal Iden's coaching team).
 
@@ -2473,8 +2632,73 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
       userPrompt = buildUserPrompt(athleteData, planConfig);
     }
 
-    // Resolve workout catalog for injection — phase-specific catalogs take priority
-    function getWorkoutCatalogForPhase(phase: string): string {
+    const totalWeeks = planConfig?.weeksAvailable || 12;
+    const objectiveCode = (planConfig?.objective || "").toUpperCase();
+    const isVerbosePlan = /IRON|IM\b|703|70\.3|TRIATHLON|TRI\b/i.test(objectiveCode);
+    const CHUNK_SIZE = isVerbosePlan ? 6 : 8;
+    const needsChunking = !regenerateWeek && totalWeeks > 16;
+
+    const catalogPromptCache = new Map<string, string>();
+
+    async function buildCloudCatalogPrompt(phases: string[], maxItems: number, label: string): Promise<string> {
+      const normalizedPhases = [...new Set(phases.map(normalizeCatalogPhaseKey))];
+      const cacheKey = `${normalizeObjKey(planConfig?.objective || "")}:${normalizedPhases.join(",")}:${maxItems}`;
+      if (catalogPromptCache.has(cacheKey)) return catalogPromptCache.get(cacheKey)!;
+      if (!supabaseAdmin) return "";
+
+      const { data, error } = await supabaseAdmin
+        .from("workouts_library")
+        .select("id, type, sport, phase_tag, intensity_tag, title, description, duration_min");
+
+      if (error || !data) {
+        console.error("Failed to load workouts_library for AI plan:", error);
+        return "";
+      }
+
+      const objectiveKey = normalizeObjKey(planConfig?.objective || "");
+      const ranked = (data as CloudWorkoutCatalogRow[])
+        .map((row) => ({
+          row,
+          score: scoreCloudWorkoutCatalogRow(row, objectiveKey, normalizedPhases),
+        }))
+        .filter(({ score }) => score >= 0)
+        .sort((a, b) => b.score - a.score || a.row.id.localeCompare(b.row.id));
+
+      const selected: CloudWorkoutCatalogRow[] = [];
+      const sportCounts: Record<string, number> = {};
+      const typeCounts: Record<string, number> = {};
+      const seenIds = new Set<string>();
+
+      for (const { row } of ranked) {
+        if (selected.length >= maxItems) break;
+        if (seenIds.has(row.id)) continue;
+
+        const sportKey = row.sport.toLowerCase();
+        const sportCap = getSportCapForObjective(objectiveKey, sportKey, maxItems);
+        if ((sportCounts[sportKey] || 0) >= sportCap) continue;
+        if ((typeCounts[row.type] || 0) >= Math.ceil(maxItems * 0.45)) continue;
+
+        selected.push(row);
+        seenIds.add(row.id);
+        sportCounts[sportKey] = (sportCounts[sportKey] || 0) + 1;
+        typeCounts[row.type] = (typeCounts[row.type] || 0) + 1;
+      }
+
+      const prompt = serializeCloudCatalogForPrompt(selected, label);
+      catalogPromptCache.set(cacheKey, prompt);
+      return prompt;
+    }
+
+    // Resolve workout catalog for injection — backend DB catalogs take priority over local subsets
+    async function getWorkoutCatalogForPhase(phase: string): Promise<string> {
+      const normalizedPhase = normalizeCatalogPhaseKey(phase);
+      const dbCatalog = await buildCloudCatalogPrompt(
+        [normalizedPhase],
+        normalizedPhase === "taper" ? 28 : 40,
+        `PHASE ${normalizedPhase.toUpperCase()}`,
+      );
+      if (dbCatalog) return dbCatalog;
+
       if (phaseCatalogs && typeof phaseCatalogs === "object") {
         // Map active phase names to catalog keys
         const phaseMap: Record<string, string> = {
@@ -2498,18 +2722,26 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
       return "";
     }
 
-    // For non-chunked plans, inject ALL phase catalogs (plan covers all phases)
-    const monoblocCatalogParts: string[] = [];
-    for (const phaseKey of ["base", "build", "peak", "taper"]) {
-      const cat = getWorkoutCatalogForPhase(phaseKey);
-      if (cat && !monoblocCatalogParts.includes(cat)) {
-        monoblocCatalogParts.push(cat);
+    async function getWorkoutCatalogForPlan(): Promise<string> {
+      const dbCatalog = await buildCloudCatalogPrompt(["base", "build", "peak", "taper"], 72, "PLAN COMPLET");
+      if (dbCatalog) return dbCatalog;
+
+      const monoblocCatalogParts: string[] = [];
+      for (const phaseKey of ["base", "build", "peak", "taper"]) {
+        const cat = await getWorkoutCatalogForPhase(phaseKey);
+        if (cat && !monoblocCatalogParts.includes(cat)) {
+          monoblocCatalogParts.push(cat);
+        }
       }
+
+      return [...new Set(monoblocCatalogParts)].join("\n\n");
     }
-    if (monoblocCatalogParts.length > 0) {
-      // Deduplicate: if all phases return the same catalog, inject once
-      const uniqueCatalogs = [...new Set(monoblocCatalogParts)];
-      userPrompt += "\n\n" + uniqueCatalogs.join("\n\n");
+
+    if (!needsChunking) {
+      const monoblocCatalog = await getWorkoutCatalogForPlan();
+      if (monoblocCatalog) {
+        userPrompt += "\n\n" + monoblocCatalog;
+      }
       userPrompt += `\n\n→ Utilise PRIORITAIREMENT les séances du catalogue ci-dessus.
 → Si AUCUNE séance ne correspond, tu peux CRÉER une séance [Custom] en respectant le format et la méthodologie.
 → Ratio cible : ≥80% séances catalogue, ≤20% séances custom.
@@ -2517,16 +2749,6 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
 ⚠️ RAPPEL ABSOLU : Chaque ligne du tableau DOIT commencer la colonne "Séance" par l'ID catalogue (ex: A_RUN_Z2_EASY, B_BIKE_THRESHOLD, D_STR_CORE_PREVENTION).
 NE PAS écrire de titre libre sans ID. Le validateur qualité pénalise fortement les séances sans ID catalogue.`;
     }
-
-    const totalWeeks = planConfig?.weeksAvailable || 12;
-    // Use smaller chunks for triathlon (very verbose output with multi-session days)
-    const obj = (planConfig?.objective || "").toUpperCase();
-    // Detect verbose plans: triathlon multi-sport plans generate much more text per week
-    const isVerbosePlan = /IRON|IM\b|703|70\.3|TRIATHLON|TRI\b/i.test(obj);
-    // Dynamic chunk sizing: larger chunks = fewer API calls + better context retention
-    // Gemini Flash supports 65k output tokens; ~3-4k tokens/week (verbose) or ~1.5-2k (standard)
-    const CHUNK_SIZE = isVerbosePlan ? 6 : 8;
-    const needsChunking = !regenerateWeek && totalWeeks > 16;
 
     // FIX #1: Deduplicate CP/W' — reuse buildCPWprimeSection's logic via shared helper
     const cpwResult = computeCPWprime(athleteData);
@@ -2686,7 +2908,7 @@ NE PAS écrire de titre libre sans ID. Le validateur qualité pénalise fortemen
               const slidingSummary = chunkSummaries.slice(-MAX_SUMMARY_CHUNKS).join("\n");
 
               // Phase-specific workout catalog for this chunk
-              const chunkPhaseCatalog = getWorkoutCatalogForPhase(activePhase);
+              const chunkPhaseCatalog = await getWorkoutCatalogForPhase(activePhase);
 
               let chunkPrompt: string;
               if (isFirst) {
