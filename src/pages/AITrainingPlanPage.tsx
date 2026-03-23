@@ -429,6 +429,32 @@ export default function AITrainingPlanPage() {
               ?? nextWeeks[Math.min(Math.max(targetWeekNumber - 1, 0), Math.max(nextWeeks.length - 1, 0))];
           };
 
+          const isRaceLikeSession = (session: ParsedWeek["sessions"][number]) =>
+            /🏁|jour de course|course/i.test(`${session.sport} ${session.title} ${session.details}`);
+
+          const extractRaceContext = (week: ParsedWeek, raceLabel: string, priority: RaceAnchor["priority"]) => {
+            const notes = week.coachNotes?.trim();
+            if (!notes) return "";
+
+            const labelTokens = raceLabel
+              .toLowerCase()
+              .split(/[^\p{L}\p{N}]+/u)
+              .filter((token) => token.length > 2);
+
+            const relevantLines = notes
+              .split("\n")
+              .map((line) => line.trim())
+              .filter(Boolean)
+              .filter((line) => {
+                const lower = line.toLowerCase();
+                if (labelTokens.some((token) => lower.includes(token))) return true;
+                if (priority !== "A" && lower.includes(`objectif ${priority.toLowerCase()}`)) return true;
+                return /(allure|pacing|nutrition|ravito|stratég|échauff|départ|course|objectif|compétition)/i.test(line);
+              });
+
+            return relevantLines.join("\n").trim();
+          };
+
           configuredGoals
             .sort((a, b) => a.raceDate.localeCompare(b.raceDate))
             .forEach((goal) => {
@@ -443,33 +469,56 @@ export default function AITrainingPlanPage() {
               if (!targetWeek) return;
 
               const raceLabel = goal.raceName || goal.objective || objective;
+              const raceContext = extractRaceContext(targetWeek, raceLabel, goal.priority);
               const sessionsWithoutTargetRest = targetWeek.sessions.filter(
                 (session) => !(session.dayIndex === targetDayIndex && session.isRest)
               );
 
-              const hasRaceSession = sessionsWithoutTargetRest.some((session) =>
-                session.dayIndex === targetDayIndex && /🏁|jour de course|course/i.test(`${session.sport} ${session.title} ${session.details}`)
-              );
+              const raceSessions = sessionsWithoutTargetRest.filter(isRaceLikeSession);
+              const raceSessionOnTargetDay = raceSessions.find((session) => session.dayIndex === targetDayIndex);
 
-              targetWeek.sessions = hasRaceSession
-                ? sessionsWithoutTargetRest
-                : [
-                    ...sessionsWithoutTargetRest,
-                    {
-                      weekNumber: targetWeek.weekNumber,
-                      weekTheme: targetWeek.theme,
-                      phase: targetWeek.phase,
-                      dayName: dayNames[targetDayIndex],
-                      dayIndex: targetDayIndex,
-                      sport: "🏁 Course",
-                      title: `JOUR DE COURSE${goal.priority !== "A" ? ` [${goal.priority}]` : ""} — ${raceLabel}`,
-                      details:
-                        goal.priority === "A"
-                          ? "Course cible imposée automatiquement car absente de la semaine générée."
-                          : `Course objectif ${goal.priority} imposée automatiquement car absente de la semaine générée.`,
-                      isRest: false,
-                    },
-                  ].sort((a, b) => a.dayIndex - b.dayIndex);
+              if (raceSessionOnTargetDay) {
+                targetWeek.sessions = sessionsWithoutTargetRest;
+                return;
+              }
+
+              const existingRaceSession = raceSessions[0];
+              const fallbackMessage =
+                goal.priority === "A"
+                  ? "Course cible imposée automatiquement car absente de la semaine générée."
+                  : `Course objectif ${goal.priority} imposée automatiquement car absente de la semaine générée.`;
+
+              if (existingRaceSession) {
+                targetWeek.sessions = [
+                  ...sessionsWithoutTargetRest.filter((session) => session !== existingRaceSession),
+                  {
+                    ...existingRaceSession,
+                    dayName: dayNames[targetDayIndex],
+                    dayIndex: targetDayIndex,
+                    title: existingRaceSession.title || `JOUR DE COURSE${goal.priority !== "A" ? ` [${goal.priority}]` : ""} — ${raceLabel}`,
+                    details: [existingRaceSession.details?.trim(), raceContext]
+                      .filter(Boolean)
+                      .join("\n\n"),
+                    isRest: false,
+                  },
+                ].sort((a, b) => a.dayIndex - b.dayIndex);
+                return;
+              }
+
+              targetWeek.sessions = [
+                ...sessionsWithoutTargetRest,
+                {
+                  weekNumber: targetWeek.weekNumber,
+                  weekTheme: targetWeek.theme,
+                  phase: targetWeek.phase,
+                  dayName: dayNames[targetDayIndex],
+                  dayIndex: targetDayIndex,
+                  sport: "🏁 Course",
+                  title: `JOUR DE COURSE${goal.priority !== "A" ? ` [${goal.priority}]` : ""} — ${raceLabel}`,
+                  details: [fallbackMessage, raceContext].filter(Boolean).join("\n\n"),
+                  isRest: false,
+                },
+              ].sort((a, b) => a.dayIndex - b.dayIndex);
             });
 
           return nextWeeks;
