@@ -442,8 +442,6 @@ function WeekView({ week, startDate }: WeekViewProps) {
   );
 }
 
-interface AIPlanViewerProps {
-
 /** Dedicated panel showing race-day consignes grouped by objective */
 function RaceDayConsignesPanel({ plan }: { plan: ParsedPlan }) {
   const raceSessionsByObjective = useMemo(() => {
