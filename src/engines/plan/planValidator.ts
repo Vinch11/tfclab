@@ -72,6 +72,7 @@ export interface PlanValidationResult {
     catalogRatioScore: number;
     structureScore: number;
     limiterAlignmentScore: number;
+    raceContentSeparationScore: number;
     overallComment: string;
   };
 }
@@ -715,6 +716,60 @@ function validateRestDays(metrics: WeekMetrics[]): { issues: ValidationIssue[]; 
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// PRE-RACE / RACE-DAY CONTENT SEPARATION VALIDATION (Rule 11)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const PRE_RACE_CONTENT_IN_RACE_DAY = /mini-?taper|\bopener\b|rappel nerveux|footing activation|activation nerveuse|activation pré-course|activation pre-course|\bj-[12]\b|veille de course|repos total|visualisation du parcours/i;
+const WORKOUT_PRESCRIPTION_IN_RACE_DAY = /(?:^|\s)\d+\s*(?:min|h)\b.*Z[1-6]|\bZ[1-6][a-b]?\b.*\br\s*=\s*\d+|\b\d+x\d+['"]?\s*(?:@|Z)/i;
+
+function validateRaceDayContentSeparation(
+  plan: ParsedPlan
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  let raceDaySessions = 0;
+  let cleanSessions = 0;
+
+  for (const week of plan.weeks) {
+    for (const session of week.sessions) {
+      const text = `${session.sport} ${session.title} ${session.details}`;
+      const isRaceDay = /🏁|jour\s*(de\s*)?course|jour\s*j|race\s*day/i.test(text);
+      if (!isRaceDay) continue;
+
+      raceDaySessions++;
+      const details = session.details || "";
+      let hasIssue = false;
+
+      if (PRE_RACE_CONTENT_IN_RACE_DAY.test(details)) {
+        issues.push({
+          rule: "race_content_separation",
+          severity: "warning",
+          week: week.weekNumber,
+          message: `S${week.weekNumber}: Le jour de course contient du contenu pré-course (taper/opener/activation)`,
+          detail: `Les consignes J-2/J-1 doivent rester sur leurs séances respectives, pas sur le jour de course.`,
+        });
+        hasIssue = true;
+      }
+
+      if (WORKOUT_PRESCRIPTION_IN_RACE_DAY.test(details)) {
+        issues.push({
+          rule: "race_content_separation",
+          severity: "warning",
+          week: week.weekNumber,
+          message: `S${week.weekNumber}: Le jour de course contient des prescriptions d'entraînement (zones/intervalles)`,
+          detail: `Le jour de course doit contenir uniquement la stratégie (allure, pacing, ravitaillement), pas des séances.`,
+        });
+        hasIssue = true;
+      }
+
+      if (!hasIssue) cleanSessions++;
+    }
+  }
+
+  const score = raceDaySessions > 0 ? Math.round((cleanSessions / raceDaySessions) * 100) : 100;
+  return { issues, score };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // LIMITER ALIGNMENT VALIDATION (Rule 10)
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -958,6 +1013,7 @@ export function validatePlan(plan: ParsedPlan, objective?: string, identifiedLim
   const weeklyStructure = validateWeeklyStructure(weekMetrics);
   const restDays = validateRestDays(weekMetrics);
   const limiterAlignment = validateLimiterAlignment(weekMetrics, plan, identifiedLimiters);
+  const raceContentSeparation = validateRaceDayContentSeparation(plan);
 
   // Combine structure scores (Rules 7+8+9)
   const structureScore = Math.round(
@@ -978,30 +1034,33 @@ export function validatePlan(plan: ParsedPlan, objective?: string, identifiedLim
     ...weeklyStructure.issues,
     ...restDays.issues,
     ...limiterAlignment.issues,
+    ...raceContentSeparation.issues,
   ];
 
   // Has limiters? Include limiter alignment in scoring
   const hasLimiters = identifiedLimiters && identifiedLimiters.length > 0;
 
-  // Weighted score (8 rule groups when limiters are present)
+  // Weighted score (9 rule groups when limiters are present)
   const weights = hasLimiters ? {
-    polarization: 0.16,
+    polarization: 0.14,
     loadPattern: 0.15,
-    keySessions: 0.15,
-    progression: 0.10,
+    keySessions: 0.13,
+    progression: 0.09,
     sportRatio: 0.08,
     catalogRatio: 0.06,
-    structure: 0.12,
-    limiterAlignment: 0.18,
+    structure: 0.11,
+    limiterAlignment: 0.16,
+    raceContentSeparation: 0.08,
   } : {
-    polarization: 0.20,
-    loadPattern: 0.18,
-    keySessions: 0.18,
-    progression: 0.12,
-    sportRatio: 0.10,
-    catalogRatio: 0.07,
-    structure: 0.15,
+    polarization: 0.18,
+    loadPattern: 0.16,
+    keySessions: 0.16,
+    progression: 0.11,
+    sportRatio: 0.09,
+    catalogRatio: 0.06,
+    structure: 0.14,
     limiterAlignment: 0,
+    raceContentSeparation: 0.10,
   };
 
   const weightedScore = Math.round(
@@ -1012,7 +1071,8 @@ export function validatePlan(plan: ParsedPlan, objective?: string, identifiedLim
     sportRatio.score * weights.sportRatio +
     catalogRatio.score * weights.catalogRatio +
     structureScore * weights.structure +
-    limiterAlignment.score * weights.limiterAlignment
+    limiterAlignment.score * weights.limiterAlignment +
+    raceContentSeparation.score * weights.raceContentSeparation
   );
 
   // Grade
@@ -1041,6 +1101,7 @@ export function validatePlan(plan: ParsedPlan, objective?: string, identifiedLim
       catalogRatioScore: catalogRatio.score,
       structureScore,
       limiterAlignmentScore: limiterAlignment.score,
+      raceContentSeparationScore: raceContentSeparation.score,
       overallComment,
     },
   };
@@ -1067,6 +1128,7 @@ export function formatValidationReport(result: PlanValidationResult): string {
   if (result.summary.limiterAlignmentScore > 0) {
     lines.push(`| Cohérence Limiteurs | ${result.summary.limiterAlignmentScore}/100 | ${result.summary.limiterAlignmentScore >= 75 ? "✅" : result.summary.limiterAlignmentScore >= 50 ? "⚠️" : "❌"} |`);
   }
+  lines.push(`| Séparation Pré-course/Course | ${result.summary.raceContentSeparationScore}/100 | ${result.summary.raceContentSeparationScore >= 75 ? "✅" : result.summary.raceContentSeparationScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push("");
   lines.push(`**${result.summary.overallComment}**`);
 
