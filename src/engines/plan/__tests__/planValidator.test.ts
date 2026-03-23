@@ -127,11 +127,12 @@ describe("planValidator", () => {
   });
 
   it("detects missing race day in race week", () => {
-    // Race week with "race" in theme but no 🏁 session — just repos on Sunday
+    // Race week detected by theme containing "marathon" but no 🏁 session — Sunday is repos
     const raceWeek = makeWeek(4, [
-      { sport: "Course", title: "EF Z2 30min", details: "Affûtage", dayIndex: 0 },
-      { sport: "Course", title: "Rappel allure semi", details: "Compétition dimanche", dayIndex: 2 },
-      { sport: "Repos", title: "Repos", details: "", isRest: true, dayIndex: 5 },
+      { sport: "Course", title: "EF Z2 30min", details: "Affûtage léger", dayIndex: 0 },
+      { sport: "Course", title: "Rappel allure", details: "Strides 6x100m", dayIndex: 2 },
+      { sport: "Course", title: "EF Z2 20min", details: "Activation J-2", dayIndex: 4 },
+      { sport: "Repos", title: "Repos", details: "Carb loading", isRest: true, dayIndex: 5 },
       { sport: "Repos", title: "Repos", details: "", isRest: true, dayIndex: 6 },
     ], "Affûtage — Semi-Marathon");
     const result = validatePlan(makePlan([raceWeek]));
