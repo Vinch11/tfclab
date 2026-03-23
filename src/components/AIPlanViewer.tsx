@@ -519,6 +519,9 @@ export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved,
       {/* Volume Evolution Chart */}
       <AIPlanVolumeChart plan={plan} />
 
+      {/* Race Day Consignes — Summary panel per objective */}
+      <RaceDayConsignesPanel plan={plan} />
+
       {/* View Controls */}
       <div className="flex items-center gap-2">
         <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "week" | "all")} className="flex-1">
