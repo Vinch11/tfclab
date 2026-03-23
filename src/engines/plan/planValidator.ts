@@ -217,24 +217,28 @@ function validatePolarization(metrics: WeekMetrics[]): { issues: ValidationIssue
 
     const { lowPct, midPct, highPct } = wm.intensityProfile;
 
-    // Low should be 70-85%, high 15-25%, mid < 10% ideally
-    // But with few endurance sessions (e.g. 4-5 total), a single extra intensity session
-    // can drop low% to 60% which is still acceptable — only flag below 55%
-    const enduranceSessions = Math.round((wm.activeSessions * (100 - wm.intensityProfile.highPct - wm.intensityProfile.midPct)) / 100);
-    if (lowPct < 55) {
-      issues.push({
-        rule: "polarization",
-        severity: "error",
-        week: wm.weekNumber,
-        message: `S${wm.weekNumber}: Distribution non polarisée — seulement ${lowPct}% en Z1-Z2 (cible ≥ 70%)`,
-        detail: `Low: ${lowPct}%, Mid: ${midPct}%, High: ${highPct}%`,
-      });
-    } else if (lowPct < 65) {
+    // With few endurance-spectrum sessions (< 4 excluding renfo), percentages are unreliable
+    const renfoCount = wm.sports["Renfo"] || 0;
+    const enduranceTotal = wm.activeSessions - renfoCount;
+    if (enduranceTotal < 4) {
+      compliant++;
+      continue;
+    }
+    
+    if (lowPct < 50) {
       issues.push({
         rule: "polarization",
         severity: "warning",
         week: wm.weekNumber,
-        message: `S${wm.weekNumber}: Polarisation marginale — ${lowPct}% en Z1-Z2 (recommandé ≥ 70%)`,
+        message: `S${wm.weekNumber}: Distribution non polarisée — ${lowPct}% en Z1-Z2 (cible ≥ 70%)`,
+        detail: `Low: ${lowPct}%, Mid: ${midPct}%, High: ${highPct}%`,
+      });
+    } else if (lowPct < 60) {
+      issues.push({
+        rule: "polarization",
+        severity: "info",
+        week: wm.weekNumber,
+        message: `S${wm.weekNumber}: Polarisation marginale — ${lowPct}% en Z1-Z2`,
       });
       compliant += 0.5;
     } else {
@@ -432,11 +436,11 @@ function validateProgression(metrics: WeekMetrics[]): { issues: ValidationIssue[
 const SPORT_RATIO_TARGETS: Record<string, { swim?: [number, number]; bike?: [number, number]; run?: [number, number] }> = {
   IM:       { swim: [15, 20], bike: [45, 55], run: [25, 35] },
   "703":    { swim: [15, 20], bike: [40, 50], run: [30, 40] },
-  Marathon: { run: [85, 100] },
-  Semi:     { run: [85, 100] },
-  "10K":    { run: [85, 100] },
-  Trail:    { run: [70, 85] },
-  TrailUltra: { run: [65, 80] },
+  Marathon: { run: [75, 100] },
+  Semi:     { run: [75, 100] },
+  "10K":    { run: [80, 100] },
+  Trail:    { run: [65, 85] },
+  TrailUltra: { run: [60, 80] },
 };
 
 function validateSportRatio(
