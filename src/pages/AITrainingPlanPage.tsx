@@ -1400,6 +1400,11 @@ export default function AITrainingPlanPage() {
                   {/* Interactive View */}
                   {resultView === "interactive" && parsedPlan ? (
                     <>
+                      <PlanQualityReport
+                        plan={parsedPlan}
+                        objective={objective}
+                        identifiedLimiters={athleteContext ? buildConfigFromDiag(athleteContext.diagnostic).identifiedLimiters : undefined}
+                      />
                       <AIPlanBenchmark
                         plan={parsedPlan}
                         objective={objective}
