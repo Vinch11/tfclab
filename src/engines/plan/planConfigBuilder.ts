@@ -198,10 +198,11 @@ function formatLimitersForPrompt(
     });
 
     // Periodization rules
-    limiters.push(`## RÈGLE DE PÉRIODISATION SÉQUENTIELLE DES LIMITEURS`);
-    limiters.push(`- Phase Base : Focus principal sur le Limiteur #1 (séances clés #1 et #2). Limiteur #2 en maintien.`);
-    limiters.push(`- Phase Build : Limiteur #1 toujours prioritaire mais le Limiteur #2 monte en importance (séance clé #2 dédiée).`);
-    limiters.push(`- Phase Spécifique : Intégration de tous les limiteurs dans un contexte race-specific.`);
+    limiters.push(`## RÈGLE DE PÉRIODISATION PAR BLOCS (Issurin/Lorang)`);
+    limiters.push(`- Phase Base (1er tiers du plan) : Focus DOMINANT sur le Limiteur #1 (séances clés #1 ET #2 dédiées). Limiteur #2 en maintien léger uniquement.`);
+    limiters.push(`- Phase Build (2e tiers) : Limiteur #1 en maintien (séance clé #2). Limiteur #2 MONTE en priorité (séance clé #1 dédiée). Transition séquentielle.`);
+    limiters.push(`- Phase Spécifique (3e tiers) : Intégration race-specific de tous les limiteurs. Limiteurs #3+ adressés ici prioritairement.`);
+    limiters.push(`- ⚠️ LOGIQUE CHRONOLOGIQUE STRICTE : les limiteurs sont traités SÉQUENTIELLEMENT par blocs, PAS en parallèle. Le #1 DOMINE les premières semaines, le #2 monte ensuite.`);
     limiters.push(`- Les limiteurs 🔴 CRITIQUES doivent être traités AVANT les 🟡 SOUS-OPTIMAUX.`);
     limiters.push(`- Interactions positives : VLamax↓ améliore aussi TTE et FatMax. VO2max↑ améliore aussi FTP/kg. Exploiter ces synergies.`);
   }
