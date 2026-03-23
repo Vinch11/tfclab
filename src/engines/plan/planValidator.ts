@@ -8,6 +8,10 @@
  * 3. Key sessions presence per week
  * 4. Volume progression across weeks
  * 5. Sport ratio coherence
+ * 6. Catalog adherence (TFCL™ IDs vs [Custom])
+ * 7. Race day presence in race week
+ * 8. Weekly structure completeness (7-day coverage)
+ * 9. Rest day presence
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
@@ -46,6 +50,12 @@ export interface WeekMetrics {
   isRaceWeek: boolean;
   /** Key sessions count (🔑 or intensity sessions) */
   keySessions: number;
+  /** Unique day indices covered by sessions */
+  coveredDays: number;
+  /** Has at least one rest-only day */
+  hasRestDay: boolean;
+  /** Has a race day session (🏁 or "course"/"race" sport with race indicators) */
+  hasRaceDaySession: boolean;
 }
 
 export interface PlanValidationResult {
@@ -60,6 +70,7 @@ export interface PlanValidationResult {
     progressionScore: number;
     sportRatioScore: number;
     catalogRatioScore: number;
+    structureScore: number;
     overallComment: string;
   };
 }
@@ -74,6 +85,7 @@ const HIGH_INTENSITY_PATTERNS = /z[4-7]|seuil|threshold|vo2|vma|interval|fractio
 const KEY_SESSION_PATTERNS = /🔑|clé|key|séance\s*clé|interval|seuil|vo2|vma|sortie\s*longue|sl\b|long\s*run|brick|race.sim|test|compétition|🏁/i;
 const DELOAD_PATTERNS = /décharge|deload|récup|recovery|repos|allégé|réduit|taper|affûtage|régénér/i;
 const RACE_PATTERNS = /🏁|course\b|race|compétition|épreuve|objectif|marathon|ironman|triathlon|semi|trail|10k/i;
+const RACE_DAY_PATTERNS = /🏁|jour\s*(de\s*)?course|jour\s*j|race\s*day|compétition|épreuve/i;
 
 function classifySessionIntensity(session: ParsedSession): "low" | "mid" | "high" {
   const text = `${session.sport} ${session.title} ${session.details}`.toLowerCase();
@@ -94,6 +106,12 @@ function isKeySession(session: ParsedSession): boolean {
   if (session.isRest) return false;
   const text = `${session.title} ${session.details}`;
   return KEY_SESSION_PATTERNS.test(text);
+}
+
+function isRaceDaySession(session: ParsedSession): boolean {
+  if (session.isRest) return false;
+  const text = `${session.sport} ${session.title} ${session.details}`;
+  return RACE_DAY_PATTERNS.test(text);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -133,6 +151,18 @@ function extractWeekMetrics(week: ParsedWeek): WeekMetrics {
   // Key sessions
   const keySessions = activeSessions.filter(isKeySession).length;
 
+  // Day coverage: unique day indices with sessions
+  const dayIndices = new Set(week.sessions.filter(s => s.dayIndex >= 0).map(s => s.dayIndex));
+  const coveredDays = dayIndices.size;
+
+  // Rest day: a day index where ONLY rest sessions exist
+  const activeDayIndices = new Set(activeSessions.filter(s => s.dayIndex >= 0).map(s => s.dayIndex));
+  const restOnlyDays = [...dayIndices].filter(d => !activeDayIndices.has(d));
+  const hasRestDay = restOnlyDays.length > 0 || restDays > 0;
+
+  // Race day session
+  const hasRaceDaySession = week.sessions.some(isRaceDaySession);
+
   return {
     weekNumber: week.weekNumber,
     theme: week.theme,
@@ -148,6 +178,9 @@ function extractWeekMetrics(week: ParsedWeek): WeekMetrics {
     isDeload,
     isRaceWeek,
     keySessions,
+    coveredDays,
+    hasRestDay,
+    hasRaceDaySession,
   };
 }
 
@@ -558,6 +591,89 @@ function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; sc
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// STRUCTURE VALIDATION (Rules 7, 8, 9)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** Rule 7: Race day must exist in race weeks */
+function validateRaceDay(metrics: WeekMetrics[]): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  const raceWeeks = metrics.filter(m => m.isRaceWeek);
+
+  if (raceWeeks.length === 0) {
+    return { issues: [], score: 100 }; // No race weeks to validate
+  }
+
+  let compliant = 0;
+  for (const wm of raceWeeks) {
+    if (!wm.hasRaceDaySession) {
+      issues.push({
+        rule: "race_day",
+        severity: "error",
+        week: wm.weekNumber,
+        message: `S${wm.weekNumber}: Semaine de course sans séance "🏁 Jour de Course" détectée — le jour de course est remplacé par Repos ou une séance classique`,
+        detail: `Thème: "${wm.theme}". Le jour de la course DOIT contenir une entrée sport="🏁 Course" avec "JOUR DE COURSE".`,
+      });
+    } else {
+      compliant++;
+    }
+  }
+
+  const score = raceWeeks.length > 0 ? Math.round((compliant / raceWeeks.length) * 100) : 100;
+  return { issues, score };
+}
+
+/** Rule 8: Each week should cover 7 days */
+function validateWeeklyStructure(metrics: WeekMetrics[]): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  let compliant = 0;
+
+  for (const wm of metrics) {
+    if (wm.coveredDays < 5) {
+      issues.push({
+        rule: "weekly_structure",
+        severity: "warning",
+        week: wm.weekNumber,
+        message: `S${wm.weekNumber}: Seulement ${wm.coveredDays}/7 jours couverts — structure incomplète`,
+        detail: `Un plan complet doit spécifier une activité ou repos pour chaque jour de la semaine.`,
+      });
+    } else {
+      compliant++;
+    }
+  }
+
+  const score = metrics.length > 0 ? Math.round((compliant / metrics.length) * 100) : 100;
+  return { issues, score };
+}
+
+/** Rule 9: Each non-deload week should have at least 1 rest day */
+function validateRestDays(metrics: WeekMetrics[]): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  let compliant = 0;
+
+  for (const wm of metrics) {
+    if (wm.isDeload) {
+      compliant++;
+      continue;
+    }
+
+    if (!wm.hasRestDay) {
+      issues.push({
+        rule: "rest_day",
+        severity: "warning",
+        week: wm.weekNumber,
+        message: `S${wm.weekNumber}: Aucun jour de repos complet détecté — risque de surmenage`,
+        detail: `Recommandation: minimum 1 jour de repos complet par semaine.`,
+      });
+    } else {
+      compliant++;
+    }
+  }
+
+  const score = metrics.length > 0 ? Math.round((compliant / metrics.length) * 100) : 100;
+  return { issues, score };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // MAIN VALIDATOR
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -572,6 +688,16 @@ export function validatePlan(plan: ParsedPlan, objective?: string): PlanValidati
   const progression = validateProgression(weekMetrics);
   const sportRatio = validateSportRatio(weekMetrics, objective);
   const catalogRatio = validateCatalogRatio(plan);
+  const raceDay = validateRaceDay(weekMetrics);
+  const weeklyStructure = validateWeeklyStructure(weekMetrics);
+  const restDays = validateRestDays(weekMetrics);
+
+  // Combine structure scores (Rules 7+8+9)
+  const structureScore = Math.round(
+    raceDay.score * 0.40 +
+    weeklyStructure.score * 0.30 +
+    restDays.score * 0.30
+  );
 
   // Combine all issues
   const allIssues = [
@@ -581,16 +707,20 @@ export function validatePlan(plan: ParsedPlan, objective?: string): PlanValidati
     ...progression.issues,
     ...sportRatio.issues,
     ...catalogRatio.issues,
+    ...raceDay.issues,
+    ...weeklyStructure.issues,
+    ...restDays.issues,
   ];
 
-  // Weighted score (6 rules now)
+  // Weighted score (7 rule groups now)
   const weights = {
-    polarization: 0.25,
-    loadPattern: 0.20,
-    keySessions: 0.20,
-    progression: 0.15,
+    polarization: 0.20,
+    loadPattern: 0.18,
+    keySessions: 0.18,
+    progression: 0.12,
     sportRatio: 0.10,
-    catalogRatio: 0.10,
+    catalogRatio: 0.07,
+    structure: 0.15,
   };
   const weightedScore = Math.round(
     polarization.score * weights.polarization +
@@ -598,7 +728,8 @@ export function validatePlan(plan: ParsedPlan, objective?: string): PlanValidati
     keySessions.score * weights.keySessions +
     progression.score * weights.progression +
     sportRatio.score * weights.sportRatio +
-    catalogRatio.score * weights.catalogRatio
+    catalogRatio.score * weights.catalogRatio +
+    structureScore * weights.structure
   );
 
   // Grade
@@ -625,6 +756,7 @@ export function validatePlan(plan: ParsedPlan, objective?: string): PlanValidati
       progressionScore: progression.score,
       sportRatioScore: sportRatio.score,
       catalogRatioScore: catalogRatio.score,
+      structureScore,
       overallComment,
     },
   };
@@ -646,6 +778,7 @@ export function formatValidationReport(result: PlanValidationResult): string {
   lines.push(`| Progression volume | ${result.summary.progressionScore}/100 | ${result.summary.progressionScore >= 75 ? "✅" : result.summary.progressionScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push(`| Ratio sportif | ${result.summary.sportRatioScore}/100 | ${result.summary.sportRatioScore >= 75 ? "✅" : result.summary.sportRatioScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push(`| Catalogue TFCL™ | ${result.summary.catalogRatioScore}/100 | ${result.summary.catalogRatioScore >= 75 ? "✅" : result.summary.catalogRatioScore >= 50 ? "⚠️" : "❌"} |`);
+  lines.push(`| Structure (Race/Jours/Repos) | ${result.summary.structureScore}/100 | ${result.summary.structureScore >= 75 ? "✅" : result.summary.structureScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push("");
   lines.push(`**${result.summary.overallComment}**`);
 
