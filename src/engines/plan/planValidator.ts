@@ -744,7 +744,7 @@ function validateLimiterAlignment(
     return { issues: [], score: 100, details };
   }
 
-  // Extract unique limiter metrics from the prompt text
+  // Extract unique limiter metrics from the prompt text (ordered by priority)
   const detectedMetrics: string[] = [];
   for (const text of identifiedLimiters) {
     const metric = detectLimiterFromPromptText(text);
@@ -757,62 +757,143 @@ function validateLimiterAlignment(
     return { issues: [], score: 100, details };
   }
 
-  // For each limiter, count how many load weeks have at least one matching key session
+  // ── Split plan into chronological thirds (Base / Build / Spécifique) ────
   const loadWeeks = metrics.filter(m => !m.isDeload && !m.isRaceWeek);
   const totalLoadWeeks = loadWeeks.length || 1;
 
-  let totalCoverage = 0;
+  const thirdLen = Math.max(1, Math.ceil(loadWeeks.length / 3));
+  const phases = {
+    base: loadWeeks.slice(0, thirdLen),
+    build: loadWeeks.slice(thirdLen, thirdLen * 2),
+    specific: loadWeeks.slice(thirdLen * 2),
+  };
 
-  for (let i = 0; i < detectedMetrics.length; i++) {
+  // Helper: count weeks with matching sessions in a phase
+  function countMatchesInPhase(phaseWeeks: WeekMetrics[], pattern: RegExp): number {
+    let matches = 0;
+    for (const wm of phaseWeeks) {
+      const week = plan.weeks.find(w => w.weekNumber === wm.weekNumber);
+      if (!week) continue;
+      const hasMatch = week.sessions.some(s => {
+        if (s.isRest) return false;
+        const text = `${s.sport} ${s.title} ${s.details}`;
+        return pattern.test(text);
+      });
+      if (hasMatch) matches++;
+    }
+    return matches;
+  }
+
+  let totalScore = 0;
+  let totalWeight = 0;
+
+  for (let i = 0; i < Math.min(detectedMetrics.length, 3); i++) {
     const metric = detectedMetrics[i];
     const config = LIMITER_SESSION_PATTERNS[metric];
     if (!config) continue;
 
-    const isPrimary = i === 0;
-    let weeksWithMatch = 0;
-
-    for (const wm of loadWeeks) {
-      // Find sessions in this week that match the limiter pattern
-      const week = plan.weeks.find(w => w.weekNumber === wm.weekNumber);
-      if (!week) continue;
-
-      const hasMatch = week.sessions.some(s => {
-        if (s.isRest) return false;
-        const text = `${s.sport} ${s.title} ${s.details}`;
-        return config.patterns.test(text);
-      });
-
-      if (hasMatch) weeksWithMatch++;
-    }
-
-    const coveragePct = Math.round((weeksWithMatch / totalLoadWeeks) * 100);
-    details[metric] = { found: weeksWithMatch, total: totalLoadWeeks };
-
-    // Primary limiter: expect coverage in ≥60% of load weeks
-    // Secondary: expect ≥40%
-    const threshold = isPrimary ? 60 : 40;
     const label = config.label;
+    const rank = i + 1; // 1 = primary, 2 = secondary, 3 = tertiary
 
-    if (coveragePct < threshold) {
-      const severity = isPrimary && coveragePct < 30 ? "error" as const : "warning" as const;
-      issues.push({
-        rule: "limiter_alignment",
-        severity,
-        message: `Limiteur ${isPrimary ? "#1" : `#${i + 1}`} "${label}" : séances ciblées dans ${weeksWithMatch}/${totalLoadWeeks} semaines (${coveragePct}%, cible ≥${threshold}%)`,
-        detail: `Le plan devrait contenir des séances spécifiques pour adresser ce limiteur dans la majorité des semaines de charge.`,
-      });
+    // Count matches per phase
+    const baseMatches = countMatchesInPhase(phases.base, config.patterns);
+    const buildMatches = countMatchesInPhase(phases.build, config.patterns);
+    const specificMatches = countMatchesInPhase(phases.specific, config.patterns);
+    const totalMatches = baseMatches + buildMatches + specificMatches;
+
+    details[metric] = { found: totalMatches, total: totalLoadWeeks };
+
+    // ── Chronological validation (Block Periodization) ─────────────────
+    // Limiter #1: MUST dominate Base phase (≥70% coverage), present in Build (≥50%)
+    // Limiter #2: Can be light in Base, MUST dominate Build phase (≥60%)
+    // Limiter #3+: Addressed in Specific phase primarily (≥40%)
+
+    const basePct = phases.base.length > 0 ? Math.round((baseMatches / phases.base.length) * 100) : 0;
+    const buildPct = phases.build.length > 0 ? Math.round((buildMatches / phases.build.length) * 100) : 0;
+    const specificPct = phases.specific.length > 0 ? Math.round((specificMatches / phases.specific.length) * 100) : 0;
+
+    if (rank === 1) {
+      // Primary limiter: must dominate Base, remain present throughout
+      const weight = 3;
+      totalWeight += weight;
+
+      if (basePct < 50) {
+        issues.push({
+          rule: "limiter_alignment",
+          severity: basePct < 30 ? "error" : "warning",
+          message: `Limiteur #1 "${label}" : seulement ${basePct}% de couverture en phase Base (cible ≥70%) — le limiteur primaire doit dominer les premières semaines`,
+          detail: `Base: ${baseMatches}/${phases.base.length} sem, Build: ${buildMatches}/${phases.build.length}, Spé: ${specificMatches}/${phases.specific.length}`,
+        });
+        totalScore += Math.min(100, basePct * (100 / 70)) * weight * 0.5;
+      } else if (basePct < 70) {
+        issues.push({
+          rule: "limiter_alignment",
+          severity: "warning",
+          message: `Limiteur #1 "${label}" : ${basePct}% de couverture en phase Base (cible ≥70%)`,
+          detail: `Base: ${baseMatches}/${phases.base.length} sem, Build: ${buildMatches}/${phases.build.length}, Spé: ${specificMatches}/${phases.specific.length}`,
+        });
+        totalScore += 70 * weight;
+      } else {
+        totalScore += 100 * weight;
+      }
+
+      // Check it doesn't disappear completely in Build
+      if (buildPct < 30 && phases.build.length >= 2) {
+        issues.push({
+          rule: "limiter_alignment",
+          severity: "warning",
+          message: `Limiteur #1 "${label}" : disparaît en phase Build (${buildPct}%) — le maintien est nécessaire même quand le #2 monte`,
+        });
+      }
+
+    } else if (rank === 2) {
+      // Secondary limiter: light in Base, dominant in Build
+      const weight = 2;
+      totalWeight += weight;
+
+      if (buildPct < 40) {
+        issues.push({
+          rule: "limiter_alignment",
+          severity: buildPct < 20 ? "error" : "warning",
+          message: `Limiteur #2 "${label}" : seulement ${buildPct}% de couverture en phase Build (cible ≥60%) — le limiteur secondaire doit monter en Build`,
+          detail: `Base: ${baseMatches}/${phases.base.length} sem, Build: ${buildMatches}/${phases.build.length}, Spé: ${specificMatches}/${phases.specific.length}`,
+        });
+        totalScore += Math.min(100, buildPct * (100 / 60)) * weight * 0.5;
+      } else if (buildPct < 60) {
+        issues.push({
+          rule: "limiter_alignment",
+          severity: "warning",
+          message: `Limiteur #2 "${label}" : ${buildPct}% de couverture en phase Build (cible ≥60%)`,
+        });
+        totalScore += 70 * weight;
+      } else {
+        totalScore += 100 * weight;
+      }
+
+    } else {
+      // Tertiary+ limiter: addressed in Specific or throughout
+      const weight = 1;
+      totalWeight += weight;
+      const globalPct = Math.round((totalMatches / totalLoadWeeks) * 100);
+
+      if (globalPct < 25) {
+        issues.push({
+          rule: "limiter_alignment",
+          severity: "warning",
+          message: `Limiteur #${rank} "${label}" : ${globalPct}% de couverture globale (cible ≥40%) — intégrer via séances complémentaires en phase Spécifique`,
+          detail: `Base: ${baseMatches}/${phases.base.length} sem, Build: ${buildMatches}/${phases.build.length}, Spé: ${specificMatches}/${phases.specific.length}`,
+        });
+        totalScore += Math.min(100, globalPct * (100 / 40)) * weight * 0.5;
+      } else {
+        totalScore += Math.min(100, globalPct * (100 / 40)) * weight;
+      }
     }
-
-    // Weight: primary limiter counts more
-    const weight = isPrimary ? 2 : 1;
-    totalCoverage += Math.min(100, coveragePct * (100 / threshold)) * weight;
   }
 
-  const maxCoverage = detectedMetrics.reduce((s, _, i) => s + (i === 0 ? 200 : 100), 0);
-  const score = Math.round(totalCoverage / (maxCoverage || 1) * 100);
-
-  return { issues, score: Math.min(100, score), details };
+  const score = totalWeight > 0 ? Math.round(totalScore / (totalWeight * 100) * 100) : 100;
+  return { issues, score: Math.min(100, Math.max(0, score)), details };
 }
+
 
 
 // MAIN VALIDATOR
