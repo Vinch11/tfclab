@@ -38,6 +38,7 @@ import { parseAIPlan, mapSessionsToDates, type ParsedPlan, type ParsedWeek } fro
 import { AIPlanViewer } from "@/components/AIPlanViewer";
 import { AIPlanComparison } from "@/components/AIPlanComparison";
 import { AIPlanBenchmark } from "@/components/AIPlanBenchmark";
+import { PlanQualityReport } from "@/components/PlanQualityReport";
 import { RacePaceSimulation } from "@/components/RacePaceSimulation";
 import { AdaptationProjectionSummary } from "@/components/AdaptationProjectionSummary";
 import { LimiterHierarchyEditor } from "@/components/LimiterHierarchyEditor";
@@ -1399,6 +1400,11 @@ export default function AITrainingPlanPage() {
                   {/* Interactive View */}
                   {resultView === "interactive" && parsedPlan ? (
                     <>
+                      <PlanQualityReport
+                        plan={parsedPlan}
+                        objective={objective}
+                        identifiedLimiters={athleteContext ? buildConfigFromDiag(athleteContext.diagnostic).identifiedLimiters : undefined}
+                      />
                       <AIPlanBenchmark
                         plan={parsedPlan}
                         objective={objective}
