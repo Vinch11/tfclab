@@ -689,10 +689,6 @@ function validateWeeklyStructure(metrics: WeekMetrics[]): { issues: ValidationIs
 
 /** Rule 9: Each non-deload week should have at least 1 rest day */
 function validateRestDays(metrics: WeekMetrics[]): { issues: ValidationIssue[]; score: number } {
-  return validateRestDaysImpl(metrics);
-}
-
-function validateRestDaysImpl(metrics: WeekMetrics[]): { issues: ValidationIssue[]; score: number } {
   const issues: ValidationIssue[] = [];
   let compliant = 0;
 
