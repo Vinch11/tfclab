@@ -72,6 +72,7 @@ export interface PlanValidationResult {
     catalogRatioScore: number;
     structureScore: number;
     limiterAlignmentScore: number;
+    raceContentSeparationScore: number;
     overallComment: string;
   };
 }
@@ -1016,6 +1017,7 @@ export function validatePlan(plan: ParsedPlan, objective?: string, identifiedLim
   const weeklyStructure = validateWeeklyStructure(weekMetrics);
   const restDays = validateRestDays(weekMetrics);
   const limiterAlignment = validateLimiterAlignment(weekMetrics, plan, identifiedLimiters);
+  const raceContentSeparation = validateRaceDayContentSeparation(plan);
 
   // Combine structure scores (Rules 7+8+9)
   const structureScore = Math.round(
@@ -1036,30 +1038,33 @@ export function validatePlan(plan: ParsedPlan, objective?: string, identifiedLim
     ...weeklyStructure.issues,
     ...restDays.issues,
     ...limiterAlignment.issues,
+    ...raceContentSeparation.issues,
   ];
 
   // Has limiters? Include limiter alignment in scoring
   const hasLimiters = identifiedLimiters && identifiedLimiters.length > 0;
 
-  // Weighted score (8 rule groups when limiters are present)
+  // Weighted score (9 rule groups when limiters are present)
   const weights = hasLimiters ? {
-    polarization: 0.16,
+    polarization: 0.14,
     loadPattern: 0.15,
-    keySessions: 0.15,
-    progression: 0.10,
+    keySessions: 0.13,
+    progression: 0.09,
     sportRatio: 0.08,
     catalogRatio: 0.06,
-    structure: 0.12,
-    limiterAlignment: 0.18,
+    structure: 0.11,
+    limiterAlignment: 0.16,
+    raceContentSeparation: 0.08,
   } : {
-    polarization: 0.20,
-    loadPattern: 0.18,
-    keySessions: 0.18,
-    progression: 0.12,
-    sportRatio: 0.10,
-    catalogRatio: 0.07,
-    structure: 0.15,
+    polarization: 0.18,
+    loadPattern: 0.16,
+    keySessions: 0.16,
+    progression: 0.11,
+    sportRatio: 0.09,
+    catalogRatio: 0.06,
+    structure: 0.14,
     limiterAlignment: 0,
+    raceContentSeparation: 0.10,
   };
 
   const weightedScore = Math.round(
@@ -1070,7 +1075,8 @@ export function validatePlan(plan: ParsedPlan, objective?: string, identifiedLim
     sportRatio.score * weights.sportRatio +
     catalogRatio.score * weights.catalogRatio +
     structureScore * weights.structure +
-    limiterAlignment.score * weights.limiterAlignment
+    limiterAlignment.score * weights.limiterAlignment +
+    raceContentSeparation.score * weights.raceContentSeparation
   );
 
   // Grade
@@ -1099,6 +1105,7 @@ export function validatePlan(plan: ParsedPlan, objective?: string, identifiedLim
       catalogRatioScore: catalogRatio.score,
       structureScore,
       limiterAlignmentScore: limiterAlignment.score,
+      raceContentSeparationScore: raceContentSeparation.score,
       overallComment,
     },
   };
@@ -1125,6 +1132,7 @@ export function formatValidationReport(result: PlanValidationResult): string {
   if (result.summary.limiterAlignmentScore > 0) {
     lines.push(`| Cohérence Limiteurs | ${result.summary.limiterAlignmentScore}/100 | ${result.summary.limiterAlignmentScore >= 75 ? "✅" : result.summary.limiterAlignmentScore >= 50 ? "⚠️" : "❌"} |`);
   }
+  lines.push(`| Séparation Pré-course/Course | ${result.summary.raceContentSeparationScore}/100 | ${result.summary.raceContentSeparationScore >= 75 ? "✅" : result.summary.raceContentSeparationScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push("");
   lines.push(`**${result.summary.overallComment}**`);
 
