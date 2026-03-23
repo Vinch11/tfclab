@@ -432,12 +432,24 @@ export default function AITrainingPlanPage() {
           const isRaceLikeSession = (session: ParsedWeek["sessions"][number]) =>
             /🏁|jour de course|course/i.test(`${session.sport} ${session.title} ${session.details}`);
 
+          const isRaceNoiseLine = (line: string) =>
+            /mini-?taper|\bopener\b|rappel nerveux|footing activation|activation nerveuse|d_taper_|d[_-].*opener|pré-course|pre-course/i.test(line);
+
           const stripGenericRaceFallback = (text?: string | null) =>
             (text ?? "")
               .split("\n")
               .map((line) => line.trim())
               .filter(Boolean)
               .filter((line) => !/imposée automatiquement|imposee automatiquement|absente de la semaine générée|absente de la semaine generee/i.test(line))
+              .join("\n")
+              .trim();
+
+          const sanitizeRaceDetails = (text?: string | null) =>
+            stripGenericRaceFallback(text)
+              .split("\n")
+              .map((line) => line.trim())
+              .filter(Boolean)
+              .filter((line) => !isRaceNoiseLine(line))
               .join("\n")
               .trim();
 
@@ -456,7 +468,8 @@ export default function AITrainingPlanPage() {
               const lower = text.toLowerCase();
               if (labelTokens.some((token) => lower.includes(token))) return true;
               if (priority !== "A" && lower.includes(`objectif ${priority.toLowerCase()}`)) return true;
-              return /(allure|pacing|nutrition|ravito|stratég|echauff|échauff|départ|depart|course|objectif|compétition|competition|taper|affût|affut)/i.test(text);
+              if (isRaceNoiseLine(lower)) return false;
+              return /(allure|pacing|nutrition|ravito|stratég|echauff|échauff|départ|depart|course|objectif|compétition|competition)/i.test(text);
             };
 
             const snippets = nextWeeks
@@ -466,13 +479,13 @@ export default function AITrainingPlanPage() {
                   .split("\n")
                   .map((line) => line.trim())
                   .filter(Boolean)
-                  .map(stripGenericRaceFallback)
+                  .map(sanitizeRaceDetails)
                   .filter(Boolean)
                   .filter(isRelevantRaceText);
 
                 const sessionLines = week.sessions
                   .flatMap((session) => [session.title, session.details])
-                  .map((line) => stripGenericRaceFallback(line))
+                  .map((line) => sanitizeRaceDetails(line))
                   .filter(Boolean)
                   .filter(isRelevantRaceText);
 
@@ -529,13 +542,6 @@ export default function AITrainingPlanPage() {
 
               const raceSessions = sessionsWithoutTargetRest.filter(isRaceLikeSession);
               const raceSessionOnTargetDay = raceSessions.find((session) => session.dayIndex === targetDayIndex);
-
-              if (raceSessionOnTargetDay) {
-                targetWeek.sessions = sessionsWithoutTargetRest;
-                return;
-              }
-
-              const existingRaceSession = raceSessions[0];
               const professionalFallback = buildProfessionalRaceDetails(
                 goal,
                 raceLabel,
@@ -544,8 +550,27 @@ export default function AITrainingPlanPage() {
                 race
               );
 
+              if (raceSessionOnTargetDay) {
+                const cleanedExistingDetails = sanitizeRaceDetails(raceSessionOnTargetDay.details);
+                targetWeek.sessions = sessionsWithoutTargetRest.map((session) => {
+                  if (session !== raceSessionOnTargetDay) return session;
+
+                  return {
+                    ...session,
+                    title: session.title || `JOUR DE COURSE${goal.priority !== "A" ? ` [${goal.priority}]` : ""} — ${raceLabel}`,
+                    details: [cleanedExistingDetails, raceContext || professionalFallback]
+                      .filter(Boolean)
+                      .join("\n\n"),
+                    isRest: false,
+                  };
+                });
+                return;
+              }
+
+              const existingRaceSession = raceSessions[0];
+
               if (existingRaceSession) {
-                const cleanedExistingDetails = stripGenericRaceFallback(existingRaceSession.details);
+                const cleanedExistingDetails = sanitizeRaceDetails(existingRaceSession.details);
                 targetWeek.sessions = [
                   ...sessionsWithoutTargetRest.filter((session) => session !== existingRaceSession),
                   {
