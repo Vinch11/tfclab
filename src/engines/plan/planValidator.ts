@@ -144,13 +144,12 @@ function extractWeekMetrics(week: ParsedWeek): WeekMetrics {
   }
   const total = low + mid + high || 1;
 
-  // Deload detection
+  // Deload detection — theme-based only, not session count (3 sessions can be normal for beginners)
   const themeText = `${week.theme} ${week.phase}`.toLowerCase();
-  const isDeload = DELOAD_PATTERNS.test(themeText) || activeSessions.length <= 3;
+  const isDeload = DELOAD_PATTERNS.test(themeText);
 
-  // Race week detection — check theme AND session content
-  const isRaceWeek = RACE_PATTERNS.test(themeText) || 
-    week.sessions.some(s => RACE_PATTERNS.test(`${s.title} ${s.details}`));
+  // Race week detection — strict: only theme-based (session content matching "course" is too broad)
+  const isRaceWeek = RACE_PATTERNS.test(themeText);
 
   // Key sessions
   const keySessions = activeSessions.filter(isKeySession).length;
