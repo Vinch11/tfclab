@@ -3594,16 +3594,19 @@ function buildUserPrompt(data: any, config: any): string {
           lines.push(`| ${raceDayName} | 🏁 Course | JOUR DE COURSE — ${config.raceName || config.objective || "Objectif A"} | Exécuter le plan de course |`);
           lines.push(`⚠️ Il est INTERDIT de mettre "Repos" ou toute autre séance le **${raceDayName}** de la semaine de course. C'est le JOUR J.`);
 
-          // For very short plans (≤3 weeks), add explicit race week structure
-          if (totalW <= 3) {
+          // For short plans (≤4 weeks), add explicit race week structure
+          if (totalW <= 4) {
             lines.push(`\n⚠️ PLAN COURT (${totalW} semaine${totalW > 1 ? "s" : ""}) — STRUCTURE RACE WEEK OBLIGATOIRE :`);
             lines.push(`Ce plan est très court. La Semaine ${raceGoalWeek} EST la semaine de course (Race Week / Affûtage).`);
-            lines.push(`Structure obligatoire de la Semaine ${raceGoalWeek} :`);
+            lines.push(`Structure OBLIGATOIRE de la Semaine ${raceGoalWeek} :`);
             lines.push(`- Volume très réduit (-50 à -60% du volume habituel)`);
             lines.push(`- 1-2 rappels courts @allure course (3-5min max)`);
             lines.push(`- Activation J-2 (footing court + strides)`);
             lines.push(`- Repos complet J-1 + carb loading`);
             lines.push(`- **${raceDayName} = 🏁 JOUR DE COURSE** (JAMAIS "Repos")`);
+            lines.push(`\n🚨 VÉRIFICATION PLAN COURT : Avant de soumettre, VÉRIFIE que le tableau de la Semaine ${raceGoalWeek} contient bien une ligne :`);
+            lines.push(`| ${raceDayName} | 🏁 Course | JOUR DE COURSE — ${config.raceName || config.objective || "Objectif A"} | ... |`);
+            lines.push(`Si cette ligne manque, RECOMMENCE. Un plan sans jour de course est INVALIDE.`);
           }
         }
       }
