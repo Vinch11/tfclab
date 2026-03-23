@@ -145,8 +145,9 @@ function extractWeekMetrics(week: ParsedWeek): WeekMetrics {
   const themeText = `${week.theme} ${week.phase}`.toLowerCase();
   const isDeload = DELOAD_PATTERNS.test(themeText) || activeSessions.length <= 3;
 
-  // Race week detection
-  const isRaceWeek = week.sessions.some(s => RACE_PATTERNS.test(`${s.title} ${s.details}`));
+  // Race week detection — check theme AND session content
+  const isRaceWeek = RACE_PATTERNS.test(themeText) || 
+    week.sessions.some(s => RACE_PATTERNS.test(`${s.title} ${s.details}`));
 
   // Key sessions
   const keySessions = activeSessions.filter(isKeySession).length;
