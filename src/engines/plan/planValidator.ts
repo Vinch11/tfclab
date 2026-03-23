@@ -71,6 +71,7 @@ export interface PlanValidationResult {
     sportRatioScore: number;
     catalogRatioScore: number;
     structureScore: number;
+    limiterAlignmentScore: number;
     overallComment: string;
   };
 }
