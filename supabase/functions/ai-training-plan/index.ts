@@ -2754,7 +2754,32 @@ ${diagnosticBlock}
 ${recapSection}${multiObjChunkReminder}
 
 🔄 PHASE ACTIVE ESTIMÉE : ${activePhase}
-→ Les séances clés de ce bloc doivent correspondre à cette phase ET aux limiteurs ci-dessus.
+${(() => {
+  // Inject explicit limiter dominance based on current phase (Lorang sequential block logic)
+  const L1 = planConfig?.identifiedLimiters?.[0] || "";
+  const L2 = planConfig?.identifiedLimiters?.[1] || "";
+  if (!L1) return "→ Les séances clés de ce bloc doivent correspondre à cette phase.";
+  
+  const phase = (activePhase || "").toLowerCase();
+  const isFoundation = /fondation|adaptation|phase\s*1/i.test(phase);
+  const isChantier = /chantier|phase\s*2|développement/i.test(phase);
+  const isConsolidation = /consolidation|phase\s*3/i.test(phase);
+  const isRaceSpec = /race|spécifique|affûtage|taper/i.test(phase);
+  
+  if (isFoundation) {
+    return `🎯 DOMINANCE LIMITEUR pour "${activePhase}" : L1 "${L1.slice(0, 50)}" reçoit 1-2 stimulations/sem. L2 "${L2.slice(0, 50)}" NON prioritaire (rappel léger uniquement).
+→ Reverse Perio : VO2max courts + Force max + Z2 volume croissant.`;
+  } else if (isChantier) {
+    return `🎯 DOMINANCE LIMITEUR pour "${activePhase}" : L1 "${L1.slice(0, 50)}" = CONCENTRATION MAXIMALE (2-3 stimuli spécifiques/sem). L2 "${L2.slice(0, 50)}" en MAINTIEN MINIMAL (max 1 rappel/sem).
+→ C'est le CŒUR du chantier L1. Les séances clés 🔑 doivent cibler massivement L1.`;
+  } else if (isConsolidation) {
+    return `🎯 DOMINANCE LIMITEUR pour "${activePhase}" : L2 "${L2.slice(0, 50)}" MONTE en priorité (2-3 stimuli/sem). L1 "${L1.slice(0, 50)}" passe en MAINTIEN (1 rappel/sem minimum — non-régression).
+→ Transition séquentielle : L1 en rappel, L2 concentré.`;
+  } else if (isRaceSpec) {
+    return `🎯 PHASE RACE-SPECIFIC : Intégration de L1 et L2 en contexte course. Simulations, allure race, Gut Training. Rappels courts de chaque limiteur.`;
+  }
+  return `→ Les séances clés de ce bloc doivent correspondre à cette phase ET cibler le limiteur dominant.`;
+})()}
 → Utilise PRIORITAIREMENT les séances du catalogue ci-dessus qui correspondent à cette phase.
 → Si AUCUNE séance du catalogue ne correspond précisément à l'objectif/phase/sport requis, tu peux CRÉER une séance sur mesure en respectant :
   1. Le format identique (titre explicite, zones, durée, structure Warm-up/Main/Cool-down)
