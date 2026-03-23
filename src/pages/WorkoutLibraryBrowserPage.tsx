@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Search, ChevronDown, Bike, PersonStanding, Waves, Dumbbell, Zap, Library } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import type { LibraryWorkout, TrainingSport, SessionType, PhaseTag } from "@/types/workoutLibrary";
 
