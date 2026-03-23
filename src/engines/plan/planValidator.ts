@@ -465,9 +465,18 @@ function validateSportRatio(
   const bikePct = Math.round((bikeAdj / primaryTotal) * 100);
   const runPct = Math.round((run / primaryTotal) * 100);
 
-  // Find target ratios
-  const obj = (objective || "").replace(/\s/g, "");
-  const target = SPORT_RATIO_TARGETS[obj] || SPORT_RATIO_TARGETS[obj.toUpperCase()];
+  // Normalize objective to match SPORT_RATIO_TARGETS keys
+  const objLower = (objective || "").toLowerCase();
+  let targetKey: string | null = null;
+  if (/70\.3|703/.test(objLower)) targetKey = "703";
+  else if (/ironman|^im\b/i.test(objLower)) targetKey = "IM";
+  else if (/semi/i.test(objLower)) targetKey = "Semi";
+  else if (/marathon/i.test(objLower)) targetKey = "Marathon";
+  else if (/trail.*ultra|ultra.*trail|utmb|>80/i.test(objLower)) targetKey = "TrailUltra";
+  else if (/trail/i.test(objLower)) targetKey = "Trail";
+  else if (/10k|10km/i.test(objLower)) targetKey = "10K";
+  
+  const target = targetKey ? SPORT_RATIO_TARGETS[targetKey] : null;
 
   if (!target) {
     // No specific target — just check basic diversity for triathlon-like plans
