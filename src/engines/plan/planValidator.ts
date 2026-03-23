@@ -85,8 +85,10 @@ const MID_INTENSITY_PATTERNS = /z3|tempo\b|allure\s*marathon|zone\s*3|endurance\
 const HIGH_INTENSITY_PATTERNS = /z[4-7]|seuil|threshold|vo2|vma|interval|fractionné|sprint|hiit|30\/30|pma|over.under|norvégienne|billat|canova|race.pace|race.sim|compétition|course\b.*\brace|🏁|force\s*max|plio|rønnestad|sfr|côtes?\s*\d|sweet\s*spot/i;
 const KEY_SESSION_PATTERNS = /🔑|clé|key|séance\s*clé|interval|seuil|vo2|vma|sortie\s*longue|sl\b|long\s*run|brick|race.sim|test|compétition|🏁/i;
 const DELOAD_PATTERNS = /décharge|deload|récup|recovery|repos|allégé|réduit|taper|affûtage|régénér/i;
-const RACE_PATTERNS = /🏁|jour\s*(de\s*)?course|race\s*day|race\s*week|semaine\s*(de\s*)?course|compétition|épreuve|jour\s*j|affûtage/i;
-const RACE_DAY_PATTERNS = /🏁|jour\s*(de\s*)?course|jour\s*j|race\s*day|compétition|épreuve/i;
+// Race week: only weeks that explicitly mention race/course/compétition — NOT affûtage (which is taper/deload)
+const RACE_PATTERNS = /🏁|jour\s*(de\s*)?course|race\s*day|race\s*week|semaine\s*(de\s*)?course|compétition|épreuve|jour\s*j/i;
+// Race day session: must have 🏁 or explicit "jour de course" — not just "compétition" in passing
+const RACE_DAY_PATTERNS = /🏁|jour\s*(de\s*)?course|jour\s*j|race\s*day/i;
 const RENFO_PATTERNS = /renfo|muscul|strength|ppg|gainage|core|poids|force\s*fonc|prévention|mobilité|stretching|étirement/i;
 
 function classifySessionIntensity(session: ParsedSession): "low" | "mid" | "high" | "renfo" {
@@ -607,7 +609,7 @@ function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; sc
 // STRUCTURE VALIDATION (Rules 7, 8, 9)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-/** Rule 7: Race day must exist in race weeks */
+/** Rule 7: Race day must exist in race weeks (only require 🏁 on the LAST race week or weeks with explicit race session) */
 function validateRaceDay(metrics: WeekMetrics[]): { issues: ValidationIssue[]; score: number } {
   const issues: ValidationIssue[] = [];
   const raceWeeks = metrics.filter(m => m.isRaceWeek);
@@ -616,16 +618,33 @@ function validateRaceDay(metrics: WeekMetrics[]): { issues: ValidationIssue[]; s
     return { issues: [], score: 100 }; // No race weeks to validate
   }
 
+  // Only the LAST race week (final race) strictly requires a 🏁 session.
+  // Earlier race weeks (B/C goals) get a softer warning instead of error.
+  const lastRaceWeek = raceWeeks[raceWeeks.length - 1];
+
   let compliant = 0;
   for (const wm of raceWeeks) {
     if (!wm.hasRaceDaySession) {
-      issues.push({
-        rule: "race_day",
-        severity: "error",
-        week: wm.weekNumber,
-        message: `S${wm.weekNumber}: Semaine de course sans séance "🏁 Jour de Course" détectée — le jour de course est remplacé par Repos ou une séance classique`,
-        detail: `Thème: "${wm.theme}". Le jour de la course DOIT contenir une entrée sport="🏁 Course" avec "JOUR DE COURSE".`,
-      });
+      const isLastRace = wm.weekNumber === lastRaceWeek.weekNumber;
+      if (isLastRace) {
+        issues.push({
+          rule: "race_day",
+          severity: "error",
+          week: wm.weekNumber,
+          message: `S${wm.weekNumber}: Semaine de course A sans séance "🏁 Jour de Course" détectée`,
+          detail: `Thème: "${wm.theme}". Le jour de la course principale DOIT contenir une entrée 🏁.`,
+        });
+      } else {
+        // B/C race weeks: softer warning
+        issues.push({
+          rule: "race_day",
+          severity: "warning",
+          week: wm.weekNumber,
+          message: `S${wm.weekNumber}: Semaine de course B/C sans séance 🏁 explicite`,
+          detail: `Thème: "${wm.theme}". Recommandé mais non obligatoire pour les objectifs secondaires.`,
+        });
+        compliant += 0.5;
+      }
     } else {
       compliant++;
     }
