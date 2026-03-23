@@ -678,7 +678,7 @@ function validateRestDays(metrics: WeekMetrics[]): { issues: ValidationIssue[]; 
 // MAIN VALIDATOR
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export function validatePlan(plan: ParsedPlan, objective?: string): PlanValidationResult {
+export function validatePlan(plan: ParsedPlan, objective?: string, identifiedLimiters?: string[]): PlanValidationResult {
   // Extract metrics for each week
   const weekMetrics = plan.weeks.map(extractWeekMetrics);
 
