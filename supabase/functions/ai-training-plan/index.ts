@@ -3977,6 +3977,16 @@ function buildUserPrompt(data: any, config: any): string {
     }
   }
 
+  // === FINAL RACE DAY REMINDER (single-objective) ===
+  if (config.raceDate && (!config.raceGoals || config.raceGoals.length <= 1)) {
+    const JOURS_FR_FINAL = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+    const finalRaceMs = parseIsoDateUtc(config.raceDate);
+    if (finalRaceMs !== undefined) {
+      const finalRaceDayName = JOURS_FR_FINAL[new Date(finalRaceMs).getUTCDay()];
+      lines.push(`\n🔥 RAPPEL FINAL RACE DAY : La dernière semaine (S${weeks}) est la Race Week. Le **${finalRaceDayName}** de cette semaine = 🏁 JOUR DE COURSE. JAMAIS "Repos" ce jour-là.`);
+    }
+  }
+
   lines.push(`\n---\nGénère le plan COMPLET de ${weeks} semaines, semaine par semaine, SANS EN OMETTRE AUCUNE. Chaque semaine a son propre tableau. Ne résume jamais. Chaque séance doit être actionnable immédiatement.`);
   if (isTriathlon && ambition !== "finisher") {
     lines.push(`\n⚠️ RAPPEL FINAL : Chaque jour d'entraînement d'un triathlète (sauf repos) doit avoir PLUSIEURS séances (2 ou 3 lignes dans le tableau). Un tableau de semaine IM Elite = 14 à 18 lignes, PAS 7. Si ton tableau a seulement 7-8 lignes pour une semaine IM, RECOMMENCE, c'est insuffisant.`);
