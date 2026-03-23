@@ -532,6 +532,64 @@ export default function AITrainingPlanPage() {
             return lines.join("\n");
           };
 
+          /** Extract structured race blocks from the week context */
+          const buildRaceBlocks = (
+            targetWeek: ParsedWeek,
+            raceLabel: string,
+            goal: RaceAnchor,
+            targetDayIndex: number,
+            race: Date,
+            existingDetails?: string
+          ) => {
+            const allLines = [
+              ...(targetWeek.coachNotes ?? "").split("\n"),
+              ...(existingDetails ?? "").split("\n"),
+              ...targetWeek.sessions.flatMap((s) => [s.title, s.details]),
+            ].map((l) => l?.trim()).filter(Boolean) as string[];
+
+            const cleanLines = allLines
+              .map(stripGenericRaceFallback)
+              .filter(Boolean);
+
+            const preCourseLines: string[] = [];
+            const jourDeCourseLines: string[] = [];
+            const consignesCoachLines: string[] = [];
+
+            for (const line of cleanLines) {
+              if (isRaceNoiseLine(line)) {
+                preCourseLines.push(line);
+                continue;
+              }
+              if (isWorkoutPrescriptionLine(line)) continue;
+
+              if (/(allure cible|pacing|ravito|nutrition|hydrat|stratég|strategie|exécution|execution|parcours|plan de course|départ|depart)/i.test(line)) {
+                jourDeCourseLines.push(line);
+              } else if (/(consigne|coach|objectif|semaine|volume|charge|récup|repos|adaptation)/i.test(line)) {
+                consignesCoachLines.push(line);
+              }
+            }
+
+            const dedup = (arr: string[]) => Array.from(new Set(arr));
+            const objectiveLabel = goal.priority === "A" ? "Objectif principal" : `Objectif ${goal.priority}`;
+            const phaseLabel = targetWeek.phase?.trim();
+
+            if (jourDeCourseLines.length === 0) {
+              jourDeCourseLines.push(
+                `${objectiveLabel} — ${raceLabel}.`,
+                `Compétition le ${dayNames[targetDayIndex]} ${format(race, "dd/MM/yyyy")}${phaseLabel ? ` • ${phaseLabel}` : ""}.`,
+                goal.priority === "A"
+                  ? "Stratégie d'allure, d'exécution et de ravitaillement adaptée à l'épreuve."
+                  : "Jalon compétitif : allure contrôlée, exécution et récupération post-course."
+              );
+            }
+
+            return {
+              preCourse: dedup(preCourseLines).join("\n") || undefined,
+              jourDeCourse: dedup(jourDeCourseLines).join("\n"),
+              consignesCoach: dedup(consignesCoachLines).join("\n") || undefined,
+            };
+          };
+
           configuredGoals
             .sort((a, b) => a.raceDate.localeCompare(b.raceDate))
             .forEach((goal) => {
@@ -546,31 +604,23 @@ export default function AITrainingPlanPage() {
               if (!targetWeek) return;
 
               const raceLabel = goal.raceName || goal.objective || objective;
-              const raceContext = extractRaceContext(targetWeek, raceLabel, goal.priority, targetWeekNumber);
               const sessionsWithoutTargetRest = targetWeek.sessions.filter(
                 (session) => !(session.dayIndex === targetDayIndex && session.isRest)
               );
 
               const raceSessions = sessionsWithoutTargetRest.filter(isRaceLikeSession);
               const raceSessionOnTargetDay = raceSessions.find((session) => session.dayIndex === targetDayIndex);
-              const professionalFallback = buildProfessionalRaceDetails(
-                goal,
-                raceLabel,
-                targetWeek,
-                targetDayIndex,
-                race
-              );
 
               if (raceSessionOnTargetDay) {
-                const cleanedExistingDetails = extractRaceStrategyDetails(raceSessionOnTargetDay.details);
-                const resolvedDetails = mergeRaceDetails(cleanedExistingDetails, raceContext) || professionalFallback;
+                const blocks = buildRaceBlocks(targetWeek, raceLabel, goal, targetDayIndex, race, raceSessionOnTargetDay.details);
                 targetWeek.sessions = sessionsWithoutTargetRest.map((session) => {
                   if (session !== raceSessionOnTargetDay) return session;
 
                   return {
                     ...session,
                     title: session.title || `JOUR DE COURSE${goal.priority !== "A" ? ` [${goal.priority}]` : ""} — ${raceLabel}`,
-                    details: resolvedDetails,
+                    details: blocks.jourDeCourse,
+                    raceBlocks: blocks,
                     isRest: false,
                   };
                 });
@@ -580,8 +630,7 @@ export default function AITrainingPlanPage() {
               const existingRaceSession = raceSessions[0];
 
               if (existingRaceSession) {
-                const cleanedExistingDetails = extractRaceStrategyDetails(existingRaceSession.details);
-                const resolvedDetails = mergeRaceDetails(cleanedExistingDetails, raceContext) || professionalFallback;
+                const blocks = buildRaceBlocks(targetWeek, raceLabel, goal, targetDayIndex, race, existingRaceSession.details);
                 targetWeek.sessions = [
                   ...sessionsWithoutTargetRest.filter((session) => session !== existingRaceSession),
                   {
@@ -589,13 +638,15 @@ export default function AITrainingPlanPage() {
                     dayName: dayNames[targetDayIndex],
                     dayIndex: targetDayIndex,
                     title: existingRaceSession.title || `JOUR DE COURSE${goal.priority !== "A" ? ` [${goal.priority}]` : ""} — ${raceLabel}`,
-                    details: resolvedDetails,
+                    details: blocks.jourDeCourse,
+                    raceBlocks: blocks,
                     isRest: false,
                   },
                 ].sort((a, b) => a.dayIndex - b.dayIndex);
                 return;
               }
 
+              const newBlocks = buildRaceBlocks(targetWeek, raceLabel, goal, targetDayIndex, race);
               targetWeek.sessions = [
                 ...sessionsWithoutTargetRest,
                 {
@@ -606,7 +657,8 @@ export default function AITrainingPlanPage() {
                   dayIndex: targetDayIndex,
                   sport: "🏁 Course",
                   title: `JOUR DE COURSE${goal.priority !== "A" ? ` [${goal.priority}]` : ""} — ${raceLabel}`,
-                  details: raceContext || professionalFallback,
+                  details: newBlocks.jourDeCourse,
+                  raceBlocks: newBlocks,
                   isRest: false,
                 },
               ].sort((a, b) => a.dayIndex - b.dayIndex);

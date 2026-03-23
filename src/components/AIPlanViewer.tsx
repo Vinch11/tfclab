@@ -11,6 +11,7 @@ import {
   Footprints, Moon, FileText, Zap, Save, Loader2, CheckCircle2,
   RefreshCw, Printer, Target, ArrowRight, Sparkles, AlertTriangle,
 } from "lucide-react";
+import { Flag, ClipboardList, MessageSquare } from "lucide-react";
 import { format, addDays, startOfWeek } from "date-fns";
 import { fr } from "date-fns/locale";
 import type { ParsedPlan, ParsedWeek, ParsedSession, StrategicRecap } from "@/lib/aiPlanParser";
@@ -294,7 +295,32 @@ function SessionCard({ session, date }: SessionCardProps) {
         <Badge variant="outline" className="text-[10px] ml-auto">{session.sport}</Badge>
       </div>
       <p className="text-sm font-semibold mt-1">{stripCatalogId(session.title)}</p>
-      {expanded && session.details && (
+      {expanded && session.raceBlocks ? (
+        <div className="mt-2 space-y-2 border-t border-current/10 pt-2">
+          {session.raceBlocks.preCourse && (
+            <div className="p-2 rounded bg-amber-500/10 border border-amber-500/20">
+              <p className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1 mb-1">
+                <ClipboardList className="h-3 w-3" /> Pré-course
+              </p>
+              <p className="text-xs text-muted-foreground whitespace-pre-wrap">{stripCatalogId(session.raceBlocks.preCourse)}</p>
+            </div>
+          )}
+          <div className="p-2 rounded bg-emerald-500/10 border border-emerald-500/20">
+            <p className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mb-1">
+              <Flag className="h-3 w-3" /> Jour de course
+            </p>
+            <p className="text-xs text-muted-foreground whitespace-pre-wrap">{stripCatalogId(session.raceBlocks.jourDeCourse)}</p>
+          </div>
+          {session.raceBlocks.consignesCoach && (
+            <div className="p-2 rounded bg-primary/5 border border-primary/20">
+              <p className="text-[10px] font-semibold text-primary flex items-center gap-1 mb-1">
+                <MessageSquare className="h-3 w-3" /> Consignes coach
+              </p>
+              <p className="text-xs text-muted-foreground whitespace-pre-wrap">{stripCatalogId(session.raceBlocks.consignesCoach)}</p>
+            </div>
+          )}
+        </div>
+      ) : expanded && session.details && (
         <p className="text-xs text-muted-foreground mt-2 whitespace-pre-wrap leading-relaxed border-t border-current/10 pt-2">
           {stripCatalogId(session.details)}
         </p>
