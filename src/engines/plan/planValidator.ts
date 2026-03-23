@@ -757,15 +757,19 @@ function validateLimiterAlignment(
     return { issues: [], score: 100, details };
   }
 
-  // ── Split plan into chronological thirds (Base / Build / Spécifique) ────
+  // ── Split plan into Lorang bloc phases (Fondation / Chantier L1 / Consolidation L2 / Race-Spec) ────
   const loadWeeks = metrics.filter(m => !m.isDeload && !m.isRaceWeek);
   const totalLoadWeeks = loadWeeks.length || 1;
 
-  const thirdLen = Math.max(1, Math.ceil(loadWeeks.length / 3));
+  // Lorang proportions: ~25% Fondation, ~30% Chantier L1, ~25% Consolidation L2, ~20% Race-Spec
+  const fondationEnd = Math.max(1, Math.ceil(loadWeeks.length * 0.25));
+  const chantierEnd = Math.max(fondationEnd + 1, Math.ceil(loadWeeks.length * 0.55));
+  const consolEnd = Math.max(chantierEnd + 1, Math.ceil(loadWeeks.length * 0.80));
   const phases = {
-    base: loadWeeks.slice(0, thirdLen),
-    build: loadWeeks.slice(thirdLen, thirdLen * 2),
-    specific: loadWeeks.slice(thirdLen * 2),
+    fondation: loadWeeks.slice(0, fondationEnd),           // Reverse Perio + premières stimulations L1
+    chantier: loadWeeks.slice(fondationEnd, chantierEnd),  // Concentration L1
+    consolidation: loadWeeks.slice(chantierEnd, consolEnd), // L2 monte, L1 maintien
+    raceSpec: loadWeeks.slice(consolEnd),                   // Integration race-specific
   };
 
   // Helper: count weeks with matching sessions in a phase
