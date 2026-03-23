@@ -138,8 +138,16 @@ export default function WorkoutLibraryBrowserPage() {
             </p>
           </div>
         </div>
+        {/* Légende catégories A/B/C/D */}
+        <div className="flex flex-wrap gap-2">
+          {Object.entries(TYPE_TOOLTIPS).map(([cat, desc]) => (
+            <div key={cat} className="flex items-center gap-1.5">
+              <Badge className={`text-xs ${TYPE_COLORS[cat]}`}>{cat}</Badge>
+              <span className="text-[11px] text-muted-foreground">{desc}</span>
+            </div>
+          ))}
+        </div>
 
-        {/* Stats cards */}
         <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
           {Object.entries(stats).map(([sport, count]) => {
             const info = SPORT_LABELS[sport];
