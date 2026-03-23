@@ -375,67 +375,97 @@ export default function AITrainingPlanPage() {
     try {
       const plan = parseAIPlan(response);
 
-      const enforcePrimaryRaceDay = (weeks: ParsedWeek[]): ParsedWeek[] => {
-        if (!raceDate) return weeks;
-        try {
-          const race = startOfDay(parseISO(raceDate));
-          const start = startOfDay(planStartDate);
-          const days = differenceInCalendarDays(race, start);
-          if (days < 0) return weeks;
+      const enforceRaceDays = (weeks: ParsedWeek[]): ParsedWeek[] => {
+        const configuredGoals = [
+          raceDate
+            ? {
+                raceDate,
+                raceName,
+                objective,
+                priority: "A" as const,
+              }
+            : null,
+          ...raceGoals
+            .filter((goal) => goal.raceDate)
+            .map((goal) => ({
+              raceDate: goal.raceDate!,
+              raceName: goal.raceName,
+              objective: goal.objective,
+              priority: goal.priority,
+            })),
+        ].filter(
+          (goal): goal is { raceDate: string; raceName?: string; objective: string; priority: "A" | "B" | "C" } => Boolean(goal?.raceDate)
+        );
 
-          const targetWeekNumber = Math.floor(days / 7) + 1;
-          const jsDay = race.getDay();
-          const targetDayIndex = jsDay === 0 ? 6 : jsDay - 1;
+        if (configuredGoals.length === 0) return weeks;
+
+        try {
+          const start = startOfDay(planStartDate);
           const dayNames = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
-          const raceLabel = raceName || objective;
           const isPlaceholderWeek = (week: ParsedWeek) => {
             const meta = `${week.theme} ${week.coachNotes ?? ""}`;
             return /non générée|manquante|régénérer/i.test(meta)
               || week.sessions.every((session) => session.isRest && /⚠️|régénérer/i.test(`${session.title} ${session.details}`));
           };
 
-          const realWeeks = weeks.filter((week) => !isPlaceholderWeek(week));
-          const resolvedTargetWeek = realWeeks.find((week) => week.weekNumber === targetWeekNumber)
-            ?? realWeeks[targetWeekNumber - 1]
-            ?? realWeeks[realWeeks.length - 1]
-            ?? weeks.find((week) => week.weekNumber === targetWeekNumber)
-            ?? weeks[Math.min(Math.max(targetWeekNumber - 1, 0), Math.max(weeks.length - 1, 0))];
+          const nextWeeks = weeks.map((week) => ({
+            ...week,
+            sessions: [...week.sessions],
+          }));
 
-          if (!resolvedTargetWeek) return weeks;
+          const findTargetWeek = (targetWeekNumber: number) => {
+            const realWeeks = nextWeeks.filter((week) => !isPlaceholderWeek(week));
+            return realWeeks.find((week) => week.weekNumber === targetWeekNumber)
+              ?? realWeeks[targetWeekNumber - 1]
+              ?? realWeeks[realWeeks.length - 1]
+              ?? nextWeeks.find((week) => week.weekNumber === targetWeekNumber)
+              ?? nextWeeks[Math.min(Math.max(targetWeekNumber - 1, 0), Math.max(nextWeeks.length - 1, 0))];
+          };
 
-          return weeks.map((week) => {
-            if (week.weekNumber !== resolvedTargetWeek.weekNumber) return week;
+          configuredGoals
+            .sort((a, b) => a.raceDate.localeCompare(b.raceDate))
+            .forEach((goal) => {
+              const race = startOfDay(parseISO(goal.raceDate));
+              const days = differenceInCalendarDays(race, start);
+              if (days < 0) return;
 
-            const sessionsWithoutTargetRest = week.sessions.filter(
-              (session) => !(session.dayIndex === targetDayIndex && session.isRest)
-            );
+              const targetWeekNumber = Math.floor(days / 7) + 1;
+              const jsDay = race.getDay();
+              const targetDayIndex = jsDay === 0 ? 6 : jsDay - 1;
+              const targetWeek = findTargetWeek(targetWeekNumber);
+              if (!targetWeek) return;
 
-            const hasRaceSession = sessionsWithoutTargetRest.some((session) =>
-              session.dayIndex === targetDayIndex && /🏁|jour de course|course/i.test(`${session.sport} ${session.title} ${session.details}`)
-            );
+              const raceLabel = goal.raceName || goal.objective || objective;
+              const sessionsWithoutTargetRest = targetWeek.sessions.filter(
+                (session) => !(session.dayIndex === targetDayIndex && session.isRest)
+              );
 
-            if (hasRaceSession) {
-              return { ...week, sessions: sessionsWithoutTargetRest };
-            }
+              const hasRaceSession = sessionsWithoutTargetRest.some((session) =>
+                session.dayIndex === targetDayIndex && /🏁|jour de course|course/i.test(`${session.sport} ${session.title} ${session.details}`)
+              );
 
-            return {
-              ...week,
-              sessions: [
-                ...sessionsWithoutTargetRest,
-                {
-                  weekNumber: week.weekNumber,
-                  weekTheme: week.theme,
-                  phase: week.phase,
-                  dayName: dayNames[targetDayIndex],
-                  dayIndex: targetDayIndex,
-                  sport: "🏁 Course",
-                  title: `JOUR DE COURSE — ${raceLabel}`,
-                  details: "Course cible imposée automatiquement car absente de la semaine générée.",
-                  isRest: false,
-                },
-              ].sort((a, b) => a.dayIndex - b.dayIndex),
-            };
-          });
+              targetWeek.sessions = hasRaceSession
+                ? sessionsWithoutTargetRest
+                : [
+                    ...sessionsWithoutTargetRest,
+                    {
+                      weekNumber: targetWeek.weekNumber,
+                      weekTheme: targetWeek.theme,
+                      phase: targetWeek.phase,
+                      dayName: dayNames[targetDayIndex],
+                      dayIndex: targetDayIndex,
+                      sport: "🏁 Course",
+                      title: `JOUR DE COURSE${goal.priority !== "A" ? ` [${goal.priority}]` : ""} — ${raceLabel}`,
+                      details:
+                        goal.priority === "A"
+                          ? "Course cible imposée automatiquement car absente de la semaine générée."
+                          : `Course objectif ${goal.priority} imposée automatiquement car absente de la semaine générée.`,
+                      isRest: false,
+                    },
+                  ].sort((a, b) => a.dayIndex - b.dayIndex);
+            });
+
+          return nextWeeks;
         } catch {
           return weeks;
         }
@@ -443,12 +473,12 @@ export default function AITrainingPlanPage() {
 
       const normalizedPlan = {
         ...plan,
-        weeks: enforcePrimaryRaceDay(plan.weeks),
+        weeks: enforceRaceDays(plan.weeks),
       };
 
       return normalizedPlan.weeks.length > 0 ? normalizedPlan : null;
     } catch { return null; }
-  }, [response, isLoading, raceDate, raceName, objective, planStartDate]);
+  }, [response, isLoading, raceDate, raceName, raceGoals, objective, planStartDate]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD PLAN CONFIG — Delegates to Plan Engine
