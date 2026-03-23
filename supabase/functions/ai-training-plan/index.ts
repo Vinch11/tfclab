@@ -331,6 +331,14 @@ Générer un plan d'entraînement COMPLET ET INTÉGRAL couvrant TOUTES les semai
 - JAMAIS de texte libre, de saut de ligne vide, ou d'autre header entre "### Semaine N" et son tableau.
 - VÉRIFIE : chaque semaine générée a au minimum 4 lignes de données dans son tableau (hors header et séparateur).
 
+## RÈGLE SÉPARATION PRÉ-COURSE / JOUR DE COURSE (CRITIQUE)
+⚠️ Le contenu des séances J-2, J-1 et Jour de Course DOIT être STRICTEMENT séparé :
+- **J-2 / J-1 (pré-course)** : Activation, openers, rappel nerveux, repos, visualisation, carb loading. Ces séances sont des séances d'entraînement normales avec leurs propres prescriptions (durée, zones, intervalles).
+- **Jour de Course (🏁)** : UNIQUEMENT la stratégie de course — allure cible, pacing, ravitaillement, exécution, gestion d'effort. JAMAIS de prescription d'entraînement (pas de "20' Z2 + 3x3' Z4b").
+- Il est INTERDIT de mettre des contenus de taper/opener/activation dans la colonne "Détails" du jour de course.
+- Il est INTERDIT de mettre la stratégie de course dans les séances J-2/J-1.
+- Les **Consignes Coach** de la semaine de course doivent contenir les directives globales (volume réduit, sommeil, nutrition) mais PAS la stratégie d'allure du jour J.
+
 ## RATIOS SPORT/VOLUME PAR OBJECTIF (Méthodologie Dan Lorang / Élite Mondial)
 
 ### IRONMAN (IM) — Modèle Lorang/Frodeno (15-25h/sem)

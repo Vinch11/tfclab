@@ -688,6 +688,10 @@ function validateWeeklyStructure(metrics: WeekMetrics[]): { issues: ValidationIs
 
 /** Rule 9: Each non-deload week should have at least 1 rest day */
 function validateRestDays(metrics: WeekMetrics[]): { issues: ValidationIssue[]; score: number } {
+  return validateRestDaysImpl(metrics);
+}
+
+function validateRestDaysImpl(metrics: WeekMetrics[]): { issues: ValidationIssue[]; score: number } {
   const issues: ValidationIssue[] = [];
   let compliant = 0;
 
@@ -711,6 +715,60 @@ function validateRestDays(metrics: WeekMetrics[]): { issues: ValidationIssue[]; 
   }
 
   const score = metrics.length > 0 ? Math.round((compliant / metrics.length) * 100) : 100;
+  return { issues, score };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PRE-RACE / RACE-DAY CONTENT SEPARATION VALIDATION (Rule 11)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const PRE_RACE_CONTENT_IN_RACE_DAY = /mini-?taper|\bopener\b|rappel nerveux|footing activation|activation nerveuse|activation pré-course|activation pre-course|\bj-[12]\b|veille de course|repos total|visualisation du parcours/i;
+const WORKOUT_PRESCRIPTION_IN_RACE_DAY = /(?:^|\s)\d+\s*(?:min|h)\b.*Z[1-6]|\bZ[1-6][a-b]?\b.*\br\s*=\s*\d+|\b\d+x\d+['"]?\s*(?:@|Z)/i;
+
+function validateRaceDayContentSeparation(
+  plan: ParsedPlan
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  let raceDaySessions = 0;
+  let cleanSessions = 0;
+
+  for (const week of plan.weeks) {
+    for (const session of week.sessions) {
+      const text = `${session.sport} ${session.title} ${session.details}`;
+      const isRaceDay = /🏁|jour\s*(de\s*)?course|jour\s*j|race\s*day/i.test(text);
+      if (!isRaceDay) continue;
+
+      raceDaySessions++;
+      const details = session.details || "";
+      let hasIssue = false;
+
+      if (PRE_RACE_CONTENT_IN_RACE_DAY.test(details)) {
+        issues.push({
+          rule: "race_content_separation",
+          severity: "warning",
+          week: week.weekNumber,
+          message: `S${week.weekNumber}: Le jour de course contient du contenu pré-course (taper/opener/activation)`,
+          detail: `Les consignes J-2/J-1 doivent rester sur leurs séances respectives, pas sur le jour de course.`,
+        });
+        hasIssue = true;
+      }
+
+      if (WORKOUT_PRESCRIPTION_IN_RACE_DAY.test(details)) {
+        issues.push({
+          rule: "race_content_separation",
+          severity: "warning",
+          week: week.weekNumber,
+          message: `S${week.weekNumber}: Le jour de course contient des prescriptions d'entraînement (zones/intervalles)`,
+          detail: `Le jour de course doit contenir uniquement la stratégie (allure, pacing, ravitaillement), pas des séances.`,
+        });
+        hasIssue = true;
+      }
+
+      if (!hasIssue) cleanSessions++;
+    }
+  }
+
+  const score = raceDaySessions > 0 ? Math.round((cleanSessions / raceDaySessions) * 100) : 100;
   return { issues, score };
 }
 
