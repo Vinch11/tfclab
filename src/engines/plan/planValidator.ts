@@ -939,6 +939,9 @@ export function formatValidationReport(result: PlanValidationResult): string {
   lines.push(`| Ratio sportif | ${result.summary.sportRatioScore}/100 | ${result.summary.sportRatioScore >= 75 ? "✅" : result.summary.sportRatioScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push(`| Catalogue TFCL™ | ${result.summary.catalogRatioScore}/100 | ${result.summary.catalogRatioScore >= 75 ? "✅" : result.summary.catalogRatioScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push(`| Structure (Race/Jours/Repos) | ${result.summary.structureScore}/100 | ${result.summary.structureScore >= 75 ? "✅" : result.summary.structureScore >= 50 ? "⚠️" : "❌"} |`);
+  if (result.summary.limiterAlignmentScore > 0) {
+    lines.push(`| Cohérence Limiteurs | ${result.summary.limiterAlignmentScore}/100 | ${result.summary.limiterAlignmentScore >= 75 ? "✅" : result.summary.limiterAlignmentScore >= 50 ? "⚠️" : "❌"} |`);
+  }
   lines.push("");
   lines.push(`**${result.summary.overallComment}**`);
 
