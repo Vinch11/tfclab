@@ -81,24 +81,25 @@ export interface PlanValidationResult {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const LOW_INTENSITY_PATTERNS = /z[12]|endurance|ef\b|footing|récup|recovery|easy|facile|aérobie|z2|zone\s*[12]|fondament|repos actif|régénér|souplesse|mobilité|technique|drill|gammes|éducatif/i;
-const MID_INTENSITY_PATTERNS = /z3|tempo\b|allure\s*marathon|sweet\s*spot|zone\s*3|endurance\s*active|fartlek\s*léger/i;
-const HIGH_INTENSITY_PATTERNS = /z[4-7]|seuil|threshold|vo2|vma|interval|fractionné|sprint|hiit|30\/30|pma|over.under|norvégienne|billat|canova|race.pace|race.sim|compétition|course\b.*\brace|🏁|force\s*max|plio|rønnestad|sfr|côtes?\s*\d/i;
+const MID_INTENSITY_PATTERNS = /z3|tempo\b|allure\s*marathon|zone\s*3|endurance\s*active|fartlek\s*léger/i;
+const HIGH_INTENSITY_PATTERNS = /z[4-7]|seuil|threshold|vo2|vma|interval|fractionné|sprint|hiit|30\/30|pma|over.under|norvégienne|billat|canova|race.pace|race.sim|compétition|course\b.*\brace|🏁|force\s*max|plio|rønnestad|sfr|côtes?\s*\d|sweet\s*spot/i;
 const KEY_SESSION_PATTERNS = /🔑|clé|key|séance\s*clé|interval|seuil|vo2|vma|sortie\s*longue|sl\b|long\s*run|brick|race.sim|test|compétition|🏁/i;
 const DELOAD_PATTERNS = /décharge|deload|récup|recovery|repos|allégé|réduit|taper|affûtage|régénér/i;
 const RACE_PATTERNS = /🏁|jour\s*(de\s*)?course|race\s*day|race\s*week|semaine\s*(de\s*)?course|compétition|épreuve|jour\s*j/i;
 const RACE_DAY_PATTERNS = /🏁|jour\s*(de\s*)?course|jour\s*j|race\s*day|compétition|épreuve/i;
+const RENFO_PATTERNS = /renfo|muscul|strength|ppg|gainage|core|poids|force\s*fonc|prévention|mobilité|stretching|étirement/i;
 
-function classifySessionIntensity(session: ParsedSession): "low" | "mid" | "high" {
+function classifySessionIntensity(session: ParsedSession): "low" | "mid" | "high" | "renfo" {
   const text = `${session.sport} ${session.title} ${session.details}`.toLowerCase();
   
   if (session.isRest) return "low";
   
+  // Renfo/strength sessions are outside the endurance intensity spectrum
+  if (RENFO_PATTERNS.test(text) && !/seuil|threshold|interval|vo2|vma|sprint/i.test(text)) return "renfo";
+  
   // Check high first (most specific patterns)
   if (HIGH_INTENSITY_PATTERNS.test(text)) return "high";
   if (MID_INTENSITY_PATTERNS.test(text)) return "mid";
-  
-  // Default: strength/renfo sessions count as mid, everything else as low
-  if (/renfo|muscul|strength|ppg|gainage|core|poids/i.test(text)) return "mid";
   
   return "low";
 }
