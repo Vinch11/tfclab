@@ -2942,7 +2942,7 @@ Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b
               const z2Durations = combinedChunkText.match(/(\d+)\s*(?:h|min|'|′)\s*(?:\d+\s*(?:min|'|′))?\s*(?:Z2|endurance|FatMax|aérobie)/gi) || [];
               const maxZ2 = z2Durations.length > 0 ? ` | MaxZ2: ${z2Durations[z2Durations.length - 1]?.trim().slice(0, 20)}` : "";
 
-              // FIX M3 (audit): Post-chunk validation — check key sessions target L1/L2
+              // FIX M3 (audit): Post-chunk validation — check key sessions target L1/L2 with CHRONOLOGICAL dominance
               const keySessionMatches_all = combinedChunkText.match(/🔑[^\n|]*/g) || [];
               const L1Name = (planConfig?.identifiedLimiters?.[0] || "").toLowerCase();
               const L2Name = (planConfig?.identifiedLimiters?.[1] || "").toLowerCase();
@@ -2952,11 +2952,27 @@ Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b
                 const keyTexts = keySessionMatches_all.map(k => k.toLowerCase());
                 const L1Hits = keyTexts.filter(t => L1Keywords.some(kw => t.includes(kw))).length;
                 const L2Hits = L2Keywords.length > 0 ? keyTexts.filter(t => L2Keywords.some(kw => t.includes(kw))).length : -1;
-                if (L1Hits === 0) {
-                  console.warn(`⚠️ M3 Validation: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — NO key sessions (🔑) target L1="${L1Name}". Phase: ${activePhase}`);
-                }
-                if (L2Hits === 0 && activePhase !== "Fondation" && activePhase !== "Adaptation") {
-                  console.warn(`⚠️ M3 Validation: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — NO key sessions target L2="${L2Name}" in ${activePhase} phase.`);
+                
+                // Chronological block validation (Lorang sequential logic)
+                const isEarlyPhase = activePhase === "Fondation" || activePhase === "Adaptation" || activePhase === "Chantier";
+                const isMidPhase = activePhase === "Consolidation" || activePhase === "Développement";
+                
+                if (isEarlyPhase) {
+                  // In early blocks: L1 MUST dominate, L2 should be minimal
+                  if (L1Hits === 0) {
+                    console.warn(`⚠️ M3-CHRONO: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — NO key sessions target L1="${L1Name}" in ${activePhase} phase. L1 SHOULD DOMINATE here.`);
+                  }
+                  if (L2Hits > L1Hits && L1Hits > 0) {
+                    console.warn(`⚠️ M3-CHRONO: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — L2="${L2Name}" (${L2Hits} hits) DOMINATES over L1="${L1Name}" (${L1Hits} hits) in ${activePhase}. Block periodization requires L1 dominant in early phases.`);
+                  }
+                } else if (isMidPhase) {
+                  // In mid blocks: L2 should be rising, L1 in maintenance
+                  if (L2Hits === 0 && L2Keywords.length > 0) {
+                    console.warn(`⚠️ M3-CHRONO: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — NO key sessions target L2="${L2Name}" in ${activePhase}. L2 SHOULD RISE in consolidation.`);
+                  }
+                  if (L1Hits === 0) {
+                    console.warn(`⚠️ M3-CHRONO: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — L1="${L1Name}" completely absent in ${activePhase}. Maintenance rappels required (non-regression).`);
+                  }
                 }
               }
               
@@ -3739,33 +3755,33 @@ function buildUserPrompt(data: any, config: any): string {
     lines.push("| FatMax↑ (Train Low) | → VLamax↓ (synergie), autonomie glycogène↑, durabilité↑ |");
     lines.push("Quand 2 limiteurs ont une synergie positive, les combiner dans la même phase pour maximiser l'effet.\n");
 
-    lines.push("### ⚙️ RÈGLES DE PÉRIODISATION SÉQUENTIELLE STRICTES");
-    lines.push("1. **Limiteur #1 (🔴 CRITIQUE)** :");
-    lines.push("   - Reçoit la Séance Clé #1 de CHAQUE semaine de la Phase Base à la fin de la Phase Build.");
-    lines.push("   - Fréquence : 2-3 stimuli/sem en Base, 2 stimuli/sem en Build, 1-2 rappels en Spécifique.");
-    lines.push("   - Le volume/intensité de ce stimulus suit la colonne correspondante dans la matrice ci-dessus.");
-    lines.push("2. **Limiteur #2 (🔴 ou 🟡)** :");
-    lines.push("   - Reçoit la Séance Clé #2 dès la Phase Base (1-2x/sem), montée en importance en Build (2x/sem).");
-    lines.push("   - Si #2 est synergique avec #1, combiner dans certaines séances (ex: Z2 long Train Low travaille VLamax↓ ET FatMax↑).");
-    lines.push("3. **Limiteurs #3+ (🟡 SOUS-OPTIMAUX)** :");
-    lines.push("   - Intégrés comme composantes secondaires : ex. strides post-EF (économie), rappels force 1x/sem (maintien Rønnestad).");
-    lines.push("   - Montée en priorité en Phase Spécifique si les limiteurs #1 et #2 ont suffisamment progressé.");
-    lines.push("4. **Principe de non-régression** :");
-    lines.push("   - Quand on passe au limiteur suivant, maintenir les acquis du limiteur précédent avec 1 rappel/sem minimum.");
-    lines.push("   - Jamais d'abandon complet d'un travail spécifique après une phase.");
-    lines.push("5. **Phase Taper** :");
+    lines.push("### ⚙️ RÈGLES DE PÉRIODISATION PAR BLOCS SÉQUENTIELS (Issurin/Lorang — STRICTES)");
+    lines.push("⚠️ Les limiteurs sont traités SÉQUENTIELLEMENT par blocs concentrés, PAS en parallèle sur toute la durée du plan.");
+    lines.push("");
+    lines.push("1. **Bloc Fondation (1er tiers)** :");
+    lines.push("   - Reverse Perio : VO2max courts + Force max + Z2 volume croissant.");
+    lines.push("   - Le Limiteur #1 reçoit les premières stimulations (1-2x/sem), le #2 n'est PAS encore une priorité.");
+    lines.push("   - Objectif : poser les fondations aérobies et neuromusculaires.");
+    lines.push("2. **Bloc Chantier [Limiteur #1] (2e phase)** :");
+    lines.push("   - 🎯 CONCENTRATION MAXIMALE sur le Limiteur #1 : 2-3 stimuli spécifiques/sem.");
+    lines.push("   - Le Limiteur #2 est en MAINTIEN MINIMAL uniquement (max 1 rappel/sem).");
+    lines.push("   - Durée : 3-4 semaines de travail concentré. C'est le cœur du chantier.");
+    lines.push("3. **Bloc Consolidation [Limiteur #2] (3e phase)** :");
+    lines.push("   - 🎯 Le Limiteur #2 MONTE en priorité : 2-3 stimuli/sem dédiés.");
+    lines.push("   - Le Limiteur #1 passe en MAINTIEN (1 rappel/sem minimum — principe de non-régression).");
+    lines.push("   - Limiteurs #3+ : intégrés comme composantes secondaires (strides, rappels force 1x/sem).");
+    lines.push("4. **Bloc Race-Specific** :");
+    lines.push("   - Intégration race-specific de tous les limiteurs travaillés.");
+    lines.push("   - Simulations, allure course, Gut Training, briques.");
+    lines.push("5. **Bloc Affûtage** :");
     lines.push("   - Rappels courts de CHAQUE limiteur travaillé (volume -50 à -60%, intensité maintenue).");
-    lines.push("   - 1 séance rappel par limiteur adressé dans la dernière semaine pré-course.");
-
-    lines.push("\n⚠️ RÈGLE SÉANCES CLÉS PAR LIMITEUR (RÉSUMÉ RAPIDE) :");
-    lines.push("- Limiteur #1 = 'VO2max bas' → clé #1 = VMA/VO2max (Billat 30/30, 5×1200m).");
-    lines.push("- Limiteur #1 = 'VLamax trop haute' → clé #1 = Z2 long Train Low + sweet spot long.");
-    lines.push("- Limiteur #1 = 'TTE faible' → clé #1 = seuil continu long (Norvégienne 2×20min→1×40min).");
-    lines.push("- Limiteur #1 = 'Économie basse' → clé #1 = côtes/SFR + force max (Rønnestad).");
-    lines.push("- Limiteur #1 = 'FatMax bas' → clé #1 = Z2 longue à jeun Train Low (2h30+).");
-    lines.push("- Limiteur #1 = 'FTP/kg bas' → clé #1 = sweet spot + over-unders + Norvégienne vélo.");
-    lines.push("- Le Limiteur #2 reçoit la séance clé #2 avec la même logique.");
-    lines.push("- En Phase Spécifique, les séances clés deviennent race-specific tout en maintenant le travail sur les limiteurs principaux.");
+    lines.push("   - 1 séance rappel par limiteur dans la dernière semaine pré-course.");
+    lines.push("6. **Principe de non-régression** :");
+    lines.push("   - Quand on passe au bloc suivant, maintenir les acquis du bloc précédent avec 1 rappel/sem minimum.");
+    lines.push("   - ❌ JAMAIS d'abandon complet d'un travail spécifique. Le maintien est OBLIGATOIRE.");
+    lines.push("7. **⚠️ ERREUR FRÉQUENTE À ÉVITER** :");
+    lines.push("   - ❌ NE PAS traiter L1 et L2 en parallèle (ex: 1 séance L1 + 1 séance L2 chaque semaine pendant tout le plan).");
+    lines.push("   - ✅ Le bon pattern : L1 DOMINE le Bloc Chantier → puis L2 DOMINE le Bloc Consolidation → L1 en rappel.");
   }
 
   if (config.activeLevers && config.activeLevers.length > 0) {
