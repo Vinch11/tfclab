@@ -532,16 +532,17 @@ function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; sc
   const issues: ValidationIssue[] = [];
   let catalogSessions = 0;
   let customSessions = 0;
-  let totalKeySessions = 0;
+  let totalSessions = 0;
 
   for (const week of plan.weeks) {
     for (const session of week.sessions) {
       if (session.isRest) continue;
       const text = `${session.title} ${session.details}`;
-      const isKey = KEY_SESSION_PATTERNS.test(text);
-      if (!isKey) continue;
+      
+      // Skip pure rest/recovery sessions that don't need IDs
+      if (/^\s*(repos|rest|off|jour\s*off)\s*$/i.test(session.title.trim())) continue;
 
-      totalKeySessions++;
+      totalSessions++;
       const hasCatalogId = CATALOG_ID_PATTERN.test(text);
       const isCustom = CUSTOM_PATTERN.test(text);
 
@@ -556,27 +557,27 @@ function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; sc
     }
   }
 
-  if (totalKeySessions === 0 || plan.weeks.length < 4) {
+  if (totalSessions === 0 || plan.weeks.length < 4) {
     return { issues: [], score: 70, catalogPct: 0 };
   }
 
-  const catalogPct = Math.round((catalogSessions / totalKeySessions) * 100);
-  const customPct = Math.round((customSessions / totalKeySessions) * 100);
+  const catalogPct = Math.round((catalogSessions / totalSessions) * 100);
+  const customPct = Math.round((customSessions / totalSessions) * 100);
   const untaggedPct = 100 - catalogPct - customPct;
 
   if (catalogPct < 50) {
     issues.push({
       rule: "catalog_ratio",
       severity: "warning",
-      message: `Seulement ${catalogPct}% de séances clés utilisent le catalogue TFCL™ (cible ≥80%)`,
-      detail: `Catalogue: ${catalogSessions}/${totalKeySessions}, Custom: ${customSessions}, Non-tagué: ${totalKeySessions - catalogSessions - customSessions}`,
+      message: `Seulement ${catalogPct}% des séances utilisent le catalogue TFCL™ (cible ≥80%)`,
+      detail: `Catalogue: ${catalogSessions}/${totalSessions}, Custom: ${customSessions}, Non-tagué: ${totalSessions - catalogSessions - customSessions}`,
     });
   } else if (catalogPct < 80) {
     issues.push({
       rule: "catalog_ratio",
       severity: "warning",
-      message: `${catalogPct}% de séances clés utilisent le catalogue (cible ≥80%)`,
-      detail: `Catalogue: ${catalogSessions}/${totalKeySessions}, Custom: ${customSessions}`,
+      message: `${catalogPct}% des séances utilisent le catalogue (cible ≥80%)`,
+      detail: `Catalogue: ${catalogSessions}/${totalSessions}, Custom: ${customSessions}`,
     });
   }
 
@@ -584,7 +585,7 @@ function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; sc
     issues.push({
       rule: "catalog_ratio",
       severity: "info",
-      message: `${untaggedPct}% de séances clés sans ID catalogue ni tag [Custom] — traçabilité réduite`,
+      message: `${untaggedPct}% des séances sans ID catalogue ni tag [Custom] — traçabilité réduite`,
     });
   }
 
