@@ -1501,26 +1501,34 @@ Utilise ces micro-cycles réels comme modèles de qualité. Adapte-les au niveau
 ### Semaine 1 (du JJ/MM au JJ/MM) — [Thème]
 | Jour | Sport | Séance | Détails |
 |------|-------|--------|---------|
-| Lundi matin | Natation | Technique + aérobie | 500m éch drill (sculling, rattrapé). 2500m pull @Z2. 200m RC. 3200m ~55min |
-| Lundi soir | Renfo | Force fonctionnelle + prévention | Squat 3×8 @70%, gainage 3×45s, dead bug 3×10, élastiques épaules. 45min |
-| Mardi matin | Natation | 🔑 CSS Dégressif | 400m éch. 4×(200-300-200) @CSS r=15s. 200m RC. 3800m ~58min |
-| Mardi midi | Vélo | 🔑 Sweet Spot vallonné | 2h30 dont 3×20min @88-92% FTP cad 90. Z2 entre |
-| Mardi soir | CAP | EF technique | 45min Z2 (4:45/km) + 6×100m strides. Cad 180spm. Léger |
-| Mercredi matin | CAP | 🔑 Tempo allure IM | 1h15 dont 3×12min @82% VMA r=3min trot. Cad 182spm |
-| Mercredi soir | Renfo | Core + mobilité | Gainage 4×50s, pallof press 3×12, mobilité 15min. 35min |
-| Jeudi matin | Natation | Seuil + technique | 300m éch drill. 5×400m @CSS r=25s. 8×50m rattrapé. 200m RC. 4000m |
-| Jeudi soir | Vélo | Endurance Z2 Train Low | 2h à jeun Z2 (65% FTP). Aucune intensité |
-| Vendredi matin | CAP | EF vallonnée | 1h Z2 (4:45/km), 180spm, terrain vallonné. Sensation aisée |
-| Vendredi soir | Natation | Pull aérobie | Pull buoy 2500m Z2. 4×200m simulation OWS. 3200m |
-| Samedi | Vélo | 🔑 SL vallonnée + Gut Training | 5h Z2 vallonné (65-72% FTP). Gut training 50g/h. Dernière 1h @75% FTP |
-| Samedi soir | Renfo | Core + prévention | Gainage 4×60s, pallof press 3×12, étirements. 30min |
-| Dimanche | Brique | 🔑 Vélo→CAP Race-Pace | Vélo 2h30 @78% FTP + CAP 45min @allure IM. Gut 50g/h. Transition <3min |
+| Lundi matin | Natation | A_SWIM_AEROBIC Technique + aérobie | 500m éch drill (sculling, rattrapé). 2500m pull @Z2. 200m RC. 3200m ~55min |
+| Lundi soir | Renfo | D_STR_CORE_PREVENTION Force fonctionnelle + prévention | Squat 3×8 @70%, gainage 3×45s, dead bug 3×10, élastiques épaules. 45min |
+| Mardi matin | Natation | 🔑 B_SWIM_CSS_DEGRESSI CSS Dégressif | 400m éch. 4×(200-300-200) @CSS r=15s. 200m RC. 3800m ~58min |
+| Mardi midi | Vélo | 🔑 B_BIKE_SS_VALLON Sweet Spot vallonné | 2h30 dont 3×20min @88-92% FTP cad 90. Z2 entre |
+| Mardi soir | CAP | A_RUN_Z2_EASY EF technique | 45min Z2 (4:45/km) + 6×100m strides. Cad 180spm. Léger |
+| Mercredi matin | CAP | 🔑 B_IM_RUN_TEMPO Tempo allure IM | 1h15 dont 3×12min @82% VMA r=3min trot. Cad 182spm |
+| Mercredi soir | Renfo | D_STR_CORE_MOBILITY Core + mobilité | Gainage 4×50s, pallof press 3×12, mobilité 15min. 35min |
+| Jeudi matin | Natation | B_SWIM_THRESHOLD Seuil + technique | 300m éch drill. 5×400m @CSS r=25s. 8×50m rattrapé. 200m RC. 4000m |
+| Jeudi soir | Vélo | A_BIKE_Z2_LONG Endurance Z2 Train Low | 2h à jeun Z2 (65% FTP). Aucune intensité |
+| Vendredi matin | CAP | A_RUN_Z2_EASY EF vallonnée | 1h Z2 (4:45/km), 180spm, terrain vallonné. Sensation aisée |
+| Vendredi soir | Natation | A_SWIM_AEROBIC Pull aérobie | Pull buoy 2500m Z2. 4×200m simulation OWS. 3200m |
+| Samedi | Vélo | 🔑 A_BIKE_Z2_LONG SL vallonnée + Gut Training | 5h Z2 vallonné (65-72% FTP). Gut training 50g/h. Dernière 1h @75% FTP |
+| Samedi soir | Renfo | D_STR_CORE_PREVENTION Core + prévention | Gainage 4×60s, pallof press 3×12, étirements. 30min |
+| Dimanche | Brique | 🔑 A_IM_BRICK_RACE Vélo→CAP Race-Pace | Vélo 2h30 @78% FTP + CAP 45min @allure IM. Gut 50g/h. Transition <3min |
 
 **Volume semaine :** 22h — Nat 4h (4 séances) | Vélo 7h30 (4) | CAP 3h30 (3) | Renfo 2h (3)
 **Séances totales :** 14 séances (doubles 5 jours, brique samedi/dimanche)
-**🔑 Séances clés :** CSS Dégressif (TTE↑ natation) + Sweet Spot vallonné (endurance musculaire vélo) + Tempo allure IM (spécificité CAP) + SL vélo Gut Training (endurance métabolique) + Brique Race-Pace (simulation jour J)
+**🔑 Séances clés :** B_SWIM_CSS_DEGRESSI CSS Dégressif (TTE↑ natation) + B_BIKE_SS_VALLON Sweet Spot vallonné (endurance musculaire vélo) + B_IM_RUN_TEMPO Tempo allure IM (spécificité CAP) + A_BIKE_Z2_LONG SL vélo Gut Training (endurance métabolique) + A_IM_BRICK_RACE Brique Race-Pace (simulation jour J)
 **Consignes coach :** [2-3 points clés. Identifier séances clés 🔑 à protéger en priorité. Sensation recherchée + focus technique.]
 \`\`\`
+
+## ⚠️ RÈGLE CRITIQUE : CITATION D'ID CATALOGUE (OBLIGATOIRE)
+Chaque séance du tableau DOIT commencer par son ID catalogue TFCL™ dans la colonne "Séance".
+- Format : \`ID_CATALOGUE Nom descriptif\` (ex: \`A_RUN_Z2_EASY Footing récupération\`)
+- Les séances clés 🔑 : \`🔑 B_BIKE_THRESHOLD Seuil continu\`
+- Si AUCUN ID du catalogue injecté ne correspond, utilise \`[Custom] Nom descriptif\`
+- Les séances de repos/off n'ont pas besoin d'ID
+- Cible : ≥80% des séances (hors repos) doivent avoir un ID catalogue valide
 
 ## SÉANCES CLÉS — MÉTHODOLOGIE DAN LORANG (CRITIQUE)
 
