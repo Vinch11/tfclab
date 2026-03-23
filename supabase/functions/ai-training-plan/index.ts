@@ -2512,7 +2512,10 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
       userPrompt += "\n\n" + uniqueCatalogs.join("\n\n");
       userPrompt += `\n\n→ Utilise PRIORITAIREMENT les séances du catalogue ci-dessus.
 → Si AUCUNE séance ne correspond, tu peux CRÉER une séance [Custom] en respectant le format et la méthodologie.
-→ Ratio cible : ≥80% séances catalogue, ≤20% séances custom.`;
+→ Ratio cible : ≥80% séances catalogue, ≤20% séances custom.
+
+⚠️ RAPPEL ABSOLU : Chaque ligne du tableau DOIT commencer la colonne "Séance" par l'ID catalogue (ex: A_RUN_Z2_EASY, B_BIKE_THRESHOLD, D_STR_CORE_PREVENTION).
+NE PAS écrire de titre libre sans ID. Le validateur qualité pénalise fortement les séances sans ID catalogue.`;
     }
 
     const totalWeeks = planConfig?.weeksAvailable || 12;
