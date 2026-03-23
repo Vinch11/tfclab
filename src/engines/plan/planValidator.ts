@@ -525,7 +525,7 @@ function validateSportRatio(
 // CATALOGUE/CUSTOM RATIO VALIDATION (Rule 6)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const CATALOG_ID_PATTERN = /\b[A-Z]{1,3}_(?:BIKE|RUN|SWIM|TR|STR|BR|RECOVERY)[A-Z0-9_]+/g;
+const CATALOG_ID_PATTERN = /\b[A-D]_(?:[A-Z0-9]+_){1,5}[A-Z0-9]+\b/g;
 const CUSTOM_PATTERN = /\[Custom\]/gi;
 
 function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; score: number; catalogPct: number } {
