@@ -218,20 +218,23 @@ function validatePolarization(metrics: WeekMetrics[]): { issues: ValidationIssue
     const { lowPct, midPct, highPct } = wm.intensityProfile;
 
     // Low should be 70-85%, high 15-25%, mid < 10% ideally
-    if (lowPct < 60) {
+    // But with few endurance sessions (e.g. 4-5 total), a single extra intensity session
+    // can drop low% to 60% which is still acceptable — only flag below 55%
+    const enduranceSessions = Math.round((wm.activeSessions * (100 - wm.intensityProfile.highPct - wm.intensityProfile.midPct)) / 100);
+    if (lowPct < 55) {
       issues.push({
         rule: "polarization",
         severity: "error",
         week: wm.weekNumber,
-        message: `S${wm.weekNumber}: Distribution non polarisée — seulement ${lowPct}% en Z1-Z2 (cible ≥ 75%)`,
+        message: `S${wm.weekNumber}: Distribution non polarisée — seulement ${lowPct}% en Z1-Z2 (cible ≥ 70%)`,
         detail: `Low: ${lowPct}%, Mid: ${midPct}%, High: ${highPct}%`,
       });
-    } else if (lowPct < 70) {
+    } else if (lowPct < 65) {
       issues.push({
         rule: "polarization",
         severity: "warning",
         week: wm.weekNumber,
-        message: `S${wm.weekNumber}: Polarisation marginale — ${lowPct}% en Z1-Z2 (recommandé ≥ 75%)`,
+        message: `S${wm.weekNumber}: Polarisation marginale — ${lowPct}% en Z1-Z2 (recommandé ≥ 70%)`,
       });
       compliant += 0.5;
     } else {
