@@ -4003,6 +4003,11 @@ function buildUserPrompt(data: any, config: any): string {
     }
   }
 
+  // === FINAL STRENGTH SESSIONS REMINDER ===
+  if (config.strengthSessionsPerWeek !== undefined && config.strengthSessionsPerWeek !== null) {
+    lines.push(`\n🏋️ RAPPEL FINAL RENFO : Le coach a demandé EXACTEMENT ${config.strengthSessionsPerWeek} séance(s) de renforcement/PPG/musculation par semaine. VÉRIFIE chaque semaine avant de soumettre. Si une semaine en contient plus ou moins que ${config.strengthSessionsPerWeek}, CORRIGE-LA.`);
+  }
+
   lines.push(`\n---\nGénère le plan COMPLET de ${weeks} semaines, semaine par semaine, SANS EN OMETTRE AUCUNE. Chaque semaine a son propre tableau. Ne résume jamais. Chaque séance doit être actionnable immédiatement.`);
   if (isTriathlon && ambition !== "finisher") {
     lines.push(`\n⚠️ RAPPEL FINAL : Chaque jour d'entraînement d'un triathlète (sauf repos) doit avoir PLUSIEURS séances (2 ou 3 lignes dans le tableau). Un tableau de semaine IM Elite = 14 à 18 lignes, PAS 7. Si ton tableau a seulement 7-8 lignes pour une semaine IM, RECOMMENCE, c'est insuffisant.`);
