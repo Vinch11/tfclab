@@ -432,27 +432,80 @@ export default function AITrainingPlanPage() {
           const isRaceLikeSession = (session: ParsedWeek["sessions"][number]) =>
             /🏁|jour de course|course/i.test(`${session.sport} ${session.title} ${session.details}`);
 
-          const extractRaceContext = (week: ParsedWeek, raceLabel: string, priority: RaceAnchor["priority"]) => {
-            const notes = week.coachNotes?.trim();
-            if (!notes) return "";
+          const stripGenericRaceFallback = (text?: string | null) =>
+            (text ?? "")
+              .split("\n")
+              .map((line) => line.trim())
+              .filter(Boolean)
+              .filter((line) => !/imposée automatiquement|imposee automatiquement|absente de la semaine générée|absente de la semaine generee/i.test(line))
+              .join("\n")
+              .trim();
 
+          const extractRaceContext = (
+            targetWeek: ParsedWeek,
+            raceLabel: string,
+            priority: RaceAnchor["priority"],
+            targetWeekNumber: number
+          ) => {
             const labelTokens = raceLabel
               .toLowerCase()
               .split(/[^\p{L}\p{N}]+/u)
               .filter((token) => token.length > 2);
 
-            const relevantLines = notes
-              .split("\n")
-              .map((line) => line.trim())
-              .filter(Boolean)
-              .filter((line) => {
-                const lower = line.toLowerCase();
-                if (labelTokens.some((token) => lower.includes(token))) return true;
-                if (priority !== "A" && lower.includes(`objectif ${priority.toLowerCase()}`)) return true;
-                return /(allure|pacing|nutrition|ravito|stratég|échauff|départ|course|objectif|compétition)/i.test(line);
+            const isRelevantRaceText = (text: string) => {
+              const lower = text.toLowerCase();
+              if (labelTokens.some((token) => lower.includes(token))) return true;
+              if (priority !== "A" && lower.includes(`objectif ${priority.toLowerCase()}`)) return true;
+              return /(allure|pacing|nutrition|ravito|stratég|echauff|échauff|départ|depart|course|objectif|compétition|competition|taper|affût|affut)/i.test(text);
+            };
+
+            const snippets = nextWeeks
+              .filter((week) => Math.abs(week.weekNumber - targetWeekNumber) <= 1 || week.weekNumber === targetWeek.weekNumber)
+              .flatMap((week) => {
+                const noteLines = (week.coachNotes ?? "")
+                  .split("\n")
+                  .map((line) => line.trim())
+                  .filter(Boolean)
+                  .map(stripGenericRaceFallback)
+                  .filter(Boolean)
+                  .filter(isRelevantRaceText);
+
+                const sessionLines = week.sessions
+                  .flatMap((session) => [session.title, session.details])
+                  .map((line) => stripGenericRaceFallback(line))
+                  .filter(Boolean)
+                  .filter(isRelevantRaceText);
+
+                return [...noteLines, ...sessionLines];
               });
 
-            return relevantLines.join("\n").trim();
+            return Array.from(new Set(snippets)).join("\n").trim();
+          };
+
+          const buildProfessionalRaceDetails = (
+            goal: RaceAnchor,
+            raceLabel: string,
+            targetWeek: ParsedWeek,
+            targetDayIndex: number,
+            race: Date
+          ) => {
+            const objectiveLabel = goal.priority === "A" ? "Objectif principal" : `Objectif ${goal.priority}`;
+            const phaseLabel = targetWeek.phase?.trim();
+            const themeLabel = targetWeek.theme?.trim();
+
+            const lines = [
+              `${objectiveLabel} — ${raceLabel}.`,
+              `Compétition prévue le ${dayNames[targetDayIndex]} ${format(race, "dd/MM/yyyy")}${phaseLabel ? ` • ${phaseLabel}` : ""}.`,
+              goal.priority === "A"
+                ? "Aborder cette journée avec une stratégie précise d’allure, d’exécution et de ravitaillement adaptée à l’épreuve."
+                : "Traiter cette épreuve comme un jalon compétitif structuré avec consignes d’allure, d’exécution et de récupération post-course.",
+            ];
+
+            if (themeLabel && !/non générée|manquante|régénérer/i.test(themeLabel)) {
+              lines.push(`Repère de semaine : ${themeLabel}.`);
+            }
+
+            return lines.join("\n");
           };
 
           configuredGoals
@@ -469,7 +522,7 @@ export default function AITrainingPlanPage() {
               if (!targetWeek) return;
 
               const raceLabel = goal.raceName || goal.objective || objective;
-              const raceContext = extractRaceContext(targetWeek, raceLabel, goal.priority);
+              const raceContext = extractRaceContext(targetWeek, raceLabel, goal.priority, targetWeekNumber);
               const sessionsWithoutTargetRest = targetWeek.sessions.filter(
                 (session) => !(session.dayIndex === targetDayIndex && session.isRest)
               );
@@ -483,12 +536,16 @@ export default function AITrainingPlanPage() {
               }
 
               const existingRaceSession = raceSessions[0];
-              const fallbackMessage =
-                goal.priority === "A"
-                  ? "Course cible imposée automatiquement car absente de la semaine générée."
-                  : `Course objectif ${goal.priority} imposée automatiquement car absente de la semaine générée.`;
+              const professionalFallback = buildProfessionalRaceDetails(
+                goal,
+                raceLabel,
+                targetWeek,
+                targetDayIndex,
+                race
+              );
 
               if (existingRaceSession) {
+                const cleanedExistingDetails = stripGenericRaceFallback(existingRaceSession.details);
                 targetWeek.sessions = [
                   ...sessionsWithoutTargetRest.filter((session) => session !== existingRaceSession),
                   {
@@ -496,7 +553,7 @@ export default function AITrainingPlanPage() {
                     dayName: dayNames[targetDayIndex],
                     dayIndex: targetDayIndex,
                     title: existingRaceSession.title || `JOUR DE COURSE${goal.priority !== "A" ? ` [${goal.priority}]` : ""} — ${raceLabel}`,
-                    details: [existingRaceSession.details?.trim(), raceContext]
+                    details: [cleanedExistingDetails, raceContext || professionalFallback]
                       .filter(Boolean)
                       .join("\n\n"),
                     isRest: false,
@@ -515,7 +572,7 @@ export default function AITrainingPlanPage() {
                   dayIndex: targetDayIndex,
                   sport: "🏁 Course",
                   title: `JOUR DE COURSE${goal.priority !== "A" ? ` [${goal.priority}]` : ""} — ${raceLabel}`,
-                  details: [fallbackMessage, raceContext].filter(Boolean).join("\n\n"),
+                  details: raceContext || professionalFallback,
                   isRest: false,
                 },
               ].sort((a, b) => a.dayIndex - b.dayIndex);
