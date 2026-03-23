@@ -296,10 +296,10 @@ function SessionCard({ session, date }: SessionCardProps) {
         {date && <span className="text-xs text-muted-foreground">{format(date, "d MMM", { locale: fr })}</span>}
         <Badge variant="outline" className="text-[10px] ml-auto">{session.sport}</Badge>
       </div>
-      <p className="text-sm font-semibold mt-1">{session.title}</p>
+      <p className="text-sm font-semibold mt-1">{stripCatalogId(session.title)}</p>
       {expanded && session.details && (
         <p className="text-xs text-muted-foreground mt-2 whitespace-pre-wrap leading-relaxed border-t border-current/10 pt-2">
-          {session.details}
+          {stripCatalogId(session.details)}
         </p>
       )}
     </div>
