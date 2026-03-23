@@ -3864,35 +3864,43 @@ function buildUserPrompt(data: any, config: any): string {
       lines.push(`⚠️ Quand une course est marquée dans ce calendrier, elle DOIT apparaître dans la semaine correspondante, PAS la semaine d'avant ni d'après.`);
 
       // === RACE DAY ANCHORING: explicitly tell the AI which day of the week is race day ===
-      const JOURS_FR = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
-      const primaryRaceDate = config.raceDate || (config.raceGoals?.find((g: any) => g.priority === "A")?.raceDate);
-      if (primaryRaceDate) {
-        const raceMs = parseIsoDateUtc(primaryRaceDate);
-        if (raceMs !== undefined) {
-          const raceDayOfWeek = new Date(raceMs).getUTCDay(); // 0=Sun, 1=Mon...
-          const raceDayName = JOURS_FR[raceDayOfWeek];
-          const raceGoalWeek = Math.floor((raceMs - startMs) / (7 * 86400000)) + 1;
+      const anchoredGoals = (config.raceGoals && config.raceGoals.length > 0)
+        ? config.raceGoals
+        : (config.raceDate ? [{
+            priority: "A",
+            objective: config.objective,
+            raceName: config.raceName,
+            raceDate: config.raceDate,
+          }] : []);
 
-          lines.push(`\n### 🏁 ANCRAGE JOUR DE COURSE (RÈGLE ABSOLUE)`);
-          lines.push(`La course principale a lieu le **${raceDayName} ${new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "long", timeZone: "UTC" }).format(new Date(raceMs))}** (Semaine ${raceGoalWeek}).`);
-          lines.push(`⚠️ RÈGLE INVIOLABLE : Le **${raceDayName}** de la Semaine ${raceGoalWeek} DOIT contenir la ligne :`);
-          lines.push(`| ${raceDayName} | 🏁 Course | JOUR DE COURSE — ${config.raceName || config.objective || "Objectif A"} | Exécuter le plan de course |`);
-          lines.push(`⚠️ Il est INTERDIT de mettre "Repos" ou toute autre séance le **${raceDayName}** de la semaine de course. C'est le JOUR J.`);
+      const anchoredGoalsWithTiming = anchoredGoals
+        .map((goal: any) => ({ goal, timing: computeGoalTiming(goal) }))
+        .filter((entry: any) => entry.timing?.raceUtc !== undefined);
 
-          // For short plans (≤4 weeks), add explicit race week structure
-          if (totalW <= 4) {
-            lines.push(`\n⚠️ PLAN COURT (${totalW} semaine${totalW > 1 ? "s" : ""}) — STRUCTURE RACE WEEK OBLIGATOIRE :`);
-            lines.push(`Ce plan est très court. La Semaine ${raceGoalWeek} EST la semaine de course (Race Week / Affûtage).`);
-            lines.push(`Structure OBLIGATOIRE de la Semaine ${raceGoalWeek} :`);
-            lines.push(`- Volume très réduit (-50 à -60% du volume habituel)`);
-            lines.push(`- 1-2 rappels courts @allure course (3-5min max)`);
-            lines.push(`- Activation J-2 (footing court + strides)`);
-            lines.push(`- Repos complet J-1 + carb loading`);
-            lines.push(`- **${raceDayName} = 🏁 JOUR DE COURSE** (JAMAIS "Repos")`);
-            lines.push(`\n🚨 VÉRIFICATION PLAN COURT : Avant de soumettre, VÉRIFIE que le tableau de la Semaine ${raceGoalWeek} contient bien une ligne :`);
-            lines.push(`| ${raceDayName} | 🏁 Course | JOUR DE COURSE — ${config.raceName || config.objective || "Objectif A"} | ... |`);
-            lines.push(`Si cette ligne manque, RECOMMENCE. Un plan sans jour de course est INVALIDE.`);
-          }
+      if (anchoredGoalsWithTiming.length > 0) {
+        lines.push(`\n### 🏁 ANCRAGE JOURS DE COURSE (RÈGLE ABSOLUE)`);
+        anchoredGoalsWithTiming.forEach(({ goal, timing }: any) => {
+          const raceDayName = timing.dayName;
+          const raceGoalWeek = timing.weekNumber;
+          const raceLabel = goal.raceName || goal.objective || `Objectif ${goal.priority || "A"}`;
+          const priorityLabel = goal.priority && goal.priority !== "A" ? ` [${goal.priority}]` : "";
+
+          lines.push(`- **Objectif${priorityLabel} ${raceLabel}** : ${raceDayName} ${new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "long", timeZone: "UTC" }).format(new Date(timing.raceUtc))} (Semaine ${raceGoalWeek}).`);
+          lines.push(`  ⚠️ Le **${raceDayName}** de la Semaine ${raceGoalWeek} DOIT contenir la ligne :`);
+          lines.push(`  | ${raceDayName} | 🏁 Course | JOUR DE COURSE${priorityLabel} — ${raceLabel} | Exécuter le plan de course |`);
+          lines.push(`  ⚠️ INTERDIT de mettre "Repos" ou toute autre séance le **${raceDayName}** de Semaine ${raceGoalWeek}.`);
+        });
+
+        const primaryTiming = anchoredGoalsWithTiming.find((entry: any) => entry.goal.priority === "A")?.timing ?? anchoredGoalsWithTiming[0]?.timing;
+        if (primaryTiming && totalW <= 4) {
+          lines.push(`\n⚠️ PLAN COURT (${totalW} semaine${totalW > 1 ? "s" : ""}) — STRUCTURE RACE WEEK OBLIGATOIRE :`);
+          lines.push(`Ce plan est très court. La Semaine ${primaryTiming.weekNumber} EST la semaine de course (Race Week / Affûtage).`);
+          lines.push(`Structure OBLIGATOIRE de la Semaine ${primaryTiming.weekNumber} :`);
+          lines.push(`- Volume très réduit (-50 à -60% du volume habituel)`);
+          lines.push(`- 1-2 rappels courts @allure course (3-5min max)`);
+          lines.push(`- Activation J-2 (footing court + strides)`);
+          lines.push(`- Repos complet J-1 + carb loading`);
+          lines.push(`- **${primaryTiming.dayName} = 🏁 JOUR DE COURSE** (JAMAIS "Repos")`);
         }
       }
     }
