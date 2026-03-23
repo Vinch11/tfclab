@@ -3504,9 +3504,9 @@ function buildUserPrompt(data: any, config: any): string {
   }
   if (config.strengthSessionsPerWeek !== undefined && config.strengthSessionsPerWeek !== null) {
     if (config.strengthSessionsPerWeek === 0) {
-      lines.push(`- **⚠️ Renforcement musculaire : 0 séance/sem — NE PAS inclure de séance de renforcement/musculation/PPG dans le plan.**`);
+      lines.push(`- **⚠️ CONTRAINTE RENFO ABSOLUE : 0 séance de renforcement/musculation/PPG par semaine. NE PAS inclure de séance de renforcement dans le plan. Si tu en inclus, le plan est INVALIDE.**`);
     } else {
-      lines.push(`- **🏋️ Renforcement musculaire : ${config.strengthSessionsPerWeek} séance(s)/sem — Inclure EXACTEMENT ${config.strengthSessionsPerWeek} séance(s) de renforcement/PPG par semaine dans le plan.**`);
+      lines.push(`- **⚠️ CONTRAINTE RENFO ABSOLUE : EXACTEMENT ${config.strengthSessionsPerWeek} séance(s) de renforcement/PPG par semaine. PAS PLUS. Si tu en mets ${config.strengthSessionsPerWeek + 1} ou plus, le plan est INVALIDE. Compte tes séances renfo/musculation/PPG/core pour chaque semaine avant de soumettre.**`);
     }
   }
   if (config.maxSessionsPerDay) {
