@@ -3024,16 +3024,12 @@ Résumé des blocs précédents (progression récente) :
 ${slidingSummary || "Premier bloc de continuation."}
 
 Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.${wbalReminder}${(() => {
-                  const JOURS_CHUNK = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
-                  const prd = planConfig?.raceDate || (planConfig?.raceGoals?.find((g: any) => g.priority === "A")?.raceDate);
-                  if (prd && planConfig?.planStartDate) {
-                    const rMs = new Date(prd + "T00:00:00Z").getTime();
-                    const sMs = new Date(planConfig.planStartDate + "T00:00:00Z").getTime();
-                    const rW = Math.floor((rMs - sMs) / (7 * 86400000)) + 1;
-                    if (rW >= chunk.start && rW <= chunk.end) {
-                      const dn = JOURS_CHUNK[new Date(rMs).getUTCDay()];
-                      return `\n\n🏁 RAPPEL RACE DAY : La Semaine ${rW} contient le JOUR DE COURSE (${dn}). Le ${dn} de S${rW} = 🏁 JOUR J. JAMAIS "Repos" ce jour-là.`;
-                    }
+                  const primaryGoal = (planConfig?.raceGoals && planConfig.raceGoals.length > 0)
+                    ? (planConfig.raceGoals.find((g: any) => g.priority === "A") || planConfig.raceGoals[0])
+                    : (planConfig?.raceDate ? { raceDate: planConfig.raceDate } : undefined);
+                  const timing = computeGoalTiming(primaryGoal);
+                  if (timing && timing.weekNumber >= chunk.start && timing.weekNumber <= chunk.end && timing.dayName) {
+                    return `\n\n🏁 RAPPEL RACE DAY : La Semaine ${timing.weekNumber} contient le JOUR DE COURSE (${timing.dayName}). Le ${timing.dayName} de S${timing.weekNumber} = 🏁 JOUR J. JAMAIS "Repos" ce jour-là.`;
                   }
                   return "";
                 })()}`;
