@@ -3649,6 +3649,9 @@ function buildCPWprimeSection(data: any): string | null {
 function buildUserPrompt(data: any, config: any): string {
   const lines: string[] = ["## Demande de Plan d'Entraînement TFCL™\n"];
 
+  const DAY_MS = 24 * 3600 * 1000;
+  const JOURS_FR_UTC = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+
   const parseIsoDateUtc = (iso?: string): number | undefined => {
     if (!iso) return undefined;
     const match = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -3672,24 +3675,32 @@ function buildUserPrompt(data: any, config: any): string {
     }).format(new Date(utc));
   };
 
-  const computeGoalWeek = (goal: any): number | undefined => {
-    // PRIORITÉ ABSOLUE: calculer depuis les dates (source de vérité)
+  const computeGoalTiming = (goal: any): { weekNumber: number; raceUtc?: number; dayIndexUtc?: number; dayName?: string } | undefined => {
     if (goal?.raceDate && config?.planStartDate) {
       const raceUtc = parseIsoDateUtc(goal.raceDate);
       const startUtc = parseIsoDateUtc(config.planStartDate);
       if (raceUtc !== undefined && startUtc !== undefined) {
-        const days = Math.round((raceUtc - startUtc) / (24 * 3600 * 1000));
-        if (days >= 0) return Math.floor(days / 7) + 1;
+        const days = Math.round((raceUtc - startUtc) / DAY_MS);
+        if (days >= 0) {
+          const dayIndexUtc = new Date(raceUtc).getUTCDay();
+          return {
+            weekNumber: Math.floor(days / 7) + 1,
+            raceUtc,
+            dayIndexUtc,
+            dayName: JOURS_FR_UTC[dayIndexUtc],
+          };
+        }
       }
     }
 
-    // Fallback uniquement si aucune date exploitable
     if (typeof goal?.weeksUntilRace === "number" && Number.isFinite(goal.weeksUntilRace)) {
-      return Math.max(1, Math.floor(goal.weeksUntilRace));
+      return { weekNumber: Math.max(1, Math.floor(goal.weeksUntilRace)) };
     }
 
     return undefined;
   };
+
+  const computeGoalWeek = (goal: any): number | undefined => computeGoalTiming(goal)?.weekNumber;
 
   const getWeekBounds = (weekNumber?: number): { start: string; end: string } | undefined => {
     if (!weekNumber || !config?.planStartDate) return undefined;
