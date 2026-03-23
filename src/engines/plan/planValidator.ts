@@ -544,7 +544,8 @@ function validateSportRatio(
 // CATALOGUE/CUSTOM RATIO VALIDATION (Rule 6)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const CATALOG_ID_PATTERN = /\b[A-D]_(?:[A-Z0-9]+_){1,5}[A-Z0-9]+\b/g;
+// Match catalog IDs like A_RUN_Z2_EASY — case-insensitive, handles 🔑 prefix
+const CATALOG_ID_PATTERN = /(?:^|[\s🔑])[A-Da-d]_(?:[A-Za-z0-9]+_){1,5}[A-Za-z0-9]+/g;
 const CUSTOM_PATTERN = /\[Custom\]/gi;
 
 function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; score: number; catalogPct: number } {
