@@ -2942,7 +2942,7 @@ Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b
               const z2Durations = combinedChunkText.match(/(\d+)\s*(?:h|min|'|′)\s*(?:\d+\s*(?:min|'|′))?\s*(?:Z2|endurance|FatMax|aérobie)/gi) || [];
               const maxZ2 = z2Durations.length > 0 ? ` | MaxZ2: ${z2Durations[z2Durations.length - 1]?.trim().slice(0, 20)}` : "";
 
-              // FIX M3 (audit): Post-chunk validation — check key sessions target L1/L2
+              // FIX M3 (audit): Post-chunk validation — check key sessions target L1/L2 with CHRONOLOGICAL dominance
               const keySessionMatches_all = combinedChunkText.match(/🔑[^\n|]*/g) || [];
               const L1Name = (planConfig?.identifiedLimiters?.[0] || "").toLowerCase();
               const L2Name = (planConfig?.identifiedLimiters?.[1] || "").toLowerCase();
@@ -2952,11 +2952,27 @@ Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b
                 const keyTexts = keySessionMatches_all.map(k => k.toLowerCase());
                 const L1Hits = keyTexts.filter(t => L1Keywords.some(kw => t.includes(kw))).length;
                 const L2Hits = L2Keywords.length > 0 ? keyTexts.filter(t => L2Keywords.some(kw => t.includes(kw))).length : -1;
-                if (L1Hits === 0) {
-                  console.warn(`⚠️ M3 Validation: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — NO key sessions (🔑) target L1="${L1Name}". Phase: ${activePhase}`);
-                }
-                if (L2Hits === 0 && activePhase !== "Fondation" && activePhase !== "Adaptation") {
-                  console.warn(`⚠️ M3 Validation: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — NO key sessions target L2="${L2Name}" in ${activePhase} phase.`);
+                
+                // Chronological block validation (Lorang sequential logic)
+                const isEarlyPhase = activePhase === "Fondation" || activePhase === "Adaptation" || activePhase === "Chantier";
+                const isMidPhase = activePhase === "Consolidation" || activePhase === "Développement";
+                
+                if (isEarlyPhase) {
+                  // In early blocks: L1 MUST dominate, L2 should be minimal
+                  if (L1Hits === 0) {
+                    console.warn(`⚠️ M3-CHRONO: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — NO key sessions target L1="${L1Name}" in ${activePhase} phase. L1 SHOULD DOMINATE here.`);
+                  }
+                  if (L2Hits > L1Hits && L1Hits > 0) {
+                    console.warn(`⚠️ M3-CHRONO: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — L2="${L2Name}" (${L2Hits} hits) DOMINATES over L1="${L1Name}" (${L1Hits} hits) in ${activePhase}. Block periodization requires L1 dominant in early phases.`);
+                  }
+                } else if (isMidPhase) {
+                  // In mid blocks: L2 should be rising, L1 in maintenance
+                  if (L2Hits === 0 && L2Keywords.length > 0) {
+                    console.warn(`⚠️ M3-CHRONO: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — NO key sessions target L2="${L2Name}" in ${activePhase}. L2 SHOULD RISE in consolidation.`);
+                  }
+                  if (L1Hits === 0) {
+                    console.warn(`⚠️ M3-CHRONO: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — L1="${L1Name}" completely absent in ${activePhase}. Maintenance rappels required (non-regression).`);
+                  }
                 }
               }
               
