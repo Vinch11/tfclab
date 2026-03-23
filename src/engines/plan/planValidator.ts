@@ -81,24 +81,25 @@ export interface PlanValidationResult {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const LOW_INTENSITY_PATTERNS = /z[12]|endurance|ef\b|footing|récup|recovery|easy|facile|aérobie|z2|zone\s*[12]|fondament|repos actif|régénér|souplesse|mobilité|technique|drill|gammes|éducatif/i;
-const MID_INTENSITY_PATTERNS = /z3|tempo\b|allure\s*marathon|sweet\s*spot|zone\s*3|endurance\s*active|fartlek\s*léger/i;
-const HIGH_INTENSITY_PATTERNS = /z[4-7]|seuil|threshold|vo2|vma|interval|fractionné|sprint|hiit|30\/30|pma|over.under|norvégienne|billat|canova|race.pace|race.sim|compétition|course\b.*\brace|🏁|force\s*max|plio|rønnestad|sfr|côtes?\s*\d/i;
+const MID_INTENSITY_PATTERNS = /z3|tempo\b|allure\s*marathon|zone\s*3|endurance\s*active|fartlek\s*léger/i;
+const HIGH_INTENSITY_PATTERNS = /z[4-7]|seuil|threshold|vo2|vma|interval|fractionné|sprint|hiit|30\/30|pma|over.under|norvégienne|billat|canova|race.pace|race.sim|compétition|course\b.*\brace|🏁|force\s*max|plio|rønnestad|sfr|côtes?\s*\d|sweet\s*spot/i;
 const KEY_SESSION_PATTERNS = /🔑|clé|key|séance\s*clé|interval|seuil|vo2|vma|sortie\s*longue|sl\b|long\s*run|brick|race.sim|test|compétition|🏁/i;
 const DELOAD_PATTERNS = /décharge|deload|récup|recovery|repos|allégé|réduit|taper|affûtage|régénér/i;
-const RACE_PATTERNS = /🏁|jour\s*(de\s*)?course|race\s*day|race\s*week|semaine\s*(de\s*)?course|compétition|épreuve|jour\s*j/i;
+const RACE_PATTERNS = /🏁|jour\s*(de\s*)?course|race\s*day|race\s*week|semaine\s*(de\s*)?course|compétition|épreuve|jour\s*j|affûtage/i;
 const RACE_DAY_PATTERNS = /🏁|jour\s*(de\s*)?course|jour\s*j|race\s*day|compétition|épreuve/i;
+const RENFO_PATTERNS = /renfo|muscul|strength|ppg|gainage|core|poids|force\s*fonc|prévention|mobilité|stretching|étirement/i;
 
-function classifySessionIntensity(session: ParsedSession): "low" | "mid" | "high" {
+function classifySessionIntensity(session: ParsedSession): "low" | "mid" | "high" | "renfo" {
   const text = `${session.sport} ${session.title} ${session.details}`.toLowerCase();
   
   if (session.isRest) return "low";
   
+  // Renfo/strength sessions are outside the endurance intensity spectrum
+  if (RENFO_PATTERNS.test(text) && !/seuil|threshold|interval|vo2|vma|sprint/i.test(text)) return "renfo";
+  
   // Check high first (most specific patterns)
   if (HIGH_INTENSITY_PATTERNS.test(text)) return "high";
   if (MID_INTENSITY_PATTERNS.test(text)) return "mid";
-  
-  // Default: strength/renfo sessions count as mid, everything else as low
-  if (/renfo|muscul|strength|ppg|gainage|core|poids/i.test(text)) return "mid";
   
   return "low";
 }
@@ -132,23 +133,23 @@ function extractWeekMetrics(week: ParsedWeek): WeekMetrics {
     sports[sport] = (sports[sport] || 0) + 1;
   }
 
-  // Intensity distribution
+  // Intensity distribution (exclude renfo from polarization — it's outside the endurance spectrum)
   let low = 0, mid = 0, high = 0;
   for (const s of activeSessions) {
     const intensity = classifySessionIntensity(s);
+    if (intensity === "renfo") continue; // Excluded from polarization
     if (intensity === "low") low++;
     else if (intensity === "mid") mid++;
     else high++;
   }
   const total = low + mid + high || 1;
 
-  // Deload detection
+  // Deload detection — theme-based only, not session count (3 sessions can be normal for beginners)
   const themeText = `${week.theme} ${week.phase}`.toLowerCase();
-  const isDeload = DELOAD_PATTERNS.test(themeText) || activeSessions.length <= 3;
+  const isDeload = DELOAD_PATTERNS.test(themeText);
 
-  // Race week detection — check theme AND session content
-  const isRaceWeek = RACE_PATTERNS.test(themeText) || 
-    week.sessions.some(s => RACE_PATTERNS.test(`${s.title} ${s.details}`));
+  // Race week detection — strict: only theme-based (session content matching "course" is too broad)
+  const isRaceWeek = RACE_PATTERNS.test(themeText);
 
   // Key sessions
   const keySessions = activeSessions.filter(isKeySession).length;
@@ -463,9 +464,18 @@ function validateSportRatio(
   const bikePct = Math.round((bikeAdj / primaryTotal) * 100);
   const runPct = Math.round((run / primaryTotal) * 100);
 
-  // Find target ratios
-  const obj = (objective || "").replace(/\s/g, "");
-  const target = SPORT_RATIO_TARGETS[obj] || SPORT_RATIO_TARGETS[obj.toUpperCase()];
+  // Normalize objective to match SPORT_RATIO_TARGETS keys
+  const objLower = (objective || "").toLowerCase();
+  let targetKey: string | null = null;
+  if (/70\.3|703/.test(objLower)) targetKey = "703";
+  else if (/ironman|^im\b/i.test(objLower)) targetKey = "IM";
+  else if (/semi/i.test(objLower)) targetKey = "Semi";
+  else if (/marathon/i.test(objLower)) targetKey = "Marathon";
+  else if (/trail.*ultra|ultra.*trail|utmb|>80/i.test(objLower)) targetKey = "TrailUltra";
+  else if (/trail/i.test(objLower)) targetKey = "Trail";
+  else if (/10k|10km/i.test(objLower)) targetKey = "10K";
+  
+  const target = targetKey ? SPORT_RATIO_TARGETS[targetKey] : null;
 
   if (!target) {
     // No specific target — just check basic diversity for triathlon-like plans
