@@ -433,7 +433,10 @@ export default function AITrainingPlanPage() {
             /🏁|jour de course|course/i.test(`${session.sport} ${session.title} ${session.details}`);
 
           const isRaceNoiseLine = (line: string) =>
-            /mini-?taper|\bopener\b|rappel nerveux|footing activation|activation nerveuse|d_taper_|d[_-].*opener|pré-course|pre-course/i.test(line);
+            /mini-?taper|\bopener\b|rappel nerveux|footing activation|activation nerveuse|d_taper_|d[_-].*opener|pré-course|pre-course|\bj-[12]\b|veille de course|repos total|visualisation du parcours|activation pré-course|activation pre-course/i.test(line);
+
+          const isWorkoutPrescriptionLine = (line: string) =>
+            /(?:^|\s)\d+\s*(?:min|h)\b|\bZ[1-6][a-b]?\b|\br\s*=\s*\d+|\b\d+x\d+|\b\d+x\d+'|\b\d+x\d+"|\b\d+'\s*Z|\b\d+"\s*Z|@allure|\b30\/30\b|\b40\/20\b/i.test(line);
 
           const stripGenericRaceFallback = (text?: string | null) =>
             (text ?? "")
@@ -453,6 +456,26 @@ export default function AITrainingPlanPage() {
               .join("\n")
               .trim();
 
+          const extractRaceStrategyDetails = (text?: string | null) =>
+            sanitizeRaceDetails(text)
+              .split("\n")
+              .map((line) => line.trim())
+              .filter(Boolean)
+              .filter((line) => !isWorkoutPrescriptionLine(line))
+              .filter((line) => /(allure cible|pacing|ravito|nutrition|hydrat|stratég|strategie|échauff|echauff|départ|depart|objectif|compétition|competition|course)/i.test(line))
+              .join("\n")
+              .trim();
+
+          const mergeRaceDetails = (...parts: Array<string | undefined>) =>
+            Array.from(
+              new Set(
+                parts
+                  .flatMap((part) => (part ?? "").split("\n"))
+                  .map((line) => line.trim())
+                  .filter(Boolean)
+              )
+            ).join("\n");
+
           const extractRaceContext = (
             targetWeek: ParsedWeek,
             raceLabel: string,
@@ -469,28 +492,16 @@ export default function AITrainingPlanPage() {
               if (labelTokens.some((token) => lower.includes(token))) return true;
               if (priority !== "A" && lower.includes(`objectif ${priority.toLowerCase()}`)) return true;
               if (isRaceNoiseLine(lower)) return false;
-              return /(allure|pacing|nutrition|ravito|stratég|echauff|échauff|départ|depart|course|objectif|compétition|competition)/i.test(text);
+              if (isWorkoutPrescriptionLine(text)) return false;
+              return /(allure cible|pacing|nutrition|ravito|stratég|strategie|echauff|échauff|départ|depart|course|objectif|compétition|competition)/i.test(text);
             };
 
-            const snippets = nextWeeks
-              .filter((week) => Math.abs(week.weekNumber - targetWeekNumber) <= 1 || week.weekNumber === targetWeek.weekNumber)
-              .flatMap((week) => {
-                const noteLines = (week.coachNotes ?? "")
-                  .split("\n")
-                  .map((line) => line.trim())
-                  .filter(Boolean)
-                  .map(sanitizeRaceDetails)
-                  .filter(Boolean)
-                  .filter(isRelevantRaceText);
-
-                const sessionLines = week.sessions
-                  .flatMap((session) => [session.title, session.details])
-                  .map((line) => sanitizeRaceDetails(line))
-                  .filter(Boolean)
-                  .filter(isRelevantRaceText);
-
-                return [...noteLines, ...sessionLines];
-              });
+            const snippets = [
+              extractRaceStrategyDetails(targetWeek.coachNotes),
+              ...targetWeek.sessions
+                .filter(isRaceLikeSession)
+                .flatMap((session) => [extractRaceStrategyDetails(session.title), extractRaceStrategyDetails(session.details)]),
+            ].filter(Boolean).filter(isRelevantRaceText);
 
             return Array.from(new Set(snippets)).join("\n").trim();
           };
@@ -551,16 +562,15 @@ export default function AITrainingPlanPage() {
               );
 
               if (raceSessionOnTargetDay) {
-                const cleanedExistingDetails = sanitizeRaceDetails(raceSessionOnTargetDay.details);
+                const cleanedExistingDetails = extractRaceStrategyDetails(raceSessionOnTargetDay.details);
+                const resolvedDetails = mergeRaceDetails(cleanedExistingDetails, raceContext) || professionalFallback;
                 targetWeek.sessions = sessionsWithoutTargetRest.map((session) => {
                   if (session !== raceSessionOnTargetDay) return session;
 
                   return {
                     ...session,
                     title: session.title || `JOUR DE COURSE${goal.priority !== "A" ? ` [${goal.priority}]` : ""} — ${raceLabel}`,
-                    details: [cleanedExistingDetails, raceContext || professionalFallback]
-                      .filter(Boolean)
-                      .join("\n\n"),
+                    details: resolvedDetails,
                     isRest: false,
                   };
                 });
@@ -570,7 +580,8 @@ export default function AITrainingPlanPage() {
               const existingRaceSession = raceSessions[0];
 
               if (existingRaceSession) {
-                const cleanedExistingDetails = sanitizeRaceDetails(existingRaceSession.details);
+                const cleanedExistingDetails = extractRaceStrategyDetails(existingRaceSession.details);
+                const resolvedDetails = mergeRaceDetails(cleanedExistingDetails, raceContext) || professionalFallback;
                 targetWeek.sessions = [
                   ...sessionsWithoutTargetRest.filter((session) => session !== existingRaceSession),
                   {
@@ -578,9 +589,7 @@ export default function AITrainingPlanPage() {
                     dayName: dayNames[targetDayIndex],
                     dayIndex: targetDayIndex,
                     title: existingRaceSession.title || `JOUR DE COURSE${goal.priority !== "A" ? ` [${goal.priority}]` : ""} — ${raceLabel}`,
-                    details: [cleanedExistingDetails, raceContext || professionalFallback]
-                      .filter(Boolean)
-                      .join("\n\n"),
+                    details: resolvedDetails,
                     isRest: false,
                   },
                 ].sort((a, b) => a.dayIndex - b.dayIndex);
