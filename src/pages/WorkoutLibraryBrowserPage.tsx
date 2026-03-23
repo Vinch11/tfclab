@@ -263,7 +263,18 @@ function WorkoutRow({ workout: w }: { workout: LibraryWorkout }) {
               </Badge>
             </TableCell>
             <TableCell>
-              <Badge className={`text-xs ${TYPE_COLORS[w.cat] || "bg-muted"}`}>{w.cat}</Badge>
+              {TYPE_TOOLTIPS[w.cat] ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge className={`text-xs cursor-help ${TYPE_COLORS[w.cat] || "bg-muted"}`}>{w.cat}</Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">{TYPE_TOOLTIPS[w.cat]}</p>
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
+                <Badge className={`text-xs ${TYPE_COLORS[w.cat] || "bg-muted"}`}>{w.cat}</Badge>
+              )}
             </TableCell>
             <TableCell className="text-sm">{w.objectif}</TableCell>
             <TableCell className="text-xs text-muted-foreground">
