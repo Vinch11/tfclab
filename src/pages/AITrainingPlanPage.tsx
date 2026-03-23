@@ -34,7 +34,7 @@ import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, type
 import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition } from "@/types/ambitionLevel";
-import { parseAIPlan, mapSessionsToDates, type ParsedPlan } from "@/lib/aiPlanParser";
+import { parseAIPlan, mapSessionsToDates, type ParsedPlan, type ParsedWeek } from "@/lib/aiPlanParser";
 import { AIPlanViewer } from "@/components/AIPlanViewer";
 import { AIPlanComparison } from "@/components/AIPlanComparison";
 import { AIPlanBenchmark } from "@/components/AIPlanBenchmark";
