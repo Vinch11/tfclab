@@ -34,7 +34,7 @@ import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, type
 import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition } from "@/types/ambitionLevel";
-import { parseAIPlan, mapSessionsToDates, type ParsedPlan } from "@/lib/aiPlanParser";
+import { parseAIPlan, mapSessionsToDates, type ParsedPlan, type ParsedWeek } from "@/lib/aiPlanParser";
 import { AIPlanViewer } from "@/components/AIPlanViewer";
 import { AIPlanComparison } from "@/components/AIPlanComparison";
 import { AIPlanBenchmark } from "@/components/AIPlanBenchmark";
@@ -373,9 +373,67 @@ export default function AITrainingPlanPage() {
     if (!response || isLoading) return null;
     try {
       const plan = parseAIPlan(response);
-      return plan.weeks.length > 0 ? plan : null;
+
+      const enforcePrimaryRaceDay = (weeks: ParsedWeek[]): ParsedWeek[] => {
+        if (!raceDate) return weeks;
+        try {
+          const race = startOfDay(parseISO(raceDate));
+          const start = startOfDay(planStartDate);
+          const days = differenceInCalendarDays(race, start);
+          if (days < 0) return weeks;
+
+          const targetWeekNumber = Math.floor(days / 7) + 1;
+          const jsDay = race.getDay();
+          const targetDayIndex = jsDay === 0 ? 6 : jsDay - 1;
+          const dayNames = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+          const raceLabel = raceName || objective;
+
+          return weeks.map((week) => {
+            if (week.weekNumber !== targetWeekNumber) return week;
+
+            const sessionsWithoutTargetRest = week.sessions.filter(
+              (session) => !(session.dayIndex === targetDayIndex && session.isRest)
+            );
+
+            const hasRaceSession = sessionsWithoutTargetRest.some((session) =>
+              session.dayIndex === targetDayIndex && /🏁|jour de course|course/i.test(`${session.sport} ${session.title} ${session.details}`)
+            );
+
+            if (hasRaceSession) {
+              return { ...week, sessions: sessionsWithoutTargetRest };
+            }
+
+            return {
+              ...week,
+              sessions: [
+                ...sessionsWithoutTargetRest,
+                {
+                  weekNumber: week.weekNumber,
+                  weekTheme: week.theme,
+                  phase: week.phase,
+                  dayName: dayNames[targetDayIndex],
+                  dayIndex: targetDayIndex,
+                  sport: "🏁 Course",
+                  title: `JOUR DE COURSE — ${raceLabel}`,
+                  details: "Course cible imposée automatiquement car absente de la semaine générée.",
+                  isRest: false,
+                },
+              ].sort((a, b) => a.dayIndex - b.dayIndex),
+            };
+          });
+        } catch {
+          return weeks;
+        }
+      };
+
+      const normalizedPlan = {
+        ...plan,
+        weeks: enforcePrimaryRaceDay(plan.weeks),
+      };
+
+      return normalizedPlan.weeks.length > 0 ? normalizedPlan : null;
     } catch { return null; }
-  }, [response, isLoading]);
+  }, [response, isLoading, raceDate, raceName, objective, planStartDate]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD PLAN CONFIG — Delegates to Plan Engine
