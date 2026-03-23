@@ -133,10 +133,11 @@ function extractWeekMetrics(week: ParsedWeek): WeekMetrics {
     sports[sport] = (sports[sport] || 0) + 1;
   }
 
-  // Intensity distribution
+  // Intensity distribution (exclude renfo from polarization — it's outside the endurance spectrum)
   let low = 0, mid = 0, high = 0;
   for (const s of activeSessions) {
     const intensity = classifySessionIntensity(s);
+    if (intensity === "renfo") continue; // Excluded from polarization
     if (intensity === "low") low++;
     else if (intensity === "mid") mid++;
     else high++;
