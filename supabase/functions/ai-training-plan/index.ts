@@ -2946,21 +2946,20 @@ IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${exp
                 let multiObjChunkReminder = "";
                 if (planConfig?.raceGoals && planConfig.raceGoals.length > 1) {
                   const relevantGoals = planConfig.raceGoals.filter((g: any) => {
-                    if (!g.raceDate || !planConfig.planStartDate) return false;
-                    const startMs = new Date(planConfig.planStartDate).getTime();
-                    const raceMs = new Date(g.raceDate).getTime();
-                    const goalWeek = Math.ceil((raceMs - startMs) / (7 * 86400000));
-                    // Include goals within ±3 weeks of this chunk's range (taper/recovery window)
+                    const timing = computeGoalTiming(g);
+                    if (!timing) return false;
+                    const goalWeek = timing.weekNumber;
                     return goalWeek >= chunk.start - 3 && goalWeek <= chunk.end + 3;
                   });
                   if (relevantGoals.length > 0) {
                     multiObjChunkReminder = `\n\n🎯 RAPPEL MULTI-OBJECTIFS pour ce bloc :`;
                     relevantGoals.forEach((g: any) => {
-                      const startMs = new Date(planConfig.planStartDate).getTime();
-                      const raceMs = new Date(g.raceDate).getTime();
-                      const goalWeek = Math.ceil((raceMs - startMs) / (7 * 86400000));
+                      const timing = computeGoalTiming(g);
+                      if (!timing) return;
+                      const goalWeek = timing.weekNumber;
                       const prio = g.priority === "A" ? "🅰️" : g.priority === "B" ? "🅱️" : "🆎";
-                      multiObjChunkReminder += `\n  ${prio} ${g.objective || g.raceName || "Course"} — Semaine ${goalWeek} (${g.raceDate})`;
+                      const dayInfo = timing.dayName ? ` — jour exact: ${timing.dayName}` : "";
+                      multiObjChunkReminder += `\n  ${prio} ${g.objective || g.raceName || "Course"} — Semaine ${goalWeek} (${g.raceDate})${dayInfo}`;
                       if (g.priority !== "A" && goalWeek >= chunk.start && goalWeek <= chunk.end) {
                         multiObjChunkReminder += ` ⚠️ DANS CE BLOC → Mini-taper S${goalWeek - 1}, Course S${goalWeek}, Récup S${goalWeek + 1}`;
                       }
