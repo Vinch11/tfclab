@@ -41,13 +41,13 @@ function makePolarizedWeek(weekNumber: number, deload = false): ParsedWeek {
     ], "Décharge");
   }
   return makeWeek(weekNumber, [
-    { sport: "Course", title: "EF Z2 45min", details: "Endurance fondamentale" },
-    { sport: "Course", title: "EF Z2 50min", details: "Endurance" },
-    { sport: "Course", title: "Intervalles seuil 3x10min", details: "Séance clé 🔑 Z5" },
-    { sport: "Course", title: "EF Z2 40min", details: "Footing récup" },
-    { sport: "Vélo", title: "Z2 60min", details: "Endurance vélo" },
-    { sport: "Course", title: "Sortie longue 20km", details: "SL progressive 🔑" },
-    { sport: "Repos", title: "Repos", details: "", isRest: true },
+    { sport: "Course", title: "EF Z2 45min", details: "Endurance fondamentale", dayIndex: 0 },
+    { sport: "Course", title: "EF Z2 50min", details: "Endurance", dayIndex: 1 },
+    { sport: "Course", title: "Intervalles seuil 3x10min", details: "Séance clé 🔑 Z5", dayIndex: 2 },
+    { sport: "Course", title: "EF Z2 40min", details: "Footing récup", dayIndex: 3 },
+    { sport: "Vélo", title: "Z2 60min", details: "Endurance vélo", dayIndex: 4 },
+    { sport: "Course", title: "Sortie longue 20km", details: "SL progressive 🔑", dayIndex: 5 },
+    { sport: "Repos", title: "Repos", details: "", isRest: true, dayIndex: 6 },
   ]);
 }
 
@@ -62,7 +62,6 @@ function makePlan(weeks: ParsedWeek[]): ParsedPlan {
 
 describe("planValidator", () => {
   it("validates a well-structured 8-week plan", () => {
-    // 3:1 pattern: 3 load + 1 deload × 2
     const weeks = [
       makePolarizedWeek(1),
       makePolarizedWeek(2),
@@ -81,7 +80,6 @@ describe("planValidator", () => {
   });
 
   it("detects missing deload weeks", () => {
-    // 8 consecutive load weeks with no deload
     const weeks = Array.from({ length: 8 }, (_, i) => makePolarizedWeek(i + 1));
     const result = validatePlan(makePlan(weeks));
 
@@ -90,7 +88,6 @@ describe("planValidator", () => {
   });
 
   it("detects poor polarization", () => {
-    // All intensity, no easy sessions
     const badWeek = makeWeek(1, [
       { sport: "Course", title: "Intervalles VO2max 5x3min", details: "Z6" },
       { sport: "Course", title: "Seuil 2x20min", details: "Z5" },
@@ -106,7 +103,6 @@ describe("planValidator", () => {
   });
 
   it("detects missing key sessions", () => {
-    // All easy, no key sessions
     const easyWeek = makeWeek(1, [
       { sport: "Course", title: "EF Z2 40min", details: "Facile" },
       { sport: "Course", title: "EF Z2 45min", details: "Facile" },
@@ -128,5 +124,52 @@ describe("planValidator", () => {
     expect(result.weekMetrics[0].weekNumber).toBe(1);
     expect(result.weekMetrics[0].activeSessions).toBeGreaterThan(0);
     expect(result.weekMetrics[0].keySessions).toBeGreaterThan(0);
+  });
+
+  it("detects missing race day in race week", () => {
+    // Race week with "race" in theme but no 🏁 session — just repos on Sunday
+    const raceWeek = makeWeek(4, [
+      { sport: "Course", title: "EF Z2 30min", details: "Affûtage", dayIndex: 0 },
+      { sport: "Course", title: "Rappel allure semi", details: "Compétition dimanche", dayIndex: 2 },
+      { sport: "Repos", title: "Repos", details: "", isRest: true, dayIndex: 5 },
+      { sport: "Repos", title: "Repos", details: "", isRest: true, dayIndex: 6 },
+    ], "Affûtage — Semi-Marathon");
+    const result = validatePlan(makePlan([raceWeek]));
+
+    const raceDayIssues = result.issues.filter(i => i.rule === "race_day");
+    expect(raceDayIssues.length).toBeGreaterThan(0);
+  });
+
+  it("passes race day check when 🏁 session present", () => {
+    const raceWeek = makeWeek(4, [
+      { sport: "Course", title: "EF Z2 30min", details: "Récup", dayIndex: 0 },
+      { sport: "Course", title: "Rappel allure", details: "Compétition dimanche", dayIndex: 2 },
+      { sport: "🏁 Course", title: "JOUR DE COURSE — Semi-Marathon", details: "Exécuter le plan", dayIndex: 6 },
+    ], "Affûtage — Semi-Marathon");
+    const result = validatePlan(makePlan([raceWeek]));
+
+    const raceDayIssues = result.issues.filter(i => i.rule === "race_day" && i.severity === "error");
+    expect(raceDayIssues).toHaveLength(0);
+  });
+
+  it("detects incomplete weekly structure", () => {
+    // Week with only 3 days covered
+    const sparseWeek = makeWeek(1, [
+      { sport: "Course", title: "EF Z2 40min", details: "Facile", dayIndex: 0 },
+      { sport: "Course", title: "Intervalles seuil", details: "🔑 Z5", dayIndex: 2 },
+      { sport: "Course", title: "SL 15km", details: "🔑 Sortie longue", dayIndex: 5 },
+    ]);
+    const result = validatePlan(makePlan([sparseWeek]));
+
+    const structIssues = result.issues.filter(i => i.rule === "weekly_structure");
+    expect(structIssues.length).toBeGreaterThan(0);
+  });
+
+  it("includes structureScore in summary", () => {
+    const plan = makePlan([makePolarizedWeek(1)]);
+    const result = validatePlan(plan);
+
+    expect(result.summary).toHaveProperty("structureScore");
+    expect(typeof result.summary.structureScore).toBe("number");
   });
 });
