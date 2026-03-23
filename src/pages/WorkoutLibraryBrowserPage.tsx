@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Search, ChevronDown, Bike, PersonStanding, Waves, Dumbbell, Zap, Library } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import type { LibraryWorkout, TrainingSport, SessionType, PhaseTag } from "@/types/workoutLibrary";
 
@@ -49,6 +50,13 @@ const TYPE_COLORS: Record<string, string> = {
   Sprint: "bg-pink-100 text-pink-700",
   Brique: "bg-purple-100 text-purple-700",
   "Race-Sim": "bg-indigo-100 text-indigo-700",
+};
+
+const TYPE_TOOLTIPS: Record<string, string> = {
+  A: "Haute intensité — VO2max, VLamax, sprints",
+  B: "Seuil — FTP, tempo élevé",
+  C: "Endurance fondamentale — Z2, aérobie",
+  D: "Récupération / régénération",
 };
 
 function normalizeSport(s: string): string {
@@ -255,7 +263,18 @@ function WorkoutRow({ workout: w }: { workout: LibraryWorkout }) {
               </Badge>
             </TableCell>
             <TableCell>
-              <Badge className={`text-xs ${TYPE_COLORS[w.cat] || "bg-muted"}`}>{w.cat}</Badge>
+              {TYPE_TOOLTIPS[w.cat] ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge className={`text-xs cursor-help ${TYPE_COLORS[w.cat] || "bg-muted"}`}>{w.cat}</Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">{TYPE_TOOLTIPS[w.cat]}</p>
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
+                <Badge className={`text-xs ${TYPE_COLORS[w.cat] || "bg-muted"}`}>{w.cat}</Badge>
+              )}
             </TableCell>
             <TableCell className="text-sm">{w.objectif}</TableCell>
             <TableCell className="text-xs text-muted-foreground">
