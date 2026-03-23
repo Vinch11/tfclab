@@ -257,6 +257,20 @@ interface SessionCardProps {
   date?: Date;
 }
 
+/** Strip catalog IDs like "ID: ENR_RUN_BILLAT_30_30" or "(A_RUN_Z2_EASY)" from display text */
+function stripCatalogId(text: string): string {
+  return text
+    .replace(/\bID\s*:\s*[A-Z0-9_]+\b/gi, "")
+    .replace(/\([A-Z][A-Z0-9_]{3,}\)/g, "")
+    .replace(/\b[A-Z][A-Z0-9_]{5,}\b/g, (match) => {
+      // Only strip if it looks like a catalog ID (all caps with underscores)
+      if (/^[A-Z][A-Z0-9]*(_[A-Z0-9]+)+$/.test(match)) return "";
+      return match;
+    })
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 function SessionCard({ session, date }: SessionCardProps) {
   const [expanded, setExpanded] = useState(false);
 
