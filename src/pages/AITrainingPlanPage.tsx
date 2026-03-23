@@ -38,6 +38,7 @@ import { parseAIPlan, mapSessionsToDates, type ParsedPlan, type ParsedWeek } fro
 import { AIPlanViewer } from "@/components/AIPlanViewer";
 import { AIPlanComparison } from "@/components/AIPlanComparison";
 import { AIPlanBenchmark } from "@/components/AIPlanBenchmark";
+import { PlanQualityReport } from "@/components/PlanQualityReport";
 import { RacePaceSimulation } from "@/components/RacePaceSimulation";
 import { AdaptationProjectionSummary } from "@/components/AdaptationProjectionSummary";
 import { LimiterHierarchyEditor } from "@/components/LimiterHierarchyEditor";
