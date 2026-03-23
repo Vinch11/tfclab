@@ -387,9 +387,23 @@ export default function AITrainingPlanPage() {
           const targetDayIndex = jsDay === 0 ? 6 : jsDay - 1;
           const dayNames = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
           const raceLabel = raceName || objective;
+          const isPlaceholderWeek = (week: ParsedWeek) => {
+            const meta = `${week.theme} ${week.coachNotes ?? ""}`;
+            return /non générée|manquante|régénérer/i.test(meta)
+              || week.sessions.every((session) => session.isRest && /⚠️|régénérer/i.test(`${session.title} ${session.details}`));
+          };
+
+          const realWeeks = weeks.filter((week) => !isPlaceholderWeek(week));
+          const resolvedTargetWeek = realWeeks.find((week) => week.weekNumber === targetWeekNumber)
+            ?? realWeeks[targetWeekNumber - 1]
+            ?? realWeeks[realWeeks.length - 1]
+            ?? weeks.find((week) => week.weekNumber === targetWeekNumber)
+            ?? weeks[Math.min(Math.max(targetWeekNumber - 1, 0), Math.max(weeks.length - 1, 0))];
+
+          if (!resolvedTargetWeek) return weeks;
 
           return weeks.map((week) => {
-            if (week.weekNumber !== targetWeekNumber) return week;
+            if (week.weekNumber !== resolvedTargetWeek.weekNumber) return week;
 
             const sessionsWithoutTargetRest = week.sessions.filter(
               (session) => !(session.dayIndex === targetDayIndex && session.isRest)
