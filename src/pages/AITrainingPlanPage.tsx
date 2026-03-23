@@ -376,26 +376,33 @@ export default function AITrainingPlanPage() {
       const plan = parseAIPlan(response);
 
       const enforceRaceDays = (weeks: ParsedWeek[]): ParsedWeek[] => {
-        const configuredGoals = [
-          raceDate
-            ? {
-                raceDate,
-                raceName,
-                objective,
-                priority: "A" as const,
-              }
-            : null,
-          ...raceGoals
-            .filter((goal) => goal.raceDate)
-            .map((goal) => ({
-              raceDate: goal.raceDate!,
-              raceName: goal.raceName,
-              objective: goal.objective,
-              priority: goal.priority,
-            })),
-        ].filter(
-          (goal): goal is { raceDate: string; raceName?: string; objective: string; priority: "A" | "B" | "C" } => Boolean(goal?.raceDate)
-        );
+        type RaceAnchor = {
+          raceDate: string;
+          raceName?: string;
+          objective: string;
+          priority: "A" | "B" | "C";
+        };
+
+        const configuredGoals: RaceAnchor[] = [];
+
+        if (raceDate) {
+          configuredGoals.push({
+            raceDate,
+            raceName,
+            objective,
+            priority: "A",
+          });
+        }
+
+        for (const goal of raceGoals) {
+          if (!goal.raceDate) continue;
+          configuredGoals.push({
+            raceDate: goal.raceDate,
+            raceName: goal.raceName,
+            objective: goal.objective,
+            priority: goal.priority,
+          });
+        }
 
         if (configuredGoals.length === 0) return weeks;
 
