@@ -544,8 +544,9 @@ function validateSportRatio(
 // CATALOGUE/CUSTOM RATIO VALIDATION (Rule 6)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// Match catalog IDs like A_RUN_Z2_EASY — case-insensitive, handles 🔑 prefix
-const CATALOG_ID_PATTERN = /(?:^|[\s🔑])[A-Da-d]_(?:[A-Za-z0-9]+_){1,5}[A-Za-z0-9]+/g;
+// Match catalog IDs like A_RUN_Z2_EASY, BRICK_703_RACE_SIM, V3_BRICK_IM_LONG, RS_TR_SIM_ULTRA
+// Keep it strict enough to avoid normal prose, but broad enough for the real TFCL catalog naming conventions.
+const CATALOG_ID_PATTERN = /(?:^|[\s🔑\[(])(?:[A-Z0-9]+_){1,7}[A-Z0-9]+\b/g;
 const CUSTOM_PATTERN = /\[Custom\]/gi;
 
 function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; score: number; catalogPct: number } {
