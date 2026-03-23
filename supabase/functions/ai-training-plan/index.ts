@@ -2797,6 +2797,7 @@ ${(() => {
   2. Les principes méthodologiques du plan (polarisation 80/20, progression, cohérence de phase)
   3. Marque-la avec [Custom] dans le titre pour la distinguer des protocoles validés
 → Ratio cible : ≥80% séances catalogue, ≤20% séances custom. Si tu dépasses 20% custom, justifie pourquoi.
+⚠️ RAPPEL : Chaque séance du tableau DOIT commencer par son ID catalogue (ex: A_RUN_Z2_EASY Footing). PAS de titre libre sans ID.
 
 Résumé des blocs précédents (progression récente) :
 ${slidingSummary || "Premier bloc de continuation."}
