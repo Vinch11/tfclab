@@ -831,6 +831,7 @@ export function validatePlan(plan: ParsedPlan, objective?: string, identifiedLim
   const raceDay = validateRaceDay(weekMetrics);
   const weeklyStructure = validateWeeklyStructure(weekMetrics);
   const restDays = validateRestDays(weekMetrics);
+  const limiterAlignment = validateLimiterAlignment(weekMetrics, plan, identifiedLimiters);
 
   // Combine structure scores (Rules 7+8+9)
   const structureScore = Math.round(
@@ -850,10 +851,23 @@ export function validatePlan(plan: ParsedPlan, objective?: string, identifiedLim
     ...raceDay.issues,
     ...weeklyStructure.issues,
     ...restDays.issues,
+    ...limiterAlignment.issues,
   ];
 
-  // Weighted score (7 rule groups now)
-  const weights = {
+  // Has limiters? Include limiter alignment in scoring
+  const hasLimiters = identifiedLimiters && identifiedLimiters.length > 0;
+
+  // Weighted score (8 rule groups when limiters are present)
+  const weights = hasLimiters ? {
+    polarization: 0.16,
+    loadPattern: 0.15,
+    keySessions: 0.15,
+    progression: 0.10,
+    sportRatio: 0.08,
+    catalogRatio: 0.06,
+    structure: 0.12,
+    limiterAlignment: 0.18,
+  } : {
     polarization: 0.20,
     loadPattern: 0.18,
     keySessions: 0.18,
@@ -861,7 +875,9 @@ export function validatePlan(plan: ParsedPlan, objective?: string, identifiedLim
     sportRatio: 0.10,
     catalogRatio: 0.07,
     structure: 0.15,
+    limiterAlignment: 0,
   };
+
   const weightedScore = Math.round(
     polarization.score * weights.polarization +
     loadPattern.score * weights.loadPattern +
@@ -869,7 +885,8 @@ export function validatePlan(plan: ParsedPlan, objective?: string, identifiedLim
     progression.score * weights.progression +
     sportRatio.score * weights.sportRatio +
     catalogRatio.score * weights.catalogRatio +
-    structureScore * weights.structure
+    structureScore * weights.structure +
+    limiterAlignment.score * weights.limiterAlignment
   );
 
   // Grade
@@ -897,10 +914,12 @@ export function validatePlan(plan: ParsedPlan, objective?: string, identifiedLim
       sportRatioScore: sportRatio.score,
       catalogRatioScore: catalogRatio.score,
       structureScore,
+      limiterAlignmentScore: limiterAlignment.score,
       overallComment,
     },
   };
 }
+
 
 /**
  * Format validation result as a human-readable markdown string
