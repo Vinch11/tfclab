@@ -799,75 +799,76 @@ function validateLimiterAlignment(
     const label = config.label;
     const rank = i + 1; // 1 = primary, 2 = secondary, 3 = tertiary
 
-    // Count matches per phase
-    const baseMatches = countMatchesInPhase(phases.base, config.patterns);
-    const buildMatches = countMatchesInPhase(phases.build, config.patterns);
-    const specificMatches = countMatchesInPhase(phases.specific, config.patterns);
-    const totalMatches = baseMatches + buildMatches + specificMatches;
+    // Count matches per Lorang phase
+    const fondationMatches = countMatchesInPhase(phases.fondation, config.patterns);
+    const chantierMatches = countMatchesInPhase(phases.chantier, config.patterns);
+    const consolMatches = countMatchesInPhase(phases.consolidation, config.patterns);
+    const raceSpecMatches = countMatchesInPhase(phases.raceSpec, config.patterns);
+    const totalMatches = fondationMatches + chantierMatches + consolMatches + raceSpecMatches;
 
     details[metric] = { found: totalMatches, total: totalLoadWeeks };
 
-    // ── Chronological validation (Block Periodization) ─────────────────
-    // Limiter #1: MUST dominate Base phase (≥70% coverage), present in Build (≥50%)
-    // Limiter #2: Can be light in Base, MUST dominate Build phase (≥60%)
-    // Limiter #3+: Addressed in Specific phase primarily (≥40%)
+    // ── Chronological validation (Lorang Block Periodization) ─────────────────
+    // L1: Must DOMINATE in Fondation+Chantier (≥70%), present in Consolidation as rappel (≥30%)
+    // L2: Light in Fondation/Chantier, DOMINANT in Consolidation (≥60%)
+    // L3+: Addressed in Race-Specific or throughout (≥30% global)
 
-    const basePct = phases.base.length > 0 ? Math.round((baseMatches / phases.base.length) * 100) : 0;
-    const buildPct = phases.build.length > 0 ? Math.round((buildMatches / phases.build.length) * 100) : 0;
-    const specificPct = phases.specific.length > 0 ? Math.round((specificMatches / phases.specific.length) * 100) : 0;
+    const chantierPhasePct = (phases.fondation.length + phases.chantier.length) > 0
+      ? Math.round(((fondationMatches + chantierMatches) / (phases.fondation.length + phases.chantier.length)) * 100) : 0;
+    const consolPct = phases.consolidation.length > 0 ? Math.round((consolMatches / phases.consolidation.length) * 100) : 0;
 
     if (rank === 1) {
-      // Primary limiter: must dominate Base, remain present throughout
+      // Primary limiter: must dominate Fondation+Chantier, maintained in Consolidation
       const weight = 3;
       totalWeight += weight;
 
-      if (basePct < 50) {
+      if (chantierPhasePct < 50) {
         issues.push({
           rule: "limiter_alignment",
-          severity: basePct < 30 ? "error" : "warning",
-          message: `Limiteur #1 "${label}" : seulement ${basePct}% de couverture en phase Base (cible ≥70%) — le limiteur primaire doit dominer les premières semaines`,
-          detail: `Base: ${baseMatches}/${phases.base.length} sem, Build: ${buildMatches}/${phases.build.length}, Spé: ${specificMatches}/${phases.specific.length}`,
+          severity: chantierPhasePct < 30 ? "error" : "warning",
+          message: `Limiteur #1 "${label}" : seulement ${chantierPhasePct}% de couverture en Fondation+Chantier (cible ≥70%) — L1 doit DOMINER ces blocs`,
+          detail: `Fondation: ${fondationMatches}/${phases.fondation.length}, Chantier: ${chantierMatches}/${phases.chantier.length}, Consolidation: ${consolMatches}/${phases.consolidation.length}, Race-Spec: ${raceSpecMatches}/${phases.raceSpec.length}`,
         });
-        totalScore += Math.min(100, basePct * (100 / 70)) * weight * 0.5;
-      } else if (basePct < 70) {
+        totalScore += Math.min(100, chantierPhasePct * (100 / 70)) * weight * 0.5;
+      } else if (chantierPhasePct < 70) {
         issues.push({
           rule: "limiter_alignment",
           severity: "warning",
-          message: `Limiteur #1 "${label}" : ${basePct}% de couverture en phase Base (cible ≥70%)`,
-          detail: `Base: ${baseMatches}/${phases.base.length} sem, Build: ${buildMatches}/${phases.build.length}, Spé: ${specificMatches}/${phases.specific.length}`,
+          message: `Limiteur #1 "${label}" : ${chantierPhasePct}% de couverture en Fondation+Chantier (cible ≥70%)`,
+          detail: `Fondation: ${fondationMatches}/${phases.fondation.length}, Chantier: ${chantierMatches}/${phases.chantier.length}, Consolidation: ${consolMatches}/${phases.consolidation.length}, Race-Spec: ${raceSpecMatches}/${phases.raceSpec.length}`,
         });
         totalScore += 70 * weight;
       } else {
         totalScore += 100 * weight;
       }
 
-      // Check it doesn't disappear completely in Build
-      if (buildPct < 30 && phases.build.length >= 2) {
+      // Check L1 doesn't disappear in Consolidation (non-regression principle)
+      if (consolPct < 20 && phases.consolidation.length >= 2) {
         issues.push({
           rule: "limiter_alignment",
           severity: "warning",
-          message: `Limiteur #1 "${label}" : disparaît en phase Build (${buildPct}%) — le maintien est nécessaire même quand le #2 monte`,
+          message: `Limiteur #1 "${label}" : disparaît en Consolidation (${consolPct}%) — rappels de maintien obligatoires (non-régression Lorang)`,
         });
       }
 
     } else if (rank === 2) {
-      // Secondary limiter: light in Base, dominant in Build
+      // Secondary limiter: DOMINANT in Consolidation, light earlier
       const weight = 2;
       totalWeight += weight;
 
-      if (buildPct < 40) {
+      if (consolPct < 40) {
         issues.push({
           rule: "limiter_alignment",
-          severity: buildPct < 20 ? "error" : "warning",
-          message: `Limiteur #2 "${label}" : seulement ${buildPct}% de couverture en phase Build (cible ≥60%) — le limiteur secondaire doit monter en Build`,
-          detail: `Base: ${baseMatches}/${phases.base.length} sem, Build: ${buildMatches}/${phases.build.length}, Spé: ${specificMatches}/${phases.specific.length}`,
+          severity: consolPct < 20 ? "error" : "warning",
+          message: `Limiteur #2 "${label}" : seulement ${consolPct}% de couverture en Consolidation (cible ≥60%) — L2 doit MONTER dans ce bloc`,
+          detail: `Fondation: ${fondationMatches}/${phases.fondation.length}, Chantier: ${chantierMatches}/${phases.chantier.length}, Consolidation: ${consolMatches}/${phases.consolidation.length}, Race-Spec: ${raceSpecMatches}/${phases.raceSpec.length}`,
         });
-        totalScore += Math.min(100, buildPct * (100 / 60)) * weight * 0.5;
-      } else if (buildPct < 60) {
+        totalScore += Math.min(100, consolPct * (100 / 60)) * weight * 0.5;
+      } else if (consolPct < 60) {
         issues.push({
           rule: "limiter_alignment",
           severity: "warning",
-          message: `Limiteur #2 "${label}" : ${buildPct}% de couverture en phase Build (cible ≥60%)`,
+          message: `Limiteur #2 "${label}" : ${consolPct}% de couverture en Consolidation (cible ≥60%)`,
         });
         totalScore += 70 * weight;
       } else {
@@ -875,7 +876,7 @@ function validateLimiterAlignment(
       }
 
     } else {
-      // Tertiary+ limiter: addressed in Specific or throughout
+      // Tertiary+ limiter: addressed in Race-Specific or globally
       const weight = 1;
       totalWeight += weight;
       const globalPct = Math.round((totalMatches / totalLoadWeeks) * 100);
@@ -884,8 +885,8 @@ function validateLimiterAlignment(
         issues.push({
           rule: "limiter_alignment",
           severity: "warning",
-          message: `Limiteur #${rank} "${label}" : ${globalPct}% de couverture globale (cible ≥40%) — intégrer via séances complémentaires en phase Spécifique`,
-          detail: `Base: ${baseMatches}/${phases.base.length} sem, Build: ${buildMatches}/${phases.build.length}, Spé: ${specificMatches}/${phases.specific.length}`,
+          message: `Limiteur #${rank} "${label}" : ${globalPct}% de couverture globale (cible ≥40%) — intégrer en bloc Race-Specific`,
+          detail: `Fondation: ${fondationMatches}/${phases.fondation.length}, Chantier: ${chantierMatches}/${phases.chantier.length}, Consolidation: ${consolMatches}/${phases.consolidation.length}, Race-Spec: ${raceSpecMatches}/${phases.raceSpec.length}`,
         });
         totalScore += Math.min(100, globalPct * (100 / 40)) * weight * 0.5;
       } else {
