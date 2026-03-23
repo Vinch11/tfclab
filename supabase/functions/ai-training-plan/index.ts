@@ -3504,9 +3504,9 @@ function buildUserPrompt(data: any, config: any): string {
   }
   if (config.strengthSessionsPerWeek !== undefined && config.strengthSessionsPerWeek !== null) {
     if (config.strengthSessionsPerWeek === 0) {
-      lines.push(`- **⚠️ Renforcement musculaire : 0 séance/sem — NE PAS inclure de séance de renforcement/musculation/PPG dans le plan.**`);
+      lines.push(`- **⚠️ CONTRAINTE RENFO ABSOLUE : 0 séance de renforcement/musculation/PPG par semaine. NE PAS inclure de séance de renforcement dans le plan. Si tu en inclus, le plan est INVALIDE.**`);
     } else {
-      lines.push(`- **🏋️ Renforcement musculaire : ${config.strengthSessionsPerWeek} séance(s)/sem — Inclure EXACTEMENT ${config.strengthSessionsPerWeek} séance(s) de renforcement/PPG par semaine dans le plan.**`);
+      lines.push(`- **⚠️ CONTRAINTE RENFO ABSOLUE : EXACTEMENT ${config.strengthSessionsPerWeek} séance(s) de renforcement/PPG par semaine. PAS PLUS. Si tu en mets ${config.strengthSessionsPerWeek + 1} ou plus, le plan est INVALIDE. Compte tes séances renfo/musculation/PPG/core pour chaque semaine avant de soumettre.**`);
     }
   }
   if (config.maxSessionsPerDay) {
@@ -3594,16 +3594,19 @@ function buildUserPrompt(data: any, config: any): string {
           lines.push(`| ${raceDayName} | 🏁 Course | JOUR DE COURSE — ${config.raceName || config.objective || "Objectif A"} | Exécuter le plan de course |`);
           lines.push(`⚠️ Il est INTERDIT de mettre "Repos" ou toute autre séance le **${raceDayName}** de la semaine de course. C'est le JOUR J.`);
 
-          // For very short plans (≤3 weeks), add explicit race week structure
-          if (totalW <= 3) {
+          // For short plans (≤4 weeks), add explicit race week structure
+          if (totalW <= 4) {
             lines.push(`\n⚠️ PLAN COURT (${totalW} semaine${totalW > 1 ? "s" : ""}) — STRUCTURE RACE WEEK OBLIGATOIRE :`);
             lines.push(`Ce plan est très court. La Semaine ${raceGoalWeek} EST la semaine de course (Race Week / Affûtage).`);
-            lines.push(`Structure obligatoire de la Semaine ${raceGoalWeek} :`);
+            lines.push(`Structure OBLIGATOIRE de la Semaine ${raceGoalWeek} :`);
             lines.push(`- Volume très réduit (-50 à -60% du volume habituel)`);
             lines.push(`- 1-2 rappels courts @allure course (3-5min max)`);
             lines.push(`- Activation J-2 (footing court + strides)`);
             lines.push(`- Repos complet J-1 + carb loading`);
             lines.push(`- **${raceDayName} = 🏁 JOUR DE COURSE** (JAMAIS "Repos")`);
+            lines.push(`\n🚨 VÉRIFICATION PLAN COURT : Avant de soumettre, VÉRIFIE que le tableau de la Semaine ${raceGoalWeek} contient bien une ligne :`);
+            lines.push(`| ${raceDayName} | 🏁 Course | JOUR DE COURSE — ${config.raceName || config.objective || "Objectif A"} | ... |`);
+            lines.push(`Si cette ligne manque, RECOMMENCE. Un plan sans jour de course est INVALIDE.`);
           }
         }
       }
@@ -3998,6 +4001,11 @@ function buildUserPrompt(data: any, config: any): string {
       const finalRaceDayName = JOURS_FR_FINAL[new Date(finalRaceMs).getUTCDay()];
       lines.push(`\n🔥 RAPPEL FINAL RACE DAY : La dernière semaine (S${weeks}) est la Race Week. Le **${finalRaceDayName}** de cette semaine = 🏁 JOUR DE COURSE. JAMAIS "Repos" ce jour-là.`);
     }
+  }
+
+  // === FINAL STRENGTH SESSIONS REMINDER ===
+  if (config.strengthSessionsPerWeek !== undefined && config.strengthSessionsPerWeek !== null) {
+    lines.push(`\n🏋️ RAPPEL FINAL RENFO : Le coach a demandé EXACTEMENT ${config.strengthSessionsPerWeek} séance(s) de renforcement/PPG/musculation par semaine. VÉRIFIE chaque semaine avant de soumettre. Si une semaine en contient plus ou moins que ${config.strengthSessionsPerWeek}, CORRIGE-LA.`);
   }
 
   lines.push(`\n---\nGénère le plan COMPLET de ${weeks} semaines, semaine par semaine, SANS EN OMETTRE AUCUNE. Chaque semaine a son propre tableau. Ne résume jamais. Chaque séance doit être actionnable immédiatement.`);
