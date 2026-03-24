@@ -387,7 +387,7 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     target: vo2maxTarget,
     gap: input.vo2max !== null ? input.vo2max - vo2maxTarget : 0,
     gapPercent: vo2maxGap * 100,
-    status: input.vo2max === null ? "acceptable"
+    status: input.vo2max === null ? "unknown"
       : input.vo2max >= vo2maxTarget ? "optimal"
       : input.vo2max >= vo2maxTarget * 0.9 ? "acceptable"
       : "limiting",
