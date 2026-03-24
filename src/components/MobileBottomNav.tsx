@@ -32,6 +32,7 @@ interface MobileBottomNavProps {
   onTabChange: (tab: string) => void;
   staffMode?: boolean;
   onStaffModeChange?: (value: boolean) => void;
+  onExportClick?: () => void;
 }
 
 export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffModeChange }: MobileBottomNavProps) {
