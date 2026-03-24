@@ -566,6 +566,7 @@ export default function DashboardPage() {
             <QuickAmbitionSelector
               currentAmbition={getAthleteAmbition(currentAthlete)}
               onAmbitionChange={handleAmbitionChange}
+              objectif={currentAthlete?.goal || currentAthlete?.objectif || "IM"}
             />
           </div>
         </div>
