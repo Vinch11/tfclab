@@ -72,8 +72,17 @@ function scoreWorkout(w: LibraryWorkout, goals: WorkoutGoal[], phases: PhaseTag[
   // Goal match
   if (w.goals && w.goals.length > 0) {
     const goalMatch = w.goals.some(g => goals.includes(g));
-    if (goalMatch) score += 10;
-    else score -= 5;
+    if (goalMatch) {
+      score += 10;
+      // P4: Specificity bonus — sessions with fewer goals are more targeted
+      if (w.goals.length <= 2) score += 4;
+      else if (w.goals.length <= 4) score += 2;
+      // Extra bonus if ALL goals match (highly specific)
+      const allMatch = w.goals.every(g => goals.includes(g));
+      if (allMatch) score += 3;
+    } else {
+      score -= 5;
+    }
   }
 
   // Phase match
