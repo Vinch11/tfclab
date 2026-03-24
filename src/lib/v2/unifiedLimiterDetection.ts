@@ -607,29 +607,59 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   const isRobust = gapDifference > 10 || (topPhysioGap?.weightedImpact ?? 0) > 20;
   const robustnessScore = clamp(gapDifference * 5 + 50, 0, 100);
   
-  // Calcul de la confiance globale
-  const dataCount = [
-    input.ftpKg, 
-    input.vlamax,
-    input.wprimeKj,
-    input.tte, 
-    input.fatmax, 
-    input.economyScore, 
-  ].filter(v => v !== null).length;
+  // Calcul de la confiance globale et détection données insuffisantes
+  const CRITICAL_METRICS = [
+    { key: "ftpKg", label: "FTP/kg", value: input.ftpKg },
+    { key: "vlamax", label: "VLamax", value: input.vlamax },
+    { key: "tte", label: "TTE", value: input.tte },
+  ];
+  const SECONDARY_METRICS = [
+    { key: "wprimeKj", label: "W'", value: input.wprimeKj },
+    { key: "fatmax", label: "FatMax", value: input.fatmax },
+    { key: "economyScore", label: "Économie", value: input.economyScore },
+  ];
+  
+  const missingCritical = CRITICAL_METRICS.filter(m => m.value === null);
+  const missingSecondary = SECONDARY_METRICS.filter(m => m.value === null);
+  const missingMetrics = [...missingCritical, ...missingSecondary].map(m => m.label);
+  
+  const dataCount = 6 - missingMetrics.length;
   const confidence = dataCount / 6;
   
-  const limiterInfo = LIMITER_INFO[primaryLimiter];
+  // Garde insuffisance: si ≥2 métriques critiques manquent, on ne peut pas conclure
+  const insufficientData = missingCritical.length >= 2;
+  const insufficientDataMessage = insufficientData
+    ? `Données insuffisantes (${missingMetrics.join(", ")} manquant${missingMetrics.length > 1 ? "s" : ""}) — le diagnostic peut être trompeur.`
+    : missingCritical.length === 1
+      ? `Attention : ${missingCritical[0].label} manquant — diagnostic partiel.`
+      : null;
+  
+  // Si données insuffisantes ET aucun limiteur fort détecté → forcer "none" avec avertissement
+  // plutôt que de laisser croire à un profil équilibré
+  const effectiveLimiter = insufficientData && primaryLimiter === "none" ? "none" : primaryLimiter;
+  
+  const limiterInfo = LIMITER_INFO[effectiveLimiter];
   const leverInfo = LEVER_INFO[primaryLever];
   
   return {
-    primaryLimiter,
-    limiterLabel: limiterInfo.label,
-    limiterEmoji: limiterInfo.emoji,
-    limiterExplanation: primaryLimiter === "aerobic_engine" && aerobicWeaknessLabel
-      ? `${limiterInfo.description} → ${aerobicWeaknessLabel}`
-      : limiterInfo.description,
+    primaryLimiter: effectiveLimiter,
+    limiterLabel: insufficientData && effectiveLimiter === "none" 
+      ? "Données insuffisantes" 
+      : limiterInfo.label,
+    limiterEmoji: insufficientData && effectiveLimiter === "none" 
+      ? "❓" 
+      : limiterInfo.emoji,
+    limiterExplanation: insufficientData && effectiveLimiter === "none"
+      ? `Impossible de déterminer le facteur limitant. Métriques manquantes : ${missingMetrics.join(", ")}.`
+      : primaryLimiter === "aerobic_engine" && aerobicWeaknessLabel
+        ? `${limiterInfo.description} → ${aerobicWeaknessLabel}`
+        : limiterInfo.description,
     
     fatigueWarning,
+    
+    insufficientData,
+    insufficientDataMessage,
+    missingMetrics,
     
     aerobicWeaknessDetail,
     aerobicWeaknessLabel,
@@ -640,11 +670,13 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     
     gapAnalysis: gapAnalysis.filter(g => g.metric !== "Disponibilité"),
     
-    isRobust,
-    robustnessScore,
-    robustnessNote: isRobust 
-      ? "Décision claire — facteur limitant nettement identifié"
-      : "Décision marginale — plusieurs facteurs proches, validation coach recommandée",
+    isRobust: insufficientData ? false : isRobust,
+    robustnessScore: insufficientData ? 0 : robustnessScore,
+    robustnessNote: insufficientData 
+      ? "Données insuffisantes pour une décision fiable"
+      : isRobust 
+        ? "Décision claire — facteur limitant nettement identifié"
+        : "Décision marginale — plusieurs facteurs proches, validation coach recommandée",
     
     confidence,
     confidenceLabel: confidence >= 0.8 ? "Très élevée" 
@@ -653,7 +685,7 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
       : "Limitée",
     
     targetsUsed: targets,
-    version: "1.1.0",
+    version: "1.2.0",
   };
 }
 
