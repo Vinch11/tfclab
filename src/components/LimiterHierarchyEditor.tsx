@@ -83,10 +83,10 @@ function SortableLimiter({ item, index, maxImpact, isOverridden }: SortableLimit
           {index + 1}.
         </span>
         <Badge
-          variant={isPrimary ? "destructive" : item.status === "limiting" ? "destructive" : "secondary"}
+          variant={isPrimary ? "destructive" : item.status === "limiting" ? "destructive" : item.status === "unknown" ? "outline" : "secondary"}
           className={`text-[10px] ${isPrimary ? "" : "opacity-80"}`}
         >
-          {isPrimary ? "🎯" : item.status === "limiting" ? "🔴" : "🟡"} {item.metric}
+          {isPrimary ? "🎯" : item.status === "limiting" ? "🔴" : item.status === "unknown" ? "⚪" : "🟡"} {item.metric}
         </Badge>
         <span className="text-[10px] text-muted-foreground">
           {item.value?.toFixed(item.metric === "VLamax" ? 2 : 1) ?? "?"} vs {item.target.toFixed(item.metric === "VLamax" ? 2 : 1)}
