@@ -159,9 +159,9 @@ export function buildWorkoutCatalog(
     const sport = workout.sport;
     const cat = workout.cat;
     
-    // Cap per sport (max 10) and per category (max 8)
-    if ((sportCounts[sport] || 0) >= 10) continue;
-    if ((catCounts[cat] || 0) >= 8) continue;
+    // Cap per sport (max 15) and per category (max 10)
+    if ((sportCounts[sport] || 0) >= 15) continue;
+    if ((catCounts[cat] || 0) >= 10) continue;
 
     selected.push(workout);
     sportCounts[sport] = (sportCounts[sport] || 0) + 1;

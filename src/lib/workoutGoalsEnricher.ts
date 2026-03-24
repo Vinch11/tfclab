@@ -143,6 +143,75 @@ function inferPhasesFromWhen(w: LibraryWorkout): PhaseTag[] {
   return [...new Set(phases)];
 }
 
+// ─── PHASE INFERENCE FROM ID / CATEGORY / NECESSITE ─────────────────────────
+
+const ID_PHASE_PATTERNS: Array<{ pattern: RegExp; phases: PhaseTag[] }> = [
+  // Taper sessions
+  { pattern: /TAPER|AFFUT|PRE_RACE|ACTIVATION/i, phases: ["taper"] },
+  // Race simulations → peak
+  { pattern: /RACE_SIM|SIMUL|DRESS_REHEARSAL/i, phases: ["peak"] },
+  // Base / endurance / easy
+  { pattern: /Z2_EASY|Z2_LONG|ENDURANCE|FONCIER|EASY|RECUP/i, phases: ["base", "build"] },
+  // Threshold / tempo → build & peak
+  { pattern: /TEMPO|THRESHOLD|SEUIL|SV2|SWEET_SPOT/i, phases: ["build", "peak"] },
+  // VO2max / intervals → build & peak
+  { pattern: /VO2|INTERVAL|VMA|FARTLEK|HILL_REPEAT/i, phases: ["build", "peak"] },
+  // Sprint / speed → peak
+  { pattern: /SPRINT|SPEED|STRIDES/i, phases: ["build", "peak"] },
+  // Long runs → build & peak
+  { pattern: /LONG_RUN|SL_|SORTIE_LONGUE/i, phases: ["build", "peak"] },
+  // Brick → build & peak
+  { pattern: /^BRICK_/i, phases: ["build", "peak"] },
+  // Test / assessment → base & build
+  { pattern: /TEST|ASSESSMENT|EVAL/i, phases: ["base", "build"] },
+];
+
+const CAT_PHASE_MAP: Record<string, PhaseTag[]> = {
+  "Endurance fondamentale": ["base", "build"],
+  "Récupération": ["base", "build", "peak", "taper"],
+  "Seuil": ["build", "peak"],
+  "VO2max": ["build", "peak"],
+  "Vitesse": ["build", "peak"],
+  "Force": ["base", "build"],
+  "Tempo": ["build", "peak"],
+  "Allure spécifique": ["build", "peak"],
+  "Sortie longue": ["build", "peak"],
+  "Brick": ["build", "peak"],
+  "Test": ["base", "build"],
+  "Activation": ["taper"],
+  "Pré-compétition": ["taper"],
+  "PPG": ["base", "build", "peak"],
+  "Renforcement": ["base", "build", "peak"],
+};
+
+function inferPhasesFromIdAndCat(w: LibraryWorkout): PhaseTag[] {
+  const phases = new Set<PhaseTag>();
+
+  // From ID patterns
+  for (const { pattern, phases: p } of ID_PHASE_PATTERNS) {
+    if (pattern.test(w.id)) {
+      p.forEach(ph => phases.add(ph));
+    }
+  }
+
+  // From category
+  const catPhases = CAT_PHASE_MAP[w.cat];
+  if (catPhases) {
+    catPhases.forEach(ph => phases.add(ph));
+  }
+
+  // From necessite
+  if (w.necessite === "Obligatoire") {
+    // Obligatory sessions are typically build/peak
+    if (phases.size === 0) {
+      phases.add("build");
+      phases.add("peak");
+    }
+  }
+
+  return [...phases];
+}
+
 // ─── MAIN ENRICHER ──────────────────────────────────────────────────────────
 
 /**
