@@ -500,7 +500,7 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     target: 70,
     gap: input.economyScore !== null ? input.economyScore - 70 : 0,
     gapPercent: economyGap * 100,
-    status: input.economyScore === null ? "acceptable"
+    status: input.economyScore === null ? "unknown"
       : input.economyScore >= 70 ? "optimal"
       : input.economyScore >= 50 ? "acceptable"
       : "limiting",
