@@ -3556,6 +3556,14 @@ function buildUserPrompt(data: any, config: any): string {
     if (config.raceName) lines.push(`- **Nom de la course :** ${config.raceName}`);
     if (config.raceDate) lines.push(`- **Date de course :** ${config.raceDate}`);
   }
+
+  // Inject time target hint based on objective × ambition × sex
+  const athleteSex = data?.sex || data?.sexe || null;
+  const timeTarget = getTimeTargetHint(config.objective || "", config.ambition || "", athleteSex);
+  if (timeTarget) {
+    lines.push(`- **🎯 Temps cible estimé :** ${timeTarget}`);
+    lines.push(`  → Calibre les allures d'entraînement et la progression pour viser ce temps objectif. Les séances clés doivent être prescrites en cohérence avec cet objectif chronométrique.`);
+  }
   if (config.weeksAvailable) lines.push(`- **Semaines disponibles :** ${config.weeksAvailable}`);
   if (config.weeklyHours) {
     lines.push(`- **Heures dispo/semaine :** ${config.weeklyHours}h`);
