@@ -54,6 +54,18 @@ const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
     age_group:  { weeklyHours: [6,10],  sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [3,5] },
     finisher:   { weeklyHours: [4,7],   sessionsPerWeek: [4,5],   keySessions: [1,2], progressionPct: [3,3] },
   },
+  TrailShort: {
+    elite:      { weeklyHours: [12,18], sessionsPerWeek: [8,11],  keySessions: [2,3], progressionPct: [5,7] },
+    competitor: { weeklyHours: [8,14],  sessionsPerWeek: [6,9],   keySessions: [2,3], progressionPct: [5,7] },
+    age_group:  { weeklyHours: [6,10],  sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [3,5] },
+    finisher:   { weeklyHours: [4,7],   sessionsPerWeek: [4,5],   keySessions: [1,2], progressionPct: [3,3] },
+  },
+  TrailMountain: {
+    elite:      { weeklyHours: [14,20], sessionsPerWeek: [8,12],  keySessions: [2,3], progressionPct: [5,8] },
+    competitor: { weeklyHours: [10,16], sessionsPerWeek: [6,10],  keySessions: [2,3], progressionPct: [5,7] },
+    age_group:  { weeklyHours: [7,12],  sessionsPerWeek: [5,8],   keySessions: [2,2], progressionPct: [3,5] },
+    finisher:   { weeklyHours: [5,8],   sessionsPerWeek: [4,6],   keySessions: [1,2], progressionPct: [3,3] },
+  },
   TrailUltra: {
     elite:      { weeklyHours: [15,22], sessionsPerWeek: [8,12],  keySessions: [2,3], progressionPct: [5,8] },
     competitor: { weeklyHours: [10,16], sessionsPerWeek: [6,10],  keySessions: [2,3], progressionPct: [5,7] },
@@ -70,11 +82,69 @@ function normalizeObjKey(obj: string): string {
   if (lower.includes("semi")) return "Semi";
   if (lower.includes("marathon")) return "Marathon";
   if (lower.includes("trail") && lower.includes("ultra")) return "TrailUltra";
+  if (lower.includes("trail") && (lower.includes("montagne") || lower.includes("mountain"))) return "TrailMountain";
+  if (lower.includes("trail") && (lower.includes("court") || lower.includes("short"))) return "TrailShort";
+  if (lower.includes("trailmountain")) return "TrailMountain";
+  if (lower.includes("trailshort")) return "TrailShort";
   if (lower.includes("trail")) return "Trail";
   if (lower.includes("10")) return "10K";
   if (lower.includes("5k") || lower === "5km") return "5K";
   if (lower.includes("start")) return "StartToRun";
   return obj;
+}
+
+// === TIME TARGET HINTS BY OBJECTIVE × AMBITION × SEX ===
+const TIME_TARGET_HINTS: Record<string, Record<string, { M: string; F: string }>> = {
+  Marathon: {
+    finisher:   { M: "4h30 – 5h+",    F: "4h55 – 5h30+" },
+    age_group:  { M: "3h30 – 4h15",   F: "3h50 – 4h40" },
+    competitor: { M: "3h00 – 3h30",    F: "3h18 – 3h50" },
+    elite:      { M: "Sub 2h45",       F: "Sub 3h05" },
+  },
+  Semi: {
+    finisher:   { M: "2h00 – 2h30",    F: "2h10 – 2h45" },
+    age_group:  { M: "1h35 – 1h55",    F: "1h44 – 2h06" },
+    competitor: { M: "1h20 – 1h35",    F: "1h28 – 1h44" },
+    elite:      { M: "Sub 1h18",       F: "Sub 1h26" },
+  },
+  "10K": {
+    finisher:   { M: "55' – 1h10",     F: "1h00 – 1h17" },
+    age_group:  { M: "45' – 52'",      F: "49' – 57'" },
+    competitor: { M: "38' – 44'",      F: "42' – 48'" },
+    elite:      { M: "Sub 36'",        F: "Sub 40'" },
+  },
+  "5K": {
+    finisher:   { M: "28' – 35'",      F: "30' – 38'" },
+    age_group:  { M: "22' – 26'",      F: "24' – 29'" },
+    competitor: { M: "18' – 21'",      F: "20' – 23'" },
+    elite:      { M: "Sub 17'",        F: "Sub 19'" },
+  },
+  Trail: {
+    finisher:   { M: "5h30 – 7h",      F: "6h00 – 7h45" },
+    age_group:  { M: "4h00 – 5h15",    F: "4h25 – 5h45" },
+    competitor: { M: "3h15 – 4h00",    F: "3h35 – 4h25" },
+    elite:      { M: "Sub 3h00",       F: "Sub 3h20" },
+  },
+  TrailShort: {
+    finisher:   { M: "5h30 – 7h",      F: "6h00 – 7h45" },
+    age_group:  { M: "4h00 – 5h15",    F: "4h25 – 5h45" },
+    competitor: { M: "3h15 – 4h00",    F: "3h35 – 4h25" },
+    elite:      { M: "Sub 3h00",       F: "Sub 3h20" },
+  },
+  TrailMountain: {
+    finisher:   { M: "12h – 16h",      F: "13h – 17h30" },
+    age_group:  { M: "9h – 11h30",     F: "10h – 12h40" },
+    competitor: { M: "7h – 9h",        F: "7h45 – 10h" },
+    elite:      { M: "Sub 6h30",       F: "Sub 7h10" },
+  },
+};
+
+function getTimeTargetHint(objective: string, ambition: string, sex?: string): string | null {
+  const objKey = normalizeObjKey(objective);
+  const ambKey = normalizeAmbKey(ambition);
+  const entry = TIME_TARGET_HINTS[objKey]?.[ambKey];
+  if (!entry) return null;
+  return entry[sex === "F" ? "F" : "M"];
 }
 
 // FIX #2-amb: Normalize accented chars (é→e, è→e) before matching
@@ -3028,6 +3098,8 @@ function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number): strin
   const ambKey = normalizeAmbKey(config?.ambition || "");
   lines.push(`🎯 Objectif: ${config?.objective || "N/A"} (normalisé: ${objKey})`);
   lines.push(`🏅 Ambition: ${config?.ambition || "N/A"} (normalisé: ${ambKey})`);
+  const diagTimeTarget = getTimeTargetHint(config?.objective || "", config?.ambition || "", config?._athleteSex);
+  if (diagTimeTarget) lines.push(`🎯 Temps cible: ${diagTimeTarget}`);
   
   // Limiters (structured, ranked)
   if (config?.identifiedLimiters && config.identifiedLimiters.length > 0) {
@@ -3485,6 +3557,14 @@ function buildUserPrompt(data: any, config: any): string {
     if (config.objective) lines.push(`- **Objectif course :** ${config.objective}`);
     if (config.raceName) lines.push(`- **Nom de la course :** ${config.raceName}`);
     if (config.raceDate) lines.push(`- **Date de course :** ${config.raceDate}`);
+  }
+
+  // Inject time target hint based on objective × ambition × sex
+  const athleteSex = data?.sex || data?.sexe || null;
+  const timeTarget = getTimeTargetHint(config.objective || "", config.ambition || "", athleteSex);
+  if (timeTarget) {
+    lines.push(`- **🎯 Temps cible estimé :** ${timeTarget}`);
+    lines.push(`  → Calibre les allures d'entraînement et la progression pour viser ce temps objectif. Les séances clés doivent être prescrites en cohérence avec cet objectif chronométrique.`);
   }
   if (config.weeksAvailable) lines.push(`- **Semaines disponibles :** ${config.weeksAvailable}`);
   if (config.weeklyHours) {
