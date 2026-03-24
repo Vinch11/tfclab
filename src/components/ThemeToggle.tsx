@@ -1,5 +1,5 @@
-import { Moon, Building2, Mountain, Zap, Sunrise, Snowflake, Flame, TreePine } from "lucide-react";
-import { useTheme, THEME_CONFIG, type Theme } from "@/contexts/ThemeContext";
+import { Moon, Sun } from "lucide-react";
+import { useTheme, type Theme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -10,18 +10,12 @@ import {
 
 const ThemeIcons: Record<Theme, React.ElementType> = {
   dark: Moon,
-  classic: Building2,
-  endurance: Mountain,
-  neon: Zap,
-  aube: Sunrise,
-  cryo: Snowflake,
-  performance: Flame,
-  nature: TreePine,
+  light: Sun,
 };
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
-  const config = THEME_CONFIG[theme];
+  const config = useTheme().themeConfig[theme];
   const Icon = ThemeIcons[theme];
 
   return (
