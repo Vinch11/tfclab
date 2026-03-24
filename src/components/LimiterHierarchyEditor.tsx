@@ -33,7 +33,7 @@ export interface LimiterItem {
   value: number | null;
   target: number;
   weightedImpact: number;
-  status: "optimal" | "acceptable" | "limiting";
+  status: "optimal" | "acceptable" | "limiting" | "unknown";
 }
 
 interface SortableLimiterProps {
