@@ -128,6 +128,18 @@ export function SavedPlanCalendar() {
     setDeleting(null);
   };
 
+  const handleDeleteAll = async () => {
+    if (!currentAthlete) return;
+    setDeleting("all");
+    const { error } = await supabase
+      .from("training_plan")
+      .delete()
+      .eq("athlete_id", currentAthlete.id);
+    if (error) toast.error("Erreur suppression du plan");
+    else { setSessions([]); setWeekOffset(0); toast.success("Plan entièrement supprimé"); }
+    setDeleting(null);
+  };
+
   const handleEdit = (s: TrainingPlanRow) => {
     setEditSession(s);
     setEditOpen(true);
