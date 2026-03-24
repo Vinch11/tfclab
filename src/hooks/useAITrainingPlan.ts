@@ -92,7 +92,7 @@ export function useAITrainingPlan() {
     const obj = (planConfig.objective || "").toUpperCase();
     const isVerbose = /IRON|IM\b|703|70\.3|TRIATHLON|TRI\b/i.test(obj);
     const CHUNK_SIZE = isVerbose ? 6 : 8;
-    const needsChunking = totalWeeks > 16;
+    const needsChunking = totalWeeks > 12;
     const totalChunks = needsChunking ? Math.ceil(totalWeeks / CHUNK_SIZE) : 1;
     setChunkProgress(totalChunks > 1 ? { currentWeek: 0, totalWeeks, currentChunk: 1, totalChunks } : null);
 
