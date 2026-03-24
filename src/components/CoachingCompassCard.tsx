@@ -64,7 +64,7 @@ function SignatureRadar({ axes, size = 240 }: { axes: RadarAxis[]; size?: number
   const polygonStr = dataPoints.map(p => `${p.x},${p.y}`).join(" ");
 
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-[240px] mx-auto select-none">
+    <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-[200px] sm:max-w-[240px] mx-auto select-none">
       <defs>
         <radialGradient id="radar-glow" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.08" />
