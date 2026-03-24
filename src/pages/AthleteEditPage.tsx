@@ -230,7 +230,7 @@ export default function AthleteEditPage() {
                 <SelectContent>
                   {AMBITION_LEVELS_ORDERED.map((level) => {
                     const def = AMBITION_DEFINITIONS[level];
-                    const timeHint = getRunningTimeHint(objectif, level);
+                    const timeHint = getRunningTimeHint(objectif, level, sexe === "F" ? "F" : "M");
                     return (
                       <SelectItem key={level} value={level}>
                         <span className="flex items-center gap-2">
@@ -250,7 +250,7 @@ export default function AthleteEditPage() {
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <span className={ambitionDef.color}>{ambitionDef.icon}</span>
                 {(() => {
-                  const hint = getRunningTimeHint(objectif, ambition);
+                  const hint = getRunningTimeHint(objectif, ambition, sexe === "F" ? "F" : "M");
                   return hint 
                     ? <>{ambitionDef.description} — <span className="font-medium">{hint}</span></>
                     : ambitionDef.description;
