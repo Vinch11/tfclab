@@ -317,6 +317,8 @@ export function SavedPlanCalendar() {
           <p className="text-xs text-center text-muted-foreground">
             Semaine {weekOffset + 1} / {allWeeks.length} • Cliquez sur une séance pour la modifier
           </p>
+
+          <PlanHistory />
         </CardContent>
       </Card>
 
