@@ -11,6 +11,7 @@ import { History, Trash2, Loader2, Calendar, RotateCcw } from "lucide-react";
 import { format, parseISO, startOfWeek, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";
@@ -19,6 +20,10 @@ import {
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
   AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
+import {
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface PlanVersion {
   id: string;
