@@ -70,6 +70,10 @@ function normalizeObjKey(obj: string): string {
   if (lower.includes("semi")) return "Semi";
   if (lower.includes("marathon")) return "Marathon";
   if (lower.includes("trail") && lower.includes("ultra")) return "TrailUltra";
+  if (lower.includes("trail") && (lower.includes("montagne") || lower.includes("mountain"))) return "TrailMountain";
+  if (lower.includes("trail") && (lower.includes("court") || lower.includes("short"))) return "TrailShort";
+  if (lower.includes("trailmountain")) return "TrailMountain";
+  if (lower.includes("trailshort")) return "TrailShort";
   if (lower.includes("trail")) return "Trail";
   if (lower.includes("10")) return "10K";
   if (lower.includes("5k") || lower === "5km") return "5K";
