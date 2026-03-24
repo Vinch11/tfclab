@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
-export type Theme = "dark" | "classic" | "endurance" | "neon" | "aube" | "cryo" | "performance" | "nature";
+export type Theme = "dark" | "light";
 
 export const THEME_CONFIG: Record<Theme, { label: string; icon: string; description: string }> = {
   dark: {
@@ -8,44 +8,14 @@ export const THEME_CONFIG: Record<Theme, { label: string; icon: string; descript
     icon: "🌙",
     description: "Fond noir, reposant pour les yeux",
   },
-  classic: {
-    label: "Classique",
-    icon: "🏛️",
-    description: "Bleu marine et or, professionnel",
-  },
-  endurance: {
-    label: "Endurance",
-    icon: "🏃",
-    description: "Tons terreux évoquant trail/nature",
-  },
-  neon: {
-    label: "Néon Sport",
-    icon: "⚡",
-    description: "Style cyberpunk/gaming intense",
-  },
-  aube: {
-    label: "Aube",
-    icon: "🌅",
-    description: "Couleurs chaudes motivantes",
-  },
-  cryo: {
-    label: "Cryo",
-    icon: "🧊",
-    description: "Minimaliste froid et technique",
-  },
-  performance: {
-    label: "Performance",
-    icon: "🔥",
-    description: "Énergie et puissance",
-  },
-  nature: {
-    label: "Nature",
-    icon: "🌲",
-    description: "Calme et récupération",
+  light: {
+    label: "Clair",
+    icon: "☀️",
+    description: "Fond clair, professionnel",
   },
 };
 
-export const THEME_ORDER: Theme[] = ["dark", "classic", "endurance", "neon", "aube", "cryo", "performance", "nature"];
+export const THEME_ORDER: Theme[] = ["dark", "light"];
 
 interface ThemeContextType {
   theme: Theme;
@@ -67,9 +37,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const root = document.documentElement;
-    // Remove all theme classes
     THEME_ORDER.forEach((t) => root.classList.remove(t));
-    // Add current theme class
     root.classList.add(theme);
     localStorage.setItem("theme", theme);
   }, [theme]);
@@ -77,9 +45,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const setTheme = (newTheme: Theme) => setThemeState(newTheme);
   
   const toggleTheme = () => {
-    const currentIndex = THEME_ORDER.indexOf(theme);
-    const nextIndex = (currentIndex + 1) % THEME_ORDER.length;
-    setThemeState(THEME_ORDER[nextIndex]);
+    setThemeState(theme === "dark" ? "light" : "dark");
   };
 
   return (
