@@ -48,7 +48,7 @@ export function SidebarLayout({
             <SidebarTrigger className="-ml-1 touch-target hidden md:flex" />
             
             {/* Mobile: show app title */}
-            <span className="md:hidden text-sm font-bold text-foreground truncate">2FC Lab</span>
+            <span className="md:hidden text-sm font-bold text-foreground truncate">TFCLab</span>
             
             {/* Staff mode indicator badge - compact on mobile */}
             {staffMode && (
