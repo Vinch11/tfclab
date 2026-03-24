@@ -3098,6 +3098,8 @@ function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number): strin
   const ambKey = normalizeAmbKey(config?.ambition || "");
   lines.push(`🎯 Objectif: ${config?.objective || "N/A"} (normalisé: ${objKey})`);
   lines.push(`🏅 Ambition: ${config?.ambition || "N/A"} (normalisé: ${ambKey})`);
+  const diagTimeTarget = getTimeTargetHint(config?.objective || "", config?.ambition || "", config?._athleteSex);
+  if (diagTimeTarget) lines.push(`🎯 Temps cible: ${diagTimeTarget}`);
   
   // Limiters (structured, ranked)
   if (config?.identifiedLimiters && config.identifiedLimiters.length > 0) {
