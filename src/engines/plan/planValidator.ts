@@ -8,10 +8,6 @@
  * 3. Key sessions presence per week
  * 4. Volume progression across weeks
  * 5. Sport ratio coherence
- * 6. Catalog adherence (TFCL™ IDs vs [Custom])
- * 7. Race day presence in race week
- * 8. Weekly structure completeness (7-day coverage)
- * 9. Rest day presence
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
@@ -50,12 +46,6 @@ export interface WeekMetrics {
   isRaceWeek: boolean;
   /** Key sessions count (🔑 or intensity sessions) */
   keySessions: number;
-  /** Unique day indices covered by sessions */
-  coveredDays: number;
-  /** Has at least one rest-only day */
-  hasRestDay: boolean;
-  /** Has a race day session (🏁 or "course"/"race" sport with race indicators) */
-  hasRaceDaySession: boolean;
 }
 
 export interface PlanValidationResult {
@@ -70,9 +60,6 @@ export interface PlanValidationResult {
     progressionScore: number;
     sportRatioScore: number;
     catalogRatioScore: number;
-    structureScore: number;
-    limiterAlignmentScore: number;
-    raceContentSeparationScore: number;
     overallComment: string;
   };
 }
@@ -82,27 +69,23 @@ export interface PlanValidationResult {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const LOW_INTENSITY_PATTERNS = /z[12]|endurance|ef\b|footing|récup|recovery|easy|facile|aérobie|z2|zone\s*[12]|fondament|repos actif|régénér|souplesse|mobilité|technique|drill|gammes|éducatif/i;
-const MID_INTENSITY_PATTERNS = /z3|tempo\b|allure\s*marathon|zone\s*3|endurance\s*active|fartlek\s*léger/i;
-const HIGH_INTENSITY_PATTERNS = /z[4-7]|seuil|threshold|vo2|vma|interval|fractionné|sprint|hiit|30\/30|pma|over.under|norvégienne|billat|canova|race.pace|race.sim|compétition|course\b.*\brace|🏁|force\s*max|plio|rønnestad|sfr|côtes?\s*\d|sweet\s*spot/i;
+const MID_INTENSITY_PATTERNS = /z3|tempo\b|allure\s*marathon|sweet\s*spot|zone\s*3|endurance\s*active|fartlek\s*léger/i;
+const HIGH_INTENSITY_PATTERNS = /z[4-7]|seuil|threshold|vo2|vma|interval|fractionné|sprint|hiit|30\/30|pma|over.under|norvégienne|billat|canova|race.pace|race.sim|compétition|course\b.*\brace|🏁|force\s*max|plio|rønnestad|sfr|côtes?\s*\d/i;
 const KEY_SESSION_PATTERNS = /🔑|clé|key|séance\s*clé|interval|seuil|vo2|vma|sortie\s*longue|sl\b|long\s*run|brick|race.sim|test|compétition|🏁/i;
 const DELOAD_PATTERNS = /décharge|deload|récup|recovery|repos|allégé|réduit|taper|affûtage|régénér/i;
-// Race week: only weeks that explicitly mention race/course/compétition — NOT affûtage (which is taper/deload)
-const RACE_PATTERNS = /🏁|jour\s*(de\s*)?course|race\s*day|race\s*week|semaine\s*(de\s*)?course|compétition|épreuve|jour\s*j/i;
-// Race day session: must have 🏁 or explicit "jour de course" — not just "compétition" in passing
-const RACE_DAY_PATTERNS = /🏁|jour\s*(de\s*)?course|jour\s*j|race\s*day/i;
-const RENFO_PATTERNS = /renfo|muscul|strength|ppg|gainage|core|poids|force\s*fonc|prévention|mobilité|stretching|étirement/i;
+const RACE_PATTERNS = /🏁|course\b|race|compétition|épreuve|objectif|marathon|ironman|triathlon|semi|trail|10k/i;
 
-function classifySessionIntensity(session: ParsedSession): "low" | "mid" | "high" | "renfo" {
+function classifySessionIntensity(session: ParsedSession): "low" | "mid" | "high" {
   const text = `${session.sport} ${session.title} ${session.details}`.toLowerCase();
   
   if (session.isRest) return "low";
   
-  // Renfo/strength sessions are outside the endurance intensity spectrum
-  if (RENFO_PATTERNS.test(text) && !/seuil|threshold|interval|vo2|vma|sprint/i.test(text)) return "renfo";
-  
   // Check high first (most specific patterns)
   if (HIGH_INTENSITY_PATTERNS.test(text)) return "high";
   if (MID_INTENSITY_PATTERNS.test(text)) return "mid";
+  
+  // Default: strength/renfo sessions count as mid, everything else as low
+  if (/renfo|muscul|strength|ppg|gainage|core|poids/i.test(text)) return "mid";
   
   return "low";
 }
@@ -111,12 +94,6 @@ function isKeySession(session: ParsedSession): boolean {
   if (session.isRest) return false;
   const text = `${session.title} ${session.details}`;
   return KEY_SESSION_PATTERNS.test(text);
-}
-
-function isRaceDaySession(session: ParsedSession): boolean {
-  if (session.isRest) return false;
-  const text = `${session.sport} ${session.title} ${session.details}`;
-  return RACE_DAY_PATTERNS.test(text);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -136,38 +113,25 @@ function extractWeekMetrics(week: ParsedWeek): WeekMetrics {
     sports[sport] = (sports[sport] || 0) + 1;
   }
 
-  // Intensity distribution (exclude renfo from polarization — it's outside the endurance spectrum)
+  // Intensity distribution
   let low = 0, mid = 0, high = 0;
   for (const s of activeSessions) {
     const intensity = classifySessionIntensity(s);
-    if (intensity === "renfo") continue; // Excluded from polarization
     if (intensity === "low") low++;
     else if (intensity === "mid") mid++;
     else high++;
   }
   const total = low + mid + high || 1;
 
-  // Deload detection — theme-based only, not session count (3 sessions can be normal for beginners)
+  // Deload detection
   const themeText = `${week.theme} ${week.phase}`.toLowerCase();
-  const isDeload = DELOAD_PATTERNS.test(themeText);
+  const isDeload = DELOAD_PATTERNS.test(themeText) || activeSessions.length <= 3;
 
-  // Race week detection — strict: only theme-based (session content matching "course" is too broad)
-  const isRaceWeek = RACE_PATTERNS.test(themeText);
+  // Race week detection
+  const isRaceWeek = week.sessions.some(s => RACE_PATTERNS.test(`${s.title} ${s.details}`));
 
   // Key sessions
   const keySessions = activeSessions.filter(isKeySession).length;
-
-  // Day coverage: unique day indices with sessions
-  const dayIndices = new Set(week.sessions.filter(s => s.dayIndex >= 0).map(s => s.dayIndex));
-  const coveredDays = dayIndices.size;
-
-  // Rest day: a day index where ONLY rest sessions exist
-  const activeDayIndices = new Set(activeSessions.filter(s => s.dayIndex >= 0).map(s => s.dayIndex));
-  const restOnlyDays = [...dayIndices].filter(d => !activeDayIndices.has(d));
-  const hasRestDay = restOnlyDays.length > 0 || restDays > 0;
-
-  // Race day session
-  const hasRaceDaySession = week.sessions.some(isRaceDaySession);
 
   return {
     weekNumber: week.weekNumber,
@@ -184,9 +148,6 @@ function extractWeekMetrics(week: ParsedWeek): WeekMetrics {
     isDeload,
     isRaceWeek,
     keySessions,
-    coveredDays,
-    hasRestDay,
-    hasRaceDaySession,
   };
 }
 
@@ -218,28 +179,21 @@ function validatePolarization(metrics: WeekMetrics[]): { issues: ValidationIssue
 
     const { lowPct, midPct, highPct } = wm.intensityProfile;
 
-    // With few endurance-spectrum sessions (< 4 excluding renfo), percentages are unreliable
-    const renfoCount = wm.sports["Renfo"] || 0;
-    const enduranceTotal = wm.activeSessions - renfoCount;
-    if (enduranceTotal < 4) {
-      compliant++;
-      continue;
-    }
-    
-    if (lowPct < 50) {
+    // Low should be 70-85%, high 15-25%, mid < 10% ideally
+    if (lowPct < 60) {
+      issues.push({
+        rule: "polarization",
+        severity: "error",
+        week: wm.weekNumber,
+        message: `S${wm.weekNumber}: Distribution non polarisée — seulement ${lowPct}% en Z1-Z2 (cible ≥ 75%)`,
+        detail: `Low: ${lowPct}%, Mid: ${midPct}%, High: ${highPct}%`,
+      });
+    } else if (lowPct < 70) {
       issues.push({
         rule: "polarization",
         severity: "warning",
         week: wm.weekNumber,
-        message: `S${wm.weekNumber}: Distribution non polarisée — ${lowPct}% en Z1-Z2 (cible ≥ 70%)`,
-        detail: `Low: ${lowPct}%, Mid: ${midPct}%, High: ${highPct}%`,
-      });
-    } else if (lowPct < 60) {
-      issues.push({
-        rule: "polarization",
-        severity: "info",
-        week: wm.weekNumber,
-        message: `S${wm.weekNumber}: Polarisation marginale — ${lowPct}% en Z1-Z2`,
+        message: `S${wm.weekNumber}: Polarisation marginale — ${lowPct}% en Z1-Z2 (recommandé ≥ 75%)`,
       });
       compliant += 0.5;
     } else {
@@ -437,11 +391,11 @@ function validateProgression(metrics: WeekMetrics[]): { issues: ValidationIssue[
 const SPORT_RATIO_TARGETS: Record<string, { swim?: [number, number]; bike?: [number, number]; run?: [number, number] }> = {
   IM:       { swim: [15, 20], bike: [45, 55], run: [25, 35] },
   "703":    { swim: [15, 20], bike: [40, 50], run: [30, 40] },
-  Marathon: { run: [75, 100] },
-  Semi:     { run: [75, 100] },
-  "10K":    { run: [80, 100] },
-  Trail:    { run: [65, 85] },
-  TrailUltra: { run: [60, 80] },
+  Marathon: { run: [85, 100] },
+  Semi:     { run: [85, 100] },
+  "10K":    { run: [85, 100] },
+  Trail:    { run: [70, 85] },
+  TrailUltra: { run: [65, 80] },
 };
 
 function validateSportRatio(
@@ -474,18 +428,9 @@ function validateSportRatio(
   const bikePct = Math.round((bikeAdj / primaryTotal) * 100);
   const runPct = Math.round((run / primaryTotal) * 100);
 
-  // Normalize objective to match SPORT_RATIO_TARGETS keys
-  const objLower = (objective || "").toLowerCase();
-  let targetKey: string | null = null;
-  if (/70\.3|703/.test(objLower)) targetKey = "703";
-  else if (/ironman|^im\b/i.test(objLower)) targetKey = "IM";
-  else if (/semi/i.test(objLower)) targetKey = "Semi";
-  else if (/marathon/i.test(objLower)) targetKey = "Marathon";
-  else if (/trail.*ultra|ultra.*trail|utmb|>80/i.test(objLower)) targetKey = "TrailUltra";
-  else if (/trail/i.test(objLower)) targetKey = "Trail";
-  else if (/10k|10km/i.test(objLower)) targetKey = "10K";
-  
-  const target = targetKey ? SPORT_RATIO_TARGETS[targetKey] : null;
+  // Find target ratios
+  const obj = (objective || "").replace(/\s/g, "");
+  const target = SPORT_RATIO_TARGETS[obj] || SPORT_RATIO_TARGETS[obj.toUpperCase()];
 
   if (!target) {
     // No specific target — just check basic diversity for triathlon-like plans
@@ -545,26 +490,23 @@ function validateSportRatio(
 // CATALOGUE/CUSTOM RATIO VALIDATION (Rule 6)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// Match catalog IDs like A_RUN_Z2_EASY, BRICK_703_RACE_SIM, V3_BRICK_IM_LONG, RS_TR_SIM_ULTRA
-// Keep it strict enough to avoid normal prose, but broad enough for the real TFCL catalog naming conventions.
-const CATALOG_ID_PATTERN = /(?:^|[\s🔑\[(])(?:[A-Z0-9]+_){1,7}[A-Z0-9]+\b/g;
+const CATALOG_ID_PATTERN = /\b[A-Z]{1,3}_(?:BIKE|RUN|SWIM|TR|STR|BR|RECOVERY)[A-Z0-9_]+/g;
 const CUSTOM_PATTERN = /\[Custom\]/gi;
 
 function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; score: number; catalogPct: number } {
   const issues: ValidationIssue[] = [];
   let catalogSessions = 0;
   let customSessions = 0;
-  let totalSessions = 0;
+  let totalKeySessions = 0;
 
   for (const week of plan.weeks) {
     for (const session of week.sessions) {
       if (session.isRest) continue;
       const text = `${session.title} ${session.details}`;
-      
-      // Skip pure rest/recovery sessions that don't need IDs
-      if (/^\s*(repos|rest|off|jour\s*off)\s*$/i.test(session.title.trim())) continue;
+      const isKey = KEY_SESSION_PATTERNS.test(text);
+      if (!isKey) continue;
 
-      totalSessions++;
+      totalKeySessions++;
       const hasCatalogId = CATALOG_ID_PATTERN.test(text);
       const isCustom = CUSTOM_PATTERN.test(text);
 
@@ -579,27 +521,27 @@ function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; sc
     }
   }
 
-  if (totalSessions === 0 || plan.weeks.length < 4) {
+  if (totalKeySessions === 0 || plan.weeks.length < 4) {
     return { issues: [], score: 70, catalogPct: 0 };
   }
 
-  const catalogPct = Math.round((catalogSessions / totalSessions) * 100);
-  const customPct = Math.round((customSessions / totalSessions) * 100);
+  const catalogPct = Math.round((catalogSessions / totalKeySessions) * 100);
+  const customPct = Math.round((customSessions / totalKeySessions) * 100);
   const untaggedPct = 100 - catalogPct - customPct;
 
   if (catalogPct < 50) {
     issues.push({
       rule: "catalog_ratio",
       severity: "warning",
-      message: `Seulement ${catalogPct}% des séances utilisent le catalogue TFCL™ (cible ≥80%)`,
-      detail: `Catalogue: ${catalogSessions}/${totalSessions}, Custom: ${customSessions}, Non-tagué: ${totalSessions - catalogSessions - customSessions}`,
+      message: `Seulement ${catalogPct}% de séances clés utilisent le catalogue TFCL™ (cible ≥80%)`,
+      detail: `Catalogue: ${catalogSessions}/${totalKeySessions}, Custom: ${customSessions}, Non-tagué: ${totalKeySessions - catalogSessions - customSessions}`,
     });
   } else if (catalogPct < 80) {
     issues.push({
       rule: "catalog_ratio",
       severity: "warning",
-      message: `${catalogPct}% des séances utilisent le catalogue (cible ≥80%)`,
-      detail: `Catalogue: ${catalogSessions}/${totalSessions}, Custom: ${customSessions}`,
+      message: `${catalogPct}% de séances clés utilisent le catalogue (cible ≥80%)`,
+      detail: `Catalogue: ${catalogSessions}/${totalKeySessions}, Custom: ${customSessions}`,
     });
   }
 
@@ -607,7 +549,7 @@ function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; sc
     issues.push({
       rule: "catalog_ratio",
       severity: "info",
-      message: `${untaggedPct}% des séances sans ID catalogue ni tag [Custom] — traçabilité réduite`,
+      message: `${untaggedPct}% de séances clés sans ID catalogue ni tag [Custom] — traçabilité réduite`,
     });
   }
 
@@ -616,389 +558,10 @@ function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; sc
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// STRUCTURE VALIDATION (Rules 7, 8, 9)
-// ═══════════════════════════════════════════════════════════════════════════════
-
-/** Rule 7: Race day must exist in race weeks (only require 🏁 on the LAST race week or weeks with explicit race session) */
-function validateRaceDay(metrics: WeekMetrics[]): { issues: ValidationIssue[]; score: number } {
-  const issues: ValidationIssue[] = [];
-  const raceWeeks = metrics.filter(m => m.isRaceWeek);
-
-  if (raceWeeks.length === 0) {
-    return { issues: [], score: 100 }; // No race weeks to validate
-  }
-
-  // Only the LAST race week (final race) strictly requires a 🏁 session.
-  // Earlier race weeks (B/C goals) get a softer warning instead of error.
-  const lastRaceWeek = raceWeeks[raceWeeks.length - 1];
-
-  let compliant = 0;
-  for (const wm of raceWeeks) {
-    if (!wm.hasRaceDaySession) {
-      const isLastRace = wm.weekNumber === lastRaceWeek.weekNumber;
-      if (isLastRace) {
-        issues.push({
-          rule: "race_day",
-          severity: "error",
-          week: wm.weekNumber,
-          message: `S${wm.weekNumber}: Semaine de course A sans séance "🏁 Jour de Course" détectée`,
-          detail: `Thème: "${wm.theme}". Le jour de la course principale DOIT contenir une entrée 🏁.`,
-        });
-      } else {
-        // B/C race weeks: softer warning
-        issues.push({
-          rule: "race_day",
-          severity: "warning",
-          week: wm.weekNumber,
-          message: `S${wm.weekNumber}: Semaine de course B/C sans séance 🏁 explicite`,
-          detail: `Thème: "${wm.theme}". Recommandé mais non obligatoire pour les objectifs secondaires.`,
-        });
-        compliant += 0.5;
-      }
-    } else {
-      compliant++;
-    }
-  }
-
-  const score = raceWeeks.length > 0 ? Math.round((compliant / raceWeeks.length) * 100) : 100;
-  return { issues, score };
-}
-
-/** Rule 8: Each week should cover 7 days */
-function validateWeeklyStructure(metrics: WeekMetrics[]): { issues: ValidationIssue[]; score: number } {
-  const issues: ValidationIssue[] = [];
-  let compliant = 0;
-
-  for (const wm of metrics) {
-    if (wm.coveredDays < 5) {
-      issues.push({
-        rule: "weekly_structure",
-        severity: "warning",
-        week: wm.weekNumber,
-        message: `S${wm.weekNumber}: Seulement ${wm.coveredDays}/7 jours couverts — structure incomplète`,
-        detail: `Un plan complet doit spécifier une activité ou repos pour chaque jour de la semaine.`,
-      });
-    } else {
-      compliant++;
-    }
-  }
-
-  const score = metrics.length > 0 ? Math.round((compliant / metrics.length) * 100) : 100;
-  return { issues, score };
-}
-
-/** Rule 9: Each non-deload week should have at least 1 rest day */
-function validateRestDays(metrics: WeekMetrics[]): { issues: ValidationIssue[]; score: number } {
-  const issues: ValidationIssue[] = [];
-  let compliant = 0;
-
-  for (const wm of metrics) {
-    if (wm.isDeload) {
-      compliant++;
-      continue;
-    }
-
-    if (!wm.hasRestDay) {
-      issues.push({
-        rule: "rest_day",
-        severity: "warning",
-        week: wm.weekNumber,
-        message: `S${wm.weekNumber}: Aucun jour de repos complet détecté — risque de surmenage`,
-        detail: `Recommandation: minimum 1 jour de repos complet par semaine.`,
-      });
-    } else {
-      compliant++;
-    }
-  }
-
-  const score = metrics.length > 0 ? Math.round((compliant / metrics.length) * 100) : 100;
-  return { issues, score };
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// PRE-RACE / RACE-DAY CONTENT SEPARATION VALIDATION (Rule 11)
-// ═══════════════════════════════════════════════════════════════════════════════
-
-const PRE_RACE_CONTENT_IN_RACE_DAY = /mini-?taper|\bopener\b|rappel nerveux|footing activation|activation nerveuse|activation pré-course|activation pre-course|\bj-[12]\b|veille de course|repos total|visualisation du parcours/i;
-const WORKOUT_PRESCRIPTION_IN_RACE_DAY = /(?:^|\s)\d+\s*(?:min|h)\b.*Z[1-6]|\bZ[1-6][a-b]?\b.*\br\s*=\s*\d+|\b\d+x\d+['"]?\s*(?:@|Z)/i;
-
-function validateRaceDayContentSeparation(
-  plan: ParsedPlan
-): { issues: ValidationIssue[]; score: number } {
-  const issues: ValidationIssue[] = [];
-  let raceDaySessions = 0;
-  let cleanSessions = 0;
-
-  for (const week of plan.weeks) {
-    for (const session of week.sessions) {
-      const text = `${session.sport} ${session.title} ${session.details}`;
-      const isRaceDay = /🏁|jour\s*(de\s*)?course|jour\s*j|race\s*day/i.test(text);
-      if (!isRaceDay) continue;
-
-      raceDaySessions++;
-      const details = session.details || "";
-      let hasIssue = false;
-
-      if (PRE_RACE_CONTENT_IN_RACE_DAY.test(details)) {
-        issues.push({
-          rule: "race_content_separation",
-          severity: "warning",
-          week: week.weekNumber,
-          message: `S${week.weekNumber}: Le jour de course contient du contenu pré-course (taper/opener/activation)`,
-          detail: `Les consignes J-2/J-1 doivent rester sur leurs séances respectives, pas sur le jour de course.`,
-        });
-        hasIssue = true;
-      }
-
-      if (WORKOUT_PRESCRIPTION_IN_RACE_DAY.test(details)) {
-        issues.push({
-          rule: "race_content_separation",
-          severity: "warning",
-          week: week.weekNumber,
-          message: `S${week.weekNumber}: Le jour de course contient des prescriptions d'entraînement (zones/intervalles)`,
-          detail: `Le jour de course doit contenir uniquement la stratégie (allure, pacing, ravitaillement), pas des séances.`,
-        });
-        hasIssue = true;
-      }
-
-      if (!hasIssue) cleanSessions++;
-    }
-  }
-
-  const score = raceDaySessions > 0 ? Math.round((cleanSessions / raceDaySessions) * 100) : 100;
-  return { issues, score };
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// LIMITER ALIGNMENT VALIDATION (Rule 10)
-// ═══════════════════════════════════════════════════════════════════════════════
-
-/**
- * Maps limiter keywords (from formatLimitersForPrompt) to expected session patterns.
- * If the plan's key sessions don't contain sessions targeting a limiter, it's flagged.
- */
-const LIMITER_SESSION_PATTERNS: Record<string, { label: string; patterns: RegExp }> = {
-  "VO2max": {
-    label: "VO2max / Moteur aérobie",
-    patterns: /vo2|vma|interval.*(?:3|4|5)\s*min|pma|30\/30|billat|norvégi|z5|zone\s*5|VO2max/i,
-  },
-  "FTP/kg": {
-    label: "FTP/kg / Seuil",
-    patterns: /ftp|seuil|threshold|sweet\s*spot|z4|zone\s*4|over.under|tempo\s*long|cruise/i,
-  },
-  "VLamax": {
-    label: "VLamax (réduction glycolytique)",
-    patterns: /z2|endurance\s*fond|ef\b|train\s*low|aérobie|zone\s*2|long\s*ride|sortie\s*longue|sl\b|sprint\s*ban|endurance|fondament/i,
-  },
-  "TTE": {
-    label: "TTE / Durabilité au seuil",
-    patterns: /tte|seuil\s*long|threshold\s*ext|sweet\s*spot|tempo|z3.*long|z4.*long|over.under|cruise\s*interval|endurance\s*active/i,
-  },
-  "Économie": {
-    label: "Économie de course",
-    patterns: /économie|economy|cadence|drill|éducatif|gammes|technique|foulée|strides|plio|force\s*pied|renfo.*pied|côtes?\s*court/i,
-  },
-  "FatMax": {
-    label: "FatMax / Oxydation lipidique",
-    patterns: /fatmax|fat\s*ox|train\s*low|z2\s*long|endurance\s*fond|jeûn|glycog|zone\s*2.*long|sortie\s*longue|sl\b|aérobie\s*long/i,
-  },
-  "Robustesse": {
-    label: "Robustesse / Durabilité",
-    patterns: /durabilit|robustesse|sortie\s*longue|sl\b|long\s*run|long\s*ride|brick|z2\s*long|endurance\s*long|fatigue\s*resist/i,
-  },
-};
-
-function detectLimiterFromPromptText(limiterText: string): string | null {
-  // Extract the metric name from formatted limiter strings
-  // e.g. "### Limiteur #1 — VO2max (Impact: 85.0/100)" → "VO2max"
-  // e.g. "🎯 LIMITEUR PRIMAIRE : VLamax trop haute" → "VLamax"
-  for (const metric of Object.keys(LIMITER_SESSION_PATTERNS)) {
-    if (limiterText.includes(metric)) return metric;
-  }
-  // Also match common French labels
-  if (/moteur\s*aérobie/i.test(limiterText)) return "VO2max";
-  if (/glycolytique|vlamax/i.test(limiterText)) return "VLamax";
-  if (/durabilité|robustesse/i.test(limiterText)) return "Robustesse";
-  if (/économie/i.test(limiterText)) return "Économie";
-  if (/fatmax|lipid/i.test(limiterText)) return "FatMax";
-  if (/tte|seuil/i.test(limiterText)) return "TTE";
-  if (/ftp/i.test(limiterText)) return "FTP/kg";
-  return null;
-}
-
-function validateLimiterAlignment(
-  metrics: WeekMetrics[],
-  plan: ParsedPlan,
-  identifiedLimiters?: string[]
-): { issues: ValidationIssue[]; score: number; details: Record<string, { found: number; total: number }> } {
-  const issues: ValidationIssue[] = [];
-  const details: Record<string, { found: number; total: number }> = {};
-
-  if (!identifiedLimiters || identifiedLimiters.length === 0) {
-    return { issues: [], score: 100, details };
-  }
-
-  // Extract unique limiter metrics from the prompt text (ordered by priority)
-  const detectedMetrics: string[] = [];
-  for (const text of identifiedLimiters) {
-    const metric = detectLimiterFromPromptText(text);
-    if (metric && !detectedMetrics.includes(metric)) {
-      detectedMetrics.push(metric);
-    }
-  }
-
-  if (detectedMetrics.length === 0) {
-    return { issues: [], score: 100, details };
-  }
-
-  // ── Split plan into Lorang bloc phases (Fondation / Chantier L1 / Consolidation L2 / Race-Spec) ────
-  const loadWeeks = metrics.filter(m => !m.isDeload && !m.isRaceWeek);
-  const totalLoadWeeks = loadWeeks.length || 1;
-
-  // Lorang proportions: ~25% Fondation, ~30% Chantier L1, ~25% Consolidation L2, ~20% Race-Spec
-  const fondationEnd = Math.max(1, Math.ceil(loadWeeks.length * 0.25));
-  const chantierEnd = Math.max(fondationEnd + 1, Math.ceil(loadWeeks.length * 0.55));
-  const consolEnd = Math.max(chantierEnd + 1, Math.ceil(loadWeeks.length * 0.80));
-  const phases = {
-    fondation: loadWeeks.slice(0, fondationEnd),           // Reverse Perio + premières stimulations L1
-    chantier: loadWeeks.slice(fondationEnd, chantierEnd),  // Concentration L1
-    consolidation: loadWeeks.slice(chantierEnd, consolEnd), // L2 monte, L1 maintien
-    raceSpec: loadWeeks.slice(consolEnd),                   // Integration race-specific
-  };
-
-  // Helper: count weeks with matching sessions in a phase
-  function countMatchesInPhase(phaseWeeks: WeekMetrics[], pattern: RegExp): number {
-    let matches = 0;
-    for (const wm of phaseWeeks) {
-      const week = plan.weeks.find(w => w.weekNumber === wm.weekNumber);
-      if (!week) continue;
-      const hasMatch = week.sessions.some(s => {
-        if (s.isRest) return false;
-        const text = `${s.sport} ${s.title} ${s.details}`;
-        return pattern.test(text);
-      });
-      if (hasMatch) matches++;
-    }
-    return matches;
-  }
-
-  let totalScore = 0;
-  let totalWeight = 0;
-
-  for (let i = 0; i < Math.min(detectedMetrics.length, 3); i++) {
-    const metric = detectedMetrics[i];
-    const config = LIMITER_SESSION_PATTERNS[metric];
-    if (!config) continue;
-
-    const label = config.label;
-    const rank = i + 1; // 1 = primary, 2 = secondary, 3 = tertiary
-
-    // Count matches per Lorang phase
-    const fondationMatches = countMatchesInPhase(phases.fondation, config.patterns);
-    const chantierMatches = countMatchesInPhase(phases.chantier, config.patterns);
-    const consolMatches = countMatchesInPhase(phases.consolidation, config.patterns);
-    const raceSpecMatches = countMatchesInPhase(phases.raceSpec, config.patterns);
-    const totalMatches = fondationMatches + chantierMatches + consolMatches + raceSpecMatches;
-
-    details[metric] = { found: totalMatches, total: totalLoadWeeks };
-
-    // ── Chronological validation (Lorang Block Periodization) ─────────────────
-    // L1: Must DOMINATE in Fondation+Chantier (≥70%), present in Consolidation as rappel (≥30%)
-    // L2: Light in Fondation/Chantier, DOMINANT in Consolidation (≥60%)
-    // L3+: Addressed in Race-Specific or throughout (≥30% global)
-
-    const chantierPhasePct = (phases.fondation.length + phases.chantier.length) > 0
-      ? Math.round(((fondationMatches + chantierMatches) / (phases.fondation.length + phases.chantier.length)) * 100) : 0;
-    const consolPct = phases.consolidation.length > 0 ? Math.round((consolMatches / phases.consolidation.length) * 100) : 0;
-
-    if (rank === 1) {
-      // Primary limiter: must dominate Fondation+Chantier, maintained in Consolidation
-      const weight = 3;
-      totalWeight += weight;
-
-      if (chantierPhasePct < 50) {
-        issues.push({
-          rule: "limiter_alignment",
-          severity: chantierPhasePct < 30 ? "error" : "warning",
-          message: `Limiteur #1 "${label}" : seulement ${chantierPhasePct}% de couverture en Fondation+Chantier (cible ≥70%) — L1 doit DOMINER ces blocs`,
-          detail: `Fondation: ${fondationMatches}/${phases.fondation.length}, Chantier: ${chantierMatches}/${phases.chantier.length}, Consolidation: ${consolMatches}/${phases.consolidation.length}, Race-Spec: ${raceSpecMatches}/${phases.raceSpec.length}`,
-        });
-        totalScore += Math.min(100, chantierPhasePct * (100 / 70)) * weight * 0.5;
-      } else if (chantierPhasePct < 70) {
-        issues.push({
-          rule: "limiter_alignment",
-          severity: "warning",
-          message: `Limiteur #1 "${label}" : ${chantierPhasePct}% de couverture en Fondation+Chantier (cible ≥70%)`,
-          detail: `Fondation: ${fondationMatches}/${phases.fondation.length}, Chantier: ${chantierMatches}/${phases.chantier.length}, Consolidation: ${consolMatches}/${phases.consolidation.length}, Race-Spec: ${raceSpecMatches}/${phases.raceSpec.length}`,
-        });
-        totalScore += 70 * weight;
-      } else {
-        totalScore += 100 * weight;
-      }
-
-      // Check L1 doesn't disappear in Consolidation (non-regression principle)
-      if (consolPct < 20 && phases.consolidation.length >= 2) {
-        issues.push({
-          rule: "limiter_alignment",
-          severity: "warning",
-          message: `Limiteur #1 "${label}" : disparaît en Consolidation (${consolPct}%) — rappels de maintien obligatoires (non-régression Lorang)`,
-        });
-      }
-
-    } else if (rank === 2) {
-      // Secondary limiter: DOMINANT in Consolidation, light earlier
-      const weight = 2;
-      totalWeight += weight;
-
-      if (consolPct < 40) {
-        issues.push({
-          rule: "limiter_alignment",
-          severity: consolPct < 20 ? "error" : "warning",
-          message: `Limiteur #2 "${label}" : seulement ${consolPct}% de couverture en Consolidation (cible ≥60%) — L2 doit MONTER dans ce bloc`,
-          detail: `Fondation: ${fondationMatches}/${phases.fondation.length}, Chantier: ${chantierMatches}/${phases.chantier.length}, Consolidation: ${consolMatches}/${phases.consolidation.length}, Race-Spec: ${raceSpecMatches}/${phases.raceSpec.length}`,
-        });
-        totalScore += Math.min(100, consolPct * (100 / 60)) * weight * 0.5;
-      } else if (consolPct < 60) {
-        issues.push({
-          rule: "limiter_alignment",
-          severity: "warning",
-          message: `Limiteur #2 "${label}" : ${consolPct}% de couverture en Consolidation (cible ≥60%)`,
-        });
-        totalScore += 70 * weight;
-      } else {
-        totalScore += 100 * weight;
-      }
-
-    } else {
-      // Tertiary+ limiter: addressed in Race-Specific or globally
-      const weight = 1;
-      totalWeight += weight;
-      const globalPct = Math.round((totalMatches / totalLoadWeeks) * 100);
-
-      if (globalPct < 25) {
-        issues.push({
-          rule: "limiter_alignment",
-          severity: "warning",
-          message: `Limiteur #${rank} "${label}" : ${globalPct}% de couverture globale (cible ≥40%) — intégrer en bloc Race-Specific`,
-          detail: `Fondation: ${fondationMatches}/${phases.fondation.length}, Chantier: ${chantierMatches}/${phases.chantier.length}, Consolidation: ${consolMatches}/${phases.consolidation.length}, Race-Spec: ${raceSpecMatches}/${phases.raceSpec.length}`,
-        });
-        totalScore += Math.min(100, globalPct * (100 / 40)) * weight * 0.5;
-      } else {
-        totalScore += Math.min(100, globalPct * (100 / 40)) * weight;
-      }
-    }
-  }
-
-  const score = totalWeight > 0 ? Math.round(totalScore / (totalWeight * 100) * 100) : 100;
-  return { issues, score: Math.min(100, Math.max(0, score)), details };
-}
-
-
-
 // MAIN VALIDATOR
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export function validatePlan(plan: ParsedPlan, objective?: string, identifiedLimiters?: string[]): PlanValidationResult {
+export function validatePlan(plan: ParsedPlan, objective?: string): PlanValidationResult {
   // Extract metrics for each week
   const weekMetrics = plan.weeks.map(extractWeekMetrics);
 
@@ -1009,18 +572,6 @@ export function validatePlan(plan: ParsedPlan, objective?: string, identifiedLim
   const progression = validateProgression(weekMetrics);
   const sportRatio = validateSportRatio(weekMetrics, objective);
   const catalogRatio = validateCatalogRatio(plan);
-  const raceDay = validateRaceDay(weekMetrics);
-  const weeklyStructure = validateWeeklyStructure(weekMetrics);
-  const restDays = validateRestDays(weekMetrics);
-  const limiterAlignment = validateLimiterAlignment(weekMetrics, plan, identifiedLimiters);
-  const raceContentSeparation = validateRaceDayContentSeparation(plan);
-
-  // Combine structure scores (Rules 7+8+9)
-  const structureScore = Math.round(
-    raceDay.score * 0.40 +
-    weeklyStructure.score * 0.30 +
-    restDays.score * 0.30
-  );
 
   // Combine all issues
   const allIssues = [
@@ -1030,49 +581,24 @@ export function validatePlan(plan: ParsedPlan, objective?: string, identifiedLim
     ...progression.issues,
     ...sportRatio.issues,
     ...catalogRatio.issues,
-    ...raceDay.issues,
-    ...weeklyStructure.issues,
-    ...restDays.issues,
-    ...limiterAlignment.issues,
-    ...raceContentSeparation.issues,
   ];
 
-  // Has limiters? Include limiter alignment in scoring
-  const hasLimiters = identifiedLimiters && identifiedLimiters.length > 0;
-
-  // Weighted score (9 rule groups when limiters are present)
-  const weights = hasLimiters ? {
-    polarization: 0.14,
-    loadPattern: 0.15,
-    keySessions: 0.13,
-    progression: 0.09,
-    sportRatio: 0.08,
-    catalogRatio: 0.06,
-    structure: 0.11,
-    limiterAlignment: 0.16,
-    raceContentSeparation: 0.08,
-  } : {
-    polarization: 0.18,
-    loadPattern: 0.16,
-    keySessions: 0.16,
-    progression: 0.11,
-    sportRatio: 0.09,
-    catalogRatio: 0.06,
-    structure: 0.14,
-    limiterAlignment: 0,
-    raceContentSeparation: 0.10,
+  // Weighted score (6 rules now)
+  const weights = {
+    polarization: 0.25,
+    loadPattern: 0.20,
+    keySessions: 0.20,
+    progression: 0.15,
+    sportRatio: 0.10,
+    catalogRatio: 0.10,
   };
-
   const weightedScore = Math.round(
     polarization.score * weights.polarization +
     loadPattern.score * weights.loadPattern +
     keySessions.score * weights.keySessions +
     progression.score * weights.progression +
     sportRatio.score * weights.sportRatio +
-    catalogRatio.score * weights.catalogRatio +
-    structureScore * weights.structure +
-    limiterAlignment.score * weights.limiterAlignment +
-    raceContentSeparation.score * weights.raceContentSeparation
+    catalogRatio.score * weights.catalogRatio
   );
 
   // Grade
@@ -1099,14 +625,10 @@ export function validatePlan(plan: ParsedPlan, objective?: string, identifiedLim
       progressionScore: progression.score,
       sportRatioScore: sportRatio.score,
       catalogRatioScore: catalogRatio.score,
-      structureScore,
-      limiterAlignmentScore: limiterAlignment.score,
-      raceContentSeparationScore: raceContentSeparation.score,
       overallComment,
     },
   };
 }
-
 
 /**
  * Format validation result as a human-readable markdown string
@@ -1124,11 +646,6 @@ export function formatValidationReport(result: PlanValidationResult): string {
   lines.push(`| Progression volume | ${result.summary.progressionScore}/100 | ${result.summary.progressionScore >= 75 ? "✅" : result.summary.progressionScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push(`| Ratio sportif | ${result.summary.sportRatioScore}/100 | ${result.summary.sportRatioScore >= 75 ? "✅" : result.summary.sportRatioScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push(`| Catalogue TFCL™ | ${result.summary.catalogRatioScore}/100 | ${result.summary.catalogRatioScore >= 75 ? "✅" : result.summary.catalogRatioScore >= 50 ? "⚠️" : "❌"} |`);
-  lines.push(`| Structure (Race/Jours/Repos) | ${result.summary.structureScore}/100 | ${result.summary.structureScore >= 75 ? "✅" : result.summary.structureScore >= 50 ? "⚠️" : "❌"} |`);
-  if (result.summary.limiterAlignmentScore > 0) {
-    lines.push(`| Cohérence Limiteurs | ${result.summary.limiterAlignmentScore}/100 | ${result.summary.limiterAlignmentScore >= 75 ? "✅" : result.summary.limiterAlignmentScore >= 50 ? "⚠️" : "❌"} |`);
-  }
-  lines.push(`| Séparation Pré-course/Course | ${result.summary.raceContentSeparationScore}/100 | ${result.summary.raceContentSeparationScore >= 75 ? "✅" : result.summary.raceContentSeparationScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push("");
   lines.push(`**${result.summary.overallComment}**`);
 

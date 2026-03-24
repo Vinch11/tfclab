@@ -11,7 +11,6 @@ import {
   Footprints, Moon, FileText, Zap, Save, Loader2, CheckCircle2,
   RefreshCw, Printer, Target, ArrowRight, Sparkles, AlertTriangle,
 } from "lucide-react";
-import { Flag, ClipboardList, MessageSquare } from "lucide-react";
 import { format, addDays, startOfWeek } from "date-fns";
 import { fr } from "date-fns/locale";
 import type { ParsedPlan, ParsedWeek, ParsedSession, StrategicRecap } from "@/lib/aiPlanParser";
@@ -258,17 +257,6 @@ interface SessionCardProps {
   date?: Date;
 }
 
-/** Strip catalog IDs like "ID: ENR_RUN_BILLAT_30_30" or "(A_RUN_Z2_EASY)" from display text */
-function stripCatalogId(text: string): string {
-  return text
-    // "ID : ENR_RUN_BILLAT_30_30" or "ID: ABC_123"
-    .replace(/\bID\s*:\s*[A-Z0-9_]+\b/gi, "")
-    // "(ENR_RUN_Z2)" parenthesized catalog codes
-    .replace(/\(\s*[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\s*\)/g, "")
-    .replace(/\s{2,}/g, " ")
-    .trim();
-}
-
 function SessionCard({ session, date }: SessionCardProps) {
   const [expanded, setExpanded] = useState(false);
 
@@ -294,35 +282,10 @@ function SessionCard({ session, date }: SessionCardProps) {
         {date && <span className="text-xs text-muted-foreground">{format(date, "d MMM", { locale: fr })}</span>}
         <Badge variant="outline" className="text-[10px] ml-auto">{session.sport}</Badge>
       </div>
-      <p className="text-sm font-semibold mt-1">{stripCatalogId(session.title)}</p>
-      {expanded && session.raceBlocks ? (
-        <div className="mt-2 space-y-2 border-t border-current/10 pt-2">
-          {session.raceBlocks.preCourse && (
-            <div className="p-2 rounded bg-amber-500/10 border border-amber-500/20">
-              <p className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1 mb-1">
-                <ClipboardList className="h-3 w-3" /> Pré-course
-              </p>
-              <p className="text-xs text-muted-foreground whitespace-pre-wrap">{stripCatalogId(session.raceBlocks.preCourse)}</p>
-            </div>
-          )}
-          <div className="p-2 rounded bg-emerald-500/10 border border-emerald-500/20">
-            <p className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mb-1">
-              <Flag className="h-3 w-3" /> Jour de course
-            </p>
-            <p className="text-xs text-muted-foreground whitespace-pre-wrap">{stripCatalogId(session.raceBlocks.jourDeCourse)}</p>
-          </div>
-          {session.raceBlocks.consignesCoach && (
-            <div className="p-2 rounded bg-primary/5 border border-primary/20">
-              <p className="text-[10px] font-semibold text-primary flex items-center gap-1 mb-1">
-                <MessageSquare className="h-3 w-3" /> Consignes coach
-              </p>
-              <p className="text-xs text-muted-foreground whitespace-pre-wrap">{stripCatalogId(session.raceBlocks.consignesCoach)}</p>
-            </div>
-          )}
-        </div>
-      ) : expanded && session.details && (
+      <p className="text-sm font-semibold mt-1">{session.title}</p>
+      {expanded && session.details && (
         <p className="text-xs text-muted-foreground mt-2 whitespace-pre-wrap leading-relaxed border-t border-current/10 pt-2">
-          {stripCatalogId(session.details)}
+          {session.details}
         </p>
       )}
     </div>
@@ -442,73 +405,6 @@ function WeekView({ week, startDate }: WeekViewProps) {
   );
 }
 
-/** Dedicated panel showing race-day consignes grouped by objective */
-function RaceDayConsignesPanel({ plan }: { plan: ParsedPlan }) {
-  const raceSessionsByObjective = useMemo(() => {
-    const groups: { label: string; priority: string; weekNumber: number; blocks: NonNullable<ParsedSession["raceBlocks"]> }[] = [];
-    for (const week of plan.weeks) {
-      for (const session of week.sessions) {
-        if (!session.raceBlocks) continue;
-        const titleMatch = session.title.match(/JOUR DE COURSE(?:\s*\[([ABC])\])?\s*[—-]\s*(.+)/i);
-        const priority = titleMatch?.[1] || "A";
-        const label = titleMatch?.[2]?.trim() || session.title;
-        groups.push({ label, priority, weekNumber: week.weekNumber, blocks: session.raceBlocks });
-      }
-    }
-    return groups;
-  }, [plan]);
-
-  if (raceSessionsByObjective.length === 0) return null;
-
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <Flag className="h-4 w-4 text-primary" />
-          Consignes de course
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {raceSessionsByObjective.map((entry, idx) => (
-          <div key={idx} className="p-3 rounded-lg border border-border space-y-2">
-            <div className="flex items-center gap-2 flex-wrap">
-              <Badge className="text-[10px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30">
-                {entry.priority === "A" ? "🅰️" : entry.priority === "B" ? "🅱️" : "🆎"} {entry.label}
-              </Badge>
-              <span className="text-[10px] text-muted-foreground">Semaine {entry.weekNumber}</span>
-            </div>
-
-            {entry.blocks.preCourse && (
-              <div className="p-2 rounded bg-amber-500/10 border border-amber-500/20">
-                <p className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1 mb-1">
-                  <ClipboardList className="h-3 w-3" /> Pré-course (J-2 / J-1)
-                </p>
-                <p className="text-xs text-muted-foreground whitespace-pre-wrap">{entry.blocks.preCourse}</p>
-              </div>
-            )}
-
-            <div className="p-2 rounded bg-emerald-500/10 border border-emerald-500/20">
-              <p className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mb-1">
-                <Flag className="h-3 w-3" /> Stratégie jour de course
-              </p>
-              <p className="text-xs text-muted-foreground whitespace-pre-wrap">{entry.blocks.jourDeCourse}</p>
-            </div>
-
-            {entry.blocks.consignesCoach && (
-              <div className="p-2 rounded bg-primary/5 border border-primary/20">
-                <p className="text-[10px] font-semibold text-primary flex items-center gap-1 mb-1">
-                  <MessageSquare className="h-3 w-3" /> Consignes coach de semaine
-                </p>
-                <p className="text-xs text-muted-foreground whitespace-pre-wrap">{entry.blocks.consignesCoach}</p>
-              </div>
-            )}
-          </div>
-        ))}
-      </CardContent>
-    </Card>
-  );
-}
-
 interface AIPlanViewerProps {
   plan: ParsedPlan;
   startDate?: Date;
@@ -585,9 +481,6 @@ export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved,
 
       {/* Volume Evolution Chart */}
       <AIPlanVolumeChart plan={plan} />
-
-      {/* Race Day Consignes — Summary panel per objective */}
-      <RaceDayConsignesPanel plan={plan} />
 
       {/* View Controls */}
       <div className="flex items-center gap-2">

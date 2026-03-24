@@ -34,11 +34,10 @@ import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, type
 import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition } from "@/types/ambitionLevel";
-import { parseAIPlan, mapSessionsToDates, type ParsedPlan, type ParsedWeek } from "@/lib/aiPlanParser";
+import { parseAIPlan, mapSessionsToDates, type ParsedPlan } from "@/lib/aiPlanParser";
 import { AIPlanViewer } from "@/components/AIPlanViewer";
 import { AIPlanComparison } from "@/components/AIPlanComparison";
 import { AIPlanBenchmark } from "@/components/AIPlanBenchmark";
-import { PlanQualityReport } from "@/components/PlanQualityReport";
 import { RacePaceSimulation } from "@/components/RacePaceSimulation";
 import { AdaptationProjectionSummary } from "@/components/AdaptationProjectionSummary";
 import { LimiterHierarchyEditor } from "@/components/LimiterHierarchyEditor";
@@ -374,310 +373,9 @@ export default function AITrainingPlanPage() {
     if (!response || isLoading) return null;
     try {
       const plan = parseAIPlan(response);
-
-      const enforceRaceDays = (weeks: ParsedWeek[]): ParsedWeek[] => {
-        type RaceAnchor = {
-          raceDate: string;
-          raceName?: string;
-          objective: string;
-          priority: "A" | "B" | "C";
-        };
-
-        const configuredGoals: RaceAnchor[] = [];
-
-        if (raceDate) {
-          configuredGoals.push({
-            raceDate,
-            raceName,
-            objective,
-            priority: "A",
-          });
-        }
-
-        for (const goal of raceGoals) {
-          if (!goal.raceDate) continue;
-          configuredGoals.push({
-            raceDate: goal.raceDate,
-            raceName: goal.raceName,
-            objective: goal.objective,
-            priority: goal.priority,
-          });
-        }
-
-        if (configuredGoals.length === 0) return weeks;
-
-        try {
-          const start = startOfDay(planStartDate);
-          const dayNames = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
-          const isPlaceholderWeek = (week: ParsedWeek) => {
-            const meta = `${week.theme} ${week.coachNotes ?? ""}`;
-            return /non générée|manquante|régénérer/i.test(meta)
-              || week.sessions.every((session) => session.isRest && /⚠️|régénérer/i.test(`${session.title} ${session.details}`));
-          };
-
-          const nextWeeks = weeks.map((week) => ({
-            ...week,
-            sessions: [...week.sessions],
-          }));
-
-          const findTargetWeek = (targetWeekNumber: number) => {
-            const realWeeks = nextWeeks.filter((week) => !isPlaceholderWeek(week));
-            return realWeeks.find((week) => week.weekNumber === targetWeekNumber)
-              ?? realWeeks[targetWeekNumber - 1]
-              ?? realWeeks[realWeeks.length - 1]
-              ?? nextWeeks.find((week) => week.weekNumber === targetWeekNumber)
-              ?? nextWeeks[Math.min(Math.max(targetWeekNumber - 1, 0), Math.max(nextWeeks.length - 1, 0))];
-          };
-
-          const isRaceLikeSession = (session: ParsedWeek["sessions"][number]) =>
-            /🏁|jour de course|course/i.test(`${session.sport} ${session.title} ${session.details}`);
-
-          const isRaceNoiseLine = (line: string) =>
-            /mini-?taper|\bopener\b|rappel nerveux|footing activation|activation nerveuse|d_taper_|d[_-].*opener|pré-course|pre-course|\bj-[12]\b|veille de course|repos total|visualisation du parcours|activation pré-course|activation pre-course/i.test(line);
-
-          const isWorkoutPrescriptionLine = (line: string) =>
-            /(?:^|\s)\d+\s*(?:min|h)\b|\bZ[1-6][a-b]?\b|\br\s*=\s*\d+|\b\d+x\d+|\b\d+x\d+'|\b\d+x\d+"|\b\d+'\s*Z|\b\d+"\s*Z|@allure|\b30\/30\b|\b40\/20\b/i.test(line);
-
-          const stripGenericRaceFallback = (text?: string | null) =>
-            (text ?? "")
-              .split("\n")
-              .map((line) => line.trim())
-              .filter(Boolean)
-              .filter((line) => !/imposée automatiquement|imposee automatiquement|absente de la semaine générée|absente de la semaine generee/i.test(line))
-              .join("\n")
-              .trim();
-
-          const sanitizeRaceDetails = (text?: string | null) =>
-            stripGenericRaceFallback(text)
-              .split("\n")
-              .map((line) => line.trim())
-              .filter(Boolean)
-              .filter((line) => !isRaceNoiseLine(line))
-              .join("\n")
-              .trim();
-
-          const extractRaceStrategyDetails = (text?: string | null) =>
-            sanitizeRaceDetails(text)
-              .split("\n")
-              .map((line) => line.trim())
-              .filter(Boolean)
-              .filter((line) => !isWorkoutPrescriptionLine(line))
-              .filter((line) => /(allure cible|pacing|ravito|nutrition|hydrat|stratég|strategie|échauff|echauff|départ|depart|objectif|compétition|competition|course)/i.test(line))
-              .join("\n")
-              .trim();
-
-          const mergeRaceDetails = (...parts: Array<string | undefined>) =>
-            Array.from(
-              new Set(
-                parts
-                  .flatMap((part) => (part ?? "").split("\n"))
-                  .map((line) => line.trim())
-                  .filter(Boolean)
-              )
-            ).join("\n");
-
-          const extractRaceContext = (
-            targetWeek: ParsedWeek,
-            raceLabel: string,
-            priority: RaceAnchor["priority"],
-            targetWeekNumber: number
-          ) => {
-            const labelTokens = raceLabel
-              .toLowerCase()
-              .split(/[^\p{L}\p{N}]+/u)
-              .filter((token) => token.length > 2);
-
-            const isRelevantRaceText = (text: string) => {
-              const lower = text.toLowerCase();
-              if (labelTokens.some((token) => lower.includes(token))) return true;
-              if (priority !== "A" && lower.includes(`objectif ${priority.toLowerCase()}`)) return true;
-              if (isRaceNoiseLine(lower)) return false;
-              if (isWorkoutPrescriptionLine(text)) return false;
-              return /(allure cible|pacing|nutrition|ravito|stratég|strategie|echauff|échauff|départ|depart|course|objectif|compétition|competition)/i.test(text);
-            };
-
-            const snippets = [
-              extractRaceStrategyDetails(targetWeek.coachNotes),
-              ...targetWeek.sessions
-                .filter(isRaceLikeSession)
-                .flatMap((session) => [extractRaceStrategyDetails(session.title), extractRaceStrategyDetails(session.details)]),
-            ].filter(Boolean).filter(isRelevantRaceText);
-
-            return Array.from(new Set(snippets)).join("\n").trim();
-          };
-
-          const buildProfessionalRaceDetails = (
-            goal: RaceAnchor,
-            raceLabel: string,
-            targetWeek: ParsedWeek,
-            targetDayIndex: number,
-            race: Date
-          ) => {
-            const objectiveLabel = goal.priority === "A" ? "Objectif principal" : `Objectif ${goal.priority}`;
-            const phaseLabel = targetWeek.phase?.trim();
-            const themeLabel = targetWeek.theme?.trim();
-
-            const lines = [
-              `${objectiveLabel} — ${raceLabel}.`,
-              `Compétition prévue le ${dayNames[targetDayIndex]} ${format(race, "dd/MM/yyyy")}${phaseLabel ? ` • ${phaseLabel}` : ""}.`,
-              goal.priority === "A"
-                ? "Aborder cette journée avec une stratégie précise d’allure, d’exécution et de ravitaillement adaptée à l’épreuve."
-                : "Traiter cette épreuve comme un jalon compétitif structuré avec consignes d’allure, d’exécution et de récupération post-course.",
-            ];
-
-            if (themeLabel && !/non générée|manquante|régénérer/i.test(themeLabel)) {
-              lines.push(`Repère de semaine : ${themeLabel}.`);
-            }
-
-            return lines.join("\n");
-          };
-
-          /** Extract structured race blocks from the week context */
-          const buildRaceBlocks = (
-            targetWeek: ParsedWeek,
-            raceLabel: string,
-            goal: RaceAnchor,
-            targetDayIndex: number,
-            race: Date,
-            existingDetails?: string
-          ) => {
-            const allLines = [
-              ...(targetWeek.coachNotes ?? "").split("\n"),
-              ...(existingDetails ?? "").split("\n"),
-              ...targetWeek.sessions.flatMap((s) => [s.title, s.details]),
-            ].map((l) => l?.trim()).filter(Boolean) as string[];
-
-            const cleanLines = allLines
-              .map(stripGenericRaceFallback)
-              .filter(Boolean);
-
-            const preCourseLines: string[] = [];
-            const jourDeCourseLines: string[] = [];
-            const consignesCoachLines: string[] = [];
-
-            for (const line of cleanLines) {
-              if (isRaceNoiseLine(line)) {
-                preCourseLines.push(line);
-                continue;
-              }
-              if (isWorkoutPrescriptionLine(line)) continue;
-
-              if (/(allure cible|pacing|ravito|nutrition|hydrat|stratég|strategie|exécution|execution|parcours|plan de course|départ|depart)/i.test(line)) {
-                jourDeCourseLines.push(line);
-              } else if (/(consigne|coach|objectif|semaine|volume|charge|récup|repos|adaptation)/i.test(line)) {
-                consignesCoachLines.push(line);
-              }
-            }
-
-            const dedup = (arr: string[]) => Array.from(new Set(arr));
-            const objectiveLabel = goal.priority === "A" ? "Objectif principal" : `Objectif ${goal.priority}`;
-            const phaseLabel = targetWeek.phase?.trim();
-
-            if (jourDeCourseLines.length === 0) {
-              jourDeCourseLines.push(
-                `${objectiveLabel} — ${raceLabel}.`,
-                `Compétition le ${dayNames[targetDayIndex]} ${format(race, "dd/MM/yyyy")}${phaseLabel ? ` • ${phaseLabel}` : ""}.`,
-                goal.priority === "A"
-                  ? "Stratégie d'allure, d'exécution et de ravitaillement adaptée à l'épreuve."
-                  : "Jalon compétitif : allure contrôlée, exécution et récupération post-course."
-              );
-            }
-
-            return {
-              preCourse: dedup(preCourseLines).join("\n") || undefined,
-              jourDeCourse: dedup(jourDeCourseLines).join("\n"),
-              consignesCoach: dedup(consignesCoachLines).join("\n") || undefined,
-            };
-          };
-
-          configuredGoals
-            .sort((a, b) => a.raceDate.localeCompare(b.raceDate))
-            .forEach((goal) => {
-              const race = startOfDay(parseISO(goal.raceDate));
-              const days = differenceInCalendarDays(race, start);
-              if (days < 0) return;
-
-              const targetWeekNumber = Math.floor(days / 7) + 1;
-              const jsDay = race.getDay();
-              const targetDayIndex = jsDay === 0 ? 6 : jsDay - 1;
-              const targetWeek = findTargetWeek(targetWeekNumber);
-              if (!targetWeek) return;
-
-              const raceLabel = goal.raceName || goal.objective || objective;
-              const sessionsWithoutTargetRest = targetWeek.sessions.filter(
-                (session) => !(session.dayIndex === targetDayIndex && session.isRest)
-              );
-
-              const raceSessions = sessionsWithoutTargetRest.filter(isRaceLikeSession);
-              const raceSessionOnTargetDay = raceSessions.find((session) => session.dayIndex === targetDayIndex);
-
-              if (raceSessionOnTargetDay) {
-                const blocks = buildRaceBlocks(targetWeek, raceLabel, goal, targetDayIndex, race, raceSessionOnTargetDay.details);
-                targetWeek.sessions = sessionsWithoutTargetRest.map((session) => {
-                  if (session !== raceSessionOnTargetDay) return session;
-
-                  return {
-                    ...session,
-                    title: session.title || `JOUR DE COURSE${goal.priority !== "A" ? ` [${goal.priority}]` : ""} — ${raceLabel}`,
-                    details: blocks.jourDeCourse,
-                    raceBlocks: blocks,
-                    isRest: false,
-                  };
-                });
-                return;
-              }
-
-              const existingRaceSession = raceSessions[0];
-
-              if (existingRaceSession) {
-                const blocks = buildRaceBlocks(targetWeek, raceLabel, goal, targetDayIndex, race, existingRaceSession.details);
-                targetWeek.sessions = [
-                  ...sessionsWithoutTargetRest.filter((session) => session !== existingRaceSession),
-                  {
-                    ...existingRaceSession,
-                    dayName: dayNames[targetDayIndex],
-                    dayIndex: targetDayIndex,
-                    title: existingRaceSession.title || `JOUR DE COURSE${goal.priority !== "A" ? ` [${goal.priority}]` : ""} — ${raceLabel}`,
-                    details: blocks.jourDeCourse,
-                    raceBlocks: blocks,
-                    isRest: false,
-                  },
-                ].sort((a, b) => a.dayIndex - b.dayIndex);
-                return;
-              }
-
-              const newBlocks = buildRaceBlocks(targetWeek, raceLabel, goal, targetDayIndex, race);
-              targetWeek.sessions = [
-                ...sessionsWithoutTargetRest,
-                {
-                  weekNumber: targetWeek.weekNumber,
-                  weekTheme: targetWeek.theme,
-                  phase: targetWeek.phase,
-                  dayName: dayNames[targetDayIndex],
-                  dayIndex: targetDayIndex,
-                  sport: "🏁 Course",
-                  title: `JOUR DE COURSE${goal.priority !== "A" ? ` [${goal.priority}]` : ""} — ${raceLabel}`,
-                  details: newBlocks.jourDeCourse,
-                  raceBlocks: newBlocks,
-                  isRest: false,
-                },
-              ].sort((a, b) => a.dayIndex - b.dayIndex);
-            });
-
-          return nextWeeks;
-        } catch {
-          return weeks;
-        }
-      };
-
-      const normalizedPlan = {
-        ...plan,
-        weeks: enforceRaceDays(plan.weeks),
-      };
-
-      return normalizedPlan.weeks.length > 0 ? normalizedPlan : null;
+      return plan.weeks.length > 0 ? plan : null;
     } catch { return null; }
-  }, [response, isLoading, raceDate, raceName, raceGoals, objective, planStartDate]);
+  }, [response, isLoading]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD PLAN CONFIG — Delegates to Plan Engine
@@ -932,28 +630,8 @@ export default function AITrainingPlanPage() {
           athleteData: athleteContext.data,
           planConfig: {
             objective: OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective,
-            raceName: raceName || undefined,
-            raceDate: raceDate || undefined,
-            raceGoals: raceGoals.length > 0 ? [
-              {
-                objective: OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective,
-                raceName: raceName || undefined,
-                raceDate: raceDate || undefined,
-                priority: "A",
-              },
-              ...raceGoals.map((g) => ({
-                objective: OBJECTIVE_OPTIONS.find(o => o.value === g.objective)?.label || g.objective,
-                raceName: g.raceName || undefined,
-                raceDate: g.raceDate || undefined,
-                priority: g.priority,
-              })),
-            ] : undefined,
-            planStartDate: format(planStartDate, "yyyy-MM-dd"),
-            weeksAvailable: weeksAvailable ?? undefined,
             weeklyHours: parseFloat(weeklyHours) || undefined,
             sessionsPerWeek: parseInt(sessionsPerWeek) || undefined,
-            maxSessionsPerDay: parseInt(maxSessionsPerDay) || undefined,
-            strengthSessionsPerWeek: parseInt(strengthSessionsPerWeek) || undefined,
             ambition: AMBITION_OPTIONS.find(a => a.value === ambition)?.label || ambition,
             constraints: constraints || undefined,
           },
@@ -1629,11 +1307,6 @@ export default function AITrainingPlanPage() {
                   {/* Interactive View */}
                   {resultView === "interactive" && parsedPlan ? (
                     <>
-                      <PlanQualityReport
-                        plan={parsedPlan}
-                        objective={objective}
-                        identifiedLimiters={athleteContext ? buildConfigFromDiag(athleteContext.diagnostic).identifiedLimiters : undefined}
-                      />
                       <AIPlanBenchmark
                         plan={parsedPlan}
                         objective={objective}

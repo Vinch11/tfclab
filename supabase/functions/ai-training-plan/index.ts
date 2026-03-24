@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -143,157 +142,6 @@ function extractLimiterKeywords(limiterName: string): string[] {
   return kw;
 }
 
-type CloudWorkoutCatalogRow = {
-  id: string;
-  type: string;
-  sport: string;
-  phase_tag: string;
-  intensity_tag: string | null;
-  title: string;
-  description: string | null;
-  duration_min: number;
-};
-
-function normalizeCatalogPhaseKey(phase: string): "base" | "build" | "peak" | "taper" {
-  const normalized = phase.toLowerCase();
-  if (["fondation", "base", "adaptation"].includes(normalized)) return "base";
-  if (["build", "chantier", "consolidation", "développement"].includes(normalized)) return "build";
-  if (["spécifique", "peak", "race-specific", "compétition"].includes(normalized)) return "peak";
-  return "taper";
-}
-
-function getCatalogObjectivePatterns(objectiveKey: string): RegExp[] {
-  switch (objectiveKey) {
-    case "IM":
-      return [/(^|[^a-z])(ironman|im)([^a-z]|$)/i, /_IM_/i, /triathlon longue distance/i];
-    case "703":
-      return [/70\.3|703/i, /half/i, /middle distance/i];
-    case "Semi":
-      return [/semi/i, /half marathon/i, /_SEMI_/i];
-    case "Marathon":
-      return [/marathon/i, /_MAR_/i];
-    case "10K":
-      return [/10k|10km/i, /_10K_/i];
-    case "5K":
-      return [/5k|5km/i, /_5K_/i];
-    case "TrailUltra":
-      return [/trail/i, /ultra/i, /utmb/i, /montagne/i, /d\+/i];
-    case "Trail":
-      return [/trail/i, /montagne/i, /d\+/i];
-    case "StartToRun":
-      return [/start\s*to\s*run/i, /débutant/i, /marche\/course/i];
-    default:
-      return [];
-  }
-}
-
-function getPreferredSportsForObjective(objectiveKey: string): string[] {
-  switch (objectiveKey) {
-    case "IM":
-    case "703":
-      return ["natation", "cyclisme", "course", "brick", "mixed", "strength"];
-    case "Trail":
-    case "TrailUltra":
-    case "Marathon":
-    case "Semi":
-    case "10K":
-    case "5K":
-    case "StartToRun":
-      return ["course", "strength", "cyclisme", "natation"];
-    default:
-      return ["course", "cyclisme", "natation", "strength", "brick", "mixed"];
-  }
-}
-
-function getSportCapForObjective(objectiveKey: string, sport: string, maxItems: number): number {
-  const normalized = sport.toLowerCase();
-
-  if (["IM", "703"].includes(objectiveKey)) {
-    if (normalized === "cyclisme") return Math.ceil(maxItems * 0.32);
-    if (normalized === "course") return Math.ceil(maxItems * 0.26);
-    if (normalized === "natation") return Math.ceil(maxItems * 0.22);
-    if (normalized === "brick" || normalized === "mixed") return Math.ceil(maxItems * 0.18);
-    if (normalized === "strength") return Math.ceil(maxItems * 0.18);
-    return Math.ceil(maxItems * 0.12);
-  }
-
-  if (["Trail", "TrailUltra", "Marathon", "Semi", "10K", "5K", "StartToRun"].includes(objectiveKey)) {
-    if (normalized === "course") return Math.ceil(maxItems * 0.72);
-    if (normalized === "strength") return Math.ceil(maxItems * 0.24);
-    return Math.ceil(maxItems * 0.12);
-  }
-
-  return Math.ceil(maxItems * 0.25);
-}
-
-function scoreCloudWorkoutCatalogRow(
-  row: CloudWorkoutCatalogRow,
-  objectiveKey: string,
-  phases: string[],
-): number {
-  const text = `${row.id} ${row.title} ${row.description ?? ""}`.toLowerCase();
-  const phaseTag = (row.phase_tag ?? "").toLowerCase();
-  const intensityTag = (row.intensity_tag ?? "").toLowerCase();
-  const sport = row.sport.toLowerCase();
-  const preferredSports = getPreferredSportsForObjective(objectiveKey);
-
-  let score = 0;
-
-  if (phases.some((phase) => phaseTag.includes(phase))) score += 18;
-  else if (phases.includes("build") && /base|peak/.test(phaseTag)) score += 5;
-  else score -= 8;
-
-  const objectivePatterns = getCatalogObjectivePatterns(objectiveKey);
-  if (objectivePatterns.some((pattern) => pattern.test(text))) score += 20;
-
-  if (preferredSports.includes(sport)) {
-    score += Math.max(2, 8 - preferredSports.indexOf(sport));
-  } else {
-    score -= 6;
-  }
-
-  if (phases.includes("base") && /(z1|z2|easy|endurance|aérobie|drill|technique|strength)/i.test(`${text} ${intensityTag}`)) {
-    score += 5;
-  }
-  if (phases.includes("build") && /(tempo|threshold|seuil|sweet|vo2|vma|z3|z4|z5)/i.test(`${text} ${intensityTag}`)) {
-    score += 5;
-  }
-  if (phases.includes("peak") && /(race|sim|allure|pace|brick|specific|spécifique)/i.test(text)) {
-    score += 6;
-  }
-  if (phases.includes("taper") && /(activation|easy|z1|z2|race|sim|openers|pré-course)/i.test(`${text} ${intensityTag}`)) {
-    score += 7;
-  }
-
-  if (row.type === "Race-Sim" || /race|sim/i.test(row.id)) score += 3;
-  if (row.type === "Brique" || sport === "brick") score += objectiveKey === "IM" || objectiveKey === "703" ? 4 : -2;
-  if (sport === "strength") score += ["Trail", "TrailUltra", "Marathon", "Semi", "10K", "5K"].includes(objectiveKey) ? 3 : 1;
-
-  return score;
-}
-
-function serializeCloudCatalogForPrompt(catalog: CloudWorkoutCatalogRow[], label: string): string {
-  if (catalog.length === 0) return "";
-
-  const lines: string[] = [];
-  lines.push(`\n### 📚 CATALOGUE TFCL™ BACKEND — ${label}`);
-  lines.push("⚠️ Utilise PRIORITAIREMENT les IDs de ce catalogue réel pour nommer les séances du plan.");
-  lines.push("| ID | Cat | Sport | Phases | Durée | Focus |\n|----|-----|-------|--------|-------|-------|");
-
-  for (const row of catalog) {
-    const focusSource = row.title || row.description || row.id;
-    const focus = focusSource.replace(/\|/g, "/").slice(0, 90);
-    lines.push(`| ${row.id} | ${row.type} | ${row.sport} | ${(row.phase_tag || "all").slice(0, 24)} | ${row.duration_min} min | ${focus} |`);
-  }
-
-  lines.push("\n⚠️ RÈGLES D'USAGE :");
-  lines.push("1. Chaque séance non-repos doit commencer par un ID du catalogue quand un protocole existe.");
-  lines.push("2. Les séances [Custom] ne sont autorisées qu'en dernier recours.");
-  lines.push("3. Les séances clés 🔑 doivent prioritairement provenir du catalogue.");
-
-  return lines.join("\n");
-}
-
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -302,13 +150,6 @@ serve(async (req) => {
     const { athleteData, planConfig, regenerateWeek, workoutCatalog, phaseCatalogs } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    const supabaseAdmin = supabaseUrl && serviceRoleKey
-      ? createClient(supabaseUrl, serviceRoleKey, {
-          auth: { persistSession: false, autoRefreshToken: false },
-        })
-      : null;
 
     const systemPrompt = `Tu es le moteur de planification TFCL™ Plan Generator — un système expert de périodisation d'entraînement de niveau mondial, intégré à la plateforme Two For Coaching Lab. Ta méthodologie est directement inspirée de Dan Lorang (coach de Jan Frodeno, Anne Haug, Laura Philipp) et des meilleures pratiques du coaching d'endurance élite (INSCYD, TrainingPeaks methodology, Joel Filliol, Brett Sutton, Mikal Iden's coaching team).
 
@@ -330,14 +171,6 @@ Générer un plan d'entraînement COMPLET ET INTÉGRAL couvrant TOUTES les semai
 - Si tu écris "### Semaine 5", les lignes suivantes DOIVENT être le header du tableau puis les 7+ lignes de données.
 - JAMAIS de texte libre, de saut de ligne vide, ou d'autre header entre "### Semaine N" et son tableau.
 - VÉRIFIE : chaque semaine générée a au minimum 4 lignes de données dans son tableau (hors header et séparateur).
-
-## RÈGLE SÉPARATION PRÉ-COURSE / JOUR DE COURSE (CRITIQUE)
-⚠️ Le contenu des séances J-2, J-1 et Jour de Course DOIT être STRICTEMENT séparé :
-- **J-2 / J-1 (pré-course)** : Activation, openers, rappel nerveux, repos, visualisation, carb loading. Ces séances sont des séances d'entraînement normales avec leurs propres prescriptions (durée, zones, intervalles).
-- **Jour de Course (🏁)** : UNIQUEMENT la stratégie de course — allure cible, pacing, ravitaillement, exécution, gestion d'effort. JAMAIS de prescription d'entraînement (pas de "20' Z2 + 3x3' Z4b").
-- Il est INTERDIT de mettre des contenus de taper/opener/activation dans la colonne "Détails" du jour de course.
-- Il est INTERDIT de mettre la stratégie de course dans les séances J-2/J-1.
-- Les **Consignes Coach** de la semaine de course doivent contenir les directives globales (volume réduit, sommeil, nutrition) mais PAS la stratégie d'allure du jour J.
 
 ## RATIOS SPORT/VOLUME PAR OBJECTIF (Méthodologie Dan Lorang / Élite Mondial)
 
@@ -1668,34 +1501,26 @@ Utilise ces micro-cycles réels comme modèles de qualité. Adapte-les au niveau
 ### Semaine 1 (du JJ/MM au JJ/MM) — [Thème]
 | Jour | Sport | Séance | Détails |
 |------|-------|--------|---------|
-| Lundi matin | Natation | A_SWIM_AEROBIC Technique + aérobie | 500m éch drill (sculling, rattrapé). 2500m pull @Z2. 200m RC. 3200m ~55min |
-| Lundi soir | Renfo | D_STR_CORE_PREVENTION Force fonctionnelle + prévention | Squat 3×8 @70%, gainage 3×45s, dead bug 3×10, élastiques épaules. 45min |
-| Mardi matin | Natation | 🔑 B_SWIM_CSS_DEGRESSI CSS Dégressif | 400m éch. 4×(200-300-200) @CSS r=15s. 200m RC. 3800m ~58min |
-| Mardi midi | Vélo | 🔑 B_BIKE_SS_VALLON Sweet Spot vallonné | 2h30 dont 3×20min @88-92% FTP cad 90. Z2 entre |
-| Mardi soir | CAP | A_RUN_Z2_EASY EF technique | 45min Z2 (4:45/km) + 6×100m strides. Cad 180spm. Léger |
-| Mercredi matin | CAP | 🔑 B_IM_RUN_TEMPO Tempo allure IM | 1h15 dont 3×12min @82% VMA r=3min trot. Cad 182spm |
-| Mercredi soir | Renfo | D_STR_CORE_MOBILITY Core + mobilité | Gainage 4×50s, pallof press 3×12, mobilité 15min. 35min |
-| Jeudi matin | Natation | B_SWIM_THRESHOLD Seuil + technique | 300m éch drill. 5×400m @CSS r=25s. 8×50m rattrapé. 200m RC. 4000m |
-| Jeudi soir | Vélo | A_BIKE_Z2_LONG Endurance Z2 Train Low | 2h à jeun Z2 (65% FTP). Aucune intensité |
-| Vendredi matin | CAP | A_RUN_Z2_EASY EF vallonnée | 1h Z2 (4:45/km), 180spm, terrain vallonné. Sensation aisée |
-| Vendredi soir | Natation | A_SWIM_AEROBIC Pull aérobie | Pull buoy 2500m Z2. 4×200m simulation OWS. 3200m |
-| Samedi | Vélo | 🔑 A_BIKE_Z2_LONG SL vallonnée + Gut Training | 5h Z2 vallonné (65-72% FTP). Gut training 50g/h. Dernière 1h @75% FTP |
-| Samedi soir | Renfo | D_STR_CORE_PREVENTION Core + prévention | Gainage 4×60s, pallof press 3×12, étirements. 30min |
-| Dimanche | Brique | 🔑 A_IM_BRICK_RACE Vélo→CAP Race-Pace | Vélo 2h30 @78% FTP + CAP 45min @allure IM. Gut 50g/h. Transition <3min |
+| Lundi matin | Natation | Technique + aérobie | 500m éch drill (sculling, rattrapé). 2500m pull @Z2. 200m RC. 3200m ~55min |
+| Lundi soir | Renfo | Force fonctionnelle + prévention | Squat 3×8 @70%, gainage 3×45s, dead bug 3×10, élastiques épaules. 45min |
+| Mardi matin | Natation | 🔑 CSS Dégressif | 400m éch. 4×(200-300-200) @CSS r=15s. 200m RC. 3800m ~58min |
+| Mardi midi | Vélo | 🔑 Sweet Spot vallonné | 2h30 dont 3×20min @88-92% FTP cad 90. Z2 entre |
+| Mardi soir | CAP | EF technique | 45min Z2 (4:45/km) + 6×100m strides. Cad 180spm. Léger |
+| Mercredi matin | CAP | 🔑 Tempo allure IM | 1h15 dont 3×12min @82% VMA r=3min trot. Cad 182spm |
+| Mercredi soir | Renfo | Core + mobilité | Gainage 4×50s, pallof press 3×12, mobilité 15min. 35min |
+| Jeudi matin | Natation | Seuil + technique | 300m éch drill. 5×400m @CSS r=25s. 8×50m rattrapé. 200m RC. 4000m |
+| Jeudi soir | Vélo | Endurance Z2 Train Low | 2h à jeun Z2 (65% FTP). Aucune intensité |
+| Vendredi matin | CAP | EF vallonnée | 1h Z2 (4:45/km), 180spm, terrain vallonné. Sensation aisée |
+| Vendredi soir | Natation | Pull aérobie | Pull buoy 2500m Z2. 4×200m simulation OWS. 3200m |
+| Samedi | Vélo | 🔑 SL vallonnée + Gut Training | 5h Z2 vallonné (65-72% FTP). Gut training 50g/h. Dernière 1h @75% FTP |
+| Samedi soir | Renfo | Core + prévention | Gainage 4×60s, pallof press 3×12, étirements. 30min |
+| Dimanche | Brique | 🔑 Vélo→CAP Race-Pace | Vélo 2h30 @78% FTP + CAP 45min @allure IM. Gut 50g/h. Transition <3min |
 
 **Volume semaine :** 22h — Nat 4h (4 séances) | Vélo 7h30 (4) | CAP 3h30 (3) | Renfo 2h (3)
 **Séances totales :** 14 séances (doubles 5 jours, brique samedi/dimanche)
-**🔑 Séances clés :** B_SWIM_CSS_DEGRESSI CSS Dégressif (TTE↑ natation) + B_BIKE_SS_VALLON Sweet Spot vallonné (endurance musculaire vélo) + B_IM_RUN_TEMPO Tempo allure IM (spécificité CAP) + A_BIKE_Z2_LONG SL vélo Gut Training (endurance métabolique) + A_IM_BRICK_RACE Brique Race-Pace (simulation jour J)
+**🔑 Séances clés :** CSS Dégressif (TTE↑ natation) + Sweet Spot vallonné (endurance musculaire vélo) + Tempo allure IM (spécificité CAP) + SL vélo Gut Training (endurance métabolique) + Brique Race-Pace (simulation jour J)
 **Consignes coach :** [2-3 points clés. Identifier séances clés 🔑 à protéger en priorité. Sensation recherchée + focus technique.]
 \`\`\`
-
-## ⚠️ RÈGLE CRITIQUE : CITATION D'ID CATALOGUE (OBLIGATOIRE)
-Chaque séance du tableau DOIT commencer par son ID catalogue TFCL™ dans la colonne "Séance".
-- Format : \`ID_CATALOGUE Nom descriptif\` (ex: \`A_RUN_Z2_EASY Footing récupération\`)
-- Les séances clés 🔑 : \`🔑 B_BIKE_THRESHOLD Seuil continu\`
-- Si AUCUN ID du catalogue injecté ne correspond, utilise \`[Custom] Nom descriptif\`
-- Les séances de repos/off n'ont pas besoin d'ID
-- Cible : ≥80% des séances (hors repos) doivent avoir un ID catalogue valide
 
 ## SÉANCES CLÉS — MÉTHODOLOGIE DAN LORANG (CRITIQUE)
 
@@ -2640,73 +2465,8 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
       userPrompt = buildUserPrompt(athleteData, planConfig);
     }
 
-    const totalWeeks = planConfig?.weeksAvailable || 12;
-    const objectiveCode = (planConfig?.objective || "").toUpperCase();
-    const isVerbosePlan = /IRON|IM\b|703|70\.3|TRIATHLON|TRI\b/i.test(objectiveCode);
-    const CHUNK_SIZE = isVerbosePlan ? 6 : 8;
-    const needsChunking = !regenerateWeek && totalWeeks > 16;
-
-    const catalogPromptCache = new Map<string, string>();
-
-    async function buildCloudCatalogPrompt(phases: string[], maxItems: number, label: string): Promise<string> {
-      const normalizedPhases = [...new Set(phases.map(normalizeCatalogPhaseKey))];
-      const cacheKey = `${normalizeObjKey(planConfig?.objective || "")}:${normalizedPhases.join(",")}:${maxItems}`;
-      if (catalogPromptCache.has(cacheKey)) return catalogPromptCache.get(cacheKey)!;
-      if (!supabaseAdmin) return "";
-
-      const { data, error } = await supabaseAdmin
-        .from("workouts_library")
-        .select("id, type, sport, phase_tag, intensity_tag, title, description, duration_min");
-
-      if (error || !data) {
-        console.error("Failed to load workouts_library for AI plan:", error);
-        return "";
-      }
-
-      const objectiveKey = normalizeObjKey(planConfig?.objective || "");
-      const ranked = (data as CloudWorkoutCatalogRow[])
-        .map((row) => ({
-          row,
-          score: scoreCloudWorkoutCatalogRow(row, objectiveKey, normalizedPhases),
-        }))
-        .filter(({ score }) => score >= 0)
-        .sort((a, b) => b.score - a.score || a.row.id.localeCompare(b.row.id));
-
-      const selected: CloudWorkoutCatalogRow[] = [];
-      const sportCounts: Record<string, number> = {};
-      const typeCounts: Record<string, number> = {};
-      const seenIds = new Set<string>();
-
-      for (const { row } of ranked) {
-        if (selected.length >= maxItems) break;
-        if (seenIds.has(row.id)) continue;
-
-        const sportKey = row.sport.toLowerCase();
-        const sportCap = getSportCapForObjective(objectiveKey, sportKey, maxItems);
-        if ((sportCounts[sportKey] || 0) >= sportCap) continue;
-        if ((typeCounts[row.type] || 0) >= Math.ceil(maxItems * 0.45)) continue;
-
-        selected.push(row);
-        seenIds.add(row.id);
-        sportCounts[sportKey] = (sportCounts[sportKey] || 0) + 1;
-        typeCounts[row.type] = (typeCounts[row.type] || 0) + 1;
-      }
-
-      const prompt = serializeCloudCatalogForPrompt(selected, label);
-      catalogPromptCache.set(cacheKey, prompt);
-      return prompt;
-    }
-
-    // Resolve workout catalog for injection — backend DB catalogs take priority over local subsets
-    async function getWorkoutCatalogForPhase(phase: string): Promise<string> {
-      const normalizedPhase = normalizeCatalogPhaseKey(phase);
-      const dbCatalog = await buildCloudCatalogPrompt(
-        [normalizedPhase],
-        normalizedPhase === "taper" ? 28 : 40,
-        `PHASE ${normalizedPhase.toUpperCase()}`,
-      );
-      if (dbCatalog) return dbCatalog;
-
+    // Resolve workout catalog for injection — phase-specific catalogs take priority
+    function getWorkoutCatalogForPhase(phase: string): string {
       if (phaseCatalogs && typeof phaseCatalogs === "object") {
         // Map active phase names to catalog keys
         const phaseMap: Record<string, string> = {
@@ -2730,33 +2490,32 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
       return "";
     }
 
-    async function getWorkoutCatalogForPlan(): Promise<string> {
-      const dbCatalog = await buildCloudCatalogPrompt(["base", "build", "peak", "taper"], 72, "PLAN COMPLET");
-      if (dbCatalog) return dbCatalog;
-
-      const monoblocCatalogParts: string[] = [];
-      for (const phaseKey of ["base", "build", "peak", "taper"]) {
-        const cat = await getWorkoutCatalogForPhase(phaseKey);
-        if (cat && !monoblocCatalogParts.includes(cat)) {
-          monoblocCatalogParts.push(cat);
-        }
+    // For non-chunked plans, inject ALL phase catalogs (plan covers all phases)
+    const monoblocCatalogParts: string[] = [];
+    for (const phaseKey of ["base", "build", "peak", "taper"]) {
+      const cat = getWorkoutCatalogForPhase(phaseKey);
+      if (cat && !monoblocCatalogParts.includes(cat)) {
+        monoblocCatalogParts.push(cat);
       }
-
-      return [...new Set(monoblocCatalogParts)].join("\n\n");
     }
-
-    if (!needsChunking) {
-      const monoblocCatalog = await getWorkoutCatalogForPlan();
-      if (monoblocCatalog) {
-        userPrompt += "\n\n" + monoblocCatalog;
-      }
+    if (monoblocCatalogParts.length > 0) {
+      // Deduplicate: if all phases return the same catalog, inject once
+      const uniqueCatalogs = [...new Set(monoblocCatalogParts)];
+      userPrompt += "\n\n" + uniqueCatalogs.join("\n\n");
       userPrompt += `\n\n→ Utilise PRIORITAIREMENT les séances du catalogue ci-dessus.
 → Si AUCUNE séance ne correspond, tu peux CRÉER une séance [Custom] en respectant le format et la méthodologie.
-→ Ratio cible : ≥80% séances catalogue, ≤20% séances custom.
-
-⚠️ RAPPEL ABSOLU : Chaque ligne du tableau DOIT commencer la colonne "Séance" par l'ID catalogue (ex: A_RUN_Z2_EASY, B_BIKE_THRESHOLD, D_STR_CORE_PREVENTION).
-NE PAS écrire de titre libre sans ID. Le validateur qualité pénalise fortement les séances sans ID catalogue.`;
+→ Ratio cible : ≥80% séances catalogue, ≤20% séances custom.`;
     }
+
+    const totalWeeks = planConfig?.weeksAvailable || 12;
+    // Use smaller chunks for triathlon (very verbose output with multi-session days)
+    const obj = (planConfig?.objective || "").toUpperCase();
+    // Detect verbose plans: triathlon multi-sport plans generate much more text per week
+    const isVerbosePlan = /IRON|IM\b|703|70\.3|TRIATHLON|TRI\b/i.test(obj);
+    // Dynamic chunk sizing: larger chunks = fewer API calls + better context retention
+    // Gemini Flash supports 65k output tokens; ~3-4k tokens/week (verbose) or ~1.5-2k (standard)
+    const CHUNK_SIZE = isVerbosePlan ? 6 : 8;
+    const needsChunking = !regenerateWeek && totalWeeks > 16;
 
     // FIX #1: Deduplicate CP/W' — reuse buildCPWprimeSection's logic via shared helper
     const cpwResult = computeCPWprime(athleteData);
@@ -2916,7 +2675,7 @@ NE PAS écrire de titre libre sans ID. Le validateur qualité pénalise fortemen
               const slidingSummary = chunkSummaries.slice(-MAX_SUMMARY_CHUNKS).join("\n");
 
               // Phase-specific workout catalog for this chunk
-              const chunkPhaseCatalog = await getWorkoutCatalogForPhase(activePhase);
+              const chunkPhaseCatalog = getWorkoutCatalogForPhase(activePhase);
 
               let chunkPrompt: string;
               if (isFirst) {
@@ -2954,20 +2713,21 @@ IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${exp
                 let multiObjChunkReminder = "";
                 if (planConfig?.raceGoals && planConfig.raceGoals.length > 1) {
                   const relevantGoals = planConfig.raceGoals.filter((g: any) => {
-                    const timing = computeGoalTiming(g);
-                    if (!timing) return false;
-                    const goalWeek = timing.weekNumber;
+                    if (!g.raceDate || !planConfig.planStartDate) return false;
+                    const startMs = new Date(planConfig.planStartDate).getTime();
+                    const raceMs = new Date(g.raceDate).getTime();
+                    const goalWeek = Math.ceil((raceMs - startMs) / (7 * 86400000));
+                    // Include goals within ±3 weeks of this chunk's range (taper/recovery window)
                     return goalWeek >= chunk.start - 3 && goalWeek <= chunk.end + 3;
                   });
                   if (relevantGoals.length > 0) {
                     multiObjChunkReminder = `\n\n🎯 RAPPEL MULTI-OBJECTIFS pour ce bloc :`;
                     relevantGoals.forEach((g: any) => {
-                      const timing = computeGoalTiming(g);
-                      if (!timing) return;
-                      const goalWeek = timing.weekNumber;
+                      const startMs = new Date(planConfig.planStartDate).getTime();
+                      const raceMs = new Date(g.raceDate).getTime();
+                      const goalWeek = Math.ceil((raceMs - startMs) / (7 * 86400000));
                       const prio = g.priority === "A" ? "🅰️" : g.priority === "B" ? "🅱️" : "🆎";
-                      const dayInfo = timing.dayName ? ` — jour exact: ${timing.dayName}` : "";
-                      multiObjChunkReminder += `\n  ${prio} ${g.objective || g.raceName || "Course"} — Semaine ${goalWeek} (${g.raceDate})${dayInfo}`;
+                      multiObjChunkReminder += `\n  ${prio} ${g.objective || g.raceName || "Course"} — Semaine ${goalWeek} (${g.raceDate})`;
                       if (g.priority !== "A" && goalWeek >= chunk.start && goalWeek <= chunk.end) {
                         multiObjChunkReminder += ` ⚠️ DANS CE BLOC → Mini-taper S${goalWeek - 1}, Course S${goalWeek}, Récup S${goalWeek + 1}`;
                       }
@@ -2994,53 +2754,18 @@ ${diagnosticBlock}
 ${recapSection}${multiObjChunkReminder}
 
 🔄 PHASE ACTIVE ESTIMÉE : ${activePhase}
-${(() => {
-  // Inject explicit limiter dominance based on current phase (Lorang sequential block logic)
-  const L1 = planConfig?.identifiedLimiters?.[0] || "";
-  const L2 = planConfig?.identifiedLimiters?.[1] || "";
-  if (!L1) return "→ Les séances clés de ce bloc doivent correspondre à cette phase.";
-  
-  const phase = (activePhase || "").toLowerCase();
-  const isFoundation = /fondation|adaptation|phase\s*1/i.test(phase);
-  const isChantier = /chantier|phase\s*2|développement/i.test(phase);
-  const isConsolidation = /consolidation|phase\s*3/i.test(phase);
-  const isRaceSpec = /race|spécifique|affûtage|taper/i.test(phase);
-  
-  if (isFoundation) {
-    return `🎯 DOMINANCE LIMITEUR pour "${activePhase}" : L1 "${L1.slice(0, 50)}" reçoit 1-2 stimulations/sem. L2 "${L2.slice(0, 50)}" NON prioritaire (rappel léger uniquement).
-→ Reverse Perio : VO2max courts + Force max + Z2 volume croissant.`;
-  } else if (isChantier) {
-    return `🎯 DOMINANCE LIMITEUR pour "${activePhase}" : L1 "${L1.slice(0, 50)}" = CONCENTRATION MAXIMALE (2-3 stimuli spécifiques/sem). L2 "${L2.slice(0, 50)}" en MAINTIEN MINIMAL (max 1 rappel/sem).
-→ C'est le CŒUR du chantier L1. Les séances clés 🔑 doivent cibler massivement L1.`;
-  } else if (isConsolidation) {
-    return `🎯 DOMINANCE LIMITEUR pour "${activePhase}" : L2 "${L2.slice(0, 50)}" MONTE en priorité (2-3 stimuli/sem). L1 "${L1.slice(0, 50)}" passe en MAINTIEN (1 rappel/sem minimum — non-régression).
-→ Transition séquentielle : L1 en rappel, L2 concentré.`;
-  } else if (isRaceSpec) {
-    return `🎯 PHASE RACE-SPECIFIC : Intégration de L1 et L2 en contexte course. Simulations, allure race, Gut Training. Rappels courts de chaque limiteur.`;
-  }
-  return `→ Les séances clés de ce bloc doivent correspondre à cette phase ET cibler le limiteur dominant.`;
-})()}
+→ Les séances clés de ce bloc doivent correspondre à cette phase ET aux limiteurs ci-dessus.
 → Utilise PRIORITAIREMENT les séances du catalogue ci-dessus qui correspondent à cette phase.
 → Si AUCUNE séance du catalogue ne correspond précisément à l'objectif/phase/sport requis, tu peux CRÉER une séance sur mesure en respectant :
   1. Le format identique (titre explicite, zones, durée, structure Warm-up/Main/Cool-down)
   2. Les principes méthodologiques du plan (polarisation 80/20, progression, cohérence de phase)
   3. Marque-la avec [Custom] dans le titre pour la distinguer des protocoles validés
 → Ratio cible : ≥80% séances catalogue, ≤20% séances custom. Si tu dépasses 20% custom, justifie pourquoi.
-⚠️ RAPPEL : Chaque séance du tableau DOIT commencer par son ID catalogue (ex: A_RUN_Z2_EASY Footing). PAS de titre libre sans ID.
 
 Résumé des blocs précédents (progression récente) :
 ${slidingSummary || "Premier bloc de continuation."}
 
-Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.${wbalReminder}${(() => {
-                  const primaryGoal = (planConfig?.raceGoals && planConfig.raceGoals.length > 0)
-                    ? (planConfig.raceGoals.find((g: any) => g.priority === "A") || planConfig.raceGoals[0])
-                    : (planConfig?.raceDate ? { raceDate: planConfig.raceDate } : undefined);
-                  const timing = computeGoalTiming(primaryGoal);
-                  if (timing && timing.weekNumber >= chunk.start && timing.weekNumber <= chunk.end && timing.dayName) {
-                    return `\n\n🏁 RAPPEL RACE DAY : La Semaine ${timing.weekNumber} contient le JOUR DE COURSE (${timing.dayName}). Le ${timing.dayName} de S${timing.weekNumber} = 🏁 JOUR J. JAMAIS "Repos" ce jour-là.`;
-                  }
-                  return "";
-                })()}`;
+Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.${wbalReminder}`;
               }
 
               if (!isFirst) emitChunkBoundary();
@@ -3204,7 +2929,7 @@ Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b
               const z2Durations = combinedChunkText.match(/(\d+)\s*(?:h|min|'|′)\s*(?:\d+\s*(?:min|'|′))?\s*(?:Z2|endurance|FatMax|aérobie)/gi) || [];
               const maxZ2 = z2Durations.length > 0 ? ` | MaxZ2: ${z2Durations[z2Durations.length - 1]?.trim().slice(0, 20)}` : "";
 
-              // FIX M3 (audit): Post-chunk validation — check key sessions target L1/L2 with CHRONOLOGICAL dominance
+              // FIX M3 (audit): Post-chunk validation — check key sessions target L1/L2
               const keySessionMatches_all = combinedChunkText.match(/🔑[^\n|]*/g) || [];
               const L1Name = (planConfig?.identifiedLimiters?.[0] || "").toLowerCase();
               const L2Name = (planConfig?.identifiedLimiters?.[1] || "").toLowerCase();
@@ -3214,27 +2939,11 @@ Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b
                 const keyTexts = keySessionMatches_all.map(k => k.toLowerCase());
                 const L1Hits = keyTexts.filter(t => L1Keywords.some(kw => t.includes(kw))).length;
                 const L2Hits = L2Keywords.length > 0 ? keyTexts.filter(t => L2Keywords.some(kw => t.includes(kw))).length : -1;
-                
-                // Chronological block validation (Lorang sequential logic)
-                const isEarlyPhase = activePhase === "Fondation" || activePhase === "Adaptation" || activePhase === "Chantier";
-                const isMidPhase = activePhase === "Consolidation" || activePhase === "Développement";
-                
-                if (isEarlyPhase) {
-                  // In early blocks: L1 MUST dominate, L2 should be minimal
-                  if (L1Hits === 0) {
-                    console.warn(`⚠️ M3-CHRONO: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — NO key sessions target L1="${L1Name}" in ${activePhase} phase. L1 SHOULD DOMINATE here.`);
-                  }
-                  if (L2Hits > L1Hits && L1Hits > 0) {
-                    console.warn(`⚠️ M3-CHRONO: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — L2="${L2Name}" (${L2Hits} hits) DOMINATES over L1="${L1Name}" (${L1Hits} hits) in ${activePhase}. Block periodization requires L1 dominant in early phases.`);
-                  }
-                } else if (isMidPhase) {
-                  // In mid blocks: L2 should be rising, L1 in maintenance
-                  if (L2Hits === 0 && L2Keywords.length > 0) {
-                    console.warn(`⚠️ M3-CHRONO: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — NO key sessions target L2="${L2Name}" in ${activePhase}. L2 SHOULD RISE in consolidation.`);
-                  }
-                  if (L1Hits === 0) {
-                    console.warn(`⚠️ M3-CHRONO: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — L1="${L1Name}" completely absent in ${activePhase}. Maintenance rappels required (non-regression).`);
-                  }
+                if (L1Hits === 0) {
+                  console.warn(`⚠️ M3 Validation: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — NO key sessions (🔑) target L1="${L1Name}". Phase: ${activePhase}`);
+                }
+                if (L2Hits === 0 && activePhase !== "Fondation" && activePhase !== "Adaptation") {
+                  console.warn(`⚠️ M3 Validation: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — NO key sessions target L2="${L2Name}" in ${activePhase} phase.`);
                 }
               }
               
@@ -3652,9 +3361,6 @@ function buildCPWprimeSection(data: any): string | null {
 function buildUserPrompt(data: any, config: any): string {
   const lines: string[] = ["## Demande de Plan d'Entraînement TFCL™\n"];
 
-  const DAY_MS = 24 * 3600 * 1000;
-  const JOURS_FR_UTC = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
-
   const parseIsoDateUtc = (iso?: string): number | undefined => {
     if (!iso) return undefined;
     const match = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -3678,32 +3384,24 @@ function buildUserPrompt(data: any, config: any): string {
     }).format(new Date(utc));
   };
 
-  const computeGoalTiming = (goal: any): { weekNumber: number; raceUtc?: number; dayIndexUtc?: number; dayName?: string } | undefined => {
+  const computeGoalWeek = (goal: any): number | undefined => {
+    // PRIORITÉ ABSOLUE: calculer depuis les dates (source de vérité)
     if (goal?.raceDate && config?.planStartDate) {
       const raceUtc = parseIsoDateUtc(goal.raceDate);
       const startUtc = parseIsoDateUtc(config.planStartDate);
       if (raceUtc !== undefined && startUtc !== undefined) {
-        const days = Math.round((raceUtc - startUtc) / DAY_MS);
-        if (days >= 0) {
-          const dayIndexUtc = new Date(raceUtc).getUTCDay();
-          return {
-            weekNumber: Math.floor(days / 7) + 1,
-            raceUtc,
-            dayIndexUtc,
-            dayName: JOURS_FR_UTC[dayIndexUtc],
-          };
-        }
+        const days = Math.round((raceUtc - startUtc) / (24 * 3600 * 1000));
+        if (days >= 0) return Math.floor(days / 7) + 1;
       }
     }
 
+    // Fallback uniquement si aucune date exploitable
     if (typeof goal?.weeksUntilRace === "number" && Number.isFinite(goal.weeksUntilRace)) {
-      return { weekNumber: Math.max(1, Math.floor(goal.weeksUntilRace)) };
+      return Math.max(1, Math.floor(goal.weeksUntilRace));
     }
 
     return undefined;
   };
-
-  const computeGoalWeek = (goal: any): number | undefined => computeGoalTiming(goal)?.weekNumber;
 
   const getWeekBounds = (weekNumber?: number): { start: string; end: string } | undefined => {
     if (!weekNumber || !config?.planStartDate) return undefined;
@@ -3793,9 +3491,9 @@ function buildUserPrompt(data: any, config: any): string {
   }
   if (config.strengthSessionsPerWeek !== undefined && config.strengthSessionsPerWeek !== null) {
     if (config.strengthSessionsPerWeek === 0) {
-      lines.push(`- **⚠️ CONTRAINTE RENFO ABSOLUE : 0 séance de renforcement/musculation/PPG par semaine. NE PAS inclure de séance de renforcement dans le plan. Si tu en inclus, le plan est INVALIDE.**`);
+      lines.push(`- **⚠️ Renforcement musculaire : 0 séance/sem — NE PAS inclure de séance de renforcement/musculation/PPG dans le plan.**`);
     } else {
-      lines.push(`- **⚠️ CONTRAINTE RENFO ABSOLUE : EXACTEMENT ${config.strengthSessionsPerWeek} séance(s) de renforcement/PPG par semaine. PAS PLUS. Si tu en mets ${config.strengthSessionsPerWeek + 1} ou plus, le plan est INVALIDE. Compte tes séances renfo/musculation/PPG/core pour chaque semaine avant de soumettre.**`);
+      lines.push(`- **🏋️ Renforcement musculaire : ${config.strengthSessionsPerWeek} séance(s)/sem — Inclure EXACTEMENT ${config.strengthSessionsPerWeek} séance(s) de renforcement/PPG par semaine dans le plan.**`);
     }
   }
   if (config.maxSessionsPerDay) {
@@ -3866,47 +3564,6 @@ function buildUserPrompt(data: any, config: any): string {
       
       lines.push(`\n⚠️ UTILISE CE CALENDRIER pour nommer tes semaines : "### Semaine N (du JJ/MM au JJ/MM) — [Thème]".`);
       lines.push(`⚠️ Quand une course est marquée dans ce calendrier, elle DOIT apparaître dans la semaine correspondante, PAS la semaine d'avant ni d'après.`);
-
-      // === RACE DAY ANCHORING: explicitly tell the AI which day of the week is race day ===
-      const anchoredGoals = (config.raceGoals && config.raceGoals.length > 0)
-        ? config.raceGoals
-        : (config.raceDate ? [{
-            priority: "A",
-            objective: config.objective,
-            raceName: config.raceName,
-            raceDate: config.raceDate,
-          }] : []);
-
-      const anchoredGoalsWithTiming = anchoredGoals
-        .map((goal: any) => ({ goal, timing: computeGoalTiming(goal) }))
-        .filter((entry: any) => entry.timing?.raceUtc !== undefined);
-
-      if (anchoredGoalsWithTiming.length > 0) {
-        lines.push(`\n### 🏁 ANCRAGE JOURS DE COURSE (RÈGLE ABSOLUE)`);
-        anchoredGoalsWithTiming.forEach(({ goal, timing }: any) => {
-          const raceDayName = timing.dayName;
-          const raceGoalWeek = timing.weekNumber;
-          const raceLabel = goal.raceName || goal.objective || `Objectif ${goal.priority || "A"}`;
-          const priorityLabel = goal.priority && goal.priority !== "A" ? ` [${goal.priority}]` : "";
-
-          lines.push(`- **Objectif${priorityLabel} ${raceLabel}** : ${raceDayName} ${new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "long", timeZone: "UTC" }).format(new Date(timing.raceUtc))} (Semaine ${raceGoalWeek}).`);
-          lines.push(`  ⚠️ Le **${raceDayName}** de la Semaine ${raceGoalWeek} DOIT contenir la ligne :`);
-          lines.push(`  | ${raceDayName} | 🏁 Course | JOUR DE COURSE${priorityLabel} — ${raceLabel} | Exécuter le plan de course |`);
-          lines.push(`  ⚠️ INTERDIT de mettre "Repos" ou toute autre séance le **${raceDayName}** de Semaine ${raceGoalWeek}.`);
-        });
-
-        const primaryTiming = anchoredGoalsWithTiming.find((entry: any) => entry.goal.priority === "A")?.timing ?? anchoredGoalsWithTiming[0]?.timing;
-        if (primaryTiming && totalW <= 4) {
-          lines.push(`\n⚠️ PLAN COURT (${totalW} semaine${totalW > 1 ? "s" : ""}) — STRUCTURE RACE WEEK OBLIGATOIRE :`);
-          lines.push(`Ce plan est très court. La Semaine ${primaryTiming.weekNumber} EST la semaine de course (Race Week / Affûtage).`);
-          lines.push(`Structure OBLIGATOIRE de la Semaine ${primaryTiming.weekNumber} :`);
-          lines.push(`- Volume très réduit (-50 à -60% du volume habituel)`);
-          lines.push(`- 1-2 rappels courts @allure course (3-5min max)`);
-          lines.push(`- Activation J-2 (footing court + strides)`);
-          lines.push(`- Repos complet J-1 + carb loading`);
-          lines.push(`- **${primaryTiming.dayName} = 🏁 JOUR DE COURSE** (JAMAIS "Repos")`);
-        }
-      }
     }
   }
 
@@ -4036,33 +3693,33 @@ function buildUserPrompt(data: any, config: any): string {
     lines.push("| FatMax↑ (Train Low) | → VLamax↓ (synergie), autonomie glycogène↑, durabilité↑ |");
     lines.push("Quand 2 limiteurs ont une synergie positive, les combiner dans la même phase pour maximiser l'effet.\n");
 
-    lines.push("### ⚙️ RÈGLES DE PÉRIODISATION PAR BLOCS SÉQUENTIELS (Issurin/Lorang — STRICTES)");
-    lines.push("⚠️ Les limiteurs sont traités SÉQUENTIELLEMENT par blocs concentrés, PAS en parallèle sur toute la durée du plan.");
-    lines.push("");
-    lines.push("1. **Bloc Fondation (1er tiers)** :");
-    lines.push("   - Reverse Perio : VO2max courts + Force max + Z2 volume croissant.");
-    lines.push("   - Le Limiteur #1 reçoit les premières stimulations (1-2x/sem), le #2 n'est PAS encore une priorité.");
-    lines.push("   - Objectif : poser les fondations aérobies et neuromusculaires.");
-    lines.push("2. **Bloc Chantier [Limiteur #1] (2e phase)** :");
-    lines.push("   - 🎯 CONCENTRATION MAXIMALE sur le Limiteur #1 : 2-3 stimuli spécifiques/sem.");
-    lines.push("   - Le Limiteur #2 est en MAINTIEN MINIMAL uniquement (max 1 rappel/sem).");
-    lines.push("   - Durée : 3-4 semaines de travail concentré. C'est le cœur du chantier.");
-    lines.push("3. **Bloc Consolidation [Limiteur #2] (3e phase)** :");
-    lines.push("   - 🎯 Le Limiteur #2 MONTE en priorité : 2-3 stimuli/sem dédiés.");
-    lines.push("   - Le Limiteur #1 passe en MAINTIEN (1 rappel/sem minimum — principe de non-régression).");
-    lines.push("   - Limiteurs #3+ : intégrés comme composantes secondaires (strides, rappels force 1x/sem).");
-    lines.push("4. **Bloc Race-Specific** :");
-    lines.push("   - Intégration race-specific de tous les limiteurs travaillés.");
-    lines.push("   - Simulations, allure course, Gut Training, briques.");
-    lines.push("5. **Bloc Affûtage** :");
+    lines.push("### ⚙️ RÈGLES DE PÉRIODISATION SÉQUENTIELLE STRICTES");
+    lines.push("1. **Limiteur #1 (🔴 CRITIQUE)** :");
+    lines.push("   - Reçoit la Séance Clé #1 de CHAQUE semaine de la Phase Base à la fin de la Phase Build.");
+    lines.push("   - Fréquence : 2-3 stimuli/sem en Base, 2 stimuli/sem en Build, 1-2 rappels en Spécifique.");
+    lines.push("   - Le volume/intensité de ce stimulus suit la colonne correspondante dans la matrice ci-dessus.");
+    lines.push("2. **Limiteur #2 (🔴 ou 🟡)** :");
+    lines.push("   - Reçoit la Séance Clé #2 dès la Phase Base (1-2x/sem), montée en importance en Build (2x/sem).");
+    lines.push("   - Si #2 est synergique avec #1, combiner dans certaines séances (ex: Z2 long Train Low travaille VLamax↓ ET FatMax↑).");
+    lines.push("3. **Limiteurs #3+ (🟡 SOUS-OPTIMAUX)** :");
+    lines.push("   - Intégrés comme composantes secondaires : ex. strides post-EF (économie), rappels force 1x/sem (maintien Rønnestad).");
+    lines.push("   - Montée en priorité en Phase Spécifique si les limiteurs #1 et #2 ont suffisamment progressé.");
+    lines.push("4. **Principe de non-régression** :");
+    lines.push("   - Quand on passe au limiteur suivant, maintenir les acquis du limiteur précédent avec 1 rappel/sem minimum.");
+    lines.push("   - Jamais d'abandon complet d'un travail spécifique après une phase.");
+    lines.push("5. **Phase Taper** :");
     lines.push("   - Rappels courts de CHAQUE limiteur travaillé (volume -50 à -60%, intensité maintenue).");
-    lines.push("   - 1 séance rappel par limiteur dans la dernière semaine pré-course.");
-    lines.push("6. **Principe de non-régression** :");
-    lines.push("   - Quand on passe au bloc suivant, maintenir les acquis du bloc précédent avec 1 rappel/sem minimum.");
-    lines.push("   - ❌ JAMAIS d'abandon complet d'un travail spécifique. Le maintien est OBLIGATOIRE.");
-    lines.push("7. **⚠️ ERREUR FRÉQUENTE À ÉVITER** :");
-    lines.push("   - ❌ NE PAS traiter L1 et L2 en parallèle (ex: 1 séance L1 + 1 séance L2 chaque semaine pendant tout le plan).");
-    lines.push("   - ✅ Le bon pattern : L1 DOMINE le Bloc Chantier → puis L2 DOMINE le Bloc Consolidation → L1 en rappel.");
+    lines.push("   - 1 séance rappel par limiteur adressé dans la dernière semaine pré-course.");
+
+    lines.push("\n⚠️ RÈGLE SÉANCES CLÉS PAR LIMITEUR (RÉSUMÉ RAPIDE) :");
+    lines.push("- Limiteur #1 = 'VO2max bas' → clé #1 = VMA/VO2max (Billat 30/30, 5×1200m).");
+    lines.push("- Limiteur #1 = 'VLamax trop haute' → clé #1 = Z2 long Train Low + sweet spot long.");
+    lines.push("- Limiteur #1 = 'TTE faible' → clé #1 = seuil continu long (Norvégienne 2×20min→1×40min).");
+    lines.push("- Limiteur #1 = 'Économie basse' → clé #1 = côtes/SFR + force max (Rønnestad).");
+    lines.push("- Limiteur #1 = 'FatMax bas' → clé #1 = Z2 longue à jeun Train Low (2h30+).");
+    lines.push("- Limiteur #1 = 'FTP/kg bas' → clé #1 = sweet spot + over-unders + Norvégienne vélo.");
+    lines.push("- Le Limiteur #2 reçoit la séance clé #2 avec la même logique.");
+    lines.push("- En Phase Spécifique, les séances clés deviennent race-specific tout en maintenant le travail sur les limiteurs principaux.");
   }
 
   if (config.activeLevers && config.activeLevers.length > 0) {
@@ -4288,21 +3945,6 @@ function buildUserPrompt(data: any, config: any): string {
     if (goalA) {
       lines.push(`\nObjectif principal (A) : ${goalA.objective}${goalA.raceDate ? ` le ${goalA.raceDate}` : ""}. Le pic de forme PRINCIPAL vise cette course.`);
     }
-  }
-
-  // === FINAL RACE DAY REMINDER (single-objective) ===
-  if (config.raceDate && (!config.raceGoals || config.raceGoals.length <= 1)) {
-    const JOURS_FR_FINAL = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
-    const finalRaceMs = parseIsoDateUtc(config.raceDate);
-    if (finalRaceMs !== undefined) {
-      const finalRaceDayName = JOURS_FR_FINAL[new Date(finalRaceMs).getUTCDay()];
-      lines.push(`\n🔥 RAPPEL FINAL RACE DAY : La dernière semaine (S${weeks}) est la Race Week. Le **${finalRaceDayName}** de cette semaine = 🏁 JOUR DE COURSE. JAMAIS "Repos" ce jour-là.`);
-    }
-  }
-
-  // === FINAL STRENGTH SESSIONS REMINDER ===
-  if (config.strengthSessionsPerWeek !== undefined && config.strengthSessionsPerWeek !== null) {
-    lines.push(`\n🏋️ RAPPEL FINAL RENFO : Le coach a demandé EXACTEMENT ${config.strengthSessionsPerWeek} séance(s) de renforcement/PPG/musculation par semaine. VÉRIFIE chaque semaine avant de soumettre. Si une semaine en contient plus ou moins que ${config.strengthSessionsPerWeek}, CORRIGE-LA.`);
   }
 
   lines.push(`\n---\nGénère le plan COMPLET de ${weeks} semaines, semaine par semaine, SANS EN OMETTRE AUCUNE. Chaque semaine a son propre tableau. Ne résume jamais. Chaque séance doit être actionnable immédiatement.`);

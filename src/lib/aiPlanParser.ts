@@ -14,12 +14,6 @@ export interface ParsedSession {
   title: string;
   details: string;
   isRest: boolean;
-  /** Structured race-day content blocks (only on race sessions) */
-  raceBlocks?: {
-    preCourse?: string;   // J-2/J-1 prep instructions
-    jourDeCourse?: string; // Race day strategy & execution
-    consignesCoach?: string; // Weekly coach notes relevant to the race
-  };
 }
 
 export interface ParsedWeek {

@@ -197,16 +197,13 @@ function formatLimitersForPrompt(
       limiters.push("");
     });
 
-    // Periodization rules — aligned with edge function Bloc naming (Lorang)
-    limiters.push(`## RÈGLE DE PÉRIODISATION PAR BLOCS SÉQUENTIELS (Issurin/Lorang)`);
-    limiters.push(`- ⚠️ LOGIQUE CHRONOLOGIQUE STRICTE : les limiteurs sont traités SÉQUENTIELLEMENT par blocs concentrés, PAS en parallèle.`);
-    limiters.push(`- Bloc Fondation : Reverse Perio (VO2max courts + Force max) + Z2 progressif. Limiteur #1 : premières stimulations (1-2x/sem). Limiteur #2 NON prioritaire.`);
-    limiters.push(`- Bloc Chantier [Limiteur #1] : CONCENTRATION MAXIMALE sur L1 (2-3 stimuli/sem). L2 en maintien minimal (1 rappel/sem).`);
-    limiters.push(`- Bloc Consolidation [Limiteur #2] : L2 MONTE en priorité (2-3 stimuli/sem). L1 passe en MAINTIEN (1 rappel/sem — non-régression).`);
-    limiters.push(`- Bloc Race-Specific : Intégration race-specific de tous les limiteurs. Limiteurs #3+ adressés ici.`);
-    limiters.push(`- Bloc Affûtage : Rappels courts de CHAQUE limiteur (volume -50-60%, intensité maintenue).`);
-    limiters.push(`- ❌ NE PAS traiter L1 et L2 en parallèle pendant tout le plan. ✅ L1 DOMINE d'abord → puis L2 DOMINE → L1 en rappel.`);
-    limiters.push(`- Synergies : VLamax↓ → TTE↑ + FatMax↑. VO2max↑ → FTP/kg↑. Exploiter ces interactions positives.`);
+    // Periodization rules
+    limiters.push(`## RÈGLE DE PÉRIODISATION SÉQUENTIELLE DES LIMITEURS`);
+    limiters.push(`- Phase Base : Focus principal sur le Limiteur #1 (séances clés #1 et #2). Limiteur #2 en maintien.`);
+    limiters.push(`- Phase Build : Limiteur #1 toujours prioritaire mais le Limiteur #2 monte en importance (séance clé #2 dédiée).`);
+    limiters.push(`- Phase Spécifique : Intégration de tous les limiteurs dans un contexte race-specific.`);
+    limiters.push(`- Les limiteurs 🔴 CRITIQUES doivent être traités AVANT les 🟡 SOUS-OPTIMAUX.`);
+    limiters.push(`- Interactions positives : VLamax↓ améliore aussi TTE et FatMax. VO2max↑ améliore aussi FTP/kg. Exploiter ces synergies.`);
   }
 
   // Primary limiter context
