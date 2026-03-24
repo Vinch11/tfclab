@@ -464,7 +464,7 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     target: targets.tte_min,
     gap: input.tte !== null ? input.tte - targets.tte_min : 0,
     gapPercent: tteGap * 100,
-    status: input.tte === null ? "acceptable"
+    status: input.tte === null ? "unknown"
       : input.tte >= targets.tte_min ? "optimal"
       : input.tte >= targets.tte_min * 0.85 ? "acceptable"
       : "limiting",
