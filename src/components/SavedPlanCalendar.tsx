@@ -9,14 +9,20 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Calendar, ChevronLeft, ChevronRight, Trash2, Waves, Bike,
-  Footprints, Moon, Dumbbell, Loader2, Pencil,
+  Footprints, Moon, Dumbbell, Loader2, Pencil, AlertTriangle,
 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { format, startOfWeek, addDays, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { toast } from "sonner";
 import { SessionEditDialog } from "@/components/SessionEditDialog";
+import { PlanHistory } from "@/components/PlanHistory";
 
 interface TrainingPlanRow {
   id: string;
@@ -123,6 +129,18 @@ export function SavedPlanCalendar() {
     setDeleting(null);
   };
 
+  const handleDeleteAll = async () => {
+    if (!currentAthlete) return;
+    setDeleting("all");
+    const { error } = await supabase
+      .from("training_plan")
+      .delete()
+      .eq("athlete_id", currentAthlete.id);
+    if (error) toast.error("Erreur suppression du plan");
+    else { setSessions([]); setWeekOffset(0); toast.success("Plan entièrement supprimé"); }
+    setDeleting(null);
+  };
+
   const handleEdit = (s: TrainingPlanRow) => {
     setEditSession(s);
     setEditOpen(true);
@@ -181,6 +199,31 @@ export function SavedPlanCalendar() {
               <Badge variant="secondary" className="text-xs">
                 {sessions.length} séances • {allWeeks.length} sem.
               </Badge>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm" className="h-7 text-xs" disabled={deleting === "all"}>
+                    {deleting === "all" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+                    Tout supprimer
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5 text-destructive" />
+                      Supprimer tout le plan ?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Cette action supprimera les {sessions.length} séances du planning. Cette action est irréversible.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteAll} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Supprimer tout
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         </CardHeader>
@@ -274,6 +317,8 @@ export function SavedPlanCalendar() {
           <p className="text-xs text-center text-muted-foreground">
             Semaine {weekOffset + 1} / {allWeeks.length} • Cliquez sur une séance pour la modifier
           </p>
+
+          <PlanHistory />
         </CardContent>
       </Card>
 

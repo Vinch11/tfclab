@@ -468,6 +468,39 @@ export type Database = {
         }
         Relationships: []
       }
+      plan_versions: {
+        Row: {
+          athlete_id: string
+          coach_id: string
+          created_at: string
+          id: string
+          objective: string | null
+          plan_json: Json
+          sessions_count: number | null
+          weeks_count: number | null
+        }
+        Insert: {
+          athlete_id: string
+          coach_id: string
+          created_at?: string
+          id?: string
+          objective?: string | null
+          plan_json?: Json
+          sessions_count?: number | null
+          weeks_count?: number | null
+        }
+        Update: {
+          athlete_id?: string
+          coach_id?: string
+          created_at?: string
+          id?: string
+          objective?: string | null
+          plan_json?: Json
+          sessions_count?: number | null
+          weeks_count?: number | null
+        }
+        Relationships: []
+      }
       plans: {
         Row: {
           athlete_id: string
