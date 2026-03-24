@@ -436,17 +436,17 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
   return (
     <Card className={cn("border-border/50 overflow-hidden print:break-inside-avoid print:shadow-none print:border-0", className)}>
       {/* ─── Header ─── */}
-      <CardHeader className="pb-2">
+      <CardHeader className="pb-2 px-3 sm:px-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/10">
-              <Compass className="w-5 h-5 text-primary" />
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/10">
+              <Compass className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-base font-black tracking-tight">
+              <CardTitle className="text-sm sm:text-base font-black tracking-tight">
                 TFCL Coaching Compass™
               </CardTitle>
-              <p className="text-[10px] text-muted-foreground font-medium tracking-wide">
+              <p className="text-[9px] sm:text-[10px] text-muted-foreground font-medium tracking-wide hidden sm:block">
                 PROFIL → LIMITEUR → LEVIER → DÉCISION
               </p>
             </div>
