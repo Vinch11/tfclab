@@ -201,21 +201,45 @@ export function PlanHistory({ onRestored }: PlanHistoryProps) {
         </CollapsibleContent>
       </Collapsible>
 
-      <AlertDialog open={!!confirmRestore} onOpenChange={(o) => !o && setConfirmRestore(null)}>
+      <AlertDialog open={!!confirmRestore} onOpenChange={(o) => { if (!o) setConfirmRestore(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <RotateCcw className="h-5 w-5 text-primary" />
               Restaurer ce plan ?
             </AlertDialogTitle>
-            <AlertDialogDescription>
-              Le planning actuel sera remplacé par cette version
-              {confirmRestore && (
-                <span className="font-medium">
-                  {" "}du {format(parseISO(confirmRestore.created_at), "d MMM yyyy", { locale: fr })}
-                </span>
-              )}
-              . Les séances seront repositionnées à partir de cette semaine.
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  Le planning actuel sera remplacé par cette version
+                  {confirmRestore && (
+                    <span className="font-medium">
+                      {" "}du {format(parseISO(confirmRestore.created_at), "d MMM yyyy", { locale: fr })}
+                    </span>
+                  )}
+                  .
+                </p>
+                <div>
+                  <p className="text-sm font-medium text-foreground mb-1.5">Date de début du plan :</p>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="w-full justify-start text-left font-normal">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        {format(restoreStartDate, "d MMMM yyyy", { locale: fr })}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarPicker
+                        mode="single"
+                        selected={restoreStartDate}
+                        onSelect={(d) => d && setRestoreStartDate(d)}
+                        locale={fr}
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
