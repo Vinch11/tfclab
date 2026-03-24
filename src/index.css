@@ -182,7 +182,7 @@
 
 @layer components {
   .glass-card {
-    @apply bg-card/80 backdrop-blur-xl border border-border/50 rounded-xl;
+    @apply bg-card/90 backdrop-blur-xl border border-border/40 rounded-xl;
     box-shadow: var(--shadow-card);
   }
 
@@ -197,11 +197,12 @@
 
   .metric-value {
     font-family: var(--font-mono);
-    @apply text-4xl font-semibold tracking-tight;
+    @apply text-3xl font-medium tracking-tight;
   }
 
   .metric-label {
-    @apply text-sm text-muted-foreground uppercase tracking-wider font-medium;
+    @apply text-xs text-muted-foreground uppercase tracking-widest font-medium;
+    letter-spacing: 0.08em;
   }
 }
 
