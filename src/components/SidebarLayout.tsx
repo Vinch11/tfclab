@@ -43,14 +43,18 @@ export function SidebarLayout({
         />
         <SidebarInset className="flex flex-col flex-1">
           {/* Header with trigger - mobile optimized */}
-          <header className="sticky top-0 z-40 flex h-12 sm:h-14 items-center gap-2 sm:gap-3 border-b border-border bg-background/95 backdrop-blur px-3 sm:px-4 safe-area-inset-top">
-            <SidebarTrigger className="-ml-1 touch-target" />
+          <header className="sticky top-0 z-40 flex h-11 sm:h-14 items-center gap-2 sm:gap-3 border-b border-border bg-background/95 backdrop-blur px-3 sm:px-4 safe-area-inset-top">
+            {/* Hide sidebar trigger on mobile — bottom nav replaces it */}
+            <SidebarTrigger className="-ml-1 touch-target hidden md:flex" />
+            
+            {/* Mobile: show app title */}
+            <span className="md:hidden text-sm font-bold text-foreground truncate">2FC Lab</span>
             
             {/* Staff mode indicator badge - compact on mobile */}
             {staffMode && (
               <Badge 
                 variant="secondary" 
-                className="bg-primary/10 text-primary border-primary/20 text-[10px] sm:text-xs py-0.5 px-1.5 sm:py-1 sm:px-2"
+                className="bg-primary/10 text-primary border-primary/20 text-[10px] sm:text-xs py-0.5 px-1.5 sm:py-1 sm:px-2 ml-auto md:ml-0"
               >
                 <span className="w-1.5 h-1.5 bg-primary rounded-full mr-1 sm:mr-1.5 animate-pulse" />
                 <span className="hidden xs:inline">Affichage Expert</span>
