@@ -266,7 +266,7 @@ export function detectRunningLimiter(input: RunningLimiterInput): RunningLimiter
     target: economyTarget,
     gap: input.economyScore !== null ? input.economyScore - economyTarget : 0,
     gapPercent: economyGap * 100,
-    status: input.economyScore === null ? "acceptable"
+    status: input.economyScore === null ? "unknown"
       : input.economyScore >= economyTarget ? "optimal"
       : input.economyScore >= economyTarget * 0.85 ? "acceptable"
       : "limiting",
