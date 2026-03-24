@@ -51,7 +51,7 @@ export interface RunningGapAnalysis {
   target: number;
   gap: number;           // Négatif = en dessous de la cible
   gapPercent: number;    // Gap en %
-  status: "optimal" | "acceptable" | "limiting";
+  status: "optimal" | "acceptable" | "limiting" | "unknown";
   weight: number;        // Importance stratégique (0-1)
   weightedImpact: number;
 }
@@ -224,7 +224,7 @@ export function detectRunningLimiter(input: RunningLimiterInput): RunningLimiter
     target: Math.round(vo2maxTarget * 10) / 10,
     gap: input.vo2max !== null ? input.vo2max - vo2maxTarget : 0,
     gapPercent: vo2maxGap * 100,
-    status: input.vo2max === null ? "acceptable"
+    status: input.vo2max === null ? "unknown"
       : input.vo2max >= vo2maxTarget ? "optimal"
       : input.vo2max >= vo2maxTarget * 0.9 ? "acceptable"
       : "limiting",
@@ -245,7 +245,7 @@ export function detectRunningLimiter(input: RunningLimiterInput): RunningLimiter
     target: vlamaxOptimal,
     gap: input.vlamaxCap !== null ? input.vlamaxCap - vlamaxOptimal : 0,
     gapPercent: vlamaxGap * 100,
-    status: input.vlamaxCap === null ? "acceptable"
+    status: input.vlamaxCap === null ? "unknown"
       : input.vlamaxCap <= vlamaxOptimal ? "optimal"
       : input.vlamaxCap <= vlamaxMax ? "acceptable"
       : "limiting",
@@ -266,7 +266,7 @@ export function detectRunningLimiter(input: RunningLimiterInput): RunningLimiter
     target: economyTarget,
     gap: input.economyScore !== null ? input.economyScore - economyTarget : 0,
     gapPercent: economyGap * 100,
-    status: input.economyScore === null ? "acceptable"
+    status: input.economyScore === null ? "unknown"
       : input.economyScore >= economyTarget ? "optimal"
       : input.economyScore >= economyTarget * 0.85 ? "acceptable"
       : "limiting",
@@ -285,7 +285,7 @@ export function detectRunningLimiter(input: RunningLimiterInput): RunningLimiter
     target: durabilityTarget,
     gap: input.durabilityMin !== null ? input.durabilityMin - durabilityTarget : 0,
     gapPercent: durabilityGap * 100,
-    status: input.durabilityMin === null ? "acceptable"
+    status: input.durabilityMin === null ? "unknown"
       : input.durabilityMin >= durabilityTarget ? "optimal"
       : input.durabilityMin >= durabilityTarget * 0.85 ? "acceptable"
       : "limiting",
@@ -304,7 +304,7 @@ export function detectRunningLimiter(input: RunningLimiterInput): RunningLimiter
     target: pacingTarget,
     gap: input.pacingConsistency !== null ? input.pacingConsistency - pacingTarget : 0,
     gapPercent: pacingGap * 100,
-    status: input.pacingConsistency === null ? "acceptable"
+    status: input.pacingConsistency === null ? "unknown"
       : input.pacingConsistency >= pacingTarget ? "optimal"
       : input.pacingConsistency >= 70 ? "acceptable"
       : "limiting",
@@ -323,7 +323,7 @@ export function detectRunningLimiter(input: RunningLimiterInput): RunningLimiter
     gapPercent: input.mechanicalFatigue !== null 
       ? ((input.mechanicalFatigue - mechanicalTarget) / mechanicalTarget) * 100 
       : 0,
-    status: input.mechanicalFatigue === null ? "acceptable"
+    status: input.mechanicalFatigue === null ? "unknown"
       : input.mechanicalFatigue <= mechanicalTarget ? "optimal"
       : input.mechanicalFatigue <= 60 ? "acceptable"
       : "limiting",
@@ -345,7 +345,7 @@ export function detectRunningLimiter(input: RunningLimiterInput): RunningLimiter
     gap: input.availabilityScore !== null ? input.availabilityScore - availabilityTarget : 0,
     gapPercent: availabilityGap * 100,
     status: input.hasHealthAlerts ? "limiting"
-      : input.availabilityScore === null ? "acceptable"
+      : input.availabilityScore === null ? "unknown"
       : input.availabilityScore >= availabilityTarget ? "optimal"
       : input.availabilityScore >= 50 ? "acceptable"
       : "limiting",
