@@ -61,7 +61,7 @@ export const AMBITION_DEFINITIONS: Record<AmbitionLevel, AmbitionDefinition> = {
 // Temps indicatifs hommes. Femmes: +8-12% selon la distance.
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export type RunningObjectiveWithTimes = "Marathon" | "Semi" | "10K" | "5K";
+export type RunningObjectiveWithTimes = "Marathon" | "Semi" | "10K" | "5K" | "Trail" | "TrailShort" | "TrailMountain";
 export type SexeForHints = "M" | "F";
 
 export const RUNNING_TIME_HINTS: Record<RunningObjectiveWithTimes, Record<AmbitionLevel, { M: string; F: string }>> = {
@@ -88,6 +88,24 @@ export const RUNNING_TIME_HINTS: Record<RunningObjectiveWithTimes, Record<Ambiti
     age_group:  { M: "22' – 26'",      F: "24' – 29'" },
     competitor: { M: "18' – 21'",      F: "20' – 23'" },
     elite:      { M: "Sub 17'",        F: "Sub 19'" },
+  },
+  Trail: {
+    finisher:   { M: "5h30 – 7h",      F: "6h00 – 7h45" },
+    age_group:  { M: "4h00 – 5h15",    F: "4h25 – 5h45" },
+    competitor: { M: "3h15 – 4h00",    F: "3h35 – 4h25" },
+    elite:      { M: "Sub 3h00",       F: "Sub 3h20" },
+  },
+  TrailShort: {
+    finisher:   { M: "5h30 – 7h",      F: "6h00 – 7h45" },
+    age_group:  { M: "4h00 – 5h15",    F: "4h25 – 5h45" },
+    competitor: { M: "3h15 – 4h00",    F: "3h35 – 4h25" },
+    elite:      { M: "Sub 3h00",       F: "Sub 3h20" },
+  },
+  TrailMountain: {
+    finisher:   { M: "12h – 16h",      F: "13h – 17h30" },
+    age_group:  { M: "9h – 11h30",     F: "10h – 12h40" },
+    competitor: { M: "7h – 9h",        F: "7h45 – 10h" },
+    elite:      { M: "Sub 6h30",       F: "Sub 7h10" },
   },
 };
 
