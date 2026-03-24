@@ -73,7 +73,7 @@ export function SidebarLayout({
       </div>
 
       {/* Mobile bottom navigation */}
-      <MobileBottomNav activeTab={activeTab} onTabChange={onTabChange} staffMode={staffMode} onStaffModeChange={onStaffModeChange} />
+      <MobileBottomNav activeTab={activeTab} onTabChange={onTabChange} staffMode={staffMode} onStaffModeChange={onStaffModeChange} onExportClick={onExportClick} />
     </SidebarProvider>
   );
 }

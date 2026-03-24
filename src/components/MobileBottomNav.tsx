@@ -14,6 +14,8 @@ import {
   Play,
   GraduationCap,
   Settings,
+  FileText,
+  Palette,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRef, useCallback, useState } from "react";
@@ -32,13 +34,16 @@ interface MobileBottomNavProps {
   onTabChange: (tab: string) => void;
   staffMode?: boolean;
   onStaffModeChange?: (value: boolean) => void;
+  onExportClick?: () => void;
 }
 
-export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffModeChange }: MobileBottomNavProps) {
+export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffModeChange, onExportClick }: MobileBottomNavProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isLongPress = useRef(false);
   const [showToast, setShowToast] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   const isActive = (tab: typeof tabs[number]) => {
     if (tab.route === "/") return location.pathname === "/";
@@ -55,11 +60,12 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
 
   // Long-press on Settings icon to toggle staff mode
   const handlePressStart = useCallback(() => {
+    isLongPress.current = false;
     longPressTimer.current = setTimeout(() => {
+      isLongPress.current = true;
       onStaffModeChange?.(!staffMode);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 1500);
-      // Haptic feedback if available
       if (navigator.vibrate) navigator.vibrate(50);
     }, 600);
   }, [staffMode, onStaffModeChange]);
@@ -68,6 +74,13 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
+    }
+  }, []);
+
+  // Tap on Settings → show more menu (config + export)
+  const handleSettingsTap = useCallback(() => {
+    if (!isLongPress.current) {
+      setShowMoreMenu((v) => !v);
     }
   }, []);
 
@@ -121,17 +134,17 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
             );
           })}
 
-          {/* Staff/Settings button — long press to toggle expert mode */}
+          {/* Staff/Settings button — tap for menu, long press for expert mode */}
           <button
             onTouchStart={handlePressStart}
-            onTouchEnd={handlePressEnd}
+            onTouchEnd={(e) => { handlePressEnd(); handleSettingsTap(); }}
             onTouchCancel={handlePressEnd}
             onMouseDown={handlePressStart}
-            onMouseUp={handlePressEnd}
+            onMouseUp={(e) => { handlePressEnd(); handleSettingsTap(); }}
             onMouseLeave={handlePressEnd}
             className={cn(
               "flex flex-col items-center justify-center gap-0.5 transition-colors no-select touch-target relative",
-              staffMode
+              (staffMode || showMoreMenu)
                 ? "text-primary"
                 : "text-muted-foreground active:text-foreground"
             )}
@@ -142,16 +155,60 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
             )} />
             <span className={cn(
               "text-[9px] leading-tight font-medium",
-              staffMode && "font-semibold text-primary"
+              (staffMode || showMoreMenu) && "font-semibold text-primary"
             )}>
-              {staffMode ? "Expert" : "Staff"}
+              Plus
             </span>
-            {staffMode && (
+            {(staffMode || showMoreMenu) && (
               <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-primary" />
             )}
           </button>
         </div>
       </nav>
+
+      {/* More menu popup */}
+      {showMoreMenu && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="md:hidden fixed inset-0 z-[55] bg-black/20 backdrop-blur-sm"
+            onClick={() => setShowMoreMenu(false)}
+          />
+          {/* Menu */}
+          <div className="md:hidden fixed bottom-16 right-2 z-[60] animate-in fade-in slide-in-from-bottom-2 duration-200 safe-area-inset-bottom">
+            <div className="bg-card border border-border/60 rounded-xl shadow-xl overflow-hidden min-w-[180px]">
+              <button
+                onClick={() => { navigate("/"); onTabChange("configuration"); setShowMoreMenu(false); }}
+                className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-foreground hover:bg-muted/50 transition-colors"
+              >
+                <Palette className="w-4 h-4 text-primary" />
+                Configuration
+              </button>
+              <div className="h-px bg-border/40" />
+              <button
+                onClick={() => { if (onExportClick) onExportClick(); setShowMoreMenu(false); }}
+                className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-foreground hover:bg-muted/50 transition-colors"
+              >
+                <FileText className="w-4 h-4 text-primary" />
+                Exporter un rapport
+              </button>
+              <div className="h-px bg-border/40" />
+              <button
+                onTouchStart={(e) => { e.stopPropagation(); handlePressStart(); }}
+                onTouchEnd={(e) => { e.stopPropagation(); handlePressEnd(); }}
+                onClick={() => { onStaffModeChange?.(!staffMode); setShowMoreMenu(false); }}
+                className={cn(
+                  "flex items-center gap-3 w-full px-4 py-3 text-sm font-medium transition-colors",
+                  staffMode ? "text-primary" : "text-foreground hover:bg-muted/50"
+                )}
+              >
+                <Settings className={cn("w-4 h-4", staffMode ? "text-primary" : "text-muted-foreground")} />
+                {staffMode ? "✓ Mode Expert" : "Mode Expert"}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }
