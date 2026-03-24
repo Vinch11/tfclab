@@ -338,6 +338,7 @@ export default function AITrainingPlanPage() {
     const athleteSnapshots = getSnapshotsForAthlete(athlete.id);
     const refs = getEffectiveRefs(athlete, athleteSnapshots);
     data.fcMax = refs.fcMax;
+    if (!data.sex && athlete.sex) data.sex = athlete.sex;
 
     return { data, diagnostic };
   }, [buildDiagnosticForAthlete, getSnapshotsForAthlete]);
