@@ -583,6 +583,7 @@ export default function DashboardPage() {
               currentAmbition={getAthleteAmbition(currentAthlete)}
               onAmbitionChange={handleAmbitionChange}
               objectif={objectif}
+              sexe={currentAthlete.sexe === "F" ? "F" : "M"}
             />
           </div>
         </div>
