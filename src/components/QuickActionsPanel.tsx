@@ -63,7 +63,7 @@ export function QuickActionsPanel({ onCreateSnapshot, onImportTest }: QuickActio
         <div className="flex items-center gap-2 mb-2">
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions rapides</span>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
           {actions.map((action) => {
             const Icon = action.icon;
             return (
