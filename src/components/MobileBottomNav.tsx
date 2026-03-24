@@ -35,11 +35,13 @@ interface MobileBottomNavProps {
   onExportClick?: () => void;
 }
 
-export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffModeChange }: MobileBottomNavProps) {
+export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffModeChange, onExportClick }: MobileBottomNavProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isLongPress = useRef(false);
   const [showToast, setShowToast] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   const isActive = (tab: typeof tabs[number]) => {
     if (tab.route === "/") return location.pathname === "/";
