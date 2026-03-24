@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { calculateAge, computeAgeAdjustmentIndex, AGE_METHODOLOGY } from "@/lib/ageAdjustment";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
-import { AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED, DEFAULT_AMBITION, getAmbitionDefinition } from "@/types/ambitionLevel";
+import { AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED, DEFAULT_AMBITION, getAmbitionDefinition, getRunningTimeHint, isRunningObjectiveWithTimes } from "@/types/ambitionLevel";
 import { AthleteObjectiveManager } from "@/components/AthleteObjectiveManager";
 import { useAthleteRaceGoals } from "@/hooks/useAthleteRaceGoals";
 
