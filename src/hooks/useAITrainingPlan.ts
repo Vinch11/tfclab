@@ -9,6 +9,7 @@ const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-
 
 export interface PlanAthleteData {
   nom?: string;
+  sex?: string | null;
   ftp?: number | null;
   weightKg?: number | null;
   vlamax?: number | null;

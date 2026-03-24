@@ -29,6 +29,7 @@ export function buildPlanAthleteDataFromDiagnostic(
   const raw = diagnostic._rawInput;
   return {
     nom: raw.athleteName,
+    sex: raw.sex ?? null,
     ftp: raw.ftp,
     weightKg: raw.weightKg,
     vlamax: diagnostic.effectifs.vlamax.value,
