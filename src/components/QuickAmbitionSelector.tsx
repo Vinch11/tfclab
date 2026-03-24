@@ -30,6 +30,7 @@ interface QuickAmbitionSelectorProps {
 export function QuickAmbitionSelector({
   currentAmbition,
   onAmbitionChange,
+  objectif,
   disabled = false,
 }: QuickAmbitionSelectorProps) {
   const [open, setOpen] = useState(false);
