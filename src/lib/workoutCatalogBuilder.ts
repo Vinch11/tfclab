@@ -26,15 +26,21 @@ export interface CatalogEntry {
 /** Map objective strings to WorkoutGoal values */
 function normalizeGoal(objective: string): WorkoutGoal[] {
   const lower = objective.toLowerCase();
+  // Order matters: check specific patterns before generic ones
   if (lower.includes("70.3") || lower === "703") return ["half"];
   if (lower.includes("ironman") || lower === "im") return ["ironman"];
+  // Trail variants (most specific first)
   if (lower.includes("trail") && (lower.includes("ultra") || lower.includes(">80") || lower.includes("utmb"))) return ["trail_ultra", "trail_long", "trail_mountain"];
-  if (lower.includes("trail") && (lower.includes("mont") || lower.includes("60") || lower.includes("80"))) return ["trail_mountain", "trail_long", "trail_short"];
-  if (lower.includes("trail") && (lower.includes("court") || lower.includes("<42") || lower.includes("30k"))) return ["trail_short", "trail_mountain"];
+  if (lower.includes("trail") && (lower.includes("mont") || lower.includes("mountain") || lower.includes("60") || lower.includes("80"))) return ["trail_mountain", "trail_long", "trail_short"];
+  if (lower.includes("trail") && (lower.includes("court") || lower.includes("short") || lower.includes("<42") || lower.includes("30k") || lower.includes("50k") || lower.includes("20-50"))) return ["trail_short", "trail_mountain"];
   if (lower.includes("trail")) return ["trail_short", "trail_mountain", "trail_long"];
-  if (lower.includes("semi")) return ["semi"];
-  if (lower.includes("marathon")) return ["marathon"];
-  if (lower.includes("10k") || lower.includes("10km")) return ["10k"];
+  // Running distances
+  if (lower.includes("semi")) return ["semi", "10k"];
+  if (lower.includes("marathon")) return ["marathon", "semi"];
+  if (lower.includes("10k") || lower.includes("10km") || lower.includes("10 km")) return ["10k", "semi"];
+  if (lower.includes("5k") || lower.includes("5km") || lower.includes("5 km")) return ["10k"];
+  // Start to run / débutant
+  if (lower.includes("start") || lower.includes("débutant") || lower.includes("beginner")) return ["10k"];
   // Triathlon generic
   if (lower.includes("triathlon") || lower.includes("tri")) return ["ironman", "half"];
   return [];

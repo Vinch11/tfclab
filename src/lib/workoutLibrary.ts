@@ -4424,4 +4424,10 @@ WorkoutLibrary.push(...EnrichedWorkoutsV3);
 import { EnrichedWorkoutsTrail } from "./enrichedWorkoutsTrail";
 WorkoutLibrary.push(...EnrichedWorkoutsTrail);
 
+// =============================================
+// POST-PROCESSING: Enrich missing goals[] and phase[]
+// =============================================
+import { enrichWorkoutGoals } from "./workoutGoalsEnricher";
+enrichWorkoutGoals(WorkoutLibrary);
+
 console.log(`✅ Pro Pack: ${ProPackWorkouts.length} | Templates: ${TemplateDerivedWorkouts.length} | Enriched: ${EnrichedWorkouts.length} | V2: ${EnrichedWorkoutsV2.length} | V3: ${EnrichedWorkoutsV3.length} | Trail: ${EnrichedWorkoutsTrail.length} | Total: ${WorkoutLibrary.length}`);
