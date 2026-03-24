@@ -304,7 +304,7 @@ export function detectRunningLimiter(input: RunningLimiterInput): RunningLimiter
     target: pacingTarget,
     gap: input.pacingConsistency !== null ? input.pacingConsistency - pacingTarget : 0,
     gapPercent: pacingGap * 100,
-    status: input.pacingConsistency === null ? "acceptable"
+    status: input.pacingConsistency === null ? "unknown"
       : input.pacingConsistency >= pacingTarget ? "optimal"
       : input.pacingConsistency >= 70 ? "acceptable"
       : "limiting",
