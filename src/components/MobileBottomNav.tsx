@@ -149,10 +149,15 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
                 : "text-muted-foreground active:text-foreground"
             )}
           >
-            <Settings className={cn(
-              "w-5 h-5 transition-transform duration-300",
-              staffMode && "animate-spin-slow drop-shadow-[0_0_6px_hsl(var(--primary)/0.4)]"
-            )} />
+            <div className="relative">
+              <Settings className={cn(
+                "w-5 h-5 transition-transform duration-300",
+                staffMode && "animate-spin-slow drop-shadow-[0_0_6px_hsl(var(--primary)/0.4)]"
+              )} />
+              {staffMode && (
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-primary ring-2 ring-background" />
+              )}
+            </div>
             <span className={cn(
               "text-[9px] leading-tight font-medium",
               (staffMode || showMoreMenu) && "font-semibold text-primary"
