@@ -1,6 +1,6 @@
 /**
  * PlanningPage — Hub de planification d'entraînement
- * Regroupe : AI Plan, Templates, Running Guidance
+ * Regroupe : AI Plan, Templates, Bibliothèque
  */
 
 import { useNavigate } from "react-router-dom";
@@ -13,7 +13,6 @@ import {
   Library,
   ArrowRight,
   CalendarDays,
-  Dumbbell,
   RefreshCw,
 } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -24,7 +23,7 @@ const sections = [
   {
     id: "ai-plan",
     title: "Plan IA",
-    description: "Générateur de plans d'entraînement personnalisés basé sur les limiteurs, leviers et le Strategy Engine TFCL",
+    description: "Plans personnalisés basés sur les limiteurs et le Strategy Engine TFCL",
     icon: Sparkles,
     route: "/planning/ai-plan",
     color: "text-purple-500",
@@ -33,7 +32,7 @@ const sections = [
   {
     id: "templates",
     title: "Templates",
-    description: "Bibliothèque de programmes de référence avec annotations coach et personnalisation par profil",
+    description: "Programmes de référence avec annotations coach",
     icon: BookOpen,
     route: "/planning/templates",
     color: "text-blue-500",
@@ -42,7 +41,7 @@ const sections = [
   {
     id: "library",
     title: "Bibliothèque Séances",
-    description: "Catalogue complet des séances TFCL™ utilisées par le moteur IA avec filtrage par sport, phase et objectif",
+    description: "Catalogue TFCL™ complet avec filtrage par sport, phase et objectif",
     icon: Library,
     route: "/planning/library",
     color: "text-emerald-500",
@@ -71,6 +70,7 @@ export default function PlanningPage() {
       setSyncing(false);
     }
   };
+
   useEffect(() => {
     localStorage.setItem("vlab-staff-mode", staffMode.toString());
   }, [staffMode]);
@@ -82,16 +82,16 @@ export default function PlanningPage() {
       staffMode={staffMode}
       onStaffModeChange={setStaffMode}
     >
-      <div className="max-w-5xl mx-auto space-y-6 animate-fade-in">
-        {/* Header */}
+      <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6 animate-fade-in">
+        {/* Header - compact on mobile */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-primary/10">
-              <CalendarDays className="h-6 w-6 text-primary" />
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-primary/10">
+              <CalendarDays className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Planification</h1>
-              <p className="text-sm text-muted-foreground">Entraînement futur, plans IA & templates</p>
+              <h1 className="text-lg sm:text-2xl font-bold text-foreground">Planification</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">Plans IA & templates</p>
             </div>
           </div>
           <Button
@@ -99,34 +99,36 @@ export default function PlanningPage() {
             size="sm"
             onClick={handleSync}
             disabled={syncing}
-            className="gap-2"
+            className="gap-1.5 h-8 text-xs sm:text-sm"
           >
-            <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
-            {syncing ? "Sync..." : "Sync DB"}
+            <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
+            <span className="hidden xs:inline">{syncing ? "Sync..." : "Sync DB"}</span>
           </Button>
         </div>
 
-        {/* Section Cards */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Section Cards - single column on mobile */}
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {sections.map((section) => {
             const Icon = section.icon;
             return (
               <Card
                 key={section.id}
-                className="group cursor-pointer hover:border-primary/30 hover:shadow-md transition-all duration-200"
+                className="group cursor-pointer hover:border-primary/30 hover:shadow-md transition-all duration-200 active:scale-[0.98]"
                 onClick={() => navigate(section.route)}
               >
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <div className={`p-2 rounded-lg ${section.bgColor}`}>
-                      <Icon className={`h-5 w-5 ${section.color}`} />
+                <CardHeader className="p-3 sm:p-4 pb-1.5 sm:pb-2">
+                  <div className="flex items-center sm:items-start justify-between">
+                    <div className="flex items-center gap-2.5 sm:block">
+                      <div className={`p-1.5 sm:p-2 rounded-lg ${section.bgColor}`}>
+                        <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${section.color}`} />
+                      </div>
+                      <CardTitle className="text-sm sm:text-base sm:mt-3">{section.title}</CardTitle>
                     </div>
                     <ArrowRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
                   </div>
-                  <CardTitle className="text-base mt-3">{section.title}</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                <CardContent className="p-3 sm:p-4 pt-0 sm:pt-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                     {section.description}
                   </p>
                 </CardContent>
@@ -137,9 +139,9 @@ export default function PlanningPage() {
 
         {/* Info */}
         <Card className="border-dashed border-primary/20 bg-primary/5">
-          <CardContent className="py-4 text-center">
-            <p className="text-sm text-muted-foreground">
-              Le Plan IA utilise les <span className="font-medium text-foreground">limiteurs</span> et <span className="font-medium text-foreground">leviers</span> identifiés par le Strategy Engine pour générer des programmes adaptés.
+          <CardContent className="py-3 sm:py-4 px-3 sm:px-6 text-center">
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Le Plan IA utilise les <span className="font-medium text-foreground">limiteurs</span> et <span className="font-medium text-foreground">leviers</span> du Strategy Engine.
             </p>
           </CardContent>
         </Card>
