@@ -4,18 +4,18 @@
  * Intègre Pacing Envelope™, Briefing Jour J, Staff Report V2
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Info, Calendar, FileText, Smartphone } from 'lucide-react';
+import { ArrowLeft, Info, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { SidebarLayout } from '@/components/SidebarLayout';
 import { RaceSimulationModule } from '@/components/RaceSimulationModule';
 import { PacingEnvelopeCard } from '@/components/PacingEnvelopeCard';
 import { RaceDayBriefingMode } from '@/components/RaceDayBriefingMode';
 import { StaffPacingReportV2 } from '@/components/StaffPacingReportV2';
-
 
 import { useAthletes } from '@/contexts/AthleteContext';
 import { useCloudData } from '@/hooks/useCloudData';
@@ -33,12 +33,15 @@ export default function RaceSimulationPage() {
   const navigate = useNavigate();
   const { currentAthlete: selectedAthlete } = useAthletes();
   const { snapshots, tests, checkins } = useCloudData();
-  
-  
+  const [activeTab, setActiveTab] = useState("simulation");
+  const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
+
+  useEffect(() => {
+    localStorage.setItem("vlab-staff-mode", staffMode.toString());
+  }, [staffMode]);
   
   // Compute effectifs
   const athleteId = selectedAthlete?.id ?? '';
-  // ✅ FIX: Le contexte expose 'objectif', pas 'goal'
   const objectif = selectedAthlete?.objectif ?? selectedAthlete?.goal ?? 'IM';
   const activeSnapshotId = selectedAthlete?.active_snapshot_id ?? null;
   
@@ -86,7 +89,6 @@ export default function RaceSimulationPage() {
     });
   }, [vlamaxEffectif, tteEffectif, activeSnapshot, objectif]);
   
-  // Disponibilité depuis checkins
   const latestCheckin = React.useMemo(() => {
     if (!checkins || !athleteId) return null;
     const athleteCheckins = checkins.filter(c => c.athlete_id === athleteId);
@@ -94,7 +96,6 @@ export default function RaceSimulationPage() {
   }, [checkins, athleteId]);
   
   const disponibilite = React.useMemo(() => {
-    // Source: fatigue_state du snapshot uniquement (pas de check-in quotidien)
     const fatigueStateToScore: Record<string, number> = {
       fresh: 8, ok: 6, fatigued: 4, high: 2, injured: 1
     };
@@ -114,18 +115,14 @@ export default function RaceSimulationPage() {
     return computeDisponibiliteTFCL(input);
   }, [activeSnapshot]);
   
-  // Determine discipline and race objective
   const discipline: 'bike' | 'run' = React.useMemo(() => {
-    // ✅ FIX: Utiliser 'objectif' qui est déjà normalisé depuis le contexte
     if (objectif.includes('Marathon') || objectif.includes('Semi') || objectif.includes('10km')) {
       return 'run';
     }
     return 'bike';
   }, [objectif]);
   
-  // Normalize race objective for Pacing Envelope
   const raceObjective: RaceObjective = React.useMemo(() => {
-    // ✅ FIX: Gérer les formats '703' et '70.3'
     if (objectif.includes('Marathon') && !objectif.includes('Semi')) return 'Marathon';
     if (objectif.includes('Semi')) return 'Semi';
     if (objectif.includes('10km') || objectif.includes('10k')) return '10km';
@@ -133,7 +130,6 @@ export default function RaceSimulationPage() {
     return 'IM';
   }, [objectif]);
   
-  // Race duration estimation (for chart)
   const raceDurationMin = React.useMemo(() => {
     switch (raceObjective) {
       case 'IM': return 300;
@@ -145,20 +141,18 @@ export default function RaceSimulationPage() {
     }
   }, [raceObjective]);
   
-  // Compute Potentiel Physiologique Score for Pacing Envelope
   const potentielPhysiologiqueScore = React.useMemo(() => {
     if (!disponibilite) return null;
     return disponibilite.score;
   }, [disponibilite]);
   
-  // Compute envelope, rules, scenarios for Briefing and Staff Report
   const envelope = React.useMemo(() => {
     return computePacingEnvelope({
       vlamaxEffectif,
       tteEffectif,
       fatmax,
       potentielPhysiologiqueScore,
-      fatigueIndex: null, // Source: snapshot fatigue_state via disponibilité
+      fatigueIndex: null,
       raceObjective,
       sport: discipline,
       ftp: activeSnapshot?.ftp,
@@ -192,75 +186,61 @@ export default function RaceSimulationPage() {
   }, [envelope, raceObjective, vlamaxEffectif, tteEffectif, raceDurationMin]);
   
   return (
-    <div className="min-h-screen bg-background pb-safe">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b pt-safe">
-        <div className="container mx-auto px-4 py-3 flex items-center gap-3">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => navigate(-1)}
-            className="min-w-[44px] min-h-[44px] touch-manipulation"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-lg sm:text-xl font-bold truncate">
-              Simulation de Course TFCL™
-            </h1>
-            <p className="text-sm text-muted-foreground truncate">
+    <SidebarLayout
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      staffMode={staffMode}
+      onStaffModeChange={setStaffMode}
+    >
+      <div className="max-w-5xl mx-auto space-y-3 sm:space-y-6 animate-fade-in">
+        {/* Sub-header with athlete name and briefing action */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-lg sm:text-2xl font-bold text-foreground">Simulation</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground truncate">
               {selectedAthlete?.name ?? 'Aucun athlète sélectionné'}
             </p>
           </div>
           
-          {/* Mode buttons */}
           {envelope && rules && scenarios && (
-            <>
-              
-              
-              {/* Briefing Dialog */}
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-1">
-                    <Calendar className="h-4 w-4" />
-                    <span className="hidden sm:inline">Briefing</span>
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-                  <RaceDayBriefingMode
-                    athleteName={selectedAthlete?.name ?? 'Athlète'}
-                    envelope={envelope}
-                    rules={rules}
-                    scenarios={scenarios}
-                    raceObjective={raceObjective}
-                    potentielPhysiologiqueScore={potentielPhysiologiqueScore}
-                  />
-                </DialogContent>
-              </Dialog>
-            </>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs sm:text-sm">
+                  <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Briefing</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+                <RaceDayBriefingMode
+                  athleteName={selectedAthlete?.name ?? 'Athlète'}
+                  envelope={envelope}
+                  rules={rules}
+                  scenarios={scenarios}
+                  raceObjective={raceObjective}
+                  potentielPhysiologiqueScore={potentielPhysiologiqueScore}
+                />
+              </DialogContent>
+            </Dialog>
           )}
         </div>
-      </header>
-      
-      {/* Content */}
-      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
-        {/* Info banner - compact on mobile */}
-        <Alert className="text-sm">
-          <Info className="h-4 w-4 flex-shrink-0" />
-          <AlertDescription className="text-xs sm:text-sm leading-relaxed">
+
+        {/* Info banner - compact */}
+        <Alert className="text-xs sm:text-sm py-2 sm:py-3">
+          <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+          <AlertDescription className="text-[11px] sm:text-sm leading-relaxed">
             {SIMULATION_DEFINITIONS.official}
           </AlertDescription>
         </Alert>
         
-        {/* Tabs: Simulation vs Pacing Envelope */}
+        {/* Tabs */}
         <Tabs defaultValue="envelope" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-10">
-            <TabsTrigger value="envelope" className="text-xs sm:text-sm">Envelope</TabsTrigger>
-            <TabsTrigger value="simulation" className="text-xs sm:text-sm">Simulation</TabsTrigger>
-            <TabsTrigger value="staff" className="text-xs sm:text-sm">Staff Report</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 h-9 sm:h-10">
+            <TabsTrigger value="envelope" className="text-[11px] sm:text-sm px-1">Envelope</TabsTrigger>
+            <TabsTrigger value="simulation" className="text-[11px] sm:text-sm px-1">Simulation</TabsTrigger>
+            <TabsTrigger value="staff" className="text-[11px] sm:text-sm px-1">Staff Report</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="envelope" className="mt-4">
+          <TabsContent value="envelope" className="mt-3 sm:mt-4">
             {envelope ? (
               <PacingEnvelopeCard
                 input={{
@@ -268,7 +248,7 @@ export default function RaceSimulationPage() {
                   tteEffectif,
                   fatmax,
                   potentielPhysiologiqueScore,
-                  fatigueIndex: null, // Source: snapshot fatigue_state
+                  fatigueIndex: null,
                   raceObjective,
                   sport: discipline,
                   ftp: activeSnapshot?.ftp,
@@ -280,13 +260,13 @@ export default function RaceSimulationPage() {
                 staffMode
               />
             ) : (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className="text-center py-8 text-sm text-muted-foreground">
                 Données insuffisantes pour calculer l'enveloppe
               </div>
             )}
           </TabsContent>
           
-          <TabsContent value="simulation" className="mt-4">
+          <TabsContent value="simulation" className="mt-3 sm:mt-4">
             <RaceSimulationModule
               vlamaxEffectif={vlamaxEffectif?.value}
               vlamaxConfidence={vlamaxEffectif?.confidence ?? 0.5}
@@ -304,7 +284,7 @@ export default function RaceSimulationPage() {
             />
           </TabsContent>
           
-          <TabsContent value="staff" className="mt-4">
+          <TabsContent value="staff" className="mt-3 sm:mt-4">
             {envelope && rules && scenarios ? (
               <StaffPacingReportV2
                 athleteName={selectedAthlete?.name ?? 'Athlète'}
@@ -318,41 +298,35 @@ export default function RaceSimulationPage() {
                 raceDurationMin={raceDurationMin}
               />
             ) : (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className="text-center py-8 text-sm text-muted-foreground">
                 Données insuffisantes pour générer le rapport
               </div>
             )}
           </TabsContent>
         </Tabs>
         
-        {/* Academy section - collapsible on mobile */}
+        {/* Academy section - collapsible */}
         <details className="group">
           <summary className="flex items-center justify-between cursor-pointer list-none py-2 touch-manipulation">
-            <h2 className="text-base sm:text-lg font-semibold">
-              Academy — Pacing & Simulation
-            </h2>
-            <span className="text-muted-foreground text-sm group-open:rotate-180 transition-transform">
-              ▼
-            </span>
+            <h2 className="text-sm sm:text-lg font-semibold">Academy — Pacing & Simulation</h2>
+            <span className="text-muted-foreground text-xs sm:text-sm group-open:rotate-180 transition-transform">▼</span>
           </summary>
-          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 pt-3">
-            <div className="p-3 sm:p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-              <h3 className="font-medium text-sm mb-2">Pacing Envelope™</h3>
-              <p className="text-xs text-muted-foreground">
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 pt-3">
+            <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+              <h3 className="font-medium text-xs sm:text-sm mb-1.5">Pacing Envelope™</h3>
+              <p className="text-[11px] sm:text-xs text-muted-foreground">
                 Le couloir physiologique de pacing définit les limites sécurisées selon votre profil métabolique.
-                TFCL ne prescrit pas une allure — il explique, simule et cadre la décision.
               </p>
             </div>
-            <div className="p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <h3 className="font-medium text-sm mb-2">Simulation Fuel & Risk</h3>
-              <p className="text-xs text-muted-foreground">
+            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <h3 className="font-medium text-xs sm:text-sm mb-1.5">Simulation Fuel & Risk</h3>
+              <p className="text-[11px] sm:text-xs text-muted-foreground">
                 {SIMULATION_DEFINITIONS.methodology}
               </p>
             </div>
           </div>
         </details>
-      </main>
-
-    </div>
+      </div>
+    </SidebarLayout>
   );
 }
