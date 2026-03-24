@@ -360,14 +360,13 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   const ftpKgGap = input.ftpKg !== null 
     ? (input.ftpKg - targets.ftp_kg_min) / targets.ftp_kg_min 
     : 0;
-  const ftpKgLimiting = input.ftpKg !== null && input.ftpKg < targets.ftp_kg_min * 0.9;
   gapAnalysis.push({
     metric: "FTP/kg",
     value: input.ftpKg,
     target: targets.ftp_kg_min,
     gap: input.ftpKg !== null ? input.ftpKg - targets.ftp_kg_min : 0,
     gapPercent: ftpKgGap * 100,
-    status: input.ftpKg === null ? "acceptable" 
+    status: input.ftpKg === null ? "unknown" 
       : input.ftpKg >= targets.ftp_kg_min ? "optimal" 
       : input.ftpKg >= targets.ftp_kg_min * 0.9 ? "acceptable" 
       : "limiting",
