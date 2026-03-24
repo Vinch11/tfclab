@@ -245,7 +245,7 @@ export function detectRunningLimiter(input: RunningLimiterInput): RunningLimiter
     target: vlamaxOptimal,
     gap: input.vlamaxCap !== null ? input.vlamaxCap - vlamaxOptimal : 0,
     gapPercent: vlamaxGap * 100,
-    status: input.vlamaxCap === null ? "acceptable"
+    status: input.vlamaxCap === null ? "unknown"
       : input.vlamaxCap <= vlamaxOptimal ? "optimal"
       : input.vlamaxCap <= vlamaxMax ? "acceptable"
       : "limiting",
