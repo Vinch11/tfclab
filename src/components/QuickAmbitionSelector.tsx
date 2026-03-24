@@ -107,7 +107,10 @@ export function QuickAmbitionSelector({
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {def.description}
+                    {(() => {
+                      const hint = objectif ? getRunningTimeHint(objectif, level) : null;
+                      return hint ? <>{def.description} — <span className="font-medium">{hint}</span></> : def.description;
+                    })()}
                   </p>
                 </div>
               </button>
