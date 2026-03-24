@@ -323,7 +323,7 @@ export function detectRunningLimiter(input: RunningLimiterInput): RunningLimiter
     gapPercent: input.mechanicalFatigue !== null 
       ? ((input.mechanicalFatigue - mechanicalTarget) / mechanicalTarget) * 100 
       : 0,
-    status: input.mechanicalFatigue === null ? "acceptable"
+    status: input.mechanicalFatigue === null ? "unknown"
       : input.mechanicalFatigue <= mechanicalTarget ? "optimal"
       : input.mechanicalFatigue <= 60 ? "acceptable"
       : "limiting",
