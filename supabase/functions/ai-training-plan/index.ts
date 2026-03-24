@@ -3564,7 +3564,9 @@ function buildUserPrompt(data: any, config: any): string {
   const timeTarget = getTimeTargetHint(config.objective || "", config.ambition || "", athleteSex);
   if (timeTarget) {
     lines.push(`- **🎯 Temps cible estimé :** ${timeTarget}`);
-    lines.push(`  → Calibre les allures d'entraînement et la progression pour viser ce temps objectif. Les séances clés doivent être prescrites en cohérence avec cet objectif chronométrique.`);
+    lines.push(`  → Ce temps cible sert UNIQUEMENT à guider la progression du plan (volume de travail à allure spécifique, distribution des séances clés, stratégie de course J-J).`);
+    lines.push(`  → Les ZONES D'ENTRAÎNEMENT (Z1-Z7) restent 100% individualisées à partir des valeurs physiologiques de l'athlète (VMA, FTP, FCmax). Ne JAMAIS recalculer ou modifier les zones à partir du temps cible.`);
+    lines.push(`  → En résumé : le temps cible = objectif de performance final. Les zones = outils d'entraînement individualisés. Les deux sont indépendants.`);
   }
   if (config.weeksAvailable) lines.push(`- **Semaines disponibles :** ${config.weeksAvailable}`);
   if (config.weeklyHours) {
