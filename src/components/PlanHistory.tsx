@@ -93,7 +93,7 @@ export function PlanHistory({ onRestored }: PlanHistoryProps) {
       };
 
       // Rebuild rows from archived plan_json
-      const today = startOfWeek(new Date(), { weekStartsOn: 1 });
+      const planStart = startOfWeek(restoreStartDate, { weekStartsOn: 1 });
       const rows: any[] = [];
 
       for (const week of plan.weeks) {
