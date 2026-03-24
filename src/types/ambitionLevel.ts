@@ -58,46 +58,47 @@ export const AMBITION_DEFINITIONS: Record<AmbitionLevel, AmbitionDefinition> = {
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SUGGESTIONS DE TEMPS PAR OBJECTIF RUNNING + AMBITION
-// Pour les objectifs de course à pied, chaque niveau d'ambition est associé
-// à une fourchette de temps indicative (hommes). Femmes: +8-12% environ.
+// Temps indicatifs hommes. Femmes: +8-12% selon la distance.
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export type RunningObjectiveWithTimes = "Marathon" | "Semi" | "10K" | "5K";
+export type SexeForHints = "M" | "F";
 
-export const RUNNING_TIME_HINTS: Record<RunningObjectiveWithTimes, Record<AmbitionLevel, string>> = {
+export const RUNNING_TIME_HINTS: Record<RunningObjectiveWithTimes, Record<AmbitionLevel, { M: string; F: string }>> = {
   Marathon: {
-    finisher: "4h30 – 5h+",
-    age_group: "3h30 – 4h15",
-    competitor: "3h00 – 3h30",
-    elite: "Sub 2h45",
+    finisher:   { M: "4h30 – 5h+",    F: "4h55 – 5h30+" },
+    age_group:  { M: "3h30 – 4h15",   F: "3h50 – 4h40" },
+    competitor: { M: "3h00 – 3h30",    F: "3h18 – 3h50" },
+    elite:      { M: "Sub 2h45",       F: "Sub 3h05" },
   },
   Semi: {
-    finisher: "2h00 – 2h30",
-    age_group: "1h35 – 1h55",
-    competitor: "1h20 – 1h35",
-    elite: "Sub 1h18",
+    finisher:   { M: "2h00 – 2h30",    F: "2h10 – 2h45" },
+    age_group:  { M: "1h35 – 1h55",    F: "1h44 – 2h06" },
+    competitor: { M: "1h20 – 1h35",    F: "1h28 – 1h44" },
+    elite:      { M: "Sub 1h18",       F: "Sub 1h26" },
   },
   "10K": {
-    finisher: "55' – 1h10",
-    age_group: "45' – 52'",
-    competitor: "38' – 44'",
-    elite: "Sub 36'",
+    finisher:   { M: "55' – 1h10",     F: "1h00 – 1h17" },
+    age_group:  { M: "45' – 52'",      F: "49' – 57'" },
+    competitor: { M: "38' – 44'",      F: "42' – 48'" },
+    elite:      { M: "Sub 36'",        F: "Sub 40'" },
   },
   "5K": {
-    finisher: "28' – 35'",
-    age_group: "22' – 26'",
-    competitor: "18' – 21'",
-    elite: "Sub 17'",
+    finisher:   { M: "28' – 35'",      F: "30' – 38'" },
+    age_group:  { M: "22' – 26'",      F: "24' – 29'" },
+    competitor: { M: "18' – 21'",      F: "20' – 23'" },
+    elite:      { M: "Sub 17'",        F: "Sub 19'" },
   },
 };
 
 /**
- * Retourne la suggestion de temps pour un objectif running + ambition.
- * Retourne null si l'objectif n'est pas un objectif running avec temps.
+ * Retourne la suggestion de temps pour un objectif running + ambition + sexe.
  */
-export function getRunningTimeHint(objectif: string, ambition: AmbitionLevel): string | null {
+export function getRunningTimeHint(objectif: string, ambition: AmbitionLevel, sexe?: SexeForHints): string | null {
   if (objectif in RUNNING_TIME_HINTS) {
-    return RUNNING_TIME_HINTS[objectif as RunningObjectiveWithTimes]?.[ambition] ?? null;
+    const entry = RUNNING_TIME_HINTS[objectif as RunningObjectiveWithTimes]?.[ambition];
+    if (!entry) return null;
+    return entry[sexe === "F" ? "F" : "M"];
   }
   return null;
 }
