@@ -61,7 +61,7 @@ export const AMBITION_DEFINITIONS: Record<AmbitionLevel, AmbitionDefinition> = {
 // Temps indicatifs hommes. Femmes: +8-12% selon la distance.
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export type RunningObjectiveWithTimes = "Marathon" | "Semi" | "10K" | "5K";
+export type RunningObjectiveWithTimes = "Marathon" | "Semi" | "10K" | "5K" | "Trail" | "TrailShort" | "TrailMountain";
 export type SexeForHints = "M" | "F";
 
 export const RUNNING_TIME_HINTS: Record<RunningObjectiveWithTimes, Record<AmbitionLevel, { M: string; F: string }>> = {
