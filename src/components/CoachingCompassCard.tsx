@@ -463,7 +463,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
         </div>
       </CardHeader>
 
-      <CardContent className="pt-0">
+      <CardContent className="pt-0 px-3 sm:px-6">
         {/* ─── Fatigue Warning ─── */}
         {compass.fatigueWarning && compass.fatigueWarning.level !== "none" && (
           <div className="mb-3">
