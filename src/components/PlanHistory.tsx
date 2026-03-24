@@ -46,6 +46,7 @@ export function PlanHistory({ onRestored }: PlanHistoryProps) {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [restoring, setRestoring] = useState<string | null>(null);
   const [confirmRestore, setConfirmRestore] = useState<PlanVersion | null>(null);
+  const [restoreStartDate, setRestoreStartDate] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 1 }));
 
   useEffect(() => {
     if (!currentAthlete || !open) return;
