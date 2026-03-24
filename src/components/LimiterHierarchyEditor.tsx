@@ -96,7 +96,7 @@ function SortableLimiter({ item, index, maxImpact, isOverridden }: SortableLimit
         <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
           <div
             className={`h-full rounded-full transition-all ${
-              isPrimary ? "bg-destructive" : item.status === "limiting" ? "bg-destructive/70" : "bg-amber-500/60"
+              isPrimary ? "bg-destructive" : item.status === "limiting" ? "bg-destructive/70" : item.status === "unknown" ? "bg-muted-foreground/30" : "bg-amber-500/60"
             }`}
             style={{ width: `${relativeImpact}%` }}
           />
