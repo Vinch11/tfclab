@@ -25,6 +25,7 @@ interface QuickAmbitionSelectorProps {
   currentAmbition: AmbitionLevel;
   onAmbitionChange: (ambition: AmbitionLevel) => Promise<boolean>;
   objectif?: string;
+  sexe?: SexeForHints;
   disabled?: boolean;
 }
 
