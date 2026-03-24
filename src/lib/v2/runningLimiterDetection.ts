@@ -285,7 +285,7 @@ export function detectRunningLimiter(input: RunningLimiterInput): RunningLimiter
     target: durabilityTarget,
     gap: input.durabilityMin !== null ? input.durabilityMin - durabilityTarget : 0,
     gapPercent: durabilityGap * 100,
-    status: input.durabilityMin === null ? "acceptable"
+    status: input.durabilityMin === null ? "unknown"
       : input.durabilityMin >= durabilityTarget ? "optimal"
       : input.durabilityMin >= durabilityTarget * 0.85 ? "acceptable"
       : "limiting",
