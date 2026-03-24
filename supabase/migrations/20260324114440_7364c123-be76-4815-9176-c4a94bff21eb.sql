@@ -1,0 +1,1 @@
+ALTER TABLE public.training_plan DROP CONSTRAINT training_plan_athlete_id_date_key;
