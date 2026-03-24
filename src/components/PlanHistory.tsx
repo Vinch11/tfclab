@@ -97,7 +97,7 @@ export function PlanHistory({ onRestored }: PlanHistoryProps) {
       const rows: any[] = [];
 
       for (const week of plan.weeks) {
-        const weekStart = addDays(today, ((week.weekNumber || 1) - 1) * 7);
+        const weekStart = addDays(planStart, ((week.weekNumber || 1) - 1) * 7);
         for (const session of week.sessions || []) {
           if (session.isRest) continue;
           const dayOffset = session.day != null ? session.day - 1 : 0;
