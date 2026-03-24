@@ -56,6 +56,59 @@ export const AMBITION_DEFINITIONS: Record<AmbitionLevel, AmbitionDefinition> = {
   }
 };
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// SUGGESTIONS DE TEMPS PAR OBJECTIF RUNNING + AMBITION
+// Pour les objectifs de course à pied, chaque niveau d'ambition est associé
+// à une fourchette de temps indicative (hommes). Femmes: +8-12% environ.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export type RunningObjectiveWithTimes = "Marathon" | "Semi" | "10K" | "5K";
+
+export const RUNNING_TIME_HINTS: Record<RunningObjectiveWithTimes, Record<AmbitionLevel, string>> = {
+  Marathon: {
+    finisher: "4h30 – 5h+",
+    age_group: "3h30 – 4h15",
+    competitor: "3h00 – 3h30",
+    elite: "Sub 2h45",
+  },
+  Semi: {
+    finisher: "2h00 – 2h30",
+    age_group: "1h35 – 1h55",
+    competitor: "1h20 – 1h35",
+    elite: "Sub 1h18",
+  },
+  "10K": {
+    finisher: "55' – 1h10",
+    age_group: "45' – 52'",
+    competitor: "38' – 44'",
+    elite: "Sub 36'",
+  },
+  "5K": {
+    finisher: "28' – 35'",
+    age_group: "22' – 26'",
+    competitor: "18' – 21'",
+    elite: "Sub 17'",
+  },
+};
+
+/**
+ * Retourne la suggestion de temps pour un objectif running + ambition.
+ * Retourne null si l'objectif n'est pas un objectif running avec temps.
+ */
+export function getRunningTimeHint(objectif: string, ambition: AmbitionLevel): string | null {
+  if (objectif in RUNNING_TIME_HINTS) {
+    return RUNNING_TIME_HINTS[objectif as RunningObjectiveWithTimes]?.[ambition] ?? null;
+  }
+  return null;
+}
+
+/**
+ * Vérifie si un objectif est un objectif running avec suggestions de temps
+ */
+export function isRunningObjectiveWithTimes(objectif: string): objectif is RunningObjectiveWithTimes {
+  return objectif in RUNNING_TIME_HINTS;
+}
+
 /**
  * Normalise une valeur d'ambition (string libre) vers AmbitionLevel valide.
  * Gère: casse (COMPETITOR → competitor), alias courants, valeurs nulles.
