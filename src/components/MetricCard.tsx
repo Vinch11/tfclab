@@ -78,10 +78,10 @@ export function MetricCard({
           )}
         </div>
       </div>
-      <p className="metric-label mb-2">{title}</p>
-      <div className="flex items-baseline gap-2">
-        <span className={cn("metric-value", `text-${accentColor}`)}>{value}</span>
-        {unit && <span className="text-muted-foreground text-sm">{unit}</span>}
+      <p className="metric-label mb-1 sm:mb-2 text-xs sm:text-sm">{title}</p>
+      <div className="flex items-baseline gap-1 sm:gap-2">
+        <span className={cn("metric-value text-lg sm:text-2xl", `text-${accentColor}`)}>{value}</span>
+        {unit && <span className="text-muted-foreground text-[10px] sm:text-sm">{unit}</span>}
       </div>
     </div>
   );

@@ -59,14 +59,17 @@ export function SidebarLayout({
             )}
           </header>
 
-          {/* Main content - mobile optimized padding */}
+          {/* Main content - mobile optimized padding with bottom nav space */}
           <main className="flex-1 overflow-auto ios-scroll">
-            <div className="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 pb-6">
+            <div className="container mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-6 pb-20 md:pb-6">
               {children}
             </div>
           </main>
         </SidebarInset>
       </div>
+
+      {/* Mobile bottom navigation */}
+      <MobileBottomNav activeTab={activeTab} onTabChange={onTabChange} />
     </SidebarProvider>
   );
 }
