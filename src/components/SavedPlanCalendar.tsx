@@ -22,6 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { toast } from "sonner";
 import { SessionEditDialog } from "@/components/SessionEditDialog";
+import { PlanHistory } from "@/components/PlanHistory";
 
 interface TrainingPlanRow {
   id: string;
