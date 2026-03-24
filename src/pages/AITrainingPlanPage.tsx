@@ -613,6 +613,16 @@ export default function AITrainingPlanPage() {
       const { error } = await supabase.from("training_plan").insert(rows);
       if (error) throw error;
 
+      // Archive this plan version for history
+      await supabase.from("plan_versions").insert({
+        athlete_id: currentAthlete.id,
+        coach_id: user.id,
+        plan_json: parsedPlan as any,
+        objective: currentAthlete.goal || null,
+        weeks_count: parsedPlan.weeks?.length || null,
+        sessions_count: rows.length,
+      });
+
       setIsSaved(true);
       toast.success(`${rows.length} séances sauvegardées au planning !`);
     } catch (err: any) {
