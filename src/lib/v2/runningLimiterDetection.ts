@@ -345,7 +345,7 @@ export function detectRunningLimiter(input: RunningLimiterInput): RunningLimiter
     gap: input.availabilityScore !== null ? input.availabilityScore - availabilityTarget : 0,
     gapPercent: availabilityGap * 100,
     status: input.hasHealthAlerts ? "limiting"
-      : input.availabilityScore === null ? "acceptable"
+      : input.availabilityScore === null ? "unknown"
       : input.availabilityScore >= availabilityTarget ? "optimal"
       : input.availabilityScore >= 50 ? "acceptable"
       : "limiting",
