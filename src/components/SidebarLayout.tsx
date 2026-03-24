@@ -8,6 +8,7 @@ import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/s
 import { AppSidebar } from "@/components/AppSidebar";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import logo from "@/assets/logo-2fc.png";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -48,8 +49,11 @@ export function SidebarLayout({
             {/* Hide sidebar trigger on mobile — bottom nav replaces it */}
             <SidebarTrigger className="-ml-1 touch-target hidden md:flex" />
             
-            {/* Mobile: show app title */}
-            <span className="md:hidden text-sm font-semibold text-foreground/90 tracking-tight">TFCLab</span>
+            {/* Mobile: show logo + app title */}
+            <div className="md:hidden flex items-center gap-1.5">
+              <img src={logo} alt="TFCLab" className="h-5 w-5 rounded-sm" />
+              <span className="text-sm font-semibold text-foreground/90 tracking-tight">TFCLab</span>
+            </div>
             
             {/* Staff mode indicator badge - refined */}
             {staffMode && (
