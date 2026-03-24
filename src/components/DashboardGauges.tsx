@@ -222,16 +222,16 @@ export function DashboardGauges(props: DashboardGaugesProps) {
     const { vlamaxEnvelope, tteEnvelope, potentielPhysiologiqueEnvelope, ftp, ftpKg, vo2max, mode = "athlete" } = props;
     
     return (
-      <div className="glass-card p-4 sm:p-5 md:p-6">
-        <div className="flex items-center justify-between mb-3 sm:mb-4">
+      <div className="glass-card p-3 sm:p-5 md:p-6">
+        <div className="flex items-center justify-between mb-2 sm:mb-4">
           <h3 className="text-xs sm:text-sm font-semibold text-muted-foreground flex items-center gap-2">
             <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Métriques Clés
           </h3>
         </div>
         
-        {/* Cartes ScoreEnvelope unifiées */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 sm:mb-6">
+        {/* Cartes ScoreEnvelope unifiées — always 3 cols */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-3 sm:mb-6">
           <ScoreEnvelopeCard 
             envelope={vlamaxEnvelope} 
             mode={mode} 
@@ -326,7 +326,7 @@ export function DashboardGauges(props: DashboardGaugesProps) {
   };
 
   return (
-    <div className="glass-card p-4 sm:p-5 md:p-6">
+    <div className="glass-card p-3 sm:p-5 md:p-6">
       <div className="flex items-center justify-between mb-3 sm:mb-4">
         <h3 className="text-xs sm:text-sm font-semibold text-muted-foreground flex items-center gap-2">
           <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />

@@ -41,18 +41,18 @@ export function MetricCard({
   return (
     <div
       className={cn(
-        "glass-card p-6 hover:border-primary/30 transition-all duration-300 group",
+        "glass-card p-3 sm:p-4 md:p-6 hover:border-primary/30 transition-all duration-300 group",
         className
       )}
     >
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-2 sm:mb-4">
         <div
           className={cn(
-            "p-3 rounded-xl transition-transform duration-300 group-hover:scale-110",
+            "p-2 sm:p-3 rounded-lg sm:rounded-xl transition-transform duration-300 group-hover:scale-110",
             iconBgColors[accentColor]
           )}
         >
-          <Icon className="w-5 h-5" />
+          <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
         </div>
         <div className="flex items-center gap-2">
           {onWhyClick && (
@@ -78,10 +78,10 @@ export function MetricCard({
           )}
         </div>
       </div>
-      <p className="metric-label mb-2">{title}</p>
-      <div className="flex items-baseline gap-2">
-        <span className={cn("metric-value", `text-${accentColor}`)}>{value}</span>
-        {unit && <span className="text-muted-foreground text-sm">{unit}</span>}
+      <p className="metric-label mb-1 sm:mb-2 text-xs sm:text-sm">{title}</p>
+      <div className="flex items-baseline gap-1 sm:gap-2">
+        <span className={cn("metric-value text-lg sm:text-2xl", `text-${accentColor}`)}>{value}</span>
+        {unit && <span className="text-muted-foreground text-[10px] sm:text-sm">{unit}</span>}
       </div>
     </div>
   );

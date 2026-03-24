@@ -63,7 +63,7 @@ export function QuickActionsPanel({ onCreateSnapshot, onImportTest }: QuickActio
         <div className="flex items-center gap-2 mb-2">
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions rapides</span>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
           {actions.map((action) => {
             const Icon = action.icon;
             return (
@@ -72,10 +72,10 @@ export function QuickActionsPanel({ onCreateSnapshot, onImportTest }: QuickActio
                 variant="outline"
                 size="sm"
                 onClick={() => handleClick(action)}
-                className="h-auto py-2.5 px-3 flex flex-col items-center gap-1.5 text-xs font-medium hover:bg-primary/5 hover:border-primary/30 hover:text-primary transition-all"
+                className="h-auto py-2 sm:py-2.5 px-2 sm:px-3 flex flex-col items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs font-medium hover:bg-primary/5 hover:border-primary/30 hover:text-primary transition-all"
               >
-                <Icon className="h-4 w-4" />
-                <span className="text-center leading-tight">{action.label}</span>
+                <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="text-center leading-tight truncate w-full">{action.label}</span>
               </Button>
             );
           })}
