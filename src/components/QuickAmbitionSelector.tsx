@@ -18,6 +18,7 @@ import {
   getAmbitionDefinition,
   getRunningTimeHint,
   DEFAULT_AMBITION,
+  SexeForHints,
 } from "@/types/ambitionLevel";
 
 interface QuickAmbitionSelectorProps {
