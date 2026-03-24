@@ -58,11 +58,12 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
 
   // Long-press on Settings icon to toggle staff mode
   const handlePressStart = useCallback(() => {
+    isLongPress.current = false;
     longPressTimer.current = setTimeout(() => {
+      isLongPress.current = true;
       onStaffModeChange?.(!staffMode);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 1500);
-      // Haptic feedback if available
       if (navigator.vibrate) navigator.vibrate(50);
     }, 600);
   }, [staffMode, onStaffModeChange]);
@@ -71,6 +72,13 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
+    }
+  }, []);
+
+  // Tap on Settings → show more menu (config + export)
+  const handleSettingsTap = useCallback(() => {
+    if (!isLongPress.current) {
+      setShowMoreMenu((v) => !v);
     }
   }, []);
 
