@@ -230,12 +230,17 @@ export default function AthleteEditPage() {
                 <SelectContent>
                   {AMBITION_LEVELS_ORDERED.map((level) => {
                     const def = AMBITION_DEFINITIONS[level];
+                    const timeHint = getRunningTimeHint(objectif, level);
                     return (
                       <SelectItem key={level} value={level}>
                         <span className="flex items-center gap-2">
                           <span>{def.icon}</span>
                           <span>{def.label}</span>
-                          <span className="text-xs text-muted-foreground">– {def.description}</span>
+                          {timeHint ? (
+                            <span className="text-xs text-muted-foreground">– {timeHint}</span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">– {def.description}</span>
+                          )}
                         </span>
                       </SelectItem>
                     );
