@@ -3426,7 +3426,7 @@ function buildUserPrompt(data: any, config: any): string {
   lines.push("### Configuration du Plan");
 
   // Multi-objective support
-  if (config.raceGoals && config.raceGoals.length > 1) {
+  if (config.raceGoals && config.raceGoals.length > 0) {
     lines.push("\n#### 🎯 PLANIFICATION MULTI-OBJECTIFS");
     lines.push("Ce plan couvre PLUSIEURS courses/objectifs. Tu DOIS structurer la périodisation pour TOUS les atteindre :\n");
 
