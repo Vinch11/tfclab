@@ -964,9 +964,10 @@ const Index = () => {
                     <SelectContent>
                       {AMBITION_LEVELS_ORDERED.map((level) => {
                         const def = getAmbitionDefinition(level);
+                        const timeHint = currentAthlete ? getRunningTimeHint(currentAthlete.goal || currentAthlete.objectif || "IM", level) : null;
                         return (
                           <SelectItem key={level} value={level}>
-                            {def.icon} {def.label}
+                            {def.icon} {def.label}{timeHint ? ` — ${timeHint}` : ""}
                           </SelectItem>
                         );
                       })}
