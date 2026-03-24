@@ -200,6 +200,7 @@ import {
   DEFAULT_AMBITION,
   getAmbitionDefinition,
   getAthleteAmbition,
+  getRunningTimeHint,
   normalizeAmbitionLevel,
 } from "@/types/ambitionLevel";
 
