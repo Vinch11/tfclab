@@ -111,7 +111,7 @@ export function useAITrainingPlan() {
           pr.start,
           pr.end,
           totalWeeks,
-          { maxItems: 25 }
+          { maxItems: 40 }
         );
         phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
       }

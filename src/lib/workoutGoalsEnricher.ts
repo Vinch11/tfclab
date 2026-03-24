@@ -18,29 +18,49 @@ import type { LibraryWorkout, WorkoutGoal, PhaseTag } from "@/types/workoutLibra
 // ─── GOAL INFERENCE FROM ID PATTERNS ────────────────────────────────────────
 
 const ID_GOAL_PATTERNS: Array<{ pattern: RegExp; goals: WorkoutGoal[] }> = [
-  // Ironman specific
-  { pattern: /^A_IM_|^B_IM_|^C_IM_|^D_IM_|_IM_|RACE_SIM_IM/i, goals: ["ironman"] },
+  // Ironman specific (all prefixes including TPL_, ENR_, V2_, V3_)
+  { pattern: /^A_IM_|^B_IM_|^C_IM_|^D_IM_|_IM_|RACE_SIM_IM|TPL_IM_|ENR_.*_IM\b|V[23]_IM_/i, goals: ["ironman"] },
   // 70.3 specific
-  { pattern: /^A_703_|^B_703_|^BRICK_703|BR_703|_703_|RACE_SIM_703/i, goals: ["half"] },
+  { pattern: /^A_703_|^B_703_|^BRICK_703|BR_703|_703_|RACE_SIM_703|TPL_703_|ENR_.*703|V[23]_703_/i, goals: ["half"] },
   // Marathon specific
-  { pattern: /^A_MAR_|^B_MAR_|^C_MAR_|^D_MAR_|_MAR_|MARATHON/i, goals: ["marathon"] },
+  { pattern: /^A_MAR_|^B_MAR_|^C_MAR_|^D_MAR_|_MAR_|MARATHON|TPL_MAR_|ENR_.*MARATHON/i, goals: ["marathon"] },
   // Semi specific
-  { pattern: /^A_SEMI_|^B_SEMI_|^C_SEMI_|^D_SEMI_|_SEMI_/i, goals: ["semi"] },
+  { pattern: /^A_SEMI_|^B_SEMI_|^C_SEMI_|^D_SEMI_|_SEMI_|TPL_SEMI_|ENR_.*SEMI/i, goals: ["semi"] },
   // 10K specific
-  { pattern: /^A_10K_|^B_10K_|^C_10K_|^D_10K_|_10K_/i, goals: ["10k"] },
+  { pattern: /^A_10K_|^B_10K_|^C_10K_|^D_10K_|_10K_|TPL_10K_|ENR_.*10K|V[23]_.*10K/i, goals: ["10k"] },
   // Trail 50km / Trail Short
-  { pattern: /^A_TR50_|^B_TR50_|^C_TR50_|^D_TR50_/i, goals: ["trail_short"] },
+  { pattern: /^A_TR50_|^B_TR50_|^C_TR50_|^D_TR50_|TPL_TR50_/i, goals: ["trail_short"] },
   // Trail generic (includes short, mountain, ultra)
-  { pattern: /^A_TR_|^B_TR_|^C_TR_|^D_TR_/i, goals: ["trail_short", "trail_mountain", "trail_ultra"] },
+  { pattern: /^A_TR_|^B_TR_|^C_TR_|^D_TR_|_TR_.*TRAIL|V[23]_TR_|ENR_TR_/i, goals: ["trail_short", "trail_mountain", "trail_ultra"] },
   // Brick stages
-  { pattern: /^BRICK_STAGE|^BRICK_IM|^BR_IM/i, goals: ["ironman"] },
+  { pattern: /^BRICK_STAGE|^BRICK_IM|^BR_IM|TPL_BRICK_IM/i, goals: ["ironman"] },
   { pattern: /^BRICK_FAST_FINISH|^BRICK_SEMI|^BR_HALF/i, goals: ["half"] },
-  { pattern: /^BRICK_703/i, goals: ["half"] },
+  { pattern: /^BRICK_703|TPL_BRICK_703/i, goals: ["half"] },
   { pattern: /^BRICK_ACTIVATION/i, goals: ["ironman", "half"] },
   // Swim triathlon
-  { pattern: /^A_SWIM_TRI_|^B_SWIM_TRI_|^C_SWIM_TRI_|^D_SWIM_TRI_/i, goals: ["ironman", "half"] },
+  { pattern: /^A_SWIM_TRI_|^B_SWIM_TRI_|^C_SWIM_TRI_|^D_SWIM_TRI_|ENR_SWIM_TRI_|V[23]_SWIM_TRI_/i, goals: ["ironman", "half"] },
   // Taper
-  { pattern: /^D_TAPER_/i, goals: ["ironman", "half", "marathon", "semi", "10k", "trail_short", "trail_mountain"] },
+  { pattern: /^D_TAPER_|TAPER/i, goals: ["ironman", "half", "marathon", "semi", "10k", "trail_short", "trail_mountain"] },
+  // ─── Keyword-based patterns for ENR_/V2_/V3_ sessions ───
+  // VMA / VO2max → running goals
+  { pattern: /VMA|VO2/i, goals: ["10k", "semi", "marathon"] },
+  // Seuil / Threshold / Tempo → mid-distance
+  { pattern: /SEUIL|THRESHOLD|TEMPO/i, goals: ["semi", "marathon", "half"] },
+  // FatMax / Train Low / Endurance → long-distance
+  { pattern: /FATMAX|TRAIN_LOW|FASTED/i, goals: ["ironman", "half", "marathon", "trail_long"] },
+  // SFR / Force → cycling power goals
+  { pattern: /\bSFR\b|FORCE_COTES|GRIMPEUR/i, goals: ["ironman", "half", "trail_mountain"] },
+  // Norwegian / Fartlek → versatile running
+  { pattern: /NORWEGIAN|FARTLEK/i, goals: ["10k", "semi", "marathon"] },
+  // Sweet Spot / Over-Under → cycling build
+  { pattern: /SWEET_SPOT|OVER_UNDER/i, goals: ["ironman", "half"] },
+  // Race Sim generic
+  { pattern: /RACE_SIM|RACE_PACE|REPETITION_GENERALE/i, goals: ["ironman", "half", "marathon", "semi"] },
+  // Allure spécifique
+  { pattern: /ALLURE_MARATHON/i, goals: ["marathon"] },
+  { pattern: /ALLURE_SEMI/i, goals: ["semi"] },
+  // Brick generic
+  { pattern: /^BRICK_|^BR_|TPL_BRICK_|ENR_BRICK_/i, goals: ["ironman", "half"] },
 ];
 
 // ─── GOAL INFERENCE FROM VARIANT KEYS ───────────────────────────────────────
