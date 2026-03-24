@@ -249,7 +249,12 @@ export default function AthleteEditPage() {
               </Select>
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <span className={ambitionDef.color}>{ambitionDef.icon}</span>
-                {ambitionDef.description}
+                {(() => {
+                  const hint = getRunningTimeHint(objectif, ambition);
+                  return hint 
+                    ? <>{ambitionDef.description} — <span className="font-medium">{hint}</span></>
+                    : ambitionDef.description;
+                })()}
               </p>
             </div>
 
