@@ -14,6 +14,8 @@ import {
   Play,
   GraduationCap,
   Settings,
+  FileText,
+  Palette,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRef, useCallback, useState } from "react";
