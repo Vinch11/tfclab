@@ -87,10 +87,10 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
         </div>
       )}
 
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border safe-area-inset-bottom">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-2xl border-t border-border/40 safe-area-inset-bottom">
         {/* Staff mode active indicator bar */}
         {staffMode && (
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-primary/60" />
+          <div className="absolute top-0 left-0 right-0 h-px bg-primary/40" />
         )}
         <div className="grid grid-cols-7 h-14">
           {tabs.map((tab) => {
