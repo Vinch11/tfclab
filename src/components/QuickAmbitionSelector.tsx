@@ -16,12 +16,14 @@ import {
   AmbitionLevel,
   AMBITION_LEVELS_ORDERED,
   getAmbitionDefinition,
+  getRunningTimeHint,
   DEFAULT_AMBITION,
 } from "@/types/ambitionLevel";
 
 interface QuickAmbitionSelectorProps {
   currentAmbition: AmbitionLevel;
   onAmbitionChange: (ambition: AmbitionLevel) => Promise<boolean>;
+  objectif?: string;
   disabled?: boolean;
 }
 
