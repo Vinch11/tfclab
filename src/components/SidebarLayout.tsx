@@ -55,13 +55,15 @@ export function SidebarLayout({
             {staffMode && (
               <Badge 
                 variant="secondary" 
-                className="bg-primary/8 text-primary border-primary/15 text-[10px] sm:text-xs py-0.5 px-1.5 sm:py-0.5 sm:px-2 ml-auto md:ml-0"
+                className="bg-primary/8 text-primary border-primary/15 text-[10px] sm:text-xs py-0.5 px-1.5 sm:py-0.5 sm:px-2 md:ml-0"
               >
                 <span className="w-1.5 h-1.5 bg-primary rounded-full mr-1 sm:mr-1.5 animate-pulse" />
-                <span className="hidden xs:inline">Expert</span>
-                <span className="xs:hidden">Expert</span>
+                Expert
               </Badge>
             )}
+            <div className="ml-auto">
+              <ThemeToggle />
+            </div>
           </header>
 
           {/* Main content - mobile optimized padding with bottom nav space */}
