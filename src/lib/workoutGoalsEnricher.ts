@@ -259,7 +259,12 @@ export function enrichWorkoutGoals(library: LibraryWorkout[]): void {
 
     // ── PHASES ──
     if (!w.phase || w.phase.length === 0) {
-      const inferred = inferPhasesFromWhen(w);
+      // 1. Try from `when` text
+      let inferred = inferPhasesFromWhen(w);
+      // 2. Fallback: infer from ID patterns, category, necessite
+      if (inferred.length === 0) {
+        inferred = inferPhasesFromIdAndCat(w);
+      }
       if (inferred.length > 0) {
         w.phase = inferred;
         phasesAdded++;

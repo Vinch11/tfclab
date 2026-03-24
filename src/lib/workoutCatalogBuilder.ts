@@ -132,7 +132,7 @@ export function buildWorkoutCatalog(
 ): CatalogEntry[] {
   const goals = normalizeGoal(objective);
   const phases = phasesForWeekRange(weekStart, weekEnd, totalWeeks);
-  const maxItems = options?.maxItems || 30;
+  const maxItems = options?.maxItems || 40;
 
   // Score and sort all workouts
   const scored = WorkoutLibrary
