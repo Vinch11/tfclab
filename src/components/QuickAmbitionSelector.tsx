@@ -16,18 +16,21 @@ import {
   AmbitionLevel,
   AMBITION_LEVELS_ORDERED,
   getAmbitionDefinition,
+  getRunningTimeHint,
   DEFAULT_AMBITION,
 } from "@/types/ambitionLevel";
 
 interface QuickAmbitionSelectorProps {
   currentAmbition: AmbitionLevel;
   onAmbitionChange: (ambition: AmbitionLevel) => Promise<boolean>;
+  objectif?: string;
   disabled?: boolean;
 }
 
 export function QuickAmbitionSelector({
   currentAmbition,
   onAmbitionChange,
+  objectif,
   disabled = false,
 }: QuickAmbitionSelectorProps) {
   const [open, setOpen] = useState(false);
@@ -104,7 +107,10 @@ export function QuickAmbitionSelector({
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {def.description}
+                    {(() => {
+                      const hint = objectif ? getRunningTimeHint(objectif, level) : null;
+                      return hint ? <>{def.description} — <span className="font-medium">{hint}</span></> : def.description;
+                    })()}
                   </p>
                 </div>
               </button>

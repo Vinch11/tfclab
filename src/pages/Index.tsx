@@ -200,6 +200,7 @@ import {
   DEFAULT_AMBITION,
   getAmbitionDefinition,
   getAthleteAmbition,
+  getRunningTimeHint,
   normalizeAmbitionLevel,
 } from "@/types/ambitionLevel";
 
@@ -963,9 +964,10 @@ const Index = () => {
                     <SelectContent>
                       {AMBITION_LEVELS_ORDERED.map((level) => {
                         const def = getAmbitionDefinition(level);
+                        const timeHint = currentAthlete ? getRunningTimeHint(currentAthlete.goal || "IM", level) : null;
                         return (
                           <SelectItem key={level} value={level}>
-                            {def.icon} {def.label}
+                            {def.icon} {def.label}{timeHint ? ` — ${timeHint}` : ""}
                           </SelectItem>
                         );
                       })}
@@ -1091,9 +1093,10 @@ const Index = () => {
                   <SelectContent>
                     {AMBITION_LEVELS_ORDERED.map((level) => {
                       const def = getAmbitionDefinition(level);
+                      const timeHint = currentAthlete ? getRunningTimeHint(currentAthlete.goal || "IM", level) : null;
                       return (
                         <SelectItem key={level} value={level}>
-                          {def.icon} {def.label}
+                          {def.icon} {def.label}{timeHint ? ` — ${timeHint}` : ""}
                         </SelectItem>
                       );
                     })}
