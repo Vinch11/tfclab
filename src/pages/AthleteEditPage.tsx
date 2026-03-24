@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { calculateAge, computeAgeAdjustmentIndex, AGE_METHODOLOGY } from "@/lib/ageAdjustment";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
-import { AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED, DEFAULT_AMBITION, getAmbitionDefinition } from "@/types/ambitionLevel";
+import { AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED, DEFAULT_AMBITION, getAmbitionDefinition, getRunningTimeHint, isRunningObjectiveWithTimes } from "@/types/ambitionLevel";
 import { AthleteObjectiveManager } from "@/components/AthleteObjectiveManager";
 import { useAthleteRaceGoals } from "@/hooks/useAthleteRaceGoals";
 
@@ -230,12 +230,17 @@ export default function AthleteEditPage() {
                 <SelectContent>
                   {AMBITION_LEVELS_ORDERED.map((level) => {
                     const def = AMBITION_DEFINITIONS[level];
+                    const timeHint = getRunningTimeHint(objectif, level);
                     return (
                       <SelectItem key={level} value={level}>
                         <span className="flex items-center gap-2">
                           <span>{def.icon}</span>
                           <span>{def.label}</span>
-                          <span className="text-xs text-muted-foreground">– {def.description}</span>
+                          {timeHint ? (
+                            <span className="text-xs text-muted-foreground">– {timeHint}</span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">– {def.description}</span>
+                          )}
                         </span>
                       </SelectItem>
                     );
@@ -244,7 +249,12 @@ export default function AthleteEditPage() {
               </Select>
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <span className={ambitionDef.color}>{ambitionDef.icon}</span>
-                {ambitionDef.description}
+                {(() => {
+                  const hint = getRunningTimeHint(objectif, ambition);
+                  return hint 
+                    ? <>{ambitionDef.description} — <span className="font-medium">{hint}</span></>
+                    : ambitionDef.description;
+                })()}
               </p>
             </div>
 
