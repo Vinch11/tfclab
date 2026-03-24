@@ -224,7 +224,7 @@ export function detectRunningLimiter(input: RunningLimiterInput): RunningLimiter
     target: Math.round(vo2maxTarget * 10) / 10,
     gap: input.vo2max !== null ? input.vo2max - vo2maxTarget : 0,
     gapPercent: vo2maxGap * 100,
-    status: input.vo2max === null ? "acceptable"
+    status: input.vo2max === null ? "unknown"
       : input.vo2max >= vo2maxTarget ? "optimal"
       : input.vo2max >= vo2maxTarget * 0.9 ? "acceptable"
       : "limiting",
