@@ -33,6 +33,7 @@ export function QuickAmbitionSelector({
   currentAmbition,
   onAmbitionChange,
   objectif,
+  sexe,
   disabled = false,
 }: QuickAmbitionSelectorProps) {
   const [open, setOpen] = useState(false);
