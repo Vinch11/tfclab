@@ -11,6 +11,7 @@ import { History, Trash2, Loader2, Calendar, RotateCcw } from "lucide-react";
 import { format, parseISO, startOfWeek, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";
@@ -19,6 +20,10 @@ import {
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
   AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
+import {
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface PlanVersion {
   id: string;
@@ -41,6 +46,7 @@ export function PlanHistory({ onRestored }: PlanHistoryProps) {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [restoring, setRestoring] = useState<string | null>(null);
   const [confirmRestore, setConfirmRestore] = useState<PlanVersion | null>(null);
+  const [restoreStartDate, setRestoreStartDate] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 1 }));
 
   useEffect(() => {
     if (!currentAthlete || !open) return;
@@ -87,11 +93,11 @@ export function PlanHistory({ onRestored }: PlanHistoryProps) {
       };
 
       // Rebuild rows from archived plan_json
-      const today = startOfWeek(new Date(), { weekStartsOn: 1 });
+      const planStart = startOfWeek(restoreStartDate, { weekStartsOn: 1 });
       const rows: any[] = [];
 
       for (const week of plan.weeks) {
-        const weekStart = addDays(today, ((week.weekNumber || 1) - 1) * 7);
+        const weekStart = addDays(planStart, ((week.weekNumber || 1) - 1) * 7);
         for (const session of week.sessions || []) {
           if (session.isRest) continue;
           const dayOffset = session.day != null ? session.day - 1 : 0;
@@ -195,21 +201,45 @@ export function PlanHistory({ onRestored }: PlanHistoryProps) {
         </CollapsibleContent>
       </Collapsible>
 
-      <AlertDialog open={!!confirmRestore} onOpenChange={(o) => !o && setConfirmRestore(null)}>
+      <AlertDialog open={!!confirmRestore} onOpenChange={(o) => { if (!o) setConfirmRestore(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <RotateCcw className="h-5 w-5 text-primary" />
               Restaurer ce plan ?
             </AlertDialogTitle>
-            <AlertDialogDescription>
-              Le planning actuel sera remplacé par cette version
-              {confirmRestore && (
-                <span className="font-medium">
-                  {" "}du {format(parseISO(confirmRestore.created_at), "d MMM yyyy", { locale: fr })}
-                </span>
-              )}
-              . Les séances seront repositionnées à partir de cette semaine.
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  Le planning actuel sera remplacé par cette version
+                  {confirmRestore && (
+                    <span className="font-medium">
+                      {" "}du {format(parseISO(confirmRestore.created_at), "d MMM yyyy", { locale: fr })}
+                    </span>
+                  )}
+                  .
+                </p>
+                <div>
+                  <p className="text-sm font-medium text-foreground mb-1.5">Date de début du plan :</p>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="w-full justify-start text-left font-normal">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        {format(restoreStartDate, "d MMMM yyyy", { locale: fr })}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarPicker
+                        mode="single"
+                        selected={restoreStartDate}
+                        onSelect={(d) => d && setRestoreStartDate(d)}
+                        locale={fr}
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
