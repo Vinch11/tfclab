@@ -433,10 +433,11 @@ function SourceLegendItem({ source }: { source: DataSource }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function DomainRow({ domain }: { domain: TFCLDomainAnalysis }) {
-  const statusLabels = {
+  const statusLabels: Record<string, string> = {
     optimal: "Optimal",
     acceptable: "Acceptable",
     limiting: "Limitant",
+    unknown: "Non renseigné",
   };
   
   const sourceInfo = getSourceInfo(domain.source);

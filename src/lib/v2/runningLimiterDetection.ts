@@ -51,7 +51,7 @@ export interface RunningGapAnalysis {
   target: number;
   gap: number;           // Négatif = en dessous de la cible
   gapPercent: number;    // Gap en %
-  status: "optimal" | "acceptable" | "limiting";
+  status: "optimal" | "acceptable" | "limiting" | "unknown";
   weight: number;        // Importance stratégique (0-1)
   weightedImpact: number;
 }
