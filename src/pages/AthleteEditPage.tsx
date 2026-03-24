@@ -230,7 +230,7 @@ export default function AthleteEditPage() {
                 <SelectContent>
                   {AMBITION_LEVELS_ORDERED.map((level) => {
                     const def = AMBITION_DEFINITIONS[level];
-                    const timeHint = getRunningTimeHint(objectif, level);
+                    const timeHint = getRunningTimeHint(objectif, level, sexe === "F" ? "F" : "M");
                     return (
                       <SelectItem key={level} value={level}>
                         <span className="flex items-center gap-2">
