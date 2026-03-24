@@ -424,7 +424,7 @@ export default function AITrainingPlanPage() {
       objective: OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective,
       raceName: raceName || undefined,
       raceDate: raceDate || undefined,
-      raceGoals: allRaceGoals.length > 1 ? allRaceGoals : undefined,
+      raceGoals: allRaceGoals,
       planStartDate: format(planStartDate, "yyyy-MM-dd"),
       weeksAvailable: weeksAvailable ?? undefined,
       weeklyHours: parseFloat(weeklyHours) || undefined,
