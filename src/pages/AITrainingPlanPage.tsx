@@ -598,6 +598,17 @@ export default function AITrainingPlanPage() {
         return;
       }
 
+      // Delete existing plan entries for this athlete in the date range to avoid duplicates
+      const dates = rows.map(r => r.date);
+      const minDate = dates.reduce((a, b) => a < b ? a : b);
+      const maxDate = dates.reduce((a, b) => a > b ? a : b);
+      await supabase
+        .from("training_plan")
+        .delete()
+        .eq("athlete_id", currentAthlete.id)
+        .gte("date", minDate)
+        .lte("date", maxDate);
+
       const { error } = await supabase.from("training_plan").insert(rows);
       if (error) throw error;
 
