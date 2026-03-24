@@ -102,6 +102,11 @@ export interface UnifiedLimiterResult {
   // pas la périodisation. Elle génère un avertissement contextuel.
   fatigueWarning: FatigueWarning;
   
+  // ⚠️ Avertissement données insuffisantes
+  insufficientData: boolean;         // true si trop de métriques clés manquent
+  insufficientDataMessage: string | null;
+  missingMetrics: string[];          // Liste des métriques manquantes
+  
   // Détail faiblesse aérobie (si applicable)
   aerobicWeaknessDetail: AerobicWeaknessDetail;
   aerobicWeaknessLabel: string | null;
