@@ -326,7 +326,7 @@ export function DashboardGauges(props: DashboardGaugesProps) {
   };
 
   return (
-    <div className="glass-card p-4 sm:p-5 md:p-6">
+    <div className="glass-card p-3 sm:p-5 md:p-6">
       <div className="flex items-center justify-between mb-3 sm:mb-4">
         <h3 className="text-xs sm:text-sm font-semibold text-muted-foreground flex items-center gap-2">
           <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
