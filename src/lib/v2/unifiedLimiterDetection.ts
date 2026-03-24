@@ -407,7 +407,7 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     target: targets.vlamax.optimal,
     gap: input.vlamax !== null ? input.vlamax - targets.vlamax.optimal : 0,
     gapPercent: vlamaxGap * 100,
-    status: input.vlamax === null ? "acceptable"
+    status: input.vlamax === null ? "unknown"
       : input.vlamax <= targets.vlamax.optimal ? "optimal"
       : input.vlamax <= targets.vlamax.max ? "acceptable"
       : "limiting",
