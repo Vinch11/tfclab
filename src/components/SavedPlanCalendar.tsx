@@ -90,20 +90,21 @@ export function SavedPlanCalendar() {
   const [editSession, setEditSession] = useState<TrainingPlanRow | null>(null);
   const [editOpen, setEditOpen] = useState(false);
 
-  useEffect(() => {
+  const fetchSessions = async () => {
     if (!currentAthlete) { setSessions([]); setLoading(false); return; }
-    const fetchData = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("training_plan")
-        .select("id, date, phase, custom_workout_title, custom_workout_description, status, notes, workout_id, adjusted")
-        .eq("athlete_id", currentAthlete.id)
-        .order("date", { ascending: true });
-      if (error) { console.error(error); toast.error("Erreur chargement planning"); }
-      setSessions((data as TrainingPlanRow[]) || []);
-      setLoading(false);
-    };
-    fetchData();
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("training_plan")
+      .select("id, date, phase, custom_workout_title, custom_workout_description, status, notes, workout_id, adjusted")
+      .eq("athlete_id", currentAthlete.id)
+      .order("date", { ascending: true });
+    if (error) { console.error(error); toast.error("Erreur chargement planning"); }
+    setSessions((data as TrainingPlanRow[]) || []);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchSessions();
   }, [currentAthlete]);
 
   const allWeeks = useMemo(() => {
@@ -318,7 +319,7 @@ export function SavedPlanCalendar() {
             Semaine {weekOffset + 1} / {allWeeks.length} • Cliquez sur une séance pour la modifier
           </p>
 
-          <PlanHistory />
+          <PlanHistory onRestored={() => { setWeekOffset(0); fetchSessions(); }} />
         </CardContent>
       </Card>
 
