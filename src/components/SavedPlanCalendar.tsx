@@ -198,6 +198,31 @@ export function SavedPlanCalendar() {
               <Badge variant="secondary" className="text-xs">
                 {sessions.length} séances • {allWeeks.length} sem.
               </Badge>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm" className="h-7 text-xs" disabled={deleting === "all"}>
+                    {deleting === "all" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+                    Tout supprimer
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5 text-destructive" />
+                      Supprimer tout le plan ?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Cette action supprimera les {sessions.length} séances du planning. Cette action est irréversible.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteAll} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Supprimer tout
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         </CardHeader>
