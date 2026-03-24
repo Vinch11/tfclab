@@ -482,7 +482,7 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     target: fatmaxTargets.optimal,
     gap: input.fatmax !== null ? input.fatmax - fatmaxTargets.optimal : 0,
     gapPercent: fatmaxGap * 100,
-    status: input.fatmax === null ? "acceptable"
+    status: input.fatmax === null ? "unknown"
       : input.fatmax >= fatmaxTargets.optimal ? "optimal"
       : input.fatmax >= fatmaxTargets.min ? "acceptable"
       : "limiting",
