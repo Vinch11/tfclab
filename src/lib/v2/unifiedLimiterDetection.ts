@@ -444,7 +444,7 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     target: wprimeTargets.optimal,
     gap: effectiveWprime !== null ? effectiveWprime - wprimeTargets.optimal : 0,
     gapPercent: wprimeGapValue * 100,
-    status: effectiveWprime === null ? "acceptable"
+    status: effectiveWprime === null ? "unknown"
       : effectiveWprime >= wprimeTargets.min && effectiveWprime <= wprimeTargets.max ? "optimal"
       : (effectiveWprime >= wprimeTargets.min * 0.85 && effectiveWprime <= wprimeTargets.max * 1.15) ? "acceptable"
       : "limiting",
