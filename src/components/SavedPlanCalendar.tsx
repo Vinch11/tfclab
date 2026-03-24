@@ -319,7 +319,7 @@ export function SavedPlanCalendar() {
             Semaine {weekOffset + 1} / {allWeeks.length} • Cliquez sur une séance pour la modifier
           </p>
 
-          <PlanHistory />
+          <PlanHistory onRestored={() => { setWeekOffset(0); fetchSessions(); }} />
         </CardContent>
       </Card>
 
