@@ -2585,7 +2585,7 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     // Dynamic chunk sizing: larger chunks = fewer API calls + better context retention
     // Gemini Flash supports 65k output tokens; ~3-4k tokens/week (verbose) or ~1.5-2k (standard)
     const CHUNK_SIZE = isVerbosePlan ? 6 : 8;
-    const needsChunking = !regenerateWeek && totalWeeks > 16;
+    const needsChunking = !regenerateWeek && totalWeeks > 12;
 
     // FIX #1: Deduplicate CP/W' — reuse buildCPWprimeSection's logic via shared helper
     const cpwResult = computeCPWprime(athleteData);
