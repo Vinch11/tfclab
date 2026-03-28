@@ -2,6 +2,7 @@
  * Nutrition Prédictive – Two For Coaching Lab
  * 
  * Module scientifique d'estimation des besoins glucidiques basé sur :
+ * - Modèle Mader (calculateCarbOxidation) pour l'oxydation totale
  * - VLamax (combustion glucidique)
  * - TTE (endurance métabolique)
  * - Potentiel Physiologique (adéquation physiologique)
@@ -9,6 +10,8 @@
  * 
  * La nutrition est une CONSÉQUENCE, pas une variable isolée.
  */
+
+import { calculateCarbOxidation } from './v2/maderMetabolicModel';
 
 export type VLamaxCategory = 'very_low' | 'moderate' | 'high' | 'very_high';
 export type RiskLevel = 'low' | 'moderate' | 'high' | 'critical';

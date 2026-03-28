@@ -125,6 +125,8 @@ export function ScientificChartsDashboard({
           vlamaxValue={vlamaxValue}
           objectif={objectif}
           sport={sport}
+          vo2max={vo2max}
+          weightKg={weight}
           staffMode={staffMode}
         />
 
