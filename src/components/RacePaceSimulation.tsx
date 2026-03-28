@@ -328,7 +328,7 @@ export function RacePaceSimulation({
           </p>
         </div>
 
-        {/* Phase legend */}
+        {/* Phase & nutrition legend */}
         <div className="flex flex-wrap gap-2">
           {(["start", "install", "push"] as const).map(phase => (
             <Badge key={phase} variant="outline" className="text-[10px]">
@@ -336,6 +336,10 @@ export function RacePaceSimulation({
               {" "}{PHASE_LABELS[phase]}
             </Badge>
           ))}
+          <span className="text-muted-foreground mx-1">|</span>
+          <Badge variant="outline" className="text-[10px]">🟡 Gel</Badge>
+          <Badge variant="outline" className="text-[10px]">💧 Eau</Badge>
+          <Badge variant="outline" className="text-[10px]">🧃 Iso</Badge>
         </div>
 
         {/* Pacing table */}
