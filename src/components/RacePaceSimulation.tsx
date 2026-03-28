@@ -26,6 +26,12 @@ interface RacePaceSimulationProps {
   athleteName?: string;
 }
 
+interface NutritionCue {
+  type: 'gel' | 'water' | 'iso';
+  icon: string;
+  label: string;
+}
+
 interface SegmentRow {
   km: number;
   phase: "start" | "install" | "push";
@@ -35,6 +41,7 @@ interface SegmentRow {
   glycogenPct: number;
   zone: "green" | "orange" | "red";
   alert?: string;
+  nutritionCues: NutritionCue[];
 }
 
 // ═══════════════════════════════════════════════════════════════
