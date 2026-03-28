@@ -750,7 +750,7 @@ ${NUTRITION_PHILOSOPHY.disclaimer}`;
 export const NUTRITION_CHATBOT_QA = [
   {
     question: "Comment est calculé mon besoin en glucides ?",
-    answer: "Le calcul part de votre poids (0.9×kg pour vélo, 1.05×kg pour CAP), puis ajuste selon votre VLamax, TTE, durée prévue et intensité. Le résultat est borné entre 40 et 100 g/h."
+    answer: "Le calcul utilise le modèle Mader pour estimer votre oxydation totale de glucides (basée sur VO2max, VLamax, poids, intensité), puis dérive l'apport exogène nécessaire en soustrayant la couverture glycogène endogène. Des ajustements TTE, durée et intensité affinent le résultat."
   },
   {
     question: "Pourquoi mon risque glycogène est élevé ?",
