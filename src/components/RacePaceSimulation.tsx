@@ -1,6 +1,6 @@
 /**
  * RacePaceSimulation — Per-km pacing table for Marathon/Semi plans
- * Self-contained: computes pacing from VMA/threshold data without full PacingEnvelope dependency.
+ * Personalized nutrition cues via Mader metabolic model.
  */
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import {
   Timer, Footprints, AlertTriangle, Fuel, Activity,
   TrendingDown, CheckCircle2, Droplets, Cookie,
 } from "lucide-react";
+import { calculateCarbOxidation, calculateFatOxidation } from "@/lib/v2/maderMetabolicModel";
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -97,23 +98,69 @@ function computeSegments(
   objective: string,
   thresholdPace: number,
   vlamaxRun: number | null,
+  vo2max: number | null,
+  weightKg: number | null,
 ): SegmentRow[] {
   const totalKm = DISTANCES[objective] || 21;
   const base = BASE_INTENSITY[objective] || BASE_INTENSITY.Semi;
   const vlaMod = vlamaxModifier(vlamaxRun);
 
+  // Athlete profile for Mader model
+  const weight = weightKg ?? 70;
+  const vo2 = vo2max ?? 50;
+  const vlx = vlamaxRun ?? 0.45;
+
+  // Glycogen stores (5g/kg, Cao 2025)
+  const glycogenStoresG = weight * 5;
+
+  // Estimate average pace → duration for target carb rate
+  const avgPaceSecKm = thresholdPace * (100 / base.center);
+  const estimatedDurationH = (totalKm * avgPaceSecKm) / 3600;
+
+  // Target exogenous carb rate via Mader (g/h), capped for CAP
+  const avgCarbOxGmin = calculateCarbOxidation(base.center, vo2, vlx, weight);
+  const totalOxGh = avgCarbOxGmin * 60;
+  const accessFactor = Math.min(0.75, 0.35 + 0.40 * Math.exp(-0.25 * estimatedDurationH));
+  const effectiveStores = glycogenStoresG * accessFactor;
+  const totalCarbNeeded = totalOxGh * estimatedDurationH;
+  const glycogenCoverage = Math.min(0.85, effectiveStores / totalCarbNeeded);
+  const minExoFrac = estimatedDurationH < 1 ? 0 : estimatedDurationH < 2 ? 0.25 : estimatedDurationH < 3 ? 0.40 : 0.50;
+  let targetExoGh = totalOxGh * Math.max(minExoFrac, 1 - glycogenCoverage);
+  targetExoGh *= 0.82; // CAP tolerance
+  targetExoGh = Math.max(30, Math.min(75, targetExoGh));
+
+  // Derive gel/iso quantities from weight
+  // Gel: 20-30g CHO (lighter athletes get smaller gels)
+  const gelCHO = weight < 65 ? 20 : weight < 80 ? 25 : 30;
+  // Iso per serving: 25-35g CHO in 150-250ml
+  const isoCHO = weight < 65 ? 25 : weight < 80 ? 30 : 35;
+  const isoMl = weight < 65 ? 150 : weight < 80 ? 200 : 250;
+  const waterMl = weight < 65 ? 120 : weight < 80 ? 150 : 180;
+
+  // % glycogen per item = CHO / total stores * 100
+  const gelRefuelPct = (gelCHO / glycogenStoresG) * 100;
+  const isoRefuelPct = (isoCHO / glycogenStoresG) * 100;
+
+  // Compute gel interval: deliver targetExoGh using gels+iso
+  // ~60% from gels, ~40% from iso (practical split)
+  const gelContribGh = targetExoGh * 0.6;
+  const isoContribGh = targetExoGh * 0.4;
+  // Gel interval in km = gelCHO / (gelContribGh / kmPerHour)
+  const kmPerHour = 3600 / avgPaceSecKm;
+  const gelIntervalKm = Math.max(3, Math.min(8, Math.round((gelCHO / gelContribGh) * kmPerHour)));
+  const isoIntervalKm = Math.max(4, Math.min(10, Math.round((isoCHO / isoContribGh) * kmPerHour)));
+  // Water between iso stations
+  const waterIntervalKm = Math.max(2, Math.min(4, Math.round(isoIntervalKm / 2)));
+
   const segments: SegmentRow[] = [];
   let glycogen = 100;
   let glycogenFed = 100;
 
-  // Base depletion per km
-  const baseDepletion = objective === "Marathon" ? 2.2 : 2.8;
-
-  // Carb refuel per nutrition item (expressed as % glycogen recovered)
-  // Gel ~25g CHO ≈ ~5% of muscle glycogen stores (~500g total)
-  // Iso ~30g CHO per serving ≈ ~6%
-  const GEL_REFUEL_PCT = 5;
-  const ISO_REFUEL_PCT = 6;
+  // Base depletion per km from Mader (personalized)
+  // Carb ox at avg intensity (g/km) = carbOxGmin * paceMinPerKm
+  const avgPaceMinKm = avgPaceSecKm / 60;
+  const baseCarbGkm = avgCarbOxGmin * avgPaceMinKm;
+  const baseDepletion = (baseCarbGkm / glycogenStoresG) * 100;
 
   for (let km = 1; km <= totalKm; km++) {
     const distPct = km / totalKm;
@@ -148,9 +195,9 @@ function computeSegments(
       : 6 + distPct * 3.5;
     const rpe = Math.min(10, Math.round(baseRpe * 10) / 10);
 
-    // Glycogen depletion (same for both tracks)
-    const zoneMultiplier = intensity > base.high - 1 ? 1.4 : intensity > base.center ? 1.1 : 1.0;
-    const depletion = baseDepletion * zoneMultiplier * vlaMod.depletionRate;
+    // Glycogen depletion — personalized via Mader at current intensity
+    const kmCarbOx = calculateCarbOxidation(intensity, vo2, vlx, weight) * (paceSecKm / 60);
+    const depletion = (kmCarbOx / glycogenStoresG) * 100 * vlaMod.depletionRate;
     glycogen = Math.max(0, glycogen - depletion);
     glycogenFed = Math.max(0, glycogenFed - depletion);
 
@@ -164,27 +211,27 @@ function computeSegments(
     if (glycogen < 15) alert = "⚠️ Risque de déplétion critique";
     else if (glycogen < 30 && km < totalKm - 3) alert = "Réserves basses — maintenir la discipline";
 
-    // Nutrition cues based on timing and glycogen
+    // Personalized nutrition cues
     const nutritionCues: NutritionCue[] = [];
 
-    // Gel: every ~25-30 min (approx every 5-6 km at marathon pace)
-    const gelInterval = glycogenFed < 30 ? 4 : 5;
-    if (km >= 5 && km % gelInterval === 0) {
-      nutritionCues.push({ type: 'gel', icon: '🟡', label: 'Gel', detail: '25g CHO' });
-      glycogenFed = Math.min(100, glycogenFed + GEL_REFUEL_PCT);
+    // Gel: personalized interval, accelerate if glycogen low
+    const effectiveGelInterval = glycogenFed < 30 ? Math.max(2, gelIntervalKm - 2) : gelIntervalKm;
+    if (km >= Math.min(5, gelIntervalKm) && km % effectiveGelInterval === 0) {
+      nutritionCues.push({ type: 'gel', icon: '🟡', label: 'Gel', detail: `${gelCHO}g CHO` });
+      glycogenFed = Math.min(100, glycogenFed + gelRefuelPct);
     }
 
-    // Water: every ~15-20 min → approximately every 3km
-    if (km >= 3 && km % 3 === 0) {
-      nutritionCues.push({ type: 'water', icon: '💧', label: 'Eau', detail: '150ml' });
+    // Water: regular hydration
+    if (km >= 3 && km % waterIntervalKm === 0) {
+      nutritionCues.push({ type: 'water', icon: '💧', label: 'Eau', detail: `${waterMl}ml` });
     }
 
-    // Isotonic drink: alternate with water, every 6km
-    if (km >= 6 && km % 6 === 0) {
+    // Isotonic: replaces water at iso intervals
+    if (km >= isoIntervalKm && km % isoIntervalKm === 0) {
       const waterIdx = nutritionCues.findIndex(c => c.type === 'water');
       if (waterIdx >= 0) nutritionCues.splice(waterIdx, 1);
-      nutritionCues.push({ type: 'iso', icon: '🧃', label: 'Iso', detail: '200ml · 30g CHO' });
-      glycogenFed = Math.min(100, glycogenFed + ISO_REFUEL_PCT);
+      nutritionCues.push({ type: 'iso', icon: '🧃', label: 'Iso', detail: `${isoMl}ml · ${isoCHO}g CHO` });
+      glycogenFed = Math.min(100, glycogenFed + isoRefuelPct);
     }
 
     segments.push({
@@ -256,8 +303,8 @@ export function RacePaceSimulation({
 
   const segments = useMemo(() => {
     if (!normalizedObj || !thresholdPace) return null;
-    return computeSegments(normalizedObj, thresholdPace, vlamaxRun);
-  }, [normalizedObj, thresholdPace, vlamaxRun]);
+    return computeSegments(normalizedObj, thresholdPace, vlamaxRun, vo2max, weightKg);
+  }, [normalizedObj, thresholdPace, vlamaxRun, vo2max, weightKg]);
 
   // Don't render for non-running objectives
   if (!normalizedObj || !segments || !thresholdPace) return null;
