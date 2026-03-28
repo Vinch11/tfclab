@@ -185,6 +185,7 @@ const PhaseCard = ({ phase, isStaff }: { phase: NutritionPhaseUnified; isStaff: 
 export function NutritionUnifiedCard({
   vlamaxValue,
   vlamaxConfidence = 0.7,
+  vo2max,
   tteMin,
   sport,
   objectif,
@@ -206,6 +207,7 @@ export function NutritionUnifiedCard({
     const input: NutritionUnifiedInput = {
       vlamaxValue,
       vlamaxConfidence,
+      vo2max,
       tteMin,
       sport,
       objectif,
@@ -216,7 +218,7 @@ export function NutritionUnifiedCard({
       heatCondition,
     };
     return computeNutritionUnified(input);
-  }, [vlamaxValue, vlamaxConfidence, tteMin, sport, objectif, targetDurationHours, targetIntensityPct, weightKg, advancedGutTraining, heatCondition]);
+  }, [vlamaxValue, vlamaxConfidence, vo2max, tteMin, sport, objectif, targetDurationHours, targetIntensityPct, weightKg, advancedGutTraining, heatCondition]);
 
   if (!nutrition) {
     return (
