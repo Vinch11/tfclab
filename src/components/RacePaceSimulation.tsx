@@ -359,12 +359,17 @@ export function RacePaceSimulation({
                   <th className="text-center py-2 px-2 font-medium">RPE</th>
                   <th className="text-center py-2 px-2 font-medium min-w-[100px]">
                     <span className="flex items-center justify-center gap-1">
-                      <Fuel className="h-3 w-3" /> Glycogène
+                      <Fuel className="h-3 w-3" /> Sans nutri
+                    </span>
+                  </th>
+                  <th className="text-center py-2 px-2 font-medium min-w-[100px]">
+                    <span className="flex items-center justify-center gap-1">
+                      <Cookie className="h-3 w-3" /> Avec nutri
                     </span>
                   </th>
                   <th className="text-center py-2 px-2 font-medium">
                     <span className="flex items-center justify-center gap-1">
-                      <Cookie className="h-3 w-3" /> Nutrition
+                      <Droplets className="h-3 w-3" /> Nutrition
                     </span>
                   </th>
                   <th className="text-left py-2 px-2 font-medium">Alerte</th>
