@@ -30,6 +30,7 @@ interface NutritionCue {
   type: 'gel' | 'water' | 'iso';
   icon: string;
   label: string;
+  detail: string; // e.g. "25g CHO" or "150ml"
 }
 
 interface SegmentRow {
@@ -169,20 +170,20 @@ function computeSegments(
     // Gel: every ~25-30 min (approx every 5-6 km at marathon pace)
     const gelInterval = glycogenFed < 30 ? 4 : 5;
     if (km >= 5 && km % gelInterval === 0) {
-      nutritionCues.push({ type: 'gel', icon: '🟡', label: 'Gel' });
+      nutritionCues.push({ type: 'gel', icon: '🟡', label: 'Gel', detail: '25g CHO' });
       glycogenFed = Math.min(100, glycogenFed + GEL_REFUEL_PCT);
     }
 
     // Water: every ~15-20 min → approximately every 3km
     if (km >= 3 && km % 3 === 0) {
-      nutritionCues.push({ type: 'water', icon: '💧', label: 'Eau' });
+      nutritionCues.push({ type: 'water', icon: '💧', label: 'Eau', detail: '150ml' });
     }
 
     // Isotonic drink: alternate with water, every 6km
     if (km >= 6 && km % 6 === 0) {
       const waterIdx = nutritionCues.findIndex(c => c.type === 'water');
       if (waterIdx >= 0) nutritionCues.splice(waterIdx, 1);
-      nutritionCues.push({ type: 'iso', icon: '🧃', label: 'Iso' });
+      nutritionCues.push({ type: 'iso', icon: '🧃', label: 'Iso', detail: '200ml · 30g CHO' });
       glycogenFed = Math.min(100, glycogenFed + ISO_REFUEL_PCT);
     }
 
@@ -412,16 +413,17 @@ export function RacePaceSimulation({
                     <td className="py-1.5 px-2">
                       <GlycogenBar pct={seg.glycogenFedPct} />
                     </td>
-                    <td className="py-1.5 px-2 text-center">
+                    <td className="py-1.5 px-2">
                       {seg.nutritionCues.length > 0 ? (
-                        <div className="flex items-center justify-center gap-1">
+                        <div className="flex flex-col gap-0.5">
                           {seg.nutritionCues.map((cue, i) => (
                             <span
                               key={i}
-                              className="text-xs cursor-default"
+                              className="text-[10px] whitespace-nowrap cursor-default"
                               title={cue.label}
                             >
-                              {cue.icon}
+                              {cue.icon} <span className="font-medium">{cue.label}</span>{" "}
+                              <span className="text-muted-foreground">{cue.detail}</span>
                             </span>
                           ))}
                         </div>
