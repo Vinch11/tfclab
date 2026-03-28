@@ -413,16 +413,17 @@ export function RacePaceSimulation({
                     <td className="py-1.5 px-2">
                       <GlycogenBar pct={seg.glycogenFedPct} />
                     </td>
-                    <td className="py-1.5 px-2 text-center">
+                    <td className="py-1.5 px-2">
                       {seg.nutritionCues.length > 0 ? (
-                        <div className="flex items-center justify-center gap-1">
+                        <div className="flex flex-col gap-0.5">
                           {seg.nutritionCues.map((cue, i) => (
                             <span
                               key={i}
-                              className="text-xs cursor-default"
+                              className="text-[10px] whitespace-nowrap cursor-default"
                               title={cue.label}
                             >
-                              {cue.icon}
+                              {cue.icon} <span className="font-medium">{cue.label}</span>{" "}
+                              <span className="text-muted-foreground">{cue.detail}</span>
                             </span>
                           ))}
                         </div>
