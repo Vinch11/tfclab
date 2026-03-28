@@ -170,7 +170,7 @@ function computeBaseRateMader(
     exogenousGh *= 0.95;
   }
   
-  const baseRate = clampU(Math.round(exogenousGh), 30, 90);
+  const baseRate = clamp(Math.round(exogenousGh), 30, 90);
   const method = (vo2max != null && vlamaxValue != null) ? 'mader' : 'fallback';
   
   return { baseRate, totalOxidation: Math.round(totalOxidationGh), method };
