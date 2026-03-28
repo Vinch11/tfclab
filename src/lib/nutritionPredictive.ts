@@ -513,13 +513,15 @@ export function computeNutritionEstimate(params: {
   const carbOxGmin = calculateCarbOxidation(intensity, vo2, vlamax, weight);
   const totalOxGh = carbOxGmin * 60;
   
-  // Modèle glycogène physiologique (Burke 2011)
+  // Modèle glycogène physiologique (Burke 2011, Gonzalez 2016)
+  // Glycogen sparing : minimum 45% exogène
   const glycogenStores = weight * 6;
   const totalCarbNeeded = totalOxGh * duration;
-  const accessFactor = Math.min(0.90, 0.50 + 0.40 * Math.exp(-0.30 * duration));
+  const accessFactor = Math.min(0.75, 0.35 + 0.40 * Math.exp(-0.25 * duration));
   const effectiveStores = glycogenStores * accessFactor;
-  const glycogenCoverage = Math.min(0.95, effectiveStores / totalCarbNeeded);
-  let exogenousGh = totalOxGh * (1 - glycogenCoverage);
+  const glycogenCoverage = Math.min(0.85, effectiveStores / totalCarbNeeded);
+  const MIN_EXOGENOUS_FRACTION = 0.45;
+  let exogenousGh = totalOxGh * Math.max(MIN_EXOGENOUS_FRACTION, 1 - glycogenCoverage);
   
   // Ajustement sport — CAP: -18% tolérance digestive (Pfeiffer 2012)
   const sportFactor = sport === 'cap' ? 0.82 : sport === 'triathlon' ? 0.90 : 1.0;
