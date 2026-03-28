@@ -83,7 +83,7 @@ export function CarbBurnRateChart({
     const points: CarbDataPoint[] = [];
     
     for (let intensity = 40; intensity <= 100; intensity += 2) {
-      const rates = calculateCarbBurnRate(intensity, vo2max, vlamax, weight);
+      const rates = calculateRates(intensity, vo2max, vlamax, weight);
       points.push({
         intensity,
         carbRate: rates.carbRate,
