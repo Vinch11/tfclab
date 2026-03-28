@@ -409,6 +409,9 @@ export function RacePaceSimulation({
                     <td className="py-1.5 px-2">
                       <GlycogenBar pct={seg.glycogenPct} />
                     </td>
+                    <td className="py-1.5 px-2">
+                      <GlycogenBar pct={seg.glycogenFedPct} />
+                    </td>
                     <td className="py-1.5 px-2 text-center">
                       {seg.nutritionCues.length > 0 ? (
                         <div className="flex items-center justify-center gap-1">
