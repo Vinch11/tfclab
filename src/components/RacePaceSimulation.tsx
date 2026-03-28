@@ -215,9 +215,9 @@ function computeSegments(
     // Personalized nutrition cues
     const nutritionCues: NutritionCue[] = [];
 
-    // Gel: personalized interval, accelerate if glycogen low
-    const effectiveGelInterval = glycogenFed < 30 ? Math.max(2, gelIntervalKm - 2) : gelIntervalKm;
-    if (km >= Math.min(5, gelIntervalKm) && km % effectiveGelInterval === 0) {
+    // Gel: start early (km 3-4), personalized interval, accelerate if glycogen low
+    const effectiveGelInterval = glycogenFed < 40 ? Math.max(2, gelIntervalKm - 1) : gelIntervalKm;
+    if (km >= 3 && km % effectiveGelInterval === 0) {
       nutritionCues.push({ type: 'gel', icon: '🟡', label: 'Gel', detail: `${gelCHO}g CHO` });
       glycogenFed = Math.min(100, glycogenFed + gelRefuelPct);
     }
