@@ -540,8 +540,11 @@ export function computeNutritionEstimate(params: {
       warnings.push('Tolérance digestive réduite en CAP');
     }
   } else {
-    riskLevel = 'high';
-    messageStaff = `Profil à risque sur longue durée en ${sportLabel}. Consommation glycogénique très rapide.`;
+    // very_high VLamax
+    riskLevel = sport === 'cap' ? 'critical' : 'high';
+    messageStaff = sport === 'cap' 
+      ? `Profil VLamax incompatible avec stratégie nutritionnelle viable en ${sportLabel}. Prioriser réduction VLamax.`
+      : `Profil à risque sur longue durée en ${sportLabel}. Consommation glycogénique très rapide.`;
     warnings.push('Consommation glycogénique très rapide');
     warnings.push('Risque hypoglycémie si apports insuffisants');
   }
