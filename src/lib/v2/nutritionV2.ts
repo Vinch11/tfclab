@@ -666,18 +666,20 @@ CAP → Coût supérieur au vélo à intensité égale`
     {
       id: 'formula',
       title: 'La formule',
-      content: `TAUX DE BASE
-• Vélo : 0.9 × poids (kg)
-• CAP : 1.05 × poids (kg)
+      content: `MODÈLE MADER (V2)
+Le taux de base est dérivé de l'oxydation totale de glucides
+calculée par le modèle Mader-Heck (VO2max, VLamax, poids, intensité).
 
-MODULATIONS
-• VLamax < 0.35 : -10 g/h
-• VLamax > 0.55 : +10 à +20 g/h
-• TTE < 45 min : +10 g/h
-• TTE > 55 min : -5 g/h
+L'apport EXOGÈNE recommandé = oxydation totale × (1 - couverture glycogène)
+La couverture glycogène diminue avec la durée de l'effort.
+
+MODULATIONS SECONDAIRES
+• TTE < 45 min : +10 g/h (déplétion plus rapide)
+• TTE > 55 min : -5 g/h (meilleure endurance)
 • Durée > 3h : +5 à +10 g/h
+• Intensité ≥ 85% : +10 g/h
 
-BORNAGE : 40-100 g/h`
+BORNAGE : 30-90 g/h (standard) | 50-120 g/h (gut training avancé)`
     },
     {
       id: 'risk',
