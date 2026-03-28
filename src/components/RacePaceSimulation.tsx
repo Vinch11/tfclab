@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   Timer, Footprints, AlertTriangle, Fuel, Activity,
-  TrendingDown, CheckCircle2,
+  TrendingDown, CheckCircle2, Droplets, Cookie,
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════════
