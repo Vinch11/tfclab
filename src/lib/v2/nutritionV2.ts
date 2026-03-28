@@ -18,6 +18,7 @@
  */
 
 import { METHOD_VERSION_DISPLAY } from './scientificGovernance';
+import { calculateCarbOxidation } from './maderMetabolicModel';
 
 // =============================================
 // TYPES V2
