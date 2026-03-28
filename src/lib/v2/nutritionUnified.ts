@@ -580,14 +580,15 @@ export function computeNutritionUnified(input: NutritionUnifiedInput): Nutrition
   const durationH = input.targetDurationHours ?? (DURATION_BY_OBJECTIF[input.objectif]?.[sport] ?? null);
 
   // Calcul glucides
-  const base = computeBaseRate(input.weightKg, sport);
+  const maderResult = computeBaseRateMader(input.weightKg, sport, input.vo2max, input.vlamaxValue, input.targetIntensityPct, durationH);
+  const base = maderResult.baseRate;
   const va = vlamaxAdj(input.vlamaxValue);
   const ta = tteAdj(input.tteMin);
   const da = durationAdj(durationH);
   const ia = intensityAdj(input.targetIntensityPct);
 
   const contributors: NutritionContributorUnified[] = [
-    { id: 'base', label: 'Taux de base', adjustment: base, direction: 'neutral', explanation: `${sport === 'cap' ? '1.05' : '0.9'} × ${input.weightKg}kg` },
+    { id: 'base', label: 'Taux de base (Mader)', adjustment: base, direction: 'neutral', explanation: `Oxydation totale : ${maderResult.totalOxidation} g/h → exogène : ${base} g/h` },
   ];
   if (va.adj !== 0) contributors.push({ id: 'vlamax', label: 'VLamax', adjustment: va.adj, direction: va.adj > 0 ? 'up' : 'down', explanation: va.explanation });
   if (ta.adj !== 0) contributors.push({ id: 'tte', label: 'TTE', adjustment: ta.adj, direction: ta.adj > 0 ? 'up' : 'down', explanation: ta.explanation });
