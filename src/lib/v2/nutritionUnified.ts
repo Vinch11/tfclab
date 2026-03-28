@@ -163,11 +163,17 @@ function computeBaseRateMader(
   const carbOxGmin = calculateCarbOxidation(intensity, vo2, vlx, weightKg);
   const totalOxidationGh = carbOxGmin * 60;
   
-  const glycogenCoverage = Math.max(0.10, 0.70 - duration * 0.12);
+  // Modèle glycogène physiologique (Burke 2011)
+  const glycogenStores = weightKg * 6;
+  const totalCarbNeeded = totalOxidationGh * duration;
+  const accessFactor = Math.min(0.90, 0.50 + 0.40 * Math.exp(-0.30 * duration));
+  const effectiveStores = glycogenStores * accessFactor;
+  const glycogenCoverage = Math.min(0.95, effectiveStores / totalCarbNeeded);
   let exogenousGh = totalOxidationGh * (1 - glycogenCoverage);
   
+  // CAP: tolérance digestive réduite de ~18% vs vélo (Pfeiffer 2012)
   if (sport === 'cap') {
-    exogenousGh *= 0.95;
+    exogenousGh *= 0.82;
   }
   
   const baseRate = clamp(Math.round(exogenousGh), 30, 90);
@@ -582,20 +588,17 @@ export function computeNutritionUnified(input: NutritionUnifiedInput): Nutrition
   // Calcul glucides
   const maderResult = computeBaseRateMader(input.weightKg, sport, input.vo2max, input.vlamaxValue, input.targetIntensityPct, durationH);
   const base = maderResult.baseRate;
-  const va = vlamaxAdj(input.vlamaxValue);
+  // VLamax et Intensité : déjà dans Mader, pas de double-comptage
   const ta = tteAdj(input.tteMin);
   const da = durationAdj(durationH);
-  const ia = intensityAdj(input.targetIntensityPct);
 
   const contributors: NutritionContributorUnified[] = [
     { id: 'base', label: 'Taux de base (Mader)', adjustment: base, direction: 'neutral', explanation: `Oxydation totale : ${maderResult.totalOxidation} g/h → exogène : ${base} g/h` },
   ];
-  if (va.adj !== 0) contributors.push({ id: 'vlamax', label: 'VLamax', adjustment: va.adj, direction: va.adj > 0 ? 'up' : 'down', explanation: va.explanation });
   if (ta.adj !== 0) contributors.push({ id: 'tte', label: 'TTE', adjustment: ta.adj, direction: ta.adj > 0 ? 'up' : 'down', explanation: ta.explanation });
   if (da.adj !== 0) contributors.push({ id: 'duration', label: 'Durée', adjustment: da.adj, direction: da.adj > 0 ? 'up' : 'down', explanation: da.explanation });
-  if (ia.adj !== 0) contributors.push({ id: 'intensity', label: 'Intensité', adjustment: ia.adj, direction: ia.adj > 0 ? 'up' : 'down', explanation: ia.explanation });
 
-  const rawCarbs = base + va.adj + ta.adj + da.adj + ia.adj;
+  const rawCarbs = base + ta.adj + da.adj;
   const maxBound = advancedGut ? 120 : 90;
   const carbsCentral = clamp(Math.round(rawCarbs), 40, maxBound);
   const carbsMin = clamp(carbsCentral - 5, 35, maxBound);

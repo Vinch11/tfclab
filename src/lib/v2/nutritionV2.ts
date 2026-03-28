@@ -224,23 +224,23 @@ function computeBaseRateMader(
   const carbOxGmin = calculateCarbOxidation(intensity, vo2, vlx, weightKg);
   const totalOxidationGh = carbOxGmin * 60; // g/h
   
-  // Fraction exogène nécessaire :
-  // - Glycogène musculaire (~400g) + hépatique (~100g) = ~500g total
-  // - À 70% intensité, un athlète de 70kg brûle ~120-180g/h de glucides
-  // - Sur 3h → 360-540g total → glycogène couvre 90-100% de la 1ère heure
-  // - L'apport exogène compense la déplétion progressive
-  // 
-  // Formule : exogène = totalOx × (1 - glycogenCoverage)
-  // glycogenCoverage décroît avec la durée : ~0.6 à 1h → ~0.3 à 4h → ~0.15 à 8h
-  const glycogenCoverage = Math.max(0.10, 0.70 - duration * 0.12);
+  // Modèle glycogène physiologique :
+  // - Réserves : ~6g/kg pour athlètes entraînés (Burke 2011)
+  // - L'accessibilité décroît avec la durée (fatigue, déplétion progressive)
+  // - accessFactor : ~0.90 pour efforts courts → ~0.55 pour ultra
+  const glycogenStores = weightKg * 6;
+  const totalCarbNeeded = totalOxidationGh * duration;
+  const accessFactor = Math.min(0.90, 0.50 + 0.40 * Math.exp(-0.30 * duration));
+  const effectiveStores = glycogenStores * accessFactor;
+  const glycogenCoverage = Math.min(0.95, effectiveStores / totalCarbNeeded);
   
-  // Apport exogène recommandé
+  // Apport exogène recommandé = fraction non couverte par le glycogène
   let exogenousGh = totalOxidationGh * (1 - glycogenCoverage);
   
-  // Le sport CAP a un coût mécanique supplémentaire (+10% absorption intestinale réduite)
-  // mais aussi une tolérance digestive moindre → on ne majore pas autant
+  // CAP: tolérance digestive réduite de ~18% vs vélo (Pfeiffer 2012, de Oliveira 2014)
+  // Impacts mécaniques + redistribution sanguine → absorption intestinale diminuée
   if (sport === 'cap') {
-    exogenousGh *= 0.95; // légèrement réduit car tolérance digestive moindre en CAP
+    exogenousGh *= 0.82;
   }
   
   const baseRate = clamp(Math.round(exogenousGh), 30, 90);
@@ -388,20 +388,10 @@ export function computeNutritionV2(input: NutritionV2Input): NutritionPredictive
       : `Estimation (VO2max/VLamax estimés) → oxydation ${maderResult.totalOxidation} g/h → exogène ${baseRate} g/h`
   });
   
-  // Étape B — Modulation VLamax
-  const vlamaxAdj = computeVlamaxAdjustment(vlamaxValue);
-  if (vlamaxAdj.adjustment !== 0) {
-    contributors.push({
-      id: 'vlamax',
-      label: 'Modulation VLamax',
-      value: vlamaxValue !== null ? `${vlamaxValue.toFixed(2)} mmol/L/s` : '—',
-      adjustment: vlamaxAdj.adjustment,
-      direction: vlamaxAdj.adjustment > 0 ? 'up' : 'down',
-      explanation: vlamaxAdj.explanation
-    });
-  }
+  // VLamax: déjà intégrée dans le modèle Mader (calculateCarbOxidation)
+  // Pas d'ajustement additionnel pour éviter le double-comptage
   
-  // Étape C — Modulation TTE
+  // Étape B — Modulation TTE (non modélisé par Mader → ajustement légitime)
   const tteAdj = computeTTEAdjustment(tteMin);
   if (tteAdj.adjustment !== 0) {
     contributors.push({
@@ -428,21 +418,11 @@ export function computeNutritionV2(input: NutritionV2Input): NutritionPredictive
   }
   warnings.push(...durationAdj.warnings);
   
-  // Étape E — Modulation intensité
-  const intensityAdj = computeIntensityAdjustment(targetIntensityPct);
-  if (intensityAdj.adjustment !== 0) {
-    contributors.push({
-      id: 'intensity',
-      label: 'Modulation intensité',
-      value: targetIntensityPct !== null ? `${targetIntensityPct}%` : '—',
-      adjustment: intensityAdj.adjustment,
-      direction: intensityAdj.adjustment > 0 ? 'up' : 'down',
-      explanation: intensityAdj.explanation
-    });
-  }
+  // Intensité: déjà intégrée dans le modèle Mader (calculateCarbOxidation)
+  // Pas d'ajustement additionnel pour éviter le double-comptage
   
-  // Calcul final
-  const totalAdjustment = vlamaxAdj.adjustment + tteAdj.adjustment + durationAdj.adjustment + intensityAdj.adjustment;
+  // Calcul final (seuls TTE et durée ajustent, car non modélisés par Mader)
+  const totalAdjustment = tteAdj.adjustment + durationAdj.adjustment;
   const rawResult = baseRate + totalAdjustment;
   
   // Déterminer les bornes selon le niveau de gut training
