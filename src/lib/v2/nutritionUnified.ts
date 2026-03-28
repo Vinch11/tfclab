@@ -145,9 +145,35 @@ const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(ma
 // CALCUL GLUCIDES (fusion V2)
 // =============================================
 
-function computeBaseRate(weightKg: number, sport: 'velo' | 'cap'): number {
-  const multiplier = sport === 'cap' ? 1.05 : 0.9;
-  return clamp(Math.round(weightKg * multiplier), 40, 90);
+const clampU = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
+
+function computeBaseRateMader(
+  weightKg: number, 
+  sport: 'velo' | 'cap',
+  vo2max: number | null | undefined,
+  vlamaxValue: number | null,
+  intensityPct: number | null,
+  durationHours: number | null
+): { baseRate: number; totalOxidation: number; method: 'mader' | 'fallback' } {
+  const vo2 = vo2max ?? (sport === 'cap' ? 48 : 50);
+  const vlx = vlamaxValue ?? 0.45;
+  const intensity = intensityPct ?? 70;
+  const duration = durationHours ?? 3;
+  
+  const carbOxGmin = calculateCarbOxidation(intensity, vo2, vlx, weightKg);
+  const totalOxidationGh = carbOxGmin * 60;
+  
+  const glycogenCoverage = Math.max(0.10, 0.70 - duration * 0.12);
+  let exogenousGh = totalOxidationGh * (1 - glycogenCoverage);
+  
+  if (sport === 'cap') {
+    exogenousGh *= 0.95;
+  }
+  
+  const baseRate = clampU(Math.round(exogenousGh), 30, 90);
+  const method = (vo2max != null && vlamaxValue != null) ? 'mader' : 'fallback';
+  
+  return { baseRate, totalOxidation: Math.round(totalOxidationGh), method };
 }
 
 function vlamaxAdj(v: number | null): { adj: number; explanation: string } {
