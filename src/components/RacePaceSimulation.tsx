@@ -1,6 +1,6 @@
 /**
  * RacePaceSimulation — Per-km pacing table for Marathon/Semi plans
- * Self-contained: computes pacing from VMA/threshold data without full PacingEnvelope dependency.
+ * Personalized nutrition cues via Mader metabolic model.
  */
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import {
   Timer, Footprints, AlertTriangle, Fuel, Activity,
   TrendingDown, CheckCircle2, Droplets, Cookie,
 } from "lucide-react";
+import { calculateCarbOxidation, calculateFatOxidation } from "@/lib/v2/maderMetabolicModel";
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
