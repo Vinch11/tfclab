@@ -1519,6 +1519,7 @@ function buildExportPayload(
     nutritionV2: computeNutritionV2({
       vlamaxValue: vlamax.value,
       vlamaxConfidence: vlamax.confidence,
+      vo2max: effectiveRefs.vo2max,
       tteMin: tte.tte_min,
       sport: ["Marathon", "Semi", "Trail", "TrailLong", "TrailCourt", "Ultra", "Course"].includes(athlete.goal || "") ? "cap" : "velo",
       targetDurationHours: (() => {
