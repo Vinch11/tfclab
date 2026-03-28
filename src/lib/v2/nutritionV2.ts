@@ -389,20 +389,10 @@ export function computeNutritionV2(input: NutritionV2Input): NutritionPredictive
       : `Estimation (VO2max/VLamax estimés) → oxydation ${maderResult.totalOxidation} g/h → exogène ${baseRate} g/h`
   });
   
-  // Étape B — Modulation VLamax
-  const vlamaxAdj = computeVlamaxAdjustment(vlamaxValue);
-  if (vlamaxAdj.adjustment !== 0) {
-    contributors.push({
-      id: 'vlamax',
-      label: 'Modulation VLamax',
-      value: vlamaxValue !== null ? `${vlamaxValue.toFixed(2)} mmol/L/s` : '—',
-      adjustment: vlamaxAdj.adjustment,
-      direction: vlamaxAdj.adjustment > 0 ? 'up' : 'down',
-      explanation: vlamaxAdj.explanation
-    });
-  }
+  // VLamax: déjà intégrée dans le modèle Mader (calculateCarbOxidation)
+  // Pas d'ajustement additionnel pour éviter le double-comptage
   
-  // Étape C — Modulation TTE
+  // Étape B — Modulation TTE (non modélisé par Mader → ajustement légitime)
   const tteAdj = computeTTEAdjustment(tteMin);
   if (tteAdj.adjustment !== 0) {
     contributors.push({
