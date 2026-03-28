@@ -238,10 +238,10 @@ function computeBaseRateMader(
   // Apport exogène recommandé
   let exogenousGh = totalOxidationGh * (1 - glycogenCoverage);
   
-  // Le sport CAP a un coût mécanique supplémentaire (+10% absorption intestinale réduite)
-  // mais aussi une tolérance digestive moindre → on ne majore pas autant
+  // CAP: tolérance digestive réduite de ~18% vs vélo (Pfeiffer 2012, de Oliveira 2014)
+  // Impacts mécaniques + redistribution sanguine → absorption intestinale diminuée
   if (sport === 'cap') {
-    exogenousGh *= 0.95; // légèrement réduit car tolérance digestive moindre en CAP
+    exogenousGh *= 0.82;
   }
   
   const baseRate = clamp(Math.round(exogenousGh), 30, 90);
