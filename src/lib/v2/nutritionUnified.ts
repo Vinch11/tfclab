@@ -163,7 +163,8 @@ function computeBaseRateMader(
   const carbOxGmin = calculateCarbOxidation(intensity, vo2, vlx, weightKg);
   const totalOxidationGh = carbOxGmin * 60;
   
-  const glycogenCoverage = Math.max(0.10, 0.70 - duration * 0.12);
+  // Modèle exponentiel : meilleure différenciation entre efforts longs
+  const glycogenCoverage = 0.05 + 0.65 * Math.exp(-0.35 * duration);
   let exogenousGh = totalOxidationGh * (1 - glycogenCoverage);
   
   if (sport === 'cap') {
