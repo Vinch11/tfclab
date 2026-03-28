@@ -79,6 +79,9 @@ export interface NutritionV2Input {
   vlamaxValue: number | null;
   vlamaxConfidence?: number;
   
+  // VO2max (ml/kg/min) — utilisé par le modèle Mader
+  vo2max?: number | null;
+  
   // TTE effectif
   tteMin: number | null;
   
