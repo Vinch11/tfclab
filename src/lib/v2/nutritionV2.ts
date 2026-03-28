@@ -224,18 +224,17 @@ function computeBaseRateMader(
   const carbOxGmin = calculateCarbOxidation(intensity, vo2, vlx, weightKg);
   const totalOxidationGh = carbOxGmin * 60; // g/h
   
-  // Fraction exogène nécessaire :
-  // - Glycogène musculaire (~400g) + hépatique (~100g) = ~500g total
-  // - À 70% intensité, un athlète de 70kg brûle ~120-180g/h de glucides
-  // - Sur 3h → 360-540g total → glycogène couvre 90-100% de la 1ère heure
-  // - L'apport exogène compense la déplétion progressive
-  // 
-  // Formule : exogène = totalOx × (1 - glycogenCoverage)
-  // Modèle exponentiel : meilleure différenciation entre 5h et 10h
-  // ~51% à 1h → ~28% à 3h → ~16% à 5h → ~9% à 8h → ~7% à 10h
-  const glycogenCoverage = 0.05 + 0.65 * Math.exp(-0.35 * duration);
+  // Modèle glycogène physiologique :
+  // - Réserves : ~6g/kg pour athlètes entraînés (Burke 2011)
+  // - L'accessibilité décroît avec la durée (fatigue, déplétion progressive)
+  // - accessFactor : ~0.90 pour efforts courts → ~0.55 pour ultra
+  const glycogenStores = weightKg * 6;
+  const totalCarbNeeded = totalOxidationGh * duration;
+  const accessFactor = Math.min(0.90, 0.50 + 0.40 * Math.exp(-0.30 * duration));
+  const effectiveStores = glycogenStores * accessFactor;
+  const glycogenCoverage = Math.min(0.95, effectiveStores / totalCarbNeeded);
   
-  // Apport exogène recommandé
+  // Apport exogène recommandé = fraction non couverte par le glycogène
   let exogenousGh = totalOxidationGh * (1 - glycogenCoverage);
   
   // CAP: tolérance digestive réduite de ~18% vs vélo (Pfeiffer 2012, de Oliveira 2014)

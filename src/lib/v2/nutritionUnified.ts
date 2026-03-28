@@ -163,8 +163,12 @@ function computeBaseRateMader(
   const carbOxGmin = calculateCarbOxidation(intensity, vo2, vlx, weightKg);
   const totalOxidationGh = carbOxGmin * 60;
   
-  // Modèle exponentiel : meilleure différenciation entre efforts longs
-  const glycogenCoverage = 0.05 + 0.65 * Math.exp(-0.35 * duration);
+  // Modèle glycogène physiologique (Burke 2011)
+  const glycogenStores = weightKg * 6;
+  const totalCarbNeeded = totalOxidationGh * duration;
+  const accessFactor = Math.min(0.90, 0.50 + 0.40 * Math.exp(-0.30 * duration));
+  const effectiveStores = glycogenStores * accessFactor;
+  const glycogenCoverage = Math.min(0.95, effectiveStores / totalCarbNeeded);
   let exogenousGh = totalOxidationGh * (1 - glycogenCoverage);
   
   // CAP: tolérance digestive réduite de ~18% vs vélo (Pfeiffer 2012)
