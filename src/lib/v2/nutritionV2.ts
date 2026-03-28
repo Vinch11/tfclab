@@ -419,21 +419,11 @@ export function computeNutritionV2(input: NutritionV2Input): NutritionPredictive
   }
   warnings.push(...durationAdj.warnings);
   
-  // Étape E — Modulation intensité
-  const intensityAdj = computeIntensityAdjustment(targetIntensityPct);
-  if (intensityAdj.adjustment !== 0) {
-    contributors.push({
-      id: 'intensity',
-      label: 'Modulation intensité',
-      value: targetIntensityPct !== null ? `${targetIntensityPct}%` : '—',
-      adjustment: intensityAdj.adjustment,
-      direction: intensityAdj.adjustment > 0 ? 'up' : 'down',
-      explanation: intensityAdj.explanation
-    });
-  }
+  // Intensité: déjà intégrée dans le modèle Mader (calculateCarbOxidation)
+  // Pas d'ajustement additionnel pour éviter le double-comptage
   
-  // Calcul final
-  const totalAdjustment = vlamaxAdj.adjustment + tteAdj.adjustment + durationAdj.adjustment + intensityAdj.adjustment;
+  // Calcul final (seuls TTE et durée ajustent, car non modélisés par Mader)
+  const totalAdjustment = tteAdj.adjustment + durationAdj.adjustment;
   const rawResult = baseRate + totalAdjustment;
   
   // Déterminer les bornes selon le niveau de gut training

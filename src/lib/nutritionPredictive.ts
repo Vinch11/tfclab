@@ -517,8 +517,8 @@ export function computeNutritionEstimate(params: {
   const glycogenCoverage = 0.05 + 0.65 * Math.exp(-0.35 * duration);
   let exogenousGh = totalOxGh * (1 - glycogenCoverage);
   
-  // Ajustement sport
-  const sportFactor = sport === 'cap' ? 0.95 : sport === 'triathlon' ? 0.97 : 1.0;
+  // Ajustement sport — CAP: -18% tolérance digestive (Pfeiffer 2012)
+  const sportFactor = sport === 'cap' ? 0.82 : sport === 'triathlon' ? 0.90 : 1.0;
   exogenousGh *= sportFactor;
   
   const centralCarbs = Math.round(Math.max(30, Math.min(120, exogenousGh)));
