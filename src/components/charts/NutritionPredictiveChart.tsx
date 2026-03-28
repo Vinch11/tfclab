@@ -1,6 +1,6 @@
 /**
  * Nutrition Predictive Chart – Besoins glucidiques g/h
- * Courbe par intensité avec zones de risque
+ * Courbe par intensité via modèle Mader (calculateCarbOxidation)
  */
 
 import { useMemo } from "react";
@@ -18,47 +18,53 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, Utensils, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { calculateCarbOxidation } from "@/lib/v2/maderMetabolicModel";
 
 interface NutritionPredictiveChartProps {
   vlamaxValue: number | null;
   objectif: string;
   sport?: "velo" | "cap" | "triathlon";
+  vo2max?: number | null;
+  weightKg?: number | null;
   staffMode?: boolean;
   className?: string;
 }
 
-// Calcul des besoins glucidiques par intensité
+// Calcul des besoins glucidiques par intensité via Mader
 const computeNutritionCurve = (
   vlamax: number | null,
-  sport: "velo" | "cap" | "triathlon"
+  sport: "velo" | "cap" | "triathlon",
+  vo2max: number | null | undefined,
+  weightKg: number | null | undefined
 ) => {
-  const baseValue = vlamax !== null ? vlamax : 0.45; // Default si inconnu
+  const vlx = vlamax ?? 0.45;
+  const vo2 = vo2max ?? (sport === "cap" ? 48 : 50);
+  const weight = weightKg ?? 70;
   
-  // Facteur de réduction pour CAP
-  const sportFactor = sport === "cap" ? 0.75 : sport === "triathlon" ? 0.85 : 1.0;
+  // Facteur de réduction pour CAP (tolérance digestive moindre)
+  const sportFactor = sport === "cap" ? 0.95 : sport === "triathlon" ? 0.97 : 1.0;
   
-  // Génère les données pour différentes intensités
   const data = [];
   for (let intensity = 50; intensity <= 100; intensity += 5) {
-    // Base consumption augmente avec intensité et VLamax
-    let baseConsumption = 40 + (intensity - 50) * 1.5;
+    // Oxydation totale de glucides via Mader (g/min → g/h)
+    const carbOxGmin = calculateCarbOxidation(intensity, vo2, vlx, weight);
+    const totalOxGh = carbOxGmin * 60;
     
-    // Ajustement VLamax (plus élevé = plus de glucides)
-    const vlamaxFactor = 1 + (baseValue - 0.35) * 1.5;
-    baseConsumption *= vlamaxFactor;
+    // L'apport exogène recommandé = ~50-60% de l'oxydation totale
+    // (glycogène endogène couvre le reste, pour une durée moyenne ~3h)
+    const exogenousFraction = 0.55;
+    const exogenousGh = totalOxGh * exogenousFraction * sportFactor;
     
-    // Ajustement sport
-    baseConsumption *= sportFactor;
-    
-    const min = Math.round(Math.max(30, baseConsumption * 0.85));
-    const max = Math.round(Math.min(120, baseConsumption * 1.15));
-    const recommended = Math.round((min + max) / 2);
+    const recommended = Math.round(Math.max(20, exogenousGh));
+    const min = Math.round(Math.max(15, recommended * 0.85));
+    const max = Math.round(Math.min(120, recommended * 1.15));
     
     data.push({
       intensity,
       min,
       max,
       recommended,
+      totalOx: Math.round(totalOxGh),
       label: `${intensity}% FTP`
     });
   }
@@ -71,7 +77,7 @@ const getDigestiveRiskZone = (gPerHour: number, sport: string): {
   level: string;
   color: string;
 } => {
-  const threshold = sport === "cap" ? 70 : sport === "triathlon" ? 85 : 100;
+  const threshold = sport === "cap" ? 70 : sport === "triathlon" ? 85 : 90;
   
   if (gPerHour >= threshold) {
     return { level: "Risque élevé", color: "hsl(var(--destructive))" };
@@ -92,8 +98,11 @@ const CustomTooltip = ({ active, payload, label, sport }: any) => {
     <div className="bg-background border border-border rounded-lg p-2 shadow-lg text-xs">
       <p className="font-semibold text-foreground">{data.label}</p>
       <p className="text-muted-foreground">
-        <span className="font-mono font-semibold text-foreground">{data.recommended}</span> g/h
+        Exogène : <span className="font-mono font-semibold text-foreground">{data.recommended}</span> g/h
         <span className="ml-2 text-muted-foreground">({data.min}–{data.max})</span>
+      </p>
+      <p className="text-muted-foreground">
+        Oxydation totale : <span className="font-mono">{data.totalOx}</span> g/h
       </p>
       <p style={{ color: riskInfo.color }} className="text-xs">{riskInfo.level}</p>
     </div>
@@ -104,16 +113,18 @@ export function NutritionPredictiveChart({
   vlamaxValue,
   objectif,
   sport = "velo",
+  vo2max,
+  weightKg,
   staffMode = false,
   className
 }: NutritionPredictiveChartProps) {
   const isDataMissing = vlamaxValue === null;
   
   const data = useMemo(() => {
-    return computeNutritionCurve(vlamaxValue, sport);
-  }, [vlamaxValue, sport]);
+    return computeNutritionCurve(vlamaxValue, sport, vo2max, weightKg);
+  }, [vlamaxValue, sport, vo2max, weightKg]);
   
-  const digestiveThreshold = sport === "cap" ? 70 : sport === "triathlon" ? 85 : 100;
+  const digestiveThreshold = sport === "cap" ? 70 : sport === "triathlon" ? 85 : 90;
   const sportLabel = sport === "cap" ? "Course à pied" : sport === "triathlon" ? "Triathlon" : "Vélo";
 
   return (
@@ -217,7 +228,7 @@ export function NutritionPredictiveChart({
         <div className="mt-3 flex flex-wrap gap-3 text-xs">
           <div className="flex items-center gap-1">
             <div className="w-3 h-0.5 bg-primary" />
-            <span className="text-muted-foreground">Recommandé</span>
+            <span className="text-muted-foreground">Exogène recommandé</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 bg-primary/20 rounded" />
@@ -231,7 +242,13 @@ export function NutritionPredictiveChart({
         
         {staffMode && (
           <div className="mt-3 p-2 bg-muted/50 rounded-lg text-xs text-muted-foreground">
-            <p><strong>VLamax:</strong> {vlamaxValue?.toFixed(2) || "—"} | <strong>Sport:</strong> {sportLabel}</p>
+            <p>
+              <strong>Modèle:</strong> Mader | 
+              <strong> VLamax:</strong> {vlamaxValue?.toFixed(2) || "—"} | 
+              <strong> VO₂max:</strong> {vo2max ?? "est."} | 
+              <strong> Poids:</strong> {weightKg ?? 70}kg | 
+              <strong> Sport:</strong> {sportLabel}
+            </p>
             <p className="mt-1">⚠️ Estimation pédagogique – Ne remplace pas un avis nutritionnel</p>
           </div>
         )}
