@@ -526,6 +526,8 @@ const Index = () => {
       objectif: currentAthlete?.goal || "IM",
       tteMin: tteEffectif.tte_min,
       tteTarget: tteEffectif.target,
+      vo2max: effectiveCloudSnapshot?.vo2max ?? currentAthlete?.vo2max ?? null,
+      weightKg: poids ?? null,
     });
   }, [vlamaxEffectif, currentAthlete, tteEffectif]);
 

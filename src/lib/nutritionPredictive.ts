@@ -2,6 +2,7 @@
  * Nutrition Prédictive – Two For Coaching Lab
  * 
  * Module scientifique d'estimation des besoins glucidiques basé sur :
+ * - Modèle Mader (calculateCarbOxidation) pour l'oxydation totale
  * - VLamax (combustion glucidique)
  * - TTE (endurance métabolique)
  * - Potentiel Physiologique (adéquation physiologique)
@@ -9,6 +10,8 @@
  * 
  * La nutrition est une CONSÉQUENCE, pas une variable isolée.
  */
+
+import { calculateCarbOxidation } from './v2/maderMetabolicModel';
 
 export type VLamaxCategory = 'very_low' | 'moderate' | 'high' | 'very_high';
 export type RiskLevel = 'low' | 'moderate' | 'high' | 'critical';
@@ -467,8 +470,10 @@ export function computeNutritionEstimate(params: {
   tteMin?: number | null;
   tteTarget?: number;
   potentielPhysiologique?: number | null;
+  vo2max?: number | null;
+  weightKg?: number | null;
 }): NutritionEstimate | null {
-  const { vlamax, objectif, sport: forcedSport, tteMin, tteTarget = 50, potentielPhysiologique } = params;
+  const { vlamax, objectif, sport: forcedSport, tteMin, tteTarget = 50, potentielPhysiologique, vo2max, weightKg } = params;
 
   if (vlamax === null || vlamax === undefined) {
     return null;
@@ -480,64 +485,68 @@ export function computeNutritionEstimate(params: {
   const sport = forcedSport || detectSport(objectif);
   const sportLabel = SPORT_LABELS[sport];
 
-  // Sélection de la table selon le sport
-  const isCAP = sport === 'cap';
-  const table = isCAP ? CARBS_TABLE_CAP : CARBS_TABLE_VELO;
-  const carbsRange = table[vlamaxCategory]?.[normalizedObjectif];
-
   const warnings: string[] = [];
   let riskLevel: RiskLevel = 'low';
   let messageStaff = '';
   let carbsMin: number;
   let carbsMax: number;
 
-  // Gestion des cas à risque (null dans la table)
-  if (carbsRange === null) {
-    if (isCAP) {
-      if (vlamaxCategory === 'very_high') {
-        riskLevel = 'critical';
-        messageStaff = `Profil VLamax incompatible avec stratégie nutritionnelle viable en ${sportLabel}. Prioriser réduction VLamax.`;
-        warnings.push('VLamax très élevé : dépendance glucidique excessive');
-        warnings.push(`Tolérance digestive insuffisante en ${sportLabel}`);
-        carbsMin = 90;
-        carbsMax = 100;
-      } else {
-        riskLevel = 'high';
-        messageStaff = `Limite de tolérance digestive atteinte en ${sportLabel}. Stratégie à tester minutieusement.`;
-        warnings.push('VLamax élevé : proche des limites physiologiques');
-        carbsMin = 85;
-        carbsMax = 95;
-      }
-    } else {
-      riskLevel = 'high';
-      messageStaff = 'Besoins glucidiques très élevés. Risque de détresse digestive sur effort intense.';
-      warnings.push('Besoins > 100g/h : risque digestif');
-      carbsMin = 100;
-      carbsMax = 120;
+  // --- Calcul Mader-based ---
+  const vo2 = vo2max ?? (sport === 'cap' ? 48 : 50);
+  const weight = weightKg ?? 70;
+  
+  // Intensité typique par objectif
+  const intensityMap: Record<string, number> = {
+    ironman: 70, '70.3': 78, marathon: 82, semi: 88,
+    sprint: 92, trail: 75, '10k': 90,
+  };
+  const intensity = intensityMap[normalizedObjectif] ?? 75;
+  
+  // Durée typique par objectif
+  const durationMap: Record<string, number> = {
+    ironman: 10, '70.3': 5, marathon: 3.5, semi: 1.75,
+    sprint: 1.25, trail: 4, '10k': 0.67,
+  };
+  const duration = durationMap[normalizedObjectif] ?? 3;
+  
+  // Oxydation totale via Mader (g/min → g/h)
+  const carbOxGmin = calculateCarbOxidation(intensity, vo2, vlamax, weight);
+  const totalOxGh = carbOxGmin * 60;
+  
+  // Fraction exogène (glycogène couvre moins avec la durée)
+  const glycogenCoverage = Math.max(0.10, 0.70 - duration * 0.12);
+  let exogenousGh = totalOxGh * (1 - glycogenCoverage);
+  
+  // Ajustement sport
+  const sportFactor = sport === 'cap' ? 0.95 : sport === 'triathlon' ? 0.97 : 1.0;
+  exogenousGh *= sportFactor;
+  
+  const centralCarbs = Math.round(Math.max(30, Math.min(120, exogenousGh)));
+  carbsMin = Math.max(25, centralCarbs - 10);
+  carbsMax = Math.min(120, centralCarbs + 10);
+
+  // Détermination du niveau de risque
+  if (vlamaxCategory === 'very_low') {
+    riskLevel = 'low';
+    messageStaff = `Profil favorable en ${sportLabel}. Bonne oxydation lipidique, dépendance glucidique modérée.`;
+  } else if (vlamaxCategory === 'moderate') {
+    riskLevel = 'low';
+    messageStaff = `Profil équilibré. Besoins standards pour ${getObjectifLabel(objectif)} en ${sportLabel}.`;
+  } else if (vlamaxCategory === 'high') {
+    riskLevel = 'moderate';
+    messageStaff = `VLamax élevé : dépendance glucidique importante en ${sportLabel}. Stratégie agressive à tester.`;
+    warnings.push('Dépendance glucidique marquée');
+    if (sport === 'cap') {
+      warnings.push('Tolérance digestive réduite en CAP');
     }
   } else {
-    [carbsMin, carbsMax] = carbsRange;
-
-    // Détermination du niveau de risque avec contexte sport
-    if (vlamaxCategory === 'very_low') {
-      riskLevel = 'low';
-      messageStaff = `Profil favorable en ${sportLabel}. Bonne oxydation lipidique, dépendance glucidique modérée.`;
-    } else if (vlamaxCategory === 'moderate') {
-      riskLevel = 'low';
-      messageStaff = `Profil équilibré. Besoins standards pour ${getObjectifLabel(objectif)} en ${sportLabel}.`;
-    } else if (vlamaxCategory === 'high') {
-      riskLevel = 'moderate';
-      messageStaff = `VLamax élevé : dépendance glucidique importante en ${sportLabel}. Stratégie agressive à tester.`;
-      warnings.push('Dépendance glucidique marquée');
-      if (isCAP) {
-        warnings.push('Tolérance digestive réduite en CAP');
-      }
-    } else {
-      riskLevel = 'high';
-      messageStaff = `Profil à risque sur longue durée en ${sportLabel}. Consommation glycogénique très rapide.`;
-      warnings.push('Consommation glycogénique très rapide');
-      warnings.push('Risque hypoglycémie si apports insuffisants');
-    }
+    // very_high VLamax
+    riskLevel = sport === 'cap' ? 'critical' : 'high';
+    messageStaff = sport === 'cap' 
+      ? `Profil VLamax incompatible avec stratégie nutritionnelle viable en ${sportLabel}. Prioriser réduction VLamax.`
+      : `Profil à risque sur longue durée en ${sportLabel}. Consommation glycogénique très rapide.`;
+    warnings.push('Consommation glycogénique très rapide');
+    warnings.push('Risque hypoglycémie si apports insuffisants');
   }
 
   // Ajustement TTE
