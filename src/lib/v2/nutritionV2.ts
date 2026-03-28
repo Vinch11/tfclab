@@ -359,7 +359,7 @@ function computeGlycogenRiskScore(input: NutritionV2Input): number {
 // =============================================
 
 export function computeNutritionV2(input: NutritionV2Input): NutritionPredictiveV2 | null {
-  const { vlamaxValue, vlamaxConfidence = 0.7, tteMin, sport, targetDurationHours, targetIntensityPct, weightKg } = input;
+  const { vlamaxValue, vlamaxConfidence = 0.7, vo2max, tteMin, sport, targetDurationHours, targetIntensityPct, weightKg } = input;
   
   // Poids obligatoire pour le calcul de base
   if (weightKg === null || weightKg <= 0) {
@@ -374,17 +374,18 @@ export function computeNutritionV2(input: NutritionV2Input): NutritionPredictive
   const warnings: string[] = [];
   const contributors: NutritionContributor[] = [];
   
-  // Étape A — Taux de base
-  const baseRate = computeBaseRate(weightKg, sport);
+  // Étape A — Taux de base via modèle Mader
+  const maderResult = computeBaseRateMader(weightKg, sport, vo2max, vlamaxValue, targetIntensityPct, targetDurationHours);
+  const baseRate = maderResult.baseRate;
   contributors.push({
     id: 'base',
-    label: 'Taux de base',
+    label: 'Taux de base (Mader)',
     value: `${baseRate} g/h`,
     adjustment: baseRate,
     direction: 'neutral',
-    explanation: sport === 'cap' 
-      ? `CAP : 1.05 × ${weightKg} kg = ${baseRate} g/h`
-      : `Vélo : 0.9 × ${weightKg} kg = ${baseRate} g/h`
+    explanation: maderResult.method === 'mader'
+      ? `Oxydation totale : ${maderResult.totalOxidation} g/h → apport exogène : ${baseRate} g/h`
+      : `Estimation (VO2max/VLamax estimés) → oxydation ${maderResult.totalOxidation} g/h → exogène ${baseRate} g/h`
   });
   
   // Étape B — Modulation VLamax
