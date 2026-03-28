@@ -41,8 +41,8 @@ const computeNutritionCurve = (
   const vo2 = vo2max ?? (sport === "cap" ? 48 : 50);
   const weight = weightKg ?? 70;
   
-  // Facteur de réduction pour CAP (tolérance digestive moindre)
-  const sportFactor = sport === "cap" ? 0.95 : sport === "triathlon" ? 0.97 : 1.0;
+  // Facteur de réduction pour CAP (tolérance digestive moindre, Pfeiffer 2012)
+  const sportFactor = sport === "cap" ? 0.82 : sport === "triathlon" ? 0.90 : 1.0;
   
   const data = [];
   for (let intensity = 50; intensity <= 100; intensity += 5) {
