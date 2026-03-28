@@ -539,7 +539,7 @@ function generateWhyThisNumber(
 ): string {
   const parts: string[] = [];
   
-  parts.push(`Ce chiffre de ${result} g/h est calculé à partir de votre poids (${input.weightKg} kg) et de votre profil métabolique.`);
+  parts.push(`Ce chiffre de ${result} g/h est calculé via le modèle Mader (oxydation totale de glucides à l'intensité cible), ajusté pour l'apport exogène nécessaire.`);
   
   if (input.vlamaxValue !== null) {
     if (input.vlamaxValue > 0.55) {
