@@ -38,7 +38,8 @@ interface SegmentRow {
   intensityPct: number;        // % threshold
   paceSecKm: number | null;
   rpe: number;                 // 1-10
-  glycogenPct: number;
+  glycogenPct: number;         // sans nutrition
+  glycogenFedPct: number;      // avec nutrition (gel/iso)
   zone: "green" | "orange" | "red";
   alert?: string;
   nutritionCues: NutritionCue[];
