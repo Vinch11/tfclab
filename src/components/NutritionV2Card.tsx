@@ -52,6 +52,7 @@ import {
 interface NutritionV2CardProps {
   vlamaxValue: number | null;
   vlamaxConfidence?: number;
+  vo2max?: number | null;
   tteMin: number | null;
   sport: 'velo' | 'cap';
   targetDurationHours?: number | null;
