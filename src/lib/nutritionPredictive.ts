@@ -513,21 +513,23 @@ export function computeNutritionEstimate(params: {
   const carbOxGmin = calculateCarbOxidation(intensity, vo2, vlamax, weight);
   const totalOxGh = carbOxGmin * 60;
   
-  // Modèle glycogène physiologique (Burke 2011, Gonzalez 2016)
-  // Glycogen sparing : minimum 45% exogène
-  const glycogenStores = weight * 6;
+  // Modèle glycogène physiologique (Cao 2025: 380-500g total)
+  // Réserves: ~5g/kg (conservateur)
+  const glycogenStores = weight * 5;
   const totalCarbNeeded = totalOxGh * duration;
   const accessFactor = Math.min(0.75, 0.35 + 0.40 * Math.exp(-0.25 * duration));
   const effectiveStores = glycogenStores * accessFactor;
   const glycogenCoverage = Math.min(0.85, effectiveStores / totalCarbNeeded);
-  const MIN_EXOGENOUS_FRACTION = 0.45;
+  // Minimum exogène modulé par durée (Cao 2025)
+  const MIN_EXOGENOUS_FRACTION = duration < 1 ? 0 : duration < 2 ? 0.25 : duration < 3 ? 0.40 : 0.50;
   let exogenousGh = totalOxGh * Math.max(MIN_EXOGENOUS_FRACTION, 1 - glycogenCoverage);
   
-  // Ajustement sport — CAP: -18% tolérance digestive (Pfeiffer 2012)
+  // Ajustement sport — CAP: -18% tolérance digestive + clamp 75g/h (Pfeiffer 2012)
   const sportFactor = sport === 'cap' ? 0.82 : sport === 'triathlon' ? 0.90 : 1.0;
   exogenousGh *= sportFactor;
   
-  const centralCarbs = Math.round(Math.max(30, Math.min(120, exogenousGh)));
+  const capMax = sport === 'cap' ? 75 : sport === 'triathlon' ? 85 : 120;
+  const centralCarbs = Math.round(Math.max(30, Math.min(capMax, exogenousGh)));
   carbsMin = Math.max(25, centralCarbs - 10);
   carbsMax = Math.min(120, centralCarbs + 10);
 

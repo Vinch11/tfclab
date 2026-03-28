@@ -56,9 +56,9 @@ const computeNutritionCurve = (
     const exogenousFraction = 0.60;
     const exogenousGh = totalOxGh * exogenousFraction * sportFactor;
     
-    const recommended = Math.round(Math.max(20, exogenousGh));
+    const recommended = Math.round(Math.max(20, Math.min(capMax, exogenousGh)));
     const min = Math.round(Math.max(15, recommended * 0.85));
-    const max = Math.round(Math.min(120, recommended * 1.15));
+    const max = Math.round(Math.min(capMax, recommended * 1.15));
     
     data.push({
       intensity,

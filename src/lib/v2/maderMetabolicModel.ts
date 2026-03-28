@@ -200,9 +200,9 @@ export function calculateFatOxidation(
   
   // Maximal fat oxidation rate (g/min) - scales with aerobic capacity
   // Typically 0.5-1.0 g/min for trained athletes
-  // Recalibrated: previous formula underestimated fat ox for VLamax > 0.3
-  // Literature: Achten & Jeukendrup 2003, Venables 2005
-  const maxFatOx = 0.4 + (vo2max - 40) * 0.02 - vlamax * 0.25;
+  // Recalibrated per audit 2025: baseline 0.5, VLamax penalty -0.15
+  // Literature: Achten & Jeukendrup 2003, Venables 2005, Noakes 2024
+  const maxFatOx = 0.5 + (vo2max - 40) * 0.02 - vlamax * 0.15;
   const peakFatOx = Math.max(0.3, Math.min(1.2, maxFatOx));
   
   // FatMax intensity - lower VLamax = higher FatMax
