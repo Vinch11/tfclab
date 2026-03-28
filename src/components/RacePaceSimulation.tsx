@@ -103,9 +103,16 @@ function computeSegments(
 
   const segments: SegmentRow[] = [];
   let glycogen = 100;
+  let glycogenFed = 100;
 
   // Base depletion per km
   const baseDepletion = objective === "Marathon" ? 2.2 : 2.8;
+
+  // Carb refuel per nutrition item (expressed as % glycogen recovered)
+  // Gel ~25g CHO ≈ ~5% of muscle glycogen stores (~500g total)
+  // Iso ~30g CHO per serving ≈ ~6%
+  const GEL_REFUEL_PCT = 5;
+  const ISO_REFUEL_PCT = 6;
 
   for (let km = 1; km <= totalKm; km++) {
     const distPct = km / totalKm;
@@ -116,17 +123,14 @@ function computeSegments(
 
     if (distPct <= PHASE_BOUNDARIES.start) {
       phase = "start";
-      // Start conservatively at the low end
       const progress = distPct / PHASE_BOUNDARIES.start;
       intensity = base.low + progress * (base.center - base.low - 1);
     } else if (distPct <= PHASE_BOUNDARIES.install) {
       phase = "install";
-      // Gradually move toward center
       const progress = (distPct - PHASE_BOUNDARIES.start) / (PHASE_BOUNDARIES.install - PHASE_BOUNDARIES.start);
       intensity = (base.center - 1) + progress * 2;
     } else {
       phase = "push";
-      // Controlled rise toward high, but capped
       const progress = (distPct - PHASE_BOUNDARIES.install) / (1 - PHASE_BOUNDARIES.install);
       const maxPush = base.high - vlaMod.zoneNarrow;
       intensity = base.center + 1 + progress * (maxPush - base.center - 1);
@@ -143,31 +147,30 @@ function computeSegments(
       : 6 + distPct * 3.5;
     const rpe = Math.min(10, Math.round(baseRpe * 10) / 10);
 
-    // Glycogen depletion
+    // Glycogen depletion (same for both tracks)
     const zoneMultiplier = intensity > base.high - 1 ? 1.4 : intensity > base.center ? 1.1 : 1.0;
     const depletion = baseDepletion * zoneMultiplier * vlaMod.depletionRate;
     glycogen = Math.max(0, glycogen - depletion);
+    glycogenFed = Math.max(0, glycogenFed - depletion);
 
     // Zone classification
     let zone: SegmentRow["zone"] = "green";
     if (intensity > base.high - vlaMod.zoneNarrow) zone = "red";
     else if (intensity > base.center + 1) zone = "orange";
 
-    // Alerts
+    // Alerts (based on unfed glycogen)
     let alert: string | undefined;
     if (glycogen < 15) alert = "⚠️ Risque de déplétion critique";
     else if (glycogen < 30 && km < totalKm - 3) alert = "Réserves basses — maintenir la discipline";
 
     // Nutrition cues based on timing and glycogen
     const nutritionCues: NutritionCue[] = [];
-    const estPaceMin = thresholdPace * (100 / intensity) / 60; // min/km
-    const elapsedMin = km * estPaceMin;
 
     // Gel: every ~25-30 min (approx every 5-6 km at marathon pace)
-    // Start at km 5, then every 5km — accelerate if glycogen low
-    const gelInterval = glycogen < 30 ? 4 : 5;
+    const gelInterval = glycogenFed < 30 ? 4 : 5;
     if (km >= 5 && km % gelInterval === 0) {
       nutritionCues.push({ type: 'gel', icon: '🟡', label: 'Gel' });
+      glycogenFed = Math.min(100, glycogenFed + GEL_REFUEL_PCT);
     }
 
     // Water: every ~15-20 min → approximately every 3km
@@ -175,13 +178,12 @@ function computeSegments(
       nutritionCues.push({ type: 'water', icon: '💧', label: 'Eau' });
     }
 
-    // Isotonic drink: alternate with water, every 6km (pairs with gel timing)
-    // Prefer iso over water when glycogen is dropping
+    // Isotonic drink: alternate with water, every 6km
     if (km >= 6 && km % 6 === 0) {
-      // Replace the water cue with iso at these intervals
       const waterIdx = nutritionCues.findIndex(c => c.type === 'water');
       if (waterIdx >= 0) nutritionCues.splice(waterIdx, 1);
       nutritionCues.push({ type: 'iso', icon: '🧃', label: 'Iso' });
+      glycogenFed = Math.min(100, glycogenFed + ISO_REFUEL_PCT);
     }
 
     segments.push({
@@ -191,6 +193,7 @@ function computeSegments(
       paceSecKm,
       rpe,
       glycogenPct: Math.round(glycogen),
+      glycogenFedPct: Math.round(glycogenFed),
       zone,
       alert,
       nutritionCues,
