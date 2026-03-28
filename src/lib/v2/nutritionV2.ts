@@ -224,28 +224,26 @@ function computeBaseRateMader(
   const carbOxGmin = calculateCarbOxidation(intensity, vo2, vlx, weightKg);
   const totalOxidationGh = carbOxGmin * 60; // g/h
   
-  // Modèle glycogène physiologique (Burke 2011, Gonzalez 2016)
-  // - Réserves : ~6g/kg pour athlètes entraînés
-  // - L'accessibilité décroît avec la durée ET avec l'intensité
-  // - Minimum exogène 45% : glycogen sparing strategy (on s'alimente TÔT
-  //   pour préserver les réserves pour la fin, pas juste combler le déficit)
-  const glycogenStores = weightKg * 6;
+  // Modèle glycogène physiologique (Cao 2025: 380-500g total)
+  // Réserves: ~5g/kg (conservateur vs ancien 6g/kg)
+  const glycogenStores = weightKg * 5;
   const totalCarbNeeded = totalOxidationGh * duration;
   const accessFactor = Math.min(0.75, 0.35 + 0.40 * Math.exp(-0.25 * duration));
   const effectiveStores = glycogenStores * accessFactor;
   const glycogenCoverage = Math.min(0.85, effectiveStores / totalCarbNeeded);
   
-  // Glycogen sparing : même avec des réserves, minimum 45% exogène
-  const MIN_EXOGENOUS_FRACTION = 0.45;
+  // Minimum exogène modulé par durée (Cao 2025)
+  // <1h: 0%, 1-2h: 25%, 2-3h: 40%, >3h: 50%
+  const MIN_EXOGENOUS_FRACTION = duration < 1 ? 0 : duration < 2 ? 0.25 : duration < 3 ? 0.40 : 0.50;
   let exogenousGh = totalOxidationGh * Math.max(MIN_EXOGENOUS_FRACTION, 1 - glycogenCoverage);
   
-  // CAP: tolérance digestive réduite de ~18% vs vélo (Pfeiffer 2012, de Oliveira 2014)
-  // Impacts mécaniques + redistribution sanguine → absorption intestinale diminuée
+  // CAP: tolérance digestive réduite de ~18% + clamp max 75g/h (Pfeiffer 2012)
   if (sport === 'cap') {
     exogenousGh *= 0.82;
   }
   
-  const baseRate = clamp(Math.round(exogenousGh), 30, 90);
+  const capMax = sport === 'cap' ? 75 : 90;
+  const baseRate = clamp(Math.round(exogenousGh), 30, capMax);
   const method = (vo2max != null && vlamaxValue != null) ? 'mader' : 'fallback';
   
   return { baseRate, totalOxidation: Math.round(totalOxidationGh), method };

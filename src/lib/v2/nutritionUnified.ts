@@ -153,7 +153,8 @@ function computeBaseRateMader(
   vo2max: number | null | undefined,
   vlamaxValue: number | null,
   intensityPct: number | null,
-  durationHours: number | null
+  durationHours: number | null,
+  heatCondition?: boolean
 ): { baseRate: number; totalOxidation: number; method: 'mader' | 'fallback' } {
   const vo2 = vo2max ?? (sport === 'cap' ? 48 : 50);
   const vlx = vlamaxValue ?? 0.45;
@@ -161,24 +162,35 @@ function computeBaseRateMader(
   const duration = durationHours ?? 3;
   
   const carbOxGmin = calculateCarbOxidation(intensity, vo2, vlx, weightKg);
-  const totalOxidationGh = carbOxGmin * 60;
+  let totalOxidationGh = carbOxGmin * 60;
+  
+  // Facteur chaleur: +10% oxydation CHO en conditions chaudes (>28°C)
+  // Réf: Cao et al 2025, Febbraio 1994
+  if (heatCondition) {
+    totalOxidationGh *= 1.10;
+  }
   
   // Modèle glycogène physiologique (Burke 2011, Gonzalez 2016)
-  // Glycogen sparing : minimum 45% exogène pour préserver les réserves
-  const glycogenStores = weightKg * 6;
+  // Réserves: ~5g/kg (conservateur, Cao 2025: 380-500g total)
+  const glycogenStores = weightKg * 5;
   const totalCarbNeeded = totalOxidationGh * duration;
   const accessFactor = Math.min(0.75, 0.35 + 0.40 * Math.exp(-0.25 * duration));
   const effectiveStores = glycogenStores * accessFactor;
   const glycogenCoverage = Math.min(0.85, effectiveStores / totalCarbNeeded);
-  const MIN_EXOGENOUS_FRACTION = 0.45;
+  
+  // Minimum exogène modulé par durée (Cao 2025)
+  // <1h: rinçage buccal suffit, 1-2h: 25%, 2-3h: 40%, >3h: 50%
+  const MIN_EXOGENOUS_FRACTION = duration < 1 ? 0 : duration < 2 ? 0.25 : duration < 3 ? 0.40 : 0.50;
   let exogenousGh = totalOxidationGh * Math.max(MIN_EXOGENOUS_FRACTION, 1 - glycogenCoverage);
   
-  // CAP: tolérance digestive réduite de ~18% vs vélo (Pfeiffer 2012)
+  // CAP: clamp max réduit à 75g/h sans gut training (Pfeiffer 2012)
+  // + tolérance digestive réduite de ~18% vs vélo
   if (sport === 'cap') {
     exogenousGh *= 0.82;
   }
   
-  const baseRate = clamp(Math.round(exogenousGh), 30, 90);
+  const capMax = sport === 'cap' ? 75 : 90;
+  const baseRate = clamp(Math.round(exogenousGh), 30, capMax);
   const method = (vo2max != null && vlamaxValue != null) ? 'mader' : 'fallback';
   
   return { baseRate, totalOxidation: Math.round(totalOxidationGh), method };
@@ -588,7 +600,7 @@ export function computeNutritionUnified(input: NutritionUnifiedInput): Nutrition
   const durationH = input.targetDurationHours ?? (DURATION_BY_OBJECTIF[input.objectif]?.[sport] ?? null);
 
   // Calcul glucides
-  const maderResult = computeBaseRateMader(input.weightKg, sport, input.vo2max, input.vlamaxValue, input.targetIntensityPct, durationH);
+  const maderResult = computeBaseRateMader(input.weightKg, sport, input.vo2max, input.vlamaxValue, input.targetIntensityPct, durationH, input.heatCondition);
   const base = maderResult.baseRate;
   // VLamax et Intensité : déjà dans Mader, pas de double-comptage
   const ta = tteAdj(input.tteMin);

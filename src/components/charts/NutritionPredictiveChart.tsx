@@ -43,6 +43,7 @@ const computeNutritionCurve = (
   
   // Facteur de réduction pour CAP (tolérance digestive moindre, Pfeiffer 2012)
   const sportFactor = sport === "cap" ? 0.82 : sport === "triathlon" ? 0.90 : 1.0;
+  const capMax = sport === "cap" ? 75 : sport === "triathlon" ? 85 : 120;
   
   const data = [];
   for (let intensity = 50; intensity <= 100; intensity += 5) {
@@ -55,9 +56,9 @@ const computeNutritionCurve = (
     const exogenousFraction = 0.60;
     const exogenousGh = totalOxGh * exogenousFraction * sportFactor;
     
-    const recommended = Math.round(Math.max(20, exogenousGh));
+    const recommended = Math.round(Math.max(20, Math.min(capMax, exogenousGh)));
     const min = Math.round(Math.max(15, recommended * 0.85));
-    const max = Math.round(Math.min(120, recommended * 1.15));
+    const max = Math.round(Math.min(capMax, recommended * 1.15));
     
     data.push({
       intensity,
