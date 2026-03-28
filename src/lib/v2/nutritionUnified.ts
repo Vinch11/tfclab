@@ -145,7 +145,7 @@ const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(ma
 // CALCUL GLUCIDES (fusion V2)
 // =============================================
 
-const clampU = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
+
 
 function computeBaseRateMader(
   weightKg: number, 
