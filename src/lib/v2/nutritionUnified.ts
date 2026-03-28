@@ -111,6 +111,7 @@ export interface NutritionUnifiedResult {
 export interface NutritionUnifiedInput {
   vlamaxValue: number | null;
   vlamaxConfidence?: number;
+  vo2max?: number | null;
   tteMin: number | null;
   sport: 'velo' | 'cap';
   objectif: string;
