@@ -231,8 +231,9 @@ function computeBaseRateMader(
   // - L'apport exogène compense la déplétion progressive
   // 
   // Formule : exogène = totalOx × (1 - glycogenCoverage)
-  // glycogenCoverage décroît avec la durée : ~0.6 à 1h → ~0.3 à 4h → ~0.15 à 8h
-  const glycogenCoverage = Math.max(0.10, 0.70 - duration * 0.12);
+  // Modèle exponentiel : meilleure différenciation entre 5h et 10h
+  // ~51% à 1h → ~28% à 3h → ~16% à 5h → ~9% à 8h → ~7% à 10h
+  const glycogenCoverage = 0.05 + 0.65 * Math.exp(-0.35 * duration);
   
   // Apport exogène recommandé
   let exogenousGh = totalOxidationGh * (1 - glycogenCoverage);
