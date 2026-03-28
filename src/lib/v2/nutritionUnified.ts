@@ -167,8 +167,9 @@ function computeBaseRateMader(
   const glycogenCoverage = 0.05 + 0.65 * Math.exp(-0.35 * duration);
   let exogenousGh = totalOxidationGh * (1 - glycogenCoverage);
   
+  // CAP: tolérance digestive réduite de ~18% vs vélo (Pfeiffer 2012)
   if (sport === 'cap') {
-    exogenousGh *= 0.95;
+    exogenousGh *= 0.82;
   }
   
   const baseRate = clamp(Math.round(exogenousGh), 30, 90);
