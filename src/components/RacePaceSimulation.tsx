@@ -354,6 +354,11 @@ export function RacePaceSimulation({
                       <Fuel className="h-3 w-3" /> Glycogène
                     </span>
                   </th>
+                  <th className="text-center py-2 px-2 font-medium">
+                    <span className="flex items-center justify-center gap-1">
+                      <Cookie className="h-3 w-3" /> Nutrition
+                    </span>
+                  </th>
                   <th className="text-left py-2 px-2 font-medium">Alerte</th>
                 </tr>
               </thead>
@@ -390,6 +395,23 @@ export function RacePaceSimulation({
                     </td>
                     <td className="py-1.5 px-2">
                       <GlycogenBar pct={seg.glycogenPct} />
+                    </td>
+                    <td className="py-1.5 px-2 text-center">
+                      {seg.nutritionCues.length > 0 ? (
+                        <div className="flex items-center justify-center gap-1">
+                          {seg.nutritionCues.map((cue, i) => (
+                            <span
+                              key={i}
+                              className="text-xs cursor-default"
+                              title={cue.label}
+                            >
+                              {cue.icon}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground/40 text-[10px]">—</span>
+                      )}
                     </td>
                     <td className="py-1.5 px-2 text-[10px] text-amber-600 dark:text-amber-400">
                       {seg.alert || ""}
