@@ -30,6 +30,7 @@ interface NutritionCue {
   type: 'gel' | 'water' | 'iso';
   icon: string;
   label: string;
+  detail: string; // e.g. "25g CHO" or "150ml"
 }
 
 interface SegmentRow {
