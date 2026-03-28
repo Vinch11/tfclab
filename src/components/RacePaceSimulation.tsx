@@ -303,8 +303,8 @@ export function RacePaceSimulation({
 
   const segments = useMemo(() => {
     if (!normalizedObj || !thresholdPace) return null;
-    return computeSegments(normalizedObj, thresholdPace, vlamaxRun);
-  }, [normalizedObj, thresholdPace, vlamaxRun]);
+    return computeSegments(normalizedObj, thresholdPace, vlamaxRun, vo2max, weightKg);
+  }, [normalizedObj, thresholdPace, vlamaxRun, vo2max, weightKg]);
 
   // Don't render for non-running objectives
   if (!normalizedObj || !segments || !thresholdPace) return null;
