@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { Flame, AlertTriangle, Target, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { calculateCarbOxidation, calculateFatOxidation } from "@/lib/v2/maderMetabolicModel";
 
 interface CarbBurnRateChartProps {
   vo2max: number;       // ml/kg/min
