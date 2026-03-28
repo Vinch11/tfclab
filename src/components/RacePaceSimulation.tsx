@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   Timer, Footprints, AlertTriangle, Fuel, Activity,
-  TrendingDown, CheckCircle2,
+  TrendingDown, CheckCircle2, Droplets, Cookie,
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════════
@@ -26,6 +26,12 @@ interface RacePaceSimulationProps {
   athleteName?: string;
 }
 
+interface NutritionCue {
+  type: 'gel' | 'water' | 'iso';
+  icon: string;
+  label: string;
+}
+
 interface SegmentRow {
   km: number;
   phase: "start" | "install" | "push";
@@ -35,6 +41,7 @@ interface SegmentRow {
   glycogenPct: number;
   zone: "green" | "orange" | "red";
   alert?: string;
+  nutritionCues: NutritionCue[];
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -150,6 +157,32 @@ function computeSegments(
     if (glycogen < 15) alert = "⚠️ Risque de déplétion critique";
     else if (glycogen < 30 && km < totalKm - 3) alert = "Réserves basses — maintenir la discipline";
 
+    // Nutrition cues based on timing and glycogen
+    const nutritionCues: NutritionCue[] = [];
+    const estPaceMin = thresholdPace * (100 / intensity) / 60; // min/km
+    const elapsedMin = km * estPaceMin;
+
+    // Gel: every ~25-30 min (approx every 5-6 km at marathon pace)
+    // Start at km 5, then every 5km — accelerate if glycogen low
+    const gelInterval = glycogen < 30 ? 4 : 5;
+    if (km >= 5 && km % gelInterval === 0) {
+      nutritionCues.push({ type: 'gel', icon: '🟡', label: 'Gel' });
+    }
+
+    // Water: every ~15-20 min → approximately every 3km
+    if (km >= 3 && km % 3 === 0) {
+      nutritionCues.push({ type: 'water', icon: '💧', label: 'Eau' });
+    }
+
+    // Isotonic drink: alternate with water, every 6km (pairs with gel timing)
+    // Prefer iso over water when glycogen is dropping
+    if (km >= 6 && km % 6 === 0) {
+      // Replace the water cue with iso at these intervals
+      const waterIdx = nutritionCues.findIndex(c => c.type === 'water');
+      if (waterIdx >= 0) nutritionCues.splice(waterIdx, 1);
+      nutritionCues.push({ type: 'iso', icon: '🧃', label: 'Iso' });
+    }
+
     segments.push({
       km,
       phase,
@@ -159,6 +192,7 @@ function computeSegments(
       glycogenPct: Math.round(glycogen),
       zone,
       alert,
+      nutritionCues,
     });
   }
 
@@ -294,7 +328,7 @@ export function RacePaceSimulation({
           </p>
         </div>
 
-        {/* Phase legend */}
+        {/* Phase & nutrition legend */}
         <div className="flex flex-wrap gap-2">
           {(["start", "install", "push"] as const).map(phase => (
             <Badge key={phase} variant="outline" className="text-[10px]">
@@ -302,6 +336,10 @@ export function RacePaceSimulation({
               {" "}{PHASE_LABELS[phase]}
             </Badge>
           ))}
+          <span className="text-muted-foreground mx-1">|</span>
+          <Badge variant="outline" className="text-[10px]">🟡 Gel</Badge>
+          <Badge variant="outline" className="text-[10px]">💧 Eau</Badge>
+          <Badge variant="outline" className="text-[10px]">🧃 Iso</Badge>
         </div>
 
         {/* Pacing table */}
@@ -318,6 +356,11 @@ export function RacePaceSimulation({
                   <th className="text-center py-2 px-2 font-medium min-w-[100px]">
                     <span className="flex items-center justify-center gap-1">
                       <Fuel className="h-3 w-3" /> Glycogène
+                    </span>
+                  </th>
+                  <th className="text-center py-2 px-2 font-medium">
+                    <span className="flex items-center justify-center gap-1">
+                      <Cookie className="h-3 w-3" /> Nutrition
                     </span>
                   </th>
                   <th className="text-left py-2 px-2 font-medium">Alerte</th>
@@ -356,6 +399,23 @@ export function RacePaceSimulation({
                     </td>
                     <td className="py-1.5 px-2">
                       <GlycogenBar pct={seg.glycogenPct} />
+                    </td>
+                    <td className="py-1.5 px-2 text-center">
+                      {seg.nutritionCues.length > 0 ? (
+                        <div className="flex items-center justify-center gap-1">
+                          {seg.nutritionCues.map((cue, i) => (
+                            <span
+                              key={i}
+                              className="text-xs cursor-default"
+                              title={cue.label}
+                            >
+                              {cue.icon}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground/40 text-[10px]">—</span>
+                      )}
                     </td>
                     <td className="py-1.5 px-2 text-[10px] text-amber-600 dark:text-amber-400">
                       {seg.alert || ""}
