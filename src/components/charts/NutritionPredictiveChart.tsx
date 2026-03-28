@@ -41,8 +41,8 @@ const computeNutritionCurve = (
   const vo2 = vo2max ?? (sport === "cap" ? 48 : 50);
   const weight = weightKg ?? 70;
   
-  // Facteur de réduction pour CAP (tolérance digestive moindre)
-  const sportFactor = sport === "cap" ? 0.95 : sport === "triathlon" ? 0.97 : 1.0;
+  // Facteur de réduction pour CAP (tolérance digestive moindre, Pfeiffer 2012)
+  const sportFactor = sport === "cap" ? 0.82 : sport === "triathlon" ? 0.90 : 1.0;
   
   const data = [];
   for (let intensity = 50; intensity <= 100; intensity += 5) {
@@ -50,9 +50,9 @@ const computeNutritionCurve = (
     const carbOxGmin = calculateCarbOxidation(intensity, vo2, vlx, weight);
     const totalOxGh = carbOxGmin * 60;
     
-    // L'apport exogène recommandé = ~50-60% de l'oxydation totale
-    // (glycogène endogène couvre le reste, pour une durée moyenne ~3h)
-    const exogenousFraction = 0.55;
+    // L'apport exogène recommandé = ~60% de l'oxydation totale
+    // Glycogen sparing : s'alimenter tôt pour préserver les réserves
+    const exogenousFraction = 0.60;
     const exogenousGh = totalOxGh * exogenousFraction * sportFactor;
     
     const recommended = Math.round(Math.max(20, exogenousGh));

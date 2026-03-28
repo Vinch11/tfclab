@@ -224,18 +224,20 @@ function computeBaseRateMader(
   const carbOxGmin = calculateCarbOxidation(intensity, vo2, vlx, weightKg);
   const totalOxidationGh = carbOxGmin * 60; // g/h
   
-  // Modèle glycogène physiologique :
-  // - Réserves : ~6g/kg pour athlètes entraînés (Burke 2011)
-  // - L'accessibilité décroît avec la durée (fatigue, déplétion progressive)
-  // - accessFactor : ~0.90 pour efforts courts → ~0.55 pour ultra
+  // Modèle glycogène physiologique (Burke 2011, Gonzalez 2016)
+  // - Réserves : ~6g/kg pour athlètes entraînés
+  // - L'accessibilité décroît avec la durée ET avec l'intensité
+  // - Minimum exogène 45% : glycogen sparing strategy (on s'alimente TÔT
+  //   pour préserver les réserves pour la fin, pas juste combler le déficit)
   const glycogenStores = weightKg * 6;
   const totalCarbNeeded = totalOxidationGh * duration;
-  const accessFactor = Math.min(0.90, 0.50 + 0.40 * Math.exp(-0.30 * duration));
+  const accessFactor = Math.min(0.75, 0.35 + 0.40 * Math.exp(-0.25 * duration));
   const effectiveStores = glycogenStores * accessFactor;
-  const glycogenCoverage = Math.min(0.95, effectiveStores / totalCarbNeeded);
+  const glycogenCoverage = Math.min(0.85, effectiveStores / totalCarbNeeded);
   
-  // Apport exogène recommandé = fraction non couverte par le glycogène
-  let exogenousGh = totalOxidationGh * (1 - glycogenCoverage);
+  // Glycogen sparing : même avec des réserves, minimum 45% exogène
+  const MIN_EXOGENOUS_FRACTION = 0.45;
+  let exogenousGh = totalOxidationGh * Math.max(MIN_EXOGENOUS_FRACTION, 1 - glycogenCoverage);
   
   // CAP: tolérance digestive réduite de ~18% vs vélo (Pfeiffer 2012, de Oliveira 2014)
   // Impacts mécaniques + redistribution sanguine → absorption intestinale diminuée

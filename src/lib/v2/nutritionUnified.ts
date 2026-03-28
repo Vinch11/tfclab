@@ -163,13 +163,15 @@ function computeBaseRateMader(
   const carbOxGmin = calculateCarbOxidation(intensity, vo2, vlx, weightKg);
   const totalOxidationGh = carbOxGmin * 60;
   
-  // Modèle glycogène physiologique (Burke 2011)
+  // Modèle glycogène physiologique (Burke 2011, Gonzalez 2016)
+  // Glycogen sparing : minimum 45% exogène pour préserver les réserves
   const glycogenStores = weightKg * 6;
   const totalCarbNeeded = totalOxidationGh * duration;
-  const accessFactor = Math.min(0.90, 0.50 + 0.40 * Math.exp(-0.30 * duration));
+  const accessFactor = Math.min(0.75, 0.35 + 0.40 * Math.exp(-0.25 * duration));
   const effectiveStores = glycogenStores * accessFactor;
-  const glycogenCoverage = Math.min(0.95, effectiveStores / totalCarbNeeded);
-  let exogenousGh = totalOxidationGh * (1 - glycogenCoverage);
+  const glycogenCoverage = Math.min(0.85, effectiveStores / totalCarbNeeded);
+  const MIN_EXOGENOUS_FRACTION = 0.45;
+  let exogenousGh = totalOxidationGh * Math.max(MIN_EXOGENOUS_FRACTION, 1 - glycogenCoverage);
   
   // CAP: tolérance digestive réduite de ~18% vs vélo (Pfeiffer 2012)
   if (sport === 'cap') {
