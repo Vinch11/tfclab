@@ -170,20 +170,20 @@ function computeSegments(
     // Gel: every ~25-30 min (approx every 5-6 km at marathon pace)
     const gelInterval = glycogenFed < 30 ? 4 : 5;
     if (km >= 5 && km % gelInterval === 0) {
-      nutritionCues.push({ type: 'gel', icon: '🟡', label: 'Gel' });
+      nutritionCues.push({ type: 'gel', icon: '🟡', label: 'Gel', detail: '25g CHO' });
       glycogenFed = Math.min(100, glycogenFed + GEL_REFUEL_PCT);
     }
 
     // Water: every ~15-20 min → approximately every 3km
     if (km >= 3 && km % 3 === 0) {
-      nutritionCues.push({ type: 'water', icon: '💧', label: 'Eau' });
+      nutritionCues.push({ type: 'water', icon: '💧', label: 'Eau', detail: '150ml' });
     }
 
     // Isotonic drink: alternate with water, every 6km
     if (km >= 6 && km % 6 === 0) {
       const waterIdx = nutritionCues.findIndex(c => c.type === 'water');
       if (waterIdx >= 0) nutritionCues.splice(waterIdx, 1);
-      nutritionCues.push({ type: 'iso', icon: '🧃', label: 'Iso' });
+      nutritionCues.push({ type: 'iso', icon: '🧃', label: 'Iso', detail: '200ml · 30g CHO' });
       glycogenFed = Math.min(100, glycogenFed + ISO_REFUEL_PCT);
     }
 
