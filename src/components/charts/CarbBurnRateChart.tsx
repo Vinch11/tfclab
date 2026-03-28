@@ -33,64 +33,27 @@ interface CarbDataPoint {
 }
 
 /**
- * Calculate carbohydrate oxidation rate based on intensity and metabolic profile
- * Based on simplified crossover concept
+ * Calculate carbohydrate and fat oxidation rates using the unified Mader model
+ * Replaces the previous custom crossover formula for consistency
  */
-function calculateCarbBurnRate(
+function calculateRates(
   intensityPct: number,
   vo2max: number,
   vlamax: number,
   weight: number
 ): { carbRate: number; fatRate: number; totalRate: number } {
-  // Total energy expenditure at intensity (kcal/h)
-  // VO2 (L/min) ≈ VO2max × intensity × weight / 1000
-  const vo2LPerMin = (vo2max * (intensityPct / 100) * weight) / 1000;
-  const totalKcalPerHour = vo2LPerMin * 60 * 5; // ~5 kcal/L O2
+  // g/min from Mader model
+  const carbGmin = calculateCarbOxidation(intensityPct, vo2max, vlamax, weight);
+  const fatGmin = calculateFatOxidation(intensityPct, vo2max, vlamax, weight);
   
-  // Crossover point shifts with VLamax
-  // Higher VLamax = earlier crossover (more CHO reliance at lower intensities)
-  const crossoverPoint = 75 - (vlamax * 35); // ~40-75% depending on VLamax
+  // Convert to g/h
+  const carbRate = Math.round(carbGmin * 60);
+  const fatRate = Math.round(fatGmin * 60);
   
-  // Fat oxidation peaks at FatMax, then declines
-  const fatMaxIntensity = 80 - (vlamax * 40); // Lower VLamax = higher FatMax
+  // Total kcal/h (CHO: 4 kcal/g, Fat: 9 kcal/g)
+  const totalRate = Math.round(carbRate * 4 + fatRate * 9);
   
-  // Calculate fat/carb contribution using sigmoid crossover
-  let fatContribution: number;
-  let carbContribution: number;
-  
-  if (intensityPct <= fatMaxIntensity) {
-    // Below FatMax: fat increases, CHO is lower
-    fatContribution = 0.3 + 0.5 * (intensityPct / fatMaxIntensity);
-    carbContribution = 1 - fatContribution;
-  } else if (intensityPct <= crossoverPoint) {
-    // Between FatMax and crossover: fat starts declining
-    const progress = (intensityPct - fatMaxIntensity) / (crossoverPoint - fatMaxIntensity);
-    fatContribution = 0.8 - (0.3 * progress);
-    carbContribution = 1 - fatContribution;
-  } else {
-    // Above crossover: CHO dominates exponentially
-    const excess = (intensityPct - crossoverPoint) / (100 - crossoverPoint);
-    fatContribution = Math.max(0.05, 0.5 - (0.45 * Math.pow(excess, 0.7)));
-    carbContribution = 1 - fatContribution;
-  }
-  
-  // VLamax increases CHO reliance at all intensities
-  carbContribution += vlamax * 0.15;
-  carbContribution = Math.min(0.98, Math.max(0.1, carbContribution));
-  fatContribution = 1 - carbContribution;
-  
-  // Convert to g/h (CHO: 4 kcal/g, Fat: 9 kcal/g)
-  const carbKcalPerHour = totalKcalPerHour * carbContribution;
-  const fatKcalPerHour = totalKcalPerHour * fatContribution;
-  
-  const carbRate = carbKcalPerHour / 4; // g/h
-  const fatRate = fatKcalPerHour / 9;   // g/h
-  
-  return {
-    carbRate: Math.round(carbRate),
-    fatRate: Math.round(fatRate),
-    totalRate: Math.round(totalKcalPerHour)
-  };
+  return { carbRate, fatRate, totalRate };
 }
 
 function getZoneName(intensity: number): string {
