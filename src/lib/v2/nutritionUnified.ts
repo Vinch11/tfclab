@@ -13,6 +13,7 @@
  */
 
 import { METHOD_VERSION_DISPLAY } from './scientificGovernance';
+import { calculateCarbOxidation } from './maderMetabolicModel';
 
 // =============================================
 // TYPES
@@ -110,6 +111,7 @@ export interface NutritionUnifiedResult {
 export interface NutritionUnifiedInput {
   vlamaxValue: number | null;
   vlamaxConfidence?: number;
+  vo2max?: number | null;
   tteMin: number | null;
   sport: 'velo' | 'cap';
   objectif: string;
@@ -143,9 +145,35 @@ const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(ma
 // CALCUL GLUCIDES (fusion V2)
 // =============================================
 
-function computeBaseRate(weightKg: number, sport: 'velo' | 'cap'): number {
-  const multiplier = sport === 'cap' ? 1.05 : 0.9;
-  return clamp(Math.round(weightKg * multiplier), 40, 90);
+
+
+function computeBaseRateMader(
+  weightKg: number, 
+  sport: 'velo' | 'cap',
+  vo2max: number | null | undefined,
+  vlamaxValue: number | null,
+  intensityPct: number | null,
+  durationHours: number | null
+): { baseRate: number; totalOxidation: number; method: 'mader' | 'fallback' } {
+  const vo2 = vo2max ?? (sport === 'cap' ? 48 : 50);
+  const vlx = vlamaxValue ?? 0.45;
+  const intensity = intensityPct ?? 70;
+  const duration = durationHours ?? 3;
+  
+  const carbOxGmin = calculateCarbOxidation(intensity, vo2, vlx, weightKg);
+  const totalOxidationGh = carbOxGmin * 60;
+  
+  const glycogenCoverage = Math.max(0.10, 0.70 - duration * 0.12);
+  let exogenousGh = totalOxidationGh * (1 - glycogenCoverage);
+  
+  if (sport === 'cap') {
+    exogenousGh *= 0.95;
+  }
+  
+  const baseRate = clamp(Math.round(exogenousGh), 30, 90);
+  const method = (vo2max != null && vlamaxValue != null) ? 'mader' : 'fallback';
+  
+  return { baseRate, totalOxidation: Math.round(totalOxidationGh), method };
 }
 
 function vlamaxAdj(v: number | null): { adj: number; explanation: string } {
@@ -552,14 +580,15 @@ export function computeNutritionUnified(input: NutritionUnifiedInput): Nutrition
   const durationH = input.targetDurationHours ?? (DURATION_BY_OBJECTIF[input.objectif]?.[sport] ?? null);
 
   // Calcul glucides
-  const base = computeBaseRate(input.weightKg, sport);
+  const maderResult = computeBaseRateMader(input.weightKg, sport, input.vo2max, input.vlamaxValue, input.targetIntensityPct, durationH);
+  const base = maderResult.baseRate;
   const va = vlamaxAdj(input.vlamaxValue);
   const ta = tteAdj(input.tteMin);
   const da = durationAdj(durationH);
   const ia = intensityAdj(input.targetIntensityPct);
 
   const contributors: NutritionContributorUnified[] = [
-    { id: 'base', label: 'Taux de base', adjustment: base, direction: 'neutral', explanation: `${sport === 'cap' ? '1.05' : '0.9'} × ${input.weightKg}kg` },
+    { id: 'base', label: 'Taux de base (Mader)', adjustment: base, direction: 'neutral', explanation: `Oxydation totale : ${maderResult.totalOxidation} g/h → exogène : ${base} g/h` },
   ];
   if (va.adj !== 0) contributors.push({ id: 'vlamax', label: 'VLamax', adjustment: va.adj, direction: va.adj > 0 ? 'up' : 'down', explanation: va.explanation });
   if (ta.adj !== 0) contributors.push({ id: 'tte', label: 'TTE', adjustment: ta.adj, direction: ta.adj > 0 ? 'up' : 'down', explanation: ta.explanation });

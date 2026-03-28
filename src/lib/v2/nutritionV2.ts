@@ -18,6 +18,7 @@
  */
 
 import { METHOD_VERSION_DISPLAY } from './scientificGovernance';
+import { calculateCarbOxidation } from './maderMetabolicModel';
 
 // =============================================
 // TYPES V2
@@ -77,6 +78,9 @@ export interface NutritionV2Input {
   // VLamax effectif
   vlamaxValue: number | null;
   vlamaxConfidence?: number;
+  
+  // VO2max (ml/kg/min) — utilisé par le modèle Mader
+  vo2max?: number | null;
   
   // TTE effectif
   tteMin: number | null;
@@ -190,15 +194,59 @@ function getRiskLabel(risk: NutritionRiskV2): string {
 // =============================================
 
 /**
- * Étape A — Taux de base (g/h)
- * Vélo : 0.9 × poids
- * CAP : 1.05 × poids
- * Bornes : min 40 g/h, max 90 g/h
+ * Étape A — Taux de base via modèle Mader (g/h)
+ * 
+ * Utilise calculateCarbOxidation(intensity, vo2max, vlamax, weight) 
+ * pour obtenir l'oxydation totale de glucides (g/min) à l'intensité cible.
+ * 
+ * L'apport EXOGÈNE recommandé = fraction de l'oxydation totale,
+ * car le glycogène endogène couvre une partie (décroissante avec la durée).
+ * 
+ * Fallback si VO2max inconnu : estimation conservative (48–50 ml/kg/min)
+ * Fallback si VLamax inconnue : 0.45 (valeur médiane endurant)
+ * Fallback si intensité inconnue : 70% (effort longue distance)
  */
-function computeBaseRate(weightKg: number, sport: 'velo' | 'cap'): number {
-  const multiplier = sport === 'cap' ? 1.05 : 0.9;
-  const base = weightKg * multiplier;
-  return clamp(Math.round(base), 40, 90);
+function computeBaseRateMader(
+  weightKg: number, 
+  sport: 'velo' | 'cap',
+  vo2max: number | null | undefined,
+  vlamaxValue: number | null,
+  intensityPct: number | null,
+  durationHours: number | null
+): { baseRate: number; totalOxidation: number; method: 'mader' | 'fallback' } {
+  // Fallbacks conservateurs
+  const vo2 = vo2max ?? (sport === 'cap' ? 48 : 50);
+  const vlx = vlamaxValue ?? 0.45;
+  const intensity = intensityPct ?? 70;
+  const duration = durationHours ?? 3;
+  
+  // Oxydation totale de glucides via Mader (g/min)
+  const carbOxGmin = calculateCarbOxidation(intensity, vo2, vlx, weightKg);
+  const totalOxidationGh = carbOxGmin * 60; // g/h
+  
+  // Fraction exogène nécessaire :
+  // - Glycogène musculaire (~400g) + hépatique (~100g) = ~500g total
+  // - À 70% intensité, un athlète de 70kg brûle ~120-180g/h de glucides
+  // - Sur 3h → 360-540g total → glycogène couvre 90-100% de la 1ère heure
+  // - L'apport exogène compense la déplétion progressive
+  // 
+  // Formule : exogène = totalOx × (1 - glycogenCoverage)
+  // glycogenCoverage décroît avec la durée : ~0.6 à 1h → ~0.3 à 4h → ~0.15 à 8h
+  const glycogenCoverage = Math.max(0.10, 0.70 - duration * 0.12);
+  
+  // Apport exogène recommandé
+  let exogenousGh = totalOxidationGh * (1 - glycogenCoverage);
+  
+  // Le sport CAP a un coût mécanique supplémentaire (+10% absorption intestinale réduite)
+  // mais aussi une tolérance digestive moindre → on ne majore pas autant
+  if (sport === 'cap') {
+    exogenousGh *= 0.95; // légèrement réduit car tolérance digestive moindre en CAP
+  }
+  
+  const baseRate = clamp(Math.round(exogenousGh), 30, 90);
+  const method = (vo2max != null && vlamaxValue != null) ? 'mader' : 'fallback';
+  
+  return { baseRate, totalOxidation: Math.round(totalOxidationGh), method };
 }
 
 /**
@@ -311,7 +359,7 @@ function computeGlycogenRiskScore(input: NutritionV2Input): number {
 // =============================================
 
 export function computeNutritionV2(input: NutritionV2Input): NutritionPredictiveV2 | null {
-  const { vlamaxValue, vlamaxConfidence = 0.7, tteMin, sport, targetDurationHours, targetIntensityPct, weightKg } = input;
+  const { vlamaxValue, vlamaxConfidence = 0.7, vo2max, tteMin, sport, targetDurationHours, targetIntensityPct, weightKg } = input;
   
   // Poids obligatoire pour le calcul de base
   if (weightKg === null || weightKg <= 0) {
@@ -326,17 +374,18 @@ export function computeNutritionV2(input: NutritionV2Input): NutritionPredictive
   const warnings: string[] = [];
   const contributors: NutritionContributor[] = [];
   
-  // Étape A — Taux de base
-  const baseRate = computeBaseRate(weightKg, sport);
+  // Étape A — Taux de base via modèle Mader
+  const maderResult = computeBaseRateMader(weightKg, sport, vo2max, vlamaxValue, targetIntensityPct, targetDurationHours);
+  const baseRate = maderResult.baseRate;
   contributors.push({
     id: 'base',
-    label: 'Taux de base',
+    label: 'Taux de base (Mader)',
     value: `${baseRate} g/h`,
     adjustment: baseRate,
     direction: 'neutral',
-    explanation: sport === 'cap' 
-      ? `CAP : 1.05 × ${weightKg} kg = ${baseRate} g/h`
-      : `Vélo : 0.9 × ${weightKg} kg = ${baseRate} g/h`
+    explanation: maderResult.method === 'mader'
+      ? `Oxydation totale : ${maderResult.totalOxidation} g/h → apport exogène : ${baseRate} g/h`
+      : `Estimation (VO2max/VLamax estimés) → oxydation ${maderResult.totalOxidation} g/h → exogène ${baseRate} g/h`
   });
   
   // Étape B — Modulation VLamax
@@ -490,7 +539,7 @@ function generateWhyThisNumber(
 ): string {
   const parts: string[] = [];
   
-  parts.push(`Ce chiffre de ${result} g/h est calculé à partir de votre poids (${input.weightKg} kg) et de votre profil métabolique.`);
+  parts.push(`Ce chiffre de ${result} g/h est calculé via le modèle Mader (oxydation totale de glucides à l'intensité cible), ajusté pour l'apport exogène nécessaire.`);
   
   if (input.vlamaxValue !== null) {
     if (input.vlamaxValue > 0.55) {
@@ -617,18 +666,20 @@ CAP → Coût supérieur au vélo à intensité égale`
     {
       id: 'formula',
       title: 'La formule',
-      content: `TAUX DE BASE
-• Vélo : 0.9 × poids (kg)
-• CAP : 1.05 × poids (kg)
+      content: `MODÈLE MADER (V2)
+Le taux de base est dérivé de l'oxydation totale de glucides
+calculée par le modèle Mader-Heck (VO2max, VLamax, poids, intensité).
 
-MODULATIONS
-• VLamax < 0.35 : -10 g/h
-• VLamax > 0.55 : +10 à +20 g/h
-• TTE < 45 min : +10 g/h
-• TTE > 55 min : -5 g/h
+L'apport EXOGÈNE recommandé = oxydation totale × (1 - couverture glycogène)
+La couverture glycogène diminue avec la durée de l'effort.
+
+MODULATIONS SECONDAIRES
+• TTE < 45 min : +10 g/h (déplétion plus rapide)
+• TTE > 55 min : -5 g/h (meilleure endurance)
 • Durée > 3h : +5 à +10 g/h
+• Intensité ≥ 85% : +10 g/h
 
-BORNAGE : 40-100 g/h`
+BORNAGE : 30-90 g/h (standard) | 50-120 g/h (gut training avancé)`
     },
     {
       id: 'risk',
@@ -699,7 +750,7 @@ ${NUTRITION_PHILOSOPHY.disclaimer}`;
 export const NUTRITION_CHATBOT_QA = [
   {
     question: "Comment est calculé mon besoin en glucides ?",
-    answer: "Le calcul part de votre poids (0.9×kg pour vélo, 1.05×kg pour CAP), puis ajuste selon votre VLamax, TTE, durée prévue et intensité. Le résultat est borné entre 40 et 100 g/h."
+    answer: "Le calcul utilise le modèle Mader pour estimer votre oxydation totale de glucides (basée sur VO2max, VLamax, poids, intensité), puis dérive l'apport exogène nécessaire en soustrayant la couverture glycogène endogène. Des ajustements TTE, durée et intensité affinent le résultat."
   },
   {
     question: "Pourquoi mon risque glycogène est élevé ?",

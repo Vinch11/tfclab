@@ -1936,6 +1936,7 @@ const Index = () => {
               <NutritionUnifiedCard
                 vlamaxValue={vlamaxEffectif.value}
                 vlamaxConfidence={vlamaxEffectif.confidence}
+                vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
                 tteMin={tteEffectif.tte_min}
                 sport={isRunningOnly ? "cap" : "velo"}
                 objectif={currentAthlete.goal || "IM"}
