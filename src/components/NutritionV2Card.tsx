@@ -130,6 +130,7 @@ const RiskGauge = ({ score, risk, label }: { score: number; risk: string; label:
 export function NutritionV2Card({
   vlamaxValue,
   vlamaxConfidence = 0.7,
+  vo2max,
   tteMin,
   sport,
   targetDurationHours = null,
@@ -146,6 +147,7 @@ export function NutritionV2Card({
     const input: NutritionV2Input = {
       vlamaxValue,
       vlamaxConfidence,
+      vo2max,
       tteMin,
       sport,
       targetDurationHours,
@@ -154,7 +156,7 @@ export function NutritionV2Card({
       advancedGutTraining
     };
     return computeNutritionV2(input);
-  }, [vlamaxValue, vlamaxConfidence, tteMin, sport, targetDurationHours, targetIntensityPct, weightKg, advancedGutTraining]);
+  }, [vlamaxValue, vlamaxConfidence, vo2max, tteMin, sport, targetDurationHours, targetIntensityPct, weightKg, advancedGutTraining]);
   
   // Guard: données insuffisantes (pas de VLamax ni TTE ni poids)
   const isInsufficient = !nutrition || (vlamaxValue === null && (tteMin === null || tteMin === 0) && weightKg === null);
