@@ -513,8 +513,8 @@ export function computeNutritionEstimate(params: {
   const carbOxGmin = calculateCarbOxidation(intensity, vo2, vlamax, weight);
   const totalOxGh = carbOxGmin * 60;
   
-  // Fraction exogène (glycogène couvre moins avec la durée)
-  const glycogenCoverage = Math.max(0.10, 0.70 - duration * 0.12);
+  // Fraction exogène — modèle exponentiel de déplétion glycogénique
+  const glycogenCoverage = 0.05 + 0.65 * Math.exp(-0.35 * duration);
   let exogenousGh = totalOxGh * (1 - glycogenCoverage);
   
   // Ajustement sport
