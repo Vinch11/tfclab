@@ -157,6 +157,32 @@ function computeSegments(
     if (glycogen < 15) alert = "⚠️ Risque de déplétion critique";
     else if (glycogen < 30 && km < totalKm - 3) alert = "Réserves basses — maintenir la discipline";
 
+    // Nutrition cues based on timing and glycogen
+    const nutritionCues: NutritionCue[] = [];
+    const estPaceMin = thresholdPace * (100 / intensity) / 60; // min/km
+    const elapsedMin = km * estPaceMin;
+
+    // Gel: every ~25-30 min (approx every 5-6 km at marathon pace)
+    // Start at km 5, then every 5km — accelerate if glycogen low
+    const gelInterval = glycogen < 30 ? 4 : 5;
+    if (km >= 5 && km % gelInterval === 0) {
+      nutritionCues.push({ type: 'gel', icon: '🟡', label: 'Gel' });
+    }
+
+    // Water: every ~15-20 min → approximately every 3km
+    if (km >= 3 && km % 3 === 0) {
+      nutritionCues.push({ type: 'water', icon: '💧', label: 'Eau' });
+    }
+
+    // Isotonic drink: alternate with water, every 6km (pairs with gel timing)
+    // Prefer iso over water when glycogen is dropping
+    if (km >= 6 && km % 6 === 0) {
+      // Replace the water cue with iso at these intervals
+      const waterIdx = nutritionCues.findIndex(c => c.type === 'water');
+      if (waterIdx >= 0) nutritionCues.splice(waterIdx, 1);
+      nutritionCues.push({ type: 'iso', icon: '🧃', label: 'Iso' });
+    }
+
     segments.push({
       km,
       phase,
@@ -166,6 +192,7 @@ function computeSegments(
       glycogenPct: Math.round(glycogen),
       zone,
       alert,
+      nutritionCues,
     });
   }
 
