@@ -455,12 +455,31 @@ export default function AITrainingPlanPage() {
     return buildPlanConfigFromDiagnostic(diagnostic, formConfig, coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined);
   }, [objective, raceName, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate, coachLimiterOrder]);
 
-  // Single athlete generation
-  const handleGenerate = () => {
+  const { archiveCurrentPlan } = usePlanSnapshotSync();
+
+  // Single athlete generation (archives plan if triggered by sync)
+  const handleGenerate = async () => {
     if (!athleteContext) {
       toast.error("Sélectionnez un athlète avec un snapshot actif");
       return;
     }
+
+    // Archive current plan if this is a sync-triggered regeneration
+    if (showSyncBanner && currentAthlete) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const archived = await archiveCurrentPlan(
+          currentAthlete.id,
+          user.id,
+          "Auto-archive avant régénération suite à changement de métriques"
+        );
+        if (archived) {
+          toast.info("Plan précédent archivé dans l'historique");
+        }
+      }
+      setShowSyncBanner(false);
+    }
+
     const config = buildConfigFromDiag(athleteContext.diagnostic);
     generatePlan(athleteContext.data, config);
   };
