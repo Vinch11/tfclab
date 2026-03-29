@@ -36,7 +36,8 @@ export interface VLamaxTargets {
 export interface ObjectiveTargets {
   vlamax: VLamaxTargets;
   tte_min: number;           // Minimum TTE in minutes
-  ftp_kg_min: number;        // Minimum FTP/kg (W/kg)
+  ftp_kg_min: number;        // Minimum FTP/kg (W/kg) — vélo/tri
+  vma_min?: number;          // Minimum VMA (km/h) — running
   charge_optimale: number;   // Optimal weekly TSS
   nutrition_bike_gph: { min: number; max: number };  // g/h on bike
   nutrition_run_gph?: { min: number; max: number };  // g/h on run (IM/70.3)
@@ -145,6 +146,7 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
       vlamax: { min: 0.45, max: 0.70, optimal: 0.55 },
       tte_min: 40,
       ftp_kg_min: 2.5,
+      vma_min: 14.0,
       charge_optimale: 250,
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 40, max: 60 },
@@ -153,6 +155,7 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
       vlamax: { min: 0.35, max: 0.55, optimal: 0.45 },
       tte_min: 50,
       ftp_kg_min: 3.2,
+      vma_min: 16.0,
       charge_optimale: 320,
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 50, max: 80 },
@@ -161,6 +164,7 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
       vlamax: { min: 0.30, max: 0.48, optimal: 0.38 },
       tte_min: 55,
       ftp_kg_min: 3.6,
+      vma_min: 18.0,
       charge_optimale: 380,
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 65, max: 90 },
@@ -169,6 +173,7 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
       vlamax: { min: 0.25, max: 0.40, optimal: 0.32 },
       tte_min: 60,
       ftp_kg_min: 4.0,
+      vma_min: 20.0,
       charge_optimale: 450,
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 80, max: 110 },
@@ -183,6 +188,7 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
       vlamax: { min: 0.55, max: 0.80, optimal: 0.65 },
       tte_min: 30,
       ftp_kg_min: 2.5,
+      vma_min: 13.0,
       charge_optimale: 200,
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 30, max: 50 },
@@ -191,6 +197,7 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
       vlamax: { min: 0.45, max: 0.70, optimal: 0.55 },
       tte_min: 40,
       ftp_kg_min: 3.2,
+      vma_min: 15.0,
       charge_optimale: 280,
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 40, max: 70 },
@@ -199,6 +206,7 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
       vlamax: { min: 0.38, max: 0.58, optimal: 0.48 },
       tte_min: 45,
       ftp_kg_min: 3.6,
+      vma_min: 17.5,
       charge_optimale: 330,
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 55, max: 85 },
@@ -207,6 +215,7 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
       vlamax: { min: 0.32, max: 0.50, optimal: 0.40 },
       tte_min: 50,
       ftp_kg_min: 4.0,
+      vma_min: 20.0,
       charge_optimale: 400,
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 70, max: 100 },
@@ -221,6 +230,7 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
       vlamax: { min: 0.45, max: 0.70, optimal: 0.55 },
       tte_min: 40,
       ftp_kg_min: 2.8,
+      vma_min: 14.0,
       charge_optimale: 300,
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 50, max: 80 },
@@ -229,6 +239,7 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
       vlamax: { min: 0.40, max: 0.60, optimal: 0.50 },
       tte_min: 50,
       ftp_kg_min: 3.5,
+      vma_min: 16.0,
       charge_optimale: 380,
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 60, max: 90 },
@@ -237,6 +248,7 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
       vlamax: { min: 0.35, max: 0.52, optimal: 0.42 },
       tte_min: 55,
       ftp_kg_min: 3.8,
+      vma_min: 18.0,
       charge_optimale: 450,
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 75, max: 110 },
@@ -245,6 +257,7 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
       vlamax: { min: 0.28, max: 0.45, optimal: 0.35 },
       tte_min: 60,
       ftp_kg_min: 4.2,
+      vma_min: 20.0,
       charge_optimale: 520,
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 90, max: 130 },
@@ -259,6 +272,7 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
       vlamax: { min: 0.40, max: 0.65, optimal: 0.52 },
       tte_min: 45,
       ftp_kg_min: 2.8,
+      vma_min: 14.0,
       charge_optimale: 380,
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 60, max: 90 },
@@ -267,6 +281,7 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
       vlamax: { min: 0.35, max: 0.55, optimal: 0.45 },
       tte_min: 55,
       ftp_kg_min: 3.5,
+      vma_min: 16.0,
       charge_optimale: 450,
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 70, max: 100 },
@@ -275,6 +290,7 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
       vlamax: { min: 0.30, max: 0.48, optimal: 0.38 },
       tte_min: 60,
       ftp_kg_min: 3.8,
+      vma_min: 18.0,
       charge_optimale: 520,
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 90, max: 130 },
@@ -283,6 +299,7 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
       vlamax: { min: 0.25, max: 0.40, optimal: 0.32 },
       tte_min: 65,
       ftp_kg_min: 4.2,
+      vma_min: 20.5,
       charge_optimale: 600,
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 110, max: 150 },
@@ -297,6 +314,7 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
       vlamax: { min: 0.35, max: 0.58, optimal: 0.48 },
       tte_min: 50,
       ftp_kg_min: 2.8,
+      vma_min: 13.5,
       charge_optimale: 420,
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 70, max: 100 },
@@ -305,6 +323,7 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
       vlamax: { min: 0.30, max: 0.50, optimal: 0.40 },
       tte_min: 60,
       ftp_kg_min: 3.3,
+      vma_min: 15.5,
       charge_optimale: 500,
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 80, max: 120 },
@@ -313,6 +332,7 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
       vlamax: { min: 0.25, max: 0.42, optimal: 0.33 },
       tte_min: 65,
       ftp_kg_min: 3.6,
+      vma_min: 17.5,
       charge_optimale: 560,
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 100, max: 145 },
@@ -321,6 +341,7 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
       vlamax: { min: 0.20, max: 0.35, optimal: 0.28 },
       tte_min: 70,
       ftp_kg_min: 4.0,
+      vma_min: 20.0,
       charge_optimale: 650,
       nutrition_bike_gph: { min: 0, max: 0 },
       nutrition_run_gph: { min: 130, max: 180 },
@@ -328,8 +349,85 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
   },
 
   // =============================================
-  // SHORT DISTANCE TRIATHLON
+  // 10KM
   // =============================================
+  "10km": {
+    finisher: {
+      vlamax: { min: 0.60, max: 0.85, optimal: 0.72 },
+      tte_min: 25,
+      ftp_kg_min: 2.8,
+      vma_min: 13.0,
+      charge_optimale: 180,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 20, max: 40 },
+    },
+    age_group: {
+      vlamax: { min: 0.50, max: 0.75, optimal: 0.62 },
+      tte_min: 35,
+      ftp_kg_min: 3.5,
+      vma_min: 16.0,
+      charge_optimale: 250,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 30, max: 50 },
+    },
+    competitor: {
+      vlamax: { min: 0.42, max: 0.65, optimal: 0.52 },
+      tte_min: 40,
+      ftp_kg_min: 3.8,
+      vma_min: 18.5,
+      charge_optimale: 300,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 40, max: 60 },
+    },
+    elite: {
+      vlamax: { min: 0.35, max: 0.55, optimal: 0.45 },
+      tte_min: 45,
+      ftp_kg_min: 4.2,
+      vma_min: 21.0,
+      charge_optimale: 350,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 50, max: 70 },
+    },
+  },
+
+  // =============================================
+  // 5K
+  // =============================================
+  "5K": {
+    finisher: {
+      vlamax: { min: 0.65, max: 0.90, optimal: 0.78 },
+      tte_min: 20,
+      ftp_kg_min: 2.8,
+      vma_min: 13.0,
+      charge_optimale: 150,
+      nutrition_bike_gph: { min: 0, max: 0 },
+    },
+    age_group: {
+      vlamax: { min: 0.55, max: 0.82, optimal: 0.68 },
+      tte_min: 28,
+      ftp_kg_min: 3.5,
+      vma_min: 16.5,
+      charge_optimale: 200,
+      nutrition_bike_gph: { min: 0, max: 0 },
+    },
+    competitor: {
+      vlamax: { min: 0.48, max: 0.72, optimal: 0.58 },
+      tte_min: 32,
+      ftp_kg_min: 3.8,
+      vma_min: 19.0,
+      charge_optimale: 260,
+      nutrition_bike_gph: { min: 0, max: 0 },
+    },
+    elite: {
+      vlamax: { min: 0.40, max: 0.62, optimal: 0.50 },
+      tte_min: 38,
+      ftp_kg_min: 4.2,
+      vma_min: 22.0,
+      charge_optimale: 320,
+      nutrition_bike_gph: { min: 0, max: 0 },
+    },
+  },
+
   Sprint: {
     finisher: {
       vlamax: { min: 0.65, max: 0.95, optimal: 0.80 },
@@ -439,6 +537,10 @@ const OBJECTIVE_ALIASES: Record<string, string> = {
   "10km": "10km",
   "10K": "10km",
   "10k": "10km",
+  "5K": "5K",
+  "5k": "5K",
+  "StartToRun": "5K",
+  "starttorun": "5K",
 };
 
 // =============================================
@@ -526,6 +628,14 @@ export function getFtpKgTargetByAmbition(objectif: string, ambition: AmbitionLev
  */
 export function getFtpKgTarget(objectif: string, level: "performance" | "intermediaire" = "intermediaire"): number {
   return getTargetsForObjective(objectif, level).ftp_kg_min;
+}
+
+/**
+ * Get VMA target for a running objective (NEW API with ambition)
+ * Returns null for non-running objectives
+ */
+export function getVmaTargetByAmbition(objectif: string, ambition: AmbitionLevel = DEFAULT_AMBITION): number | null {
+  return getTargetsForAmbition(objectif, ambition).vma_min ?? null;
 }
 
 /**

@@ -431,18 +431,19 @@ function determineMainLimitation(params: {
   
   // Construire l'input pour le moteur unifié
   const unifiedInput: UnifiedLimiterInput = {
-    vo2max: null, // TODO: ajouter si disponible dans le snapshot
+    vo2max: null,
     ftpKg,
     vlamax: vlamaxEffectif.value,
-    wprimeKj: null, // TODO: compute from snapshot power data
+    wprimeKj: null,
     tte: tteEffectif.tte_min,
-    fatmax: null, // Estimation possible via VLamax
+    fatmax: null,
     economyScore: runningEconomy?.isApplicable ? (runningEconomy.capScore ?? null) : null,
     availabilityScore: availabilityScore ?? null,
     hasHealthAlerts: hasHealthAlerts ?? false,
     objectif,
     ambition,
     age: age ?? null,
+    vma: null,
   };
   
   // Appeler le moteur unifié
