@@ -202,6 +202,8 @@ export function MetabolicPerformanceCompassV2({
   const ageInfo = useMemo(() => computeAgeAdjustmentIndex(athleteAge), [athleteAge]);
   const ageTargets = useMemo(() => getAgeAdjustedTargets(data.objectif, athleteAge, currentAmbition), [data.objectif, currentAmbition, athleteAge]);
   
+  const isRunning = data.sportFocus === "run";
+  
   // Scores pour l'ambition actuelle
   const scores = useMemo(() => {
     const crr = computeCRR({ tss7d: data.tss7d, snapshotDate: data.snapshotDate, snapshotUpdatedAt: data.snapshotUpdatedAt });
@@ -213,7 +215,9 @@ export function MetabolicPerformanceCompassV2({
       crr,
       objectif: data.objectif,
       ambition: currentAmbition,
-      athleteAge
+      athleteAge,
+      vma: data.vma,
+      sportFocus: data.sportFocus,
     });
   }, [data, currentAmbition, athleteAge]);
 
