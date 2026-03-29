@@ -41,8 +41,19 @@ export type SimulationScenarioType = "ROBUST" | "AMBITIOUS" | "AGGRESSIVE";
 export interface GlycogenCurvePoint {
   distance_pct: number;
   glycogen_remaining_pct: number;
+  glycogen_with_nutrition_pct: number;   // With exogenous carb intake
   depletion_rate: number;
   zone_at_point: "GREEN" | "ORANGE" | "RED";
+}
+
+export interface NutritionCue {
+  distance_pct: number;
+  km: number;
+  type: "gel" | "iso" | "water";
+  label: string;
+  carbs_g: number;
+  volume_ml: number | null;
+  timing_note: string;
 }
 
 export interface FatigueCurvePoint {
@@ -67,9 +78,11 @@ export interface SimulationScenario {
   pacing_curve: PacingCurvePoint[];
   glycogen_curve: GlycogenCurvePoint[];
   fatigue_curve: FatigueCurvePoint[];
+  nutrition_cues: NutritionCue[];
   
   // Points critiques
-  glycogen_depletion_point_pct: number | null;  // % de la course où déplétion critique
+  glycogen_depletion_point_pct: number | null;  // % de la course où déplétion critique (sans nutri)
+  glycogen_depletion_with_nutrition_pct: number | null; // Avec nutrition
   metabolic_cost_index: number;                  // 0-100 (coût global)
   failure_probability_pct: number;               // Probabilité d'effondrement
   
@@ -84,6 +97,10 @@ export interface SimulationScenario {
   risk_warning: string | null;
   decision_robustness: "ROBUST" | "FRAGILE" | "VERY_FRAGILE";
   recommendation: string;
+  
+  // Negative split info
+  negative_split: boolean;
+  negative_split_description: string | null;
 }
 
 export interface SimulationResult {
@@ -103,6 +120,15 @@ export interface SimulationResult {
     max_first_third_pct: number;
     forbidden_zone_early: "RED";
     discipline_required: boolean;
+  };
+  
+  // Nutrition summary
+  nutrition_summary: {
+    total_carbs_g: number;
+    total_gels: number;
+    total_iso_ml: number;
+    max_carb_rate_gh: number;
+    plan_description: string;
   };
   
   // Métadonnées
@@ -133,6 +159,27 @@ const GLYCOGEN_PARAMS = {
   },
   vlamax_amplifier: (vlamax: number) => 1 + Math.max(0, (vlamax - 0.35) * 2),
   critical_threshold: 15,  // % en dessous duquel effondrement
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CONSTANTES — NUTRITION EN COURSE À PIED
+// ═══════════════════════════════════════════════════════════════════════════════
+// Refs: Burke 2019, Cao 2025, TFCL nutritionUnified v2
+// Running max absorption = 75g/h (vs 90g/h bike) without gut training
+
+const NUTRITION_PARAMS = {
+  maxCarbAbsorptionRunGH: 75,  // g/h sans gut training
+  gelCarbsG: 25,               // g CHO par gel
+  isoVolumeMl: 200,            // ml par prise iso
+  isoCarbsG: 30,               // g CHO par 200ml iso
+  waterVolumeMl: 150,          // ml par prise eau
+  // Timing: premier gel après 30-40 min, puis toutes les 20-30 min
+  firstIntakeMinutes: 30,
+  intakeIntervalMinutes: 25,
+  // Distance minimale pour nutrition (pas besoin pour 10K court)
+  minDistanceForNutrition: "HM" as RunningDistance,
+  // Glycogen replenishment par g CHO absorbé (en % de réserves)
+  glycogenReplenishPctPerGram: 0.15,  // 1g CHO ≈ 0.15% glycogen stores
 };
 
 const FATIGUE_PARAMS = {
@@ -293,6 +340,12 @@ export function computeRaceSimulation(inputs: SimulationInputs): SimulationResul
   if (threshold_pace_sec_km != null) confidence += 0.1;
   confidence = clamp(confidence, 0.3, 0.95);
 
+  // Build nutrition summary from ROBUST scenario
+  const robustScenario = scenarios[0];
+  const totalCarbs = robustScenario.nutrition_cues.reduce((sum, c) => sum + c.carbs_g, 0);
+  const totalGels = robustScenario.nutrition_cues.filter(c => c.type === "gel").length;
+  const totalIsoMl = robustScenario.nutrition_cues.filter(c => c.type === "iso").reduce((sum, c) => sum + (c.volume_ml ?? 0), 0);
+
   return {
     distance,
     readiness_state: race_readiness_state,
@@ -303,6 +356,15 @@ export function computeRaceSimulation(inputs: SimulationInputs): SimulationResul
       max_first_third_pct: greenMax,
       forbidden_zone_early: "RED",
       discipline_required: pacing_envelope.discipline_required,
+    },
+    nutrition_summary: {
+      total_carbs_g: totalCarbs,
+      total_gels: totalGels,
+      total_iso_ml: totalIsoMl,
+      max_carb_rate_gh: NUTRITION_PARAMS.maxCarbAbsorptionRunGH,
+      plan_description: distance === "10K" 
+        ? "Pas de nutrition nécessaire pour un 10K"
+        : `${totalGels} gels + ${Math.round(totalIsoMl / NUTRITION_PARAMS.isoVolumeMl)} prises iso · ${totalCarbs}g CHO total · max ${NUTRITION_PARAMS.maxCarbAbsorptionRunGH}g/h`,
     },
     confidence,
     sources_used: sourcesUsed,
@@ -412,15 +474,68 @@ function generateScenario(type: SimulationScenarioType, params: ScenarioParams):
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // SIMULER LA DÉPLÉTION GLYCOGÉNIQUE
+  // SIMULER LA DÉPLÉTION GLYCOGÉNIQUE + NUTRITION
   // ─────────────────────────────────────────────────────────────────────────────
   const glycogenCurve: GlycogenCurvePoint[] = [];
   let glycogen = GLYCOGEN_PARAMS.initial_pct;
+  let glycogenWithNutri = GLYCOGEN_PARAMS.initial_pct;
   let depletionPoint: number | null = null;
+  let depletionPointWithNutri: number | null = null;
   
   const baseDepletion = GLYCOGEN_PARAMS.base_depletion_per_pct_distance[distance];
   const vlamaxAmp = GLYCOGEN_PARAMS.vlamax_amplifier(vlamax ?? 0.35);
   
+  // Generate nutrition cues
+  const nutritionCues: NutritionCue[] = [];
+  const distanceKm = distance === "MARATHON" ? 42.2 : distance === "HM" ? 21.1 : 10;
+  const needsNutrition = distance !== "10K"; // No gel for 10K
+  
+  // Estimate race duration for timing
+  const estimatedDurationMin = thresholdPace 
+    ? (thresholdPace * distanceKm * 1.05) / 60  // slight pad
+    : DISTANCE_DURATION_ESTIMATES[distance].amateur_max * 0.7;
+  
+  // Build nutrition schedule (every ~25 min starting at 30 min)
+  if (needsNutrition) {
+    let currentTimeMin = NUTRITION_PARAMS.firstIntakeMinutes;
+    let cueIndex = 0;
+    while (currentTimeMin < estimatedDurationMin - 10) {
+      const distPct = Math.round((currentTimeMin / estimatedDurationMin) * 100);
+      const km = Math.round((distPct / 100) * distanceKm * 10) / 10;
+      const isGel = cueIndex % 2 === 0; // Alternate gel / iso
+      
+      nutritionCues.push({
+        distance_pct: distPct,
+        km,
+        type: isGel ? "gel" : "iso",
+        label: isGel 
+          ? `Gel ${NUTRITION_PARAMS.gelCarbsG}g CHO`
+          : `Iso ${NUTRITION_PARAMS.isoVolumeMl}ml · ${NUTRITION_PARAMS.isoCarbsG}g CHO`,
+        carbs_g: isGel ? NUTRITION_PARAMS.gelCarbsG : NUTRITION_PARAMS.isoCarbsG,
+        volume_ml: isGel ? null : NUTRITION_PARAMS.isoVolumeMl,
+        timing_note: `~${Math.round(currentTimeMin)} min`,
+      });
+      
+      // Add water between gels for Marathon
+      if (distance === "MARATHON" && cueIndex % 3 === 2) {
+        const waterDistPct = Math.min(distPct + 5, 95);
+        nutritionCues.push({
+          distance_pct: waterDistPct,
+          km: Math.round((waterDistPct / 100) * distanceKm * 10) / 10,
+          type: "water",
+          label: `Eau ${NUTRITION_PARAMS.waterVolumeMl}ml`,
+          carbs_g: 0,
+          volume_ml: NUTRITION_PARAMS.waterVolumeMl,
+          timing_note: `~${Math.round(currentTimeMin + 8)} min`,
+        });
+      }
+      
+      currentTimeMin += NUTRITION_PARAMS.intakeIntervalMinutes;
+      cueIndex++;
+    }
+  }
+  
+  // Simulate glycogen with and without nutrition
   for (let i = 0; i <= 100; i += 10) {
     const point = pacingCurve.find(p => p.distance_pct === i);
     const zone = point?.zone ?? "GREEN";
@@ -428,14 +543,26 @@ function generateScenario(type: SimulationScenarioType, params: ScenarioParams):
     
     const depletionRate = baseDepletion * zoneMultiplier * vlamaxAmp;
     glycogen = Math.max(0, glycogen - depletionRate);
+    glycogenWithNutri = Math.max(0, glycogenWithNutri - depletionRate);
+    
+    // Add nutrition replenishment at this segment
+    const segmentCues = nutritionCues.filter(c => c.distance_pct >= i - 5 && c.distance_pct < i + 5);
+    for (const cue of segmentCues) {
+      const replenish = cue.carbs_g * NUTRITION_PARAMS.glycogenReplenishPctPerGram;
+      glycogenWithNutri = Math.min(100, glycogenWithNutri + replenish);
+    }
     
     if (glycogen <= GLYCOGEN_PARAMS.critical_threshold && depletionPoint === null) {
       depletionPoint = i;
+    }
+    if (glycogenWithNutri <= GLYCOGEN_PARAMS.critical_threshold && depletionPointWithNutri === null) {
+      depletionPointWithNutri = i;
     }
     
     glycogenCurve.push({
       distance_pct: i,
       glycogen_remaining_pct: Math.round(glycogen),
+      glycogen_with_nutrition_pct: Math.round(glycogenWithNutri),
       depletion_rate: Math.round(depletionRate * 10) / 10,
       zone_at_point: zone,
     });
@@ -529,6 +656,9 @@ function generateScenario(type: SimulationScenarioType, params: ScenarioParams):
     recommendation = "Non recommandé — ce scénario maximise le risque d'effondrement et compromet la performance finale.";
   }
 
+  // Negative split: ROBUST uses it if VLamax low and readiness good
+  const isNegativeSplit = type === "ROBUST" && pacingProfile.last > pacingProfile.first;
+  
   return {
     type,
     label,
@@ -536,13 +666,19 @@ function generateScenario(type: SimulationScenarioType, params: ScenarioParams):
     pacing_curve: pacingCurve,
     glycogen_curve: glycogenCurve,
     fatigue_curve: fatigueCurve,
+    nutrition_cues: nutritionCues,
     glycogen_depletion_point_pct: depletionPoint,
+    glycogen_depletion_with_nutrition_pct: depletionPointWithNutri,
     metabolic_cost_index: metabolicCostIndex,
     failure_probability_pct: failureProbability,
-    estimated_time_range: null, // Pas de temps absolu dans TFCL
+    estimated_time_range: null,
     risk_warning: riskWarning,
     decision_robustness: decisionRobustness,
     recommendation,
+    negative_split: isNegativeSplit,
+    negative_split_description: isNegativeSplit
+      ? "Stratégie negative split : départ conservateur, montée progressive dans le dernier tiers"
+      : null,
   };
 }
 
