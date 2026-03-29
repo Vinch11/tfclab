@@ -5,7 +5,7 @@
  */
 
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,9 @@ import { RacePaceSimulation } from "@/components/RacePaceSimulation";
 import { AdaptationProjectionSummary } from "@/components/AdaptationProjectionSummary";
 import { LimiterHierarchyEditor } from "@/components/LimiterHierarchyEditor";
 import { SavedPlanCalendar } from "@/components/SavedPlanCalendar";
+import { usePlanSnapshotSync } from "@/hooks/usePlanSnapshotSync";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const OBJECTIVE_OPTIONS = [
@@ -118,8 +121,9 @@ interface MultiPlanEntry {
 
 export default function AITrainingPlanPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
-  const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete } = useCloudDataContext();
+  const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete, getPlan } = useCloudDataContext();
   const { response, isLoading, chunkProgress, generatePlan, reset, setResponse } = useAITrainingPlan();
   const [copied, setCopied] = useState(false);
   const [resultView, setResultView] = useState<"interactive" | "markdown" | "compare">(() => {
@@ -134,6 +138,18 @@ export default function AITrainingPlanPage() {
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [selectedProjectionLever, setSelectedProjectionLever] = useState<string | undefined>();
   const [coachLimiterOrder, setCoachLimiterOrder] = useState<string[]>([]);
+  const [showSyncBanner, setShowSyncBanner] = useState(false);
+
+  // Handle navigation from PlanSyncAlert
+  useEffect(() => {
+    const navState = location.state as { athleteId?: string; autoRegenerate?: boolean } | null;
+    if (navState?.athleteId && navState?.autoRegenerate) {
+      setSelectedAthleteId(navState.athleteId);
+      setShowSyncBanner(true);
+      // Clear the state to avoid re-triggering
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, setSelectedAthleteId]);
 
   // Multi-athlete mode — restore from localStorage
   const MULTI_PERSIST_KEY = "tfcl_ai_multi_plan";
@@ -439,12 +455,31 @@ export default function AITrainingPlanPage() {
     return buildPlanConfigFromDiagnostic(diagnostic, formConfig, coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined);
   }, [objective, raceName, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate, coachLimiterOrder]);
 
-  // Single athlete generation
-  const handleGenerate = () => {
+  const { archiveCurrentPlan } = usePlanSnapshotSync();
+
+  // Single athlete generation (archives plan if triggered by sync)
+  const handleGenerate = async () => {
     if (!athleteContext) {
       toast.error("Sélectionnez un athlète avec un snapshot actif");
       return;
     }
+
+    // Archive current plan if this is a sync-triggered regeneration
+    if (showSyncBanner && currentAthlete) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const archived = await archiveCurrentPlan(
+          currentAthlete.id,
+          user.id,
+          "Auto-archive avant régénération suite à changement de métriques"
+        );
+        if (archived) {
+          toast.info("Plan précédent archivé dans l'historique");
+        }
+      }
+      setShowSyncBanner(false);
+    }
+
     const config = buildConfigFromDiag(athleteContext.diagnostic);
     generatePlan(athleteContext.data, config);
   };
@@ -1142,6 +1177,20 @@ export default function AITrainingPlanPage() {
                 />
               ) : null;
             })()}
+
+            {/* Sync Banner — plan needs update */}
+            {showSyncBanner && currentAthlete && (
+              <Alert className="border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20">
+                <RefreshCw className="h-4 w-4 text-amber-600" />
+                <AlertTitle className="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                  Métriques mises à jour — {currentAthlete.nom}
+                </AlertTitle>
+                <AlertDescription className="text-xs text-amber-700 dark:text-amber-300">
+                  Des données physiologiques clés ont changé. Cliquez sur «&nbsp;Générer&nbsp;» pour mettre à jour le plan.
+                  Le plan actuel sera automatiquement archivé dans l'historique avant la régénération.
+                </AlertDescription>
+              </Alert>
+            )}
 
             {/* Generate Button */}
             {!isMultiMode ? (

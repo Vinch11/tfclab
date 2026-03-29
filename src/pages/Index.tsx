@@ -185,6 +185,8 @@ import { useAthletes } from "@/contexts/AthleteContext";
 import { DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
 import { FeedbackNolio } from "@/types/feedbackNolio";
 import { toast } from "sonner";
+import { usePlanSnapshotSync } from "@/hooks/usePlanSnapshotSync";
+import { PlanSyncAlert } from "@/components/PlanSyncAlert";
 
 // ✅ Legacy types/helpers (utilisés par tes composants actuels)
 import { getDernierSnapshot } from "@/types/athlete";
@@ -210,8 +212,27 @@ const Index = () => {
   const location = useLocation();
 
   // ✅ Cloud data pour les données brutes (snapshots, tests, checkins)
-  const { snapshots, tests, checkins, loading, loadData, addAthlete, updateAthlete, deleteAthlete, addTest, deleteTest, updateSnapshot, addCheckin, updateCheckin, getCheckinsForAthlete } = useCloudDataContext();
+  const { snapshots, tests, checkins, loading, loadData, addAthlete, updateAthlete, deleteAthlete, addTest, deleteTest, updateSnapshot: rawUpdateSnapshot, addCheckin, updateCheckin, getCheckinsForAthlete, plans, getPlan } = useCloudDataContext();
   
+  // ✅ Plan Sync — détecte les changements de métriques clés
+  const { pendingSync, isAlertVisible, detectKeyMetricChanges, dismissSync } = usePlanSnapshotSync();
+
+  // Wrapper updateSnapshot pour détecter les changements impactant le plan IA
+  const updateSnapshot = async (id: string, updates: Partial<DbSnapshot>) => {
+    const oldSnapshot = snapshots.find(s => s.id === id);
+    const result = await rawUpdateSnapshot(id, updates);
+    
+    if (result && oldSnapshot) {
+      const athlete = athletes.find(a => a.active_snapshot_id === id);
+      if (athlete) {
+        const hasPlan = !!getPlan(athlete.id);
+        detectKeyMetricChanges(oldSnapshot, updates, athlete.id, athlete.nom, hasPlan);
+      }
+    }
+    return result;
+  };
+
+
   // ✅ Utiliser AthleteContext pour la synchronisation avec les composants de recommandation
   const { 
     athletes, 
@@ -1688,6 +1709,15 @@ const Index = () => {
         return (
           <div className="space-y-3 sm:space-y-4 md:space-y-6 animate-fade-in">
             {renderAthleteSelector()}
+            
+            {isAlertVisible && pendingSync && (
+              <PlanSyncAlert
+                athleteName={pendingSync.athleteName}
+                athleteId={pendingSync.athleteId}
+                changes={pendingSync.changes}
+                onDismiss={() => dismissSync(pendingSync.athleteId)}
+              />
+            )}
             
             <SortableSectionsContainer
               tabId="dashboard"
