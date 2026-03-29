@@ -262,7 +262,9 @@ export function MetabolicPerformanceCompassV2({
         tteEffectif: data.tteEffectif,
         crr,
         objectif: data.objectif,
-        ambition
+        ambition,
+        vma: data.vma,
+        sportFocus: data.sportFocus,
       });
       return acc;
     }, {} as Record<AmbitionLevel, ReturnType<typeof computeCompassScores>>);
