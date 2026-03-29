@@ -161,6 +161,27 @@ const GLYCOGEN_PARAMS = {
   critical_threshold: 15,  // % en dessous duquel effondrement
 };
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// CONSTANTES — NUTRITION EN COURSE À PIED
+// ═══════════════════════════════════════════════════════════════════════════════
+// Refs: Burke 2019, Cao 2025, TFCL nutritionUnified v2
+// Running max absorption = 75g/h (vs 90g/h bike) without gut training
+
+const NUTRITION_PARAMS = {
+  maxCarbAbsorptionRunGH: 75,  // g/h sans gut training
+  gelCarbsG: 25,               // g CHO par gel
+  isoVolumeMl: 200,            // ml par prise iso
+  isoCarbsG: 30,               // g CHO par 200ml iso
+  waterVolumeMl: 150,          // ml par prise eau
+  // Timing: premier gel après 30-40 min, puis toutes les 20-30 min
+  firstIntakeMinutes: 30,
+  intakeIntervalMinutes: 25,
+  // Distance minimale pour nutrition (pas besoin pour 10K court)
+  minDistanceForNutrition: "HM" as RunningDistance,
+  // Glycogen replenishment par g CHO absorbé (en % de réserves)
+  glycogenReplenishPctPerGram: 0.15,  // 1g CHO ≈ 0.15% glycogen stores
+};
+
 const FATIGUE_PARAMS = {
   base_accumulation_per_pct: {
     "10K": 0.8,
