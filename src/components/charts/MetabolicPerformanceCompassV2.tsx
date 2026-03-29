@@ -99,12 +99,12 @@ const AXIS_DETAILS: Record<string, {
 }> = {
   capaciteAerobie: {
     title: "Capacité Aérobie",
-    description: "Mesure le potentiel aérobie via le rapport FTP/kg par rapport à la cible de l'ambition.",
-    whatItMeans: "Plus le score est élevé, plus l'athlète peut maintenir une puissance relative élevée. Score >80 = niveau cible atteint.",
+    description: "Mesure le potentiel aérobie via le rapport FTP/kg (vélo) ou la VMA (running) par rapport à la cible de l'ambition.",
+    whatItMeans: "Plus le score est élevé, plus l'athlète peut maintenir une puissance/vitesse relative élevée. Score >80 = niveau cible atteint.",
     howToImprove: [
       "Augmenter le volume d'entraînement Z2",
-      "Blocs tempo (88-94% FTP)",
-      "Intervalles au seuil (FTP)",
+      "Blocs tempo (88-94% FTP ou allure seuil)",
+      "Intervalles au seuil",
       "Optimiser le poids (si nécessaire)"
     ],
     icon: "⚡"
