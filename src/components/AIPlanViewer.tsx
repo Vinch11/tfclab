@@ -412,11 +412,13 @@ interface AIPlanViewerProps {
   isSaving?: boolean;
   isSaved?: boolean;
   onRegenerateWeek?: (weekNumber: number) => void;
+  onRegenerateFutureWeeks?: () => void;
   isRegenerating?: boolean;
   athleteName?: string;
+  currentWeekNumber?: number;
 }
 
-export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, isRegenerating, athleteName }: AIPlanViewerProps) {
+export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, isRegenerating, athleteName, currentWeekNumber }: AIPlanViewerProps) {
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [viewMode, setViewMode] = useState<"week" | "all">("week");
 
@@ -440,6 +442,15 @@ export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved,
               <Button variant="outline" size="sm" onClick={handleExportPDF}>
                 <Printer className="h-4 w-4 mr-1" /> PDF
               </Button>
+              {onRegenerateFutureWeeks && currentWeekNumber && currentWeekNumber < plan.totalWeeks && (
+                <Button variant="outline" size="sm" onClick={onRegenerateFutureWeeks} disabled={isRegenerating}>
+                  {isRegenerating ? (
+                    <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Régénération...</>
+                  ) : (
+                    <><RefreshCw className="h-4 w-4 mr-1" /> Régénérer S{currentWeekNumber + 1}+</>
+                  )}
+                </Button>
+              )}
               {onSaveToPlan && (
                 <Button size="sm" onClick={onSaveToPlan} disabled={isSaving || isSaved}>
                   {isSaved ? (
