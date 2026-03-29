@@ -42,6 +42,9 @@ import { RacePaceSimulation } from "@/components/RacePaceSimulation";
 import { AdaptationProjectionSummary } from "@/components/AdaptationProjectionSummary";
 import { LimiterHierarchyEditor } from "@/components/LimiterHierarchyEditor";
 import { SavedPlanCalendar } from "@/components/SavedPlanCalendar";
+import { usePlanSnapshotSync } from "@/hooks/usePlanSnapshotSync";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const OBJECTIVE_OPTIONS = [
