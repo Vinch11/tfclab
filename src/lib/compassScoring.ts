@@ -25,6 +25,7 @@ import {
   getVLamaxRange,
   getTTETargetByAmbition,
   getFtpKgTargetByAmbition,
+  getVmaTargetByAmbition,
   getChargeOptimale,
   VLamaxTargets,
 } from "@/lib/physiologicalTargets";
