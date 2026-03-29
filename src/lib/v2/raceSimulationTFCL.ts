@@ -459,15 +459,68 @@ function generateScenario(type: SimulationScenarioType, params: ScenarioParams):
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // SIMULER LA DÉPLÉTION GLYCOGÉNIQUE
+  // SIMULER LA DÉPLÉTION GLYCOGÉNIQUE + NUTRITION
   // ─────────────────────────────────────────────────────────────────────────────
   const glycogenCurve: GlycogenCurvePoint[] = [];
   let glycogen = GLYCOGEN_PARAMS.initial_pct;
+  let glycogenWithNutri = GLYCOGEN_PARAMS.initial_pct;
   let depletionPoint: number | null = null;
+  let depletionPointWithNutri: number | null = null;
   
   const baseDepletion = GLYCOGEN_PARAMS.base_depletion_per_pct_distance[distance];
   const vlamaxAmp = GLYCOGEN_PARAMS.vlamax_amplifier(vlamax ?? 0.35);
   
+  // Generate nutrition cues
+  const nutritionCues: NutritionCue[] = [];
+  const distanceKm = distance === "MARATHON" ? 42.2 : distance === "HM" ? 21.1 : 10;
+  const needsNutrition = distance !== "10K"; // No gel for 10K
+  
+  // Estimate race duration for timing
+  const estimatedDurationMin = thresholdPace 
+    ? (thresholdPace * distanceKm * 1.05) / 60  // slight pad
+    : DISTANCE_DURATION_ESTIMATES[distance].amateur_max * 0.7;
+  
+  // Build nutrition schedule (every ~25 min starting at 30 min)
+  if (needsNutrition) {
+    let currentTimeMin = NUTRITION_PARAMS.firstIntakeMinutes;
+    let cueIndex = 0;
+    while (currentTimeMin < estimatedDurationMin - 10) {
+      const distPct = Math.round((currentTimeMin / estimatedDurationMin) * 100);
+      const km = Math.round((distPct / 100) * distanceKm * 10) / 10;
+      const isGel = cueIndex % 2 === 0; // Alternate gel / iso
+      
+      nutritionCues.push({
+        distance_pct: distPct,
+        km,
+        type: isGel ? "gel" : "iso",
+        label: isGel 
+          ? `Gel ${NUTRITION_PARAMS.gelCarbsG}g CHO`
+          : `Iso ${NUTRITION_PARAMS.isoVolumeMl}ml · ${NUTRITION_PARAMS.isoCarbsG}g CHO`,
+        carbs_g: isGel ? NUTRITION_PARAMS.gelCarbsG : NUTRITION_PARAMS.isoCarbsG,
+        volume_ml: isGel ? null : NUTRITION_PARAMS.isoVolumeMl,
+        timing_note: `~${Math.round(currentTimeMin)} min`,
+      });
+      
+      // Add water between gels for Marathon
+      if (distance === "MARATHON" && cueIndex % 3 === 2) {
+        const waterDistPct = Math.min(distPct + 5, 95);
+        nutritionCues.push({
+          distance_pct: waterDistPct,
+          km: Math.round((waterDistPct / 100) * distanceKm * 10) / 10,
+          type: "water",
+          label: `Eau ${NUTRITION_PARAMS.waterVolumeMl}ml`,
+          carbs_g: 0,
+          volume_ml: NUTRITION_PARAMS.waterVolumeMl,
+          timing_note: `~${Math.round(currentTimeMin + 8)} min`,
+        });
+      }
+      
+      currentTimeMin += NUTRITION_PARAMS.intakeIntervalMinutes;
+      cueIndex++;
+    }
+  }
+  
+  // Simulate glycogen with and without nutrition
   for (let i = 0; i <= 100; i += 10) {
     const point = pacingCurve.find(p => p.distance_pct === i);
     const zone = point?.zone ?? "GREEN";
@@ -475,14 +528,26 @@ function generateScenario(type: SimulationScenarioType, params: ScenarioParams):
     
     const depletionRate = baseDepletion * zoneMultiplier * vlamaxAmp;
     glycogen = Math.max(0, glycogen - depletionRate);
+    glycogenWithNutri = Math.max(0, glycogenWithNutri - depletionRate);
+    
+    // Add nutrition replenishment at this segment
+    const segmentCues = nutritionCues.filter(c => c.distance_pct >= i - 5 && c.distance_pct < i + 5);
+    for (const cue of segmentCues) {
+      const replenish = cue.carbs_g * NUTRITION_PARAMS.glycogenReplenishPctPerGram;
+      glycogenWithNutri = Math.min(100, glycogenWithNutri + replenish);
+    }
     
     if (glycogen <= GLYCOGEN_PARAMS.critical_threshold && depletionPoint === null) {
       depletionPoint = i;
+    }
+    if (glycogenWithNutri <= GLYCOGEN_PARAMS.critical_threshold && depletionPointWithNutri === null) {
+      depletionPointWithNutri = i;
     }
     
     glycogenCurve.push({
       distance_pct: i,
       glycogen_remaining_pct: Math.round(glycogen),
+      glycogen_with_nutrition_pct: Math.round(glycogenWithNutri),
       depletion_rate: Math.round(depletionRate * 10) / 10,
       zone_at_point: zone,
     });
