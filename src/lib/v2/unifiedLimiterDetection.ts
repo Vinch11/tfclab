@@ -303,6 +303,8 @@ const VO2MAX_TARGETS: Record<string, Record<string, number>> = {
   "703": { finisher: 48, age_group: 55, competitor: 60, elite: 68 },
   Marathon: { finisher: 48, age_group: 55, competitor: 62, elite: 70 },
   Semi: { finisher: 50, age_group: 55, competitor: 62, elite: 72 },
+  "10km": { finisher: 48, age_group: 55, competitor: 62, elite: 72 },
+  "5K": { finisher: 48, age_group: 56, competitor: 64, elite: 75 },
   Trail: { finisher: 50, age_group: 55, competitor: 60, elite: 68 },
   Ultra: { finisher: 48, age_group: 52, competitor: 58, elite: 65 },
   Sprint: { finisher: 50, age_group: 58, competitor: 65, elite: 75 },
