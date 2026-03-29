@@ -1710,6 +1710,15 @@ const Index = () => {
           <div className="space-y-3 sm:space-y-4 md:space-y-6 animate-fade-in">
             {renderAthleteSelector()}
             
+            {isAlertVisible && pendingSync && (
+              <PlanSyncAlert
+                athleteName={pendingSync.athleteName}
+                athleteId={pendingSync.athleteId}
+                changes={pendingSync.changes}
+                onDismiss={() => dismissSync(pendingSync.athleteId)}
+              />
+            )}
+            
             <SortableSectionsContainer
               tabId="dashboard"
               tabLabel="Dashboard"
