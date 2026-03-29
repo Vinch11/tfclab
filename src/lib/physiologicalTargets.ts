@@ -631,6 +631,14 @@ export function getFtpKgTarget(objectif: string, level: "performance" | "interme
 }
 
 /**
+ * Get VMA target for a running objective (NEW API with ambition)
+ * Returns null for non-running objectives
+ */
+export function getVmaTargetByAmbition(objectif: string, ambition: AmbitionLevel = DEFAULT_AMBITION): number | null {
+  return getTargetsForAmbition(objectif, ambition).vma_min ?? null;
+}
+
+/**
  * Get optimal charge (weekly TSS) for an objective
  */
 export function getChargeOptimale(objectif: string, ambition?: AmbitionLevel): number {
