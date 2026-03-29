@@ -412,11 +412,13 @@ interface AIPlanViewerProps {
   isSaving?: boolean;
   isSaved?: boolean;
   onRegenerateWeek?: (weekNumber: number) => void;
+  onRegenerateFutureWeeks?: () => void;
   isRegenerating?: boolean;
   athleteName?: string;
+  currentWeekNumber?: number;
 }
 
-export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, isRegenerating, athleteName }: AIPlanViewerProps) {
+export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, isRegenerating, athleteName, currentWeekNumber }: AIPlanViewerProps) {
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [viewMode, setViewMode] = useState<"week" | "all">("week");
 
