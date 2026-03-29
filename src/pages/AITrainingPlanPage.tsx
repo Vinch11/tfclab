@@ -1530,8 +1530,10 @@ export default function AITrainingPlanPage() {
                         isSaving={isSaving}
                         isSaved={isSaved}
                         onRegenerateWeek={handleRegenerateWeek}
+                        onRegenerateFutureWeeks={handleRegenerateFutureWeeks}
                         isRegenerating={isRegenerating}
                         athleteName={currentAthlete?.nom}
+                        currentWeekNumber={currentWeekNumber}
                       />
                     </>
                   ) : resultView === "interactive" && !isLoading ? (
