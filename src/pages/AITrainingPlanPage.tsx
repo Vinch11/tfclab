@@ -1178,6 +1178,20 @@ export default function AITrainingPlanPage() {
               ) : null;
             })()}
 
+            {/* Sync Banner — plan needs update */}
+            {showSyncBanner && currentAthlete && (
+              <Alert className="border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20">
+                <RefreshCw className="h-4 w-4 text-amber-600" />
+                <AlertTitle className="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                  Métriques mises à jour — {currentAthlete.nom}
+                </AlertTitle>
+                <AlertDescription className="text-xs text-amber-700 dark:text-amber-300">
+                  Des données physiologiques clés ont changé. Cliquez sur «&nbsp;Générer&nbsp;» pour mettre à jour le plan.
+                  Le plan actuel sera automatiquement archivé dans l'historique avant la régénération.
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Generate Button */}
             {!isMultiMode ? (
               <Button
