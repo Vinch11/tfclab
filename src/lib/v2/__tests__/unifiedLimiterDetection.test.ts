@@ -24,6 +24,7 @@ const FULL_PROFILE_IM: UnifiedLimiterInput = {
   objectif: "IM",
   ambition: "competitor",
   age: 35,
+  vma: null,
 };
 
 const EMPTY_PROFILE: UnifiedLimiterInput = {
