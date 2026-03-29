@@ -651,8 +651,12 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   const robustnessScore = clamp(gapDifference * 5 + 50, 0, 100);
   
   // Calcul de la confiance globale et détection données insuffisantes
+  // En mode running, la métrique critique aérobie est VMA au lieu de FTP/kg
+  const aerobicCriticalMetric = useVma
+    ? { key: "vma", label: "VMA", value: input.vma }
+    : { key: "ftpKg", label: "FTP/kg", value: input.ftpKg };
   const CRITICAL_METRICS = [
-    { key: "ftpKg", label: "FTP/kg", value: input.ftpKg },
+    aerobicCriticalMetric,
     { key: "vlamax", label: "VLamax", value: input.vlamax },
     { key: "tte", label: "TTE", value: input.tte },
   ];
