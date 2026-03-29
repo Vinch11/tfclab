@@ -25,6 +25,7 @@ import {
   getVLamaxRange,
   getTTETargetByAmbition,
   getFtpKgTargetByAmbition,
+  getVmaTargetByAmbition,
   getChargeOptimale,
   VLamaxTargets,
 } from "@/lib/physiologicalTargets";
@@ -64,6 +65,7 @@ export interface CompassScores {
 export interface CompassTargets {
   objectif: string;
   ftpKgTarget: number;
+  vmaTarget: number | null;
   tteTarget: number;
   vlamaxIdeal: number;
   vlamaxMax: number;
@@ -74,14 +76,7 @@ export interface CompassTargets {
 // CIBLES PAR OBJECTIF (derived from centralized source)
 // =============================================
 
-export interface CompassTargets {
-  objectif: string;
-  ftpKgTarget: number;
-  tteTarget: number;
-  vlamaxIdeal: number;
-  vlamaxMax: number;
-  chargeOptimale: number;
-}
+// (duplicate removed – using the one above)
 
 /**
  * Build CompassTargets from centralized physiological targets
@@ -94,6 +89,7 @@ function getTargets(objectif: string, ambition: AmbitionLevel = DEFAULT_AMBITION
     return {
       objectif,
       ftpKgTarget: ageTargets.ftpKgTarget,
+      vmaTarget: getVmaTargetByAmbition(objectif, ambition),
       tteTarget: ageTargets.tteTarget,
       vlamaxIdeal: ageTargets.vlamaxOptimal,
       vlamaxMax: ageTargets.vlamaxMax,
@@ -106,6 +102,7 @@ function getTargets(objectif: string, ambition: AmbitionLevel = DEFAULT_AMBITION
   return {
     objectif,
     ftpKgTarget: getFtpKgTargetByAmbition(objectif, ambition),
+    vmaTarget: getVmaTargetByAmbition(objectif, ambition),
     tteTarget: getTTETargetByAmbition(objectif, ambition),
     vlamaxIdeal: vlamaxRange.optimal,
     vlamaxMax: vlamaxRange.max,
@@ -179,8 +176,61 @@ export function computeCapaciteAerobie(
 }
 
 // =============================================
-// AXE 2 : TOLÉRANCE À L'EFFORT (TTE effectif)
+// AXE 1-BIS : CAPACITÉ AÉROBIE RUNNING (VMA)
 // =============================================
+//
+// FORMULE OFFICIELLE :
+// VMA_score = clamp((VMA / VMA_ref_objectif) × 100, 0, 120)
+//
+
+export function computeCapaciteAerobieRunning(
+  vma: number | null,
+  objectif: string,
+  ambition?: AmbitionLevel,
+  athleteAge?: number | null
+): CompassAxisScore {
+  const targets = getTargets(objectif, ambition, athleteAge);
+  const vmaTarget = targets.vmaTarget;
+
+  if (vma === null || !vmaTarget) {
+    return {
+      score: 0,
+      rawScore: 0,
+      label: "Capacité Aérobie",
+      explanation: "VMA non renseignée — aucune estimation possible",
+      formula: "Données manquantes",
+      inputs: { vma, vmaRef: vmaTarget },
+      confidence: 0,
+      source: "unknown"
+    };
+  }
+
+  const rawScore = (vma / vmaTarget) * 100;
+  const score = clamp(Math.round(rawScore), 0, 100);
+
+  let explanation: string;
+  if (score >= 100) {
+    explanation = `VMA excellente (${vma.toFixed(1)} km/h ≥ ${vmaTarget} km/h cible)`;
+  } else if (score >= 85) {
+    explanation = `VMA proche de l'objectif (${vma.toFixed(1)} km/h)`;
+  } else if (score >= 70) {
+    explanation = `VMA en progression (${vma.toFixed(1)} km/h vs ${vmaTarget} km/h cible)`;
+  } else {
+    explanation = `VMA insuffisante pour ${objectif} (${vma.toFixed(1)} km/h << ${vmaTarget} km/h)`;
+  }
+
+  return {
+    score,
+    rawScore: Math.round(rawScore),
+    label: "Capacité Aérobie",
+    explanation,
+    formula: `VMA_score = (${vma.toFixed(1)} / ${vmaTarget}) × 100 = ${rawScore.toFixed(0)}`,
+    inputs: { vma, vmaRef: vmaTarget },
+    confidence: 0.9,
+    source: "snapshot"
+  };
+}
+
 // 
 // FORMULE OFFICIELLE :
 // TTE_score = clamp((TTE_effectif / TTE_cible_objectif) × 100, 0, 120)
@@ -615,24 +665,26 @@ export interface ComputeCompassParams {
   tteEffectif: TTEEffectif;
   crr: ChargeRecenteReference;
   objectif: string;
-  // Niveau d'ambition pour seuils adaptatifs
   ambition?: AmbitionLevel;
-  // Âge de l'athlète pour ajustement des cibles
   athleteAge?: number | null;
-  // Paramètres pour intégration fatigue
   fatigueEffectif?: FatigueEffectif | null;
   runInjuryRisk?: RunInjuryRiskEnvelope | null;
   sportFocus?: "bike" | "run" | "triathlon" | null;
+  // Running-specific
+  vma?: number | null;
 }
 
 export function computeCompassScores(params: ComputeCompassParams): CompassScores {
   const { 
     ftp, poids, vlamaxEffectif, tteEffectif, crr, objectif, ambition,
-    athleteAge, fatigueEffectif, runInjuryRisk, sportFocus 
+    athleteAge, fatigueEffectif, runInjuryRisk, sportFocus, vma 
   } = params;
   
-  // Calculer les 4 axes avec ambition ET ajustement par âge
-  const capaciteAerobieRaw = computeCapaciteAerobie(ftp, poids, objectif, ambition, athleteAge);
+  // AXE 1 : Running → VMA, sinon → FTP/kg
+  const isRunning = sportFocus === "run";
+  const capaciteAerobieRaw = isRunning && vma != null
+    ? computeCapaciteAerobieRunning(vma, objectif, ambition, athleteAge)
+    : computeCapaciteAerobie(ftp, poids, objectif, ambition, athleteAge);
   
   // Moduler la capacité aérobie par la fatigue si disponible
   const capaciteAerobie = fatigueEffectif 

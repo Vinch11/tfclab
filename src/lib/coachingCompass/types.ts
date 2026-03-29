@@ -27,6 +27,7 @@ export interface TFCLPhysiologicalProfile {
   lt2: PhysioMetric;
   ftp: PhysioMetric;
   ftpKg: PhysioMetric;
+  vma: PhysioMetric;
   tte: PhysioMetric;
   runningEconomy: PhysioMetric;
   durability: PhysioMetric;

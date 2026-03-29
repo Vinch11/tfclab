@@ -53,6 +53,9 @@ interface CompassData {
   fatigueState?: string;
   ambition?: AmbitionLevel;
   athleteAge?: number | null;
+  // Running
+  vma?: number | null;
+  sportFocus?: "bike" | "run" | "triathlon" | null;
 }
 
 interface MetabolicPerformanceCompassV2Props {
@@ -96,12 +99,12 @@ const AXIS_DETAILS: Record<string, {
 }> = {
   capaciteAerobie: {
     title: "Capacité Aérobie",
-    description: "Mesure le potentiel aérobie via le rapport FTP/kg par rapport à la cible de l'ambition.",
-    whatItMeans: "Plus le score est élevé, plus l'athlète peut maintenir une puissance relative élevée. Score >80 = niveau cible atteint.",
+    description: "Mesure le potentiel aérobie via le rapport FTP/kg (vélo) ou la VMA (running) par rapport à la cible de l'ambition.",
+    whatItMeans: "Plus le score est élevé, plus l'athlète peut maintenir une puissance/vitesse relative élevée. Score >80 = niveau cible atteint.",
     howToImprove: [
       "Augmenter le volume d'entraînement Z2",
-      "Blocs tempo (88-94% FTP)",
-      "Intervalles au seuil (FTP)",
+      "Blocs tempo (88-94% FTP ou allure seuil)",
+      "Intervalles au seuil",
       "Optimiser le poids (si nécessaire)"
     ],
     icon: "⚡"
@@ -199,6 +202,8 @@ export function MetabolicPerformanceCompassV2({
   const ageInfo = useMemo(() => computeAgeAdjustmentIndex(athleteAge), [athleteAge]);
   const ageTargets = useMemo(() => getAgeAdjustedTargets(data.objectif, athleteAge, currentAmbition), [data.objectif, currentAmbition, athleteAge]);
   
+  const isRunning = data.sportFocus === "run";
+  
   // Scores pour l'ambition actuelle
   const scores = useMemo(() => {
     const crr = computeCRR({ tss7d: data.tss7d, snapshotDate: data.snapshotDate, snapshotUpdatedAt: data.snapshotUpdatedAt });
@@ -210,7 +215,9 @@ export function MetabolicPerformanceCompassV2({
       crr,
       objectif: data.objectif,
       ambition: currentAmbition,
-      athleteAge
+      athleteAge,
+      vma: data.vma,
+      sportFocus: data.sportFocus,
     });
   }, [data, currentAmbition, athleteAge]);
 
@@ -255,7 +262,9 @@ export function MetabolicPerformanceCompassV2({
         tteEffectif: data.tteEffectif,
         crr,
         objectif: data.objectif,
-        ambition
+        ambition,
+        vma: data.vma,
+        sportFocus: data.sportFocus,
       });
       return acc;
     }, {} as Record<AmbitionLevel, ReturnType<typeof computeCompassScores>>);
@@ -264,9 +273,9 @@ export function MetabolicPerformanceCompassV2({
   // Données enrichies pour le chart
   const chartData = [
     { 
-      axis: "Capacité\nAérobie", 
-      axisShort: "Aérobie",
-      icon: "⚡", 
+      axis: isRunning ? "Capacité\nAérobie (VMA)" : "Capacité\nAérobie", 
+      axisShort: isRunning ? "VMA" : "Aérobie",
+      icon: isRunning ? "🏃" : "⚡", 
       current: scores.capaciteAerobie.score, 
       target: 80,
       raw: scores.capaciteAerobie.rawScore,
