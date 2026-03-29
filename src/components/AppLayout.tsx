@@ -1,12 +1,12 @@
-import { ReactNode, useRef } from "react";
+import { ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Users, LayoutDashboard, Calendar, CalendarDays, TrendingUp, ChevronLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { NextRaceIndicator } from "@/components/NextRaceIndicator";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useAthleteRaceGoals } from "@/hooks/useAthleteRaceGoals";
-import logo2fc from "@/assets/logo-2fc.png";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -21,15 +21,16 @@ export function AppLayout({ children, title, subtitle, showBack = false }: AppLa
   const { currentAthlete } = useAthletes();
   const { raceGoals } = useAthleteRaceGoals(currentAthlete?.id || null);
 
-  const navItems = [
-    { path: "/", label: "Accueil", icon: LayoutDashboard },
-    // Tu peux réactiver ces routes plus tard si tu refais un vrai router multi-pages
-    // { path: "/semaine", label: "Semaine", icon: Calendar },
-    // { path: "/bloc", label: "Bloc 3 sem.", icon: CalendarDays },
-    // { path: "/evolution", label: "Évolution", icon: TrendingUp },
-  ];
-
-  const isActive = (path: string) => location.pathname === path;
+  // Determine active tab from current route
+  const activeTab = (() => {
+    const path = location.pathname;
+    if (path.startsWith("/athletes") || path.startsWith("/athlete")) return "athletes";
+    if (path.startsWith("/diagnostic")) return "diagnostic";
+    if (path.startsWith("/planning")) return "planning";
+    if (path.startsWith("/race")) return "simulation";
+    if (path.startsWith("/academy")) return "academy";
+    return "dashboard";
+  })();
 
   const scrollToObjectives = () => {
     const objectivesSection = document.getElementById("objectives-section");
@@ -76,30 +77,13 @@ export function AppLayout({ children, title, subtitle, showBack = false }: AppLa
 
       <main className="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 pb-20 sm:pb-24 relative">{children}</main>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur-xl safe-area-inset-bottom">
-        <div className="container mx-auto px-1 sm:px-2">
-          <div className="flex items-center justify-around py-1.5 sm:py-2">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.path);
-              return (
-                <Button
-                  key={item.path}
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate(item.path)}
-                  className={`flex flex-col items-center gap-0.5 sm:gap-1 h-auto py-1.5 sm:py-2 px-2 sm:px-3 touch-target ${
-                    active ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span className="text-[9px] sm:text-[10px] md:text-xs font-medium truncate max-w-[60px] sm:max-w-[80px]">{item.label}</span>
-                </Button>
-              );
-            })}
-          </div>
-        </div>
-      </nav>
+      {/* Mobile: full MobileBottomNav with all tabs */}
+      <MobileBottomNav
+        activeTab={activeTab}
+        onTabChange={() => {}}
+      />
+
+      {/* Desktop: no bottom nav needed (sidebar handles it) */}
     </div>
   );
 }
