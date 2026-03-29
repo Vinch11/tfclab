@@ -665,24 +665,26 @@ export interface ComputeCompassParams {
   tteEffectif: TTEEffectif;
   crr: ChargeRecenteReference;
   objectif: string;
-  // Niveau d'ambition pour seuils adaptatifs
   ambition?: AmbitionLevel;
-  // Âge de l'athlète pour ajustement des cibles
   athleteAge?: number | null;
-  // Paramètres pour intégration fatigue
   fatigueEffectif?: FatigueEffectif | null;
   runInjuryRisk?: RunInjuryRiskEnvelope | null;
   sportFocus?: "bike" | "run" | "triathlon" | null;
+  // Running-specific
+  vma?: number | null;
 }
 
 export function computeCompassScores(params: ComputeCompassParams): CompassScores {
   const { 
     ftp, poids, vlamaxEffectif, tteEffectif, crr, objectif, ambition,
-    athleteAge, fatigueEffectif, runInjuryRisk, sportFocus 
+    athleteAge, fatigueEffectif, runInjuryRisk, sportFocus, vma 
   } = params;
   
-  // Calculer les 4 axes avec ambition ET ajustement par âge
-  const capaciteAerobieRaw = computeCapaciteAerobie(ftp, poids, objectif, ambition, athleteAge);
+  // AXE 1 : Running → VMA, sinon → FTP/kg
+  const isRunning = sportFocus === "run";
+  const capaciteAerobieRaw = isRunning && vma != null
+    ? computeCapaciteAerobieRunning(vma, objectif, ambition, athleteAge)
+    : computeCapaciteAerobie(ftp, poids, objectif, ambition, athleteAge);
   
   // Moduler la capacité aérobie par la fatigue si disponible
   const capaciteAerobie = fatigueEffectif 
