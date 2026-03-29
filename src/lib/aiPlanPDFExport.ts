@@ -15,8 +15,31 @@ function getSportEmoji(sport: string): string {
   return "🏋️";
 }
 
-export function exportAIPlanToPDF(plan: ParsedPlan, athleteName?: string) {
-  const html = buildPlanHTML(plan, athleteName);
+function computeWeekStartDate(startDate: Date, weekNumber: number): Date {
+  const start = new Date(startDate);
+  const dayOfWeek = start.getDay();
+  const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  start.setDate(start.getDate() + diff);
+  start.setDate(start.getDate() + (weekNumber - 1) * 7);
+  return start;
+}
+
+function formatSessionDate(weekStart: Date, dayIndex: number): string {
+  if (dayIndex < 0) return "";
+  const d = new Date(weekStart);
+  d.setDate(d.getDate() + dayIndex);
+  return d.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" });
+}
+
+function formatWeekRange(weekStart: Date): string {
+  const end = new Date(weekStart);
+  end.setDate(end.getDate() + 6);
+  const opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" };
+  return `${weekStart.toLocaleDateString("fr-FR", opts)} → ${end.toLocaleDateString("fr-FR", opts)}`;
+}
+
+export function exportAIPlanToPDF(plan: ParsedPlan, athleteName?: string, startDate?: Date) {
+  const html = buildPlanHTML(plan, athleteName, startDate);
   const blob = new Blob([html], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const w = window.open(url, "_blank");
@@ -25,27 +48,38 @@ export function exportAIPlanToPDF(plan: ParsedPlan, athleteName?: string) {
   }
 }
 
-function buildPlanHTML(plan: ParsedPlan, athleteName?: string): string {
+function buildPlanHTML(plan: ParsedPlan, athleteName?: string, startDate?: Date): string {
+  const hasDate = !!startDate;
+
   const weekRows = plan.weeks.map(week => {
-    const sessionRows = week.sessions.map(s => `
+    const weekStart = hasDate ? computeWeekStartDate(startDate!, week.weekNumber) : null;
+
+    const sessionRows = week.sessions.map(s => {
+      const dateStr = weekStart && s.dayIndex >= 0 ? formatSessionDate(weekStart, s.dayIndex) : "";
+      return `
       <tr style="${s.isRest ? 'color:#999;' : ''}">
+        ${hasDate ? `<td style="padding:4px 8px;border:1px solid #ddd;white-space:nowrap;font-size:11px;color:#555;">${dateStr}</td>` : ""}
         <td style="padding:4px 8px;border:1px solid #ddd;white-space:nowrap;">${s.dayName}</td>
         <td style="padding:4px 8px;border:1px solid #ddd;">${getSportEmoji(s.sport)} ${s.sport}</td>
         <td style="padding:4px 8px;border:1px solid #ddd;font-weight:600;">${s.title}</td>
         <td style="padding:4px 8px;border:1px solid #ddd;font-size:11px;">${s.details}</td>
       </tr>
-    `).join("");
+    `;
+    }).join("");
+
+    const weekRangeStr = weekStart ? ` <span style="font-weight:normal;font-size:10px;color:#1967d2;margin-left:6px;">(${formatWeekRange(weekStart)})</span>` : "";
 
     return `
       <div style="page-break-inside:avoid;margin-bottom:24px;">
         <h3 style="margin:0 0 4px 0;font-size:14px;color:#333;">
-          Semaine ${week.weekNumber} — ${week.theme}
+          Semaine ${week.weekNumber} — ${week.theme}${weekRangeStr}
           <span style="font-weight:normal;font-size:11px;color:#888;margin-left:8px;">${week.phase}</span>
         </h3>
         ${week.volumeTarget ? `<p style="margin:0 0 8px 0;font-size:11px;color:#666;">Volume cible : ${week.volumeTarget}</p>` : ""}
         <table style="width:100%;border-collapse:collapse;font-size:12px;">
           <thead>
             <tr style="background:#f5f5f5;">
+              ${hasDate ? `<th style="padding:4px 8px;border:1px solid #ddd;text-align:left;width:100px;">Date</th>` : ""}
               <th style="padding:4px 8px;border:1px solid #ddd;text-align:left;width:80px;">Jour</th>
               <th style="padding:4px 8px;border:1px solid #ddd;text-align:left;width:100px;">Sport</th>
               <th style="padding:4px 8px;border:1px solid #ddd;text-align:left;width:180px;">Séance</th>

@@ -423,7 +423,7 @@ export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved,
   const currentWeek = plan.weeks[selectedWeek];
 
   const handleExportPDF = () => {
-    exportAIPlanToPDF(plan, athleteName);
+    exportAIPlanToPDF(plan, athleteName, startDate);
   };
 
   return (
