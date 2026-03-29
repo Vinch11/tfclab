@@ -668,6 +668,14 @@ export default function AITrainingPlanPage() {
     }
   }, [parsedPlan, currentAthlete, planStartDate]);
 
+  // Compute the current week number relative to planStartDate
+  const currentWeekNumber = useMemo(() => {
+    const now = new Date();
+    const days = differenceInCalendarDays(now, planStartDate);
+    if (days < 0) return 0;
+    return Math.floor(days / 7) + 1;
+  }, [planStartDate]);
+
   const handleRegenerateWeek = useCallback(async (weekNumber: number) => {
     if (!athleteContext || !parsedPlan) return;
     setIsRegenerating(true);
@@ -738,6 +746,126 @@ export default function AITrainingPlanPage() {
       setIsRegenerating(false);
     }
   }, [athleteContext, parsedPlan, objective, weeklyHours, sessionsPerWeek, ambition, constraints]);
+
+  /**
+   * Regenerate only future weeks (after today) while preserving past weeks.
+   * Archives current plan, generates a new plan for remaining weeks, then merges.
+   */
+  const handleRegenerateFutureWeeks = useCallback(async () => {
+    if (!athleteContext || !parsedPlan || !currentAthlete) return;
+    
+    const futureStartWeek = currentWeekNumber + 1;
+    const totalWeeks = parsedPlan.totalWeeks;
+    
+    if (futureStartWeek > totalWeeks) {
+      toast.warning("Toutes les semaines du plan sont déjà passées.");
+      return;
+    }
+
+    // Archive current plan first
+    setIsRegenerating(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await archiveCurrentPlan(
+          currentAthlete.id,
+          user.id,
+          `Archive avant régénération partielle (S${futureStartWeek}-S${totalWeeks})`
+        );
+      }
+
+      // Keep past weeks from current plan
+      const pastWeeks = parsedPlan.weeks.filter(w => w.weekNumber <= currentWeekNumber);
+      const futureWeeksCount = totalWeeks - currentWeekNumber;
+
+      // Build config for future weeks only
+      const config = buildConfigFromDiag(athleteContext.diagnostic);
+      config.weeksAvailable = futureWeeksCount;
+      // Add context about past weeks in constraints
+      const pastPhaseSummary = pastWeeks.length > 0
+        ? pastWeeks.map(w => `S${w.weekNumber}: ${w.phase} — ${w.theme}`).join("; ")
+        : "";
+      config.constraints = [
+        config.constraints || "",
+        `CONTEXTE IMPORTANT: Ce plan est une CONTINUATION. Les semaines 1 à ${currentWeekNumber} sont déjà réalisées. Génère UNIQUEMENT les semaines ${futureStartWeek} à ${totalWeeks}. Numérote-les de S${futureStartWeek} à S${totalWeeks}. Phase déjà couverte : ${pastPhaseSummary}`,
+      ].filter(Boolean).join("\n");
+
+      // Generate the future weeks via AI
+      const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
+      const resp = await fetch(PLAN_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          athleteData: athleteContext.data,
+          planConfig: config,
+        }),
+      });
+
+      if (!resp.ok || !resp.body) throw new Error("Erreur régénération partielle");
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      let fullText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        let idx: number;
+        while ((idx = buf.indexOf("\n")) !== -1) {
+          let line = buf.slice(0, idx);
+          buf = buf.slice(idx + 1);
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (!line.startsWith("data: ")) continue;
+          const json = line.slice(6).trim();
+          if (json === "[DONE]") break;
+          try {
+            const p = JSON.parse(json);
+            const c = p.choices?.[0]?.delta?.content;
+            if (c) fullText += c;
+          } catch {}
+        }
+      }
+
+      if (!fullText) {
+        toast.error("Aucune réponse de l'IA");
+        return;
+      }
+
+      // Parse the new future weeks
+      const futurePlan = parseAIPlan(fullText);
+      if (futurePlan.weeks.length === 0) {
+        toast.error("Impossible de parser les semaines futures générées");
+        return;
+      }
+
+      // Merge: past weeks (unchanged) + future weeks (newly generated)
+      const mergedWeeks = [
+        ...pastWeeks,
+        ...futurePlan.weeks,
+      ];
+      mergedWeeks.sort((a, b) => a.weekNumber - b.weekNumber);
+
+      // Rebuild the full markdown by combining past response + new response
+      const pastWeekNumbers = new Set(pastWeeks.map(w => w.weekNumber));
+      // Build merged response: keep original markdown lines for past weeks, append new for future
+      const mergedMarkdown = response + "\n\n--- RÉGÉNÉRATION PARTIELLE (S" + futureStartWeek + "+) ---\n\n" + fullText;
+
+      // Update the response with merged content
+      setResponse(mergedMarkdown);
+      
+      toast.success(`Semaines ${futureStartWeek}-${totalWeeks} régénérées ! Les semaines 1-${currentWeekNumber} sont intactes.`);
+    } catch (err: any) {
+      console.error("Partial regen error:", err);
+      toast.error("Erreur régénération partielle : " + (err.message || "Inconnu"));
+    } finally {
+      setIsRegenerating(false);
+    }
+  }, [athleteContext, parsedPlan, currentAthlete, currentWeekNumber, response, buildConfigFromDiag, archiveCurrentPlan, setResponse]);
 
   // Toggle athlete selection (multi mode)
   const toggleAthleteSelection = (id: string) => {
