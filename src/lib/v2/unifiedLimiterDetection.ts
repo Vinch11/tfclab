@@ -589,6 +589,7 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   if (topPhysioGap && topPhysioGap.weightedImpact > 5) {
     switch (topPhysioGap.metric) {
       case "FTP/kg":
+      case "VMA":
       case "VO2max":
         primaryLimiter = "aerobic_engine";
         primaryLever = "increase_vo2max";
@@ -617,24 +618,30 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   }
   
   // Calcul du détail de faiblesse aérobie
-  const ftpKgAnalysis = gapAnalysis.find(g => g.metric === "FTP/kg");
+  // En mode running : VMA remplace FTP/kg dans l'analyse
+  const aerobicExpressionAnalysis = gapAnalysis.find(g => g.metric === "VMA" || g.metric === "FTP/kg");
   const vo2maxAnalysis = gapAnalysis.find(g => g.metric === "VO2max");
-  const ftpKgIsLimiting = ftpKgAnalysis?.status === "limiting";
+  const aerobicExprIsLimiting = aerobicExpressionAnalysis?.status === "limiting";
   const vo2maxIsLimiting = vo2maxAnalysis?.status === "limiting";
+  const isVmaMode = aerobicExpressionAnalysis?.metric === "VMA";
   
   let aerobicWeaknessDetail: AerobicWeaknessDetail = "none";
   let aerobicWeaknessLabel: string | null = null;
   
   if (primaryLimiter === "aerobic_engine") {
-    if (ftpKgIsLimiting && vo2maxIsLimiting) {
+    if (aerobicExprIsLimiting && vo2maxIsLimiting) {
       aerobicWeaknessDetail = "both_low";
-      aerobicWeaknessLabel = "Capacité (VO₂max) ET Expression (FTP/kg) insuffisantes";
+      aerobicWeaknessLabel = isVmaMode
+        ? "Capacité (VO₂max) ET Vitesse aérobie (VMA) insuffisantes"
+        : "Capacité (VO₂max) ET Expression (FTP/kg) insuffisantes";
     } else if (vo2maxIsLimiting) {
       aerobicWeaknessDetail = "vo2max_low";
       aerobicWeaknessLabel = "Capacité aérobie (VO₂max) insuffisante — plafond trop bas";
-    } else if (ftpKgIsLimiting) {
+    } else if (aerobicExprIsLimiting) {
       aerobicWeaknessDetail = "ftp_kg_low";
-      aerobicWeaknessLabel = "Expression aérobie (FTP/kg) insuffisante — puissance relative trop faible";
+      aerobicWeaknessLabel = isVmaMode
+        ? "Vitesse aérobie maximale (VMA) insuffisante — allure de référence trop basse"
+        : "Expression aérobie (FTP/kg) insuffisante — puissance relative trop faible";
     }
   }
   
