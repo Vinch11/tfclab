@@ -634,8 +634,10 @@ const Index = () => {
       objectif: currentAthlete.goal || "IM",
       ambition: currentAmbition,
       age: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
+      vma: effectiveCloudSnapshot?.vma ?? null,
+      sportFocus: isRunningOnly ? "run" : "bike",
     });
-  }, [currentAthlete, effectiveCloudSnapshot, ftp_kg, vlamaxEffectif, tteEffectif, currentAmbition, wprimeKjForLimiter, cpResultForLimiter]);
+  }, [currentAthlete, effectiveCloudSnapshot, ftp_kg, vlamaxEffectif, tteEffectif, currentAmbition, wprimeKjForLimiter, cpResultForLimiter, isRunningOnly]);
 
   // ✅ FATIGUE EFFECTIF — Pour Coaching Compass
   const fatigueEffectifForCompass = useMemo<FatigueEffectif | null>(() => {

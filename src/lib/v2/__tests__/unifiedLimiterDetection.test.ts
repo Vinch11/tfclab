@@ -41,6 +41,7 @@ const EMPTY_PROFILE: UnifiedLimiterInput = {
   objectif: "IM",
   ambition: "age_group",
   age: null,
+  vma: null,
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════

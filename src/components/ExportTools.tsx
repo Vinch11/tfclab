@@ -2272,7 +2272,7 @@ function buildRoadmapHTML(payload: ExportPayload): string {
     ftpKg: payload.effectiveRefs.ftp && payload.effectiveRefs.weightKg
       ? payload.effectiveRefs.ftp / payload.effectiveRefs.weightKg : null,
     vlamax: payload.vlamax.value,
-    wprimeKj: null, // W' not available in export context
+    wprimeKj: null,
     tte: payload.tte.tte_min,
     fatmax: null,
     economyScore: payload.effectiveSnapshot?.run_economy_score ?? null,
@@ -2281,6 +2281,7 @@ function buildRoadmapHTML(payload: ExportPayload): string {
     objectif: payload.athlete.goal || "IM",
     ambition: (payload.ambition?.current as any) || "competitive",
     age: null,
+    vma: payload.effectiveSnapshot?.vma ?? null,
   });
 
   const roadmap = computeStrategicRoadmap({ objectif: payload.athlete.goal, limiterResult });
