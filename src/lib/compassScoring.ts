@@ -76,14 +76,7 @@ export interface CompassTargets {
 // CIBLES PAR OBJECTIF (derived from centralized source)
 // =============================================
 
-export interface CompassTargets {
-  objectif: string;
-  ftpKgTarget: number;
-  tteTarget: number;
-  vlamaxIdeal: number;
-  vlamaxMax: number;
-  chargeOptimale: number;
-}
+// (duplicate removed – using the one above)
 
 /**
  * Build CompassTargets from centralized physiological targets
