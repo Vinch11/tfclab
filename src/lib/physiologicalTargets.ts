@@ -349,8 +349,85 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
   },
 
   // =============================================
-  // SHORT DISTANCE TRIATHLON
+  // 10KM
   // =============================================
+  "10km": {
+    finisher: {
+      vlamax: { min: 0.60, max: 0.85, optimal: 0.72 },
+      tte_min: 25,
+      ftp_kg_min: 2.8,
+      vma_min: 13.0,
+      charge_optimale: 180,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 20, max: 40 },
+    },
+    age_group: {
+      vlamax: { min: 0.50, max: 0.75, optimal: 0.62 },
+      tte_min: 35,
+      ftp_kg_min: 3.5,
+      vma_min: 16.0,
+      charge_optimale: 250,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 30, max: 50 },
+    },
+    competitor: {
+      vlamax: { min: 0.42, max: 0.65, optimal: 0.52 },
+      tte_min: 40,
+      ftp_kg_min: 3.8,
+      vma_min: 18.5,
+      charge_optimale: 300,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 40, max: 60 },
+    },
+    elite: {
+      vlamax: { min: 0.35, max: 0.55, optimal: 0.45 },
+      tte_min: 45,
+      ftp_kg_min: 4.2,
+      vma_min: 21.0,
+      charge_optimale: 350,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 50, max: 70 },
+    },
+  },
+
+  // =============================================
+  // 5K
+  // =============================================
+  "5K": {
+    finisher: {
+      vlamax: { min: 0.65, max: 0.90, optimal: 0.78 },
+      tte_min: 20,
+      ftp_kg_min: 2.8,
+      vma_min: 13.0,
+      charge_optimale: 150,
+      nutrition_bike_gph: { min: 0, max: 0 },
+    },
+    age_group: {
+      vlamax: { min: 0.55, max: 0.82, optimal: 0.68 },
+      tte_min: 28,
+      ftp_kg_min: 3.5,
+      vma_min: 16.5,
+      charge_optimale: 200,
+      nutrition_bike_gph: { min: 0, max: 0 },
+    },
+    competitor: {
+      vlamax: { min: 0.48, max: 0.72, optimal: 0.58 },
+      tte_min: 32,
+      ftp_kg_min: 3.8,
+      vma_min: 19.0,
+      charge_optimale: 260,
+      nutrition_bike_gph: { min: 0, max: 0 },
+    },
+    elite: {
+      vlamax: { min: 0.40, max: 0.62, optimal: 0.50 },
+      tte_min: 38,
+      ftp_kg_min: 4.2,
+      vma_min: 22.0,
+      charge_optimale: 320,
+      nutrition_bike_gph: { min: 0, max: 0 },
+    },
+  },
+
   Sprint: {
     finisher: {
       vlamax: { min: 0.65, max: 0.95, optimal: 0.80 },
