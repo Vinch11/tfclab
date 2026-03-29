@@ -419,7 +419,9 @@ export function StaffReport({
                 snapshotUpdatedAt: snapshotUpdatedAt ?? null,
                 objectif,
                 ambition: ambition || DEFAULT_AMBITION,
-                athleteAge: athleteAge ?? null, // ✅ FIX: Ajout pour synchronisation TTE âge-ajusté
+                athleteAge: athleteAge ?? null,
+                vma: snapshot?.vma ?? null,
+                sportFocus: snapshot?.sport_main === "run" ? "run" : snapshot?.sport_main === "triathlon" ? "triathlon" : "bike",
               }}
               compact={true}
               className="print:break-inside-avoid"
