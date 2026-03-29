@@ -273,9 +273,9 @@ export function MetabolicPerformanceCompassV2({
   // Données enrichies pour le chart
   const chartData = [
     { 
-      axis: "Capacité\nAérobie", 
-      axisShort: "Aérobie",
-      icon: "⚡", 
+      axis: isRunning ? "Capacité\nAérobie (VMA)" : "Capacité\nAérobie", 
+      axisShort: isRunning ? "VMA" : "Aérobie",
+      icon: isRunning ? "🏃" : "⚡", 
       current: scores.capaciteAerobie.score, 
       target: 80,
       raw: scores.capaciteAerobie.rawScore,
