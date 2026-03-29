@@ -102,6 +102,7 @@ function getTargets(objectif: string, ambition: AmbitionLevel = DEFAULT_AMBITION
   return {
     objectif,
     ftpKgTarget: getFtpKgTargetByAmbition(objectif, ambition),
+    vmaTarget: getVmaTargetByAmbition(objectif, ambition),
     tteTarget: getTTETargetByAmbition(objectif, ambition),
     vlamaxIdeal: vlamaxRange.optimal,
     vlamaxMax: vlamaxRange.max,
