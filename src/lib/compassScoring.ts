@@ -65,6 +65,7 @@ export interface CompassScores {
 export interface CompassTargets {
   objectif: string;
   ftpKgTarget: number;
+  vmaTarget: number | null;
   tteTarget: number;
   vlamaxIdeal: number;
   vlamaxMax: number;
