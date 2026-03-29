@@ -149,7 +149,7 @@ export const LIMITER_INFO: Record<UnifiedLimiter, {
   aerobic_engine: {
     label: "Moteur aérobie",
     emoji: "🫁",
-    description: "Le plafond aérobie (VO2max / FTP) limite la performance.",
+    description: "Le plafond aérobie (VO2max / VMA ou FTP) limite la performance.",
   },
   glycolytic: {
     label: "Métabolisme glycolytique",
