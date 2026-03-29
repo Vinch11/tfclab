@@ -458,12 +458,45 @@ function buildReadinessState(input: CoachingCompassInput): TFCLReadinessState {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalProfile): RadarAxis[] {
-  // VO2max : valeur directe ou estimation depuis FTP/kg (Storer)
+  const isRunning = input.sportFocus === "run";
+
+  // AXE 1 : VO2max (estimation depuis FTP/kg ou VMA selon sport)
   let vo2Score = normalizeScore(profile.vo2max.value, 30, 70);
-  if (vo2Score === 0 && profile.ftpKg.value) {
-    // Estimation grossière : VO2max ≈ FTP/kg × 12 + 5 (Storer approx)
-    const estimatedVo2 = profile.ftpKg.value * 12 + 5;
-    vo2Score = normalizeScore(estimatedVo2, 30, 70);
+  if (vo2Score === 0) {
+    if (isRunning && input.vma) {
+      // Estimation grossière : VO2max ≈ VMA × 3.5
+      const estimatedVo2 = input.vma * 3.5;
+      vo2Score = normalizeScore(estimatedVo2, 30, 70);
+    } else if (profile.ftpKg.value) {
+      const estimatedVo2 = profile.ftpKg.value * 12 + 5;
+      vo2Score = normalizeScore(estimatedVo2, 30, 70);
+    }
+  }
+
+  // AXE AÉROBIE : VMA en running, FTP/kg sinon
+  let aerobicAxis: RadarAxis;
+  if (isRunning) {
+    const vmaScore = input.vma ? normalizeScore(input.vma, 10, 24) : 0;
+    aerobicAxis = {
+      key: "vma",
+      label: "vVMA",
+      shortLabel: "VMA",
+      score: vmaScore,
+      icon: "🏃",
+      color: "hsl(var(--primary))",
+    };
+  } else {
+    const ftpKgScore = profile.ftpKg.value
+      ? normalizeScore(profile.ftpKg.value, 1.5, 6.0)
+      : 0;
+    aerobicAxis = {
+      key: "ftpkg",
+      label: "FTP/kg",
+      shortLabel: "FTP/kg",
+      score: ftpKgScore,
+      icon: "⚡",
+      color: "hsl(var(--primary))",
+    };
   }
 
   return [
@@ -479,24 +512,13 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       key: "vlamax",
       label: "Profil Glycolytique",
       shortLabel: "VLamax",
-      // VLamax inversé : plus bas = meilleur pour endurance
       score: profile.vlamax.value !== null 
         ? Math.max(0, Math.min(100, Math.round(100 - (profile.vlamax.value - 0.20) * 125)))
         : 0,
       icon: "⚡",
       color: "hsl(45, 90%, 50%)",
     },
-    {
-      key: "fatmax",
-      label: "FatMax",
-      shortLabel: "FatMax",
-      // FatMax en W : normaliser entre 100W et 350W, ou utiliser le % FTP si disponible
-      score: profile.fatmax.value !== null 
-        ? normalizeScore(profile.fatmax.value, 80, 300)
-        : 0,
-      icon: "🔥",
-      color: "hsl(25, 85%, 50%)",
-    },
+    aerobicAxis,
     {
       key: "durability",
       label: "Durabilité",
@@ -507,8 +529,8 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
     },
     {
       key: "economy",
-      label: "Économie",
-      shortLabel: "Éco.",
+      label: isRunning ? "Économie de Course" : "Économie",
+      shortLabel: isRunning ? "Éco. CAP" : "Éco.",
       score: profile.runningEconomy.value !== null ? Math.round(profile.runningEconomy.value) : 0,
       icon: "🦶",
       color: "hsl(160, 60%, 45%)",

@@ -53,6 +53,9 @@ interface CompassData {
   fatigueState?: string;
   ambition?: AmbitionLevel;
   athleteAge?: number | null;
+  // Running
+  vma?: number | null;
+  sportFocus?: "bike" | "run" | "triathlon" | null;
 }
 
 interface MetabolicPerformanceCompassV2Props {
