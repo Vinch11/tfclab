@@ -41,8 +41,19 @@ export type SimulationScenarioType = "ROBUST" | "AMBITIOUS" | "AGGRESSIVE";
 export interface GlycogenCurvePoint {
   distance_pct: number;
   glycogen_remaining_pct: number;
+  glycogen_with_nutrition_pct: number;   // With exogenous carb intake
   depletion_rate: number;
   zone_at_point: "GREEN" | "ORANGE" | "RED";
+}
+
+export interface NutritionCue {
+  distance_pct: number;
+  km: number;
+  type: "gel" | "iso" | "water";
+  label: string;
+  carbs_g: number;
+  volume_ml: number | null;
+  timing_note: string;
 }
 
 export interface FatigueCurvePoint {
@@ -67,9 +78,11 @@ export interface SimulationScenario {
   pacing_curve: PacingCurvePoint[];
   glycogen_curve: GlycogenCurvePoint[];
   fatigue_curve: FatigueCurvePoint[];
+  nutrition_cues: NutritionCue[];
   
   // Points critiques
-  glycogen_depletion_point_pct: number | null;  // % de la course où déplétion critique
+  glycogen_depletion_point_pct: number | null;  // % de la course où déplétion critique (sans nutri)
+  glycogen_depletion_with_nutrition_pct: number | null; // Avec nutrition
   metabolic_cost_index: number;                  // 0-100 (coût global)
   failure_probability_pct: number;               // Probabilité d'effondrement
   
@@ -84,6 +97,10 @@ export interface SimulationScenario {
   risk_warning: string | null;
   decision_robustness: "ROBUST" | "FRAGILE" | "VERY_FRAGILE";
   recommendation: string;
+  
+  // Negative split info
+  negative_split: boolean;
+  negative_split_description: string | null;
 }
 
 export interface SimulationResult {
@@ -103,6 +120,15 @@ export interface SimulationResult {
     max_first_third_pct: number;
     forbidden_zone_early: "RED";
     discipline_required: boolean;
+  };
+  
+  // Nutrition summary
+  nutrition_summary: {
+    total_carbs_g: number;
+    total_gels: number;
+    total_iso_ml: number;
+    max_carb_rate_gh: number;
+    plan_description: string;
   };
   
   // Métadonnées
