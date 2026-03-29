@@ -365,27 +365,57 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   const weights = getWeights(normalized);
   const fatmaxTargets = getFatmaxTargets(normalized);
   
+  // Déterminer si on est en mode running
+  // Mode running = sportFocus "run" OU objectif running-only avec VMA disponible
+  const RUNNING_OBJECTIVES = ["Marathon", "Semi", "10km", "5K", "Trail", "TrailLong", "Ultra"];
+  const isRunningMode = input.sportFocus === "run" || 
+    (RUNNING_OBJECTIVES.includes(normalized) && input.vma !== null && input.ftpKg === null);
+  const hasVmaTarget = targets.vma_min !== undefined && targets.vma_min !== null;
+  const useVma = isRunningMode && hasVmaTarget;
+  
   const gapAnalysis: UnifiedGapAnalysis[] = [];
   
-  // 1. Analyse FTP/kg (Expression Aérobie)
-  const ftpKgGap = input.ftpKg !== null 
-    ? (input.ftpKg - targets.ftp_kg_min) / targets.ftp_kg_min 
-    : 0;
-  gapAnalysis.push({
-    metric: "FTP/kg",
-    value: input.ftpKg,
-    target: targets.ftp_kg_min,
-    gap: input.ftpKg !== null ? input.ftpKg - targets.ftp_kg_min : 0,
-    gapPercent: ftpKgGap * 100,
-    status: input.ftpKg === null ? "unknown" 
-      : input.ftpKg >= targets.ftp_kg_min ? "optimal" 
-      : input.ftpKg >= targets.ftp_kg_min * 0.9 ? "acceptable" 
-      : "limiting",
-    weight: weights.aerobic,
-    weightedImpact: ftpKgGap < 0 ? Math.abs(ftpKgGap) * weights.aerobic * 100 : 0,
-  });
+  // 1. Analyse Expression Aérobie — VMA (running) ou FTP/kg (vélo/tri)
+  if (useVma) {
+    // Mode Running : VMA remplace FTP/kg
+    const vmaTarget = targets.vma_min!;
+    const vmaGap = input.vma !== null 
+      ? (input.vma - vmaTarget) / vmaTarget 
+      : 0;
+    gapAnalysis.push({
+      metric: "VMA",
+      value: input.vma,
+      target: vmaTarget,
+      gap: input.vma !== null ? input.vma - vmaTarget : 0,
+      gapPercent: vmaGap * 100,
+      status: input.vma === null ? "unknown" 
+        : input.vma >= vmaTarget ? "optimal" 
+        : input.vma >= vmaTarget * 0.9 ? "acceptable" 
+        : "limiting",
+      weight: weights.aerobic,
+      weightedImpact: vmaGap < 0 ? Math.abs(vmaGap) * weights.aerobic * 100 : 0,
+    });
+  } else {
+    // Mode Vélo/Tri : FTP/kg
+    const ftpKgGap = input.ftpKg !== null 
+      ? (input.ftpKg - targets.ftp_kg_min) / targets.ftp_kg_min 
+      : 0;
+    gapAnalysis.push({
+      metric: "FTP/kg",
+      value: input.ftpKg,
+      target: targets.ftp_kg_min,
+      gap: input.ftpKg !== null ? input.ftpKg - targets.ftp_kg_min : 0,
+      gapPercent: ftpKgGap * 100,
+      status: input.ftpKg === null ? "unknown" 
+        : input.ftpKg >= targets.ftp_kg_min ? "optimal" 
+        : input.ftpKg >= targets.ftp_kg_min * 0.9 ? "acceptable" 
+        : "limiting",
+      weight: weights.aerobic,
+      weightedImpact: ftpKgGap < 0 ? Math.abs(ftpKgGap) * weights.aerobic * 100 : 0,
+    });
+  }
   
-  // 1b. Analyse VO2max (Capacité Aérobie) - séparée de FTP/kg
+  // 1b. Analyse VO2max (Capacité Aérobie) - séparée de FTP/kg ou VMA
   // Note: VO2max target ajustée selon ambition, objectif ET âge
   const vo2maxTarget = getVo2maxTarget(normalized, input.ambition, input.age);
   const vo2maxGap = input.vo2max !== null 
@@ -402,8 +432,8 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
       : input.vo2max >= vo2maxTarget ? "optimal"
       : input.vo2max >= vo2maxTarget * 0.9 ? "acceptable"
       : "limiting",
-    weight: weights.aerobic * 0.9, // Légèrement moins que FTP/kg car moins directement mesurable
-    weightedImpact: vo2maxGap < 0 ? Math.abs(vo2maxGap) * weights.aerobic * 0.9 * 100 : 0,
+    weight: weights.aerobic * (useVma ? 0.85 : 0.9), // Légèrement moins en mode running car VMA intègre déjà le VO2max
+    weightedImpact: vo2maxGap < 0 ? Math.abs(vo2maxGap) * weights.aerobic * (useVma ? 0.85 : 0.9) * 100 : 0,
   });
   
   // 2. Analyse VLamax (Glycolytic)
