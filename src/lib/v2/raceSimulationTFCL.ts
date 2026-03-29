@@ -340,6 +340,12 @@ export function computeRaceSimulation(inputs: SimulationInputs): SimulationResul
   if (threshold_pace_sec_km != null) confidence += 0.1;
   confidence = clamp(confidence, 0.3, 0.95);
 
+  // Build nutrition summary from ROBUST scenario
+  const robustScenario = scenarios[0];
+  const totalCarbs = robustScenario.nutrition_cues.reduce((sum, c) => sum + c.carbs_g, 0);
+  const totalGels = robustScenario.nutrition_cues.filter(c => c.type === "gel").length;
+  const totalIsoMl = robustScenario.nutrition_cues.filter(c => c.type === "iso").reduce((sum, c) => sum + (c.volume_ml ?? 0), 0);
+
   return {
     distance,
     readiness_state: race_readiness_state,
@@ -350,6 +356,15 @@ export function computeRaceSimulation(inputs: SimulationInputs): SimulationResul
       max_first_third_pct: greenMax,
       forbidden_zone_early: "RED",
       discipline_required: pacing_envelope.discipline_required,
+    },
+    nutrition_summary: {
+      total_carbs_g: totalCarbs,
+      total_gels: totalGels,
+      total_iso_ml: totalIsoMl,
+      max_carb_rate_gh: NUTRITION_PARAMS.maxCarbAbsorptionRunGH,
+      plan_description: distance === "10K" 
+        ? "Pas de nutrition nécessaire pour un 10K"
+        : `${totalGels} gels + ${Math.round(totalIsoMl / NUTRITION_PARAMS.isoVolumeMl)} prises iso · ${totalCarbs}g CHO total · max ${NUTRITION_PARAMS.maxCarbAbsorptionRunGH}g/h`,
     },
     confidence,
     sources_used: sourcesUsed,
