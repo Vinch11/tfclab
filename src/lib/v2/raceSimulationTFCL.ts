@@ -656,6 +656,9 @@ function generateScenario(type: SimulationScenarioType, params: ScenarioParams):
     recommendation = "Non recommandé — ce scénario maximise le risque d'effondrement et compromet la performance finale.";
   }
 
+  // Negative split: ROBUST uses it if VLamax low and readiness good
+  const isNegativeSplit = type === "ROBUST" && pacingProfile.last > pacingProfile.first;
+  
   return {
     type,
     label,
@@ -663,13 +666,19 @@ function generateScenario(type: SimulationScenarioType, params: ScenarioParams):
     pacing_curve: pacingCurve,
     glycogen_curve: glycogenCurve,
     fatigue_curve: fatigueCurve,
+    nutrition_cues: nutritionCues,
     glycogen_depletion_point_pct: depletionPoint,
+    glycogen_depletion_with_nutrition_pct: depletionPointWithNutri,
     metabolic_cost_index: metabolicCostIndex,
     failure_probability_pct: failureProbability,
-    estimated_time_range: null, // Pas de temps absolu dans TFCL
+    estimated_time_range: null,
     risk_warning: riskWarning,
     decision_robustness: decisionRobustness,
     recommendation,
+    negative_split: isNegativeSplit,
+    negative_split_description: isNegativeSplit
+      ? "Stratégie negative split : départ conservateur, montée progressive dans le dernier tiers"
+      : null,
   };
 }
 
