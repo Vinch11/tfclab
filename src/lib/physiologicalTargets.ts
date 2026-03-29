@@ -36,7 +36,8 @@ export interface VLamaxTargets {
 export interface ObjectiveTargets {
   vlamax: VLamaxTargets;
   tte_min: number;           // Minimum TTE in minutes
-  ftp_kg_min: number;        // Minimum FTP/kg (W/kg)
+  ftp_kg_min: number;        // Minimum FTP/kg (W/kg) — vélo/tri
+  vma_min?: number;          // Minimum VMA (km/h) — running
   charge_optimale: number;   // Optimal weekly TSS
   nutrition_bike_gph: { min: number; max: number };  // g/h on bike
   nutrition_run_gph?: { min: number; max: number };  // g/h on run (IM/70.3)

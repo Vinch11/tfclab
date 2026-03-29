@@ -63,6 +63,10 @@ export interface UnifiedLimiterInput {
   fatmax: number | null;           // % FTP où FatMax atteint
   economyScore: number | null;     // 0-100
   
+  // Running-specific
+  vma: number | null;              // VMA en km/h — utilisé à la place de FTP/kg en mode running
+  sportFocus?: "bike" | "run" | "tri"; // Discipline principale
+  
   // Disponibilité
   availabilityScore: number | null; // 0-100
   hasHealthAlerts: boolean;
