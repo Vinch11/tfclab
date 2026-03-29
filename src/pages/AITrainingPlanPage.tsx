@@ -118,8 +118,9 @@ interface MultiPlanEntry {
 
 export default function AITrainingPlanPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
-  const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete } = useCloudDataContext();
+  const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete, getPlan } = useCloudDataContext();
   const { response, isLoading, chunkProgress, generatePlan, reset, setResponse } = useAITrainingPlan();
   const [copied, setCopied] = useState(false);
   const [resultView, setResultView] = useState<"interactive" | "markdown" | "compare">(() => {
@@ -134,6 +135,18 @@ export default function AITrainingPlanPage() {
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [selectedProjectionLever, setSelectedProjectionLever] = useState<string | undefined>();
   const [coachLimiterOrder, setCoachLimiterOrder] = useState<string[]>([]);
+  const [showSyncBanner, setShowSyncBanner] = useState(false);
+
+  // Handle navigation from PlanSyncAlert
+  useEffect(() => {
+    const navState = location.state as { athleteId?: string; autoRegenerate?: boolean } | null;
+    if (navState?.athleteId && navState?.autoRegenerate) {
+      setSelectedAthleteId(navState.athleteId);
+      setShowSyncBanner(true);
+      // Clear the state to avoid re-triggering
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, setSelectedAthleteId]);
 
   // Multi-athlete mode — restore from localStorage
   const MULTI_PERSIST_KEY = "tfcl_ai_multi_plan";
