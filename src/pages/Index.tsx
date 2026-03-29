@@ -185,6 +185,8 @@ import { useAthletes } from "@/contexts/AthleteContext";
 import { DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
 import { FeedbackNolio } from "@/types/feedbackNolio";
 import { toast } from "sonner";
+import { usePlanSnapshotSync } from "@/hooks/usePlanSnapshotSync";
+import { PlanSyncAlert } from "@/components/PlanSyncAlert";
 
 // ✅ Legacy types/helpers (utilisés par tes composants actuels)
 import { getDernierSnapshot } from "@/types/athlete";
