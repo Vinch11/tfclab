@@ -537,6 +537,10 @@ const OBJECTIVE_ALIASES: Record<string, string> = {
   "10km": "10km",
   "10K": "10km",
   "10k": "10km",
+  "5K": "5K",
+  "5k": "5K",
+  "StartToRun": "5K",
+  "starttorun": "5K",
 };
 
 // =============================================
