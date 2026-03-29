@@ -239,6 +239,7 @@ const LIMITER_MAP: Record<string, { type: LimiterType; icon: string }> = {
   "W' (kJ)": { type: "neuromuscular", icon: "💥" },
   "Robustesse": { type: "durability", icon: "🛡️" },
   "FTP/kg": { type: "aerobic_power", icon: "🫁" },
+  "VMA": { type: "aerobic_power", icon: "🏃" },
   "VO2max": { type: "aerobic_power", icon: "🫁" },
 };
 
