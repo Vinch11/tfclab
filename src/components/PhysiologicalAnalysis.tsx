@@ -151,7 +151,7 @@ export function PhysiologicalAnalysis({ athlete, vlamaxEffectif, tteEffectif: tt
             ambition: ambition,
             athleteAge: athleteAge,
             vma: snapshot?.vma ?? null,
-            sportFocus: snapshot?.sport_main === "run" ? "run" : snapshot?.sport_main === "triathlon" ? "triathlon" : "bike",
+            sportFocus: snapshot?.sport === "course" ? "run" : "bike",
           }}
           staffMode={true}
         />
