@@ -168,6 +168,7 @@ function buildPhysiologicalProfile(input: CoachingCompassInput): TFCLPhysiologic
     ),
     ftp: makeMetric(input.ftp, input.ftp ? 0.9 : 0, input.ftp ? "snapshot" : "unknown", date, "W"),
     ftpKg: makeMetric(ftpKg, ftpKg ? 0.9 : 0, ftpKg ? "snapshot" : "unknown", date, "W/kg"),
+    vma: makeMetric(input.vma, input.vma ? 0.9 : 0, input.vma ? "snapshot" : "unknown", date, "km/h"),
     tte: makeMetric(
       input.tteEffectif.tte_min,
       input.tteEffectif.confidence,
