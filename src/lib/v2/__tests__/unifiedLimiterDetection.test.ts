@@ -189,6 +189,56 @@ describe("detectUnifiedLimiter", () => {
       expect(result.version).toBeDefined();
     }
   );
+
+  // ── Running mode — VMA replaces FTP/kg ───────────────────────────────────
+  it("uses VMA instead of FTP/kg when sportFocus is 'run' for Marathon", () => {
+    const input: UnifiedLimiterInput = {
+      vo2max: 55,
+      ftpKg: null, // pas de FTP/kg en mode running
+      vlamax: 0.40,
+      wprimeKj: null,
+      tte: 50,
+      fatmax: null,
+      economyScore: 65,
+      availabilityScore: 80,
+      hasHealthAlerts: false,
+      objectif: "Marathon",
+      ambition: "age_group",
+      age: 35,
+      vma: 15.5,
+      sportFocus: "run",
+    };
+    const result = detectUnifiedLimiter(input);
+    // Should have VMA metric, not FTP/kg
+    const vmaGap = result.gapAnalysis.find((g) => g.metric === "VMA");
+    const ftpGap = result.gapAnalysis.find((g) => g.metric === "FTP/kg");
+    expect(vmaGap).toBeDefined();
+    expect(ftpGap).toBeUndefined();
+    expect(vmaGap?.target).toBe(16.0); // Marathon age_group VMA target
+    expect(result.insufficientData).toBe(false);
+  });
+
+  it("detects low VMA as aerobic limiter for runner", () => {
+    const input: UnifiedLimiterInput = {
+      vo2max: 60,
+      ftpKg: null,
+      vlamax: 0.40,
+      wprimeKj: null,
+      tte: 55,
+      fatmax: null,
+      economyScore: 75,
+      availabilityScore: 80,
+      hasHealthAlerts: false,
+      objectif: "Semi",
+      ambition: "competitor",
+      age: 30,
+      vma: 14.0, // well below 17.5 target
+      sportFocus: "run",
+    };
+    const result = detectUnifiedLimiter(input);
+    expect(result.primaryLimiter).toBe("aerobic_engine");
+    expect(result.aerobicWeaknessLabel).toContain("VMA");
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
