@@ -561,8 +561,8 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
 
   // AXE AÉROBIE : VMA en running, FTP/kg sinon
   let aerobicAxis: RadarAxis;
-  if (isRunning && vmaTarget) {
-    const vmaScore = scoreRelativeToTarget(input.vma, vmaTarget);
+  if (isRunning && adjustedVmaTarget) {
+    const vmaScore = scoreRelativeToTarget(input.vma, adjustedVmaTarget);
     aerobicAxis = {
       key: "vma",
       label: "vVMA",
@@ -571,11 +571,11 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       icon: "🏃",
       color: "hsl(var(--primary))",
       value: input.vma,
-      target: vmaTarget,
+      target: adjustedVmaTarget,
       unit: "km/h",
     };
   } else {
-    const ftpKgScore = scoreRelativeToTarget(profile.ftpKg.value, targets.ftp_kg_min);
+    const ftpKgScore = scoreRelativeToTarget(profile.ftpKg.value, adjustedFtpKgTarget);
     aerobicAxis = {
       key: "ftpkg",
       label: "FTP/kg",
@@ -584,7 +584,7 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       icon: "⚡",
       color: "hsl(var(--primary))",
       value: profile.ftpKg.value,
-      target: targets.ftp_kg_min,
+      target: adjustedFtpKgTarget,
       unit: "W/kg",
     };
   }
