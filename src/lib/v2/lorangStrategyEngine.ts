@@ -111,6 +111,20 @@ export interface LorangStrategyInput {
     tss7d: number | null;
     tss28d: number | null;
   };
+  
+  // ✅ Résultat du moteur unifié de limiteurs (source unique de vérité)
+  unifiedLimiterResult?: {
+    primaryLimiter: string;
+    gapAnalysis: Array<{
+      metric: string;
+      value: number | null;
+      target: number;
+      gapPercent: number;
+      status: "optimal" | "acceptable" | "limiting" | "unknown";
+      weightedImpact: number;
+    }>;
+    aerobicWeaknessDetail: AerobicWeaknessDetail;
+  };
 }
 
 export interface LorangLeverActivation {
