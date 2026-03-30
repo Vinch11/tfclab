@@ -214,7 +214,7 @@ describe("detectUnifiedLimiter", () => {
     const ftpGap = result.gapAnalysis.find((g) => g.metric === "FTP/kg");
     expect(vmaGap).toBeDefined();
     expect(ftpGap).toBeUndefined();
-    expect(vmaGap?.target).toBe(16.0); // Marathon age_group VMA target
+    expect(vmaGap?.target).toBe(15.52); // Marathon age_group VMA target adjusted for age 35 (16 × 0.97)
     expect(result.insufficientData).toBe(false);
   });
 
