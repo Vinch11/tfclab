@@ -44,6 +44,7 @@ import { RunningFocusModeIndicator } from "@/components/RunningFocusModeIndicato
 import { InjuryRiskCAPCard } from "@/components/InjuryRiskCAPCard";
 import { VLamaxRunExplainedCard } from "@/components/VLamaxRunExplainedCard";
 import { PacingEnvelopeRunCard } from "@/components/PacingEnvelopeRunCard";
+import { VmaTargetsCard } from "@/components/VmaTargetsCard";
 import { SortableSectionsContainer } from "@/components/SortableSectionsContainer";
 import { MetabolicCompassCAP } from "@/components/charts";
 
