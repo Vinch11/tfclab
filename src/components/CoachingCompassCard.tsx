@@ -528,16 +528,6 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
             {/* ─── Staff: Profil complet ─── */}
             {staffMode && <StaffMetricsGrid compass={compass} sportFocus={input.sportFocus} />}
           </div>
-
-          {/* ─── COLONNE DROITE : Potentiel Physiologique (desktop) ─── */}
-          <div className="hidden md:block w-[160px] shrink-0 pt-6">
-            <ReadinessPanel readiness={readiness} />
-          </div>
-        </div>
-
-        {/* ─── Potentiel Physiologique mobile ─── */}
-        <div className="md:hidden mt-3">
-          <ReadinessPanel readiness={readiness} />
         </div>
 
         {/* ─── Disclaimer ─── */}
