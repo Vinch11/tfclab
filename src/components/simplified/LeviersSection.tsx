@@ -229,7 +229,7 @@ export function LeviersSection({ diagnostic, prescription, className }: LeviersS
 
         {/* CTA — Générer le plan IA */}
         <Button
-          onClick={() => navigate("/planification")}
+          onClick={() => navigate("/planning")}
           className="w-full gap-2"
           size="lg"
         >
