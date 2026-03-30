@@ -335,15 +335,19 @@ function computeSynthesis(
   };
 
   // L2 doit être un limiteur DIFFÉRENT de L1 pour éviter la redondance
+  // (ex: L1 Endurance spécifique + L2 TTE = incohérent, car même famille)
   const l1LimiterType = limiter.primaryLimiter;
-  const l2Gap = sortedGaps.find((g, i) => i > 0 && mapMetricToLimiter(g.metric) !== l1LimiterType)
-    || (sortedGaps.length > 1 ? sortedGaps.find((_, i) => i > 0) : null);
+  const l2Gap = sortedGaps.find((g, i) => {
+    if (i === 0) return false;
+    const l2Type = mapMetricToLimiter(g.metric);
+    return l2Type !== "none" && l2Type !== l1LimiterType;
+  }) || null;
 
   const L2 = l2Gap
     ? {
         limiter: mapMetricToLimiter(l2Gap.metric),
         lever: mapMetricToLever(l2Gap.metric),
-        label: l2Gap.metric,
+        label: LIMITER_INFO[mapMetricToLimiter(l2Gap.metric)].label,
       }
     : null;
 
@@ -384,8 +388,10 @@ function mapMetricToLimiter(metric: string): "aerobic_engine" | "glycolytic" | "
   const map: Record<string, "aerobic_engine" | "glycolytic" | "specific_endurance" | "neuromuscular" | "anaerobic_capacity" | "metabolic_efficiency" | "availability" | "none"> = {
     "VO2max": "aerobic_engine",
     "FTP/kg": "aerobic_engine",
+    "VMA": "aerobic_engine",
     "VLamax": "glycolytic",
     "TTE": "specific_endurance",
+    "Robustesse": "specific_endurance",
     "Économie": "neuromuscular",
     "W'": "anaerobic_capacity",
     "FatMax": "metabolic_efficiency",
