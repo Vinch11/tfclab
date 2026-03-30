@@ -600,31 +600,31 @@ function normalizeScore(value: number | null, min: number, max: number): number 
 }
 
 /**
- * Score relatif à la cible : atteindre la cible = 75/100, dépasser de 20%+ = 100.
- * En dessous, le score est proportionnel (0 = 50% de la cible ou moins).
+ * Score relatif à la cible : atteindre la cible = 100/100.
+ * En dessous, le score est proportionnel (0% de la cible = 0, 100% = 100).
+ * Dépasser la cible reste à 100 (pas de bonus).
  */
 function scoreRelativeToTarget(value: number | null, target: number | null): number {
   if (value === null || !target || target === 0) return 0;
   const ratio = value / target;
-  if (ratio >= 1.2) return 100;
-  if (ratio >= 1.0) return Math.round(75 + (ratio - 1.0) * 125); // 75-100
-  // Below target: scale 0-75
-  return Math.max(0, Math.round(ratio * 75));
+  if (ratio >= 1.0) return 100;
+  // Below target: linear 0-100
+  return Math.max(0, Math.round(ratio * 100));
 }
 
 /**
- * Score inversé (VLamax) : atteindre la cible (ou en dessous) = 75-100.
- * Au-dessus de la cible = score diminue.
+ * Score inversé (VLamax) : atteindre la cible (ou en dessous) = 100.
+ * Au-dessus de la cible = score diminue proportionnellement.
+ * 2× la cible ou plus = 0.
  */
 function scoreRelativeToTargetInverse(value: number, target: number): number {
   if (target === 0) return 0;
-  // Lower is better. At target = 75, below target = 75-100, above = 0-75
-  if (value <= target * 0.8) return 100;
-  if (value <= target) return Math.round(75 + ((target - value) / (target * 0.2)) * 25);
-  // Above target (worse)
+  // Lower is better. At or below target = 100
+  if (value <= target) return 100;
+  // Above target (worse): linear decrease, 2× target = 0
   const excess = value / target; // >1
   if (excess >= 2.0) return 0;
-  return Math.max(0, Math.round(75 * (2.0 - excess)));
+  return Math.max(0, Math.round(100 * (2.0 - excess)));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
