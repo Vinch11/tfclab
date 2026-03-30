@@ -34,6 +34,12 @@ import type {
   RadarAxis,
 } from "./types";
 
+import {
+  getTargetsForAmbition,
+  getVmaTargetByAmbition,
+} from "@/lib/physiologicalTargets";
+import type { AmbitionLevel } from "@/types/ambitionLevel";
+
 export const COACHING_COMPASS_VERSION = "1.0.0";
 
 const COACHING_COMPASS_DISCLAIMER = 
@@ -461,6 +467,31 @@ function buildReadinessState(input: CoachingCompassInput): TFCLReadinessState {
 
 function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalProfile): RadarAxis[] {
   const isRunning = input.sportFocus === "run";
+  const ambition = (input.ambition || "age_group") as AmbitionLevel;
+  const objectif = input.objectif || "IM";
+
+  // ── Récupérer les cibles réelles par objectif + ambition ──
+  const targets = getTargetsForAmbition(objectif, ambition);
+  const vmaTarget = getVmaTargetByAmbition(objectif, ambition);
+
+  // VO2max target par ambition (même logique que ambitionThresholds)
+  const vo2Targets: Record<string, number> = {
+    finisher: 45, age_group: 52, competitor: 58, elite: 65,
+  };
+  const isLong = ["IM", "Ironman", "Marathon", "Ultra", "TrailLong"].includes(objectif);
+  const vo2Target = (vo2Targets[ambition] || 52) + (isLong ? 3 : 0);
+
+  // Durability target par ambition
+  const durabilityTargets: Record<string, number> = {
+    finisher: 60, age_group: 70, competitor: 80, elite: 90,
+  };
+  const durabilityTarget = durabilityTargets[ambition] || 70;
+
+  // Economy target par ambition
+  const economyTargets: Record<string, number> = {
+    finisher: 55, age_group: 65, competitor: 75, elite: 85,
+  };
+  const economyTarget = economyTargets[ambition] || 65;
 
   // AXE 1 : VO2max (estimation depuis FTP/kg ou VMA selon sport)
   let vo2Score = normalizeScore(profile.vo2max.value, 30, 70);
@@ -479,7 +510,7 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
 
   // AXE AÉROBIE : VMA en running, FTP/kg sinon
   let aerobicAxis: RadarAxis;
-  if (isRunning) {
+  if (isRunning && vmaTarget) {
     const vmaScore = input.vma ? normalizeScore(input.vma, 10, 24) : 0;
     aerobicAxis = {
       key: "vma",
@@ -489,7 +520,7 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       icon: "🏃",
       color: "hsl(var(--primary))",
       value: input.vma,
-      target: 18, // default VMA target, could be refined per objectif
+      target: vmaTarget,
       unit: "km/h",
     };
   } else {
@@ -504,13 +535,12 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       icon: "⚡",
       color: "hsl(var(--primary))",
       value: profile.ftpKg.value,
-      target: 3.5, // default FTP/kg target
+      target: targets.ftp_kg_min,
       unit: "W/kg",
     };
   }
 
   const vlamaxValue = profile.vlamax.value;
-  const tteValue = profile.tte.value;
   const durabilityValue = profile.durability.value;
   const economyValue = profile.runningEconomy.value;
 
@@ -523,7 +553,7 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       icon: "🫁",
       color: "hsl(var(--primary))",
       value: vo2Value,
-      target: 55, // default VO2max target
+      target: vo2Target,
       unit: "ml/kg/min",
     },
     {
@@ -536,7 +566,7 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       icon: "⚡",
       color: "hsl(45, 90%, 50%)",
       value: vlamaxValue,
-      target: 0.35, // default VLamax target (lower is better)
+      target: targets.vlamax.optimal,
       unit: "mmol/L/s",
     },
     aerobicAxis,
@@ -548,7 +578,7 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       icon: "💪",
       color: "hsl(280, 60%, 55%)",
       value: durabilityValue,
-      target: 75, // durability target score
+      target: durabilityTarget,
       unit: "/100",
     },
     {
@@ -559,7 +589,7 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       icon: "🦶",
       color: "hsl(160, 60%, 45%)",
       value: economyValue,
-      target: 70, // economy target score
+      target: economyTarget,
       unit: "/100",
     },
   ];
