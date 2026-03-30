@@ -505,6 +505,11 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
       };
 
       // ✅ Insérer les sections manquantes à des positions stratégiques
+      insertMissing("quick-actions", ["getting-started"]);
+      insertMissing("coaching-compass", ["quick-actions", "getting-started"]);
+      insertMissing("analyse-section", ["coaching-compass", "quick-actions"]);
+      insertMissing("limiteurs-section", ["analyse-section", "coaching-compass"]);
+      insertMissing("leviers-section", ["limiteurs-section", "analyse-section"]);
       insertMissing("objective-manager", ["athlete-refs"]);
       insertMissing("cpw-prime-curve", ["metabolic-power-curve", "fatmax-tfcl", "coach-decision-unified"]);
       insertMissing("wbal-recovery", ["cpw-prime-curve", "metabolic-power-curve", "fatmax-tfcl"]);
