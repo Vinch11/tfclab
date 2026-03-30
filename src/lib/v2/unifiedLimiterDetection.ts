@@ -442,19 +442,20 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
       weightedImpact: vmaGap < 0 ? Math.abs(vmaGap) * weights.aerobic * 100 : 0,
     });
   } else {
-    // Mode Vélo/Tri : FTP/kg
+    // Mode Vélo/Tri : FTP/kg (cible ajustée selon l'âge)
+    const ftpKgTarget = adjustPerformanceTarget(targets.ftp_kg_min, input.age);
     const ftpKgGap = input.ftpKg !== null 
-      ? (input.ftpKg - targets.ftp_kg_min) / targets.ftp_kg_min 
+      ? (input.ftpKg - ftpKgTarget) / ftpKgTarget 
       : 0;
     gapAnalysis.push({
       metric: "FTP/kg",
       value: input.ftpKg,
-      target: targets.ftp_kg_min,
-      gap: input.ftpKg !== null ? input.ftpKg - targets.ftp_kg_min : 0,
+      target: ftpKgTarget,
+      gap: input.ftpKg !== null ? input.ftpKg - ftpKgTarget : 0,
       gapPercent: ftpKgGap * 100,
       status: input.ftpKg === null ? "unknown" 
-        : input.ftpKg >= targets.ftp_kg_min ? "optimal" 
-        : input.ftpKg >= targets.ftp_kg_min * 0.9 ? "acceptable" 
+        : input.ftpKg >= ftpKgTarget ? "optimal" 
+        : input.ftpKg >= ftpKgTarget * 0.9 ? "acceptable" 
         : "limiting",
       weight: weights.aerobic,
       weightedImpact: ftpKgGap < 0 ? Math.abs(ftpKgGap) * weights.aerobic * 100 : 0,
