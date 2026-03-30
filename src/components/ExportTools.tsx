@@ -2177,16 +2177,13 @@ function buildDoubleBoucleCAPHTML(payload: ExportPayload): string {
     `;
   }
   
-  // Déterminer le levier prioritaire
-  const getPriorityLever = () => {
-    if (!vlamax_run) return { lever: "ENDURANCE", emoji: "🫀", label: "Endurance Aérobie" };
-    if (vlamax_run > 0.45) return { lever: "VLAMAX_DOWN", emoji: "⬇️", label: "Baisser VLamax" };
-    if (durability < 40) return { lever: "TTE_UP", emoji: "⏱️", label: "Améliorer Durabilité" };
-    if (vo2max && vo2max < 55) return { lever: "VO2_UP", emoji: "🔥", label: "Développer VO2max" };
-    return { lever: "MAINTAIN", emoji: "✅", label: "Maintien Profil" };
+  // ✅ Levier prioritaire depuis le moteur unifié (cohérence dashboard ↔ PDF)
+  const ul = payload.unifiedLimiter;
+  const lever = {
+    lever: ul.primaryLever,
+    emoji: ul.leverEmoji || "🎯",
+    label: ul.leverLabel || "Maintien Profil",
   };
-  
-  const lever = getPriorityLever();
   const potentielScore = potentielPhysiologique.score;
   const potentielColor = potentielScore >= 80 ? "#16a34a" : potentielScore >= 60 ? "#d97706" : "#dc2626";
   const potentielLabel = potentielScore >= 80 ? "Bonne" : potentielScore >= 60 ? "Modérée" : "Faible";
