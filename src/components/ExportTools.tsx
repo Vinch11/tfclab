@@ -2456,7 +2456,7 @@ function buildLeviersActionHTML(payload: ExportPayload): string {
             <tbody>
               ${roadmap.phases.map(p => `
                 <tr>
-                  <td><b>${htmlEscape(p.label)}</b></td>
+                  <td><b>${htmlEscape(p.name)}</b></td>
                   <td>S${p.startWeek}→S${p.endWeek} (${p.endWeek - p.startWeek + 1} sem)</td>
                   <td>${htmlEscape(p.focus)}</td>
                   <td class="muted">${htmlEscape(p.targets?.join(", ") || "—")}</td>
