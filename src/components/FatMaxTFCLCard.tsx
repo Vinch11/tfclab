@@ -232,7 +232,7 @@ export function FatMaxTFCLCard({
               ))}
               <div className="border-t pt-2 mt-2 flex items-center justify-between text-xs font-medium">
                 <span>Résultat final</span>
-                <span className="font-mono">{fatmax.centerPctFTP}% FTP</span>
+                <span className="font-mono">{fatmax.centerPctFTP}% {refLabel}</span>
               </div>
             </div>
           </CollapsibleContent>

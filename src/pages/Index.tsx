@@ -1570,8 +1570,8 @@ const Index = () => {
               />
             ),
           }]),
-          // ✅ 13. Metabolic Power Curve
-          {
+          // ✅ 13. Metabolic Power Curve — Masqué en mode running (cycling only)
+          ...(isRunningOnly ? [] : [{
             id: "metabolic-power-curve",
             render: () => currentAthlete && effectiveCloudSnapshot && (
               <MetabolicPowerCurve
@@ -1585,7 +1585,7 @@ const Index = () => {
                 vo2max={effectiveCloudSnapshot.vo2max ?? 50}
               />
             ),
-          },
+          }]),
           // ✅ 14. VO2max Age Comparison
           {
             id: "vo2max-age-comparison",
