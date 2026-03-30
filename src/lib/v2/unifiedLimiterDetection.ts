@@ -542,19 +542,20 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
       : 0,
   });
 
-  // 3. Analyse TTE (Specific Endurance)
+  // 3. Analyse TTE (Specific Endurance) — cible ajustée selon l'âge
+  const tteTarget = adjustTTETarget(targets.tte_min, input.age);
   const tteGap = input.tte !== null 
-    ? (input.tte - targets.tte_min) / targets.tte_min 
+    ? (input.tte - tteTarget) / tteTarget 
     : 0;
   gapAnalysis.push({
     metric: "TTE",
     value: input.tte,
-    target: targets.tte_min,
-    gap: input.tte !== null ? input.tte - targets.tte_min : 0,
+    target: tteTarget,
+    gap: input.tte !== null ? input.tte - tteTarget : 0,
     gapPercent: tteGap * 100,
     status: input.tte === null ? "unknown"
-      : input.tte >= targets.tte_min ? "optimal"
-      : input.tte >= targets.tte_min * 0.85 ? "acceptable"
+      : input.tte >= tteTarget ? "optimal"
+      : input.tte >= tteTarget * 0.85 ? "acceptable"
       : "limiting",
     weight: weights.tte,
     weightedImpact: tteGap < 0 ? Math.abs(tteGap) * weights.tte * 100 : 0,
