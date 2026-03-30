@@ -301,7 +301,7 @@ export default function AITrainingPlanPage() {
       sex: (athlete.sex === "M" || athlete.sex === "F") ? athlete.sex : null,
       weightKg: refs.weightKg,
       objectif: obj,
-      ambition: amb as AmbitionLevel,
+      ambition: normalizeAmbitionLevel(amb),
       sportFocus: activeSnap.sport_main === "run" ? "run" : "bike",
       vo2max: refs.vo2max,
       ftp: refs.ftp,
