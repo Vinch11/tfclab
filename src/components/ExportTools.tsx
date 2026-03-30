@@ -156,11 +156,6 @@ interface ExportOptions {
 // ReportSections interface - defines available sections in PDF export
 // DEFAULT_REPORT_SECTIONS is imported from ReportSectionOrderEditor
 
-interface ExportOptions {
-  includeWahooSuggestions: boolean;
-  sections: ReportSections;
-}
-
 // Note: DEFAULT_REPORT_SECTIONS is now defined in ReportSectionOrderEditor
 
 // SECTION_LABELS, getSectionOrder and DEFAULT_SECTION_ORDER are imported from ReportSectionOrderEditor
