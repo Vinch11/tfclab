@@ -545,6 +545,9 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
               subtitle={staffMode ? decision.coachRationale : decision.athleteMessage}
               accentClass="bg-[hsl(var(--success)/0.8)]"
             >
+              <p className="text-[10px] text-muted-foreground mt-1.5 italic leading-relaxed">
+                💡 {FLOW_PEDAGOGY.decision}
+              </p>
               <div className="mt-2 space-y-1.5">
                 {/* Duration & workouts */}
                 <div className="flex items-center gap-3 text-[10px]">
