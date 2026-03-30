@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { computeCoachingCompass, type CoachingCompassInput, type TFCLCoachingCompassResult, type RadarAxis } from "@/lib/coachingCompass";
+import { getTargetsForAmbition, getVmaTargetByAmbition } from "@/lib/physiologicalTargets";
+import type { AmbitionLevel } from "@/types/ambitionLevel";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // EXPLICATIONS PÉDAGOGIQUES — Axes du radar
@@ -388,9 +390,39 @@ const METRIC_EXPLANATIONS: Record<string, { desc: string; why: string }> = {
   },
 };
 
-function StaffMetricsGrid({ compass, sportFocus }: { compass: TFCLCoachingCompassResult; sportFocus?: string | null }) {
+function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachingCompassResult; sportFocus?: string | null; input: CoachingCompassInput }) {
   const profile = compass.profile;
   const isRunning = sportFocus === "run";
+
+  // Compute targets from ambition/objectif
+  const ambition = (input.ambition || "age_group") as AmbitionLevel;
+  const objectif = input.objectif || "IM";
+  const targets = getTargetsForAmbition(objectif, ambition);
+  const vmaTarget = getVmaTargetByAmbition(objectif, ambition);
+  const isLong = ["IM", "Ironman", "Marathon", "Ultra", "TrailLong"].includes(objectif);
+  const vo2Targets: Record<string, number> = { finisher: 45, age_group: 52, competitor: 58, elite: 65 };
+  const vo2Target = (vo2Targets[ambition] || 52) + (isLong ? 3 : 0);
+  const durabilityTargets: Record<string, number> = { finisher: 60, age_group: 70, competitor: 80, elite: 90 };
+  const economyTargets: Record<string, number> = { finisher: 55, age_group: 65, competitor: 75, elite: 85 };
+  const tteTargets: Record<string, number> = { finisher: 35, age_group: 45, competitor: 55, elite: 65 };
+  const fatmaxTargets: Record<string, number> = { finisher: 120, age_group: 160, competitor: 200, elite: 240 };
+  const wprimeTargets: Record<string, number> = { finisher: 15, age_group: 20, competitor: 25, elite: 30 };
+
+  const metricTargets: Record<string, { target: number | null; inverse?: boolean }> = {
+    "VO₂max": { target: vo2Target },
+    "VLamax": { target: targets.vlamax.optimal, inverse: true },
+    "FTP": { target: input.poids && targets.ftp_kg_min ? Math.round(targets.ftp_kg_min * input.poids) : null },
+    "FTP/kg": { target: targets.ftp_kg_min },
+    "VMA": { target: vmaTarget },
+    "TTE": { target: tteTargets[ambition] || 45 },
+    "FatMax": { target: fatmaxTargets[ambition] || 160 },
+    "LT1": { target: null },
+    "LT2": { target: null },
+    "W'": { target: wprimeTargets[ambition] || 20 },
+    "Éco.": { target: economyTargets[ambition] || 65 },
+    "Durabilité": { target: durabilityTargets[ambition] || 70 },
+  };
+
   const metrics = [
     { key: "VO₂max", m: profile.vo2max },
     { key: "VLamax", m: profile.vlamax },
@@ -415,6 +447,8 @@ function StaffMetricsGrid({ compass, sportFocus }: { compass: TFCLCoachingCompas
   const sourceLabel = (s: string) =>
     s === "snapshot" ? "📋 Mesuré" : s === "estimation" ? "📐 Estimé" : "❓ Inconnu";
 
+  const formatVal = (v: number, isSmall: boolean) => isSmall ? v.toFixed(2) : String(Math.round(v));
+
   return (
     <div className="mt-3 p-3 rounded-lg bg-muted/20 border border-border/30">
       <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60 mb-2">
@@ -423,6 +457,30 @@ function StaffMetricsGrid({ compass, sportFocus }: { compass: TFCLCoachingCompas
       <div className="space-y-1.5">
         {metrics.map(({ key, m }) => {
           const expl = METRIC_EXPLANATIONS[key];
+          const tgt = metricTargets[key];
+          const target = tgt?.target;
+          const inverse = tgt?.inverse ?? false;
+          const isSmall = typeof m.value === "number" && m.value < 10;
+
+          // Delta calculation
+          let delta: number | null = null;
+          let deltaLabel = "";
+          let deltaPositive = false;
+          if (typeof m.value === "number" && target != null) {
+            if (inverse) {
+              delta = target - m.value; // positive = ahead (lower is better)
+              deltaPositive = delta >= 0;
+            } else {
+              delta = m.value - target;
+              deltaPositive = delta >= 0;
+            }
+            const absDelta = Math.abs(delta);
+            const formatted = absDelta < 10 ? absDelta.toFixed(1) : String(Math.round(absDelta));
+            deltaLabel = deltaPositive
+              ? `✓ +${formatted} d'avance`
+              : `Δ ${formatted} à combler`;
+          }
+
           return (
             <div key={key} className="rounded-md bg-background/40 border border-border/20 overflow-hidden">
               {/* Main row */}
@@ -433,7 +491,7 @@ function StaffMetricsGrid({ compass, sportFocus }: { compass: TFCLCoachingCompas
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] font-bold font-mono text-foreground">
-                    {typeof m.value === "number" ? (m.value < 10 ? m.value.toFixed(2) : Math.round(m.value)) : "—"}
+                    {typeof m.value === "number" ? formatVal(m.value, isSmall) : "—"}
                   </span>
                   <div className={cn(
                     "px-1.5 py-0.5 rounded text-[8px] font-medium",
@@ -445,6 +503,28 @@ function StaffMetricsGrid({ compass, sportFocus }: { compass: TFCLCoachingCompas
                   </div>
                 </div>
               </div>
+              {/* Target comparison row */}
+              {target != null && typeof m.value === "number" && (
+                <div className="flex items-center gap-2 px-2.5 py-1 bg-muted/30 flex-wrap">
+                  <span className="text-[9px] text-muted-foreground">
+                    Actuel <span className="font-semibold text-foreground">{formatVal(m.value, isSmall)}</span> {m.unit}
+                  </span>
+                  <span className="text-[9px] text-muted-foreground">→</span>
+                  <span className="text-[9px] text-muted-foreground">
+                    Cible <span className="font-semibold text-foreground">{formatVal(target, target < 10)}</span> {m.unit}
+                  </span>
+                  {delta !== null && (
+                    <span className={cn(
+                      "text-[8px] font-medium px-1.5 py-0.5 rounded-full",
+                      deltaPositive
+                        ? "bg-[hsl(var(--success)/0.1)] text-[hsl(var(--success))]"
+                        : "bg-[hsl(var(--warning)/0.1)] text-[hsl(var(--warning))]"
+                    )}>
+                      {deltaLabel}
+                    </span>
+                  )}
+                </div>
+              )}
               {/* Explanation row */}
               {expl && (
                 <div className="px-2.5 pb-2 space-y-0.5">
@@ -761,7 +841,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
             </FlowStep>
 
             {/* ─── Staff: Profil complet ─── */}
-            {staffMode && <StaffMetricsGrid compass={compass} sportFocus={input.sportFocus} />}
+            {staffMode && <StaffMetricsGrid compass={compass} sportFocus={input.sportFocus} input={input} />}
           </div>
         </div>
 
