@@ -309,12 +309,56 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
   const { limiter, synthesis } = diagnostic;
   const gapAnalysis = limiter.gapAnalysis;
 
+  const [isReorderMode, setIsReorderMode] = useState(false);
+
+  // Default sort: by gap ascending (worst first)
+  const defaultOrder = useMemo(
+    () => [...gapAnalysis].sort((a, b) => a.gap - b.gap).map(g => g.metric),
+    [gapAnalysis]
+  );
+
+  const [metricOrder, setMetricOrder] = useState<string[]>(defaultOrder);
+
+  // Sync if gapAnalysis changes
+  useMemo(() => {
+    const currentMetrics = new Set(metricOrder);
+    const newMetrics = gapAnalysis.map(g => g.metric);
+    const hasNew = newMetrics.some(m => !currentMetrics.has(m));
+    if (hasNew) setMetricOrder(defaultOrder);
+  }, [gapAnalysis, defaultOrder]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setMetricOrder(prev => {
+        const oldIndex = prev.indexOf(active.id as string);
+        const newIndex = prev.indexOf(over.id as string);
+        return arrayMove(prev, oldIndex, newIndex);
+      });
+    }
+  }, []);
+
+  const gapMap = useMemo(() => {
+    const map = new Map<string, typeof gapAnalysis[number]>();
+    for (const g of gapAnalysis) map.set(g.metric, g);
+    return map;
+  }, [gapAnalysis]);
+
+  const orderedGaps = metricOrder
+    .map(m => gapMap.get(m))
+    .filter(Boolean) as typeof gapAnalysis;
+
   return (
     <Card className={cn("overflow-hidden", className)}>
-      <CardHeader className="pb-3 bg-gradient-to-r from-blue-500/5 to-blue-600/10 border-b">
+      <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-primary/10 border-b">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-            <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <BarChart3 className="h-5 w-5 text-primary" />
           </div>
           <div className="flex-1">
             <CardTitle className="text-lg">Analyse Physiologique</CardTitle>
@@ -322,9 +366,23 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
               Évaluation détaillée de tes capacités — clique sur une métrique pour en savoir plus
             </p>
           </div>
-          <Badge variant="outline" className="text-xs">
-            {Math.round(diagnostic.meta.dataCompleteness * 100)}% données
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={isReorderMode ? "default" : "outline"}
+              size="sm"
+              className="h-7 text-xs gap-1.5"
+              onClick={() => {
+                if (isReorderMode) setIsReorderMode(false);
+                else setIsReorderMode(true);
+              }}
+            >
+              <ArrowUpDown className="h-3.5 w-3.5" />
+              {isReorderMode ? "Terminé" : "Trier"}
+            </Button>
+            <Badge variant="outline" className="text-xs">
+              {Math.round(diagnostic.meta.dataCompleteness * 100)}% données
+            </Badge>
+          </div>
         </div>
       </CardHeader>
 
@@ -359,25 +417,41 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
           </div>
         </div>
 
-        {/* Liste des métriques avec gaps — triées par priorité */}
-        <div className="space-y-2.5">
-          {gapAnalysis
-            .sort((a, b) => a.gap - b.gap) // Prioritaires en premier
-            .map((gap) => {
-              const metricInfo = METRIC_EXPLANATIONS[gap.metric] || {
-                label: gap.metric,
-                unit: "",
-                explanation: "Métrique physiologique contribuant à ta performance.",
-                whyItMatters: "Cette métrique influence directement ta capacité à atteindre ton objectif.",
-                howToImprove: "Consulte ton coach pour des recommandations spécifiques.",
-                icon: "📊",
-              };
+        {/* Hint réorganisation */}
+        {isReorderMode && (
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/5 border border-primary/20 text-xs text-primary">
+            <GripVertical className="h-4 w-4" />
+            Glisse les métriques pour réorganiser l'ordre d'affichage
+          </div>
+        )}
 
-              return (
-                <MetricCard key={gap.metric} gap={gap} metricInfo={metricInfo} />
-              );
-            })}
-        </div>
+        {/* Liste des métriques — avec drag & drop */}
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={metricOrder} strategy={verticalListSortingStrategy}>
+            <div className="space-y-2.5">
+              {orderedGaps.map((gap) => {
+                const metricInfo = METRIC_EXPLANATIONS[gap.metric] || {
+                  label: gap.metric,
+                  unit: "",
+                  explanation: "Métrique physiologique contribuant à ta performance.",
+                  whyItMatters: "Cette métrique influence directement ta capacité à atteindre ton objectif.",
+                  howToImprove: "Consulte ton coach pour des recommandations spécifiques.",
+                  icon: "📊",
+                };
+
+                return (
+                  <SortableMetricCard
+                    key={gap.metric}
+                    id={gap.metric}
+                    gap={gap}
+                    metricInfo={metricInfo}
+                    isReorderMode={isReorderMode}
+                  />
+                );
+              })}
+            </div>
+          </SortableContext>
+        </DndContext>
 
         {/* Alertes */}
         {synthesis.alerts.length > 0 && (
@@ -390,7 +464,7 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
                   "flex items-start gap-2 p-2.5 rounded-xl text-xs",
                   alert.severity === "critical" && "bg-destructive/10 text-destructive border border-destructive/20",
                   alert.severity === "warning" && "bg-[hsl(var(--warning)/0.1)] text-[hsl(var(--warning))] border border-[hsl(var(--warning)/0.2)]",
-                  alert.severity === "info" && "bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20"
+                  alert.severity === "info" && "bg-primary/10 text-primary border border-primary/20"
                 )}
               >
                 <span className="text-sm">{alert.severity === "critical" ? "🚨" : alert.severity === "warning" ? "⚠️" : "ℹ️"}</span>
