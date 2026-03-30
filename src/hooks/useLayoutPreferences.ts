@@ -86,11 +86,6 @@ export const STRATEGIE_SECTIONS: SectionDefinition[] = [
   { id: "comprendre-scores", label: "Comprendre mes Scores", icon: "HelpCircle", category: "outils", defaultVisible: true },
 ];
 
-export const EVOLUTION_SECTIONS: SectionDefinition[] = [
-  { id: "historical-chart", label: "Graphique Historique", icon: "LineChart", defaultVisible: true },
-  { id: "scientific-dashboard", label: "Dashboard Scientifique", icon: "BarChart", defaultVisible: true },
-  { id: "sport-analysis", label: "Analyse par Sport", icon: "Activity", defaultVisible: true },
-];
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // RUNNING PROFILE SECTIONS — Sections spécifiques au profil CAP
