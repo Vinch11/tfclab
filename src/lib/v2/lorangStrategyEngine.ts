@@ -411,14 +411,9 @@ function identifyPrimaryLimiter(input: LorangStrategyInput): {
   const { physiology, availability, symptoms } = input;
   const reasons: string[] = [];
   
-  // Priorité 1: Disponibilité critique
-  if (availability.level === 'critical' || availability.hasAlerts) {
-    return {
-      limiter: 'availability',
-      reasons: ["Disponibilité critique ou alertes actives"],
-      confidence: 'high',
-    };
-  }
+  // Priorité 1: Disponibilité critique — NE PLUS BLOQUER comme limiteur
+  // La fatigue génère un avertissement mais n'est JAMAIS le limiteur primaire
+  // (cohérent avec la philosophie snapshot-centric)
   
   // Calcul des écarts vs cibles
   const vo2maxGap = physiology.vo2max !== null 
@@ -498,14 +493,8 @@ function identifyPrimaryLimiter(input: LorangStrategyInput): {
     }
   }
   
-  // Disponibilité modérée/faible = facteur aggravant
-  if (availability.level === 'low') {
-    scores.push({
-      limiter: 'availability',
-      score: -40,
-      reason: "Disponibilité faible",
-    });
-  }
+  // Disponibilité modérée/faible = avertissement seulement, pas un limiteur
+  // (Supprimé de la liste des scores pour éviter d'être sélectionné comme primaryLimiter)
   
   // Tri par score (plus négatif en premier)
   scores.sort((a, b) => a.score - b.score);
