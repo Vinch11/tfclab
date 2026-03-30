@@ -1613,6 +1613,34 @@ const Index = () => {
               />
             ),
           },
+          // ✅ CP/W' Courbe Puissance-Durée (déplacé du dashboard)
+          {
+            id: "cp-wprime-curve-profil",
+            render: () => currentAthlete && effectiveCloudSnapshot && (
+              <CPWPrimeCurveCard
+                pmax5s={effectiveCloudSnapshot.pmax_5s ?? null}
+                p30s={effectiveCloudSnapshot.p30s_w ?? null}
+                p60s={effectiveCloudSnapshot.p60s_w ?? null}
+                map5min={effectiveCloudSnapshot.map5min_w ?? null}
+                ftp={ftp}
+                weightKg={effectiveCloudSnapshot.weight_kg ?? undefined}
+              />
+            ),
+          },
+          // ✅ W'bal Recovery (déplacé du dashboard)
+          {
+            id: "wbal-recovery-profil",
+            render: () => currentAthlete && effectiveCloudSnapshot && (
+              <WbalRecoveryCard
+                pmax5s={effectiveCloudSnapshot.pmax_5s ?? null}
+                p30s={effectiveCloudSnapshot.p30s_w ?? null}
+                p60s={effectiveCloudSnapshot.p60s_w ?? null}
+                map5min={effectiveCloudSnapshot.map5min_w ?? null}
+                ftp={ftp}
+                weightKg={effectiveCloudSnapshot.weight_kg ?? undefined}
+              />
+            ),
+          },
         ];
 
         return (
