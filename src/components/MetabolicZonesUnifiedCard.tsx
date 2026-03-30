@@ -145,7 +145,7 @@ export function MetabolicZonesUnifiedCard({
           <div className="flex flex-col items-center justify-center py-4 text-muted-foreground">
             <AlertTriangle className="w-8 h-8 mb-2 opacity-50" />
             <p className="text-sm">Données insuffisantes</p>
-            <p className="text-xs mt-1">VLamax et FTP requis pour le calcul</p>
+            <p className="text-xs mt-1">VLamax et {refLabel} requis pour le calcul</p>
           </div>
         </CardContent>
       </Card>
