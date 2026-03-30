@@ -142,10 +142,9 @@ function buildPhysiologicalProfile(input: CoachingCompassInput): TFCLPhysiologic
   const fatmaxValue = input.fatmax ?? estimateFatMaxFromProfile(input.ftp, input.vlamaxEffectif.value);
   const fatmaxSource = input.fatmax ? "snapshot" : (fatmaxValue ? "estimation" : "unknown");
 
-  // Durabilité : hrDrift > TTE dérivé
-  const durabilityFromDrift = input.hrDriftPct != null ? Math.max(0, 100 - input.hrDriftPct * 5) : null;
-  const durabilityValue = durabilityFromDrift ?? deriveDurabilityFromTTE(input.tteEffectif.tte_min);
-  const durabilitySource = durabilityFromDrift != null ? "snapshot" : (durabilityValue ? "estimation" : "unknown");
+  // Durabilité = expression directe du TTE (pas de fatigue/disponibilité)
+  const durabilityValue = deriveDurabilityFromTTE(input.tteEffectif.tte_min);
+  const durabilitySource = durabilityValue ? "estimation" : "unknown";
 
   // Économie : running score > dérivé vélo
   const economyValue = input.runEconomyScore ?? deriveEconomyFromBike(input.ftp, input.map5minW, input.poids);
