@@ -143,38 +143,75 @@ export function LimiteursSection({ diagnostic, className }: LimiteursSectionProp
           </div>
         )}
 
-        {/* Gaps les plus significatifs */}
+        {/* Gaps — tous les axes avec comparatif Actuel vs Cible */}
         {limiter.gapAnalysis.length > 0 && (
           <div>
             <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
               Écarts par rapport aux cibles
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {limiter.gapAnalysis
-                .filter(g => g.gap < 0)
+            <div className="space-y-1.5">
+              {[...limiter.gapAnalysis]
                 .sort((a, b) => a.gap - b.gap)
-                .slice(0, 6)
-                .map((gap) => (
-                  <div
-                    key={gap.metric}
-                    className={cn(
-                      "p-2.5 rounded-lg border text-center",
-                      gap.gap < -15 ? "border-red-500/30 bg-red-500/5" :
-                      gap.gap < -5 ? "border-amber-500/30 bg-amber-500/5" :
-                      "border-muted bg-muted/30"
-                    )}
-                  >
-                    <p className="text-xs font-medium truncate">{gap.metric}</p>
-                    <p className={cn(
-                      "text-sm font-bold",
-                      gap.gap < -15 ? "text-red-600 dark:text-red-400" :
-                      gap.gap < -5 ? "text-amber-600 dark:text-amber-400" :
-                      "text-foreground"
-                    )}>
-                      {gap.gap.toFixed(0)}%
-                    </p>
-                  </div>
-                ))}
+                .map((gap) => {
+                  const isBelow = gap.gap < 0;
+                  const isUnknown = gap.status === "unknown" || gap.value === null;
+                  const severity = gap.gap < -15 ? "critical" : gap.gap < -5 ? "warning" : isBelow ? "mild" : "ok";
+
+                  const formatVal = (v: number) => {
+                    if (v < 1) return v.toFixed(2);
+                    if (v < 10) return v.toFixed(1);
+                    return v.toFixed(0);
+                  };
+
+                  // Determine unit from metric name
+                  const unit = gap.metric === "VLamax" ? "mmol/L/s"
+                    : gap.metric === "FTP/kg" ? "W/kg"
+                    : gap.metric === "VO2max" ? "ml/kg/min"
+                    : gap.metric === "TTE" ? "min"
+                    : gap.metric === "VMA" ? "km/h"
+                    : gap.metric === "Économie" || gap.metric === "Robustesse" ? "/100"
+                    : "";
+
+                  return (
+                    <div
+                      key={gap.metric}
+                      className={cn(
+                        "flex items-center justify-between p-2.5 rounded-lg border",
+                        severity === "critical" ? "border-[hsl(var(--destructive)/0.3)] bg-[hsl(var(--destructive)/0.05)]" :
+                        severity === "warning" ? "border-[hsl(var(--warning)/0.3)] bg-[hsl(var(--warning)/0.05)]" :
+                        severity === "ok" ? "border-[hsl(var(--success)/0.3)] bg-[hsl(var(--success)/0.05)]" :
+                        "border-border/40 bg-muted/20"
+                      )}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-xs font-semibold truncate">{gap.metric}</span>
+                        {!isUnknown && gap.value !== null && (
+                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                            <span className="font-mono font-bold text-foreground">{formatVal(gap.value)}</span>
+                            <span>→</span>
+                            <span className="font-mono">{formatVal(gap.target)}</span>
+                            <span className="text-muted-foreground/60">{unit}</span>
+                          </div>
+                        )}
+                        {isUnknown && (
+                          <span className="text-[10px] text-muted-foreground italic">Donnée manquante</span>
+                        )}
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "text-[9px] px-1.5 h-4 shrink-0",
+                          severity === "critical" ? "border-[hsl(var(--destructive)/0.4)] text-[hsl(var(--destructive))]" :
+                          severity === "warning" ? "border-[hsl(var(--warning)/0.4)] text-[hsl(var(--warning))]" :
+                          severity === "ok" ? "border-[hsl(var(--success)/0.4)] text-[hsl(var(--success))]" :
+                          "border-border text-muted-foreground"
+                        )}
+                      >
+                        {isUnknown ? "?" : severity === "ok" ? "✅ Atteint" : `${gap.gap.toFixed(0)}%`}
+                      </Badge>
+                    </div>
+                  );
+                })}
             </div>
           </div>
         )}
