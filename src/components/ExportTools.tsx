@@ -3206,29 +3206,69 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   // =============================================
   // SOMMAIRE REPOSITIONNÉ
   // =============================================
-  const tocHTML = `
+  const tocHTML = (() => {
+    const sectionOrder = getSectionOrder();
+    const sectionVisibility = options.sections;
+    const visibleSections = sectionOrder.filter(key => sectionVisibility[key]);
+    
+    const sectionAnchors: Record<keyof ReportSections, string> = {
+      synthese: "executif",
+      compass: "compass",
+      profilMetabolique: "profil-metabolique",
+      vlamaxZoneConfidence: "vlamax-zone-confidence",
+      indicateurs: "indicateurs",
+      potentielPhysiologique: "readiness",
+      disponibiliteTFCL: "disponibilite-tfcl",
+      raceSimulation: "race-simulation",
+      pacingEnvelope: "pacing-envelope",
+      longDistancePacing: "long-distance-pacing",
+      doubleBoucleCAP: "double-boucle-cap",
+      potentielPhysiologiqueRunning: "potentiel-running",
+      pacingEnvelopeRunning: "pacing-envelope-running",
+      injuryRisk: "injury-risk",
+      nutritionV2: "nutrition-v2",
+      fatmaxTFCL: "fatmax-tfcl",
+      ambitionTargets: "ambition-targets",
+      ambitionPredictions: "ambition-predictions",
+      evolutionCharts: "evolution-charts",
+      ageAdjustment: "aai",
+      ambitionLegend: "ambition-legend",
+      methodology: "methodology",
+      twoForCoaching: "twoforcoaching",
+      wahoo: "wahoo",
+      planSuggestion: "plan-suggestion",
+      templateRecommendation: "template-recommendation",
+      zones: "zones",
+      historique: "historique",
+      tests: "tests",
+      testsCalibration: "tests-calibration",
+      calibrationEvidence: "calibration-evidence",
+      fitImports: "fit-imports",
+      checkins: "checkins",
+      comprendre: "comprendre",
+      qualite: "qualite",
+      roadmap: "roadmap",
+      lactateCurve: "lactate-curve",
+      substrateCurve: "substrat-curve",
+      performancePrediction: "performance-prediction",
+      facteursLimitants: "facteurs-limitants",
+      leviersAction: "leviers-action",
+    };
+    
+    const tocRows = visibleSections.map((key, i) => {
+      const label = SECTION_LABELS[key] || key;
+      const anchor = sectionAnchors[key] || key;
+      return `<div class="tocRow"><a href="#${anchor}">${i + 1}. ${htmlEscape(label)}</a></div>`;
+    }).join('\n      ');
+    
+    return `
     <div class="toc mb">
       <div class="tocTitle">📑 SOMMAIRE — Rapport de Modélisation Physiologique</div>
-      <div class="tocRow"><a href="#positionnement">1. Positionnement & Comment lire ce rapport</a></div>
-      <div class="tocRow"><a href="#executif">2. Synthèse Exécutive</a></div>
-      <div class="tocRow"><a href="#compass">3. Metabolic Performance Compass™</a></div>
-      <div class="tocRow"><a href="#indicateurs">4. Indicateurs Clés</a></div>
-      <div class="tocRow"><a href="#readiness">5. Potentiel Physiologique</a></div>
-      <div class="tocRow"><a href="#injury-risk">6. Risque de Blessure CAP</a></div>
-      <div class="tocRow"><a href="#nutrition-v2">7. Nutrition Prédictive V2</a></div>
-      <div class="tocRow"><a href="#fatmax-tfcl">8. FatMax TFCL™</a></div>
-      <div class="tocRow"><a href="#ambition-targets">9. Cibles par Niveau d'Ambition</a></div>
-      <div class="tocRow"><a href="#evolution-charts">10. Graphiques d'Évolution</a></div>
-      <div class="tocRow"><a href="#aai">11. Ajustement par l'Âge (AAI)</a></div>
-      <div class="tocRow"><a href="#methodology">12. Méthodologies d'Entraînement</a></div>
-      <div class="tocRow"><a href="#twoforcoaching">13. Analyse Two For Coaching Lab™</a></div>
-      
-      <div class="tocRow"><a href="#template-recommendation">15. Template Recommandé</a></div>
-      <div class="tocRow"><a href="#zones">16. Zones d'entraînement</a></div>
-      <div class="tocRow"><a href="#comprendre">17. Comprendre mes scores</a></div>
-      <div class="tocRow"><a href="#qualite">18. Qualité des données</a></div>
+      <div class="tocRow"><a href="#positionnement">0. Positionnement & Comment lire ce rapport</a></div>
+      ${tocRows}
     </div>
   `;
+  })();
 
   // =============================================
   // 1. POSITIONNEMENT UNIFIÉ (FUSIONNÉ AVEC CHARTE)
