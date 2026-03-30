@@ -841,7 +841,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
             </FlowStep>
 
             {/* ─── Staff: Profil complet ─── */}
-            {staffMode && <StaffMetricsGrid compass={compass} sportFocus={input.sportFocus} />}
+            {staffMode && <StaffMetricsGrid compass={compass} sportFocus={input.sportFocus} input={input} />}
           </div>
         </div>
 
