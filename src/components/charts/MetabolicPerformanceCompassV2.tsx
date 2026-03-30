@@ -703,7 +703,7 @@ export function MetabolicPerformanceCompassV2({
           <p className="mt-2 text-muted-foreground leading-relaxed">
             Cibles définies par <span className="font-medium text-foreground">objectif</span> et <span className="font-medium text-foreground">ambition ({getAmbitionDefinition(currentAmbition).shortLabel})</span>.
             {ageTargets.ageAdjustmentApplied && (
-              <span className="ml-1">TTE ajusté pour {ageInfo.label}.</span>
+              <span className="ml-1">Cibles ajustées pour {ageInfo.label} (FTP/kg, TTE, VO₂max).</span>
             )}
           </p>
         </div>
