@@ -590,7 +590,7 @@ function CrossoverTabContent({
             <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
           )}
           <span className="text-xs font-medium">
-            Intensité course ({objectif}): ~{raceIntensity}% FTP
+            Intensité course ({objectif}): ~{raceIntensity}% Seuil
           </span>
         </div>
         <p className="text-[10px] text-muted-foreground mt-1">
