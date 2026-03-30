@@ -1325,8 +1325,12 @@ const Index = () => {
             id: "quick-actions",
             render: () => (
               <QuickActionsPanel
-                onCreateSnapshot={() => {
+              onCreateSnapshot={() => {
                   setShowSnapshots(true);
+                  setTimeout(() => {
+                    const el = document.getElementById("snapshot-manager-section");
+                    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }, 100);
                 }}
               />
             ),
