@@ -218,7 +218,7 @@ export const DEFAULT_VISIBILITY: Record<keyof ReportSections, boolean> = {
   ambitionLegend: true,
   methodology: true,
   twoForCoaching: true,
-  wahoo: true,
+  wahoo: false,
   planSuggestion: true,
   templateRecommendation: true,
   zones: true,
