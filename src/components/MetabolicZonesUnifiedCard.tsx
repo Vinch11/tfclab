@@ -344,7 +344,7 @@ function FatMaxTabContent({
             <span className="text-xs font-medium">Crossover Zone</span>
           </div>
           <span className="font-mono text-xs font-medium text-amber-600 dark:text-amber-400">
-            {fatmax.crossoverZone[0]}–{fatmax.crossoverZone[1]}% FTP
+            {fatmax.crossoverZone[0]}–{fatmax.crossoverZone[1]}% {refLabel}
           </span>
         </div>
       </div>
