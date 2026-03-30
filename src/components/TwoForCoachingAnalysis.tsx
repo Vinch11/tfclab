@@ -96,6 +96,7 @@ export function TwoForCoachingAnalysis({
   }, [snapshot]);
   const [analysis, setAnalysis] = useState<ReglesTwoForCoachingResult>({
     priorite: "",
+    priorites: [],
     alertes: [],
     race_ready: false
   });
