@@ -464,14 +464,16 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
 
   // AXE 1 : VO2max (estimation depuis FTP/kg ou VMA selon sport)
   let vo2Score = normalizeScore(profile.vo2max.value, 30, 70);
+  let vo2Value = profile.vo2max.value;
   if (vo2Score === 0) {
     if (isRunning && input.vma) {
-      // Estimation grossière : VO2max ≈ VMA × 3.5
       const estimatedVo2 = input.vma * 3.5;
       vo2Score = normalizeScore(estimatedVo2, 30, 70);
+      vo2Value = Math.round(estimatedVo2 * 10) / 10;
     } else if (profile.ftpKg.value) {
       const estimatedVo2 = profile.ftpKg.value * 12 + 5;
       vo2Score = normalizeScore(estimatedVo2, 30, 70);
+      vo2Value = Math.round(estimatedVo2 * 10) / 10;
     }
   }
 
@@ -486,6 +488,9 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       score: vmaScore,
       icon: "🏃",
       color: "hsl(var(--primary))",
+      value: input.vma,
+      target: 18, // default VMA target, could be refined per objectif
+      unit: "km/h",
     };
   } else {
     const ftpKgScore = profile.ftpKg.value
@@ -498,8 +503,16 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       score: ftpKgScore,
       icon: "⚡",
       color: "hsl(var(--primary))",
+      value: profile.ftpKg.value,
+      target: 3.5, // default FTP/kg target
+      unit: "W/kg",
     };
   }
+
+  const vlamaxValue = profile.vlamax.value;
+  const tteValue = profile.tte.value;
+  const durabilityValue = profile.durability.value;
+  const economyValue = profile.runningEconomy.value;
 
   return [
     {
@@ -509,33 +522,45 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       score: vo2Score,
       icon: "🫁",
       color: "hsl(var(--primary))",
+      value: vo2Value,
+      target: 55, // default VO2max target
+      unit: "ml/kg/min",
     },
     {
       key: "vlamax",
       label: "Profil Glycolytique",
       shortLabel: "VLamax",
-      score: profile.vlamax.value !== null 
-        ? Math.max(0, Math.min(100, Math.round(100 - (profile.vlamax.value - 0.20) * 125)))
+      score: vlamaxValue !== null 
+        ? Math.max(0, Math.min(100, Math.round(100 - (vlamaxValue - 0.20) * 125)))
         : 0,
       icon: "⚡",
       color: "hsl(45, 90%, 50%)",
+      value: vlamaxValue,
+      target: 0.35, // default VLamax target (lower is better)
+      unit: "mmol/L/s",
     },
     aerobicAxis,
     {
       key: "durability",
       label: "Durabilité",
       shortLabel: "Durabilité",
-      score: profile.durability.value !== null ? Math.round(profile.durability.value) : 0,
+      score: durabilityValue !== null ? Math.round(durabilityValue) : 0,
       icon: "💪",
       color: "hsl(280, 60%, 55%)",
+      value: durabilityValue,
+      target: 75, // durability target score
+      unit: "/100",
     },
     {
       key: "economy",
       label: isRunning ? "Économie de Course" : "Économie",
       shortLabel: isRunning ? "Éco. CAP" : "Éco.",
-      score: profile.runningEconomy.value !== null ? Math.round(profile.runningEconomy.value) : 0,
+      score: economyValue !== null ? Math.round(economyValue) : 0,
       icon: "🦶",
       color: "hsl(160, 60%, 45%)",
+      value: economyValue,
+      target: 70, // economy target score
+      unit: "/100",
     },
   ];
 }
