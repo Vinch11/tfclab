@@ -7094,6 +7094,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     lactateCurve: buildLactateCurveHTML(payload),
     substrateCurve: buildSubstrateCurveHTML(payload),
     performancePrediction: buildPerformancePredictionHTML(payload),
+    facteursLimitants: buildFacteursLimitantsHTML(payload),
+    leviersAction: buildLeviersActionHTML(payload),
   };
   
   // Récupérer l'ordre personnalisé des sections
