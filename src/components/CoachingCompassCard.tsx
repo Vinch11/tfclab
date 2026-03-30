@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   Compass, Target, AlertTriangle, 
-  Shield, Eye, EyeOff, Zap, Info, Clock, Dumbbell,
+  Eye, EyeOff, Zap, Info, Clock, Dumbbell,
   ChevronDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
