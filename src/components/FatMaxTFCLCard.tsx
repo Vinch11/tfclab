@@ -4,6 +4,7 @@
  */
 
 import { useMemo, useState } from "react";
+import { useIsRunningOnly } from "@/hooks/useRunningFocusMode";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -58,6 +59,8 @@ export function FatMaxTFCLCard({
 }: FatMaxTFCLCardProps) {
   const [showDetails, setShowDetails] = useState(false);
   const [showWhy, setShowWhy] = useState(false);
+  const isRunning = useIsRunningOnly();
+  const refLabel = isRunning ? "Seuil" : "FTP";
 
   const fatmax = useMemo(() => {
     // Normaliser l'objectif
@@ -149,7 +152,7 @@ export function FatMaxTFCLCard({
             </p>
           )}
           <p className="text-sm font-medium mt-2">
-            Centre: {fatmax.centerPctFTP}% FTP
+            Centre: {fatmax.centerPctFTP}% {refLabel}
           </p>
         </div>
 
@@ -174,7 +177,7 @@ export function FatMaxTFCLCard({
               </TooltipProvider>
             </div>
             <span className="font-mono text-sm font-medium text-amber-600 dark:text-amber-400">
-              {fatmax.crossoverZone[0]}–{fatmax.crossoverZone[1]}% FTP
+              {fatmax.crossoverZone[0]}–{fatmax.crossoverZone[1]}% {refLabel}
             </span>
           </div>
           <p className="text-xs text-muted-foreground mt-1.5">
@@ -229,7 +232,7 @@ export function FatMaxTFCLCard({
               ))}
               <div className="border-t pt-2 mt-2 flex items-center justify-between text-xs font-medium">
                 <span>Résultat final</span>
-                <span className="font-mono">{fatmax.centerPctFTP}% FTP</span>
+                <span className="font-mono">{fatmax.centerPctFTP}% {refLabel}</span>
               </div>
             </div>
           </CollapsibleContent>

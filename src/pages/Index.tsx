@@ -1542,8 +1542,8 @@ const Index = () => {
               />
             ),
           },
-          // ✅ 11. CP/W' Curve
-          {
+          // ✅ 11. CP/W' Curve — Masqué en mode running (cycling only)
+          ...(isRunningOnly ? [] : [{
             id: "cpw-prime-curve",
             render: () => currentAthlete && effectiveCloudSnapshot && (
               <CPWPrimeCurveCard
@@ -1555,9 +1555,9 @@ const Index = () => {
                 weightKg={effectiveCloudSnapshot.weight_kg}
               />
             ),
-          },
-          // ✅ 12. W'bal Recovery
-          {
+          }]),
+          // ✅ 12. W'bal Recovery — Masqué en mode running (cycling only)
+          ...(isRunningOnly ? [] : [{
             id: "wbal-recovery",
             render: () => currentAthlete && effectiveCloudSnapshot && (
               <WbalRecoveryCard
@@ -1569,9 +1569,9 @@ const Index = () => {
                 weightKg={effectiveCloudSnapshot.weight_kg}
               />
             ),
-          },
-          // ✅ 13. Metabolic Power Curve
-          {
+          }]),
+          // ✅ 13. Metabolic Power Curve — Masqué en mode running (cycling only)
+          ...(isRunningOnly ? [] : [{
             id: "metabolic-power-curve",
             render: () => currentAthlete && effectiveCloudSnapshot && (
               <MetabolicPowerCurve
@@ -1585,7 +1585,7 @@ const Index = () => {
                 vo2max={effectiveCloudSnapshot.vo2max ?? 50}
               />
             ),
-          },
+          }]),
           // ✅ 14. VO2max Age Comparison
           {
             id: "vo2max-age-comparison",

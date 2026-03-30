@@ -9,6 +9,7 @@
  */
 
 import { useState, useMemo } from "react";
+import { useIsRunningOnly } from "@/hooks/useRunningFocusMode";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -97,6 +98,8 @@ export function MetabolicZonesUnifiedCard({
 }: MetabolicZonesUnifiedCardProps) {
   const [activeTab, setActiveTab] = useState("fatmax");
   const [showEducation, setShowEducation] = useState(false);
+  const isRunning = useIsRunningOnly();
+  const refLabel = isRunning ? "Seuil" : "FTP";
 
   const normalizedObjectif = (objectif === "IM" ? "Ironman" : objectif) as FatMaxObjectif;
 
@@ -142,7 +145,7 @@ export function MetabolicZonesUnifiedCard({
           <div className="flex flex-col items-center justify-center py-4 text-muted-foreground">
             <AlertTriangle className="w-8 h-8 mb-2 opacity-50" />
             <p className="text-sm">Données insuffisantes</p>
-            <p className="text-xs mt-1">VLamax et FTP requis pour le calcul</p>
+            <p className="text-xs mt-1">VLamax et {refLabel} requis pour le calcul</p>
           </div>
         </CardContent>
       </Card>
@@ -238,7 +241,7 @@ export function MetabolicZonesUnifiedCard({
 
           {/* FatMax Tab */}
           <AnimatedTabsContent value="fatmax" activeValue={activeTab} className="mt-3 space-y-3">
-            <FatMaxTabContent fatmax={fatmax} ftp={ftp} compact={compact} staffMode={staffMode} />
+            <FatMaxTabContent fatmax={fatmax} ftp={ftp} compact={compact} staffMode={staffMode} refLabel={refLabel} />
           </AnimatedTabsContent>
 
           {/* Lactate Thresholds Tab — deferred */}
@@ -306,11 +309,13 @@ function FatMaxTabContent({
   ftp,
   compact,
   staffMode,
+  refLabel = "FTP",
 }: {
   fatmax: FatMaxTFCLResult | null;
   ftp: number | null;
   compact: boolean;
   staffMode: boolean;
+  refLabel?: string;
 }) {
   const [showWhy, setShowWhy] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
@@ -330,7 +335,7 @@ function FatMaxTabContent({
       <div className="text-center p-3 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 rounded-lg border border-orange-200/50 dark:border-orange-800/30">
         <p className="text-xs text-muted-foreground mb-1">Plage FatMax</p>
         <p className="text-2xl font-bold">{formatFatMaxRange(fatmax)}</p>
-        <p className="text-sm font-medium mt-1">Centre: {fatmax.centerPctFTP}% FTP</p>
+        <p className="text-sm font-medium mt-1">Centre: {fatmax.centerPctFTP}% {refLabel}</p>
       </div>
 
       {/* Crossover Zone */}
@@ -341,7 +346,7 @@ function FatMaxTabContent({
             <span className="text-xs font-medium">Crossover Zone</span>
           </div>
           <span className="font-mono text-xs font-medium text-amber-600 dark:text-amber-400">
-            {fatmax.crossoverZone[0]}–{fatmax.crossoverZone[1]}% FTP
+            {fatmax.crossoverZone[0]}–{fatmax.crossoverZone[1]}% {refLabel}
           </span>
         </div>
       </div>
@@ -379,7 +384,7 @@ function FatMaxTabContent({
             ))}
             <div className="border-t pt-1.5 mt-1.5 flex items-center justify-between text-xs font-medium">
               <span>Résultat final</span>
-              <span className="font-mono">{fatmax.centerPctFTP}% FTP</span>
+              <span className="font-mono">{fatmax.centerPctFTP}% {refLabel}</span>
             </div>
           </div>
         </CollapsibleContent>
@@ -499,7 +504,7 @@ function LactateTabContent({
                 <Info className="h-3 w-3" /> Pourquoi ces valeurs ?
               </p>
               <ul className="text-[10px] text-muted-foreground space-y-0.5 list-disc pl-4">
-                <li>LT2 dépend de TTE : plus TTE est élevé, plus LT2 se rapproche de FTP</li>
+                <li>LT2 dépend de TTE : plus TTE est élevé, plus LT2 se rapproche du seuil</li>
                 <li>LT1 s'éloigne si VLamax est élevé (profil glycolytique)</li>
               </ul>
             </div>
@@ -568,7 +573,7 @@ function CrossoverTabContent({
                 {zone.pctLipid}% lip.
               </span>
             </div>
-            <span className="text-[10px] text-muted-foreground w-20">{zone.range} FTP</span>
+            <span className="text-[10px] text-muted-foreground w-20">{zone.range} Seuil</span>
           </div>
         ))}
       </div>
@@ -587,7 +592,7 @@ function CrossoverTabContent({
             <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
           )}
           <span className="text-xs font-medium">
-            Intensité course ({objectif}): ~{raceIntensity}% FTP
+            Intensité course ({objectif}): ~{raceIntensity}% Seuil
           </span>
         </div>
         <p className="text-[10px] text-muted-foreground mt-1">
