@@ -538,6 +538,14 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
   const durabilityValue = profile.durability.value;
   const economyValue = profile.runningEconomy.value;
 
+  // VLamax : inversé (plus bas = mieux pour endurance)
+  const vlamaxScore = vlamaxValue !== null && targets.vlamax.optimal != null
+    ? scoreRelativeToTargetInverse(vlamaxValue, targets.vlamax.optimal)
+    : 0;
+
+  const durabilityScore = scoreRelativeToTarget(durabilityValue, durabilityTarget);
+  const economyScore = scoreRelativeToTarget(economyValue, economyTarget);
+
   return [
     {
       key: "vo2max",
@@ -554,9 +562,7 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       key: "vlamax",
       label: "Profil Glycolytique",
       shortLabel: "VLamax",
-      score: vlamaxValue !== null 
-        ? Math.max(0, Math.min(100, Math.round(100 - (vlamaxValue - 0.20) * 125)))
-        : 0,
+      score: vlamaxScore,
       icon: "⚡",
       color: "hsl(45, 90%, 50%)",
       value: vlamaxValue,
@@ -568,7 +574,7 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       key: "durability",
       label: "Durabilité",
       shortLabel: "Durabilité",
-      score: durabilityValue !== null ? Math.round(durabilityValue) : 0,
+      score: durabilityScore,
       icon: "💪",
       color: "hsl(280, 60%, 55%)",
       value: durabilityValue,
@@ -579,7 +585,7 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       key: "economy",
       label: isRunning ? "Économie de Course" : "Économie",
       shortLabel: isRunning ? "Éco. CAP" : "Éco.",
-      score: economyValue !== null ? Math.round(economyValue) : 0,
+      score: economyScore,
       icon: "🦶",
       color: "hsl(160, 60%, 45%)",
       value: economyValue,
