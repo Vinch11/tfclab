@@ -85,6 +85,8 @@ export const SECTION_LABELS: Record<keyof ReportSections, string> = {
   lactateCurve: "🧪 Courbe Lactate Simulée (Mader-Heck)",
   substrateCurve: "🔥 Oxydation Lipides / Glucides",
   performancePrediction: "⏱️ Prédiction de Performance",
+  facteursLimitants: "🎯 Facteurs Limitants",
+  leviersAction: "🔧 Leviers d'Action",
 };
 
 // Catégories pour regroupement visuel
@@ -128,6 +130,8 @@ const SECTION_CATEGORIES: Record<keyof ReportSections, string> = {
   lactateCurve: "Analyse",
   substrateCurve: "Analyse",
   performancePrediction: "Performance",
+  facteursLimitants: "Analyse",
+  leviersAction: "Entraînement",
 };
 
 // Couleurs par catégorie
@@ -148,6 +152,8 @@ const CATEGORY_COLORS: Record<string, string> = {
 export const DEFAULT_SECTION_ORDER: (keyof ReportSections)[] = [
   "synthese",
   "compass",
+  "facteursLimitants",
+  "leviersAction",
   "profilMetabolique",
   "vlamaxZoneConfidence",
   "indicateurs",
@@ -228,6 +234,8 @@ export const DEFAULT_VISIBILITY: Record<keyof ReportSections, boolean> = {
   lactateCurve: true,
   substrateCurve: true,
   performancePrediction: true,
+  facteursLimitants: true,
+  leviersAction: true,
 };
 
 // Export alias for backward compatibility

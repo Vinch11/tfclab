@@ -84,6 +84,8 @@ const SECTION_ICONS: Record<keyof ReportSections, React.ComponentType<{ classNam
   lactateCurve: TrendingUp,
   substrateCurve: Flame,
   performancePrediction: Target,
+  facteursLimitants: AlertTriangle,
+  leviersAction: Settings,
 };
 
 // Catégories avec couleurs
@@ -127,6 +129,8 @@ const SECTION_CATEGORIES: Record<keyof ReportSections, { label: string; color: s
   lactateCurve: { label: "Analyse", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
   substrateCurve: { label: "Analyse", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
   performancePrediction: { label: "Performance", color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" },
+  facteursLimitants: { label: "Analyse", color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" },
+  leviersAction: { label: "Entraînement", color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
 };
 
 // Descriptions courtes pour l'aperçu
