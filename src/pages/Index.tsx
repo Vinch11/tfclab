@@ -1829,15 +1829,25 @@ const Index = () => {
               />
             ),
           },
-          // FTP/kg Targets (profil)
+          // FTP/kg or VMA Targets (profil)
           {
             id: "ftp-targets-profil",
             render: () => currentAthlete && (
-              <FtpKgTargetsCard
-                objectif={currentAthlete.goal || "IM"}
-                currentFtpKg={ftp_kg}
-                age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
-              />
+              isRunningOnly ? (
+                <VmaTargetsCard
+                  objectif={currentAthlete.goal || "Marathon"}
+                  currentVma={effectiveCloudSnapshot?.vma ?? null}
+                  age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
+                  vo2max={effectiveCloudSnapshot?.vo2max ?? null}
+                  vlamax={vlamaxEffectif}
+                />
+              ) : (
+                <FtpKgTargetsCard
+                  objectif={currentAthlete.goal || "IM"}
+                  currentFtpKg={ftp_kg}
+                  age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
+                />
+              )
             ),
           },
           // FatMax TFCL (profil)
