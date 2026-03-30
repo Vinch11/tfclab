@@ -265,17 +265,19 @@ function buildLimiter(input: CoachingCompassInput): TFCLLimiter {
     const mapped = LIMITER_MAP[lr.primaryLimiter!] ?? { type: "unknown" as LimiterType, icon: "❓" };
     const topGap = lr.gapAnalysis?.[0];
     
-    // Enrichir la description depuis le Strategy Engine si disponible
-    const description = input.strategyResult?.limiterExplanation 
+    // Labels depuis le Unified Limiter (source de vérité)
+    const label = lr.limiterLabel || lr.primaryLimiter!;
+    const description = lr.limiterExplanation 
+      || input.strategyResult?.limiterExplanation 
       || `Limiteur principal identifié : ${lr.primaryLimiter}`;
-    const label = input.strategyResult?.limiterLabel || lr.primaryLimiter!;
+    const icon = lr.limiterEmoji || mapped.icon;
 
     return {
       type: mapped.type,
       impactScore: topGap?.weightedImpact ?? 0.3,
       label,
       description,
-      icon: mapped.icon,
+      icon,
       metricsUsed: lr.gapAnalysis?.filter(g => g.weightedImpact > 0).map(g => g.metric) ?? [],
       confidence: lr.confidence >= 70 ? "high" : lr.confidence >= 50 ? "moderate" : "low",
     };
