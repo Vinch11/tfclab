@@ -7615,6 +7615,8 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       lactateCurve: false,
       substrateCurve: false,
       performancePrediction: false,
+      facteursLimitants: false,
+      leviersAction: false,
     };
     setSections(allFalse);
   };
