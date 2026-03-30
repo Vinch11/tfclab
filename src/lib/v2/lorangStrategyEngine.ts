@@ -437,14 +437,44 @@ function identifyPrimaryLimiter(input: LorangStrategyInput): {
   reasons: string[];
   confidence: ConfidenceLevel;
 } {
-  const { physiology, availability, symptoms } = input;
+  // ✅ Si le résultat du moteur unifié est fourni, l'utiliser directement
+  // Cela garantit la cohérence entre la carte "Facteurs Limitants" et les "Leviers d'Action"
+  if (input.unifiedLimiterResult) {
+    const unified = input.unifiedLimiterResult;
+    const mappedLimiter = mapUnifiedToLorangLimiter(unified.primaryLimiter);
+    
+    // Construire les raisons depuis le gap analysis
+    const reasons = unified.gapAnalysis
+      .filter(g => g.status === "limiting")
+      .sort((a, b) => b.weightedImpact - a.weightedImpact)
+      .slice(0, 3)
+      .map(g => {
+        if (g.metric === "VLamax") {
+          return `VLamax ${Math.abs(g.gapPercent).toFixed(0)}% au-dessus de la cible`;
+        }
+        return `${g.metric} ${Math.abs(g.gapPercent).toFixed(0)}% sous la cible`;
+      });
+    
+    // Calculer la confiance à partir de l'écart entre les 2 premiers limiteurs
+    const limitingGaps = unified.gapAnalysis
+      .filter(g => g.status === "limiting")
+      .sort((a, b) => b.weightedImpact - a.weightedImpact);
+    const gapClarity = limitingGaps.length > 1 
+      ? Math.abs(limitingGaps[0].weightedImpact - limitingGaps[1].weightedImpact) 
+      : 50;
+    const confidence: ConfidenceLevel = gapClarity > 20 ? 'high' : gapClarity > 10 ? 'moderate' : 'low';
+    
+    return {
+      limiter: mappedLimiter,
+      reasons: reasons.length > 0 ? reasons : ["Profil équilibré — pas de limiteur majeur"],
+      confidence,
+    };
+  }
+  
+  // Fallback: détection locale (ancien comportement)
+  const { physiology, symptoms } = input;
   const reasons: string[] = [];
   
-  // Priorité 1: Disponibilité critique — NE PLUS BLOQUER comme limiteur
-  // La fatigue génère un avertissement mais n'est JAMAIS le limiteur primaire
-  // (cohérent avec la philosophie snapshot-centric)
-  
-  // Calcul des écarts vs cibles
   const vo2maxGap = physiology.vo2max !== null 
     ? (physiology.vo2max - physiology.vo2maxTarget) / physiology.vo2maxTarget 
     : null;
@@ -458,56 +488,25 @@ function identifyPrimaryLimiter(input: LorangStrategyInput): {
     ? (physiology.fatmax - physiology.fatmaxTarget) / physiology.fatmaxTarget 
     : null;
   
-  // Scores de limitation (plus négatif = plus limitant)
   const scores: { limiter: LorangLimiter; score: number; reason: string }[] = [];
   
-  // VO2max
   if (vo2maxGap !== null && vo2maxGap < -0.1) {
-    scores.push({
-      limiter: 'motor',
-      score: vo2maxGap * 100,
-      reason: `VO2max ${Math.abs(vo2maxGap * 100).toFixed(0)}% sous la cible`,
-    });
+    scores.push({ limiter: 'motor', score: vo2maxGap * 100, reason: `VO2max ${Math.abs(vo2maxGap * 100).toFixed(0)}% sous la cible` });
   }
-  
-  // VLamax (inversé: trop haute = limitant)
   if (vlamaxGap !== null && vlamaxGap > 0.15) {
-    scores.push({
-      limiter: 'glycolytic',
-      score: -vlamaxGap * 100,
-      reason: `VLamax ${(vlamaxGap * 100).toFixed(0)}% au-dessus de la cible`,
-    });
+    scores.push({ limiter: 'glycolytic', score: -vlamaxGap * 100, reason: `VLamax ${(vlamaxGap * 100).toFixed(0)}% au-dessus de la cible` });
   }
-  
-  // FatMax
   if (fatmaxGap !== null && fatmaxGap < -0.15) {
-    scores.push({
-      limiter: 'metabolic',
-      score: fatmaxGap * 100,
-      reason: `FatMax ${Math.abs(fatmaxGap * 100).toFixed(0)}% sous la cible`,
-    });
+    scores.push({ limiter: 'metabolic', score: fatmaxGap * 100, reason: `FatMax ${Math.abs(fatmaxGap * 100).toFixed(0)}% sous la cible` });
   }
-  
-  // TTE / Durabilité
   if (tteGap !== null && tteGap < -0.1) {
-    scores.push({
-      limiter: 'durability',
-      score: tteGap * 100,
-      reason: `TTE ${Math.abs(tteGap * 100).toFixed(0)}% sous la cible (${physiology.tte}min vs ${physiology.tteTarget}min)`,
-    });
+    scores.push({ limiter: 'durability', score: tteGap * 100, reason: `TTE ${Math.abs(tteGap * 100).toFixed(0)}% sous la cible (${physiology.tte}min vs ${physiology.tteTarget}min)` });
   }
-  
-  // Économie / Neuromusculaire
   const economyScore = physiology.economy ?? 50;
   if (economyScore < 50) {
-    scores.push({
-      limiter: 'neuromuscular',
-      score: economyScore - 100,
-      reason: `Économie faible (${economyScore}/100)`,
-    });
+    scores.push({ limiter: 'neuromuscular', score: economyScore - 100, reason: `Économie faible (${economyScore}/100)` });
   }
   
-  // Symptômes terrain (ajustement)
   if (symptoms) {
     if (symptoms.earlyBurn || symptoms.lateExplosion) {
       const existing = scores.find(s => s.limiter === 'glycolytic');
@@ -531,37 +530,33 @@ function identifyPrimaryLimiter(input: LorangStrategyInput): {
     }
   }
   
-  // Disponibilité modérée/faible = avertissement seulement, pas un limiteur
-  // (Supprimé de la liste des scores pour éviter d'être sélectionné comme primaryLimiter)
-  
-  // Tri par score (plus négatif en premier)
   scores.sort((a, b) => a.score - b.score);
   
   if (scores.length === 0) {
-    return {
-      limiter: 'motor',
-      reasons: ["Aucun limiteur identifié clairement — focus moteur par défaut"],
-      confidence: 'low',
-    };
+    return { limiter: 'motor', reasons: ["Aucun limiteur identifié clairement — focus moteur par défaut"], confidence: 'low' };
   }
   
   const primary = scores[0];
   const allReasons = scores.slice(0, 3).map(s => s.reason);
+  const gapClarity = scores.length > 1 ? Math.abs(scores[0].score - scores[1].score) : 50;
+  const confidence: ConfidenceLevel = gapClarity > 20 ? 'high' : gapClarity > 10 ? 'moderate' : 'low';
   
-  // Confiance basée sur clarté du gap
-  const gapClarity = scores.length > 1 
-    ? Math.abs(scores[0].score - scores[1].score) 
-    : 50;
-  
-  const confidence: ConfidenceLevel = gapClarity > 20 ? 'high' 
-    : gapClarity > 10 ? 'moderate' 
-    : 'low';
-  
-  return {
-    limiter: primary.limiter,
-    reasons: allReasons,
-    confidence,
+  return { limiter: primary.limiter, reasons: allReasons, confidence };
+}
+
+// Mapping des limiteurs unifiés vers les limiteurs Lorang
+function mapUnifiedToLorangLimiter(unified: string): LorangLimiter {
+  const map: Record<string, LorangLimiter> = {
+    aerobic_engine: 'motor',
+    glycolytic: 'glycolytic',
+    anaerobic_capacity: 'neuromuscular',
+    specific_endurance: 'durability',
+    metabolic_efficiency: 'metabolic',
+    availability: 'motor', // Ne devrait jamais arriver (exclu par le moteur unifié)
+    neuromuscular: 'neuromuscular',
+    none: 'motor',
   };
+  return map[unified] ?? 'motor';
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
