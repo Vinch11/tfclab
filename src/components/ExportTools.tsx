@@ -1355,21 +1355,30 @@ function buildExportPayload(
     };
   });
 
-  // ✅ NEW: Compute Unified Limiter (source de vérité pour le rapport)
+  // ✅ Calculer sportFocus AVANT le moteur unifié (cohérence dashboard)
+  const objectifForLimiter = athlete.goal || "IM";
+  const sportFocusForLimiter: "run" | "bike" | "tri" = 
+    ["Marathon", "Semi", "Trail", "TrailLong", "TrailCourt", "Ultra", "Course", "10K", "5K", "StartToRun"].includes(objectifForLimiter) ? "run"
+    : ["IM", "Ironman", "703", "70.3", "Half", "Olympic", "Sprint"].includes(objectifForLimiter) ? "tri"
+    : "bike";
+
+  // ✅ Compute Unified Limiter — IDENTIQUE au dashboard (Index.tsx)
   const unifiedLimiter = detectUnifiedLimiter({
     vo2max: effectiveSnapshot?.vo2max ?? null,
     ftpKg: ftpKg,
     vlamax: vlamax.value,
     wprimeKj: null,
+    cpDataQuality: null,
     tte: tte.tte_min,
     fatmax: null,
     economyScore: effectiveSnapshot?.run_economy_score ?? null,
     availabilityScore: null,
     hasHealthAlerts: false,
-    objectif: athlete.goal || "IM",
+    objectif: objectifForLimiter,
     ambition: (ambition as any) || "competitive",
     age: athleteAge,
     vma: effectiveSnapshot?.vma ?? null,
+    sportFocus: sportFocusForLimiter,
   });
 
   // Calculer complétude
