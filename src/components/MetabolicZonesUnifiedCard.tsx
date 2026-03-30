@@ -309,11 +309,13 @@ function FatMaxTabContent({
   ftp,
   compact,
   staffMode,
+  refLabel = "FTP",
 }: {
   fatmax: FatMaxTFCLResult | null;
   ftp: number | null;
   compact: boolean;
   staffMode: boolean;
+  refLabel?: string;
 }) {
   const [showWhy, setShowWhy] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
