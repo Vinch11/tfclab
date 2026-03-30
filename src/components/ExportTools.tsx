@@ -1435,14 +1435,9 @@ function buildExportPayload(
     athleteAge
   });
   
-  // ✅ Calculer sportFocus dynamiquement comme dans le dashboard
-  const objectif = athlete.goal || "IM";
-  let sportFocus: "run" | "bike" | "tri" = "bike";
-  if (["Marathon", "Semi", "Trail", "TrailLong", "TrailCourt", "Ultra", "Course"].includes(objectif)) {
-    sportFocus = "run";
-  } else if (["IM", "Ironman", "703", "70.3", "Half", "Olympic", "Sprint"].includes(objectif)) {
-    sportFocus = "tri";
-  }
+  // ✅ sportFocus déjà calculé plus haut (sportFocusForLimiter)
+  const objectif = objectifForLimiter;
+  const sportFocus = sportFocusForLimiter;
 
   // ✅ Calculer injury risk pour runners comme dans le dashboard
   let injuryRiskRun = undefined;
