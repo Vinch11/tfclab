@@ -200,6 +200,37 @@ export function RunningEconomyModule({
           </div>
         </div>
         
+        {/* Coût O2 estimé (ml/kg/km) — métrique physiologique */}
+        {o2CostResult && (
+          <div className="p-3 rounded-lg bg-secondary/30 border border-border">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Activity className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium text-foreground">Coût O₂ estimé</span>
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                  {o2CostResult.sourceLabel}
+                </Badge>
+              </div>
+              <span className="text-xs">{o2CostResult.levelEmoji}</span>
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-mono font-bold text-foreground">
+                {o2CostResult.value}
+              </span>
+              <span className="text-sm text-muted-foreground">ml/kg/km</span>
+            </div>
+            <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
+              <span>{o2CostResult.levelLabel}</span>
+              <span className="italic">{o2CostResult.referenceRange}</span>
+            </div>
+            {o2CostResult.source === 'acsm' && (
+              <p className="text-[10px] text-muted-foreground/70 mt-1.5">
+                ⚠️ Estimation ACSM (allure seule). Pour une estimation plus précise, ajoutez la puissance de course (Stryd/Garmin) et le poids.
+              </p>
+            )}
+          </div>
+        )}
+        
         {/* Échelle d'économie - Staff */}
         {staffMode && (
           <Collapsible>
