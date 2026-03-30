@@ -106,11 +106,14 @@ function getGapStatus(gap: number): { label: string; color: string; bgColor: str
 }
 
 function MetricCard({ gap, metricInfo }: {
-  gap: { metric: string; gap: number; gapPercent?: number; value?: number | null; target?: number | null };
+  gap: { metric: string; gap: number; gapPercent?: number; value?: number | null; target?: number | null; status?: string };
   metricInfo: typeof METRIC_EXPLANATIONS[string];
 }) {
   const [open, setOpen] = useState(false);
-  const status = getGapStatus(gap.gap);
+  const isUnknown = gap.status === "unknown" || gap.value == null;
+  const status = isUnknown 
+    ? { label: "Donnée manquante", color: "text-muted-foreground", bgColor: "bg-muted/30 border-border/40", icon: Minus }
+    : getGapStatus(gap.gap);
   const StatusIcon = status.icon;
 
   const hasValues = gap.value != null && gap.target != null;
