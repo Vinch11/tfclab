@@ -480,97 +480,110 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
 
   const formatVal = (v: number, isSmall: boolean) => isSmall ? v.toFixed(2) : String(Math.round(v));
 
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <div className="mt-3 p-3 rounded-lg bg-muted/20 border border-border/30">
-      <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60 mb-2">
-        Profil physiologique complet
-      </p>
-      <div className="space-y-1.5">
-        {metrics.map(({ key, m, secondaryInfo }) => {
-          const expl = METRIC_EXPLANATIONS[key];
-          const tgt = metricTargets[key];
-          const target = tgt?.target;
-          const inverse = tgt?.inverse ?? false;
-          const isSmall = typeof m.value === "number" && m.value < 10;
+    <div className="mt-3 rounded-lg bg-muted/20 border border-border/30 overflow-hidden">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between px-3 py-2 hover:bg-muted/30 transition-colors"
+      >
+        <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+          Profil physiologique complet
+        </p>
+        <ChevronDown className={cn(
+          "h-3.5 w-3.5 text-muted-foreground/60 transition-transform",
+          isOpen && "rotate-180"
+        )} />
+      </button>
+      {isOpen && (
+        <div className="px-3 pb-3 space-y-1.5">
+          {metrics.map(({ key, m, secondaryInfo }) => {
+            const expl = METRIC_EXPLANATIONS[key];
+            const tgt = metricTargets[key];
+            const target = tgt?.target;
+            const inverse = tgt?.inverse ?? false;
+            const isSmall = typeof m.value === "number" && m.value < 10;
 
-          // Delta calculation
-          let delta: number | null = null;
-          let deltaLabel = "";
-          let deltaPositive = false;
-          if (typeof m.value === "number" && target != null) {
-            if (inverse) {
-              delta = target - m.value; // positive = ahead (lower is better)
-              deltaPositive = delta >= 0;
-            } else {
-              delta = m.value - target;
-              deltaPositive = delta >= 0;
+            // Delta calculation
+            let delta: number | null = null;
+            let deltaLabel = "";
+            let deltaPositive = false;
+            if (typeof m.value === "number" && target != null) {
+              if (inverse) {
+                delta = target - m.value;
+                deltaPositive = delta >= 0;
+              } else {
+                delta = m.value - target;
+                deltaPositive = delta >= 0;
+              }
+              const absDelta = Math.abs(delta);
+              const formatted = absDelta < 10 ? absDelta.toFixed(1) : String(Math.round(absDelta));
+              deltaLabel = deltaPositive
+                ? `✓ +${formatted} d'avance`
+                : `Δ ${formatted} à combler`;
             }
-            const absDelta = Math.abs(delta);
-            const formatted = absDelta < 10 ? absDelta.toFixed(1) : String(Math.round(absDelta));
-            deltaLabel = deltaPositive
-              ? `✓ +${formatted} d'avance`
-              : `Δ ${formatted} à combler`;
-          }
 
-          return (
-            <div key={key} className="rounded-md bg-background/40 border border-border/20 overflow-hidden">
-              {/* Main row */}
-              <div className="flex items-center justify-between px-2.5 py-1.5">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[11px] font-semibold text-foreground">{key}</span>
-                  <span className="text-[9px] text-muted-foreground/70">{m.unit}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {secondaryInfo && (
-                    <span className="text-[8px] text-muted-foreground/60">{secondaryInfo}</span>
-                  )}
-                  <span className="text-[11px] font-bold font-mono text-foreground">
-                    {typeof m.value === "number" ? formatVal(m.value, isSmall) : "—"}
-                  </span>
-                  <div className={cn(
-                    "px-1.5 py-0.5 rounded text-[8px] font-medium",
-                    m.confidence >= 0.8 ? "bg-[hsl(var(--success)/0.1)] text-[hsl(var(--success))]" : 
-                    m.confidence >= 0.5 ? "bg-[hsl(var(--warning)/0.1)] text-[hsl(var(--warning))]" : 
-                    "bg-[hsl(var(--destructive)/0.1)] text-[hsl(var(--destructive))]"
-                  )}>
-                    {confidenceLabel(m.confidence)}
+            return (
+              <div key={key} className="rounded-md bg-background/40 border border-border/20 overflow-hidden">
+                {/* Main row */}
+                <div className="flex items-center justify-between px-2.5 py-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] font-semibold text-foreground">{key}</span>
+                    <span className="text-[9px] text-muted-foreground/70">{m.unit}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {secondaryInfo && (
+                      <span className="text-[8px] text-muted-foreground/60">{secondaryInfo}</span>
+                    )}
+                    <span className="text-[11px] font-bold font-mono text-foreground">
+                      {typeof m.value === "number" ? formatVal(m.value, isSmall) : "—"}
+                    </span>
+                    <div className={cn(
+                      "px-1.5 py-0.5 rounded text-[8px] font-medium",
+                      m.confidence >= 0.8 ? "bg-[hsl(var(--success)/0.1)] text-[hsl(var(--success))]" : 
+                      m.confidence >= 0.5 ? "bg-[hsl(var(--warning)/0.1)] text-[hsl(var(--warning))]" : 
+                      "bg-[hsl(var(--destructive)/0.1)] text-[hsl(var(--destructive))]"
+                    )}>
+                      {confidenceLabel(m.confidence)}
+                    </div>
                   </div>
                 </div>
-              </div>
-              {/* Target comparison row */}
-              {target != null && typeof m.value === "number" && (
-                <div className="flex items-center gap-2 px-2.5 py-1 bg-muted/30 flex-wrap">
-                  <span className="text-[9px] text-muted-foreground">
-                    Actuel <span className="font-semibold text-foreground">{formatVal(m.value, isSmall)}</span> {m.unit}
-                  </span>
-                  <span className="text-[9px] text-muted-foreground">→</span>
-                  <span className="text-[9px] text-muted-foreground">
-                    Cible <span className="font-semibold text-foreground">{formatVal(target, target < 10)}</span> {m.unit}
-                  </span>
-                  {delta !== null && (
-                    <span className={cn(
-                      "text-[8px] font-medium px-1.5 py-0.5 rounded-full",
-                      deltaPositive
-                        ? "bg-[hsl(var(--success)/0.1)] text-[hsl(var(--success))]"
-                        : "bg-[hsl(var(--warning)/0.1)] text-[hsl(var(--warning))]"
-                    )}>
-                      {deltaLabel}
+                {/* Target comparison row */}
+                {target != null && typeof m.value === "number" && (
+                  <div className="flex items-center gap-2 px-2.5 py-1 bg-muted/30 flex-wrap">
+                    <span className="text-[9px] text-muted-foreground">
+                      Actuel <span className="font-semibold text-foreground">{formatVal(m.value, isSmall)}</span> {m.unit}
                     </span>
-                  )}
-                </div>
-              )}
-              {/* Explanation row */}
-              {expl && (
-                <div className="px-2.5 pb-2 space-y-0.5">
-                  <p className="text-[9px] text-muted-foreground leading-tight">{expl.desc}</p>
-                  <p className="text-[9px] text-primary/80 leading-tight">💡 {expl.why}</p>
-                  <p className="text-[8px] text-muted-foreground/60">{sourceLabel(m.source)}</p>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+                    <span className="text-[9px] text-muted-foreground">→</span>
+                    <span className="text-[9px] text-muted-foreground">
+                      Cible <span className="font-semibold text-foreground">{formatVal(target, target < 10)}</span> {m.unit}
+                    </span>
+                    {delta !== null && (
+                      <span className={cn(
+                        "text-[8px] font-medium px-1.5 py-0.5 rounded-full",
+                        deltaPositive
+                          ? "bg-[hsl(var(--success)/0.1)] text-[hsl(var(--success))]"
+                          : "bg-[hsl(var(--warning)/0.1)] text-[hsl(var(--warning))]"
+                      )}>
+                        {deltaLabel}
+                      </span>
+                    )}
+                  </div>
+                )}
+                {/* Explanation row */}
+                {expl && (
+                  <div className="px-2.5 pb-2 space-y-0.5">
+                    <p className="text-[9px] text-muted-foreground leading-tight">{expl.desc}</p>
+                    <p className="text-[9px] text-primary/80 leading-tight">💡 {expl.why}</p>
+                    <p className="text-[8px] text-muted-foreground/60">{sourceLabel(m.source)}</p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
