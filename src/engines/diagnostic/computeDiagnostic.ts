@@ -381,7 +381,12 @@ function generateHeadline(
   if (limiter.primaryLimiter === "none") {
     return `Profil équilibré — ${readiness.readiness.categoryLabel}`;
   }
-  return `Limiteur principal : ${limiter.limiterLabel} — ${readiness.readiness.categoryLabel}`;
+  // Use limiter-specific severity instead of global readiness to avoid contradictions
+  const worstGap = Math.min(...limiter.gapAnalysis.filter(g => g.status === "limiting").map(g => g.gap));
+  const severityLabel = worstGap < -15 ? "Axe prioritaire"
+    : worstGap < -5 ? "À développer"
+    : "Axe de progression";
+  return `Limiteur principal : ${limiter.limiterLabel} — ${severityLabel}`;
 }
 
 function mapMetricToLimiter(metric: string): "aerobic_engine" | "glycolytic" | "specific_endurance" | "neuromuscular" | "anaerobic_capacity" | "metabolic_efficiency" | "availability" | "none" {
