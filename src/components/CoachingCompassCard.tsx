@@ -429,10 +429,17 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
   const lt1PctFtp = input.lactateThresholds?.lt1?.pct_of_ftp;
   const lt2PctFtp = input.lactateThresholds?.lt2?.pct_of_ftp;
 
-  // Estimate % VMA from % FTP (FTP ≈ 82-85% VMA in running)
-  const ftpPctVma = (vma && ftp) ? 0.83 : 0.83; // standard approximation
-  const lt1PctVma = lt1PctFtp ? Math.round(lt1PctFtp * ftpPctVma * 100) : null;
-  const lt2PctVma = lt2PctFtp ? Math.round(lt2PctFtp * ftpPctVma * 100) : null;
+  // Estimate % VMA from % FTP (FTP ≈ 83% VMA in running)
+  // pct_of_ftp is already 0-1 decimal OR 0-100 percentage — normalize
+  const normPct = (v: number | undefined) => {
+    if (v == null) return null;
+    return v > 1 ? v / 100 : v; // handle both 0.77 and 77 formats
+  };
+  const lt1Ratio = normPct(lt1PctFtp);
+  const lt2Ratio = normPct(lt2PctFtp);
+  const ftpPctVma = 0.83; // standard: FTP ≈ 83% VMA
+  const lt1PctVma = lt1Ratio ? Math.round(lt1Ratio * ftpPctVma * 100) : null;
+  const lt2PctVma = lt2Ratio ? Math.round(lt2Ratio * ftpPctVma * 100) : null;
 
   // Build running-aware LT metrics
   const lt1Running = isRunning && lt1PctVma ? {
