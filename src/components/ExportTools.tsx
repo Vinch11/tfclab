@@ -182,6 +182,8 @@ interface ExportPayload {
     seancesCodes: string[];
     seancesDetails: Array<{ code: string; nom: string; objectif: string }>;
   };
+  // ✅ NEW: Unified Limiter Result (source de vérité)
+  unifiedLimiter: UnifiedLimiterResult;
   tests: DbTest[];
   snapshotHistory: DbSnapshot[];
   checkins: DbCheckin[];
@@ -1323,7 +1325,7 @@ function buildExportPayload(
     ambition,
   });
 
-  // Calculer Dan Lorang
+  // Calculer Dan Lorang (legacy — conservé pour backward compat)
   const ftpKg = effectiveRefs.ftp && effectiveRefs.weightKg && effectiveRefs.weightKg > 0
     ? effectiveRefs.ftp / effectiveRefs.weightKg
     : 4.0;
@@ -1345,6 +1347,23 @@ function buildExportPayload(
       nom: seance?.nom || code,
       objectif: seance?.objectif || "—"
     };
+  });
+
+  // ✅ NEW: Compute Unified Limiter (source de vérité pour le rapport)
+  const unifiedLimiter = detectUnifiedLimiter({
+    vo2max: effectiveSnapshot?.vo2max ?? null,
+    ftpKg: ftpKg,
+    vlamax: vlamax.value,
+    wprimeKj: null,
+    tte: tte.tte_min,
+    fatmax: null,
+    economyScore: effectiveSnapshot?.run_economy_score ?? null,
+    availabilityScore: null,
+    hasHealthAlerts: false,
+    objectif: athlete.goal || "IM",
+    ambition: (ambition as any) || "competitive",
+    age: athleteAge,
+    vma: effectiveSnapshot?.vma ?? null,
   });
 
   // Calculer complétude
@@ -1483,6 +1502,7 @@ function buildExportPayload(
       seancesCodes,
       seancesDetails
     },
+    unifiedLimiter,
     tests: athleteTests,
     snapshotHistory: athleteSnapshots,
     checkins: athleteCheckins,
@@ -2157,16 +2177,13 @@ function buildDoubleBoucleCAPHTML(payload: ExportPayload): string {
     `;
   }
   
-  // Déterminer le levier prioritaire
-  const getPriorityLever = () => {
-    if (!vlamax_run) return { lever: "ENDURANCE", emoji: "🫀", label: "Endurance Aérobie" };
-    if (vlamax_run > 0.45) return { lever: "VLAMAX_DOWN", emoji: "⬇️", label: "Baisser VLamax" };
-    if (durability < 40) return { lever: "TTE_UP", emoji: "⏱️", label: "Améliorer Durabilité" };
-    if (vo2max && vo2max < 55) return { lever: "VO2_UP", emoji: "🔥", label: "Développer VO2max" };
-    return { lever: "MAINTAIN", emoji: "✅", label: "Maintien Profil" };
+  // ✅ Levier prioritaire depuis le moteur unifié (cohérence dashboard ↔ PDF)
+  const ul = payload.unifiedLimiter;
+  const lever = {
+    lever: ul.primaryLever,
+    emoji: ul.leverEmoji || "🎯",
+    label: ul.leverLabel || "Maintien Profil",
   };
-  
-  const lever = getPriorityLever();
   const potentielScore = potentielPhysiologique.score;
   const potentielColor = potentielScore >= 80 ? "#16a34a" : potentielScore >= 60 ? "#d97706" : "#dc2626";
   const potentielLabel = potentielScore >= 80 ? "Bonne" : potentielScore >= 60 ? "Modérée" : "Faible";
@@ -2267,22 +2284,8 @@ function buildDoubleBoucleCAPHTML(payload: ExportPayload): string {
 // =============================================
 
 function buildRoadmapHTML(payload: ExportPayload): string {
-  const limiterResult = detectUnifiedLimiter({
-    vo2max: payload.effectiveSnapshot?.vo2max ?? null,
-    ftpKg: payload.effectiveRefs.ftp && payload.effectiveRefs.weightKg
-      ? payload.effectiveRefs.ftp / payload.effectiveRefs.weightKg : null,
-    vlamax: payload.vlamax.value,
-    wprimeKj: null,
-    tte: payload.tte.tte_min,
-    fatmax: null,
-    economyScore: payload.effectiveSnapshot?.run_economy_score ?? null,
-    availabilityScore: null,
-    hasHealthAlerts: false,
-    objectif: payload.athlete.goal || "IM",
-    ambition: (payload.ambition?.current as any) || "competitive",
-    age: null,
-    vma: payload.effectiveSnapshot?.vma ?? null,
-  });
+  // ✅ Réutilise le limiter unifié du payload (source unique de vérité)
+  const limiterResult = payload.unifiedLimiter;
 
   const roadmap = computeStrategicRoadmap({ objectif: payload.athlete.goal, limiterResult });
   const { phases, totalWeeks, title } = roadmap;
@@ -3166,7 +3169,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         <h3>📋 Résumé automatique (Lecture < 2 min)</h3>
         <p style="font-size:14px;line-height:1.6;margin:12px 0;">${profilMessage}</p>
         <p style="font-size:12px;color:var(--muted);">
-          <b>Priorité physiologique suggérée:</b> ${lorang.prioriteLabel || "Maintien de l'équilibre actuel"}.<br>
+          <b>Limiteur principal:</b> ${payload.unifiedLimiter.limiterEmoji} ${htmlEscape(payload.unifiedLimiter.limiterLabel)} (confiance ${Math.round(payload.unifiedLimiter.confidence * 100)}%).<br>
+          <b>Levier prioritaire:</b> ${payload.unifiedLimiter.leverEmoji} ${htmlEscape(payload.unifiedLimiter.leverLabel)}.<br>
           <b>Risques identifiés:</b> ${risquesIdentifies}.
         </p>
         <div class="alert alertWarning mt" style="font-size:11px;">
@@ -4807,6 +4811,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   // =============================================
   // E. ANALYSE TWO FOR COACHING LAB™
   // =============================================
+  const ul = payload.unifiedLimiter;
+  const limitingGaps = ul.gapAnalysis.filter(g => g.status === "limiting" || g.gap < -3);
+  
   const lorangHTML = `
     <section id="twoforcoaching" class="section pagebreakAvoid">
       <h2>D. Analyse Two For Coaching Lab™</h2>
@@ -4821,23 +4828,38 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         </span>
       </div>
       
-      <div class="card ${lorang.priorite ? 'cardHighlight' : ''}">
+      <!-- Limiteur principal + levier (moteur unifié) -->
+      <div class="card cardHighlight">
         <div class="grid2">
           <div>
-            <h3>🎯 Priorité calculée</h3>
-            <div style="font-size:20px;font-weight:700;margin:8px 0;">${lorang.prioriteLabel || "Aucune priorité majeure"}</div>
-            <div class="muted">Basé sur VLamax ${fmt(vlamax.value, 2)}, TTE ${tte.tte_min}min, FTP/kg ${ftpKg ? fmt(ftpKg, 2) : "—"}</div>
+            <h3>${ul.limiterEmoji} Limiteur Principal</h3>
+            <div style="font-size:20px;font-weight:700;margin:8px 0;">${htmlEscape(ul.limiterLabel)}</div>
+            <div class="muted">${htmlEscape(ul.limiterExplanation)}</div>
             <div class="muted mt" style="font-size:11px;">
-              <b>Sources :</b> VLamax ${vlamax.source === "estimated" ? "(estimée)" : "(mesurée)"} • TTE ${tte.source === "observed" ? "(mesuré)" : "(estimé)"}
+              <b>Confiance :</b> ${Math.round(ul.confidence * 100)}% • 
+              <b>Robustesse :</b> ${ul.isRobust ? "✅ Décision robuste" : "⚠️ Décision à confirmer"}
             </div>
           </div>
           <div>
-            ${lorang.alertes.length > 0 ? `
-              <h4>⚠️ Alertes</h4>
-              <ul class="muted">
-                ${lorang.alertes.map(a => `<li>${htmlEscape(a)}</li>`).join("")}
-              </ul>
-            ` : '<div class="alert alertSuccess">✅ Aucune alerte majeure</div>'}
+            <h3>${ul.leverEmoji} Levier Prioritaire</h3>
+            <div style="font-size:18px;font-weight:600;margin:8px 0;color:var(--primary);">${htmlEscape(ul.leverLabel)}</div>
+            ${limitingGaps.length > 0 ? `
+              <h4>📊 Écarts identifiés</h4>
+              <table style="font-size:11px;">
+                <thead><tr><th>Métrique</th><th>Actuel</th><th>Cible</th><th>Écart</th></tr></thead>
+                <tbody>
+                  ${limitingGaps.slice(0, 5).map(g => {
+                    const fmtV = (v: number | null) => v === null ? "—" : v < 10 ? v.toFixed(2) : v.toFixed(1);
+                    return `<tr>
+                      <td><b>${g.metric}</b></td>
+                      <td>${fmtV(g.value)}</td>
+                      <td>${fmtV(g.target)}</td>
+                      <td><span class="${g.gap < -15 ? 'error' : g.gap < -5 ? 'warning' : ''}" style="font-weight:600;">${g.gap.toFixed(0)}%</span></td>
+                    </tr>`;
+                  }).join("")}
+                </tbody>
+              </table>
+            ` : '<div class="alert alertSuccess">✅ Aucun écart significatif</div>'}
           </div>
         </div>
       </div>
