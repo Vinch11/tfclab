@@ -179,6 +179,84 @@ function getDriftLabel(drift: number): string {
 }
 
 // =============================================
+// ESTIMATION COÛT O2 (ml/kg/km)
+// =============================================
+
+/**
+ * Estime le coût d'O2 en ml/kg/km à partir de la puissance de course et du poids.
+ * 
+ * Méthode power-based (Kipp et al. 2019, Stryd white paper) :
+ *   - Efficience mécanique running ~25% → VO2 (ml/min) ≈ Power(W) × 12
+ *   - O2 cost = VO2 × pace / weight
+ * 
+ * Fallback ACSM (American College of Sports Medicine) :
+ *   - VO2 (ml/kg/min) = 0.2 × speed(m/min) + 3.5
+ *   - O2 cost = VO2 × (1000 / speed_m_min)
+ * 
+ * Références :
+ *   - Barnes & Kilding (2015) : 180-200 ml/kg/km élite
+ *   - Saunders et al. (2004) : 200-220 well-trained
+ *   - Moore (2016) : >240 recreational
+ */
+function estimateO2Cost(
+  powerW: number | null | undefined,
+  paceMinPerKm: number | null | undefined,
+  weightKg: number | null | undefined
+): EstimatedO2Cost | null {
+  
+  // Méthode 1 : Power-based (préférée, plus précise)
+  if (powerW && paceMinPerKm && weightKg && weightKg > 0) {
+    // Efficience mécanique ~25% → facteur métabolique 12 ml O2/min par W
+    const vo2MlMin = powerW * 12;
+    const o2CostMlKgKm = (vo2MlMin * paceMinPerKm) / weightKg;
+    
+    return {
+      value: Number(o2CostMlKgKm.toFixed(1)),
+      source: 'power',
+      sourceLabel: 'Puissance + Poids (Kipp 2019)',
+      ...getO2CostLevel(o2CostMlKgKm),
+    };
+  }
+  
+  // Méthode 2 : ACSM equation (fallback depuis allure seule)
+  if (paceMinPerKm && weightKg && weightKg > 0) {
+    const speedMMin = 1000 / paceMinPerKm; // m/min
+    const vo2MlKgMin = 0.2 * speedMMin + 3.5; // ACSM flat-ground
+    const o2CostMlKgKm = vo2MlKgMin * paceMinPerKm;
+    
+    return {
+      value: Number(o2CostMlKgKm.toFixed(1)),
+      source: 'acsm',
+      sourceLabel: 'Équation ACSM (allure seule)',
+      ...getO2CostLevel(o2CostMlKgKm),
+    };
+  }
+  
+  return null;
+}
+
+function getO2CostLevel(o2Cost: number): {
+  level: EstimatedO2Cost['level'];
+  levelLabel: string;
+  levelEmoji: string;
+  referenceRange: string;
+} {
+  if (o2Cost <= 195) {
+    return { level: 'elite', levelLabel: 'Élite', levelEmoji: '🟢', referenceRange: '180-195 ml/kg/km (élite)' };
+  }
+  if (o2Cost <= 210) {
+    return { level: 'well_trained', levelLabel: 'Très bien entraîné', levelEmoji: '🟢', referenceRange: '195-210 ml/kg/km (très entraîné)' };
+  }
+  if (o2Cost <= 230) {
+    return { level: 'trained', levelLabel: 'Entraîné', levelEmoji: '🟡', referenceRange: '210-230 ml/kg/km (entraîné)' };
+  }
+  if (o2Cost <= 260) {
+    return { level: 'recreational', levelLabel: 'Récréatif', levelEmoji: '🟠', referenceRange: '230-260 ml/kg/km (récréatif)' };
+  }
+  return { level: 'beginner', levelLabel: 'Débutant', levelEmoji: '🔴', referenceRange: '>260 ml/kg/km (débutant)' };
+}
+
+// =============================================
 // FONCTION PRINCIPALE V2
 // =============================================
 
