@@ -337,6 +337,57 @@ function FatigueWarning({ warning }: { warning: NonNullable<TFCLCoachingCompassR
 // METRICS GRID — Staff mode
 // ═══════════════════════════════════════════════════════════════════════════════
 
+const METRIC_EXPLANATIONS: Record<string, { desc: string; why: string }> = {
+  "VO₂max": {
+    desc: "Consommation maximale d'oxygène — capacité du moteur aérobie",
+    why: "Plus il est élevé, plus vous pouvez soutenir une intensité élevée longtemps. Déterminant principal en endurance.",
+  },
+  "VLamax": {
+    desc: "Vitesse maximale de production de lactate — puissance glycolytique",
+    why: "Une VLamax basse favorise l'endurance (marathon, IM). Une VLamax haute favorise le sprint. La cible dépend de votre objectif.",
+  },
+  "FTP": {
+    desc: "Puissance au seuil fonctionnel — intensité tenable ~1h",
+    why: "Repère clé pour calibrer toutes les zones d'entraînement vélo. Reflète l'équilibre VO₂max × VLamax.",
+  },
+  "FTP/kg": {
+    desc: "Puissance au seuil rapportée au poids",
+    why: "Indicateur de performance en montée et sur parcours vallonnés. Permet la comparaison entre athlètes.",
+  },
+  "VMA": {
+    desc: "Vitesse maximale aérobie — vitesse à VO₂max",
+    why: "Base de calcul des allures d'entraînement en course à pied. Corrélée directement au VO₂max.",
+  },
+  "TTE": {
+    desc: "Time to Exhaustion — durée tenable au seuil",
+    why: "Mesure la résistance à la fatigue au seuil. Un TTE élevé signifie une meilleure capacité à tenir l'effort en compétition.",
+  },
+  "FatMax": {
+    desc: "Puissance d'oxydation maximale des graisses",
+    why: "Intensité où vous brûlez le plus de graisses. Cruciale en ultra-endurance pour préserver les réserves de glycogène.",
+  },
+  "LT1": {
+    desc: "Seuil lactique 1 — seuil aérobie",
+    why: "Limite supérieure de la zone d'endurance fondamentale. En dessous, le lactate reste stable.",
+  },
+  "LT2": {
+    desc: "Seuil lactique 2 — seuil anaérobie",
+    why: "Intensité maximale soutenable en état d'équilibre. Au-dessus, le lactate s'accumule rapidement.",
+  },
+  "W'": {
+    desc: "Réserve anaérobie — énergie au-dessus du seuil",
+    why: "Quantité d'énergie disponible pour les efforts supra-seuil (attaques, bosses). Se reconstitue partiellement au repos.",
+  },
+  "Éco.": {
+    desc: "Économie de course — coût énergétique du mouvement",
+    why: "À VO₂max et VLamax égaux, l'athlète le plus économique ira plus vite. Améliorable par la technique et le renforcement.",
+  },
+  "Durabilité": {
+    desc: "Résistance à la dégradation de performance dans la durée",
+    why: "Capacité à maintenir puissance et technique sur des efforts prolongés. Faible = grosse perte en fin de course.",
+  },
+};
+
 function StaffMetricsGrid({ compass, sportFocus }: { compass: TFCLCoachingCompassResult; sportFocus?: string | null }) {
   const profile = compass.profile;
   const isRunning = sportFocus === "run";
@@ -347,7 +398,7 @@ function StaffMetricsGrid({ compass, sportFocus }: { compass: TFCLCoachingCompas
       { key: "FTP", m: profile.ftp },
       { key: "FTP/kg", m: profile.ftpKg },
     ] : []),
-    { key: "VMA", m: profile.vma ?? { value: null, confidence: 0 } },
+    { key: "VMA", m: profile.vma ?? { value: null, confidence: 0, source: "unknown", lastUpdated: null, unit: "km/h" } },
     { key: "TTE", m: profile.tte },
     { key: "FatMax", m: profile.fatmax },
     { key: "LT1", m: profile.lt1 },
@@ -359,28 +410,52 @@ function StaffMetricsGrid({ compass, sportFocus }: { compass: TFCLCoachingCompas
 
   if (metrics.length === 0) return null;
 
+  const confidenceLabel = (c: number) =>
+    c >= 0.8 ? "Fiable" : c >= 0.5 ? "Modérée" : "Faible";
+  const sourceLabel = (s: string) =>
+    s === "snapshot" ? "📋 Mesuré" : s === "estimation" ? "📐 Estimé" : "❓ Inconnu";
+
   return (
-    <div className="mt-3 p-2.5 rounded-lg bg-muted/20 border border-border/30">
+    <div className="mt-3 p-3 rounded-lg bg-muted/20 border border-border/30">
       <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60 mb-2">
         Profil physiologique complet
       </p>
-      <div className="grid grid-cols-3 gap-1">
-        {metrics.map(({ key, m }) => (
-          <div key={key} className="flex items-center justify-between p-1.5 rounded-md bg-background/40 text-[10px]">
-            <span className="text-muted-foreground">{key}</span>
-            <div className="flex items-center gap-1">
-              <span className="font-semibold">
-                {typeof m.value === "number" ? (m.value < 10 ? m.value.toFixed(2) : Math.round(m.value)) : "—"}
-              </span>
-              <div className={cn(
-                "w-1.5 h-1.5 rounded-full",
-                m.confidence >= 0.8 ? "bg-[hsl(var(--success))]" : 
-                m.confidence >= 0.5 ? "bg-[hsl(var(--warning))]" : 
-                "bg-[hsl(var(--destructive))]"
-              )} />
+      <div className="space-y-1.5">
+        {metrics.map(({ key, m }) => {
+          const expl = METRIC_EXPLANATIONS[key];
+          return (
+            <div key={key} className="rounded-md bg-background/40 border border-border/20 overflow-hidden">
+              {/* Main row */}
+              <div className="flex items-center justify-between px-2.5 py-1.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-semibold text-foreground">{key}</span>
+                  <span className="text-[9px] text-muted-foreground/70">{m.unit}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold font-mono text-foreground">
+                    {typeof m.value === "number" ? (m.value < 10 ? m.value.toFixed(2) : Math.round(m.value)) : "—"}
+                  </span>
+                  <div className={cn(
+                    "px-1.5 py-0.5 rounded text-[8px] font-medium",
+                    m.confidence >= 0.8 ? "bg-[hsl(var(--success)/0.1)] text-[hsl(var(--success))]" : 
+                    m.confidence >= 0.5 ? "bg-[hsl(var(--warning)/0.1)] text-[hsl(var(--warning))]" : 
+                    "bg-[hsl(var(--destructive)/0.1)] text-[hsl(var(--destructive))]"
+                  )}>
+                    {confidenceLabel(m.confidence)}
+                  </div>
+                </div>
+              </div>
+              {/* Explanation row */}
+              {expl && (
+                <div className="px-2.5 pb-2 space-y-0.5">
+                  <p className="text-[9px] text-muted-foreground leading-tight">{expl.desc}</p>
+                  <p className="text-[9px] text-primary/80 leading-tight">💡 {expl.why}</p>
+                  <p className="text-[8px] text-muted-foreground/60">{sourceLabel(m.source)}</p>
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
