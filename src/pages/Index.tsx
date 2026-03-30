@@ -1853,9 +1853,7 @@ const Index = () => {
 
       {/* Snapshot Manager (triggered by Quick Actions) */}
       {showSnapshots && currentAthlete && (
-        <div className="max-w-7xl mx-auto mt-4" ref={(el) => {
-          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-        }}>
+        <div className="max-w-7xl mx-auto mt-4" id="snapshot-manager-section">
           <SnapshotManager
             athleteId={currentAthlete.id}
             athleteName={currentAthlete.name}
