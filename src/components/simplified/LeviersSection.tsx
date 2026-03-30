@@ -80,7 +80,7 @@ export function LeviersSection({ diagnostic, prescription, className }: LeviersS
   const { strategy, executiveSummary, roadmap } = prescription;
   const levers = strategy.levers;
   const prohibitions = strategy.prohibitions;
-  const phases: RoadmapPhase[] = roadmap?.phases ?? [];
+  
 
   return (
     <Card className={cn("overflow-hidden", className)}>
