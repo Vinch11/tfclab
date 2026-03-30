@@ -354,21 +354,25 @@ function FatigueWarning({ warning }: { warning: NonNullable<TFCLCoachingCompassR
 // METRICS GRID — Staff mode
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function StaffMetricsGrid({ compass }: { compass: TFCLCoachingCompassResult }) {
+function StaffMetricsGrid({ compass, sportFocus }: { compass: TFCLCoachingCompassResult; sportFocus?: string | null }) {
   const profile = compass.profile;
+  const isRunning = sportFocus === "run";
   const metrics = [
     { key: "VO₂max", m: profile.vo2max },
     { key: "VLamax", m: profile.vlamax },
-    { key: "FTP", m: profile.ftp },
-    { key: "FTP/kg", m: profile.ftpKg },
+    ...(!isRunning ? [
+      { key: "FTP", m: profile.ftp },
+      { key: "FTP/kg", m: profile.ftpKg },
+    ] : []),
+    { key: "VMA", m: profile.vma ?? { value: null, confidence: 0 } },
     { key: "TTE", m: profile.tte },
     { key: "FatMax", m: profile.fatmax },
     { key: "LT1", m: profile.lt1 },
     { key: "LT2", m: profile.lt2 },
-    { key: "W'", m: profile.wPrime },
+    ...(!isRunning ? [{ key: "W'", m: profile.wPrime }] : []),
     { key: "Éco.", m: profile.runningEconomy },
     { key: "Durabilité", m: profile.durability },
-  ].filter(r => r.m.value !== null);
+  ].filter(r => r.m?.value !== null);
 
   if (metrics.length === 0) return null;
 
@@ -423,7 +427,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
             <Compass className="w-10 h-10 text-muted-foreground/30 mb-3" />
             <p className="text-sm font-medium text-muted-foreground">Données insuffisantes</p>
             <p className="text-xs text-muted-foreground/70 mt-1 max-w-xs">
-              Renseignez au moins FTP, poids et VLamax dans un snapshot pour activer le Compass.
+              Renseignez au moins VMA (ou FTP), poids et VLamax dans un snapshot pour activer le Compass.
             </p>
           </div>
         </CardContent>
@@ -602,7 +606,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
             </FlowStep>
 
             {/* ─── Staff: Profil complet ─── */}
-            {staffMode && <StaffMetricsGrid compass={compass} />}
+            {staffMode && <StaffMetricsGrid compass={compass} sportFocus={input.sportFocus} />}
           </div>
 
           {/* ─── COLONNE DROITE : Potentiel Physiologique (desktop) ─── */}

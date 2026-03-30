@@ -79,13 +79,16 @@ const ANTHROPO_FIELDS: RefFieldConfig[] = [
   { key: "fatPct", label: "Masse grasse", unit: "%", placeholder: "12", step: "0.1", min: 3, max: 50, profileKey: "fatPct" },
 ];
 
-const PHYSIO_FIELDS: RefFieldConfig[] = [
+const PHYSIO_FIELDS_ALL: RefFieldConfig[] = [
   { key: "fcMax", label: "FCmax", unit: "bpm", placeholder: "190", min: 100, max: 250, profileKey: "fcMax" },
   { key: "vma", label: "VMA", unit: "km/h", placeholder: "18.5", step: "0.1", min: 8, max: 30, profileKey: "vma" },
   { key: "ftp", label: "FTP", unit: "W", placeholder: "280", min: 50, max: 500, profileKey: "ftp" },
   { key: "css", label: "CSS", unit: "s/100m", placeholder: "95", min: 50, max: 200, profileKey: "css" },
   { key: "vo2max", label: "VO₂max", unit: "ml/kg/min", placeholder: "55", step: "0.1", min: 20, max: 100, profileKey: "vo2max" },
 ];
+
+// Champs masqués en mode running (pas pertinents pour un coureur)
+const RUNNING_HIDDEN_PHYSIO_KEYS = ["ftp", "css"];
 
 export function AthleteRefsPanel({ 
   athlete, 
@@ -99,6 +102,12 @@ export function AthleteRefsPanel({
   compact = false 
 }: AthleteRefsPanelProps) {
   const { updateAthlete } = useCloudData();
+  
+  // Détection mode running
+  const isRunningGoal = ["Marathon", "Semi", "5K", "10K", "StartToRun", "Trail", "TrailShort", "TrailMountain", "TrailUltra"].includes(athleteGoal);
+  const PHYSIO_FIELDS = isRunningGoal 
+    ? PHYSIO_FIELDS_ALL.filter(f => !RUNNING_HIDDEN_PHYSIO_KEYS.includes(f.key))
+    : PHYSIO_FIELDS_ALL;
   
   // Calcul des refs effectives
   const effective = useMemo(() => getEffectiveRefs(athlete, snapshots), [athlete, snapshots]);
@@ -226,19 +235,23 @@ export function AthleteRefsPanel({
     
     // Calculer les données manquantes du snapshot (métaboliques)
     const isTriathlon = ["IM", "Ironman", "70.3", "703", "TriathlonLD"].includes(athleteGoal);
-    const isRunning = ["Marathon", "Semi", "Course", "Trail"].includes(athleteGoal);
+    const isRunning = ["Marathon", "Semi", "5K", "10K", "StartToRun", "Course", "Trail", "TrailShort", "TrailMountain", "TrailUltra"].includes(athleteGoal);
     
     const metabolicFields = [
-      { key: "vlamax", label: "VLamax Vélo", value: snapshot?.vlamax, priority: isTriathlon ? "critical" : isRunning ? "recommended" : "critical" as const },
+      ...(isRunning ? [] : [
+        { key: "vlamax", label: "VLamax Vélo", value: snapshot?.vlamax, priority: isTriathlon ? "critical" : "critical" as const },
+      ]),
       { key: "tte", label: "TTE", value: snapshot?.tte_observed_min, priority: "critical" as const },
-      { key: "ftp", label: "FTP", value: snapshot?.ftp, priority: isRunning ? "recommended" : "critical" as const },
-      { key: "pmax_5s", label: "Pmax 5s", value: snapshot?.pmax_5s, priority: "important" as const },
-      { key: "p30s_w", label: "P30s", value: snapshot?.p30s_w, priority: "important" as const },
+      ...(isRunning ? [] : [
+        { key: "ftp", label: "FTP", value: snapshot?.ftp, priority: "critical" as const },
+        { key: "pmax_5s", label: "Pmax 5s", value: snapshot?.pmax_5s, priority: "important" as const },
+        { key: "p30s_w", label: "P30s", value: snapshot?.p30s_w, priority: "important" as const },
+      ]),
       ...(isTriathlon || isRunning ? [
         { key: "vlamax_run", label: "VLamax CAP", value: snapshot?.vlamax_run, priority: "critical" as const },
-        { key: "vma", label: "VMA", value: snapshot?.vma, priority: "important" as const },
+        { key: "vma", label: "VMA", value: snapshot?.vma, priority: isRunning ? "critical" : "important" as const },
       ] : []),
-      { key: "vo2max", label: "VO₂max", value: snapshot?.vo2max, priority: "recommended" as const },
+      { key: "vo2max", label: "VO₂max", value: snapshot?.vo2max, priority: isRunning ? "critical" : "recommended" as const },
       { key: "fc_max", label: "FC Max", value: snapshot?.fc_max, priority: "recommended" as const },
     ];
     
@@ -499,7 +512,7 @@ export function AthleteRefsPanel({
               variant="full"
             />
             <p className="text-xs text-muted-foreground">
-              L'âge impacte les cibles TTE, FTP/kg, le risque blessure et les recommandations nutritionnelles.
+              L'âge impacte les cibles TTE, {isRunningGoal ? "VMA" : "FTP/kg"}, le risque blessure et les recommandations nutritionnelles.
             </p>
           </div>
         )}
