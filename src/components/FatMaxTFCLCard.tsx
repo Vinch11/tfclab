@@ -177,7 +177,7 @@ export function FatMaxTFCLCard({
               </TooltipProvider>
             </div>
             <span className="font-mono text-sm font-medium text-amber-600 dark:text-amber-400">
-              {fatmax.crossoverZone[0]}–{fatmax.crossoverZone[1]}% FTP
+              {fatmax.crossoverZone[0]}–{fatmax.crossoverZone[1]}% {refLabel}
             </span>
           </div>
           <p className="text-xs text-muted-foreground mt-1.5">
