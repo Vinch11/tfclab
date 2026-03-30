@@ -185,6 +185,21 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
           {/* Menu */}
           <div className="md:hidden fixed bottom-16 right-2 z-[60] animate-in fade-in slide-in-from-bottom-2 duration-200 safe-area-inset-bottom">
             <div className="bg-card border border-border/60 rounded-xl shadow-xl overflow-hidden min-w-[180px]">
+              {isRunningOnly && (
+                <>
+                  <button
+                    onClick={() => { navigate("/running-profile"); setShowMoreMenu(false); }}
+                    className={cn(
+                      "flex items-center gap-3 w-full px-4 py-3 text-sm font-medium transition-colors",
+                      location.pathname === "/running-profile" ? "text-primary bg-primary/5" : "text-foreground hover:bg-muted/50"
+                    )}
+                  >
+                    <Footprints className="w-4 h-4 text-primary" />
+                    Profil Running
+                  </button>
+                  <div className="h-px bg-border/40" />
+                </>
+              )}
               <button
                 onClick={() => { navigate("/"); onTabChange("configuration"); setShowMoreMenu(false); }}
                 className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-foreground hover:bg-muted/50 transition-colors"
