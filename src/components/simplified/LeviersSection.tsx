@@ -10,11 +10,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Zap, Ban, Info, ChevronRight, Sparkles, Calendar, ArrowRight } from "lucide-react";
+import { Zap, Ban, Info, ChevronRight, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { TrainingPrescription } from "@/engines/decision";
 import type { AthleteDiagnostic } from "@/engines/diagnostic";
-import type { RoadmapPhase } from "@/lib/v2/strategicRoadmap";
+
 
 interface LeviersSectionProps {
   diagnostic: AthleteDiagnostic;
@@ -80,7 +80,7 @@ export function LeviersSection({ diagnostic, prescription, className }: LeviersS
   const { strategy, executiveSummary, roadmap } = prescription;
   const levers = strategy.levers;
   const prohibitions = strategy.prohibitions;
-  const phases: RoadmapPhase[] = roadmap?.phases ?? [];
+  
 
   return (
     <Card className={cn("overflow-hidden", className)}>
@@ -192,89 +192,8 @@ export function LeviersSection({ diagnostic, prescription, className }: LeviersS
           })}
         </div>
 
-        {/* Chronologie de traitement des faiblesses */}
-        {phases.length > 0 && (
-          <div className="space-y-3">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-              <Calendar className="h-3.5 w-3.5" />
-              Chronologie d'intervention
-            </p>
 
-            {/* Timeline visuelle */}
-            <div className="relative">
-              {/* Ligne verticale */}
-              <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-border" />
 
-              {phases.map((phase, index) => {
-                const weekRange = `S${phase.startWeek}–S${phase.endWeek}`;
-                const durationWeeks = phase.endWeek - phase.startWeek + 1;
-
-                return (
-                  <div key={phase.id} className="relative pl-10 pb-4 last:pb-0">
-                    {/* Dot on timeline */}
-                    <div
-                      className={cn(
-                        "absolute left-2.5 top-1 h-3.5 w-3.5 rounded-full border-2 border-background",
-                        index === 0 ? "bg-primary" : "bg-muted-foreground/40"
-                      )}
-                    />
-
-                    <div className="p-3 rounded-lg border bg-card">
-                      {/* Header phase */}
-                      <div className="flex items-center justify-between mb-1.5">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold">{phase.name}</span>
-                          {index === 0 && (
-                            <Badge className="text-[10px] px-1.5 bg-primary text-primary-foreground">
-                              En cours
-                            </Badge>
-                          )}
-                        </div>
-                        <Badge variant="outline" className="text-[10px]">
-                          {weekRange} · {durationWeeks} sem.
-                        </Badge>
-                      </div>
-
-                      {/* Focus */}
-                      <p className="text-xs text-muted-foreground mb-2">{phase.focus}</p>
-
-                      {/* Leviers activés pour cette phase */}
-                      {phase.levers.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {phase.levers.map((lever, li) => (
-                            <Badge
-                              key={li}
-                              variant="secondary"
-                              className="text-[10px] gap-1"
-                            >
-                              <Zap className="h-2.5 w-2.5" />
-                              {lever}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Cibles de fin de phase */}
-                      {phase.targets.length > 0 && (
-                        <div className="mt-2 pt-2 border-t border-border/50">
-                          <p className="text-[10px] text-muted-foreground mb-1 font-medium">🎯 Objectifs de phase :</p>
-                          <div className="flex flex-wrap gap-1">
-                            {phase.targets.map((target, ti) => (
-                              <span key={ti} className="text-[10px] text-muted-foreground">
-                                {ti > 0 && <ArrowRight className="inline h-2.5 w-2.5 mx-0.5" />}
-                                {target}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
         {/* Interdictions */}
         {prohibitions.length > 0 && (

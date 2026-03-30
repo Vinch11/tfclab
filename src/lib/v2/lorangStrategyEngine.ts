@@ -35,6 +35,7 @@ export type LorangLimiter =
 export type LorangLever = 
   | 'vo2_intervals'         // Intervalles VO2max (développement moteur)
   | 'z2_volume'             // Volume Z2 / Endurance longue
+  | 'threshold_work'        // Travail au seuil (FTP/allure seuil)
   | 'force_max'             // Force Max (gym lourde)
   | 'sfr_force_endurance'   // SFR / Force Endurance
   | 'train_low'             // Train Low / Sleep Low
@@ -298,6 +299,12 @@ export const LEVER_DEFINITIONS: Record<LorangLever, {
     label: "Adaptation HRV",
     icon: "💓",
     description: "Remplacement séance clé par Z2 si HRV hors plage 2j consécutifs",
+    isStaffOnly: false,
+  },
+  threshold_work: {
+    label: "Travail au Seuil",
+    icon: "⚡",
+    description: "Intervalles et blocs au seuil lactique (FTP/allure seuil) pour améliorer la puissance soutenue",
     isStaffOnly: false,
   },
 };
@@ -580,6 +587,34 @@ function activateLevers(
     });
   }
 
+  // LEVIER 0a-bis: Travail au seuil — Activé si limiteur = motor ET FTP/kg est faible
+  const aerobicDetail = computeAerobicWeaknessDetail(input, primaryLimiter);
+  const ftpKgLow = aerobicDetail.detail === 'ftp_kg_low' || aerobicDetail.detail === 'both_low';
+  const shouldActivateThreshold = (
+    primaryLimiter === 'motor' && ftpKgLow
+  ) && availability.level !== 'critical' && !context.isRaceWeek;
+
+  if (shouldActivateThreshold) {
+    levers.push({
+      lever: 'threshold_work',
+      label: LEVER_DEFINITIONS.threshold_work.label,
+      icon: LEVER_DEFINITIONS.threshold_work.icon,
+      priority: aerobicDetail.detail === 'ftp_kg_low' ? 1 : 2,
+      reason: "FTP/kg insuffisant par rapport à la cible — développer l'expression aérobie via travail au seuil",
+      prescription: [
+        "2×20min au seuil (FTP/allure seuil)",
+        "Sweet Spot 88-93% FTP / allure semi",
+        "Intervalles tempo 10-20min",
+        "Progression : durée au seuil +5min/semaine",
+      ],
+      warnings: [
+        "Ne pas combiner avec blocs VO2max le même jour",
+        "Récupération 48h entre séances clés",
+      ],
+      isStaffOnly: false,
+    });
+  }
+
   // LEVIER 0b: Volume Z2 / Endurance — Activé si limiteur = metabolic, durability ou glycolytic
   const shouldActivateZ2 = (
     primaryLimiter === 'metabolic' ||
@@ -764,10 +799,10 @@ function activateLevers(
     });
   }
   
-  // Limiter à 3 leviers max, triés par priorité
+  // Limiter à 4 leviers max, triés par priorité
   return levers
     .sort((a, b) => a.priority - b.priority)
-    .slice(0, 3);
+    .slice(0, 4);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
