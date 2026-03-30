@@ -84,6 +84,11 @@ import {
   calculateTTEatMLSS,
 } from "@/lib/v2/maderMetabolicModel";
 import { computePerformancePredictions } from "@/lib/v2/performancePrediction";
+// ✅ NEW: Coaching Compass (5 axes)
+import { computeCoachingCompass, type TFCLCoachingCompassResult, type CoachingCompassInput } from "@/lib/coachingCompass";
+import { computeFatigueEffectif } from "@/engines/diagnostic";
+import { computeLactateThresholdsTFCL } from "@/lib/thresholds/computeLactateThresholdsTFCL";
+import { computeStrategyEngine } from "@/engines/decision";
 
 // =============================================
 // TYPES
