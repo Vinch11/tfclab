@@ -721,88 +721,80 @@ export function adjustPotentielRiskByAge(
 // 
 // IMPORTANT: La VLamax n'est PAS ajustée par l'âge.
 // Elle est définie UNIQUEMENT par l'objectif et l'ambition de l'athlète.
-// Seul TTE peut être ajusté légèrement pour les masters.
+// FTP/kg et VMA SONT ajustés par âge (déclin physiologique documenté).
+// TTE est ajusté légèrement pour les masters.
 // =============================================
 
 import { 
   getVLamaxRange, 
   getTTETargetByAmbition, 
-  getFtpKgTargetByAmbition 
+  getFtpKgTargetByAmbition,
+  getVmaTargetByAmbition,
 } from "@/lib/physiologicalTargets";
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
+import { getPerformanceAgeFactor, getTTEAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
 
 export interface AgeAdjustedTargets {
   vlamaxOptimal: number;
   vlamaxMax: number;
   tteTarget: number;
   ftpKgTarget: number;
+  vmaTarget: number | null;
   ageAdjustmentApplied: boolean;
   ageCategory: "young" | "prime" | "master1" | "master2";
   explanation: string;
 }
 
 /**
- * Retourne les cibles VLamax/TTE/FTP basées sur l'objectif et l'ambition
+ * Retourne les cibles VLamax/TTE/FTP/VMA basées sur l'objectif, l'ambition et l'âge
  * 
- * MODIFICATION IMPORTANTE (2024):
- * - VLamax n'est PLUS ajustée par l'âge
- * - VLamax dépend UNIQUEMENT de l'objectif et de l'ambition
- * - Seul TTE peut être légèrement réduit pour les masters (meilleure récupération)
- * 
- * Logique:
- * - La cible VLamax représente le profil métabolique idéal pour l'objectif
- * - Un athlète de 50 ans visant un IM avec ambition "elite" a la même cible VLamax
- *   qu'un athlète de 25 ans avec le même objectif et ambition
+ * Logique alignée sur la littérature (Peinado 2018, Lepers 2013) :
+ * - VLamax : PAS d'ajustement par âge (profil métabolique cible identique)
+ * - FTP/kg et VMA : ajustés par getPerformanceAgeFactor (déclin ~5-7% / décennie)
+ * - TTE : ajusté par getTTEAgeFactor (déclin plus modéré)
  */
 export function getAgeAdjustedTargets(
   objectif: string,
   age: number | null,
   ambition: AmbitionLevel = DEFAULT_AMBITION
 ): AgeAdjustedTargets {
-  // Récupérer les cibles de base depuis la source unique (objectif + ambition)
   const baseVlamaxRange = getVLamaxRange(objectif, ambition);
   const baseTteTarget = getTTETargetByAmbition(objectif, ambition);
   const baseFtpKgTarget = getFtpKgTargetByAmbition(objectif, ambition);
+  const baseVmaTarget = getVmaTargetByAmbition(objectif, ambition);
   
   const ageIndex = computeAgeAdjustmentIndex(age);
   
-  // VLamax: PAS d'ajustement par âge - définie par objectif + ambition uniquement
+  // VLamax: PAS d'ajustement par âge
   const vlamaxOptimal = baseVlamaxRange.optimal;
   const vlamaxMax = baseVlamaxRange.max;
   
-  // TTE: Légère réduction pour les masters (récupération plus longue)
-  // Mais la cible reste exigeante pour garantir la performance
-  let tteReduction = 0;
-  switch (ageIndex.category) {
-    case "young":
-    case "prime":
-      // Pas de réduction pour < 40 ans
-      break;
-    case "master1":
-      tteReduction = 3; // -3 min sur TTE cible (40-49 ans)
-      break;
-    case "master2":
-      tteReduction = 5; // -5 min sur TTE cible (50+ ans)
-      break;
-  }
+  // FTP/kg et VMA: ajustés par le facteur de déclin de performance lié à l'âge
+  const perfAgeFactor = getPerformanceAgeFactor(age);
+  const ftpKgTarget = Math.round(baseFtpKgTarget * perfAgeFactor * 100) / 100;
+  const vmaTarget = baseVmaTarget ? Math.round(baseVmaTarget * perfAgeFactor * 100) / 100 : null;
   
-  const tteTarget = Math.max(35, baseTteTarget - tteReduction);
+  // TTE: ajusté par le facteur TTE spécifique (déclin plus modéré)
+  const tteAgeFactor = getTTEAgeFactor(age);
+  const tteTarget = Math.max(35, Math.round(baseTteTarget * tteAgeFactor));
   
-  // FTP/kg n'est pas ajusté par l'âge (mesure objective de performance)
+  const ageAdjustmentApplied = perfAgeFactor < 1.0;
   
   let explanation = "";
-  if (ageIndex.category === "young" || ageIndex.category === "prime" || age === null) {
+  if (!ageAdjustmentApplied || age === null) {
     explanation = `Cibles définies par objectif (${objectif}) et ambition`;
   } else {
-    explanation = `Cibles définies par objectif et ambition. TTE ajusté pour ${ageIndex.label} (-${tteReduction} min)`;
+    const pctDrop = Math.round((1 - perfAgeFactor) * 100);
+    explanation = `Cibles ajustées pour ${ageIndex.label} : FTP/VMA -${pctDrop}%, TTE -${Math.round((1 - tteAgeFactor) * 100)}%`;
   }
   
   return {
     vlamaxOptimal,
     vlamaxMax,
     tteTarget,
-    ftpKgTarget: baseFtpKgTarget,
-    ageAdjustmentApplied: tteReduction > 0,
+    ftpKgTarget,
+    vmaTarget,
+    ageAdjustmentApplied,
     ageCategory: ageIndex.category,
     explanation,
   };

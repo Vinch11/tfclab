@@ -89,7 +89,7 @@ function getTargets(objectif: string, ambition: AmbitionLevel = DEFAULT_AMBITION
     return {
       objectif,
       ftpKgTarget: ageTargets.ftpKgTarget,
-      vmaTarget: getVmaTargetByAmbition(objectif, ambition),
+      vmaTarget: ageTargets.vmaTarget ?? getVmaTargetByAmbition(objectif, ambition),
       tteTarget: ageTargets.tteTarget,
       vlamaxIdeal: ageTargets.vlamaxOptimal,
       vlamaxMax: ageTargets.vlamaxMax,
