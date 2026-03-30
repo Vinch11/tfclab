@@ -33,7 +33,7 @@ import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from 
 import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, type PlanFormConfig } from "@/engines/plan";
 import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
-import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition } from "@/types/ambitionLevel";
+import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel } from "@/types/ambitionLevel";
 import { parseAIPlan, mapSessionsToDates, type ParsedPlan } from "@/lib/aiPlanParser";
 import { AIPlanViewer } from "@/components/AIPlanViewer";
 import { AIPlanComparison } from "@/components/AIPlanComparison";
@@ -301,7 +301,7 @@ export default function AITrainingPlanPage() {
       sex: (athlete.sex === "M" || athlete.sex === "F") ? athlete.sex : null,
       weightKg: refs.weightKg,
       objectif: obj,
-      ambition: amb as AmbitionLevel,
+      ambition: normalizeAmbitionLevel(amb),
       sportFocus: activeSnap.sport_main === "run" ? "run" : "bike",
       vo2max: refs.vo2max,
       ftp: refs.ftp,
