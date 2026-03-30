@@ -68,8 +68,18 @@ export const PROFIL_SECTIONS: SectionDefinition[] = [
 ];
 
 export const DASHBOARD_SECTIONS: SectionDefinition[] = [
+  // 🎯 Actions rapides
+  { id: "quick-actions", label: "Actions rapides", icon: "Zap", category: "onboarding", defaultVisible: true },
   // 🎯 Onboarding & Guide
   { id: "getting-started", label: "Guide de démarrage", icon: "Rocket", category: "onboarding", defaultVisible: true },
+  // 📊 Analyse — Coaching Compass
+  { id: "coaching-compass", label: "Coaching Compass™", icon: "Compass", category: "analyse", defaultVisible: true },
+  // 📊 Analyse — Métriques expliquées
+  { id: "analyse-section", label: "Analyse & Métriques", icon: "BarChart", category: "analyse", defaultVisible: true },
+  // 🎯 Limiteurs — Facteurs limitants
+  { id: "limiteurs-section", label: "Facteurs Limitants", icon: "AlertTriangle", category: "analyse", defaultVisible: true },
+  // ⚡ Leviers — Actions à activer
+  { id: "leviers-section", label: "Leviers & Actions", icon: "Target", category: "analyse", defaultVisible: true },
   
   // 👤 Profil athlète + Ambition
   // ✅ Phase 1f: Profil & Ambition unifiée
@@ -495,6 +505,11 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
       };
 
       // ✅ Insérer les sections manquantes à des positions stratégiques
+      insertMissing("quick-actions", ["getting-started"]);
+      insertMissing("coaching-compass", ["quick-actions", "getting-started"]);
+      insertMissing("analyse-section", ["coaching-compass", "quick-actions"]);
+      insertMissing("limiteurs-section", ["analyse-section", "coaching-compass"]);
+      insertMissing("leviers-section", ["limiteurs-section", "analyse-section"]);
       insertMissing("objective-manager", ["athlete-refs"]);
       insertMissing("cpw-prime-curve", ["metabolic-power-curve", "fatmax-tfcl", "coach-decision-unified"]);
       insertMissing("wbal-recovery", ["cpw-prime-curve", "metabolic-power-curve", "fatmax-tfcl"]);
