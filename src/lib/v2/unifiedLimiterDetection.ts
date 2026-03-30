@@ -330,7 +330,43 @@ export function getVo2maxAgeFactor(age: number | null): number {
 }
 
 /**
- * Retourne un message explicatif sur l'ajustement VO2max par âge
+ * Facteur d'ajustement par âge pour les métriques de performance (FTP/kg, VMA)
+ * Déclin plus modéré que le VO2max (~5-7% par décennie après 30 ans)
+ * 
+ * < 30 ans : 1.00
+ * 30-39 ans : 0.97 (−3%)
+ * 40-49 ans : 0.92 (−8%)
+ * 50-59 ans : 0.85 (−15%)
+ * ≥ 60 ans : 0.78 (−22%)
+ */
+export function getPerformanceAgeFactor(age: number | null): number {
+  if (age === null || age < 30) return 1.0;
+  if (age < 40) return 0.97;
+  if (age < 50) return 0.92;
+  if (age < 60) return 0.85;
+  return 0.78;
+}
+
+/**
+ * Facteur d'ajustement TTE par âge
+ * Le TTE décline moins vite — l'endurance se maintient mieux
+ * 
+ * < 30 ans : 1.00
+ * 30-39 ans : 0.98 (−2%)
+ * 40-49 ans : 0.95 (−5%)
+ * 50-59 ans : 0.90 (−10%)
+ * ≥ 60 ans : 0.85 (−15%)
+ */
+export function getTTEAgeFactor(age: number | null): number {
+  if (age === null || age < 30) return 1.0;
+  if (age < 40) return 0.98;
+  if (age < 50) return 0.95;
+  if (age < 60) return 0.90;
+  return 0.85;
+}
+
+/**
+ * Retourne un message explicatif sur l'ajustement par âge
  */
 export function getVo2maxAgeAdjustmentLabel(age: number | null): string | null {
   if (age === null || age < 30) return null;
@@ -341,20 +377,28 @@ export function getVo2maxAgeAdjustmentLabel(age: number | null): string | null {
 
 /**
  * Retourne la cible VO2max ajustée selon objectif, ambition ET âge
- * 
- * Exemple: Elite Marathon
- * - < 30 ans → 70 ml/kg/min
- * - 40 ans → 70 × 0.88 = 61.6 ml/kg/min
- * - 55 ans → 70 × 0.80 = 56 ml/kg/min
  */
 export function getVo2maxTarget(objectif: string, ambition: string, age: number | null = null): number {
   const normalized = normalizeObjective(objectif);
   const targets = VO2MAX_TARGETS[normalized] || VO2MAX_TARGETS["703"];
   const baseTarget = targets[ambition] || targets.age_group;
   
-  // Application du facteur âge
   const ageFactor = getVo2maxAgeFactor(age);
-  return Math.round(baseTarget * ageFactor * 10) / 10; // Arrondi à 1 décimale
+  return Math.round(baseTarget * ageFactor * 10) / 10;
+}
+
+/**
+ * Ajuste une cible de performance (FTP/kg, VMA) selon l'âge
+ */
+function adjustPerformanceTarget(baseTarget: number, age: number | null): number {
+  return Math.round(baseTarget * getPerformanceAgeFactor(age) * 100) / 100;
+}
+
+/**
+ * Ajuste une cible TTE selon l'âge
+ */
+function adjustTTETarget(baseTarget: number, age: number | null): number {
+  return Math.round(baseTarget * getTTEAgeFactor(age));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -379,8 +423,8 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   
   // 1. Analyse Expression Aérobie — VMA (running) ou FTP/kg (vélo/tri)
   if (useVma) {
-    // Mode Running : VMA remplace FTP/kg
-    const vmaTarget = targets.vma_min!;
+    // Mode Running : VMA remplace FTP/kg (cible ajustée selon l'âge)
+    const vmaTarget = adjustPerformanceTarget(targets.vma_min!, input.age);
     const vmaGap = input.vma !== null 
       ? (input.vma - vmaTarget) / vmaTarget 
       : 0;
@@ -398,19 +442,20 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
       weightedImpact: vmaGap < 0 ? Math.abs(vmaGap) * weights.aerobic * 100 : 0,
     });
   } else {
-    // Mode Vélo/Tri : FTP/kg
+    // Mode Vélo/Tri : FTP/kg (cible ajustée selon l'âge)
+    const ftpKgTarget = adjustPerformanceTarget(targets.ftp_kg_min, input.age);
     const ftpKgGap = input.ftpKg !== null 
-      ? (input.ftpKg - targets.ftp_kg_min) / targets.ftp_kg_min 
+      ? (input.ftpKg - ftpKgTarget) / ftpKgTarget 
       : 0;
     gapAnalysis.push({
       metric: "FTP/kg",
       value: input.ftpKg,
-      target: targets.ftp_kg_min,
-      gap: input.ftpKg !== null ? input.ftpKg - targets.ftp_kg_min : 0,
+      target: ftpKgTarget,
+      gap: input.ftpKg !== null ? input.ftpKg - ftpKgTarget : 0,
       gapPercent: ftpKgGap * 100,
       status: input.ftpKg === null ? "unknown" 
-        : input.ftpKg >= targets.ftp_kg_min ? "optimal" 
-        : input.ftpKg >= targets.ftp_kg_min * 0.9 ? "acceptable" 
+        : input.ftpKg >= ftpKgTarget ? "optimal" 
+        : input.ftpKg >= ftpKgTarget * 0.9 ? "acceptable" 
         : "limiting",
       weight: weights.aerobic,
       weightedImpact: ftpKgGap < 0 ? Math.abs(ftpKgGap) * weights.aerobic * 100 : 0,
@@ -497,19 +542,20 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
       : 0,
   });
 
-  // 3. Analyse TTE (Specific Endurance)
+  // 3. Analyse TTE (Specific Endurance) — cible ajustée selon l'âge
+  const tteTarget = adjustTTETarget(targets.tte_min, input.age);
   const tteGap = input.tte !== null 
-    ? (input.tte - targets.tte_min) / targets.tte_min 
+    ? (input.tte - tteTarget) / tteTarget 
     : 0;
   gapAnalysis.push({
     metric: "TTE",
     value: input.tte,
-    target: targets.tte_min,
-    gap: input.tte !== null ? input.tte - targets.tte_min : 0,
+    target: tteTarget,
+    gap: input.tte !== null ? input.tte - tteTarget : 0,
     gapPercent: tteGap * 100,
     status: input.tte === null ? "unknown"
-      : input.tte >= targets.tte_min ? "optimal"
-      : input.tte >= targets.tte_min * 0.85 ? "acceptable"
+      : input.tte >= tteTarget ? "optimal"
+      : input.tte >= tteTarget * 0.85 ? "acceptable"
       : "limiting",
     weight: weights.tte,
     weightedImpact: tteGap < 0 ? Math.abs(tteGap) * weights.tte * 100 : 0,
