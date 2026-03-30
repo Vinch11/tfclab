@@ -118,69 +118,69 @@ export const RUNNING_PROFILE_SECTIONS: SectionDefinition[] = [
   { id: "quick-links", label: "Liens Rapides", icon: "Link", category: "outils", defaultVisible: true },
 ];
 
+// Sections pour les onglets secondaires (accessibles via sidebar)
+export const EVOLUTION_SECTIONS: SectionDefinition[] = [
+  { id: "historical-chart", label: "Graphique Historique", icon: "LineChart", defaultVisible: true },
+  { id: "scientific-dashboard", label: "Dashboard Scientifique", icon: "BarChart", defaultVisible: true },
+  { id: "sport-analysis", label: "Analyse par Sport", icon: "Activity", defaultVisible: true },
+];
+
+export const TESTS_SECTIONS: SectionDefinition[] = [
+  { id: "vlamax-testing", label: "Tests VLamax", icon: "Zap", defaultVisible: true },
+  { id: "cap-testing", label: "Tests CAP", icon: "Footprints", defaultVisible: true },
+  { id: "tfcl-testing", label: "Semaine TFCL", icon: "Calendar", defaultVisible: true },
+];
+
+export const SEANCES_SECTIONS: SectionDefinition[] = [
+  { id: "workout-library", label: "Bibliothèque Séances", icon: "Dumbbell", defaultVisible: true },
+];
+
+export const TEMPLATES_SECTIONS: SectionDefinition[] = [
+  { id: "week-selector", label: "Sélecteur de Semaines", icon: "Calendar", defaultVisible: true },
+  { id: "template-viewer", label: "Visualiseur Templates", icon: "FileText", defaultVisible: true },
+];
+
+export const ACADEMY_SECTIONS: SectionDefinition[] = [
+  { id: "theory-content", label: "Contenu Théorique", icon: "BookOpen", defaultVisible: true },
+  { id: "protocols", label: "Protocoles", icon: "FlaskConical", defaultVisible: true },
+];
+
+export const POTENTIEL_SECTIONS: SectionDefinition[] = [
+  { id: "readiness-card", label: "Score Potentiel Physiologique", icon: "Trophy", defaultVisible: true },
+  { id: "nutrition-timing", label: "Nutrition & Timing", icon: "Utensils", defaultVisible: true },
+  { id: "running-economy", label: "Économie de Course", icon: "Footprints", defaultVisible: true },
+  { id: "staff-report", label: "Rapport Staff", icon: "FileText", defaultVisible: true },
+];
+
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * RUNNING FOCUS MODE FILTER — Sections à masquer en mode CAP/Trail
- * 
- * Ces sections sont automatiquement masquées lorsque l'objectif est running-only
- * (5K, 10K, Semi, Marathon, Trail, TrailShort, TrailMountain, TrailUltra)
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
 // Sections spécifiques vélo/triathlon — masquées en Running Focus Mode
 export const CYCLING_TRIATHLON_SECTIONS: string[] = [
-  // Vélo spécifiques
-  "ftp-targets",                    // FTP/kg — zones cibles vélo
-  "vlamax-bike-v2-enhanced",        // VLamax Vélo — Analyse Détaillée
-  "vlamax-v2-calibration",          // VLamax TFCL V2 compact vélo
-  "low-crr-justification",          // Justification charge faible (TSS vélo)
-  "fatmax-chart",                   // FatMax vs Race Intensity (vélo focus)
-  "metabolic-power-curve",          // Metabolic Power Curve (vélo)
-  
-  // Triathlon spécifiques
-  "vlamax-combined",                // VLamax Vélo/CAP (comparaison tri)
-  
-  // Scénarios vélo-centriques
-  "scenarios-tte-vlamax",           // Scénarios TTE/VLamax (vélo-centric)
+  "ftp-targets",
+  "metabolic-power-curve",
 ];
 
 // Sections visibles UNIQUEMENT en Running Focus Mode
 export const RUNNING_ONLY_SECTIONS: string[] = [
-  "vlamax-cap-card",                // VLamax CAP Card
-  "running-economy-module",         // Running Economy Module
+  "vlamax-cap-card",
+  "running-economy-module",
 ];
 
-// Sections universelles (toujours visibles)
+// Sections universelles (toujours visibles) — liste simplifiée
 export const UNIVERSAL_SECTIONS: string[] = [
+  "quick-actions",
   "getting-started",
+  "coaching-compass",
+  "analyse-section",
+  "limiteurs-section",
+  "leviers-section",
+  "synthese-executive-dashboard",
   "athlete-refs",
-  "objective-manager",
-  "ambition-progress",
-  "athlete-profile-card",
-  "profil-ambition-unified",
-  "compact-metrics-grid",
-  "tfcl-decision-matrix",
-  "tfcl-symptom-matrix",
-  "lorang-strategy",
-  "coach-decision-unified",
-  "tfcl-symptom-matrix",
-  "lorang-strategy",
-  "compass",
-  "fatigue-disponibilite-unified",
-  "disponibilite-tfcl",
-  "daily-readiness-check",
-  "quick-fatigue",
-  "charge-recente",
-  "race-readiness-unified",
-  "race-readiness-signature",
-  "race-readiness-v2",
   "running-economy-summary",
-  "fatmax-tfcl",
-  "dashboard-recommendations",
-  "action-buttons",
-  "scientific-charts",
-  "staff-dashboard",
-  "vo2max-age-comparison",
 ];
 
 /**
@@ -205,21 +205,11 @@ export function filterSectionsForRunningMode(
   isRunningOnly: boolean
 ): string[] {
   return sectionIds.filter(id => {
-    // Si Running Focus Mode actif
     if (isRunningOnly) {
-      // Masquer les sections vélo/tri
-      if (shouldHideSectionInRunningMode(id)) {
-        return false;
-      }
-      // Afficher toutes les autres
+      if (shouldHideSectionInRunningMode(id)) return false;
       return true;
     } else {
-      // Mode normal (non-running)
-      // Masquer les sections running-only
-      if (isRunningOnlySection(id)) {
-        return false;
-      }
-      // Afficher toutes les autres
+      if (isRunningOnlySection(id)) return false;
       return true;
     }
   });
@@ -237,6 +227,7 @@ export const ALL_SECTIONS: Record<TabId, SectionDefinition[]> = {
   "running-profile": RUNNING_PROFILE_SECTIONS,
   strategie: STRATEGIE_SECTIONS,
 };
+
 
 // Format de stockage amélioré avec visibilité
 export interface LayoutPreferences {
