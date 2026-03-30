@@ -1556,8 +1556,8 @@ const Index = () => {
               />
             ),
           }]),
-          // ✅ 12. W'bal Recovery
-          {
+          // ✅ 12. W'bal Recovery — Masqué en mode running (cycling only)
+          ...(isRunningOnly ? [] : [{
             id: "wbal-recovery",
             render: () => currentAthlete && effectiveCloudSnapshot && (
               <WbalRecoveryCard
@@ -1569,7 +1569,7 @@ const Index = () => {
                 weightKg={effectiveCloudSnapshot.weight_kg}
               />
             ),
-          },
+          }]),
           // ✅ 13. Metabolic Power Curve
           {
             id: "metabolic-power-curve",
