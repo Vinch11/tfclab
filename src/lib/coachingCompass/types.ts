@@ -186,6 +186,9 @@ export interface CoachingCompassInput {
   // Limiteur unifié pré-calculé
   limiterResult: {
     primaryLimiter: string | null;
+    limiterLabel?: string;
+    limiterEmoji?: string;
+    limiterExplanation?: string;
     gapAnalysis: Array<{ metric: string; gap: number; weightedImpact: number }>;
     confidence: number;
     fatigueWarning?: { level: string; message: string } | null;

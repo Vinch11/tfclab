@@ -1379,6 +1379,9 @@ const Index = () => {
                 } : null,
                 limiterResult: {
                   primaryLimiter: dashDiagnostic.limiter.primaryLimiter,
+                  limiterLabel: dashDiagnostic.limiter.limiterLabel,
+                  limiterEmoji: dashDiagnostic.limiter.limiterEmoji,
+                  limiterExplanation: dashDiagnostic.limiter.limiterExplanation,
                   gapAnalysis: dashDiagnostic.limiter.gapAnalysis,
                   confidence: dashDiagnostic.limiter.confidence,
                   fatigueWarning: (dashDiagnostic.limiter as any).fatigueWarning ?? null,
