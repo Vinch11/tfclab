@@ -63,11 +63,11 @@ const LIMITER_PEDAGOGY: Record<string, {
 };
 
 export function LimiteursSection({ diagnostic, className }: LimiteursSectionProps) {
-  const { limiter, synthesis } = diagnostic;
-  const primary = synthesis.priorities.L1;
-  const secondary = synthesis.priorities.L2;
+  const { limiter } = diagnostic;
   
-  const pedagogy = LIMITER_PEDAGOGY[limiter.primaryLimiter || "unknown"] || LIMITER_PEDAGOGY.unknown;
+  // Build ranked list of all limiters from gapAnalysis
+  // Group by limiter category and rank by weighted impact
+  const rankedLimiters = buildRankedLimiters(limiter);
 
   return (
     <Card className={cn("overflow-hidden", className)}>
@@ -79,7 +79,7 @@ export function LimiteursSection({ diagnostic, className }: LimiteursSectionProp
           <div className="flex-1">
             <CardTitle className="text-lg">Facteurs Limitants</CardTitle>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Ce qui freine ta progression vers tes objectifs
+              Ce qui freine ta progression, classé par ordre d'importance
             </p>
           </div>
           <Badge
@@ -96,135 +96,165 @@ export function LimiteursSection({ diagnostic, className }: LimiteursSectionProp
         </div>
       </CardHeader>
 
-      <CardContent className="p-4 space-y-4">
-        {/* Limiteur principal — mis en avant */}
-        <div className="p-4 rounded-xl border-2 border-amber-500/30 bg-amber-500/5">
-          <div className="flex items-center gap-3 mb-3">
-            <span className="text-2xl">{limiter.limiterEmoji || "🎯"}</span>
-            <div>
-              <h3 className="font-bold text-base">{limiter.limiterLabel || pedagogy.title}</h3>
-              <p className="text-xs text-muted-foreground">Limiteur principal identifié</p>
-            </div>
-          </div>
-
-          {/* Ce que ça signifie */}
-          <div className="space-y-3">
-            <div className="p-3 rounded-lg bg-background/80">
-              <p className="text-xs font-semibold text-foreground mb-1">💡 Ce que ça signifie</p>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {pedagogy.whatItMeans}
-              </p>
-            </div>
-
-            <div className="p-3 rounded-lg bg-background/80">
-              <p className="text-xs font-semibold text-foreground mb-1">🎯 Pourquoi c'est important</p>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {pedagogy.whyItMatters}
-              </p>
-            </div>
-
-            <div className="p-3 rounded-lg bg-background/80">
-              <p className="text-xs font-semibold text-foreground mb-1">🔄 En image</p>
-              <p className="text-xs text-muted-foreground leading-relaxed italic">
-                {pedagogy.analogy}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Limiteur secondaire (si présent) */}
-        {secondary && (
-          <div className="p-3 rounded-lg border bg-card">
-            <div className="flex items-center gap-2 mb-1">
-              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-sm font-medium">Limiteur secondaire</span>
-            </div>
-            <p className="text-xs text-muted-foreground">{secondary.label}</p>
+      <CardContent className="p-4 space-y-3">
+        {rankedLimiters.length === 0 && (
+          <div className="p-4 rounded-xl border bg-muted/20 text-center">
+            <p className="text-sm text-muted-foreground">Profil équilibré — aucun limiteur majeur identifié</p>
           </div>
         )}
 
-        {/* Gaps — tous les axes avec comparatif Actuel vs Cible */}
-        {limiter.gapAnalysis.length > 0 && (
-          <div>
-            <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
-              Écarts par rapport aux cibles
-            </p>
-            <div className="space-y-1.5">
-              {[...limiter.gapAnalysis]
-                .sort((a, b) => a.gap - b.gap)
-                .map((gap) => {
-                  const isBelow = gap.gap < 0;
-                  const isUnknown = gap.status === "unknown" || gap.value === null;
-                  const severity = gap.gap < -15 ? "critical" : gap.gap < -5 ? "warning" : isBelow ? "mild" : "ok";
+        {rankedLimiters.map((item, index) => {
+          const rank = index + 1;
+          const pedagogy = LIMITER_PEDAGOGY[item.category] || LIMITER_PEDAGOGY.unknown;
+          const isPrimary = rank === 1;
 
-                  const formatVal = (v: number) => {
-                    if (v < 1) return v.toFixed(2);
-                    if (v < 10) return v.toFixed(1);
-                    return v.toFixed(0);
-                  };
+          return (
+            <div
+              key={item.category + index}
+              className={cn(
+                "rounded-xl border transition-colors",
+                isPrimary
+                  ? "border-2 border-amber-500/30 bg-amber-500/5 p-4"
+                  : "border-border/50 bg-card p-3"
+              )}
+            >
+              {/* Header with rank */}
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2.5">
+                  <div className={cn(
+                    "flex items-center justify-center rounded-full text-xs font-bold shrink-0",
+                    isPrimary ? "h-7 w-7 bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))]"
+                      : rank === 2 ? "h-6 w-6 bg-[hsl(var(--warning))] text-[hsl(var(--warning-foreground,0_0%_0%))]"
+                      : "h-6 w-6 bg-muted text-muted-foreground"
+                  )}>
+                    {rank}
+                  </div>
+                  <div>
+                    <h3 className={cn("font-semibold", isPrimary ? "text-base" : "text-sm")}>
+                      {pedagogy.title}
+                    </h3>
+                    <Badge variant="outline" className={cn(
+                      "text-[9px] px-1.5 mt-0.5",
+                      isPrimary ? "border-[hsl(var(--destructive)/0.4)] text-[hsl(var(--destructive))]"
+                        : rank === 2 ? "border-[hsl(var(--warning)/0.4)] text-[hsl(var(--warning))]"
+                        : "border-border text-muted-foreground"
+                    )}>
+                      {isPrimary ? "Prioritaire" : rank === 2 ? "Secondaire" : `Tertiaire`}
+                    </Badge>
+                  </div>
+                </div>
 
-                  // Determine unit from metric name
-                  const unit = gap.metric === "VLamax" ? "mmol/L/s"
-                    : gap.metric === "FTP/kg" ? "W/kg"
-                    : gap.metric === "VO2max" ? "ml/kg/min"
-                    : gap.metric === "TTE" ? "min"
-                    : gap.metric === "VMA" ? "km/h"
-                    : gap.metric === "Économie" || gap.metric === "Robustesse" ? "/100"
-                    : "";
+                {/* Impact score */}
+                <div className="text-right">
+                  <span className={cn(
+                    "text-xs font-mono font-bold",
+                    item.worstGap < -15 ? "text-[hsl(var(--destructive))]"
+                      : item.worstGap < -5 ? "text-[hsl(var(--warning))]"
+                      : "text-muted-foreground"
+                  )}>
+                    {item.worstGap.toFixed(0)}%
+                  </span>
+                  <p className="text-[9px] text-muted-foreground">écart max</p>
+                </div>
+              </div>
 
+              {/* Metrics concerned */}
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {item.metrics.map(m => {
+                  const formatVal = (v: number) => v < 1 ? v.toFixed(2) : v < 10 ? v.toFixed(1) : v.toFixed(0);
                   return (
-                    <div
-                      key={gap.metric}
-                      className={cn(
-                        "flex items-center justify-between p-2.5 rounded-lg border",
-                        severity === "critical" ? "border-[hsl(var(--destructive)/0.3)] bg-[hsl(var(--destructive)/0.05)]" :
-                        severity === "warning" ? "border-[hsl(var(--warning)/0.3)] bg-[hsl(var(--warning)/0.05)]" :
-                        severity === "ok" ? "border-[hsl(var(--success)/0.3)] bg-[hsl(var(--success)/0.05)]" :
-                        "border-border/40 bg-muted/20"
+                    <div key={m.metric} className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-background/80 border border-border/30 text-[10px]">
+                      <span className="font-semibold">{m.metric}</span>
+                      {m.value !== null && m.target !== null && (
+                        <>
+                          <span className="text-muted-foreground">{formatVal(m.value)}</span>
+                          <ArrowRight className="h-2.5 w-2.5 text-muted-foreground/50" />
+                          <span className="text-muted-foreground">{formatVal(m.target)}</span>
+                        </>
                       )}
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-xs font-semibold truncate">{gap.metric}</span>
-                        {!isUnknown && gap.value !== null && (
-                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                            <span className="font-mono font-bold text-foreground">{formatVal(gap.value)}</span>
-                            <span>→</span>
-                            <span className="font-mono">{formatVal(gap.target)}</span>
-                            <span className="text-muted-foreground/60">{unit}</span>
-                          </div>
-                        )}
-                        {isUnknown && (
-                          <span className="text-[10px] text-muted-foreground italic">Donnée manquante</span>
-                        )}
-                      </div>
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          "text-[9px] px-1.5 h-4 shrink-0",
-                          severity === "critical" ? "border-[hsl(var(--destructive)/0.4)] text-[hsl(var(--destructive))]" :
-                          severity === "warning" ? "border-[hsl(var(--warning)/0.4)] text-[hsl(var(--warning))]" :
-                          severity === "ok" ? "border-[hsl(var(--success)/0.4)] text-[hsl(var(--success))]" :
-                          "border-border text-muted-foreground"
-                        )}
-                      >
-                        {isUnknown ? "?" : severity === "ok" ? "✅ Atteint" : `${gap.gap.toFixed(0)}%`}
-                      </Badge>
                     </div>
                   );
                 })}
+              </div>
+
+              {/* Explanation — only for primary */}
+              {isPrimary && (
+                <div className="space-y-2 mt-3">
+                  <div className="p-2.5 rounded-lg bg-background/80">
+                    <p className="text-[10px] font-semibold text-foreground mb-0.5">💡 Ce que ça signifie</p>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">{pedagogy.whatItMeans}</p>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-background/80">
+                    <p className="text-[10px] font-semibold text-foreground mb-0.5">🔄 En image</p>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed italic">{pedagogy.analogy}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Brief explanation for secondary */}
+              {!isPrimary && (
+                <p className="text-[11px] text-muted-foreground leading-relaxed mt-1">
+                  {pedagogy.whatItMeans.split('.')[0]}.
+                </p>
+              )}
             </div>
-          </div>
-        )}
+          );
+        })}
 
         {/* Disclaimer pédagogique */}
         <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/30 border border-muted">
           <Info className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
           <p className="text-[11px] text-muted-foreground leading-relaxed">
-            L'identification des limiteurs est basée sur l'écart entre tes métriques actuelles et les cibles optimales
-            pour ton objectif. Le limiteur prioritaire est celui qui a le plus grand <strong>impact pondéré</strong> sur ta performance.
+            Les limiteurs sont classés par <strong>impact pondéré</strong> sur ta performance.
+            Le limiteur prioritaire est celui qui freine le plus ta progression vers ton objectif.
           </p>
         </div>
       </CardContent>
     </Card>
   );
+}
+
+// Build ranked limiters grouped by category from gap analysis
+function buildRankedLimiters(limiter: AthleteDiagnostic["limiter"]) {
+  type GapItem = AthleteDiagnostic["limiter"]["gapAnalysis"][number];
+  
+  const METRIC_TO_CATEGORY: Record<string, string> = {
+    "VO2max": "aerobic_power",
+    "FTP/kg": "aerobic_power",
+    "VMA": "aerobic_power",
+    "VLamax": "glycolytic",
+    "TTE": "metabolic_endurance",
+    "Robustesse": "durability",
+    "Économie": "neuromuscular",
+    "W'": "neuromuscular",
+    "FatMax": "metabolic_endurance",
+    "Durabilité": "durability",
+  };
+
+  // Group limiting gaps by category
+  const groups = new Map<string, { metrics: GapItem[]; worstGap: number; totalImpact: number }>();
+  
+  for (const gap of limiter.gapAnalysis) {
+    if (gap.status !== "limiting" && gap.gap >= -3) continue; // skip if at target
+    if (gap.status === "unknown" || gap.value === null) continue; // skip unknowns
+    
+    const category = METRIC_TO_CATEGORY[gap.metric] || "unknown";
+    const existing = groups.get(category);
+    if (existing) {
+      existing.metrics.push(gap);
+      existing.worstGap = Math.min(existing.worstGap, gap.gap);
+      existing.totalImpact += Math.abs(gap.weightedImpact ?? gap.gap);
+    } else {
+      groups.set(category, {
+        metrics: [gap],
+        worstGap: gap.gap,
+        totalImpact: Math.abs(gap.weightedImpact ?? gap.gap),
+      });
+    }
+  }
+
+  // Sort by total impact (highest first)
+  return Array.from(groups.entries())
+    .map(([category, data]) => ({ category, ...data }))
+    .sort((a, b) => b.totalImpact - a.totalImpact);
 }
