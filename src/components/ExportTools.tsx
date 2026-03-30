@@ -2284,22 +2284,8 @@ function buildDoubleBoucleCAPHTML(payload: ExportPayload): string {
 // =============================================
 
 function buildRoadmapHTML(payload: ExportPayload): string {
-  const limiterResult = detectUnifiedLimiter({
-    vo2max: payload.effectiveSnapshot?.vo2max ?? null,
-    ftpKg: payload.effectiveRefs.ftp && payload.effectiveRefs.weightKg
-      ? payload.effectiveRefs.ftp / payload.effectiveRefs.weightKg : null,
-    vlamax: payload.vlamax.value,
-    wprimeKj: null,
-    tte: payload.tte.tte_min,
-    fatmax: null,
-    economyScore: payload.effectiveSnapshot?.run_economy_score ?? null,
-    availabilityScore: null,
-    hasHealthAlerts: false,
-    objectif: payload.athlete.goal || "IM",
-    ambition: (payload.ambition?.current as any) || "competitive",
-    age: null,
-    vma: payload.effectiveSnapshot?.vma ?? null,
-  });
+  // ✅ Réutilise le limiter unifié du payload (source unique de vérité)
+  const limiterResult = payload.unifiedLimiter;
 
   const roadmap = computeStrategicRoadmap({ objectif: payload.athlete.goal, limiterResult });
   const { phases, totalWeeks, title } = roadmap;
