@@ -6,6 +6,7 @@ export type PrioriteType = "VLAMAX_DOWN" | "VLAMAX_UP" | "TTE_UP" | "FTP_UTIL" |
 
 export interface ReglesTwoForCoachingResult {
   priorite: PrioriteType;
+  priorites: PrioriteType[]; // All priorities ranked by importance
   alertes: string[];
   race_ready: boolean;
 }
