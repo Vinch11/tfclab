@@ -46,6 +46,8 @@ interface RunningEconomyModuleProps {
   vlamax?: number | null;
   sport?: string;
   staffMode?: boolean;
+  weightKg?: number | null;
+  powerEndurance?: number | null;
 }
 
 export function RunningEconomyModule({
