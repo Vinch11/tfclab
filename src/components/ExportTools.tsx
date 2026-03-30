@@ -86,9 +86,6 @@ import {
 import { computePerformancePredictions } from "@/lib/v2/performancePrediction";
 // ✅ NEW: Coaching Compass (5 axes)
 import { computeCoachingCompass, type TFCLCoachingCompassResult, type CoachingCompassInput } from "@/lib/coachingCompass";
-import { computeFatigueEffectif } from "@/engines/diagnostic";
-import { computeLactateThresholdsTFCL } from "@/lib/thresholds/computeLactateThresholdsTFCL";
-import { computeLorangStrategy, type LorangStrategyInput, type LorangStrategyResult } from "@/engines/decision";
 
 // =============================================
 // TYPES
