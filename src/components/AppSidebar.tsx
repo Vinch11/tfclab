@@ -162,6 +162,35 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/* Running Profile link — visible only for running athletes */}
+        {isRunningOnly && (
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => navigate("/running-profile")}
+                    isActive={location.pathname === "/running-profile"}
+                    tooltip={collapsed ? "Profil Running" : undefined}
+                    className={cn(
+                      "relative h-10 sm:h-11 rounded-lg transition-all duration-200",
+                      location.pathname === "/running-profile"
+                        ? "bg-sidebar-accent text-sidebar-primary font-semibold shadow-sm border border-sidebar-border"
+                        : "hover:bg-sidebar-accent/60 text-sidebar-foreground/80 hover:text-sidebar-foreground"
+                    )}
+                  >
+                    <Footprints className={cn(
+                      "h-[18px] w-[18px] shrink-0 transition-colors",
+                      location.pathname === "/running-profile" ? "text-sidebar-primary" : "text-sidebar-foreground/60"
+                    )} />
+                    {!collapsed && <span className="text-sm truncate">Profil Running</span>}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
         <SidebarSeparator className="my-3 opacity-30" />
 
         {/* Utilities */}
