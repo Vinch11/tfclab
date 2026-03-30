@@ -606,7 +606,40 @@ export default function AITrainingPlanPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Non authentifié");
 
-      const mapped = mapSessionsToDates(parsedPlan.weeks, planStartDate);
+      let mapped = mapSessionsToDates(parsedPlan.weeks, planStartDate);
+
+      // ── Post-processing: correct race dates to match actual race dates ──
+      // The AI sometimes places races in the wrong week despite anchoring instructions
+      const allGoals = [
+        { objective, raceName, raceDate, priority: "A" as const },
+        ...raceGoals,
+      ].filter(g => g.raceDate);
+
+      for (const goal of allGoals) {
+        if (!goal.raceDate) continue;
+        const targetDate = parseISO(goal.raceDate);
+        const targetDateStr = format(targetDate, "yyyy-MM-dd");
+        const goalLabel = (goal.raceName || goal.objective || "").toLowerCase();
+        
+        // Find sessions that look like this race but are on the wrong date
+        for (const entry of mapped) {
+          const title = (entry.session.title || "").toLowerCase();
+          const isRaceSession = 
+            /\bcourse\b|\brace\b|\bcompétition\b/.test(title) ||
+            (goalLabel && goalLabel.length >= 4 && title.includes(goalLabel.slice(0, 8)));
+          
+          if (isRaceSession) {
+            const entryDateStr = format(entry.date, "yyyy-MM-dd");
+            // If this race session is within ±7 days of the target but not on the exact date, fix it
+            const daysDiff = Math.abs(differenceInCalendarDays(entry.date, targetDate));
+            if (daysDiff > 0 && daysDiff <= 7) {
+              console.log(`[TFCL] Race date correction: "${entry.session.title}" moved from ${entryDateStr} to ${targetDateStr}`);
+              entry.date = targetDate;
+            }
+          }
+        }
+      }
+
       const phaseMap: Record<string, string> = {
         base: "BASE",
         build: "PHASE2",
