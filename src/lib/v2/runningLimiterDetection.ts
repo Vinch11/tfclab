@@ -192,8 +192,6 @@ function getWeights(raceType: RunningRaceType): Record<string, number> {
   return STRATEGIC_WEIGHTS[raceType] || STRATEGIC_WEIGHTS["Marathon"];
 }
 
-// ✅ Utilise la source unique de vérité pour le facteur d'ajustement VO2max par âge
-import { getVo2maxAgeFactor } from "./unifiedLimiterDetection";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // FONCTION PRINCIPALE
