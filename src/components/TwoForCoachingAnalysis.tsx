@@ -21,6 +21,7 @@ import { computeEnergyDrift, type EnergyDriftResult } from "@/lib/energyDrift";
 import { getTargetsForAmbition, normalizeObjective } from "@/lib/physiologicalTargets";
 import { normalizeRaceTypeForDisplay } from "@/lib/raceTypeNormalization";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition } from "@/types/ambitionLevel";
+import type { UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
 
 interface TwoForCoachingAnalysisProps {
   athlete: Athlete;
@@ -28,6 +29,7 @@ interface TwoForCoachingAnalysisProps {
   tteEffectif?: TTEEffectif;
   readiness?: PotentielPhysiologiqueEffectif;
   onGoToSnapshots?: () => void;
+  unifiedLimiterResult?: UnifiedLimiterResult | null;
 }
 const prioriteIcons: Record<PrioriteType, typeof TrendingDown> = {
   VLAMAX_DOWN: TrendingDown,
@@ -54,12 +56,115 @@ const getRecommandationsPriorite = (priorite: PrioriteType): string[] => {
       return ["Maintenir l'équilibre actuel", "Affûtage pré-compétition", "Récupération et fraîcheur"];
   }
 };
+
+/**
+ * ✅ Dérive les priorités d'entraînement depuis le moteur unifié de limiteurs
+ * Garantit la cohérence avec le Coaching Compass et les Facteurs Limitants
+ */
+function derivePrioritiesFromUnifiedLimiter(
+  limiterResult: UnifiedLimiterResult,
+  objectif: string | undefined
+): ReglesTwoForCoachingResult {
+  const priorites: PrioriteType[] = [];
+  const alertes: string[] = [];
+  
+  // Trier les gaps par impact pondéré décroissant (les plus limitants en premier)
+  const limitingGaps = limiterResult.gapAnalysis
+    .filter(g => g.status === "limiting")
+    .sort((a, b) => b.weightedImpact - a.weightedImpact);
+  
+  for (const gap of limitingGaps) {
+    switch (gap.metric) {
+      case "VLamax": {
+        // VLamax trop haute = réduire
+        if (gap.value !== null && gap.value > gap.target) {
+          if (!priorites.includes("VLAMAX_DOWN")) {
+            priorites.push("VLAMAX_DOWN");
+            alertes.push(`VLamax trop élevée (${gap.value.toFixed(2)} vs cible ${gap.target.toFixed(2)})`);
+          }
+        }
+        break;
+      }
+      case "TTE": {
+        if (!priorites.includes("TTE_UP")) {
+          priorites.push("TTE_UP");
+          alertes.push(`TTE insuffisant (${gap.value}min vs cible ${gap.target}min)`);
+        }
+        break;
+      }
+      case "FTP/kg": {
+        if (!priorites.includes("FTP_UTIL")) {
+          priorites.push("FTP_UTIL");
+          alertes.push(`FTP/kg insuffisant (${gap.value?.toFixed(1)} vs cible ${gap.target.toFixed(1)} W/kg)`);
+        }
+        break;
+      }
+      case "VMA": {
+        // VMA limitante → traiter comme FTP_UTIL (expression aérobie)
+        if (!priorites.includes("FTP_UTIL")) {
+          priorites.push("FTP_UTIL");
+          alertes.push(`VMA insuffisante (${gap.value?.toFixed(1)} vs cible ${gap.target.toFixed(1)} km/h)`);
+        }
+        break;
+      }
+      case "VO2max": {
+        // VO2max bas → développer le moteur (similaire à FTP_UTIL mais côté plafond)
+        if (!priorites.includes("FTP_UTIL")) {
+          priorites.push("FTP_UTIL");
+          alertes.push(`VO2max insuffisant (${gap.value?.toFixed(0)} vs cible ${gap.target.toFixed(0)} ml/kg/min)`);
+        }
+        break;
+      }
+      case "FatMax": {
+        // FatMax bas → besoin d'endurance / volume Z2
+        if (!priorites.includes("ENDURANCE_UP")) {
+          priorites.push("ENDURANCE_UP");
+          alertes.push(`FatMax insuffisant (${gap.value}% vs cible ${gap.target}%)`);
+        }
+        break;
+      }
+      case "Economy":
+      case "Durability": {
+        if (!priorites.includes("ENDURANCE_UP")) {
+          priorites.push("ENDURANCE_UP");
+          alertes.push(`${gap.metric} insuffisant`);
+        }
+        break;
+      }
+    }
+  }
+  
+  // VLamax trop basse (acceptable gaps peuvent aussi révéler ça)
+  const vlamaxGap = limiterResult.gapAnalysis.find(g => g.metric === "VLamax");
+  if (vlamaxGap && vlamaxGap.value !== null && vlamaxGap.status === "optimal") {
+    // VLamax très basse → peut-être trop basse pour certains objectifs courts
+    const obj = (objectif || "").toLowerCase();
+    if ((obj.includes("semi") || obj.includes("10k")) && vlamaxGap.value < 0.30) {
+      if (!priorites.includes("VLAMAX_UP")) {
+        priorites.push("VLAMAX_UP");
+        alertes.push("VLamax potentiellement trop basse pour un objectif court");
+      }
+    }
+  }
+  
+  // Race Ready: aucune métrique critique limitante
+  const race_ready = limitingGaps.length === 0;
+  
+  return {
+    priorite: priorites[0] || "",
+    priorites,
+    alertes,
+    race_ready,
+  };
+}
+
 export function TwoForCoachingAnalysis({
   athlete,
   vlamaxEffectif: vlamaxEffectifProp,
   tteEffectif: tteEffectifProp,
   readiness: readinessProp,
-  onGoToSnapshots
+  onGoToSnapshots,
+  unifiedLimiterResult
 }: TwoForCoachingAnalysisProps) {
   const snapshot = getDernierSnapshot(athlete) as any;
   const [inputs, setInputs] = useState<PotentielInputs>({
@@ -101,10 +206,18 @@ export function TwoForCoachingAnalysis({
     alertes: [],
     race_ready: false
   });
+  
   useEffect(() => {
-    const result = reglesTwoForCoaching(athlete, vlamax, tte, ftp_kg, inputs.seance_specifique_validee, inputs.fatigue_ok);
-    setAnalysis(result);
-  }, [athlete, vlamax, tte, ftp_kg, inputs]);
+    // ✅ Si le moteur unifié est disponible, dériver les priorités depuis ses gap analysis
+    if (unifiedLimiterResult && unifiedLimiterResult.gapAnalysis?.length > 0) {
+      const derivedPriorities = derivePrioritiesFromUnifiedLimiter(unifiedLimiterResult, athlete.objectif);
+      setAnalysis(derivedPriorities);
+    } else {
+      // Fallback: ancien moteur TFCL
+      const result = reglesTwoForCoaching(athlete, vlamax, tte, ftp_kg, inputs.seance_specifique_validee, inputs.fatigue_ok);
+      setAnalysis(result);
+    }
+  }, [athlete, vlamax, tte, ftp_kg, inputs, unifiedLimiterResult]);
 
   const PrioriteIcon = prioriteIcons[analysis.priorite] || CheckCircle2;
   const recommendations = getRecommandationsPriorite(analysis.priorite);
