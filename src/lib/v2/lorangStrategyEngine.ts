@@ -467,6 +467,15 @@ function identifyPrimaryLimiter(input: LorangStrategyInput): {
     });
   }
   
+  // TTE / Durabilité
+  if (tteGap !== null && tteGap < -0.1) {
+    scores.push({
+      limiter: 'durability',
+      score: tteGap * 100,
+      reason: `TTE ${Math.abs(tteGap * 100).toFixed(0)}% sous la cible (${physiology.tte}min vs ${physiology.tteTarget}min)`,
+    });
+  }
+  
   // Économie / Neuromusculaire
   const economyScore = physiology.economy ?? 50;
   if (economyScore < 50) {
