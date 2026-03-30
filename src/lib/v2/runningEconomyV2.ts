@@ -20,6 +20,16 @@ import { CONFIDENCE_LEVELS } from './scientificConfig';
 
 export type EconomyLevelV2 = 'excellent' | 'good' | 'average' | 'weak' | 'very_weak';
 
+export interface EstimatedO2Cost {
+  value: number;          // ml/kg/km
+  source: 'power' | 'acsm';  // Méthode utilisée
+  sourceLabel: string;
+  level: 'elite' | 'well_trained' | 'trained' | 'recreational' | 'beginner';
+  levelLabel: string;
+  levelEmoji: string;
+  referenceRange: string; // ex: "180-200 ml/kg/km (élite)"
+}
+
 export interface RunningEconomyV2 {
   // Indice principal (0-100)
   index: number;
@@ -54,7 +64,10 @@ export interface RunningEconomyV2 {
   };
   
   // Rapport coût / vitesse
-  energyCostRatio: number | null;  // W/m ou autre métrique si disponible
+  energyCostRatio: number | null;  // W/(km/h)
+  
+  // Coût O2 estimé (ml/kg/km) — métrique physiologique directe
+  estimatedO2Cost: EstimatedO2Cost | null;
   
   // Leviers d'optimisation
   optimizationLevers: string[];
@@ -85,6 +98,9 @@ export interface RunningEconomyV2Input {
   
   // TTE pour estimation dérive
   tteMin?: number | null;
+  
+  // Poids corporel (pour estimation O2 cost)
+  weightKg?: number | null;
   
   // Contexte
   objectif?: string;
@@ -163,6 +179,84 @@ function getDriftLabel(drift: number): string {
 }
 
 // =============================================
+// ESTIMATION COÛT O2 (ml/kg/km)
+// =============================================
+
+/**
+ * Estime le coût d'O2 en ml/kg/km à partir de la puissance de course et du poids.
+ * 
+ * Méthode power-based (Kipp et al. 2019, Stryd white paper) :
+ *   - Efficience mécanique running ~25% → VO2 (ml/min) ≈ Power(W) × 12
+ *   - O2 cost = VO2 × pace / weight
+ * 
+ * Fallback ACSM (American College of Sports Medicine) :
+ *   - VO2 (ml/kg/min) = 0.2 × speed(m/min) + 3.5
+ *   - O2 cost = VO2 × (1000 / speed_m_min)
+ * 
+ * Références :
+ *   - Barnes & Kilding (2015) : 180-200 ml/kg/km élite
+ *   - Saunders et al. (2004) : 200-220 well-trained
+ *   - Moore (2016) : >240 recreational
+ */
+function estimateO2Cost(
+  powerW: number | null | undefined,
+  paceMinPerKm: number | null | undefined,
+  weightKg: number | null | undefined
+): EstimatedO2Cost | null {
+  
+  // Méthode 1 : Power-based (préférée, plus précise)
+  if (powerW && paceMinPerKm && weightKg && weightKg > 0) {
+    // Efficience mécanique ~25% → facteur métabolique 12 ml O2/min par W
+    const vo2MlMin = powerW * 12;
+    const o2CostMlKgKm = (vo2MlMin * paceMinPerKm) / weightKg;
+    
+    return {
+      value: Number(o2CostMlKgKm.toFixed(1)),
+      source: 'power',
+      sourceLabel: 'Puissance + Poids (Kipp 2019)',
+      ...getO2CostLevel(o2CostMlKgKm),
+    };
+  }
+  
+  // Méthode 2 : ACSM equation (fallback depuis allure seule)
+  if (paceMinPerKm && weightKg && weightKg > 0) {
+    const speedMMin = 1000 / paceMinPerKm; // m/min
+    const vo2MlKgMin = 0.2 * speedMMin + 3.5; // ACSM flat-ground
+    const o2CostMlKgKm = vo2MlKgMin * paceMinPerKm;
+    
+    return {
+      value: Number(o2CostMlKgKm.toFixed(1)),
+      source: 'acsm',
+      sourceLabel: 'Équation ACSM (allure seule)',
+      ...getO2CostLevel(o2CostMlKgKm),
+    };
+  }
+  
+  return null;
+}
+
+function getO2CostLevel(o2Cost: number): {
+  level: EstimatedO2Cost['level'];
+  levelLabel: string;
+  levelEmoji: string;
+  referenceRange: string;
+} {
+  if (o2Cost <= 195) {
+    return { level: 'elite', levelLabel: 'Élite', levelEmoji: '🟢', referenceRange: '180-195 ml/kg/km (élite)' };
+  }
+  if (o2Cost <= 210) {
+    return { level: 'well_trained', levelLabel: 'Très bien entraîné', levelEmoji: '🟢', referenceRange: '195-210 ml/kg/km (très entraîné)' };
+  }
+  if (o2Cost <= 230) {
+    return { level: 'trained', levelLabel: 'Entraîné', levelEmoji: '🟡', referenceRange: '210-230 ml/kg/km (entraîné)' };
+  }
+  if (o2Cost <= 260) {
+    return { level: 'recreational', levelLabel: 'Récréatif', levelEmoji: '🟠', referenceRange: '230-260 ml/kg/km (récréatif)' };
+  }
+  return { level: 'beginner', levelLabel: 'Débutant', levelEmoji: '🔴', referenceRange: '>260 ml/kg/km (débutant)' };
+}
+
+// =============================================
 // FONCTION PRINCIPALE V2
 // =============================================
 
@@ -186,6 +280,7 @@ export function computeRunningEconomyV2(input: RunningEconomyV2Input): RunningEc
       performanceImpact: { label: '—', description: 'Non applicable en vélo', modifier: 0 },
       injuryRiskImpact: { label: '—', description: 'Non applicable en vélo', modifier: 0 },
       energyCostRatio: null,
+      estimatedO2Cost: null,
       optimizationLevers: [],
       warnings: [],
       isApplicable: false
@@ -368,11 +463,29 @@ export function computeRunningEconomyV2(input: RunningEconomyV2Input): RunningEc
     energyCostRatio = Number((input.powerEndurance / speedKmh).toFixed(2));
   }
   
+  // Estimation coût O2 (ml/kg/km)
+  const estimatedO2Cost = estimateO2Cost(
+    input.powerEndurance,
+    input.paceEndurance,
+    input.weightKg
+  );
+  
+  if (estimatedO2Cost) {
+    // Ajuster le score d'économie si on a le coût O2 réel
+    const o2Bonus = estimatedO2Cost.value <= 195 ? 10 
+      : estimatedO2Cost.value <= 210 ? 5 
+      : estimatedO2Cost.value <= 230 ? 0 
+      : estimatedO2Cost.value <= 260 ? -5 
+      : -10;
+    economyScore = clamp(economyScore + o2Bonus, 0, 100);
+    confidence = clamp(confidence + 0.1, 0, 0.95);
+  }
+  
   return {
     index: economyScore,
-    level,
-    levelLabel: getLevelLabel(level),
-    levelEmoji: getLevelEmoji(level),
+    level: getLevelFromIndex(economyScore),
+    levelLabel: getLevelLabel(getLevelFromIndex(economyScore)),
+    levelEmoji: getLevelEmoji(getLevelFromIndex(economyScore)),
     confidence,
     paceAt75pct: input.paceEndurance || null,
     hrDrift: drift || null,
@@ -388,6 +501,7 @@ export function computeRunningEconomyV2(input: RunningEconomyV2Input): RunningEc
       modifier: injuryModifier
     },
     energyCostRatio,
+    estimatedO2Cost,
     optimizationLevers,
     warnings,
     isApplicable: true

@@ -89,7 +89,8 @@ export {
   getEconomyBadgeClass,
   type RunningEconomyV2,
   type EconomyLevelV2,
-  type RunningEconomyV2Input
+  type RunningEconomyV2Input,
+  type EstimatedO2Cost
 } from './runningEconomyV2';
 
 // Compass CAP (Running-Specific 6-Axis Compass)
