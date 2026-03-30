@@ -355,7 +355,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
     );
   }
 
-  const { limiter, leverage, decision, readiness } = compass;
+  const { limiter, leverage, decision } = compass;
 
   return (
     <Card className={cn("border-border/50 overflow-hidden print:break-inside-avoid print:shadow-none print:border-0", className)}>
