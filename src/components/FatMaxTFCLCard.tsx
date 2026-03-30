@@ -152,7 +152,7 @@ export function FatMaxTFCLCard({
             </p>
           )}
           <p className="text-sm font-medium mt-2">
-            Centre: {fatmax.centerPctFTP}% FTP
+            Centre: {fatmax.centerPctFTP}% {refLabel}
           </p>
         </div>
 
