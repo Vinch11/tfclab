@@ -77,9 +77,10 @@ const LEVER_PEDAGOGY: Record<string, {
 
 export function LeviersSection({ diagnostic, prescription, className }: LeviersSectionProps) {
   const navigate = useNavigate();
-  const { strategy, executiveSummary } = prescription;
+  const { strategy, executiveSummary, roadmap } = prescription;
   const levers = strategy.levers;
   const prohibitions = strategy.prohibitions;
+  const phases: RoadmapPhase[] = roadmap?.phases ?? [];
 
   return (
     <Card className={cn("overflow-hidden", className)}>
