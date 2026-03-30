@@ -238,16 +238,20 @@ export function AthleteRefsPanel({
     const isRunning = ["Marathon", "Semi", "Course", "Trail"].includes(athleteGoal);
     
     const metabolicFields = [
-      { key: "vlamax", label: "VLamax Vélo", value: snapshot?.vlamax, priority: isTriathlon ? "critical" : isRunning ? "recommended" : "critical" as const },
+      ...(isRunning ? [] : [
+        { key: "vlamax", label: "VLamax Vélo", value: snapshot?.vlamax, priority: isTriathlon ? "critical" : "critical" as const },
+      ]),
       { key: "tte", label: "TTE", value: snapshot?.tte_observed_min, priority: "critical" as const },
-      { key: "ftp", label: "FTP", value: snapshot?.ftp, priority: isRunning ? "recommended" : "critical" as const },
-      { key: "pmax_5s", label: "Pmax 5s", value: snapshot?.pmax_5s, priority: "important" as const },
-      { key: "p30s_w", label: "P30s", value: snapshot?.p30s_w, priority: "important" as const },
+      ...(isRunning ? [] : [
+        { key: "ftp", label: "FTP", value: snapshot?.ftp, priority: "critical" as const },
+        { key: "pmax_5s", label: "Pmax 5s", value: snapshot?.pmax_5s, priority: "important" as const },
+        { key: "p30s_w", label: "P30s", value: snapshot?.p30s_w, priority: "important" as const },
+      ]),
       ...(isTriathlon || isRunning ? [
         { key: "vlamax_run", label: "VLamax CAP", value: snapshot?.vlamax_run, priority: "critical" as const },
-        { key: "vma", label: "VMA", value: snapshot?.vma, priority: "important" as const },
+        { key: "vma", label: "VMA", value: snapshot?.vma, priority: isRunning ? "critical" : "important" as const },
       ] : []),
-      { key: "vo2max", label: "VO₂max", value: snapshot?.vo2max, priority: "recommended" as const },
+      { key: "vo2max", label: "VO₂max", value: snapshot?.vo2max, priority: isRunning ? "critical" : "recommended" as const },
       { key: "fc_max", label: "FC Max", value: snapshot?.fc_max, priority: "recommended" as const },
     ];
     
