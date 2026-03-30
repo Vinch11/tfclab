@@ -503,6 +503,15 @@ export default function RunningProfilePage() {
           <PacingEnvelopeRunCard
             result={pacingEnvelope}
             isStaffMode={staffMode}
+            simulationInputs={pacingEnvelope && potentielPhysiologique ? {
+              vlamax_run_v2: vlamaxEffectif.value,
+              vo2max_run: effectiveCloudSnapshot?.vo2max ?? currentAthlete?.vo2max ?? null,
+              durability_index: tteEffectif.tte_min,
+              fatmax_intensity: null,
+              race_readiness_state: potentielPhysiologique.readiness_state,
+              race_readiness_score: potentielPhysiologique.readiness_score,
+              athlete_weight_kg: effectiveCloudSnapshot?.weight_kg ?? null,
+            } : null}
           />
         ),
       },
