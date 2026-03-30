@@ -28,6 +28,7 @@ export type LorangLimiter =
   | 'motor'           // Limiteur moteur (VO2max)
   | 'glycolytic'      // Limiteur glycolytique (VLamax trop haute)
   | 'metabolic'       // Limiteur métabolique (FatMax / glycogène)
+  | 'durability'      // Limiteur durabilité (TTE / robustesse)
   | 'neuromuscular'   // Limiteur neuromusculaire (force / économie)
   | 'availability';   // Limiteur disponibilité (fatigue / stress)
 
