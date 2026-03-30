@@ -22,6 +22,7 @@ import { DashboardRecommendationsCard } from "@/components/DashboardRecommendati
 import { SnapshotEvolutionChart } from "@/components/SnapshotEvolutionChart";
 import { AthleteRefsPanel } from "@/components/AthleteRefsPanel";
 import { FtpKgTargetsCard } from "@/components/FtpKgTargetsCard";
+import { VmaTargetsCard } from "@/components/VmaTargetsCard";
 import { MetricHelpButton } from "@/components/MetricHelpButton";
 import { calculateAge } from "@/lib/ageAdjustment";
 import { AgeAdjustmentBadge } from "@/components/AgeAdjustmentBadge";
@@ -1510,15 +1511,25 @@ const Index = () => {
               />
             ),
           },
-          // ✅ 8. FTP/kg Targets
+          // ✅ 8. FTP/kg or VMA Targets (conditional on sport focus)
           {
             id: "ftp-targets",
             render: () => currentAthlete && (
-              <FtpKgTargetsCard
-                objectif={currentAthlete.goal || "IM"}
-                currentFtpKg={ftp_kg}
-                age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
-              />
+              isRunningOnly ? (
+                <VmaTargetsCard
+                  objectif={currentAthlete.goal || "Marathon"}
+                  currentVma={effectiveCloudSnapshot?.vma ?? null}
+                  age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
+                  vo2max={effectiveCloudSnapshot?.vo2max ?? null}
+                  vlamax={vlamaxEffectif.value}
+                />
+              ) : (
+                <FtpKgTargetsCard
+                  objectif={currentAthlete.goal || "IM"}
+                  currentFtpKg={ftp_kg}
+                  age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
+                />
+              )
             ),
           },
           // ✅ 9. Running Economy Summary
@@ -1818,15 +1829,25 @@ const Index = () => {
               />
             ),
           },
-          // FTP/kg Targets (profil)
+          // FTP/kg or VMA Targets (profil)
           {
             id: "ftp-targets-profil",
             render: () => currentAthlete && (
-              <FtpKgTargetsCard
-                objectif={currentAthlete.goal || "IM"}
-                currentFtpKg={ftp_kg}
-                age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
-              />
+              isRunningOnly ? (
+                <VmaTargetsCard
+                  objectif={currentAthlete.goal || "Marathon"}
+                  currentVma={effectiveCloudSnapshot?.vma ?? null}
+                  age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
+                  vo2max={effectiveCloudSnapshot?.vo2max ?? null}
+                  vlamax={vlamaxEffectif.value}
+                />
+              ) : (
+                <FtpKgTargetsCard
+                  objectif={currentAthlete.goal || "IM"}
+                  currentFtpKg={ftp_kg}
+                  age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
+                />
+              )
             ),
           },
           // FatMax TFCL (profil)
