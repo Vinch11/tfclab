@@ -104,9 +104,7 @@ export function reglesTwoForCoaching(
   const race_ready =
     vlmaxOk &&
     tteOk &&
-    ftpOk &&
-    seance_specifique_validee &&
-    fatigue_ok;
+    ftpOk;
 
   return {
     priorite,
