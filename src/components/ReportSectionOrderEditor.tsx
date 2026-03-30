@@ -152,6 +152,8 @@ const CATEGORY_COLORS: Record<string, string> = {
 export const DEFAULT_SECTION_ORDER: (keyof ReportSections)[] = [
   "synthese",
   "compass",
+  "facteursLimitants",
+  "leviersAction",
   "profilMetabolique",
   "vlamaxZoneConfidence",
   "indicateurs",
