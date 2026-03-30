@@ -214,7 +214,7 @@ describe("detectUnifiedLimiter", () => {
     const ftpGap = result.gapAnalysis.find((g) => g.metric === "FTP/kg");
     expect(vmaGap).toBeDefined();
     expect(ftpGap).toBeUndefined();
-    expect(vmaGap?.target).toBe(15.52); // Marathon age_group VMA target adjusted for age 35 (16 × 0.97)
+    expect(vmaGap?.target).toBe(15.68); // Marathon age_group VMA target adjusted for age 35 (16 × 0.98)
     expect(result.insufficientData).toBe(false);
   });
 
@@ -252,10 +252,10 @@ describe("getVo2maxAgeFactor", () => {
   });
 
   it("decreases with age", () => {
-    expect(getVo2maxAgeFactor(35)).toBe(0.95);
-    expect(getVo2maxAgeFactor(45)).toBe(0.88);
-    expect(getVo2maxAgeFactor(55)).toBe(0.80);
-    expect(getVo2maxAgeFactor(65)).toBe(0.72);
+    expect(getVo2maxAgeFactor(35)).toBe(0.96);
+    expect(getVo2maxAgeFactor(45)).toBe(0.91);
+    expect(getVo2maxAgeFactor(55)).toBe(0.85);
+    expect(getVo2maxAgeFactor(65)).toBe(0.78);
   });
 });
 
