@@ -2,7 +2,7 @@
  * TFCL Coaching Compass™ — Public API
  */
 
-export { computeCoachingCompass, COACHING_COMPASS_VERSION } from "./computeCoachingCompass";
+export { computeCoachingCompass, COACHING_COMPASS_VERSION, scoreRelativeToTarget, scoreRelativeToTargetInverse } from "./computeCoachingCompass";
 export type {
   TFCLCoachingCompassResult,
   TFCLPhysiologicalProfile,
