@@ -16,6 +16,7 @@ import {
   RUNNING_LEVER_INFO,
   getRunningTargets,
 } from "@/lib/runningFocusMode";
+import { getVo2maxAgeFactor } from "./unifiedLimiterDetection";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
