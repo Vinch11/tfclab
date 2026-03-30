@@ -572,7 +572,7 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       unit: "km/h",
     };
   } else {
-    const ftpKgScore = scoreRelativeToTarget(profile.ftpKg.value, targets.ftp_kg_min);
+    const ftpKgScore = scoreRelativeToTarget(profile.ftpKg.value, ftpKgTargetAdjusted);
     aerobicAxis = {
       key: "ftpkg",
       label: "FTP/kg",
@@ -581,7 +581,7 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       icon: "⚡",
       color: "hsl(var(--primary))",
       value: profile.ftpKg.value,
-      target: targets.ftp_kg_min,
+      target: ftpKgTargetAdjusted,
       unit: "W/kg",
     };
   }
