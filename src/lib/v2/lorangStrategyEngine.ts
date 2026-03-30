@@ -554,11 +554,9 @@ function activateLevers(
   const levers: LorangLeverActivation[] = [];
   const { physiology, athlete, availability, context } = input;
   
-  // LEVIER 0a: Intervalles VO₂max — Activé si limiteur = motor (aérobie)
+  // LEVIER 0a: Intervalles VO₂max — Activé UNIQUEMENT si limiteur = motor
   const shouldActivateVO2 = (
-    primaryLimiter === 'motor' ||
-    (physiology.vo2max !== null && physiology.vo2maxTarget > 0 && physiology.vo2max < physiology.vo2maxTarget * 0.90) ||
-    (physiology.ftpKg !== null && physiology.ftpKgTarget !== null && physiology.ftpKg < physiology.ftpKgTarget * 0.90)
+    primaryLimiter === 'motor'
   ) && availability.level !== 'critical' && !context.isRaceWeek;
 
   if (shouldActivateVO2) {
@@ -566,10 +564,8 @@ function activateLevers(
       lever: 'vo2_intervals',
       label: LEVER_DEFINITIONS.vo2_intervals.label,
       icon: LEVER_DEFINITIONS.vo2_intervals.icon,
-      priority: primaryLimiter === 'motor' ? 1 : 2,
-      reason: primaryLimiter === 'motor'
-        ? "Plafond aérobie limitant — développer VO₂max via intervalles haute intensité"
-        : "VO₂max ou FTP/kg sous la cible — stimulus aérobie nécessaire",
+      priority: 1,
+      reason: "Plafond aérobie limitant — développer VO₂max via intervalles haute intensité",
       prescription: [
         "5×4min Z5 r3min (classique Billat)",
         "3×8min Z4-Z5 r4min",
@@ -584,10 +580,11 @@ function activateLevers(
     });
   }
 
-  // LEVIER 0b: Volume Z2 / Endurance — Activé si limiteur = metabolic ou durability faible
+  // LEVIER 0b: Volume Z2 / Endurance — Activé si limiteur = metabolic, durability ou glycolytic
   const shouldActivateZ2 = (
     primaryLimiter === 'metabolic' ||
-    (physiology.tte !== null && physiology.tteTarget > 0 && physiology.tte < physiology.tteTarget * 0.85)
+    primaryLimiter === 'durability' ||
+    primaryLimiter === 'glycolytic'
   ) && availability.level !== 'critical' && !context.isRaceWeek;
 
   if (shouldActivateZ2) {
@@ -595,15 +592,24 @@ function activateLevers(
       lever: 'z2_volume',
       label: LEVER_DEFINITIONS.z2_volume.label,
       icon: LEVER_DEFINITIONS.z2_volume.icon,
-      priority: primaryLimiter === 'metabolic' ? 1 : 2,
-      reason: primaryLimiter === 'metabolic'
+      priority: 1,
+      reason: primaryLimiter === 'durability'
+        ? "TTE insuffisant — développer la durabilité via volume structuré et sorties longues"
+        : primaryLimiter === 'metabolic'
         ? "Efficacité énergétique limitante — augmenter le volume aérobie de base"
-        : "Durabilité sous la cible — développer l'endurance longue",
-      prescription: [
-        "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
-        "Z2 + bloc tempo final 20-30min",
-        "3-4 sorties Z2/semaine en phase Base",
-      ],
+        : "VLamax élevée — volume Z2 pour abaisser la glycolyse",
+      prescription: primaryLimiter === 'durability'
+        ? [
+            "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+            "2×20-30min au seuil pour augmenter le TTE",
+            "Z2 + bloc tempo final 20-30min",
+            "Progression charge +10%/semaine max",
+          ]
+        : [
+            "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+            "Z2 + bloc tempo final 20-30min",
+            "3-4 sorties Z2/semaine en phase Base",
+          ],
       warnings: [
         "Progression volume max +10%/semaine",
         "Maintenir au moins 1 jour OFF ou récup active",
