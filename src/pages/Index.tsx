@@ -792,7 +792,7 @@ const Index = () => {
       sportFocus: isRunningOnly ? "run" : (effectiveCloudSnapshot.sport_main === "run" ? "run" : effectiveCloudSnapshot.sport_main === "bike" ? "bike" : "triathlon") as "bike" | "run" | "triathlon",
       athleteAge: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
     };
-  }, [currentAthlete, effectiveCloudSnapshot, effectiveRefs, vlamaxEffectif, tteEffectif, fatigueEffectifForCompass, unifiedLimiterResult, potentielPhysiologiqueEffectif, lorangStrategyForCompass, lactateThresholdsForCompass, wprimeKjForLimiter, currentAmbition]);
+  }, [currentAthlete, effectiveCloudSnapshot, effectiveRefs, vlamaxEffectif, tteEffectif, fatigueEffectifForCompass, unifiedLimiterResult, potentielPhysiologiqueEffectif, lorangStrategyForCompass, lactateThresholdsForCompass, wprimeKjForLimiter, currentAmbition, isRunningOnly]);
 
   const { 
     calculateAndPersist: persistDRE, 
