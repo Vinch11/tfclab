@@ -899,6 +899,24 @@ function suggestTemplateWeek(
     };
   }
   
+  // Limiteur durabilité / TTE
+  if (primaryLimiter === 'durability') {
+    return {
+      weekType: 'endurance',
+      weekLabel: "Semaine Durabilité / TTE",
+      reasoning: "TTE insuffisant — volume structuré + blocs au seuil pour renforcer la durabilité",
+    };
+  }
+
+  // Limiteur métabolique
+  if (primaryLimiter === 'metabolic') {
+    return {
+      weekType: 'endurance',
+      weekLabel: "Semaine Endurance Métabolique",
+      reasoning: "Efficacité énergétique limitante — focus Z2 long et FatMax",
+    };
+  }
+  
   // Défaut
   return {
     weekType: 'mixed',
