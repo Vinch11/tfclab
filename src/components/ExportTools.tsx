@@ -2285,6 +2285,193 @@ function buildDoubleBoucleCAPHTML(payload: ExportPayload): string {
 // Uses computeStrategicRoadmap engine for metabolic-aware phases
 // =============================================
 
+// =============================================
+// FACTEURS LIMITANTS (moteur unifié)
+// =============================================
+
+function buildFacteursLimitantsHTML(payload: ExportPayload): string {
+  const ul = payload.unifiedLimiter;
+  const gaps = ul.gapAnalysis;
+  
+  const statusColor = (s: string) => s === "limiting" ? "#dc2626" : s === "acceptable" ? "#ca8a04" : s === "optimal" ? "#16a34a" : "#6b7280";
+  const statusLabel = (s: string) => s === "limiting" ? "Limitant" : s === "acceptable" ? "Acceptable" : s === "optimal" ? "Optimal" : "Inconnu";
+  
+  const fmtV = (v: number | null) => v === null ? "—" : v < 10 ? v.toFixed(2) : v.toFixed(1);
+  
+  // Trier par impact pondéré (les plus limitants en premier)
+  const sorted = [...gaps].sort((a, b) => a.weightedImpact - b.weightedImpact);
+
+  return `
+    <section id="facteurs-limitants" class="section pagebreakAvoid">
+      <h2>🎯 Facteurs Limitants</h2>
+      
+      <div class="card cardHighlight">
+        <div class="grid2">
+          <div>
+            <h3>${ul.limiterEmoji} Limiteur Principal</h3>
+            <div style="font-size:22px;font-weight:700;margin:8px 0;">${htmlEscape(ul.limiterLabel)}</div>
+            <div class="muted">${htmlEscape(ul.limiterExplanation)}</div>
+          </div>
+          <div>
+            <div style="display:flex;gap:16px;margin-top:8px;">
+              <div style="text-align:center;">
+                <div style="font-size:28px;font-weight:700;color:${ul.confidence > 0.7 ? '#16a34a' : ul.confidence > 0.4 ? '#ca8a04' : '#dc2626'};">${Math.round(ul.confidence * 100)}%</div>
+                <div class="muted" style="font-size:11px;">Confiance</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:28px;font-weight:700;color:${ul.robustnessScore > 60 ? '#16a34a' : '#ca8a04'};">${ul.robustnessScore}</div>
+                <div class="muted" style="font-size:11px;">Robustesse</div>
+              </div>
+            </div>
+            <div class="muted mt" style="font-size:11px;">${htmlEscape(ul.robustnessNote)}</div>
+          </div>
+        </div>
+      </div>
+
+      ${ul.insufficientData ? `
+        <div class="alert alertWarning mt">
+          ⚠️ ${htmlEscape(ul.insufficientDataMessage || "Données insuffisantes")}
+          ${ul.missingMetrics.length > 0 ? `<br><b>Métriques manquantes :</b> ${ul.missingMetrics.join(", ")}` : ""}
+        </div>
+      ` : ""}
+
+      ${ul.fatigueWarning.active ? `
+        <div class="alert alertWarning mt">
+          🔋 ${htmlEscape(ul.fatigueWarning.message || "Fatigue détectée")}
+        </div>
+      ` : ""}
+
+      <div class="card mt">
+        <h3>📊 Analyse des Écarts (Gap Analysis)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Métrique</th>
+              <th>Actuel</th>
+              <th>Cible</th>
+              <th>Écart</th>
+              <th>Impact</th>
+              <th>Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${sorted.map(g => `
+              <tr>
+                <td><b>${htmlEscape(g.metric)}</b></td>
+                <td>${fmtV(g.value)}</td>
+                <td>${fmtV(g.target)}</td>
+                <td style="font-weight:600;color:${g.gap < -15 ? '#dc2626' : g.gap < -5 ? '#ca8a04' : '#16a34a'};">${g.gap.toFixed(0)}%</td>
+                <td>
+                  <div style="background:#e5e7eb;border-radius:4px;height:8px;width:60px;position:relative;">
+                    <div style="background:${statusColor(g.status)};border-radius:4px;height:8px;width:${Math.min(100, Math.abs(g.weightedImpact) * 10)}%;"></div>
+                  </div>
+                </td>
+                <td><span class="badge" style="background:${statusColor(g.status)}20;color:${statusColor(g.status)};font-size:10px;">${statusLabel(g.status)}</span></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `;
+}
+
+// =============================================
+// LEVIERS D'ACTION (moteur unifié)
+// =============================================
+
+function buildLeviersActionHTML(payload: ExportPayload): string {
+  const ul = payload.unifiedLimiter;
+  const roadmap = computeStrategicRoadmap({ objectif: payload.athlete.goal, limiterResult: ul });
+  
+  // Construire les recommandations opérationnelles basées sur le levier
+  const leverActions: Record<string, { do: string[]; avoid: string[] }> = {
+    volume_z2: {
+      do: ["Augmenter le volume en Zone 2 (60-75% FTP)", "Sorties longues progressives (+10%/sem)", "Travail en endurance fondamentale"],
+      avoid: ["Excès d'intensité haute", "Sessions VO2max fréquentes", "Négligence du volume de base"]
+    },
+    threshold_work: {
+      do: ["Intervalles au seuil (FTP ±5%)", "Sweet Spot (88-93% FTP)", "Tempo prolongé"],
+      avoid: ["Sprints courts répétés", "Travail anaérobie pur", "Sessions trop courtes"]
+    },
+    vo2max_intervals: {
+      do: ["Intervalles VO2max (105-120% FTP)", "3-5min à intensité MAP", "Hill repeats"],
+      avoid: ["Volume excessif sans intensité", "Sprints neuromusculaires", "Endurance seule"]
+    },
+    reduce_vlamax: {
+      do: ["Volume Z2 prolongé (>2h)", "Travail en fat max", "Baisser la glycolyse par le volume"],
+      avoid: ["Sprints courts (<30s)", "Travail anaérobie", "HIIT très court"]
+    },
+    build_wprime: {
+      do: ["Intervalles 30s-2min supra-max", "Sprints répétés avec récupération", "Travail anaérobie ciblé"],
+      avoid: ["Volume seul sans intensité", "Sessions exclusivement Z2"]
+    },
+    neuromuscular: {
+      do: ["Sprints courts (5-15s) récupération complète", "Travail de force sur vélo", "Cadence variée"],
+      avoid: ["Fatigue excessive avant sprints", "Volume sans qualité neuromusculaire"]
+    },
+    maintain: {
+      do: ["Maintenir l'équilibre actuel", "Micro-ajustements selon la forme", "Périodisation classique"],
+      avoid: ["Changements drastiques", "Surcharge de volume ou d'intensité"]
+    }
+  };
+
+  const actions = leverActions[ul.primaryLever] || leverActions.maintain;
+
+  return `
+    <section id="leviers-action" class="section pagebreakAvoid">
+      <h2>🔧 Leviers d'Action</h2>
+      
+      <div class="card cardHighlight">
+        <h3>${ul.leverEmoji} Levier Prioritaire : ${htmlEscape(ul.leverLabel)}</h3>
+        <div class="grid2 mt">
+          <div>
+            <h4 style="color:#16a34a;">✅ À FAIRE (DO)</h4>
+            <ul>
+              ${actions.do.map(a => `<li>${htmlEscape(a)}</li>`).join("")}
+            </ul>
+          </div>
+          <div>
+            <h4 style="color:#dc2626;">🚫 À ÉVITER (AVOID)</h4>
+            <ul>
+              ${actions.avoid.map(a => `<li>${htmlEscape(a)}</li>`).join("")}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      ${roadmap.phases.length > 0 ? `
+        <div class="card mt">
+          <h3>📋 Roadmap Stratégique — ${htmlEscape(roadmap.title)}</h3>
+          <p class="muted mb">${roadmap.totalWeeks} semaines • ${roadmap.phases.length} phases</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Phase</th>
+                <th>Semaines</th>
+                <th>Focus</th>
+                <th>Objectif</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${roadmap.phases.map(p => `
+                <tr>
+                  <td><b>${htmlEscape(p.label)}</b></td>
+                  <td>S${p.startWeek}→S${p.endWeek} (${p.endWeek - p.startWeek + 1} sem)</td>
+                  <td>${htmlEscape(p.focus)}</td>
+                  <td class="muted">${htmlEscape(p.targets?.join(", ") || "—")}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      ` : ""}
+    </section>
+  `;
+}
+
+// =============================================
+
 function buildRoadmapHTML(payload: ExportPayload): string {
   // ✅ Réutilise le limiter unifié du payload (source unique de vérité)
   const limiterResult = payload.unifiedLimiter;
