@@ -28,6 +28,7 @@ export type LorangLimiter =
   | 'motor'           // Limiteur moteur (VO2max)
   | 'glycolytic'      // Limiteur glycolytique (VLamax trop haute)
   | 'metabolic'       // Limiteur métabolique (FatMax / glycogène)
+  | 'durability'      // Limiteur durabilité (TTE / robustesse)
   | 'neuromuscular'   // Limiteur neuromusculaire (force / économie)
   | 'availability';   // Limiteur disponibilité (fatigue / stress)
 
@@ -228,6 +229,13 @@ export const LIMITER_DEFINITIONS: Record<LorangLimiter, {
     description: "La force ou l'économie musculaire limite. " +
       "L'athlète 'pédale carré' ou manque de puissance spécifique.",
     symptoms: ["Jambes lourdes cardio OK", "Économie faible", "Manque de force"],
+  },
+  durability: {
+    label: "Durabilité / TTE",
+    icon: "🛡️",
+    description: "La capacité à maintenir l'effort dans la durée (TTE) est insuffisante. " +
+      "La performance se dégrade avant la fin de l'épreuve.",
+    symptoms: ["Chute de puissance après 1-2h", "Dérive cardiaque", "Incapacité à finir fort"],
   },
   availability: {
     label: "Disponibilité",
@@ -459,6 +467,15 @@ function identifyPrimaryLimiter(input: LorangStrategyInput): {
     });
   }
   
+  // TTE / Durabilité
+  if (tteGap !== null && tteGap < -0.1) {
+    scores.push({
+      limiter: 'durability',
+      score: tteGap * 100,
+      reason: `TTE ${Math.abs(tteGap * 100).toFixed(0)}% sous la cible (${physiology.tte}min vs ${physiology.tteTarget}min)`,
+    });
+  }
+  
   // Économie / Neuromusculaire
   const economyScore = physiology.economy ?? 50;
   if (economyScore < 50) {
@@ -537,11 +554,9 @@ function activateLevers(
   const levers: LorangLeverActivation[] = [];
   const { physiology, athlete, availability, context } = input;
   
-  // LEVIER 0a: Intervalles VO₂max — Activé si limiteur = motor (aérobie)
+  // LEVIER 0a: Intervalles VO₂max — Activé UNIQUEMENT si limiteur = motor
   const shouldActivateVO2 = (
-    primaryLimiter === 'motor' ||
-    (physiology.vo2max !== null && physiology.vo2maxTarget > 0 && physiology.vo2max < physiology.vo2maxTarget * 0.90) ||
-    (physiology.ftpKg !== null && physiology.ftpKgTarget !== null && physiology.ftpKg < physiology.ftpKgTarget * 0.90)
+    primaryLimiter === 'motor'
   ) && availability.level !== 'critical' && !context.isRaceWeek;
 
   if (shouldActivateVO2) {
@@ -549,10 +564,8 @@ function activateLevers(
       lever: 'vo2_intervals',
       label: LEVER_DEFINITIONS.vo2_intervals.label,
       icon: LEVER_DEFINITIONS.vo2_intervals.icon,
-      priority: primaryLimiter === 'motor' ? 1 : 2,
-      reason: primaryLimiter === 'motor'
-        ? "Plafond aérobie limitant — développer VO₂max via intervalles haute intensité"
-        : "VO₂max ou FTP/kg sous la cible — stimulus aérobie nécessaire",
+      priority: 1,
+      reason: "Plafond aérobie limitant — développer VO₂max via intervalles haute intensité",
       prescription: [
         "5×4min Z5 r3min (classique Billat)",
         "3×8min Z4-Z5 r4min",
@@ -567,10 +580,11 @@ function activateLevers(
     });
   }
 
-  // LEVIER 0b: Volume Z2 / Endurance — Activé si limiteur = metabolic ou durability faible
+  // LEVIER 0b: Volume Z2 / Endurance — Activé si limiteur = metabolic, durability ou glycolytic
   const shouldActivateZ2 = (
     primaryLimiter === 'metabolic' ||
-    (physiology.tte !== null && physiology.tteTarget > 0 && physiology.tte < physiology.tteTarget * 0.85)
+    primaryLimiter === 'durability' ||
+    primaryLimiter === 'glycolytic'
   ) && availability.level !== 'critical' && !context.isRaceWeek;
 
   if (shouldActivateZ2) {
@@ -578,15 +592,24 @@ function activateLevers(
       lever: 'z2_volume',
       label: LEVER_DEFINITIONS.z2_volume.label,
       icon: LEVER_DEFINITIONS.z2_volume.icon,
-      priority: primaryLimiter === 'metabolic' ? 1 : 2,
-      reason: primaryLimiter === 'metabolic'
+      priority: 1,
+      reason: primaryLimiter === 'durability'
+        ? "TTE insuffisant — développer la durabilité via volume structuré et sorties longues"
+        : primaryLimiter === 'metabolic'
         ? "Efficacité énergétique limitante — augmenter le volume aérobie de base"
-        : "Durabilité sous la cible — développer l'endurance longue",
-      prescription: [
-        "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
-        "Z2 + bloc tempo final 20-30min",
-        "3-4 sorties Z2/semaine en phase Base",
-      ],
+        : "VLamax élevée — volume Z2 pour abaisser la glycolyse",
+      prescription: primaryLimiter === 'durability'
+        ? [
+            "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+            "2×20-30min au seuil pour augmenter le TTE",
+            "Z2 + bloc tempo final 20-30min",
+            "Progression charge +10%/semaine max",
+          ]
+        : [
+            "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+            "Z2 + bloc tempo final 20-30min",
+            "3-4 sorties Z2/semaine en phase Base",
+          ],
       warnings: [
         "Progression volume max +10%/semaine",
         "Maintenir au moins 1 jour OFF ou récup active",
@@ -876,6 +899,24 @@ function suggestTemplateWeek(
     };
   }
   
+  // Limiteur durabilité / TTE
+  if (primaryLimiter === 'durability') {
+    return {
+      weekType: 'endurance',
+      weekLabel: "Semaine Durabilité / TTE",
+      reasoning: "TTE insuffisant — volume structuré + blocs au seuil pour renforcer la durabilité",
+    };
+  }
+
+  // Limiteur métabolique
+  if (primaryLimiter === 'metabolic') {
+    return {
+      weekType: 'endurance',
+      weekLabel: "Semaine Endurance Métabolique",
+      reasoning: "Efficacité énergétique limitante — focus Z2 long et FatMax",
+    };
+  }
+  
   // Défaut
   return {
     weekType: 'mixed',
@@ -971,6 +1012,7 @@ function generateAthleteMessage(
     motor: "Ton plafond aérobie peut encore progresser. On va travailler ton 'moteur' avec des séances d'intensité ciblées.",
     glycolytic: "Ton système glycolytique consomme trop vite ton carburant. On va l'optimiser avec du travail d'endurance spécifique.",
     metabolic: "Ton efficacité énergétique peut progresser. Focus sur l'utilisation des lipides et la tolérance glucides.",
+    durability: "Ta capacité à tenir l'effort dans la durée est insuffisante. On va renforcer ton TTE avec du volume structuré et du travail au seuil.",
     neuromuscular: "Tes muscles peuvent gagner en force et en économie. Un travail neuromusculaire ciblé va t'aider.",
     availability: "Ta récupération est prioritaire. On adapte le plan pour te permettre de régénérer avant de charger.",
   };

@@ -37,6 +37,7 @@ import {
   Target,
   Info,
   ArrowRight,
+  Timer,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -207,6 +208,7 @@ const LIMITER_ICONS: Record<LorangLimiter, React.ReactNode> = {
   motor: <Heart className="h-4 w-4" />,
   glycolytic: <Flame className="h-4 w-4" />,
   metabolic: <Zap className="h-4 w-4" />,
+  durability: <Timer className="h-4 w-4" />,
   neuromuscular: <Dumbbell className="h-4 w-4" />,
   availability: <Battery className="h-4 w-4" />,
 };
@@ -215,6 +217,7 @@ const LIMITER_COLORS: Record<LorangLimiter, string> = {
   motor: "text-rose-600 dark:text-rose-400",
   glycolytic: "text-amber-600 dark:text-amber-400",
   metabolic: "text-emerald-600 dark:text-emerald-400",
+  durability: "text-purple-600 dark:text-purple-400",
   neuromuscular: "text-violet-600 dark:text-violet-400",
   availability: "text-blue-600 dark:text-blue-400",
 };

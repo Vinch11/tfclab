@@ -97,6 +97,14 @@ const LIMITER_CONFIG: Record<LorangLimiter, {
     borderColor: "border-orange-300 dark:border-orange-700",
     tooltip: "Ce limiteur est prioritaire car le coût énergétique par watt ou km/h est trop élevé, réduisant l'efficacité globale.",
   },
+  durability: {
+    label: "TTE / Durabilité faible",
+    icon: <Timer className="h-5 w-5" />,
+    color: "text-purple-600 dark:text-purple-400",
+    bgColor: "bg-purple-50 dark:bg-purple-950/30",
+    borderColor: "border-purple-300 dark:border-purple-700",
+    tooltip: "Ce limiteur est prioritaire car le TTE est insuffisant — la performance chute avant la fin de l'épreuve.",
+  },
   availability: {
     label: "Disponibilité insuffisante",
     icon: <Heart className="h-5 w-5" />,
