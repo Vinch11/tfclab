@@ -463,11 +463,29 @@ export function computeRunningEconomyV2(input: RunningEconomyV2Input): RunningEc
     energyCostRatio = Number((input.powerEndurance / speedKmh).toFixed(2));
   }
   
+  // Estimation coût O2 (ml/kg/km)
+  const estimatedO2Cost = estimateO2Cost(
+    input.powerEndurance,
+    input.paceEndurance,
+    input.weightKg
+  );
+  
+  if (estimatedO2Cost) {
+    // Ajuster le score d'économie si on a le coût O2 réel
+    const o2Bonus = estimatedO2Cost.value <= 195 ? 10 
+      : estimatedO2Cost.value <= 210 ? 5 
+      : estimatedO2Cost.value <= 230 ? 0 
+      : estimatedO2Cost.value <= 260 ? -5 
+      : -10;
+    economyScore = clamp(economyScore + o2Bonus, 0, 100);
+    confidence = clamp(confidence + 0.1, 0, 0.95);
+  }
+  
   return {
     index: economyScore,
-    level,
-    levelLabel: getLevelLabel(level),
-    levelEmoji: getLevelEmoji(level),
+    level: getLevelFromIndex(economyScore),
+    levelLabel: getLevelLabel(getLevelFromIndex(economyScore)),
+    levelEmoji: getLevelEmoji(getLevelFromIndex(economyScore)),
     confidence,
     paceAt75pct: input.paceEndurance || null,
     hrDrift: drift || null,
@@ -483,6 +501,7 @@ export function computeRunningEconomyV2(input: RunningEconomyV2Input): RunningEc
       modifier: injuryModifier
     },
     energyCostRatio,
+    estimatedO2Cost,
     optimizationLevers,
     warnings,
     isApplicable: true
