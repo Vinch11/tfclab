@@ -30,6 +30,7 @@ import { computeTFCLDecisionMatrix, type TFCLDecisionResult, type TFCLDecisionIn
 import { computeWorkoutRecommendations, type RecommendationContext } from "@/lib/workoutRecommendationEngine";
 import { generateWorkoutAdvisories, type AdvisoryContext } from "@/lib/workoutAdvisoryEngine";
 import { computeStrategicRoadmap, type StrategicRoadmap } from "@/lib/v2/strategicRoadmap";
+import { getVo2maxTarget } from "@/lib/v2/unifiedLimiterDetection";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ORCHESTRATEUR PRINCIPAL
@@ -86,7 +87,7 @@ function computeStrategyFromDiagnostic(
   const lorangInput: LorangStrategyInput = {
     physiology: {
       vo2max: raw.vo2max,
-      vo2maxTarget: diag.targets.current.ftp_kg_min * 15, // Approximation from FTP/kg target
+      vo2maxTarget: getVo2maxTarget(diag.objectif, diag.ambition, raw.age),
       ftpKg: raw.ftpKg,
       ftpKgTarget: diag.targets.current.ftp_kg_min,
       vlamax: diag.effectifs.vlamax.value,
@@ -94,7 +95,7 @@ function computeStrategyFromDiagnostic(
       tte: diag.effectifs.tte.tte_min,
       tteTarget: diag.targets.current.tte_min,
       fatmax: raw.fatmax,
-      fatmaxTarget: 65,
+      fatmaxTarget: diag.limiter.gapAnalysis?.find(g => g.metric === "FatMax")?.target ?? 60,
       economy: raw.runEconomyScore,
     },
     athlete: {
