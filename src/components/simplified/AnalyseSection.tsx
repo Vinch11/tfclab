@@ -123,9 +123,11 @@ function getGapStatus(gap: number): { label: string; color: string; bgColor: str
   return { label: "Prioritaire", color: "text-[hsl(var(--destructive))]", bgColor: "bg-[hsl(var(--destructive)/0.08)] border-[hsl(var(--destructive)/0.2)]", icon: TrendingDown };
 }
 
-function MetricCard({ gap, metricInfo }: {
+function MetricCard({ gap, metricInfo, showDragHandle = false, dragHandleProps = {} }: {
   gap: { metric: string; gap: number; gapPercent?: number; value?: number | null; target?: number | null; status?: string };
   metricInfo: typeof METRIC_EXPLANATIONS[string];
+  showDragHandle?: boolean;
+  dragHandleProps?: Record<string, any>;
 }) {
   const [open, setOpen] = useState(false);
   const isUnknown = gap.status === "unknown" || gap.value == null;
