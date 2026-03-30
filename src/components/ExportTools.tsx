@@ -88,7 +88,7 @@ import { computePerformancePredictions } from "@/lib/v2/performancePrediction";
 import { computeCoachingCompass, type TFCLCoachingCompassResult, type CoachingCompassInput } from "@/lib/coachingCompass";
 import { computeFatigueEffectif } from "@/engines/diagnostic";
 import { computeLactateThresholdsTFCL } from "@/lib/thresholds/computeLactateThresholdsTFCL";
-import { computeStrategyEngine } from "@/engines/decision";
+import { computeLorangStrategy, type LorangStrategyInput, type LorangStrategyResult } from "@/engines/decision";
 
 // =============================================
 // TYPES
