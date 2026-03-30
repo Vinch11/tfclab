@@ -354,9 +354,9 @@ function FatigueWarning({ warning }: { warning: NonNullable<TFCLCoachingCompassR
 // METRICS GRID — Staff mode
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function StaffMetricsGrid({ compass }: { compass: TFCLCoachingCompassResult }) {
+function StaffMetricsGrid({ compass, sportFocus }: { compass: TFCLCoachingCompassResult; sportFocus?: string | null }) {
   const profile = compass.profile;
-  const isRunning = compass.meta?.sportFocus === "run";
+  const isRunning = sportFocus === "run";
   const metrics = [
     { key: "VO₂max", m: profile.vo2max },
     { key: "VLamax", m: profile.vlamax },
