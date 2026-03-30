@@ -277,7 +277,7 @@ function buildLimiter(input: CoachingCompassInput): TFCLLimiter {
       impactScore: topGap?.weightedImpact ?? 0.3,
       label,
       description,
-      icon: mapped.icon,
+      icon,
       metricsUsed: lr.gapAnalysis?.filter(g => g.weightedImpact > 0).map(g => g.metric) ?? [],
       confidence: lr.confidence >= 70 ? "high" : lr.confidence >= 50 ? "moderate" : "low",
     };
