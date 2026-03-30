@@ -88,6 +88,20 @@ export function RunningEconomyModule({
   
   const economy = computeRunningEconomy(input);
   
+  // Estimation coût O2 (ml/kg/km) — V2 physiologique
+  const paceMinPerKm = allureEndurance ? allureEndurance / 60 : null;
+  const o2CostResult = computeRunningEconomyV2({
+    fcMax,
+    fcEndurance: fcMoyenneEndurance,
+    paceEndurance: paceMinPerKm,
+    powerEndurance,
+    hrDriftPct: deriveCardiaque,
+    tteMin: effectiveTteMin,
+    weightKg,
+    objectif,
+    sport,
+  }).estimatedO2Cost;
+  
   // Si non applicable (vélo, triathlon vélo-focus), ne pas afficher
   if (!economy.isApplicable) {
     return null;
