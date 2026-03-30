@@ -23,6 +23,43 @@ import { cn } from "@/lib/utils";
 import { computeCoachingCompass, type CoachingCompassInput, type TFCLCoachingCompassResult, type RadarAxis } from "@/lib/coachingCompass";
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// EXPLICATIONS PÉDAGOGIQUES — Axes du radar
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const AXIS_PEDAGOGY: Record<string, { short: string; detail: string }> = {
+  aerobic: {
+    short: "Capacité Aérobie (FTP/kg ou VMA)",
+    detail: "Mesure la puissance de ton « moteur » aérobie. Plus le score est élevé, plus tu peux soutenir une intensité forte sur longue durée.",
+  },
+  vlamax: {
+    short: "VLamax (Glycolyse)",
+    detail: "Vitesse de production de lactate. Un score élevé signifie une VLamax basse et bien maîtrisée — tu brûles plus de graisses et moins de glycogène.",
+  },
+  fatmax: {
+    short: "FatMax (Oxydation des graisses)",
+    detail: "Intensité à laquelle tu brûles le plus de graisses. Plus ce score est haut, mieux tu épargnes tes réserves de glycogène en course.",
+  },
+  durability: {
+    short: "Robustesse (Durabilité)",
+    detail: "Résistance à la dégradation de la performance dans le temps. Combine TTE, dérive cardiaque et stabilité de la puissance/allure.",
+  },
+  economy: {
+    short: "Économie de mouvement",
+    detail: "Efficience du geste sportif : moins d'énergie gaspillée pour une même vitesse ou puissance. Inclut la cadence, la technique et le rendement musculaire.",
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// EXPLICATIONS PÉDAGOGIQUES — Niveaux du flux
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const FLOW_PEDAGOGY = {
+  limiter: "Le limiteur est le maillon faible qui freine le plus ta progression. C'est le premier facteur à corriger pour progresser efficacement.",
+  leverage: "Le levier est la stratégie d'entraînement la plus efficace pour corriger ton limiteur. Il cible le mécanisme physiologique en cause.",
+  decision: "La décision coaching traduit l'analyse en plan d'action concret : type de bloc, durée, séances clés et interdictions.",
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // PROPS
 // ═══════════════════════════════════════════════════════════════════════════════
 
