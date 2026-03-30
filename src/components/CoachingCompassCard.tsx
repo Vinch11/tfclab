@@ -468,12 +468,15 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
               <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
                 Niveau 1 — Profil physiologique
               </span>
+              <p className="text-[10px] text-muted-foreground mt-0.5 mb-2 italic">
+                Le radar visualise tes 5 capacités clés. La zone verte = zone optimale (75-100). Plus ta surface est grande, plus tu es prêt.
+              </p>
               <div className="mt-1">
-                <SignatureRadar axes={compass.radarAxes} size={240} />
+                <SignatureRadar axes={compass.radarAxes} size={320} />
               </div>
               
               {/* Completeness bar */}
-              <div className="flex items-center gap-2 mt-1 px-2">
+              <div className="flex items-center gap-2 mt-2 px-2">
                 <span className="text-[9px] text-muted-foreground/50 shrink-0">
                   Données : {compass.meta.dataCompleteness}%
                 </span>
@@ -485,23 +488,46 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                 </div>
               </div>
 
+              {/* Légende couleurs */}
+              <div className="flex items-center gap-4 mt-2 px-2">
+                <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--success))]" /> &ge; 75 Optimal
+                </span>
+                <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--warning))]" /> 50-74 Correct
+                </span>
+                <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--destructive))]" /> &lt; 50 À travailler
+                </span>
+              </div>
+
               {/* Légende pédagogique des axes */}
               <div className="mt-3 space-y-1.5 px-1">
                 {compass.radarAxes.map((axis) => {
                   const explanation = AXIS_PEDAGOGY[axis.key] || { short: axis.shortLabel, detail: "" };
+                  const emoji = axis.key === "aerobic" ? "⚡" : axis.key === "vlamax" ? "🔬" : axis.key === "fatmax" ? "🔥" : axis.key === "durability" ? "🛡️" : "🎯";
+                  const statusLabel = axis.score >= 75 ? "Optimal" : axis.score >= 50 ? "Correct" : "Prioritaire";
                   return (
-                    <div key={axis.key} className="flex items-start gap-2 p-2 rounded-lg bg-muted/30 border border-border/30">
-                      <span className={cn(
-                        "text-[10px] font-bold mt-0.5 shrink-0 w-5 h-5 rounded-full flex items-center justify-center",
-                        axis.score >= 75 ? "bg-[hsl(var(--success)/0.15)] text-[hsl(var(--success))]" :
-                        axis.score >= 50 ? "bg-[hsl(var(--warning)/0.15)] text-[hsl(var(--warning))]" :
-                        "bg-[hsl(var(--destructive)/0.15)] text-[hsl(var(--destructive))]"
-                      )}>
-                        {axis.score}
-                      </span>
-                      <div className="min-w-0">
-                        <p className="text-[11px] font-semibold">{explanation.short}</p>
-                        <p className="text-[10px] text-muted-foreground leading-relaxed">{explanation.detail}</p>
+                    <div key={axis.key} className={cn(
+                      "flex items-start gap-2.5 p-2.5 rounded-lg border",
+                      axis.score >= 75 ? "bg-[hsl(var(--success)/0.05)] border-[hsl(var(--success)/0.2)]" :
+                      axis.score >= 50 ? "bg-[hsl(var(--warning)/0.05)] border-[hsl(var(--warning)/0.2)]" :
+                      "bg-[hsl(var(--destructive)/0.05)] border-[hsl(var(--destructive)/0.2)]"
+                    )}>
+                      <span className="text-base mt-0.5">{emoji}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-bold">{explanation.short}</p>
+                          <Badge variant="outline" className={cn(
+                            "text-[9px] h-4 px-1.5",
+                            axis.score >= 75 ? "border-[hsl(var(--success)/0.4)] text-[hsl(var(--success))]" :
+                            axis.score >= 50 ? "border-[hsl(var(--warning)/0.4)] text-[hsl(var(--warning))]" :
+                            "border-[hsl(var(--destructive)/0.4)] text-[hsl(var(--destructive))]"
+                          )}>
+                            {axis.score}/100 — {statusLabel}
+                          </Badge>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">{explanation.detail}</p>
                       </div>
                     </div>
                   );
