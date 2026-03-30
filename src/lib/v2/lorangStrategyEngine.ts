@@ -35,6 +35,7 @@ export type LorangLimiter =
 export type LorangLever = 
   | 'vo2_intervals'         // Intervalles VO2max (développement moteur)
   | 'z2_volume'             // Volume Z2 / Endurance longue
+  | 'threshold_work'        // Travail au seuil (FTP/allure seuil)
   | 'force_max'             // Force Max (gym lourde)
   | 'sfr_force_endurance'   // SFR / Force Endurance
   | 'train_low'             // Train Low / Sleep Low
