@@ -177,14 +177,28 @@ function MetricCard({ gap, metricInfo }: {
               </div>
             )}
 
-            {/* Barre de progression */}
+            {/* Barre de progression — proportionnelle à l'achèvement vs cible */}
             <div className="h-2 rounded-full bg-muted/60 overflow-hidden">
               <div
                 className={cn(
                   "h-full rounded-full transition-all duration-500",
+                  isUnknown ? "bg-muted-foreground/30" :
                   gap.gap >= 0 ? "bg-[hsl(var(--success))]" : gap.gap >= -10 ? "bg-[hsl(var(--warning))]" : "bg-[hsl(var(--destructive))]"
                 )}
-                style={{ width: `${Math.min(100, Math.max(5, 50 + gap.gap))}%` }}
+                style={{ width: `${(() => {
+                  if (isUnknown) return 0;
+                  if (!hasValues || gap.target === 0) return Math.min(100, Math.max(5, 50 + gap.gap));
+                  const val = gap.value as number;
+                  const tgt = gap.target as number;
+                  if (isInverse) {
+                    // VLamax: lower is better. 100% = at or below target
+                    if (val <= tgt) return 100;
+                    // Scale: 2x target = 0%
+                    return Math.max(5, Math.min(100, ((2 * tgt - val) / tgt) * 100));
+                  }
+                  // Normal: value/target * 100
+                  return Math.max(5, Math.min(100, (val / tgt) * 100));
+                })()}%` }}
               />
             </div>
           </div>
