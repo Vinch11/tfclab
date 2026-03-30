@@ -382,7 +382,7 @@ function FatMaxTabContent({
             ))}
             <div className="border-t pt-1.5 mt-1.5 flex items-center justify-between text-xs font-medium">
               <span>Résultat final</span>
-              <span className="font-mono">{fatmax.centerPctFTP}% FTP</span>
+              <span className="font-mono">{fatmax.centerPctFTP}% {refLabel}</span>
             </div>
           </div>
         </CollapsibleContent>
