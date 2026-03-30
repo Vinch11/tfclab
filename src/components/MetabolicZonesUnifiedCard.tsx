@@ -333,7 +333,7 @@ function FatMaxTabContent({
       <div className="text-center p-3 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 rounded-lg border border-orange-200/50 dark:border-orange-800/30">
         <p className="text-xs text-muted-foreground mb-1">Plage FatMax</p>
         <p className="text-2xl font-bold">{formatFatMaxRange(fatmax)}</p>
-        <p className="text-sm font-medium mt-1">Centre: {fatmax.centerPctFTP}% FTP</p>
+        <p className="text-sm font-medium mt-1">Centre: {fatmax.centerPctFTP}% {refLabel}</p>
       </div>
 
       {/* Crossover Zone */}
