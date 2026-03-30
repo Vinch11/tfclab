@@ -22,56 +22,68 @@ interface LeviersSectionProps {
   className?: string;
 }
 
-// Explications pédagogiques par levier
+// Explications pédagogiques par levier (clés = LorangLever IDs)
 const LEVER_PEDAGOGY: Record<string, {
   description: string;
   howItWorks: string;
   typicalSessions: string;
 }> = {
-  volume_z2: {
-    description: "Augmenter le volume d'entraînement en zone 2 (endurance fondamentale) pour développer la base aérobie et abaisser la VLamax.",
+  // Lorang lever keys
+  z2_volume: {
+    description: "Augmenter le volume d'entraînement en zone 2 (endurance fondamentale) pour développer la base aérobie, abaisser la VLamax et renforcer le TTE.",
     howItWorks: "Le travail prolongé à basse intensité stimule les mitochondries, améliore l'oxydation des graisses et réduit progressivement la dépendance au glycogène.",
     typicalSessions: "Sorties longues Z2 (2-4h vélo, 1h30-2h30 CAP), semaines à haut volume.",
   },
   threshold_work: {
-    description: "Travail au seuil (FTP/seuil lactique) pour repousser la puissance/allure soutenable sur longue durée.",
-    howItWorks: "Les intervalles au seuil augmentent la capacité à recycler le lactate et améliorent le TTE (Time To Exhaustion).",
+    description: "Travail au seuil (FTP/seuil lactique) pour repousser la puissance/allure soutenable sur longue durée et améliorer le FTP/kg.",
+    howItWorks: "Les intervalles au seuil augmentent la capacité à recycler le lactate et améliorent le TTE (Time To Exhaustion). C'est le levier principal pour augmenter le FTP/kg.",
     typicalSessions: "Intervalles tempo 10-20min, sweet spot 2x20min, SST continu.",
   },
-  vo2max_intervals: {
+  vo2_intervals: {
     description: "Intervalles à haute intensité (VO2max) pour développer la puissance maximale aérobie.",
     howItWorks: "Des efforts de 3-5min à 90-105% de la PMA/VMA forcent les adaptations cardiovasculaires et améliorent le transport d'oxygène.",
     typicalSessions: "5x4min à 100-105% PMA, 6x3min à 105-110% VMA, billat 30/30.",
   },
-  glycolytic_block: {
-    description: "Bloc spécifique pour abaisser la VLamax : combinaison de volume Z2 élevé avec restriction des sprints et efforts explosifs.",
-    howItWorks: "En supprimant les stimuli glycolytiques et en maximisant le volume aérobie, les fibres rapides se « reconvertissent » progressivement vers un métabolisme plus oxydatif.",
-    typicalSessions: "Semaines à haut volume Z2 sans sprint, sorties longues avec effort stable.",
+  force_max: {
+    description: "Renforcement neuromusculaire en salle pour développer la force maximale et l'économie de mouvement.",
+    howItWorks: "Le travail de force lourde recrute les fibres rapides, améliore la coordination intermusculaire et augmente l'économie de mouvement à intensité sous-maximale.",
+    typicalSessions: "Gym lourde 85-95% 1RM, 3-5 reps, 2-3 séries, 1-2x/semaine.",
   },
-  sprint_force: {
-    description: "Travail de force et de sprint pour développer la puissance neuromusculaire et le W'.",
-    howItWorks: "Les efforts maximaux courts recrutent les fibres rapides, améliorent la coordination intermusculaire et augmentent la réserve anaérobie (W').",
-    typicalSessions: "Sprints 10-15s, départs arrêtés, musculation lourde, travail de force spécifique.",
-  },
-  norwegian_method: {
-    description: "Méthode norvégienne : intervalles longs (4x8-16min) à intensité contrôlée au seuil 1 / seuil 2 pour développer le moteur aérobie.",
-    howItWorks: "Ces longs intervalles à intensité sous-maximale produisent un stress métabolique élevé avec une fatigue neuromusculaire modérée, permettant une récupération rapide.",
-    typicalSessions: "4x8min, 5x6min, 3x12min entre seuils 1 et 2.",
-  },
-  long_endurance: {
-    description: "Endurance longue durée pour développer la durabilité et la résistance à la fatigue.",
-    howItWorks: "Les sorties très longues (3h+) stimulent les adaptations musculaires profondes : densité capillaire, réserves de glycogène, résistance mécanique.",
-    typicalSessions: "Sorties longues progressives, back-to-back weekends.",
-  },
-  economy_technique: {
-    description: "Travail technique et d'économie de mouvement pour réduire le coût énergétique à une vitesse/puissance donnée.",
-    howItWorks: "L'amélioration de la technique (foulée, pédalage, cadence) réduit la consommation d'oxygène. Chaque % d'économie gagné se traduit directement en endurance supplémentaire.",
-    typicalSessions: "Gammes techniques, drills de foulée, travail de cadence, renforcement musculaire ciblé.",
+  sfr_force_endurance: {
+    description: "Travail à basse cadence (SFR) pour développer la force endurance et réduire la sollicitation glycolytique.",
+    howItWorks: "Le pédalage à basse cadence (40-60 rpm) en zone Sweet Spot/Tempo force le recrutement musculaire sans solliciter excessivement la glycolyse rapide.",
+    typicalSessions: "Blocs 10-20min à 40-60 rpm en Sweet Spot, 2-3x/semaine.",
   },
   train_low: {
     description: "Entraînement à jeun ou en glycogène bas pour maximiser les adaptations métaboliques aux graisses.",
     howItWorks: "Entraîner le corps en état de déplétion glycogénique force l'organisme à optimiser l'utilisation des graisses comme carburant principal.",
     typicalSessions: "Sorties Z2 à jeun le matin, séances « sleep low / train low ».",
+  },
+  gut_training: {
+    description: "Entraînement de la tolérance digestive pour augmenter l'apport glucidique en course.",
+    howItWorks: "La progression contrôlée de l'apport en glucides pendant l'entraînement adapte le système digestif et permet d'absorber plus d'énergie en compétition.",
+    typicalSessions: "Progression 60 → 90 → 110 g/h sur sorties longues, simulation nutrition course.",
+  },
+  heat_training: {
+    description: "Acclimatation à la chaleur pour améliorer la thermorégulation et les performances en conditions chaudes.",
+    howItWorks: "Le stress thermique modéré provoque des adaptations (volume plasmatique, sudation) qui améliorent la performance même en conditions tempérées.",
+    typicalSessions: "30-45 min en stress thermique modéré, 10-14 jours de protocole.",
+  },
+  hrv_adaptation: {
+    description: "Adaptation automatique du plan basée sur la variabilité cardiaque (HRV) pour éviter le surmenage.",
+    howItWorks: "Quand la HRV est hors plage 2 jours consécutifs, la séance clé est remplacée par du Z2 pour laisser le système nerveux récupérer.",
+    typicalSessions: "Remplacement séance clé par Z2 60-90min, réévaluation après 24-48h.",
+  },
+  // Legacy keys (fallback)
+  volume_z2: {
+    description: "Augmenter le volume d'entraînement en zone 2 pour développer la base aérobie.",
+    howItWorks: "Le travail prolongé à basse intensité stimule les mitochondries et améliore l'oxydation des graisses.",
+    typicalSessions: "Sorties longues Z2 (2-4h vélo, 1h30-2h30 CAP).",
+  },
+  vo2max_intervals: {
+    description: "Intervalles à haute intensité (VO2max) pour développer la puissance maximale aérobie.",
+    howItWorks: "Des efforts de 3-5min à 90-105% de la PMA/VMA forcent les adaptations cardiovasculaires.",
+    typicalSessions: "5x4min à 100-105% PMA, billat 30/30.",
   },
 };
 

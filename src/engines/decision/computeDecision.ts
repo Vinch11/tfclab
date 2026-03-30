@@ -117,6 +117,12 @@ function computeStrategyFromDiagnostic(
       currentPhase: input.context.currentPhase,
     },
     load: input.load,
+    // ✅ Passer le résultat du moteur unifié de limiteurs pour cohérence
+    unifiedLimiterResult: diag.limiter ? {
+      primaryLimiter: diag.limiter.primaryLimiter,
+      gapAnalysis: diag.limiter.gapAnalysis ?? [],
+      aerobicWeaknessDetail: diag.limiter.aerobicWeaknessDetail,
+    } : undefined,
   };
 
   let lorangResult: LorangStrategyResult | null = null;

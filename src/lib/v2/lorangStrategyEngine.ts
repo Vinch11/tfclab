@@ -111,6 +111,20 @@ export interface LorangStrategyInput {
     tss7d: number | null;
     tss28d: number | null;
   };
+  
+  // ✅ Résultat du moteur unifié de limiteurs (source unique de vérité)
+  unifiedLimiterResult?: {
+    primaryLimiter: string;
+    gapAnalysis: Array<{
+      metric: string;
+      value: number | null;
+      target: number;
+      gapPercent: number;
+      status: "optimal" | "acceptable" | "limiting" | "unknown";
+      weightedImpact: number;
+    }>;
+    aerobicWeaknessDetail: AerobicWeaknessDetail;
+  };
 }
 
 export interface LorangLeverActivation {
@@ -423,14 +437,44 @@ function identifyPrimaryLimiter(input: LorangStrategyInput): {
   reasons: string[];
   confidence: ConfidenceLevel;
 } {
-  const { physiology, availability, symptoms } = input;
+  // ✅ Si le résultat du moteur unifié est fourni, l'utiliser directement
+  // Cela garantit la cohérence entre la carte "Facteurs Limitants" et les "Leviers d'Action"
+  if (input.unifiedLimiterResult) {
+    const unified = input.unifiedLimiterResult;
+    const mappedLimiter = mapUnifiedToLorangLimiter(unified.primaryLimiter);
+    
+    // Construire les raisons depuis le gap analysis
+    const reasons = unified.gapAnalysis
+      .filter(g => g.status === "limiting")
+      .sort((a, b) => b.weightedImpact - a.weightedImpact)
+      .slice(0, 3)
+      .map(g => {
+        if (g.metric === "VLamax") {
+          return `VLamax ${Math.abs(g.gapPercent).toFixed(0)}% au-dessus de la cible`;
+        }
+        return `${g.metric} ${Math.abs(g.gapPercent).toFixed(0)}% sous la cible`;
+      });
+    
+    // Calculer la confiance à partir de l'écart entre les 2 premiers limiteurs
+    const limitingGaps = unified.gapAnalysis
+      .filter(g => g.status === "limiting")
+      .sort((a, b) => b.weightedImpact - a.weightedImpact);
+    const gapClarity = limitingGaps.length > 1 
+      ? Math.abs(limitingGaps[0].weightedImpact - limitingGaps[1].weightedImpact) 
+      : 50;
+    const confidence: ConfidenceLevel = gapClarity > 20 ? 'high' : gapClarity > 10 ? 'moderate' : 'low';
+    
+    return {
+      limiter: mappedLimiter,
+      reasons: reasons.length > 0 ? reasons : ["Profil équilibré — pas de limiteur majeur"],
+      confidence,
+    };
+  }
+  
+  // Fallback: détection locale (ancien comportement)
+  const { physiology, symptoms } = input;
   const reasons: string[] = [];
   
-  // Priorité 1: Disponibilité critique — NE PLUS BLOQUER comme limiteur
-  // La fatigue génère un avertissement mais n'est JAMAIS le limiteur primaire
-  // (cohérent avec la philosophie snapshot-centric)
-  
-  // Calcul des écarts vs cibles
   const vo2maxGap = physiology.vo2max !== null 
     ? (physiology.vo2max - physiology.vo2maxTarget) / physiology.vo2maxTarget 
     : null;
@@ -444,56 +488,25 @@ function identifyPrimaryLimiter(input: LorangStrategyInput): {
     ? (physiology.fatmax - physiology.fatmaxTarget) / physiology.fatmaxTarget 
     : null;
   
-  // Scores de limitation (plus négatif = plus limitant)
   const scores: { limiter: LorangLimiter; score: number; reason: string }[] = [];
   
-  // VO2max
   if (vo2maxGap !== null && vo2maxGap < -0.1) {
-    scores.push({
-      limiter: 'motor',
-      score: vo2maxGap * 100,
-      reason: `VO2max ${Math.abs(vo2maxGap * 100).toFixed(0)}% sous la cible`,
-    });
+    scores.push({ limiter: 'motor', score: vo2maxGap * 100, reason: `VO2max ${Math.abs(vo2maxGap * 100).toFixed(0)}% sous la cible` });
   }
-  
-  // VLamax (inversé: trop haute = limitant)
   if (vlamaxGap !== null && vlamaxGap > 0.15) {
-    scores.push({
-      limiter: 'glycolytic',
-      score: -vlamaxGap * 100,
-      reason: `VLamax ${(vlamaxGap * 100).toFixed(0)}% au-dessus de la cible`,
-    });
+    scores.push({ limiter: 'glycolytic', score: -vlamaxGap * 100, reason: `VLamax ${(vlamaxGap * 100).toFixed(0)}% au-dessus de la cible` });
   }
-  
-  // FatMax
   if (fatmaxGap !== null && fatmaxGap < -0.15) {
-    scores.push({
-      limiter: 'metabolic',
-      score: fatmaxGap * 100,
-      reason: `FatMax ${Math.abs(fatmaxGap * 100).toFixed(0)}% sous la cible`,
-    });
+    scores.push({ limiter: 'metabolic', score: fatmaxGap * 100, reason: `FatMax ${Math.abs(fatmaxGap * 100).toFixed(0)}% sous la cible` });
   }
-  
-  // TTE / Durabilité
   if (tteGap !== null && tteGap < -0.1) {
-    scores.push({
-      limiter: 'durability',
-      score: tteGap * 100,
-      reason: `TTE ${Math.abs(tteGap * 100).toFixed(0)}% sous la cible (${physiology.tte}min vs ${physiology.tteTarget}min)`,
-    });
+    scores.push({ limiter: 'durability', score: tteGap * 100, reason: `TTE ${Math.abs(tteGap * 100).toFixed(0)}% sous la cible (${physiology.tte}min vs ${physiology.tteTarget}min)` });
   }
-  
-  // Économie / Neuromusculaire
   const economyScore = physiology.economy ?? 50;
   if (economyScore < 50) {
-    scores.push({
-      limiter: 'neuromuscular',
-      score: economyScore - 100,
-      reason: `Économie faible (${economyScore}/100)`,
-    });
+    scores.push({ limiter: 'neuromuscular', score: economyScore - 100, reason: `Économie faible (${economyScore}/100)` });
   }
   
-  // Symptômes terrain (ajustement)
   if (symptoms) {
     if (symptoms.earlyBurn || symptoms.lateExplosion) {
       const existing = scores.find(s => s.limiter === 'glycolytic');
@@ -517,37 +530,33 @@ function identifyPrimaryLimiter(input: LorangStrategyInput): {
     }
   }
   
-  // Disponibilité modérée/faible = avertissement seulement, pas un limiteur
-  // (Supprimé de la liste des scores pour éviter d'être sélectionné comme primaryLimiter)
-  
-  // Tri par score (plus négatif en premier)
   scores.sort((a, b) => a.score - b.score);
   
   if (scores.length === 0) {
-    return {
-      limiter: 'motor',
-      reasons: ["Aucun limiteur identifié clairement — focus moteur par défaut"],
-      confidence: 'low',
-    };
+    return { limiter: 'motor', reasons: ["Aucun limiteur identifié clairement — focus moteur par défaut"], confidence: 'low' };
   }
   
   const primary = scores[0];
   const allReasons = scores.slice(0, 3).map(s => s.reason);
+  const gapClarity = scores.length > 1 ? Math.abs(scores[0].score - scores[1].score) : 50;
+  const confidence: ConfidenceLevel = gapClarity > 20 ? 'high' : gapClarity > 10 ? 'moderate' : 'low';
   
-  // Confiance basée sur clarté du gap
-  const gapClarity = scores.length > 1 
-    ? Math.abs(scores[0].score - scores[1].score) 
-    : 50;
-  
-  const confidence: ConfidenceLevel = gapClarity > 20 ? 'high' 
-    : gapClarity > 10 ? 'moderate' 
-    : 'low';
-  
-  return {
-    limiter: primary.limiter,
-    reasons: allReasons,
-    confidence,
+  return { limiter: primary.limiter, reasons: allReasons, confidence };
+}
+
+// Mapping des limiteurs unifiés vers les limiteurs Lorang
+function mapUnifiedToLorangLimiter(unified: string): LorangLimiter {
+  const map: Record<string, LorangLimiter> = {
+    aerobic_engine: 'motor',
+    glycolytic: 'glycolytic',
+    anaerobic_capacity: 'neuromuscular',
+    specific_endurance: 'durability',
+    metabolic_efficiency: 'metabolic',
+    availability: 'motor', // Ne devrait jamais arriver (exclu par le moteur unifié)
+    neuromuscular: 'neuromuscular',
+    none: 'motor',
   };
+  return map[unified] ?? 'motor';
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -561,18 +570,42 @@ function activateLevers(
   const levers: LorangLeverActivation[] = [];
   const { physiology, athlete, availability, context } = input;
   
-  // LEVIER 0a: Intervalles VO₂max — Activé UNIQUEMENT si limiteur = motor
-  const shouldActivateVO2 = (
-    primaryLimiter === 'motor'
-  ) && availability.level !== 'critical' && !context.isRaceWeek;
-
-  if (shouldActivateVO2) {
+  // ✅ Utiliser le gap analysis du moteur unifié pour déterminer TOUS les gaps limitants
+  const gaps = input.unifiedLimiterResult?.gapAnalysis ?? [];
+  const limitingGaps = gaps
+    .filter(g => g.status === "limiting")
+    .sort((a, b) => b.weightedImpact - a.weightedImpact);
+  
+  // Helper: vérifier si une métrique est en gap limiting
+  const isMetricLimiting = (metric: string) => limitingGaps.some(g => g.metric === metric);
+  const getMetricGap = (metric: string) => gaps.find(g => g.metric === metric);
+  
+  // Déterminer le détail de faiblesse aérobie
+  const aerobicDetail = input.unifiedLimiterResult?.aerobicWeaknessDetail 
+    ?? computeAerobicWeaknessDetail(input, primaryLimiter).detail;
+  const ftpKgLow = aerobicDetail === 'ftp_kg_low' || aerobicDetail === 'both_low';
+  const vo2maxLow = aerobicDetail === 'vo2max_low' || aerobicDetail === 'both_low';
+  
+  // Fallback si pas de gap analysis disponible (ancienne logique)
+  const useFallback = gaps.length === 0;
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LEVIER: Intervalles VO₂max — Si VO2max est limitant
+  // ═══════════════════════════════════════════════════════════════════════════
+  const vo2maxIsLimiting = useFallback 
+    ? primaryLimiter === 'motor'
+    : (isMetricLimiting("VO2max") || (primaryLimiter === 'motor' && vo2maxLow));
+  
+  if (vo2maxIsLimiting && availability.level !== 'critical' && !context.isRaceWeek) {
+    const vo2Gap = getMetricGap("VO2max");
     levers.push({
       lever: 'vo2_intervals',
       label: LEVER_DEFINITIONS.vo2_intervals.label,
       icon: LEVER_DEFINITIONS.vo2_intervals.icon,
-      priority: 1,
-      reason: "Plafond aérobie limitant — développer VO₂max via intervalles haute intensité",
+      priority: primaryLimiter === 'motor' && vo2maxLow ? 1 : 2,
+      reason: vo2Gap 
+        ? `VO₂max ${Math.abs(vo2Gap.gapPercent).toFixed(0)}% sous la cible (${vo2Gap.value} vs ${vo2Gap.target} ml/min/kg) — développer le plafond aérobie`
+        : "Plafond aérobie limitant — développer VO₂max via intervalles haute intensité",
       prescription: [
         "5×4min Z5 r3min (classique Billat)",
         "3×8min Z4-Z5 r4min",
@@ -587,20 +620,23 @@ function activateLevers(
     });
   }
 
-  // LEVIER 0a-bis: Travail au seuil — Activé si limiteur = motor ET FTP/kg est faible
-  const aerobicDetail = computeAerobicWeaknessDetail(input, primaryLimiter);
-  const ftpKgLow = aerobicDetail.detail === 'ftp_kg_low' || aerobicDetail.detail === 'both_low';
-  const shouldActivateThreshold = (
-    primaryLimiter === 'motor' && ftpKgLow
-  ) && availability.level !== 'critical' && !context.isRaceWeek;
-
-  if (shouldActivateThreshold) {
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LEVIER: Travail au seuil — Si FTP/kg ou VMA est limitant
+  // ═══════════════════════════════════════════════════════════════════════════
+  const ftpKgIsLimiting = useFallback 
+    ? (primaryLimiter === 'motor' && ftpKgLow)
+    : (isMetricLimiting("FTP/kg") || isMetricLimiting("VMA") || ftpKgLow);
+  
+  if (ftpKgIsLimiting && availability.level !== 'critical' && !context.isRaceWeek) {
+    const ftpGap = getMetricGap("FTP/kg") || getMetricGap("VMA");
     levers.push({
       lever: 'threshold_work',
       label: LEVER_DEFINITIONS.threshold_work.label,
       icon: LEVER_DEFINITIONS.threshold_work.icon,
-      priority: aerobicDetail.detail === 'ftp_kg_low' ? 1 : 2,
-      reason: "FTP/kg insuffisant par rapport à la cible — développer l'expression aérobie via travail au seuil",
+      priority: (primaryLimiter === 'motor' && ftpKgLow) || isMetricLimiting("FTP/kg") || isMetricLimiting("VMA") ? 1 : 2,
+      reason: ftpGap 
+        ? `${ftpGap.metric} ${Math.abs(ftpGap.gapPercent).toFixed(0)}% sous la cible (${ftpGap.value?.toFixed(1)} vs ${ftpGap.target?.toFixed(1)}) — développer la puissance soutenue`
+        : "FTP/kg insuffisant par rapport à la cible — développer l'expression aérobie via travail au seuil",
       prescription: [
         "2×20min au seuil (FTP/allure seuil)",
         "Sweet Spot 88-93% FTP / allure semi",
@@ -615,25 +651,43 @@ function activateLevers(
     });
   }
 
-  // LEVIER 0b: Volume Z2 / Endurance — Activé si limiteur = metabolic, durability ou glycolytic
-  const shouldActivateZ2 = (
-    primaryLimiter === 'metabolic' ||
-    primaryLimiter === 'durability' ||
-    primaryLimiter === 'glycolytic'
-  ) && availability.level !== 'critical' && !context.isRaceWeek;
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LEVIER: Volume Z2 / Endurance — Si TTE, VLamax ou FatMax est limitant
+  // ═══════════════════════════════════════════════════════════════════════════
+  const tteIsLimiting = useFallback 
+    ? primaryLimiter === 'durability'
+    : isMetricLimiting("TTE");
+  const vlamaxIsLimiting = useFallback 
+    ? primaryLimiter === 'glycolytic'
+    : isMetricLimiting("VLamax");
+  const fatmaxIsLimiting = useFallback 
+    ? primaryLimiter === 'metabolic'
+    : isMetricLimiting("FatMax");
+  
+  const shouldActivateZ2 = (tteIsLimiting || vlamaxIsLimiting || fatmaxIsLimiting) 
+    && availability.level !== 'critical' && !context.isRaceWeek;
 
   if (shouldActivateZ2) {
+    const tteGap = getMetricGap("TTE");
+    const vlamaxGap = getMetricGap("VLamax");
+    
+    // Déterminer la raison principale
+    let z2Reason: string;
+    if (tteIsLimiting && tteGap) {
+      z2Reason = `TTE ${Math.abs(tteGap.gapPercent).toFixed(0)}% sous la cible (${tteGap.value}min vs ${tteGap.target}min) — développer la durabilité`;
+    } else if (vlamaxIsLimiting && vlamaxGap) {
+      z2Reason = `VLamax ${Math.abs(vlamaxGap.gapPercent).toFixed(0)}% au-dessus de la cible — volume Z2 pour abaisser la glycolyse`;
+    } else {
+      z2Reason = "Efficacité énergétique limitante — augmenter le volume aérobie de base";
+    }
+    
     levers.push({
       lever: 'z2_volume',
       label: LEVER_DEFINITIONS.z2_volume.label,
       icon: LEVER_DEFINITIONS.z2_volume.icon,
-      priority: 1,
-      reason: primaryLimiter === 'durability'
-        ? "TTE insuffisant — développer la durabilité via volume structuré et sorties longues"
-        : primaryLimiter === 'metabolic'
-        ? "Efficacité énergétique limitante — augmenter le volume aérobie de base"
-        : "VLamax élevée — volume Z2 pour abaisser la glycolyse",
-      prescription: primaryLimiter === 'durability'
+      priority: (primaryLimiter === 'durability' || primaryLimiter === 'glycolytic' || primaryLimiter === 'metabolic') ? 1 : 2,
+      reason: z2Reason,
+      prescription: tteIsLimiting
         ? [
             "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
             "2×20-30min au seuil pour augmenter le TTE",
@@ -653,6 +707,9 @@ function activateLevers(
     });
   }
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LEVIER: Force Max — Si économie faible ou âge > 35 ou neuromusculaire limitant
+  // ═══════════════════════════════════════════════════════════════════════════
   // LEVIER 1: Force Max
   const shouldActivateForceMax = (
     (athlete.age !== null && athlete.age > 35) ||
