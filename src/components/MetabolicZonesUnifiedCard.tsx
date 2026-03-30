@@ -98,6 +98,8 @@ export function MetabolicZonesUnifiedCard({
 }: MetabolicZonesUnifiedCardProps) {
   const [activeTab, setActiveTab] = useState("fatmax");
   const [showEducation, setShowEducation] = useState(false);
+  const isRunning = useIsRunningOnly();
+  const refLabel = isRunning ? "Seuil" : "FTP";
 
   const normalizedObjectif = (objectif === "IM" ? "Ironman" : objectif) as FatMaxObjectif;
 
