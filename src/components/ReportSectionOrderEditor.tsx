@@ -130,6 +130,8 @@ const SECTION_CATEGORIES: Record<keyof ReportSections, string> = {
   lactateCurve: "Analyse",
   substrateCurve: "Analyse",
   performancePrediction: "Performance",
+  facteursLimitants: "Analyse",
+  leviersAction: "Entraînement",
 };
 
 // Couleurs par catégorie
