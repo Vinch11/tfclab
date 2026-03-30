@@ -9,13 +9,31 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { BarChart3, TrendingUp, TrendingDown, Minus, Info, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { BarChart3, TrendingUp, TrendingDown, Minus, Info, ChevronDown, GripVertical, ArrowUpDown } from "lucide-react";
+import { useState, useCallback, useMemo } from "react";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Button } from "@/components/ui/button";
 import type { AthleteDiagnostic } from "@/engines/diagnostic";
 
 interface AnalyseSectionProps {
