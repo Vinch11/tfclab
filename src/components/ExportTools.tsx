@@ -4825,6 +4825,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   // =============================================
   // E. ANALYSE TWO FOR COACHING LAB™
   // =============================================
+  const ul = payload.unifiedLimiter;
+  const limitingGaps = ul.gapAnalysis.filter(g => g.status === "limiting" || g.gap < -3);
+  
   const lorangHTML = `
     <section id="twoforcoaching" class="section pagebreakAvoid">
       <h2>D. Analyse Two For Coaching Lab™</h2>
@@ -4839,23 +4842,38 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         </span>
       </div>
       
-      <div class="card ${lorang.priorite ? 'cardHighlight' : ''}">
+      <!-- Limiteur principal + levier (moteur unifié) -->
+      <div class="card cardHighlight">
         <div class="grid2">
           <div>
-            <h3>🎯 Priorité calculée</h3>
-            <div style="font-size:20px;font-weight:700;margin:8px 0;">${lorang.prioriteLabel || "Aucune priorité majeure"}</div>
-            <div class="muted">Basé sur VLamax ${fmt(vlamax.value, 2)}, TTE ${tte.tte_min}min, FTP/kg ${ftpKg ? fmt(ftpKg, 2) : "—"}</div>
+            <h3>${ul.limiterEmoji} Limiteur Principal</h3>
+            <div style="font-size:20px;font-weight:700;margin:8px 0;">${htmlEscape(ul.limiterLabel)}</div>
+            <div class="muted">${htmlEscape(ul.limiterExplanation)}</div>
             <div class="muted mt" style="font-size:11px;">
-              <b>Sources :</b> VLamax ${vlamax.source === "estimated" ? "(estimée)" : "(mesurée)"} • TTE ${tte.source === "observed" ? "(mesuré)" : "(estimé)"}
+              <b>Confiance :</b> ${Math.round(ul.confidence * 100)}% • 
+              <b>Robustesse :</b> ${ul.isRobust ? "✅ Décision robuste" : "⚠️ Décision à confirmer"}
             </div>
           </div>
           <div>
-            ${lorang.alertes.length > 0 ? `
-              <h4>⚠️ Alertes</h4>
-              <ul class="muted">
-                ${lorang.alertes.map(a => `<li>${htmlEscape(a)}</li>`).join("")}
-              </ul>
-            ` : '<div class="alert alertSuccess">✅ Aucune alerte majeure</div>'}
+            <h3>${ul.leverEmoji} Levier Prioritaire</h3>
+            <div style="font-size:18px;font-weight:600;margin:8px 0;color:var(--primary);">${htmlEscape(ul.leverLabel)}</div>
+            ${limitingGaps.length > 0 ? `
+              <h4>📊 Écarts identifiés</h4>
+              <table style="font-size:11px;">
+                <thead><tr><th>Métrique</th><th>Actuel</th><th>Cible</th><th>Écart</th></tr></thead>
+                <tbody>
+                  ${limitingGaps.slice(0, 5).map(g => {
+                    const fmtV = (v: number | null) => v === null ? "—" : v < 10 ? v.toFixed(2) : v.toFixed(1);
+                    return `<tr>
+                      <td><b>${g.metric}</b></td>
+                      <td>${fmtV(g.value)}</td>
+                      <td>${fmtV(g.target)}</td>
+                      <td><span class="${g.gap < -15 ? 'error' : g.gap < -5 ? 'warning' : ''}" style="font-weight:600;">${g.gap.toFixed(0)}%</span></td>
+                    </tr>`;
+                  }).join("")}
+                </tbody>
+              </table>
+            ` : '<div class="alert alertSuccess">✅ Aucun écart significatif</div>'}
           </div>
         </div>
       </div>
