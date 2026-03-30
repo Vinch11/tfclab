@@ -624,9 +624,9 @@ export default function AITrainingPlanPage() {
         // Find sessions that look like this race but are on the wrong date
         for (const entry of mapped) {
           const title = (entry.session.title || "").toLowerCase();
-          const isRaceSession = entry.session.isRace || 
+          const isRaceSession = 
             /\bcourse\b|\brace\b|\bcompétition\b/.test(title) ||
-            (goalLabel && title.includes(goalLabel.slice(0, 8)));
+            (goalLabel && goalLabel.length >= 4 && title.includes(goalLabel.slice(0, 8)));
           
           if (isRaceSession) {
             const entryDateStr = format(entry.date, "yyyy-MM-dd");
