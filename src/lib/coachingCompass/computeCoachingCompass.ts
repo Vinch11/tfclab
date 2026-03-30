@@ -618,7 +618,7 @@ export function scoreRelativeToTarget(value: number | null, target: number | nul
  * Au-dessus de la cible = score diminue proportionnellement.
  * 2× la cible ou plus = 0.
  */
-function scoreRelativeToTargetInverse(value: number, target: number): number {
+export function scoreRelativeToTargetInverse(value: number, target: number): number {
   if (target === 0) return 0;
   // Lower is better. At or below target = 100
   if (value <= target) return 100;
