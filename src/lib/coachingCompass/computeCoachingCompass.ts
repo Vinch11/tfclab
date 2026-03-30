@@ -493,25 +493,21 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
   };
   const economyTarget = economyTargets[ambition] || 65;
 
-  // AXE 1 : VO2max (estimation depuis FTP/kg ou VMA selon sport)
-  let vo2Score = normalizeScore(profile.vo2max.value, 30, 70);
+  // AXE 1 : VO2max — score relatif à la cible
   let vo2Value = profile.vo2max.value;
-  if (vo2Score === 0) {
+  if (!vo2Value) {
     if (isRunning && input.vma) {
-      const estimatedVo2 = input.vma * 3.5;
-      vo2Score = normalizeScore(estimatedVo2, 30, 70);
-      vo2Value = Math.round(estimatedVo2 * 10) / 10;
+      vo2Value = Math.round(input.vma * 3.5 * 10) / 10;
     } else if (profile.ftpKg.value) {
-      const estimatedVo2 = profile.ftpKg.value * 12 + 5;
-      vo2Score = normalizeScore(estimatedVo2, 30, 70);
-      vo2Value = Math.round(estimatedVo2 * 10) / 10;
+      vo2Value = Math.round((profile.ftpKg.value * 12 + 5) * 10) / 10;
     }
   }
+  const vo2Score = scoreRelativeToTarget(vo2Value, vo2Target);
 
   // AXE AÉROBIE : VMA en running, FTP/kg sinon
   let aerobicAxis: RadarAxis;
   if (isRunning && vmaTarget) {
-    const vmaScore = input.vma ? normalizeScore(input.vma, 10, 24) : 0;
+    const vmaScore = scoreRelativeToTarget(input.vma, vmaTarget);
     aerobicAxis = {
       key: "vma",
       label: "vVMA",
@@ -524,9 +520,7 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       unit: "km/h",
     };
   } else {
-    const ftpKgScore = profile.ftpKg.value
-      ? normalizeScore(profile.ftpKg.value, 1.5, 6.0)
-      : 0;
+    const ftpKgScore = scoreRelativeToTarget(profile.ftpKg.value, targets.ftp_kg_min);
     aerobicAxis = {
       key: "ftpkg",
       label: "FTP/kg",
@@ -544,6 +538,14 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
   const durabilityValue = profile.durability.value;
   const economyValue = profile.runningEconomy.value;
 
+  // VLamax : inversé (plus bas = mieux pour endurance)
+  const vlamaxScore = vlamaxValue !== null && targets.vlamax.optimal != null
+    ? scoreRelativeToTargetInverse(vlamaxValue, targets.vlamax.optimal)
+    : 0;
+
+  const durabilityScore = scoreRelativeToTarget(durabilityValue, durabilityTarget);
+  const economyScore = scoreRelativeToTarget(economyValue, economyTarget);
+
   return [
     {
       key: "vo2max",
@@ -560,9 +562,7 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       key: "vlamax",
       label: "Profil Glycolytique",
       shortLabel: "VLamax",
-      score: vlamaxValue !== null 
-        ? Math.max(0, Math.min(100, Math.round(100 - (vlamaxValue - 0.20) * 125)))
-        : 0,
+      score: vlamaxScore,
       icon: "⚡",
       color: "hsl(45, 90%, 50%)",
       value: vlamaxValue,
@@ -574,7 +574,7 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       key: "durability",
       label: "Durabilité",
       shortLabel: "Durabilité",
-      score: durabilityValue !== null ? Math.round(durabilityValue) : 0,
+      score: durabilityScore,
       icon: "💪",
       color: "hsl(280, 60%, 55%)",
       value: durabilityValue,
@@ -585,7 +585,7 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       key: "economy",
       label: isRunning ? "Économie de Course" : "Économie",
       shortLabel: isRunning ? "Éco. CAP" : "Éco.",
-      score: economyValue !== null ? Math.round(economyValue) : 0,
+      score: economyScore,
       icon: "🦶",
       color: "hsl(160, 60%, 45%)",
       value: economyValue,
@@ -598,6 +598,34 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
 function normalizeScore(value: number | null, min: number, max: number): number {
   if (value === null) return 0;
   return Math.max(0, Math.min(100, Math.round(((value - min) / (max - min)) * 100)));
+}
+
+/**
+ * Score relatif à la cible : atteindre la cible = 75/100, dépasser de 20%+ = 100.
+ * En dessous, le score est proportionnel (0 = 50% de la cible ou moins).
+ */
+function scoreRelativeToTarget(value: number | null, target: number | null): number {
+  if (value === null || !target || target === 0) return 0;
+  const ratio = value / target;
+  if (ratio >= 1.2) return 100;
+  if (ratio >= 1.0) return Math.round(75 + (ratio - 1.0) * 125); // 75-100
+  // Below target: scale 0-75
+  return Math.max(0, Math.round(ratio * 75));
+}
+
+/**
+ * Score inversé (VLamax) : atteindre la cible (ou en dessous) = 75-100.
+ * Au-dessus de la cible = score diminue.
+ */
+function scoreRelativeToTargetInverse(value: number, target: number): number {
+  if (target === 0) return 0;
+  // Lower is better. At target = 75, below target = 75-100, above = 0-75
+  if (value <= target * 0.8) return 100;
+  if (value <= target) return Math.round(75 + ((target - value) / (target * 0.2)) * 25);
+  // Above target (worse)
+  const excess = value / target; // >1
+  if (excess >= 2.0) return 0;
+  return Math.max(0, Math.round(75 * (2.0 - excess)));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
