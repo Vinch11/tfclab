@@ -423,8 +423,8 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   
   // 1. Analyse Expression Aérobie — VMA (running) ou FTP/kg (vélo/tri)
   if (useVma) {
-    // Mode Running : VMA remplace FTP/kg
-    const vmaTarget = targets.vma_min!;
+    // Mode Running : VMA remplace FTP/kg (cible ajustée selon l'âge)
+    const vmaTarget = adjustPerformanceTarget(targets.vma_min!, input.age);
     const vmaGap = input.vma !== null 
       ? (input.vma - vmaTarget) / vmaTarget 
       : 0;
