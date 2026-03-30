@@ -32,6 +32,7 @@ import {
   RUNNING_ECONOMY_METHODOLOGY,
   type RunningEconomyInput,
 } from "@/lib/runningEconomy";
+import { computeRunningEconomyV2 } from "@/lib/v2/runningEconomyV2";
 import { useRunningProfileCloud } from "@/hooks/useRunningProfileCloud";
 
 interface RunningEconomyModuleProps {
