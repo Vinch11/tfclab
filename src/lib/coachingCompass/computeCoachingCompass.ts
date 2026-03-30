@@ -493,25 +493,21 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
   };
   const economyTarget = economyTargets[ambition] || 65;
 
-  // AXE 1 : VO2max (estimation depuis FTP/kg ou VMA selon sport)
-  let vo2Score = normalizeScore(profile.vo2max.value, 30, 70);
+  // AXE 1 : VO2max — score relatif à la cible
   let vo2Value = profile.vo2max.value;
-  if (vo2Score === 0) {
+  if (!vo2Value) {
     if (isRunning && input.vma) {
-      const estimatedVo2 = input.vma * 3.5;
-      vo2Score = normalizeScore(estimatedVo2, 30, 70);
-      vo2Value = Math.round(estimatedVo2 * 10) / 10;
+      vo2Value = Math.round(input.vma * 3.5 * 10) / 10;
     } else if (profile.ftpKg.value) {
-      const estimatedVo2 = profile.ftpKg.value * 12 + 5;
-      vo2Score = normalizeScore(estimatedVo2, 30, 70);
-      vo2Value = Math.round(estimatedVo2 * 10) / 10;
+      vo2Value = Math.round((profile.ftpKg.value * 12 + 5) * 10) / 10;
     }
   }
+  const vo2Score = scoreRelativeToTarget(vo2Value, vo2Target);
 
   // AXE AÉROBIE : VMA en running, FTP/kg sinon
   let aerobicAxis: RadarAxis;
   if (isRunning && vmaTarget) {
-    const vmaScore = input.vma ? normalizeScore(input.vma, 10, 24) : 0;
+    const vmaScore = scoreRelativeToTarget(input.vma, vmaTarget);
     aerobicAxis = {
       key: "vma",
       label: "vVMA",
@@ -524,9 +520,7 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       unit: "km/h",
     };
   } else {
-    const ftpKgScore = profile.ftpKg.value
-      ? normalizeScore(profile.ftpKg.value, 1.5, 6.0)
-      : 0;
+    const ftpKgScore = scoreRelativeToTarget(profile.ftpKg.value, targets.ftp_kg_min);
     aerobicAxis = {
       key: "ftpkg",
       label: "FTP/kg",
