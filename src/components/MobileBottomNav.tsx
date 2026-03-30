@@ -44,7 +44,7 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
   const navigate = useNavigate();
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPress = useRef(false);
-  const [showToast, setShowToast] = useState(false);
+  const isRunningOnly = useIsRunningOnly();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   const isActive = (tab: typeof tabs[number]) => {
