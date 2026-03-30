@@ -606,7 +606,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
             </FlowStep>
 
             {/* ─── Staff: Profil complet ─── */}
-            {staffMode && <StaffMetricsGrid compass={compass} />}
+            {staffMode && <StaffMetricsGrid compass={compass} sportFocus={input.sportFocus} />}
           </div>
 
           {/* ─── COLONNE DROITE : Potentiel Physiologique (desktop) ─── */}
