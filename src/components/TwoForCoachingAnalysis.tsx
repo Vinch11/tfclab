@@ -21,6 +21,7 @@ import { computeEnergyDrift, type EnergyDriftResult } from "@/lib/energyDrift";
 import { getTargetsForAmbition, normalizeObjective } from "@/lib/physiologicalTargets";
 import { normalizeRaceTypeForDisplay } from "@/lib/raceTypeNormalization";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition } from "@/types/ambitionLevel";
+import type { UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
 
 interface TwoForCoachingAnalysisProps {
   athlete: Athlete;
@@ -28,6 +29,7 @@ interface TwoForCoachingAnalysisProps {
   tteEffectif?: TTEEffectif;
   readiness?: PotentielPhysiologiqueEffectif;
   onGoToSnapshots?: () => void;
+  unifiedLimiterResult?: UnifiedLimiterResult | null;
 }
 const prioriteIcons: Record<PrioriteType, typeof TrendingDown> = {
   VLAMAX_DOWN: TrendingDown,
