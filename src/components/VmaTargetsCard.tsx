@@ -16,6 +16,7 @@ import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { getTargetsForAmbition, normalizeObjective } from "@/lib/physiologicalTargets";
+import { getPerformanceAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
 
 // =============================================
 // TYPES
