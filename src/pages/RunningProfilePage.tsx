@@ -489,6 +489,18 @@ export default function RunningProfilePage() {
         ),
       },
       {
+        id: "vma-targets",
+        render: () => (
+          <VmaTargetsCard
+            objectif={athleteGoal}
+            age={athleteAge}
+            currentVma={effectiveCloudSnapshot?.vma ?? null}
+            vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete?.vo2max ?? null}
+            vlamax={vlamaxEffectif.value}
+          />
+        ),
+      },
+      {
         id: "availability-form",
         render: () => (
           <Card>
