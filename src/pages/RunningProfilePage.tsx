@@ -467,6 +467,8 @@ export default function RunningProfilePage() {
             vlamax={vlamaxEffectif.value}
             sport="run"
             staffMode={staffMode}
+            weightKg={effectiveCloudSnapshot?.weight_kg ?? null}
+            powerEndurance={effectiveCloudSnapshot?.running_power_threshold ?? null}
           />
         ),
       },
