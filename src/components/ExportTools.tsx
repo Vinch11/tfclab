@@ -1651,6 +1651,89 @@ function buildExportPayload(
         allTargets,
       };
     })(),
+    // ✅ NEW: Coaching Compass (5 axes unifiés)
+    coachingCompass: (() => {
+      const fatigueEff = computeFatigueEffectif(effectiveSnapshot?.fatigue_state ?? null);
+      
+      // Strategy Engine
+      let strategyResult = null;
+      try {
+        const lorangInput: LorangStrategyInput = {
+          vlamax: vlamax.value,
+          vlamaxConfidence: vlamax.confidence,
+          tte: tte.tte_min,
+          tteConfidence: tte.confidence,
+          ftpKg: ftpKg ?? null,
+          vo2max: effectiveRefs.vo2max ?? null,
+          objectif: athlete.goal || "IM",
+          tss7d: effectiveSnapshot?.tss_7d ?? null,
+          fatigue: fatigueEff?.level ?? null,
+          forceMode: effectiveSnapshot?.force_development_mode ?? false,
+        };
+        strategyResult = computeLorangStrategy(lorangInput);
+      } catch { /* fallback */ }
+
+      // Lactate thresholds
+      let lactateThresholds = null;
+      try {
+        const lt = computeLactateThresholdsTFCL({
+          ftp: effectiveRefs.ftp ?? null,
+          vlamax: vlamax.value,
+          vo2max: effectiveRefs.vo2max ?? null,
+          poids: effectiveRefs.weightKg ?? null,
+        });
+        lactateThresholds = { lt1: lt.lt1, lt2: lt.lt2 };
+      } catch { /* fallback */ }
+
+      const compassInput: CoachingCompassInput = {
+        ftp: effectiveRefs.ftp ?? null,
+        poids: effectiveRefs.weightKg ?? null,
+        vo2max: effectiveRefs.vo2max ?? null,
+        tss7d: effectiveSnapshot?.tss_7d ?? null,
+        snapshotDate: effectiveSnapshot?.date ?? null,
+        snapshotUpdatedAt: effectiveSnapshot?.updated_at ?? null,
+        pmax5s: effectiveSnapshot?.pmax_5s ?? null,
+        p30sW: effectiveSnapshot?.p30s_w ?? null,
+        p60sW: effectiveSnapshot?.p60s_w ?? null,
+        map5minW: effectiveSnapshot?.map5min_w ?? null,
+        runEconomyScore: effectiveSnapshot?.run_economy_score ?? null,
+        hrDriftPct: effectiveSnapshot?.run_hr_drift_pct ?? null,
+        vma: effectiveSnapshot?.vma ?? null,
+        paceThresholdSecPerKm: effectiveSnapshot?.pace_threshold_sec_per_km ?? null,
+        fatmax: null,
+        vlamaxEffectif: { value: vlamax.value, confidence: vlamax.confidence, source: vlamax.source },
+        tteEffectif: { tte_min: tte.tte_min, confidence: tte.confidence, source: tte.source },
+        fatigueEffectif: fatigueEff ? { score: fatigueEff.score, level: fatigueEff.level, confidence: fatigueEff.confidence } : null,
+        limiterResult: unifiedLimiter as any,
+        potentielPhysiologique: {
+          score: potentielPhysiologique.score,
+          potential: potentielPhysiologique.potential,
+          availability: potentielPhysiologique.availability,
+          governingFactor: potentielPhysiologique.governingFactor,
+          label: potentielPhysiologique.label,
+          color: potentielPhysiologique.color,
+        },
+        strategyResult: strategyResult ? {
+          primaryLimiter: strategyResult.primaryLimiter,
+          limiterLabel: strategyResult.limiterLabel,
+          limiterExplanation: strategyResult.limiterExplanation,
+          activatedLevers: strategyResult.activatedLevers,
+          prohibitions: strategyResult.prohibitions,
+          hasSprintBan: strategyResult.hasSprintBan,
+          summary: strategyResult.summary,
+          templateSuggestion: strategyResult.templateSuggestion,
+          athleteMessage: strategyResult.athleteMessage,
+          confidence: strategyResult.confidence,
+        } : null,
+        lactateThresholds,
+        wprimeKj: null,
+        objectif: athlete.goal || "IM",
+        ambition: ambition,
+        sportFocus: (effectiveSnapshot?.sport_main as any) ?? "bike",
+        athleteAge: athleteAge,
+      };
+      return computeCoachingCompass(compassInput);
+    })(),
   };
 }
 
