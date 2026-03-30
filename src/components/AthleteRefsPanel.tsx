@@ -235,7 +235,7 @@ export function AthleteRefsPanel({
     
     // Calculer les données manquantes du snapshot (métaboliques)
     const isTriathlon = ["IM", "Ironman", "70.3", "703", "TriathlonLD"].includes(athleteGoal);
-    const isRunning = ["Marathon", "Semi", "Course", "Trail"].includes(athleteGoal);
+    const isRunning = ["Marathon", "Semi", "5K", "10K", "StartToRun", "Course", "Trail", "TrailShort", "TrailMountain", "TrailUltra"].includes(athleteGoal);
     
     const metabolicFields = [
       ...(isRunning ? [] : [
