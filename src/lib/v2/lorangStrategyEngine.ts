@@ -493,14 +493,8 @@ function identifyPrimaryLimiter(input: LorangStrategyInput): {
     }
   }
   
-  // Disponibilité modérée/faible = facteur aggravant
-  if (availability.level === 'low') {
-    scores.push({
-      limiter: 'availability',
-      score: -40,
-      reason: "Disponibilité faible",
-    });
-  }
+  // Disponibilité modérée/faible = avertissement seulement, pas un limiteur
+  // (Supprimé de la liste des scores pour éviter d'être sélectionné comme primaryLimiter)
   
   // Tri par score (plus négatif en premier)
   scores.sort((a, b) => a.score - b.score);
