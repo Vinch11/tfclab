@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   Compass, Target, AlertTriangle, 
-  Shield, Eye, EyeOff, Zap, Info, Clock, Dumbbell,
+  Eye, EyeOff, Zap, Info, Clock, Dumbbell,
   ChevronDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -245,88 +245,8 @@ function FlowStep({ level, icon, title, subtitle, accentClass, badge, children }
 // RACE READINESS PANEL — Sidebar
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function ReadinessPanel({ readiness }: { readiness: TFCLCoachingCompassResult["readiness"] }) {
-  if (readiness.potentielScore <= 0) return null;
-
-  const colorClass = {
-    success: "text-[hsl(var(--success))]",
-    warning: "text-[hsl(var(--warning))]",
-    destructive: "text-[hsl(var(--destructive))]",
-  }[readiness.potentielColor] || "text-[hsl(var(--warning))]";
-
-  const bgClass = {
-    success: "bg-[hsl(var(--success)/0.08)] border-[hsl(var(--success)/0.15)]",
-    warning: "bg-[hsl(var(--warning)/0.08)] border-[hsl(var(--warning)/0.15)]",
-    destructive: "bg-[hsl(var(--destructive)/0.08)] border-[hsl(var(--destructive)/0.15)]",
-  }[readiness.potentielColor] || "bg-[hsl(var(--warning)/0.08)] border-[hsl(var(--warning)/0.15)]";
-
-  const governing = readiness.governingFactor === "availability" ? "Disponibilité" : "Potentiel";
-
-  return (
-    <div className={cn("rounded-xl border p-3 space-y-3", bgClass)}>
-      <div className="flex items-center gap-2">
-        <Shield className={cn("w-4 h-4", colorClass)} />
-        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-          Potentiel Physiologique
-        </span>
-      </div>
-
-      {/* Score circle */}
-      <div className="flex flex-col items-center">
-        <div className={cn("text-3xl font-black tabular-nums", colorClass)}>
-          {readiness.potentielScore}
-        </div>
-        <span className="text-[10px] text-muted-foreground font-medium mt-0.5">
-          {readiness.potentielLabel}
-        </span>
-      </div>
-
-      {/* Bars */}
-      <div className="space-y-2">
-        <ReadinessBar 
-          label="Potentiel" 
-          value={readiness.potential} 
-          isGoverning={readiness.governingFactor === "potential"} 
-        />
-        <ReadinessBar 
-          label="Disponibilité" 
-          value={readiness.availability} 
-          isGoverning={readiness.governingFactor === "availability"} 
-        />
-      </div>
-
-      {/* Governing factor */}
-      <div className="text-center">
-        <span className="text-[9px] text-muted-foreground/70">
-          Facteur limitant : <span className="font-semibold text-muted-foreground">{governing}</span>
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function ReadinessBar({ label, value, isGoverning }: { label: string; value: number; isGoverning: boolean }) {
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-0.5">
-        <span className={cn("text-[10px]", isGoverning ? "font-semibold text-foreground" : "text-muted-foreground")}>
-          {label}
-          {isGoverning && <span className="ml-1 text-[8px] text-[hsl(var(--warning))]">●</span>}
-        </span>
-        <span className="text-[10px] font-bold tabular-nums">{value}</span>
-      </div>
-      <div className="h-1.5 bg-background/50 rounded-full overflow-hidden">
-        <div 
-          className={cn(
-            "h-full rounded-full transition-all duration-500",
-            isGoverning ? "bg-[hsl(var(--warning))]" : "bg-primary/60"
-          )}
-          style={{ width: `${value}%` }}
-        />
-      </div>
-    </div>
-  );
-}
+// ReadinessPanel supprimé — la "Disponibilité" ne peut pas être établie précisément.
+// Seul le Fatigue Warning (issu du snapshot) est conservé.
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // FATIGUE WARNING
@@ -435,7 +355,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
     );
   }
 
-  const { limiter, leverage, decision, readiness } = compass;
+  const { limiter, leverage, decision } = compass;
 
   return (
     <Card className={cn("border-border/50 overflow-hidden print:break-inside-avoid print:shadow-none print:border-0", className)}>
@@ -608,16 +528,6 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
             {/* ─── Staff: Profil complet ─── */}
             {staffMode && <StaffMetricsGrid compass={compass} sportFocus={input.sportFocus} />}
           </div>
-
-          {/* ─── COLONNE DROITE : Potentiel Physiologique (desktop) ─── */}
-          <div className="hidden md:block w-[160px] shrink-0 pt-6">
-            <ReadinessPanel readiness={readiness} />
-          </div>
-        </div>
-
-        {/* ─── Potentiel Physiologique mobile ─── */}
-        <div className="md:hidden mt-3">
-          <ReadinessPanel readiness={readiness} />
         </div>
 
         {/* ─── Disclaimer ─── */}

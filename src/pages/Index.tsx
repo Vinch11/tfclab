@@ -1352,12 +1352,43 @@ const Index = () => {
           // ✅ 2. ANALYSE — Radar Compass + Métriques avec explications
           {
             id: "coaching-compass",
-            render: () => compassInputMemo ? (
-              <CoachingCompassCard
-                input={compassInputMemo}
-                staffMode={staffMode}
-              />
-            ) : null,
+            render: () => {
+              // Construit l'input Compass depuis le Diagnostic Engine pour garantir la cohérence
+              if (!dashDiagnostic || !compassInputMemo) return null;
+              // Override les données clés depuis le diagnostic unifié
+              const alignedInput = {
+                ...compassInputMemo,
+                vlamaxEffectif: { 
+                  value: dashDiagnostic.effectifs.vlamax.value, 
+                  confidence: dashDiagnostic.effectifs.vlamax.confidence, 
+                  source: dashDiagnostic.effectifs.vlamax.source 
+                },
+                tteEffectif: { 
+                  tte_min: dashDiagnostic.effectifs.tte.tte_min, 
+                  confidence: dashDiagnostic.effectifs.tte.confidence, 
+                  source: dashDiagnostic.effectifs.tte.source 
+                },
+                fatigueEffectif: dashDiagnostic.effectifs.fatigue ? {
+                  score: dashDiagnostic.effectifs.fatigue.score,
+                  level: String(dashDiagnostic.effectifs.fatigue.level),
+                  confidence: dashDiagnostic.effectifs.fatigue.confidence,
+                } : null,
+                limiterResult: {
+                  primaryLimiter: dashDiagnostic.limiter.primaryLimiter,
+                  gapAnalysis: dashDiagnostic.limiter.gapAnalysis,
+                  confidence: dashDiagnostic.limiter.confidence,
+                  fatigueWarning: (dashDiagnostic.limiter as any).fatigueWarning ?? null,
+                },
+                // Supprimer le potentiel physiologique (Disponibilité supprimée)
+                potentielPhysiologique: null,
+              };
+              return (
+                <CoachingCompassCard
+                  input={alignedInput}
+                  staffMode={staffMode}
+                />
+              );
+            },
           },
           {
             id: "analyse-section",
