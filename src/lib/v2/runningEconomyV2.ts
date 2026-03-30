@@ -280,6 +280,7 @@ export function computeRunningEconomyV2(input: RunningEconomyV2Input): RunningEc
       performanceImpact: { label: '—', description: 'Non applicable en vélo', modifier: 0 },
       injuryRiskImpact: { label: '—', description: 'Non applicable en vélo', modifier: 0 },
       energyCostRatio: null,
+      estimatedO2Cost: null,
       optimizationLevers: [],
       warnings: [],
       isApplicable: false
