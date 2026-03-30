@@ -22,6 +22,7 @@ import { DashboardRecommendationsCard } from "@/components/DashboardRecommendati
 import { SnapshotEvolutionChart } from "@/components/SnapshotEvolutionChart";
 import { AthleteRefsPanel } from "@/components/AthleteRefsPanel";
 import { FtpKgTargetsCard } from "@/components/FtpKgTargetsCard";
+import { VmaTargetsCard } from "@/components/VmaTargetsCard";
 import { MetricHelpButton } from "@/components/MetricHelpButton";
 import { calculateAge } from "@/lib/ageAdjustment";
 import { AgeAdjustmentBadge } from "@/components/AgeAdjustmentBadge";
