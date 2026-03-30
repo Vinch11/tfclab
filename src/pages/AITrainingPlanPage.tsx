@@ -291,7 +291,7 @@ export default function AITrainingPlanPage() {
       ftp: refs.ftp,
     });
 
-    const age = athlete.birth_date ? calculateAge(athlete.birth_date) : null;
+    const age = calculateAge(athlete.birth_date ?? athlete.dateNaissance ?? null);
 
     // Build DiagnosticInput and delegate to the Diagnostic Engine
     const diagnosticInput: DiagnosticInput = {
