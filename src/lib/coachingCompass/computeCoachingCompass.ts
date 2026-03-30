@@ -377,28 +377,55 @@ const LIMITER_TO_LEVER: Record<LimiterType, {
 };
 
 function buildLeverage(input: CoachingCompassInput, limiter: TFCLLimiter): TFCLLeverage {
-  // Priorité 1 : Strategy Engine levers
+  // ✅ Le levier est TOUJOURS dérivé du limiteur (cohérence garantie)
+  const baseLever = LIMITER_TO_LEVER[limiter.type] ?? LIMITER_TO_LEVER.unknown;
+  
+  // Enrichir avec les prescriptions du Strategy Engine si disponibles
   if (input.strategyResult?.activatedLevers?.length) {
-    const topLever = input.strategyResult.activatedLevers[0];
-    const baseLever = LIMITER_TO_LEVER[limiter.type] ?? LIMITER_TO_LEVER.unknown;
+    // Chercher le lever du Strategy Engine qui correspond au limiteur
+    const matchingLever = findMatchingLever(input.strategyResult.activatedLevers, limiter.type);
+    const topLever = matchingLever ?? input.strategyResult.activatedLevers[0];
 
     return {
       type: baseLever.type,
-      label: topLever.label,
+      label: baseLever.label, // ✅ Label du limiteur, pas du Lorang top lever
       icon: baseLever.icon,
-      description: topLever.reason,
+      description: topLever.reason || baseLever.description,
       expectedAdaptations: baseLever.expectedAdaptations,
       workoutExamples: topLever.prescription.length > 0 ? topLever.prescription : baseLever.workoutExamples,
-      priority: topLever.priority as 1 | 2 | 3,
+      priority: 1,
     };
   }
 
   // Fallback : correspondance directe
-  const baseLever = LIMITER_TO_LEVER[limiter.type] ?? LIMITER_TO_LEVER.unknown;
   return {
     ...baseLever,
     priority: 1,
   };
+}
+
+/**
+ * Trouve le lever activé qui correspond le mieux au type de limiteur
+ */
+function findMatchingLever(
+  levers: Array<{ lever: string; label: string; reason: string; prescription: string[]; priority: number }>,
+  limiterType: LimiterType
+): typeof levers[0] | null {
+  const leverMapping: Record<LimiterType, string[]> = {
+    aerobic_power: ['vo2_intervals', 'threshold_work'],
+    glycolytic: ['z2_volume', 'sfr_force_endurance'],
+    metabolic_endurance: ['z2_volume', 'train_low'],
+    durability: ['z2_volume', 'threshold_work'],
+    neuromuscular: ['force_max', 'sfr_force_endurance'],
+    unknown: [],
+  };
+  
+  const expectedLevers = leverMapping[limiterType] ?? [];
+  for (const expected of expectedLevers) {
+    const found = levers.find(l => l.lever === expected);
+    if (found) return found;
+  }
+  return null;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
