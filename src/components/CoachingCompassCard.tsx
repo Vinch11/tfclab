@@ -423,21 +423,45 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
     "Durabilité": { target: durabilityTargets[ambition] || 70 },
   };
 
+  // Running mode: convert LT1/LT2 from watts to % VMA
+  const vma = input.vma;
+  const ftp = input.ftp;
+  const lt1PctFtp = input.lactateThresholds?.lt1?.pct_of_ftp;
+  const lt2PctFtp = input.lactateThresholds?.lt2?.pct_of_ftp;
+
+  // Estimate % VMA from % FTP (FTP ≈ 82-85% VMA in running)
+  const ftpPctVma = (vma && ftp) ? 0.83 : 0.83; // standard approximation
+  const lt1PctVma = lt1PctFtp ? Math.round(lt1PctFtp * ftpPctVma * 100) : null;
+  const lt2PctVma = lt2PctFtp ? Math.round(lt2PctFtp * ftpPctVma * 100) : null;
+
+  // Build running-aware LT metrics
+  const lt1Running = isRunning && lt1PctVma ? {
+    ...profile.lt1,
+    value: lt1PctVma,
+    unit: "% VMA",
+  } : profile.lt1;
+
+  const lt2Running = isRunning && lt2PctVma ? {
+    ...profile.lt2,
+    value: lt2PctVma,
+    unit: "% VMA",
+  } : profile.lt2;
+
   const metrics = [
-    { key: "VO₂max", m: profile.vo2max },
-    { key: "VLamax", m: profile.vlamax },
+    { key: "VO₂max", m: profile.vo2max, secondaryInfo: null as string | null },
+    { key: "VLamax", m: profile.vlamax, secondaryInfo: null as string | null },
     ...(!isRunning ? [
-      { key: "FTP", m: profile.ftp },
-      { key: "FTP/kg", m: profile.ftpKg },
+      { key: "FTP", m: profile.ftp, secondaryInfo: null as string | null },
+      { key: "FTP/kg", m: profile.ftpKg, secondaryInfo: null as string | null },
     ] : []),
-    { key: "VMA", m: profile.vma ?? { value: null, confidence: 0, source: "unknown", lastUpdated: null, unit: "km/h" } },
-    { key: "TTE", m: profile.tte },
-    { key: "FatMax", m: profile.fatmax },
-    { key: "LT1", m: profile.lt1 },
-    { key: "LT2", m: profile.lt2 },
-    ...(!isRunning ? [{ key: "W'", m: profile.wPrime }] : []),
-    { key: "Éco.", m: profile.runningEconomy },
-    { key: "Durabilité", m: profile.durability },
+    { key: "VMA", m: profile.vma ?? { value: null, confidence: 0, source: "unknown", lastUpdated: null, unit: "km/h" }, secondaryInfo: null as string | null },
+    { key: "TTE", m: profile.tte, secondaryInfo: null as string | null },
+    { key: "FatMax", m: isRunning ? { ...profile.fatmax, unit: profile.fatmax.value ? "W (estimé)" : "W" } : profile.fatmax, secondaryInfo: null as string | null },
+    { key: "LT1", m: lt1Running, secondaryInfo: isRunning && profile.lt1.value ? `(${Math.round(profile.lt1.value)} W)` : null },
+    { key: "LT2", m: lt2Running, secondaryInfo: isRunning && profile.lt2.value ? `(${Math.round(profile.lt2.value)} W)` : null },
+    ...(!isRunning ? [{ key: "W'", m: profile.wPrime, secondaryInfo: null as string | null }] : []),
+    { key: "Éco.", m: profile.runningEconomy, secondaryInfo: null as string | null },
+    { key: "Durabilité", m: profile.durability, secondaryInfo: null as string | null },
   ].filter(r => r.m?.value !== null);
 
   if (metrics.length === 0) return null;
@@ -455,7 +479,7 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
         Profil physiologique complet
       </p>
       <div className="space-y-1.5">
-        {metrics.map(({ key, m }) => {
+        {metrics.map(({ key, m, secondaryInfo }) => {
           const expl = METRIC_EXPLANATIONS[key];
           const tgt = metricTargets[key];
           const target = tgt?.target;
@@ -490,6 +514,9 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
                   <span className="text-[9px] text-muted-foreground/70">{m.unit}</span>
                 </div>
                 <div className="flex items-center gap-2">
+                  {secondaryInfo && (
+                    <span className="text-[8px] text-muted-foreground/60">{secondaryInfo}</span>
+                  )}
                   <span className="text-[11px] font-bold font-mono text-foreground">
                     {typeof m.value === "number" ? formatVal(m.value, isSmall) : "—"}
                   </span>
