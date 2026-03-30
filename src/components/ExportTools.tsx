@@ -142,6 +142,8 @@ export interface ReportSections {
   lactateCurve: boolean;     // Courbe de Lactate Simulée (Mader-Heck)
   substrateCurve: boolean;   // Oxydation Lipides / Glucides
   performancePrediction: boolean; // Prédiction de Performance
+  facteursLimitants: boolean; // Facteurs Limitants (moteur unifié)
+  leviersAction: boolean;    // Leviers d'Action (moteur unifié)
 }
 
 interface ExportOptions {
