@@ -37,6 +37,7 @@ import {
   Target,
   Info,
   ArrowRight,
+  Timer,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
