@@ -3183,7 +3183,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         <h3>📋 Résumé automatique (Lecture < 2 min)</h3>
         <p style="font-size:14px;line-height:1.6;margin:12px 0;">${profilMessage}</p>
         <p style="font-size:12px;color:var(--muted);">
-          <b>Priorité physiologique suggérée:</b> ${lorang.prioriteLabel || "Maintien de l'équilibre actuel"}.<br>
+          <b>Limiteur principal:</b> ${payload.unifiedLimiter.limiterEmoji} ${htmlEscape(payload.unifiedLimiter.limiterLabel)} (confiance ${Math.round(payload.unifiedLimiter.confidence * 100)}%).<br>
+          <b>Levier prioritaire:</b> ${payload.unifiedLimiter.leverEmoji} ${htmlEscape(payload.unifiedLimiter.leverLabel)}.<br>
           <b>Risques identifiés:</b> ${risquesIdentifies}.
         </p>
         <div class="alert alertWarning mt" style="font-size:11px;">
