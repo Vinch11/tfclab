@@ -1613,6 +1613,89 @@ const Index = () => {
               />
             ),
           },
+          // ✅ Profil & Ambition (déplacé du dashboard)
+          {
+            id: "profil-ambition-profil",
+            render: () => currentAthlete && effectiveCloudSnapshot && (
+              <ProfilAmbitionUnifiedCard
+                athlete={currentAthlete}
+                snapshot={effectiveCloudSnapshot}
+                vlamaxEffectif={vlamaxEffectif}
+                tteEffectif={tteEffectif}
+                ambition={currentAmbition}
+                ftp_kg={ftp_kg}
+                limiterResult={unifiedLimiterResult}
+                staffMode={staffMode}
+              />
+            ),
+          },
+          // ✅ CP/W' Courbe Puissance-Durée (déplacé du dashboard)
+          {
+            id: "cp-wprime-curve-profil",
+            render: () => currentAthlete && effectiveCloudSnapshot && (
+              <CPWPrimeCurveCard
+                pmax5s={effectiveCloudSnapshot.pmax_5s ?? null}
+                p30s={effectiveCloudSnapshot.p30s_w ?? null}
+                p60s={effectiveCloudSnapshot.p60s_w ?? null}
+                map5min={effectiveCloudSnapshot.map5min_w ?? null}
+                ftp={ftp}
+                weight={effectiveCloudSnapshot.weight_kg ?? undefined}
+                staffMode={staffMode}
+              />
+            ),
+          },
+          // ✅ W'bal Recovery (déplacé du dashboard)
+          {
+            id: "wbal-recovery-profil",
+            render: () => currentAthlete && effectiveCloudSnapshot && (
+              <WbalRecoveryCard
+                pmax5s={effectiveCloudSnapshot.pmax_5s ?? null}
+                p30s={effectiveCloudSnapshot.p30s_w ?? null}
+                p60s={effectiveCloudSnapshot.p60s_w ?? null}
+                map5min={effectiveCloudSnapshot.map5min_w ?? null}
+                ftp={ftp}
+                weight={effectiveCloudSnapshot.weight_kg ?? undefined}
+                staffMode={staffMode}
+              />
+            ),
+          },
+          // ✅ Charge Récente (déplacé du dashboard)
+          {
+            id: "charge-recente-profil",
+            render: () => currentAthlete && effectiveCloudSnapshot && (
+              <ChargeRecenteCard
+                tss7d={effectiveCloudSnapshot.tss_7d ?? null}
+                objectif={currentAthlete.goal || "IM"}
+                staffMode={staffMode}
+              />
+            ),
+          },
+          // ✅ Coach Decision Center (déplacé du dashboard)
+          {
+            id: "coach-decision-profil",
+            render: () => currentAthlete && effectiveCloudSnapshot && (
+              <CoachDecisionUnifiedCard
+                athlete={currentAthlete}
+                snapshot={effectiveCloudSnapshot}
+                vlamaxEffectif={vlamaxEffectif}
+                tteEffectif={tteEffectif}
+                limiterResult={unifiedLimiterResult}
+                ambition={currentAmbition}
+                staffMode={staffMode}
+              />
+            ),
+          },
+          // ✅ Lorang Strategy (déplacé du dashboard)
+          {
+            id: "lorang-strategy-profil",
+            render: () => currentAthlete && lorangStrategyForCompass && (
+              <LorangStrategyCard
+                result={lorangStrategyForCompass}
+                objectif={currentAthlete.goal || "IM"}
+                staffMode={staffMode}
+              />
+            ),
+          },
         ];
 
         return (
