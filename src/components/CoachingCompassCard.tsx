@@ -494,6 +494,9 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
               accentClass="bg-[hsl(var(--destructive)/0.8)]"
               badge={staffMode ? limiter.confidence : null}
             >
+              <p className="text-[10px] text-muted-foreground mt-1.5 italic leading-relaxed">
+                💡 {FLOW_PEDAGOGY.limiter}
+              </p>
               {staffMode && (
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
                   <span className="text-[9px] text-muted-foreground">Impact :</span>
@@ -519,6 +522,9 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
               subtitle={leverage.description}
               accentClass="bg-primary/80"
             >
+              <p className="text-[10px] text-muted-foreground mt-1.5 italic leading-relaxed">
+                💡 {FLOW_PEDAGOGY.leverage}
+              </p>
               {/* Adaptations attendues */}
               <div className="mt-2 flex flex-wrap gap-1">
                 {leverage.expectedAdaptations.map(a => (
