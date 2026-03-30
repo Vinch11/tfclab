@@ -233,7 +233,7 @@ const LIMITER_MAP: Record<string, { type: LimiterType; icon: string }> = {
   // Unified Limiter types (Diagnostic Engine — source de vérité)
   aerobic_engine: { type: "aerobic_power", icon: "🫁" },
   glycolytic: { type: "glycolytic", icon: "⚡" },
-  specific_endurance: { type: "durability", icon: "⏱️" },
+  specific_endurance: { type: "metabolic_endurance", icon: "⏱️" }, // TTE = endurance métabolique, pas durabilité
   metabolic_efficiency: { type: "metabolic_endurance", icon: "🔥" },
   anaerobic_capacity: { type: "neuromuscular", icon: "💥" },
   neuromuscular: { type: "neuromuscular", icon: "🦵" },
@@ -247,7 +247,7 @@ const LIMITER_MAP: Record<string, { type: LimiterType; icon: string }> = {
   "Moteur Aérobie": { type: "aerobic_power", icon: "🫁" },
   "VLamax": { type: "glycolytic", icon: "⚡" },
   "Endurance Métabolique": { type: "metabolic_endurance", icon: "🔥" },
-  "TTE": { type: "durability", icon: "⏱️" },
+  "TTE": { type: "metabolic_endurance", icon: "⏱️" },
   "Durabilité": { type: "durability", icon: "💪" },
   "Neuromusculaire": { type: "neuromuscular", icon: "🦵" },
   "Économie": { type: "neuromuscular", icon: "🦶" },
