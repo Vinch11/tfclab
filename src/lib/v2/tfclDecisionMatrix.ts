@@ -316,17 +316,8 @@ function normalizeObjective(obj: string): TFCLObjective {
 // NORMALISATION DES MÉTRIQUES
 // ═══════════════════════════════════════════════════════════════════════════════
 
-/**
- * Calcule le facteur d'ajustement VO2max par âge
- * Basé sur le déclin physiologique naturel (~7-10% par décennie après 30 ans)
- */
-function getVo2maxAgeFactor(age: number | null): number {
-  if (age === null || age < 30) return 1.0;
-  if (age < 40) return 0.95;
-  if (age < 50) return 0.88;
-  if (age < 60) return 0.80;
-  return 0.72;
-}
+// ✅ Utilise la source unique de vérité pour le facteur d'ajustement VO2max par âge
+import { getVo2maxAgeFactor } from "./unifiedLimiterDetection";
 
 function normalizeVO2max(
   value: number | null,
