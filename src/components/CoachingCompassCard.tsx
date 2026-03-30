@@ -385,8 +385,8 @@ const METRIC_EXPLANATIONS: Record<string, { desc: string; why: string }> = {
     why: "À VO₂max et VLamax égaux, l'athlète le plus économique ira plus vite. Améliorable par la technique et le renforcement.",
   },
   "Durabilité": {
-    desc: "Résistance à la dégradation de performance dans la durée",
-    why: "Capacité à maintenir puissance et technique sur des efforts prolongés. Faible = grosse perte en fin de course.",
+    desc: "Robustesse aérobie — dérivée directement du TTE (Time to Exhaustion)",
+    why: "Mesure combien de temps vous pouvez tenir au seuil. Un TTE élevé = meilleure résistance en course longue. Purement physiologique, sans influence de la fatigue.",
   },
 };
 
