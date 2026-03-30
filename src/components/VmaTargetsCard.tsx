@@ -61,14 +61,13 @@ function getVmaLevelTargets(objectif: string, age?: number | null): VmaLevelTarg
   let ambitieuxMax = competitor.vma_min ?? 18.0;
   let eliteMax = elite.vma_min ?? 21.0;
 
-  // Age adjustment: -0.3 km/h per decade above 40
-  if (age && age > 40) {
-    const decades = (age - 40) / 10;
-    const reduction = decades * 0.3;
-    plausibleMin = Math.max(10, plausibleMin - reduction);
-    plausibleMax = Math.max(12, plausibleMax - reduction);
-    ambitieuxMax = Math.max(14, ambitieuxMax - reduction);
-    eliteMax = Math.max(16, eliteMax - reduction);
+  // ✅ Ajustement par âge — utilise la source unique de vérité (getPerformanceAgeFactor)
+  const ageFactor = getPerformanceAgeFactor(age ?? null);
+  if (ageFactor < 1.0) {
+    plausibleMin = Math.round(plausibleMin * ageFactor * 10) / 10;
+    plausibleMax = Math.round(plausibleMax * ageFactor * 10) / 10;
+    ambitieuxMax = Math.round(ambitieuxMax * ageFactor * 10) / 10;
+    eliteMax = Math.round(eliteMax * ageFactor * 10) / 10;
   }
 
   return {
