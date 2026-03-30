@@ -230,6 +230,13 @@ export const LIMITER_DEFINITIONS: Record<LorangLimiter, {
       "L'athlète 'pédale carré' ou manque de puissance spécifique.",
     symptoms: ["Jambes lourdes cardio OK", "Économie faible", "Manque de force"],
   },
+  durability: {
+    label: "Durabilité / TTE",
+    icon: "🛡️",
+    description: "La capacité à maintenir l'effort dans la durée (TTE) est insuffisante. " +
+      "La performance se dégrade avant la fin de l'épreuve.",
+    symptoms: ["Chute de puissance après 1-2h", "Dérive cardiaque", "Incapacité à finir fort"],
+  },
   availability: {
     label: "Disponibilité",
     icon: "🔋",
