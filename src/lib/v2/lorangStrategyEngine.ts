@@ -979,6 +979,7 @@ function generateAthleteMessage(
     motor: "Ton plafond aérobie peut encore progresser. On va travailler ton 'moteur' avec des séances d'intensité ciblées.",
     glycolytic: "Ton système glycolytique consomme trop vite ton carburant. On va l'optimiser avec du travail d'endurance spécifique.",
     metabolic: "Ton efficacité énergétique peut progresser. Focus sur l'utilisation des lipides et la tolérance glucides.",
+    durability: "Ta capacité à tenir l'effort dans la durée est insuffisante. On va renforcer ton TTE avec du volume structuré et du travail au seuil.",
     neuromuscular: "Tes muscles peuvent gagner en force et en économie. Un travail neuromusculaire ciblé va t'aider.",
     availability: "Ta récupération est prioritaire. On adapte le plan pour te permettre de régénérer avant de charger.",
   };
