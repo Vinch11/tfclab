@@ -1542,8 +1542,8 @@ const Index = () => {
               />
             ),
           },
-          // ✅ 11. CP/W' Curve
-          {
+          // ✅ 11. CP/W' Curve — Masqué en mode running (cycling only)
+          ...(isRunningOnly ? [] : [{
             id: "cpw-prime-curve",
             render: () => currentAthlete && effectiveCloudSnapshot && (
               <CPWPrimeCurveCard
@@ -1555,7 +1555,7 @@ const Index = () => {
                 weightKg={effectiveCloudSnapshot.weight_kg}
               />
             ),
-          },
+          }]),
           // ✅ 12. W'bal Recovery
           {
             id: "wbal-recovery",
