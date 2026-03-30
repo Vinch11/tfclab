@@ -145,6 +145,9 @@ export interface RadarAxis {
   score: number;        // 0-100
   icon: string;
   color: string;
+  value: number | null;  // Valeur actuelle brute
+  target: number | null; // Cible pour l'objectif
+  unit: string;          // Unité d'affichage
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
