@@ -182,6 +182,8 @@ interface ExportPayload {
     seancesCodes: string[];
     seancesDetails: Array<{ code: string; nom: string; objectif: string }>;
   };
+  // ✅ NEW: Unified Limiter Result (source de vérité)
+  unifiedLimiter: UnifiedLimiterResult;
   tests: DbTest[];
   snapshotHistory: DbSnapshot[];
   checkins: DbCheckin[];
