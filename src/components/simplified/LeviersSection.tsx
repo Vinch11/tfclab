@@ -14,7 +14,7 @@ import { Zap, Ban, Info, ChevronRight, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { TrainingPrescription } from "@/engines/decision";
 import type { AthleteDiagnostic } from "@/engines/diagnostic";
-import type { RoadmapPhase } from "@/lib/v2/strategicRoadmap";
+
 
 interface LeviersSectionProps {
   diagnostic: AthleteDiagnostic;
