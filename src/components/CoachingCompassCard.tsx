@@ -23,6 +23,43 @@ import { cn } from "@/lib/utils";
 import { computeCoachingCompass, type CoachingCompassInput, type TFCLCoachingCompassResult, type RadarAxis } from "@/lib/coachingCompass";
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// EXPLICATIONS PÉDAGOGIQUES — Axes du radar
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const AXIS_PEDAGOGY: Record<string, { short: string; detail: string }> = {
+  aerobic: {
+    short: "Capacité Aérobie (FTP/kg ou VMA)",
+    detail: "Mesure la puissance de ton « moteur » aérobie. Plus le score est élevé, plus tu peux soutenir une intensité forte sur longue durée.",
+  },
+  vlamax: {
+    short: "VLamax (Glycolyse)",
+    detail: "Vitesse de production de lactate. Un score élevé signifie une VLamax basse et bien maîtrisée — tu brûles plus de graisses et moins de glycogène.",
+  },
+  fatmax: {
+    short: "FatMax (Oxydation des graisses)",
+    detail: "Intensité à laquelle tu brûles le plus de graisses. Plus ce score est haut, mieux tu épargnes tes réserves de glycogène en course.",
+  },
+  durability: {
+    short: "Robustesse (Durabilité)",
+    detail: "Résistance à la dégradation de la performance dans le temps. Combine TTE, dérive cardiaque et stabilité de la puissance/allure.",
+  },
+  economy: {
+    short: "Économie de mouvement",
+    detail: "Efficience du geste sportif : moins d'énergie gaspillée pour une même vitesse ou puissance. Inclut la cadence, la technique et le rendement musculaire.",
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// EXPLICATIONS PÉDAGOGIQUES — Niveaux du flux
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const FLOW_PEDAGOGY = {
+  limiter: "Le limiteur est le maillon faible qui freine le plus ta progression. C'est le premier facteur à corriger pour progresser efficacement.",
+  leverage: "Le levier est la stratégie d'entraînement la plus efficace pour corriger ton limiteur. Il cible le mécanisme physiologique en cause.",
+  decision: "La décision coaching traduit l'analyse en plan d'action concret : type de bloc, durée, séances clés et interdictions.",
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // PROPS
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -421,6 +458,29 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                   />
                 </div>
               </div>
+
+              {/* Légende pédagogique des axes */}
+              <div className="mt-3 space-y-1.5 px-1">
+                {compass.radarAxes.map((axis) => {
+                  const explanation = AXIS_PEDAGOGY[axis.key] || { short: axis.shortLabel, detail: "" };
+                  return (
+                    <div key={axis.key} className="flex items-start gap-2 p-2 rounded-lg bg-muted/30 border border-border/30">
+                      <span className={cn(
+                        "text-[10px] font-bold mt-0.5 shrink-0 w-5 h-5 rounded-full flex items-center justify-center",
+                        axis.score >= 75 ? "bg-[hsl(var(--success)/0.15)] text-[hsl(var(--success))]" :
+                        axis.score >= 50 ? "bg-[hsl(var(--warning)/0.15)] text-[hsl(var(--warning))]" :
+                        "bg-[hsl(var(--destructive)/0.15)] text-[hsl(var(--destructive))]"
+                      )}>
+                        {axis.score}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-semibold">{explanation.short}</p>
+                        <p className="text-[10px] text-muted-foreground leading-relaxed">{explanation.detail}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             <FlowConnector />
@@ -434,6 +494,9 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
               accentClass="bg-[hsl(var(--destructive)/0.8)]"
               badge={staffMode ? limiter.confidence : null}
             >
+              <p className="text-[10px] text-muted-foreground mt-1.5 italic leading-relaxed">
+                💡 {FLOW_PEDAGOGY.limiter}
+              </p>
               {staffMode && (
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
                   <span className="text-[9px] text-muted-foreground">Impact :</span>
@@ -459,6 +522,9 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
               subtitle={leverage.description}
               accentClass="bg-primary/80"
             >
+              <p className="text-[10px] text-muted-foreground mt-1.5 italic leading-relaxed">
+                💡 {FLOW_PEDAGOGY.leverage}
+              </p>
               {/* Adaptations attendues */}
               <div className="mt-2 flex flex-wrap gap-1">
                 {leverage.expectedAdaptations.map(a => (
@@ -479,6 +545,9 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
               subtitle={staffMode ? decision.coachRationale : decision.athleteMessage}
               accentClass="bg-[hsl(var(--success)/0.8)]"
             >
+              <p className="text-[10px] text-muted-foreground mt-1.5 italic leading-relaxed">
+                💡 {FLOW_PEDAGOGY.decision}
+              </p>
               <div className="mt-2 space-y-1.5">
                 {/* Duration & workouts */}
                 <div className="flex items-center gap-3 text-[10px]">
