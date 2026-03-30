@@ -59,6 +59,8 @@ export function FatMaxTFCLCard({
 }: FatMaxTFCLCardProps) {
   const [showDetails, setShowDetails] = useState(false);
   const [showWhy, setShowWhy] = useState(false);
+  const isRunning = useIsRunningOnly();
+  const refLabel = isRunning ? "Seuil" : "FTP";
 
   const fatmax = useMemo(() => {
     // Normaliser l'objectif
