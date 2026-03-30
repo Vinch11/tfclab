@@ -394,46 +394,73 @@ export function TwoForCoachingAnalysis({
           </ul>
         </div>}
 
-      {/* Priority & Recommendations */}
+      {/* Priorities & Recommendations */}
       <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
-        <div className="flex items-center gap-3 mb-4">
-          <div className={cn("p-2 rounded-lg bg-secondary", getPrioriteColor(analysis.priorite))}>
-            <PrioriteIcon className="w-5 h-5" />
+        <p className="text-xs text-muted-foreground uppercase mb-3 font-semibold">Priorités Entraînement</p>
+        
+        {analysis.priorites.length === 0 && (
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-[hsl(var(--success)/0.1)] border border-[hsl(var(--success)/0.2)]">
+            <CheckCircle2 className="w-5 h-5 text-[hsl(var(--success))]" />
+            <p className="text-sm font-medium text-[hsl(var(--success))]">Aucune priorité — profil dans les cibles</p>
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground uppercase">Priorité Entraînement</p>
-            <p className={cn("text-lg font-semibold", getPrioriteColor(analysis.priorite))}>
-              {getPrioriteLabel(analysis.priorite)}
-            </p>
-          </div>
-        </div>
+        )}
 
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-foreground flex items-center gap-2">
-            <Info className="w-4 h-4 text-primary" />
-            Recommandations
-          </p>
-          <ul className="space-y-1.5">
-            {recommendations.map((rec, idx) => <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
-                <span className="text-primary">→</span>
-                {rec}
-              </li>)}
-          </ul>
-        </div>
+        <div className="space-y-3">
+          {analysis.priorites.map((prio, idx) => {
+            const PIcon = prioriteIcons[prio] || CheckCircle2;
+            const recs = getRecommandationsPriorite(prio);
+            const seances = getSeancesRecommandees(prio);
+            const isPrimary = idx === 0;
 
-        {/* Séances Recommandées */}
-        {seancesRecommandees.length > 0 && <div className="mt-4 pt-4 border-t border-border">
-            <p className="text-sm font-medium text-foreground mb-2">Séances Recommandées</p>
-            <div className="flex flex-wrap gap-2">
-              {seancesRecommandees.map(code => {
-            const seance = SEANCES[code as keyof typeof SEANCES];
-            return seance ? <div key={code} className="px-3 py-2 rounded-lg bg-primary/10 border border-primary/20">
-                    <span className="text-sm font-mono font-semibold text-primary">{code}</span>
-                    <span className="text-xs text-muted-foreground ml-2">{seance.objectif}</span>
-                  </div> : null;
+            return (
+              <div key={prio} className={cn(
+                "rounded-lg border p-3",
+                isPrimary ? "border-primary/30 bg-primary/5" : "border-border/50 bg-card"
+              )}>
+                <div className="flex items-center gap-2.5 mb-2">
+                  <div className={cn(
+                    "flex items-center justify-center rounded-full text-[10px] font-bold shrink-0",
+                    isPrimary ? "h-5 w-5 bg-primary text-primary-foreground" : "h-5 w-5 bg-muted text-muted-foreground"
+                  )}>
+                    {idx + 1}
+                  </div>
+                  <PIcon className={cn("w-4 h-4", getPrioriteColor(prio))} />
+                  <p className={cn("text-sm font-semibold", getPrioriteColor(prio))}>
+                    {getPrioriteLabel(prio)}
+                  </p>
+                  {isPrimary && (
+                    <Badge variant="outline" className="text-[9px] px-1.5 border-primary/40 text-primary">Principal</Badge>
+                  )}
+                </div>
+
+                {/* Recommendations for this priority */}
+                <ul className="space-y-1 ml-7">
+                  {recs.map((rec, ridx) => (
+                    <li key={ridx} className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                      <span className="text-primary">→</span>
+                      {rec}
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Séances recommandées */}
+                {seances.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2 ml-7">
+                    {seances.map(code => {
+                      const seance = SEANCES[code as keyof typeof SEANCES];
+                      return seance ? (
+                        <div key={code} className="px-2 py-1 rounded bg-primary/10 border border-primary/20">
+                          <span className="text-xs font-mono font-semibold text-primary">{code}</span>
+                          <span className="text-[10px] text-muted-foreground ml-1.5">{seance.objectif}</span>
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
+                )}
+              </div>
+            );
           })}
-            </div>
-          </div>}
+        </div>
       </div>
 
       {/* 🍝 FUELING RECOMMANDÉ - Encart final cohérent avec l'analyse métabolique */}
