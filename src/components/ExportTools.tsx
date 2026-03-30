@@ -1325,7 +1325,7 @@ function buildExportPayload(
     ambition,
   });
 
-  // Calculer Dan Lorang
+  // Calculer Dan Lorang (legacy — conservé pour backward compat)
   const ftpKg = effectiveRefs.ftp && effectiveRefs.weightKg && effectiveRefs.weightKg > 0
     ? effectiveRefs.ftp / effectiveRefs.weightKg
     : 4.0;
@@ -1347,6 +1347,23 @@ function buildExportPayload(
       nom: seance?.nom || code,
       objectif: seance?.objectif || "—"
     };
+  });
+
+  // ✅ NEW: Compute Unified Limiter (source de vérité pour le rapport)
+  const unifiedLimiter = detectUnifiedLimiter({
+    vo2max: effectiveSnapshot?.vo2max ?? null,
+    ftpKg: ftpKg,
+    vlamax: vlamax.value,
+    wprimeKj: null,
+    tte: tte.tte_min,
+    fatmax: null,
+    economyScore: effectiveSnapshot?.run_economy_score ?? null,
+    availabilityScore: null,
+    hasHealthAlerts: false,
+    objectif: athlete.goal || "IM",
+    ambition: (ambition as any) || "competitive",
+    age: athleteAge,
+    vma: effectiveSnapshot?.vma ?? null,
   });
 
   // Calculer complétude
