@@ -571,7 +571,7 @@ function CrossoverTabContent({
                 {zone.pctLipid}% lip.
               </span>
             </div>
-            <span className="text-[10px] text-muted-foreground w-20">{zone.range} FTP</span>
+            <span className="text-[10px] text-muted-foreground w-20">{zone.range} Seuil</span>
           </div>
         ))}
       </div>
