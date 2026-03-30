@@ -106,12 +106,20 @@ function getGapStatus(gap: number): { label: string; color: string; bgColor: str
 }
 
 function MetricCard({ gap, metricInfo }: {
-  gap: { metric: string; gap: number; value?: number | null; target?: number | null };
+  gap: { metric: string; gap: number; gapPercent?: number; value?: number | null; target?: number | null };
   metricInfo: typeof METRIC_EXPLANATIONS[string];
 }) {
   const [open, setOpen] = useState(false);
   const status = getGapStatus(gap.gap);
   const StatusIcon = status.icon;
+
+  const hasValues = gap.value != null && gap.target != null;
+  const delta = hasValues ? (gap.value as number) - (gap.target as number) : null;
+  const isInverse = gap.metric === "VLamax"; // VLamax: lower is better
+  const displayDelta = isInverse && delta !== null ? -delta : delta;
+  const remainsToWork = delta !== null && ((isInverse && delta > 0) || (!isInverse && delta < 0));
+
+  const formatVal = (v: number) => v < 10 ? v.toFixed(2) : v.toFixed(1);
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
@@ -121,22 +129,10 @@ function MetricCard({ gap, metricInfo }: {
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-2">
                 <span className="text-lg">{metricInfo.icon}</span>
-                <div>
-                  <span className="text-sm font-bold">{metricInfo.label}</span>
-                  {gap.value != null && (
-                    <span className="text-xs text-muted-foreground ml-2">
-                      {typeof gap.value === "number" ? gap.value.toFixed(1) : gap.value} {metricInfo.unit}
-                    </span>
-                  )}
-                </div>
+                <span className="text-sm font-bold">{metricInfo.label}</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1">
-                  <StatusIcon className={cn("h-4 w-4", status.color)} />
-                  <span className={cn("text-sm font-bold", status.color)}>
-                    {gap.gap > 0 ? "+" : ""}{gap.gap.toFixed(0)}%
-                  </span>
-                </div>
+                <StatusIcon className={cn("h-4 w-4", status.color)} />
                 <Badge variant="outline" className={cn("text-[9px] h-4 px-1.5", status.color)}>
                   {status.label}
                 </Badge>
@@ -146,6 +142,37 @@ function MetricCard({ gap, metricInfo }: {
                 )} />
               </div>
             </div>
+
+            {/* Comparatif Actuel → Cible — TOUJOURS VISIBLE */}
+            {hasValues && (
+              <div className="flex items-center gap-2 mb-2 text-xs">
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-background/60 border border-border/30">
+                  <span className="text-muted-foreground">Actuel</span>
+                  <span className="font-bold text-foreground">{formatVal(gap.value as number)}</span>
+                  <span className="text-muted-foreground/60">{metricInfo.unit}</span>
+                </div>
+                <span className="text-muted-foreground/40">→</span>
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-background/60 border border-border/30">
+                  <span className="text-muted-foreground">Cible</span>
+                  <span className="font-bold text-foreground">{formatVal(gap.target as number)}</span>
+                  <span className="text-muted-foreground/60">{metricInfo.unit}</span>
+                </div>
+                {delta !== null && (
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "text-[10px] px-1.5",
+                      remainsToWork
+                        ? "border-[hsl(var(--destructive)/0.4)] text-[hsl(var(--destructive))]"
+                        : "border-[hsl(var(--success)/0.4)] text-[hsl(var(--success))]"
+                    )}
+                  >
+                    {remainsToWork ? "Δ " : "✓ +"}
+                    {Math.abs(displayDelta!).toFixed(isInverse ? 2 : 1)} {metricInfo.unit} {remainsToWork ? "à combler" : "d'avance"}
+                  </Badge>
+                )}
+              </div>
+            )}
 
             {/* Barre de progression */}
             <div className="h-2 rounded-full bg-muted/60 overflow-hidden">
@@ -175,18 +202,10 @@ function MetricCard({ gap, metricInfo }: {
             </div>
 
             {/* Comment améliorer */}
-            <div className="p-2.5 rounded-lg bg-primary/5">
-              <p className="text-[10px] font-bold text-foreground mb-0.5">🔧 Comment améliorer</p>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">{metricInfo.howToImprove}</p>
-            </div>
-
-            {/* Valeur vs cible */}
-            {gap.target != null && gap.value != null && (
-              <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/30 text-xs">
-                <span className="text-muted-foreground">Actuel : <strong className="text-foreground">{typeof gap.value === "number" ? gap.value.toFixed(1) : gap.value}</strong></span>
-                <span className="text-muted-foreground/40">→</span>
-                <span className="text-muted-foreground">Cible : <strong className="text-foreground">{typeof gap.target === "number" ? gap.target.toFixed(1) : gap.target}</strong></span>
-                <span className="text-muted-foreground">{metricInfo.unit}</span>
+            {remainsToWork && (
+              <div className="p-2.5 rounded-lg bg-primary/5">
+                <p className="text-[10px] font-bold text-foreground mb-0.5">🔧 Comment améliorer</p>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">{metricInfo.howToImprove}</p>
               </div>
             )}
           </div>
