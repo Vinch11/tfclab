@@ -17,8 +17,10 @@ import {
   FileText,
   Palette,
 } from "lucide-react";
+import { Footprints } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRef, useCallback, useState } from "react";
+import { useIsRunningOnly } from "@/hooks/useRunningFocusMode";
 
 const tabs = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, route: "/" },
