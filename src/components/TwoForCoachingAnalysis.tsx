@@ -104,10 +104,18 @@ export function TwoForCoachingAnalysis({
     alertes: [],
     race_ready: false
   });
+  
   useEffect(() => {
-    const result = reglesTwoForCoaching(athlete, vlamax, tte, ftp_kg, inputs.seance_specifique_validee, inputs.fatigue_ok);
-    setAnalysis(result);
-  }, [athlete, vlamax, tte, ftp_kg, inputs]);
+    // ✅ Si le moteur unifié est disponible, dériver les priorités depuis ses gap analysis
+    if (unifiedLimiterResult && unifiedLimiterResult.gapAnalysis?.length > 0) {
+      const derivedPriorities = derivePrioritiesFromUnifiedLimiter(unifiedLimiterResult, athlete.objectif);
+      setAnalysis(derivedPriorities);
+    } else {
+      // Fallback: ancien moteur TFCL
+      const result = reglesTwoForCoaching(athlete, vlamax, tte, ftp_kg, inputs.seance_specifique_validee, inputs.fatigue_ok);
+      setAnalysis(result);
+    }
+  }, [athlete, vlamax, tte, ftp_kg, inputs, unifiedLimiterResult]);
 
   const PrioriteIcon = prioriteIcons[analysis.priorite] || CheckCircle2;
   const recommendations = getRecommandationsPriorite(analysis.priorite);
