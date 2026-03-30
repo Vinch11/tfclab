@@ -99,6 +99,9 @@ export interface RunningEconomyV2Input {
   // TTE pour estimation dérive
   tteMin?: number | null;
   
+  // Poids corporel (pour estimation O2 cost)
+  weightKg?: number | null;
+  
   // Contexte
   objectif?: string;
   sport?: string;
