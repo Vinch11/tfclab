@@ -81,6 +81,11 @@ import { LorangDecisionFlowChart } from "@/components/LorangDecisionFlowChart";
 import { CoachDecisionUnifiedCard } from "@/components/CoachDecisionUnifiedCard";
 import { CoachingCompassCard } from "@/components/CoachingCompassCard";
 
+// ✅ Dashboard Simplifié — 4 sections linéaires
+import { AnalyseSection } from "@/components/simplified/AnalyseSection";
+import { LimiteursSection } from "@/components/simplified/LimiteursSection";
+import { LeviersSection } from "@/components/simplified/LeviersSection";
+
 // ✅ Engines unifiés
 import { computeDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
 
