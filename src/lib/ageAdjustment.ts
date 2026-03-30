@@ -848,14 +848,14 @@ Il ajuste l'interprétation physiologique pour proposer des recommandations plus
   
   principles: [
     "L'âge ne modifie PAS vos valeurs mesurées (FTP, VLamax, TTE)",
-    "L'âge MODIFIE l'interprétation et les recommandations de récupération",
+    "L'âge MODIFIE les cibles de FTP/kg, TTE et VO2max pour refléter le déclin physiologique naturel",
     "La VLamax cible dépend de votre OBJECTIF et AMBITION, pas de votre âge",
-    "Les cibles TTE sont légèrement ajustées pour les masters (récupération)",
-    "La nutrition est adaptée à la tolérance physiologique liée à l'âge",
+    "Les cibles TTE sont ajustées pour les masters (−2% à −15% selon l'âge)",
+    "Les cibles FTP/kg sont ajustées pour les masters (−3% à −22% selon l'âge)",
   ],
   
   staffNote: `La VLamax cible est définie par l'objectif et l'ambition de l'athlète.
-L'âge influence l'interprétation du profil et les recommandations, pas la cible elle-même.`,
+L'âge ajuste les cibles FTP/kg, TTE et VO2max pour refléter le déclin physiologique naturel, pas la cible VLamax.`,
   
   disclaimer: "Ces ajustements sont basés sur la littérature scientifique et l'expérience de terrain. Ils ne remplacent pas un avis médical.",
 };
