@@ -1839,7 +1839,7 @@ const Index = () => {
                   currentVma={effectiveCloudSnapshot?.vma ?? null}
                   age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
                   vo2max={effectiveCloudSnapshot?.vo2max ?? null}
-                  vlamax={vlamaxEffectif}
+                  vlamax={vlamaxEffectif.value}
                 />
               ) : (
                 <FtpKgTargetsCard
