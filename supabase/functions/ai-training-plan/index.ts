@@ -1736,7 +1736,7 @@ Pour les objectifs **5K, 10K, Semi, Marathon, Trail, StartToRun** :
 ## MASTER ATHLETES — SPÉCIFICITÉS (>40 ans, Tanaka & Seals 2008)
 
 ### Déclin Physiologique et Compensation
-- **VO2max** : -7 à -10% par décennie après 40 ans. Compensable partiellement par volume + intensité ciblée
+- **VO2max** : -4 à -7% par décennie après 30 ans (Hawkins & Wiswell 2003). Compensable partiellement par volume + intensité ciblée
 - **Force** : -8% par décennie. Force max obligatoire 2x/sem (prévention sarcopénie)
 - **Récupération** : rallongée de 20-40%. Ratio 2:1 obligatoire, jamais 3:1 après 50 ans
 - **Tendons/ligaments** : temps de guérison ×1.5. Progression volume plafonnée à +3%/sem
