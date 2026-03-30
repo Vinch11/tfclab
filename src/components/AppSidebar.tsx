@@ -68,6 +68,7 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
   const navigate = useNavigate();
   const { state, isMobile } = useSidebar();
   const { user, signOut } = useAuth();
+  const isRunningOnly = useIsRunningOnly();
   const collapsed = isMobile ? false : state === "collapsed";
 
   const handleNavClick = (item: NavItem) => {
