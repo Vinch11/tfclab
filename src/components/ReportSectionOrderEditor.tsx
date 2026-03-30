@@ -85,6 +85,8 @@ export const SECTION_LABELS: Record<keyof ReportSections, string> = {
   lactateCurve: "🧪 Courbe Lactate Simulée (Mader-Heck)",
   substrateCurve: "🔥 Oxydation Lipides / Glucides",
   performancePrediction: "⏱️ Prédiction de Performance",
+  facteursLimitants: "🎯 Facteurs Limitants",
+  leviersAction: "🔧 Leviers d'Action",
 };
 
 // Catégories pour regroupement visuel
