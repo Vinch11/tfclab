@@ -376,34 +376,8 @@ export function TwoForCoachingAnalysis({
         </div>
       </div>
 
-      {/* Checklist Items */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div className="flex items-center justify-between p-4 rounded-xl bg-secondary/20 border border-border">
-          <div className="flex items-center gap-3">
-            <CheckCircle2 className={cn("w-5 h-5", inputs.seance_specifique_validee ? "text-success" : "text-muted-foreground")} />
-            <Label htmlFor="seance" className="text-foreground cursor-pointer">
-              Séance spécifique validée
-            </Label>
-          </div>
-          <Switch id="seance" checked={inputs.seance_specifique_validee} onCheckedChange={checked => setInputs(prev => ({
-          ...prev,
-          seance_specifique_validee: checked
-        }))} />
-        </div>
 
-        <div className="flex items-center justify-between p-4 rounded-xl bg-secondary/20 border border-border">
-          <div className="flex items-center gap-3">
-            <CheckCircle2 className={cn("w-5 h-5", inputs.fatigue_ok ? "text-success" : "text-muted-foreground")} />
-            <Label htmlFor="fatigue" className="text-foreground cursor-pointer">
-              Fatigue maîtrisée
-            </Label>
-          </div>
-          <Switch id="fatigue" checked={inputs.fatigue_ok} onCheckedChange={checked => setInputs(prev => ({
-          ...prev,
-          fatigue_ok: checked
-        }))} />
-        </div>
-      </div>
+
 
       {/* Alerts */}
       {analysis.alertes.length > 0 && <div className="mb-6 p-4 rounded-xl bg-warning/10 border border-warning/30">
