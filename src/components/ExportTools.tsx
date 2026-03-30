@@ -3407,8 +3407,14 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         <p style="font-size:12px;color:var(--muted);">
           <b>Limiteur principal:</b> ${payload.unifiedLimiter.limiterEmoji} ${htmlEscape(payload.unifiedLimiter.limiterLabel)} (confiance ${Math.round(payload.unifiedLimiter.confidence * 100)}%).<br>
           <b>Levier prioritaire:</b> ${payload.unifiedLimiter.leverEmoji} ${htmlEscape(payload.unifiedLimiter.leverLabel)}.<br>
+          <b>Décision coaching:</b> ${htmlEscape(payload.coachingCompass.decision.recommendedBlock)} (${payload.coachingCompass.decision.durationWeeks} sem).<br>
           <b>Risques identifiés:</b> ${risquesIdentifies}.
         </p>
+        ${payload.coachingCompass.decision.prohibitions.length > 0 ? `
+          <div class="alert alertError mt" style="font-size:11px;">
+            <b>🚫 Interdictions :</b> ${payload.coachingCompass.decision.prohibitions.map(p => htmlEscape(p)).join(" • ")}
+          </div>
+        ` : ''}
         <div class="alert alertWarning mt" style="font-size:11px;">
           <b>⚠️ INTERDICTION :</b> Ce score ne garantit pas la performance le jour J. 
           Il indique une cohérence entre les données disponibles et l'objectif, pas une prédiction de résultat.
