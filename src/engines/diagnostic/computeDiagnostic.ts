@@ -334,11 +334,16 @@ function computeSynthesis(
     label: limiter.limiterLabel,
   };
 
-  const L2 = sortedGaps.length > 1
+  // L2 doit être un limiteur DIFFÉRENT de L1 pour éviter la redondance
+  const l1LimiterType = limiter.primaryLimiter;
+  const l2Gap = sortedGaps.find((g, i) => i > 0 && mapMetricToLimiter(g.metric) !== l1LimiterType)
+    || (sortedGaps.length > 1 ? sortedGaps.find((_, i) => i > 0) : null);
+
+  const L2 = l2Gap
     ? {
-        limiter: mapMetricToLimiter(sortedGaps[1].metric),
-        lever: mapMetricToLever(sortedGaps[1].metric),
-        label: sortedGaps[1].metric,
+        limiter: mapMetricToLimiter(l2Gap.metric),
+        lever: mapMetricToLever(l2Gap.metric),
+        label: l2Gap.metric,
       }
     : null;
 
