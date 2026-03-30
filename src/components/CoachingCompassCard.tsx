@@ -73,10 +73,10 @@ interface CoachingCompassCardProps {
 // RADAR CHART — SVG avec zone optimale
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function SignatureRadar({ axes, size = 240 }: { axes: RadarAxis[]; size?: number }) {
+function SignatureRadar({ axes, size = 320 }: { axes: RadarAxis[]; size?: number }) {
   const cx = size / 2;
   const cy = size / 2;
-  const r = size * 0.36;
+  const r = size * 0.32;
   const levels = [25, 50, 75, 100];
   const n = axes.length;
 
@@ -100,8 +100,11 @@ function SignatureRadar({ axes, size = 240 }: { axes: RadarAxis[]; size?: number
   const dataPoints = axes.map((a, i) => getPoint(i, a.score));
   const polygonStr = dataPoints.map(p => `${p.x},${p.y}`).join(" ");
 
+  const scoreColor = (s: number) =>
+    s >= 75 ? "hsl(var(--success))" : s >= 50 ? "hsl(var(--warning))" : "hsl(var(--destructive))";
+
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-[200px] sm:max-w-[240px] mx-auto select-none">
+    <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-[280px] sm:max-w-[320px] mx-auto select-none">
       <defs>
         <radialGradient id="radar-glow" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.08" />
@@ -110,96 +113,119 @@ function SignatureRadar({ axes, size = 240 }: { axes: RadarAxis[]; size?: number
       </defs>
 
       {/* Background glow */}
-      <circle cx={cx} cy={cy} r={r * 1.1} fill="url(#radar-glow)" />
+      <circle cx={cx} cy={cy} r={r * 1.15} fill="url(#radar-glow)" />
 
-      {/* Grid levels */}
+      {/* Grid levels with labels */}
       {levels.map(level => {
         const points = Array.from({ length: n }, (_, i) => {
           const p = getPoint(i, level);
           return `${p.x},${p.y}`;
         }).join(" ");
         return (
-          <polygon
-            key={level}
-            points={points}
-            fill="none"
-            stroke="hsl(var(--border))"
-            strokeWidth={level === 100 ? 0.8 : 0.4}
-            opacity={0.35}
-          />
+          <g key={level}>
+            <polygon
+              points={points}
+              fill="none"
+              stroke="hsl(var(--border))"
+              strokeWidth={level === 100 ? 1 : level === 75 ? 0.7 : 0.3}
+              opacity={level === 75 ? 0.5 : 0.3}
+              strokeDasharray={level === 75 ? "3,2" : "none"}
+            />
+            {/* Level label on first axis */}
+            <text
+              x={getPoint(0, level).x + 3}
+              y={getPoint(0, level).y - 3}
+              fontSize={7}
+              className="fill-muted-foreground"
+              opacity={0.4}
+            >
+              {level}
+            </text>
+          </g>
         );
       })}
 
       {/* Optimal zone (green) */}
       <path
         d={optimalPath}
-        fill="hsl(var(--success) / 0.06)"
+        fill="hsl(var(--success) / 0.08)"
         fillRule="evenodd"
-        stroke="hsl(var(--success) / 0.15)"
-        strokeWidth={0.5}
+        stroke="hsl(var(--success) / 0.2)"
+        strokeWidth={0.7}
       />
 
       {/* Axis lines */}
       {axes.map((_, i) => {
-        const p = getPoint(i, 100);
+        const p = getPoint(i, 105);
         return (
           <line
             key={`axis-${i}`}
             x1={cx} y1={cy} x2={p.x} y2={p.y}
             stroke="hsl(var(--border))"
-            strokeWidth={0.4}
-            opacity={0.25}
+            strokeWidth={0.5}
+            opacity={0.3}
           />
         );
       })}
 
-      {/* Data polygon — filled */}
+      {/* Data polygon — filled with gradient effect */}
       <polygon
         points={polygonStr}
-        fill="hsl(var(--primary) / 0.12)"
+        fill="hsl(var(--primary) / 0.15)"
         stroke="hsl(var(--primary))"
-        strokeWidth={2}
+        strokeWidth={2.5}
         strokeLinejoin="round"
       />
 
-      {/* Data points */}
+      {/* Data points with colored halos */}
       {dataPoints.map((p, i) => (
         <g key={`dot-${i}`}>
-          <circle cx={p.x} cy={p.y} r={5} fill="hsl(var(--primary) / 0.2)" />
-          <circle cx={p.x} cy={p.y} r={3} fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth={1.5} />
+          <circle cx={p.x} cy={p.y} r={8} fill={`${scoreColor(axes[i].score)}`.replace(")", " / 0.12)")} />
+          <circle cx={p.x} cy={p.y} r={4.5} fill={scoreColor(axes[i].score)} stroke="hsl(var(--background))" strokeWidth={2} />
         </g>
       ))}
 
-      {/* Labels with scores */}
+      {/* Labels with emoji, name, score and value */}
       {axes.map((axis, i) => {
-        const labelP = getPoint(i, 130);
+        const labelP = getPoint(i, 135);
+        const pedagogy = AXIS_PEDAGOGY[axis.key];
+        const emoji = axis.key === "aerobic" ? "⚡" : axis.key === "vlamax" ? "🔬" : axis.key === "fatmax" ? "🔥" : axis.key === "durability" ? "🛡️" : "🎯";
+        
         return (
           <g key={`label-${i}`}>
+            {/* Emoji */}
             <text
               x={labelP.x}
-              y={labelP.y - 6}
+              y={labelP.y - 14}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fontSize={13}
+            >
+              {emoji}
+            </text>
+            {/* Axis name */}
+            <text
+              x={labelP.x}
+              y={labelP.y}
               textAnchor="middle"
               dominantBaseline="middle"
               className="fill-foreground"
               fontSize={10}
-              fontWeight={600}
+              fontWeight={700}
             >
               {axis.shortLabel}
             </text>
+            {/* Score */}
             <text
               x={labelP.x}
-              y={labelP.y + 7}
+              y={labelP.y + 13}
               textAnchor="middle"
               dominantBaseline="middle"
-              className={cn(
-                axis.score >= 75 ? "fill-[hsl(var(--success))]" : 
-                axis.score >= 50 ? "fill-[hsl(var(--warning))]" : 
-                "fill-[hsl(var(--destructive))]"
-              )}
-              fontSize={10}
-              fontWeight={700}
+              fill={scoreColor(axis.score)}
+              fontSize={12}
+              fontWeight={800}
             >
-              {axis.score}
+              {axis.score}/100
             </text>
           </g>
         );
@@ -442,12 +468,15 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
               <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
                 Niveau 1 — Profil physiologique
               </span>
+              <p className="text-[10px] text-muted-foreground mt-0.5 mb-2 italic">
+                Le radar visualise tes 5 capacités clés. La zone verte = zone optimale (75-100). Plus ta surface est grande, plus tu es prêt.
+              </p>
               <div className="mt-1">
-                <SignatureRadar axes={compass.radarAxes} size={240} />
+                <SignatureRadar axes={compass.radarAxes} size={320} />
               </div>
               
               {/* Completeness bar */}
-              <div className="flex items-center gap-2 mt-1 px-2">
+              <div className="flex items-center gap-2 mt-2 px-2">
                 <span className="text-[9px] text-muted-foreground/50 shrink-0">
                   Données : {compass.meta.dataCompleteness}%
                 </span>
@@ -459,23 +488,46 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                 </div>
               </div>
 
+              {/* Légende couleurs */}
+              <div className="flex items-center gap-4 mt-2 px-2">
+                <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--success))]" /> &ge; 75 Optimal
+                </span>
+                <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--warning))]" /> 50-74 Correct
+                </span>
+                <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--destructive))]" /> &lt; 50 À travailler
+                </span>
+              </div>
+
               {/* Légende pédagogique des axes */}
               <div className="mt-3 space-y-1.5 px-1">
                 {compass.radarAxes.map((axis) => {
                   const explanation = AXIS_PEDAGOGY[axis.key] || { short: axis.shortLabel, detail: "" };
+                  const emoji = axis.key === "aerobic" ? "⚡" : axis.key === "vlamax" ? "🔬" : axis.key === "fatmax" ? "🔥" : axis.key === "durability" ? "🛡️" : "🎯";
+                  const statusLabel = axis.score >= 75 ? "Optimal" : axis.score >= 50 ? "Correct" : "Prioritaire";
                   return (
-                    <div key={axis.key} className="flex items-start gap-2 p-2 rounded-lg bg-muted/30 border border-border/30">
-                      <span className={cn(
-                        "text-[10px] font-bold mt-0.5 shrink-0 w-5 h-5 rounded-full flex items-center justify-center",
-                        axis.score >= 75 ? "bg-[hsl(var(--success)/0.15)] text-[hsl(var(--success))]" :
-                        axis.score >= 50 ? "bg-[hsl(var(--warning)/0.15)] text-[hsl(var(--warning))]" :
-                        "bg-[hsl(var(--destructive)/0.15)] text-[hsl(var(--destructive))]"
-                      )}>
-                        {axis.score}
-                      </span>
-                      <div className="min-w-0">
-                        <p className="text-[11px] font-semibold">{explanation.short}</p>
-                        <p className="text-[10px] text-muted-foreground leading-relaxed">{explanation.detail}</p>
+                    <div key={axis.key} className={cn(
+                      "flex items-start gap-2.5 p-2.5 rounded-lg border",
+                      axis.score >= 75 ? "bg-[hsl(var(--success)/0.05)] border-[hsl(var(--success)/0.2)]" :
+                      axis.score >= 50 ? "bg-[hsl(var(--warning)/0.05)] border-[hsl(var(--warning)/0.2)]" :
+                      "bg-[hsl(var(--destructive)/0.05)] border-[hsl(var(--destructive)/0.2)]"
+                    )}>
+                      <span className="text-base mt-0.5">{emoji}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-bold">{explanation.short}</p>
+                          <Badge variant="outline" className={cn(
+                            "text-[9px] h-4 px-1.5",
+                            axis.score >= 75 ? "border-[hsl(var(--success)/0.4)] text-[hsl(var(--success))]" :
+                            axis.score >= 50 ? "border-[hsl(var(--warning)/0.4)] text-[hsl(var(--warning))]" :
+                            "border-[hsl(var(--destructive)/0.4)] text-[hsl(var(--destructive))]"
+                          )}>
+                            {axis.score}/100 — {statusLabel}
+                          </Badge>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">{explanation.detail}</p>
                       </div>
                     </div>
                   );
