@@ -38,7 +38,7 @@ import {
   getTargetsForAmbition,
   getVmaTargetByAmbition,
 } from "@/lib/physiologicalTargets";
-import { getVo2maxTarget } from "@/lib/v2/unifiedLimiterDetection";
+import { getVo2maxTarget, getPerformanceAgeFactor, getTTEAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
 
 export const COACHING_COMPASS_VERSION = "1.0.0";
