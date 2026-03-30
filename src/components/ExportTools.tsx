@@ -3214,7 +3214,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       <div class="tocRow"><a href="#aai">11. Ajustement par l'Âge (AAI)</a></div>
       <div class="tocRow"><a href="#methodology">12. Méthodologies d'Entraînement</a></div>
       <div class="tocRow"><a href="#twoforcoaching">13. Analyse Two For Coaching Lab™</a></div>
-      <div class="tocRow"><a href="#wahoo">14. Suggestions Wahoo SYSTM</a></div>
+      
       <div class="tocRow"><a href="#template-recommendation">15. Template Recommandé</a></div>
       <div class="tocRow"><a href="#zones">16. Zones d'entraînement</a></div>
       <div class="tocRow"><a href="#comprendre">17. Comprendre mes scores</a></div>
@@ -5168,77 +5168,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     </section>
   `;
 
-  // =============================================
-  // E.bis SUGGESTIONS WAHOO SYSTM
-  // =============================================
-  const { wahooSuggestions } = payload;
-  
-  const wahooHTML = (options.includeWahooSuggestions && wahooSuggestions.hasRecommendations) ? `
-    <section id="wahoo" class="section pagebreakAvoid">
-      <h2>D.bis Suggestions Wahoo SYSTM</h2>
-      
-      <div class="card cardHighlight">
-        <h3>⚡ Analyse du profil physiologique</h3>
-        <p class="muted">${htmlEscape(wahooSuggestions.diagnosticSummary)}</p>
-      </div>
-      
-      <div class="card mt">
-        <h3>🎯 Séances recommandées (${wahooSuggestions.suggestions.length})</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Séance Wahoo SYSTM</th>
-              <th>Axe ciblé</th>
-              <th>Risque</th>
-              <th>Pourquoi cette séance</th>
-              <th>Effets attendus</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${wahooSuggestions.suggestions.map(s => {
-              const axisLabel = s.targetAxis === "VLAMAX" ? "↓ VLamax" 
-                : s.targetAxis === "TTE" ? "↑ TTE" 
-                : s.targetAxis === "ENDURANCE" ? "↑ Endurance" 
-                : s.targetAxis === "FRESHNESS" ? "Récupération"
-                : s.targetAxis === "VO2" ? "↑ VO2max" : s.targetAxis;
-              const riskBadge = s.riskLevel === 0 ? 'badgeSuccess' 
-                : s.riskLevel === 1 ? 'badge' 
-                : s.riskLevel === 2 ? 'badgeWarning' : 'badgeError';
-              const riskLabel = s.riskLevel === 0 ? 'Minimal' 
-                : s.riskLevel === 1 ? 'Faible' 
-                : s.riskLevel === 2 ? 'Modéré' : 'Élevé';
-              return `
-                <tr>
-                  <td><b>${htmlEscape(s.wahoo_name)}</b><br><span class="muted" style="font-size:10px">Confiance: ${Math.round(s.confidence * 100)}%</span></td>
-                  <td><span class="badge tagPrimary">${axisLabel}</span></td>
-                  <td><span class="badge ${riskBadge}">${riskLabel}</span></td>
-                  <td class="muted" style="font-size:11px">${htmlEscape(s.why)}</td>
-                  <td class="muted" style="font-size:11px">${s.expected_effects.slice(0, 2).map(e => htmlEscape(e)).join('<br>')}</td>
-                </tr>
-              `;
-            }).join('')}
-          </tbody>
-        </table>
-      </div>
-      
-      ${wahooSuggestions.suggestions.some(s => s.cautions.length > 0) ? `
-        <div class="card mt">
-          <h3>⚠️ Précautions et contre-indications</h3>
-          <ul class="muted">
-            ${wahooSuggestions.suggestions
-              .filter(s => s.cautions.length > 0)
-              .flatMap(s => s.cautions.map(c => `<li><b>${htmlEscape(s.wahoo_name)}:</b> ${htmlEscape(c)}</li>`))
-              .join('')}
-          </ul>
-        </div>
-      ` : ''}
-      
-      <div class="alert alertInfo mt">
-        💡 Ces suggestions sont basées sur le profil physiologique de l'athlète et les objectifs déclarés.
-        Elles sont indicatives et doivent être adaptées par le coach selon le contexte individuel.
-      </div>
-    </section>
-  ` : '';
+  // Wahoo SYSTM section removed from export
+  const wahooHTML = '';
 
   // =============================================
   // D.ter SUGGESTION DE PLAN (Template chargé)
