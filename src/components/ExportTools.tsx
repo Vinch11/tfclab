@@ -258,6 +258,8 @@ interface ExportPayload {
       weeksToReach: number | null;
     }[];
   };
+  // ✅ NEW: Coaching Compass (5 axes)
+  coachingCompass: TFCLCoachingCompassResult;
 }
 
 // =============================================
