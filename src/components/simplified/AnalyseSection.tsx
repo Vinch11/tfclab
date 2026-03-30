@@ -2,14 +2,20 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  * SECTION ANALYSE — Dashboard Simplifié
  * 
- * Radar Coaching Compass + Liste des métriques avec explications pédagogiques
+ * Liste des métriques avec explications pédagogiques détaillées
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { BarChart3, TrendingUp, TrendingDown, Minus, Info } from "lucide-react";
+import { BarChart3, TrendingUp, TrendingDown, Minus, Info, ChevronDown } from "lucide-react";
+import { useState } from "react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import type { AthleteDiagnostic } from "@/engines/diagnostic";
 
 interface AnalyseSectionProps {
@@ -17,67 +23,181 @@ interface AnalyseSectionProps {
   className?: string;
 }
 
-// Explications pédagogiques par métrique
-const METRIC_EXPLANATIONS: Record<string, { label: string; unit: string; explanation: string; icon: string }> = {
+// Explications pédagogiques enrichies par métrique
+const METRIC_EXPLANATIONS: Record<string, {
+  label: string;
+  unit: string;
+  explanation: string;
+  whyItMatters: string;
+  howToImprove: string;
+  icon: string;
+}> = {
   vo2max: {
     label: "VO2max",
     unit: "ml/kg/min",
     explanation: "Capacité maximale de ton corps à utiliser l'oxygène. C'est le « moteur aérobie » — plus il est puissant, plus tu peux soutenir une intensité élevée longtemps.",
+    whyItMatters: "Le VO2max fixe le plafond de ta performance aérobie. Tous les seuils (FTP, VMA, allures marathon) en dépendent. Un VO2max élevé signifie un potentiel de performance plus grand.",
+    howToImprove: "Intervalles VO2max (3-5min à 90-105% PMA/VMA), séances de côtes longues, course en fractionné type 30/30 ou billat.",
     icon: "🫁",
   },
   ftp_kg: {
     label: "FTP/kg",
     unit: "W/kg",
-    explanation: "Puissance seuil fonctionnel rapportée au poids. Représente l'intensité maximale soutenable pendant ~1 heure. C'est l'indicateur clé en cyclisme.",
+    explanation: "Puissance seuil fonctionnel rapportée au poids. Représente l'intensité maximale soutenable pendant ~1 heure.",
+    whyItMatters: "C'est l'indicateur de référence en cyclisme pour comparer les athlètes. Il détermine directement ta vitesse en montée et ta capacité à maintenir un effort soutenu.",
+    howToImprove: "Sweet spot (88-93% FTP), intervalles au seuil (2x20min), travail de force spécifique, et optimisation du poids corporel.",
     icon: "⚡",
   },
   vma: {
     label: "VMA",
     unit: "km/h",
     explanation: "Vitesse Maximale Aérobie : l'allure à laquelle tu atteins ton VO2max. Référence fondamentale pour calibrer toutes tes allures d'entraînement en course à pied.",
+    whyItMatters: "La VMA est le pilier de la planification en course à pied. Tes allures marathon (~75-80% VMA), semi (~82-87% VMA) et 10km (~88-93% VMA) en découlent directement.",
+    howToImprove: "Fractionné court (200-400m à 100-110% VMA), séances longues à 90-95% VMA (1000m/1200m), côtes courtes explosives.",
     icon: "🏃",
   },
   vlamax: {
     label: "VLamax",
     unit: "mmol/L/s",
-    explanation: "Puissance glycolytique maximale. Mesure la vitesse de production de lactate. Pour l'endurance longue, une VLamax basse (< 0.4) est souhaitable — elle favorise l'utilisation des graisses.",
+    explanation: "Puissance glycolytique maximale. Mesure la vitesse de production de lactate. Pour l'endurance longue, une VLamax basse (< 0.4) est souhaitable.",
+    whyItMatters: "Une VLamax élevée signifie que tu consommes beaucoup de glycogène et produis du lactate rapidement. Sur longue distance, cela provoque un épuisement prématuré des réserves (« le mur »). Une VLamax basse favorise l'utilisation des graisses.",
+    howToImprove: "Volume Z2 élevé (sorties longues 3-5h), suppression des sprints courts, travail de tempo prolongé, stratégie « train low » (entraînement à jeun).",
     icon: "🔬",
   },
   tte: {
     label: "TTE",
     unit: "min",
-    explanation: "Time To Exhaustion : durée de maintien du FTP. Reflète l'endurance musculaire et métabolique. Plus le TTE est élevé, meilleure est ta capacité à résister à la fatigue sur longue distance.",
+    explanation: "Time To Exhaustion : durée de maintien du FTP. Reflète l'endurance musculaire et métabolique au seuil.",
+    whyItMatters: "Le TTE mesure combien de temps tu peux maintenir ton seuil fonctionnel. Un TTE > 50min est excellent pour les longues distances. C'est un indicateur de ta « résistance à la fatigue » au seuil.",
+    howToImprove: "Blocs au seuil progressifs (2x20 → 2x30 → 1x45min), intervalles longs à 95-100% FTP, augmentation progressive du volume au seuil.",
     icon: "⏱️",
   },
   economy: {
     label: "Économie",
     unit: "/100",
-    explanation: "Efficience du geste sportif. Combine cadence, élasticité musculaire et technique. Un score élevé signifie que tu dépenses moins d'énergie pour une même vitesse/puissance.",
+    explanation: "Efficience du geste sportif. Combine cadence, élasticité musculaire et technique. Un score élevé = moins d'énergie gaspillée.",
+    whyItMatters: "À VO2max et FTP égaux, un athlète plus économe ira plus vite car il consomme moins d'oxygène par km/watt. C'est souvent ce qui différencie les bons des excellents.",
+    howToImprove: "Gammes techniques (drills de foulée, travail de cadence), renforcement musculaire spécifique, plyométrie, travail de coordination.",
     icon: "🎯",
   },
   fatmax: {
     label: "FatMax",
     unit: "%FTP",
-    explanation: "Intensité à laquelle tu brûles le maximum de graisses. Plus ce seuil est élevé, mieux tu épargnes tes réserves de glycogène — crucial sur longue distance.",
+    explanation: "Intensité à laquelle tu brûles le maximum de graisses. Plus ce seuil est élevé, mieux tu épargnes tes réserves de glycogène.",
+    whyItMatters: "Sur Ironman ou ultra, les réserves de glycogène sont limitées (~2h d'effort). Un FatMax élevé signifie que tu peux maintenir une intensité correcte tout en brûlant majoritairement des graisses, retardant le « mur ».",
+    howToImprove: "Sorties longues Z2 à jeun, périodisation nutritionnelle (train low), réduction de la VLamax, augmentation progressive du volume aérobie.",
     icon: "🔥",
   },
   durability: {
     label: "Durabilité",
     unit: "/100",
-    explanation: "Résistance à la dégradation de la performance sur la durée. Combine la dérive cardiaque, le TTE et la stabilité de la puissance/allure.",
+    explanation: "Résistance à la dégradation de la performance sur la durée. Combine la dérive cardiaque, le TTE et la stabilité de puissance/allure.",
+    whyItMatters: "Un athlète « durable » perd moins de 5% de sa puissance après 3h. La durabilité détermine ta capacité à finir fort et à maintenir ton allure cible jusqu'à la ligne d'arrivée.",
+    howToImprove: "Sorties très longues (>3h), back-to-back weekends, courses d'entraînement longues, simulation de course à l'entraînement.",
     icon: "🛡️",
   },
 };
 
-function getGapStatus(gap: number): { label: string; color: string; icon: typeof TrendingUp } {
-  if (gap >= 5) return { label: "Au-dessus", color: "text-green-600 dark:text-green-400", icon: TrendingUp };
-  if (gap >= -5) return { label: "Dans la cible", color: "text-blue-600 dark:text-blue-400", icon: Minus };
-  if (gap >= -15) return { label: "À développer", color: "text-amber-600 dark:text-amber-400", icon: TrendingDown };
-  return { label: "Prioritaire", color: "text-red-600 dark:text-red-400", icon: TrendingDown };
+function getGapStatus(gap: number): { label: string; color: string; bgColor: string; icon: typeof TrendingUp } {
+  if (gap >= 5) return { label: "Au-dessus de la cible", color: "text-[hsl(var(--success))]", bgColor: "bg-[hsl(var(--success)/0.08)] border-[hsl(var(--success)/0.2)]", icon: TrendingUp };
+  if (gap >= -5) return { label: "Dans la cible", color: "text-blue-600 dark:text-blue-400", bgColor: "bg-blue-500/5 border-blue-500/20", icon: Minus };
+  if (gap >= -15) return { label: "À développer", color: "text-[hsl(var(--warning))]", bgColor: "bg-[hsl(var(--warning)/0.08)] border-[hsl(var(--warning)/0.2)]", icon: TrendingDown };
+  return { label: "Prioritaire", color: "text-[hsl(var(--destructive))]", bgColor: "bg-[hsl(var(--destructive)/0.08)] border-[hsl(var(--destructive)/0.2)]", icon: TrendingDown };
+}
+
+function MetricCard({ gap, metricInfo }: {
+  gap: { metric: string; gap: number; value?: number | null; target?: number | null };
+  metricInfo: typeof METRIC_EXPLANATIONS[string];
+}) {
+  const [open, setOpen] = useState(false);
+  const status = getGapStatus(gap.gap);
+  const StatusIcon = status.icon;
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <div className={cn("rounded-xl border transition-colors", status.bgColor)}>
+        <CollapsibleTrigger className="w-full text-left">
+          <div className="p-3">
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">{metricInfo.icon}</span>
+                <div>
+                  <span className="text-sm font-bold">{metricInfo.label}</span>
+                  {gap.value != null && (
+                    <span className="text-xs text-muted-foreground ml-2">
+                      {typeof gap.value === "number" ? gap.value.toFixed(1) : gap.value} {metricInfo.unit}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                  <StatusIcon className={cn("h-4 w-4", status.color)} />
+                  <span className={cn("text-sm font-bold", status.color)}>
+                    {gap.gap > 0 ? "+" : ""}{gap.gap.toFixed(0)}%
+                  </span>
+                </div>
+                <Badge variant="outline" className={cn("text-[9px] h-4 px-1.5", status.color)}>
+                  {status.label}
+                </Badge>
+                <ChevronDown className={cn(
+                  "h-4 w-4 text-muted-foreground transition-transform",
+                  open && "rotate-180"
+                )} />
+              </div>
+            </div>
+
+            {/* Barre de progression */}
+            <div className="h-2 rounded-full bg-muted/60 overflow-hidden">
+              <div
+                className={cn(
+                  "h-full rounded-full transition-all duration-500",
+                  gap.gap >= 0 ? "bg-[hsl(var(--success))]" : gap.gap >= -10 ? "bg-[hsl(var(--warning))]" : "bg-[hsl(var(--destructive))]"
+                )}
+                style={{ width: `${Math.min(100, Math.max(5, 50 + gap.gap))}%` }}
+              />
+            </div>
+          </div>
+        </CollapsibleTrigger>
+
+        <CollapsibleContent>
+          <div className="px-3 pb-3 space-y-2 border-t border-border/30 pt-2.5">
+            {/* Explication */}
+            <div className="p-2.5 rounded-lg bg-background/60">
+              <p className="text-[10px] font-bold text-foreground mb-0.5">💡 Qu'est-ce que c'est ?</p>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">{metricInfo.explanation}</p>
+            </div>
+
+            {/* Pourquoi c'est important */}
+            <div className="p-2.5 rounded-lg bg-background/60">
+              <p className="text-[10px] font-bold text-foreground mb-0.5">🎯 Pourquoi c'est important</p>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">{metricInfo.whyItMatters}</p>
+            </div>
+
+            {/* Comment améliorer */}
+            <div className="p-2.5 rounded-lg bg-primary/5">
+              <p className="text-[10px] font-bold text-foreground mb-0.5">🔧 Comment améliorer</p>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">{metricInfo.howToImprove}</p>
+            </div>
+
+            {/* Valeur vs cible */}
+            {gap.target != null && gap.value != null && (
+              <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/30 text-xs">
+                <span className="text-muted-foreground">Actuel : <strong className="text-foreground">{typeof gap.value === "number" ? gap.value.toFixed(1) : gap.value}</strong></span>
+                <span className="text-muted-foreground/40">→</span>
+                <span className="text-muted-foreground">Cible : <strong className="text-foreground">{typeof gap.target === "number" ? gap.target.toFixed(1) : gap.target}</strong></span>
+                <span className="text-muted-foreground">{metricInfo.unit}</span>
+              </div>
+            )}
+          </div>
+        </CollapsibleContent>
+      </div>
+    </Collapsible>
+  );
 }
 
 export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
-  const { limiter, effectifs, synthesis } = diagnostic;
+  const { limiter, synthesis } = diagnostic;
   const gapAnalysis = limiter.gapAnalysis;
 
   return (
@@ -90,7 +210,7 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
           <div className="flex-1">
             <CardTitle className="text-lg">Analyse Physiologique</CardTitle>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Évaluation de tes capacités par rapport à tes objectifs
+              Évaluation détaillée de tes capacités — clique sur une métrique pour en savoir plus
             </p>
           </div>
           <Badge variant="outline" className="text-xs">
@@ -101,7 +221,7 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
 
       <CardContent className="p-4 space-y-4">
         {/* Synthèse rapide */}
-        <div className="p-3 rounded-lg bg-muted/50 border">
+        <div className="p-3 rounded-xl bg-muted/50 border">
           <p className="text-sm font-medium">{synthesis.headline}</p>
           {synthesis.strengths.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2">
@@ -112,89 +232,69 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
               ))}
             </div>
           )}
+          {synthesis.weaknesses && synthesis.weaknesses.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-1.5">
+              {synthesis.weaknesses.map((w, i) => (
+                <Badge key={i} variant="outline" className="text-[10px] border-[hsl(var(--destructive)/0.3)] text-[hsl(var(--destructive))]">
+                  ⚠️ {w}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Explication contextuelle */}
-        <div className="flex items-start gap-2 p-3 rounded-lg bg-primary/5 border border-primary/10">
+        <div className="flex items-start gap-2 p-3 rounded-xl bg-primary/5 border border-primary/10">
           <Info className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Chaque métrique est comparée à la <strong>cible idéale</strong> pour ton objectif ({diagnostic.objectif}) 
-            et ton niveau d'ambition ({diagnostic.ambition}). Les écarts négatifs indiquent les axes de progression prioritaires.
-          </p>
+          <div className="text-xs text-muted-foreground leading-relaxed">
+            <p>
+              Chaque métrique est comparée à la <strong>cible idéale</strong> pour ton objectif (<strong>{diagnostic.objectif}</strong>) 
+              et ton niveau d'ambition (<strong>{diagnostic.ambition}</strong>).
+            </p>
+            <p className="mt-1">
+              📊 Un écart <strong className="text-[hsl(var(--success))]">positif</strong> = au-dessus de la cible. 
+              Un écart <strong className="text-[hsl(var(--destructive))]">négatif</strong> = axe de progression. 
+              Clique sur chaque métrique pour voir les détails et conseils.
+            </p>
+          </div>
         </div>
 
-        {/* Liste des métriques avec gaps */}
-        <div className="space-y-2">
-          {gapAnalysis.map((gap) => {
-            const metricInfo = METRIC_EXPLANATIONS[gap.metric] || {
-              label: gap.metric,
-              unit: "",
-              explanation: "",
-              icon: "📊",
-            };
-            const status = getGapStatus(gap.gap);
-            const StatusIcon = status.icon;
+        {/* Liste des métriques avec gaps — triées par priorité */}
+        <div className="space-y-2.5">
+          {gapAnalysis
+            .sort((a, b) => a.gap - b.gap) // Prioritaires en premier
+            .map((gap) => {
+              const metricInfo = METRIC_EXPLANATIONS[gap.metric] || {
+                label: gap.metric,
+                unit: "",
+                explanation: "Métrique physiologique contribuant à ta performance.",
+                whyItMatters: "Cette métrique influence directement ta capacité à atteindre ton objectif.",
+                howToImprove: "Consulte ton coach pour des recommandations spécifiques.",
+                icon: "📊",
+              };
 
-            return (
-              <div
-                key={gap.metric}
-                className="p-3 rounded-lg border bg-card hover:bg-accent/5 transition-colors"
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">{metricInfo.icon}</span>
-                    <span className="text-sm font-semibold">{metricInfo.label}</span>
-                    {gap.value != null && (
-                      <span className="text-xs text-muted-foreground">
-                        {typeof gap.value === "number" ? gap.value.toFixed(1) : gap.value} {metricInfo.unit}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <StatusIcon className={cn("h-3.5 w-3.5", status.color)} />
-                    <span className={cn("text-xs font-medium", status.color)}>
-                      {gap.gap > 0 ? "+" : ""}{gap.gap.toFixed(0)}%
-                    </span>
-                  </div>
-                </div>
-
-                {/* Barre de progression visuelle */}
-                <div className="h-1.5 rounded-full bg-muted overflow-hidden mb-2">
-                  <div
-                    className={cn(
-                      "h-full rounded-full transition-all",
-                      gap.gap >= 0 ? "bg-green-500" : gap.gap >= -10 ? "bg-amber-500" : "bg-red-500"
-                    )}
-                    style={{ width: `${Math.min(100, Math.max(5, 50 + gap.gap))}%` }}
-                  />
-                </div>
-
-                {/* Explication pédagogique */}
-                {metricInfo.explanation && (
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    {metricInfo.explanation}
-                  </p>
-                )}
-              </div>
-            );
-          })}
+              return (
+                <MetricCard key={gap.metric} gap={gap} metricInfo={metricInfo} />
+              );
+            })}
         </div>
 
         {/* Alertes */}
         {synthesis.alerts.length > 0 && (
           <div className="space-y-1.5">
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">⚡ Alertes</p>
             {synthesis.alerts.map((alert, i) => (
               <div
                 key={i}
                 className={cn(
-                  "flex items-start gap-2 p-2 rounded-lg text-xs",
-                  alert.severity === "critical" && "bg-destructive/10 text-destructive",
-                  alert.severity === "warning" && "bg-amber-500/10 text-amber-700 dark:text-amber-400",
-                  alert.severity === "info" && "bg-blue-500/10 text-blue-700 dark:text-blue-400"
+                  "flex items-start gap-2 p-2.5 rounded-xl text-xs",
+                  alert.severity === "critical" && "bg-destructive/10 text-destructive border border-destructive/20",
+                  alert.severity === "warning" && "bg-[hsl(var(--warning)/0.1)] text-[hsl(var(--warning))] border border-[hsl(var(--warning)/0.2)]",
+                  alert.severity === "info" && "bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20"
                 )}
               >
-                <span>{alert.severity === "critical" ? "🚨" : alert.severity === "warning" ? "⚠️" : "ℹ️"}</span>
-                <span>{alert.message}</span>
+                <span className="text-sm">{alert.severity === "critical" ? "🚨" : alert.severity === "warning" ? "⚠️" : "ℹ️"}</span>
+                <span className="leading-relaxed">{alert.message}</span>
               </div>
             ))}
           </div>
