@@ -79,13 +79,16 @@ const ANTHROPO_FIELDS: RefFieldConfig[] = [
   { key: "fatPct", label: "Masse grasse", unit: "%", placeholder: "12", step: "0.1", min: 3, max: 50, profileKey: "fatPct" },
 ];
 
-const PHYSIO_FIELDS: RefFieldConfig[] = [
+const PHYSIO_FIELDS_ALL: RefFieldConfig[] = [
   { key: "fcMax", label: "FCmax", unit: "bpm", placeholder: "190", min: 100, max: 250, profileKey: "fcMax" },
   { key: "vma", label: "VMA", unit: "km/h", placeholder: "18.5", step: "0.1", min: 8, max: 30, profileKey: "vma" },
   { key: "ftp", label: "FTP", unit: "W", placeholder: "280", min: 50, max: 500, profileKey: "ftp" },
   { key: "css", label: "CSS", unit: "s/100m", placeholder: "95", min: 50, max: 200, profileKey: "css" },
   { key: "vo2max", label: "VO₂max", unit: "ml/kg/min", placeholder: "55", step: "0.1", min: 20, max: 100, profileKey: "vo2max" },
 ];
+
+// Champs masqués en mode running (pas pertinents pour un coureur)
+const RUNNING_HIDDEN_PHYSIO_KEYS = ["ftp", "css"];
 
 export function AthleteRefsPanel({ 
   athlete, 
