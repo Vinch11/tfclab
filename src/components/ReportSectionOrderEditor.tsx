@@ -69,7 +69,7 @@ export const SECTION_LABELS: Record<keyof ReportSections, string> = {
   ambitionLegend: "Légende des Cibles",
   methodology: "Méthodologies Entraînement",
   twoForCoaching: "Analyse Two For Coaching Lab™",
-  wahoo: "Suggestions Wahoo",
+  wahoo: "⛔ Wahoo (supprimé)",
   planSuggestion: "Suggestion de Plan",
   templateRecommendation: "Template Recommandé",
   zones: "Zones d'entraînement",
