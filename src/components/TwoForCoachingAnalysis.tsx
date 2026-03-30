@@ -61,7 +61,8 @@ export function TwoForCoachingAnalysis({
   vlamaxEffectif: vlamaxEffectifProp,
   tteEffectif: tteEffectifProp,
   readiness: readinessProp,
-  onGoToSnapshots
+  onGoToSnapshots,
+  unifiedLimiterResult
 }: TwoForCoachingAnalysisProps) {
   const snapshot = getDernierSnapshot(athlete) as any;
   const [inputs, setInputs] = useState<PotentielInputs>({
