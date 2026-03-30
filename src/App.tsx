@@ -51,6 +51,7 @@ export default function App() {
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <ScrollToTop />
             <AuthProvider>
               <Routes>
                 {/* Auth */}
