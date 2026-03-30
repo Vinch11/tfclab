@@ -501,12 +501,20 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                 </span>
               </div>
 
-              {/* Légende pédagogique des axes */}
+              {/* Légende pédagogique des axes avec comparatif Actuel vs Cible */}
               <div className="mt-3 space-y-1.5 px-1">
                 {compass.radarAxes.map((axis) => {
                   const explanation = AXIS_PEDAGOGY[axis.key] || { short: axis.shortLabel, detail: "" };
-                  const emoji = axis.key === "aerobic" ? "⚡" : axis.key === "vlamax" ? "🔬" : axis.key === "fatmax" ? "🔥" : axis.key === "durability" ? "🛡️" : "🎯";
+                  const emoji = axis.key === "aerobic" || axis.key === "ftpkg" ? "⚡" : axis.key === "vma" ? "🏃" : axis.key === "vo2max" ? "🫁" : axis.key === "vlamax" ? "🔬" : axis.key === "fatmax" ? "🔥" : axis.key === "durability" ? "🛡️" : "🎯";
                   const statusLabel = axis.score >= 75 ? "Optimal" : axis.score >= 50 ? "Correct" : "Prioritaire";
+
+                  const hasValues = axis.value != null && axis.target != null;
+                  const isInverse = axis.key === "vlamax"; // lower is better
+                  const delta = hasValues ? (axis.value as number) - (axis.target as number) : null;
+                  const remainsToWork = delta !== null && ((isInverse && delta > 0) || (!isInverse && delta < 0));
+                  const displayDelta = isInverse && delta !== null ? -delta : delta;
+                  const formatVal = (v: number) => v < 10 ? v.toFixed(2) : v.toFixed(1);
+
                   return (
                     <div key={axis.key} className={cn(
                       "flex items-start gap-2.5 p-2.5 rounded-lg border",
@@ -527,6 +535,37 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                             {axis.score}/100 — {statusLabel}
                           </Badge>
                         </div>
+
+                        {/* Comparatif Actuel → Cible */}
+                        {hasValues && (
+                          <div className="flex items-center flex-wrap gap-1.5 mt-1.5">
+                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-background/60 border border-border/30 text-[10px]">
+                              <span className="text-muted-foreground">Actuel</span>
+                              <span className="font-bold text-foreground">{formatVal(axis.value as number)}</span>
+                              <span className="text-muted-foreground/60">{axis.unit}</span>
+                            </div>
+                            <span className="text-muted-foreground/40 text-[10px]">→</span>
+                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-background/60 border border-border/30 text-[10px]">
+                              <span className="text-muted-foreground">Cible</span>
+                              <span className="font-bold text-foreground">{formatVal(axis.target as number)}</span>
+                              <span className="text-muted-foreground/60">{axis.unit}</span>
+                            </div>
+                            {delta !== null && (
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  "text-[9px] px-1.5 h-4",
+                                  remainsToWork
+                                    ? "border-[hsl(var(--destructive)/0.4)] text-[hsl(var(--destructive))]"
+                                    : "border-[hsl(var(--success)/0.4)] text-[hsl(var(--success))]"
+                                )}
+                              >
+                                {remainsToWork ? `Δ ${Math.abs(displayDelta!).toFixed(axis.value! < 10 ? 2 : 1)} à combler` : `✓ +${Math.abs(displayDelta!).toFixed(axis.value! < 10 ? 2 : 1)} d'avance`}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+
                         <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">{explanation.detail}</p>
                       </div>
                     </div>
