@@ -190,25 +190,25 @@ function MetricCard({ gap, metricInfo }: {
                 }
                 return Math.max(5, Math.min(100, (val / tgt) * 100));
               })();
-              // Couleur dégradée rouge → orange → jaune → vert selon progression vers la cible
-              const getGaugeColor = (percent: number) => {
-                if (percent >= 100) return "hsl(142, 71%, 45%)";   // Vert vif (cible atteinte)
-                if (percent >= 90) return "hsl(120, 60%, 45%)";    // Vert
-                if (percent >= 80) return "hsl(90, 55%, 50%)";     // Vert-jaune
-                if (percent >= 70) return "hsl(60, 70%, 50%)";     // Jaune
-                if (percent >= 60) return "hsl(45, 80%, 50%)";     // Jaune-orange
-                if (percent >= 50) return "hsl(30, 85%, 50%)";     // Orange
-                if (percent >= 35) return "hsl(15, 85%, 50%)";     // Orange-rouge
-                return "hsl(0, 75%, 50%)";                          // Rouge
-              };
-              const barBg = isUnknown ? undefined : getGaugeColor(pct);
+              // Dégradé progressif : la jauge se remplit avec un gradient rouge → orange → jaune → vert
               return (
                 <div className="h-2.5 rounded-full bg-muted/60 overflow-hidden">
                   <div
-                    className={cn("h-full rounded-full transition-all duration-700", isUnknown && "bg-muted-foreground/30")}
-                    style={{ 
+                    className={cn(
+                      "h-full rounded-full transition-all duration-700",
+                      isUnknown && "bg-muted-foreground/30"
+                    )}
+                    style={{
                       width: `${pct}%`,
-                      ...(barBg ? { backgroundColor: barBg } : {}),
+                      ...(!isUnknown ? {
+                        background: pct >= 95
+                          ? "linear-gradient(90deg, hsl(0,75%,50%) 0%, hsl(15,85%,50%) 15%, hsl(30,85%,50%) 30%, hsl(45,80%,50%) 45%, hsl(60,70%,50%) 55%, hsl(90,55%,50%) 70%, hsl(120,60%,45%) 85%, hsl(142,71%,45%) 100%)"
+                          : pct >= 70
+                            ? "linear-gradient(90deg, hsl(0,75%,50%) 0%, hsl(20,85%,50%) 25%, hsl(40,80%,50%) 50%, hsl(60,70%,50%) 75%, hsl(80,55%,48%) 100%)"
+                            : pct >= 45
+                              ? "linear-gradient(90deg, hsl(0,75%,50%) 0%, hsl(15,85%,50%) 40%, hsl(35,80%,50%) 100%)"
+                              : "linear-gradient(90deg, hsl(0,75%,50%) 0%, hsl(10,80%,50%) 100%)"
+                      } : {}),
                     }}
                   />
                 </div>
