@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Zap, Ban, Info, ChevronRight, Sparkles, Calendar, ArrowRight } from "lucide-react";
+import { Zap, Ban, Info, ChevronRight, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { TrainingPrescription } from "@/engines/decision";
 import type { AthleteDiagnostic } from "@/engines/diagnostic";

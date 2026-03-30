@@ -301,6 +301,12 @@ export const LEVER_DEFINITIONS: Record<LorangLever, {
     description: "Remplacement séance clé par Z2 si HRV hors plage 2j consécutifs",
     isStaffOnly: false,
   },
+  threshold_work: {
+    label: "Travail au Seuil",
+    icon: "⚡",
+    description: "Intervalles et blocs au seuil lactique (FTP/allure seuil) pour améliorer la puissance soutenue",
+    isStaffOnly: false,
+  },
 };
 
 export const PROHIBITION_DEFINITIONS: Record<LorangProhibition, {
