@@ -488,13 +488,6 @@ export function AdvancedLayoutEditor() {
     { id: "dashboard", label: "Dashboard", icon: <BarChart3 className="w-4 h-4" /> },
     { id: "profil", label: "Profil", icon: <User className="w-4 h-4" /> },
     { id: "strategie", label: "Stratégie", icon: <Trophy className="w-4 h-4" /> },
-    { id: "running-profile", label: "Running Profile", icon: <TrendingUp className="w-4 h-4" /> },
-    { id: "evolution", label: "Évolution", icon: <TrendingUp className="w-4 h-4" /> },
-    { id: "tests", label: "Tests", icon: <FlaskConical className="w-4 h-4" /> },
-    { id: "seances", label: "Bibliothèque", icon: <Dumbbell className="w-4 h-4" /> },
-    { id: "templates", label: "Templates", icon: <BookOpen className="w-4 h-4" /> },
-    { id: "academy", label: "Academy", icon: <GraduationCap className="w-4 h-4" /> },
-    { id: "race-readiness", label: "Potentiel Physiologique", icon: <Trophy className="w-4 h-4" /> },
   ];
 
   const availableTabs = tabs.map(t => ({ id: t.id, label: t.label }));
