@@ -190,18 +190,26 @@ function MetricCard({ gap, metricInfo }: {
                 }
                 return Math.max(5, Math.min(100, (val / tgt) * 100));
               })();
-              // Couleur proportionnelle au % d'achèvement
-              const barColor = isUnknown ? "bg-muted-foreground/30"
-                : pct >= 95 ? "bg-[hsl(var(--success))]"
-                : pct >= 80 ? "bg-emerald-400"
-                : pct >= 65 ? "bg-amber-400"
-                : pct >= 50 ? "bg-orange-400"
-                : "bg-[hsl(var(--destructive))]";
+              // Couleur dégradée rouge → orange → jaune → vert selon progression vers la cible
+              const getGaugeColor = (percent: number) => {
+                if (percent >= 100) return "hsl(142, 71%, 45%)";   // Vert vif (cible atteinte)
+                if (percent >= 90) return "hsl(120, 60%, 45%)";    // Vert
+                if (percent >= 80) return "hsl(90, 55%, 50%)";     // Vert-jaune
+                if (percent >= 70) return "hsl(60, 70%, 50%)";     // Jaune
+                if (percent >= 60) return "hsl(45, 80%, 50%)";     // Jaune-orange
+                if (percent >= 50) return "hsl(30, 85%, 50%)";     // Orange
+                if (percent >= 35) return "hsl(15, 85%, 50%)";     // Orange-rouge
+                return "hsl(0, 75%, 50%)";                          // Rouge
+              };
+              const barBg = isUnknown ? undefined : getGaugeColor(pct);
               return (
-                <div className="h-2 rounded-full bg-muted/60 overflow-hidden">
+                <div className="h-2.5 rounded-full bg-muted/60 overflow-hidden">
                   <div
-                    className={cn("h-full rounded-full transition-all duration-500", barColor)}
-                    style={{ width: `${pct}%` }}
+                    className={cn("h-full rounded-full transition-all duration-700", isUnknown && "bg-muted-foreground/30")}
+                    style={{ 
+                      width: `${pct}%`,
+                      ...(barBg ? { backgroundColor: barBg } : {}),
+                    }}
                   />
                 </div>
               );
