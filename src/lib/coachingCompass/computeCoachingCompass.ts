@@ -600,6 +600,34 @@ function normalizeScore(value: number | null, min: number, max: number): number 
   return Math.max(0, Math.min(100, Math.round(((value - min) / (max - min)) * 100)));
 }
 
+/**
+ * Score relatif à la cible : atteindre la cible = 75/100, dépasser de 20%+ = 100.
+ * En dessous, le score est proportionnel (0 = 50% de la cible ou moins).
+ */
+function scoreRelativeToTarget(value: number | null, target: number | null): number {
+  if (value === null || !target || target === 0) return 0;
+  const ratio = value / target;
+  if (ratio >= 1.2) return 100;
+  if (ratio >= 1.0) return Math.round(75 + (ratio - 1.0) * 125); // 75-100
+  // Below target: scale 0-75
+  return Math.max(0, Math.round(ratio * 75));
+}
+
+/**
+ * Score inversé (VLamax) : atteindre la cible (ou en dessous) = 75-100.
+ * Au-dessus de la cible = score diminue.
+ */
+function scoreRelativeToTargetInverse(value: number, target: number): number {
+  if (target === 0) return 0;
+  // Lower is better. At target = 75, below target = 75-100, above = 0-75
+  if (value <= target * 0.8) return 100;
+  if (value <= target) return Math.round(75 + ((target - value) / (target * 0.2)) * 25);
+  // Above target (worse)
+  const excess = value / target; // >1
+  if (excess >= 2.0) return 0;
+  return Math.max(0, Math.round(75 * (2.0 - excess)));
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // FATIGUE WARNING — Depuis Diagnostic Engine
 // ═══════════════════════════════════════════════════════════════════════════════
