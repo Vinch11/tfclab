@@ -32,7 +32,7 @@ const METRIC_EXPLANATIONS: Record<string, {
   howToImprove: string;
   icon: string;
 }> = {
-  vo2max: {
+  "VO2max": {
     label: "VO2max",
     unit: "ml/kg/min",
     explanation: "Capacité maximale de ton corps à utiliser l'oxygène. C'est le « moteur aérobie » — plus il est puissant, plus tu peux soutenir une intensité élevée longtemps.",
@@ -40,7 +40,7 @@ const METRIC_EXPLANATIONS: Record<string, {
     howToImprove: "Intervalles VO2max (3-5min à 90-105% PMA/VMA), séances de côtes longues, course en fractionné type 30/30 ou billat.",
     icon: "🫁",
   },
-  ftp_kg: {
+  "FTP/kg": {
     label: "FTP/kg",
     unit: "W/kg",
     explanation: "Puissance seuil fonctionnel rapportée au poids. Représente l'intensité maximale soutenable pendant ~1 heure.",
@@ -48,7 +48,7 @@ const METRIC_EXPLANATIONS: Record<string, {
     howToImprove: "Sweet spot (88-93% FTP), intervalles au seuil (2x20min), travail de force spécifique, et optimisation du poids corporel.",
     icon: "⚡",
   },
-  vma: {
+  "VMA": {
     label: "VMA",
     unit: "km/h",
     explanation: "Vitesse Maximale Aérobie : l'allure à laquelle tu atteins ton VO2max. Référence fondamentale pour calibrer toutes tes allures d'entraînement en course à pied.",
@@ -56,7 +56,7 @@ const METRIC_EXPLANATIONS: Record<string, {
     howToImprove: "Fractionné court (200-400m à 100-110% VMA), séances longues à 90-95% VMA (1000m/1200m), côtes courtes explosives.",
     icon: "🏃",
   },
-  vlamax: {
+  "VLamax": {
     label: "VLamax",
     unit: "mmol/L/s",
     explanation: "Puissance glycolytique maximale. Mesure la vitesse de production de lactate. Pour l'endurance longue, une VLamax basse (< 0.4) est souhaitable.",
@@ -64,7 +64,7 @@ const METRIC_EXPLANATIONS: Record<string, {
     howToImprove: "Volume Z2 élevé (sorties longues 3-5h), suppression des sprints courts, travail de tempo prolongé, stratégie « train low » (entraînement à jeun).",
     icon: "🔬",
   },
-  tte: {
+  "TTE": {
     label: "TTE",
     unit: "min",
     explanation: "Time To Exhaustion : durée de maintien du FTP. Reflète l'endurance musculaire et métabolique au seuil.",
@@ -72,7 +72,7 @@ const METRIC_EXPLANATIONS: Record<string, {
     howToImprove: "Blocs au seuil progressifs (2x20 → 2x30 → 1x45min), intervalles longs à 95-100% FTP, augmentation progressive du volume au seuil.",
     icon: "⏱️",
   },
-  economy: {
+  "Economy": {
     label: "Économie",
     unit: "/100",
     explanation: "Efficience du geste sportif. Combine cadence, élasticité musculaire et technique. Un score élevé = moins d'énergie gaspillée.",
@@ -80,7 +80,7 @@ const METRIC_EXPLANATIONS: Record<string, {
     howToImprove: "Gammes techniques (drills de foulée, travail de cadence), renforcement musculaire spécifique, plyométrie, travail de coordination.",
     icon: "🎯",
   },
-  fatmax: {
+  "FatMax": {
     label: "FatMax",
     unit: "%FTP",
     explanation: "Intensité à laquelle tu brûles le maximum de graisses. Plus ce seuil est élevé, mieux tu épargnes tes réserves de glycogène.",
@@ -88,7 +88,7 @@ const METRIC_EXPLANATIONS: Record<string, {
     howToImprove: "Sorties longues Z2 à jeun, périodisation nutritionnelle (train low), réduction de la VLamax, augmentation progressive du volume aérobie.",
     icon: "🔥",
   },
-  durability: {
+  "Durability": {
     label: "Durabilité",
     unit: "/100",
     explanation: "Résistance à la dégradation de la performance sur la durée. Combine la dérive cardiaque, le TTE et la stabilité de puissance/allure.",
