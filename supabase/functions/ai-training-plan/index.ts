@@ -2784,18 +2784,21 @@ IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${exp
                 if (planConfig?.raceGoals && planConfig.raceGoals.length > 1) {
                   const relevantGoals = planConfig.raceGoals.filter((g: any) => {
                     if (!g.raceDate || !planConfig.planStartDate) return false;
-                    const startMs = new Date(planConfig.planStartDate).getTime();
-                    const raceMs = new Date(g.raceDate).getTime();
-                    const goalWeek = Math.ceil((raceMs - startMs) / (7 * 86400000));
+                    const startMs = parseIsoDateUtc(planConfig.planStartDate);
+                    const raceMs = parseIsoDateUtc(g.raceDate);
+                    if (startMs === undefined || raceMs === undefined) return false;
+                    const days = Math.round((raceMs - startMs) / (24 * 3600 * 1000));
+                    const goalWeek = days >= 0 ? Math.floor(days / 7) + 1 : 0;
                     // Include goals within ±3 weeks of this chunk's range (taper/recovery window)
                     return goalWeek >= chunk.start - 3 && goalWeek <= chunk.end + 3;
                   });
                   if (relevantGoals.length > 0) {
                     multiObjChunkReminder = `\n\n🎯 RAPPEL MULTI-OBJECTIFS pour ce bloc :`;
                     relevantGoals.forEach((g: any) => {
-                      const startMs = new Date(planConfig.planStartDate).getTime();
-                      const raceMs = new Date(g.raceDate).getTime();
-                      const goalWeek = Math.ceil((raceMs - startMs) / (7 * 86400000));
+                      const startMs = parseIsoDateUtc(planConfig.planStartDate);
+                      const raceMs = parseIsoDateUtc(g.raceDate);
+                      const days = (startMs !== undefined && raceMs !== undefined) ? Math.round((raceMs - startMs) / (24 * 3600 * 1000)) : 0;
+                      const goalWeek = days >= 0 ? Math.floor(days / 7) + 1 : 0;
                       const prio = g.priority === "A" ? "🅰️" : g.priority === "B" ? "🅱️" : "🆎";
                       multiObjChunkReminder += `\n  ${prio} ${g.objective || g.raceName || "Course"} — Semaine ${goalWeek} (${g.raceDate})`;
                       if (g.priority !== "A" && goalWeek >= chunk.start && goalWeek <= chunk.end) {
