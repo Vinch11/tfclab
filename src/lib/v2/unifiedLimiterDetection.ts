@@ -313,20 +313,21 @@ const VO2MAX_TARGETS: Record<string, Record<string, number>> = {
 
 /**
  * Calcule le facteur d'ajustement VO2max par âge
- * Basé sur le déclin physiologique naturel (~7-10% par décennie après 30 ans)
+ * Basé sur Hawkins & Wiswell 2003, Tanaka & Seals 2008 :
+ * déclin ~5-7% par décennie chez les athlètes entraînés Masters
  * 
  * < 30 ans : 1.00 (référence)
- * 30-39 ans : 0.95 (−5%)
- * 40-49 ans : 0.88 (−12%)
- * 50-59 ans : 0.80 (−20%)
- * ≥ 60 ans : 0.72 (−28%)
+ * 30-39 ans : 0.96 (−4%)
+ * 40-49 ans : 0.91 (−9%)
+ * 50-59 ans : 0.85 (−15%)
+ * ≥ 60 ans : 0.78 (−22%)
  */
 export function getVo2maxAgeFactor(age: number | null): number {
   if (age === null || age < 30) return 1.0;
-  if (age < 40) return 0.95;
-  if (age < 50) return 0.88;
-  if (age < 60) return 0.80;
-  return 0.72;
+  if (age < 40) return 0.96;
+  if (age < 50) return 0.91;
+  if (age < 60) return 0.85;
+  return 0.78;
 }
 
 /**
