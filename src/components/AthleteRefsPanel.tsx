@@ -512,7 +512,7 @@ export function AthleteRefsPanel({
               variant="full"
             />
             <p className="text-xs text-muted-foreground">
-              L'âge impacte les cibles TTE, FTP/kg, le risque blessure et les recommandations nutritionnelles.
+              L'âge impacte les cibles TTE, {isRunningGoal ? "VMA" : "FTP/kg"}, le risque blessure et les recommandations nutritionnelles.
             </p>
           </div>
         )}

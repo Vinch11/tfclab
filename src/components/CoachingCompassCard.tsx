@@ -427,7 +427,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
             <Compass className="w-10 h-10 text-muted-foreground/30 mb-3" />
             <p className="text-sm font-medium text-muted-foreground">Données insuffisantes</p>
             <p className="text-xs text-muted-foreground/70 mt-1 max-w-xs">
-              Renseignez au moins FTP, poids et VLamax dans un snapshot pour activer le Compass.
+              Renseignez au moins VMA (ou FTP), poids et VLamax dans un snapshot pour activer le Compass.
             </p>
           </div>
         </CardContent>
