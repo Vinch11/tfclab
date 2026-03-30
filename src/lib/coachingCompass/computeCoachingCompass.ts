@@ -34,6 +34,12 @@ import type {
   RadarAxis,
 } from "./types";
 
+import {
+  getTargetsForAmbition,
+  getVmaTargetByAmbition,
+} from "@/lib/physiologicalTargets";
+import type { AmbitionLevel } from "@/types/ambitionLevel";
+
 export const COACHING_COMPASS_VERSION = "1.0.0";
 
 const COACHING_COMPASS_DISCLAIMER = 
