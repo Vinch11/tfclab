@@ -233,7 +233,7 @@ const LIMITER_MAP: Record<string, { type: LimiterType; icon: string }> = {
   // Unified Limiter types (Diagnostic Engine — source de vérité)
   aerobic_engine: { type: "aerobic_power", icon: "🫁" },
   glycolytic: { type: "glycolytic", icon: "⚡" },
-  specific_endurance: { type: "durability", icon: "⏱️" },
+  specific_endurance: { type: "metabolic_endurance", icon: "⏱️" }, // TTE = endurance métabolique, pas durabilité
   metabolic_efficiency: { type: "metabolic_endurance", icon: "🔥" },
   anaerobic_capacity: { type: "neuromuscular", icon: "💥" },
   neuromuscular: { type: "neuromuscular", icon: "🦵" },
@@ -247,7 +247,7 @@ const LIMITER_MAP: Record<string, { type: LimiterType; icon: string }> = {
   "Moteur Aérobie": { type: "aerobic_power", icon: "🫁" },
   "VLamax": { type: "glycolytic", icon: "⚡" },
   "Endurance Métabolique": { type: "metabolic_endurance", icon: "🔥" },
-  "TTE": { type: "durability", icon: "⏱️" },
+  "TTE": { type: "metabolic_endurance", icon: "⏱️" },
   "Durabilité": { type: "durability", icon: "💪" },
   "Neuromusculaire": { type: "neuromuscular", icon: "🦵" },
   "Économie": { type: "neuromuscular", icon: "🦶" },
@@ -442,12 +442,12 @@ const BLOCK_DURATION: Record<LimiterType, number> = {
 };
 
 const BLOCK_NAMES: Record<LimiterType, string> = {
-  aerobic_power: "VO₂max Development Block",
-  glycolytic: "Metabolic Endurance Block",
-  metabolic_endurance: "Long Endurance Block",
-  durability: "Durability Building Block",
-  neuromuscular: "Neuromuscular Power Block",
-  unknown: "General Fitness Block",
+  aerobic_power: "Semaine Développement VO₂max",
+  glycolytic: "Semaine Endurance Métabolique",
+  metabolic_endurance: "Semaine Endurance Longue",
+  durability: "Semaine Renforcement Durabilité",
+  neuromuscular: "Semaine Puissance Neuromusculaire",
+  unknown: "Semaine Générale",
 };
 
 function buildDecision(
@@ -465,8 +465,12 @@ function buildDecision(
     }
   }
 
+  // ✅ La décision est TOUJOURS dérivée du limiteur (cohérence Limiteur → Levier → Décision)
+  // Le Strategy Engine weekLabel est ignoré car il peut être désynchronisé du moteur unifié
+  const recommendedBlock = BLOCK_NAMES[limiter.type] ?? "Semaine Générale";
+
   return {
-    recommendedBlock: sr?.templateSuggestion?.weekLabel ?? BLOCK_NAMES[limiter.type] ?? "General Block",
+    recommendedBlock,
     durationWeeks: BLOCK_DURATION[limiter.type] ?? 4,
     primaryWorkouts: leverage.workoutExamples,
     physiologicalTargets: leverage.expectedAdaptations,
