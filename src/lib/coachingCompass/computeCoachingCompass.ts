@@ -520,16 +520,24 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
 
   // ── Récupérer les cibles réelles par objectif + ambition ──
   const targets = getTargetsForAmbition(objectif, ambition);
-  const vmaTarget = getVmaTargetByAmbition(objectif, ambition);
+  const vmaTargetBase = getVmaTargetByAmbition(objectif, ambition);
+
+  // ✅ Ajustement par âge — identique à detectUnifiedLimiter
+  const ageFactor = getPerformanceAgeFactor(input.athleteAge ?? null);
+  const tteAgeFactor = getTTEAgeFactor(input.athleteAge ?? null);
 
   // VO2max target ajustée par objectif, ambition ET âge (source unique de vérité)
   const vo2Target = getVo2maxTarget(objectif, ambition, input.athleteAge);
 
-  // Durability target par ambition
-  const durabilityTargets: Record<string, number> = {
+  // FTP/kg et VMA cibles ajustées par âge
+  const ftpKgTargetAdjusted = Math.round(targets.ftp_kg_min * ageFactor * 100) / 100;
+  const vmaTarget = vmaTargetBase ? Math.round(vmaTargetBase * ageFactor * 100) / 100 : null;
+
+  // Durability target par ambition, ajusté par âge
+  const durabilityTargetsMap: Record<string, number> = {
     finisher: 60, age_group: 70, competitor: 80, elite: 90,
   };
-  const durabilityTarget = durabilityTargets[ambition] || 70;
+  const durabilityTarget = Math.round((durabilityTargetsMap[ambition] || 70) * tteAgeFactor);
 
   // Economy target par ambition
   const economyTargets: Record<string, number> = {
