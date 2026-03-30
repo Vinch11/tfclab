@@ -356,19 +356,23 @@ function FatigueWarning({ warning }: { warning: NonNullable<TFCLCoachingCompassR
 
 function StaffMetricsGrid({ compass }: { compass: TFCLCoachingCompassResult }) {
   const profile = compass.profile;
+  const isRunning = compass.meta?.sportFocus === "run";
   const metrics = [
     { key: "VO₂max", m: profile.vo2max },
     { key: "VLamax", m: profile.vlamax },
-    { key: "FTP", m: profile.ftp },
-    { key: "FTP/kg", m: profile.ftpKg },
+    ...(!isRunning ? [
+      { key: "FTP", m: profile.ftp },
+      { key: "FTP/kg", m: profile.ftpKg },
+    ] : []),
+    { key: "VMA", m: profile.vma ?? { value: null, confidence: 0 } },
     { key: "TTE", m: profile.tte },
     { key: "FatMax", m: profile.fatmax },
     { key: "LT1", m: profile.lt1 },
     { key: "LT2", m: profile.lt2 },
-    { key: "W'", m: profile.wPrime },
+    ...(!isRunning ? [{ key: "W'", m: profile.wPrime }] : []),
     { key: "Éco.", m: profile.runningEconomy },
     { key: "Durabilité", m: profile.durability },
-  ].filter(r => r.m.value !== null);
+  ].filter(r => r.m?.value !== null);
 
   if (metrics.length === 0) return null;
 
