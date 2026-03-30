@@ -421,6 +421,29 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                   />
                 </div>
               </div>
+
+              {/* Légende pédagogique des axes */}
+              <div className="mt-3 space-y-1.5 px-1">
+                {compass.radarAxes.map((axis) => {
+                  const explanation = AXIS_PEDAGOGY[axis.key] || { short: axis.shortLabel, detail: "" };
+                  return (
+                    <div key={axis.key} className="flex items-start gap-2 p-2 rounded-lg bg-muted/30 border border-border/30">
+                      <span className={cn(
+                        "text-[10px] font-bold mt-0.5 shrink-0 w-5 h-5 rounded-full flex items-center justify-center",
+                        axis.score >= 75 ? "bg-[hsl(var(--success)/0.15)] text-[hsl(var(--success))]" :
+                        axis.score >= 50 ? "bg-[hsl(var(--warning)/0.15)] text-[hsl(var(--warning))]" :
+                        "bg-[hsl(var(--destructive)/0.15)] text-[hsl(var(--destructive))]"
+                      )}>
+                        {axis.score}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-semibold">{explanation.short}</p>
+                        <p className="text-[10px] text-muted-foreground leading-relaxed">{explanation.detail}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             <FlowConnector />
