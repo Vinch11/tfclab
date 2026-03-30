@@ -224,21 +224,30 @@ function makeMetric(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// LIMITEUR — Depuis Strategy Engine / Unified Limiter
+// LIMITEUR — Source unique : Unified Limiter (Diagnostic Engine)
+// Le Lorang Strategy Engine est un fallback, pas la source de vérité.
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const LIMITER_MAP: Record<string, { type: LimiterType; icon: string }> = {
+  // Unified Limiter types (Diagnostic Engine — source de vérité)
+  aerobic_engine: { type: "aerobic_power", icon: "🫁" },
+  glycolytic: { type: "glycolytic", icon: "⚡" },
+  specific_endurance: { type: "durability", icon: "⏱️" },
+  metabolic_efficiency: { type: "metabolic_endurance", icon: "🔥" },
+  anaerobic_capacity: { type: "neuromuscular", icon: "💥" },
+  neuromuscular: { type: "neuromuscular", icon: "🦵" },
+  none: { type: "unknown", icon: "✅" },
+  // Lorang Strategy types (fallback mapping)
   motor: { type: "aerobic_power", icon: "🫁" },
+  durability: { type: "durability", icon: "💪" },
+  metabolic: { type: "metabolic_endurance", icon: "🔥" },
+  // Label-based fallbacks
   aerobic_power: { type: "aerobic_power", icon: "🫁" },
   "Moteur Aérobie": { type: "aerobic_power", icon: "🫁" },
-  glycolytic: { type: "glycolytic", icon: "⚡" },
   "VLamax": { type: "glycolytic", icon: "⚡" },
-  metabolic: { type: "metabolic_endurance", icon: "🔥" },
   "Endurance Métabolique": { type: "metabolic_endurance", icon: "🔥" },
-  "TTE": { type: "durability", icon: "💪" },
-  durability: { type: "durability", icon: "💪" },
+  "TTE": { type: "durability", icon: "⏱️" },
   "Durabilité": { type: "durability", icon: "💪" },
-  neuromuscular: { type: "neuromuscular", icon: "🦵" },
   "Neuromusculaire": { type: "neuromuscular", icon: "🦵" },
   "Économie": { type: "neuromuscular", icon: "🦶" },
   "W' (kJ)": { type: "neuromuscular", icon: "💥" },
@@ -249,7 +258,30 @@ const LIMITER_MAP: Record<string, { type: LimiterType; icon: string }> = {
 };
 
 function buildLimiter(input: CoachingCompassInput): TFCLLimiter {
-  // Priorité 1 : Strategy Engine (Lorang)
+  // Priorité 1 : Unified Limiter (Diagnostic Engine — source de vérité)
+  // Garantit la cohérence avec les cartes Limiteurs et Leviers
+  if (input.limiterResult?.primaryLimiter && input.limiterResult.primaryLimiter !== "none") {
+    const lr = input.limiterResult;
+    const mapped = LIMITER_MAP[lr.primaryLimiter!] ?? { type: "unknown" as LimiterType, icon: "❓" };
+    const topGap = lr.gapAnalysis?.[0];
+    
+    // Enrichir la description depuis le Strategy Engine si disponible
+    const description = input.strategyResult?.limiterExplanation 
+      || `Limiteur principal identifié : ${lr.primaryLimiter}`;
+    const label = input.strategyResult?.limiterLabel || lr.primaryLimiter!;
+
+    return {
+      type: mapped.type,
+      impactScore: topGap?.weightedImpact ?? 0.3,
+      label,
+      description,
+      icon: mapped.icon,
+      metricsUsed: lr.gapAnalysis?.filter(g => g.weightedImpact > 0).map(g => g.metric) ?? [],
+      confidence: lr.confidence >= 70 ? "high" : lr.confidence >= 50 ? "moderate" : "low",
+    };
+  }
+
+  // Priorité 2 : Strategy Engine (Lorang) — fallback
   if (input.strategyResult) {
     const sr = input.strategyResult;
     const mapped = LIMITER_MAP[sr.primaryLimiter] ?? { type: "unknown" as LimiterType, icon: "❓" };
@@ -264,23 +296,6 @@ function buildLimiter(input: CoachingCompassInput): TFCLLimiter {
         ?.filter(g => g.weightedImpact > 0)
         ?.map(g => g.metric) ?? [],
       confidence: sr.confidence as "high" | "moderate" | "low",
-    };
-  }
-
-  // Priorité 2 : Unified Limiter
-  if (input.limiterResult?.primaryLimiter) {
-    const lr = input.limiterResult;
-    const mapped = LIMITER_MAP[lr.primaryLimiter!] ?? { type: "unknown" as LimiterType, icon: "❓" };
-    const topGap = lr.gapAnalysis?.[0];
-
-    return {
-      type: mapped.type,
-      impactScore: topGap?.weightedImpact ?? 0.3,
-      label: lr.primaryLimiter!,
-      description: `Limiteur principal identifié : ${lr.primaryLimiter}`,
-      icon: mapped.icon,
-      metricsUsed: lr.gapAnalysis?.filter(g => g.weightedImpact > 0).map(g => g.metric) ?? [],
-      confidence: lr.confidence >= 70 ? "high" : lr.confidence >= 50 ? "moderate" : "low",
     };
   }
 
