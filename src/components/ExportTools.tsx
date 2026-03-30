@@ -3479,27 +3479,63 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   const riskAlertClass = chargeScore.status === 'overload' ? 'alertError' : chargeScore.status === 'unknown' ? 'alertWarning' : 'alertInfo';
   
   
+  // ✅ Coaching Compass 5 axes (source unique de vérité)
+  const cc = payload.coachingCompass;
+  const axes = cc.radarAxes;
+  const nAxes = axes.length;
+  
+  // Construire le SVG pentagonal (5 axes)
+  const cx = 170, cy = 170, maxR = 100;
+  const angleOffset = -Math.PI / 2; // Start from top
+  
+  const getXY = (i: number, r: number) => {
+    const angle = angleOffset + (2 * Math.PI * i) / nAxes;
+    return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
+  };
+  
+  // Grilles concentriques (25%, 50%, 75%, 100%)
+  const grids = [25, 50, 75, 100].map(pct => {
+    const r = (pct / 100) * maxR;
+    const pts = Array.from({ length: nAxes }, (_, i) => getXY(i, r).join(",")).join(" ");
+    return `<polygon points="${pts}" fill="none" stroke="#cbd5e1" stroke-width="${pct === 100 ? 1.5 : 0.8}"/>`;
+  }).join("\n");
+  
+  // Lignes d'axes
+  const axisLines = Array.from({ length: nAxes }, (_, i) => {
+    const [x, y] = getXY(i, maxR);
+    return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#e2e8f0" stroke-width="1"/>`;
+  }).join("\n");
+  
+  // Polygone des scores
+  const scorePts = axes.map((a, i) => getXY(i, (a.score / 100) * maxR).join(",")).join(" ");
+  
+  // Points et labels
+  const axisElements = axes.map((a, i) => {
+    const [px, py] = getXY(i, (a.score / 100) * maxR);
+    const [lx, ly] = getXY(i, maxR + 30);
+    const anchor = lx < cx - 10 ? "end" : lx > cx + 10 ? "start" : "middle";
+    return `
+      <circle cx="${px}" cy="${py}" r="6" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+      <text x="${lx}" y="${ly - 5}" text-anchor="${anchor}" font-size="11" font-weight="700" fill="#1e40af">${a.icon} ${a.shortLabel}</text>
+      <text x="${lx}" y="${ly + 10}" text-anchor="${anchor}" font-size="13" font-weight="800" fill="#2563eb">${a.score}/100</text>
+    `;
+  }).join("\n");
+
+  const globalScore = Math.round(axes.reduce((s, a) => s + a.score, 0) / nAxes);
+  const globalColor = globalScore >= 75 ? "#16a34a" : globalScore >= 50 ? "#ca8a04" : "#dc2626";
+  const globalBadgeClass2 = globalScore >= 75 ? "badgeSuccess" : globalScore >= 50 ? "badgeWarning" : "badgeError";
+  
   const compassHTML = `
     <section id="compass" class="section pagebreak">
-      <h2>3. Metabolic Performance Compass™</h2>
+      <h2>3. TFCL Coaching Compass™ — 5 Axes</h2>
       
-      <!-- CARTE CRR -->
+      <!-- CRR -->
       <div class="card mb" style="border-left: 4px solid ${crrCardColor};">
         <h3>📊 Charge Récente de Référence (CRR)</h3>
         <div class="grid3">
-          <div>
-            <span class="muted">Valeur</span><br>
-            <span class="big">${crrValue}</span>
-            <span class="muted"> TSS/7j</span>
-          </div>
-          <div>
-            <span class="muted">Source</span><br>
-            <span class="tag ${crrSourceClass}">${crr.source}</span>
-          </div>
-          <div>
-            <span class="muted">Statut</span><br>
-            <span class="badge ${chargeStatusClass}">${chargeStatusLabel}</span>
-          </div>
+          <div><span class="muted">Valeur</span><br><span class="big">${crrValue}</span><span class="muted"> TSS/7j</span></div>
+          <div><span class="muted">Source</span><br><span class="tag ${crrSourceClass}">${crr.source}</span></div>
+          <div><span class="muted">Statut</span><br><span class="badge ${chargeStatusClass}">${chargeStatusLabel}</span></div>
         </div>
         <div class="muted mt" style="font-size:11px;">
           Cibles ${crrTargets.objectif}: Min ${crrTargets.chargeMinimale} | Optimal ${crrTargets.chargeOptimale} | Max ${crrTargets.chargeMaximale} TSS
@@ -3507,112 +3543,89 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         </div>
       </div>
       
-      <!-- COMPASS RADAR -->
+      <!-- RADAR 5 AXES -->
       <div class="card cardHighlight">
         <div style="text-align:center;margin-bottom:16px;">
-          <div style="font-size:16px;font-weight:700;">Metabolic Performance Compass™</div>
-          <div class="muted">4 Axes Officiels – Two For Coaching Lab</div>
+          <div style="font-size:16px;font-weight:700;">TFCL Coaching Compass™</div>
+          <div class="muted">5 Axes – PROFIL → LIMITEUR → LEVIER → DÉCISION</div>
         </div>
         
         <div style="display:flex;justify-content:center;margin:20px 0;">
           <svg width="340" height="340" viewBox="0 0 340 340" style="overflow:visible;background:#ffffff;">
             <rect x="0" y="0" width="340" height="340" fill="#ffffff"/>
-            <!-- Grilles de fond (diamants concentriques) -->
-            <polygon points="170,70 270,170 170,270 70,170" fill="none" stroke="#cbd5e1" stroke-width="1"/>
-            <polygon points="170,95 245,170 170,245 95,170" fill="none" stroke="#cbd5e1" stroke-width="1"/>
-            <polygon points="170,120 220,170 170,220 120,170" fill="none" stroke="#cbd5e1" stroke-width="1"/>
-            <polygon points="170,145 195,170 170,195 145,170" fill="none" stroke="#e2e8f0" stroke-width="1"/>
-            <!-- Axes -->
-            <line x1="170" y1="70" x2="170" y2="270" stroke="#eee" stroke-width="1"/>
-            <line x1="70" y1="170" x2="270" y2="170" stroke="#eee" stroke-width="1"/>
-            <!-- Polygone des scores (centre=170,170, rayon max=100) - scores normalisés -->
-            <polygon points="170,${170 - (cScores.capaciteAerobie.score / 100) * 100} ${170 + (cScores.toleranceEffort.score / 100) * 100},170 170,${170 + (cScores.profilMetabolique.score / 100) * 100} ${170 - (cScores.robustesse.score / 100) * 100},170" fill="rgba(37,99,235,0.25)" stroke="#2563eb" stroke-width="2.5"/>
-            <!-- Points sur chaque axe -->
-            <circle cx="170" cy="${170 - (cScores.capaciteAerobie.score / 100) * 100}" r="7" fill="#2563eb" stroke="#fff" stroke-width="2"/>
-            <circle cx="${170 + (cScores.toleranceEffort.score / 100) * 100}" cy="170" r="7" fill="#2563eb" stroke="#fff" stroke-width="2"/>
-            <circle cx="170" cy="${170 + (cScores.profilMetabolique.score / 100) * 100}" r="7" fill="#2563eb" stroke="#fff" stroke-width="2"/>
-            <circle cx="${170 - (cScores.robustesse.score / 100) * 100}" cy="170" r="7" fill="#2563eb" stroke="#fff" stroke-width="2"/>
-            <!-- Labels avec scores -->
-            <text x="170" y="45" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">⚡ Capacité Aérobie</text>
-            <text x="170" y="60" text-anchor="middle" font-size="14" font-weight="800" fill="#2563eb">${cScores.capaciteAerobie.score}/100</text>
-            <text x="295" y="165" text-anchor="start" font-size="12" font-weight="700" fill="#1e40af">💪 Tolérance</text>
-            <text x="295" y="180" text-anchor="start" font-size="14" font-weight="800" fill="#2563eb">${cScores.toleranceEffort.score}/100</text>
-            <text x="170" y="300" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">🧬 Profil Métab.</text>
-            <text x="170" y="315" text-anchor="middle" font-size="14" font-weight="800" fill="#2563eb">${cScores.profilMetabolique.score}/100</text>
-            <text x="45" y="165" text-anchor="end" font-size="12" font-weight="700" fill="#1e40af">🛡️ Robustesse</text>
-            <text x="45" y="180" text-anchor="end" font-size="14" font-weight="800" fill="#2563eb">${cScores.robustesse.score}/100</text>
+            ${grids}
+            ${axisLines}
+            <polygon points="${scorePts}" fill="rgba(37,99,235,0.2)" stroke="#2563eb" stroke-width="2.5"/>
+            ${axisElements}
           </svg>
         </div>
         
         <div style="text-align:center;margin-top:16px;">
-          <span class="badge ${globalBadgeClass}" style="font-size:16px;padding:10px 20px;">
-            Score Global: ${cScores.globalScore}/100 – ${cScores.globalLabel}
+          <span class="badge ${globalBadgeClass2}" style="font-size:16px;padding:10px 20px;">
+            Score Global: ${globalScore}/100
           </span>
-          <div class="muted mt" style="font-size:11px;">Complétude données: ${cScores.dataCompleteness}%</div>
+          <div class="muted mt" style="font-size:11px;">Complétude: ${cc.meta.dataCompleteness}%</div>
         </div>
       </div>
       
-      <!-- 4 AXES DÉTAILLÉS -->
+      <!-- 5 AXES DÉTAILLÉS -->
       <div class="card mt">
-        <h3>📐 Détail des 4 Axes (Formules Officielles)</h3>
-        <div class="grid2 mt">
-          <div class="card" style="background:#f8fafc;">
-            <h4>⚡ AXE 1 – Capacité Aérobie</h4>
-            <div class="kv">
-              <div class="k">Score</div><div class="v"><b>${cScores.capaciteAerobie.score}/100</b></div>
-              <div class="k">Formule</div><div class="v" style="font-size:10px;">${htmlEscape(cScores.capaciteAerobie.formula)}</div>
-              <div class="k">Source</div><div class="v">${cScores.capaciteAerobie.confidence >= 0.8 ? '🧪 Mesuré' : cScores.capaciteAerobie.confidence >= 0.6 ? '🏃 Terrain' : '📐 Estimé'}</div>
-            </div>
-            <p class="muted" style="font-size:11px;margin-top:8px;">${htmlEscape(cScores.capaciteAerobie.explanation)}</p>
-          </div>
-          <div class="card" style="background:#f8fafc;">
-            <h4>💪 AXE 2 – Tolérance à l'Effort</h4>
-            <div class="kv">
-              <div class="k">Score</div><div class="v"><b>${cScores.toleranceEffort.score}/100</b></div>
-              <div class="k">Formule</div><div class="v" style="font-size:10px;">${htmlEscape(cScores.toleranceEffort.formula)}</div>
-              <div class="k">Source</div><div class="v">${cScores.toleranceEffort.confidence >= 0.8 ? '🧪 Mesuré' : cScores.toleranceEffort.confidence >= 0.6 ? '🏃 Terrain' : '📐 Estimé'}</div>
-            </div>
-            <p class="muted" style="font-size:11px;margin-top:8px;">${htmlEscape(cScores.toleranceEffort.explanation)}</p>
-          </div>
-          <div class="card" style="background:#f8fafc;">
-            <h4>🧬 AXE 3 – Profil Métabolique</h4>
-            <div class="kv">
-              <div class="k">Score</div><div class="v"><b>${cScores.profilMetabolique.score}/100</b></div>
-              <div class="k">Formule</div><div class="v" style="font-size:10px;">${htmlEscape(cScores.profilMetabolique.formula)}</div>
-              <div class="k">Source</div><div class="v">${cScores.profilMetabolique.confidence >= 0.8 ? '🧪 Mesuré' : cScores.profilMetabolique.confidence >= 0.6 ? '🏃 Terrain' : '📐 Estimé'}</div>
-            </div>
-            <p class="muted" style="font-size:11px;margin-top:8px;">${htmlEscape(cScores.profilMetabolique.explanation)}</p>
-          </div>
-          <div class="card" style="background:#f8fafc;">
-            <h4>🛡️ AXE 4 – Robustesse</h4>
-            <div class="kv">
-              <div class="k">Score</div><div class="v"><b>${cScores.robustesse.score}/100</b></div>
-              <div class="k">Formule</div><div class="v" style="font-size:10px;">${htmlEscape(cScores.robustesse.formula)}</div>
-              <div class="k">Source</div><div class="v">${cScores.robustesse.confidence >= 0.8 ? '🧪 Mesuré' : cScores.robustesse.confidence >= 0.6 ? '🏃 Terrain' : '📐 Estimé'}</div>
-            </div>
-            <p class="muted" style="font-size:11px;margin-top:8px;">${htmlEscape(cScores.robustesse.explanation)}</p>
-          </div>
-        </div>
+        <h3>📐 Détail des 5 Axes</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Axe</th>
+              <th>Score</th>
+              <th>Actuel</th>
+              <th>Cible</th>
+              <th>Δ</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${axes.map(a => {
+              const delta = a.score >= 100 ? "✓" : `-${100 - a.score}%`;
+              const deltaColor = a.score >= 100 ? "#16a34a" : a.score >= 70 ? "#ca8a04" : "#dc2626";
+              const fmtVal = (v: number | null, u: string) => v === null ? "—" : v < 10 ? `${v.toFixed(2)} ${u}` : `${v.toFixed(1)} ${u}`;
+              return `<tr>
+                <td><b>${a.icon} ${htmlEscape(a.label)}</b></td>
+                <td><span class="badge" style="background:${a.score >= 75 ? '#dcfce7' : a.score >= 50 ? '#fef9c3' : '#fee2e2'};color:${a.score >= 75 ? '#16a34a' : a.score >= 50 ? '#a16207' : '#dc2626'};font-weight:700;">${a.score}/100</span></td>
+                <td>${fmtVal(a.value, a.unit)}</td>
+                <td>${a.target !== null ? fmtVal(a.target, a.unit) : "—"}</td>
+                <td style="font-weight:700;color:${deltaColor};">${delta}</td>
+              </tr>`;
+            }).join("")}
+          </tbody>
+        </table>
       </div>
-      
-      <!-- INTERPRÉTATION COACH -->
+
+      <!-- DÉCISION COACHING -->
       <div class="card mt" style="border-left: 4px solid #2563eb;">
-        <h3>🎓 Interprétation Coach Automatique</h3>
-        <div class="grid1 mt">
-          <div class="alert ${limitationAlertClass}">
-            <b>📍 Limitation principale:</b><br>
-            ${htmlEscape(coachInterpretation.limitation)}
+        <h3>🧭 Flux Décisionnel TFCL</h3>
+        <div class="grid3 mt">
+          <div class="alert alertWarning">
+            <b>${cc.limiter.icon} Limiteur</b><br>
+            <span style="font-size:14px;font-weight:700;">${htmlEscape(cc.limiter.label)}</span><br>
+            <span class="muted" style="font-size:11px;">${htmlEscape(cc.limiter.description)}</span>
           </div>
-          <div class="alert ${riskAlertClass}">
-            <b>⚠️ Risque identifié:</b><br>
-            ${htmlEscape(coachInterpretation.risk)}
+          <div class="alert alertInfo">
+            <b>${cc.leverage.icon} Levier</b><br>
+            <span style="font-size:14px;font-weight:700;">${htmlEscape(cc.leverage.label)}</span><br>
+            <span class="muted" style="font-size:11px;">${htmlEscape(cc.leverage.description)}</span>
           </div>
           <div class="alert alertSuccess">
-            <b>💡 Recommandation prioritaire:</b><br>
-            ${htmlEscape(coachInterpretation.recommendation)}
+            <b>📋 Décision</b><br>
+            <span style="font-size:14px;font-weight:700;">${htmlEscape(cc.decision.recommendedBlock)}</span><br>
+            <span class="muted" style="font-size:11px;">${cc.decision.durationWeeks} semaines</span>
           </div>
         </div>
-        ${cScores.mainStrength ? '<p class="muted mt">✓ Point fort: ' + htmlEscape(cScores.mainStrength) + '</p>' : ''}
+        <div class="muted mt" style="font-size:11px;">
+          <b>Justification coach :</b> ${htmlEscape(cc.decision.coachRationale)}
+        </div>
+        ${cc.decision.prohibitions.length > 0 ? `
+          <div class="alert alertError mt" style="font-size:11px;">
+            <b>🚫 Interdictions :</b> ${cc.decision.prohibitions.map(p => htmlEscape(p)).join(" • ")}
+          </div>
+        ` : ""}
       </div>
     </section>
   `;
