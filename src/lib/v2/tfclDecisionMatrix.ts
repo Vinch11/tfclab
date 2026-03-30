@@ -316,8 +316,6 @@ function normalizeObjective(obj: string): TFCLObjective {
 // NORMALISATION DES MÉTRIQUES
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// ✅ Utilise la source unique de vérité pour le facteur d'ajustement VO2max par âge
-import { getVo2maxAgeFactor } from "./unifiedLimiterDetection";
 
 function normalizeVO2max(
   value: number | null,
