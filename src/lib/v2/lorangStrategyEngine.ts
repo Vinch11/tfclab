@@ -799,10 +799,10 @@ function activateLevers(
     });
   }
   
-  // Limiter à 3 leviers max, triés par priorité
+  // Limiter à 4 leviers max, triés par priorité
   return levers
     .sort((a, b) => a.priority - b.priority)
-    .slice(0, 3);
+    .slice(0, 4);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
