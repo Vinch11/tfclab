@@ -38,6 +38,7 @@ import {
   getTargetsForAmbition,
   getVmaTargetByAmbition,
 } from "@/lib/physiologicalTargets";
+import { getVo2maxTarget } from "@/lib/v2/unifiedLimiterDetection";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
 
 export const COACHING_COMPASS_VERSION = "1.0.0";
@@ -490,12 +491,8 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
   const targets = getTargetsForAmbition(objectif, ambition);
   const vmaTarget = getVmaTargetByAmbition(objectif, ambition);
 
-  // VO2max target par ambition (même logique que ambitionThresholds)
-  const vo2Targets: Record<string, number> = {
-    finisher: 45, age_group: 52, competitor: 58, elite: 65,
-  };
-  const isLong = ["IM", "Ironman", "Marathon", "Ultra", "TrailLong"].includes(objectif);
-  const vo2Target = (vo2Targets[ambition] || 52) + (isLong ? 3 : 0);
+  // VO2max target ajustée par objectif, ambition ET âge (source unique de vérité)
+  const vo2Target = getVo2maxTarget(objectif, ambition, input.athleteAge);
 
   // Durability target par ambition
   const durabilityTargets: Record<string, number> = {
