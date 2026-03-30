@@ -1653,38 +1653,6 @@ function buildExportPayload(
     })(),
     // ✅ NEW: Coaching Compass (5 axes unifiés)
     coachingCompass: (() => {
-      const fatigueEff = computeFatigueEffectif(effectiveSnapshot?.fatigue_state ?? null);
-      
-      // Strategy Engine
-      let strategyResult = null;
-      try {
-        const lorangInput: LorangStrategyInput = {
-          vlamax: vlamax.value,
-          vlamaxConfidence: vlamax.confidence,
-          tte: tte.tte_min,
-          tteConfidence: tte.confidence,
-          ftpKg: ftpKg ?? null,
-          vo2max: effectiveRefs.vo2max ?? null,
-          objectif: athlete.goal || "IM",
-          tss7d: effectiveSnapshot?.tss_7d ?? null,
-          fatigue: fatigueEff?.level ?? null,
-          forceMode: effectiveSnapshot?.force_development_mode ?? false,
-        };
-        strategyResult = computeLorangStrategy(lorangInput);
-      } catch { /* fallback */ }
-
-      // Lactate thresholds
-      let lactateThresholds = null;
-      try {
-        const lt = computeLactateThresholdsTFCL({
-          ftp: effectiveRefs.ftp ?? null,
-          vlamax: vlamax.value,
-          vo2max: effectiveRefs.vo2max ?? null,
-          poids: effectiveRefs.weightKg ?? null,
-        });
-        lactateThresholds = { lt1: lt.lt1, lt2: lt.lt2 };
-      } catch { /* fallback */ }
-
       const compassInput: CoachingCompassInput = {
         ftp: effectiveRefs.ftp ?? null,
         poids: effectiveRefs.weightKg ?? null,
@@ -1703,7 +1671,7 @@ function buildExportPayload(
         fatmax: null,
         vlamaxEffectif: { value: vlamax.value, confidence: vlamax.confidence, source: vlamax.source },
         tteEffectif: { tte_min: tte.tte_min, confidence: tte.confidence, source: tte.source },
-        fatigueEffectif: fatigueEff ? { score: fatigueEff.score, level: fatigueEff.level, confidence: fatigueEff.confidence } : null,
+        fatigueEffectif: null,
         limiterResult: unifiedLimiter as any,
         potentielPhysiologique: {
           score: potentielPhysiologique.score,
@@ -1713,19 +1681,8 @@ function buildExportPayload(
           label: potentielPhysiologique.label,
           color: potentielPhysiologique.color,
         },
-        strategyResult: strategyResult ? {
-          primaryLimiter: strategyResult.primaryLimiter,
-          limiterLabel: strategyResult.limiterLabel,
-          limiterExplanation: strategyResult.limiterExplanation,
-          activatedLevers: strategyResult.activatedLevers,
-          prohibitions: strategyResult.prohibitions,
-          hasSprintBan: strategyResult.hasSprintBan,
-          summary: strategyResult.summary,
-          templateSuggestion: strategyResult.templateSuggestion,
-          athleteMessage: strategyResult.athleteMessage,
-          confidence: strategyResult.confidence,
-        } : null,
-        lactateThresholds,
+        strategyResult: null,
+        lactateThresholds: null,
         wprimeKj: null,
         objectif: athlete.goal || "IM",
         ambition: ambition,
