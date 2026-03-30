@@ -1502,6 +1502,7 @@ function buildExportPayload(
       seancesCodes,
       seancesDetails
     },
+    unifiedLimiter,
     tests: athleteTests,
     snapshotHistory: athleteSnapshots,
     checkins: athleteCheckins,
