@@ -1,4 +1,4 @@
-import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, getTargets, getWeightsBySport, generateAthleteReadiness } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, getWeightsBySport, generateAthleteReadiness } from "@/lib/potentielPhysiologiqueEffectif";
 // =============================================
 // OUTILS EXPORT PDF – RAPPORT STAFF-GRADE COMPLET
 // Two For Coaching Lab – Performance & Metabolic Report
@@ -322,6 +322,31 @@ function getObjectifLabel(objectif: string | null): string {
     Course: "Course à pied"
   };
   return labels[objectif || ""] || objectif || "—";
+}
+
+function buildReportTargetsFromUnifiedLimiter(
+  unifiedLimiter: UnifiedLimiterResult,
+  objectif: string | null,
+  ambition: AmbitionLevel
+): {
+  vlamaxMin: number;
+  vlamaxMax: number;
+  vlamaxIdeal: number;
+  tteTarget: number;
+  ftpKgTarget: number;
+} {
+  const ambitionTargets = getTargetsForAmbition(objectif || "IM", ambition);
+  const gapByMetric = new Map(unifiedLimiter.gapAnalysis.map((gap) => [gap.metric, gap]));
+
+  return {
+    // VLamax reste définie par objectif + ambition
+    vlamaxMin: ambitionTargets.vlamax.min,
+    vlamaxMax: ambitionTargets.vlamax.max,
+    vlamaxIdeal: gapByMetric.get("VLamax")?.target ?? ambitionTargets.vlamax.optimal,
+    // TTE et FTP/kg proviennent de la cible effectivement utilisée par le moteur unifié (âge + ambition)
+    tteTarget: gapByMetric.get("TTE")?.target ?? ambitionTargets.tte_min,
+    ftpKgTarget: gapByMetric.get("FTP/kg")?.target ?? ambitionTargets.ftp_kg_min,
+  };
 }
 
 function getRecommandationsPriorite(priorite: PrioriteType): string[] {
@@ -1304,18 +1329,11 @@ function buildExportPayload(
     objectif: athlete.goal || "IM"
   });
   
+  // Calculer l'âge (supporte aussi l'ancien champ dateNaissance)
+  const athleteBirthDate = athlete.birth_date ?? ((athlete as unknown as { dateNaissance?: string | null }).dateNaissance ?? null);
+  const athleteAge = calculateAge(athleteBirthDate);
+
   // Calculer Potentiel Physiologique
-  // Calculer l'âge
-  const athleteAge = athlete.birth_date ? (() => {
-    const birthDate = new Date(athlete.birth_date);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age;
-  })() : null;
   
   const potentielPhysiologique = computePotentielEffectif({
     objectif: athlete.goal || "IM",
@@ -1530,7 +1548,7 @@ function buildExportPayload(
     },
     // ✅ NEW: Age Adjustment
     ageAdjustment: (() => {
-      const age = calculateAge(athlete.birth_date);
+      const age = athleteAge;
       const aai = computeAgeAdjustmentIndex(age);
       const vlamaxInterpretation = interpretVLamaxByAge(vlamax.value, age);
       const nutritionAdjustment = getAgeNutritionAdjustment(age);
@@ -2347,7 +2365,7 @@ function buildFacteursLimitantsHTML(payload: ExportPayload): string {
   const fmtV = (v: number | null) => v === null ? "—" : v < 10 ? v.toFixed(2) : v.toFixed(1);
   
   // Trier par impact pondéré (les plus limitants en premier)
-  const sorted = [...gaps].sort((a, b) => a.weightedImpact - b.weightedImpact);
+  const sorted = [...gaps].sort((a, b) => b.weightedImpact - a.weightedImpact);
 
   return `
     <section id="facteurs-limitants" class="section pagebreakAvoid">
@@ -2403,12 +2421,14 @@ function buildFacteursLimitantsHTML(payload: ExportPayload): string {
             </tr>
           </thead>
           <tbody>
-            ${sorted.map(g => `
+            ${sorted.map(g => {
+              const gapPct = Number.isFinite(g.gapPercent) ? g.gapPercent : 0;
+              return `
               <tr>
                 <td><b>${htmlEscape(g.metric)}</b></td>
                 <td>${fmtV(g.value)}</td>
                 <td>${fmtV(g.target)}</td>
-                <td style="font-weight:600;color:${g.gap < -15 ? '#dc2626' : g.gap < -5 ? '#ca8a04' : '#16a34a'};">${g.gap.toFixed(0)}%</td>
+                <td style="font-weight:600;color:${gapPct < -15 ? '#dc2626' : gapPct < -5 ? '#ca8a04' : '#16a34a'};">${gapPct.toFixed(0)}%</td>
                 <td>
                   <div style="background:#e5e7eb;border-radius:4px;height:8px;width:60px;position:relative;">
                     <div style="background:${statusColor(g.status)};border-radius:4px;height:8px;width:${Math.min(100, Math.abs(g.weightedImpact) * 10)}%;"></div>
@@ -2416,7 +2436,8 @@ function buildFacteursLimitantsHTML(payload: ExportPayload): string {
                 </td>
                 <td><span class="badge" style="background:${statusColor(g.status)}20;color:${statusColor(g.status)};font-size:10px;">${statusLabel(g.status)}</span></td>
               </tr>
-            `).join("")}
+            `;
+            }).join("")}
           </tbody>
         </table>
       </div>
@@ -2808,8 +2829,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   } = payload;
   
   const refs = getAthleteRefsForZones(effectiveRefs);
-  // ✅ FIX: Passer âge et ambition pour utiliser les cibles dynamiques (cohérence avec l'app)
-  const targets = getTargets(athlete.goal || "IM", ageAdjustment.age, ambition.current);
+  // ✅ Source de vérité unifiée : ambitions + âge (mêmes cibles que dashboard/limiteur)
+  const targets = buildReportTargetsFromUnifiedLimiter(payload.unifiedLimiter, athlete.goal, ambition.current);
   const weights = getWeightsBySport(athlete.goal || "IM");
 
   // =============================================
@@ -5058,8 +5079,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       </div>
 
       <div class="alert alertWarning mt">
-        <b>💡 Note importante :</b> Les cibles VLamax sont définies par l'objectif et l'ambition uniquement. 
-        Seul le TTE peut être légèrement ajusté pour les athlètes Master (40+) pour refléter les réalités physiologiques de récupération.
+        <b>💡 Note importante :</b> Les cibles sont contextualisées par l'objectif et l'ambition. Pour les athlètes Masters, les cibles de VO₂max, FTP/kg (ou VMA) et TTE sont ajustées selon la catégorie d'âge ; VLamax reste pilotée par l'objectif + ambition.
       </div>
     </section>
   `;
@@ -5106,11 +5126,12 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
                 <tbody>
                   ${limitingGaps.slice(0, 5).map(g => {
                     const fmtV = (v: number | null) => v === null ? "—" : v < 10 ? v.toFixed(2) : v.toFixed(1);
+                    const gapPct = Number.isFinite(g.gapPercent) ? g.gapPercent : 0;
                     return `<tr>
                       <td><b>${g.metric}</b></td>
                       <td>${fmtV(g.value)}</td>
                       <td>${fmtV(g.target)}</td>
-                      <td><span class="${g.gap < -15 ? 'error' : g.gap < -5 ? 'warning' : ''}" style="font-weight:600;">${g.gap.toFixed(0)}%</span></td>
+                      <td><span class="${gapPct < -15 ? 'error' : gapPct < -5 ? 'warning' : ''}" style="font-weight:600;">${gapPct.toFixed(0)}%</span></td>
                     </tr>`;
                   }).join("")}
                 </tbody>
