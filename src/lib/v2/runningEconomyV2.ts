@@ -20,6 +20,16 @@ import { CONFIDENCE_LEVELS } from './scientificConfig';
 
 export type EconomyLevelV2 = 'excellent' | 'good' | 'average' | 'weak' | 'very_weak';
 
+export interface EstimatedO2Cost {
+  value: number;          // ml/kg/km
+  source: 'power' | 'acsm';  // Méthode utilisée
+  sourceLabel: string;
+  level: 'elite' | 'well_trained' | 'trained' | 'recreational' | 'beginner';
+  levelLabel: string;
+  levelEmoji: string;
+  referenceRange: string; // ex: "180-200 ml/kg/km (élite)"
+}
+
 export interface RunningEconomyV2 {
   // Indice principal (0-100)
   index: number;
@@ -54,7 +64,10 @@ export interface RunningEconomyV2 {
   };
   
   // Rapport coût / vitesse
-  energyCostRatio: number | null;  // W/m ou autre métrique si disponible
+  energyCostRatio: number | null;  // W/(km/h)
+  
+  // Coût O2 estimé (ml/kg/km) — métrique physiologique directe
+  estimatedO2Cost: EstimatedO2Cost | null;
   
   // Leviers d'optimisation
   optimizationLevers: string[];
