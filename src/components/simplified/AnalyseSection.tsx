@@ -149,6 +149,15 @@ function MetricCard({ gap, metricInfo }: {
           <div className="p-3">
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-2">
+                {showDragHandle && (
+                  <div
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="cursor-grab active:cursor-grabbing touch-none"
+                    {...dragHandleProps}
+                  >
+                    <GripVertical className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                  </div>
+                )}
                 <span className="text-lg">{metricInfo.icon}</span>
                 <span className="text-sm font-bold">{metricInfo.label}</span>
               </div>
@@ -195,7 +204,7 @@ function MetricCard({ gap, metricInfo }: {
               </div>
             )}
 
-            {/* Barre de progression — proportionnelle à l'achèvement vs cible */}
+            {/* Barre de progression */}
             {(() => {
               const pct = (() => {
                 if (isUnknown) return 0;
@@ -208,7 +217,6 @@ function MetricCard({ gap, metricInfo }: {
                 }
                 return Math.max(5, Math.min(100, (val / tgt) * 100));
               })();
-              // Dégradé progressif : la jauge se remplit avec un gradient rouge → orange → jaune → vert
               return (
                 <div className="h-2.5 rounded-full bg-muted/60 overflow-hidden">
                   <div
@@ -237,19 +245,14 @@ function MetricCard({ gap, metricInfo }: {
 
         <CollapsibleContent>
           <div className="px-3 pb-3 space-y-2 border-t border-border/30 pt-2.5">
-            {/* Explication */}
             <div className="p-2.5 rounded-lg bg-background/60">
               <p className="text-[10px] font-bold text-foreground mb-0.5">💡 Qu'est-ce que c'est ?</p>
               <p className="text-[11px] text-muted-foreground leading-relaxed">{metricInfo.explanation}</p>
             </div>
-
-            {/* Pourquoi c'est important */}
             <div className="p-2.5 rounded-lg bg-background/60">
               <p className="text-[10px] font-bold text-foreground mb-0.5">🎯 Pourquoi c'est important</p>
               <p className="text-[11px] text-muted-foreground leading-relaxed">{metricInfo.whyItMatters}</p>
             </div>
-
-            {/* Comment améliorer */}
             {remainsToWork && (
               <div className="p-2.5 rounded-lg bg-primary/5">
                 <p className="text-[10px] font-bold text-foreground mb-0.5">🔧 Comment améliorer</p>
@@ -260,6 +263,43 @@ function MetricCard({ gap, metricInfo }: {
         </CollapsibleContent>
       </div>
     </Collapsible>
+  );
+}
+
+// Sortable wrapper for MetricCard
+function SortableMetricCard({ id, gap, metricInfo, isReorderMode }: {
+  id: string;
+  gap: Parameters<typeof MetricCard>[0]["gap"];
+  metricInfo: Parameters<typeof MetricCard>[0]["metricInfo"];
+  isReorderMode: boolean;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id, disabled: !isReorderMode });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(isDragging && "opacity-50 z-50")}
+    >
+      <MetricCard
+        gap={gap}
+        metricInfo={metricInfo}
+        showDragHandle={isReorderMode}
+        dragHandleProps={{ ...attributes, ...listeners }}
+      />
+    </div>
   );
 }
 
