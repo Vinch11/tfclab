@@ -6,6 +6,7 @@ export type PrioriteType = "VLAMAX_DOWN" | "VLAMAX_UP" | "TTE_UP" | "FTP_UTIL" |
 
 export interface ReglesTwoForCoachingResult {
   priorite: PrioriteType;
+  priorites: PrioriteType[]; // All priorities ranked by importance
   alertes: string[];
   race_ready: boolean;
 }
@@ -32,7 +33,7 @@ export function reglesTwoForCoaching(
   seance_specifique_validee: boolean,
   fatigue_ok: boolean
 ): ReglesTwoForCoachingResult {
-  let priorite: PrioriteType = "";
+  const priorites: PrioriteType[] = [];
   const alertes: string[] = [];
 
   // Triathlon: VLamax trop élevée pour l'objectif
@@ -40,17 +41,20 @@ export function reglesTwoForCoaching(
     (athlete.objectif === "IM" && vlamax > 0.40) ||
     (athlete.objectif === "703" && vlamax > 0.45)
   ) {
-    priorite = "VLAMAX_DOWN";
+    priorites.push("VLAMAX_DOWN");
     alertes.push("VLamax trop élevée pour l'objectif");
   }
 
   // Marathon: priorité endurance
   if (athlete.objectif === "Marathon") {
     if (tte < 60) {
-      priorite = "ENDURANCE_UP";
+      priorites.push("ENDURANCE_UP");
       alertes.push("Endurance insuffisante pour marathon");
-    } else if (vlamax > 0.38) {
-      priorite = "VLAMAX_DOWN";
+    }
+    if (vlamax > 0.38) {
+      if (!priorites.includes("VLAMAX_DOWN")) {
+        priorites.push("VLAMAX_DOWN");
+      }
       alertes.push("VLamax trop élevée pour marathon");
     }
   }
@@ -58,20 +62,25 @@ export function reglesTwoForCoaching(
   // Semi-Marathon: équilibre vitesse/endurance
   if (athlete.objectif === "Semi") {
     if (tte < 50) {
-      priorite = "ENDURANCE_UP";
+      priorites.push("ENDURANCE_UP");
       alertes.push("Endurance insuffisante pour semi");
-    } else if (vlamax < 0.35) {
-      priorite = "VITESSE_UP";
+    }
+    if (vlamax < 0.35) {
+      priorites.push("VITESSE_UP");
       alertes.push("Capacité glycolytique trop basse pour semi");
     } else if (vlamax > 0.45) {
-      priorite = "VLAMAX_DOWN";
+      if (!priorites.includes("VLAMAX_DOWN")) {
+        priorites.push("VLAMAX_DOWN");
+      }
       alertes.push("VLamax trop élevée pour semi");
     }
   }
 
   // VLamax trop basse (sauf marathon)
   if (vlamax < 0.28 && athlete.objectif !== "Marathon") {
-    priorite = "VLAMAX_UP";
+    if (!priorites.includes("VLAMAX_UP")) {
+      priorites.push("VLAMAX_UP");
+    }
     alertes.push("VLamax trop basse (<0.28)");
   }
 
@@ -80,14 +89,16 @@ export function reglesTwoForCoaching(
     (athlete.objectif === "IM" && tte < 55) ||
     (athlete.objectif === "703" && tte < 45)
   ) {
-    priorite = "TTE_UP";
+    if (!priorites.includes("TTE_UP")) {
+      priorites.push("TTE_UP");
+    }
     alertes.push("TTE insuffisante pour l'objectif");
   }
 
   // FTP faible (vélo uniquement pour triathlon)
   const ftpTarget = getFtpTarget(athlete.objectif);
   if ((athlete.objectif === "IM" || athlete.objectif === "703") && ftp_kg < ftpTarget) {
-    priorite = "FTP_UTIL";
+    priorites.push("FTP_UTIL");
     alertes.push(`FTP insuffisant (cible: ${ftpTarget} W/kg)`);
   }
 
@@ -107,7 +118,8 @@ export function reglesTwoForCoaching(
     ftpOk;
 
   return {
-    priorite,
+    priorite: priorites[0] || "",
+    priorites,
     alertes,
     race_ready,
   };
