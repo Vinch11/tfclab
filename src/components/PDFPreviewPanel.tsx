@@ -84,6 +84,8 @@ const SECTION_ICONS: Record<keyof ReportSections, React.ComponentType<{ classNam
   lactateCurve: TrendingUp,
   substrateCurve: Flame,
   performancePrediction: Target,
+  facteursLimitants: AlertTriangle,
+  leviersAction: Settings,
 };
 
 // Catégories avec couleurs
