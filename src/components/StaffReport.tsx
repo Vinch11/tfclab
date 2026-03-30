@@ -1758,7 +1758,7 @@ function VO2maxAgeComparisonSection({ section }: { section: VO2maxAgeComparisonS
       )}
       
       <p className="text-[10px] text-muted-foreground mt-3 italic">
-        💡 "Le déclin naturel du VO₂max (~7-10%/décennie après 30 ans) est compensé pour maintenir des objectifs réalistes et motivants."
+        💡 "Le déclin naturel du VO₂max (~5-7%/décennie après 30 ans, Hawkins & Wiswell 2003) est compensé pour maintenir des objectifs réalistes et motivants."
       </p>
     </div>
   );
