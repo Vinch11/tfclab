@@ -479,7 +479,7 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
         Profil physiologique complet
       </p>
       <div className="space-y-1.5">
-        {metrics.map(({ key, m }) => {
+        {metrics.map(({ key, m, secondaryInfo }) => {
           const expl = METRIC_EXPLANATIONS[key];
           const tgt = metricTargets[key];
           const target = tgt?.target;
