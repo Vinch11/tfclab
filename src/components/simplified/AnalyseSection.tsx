@@ -9,13 +9,31 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { BarChart3, TrendingUp, TrendingDown, Minus, Info, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { BarChart3, TrendingUp, TrendingDown, Minus, Info, ChevronDown, GripVertical, ArrowUpDown } from "lucide-react";
+import { useState, useCallback, useMemo } from "react";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Button } from "@/components/ui/button";
 import type { AthleteDiagnostic } from "@/engines/diagnostic";
 
 interface AnalyseSectionProps {
@@ -105,9 +123,11 @@ function getGapStatus(gap: number): { label: string; color: string; bgColor: str
   return { label: "Prioritaire", color: "text-[hsl(var(--destructive))]", bgColor: "bg-[hsl(var(--destructive)/0.08)] border-[hsl(var(--destructive)/0.2)]", icon: TrendingDown };
 }
 
-function MetricCard({ gap, metricInfo }: {
+function MetricCard({ gap, metricInfo, showDragHandle = false, dragHandleProps = {} }: {
   gap: { metric: string; gap: number; gapPercent?: number; value?: number | null; target?: number | null; status?: string };
   metricInfo: typeof METRIC_EXPLANATIONS[string];
+  showDragHandle?: boolean;
+  dragHandleProps?: Record<string, any>;
 }) {
   const [open, setOpen] = useState(false);
   const isUnknown = gap.status === "unknown" || gap.value == null;
@@ -131,6 +151,15 @@ function MetricCard({ gap, metricInfo }: {
           <div className="p-3">
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-2">
+                {showDragHandle && (
+                  <div
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="cursor-grab active:cursor-grabbing touch-none"
+                    {...dragHandleProps}
+                  >
+                    <GripVertical className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                  </div>
+                )}
                 <span className="text-lg">{metricInfo.icon}</span>
                 <span className="text-sm font-bold">{metricInfo.label}</span>
               </div>
@@ -177,7 +206,7 @@ function MetricCard({ gap, metricInfo }: {
               </div>
             )}
 
-            {/* Barre de progression — proportionnelle à l'achèvement vs cible */}
+            {/* Barre de progression */}
             {(() => {
               const pct = (() => {
                 if (isUnknown) return 0;
@@ -190,7 +219,6 @@ function MetricCard({ gap, metricInfo }: {
                 }
                 return Math.max(5, Math.min(100, (val / tgt) * 100));
               })();
-              // Dégradé progressif : la jauge se remplit avec un gradient rouge → orange → jaune → vert
               return (
                 <div className="h-2.5 rounded-full bg-muted/60 overflow-hidden">
                   <div
@@ -219,19 +247,14 @@ function MetricCard({ gap, metricInfo }: {
 
         <CollapsibleContent>
           <div className="px-3 pb-3 space-y-2 border-t border-border/30 pt-2.5">
-            {/* Explication */}
             <div className="p-2.5 rounded-lg bg-background/60">
               <p className="text-[10px] font-bold text-foreground mb-0.5">💡 Qu'est-ce que c'est ?</p>
               <p className="text-[11px] text-muted-foreground leading-relaxed">{metricInfo.explanation}</p>
             </div>
-
-            {/* Pourquoi c'est important */}
             <div className="p-2.5 rounded-lg bg-background/60">
               <p className="text-[10px] font-bold text-foreground mb-0.5">🎯 Pourquoi c'est important</p>
               <p className="text-[11px] text-muted-foreground leading-relaxed">{metricInfo.whyItMatters}</p>
             </div>
-
-            {/* Comment améliorer */}
             {remainsToWork && (
               <div className="p-2.5 rounded-lg bg-primary/5">
                 <p className="text-[10px] font-bold text-foreground mb-0.5">🔧 Comment améliorer</p>
@@ -245,16 +268,97 @@ function MetricCard({ gap, metricInfo }: {
   );
 }
 
+// Sortable wrapper for MetricCard
+function SortableMetricCard({ id, gap, metricInfo, isReorderMode }: {
+  id: string;
+  gap: Parameters<typeof MetricCard>[0]["gap"];
+  metricInfo: Parameters<typeof MetricCard>[0]["metricInfo"];
+  isReorderMode: boolean;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id, disabled: !isReorderMode });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(isDragging && "opacity-50 z-50")}
+    >
+      <MetricCard
+        gap={gap}
+        metricInfo={metricInfo}
+        showDragHandle={isReorderMode}
+        dragHandleProps={{ ...attributes, ...listeners }}
+      />
+    </div>
+  );
+}
+
 export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
   const { limiter, synthesis } = diagnostic;
   const gapAnalysis = limiter.gapAnalysis;
 
+  const [isReorderMode, setIsReorderMode] = useState(false);
+
+  // Default sort: by gap ascending (worst first)
+  const defaultOrder = useMemo(
+    () => [...gapAnalysis].sort((a, b) => a.gap - b.gap).map(g => g.metric),
+    [gapAnalysis]
+  );
+
+  const [metricOrder, setMetricOrder] = useState<string[]>(defaultOrder);
+
+  // Sync if gapAnalysis changes
+  useMemo(() => {
+    const currentMetrics = new Set(metricOrder);
+    const newMetrics = gapAnalysis.map(g => g.metric);
+    const hasNew = newMetrics.some(m => !currentMetrics.has(m));
+    if (hasNew) setMetricOrder(defaultOrder);
+  }, [gapAnalysis, defaultOrder]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setMetricOrder(prev => {
+        const oldIndex = prev.indexOf(active.id as string);
+        const newIndex = prev.indexOf(over.id as string);
+        return arrayMove(prev, oldIndex, newIndex);
+      });
+    }
+  }, []);
+
+  const gapMap = useMemo(() => {
+    const map = new Map<string, typeof gapAnalysis[number]>();
+    for (const g of gapAnalysis) map.set(g.metric, g);
+    return map;
+  }, [gapAnalysis]);
+
+  const orderedGaps = metricOrder
+    .map(m => gapMap.get(m))
+    .filter(Boolean) as typeof gapAnalysis;
+
   return (
     <Card className={cn("overflow-hidden", className)}>
-      <CardHeader className="pb-3 bg-gradient-to-r from-blue-500/5 to-blue-600/10 border-b">
+      <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-primary/10 border-b">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-            <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <BarChart3 className="h-5 w-5 text-primary" />
           </div>
           <div className="flex-1">
             <CardTitle className="text-lg">Analyse Physiologique</CardTitle>
@@ -262,9 +366,23 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
               Évaluation détaillée de tes capacités — clique sur une métrique pour en savoir plus
             </p>
           </div>
-          <Badge variant="outline" className="text-xs">
-            {Math.round(diagnostic.meta.dataCompleteness * 100)}% données
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={isReorderMode ? "default" : "outline"}
+              size="sm"
+              className="h-7 text-xs gap-1.5"
+              onClick={() => {
+                if (isReorderMode) setIsReorderMode(false);
+                else setIsReorderMode(true);
+              }}
+            >
+              <ArrowUpDown className="h-3.5 w-3.5" />
+              {isReorderMode ? "Terminé" : "Trier"}
+            </Button>
+            <Badge variant="outline" className="text-xs">
+              {Math.round(diagnostic.meta.dataCompleteness * 100)}% données
+            </Badge>
+          </div>
         </div>
       </CardHeader>
 
@@ -299,25 +417,41 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
           </div>
         </div>
 
-        {/* Liste des métriques avec gaps — triées par priorité */}
-        <div className="space-y-2.5">
-          {gapAnalysis
-            .sort((a, b) => a.gap - b.gap) // Prioritaires en premier
-            .map((gap) => {
-              const metricInfo = METRIC_EXPLANATIONS[gap.metric] || {
-                label: gap.metric,
-                unit: "",
-                explanation: "Métrique physiologique contribuant à ta performance.",
-                whyItMatters: "Cette métrique influence directement ta capacité à atteindre ton objectif.",
-                howToImprove: "Consulte ton coach pour des recommandations spécifiques.",
-                icon: "📊",
-              };
+        {/* Hint réorganisation */}
+        {isReorderMode && (
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/5 border border-primary/20 text-xs text-primary">
+            <GripVertical className="h-4 w-4" />
+            Glisse les métriques pour réorganiser l'ordre d'affichage
+          </div>
+        )}
 
-              return (
-                <MetricCard key={gap.metric} gap={gap} metricInfo={metricInfo} />
-              );
-            })}
-        </div>
+        {/* Liste des métriques — avec drag & drop */}
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={metricOrder} strategy={verticalListSortingStrategy}>
+            <div className="space-y-2.5">
+              {orderedGaps.map((gap) => {
+                const metricInfo = METRIC_EXPLANATIONS[gap.metric] || {
+                  label: gap.metric,
+                  unit: "",
+                  explanation: "Métrique physiologique contribuant à ta performance.",
+                  whyItMatters: "Cette métrique influence directement ta capacité à atteindre ton objectif.",
+                  howToImprove: "Consulte ton coach pour des recommandations spécifiques.",
+                  icon: "📊",
+                };
+
+                return (
+                  <SortableMetricCard
+                    key={gap.metric}
+                    id={gap.metric}
+                    gap={gap}
+                    metricInfo={metricInfo}
+                    isReorderMode={isReorderMode}
+                  />
+                );
+              })}
+            </div>
+          </SortableContext>
+        </DndContext>
 
         {/* Alertes */}
         {synthesis.alerts.length > 0 && (
@@ -330,7 +464,7 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
                   "flex items-start gap-2 p-2.5 rounded-xl text-xs",
                   alert.severity === "critical" && "bg-destructive/10 text-destructive border border-destructive/20",
                   alert.severity === "warning" && "bg-[hsl(var(--warning)/0.1)] text-[hsl(var(--warning))] border border-[hsl(var(--warning)/0.2)]",
-                  alert.severity === "info" && "bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20"
+                  alert.severity === "info" && "bg-primary/10 text-primary border border-primary/20"
                 )}
               >
                 <span className="text-sm">{alert.severity === "critical" ? "🚨" : alert.severity === "warning" ? "⚠️" : "ℹ️"}</span>
