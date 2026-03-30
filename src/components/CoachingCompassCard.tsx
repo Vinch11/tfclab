@@ -514,6 +514,9 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
                   <span className="text-[9px] text-muted-foreground/70">{m.unit}</span>
                 </div>
                 <div className="flex items-center gap-2">
+                  {secondaryInfo && (
+                    <span className="text-[8px] text-muted-foreground/60">{secondaryInfo}</span>
+                  )}
                   <span className="text-[11px] font-bold font-mono text-foreground">
                     {typeof m.value === "number" ? formatVal(m.value, isSmall) : "—"}
                   </span>
