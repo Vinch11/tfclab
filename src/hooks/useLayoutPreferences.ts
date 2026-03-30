@@ -49,15 +49,14 @@ export interface MovedSectionConfig {
 
 // Sections disponibles pour chaque onglet
 export const PROFIL_SECTIONS: SectionDefinition[] = [
-  { id: "objective-manager", label: "Objectif & Courses", icon: "Target", category: "profil", defaultVisible: true },
-  { id: "athlete-refs", label: "Références Athlète", icon: "User", defaultVisible: true },
-  { id: "athlete-profile", label: "Profil Athlète", icon: "User", defaultVisible: true },
-  { id: "two-for-coaching", label: "Analyse Two For Coaching Lab™", icon: "Brain", defaultVisible: true },
-  { id: "evolution-chart", label: "Évolution Profils", icon: "TrendingUp", defaultVisible: true },
-  { id: "training-zones", label: "Zones d'entraînement", icon: "Target", defaultVisible: true },
+  { id: "athlete-refs", label: "Références Athlète", icon: "User", category: "profil", defaultVisible: true },
+  { id: "athlete-profile", label: "Profil Athlète", icon: "User", category: "profil", defaultVisible: true },
+  { id: "two-for-coaching", label: "Analyse Two For Coaching Lab™", icon: "Brain", category: "analyse", defaultVisible: true },
+  { id: "evolution-chart", label: "Évolution Profils", icon: "TrendingUp", category: "analyse", defaultVisible: true },
+  { id: "training-zones", label: "Zones d'entraînement", icon: "Target", category: "metriques", defaultVisible: true },
   { id: "lactate-thresholds-profil", label: "Seuils Lactiques TFCL", icon: "Droplets", category: "metriques", defaultVisible: true },
   { id: "vlamax-v2-calibration-profil", label: "Calibration VLamax V2", icon: "Zap", category: "analyse", defaultVisible: true },
-  { id: "ftp-targets-profil", label: "Cibles FTP/kg", icon: "Target", category: "analyse", defaultVisible: true },
+  { id: "ftp-targets-profil", label: "Cibles FTP/kg ou VMA", icon: "Target", category: "analyse", defaultVisible: true },
   { id: "fatmax-tfcl-profil", label: "Zones Métaboliques TFCL™", icon: "Flame", category: "analyse", defaultVisible: true },
   { id: "vo2max-age-profil", label: "VO₂max — Comparatif âge", icon: "Calendar", category: "analyse", defaultVisible: true },
   { id: "scientific-charts-profil", label: "Graphiques INSCYD (Staff)", icon: "BarChart", category: "analyse", defaultVisible: true },
@@ -65,131 +64,26 @@ export const PROFIL_SECTIONS: SectionDefinition[] = [
   { id: "calibration-evidence-profil", label: "Évidences Calibration (Staff)", icon: "FlaskConical", category: "analyse", defaultVisible: true },
   { id: "cycle-intelligence-profil", label: "Cycle Intelligence™", icon: "Brain", category: "analyse", defaultVisible: true },
   { id: "adaptation-predictor-profil", label: "Adaptation Predictor™", icon: "Sparkles", category: "analyse", defaultVisible: true },
+  { id: "cp-wprime-curve-profil", label: "Courbe CP/W' (Puissance-Durée)", icon: "TrendingDown", category: "analyse", defaultVisible: true },
+  { id: "wbal-recovery-profil", label: "Repos W'bal Individualisés", icon: "RotateCcw", category: "analyse", defaultVisible: true },
 ];
 
 export const DASHBOARD_SECTIONS: SectionDefinition[] = [
-  // 🎯 Actions rapides
   { id: "quick-actions", label: "Actions rapides", icon: "Zap", category: "onboarding", defaultVisible: true },
-  // 🎯 Onboarding & Guide
   { id: "getting-started", label: "Guide de démarrage", icon: "Rocket", category: "onboarding", defaultVisible: true },
-  // 📊 Analyse — Coaching Compass
   { id: "coaching-compass", label: "Coaching Compass™", icon: "Compass", category: "analyse", defaultVisible: true },
-  // 📊 Analyse — Métriques expliquées
   { id: "analyse-section", label: "Analyse & Métriques", icon: "BarChart", category: "analyse", defaultVisible: true },
-  // 🎯 Limiteurs — Facteurs limitants
   { id: "limiteurs-section", label: "Facteurs Limitants", icon: "AlertTriangle", category: "analyse", defaultVisible: true },
-  // ⚡ Leviers — Actions à activer
   { id: "leviers-section", label: "Leviers & Actions", icon: "Target", category: "analyse", defaultVisible: true },
-  
-  // 👤 Profil athlète + Ambition
-  // ✅ Phase 1f: Profil & Ambition unifiée
-  { id: "profil-ambition-unified", label: "Profil & Ambition (unifiée)", icon: "User", category: "profil", defaultVisible: true },
-  { id: "athlete-refs", label: "Profil & Données (legacy)", icon: "User", category: "profil", defaultVisible: false },
-  { id: "objective-manager", label: "Objectif & Historique (legacy)", icon: "Target", category: "profil", defaultVisible: false },
-  { id: "ambition-progress", label: "Évolution vers les cibles (legacy)", icon: "TrendingUp", category: "profil", defaultVisible: false },
-  
-  // 👤 Carte Profil Athlète (juste au-dessus du Compass)
-  { id: "athlete-profile-card", label: "Carte Profil Athlète", icon: "UserCircle", category: "profil", defaultVisible: true },
-  
-  // 📊 Aperçu rapide (grille de mini-jauges)
-  { id: "compact-metrics-grid", label: "Aperçu Rapide (Mini-Jauges)", icon: "Activity", category: "metriques", defaultVisible: true },
-  
-  // 🧠 MATRICE DÉCISIONNELLE TFCL — Consolidé Phase 1e UX
-  { id: "coach-decision-unified", label: "Centre Décisionnel TFCL™ (unifié)", icon: "Brain", category: "analyse", defaultVisible: true },
-  { id: "tfcl-decision-matrix", label: "Décision Coach TFCL™ (legacy)", icon: "Brain", category: "analyse", defaultVisible: false },
-  { id: "tfcl-symptom-matrix", label: "Matrice Symptômes TFCL™ (legacy)", icon: "Stethoscope", category: "analyse", defaultVisible: false },
-  { id: "lorang-strategy", label: "Lorang Strategy Engine™ (legacy)", icon: "Target", category: "analyse", defaultVisible: false },
-  
-  // ⚡ Métriques VLamax/TTE (consolidé Phase 1 UX)
-  { id: "compass", label: "Metabolic Compass", icon: "Compass", category: "metriques", defaultVisible: true },
-  { id: "vlamax-v2-calibration", label: "VLamax TFCL™ (unifiée)", icon: "Zap", category: "metriques", defaultVisible: true },
-  { id: "ftp-targets", label: "FTP/kg — zones cibles", icon: "Target", category: "metriques", defaultVisible: true },
-  // Sections consolidées — masquées par défaut (intégrées dans la carte unifiée)
-  { id: "vlamax-bike-v2-enhanced", label: "VLamax Vélo — Détaillée (legacy)", icon: "Zap", category: "metriques", defaultVisible: false },
-  { id: "vlamax-combined", label: "VLamax Comparaison (legacy)", icon: "GitCompare", category: "metriques", defaultVisible: false },
-  
-  // 💤 Fatigue + Readiness (consolidé Phase 1d UX)
-  { id: "fatigue-disponibilite-unified", label: "Fatigue & Disponibilité (unifiée)", icon: "Battery", category: "fatigue", defaultVisible: true },
-  { id: "disponibilite-tfcl", label: "Disponibilité TFCL™ (legacy)", icon: "Target", category: "fatigue", defaultVisible: false },
-  { id: "daily-readiness-check", label: "TFCL Daily Readiness (legacy)", icon: "ClipboardCheck", category: "fatigue", defaultVisible: false },
-  { id: "quick-fatigue", label: "Fatigue (saisie rapide) (legacy)", icon: "Zap", category: "fatigue", defaultVisible: false },
-  { id: "charge-recente", label: "Charge Récente (legacy)", icon: "Activity", category: "fatigue", defaultVisible: false },
-  
-  // 📊 Analyse & Course
-  { id: "race-readiness-unified", label: "Potentiel Physiologique TFCL™", icon: "Target", category: "analyse", defaultVisible: true },
-  { id: "race-readiness-signature", label: "Signature Potentiel™ (legacy)", icon: "Target", category: "analyse", defaultVisible: false },
-  { id: "race-readiness-v2", label: "Potentiel V2 (legacy)", icon: "Trophy", category: "analyse", defaultVisible: false },
-  { id: "running-economy-summary", label: "Économie de course", icon: "Footprints", category: "analyse", defaultVisible: true },
-  { id: "fatmax-tfcl", label: "Zones Métaboliques TFCL™ (unifiée)", icon: "Flame", category: "analyse", defaultVisible: true },
-  { id: "fatmax-chart", label: "FatMax vs Race Intensity (legacy)", icon: "BarChart", category: "analyse", defaultVisible: false },
-  { id: "dashboard-recommendations", label: "Recommandations", icon: "Sparkles", category: "analyse", defaultVisible: true },
-  
-  // ⚙️ Outils
-  { id: "action-buttons", label: "Boutons d'action", icon: "Settings", category: "outils", defaultVisible: true },
-  { id: "low-crr-justification", label: "Justification charge faible", icon: "AlertTriangle", category: "outils", defaultVisible: false },
-  { id: "scientific-charts", label: "Graphiques Scientifiques", icon: "BarChart", category: "outils", defaultVisible: false },
-  { id: "staff-dashboard", label: "Staff Dashboard", icon: "Users", category: "outils", defaultVisible: false },
-  
-  // 🔬 INSCYD-style Simulator
-  { id: "metabolic-power-curve", label: "Metabolic Power Curve", icon: "Zap", category: "analyse", defaultVisible: true },
-  
-  // ⚡ CP/W' & W'bal Recovery (Skiba 2012)
-  { id: "cpw-prime-curve", label: "Courbe CP/W' (Puissance-Durée)", icon: "TrendingDown", category: "analyse", defaultVisible: true },
-  { id: "wbal-recovery", label: "Repos W'bal Individualisés", icon: "RotateCcw", category: "analyse", defaultVisible: true },
-
-  // 👤 Comparaison Âge
-  { id: "vo2max-age-comparison", label: "Cibles VO₂max — Comparatif âge", icon: "Calendar", category: "profil", defaultVisible: true },
-
-  // 🧠 TFCL™ Guidance
-  { id: "ai-coaching-progression", label: "TFCL™ Guidance", icon: "Brain", category: "analyse", defaultVisible: true },
-
-  // ✅ Lorang Test Checklist
-  { id: "lorang-test-checklist", label: "Checklist Tests Lorang", icon: "ClipboardCheck", category: "analyse", defaultVisible: true },
-
-  // 🧠 Cycle Intelligence Engine™
-  { id: "cycle-intelligence", label: "Cycle Intelligence™", icon: "Brain", category: "analyse", defaultVisible: true },
-
-  // 🔮 Adaptation Predictor™
-  { id: "adaptation-predictor", label: "Adaptation Predictor™", icon: "Sparkles", category: "analyse", defaultVisible: true },
-];
-
-export const TESTS_SECTIONS: SectionDefinition[] = [
-  { id: "vlamax-testing", label: "Tests VLamax", icon: "Zap", defaultVisible: true },
-  { id: "cap-testing", label: "Tests CAP", icon: "Footprints", defaultVisible: true },
-  { id: "tfcl-testing", label: "Semaine TFCL", icon: "Calendar", defaultVisible: true },
-];
-
-export const SEANCES_SECTIONS: SectionDefinition[] = [
-  { id: "workout-library", label: "Bibliothèque Séances", icon: "Dumbbell", defaultVisible: true },
-  { id: "wahoo-library", label: "Séances Wahoo", icon: "Activity", defaultVisible: true },
-];
-
-export const TEMPLATES_SECTIONS: SectionDefinition[] = [
-  { id: "week-selector", label: "Sélecteur de Semaines", icon: "Calendar", defaultVisible: true },
-  { id: "template-viewer", label: "Visualiseur Templates", icon: "FileText", defaultVisible: true },
-];
-
-export const ACADEMY_SECTIONS: SectionDefinition[] = [
-  { id: "theory-content", label: "Contenu Théorique", icon: "BookOpen", defaultVisible: true },
-  { id: "protocols", label: "Protocoles", icon: "FlaskConical", defaultVisible: true },
-];
-
-export const POTENTIEL_SECTIONS: SectionDefinition[] = [
-  { id: "readiness-card", label: "Score Potentiel Physiologique", icon: "Trophy", defaultVisible: true },
-  { id: "nutrition-timing", label: "Nutrition & Timing", icon: "Utensils", defaultVisible: true },
-  { id: "running-economy", label: "Économie de Course", icon: "Footprints", defaultVisible: true },
-  { id: "staff-report", label: "Rapport Staff", icon: "FileText", defaultVisible: true },
+  { id: "synthese-executive-dashboard", label: "Synthèse Executive", icon: "FileText", category: "analyse", defaultVisible: true },
 ];
 
 export const STRATEGIE_SECTIONS: SectionDefinition[] = [
-  { id: "race-readiness-page", label: "Potentiel Physiologique", icon: "Trophy", category: "analyse", defaultVisible: true },
+  { id: "synthese-executive", label: "Synthèse Executive", icon: "FileText", category: "analyse", defaultVisible: true },
   { id: "nutrition-v2", label: "Nutrition V2", icon: "Utensils", category: "analyse", defaultVisible: true },
   { id: "pacing-envelope", label: "Pacing Envelope", icon: "Target", category: "analyse", defaultVisible: true },
-  { id: "synthese-executive", label: "Synthèse Executive", icon: "FileText", category: "analyse", defaultVisible: true },
-  { id: "double-boucle-cap", label: "Double Boucle CAP", icon: "GitCompare", category: "analyse", defaultVisible: true },
   { id: "lactate-correspondence", label: "Correspondances Lactiques TFCL", icon: "Droplets", category: "analyse", defaultVisible: true },
   { id: "comprendre-scores", label: "Comprendre mes Scores", icon: "HelpCircle", category: "outils", defaultVisible: true },
-  { id: "seances-library", label: "Séances & Bibliothèque", icon: "Dumbbell", category: "outils", defaultVisible: true },
 ];
 
 export const EVOLUTION_SECTIONS: SectionDefinition[] = [
