@@ -103,6 +103,12 @@ export function AthleteRefsPanel({
 }: AthleteRefsPanelProps) {
   const { updateAthlete } = useCloudData();
   
+  // Détection mode running
+  const isRunningGoal = ["Marathon", "Semi", "5K", "10K", "StartToRun", "Trail", "TrailShort", "TrailMountain", "TrailUltra"].includes(athleteGoal);
+  const PHYSIO_FIELDS = isRunningGoal 
+    ? PHYSIO_FIELDS_ALL.filter(f => !RUNNING_HIDDEN_PHYSIO_KEYS.includes(f.key))
+    : PHYSIO_FIELDS_ALL;
+  
   // Calcul des refs effectives
   const effective = useMemo(() => getEffectiveRefs(athlete, snapshots), [athlete, snapshots]);
   
