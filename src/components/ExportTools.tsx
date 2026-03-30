@@ -3214,7 +3214,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       <div class="tocRow"><a href="#aai">11. Ajustement par l'Âge (AAI)</a></div>
       <div class="tocRow"><a href="#methodology">12. Méthodologies d'Entraînement</a></div>
       <div class="tocRow"><a href="#twoforcoaching">13. Analyse Two For Coaching Lab™</a></div>
-      <div class="tocRow"><a href="#wahoo">14. Suggestions Wahoo SYSTM</a></div>
+      
       <div class="tocRow"><a href="#template-recommendation">15. Template Recommandé</a></div>
       <div class="tocRow"><a href="#zones">16. Zones d'entraînement</a></div>
       <div class="tocRow"><a href="#comprendre">17. Comprendre mes scores</a></div>
