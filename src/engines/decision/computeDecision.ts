@@ -95,7 +95,7 @@ function computeStrategyFromDiagnostic(
       tte: diag.effectifs.tte.tte_min,
       tteTarget: diag.targets.current.tte_min,
       fatmax: raw.fatmax,
-      fatmaxTarget: 65,
+      fatmaxTarget: diag.limiter.gapAnalysis?.find(g => g.metric === "FatMax")?.target ?? 60,
       economy: raw.runEconomyScore,
     },
     athlete: {
