@@ -502,7 +502,7 @@ function LactateTabContent({
                 <Info className="h-3 w-3" /> Pourquoi ces valeurs ?
               </p>
               <ul className="text-[10px] text-muted-foreground space-y-0.5 list-disc pl-4">
-                <li>LT2 dépend de TTE : plus TTE est élevé, plus LT2 se rapproche de FTP</li>
+                <li>LT2 dépend de TTE : plus TTE est élevé, plus LT2 se rapproche du seuil</li>
                 <li>LT1 s'éloigne si VLamax est élevé (profil glycolytique)</li>
               </ul>
             </div>
