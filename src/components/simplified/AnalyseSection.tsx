@@ -232,15 +232,6 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
               ))}
             </div>
           )}
-          {synthesis.weaknesses && synthesis.weaknesses.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-1.5">
-              {synthesis.weaknesses.map((w, i) => (
-                <Badge key={i} variant="outline" className="text-[10px] border-[hsl(var(--destructive)/0.3)] text-[hsl(var(--destructive))]">
-                  ⚠️ {w}
-                </Badge>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Explication contextuelle */}
