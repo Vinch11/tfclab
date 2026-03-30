@@ -61,6 +61,8 @@ export function RunningEconomyModule({
   vlamax = null,
   sport,
   staffMode = false,
+  weightKg = null,
+  powerEndurance = null,
 }: RunningEconomyModuleProps) {
   // ✅ Cloud persistence - get economy from Cloud if available
   const {
