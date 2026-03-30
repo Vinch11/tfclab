@@ -764,48 +764,62 @@ export function getAgeAdjustedTargets(
   const baseTteTarget = getTTETargetByAmbition(objectif, ambition);
   const baseFtpKgTarget = getFtpKgTargetByAmbition(objectif, ambition);
   
-  const ageIndex = computeAgeAdjustmentIndex(age);
+  // ── Facteurs d'ajustement par âge (alignés avec unifiedLimiterDetection) ──
+  // Import dynamique pour éviter les dépendances circulaires
+  const perfFactor = getPerformanceAgeFactorLocal(age);
+  const tteFactor = getTTEAgeFactorLocal(age);
   
   // VLamax: PAS d'ajustement par âge - définie par objectif + ambition uniquement
   const vlamaxOptimal = baseVlamaxRange.optimal;
   const vlamaxMax = baseVlamaxRange.max;
   
-  // TTE: Légère réduction pour les masters (récupération plus longue)
-  // Mais la cible reste exigeante pour garantir la performance
-  let tteReduction = 0;
-  switch (ageIndex.category) {
-    case "young":
-    case "prime":
-      // Pas de réduction pour < 40 ans
-      break;
-    case "master1":
-      tteReduction = 3; // -3 min sur TTE cible (40-49 ans)
-      break;
-    case "master2":
-      tteReduction = 5; // -5 min sur TTE cible (50+ ans)
-      break;
-  }
+  // TTE: Ajusté par facteur d'âge (aligné avec unifiedLimiterDetection.getTTEAgeFactor)
+  const tteTarget = Math.max(35, Math.round(baseTteTarget * tteFactor));
+  const tteReduction = baseTteTarget - tteTarget;
   
-  const tteTarget = Math.max(35, baseTteTarget - tteReduction);
-  
-  // FTP/kg n'est pas ajusté par l'âge (mesure objective de performance)
+  // FTP/kg: Ajusté par facteur d'âge (aligné avec unifiedLimiterDetection.getPerformanceAgeFactor)
+  const ftpKgTarget = Math.round(baseFtpKgTarget * perfFactor * 100) / 100;
   
   let explanation = "";
-  if (ageIndex.category === "young" || ageIndex.category === "prime" || age === null) {
+  if (age === null || age < 30) {
     explanation = `Cibles définies par objectif (${objectif}) et ambition`;
   } else {
-    explanation = `Cibles définies par objectif et ambition. TTE ajusté pour ${ageIndex.label} (-${tteReduction} min)`;
+    const perfReductionPct = Math.round((1 - perfFactor) * 100);
+    const tteReductionPct = Math.round((1 - tteFactor) * 100);
+    explanation = `Cibles ajustées à ${age} ans : FTP/kg −${perfReductionPct}%, TTE −${tteReductionPct}%`;
   }
   
   return {
     vlamaxOptimal,
     vlamaxMax,
     tteTarget,
-    ftpKgTarget: baseFtpKgTarget,
-    ageAdjustmentApplied: tteReduction > 0,
-    ageCategory: ageIndex.category,
+    ftpKgTarget,
+    ageAdjustmentApplied: age !== null && age >= 30,
+    ageCategory: computeAgeAdjustmentIndex(age).category,
     explanation,
   };
+}
+
+/**
+ * Facteur d'ajustement performance par âge (dupliqué de unifiedLimiterDetection pour éviter import circulaire)
+ */
+function getPerformanceAgeFactorLocal(age: number | null): number {
+  if (age === null || age < 30) return 1.0;
+  if (age < 40) return 0.97;
+  if (age < 50) return 0.92;
+  if (age < 60) return 0.85;
+  return 0.78;
+}
+
+/**
+ * Facteur d'ajustement TTE par âge (dupliqué de unifiedLimiterDetection pour éviter import circulaire)
+ */
+function getTTEAgeFactorLocal(age: number | null): number {
+  if (age === null || age < 30) return 1.0;
+  if (age < 40) return 0.98;
+  if (age < 50) return 0.95;
+  if (age < 60) return 0.90;
+  return 0.85;
 }
 
 /**
@@ -834,14 +848,14 @@ Il ajuste l'interprétation physiologique pour proposer des recommandations plus
   
   principles: [
     "L'âge ne modifie PAS vos valeurs mesurées (FTP, VLamax, TTE)",
-    "L'âge MODIFIE l'interprétation et les recommandations de récupération",
+    "L'âge MODIFIE les cibles de FTP/kg, TTE et VO2max pour refléter le déclin physiologique naturel",
     "La VLamax cible dépend de votre OBJECTIF et AMBITION, pas de votre âge",
-    "Les cibles TTE sont légèrement ajustées pour les masters (récupération)",
-    "La nutrition est adaptée à la tolérance physiologique liée à l'âge",
+    "Les cibles TTE sont ajustées pour les masters (−2% à −15% selon l'âge)",
+    "Les cibles FTP/kg sont ajustées pour les masters (−3% à −22% selon l'âge)",
   ],
   
   staffNote: `La VLamax cible est définie par l'objectif et l'ambition de l'athlète.
-L'âge influence l'interprétation du profil et les recommandations, pas la cible elle-même.`,
+L'âge ajuste les cibles FTP/kg, TTE et VO2max pour refléter le déclin physiologique naturel, pas la cible VLamax.`,
   
   disclaimer: "Ces ajustements sont basés sur la littérature scientifique et l'expérience de terrain. Ils ne remplacent pas un avis médical.",
 };
