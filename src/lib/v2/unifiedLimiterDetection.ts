@@ -330,7 +330,43 @@ export function getVo2maxAgeFactor(age: number | null): number {
 }
 
 /**
- * Retourne un message explicatif sur l'ajustement VO2max par âge
+ * Facteur d'ajustement par âge pour les métriques de performance (FTP/kg, VMA)
+ * Déclin plus modéré que le VO2max (~5-7% par décennie après 30 ans)
+ * 
+ * < 30 ans : 1.00
+ * 30-39 ans : 0.97 (−3%)
+ * 40-49 ans : 0.92 (−8%)
+ * 50-59 ans : 0.85 (−15%)
+ * ≥ 60 ans : 0.78 (−22%)
+ */
+export function getPerformanceAgeFactor(age: number | null): number {
+  if (age === null || age < 30) return 1.0;
+  if (age < 40) return 0.97;
+  if (age < 50) return 0.92;
+  if (age < 60) return 0.85;
+  return 0.78;
+}
+
+/**
+ * Facteur d'ajustement TTE par âge
+ * Le TTE décline moins vite — l'endurance se maintient mieux
+ * 
+ * < 30 ans : 1.00
+ * 30-39 ans : 0.98 (−2%)
+ * 40-49 ans : 0.95 (−5%)
+ * 50-59 ans : 0.90 (−10%)
+ * ≥ 60 ans : 0.85 (−15%)
+ */
+export function getTTEAgeFactor(age: number | null): number {
+  if (age === null || age < 30) return 1.0;
+  if (age < 40) return 0.98;
+  if (age < 50) return 0.95;
+  if (age < 60) return 0.90;
+  return 0.85;
+}
+
+/**
+ * Retourne un message explicatif sur l'ajustement par âge
  */
 export function getVo2maxAgeAdjustmentLabel(age: number | null): string | null {
   if (age === null || age < 30) return null;
@@ -341,20 +377,28 @@ export function getVo2maxAgeAdjustmentLabel(age: number | null): string | null {
 
 /**
  * Retourne la cible VO2max ajustée selon objectif, ambition ET âge
- * 
- * Exemple: Elite Marathon
- * - < 30 ans → 70 ml/kg/min
- * - 40 ans → 70 × 0.88 = 61.6 ml/kg/min
- * - 55 ans → 70 × 0.80 = 56 ml/kg/min
  */
 export function getVo2maxTarget(objectif: string, ambition: string, age: number | null = null): number {
   const normalized = normalizeObjective(objectif);
   const targets = VO2MAX_TARGETS[normalized] || VO2MAX_TARGETS["703"];
   const baseTarget = targets[ambition] || targets.age_group;
   
-  // Application du facteur âge
   const ageFactor = getVo2maxAgeFactor(age);
-  return Math.round(baseTarget * ageFactor * 10) / 10; // Arrondi à 1 décimale
+  return Math.round(baseTarget * ageFactor * 10) / 10;
+}
+
+/**
+ * Ajuste une cible de performance (FTP/kg, VMA) selon l'âge
+ */
+function adjustPerformanceTarget(baseTarget: number, age: number | null): number {
+  return Math.round(baseTarget * getPerformanceAgeFactor(age) * 100) / 100;
+}
+
+/**
+ * Ajuste une cible TTE selon l'âge
+ */
+function adjustTTETarget(baseTarget: number, age: number | null): number {
+  return Math.round(baseTarget * getTTEAgeFactor(age));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
