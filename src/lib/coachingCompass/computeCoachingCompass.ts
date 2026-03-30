@@ -604,7 +604,8 @@ function normalizeScore(value: number | null, min: number, max: number): number 
  * En dessous, le score est proportionnel (0% de la cible = 0, 100% = 100).
  * Dépasser la cible reste à 100 (pas de bonus).
  */
-function scoreRelativeToTarget(value: number | null, target: number | null): number {
+// Exported for reuse in ambitionThresholds and other modules
+export function scoreRelativeToTarget(value: number | null, target: number | null): number {
   if (value === null || !target || target === 0) return 0;
   const ratio = value / target;
   if (ratio >= 1.0) return 100;
