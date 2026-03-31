@@ -6830,6 +6830,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     performancePrediction: buildPerformancePredictionHTML(payload),
     facteursLimitants: buildFacteursLimitantsHTML(payload),
     leviersAction: buildLeviersActionHTML(payload),
+    cpWprimeWbal: buildCpWprimeWbalHTML(payload),
   };
   
   // Récupérer l'ordre personnalisé des sections
