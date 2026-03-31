@@ -663,64 +663,84 @@ export function StaffReport({
 
         <Separator />
 
-        {/* 4️⃣ PRÉDICTIONS D'AMBITION */}
-        <div>
-          <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            PRÉDICTIONS D'AMBITION
-          </h3>
-          
-          {/* Current Ambition Prediction Summary */}
-          <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 mb-3">
-            <p className="font-medium text-sm">{report.ambitionPredictions.currentAmbitionPrediction}</p>
-            <p className="text-xs text-muted-foreground mt-1">{report.ambitionPredictions.trendSummary}</p>
-          </div>
-          
-          {/* Predictions Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {report.ambitionPredictions.predictions.map((prediction) => {
-              const isCurrentAmbition = prediction.ambition === report.ambition;
-              return (
-                <div
-                  key={prediction.ambition}
-                  className={cn(
-                    "p-3 rounded-lg border text-center",
-                    isCurrentAmbition && "border-primary/50 bg-primary/5",
-                    prediction.isReached && "bg-emerald-500/10 border-emerald-500/30"
-                  )}
-                >
-                  <div className="font-medium text-sm mb-1">
-                    {prediction.ambitionIcon} {prediction.ambitionLabel}
-                  </div>
-                  <div className={cn(
-                    "text-lg font-bold",
-                    prediction.isReached && "text-emerald-600 dark:text-emerald-400"
-                  )}>
-                    {prediction.delayLabel}
-                  </div>
-                  {prediction.currentProgress !== null && !prediction.isReached && (
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {prediction.currentProgress}% actuel
-                    </div>
-                  )}
-                  <Badge 
-                    variant="outline" 
-                    className={cn(
-                      "text-[9px] mt-2",
-                      prediction.confidence === "high" && "border-emerald-500/50 text-emerald-600",
-                      prediction.confidence === "medium" && "border-blue-500/50 text-blue-600",
-                      prediction.confidence === "low" && "border-amber-500/50 text-amber-600"
-                    )}
-                  >
-                    {prediction.confidence === "high" ? "Confiant" : 
-                     prediction.confidence === "medium" ? "Estimé" : 
-                     prediction.confidence === "low" ? "Incertain" : "?"}
-                  </Badge>
+        {/* 4️⃣ FATMAX TFCL — ZONES MÉTABOLIQUES */}
+        {fatmax && (
+          <div className="print:break-inside-avoid">
+            <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+              🔥 FATMAX TFCL™ — ZONES MÉTABOLIQUES
+              <Badge 
+                variant="outline" 
+                className={cn(
+                  "text-[10px]",
+                  fatmax.confidenceLevel === "HIGH" && "border-emerald-500/50 text-emerald-600",
+                  fatmax.confidenceLevel === "MEDIUM" && "border-blue-500/50 text-blue-600",
+                  fatmax.confidenceLevel === "LOW" && "border-amber-500/50 text-amber-600"
+                )}
+              >
+                Confiance {fatmax.confidenceLabel}
+              </Badge>
+            </h3>
+            <div className="p-4 rounded-lg bg-muted/30 border">
+              <div className="grid grid-cols-3 gap-4 text-center mb-4">
+                <div className="p-3 rounded bg-background/50">
+                  <p className="text-xs text-muted-foreground mb-1">FatMax TFCL</p>
+                  <p className="text-lg font-bold text-primary">{fatmax.centerPctFTP}% FTP</p>
+                  <p className="text-[10px] text-muted-foreground">{fatmax.minPctFTP}–{fatmax.maxPctFTP}%</p>
                 </div>
-              );
-            })}
+                <div className="p-3 rounded bg-background/50">
+                  <p className="text-xs text-muted-foreground mb-1">Crossover Zone</p>
+                  <p className="text-lg font-bold text-amber-600 dark:text-amber-400">{fatmax.crossoverZoneLabel}</p>
+                  <p className="text-[10px] text-muted-foreground">50% lipides / 50% glucides</p>
+                </div>
+                <div className="p-3 rounded bg-background/50">
+                  <p className="text-xs text-muted-foreground mb-1">Zone Métabolique</p>
+                  <p className="text-lg font-bold">{fatmax.zoneLabel}</p>
+                </div>
+              </div>
+              
+              {fatmax.adjustments.length > 0 && (
+                <div className="mb-3 p-3 rounded bg-background/50">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Ajustements appliqués :</p>
+                  <div className="space-y-1">
+                    {fatmax.adjustments.map((adj, i) => (
+                      <div key={i} className="flex justify-between text-xs">
+                        <span>{adj.label}</span>
+                        <span className={cn(
+                          "font-mono",
+                          adj.direction === "up" ? "text-emerald-600" : adj.direction === "down" ? "text-destructive" : "text-muted-foreground"
+                        )}>
+                          {adj.value > 0 ? "+" : ""}{adj.value}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <p className="text-xs text-muted-foreground">{fatmax.interpretation}</p>
+              <p className="text-[10px] text-muted-foreground mt-2 italic">{fatmax.staffNote}</p>
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-2 italic">
+              ⚠️ {FATMAX_DEFINITIONS.scientificWarning}
+            </p>
           </div>
-        </div>
+        )}
+
+        {/* 4b️⃣ CIBLES FTP/kg ou VMA */}
+        <FtpVmaTargetsReportSection
+          objectif={objectif}
+          ftp={ftp}
+          poids={poids}
+          athleteAge={athleteAge}
+          snapshot={snapshot}
+        />
+
+        {/* 4c️⃣ ÉCONOMIE DE COURSE */}
+        <RunningEconomyReportSection
+          snapshot={snapshot}
+          objectif={objectif}
+          tteMin={tteEffectif.tte_min}
+        />
 
         <Separator />
 
