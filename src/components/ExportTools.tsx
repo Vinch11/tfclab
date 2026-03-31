@@ -3133,6 +3133,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       performancePrediction: "performance-prediction",
       facteursLimitants: "facteurs-limitants",
       leviersAction: "leviers-action",
+      cpWprimeWbal: "cp-wprime-wbal",
     };
     
     const tocRows = visibleSections.map((key, i) => {
