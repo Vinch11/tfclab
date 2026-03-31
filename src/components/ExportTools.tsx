@@ -6956,14 +6956,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     profilMetabolique: profilMetaboliqueHTML,
     vlamaxZoneConfidence: buildVLamaxZoneConfidenceHTML(payload),
     indicateurs: indicateursHTML,
-    potentielPhysiologique: potentielPhysiologiqueHTML,
-    disponibiliteTFCL: disponibiliteTFCLHTML,
-    raceSimulation: buildRaceSimulationHTML(payload, 'pro'),
     pacingEnvelope: buildPacingEnvelopeHTML(payload),
-    longDistancePacing: buildLongDistancePacingHTML(payload),
-    doubleBoucleCAP: buildDoubleBoucleCAPHTML(payload),
     potentielPhysiologiqueRunning: buildPotentielPhysiologiqueRunningHTML(payload),
-    pacingEnvelopeRunning: buildPacingEnvelopeRunningHTML(payload),
     injuryRisk: injuryRiskHTML,
     nutritionV2: buildNutritionV2HTML(payload),
     fatmaxTFCL: buildFatMaxTFCLHTML(payload),
@@ -6988,6 +6982,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     facteursLimitants: buildFacteursLimitantsHTML(payload),
     leviersAction: buildLeviersActionHTML(payload),
     cpWprimeWbal: buildCpWprimeWbalHTML(payload),
+    lactateCorrespondence: buildLactateCorrespondenceHTML(payload),
+    cycleIntelligence: buildCycleIntelligenceHTML(payload),
   };
   
   // Récupérer l'ordre personnalisé des sections
