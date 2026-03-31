@@ -82,6 +82,7 @@ export const SECTION_LABELS: Record<keyof ReportSections, string> = {
   performancePrediction: "⏱️ Prédiction de Performance",
   facteursLimitants: "🎯 Facteurs Limitants",
   leviersAction: "🔧 Leviers d'Action",
+  cpWprimeWbal: "⚡ CP / W' & Repos W'bal",
 };
 
 // Catégories pour regroupement visuel
