@@ -29,7 +29,7 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
         {[...Array(15)].map((_, i) => (
           <div
             key={i}
-            className="absolute rounded-full bg-gradient-to-r from-primary/30 to-cyan-500/30"
+            className="absolute rounded-full bg-gradient-to-r from-[hsl(192,80%,50%)]/30 to-[hsl(32,85%,52%)]/20"
             style={{
               width: `${Math.random() * 6 + 3}px`,
               height: `${Math.random() * 6 + 3}px`,
@@ -37,7 +37,7 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
               top: `${Math.random() * 100}%`,
               animation: `float ${Math.random() * 10 + 10}s linear infinite`,
               animationDelay: `${Math.random() * 5}s`,
-              boxShadow: `0 0 ${Math.random() * 10 + 5}px rgba(59, 130, 246, 0.3)`,
+              boxShadow: `0 0 ${Math.random() * 10 + 5}px rgba(0, 180, 216, 0.3)`,
             }}
           />
         ))}
