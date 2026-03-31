@@ -76,6 +76,8 @@ import {
 import { computePerformancePredictions } from "@/lib/v2/performancePrediction";
 // ✅ NEW: Coaching Compass (5 axes)
 import { computeCoachingCompass, type TFCLCoachingCompassResult, type CoachingCompassInput } from "@/lib/coachingCompass";
+// ✅ NEW: Import CP/W' model
+import { analyzeCriticalPower, generateRecoveryTable, effectiveWprime, type CriticalPowerResult } from "@/lib/v2/criticalPowerModel";
 
 // =============================================
 // TYPES
@@ -131,6 +133,7 @@ export interface ReportSections {
   performancePrediction: boolean; // Prédiction de Performance
   facteursLimitants: boolean; // Facteurs Limitants (moteur unifié)
   leviersAction: boolean;    // Leviers d'Action (moteur unifié)
+  cpWprimeWbal: boolean;     // CP / W' & Repos Optimaux W'bal
 }
 
 interface ExportOptions {
@@ -1315,13 +1318,23 @@ function buildExportPayload(
     : ["IM", "Ironman", "703", "70.3", "Half", "Olympic", "Sprint"].includes(objectifForLimiter) ? "tri"
     : "bike";
 
+  // ✅ Compute CP/W' for unified limiter and report
+  const cpResultForPayload = analyzeCriticalPower({
+    pmax_5s: effectiveSnapshot?.pmax_5s ?? null,
+    p30s_w: effectiveSnapshot?.p30s_w ?? null,
+    p60s_w: effectiveSnapshot?.p60s_w ?? null,
+    map5min_w: effectiveSnapshot?.map5min_w ?? null,
+    ftp: effectiveRefs.ftp ?? null,
+    weight_kg: effectiveRefs.weightKg ?? null,
+  });
+
   // ✅ Compute Unified Limiter — IDENTIQUE au dashboard (Index.tsx)
   const unifiedLimiter = detectUnifiedLimiter({
     vo2max: effectiveSnapshot?.vo2max ?? null,
     ftpKg: ftpKg,
     vlamax: vlamax.value,
-    wprimeKj: null,
-    cpDataQuality: null,
+    wprimeKj: cpResultForPayload ? cpResultForPayload.wprimeKJ : null,
+    cpDataQuality: cpResultForPayload ? cpResultForPayload.dataQuality : null,
     tte: tte.tte_min,
     fatmax: null,
     economyScore: effectiveSnapshot?.run_economy_score ?? null,
@@ -1592,7 +1605,7 @@ function buildExportPayload(
         },
         strategyResult: null,
         lactateThresholds: null,
-        wprimeKj: null,
+        wprimeKj: cpResultForPayload ? cpResultForPayload.wprimeKJ : null,
         objectif: athlete.goal || "IM",
         ambition: ambition,
         sportFocus: (effectiveSnapshot?.sport_main as any) ?? "bike",
@@ -2430,6 +2443,161 @@ function buildLeviersActionHTML(payload: ExportPayload): string {
 }
 
 // =============================================
+// CP / W' & W'BAL RECOVERY — HTML REPORT SECTION
+// =============================================
+
+function buildCpWprimeWbalHTML(payload: ExportPayload): string {
+  const snap = payload.effectiveSnapshot;
+  const ftp = payload.effectiveRefs.ftp ?? null;
+  const poids = payload.effectiveRefs.weightKg ?? null;
+
+  const pmax5s = snap?.pmax_5s ?? null;
+  const p30s = snap?.p30s_w ?? null;
+  const p60s = snap?.p60s_w ?? null;
+  const map5min = snap?.map5min_w ?? null;
+
+  const cpResult = analyzeCriticalPower({
+    pmax_5s: pmax5s,
+    p30s_w: p30s,
+    p60s_w: p60s,
+    map5min_w: map5min,
+    ftp,
+    weight_kg: poids,
+  });
+
+  if (!cpResult) {
+    return `
+      <section id="cp-wprime-wbal" class="section pagebreakAvoid">
+        <h2>⚡ Puissance Critique & W' — Repos Optimaux W'bal</h2>
+        <div class="card" style="padding:16px;">
+          <p class="muted">Données insuffisantes pour le calcul CP/W'. Renseignez au moins 2 puissances parmi P30s, P60s, MAP5min dans le snapshot.</p>
+        </div>
+      </section>
+    `;
+  }
+
+  const recoveryTable = generateRecoveryTable(cpResult.effectiveCP, cpResult.wprime, poids ?? undefined);
+  const wprimeEff = effectiveWprime(cpResult.wprime);
+
+  const qualityColor = cpResult.dataQuality === "good" ? "#16a34a" : cpResult.dataQuality === "suspect" ? "#f59e0b" : "#dc2626";
+  const qualityLabel = cpResult.dataQuality === "good" ? "✓ Bonne" : cpResult.dataQuality === "suspect" ? "⚠ Suspecte" : "✗ Implausible";
+
+  // Diagnostics HTML
+  const diagnosticsHTML = cpResult.diagnostics.length > 0
+    ? cpResult.diagnostics.map(d => {
+        const color = d.severity === "critical" ? "#dc2626" : d.severity === "warning" ? "#f59e0b" : "#3b82f6";
+        const icon = d.severity === "critical" ? "🔴" : d.severity === "warning" ? "🟡" : "ℹ️";
+        return `<div style="display:flex;gap:6px;align-items:flex-start;padding:6px 8px;border-radius:6px;background:${color}10;border:1px solid ${color}30;font-size:11px;">
+          <span>${icon}</span>
+          <span>${htmlEscape(d.message)}</span>
+        </div>`;
+      }).join("")
+    : "";
+
+  // Data points badges
+  const pointsBadges = cpResult.points.map(pt => {
+    const isOverlay = 'regressionPoint' in pt ? !(pt as any).regressionPoint : false;
+    const style = isOverlay
+      ? "background:#f1f5f9;color:#64748b;border:1px dashed #94a3b8;"
+      : "background:#eff6ff;color:#2563eb;border:1px solid #93c5fd;";
+    return `<span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-family:monospace;${style}">${htmlEscape(pt.label || pt.durationSec + 's')}: ${pt.powerWatts}W${isOverlay ? ' (overlay)' : ''}</span>`;
+  }).join(" ");
+
+  // Recovery table rows
+  const recoveryRows = recoveryTable && recoveryTable.length > 0
+    ? recoveryTable.map(row => {
+        const repColor = row.maxReps >= 8 ? "#16a34a" : row.maxReps >= 4 ? "#f59e0b" : "#dc2626";
+        return `<tr>
+          <td style="padding:6px 8px;font-weight:500;">${htmlEscape(row.format)}</td>
+          <td style="padding:6px 8px;font-family:monospace;color:#2563eb;">${htmlEscape(row.intervalPower)}</td>
+          <td style="padding:6px 8px;font-family:monospace;">${htmlEscape(row.optimalRest)}</td>
+          <td style="padding:6px 8px;text-align:right;"><span style="display:inline-block;padding:1px 8px;border-radius:9999px;font-size:10px;font-weight:600;color:white;background:${repColor};">×${row.maxReps}</span></td>
+        </tr>`;
+      }).join("")
+    : "";
+
+  return `
+    <section id="cp-wprime-wbal" class="section pagebreakAvoid">
+      <h2>⚡ Puissance Critique & W' — Repos Optimaux W'bal</h2>
+      
+      <div class="card" style="padding:16px;">
+        <!-- Quality badge -->
+        <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+          <span style="display:inline-block;padding:2px 10px;border-radius:9999px;font-size:10px;font-weight:600;color:${qualityColor};border:1px solid ${qualityColor}40;background:${qualityColor}10;">
+            Qualité ${qualityLabel}
+          </span>
+        </div>
+
+        <!-- Main metrics -->
+        <div class="grid2" style="gap:12px;margin-bottom:16px;">
+          <div style="background:#f8fafc;border-radius:8px;padding:12px;text-align:center;">
+            <div style="font-size:11px;color:#64748b;">Critical Power</div>
+            <div style="font-size:24px;font-weight:700;color:#2563eb;font-family:monospace;">${cpResult.effectiveCP}W</div>
+            ${cpResult.cpBounded ? `<div style="font-size:10px;color:#f59e0b;">Borné FTP (${cpResult.cp}W brut)</div>` : ""}
+            ${cpResult.cpWkg ? `<div style="font-size:10px;color:#64748b;font-family:monospace;">${cpResult.effectiveCPWkg ?? cpResult.cpWkg} W/kg</div>` : ""}
+          </div>
+          <div style="background:#f8fafc;border-radius:8px;padding:12px;text-align:center;">
+            <div style="font-size:11px;color:#64748b;">W' (Cap. Anaérobie)</div>
+            <div style="font-size:24px;font-weight:700;color:#dc2626;font-family:monospace;">${cpResult.wprimeKJ} kJ</div>
+            ${cpResult.wprimeJkg ? `<div style="font-size:10px;color:#64748b;font-family:monospace;">${cpResult.wprimeJkg} J/kg</div>` : ""}
+            ${wprimeEff > cpResult.wprime ? `<div style="font-size:10px;color:#f59e0b;">Plancher 10kJ appliqué</div>` : ""}
+          </div>
+        </div>
+
+        <!-- Secondary metrics -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
+          <div style="background:#f8fafc;border-radius:6px;padding:8px;text-align:center;">
+            <div style="font-size:10px;color:#64748b;">R² Modèle</div>
+            <div style="font-size:14px;font-weight:700;font-family:monospace;color:${cpResult.r2 > 0.95 ? '#16a34a' : cpResult.r2 > 0.9 ? '#f59e0b' : '#dc2626'};">${cpResult.r2.toFixed(3)}</div>
+          </div>
+          <div style="background:#f8fafc;border-radius:6px;padding:8px;text-align:center;">
+            <div style="font-size:10px;color:#64748b;">Points</div>
+            <div style="font-size:14px;font-weight:700;font-family:monospace;">${cpResult.points.length}</div>
+          </div>
+          <div style="background:#f8fafc;border-radius:6px;padding:8px;text-align:center;">
+            <div style="font-size:10px;color:#64748b;">FTP/CP</div>
+            <div style="font-size:14px;font-weight:700;font-family:monospace;">${cpResult.ftpCpRatio ? cpResult.ftpCpRatio.toFixed(2) : '—'}</div>
+          </div>
+        </div>
+
+        <!-- Diagnostics -->
+        ${diagnosticsHTML ? `<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:16px;">${diagnosticsHTML}</div>` : ""}
+
+        <!-- Data points -->
+        <div style="margin-bottom:16px;">
+          <div style="font-size:10px;color:#64748b;margin-bottom:4px;font-weight:600;">Points de données</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;">${pointsBadges}</div>
+        </div>
+
+        <!-- Recovery table -->
+        ${recoveryRows ? `
+        <div style="margin-top:16px;">
+          <div style="font-size:12px;font-weight:600;color:#64748b;margin-bottom:8px;">🔄 Repos Optimaux W'bal (Skiba 2012)</div>
+          <table style="width:100%;border-collapse:collapse;font-size:11px;">
+            <thead>
+              <tr style="border-bottom:2px solid #e2e8f0;">
+                <th style="text-align:left;padding:6px 8px;color:#64748b;font-weight:500;">Format</th>
+                <th style="text-align:left;padding:6px 8px;color:#64748b;font-weight:500;">Puissance</th>
+                <th style="text-align:left;padding:6px 8px;color:#64748b;font-weight:500;">Repos optimal</th>
+                <th style="text-align:right;padding:6px 8px;color:#64748b;font-weight:500;">Reps max</th>
+              </tr>
+            </thead>
+            <tbody>${recoveryRows}</tbody>
+          </table>
+        </div>
+        ` : ""}
+
+        <!-- Footer note -->
+        <div style="margin-top:12px;font-size:10px;color:#94a3b8;font-style:italic;">
+          Durées calibrées sur W' individuel (${cpResult.wprimeKJ} kJ) et CP effectif (${cpResult.effectiveCP}W).
+          Modèle : reconstitution exponentielle W'bal — Skiba et al. (2012).
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// =============================================
 
 function buildRoadmapHTML(payload: ExportPayload): string {
   // ✅ Réutilise le limiter unifié du payload (source unique de vérité)
@@ -3130,6 +3298,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       performancePrediction: "performance-prediction",
       facteursLimitants: "facteurs-limitants",
       leviersAction: "leviers-action",
+      cpWprimeWbal: "cp-wprime-wbal",
     };
     
     const tocRows = visibleSections.map((key, i) => {
@@ -6826,6 +6995,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     performancePrediction: buildPerformancePredictionHTML(payload),
     facteursLimitants: buildFacteursLimitantsHTML(payload),
     leviersAction: buildLeviersActionHTML(payload),
+    cpWprimeWbal: buildCpWprimeWbalHTML(payload),
   };
   
   // Récupérer l'ordre personnalisé des sections
@@ -7341,6 +7511,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       performancePrediction: false,
       facteursLimitants: false,
       leviersAction: false,
+      cpWprimeWbal: false,
     };
     setSections(allFalse);
   };

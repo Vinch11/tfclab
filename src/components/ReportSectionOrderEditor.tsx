@@ -82,6 +82,7 @@ export const SECTION_LABELS: Record<keyof ReportSections, string> = {
   performancePrediction: "⏱️ Prédiction de Performance",
   facteursLimitants: "🎯 Facteurs Limitants",
   leviersAction: "🔧 Leviers d'Action",
+  cpWprimeWbal: "⚡ CP / W' & Repos W'bal",
 };
 
 // Catégories pour regroupement visuel
@@ -122,6 +123,7 @@ const SECTION_CATEGORIES: Record<keyof ReportSections, string> = {
   performancePrediction: "Performance",
   facteursLimitants: "Analyse",
   leviersAction: "Entraînement",
+  cpWprimeWbal: "Performance",
 };
 
 // Couleurs par catégorie
@@ -176,6 +178,7 @@ export const DEFAULT_SECTION_ORDER: (keyof ReportSections)[] = [
   "lactateCurve",
   "substrateCurve",
   "performancePrediction",
+  "cpWprimeWbal",
 ];
 
 // Visibilité par défaut (toutes visibles) - Also exported as DEFAULT_REPORT_SECTIONS
@@ -216,6 +219,7 @@ export const DEFAULT_VISIBILITY: Record<keyof ReportSections, boolean> = {
   performancePrediction: true,
   facteursLimitants: true,
   leviersAction: true,
+  cpWprimeWbal: true,
 };
 
 // Export alias for backward compatibility
