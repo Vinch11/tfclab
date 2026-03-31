@@ -111,13 +111,13 @@ export interface ReportSections {
   vlamaxZoneConfidence: boolean; // ⚡ VLamax = Zone × Confiance (graphique signature)
   indicateurs: boolean;     // Indicateurs Clés
   potentielPhysiologique: boolean;   // Potentiel Physiologique
-  disponibiliteTFCL: boolean; // ✅ Disponibilité TFCL™
-  raceSimulation: boolean;  // ✅ Simulation de Course TFCL™
-  pacingEnvelope: boolean;  // ✅ Pacing Envelope™ - Discipline Métabolique
-  longDistancePacing: boolean; // ✅ Long Distance Pacing Discipline
-  doubleBoucleCAP: boolean; // ✅ Double Boucle CAP (Running)
-  potentielPhysiologiqueRunning: boolean; // ✅ Potentiel Physiologique CAP (Running)
-  pacingEnvelopeRunning: boolean; // ✅ Pacing Envelope™ CAP (Running)
+  disponibiliteTFCL: boolean; // Disponibilité TFCL™
+  raceSimulation: boolean;  // Simulation de Course TFCL™
+  pacingEnvelope: boolean;  // Pacing Envelope™ - Discipline Métabolique
+  longDistancePacing: boolean; // Long Distance Pacing Discipline
+  doubleBoucleCAP: boolean; // Double Boucle CAP (Running)
+  potentielPhysiologiqueRunning: boolean; // Potentiel Physiologique CAP (Running)
+  pacingEnvelopeRunning: boolean; // Pacing Envelope™ CAP (Running)
   injuryRisk: boolean;      // Risque de Blessure CAP
   nutritionV2: boolean;     // Nutrition Prédictive V2
   fatmaxTFCL: boolean;      // FatMax TFCL
@@ -126,17 +126,12 @@ export interface ReportSections {
   evolutionCharts: boolean; // Graphiques d'évolution
   ageAdjustment: boolean;   // Ajustement par l'Âge (AAI)
   ambitionLegend: boolean;  // Légende des cibles par ambition
-  methodology: boolean;     // Méthodologies d'entraînement
-  twoForCoaching: boolean;  // Analyse Two For Coaching Lab™
-  wahoo: boolean;           // Suggestions Wahoo SYSTM
-  planSuggestion: boolean;  // Suggestion de Plan
-  templateRecommendation: boolean; // Template recommandé
   zones: boolean;           // Zones d'entraînement
   historique: boolean;      // Historique Profils
   tests: boolean;           // Historique Tests
-  testsCalibration: boolean; // ✅ Tests & Calibration TFCL
-  calibrationEvidence: boolean; // ✅ Calibration Evidence Summary
-  fitImports: boolean;      // ✅ Tests Observés (import FIT)
+  testsCalibration: boolean; // Tests & Calibration TFCL
+  calibrationEvidence: boolean; // Calibration Evidence Summary
+  fitImports: boolean;      // Tests Observés (import FIT)
   checkins: boolean;        // Check-ins
   comprendre: boolean;      // Comprendre mes scores
   qualite: boolean;         // Qualité des données
