@@ -748,6 +748,13 @@ export function StaffReport({
           tteMin={tteEffectif.tte_min}
         />
 
+        {/* 4d️⃣ CP / W' & W'BAL RECOVERY */}
+        <CpWprimeReportSection
+          snapshot={snapshot}
+          ftp={ftp}
+          poids={poids}
+        />
+
         <Separator />
 
         {/* TFCL REFERENCE WEEK — QUALITÉ DES TESTS */}
