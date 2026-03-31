@@ -131,6 +131,7 @@ export interface ReportSections {
   performancePrediction: boolean; // Prédiction de Performance
   facteursLimitants: boolean; // Facteurs Limitants (moteur unifié)
   leviersAction: boolean;    // Leviers d'Action (moteur unifié)
+  cpWprimeWbal: boolean;     // CP / W' & Repos Optimaux W'bal
 }
 
 interface ExportOptions {
