@@ -2651,3 +2651,191 @@ function MetabolicZonesReportSection({
     </div>
   );
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// LACTATE THRESHOLDS TFCL REPORT SECTION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function LactateThresholdsReportSection({
+  vlamaxEffectif,
+  tteEffectif,
+  ftp,
+  sport,
+}: {
+  vlamaxEffectif: VLamaxEffectif;
+  tteEffectif: TTEEffectif;
+  ftp: number | null;
+  sport: string;
+}) {
+  const lt = computeLactateThresholdsTFCL({
+    ftp,
+    sport,
+    tteValue: tteEffectif.tte_min,
+    tteSource: tteEffectif.source === 'observed' ? 'observed' : 'estimated',
+    vlamaxValue: vlamaxEffectif.value,
+    vlamaxSource: vlamaxEffectif.source === 'test' ? 'test' : 'estimated',
+  });
+
+  if (!lt.lt1.watts && !lt.lt2.watts) return null;
+
+  const confColor = (c: number) =>
+    c >= 0.75 ? "text-emerald-600 dark:text-emerald-400"
+    : c >= 0.55 ? "text-amber-600 dark:text-amber-400"
+    : "text-red-600 dark:text-red-400";
+
+  return (
+    <div className="print:break-inside-avoid">
+      <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+        💧 SEUILS LACTIQUES TFCL — LT1 / LT2
+      </h3>
+      <div className="p-4 rounded-lg bg-muted/30 border">
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          {/* LT1 */}
+          <div className="p-3 rounded-lg bg-background/50 border">
+            <p className="text-xs text-muted-foreground mb-1">LT1 — Seuil Aérobie (~2 mmol/L)</p>
+            <p className="text-xl font-bold font-mono text-primary">
+              {lt.lt1.watts != null ? `${lt.lt1.watts}W` : "—"}
+            </p>
+            {lt.lt1.pct_of_ftp != null && (
+              <p className="text-xs text-muted-foreground">{lt.lt1.pct_of_ftp}% FTP</p>
+            )}
+            <p className={cn("text-[10px] mt-1", confColor(lt.lt1.confidence))}>
+              Confiance: {Math.round(lt.lt1.confidence * 100)}%
+            </p>
+          </div>
+          {/* LT2 */}
+          <div className="p-3 rounded-lg bg-background/50 border">
+            <p className="text-xs text-muted-foreground mb-1">LT2 — Seuil Anaérobie (MLSS ~4 mmol/L)</p>
+            <p className="text-xl font-bold font-mono text-destructive">
+              {lt.lt2.watts != null ? `${lt.lt2.watts}W` : "—"}
+            </p>
+            {lt.lt2.pct_of_ftp != null && (
+              <p className="text-xs text-muted-foreground">{lt.lt2.pct_of_ftp}% FTP</p>
+            )}
+            <p className={cn("text-[10px] mt-1", confColor(lt.lt2.confidence))}>
+              Confiance: {Math.round(lt.lt2.confidence * 100)}%
+            </p>
+          </div>
+        </div>
+
+        {lt.notes.length > 0 && (
+          <div className="p-2 rounded bg-amber-500/10 border border-amber-500/20">
+            {lt.notes.map((n, i) => (
+              <p key={i} className="text-[10px] text-amber-700 dark:text-amber-400">⚠️ {n}</p>
+            ))}
+          </div>
+        )}
+
+        <p className="text-[10px] text-muted-foreground mt-3 italic">
+          💡 Estimation TFCL basée sur VLamax ({vlamaxEffectif.value?.toFixed(2)}), TTE ({tteEffectif.tte_min}min), et FTP ({ftp}W).
+          Pas un substitut à un test lactate en laboratoire.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TRAINING ZONES REPORT SECTION (HR + Watts)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function TrainingZonesReportSection({
+  ftp,
+  fcMax,
+  snapshot,
+}: {
+  ftp: number | null;
+  fcMax: number | null;
+  snapshot?: DbSnapshot | null;
+}) {
+  if (!ftp && !fcMax) return null;
+
+  // Power zones based on FTP (Coggan)
+  const powerZones = ftp ? [
+    { zone: "Z1", label: "Récupération", min: 0, max: Math.round(ftp * 0.55), pctRange: "<55%" },
+    { zone: "Z2", label: "Endurance", min: Math.round(ftp * 0.55), max: Math.round(ftp * 0.75), pctRange: "55–75%" },
+    { zone: "Z3", label: "Tempo", min: Math.round(ftp * 0.75), max: Math.round(ftp * 0.90), pctRange: "75–90%" },
+    { zone: "Z4", label: "Seuil", min: Math.round(ftp * 0.90), max: Math.round(ftp * 1.05), pctRange: "90–105%" },
+    { zone: "Z5", label: "VO₂max", min: Math.round(ftp * 1.05), max: Math.round(ftp * 1.20), pctRange: "105–120%" },
+    { zone: "Z6", label: "Anaérobie", min: Math.round(ftp * 1.20), max: Math.round(ftp * 1.50), pctRange: "120–150%" },
+    { zone: "Z7", label: "Neuromusculaire", min: Math.round(ftp * 1.50), max: 9999, pctRange: ">150%" },
+  ] : null;
+
+  // HR zones based on FCmax (Karvonen-simplified)
+  const hrZones = fcMax ? [
+    { zone: "Z1", label: "Récupération", min: Math.round(fcMax * 0.50), max: Math.round(fcMax * 0.60), pctRange: "50–60%" },
+    { zone: "Z2", label: "Endurance", min: Math.round(fcMax * 0.60), max: Math.round(fcMax * 0.70), pctRange: "60–70%" },
+    { zone: "Z3", label: "Tempo", min: Math.round(fcMax * 0.70), max: Math.round(fcMax * 0.80), pctRange: "70–80%" },
+    { zone: "Z4", label: "Seuil", min: Math.round(fcMax * 0.80), max: Math.round(fcMax * 0.90), pctRange: "80–90%" },
+    { zone: "Z5", label: "VO₂max", min: Math.round(fcMax * 0.90), max: fcMax, pctRange: "90–100%" },
+  ] : null;
+
+  return (
+    <div className="print:break-inside-avoid">
+      <Separator className="my-4" />
+      <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+        ❤️ ZONES D'ENTRAÎNEMENT — PUISSANCE & FC
+      </h3>
+      <div className="p-4 rounded-lg bg-muted/30 border">
+        <div className={cn("grid gap-4", powerZones && hrZones ? "md:grid-cols-2" : "grid-cols-1")}>
+          {/* Power zones */}
+          {powerZones && (
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground mb-2">Zones Puissance (FTP: {ftp}W)</p>
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-1 font-medium">Zone</th>
+                    <th className="text-right py-1 font-medium">Watts</th>
+                    <th className="text-right py-1 font-medium">%FTP</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {powerZones.map(z => (
+                    <tr key={z.zone} className="border-b border-border/50">
+                      <td className="py-1"><span className="font-semibold">{z.zone}</span> {z.label}</td>
+                      <td className="py-1 font-mono text-right text-primary">
+                        {z.max < 9999 ? `${z.min}–${z.max}` : `>${z.min}`}
+                      </td>
+                      <td className="py-1 text-right text-muted-foreground">{z.pctRange}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* HR zones */}
+          {hrZones && (
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground mb-2">Zones FC (FCmax: {fcMax} bpm)</p>
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-1 font-medium">Zone</th>
+                    <th className="text-right py-1 font-medium">BPM</th>
+                    <th className="text-right py-1 font-medium">%FCmax</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {hrZones.map(z => (
+                    <tr key={z.zone} className="border-b border-border/50">
+                      <td className="py-1"><span className="font-semibold">{z.zone}</span> {z.label}</td>
+                      <td className="py-1 font-mono text-right text-primary">{z.min}–{z.max}</td>
+                      <td className="py-1 text-right text-muted-foreground">{z.pctRange}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        <p className="text-[10px] text-muted-foreground mt-3 italic">
+          Zones puissance: modèle Coggan. Zones FC: pourcentages de FCmax.
+          À valider avec les données de terrain et la perception subjective de l'athlète.
+        </p>
+      </div>
+    </div>
+  );
+}
