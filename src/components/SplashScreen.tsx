@@ -44,9 +44,9 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
       </div>
 
       {/* Glowing orbs background */}
-      <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-[float_6s_ease-in-out_infinite]" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-[float_8s_ease-in-out_infinite_reverse]" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-radial from-primary/15 to-transparent rounded-full blur-2xl animate-pulse" />
+      <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-[hsl(192,80%,50%)]/10 rounded-full blur-3xl animate-[float_6s_ease-in-out_infinite]" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[hsl(32,85%,52%)]/8 rounded-full blur-3xl animate-[float_8s_ease-in-out_infinite_reverse]" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-radial from-[hsl(192,80%,50%)]/15 to-transparent rounded-full blur-2xl animate-pulse" />
 
       {/* Logo container with rotating rings */}
       <div className="relative z-10 flex flex-col items-center gap-8">
