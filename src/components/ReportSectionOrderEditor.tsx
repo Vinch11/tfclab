@@ -67,11 +67,6 @@ export const SECTION_LABELS: Record<keyof ReportSections, string> = {
   evolutionCharts: "Graphiques Évolution",
   ageAdjustment: "Ajustement Âge (AAI)",
   ambitionLegend: "Légende des Cibles",
-  methodology: "Méthodologies Entraînement",
-  twoForCoaching: "Analyse Two For Coaching Lab™",
-  wahoo: "⛔ Wahoo (supprimé)",
-  planSuggestion: "Suggestion de Plan",
-  templateRecommendation: "Template Recommandé",
   zones: "Zones d'entraînement",
   historique: "Historique Snapshots",
   tests: "Historique Tests",
@@ -112,11 +107,6 @@ const SECTION_CATEGORIES: Record<keyof ReportSections, string> = {
   evolutionCharts: "Historique",
   ageAdjustment: "Profil",
   ambitionLegend: "Objectifs",
-  methodology: "Entraînement",
-  twoForCoaching: "Entraînement",
-  wahoo: "Entraînement",
-  planSuggestion: "Entraînement",
-  templateRecommendation: "Entraînement",
   zones: "Entraînement",
   historique: "Historique",
   tests: "Historique",
@@ -173,11 +163,6 @@ export const DEFAULT_SECTION_ORDER: (keyof ReportSections)[] = [
   "evolutionCharts",
   "ageAdjustment",
   "ambitionLegend",
-  "methodology",
-  "twoForCoaching",
-  "wahoo",
-  "planSuggestion",
-  "templateRecommendation",
   "zones",
   "historique",
   "tests",
@@ -216,11 +201,6 @@ export const DEFAULT_VISIBILITY: Record<keyof ReportSections, boolean> = {
   evolutionCharts: true,
   ageAdjustment: true,
   ambitionLegend: true,
-  methodology: true,
-  twoForCoaching: true,
-  wahoo: false,
-  planSuggestion: true,
-  templateRecommendation: true,
   zones: true,
   historique: true,
   tests: true,
@@ -516,7 +496,6 @@ export function ReportSectionOrderEditor() {
   const hideOptional = () => {
     // Masquer les sections moins essentielles
     const optionalSections: (keyof ReportSections)[] = [
-      "wahoo", "planSuggestion", "templateRecommendation", 
       "checkins", "comprendre", "qualite", "historique", "tests"
     ];
     setVisibility(prev => {
