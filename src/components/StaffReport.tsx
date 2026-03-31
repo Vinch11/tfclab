@@ -1332,42 +1332,13 @@ export function StaffReport({
         </div>
 
         <Separator />
-        
-        {/* 9️⃣ MÉTHODOLOGIE RECOMMANDÉE */}
-        <div>
-          <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-            <Target className="h-4 w-4" />
-            MÉTHODOLOGIE RECOMMANDÉE
-          </h3>
-          <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 mb-3">
-            <p className="font-bold text-lg mb-1">{report.methodologyRecommendation.recommendedApproachLabel}</p>
-            <p className="text-sm">{report.methodologyRecommendation.justification}</p>
-          </div>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="p-3 rounded-lg bg-muted/30">
-              <p className="text-xs font-medium text-muted-foreground mb-2">Principes clés :</p>
-              <ul className="text-xs space-y-1">
-                {report.methodologyRecommendation.keyPrinciples.map((p, i) => (
-                  <li key={i} className="flex items-start gap-1">
-                    <span className="text-primary">•</span> {p}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="p-3 rounded-lg bg-muted/30">
-              <p className="text-xs font-medium text-muted-foreground mb-2">Alternatives :</p>
-              {report.methodologyRecommendation.alternativeApproaches.map((a, i) => (
-                <div key={i} className="text-xs flex justify-between mb-1">
-                  <span>{a.name}</span>
-                  <Badge variant="outline" className="text-[9px]">{a.suitability}</Badge>
-                </div>
-              ))}
-            </div>
-          </div>
-          <p className="text-[10px] text-muted-foreground mt-2 italic">
-            {report.methodologyRecommendation.disclaimer}
-          </p>
-        </div>
+
+        {/* ADAPTATION PREDICTOR™ */}
+        <AdaptationPredictorReportSection
+          snapshot={snapshot}
+          objectif={objectif}
+          lorangInput={lorangInput}
+        />
 
         <Separator />
 
