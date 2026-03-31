@@ -496,7 +496,6 @@ export function ReportSectionOrderEditor() {
   const hideOptional = () => {
     // Masquer les sections moins essentielles
     const optionalSections: (keyof ReportSections)[] = [
-      "wahoo", "planSuggestion", "templateRecommendation", 
       "checkins", "comprendre", "qualite", "historique", "tests"
     ];
     setVisibility(prev => {
