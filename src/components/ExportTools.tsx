@@ -1332,29 +1332,9 @@ function buildExportPayload(
     ambition,
   });
 
-  // Calculer Dan Lorang (legacy — conservé pour backward compat)
   const ftpKg = effectiveRefs.ftp && effectiveRefs.weightKg && effectiveRefs.weightKg > 0
     ? effectiveRefs.ftp / effectiveRefs.weightKg
     : 4.0;
-  
-  const analysisResult = reglesTwoForCoaching(
-    { objectif: athlete.goal || "IM", masse_grasse: 15 } as any,
-    vlamax.value ?? 0.45,
-    tte.tte_min ?? 45,
-    ftpKg,
-    false,
-    true
-  );
-
-  const seancesCodes = getSeancesRecommandees(analysisResult.priorite);
-  const seancesDetails = seancesCodes.map(code => {
-    const seance = SEANCES[code];
-    return {
-      code,
-      nom: seance?.nom || code,
-      objectif: seance?.objectif || "—"
-    };
-  });
 
   // ✅ Calculer sportFocus AVANT le moteur unifié (cohérence dashboard)
   const objectifForLimiter = athlete.goal || "IM";
