@@ -18,10 +18,10 @@ export default defineConfig(({ mode }) => ({
       includeAssets: ["favicon.ico", "favicon.png", "apple-touch-icon-180x180.png", "pwa-192x192.png", "pwa-512x512.png"],
       manifest: {
         name: "Two For Coaching Lab",
-        short_name: "TFC Lab",
+        short_name: "2FC Lab",
         description: "Laboratoire de performance - Analyse physiologique staff-grade",
-        theme_color: "#080e17",
-        background_color: "#080e17",
+        theme_color: "#0d1117",
+        background_color: "#0d1117",
         display: "standalone",
         orientation: "any",
         start_url: "/",
