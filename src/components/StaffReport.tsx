@@ -8,8 +8,6 @@ import { getFtpKgLevelTargets } from "@/lib/scoreEnvelope";
  * RAPPORT STAFF PRÉ-COURSE - Composant UI
  * Synthèse d'une page, lisible en < 2 minutes
  */
- * Synthèse d'une page, lisible en < 2 minutes
- */
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
