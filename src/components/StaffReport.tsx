@@ -1,5 +1,9 @@
 import { fatigueStateToScoreOrDefault } from "@/lib/fatigueStateMapping";
 import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, computePillarCalculations } from "@/lib/potentielPhysiologiqueEffectif";
+import { computeFatMaxTFCL, type FatMaxTFCLResult, type FatMaxObjectif, FATMAX_DEFINITIONS } from "@/lib/v2/fatmaxTFCL";
+import { computeAdaptationPrediction, type AdaptationPredictorResult, type AdaptationScenario, getImpactScoreColor, getImpactScoreBgColor } from "@/lib/v2/adaptationPredictor";
+import { computeRunningEconomyV2, type RunningEconomyV2 } from "@/lib/v2/runningEconomyV2";
+import { getFtpKgLevelTargets } from "@/lib/scoreEnvelope";
 /**
  * RAPPORT STAFF PRÉ-COURSE - Composant UI
  * Synthèse d'une page, lisible en < 2 minutes
@@ -67,7 +71,7 @@ import {
   LONG_DISTANCE_PHILOSOPHY,
   type LongDistanceEnvelopeResult 
 } from "@/lib/v2/pacingEnvelopeLongDistance";
-import { computeFatMaxTFCL } from "@/lib/v2/fatmaxTFCL";
+// computeFatMaxTFCL already imported at top
 import type { DbSnapshot } from "@/hooks/useCloudData";
 import { DoubleBoucleCAPSection } from "@/components/StaffReportDoubleBoucleCAP";
 import type { RunningPhysioProfile, RunningWeeklyDecision } from "@/lib/v2/runningDoubleLoop";
@@ -659,64 +663,84 @@ export function StaffReport({
 
         <Separator />
 
-        {/* 4️⃣ PRÉDICTIONS D'AMBITION */}
-        <div>
-          <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            PRÉDICTIONS D'AMBITION
-          </h3>
-          
-          {/* Current Ambition Prediction Summary */}
-          <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 mb-3">
-            <p className="font-medium text-sm">{report.ambitionPredictions.currentAmbitionPrediction}</p>
-            <p className="text-xs text-muted-foreground mt-1">{report.ambitionPredictions.trendSummary}</p>
-          </div>
-          
-          {/* Predictions Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {report.ambitionPredictions.predictions.map((prediction) => {
-              const isCurrentAmbition = prediction.ambition === report.ambition;
-              return (
-                <div
-                  key={prediction.ambition}
-                  className={cn(
-                    "p-3 rounded-lg border text-center",
-                    isCurrentAmbition && "border-primary/50 bg-primary/5",
-                    prediction.isReached && "bg-emerald-500/10 border-emerald-500/30"
-                  )}
-                >
-                  <div className="font-medium text-sm mb-1">
-                    {prediction.ambitionIcon} {prediction.ambitionLabel}
-                  </div>
-                  <div className={cn(
-                    "text-lg font-bold",
-                    prediction.isReached && "text-emerald-600 dark:text-emerald-400"
-                  )}>
-                    {prediction.delayLabel}
-                  </div>
-                  {prediction.currentProgress !== null && !prediction.isReached && (
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {prediction.currentProgress}% actuel
-                    </div>
-                  )}
-                  <Badge 
-                    variant="outline" 
-                    className={cn(
-                      "text-[9px] mt-2",
-                      prediction.confidence === "high" && "border-emerald-500/50 text-emerald-600",
-                      prediction.confidence === "medium" && "border-blue-500/50 text-blue-600",
-                      prediction.confidence === "low" && "border-amber-500/50 text-amber-600"
-                    )}
-                  >
-                    {prediction.confidence === "high" ? "Confiant" : 
-                     prediction.confidence === "medium" ? "Estimé" : 
-                     prediction.confidence === "low" ? "Incertain" : "?"}
-                  </Badge>
+        {/* 4️⃣ FATMAX TFCL — ZONES MÉTABOLIQUES */}
+        {fatmax && (
+          <div className="print:break-inside-avoid">
+            <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+              🔥 FATMAX TFCL™ — ZONES MÉTABOLIQUES
+              <Badge 
+                variant="outline" 
+                className={cn(
+                  "text-[10px]",
+                  fatmax.confidenceLevel === "HIGH" && "border-emerald-500/50 text-emerald-600",
+                  fatmax.confidenceLevel === "MEDIUM" && "border-blue-500/50 text-blue-600",
+                  fatmax.confidenceLevel === "LOW" && "border-amber-500/50 text-amber-600"
+                )}
+              >
+                Confiance {fatmax.confidenceLabel}
+              </Badge>
+            </h3>
+            <div className="p-4 rounded-lg bg-muted/30 border">
+              <div className="grid grid-cols-3 gap-4 text-center mb-4">
+                <div className="p-3 rounded bg-background/50">
+                  <p className="text-xs text-muted-foreground mb-1">FatMax TFCL</p>
+                  <p className="text-lg font-bold text-primary">{fatmax.centerPctFTP}% FTP</p>
+                  <p className="text-[10px] text-muted-foreground">{fatmax.minPctFTP}–{fatmax.maxPctFTP}%</p>
                 </div>
-              );
-            })}
+                <div className="p-3 rounded bg-background/50">
+                  <p className="text-xs text-muted-foreground mb-1">Crossover Zone</p>
+                  <p className="text-lg font-bold text-amber-600 dark:text-amber-400">{fatmax.crossoverZoneLabel}</p>
+                  <p className="text-[10px] text-muted-foreground">50% lipides / 50% glucides</p>
+                </div>
+                <div className="p-3 rounded bg-background/50">
+                  <p className="text-xs text-muted-foreground mb-1">Zone Métabolique</p>
+                  <p className="text-lg font-bold">{fatmax.zoneLabel}</p>
+                </div>
+              </div>
+              
+              {fatmax.adjustments.length > 0 && (
+                <div className="mb-3 p-3 rounded bg-background/50">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Ajustements appliqués :</p>
+                  <div className="space-y-1">
+                    {fatmax.adjustments.map((adj, i) => (
+                      <div key={i} className="flex justify-between text-xs">
+                        <span>{adj.label}</span>
+                        <span className={cn(
+                          "font-mono",
+                          adj.direction === "up" ? "text-emerald-600" : adj.direction === "down" ? "text-destructive" : "text-muted-foreground"
+                        )}>
+                          {adj.value > 0 ? "+" : ""}{adj.value}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <p className="text-xs text-muted-foreground">{fatmax.interpretation}</p>
+              <p className="text-[10px] text-muted-foreground mt-2 italic">{fatmax.staffNote}</p>
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-2 italic">
+              ⚠️ {FATMAX_DEFINITIONS.scientificWarning}
+            </p>
           </div>
-        </div>
+        )}
+
+        {/* 4b️⃣ CIBLES FTP/kg ou VMA */}
+        <FtpVmaTargetsReportSection
+          objectif={objectif}
+          ftp={ftp}
+          poids={poids}
+          athleteAge={athleteAge}
+          snapshot={snapshot}
+        />
+
+        {/* 4c️⃣ ÉCONOMIE DE COURSE */}
+        <RunningEconomyReportSection
+          snapshot={snapshot}
+          objectif={objectif}
+          tteMin={tteEffectif.tte_min}
+        />
 
         <Separator />
 
@@ -1308,42 +1332,13 @@ export function StaffReport({
         </div>
 
         <Separator />
-        
-        {/* 9️⃣ MÉTHODOLOGIE RECOMMANDÉE */}
-        <div>
-          <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-            <Target className="h-4 w-4" />
-            MÉTHODOLOGIE RECOMMANDÉE
-          </h3>
-          <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 mb-3">
-            <p className="font-bold text-lg mb-1">{report.methodologyRecommendation.recommendedApproachLabel}</p>
-            <p className="text-sm">{report.methodologyRecommendation.justification}</p>
-          </div>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="p-3 rounded-lg bg-muted/30">
-              <p className="text-xs font-medium text-muted-foreground mb-2">Principes clés :</p>
-              <ul className="text-xs space-y-1">
-                {report.methodologyRecommendation.keyPrinciples.map((p, i) => (
-                  <li key={i} className="flex items-start gap-1">
-                    <span className="text-primary">•</span> {p}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="p-3 rounded-lg bg-muted/30">
-              <p className="text-xs font-medium text-muted-foreground mb-2">Alternatives :</p>
-              {report.methodologyRecommendation.alternativeApproaches.map((a, i) => (
-                <div key={i} className="text-xs flex justify-between mb-1">
-                  <span>{a.name}</span>
-                  <Badge variant="outline" className="text-[9px]">{a.suitability}</Badge>
-                </div>
-              ))}
-            </div>
-          </div>
-          <p className="text-[10px] text-muted-foreground mt-2 italic">
-            {report.methodologyRecommendation.disclaimer}
-          </p>
-        </div>
+
+        {/* ADAPTATION PREDICTOR™ */}
+        <AdaptationPredictorReportSection
+          snapshot={snapshot}
+          objectif={objectif}
+          lorangInput={lorangInput}
+        />
 
         <Separator />
 
@@ -2089,6 +2084,311 @@ function StaffCompassSection({
     <div className="print:break-inside-avoid">
       <Separator className="my-4" />
       <CoachingCompassCard input={compassInput} staffMode={true} className="border-0 shadow-none" />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FTP/VMA TARGETS REPORT SECTION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function FtpVmaTargetsReportSection({
+  objectif,
+  ftp,
+  poids,
+  athleteAge,
+  snapshot,
+}: {
+  objectif: string;
+  ftp: number | null;
+  poids: number | null;
+  athleteAge?: number | null;
+  snapshot?: DbSnapshot | null;
+}) {
+  const isRunning = ["Marathon", "Semi", "Course", "Trail", "10km"].some(o => objectif.includes(o));
+  const ftpKg = ftp && poids && poids > 0 ? ftp / poids : null;
+  const vma = snapshot?.vma ?? null;
+
+  if (isRunning) {
+    // VMA targets for running
+    return (
+      <>
+        <Separator />
+        <div className="print:break-inside-avoid">
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+            <Target className="h-4 w-4" />
+            CIBLES VMA PAR NIVEAU
+          </h3>
+          <div className="p-4 rounded-lg bg-muted/30 border">
+            {vma !== null && (
+              <div className="mb-4 p-3 bg-primary/10 rounded-lg border border-primary/30">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">VMA actuelle</span>
+                  <span className="font-mono font-bold text-primary text-lg">{vma.toFixed(1)} km/h</span>
+                </div>
+              </div>
+            )}
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: "🎯 Plausible", range: objectif === "Marathon" ? "16-18" : "17-19" },
+                { label: "🔥 Ambitieux", range: objectif === "Marathon" ? "18-20" : "19-21" },
+                { label: "👑 Elite", range: objectif === "Marathon" ? "20-22+" : "21-23+" },
+              ].map((t, i) => (
+                <div key={i} className="p-3 rounded bg-background/50 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">{t.label}</p>
+                  <p className="font-mono font-bold">{t.range} km/h</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // FTP/kg targets for cycling
+  const targets = getFtpKgLevelTargets(objectif, athleteAge, ftpKg);
+
+  return (
+    <>
+      <Separator />
+      <div className="print:break-inside-avoid">
+        <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+          <Target className="h-4 w-4" />
+          CIBLES FTP/kg PAR NIVEAU
+        </h3>
+        <div className="p-4 rounded-lg bg-muted/30 border">
+          {ftpKg !== null && (
+            <div className="mb-4 p-3 bg-primary/10 rounded-lg border border-primary/30">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">FTP/kg actuel</span>
+                <span className="font-mono font-bold text-primary text-lg">{ftpKg.toFixed(2)} W/kg</span>
+              </div>
+            </div>
+          )}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: "🎯 Plausible", zone: targets.plausible },
+              { label: "🔥 Ambitieux", zone: targets.ambitieux },
+              { label: "👑 Elite", zone: targets.eliteImprobable },
+            ].map((t, i) => (
+              <div key={i} className="p-3 rounded bg-background/50 text-center">
+                <p className="text-xs text-muted-foreground mb-1">{t.label}</p>
+                <p className="font-mono font-bold">{t.zone.min.toFixed(1)}–{t.zone.max.toFixed(1)} W/kg</p>
+                <p className="text-[10px] text-muted-foreground">{t.zone.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// RUNNING ECONOMY REPORT SECTION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function RunningEconomyReportSection({
+  snapshot,
+  objectif,
+  tteMin,
+}: {
+  snapshot?: DbSnapshot | null;
+  objectif: string;
+  tteMin: number | null;
+}) {
+  const isRunning = ["Marathon", "Semi", "Course", "Trail", "10km", "IM", "Ironman", "70.3"].some(o => objectif.includes(o));
+  if (!isRunning) return null;
+
+  const economyV2 = computeRunningEconomyV2({
+    fcMax: snapshot?.fc_max ?? null,
+    fcEndurance: snapshot?.run_hr_ref_bpm ?? null,
+    paceEndurance: snapshot?.run_pace_ref_sec_per_km ? snapshot.run_pace_ref_sec_per_km / 60 : null,
+    powerThreshold: snapshot?.running_power_threshold ?? null,
+    hrDriftPct: snapshot?.run_hr_drift_pct ?? null,
+    tteMin,
+    weightKg: snapshot?.weight_kg ?? null,
+    objectif,
+    sport: "course",
+  });
+
+  if (!economyV2 || !economyV2.isApplicable) return null;
+
+  return (
+    <>
+      <Separator />
+      <div className="print:break-inside-avoid">
+        <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+          🦶 ÉCONOMIE DE COURSE
+          <Badge variant="outline" className="text-[10px]">
+            {economyV2.levelEmoji} {economyV2.levelLabel}
+          </Badge>
+        </h3>
+        <div className="p-4 rounded-lg bg-muted/30 border">
+          <div className="grid grid-cols-3 gap-4 text-center mb-4">
+            <div className="p-3 rounded bg-background/50">
+              <p className="text-xs text-muted-foreground mb-1">Indice Économie</p>
+              <p className="text-lg font-bold">{economyV2.index}/100</p>
+            </div>
+            <div className="p-3 rounded bg-background/50">
+              <p className="text-xs text-muted-foreground mb-1">Dérive Cardiaque</p>
+              <p className="text-lg font-bold">{economyV2.hrDrift !== null ? `${economyV2.hrDrift.toFixed(1)}%` : "—"}</p>
+              <p className="text-[10px] text-muted-foreground">{economyV2.hrDriftLabel}</p>
+            </div>
+            <div className="p-3 rounded bg-background/50">
+              <p className="text-xs text-muted-foreground mb-1">Coût O₂</p>
+              <p className="text-lg font-bold">
+                {economyV2.estimatedO2Cost ? `${Math.round(economyV2.estimatedO2Cost.value)}` : "—"}
+              </p>
+              <p className="text-[10px] text-muted-foreground">
+                {economyV2.estimatedO2Cost ? `ml/kg/km • ${economyV2.estimatedO2Cost.levelLabel}` : "Non disponible"}
+              </p>
+            </div>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-3 mb-3">
+            <div className="p-3 rounded bg-background/50">
+              <p className="text-xs font-medium text-muted-foreground mb-1">Impact Performance</p>
+              <p className="text-xs">{economyV2.performanceImpact.description}</p>
+            </div>
+            <div className="p-3 rounded bg-background/50">
+              <p className="text-xs font-medium text-muted-foreground mb-1">Impact Risque Blessure</p>
+              <p className="text-xs">{economyV2.injuryRiskImpact.description}</p>
+            </div>
+          </div>
+          
+          {economyV2.optimizationLevers.length > 0 && (
+            <div className="p-3 rounded bg-primary/5 border border-primary/20">
+              <p className="text-xs font-medium text-primary mb-1">Leviers d'optimisation :</p>
+              <ul className="text-xs space-y-0.5">
+                {economyV2.optimizationLevers.slice(0, 3).map((l, i) => (
+                  <li key={i}>• {l}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADAPTATION PREDICTOR™ REPORT SECTION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function AdaptationPredictorReportSection({
+  snapshot,
+  objectif,
+  lorangInput,
+}: {
+  snapshot?: DbSnapshot | null;
+  objectif: string;
+  lorangInput?: LorangStrategyInput | null;
+}) {
+  if (!snapshot) return null;
+
+  // Compute limiter from lorang if available
+  let limiterId: string | null = null;
+  let limiterLabel: string | null = null;
+  if (lorangInput) {
+    try {
+      const result = computeLorangStrategy(lorangInput);
+      limiterId = result.primaryLimiter;
+      limiterLabel = result.limiterLabel;
+    } catch { /* fallback */ }
+  }
+
+  const predictionResult = computeAdaptationPrediction({
+    snapshot: snapshot as unknown as Record<string, unknown>,
+    limiterId,
+    limiterLabel,
+    objectif,
+  });
+
+  // Show only the best scenario and top 2 alternatives
+  const bestScenario = predictionResult.scenarios.find(s => s.lever.id === predictionResult.bestScenarioId);
+  const otherScenarios = predictionResult.scenarios
+    .filter(s => s.lever.id !== predictionResult.bestScenarioId)
+    .sort((a, b) => b.overallImpactScore - a.overallImpactScore)
+    .slice(0, 2);
+
+  if (!bestScenario) return null;
+
+  return (
+    <div className="print:break-inside-avoid">
+      <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+        🔮 TFCL ADAPTATION PREDICTOR™
+        <Badge variant="outline" className="text-[10px]">Projection 4-6 semaines</Badge>
+      </h3>
+      
+      {/* Best scenario */}
+      <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 mb-3">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xl">{bestScenario.lever.emoji}</span>
+          <div>
+            <p className="font-bold text-sm">{bestScenario.lever.label}</p>
+            <p className="text-xs text-muted-foreground">{bestScenario.lever.description}</p>
+          </div>
+          <Badge variant="outline" className={cn("text-[10px] ml-auto", getImpactScoreBgColor(bestScenario.overallImpactScore))}>
+            {bestScenario.impactLabel} ({bestScenario.overallImpactScore}/100)
+          </Badge>
+        </div>
+        
+        {/* Key metric deltas */}
+        <div className="grid grid-cols-4 gap-2 mb-3">
+          {bestScenario.metrics.filter(m => m.available && m.significance !== "none").slice(0, 4).map(m => (
+            <div key={m.id} className="p-2 rounded bg-background/50 text-center">
+              <p className="text-[10px] text-muted-foreground">{m.label}</p>
+              <p className={cn("text-xs font-bold", m.direction === "up" ? "text-emerald-600" : m.direction === "down" ? "text-destructive" : "text-muted-foreground")}>
+                {m.deltaMidPct > 0 ? "+" : ""}{m.deltaMidPct.toFixed(1)}%
+              </p>
+            </div>
+          ))}
+        </div>
+        
+        {/* Performance predictions */}
+        <div className="grid grid-cols-3 gap-2">
+          {bestScenario.performancePredictions.map(pp => (
+            <div key={pp.distance} className="p-2 rounded bg-background/50 text-center">
+              <p className="text-[10px] text-muted-foreground">{pp.distance}</p>
+              <p className={cn("text-xs font-bold", pp.improvementPct > 0 ? "text-emerald-600" : "text-muted-foreground")}>
+                {pp.improvementPct > 0 ? "+" : ""}{pp.improvementPct}%
+              </p>
+            </div>
+          ))}
+        </div>
+        
+        <p className="text-xs text-muted-foreground mt-2">{bestScenario.recommendation}</p>
+      </div>
+      
+      {/* Reason for best selection */}
+      <p className="text-xs text-muted-foreground mb-3">
+        <strong>Pourquoi ce levier :</strong> {predictionResult.bestScenarioReason}
+      </p>
+      
+      {/* Alternatives */}
+      {otherScenarios.length > 0 && (
+        <div className="grid md:grid-cols-2 gap-2">
+          {otherScenarios.map(s => (
+            <div key={s.lever.id} className="p-3 rounded-lg bg-muted/30 border">
+              <div className="flex items-center gap-2 mb-1">
+                <span>{s.lever.emoji}</span>
+                <span className="text-xs font-medium">{s.lever.label}</span>
+                <Badge variant="outline" className="text-[9px] ml-auto">
+                  {s.overallImpactScore}/100
+                </Badge>
+              </div>
+              <p className="text-[10px] text-muted-foreground">{s.recommendation}</p>
+            </div>
+          ))}
+        </div>
+      )}
+      
+      <p className="text-[10px] text-muted-foreground mt-2 italic">
+        💡 Projections basées sur le profil physiologique actuel. Résultats dépendants de l'observance et de la récupération.
+      </p>
     </div>
   );
 }
